@@ -16,21 +16,42 @@
 
 package io.qpointz.flow.data
 
-trait Record
-  extends Iterable[RecordValue]
+trait Vector
+  extends Iterable[AttributeValue]
 {
   def get(idx:AttributeIndex):AttributeValue
-
-  def get(key:AttributeKey):AttributeValue
-
   def size:Int
 }
+
+case class SeqVector(values: Seq[AttributeValue])
+ extends Vector {
+  override def get(idx: AttributeIndex): AttributeValue = values(idx)
+
+  override def iterator: Iterator[AttributeValue] = values.iterator
+}
+
+object Vector {
+
+  def apply(values:Seq[AttributeValue]):Vector = {
+    SeqVector(values)
+  }
+
+}
+
+trait Record
+  extends Vector
+  with Iterable[RecordValue]
+{
+  def get(key:AttributeKey):AttributeValue
+}
+
 
 object Record {
   def apply(attributeValue: Map[AttributeKey, AttributeValue]) : Record= {
     SeqRecord(attributeValue.toSeq)
   }
 }
+
 
 case class SeqRecord(private val record:Seq[RecordValue])
   extends Record {

@@ -110,6 +110,13 @@ object Dependencies {
     val ast     = "json4s-ast"  ~~ p
   }
 
+  object apachePoi {
+    val v = "4.1.1"
+    val p = "org.apache.poi" ~% v
+    val poi = "poi" ~~ p
+    val ooxml = "poi-ooxml" ~~ p
+  }
+
   object DepProfiles {
     lazy val lib:Seq[ModuleID] = Seq(
           //  slf4j.api

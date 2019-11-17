@@ -10,7 +10,8 @@ cancelable in Global := true
 
 lazy val `flow` = project.in(file("."))
   .aggregate(
-    `flow-core`
+    `flow-core`,
+    `flow-excel`,
   )
 
 lazy val `flow-core` = project.in(file("flow-core"))
@@ -18,6 +19,19 @@ lazy val `flow-core` = project.in(file("flow-core"))
     name := "flow-core",
     libraryDependencies ++= profiles(
       DepProfiles.lib
+    )
+  )
+
+lazy val `flow-excel` = project.in(file("flow-excel"))
+  .dependsOn(`flow-core`)
+  .settings(
+    name := "flow-excel",
+    libraryDependencies ++= profiles(
+      DepProfiles.lib
+    ) ,
+    libraryDependencies ++= modules(
+      apachePoi.ooxml,
+      apachePoi.poi
     )
   )
 
