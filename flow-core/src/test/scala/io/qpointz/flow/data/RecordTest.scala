@@ -19,11 +19,11 @@ package io.qpointz.flow.data
 import org.scalatest.{FlatSpec, Matchers}
 
 class SeqRecordTest extends RecordBaseTest {
-  override val r = SeqRecord(Seq("a"->1, "b"-> "bar"))
+  override val r = SeqRecord(Seq("a"->1, "b"-> "bar"), Metadata.empty)
 }
 
 class MapRecordTest extends RecordBaseTest {
-  override val r = MapRecord(Map("a"->1, "b"-> "bar"))
+  override val r = MapRecord(Map("a"->1, "b"-> "bar"), Metadata.empty)
 }
 
 abstract class RecordBaseTest extends FlatSpec with Matchers {

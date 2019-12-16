@@ -16,47 +16,26 @@
 
 package io.qpointz.flow.data
 
-trait Vector
-  extends Iterable[AttributeValue]
-{
-  def get(idx:AttributeIndex):AttributeValue
-  def size:Int
-}
-
-case class SeqVector(values: Seq[AttributeValue])
- extends Vector {
-  override def get(idx: AttributeIndex): AttributeValue = values(idx)
-
-  override def iterator: Iterator[AttributeValue] = values.iterator
-}
-
-object Vector {
-
-  def apply(values:Seq[AttributeValue]):Vector = {
-    SeqVector(values)
-  }
-
-}
-
 trait Record
   extends Vector
-  with Iterable[RecordValue]
+  with Iterable[Attribute]
 {
   def get(key:AttributeKey):AttributeValue
 }
 
 
 object Record {
-  def apply(attributeValue: Map[AttributeKey, AttributeValue]) : Record= {
-    SeqRecord(attributeValue.toSeq)
+  def apply(attributeValue: Map[AttributeKey, AttributeValue], metadata:Metadata = Metadata.empty) : Record= {
+    SeqRecord(attributeValue.toSeq, metadata)
   }
 }
 
 
-case class SeqRecord(private val record:Seq[RecordValue])
-  extends Record {
+case class SeqRecord(private val record:Seq[Attribute], metadata:Metadata)
+  extends Record
+  with MetadataTarget {
 
-  override def iterator: Iterator[RecordValue] = record.iterator
+  override def iterator: Iterator[Attribute] = record.iterator
 
   override def get(idx: AttributeIndex): AttributeValue = record(idx)._2
 
@@ -68,8 +47,9 @@ case class SeqRecord(private val record:Seq[RecordValue])
   override lazy val size : Int = record.size
 }
 
-case class MapRecord(private val record:Map[AttributeKey, AttributeValue])
-  extends Record {
+case class MapRecord(private val record:Map[AttributeKey, AttributeValue], metadata:Metadata)
+  extends Record
+  with MetadataTarget {
 
   override def get(key: AttributeKey): AttributeValue = record(key)
 
