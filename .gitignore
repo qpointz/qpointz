@@ -1,0 +1,54 @@
+#idea files
+.idea/libraries/
+.idea/modules/
+.idea/codeStyles/
+.idea/*.xml
+.idea/$PRODUCT_WORKSPACE_FILE$
+.idea/sonarlint
+*.ipr
+*.iws
+*.iml
+*.log
+
+.ideaDataSources/
+dataSources/
+
+#gradle files 
+build/
+out/
+.gradle
+
+#gradle wrapper files 
+/gradle/
+/gradlew
+/gradlew.bat
+
+
+#eclipse files
+bin 
+.settings
+.project
+.cache-*
+.classpath
+/target
+*.iml
+
+#sbt
+bin/
+target/
+.cache
+.classpath
+.project
+.settings
+
+#ignore generated poms 
+/projects/*/pom.xml
+pom.xml
+
+logs/
+lib_managed/
+_grd
+
+#ignore python files
+__pycache__/
+venv/
