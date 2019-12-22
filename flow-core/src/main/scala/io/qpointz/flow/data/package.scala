@@ -11,6 +11,21 @@ package object data {
   type MetadataKey      = String
   type MetadataValue    = Any
   type MetadataItem     = (MetadataGroupKey, MetadataKey, MetadataValue)
-  type Metadata         = List[MetadataItem]
+  type Metadata         = Seq[MetadataItem]
+
+  object AttributeValue {
+    object Null  {}
+    object Error {}
+    object Empty {}
+    object Missing {}
+  }
+
+  object RecordTags {
+    val OK:String  = "OK"
+    val NOK:String = "NOK"
+    val MissingValue:String = "Missing value"
+    val UnexpectedValue:String = "Unexpected value"
+
+  }
 
 }

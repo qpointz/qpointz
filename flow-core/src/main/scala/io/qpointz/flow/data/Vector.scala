@@ -1,23 +1,23 @@
 package io.qpointz.flow.data
 
-trait Vector
+trait ValuesVector
   extends Iterable[AttributeValue]
 {
   def get(idx:AttributeIndex):AttributeValue
   def size:Int
 }
 
-case class SeqVector(values: Seq[AttributeValue], metadata:Metadata)
-  extends Vector
+case class SeqValuesVector(values: Seq[AttributeValue], metadata:Metadata)
+  extends ValuesVector
   with MetadataTarget {
   override def get(idx: AttributeIndex): AttributeValue = values(idx)
   override def iterator: Iterator[AttributeValue] = values.iterator
 }
 
-object Vector {
+object ValuesVector {
 
-  def apply(values:Seq[AttributeValue], metadata:Metadata = Metadata.empty):Vector = {
-    SeqVector(values, metadata)
+  def apply(values:Seq[AttributeValue], metadata:Metadata = Metadata.empty):ValuesVector = {
+    SeqValuesVector(values, metadata)
   }
 
 }

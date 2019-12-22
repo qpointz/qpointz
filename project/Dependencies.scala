@@ -41,8 +41,8 @@ object Dependencies {
   }
 
   object logback {
-    //lazy val p = "ch.qos.logback" ~% "1.2.3"
-    //lazy val classic = "logback-classic" ~~ p
+    lazy val v = "ch.qos.logback" ~% "1.2.3"
+    lazy val classic = "logback-classic" ~~ v
   }
 
   object akka {

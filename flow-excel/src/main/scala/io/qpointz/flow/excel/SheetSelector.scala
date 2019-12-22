@@ -7,6 +7,7 @@ import scala.util.matching.Regex
 import WorkbookMethods._
 
 trait SheetCriteria {}
+
 object AnySheet extends SheetCriteria {}
 
 case class SheetByName(sheetName:String) extends SheetCriteria
@@ -58,5 +59,4 @@ object SheetSelector {
     val exclude = matchBy(include, selector.exclude)
     include -- exclude
   }
-
 }

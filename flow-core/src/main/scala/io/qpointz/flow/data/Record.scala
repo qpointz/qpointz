@@ -17,7 +17,7 @@
 package io.qpointz.flow.data
 
 trait Record
-  extends Vector
+  extends ValuesVector
   with Iterable[Attribute]
 {
   def get(key:AttributeKey):AttributeValue
