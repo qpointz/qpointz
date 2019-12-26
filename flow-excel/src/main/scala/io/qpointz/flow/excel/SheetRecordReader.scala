@@ -5,9 +5,16 @@ import org.apache.poi.ss.usermodel.{Cell, CellType, DateUtil, Row, Sheet}
 
 import scala.jdk.CollectionConverters._
 
+class SheetRecordReaderSettings {
+  var recordTags:Set[String] = Set()
+  var noneValue: AttributeValue  = AttributeValue.Null
+  var blankValue: AttributeValue = AttributeValue.Empty
+  var errorValue: AttributeValue = AttributeValue.Error
+  var columns:SheetColumnCollection = _
+}
 
 class SheetRecordReader(val sheet:Sheet,
-                        val settings: RecordReaderSettings,
+                        val settings: SheetRecordReaderSettings,
                         val extraMetadata:Metadata
                        ) extends RecordReader {
 
@@ -51,6 +58,7 @@ class SheetRecordReader(val sheet:Sheet,
           case (Some(cell), Some(col)) => (col.header, cellValue(cell), Set())
           case (None, Some(col)) => (col.header, AttributeValue.Missing, Set(RecordTags.MissingValue))
           case (Some(cell), None) => (s"Column_${x}", cellValue(cell), Set(RecordTags.UnexpectedValue))
+          case _ => throw new IllegalArgumentException(s"Missing column index:${x}")
         }})
 
       val values = columnvalues

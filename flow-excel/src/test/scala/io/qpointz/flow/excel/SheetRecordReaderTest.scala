@@ -19,7 +19,7 @@ class SheetRecordReaderTest extends FlatSpec with Matchers {
 
   val testSheet = ExcelTestMethods.sheet("TestData","TestData")
 
-  val testSettings = new RecordReaderSettings()
+  val testSettings = new SheetRecordReaderSettings()
   testSettings.recordTags = Set("TESTDATA_RECORD")
   testSettings.columns = testColumns
 
