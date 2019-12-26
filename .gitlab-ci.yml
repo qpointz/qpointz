@@ -1,0 +1,48 @@
+image: qpointz/enzyme-ci-sbt:latest
+stages:
+ - test
+
+cache:
+  key: "$CI_COMMIT_SHA"
+  paths:
+    - project/
+    - ./**/target/
+    - target/
+    - project/project
+
+test:
+  stage: test
+  script:
+    - sbt test
+    - sbt 'testOnly -- -h target/test-reports-out'
+  artifacts:
+         untracked: true
+         paths:
+           - target/test-reports-out/**/*
+
+testWCoverage:
+  stage: test
+  only:
+    - dev
+    - master
+  script:
+    - sbt clean coverage test coverageReport coverageAggregate
+  artifacts:
+       untracked: true
+       paths:
+         - srv/src/main/resources/ui/**/*.*
+         - target/scala-*/scoverage-report/**/*
+       expire_in: 10 days
+
+testWScalastyle:
+    stage: test
+    only:
+      - dev
+      - master
+    script:
+      - sbt scalastyle
+      - etc/misc/checkstyle.sh
+    artifacts:
+         untracked: true
+         paths:
+           - target/scalastyle/*.*
