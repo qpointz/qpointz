@@ -9,10 +9,6 @@ class WorkbookRecordReaderSettings {
 
 case class SheetSelectionSettings(selector:SheetSelector, sheetRecordReaderSettings: SheetRecordReaderSettings)
 
-object WorkbookRecordReader {
-
-}
-
 class WorkbookRecordReader(val workbook: Workbook,
                            val settings: WorkbookRecordReaderSettings,
                            val extraMetadata: Metadata)

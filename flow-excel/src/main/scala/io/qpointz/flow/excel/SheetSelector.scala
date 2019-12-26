@@ -10,15 +10,15 @@ trait SheetCriteria {}
 
 object AnySheet extends SheetCriteria {}
 
-case class SheetByName(sheetName:String) extends SheetCriteria
+case class SheetByName(sheetName:String) extends SheetCriteria {}
 
-case class SheetByIdx(sheetIdx:Int)  extends SheetCriteria
+case class SheetByIdx(sheetIdx:Int)  extends SheetCriteria {}
 
 case class SheetByNamePattern(namePatter:String) extends SheetCriteria {
   lazy val nameRx: Regex = namePatter.r
 }
 
-case class SheetSelector(include:List[SheetCriteria], exclude:List[SheetCriteria])
+case class SheetSelector(include:List[SheetCriteria], exclude:List[SheetCriteria]) {}
 
 object SheetSelector {
 

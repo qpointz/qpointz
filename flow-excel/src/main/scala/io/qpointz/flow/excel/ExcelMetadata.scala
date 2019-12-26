@@ -21,5 +21,7 @@ object ExcelMetadata {
 
   def rowIndex(idx:Int):MetadataItem = item("row:index", idx)
 
+  def recordLabel(label:String):MetadataItem = item("record:label", label)
+
   def recordTags(tags:Set[String]):MetadataItem = item("record:tags", tags)
 }

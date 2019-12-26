@@ -6,7 +6,7 @@ import org.apache.poi.ss.usermodel.{Cell, CellType, DateUtil, Row, Sheet}
 import scala.jdk.CollectionConverters._
 
 class SheetRecordReaderSettings {
-  var recordTags:Set[String] = Set()
+  var recordLabel:String = _
   var noneValue: AttributeValue  = AttributeValue.Null
   var blankValue: AttributeValue = AttributeValue.Empty
   var errorValue: AttributeValue = AttributeValue.Error
@@ -28,6 +28,8 @@ class SheetRecordReader(val sheet:Sheet,
       case CellType.NUMERIC => c.getNumericCellValue
       case CellType.BOOLEAN => c.getBooleanCellValue
       case CellType.STRING => c.getStringCellValue
+      case CellType.FORMULA if c.getCellFormula.startsWith("TRUE") => true
+      case CellType.FORMULA if c.getCellFormula.startsWith("FALSE") => false
       case CellType.FORMULA => byType(c.getCachedFormulaResultType)
       case CellType._NONE => settings.noneValue
       case CellType.BLANK => settings.blankValue
@@ -77,7 +79,8 @@ class SheetRecordReader(val sheet:Sheet,
 
       val metadata = sheetMetadata :+
         rowIndex(r.getRowNum) :+
-        recordTags(fulltags ++ settings.recordTags)
+        recordLabel(settings.recordLabel) :+
+        recordTags(fulltags)
 
       Record(values, metadata)
     }

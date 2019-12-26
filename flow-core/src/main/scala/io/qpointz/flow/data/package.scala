@@ -28,4 +28,13 @@ package object data {
 
   }
 
+  implicit class RecordOps(r:Record) {
+
+    def metadata():Metadata = r match {
+      case mt:MetadataTarget => mt.metadata
+      case _ => Seq()
+    }
+
+  }
+
 }

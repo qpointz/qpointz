@@ -28,6 +28,9 @@ object Record {
   def apply(attributeValue: Map[AttributeKey, AttributeValue], metadata:Metadata = Metadata.empty) : Record= {
     SeqRecord(attributeValue.toSeq, metadata)
   }
+
+
+
 }
 
 
