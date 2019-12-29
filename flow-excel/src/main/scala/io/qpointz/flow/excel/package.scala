@@ -14,12 +14,29 @@
  * limitations under the License.
  */
 
-package io.qpointz
+package io.qpointz.flow
 
-package object flow {
+package object excel {
 
-  class FlowException(private val message: String = "",
+  case class SheetColumn(index:Int, header:String) {}
+
+  type SheetColumnCollection = Seq[SheetColumn]
+
+  implicit class SheetColumnCollectionOps(sc:SheetColumnCollection) {
+    def byColIndexOp(idx:Int): Option[SheetColumn] = {
+      sc.find(_.index==idx)
+    }
+
+    def colIndexMap(): Map[Int, SheetColumn] = { sc
+      .map(k=>(k.index, k))
+      .toMap
+    }
+
+  }
+
+  class FlowExcelException(private val message: String = "",
                       private val cause: Throwable = None.orNull
-                      ) extends Exception(message, cause)
+                     ) extends FlowException(message, cause)
 
+  type SheetSelectionSettingsCollection = List[SheetSelectionSettings]
 }

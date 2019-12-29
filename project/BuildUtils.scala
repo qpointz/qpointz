@@ -1,11 +1,5 @@
-import sbt._
-import java.nio.file.{Files, Paths}
-
-import sbt.librarymanagement.ModuleID
-import sbt.{File, file}
-
 /*
- * Copyright  2019 qpointz.io
+ * Copyright 2019 qpointz.io
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +14,34 @@ import sbt.{File, file}
  * limitations under the License.
  */
 
+import Dependencies._
+import sbt.Keys.libraryDependencies
+import sbt._
+import Keys._
+import sbt.Def._
+import java.nio.file.{Files, Paths}
+
+import sbt.librarymanagement.ModuleID
+import sbt.{File, file}
+
 import collection.JavaConverters._
 
 object BuildUtils {
+
+  def libProject(pn:String): Project = {
+    val prjPath = pn
+    sbt.Project(pn, file(prjPath))
+      .settings(
+        name:= pn,
+        libraryDependencies ++= profiles(
+          DepProfiles.lib
+        ),
+        testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oI",
+          "-h", s"${prjPath}/target/test-reports/html",
+          "-u", s"${prjPath}/target/test-reports/xml",
+        )
+      )
+  }
 
   def dirTo(p:File, relTo:String) = {
     val absPath = Paths.get(p.getAbsolutePath)

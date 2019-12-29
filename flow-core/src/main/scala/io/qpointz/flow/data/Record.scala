@@ -1,5 +1,5 @@
 /*
- * Copyright  2019 qpointz.io
+ * Copyright 2019 qpointz.io
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package io.qpointz.flow.data
 
 trait Record
-  extends Vector
+  extends ValuesVector
   with Iterable[Attribute]
 {
   def get(key:AttributeKey):AttributeValue
@@ -28,6 +28,9 @@ object Record {
   def apply(attributeValue: Map[AttributeKey, AttributeValue], metadata:Metadata = Metadata.empty) : Record= {
     SeqRecord(attributeValue.toSeq, metadata)
   }
+
+
+
 }
 
 

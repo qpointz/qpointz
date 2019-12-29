@@ -1,5 +1,5 @@
 /*
- * Copyright  2019 qpointz.io
+ * Copyright 2019 qpointz.io
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-import sbt._
-import sbt.Keys.{testOptions, _}
-import sbt.{TestFrameworks, Tests}
+package io.qpointz.flow.data
 
-object BuildSettings {
-  lazy val scalaLangVersion = "2.13.1"
-  lazy val version = "0.0.1"
+object RecordMetadata extends MetadataOps(groupKey = "record") {
 
-  lazy val testSettings = Seq(
-    testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oI", "-h", "target/test-reports-out")
-  )
+  implicit class RecordMetadataOps(m:Metadata) {
+    def recordLabel: MetadataItemOps[String] = item[String](m, "record:label")
+
+    def recordTags: MetadataItemOps[Set[String]] = item[Set[String]](m, "record:tags")
+  }
 
 }

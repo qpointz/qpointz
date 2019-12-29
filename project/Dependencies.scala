@@ -41,8 +41,8 @@ object Dependencies {
   }
 
   object logback {
-    //lazy val p = "ch.qos.logback" ~% "1.2.3"
-    //lazy val classic = "logback-classic" ~~ p
+    lazy val v = "ch.qos.logback" ~% "1.2.3"
+    lazy val classic = "logback-classic" ~~ v
   }
 
   object akka {
@@ -53,13 +53,13 @@ object Dependencies {
   }
 
   object scalaTest {
-    lazy val v  = "org.scalatest" ~%% "3.0.8"
+    lazy val v  = "org.scalatest" ~%% "3.1.0"
     lazy val scalaTest = v ~~ "scalatest"
   }
 
   object scalaMock
   {
-    val v         = "4.3.0"
+    val v         = "4.4.0"
     val p         = "org.scalamock" ~%% v
     val scalamock = "scalamock" ~~ p
   }
@@ -128,7 +128,7 @@ object Dependencies {
           , scalaTest.scalaTest % Test
           //, scalactic
           , scalaMock.scalamock % Test
-          , "org.pegdown" % "pegdown" % "1.6.0" % Test
+          , "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test
       )
 
     lazy val json4sCommon:Seq[ModuleID] = Seq(
