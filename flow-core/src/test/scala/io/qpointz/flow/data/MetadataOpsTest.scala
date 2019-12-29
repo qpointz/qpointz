@@ -22,4 +22,28 @@ import org.scalatest.matchers.should.Matchers
 
 class MetadataOpsTest extends AnyFlatSpec with Matchers {
 
+  object TestMeta extends MetadataOps("b") {
+
+    implicit class TestMetaOps(m: Metadata) {
+      def b1: MetadataItemOps[String] = item[String](m, "b1")
+
+      def b2: MetadataItemOps[Int] = item[Int](m, "b2")
+    }
+
+  }
+
+  import TestMeta._
+
+  behavior of "ops object"
+
+  it should "put meta" in {
+    val m = List()
+      .b1("hello")
+      .b2(100)
+
+    m.b2() should be (100)
+  }
+
+
+
 }

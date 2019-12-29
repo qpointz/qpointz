@@ -25,10 +25,10 @@ object ExcelMetadata extends MetadataOps("excel"){
   implicit class ExcelMetaOps(val m:Metadata) {
     def workbookPath: MetadataItemOps[String] = item[String](m, "workbook:path")
     def workbookSource: MetadataItemOps[String] = item[String](m, "workbook:source")
+    def workbookVersion: MetadataItemOps[SpreadsheetVersion] = item[SpreadsheetVersion](m, "workbook:version")
     def sheetIndex: MetadataItemOps[Int] = item[Int](m, "sheet:index")
     def sheetName: MetadataItemOps[String] = item[String](m, "sheet:name")
     def rowIndex: MetadataItemOps[Int] = item[Int](m, "row:index")
-    def workbookVersion(spreadsheetVersion: SpreadsheetVersion): MetadataItemOps[SpreadsheetVersion] = item[SpreadsheetVersion](m, "workbook:version")
   }
 
 }
