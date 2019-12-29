@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 qpointz.io
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.qpointz.flow.excel
 
 import io.qpointz.flow.data.{AttributeKey, AttributeValue, Metadata, Record, RecordReader, RecordTags}
@@ -19,6 +35,7 @@ class SheetRecordReader(val sheet:Sheet,
                        ) extends RecordReader {
 
   import ExcelMetadata._
+  import io.qpointz.flow.data.RecordMetadata._
   import WorkbookMethods._
 
   private def cellValue(c:Cell):AttributeValue = {
@@ -42,9 +59,9 @@ class SheetRecordReader(val sheet:Sheet,
   def iterator: Iterator[Record] = {
     val columns = settings.columns.colIndexMap()
 
-    val sheetMetadata = extraMetadata ++ Seq(
-      sheetIndex(sheet.index),
-      sheetName(sheet.name))
+    val sheetMetadata = extraMetadata
+      .sheetIndex(sheet.index)
+      .sheetName(sheet.name)
 
     val colKeys = columns.keys.toSet
 
@@ -69,7 +86,6 @@ class SheetRecordReader(val sheet:Sheet,
 
       val tags = columnvalues
         .flatMap(_._3)
-        .toSet
 
       val fulltags =  if (tags.isEmpty) {
         Set(RecordTags.OK)
@@ -77,10 +93,10 @@ class SheetRecordReader(val sheet:Sheet,
         tags + RecordTags.NOK
       }
 
-      val metadata = sheetMetadata :+
-        rowIndex(r.getRowNum) :+
-        recordLabel(settings.recordLabel) :+
-        recordTags(fulltags)
+      val metadata = sheetMetadata
+          .rowIndex(r.getRowNum)
+          .recordLabel(settings.recordLabel)
+          .recordTags(fulltags)
 
       Record(values, metadata)
     }

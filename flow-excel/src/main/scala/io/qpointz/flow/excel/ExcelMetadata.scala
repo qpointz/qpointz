@@ -1,27 +1,34 @@
+/*
+ * Copyright 2019 qpointz.io
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.qpointz.flow.excel
 
-import io.qpointz.flow.data.{MetadataGroupKey, MetadataItem, MetadataKey, MetadataValue}
+import io.qpointz.flow.data.{Metadata, MetadataItem, MetadataItemOps, MetadataKey, MetadataOps, MetadataValue}
 import org.apache.poi.ss.SpreadsheetVersion
 
-object ExcelMetadata {
 
-  val groupKey: MetadataGroupKey = "excel"
+object ExcelMetadata extends MetadataOps("excel"){
 
-  def workbookPath(path: String): (MetadataGroupKey, MetadataKey, MetadataValue) = item("workbook:path", path)
+  implicit class ExcelMetaOps(val m:Metadata) {
+    def workbookPath: MetadataItemOps[String] = item[String](m, "workbook:path")
+    def workbookSource: MetadataItemOps[String] = item[String](m, "workbook:source")
+    def sheetIndex: MetadataItemOps[Int] = item[Int](m, "sheet:index")
+    def sheetName: MetadataItemOps[String] = item[String](m, "sheet:name")
+    def rowIndex: MetadataItemOps[Int] = item[Int](m, "row:index")
+    def workbookVersion(spreadsheetVersion: SpreadsheetVersion): MetadataItemOps[SpreadsheetVersion] = item[SpreadsheetVersion](m, "workbook:version")
+  }
 
-  def workbookSource(source: String): (MetadataGroupKey, MetadataKey, MetadataValue) = item("workbook:source", source)
-
-  def workbookVersion(spreadsheetVersion: SpreadsheetVersion): MetadataItem = item("workbook:version", spreadsheetVersion.toString)
-
-  def item(key: MetadataKey, value: MetadataValue): MetadataItem = (groupKey, key, value)
-
-  def sheetIndex(idx: Int): MetadataItem = item("sheet:index", idx)
-
-  def sheetName(name: String): MetadataItem = item("sheet:name", name)
-
-  def rowIndex(idx:Int):MetadataItem = item("row:index", idx)
-
-  def recordLabel(label:String):MetadataItem = item("record:label", label)
-
-  def recordTags(tags:Set[String]):MetadataItem = item("record:tags", tags)
 }
