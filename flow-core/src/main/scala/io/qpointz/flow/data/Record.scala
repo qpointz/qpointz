@@ -18,6 +18,8 @@ package io.qpointz.flow.data
 
 trait Record
   extends ValuesVector
+  with MetadataTarget
+
   with Iterable[Attribute]
 {
   def get(key:AttributeKey):AttributeValue
