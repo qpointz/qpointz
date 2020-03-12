@@ -1,5 +1,5 @@
 addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "1.0.0")
-addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.5.2")
+addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.6.1")
 addSbtPlugin("org.jmotor.sbt" % "sbt-dependency-updates" % "1.2.1")
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.9.2")
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")

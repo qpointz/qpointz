@@ -13,6 +13,7 @@ lazy val `flow` = project.in(file("."))
   .aggregate(
     `flow-core`,
     `flow-excel`,
+    `flow-jdbc`,
     `flow-parquet`
   )
 
@@ -27,6 +28,12 @@ lazy val `flow-excel` = libProject("flow-excel")
     )
   )
 
+lazy val `flow-jdbc` = libProject("flow-jdbc")
+  .dependsOn(`flow-core`)
+  .settings(
+
+  )
+
   lazy val `flow-parquet` = libProject("flow-parquet")
   .dependsOn(`flow-core`)
   .settings(
@@ -34,9 +41,9 @@ lazy val `flow-excel` = libProject("flow-excel")
       "org.apache.parquet" % "parquet-avro" % "1.11.0",
       "org.apache.hadoop" % "hadoop-client" % "3.2.1",
       "org.apache.hadoop" % "hadoop-common" % "3.2.1",
-      "org.apache.avro" % "avro" % "1.9.1",
-      "org.apache.avro" % "avro-mapred" % "1.9.1",
-      "software.amazon.awssdk" % "aws-sdk-java" % "2.10.41",
+      "org.apache.avro" % "avro" % "1.9.2",
+      "org.apache.avro" % "avro-mapred" % "1.9.2",
+      "software.amazon.awssdk" % "aws-sdk-java" % "2.10.85",
       scala.reflect
     )
   )
