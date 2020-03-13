@@ -30,8 +30,10 @@ lazy val `flow-excel` = libProject("flow-excel")
 
 lazy val `flow-jdbc` = libProject("flow-jdbc")
   .dependsOn(`flow-core`)
-  .settings(
-
+  .settings (
+    libraryDependencies ++= modules(
+      "com.h2database" % "h2" % "1.4.200"
+    )
   )
 
   lazy val `flow-parquet` = libProject("flow-parquet")

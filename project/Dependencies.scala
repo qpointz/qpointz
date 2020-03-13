@@ -128,7 +128,7 @@ object Dependencies {
           , scalaTest.scalaTest % Test
           //, scalactic
           , scalaMock.scalamock % Test
-          , "com.vladsch.flexmark" % "flexmark-all" % "0.60.2" % Test
+          , "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test
       )
 
     lazy val json4sCommon:Seq[ModuleID] = Seq(
