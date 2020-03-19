@@ -16,29 +16,48 @@
 
 package io.qpointz.flow
 
-import io.qpointz.flow.{MapRecord, Metadata, Record, SeqRecord}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class SeqRecordTest extends RecordBaseTest {
-  override val r = SeqRecord(Seq("a"->1, "b"-> "bar"), Metadata.empty)
-}
+class RecordTest extends AnyFlatSpec with Matchers {
 
-class MapRecordTest extends RecordBaseTest {
-  override val r = MapRecord(Map("a"->1, "b"-> "bar"), Metadata.empty)
-}
+  import Record._
 
-abstract class RecordBaseTest extends FlatSpec with Matchers {
+  val extraMeta = Seq(("group2", "item2.1", "ho"))
 
-  val r:Record
+  val baseMeta = Seq(
+    ("group.1", "item.1.1", 1),
+    ("group.1", "item.1.2", 2)
+  )
 
-  behavior of "get(idx)"
+  val r = Record(Map("a"->"foo", "b"->"bar", "c"->300), baseMeta)
 
-  it should "return when exists" in {
-    r.get(0) shouldBe 1
+  val combinedMeta = (baseMeta ++ extraMeta).toSet
+
+  "keysSet" should "return attributes set" in {
+    r.keySet shouldBe(Set("a","b","c"))
   }
 
-  it should "throw on invalid index" in {
-    assertThrows[IndexOutOfBoundsException](r.get(4))
+  "keys" should "return attributes iterable" in {
+    r.keys shouldBe Set("a","b","c")
+  }
+
+  "contains" should "return true if key exists" in {
+    r.contains("a") shouldBe true
+  }
+
+  it should "return false on missing keys" in {
+    r.contains("dummy-key") shouldBe false
+  }
+
+  behavior of "getOp(key) "
+
+  it should "return existing key" in {
+    r.getOp("a") shouldBe Some("foo")
+  }
+
+  it should "return None for missing key" in {
+    r.getOp("missing") shouldBe None
   }
 
   behavior of "get(key)"
@@ -50,5 +69,101 @@ abstract class RecordBaseTest extends FlatSpec with Matchers {
   it should "throw on missing key" in {
     assertThrows[NoSuchElementException](r.get("dummy"))
   }
+
+  behavior of "apply(key)"
+
+  it should "return on existing key" in {
+    r("b") shouldBe "bar"
+  }
+
+  it should "throw on missing key" in {
+    assertThrows[NoSuchElementException](r("dummy"))
+  }
+
+  behavior of "getOrElse(key, value)"
+
+  it should "return value of existing key" in {
+    r.getOrElse("a", "dummy-value") shouldBe("foo")
+  }
+
+  it should "return default on missing key" in {
+    r.getOrElse("z", "fallback") shouldBe("fallback")
+  }
+
+  behavior of "put(...)"
+
+  val putRecord = r.put(Map("a" ->100, "z"->"frank"), extraMeta)
+
+  it should "override existing values" in  {
+    putRecord("a") shouldBe 100
+  }
+
+  it should "add missing values" in {
+    putRecord("z") shouldBe "frank"
+  }
+
+  it should "combine meta" in {
+    putRecord.meta.toSet shouldBe combinedMeta
+  }
+
+  behavior of "set(...)"
+
+  val setRecord = r.set(Map("a"->"100"),extraMeta)
+
+  it should "update existing values" in {
+    setRecord("a") shouldBe "100"
+  }
+
+  it should "combine meta" in {
+    setRecord.meta.toSet shouldBe combinedMeta
+  }
+
+  it should "throw on missing keys" in {
+    assertThrows[NoSuchElementException](r.set(Map("z"->100),Metadata.empty))
+  }
+
+  behavior of "append"
+
+  val appendRecord = r.append(Map("a"->100, "z"->"bar"),extraMeta)
+  it should "add missing values" in {
+    appendRecord("z") shouldBe "bar"
+  }
+
+  it should "retain existing values" in {
+    appendRecord("a") shouldBe "foo"
+  }
+
+  it should "combine meta" in {
+    setRecord.meta.toSet shouldBe combinedMeta
+  }
+
+  behavior of "drop"
+
+  val dropRecord = r.drop(Seq("a", "z"),extraMeta)
+  it should "drop existing values" in {
+    dropRecord.contains("a") shouldBe false
+    dropRecord.keySet shouldBe Set("b","c")
+  }
+
+  it should "combine meta" in {
+    setRecord.meta.toSet shouldBe combinedMeta
+  }
+
+  behavior of "remove"
+  val removeRecord = r.remove(Seq("a"),extraMeta)
+  it should "retain existing values" in {
+    removeRecord.contains("a") shouldBe false
+    removeRecord.keySet shouldBe Set("b","c")
+  }
+
+  it should "combine meta" in {
+    setRecord.meta.toSet shouldBe combinedMeta
+  }
+
+  it should "fail on missing keys" in {
+    assertThrows[NoSuchElementException](r.remove(Seq("aa","bb"),extraMeta))
+  }
+
+
 
 }

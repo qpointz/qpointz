@@ -16,24 +16,18 @@
 
 package io.qpointz.flow
 
-trait ValuesVector
-  extends Iterable[AttributeValue]
-{
-  def get(idx:AttributeIndex):AttributeValue
-  def size:Int
-}
+package object transform {
 
-case class SeqValuesVector(values: Seq[AttributeValue], metadata:Metadata)
-  extends ValuesVector
-  with MetadataTarget {
-  override def get(idx: AttributeIndex): AttributeValue = values(idx)
-  override def iterator: Iterator[AttributeValue] = values.iterator
-}
+  object TransformRecordMeta extends MetadataOps("transform:record") {
 
-object ValuesVector {
+    implicit class TestMetaOps(m: Metadata) {
+      def generateUUID: MetadataItemOps[String] = item(m, "generate:uuid:value")
+      def generateUUIDString: MetadataItemOps[String] = item(m, "generate:uuid:string")
+      def hostnameShort: MetadataItemOps[String] = item(m, "hostname:short")
+      def hostnameCanonical: MetadataItemOps[String] = item(m, "hostname:canonical")
+    }
 
-  def apply(values:Seq[AttributeValue], metadata:Metadata = Metadata.empty):ValuesVector = {
-    SeqValuesVector(values, metadata)
+
   }
 
 }

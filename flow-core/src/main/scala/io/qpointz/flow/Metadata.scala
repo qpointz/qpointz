@@ -19,7 +19,7 @@ package io.qpointz.flow
 import scala.reflect.ClassTag
 
 object Metadata {
-  val empty: Metadata = List()
+  val empty: Metadata = Seq()
 }
 
 trait MetadataTarget {
@@ -52,6 +52,8 @@ class MetadataItemOps[T](val meta:Metadata, val group: MetadataGroupKey, val key
 }
 
 class MetadataOps(val groupKey:String) {
+
+  def empty:Metadata = Metadata.empty
 
   def item[T](m:Metadata, key:MetadataKey)(implicit tt:ClassTag[T]):MetadataItemOps[T] = new MetadataItemOps[T](m, groupKey, key)
 

@@ -26,6 +26,7 @@ package object flow {
   type AttributeValue   = Any
   type AttributeKey     = String
   type Attribute        = (AttributeKey, AttributeValue)
+  type Attributes       = Map[AttributeKey, AttributeValue]
 
   type MetadataGroupKey = String
   type MetadataKey      = String
