@@ -53,7 +53,7 @@ object Dependencies {
   }
 
   object scalaTest {
-    lazy val v  = "org.scalatest" ~%% "3.1.0"
+    lazy val v  = "org.scalatest" ~%% "3.1.1"
     lazy val scalaTest = v ~~ "scalatest"
   }
 
@@ -65,7 +65,7 @@ object Dependencies {
   }
 
   object jUnit {
-    lazy val v         = "4.12"
+    lazy val v         = "4.13"
     lazy val p         = "junit" ~% v
     lazy val jUnit     = "junit" ~~ p
   }
@@ -111,7 +111,7 @@ object Dependencies {
   }
 
   object apachePoi {
-    val v = "4.1.1"
+    val v = "4.1.2"
     val p = "org.apache.poi" ~% v
     val poi = "poi" ~~ p
     val ooxml = "poi-ooxml" ~~ p
