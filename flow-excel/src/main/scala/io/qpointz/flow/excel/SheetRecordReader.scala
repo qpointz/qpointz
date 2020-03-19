@@ -16,8 +16,9 @@
 
 package io.qpointz.flow.excel
 
-import io.qpointz.flow.data.{AttributeKey, AttributeValue, Metadata, Record, RecordReader, RecordTags}
-import org.apache.poi.ss.usermodel.{Cell, CellType, DateUtil, Row, Sheet}
+import io.qpointz.flow
+import io.qpointz.flow.{AttributeValue, Metadata, Record, RecordReader, RecordTags}
+import org.apache.poi.ss.usermodel._
 
 import scala.jdk.CollectionConverters._
 
@@ -34,9 +35,9 @@ class SheetRecordReader(val sheet:Sheet,
                         val extraMetadata:Metadata
                        ) extends RecordReader {
 
-  import ExcelMetadata._
-  import io.qpointz.flow.data.RecordMetadata._
   import WorkbookMethods._
+  import ExcelMetadata._
+  import io.qpointz.flow.RecordMetadata._
 
   private def cellValue(c:Cell):AttributeValue = {
     @scala.annotation.tailrec
@@ -98,7 +99,7 @@ class SheetRecordReader(val sheet:Sheet,
           .recordLabel(settings.recordLabel)
           .recordTags(fulltags)
 
-      Record(values, metadata)
+      flow.Record(values, metadata)
     }
 
     sheet.rowIterator().asScala

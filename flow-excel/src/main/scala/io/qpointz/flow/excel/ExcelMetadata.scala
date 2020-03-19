@@ -16,7 +16,7 @@
 
 package io.qpointz.flow.excel
 
-import io.qpointz.flow.data.{Metadata, MetadataItem, MetadataItemOps, MetadataKey, MetadataOps, MetadataValue}
+import io.qpointz.flow.{Metadata, MetadataItemOps, MetadataOps}
 import org.apache.poi.ss.SpreadsheetVersion
 
 

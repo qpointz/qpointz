@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package io.qpointz.flow.data
+package io.qpointz.flow
 
+import io.qpointz.flow.{MapRecord, Metadata, Record, SeqRecord}
 import org.scalatest.{FlatSpec, Matchers}
 
 class SeqRecordTest extends RecordBaseTest {

@@ -20,7 +20,7 @@ import java.time.ZonedDateTime._
 import java.time.{ZoneId, ZonedDateTime}
 import java.util.Date
 
-import io.qpointz.flow.data.AttributeValue
+import io.qpointz.flow.AttributeValue
 import org.scalatest.{FlatSpec, Matchers}
 
 class SheetRecordReaderTest extends FlatSpec with Matchers {

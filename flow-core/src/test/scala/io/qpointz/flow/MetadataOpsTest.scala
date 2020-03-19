@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package io.qpointz.flow.data
+package io.qpointz.flow
 
+import io.qpointz.flow.{Metadata, MetadataItemOps, MetadataOps}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
