@@ -16,18 +16,27 @@
 
 package io.qpointz.flow
 
-package object transform {
+package object transformations {
 
-  object TransformRecordMeta extends MetadataOps("transform:record") {
+  object TransformationsMeta extends MetadataOps("transform:record") {
 
-    implicit class TestMetaOps(m: Metadata) {
+    implicit class TransformationsMetaOps(m: Metadata) {
       def generateUUID: MetadataItemOps[String] = item(m, "generate:uuid:value")
       def generateUUIDString: MetadataItemOps[String] = item(m, "generate:uuid:string")
+
       def hostnameShort: MetadataItemOps[String] = item(m, "hostname:short")
       def hostnameCanonical: MetadataItemOps[String] = item(m, "hostname:canonical")
     }
+  }
 
+  import io.qpointz.flow.{Attributes, Metadata, Record}
 
+  trait RecordTransformation {
+    def applyTransformation(r:Record):Record
+  }
+
+  trait RecordTransformationFunc {
+    def transform(r:Record):(Attributes, Metadata)
   }
 
 }

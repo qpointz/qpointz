@@ -14,41 +14,28 @@
  * limitations under the License.
  */
 
-package io.qpointz.flow.transform
+package io.qpointz.flow.transformations
 
 import java.net.InetAddress
 import java.util.UUID
 
 import io.qpointz.flow.{AttributeKey, AttributeValue, Attributes, Metadata, Record}
-import TransformRecordMeta._
+import TransformationsMeta._
 
-final case class GenerateUUID(att: AttributeKey) extends AttributeTransformationFunc {
-  override def get(r: Record): (Attributes, Metadata) = (
-    Map(att -> UUID.randomUUID()),
-    empty
-      .generateUUID.put(att))
-}
 
-final case class GenerateUUIDString(att: AttributeKey) extends AttributeTransformationFunc {
-  override def get(r: Record): (Attributes, Metadata) = (
-    Map(att -> UUID.randomUUID().toString),
-    empty
-      .generateUUIDString.put(att))
-}
-
-final case class LocalhostNameShort(att:AttributeKey) extends AttributeTransformationFunc {
+final case class LocalhostNameShort(att:AttributeKey) extends RecordTransformationFunc {
   private lazy val name =  InetAddress.getLocalHost.getHostName
 
-  override def get(r: Record): (Attributes, Metadata) = (
+  override def transform(r: Record): (Attributes, Metadata) = (
     Map(att -> name),
     empty.hostnameShort.put(att)
   )
 }
 
-final case class LocalhostNameCanonical(att:AttributeKey) extends AttributeTransformationFunc {
+final case class LocalhostNameCanonical(att:AttributeKey) extends RecordTransformationFunc {
   private lazy val name =  InetAddress.getLocalHost.getCanonicalHostName
 
-  override def get(r: Record): (Attributes, Metadata) = (
+  override def transform(r: Record): (Attributes, Metadata) = (
     Map(att -> name),
     empty.hostnameCanonical.put(att)
   )
