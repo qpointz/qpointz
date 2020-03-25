@@ -16,20 +16,6 @@
 
 package io.qpointz.flow.transformations
 
-import java.util.UUID
+class DateTime {
 
-import io.qpointz.flow.{AttributeKey, Attributes, Metadata, Record}
-import io.qpointz.flow.transformations.TransformationsMeta.empty
-import TransformationsMeta._
-
-final case class GenerateUUID(att: AttributeKey) extends AttributeTransformation {
-  override def transform(r: Record): (Attributes, Metadata) = (
-    Map(att -> UUID.randomUUID()),
-    empty.generateUUID.put(att))
-}
-
-final case class GenerateUUIDString(att: AttributeKey) extends AttributeTransformation {
-  override def transform(r: Record): (Attributes, Metadata) = (
-    Map(att -> UUID.randomUUID().toString),
-    empty.generateUUIDString.put(att))
 }

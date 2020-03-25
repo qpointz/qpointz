@@ -29,13 +29,16 @@ package object transformations {
     }
   }
 
-  import io.qpointz.flow.{Attributes, Metadata, Record}
 
-  trait RecordTransformation {
-    def applyTransformation(r:Record):Record
+  trait Transformation {
+
   }
 
-  trait RecordTransformationFunc {
+  trait RecordTransformation extends Transformation {
+    def transform(r:Record):Record
+  }
+
+  trait AttributeTransformation extends Transformation {
     def transform(r:Record):(Attributes, Metadata)
   }
 

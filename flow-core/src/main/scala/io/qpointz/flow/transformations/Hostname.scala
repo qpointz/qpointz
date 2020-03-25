@@ -23,7 +23,7 @@ import io.qpointz.flow.{AttributeKey, AttributeValue, Attributes, Metadata, Reco
 import TransformationsMeta._
 
 
-final case class LocalhostNameShort(att:AttributeKey) extends RecordTransformationFunc {
+final case class LocalhostNameShort(att:AttributeKey) extends AttributeTransformation {
   private lazy val name =  InetAddress.getLocalHost.getHostName
 
   override def transform(r: Record): (Attributes, Metadata) = (
@@ -32,7 +32,7 @@ final case class LocalhostNameShort(att:AttributeKey) extends RecordTransformati
   )
 }
 
-final case class LocalhostNameCanonical(att:AttributeKey) extends RecordTransformationFunc {
+final case class LocalhostNameCanonical(att:AttributeKey) extends AttributeTransformation {
   private lazy val name =  InetAddress.getLocalHost.getCanonicalHostName
 
   override def transform(r: Record): (Attributes, Metadata) = (
