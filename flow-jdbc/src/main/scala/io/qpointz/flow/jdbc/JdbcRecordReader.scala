@@ -19,7 +19,8 @@ import java.io.InputStreamReader
 import java.sql.{DriverManager, ResultSet}
 import java.util.Properties
 
-import io.qpointz.flow.data.{Metadata, Record, RecordReader}
+import io.qpointz.flow
+import io.qpointz.flow.{Metadata, Record, RecordReader}
 
 import scala.jdk.CollectionConverters._
 
@@ -76,7 +77,7 @@ class JdbcRecordReader(jdbcSettings: JdbcRecordReaderSettings)
       .map(c=> c.name -> rs.getObject(c.idx))
       .toMap
     val meta = Metadata.empty
-    Record(vals,meta)
+    flow.Record(vals,meta)
   }
 
   override lazy val iterator: Iterator[Record] = {

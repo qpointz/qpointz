@@ -16,7 +16,7 @@
 
 package io.qpointz.flow.excel
 
-import io.qpointz.flow.data.{Metadata, Record, RecordReader}
+import io.qpointz.flow.{Metadata, Record, RecordReader}
 import org.apache.poi.ss.usermodel.Workbook
 
 class WorkbookRecordReaderSettings {

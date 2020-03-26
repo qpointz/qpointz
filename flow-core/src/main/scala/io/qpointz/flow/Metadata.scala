@@ -1,11 +1,11 @@
 /*
- * Copyright 2019 qpointz.io
+ * Copyright 2020 qpointz.io
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package io.qpointz.flow.data
+package io.qpointz.flow
 
 import scala.reflect.ClassTag
 
-
 object Metadata {
-  val empty: Metadata = List()
+  val empty: Metadata = Seq()
 }
 
 trait MetadataTarget {
@@ -53,6 +52,8 @@ class MetadataItemOps[T](val meta:Metadata, val group: MetadataGroupKey, val key
 }
 
 class MetadataOps(val groupKey:String) {
+
+  def empty:Metadata = Metadata.empty
 
   def item[T](m:Metadata, key:MetadataKey)(implicit tt:ClassTag[T]):MetadataItemOps[T] = new MetadataItemOps[T](m, groupKey, key)
 
