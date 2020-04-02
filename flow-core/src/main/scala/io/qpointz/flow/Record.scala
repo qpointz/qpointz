@@ -16,10 +16,12 @@
 
 package io.qpointz.flow
 
+import MetadataMethods._
+
 case class Record(attributes: Attributes, meta: Metadata) {
 
   private def applyMeta(m: Metadata): Metadata = m match {
-    case Metadata.empty => meta
+    case empty => meta
     case _ => meta ++ m
   }
 
@@ -73,7 +75,7 @@ case class Record(attributes: Attributes, meta: Metadata) {
 
 object Record {
 
-  def apply(kv: (AttributeKey, AttributeValue)*): Record = Record(kv.toMap, Metadata.empty)
+  def apply(kv: (AttributeKey, AttributeValue)*): Record = Record(kv.toMap, empty)
 
   implicit class RecordOp(r: Record) {
 

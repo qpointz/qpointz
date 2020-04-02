@@ -20,7 +20,7 @@ import java.sql.{DriverManager, ResultSet}
 import java.util.Properties
 
 import io.qpointz.flow
-import io.qpointz.flow.{Metadata, Record, RecordReader}
+import io.qpointz.flow.{Metadata, MetadataMethods, Record, RecordReader}
 
 import scala.jdk.CollectionConverters._
 
@@ -76,7 +76,7 @@ class JdbcRecordReader(jdbcSettings: JdbcRecordReaderSettings)
     val vals = columns
       .map(c=> c.name -> rs.getObject(c.idx))
       .toMap
-    val meta = Metadata.empty
+    val meta = MetadataMethods.empty
     flow.Record(vals,meta)
   }
 

@@ -16,19 +16,17 @@
 
 package io.qpointz.flow
 
+import java.util.UUID
+
 package object transformations {
 
-  object TransformationsMeta extends MetadataOps("transform:record") {
+  object TransformationsMeta extends MetadataGroup("transform:record") {
 
-    implicit class TransformationsMetaOps(m: Metadata) {
-      def generateUUID: MetadataItemOps[String] = item(m, "generate:uuid:value")
-      def generateUUIDString: MetadataItemOps[String] = item(m, "generate:uuid:string")
-
-      def hostnameShort: MetadataItemOps[String] = item(m, "hostname:short")
-      def hostnameCanonical: MetadataItemOps[String] = item(m, "hostname:canonical")
-    }
+    val generateUUIDString: EntryDefinition[String] = entry[String]("generate:uuid:value")
+    val generateUUID: EntryDefinition[String] = entry[String]("generate:uuid:value")
+    val hostnameShort: EntryDefinition[String] = entry[String]("hostname:short")
+    val hostnameCanonical: EntryDefinition[String] = entry[String]("hostname:canonical")
   }
-
 
   trait Transformation {
 
@@ -38,8 +36,10 @@ package object transformations {
     def transform(r:Record):Record
   }
 
+  case class AttributeTransformResult(attributes:Attributes, meta:Metadata)
+
   trait AttributeTransformation extends Transformation {
-    def transform(r:Record):(Attributes, Metadata)
+    def transform(r:Record):AttributeTransformResult
   }
 
 }

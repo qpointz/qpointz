@@ -22,10 +22,11 @@ import org.scalatest.matchers.should.Matchers
 class RecordTest extends AnyFlatSpec with Matchers {
 
   import Record._
+  import MetadataMethods._
 
   val extraMeta = Seq(("group2", "item2.1", "ho"))
 
-  val baseMeta = Seq(
+  val baseMeta:Metadata = Seq(
     ("group.1", "item.1.1", 1),
     ("group.1", "item.1.2", 2)
   )
@@ -119,7 +120,7 @@ class RecordTest extends AnyFlatSpec with Matchers {
   }
 
   it should "throw on missing keys" in {
-    assertThrows[NoSuchElementException](r.set(Map("z"->100),Metadata.empty))
+    assertThrows[NoSuchElementException](r.set(Map("z"->100), MetadataMethods.empty))
   }
 
   behavior of "append"

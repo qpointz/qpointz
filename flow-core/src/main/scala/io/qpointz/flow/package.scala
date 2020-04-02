@@ -28,11 +28,7 @@ package object flow {
   type Attribute        = (AttributeKey, AttributeValue)
   type Attributes       = Map[AttributeKey, AttributeValue]
 
-  type MetadataGroupKey = String
-  type MetadataKey      = String
-  type MetadataValue    = Any
-  type MetadataItem     = (MetadataGroupKey, MetadataKey, MetadataValue)
-  type Metadata         = Seq[MetadataItem]
+  type Metadata         = Seq[Entry[_]]
 
   object AttributeValue {
     object Null  {}

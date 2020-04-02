@@ -21,22 +21,23 @@ import java.util.UUID
 
 import io.qpointz.flow.{AttributeKey, AttributeValue, Attributes, Metadata, Record}
 import TransformationsMeta._
+import io.qpointz.flow.MetadataMethods._
 
 
 final case class LocalhostNameShort(att:AttributeKey) extends AttributeTransformation {
   private lazy val name =  InetAddress.getLocalHost.getHostName
 
-  override def transform(r: Record): (Attributes, Metadata) = (
+  override def transform(r: Record): AttributeTransformResult = AttributeTransformResult(
     Map(att -> name),
-    empty.hostnameShort.put(att)
+    hostnameShort(att)
   )
 }
 
 final case class LocalhostNameCanonical(att:AttributeKey) extends AttributeTransformation {
   private lazy val name =  InetAddress.getLocalHost.getCanonicalHostName
 
-  override def transform(r: Record): (Attributes, Metadata) = (
+  override def transform(r: Record): AttributeTransformResult = AttributeTransformResult(
     Map(att -> name),
-    empty.hostnameCanonical.put(att)
+    hostnameCanonical(att)
   )
 }
