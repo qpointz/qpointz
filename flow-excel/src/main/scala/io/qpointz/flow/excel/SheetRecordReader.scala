@@ -35,8 +35,9 @@ class SheetRecordReader(val sheet:Sheet,
                         val extraMetadata:Metadata
                        ) extends RecordReader {
 
-  import WorkbookMethods._
   import ExcelMetadata._
+  import WorkbookMethods._
+  import io.qpointz.flow.MetadataMethods._
   import io.qpointz.flow.RecordMetadata._
 
   private def cellValue(c:Cell):AttributeValue = {
@@ -60,9 +61,9 @@ class SheetRecordReader(val sheet:Sheet,
   def iterator: Iterator[Record] = {
     val columns = settings.columns.colIndexMap()
 
-    val sheetMetadata = extraMetadata
-      .sheetIndex(sheet.index)
-      .sheetName(sheet.name)
+    val sheetMetadata:Metadata = extraMetadata >+
+      (sheetIndex, sheet.index) >+
+      (sheetName, sheet.name)
 
     val colKeys = columns.keys.toSet
 
@@ -94,12 +95,12 @@ class SheetRecordReader(val sheet:Sheet,
         tags + RecordTags.NOK
       }
 
-      val metadata = sheetMetadata
-          .rowIndex(r.getRowNum)
-          .recordLabel(settings.recordLabel)
-          .recordTags(fulltags)
+      val metadata = sheetMetadata >+
+        (rowIndex, r.getRowNum) >+
+        (recordLabel, settings.recordLabel) >+
+        (recordTags, fulltags)
 
-      flow.Record(values, metadata)
+      Record(values, metadata)
     }
 
     sheet.rowIterator().asScala

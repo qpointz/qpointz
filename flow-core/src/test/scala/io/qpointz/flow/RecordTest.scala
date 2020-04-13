@@ -24,12 +24,14 @@ class RecordTest extends AnyFlatSpec with Matchers {
   import Record._
   import MetadataMethods._
 
-  val extraMeta = Seq(("group2", "item2.1", "ho"))
+  val extraMeta:Metadata = Metadata(Seq(
+    ("group2", "item2.1", "ho")
+  ))
 
-  val baseMeta:Metadata = Seq(
+  val baseMeta:Metadata = Metadata(Seq(
     ("group.1", "item.1.1", 1),
     ("group.1", "item.1.2", 2)
-  )
+  ))
 
   val r = Record(Map("a"->"foo", "b"->"bar", "c"->300), baseMeta)
 

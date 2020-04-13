@@ -49,6 +49,8 @@ object MetadataMethods {
 
   implicit def t32Entry[T](t:(String, String, T)):Entry[T] = Entry(Key(t._1, t._2), t._3)
 
+  implicit def tdf2Entry[T](kv:(EntryDefinition[T], T)):Entry[T] = Entry(kv._1.key, kv._2)
+
   implicit class MetadataObjectMethods(val m:Metadata) {
 
     def getAll[T](df:EntryDefinition[T])(implicit tag:ClassTag[T]):Seq[Entry[_]] = {
@@ -69,7 +71,19 @@ object MetadataMethods {
 
     def put[T](df:EntryDefinition[T], value:T)(implicit tag:ClassTag[T]):Metadata = m :+ Entry(df.key, value)
 
+    def >+[T](e:Entry[T])(implicit tag:ClassTag[T]):Metadata = m :+ e
+
     def apply[T](df:EntryDefinition[T])(implicit tag:ClassTag[T]):T = get(df)
 
   }
+
+}
+
+object Metadata {
+  import MetadataMethods._
+
+  def apply[T](sq:Seq[(EntryDefinition[T],T)])(implicit tag:ClassTag[T]):Metadata = sq.map(tdf2Entry)
+
+  def apply(sq:Seq[(String, String,_)]):Metadata = sq.map(t32Entry)
+
 }

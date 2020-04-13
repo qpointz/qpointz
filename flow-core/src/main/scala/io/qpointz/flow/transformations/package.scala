@@ -16,8 +16,6 @@
 
 package io.qpointz.flow
 
-import java.util.UUID
-
 package object transformations {
 
   object TransformationsMeta extends MetadataGroup("transform:record") {
@@ -29,7 +27,6 @@ package object transformations {
   }
 
   trait Transformation {
-
   }
 
   trait RecordTransformation extends Transformation {

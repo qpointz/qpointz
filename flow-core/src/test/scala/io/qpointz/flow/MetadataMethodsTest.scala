@@ -25,7 +25,7 @@ package io.qpointz.flow
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class MetadataItemOpsTest extends AnyFlatSpec with Matchers {
+class MetadataMethodsTest extends AnyFlatSpec with Matchers {
 
   import MetadataMethods._
 

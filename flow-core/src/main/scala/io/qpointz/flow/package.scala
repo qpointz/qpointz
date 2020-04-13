@@ -42,7 +42,11 @@ package object flow {
     val NOK:String = "NOK"
     val MissingValue:String = "Missing value"
     val UnexpectedValue:String = "Unexpected value"
+  }
 
+  object RecordMetadata extends MetadataGroup ("record"){
+    val recordLabel:EntryDefinition[String] = entry[String]("label")
+    val recordTags:EntryDefinition[Set[String]] = entry[Set[String]]("tags")
   }
 
   implicit class RecordOps(r:Record) {
