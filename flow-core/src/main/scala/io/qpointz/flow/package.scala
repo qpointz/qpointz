@@ -28,11 +28,7 @@ package object flow {
   type Attribute        = (AttributeKey, AttributeValue)
   type Attributes       = Map[AttributeKey, AttributeValue]
 
-  type MetadataGroupKey = String
-  type MetadataKey      = String
-  type MetadataValue    = Any
-  type MetadataItem     = (MetadataGroupKey, MetadataKey, MetadataValue)
-  type Metadata         = Seq[MetadataItem]
+  type Metadata         = Seq[Entry[_]]
 
   object AttributeValue {
     object Null  {}
@@ -46,7 +42,11 @@ package object flow {
     val NOK:String = "NOK"
     val MissingValue:String = "Missing value"
     val UnexpectedValue:String = "Unexpected value"
+  }
 
+  object RecordMetadata extends MetadataGroup ("record"){
+    val recordLabel:EntryDefinition[String] = entry[String]("label")
+    val recordTags:EntryDefinition[Set[String]] = entry[Set[String]]("tags")
   }
 
   implicit class RecordOps(r:Record) {

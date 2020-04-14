@@ -28,7 +28,7 @@ trait RecordTransformationGroup extends RecordTransformation {
 trait AttributeTransformationGroup extends RecordTransformation {
   val transformations:Seq[AttributeTransformation]
 
-  def applyTransform(r:Record, tr:(Attributes, Metadata)):Record
+  def applyTransform(r:Record, tr:AttributeTransformResult):Record
 
   override def transform(r: Record): Record = {
     transformations.foldLeft(r)((record,transform)=> applyTransform(record, transform.transform(record)))

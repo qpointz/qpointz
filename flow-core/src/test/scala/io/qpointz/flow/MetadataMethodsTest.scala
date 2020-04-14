@@ -22,82 +22,72 @@
 
 package io.qpointz.flow
 
-import io.qpointz.flow.{Metadata, MetadataItemOps}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class MetadataItemOpsTest extends AnyFlatSpec with Matchers {
+class MetadataMethodsTest extends AnyFlatSpec with Matchers {
+
+  import MetadataMethods._
 
   behavior of "getOp"
 
-  val m:Metadata = List(
+  val m:Metadata = Seq(
     ("a", "a1", 10),
     ("a", "a2", "foo"),
-    ("a", "a3", true),
+    ("a", "a3", true)
   )
 
   it should "return value" in {
-    val o = new MetadataItemOps[Int](m, "a", "a1")
-    o.getOp should be(Some(10))
+    val df = EntryDefinition[Int]("a", "a1")
+    m.getOp(df) should be(Some(10))
   }
 
   it should "return none on type mismatch" in {
-    val o = new MetadataItemOps[Int](m, "a", "a2")
-    o.getOp should be(None)
+    val df = EntryDefinition[Int]("a", "a2")
+    m.getOp(df) should be(None)
   }
 
   it should "return none on missing key" in {
-    val o = new MetadataItemOps[Int](m, "a", "a22")
-    o.getOp should be(None)
+    val df = EntryDefinition[Int]("a", "a22")
+    m.getOp(df) should be(None)
   }
 
   it should "return none on missing group" in {
-    val o = new MetadataItemOps[Int](m, "b", "a1")
-    o.getOp should be(None)
+    val df = EntryDefinition[Int]("b", "a1")
+    m.getOp(df) should be(None)
   }
 
   behavior of "get"
 
   it should "return value" in {
-    val o = new MetadataItemOps[Int](m, "a", "a1")
-    o.get should be(10)
+    val df = EntryDefinition[Int]("a", "a1")
+    m.get(df) should be(10)
   }
 
   it should "throw on missing value" in {
-    val o = new MetadataItemOps[Int](m, "b", "c2")
-    the[NoSuchElementException] thrownBy (o.get())
+    val df = EntryDefinition[Int]("b", "c2")
+    the[NoSuchElementException] thrownBy (m.get(df))
   }
 
   behavior of "getOr"
 
   it should "return value" in {
-    val o = new MetadataItemOps[Int](m, "a", "a1")
-    o.getOr(-1) should be(10)
+    val df = EntryDefinition[Int]("a", "a1")
+    m.getOr(df, -1) should be(10)
   }
 
   it should "fallback value on missing value" in {
-    val o = new MetadataItemOps[Int](m, "a", "a999")
-    o.getOr(-1) should be(-1)
+    val df = EntryDefinition[Int]("a", "a999")
+    m.getOr(df, -1) should be(-1)
   }
 
   behavior of "put"
 
   it should "add value" in {
-    var m1:Metadata = List()
-    var o = new MetadataItemOps[Int](m1, "a", "a")
-    m1 = o.put(100)
-    o = new MetadataItemOps[Int](m1, "a", "a")
-    o.get() should be (100)
-  }
-
-  behavior of "apply"
-
-  it should "add and return" in {
-    var m1:Metadata = List()
-    var o = new MetadataItemOps[Int](m1, "a", "a")
-    m1 = o(100)
-    o = new MetadataItemOps[Int](m1, "a", "a")
-    o() should be (100)
+    val df = EntryDefinition[Int]("a", "a")
+    var m1:Metadata = Seq()
+    m1 = m1.put(df, 100)
+    m1.get(df) should be (100)
   }
 
 }

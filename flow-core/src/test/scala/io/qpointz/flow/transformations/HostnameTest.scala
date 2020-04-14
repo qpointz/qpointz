@@ -23,26 +23,27 @@ import org.scalatest.matchers.should.Matchers
 class HostnameTest extends AnyFlatSpec with Matchers {
 
   import TransformationsMeta._
+  import io.qpointz.flow.MetadataMethods._
 
   val r = Record("a"->1, "b"->2)
   val lns = LocalhostNameShort("hostname").transform(r)
 
   "LocalhostNameShort" should "return value" in  {
-      lns._1("hostname").toString should not be empty
+      lns.attributes("hostname").toString should not be empty
   }
 
   it should "return metadata" in {
-    lns._2.hostnameShort.get shouldBe "hostname"
+    lns.meta(hostnameShort) shouldBe "hostname"
   }
 
   val lnc = LocalhostNameCanonical("hostname-canonical").transform(r)
 
   "LocalHostNameCanonical" should "return value" in {
-    lnc._1("hostname-canonical").toString should not be empty
+    lnc.attributes("hostname-canonical").toString should not be empty
   }
 
   it should "return metadata" in {
-    lnc._2.hostnameCanonical.get shouldBe "hostname-canonical"
+    lnc.meta(hostnameCanonical) shouldBe "hostname-canonical"
   }
 
 }

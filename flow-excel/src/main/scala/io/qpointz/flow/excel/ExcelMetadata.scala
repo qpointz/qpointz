@@ -16,19 +16,22 @@
 
 package io.qpointz.flow.excel
 
-import io.qpointz.flow.{Metadata, MetadataItemOps, MetadataOps}
+import io.qpointz.flow.{EntryDefinition, MetadataGroup}
 import org.apache.poi.ss.SpreadsheetVersion
 
 
-object ExcelMetadata extends MetadataOps("excel"){
+object ExcelMetadata extends MetadataGroup("excel") {
 
-  implicit class ExcelMetaOps(val m:Metadata) {
-    def workbookPath: MetadataItemOps[String] = item[String](m, "workbook:path")
-    def workbookSource: MetadataItemOps[String] = item[String](m, "workbook:source")
-    def workbookVersion: MetadataItemOps[SpreadsheetVersion] = item[SpreadsheetVersion](m, "workbook:version")
-    def sheetIndex: MetadataItemOps[Int] = item[Int](m, "sheet:index")
-    def sheetName: MetadataItemOps[String] = item[String](m, "sheet:name")
-    def rowIndex: MetadataItemOps[Int] = item[Int](m, "row:index")
-  }
+  val workbookPath: EntryDefinition[String] = entry[String]("workbook:path")
+
+  def workbookSource: EntryDefinition[String] = entry[String]("workbook:source")
+
+  def workbookVersion: EntryDefinition[SpreadsheetVersion] = entry[SpreadsheetVersion]("workbook:version")
+
+  def sheetIndex: EntryDefinition[Int] = entry[Int]("sheet:index")
+
+  def sheetName: EntryDefinition[String] = entry[String]("sheet:name")
+
+  def rowIndex: EntryDefinition[Int] = entry[Int]("row:index")
 
 }

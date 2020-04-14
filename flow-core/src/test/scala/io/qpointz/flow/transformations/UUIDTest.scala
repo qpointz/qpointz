@@ -23,6 +23,7 @@ import org.scalatest.matchers.should.Matchers
 class UUIDTest extends AnyFlatSpec with Matchers {
 
   import TransformationsMeta._
+  import io.qpointz.flow.MetadataMethods._
 
   val r = Record("a"->1, "b"->2)
 
@@ -33,7 +34,7 @@ class UUIDTest extends AnyFlatSpec with Matchers {
 
   it should "contain meta" in {
     val g = GenerateUUID("z").transform(r)
-    g._2.generateUUID() shouldBe("z")
+    g.meta(generateUUID) shouldBe("z")
   }
 
   "GenerateUUIDString" should "return" in {
@@ -43,7 +44,7 @@ class UUIDTest extends AnyFlatSpec with Matchers {
 
   it should "contain meta" in {
     val g = GenerateUUIDString("z").transform(r)
-    g._2.generateUUIDString() shouldBe("z")
+    g.meta(generateUUIDString) shouldBe("z")
   }
 
 
