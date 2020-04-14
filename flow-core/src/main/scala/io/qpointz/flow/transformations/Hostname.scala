@@ -17,11 +17,10 @@
 package io.qpointz.flow.transformations
 
 import java.net.InetAddress
-import java.util.UUID
 
-import io.qpointz.flow.{AttributeKey, AttributeValue, Attributes, Metadata, Record}
-import TransformationsMeta._
 import io.qpointz.flow.MetadataMethods._
+import io.qpointz.flow.transformations.TransformationsMeta._
+import io.qpointz.flow.{AttributeKey, Record}
 
 
 final case class LocalhostNameShort(att:AttributeKey) extends AttributeTransformation {

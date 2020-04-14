@@ -37,6 +37,11 @@ class UUIDTest extends AnyFlatSpec with Matchers {
     g.meta(generateUUID) shouldBe("z")
   }
 
+  it should "retain existing attributes" in {
+    val g = GenerateUUID("z").transform(r)
+    g.attributes.keySet shouldBe Set("a","b","z")
+  }
+
   "GenerateUUIDString" should "return" in {
     val g = GenerateUUIDString("z")
     g.transform(r) should not be g.transform(r)
@@ -45,6 +50,11 @@ class UUIDTest extends AnyFlatSpec with Matchers {
   it should "contain meta" in {
     val g = GenerateUUIDString("z").transform(r)
     g.meta(generateUUIDString) shouldBe("z")
+  }
+
+  it should "retain existing attributes" in {
+    val g = GenerateUUID("z").transform(r)
+    g.attributes.keySet shouldBe Set("a","b","z")
   }
 
 
