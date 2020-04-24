@@ -39,20 +39,4 @@ package object transformations {
     def transform(r:Record):AttributeTransformResult
   }
 
-  trait AttributeMutation {}
-  case class AddAttributes(tr: AttributeTransformResult)
-  case class DropAttributes(tr: AttributeTransformResult)
-  case class UpdateAttribute(tr:AttributeTransformResult)
-
-  trait AttributeTransformationSeq extends Transformation {
-
-    def transform(r:Record):Record = transformSeq(r).
-
-    def transformSeq(r:Record):Seq[AttributeMutation]
-
-  }
-
-
-
-
 }
