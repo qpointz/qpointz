@@ -1,0 +1,79 @@
+@import (css) url(https://fonts.googleapis.com/css?family=Exo|Exo+2|Titillium+Web);
+@import '~antd/dist/antd';
+
+@primary-color: #1890ff;
+@font-family: 'Exo','Exo 2','Titillium Web','Open Sans', sans-serif;
+@font-size-base: 16px;
+@line-height-base: 1.5;
+
+
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/*****************************************/
+
+#page-content, #page-header,#root, #page-footer {
+  width: 100%;
+  margin: 0 !important;
+  padding: 0;
+  position: absolute;
+}
+
+#page-header {
+  height: 46px;
+}
+
+#page-content {
+  padding: 0 20px 20px 20px;
+  top: 46px;
+  bottom: 50px;
+  background-color: #fafafa;
+}
+
+#page-footer {
+  background-color: #ffaff0;
+  height: 50px;
+  bottom: 0;
+}
+
+#main-nav {
+  background-color: @primary-color;
+  font-weight: bold;
+
+}
