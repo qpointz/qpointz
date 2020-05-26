@@ -1,4 +1,10 @@
-@import '../node_modules/antd/dist/antd';
+@import (css) url(https://fonts.googleapis.com/css?family=Exo|Exo+2|Titillium+Web);
+@import '~antd/dist/antd';
+
+@primary-color: #1890ff;
+@font-family: 'Exo','Exo 2','Titillium Web','Open Sans', sans-serif;
+@font-size-base: 16px;
+@line-height-base: 1.5;
 
 
 .App {
@@ -51,9 +57,7 @@
 
 #page-header {
   height: 46px;
-  background-color: #ffff00;
 }
-
 
 #page-content {
   padding: 0 20px 20px 20px;
@@ -63,7 +67,13 @@
 }
 
 #page-footer {
-  background-color: #ff0000;
+  background-color: #ffaff0;
   height: 50px;
   bottom: 0;
+}
+
+#main-nav {
+  background-color: @primary-color;
+  font-weight: bold;
+
 }

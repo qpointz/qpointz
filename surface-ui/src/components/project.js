@@ -1,9 +1,8 @@
 import React from 'react'
-import {Col, Row, Layout, Menu, PageHeader, Divider, Card} from 'antd';
+import {Col, Row, Layout, Menu, PageHeader, Card} from 'antd';
 import * as aicons from '@ant-design/icons';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {BrowserRouter as Router} from 'react-router-dom';
-const {Header, Content, Sider} = Layout
+const {Content, Sider} = Layout
 
 const { SubMenu } = Menu;
 
@@ -28,13 +27,9 @@ export const Project = (props) => {
             <Col span={24}>
                 <PageHeader
                     title="Title"
-                    style={{borderBottom:'1px solid #f0f0f0'}}
                     breadcrumb={{ routes }}
                     subTitle="This is a subtitle"
-                     footer={"klklk"}
                 />
-                <Divider></Divider>
-
             </Col>
             <Col span={24}>
                 <Layout style={{padding:'12px',backgroundColor:'transparent'}}>
@@ -59,7 +54,7 @@ export const Project = (props) => {
                                     <Menu.Item key="7">option7</Menu.Item>
                                     <Menu.Item key="8">option8</Menu.Item>
                                 </SubMenu>
-                                <SubMenu key="sub3" icon={<FontAwesomeIcon icon="coffee"/>} title="subnav 3">
+                                <SubMenu key="sub3"  title="subnav 3">
                                     <Menu.Item icon={<FontAwesomeIcon icon="coffee" />} key="9">option9</Menu.Item>
                                     <Menu.Item key="10">option10</Menu.Item>
                                     <Menu.Item key="11">option11</Menu.Item>
@@ -69,7 +64,7 @@ export const Project = (props) => {
                         </Card>
                     </Sider>
                     <Content style={{ padding: '0 24px', minHeight: 280 }}>
-                        <Card>content</Card>
+                        <Card>content </Card>
                     </Content>
                 </Layout>
             </Col>
