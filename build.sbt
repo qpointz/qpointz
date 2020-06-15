@@ -14,11 +14,16 @@ lazy val `flow` = project.in(file("."))
     `flow-core`,
     `flow-excel`,
     `flow-jdbc`,
-    `flow-parquet`
+    `flow-parquet`,
+    `surface-api`,
+    `surface-impl`,
+    `surface-stream-api`,
+    `surface-stream-impl`,
+    `organization-api`,
+    `organization-impl`
   )
 
 lazy val `flow-core` = libProject("flow", "flow-core")
-
 lazy val `flow-excel` = libProject("flow", "flow-excel")
   .dependsOn(`flow-core`)
   .settings(
@@ -49,5 +54,72 @@ lazy val `flow-jdbc` = libProject("flow" ,"flow-jdbc")
       scala.reflect
     )
   )
+
+
+
+val macwire = "com.softwaremill.macwire" %% "macros" % "2.3.3" % "provided"
+val scalaTest = "org.scalatest" %% "scalatest" % "3.1.1" % Test
+
+lazy val `organization-api` = (project in file("surface/organization-api"))
+  .settings(
+    libraryDependencies ++= Seq(
+      lagomScaladslApi
+    )
+  )
+
+lazy val `organization-impl` = (project in file("surface/organization-impl"))
+  .enablePlugins(LagomScala)
+  .settings(
+    libraryDependencies ++= Seq(
+      lagomScaladslPersistenceCassandra,
+      lagomScaladslKafkaBroker,
+      lagomScaladslTestKit,
+      macwire,
+      scalaTest
+    )
+  )
+  .settings(lagomForkedTestSettings)
+  .dependsOn(`organization-api`)
+
+
+
+lazy val `surface-api` = (project in file("surface/surface-api"))
+  .settings(
+    libraryDependencies ++= Seq(
+      lagomScaladslApi
+    )
+  )
+
+lazy val `surface-impl` = (project in file("surface/surface-impl"))
+  .enablePlugins(LagomScala)
+  .settings(
+    libraryDependencies ++= Seq(
+      lagomScaladslPersistenceCassandra,
+      lagomScaladslKafkaBroker,
+      lagomScaladslTestKit,
+      macwire,
+      scalaTest
+    )
+  )
+  .settings(lagomForkedTestSettings)
+  .dependsOn(`surface-api`)
+
+lazy val `surface-stream-api` = (project in file("surface/surface-stream-api"))
+  .settings(
+    libraryDependencies ++= Seq(
+      lagomScaladslApi
+    )
+  )
+
+lazy val `surface-stream-impl` = (project in file("surface/surface-stream-impl"))
+  .enablePlugins(LagomScala)
+  .settings(
+    libraryDependencies ++= Seq(
+      lagomScaladslTestKit,
+      macwire,
+      scalaTest
+    )
+  )
+  .dependsOn(`surface-stream-api`, `surface-api`)
 
 resolvers += Resolver.sonatypeRepo("snapshots")
