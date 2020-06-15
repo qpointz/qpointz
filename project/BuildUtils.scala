@@ -28,17 +28,17 @@ import collection.JavaConverters._
 
 object BuildUtils {
 
-  def libProject(pn:String): Project = {
-    val prjPath = pn
-    sbt.Project(pn, file(prjPath))
+  def libProject(group:String, projectName:String): Project = {
+    val projectPath = s"${group}/${projectName}"
+    sbt.Project(projectName, file(projectPath))
       .settings(
-        name:= pn,
+        name:= projectName,
         libraryDependencies ++= profiles(
           DepProfiles.lib
         ),
         testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oI",
-          "-h", s"${prjPath}/target/test-reports/html",
-          "-u", s"${prjPath}/target/test-reports/xml",
+          "-h", s"${projectPath}/target/test-reports/html",
+          "-u", s"${projectPath}/target/test-reports/xml",
         )
       )
   }

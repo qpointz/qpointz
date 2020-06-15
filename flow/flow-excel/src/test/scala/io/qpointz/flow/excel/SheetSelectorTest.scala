@@ -13,7 +13,7 @@ class SheetSelectorTest extends FlatSpec with Matchers with MockFactory {
 
   behavior of "matchBy"
 
-  val sheets = open("./flow-excel/src/test/resources/flow-excel-test/SheetSelectorTest.xlsx")
+  val sheets = open("./flow/flow-excel/src/test/resources/flow-excel-test/SheetSelectorTest.xlsx")
     .sheets()
 
   it should "match by name" in {
@@ -35,7 +35,7 @@ class SheetSelectorTest extends FlatSpec with Matchers with MockFactory {
       SheetByNamePattern("""a.+\d$""")
     )
 
-    val sheets = open("./flow-excel/src/test/resources/flow-excel-test/TestRangeSheets.xlsx").sheets()
+    val sheets = open("./flow/flow-excel/src/test/resources/flow-excel-test/TestRangeSheets.xlsx").sheets()
 
     asTuple(matchBy(sheets, selector)) shouldBe Set(
       ("aa1",0),
@@ -95,7 +95,6 @@ class SheetSelectorTest extends FlatSpec with Matchers with MockFactory {
   it should "return any sheet except excluded" in {
     asTuple (select(exclude(List(SheetByIdx(1))), sheets)) shouldBe Set(("aaa",0), ("ccc",2))
   }
-
 
 
 }
