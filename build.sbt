@@ -9,18 +9,23 @@ version in ThisBuild := BuildSettings.version
 scalaVersion in ThisBuild := BuildSettings.scalaLangVersion
 cancelable in Global := true
 
-lazy val `flow` = project.in(file("."))
+lazy val `qpointz` = project.in(file("."))
   .aggregate(
-    `flow-core`,
-    `flow-excel`,
-    `flow-jdbc`,
-    `flow-parquet`,
+    `flow`,
     `surface-api`,
     `surface-impl`,
     `surface-stream-api`,
     `surface-stream-impl`,
     `organization-api`,
     `organization-impl`
+  )
+
+lazy val `flow` = project.in(file("flow"))
+  .aggregate(
+    `flow-core`,
+    `flow-excel`,
+    `flow-jdbc`,
+    `flow-parquet`
   )
 
 lazy val `flow-core` = libProject("flow", "flow-core")
