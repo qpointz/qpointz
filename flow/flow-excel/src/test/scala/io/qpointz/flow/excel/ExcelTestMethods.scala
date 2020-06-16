@@ -5,7 +5,7 @@ import org.apache.poi.ss.usermodel.{Sheet, Workbook}
 
 object ExcelTestMethods {
 
-  def testPath(nm:String):String = s"./flow-excel/src/test/resources/flow-excel-test/${nm}.xlsx"
+  def testPath(nm:String):String = s"./flow/flow-excel/src/test/resources/flow-excel-test/${nm}.xlsx"
 
   def workbook(nm:String):Workbook = {
     open(testPath(nm))
