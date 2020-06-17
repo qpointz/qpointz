@@ -17,18 +17,22 @@
 package io.qpointz.flow.parquet
 
 import io.qpointz.flow.{Record, RecordWriter}
+import org.apache.avro.generic.{GenericRecord, GenericRecordBuilder}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.column.ParquetProperties
 import org.apache.parquet.hadoop.{ParquetFileWriter, ParquetWriter}
 import org.apache.parquet.hadoop.metadata.CompressionCodecName
 import org.apache.avro.{Schema => AvroSchema}
+import org.apache.parquet.avro.AvroParquetWriter
 
 trait AvroSchemaSource {
   def avroSchema():AvroSchema
 }
 
-final class 
+final class ConstantAvroScemaSource(private val schema:AvroSchema) extends AvroSchemaSource {
+  override def avroSchema(): AvroSchema = schema
+}
 
 class AvroParquetRecordWriterSettings {
   var maxPaddingSize: Int = ParquetWriter.MAX_PADDING_SIZE_DEFAULT
@@ -49,7 +53,35 @@ class AvroParquetRecordWriterSettings {
 class AvroParquetRecordWriter(settings:AvroParquetRecordWriterSettings) extends RecordWriter {
   override def open(): Unit = ???
 
-  override def write(r: Record): Unit = ???
+  private lazy val schema = settings.schema.avroSchema()
 
-  override def close(): Unit = ???
+  lazy val writer = AvroParquetWriter.builder[GenericRecord](settings.path)
+    .withSchema(schema)
+    .withConf(settings.configuration)
+    .withCompressionCodec(settings.compressionCodec)
+    .withWriterVersion(settings.writerVersion)
+    .withPageSize(settings.pageSize)
+    .withRowGroupSize(settings.rowGroupSize)
+    .withMaxPaddingSize(settings.maxPaddingSize)
+    .withDictionaryEncoding(settings.dictionaryEncoding)
+    .withDictionaryPageSize(settings.dictionaryPageSize)
+    .withWriteMode(settings.mode)
+    .withValidation(settings.validation)
+    .withConf(settings.configuration)
+    .build()
+
+  override def write(r: Record): Unit = {
+    val grb = new GenericRecordBuilder(schema)
+
+    val record = r
+      .attributes
+      .foldLeft(grb)((x,k)=> x.set(k._1,k._2))
+      .build()
+
+    writer.write(record)
+  }
+
+  override def close(): Unit = {
+    writer.close()
+  }
 }
