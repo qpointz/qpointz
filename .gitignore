@@ -13,6 +13,7 @@
 
 .ideaDataSources/
 dataSources/
+tmp/t
 
 #gradle files 
 build/

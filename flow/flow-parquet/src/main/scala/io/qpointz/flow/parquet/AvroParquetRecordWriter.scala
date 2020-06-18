@@ -51,7 +51,9 @@ class AvroParquetRecordWriterSettings {
 }
 
 class AvroParquetRecordWriter(settings:AvroParquetRecordWriterSettings) extends RecordWriter {
-  override def open(): Unit = ???
+  override def open(): Unit = {
+
+  }
 
   private lazy val schema = settings.schema.avroSchema()
 
