@@ -1,6 +1,23 @@
+/*
+ * Copyright 2020 qpointz.io
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ */
+
 package io.qpointz.flow.parquet
 
 import io.qpointz.flow.{Record, RecordReader}
+import org.apache.avro.mapred.AvroRecordReader
 import org.apache.parquet.ParquetReadOptions
 import org.apache.parquet.column.page.PageReadStore
 import org.apache.parquet.example.data.Group
@@ -15,14 +32,14 @@ class ParquetRecordReaderSettings {
 class ParquetRecordReader(private val settings:ParquetRecordReaderSettings) extends RecordReader {
 
   override def iterator: Iterator[Record] = {
-    val options = new ParquetReadOptions()
+    val options = ParquetReadOptions.builder().build()
     val reader = ParquetFileReader.open(settings.inputFile, options)
     val footer = reader.getFooter
-
     val schema = footer.getFileMetaData.getSchema
 
     def groupToRecordIter(group:Group):Iterator[Record] = {
-      println(group)
+      //schema.getColumns.get(0)
+      //println(group.getType)
       Iterator[Record]()
     }
 

@@ -19,11 +19,9 @@ package io.qpointz.flow.parquet
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.hadoop.util.HadoopInputFile
-import org.apache.parquet.io.InputFile
-import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class ParquetRecordReaderTest extends AnyFlatSpec with Matchers {
+class AvroParquetRecordReaderTest extends org.scalatest.FlatSpec with Matchers {
 
   behavior of "read"
 
@@ -31,12 +29,20 @@ class ParquetRecordReaderTest extends AnyFlatSpec with Matchers {
 
   ParquetUtils.writeTestFile(readPath)
 
-  it should "read simple file" in  {
-    /*val s  = new ParquetRecordReaderSettings()
+  private def readTest() = {
+    val s  = new AvroParquetRecordReaderSettings()
     val cfg = new Configuration()
     s.inputFile = HadoopInputFile.fromPath(new Path(readPath), cfg)
-    val r = new ParquetRecordReader(s)
-    val recs = r.toList*/
+    new AvroParquetRecordReader(s)
+  }
+
+  it should "read records" in {
+    readTest().toSeq should not be empty
+  }
+
+  it should "return all attributes" in {
+    val r = readTest().head
+    r.attributes.keys should contain allOf("a","b","c")
   }
 
 }

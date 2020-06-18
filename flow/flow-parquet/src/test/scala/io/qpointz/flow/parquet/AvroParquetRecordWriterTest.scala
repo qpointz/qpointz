@@ -16,9 +16,12 @@
 
 package io.qpointz.flow.parquet
 
+import java.nio.file.Files
+
 import io.qpointz.flow.Record
 import org.apache.avro.{Schema, SchemaBuilder}
 import org.apache.hadoop.fs.Path
+import java.nio.file.Paths
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -27,28 +30,8 @@ class AvroParquetRecordWriterTest extends AnyFlatSpec with Matchers {
   behavior of "write"
 
   it should "write file" in {
-    val as = new ConstantAvroScemaSource(SchemaBuilder
-      .record("default")
-        .fields()
-        .requiredString("a")
-        .requiredString("b")
-        .requiredString("c")
-        
-      .endRecord()
-    )
-    val s = new AvroParquetRecordWriterSettings()
-    s.path = new Path("./tmp/apw.parquet")
-    s.schema = as
+    ParquetUtils.writeTestFile("./tmp/writeFile.parquet")
 
-    val w = new AvroParquetRecordWriter(s)
-    w.open()
-
-    w.write (Record("a"->"a1", "b"->"b1", "c"->"c1"))
-    w.write (Record("a"->"a1", "b"->"b1", "c"->"c1"))
-    w.write (Record("a"->"a1", "b"->"b1", "c"->"c1"))
-    w.write (Record("a"->"a1", "b"->"b1", "c"->"c1"))
-
-    w.close()
   }
 
 }
