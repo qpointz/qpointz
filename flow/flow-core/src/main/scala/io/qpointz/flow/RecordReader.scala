@@ -16,6 +16,6 @@
 
 package io.qpointz.flow
 
-trait RecordReader extends Iterable[Record] {
+trait RecordReader extends Iterable[Record] with WithOperationContext {
 
 }

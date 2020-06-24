@@ -16,7 +16,7 @@
 
 package io.qpointz.flow.parquet
 
-import io.qpointz.flow.{Record, RecordReader}
+import io.qpointz.flow.{OperationContext, Record, RecordReader}
 import org.apache.avro.mapred.AvroRecordReader
 import org.apache.parquet.ParquetReadOptions
 import org.apache.parquet.column.page.PageReadStore
@@ -29,7 +29,7 @@ class ParquetRecordReaderSettings {
   var inputFile : InputFile = _
 }
 
-class ParquetRecordReader(private val settings:ParquetRecordReaderSettings) extends RecordReader {
+class ParquetRecordReader(private val settings:ParquetRecordReaderSettings)(implicit val ctx:OperationContext) extends RecordReader {
 
   override def iterator: Iterator[Record] = {
     val options = ParquetReadOptions.builder().build()
