@@ -24,8 +24,6 @@ import java.nio.file.{Files, Paths}
 import sbt.librarymanagement.ModuleID
 import sbt.{File, file}
 
-import collection.JavaConverters._
-
 object BuildUtils {
 
   def libProject(group:String, projectName:String): Project = {
@@ -38,22 +36,9 @@ object BuildUtils {
         ),
         testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oI",
           "-h", s"${projectPath}/target/test-reports/html",
-          "-u", s"${projectPath}/target/test-reports/xml",
+          "-u", s"${projectPath}/target/test-reports/xml"
         )
       )
-  }
-
-  def dirTo(p:File, relTo:String) = {
-    val absPath = Paths.get(p.getAbsolutePath)
-    Files.walk(absPath).iterator().asScala
-      .filter(x=> ! Files.isDirectory(x))
-      .map(x=>{
-        val relPath = absPath.relativize(x).toString
-        val tgtPath = Paths.get(relTo, relPath).toString
-        val srcPath = Paths.get(p.getPath, relPath).toString
-        file(srcPath) -> tgtPath
-      })
-      .toSeq
   }
 }
 
@@ -61,7 +46,8 @@ object DependenciesUtils {
 
   trait Dependency {
 
-    def ~~(v:String) = Dependency.from(this, v)
+    //noinspection ScalaStyle
+    def ~~(v:String):ModuleID = Dependency.from(this, v)
 
   }
 
@@ -74,22 +60,28 @@ object DependenciesUtils {
 
   }
 
-
   case class PlainDependency(groupId:String, version:String) extends Dependency
+
   case class ScalaDependency(groupId:String, version:String) extends Dependency
 
   implicit class StrExt(item:String) {
 
     def from(dg:Dependency):ModuleID = Dependency.from(dg, item)
 
+    //noinspection ScalaStyle
     def ~~(dg:Dependency):ModuleID = from(dg)
 
-    def ~%%(v:String) = new ScalaDependency(item, v)
-    def ~%(v:String) = new PlainDependency(item, v)
+    //noinspection ScalaStyle
+    def ~%%(v:String):ScalaDependency = ScalaDependency(item, v)
 
-    def %%+(v:String) = new ScalaDependency(v,item)
-    def %+(v:String) = new PlainDependency(v, item)
+    //noinspection ScalaStyle
+    def ~%(v:String):PlainDependency = PlainDependency(item, v)
 
+    //noinspection ScalaStyle
+    def %%+(v:String):ScalaDependency = ScalaDependency(v, item)
+
+    //noinspection ScalaStyle
+    def %+(v:String):PlainDependency = PlainDependency(v, item)
 
   }
 }
