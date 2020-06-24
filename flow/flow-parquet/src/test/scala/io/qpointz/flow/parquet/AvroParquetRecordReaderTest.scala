@@ -19,9 +19,10 @@ package io.qpointz.flow.parquet
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.hadoop.util.HadoopInputFile
+import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class AvroParquetRecordReaderTest extends org.scalatest.FlatSpec with Matchers {
+class AvroParquetRecordReaderTest extends AnyFlatSpec with Matchers {
 
   behavior of "read"
 
