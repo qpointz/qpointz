@@ -1,6 +1,7 @@
 image: qpointz/enzyme-ci-sbt:latest
 stages:
  - test
+ - coverage
 
 cache:
   key: "$CI_COMMIT_SHA"
@@ -10,16 +11,32 @@ cache:
     - target/
     - project/project
 
-test:
+.job_template : &test_job
+  artifacts:
+    untracked: true
+    paths:
+      - ./**/target/test-reports/**/*
+      - target/scala-*/scoverage-report/**/*
+    expire_in: 10 days
+
+testFlow:
+  <<: *test_job
   stage: test
   script:
-    - sbt clean coverage test coverageReport coverageAggregate
-  artifacts:
-         untracked: true
-         paths:
-           - ./**/target/test-reports/**/*
-           - target/scala-*/scoverage-report/**/*
-         expire_in: 10 days
+    - sbt "project flow" clean coverage test coverageReport
+    
+testSurface:
+  <<: *test_job
+  stage: test
+  script:
+    - sbt "project surface" clean coverage test coverageReport
+
+
+coverageAggregate:
+  <<: *test_job
+  stage: coverage
+  script:
+    - sbt coverageAggregate
 
 testWScalastyle:
     stage: test

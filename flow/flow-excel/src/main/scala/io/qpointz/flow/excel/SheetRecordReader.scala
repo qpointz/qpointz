@@ -17,7 +17,7 @@
 package io.qpointz.flow.excel
 
 import io.qpointz.flow
-import io.qpointz.flow.{AttributeValue, Metadata, Record, RecordReader, RecordTags}
+import io.qpointz.flow.{AttributeValue, Metadata, OperationContext, Record, RecordReader, RecordTags}
 import org.apache.poi.ss.usermodel._
 
 import scala.jdk.CollectionConverters._
@@ -33,7 +33,7 @@ class SheetRecordReaderSettings {
 class SheetRecordReader(val sheet:Sheet,
                         val settings: SheetRecordReaderSettings,
                         val extraMetadata:Metadata
-                       ) extends RecordReader {
+                       )(implicit val ctx:OperationContext) extends RecordReader {
 
   import ExcelMetadata._
   import WorkbookMethods._

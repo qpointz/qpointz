@@ -16,7 +16,7 @@
 
 package io.qpointz.flow.parquet
 
-import io.qpointz.flow.{MetadataMethods, Record, RecordReader}
+import io.qpointz.flow.{MetadataMethods, OperationContext, Record, RecordReader}
 import org.apache.avro.generic.GenericRecord
 import org.apache.parquet.avro.AvroParquetReader
 import org.apache.parquet.io.InputFile
@@ -27,7 +27,7 @@ class AvroParquetRecordReaderSettings {
   var inputFile : InputFile = _
 }
 
-class AvroParquetRecordReader(settings:AvroParquetRecordReaderSettings) extends RecordReader {
+class AvroParquetRecordReader(settings:AvroParquetRecordReaderSettings)(implicit val ctx:OperationContext) extends RecordReader {
 
   private lazy val reader = AvroParquetReader
     .builder[GenericRecord](settings.inputFile)

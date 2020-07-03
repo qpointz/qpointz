@@ -16,7 +16,7 @@
 
 package io.qpointz.flow.excel
 
-import io.qpointz.flow.{Metadata, Record, RecordReader}
+import io.qpointz.flow.{Metadata, OperationContext, Record, RecordReader}
 import org.apache.poi.ss.usermodel.Workbook
 
 class WorkbookRecordReaderSettings {
@@ -27,7 +27,7 @@ case class SheetSelectionSettings(selector:SheetSelector, sheetRecordReaderSetti
 
 class WorkbookRecordReader(val workbook: Workbook,
                            val settings: WorkbookRecordReaderSettings,
-                           val extraMetadata: Metadata)
+                           val extraMetadata: Metadata)(implicit val ctx:OperationContext)
   extends RecordReader {
 
   import WorkbookMethods._

@@ -16,10 +16,10 @@
 
 package io.qpointz.flow.excel
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-
-class WorkbookMethodsTest extends FlatSpec with Matchers {
+class WorkbookMethodsTest extends AnyFlatSpec with Matchers {
 
   import WorkbookMethods._
   behavior of "open"

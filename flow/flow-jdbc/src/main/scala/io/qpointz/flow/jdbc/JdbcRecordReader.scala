@@ -15,15 +15,11 @@
  */
 
 package io.qpointz.flow.jdbc
-import java.io.InputStreamReader
-import java.sql.{DriverManager, ResultSet}
+import java.sql.DriverManager
 import java.util.Properties
 
 import io.qpointz.flow
-import io.qpointz.flow.{Metadata, MetadataMethods, Record, RecordReader}
-
-import scala.jdk.CollectionConverters._
-
+import io.qpointz.flow.{MetadataMethods, OperationContext, Record, RecordReader}
 
 trait JdbcConnectionUrlLike {
   val url:String
@@ -39,7 +35,7 @@ case class JdbcRecordReaderSettings(driver:String,
                                     query:String,
                                     queryParams: Seq[Any]) {}
 
-class JdbcRecordReader(jdbcSettings: JdbcRecordReaderSettings)
+class JdbcRecordReader(jdbcSettings: JdbcRecordReaderSettings)(implicit val ctx:OperationContext)
   extends RecordReader  {
 
   lazy val rs = {
@@ -81,6 +77,7 @@ class JdbcRecordReader(jdbcSettings: JdbcRecordReaderSettings)
   }
 
   override lazy val iterator: Iterator[Record] = {
+    ctx.log.info("Begin iterating")
     Iterator.unfold(rs.next()) {hasNext=>
       Option.when(hasNext)(asRecord, rs.next())
     }
