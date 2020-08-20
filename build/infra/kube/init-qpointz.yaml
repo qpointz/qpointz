@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: qpointz
+  labels:
+    name: qpointz
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secrets
+  namespace: qpointz
+type: Opaque
+data:
+  localstack_api_key: M0NvbWZseHFOQQo=
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qpointz-data-volume-claim
+  namespace: qpointz
+spec:
+  storageClassName: local-storage
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  namespace: qpointz
+  name: qpointz-volume
+  labels:
+    type: local-storage
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /data/qp-data
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - minikube
