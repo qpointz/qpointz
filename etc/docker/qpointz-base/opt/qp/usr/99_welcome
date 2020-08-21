@@ -1,0 +1,17 @@
+cat << EOF
+****************************************************
+*** Welcome to QPointz!
+****************************************************
+* User Name         :$QP_USER_NAME
+* User Full Name    :$QP_USER_FULL_NAME
+* User Email        :$QP_USER_EMAIL
+* Org               :$QP_ORG
+* Org domain        :$QP_ORG_DOMAIN
+* Hostname          :$QP_HOSTNAME
+****************************************************
+EOF
+
+cd ~
+
+git config --global user.email "$QP_USER_EMAIL"
+git config --global user.name "$QP_USER_FULL_NAME"

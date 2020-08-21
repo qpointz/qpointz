@@ -14,8 +14,7 @@ COPY wrapper-hadoop-unit-standalone.conf /root/hadoop-unit-standalone/conf
 #COPY settings.xml /root/.m2
 
 
-VOLUME /root/hadoop-unit-data
-VOLUME /root/.m2
+VOLUME /data
 
 #zookeper
 EXPOSE 22010
@@ -36,19 +35,19 @@ EXPOSE 28000
 EXPOSE 28080
 
 #solr
-EXPOSE 8983
+#EXPOSE 8983
 
 #neo4j
-EXPOSE 13533
+#EXPOSE 13533
 
 #cassandra
-EXPOSE 13433
+#EXPOSE 13433
 
 #hivemeta
-EXPOSE 20102
+#EXPOSE 20102
 
 #hive2
-EXPOSE 20103
+#EXPOSE 20103
 
 WORKDIR /root/hadoop-unit-standalone
 
