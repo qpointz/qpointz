@@ -15,6 +15,12 @@
 dataSources/
 tmp/
 
+.bloop/
+.metals/
+.theia/
+.vscode/
+
+
 #eclipse files
 bin 
 .settings

@@ -44,9 +44,16 @@ services:
       - 8080:8080
     volumes:
       - localstack:/data
+  theia:
+    image: docker.qpointz.io/theia-scala
+    ports:
+      - 44100:3000
+    volumes:
+      - theia_scala:/ws
 volumes:
   zookeeper:
   kafka:
   cassandra:
   cassandra_data:
   localstack:
+  theia_scala:
