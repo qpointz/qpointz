@@ -71,7 +71,8 @@
     "vscode-java-dependency-viewer": "https://github.com/microsoft/vscode-java-dependency/releases/download/0.6.0/vscode-java-dependency-0.6.0.vsix",
 
     "vscode-scala-metals" : "https://github.com/scalameta/metals-vscode/releases/download/v1.9.3/scalameta.metals-1.9.3.vsix",
-    "vscode-scala-syntax" : "https://github.com/scala/vscode-scala-syntax/releases/download/0.4.2/scala-lang.scala-0.4.2.vsix"
+    "vscode-scala-syntax" : "https://github.com/scala/vscode-scala-syntax/releases/download/0.4.2/scala-lang.scala-0.4.2.vsix",
+    "vscode-lextudio-restructedtext" : "https://nexus.qpointz.io/repository/downloads/plugins/lextudio.restructuredtext-129.0.0.vsix"
   },
   "devDependencies": {
     "@theia/cli": "latest"

@@ -1,4 +1,4 @@
-version: '3'
+version: '2'
 services:
   zookeeper:
     image: bitnami/zookeeper:latest
@@ -44,16 +44,34 @@ services:
       - 8080:8080
     volumes:
       - localstack:/data
+  elasticsearch:
+    image: bitnami/elasticsearch:latest
+    ports:
+    - 9200:9200
+    - 9300:9300
+    volumes:
+    - elasticsearch:/bitnami/elasticsearch/data
+  postgresql:
+    image: bitnami/postgresql:latest
+    environment:
+      POSTGRESQL_USERNAME: "dbuser"
+      POSTGRESQL_PASSWORD: "dbuser"
+    ports:
+    - 5432:5432
+    volumes:
+    - postgresql:/bitnami/postgresql
   theia:
-    image: docker.qpointz.io/theia-scala
+    image: docker.qpointz.io/theia-scala:latest
     ports:
       - 44100:3000
     volumes:
       - theia_scala:/ws
+
 volumes:
   zookeeper:
   kafka:
   cassandra:
   cassandra_data:
   localstack:
-  theia_scala:
+  elasticsearch:
+  postgresql:
