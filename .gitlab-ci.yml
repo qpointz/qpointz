@@ -1,7 +1,9 @@
-image: qpointz/enzyme-ci-sbt:latest
+image: docker.qpointz.io/ci-sbt
 stages:
+ - init
  - test
  - coverage
+ - publish
 
 cache:
   key: "$CI_COMMIT_SHA"
@@ -18,6 +20,13 @@ cache:
       - ./**/target/test-reports/**/*
       - target/scala-*/scoverage-report/**/*
     expire_in: 10 days
+
+buildImages:
+  stage: init
+  script:
+    - docker login -u $DOCKER_REPO_USER -p $DOCKER_REPO_PASSWORD $DOCKER_REPO
+    - docker build etc/docker/ci-sbt/Dockerfile -t docker.qpointz.io/ci-sbt && docker push docker.qpointz.io/ci-sbt
+    - docker build etc/docker/ci-npm/Dockerfile -t docker.qpointz.io/ci-npm && docker push docker.qpointz.io/ci-npm
 
 testFlow:
   <<: *test_job
@@ -50,3 +59,10 @@ testWScalastyle:
          untracked: true
          paths:
            - target/scalastyle/*.*
+
+publishDevStack:
+  stage: publish
+  script:
+    - docker login -u $DOCKER_REPO_USER -p $DOCKER_REPO_PASSWORD $DOCKER_REPO
+    - docker build etc/docker/theia-scala/Dockerfile -t docker.qpointz.io/theia-scala && docker push docker.qpointz.io/theia-scala
+    - cd etc/compose/dev && docker-compose pull && docker-compose up -d
