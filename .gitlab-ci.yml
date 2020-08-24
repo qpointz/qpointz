@@ -1,9 +1,9 @@
-image: docker.qpointz.io/ci-sbt
+image: docker.qpointz.io/ci-sbt:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
 stages:
- - init
- - test
- - coverage
- - publish
+  - init
+  - test
+  - coverage
+  - publish
 
 cache:
   key: "$CI_COMMIT_SHA"
@@ -23,23 +23,23 @@ cache:
 
 buildImages:
   stage: init
+  image: docker:latest
   script:
     - docker login -u $DOCKER_REPO_USER -p $DOCKER_REPO_PASSWORD $DOCKER_REPO
-    - docker build etc/docker/ci-sbt/Dockerfile -t docker.qpointz.io/ci-sbt && docker push docker.qpointz.io/ci-sbt
-    - docker build etc/docker/ci-npm/Dockerfile -t docker.qpointz.io/ci-npm && docker push docker.qpointz.io/ci-npm
+    - docker build etc/docker/ci-sbt -t docker.qpointz.io/ci-sbt:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    - docker build etc/docker/ci-npm -t docker.qpointz.io/ci-npm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
 
 testFlow:
   <<: *test_job
   stage: test
   script:
     - sbt "project flow" clean coverage test coverageReport
-    
+
 testSurface:
   <<: *test_job
   stage: test
   script:
     - sbt "project surface" clean coverage test coverageReport
-
 
 coverageAggregate:
   <<: *test_job
@@ -48,21 +48,35 @@ coverageAggregate:
     - sbt coverageAggregate
 
 testWScalastyle:
-    stage: test
-    only:
-      - dev
-      - master
-    script:
-      - sbt scalastyle
-      - etc/misc/checkstyle.sh
-    artifacts:
-         untracked: true
-         paths:
-           - target/scalastyle/*.*
+  stage: test
+  only:
+    - dev
+    - master
+  script:
+    - sbt scalastyle
+    - etc/misc/checkstyle.sh
+  artifacts:
+    untracked: true
+    paths:
+      - target/scalastyle/*.*
 
-publishDevStack:
+
+devStack:buildImages:
+  image: docker:latest
+  only:
+    - dev
+    - master
   stage: publish
   script:
     - docker login -u $DOCKER_REPO_USER -p $DOCKER_REPO_PASSWORD $DOCKER_REPO
-    - docker build etc/docker/theia-scala/Dockerfile -t docker.qpointz.io/theia-scala && docker push docker.qpointz.io/theia-scala
+    - docker build etc/docker/theia-scala -t docker.qpointz.io/theia-scala
+    - docker push docker.qpointz.io/theia-scala
+
+devStack:up:
+  image: docker/compose:latest
+  only:
+    - dev
+    - master
+  stage: publish
+  script:
     - cd etc/compose/dev && docker-compose pull && docker-compose up -d
