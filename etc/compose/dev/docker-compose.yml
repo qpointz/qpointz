@@ -75,3 +75,4 @@ volumes:
   localstack:
   elasticsearch:
   postgresql:
+  theia_scala:
