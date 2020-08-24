@@ -1,4 +1,4 @@
-version: '3'
+version: '2'
 services:
   zookeeper:
     image: bitnami/zookeeper:latest
@@ -61,7 +61,7 @@ services:
     volumes:
     - postgresql:/bitnami/postgresql
   theia:
-    image: docker.qpointz.io/theia-scala
+    image: docker.qpointz.io/theia-scala:latest
     ports:
       - 44100:3000
     volumes:
