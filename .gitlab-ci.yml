@@ -1,4 +1,4 @@
-image: docker.qpointz.io/ci-sbt:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+image: docker-ci.qpointz.io/ci-sbt:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
 stages:
   - init
   - test
@@ -25,9 +25,11 @@ buildImages:
   stage: init
   image: docker:latest
   script:
-    - docker login -u $DOCKER_REPO_USER -p $DOCKER_REPO_PASSWORD $DOCKER_REPO
-    - docker build etc/docker/ci-sbt -t docker.qpointz.io/ci-sbt:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
-    - docker build etc/docker/ci-npm -t docker.qpointz.io/ci-npm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    - docker login -u $DOCKER_REPO_CI_USER -p $DOCKER_REPO_CI_PASSWORD $DOCKER_REPO_CI
+    - docker build etc/docker/ci-sbt -t docker-ci.qpointz.io/ci-sbt:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    - docker push docker-ci.qpointz.io/ci-sbt:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    - docker build etc/docker/ci-npm -t docker-ci.qpointz.io/ci-npm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    - docker push docker-ci.qpointz.io/ci-npm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
 
 testFlow:
   <<: *test_job
