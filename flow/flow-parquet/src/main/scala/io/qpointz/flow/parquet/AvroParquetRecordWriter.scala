@@ -16,7 +16,7 @@
 
 package io.qpointz.flow.parquet
 
-import io.qpointz.flow.{Record, RecordWriter}
+import io.qpointz.flow.{OperationContext, Record, RecordWriter}
 import org.apache.avro.generic.{GenericRecord, GenericRecordBuilder}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -50,7 +50,7 @@ class AvroParquetRecordWriterSettings {
   var path:Path = _
 }
 
-class AvroParquetRecordWriter(settings:AvroParquetRecordWriterSettings) extends RecordWriter {
+class AvroParquetRecordWriter(settings:AvroParquetRecordWriterSettings)(implicit val ctx:OperationContext) extends RecordWriter {
   override def open(): Unit = {
 
   }

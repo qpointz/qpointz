@@ -9,7 +9,8 @@ lazy val `flow` = project.in(file("flow"))
     `flow-core`,
     `flow-excel`,
     `flow-jdbc`,
-    `flow-parquet`
+    `flow-parquet`,
+    `flow-transform`
   )
 
 lazy val `flow-core` = libProject("flow", "flow-core")
@@ -43,3 +44,6 @@ lazy val `flow-jdbc` = libProject("flow" ,"flow-jdbc")
       scala.reflect
     )
   )
+
+lazy val `flow-transform` = libProject("flow", "flow-transform")
+  .dependsOn(`flow-core`)
