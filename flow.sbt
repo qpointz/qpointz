@@ -8,6 +8,7 @@ lazy val `flow` = project.in(file("flow"))
   .aggregate(
     `flow-core`,
     `flow-excel`,
+    `flow-text`,
     `flow-jdbc`,
     `flow-parquet`,
     `flow-transform`
@@ -47,3 +48,11 @@ lazy val `flow-jdbc` = libProject("flow" ,"flow-jdbc")
 
 lazy val `flow-transform` = libProject("flow", "flow-transform")
   .dependsOn(`flow-core`)
+
+lazy val `flow-text` = libProject("flow", "flow-text")
+  .dependsOn(`flow-core`)
+  .settings(
+    libraryDependencies ++= modules(
+      univocity.parsers
+    )
+  )

@@ -75,7 +75,7 @@ object Dependencies {
   }
 
   object univocity {
-    val v = "2.8.3"
+    val v = "2.9.0"
     val p = "com.univocity" ~% v
     val parsers = "univocity-parsers" ~~ p
   }

@@ -18,6 +18,8 @@ package io.qpointz.flow
 
 import MetadataMethods._
 
+import scala.math
+
 case class Record(attributes: Attributes, meta: Metadata) {
 
   private def applyMeta(m: Metadata): Metadata = meta ++ m
@@ -70,9 +72,28 @@ case class Record(attributes: Attributes, meta: Metadata) {
 
 }
 
+
+
 object Record {
 
   def apply(kv: (AttributeKey, AttributeValue)*): Record = Record(kv.toMap, empty)
+
+  def apply[T<:AttributeValue](keys: Seq[AttributeKey], values:Seq[T], meta:Metadata): Record = {
+
+    val map = if (keys.length==values.length) {
+      keys.zipWithIndex.map(z=> (z._1 -> values(z._2)))
+    } else {
+      (0 to math.max(keys.length, values.length))
+        .map(k=>(k, keys.lift(k), values.lift(k)) match {
+          case (_ , Some(key), Some(value)) => key -> value
+          case (k, Some(key), None) => key -> AttributeValue.Missing
+          case (k, None , Some(value)) => s"Attriibute_${k}" -> value
+          }
+        )
+    }
+
+    new Record(map.toMap, meta)
+  }
 
   implicit class RecordOp(r: Record) {
 

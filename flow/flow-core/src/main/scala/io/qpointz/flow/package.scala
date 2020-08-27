@@ -28,7 +28,7 @@ package object flow {
   type Attribute        = (AttributeKey, AttributeValue)
   type Attributes       = Map[AttributeKey, AttributeValue]
 
-  type Metadata         = Seq[Entry[_]]
+  type Metadata         = Seq[MetaEntry[_]]
 
   object AttributeValue {
     object Null  {}
@@ -36,6 +36,8 @@ package object flow {
     object Empty {}
     object Missing {}
   }
+
+  case class MissingAttributeKey(idx:AttributeIndex)
 
   object RecordTags {
     val OK:String  = "OK"
@@ -52,7 +54,7 @@ package object flow {
   implicit class RecordOps(r:Record) {
 
     def metadata():Metadata = r match {
-      case mt:MetadataTarget => mt.metadata
+      case mt:MetadataProvider => mt.metadata
       case _ => Seq()
     }
 

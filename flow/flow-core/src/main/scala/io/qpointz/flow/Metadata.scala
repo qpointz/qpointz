@@ -18,24 +18,28 @@ package io.qpointz.flow
 
 import scala.reflect.ClassTag
 
-trait MetadataTarget {
+trait MetadataProvider {
   val metadata : Metadata
 }
 
-case class Key(group:String, key:String) {}
+trait MetadataGroupOwner {
+  val metadataGroupKey : String
+}
 
-case class Entry[T<:Any](key:Key, value:T) {}
+case class MetaKey(group:String, key:String) {}
 
-class EntryDefinition[T](val key:Key) {
-  def apply(value:T):Entry[T] = Entry[T](key, value)
+case class MetaEntry[T<:Any](key:MetaKey, value:T) {}
+
+class EntryDefinition[T](val key:MetaKey) {
+  def apply(value:T):MetaEntry[T] = MetaEntry[T](key, value)
 }
 
 object EntryDefinition {
-  def apply[T](group:String, key:String ):EntryDefinition[T] = new EntryDefinition[T](Key(group, key))
+  def apply[T](group:String, key:String ):EntryDefinition[T] = new EntryDefinition[T](MetaKey(group, key))
 }
 
 abstract class MetadataGroup(val groupKey:String) {
-  def key(key:String): Key = Key(groupKey, key)
+  def key(key:String): MetaKey = MetaKey(groupKey, key)
   def entry[T](k:String):EntryDefinition[T] = new EntryDefinition[T](key(k))
 }
 
@@ -43,22 +47,22 @@ object MetadataMethods {
 
   val empty:Metadata = Seq()
 
-  implicit def entry2Meta(e:Entry[_]):Metadata = Seq(e)
+  implicit def entry2Meta(e:MetaEntry[_]):Metadata = Seq(e)
 
   implicit def seq2Meta(itms:Seq[(String, String, _)]):Metadata = itms.map(t32Entry)
 
-  implicit def t32Entry[T](t:(String, String, T)):Entry[T] = Entry(Key(t._1, t._2), t._3)
+  implicit def t32Entry[T](t:(String, String, T)):MetaEntry[T] = MetaEntry(MetaKey(t._1, t._2), t._3)
 
-  implicit def tdf2Entry[T](kv:(EntryDefinition[T], T)):Entry[T] = Entry(kv._1.key, kv._2)
+  implicit def tdf2Entry[T](kv:(EntryDefinition[T], T)):MetaEntry[T] = MetaEntry(kv._1.key, kv._2)
 
   implicit class MetadataObjectMethods(val m:Metadata) {
 
-    def getAll[T](df:EntryDefinition[T])(implicit tag:ClassTag[T]):Seq[Entry[_]] = {
+    def getAll[T](df:EntryDefinition[T])(implicit tag:ClassTag[T]):Seq[MetaEntry[_]] = {
       m.filter(_.key==df.key)
     }
 
     def getOp[T](df:EntryDefinition[T])(implicit tag:ClassTag[T]) :Option[T] = getAll(df) match {
-      case Seq(Entry(df.key, v:T), _ @ _*) => Some(v)
+      case Seq(MetaEntry(df.key, v:T), _ @ _*) => Some(v)
       case _ => None
     }
 
@@ -69,9 +73,9 @@ object MetadataMethods {
 
     def getOr[T](df:EntryDefinition[T], default:T)(implicit tag:ClassTag[T]):T = getOp(df).getOrElse(default)
 
-    def put[T](df:EntryDefinition[T], value:T)(implicit tag:ClassTag[T]):Metadata = m :+ Entry(df.key, value)
+    def put[T](df:EntryDefinition[T], value:T)(implicit tag:ClassTag[T]):Metadata = m :+ MetaEntry(df.key, value)
 
-    def >+[T](e:Entry[T])(implicit tag:ClassTag[T]):Metadata = m :+ e
+    def >+[T](e:MetaEntry[T])(implicit tag:ClassTag[T]):Metadata = m :+ e
 
     def apply[T](df:EntryDefinition[T])(implicit tag:ClassTag[T]):T = get(df)
 
