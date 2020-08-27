@@ -94,4 +94,5 @@ devStack:up:
     - master
   stage: publish
   script:
+    - docker login -u $DOCKER_REPO_USER -p $DOCKER_REPO_PASSWORD $DOCKER_REPO
     - cd etc/compose/dev && docker-compose pull && docker-compose up -d
