@@ -4,7 +4,7 @@ stages:
   - test
   - integration
   - report
-  - publish
+  - deploy
 
 cache:
   key: "$CI_COMMIT_SHA"
@@ -14,26 +14,28 @@ cache:
     - target/
     - project/project
 
-.job_template : &test_job
-  artifacts:
-    untracked: true
-    paths:
-      - ./**/target/test-reports/**/*
-      - target/scala-*/scoverage-report/**/*
-    expire_in: 10 days
-
-buildImages:
+docker:buildCi:
   stage: init
   image: docker:latest
   script:
-    - docker login -u $DOCKER_REPO_CI_USER -p $DOCKER_REPO_CI_PASSWORD $DOCKER_REPO_CI
+    - echo "$DOCKER_REPO_CI_PASSWORD" | docker login $DOCKER_REPO_CI  -u $DOCKER_REPO_CI_USER --password-stdin
     - docker build etc/docker/ci-sbt -t docker-ci.qpointz.io/ci-sbt:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
     - docker push docker-ci.qpointz.io/ci-sbt:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
     - docker build etc/docker/ci-npm -t docker-ci.qpointz.io/ci-npm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
     - docker push docker-ci.qpointz.io/ci-npm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
 
+docker:buildDevStack:
+  stage: init
+  image: docker:latest
+  only:
+    - dev
+    - master
+  script:
+    - echo "$DOCKER_REPO_PASSWORD" | docker login $DOCKER_REPO  -u $DOCKER_REPO_USER --password-stdin
+    - docker build etc/docker/theia-scala -t docker.qpointz.io/theia-scala
+    - docker push docker.qpointz.io/theia-scala
+
 flow:test:
-  <<: *test_job
   stage: test
   script:
     - sbt "project flow" clean coverage test coverageReport
@@ -42,7 +44,6 @@ flow:test:
       junit: ./**/*/target/test-reports/*.xml
 
 flow:it:
-  <<: *test_job
   stage: test
   script:
     - sbt "project flow" clean coverage it:test coverageReport
@@ -51,7 +52,6 @@ flow:it:
       junit: ./**/*/target/test-reports/*.xml
 
 surface:test:
-  <<: *test_job
   stage: test
   script:
     - sbt "project surface" clean coverage test coverageReport
@@ -60,7 +60,6 @@ surface:test:
       junit: ./**/*/target/test-reports/*.xml
 
 coverage:aggregate:
-  <<: *test_job
   stage: report
   script:
     - sbt coverageAggregate
@@ -74,25 +73,14 @@ scalastyle:
     untracked: true
     paths:
       - target/scalastyle/*.*
-
-
-devStack:buildImages:
-  image: docker:latest
-  only:
-    - dev
-    - master
-  stage: publish
-  script:
-    - docker login -u $DOCKER_REPO_USER -p $DOCKER_REPO_PASSWORD $DOCKER_REPO
-    - docker build etc/docker/theia-scala -t docker.qpointz.io/theia-scala
-    - docker push docker.qpointz.io/theia-scala
+    expire_in: 10 days
 
 devStack:up:
   image: docker/compose:latest
   only:
     - dev
     - master
-  stage: publish
+  stage: deploy
   script:
-    - docker login -u $DOCKER_REPO_USER -p $DOCKER_REPO_PASSWORD $DOCKER_REPO
+    - echo "$DOCKER_REPO_PASSWORD" | docker login $DOCKER_REPO  -u $DOCKER_REPO_USER --password-stdin
     - cd etc/compose/dev && docker-compose pull && docker-compose up -d
