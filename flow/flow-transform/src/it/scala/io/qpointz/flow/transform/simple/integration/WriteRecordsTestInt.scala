@@ -30,8 +30,8 @@ class WriteRecordsTestInt extends org.scalatest.flatspec.AnyFlatSpec with Matche
 
 
   override def beforeAll(): Unit = {
-    Files.deleteIfExists(Paths.get("./tmp/write-records-it-test.parquet"))
-    Files.deleteIfExists(Paths.get("./tmp/write-records-it-test.parquet.crc"))
+    Files.deleteIfExists(Paths.get("./target/test-out/write-records-it-test.parquet"))
+    Files.deleteIfExists(Paths.get("./target/test-out/write-records-it-test.parquet.crc"))
   }
 
   it should "pass writing" in {
@@ -63,7 +63,7 @@ class WriteRecordsTestInt extends org.scalatest.flatspec.AnyFlatSpec with Matche
     )
     val pqSettings = new AvroParquetRecordWriterSettings()
     pqSettings.schema = pqSchema
-    pqSettings.path("./tmp/write-records-it-test.parquet")
+    pqSettings.path("./target/test-out/write-records-it-test.parquet")
 
     val pqWriter = new AvroParquetRecordWriter(pqSettings)
 

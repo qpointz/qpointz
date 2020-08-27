@@ -46,6 +46,7 @@ object BuildUtils {
     val projectPath = s"${group}/${projectName}"
     sbt.Project(projectName, file(projectPath))
       .settings(
+        autoAPIMappings := true,
         name:= projectName,
         libraryDependencies ++= profiles(
           DepProfiles.lib
