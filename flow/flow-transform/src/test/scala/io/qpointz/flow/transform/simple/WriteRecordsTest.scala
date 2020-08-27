@@ -62,7 +62,6 @@ class WriteRecordsTest extends org.scalatest.flatspec.AnyFlatSpec with Matchers 
     (writer.close _).expects()
 
     rw.transform()
-
   }
 
 }

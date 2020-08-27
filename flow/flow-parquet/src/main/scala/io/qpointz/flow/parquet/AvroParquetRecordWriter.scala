@@ -48,6 +48,11 @@ class AvroParquetRecordWriterSettings {
   var configuration: Configuration = new Configuration(true)
   var schema:AvroSchemaSource = _
   var path:Path = _
+
+  def path(p:String):Unit = {
+    path = new Path(p)
+  }
+
 }
 
 class AvroParquetRecordWriter(settings:AvroParquetRecordWriterSettings)(implicit val ctx:OperationContext) extends RecordWriter {

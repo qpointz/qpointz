@@ -2,6 +2,7 @@ image: docker-ci.qpointz.io/ci-sbt:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
 stages:
   - init
   - test
+  - integration
   - coverage
   - publish
 
@@ -31,13 +32,20 @@ buildImages:
     - docker build etc/docker/ci-npm -t docker-ci.qpointz.io/ci-npm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
     - docker push docker-ci.qpointz.io/ci-npm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
 
-testFlow:
+flow:test:
   <<: *test_job
   stage: test
   script:
     - sbt "project flow" clean coverage test coverageReport
 
-testSurface:
+flow:it:
+  <<: *test_job
+  stage: integration
+  needs: ["flow:test"]
+  script:
+    - sbt "project flow" clean coverage test it:test coverageReport
+
+surface:test:
   <<: *test_job
   stage: test
   script:

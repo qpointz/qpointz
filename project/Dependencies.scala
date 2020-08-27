@@ -122,12 +122,13 @@ object Dependencies {
   }
 
   object DepProfiles {
+
     lazy val lib: Seq[ModuleID] = Seq(
       slf4j.api,
       logback.classic,
       scalaLog.logging ,
       jUnit.jUnit % Test,
-      scalaTest.scalaTest % Test ,
+      scalaTest.scalaTest % Test,
       scalaMock.scalamock % Test,
       "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test
     )

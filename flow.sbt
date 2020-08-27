@@ -47,7 +47,11 @@ lazy val `flow-jdbc` = libProject("flow" ,"flow-jdbc")
   )
 
 lazy val `flow-transform` = libProject("flow", "flow-transform")
-  .dependsOn(`flow-core`)
+  .dependsOn(`flow-core`,
+             `flow-text` % "it->test",
+             `flow-parquet` % "it->test"
+  )
+  .withIntegration
 
 lazy val `flow-text` = libProject("flow", "flow-text")
   .dependsOn(`flow-core`)
