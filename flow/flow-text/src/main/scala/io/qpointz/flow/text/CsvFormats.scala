@@ -1,5 +1,5 @@
 /*
- * Copyright  2019 qpointz.io
+ * Copyright 2020 qpointz.io
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,22 +12,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package datamodel
+package io.qpointz.flow.text
 
-trait Context {
+object CsvFormats {
 
-  //scalastyle:off regex
-  def info(m:String):Unit = println(s"INFO: $m")
-  def warn(m:String):Unit = println(s"WARN: $m")
-  def debug(m:String):Unit = println(s"DEBUG: $m")
-  def error(m:String):Unit = println(s"ERROR: $m")
-  //scalastyle:on regex
-
-}
+  def default: CsvRecordReaderSettings = {
+    new CsvRecordReaderSettings()
+  }
 
 
-trait ContextAware[T <: Context] {
-  val ctx : T
 }

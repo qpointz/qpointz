@@ -53,7 +53,7 @@ object Dependencies {
   }
 
   object scalaTest {
-    lazy val v = "org.scalatest" ~%% "3.2.0"
+    lazy val v = "org.scalatest" ~%% "3.2.2"
     lazy val scalaTest = v ~~ "scalatest"
   }
 
@@ -63,7 +63,7 @@ object Dependencies {
   }
 
   object scalaMock {
-    val v = "4.4.0"
+    val v = "5.0.0"
     val p = "org.scalamock" ~%% v
     val scalamock = "scalamock" ~~ p
   }
@@ -75,7 +75,7 @@ object Dependencies {
   }
 
   object univocity {
-    val v = "2.8.3"
+    val v = "2.9.0"
     val p = "com.univocity" ~% v
     val parsers = "univocity-parsers" ~~ p
   }
@@ -122,10 +122,16 @@ object Dependencies {
   }
 
   object DepProfiles {
+
     lazy val lib: Seq[ModuleID] = Seq(
-      slf4j.api, logback.classic, scalaLog.logging //, scalaConfig
-      , jUnit.jUnit % Test, scalaTest.scalaTest % Test //, scalactic
-      , scalaMock.scalamock % Test, "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test)
+      slf4j.api,
+      logback.classic,
+      scalaLog.logging ,
+      jUnit.jUnit % Test,
+      scalaTest.scalaTest % Test,
+      scalaMock.scalamock % Test,
+      "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test
+    )
 
     lazy val json4sCommon: Seq[ModuleID] = Seq(
       json4s.ast,

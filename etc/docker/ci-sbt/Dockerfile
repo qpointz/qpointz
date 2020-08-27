@@ -8,8 +8,8 @@
 FROM openjdk:11-jdk
 
 # Env variables
-ENV SCALA_VERSION 2.13.2
-ENV SBT_VERSION 1.3.12
+ENV SCALA_VERSION 2.13.3
+ENV SBT_VERSION 1.3.13
 
 # Scala expects this file
 # RUN touch /usr/lib/jvm/java-8-openjdk-amd64/release
@@ -20,7 +20,8 @@ RUN \
   dpkg -i sbt-$SBT_VERSION.deb && \
   rm sbt-$SBT_VERSION.deb && \
   apt-get update && \
-  apt-get install -y sbt
+  apt-get install -y sbt xsltproc python3 python3-pip && \
+  rm -rf /var/lib/apt/lists/*
 
 RUN \
     mkdir -p /data/.sbt && \
@@ -29,7 +30,7 @@ RUN \
     ln -s /data/.sbt /root/.sbt
 
 RUN \
-   apt-get install -y xsltproc
+   pip3 install -U requests rst2pdf sphinx sphinx_rtd_theme
 
 VOLUME /data
 

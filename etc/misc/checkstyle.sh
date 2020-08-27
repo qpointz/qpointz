@@ -15,13 +15,9 @@ echo "creating empty out dir"
 mkdir -p ${td}
 
 echo "copy all reports"
-for f in ./*/target/scalastyle-result.xml
+for f in ./**/*/target/scalastyle-result.xml
 do
+    outf="${td}/$(echo $f | sed -e 's/\//-/g' | sed -e 's/\.-//g' | sed -e 's/-target//g' | sed -e 's/-result\.xml/\.html/g')"
     echo "Convert ${f} to ${f}.html"
-    xsltproc --verbose ./etc/misc/checkstyle.xslt ${f} > "${f}.html"
-
-	echo "Copy ${f}"
-	nn=$(echo $f | sed -e 's/\//-/g' | sed -e 's/-target//g' | rev | cut -f 2- -d '.' | rev)	
-	cp "${f}" "${td}/${nn}.xml"
-	cp "${f}.html" "${td}/${nn}.html"
+    xsltproc --verbose ./etc/misc/checkstyle.xslt ${f} > "${outf}"
 done 

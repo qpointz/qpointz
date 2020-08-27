@@ -26,7 +26,7 @@ class AvroParquetRecordReaderTest extends AnyFlatSpec with Matchers {
 
   behavior of "read"
 
-  val readPath = "./tmp/readFile.parquet"
+  val readPath = "./target/test-out/readFile.parquet"
 
   ParquetUtils.writeTestFile(readPath)
 

@@ -26,10 +26,27 @@ import sbt.{File, file}
 
 object BuildUtils {
 
+  implicit class QpProject(p:Project) {
+
+    def withIntegration: Project = {
+      p.configs(IntegrationTest)
+        .settings(
+          Defaults.itSettings,
+          libraryDependencies ++= Seq(
+            jUnit.jUnit % IntegrationTest,
+            scalaTest.scalaTest % IntegrationTest,
+            scalaMock.scalamock % IntegrationTest,
+            "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % IntegrationTest
+          )
+        )
+    }
+  }
+
   def libProject(group:String, projectName:String): Project = {
     val projectPath = s"${group}/${projectName}"
     sbt.Project(projectName, file(projectPath))
       .settings(
+        autoAPIMappings := true,
         name:= projectName,
         libraryDependencies ++= profiles(
           DepProfiles.lib

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 qpointz.io
+ * Copyright 2020 qpointz.io
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,6 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package io.qpointz
@@ -28,7 +29,7 @@ package object flow {
   type Attribute        = (AttributeKey, AttributeValue)
   type Attributes       = Map[AttributeKey, AttributeValue]
 
-  type Metadata         = Seq[Entry[_]]
+  type Metadata         = Seq[MetaEntry[_]]
 
   object AttributeValue {
     object Null  {}
@@ -36,6 +37,8 @@ package object flow {
     object Empty {}
     object Missing {}
   }
+
+  case class MissingAttributeKey(idx:AttributeIndex)
 
   object RecordTags {
     val OK:String  = "OK"
@@ -52,7 +55,7 @@ package object flow {
   implicit class RecordOps(r:Record) {
 
     def metadata():Metadata = r match {
-      case mt:MetadataTarget => mt.metadata
+      case mt:MetadataProvider => mt.metadata
       case _ => Seq()
     }
 

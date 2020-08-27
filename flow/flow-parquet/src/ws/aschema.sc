@@ -5,7 +5,7 @@ import org.apache.parquet.avro.AvroParquetReader
 import org.apache.parquet.hadoop.util.HadoopInputFile
 
 val cfg = new Configuration()
-val inputFile = HadoopInputFile.fromPath(new Path("./tmp/apw.parquet"), cfg)
+val inputFile = HadoopInputFile.fromPath(new Path("./target/test-out/apw.parquet"), cfg)
 val ar = AvroParquetReader.builder[GenericRecord](inputFile)
   .build()
 

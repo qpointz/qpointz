@@ -8,8 +8,10 @@ lazy val `flow` = project.in(file("flow"))
   .aggregate(
     `flow-core`,
     `flow-excel`,
+    `flow-text`,
     `flow-jdbc`,
-    `flow-parquet`
+    `flow-parquet`,
+    `flow-transform`
   )
 
 lazy val `flow-core` = libProject("flow", "flow-core")
@@ -41,5 +43,20 @@ lazy val `flow-jdbc` = libProject("flow" ,"flow-jdbc")
       "org.apache.avro" % "avro-mapred" % "1.9.2",
       "software.amazon.awssdk" % "aws-sdk-java" % "2.13.44",
       scala.reflect
+    )
+  )
+
+lazy val `flow-transform` = libProject("flow", "flow-transform")
+  .dependsOn(`flow-core`,
+             `flow-text` % "it->test",
+             `flow-parquet` % "it->test"
+  )
+  .withIntegration
+
+lazy val `flow-text` = libProject("flow", "flow-text")
+  .dependsOn(`flow-core`)
+  .settings(
+    libraryDependencies ++= modules(
+      univocity.parsers
     )
   )
