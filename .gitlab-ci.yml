@@ -3,7 +3,7 @@ stages:
   - init
   - test
   - integration
-  - coverage
+  - report
   - publish
 
 cache:
@@ -37,31 +37,36 @@ flow:test:
   stage: test
   script:
     - sbt "project flow" clean coverage test coverageReport
+  artifacts:
+    reports:
+      junit: ./**/*/target/test-reports/*.xml
 
 flow:it:
   <<: *test_job
-  stage: integration
-  needs: ["flow:test"]
+  stage: test
   script:
-    - sbt "project flow" clean coverage test it:test coverageReport
+    - sbt "project flow" clean coverage it:test coverageReport
+  artifacts:
+    reports:
+      junit: ./**/*/target/test-reports/*.xml
 
 surface:test:
   <<: *test_job
   stage: test
   script:
     - sbt "project surface" clean coverage test coverageReport
+  artifacts:
+    reports:
+      junit: ./**/*/target/test-reports/*.xml
 
-coverageAggregate:
+coverage:aggregate:
   <<: *test_job
-  stage: coverage
+  stage: report
   script:
     - sbt coverageAggregate
 
-testWScalastyle:
-  stage: test
-  only:
-    - dev
-    - master
+scalastyle:
+  stage: report
   script:
     - sbt scalastyle
     - etc/misc/checkstyle.sh
