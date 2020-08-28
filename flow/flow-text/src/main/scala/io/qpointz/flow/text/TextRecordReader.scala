@@ -54,13 +54,13 @@ abstract class TextRecordReader[TParser<:AbstractParser[_],TReaderSettings <: Te
     private val sourceMetadata = if (settings.includeSourceMetadata) {
       source.metadata
     } else {
-      List()
+      MetadataMethods.empty
     }
 
     private val readerMetadata = if (settings.includeReaderMetadata) {
       textReader.metadata
     } else {
-      List()
+      MetadataMethods.empty
     }
 
     private val baseMetadata = sourceMetadata ++ readerMetadata

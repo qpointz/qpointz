@@ -65,7 +65,7 @@ class FwfRecordReaderSettings extends TextReaderSettings {
 
   var UseDefaultPaddingForHeaders: Boolean = _
 
-  var SkipxTrailingCharsUntilNewline: Boolean = _
+  var SkipTrailingCharsUntilNewline: Boolean = _
 
   var KeepPadding: Boolean = _
 
@@ -77,7 +77,7 @@ class FwfRecordReaderSettings extends TextReaderSettings {
     val cs = new FixedWidthParserSettings()
     cs.setKeepPadding(this.KeepPadding)
     cs.setRecordEndsOnNewline(this.RecordEndsOnNewline)
-    cs.setSkipTrailingCharsUntilNewline(this.SkipxTrailingCharsUntilNewline)
+    cs.setSkipTrailingCharsUntilNewline(this.SkipTrailingCharsUntilNewline)
     cs.setUseDefaultPaddingForHeaders(this.UseDefaultPaddingForHeaders)
     cs.setAutoClosingEnabled(this.AutoClosingEnabled)
     cs.setAutoConfigurationEnabled(this.AutoConfigurationEnabled)
@@ -107,7 +107,7 @@ class FwfRecordReaderSettings extends TextReaderSettings {
   def fromParserSettings(cs:FixedWidthParserSettings):Unit = {
     this.KeepPadding=cs.getKeepPadding
     this.RecordEndsOnNewline=cs.getRecordEndsOnNewline
-    this.SkipxTrailingCharsUntilNewline=cs.getSkipTrailingCharsUntilNewline
+    this.SkipTrailingCharsUntilNewline=cs.getSkipTrailingCharsUntilNewline
     this.UseDefaultPaddingForHeaders=cs.getUseDefaultPaddingForHeaders
     this.AutoClosingEnabled=cs.isAutoClosingEnabled
     this.AutoConfigurationEnabled=cs.isAutoConfigurationEnabled

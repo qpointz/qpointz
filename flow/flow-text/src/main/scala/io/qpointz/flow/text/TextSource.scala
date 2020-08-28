@@ -25,6 +25,10 @@ trait TextSource extends MetadataProvider with MetadataGroupOwner {
     def asReader():Reader
 }
 
+trait TextTarget {
+
+}
+
 import io.qpointz.flow.MetadataMethods._
 
 object TextSource {
