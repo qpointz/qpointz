@@ -3,8 +3,8 @@ import sbt.Keys.libraryDependencies
 import sbt._
 import BuildUtils._
 
-val macwire = "com.softwaremill.macwire" %% "macros" % "2.3.3" % "provided"
-val scalaTest = "org.scalatest" %% "scalatest" % "3.1.1" % Test
+val macwire = "com.softwaremill.macwire" %% "macros" % "2.3.7" % "provided"
+val scalaTest = "org.scalatest" %% "scalatest" % "3.2.2" % Test
 
 lazy val `surface` = project.in(file("surface"))
   .aggregate(
