@@ -29,6 +29,10 @@ class FwfRecordWriterSettings extends TextWriterSettings {
 
   var lineSeparator:String = _
 
+  var emptyValue:String = _
+
+  var headerWritingEnabled:Boolean = _
+
   def asWriterSettings(): FixedWidthWriterSettings = {
     val fwws = new FixedWidthWriterSettings()
     val fmt = new FixedWidthFormat()
@@ -37,8 +41,8 @@ class FwfRecordWriterSettings extends TextWriterSettings {
     fmt.setNormalizedNewline(this.normalizedNewLine)
     fmt.setLineSeparator(this.lineSeparator)
     fwws.setFormat(fmt)
-    fwws.setEmptyValue()
-    fwws.setHeaderWritingEnabled()
+    fwws.setEmptyValue(this.emptyValue)
+    fwws.setHeaderWritingEnabled(this.headerWritingEnabled)
     fwws
   }
 }
