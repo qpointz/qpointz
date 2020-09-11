@@ -2,8 +2,10 @@ package io.qpointz.surface.impl
 
 import com.lightbend.lagom.scaladsl.server.LocalServiceLocator
 import com.lightbend.lagom.scaladsl.testkit.ServiceTest
-import org.scalatest.{AsyncWordSpec, BeforeAndAfterAll, Matchers}
+import org.scalatest.BeforeAndAfterAll
 import io.qpointz.surface.api._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 
 class SurfaceServiceSpec extends AsyncWordSpec with Matchers with BeforeAndAfterAll {
 

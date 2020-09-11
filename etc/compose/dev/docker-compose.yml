@@ -1,0 +1,78 @@
+version: '2'
+services:
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    environment:
+      ALLOW_ANONYMOUS_LOGIN : "yes"
+    ports:
+    - 2181:2181
+    volumes:
+    - zookeeper:/bitnami/zookeeper
+  kafka:
+    image: bitnami/kafka:latest
+    depends_on:
+      - "zookeeper"
+    environment:
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_CFG_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT"
+      KAFKA_CFG_LISTENERS: "CLIENT://:9092,EXTERNAL://:9093"
+      KAFKA_CFG_ADVERTISED_LISTENERS: "CLIENT://kafka:9092,EXTERNAL://localhost:9093"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "CLIENT"
+    volumes:
+      - kafka:/bitnami/kafka
+  cassandra:
+    image: bitnami/cassandra:latest
+    ports:
+      - 9042:9042
+      - 9160:9160
+    volumes:
+      - cassandra:/bitnami
+      - cassandra_data:/data
+  localstack:
+    image: localstack/localstack:latest
+    environment:
+      LOCALSTACK_API_KEY: "3ComflxqNA"
+      EDGE_PORT: "4566"
+      SERVICES: "s3,iam,lambda,ec2"
+      DOCKER_HOST: "unix:///var/run/docker.sock"
+      HOST_TMP_FOLDER: "/data/localstack/tmp"
+      DATA_DIR: "/data/localstack/data"
+      DEFAULT_REGION: "us-east-1"
+    ports:
+      - 4566:4566
+      - 8080:8080
+    volumes:
+      - localstack:/data
+  elasticsearch:
+    image: bitnami/elasticsearch:latest
+    ports:
+    - 9200:9200
+    - 9300:9300
+    volumes:
+    - elasticsearch:/bitnami/elasticsearch/data
+  postgresql:
+    image: bitnami/postgresql:latest
+    environment:
+      POSTGRESQL_USERNAME: "dbuser"
+      POSTGRESQL_PASSWORD: "dbuser"
+    ports:
+    - 5432:5432
+    volumes:
+    - postgresql:/bitnami/postgresql
+  theia:
+    image: docker.qpointz.io/theia-scala:latest
+    ports:
+      - 44100:3000
+    volumes:
+      - theia_scala:/ws
+
+volumes:
+  zookeeper:
+  kafka:
+  cassandra:
+  cassandra_data:
+  localstack:
+  elasticsearch:
+  postgresql:
+  theia_scala:

@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apache-drill
+  namespace: qpointz
+  labels:
+    app: apache-drill
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apache-drill
+  template:
+    metadata:
+      namespace: qpointz
+      labels:
+        app: apache-drill
+    spec:
+      imagePullSecrets:
+        - name: qpdockerkey
+      containers:
+        - name: localstack
+          image: docker.qpointz.io/qpointz-apache-drill-embedded:latest
+          ports:
+            - containerPort: 4566
+            - containerPort: 8080

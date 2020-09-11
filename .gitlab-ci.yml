@@ -1,0 +1,86 @@
+image: docker-ci.qpointz.io/ci-sbt:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+stages:
+  - init
+  - test
+  - integration
+  - report
+  - deploy
+
+cache:
+  key: "$CI_COMMIT_SHA"
+  paths:
+    - project/
+    - ./**/target/
+    - target/
+    - project/project
+
+docker:buildCi:
+  stage: init
+  image: docker:latest
+  script:
+    - echo "$DOCKER_REPO_CI_PASSWORD" | docker login $DOCKER_REPO_CI  -u $DOCKER_REPO_CI_USER --password-stdin
+    - docker build etc/docker/ci-sbt -t docker-ci.qpointz.io/ci-sbt:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    - docker push docker-ci.qpointz.io/ci-sbt:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    - docker build etc/docker/ci-npm -t docker-ci.qpointz.io/ci-npm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    - docker push docker-ci.qpointz.io/ci-npm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+
+docker:buildDevStack:
+  stage: init
+  image: docker:latest
+  only:
+    - dev
+    - master
+  script:
+    - echo "$DOCKER_REPO_PASSWORD" | docker login $DOCKER_REPO  -u $DOCKER_REPO_USER --password-stdin
+    - docker build etc/docker/theia-scala -t docker.qpointz.io/theia-scala
+    - docker push docker.qpointz.io/theia-scala
+
+flow:test:
+  stage: test
+  script:
+    - sbt "project flow" clean coverage test coverageReport
+  artifacts:
+    reports:
+      junit: ./**/*/target/test-reports/*.xml
+
+flow:it:
+  stage: test
+  script:
+    - sbt "project flow" clean coverage it:test coverageReport
+  artifacts:
+    reports:
+      junit: ./**/*/target/test-reports/*.xml
+
+surface:test:
+  stage: test
+  script:
+    - sbt "project surface" clean coverage test coverageReport
+  artifacts:
+    reports:
+      junit: ./**/*/target/test-reports/*.xml
+
+coverage:aggregate:
+  stage: report
+  script:
+    - sbt coverageAggregate
+
+scalastyle:
+  stage: report
+  script:
+    - sbt scalastyle
+    - etc/misc/checkstyle.sh
+  artifacts:
+    untracked: true
+    paths:
+      - target/scalastyle/*.*
+    expire_in: 10 days
+
+devStack:up:
+  image: docker/compose:latest
+  only:
+    - dev
+    - master
+  stage: deploy
+  script:
+    - echo "$DOCKER_REPO_PASSWORD" | docker login $DOCKER_REPO  -u $DOCKER_REPO_USER --password-stdin
+    - cd etc/compose/dev && docker-compose pull && docker-compose up -d
