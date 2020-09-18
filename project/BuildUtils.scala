@@ -42,6 +42,8 @@ object BuildUtils {
     }
   }
 
+  def libProject( projectName:String): Project = libProject(".", projectName)
+
   def libProject(group:String, projectName:String): Project = {
     val projectPath = s"${group}/${projectName}"
     sbt.Project(projectName, file(projectPath))
