@@ -4,7 +4,7 @@ import sbt._
 import BuildUtils._
 
 
-lazy val `flow` = project.in(file("."))
+lazy val `flow` = project.in(file("flow"))
   .aggregate(
     `flow-core`,
     `flow-excel`,
@@ -14,8 +14,8 @@ lazy val `flow` = project.in(file("."))
     `flow-transform`
   )
 
-lazy val `flow-core` = libProject("flow-core")
-lazy val `flow-excel` = libProject("flow-excel")
+lazy val `flow-core` = libProject("flow","flow-core")
+lazy val `flow-excel` = libProject("flow","flow-excel")
   .dependsOn(`flow-core`)
   .settings(
     libraryDependencies ++= modules(
@@ -24,7 +24,7 @@ lazy val `flow-excel` = libProject("flow-excel")
     )
   )
 
-lazy val `flow-jdbc` = libProject("flow-jdbc")
+lazy val `flow-jdbc` = libProject("flow","flow-jdbc")
   .dependsOn(`flow-core`)
   .settings (
     libraryDependencies ++= modules(
@@ -32,7 +32,7 @@ lazy val `flow-jdbc` = libProject("flow-jdbc")
     )
   )
 
-  lazy val `flow-parquet` = libProject("flow-parquet")
+  lazy val `flow-parquet` = libProject("flow","flow-parquet")
   .dependsOn(`flow-core`)
   .settings(
     libraryDependencies ++= modules(
@@ -46,14 +46,14 @@ lazy val `flow-jdbc` = libProject("flow-jdbc")
     )
   )
 
-lazy val `flow-transform` = libProject("flow-transform")
+lazy val `flow-transform` = libProject("flow","flow-transform")
   .dependsOn(`flow-core`,
              `flow-text` % "it->test",
              `flow-parquet` % "it->test"
   )
   .withIntegration
 
-lazy val `flow-text` = libProject("flow-text")
+lazy val `flow-text` = libProject("flow","flow-text")
   .dependsOn(`flow-core`)
   .settings(
     libraryDependencies ++= modules(

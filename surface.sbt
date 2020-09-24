@@ -3,12 +3,12 @@ import sbt.Keys.libraryDependencies
 import sbt._
 import Dependencies._
 
-lazy val `surface` = (project in file("."))
+lazy val `surface` = (project in file("surface"))
   .aggregate(
     `surface-api`
   )
 
-lazy val `surface-api` = libProject("surface-api")
+lazy val `surface-api` = libProject("surface","surface-api")
   .settings(
     libraryDependencies ++= modules(
       akka.actorsTyped,
