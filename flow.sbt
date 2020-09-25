@@ -11,7 +11,8 @@ lazy val `flow` = project
     `flow-text`,
     `flow-jdbc`,
     `flow-parquet`,
-    `flow-transform`
+    `flow-transform`,
+    `flow-fs`
   )
 
 lazy val `flow-core` = libProject("flow","flow-core")
@@ -42,7 +43,7 @@ lazy val `flow-jdbc` = libProject("flow","flow-jdbc")
       "org.apache.avro" % "avro" % "1.10.0",
       "org.apache.avro" % "avro-mapred" % "1.10.0",
       "software.amazon.awssdk" % "aws-sdk-java" % "2.14.20",
-      scala.reflect
+      scalalib.reflect
     )
   )
 
@@ -60,3 +61,6 @@ lazy val `flow-text` = libProject("flow","flow-text")
       univocity.parsers
     )
   )
+
+lazy val `flow-fs` = libProject("flow", "flow-fs")
+  .dependsOn(`flow-core`)

@@ -14,7 +14,8 @@
     "@testing-library/user-event": "^7.1.2",
     "antd": "latest",
     "axios": "latest",
-    "craco-less": "^1.16.0",
+    "craco-less": "latest",
+    "craco-less-plugin": "latest",
     "node-sass": "latest",
     "react": "latest",
     "react-dom": "latest",
@@ -24,9 +25,14 @@
     "redux": "latest",
     "redux-devtools-extension": "latest"
   },
+  "devDependencies": {
+    "ncp": "latest",
+    "rimraf": "latest"
+  },
   "scripts": {
     "start": "BROWSER=google-chrome HOST=127.0.0.1 craco start",
     "build": "craco build",
+    "deploy" : "rimraf ../main/resources/ui && craco build && ncp build ../main/resources/ui",
     "test": "craco test",
     "eject": "craco eject"
   },

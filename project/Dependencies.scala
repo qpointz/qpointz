@@ -29,7 +29,7 @@ object Dependencies {
 
   //scalastyle:off
 
-  object scala {
+  object scalalib {
     lazy val v = "org.scala-lang" ~% BuildSettings.scalaLangVersion
     lazy val reflect = "scala-reflect" ~~ v
     lazy val compiler = "scala-compiler" ~~ v

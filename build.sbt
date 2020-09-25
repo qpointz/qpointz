@@ -6,6 +6,7 @@ version in ThisBuild := BuildSettings.version
 scalaVersion in ThisBuild := BuildSettings.scalaLangVersion
 cancelable in Global := true
 parallelExecution in ThisBuild := false
+onChangedBuildSource in ThisBuild := ReloadOnSourceChanges
 
 lazy val `flow` = project
 lazy val `surface` = project
