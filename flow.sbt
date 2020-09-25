@@ -4,7 +4,7 @@ import sbt._
 import BuildUtils._
 
 
-lazy val `flow` = project.in(file("flow"))
+lazy val `flow` = project
   .aggregate(
     `flow-core`,
     `flow-excel`,

@@ -16,5 +16,4 @@ lazy val `qpointz` = project.in(file("."))
     `surface`
   )
 
-
 resolvers += Resolver.sonatypeRepo("snapshots")

@@ -15,33 +15,36 @@
  *
  */
 
-package io.qpointz.surface.api
+package io.qpointz.surface.api.collection
 
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-import akka.http.scaladsl.server._
-import akka.http.scaladsl.testkit.ScalatestRouteTest
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import CollectionProtocol._
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import akka.actor.typed.scaladsl.Behaviors
-import io.qpointz.surface.api.CollectionRepository.{Command, GetCollections}
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.testkit.ScalatestRouteTest
+import io.qpointz.surface.api.collection.CollectionProtocol._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 class CollectionServiceTest extends AnyFlatSpec with ScalatestRouteTest with Matchers {
 
-  val testKit = ActorTestKit()
-  implicit val s = testKit.system
+  private val testKit = ActorTestKit()
+  implicit val sys = testKit.system
 
-  val mockedBehavior = Behaviors.receiveMessage[Command] { msg =>
-    msg match {
-      case x: GetCollections => {
-        x.replyTo ! Collections(collections = Seq())
-        Behaviors.same
-      }
+  private val cols = Seq(Collection("aaa"), Collection("bbb"))
+
+  private val mockedBehavior = Behaviors.receiveMessage[CollectionCommand] {
+    case x: GetCollections => {
+      x.replyTo ! Collections(collections = cols)
+      Behaviors.same
+    }
+    case x:CreateCollection => {
+      x.replyTo ! x.collection
+      Behaviors.same
     }
   }
 
-  val probe = testKit.createTestProbe[Command]()
+  val probe = testKit.createTestProbe[CollectionCommand]()
   val mockedPublisher = testKit.spawn(Behaviors.monitor(probe.ref, mockedBehavior))
 
   val cSvc = new CollectionService(mockedPublisher)
@@ -50,14 +53,15 @@ class CollectionServiceTest extends AnyFlatSpec with ScalatestRouteTest with Mat
 
   it should "return list of collections" in {
     Get("/collections") ~> cSvc.routes ~> check {
-      //status shouldEqual 200
-      //responseAs[Collections] shouldEqual Collections(collections = Seq())
+      responseAs[Collections] shouldEqual Collections(cols)
     }
   }
 
   it should "create collection" in {
-    Post("/collections", Collection(key="kkkk")) ~> cSvc.routes ~> check {
-
+    val col = Collection(key="kkkk")
+    Post("/collections", col) ~> cSvc.routes ~> check {
+      status shouldEqual StatusCodes.Created
+      responseAs[Collection] shouldEqual col
     }
   }
 
