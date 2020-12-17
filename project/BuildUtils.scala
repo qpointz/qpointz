@@ -19,10 +19,12 @@ import sbt.Keys.libraryDependencies
 import sbt._
 import Keys._
 import sbt.Def._
-import java.nio.file.{Files, Paths}
+import java.nio.file.{Files, Path, Paths}
 
 import sbt.librarymanagement.ModuleID
 import sbt.{File, file}
+
+import scala.sys.process.Process
 
 object BuildUtils {
 
@@ -57,6 +59,7 @@ object BuildUtils {
         )
       )
   }
+
 }
 
 object DependenciesUtils {
@@ -99,6 +102,5 @@ object DependenciesUtils {
 
     //noinspection ScalaStyle
     def %+(v:String):PlainDependency = PlainDependency(v, item)
-
   }
 }

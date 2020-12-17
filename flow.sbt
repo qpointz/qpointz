@@ -4,18 +4,19 @@ import sbt._
 import BuildUtils._
 
 
-lazy val `flow` = project.in(file("flow"))
+lazy val `flow` = project
   .aggregate(
     `flow-core`,
     `flow-excel`,
     `flow-text`,
     `flow-jdbc`,
     `flow-parquet`,
-    `flow-transform`
+    `flow-transform`,
+    `flow-fs`
   )
 
-lazy val `flow-core` = libProject("flow", "flow-core")
-lazy val `flow-excel` = libProject("flow", "flow-excel")
+lazy val `flow-core` = libProject("flow","flow-core")
+lazy val `flow-excel` = libProject("flow","flow-excel")
   .dependsOn(`flow-core`)
   .settings(
     libraryDependencies ++= modules(
@@ -24,7 +25,7 @@ lazy val `flow-excel` = libProject("flow", "flow-excel")
     )
   )
 
-lazy val `flow-jdbc` = libProject("flow" ,"flow-jdbc")
+lazy val `flow-jdbc` = libProject("flow","flow-jdbc")
   .dependsOn(`flow-core`)
   .settings (
     libraryDependencies ++= modules(
@@ -32,7 +33,7 @@ lazy val `flow-jdbc` = libProject("flow" ,"flow-jdbc")
     )
   )
 
-  lazy val `flow-parquet` = libProject("flow", "flow-parquet")
+  lazy val `flow-parquet` = libProject("flow","flow-parquet")
   .dependsOn(`flow-core`)
   .settings(
     libraryDependencies ++= modules(
@@ -41,22 +42,25 @@ lazy val `flow-jdbc` = libProject("flow" ,"flow-jdbc")
       "org.apache.hadoop" % "hadoop-common" % "3.3.0",
       "org.apache.avro" % "avro" % "1.10.0",
       "org.apache.avro" % "avro-mapred" % "1.10.0",
-      "software.amazon.awssdk" % "aws-sdk-java" % "2.14.12",
-      scala.reflect
+      "software.amazon.awssdk" % "aws-sdk-java" % "2.14.20",
+      scalalib.reflect
     )
   )
 
-lazy val `flow-transform` = libProject("flow", "flow-transform")
+lazy val `flow-transform` = libProject("flow","flow-transform")
   .dependsOn(`flow-core`,
              `flow-text` % "it->test",
              `flow-parquet` % "it->test"
   )
   .withIntegration
 
-lazy val `flow-text` = libProject("flow", "flow-text")
+lazy val `flow-text` = libProject("flow","flow-text")
   .dependsOn(`flow-core`)
   .settings(
     libraryDependencies ++= modules(
       univocity.parsers
     )
   )
+
+lazy val `flow-fs` = libProject("flow", "flow-fs")
+  .dependsOn(`flow-core`)
