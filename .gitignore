@@ -11,6 +11,8 @@
 *.iml
 *.log
 
+.bsp
+
 .ideaDataSources/
 dataSources/
 tmp/
