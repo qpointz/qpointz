@@ -46,7 +46,7 @@ object Dependencies {
   }
 
   object akka {
-    lazy val v = "com.typesafe.akka" ~%% "2.6.8"
+    lazy val v = "com.typesafe.akka" ~%% "2.6.10"
 
     lazy val actors                 = v ~~ "akka-actor"
     lazy val actorsTyped            = v ~~ "akka-actor-typed"
@@ -57,7 +57,7 @@ object Dependencies {
   }
 
   object akkaHttp {
-    lazy val v          = "com.typesafe.akka" ~%% "10.2.0"
+    lazy val v          = "com.typesafe.akka" ~%% "10.2.2"
     lazy val http       = v ~~ "akka-http"
     lazy val testKit    = v ~~ "akka-http-testkit"
     lazy val sprayJson  = v ~~ "akka-http-spray-json"
@@ -67,7 +67,7 @@ object Dependencies {
 
 
   object scalaTest {
-    lazy val v = "org.scalatest" ~%% "3.2.2"
+    lazy val v = "org.scalatest" ~%% "3.2.3"
     lazy val scalaTest = v ~~ "scalatest"
   }
 
@@ -77,13 +77,13 @@ object Dependencies {
   }
 
   object scalaMock {
-    val v = "5.0.0"
+    val v = "5.1.0"
     val p = "org.scalamock" ~%% v
     val scalamock = "scalamock" ~~ p
   }
 
   object jUnit {
-    lazy val v = "4.13"
+    lazy val v = "4.13.1"
     lazy val p = "junit" ~% v
     lazy val jUnit = "junit" ~~ p
   }

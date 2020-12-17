@@ -40,9 +40,9 @@ lazy val `flow-jdbc` = libProject("flow","flow-jdbc")
       "org.apache.parquet" % "parquet-avro" % "1.11.1",
       "org.apache.hadoop" % "hadoop-client" % "3.3.0",
       "org.apache.hadoop" % "hadoop-common" % "3.3.0",
-      "org.apache.avro" % "avro" % "1.10.0",
-      "org.apache.avro" % "avro-mapred" % "1.10.0",
-      "software.amazon.awssdk" % "aws-sdk-java" % "2.14.20",
+      "org.apache.avro" % "avro" % "1.10.1",
+      "org.apache.avro" % "avro-mapred" % "1.10.1",
+      "software.amazon.awssdk" % "aws-sdk-java" % "2.15.48",
       scalalib.reflect
     )
   )
