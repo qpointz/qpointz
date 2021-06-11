@@ -23,7 +23,7 @@ object BuildSettings {
   lazy val version = "0.0.1"
 
   lazy val testSettings = Seq(
-    testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oI", "-h", "target/test-reports-out")
+    Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oI", "-h", "target/test-reports-out")
   )
 
 }
