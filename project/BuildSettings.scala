@@ -19,11 +19,11 @@ import sbt.Keys.{testOptions, _}
 import sbt.{TestFrameworks, Tests}
 
 object BuildSettings {
-  lazy val scalaLangVersion = "2.13.4"
+  lazy val scalaLangVersion = "2.13.6"
   lazy val version = "0.0.1"
 
   lazy val testSettings = Seq(
-    testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oI", "-h", "target/test-reports-out")
+    Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oI", "-h", "target/test-reports-out")
   )
 
 }

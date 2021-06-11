@@ -37,12 +37,12 @@ lazy val `flow-jdbc` = libProject("flow","flow-jdbc")
   .dependsOn(`flow-core`)
   .settings(
     libraryDependencies ++= modules(
-      "org.apache.parquet" % "parquet-avro" % "1.11.1",
+      "org.apache.parquet" % "parquet-avro" % "1.12.0",
       "org.apache.hadoop" % "hadoop-client" % "3.3.0",
       "org.apache.hadoop" % "hadoop-common" % "3.3.0",
-      "org.apache.avro" % "avro" % "1.10.1",
-      "org.apache.avro" % "avro-mapred" % "1.10.1",
-      "software.amazon.awssdk" % "aws-sdk-java" % "2.15.48",
+      "org.apache.avro" % "avro" % "1.10.2",
+      "org.apache.avro" % "avro-mapred" % "1.10.2",
+      "software.amazon.awssdk" % "aws-sdk-java" % "2.16.82",
       scalalib.reflect
     )
   )

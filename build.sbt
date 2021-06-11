@@ -1,12 +1,11 @@
 import sbt._  
 
 name := "qpointz"
-organization in ThisBuild := "io.qpointz"
-version in ThisBuild := BuildSettings.version
-scalaVersion in ThisBuild := BuildSettings.scalaLangVersion
-cancelable in Global := true
-parallelExecution in ThisBuild := false
-onChangedBuildSource in ThisBuild := ReloadOnSourceChanges
+ThisBuild / organization := "io.qpointz"
+ThisBuild / version := BuildSettings.version
+ThisBuild / scalaVersion := BuildSettings.scalaLangVersion
+Global / cancelable := true
+ThisBuild / parallelExecution := false
 
 lazy val `flow` = project
 lazy val `surface` = project
