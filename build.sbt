@@ -10,11 +10,13 @@ onChangedBuildSource in ThisBuild := ReloadOnSourceChanges
 
 lazy val `flow` = project
 lazy val `surface` = project
+lazy val `pebble` = project
 
 lazy val `qpointz` = project.in(file("."))
   .aggregate(
     `flow`,
-    `surface`
+    `surface`,
+    `pebble`
   )
 
 resolvers += Resolver.sonatypeRepo("snapshots")
