@@ -16,6 +16,7 @@
 
 package io.qpointz.flow.parquet
 
+import io.qpointz.flow.avro.AvroMethods._
 import io.qpointz.flow.avro.AvroSchemaSource
 import io.qpointz.flow.{OperationContext, Record, RecordWriter}
 import org.apache.avro.generic.{GenericRecord, GenericRecordBuilder}
@@ -70,13 +71,7 @@ class AvroParquetRecordWriter(settings:AvroParquetRecordWriterSettings)(implicit
     .build()
 
   override def write(r: Record): Unit = {
-    val grb = new GenericRecordBuilder(schema)
-
-    val record = r
-      .attributes
-      .foldLeft(grb)((x,k)=> x.set(k._1,k._2))
-      .build()
-
+    val record = r.toGenericRecord(schema)
     writer.write(record)
   }
 

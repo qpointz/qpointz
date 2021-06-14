@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 qpointz.io
+ * Copyright 2021 qpointz.io
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,44 +15,37 @@
  *
  */
 
-package io.qpointz.flow.parquet
+package io.qpointz.flow.avro
 
-import java.nio.file.{Files, Paths}
 import io.qpointz.flow.Record
-import io.qpointz.flow.avro.ConstantAvroScemaSource
 import org.apache.avro.SchemaBuilder
-import org.apache.hadoop.fs.Path
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-object ParquetUtils {
+import java.nio.file.Paths
 
-  def writeTestFile(fp:String): Unit = {
-    val filePath = Paths.get(fp)
-    if (Files.exists(filePath)) {
-      Files.delete(filePath)
-    }
+class AvroRecordWriterTest extends AnyFlatSpec with Matchers {
 
+  behavior of "write"
+
+  it should "write simple" in {
     val as = new ConstantAvroScemaSource(SchemaBuilder
       .record("default")
       .fields()
       .requiredString("a")
       .requiredString("b")
-      .requiredString("c")
       .endRecord()
     )
-    val s = new AvroParquetRecordWriterSettings()
-    s.path = new Path(filePath.toAbsolutePath.toString)
-    s.schema = as
 
-    val w = new AvroParquetRecordWriter(s)
+    val st = new AvroRecordWriterSettings()
+    st.schema = as
+    st.path = Paths.get("./target/test-out/writeavro.avro")
+    val w = new AvroRecordWriter(st)
     w.open()
-
-    for (i<- 1 to 1000) {
-      w.write(Record("a" -> "a1", "b" -> "b1", "c" -> "c1"))
-    }
-
+    w.write(Record("a" -> "a1", "b" -> "b1"))
+    w.write(Record("a" -> "a2", "b" -> "b2"))
+    w.write(Record("a" -> "a3", "b" -> "b3"))
     w.close()
-
   }
-
 
 }

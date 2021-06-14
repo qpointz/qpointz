@@ -17,12 +17,35 @@
 package io.qpointz.flow.avro
 
 import io.qpointz.flow.{OperationContext, Record, RecordWriter}
+import org.apache.avro.file.DataFileWriter
+import org.apache.avro.generic.{GenericDatumWriter, GenericRecord, GenericRecordBuilder}
 
-class AvroRecordWriter(implicit val ctx:OperationContext) extends RecordWriter {
-  override def open(): Unit = ???
+import java.nio.file.Path
+import AvroMethods._
 
-  override def close(): Unit = ???
+class AvroRecordWriterSettings {
+  var schema:AvroSchemaSource = _
+  var path:Path = _
+}
 
-  override def write(r: Record): Unit = ???
+class AvroRecordWriter(settings:AvroRecordWriterSettings)(implicit val ctx:OperationContext) extends RecordWriter {
+
+  private lazy val schema = settings.schema.avroSchema()
+  private lazy val writer = new GenericDatumWriter[GenericRecord](schema)
+  private lazy val dataWriter = new DataFileWriter[GenericRecord](writer)
+
+  override def open(): Unit = {
+    val file = settings.path.toFile
+    dataWriter.create(schema, file)
+  }
+
+  override def close(): Unit = {
+    dataWriter.close()
+  }
+
+  override def write(r: Record): Unit = {
+    val record = r.toGenericRecord(schema)
+    dataWriter.append(record)
+  }
 
 }
