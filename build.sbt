@@ -10,12 +10,15 @@ ThisBuild / parallelExecution := false
 lazy val `flow` = project
 lazy val `surface` = project
 lazy val `pebble` = project
+lazy val `lakehouse` = project
 
 lazy val `qpointz` = project.in(file("."))
   .aggregate(
     `flow`,
     `surface`,
-    `pebble`
+    `pebble`,
+    `lakehouse`,
+
   )
 
 resolvers += Resolver.sonatypeRepo("snapshots")

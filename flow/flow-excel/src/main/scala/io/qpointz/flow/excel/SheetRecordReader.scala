@@ -20,7 +20,7 @@ import io.qpointz.flow
 import io.qpointz.flow.{AttributeValue, Metadata, OperationContext, Record, RecordReader, RecordTags}
 import org.apache.poi.ss.usermodel._
 
-import scala.jdk.CollectionConverters._
+import collection.JavaConverters._
 
 class SheetRecordReaderSettings {
   var recordLabel:String = _
@@ -87,7 +87,7 @@ class SheetRecordReader(val sheet:Sheet,
         .toMap
 
       val tags = columnvalues
-        .flatMap(_._3)
+        .flatMap(x=> x._3.toSeq)
 
       val fulltags =  if (tags.isEmpty) {
         Set(RecordTags.OK)

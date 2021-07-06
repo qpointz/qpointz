@@ -51,7 +51,7 @@ object SheetSelector {
       case AnySheet => true
       case x:SheetByIdx => x.sheetIdx == sh.index
       case xn:SheetByName => xn.sheetName.equalsIgnoreCase(sh.name)
-      case xr:SheetByNamePattern => xr.nameRx.matches(sh.name)
+      case xr:SheetByNamePattern => xr.nameRx.findFirstMatchIn(sh.name).isDefined
       case _ => throw new IllegalArgumentException(s"Unknown criteria ${sc}")
     }
 

@@ -49,7 +49,7 @@ case class Record(attributes: Attributes, meta: Metadata) {
     if (missingKeys.isEmpty) {
       on()
     } else {
-      throw new NoSuchElementException(s"""Key(s) not found: ${missingKeys.concat(",")}""")
+      throw new NoSuchElementException(s"""Key(s) not found: ${missingKeys.mkString(",")}""")
     }
   }
 

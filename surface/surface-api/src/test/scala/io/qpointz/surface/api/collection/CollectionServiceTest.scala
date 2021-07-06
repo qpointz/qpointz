@@ -25,13 +25,14 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import io.qpointz.surface.api.collection.CollectionProtocol._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import scala.collection.immutable
 
 class CollectionServiceTest extends AnyFlatSpec with ScalatestRouteTest with Matchers {
 
   private val testKit = ActorTestKit()
   implicit val sys = testKit.system
 
-  private val cols = Seq(Collection("aaa"), Collection("bbb"))
+  private val cols = immutable.Seq(Collection("aaa"), Collection("bbb"))
 
   private val mockedBehavior = Behaviors.receiveMessage[CollectionCommand] {
     case x: GetCollections => {

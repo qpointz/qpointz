@@ -16,6 +16,7 @@
 
 package io.qpointz.flow.parquet
 
+import io.qpointz.flow.utils.IteratorExtensions
 import io.qpointz.flow.{OperationContext, Record, RecordReader}
 import org.apache.avro.mapred.AvroRecordReader
 import org.apache.parquet.ParquetReadOptions
@@ -46,16 +47,14 @@ class ParquetRecordReader(private val settings:ParquetRecordReaderSettings)(impl
     def recordGroupToRecordIter(pages:PageReadStore):Iterator[Record] = {
       val columnIo = new ColumnIOFactory().getColumnIO(schema)
       val recordReader = columnIo.getRecordReader(pages, new GroupRecordConverter(schema))
-      LazyList
-          .continually(recordReader.read())
-          .takeWhile(_!=null)
-          .map(groupToRecordIter)
-          .foldLeft(Iterator[Record]())(_ ++ _)
+      IteratorExtensions
+        .lazyList(()=>recordReader.read())(_!=null)
+        .map(groupToRecordIter)
+        .foldLeft(Iterator[Record]())(_ ++ _)
     }
 
-    LazyList
-      .continually(reader.readNextRowGroup())
-      .takeWhile(_!=null)
+    IteratorExtensions
+      .lazyList(()=>reader.readNextRowGroup())(_!=null)
       .map(recordGroupToRecordIter)
       .foldLeft(Iterator[Record]())(_++_)
   }

@@ -16,12 +16,13 @@
 
 package io.qpointz.flow.parquet
 
+import io.qpointz.flow.utils.IteratorExtensions
 import io.qpointz.flow.{MetadataMethods, OperationContext, Record, RecordReader}
 import org.apache.avro.generic.GenericRecord
 import org.apache.parquet.avro.AvroParquetReader
 import org.apache.parquet.io.InputFile
 
-import scala.jdk.CollectionConverters._
+import collection.JavaConverters._
 
 class AvroParquetRecordReaderSettings {
   var inputFile : InputFile = _
@@ -42,10 +43,8 @@ class AvroParquetRecordReader(settings:AvroParquetRecordReaderSettings)(implicit
       Record(vals, MetadataMethods.empty)
     }
 
-    LazyList
-      .continually(reader.read())
-      .takeWhile(_!=null)
+    IteratorExtensions
+      .lazyList(()=>reader.read())(_!=null)
       .map(toRecord)
-      .iterator
   }
 }

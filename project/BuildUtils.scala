@@ -44,18 +44,28 @@ object BuildUtils {
     }
   }
 
-  def libProject(group:String, projectName:String): Project = {
-    val projectPath = s"${group}/${projectName}"
-    sbt.Project(projectName, file(projectPath))
+  def projectPath(group:String, projectName:String):String = {
+    s"${group}/${projectName}"
+  }
+
+  def libProjectNoDependencies(group:String, projectName:String): Project = {
+    sbt.Project(projectName, file(projectPath(group, projectName)))
       .settings(
         autoAPIMappings := true,
-        name:= projectName,
+        name:= projectName
+      )
+  }
+
+  def libProject(group:String, projectName:String): Project = {
+    val pPath = projectPath(group, projectName)
+    libProjectNoDependencies(group, projectName)
+      .settings(
         libraryDependencies ++= profiles(
           DepProfiles.lib
         ),
         testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oI",
-          "-h", s"${projectPath}/target/test-reports/html",
-          "-u", s"${projectPath}/target/test-reports/xml"
+          "-h", s"${pPath}/target/test-reports/html",
+          "-u", s"${pPath}/target/test-reports/xml"
         )
       )
   }

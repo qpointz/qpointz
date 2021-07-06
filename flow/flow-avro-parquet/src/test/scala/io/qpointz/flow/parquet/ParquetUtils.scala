@@ -18,8 +18,8 @@
 package io.qpointz.flow.parquet
 
 import java.nio.file.{Files, Paths}
-
 import io.qpointz.flow.Record
+import io.qpointz.flow.avro.ConstantAvroScemaSource
 import org.apache.avro.SchemaBuilder
 import org.apache.hadoop.fs.Path
 

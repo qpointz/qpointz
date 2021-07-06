@@ -6,9 +6,8 @@ RUN \
     apt update
 
 RUN \
-    pip install -U rst2pdf && \
-    pip install -U sphinx && \
-    pip install -U sphinx_rtd_theme
+    pip install -U rst2pdf sphinx sphinx_rtd_theme sphinx-material sphinx-tabs
+
 
 RUN \
     apt-get install -y latexmk texlive-formats-extra

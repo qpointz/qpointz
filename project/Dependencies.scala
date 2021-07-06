@@ -27,6 +27,10 @@ object Dependencies {
     mods.toSeq
   }
 
+  def runtime(mods: ModuleID*): Seq[ModuleID] = {
+    mods.map(x=> x % Runtime).toSeq
+  }
+
   //scalastyle:off
 
   object scalalib {
@@ -62,9 +66,6 @@ object Dependencies {
     lazy val testKit    = v ~~ "akka-http-testkit"
     lazy val sprayJson  = v ~~ "akka-http-spray-json"
   }
-
-
-
 
   object scalaTest {
     lazy val v = "org.scalatest" ~%% "3.2.9"
@@ -133,6 +134,46 @@ object Dependencies {
     val p = "org.apache.poi" ~% v
     val poi = "poi" ~~ p
     val ooxml = "poi-ooxml" ~~ p
+  }
+
+  object apacheAvro {
+    val v = "1.10.2"
+    val p = "org.apache.avro" ~% v
+    val avro = "avro" ~~ p
+    val avroMapred = "avro-mapred" ~~ p
+  }
+
+  object apacheParquet {
+    val v = "1.12.0"
+    val p = "org.apache.parquet" ~% v
+    val parquetAvro = "parquet-avro" ~~ p
+  }
+
+  object apacheHadoop {
+    val v = "3.3.0"
+    val p = "org.apache.hadoop" ~% v
+    val client = "hadoop-client" ~~ p
+    val common = "hadoop-common" ~~ p
+    val aws    = "hadoop-aws" ~~ p
+  }
+
+  object amazonAWSSDK {
+    val v = "2.16.82"
+    val p = "software.amazon.awssdk" ~% v
+    val sdkJava = "aws-sdk-java" ~~ p
+  }
+
+  object apacheSpark {
+    val v = "3.1.2"
+    val p = "org.apache.spark" ~%% v
+    val sql = "spark-sql" ~~ p
+    val core = "spark-core" ~~ p
+  }
+
+  object h2db {
+    val v = "1.4.200"
+    val p = "com.h2database" ~% v
+    val h2 = "h2" ~~ p
   }
 
   object DepProfiles {

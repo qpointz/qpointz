@@ -17,8 +17,8 @@
 package io.qpointz.flow.jdbc
 import java.sql.DriverManager
 import java.util.Properties
-
 import io.qpointz.flow
+import io.qpointz.flow.utils.IteratorExtensions
 import io.qpointz.flow.{MetadataMethods, OperationContext, Record, RecordReader}
 
 trait JdbcConnectionUrlLike {
@@ -78,8 +78,12 @@ class JdbcRecordReader(jdbcSettings: JdbcRecordReaderSettings)(implicit val ctx:
 
   override lazy val iterator: Iterator[Record] = {
     ctx.log.info("Begin iterating")
-    Iterator.unfold(rs.next()) {hasNext=>
-      Option.when(hasNext)(asRecord, rs.next())
+    IteratorExtensions.unfold(rs.next()){hasNext=>
+      if (hasNext) {
+        Some((asRecord, rs.next()))
+      } else {
+        None
+      }
     }
   }
 

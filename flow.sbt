@@ -10,12 +10,13 @@ lazy val `flow` = project
     `flow-excel`,
     `flow-text`,
     `flow-jdbc`,
-    `flow-parquet`,
+    `flow-avro-parquet`,
     `flow-transform`,
     `flow-fs`
   )
 
 lazy val `flow-core` = libProject("flow","flow-core")
+
 lazy val `flow-excel` = libProject("flow","flow-excel")
   .dependsOn(`flow-core`)
   .settings(
@@ -29,28 +30,26 @@ lazy val `flow-jdbc` = libProject("flow","flow-jdbc")
   .dependsOn(`flow-core`)
   .settings (
     libraryDependencies ++= modules(
-      "com.h2database" % "h2" % "1.4.200"
+      h2db.h2
     )
   )
 
-  lazy val `flow-parquet` = libProject("flow","flow-parquet")
+lazy val `flow-avro-parquet` = libProject("flow","flow-avro-parquet")
   .dependsOn(`flow-core`)
   .settings(
     libraryDependencies ++= modules(
-      "org.apache.parquet" % "parquet-avro" % "1.12.0",
-      "org.apache.hadoop" % "hadoop-client" % "3.3.0",
-      "org.apache.hadoop" % "hadoop-common" % "3.3.0",
-      "org.apache.avro" % "avro" % "1.10.2",
-      "org.apache.avro" % "avro-mapred" % "1.10.2",
-      "software.amazon.awssdk" % "aws-sdk-java" % "2.16.82",
-      scalalib.reflect
+      apacheParquet.parquetAvro,
+      apacheHadoop.common,
+      apacheHadoop.client,
+      apacheAvro.avro,
+      apacheAvro.avroMapred
     )
   )
 
 lazy val `flow-transform` = libProject("flow","flow-transform")
   .dependsOn(`flow-core`,
              `flow-text` % "it->test",
-             `flow-parquet` % "it->test"
+             `flow-avro-parquet` % "it->test"
   )
   .withIntegration
 

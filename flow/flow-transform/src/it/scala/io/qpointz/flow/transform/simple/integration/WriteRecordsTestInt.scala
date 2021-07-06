@@ -16,15 +16,16 @@
  */
 
 package io.qpointz.flow.transform.simple.integration
-import java.io.File
-import java.nio.file.{Files, Path, Paths}
-
-import io.qpointz.flow.parquet.{AvroParquetRecordWriter, AvroParquetRecordWriterSettings, ConstantAvroScemaSource}
+import io.qpointz.flow.avro.ConstantAvroScemaSource
+import io.qpointz.flow.parquet.{AvroParquetRecordWriter, AvroParquetRecordWriterSettings}
 import io.qpointz.flow.text.{CsvRecordReader, CsvRecordReaderSettings, TextSource}
 import io.qpointz.flow.transform.simple.{WriteRecords, WriteRecordsSettings}
 import org.apache.avro.SchemaBuilder
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.should.Matchers
+
+import java.io.File
+import java.nio.file.{Files, Paths}
 
 class WriteRecordsTestInt extends org.scalatest.flatspec.AnyFlatSpec with Matchers with BeforeAndAfterAll{
 

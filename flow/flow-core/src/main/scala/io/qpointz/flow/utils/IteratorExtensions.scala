@@ -1,0 +1,62 @@
+/*
+ * Copyright 2021 qpointz.io
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+package io.qpointz.flow.utils
+
+import scala.collection.AbstractIterator
+
+object IteratorExtensions {
+
+  def unfold[A, S](init: S)(f: (S) => Option[(A, S)]): Iterator[A] = {
+    var currentState = init
+    var nextResultAndState: Option[(A, S)] = null
+
+    new AbstractIterator[A] {
+      override def hasNext: Boolean = {
+        if (nextResultAndState == null) {
+          nextResultAndState = f(currentState)
+        }
+        nextResultAndState.isDefined
+      }
+
+      override def next(): A = {
+        assert(hasNext)
+        val (result, state) = nextResultAndState.get
+        currentState = state
+        nextResultAndState = null
+        result
+      }
+    }
+  }
+
+  def lazyList[A](continually: () => A)(tkWhile: (A) => Boolean) :Iterator[A] = {
+    var current: A = continually()
+
+    new AbstractIterator[A] {
+      override def hasNext: Boolean = {
+        tkWhile(current)
+      }
+
+      override def next(): A = {
+        val n = current
+        current = continually()
+        n
+      }
+    }
+  }
+
+}

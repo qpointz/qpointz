@@ -50,7 +50,7 @@ object MetadataMethods {
 
   implicit def entry2Meta(e:MetaEntry[_]):Metadata = Seq(e)
 
-  implicit def seq2Meta(itms:Seq[(String, String, _)]):Metadata = itms.map(t32Entry)
+  implicit def seq2Meta(itms:Seq[(String, String, _)]):Metadata = itms.map(k=>t32Entry(k._1, k._2, k._3))
 
   implicit def t32Entry[T](t:(String, String, T)):MetaEntry[T] = MetaEntry(MetaKey(t._1, t._2), t._3)
 
@@ -91,6 +91,6 @@ object Metadata {
 
   def apply[T](sq:Seq[(EntryDefinition[T],T)])(implicit tag:ClassTag[T]):Metadata = sq.map(tdf2Entry)
 
-  def apply(sq:Seq[(String, String,_)]):Metadata = sq.map(t32Entry)
+  def apply(sq:Seq[(String, String,_)]):Metadata = sq.map(k=>t32Entry(k._1, k._2, k._3))
 
 }

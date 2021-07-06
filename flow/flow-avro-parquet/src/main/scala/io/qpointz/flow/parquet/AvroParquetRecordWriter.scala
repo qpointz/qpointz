@@ -16,6 +16,7 @@
 
 package io.qpointz.flow.parquet
 
+import io.qpointz.flow.avro.AvroSchemaSource
 import io.qpointz.flow.{OperationContext, Record, RecordWriter}
 import org.apache.avro.generic.{GenericRecord, GenericRecordBuilder}
 import org.apache.hadoop.conf.Configuration
@@ -23,16 +24,7 @@ import org.apache.hadoop.fs.Path
 import org.apache.parquet.column.ParquetProperties
 import org.apache.parquet.hadoop.{ParquetFileWriter, ParquetWriter}
 import org.apache.parquet.hadoop.metadata.CompressionCodecName
-import org.apache.avro.{Schema => AvroSchema}
 import org.apache.parquet.avro.AvroParquetWriter
-
-trait AvroSchemaSource {
-  def avroSchema():AvroSchema
-}
-
-final class ConstantAvroScemaSource(private val schema:AvroSchema) extends AvroSchemaSource {
-  override def avroSchema(): AvroSchema = schema
-}
 
 class AvroParquetRecordWriterSettings {
   var maxPaddingSize: Int = ParquetWriter.MAX_PADDING_SIZE_DEFAULT
