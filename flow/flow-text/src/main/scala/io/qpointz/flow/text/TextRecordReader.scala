@@ -20,11 +20,32 @@ package io.qpointz.flow.text
 import com.univocity.parsers.common.AbstractParser
 import io.qpointz.flow.{MetaEntry, MetaKey, Metadata, MetadataGroupOwner, MetadataMethods, MetadataProvider, Record, RecordReader}
 
+case class TextReaderMetadataSettings(
+                                       allowReaderMetadata: Option[Boolean] = None,
+                                       allowSourceMetadata: Option[Boolean] = None,
+                                       allowRecordMetadata: Option[Boolean] = None
+                                     ) {
 
-abstract class TextReaderSettings {
-  var includeReaderMetadata:Boolean = false
-  var includeSourceMetadata:Boolean = false
-  var includeRecordMetadata:Boolean = false
+
+  val readerMetadataAllowed:Boolean = allowReaderMetadata.getOrElse(false)
+  val sourceMedataAllowed:Boolean = allowSourceMetadata.getOrElse(false)
+  val recordMetadataAllowed:Boolean = allowRecordMetadata.getOrElse(false)
+
+  def allowReaderMetadata(a: Boolean): TextReaderMetadataSettings = copy(allowReaderMetadata = Some(a))
+
+  def defaultReaderMetadata(): TextReaderMetadataSettings = copy(allowReaderMetadata = None)
+
+  def allowSourceMetadata(a: Boolean): TextReaderMetadataSettings = copy(allowSourceMetadata = Some(a))
+
+  def defaultSourceMetadata(): TextReaderMetadataSettings = copy(allowSourceMetadata = None)
+
+  def allowRecordMetadata(a: Boolean): TextReaderMetadataSettings = copy(allowRecordMetadata = Some(a))
+
+  def defaultRecordMetadata(): TextReaderMetadataSettings = copy(allowRecordMetadata = None)
+}
+
+trait TextReaderSettings {
+  val metadataSettings:TextReaderMetadataSettings
 }
 
 import io.qpointz.flow.MetadataMethods._
@@ -33,46 +54,48 @@ object TextRecordReader {
   val metadataGroupKey = "formats:text:recordreader"
 }
 
-abstract class TextRecordReader[TParser<:AbstractParser[_],TReaderSettings <: TextReaderSettings]
-                      ( protected val source: TextSource,
-                        protected val settings: TReaderSettings
-                      ) extends RecordReader with MetadataProvider with MetadataGroupOwner  {
+abstract class TextRecordReader[TParser <: AbstractParser[_], TReaderSettings <: TextReaderSettings]
+(protected val source: TextSource,
+ protected val settings: TReaderSettings
+) extends RecordReader with MetadataProvider with MetadataGroupOwner {
 
-  protected def createParser(settings: TReaderSettings):TParser
+  protected def createParser(settings: TReaderSettings): TParser
 
   private lazy val textReader = this
 
   override def iterator: Iterator[Record] = new Iterator[Record] {
     private lazy val reader = source.asReader()
-    private lazy val parser:TParser = createParser(settings)
+    private lazy val parser: TParser = createParser(settings)
 
     private lazy val iterable = parser.iterate(reader)
     private lazy val rec_iterator = iterable.iterator()
 
     override def hasNext: Boolean = rec_iterator.hasNext
 
-    private val sourceMetadata = if (settings.includeSourceMetadata) {
+    val metaSettings = settings.metadataSettings
+    
+    private val sourceMetadata = if (metaSettings.sourceMedataAllowed) {
       source.metadata
     } else {
       MetadataMethods.empty
     }
 
-    private val readerMetadata = if (settings.includeReaderMetadata) {
+    private val readerMetadata = if (metaSettings.readerMetadataAllowed) {
       textReader.metadata
     } else {
       MetadataMethods.empty
     }
 
     private val baseMetadata = sourceMetadata ++ readerMetadata
-    private val appendMetadata = settings.includeSourceMetadata || settings.includeReaderMetadata || settings.includeRecordMetadata
-    private val appendRecordMetadata = settings.includeRecordMetadata
+    private val appendMetadata = metaSettings.readerMetadataAllowed || metaSettings.sourceMedataAllowed || metaSettings.recordMetadataAllowed
+    private val appendRecordMetadata = metaSettings.recordMetadataAllowed
 
     override def next(): Record = {
       val values = rec_iterator.next()
       val context = rec_iterator.getContext
       val keys = context.headers()
 
-      val recordMetaData:Metadata = if (!appendMetadata) {
+      val recordMetaData: Metadata = if (!appendMetadata) {
         MetadataMethods.empty
       } else {
         if (!appendRecordMetadata) {
@@ -80,7 +103,7 @@ abstract class TextRecordReader[TParser<:AbstractParser[_],TReaderSettings <: Te
         } else {
           baseMetadata ++ Seq[MetaEntry[_]](
             (TextRecordReader.metadataGroupKey, "line", context.currentLine()),
-            (TextRecordReader.metadataGroupKey, "pos" , context.currentChar()),
+            (TextRecordReader.metadataGroupKey, "pos", context.currentChar()),
             (TextRecordReader.metadataGroupKey, "content_length", context.currentParsedContentLength()),
             (TextRecordReader.metadataGroupKey, "content", context.currentParsedContent()),
             (TextRecordReader.metadataGroupKey, "record_idx", context.currentRecord())

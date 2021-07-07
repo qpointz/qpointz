@@ -18,11 +18,13 @@
 package io.qpointz.flow.transform.simple.integration
 import io.qpointz.flow.avro.ConstantAvroScemaSource
 import io.qpointz.flow.parquet.{AvroParquetRecordWriter, AvroParquetRecordWriterSettings}
-import io.qpointz.flow.text.{CsvRecordReader, CsvRecordReaderSettings, TextSource}
+import io.qpointz.flow.text.csv.{CsvFormat, CsvRecordReader, CsvRecordReaderSettings}
+import io.qpointz.flow.text.TextSource
 import io.qpointz.flow.transform.simple.{WriteRecords, WriteRecordsSettings}
 import org.apache.avro.SchemaBuilder
-import org.scalatest.BeforeAndAfterAll
+import org.scalatest._
 import org.scalatest.matchers.should.Matchers
+
 
 import java.io.File
 import java.nio.file.{Files, Paths}
@@ -35,12 +37,16 @@ class WriteRecordsTestInt extends org.scalatest.flatspec.AnyFlatSpec with Matche
     Files.deleteIfExists(Paths.get("./target/test-out/write-records-it-test.parquet.crc"))
   }
 
+  behavior of ("test")
+
   it should "pass writing" in {
 
-    val csvSettings = new CsvRecordReaderSettings()
-    csvSettings.lineSeparator = Array('\n')
-    csvSettings.delimiter = ","
-    csvSettings.headerExtractionEnabled = true
+    val csvSettings = CsvRecordReaderSettings()
+      .format(CsvFormat()
+        .lineSeparator("\n")
+        .delimiter(","))
+      .headerExtractionEnabled(true)
+
     val source: TextSource = TextSource(new File(s"flow/test/formats/csv/good.csv"))
     val csvReader = new CsvRecordReader(source, csvSettings)
 

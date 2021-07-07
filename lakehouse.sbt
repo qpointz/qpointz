@@ -16,8 +16,8 @@ lazy val `lakehouse-cli` = libProjectNoDependencies("lakehouse","lakehouse-cli")
       apacheHadoop.client,
       apacheHadoop.common,
       apacheHadoop.aws,
-      "io.minio" % "minio" % "8.2.2",
-      "io.netty" % "netty-transport-native-epoll" % "4.1.63.Final",
+      minio.minio,
+      "io.netty" % "netty-transport-native-epoll" % "4.1.66.Final" % Provided,
       "io.delta" %% "delta-core" % "1.0.0"
     )
     ,

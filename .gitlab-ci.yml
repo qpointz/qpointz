@@ -49,18 +49,10 @@ flow:test:
     reports:
       junit: ./**/*/target/test-reports/*.xml
 
-pebble:test:
+flow:lakehouse:
   stage: test
   script:
-    - sbt "project pebble" clean coverage test coverageReport
-  artifacts:
-    reports:
-      junit: ./**/*/target/test-reports/*.xml
-
-surface:test:
-  stage: test
-  script:
-    - sbt "project surface" clean coverage test coverageReport
+    - sbt "project lakehouse" clean coverage test coverageReport
   artifacts:
     reports:
       junit: ./**/*/target/test-reports/*.xml

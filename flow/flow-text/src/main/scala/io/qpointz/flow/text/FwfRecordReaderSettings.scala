@@ -71,6 +71,8 @@ class FwfRecordReaderSettings extends TextReaderSettings {
 
   var RecordEndsOnNewline: Boolean=_
 
+  override val metadataSettings:TextReaderMetadataSettings = TextReaderMetadataSettings()
+
   fromParserSettings(new FixedWidthParserSettings())
 
   def asParserSettings: FixedWidthParserSettings = {

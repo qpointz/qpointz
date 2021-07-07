@@ -17,20 +17,19 @@
 
 package io.qpointz.flow.text
 
-import java.io.File
+import io.qpointz.flow.text.csv.{CsvFormat, CsvRecordReader, CsvRecordReaderSettings}
 
+import java.io.File
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class CsvRecordReaderTest extends AnyFlatSpec with Matchers {
 
-  def defaultSettings = {
-    val ss = new CsvRecordReaderSettings()
-    ss.lineSeparator = Array('\n')
-    ss.delimiter = ","
-    ss.headerExtractionEnabled = true
-    ss
-  }
+  lazy val defaultSettings = CsvRecordReaderSettings()
+    .format(CsvFormat()
+      .lineSeparator("\n")
+      .delimiter(","))
+    .headerExtractionEnabled(true)
 
   def fileReader(name:String = "vanila", settings:CsvRecordReaderSettings = defaultSettings): CsvRecordReader = {
     val source: TextSource = TextSource(new File(s"flow/test/formats/csv/${name}.csv"))

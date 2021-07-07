@@ -17,7 +17,7 @@
 package io.qpointz.flow.avro
 
 import io.qpointz.flow.{OperationContext, Record, RecordWriter}
-import org.apache.avro.file.DataFileWriter
+import org.apache.avro.file.{CodecFactory, DataFileWriter}
 import org.apache.avro.generic.{GenericDatumWriter, GenericRecord, GenericRecordBuilder}
 
 import java.nio.file.Path
@@ -32,7 +32,10 @@ class AvroRecordWriter(settings:AvroRecordWriterSettings)(implicit val ctx:Opera
 
   private lazy val schema = settings.schema.avroSchema()
   private lazy val writer = new GenericDatumWriter[GenericRecord](schema)
-  private lazy val dataWriter = new DataFileWriter[GenericRecord](writer)
+  private lazy val dataWriter = {
+    val w = new DataFileWriter[GenericRecord](writer)
+    w.setCodec(CodecFactory.snappyCodec())
+  }
 
   override def open(): Unit = {
     val file = settings.path.toFile

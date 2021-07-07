@@ -40,12 +40,12 @@ object Dependencies {
   }
 
   object slf4j {
-    lazy val v = "org.slf4j" ~% "1.7.30"
+    lazy val v = "org.slf4j" ~% "1.7.32"
     lazy val api = "slf4j-api" ~~ v
   }
 
   object logback {
-    lazy val v = "ch.qos.logback" ~% "1.2.3"
+    lazy val v = "ch.qos.logback" ~% "1.2.5"
     lazy val classic = "logback-classic" ~~ v
   }
 
@@ -73,7 +73,7 @@ object Dependencies {
   }
 
   object scalaLog {
-    lazy val v = "com.typesafe.scala-logging" ~%% "3.9.3"
+    lazy val v = "com.typesafe.scala-logging" ~%% "3.9.4"
     lazy val logging = v ~~ "scala-logging"
   }
 
@@ -108,7 +108,7 @@ object Dependencies {
   }
 
   object ts_config {
-    val v = "1.3.4"
+    val v = "1.4.1"
     val p = "com.typesafe" ~% v
     val config = "config" ~~ p
   }
@@ -120,7 +120,7 @@ object Dependencies {
   }
 
   object json4s {
-    val v = "3.6.7"
+    val v = "4.0.3"
     val p = "org.json4s" ~%% v
     val native = "json4s-native" ~~ p
     val jackson = "json4s-jackson" ~~ p
@@ -150,7 +150,7 @@ object Dependencies {
   }
 
   object apacheHadoop {
-    val v = "3.3.0"
+    val v = "3.3.1"
     val p = "org.apache.hadoop" ~% v
     val client = "hadoop-client" ~~ p
     val common = "hadoop-common" ~~ p
@@ -158,9 +158,11 @@ object Dependencies {
   }
 
   object amazonAWSSDK {
-    val v = "2.16.82"
-    val p = "software.amazon.awssdk" ~% v
+    val v = "2.17.16"
+    val g = "software.amazon.awssdk"
+    val p = g ~% v
     val sdkJava = "aws-sdk-java" ~~ p
+    val s3 = "s3" ~~ p
   }
 
   object apacheSpark {
@@ -174,6 +176,12 @@ object Dependencies {
     val v = "1.4.200"
     val p = "com.h2database" ~% v
     val h2 = "h2" ~~ p
+  }
+
+  object minio {
+    val v = "8.3.0"
+    val p = "io.minio" ~% v
+    val minio = "minio" ~~ p
   }
 
   object DepProfiles {
