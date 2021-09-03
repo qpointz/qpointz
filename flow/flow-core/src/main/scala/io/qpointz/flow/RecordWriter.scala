@@ -26,3 +26,4 @@ trait RecordWriter extends WithOperationContext {
   def write(r: Record)
 
 }
+

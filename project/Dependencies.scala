@@ -50,7 +50,7 @@ object Dependencies {
   }
 
   object akka {
-    lazy val v = "com.typesafe.akka" ~%% "2.6.15"
+    lazy val v = "com.typesafe.akka" ~%% "2.6.16"
 
     lazy val actors                 = v ~~ "akka-actor"
     lazy val actorsTyped            = v ~~ "akka-actor-typed"

@@ -11,9 +11,9 @@ lazy val `flow` = project
     `flow-text`,
     `flow-jdbc`,
     `flow-avro-parquet`,
-    `flow-transform`,
     `flow-cli`,
-    `flow-aws`
+    `flow-aws`,
+    `flow-stream`
   )
 
 lazy val `flow-cli` = libProject("flow","flow-cli")
@@ -23,8 +23,8 @@ lazy val `flow-cli` = libProject("flow","flow-cli")
     `flow-text`,
     `flow-jdbc`,
     `flow-avro-parquet`,
-    `flow-transform`,
-    `flow-aws`)
+    `flow-aws`,
+    `flow-stream`)
 
 lazy val `flow-core` = libProject("flow","flow-core")
 
@@ -57,14 +57,6 @@ lazy val `flow-avro-parquet` = libProject("flow","flow-avro-parquet")
     )
   )
 
-lazy val `flow-transform` = libProject("flow","flow-transform")
-  .dependsOn(`flow-core`,
-             `flow-text` % "it->test",
-             `flow-avro-parquet` % "it->test"
-  )
-  .withIntegration
-
-
 lazy val `flow-text` = libProject("flow","flow-text")
   .dependsOn(`flow-core`)
   .settings(
@@ -83,3 +75,15 @@ lazy val `flow-aws` = libProject("flow","flow-aws")
       minio.minio % IntegrationTest
     ) ++ json4sJackson
   )
+
+
+lazy val `flow-stream` = libProject("flow","flow-stream")
+  .dependsOn(`flow-core`)
+  .settings(
+    libraryDependencies ++= modules(
+      akka.stream,
+      akka.testKit % Test,
+      akka.streamTestKit % Test
+    )
+  )
+  .withIntegration

@@ -20,3 +20,15 @@ package io.qpointz.flow
 trait RecordReader extends Iterable[Record] with WithOperationContext {
 
 }
+
+object RecordReader {
+
+  def fromIterable(iter:Iterable[Record])(implicit ct:OperationContext):RecordReader = new RecordReader {
+
+    override implicit val ctx: OperationContext = ct
+
+    override def iterator: Iterator[Record] = iter.iterator
+
+  }
+
+}
