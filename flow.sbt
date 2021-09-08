@@ -13,7 +13,8 @@ lazy val `flow` = project
     `flow-avro-parquet`,
     `flow-cli`,
     `flow-aws`,
-    `flow-stream`
+    `flow-stream`,
+    `flow-workflow`
   )
 
 lazy val `flow-cli` = libProject("flow","flow-cli")
@@ -24,7 +25,9 @@ lazy val `flow-cli` = libProject("flow","flow-cli")
     `flow-jdbc`,
     `flow-avro-parquet`,
     `flow-aws`,
-    `flow-stream`)
+    `flow-stream`,
+    `flow-workflow`
+)
 
 lazy val `flow-core` = libProject("flow","flow-core")
 
@@ -87,3 +90,12 @@ lazy val `flow-stream` = libProject("flow","flow-stream")
     )
   )
   .withIntegration
+
+lazy val `flow-workflow` = libProject("flow","flow-workflow")
+  .dependsOn(`flow-core`)
+  .settings(
+    libraryDependencies ++= modules(
+      akka.actorsTyped,
+      akka.actorsTypedTestKit % Test
+    )
+  )
