@@ -16,6 +16,7 @@
 
 package io.qpointz.workflow.tasks
 
+import io.qpointz.workflow.WorkflowGraphException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -34,7 +35,7 @@ class TaskGraphTest extends AnyFlatSpec with Matchers {
         case Some(s) => s
       }
 
-      override def whenf(state: Boolean, when: Boolean): Boolean = state == when
+      override def isTraversable(state: Boolean, when: Boolean): Boolean = state == when
     }
 
     def graph(transitions: Transition[String, Boolean]*): TaskGraph[String, Boolean] = graph(Map[String,Boolean](), transitions.toSet)
@@ -64,7 +65,7 @@ class TaskGraphTest extends AnyFlatSpec with Matchers {
     g.next() shouldBe Set("b")
   }
 
-  it should "return empty id all completed" in {
+  it should "return empty if all completed" in {
     val g = graph(Map("a"->true, "b"->true, "c"->true, "d"->true),
       ifTrue("a", "b"),
       ifTrue("b", "c"),
@@ -85,9 +86,23 @@ class TaskGraphTest extends AnyFlatSpec with Matchers {
     g.next() shouldBe Set("b1","b2")
   }
 
+  it should "throw on cycles" in {
+    val g = graph(Map("a"->true),
+      ifTrue("a", "b"),
+      ifTrue("b", "c"),
+      ifTrue("c", "d"),
+      ifTrue("d", "b")
+    )
+
+    val caught = intercept[WorkflowGraphException] {
+      g.next()
+    }
+    assert(caught.getMessage.contains("a->b->c->d->b"))
+  }
+
   behavior of "cycles"
 
-  it should "return non self cycle paths" in {
+  it should "return cycle paths" in {
     //        /<- \
     //  a -> b -> c -> d -> e - \ -> \
     //        \<- - - /      \<-/    |
@@ -112,7 +127,18 @@ class TaskGraphTest extends AnyFlatSpec with Matchers {
 
   behavior of "validation"
 
-  it should "no roots" in {
+  it should "should fail on cyclic " in {
+    val g = graph(
+      ifTrue("a0","c"),
+      ifTrue("a", "b"),
+      ifTrue("b", "c"),
+      ifTrue("c", "a")
+    )
+    g.hasRoots shouldBe true
+    g.isValid shouldBe false
+  }
+
+  it should "should fail on cyclic if no roots definied " in {
     val g = graph(
       ifTrue("a", "b"),
       ifTrue("b", "c"),

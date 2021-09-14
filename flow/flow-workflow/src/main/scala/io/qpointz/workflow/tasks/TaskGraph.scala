@@ -16,6 +16,8 @@
 
 package io.qpointz.workflow.tasks
 
+import io.qpointz.workflow.WorkflowGraphException
+
 import scala.collection._
 
 case class Transition[T,ST](from:T, when:ST, to:T) {}
@@ -28,17 +30,14 @@ trait TaskGraph[T, ST] {
 
   def isCompleted(state:Option[ST]):Boolean
 
-  def whenf (state:ST, when:ST):Boolean
+  def isTraversable(state:ST, when:ST):Boolean
 
   def tasks: Set[T] = edges
-    .map(x=> Set(x.from, x.to))
-    .flatten
+    .flatMap(x=> List(x.from, x.to))
     .toSet
 
   def tasksByState(f:Option[ST]=>Boolean): Set[T] = tasks
-    .map(x=>(x,states.get(x)))
-    .filter(x=> f(x._2))
-    .map(_._1)
+    .filter(t=>f(states.get(t)))
     .toSet
 
   def notCompleted:Set[T] = tasksByState(x=> !isCompleted(x))
@@ -75,11 +74,20 @@ trait TaskGraph[T, ST] {
   }
 
   def next():Set[T] = {
+    def cyclesMessage = {
+      cycles()
+        .map(x=> x.mkString("->"))
+        .mkString(",")
+    }
+
+    if (!isValid) {
+      throw new WorkflowGraphException(s"Invalid graph. HasRoots:${hasRoots}, Cycles:${cyclesMessage}")
+    }
+
     def readyDependants = edges
       .filter(x=> !isCompleted(states.get(x.to)))
-      .map(x=> (states.get(x.from), x.when, x.to))
-      .map(x=> x match {
-        case (Some(s),w,t) => (t, whenf(s,w))
+      .map(x=> (states.get(x.from), x.when, x.to) match {
+        case (Some(s),w,t) => (t, isTraversable(s,w))
         case (None,_,t) => (t, false)
       })
       .groupBy(_._1)
@@ -87,9 +95,9 @@ trait TaskGraph[T, ST] {
       .map(_._1)
       .toSet
 
-    (completed, notCompleted) match {
-      case (_, nc) if nc.isEmpty => Set()
-      case (c, _) if c.isEmpty => roots
+    (completed.toSeq, notCompleted.toSeq) match {
+      case (_, Nil)  => Set()
+      case (Nil, _)  => roots
       case _ => readyDependants
     }
   }
