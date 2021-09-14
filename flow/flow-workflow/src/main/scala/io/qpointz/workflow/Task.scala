@@ -16,4 +16,41 @@
 
 package io.qpointz.workflow
 
+import com.typesafe.scalalogging.Logger
+import io.qpointz.flow.ProgressContext
+
 sealed trait TaskInfo
+
+trait TaskContext {
+  val log:Logger
+  val progress: ProgressContext
+}
+
+sealed trait TaskStatus
+
+trait TaskContextAware {
+  val ctx : TaskContext
+}
+
+case class RunStatus() extends TaskStatus
+case class InitStatus() extends TaskStatus
+trait Task extends TaskContextAware  {
+  def init:InitStatus
+  def run:RunStatus
+}
+
+case class ValidationStatus() extends TaskStatus
+trait ValidateTask extends TaskContextAware {
+  def validate:ValidationStatus
+}
+
+case class DisposeStatus() extends TaskStatus
+trait DisposeTask extends TaskContextAware {
+  def dispose:DisposeStatus
+}
+
+
+
+
+
+

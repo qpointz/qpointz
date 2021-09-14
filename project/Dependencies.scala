@@ -45,12 +45,12 @@ object Dependencies {
   }
 
   object logback {
-    lazy val v = "ch.qos.logback" ~% "1.2.5"
+    lazy val v = "ch.qos.logback" ~% "1.2.7"
     lazy val classic = "logback-classic" ~~ v
   }
 
   object akka {
-    lazy val v = "com.typesafe.akka" ~%% "2.6.16"
+    lazy val v = "com.typesafe.akka" ~%% "2.6.17"
 
     lazy val actors                 = v ~~ "akka-actor"
     lazy val actorsTyped            = v ~~ "akka-actor-typed"
@@ -68,7 +68,7 @@ object Dependencies {
   }
 
   object scalaTest {
-    lazy val v = "org.scalatest" ~%% "3.2.9"
+    lazy val v = "org.scalatest" ~%% "3.2.10"
     lazy val scalaTest = v ~~ "scalatest"
   }
 
@@ -130,21 +130,21 @@ object Dependencies {
   }
 
   object apachePoi {
-    val v = "5.0.0"
+    val v = "5.1.0"
     val p = "org.apache.poi" ~% v
     val poi = "poi" ~~ p
     val ooxml = "poi-ooxml" ~~ p
   }
 
   object apacheAvro {
-    val v = "1.10.2"
+    val v = "1.11.0"
     val p = "org.apache.avro" ~% v
     val avro = "avro" ~~ p
     val avroMapred = "avro-mapred" ~~ p
   }
 
   object apacheParquet {
-    val v = "1.12.0"
+    val v = "1.12.2"
     val p = "org.apache.parquet" ~% v
     val parquetAvro = "parquet-avro" ~~ p
   }
@@ -158,7 +158,7 @@ object Dependencies {
   }
 
   object amazonAWSSDK {
-    val v = "2.17.16"
+    val v = "2.17.91"
     val g = "software.amazon.awssdk"
     val p = g ~% v
     val sdkJava = "aws-sdk-java" ~~ p
@@ -166,20 +166,20 @@ object Dependencies {
   }
 
   object apacheSpark {
-    val v = "3.1.2"
+    val v = "3.2.0"
     val p = "org.apache.spark" ~%% v
     val sql = "spark-sql" ~~ p
     val core = "spark-core" ~~ p
   }
 
   object h2db {
-    val v = "1.4.200"
+    val v = "2.0.202"
     val p = "com.h2database" ~% v
     val h2 = "h2" ~~ p
   }
 
   object minio {
-    val v = "8.3.0"
+    val v = "8.3.3"
     val p = "io.minio" ~% v
     val minio = "minio" ~~ p
   }
@@ -193,7 +193,7 @@ object Dependencies {
       jUnit.jUnit % Test,
       scalaTest.scalaTest % Test,
       scalaMock.scalamock % Test,
-      "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test
+      "com.vladsch.flexmark" % "flexmark-all" % "0.62.2" % Test
     )
 
     lazy val json4sCommon: Seq[ModuleID] = Seq(

@@ -38,7 +38,7 @@ object BuildUtils {
             jUnit.jUnit % IntegrationTest,
             scalaTest.scalaTest % IntegrationTest,
             scalaMock.scalamock % IntegrationTest,
-            "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % IntegrationTest
+            "com.vladsch.flexmark" % "flexmark-all" % "0.62.2" % IntegrationTest
           )
         )
     }
