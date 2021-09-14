@@ -52,6 +52,28 @@ trait TaskGraph[T, ST] {
       .toSet
   }
 
+  def hasRoots:Boolean = roots.nonEmpty
+
+  def isValid : Boolean = hasRoots && cycles().isEmpty
+
+  def cycles():Set[Seq[T]] = {
+    def loop (t:T, path:Seq[T]): List[Seq[T]] = {
+      if (path.contains(t)) {
+        List(path :+ t)
+      } else {
+        edges.filter(_.from.equals(t)).toList match {
+          case Nil => List()
+          case x => x.map(z=>loop(z.to , path :+ z.from)).flatten
+        }
+      }
+    }
+    roots
+      .map(loop(_, Seq()))
+      .flatten
+      .filter(x=> x.nonEmpty)
+      .toSet
+  }
+
   def next():Set[T] = {
     def readyDependants = edges
       .filter(x=> !isCompleted(states.get(x.to)))

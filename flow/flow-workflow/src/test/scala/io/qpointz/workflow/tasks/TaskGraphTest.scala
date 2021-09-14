@@ -65,7 +65,7 @@ class TaskGraphTest extends AnyFlatSpec with Matchers {
   }
 
   it should "return empty id all completed" in {
-    val g: TaskGraph[String, Boolean] = graph(Map("a"->true, "b"->true, "c"->true, "d"->true),
+    val g = graph(Map("a"->true, "b"->true, "c"->true, "d"->true),
       ifTrue("a", "b"),
       ifTrue("b", "c"),
       ifTrue("c", "d"))
@@ -75,7 +75,7 @@ class TaskGraphTest extends AnyFlatSpec with Matchers {
   behavior of "tree-next"
 
   it should "return all parallel" in {
-    val g: TaskGraph[String, Boolean] = graph(Map("a"->true),
+    val g = graph(Map("a"->true),
       ifTrue("a", "b1"),
       ifTrue("a", "b2"),
       ifTrue("b1", "c"),
@@ -85,5 +85,41 @@ class TaskGraphTest extends AnyFlatSpec with Matchers {
     g.next() shouldBe Set("b1","b2")
   }
 
+  behavior of "cycles"
 
+  it should "return non self cycle paths" in {
+    //        /<- \
+    //  a -> b -> c -> d -> e - \ -> \
+    //        \<- - - /      \<-/    |
+    //        \<- - - - - - - - - - -/
+    val g = graph(
+      ifTrue("a","b"),
+      ifTrue("b","c"),
+      ifTrue("c","d"),
+      ifTrue("d","b"),
+      ifTrue("c","b"),
+      ifTrue("d","e"),
+      ifTrue("e","e"),
+      ifTrue("e","b"),
+    )
+    g.cycles() shouldBe Set(
+      Seq("a","b","c","b"),
+      Seq("a","b","c","d","b"),
+      Seq("a","b","c","d","e","e"),
+      Seq("a","b","c","d","e","b"),
+    )
+  }
+
+  behavior of "validation"
+
+  it should "no roots" in {
+    val g = graph(
+      ifTrue("a", "b"),
+      ifTrue("b", "c"),
+      ifTrue("c", "a")
+    )
+    g.hasRoots shouldBe false
+    g.isValid shouldBe false
+  }
+  
 }
