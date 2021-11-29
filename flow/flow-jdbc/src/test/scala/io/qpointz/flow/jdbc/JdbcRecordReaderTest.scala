@@ -26,7 +26,7 @@ import org.scalatest.matchers.should.Matchers
 
 class JdbcRecordReaderTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
-  val connectionString = "jdbc:h2:mem:test_db_2;DB_CLOSE_DELAY=-1"
+  val connectionString = "jdbc:h2:mem:test_db_2"
 
   override def beforeAll(): Unit = {
     Class.forName("org.h2.Driver")
@@ -54,7 +54,7 @@ class JdbcRecordReaderTest extends AnyFlatSpec with Matchers with BeforeAndAfter
   it should "connection with properties" in {
     val settings = JdbcRecordReaderSettings(
       "org.h2.Driver",
-      JdbcConnectionUrlWithProperties("jdbc:h2:mem:test_db_2", Map("DB_CLOSE_DELAY" -> -1)),
+      JdbcConnectionUrlWithProperties("jdbc:h2:mem:test_db_2", Map()),
       "select * from person",
       Seq())
 

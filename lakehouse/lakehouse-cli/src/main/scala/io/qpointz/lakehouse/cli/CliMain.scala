@@ -16,7 +16,6 @@
 
 package io.qpointz.lakehouse.cli
 
-import io.delta.tables.DeltaTable
 import io.minio.{ListObjectsArgs, MakeBucketArgs, MinioClient, PutObjectArgs, UploadObjectArgs}
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
@@ -92,18 +91,11 @@ object CliMain {
 
     session.sql("SELECT * from simple").take(10).foreach(println)
 
-    val dt = DeltaTable.forPath(s"s3a://${mybucket}/table3")
-    dt.generate("symlink_format_manifest")
+//    val dt = DeltaTable.forPath(s"s3a://${mybucket}/table3")
+//    dt.generate("symlink_format_manifest")
 
     //session.stop()
     //println(x)
-
-
-
-
-
-
-
   }
 
 }
