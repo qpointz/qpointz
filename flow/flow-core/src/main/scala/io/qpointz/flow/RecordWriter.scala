@@ -17,6 +17,9 @@
 
 package io.qpointz.flow
 
+import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
+
 trait RecordWriter extends WithOperationContext {
 
   def open(): Unit
@@ -27,3 +30,28 @@ trait RecordWriter extends WithOperationContext {
 
 }
 
+class InMemoryWriter(implicit val ctx:OperationContext) extends RecordWriter {
+
+  private var maybeOpened : Option[Boolean]= None
+  private val recs:ListBuffer[Record] = ListBuffer[Record]()
+
+  override def open(): Unit = {
+    maybeOpened = Some(true)
+  }
+
+  override def close(): Unit = {
+    maybeOpened = Some(false)
+  }
+
+  override def write(r: Record): Unit = {
+    recs.append(r)
+  }
+
+  def records():Seq[Record] = recs.toSeq
+}
+
+object RecordWriter {
+
+  def inMemory(implicit ctx:OperationContext) : InMemoryWriter =  new InMemoryWriter()
+
+}

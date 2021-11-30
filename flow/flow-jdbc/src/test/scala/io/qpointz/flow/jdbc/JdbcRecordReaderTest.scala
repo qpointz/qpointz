@@ -54,7 +54,7 @@ class JdbcRecordReaderTest extends AnyFlatSpec with Matchers with BeforeAndAfter
   it should "connection with properties" in {
     val settings = JdbcRecordReaderSettings(
       "org.h2.Driver",
-      JdbcConnectionUrlWithProperties("jdbc:h2:mem:test_db_2", Map()),
+      JdbcConnectionUrlWithProperties("jdbc:h2:mem:test_db_2", Map("DB_CLOSE_DELAY"-> "-1")),
       "select * from person",
       Seq())
 
