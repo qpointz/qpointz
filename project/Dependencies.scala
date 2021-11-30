@@ -158,7 +158,7 @@ object Dependencies {
   }
 
   object amazonAWSSDK {
-    val v = "2.17.91"
+    val v = "2.17.92"
     val g = "software.amazon.awssdk"
     val p = g ~% v
     val sdkJava = "aws-sdk-java" ~~ p
@@ -179,7 +179,7 @@ object Dependencies {
   }
 
   object minio {
-    val v = "8.3.3"
+    val v = "8.3.4"
     val p = "io.minio" ~% v
     val minio = "minio" ~~ p
   }
