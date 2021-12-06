@@ -16,12 +16,16 @@
 
 package io.qpointz.flow
 
+import akka.NotUsed
+import akka.stream.scaladsl.Source
 import io.qpointz.flow.text.TextSource
 import io.qpointz.flow.text.csv.{CsvRecordReader, CsvRecordReaderSettings}
 
 package object streams {
 
-  def ratesRecords = ratesRecordsReader.toSeq
+  def ratesSource:Source[Record, NotUsed] = Source.fromIterator(()=>ratesRecords.iterator)
+
+  def ratesRecords:Seq[Record] = ratesRecordsReader.toSeq
 
   def ratesRecordsReader(implicit ctx:OperationContext): RecordReader = {
     val st = new CsvRecordReaderSettings(

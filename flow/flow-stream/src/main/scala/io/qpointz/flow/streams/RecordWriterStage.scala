@@ -16,13 +16,12 @@
 
 package io.qpointz.flow.streams
 
-import akka.stream.scaladsl.FileIO
-import akka.stream.stage.{AbstractInHandler, GraphStage, GraphStageLogic, GraphStageWithMaterializedValue, InHandler}
-import akka.stream.{AbruptStageTerminationException, Attributes, IOOperationIncompleteException, IOResult, Inlet, SinkShape}
+import akka.stream.stage.{GraphStageLogic, GraphStageWithMaterializedValue, InHandler}
+import akka.stream._
 import io.qpointz.flow.{Record, RecordWriter}
 
 import scala.concurrent.{Future, Promise}
-import scala.util.{Failure, Success}
+import scala.util.Success
 import scala.util.control.NonFatal
 
 class RecordWriterStage(private val writer:RecordWriter)
@@ -85,6 +84,7 @@ class RecordWriterStage(private val writer:RecordWriter)
       }
 
       override def postStop(): Unit = {
+        println("poststop")
         if (!mat.isCompleted) {
           val failure = new AbruptStageTerminationException(this)
           closeWriter(Some(failure))

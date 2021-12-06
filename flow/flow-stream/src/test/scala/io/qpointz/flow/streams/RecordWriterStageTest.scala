@@ -16,27 +16,25 @@
 
 package io.qpointz.flow.streams
 
-import akka.{Done, NotUsed}
 import akka.actor.ActorSystem
-import akka.stream.{IOOperationIncompleteException, IOResult}
-import akka.stream.scaladsl.{Keep, Source}
-import akka.stream.testkit.scaladsl.TestSink
-import io.qpointz.flow.{InMemoryWriter, Record}
-import org.scalatest.flatspec.AnyFlatSpecLike
+import akka.stream.scaladsl.{Source, _}
+import akka.stream.{Graph, IOOperationIncompleteException, IOResult, KillSwitches}
+import io.qpointz.flow.{InMemoryWriter, OperationContext, Record, RecordWriter}
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.flatspec.AsyncFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 
-import scala.concurrent.{Await, Future}
-import akka.stream.scaladsl._
-import akka.stream.testkit.scaladsl._
-import org.scalatest.concurrent.ScalaFutures
-
 import scala.concurrent.duration.DurationInt
-import scala.util.{Failure, Success, Try}
+import scala.concurrent.{Await, Future}
 
 class RecordWriterStageTest extends akka.testkit.TestKit(ActorSystem("MySpec"))
+  with AsyncFlatSpecLike
   with Matchers
-  with AnyFlatSpecLike
   with ScalaFutures {
+
+  implicit val ctx: OperationContext = OperationContext.defaultContext
+
+  behavior of "RecordWriterStage"
 
   it should "write records" in {
     val inm = new InMemoryWriter()
@@ -63,15 +61,62 @@ class RecordWriterStageTest extends akka.testkit.TestKit(ActorSystem("MySpec"))
       }
     }
 
-    val a = Source.fromIterator(()=>fi).runWith(new RecordWriterStage(new InMemoryWriter()))
-    import scala.concurrent.ExecutionContext.Implicits.global
-    val rd = Await.ready(a, 3.seconds)
-      .onComplete(x=> x match {
-        case Failure(exception:IOOperationIncompleteException) => {
-          exception.count shouldBe 10
-        }
-        case _ => assert(false)
-    })
+    recoverToExceptionIf[IOOperationIncompleteException] {
+      Source.fromIterator(() => fi).runWith(new RecordWriterStage(new InMemoryWriter()))
+    }.map {ex=>
+      ex.count shouldBe 10
+    }
+
   }
 
+  it should "fail if writer cannot be opened" in {
+    val wrt = new RecordWriter {
+      override def open(): Unit = {
+        throw new RuntimeException("Failed to open")
+      }
+      override def close(): Unit = {}
+      override def write(r: Record): Unit = {}
+      override implicit val ctx: OperationContext = OperationContext.defaultContext
+    }
+    recoverToExceptionIf[IOOperationIncompleteException] {
+      Source.fromIterator(()=>ratesRecords.iterator).runWith(new RecordWriterStage(wrt))
+    }.map { ex=>
+      ex.count shouldBe 0
+    }
+  }
+
+  it should "fail if writer cannot be closed" in {
+    val wrt = new RecordWriter {
+      override def open(): Unit = {}
+      override def close(): Unit = {throw new RuntimeException("Failed to close")}
+      override def write(r: Record): Unit = {}
+      override implicit val ctx: OperationContext = OperationContext.defaultContext
+    }
+    recoverToExceptionIf[RuntimeException] {
+      Source.fromIterator(()=>ratesRecords.iterator).runWith(new RecordWriterStage(wrt))
+    }.map {ex=>
+      ex.getMessage shouldBe "Failed to close"
+    }
+  }
+
+  it should "fail if writer cannot write" in {
+    val wrt = new RecordWriter {
+      override def open(): Unit = {}
+      override def close(): Unit = {}
+      var i = 0
+      override def write(r: Record): Unit = {
+        if (i>=10) {
+          throw new RuntimeException("Failed to push")
+        }
+        i+=1
+      }
+      override implicit val ctx: OperationContext = OperationContext.defaultContext
+    }
+    recoverToExceptionIf[IOOperationIncompleteException] {
+      Source.fromIterator(()=>ratesRecords.iterator).runWith(new RecordWriterStage(wrt))
+    }.map {ex=>
+      ex.count shouldBe 10
+      ex.getCause.getMessage shouldBe  "Failed to push"
+    }
+  }
 }
