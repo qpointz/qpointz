@@ -34,11 +34,7 @@ class RecordReaderSourceTest extends akka.testkit.TestKit(ActorSystem("MySpec"))
     Record("a" -> 3, "b" -> 3)
   )
 
-  def testRecords(): RecordReader = new RecordReader{
-    override def iterator: Iterator[Record] = records.iterator
-
-    override implicit val ctx: OperationContext = OperationContext.defaultContext
-  }
+  def testRecords(): RecordReader = RecordReader.fromIterable(records)
 
   it should "complete" in {
     val srx = Source.fromGraph(new RecordReaderSource(testRecords))

@@ -89,6 +89,12 @@ object Dependencies {
     lazy val jUnit = "junit" ~~ p
   }
 
+  object scoverage {
+    lazy val v = "1.4.10"
+    lazy val p = "org.scoverage" ~%% v
+    lazy val scalacRuntime = "scalac-scoverage-runtime" ~~ p
+  }
+
   object univocity {
     val v = "2.9.1"
     val p = "com.univocity" ~% v
@@ -193,7 +199,8 @@ object Dependencies {
       jUnit.jUnit % Test,
       scalaTest.scalaTest % Test,
       scalaMock.scalamock % Test,
-      "com.vladsch.flexmark" % "flexmark-all" % "0.62.2" % Test
+      "com.vladsch.flexmark" % "flexmark-all" % "0.62.2" % Test,
+      scoverage.scalacRuntime % Test
     )
 
     lazy val json4sCommon: Seq[ModuleID] = Seq(

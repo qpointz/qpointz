@@ -82,6 +82,7 @@ lazy val `flow-aws` = libProject("flow","flow-aws")
 
 lazy val `flow-stream` = libProject("flow","flow-stream")
   .dependsOn(`flow-core`)
+  .dependsOn(`flow-text` % "test->compile")
   .settings(
     libraryDependencies ++= modules(
       akka.stream,
