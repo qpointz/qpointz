@@ -14,7 +14,8 @@ lazy val `flow` = project
     `flow-cli`,
     `flow-aws`,
     `flow-stream`,
-    `flow-workflow`
+    `flow-workflow`,
+    `flow-orientdb`
   )
 
 lazy val `flow-cli` = libProject("flow","flow-cli")
@@ -26,7 +27,8 @@ lazy val `flow-cli` = libProject("flow","flow-cli")
     `flow-avro-parquet`,
     `flow-aws`,
     `flow-stream`,
-    `flow-workflow`
+    `flow-workflow`,
+    `flow-orientdb`
 )
 
 lazy val `flow-core` = libProject("flow","flow-core")
@@ -99,4 +101,12 @@ lazy val `flow-workflow` = libProject("flow","flow-workflow")
       akka.actorsTyped,
       akka.actorsTypedTestKit % Test
     )
+  )
+
+lazy val `flow-orientdb` = libProject("flow", "flow-orientdb")
+  .dependsOn(`flow-core`)
+  .settings(
+    libraryDependencies ++= modules(
+      orientdb.graphdb
+    ) ++ json4sJackson
   )

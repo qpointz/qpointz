@@ -190,6 +190,12 @@ object Dependencies {
     val minio = "minio" ~~ p
   }
 
+  object orientdb {
+    val v = "3.2.3"
+    val p = "com.orientechnologies" ~% v
+    val graphdb = "orientdb-graphdb" ~~ p
+  }
+
   object DepProfiles {
 
     lazy val lib: Seq[ModuleID] = Seq(
@@ -213,6 +219,7 @@ object Dependencies {
 
     lazy val json4sJackson: Seq[ModuleID] = json4sCommon ++ Seq(
       json4s.jackson)
+
 
   }
 
