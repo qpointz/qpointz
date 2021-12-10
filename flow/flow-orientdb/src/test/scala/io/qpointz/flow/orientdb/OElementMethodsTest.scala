@@ -16,9 +16,10 @@
 
 package io.qpointz.flow.orientdb
 
+import com.orientechnologies.orient.core.db.OrientDB
 import com.orientechnologies.orient.core.record.impl.ODocument
-import org.json4s.JObject
-import org.json4s.JsonAST.{JArray, JBool, JInt, JNothing, JNull, JValue}
+import org.json4s.{JField, JObject}
+import org.json4s.JsonAST.{JArray, JBool, JDecimal, JInt, JLong, JNothing, JNull, JValue}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -104,4 +105,60 @@ class OElementMethodsTest extends AnyFlatSpec with Matchers {
     doc.field[String]("foo") shouldBe "bar"
   }
 
+  behavior of "JValue"
+
+  def td[T](tuple: (String, T)) = {
+    import org.json4s.{ Extraction, NoTypeHints }
+    import org.json4s.jackson.Serialization
+    implicit val formats = Serialization.formats(NoTypeHints)
+    val jO = Extraction.decompose(tuple)
+    new ODocument()
+      .field(tuple._1, tuple._2)
+      .asJValue shouldBe jO
+  }
+
+  it should "convert strings" in {
+    td("foo" -> "bar")
+  }
+
+  it should "convert boolean" in {
+    td("bl" -> true)
+  }
+
+
+  it should "convert ints" in {
+    td("i" -> 12)
+  }
+
+  it should "convert bigints" in {
+    td("bi" -> BigInt(23))
+  }
+
+  it should "convert arrays" in {
+    td("arr" -> List("x","y", "z"))
+  }
+
+  it should "convert doubles" in {
+    td("dbl" -> 1.2d)
+  }
+
+  it should "convert big decimal" in {
+    val ln = BigDecimal(1222)
+    new ODocument()
+      .field("lng", ln)
+      .asJValue shouldBe JObject(List(("lng", JDecimal(ln))))
+  }
+
+  it should "convert long" in {
+    val ln = 1222.toLong
+    new ODocument()
+      .field("lng", ln)
+      .asJValue shouldBe JObject(List(("lng", JLong(ln))))
+  }
+
+  it should "convert nested documents" in {
+    new ODocument()
+      .field("nest", new ODocument().field("n", "a"))
+      .asJValue shouldBe JObject(List("nest" -> JObject(List(JField("n","a")))))
+  }
 }

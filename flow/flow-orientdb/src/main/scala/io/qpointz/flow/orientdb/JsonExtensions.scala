@@ -44,17 +44,39 @@ object OElementMethods {
         // $COVERAGE-ON$
       }
 
-      //def updDoc(d:ODocument, k:String, v:)
-
       jn match {
-        case jo: JObject => jo
-          .obj
+        case jo: JObject => jo.obj
           .foldLeft(new ODocument())((x, y) => loop(y._2) match {
             case None => x
             case Some(v) => x.field(y._1, v)
           })
         case x => throw new IllegalArgumentException(s" ${x} can't be represented as document")
       }
+    }
+  }
+
+  implicit class ODocumentImplicits(doc:ODocument) {
+
+    def asJValue:JValue = {
+
+      def loop(value: Any):JValue = value match {
+        case null => JNull
+        case dc: ODocument => dc.asJValue
+        case arr: Iterable[_] => JArray(arr.map(loop(_)).toList)
+        case i: Int => JInt(i)
+        case bi: BigInt => JInt(bi)
+        case s:String => JString(s)
+        case d:Double => JDouble(d)
+        case dc:BigDecimal => JDecimal(dc)
+        case l:Long => JLong(l)
+        case b:Boolean => JBool(b)
+        // $COVERAGE-OFF$
+        case x => throw new RuntimeException(s"Type ${x.getClass} not supported")
+        // $COVERAGE-ON$
+      }
+
+      val fields = doc.fieldNames().map(x=> (x, loop(doc.field[Any](x)))).toList
+      JObject(fields)
     }
   }
 }
