@@ -43,19 +43,6 @@ object BuildUtils {
         )
     }
 
-    def withMinimalCoverage: Project = {
-
-      /* temporaly disabled
-ThisBuild / coverageFailOnMinimum := true
-ThisBuild / coverageMinimumStmtTotal := 90
-ThisBuild / coverageMinimumBranchTotal := 90
-ThisBuild / coverageMinimumStmtPerPackage := 90
-ThisBuild / coverageMinimumBranchPerPackage := 85
-ThisBuild / coverageMinimumStmtPerFile := 85
-ThisBuild / coverageMinimumBranchPerFile := 80
- */
-    }
-
     def withConfig : Project = {
         p.settings(
           libraryDependencies ++= Seq(
@@ -63,7 +50,6 @@ ThisBuild / coverageMinimumBranchPerFile := 80
           )
         )
     }
-
   }
 
   def projectPath(group:String, projectName:String):String = {

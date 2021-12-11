@@ -105,8 +105,11 @@ lazy val `flow-workflow` = libProject("flow","flow-workflow")
 
 lazy val `flow-orientdb` = libProject("flow", "flow-orientdb")
   .dependsOn(`flow-core`)
+  .withConfig
+  .withIntegration
   .settings(
     libraryDependencies ++= modules(
-      orientdb.graphdb
+      orientdb.graphdb,
+      commonsio.io
     ) ++ json4sJackson
   )

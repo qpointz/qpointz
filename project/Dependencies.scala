@@ -196,6 +196,11 @@ object Dependencies {
     val graphdb = "orientdb-graphdb" ~~ p
   }
 
+  object commonsio {
+    val g = "commons-io"
+    val io = g % "commons-io" % "2.11.0"
+  }
+
   object DepProfiles {
 
     lazy val lib: Seq[ModuleID] = Seq(
