@@ -45,7 +45,7 @@ object Dependencies {
   }
 
   object logback {
-    lazy val v = "ch.qos.logback" ~% "1.2.7"
+    lazy val v = "ch.qos.logback" ~% "1.2.8"
     lazy val classic = "logback-classic" ~~ v
   }
 
@@ -164,7 +164,7 @@ object Dependencies {
   }
 
   object amazonAWSSDK {
-    val v = "2.17.92"
+    val v = "2.17.100"
     val g = "software.amazon.awssdk"
     val p = g ~% v
     val sdkJava = "aws-sdk-java" ~~ p

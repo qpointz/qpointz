@@ -29,17 +29,21 @@ lazy val `flow-cli` = libProject("flow","flow-cli")
     `flow-stream`,
     `flow-workflow`,
     `flow-orientdb`
-)
+  )
+  .withConfig
+  .enablePlugins(JavaAppPackaging)
 
 lazy val `flow-core` = libProject("flow","flow-core")
 
 lazy val `flow-excel` = libProject("flow","flow-excel")
   .dependsOn(`flow-core`)
   .settings(
+    Compile / mainClass := Some("io.qpointz.flow.cli.ResTest"),
     libraryDependencies ++= modules(
       apachePoi.ooxml,
       apachePoi.poi
     )
+
   )
 
 lazy val `flow-jdbc` = libProject("flow","flow-jdbc")
