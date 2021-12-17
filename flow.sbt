@@ -34,6 +34,13 @@ lazy val `flow-cli` = libProject("flow","flow-cli")
   .enablePlugins(JavaAppPackaging)
 
 lazy val `flow-core` = libProject("flow","flow-core")
+  .withConfig
+  .settings(
+    libraryDependencies ++= modules(
+      scalalib.reflect
+    )
+  )
+
 
 lazy val `flow-excel` = libProject("flow","flow-excel")
   .dependsOn(`flow-core`)

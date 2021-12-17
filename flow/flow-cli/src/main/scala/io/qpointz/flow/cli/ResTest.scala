@@ -16,7 +16,7 @@
 
 package io.qpointz.flow.cli
 
-import com.typesafe.config.{ConfigFactory, ConfigParseOptions, ConfigRenderOptions, ConfigResolveOptions, ConfigResolver, ConfigValue}
+import com.typesafe.config.{ConfigFactory, ConfigParseOptions, ConfigRenderOptions, ConfigResolveOptions, ConfigResolver, ConfigValue, ConfigValueType}
 
 import java.io.{BufferedInputStream, File, FileInputStream, InputStream}
 import scala.jdk.CollectionConverters.IteratorHasAsScala
@@ -27,30 +27,29 @@ object ResTest {
 
   def main(args:Array[String]):Unit = {
     val cl = this.getClass.getClassLoader
-    val cfg = cl
+    val all = cl
       .getResources("qpointz.conf")
       .asIterator()
       .asScala
       .map(x=> {
-        //println(x)
-        //println("==========================================")
-        val cfg = x.getContent().asInstanceOf[InputStream]
-        //val cnt = scala.io.Source.fromInputStream(cfg).mkString
-        //println(cnt)
-        //println("==========================================")
-        ConfigFactory.parseURL(x)
+        val cfg = ConfigFactory.parseURL(x)
+        cfg
+          .getList("extensions")
+          .iterator()
+          .asScala
+          .map({
+            case x if x.valueType() == ConfigValueType.STRING => Some(x.unwrapped().asInstanceOf[String])
+            case y => None
+          })
+          .filter(_.isDefined)
+          .map(_.get)
+          .toSeq
       })
-      .foldLeft(ConfigFactory.load())((l,r) => l.withFallback(r))
-      .resolve(new ConfigResolveOptions(new ConfigResolver {
-        override def lookup(path: String): ConfigValue = {
+      .flatten
+      .toSet
 
-        }
 
-        override def withFallback(fallback: ConfigResolver): ConfigResolver = ???
-      }))
-
-    val renderOpts = ConfigRenderOptions.defaults().setOriginComments(false).setComments(false).setJson(false)
-    println(cfg.root().get("qpointz").render(renderOpts))
+    //val cfg
 /*
     val uri = ResTest.getClass.getClassLoader.getResource("/").toURI
 

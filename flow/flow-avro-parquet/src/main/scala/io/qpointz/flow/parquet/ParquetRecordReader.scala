@@ -18,7 +18,6 @@ package io.qpointz.flow.parquet
 
 import io.qpointz.flow.utils.IteratorExtensions
 import io.qpointz.flow.{OperationContext, Record, RecordReader}
-import org.apache.avro.mapred.AvroRecordReader
 import org.apache.parquet.ParquetReadOptions
 import org.apache.parquet.column.page.PageReadStore
 import org.apache.parquet.example.data.Group
