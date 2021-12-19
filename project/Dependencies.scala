@@ -15,7 +15,10 @@
  */
 
 import DependenciesUtils._
+import sbt.Keys.libraryDependencies
 import sbt._
+
+//scalastyle:off
 
 object Dependencies {
 
@@ -201,6 +204,34 @@ object Dependencies {
     val io = g % "commons-io" % "2.11.0"
   }
 
+  implicit class ProjectProfiles(p:Project) {
+
+    lazy val json4sCommon: Seq[ModuleID] = Seq(
+      json4s.ast,
+      json4s.core,
+      json4s.ext)
+
+    lazy val json4sNative: Seq[ModuleID] = json4sCommon ++ Seq(
+      json4s.native)
+
+    lazy val json4sJackson: Seq[ModuleID] = json4sCommon ++ Seq(
+      json4s.jackson)
+
+    def withConfig : Project = {
+      p.settings(
+        libraryDependencies ++= Seq(
+          Dependencies.ts_config.config
+        )
+      )
+    }
+
+    def withJson : Project = {
+      p.settings(
+        libraryDependencies ++= json4sJackson
+      )
+    }
+  }
+
   object DepProfiles {
 
     lazy val lib: Seq[ModuleID] = Seq(
@@ -213,17 +244,6 @@ object Dependencies {
       "com.vladsch.flexmark" % "flexmark-all" % "0.62.2" % Test,
       scoverage.scalacRuntime % Test
     )
-
-    lazy val json4sCommon: Seq[ModuleID] = Seq(
-      json4s.ast,
-      json4s.core,
-      json4s.ext)
-
-    lazy val json4sNative: Seq[ModuleID] = json4sCommon ++ Seq(
-      json4s.native)
-
-    lazy val json4sJackson: Seq[ModuleID] = json4sCommon ++ Seq(
-      json4s.jackson)
 
 
   }

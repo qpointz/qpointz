@@ -17,47 +17,33 @@
 
 package io.qpointz.flow.text
 
-import java.io._
-
+import io.qpointz.flow.MetadataMethods._
 import io.qpointz.flow.{Metadata, MetadataGroupOwner, MetadataProvider}
+
+import java.io._
 
 trait TextSource extends MetadataProvider with MetadataGroupOwner {
     def asReader():Reader
 }
 
-trait TextTarget {
-
+trait TextSourceStream extends TextSource {
+    def stream():InputStream
+    lazy val streamReader = new InputStreamReader(this.stream)
+    override def asReader(): Reader = streamReader
 }
 
-import io.qpointz.flow.MetadataMethods._
-
 object TextSource {
-
     def apply(content:String):TextSource = new StringTextSource(content)
-
     def apply(file:File):TextSource = new FileTextSource(file)
-
     def apply(stream:InputStream):TextSource = new StreamTextSource(stream)
 }
 
-class StreamTextSource(val stream:InputStream)  extends TextSource {
-
-    lazy val r = new InputStreamReader(stream)
-
-    override def asReader(): Reader = {
-        r
-    }
-
+class StreamTextSource(private val inputStream:InputStream)  extends TextSourceStream {
+    override def stream(): InputStream = inputStream
     override lazy val metadata: Metadata = List()
     override val metadataGroupKey: String = "formats:text:source:stream"
 }
 
-class FileTextSource(val file:File) extends StreamTextSource(new FileInputStream(file)){
-    override val metadataGroupKey: String = "formats:text:source:file"
-    override lazy val metadata: Metadata = Seq(
-        (metadataGroupKey,"path",file.getAbsolutePath)
-    )
-}
 
 class StringTextSource(val content:String) extends TextSource {
     override val metadataGroupKey: String = "formats:text:source:text"

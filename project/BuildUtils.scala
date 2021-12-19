@@ -42,14 +42,6 @@ object BuildUtils {
           )
         )
     }
-
-    def withConfig : Project = {
-        p.settings(
-          libraryDependencies ++= Seq(
-            Dependencies.ts_config.config
-          )
-        )
-    }
   }
 
   def projectPath(group:String, projectName:String):String = {
