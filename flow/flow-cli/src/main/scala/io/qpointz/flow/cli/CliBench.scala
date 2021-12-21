@@ -16,18 +16,16 @@
 
 package io.qpointz.flow.cli
 
-import io.qpointz.flow.{Metadata, Record}
+import io.qpointz.flow.MetadataMethods._
+import io.qpointz.flow.Record
 import io.qpointz.flow.avro.{AvroRecordWriter, AvroRecordWriterSettings, ConstantAvroScemaSource}
-import io.qpointz.flow.text.TextSource
+import io.qpointz.flow.nio.FileStreamSource
+import io.qpointz.flow.text.csv.{CsvFormat, CsvRecordReader, CsvRecordReaderSettings}
 import io.qpointz.flow.transformations.{RecordTransformation, TransformationRecordReader}
 import org.apache.avro.{LogicalTypes, Schema, SchemaBuilder}
 
 import java.io.File
 import java.nio.file.Path
-import io.qpointz.flow.MetadataMethods._
-import io.qpointz.flow._
-import io.qpointz.flow.nio.FileStreamSource
-import io.qpointz.flow.text.csv.{CsvFormat, CsvRecordReader, CsvRecordReaderSettings}
 
 object CliBench {
 

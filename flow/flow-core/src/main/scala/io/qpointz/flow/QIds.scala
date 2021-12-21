@@ -34,13 +34,13 @@ object QIds {
     val hierarchyId = qp.hierarchyId("record")
 
     object Reader {
-      val hierarchyId = QIds.Record.hierarchyId.hierarchyId("reader")
+      val hierarchyId = QIds.Record.hierarchyId.hierarchyId("read")
       val reader = hierarchyId.groupId("reader")
       val settings = hierarchyId.groupId("settings")
     }
 
     object Writer {
-      val hierarchyId = QIds.Record.hierarchyId.hierarchyId("writer")
+      val hierarchyId = QIds.Record.hierarchyId.hierarchyId("write")
       val writer = hierarchyId.groupId("writer")
       val settings = hierarchyId.groupId("settings")
     }

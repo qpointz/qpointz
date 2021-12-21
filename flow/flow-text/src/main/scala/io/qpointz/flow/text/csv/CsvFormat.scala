@@ -17,55 +17,85 @@
 
 package io.qpointz.flow.text.csv
 
-    object CsvFormat {
-      lazy val default:CsvFormat = CsvFormat()
+object CsvFormat {
+  lazy val default: CsvFormat = CsvFormat()
 
-        
-        def asCsvFormat(s:CsvFormat):com.univocity.parsers.csv.CsvFormat = {
-            val tg = new com.univocity.parsers.csv.CsvFormat()
-            tg.setComment(s.comment.getOrElse(tg.getComment))
-            tg.setLineSeparator(s.lineSeparator.getOrElse(tg.getLineSeparatorString))
-            tg.setNormalizedNewline(s.normalizedNewline.getOrElse(tg.getNormalizedNewline))
-            tg.setDelimiter(s.delimiter.getOrElse(tg.getDelimiterString))
-            tg.setQuote(s.quote.getOrElse(tg.getQuote))
-            tg.setQuoteEscape(s.quoteEscape.getOrElse(tg.getQuoteEscape))
-            tg.setCharToEscapeQuoteEscaping(s.charToEscapeQuoteEscaping.getOrElse(tg.getCharToEscapeQuoteEscaping))
-            
-            tg
-        }
-        
+  def asCsvFormat(s: CsvFormat): com.univocity.parsers.csv.CsvFormat = {
+    val tg = new com.univocity.parsers.csv.CsvFormat()
+    tg.setComment(s.comment.getOrElse(tg.getComment))
+    tg.setLineSeparator(s.lineSeparator.getOrElse(tg.getLineSeparatorString))
+    tg.setNormalizedNewline(s.normalizedNewline.getOrElse(tg.getNormalizedNewline))
+    tg.setDelimiter(s.delimiter.getOrElse(tg.getDelimiterString))
+    tg.setQuote(s.quote.getOrElse(tg.getQuote))
+    tg.setQuoteEscape(s.quoteEscape.getOrElse(tg.getQuoteEscape))
+    tg.setCharToEscapeQuoteEscaping(s.charToEscapeQuoteEscaping.getOrElse(tg.getCharToEscapeQuoteEscaping))
+    tg
+  }
+}
 
-    }
+case class CsvFormat(
+                      comment: Option[Char] = None,
+                      lineSeparator: Option[String] = None,
+                      normalizedNewline: Option[Char] = None,
+                      delimiter: Option[String] = None,
+                      quote: Option[Char] = None,
+                      quoteEscape: Option[Char] = None,
+                      charToEscapeQuoteEscaping: Option[Char] = None,
+                    ) {
 
-    case class CsvFormat(
-      comment:Option[Char] = None,
-      lineSeparator:Option[String] = None,
-      normalizedNewline:Option[Char] = None,
-      delimiter:Option[String] = None,
-      quote:Option[Char] = None,
-      quoteEscape:Option[Char] = None,
-      charToEscapeQuoteEscaping:Option[Char] = None,
-    )  {
-        
-        def comment(comment:Char): CsvFormat = {copy(comment=Some(comment))}
-        def defaultComment():CsvFormat = {copy(comment=None)}
-        
-        def lineSeparator(lineSeparator:String): CsvFormat = {copy(lineSeparator=Some(lineSeparator))}
-        def defaultLineSeparator():CsvFormat = {copy(lineSeparator=None)}
-        
-        def normalizedNewline(normalizedNewline:Char): CsvFormat = {copy(normalizedNewline=Some(normalizedNewline))}
-        def defaultNormalizedNewline():CsvFormat = {copy(normalizedNewline=None)}
-        
-        def delimiter(delimiter:String): CsvFormat = {copy(delimiter=Some(delimiter))}
-        def defaultDelimiter():CsvFormat = {copy(delimiter=None)}
-        
-        def quote(quote:Char): CsvFormat = {copy(quote=Some(quote))}
-        def defaultQuote():CsvFormat = {copy(quote=None)}
-        
-        def quoteEscape(quoteEscape:Char): CsvFormat = {copy(quoteEscape=Some(quoteEscape))}
-        def defaultQuoteEscape():CsvFormat = {copy(quoteEscape=None)}
-        
-        def charToEscapeQuoteEscaping(charToEscapeQuoteEscaping:Char): CsvFormat = {copy(charToEscapeQuoteEscaping=Some(charToEscapeQuoteEscaping))}
-        def defaultCharToEscapeQuoteEscaping():CsvFormat = {copy(charToEscapeQuoteEscaping=None)}
-        
+  def comment(comment: Char): CsvFormat = {
+    copy(comment = Some(comment))
+  }
+
+  def defaultComment(): CsvFormat = {
+    copy(comment = None)
+  }
+
+  def lineSeparator(lineSeparator: String): CsvFormat = {
+    copy(lineSeparator = Some(lineSeparator))
+  }
+
+  def defaultLineSeparator(): CsvFormat = {
+    copy(lineSeparator = None)
+  }
+
+  def normalizedNewline(normalizedNewline: Char): CsvFormat = {
+    copy(normalizedNewline = Some(normalizedNewline))
+  }
+
+  def defaultNormalizedNewline(): CsvFormat = {
+    copy(normalizedNewline = None)
+  }
+
+  def delimiter(delimiter: String): CsvFormat = {
+    copy(delimiter = Some(delimiter))
+  }
+
+  def defaultDelimiter(): CsvFormat = {
+    copy(delimiter = None)
+  }
+
+  def quote(quote: Char): CsvFormat = {
+    copy(quote = Some(quote))
+  }
+
+  def defaultQuote(): CsvFormat = {
+    copy(quote = None)
+  }
+
+  def quoteEscape(quoteEscape: Char): CsvFormat = {
+    copy(quoteEscape = Some(quoteEscape))
+  }
+
+  def defaultQuoteEscape(): CsvFormat = {
+    copy(quoteEscape = None)
+  }
+
+  def charToEscapeQuoteEscaping(charToEscapeQuoteEscaping: Char): CsvFormat = {
+    copy(charToEscapeQuoteEscaping = Some(charToEscapeQuoteEscaping))
+  }
+
+  def defaultCharToEscapeQuoteEscaping(): CsvFormat = {
+    copy(charToEscapeQuoteEscaping = None)
+  }
 }

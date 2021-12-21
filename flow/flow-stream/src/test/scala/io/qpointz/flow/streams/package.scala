@@ -19,7 +19,6 @@ package io.qpointz.flow
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import io.qpointz.flow.nio.InputStreamSource
-import io.qpointz.flow.text.TextSource
 import io.qpointz.flow.text.csv.{CsvRecordReader, CsvRecordReaderSettings}
 
 

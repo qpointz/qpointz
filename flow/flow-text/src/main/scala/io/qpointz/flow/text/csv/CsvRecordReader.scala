@@ -17,14 +17,14 @@
 package io.qpointz.flow.text.csv
 
 import com.univocity.parsers.csv.CsvParser
-import CsvRecordReaderSettings.asCsvParserSettings
 import io.qpointz.flow.nio.InputStreamSource
-import io.qpointz.flow.serialization.JsonProtocol
-import io.qpointz.flow.text.{TextRecordReader, TextSource}
-import io.qpointz.flow.{Metadata, MetadataMethods, OperationContext, QIds, QTypeId, TypeId}
-import org.json4s.{CustomSerializer, Extraction, JObject}
 import io.qpointz.flow.serialization.Json._
+import io.qpointz.flow.serialization.JsonProtocol
+import io.qpointz.flow.text.TextRecordReader
+import io.qpointz.flow.text.csv.CsvRecordReaderSettings.asCsvParserSettings
+import io.qpointz.flow.{Metadata, MetadataMethods, OperationContext, QIds, QTypeId}
 import org.json4s.JsonDSL._
+import org.json4s.{CustomSerializer, Extraction, JObject}
 
 object CsvRecordReader {
     val typeId:QTypeId = QIds.Record.Reader.reader.typeId("csv")
@@ -40,9 +40,9 @@ object CsvRecordReaderSerializer extends CustomSerializer[CsvRecordReader](impli
           hint[CsvRecordReader] ~ ("settings" -> Extraction.decompose(crr.settings)) ~ ("source" -> Extraction.decompose(crr.stream))}
   )})
 
-class CsvRecordReader(val stream:InputStreamSource,
+class CsvRecordReader(stream:InputStreamSource,
                       settings:CsvRecordReaderSettings = CsvRecordReaderSettings.default)(implicit override val ctx:OperationContext)
-  extends TextRecordReader[CsvParser, CsvRecordReaderSettings](source = TextSource(stream), settings = settings) {
+  extends TextRecordReader[CsvParser, CsvRecordReaderSettings](stream, settings = settings) {
 
   override val metaId: QTypeId = CsvRecordReader.typeId
 

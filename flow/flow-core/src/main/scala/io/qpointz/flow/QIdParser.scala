@@ -93,7 +93,7 @@ private[flow] object QIdParser {
     mayBegt match {
       case Some(g :: Nil)      => (Some(g), None)
       case Some(g :: t :: Nil) => (Some(g), Some(t))
-      case None                => (None, None)
+      case _                   => (None, None)
     }
   }
 

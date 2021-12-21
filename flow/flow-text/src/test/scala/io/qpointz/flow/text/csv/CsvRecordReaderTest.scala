@@ -70,7 +70,7 @@ class CsvRecordReaderTest extends AnyFlatSpec with Matchers {
     import org.json4s.jackson.Serialization._
     implicit val fmt = Json.formats
     val a = writePretty(fileReader())
-
+    println(a)
     val reader = read[CsvRecordReader](a)
     val all = reader.iterator.toSeq
     all.length shouldBe 10
