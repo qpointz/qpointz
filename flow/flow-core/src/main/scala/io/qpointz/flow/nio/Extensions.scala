@@ -14,20 +14,11 @@
  *  limitations under the License
  */
 
-package io.qpointz.flow.io
+package io.qpointz.flow.nio
 
-import io.qpointz.flow.{EntryDefinition, Metadata}
-import io.qpointz.flow.MetadataMethods._
-import org.json4s.{CustomSerializer, JObject}
+import io.qpointz.flow.serialization
+import io.qpointz.flow.serialization.JsonProtocolExtension
 
-import java.io.{File, FileInputStream, InputStream, InputStreamReader, Reader}
-
-object InputStreamSource {
-  implicit class InputStreamMethods(stream: InputStreamSource) {
-    def reader : Reader = new InputStreamReader(stream.inputStream)
-  }
-}
-
-trait InputStreamSource extends StreamSource {
-  def inputStream: InputStream
+class Extensions extends JsonProtocolExtension {
+  override def protocols: Iterable[serialization.JsonProtocol[_]] = List()
 }

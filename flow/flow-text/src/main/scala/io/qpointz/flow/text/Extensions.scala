@@ -17,15 +17,13 @@
 package io.qpointz.flow.text
 
 import io.qpointz.flow.serialization
-import io.qpointz.flow.serialization.{JsonFormat, JsonFormatExtension}
+import io.qpointz.flow.serialization.{JsonProtocol, JsonProtocolExtension}
 import io.qpointz.flow.text.csv.{CsvRecordReaderSettings, CsvRecordWriterSettings}
 
-class Extensions extends JsonFormatExtension {
-  override def hintNamespace: String = "qp"
+class Extensions extends JsonProtocolExtension {
 
-  override def protocols: Iterable[serialization.JsonFormat[_]] = List(
-    JsonFormat("input-stream", "text-source-file", Some(new FileTextSourceSerializer())),
-    JsonFormat[CsvRecordReaderSettings]("settings", "records-reader-csv"),
-    JsonFormat[CsvRecordWriterSettings]("settings", "record-writer-csv"),
+  override def protocols: Iterable[serialization.JsonProtocol[_]] = List(
+    CsvRecordReaderSettings.jsonProtocol,
+    CsvRecordWriterSettings.jsonProtocol
   )
 }

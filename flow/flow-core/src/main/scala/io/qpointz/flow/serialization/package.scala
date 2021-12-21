@@ -20,17 +20,22 @@ import org.json4s.Serializer
 
 package object serialization {
 
-  sealed case class JsonFormat[T](group:String, hint:String, serailizer:Option[Serializer[T]])(implicit val m:Manifest[T])
+  trait JsonProtocolExtension {
+    def protocols:Iterable[JsonProtocol[_]]
+  }
 
-  object JsonFormat {
+  sealed case class JsonProtocol[T](typeId:Option[QTypeId], serializer:Option[Serializer[T]])(implicit val m:Manifest[T])
 
-    def apply[T](group:String, hint:String)(implicit m:Manifest[T]):JsonFormat[T] = JsonFormat[T](group, hint, None)
+  object JsonProtocol {
+
+    def apply[T](typeId:QTypeId, serializer:Serializer[T])(implicit m:Manifest[T]):JsonProtocol[T] = JsonProtocol(Some(typeId), Some(serializer))
+
+    def apply[T](typeId:QTypeId)(implicit m:Manifest[T]):JsonProtocol[T] = JsonProtocol(Some(typeId), None)
+
+    def apply[T](serializer:Serializer[T])(implicit m:Manifest[T]):JsonProtocol[T] = JsonProtocol(None, Some(serializer))
 
   }
 
-  trait JsonFormatExtension {
-    def hintNamespace: String
-    def protocols:Iterable[JsonFormat[_]]
-  }
+
 
 }

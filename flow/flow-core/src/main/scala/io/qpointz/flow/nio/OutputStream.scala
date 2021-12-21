@@ -14,14 +14,8 @@
  *  limitations under the License
  */
 
-package io.qpointz.flow.io
+package io.qpointz.flow.nio
 
-import io.qpointz.flow.serialization
-import io.qpointz.flow.serialization.JsonFormatExtension
+class OutputStream {
 
-class Extensions extends JsonFormatExtension {
-
-  override def hintNamespace: String = "lll"
-
-  override def protocols: Iterable[serialization.JsonFormat[_]] = List()
 }

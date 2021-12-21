@@ -14,25 +14,27 @@
  *  limitations under the License
  */
 
-package io.qpointz.flow.io
+package io.qpointz.flow.nio
 
-import io.qpointz.flow.{EntryDefinition, Metadata}
+import io.qpointz.flow.{Metadata, MetadataAwareWithId, TypeId}
 import org.json4s.{CustomSerializer, JObject}
-import io.qpointz.flow.MetadataMethods._
+
 import java.io.{File, FileInputStream, InputStream}
 
 
-class FileStreamSource(val file:File) extends InputStreamSource {
+class FileStreamSource(val file:File) extends InputStreamSource with MetadataAwareWithId {
   override lazy val inputStream: InputStream = new FileInputStream(file)
-  override val metadataGroupKey: String = "qp:stream-source/file"
+  override val metaId: TypeId = FileStreamSource.typeId
   override val metadata: Metadata = Seq(
-    (EntryDefinition[String](metadataGroupKey, "path") ,file.getAbsolutePath)
+    meta("path",file.getAbsolutePath)
   )
 }
 
 object FileStreamSource {
   import io.qpointz.flow.serialization.Json._
   import org.json4s.JsonDSL._
+
+  val typeId: TypeId = TypeId("flow", Seq("io", "stream"), "input", "file-stream")
 
   object Serializer extends CustomSerializer[FileStreamSource](implicit format=>(
     {

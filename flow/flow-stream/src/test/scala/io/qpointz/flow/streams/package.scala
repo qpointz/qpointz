@@ -21,6 +21,7 @@ import akka.stream.scaladsl.Source
 import io.qpointz.flow.text.TextSource
 import io.qpointz.flow.text.csv.{CsvRecordReader, CsvRecordReaderSettings}
 
+
 package object streams {
 
   def ratesSource:Source[Record, NotUsed] = Source.fromIterator(()=>ratesRecords.iterator)

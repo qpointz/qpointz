@@ -19,6 +19,8 @@ package io.qpointz
 
 package object flow {
 
+
+
   class FlowException(private val message: String = "",
                       private val cause: Throwable = None.orNull
                       ) extends Exception(message, cause)
@@ -28,8 +30,8 @@ package object flow {
   type AttributeKey     = String
   type Attribute        = (AttributeKey, AttributeValue)
   type Attributes       = Map[AttributeKey, AttributeValue]
-
   type Metadata         = Seq[MetaEntry[_]]
+  type MetadataGroupKey = String
 
   object AttributeValue {
     object Null  {}

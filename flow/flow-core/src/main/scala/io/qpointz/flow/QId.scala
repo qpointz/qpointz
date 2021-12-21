@@ -62,6 +62,27 @@ object QId {
     }
   }
 
+  implicit class QNamespaceMethods(nid:QNamespaceId) {
+    def hierarchyId(hs:String*):QHierarchyId = HierarchyId(nid.ns, hs)
+    def hierarchyId():QHierarchyId = HierarchyId(nid.ns, Seq())
+    def groupId(g:String):QGroupId = hierarchyId().groupId(g)
+  }
+
+  implicit class QHierarchyMethods(his:QHierarchyId) {
+    def groupId(g:String):QGroupId = GroupId(his.ns, his.hierarchy, g)
+    def hierarchyId(hs:String*):HierarchyId = HierarchyId(his.ns, his.hierarchy ++ hs)
+  }
+
+  implicit class QGroupMethods(gid:QGroupId) {
+    def typeId(tn:String):QTypeId = TypeId(gid.ns, gid.hierarchy, gid.group, tn)
+  }
+
+  implicit class QTypeIdMethods(tid:QTypeId) {
+    def metadataGroupKey:String = tid.toURI.toString
+    def jsonTypeHint:String = tid.toURI.toString
+    def refId(rid:String):RefId = RefId(tid.ns, tid.hierarchy, tid.group, tid.typeName, rid)
+  }
+
   def fromStringOp(in:String):Option[QId] = QIdParser.parseOp(in)
 
   def fromString(in:String):QId = QIdParser.parse(in)

@@ -16,11 +16,13 @@
 
 package io.qpointz.flow.serialization.extclasses
 
-import io.qpointz.flow.serialization.{JsonFormat, _}
+import io.qpointz.flow.TypeId
 import org.json4s.{CustomSerializer, Formats, JObject}
 import org.json4s.JsonDSL._
+
 import scala.runtime.ScalaRunTime
-import Json._
+import io.qpointz.flow.serialization.Json._
+import io.qpointz.flow.serialization.{JsonProtocol, JsonProtocolExtension}
 
 sealed trait TestCase {
   def a :String
@@ -71,12 +73,11 @@ class TestCaseCSerializer extends CustomSerializer[TestCaseC](implicit format =>
       ("tcc_b"-> tc.b)
   }))
 
-class ExtExtensions extends JsonFormatExtension {
-  override def hintNamespace: String = "qp-test"
+class ExtExtensions extends JsonProtocolExtension {
 
-  override def protocols: Iterable[JsonFormat[_]] = List(
-    JsonFormat[TestCaseA]("message", "test-case-a", None),
-    JsonFormat[TestCaseB]("message", "test-case-b", Some(new TestCaseBSerializer())),
-    JsonFormat[TestCaseC]("message", "test-case-c", Some(new TestCaseCSerializer()))
+  override def protocols: Iterable[JsonProtocol[_]] = List(
+    JsonProtocol[TestCaseA](TypeId("qp", Seq("message") , "test", "test-case-a")),
+    JsonProtocol[TestCaseB](TypeId("qp", Seq("message") , "test", "test-case-b"), new TestCaseBSerializer()),
+    JsonProtocol[TestCaseC](TypeId("qp", Seq("message") , "test", "test-case-c"), new TestCaseCSerializer())
   )
 }

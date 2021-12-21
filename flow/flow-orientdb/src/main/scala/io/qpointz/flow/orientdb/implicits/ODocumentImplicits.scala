@@ -16,10 +16,9 @@
 
 package io.qpointz.flow.orientdb.implicits
 
-import com.orientechnologies.orient.core.record.OElement
 import com.orientechnologies.orient.core.record.impl.ODocument
-import org.json4s.{JNumber, JObject}
-import org.json4s.JsonAST.{JArray, JBool, JDecimal, JDouble, JInt, JLong, JNull, JString, JValue}
+import org.json4s.JObject
+import org.json4s.JsonAST._
 
 
 class ODocumentImplicits(e:ODocument) {

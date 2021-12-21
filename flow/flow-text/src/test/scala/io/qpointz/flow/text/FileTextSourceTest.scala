@@ -16,6 +16,8 @@
 
 package io.qpointz.flow.text
 
-class FileTextSourceTest extends org.scalatest.FunSuite {
+import org.scalatest.flatspec.AnyFlatSpec
+
+class FileTextSourceTest extends AnyFlatSpec {
 
 }

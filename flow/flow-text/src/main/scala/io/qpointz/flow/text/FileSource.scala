@@ -19,6 +19,7 @@ package io.qpointz.flow.text
 import io.qpointz.flow.{EntryDefinition, Metadata}
 import io.qpointz.flow.serialization.Json
 import org.json4s.{CustomSerializer, JObject}
+import org.json4s.JsonDSL._
 
 import java.io.{File, FileInputStream, InputStream}
 

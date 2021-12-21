@@ -21,10 +21,11 @@ import io.qpointz.flow.orientdb.implicits.{JValueImplicits, ODocumentImplicits}
 import org.json4s.JsonAST._
 
 package object orientdb {
-
+  nio.FileStreamSource
   implicit def jValueToOdocument(jn:JValue):ODocument = jn.asODocument
   implicit def oDOcToJValue(dov:ODocument):JValue = dov.asJValue
   implicit def jvalueimplicits(jv: JValue):JValueImplicits = new JValueImplicits(jv)
+
   implicit def odocumentImplicits(doc:ODocument):ODocumentImplicits= new ODocumentImplicits(doc)
 
 }

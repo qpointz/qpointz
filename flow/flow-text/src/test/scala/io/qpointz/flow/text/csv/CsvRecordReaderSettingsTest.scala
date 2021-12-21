@@ -24,7 +24,7 @@ class CsvRecordReaderSettingsTest extends AnyFlatSpec with Matchers {
 
   behavior of "serialitation"
 
-  import io.qpointz.flow.serialization.Json._
+  implicit val fmt = io.qpointz.flow.serialization.Json.formats
 
   it should "write" in {
     val s = CsvRecordReaderSettings()

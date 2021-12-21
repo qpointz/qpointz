@@ -14,8 +14,16 @@
  *  limitations under the License
  */
 
-package io.qpointz.flow.io
+package io.qpointz.flow.nio
 
-class OutputStream {
+import java.io.{InputStream, InputStreamReader, Reader}
 
+object InputStreamSource {
+  implicit class InputStreamMethods(stream: InputStreamSource) {
+    def reader : Reader = new InputStreamReader(stream.inputStream)
+  }
+}
+
+trait InputStreamSource extends StreamSource {
+  def inputStream: InputStream
 }

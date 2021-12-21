@@ -17,11 +17,15 @@
 
 package io.qpointz.flow.text.csv
 
+import io.qpointz.flow.serialization.JsonProtocol
+import io.qpointz.flow.{QIds, QTypeId}
 import io.qpointz.flow.text.csv.CsvFormat.asCsvFormat
 import io.qpointz.flow.text.{TextReaderMetadataSettings, TextReaderSettings}
 
-object CsvRecordReaderSettings {
+object CsvRecordReaderSettings{
   lazy val default: CsvRecordReaderSettings = CsvRecordReaderSettings()
+  lazy val typeId:QTypeId = QIds.Record.Reader.settings.typeId("csv")
+  lazy val jsonProtocol : JsonProtocol[CsvRecordReaderSettings] = JsonProtocol[CsvRecordReaderSettings](CsvRecordReaderSettings.typeId)
 
   def asCsvParserSettings(s: CsvRecordReaderSettings): com.univocity.parsers.csv.CsvParserSettings = {
     val tg = new com.univocity.parsers.csv.CsvParserSettings()

@@ -16,10 +16,9 @@
 
 package io.qpointz.flow
 
-package object io {
+package object nio {
 
-  trait StreamSource extends MetadataProvider with MetadataGroupOwner {
-
+  trait StreamSource extends MetadataAware {
 
   }
 

@@ -19,28 +19,33 @@ package io.qpointz.flow.serialization
 import io.qpointz.flow.utils
 import org.json4s.{DefaultFormats, Formats, TypeHints}
 
-
 object Json {
 
-  lazy val formats : Formats = fromFormats(DefaultFormats.withHints)
-
-  lazy val jsonExtensions: Iterable[JsonFormatExtension] = utils
-    .extension
-    .extensionsOf[JsonFormatExtension]
+  import io.qpointz.flow.QId._
 
   def hint[T](implicit fmt:Formats, m:Manifest[T]):(String, String) = {
     (fmt.typeHints.typeHintFieldNameForClass(m.runtimeClass).get -> fmt.typeHints.hintFor(m.runtimeClass).get)
   }
 
+  lazy val formats : Formats = fromFormats(DefaultFormats.withHints)
+
+  lazy val jsonExtensions: Iterable[JsonProtocolExtension] = utils
+    .extension
+    .extensionsOf[JsonProtocolExtension]
+
   private def fromFormats(fmt:TypeHints=>Formats) : Formats = {
     val jsonFormatExtensions = jsonExtensions
-      .flatMap(x=> x.protocols.map(p=> (x,p)))
+      .flatMap(x=> x.protocols)
       .toSet
 
-    val hintPairs = jsonFormatExtensions.map(x=> (s"qp:${x._1.hintNamespace}/${x._2.group}/${x._2.hint}", x._2.m.runtimeClass))
+
+    val hintPairs = jsonFormatExtensions
+      .filter(_.typeId.isDefined)
+      .map (x=> (x.typeId.get.jsonTypeHint, x.m.runtimeClass))
 
     val th = new TypeHints {
-      override val hints: List[Class[_]] = jsonFormatExtensions.map(_._2.m.runtimeClass).toList
+
+      override val hints: List[Class[_]] = jsonFormatExtensions.map(_.m.runtimeClass).toList
 
       private val h2c = hintPairs.toMap
 
@@ -60,9 +65,8 @@ object Json {
     }
 
     val f = jsonFormatExtensions
-      .map(_._2.serailizer)
-      .filter(_.isDefined)
-      .map(_.get)
+      .filter(_.serializer.isDefined)
+      .map(_.serializer.get)
       .foldLeft[Formats](fmt(th))((df, p)=> df + p)
     f
   }
