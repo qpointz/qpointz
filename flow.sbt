@@ -1,8 +1,8 @@
+
 import Dependencies._
 import sbt.Keys.libraryDependencies
 import sbt._
 import BuildUtils._
-import Dependencies.DepProfiles._
 
 lazy val `flow` = project
   .aggregate(
@@ -14,7 +14,8 @@ lazy val `flow` = project
     `flow-cli`,
     `flow-aws`,
     `flow-stream`,
-    `flow-workflow`
+    `flow-workflow`,
+    `flow-orientdb`
   )
 
 lazy val `flow-cli` = libProject("flow","flow-cli")
@@ -26,18 +27,31 @@ lazy val `flow-cli` = libProject("flow","flow-cli")
     `flow-avro-parquet`,
     `flow-aws`,
     `flow-stream`,
-    `flow-workflow`
-)
+    `flow-workflow`,
+    `flow-orientdb`
+  )
+  .withConfig
+  .enablePlugins(JavaAppPackaging)
 
 lazy val `flow-core` = libProject("flow","flow-core")
+  .withConfig
+  .withJson
+  .settings(
+    libraryDependencies ++= modules(
+      scalalib.reflect
+    )
+  )
+
 
 lazy val `flow-excel` = libProject("flow","flow-excel")
   .dependsOn(`flow-core`)
   .settings(
+    Compile / mainClass := Some("io.qpointz.flow.cli.ResTest"),
     libraryDependencies ++= modules(
       apachePoi.ooxml,
       apachePoi.poi
     )
+
   )
 
 lazy val `flow-jdbc` = libProject("flow","flow-jdbc")
@@ -62,21 +76,23 @@ lazy val `flow-avro-parquet` = libProject("flow","flow-avro-parquet")
 
 lazy val `flow-text` = libProject("flow","flow-text")
   .dependsOn(`flow-core`)
+  .withJson
   .settings(
     libraryDependencies ++= modules(
       univocity.parsers
-    ) ++ json4sJackson
+    )
   )
 
 lazy val `flow-aws` = libProject("flow","flow-aws")
   .withConfig
   .withIntegration
+  .withJson
   .dependsOn(`flow-core`)
   .settings(
     libraryDependencies ++= modules(
       amazonAWSSDK.s3,
       minio.minio % IntegrationTest
-    ) ++ json4sJackson
+    )
   )
 
 
@@ -98,5 +114,17 @@ lazy val `flow-workflow` = libProject("flow","flow-workflow")
     libraryDependencies ++= modules(
       akka.actorsTyped,
       akka.actorsTypedTestKit % Test
+    )
+  )
+
+lazy val `flow-orientdb` = libProject("flow", "flow-orientdb")
+  .dependsOn(`flow-core`)
+  .withConfig
+  .withIntegration
+  .withJson
+  .settings(
+    libraryDependencies ++= modules(
+      orientdb.graphdb,
+      commonsio.io
     )
   )

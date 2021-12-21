@@ -19,6 +19,8 @@ services:
       -  "8090:8080"
     depends_on:
       - minio
+    profiles:
+      - donotstart
   postgres:
     image: "postgres:${PG_VERSION:-11}"
     command: "-c log_min_messages=FATAL"
@@ -34,11 +36,15 @@ services:
     ports:
       - "8091-8094:8091-8094"
       - "11210:11210"
+    profiles:
+      - donotstart
   couchbase_init:
     image: "couchbase"
     depends_on:
       - "couchbase"
     command: /opt/couchbase/bin/couchbase-cli cluster-init --cluster couchbase:8091 --cluster-username qp --cluster-password qppassword --cluster-name qp --services data,index,query,fts
+    profiles:
+      - donotstart
   zookeeper:
     image: docker.io/bitnami/zookeeper:3.7
     ports:
@@ -58,6 +64,8 @@ services:
       - ALLOW_PLAINTEXT_LISTENER=yes
     depends_on:
       - zookeeper
+    profiles:
+      - donotstart
   lakefs:
     image: "treeverse/lakefs:${VERSION:-latest}"
     ports:
@@ -142,6 +150,13 @@ services:
       - spark
     profiles:
       - donotstart
+  orientdb:
+    image: docker.io/orientdb:latest
+    ports:
+      - "2424:2424"
+      - "2480:2480"
+    environment:
+      - ORIENTDB_ROOT_PASSWORD=rootpwd
 volumes:
   zookeeper_data:
     driver: local

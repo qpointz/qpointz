@@ -60,7 +60,7 @@ trait TaskGraph[T, ST] {
       if (path.contains(t)) {
         List(path :+ t)
       } else {
-        edges.filter(_.from.equals(t)).toList match {
+        edges.filter(_.from==t).toList match {
           case Nil => List()
           case x => x.map(z=>loop(z.to , path :+ z.from)).flatten
         }

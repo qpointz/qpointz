@@ -15,7 +15,10 @@
  */
 
 import DependenciesUtils._
+import sbt.Keys.libraryDependencies
 import sbt._
+
+//scalastyle:off
 
 object Dependencies {
 
@@ -45,7 +48,7 @@ object Dependencies {
   }
 
   object logback {
-    lazy val v = "ch.qos.logback" ~% "1.2.7"
+    lazy val v = "ch.qos.logback" ~% "1.2.8"
     lazy val classic = "logback-classic" ~~ v
   }
 
@@ -164,7 +167,7 @@ object Dependencies {
   }
 
   object amazonAWSSDK {
-    val v = "2.17.92"
+    val v = "2.17.100"
     val g = "software.amazon.awssdk"
     val p = g ~% v
     val sdkJava = "aws-sdk-java" ~~ p
@@ -190,6 +193,45 @@ object Dependencies {
     val minio = "minio" ~~ p
   }
 
+  object orientdb {
+    val v = "3.2.3"
+    val p = "com.orientechnologies" ~% v
+    val graphdb = "orientdb-graphdb" ~~ p
+  }
+
+  object commonsio {
+    val g = "commons-io"
+    val io = g % "commons-io" % "2.11.0"
+  }
+
+  implicit class ProjectProfiles(p:Project) {
+
+    lazy val json4sCommon: Seq[ModuleID] = Seq(
+      json4s.ast,
+      json4s.core,
+      json4s.ext)
+
+    lazy val json4sNative: Seq[ModuleID] = json4sCommon ++ Seq(
+      json4s.native)
+
+    lazy val json4sJackson: Seq[ModuleID] = json4sCommon ++ Seq(
+      json4s.jackson)
+
+    def withConfig : Project = {
+      p.settings(
+        libraryDependencies ++= Seq(
+          Dependencies.ts_config.config
+        )
+      )
+    }
+
+    def withJson : Project = {
+      p.settings(
+        libraryDependencies ++= json4sJackson
+      )
+    }
+  }
+
   object DepProfiles {
 
     lazy val lib: Seq[ModuleID] = Seq(
@@ -203,16 +245,6 @@ object Dependencies {
       scoverage.scalacRuntime % Test
     )
 
-    lazy val json4sCommon: Seq[ModuleID] = Seq(
-      json4s.ast,
-      json4s.core,
-      json4s.ext)
-
-    lazy val json4sNative: Seq[ModuleID] = json4sCommon ++ Seq(
-      json4s.native)
-
-    lazy val json4sJackson: Seq[ModuleID] = json4sCommon ++ Seq(
-      json4s.jackson)
 
   }
 

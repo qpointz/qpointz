@@ -24,7 +24,20 @@ trait MetadataProvider {
 }
 
 trait MetadataGroupOwner {
-  val metadataGroupKey : String
+  val metadataGroupKey : MetadataGroupKey
+}
+
+trait MetadataAware  extends MetadataGroupOwner with MetadataProvider {
+  import MetadataMethods._
+  def meta[T](key:String, value:T)(implicit tag:ClassTag[T]):MetaEntry[T] = MetaEntry(MetaKey(metadataGroupKey, key), value)
+  def metaOp[T](key:String)(implicit tag:ClassTag[T]):Option[T] = metadata.getOp[T](EntryDefinition[T](metadataGroupKey, key))
+  def meta[T](key:String)(implicit tag:ClassTag[T]):T = metadata.get[T](EntryDefinition[T](metadataGroupKey, key))
+}
+
+
+trait MetadataAwareWithId extends MetadataAware {
+  val metaId:QTypeId
+  override lazy val metadataGroupKey: String = metaId.metadataGroupKey
 }
 
 case class MetaKey(group:String, key:String) {}
@@ -69,7 +82,7 @@ object MetadataMethods {
 
     def get[T](df:EntryDefinition[T])(implicit tag:ClassTag[T]):T = getOp(df) match {
       case Some(v:T) => v
-      case None => throw new NoSuchElementException(s"Key ${df.key} not found")
+      case _ => throw new NoSuchElementException(s"Key ${df.key} not found")
     }
 
     def getOr[T](df:EntryDefinition[T], default:T)(implicit tag:ClassTag[T]):T = getOp(df).getOrElse(default)
