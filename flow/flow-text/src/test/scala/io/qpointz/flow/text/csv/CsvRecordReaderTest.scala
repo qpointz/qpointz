@@ -16,10 +16,10 @@
 
 package io.qpointz.flow.text.csv
 
-import io.qpointz.flow.text.TextSource
+import io.qpointz.flow.nio.FileStreamSource
+import io.qpointz.flow.serialization.Json
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-
 import java.io.File
 
 class CsvRecordReaderTest extends AnyFlatSpec with Matchers {
@@ -31,8 +31,8 @@ class CsvRecordReaderTest extends AnyFlatSpec with Matchers {
     .headerExtractionEnabled(true)
 
   def fileReader(name:String = "vanila", settings:CsvRecordReaderSettings = defaultSettings): CsvRecordReader = {
-    val source: TextSource = TextSource(new File(s"flow/test/formats/csv/${name}.csv"))
-    new CsvRecordReader(source, settings)
+    val stream = FileStreamSource(new File(s"flow/test/formats/csv/${name}.csv"))
+    new CsvRecordReader(stream, settings)
   }
 
   behavior of ("read")
@@ -64,6 +64,16 @@ class CsvRecordReaderTest extends AnyFlatSpec with Matchers {
 
     val hr = fileReader().head
     hr.attributes.toMap shouldEqual em
+  }
+
+  it should "serialize reader" in {
+    import org.json4s.jackson.Serialization._
+    implicit val fmt = Json.formats
+    val a = writePretty(fileReader())
+
+    val reader = read[CsvRecordReader](a)
+    val all = reader.iterator.toSeq
+    all.length shouldBe 10
   }
 
 

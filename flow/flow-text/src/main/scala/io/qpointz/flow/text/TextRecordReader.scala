@@ -18,7 +18,7 @@
 package io.qpointz.flow.text
 
 import com.univocity.parsers.common.AbstractParser
-import io.qpointz.flow.{MetaEntry, MetaKey, Metadata, MetadataGroupOwner, MetadataMethods, MetadataProvider, Record, RecordReader}
+import io.qpointz.flow.{MetaEntry, MetaKey, Metadata, MetadataAwareWithId, MetadataGroupOwner, MetadataMethods, MetadataProvider, Record, RecordReader}
 
 case class TextReaderMetadataSettings(
                                        allowReaderMetadata: Option[Boolean] = None,
@@ -55,9 +55,9 @@ object TextRecordReader {
 }
 
 abstract class TextRecordReader[TParser <: AbstractParser[_], TReaderSettings <: TextReaderSettings]
-(protected val source: TextSource,
- protected val settings: TReaderSettings
-) extends RecordReader with MetadataProvider with MetadataGroupOwner {
+(val source: TextSource,
+ val settings: TReaderSettings
+) extends RecordReader with MetadataAwareWithId {
 
   protected def createParser(settings: TReaderSettings): TParser
 

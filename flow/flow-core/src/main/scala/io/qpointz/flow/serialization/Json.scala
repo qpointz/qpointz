@@ -23,7 +23,7 @@ object Json {
 
   import io.qpointz.flow.QId._
 
-  def hint[T](implicit fmt:Formats, m:Manifest[T]):(String, String) = {
+  def hint[T<:Any](implicit fmt:Formats, m:Manifest[T]):(String, String) = {
     (fmt.typeHints.typeHintFieldNameForClass(m.runtimeClass).get -> fmt.typeHints.hintFor(m.runtimeClass).get)
   }
 

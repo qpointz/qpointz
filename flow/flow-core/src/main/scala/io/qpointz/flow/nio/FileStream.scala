@@ -16,7 +16,8 @@
 
 package io.qpointz.flow.nio
 
-import io.qpointz.flow.{Metadata, MetadataAwareWithId, TypeId}
+import io.qpointz.flow.serialization.JsonProtocol
+import io.qpointz.flow.{Metadata, MetadataAwareWithId, QIds, QTypeId, TypeId}
 import org.json4s.{CustomSerializer, JObject}
 
 import java.io.{File, FileInputStream, InputStream}
@@ -24,7 +25,7 @@ import java.io.{File, FileInputStream, InputStream}
 
 class FileStreamSource(val file:File) extends InputStreamSource with MetadataAwareWithId {
   override lazy val inputStream: InputStream = new FileInputStream(file)
-  override val metaId: TypeId = FileStreamSource.typeId
+  override val metaId = FileStreamSource.typeId
   override val metadata: Metadata = Seq(
     meta("path",file.getAbsolutePath)
   )
@@ -34,16 +35,14 @@ object FileStreamSource {
   import io.qpointz.flow.serialization.Json._
   import org.json4s.JsonDSL._
 
-  val typeId: TypeId = TypeId("flow", Seq("io", "stream"), "input", "file-stream")
+  val typeId = QIds.Stream.inputStreamId.typeId("file")
+  val jsonProtocol = JsonProtocol(typeId, Serializer)
+
+  def apply(file:File):FileStreamSource = new FileStreamSource(file)
 
   object Serializer extends CustomSerializer[FileStreamSource](implicit format=>(
-    {
-      case o:JObject =>
+    {case o:JObject =>
         val path = (o \ "path").extract[String]
-        new FileStreamSource(new File(path))
-    },
-    {
-      case fs:FileStreamSource => hint ~ ("path" -> fs.file.getAbsolutePath)
-    }
-  ))
-}
+        new FileStreamSource(new File(path))},
+    {case fs:FileStreamSource => hint[FileStreamSource] ~ ("path" -> fs.file.getAbsolutePath)}
+  ))}

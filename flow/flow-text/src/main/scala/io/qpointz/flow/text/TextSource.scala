@@ -18,6 +18,7 @@
 package io.qpointz.flow.text
 
 import io.qpointz.flow.MetadataMethods._
+import io.qpointz.flow.nio.InputStreamSource
 import io.qpointz.flow.{Metadata, MetadataGroupOwner, MetadataProvider}
 
 import java.io._
@@ -36,6 +37,7 @@ object TextSource {
     def apply(content:String):TextSource = new StringTextSource(content)
     def apply(file:File):TextSource = new FileTextSource(file)
     def apply(stream:InputStream):TextSource = new StreamTextSource(stream)
+    def apply(stream:InputStreamSource):TextSource = new StreamTextSource(stream.inputStream)
 }
 
 class StreamTextSource(private val inputStream:InputStream)  extends TextSourceStream {

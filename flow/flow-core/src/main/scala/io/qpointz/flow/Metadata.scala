@@ -36,7 +36,7 @@ trait MetadataAware  extends MetadataGroupOwner with MetadataProvider {
 
 
 trait MetadataAwareWithId extends MetadataAware {
-  val metaId:TypeId
+  val metaId:QTypeId
   override lazy val metadataGroupKey: String = metaId.metadataGroupKey
 }
 

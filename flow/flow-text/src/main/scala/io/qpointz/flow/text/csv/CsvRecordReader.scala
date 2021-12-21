@@ -18,18 +18,38 @@ package io.qpointz.flow.text.csv
 
 import com.univocity.parsers.csv.CsvParser
 import CsvRecordReaderSettings.asCsvParserSettings
+import io.qpointz.flow.nio.InputStreamSource
+import io.qpointz.flow.serialization.JsonProtocol
 import io.qpointz.flow.text.{TextRecordReader, TextSource}
-import io.qpointz.flow.{Metadata, MetadataMethods, OperationContext}
+import io.qpointz.flow.{Metadata, MetadataMethods, OperationContext, QIds, QTypeId, TypeId}
+import org.json4s.{CustomSerializer, Extraction, JObject}
+import io.qpointz.flow.serialization.Json._
+import org.json4s.JsonDSL._
 
-class CsvRecordReader(source:TextSource,
+object CsvRecordReader {
+    val typeId:QTypeId = QIds.Record.Reader.reader.typeId("csv")
+    val jsonProtocol = JsonProtocol[CsvRecordReader](typeId, CsvRecordReaderSerializer)
+}
+
+object CsvRecordReaderSerializer extends CustomSerializer[CsvRecordReader](implicit format=> {(
+    {case jo:JObject =>
+        val s = (jo \ "settings").extract[CsvRecordReaderSettings]
+        val i = (jo \ "source").extract[InputStreamSource]
+        new CsvRecordReader(i, s)},
+    {case crr:CsvRecordReader =>
+          hint[CsvRecordReader] ~ ("settings" -> Extraction.decompose(crr.settings)) ~ ("source" -> Extraction.decompose(crr.stream))}
+  )})
+
+class CsvRecordReader(val stream:InputStreamSource,
                       settings:CsvRecordReaderSettings = CsvRecordReaderSettings.default)(implicit override val ctx:OperationContext)
-  extends TextRecordReader[CsvParser, CsvRecordReaderSettings](source = source, settings = settings) {
+  extends TextRecordReader[CsvParser, CsvRecordReaderSettings](source = TextSource(stream), settings = settings) {
 
-  override val metadataGroupKey: String = "formats:text:csv:csvrecordreader"
+  override val metaId: QTypeId = CsvRecordReader.typeId
 
   override protected def createParser(settings: CsvRecordReaderSettings): CsvParser = {
     new CsvParser(asCsvParserSettings(settings))
   }
 
   override val metadata: Metadata =  MetadataMethods.empty
+
 }

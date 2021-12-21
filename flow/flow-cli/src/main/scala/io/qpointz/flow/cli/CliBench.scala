@@ -26,6 +26,7 @@ import java.io.File
 import java.nio.file.Path
 import io.qpointz.flow.MetadataMethods._
 import io.qpointz.flow._
+import io.qpointz.flow.nio.FileStreamSource
 import io.qpointz.flow.text.csv.{CsvFormat, CsvRecordReader, CsvRecordReaderSettings}
 
 object CliBench {
@@ -42,7 +43,7 @@ object CliBench {
       )
       .headerExtractionEnabled (true)
 
-    val source: TextSource = TextSource(new File(s"flow/test/avro/large.csv"))
+    val source = FileStreamSource(new File(s"flow/test/avro/large.csv"))
     val reader = new CsvRecordReader(source, csv)
 
     val trans = new RecordTransformation {

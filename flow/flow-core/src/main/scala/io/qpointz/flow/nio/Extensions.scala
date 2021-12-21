@@ -20,5 +20,7 @@ import io.qpointz.flow.serialization
 import io.qpointz.flow.serialization.JsonProtocolExtension
 
 class Extensions extends JsonProtocolExtension {
-  override def protocols: Iterable[serialization.JsonProtocol[_]] = List()
+  override def protocols: Iterable[serialization.JsonProtocol[_]] = List(
+    FileStreamSource.jsonProtocol
+  )
 }

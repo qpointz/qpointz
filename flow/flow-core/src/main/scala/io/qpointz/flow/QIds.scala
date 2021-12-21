@@ -22,6 +22,14 @@ object QIds {
 
   val qp = NamespaceId("flow")
 
+  object Stream {
+    val hierarchyId = qp.hierarchyId("stream")
+
+    val inputStreamId = hierarchyId.groupId("input")
+    val outputStreamId = hierarchyId.groupId("output")
+
+  }
+
   object Record {
     val hierarchyId = qp.hierarchyId("record")
 

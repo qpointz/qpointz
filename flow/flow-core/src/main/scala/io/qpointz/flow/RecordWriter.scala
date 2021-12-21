@@ -49,8 +49,9 @@ class InMemoryWriter(implicit val ctx:OperationContext) extends RecordWriter {
 
   def records():Seq[Record] = recs.toSeq
 
-  def isClosed = maybeOpened == Some(false)
-  def isOpened = maybeOpened == Some(true)
+  def isClosed:Boolean = maybeOpened.contains(false)
+
+  def isOpened:Boolean = maybeOpened.contains(true)
 
 }
 

@@ -17,13 +17,15 @@
 package io.qpointz.flow.text
 
 import io.qpointz.flow.serialization
-import io.qpointz.flow.serialization.{JsonProtocol, JsonProtocolExtension}
-import io.qpointz.flow.text.csv.{CsvRecordReaderSettings, CsvRecordWriterSettings}
+import io.qpointz.flow.serialization.JsonProtocolExtension
+import io.qpointz.flow.text.csv.{CsvRecordReader, CsvRecordReaderSettings, CsvRecordWriterSettings}
 
 class Extensions extends JsonProtocolExtension {
 
   override def protocols: Iterable[serialization.JsonProtocol[_]] = List(
+    CsvRecordReader.jsonProtocol,
     CsvRecordReaderSettings.jsonProtocol,
+
     CsvRecordWriterSettings.jsonProtocol
   )
 }
