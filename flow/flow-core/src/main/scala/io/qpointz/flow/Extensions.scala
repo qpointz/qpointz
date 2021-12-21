@@ -14,13 +14,18 @@
  *  limitations under the License
  */
 
-package io.qpointz.flow.nio
+package io.qpointz.flow
 
-import io.qpointz.flow.serialization
+import io.qpointz.flow.nio.FileStreamSource
 import io.qpointz.flow.serialization.JsonProtocolExtension
+import io.qpointz.flow.transformations.ConstTransform
 
 class Extensions extends JsonProtocolExtension {
   override def protocols: Iterable[serialization.JsonProtocol[_]] = List(
+
+    //nio extensions
     FileStreamSource.jsonProtocol
+
+    //transformations
   )
 }

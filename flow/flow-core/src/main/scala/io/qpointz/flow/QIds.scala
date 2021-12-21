@@ -46,7 +46,7 @@ object QIds {
     }
 
     object Transformation {
-      val hierarchyId = QIds.Record.hierarchyId.groupId("transformation")
+      val groupId = QIds.Record.hierarchyId.groupId("transformation")
     }
   }
 
