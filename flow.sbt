@@ -64,6 +64,7 @@ lazy val `flow-jdbc` = libProject("flow","flow-jdbc")
 
 lazy val `flow-avro-parquet` = libProject("flow","flow-avro-parquet")
   .dependsOn(`flow-core`)
+  .withJson
   .settings(
     libraryDependencies ++= modules(
       apacheParquet.parquetAvro,

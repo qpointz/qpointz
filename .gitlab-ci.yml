@@ -4,6 +4,7 @@ stages:
   - test
   - integration
   - report
+  - package
   - deploy
 
 cache:
@@ -56,6 +57,15 @@ flow:lakehouse:
   artifacts:
     reports:
       junit: ./**/*/target/test-reports/*.xml
+
+doc:html:
+  stage: test
+  script:
+    - cd docs && make html && cd build && tar -czvf ./docs-html.tar.gz ./html
+  artifacts:
+    name: "doc-html-$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG"
+    paths:
+      - ./docs/build/docs-html.tar.gz
 
 coverage:aggregate:
   stage: report
