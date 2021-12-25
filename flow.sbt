@@ -31,6 +31,12 @@ lazy val `flow-cli` = libProject("flow","flow-cli")
     `flow-orientdb`
   )
   .withConfig
+  .settings(
+    libraryDependencies ++= modules(
+      apacheCalcite.core,
+      jansi.jansi
+    )
+  )
   .enablePlugins(JavaAppPackaging)
 
 lazy val `flow-core` = libProject("flow","flow-core")
