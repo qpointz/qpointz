@@ -204,6 +204,12 @@ object Dependencies {
     val io = g % "commons-io" % "2.11.0"
   }
 
+  object apacheCalcite {
+    val v = "1.28.0"
+    val p = "org.apache.calcite" ~% v
+    val core = "calcite-core" ~~ p
+  }
+
   implicit class ProjectProfiles(p:Project) {
 
     lazy val json4sCommon: Seq[ModuleID] = Seq(

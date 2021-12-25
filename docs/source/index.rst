@@ -7,6 +7,8 @@ Welcome to enzyme's documentation!
 ==================================
 
 * :ref:`about_toc`
+* :ref:`filesystems_toc`
+* :ref:`formats_toc`
 * :ref:`install_toc`
 * :ref:`schema_toc`
 
@@ -17,6 +19,23 @@ Welcome to enzyme's documentation!
    :caption: About
 
    about/Overview
+
+.. _filesystems_toc:
+.. toctree::
+   :maxdepth: 2
+   :caption: File systems
+
+   fs/*
+
+.. _formats_toc:
+.. toctree::
+   :maxdepth: 2
+   :caption: Formats
+   :glob:
+
+   formats/Overview
+   formats/*
+
 
 .. _install_toc:
 .. toctree::    
