@@ -23,6 +23,6 @@ lazy val `lakehouse-cli` = libProjectNoDependencies("lakehouse","lakehouse-cli")
     ,
     libraryDependencies += "com.google.guava" % "guava" % "31.0.1-jre" % Provided,
     libraryDependencies += amazonAWSSDK.sdkJava % Provided,
-    libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.13.0"
+    libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.13.1"
 
   )

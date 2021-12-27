@@ -48,12 +48,12 @@ object Dependencies {
   }
 
   object logback {
-    lazy val v = "ch.qos.logback" ~% "1.2.8"
+    lazy val v = "ch.qos.logback" ~% "1.2.10"
     lazy val classic = "logback-classic" ~~ v
   }
 
   object akka {
-    lazy val v = "com.typesafe.akka" ~%% "2.6.17"
+    lazy val v = "com.typesafe.akka" ~%% "2.6.18"
 
     lazy val actors                 = v ~~ "akka-actor"
     lazy val actorsTyped            = v ~~ "akka-actor-typed"
@@ -81,7 +81,7 @@ object Dependencies {
   }
 
   object scalaMock {
-    val v = "5.1.0"
+    val v = "5.2.0"
     val p = "org.scalamock" ~%% v
     val scalamock = "scalamock" ~~ p
   }
@@ -105,7 +105,7 @@ object Dependencies {
   }
 
   object jansi {
-    val v = "1.18"
+    val v = "2.4.0"
     val p = "org.fusesource.jansi" ~% v
     val jansi = "jansi" ~~ p
   }
@@ -167,7 +167,7 @@ object Dependencies {
   }
 
   object amazonAWSSDK {
-    val v = "2.17.100"
+    val v = "2.17.102"
     val g = "software.amazon.awssdk"
     val p = g ~% v
     val sdkJava = "aws-sdk-java" ~~ p
@@ -182,7 +182,7 @@ object Dependencies {
   }
 
   object h2db {
-    val v = "2.0.202"
+    val v = "2.0.204"
     val p = "com.h2database" ~% v
     val h2 = "h2" ~~ p
   }
@@ -205,9 +205,15 @@ object Dependencies {
   }
 
   object apacheCalcite {
-    val v = "1.28.0"
+    val v = "1.29.0"
     val p = "org.apache.calcite" ~% v
     val core = "calcite-core" ~~ p
+  }
+
+  object cats {
+    val v = "2.1.0"
+    val p = "org.typelevel" ~% v
+    val core = "cats-core" ~~ p
   }
 
   implicit class ProjectProfiles(p:Project) {

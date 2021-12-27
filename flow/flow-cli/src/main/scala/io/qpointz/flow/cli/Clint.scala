@@ -27,7 +27,6 @@ object Clint {
     val parserBuilder = SqlParser
       .config()
       .withQuoting(Quoting.BACK_TICK)
-      .withConformance(SqlConformance.PRAGMATIC_2003)
     val sqlParser = SqlParser.create(sql, parserBuilder)
     k(sqlParser)
   }
@@ -37,7 +36,7 @@ object Clint {
   def parseExpression(exp:String):SqlNode = parse(exp)(_.parseExpression())
 
   def main(args:Array[String]):Unit = {
-    val node = parseStatement("select * from `record` where a>0")
+    val node = parseExpression("select * from `record` where a>0")
     println(node)
   }
 }

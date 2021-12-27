@@ -26,7 +26,7 @@ trait RecordWriter extends WithOperationContext {
 
   def close(): Unit
 
-  def write(r: Record)
+  def write(r: Record):Unit
 
 }
 

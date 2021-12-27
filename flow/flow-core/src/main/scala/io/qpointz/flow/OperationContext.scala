@@ -71,17 +71,17 @@ trait ProgressContext {
 
 trait StatisticMessage {}
 trait StatisticContext {
-  def log(sm:StatisticMessage)
+  def log(sm:StatisticMessage):Unit
 }
 
 trait AuditMessage {}
 trait AuditContext {
-  def log(am:AuditMessage)
+  def log(am:AuditMessage):Unit
 }
 
 trait ControlMessage {}
 trait ControlContext {
-  def log(cm:ControlMessage)
+  def log(cm:ControlMessage):Unit
 }
 
 trait OperationContext {

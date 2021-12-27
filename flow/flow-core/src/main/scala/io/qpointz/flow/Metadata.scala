@@ -18,6 +18,7 @@
 package io.qpointz.flow
 
 import scala.reflect.ClassTag
+import scala.language.implicitConversions
 
 trait MetadataProvider {
   val metadata : Metadata
