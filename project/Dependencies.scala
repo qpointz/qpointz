@@ -194,7 +194,7 @@ object Dependencies {
   }
 
   object orientdb {
-    val v = "3.2.3"
+    val v = "3.2.4"
     val p = "com.orientechnologies" ~% v
     val graphdb = "orientdb-graphdb" ~~ p
   }
