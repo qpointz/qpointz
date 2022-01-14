@@ -18,13 +18,36 @@ package io.qpointz.flow.ql
 
 import io.qpointz.flow.{AttributeKey, AttributeValue, Attributes, Record}
 import io.qpointz.flow.MetadataMethods._
-import io.qpointz.flow.ql.types.QAny
+import io.qpointz.flow.ql.types._
 
 sealed trait QlExpression
 
 sealed trait QlValueExpression extends QlExpression
-case class FunctionCallExpression(fn:List[QAny[_]]=>QAny[_], args:Seq[QlValueExpression]) extends QlValueExpression
 case class RecordAttribute(key:AttributeKey) extends QlValueExpression
+case class MetadataEntry(group:String,key:String) extends QlValueExpression
+case class Constant(value:QAny[_]) extends QlValueExpression
+
+sealed trait FunctionCallExpression extends QlValueExpression
+
+object FunctionCallExpression {
+
+    def apply(fn:List[QAny[_]]=>QAny[_], args:Seq[QlValueExpression]) : FunctionCallExpression = {
+      MappedFunctionCallExpression(fn, args)
+    }
+
+    def apply(name:String, args:Seq[QlValueExpression]) : FunctionCallExpression = {
+      DeclFunctionCallExpression(name, args)
+    }
+
+    def map(fce:FunctionCallExpression):MappedFunctionCallExpression = fce match {
+      case m: MappedFunctionCallExpression => m
+      case _ => ???
+    }
+}
+
+case class MappedFunctionCallExpression(fn:List[QAny[_]]=>QAny[_], args:Seq[QlValueExpression]) extends FunctionCallExpression
+case class DeclFunctionCallExpression(name:String, args:Seq[QlValueExpression]) extends FunctionCallExpression
+
 
 sealed trait ProjectionElementExpression extends QlExpression
 case class ExpressionElement(ex:QlValueExpression) extends ProjectionElementExpression
@@ -37,14 +60,14 @@ object IteratorMapper {
 
   def asRecordFunction(ve:QlValueExpression):Record => AttributeValue = {
 
-    def funcCall(fc:FunctionCallExpression):Record=>AttributeValue = {
+    def funcCall(funcCall:FunctionCallExpression):Record=>AttributeValue = {
         def argCombine(argfn:Record=>AttributeValue)(rec:Record, args:List[QAny[_]]):(Record, List[QAny[_]]) = {
           (
             rec,
             args :+ QAny(argfn(rec))
           )
         }
-
+        val fc = FunctionCallExpression.map(funcCall)
         val aa = fc.args
           .map(asRecordFunction)
           .map(f=> (argCombine(f) _).tupled)

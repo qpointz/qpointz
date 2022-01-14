@@ -44,7 +44,8 @@ lazy val `flow-core` = libProject("flow","flow-core")
   .withJson
   .settings(
     libraryDependencies ++= modules(
-      scalalib.reflect
+      scalalib.reflect,
+      apacheCalcite.core
     )
   )
 

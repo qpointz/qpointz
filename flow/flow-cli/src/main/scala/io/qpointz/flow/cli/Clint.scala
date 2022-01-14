@@ -17,7 +17,7 @@
 package io.qpointz.flow.cli
 
 import org.apache.calcite.avatica.util.Quoting
-import org.apache.calcite.sql.SqlNode
+import org.apache.calcite.sql.{SqlNode, SqlSelect}
 import org.apache.calcite.sql.parser.SqlParser
 import org.apache.calcite.sql.validate.SqlConformance
 
@@ -36,7 +36,8 @@ object Clint {
   def parseExpression(exp:String):SqlNode = parse(exp)(_.parseExpression())
 
   def main(args:Array[String]):Unit = {
-    val node = parseExpression("select * from `record` where a>0")
+    val node = parseStatement("select `#g.t`.t = 'sss' as b, c from `record` where a>0").asInstanceOf[SqlSelect]
+    node.getSelectList
     println(node)
   }
 }
