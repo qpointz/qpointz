@@ -29,6 +29,8 @@ case class Record(attributes: Attributes, meta: Metadata) {
 
   def keys: Iterable[AttributeKey] = attributes.keys
 
+  def items:Iterator[(AttributeKey, AttributeValue)] = attributes.iterator
+
   def contains(key: AttributeKey): Boolean = attributes.contains(key)
 
   def getOp(key: AttributeKey): Option[AttributeValue] = attributes.get(key)

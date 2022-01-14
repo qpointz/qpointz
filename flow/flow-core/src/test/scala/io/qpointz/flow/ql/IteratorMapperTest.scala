@@ -16,13 +16,12 @@
 
 package io.qpointz.flow.ql
 
-import io.qpointz.flow.ql.types.QAny
+import io.qpointz.flow.ql.types._
 import io.qpointz.flow.{Record, RecordReader}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class IteratorMapperTest extends AnyFlatSpec with Matchers {
-  import io.qpointz.flow.ql.types.QAny._
   val recs = Seq(
     Record("id"->1, "name"->"John", "lastname"->"Doe"),
     Record("id"->2, "name"->"Sarah", "lastname"->"Doe"),
@@ -30,22 +29,28 @@ class IteratorMapperTest extends AnyFlatSpec with Matchers {
   )
 
   def reader: RecordReader = RecordReader.fromIterable(recs)
+  
+  behavior of "basic"
+
+  it should "run" in {
+    IteratorMapper(SqlStm("select `id` as `ida`, 2 as `b`"))(reader.iterator).toSeq shouldBe Seq(Record(("ida",1),("b",2.0)),Record(("ida",2),("b",2.0)),Record(("ida",3),("b",2.0)))
+  }
+
 
   behavior of "FunctionCall"
 
   it should "execute" in {
-    val q = QlQuery(ProjectionExpression(Seq(
-      AliasExpressionElement(
-        FunctionCallExpression(
-          l => { QAny(l(0).asStringOr("missing") + l(1).asStringOr("missing"))}
+    val q = QlQuery(Projection(Seq(
+      ProjectionElement(
+        FunctionCall(
+          l => { l(0).toString() + l(1).toString()}
           , List(
-            RecordAttribute("name"),
-            RecordAttribute("lastname")
+            Attribute("name"),
+            Attribute("lastname")
           )
         )
-        , "aplusb"))))
+        , Some("aplusb")))))
     val res = IteratorMapper(q)(reader.iterator).toSeq
-    println(res)
   }
 
 }

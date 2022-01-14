@@ -17,75 +17,75 @@
 package io.qpointz.flow.ql
 
 import io.qpointz.flow.{AttributeKey, AttributeValue, Attributes, Record}
-import io.qpointz.flow.MetadataMethods._
 import io.qpointz.flow.ql.types._
+
+import scala.util.{Success, Try}
 
 sealed trait QlExpression
 
 sealed trait QlValueExpression extends QlExpression
-case class RecordAttribute(key:AttributeKey) extends QlValueExpression
+case class Attribute(key:AttributeKey) extends QlValueExpression
 case class MetadataEntry(group:String,key:String) extends QlValueExpression
-case class Constant(value:QAny[_]) extends QlValueExpression
+case class Constant(value:Any) extends QlValueExpression
 
-sealed trait FunctionCallExpression extends QlValueExpression
+sealed trait FunctionCall extends QlValueExpression
+object FunctionCall {
 
-object FunctionCallExpression {
-
-    def apply(fn:List[QAny[_]]=>QAny[_], args:Seq[QlValueExpression]) : FunctionCallExpression = {
-      MappedFunctionCallExpression(fn, args)
+    def apply(fn:List[Any]=>Any, args:Seq[QlValueExpression]) : FunctionCall = {
+      FunctionCallMapped(fn, args)
     }
 
-    def apply(name:String, args:Seq[QlValueExpression]) : FunctionCallExpression = {
-      DeclFunctionCallExpression(name, args)
+    def apply(name:String, args:Seq[QlValueExpression]) : FunctionCall = {
+      FunctionCallDecl(name, args)
     }
 
-    def map(fce:FunctionCallExpression):MappedFunctionCallExpression = fce match {
-      case m: MappedFunctionCallExpression => m
-      case _ => ???
+    private def mapByName(str: String):Seq[Any] => Try[Any] = IntFunctions.funcs(str)
+
+  def map(fce:FunctionCall):FunctionCallMapped = fce match {
+      case m: FunctionCallMapped => m
+      case FunctionCallDecl(name, args) => FunctionCallMapped(mapByName(name), args)
     }
+
+
 }
 
-case class MappedFunctionCallExpression(fn:List[QAny[_]]=>QAny[_], args:Seq[QlValueExpression]) extends FunctionCallExpression
-case class DeclFunctionCallExpression(name:String, args:Seq[QlValueExpression]) extends FunctionCallExpression
+case class FunctionCallMapped(fn:List[Any]=>Any, args:Seq[QlValueExpression]) extends FunctionCall
+case class FunctionCallDecl(name:String, args:Seq[QlValueExpression]) extends FunctionCall
 
+case class ProjectionElement(ex:QlValueExpression, alias:Option[AttributeKey]=None) extends QlExpression
+case class Projection(exp:Seq[ProjectionElement]) extends QlExpression
 
-sealed trait ProjectionElementExpression extends QlExpression
-case class ExpressionElement(ex:QlValueExpression) extends ProjectionElementExpression
-case class AliasExpressionElement(ex:QlValueExpression, al:AttributeKey) extends ProjectionElementExpression
-
-case class ProjectionExpression(exp:Seq[ProjectionElementExpression]) extends QlExpression
-case class QlQuery(select:ProjectionExpression)
+case class QlQuery(select:Projection)
 
 object IteratorMapper {
 
   def asRecordFunction(ve:QlValueExpression):Record => AttributeValue = {
 
-    def funcCall(funcCall:FunctionCallExpression):Record=>AttributeValue = {
-        def argCombine(argfn:Record=>AttributeValue)(rec:Record, args:List[QAny[_]]):(Record, List[QAny[_]]) = {
-          (
-            rec,
-            args :+ QAny(argfn(rec))
-          )
+    def funcCall(funcCall:FunctionCall):Record=>AttributeValue = {
+
+        def argCombine(argfn:Record=>AttributeValue)(rec:Record, args:List[Any]):(Record, List[Any]) = {
+          (rec,args :+ argfn(rec))
         }
-        val fc = FunctionCallExpression.map(funcCall)
+
+        val fc = FunctionCall.map(funcCall)
+
         val aa = fc.args
           .map(asRecordFunction)
           .map(f=> (argCombine(f) _).tupled)
           .reduce((l,r)=>l.andThen(r))
-        r:Record => {
-          val args:List[QAny[_]] = aa(r, List())._2
-          fc.fn(args)
-        }
+
+        r:Record => fc.fn(aa(r, List())._2)
     }
 
     ve match {
-      case RecordAttribute(k) => r: Record => r.get(k)
-      case fc:FunctionCallExpression => funcCall(fc)
+      case Attribute(k) => r: Record => r.get(k)
+      case fc:FunctionCall => funcCall(fc)
+      case Constant(v) => _ => v
       case _ => throw new RuntimeException(s"$ve expression not supported on record operations")
     }
   }
 
-  def project(pe:ProjectionExpression): Record => Record = {
+  def project(pe:Projection): Record => Record = {
 
     def attributeCombine(key:AttributeKey, fn:Record=>AttributeValue)(in:(Record, Attributes)):(Record,Attributes) = {
       (
@@ -106,18 +106,34 @@ object IteratorMapper {
     }
 
     val projFuncs = pe.exp.zipWithIndex.map(e => e._1 match {
-      case AliasExpressionElement(ve, k)          => (k, asRecordFunction(ve))
-      case ExpressionElement(ex:RecordAttribute)  => (ex.key, asRecordFunction(ex))
-      case ExpressionElement(ex)                  => (s"Col_${e._2}", asRecordFunction(ex))
+      case ProjectionElement(ex:Attribute, None)  => (ex.key, asRecordFunction(ex))
+      case ProjectionElement(ve, Some(k))               => (k, asRecordFunction(ve))
+      case ProjectionElement(ve, None)                  => (s"Col_${e._2}", asRecordFunction(ve))
     })
 
     asProjFunc(projFuncs)
   }
 
-  def apply(q:QlQuery):Iterator[Record]=> Iterator[Record] = {
-    val prj: Record => Record = project(q.select)
-    val res = { iter: Iterator[Record] => iter.map(prj) }
-    res
-  }
+  def apply(q:QlQuery, translate:Boolean=true):Iterator[Record]=> Iterator[Record] = {
+    def translateloop(r:Record):Record = {
+      val kv = r.items.filter(f=> f match {
+        case (_, x:Try[_]) if x.isFailure => false
+        case _ => true
+      }).map {
+        case (k, Success(an)) => (k, an)
+        case x => x
+      }
+      Record(kv.toMap, r.meta)
+    }
 
+    val prj: Record => Record = project(q.select)
+    iter:Iterator[Record] => {
+      val res = iter.map(prj)
+      if (translate) {
+        res.map(translateloop)
+      } else {
+        res
+      }
+    }
+  }
 }

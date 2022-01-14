@@ -212,8 +212,14 @@ object Dependencies {
 
   object cats {
     val v = "2.1.0"
-    val p = "org.typelevel" ~% v
+    val p = "org.typelevel" ~%% v
     val core = "cats-core" ~~ p
+  }
+
+  object spire {
+    val v = "0.18.0-M3"
+    val p = "org.typelevel" ~%% v
+    val core = "spire" ~~ p
   }
 
   implicit class ProjectProfiles(p:Project) {

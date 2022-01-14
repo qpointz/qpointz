@@ -16,10 +16,25 @@
 
 package io.qpointz.flow.ql
 
-import io.qpointz.flow.ql.types.QObject
+import io.qpointz.flow.{AttributeKey, AttributeValue, Metadata, Record}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class Args {
+import scala.util.Success
 
+class IntFunctionsTest extends AnyFlatSpec with Matchers {
+  import io.qpointz.flow.MetadataMethods._
+
+  behavior of "CAST"
+
+  private def sql(insql:String, inrecord:Record)(exp:Record) = {
+    val r = IteratorMapper(SqlStm(insql),false)(Seq(inrecord).iterator).toSeq
+    r shouldBe Seq(exp)
+  }
+
+  it should "cast to int" in {
+    sql("SELECT CAST(`in_field` AS INT) AS `a`", Record("in_field" -> "1"))(Record("a"->Success(1)))
+  }
 
 
 }
