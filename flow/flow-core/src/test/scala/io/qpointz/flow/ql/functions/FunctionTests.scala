@@ -14,27 +14,17 @@
  *  limitations under the License
  */
 
-package io.qpointz.flow.ql
+package io.qpointz.flow.ql.functions
 
-import io.qpointz.flow.{AttributeKey, AttributeValue, Metadata, Record}
-import org.scalatest.flatspec.AnyFlatSpec
+import io.qpointz.flow.Record
+import io.qpointz.flow.ql.{IteratorMapper, SqlStm}
 import org.scalatest.matchers.should.Matchers
 
-import scala.util.Success
+trait FunctionTests extends Matchers {
 
-class IntFunctionsTest extends AnyFlatSpec with Matchers {
-  import io.qpointz.flow.MetadataMethods._
-
-  behavior of "CAST"
-
-  private def sql(insql:String, inrecord:Record)(exp:Record) = {
+  def sql(insql:String, inrecord:Record)(exp:Record) = {
     val r = IteratorMapper(SqlStm(insql),false)(Seq(inrecord).iterator).toSeq
     r shouldBe Seq(exp)
   }
-
-  it should "cast to int" in {
-    sql("SELECT CAST(`in_field` AS INT) AS `a`", Record("in_field" -> "1"))(Record("a"->Success(1)))
-  }
-
 
 }

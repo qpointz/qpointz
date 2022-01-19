@@ -16,7 +16,6 @@
 
 package io.qpointz.flow.ql
 
-import io.qpointz.flow.ql.types._
 import org.apache.calcite.avatica.util.Quoting
 import org.apache.calcite.sql.`type`.SqlTypeName
 import org.apache.calcite.sql.{SqlBasicCall, SqlDataTypeSpec, SqlFunction, SqlIdentifier, SqlKind, SqlLiteral, SqlNode, SqlSelect}
@@ -60,6 +59,7 @@ private[ql] object Sql {
         case SqlTypeName.INTEGER  => Constant(v.intValue(true))
         case SqlTypeName.BIGINT   => Constant(v.longValue(true))
         case SqlTypeName.DECIMAL  => Constant(v.bigDecimalValue().doubleValue())
+        case SqlTypeName.CHAR     => Constant(v.toValue)
         case x => throw new RuntimeException(s"${x} literals not supported")
     }
 

@@ -41,7 +41,9 @@ object QlFunction {
         val mapped = map(mayBeTry.map{case x:Try[_] => x.get})
         Success(call(fn,mapped))
       } catch {
-        case ex:Exception => Failure(ex)
+        case ex:Exception => {
+          Failure(ex)
+        }
       }
     }
   }

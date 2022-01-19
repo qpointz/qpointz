@@ -16,8 +16,8 @@
 
 package io.qpointz.flow.ql
 
+import io.qpointz.flow.ql.functions._
 import io.qpointz.flow.{AttributeKey, AttributeValue, Attributes, Record}
-import io.qpointz.flow.ql.types._
 
 import scala.util.{Success, Try}
 
@@ -39,7 +39,7 @@ object FunctionCall {
       FunctionCallDecl(name, args)
     }
 
-    private def mapByName(str: String):Seq[Any] => Try[Any] = IntFunctions.funcs(str)
+    private def mapByName(str: String):Seq[Any] => Try[Any] = registry(str)
 
   def map(fce:FunctionCall):FunctionCallMapped = fce match {
       case m: FunctionCallMapped => m

@@ -15,8 +15,6 @@
  */
 
 package io.qpointz.flow.ql
-
-import io.qpointz.flow.ql.types._
 import io.qpointz.flow.{Record, RecordReader}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

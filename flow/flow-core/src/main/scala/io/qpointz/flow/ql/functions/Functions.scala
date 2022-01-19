@@ -14,8 +14,9 @@
  *  limitations under the License
  */
 
-package io.qpointz.flow.ql
+package io.qpointz.flow.ql.functions
 
+import io.qpointz.flow.ql.QlFunction
 import spire.math.Number
 
 object IntFunctions {
