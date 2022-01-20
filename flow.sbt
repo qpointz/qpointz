@@ -34,7 +34,8 @@ lazy val `flow-cli` = libProject("flow","flow-cli")
   .settings(
     libraryDependencies ++= modules(
       apacheCalcite.core,
-      jansi.jansi
+      jansi.jansi,
+      shapeless
     )
   )
   .enablePlugins(JavaAppPackaging)
@@ -47,7 +48,8 @@ lazy val `flow-core` = libProject("flow","flow-core")
       scalalib.reflect,
       apacheCalcite.core,
       commons.lang3,
-      spire.core
+      spire.core,
+      shapeless
     )
   )
 

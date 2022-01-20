@@ -36,8 +36,12 @@ object Clint {
   def parseExpression(exp:String):SqlNode = parse(exp)(_.parseExpression())
 
   def main(args:Array[String]):Unit = {
-    val node = parseStatement("select CAST(a+2 AS INT), `#g.t`.t = 'sss' as b, c from `record` where a>0").asInstanceOf[SqlSelect]
+    /*val node = parseStatement("select CAST(a+2 AS INT), `#g.t`.t = 'sss' as b, c from `record` where 1").asInstanceOf[SqlSelect]
     node.getSelectList
-    println(node)
+    println(node)*/
+    val n = parseStatement("SELECT case " +
+      "                             when 1> 0 then SIN(1)" +
+      "                             when 3<0 then 12 else 0 END as b")
+    println(n)
   }
 }

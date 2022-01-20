@@ -23,34 +23,10 @@ import scala.util.{Success, Try}
 
 sealed trait QlExpression
 
-sealed trait QlValueExpression extends QlExpression
+trait QlValueExpression extends QlExpression
 case class Attribute(key:AttributeKey) extends QlValueExpression
 case class MetadataEntry(group:String,key:String) extends QlValueExpression
 case class Constant(value:Any) extends QlValueExpression
-
-sealed trait FunctionCall extends QlValueExpression
-object FunctionCall {
-
-    def apply(fn:List[Any]=>Any, args:Seq[QlValueExpression]) : FunctionCall = {
-      FunctionCallMapped(fn, args)
-    }
-
-    def apply(name:String, args:Seq[QlValueExpression]) : FunctionCall = {
-      FunctionCallDecl(name, args)
-    }
-
-    private def mapByName(str: String):Seq[Any] => Try[Any] = registry(str)
-
-  def map(fce:FunctionCall):FunctionCallMapped = fce match {
-      case m: FunctionCallMapped => m
-      case FunctionCallDecl(name, args) => FunctionCallMapped(mapByName(name), args)
-    }
-
-
-}
-
-case class FunctionCallMapped(fn:List[Any]=>Any, args:Seq[QlValueExpression]) extends FunctionCall
-case class FunctionCallDecl(name:String, args:Seq[QlValueExpression]) extends FunctionCall
 
 case class ProjectionElement(ex:QlValueExpression, alias:Option[AttributeKey]=None) extends QlExpression
 case class Projection(exp:Seq[ProjectionElement]) extends QlExpression

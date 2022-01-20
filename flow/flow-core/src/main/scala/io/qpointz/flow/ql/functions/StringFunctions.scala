@@ -16,80 +16,52 @@
 
 package io.qpointz.flow.ql.functions
 
-import io.qpointz.flow.ql.QlFunction
-
-object ArgMethods {
-
-  implicit class ArgListMethods(args:Seq[Any]) {
-    private lazy val argl = args.lift
-
-    def asStringOp(idx:Int):Option[String] = argl(idx) match {
-      case Some(s:String) => Some(s)
-      case Some(x:Any) => Some(x.toString)
-      case _ => None
-    }
-
-    def asString(idx:Int):String = asStringOp(idx) match {
-      case Some(s)=> s
-      case None => throw new RuntimeException("Index doesn't exists or can't be casted to String")
-    }
-
-    def asIntOp(idx:Int):Option[Int] = argl(idx) match {
-        case None => None
-        case Some(a:Byte) => Some(a.toInt)
-        case Some(s:Short) => Some(s.toInt)
-        case Some(i:Int) => Some(i)
-        case Some(l:Long) => Some(l.toInt)
-        case Some(f:Float) => Some(f.toInt)
-        case Some(d:Double) => Some(d.toInt)
-        case _ => None
-      }
-
-      def asInt(idx:Int):Int = asIntOp(idx) match {
-        case Some(i) => i
-        case None => throw new RuntimeException("Index doesn't exists or can't be casted to Int")
-      }
-
-  }
-
-}
+import io.qpointz.flow.ql._
+import spire.math.Number
 
 object StringFunctions {
-  import QlFunction._
-  import ArgMethods._
 
-  val str = func(
-    {a:Any => a.toString},
-    {l=> l})
+  def asNumber(s:Any) = s match {
+    case n:Number => n
+    case b:Byte => Number(b)
+    case s:Short => Number(s)
+    case i:Int => Number(i)
+    case l:Long => Number(l)
+    case d:Double => Number(d)
+    case f:Float => Number(f)
+    case _=> throw new ClassCastException(s"$s not a Number")
+  }
 
-  val concat = funcimpl(
-    {x:Seq[String]=> x.mkString },
-    {args:Seq[Any] => args.map(_.toString)})((f,a)=> f(a)) _
+  val str = QlFunction[Any,String]({ (a:Any) => a.toString})
 
-  val format = func[String, Seq[Any], String](
-        {(x,y)=> x.format(y:_*)},
-        {a=> (a.head.toString, a.tail)}
-      )
+  val concat = new QlFunction1[Seq[String],String] {
+    override protected val fn: Seq[String] => String = x => x.mkString
+    override def apply(args: Seq[Any]): String = fn(args.map(_.toString))
+  }
 
-  val replace = func[String, String, String, String](
-    {(in, oldstr, newstr) => in.replace(oldstr, newstr)},
-    {a => (a(0).toString, a(1).toString, a(2).toString)}
-  )
+  val format = new QlFunction2[String, Seq[Any], String] {
+    override protected val fn: (String, Seq[Any]) => String = (x,y) => x.format(y:_*)
+    override def apply(args: Seq[Any]): String = fn(args(0).toString, args.tail)
+  }
 
-  val substr = func[String, Int, Option[Int],String](
-    {(s, st, en)=> en match {
-        case None => s.substring(st)
-        case Some(end) => s.substring(st, end)
-    }},
-    {a => (a.asString(0), a.asInt(1), a.asIntOp(2))}
-  )
+  val replace = QlFunction({ (in:String, oldstr:String, newstr:String) => in.replace(oldstr, newstr)})
 
-  val regexMatches = func[String, String, Boolean](
-    {(p,m)=> p.r.matches(m)},
-    {a=> (a(0).toString, a(1).toString)}
-  )
+  val substr = new QlFunction3[String, Int, Option[Int], String]{
+    override protected val fn: (String, Int, Option[Int]) => String = (s:String, st:Int, en:Option[Int])=> en match {
+      case None => s.substring(st)
+      case Some(end) => s.substring(st, end)
+    }
 
-  lazy val funcs = Map[String, QlFunction.QFuncImpl](
+    override def apply(args:Seq[Any]) = args.toList match {
+      case (s:String) :: st :: Nil => fn(s, asNumber(st).intValue, None)
+      case (s:String) :: st :: en :: Nil => fn(s, asNumber(st).intValue, Some(asNumber(en).toInt))
+      case _ => throw new IllegalArgumentException(s"Unexpected arguments ${args}")
+    }
+  }
+
+  val regexMatches = QlFunction({ (p:String, m:String)=> p.r.matches(m)})
+
+  lazy val funcs = Map[String, QlFunction[_]](
     "STR" -> str,
     "CONCAT" -> concat,
     "FORMAT" -> format,
@@ -97,5 +69,4 @@ object StringFunctions {
     "SUBSTR" -> substr,
     "IS_MATCHES_RX" -> regexMatches
   )
-
 }

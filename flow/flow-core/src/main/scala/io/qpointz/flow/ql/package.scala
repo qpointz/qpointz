@@ -14,18 +14,12 @@
  *  limitations under the License
  */
 
-package io.qpointz.flow.ql.functions
+package io.qpointz.flow
 
-import io.qpointz.flow.ql.QlFunction
-import spire.math.Number
+import scala.util.Try
 
-object IntFunctions {
+package object ql {
 
-  lazy val funcs = Map[String, QlFunction[_]](
-    "CAST" -> QlFunction({ (a:Any, tn:String) => (a, tn) match {
-        case (v:Int, "INTEGER") => Number(v)
-        case (v:Number, "INTEGER") => v
-        case (v:String, "INTEGER") => v.toInt
-      }})
-  )
+  type QlFunctionNResult[_] = Try[_]
+
 }

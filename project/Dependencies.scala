@@ -222,6 +222,8 @@ object Dependencies {
     val core = "spire" ~~ p
   }
 
+  val shapeless = "com.chuusai" %% "shapeless" % "2.3.7"
+
   implicit class ProjectProfiles(p:Project) {
 
     lazy val json4sCommon: Seq[ModuleID] = Seq(

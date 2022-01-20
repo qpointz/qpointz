@@ -20,6 +20,7 @@ import io.qpointz.flow.Record
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
+import java.util.MissingFormatArgumentException
 import scala.util.{Failure, Success}
 
 class StringFunctionsTest extends AnyFlatSpec with Matchers with FunctionTests {
@@ -27,8 +28,12 @@ class StringFunctionsTest extends AnyFlatSpec with Matchers with FunctionTests {
   behavior of "STR"
   import StringFunctions._
 
-  it should "conv to string" in {
-    str(Seq(1)) shouldBe Success("1")
+  it should "conv by direct" in {
+    str(1) shouldBe "1"
+  }
+
+  it should "conv by paramlist" in {
+    str.apply(Seq(1)) shouldBe "1"
   }
 
   it should "conv in expression" in {
@@ -38,49 +43,60 @@ class StringFunctionsTest extends AnyFlatSpec with Matchers with FunctionTests {
   behavior of "CONCAT"
 
   it should "concat strings" in {
-    concat(Seq("A","B","C")) shouldBe Success("ABC")
+    concat.apply(Seq("A","B","C")) shouldBe "ABC"
   }
 
   it should "concat in exp" in {
     sql("SELECT CONCAT(A1,B1,C1) AS CT", Record("A1"->"A", "B1"->"B", "C1"->"C"))(Record("CT"->Success("ABC")))
   }
 
+
   behavior of "FORMAT"
 
   it should "format" in {
-    format(Seq("Hello %s, %s times", "Bob", 5)) shouldBe Success("Hello Bob, 5 times")
+    format(Seq("Hello %s, %s times", "Bob", 5)) shouldBe "Hello Bob, 5 times"
   }
 
   it should "not fail on zero args" in {
-    format(Seq("Bob")) shouldBe Success("Bob")
+    format(Seq("Bob")) shouldBe "Bob"
+  }
+
+  it should "be callable directly" in {
+    format("Hello %s %s", Seq("A","B")) shouldBe "Hello A B"
   }
 
   it should "fail on zero args" in {
-    format(Seq("Bob %s")).isFailure shouldBe true
+    assertThrows[MissingFormatArgumentException] {
+      format(Seq("Bob %s"))
+    }
   }
+
 
   behavior of "REPLACE"
 
   it should "replace" in {
-    replace(Seq("Hello Bob 2 times", "Bob", "Mark")) shouldBe Success("Hello Mark 2 times")
+    replace(Seq("Hello Bob 2 times", "Bob", "Mark")) shouldBe "Hello Mark 2 times"
   }
 
   it should "replace in exp" in {
     sql("SELECT REPLACE(A, 'Bob', 'Mark') AS AN", Record("A"->"Hello Bob 2 times"))(Record("AN"->Success("Hello Mark 2 times")))
   }
 
+
   behavior of "SUBSTR"
 
+
   it should "substr begin and end" in {
-    substr(Seq("ABCD", 1, 3)) shouldBe Success("BC")
+    substr(Seq("ABCD", 1, 3)) shouldBe "BC"
   }
+
 
   it should "substr begin and end in exp" in {
     sql("SELECT SUBSTR(A, 1, 3) AS A", Record("A"->"ABCD"))(Record("A"->Success("BC")))
   }
 
   it should "substr begin" in {
-    substr(Seq("ABCD", 2)) shouldBe Success("CD")
+    substr(Seq("ABCD", 2)) shouldBe "CD"
   }
 
   it should "substr begin in exp" in {
@@ -90,12 +106,11 @@ class StringFunctionsTest extends AnyFlatSpec with Matchers with FunctionTests {
   behavior of "REGEX_MATCHES"
 
   it should "match" in {
-    regexMatches(Seq(raw"\d{5}","12345")) shouldBe Success(true)
+    regexMatches(Seq(raw"\d{5}","12345")) shouldBe true
   }
 
   it should "match expression" in {
     sql(raw"""SELECT IN_T, IS_MATCHES_RX('\d{3}', IN_T) AS IN_M""", Record("IN_T"->"123"))(Record("IN_T"->"123", "IN_M"->Success(true)))
   }
-
 
 }
