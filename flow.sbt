@@ -46,6 +46,7 @@ lazy val `flow-core` = libProject("flow","flow-core")
     libraryDependencies ++= modules(
       scalalib.reflect,
       apacheCalcite.core,
+      commons.lang3,
       spire.core
     )
   )
@@ -134,6 +135,6 @@ lazy val `flow-orientdb` = libProject("flow", "flow-orientdb")
   .settings(
     libraryDependencies ++= modules(
       orientdb.graphdb,
-      commonsio.io
+      commons.io
     )
   )

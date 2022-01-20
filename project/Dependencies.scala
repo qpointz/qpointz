@@ -43,7 +43,7 @@ object Dependencies {
   }
 
   object slf4j {
-    lazy val v = "org.slf4j" ~% "1.7.32"
+    lazy val v = "org.slf4j" ~% "1.7.33"
     lazy val api = "slf4j-api" ~~ v
   }
 
@@ -93,7 +93,7 @@ object Dependencies {
   }
 
   object scoverage {
-    lazy val v = "1.4.10"
+    lazy val v = "1.4.11"
     lazy val p = "org.scoverage" ~%% v
     lazy val scalacRuntime = "scalac-scoverage-runtime" ~~ p
   }
@@ -139,7 +139,7 @@ object Dependencies {
   }
 
   object apachePoi {
-    val v = "5.1.0"
+    val v = "5.2.0"
     val p = "org.apache.poi" ~% v
     val poi = "poi" ~~ p
     val ooxml = "poi-ooxml" ~~ p
@@ -167,7 +167,7 @@ object Dependencies {
   }
 
   object amazonAWSSDK {
-    val v = "2.17.102"
+    val v = "2.17.114"
     val g = "software.amazon.awssdk"
     val p = g ~% v
     val sdkJava = "aws-sdk-java" ~~ p
@@ -182,13 +182,13 @@ object Dependencies {
   }
 
   object h2db {
-    val v = "2.0.204"
+    val v = "2.1.210"
     val p = "com.h2database" ~% v
     val h2 = "h2" ~~ p
   }
 
   object minio {
-    val v = "8.3.4"
+    val v = "8.3.5"
     val p = "io.minio" ~% v
     val minio = "minio" ~~ p
   }
@@ -199,9 +199,9 @@ object Dependencies {
     val graphdb = "orientdb-graphdb" ~~ p
   }
 
-  object commonsio {
-    val g = "commons-io"
-    val io = g % "commons-io" % "2.11.0"
+  object commons {
+    val io = "commons-io" % "commons-io" % "2.11.0"
+    val lang3 = "org.apache.commons" % "commons-lang3" % "3.12.0"
   }
 
   object apacheCalcite {
@@ -217,7 +217,7 @@ object Dependencies {
   }
 
   object spire {
-    val v = "0.18.0-M3"
+    val v = "0.17.0"
     val p = "org.typelevel" ~%% v
     val core = "spire" ~~ p
   }
