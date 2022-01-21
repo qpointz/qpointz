@@ -50,7 +50,7 @@ class QlRecordFunctionTestextends extends AnyFlatSpec with Matchers {
   behavior of "RecordFuncs"
 
   it should "Function0" in {
-    testcall(QlRecordFunction(r => s"${r.items.length}A"),
+    testcall(QlRecordFunction("trecfunc",r => s"${r.items.length}A"),
       (x: QlRecordFunction0[String]) => x(defaultRec),
       "5A",
       List(defaultRec))
@@ -58,7 +58,7 @@ class QlRecordFunctionTestextends extends AnyFlatSpec with Matchers {
 
 
   it should "Function1" in {
-    testcall[QlRecordFunction1[String, String], String](QlRecordFunction((r: Record, a: String) => s"${r.items.length}$a"),
+    testcall[QlRecordFunction1[String, String], String](QlRecordFunction("trecfunc",(r: Record, a: String) => s"${r.items.length}$a"),
       (x: QlRecordFunction1[String, String]) => x(defaultRec, "A"),
       "5A",
       List(defaultRec, "A"))
@@ -66,14 +66,14 @@ class QlRecordFunctionTestextends extends AnyFlatSpec with Matchers {
 
 
   it should "Function2" in {
-    testcall[QlRecordFunction2[String, String, String], String](QlRecordFunction((r: Record, a: String, b: String) => s"${r.items.length}$a$b"),
+    testcall[QlRecordFunction2[String, String, String], String](QlRecordFunction("trecfunc",(r: Record, a: String, b: String) => s"${r.items.length}$a$b"),
       (x: QlRecordFunction2[String, String, String]) => x(defaultRec, "A", "B"),
       "5AB",
       List(defaultRec, "A", "B"))
   }
 
   it should "Function3" in {
-    testcall[QlRecordFunction3[String, String, String, String], String](QlRecordFunction((r: Record, a: String, b: String, c: String) => s"${r.items.length}$a$b$c"),
+    testcall[QlRecordFunction3[String, String, String, String], String](QlRecordFunction("trecfunc",(r: Record, a: String, b: String, c: String) => s"${r.items.length}$a$b$c"),
       (x: QlRecordFunction3[String, String, String, String]) => x(defaultRec, "A", "B", "C"),
       "5ABC",
       List(defaultRec, "A", "B", "C"))
@@ -81,7 +81,7 @@ class QlRecordFunctionTestextends extends AnyFlatSpec with Matchers {
 
 
   it should "Function4" in {
-    testcall[QlRecordFunction4[String, String, String, String, String], String](QlRecordFunction((r: Record, a: String, b: String, c: String, d: String) => s"${r.items.length}$a$b$c$d"),
+    testcall[QlRecordFunction4[String, String, String, String, String], String](QlRecordFunction("trecfunc",(r: Record, a: String, b: String, c: String, d: String) => s"${r.items.length}$a$b$c$d"),
       (x: QlRecordFunction4[String, String, String, String, String]) => x(defaultRec, "A", "B", "C", "D"),
       "5ABCD",
       List(defaultRec, "A", "B", "C", "D"))
@@ -89,35 +89,35 @@ class QlRecordFunctionTestextends extends AnyFlatSpec with Matchers {
 
 
   it should "Function5" in {
-    testcall[QlRecordFunction5[String, String, String, String, String, String], String](QlRecordFunction((r: Record, a: String, b: String, c: String, d: String, e: String) => s"${r.items.length}$a$b$c$d$e"),
+    testcall[QlRecordFunction5[String, String, String, String, String, String], String](QlRecordFunction("trecfunc",(r: Record, a: String, b: String, c: String, d: String, e: String) => s"${r.items.length}$a$b$c$d$e"),
       (x: QlRecordFunction5[String, String, String, String, String, String]) => x(defaultRec, "A", "B", "C", "D", "E"),
       "5ABCDE",
       List(defaultRec, "A", "B", "C", "D", "E"))
   }
 
   it should "Function6" in {
-    testcall[QlRecordFunction6[String, String, String, String, String, String, String], String](QlRecordFunction((r: Record, a: String, b: String, c: String, d: String, e: String, f: String) => s"${r.items.length}$a$b$c$d$e$f"),
+    testcall[QlRecordFunction6[String, String, String, String, String, String, String], String](QlRecordFunction("trecfunc",(r: Record, a: String, b: String, c: String, d: String, e: String, f: String) => s"${r.items.length}$a$b$c$d$e$f"),
       (x: QlRecordFunction6[String, String, String, String, String, String, String]) => x(defaultRec, "A", "B", "C", "D", "E", "F"),
       "5ABCDEF",
       List(defaultRec, "A", "B", "C", "D", "E", "F"))
   }
 
   it should "Function7" in {
-    testcall[QlRecordFunction7[String, String, String, String, String, String, String, String], String](QlRecordFunction((r: Record, a: String, b: String, c: String, d: String, e: String, f: String, g: String) => s"${r.items.length}$a$b$c$d$e$f$g"),
+    testcall[QlRecordFunction7[String, String, String, String, String, String, String, String], String](QlRecordFunction("trecfunc",(r: Record, a: String, b: String, c: String, d: String, e: String, f: String, g: String) => s"${r.items.length}$a$b$c$d$e$f$g"),
       (x: QlRecordFunction7[String, String, String, String, String, String, String, String]) => x(defaultRec, "A", "B", "C", "D", "E", "F", "G"),
       "5ABCDEFG",
       List(defaultRec, "A", "B", "C", "D", "E", "F", "G"))
   }
 
   it should "Function8" in {
-    testcall[QlRecordFunction8[String, String, String, String, String, String, String, String, String], String](QlRecordFunction((r: Record, a: String, b: String, c: String, d: String, e: String, f: String, g: String, h: String) => s"${r.items.length}$a$b$c$d$e$f$g$h"),
+    testcall[QlRecordFunction8[String, String, String, String, String, String, String, String, String], String](QlRecordFunction("trecfunc",(r: Record, a: String, b: String, c: String, d: String, e: String, f: String, g: String, h: String) => s"${r.items.length}$a$b$c$d$e$f$g$h"),
       (x: QlRecordFunction8[String, String, String, String, String, String, String, String, String]) => x(defaultRec, "A", "B", "C", "D", "E", "F", "G", "H"),
       "5ABCDEFGH",
       List(defaultRec, "A", "B", "C", "D", "E", "F", "G", "H"))
   }
 
   it should "Function9" in {
-    testcall[QlRecordFunction9[String, String, String, String, String, String, String, String, String, String], String](QlRecordFunction((r: Record, a: String, b: String, c: String, d: String, e: String, f: String, g: String, h: String, j: String) => s"${r.items.length}$a$b$c$d$e$f$g$h$j"),
+    testcall[QlRecordFunction9[String, String, String, String, String, String, String, String, String, String], String](QlRecordFunction("trecfunc",(r: Record, a: String, b: String, c: String, d: String, e: String, f: String, g: String, h: String, j: String) => s"${r.items.length}$a$b$c$d$e$f$g$h$j"),
       (x: QlRecordFunction9[String, String, String, String, String, String, String, String, String, String]) => x(defaultRec, "A", "B", "C", "D", "E", "F", "G", "H", "J"),
       "5ABCDEFGHJ",
       List(defaultRec, "A", "B", "C", "D", "E", "F", "G", "H", "J"))

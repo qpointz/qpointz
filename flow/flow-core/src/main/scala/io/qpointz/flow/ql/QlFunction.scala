@@ -15,11 +15,15 @@
  */
 
 package io.qpointz.flow.ql
-import io.qpointz.flow.Record
+import io.qpointz.flow.{Record, ql}
 import shapeless._
 import shapeless.syntax.std.traversable.traversableOps
 
-trait QlFunction[R] {
+trait QlNamedFunction {
+  val sqlName:String
+}
+
+trait QlFunction[R] extends QlNamedFunction {
   def apply(args:Seq[Any]):R
 }
 
@@ -135,31 +139,100 @@ trait QlRecordFunction9[T1, T2, T3, T4, T5, T6, T7, T8, T9, R] extends QlRecordF
 }
 
 object QlFunction {
-  def apply[R](f:()=>R):QlFunction0[R]= () => f()
-  def apply[T1,R](f: T1=>R):QlFunction1[T1,R] = new QlFunction1[T1 , R] {override protected val fn: T1 => R = f}
-  def apply[T1, T2, R](f: (T1,T2)=>R):QlFunction2[T1,T2,R] = new QlFunction2[T1 , T2, R] {override protected val fn: (T1,T2) => R = f}
-  def apply[T1, T2, T3, R](f: (T1,T2,T3)=>R):QlFunction3[T1,T2,T3, R] = new QlFunction3[T1 , T2, T3, R] {override protected val fn: (T1,T2,T3) => R = f}
-  def apply[T1, T2, T3, T4, R](f: (T1,T2,T3, T4)=>R):QlFunction4[T1,T2,T3, T4, R] = new QlFunction4[T1 , T2, T3, T4, R] {override protected val fn: (T1,T2,T3, T4) => R = f}
-  def apply[T1, T2, T3, T4, T5, R](f: (T1, T2, T3, T4, T5)=>R):QlFunction5[T1, T2, T3, T4, T5, R] = new QlFunction5[T1 , T2, T3, T4, T5, R] {override protected val fn: (T1, T2, T3, T4, T5) => R = f}
-  def apply[T1, T2, T3, T4, T5, T6, R](f: (T1, T2, T3, T4, T5, T6)=>R):QlFunction6[T1, T2, T3, T4, T5, T6, R] = new QlFunction6[T1 , T2, T3, T4, T5, T6, R] {override protected val fn: (T1, T2, T3, T4, T5, T6) => R = f}
-  def apply[T1, T2, T3, T4, T5, T6, T7, R](f: (T1, T2, T3, T4, T5, T6, T7)=>R):QlFunction7[T1, T2, T3, T4, T5, T6, T7, R] = new QlFunction7[T1 , T2, T3, T4, T5, T6, T7, R] {override protected val fn: (T1, T2, T3, T4, T5, T6, T7) => R = f}
-  def apply[T1, T2, T3, T4, T5, T6, T7, T8, R](f: (T1, T2, T3, T4, T5, T6, T7, T8)=>R):QlFunction8[T1, T2, T3, T4, T5, T6, T7, T8, R] = new QlFunction8[T1 , T2, T3, T4, T5, T6, T7, T8, R] {override protected val fn: (T1, T2, T3, T4, T5, T6, T7, T8) => R = f}
-  def apply[T1, T2, T3, T4, T5, T6, T7, T8, T9, R](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9)=>R):QlFunction9[T1, T2, T3, T4, T5, T6, T7, T8, T9, R] = new QlFunction9[T1 , T2, T3, T4, T5, T6, T7, T8, T9, R] {override protected val fn: (T1, T2, T3, T4, T5, T6, T7, T8, T9) => R = f}
-  def apply[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, R](f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)=>R):QlFunction10[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, R] = new QlFunction10[T1 , T2, T3, T4, T5, T6, T7, T8, T9, T10, R] {override protected val fn: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10) => R = f}
+  def apply[R](name:String, f:()=>R):QlFunction0[R]= new QlFunction0[R] {
+    override def apply(): R = f()
+    override val sqlName: String = name }
+
+  def apply[T1,R](name:String, f: T1=>R):QlFunction1[T1,R] = new QlFunction1[T1 , R] {
+    override protected val fn: T1 => R = f
+    override val sqlName: String = name }
+
+  def apply[T1, T2, R](name:String, f: (T1,T2)=>R):QlFunction2[T1,T2,R] = new QlFunction2[T1 , T2, R] {
+    override protected val fn: (T1,T2) => R = f
+    override val sqlName: String = name }
+
+  def apply[T1, T2, T3, R](name:String, f: (T1,T2,T3)=>R):QlFunction3[T1,T2,T3, R] = new QlFunction3[T1 , T2, T3, R] {
+    override protected val fn: (T1,T2,T3) => R = f
+    override val sqlName: String = name }
+
+  def apply[T1, T2, T3, T4, R](name:String, f: (T1,T2,T3, T4)=>R):QlFunction4[T1,T2,T3, T4, R] = new QlFunction4[T1 , T2, T3, T4, R] {
+    override protected val fn: (T1,T2,T3, T4) => R = f
+    override val sqlName: String = name }
+
+  def apply[T1, T2, T3, T4, T5, R](name:String, f: (T1, T2, T3, T4, T5)=>R):QlFunction5[T1, T2, T3, T4, T5, R] = new QlFunction5[T1 , T2, T3, T4, T5, R] {
+    override protected val fn: (T1, T2, T3, T4, T5) => R = f
+    override val sqlName: String = name }
+
+  def apply[T1, T2, T3, T4, T5, T6, R](name:String, f: (T1, T2, T3, T4, T5, T6)=>R):QlFunction6[T1, T2, T3, T4, T5, T6, R] = new QlFunction6[T1 , T2, T3, T4, T5, T6, R] {
+    override protected val fn: (T1, T2, T3, T4, T5, T6) => R = f
+    override val sqlName: String = name }
+
+  def apply[T1, T2, T3, T4, T5, T6, T7, R](name:String, f: (T1, T2, T3, T4, T5, T6, T7)=>R):QlFunction7[T1, T2, T3, T4, T5, T6, T7, R] = new QlFunction7[T1 , T2, T3, T4, T5, T6, T7, R] {
+    override protected val fn: (T1, T2, T3, T4, T5, T6, T7) => R = f
+    override val sqlName: String = name }
+
+  def apply[T1, T2, T3, T4, T5, T6, T7, T8, R](name:String, f: (T1, T2, T3, T4, T5, T6, T7, T8)=>R):QlFunction8[T1, T2, T3, T4, T5, T6, T7, T8, R] = new QlFunction8[T1 , T2, T3, T4, T5, T6, T7, T8, R] {
+    override protected val fn: (T1, T2, T3, T4, T5, T6, T7, T8) => R = f
+    override val sqlName: String = name }
+
+  def apply[T1, T2, T3, T4, T5, T6, T7, T8, T9, R](name:String, f: (T1, T2, T3, T4, T5, T6, T7, T8, T9)=>R):QlFunction9[T1, T2, T3, T4, T5, T6, T7, T8, T9, R] = new QlFunction9[T1 , T2, T3, T4, T5, T6, T7, T8, T9, R] {
+    override protected val fn: (T1, T2, T3, T4, T5, T6, T7, T8, T9) => R = f
+    override val sqlName: String = name }
+
+  def apply[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, R](name:String, f: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)=>R):QlFunction10[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, R] = new QlFunction10[T1 , T2, T3, T4, T5, T6, T7, T8, T9, T10, R] {
+    override protected val fn: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10) => R = f
+    override val sqlName: String = name }
 }
 
 object QlRecordFunction {
-  def apply[R](f:(Record)=>R):QlRecordFunction0[R] = new QlRecordFunction0[R] {
+  def apply[R](name:String, f:(Record)=>R):QlRecordFunction0[R] = new QlRecordFunction0[R] {
     override def apply(v1: Record): R = f(v1)
     override def apply(args: Seq[Any]): R = apply(args.toHList[Record::HNil].get.head)
+    override val sqlName: String = name
   }
-  def apply[T1, R](f:(Record, T1)=>R):QlRecordFunction1[T1,R] = new QlRecordFunction1[T1, R] {override protected val fn: (Record, T1) => R = f}
-  def apply[T1, T2, R](f:(Record, T1, T2)=>R):QlRecordFunction2[T1,T2,R] = new QlRecordFunction2[T1, T2, R] {override protected val fn: (Record, T1, T2) => R = f}
-  def apply[T1, T2, T3, R](f:(Record, T1, T2, T3)=>R):QlRecordFunction3[T1,T2,T3, R] = new QlRecordFunction3[T1, T2, T3, R] {override protected val fn: (Record, T1, T2, T3) => R = f}
-  def apply[T1, T2, T3, T4, R](f:(Record, T1, T2, T3, T4)=>R):QlRecordFunction4[T1,T2,T3,T4, R] = new QlRecordFunction4[T1, T2, T3, T4, R] {override protected val fn: (Record, T1, T2, T3, T4) => R = f}
-  def apply[T1, T2, T3, T4, T5, R](f:(Record, T1, T2, T3, T4, T5)=>R):QlRecordFunction5[T1, T2, T3, T4, T5, R] = new QlRecordFunction5[T1, T2, T3, T4, T5, R] {override protected val fn: (Record, T1, T2, T3, T4, T5) => R = f}
-  def apply[T1, T2, T3, T4, T5, T6, R](f:(Record, T1, T2, T3, T4, T5, T6)=>R):QlRecordFunction6[T1, T2, T3, T4, T5, T6, R] = new QlRecordFunction6[T1, T2, T3, T4, T5, T6, R] {override protected val fn: (Record, T1, T2, T3, T4, T5, T6) => R = f}
-  def apply[T1, T2, T3, T4, T5, T6, T7, R](f:(Record, T1, T2, T3, T4, T5, T6, T7)=>R):QlRecordFunction7[T1, T2, T3, T4, T5, T6, T7, R] = new QlRecordFunction7[T1, T2, T3, T4, T5, T6, T7, R] {override protected val fn: (Record, T1, T2, T3, T4, T5, T6, T7) => R = f}
-  def apply[T1, T2, T3, T4, T5, T6, T7, T8, R](f:(Record, T1, T2, T3, T4, T5, T6, T7, T8)=>R):QlRecordFunction8[T1, T2, T3, T4, T5, T6, T7, T8, R] = new QlRecordFunction8[T1, T2, T3, T4, T5, T6, T7, T8, R] {override protected val fn: (Record, T1, T2, T3, T4, T5, T6, T7, T8) => R = f}
-  def apply[T1, T2, T3, T4, T5, T6, T7, T8, T9, R](f:(Record, T1, T2, T3, T4, T5, T6, T7, T8, T9)=>R):QlRecordFunction9[T1, T2, T3, T4, T5, T6, T7, T8, T9, R] = new QlRecordFunction9[T1, T2, T3, T4, T5, T6, T7, T8, T9, R] {override protected val fn: (Record, T1, T2, T3, T4, T5, T6, T7, T8, T9) => R = f}
+
+  def apply[T1, R](name:String,f:(Record, T1)=>R):QlRecordFunction1[T1,R] = new QlRecordFunction1[T1, R] {
+    override protected val fn: (Record, T1) => R = f
+    override val sqlName: String = name
+  }
+
+  def apply[T1, T2, R](name:String,f:(Record, T1, T2)=>R):QlRecordFunction2[T1,T2,R] = new QlRecordFunction2[T1, T2, R] {
+    override protected val fn: (Record, T1, T2) => R = f
+    override val sqlName: String = name
+  }
+
+  def apply[T1, T2, T3, R](name:String,f:(Record, T1, T2, T3)=>R):QlRecordFunction3[T1,T2,T3, R] = new QlRecordFunction3[T1, T2, T3, R] {
+    override protected val fn: (Record, T1, T2, T3) => R = f
+    override val sqlName: String = name
+  }
+
+  def apply[T1, T2, T3, T4, R](name:String,f:(Record, T1, T2, T3, T4)=>R):QlRecordFunction4[T1,T2,T3,T4, R] = new QlRecordFunction4[T1, T2, T3, T4, R] {
+    override protected val fn: (Record, T1, T2, T3, T4) => R = f
+    override val sqlName: String = name
+  }
+
+  def apply[T1, T2, T3, T4, T5, R](name:String,f:(Record, T1, T2, T3, T4, T5)=>R):QlRecordFunction5[T1, T2, T3, T4, T5, R] = new QlRecordFunction5[T1, T2, T3, T4, T5, R] {
+    override protected val fn: (Record, T1, T2, T3, T4, T5) => R = f
+    override val sqlName: String = name
+  }
+
+  def apply[T1, T2, T3, T4, T5, T6, R](name:String,f:(Record, T1, T2, T3, T4, T5, T6)=>R):QlRecordFunction6[T1, T2, T3, T4, T5, T6, R] = new QlRecordFunction6[T1, T2, T3, T4, T5, T6, R] {
+    override protected val fn: (Record, T1, T2, T3, T4, T5, T6) => R = f
+    override val sqlName: String = name
+  }
+
+  def apply[T1, T2, T3, T4, T5, T6, T7, R](name:String,f:(Record, T1, T2, T3, T4, T5, T6, T7)=>R):QlRecordFunction7[T1, T2, T3, T4, T5, T6, T7, R] = new QlRecordFunction7[T1, T2, T3, T4, T5, T6, T7, R] {
+    override protected val fn: (Record, T1, T2, T3, T4, T5, T6, T7) => R = f
+    override val sqlName: String = name
+  }
+
+  def apply[T1, T2, T3, T4, T5, T6, T7, T8, R](name:String,f:(Record, T1, T2, T3, T4, T5, T6, T7, T8)=>R):QlRecordFunction8[T1, T2, T3, T4, T5, T6, T7, T8, R] = new QlRecordFunction8[T1, T2, T3, T4, T5, T6, T7, T8, R] {
+    override protected val fn: (Record, T1, T2, T3, T4, T5, T6, T7, T8) => R = f
+    override val sqlName: String = name
+  }
+
+  def apply[T1, T2, T3, T4, T5, T6, T7, T8, T9, R](name:String,f:(Record, T1, T2, T3, T4, T5, T6, T7, T8, T9)=>R):QlRecordFunction9[T1, T2, T3, T4, T5, T6, T7, T8, T9, R] = new QlRecordFunction9[T1, T2, T3, T4, T5, T6, T7, T8, T9, R] {
+    override protected val fn: (Record, T1, T2, T3, T4, T5, T6, T7, T8, T9) => R = f
+    override val sqlName: String = name
+  }
 }

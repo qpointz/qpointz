@@ -16,8 +16,38 @@
 
 package io.qpointz.flow.ql
 
+import spire.math.Number
+
+
 package object functions {
 
   val registry = IntFunctions.funcs ++ StringFunctions.funcs
+
+  object FunctionsOps {
+
+    implicit def toNum(a:Any):Number = a.toNumber
+
+    implicit class AnyOps(a:Any) {
+
+      def toByte = a.toNumber.toByte
+      def toShort = a.toNumber.toShort
+      def toInt = a.toNumber.intValue
+      def toLong = a.toNumber.longValue
+      def toFloat = a.toNumber.toFloat
+      def toDouble = a.toNumber.toDouble
+
+      def toNumber = a match {
+        case n:Number => n
+        case b:Byte => Number(b)
+        case s:Short => Number(s)
+        case i:Int => Number(i)
+        case l:Long => Number(l)
+        case d:Double => Number(d)
+        case f:Float => Number(f)
+        case _=> throw new ClassCastException(s"$a not a Number")
+      }
+
+    }
+  }
 
 }

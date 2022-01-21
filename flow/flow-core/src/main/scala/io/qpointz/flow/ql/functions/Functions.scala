@@ -22,7 +22,7 @@ import spire.math.Number
 object IntFunctions {
 
   lazy val funcs = Map[String, QlFunction[_]](
-    "CAST" -> QlFunction({ (a:Any, tn:String) => (a, tn) match {
+    "CAST" -> QlFunction("CAST", { (a:Any, tn:String) => (a, tn) match {
         case (v:Int, "INTEGER") => Number(v)
         case (v:Number, "INTEGER") => v
         case (v:String, "INTEGER") => v.toInt
