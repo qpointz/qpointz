@@ -17,7 +17,7 @@
 package io.qpointz.flow.cli
 
 import org.apache.calcite.avatica.util.Quoting
-import org.apache.calcite.sql.SqlNode
+import org.apache.calcite.sql.{SqlNode, SqlSelect}
 import org.apache.calcite.sql.parser.SqlParser
 import org.apache.calcite.sql.validate.SqlConformance
 
@@ -27,7 +27,6 @@ object Clint {
     val parserBuilder = SqlParser
       .config()
       .withQuoting(Quoting.BACK_TICK)
-      .withConformance(SqlConformance.PRAGMATIC_2003)
     val sqlParser = SqlParser.create(sql, parserBuilder)
     k(sqlParser)
   }
@@ -37,7 +36,12 @@ object Clint {
   def parseExpression(exp:String):SqlNode = parse(exp)(_.parseExpression())
 
   def main(args:Array[String]):Unit = {
-    val node = parseStatement("select * from `record` where a>0")
-    println(node)
+    /*val node = parseStatement("select CAST(a+2 AS INT), `#g.t`.t = 'sss' as b, c from `record` where 1").asInstanceOf[SqlSelect]
+    node.getSelectList
+    println(node)*/
+    val n = parseStatement("SELECT case " +
+      "                             when 1> 0 then SIN(1)" +
+      "                             when 3<0 then 12 else 0 END as b")
+    println(n)
   }
 }

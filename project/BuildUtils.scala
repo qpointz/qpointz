@@ -52,7 +52,12 @@ object BuildUtils {
     sbt.Project(projectName, file(projectPath(group, projectName)))
       .settings(
         autoAPIMappings := true,
-        name:= projectName
+        name:= projectName,
+        scalacOptions ++= Seq(
+          //"-Xfatal-warnings",
+          "-deprecation",
+          "-feature"
+        )
       )
   }
 

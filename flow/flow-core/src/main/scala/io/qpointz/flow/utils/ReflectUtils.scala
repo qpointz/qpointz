@@ -33,15 +33,17 @@ object ReflectUtils {
 
   def tryNewInstanceByName[T](cn: String)(implicit m: Manifest[T]): Try[T] = {
     tryClassForName(cn) match {
-      case Failure(throwable) => Failure(throwable)
       case Success(cl: Class[_]) => try {
         val i = cl.getConstructor()
           .newInstance()
           .asInstanceOf[T]
         Success(i)
-      } catch {
+      }
+        catch {
         case ex : Throwable => Failure(ex)
       }
+      case Success(value) => Failure(new RuntimeException(s"Non class ${value}"))
+      case Failure(th) => Failure(th)
     }
   }
 

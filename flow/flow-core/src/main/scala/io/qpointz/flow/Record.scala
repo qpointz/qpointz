@@ -29,6 +29,8 @@ case class Record(attributes: Attributes, meta: Metadata) {
 
   def keys: Iterable[AttributeKey] = attributes.keys
 
+  def items:Iterator[(AttributeKey, AttributeValue)] = attributes.iterator
+
   def contains(key: AttributeKey): Boolean = attributes.contains(key)
 
   def getOp(key: AttributeKey): Option[AttributeValue] = attributes.get(key)
@@ -86,9 +88,10 @@ object Record {
     } else {
       (0 to math.max(keys.length, values.length))
         .map(k=>(k, keys.lift(k), values.lift(k)) match {
-          case (_ , Some(key), Some(value)) => key -> value
-          case (k, Some(key), None) => key -> AttributeValue.Missing
-          case (k, None , Some(value)) => s"Attriibute_${k}" -> value
+            case (_ , Some(key), Some(value)) => key -> value
+            case (k, Some(key), None) => key -> AttributeValue.Missing
+            case (k, None , Some(value)) => s"Attriibute_${k}" -> value
+            case (k, None, None) => throw new RuntimeException(s"Non matching ${k}")
           }
         )
     }

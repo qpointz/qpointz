@@ -29,9 +29,9 @@ import java.nio.file.Path
 
 object CliBench {
 
-  def main(args:Array[String]) = {
+  def main(args:Array[String]):Unit = {
 
-    import collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val alll = ClassLoader.getSystemResources("META-INF/io.qpointz/1.conf").asScala.toList
 
     val csv = CsvRecordReaderSettings()

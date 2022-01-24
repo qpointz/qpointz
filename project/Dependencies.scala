@@ -43,17 +43,17 @@ object Dependencies {
   }
 
   object slf4j {
-    lazy val v = "org.slf4j" ~% "1.7.32"
+    lazy val v = "org.slf4j" ~% "1.7.33"
     lazy val api = "slf4j-api" ~~ v
   }
 
   object logback {
-    lazy val v = "ch.qos.logback" ~% "1.2.8"
+    lazy val v = "ch.qos.logback" ~% "1.2.10"
     lazy val classic = "logback-classic" ~~ v
   }
 
   object akka {
-    lazy val v = "com.typesafe.akka" ~%% "2.6.17"
+    lazy val v = "com.typesafe.akka" ~%% "2.6.18"
 
     lazy val actors                 = v ~~ "akka-actor"
     lazy val actorsTyped            = v ~~ "akka-actor-typed"
@@ -81,7 +81,7 @@ object Dependencies {
   }
 
   object scalaMock {
-    val v = "5.1.0"
+    val v = "5.2.0"
     val p = "org.scalamock" ~%% v
     val scalamock = "scalamock" ~~ p
   }
@@ -93,7 +93,7 @@ object Dependencies {
   }
 
   object scoverage {
-    lazy val v = "1.4.10"
+    lazy val v = "1.4.11"
     lazy val p = "org.scoverage" ~%% v
     lazy val scalacRuntime = "scalac-scoverage-runtime" ~~ p
   }
@@ -105,7 +105,7 @@ object Dependencies {
   }
 
   object jansi {
-    val v = "1.18"
+    val v = "2.4.0"
     val p = "org.fusesource.jansi" ~% v
     val jansi = "jansi" ~~ p
   }
@@ -139,7 +139,7 @@ object Dependencies {
   }
 
   object apachePoi {
-    val v = "5.1.0"
+    val v = "5.2.0"
     val p = "org.apache.poi" ~% v
     val poi = "poi" ~~ p
     val ooxml = "poi-ooxml" ~~ p
@@ -167,7 +167,7 @@ object Dependencies {
   }
 
   object amazonAWSSDK {
-    val v = "2.17.100"
+    val v = "2.17.114"
     val g = "software.amazon.awssdk"
     val p = g ~% v
     val sdkJava = "aws-sdk-java" ~~ p
@@ -182,33 +182,47 @@ object Dependencies {
   }
 
   object h2db {
-    val v = "2.0.202"
+    val v = "2.1.210"
     val p = "com.h2database" ~% v
     val h2 = "h2" ~~ p
   }
 
   object minio {
-    val v = "8.3.4"
+    val v = "8.3.5"
     val p = "io.minio" ~% v
     val minio = "minio" ~~ p
   }
 
   object orientdb {
-    val v = "3.2.3"
+    val v = "3.2.4"
     val p = "com.orientechnologies" ~% v
     val graphdb = "orientdb-graphdb" ~~ p
   }
 
-  object commonsio {
-    val g = "commons-io"
-    val io = g % "commons-io" % "2.11.0"
+  object commons {
+    val io = "commons-io" % "commons-io" % "2.11.0"
+    val lang3 = "org.apache.commons" % "commons-lang3" % "3.12.0"
   }
 
   object apacheCalcite {
-    val v = "1.28.0"
+    val v = "1.29.0"
     val p = "org.apache.calcite" ~% v
     val core = "calcite-core" ~~ p
   }
+
+  object cats {
+    val v = "2.1.0"
+    val p = "org.typelevel" ~%% v
+    val core = "cats-core" ~~ p
+  }
+
+  object spire {
+    val v = "0.17.0"
+    val p = "org.typelevel" ~%% v
+    val core = "spire" ~~ p
+  }
+
+  val shapeless = "com.chuusai" %% "shapeless" % "2.3.7"
 
   implicit class ProjectProfiles(p:Project) {
 

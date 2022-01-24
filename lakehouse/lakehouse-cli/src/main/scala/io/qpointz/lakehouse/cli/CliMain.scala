@@ -21,7 +21,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 
 import java.nio.file.Paths
-import collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object CliMain {
 

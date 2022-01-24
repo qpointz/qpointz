@@ -17,12 +17,12 @@ lazy val `lakehouse-cli` = libProjectNoDependencies("lakehouse","lakehouse-cli")
       apacheHadoop.common,
       apacheHadoop.aws,
       minio.minio,
-      "io.netty" % "netty-transport-native-epoll" % "4.1.72.Final" % Provided//,
+      "io.netty" % "netty-transport-native-epoll" % "4.1.73.Final" % Provided//,
       //"io.delta" %% "delta-core" % "1.0.0"
     )
     ,
     libraryDependencies += "com.google.guava" % "guava" % "31.0.1-jre" % Provided,
     libraryDependencies += amazonAWSSDK.sdkJava % Provided,
-    libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.13.0"
+    libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.13.1"
 
   )
