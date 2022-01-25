@@ -18,10 +18,31 @@ package io.qpointz.flow.avro
 
 import org.apache.avro.Schema
 
+import java.io.InputStream
+
 trait AvroSchemaSource {
   def avroSchema():Schema
 }
 
+object AvroSchemaSource {
+  def apply(schema: Schema): AvroSchemaSource = new ConstantAvroScemaSource(schema)
+
+  def apply(in: InputStream): AvroSchemaSource = {
+    val cnt = scala.io.Source.fromInputStream(in).mkString
+    new JsonAvroSchemaSource(cnt)
+  }
+
+  def apply(in:String):AvroSchemaSource = new JsonAvroSchemaSource(in)
+}
+
 final class ConstantAvroScemaSource(private val schema:Schema) extends AvroSchemaSource {
   override def avroSchema(): Schema = schema
+}
+
+final class JsonAvroSchemaSource(private val jsonStream:String) extends AvroSchemaSource {
+  lazy val parsedSchema = {
+    val parser = new org.apache.avro.Schema.Parser()
+    parser.parse(jsonStream)
+  }
+  override def avroSchema(): Schema = parsedSchema
 }

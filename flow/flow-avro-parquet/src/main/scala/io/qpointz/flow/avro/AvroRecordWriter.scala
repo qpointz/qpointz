@@ -22,13 +22,15 @@ import org.apache.avro.generic.{GenericDatumWriter, GenericRecord, GenericRecord
 
 import java.nio.file.Path
 import AvroMethods._
+import io.qpointz.flow.serialization.Json._
+import org.json4s._
+import org.json4s.jackson.JsonMethods._
+import org.json4s.JsonDSL._
 
-class AvroRecordWriterSettings {
-  var schema:AvroSchemaSource = _
-  var path:Path = _
-}
 
-class AvroRecordWriter(settings:AvroRecordWriterSettings)(implicit val ctx:OperationContext) extends RecordWriter {
+case class AvroRecordWriterSettings(schema:AvroSchemaSource, path:Path)
+
+class AvroRecordWriter(val settings:AvroRecordWriterSettings)(implicit val ctx:OperationContext) extends RecordWriter {
 
   private lazy val schema = settings.schema.avroSchema()
   private lazy val writer = new GenericDatumWriter[GenericRecord](schema)
@@ -52,3 +54,26 @@ class AvroRecordWriter(settings:AvroRecordWriterSettings)(implicit val ctx:Opera
   }
 
 }
+
+class AvroRecordWriterSerializer extends CustomSerializer[AvroRecordWriter] (implicit format => (
+  {
+    case jo:JObject =>
+      val s = (jo \ "settings").extract[AvroRecordWriterSettings]
+      new AvroRecordWriter(s)
+  },
+  {
+    case w : AvroRecordWriter =>
+      hint[AvroRecordWriter] ~ ("settings" -> Extraction.decompose(w.settings))
+  }))
+
+class AvroRecordWriterSettingsSerializer extends CustomSerializer[AvroRecordWriterSettings] (implicit format => (
+  {case jo:JObject =>
+    val sc = AvroSchemaSource(mapper.writeValueAsString(jo \ "schema"))
+    val path = Path.of((jo \ "path").extract[String])
+    AvroRecordWriterSettings(sc, path)
+  },
+  {
+    case ws : AvroRecordWriterSettings =>
+      ("schema" -> parse(ws.schema.avroSchema().toString(true))) ~ ("path" -> ws.path.toString)
+  })
+)

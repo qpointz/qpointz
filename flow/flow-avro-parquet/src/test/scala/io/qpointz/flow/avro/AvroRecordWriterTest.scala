@@ -17,8 +17,9 @@
 
 package io.qpointz.flow.avro
 
-import io.qpointz.flow.Record
+import io.qpointz.flow.{Record, RecordWriter}
 import org.apache.avro.SchemaBuilder
+import org.json4s.Extraction
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -26,26 +27,48 @@ import java.nio.file.Paths
 
 class AvroRecordWriterTest extends AnyFlatSpec with Matchers {
 
+  val as = new ConstantAvroScemaSource(SchemaBuilder
+    .record("default")
+    .fields()
+    .requiredString("a")
+    .requiredString("b")
+    .endRecord()
+  )
+
   behavior of "write"
 
   it should "write simple" in {
-    val as = new ConstantAvroScemaSource(SchemaBuilder
-      .record("default")
-      .fields()
-      .requiredString("a")
-      .requiredString("b")
-      .endRecord()
-    )
 
-    val st = new AvroRecordWriterSettings()
-    st.schema = as
-    st.path = Paths.get("./target/test-out/writeavro.avro")
+    val st = AvroRecordWriterSettings(as, Paths.get("./target/test-out/writeavro.avro"))
     val w = new AvroRecordWriter(st)
     w.open()
     w.write(Record("a" -> "a1", "b" -> "b1"))
     w.write(Record("a" -> "a2", "b" -> "b2"))
     w.write(Record("a" -> "a3", "b" -> "b3"))
     w.close()
+  }
+
+  behavior of "serialization"
+
+  import io.qpointz.flow.serialization.Json._
+  import org.json4s.jackson.JsonMethods._
+  implicit val fmts = formats
+
+  val st = AvroRecordWriterSettings(as, Paths.get("./target/test-out/writeavro.avro"))
+  val w = new AvroRecordWriter(st)
+
+  it should "serialize" in {
+    val cnt = pretty(Extraction.decompose(w))
+    val nw = Extraction.extract[AvroRecordWriter](parse(cnt))
+    nw.settings.schema.avroSchema() shouldBe w.settings.schema.avroSchema()
+    nw.settings.path shouldBe w.settings.path
+  }
+
+  it should "serialize polymorphic" in {
+    val cnt = pretty(Extraction.decompose(w))
+    val nw = Extraction.extract[RecordWriter](parse(cnt)).asInstanceOf[AvroRecordWriter]
+    nw.settings.schema.avroSchema() shouldBe w.settings.schema.avroSchema()
+    nw.settings.path shouldBe w.settings.path
   }
 
 }
