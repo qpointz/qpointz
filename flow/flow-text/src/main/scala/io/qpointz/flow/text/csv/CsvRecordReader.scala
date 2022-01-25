@@ -17,7 +17,7 @@
 package io.qpointz.flow.text.csv
 
 import com.univocity.parsers.csv.CsvParser
-import io.qpointz.flow.nio.InputStreamSource
+import io.qpointz.flow.nio.{InputStreamSource, StreamSource}
 import io.qpointz.flow.serialization.Json._
 import io.qpointz.flow.serialization.JsonProtocol
 import io.qpointz.flow.text.TextRecordReader

@@ -25,7 +25,6 @@ class Extensions extends JsonProtocolExtension {
   override def protocols: Iterable[serialization.JsonProtocol[_]] = List(
     CsvRecordReader.jsonProtocol,
     CsvRecordReaderSettings.jsonProtocol,
-
     CsvRecordWriterSettings.jsonProtocol
   )
 }

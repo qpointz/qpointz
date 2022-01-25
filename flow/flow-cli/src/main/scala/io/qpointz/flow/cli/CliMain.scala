@@ -1,5 +1,11 @@
+package io.qpointz.flow.cli
+
+import io.qpointz.flow.cli.commands.ReceiptCommand
+import picocli.CommandLine
+import picocli.CommandLine.Command
+
 /*
- * Copyright 2021 qpointz.io
+ * Copyright 2022 qpointz.io
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -11,22 +17,14 @@
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
- *  limitations under the License
+ *  limitations under the License.
  */
 
-package io.qpointz.flow
 
-import io.qpointz.flow.nio.FileStreamSource
-import io.qpointz.flow.serialization.JsonProtocolExtension
-import io.qpointz.flow.transformations.ConstTransform
+object CliMain {
 
-class Extensions extends JsonProtocolExtension {
-  override def protocols: Iterable[serialization.JsonProtocol[_]] = List(
+  def main(args:Array[String]):Unit = {
+    new CommandLine(new CliCommand()).execute(args:_*)
+  }
 
-    //nio extensions
-    FileStreamSource.jsonProtocol,
-    RecordReader.jsonProtocol
-
-    //transformations
-  )
 }

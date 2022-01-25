@@ -16,10 +16,12 @@
 
 package io.qpointz.flow.text.csv
 
+import io.qpointz.flow.RecordReader
 import io.qpointz.flow.nio.FileStreamSource
 import io.qpointz.flow.serialization.Json
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+
 import java.io.File
 
 class CsvRecordReaderTest extends AnyFlatSpec with Matchers {
@@ -71,10 +73,11 @@ class CsvRecordReaderTest extends AnyFlatSpec with Matchers {
     implicit val fmt = Json.formats
     val a = writePretty(fileReader())
     println(a)
-    val reader = read[CsvRecordReader](a)
+    val reader = read[Any](a).asInstanceOf[RecordReader]
     val all = reader.iterator.toSeq
     all.length shouldBe 10
   }
+
 
 
 //  behavior of "select by index"

@@ -11,24 +11,21 @@
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
- *  limitations under the License
+ *  limitations under the License.
  */
 
-package io.qpointz.flow.cli
+package io.qpointz.flow.cli.noise
 
 import org.apache.commons.lang3.time.StopWatch
-import shapeless.syntax.std._
-import shapeless._
-import shapeless.syntax.std.traversable.traversableOps
-import shapeless.syntax.std.tuple.{hlistOps, productTupleOps}
+import shapeless.HNil
 
 import scala.concurrent.duration.Duration
 
 object Ctest {
 
-  case class Test(i:Int)
+  case class Test(i: Int)
 
-  def main(args:Array[String]):Unit = {
+  def main(args: Array[String]): Unit = {
 
     val samples = 1000 * 1000 * 100
 
@@ -40,7 +37,7 @@ object Ctest {
         val c = Test(i + b.i)
         b = c
       }
-        a.stop()
+      a.stop()
       a
     }
 
@@ -49,12 +46,12 @@ object Ctest {
       val sw = StopWatch.createStarted()
       var b: Test = Test(1)
       for (i <- 1 to samples) {
-        val a = (1::"mmmm"::4::HNil)
+        val a = (1 :: "mmmm" :: 4 :: HNil)
         /** 1000 */
         val c = Test(i + b.i)
         b = c
       }
-        sw.stop()
+      sw.stop()
       sw
     }
 
@@ -67,7 +64,7 @@ object Ctest {
         val c = i + b
         b = c
       }
-        a.stop()
+      a.stop()
       a
     }
 
@@ -76,7 +73,7 @@ object Ctest {
 
     println(s"$cs")
     println(s"$pl")
-    println(s"${Duration.fromNanos(cs.getNanoTime-pl.getNanoTime).toSeconds}")
+    println(s"${Duration.fromNanos(cs.getNanoTime - pl.getNanoTime).toSeconds}")
 
   }
 

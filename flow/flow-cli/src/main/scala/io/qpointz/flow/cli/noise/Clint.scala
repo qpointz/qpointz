@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 qpointz.io
+ * Copyright 2022 qpointz.io
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,16 +14,15 @@
  *  limitations under the License.
  */
 
-package io.qpointz.flow.cli
+package io.qpointz.flow.cli.noise
 
 import org.apache.calcite.avatica.util.Quoting
-import org.apache.calcite.sql.{SqlNode, SqlSelect}
+import org.apache.calcite.sql.SqlNode
 import org.apache.calcite.sql.parser.SqlParser
-import org.apache.calcite.sql.validate.SqlConformance
 
 object Clint {
 
-  def parse(sql:String)(k:SqlParser=>SqlNode):SqlNode = {
+  def parse(sql: String)(k: SqlParser => SqlNode): SqlNode = {
     val parserBuilder = SqlParser
       .config()
       .withQuoting(Quoting.BACK_TICK)
@@ -31,11 +30,11 @@ object Clint {
     k(sqlParser)
   }
 
-  def parseStatement(stmt:String):SqlNode = parse(stmt)(_.parseStmt())
+  def parseStatement(stmt: String): SqlNode = parse(stmt)(_.parseStmt())
 
-  def parseExpression(exp:String):SqlNode = parse(exp)(_.parseExpression())
+  def parseExpression(exp: String): SqlNode = parse(exp)(_.parseExpression())
 
-  def main(args:Array[String]):Unit = {
+  def main(args: Array[String]): Unit = {
     /*val node = parseStatement("select CAST(a+2 AS INT), `#g.t`.t = 'sss' as b, c from `record` where 1").asInstanceOf[SqlSelect]
     node.getSelectList
     println(node)*/

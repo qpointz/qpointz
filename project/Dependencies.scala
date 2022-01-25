@@ -43,7 +43,7 @@ object Dependencies {
   }
 
   object slf4j {
-    lazy val v = "org.slf4j" ~% "1.7.33"
+    lazy val v = "org.slf4j" ~% "1.7.35"
     lazy val api = "slf4j-api" ~~ v
   }
 
@@ -71,7 +71,7 @@ object Dependencies {
   }
 
   object scalaTest {
-    lazy val v = "org.scalatest" ~%% "3.2.10"
+    lazy val v = "org.scalatest" ~%% "3.2.11"
     lazy val scalaTest = v ~~ "scalatest"
   }
 
@@ -111,7 +111,7 @@ object Dependencies {
   }
 
   object picocli {
-    val v = "4.0.0"
+    val v = "4.6.2"
     val p = "info.picocli" ~% v
     val picocli = "picocli" ~~ p
   }
@@ -129,7 +129,7 @@ object Dependencies {
   }
 
   object json4s {
-    val v = "4.0.3"
+    val v = "4.0.4"
     val p = "org.json4s" ~%% v
     val native = "json4s-native" ~~ p
     val jackson = "json4s-jackson" ~~ p
@@ -167,7 +167,7 @@ object Dependencies {
   }
 
   object amazonAWSSDK {
-    val v = "2.17.114"
+    val v = "2.17.118"
     val g = "software.amazon.awssdk"
     val p = g ~% v
     val sdkJava = "aws-sdk-java" ~~ p
@@ -175,7 +175,7 @@ object Dependencies {
   }
 
   object apacheSpark {
-    val v = "3.2.0"
+    val v = "3.2.1"
     val p = "org.apache.spark" ~%% v
     val sql = "spark-sql" ~~ p
     val core = "spark-core" ~~ p

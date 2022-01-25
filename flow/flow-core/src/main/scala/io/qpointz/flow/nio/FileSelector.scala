@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 qpointz.io
+ * Copyright 2022 qpointz.io
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,19 +14,6 @@
  *  limitations under the License
  */
 
-package io.qpointz.flow
+package io.qpointz.flow.nio
 
-import io.qpointz.flow.nio.FileStreamSource
-import io.qpointz.flow.serialization.JsonProtocolExtension
-import io.qpointz.flow.transformations.ConstTransform
-
-class Extensions extends JsonProtocolExtension {
-  override def protocols: Iterable[serialization.JsonProtocol[_]] = List(
-
-    //nio extensions
-    FileStreamSource.jsonProtocol,
-    RecordReader.jsonProtocol
-
-    //transformations
-  )
-}
+case class FileSelector(name:String)

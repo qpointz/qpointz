@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 qpointz.io
+ * Copyright 2022 qpointz.io
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,24 +14,21 @@
  *  limitations under the License.
  */
 
-package io.qpointz.flow.cli
+package io.qpointz.flow.cli.noise
 
-import com.typesafe.config.{ConfigFactory, ConfigParseOptions, ConfigRenderOptions, ConfigResolveOptions, ConfigResolver, ConfigValue, ConfigValueType}
+import com.typesafe.config.{ConfigFactory, ConfigValueType}
 
-import java.io.{BufferedInputStream, File, FileInputStream, InputStream}
-import scala.jdk.CollectionConverters.IteratorHasAsScala
-
-
+import scala.jdk.CollectionConverters._
 
 object ResTest {
 
-  def main(args:Array[String]):Unit = {
+  def main(args: Array[String]): Unit = {
     val cl = this.getClass.getClassLoader
     val all = cl
       .getResources("qpointz.conf")
       .asIterator()
       .asScala
-      .map(x=> {
+      .map(x => {
         val cfg = ConfigFactory.parseURL(x)
         cfg
           .getList("extensions")
@@ -50,7 +47,7 @@ object ResTest {
 
 
     //val cfg
-/*
+    /*
     val uri = ResTest.getClass.getClassLoader.getResource("/").toURI
 
     val p = Paths.get(uri)

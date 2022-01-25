@@ -1,8 +1,8 @@
-
 import Dependencies._
 import sbt.Keys.libraryDependencies
 import sbt._
 import BuildUtils._
+
 
 lazy val `flow` = project
   .aggregate(
@@ -35,8 +35,13 @@ lazy val `flow-cli` = libProject("flow","flow-cli")
     libraryDependencies ++= modules(
       apacheCalcite.core,
       jansi.jansi,
-      shapeless
-    )
+      shapeless,
+      picocli.picocli
+    ),
+    Compile / mainClass  := Some("io.qpointz.flow.cli.CliMain"),
+    Compile / discoveredMainClasses := Seq(),
+    executableScriptName := "flow",
+
   )
   .enablePlugins(JavaAppPackaging)
 

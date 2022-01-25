@@ -66,6 +66,7 @@ class AvroRecordWriterTest extends AnyFlatSpec with Matchers {
 
   it should "serialize polymorphic" in {
     val cnt = pretty(Extraction.decompose(w))
+    println(cnt)
     val nw = Extraction.extract[RecordWriter](parse(cnt)).asInstanceOf[AvroRecordWriter]
     nw.settings.schema.avroSchema() shouldBe w.settings.schema.avroSchema()
     nw.settings.path shouldBe w.settings.path

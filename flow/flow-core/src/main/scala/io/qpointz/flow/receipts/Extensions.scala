@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 qpointz.io
+ * Copyright 2022 qpointz.io
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,19 +14,14 @@
  *  limitations under the License
  */
 
-package io.qpointz.flow
+package io.qpointz.flow.receipts
 
-import io.qpointz.flow.nio.FileStreamSource
-import io.qpointz.flow.serialization.JsonProtocolExtension
-import io.qpointz.flow.transformations.ConstTransform
+import io.qpointz.flow.receipts.impl.ConvertSerializer
+import io.qpointz.flow.{TypeId, serialization}
+import io.qpointz.flow.serialization.{JsonProtocol, JsonProtocolExtension}
 
 class Extensions extends JsonProtocolExtension {
   override def protocols: Iterable[serialization.JsonProtocol[_]] = List(
-
-    //nio extensions
-    FileStreamSource.jsonProtocol,
-    RecordReader.jsonProtocol
-
-    //transformations
+    JsonProtocol(TypeId("qp", Seq("receipts"), "common", "convert"), new ConvertSerializer())
   )
 }

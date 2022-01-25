@@ -17,11 +17,22 @@
 
 package io.qpointz.flow
 
+import io.qpointz.flow.serialization.JsonProtocol
+import org.json4s.{CustomSerializer, Extraction}
+import org.json4s.JsonAST.JObject
+
 trait RecordReader extends Iterable[Record] with WithOperationContext {
 
 }
 
+object RecordReaderSerializer extends CustomSerializer[RecordReader](implicit format => (
+  {case jo:JObject => jo.extract[Any].asInstanceOf[RecordReader]},
+  {case r:RecordReader => Extraction.decompose(r)}
+))
+
 object RecordReader {
+
+  val jsonProtocol = JsonProtocol(RecordReaderSerializer)
 
   def fromIterable(iter:Iterable[Record])(implicit ct:OperationContext):RecordReader = new RecordReader {
 

@@ -17,9 +17,12 @@
 package io.qpointz.flow.utils
 
 
+import com.typesafe.scalalogging.Logger
+
 import scala.util.{Failure, Success, Try}
 
 object ReflectUtils {
+  val log = Logger("default")
 
   def instancesOf[T](all:Iterable[Any])(implicit m:Manifest[T]):Seq[T] = {
     all.map{
@@ -52,7 +55,10 @@ object ReflectUtils {
       val cl = Class.forName(cn)
       Success(cl)
     } catch {
-      case ex : Throwable => Failure(ex)
+      case ex : Throwable => {
+        log.error(s"${cn} class not found")
+        Failure(ex)
+      }
     }
   }
 
