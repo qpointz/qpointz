@@ -23,21 +23,13 @@ import org.json4s.JsonAST.JObject
 
 trait RecordReaderAlike
 
-trait RecordReader extends Iterable[Record] with WithOperationContext with RecordReaderAlike {
+trait RecordReader extends Iterable[Record] with WithOperationContext {
 
 }
 
-object RecordReaderSerializer extends CustomSerializer[RecordReader](implicit format => {
-  ( {
-    case jo: JObject => jo.extract[Any].asInstanceOf[RecordReader]
-  }, {
-    case r: RecordReaderAlike => Extraction.decompose(r)(format - this)
-  }
-  )
-}
-  )
-
-
+object RecordReaderSerializer extends CustomSerializer[RecordReader](implicit format =>(
+  {case jo: JObject => jo.extract[Any].asInstanceOf[RecordReader]},
+  PartialFunction.empty)) //json4s collection serialization tweak
 
 object RecordReader {
 
