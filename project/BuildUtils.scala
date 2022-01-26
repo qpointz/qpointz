@@ -45,14 +45,15 @@ object BuildUtils {
   }
 
   def projectPath(group:String, projectName:String):String = {
-    s"${group}/${projectName}"
+    s"${group}-${projectName}"
   }
 
   def libProjectNoDependencies(group:String, projectName:String): Project = {
-    sbt.Project(projectName, file(projectPath(group, projectName)))
+    val fullName = s"${group}-${projectName}"
+    sbt.Project(fullName, file(projectPath(group, projectName)))
       .settings(
         autoAPIMappings := true,
-        name:= projectName,
+        //name:= fullName,
         scalacOptions ++= Seq(
           //"-Xfatal-warnings",
           "-deprecation",
@@ -61,7 +62,7 @@ object BuildUtils {
       )
   }
 
-  def libProject(group:String, projectName:String): Project = {
+  def libProject(group:String, projectName:String): Project = {    
     val pPath = projectPath(group, projectName)
     libProjectNoDependencies(group, projectName)
       .settings(

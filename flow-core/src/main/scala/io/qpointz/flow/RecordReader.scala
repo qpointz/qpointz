@@ -21,14 +21,23 @@ import io.qpointz.flow.serialization.JsonProtocol
 import org.json4s.{CustomSerializer, Extraction}
 import org.json4s.JsonAST.JObject
 
-trait RecordReader extends Iterable[Record] with WithOperationContext {
+trait RecordReaderAlike
+
+trait RecordReader extends Iterable[Record] with WithOperationContext with RecordReaderAlike {
 
 }
 
-object RecordReaderSerializer extends CustomSerializer[RecordReader](implicit format => (
-  {case jo:JObject => jo.extract[Any].asInstanceOf[RecordReader]},
-  {case r:RecordReader => Extraction.decompose(r)}
-))
+object RecordReaderSerializer extends CustomSerializer[RecordReader](implicit format => {
+  ( {
+    case jo: JObject => jo.extract[Any].asInstanceOf[RecordReader]
+  }, {
+    case r: RecordReaderAlike => Extraction.decompose(r)(format - this)
+  }
+  )
+}
+  )
+
+
 
 object RecordReader {
 

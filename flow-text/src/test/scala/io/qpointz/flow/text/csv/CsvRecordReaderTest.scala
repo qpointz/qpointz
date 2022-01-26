@@ -33,7 +33,7 @@ class CsvRecordReaderTest extends AnyFlatSpec with Matchers {
     .headerExtractionEnabled(true)
 
   def fileReader(name:String = "vanila", settings:CsvRecordReaderSettings = defaultSettings): CsvRecordReader = {
-    val stream = FileStreamSource(new File(s"flow/test/formats/csv/${name}.csv"))
+    val stream = FileStreamSource(new File(s"test/formats/csv/${name}.csv"))
     new CsvRecordReader(stream, settings)
   }
 
@@ -73,7 +73,7 @@ class CsvRecordReaderTest extends AnyFlatSpec with Matchers {
     implicit val fmt = Json.formats
     val a = writePretty(fileReader())
     println(a)
-    val reader = read[Any](a).asInstanceOf[RecordReader]
+    val reader = read[RecordReader](a)
     val all = reader.iterator.toSeq
     all.length shouldBe 10
   }

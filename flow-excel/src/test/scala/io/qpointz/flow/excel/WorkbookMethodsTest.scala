@@ -25,7 +25,7 @@ class WorkbookMethodsTest extends AnyFlatSpec with Matchers {
   behavior of "open"
 
   it should "open workbook by path" in {
-    val wb = open("./flow/flow-excel/src/test/resources/flow-excel-test/TestData.xlsx")
+    val wb = open("./flow-excel/src/test/resources/flow-excel-test/TestData.xlsx")
     wb.sheets().length  should be > 0
   }
 
