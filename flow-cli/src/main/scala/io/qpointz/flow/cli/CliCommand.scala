@@ -17,11 +17,17 @@
 package io.qpointz.flow.cli
 
 import io.qpointz.flow.cli.commands._
+import picocli.CommandLine
 import picocli.CommandLine.Command
 
 @Command(name = "main", subcommands = Array(
-classOf[ReceiptCommand],
-classOf[InspectCommand]
+  classOf[ReceiptCommand],
+  classOf[InspectCommand],
+  classOf[ReplCommand]
 ))
 class CliCommand {
+
+  @CommandLine.Option(names = Array("--repl"),required = false)
+  var isRepl:Boolean = false
+
 }

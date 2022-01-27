@@ -15,21 +15,28 @@
  *   limitations under the License.
  */
 
-package io.qpointz.flow.cli.commands
+package io.qpointz.flow.avro
 
-import org.apache.calcite.linq4j.function.Parameter
-import picocli.CommandLine.{Command,Option}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-@Command(name = "inspect")
-class InspectCommand extends Runnable {
+import java.io.File
+import java.nio.file.Paths
 
-  override def run(): Unit = {
-      io.qpointz.flow.serialization.Json.jsonProtocols
-        .filter(_.typeId.isDefined)
-        .map(x=> x.typeId.get.toURI)
-        .toSeq
-        .sorted
-        .foreach(println)
+class AvroRecordReaderTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
+
+  def avr(name:String="nyc-bronx-2009"):File = Paths.get("flow-test/data/formats/avro/nyc/", s"${name}.avro").toFile
+
+  behavior of "read"
+
+  it should "read" in {
+    val r = new AvroRecordReader(avr())
+    //r.take(10).toSeq.length shouldBe 10
+    r.take(10).foreach(println)
+
+
 
   }
+
 }

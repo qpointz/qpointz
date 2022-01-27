@@ -17,19 +17,9 @@
 
 package io.qpointz.flow.cli.commands
 
-import org.apache.calcite.linq4j.function.Parameter
-import picocli.CommandLine.{Command,Option}
+import picocli.CommandLine.Command
 
-@Command(name = "inspect")
-class InspectCommand extends Runnable {
-
-  override def run(): Unit = {
-      io.qpointz.flow.serialization.Json.jsonProtocols
-        .filter(_.typeId.isDefined)
-        .map(x=> x.typeId.get.toURI)
-        .toSeq
-        .sorted
-        .foreach(println)
-
-  }
+@Command(name="autocomplete")
+class AutoCompleteCommand extends Runnable {
+  override def run(): Unit = picocli.AutoComplete.main()
 }

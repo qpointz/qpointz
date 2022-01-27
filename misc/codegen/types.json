@@ -1,0 +1,149 @@
+{
+  "templates" : {
+    "format" : {
+      "fields" : [
+        {"name":"comment", "type": "Char","setm":"setComment","getm":"getComment"},
+        {"name":"lineSeparator", "type": "String","setm":"setLineSeparator","getm":"getLineSeparatorString"},
+        {"name":"normalizedNewline", "type": "Char","setm":"setNormalizedNewline","getm":"getNormalizedNewline"}
+      ]
+    },
+    "formatext" : {
+      "fields" : [
+        {"name":"delimiter", "type":"String" ,"setm":"setDelimiter","getm":"getDelimiterString"},
+        {"name":"quote", "type": "Char","setm":"setQuote","getm":"getQuote"},
+        {"name":"quoteEscape", "type": "Char","setm":"setQuoteEscape","getm":"getQuoteEscape"},
+        {"name":"charToEscapeQuoteEscaping", "type": "Char","setm":"setCharToEscapeQuoteEscaping","getm":"getCharToEscapeQuoteEscaping"}
+      ]
+    },
+    "common" : {
+        "fields" : [
+          {"name":"nullValue","type":"String","setm":"setNullValue","getm":"getNullValue"},
+          {"name":"maxCharsPerColumn","type":"Int","setm":"setMaxCharsPerColumn","getm":"getMaxCharsPerColumn"},
+          {"name":"maxColumns","type":"Int","setm":"setMaxColumns","getm":"getMaxColumns"},
+          {"name":"skipEmptyLines","type":"Boolean","setm":"setSkipEmptyLines","getm":"getSkipEmptyLines"},
+          {"name":"ignoreTrailingWhitespaces","type":"Boolean","setm":"setIgnoreTrailingWhitespaces","getm":"getIgnoreTrailingWhitespaces"},
+          {"name":"ignoreLeadingWhitespaces","type":"Boolean","setm":"setIgnoreLeadingWhitespaces","getm":"getIgnoreLeadingWhitespaces"},
+          {"name":"headers","type":"Array[String]","setm":"setHeaders","getm":"getHeaders"},
+          {"name":"skipBitsAsWhitespace","type":"Boolean","setm":"setSkipBitsAsWhitespace","getm":"getSkipBitsAsWhitespace"}
+        ]
+    },
+    "parser" : {
+        "fields": [
+          {"name":"headerExtractionEnabled","type":"Boolean","setm":"setHeaderExtractionEnabled","getm":"isHeaderExtractionEnabled"},
+          {"name":"columnReorderingEnabled","type":"Boolean","setm":"setColumnReorderingEnabled","getm":"isColumnReorderingEnabled"},
+          {"name":"inputBufferSize","type":"Int","setm":"setInputBufferSize","getm":"getInputBufferSize"},
+          {"name":"numberOfRecordsToRead","type":"Long","setm":"setNumberOfRecordsToRead","getm":"getNumberOfRecordsToRead"},
+          {"name":"lineSeparatorDetectionEnabled","type":"Boolean","setm":"setLineSeparatorDetectionEnabled","getm":"isLineSeparatorDetectionEnabled"},
+          {"name":"numberOfRowsToSkip","type":"Long","setm":"setNumberOfRowsToSkip","getm":"getNumberOfRowsToSkip"}
+        ]
+      },
+    "writer" : {
+        "fields": [
+        ]
+    }
+}
+,
+"types": [
+  {
+    "package" : "io.qpointz.flow.text.csv",
+    "type" : "CsvFormat",
+    "target" : {
+      "type": "com.univocity.parsers.csv.CsvFormat",
+      "name": "CsvFormat"
+    },
+    "extends" : null,
+    "templates" : ["format","formatext"],
+    "output" : "csv/",
+    "fields" : []
+  },
+  {
+    "package" : "io.qpointz.flow.text.csv",
+    "type" : "CsvRecordReaderSettings",
+    "extends" : "TextReaderSettings",
+    "target" : {
+        "type": "com.univocity.parsers.csv.CsvParserSettings",
+        "name": "CsvParserSettings"
+     },
+    "output" : "csv/",
+    "templates" : ["common", "parser"],
+    "fields": [
+        {"name":"format", "type": "CsvFormat", "setm": "setFormat", "getm": "getFormat"},
+        {"name":"emptyValue","type":"String","setm":"setEmptyValue","getm":"getEmptyValue"},
+        {"name":"ignoreLeadingWhitespacesInQuotes","type":"Boolean","setm":"setIgnoreLeadingWhitespacesInQuotes","getm":"getIgnoreLeadingWhitespacesInQuotes"},
+        {"name":"ignoreTrailingWhitespacesInQuotes","type":"Boolean","setm":"setIgnoreTrailingWhitespacesInQuotes","getm":"getIgnoreTrailingWhitespacesInQuotes"},
+        {"name":"escapeUnquotedValues","type":"Boolean","setm":"setEscapeUnquotedValues","getm":"isEscapeUnquotedValues"},
+        {"name":"keepEscapeSequences","type":"Boolean","setm":"setKeepEscapeSequences","getm":"isKeepEscapeSequences"},
+        {"name":"keepQuotes","type":"Boolean","setm":"setKeepQuotes","getm":"getKeepQuotes"},
+        {"name":"normalizeLineEndingsWithinQuotes","type":"Boolean","setm":"setNormalizeLineEndingsWithinQuotes","getm":"isNormalizeLineEndingsWithinQuotes"},
+        {"name":"commentCollectionEnabled","type":"Boolean","setm":"setCommentCollectionEnabled","getm":"isCommentCollectionEnabled"},
+        {"name":"unescapedQuoteHandling","type":"UnescapedQuoteHandling","setm":"setUnescapedQuoteHandling","getm":"getUnescapedQuoteHandling"},
+        {"name":"errorContentLength","type":"Int","setm":"setErrorContentLength","getm":"getErrorContentLength"}
+    ]
+  },
+  {
+    "package" : "io.qpointz.flow.text.csv",
+    "type" : "CsvRecordWriterSettings",
+    "extends" : "TextWriterSettings",
+    "target" : {
+      "type": "com.univocity.parsers.csv.CsvWriterSettings",
+      "name": "CsvWriterSettings"
+    },
+    "templates" : ["common", "parser"],
+    "output" : "csv/",
+    "fields": [
+      {"name":"emptyValue","type":"String","setm":"setEmptyValue","getm":"getEmptyValue"},
+      {"name":"ignoreLeadingWhitespacesInQuotes","type":"Boolean","setm":"setIgnoreLeadingWhitespacesInQuotes","getm":"getIgnoreLeadingWhitespacesInQuotes"},
+      {"name":"ignoreTrailingWhitespacesInQuotes","type":"Boolean","setm":"setIgnoreTrailingWhitespacesInQuotes","getm":"getIgnoreTrailingWhitespacesInQuotes"},
+      {"name":"escapeUnquotedValues","type":"Boolean","setm":"setEscapeUnquotedValues","getm":"isEscapeUnquotedValues"},
+      {"name":"keepEscapeSequences","type":"Boolean","setm":"setKeepEscapeSequences","getm":"isKeepEscapeSequences"},
+      {"name":"keepQuotes","type":"Boolean","setm":"setKeepQuotes","getm":"getKeepQuotes"},
+      {"name":"normalizeLineEndingsWithinQuotes","type":"Boolean","setm":"setNormalizeLineEndingsWithinQuotes","getm":"isNormalizeLineEndingsWithinQuotes"},
+      {"name":"commentCollectionEnabled","type":"Boolean","setm":"setCommentCollectionEnabled","getm":"isCommentCollectionEnabled"},
+      {"name":"unescapedQuoteHandling","type":"UnescapedQuoteHandling","setm":"setUnescapedQuoteHandling","getm":"getUnescapedQuoteHandling"},
+      {"name":"errorContentLength","type":"Int","setm":"setErrorContentLength","getm":"getErrorContentLength"}
+    ]
+  },
+  {
+    "package" : "io.qpointz.flow.text.fwf",
+    "type" : "FwfFormat",
+    "target" : {
+      "type": "com.univocity.parsers.csv.CsvFormat",
+      "name": "FwfFormat"
+    },
+    "extends" : null,
+    "templates" : ["format","formatext"],
+    "output" : "fwf/",
+    "fields" : []
+  },
+  {
+    "package" : "io.qpointz.flow.text.fwf",
+    "type" : "FwfRecordReaderSettings",
+    "extends" : "TextReaderSettings",
+    "target" : {
+      "type": "com.univocity.parsers.csv.FixedWidthParserSettings",
+      "name": "FwfParserSettings"
+    },
+    "output" : "fwf/",
+    "templates" : ["common", "parser"],
+    "fields": [
+      {"name":"recordsEndsOnNewLine","type":"Boolean","setm":"setRecordsEndsOnNewLine","getm":"getRecordsEndsOnNewLine"},
+      {"name":"skipTrailingCharsUntilNewline","type":"Boolean","setm":"setSkipTrailingCharsUntilNewline","getm":"getSkipTrailingCharsUntilNewline"},
+      {"name":"useDefaultPaddingForHeaders", "type": "Boolean","setm":"setUseDefaultPaddingForHeaders", "getm":"getUseDefaultPaddingForHeaders"}
+    ]
+  },
+  {
+    "package" : "io.qpointz.flow.text.fwf",
+    "type" : "FwfRecordWriterSettings",
+    "extends" : "TextWriterSettings",
+    "target" : {
+      "type": "com.univocity.parsers.csv.FixedWidthWriterSettings",
+      "name": "FwfParserSettings"
+    },
+    "output" : "fwf/",
+    "templates" : ["common", "parser"],
+    "fields": [
+      {"name": "fields", "type":"Map[String,Integer]"}
+    ]
+  }
+]
+  }

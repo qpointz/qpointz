@@ -81,6 +81,8 @@ object Record {
 
   def apply(kv: (AttributeKey, AttributeValue)*): Record = Record(kv.toMap, empty)
 
+  def apply(m:Map[AttributeKey, AttributeValue]): Record = Record(m, empty)
+
   def apply[T<:AttributeValue](keys: Seq[AttributeKey], values:Seq[T], meta:Metadata): Record = {
 
     val map = if (keys.length==values.length) {
