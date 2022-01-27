@@ -17,11 +17,11 @@
 package io.qpointz.flow.receipts
 
 import io.qpointz.flow.receipts.impl.ConvertSerializer
-import io.qpointz.flow.{TypeId, serialization}
+import io.qpointz.flow.{TypeId, flowQuids, serialization}
 import io.qpointz.flow.serialization.{JsonProtocol, JsonProtocolExtension}
 
 class Extensions extends JsonProtocolExtension {
   override def protocols: Iterable[serialization.JsonProtocol[_]] = List(
-    JsonProtocol(TypeId("qp", Seq("receipts"), "common", "convert"), new ConvertSerializer())
+    JsonProtocol(flowQuids.receipt("convert"), new ConvertSerializer())
   )
 }

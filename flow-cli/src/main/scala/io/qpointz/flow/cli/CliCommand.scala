@@ -1,8 +1,3 @@
-package io.qpointz.flow.cli
-
-import io.qpointz.flow.cli.commands._
-import picocli.CommandLine.Command
-
 /*
  * Copyright 2022 qpointz.io
  *
@@ -19,8 +14,14 @@ import picocli.CommandLine.Command
  *  limitations under the License.
  */
 
+package io.qpointz.flow.cli
+
+import io.qpointz.flow.cli.commands._
+import picocli.CommandLine.Command
+
 @Command(name = "main", subcommands = Array(
-classOf[ReceiptCommand]
+classOf[ReceiptCommand],
+classOf[InspectCommand]
 ))
 class CliCommand {
 }

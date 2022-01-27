@@ -24,7 +24,7 @@ package object functions {
   val registry = IntFunctions.funcs ++ StringFunctions.funcs
 
   object FunctionsOps {
-
+    import scala.language.implicitConversions
     implicit def toNum(a:Any):Number = a.toNumber
 
     implicit class AnyOps(a:Any) {

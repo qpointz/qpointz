@@ -16,14 +16,14 @@
 
 package io.qpointz.flow.avro
 
-import io.qpointz.flow.{TypeId, serialization}
+import io.qpointz.flow.{TypeId, flowQuids, serialization}
 import io.qpointz.flow.serialization.{JsonProtocol, JsonProtocolExtension}
 import shaded.parquet.org.apache.thrift.protocol.TJSONProtocol
 
 class JsonSerialization extends JsonProtocolExtension {
   override def protocols: Iterable[serialization.JsonProtocol[_]] = List(
-    JsonProtocol[AvroRecordWriter](TypeId("qp", Seq("avro"), "record","writer"), new AvroRecordWriterSerializer()),
+    JsonProtocol[AvroRecordWriter](flowQuids.writer("avro"), new AvroRecordWriterSerializer()),
     JsonProtocol[AvroRecordWriterSettings](new AvroRecordWriterSettingsSerializer()),
-    JsonProtocol[AvroRecordReader](TypeId("qp", Seq("avro"), "record","reader"), new AvroRecordReaderSerializer()),
+    JsonProtocol[AvroRecordReader](flowQuids.reader("avro"), new AvroRecordReaderSerializer())
   )
 }

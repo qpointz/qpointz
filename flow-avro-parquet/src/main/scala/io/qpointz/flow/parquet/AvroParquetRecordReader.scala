@@ -21,8 +21,7 @@ import io.qpointz.flow.{MetadataMethods, OperationContext, Record, RecordReader}
 import org.apache.avro.generic.GenericRecord
 import org.apache.parquet.avro.AvroParquetReader
 import org.apache.parquet.io.InputFile
-
-import collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class AvroParquetRecordReaderSettings {
   var inputFile : InputFile = _

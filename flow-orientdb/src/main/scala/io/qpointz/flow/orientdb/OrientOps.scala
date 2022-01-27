@@ -16,11 +16,10 @@
 
 package io.qpointz.flow.orientdb
 
-import com.orientechnologies.orient.core.db.ODatabaseSession
 import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.impl.ODocument
 import com.orientechnologies.orient.core.sql.executor.{OResult, OResultSet}
-import org.json4s.{Formats, JValue, JsonFormat}
+import org.json4s.{Formats, JValue}
 
 import scala.jdk.CollectionConverters._
 
@@ -30,7 +29,7 @@ object OrientOps {
 
     implicit def asIterator:Iterator[OResult] = resultSet.asScala
 
-    def asRecords[T<:ORecord]():Iterator[Option[T]] = resultSet
+    def asRecords[T<:ORecord]:Iterator[Option[T]] = resultSet
       .asIterator
       .map(x=> x.getElement)
       .map{

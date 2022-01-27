@@ -18,40 +18,17 @@ package io.qpointz.flow
 
 import QId._
 
-object QIds {
+trait PackageQIds {
+  protected val nsName:String
 
-  val qp = NamespaceId("flow")
+  lazy val ns = NamespaceId(nsName)
 
-  object Stream {
-    val hierarchyId = qp.hierarchyId("stream")
-
-    val inputStreamId = hierarchyId.groupId("input")
-    val outputStreamId = hierarchyId.groupId("output")
-
-  }
-
-  object Record {
-    val hierarchyId = qp.hierarchyId("record")
-
-    object Reader {
-      val hierarchyId = QIds.Record.hierarchyId.hierarchyId("read")
-      val reader = hierarchyId.groupId("reader")
-      val settings = hierarchyId.groupId("settings")
-    }
-
-    object Writer {
-      val hierarchyId = QIds.Record.hierarchyId.hierarchyId("write")
-      val writer = hierarchyId.groupId("writer")
-      val settings = hierarchyId.groupId("settings")
-    }
-
-    object Transformation {
-      val groupId = QIds.Record.hierarchyId.groupId("transformation")
-    }
-  }
-
-  //qp:flow:record/reader:reader:csv
-  //qp:flow:record/writer:settings:csv
-
+  def format(format:String, hierarchy: Seq[String]=Seq()): QGroupId = ns.hierarchyId(hierarchy:_*).groupId(format)
+  def reader(fmt:String, hierarchy: Seq[String]=Seq()): QTypeId =  format(fmt, hierarchy).typeId("reader")
+  def readerSettings(fmt:String, hierarchy: Seq[String]=Seq()): QTypeId =  format(fmt, hierarchy).typeId("reader-settings")
+  def writer(fmt:String, hierarchy: Seq[String]=Seq()): QTypeId =  format(fmt, hierarchy).typeId("writer")
+  def writerSettings(fmt:String, hierarchy: Seq[String]=Seq()): QTypeId =  format(fmt, hierarchy).typeId("writer-settings")
+  def transformation(transformation:String, hierarchy: Seq[String]=Seq()): QTypeId=ns.hierarchyId(hierarchy:_*).groupId("transformation").typeId(transformation)
+  def receipt(n:String, hierarchy: Seq[String]=Seq()): QTypeId =ns.hierarchyId(hierarchy:_*).groupId("receipt").typeId(n)
+  def inputStream(n:String, hierarchy: Seq[String]=Seq()): QTypeId = ns.hierarchyId(hierarchy:_*).groupId("input-stream").typeId(n)
 }
-

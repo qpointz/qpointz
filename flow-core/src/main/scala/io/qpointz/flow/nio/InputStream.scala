@@ -16,7 +16,7 @@
 
 package io.qpointz.flow.nio
 
-import io.qpointz.flow.{Metadata, MetadataAwareWithId, MetadataGroupKey, QIds, QTypeId}
+import io.qpointz.flow.{Metadata, MetadataAwareWithId, flowQuids}
 
 import java.io.{InputStream, InputStreamReader, Reader}
 
@@ -32,7 +32,7 @@ trait InputStreamSource extends StreamSource {
 }
 
 class InputStreamStreamSource(stream:InputStream) extends InputStreamSource with MetadataAwareWithId {
-  val metaId = QIds.Stream.inputStreamId.typeId("input-stream")
+  val metaId = flowQuids.inputStream("input-stream")
   override def inputStream: InputStream = stream
   override val metadata: Metadata = Seq()
 }

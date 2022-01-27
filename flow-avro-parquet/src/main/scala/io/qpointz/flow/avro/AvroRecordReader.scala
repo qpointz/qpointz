@@ -26,9 +26,7 @@ class AvroRecordReader(implicit val ctx:OperationContext) extends RecordReader {
 }
 
 class AvroRecordReaderSerializer extends CustomSerializer[AvroRecordReader](implicit format => (
-  {
-    case _:JObject => new AvroRecordReader()
-  },
+  {case _:JObject => new AvroRecordReader()},
   {case _:AvroRecordReader =>
       hint[AvroRecordReader]
   })
