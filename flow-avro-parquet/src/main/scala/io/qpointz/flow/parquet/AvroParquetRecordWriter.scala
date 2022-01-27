@@ -48,7 +48,7 @@ class AvroParquetRecordWriterSettings {
 
 }
 
-class AvroParquetRecordWriter(settings:AvroParquetRecordWriterSettings)(implicit val ctx:OperationContext) extends RecordWriter {
+class AvroParquetRecordWriter(settings:AvroParquetRecordWriterSettings) extends RecordWriter {
   override def open(): Unit = {
 
   }

@@ -41,9 +41,8 @@ class FlowMethodsTest extends akka.testkit.TestKit(ActorSystem("FlowMethodsTest_
 
 
 
-    def writer(buffer:ListBuffer[Record])(implicit ctxp:OperationContext): RecordWriter = new RecordWriter {
+    def writer(buffer:ListBuffer[Record]): RecordWriter = new RecordWriter {
 
-      override implicit val ctx: OperationContext = ctxp
 
       override def open(): Unit = {
         println("open")
@@ -57,8 +56,6 @@ class FlowMethodsTest extends akka.testkit.TestKit(ActorSystem("FlowMethodsTest_
         println(s"write ${r}")
         buffer.append(r)
       }
-
-
     }
 
     val recs = ListBuffer.empty[Record]

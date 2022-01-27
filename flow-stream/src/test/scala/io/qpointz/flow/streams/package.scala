@@ -28,7 +28,7 @@ package object streams {
 
   def ratesRecords:Seq[Record] = ratesRecordsReader.toSeq
 
-  def ratesRecordsReader(implicit ctx:OperationContext): RecordReader = {
+  def ratesRecordsReader: RecordReader = {
     val st = new CsvRecordReaderSettings(
       headerExtractionEnabled = Some(true)
     )

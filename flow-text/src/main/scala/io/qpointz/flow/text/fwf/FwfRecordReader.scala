@@ -23,7 +23,6 @@ import io.qpointz.flow.{Metadata, MetadataMethods, OperationContext, QTypeId, fl
 
 class FwfRecordReader(stream:InputStreamSource,
                       settings:FwfRecordReaderSettings = FwfFormats.default)
-                     (implicit override val ctx:OperationContext)
   extends TextRecordReader[FixedWidthParser,FwfRecordReaderSettings](stream, settings)
 {
   override val metaId: QTypeId = flowQuids.reader("fwf")

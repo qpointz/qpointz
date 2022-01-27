@@ -27,7 +27,7 @@ class AvroParquetRecordReaderSettings {
   var inputFile : InputFile = _
 }
 
-class AvroParquetRecordReader(settings:AvroParquetRecordReaderSettings)(implicit val ctx:OperationContext) extends RecordReader {
+class AvroParquetRecordReader(settings:AvroParquetRecordReaderSettings) extends RecordReader {
 
   private lazy val reader = AvroParquetReader
     .builder[GenericRecord](settings.inputFile)

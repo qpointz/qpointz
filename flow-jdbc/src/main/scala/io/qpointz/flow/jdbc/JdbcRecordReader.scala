@@ -35,7 +35,7 @@ case class JdbcRecordReaderSettings(driver:String,
                                     query:String,
                                     queryParams: Seq[Any]) {}
 
-class JdbcRecordReader(jdbcSettings: JdbcRecordReaderSettings)(implicit val ctx:OperationContext)
+class JdbcRecordReader(jdbcSettings: JdbcRecordReaderSettings)
   extends RecordReader  {
 
   lazy val rs = {

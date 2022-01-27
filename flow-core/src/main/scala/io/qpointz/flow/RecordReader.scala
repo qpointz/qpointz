@@ -35,12 +35,8 @@ object RecordReader {
 
   val jsonProtocol = JsonProtocol(RecordReaderSerializer)
 
-  def fromIterable(iter:Iterable[Record])(implicit ct:OperationContext):RecordReader = new RecordReader {
-
-    override implicit val ctx: OperationContext = ct
-
+  def fromIterable(iter:Iterable[Record]):RecordReader = new RecordReader {
     override def iterator: Iterator[Record] = iter.iterator
-
   }
 
 }

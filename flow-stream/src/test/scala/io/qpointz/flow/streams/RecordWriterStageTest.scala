@@ -32,8 +32,6 @@ class RecordWriterStageTest extends akka.testkit.TestKit(ActorSystem("MySpec"))
   with Matchers
   with ScalaFutures {
 
-  implicit val ctx: OperationContext = OperationContext.defaultContext
-
   behavior of "RecordWriterStage"
 
   it should "write records" in {
@@ -76,7 +74,6 @@ class RecordWriterStageTest extends akka.testkit.TestKit(ActorSystem("MySpec"))
       }
       override def close(): Unit = {}
       override def write(r: Record): Unit = {}
-      override implicit val ctx: OperationContext = OperationContext.defaultContext
     }
     recoverToExceptionIf[IOOperationIncompleteException] {
       Source.fromIterator(()=>ratesRecords.iterator).runWith(new RecordWriterStage(wrt))
@@ -90,7 +87,6 @@ class RecordWriterStageTest extends akka.testkit.TestKit(ActorSystem("MySpec"))
       override def open(): Unit = {}
       override def close(): Unit = {throw new RuntimeException("Failed to close")}
       override def write(r: Record): Unit = {}
-      override implicit val ctx: OperationContext = OperationContext.defaultContext
     }
     recoverToExceptionIf[RuntimeException] {
       Source.fromIterator(()=>ratesRecords.iterator).runWith(new RecordWriterStage(wrt))
@@ -110,7 +106,6 @@ class RecordWriterStageTest extends akka.testkit.TestKit(ActorSystem("MySpec"))
         }
         i+=1
       }
-      override implicit val ctx: OperationContext = OperationContext.defaultContext
     }
     recoverToExceptionIf[IOOperationIncompleteException] {
       Source.fromIterator(()=>ratesRecords.iterator).runWith(new RecordWriterStage(wrt))

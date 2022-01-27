@@ -21,7 +21,7 @@ import io.qpointz.flow.{OperationContext, Record, RecordReader}
 import org.json4s.JsonDSL._
 import org.json4s.{CustomSerializer, JObject}
 
-class AvroRecordReader(implicit val ctx:OperationContext) extends RecordReader {
+class AvroRecordReader extends RecordReader {
   override def iterator: Iterator[Record] = ???
 }
 

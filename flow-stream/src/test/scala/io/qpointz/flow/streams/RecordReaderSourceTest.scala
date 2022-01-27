@@ -26,8 +26,6 @@ import akka.stream.testkit.scaladsl._
 
 class RecordReaderSourceTest extends akka.testkit.TestKit(ActorSystem("MySpec")) with Matchers with AnyFlatSpecLike {
 
-  implicit val ctx: OperationContext = OperationContext.defaultContext
-
   val records = Seq(
     Record("a" -> 1, "b" -> 1),
     Record("a" -> 2, "b" -> 2),

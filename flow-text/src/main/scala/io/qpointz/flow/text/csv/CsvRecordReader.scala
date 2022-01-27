@@ -41,7 +41,7 @@ object CsvRecordReaderSerializer extends CustomSerializer[CsvRecordReader](impli
   )})
 
 class CsvRecordReader(stream:InputStreamSource,
-                      settings:CsvRecordReaderSettings = CsvRecordReaderSettings.default)(implicit override val ctx:OperationContext)
+                      settings:CsvRecordReaderSettings = CsvRecordReaderSettings.default)
   extends TextRecordReader[CsvParser, CsvRecordReaderSettings](stream, settings = settings) {
 
   override val metaId: QTypeId = CsvRecordReader.typeId

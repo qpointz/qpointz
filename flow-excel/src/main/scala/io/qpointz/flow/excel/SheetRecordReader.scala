@@ -33,7 +33,7 @@ class SheetRecordReaderSettings {
 class SheetRecordReader(val sheet:Sheet,
                         val settings: SheetRecordReaderSettings,
                         val extraMetadata:Metadata
-                       )(implicit val ctx:OperationContext) extends RecordReader {
+                       ) extends RecordReader {
 
   import ExcelMetadata._
   import WorkbookMethods._

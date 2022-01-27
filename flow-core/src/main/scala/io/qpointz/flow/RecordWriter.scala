@@ -30,7 +30,7 @@ trait RecordWriter extends WithOperationContext {
 
 }
 
-class InMemoryWriter(implicit val ctx:OperationContext) extends RecordWriter {
+class InMemoryWriter extends RecordWriter {
 
   private var maybeOpened : Option[Boolean]= None
   private val recs:ListBuffer[Record] = ListBuffer[Record]()
