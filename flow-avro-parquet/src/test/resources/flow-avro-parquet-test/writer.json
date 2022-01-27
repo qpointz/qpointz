@@ -9,6 +9,6 @@
         {"name" : "b", "type" : "string"}
       ]
     },
-    "path" : "./target/test-out/writeavro.avro"
+    "path" : ".test/avro-writer/writeavro.avro"
   }
 }

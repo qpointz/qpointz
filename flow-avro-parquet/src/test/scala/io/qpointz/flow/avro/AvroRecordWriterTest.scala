@@ -19,13 +19,23 @@ package io.qpointz.flow.avro
 
 import io.qpointz.flow.{Record, RecordWriter}
 import org.apache.avro.SchemaBuilder
+import org.apache.commons.io.FileUtils
 import org.json4s.Extraction
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import java.nio.file.Paths
+import java.nio.file.{Files, Paths}
 
-class AvroRecordWriterTest extends AnyFlatSpec with Matchers {
+class AvroRecordWriterTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
+
+  override def beforeAll(): Unit = {
+    val outDir = Paths.get("./.test/avro-writer")
+    if (Files.exists(outDir)) {
+      FileUtils.deleteDirectory(outDir.toFile)
+    }
+    FileUtils.forceMkdir(outDir.toFile)
+  }
 
   val as = new ConstantAvroScemaSource(SchemaBuilder
     .record("default")
@@ -39,7 +49,7 @@ class AvroRecordWriterTest extends AnyFlatSpec with Matchers {
 
   it should "write simple" in {
 
-    val st = AvroRecordWriterSettings(as, Paths.get("./target/test-out/writeavro.avro"))
+    val st = AvroRecordWriterSettings(as, Paths.get(".test/avro-writer/writeavro.avro"))
     val w = new AvroRecordWriter(st)
     w.open()
     w.write(Record("a" -> "a1", "b" -> "b1"))
@@ -54,7 +64,7 @@ class AvroRecordWriterTest extends AnyFlatSpec with Matchers {
   import org.json4s.jackson.JsonMethods._
   implicit val fmts = formats
 
-  val st = AvroRecordWriterSettings(as, Paths.get("./target/test-out/writeavro.avro"))
+  val st = AvroRecordWriterSettings(as, Paths.get(".test/avro-writer/writeavro.avro"))
   val w = new AvroRecordWriter(st)
 
   it should "serialize" in {
@@ -66,7 +76,6 @@ class AvroRecordWriterTest extends AnyFlatSpec with Matchers {
 
   it should "serialize polymorphic" in {
     val cnt = pretty(Extraction.decompose(w))
-    println(cnt)
     val nw = Extraction.extract[RecordWriter](parse(cnt)).asInstanceOf[AvroRecordWriter]
     nw.settings.schema.avroSchema() shouldBe w.settings.schema.avroSchema()
     nw.settings.path shouldBe w.settings.path
