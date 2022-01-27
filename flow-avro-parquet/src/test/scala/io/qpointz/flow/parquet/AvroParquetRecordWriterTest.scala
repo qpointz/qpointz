@@ -30,7 +30,7 @@ class AvroParquetRecordWriterTest extends AnyFlatSpec with Matchers {
   behavior of "write"
 
   it should "write file" in {
-    ParquetUtils.writeTestFile("./target/test-out/writeFile.parquet")
+    ParquetUtils.writeTestFile("./.test/parquet-writer/writeFile.parquet")
 
   }
 

@@ -27,7 +27,7 @@ class ParquetRecordReaderTest extends AnyFlatSpec with Matchers {
 
   behavior of "read"
 
-  val readPath = "./target/test-out/readFile.parquet"
+  val readPath = "./.test/parquet-writer/readFile.parquet"
 
   ParquetUtils.writeTestFile(readPath)
 

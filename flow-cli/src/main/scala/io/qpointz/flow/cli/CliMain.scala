@@ -1,9 +1,3 @@
-package io.qpointz.flow.cli
-
-import io.qpointz.flow.cli.commands.ReceiptCommand
-import picocli.CommandLine
-import picocli.CommandLine.Command
-
 /*
  * Copyright 2022 qpointz.io
  *
@@ -20,11 +14,23 @@ import picocli.CommandLine.Command
  *  limitations under the License.
  */
 
+package io.qpointz.flow.cli
+
+import com.typesafe.scalalogging.Logger
+import picocli.CommandLine
 
 object CliMain {
 
+  lazy val log = {
+    Logger("default")
+  }
+
   def main(args:Array[String]):Unit = {
-    new CommandLine(new CliCommand()).execute(args:_*)
+    System.err.close()
+    log.underlying //log tweak
+    System.setErr(System.out)
+    val c =  new CommandLine(new CliCommand())
+    c.execute(args:_*)
   }
 
 }
