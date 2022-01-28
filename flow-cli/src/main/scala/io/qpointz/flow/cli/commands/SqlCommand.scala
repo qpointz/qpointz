@@ -17,9 +17,25 @@
 
 package io.qpointz.flow.cli.commands
 
-import picocli.CommandLine.Command
+import io.qpointz.flow.catalogue.LocalCatalogue
+import io.qpointz.flow.cli.CliSubcommand
+import io.qpointz.flow.serialization.Json.formats
+import org.json4s.Extraction
+import org.json4s.jackson.JsonMethods.pretty
+import picocli.CommandLine.{Command, Parameters}
 
-@Command(name="autocomplete")
-class AutoCompleteCommand extends Runnable {
-  override def run(): Unit = picocli.AutoComplete.main()
+import java.nio.file.Paths
+
+@Command(name="sql")
+class SqlCommand extends CliSubcommand {
+
+  implicit val fmt = formats
+
+  @Parameters(index = "0", arity = "1")
+  var sql :String = _
+
+  override def run(): Unit = {
+    val gc = new LocalCatalogue(Paths.get(".flow"))
+    gc.runSql(sql).get.foreach(x=> terminal.writer.println(pretty(Extraction.decompose(x))))
+  }
 }

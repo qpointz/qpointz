@@ -110,12 +110,6 @@ object Dependencies {
     val jansi = "jansi" ~~ p
   }
 
-  object picocli {
-    val v = "4.6.2"
-    val p = "info.picocli" ~% v
-    val picocli = "picocli" ~~ p
-  }
-
   object ts_config {
     val v = "1.4.1"
     val p = "com.typesafe" ~% v
@@ -221,6 +215,27 @@ object Dependencies {
     val p = "org.typelevel" ~%% v
     val core = "spire" ~~ p
   }
+
+  object picocli {
+    val v = "4.6.2"
+    val p = "info.picocli" ~% v
+    val picocli = "picocli" ~~ p
+    val jline3shell = "picocli-shell-jline3" ~~ p
+  }
+
+  /*
+  "org.jline" % "jline" % "3.19.0",
+      "org.jline" % "jline-builtins" % "3.19.0",
+      "org.jline" % "jline-terminal-jansi" % "3.21.0",
+      "org.jline" % "jline-terminal-jna" % "3.21.0",
+      "org.jline" % "jline-reader" % "3.21.0",
+      "org.jline" % "jline-console" % "3.21.0",
+      "org.jline" % "jline-remote-ssh" % "3.21.0",
+      "org.jline" % "jline-remote-telnet" % "3.21.0",
+      "org.jline" % "jline-style" % "3.21.0",
+      "org.jline" % "jline-groovy" % "3.21.0",
+      "info.picocli" % "picocli-shell-jline3" % "4.6.2"
+   */
 
   val shapeless = "com.chuusai" %% "shapeless" % "2.3.7"
 

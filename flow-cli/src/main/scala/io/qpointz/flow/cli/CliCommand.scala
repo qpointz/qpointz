@@ -17,17 +17,32 @@
 package io.qpointz.flow.cli
 
 import io.qpointz.flow.cli.commands._
-import picocli.CommandLine
-import picocli.CommandLine.Command
+import org.jline.terminal.Terminal
+import picocli.CommandLine.{Command, ParentCommand}
+
+trait ReaderCommand {
+  def terminal:Terminal
+}
 
 @Command(name = "main", subcommands = Array(
   classOf[ReceiptCommand],
   classOf[InspectCommand],
-  classOf[ReplCommand]
+  classOf[SqlCommand]
 ))
-class CliCommand {
+class CliCommand extends ReaderCommand {
 
-  @CommandLine.Option(names = Array("--repl"),required = false)
-  var isRepl:Boolean = false
+  private var term:Terminal = _
+  def terminal(t: Terminal): Unit = {
+    term = t
+  }
+  override def terminal: Terminal = term
+}
+
+trait CliSubcommand extends Runnable with ReaderCommand {
+
+  @ParentCommand
+  var parentCommand:ReaderCommand = _
+
+  def terminal:Terminal = parentCommand.terminal
 
 }

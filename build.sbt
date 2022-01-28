@@ -53,12 +53,24 @@ lazy val `flow-cli` = libProject("flow","cli")
     `flow-orientdb`,
   )
   .withConfig
+  .withJson
   .settings(
     libraryDependencies ++= modules(
       apacheCalcite.core,
       jansi.jansi,
       shapeless,
-      picocli.picocli
+      picocli.picocli,
+      picocli.jline3shell,
+      "org.jline" % "jline" % "3.18.0" ,
+      "org.jline" % "jline-builtins" % "3.18.0",
+      "org.jline" % "jline-terminal-jansi" % "3.18.0"% Runtime,
+      //"org.jline" % "jline-terminal-jna" % "3.18.0"% Runtime,
+      //"org.jline" % "jline-reader" % "3.18.0"% Runtime,
+      //"org.jline" % "jline-console" % "3.18.0"% Runtime,
+      //"org.jline" % "jline-remote-ssh" % "3.18.0"% Runtime,
+      //"org.jline" % "jline-remote-telnet" % "3.18.0"% Runtime,
+      //"org.jline" % "jline-style" % "3.18.0"% Runtime,
+      //"org.jline" % "jline-groovy" % "3.18.0"% Runtime,
     ),
     Compile / mainClass  := Some("io.qpointz.flow.cli.CliMain"),
     Compile / discoveredMainClasses := Seq(),
@@ -178,12 +190,11 @@ lazy val `lakehouse-cli` = libProjectNoDependencies("lakehouse","cli")
       apacheHadoop.common,
       apacheHadoop.aws,
       minio.minio,
-      "io.netty" % "netty-transport-native-epoll" % "4.1.73.Final" % Provided//,
+      "io.netty" % "netty-transport-native-epoll" % "4.1.72.Final" % Provided//,
       //"io.delta" %% "delta-core" % "1.0.0"
-    )
-    ,
+    ),
     libraryDependencies += "com.google.guava" % "guava" % "31.0.1-jre" % Provided,
     libraryDependencies += amazonAWSSDK.sdkJava % Provided,
     libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.13.1"
 
-  )  
+  )
