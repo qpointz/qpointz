@@ -47,7 +47,7 @@ class IteratorMapperTest extends AnyFlatSpec with Matchers {
             Attribute("lastname")
           )
         )
-        , Some("aplusb")))))
+        , Some("aplusb")))), None)
     val res = IteratorMapper(q)(reader.iterator).toSeq
   }
 

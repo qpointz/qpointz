@@ -18,6 +18,9 @@
 package io.qpointz.flow
 
 import MetadataMethods._
+import io.qpointz.flow.ql.MetadataEntry
+import io.qpointz.flow.serialization.JsonProtocol
+import org.json4s.{CustomSerializer, Extraction, JArray, JObject}
 
 import scala.math
 
@@ -75,7 +78,32 @@ case class Record(attributes: Attributes, meta: Metadata) {
 
 }
 
+import org.json4s.JsonDSL._
 
+object RecordSerializer extends CustomSerializer[Record] (implicit format=> (
+  {case jo:JObject =>
+    val values:Map[AttributeKey, AttributeValue] = (jo \ "v") match {
+      case ja:JObject => ja.extract[Map[AttributeKey, AttributeValue]]
+      case _ => Map()
+    }
+    val m : Metadata = (jo \ "m" match {
+      case ja:JArray => ja.extract[Seq[MetaEntry[_]]]
+      case _ => Seq()
+    })
+    Record(values, m)
+  },
+  {
+    case r:Record =>
+      val jv = ("v" -> Extraction.decompose(r.items.toMap))
+      if (r.meta.length==0) {
+        jv
+      } else {
+        jv ~ ("m" -> Extraction.decompose(r.meta))
+      }
+  }
+)) {
+  val jsonProtocol = JsonProtocol(RecordSerializer)
+}
 
 object Record {
 

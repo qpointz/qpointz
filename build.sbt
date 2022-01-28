@@ -75,6 +75,7 @@ lazy val `flow-core` = libProject("flow","core")
       scalalib.reflect,
       apacheCalcite.core,
       commons.lang3,
+      commons.io,
       spire.core,
       shapeless
     )

@@ -51,4 +51,15 @@ class SqlTest extends AnyFlatSpec with Matchers {
   it should "parse exp with no name" in {
     SqlStm("select ABS(1)").select.exp.head.alias shouldBe None
   }
+
+  behavior of "from parse"
+
+  it should "parse no from" in {
+    SqlStm("select ABS(1)").from.isDefined shouldBe false
+  }
+
+  it should "parse from" in {
+    val stmt = SqlStm("select ABS(1) from dual")
+    stmt.from.isDefined shouldBe true
+  }
 }

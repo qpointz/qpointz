@@ -20,6 +20,9 @@ package io.qpointz.flow
 import io.qpointz.flow.serialization.JsonProtocol
 import org.json4s.{CustomSerializer, Extraction}
 import org.json4s.JsonAST.JObject
+import io.qpointz.flow.serialization.Json._
+import org.json4s.JsonDSL._
+
 
 trait RecordReaderAlike
 
@@ -39,4 +42,20 @@ object RecordReader {
     override def iterator: Iterator[Record] = iter.iterator
   }
 
+}
+
+class InMemoryReader(val records:List[Record]) extends RecordReader {
+  override def iterator: Iterator[Record] = records.iterator
+}
+
+object InMemoryReaderSerializer extends CustomSerializer[InMemoryReader] (implicit format => (
+  {case jo:JObject =>
+    val recs = (jo \ "records").extract[List[Record]]
+    new InMemoryReader(recs)
+  },
+  {case i:InMemoryReader =>
+    hint[InMemoryReader] ~ ("records" -> Extraction.decompose(i.records) )
+  }
+)) {
+  val jsonProtocol = JsonProtocol(flowQuids.reader("inmemory"), InMemoryReaderSerializer)
 }

@@ -31,7 +31,10 @@ case class Constant(value:Any) extends QlValueExpression
 case class ProjectionElement(ex:QlValueExpression, alias:Option[AttributeKey]=None) extends QlExpression
 case class Projection(exp:Seq[ProjectionElement]) extends QlExpression
 
-case class QlQuery(select:Projection)
+trait FromExpression extends QlExpression
+case class FromIdentified(names:List[String]) extends FromExpression
+
+case class QlQuery(select:Projection, from:Option[FromExpression])
 
 object IteratorMapper {
 

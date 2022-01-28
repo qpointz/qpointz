@@ -86,9 +86,15 @@ private[ql] object Sql {
       case e => ProjectionElement(e, None)
     }.toSeq)
 
+  def from(s:SqlNode): Option[FromExpression] = s match {
+    case l:SqlIdentifier => Some(FromIdentified(l.names.asScala.toList))
+    case null => None
+    case x => throw new IllegalArgumentException(s"${x} not valid from expression in ${s}")
+  }
+
   def query(n: SqlNode): QlQuery = {
     n match {
-      case s: SqlSelect => QlQuery(projection(s))
+      case s: SqlSelect => QlQuery(projection(s), from(s.getFrom))
       case n => throw new RuntimeException(s"SELECT statement expected but found ${n.toString}")
     }
   }
