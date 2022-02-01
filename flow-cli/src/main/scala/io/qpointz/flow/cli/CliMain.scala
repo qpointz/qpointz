@@ -17,7 +17,8 @@
 package io.qpointz.flow.cli
 
 import com.typesafe.scalalogging.Logger
-import org.fusesource.jansi.AnsiConsole
+import org.fusesource.jansi.Ansi.ansi
+import org.fusesource.jansi.{Ansi, AnsiConsole}
 import org.jline.console.CmdLine
 import org.jline.console.impl.{Builtins, SystemRegistryImpl}
 import org.jline.keymap.KeyMap
@@ -39,8 +40,8 @@ object CliMain {
   }
 
   def main(args: Array[String]): Unit = {
-    def onlyArg(ar:String):Boolean = {
-      args.length==1 && args.map(_.toLowerCase()).find(x => x == ar.toLowerCase()).isDefined
+    def onlyArg(ar: String): Boolean = {
+      args.length == 1 && args.map(_.toLowerCase()).find(x => x == ar.toLowerCase()).isDefined
     }
 
     try {
@@ -54,25 +55,41 @@ object CliMain {
         cli(args)
       }
     }
-    catch {
-      case t: Throwable => t.printStackTrace()
-    }
     finally {
       AnsiConsole.systemUninstall()
     }
   }
 
   def cli(args: Array[String]): Unit = {
+    var executionCode = 0 ;
     val terminal = TerminalBuilder
       .builder()
       .jansi(true)
       .build()
-    val command:CliCommand = new CliCommand()
-    command.terminal(terminal)
-    val cmd = new CommandLine(command)
-    cmd.execute(args: _*)
-    terminal.flush()
-  }
+    try {
+      val command: CliCommand = new CliCommand()
+      command.terminal(terminal)
+      var exc:Option[Throwable] = None
+      val cmd = new CommandLine(command).setExecutionExceptionHandler((ex: Exception, commandLine: CommandLine, parseResult: CommandLine.ParseResult) => {
+        exc = Some(ex)
+        -1
+      })
+      executionCode = cmd.execute(args: _*)
+      exc match {
+        case Some(e) => throw e
+        case None =>
+      }
+    } catch {
+      case t: Throwable => {
+        terminal.writer().println(ansi().fg(Ansi.Color.RED).toString)
+        t.printStackTrace(terminal.writer())
+        terminal.writer().println(ansi().reset().toString)
+      }
+    } finally {
+      terminal.flush()
+    }
+    System.exit(executionCode)
+}
 
   //scalastyle:off
   def repl(args: Array[String]): Unit = {
@@ -83,7 +100,13 @@ object CliMain {
     builtins.alias("bindkey", "keymap")
     val commands = new CliCommand()
     val factory = new PicocliCommandsFactory()
+    var lastEx:Option[Exception] = None
     val cmd = new CommandLine(commands, factory)
+      .setExecutionExceptionHandler((ex: Exception, commandLine: CommandLine, parseResult: CommandLine.ParseResult) => {
+        lastEx = Some(ex)
+        0
+      })
+
     val picoCliCommands = new PicocliCommands(cmd)
     val parser = new DefaultParser()
 
@@ -111,7 +134,16 @@ object CliMain {
         try {
           systemRegistry.cleanUp()
           line = reader.readLine(prompt, rightPrompt, null.asInstanceOf[MaskingCallback], null)
-          systemRegistry.execute(line)
+          val r = systemRegistry.execute(line)
+          lastEx match {
+            case Some(ex) => {
+              terminal.writer().println(ansi().fg(Ansi.Color.RED).toString)
+              ex.printStackTrace(terminal.writer())
+              terminal.writer().println(ansi().reset())
+              lastEx = None
+            }
+            case None =>
+          }
         } catch {
           case _: UserInterruptException =>// Ignore
           case _: EndOfFileException => return

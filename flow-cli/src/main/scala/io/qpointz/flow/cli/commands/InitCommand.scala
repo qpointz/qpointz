@@ -1,6 +1,5 @@
 /*
- *
- *  Copyright 2022 qpointz.io
+ *  Copyright 2022  qpointz.io
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -17,22 +16,8 @@
 
 package io.qpointz.flow.cli.commands
 
-import io.qpointz.flow.Record
 import io.qpointz.flow.cli.CliSubcommand
-import org.apache.calcite.linq4j.function.Parameter
-import org.fusesource.jansi.Ansi.ansi
-import org.fusesource.jansi.{Ansi, AnsiConsole}
-import picocli.CommandLine.{Command, Option}
 
-@Command(name = "inspect")
-class InspectCommand extends CliSubcommand {
-
-  override def run(): Unit = {
-    io.qpointz.flow.serialization.Json.jsonProtocols
-      .filter(_.typeId.isDefined)
-      .map(x => x.typeId.get.toURI)
-      .toSeq
-      .sorted
-      .foreach(terminal.writer().println)
-  }
+class InitCommand extends CliSubcommand {
+  override def run(): Unit = ???
 }

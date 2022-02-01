@@ -17,14 +17,17 @@
 
 package io.qpointz.flow.cli.commands
 
+import de.vandermeer.asciitable.AsciiTable
+import io.qpointz.flow.Record
 import io.qpointz.flow.catalogue.LocalCatalogue
 import io.qpointz.flow.cli.CliSubcommand
 import io.qpointz.flow.serialization.Json.formats
-import org.json4s.Extraction
-import org.json4s.jackson.JsonMethods.pretty
+import org.fusesource.jansi.Ansi
+import org.fusesource.jansi.Ansi.ansi
 import picocli.CommandLine.{Command, Parameters}
 
 import java.nio.file.Paths
+import scala.util.{Failure, Success}
 
 @Command(name="sql")
 class SqlCommand extends CliSubcommand {
@@ -34,8 +37,37 @@ class SqlCommand extends CliSubcommand {
   @Parameters(index = "0", arity = "1")
   var sql :String = _
 
+  def asTable(recs:Iterator[Record]): Unit = {
+    val ls = recs.toSeq;
+    val cols = ls.map(_.keys).flatten.distinct.toList;
+
+
+    val at = new AsciiTable()
+    at.addRule()
+    at.addRow(cols.map(ansi().fg(Ansi.Color.GREEN).bold().a(_).reset().toString):_*)
+    at.addRule()
+
+    val vals = ls
+      .map(x=> {cols.map(c=> x.getOrElse(c, "<NULL>"))})
+
+    vals
+      .foreach(x=> {
+        at.addRow(x:_*)
+        at.addRule()
+      })
+
+    terminal.writer().println(at.render())
+    terminal.flush()
+  }
+
   override def run(): Unit = {
+
     val gc = new LocalCatalogue(Paths.get(".flow"))
-    gc.runSql(sql).get.foreach(x=> terminal.writer.println(pretty(Extraction.decompose(x))))
+    val mayBe = gc.runSql(sql)
+    mayBe match {
+      case Success(recs) => asTable(recs)
+      case Failure(exception) => throw exception
+    }
+
   }
 }

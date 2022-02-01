@@ -61,6 +61,7 @@ lazy val `flow-cli` = libProject("flow","cli")
       shapeless,
       picocli.picocli,
       picocli.jline3shell,
+      "de.vandermeer" % "asciitable" % "0.3.2",
       "org.jline" % "jline" % "3.18.0" ,
       "org.jline" % "jline-builtins" % "3.18.0",
       "org.jline" % "jline-terminal-jansi" % "3.18.0"% Runtime,
