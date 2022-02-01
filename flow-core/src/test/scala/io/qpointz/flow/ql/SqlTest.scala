@@ -41,15 +41,19 @@ class SqlTest extends AnyFlatSpec with Matchers {
   behavior of "statement parse"
 
   it should "parse alias" in {
-    SqlStm("select a as b").select.exp.head.alias shouldBe Some("B")
+    SqlStm("select a as b").select.exp.head.asInstanceOf[ProjectionValue].alias shouldBe Some("B")
   }
 
   it should "parse attribute" in {
-    SqlStm("select Col").select.exp.head.alias shouldBe Some("COL")
+    SqlStm("select Col").select.exp.head.asInstanceOf[ProjectionValue].alias shouldBe Some("COL")
   }
 
   it should "parse exp with no name" in {
-    SqlStm("select ABS(1)").select.exp.head.alias shouldBe None
+    SqlStm("select ABS(1)").select.exp.head.asInstanceOf[ProjectionValue].alias shouldBe None
+  }
+
+  it should "parse asterisks expression" in {
+    SqlStm("select * from dual").select.exp.head shouldBe Asterisk
   }
 
   behavior of "from parse"

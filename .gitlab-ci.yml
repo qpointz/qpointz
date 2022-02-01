@@ -1,4 +1,4 @@
-image: docker-ci.qpointz.io/ci-sbt:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+image: docker-ci.qpointz.io/ci-sbt-graalvm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
 stages:
   - init
   - test
@@ -20,8 +20,8 @@ docker:buildCiSBT:
   image: docker:latest
   script:
     - echo "$DOCKER_REPO_CI_PASSWORD" | docker login $DOCKER_REPO_CI  -u $DOCKER_REPO_CI_USER --password-stdin
-    - docker build etc/docker/ci-sbt -t docker-ci.qpointz.io/ci-sbt:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
-    - docker push docker-ci.qpointz.io/ci-sbt:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    - docker build etc/docker/ci-sbt-graalvm -t docker-ci.qpointz.io/ci-sbt-graalvm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    - docker push docker-ci.qpointz.io/ci-sbt-graalvm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
 
 docker:buildCiPython:
   stage: init

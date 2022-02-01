@@ -17,6 +17,8 @@
 package io.qpointz.flow.cli
 
 import io.qpointz.flow.cli.commands._
+import org.fusesource.jansi.Ansi
+import org.fusesource.jansi.Ansi.ansi
 import org.jline.terminal.Terminal
 import picocli.CommandLine.{Command, ParentCommand}
 
@@ -27,7 +29,8 @@ trait ReaderCommand {
 @Command(name = "main", subcommands = Array(
   classOf[ReceiptCommand],
   classOf[InspectCommand],
-  classOf[SqlCommand]
+  classOf[SqlCommand],
+  classOf[ClearCommand]
 ))
 class CliCommand extends ReaderCommand {
 
@@ -44,5 +47,11 @@ trait CliSubcommand extends Runnable with ReaderCommand {
   var parentCommand:ReaderCommand = _
 
   def terminal:Terminal = parentCommand.terminal
+
+  def printansi(f: Ansi => Ansi):Unit = terminal.writer().print(ansi(f))
+
+  def printlnansi(f: Ansi => Ansi):Unit = terminal.writer().println(ansi(f))
+
+  def ansi(f:Ansi=>Ansi):Ansi = f(Ansi.ansi())
 
 }

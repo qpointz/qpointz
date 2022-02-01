@@ -35,7 +35,4 @@ package object serialization {
     def apply[T](serializer:Serializer[T])(implicit m:Manifest[T]):JsonProtocol[T] = JsonProtocol(None, Some(serializer))
 
   }
-
-
-
 }

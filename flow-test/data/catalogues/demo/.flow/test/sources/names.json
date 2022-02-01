@@ -1,0 +1,14 @@
+{
+    "qp:type" : "qp:flow:csv:reader",
+    "settings" : {
+      "format" : {
+        "lineSeparator" : "\n",
+        "delimiter" : ","
+      },
+      "headerExtractionEnabled" : true      
+    },
+    "source" : {
+      "qp:type" : "qp:flow:input-stream:file",
+      "path" : "data/names/good.csv"
+    }
+  }

@@ -92,9 +92,7 @@ abstract class TextRecordReader[TParser <: AbstractParser[_], TReaderSettings <:
     private val appendRecordMetadata = metaSettings.recordMetadataAllowed
 
     override def next(): Record = {
-      val values = rec_iterator.next()
       val context = rec_iterator.getContext
-      val keys = context.headers()
 
       val recordMetaData: Metadata = if (!appendMetadata) {
         MetadataMethods.empty
@@ -111,6 +109,9 @@ abstract class TextRecordReader[TParser <: AbstractParser[_], TReaderSettings <:
           )
         }
       }
+
+      val values = rec_iterator.next()
+      val keys = context.headers()
 
       Record(keys, values, recordMetaData)
     }

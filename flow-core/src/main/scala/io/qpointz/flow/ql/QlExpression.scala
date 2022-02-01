@@ -16,44 +16,22 @@
 
 package io.qpointz.flow.ql
 
-import io.qpointz.flow.ql.functions._
 import io.qpointz.flow.{AttributeKey, AttributeValue, Attributes, Record}
-
 import scala.util.{Success, Try}
-
-sealed trait QlExpression
-
-trait QlValueExpression extends QlExpression
-case class Attribute(key:AttributeKey) extends QlValueExpression
-case class MetadataEntry(group:String,key:String) extends QlValueExpression
-case class Constant(value:Any) extends QlValueExpression
-
-case class ProjectionElement(ex:QlValueExpression, alias:Option[AttributeKey]=None) extends QlExpression
-case class Projection(exp:Seq[ProjectionElement]) extends QlExpression
-
-trait FromExpression extends QlExpression
-case class FromIdentified(names:List[String]) extends FromExpression
-
-case class QlQuery(select:Projection, from:Option[FromExpression])
 
 object IteratorMapper {
 
   def asRecordFunction(ve:QlValueExpression):Record => AttributeValue = {
 
     def funcCall(funcCall:FunctionCall):Record=>AttributeValue = {
-
-        def argCombine(argfn:Record=>AttributeValue)(rec:Record, args:List[Any]):(Record, List[Any]) = {
-          (rec,args :+ argfn(rec))
-        }
-
         val fc = FunctionCall.map(funcCall)
-
-        val aa = fc.args
-          .map(asRecordFunction)
-          .map(f=> (argCombine(f) _).tupled)
-          .reduce((l,r)=>l.andThen(r))
-
-        r:Record => fc.fn(aa(r, List())._2)
+        val argFunctions = fc.args
+          .map(asRecordFunction(_))
+          .toList
+        r:Record => {
+          val args = argFunctions.map(_(r))
+          fc.fn(args)
+        }
     }
 
     ve match {
@@ -66,31 +44,26 @@ object IteratorMapper {
 
   def project(pe:Projection): Record => Record = {
 
-    def attributeCombine(key:AttributeKey, fn:Record=>AttributeValue)(in:(Record, Attributes)):(Record,Attributes) = {
-      (
-        in._1,
-        in._2 + (key -> fn(in._1))
-      )
-    }
-
-    def asProjFunc(proj:Seq[(AttributeKey, Record=>AttributeValue)]):Record=>Record = {
-      val cf = proj
-        .map(x=> attributeCombine(x._1, x._2) _)
-        .reduce((l,r)=>l.andThen(r))
-
-      r:Record=> {
-        val nr = cf(r, Map())
-        Record(nr._2, r.meta)
-      }
-    }
-
     val projFuncs = pe.exp.zipWithIndex.map(e => e._1 match {
-      case ProjectionElement(ex:Attribute, None)  => (ex.key, asRecordFunction(ex))
-      case ProjectionElement(ve, Some(k))               => (k, asRecordFunction(ve))
-      case ProjectionElement(ve, None)                  => (s"Col_${e._2}", asRecordFunction(ve))
+      case ProjectionValue(ex:Attribute, None)  => {
+        val fn = asRecordFunction(ex)
+        r:Record => Seq[io.qpointz.flow.Attribute](ex.key -> fn(r))
+      }
+      case ProjectionValue(ve, Some(k))         => {
+        val fn = asRecordFunction(ve)
+        r:Record => Seq[io.qpointz.flow.Attribute](k -> fn(r))
+      }
+      case ProjectionValue(ve, None)            => {
+        val fn = asRecordFunction(ve)
+        val key = s"Col_${e._2}"
+        r:Record => Seq[io.qpointz.flow.Attribute](key -> fn(r))
+      }
+      case Asterisk                             => (r:Record)=>r.attributes
     })
 
-    asProjFunc(projFuncs)
+    r:Record => {
+      Record(projFuncs.map(_(r)).flatten.toMap, r.meta)
+    }
   }
 
   def apply(q:QlQuery, translate:Boolean=true):Iterator[Record]=> Iterator[Record] = {

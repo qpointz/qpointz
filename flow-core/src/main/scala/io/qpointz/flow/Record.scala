@@ -118,12 +118,14 @@ object Record {
     } else {
       (0 to math.max(keys.length, values.length))
         .map(k=>(k, keys.lift(k), values.lift(k)) match {
-            case (_ , Some(key), Some(value)) => key -> value
-            case (k, Some(key), None) => key -> AttributeValue.Missing
-            case (k, None , Some(value)) => s"Attriibute_${k}" -> value
-            case (k, None, None) => throw new RuntimeException(s"Non matching ${k}")
+            case (_ , Some(key), Some(value)) => Some(key -> value)
+            case (k, Some(key), None) => Some(key -> AttributeValue.Missing)
+            case (k, None , Some(value)) => Some(s"Attriibute_${k}" -> value)
+            case (k, None, None) => None //k -> AttributeValue.Missing //throw new RuntimeException(s"Non matching ${k}")
           }
         )
+        .filter(_.isDefined)
+        .map(_.get)
     }
 
     new Record(map.toMap, meta)

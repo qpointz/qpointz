@@ -23,8 +23,9 @@ import io.qpointz.flow.catalogue.LocalCatalogue
 import io.qpointz.flow.cli.CliSubcommand
 import io.qpointz.flow.serialization.Json.formats
 import org.fusesource.jansi.Ansi
-import org.fusesource.jansi.Ansi.ansi
-import picocli.CommandLine.{Command, Parameters}
+import org.json4s.Extraction
+import org.json4s.jackson.JsonMethods.pretty
+import picocli.CommandLine.{Command, Option, Parameters}
 
 import java.nio.file.Paths
 import scala.util.{Failure, Success}
@@ -37,35 +38,52 @@ class SqlCommand extends CliSubcommand {
   @Parameters(index = "0", arity = "1")
   var sql :String = _
 
+  @Option(names = Array("--output-format", "-of"), defaultValue = "json" ,arity = "1", required = false)
+  var outfmt : String = "json"
+
+  def asJson(recs:Iterator[Record]):Unit = {
+    recs.foreach(x=>terminal.writer().println(pretty(Extraction.decompose(x))))
+  }
+
   def asTable(recs:Iterator[Record]): Unit = {
-    val ls = recs.toSeq;
+    val ls = recs.take(100).toSeq;
     val cols = ls.map(_.keys).flatten.distinct.toList;
 
 
     val at = new AsciiTable()
     at.addRule()
-    at.addRow(cols.map(ansi().fg(Ansi.Color.GREEN).bold().a(_).reset().toString):_*)
+    at.addRow(cols:_*)
     at.addRule()
 
     val vals = ls
-      .map(x=> {cols.map(c=> x.getOrElse(c, "<NULL>"))})
+      .map(x=> {cols
+        .map(c=> x.getOrElse(c, "<NULL>"))
+        .map{
+          case null=>"NULL"
+          case x => x
+        }})
 
     vals
       .foreach(x=> {
         at.addRow(x:_*)
-        at.addRule()
+        //at.addRule()
       })
+
+    at.addRule()
 
     terminal.writer().println(at.render())
     terminal.flush()
   }
 
   override def run(): Unit = {
-
+    def out(r:Iterator[Record]) = outfmt match {
+      case "json" => asJson(r)
+      case "tab" => asTable(r)
+    }
     val gc = new LocalCatalogue(Paths.get(".flow"))
     val mayBe = gc.runSql(sql)
     mayBe match {
-      case Success(recs) => asTable(recs)
+      case Success(recs) => out(recs)
       case Failure(exception) => throw exception
     }
 
