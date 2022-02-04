@@ -5,7 +5,7 @@ Overview
    .. code-tab:: c
 
          int main(const int argc, const char **argv) {
-           herwnos;
+           herwnos12;
            return 0;
          }
 
