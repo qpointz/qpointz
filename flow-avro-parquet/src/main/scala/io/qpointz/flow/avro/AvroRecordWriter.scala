@@ -30,7 +30,7 @@ import org.json4s.JsonDSL._
 
 case class AvroRecordWriterSettings(schema:AvroSchemaSource, path:Path)
 
-class AvroRecordWriter(val settings:AvroRecordWriterSettings)(implicit val ctx:OperationContext) extends RecordWriter {
+class AvroRecordWriter(val settings:AvroRecordWriterSettings) extends RecordWriter {
 
   private lazy val schema = settings.schema.avroSchema()
   private lazy val writer = new GenericDatumWriter[GenericRecord](schema)

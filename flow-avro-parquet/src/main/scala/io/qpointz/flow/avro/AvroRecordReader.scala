@@ -17,19 +17,43 @@
 package io.qpointz.flow.avro
 
 import io.qpointz.flow.serialization.Json._
-import io.qpointz.flow.{OperationContext, Record, RecordReader}
+import io.qpointz.flow.{AttributeKey, AttributeValue, Metadata, OperationContext, Record, RecordReader}
+import org.apache.avro.file.DataFileReader
+import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import org.json4s.JsonDSL._
 import org.json4s.{CustomSerializer, JObject}
 
-class AvroRecordReader(implicit val ctx:OperationContext) extends RecordReader {
-  override def iterator: Iterator[Record] = ???
+import java.io.File
+import scala.jdk.CollectionConverters._
+
+class AvroRecordReader(val in:File) extends RecordReader {
+  import io.qpointz.flow.MetadataMethods._
+
+  override def iterator: Iterator[Record] = {
+
+    val datumReader = new GenericDatumReader[GenericRecord]
+    val dataFileReader = new DataFileReader[GenericRecord](in, datumReader)
+    val schema = datumReader.getSchema.getFields.asScala.map(x=> (x.pos(), x.name())).toList
+
+    def asRecord(record: GenericRecord): Record = {
+      val m: Map[AttributeKey, AttributeValue] = schema
+        .map(x=> (x._2 , record.get(x._2)))
+        .toMap
+      Record(m)
+    }
+
+    dataFileReader.iterator().asScala.map(asRecord(_))
+  }
 }
 
+import org.json4s._
+
 class AvroRecordReaderSerializer extends CustomSerializer[AvroRecordReader](implicit format => (
-  {
-    case _:JObject => new AvroRecordReader()
-  },
-  {case _:AvroRecordReader =>
-      hint[AvroRecordReader]
+  {case jo:JObject => {
+    val p = (jo \ "source").extract[String]
+    new AvroRecordReader(new File(p))
+  }},
+  {case r:AvroRecordReader =>
+      hint[AvroRecordReader] ~ ("source" -> r.in.toPath.toString)
   })
 )

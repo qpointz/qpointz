@@ -22,12 +22,12 @@ import io.qpointz.flow.serialization.Json._
 import io.qpointz.flow.serialization.JsonProtocol
 import io.qpointz.flow.text.TextRecordReader
 import io.qpointz.flow.text.csv.CsvRecordReaderSettings.asCsvParserSettings
-import io.qpointz.flow.{Metadata, MetadataMethods, OperationContext, QIds, QTypeId}
+import io.qpointz.flow.{Metadata, MetadataMethods, OperationContext, QTypeId, flowQuids}
 import org.json4s.JsonDSL._
 import org.json4s.{CustomSerializer, Extraction, JObject}
 
 object CsvRecordReader {
-    val typeId:QTypeId = QIds.Record.Reader.reader.typeId("csv")
+    val typeId:QTypeId = flowQuids.reader("csv")
     val jsonProtocol = JsonProtocol[CsvRecordReader](typeId, CsvRecordReaderSerializer)
 }
 
@@ -41,7 +41,7 @@ object CsvRecordReaderSerializer extends CustomSerializer[CsvRecordReader](impli
   )})
 
 class CsvRecordReader(stream:InputStreamSource,
-                      settings:CsvRecordReaderSettings = CsvRecordReaderSettings.default)(implicit override val ctx:OperationContext)
+                      settings:CsvRecordReaderSettings = CsvRecordReaderSettings.default)
   extends TextRecordReader[CsvParser, CsvRecordReaderSettings](stream, settings = settings) {
 
   override val metaId: QTypeId = CsvRecordReader.typeId

@@ -33,9 +33,12 @@ class ReceiptCommand extends Runnable {
   var ps: java.util.Map[String,String] = _
 
   override def run(): Unit = {
-    println(s"file:${inputFile}")
     ps.asScala.foreach(x=>println(s"property ${x._1} :=: ${x._2}"))
+    val sw = new org.apache.commons.lang.time.StopWatch()
+    sw.start()
     val r = Receipt.fromFile(inputFile, ps.asScala.toMap)
     r.run()
+    sw.stop()
+    println(s"Took:${sw.toString}")
   }
 }

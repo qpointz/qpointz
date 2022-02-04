@@ -17,7 +17,7 @@
 package io.qpointz.flow.nio
 
 import io.qpointz.flow.serialization.JsonProtocol
-import io.qpointz.flow.{Metadata, MetadataAwareWithId, QIds, QTypeId, TypeId}
+import io.qpointz.flow.{Metadata, MetadataAwareWithId, flowQuids}
 import org.json4s.{CustomSerializer, JObject}
 
 import java.io.{File, FileInputStream, InputStream}
@@ -35,7 +35,7 @@ object FileStreamSource {
   import io.qpointz.flow.serialization.Json._
   import org.json4s.JsonDSL._
 
-  val typeId = QIds.Stream.inputStreamId.typeId("file")
+  val typeId = flowQuids.inputStream("file")
   val jsonProtocol = JsonProtocol(typeId, Serializer)
 
   def apply(file:File):FileStreamSource = new FileStreamSource(file)

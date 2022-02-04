@@ -93,7 +93,7 @@ trait OperationContext {
 }
 
 trait WithOperationContext {
-  implicit val ctx : OperationContext
+  lazy val ctx : OperationContext = OperationContext.defaultContext
 }
 
 object OperationContext {
@@ -128,7 +128,7 @@ object OperationContext {
   }
 
 
-  implicit val defaultContext: OperationContext = new OperationContext {
+  val defaultContext: OperationContext = new OperationContext {
    override val log: Logger = Logger("default")
    override val progress: ProgressContext = new ProgressContextImpl(log)
    override val statistic: StatisticContext = new StatisticContextImpl(log)

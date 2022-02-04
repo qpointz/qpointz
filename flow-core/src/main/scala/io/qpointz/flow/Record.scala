@@ -18,6 +18,9 @@
 package io.qpointz.flow
 
 import MetadataMethods._
+import io.qpointz.flow.ql.MetadataEntry
+import io.qpointz.flow.serialization.JsonProtocol
+import org.json4s.{CustomSerializer, Extraction, JArray, JObject}
 
 import scala.math
 
@@ -75,11 +78,38 @@ case class Record(attributes: Attributes, meta: Metadata) {
 
 }
 
+import org.json4s.JsonDSL._
 
+object RecordSerializer extends CustomSerializer[Record] (implicit format=> (
+  {case jo:JObject =>
+    val values:Map[AttributeKey, AttributeValue] = (jo \ "v") match {
+      case ja:JObject => ja.extract[Map[AttributeKey, AttributeValue]]
+      case _ => Map()
+    }
+    val m : Metadata = (jo \ "m" match {
+      case ja:JArray => ja.extract[Seq[MetaEntry[_]]]
+      case _ => Seq()
+    })
+    Record(values, m)
+  },
+  {
+    case r:Record =>
+      val jv = ("v" -> Extraction.decompose(r.items.toMap))
+      if (r.meta.length==0) {
+        jv
+      } else {
+        jv ~ ("m" -> Extraction.decompose(r.meta))
+      }
+  }
+)) {
+  val jsonProtocol = JsonProtocol(RecordSerializer)
+}
 
 object Record {
 
   def apply(kv: (AttributeKey, AttributeValue)*): Record = Record(kv.toMap, empty)
+
+  def apply(m:Map[AttributeKey, AttributeValue]): Record = Record(m, empty)
 
   def apply[T<:AttributeValue](keys: Seq[AttributeKey], values:Seq[T], meta:Metadata): Record = {
 
@@ -88,10 +118,10 @@ object Record {
     } else {
       (0 to math.max(keys.length, values.length))
         .map(k=>(k, keys.lift(k), values.lift(k)) match {
-            case (_ , Some(key), Some(value)) => key -> value
-            case (k, Some(key), None) => key -> AttributeValue.Missing
-            case (k, None , Some(value)) => s"Attriibute_${k}" -> value
-            case (k, None, None) => throw new RuntimeException(s"Non matching ${k}")
+          case (_ , Some(key), Some(value)) => key -> value
+          case (k, Some(key), None) => key -> AttributeValue.Missing
+          case (k, None , Some(value)) => s"Attriibute_${k}" -> value
+          case (k, None, None) => throw new RuntimeException(s"Non matching ${k}")
           }
         )
     }

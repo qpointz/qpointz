@@ -33,19 +33,19 @@ object Json {
     .extension
     .extensionsOf[JsonProtocolExtension]
 
+  lazy val jsonProtocols = jsonExtensions
+    .flatMap(x=> x.protocols)
+    .toSet
+
   private def fromFormats(fmt:TypeHints=>Formats) : Formats = {
-    val jsonFormatExtensions = jsonExtensions
-      .flatMap(x=> x.protocols)
-      .toSet
 
-
-    val hintPairs = jsonFormatExtensions
+    val hintPairs = jsonProtocols
       .filter(_.typeId.isDefined)
       .map (x=> (x.typeId.get.jsonTypeHint, x.m.runtimeClass))
 
     val th = new TypeHints {
 
-      override val hints: List[Class[_]] = jsonFormatExtensions.map(_.m.runtimeClass).toList
+      override val hints: List[Class[_]] = jsonProtocols.map(_.m.runtimeClass).toList
 
       private val h2c = hintPairs.toMap
 
@@ -64,7 +64,7 @@ object Json {
       override def shouldExtractHints(clazz: Class[_]): Boolean = true
     }
 
-    val f = jsonFormatExtensions
+    val f = jsonProtocols
       .filter(_.serializer.isDefined)
       .map(_.serializer.get)
       .foldLeft[Formats](fmt(th))((df, p)=> df + p)

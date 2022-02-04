@@ -1,8 +1,3 @@
-package io.qpointz.flow.cli
-
-import io.qpointz.flow.cli.commands._
-import picocli.CommandLine.Command
-
 /*
  * Copyright 2022 qpointz.io
  *
@@ -19,8 +14,44 @@ import picocli.CommandLine.Command
  *  limitations under the License.
  */
 
+package io.qpointz.flow.cli
+
+import io.qpointz.flow.cli.commands._
+import org.fusesource.jansi.Ansi
+import org.fusesource.jansi.Ansi.ansi
+import org.jline.terminal.Terminal
+import picocli.CommandLine.{Command, ParentCommand}
+
+trait ReaderCommand {
+  def terminal:Terminal
+}
+
 @Command(name = "main", subcommands = Array(
-classOf[ReceiptCommand]
+  classOf[ReceiptCommand],
+  classOf[InspectCommand],
+  classOf[SqlCommand],
+  classOf[ClearCommand]
 ))
-class CliCommand {
+class CliCommand extends ReaderCommand {
+
+  private var term:Terminal = _
+  def terminal(t: Terminal): Unit = {
+    term = t
+  }
+  override def terminal: Terminal = term
+}
+
+trait CliSubcommand extends Runnable with ReaderCommand {
+
+  @ParentCommand
+  var parentCommand:ReaderCommand = _
+
+  def terminal:Terminal = parentCommand.terminal
+
+  def printansi(f: Ansi => Ansi):Unit = terminal.writer().print(ansi(f))
+
+  def printlnansi(f: Ansi => Ansi):Unit = terminal.writer().println(ansi(f))
+
+  def ansi(f:Ansi=>Ansi):Ansi = f(Ansi.ansi())
+
 }

@@ -19,14 +19,13 @@ package io.qpointz.flow.text.fwf
 import com.univocity.parsers.fixed.FixedWidthParser
 import io.qpointz.flow.nio.InputStreamSource
 import io.qpointz.flow.text.TextRecordReader
-import io.qpointz.flow.{Metadata, MetadataMethods, OperationContext, QIds, QTypeId}
+import io.qpointz.flow.{Metadata, MetadataMethods, OperationContext, QTypeId, flowQuids}
 
 class FwfRecordReader(stream:InputStreamSource,
                       settings:FwfRecordReaderSettings = FwfFormats.default)
-                     (implicit override val ctx:OperationContext)
   extends TextRecordReader[FixedWidthParser,FwfRecordReaderSettings](stream, settings)
 {
-  override val metaId: QTypeId = QIds.Record.Reader.reader.typeId("fwf")
+  override val metaId: QTypeId = flowQuids.reader("fwf")
 
   override protected def createParser(settings: FwfRecordReaderSettings): FixedWidthParser = {
     new FixedWidthParser(settings.asParserSettings)

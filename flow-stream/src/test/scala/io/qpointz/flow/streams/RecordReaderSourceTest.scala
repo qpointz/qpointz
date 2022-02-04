@@ -26,15 +26,13 @@ import akka.stream.testkit.scaladsl._
 
 class RecordReaderSourceTest extends akka.testkit.TestKit(ActorSystem("MySpec")) with Matchers with AnyFlatSpecLike {
 
-  implicit val ctx: OperationContext = OperationContext.defaultContext
-
   val records = Seq(
     Record("a" -> 1, "b" -> 1),
     Record("a" -> 2, "b" -> 2),
     Record("a" -> 3, "b" -> 3)
   )
 
-  def testRecords(): RecordReader = RecordReader.fromIterable(records)
+  def testRecords: RecordReader = RecordReader.fromIterable(records)
 
   it should "complete" in {
     val srx = Source.fromGraph(new RecordReaderSource(testRecords))

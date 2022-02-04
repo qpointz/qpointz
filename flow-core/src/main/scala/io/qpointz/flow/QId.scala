@@ -29,8 +29,15 @@ trait QRefId  extends QTypeId {val rid:String}
 case class NamespaceId(ns:String) extends QNamespaceId
 case class HierarchyId(ns:String, hierarchy:Seq[String]) extends QHierarchyId
 case class GroupId(ns:String, hierarchy:Seq[String], group:String) extends QGroupId
-case class TypeId(ns:String, hierarchy:Seq[String], group:String, typeName:String) extends QTypeId
 case class RefId(ns:String, hierarchy:Seq[String], group:String, typeName:String, rid:String) extends QRefId
+
+case class TypeId(ns:String, hierarchy:Seq[String], group:String, typeName:String) extends QTypeId
+
+object TypeId {
+  def of(ns:String)(hierarchy:Seq[String])(group:String)(typeName:String):TypeId = {
+    TypeId(ns, hierarchy, group, typeName)
+  }
+}
 
 object QId {
 

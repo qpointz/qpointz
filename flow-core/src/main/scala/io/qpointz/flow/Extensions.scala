@@ -25,7 +25,9 @@ class Extensions extends JsonProtocolExtension {
 
     //nio extensions
     FileStreamSource.jsonProtocol,
-    RecordReader.jsonProtocol
+    RecordReader.jsonProtocol,
+    InMemoryReaderSerializer.jsonProtocol,
+    RecordSerializer.jsonProtocol
 
     //transformations
   )

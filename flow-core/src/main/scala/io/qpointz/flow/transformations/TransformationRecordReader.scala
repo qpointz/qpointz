@@ -20,7 +20,6 @@ package io.qpointz.flow.transformations
 import io.qpointz.flow.{OperationContext, Record, RecordReader}
 
 class TransformationRecordReader(transformation:RecordTransformation, reader:RecordReader) extends RecordReader {
-  override implicit val ctx: OperationContext = reader.ctx
 
   override def iterator: Iterator[Record] = reader.map(transformation.transform).iterator
 }

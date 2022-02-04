@@ -1,0 +1,34 @@
+{
+    "qp:type" : "qp:flow:receipt:convert",
+    "reader" : {
+        "qp:type" : "qp:flow:csv:reader",
+        "settings" : {
+          "format" : {
+            "lineSeparator" : "\n",
+            "delimiter" : ","
+          },
+          "headerExtractionEnabled" : true      
+        },
+        "source" : {
+          "qp:type" : "qp:flow:input-stream:file",
+          "path" : "${in}"
+        }
+      },
+  
+    "writer" : {
+      "qp:type" : "qp:flow:avro:writer",
+      "settings" : {
+        "schema" : {
+          "type" : "record",
+          "name" : "default",
+          "fields" : [
+            {"name" : "ID", "type" : ["null", "string"], "default":null},
+            {"name" : "NAME", "type" : ["null", "string"], "default":null},
+            {"name" : "SURNAME", "type" : ["null", "string"], "default":null},
+            {"name" : "EMAIL", "type" : ["null", "string"], "default":null}
+          ]
+        },
+        "path" : "${out}"
+      }
+    }
+  }

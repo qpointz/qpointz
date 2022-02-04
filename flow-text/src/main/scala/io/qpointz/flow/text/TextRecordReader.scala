@@ -110,6 +110,7 @@ abstract class TextRecordReader[TParser <: AbstractParser[_], TReaderSettings <:
             (TextRecordReader.metadataGroupKey, "record_idx", context.currentRecord())
           )
         }
+
       }
 
       Record(keys, values, recordMetaData)

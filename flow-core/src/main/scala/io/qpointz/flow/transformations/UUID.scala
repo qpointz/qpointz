@@ -17,14 +17,15 @@
 
 package io.qpointz.flow.transformations
 
-import java.util.UUID
-import io.qpointz.flow.{AttributeKey, Attributes, Metadata, MetadataAwareWithId, QIds, QTypeId, Record}
-import TransformationsMeta._
 import io.qpointz.flow.MetadataMethods._
-import io.qpointz.flow.serialization.JsonProtocol
-import org.json4s.{CustomSerializer, Extraction, Formats, JObject, JValue}
-import org.json4s.JsonDSL._
 import io.qpointz.flow.serialization.Json._
+import io.qpointz.flow.serialization.JsonProtocol
+import io.qpointz.flow.transformations.TransformationsMeta._
+import io.qpointz.flow.{AttributeKey, Metadata, MetadataAwareWithId, QTypeId, Record}
+import org.json4s.JsonDSL._
+import org.json4s.{CustomSerializer, Extraction, Formats, JObject, JValue}
+
+import java.util.UUID
 
 abstract class CustomAttributeTransform[T](
       transformName:String,
@@ -34,7 +35,7 @@ abstract class CustomAttributeTransform[T](
 )(implicit m:Manifest[T]) extends AttributeTransformation with MetadataAwareWithId
 {
   object Support {
-    val typeId: QTypeId = QIds.Record.Transformation.groupId.typeId(transformName)
+    val typeId: QTypeId = io.qpointz.flow.flowQuids.transformation(transformName)
     val jsonProtocol: JsonProtocol[T] = JsonProtocol(metaId, Serializer)
   }
   override val metaId: QTypeId = Support.typeId

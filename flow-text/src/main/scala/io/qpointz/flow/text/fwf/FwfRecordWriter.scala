@@ -48,7 +48,7 @@ class FwfRecordWriterSettings extends TextWriterSettings {
   }
 }
 
-class FwfRecordWriter(settings: FwfRecordWriterSettings)(implicit val ctx:OperationContext)
+class FwfRecordWriter(settings: FwfRecordWriterSettings)
   extends TextRecordWriter[FixedWidthWriter,FwfRecordWriterSettings](settings) {
 
   override protected def createWriter(settings: FwfRecordWriterSettings): FixedWidthWriter = {

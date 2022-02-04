@@ -34,12 +34,17 @@ class IteratorMapperTest extends AnyFlatSpec with Matchers {
     IteratorMapper(SqlStm("select `id` as `ida`, 2 as `b`"))(reader.iterator).toSeq shouldBe Seq(Record(("ida",1),("b",2.0)),Record(("ida",2),("b",2.0)),Record(("ida",3),("b",2.0)))
   }
 
+  it should "select *" in {
+    val res = IteratorMapper(SqlStm("select *"))(reader.iterator).toSeq
+    res.head.keys.toSeq.length shouldBe 3
+  }
+
 
   behavior of "FunctionCall"
 
   it should "execute" in {
     val q = QlQuery(Projection(Seq(
-      ProjectionElement(
+      ProjectionValue(
         FunctionCall(
           l => { l(0).toString() + l(1).toString()}
           , List(
@@ -47,8 +52,9 @@ class IteratorMapperTest extends AnyFlatSpec with Matchers {
             Attribute("lastname")
           )
         )
-        , Some("aplusb")))))
+        , Some("aplusb")))), None)
     val res = IteratorMapper(q)(reader.iterator).toSeq
+    print(res)
   }
 
 }

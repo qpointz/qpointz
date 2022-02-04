@@ -29,7 +29,7 @@ class ParquetRecordReaderSettings {
   var inputFile : InputFile = _
 }
 
-class ParquetRecordReader(private val settings:ParquetRecordReaderSettings)(implicit val ctx:OperationContext) extends RecordReader {
+class ParquetRecordReader(private val settings:ParquetRecordReaderSettings) extends RecordReader {
 
   override def iterator: Iterator[Record] = {
     val options = ParquetReadOptions.builder().build()

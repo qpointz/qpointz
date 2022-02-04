@@ -27,7 +27,7 @@ case class SheetSelectionSettings(selector:SheetSelector, sheetRecordReaderSetti
 
 class WorkbookRecordReader(val workbook: Workbook,
                            val settings: WorkbookRecordReaderSettings,
-                           val extraMetadata: Metadata)(implicit val ctx:OperationContext)
+                           val extraMetadata: Metadata)
   extends RecordReader {
 
   import WorkbookMethods._

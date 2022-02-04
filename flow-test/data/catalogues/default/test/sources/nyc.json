@@ -1,0 +1,4 @@
+{
+  "qp:type" : "qp:flow:avro:reader",
+  "source" : "/home/vm/wip/qpointz/qpointz/tmp/nyc-bronx-2019.avro"
+}

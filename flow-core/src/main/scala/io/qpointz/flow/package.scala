@@ -63,4 +63,8 @@ package object flow {
 
   }
 
+  lazy val flowQuids = new PackageQIds {
+    override protected val nsName: String = "flow"
+  }
+
 }
