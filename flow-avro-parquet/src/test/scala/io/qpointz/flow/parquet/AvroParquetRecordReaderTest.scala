@@ -22,15 +22,21 @@ import org.apache.parquet.hadoop.util.HadoopInputFile
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
+import java.util.UUID
+
 class AvroParquetRecordReaderTest extends AnyFlatSpec with Matchers {
 
   behavior of "read"
 
-  val readPath = "./.test/parquet-writer/readFile.parquet"
 
-  ParquetUtils.writeTestFile(readPath)
+  def newPath:String = {
+    val p = s"./.test/parquet-writer/readFile${UUID.randomUUID().toString()}.parquet"
+    ParquetUtils.writeTestFile(p)
+    p
+  }
 
   private def readTest() = {
+    val readPath = newPath
     val s  = new AvroParquetRecordReaderSettings()
     val cfg = new Configuration()
     s.inputFile = HadoopInputFile.fromPath(new Path(readPath), cfg)
