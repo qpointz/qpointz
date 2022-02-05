@@ -19,7 +19,7 @@ package io.qpointz.flow
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import io.qpointz.flow.nio.InputStreamSource
-import io.qpointz.flow.text.csv.{CsvRecordReader, CsvRecordReaderSettings}
+import io.qpointz.flow.text.csv._
 
 
 package object streams {
@@ -30,7 +30,8 @@ package object streams {
 
   def ratesRecordsReader: RecordReader = {
     val st = new CsvRecordReaderSettings(
-      headerExtractionEnabled = Some(true)
+      headerExtractionEnabled = Some(true),
+      format = Some(CsvFormat(lineSeparator=Some("\n")))
     )
     val stream = this.getClass.getClassLoader.getResourceAsStream("flow/stream/testData/rates.csv")
     val src = InputStreamSource(stream)
