@@ -1,14 +1,14 @@
 Runing behind reverse proxy
 ===========================
 
-While runing behind proxy it is important to ensure extra headers which is requered to
+While running behind proxy it is important to ensure extra headers which is required to
 resolve external host name and scheme being passed by proxy to enzyme
 
 
 NGINX
 -----
 
-Below configuration is redirecting any http trafic to https
+Below configuration is redirecting any http traffic to https
 and redirects all incoming traffic to http enzyme port
 
 .. code-block:: text
@@ -54,7 +54,7 @@ and redirects all incoming traffic to http enzyme port
 
             proxy_http_version 1.1;
 
-            #Headers requiered to resolve external url
+            #Headers required to resolve external url
             proxy_set_header    Host                $http_host;
             proxy_set_header    X-Real-IP           $remote_addr;
             proxy_set_header    X-Forwarded-Ssl     on;
