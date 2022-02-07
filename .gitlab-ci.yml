@@ -83,13 +83,3 @@ scalastyle:
     paths:
       - target/scalastyle/*.*
     expire_in: 10 days
-
-devStack:up:
-  image: docker/compose:latest
-  only:
-    - dev
-    - master
-  stage: deploy
-  script:
-    - echo "$DOCKER_REPO_PASSWORD" | docker login $DOCKER_REPO  -u $DOCKER_REPO_USER --password-stdin
-    - cd etc/compose/dev && docker-compose pull && docker-compose up -d
