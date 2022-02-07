@@ -1,4 +1,4 @@
-Runing behind reverse proxy
+Running behind reverse proxy
 ===========================
 
 While running behind proxy it is important to ensure extra headers which is required to
