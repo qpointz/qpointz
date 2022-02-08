@@ -1,0 +1,22 @@
+
+//select csv
+sql -of=tab "select * from `test`.`names`"
+
+//avro query
+sql -of=tab "select `Address`,`Year_Built`,`Zip_Code` from `test`.`nyc`"
+
+//select csv missformed
+sql -of=tab "select * from `test`.`missing`"
+
+//out result 
+flow sql 'select * from `test`.`missing`' >> missing_out.json 
+
+//expression
+sql -of=tab "select *, concat(NAME, '__', SURNAME) AS CONC, IS_MATCHES_RX('.*@wikia.com',EMAIL) AS GOV from  `test`.`names`"
+
+//receipt
+receipt -Pin=data/names/good.csv -Pout=data/names/good.avro .flow/conv.json
+
+//receipt 
+receipt -Pin=data/names/big.csv -Pout=data/names/big.avro .flow/conv.json
+

@@ -1,0 +1,14 @@
+{
+  "type" : "record",
+  "name" : "myrecord",
+  "fields" : [ {
+    "name" : "a",
+    "type" : "string"
+  }, {
+    "name" : "b",
+    "type" : "string"
+  }, {
+    "name" : "c",
+    "type" : "string"
+  } ]
+}

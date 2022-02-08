@@ -1,0 +1,4 @@
+{
+  "qp:type" : "qp:flow:avro:reader",
+  "source" : "data/names/good.avro"
+}

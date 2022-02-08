@@ -5,7 +5,7 @@ rootDir=`dirname $0`
 function buildImg {
     local imgName=${1}
     local tagName=${2}
-    docker build --tag ${tagName} ${rootDir}/images/${imgName}
+    docker build --tag ${tagName} ${rootDir}/${imgName}
 }
 
 function pushImg {
@@ -22,6 +22,6 @@ function buildAndPushImg {
 
 
 buildAndPushImg enzyme-ci-npm
-buildAndPushImg enzyme-ci-sbt
+buildAndPushImg ci-sbt
 buildAndPushImg enzyme-ci-sphinx
 #buildAndPushImg postgres-test

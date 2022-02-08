@@ -1,12 +1,15 @@
-.. enzyme documentation master file, created by
+.. flow documentation master file, created by
    sphinx-quickstart on Thu May  3 10:29:25 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to enzyme's documentation!
+Welcome to flow's documentation!
 ==================================
 
 * :ref:`about_toc`
+* :ref:`overview_toc`
+* :ref:`filesystems_toc`
+* :ref:`formats_toc`
 * :ref:`install_toc`
 * :ref:`schema_toc`
 
@@ -17,6 +20,33 @@ Welcome to enzyme's documentation!
    :caption: About
 
    about/Overview
+
+.. _overview_toc:
+.. toctree::    
+   :titlesonly: 
+   :maxdepth: 3
+   :caption: Overview
+   :glob:
+
+   overview/*
+   
+
+.. _filesystems_toc:
+.. toctree::
+   :maxdepth: 2
+   :caption: File systems
+
+   fs/*
+
+.. _formats_toc:
+.. toctree::
+   :maxdepth: 2
+   :caption: Formats
+   :glob:
+
+   formats/Overview
+   formats/*
+
 
 .. _install_toc:
 .. toctree::    

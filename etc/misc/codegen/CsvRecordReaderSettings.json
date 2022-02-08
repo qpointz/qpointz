@@ -1,0 +1,13 @@
+{
+  "type" : "CsvFormat",
+  "fields" : [
+    ["delimiter", "String"],
+    ["quote", "Char"],
+    ["quoteEscape", "Char"],
+    ["comment", "Char"],
+    ["lineSeparator", "Array[String]"],
+    ["normalizedNewLine", "Char"],
+    ["charToEscapeQuoteEscaping", "Char"]
+  ]
+}
+

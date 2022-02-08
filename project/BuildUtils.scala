@@ -19,10 +19,12 @@ import sbt.Keys.libraryDependencies
 import sbt._
 import Keys._
 import sbt.Def._
-import java.nio.file.{Files, Paths}
+import java.nio.file.{Files, Path, Paths}
 
 import sbt.librarymanagement.ModuleID
 import sbt.{File, file}
+
+import scala.sys.process.Process
 
 object BuildUtils {
 
@@ -36,27 +38,44 @@ object BuildUtils {
             jUnit.jUnit % IntegrationTest,
             scalaTest.scalaTest % IntegrationTest,
             scalaMock.scalamock % IntegrationTest,
-            "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % IntegrationTest
+            "com.vladsch.flexmark" % "flexmark-all" % "0.62.2" % IntegrationTest
           )
         )
     }
   }
 
-  def libProject(group:String, projectName:String): Project = {
-    val projectPath = s"${group}/${projectName}"
-    sbt.Project(projectName, file(projectPath))
+  def projectPath(group:String, projectName:String):String = {
+    s"${group}-${projectName}"
+  }
+
+  def libProjectNoDependencies(group:String, projectName:String): Project = {
+    val fullName = s"${group}-${projectName}"
+    sbt.Project(fullName, file(projectPath(group, projectName)))
       .settings(
         autoAPIMappings := true,
-        name:= projectName,
+        //name:= fullName,
+        scalacOptions ++= Seq(
+          //"-Xfatal-warnings",
+          "-deprecation",
+          "-feature"
+        )
+      )
+  }
+
+  def libProject(group:String, projectName:String): Project = {    
+    val pPath = projectPath(group, projectName)
+    libProjectNoDependencies(group, projectName)
+      .settings(
         libraryDependencies ++= profiles(
           DepProfiles.lib
         ),
         testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oI",
-          "-h", s"${projectPath}/target/test-reports/html",
-          "-u", s"${projectPath}/target/test-reports/xml"
+          "-h", s"${pPath}/target/test-reports/html",
+          "-u", s"${pPath}/target/test-reports/xml"
         )
       )
   }
+
 }
 
 object DependenciesUtils {
@@ -99,6 +118,5 @@ object DependenciesUtils {
 
     //noinspection ScalaStyle
     def %+(v:String):PlainDependency = PlainDependency(v, item)
-
   }
 }

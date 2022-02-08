@@ -1,0 +1,164 @@
+version: '3.9'
+services:
+  minio:
+    ports:
+      - "9000:9000"
+    image: "minio/minio"
+    command: "server /data"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+  trino:
+    build:
+      context: ./images/trino
+    environment:
+      - S3_CREDENTIALS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - S3_CREDENTIALS_ACCESS_SECRET_KEY=${MINIO_ROOT_PASSWORD}
+      - S3_ENDPOINT_URL=http://minio:9000
+    ports:
+      -  "8090:8080"
+    depends_on:
+      - minio
+    profiles:
+      - donotstart
+  postgres:
+    image: "postgres:${PG_VERSION:-11}"
+    command: "-c log_min_messages=FATAL"
+    environment:
+      POSTGRES_USER: lakefs
+      POSTGRES_PASSWORD: lakefs
+    logging:
+      driver: none
+    profiles:
+      - donotstart
+  couchbase:
+    image: "couchbase:community-7.0.1"
+    ports:
+      - "8091-8094:8091-8094"
+      - "11210:11210"
+    profiles:
+      - donotstart
+  couchbase_init:
+    image: "couchbase"
+    depends_on:
+      - "couchbase"
+    command: /opt/couchbase/bin/couchbase-cli cluster-init --cluster couchbase:8091 --cluster-username qp --cluster-password qppassword --cluster-name qp --services data,index,query,fts
+    profiles:
+      - donotstart
+  zookeeper:
+    image: docker.io/bitnami/zookeeper:3.7
+    ports:
+      - "2181:2181"
+    volumes:
+      - "zookeeper_data:/bitnami"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+  kafka:
+    image: docker.io/bitnami/kafka:2
+    ports:
+      - "9092:9092"
+    volumes:
+      - "kafka_data:/bitnami"
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
+    profiles:
+      - donotstart
+  lakefs:
+    image: "treeverse/lakefs:${VERSION:-latest}"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - "postgres"
+      - "minio"
+    environment:
+      - CREDENTIALS_ACCESS_KEY_ID=AKIAJ5KEFVXGKVZZYCJQ
+      - CREDENTIALS_SECRET_ACCESS_KEY=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
+      - LAKEFS_AUTH_ENCRYPT_SECRET_KEY=${LAKEFS_AUTH_ENCRYPT_SECRET_KEY}
+      - LAKEFS_DATABASE_CONNECTION_STRING=${LAKEFS_DATABASE_CONNECTION_STRING}
+      - LAKEFS_BLOCKSTORE_TYPE=${LAKEFS_BLOCKSTORE_TYPE}
+      - LAKEFS_BLOCKSTORE_LOCAL_PATH=${LAKEFS_BLOCKSTORE_LOCAL_PATH}
+      - LAKEFS_BLOCKSTORE_S3_REGION=${LAKEFS_BLOCKSTORE_S3_REGION}
+      - LAKEFS_BLOCKSTORE_S3_CREDENTIALS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - LAKEFS_BLOCKSTORE_S3_CREDENTIALS_ACCESS_SECRET_KEY=${MINIO_ROOT_PASSWORD}
+      - LAKEFS_BLOCKSTORE_S3_ENDPOINT=${LAKEFS_BLOCKSTORE_S3_ENDPOINT}
+      - LAKEFS_BLOCKSTORE_S3_FORCE_PATH_STYLE=${LAKEFS_BLOCKSTORE_S3_FORCE_PATH_STYLE}
+      - LAKEFS_GATEWAYS_S3_DOMAIN_NAME=${LAKEFS_GATEWAYS_S3_DOMAIN_NAME}
+      - LAKEFS_LOGGING_LEVEL=${LAKEFS_LOGGING_LEVEL}
+      - LAKEFS_STATS_ENABLED
+      - LAKEFS_COMMITTED_LOCAL_CACHE_DIR=${LAKEFS_COMMITTED_LOCAL_CACHE_DIR}
+    entrypoint: [ "/app/wait-for", "postgres:5432", "--", "/app/lakefs", "run" ]
+    profiles:
+      - donotstart
+  spark:
+    image: docker.io/bitnami/spark:3
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    ports:
+      - '8080:8080'
+      - '7077:7077'
+    profiles:
+      - donotstart
+  spark-worker-1:
+    image: docker.io/bitnami/spark:3
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_CORES=1
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    depends_on:
+      - spark
+    profiles:
+      - donotstart
+  spark-worker-2:
+    image: docker.io/bitnami/spark:3
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_CORES=1
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    depends_on:
+      - spark
+    profiles:
+      - donotstart
+  spark-worker-3:
+    image: docker.io/bitnami/spark:3
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_CORES=1
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    depends_on:
+      - spark
+    profiles:
+      - donotstart
+  orientdb:
+    image: docker.io/orientdb:latest
+    ports:
+      - "2424:2424"
+      - "2480:2480"
+    environment:
+      - ORIENTDB_ROOT_PASSWORD=rootpwd
+volumes:
+  zookeeper_data:
+    driver: local
+  kafka_data:
+    driver: local

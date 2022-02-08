@@ -1,0 +1,20 @@
+{
+    "qp:type" : "qp:flow:csv:reader",
+    "settings" : {
+      "format" : {
+        "lineSeparator" : "\n",
+        "delimiter" : ","
+      },
+      "headerExtractionEnabled" : true ,
+      "metadataSettings" : {
+          "allowReaderMetadata" : true,
+          "allowSourceMetadata" : true, 
+          "allowRecordMetadata" : true
+
+      }
+    },
+    "source" : {
+      "qp:type" : "qp:flow:input-stream:file",
+      "path" : "data/names/missing.csv"
+    }
+  }
