@@ -30,7 +30,7 @@ RUN \
   mkdir -p /data/.ivy2 && \
   ln -s /data/.ivy2 /root/.ivy2 && \
   ln -s /data/.sbt /root/.sbt && \
-  pip3 install -U requests rst2pdf sphinx sphinx_rtd_theme sphinx-material sphinx-tabs
+  pip3 install -U requests rst2pdf sphinx sphinx_rtd_theme sphinx-material sphinx-tabs sphinx-press-theme
 
 RUN java -version && \
     sbt -Dsbt.rootdir=true version
