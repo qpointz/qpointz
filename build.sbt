@@ -24,9 +24,7 @@ lazy val `qpointz` = project.in(file("."))
     `flow-cli`,
     `flow-aws`,
     `flow-stream`,
-    `flow-workflow`,
-    `flow-orientdb`,
-    `lakehouse-cli`
+    `flow-workflow`
   )
 /* temporaly disabled
 ThisBuild / coverageFailOnMinimum := true
@@ -49,8 +47,7 @@ lazy val `flow-cli` = libProject("flow","cli")
     `flow-avro-parquet`,
     `flow-aws`,
     `flow-stream`,
-    `flow-workflow`,
-    `flow-orientdb`,
+    `flow-workflow`
   )
   .withConfig
   .withJson
@@ -168,34 +165,4 @@ lazy val `flow-workflow` = libProject("flow","workflow")
       akka.actorsTyped,
       akka.actorsTypedTestKit % Test
     )
-  )
-
-lazy val `flow-orientdb` = libProject("flow", "orientdb")
-  .dependsOn(`flow-core`)
-  .withConfig
-  .withIntegration
-  .withJson
-  .settings(
-    libraryDependencies ++= modules(
-      orientdb.graphdb,
-      commons.io
-    )
-  )
-
-lazy val `lakehouse-cli` = libProjectNoDependencies("lakehouse","cli")
-  .settings(
-    libraryDependencies ++= modules(
-      apacheSpark.sql,
-      apacheSpark.core,
-      apacheHadoop.client,
-      apacheHadoop.common,
-      apacheHadoop.aws,
-      minio.minio,
-      "io.netty" % "netty-transport-native-epoll" % "4.1.72.Final" % Provided//,
-      //"io.delta" %% "delta-core" % "1.0.0"
-    ),
-    libraryDependencies += "com.google.guava" % "guava" % "31.0.1-jre" % Provided,
-    libraryDependencies += amazonAWSSDK.sdkJava % Provided,
-    libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.13.1"
-
   )
