@@ -18,6 +18,7 @@ package io.qpointz.flow.excel
 
 import io.qpointz.flow.{Metadata, OperationContext, Record, RecordReader}
 import org.apache.poi.ss.usermodel.Workbook
+import org.json4s.CustomSerializer
 
 class WorkbookRecordReaderSettings {
   var sheets : SheetSelectionSettingsCollection = _
@@ -39,5 +40,11 @@ class WorkbookRecordReader(val workbook: Workbook,
       .map(_.iterator)
       .reduce(_ ++ _)
   }
-
 }
+
+import org.json4s._
+
+class WorkbookRecordReaderSerializer extends CustomSerializer[WorkbookRecordReader] (implicit formats=> (
+  {case jo:JObject=> ??? },
+  {???}
+))
