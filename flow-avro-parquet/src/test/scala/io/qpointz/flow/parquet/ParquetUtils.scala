@@ -39,10 +39,9 @@ object ParquetUtils {
       .requiredString("c")
       .endRecord()
     )
-    val s = new AvroParquetRecordWriterSettings()
-    s.path = new Path(filePath.toAbsolutePath.toString)
-    s.schema = as
 
+    val p = new Path(filePath.toAbsolutePath.toString)
+    val s = new AvroParquetRecordWriterSettings(as,p)
     val w = new AvroParquetRecordWriter(s)
     w.open()
 
