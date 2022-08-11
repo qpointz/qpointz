@@ -19,10 +19,10 @@ package io.qpointz.flow.parquet
 
 import io.qpointz.flow.serialization.{JsonProtocol, JsonProtocolExtension}
 import io.qpointz.flow.{flowQuids, serialization}
-import org.apache.hadoop.conf.Configuration
 
 class JsonSerialization extends JsonProtocolExtension {
   override def protocols: Iterable[serialization.JsonProtocol[_]] = List(
-    JsonProtocol[AvroParquetRecordWriter](flowQuids.writer("parquet"), new ParquetRecordWriterSerializer())
+    JsonProtocol[AvroParquetRecordWriter](flowQuids.writer("parquet"), new ParquetRecordWriterSerializer()),
+    JsonProtocol[AvroParquetRecordWriterSettings](new AvroParquetRecordWriterSettingsSerializer)
   )
 }

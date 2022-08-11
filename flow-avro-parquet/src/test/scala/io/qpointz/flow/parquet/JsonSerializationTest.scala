@@ -66,7 +66,7 @@ class JsonSerializationTest extends AnyFlatSpec with Matchers with BeforeAndAfte
 
   it should "serialize polymorphic" in {
     val cnt = pretty(Extraction.decompose(w))
-    val nw = Extraction.extract[RecordWriter](parse(cnt)).asInstanceOf[AvroRecordWriter]
+    val nw = Extraction.extract[RecordWriter](parse(cnt)).asInstanceOf[AvroParquetRecordWriter]
     nw.settings.schema.avroSchema() shouldBe w.settings.schema.avroSchema()
     nw.settings.path shouldBe w.settings.path
   }

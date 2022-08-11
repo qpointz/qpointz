@@ -23,7 +23,7 @@ import io.qpointz.flow.serialization.Json.hint
 import io.qpointz.flow.{Record, RecordWriter}
 import org.apache.avro.generic.GenericRecord
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs
+import org.apache.hadoop.{fs=>hadoopfs}
 import org.apache.parquet.avro.AvroParquetWriter
 import org.apache.parquet.column.ParquetProperties
 import org.apache.parquet.hadoop.metadata.CompressionCodecName
@@ -57,7 +57,7 @@ class AvroParquetRecordWriter(val settings:AvroParquetRecordWriterSettings) exte
   private lazy val schema = settings.schema.avroSchema()
 
 
-  lazy val writer = AvroParquetWriter.builder[GenericRecord](HadoopOutputFile.fromPath(new fs.Path(settings.path.uri), settings.configuration))
+  lazy val writer = AvroParquetWriter.builder[GenericRecord](HadoopOutputFile.fromPath(new hadoopfs.Path(settings.path.uri), settings.configuration))
     .withSchema(schema)
     .withConf(settings.configuration)
     .withCompressionCodec(settings.compressionCodec)
