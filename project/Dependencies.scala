@@ -43,17 +43,17 @@ object Dependencies {
   }
 
   object slf4j {
-    lazy val v = "org.slf4j" ~% "1.7.35"
+    lazy val v = "org.slf4j" ~% "1.7.36"
     lazy val api = "slf4j-api" ~~ v
   }
 
   object logback {
-    lazy val v = "ch.qos.logback" ~% "1.2.10"
+    lazy val v = "ch.qos.logback" ~% "1.2.11"
     lazy val classic = "logback-classic" ~~ v
   }
 
   object akka {
-    lazy val v = "com.typesafe.akka" ~%% "2.6.18"
+    lazy val v = "com.typesafe.akka" ~%% "2.6.19"
 
     lazy val actors                 = v ~~ "akka-actor"
     lazy val actorsTyped            = v ~~ "akka-actor-typed"
@@ -71,12 +71,12 @@ object Dependencies {
   }
 
   object scalaTest {
-    lazy val v = "org.scalatest" ~%% "3.2.11"
+    lazy val v = "org.scalatest" ~%% "3.2.13"
     lazy val scalaTest = v ~~ "scalatest"
   }
 
   object scalaLog {
-    lazy val v = "com.typesafe.scala-logging" ~%% "3.9.4"
+    lazy val v = "com.typesafe.scala-logging" ~%% "3.9.5"
     lazy val logging = v ~~ "scala-logging"
   }
 
@@ -93,7 +93,7 @@ object Dependencies {
   }
 
   object scoverage {
-    lazy val v = "1.4.11"
+    lazy val v = "2.0.2"
     lazy val p = "org.scoverage" ~%% v
     lazy val scalacRuntime = "scalac-scoverage-runtime" ~~ p
   }
@@ -111,7 +111,7 @@ object Dependencies {
   }
 
   object ts_config {
-    val v = "1.4.1"
+    val v = "1.4.2"
     val p = "com.typesafe" ~% v
     val config = "config" ~~ p
   }
@@ -123,7 +123,7 @@ object Dependencies {
   }
 
   object json4s {
-    val v = "4.0.4"
+    val v = "4.0.5"
     val p = "org.json4s" ~%% v
     val native = "json4s-native" ~~ p
     val jackson = "json4s-jackson" ~~ p
@@ -140,20 +140,20 @@ object Dependencies {
   }
 
   object apacheAvro {
-    val v = "1.11.0"
+    val v = "1.11.1"
     val p = "org.apache.avro" ~% v
     val avro = "avro" ~~ p
     val avroMapred = "avro-mapred" ~~ p
   }
 
   object apacheParquet {
-    val v = "1.12.2"
+    val v = "1.12.3"
     val p = "org.apache.parquet" ~% v
     val parquetAvro = "parquet-avro" ~~ p
   }
 
   object apacheHadoop {
-    val v = "3.3.1"
+    val v = "3.3.4"
     val p = "org.apache.hadoop" ~% v
     val client = "hadoop-client" ~~ p
     val common = "hadoop-common" ~~ p
@@ -161,7 +161,7 @@ object Dependencies {
   }
 
   object amazonAWSSDK {
-    val v = "2.17.118"
+    val v = "2.17.250"
     val g = "software.amazon.awssdk"
     val p = g ~% v
     val sdkJava = "aws-sdk-java" ~~ p
@@ -182,7 +182,7 @@ object Dependencies {
   }
 
   object minio {
-    val v = "8.3.5"
+    val v = "8.4.3"
     val p = "io.minio" ~% v
     val minio = "minio" ~~ p
   }
@@ -199,7 +199,7 @@ object Dependencies {
   }
 
   object apacheCalcite {
-    val v = "1.29.0"
+    val v = "1.31.0"
     val p = "org.apache.calcite" ~% v
     val core = "calcite-core" ~~ p
   }
@@ -217,7 +217,7 @@ object Dependencies {
   }
 
   object picocli {
-    val v = "4.6.2"
+    val v = "4.6.3"
     val p = "info.picocli" ~% v
     val picocli = "picocli" ~~ p
     val jline3shell = "picocli-shell-jline3" ~~ p
@@ -237,7 +237,7 @@ object Dependencies {
       "info.picocli" % "picocli-shell-jline3" % "4.6.2"
    */
 
-  val shapeless = "com.chuusai" %% "shapeless" % "2.3.7"
+  val shapeless = "com.chuusai" %% "shapeless" % "2.3.9"
 
   implicit class ProjectProfiles(p:Project) {
 
