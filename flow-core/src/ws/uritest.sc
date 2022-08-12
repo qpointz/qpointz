@@ -1,5 +1,9 @@
-//import java.net.URI
+import java.net.URI
 
-val a = 12 // URI.create("/hhh/jjj/aa12.txt")
+val a = 13 //
 
-print(a)
+val b = URI.create("/hhh/jjj/aa12.txt")
+
+print(b)
+
+b.getScheme()

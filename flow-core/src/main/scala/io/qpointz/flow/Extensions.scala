@@ -16,7 +16,7 @@
 
 package io.qpointz.flow
 
-import io.qpointz.flow.nio.FileStreamSource
+import io.qpointz.flow.nio.{FileStreamSource, Path, PathSerializer}
 import io.qpointz.flow.serialization.JsonProtocolExtension
 import io.qpointz.flow.transformations.ConstTransform
 
@@ -27,7 +27,8 @@ class Extensions extends JsonProtocolExtension {
     FileStreamSource.jsonProtocol,
     RecordReader.jsonProtocol,
     InMemoryReaderSerializer.jsonProtocol,
-    RecordSerializer.jsonProtocol
+    RecordSerializer.jsonProtocol,
+    PathSerializer.jsonProtocol
 
     //transformations
   )
