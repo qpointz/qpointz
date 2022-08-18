@@ -19,11 +19,9 @@ package io.qpointz.flow.parquet
 
 import io.qpointz.flow.RecordWriter
 import io.qpointz.flow.avro.{AvroRecordWriter, ConstantAvroScemaSource}
-import io.qpointz.flow.parquet._
+import io.qpointz.flow.nio.Path
 import org.apache.avro.SchemaBuilder
 import org.apache.commons.io.FileUtils
-import org.apache.hadoop.fs.Path
-import org.apache.parquet.avro.AvroParquetWriter
 import org.json4s.Extraction
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
@@ -55,7 +53,7 @@ class JsonSerializationTest extends AnyFlatSpec with Matchers with BeforeAndAfte
   import org.json4s.jackson.JsonMethods._
   implicit val fmts = formats
 
-  val st = AvroParquetRecordWriterSettings(as, new Path(".test/avro-writer/writeavro.avro"))
+  val st = AvroParquetRecordWriterSettings(as, Path(".test/avro-writer/writeavro.avro"))
   val w = new AvroParquetRecordWriter(st)
 
 

@@ -18,12 +18,38 @@ package io.qpointz.flow.avro
 
 import io.qpointz.flow.{TypeId, flowQuids, serialization}
 import io.qpointz.flow.serialization.{JsonProtocol, JsonProtocolExtension}
+import org.apache.hadoop.conf.Configuration
+import org.json4s.JsonAST.{JBool, JField}
+import org.json4s.{CustomSerializer, JObject, JString}
 import shaded.parquet.org.apache.thrift.protocol.TJSONProtocol
+
+import scala.jdk.CollectionConverters._
 
 class JsonSerialization extends JsonProtocolExtension {
   override def protocols: Iterable[serialization.JsonProtocol[_]] = List(
+    JsonProtocol[AvroSchemaSource](new AvroSchemaSourceSerializer()),
     JsonProtocol[AvroRecordWriter](flowQuids.writer("avro"), new AvroRecordWriterSerializer()),
     JsonProtocol[AvroRecordWriterSettings](new AvroRecordWriterSettingsSerializer()),
-    JsonProtocol[AvroRecordReader](flowQuids.reader("avro"), new AvroRecordReaderSerializer())
+    JsonProtocol[AvroRecordReader](flowQuids.reader("avro"), new AvroRecordReaderSerializer()),
+    JsonProtocol[Configuration](new HadoopConfigurationSerializer)
   )
 }
+
+class HadoopConfigurationSerializer extends CustomSerializer[Configuration](implicit fmt=> (
+  {
+    case jo:JObject => {
+      val config = new Configuration(true)
+      val vals = jo.extractOrElse[Map[String,String]](Map[String,String]())
+      vals.foreach(kv=>config.set(kv._1,kv._2))
+      config
+    }
+  },
+  {
+    case cfg:Configuration => {
+      val fields = cfg.iterator().asScala.map(kv=> JField(kv.getKey, JString(kv.getValue))).toList
+      val res = JObject(fields)
+      println(res)
+      res
+    }
+  }
+))
