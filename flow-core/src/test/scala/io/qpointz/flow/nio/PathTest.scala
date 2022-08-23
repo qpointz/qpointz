@@ -15,16 +15,34 @@
  *   limitations under the License.
  */
 
-package io.qpointz.flow.cli.noise
+package io.qpointz.flow.nio
 
-import org.graalvm.polyglot._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
+import java.io.File
+import java.net.URI
+import java.nio.file.Paths
 
-object Polyglot {
-  def main(args: Array[String]): Unit = {
-    val context = Context.newBuilder("python").allowIO(true).build()
-    val array = context.eval("python", "def func(i): return i+10")
-    //val result = array.as(classOf[Array[Int]]).toSeq
-    System.out.println("result")
+class PathTest extends AnyFlatSpec with Matchers {
+
+  val dpath = "file:///my/a/b/d.txt"
+  val upath = Path(URI.create(dpath))
+
+  behavior of "apply"
+
+  it should "from string" in {
+    Path(dpath) shouldBe upath
   }
+
+  it should "from file" in {
+    val f = new File(dpath)
+    Path(f) shouldBe upath
+  }
+
+  it should "from Path" in {
+    val p = Paths.get(dpath)
+    Path(p) shouldBe upath
+  }
+
 }

@@ -19,12 +19,11 @@ package io.qpointz.flow.aws.s3
 import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
-import software.amazon.awssdk.services.s3.model.{GetObjectRequest, HeadBucketRequest, HeadObjectRequest, ListBucketsRequest, ListObjectsRequest, PutObjectRequest}
+import software.amazon.awssdk.services.s3.model._
 
-import java.io.File
 import java.net.URI
-import java.nio.file.{FileVisitOption, Files, Path, Paths}
-import collection.JavaConverters._
+import java.nio.file.{Files, Path, Paths}
+import scala.jdk.CollectionConverters._
 
 object TestC {
 

@@ -17,45 +17,47 @@
 package io.qpointz.flow.parquet
 
 import io.qpointz.flow.avro.AvroMethods._
-import io.qpointz.flow.avro.AvroSchemaSource
-import io.qpointz.flow.{OperationContext, Record, RecordWriter}
-import org.apache.avro.generic.{GenericRecord, GenericRecordBuilder}
+import io.qpointz.flow.avro.{AvroRecordWriterSettings, AvroSchemaSource}
+import io.qpointz.flow.nio.Path
+import io.qpointz.flow.serialization.Json.hint
+import io.qpointz.flow.{Record, RecordWriter}
+import org.apache.avro.generic.GenericRecord
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
-import org.apache.parquet.column.ParquetProperties
-import org.apache.parquet.hadoop.{ParquetFileWriter, ParquetWriter}
-import org.apache.parquet.hadoop.metadata.CompressionCodecName
+import org.apache.hadoop.{fs=>hadoopfs}
 import org.apache.parquet.avro.AvroParquetWriter
+import org.apache.parquet.column.ParquetProperties
+import org.apache.parquet.hadoop.metadata.CompressionCodecName
+import org.apache.parquet.hadoop.util.HadoopOutputFile
+import org.apache.parquet.hadoop.{ParquetFileWriter, ParquetWriter}
+import org.json4s.JsonDSL._
+import org.json4s._
+import org.json4s.jackson.JsonMethods.{mapper, parse}
 
-class AvroParquetRecordWriterSettings {
-  var maxPaddingSize: Int = ParquetWriter.MAX_PADDING_SIZE_DEFAULT
-  var writerVersion: ParquetProperties.WriterVersion = ParquetProperties.DEFAULT_WRITER_VERSION
-  var dictionaryPageSize: Int = ParquetProperties.DEFAULT_DICTIONARY_PAGE_SIZE
-  var dictionaryEncoding: Boolean = ParquetWriter.DEFAULT_IS_DICTIONARY_ENABLED
-  var validation: Boolean = ParquetWriter.DEFAULT_IS_VALIDATING_ENABLED
-  var rowGroupSize: Int = ParquetWriter.DEFAULT_BLOCK_SIZE
-  var pageSize: Int = ParquetWriter.DEFAULT_PAGE_SIZE
-  var compressionCodec: CompressionCodecName = ParquetWriter.DEFAULT_COMPRESSION_CODEC_NAME
-  var mode:ParquetFileWriter.Mode = ParquetFileWriter.Mode.CREATE
-
-  var configuration: Configuration = new Configuration(true)
-  var schema:AvroSchemaSource = _
-  var path:Path = _
-
-  def path(p:String):Unit = {
-    path = new Path(p)
-  }
-
+case class AvroParquetRecordWriterSettings(
+  schema:AvroSchemaSource,
+  path:Path,
+  maxPaddingSize: Int = ParquetWriter.MAX_PADDING_SIZE_DEFAULT,
+  writerVersion: ParquetProperties.WriterVersion = ParquetProperties.DEFAULT_WRITER_VERSION,
+  dictionaryPageSize: Int = ParquetProperties.DEFAULT_DICTIONARY_PAGE_SIZE,
+  dictionaryEncoding: Boolean = ParquetWriter.DEFAULT_IS_DICTIONARY_ENABLED,
+  validation: Boolean = ParquetWriter.DEFAULT_IS_VALIDATING_ENABLED,
+  rowGroupSize: Long = ParquetWriter.DEFAULT_BLOCK_SIZE,
+  pageSize: Int = ParquetWriter.DEFAULT_PAGE_SIZE,
+  compressionCodec: CompressionCodecName = ParquetWriter.DEFAULT_COMPRESSION_CODEC_NAME,
+  mode:ParquetFileWriter.Mode = ParquetFileWriter.Mode.CREATE,
+  configuration: Configuration = new Configuration(true))
+{
 }
 
-class AvroParquetRecordWriter(settings:AvroParquetRecordWriterSettings) extends RecordWriter {
+class AvroParquetRecordWriter(val settings:AvroParquetRecordWriterSettings) extends RecordWriter {
   override def open(): Unit = {
 
   }
 
   private lazy val schema = settings.schema.avroSchema()
 
-  lazy val writer = AvroParquetWriter.builder[GenericRecord](settings.path)
+
+  lazy val writer = AvroParquetWriter.builder[GenericRecord](HadoopOutputFile.fromPath(new hadoopfs.Path(settings.path.uri), settings.configuration))
     .withSchema(schema)
     .withConf(settings.configuration)
     .withCompressionCodec(settings.compressionCodec)
@@ -79,3 +81,28 @@ class AvroParquetRecordWriter(settings:AvroParquetRecordWriterSettings) extends 
     writer.close()
   }
 }
+
+class ParquetRecordWriterSerializer extends CustomSerializer[AvroParquetRecordWriter] (implicit format => (
+  {
+    case jo:JObject =>
+      val s = (jo \ "settings").extract[AvroParquetRecordWriterSettings]
+      new AvroParquetRecordWriter(s)
+  },
+  {
+    case w : AvroParquetRecordWriter =>
+      hint[AvroParquetRecordWriter] ~ ("settings" -> Extraction.decompose(w.settings))
+  }))
+
+
+class AvroParquetRecordWriterSettingsSerializer extends CustomSerializer[AvroParquetRecordWriterSettings] (implicit format => (
+  {case jo:JObject =>
+    val sc = AvroSchemaSource(mapper.writeValueAsString(jo \ "schema"))
+    val a = (jo \ "path").extract[String]
+    val path = Path(a)
+    AvroParquetRecordWriterSettings(sc, path)
+  },
+  {
+    case ws : AvroRecordWriterSettings =>
+      ("schema" -> parse(ws.schema.avroSchema().toString(true))) ~ ("path" -> ws.path.toAbsolutePath.toString)
+  })
+)

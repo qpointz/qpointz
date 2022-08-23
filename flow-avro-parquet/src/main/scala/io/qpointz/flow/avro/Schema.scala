@@ -17,6 +17,9 @@
 package io.qpointz.flow.avro
 
 import org.apache.avro.Schema
+import org.json4s.CustomSerializer
+import org.json4s.JsonAST.JValue
+import org.json4s.jackson.JsonMethods._
 
 import java.io.InputStream
 
@@ -46,3 +49,13 @@ final class JsonAvroSchemaSource(private val jsonStream:String) extends AvroSche
   }
   override def avroSchema(): Schema = parsedSchema
 }
+
+final class AvroSchemaSourceSerializer extends CustomSerializer[AvroSchemaSource] (implicit format => (
+  {
+    case jv:JValue => AvroSchemaSource(compact(render(jv)))
+
+  },
+  {case avss: AvroSchemaSource =>
+    parse(avss.avroSchema().toString(true))
+  }
+))

@@ -20,8 +20,8 @@ package io.qpointz.flow.parquet
 import java.nio.file.{Files, Paths}
 import io.qpointz.flow.Record
 import io.qpointz.flow.avro.ConstantAvroScemaSource
+import io.qpointz.flow.nio.Path
 import org.apache.avro.SchemaBuilder
-import org.apache.hadoop.fs.Path
 
 object ParquetUtils {
 
@@ -39,10 +39,9 @@ object ParquetUtils {
       .requiredString("c")
       .endRecord()
     )
-    val s = new AvroParquetRecordWriterSettings()
-    s.path = new Path(filePath.toAbsolutePath.toString)
-    s.schema = as
 
+    val p = Path(filePath.toUri)
+    val s = new AvroParquetRecordWriterSettings(as,p)
     val w = new AvroParquetRecordWriter(s)
     w.open()
 

@@ -24,7 +24,6 @@ import scala.jdk.CollectionConverters._
 
 class AvroSchemaSourceTest extends AnyFlatSpec with Matchers {
 
-
   def gs(name:String):InputStream = {
     val p = s"flow-avro-parquet-test/schemas/$name.json"
     this.getClass.getClassLoader.getResourceAsStream(p)
