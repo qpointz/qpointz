@@ -64,7 +64,7 @@ class AvroRecordWriterTest extends AnyFlatSpec with Matchers with BeforeAndAfter
   import org.json4s.jackson.JsonMethods._
   implicit val fmts = formats
 
-  val st = AvroRecordWriterSettings(as, Paths.get(".test/avro-writer/writeavro.avro"))
+  val st = AvroRecordWriterSettings(as, Paths.get(".test/avro-writer/writeavro.avro").toAbsolutePath)
   val w = new AvroRecordWriter(st)
 
   it should "serialize" in {

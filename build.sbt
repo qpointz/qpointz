@@ -4,7 +4,7 @@ import sbt._
 import BuildUtils._
 
 
-import sbt._  
+import sbt._
 
 name := "qpointz"
 ThisBuild / organization := "io.qpointz"
@@ -15,8 +15,7 @@ ThisBuild / parallelExecution := false
 
 
 lazy val `qpointz` = project.in(file("."))
-  .aggregate(
-    `flow-core`,
+  .aggregate(`flow-core`,
     `flow-excel`,
     `flow-text`,
     `flow-jdbc`,
@@ -24,8 +23,8 @@ lazy val `qpointz` = project.in(file("."))
     `flow-cli`,
     `flow-aws`,
     `flow-stream`,
-    `flow-workflow`
-  )
+    `flow-workflow`,
+    `shape-core`)
 /* temporaly disabled
 ThisBuild / coverageFailOnMinimum := true
 ThisBuild / coverageMinimumStmtTotal := 90
@@ -39,7 +38,7 @@ ThisBuild / coverageMinimumBranchPerFile := 80
 resolvers ++= Resolver.sonatypeOssRepos("snapshots")
 
 lazy val `flow-cli` = libProject("flow","cli")
-  .dependsOn(`flow-core`,
+  .dependsOn(
     `flow-core`,
     `flow-excel`,
     `flow-text`,
@@ -47,8 +46,8 @@ lazy val `flow-cli` = libProject("flow","cli")
     `flow-avro-parquet`,
     `flow-aws`,
     `flow-stream`,
-    `flow-workflow`
-  )
+    `flow-workflow`,
+    `shape-core`)
   .withConfig
   .withJson
   .settings(
@@ -164,5 +163,12 @@ lazy val `flow-workflow` = libProject("flow","workflow")
     libraryDependencies ++= modules(
       akka.actorsTyped,
       akka.actorsTypedTestKit % Test
+    )
+  )
+
+lazy val `shape-core` = libProject("shape","core")
+  .dependsOn(`flow-core`)
+  .settings(
+    libraryDependencies ++= modules(
     )
   )
