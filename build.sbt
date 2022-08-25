@@ -167,8 +167,11 @@ lazy val `flow-workflow` = libProject("flow","workflow")
   )
 
 lazy val `shape-core` = libProject("shape","core")
+  .withIntegration
   .dependsOn(`flow-core`)
   .settings(
     libraryDependencies ++= modules(
+      apacheCalcite.core,
+      h2db.h2 % Test
     )
   )
