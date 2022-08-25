@@ -75,5 +75,23 @@ services:
       done;
       exit 0;
       "
-      
-      
+  couchbase:
+    image: "couchbase:community-7.1.1"
+    hostname: "couchbase"
+    ports:
+      - "8091-8094:8091-8094"
+      - "11210:11210"
+  couchbase_init:
+    image: "couchbase:community-7.1.1"
+    depends_on:
+      - "couchbase"
+    entrypoint: >
+      /bin/sh -c "
+      export TRINO_PASSWORD=qp;
+      while ! /opt/couchbase/bin/couchbase-cli cluster-init --cluster couchbase:8091 --cluster-username qp --cluster-password qppassword --cluster-name qp --services data,index,query,fts 2>/dev/null;
+      do echo 'waiting';
+      sleep 5s;
+      done;
+      echo 'done'
+      exit 0;
+      "

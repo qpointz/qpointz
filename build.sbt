@@ -12,7 +12,22 @@ ThisBuild / version := BuildSettings.version
 ThisBuild / scalaVersion := BuildSettings.scalaLangVersion
 Global / cancelable := true
 ThisBuild / parallelExecution := false
+ThisBuild / versionScheme := Some("pvp")
 
+logLevel:= Level.Debug
+
+ThisBuild / publishTo := {
+  val nexus = "https://nexus.qpointz.io"
+  if (isSnapshot.value) {
+    Some( ("snapshots" at nexus + "/repository/maven-snapshots"))
+  } else {
+    Some( ("releases" at nexus + "/repository/maven-releases"))
+  }
+}
+
+credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
+
+ThisBuild / publishMavenStyle := true
 
 lazy val `qpointz` = project.in(file("."))
   .aggregate(`flow-core`,
@@ -35,7 +50,7 @@ ThisBuild / coverageMinimumStmtPerFile := 85
 ThisBuild / coverageMinimumBranchPerFile := 80
  */
 
-resolvers ++= Resolver.sonatypeOssRepos("snapshots")
+
 
 lazy val `flow-cli` = libProject("flow","cli")
   .dependsOn(
@@ -175,3 +190,8 @@ lazy val `shape-core` = libProject("shape","core")
       h2db.h2 % Test
     )
   )
+
+resolvers ++= Resolver.sonatypeOssRepos("snapshots")
+resolvers += "QP Nexus snapshots" at "https://nexus.qpointz.io/repository/maven-snapshots"
+resolvers += "QP Nexus releases" at "https://nexus.qpointz.io/repository/maven-releases"
+

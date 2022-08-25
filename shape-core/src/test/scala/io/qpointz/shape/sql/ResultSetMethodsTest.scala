@@ -27,7 +27,7 @@ import java.sql.ResultSet
 
 class ResultSetMethodsTest extends AnyFlatSpec with Matchers with SqlBaseTest {
 
-  import ResultSetMethods._
+  import io.qpointz.shape.sql._
 
   def rs:ResultSet = executeQuery("select id, country, city, birthday from depts where id<=10")
 

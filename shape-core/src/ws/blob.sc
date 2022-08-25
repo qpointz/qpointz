@@ -1,3 +1,5 @@
-import java.util.UUID
+import org.apache.calcite.sql.parser.SqlParser
+import org.apache.calcite.sql.util.SqlShuttle
 
-"db" + UUID.randomUUID().toString.replace("-","")
+val cfg = SqlParser.config().withCaseSensitive(true)
+val parser = SqlParser.create("select * from DEPS",cfg)

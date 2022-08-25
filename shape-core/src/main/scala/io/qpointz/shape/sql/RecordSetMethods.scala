@@ -33,8 +33,7 @@ object ResultSetMethods {
       (1 to md.getColumnCount).map(idx => idx -> md.getColumnName(idx)).sortBy(_._1).toList
     }
     def asSeq[T](loop:(List[(Int, String)], ResultSet)=>T):Seq[T]= {
-      val cols = resultSet.columns
-      resultSet.iterator.map(loop(cols, _)).toSeq
+      iterator.map(loop(columns, _)).toSeq
     }
     def asMapSeq:Seq[Map[String, Any]] = asSeq {(cols, rs)=>
         cols.map(k => k._2 -> ub(rs.getObject(k._1))).toMap

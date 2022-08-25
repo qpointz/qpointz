@@ -17,6 +17,7 @@
 
 package io.qpointz.shape
 
+import io.qpointz.shape.sql.{SqlDialects, SqlSession}
 import org.h2.tools.RunScript
 import org.scalatest.{BeforeAndAfterAll, Suite}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -28,7 +29,9 @@ import java.util.UUID
 
 trait SqlBaseTest extends BeforeAndAfterAll {this: Suite =>
 
-  lazy val dburl = "jdbc:h2:mem:db" + UUID.randomUUID().toString.replace("-","")
+  lazy val dburl: String = "jdbc:h2:mem:db" + UUID.randomUUID().toString.replace("-","")
+
+  lazy val session: SqlSession = SqlSession(SqlDialects.H2Dialece, dburl)
 
   private def reader(resource:String) = {
     val stream = this.getClass.getClassLoader.getResourceAsStream(resource)
