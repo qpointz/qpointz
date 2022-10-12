@@ -22,7 +22,7 @@ ThisBuild / publishTo := {
   if (isSnapshot.value) {
     Some( ("snapshots" at nexus + "/repository/maven-snapshots/"))
   } else {
-    Some( ("releases" at nexus + "/repository/maven-snapshots/"))
+    Some( ("releases" at nexus + "/repository/maven-releases/"))
   }
 }
 
