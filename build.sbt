@@ -2,9 +2,10 @@ import Dependencies._
 import sbt.Keys.libraryDependencies
 import sbt._
 import BuildUtils._
+import sbt.Keys.streams
 
 
-import sbt._  
+import sbt._
 
 name := "qpointz"
 ThisBuild / organization := "io.qpointz"
@@ -12,11 +13,33 @@ ThisBuild / version := BuildSettings.version
 ThisBuild / scalaVersion := BuildSettings.scalaLangVersion
 Global / cancelable := true
 ThisBuild / parallelExecution := false
+ThisBuild / versionScheme := Some("pvp")
 
+logLevel:= Level.Debug
+
+ThisBuild / publishTo := {
+  val nexus = "https://nexus.qpointz.io"
+  if (isSnapshot.value) {
+    Some( ("snapshots" at nexus + "/repository/maven-snapshots/"))
+  } else {
+    Some( ("releases" at nexus + "/repository/maven-snapshots/"))
+  }
+}
+
+val nexusUser = sys.env.get("NEXUS_USER")
+val nexusPassword = sys.env.get("NEXUS_PASSWORD")
+if (nexusUser.nonEmpty && nexusPassword.nonEmpty) {
+  println("Use nexus credentials from env vars")
+  credentials += Credentials("Sonatype Nexus Repository Manager", "nexus.qpointz.io", nexusUser.get , nexusPassword.get)
+} else {
+  println("Use nexus credentials from ~/.ivy2/.credentials")
+  credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
+}
+
+ThisBuild / publishMavenStyle := true
 
 lazy val `qpointz` = project.in(file("."))
-  .aggregate(
-    `flow-core`,
+  .aggregate(`flow-core`,
     `flow-excel`,
     `flow-text`,
     `flow-jdbc`,
@@ -24,8 +47,8 @@ lazy val `qpointz` = project.in(file("."))
     `flow-cli`,
     `flow-aws`,
     `flow-stream`,
-    `flow-workflow`
-  )
+    `flow-workflow`,
+    `shape-core`)
 /* temporaly disabled
 ThisBuild / coverageFailOnMinimum := true
 ThisBuild / coverageMinimumStmtTotal := 90
@@ -36,10 +59,10 @@ ThisBuild / coverageMinimumStmtPerFile := 85
 ThisBuild / coverageMinimumBranchPerFile := 80
  */
 
-resolvers ++= Resolver.sonatypeOssRepos("snapshots")
+
 
 lazy val `flow-cli` = libProject("flow","cli")
-  .dependsOn(`flow-core`,
+  .dependsOn(
     `flow-core`,
     `flow-excel`,
     `flow-text`,
@@ -47,8 +70,8 @@ lazy val `flow-cli` = libProject("flow","cli")
     `flow-avro-parquet`,
     `flow-aws`,
     `flow-stream`,
-    `flow-workflow`
-  )
+    `flow-workflow`,
+    `shape-core`)
   .withConfig
   .withJson
   .settings(
@@ -166,3 +189,18 @@ lazy val `flow-workflow` = libProject("flow","workflow")
       akka.actorsTypedTestKit % Test
     )
   )
+
+lazy val `shape-core` = libProject("shape","core")
+  .withIntegration
+  .dependsOn(`flow-core`)
+  .settings(
+    libraryDependencies ++= modules(
+      apacheCalcite.core,
+      h2db.h2 % Test
+    )
+  )
+
+resolvers ++= Resolver.sonatypeOssRepos("snapshots")
+resolvers += "QP Nexus snapshots" at "https://nexus.qpointz.io/repository/maven-snapshots"
+resolvers += "QP Nexus releases" at "https://nexus.qpointz.io/repository/maven-releases"
+

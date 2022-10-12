@@ -20,7 +20,6 @@ import org.apache.calcite.avatica.util.Quoting
 import org.apache.calcite.sql.`type`.SqlTypeName
 import org.apache.calcite.sql.parser.SqlParser
 import org.apache.calcite.sql._
-
 import scala.jdk.CollectionConverters._
 
 object SqlStm {
@@ -53,7 +52,7 @@ private[ql] object Sql {
     def identifier(i: SqlIdentifier) = i.names.asScala.toList match {
       case _ if i.isStar => Asterisk
       case a :: Nil => Attribute(a)
-      case g :: k :: Nil if (g.length > 1 && g.startsWith(":")) => MetadataEntry(g.stripPrefix(":"), k)      
+      case g :: k :: Nil if (g.length > 1 && g.startsWith(":")) => MetadataEntry(g.stripPrefix(":"), k)
       case _ => throw new RuntimeException(s"Wrong identifier ${i.getSimple}")
     }
 
@@ -107,5 +106,4 @@ private[ql] object Sql {
       case _ => throw new RuntimeException("Only SELECT statement supported")
     }
   }
-
 }

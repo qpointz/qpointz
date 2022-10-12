@@ -6,6 +6,8 @@ ENV JAVA_HOME="/usr/lib/jvm/graalvm"
 ENV PATH="/usr/lib/jvm/graalvm/bin:${PATH}"
 
 
+COPY ivysettings-file.properties /root/.ivy2/ivysettings-file.properties
+COPY settings.xml /root/.m2/settings.xml
 
 # Install sbt
 RUN \
@@ -16,7 +18,7 @@ RUN \
   mkdir -p /usr/lib/jvm && \
   mv graalvm-ce-java${JAVA_VERSION}-${GRAAL_VERSION}/ /usr/lib/jvm/graalvm && \
   gu install python  && \
-  gu install r && \
+  rm graalvm-ce-java${JAVA_VERSION}-linux-amd64-${GRAAL_VERSION}.tar.gz && \
   echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/apt/sources.list.d/sbt.list && \
   echo "deb https://repo.scala-sbt.org/scalasbt/debian /" | tee /etc/apt/sources.list.d/sbt_old.list && \
   wget "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" -O key.gpg  && \
@@ -26,14 +28,8 @@ RUN \
   apt-get install -y sbt xsltproc python3 python3-pip zlib1g-dev libjpeg-dev latexmk texlive-formats-extra && \
   sbt -Dsbt.rootdir=true version && \
   rm -rf /var/lib/apt/lists/* && \
-  mkdir -p /data/.sbt && \
-  mkdir -p /data/.ivy2 && \
-  ln -s /data/.ivy2 /root/.ivy2 && \
-  ln -s /data/.sbt /root/.sbt && \
-  pip3 install -U requests rst2pdf sphinx sphinx_rtd_theme sphinx-material sphinx-tabs sphinx-press-theme
-
-RUN java -version && \
-    sbt -Dsbt.rootdir=true version
+  pip3 install -U requests rst2pdf sphinx sphinx_rtd_theme sphinx-material sphinx-tabs sphinx-press-theme && \
+  sbt -Dsbt.rootdir=true version
 
 VOLUME /data
 

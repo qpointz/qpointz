@@ -1,0 +1,97 @@
+version: '3.3'
+services:
+  postgresdb:
+    build:
+      context: ./postgres
+    command: "-c log_min_messages=INFO"
+    environment:
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+    logging:
+      driver: none
+    ports:
+      - "25432:5432"
+  minio:
+    hostname: minio
+    ports:
+      - "29000:9000"
+      - "29001:9001"
+    image: quay.io/minio/minio:latest
+    command: server --console-address ":9001" /data
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+
+  metastore:
+    hostname: metastore
+    build:
+      context: ./hive-metastore
+    ports:
+      - "29083:9083"
+    depends_on:
+      - postgresdb
+      - minio
+
+  sampledata:
+    build:
+      context: ./sampledata
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "      
+      sleep 15s;
+      /usr/bin/mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
+      /usr/bin/mc mb myminio/sampledata;
+      /usr/bin/mc policy set public myminio/sampledata;      
+      /usr/bin/mc cp -r /data/nyc_pq myminio/sampledata/nyc_pq;      
+      exit 0;
+      "
+
+  trino:
+    build:
+      context: ./trino
+    environment:
+      - S3_CREDENTIALS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - S3_CREDENTIALS_ACCESS_SECRET_KEY=${MINIO_ROOT_PASSWORD}
+      - S3_ENDPOINT_URL=http://minio:9000
+    ports:
+      - "28090:8080"
+      - "28443:8443"
+    depends_on:
+      - "metastore"
+      - "sampledata"
+
+  sampledb:
+    hostname: sampledb
+    build:
+      context: ./trino
+    depends_on:
+      - trino
+    entrypoint: >
+      /bin/sh -c "
+      export TRINO_PASSWORD=qp;
+      while ! /trino-server/bin/trino --server=https://trino:8443 --user=qp  --password --insecure --file=/trino-server/etc/scripts/nyc.sql 2>/dev/null;
+      do echo 'waiting';
+      sleep 5s;
+      done;
+      exit 0;
+      "
+  couchbase:
+    image: "couchbase:community-7.1.1"
+    hostname: "couchbase"
+    ports:
+      - "8091-8094:8091-8094"
+      - "11210:11210"
+  couchbase_init:
+    image: "couchbase:community-7.1.1"
+    depends_on:
+      - "couchbase"
+    entrypoint: >
+      /bin/sh -c "
+      export TRINO_PASSWORD=qp;
+      while ! /opt/couchbase/bin/couchbase-cli cluster-init --cluster couchbase:8091 --cluster-username qp --cluster-password qppassword --cluster-name qp --services data,index,query,fts 2>/dev/null;
+      do echo 'waiting';
+      sleep 5s;
+      done;
+      echo 'done'
+      exit 0;
+      "
