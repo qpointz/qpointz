@@ -2,6 +2,7 @@ import Dependencies._
 import sbt.Keys.libraryDependencies
 import sbt._
 import BuildUtils._
+import sbt.Keys.streams
 
 
 import sbt._
@@ -19,13 +20,21 @@ logLevel:= Level.Debug
 ThisBuild / publishTo := {
   val nexus = "https://nexus.qpointz.io"
   if (isSnapshot.value) {
-    Some( ("snapshots" at nexus + "/repository/maven-snapshots"))
+    Some( ("snapshots" at nexus + "/repository/maven-snapshots/"))
   } else {
-    Some( ("releases" at nexus + "/repository/maven-releases"))
+    Some( ("releases" at nexus + "/repository/maven-snapshots/"))
   }
 }
 
-credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
+val nexusUser = sys.env.get("NEXUS_USER")
+val nexusPassword = sys.env.get("NEXUS_PASSWORD")
+if (nexusUser.nonEmpty && nexusPassword.nonEmpty) {
+  println("Use nexus credentials from env vars")
+  credentials += Credentials("Sonatype Nexus Repository Manager", "nexus.qpointz.io", nexusUser.get , nexusPassword.get)
+} else {
+  println("Use nexus credentials from ~/.ivy2/.credentials")
+  credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
+}
 
 ThisBuild / publishMavenStyle := true
 

@@ -59,7 +59,7 @@ class RelAlgebraTests extends AnyFlatSpec with Matchers with SqlBaseTest {
     val np = root.add("H2", sp)
     val config = Frameworks.newConfigBuilder().defaultSchema(np).build()
     val planner = Frameworks.getPlanner(config)
-    val node = planner.parse("SELECT COUNTRY, GENDER, HASH('md5',ID) FROM DEPTS WHERE COUNTRY='USA' AND GENDER<>'Male' ORDER BY 1")
+    val node = planner.parse("SELECT COUNTRY, GENDER FROM DEPTS WHERE COUNTRY='USA' AND GENDER<>'Male' ORDER BY 1")
     planner.validate(node)
     val rel = planner.rel(node)
     println(rel.rel.explain())

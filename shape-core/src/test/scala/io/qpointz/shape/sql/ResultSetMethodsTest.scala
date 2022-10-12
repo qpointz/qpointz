@@ -56,7 +56,7 @@ class ResultSetMethodsTest extends AnyFlatSpec with Matchers with SqlBaseTest {
     ms.data.length shouldBe(10)
     val a = ms.data.drop(3).head
     a(0) shouldBe(4)
-    ms.columns.head shouldBe (0,"ID")
+    ms.columns.head shouldBe "ID"
   }
 
   it should "serialize" in {

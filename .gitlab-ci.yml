@@ -19,7 +19,7 @@ docker:buildCiSBT:
   stage: init
   image: docker:latest
   script:
-    - echo "$DOCKER_REPO_CI_PASSWORD" | docker login $DOCKER_REPO_CI  -u $DOCKER_REPO_CI_USER --password-stdin
+    - echo "$NEXUS_PASSWORD" | docker login $DOCKER_REPO_CI  -u $NEXUS_USER --password-stdin
     - docker build etc/docker/ci-sbt-graalvm -t docker-ci.qpointz.io/ci-sbt-graalvm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
     - docker push docker-ci.qpointz.io/ci-sbt-graalvm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
 
@@ -27,20 +27,17 @@ docker:buildCiPython:
   stage: init
   image: docker:latest
   script:
-    - echo "$DOCKER_REPO_CI_PASSWORD" | docker login $DOCKER_REPO_CI  -u $DOCKER_REPO_CI_USER --password-stdin
+    - echo "$NEXUS_PASSWORD" | docker login $DOCKER_REPO_CI  -u $NEXUS_USER --password-stdin
     - docker build etc/docker/ci-npm -t docker-ci.qpointz.io/ci-npm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
     - docker push docker-ci.qpointz.io/ci-npm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
 
-docker:buildDevStack:
+clean:
   stage: init
-  image: docker:latest
-  only:
-    - dev
-    - master
+  when: manual
   script:
-    - echo "$DOCKER_REPO_PASSWORD" | docker login $DOCKER_REPO  -u $DOCKER_REPO_USER --password-stdin
-    - docker build etc/docker/theia-scala -t docker.qpointz.io/theia-scala
-    - docker push docker.qpointz.io/theia-scala
+    - rm -Rf /root/.ivy2/*
+    - rm -Rf /root/.m2/*
+    - rm -Rf /root/.sbt/*
 
 test:
   stage: test
@@ -61,17 +58,14 @@ doc:html:
     paths:
       - ./docs/build/docs-html.tar.gz
 
-publish:
-  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
-  stage: deploy
+publishToMaven:
+  stage: package
+  only:
+    - dev
+    - master
+    - main
   script:
-    - aws s3 rm --recursive s3://qpointz-cicd/$CI_COMMIT_REF_SLUG
-    - mkdir pub
-    - mkdir pub/docs && tar -xzf ./docs/build/docs-html.tar.gz  -C ./pub/docs --strip-components=2
-    - cp -R ./target/scalastyle/ ./pub/scalastyle
-    - mkdir pub/coverage && tar -xzvf ./target/scala-2.13/scoverage-report.tar.gz -C ./pub/coverage --strip-components=2
-    - aws s3 cp --recursive pub s3://qpointz-cicd/$CI_COMMIT_REF_SLUG
-    - rm -Rf ./pub
+    - sbt clean publish
 
 scalastyle:
   stage: report
@@ -83,3 +77,15 @@ scalastyle:
     paths:
       - target/scalastyle/*.*
     expire_in: 10 days
+
+publishDocAndReports:
+  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+  stage: deploy
+  script:
+    - aws s3 rm --recursive s3://qpointz-cicd/$CI_COMMIT_REF_SLUG
+    - mkdir pub
+    - mkdir pub/docs && tar -xzf ./docs/build/docs-html.tar.gz  -C ./pub/docs --strip-components=2
+    - cp -R ./target/scalastyle/ ./pub/scalastyle
+    - mkdir pub/coverage && tar -xzvf ./target/scala-2.13/scoverage-report.tar.gz -C ./pub/coverage --strip-components=2
+    - aws s3 cp --recursive pub s3://qpointz-cicd/$CI_COMMIT_REF_SLUG
+    - rm -Rf ./pub

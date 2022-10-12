@@ -64,9 +64,7 @@ spec:
     - port: 28080
       name: hbase-rest-info
       nodePort: 30132
-
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
