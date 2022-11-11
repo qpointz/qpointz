@@ -40,7 +40,7 @@ case class CsvFormat(
                       delimiter: Option[String] = None,
                       quote: Option[Char] = None,
                       quoteEscape: Option[Char] = None,
-                      charToEscapeQuoteEscaping: Option[Char] = None,
+                      charToEscapeQuoteEscaping: Option[Char] = None
                     ) {
 
   def comment(comment: Char): CsvFormat = {
