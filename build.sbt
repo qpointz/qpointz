@@ -110,7 +110,8 @@ lazy val `flow-core` = libProject("flow","core")
       commons.lang3,
       commons.io,
       spire.core,
-      shapeless
+      shapeless,
+      jansi.jansi
     )
   )
 
