@@ -111,7 +111,8 @@ lazy val `flow-core` = libProject("flow","core")
       commons.io,
       spire.core,
       shapeless,
-      jansi.jansi
+      jansi.jansi,
+      univocity.parsers % Test
     )
   )
 

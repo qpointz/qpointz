@@ -16,55 +16,49 @@
 
 package io.qpointz.flow.sql
 
-import org.apache.calcite.avatica.util.Quoting
 import org.apache.calcite.rel.externalize.RelWriterImpl
-import org.apache.calcite.schema.{Schema, SchemaPlus}
+import org.apache.calcite.schema.SchemaPlus
 import org.apache.calcite.sql.`type`.SqlTypeName
-import org.apache.calcite.sql.parser.SqlParser
-import org.apache.calcite.tools.{FrameworkConfig, Frameworks, RelBuilder}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import java.io.{PrintWriter, StringWriter}
+import scala.jdk.CollectionConverters._
+import java.io.PrintWriter
 
-class FlowSchemaTest extends AnyFlatSpec with Matchers { {
+class FlowSchemaTest extends AnyFlatSpec with Matchers with FlowSqlSpec {
 
-  import scala.jdk.CollectionConverters._
-  import SchemaMethods._
+  override def testSchema: SchemaPlus = calciteSchema("test", Seq(
+    table("CLIENT",
+      attribute("ID", SqlTypeName.VARCHAR),
+      attribute("FIRST_NAME", SqlTypeName.VARCHAR, false),
+      attribute("LAST_NAME", SqlTypeName.VARCHAR, false),
+      attribute("EMAIL", SqlTypeName.VARCHAR, true),
+      attribute("GENDER", SqlTypeName.VARCHAR, true),
+      attribute("BIRTHDAY", SqlTypeName.VARCHAR, true),
+      attribute("COUNTRY_CODE", SqlTypeName.VARCHAR, nullable = false)
+    ),
+    table("COUNTRY",
+      attribute("ID", SqlTypeName.VARCHAR),
+      attribute("CODE", SqlTypeName.VARCHAR),
+      attribute("NAME", SqlTypeName.VARCHAR)
+  )))
 
   behavior of "AnyThing"
 
-  val testSchema = schema(Seq(
-    table("CLIENT",
-      attribute("ID", SqlTypeName.INTEGER),
-      attribute("FIRST_NAME", SqlTypeName.VARCHAR, false),
-      attribute("LAST_NAME", SqlTypeName.VARCHAR, false),
-      attribute("EMAIL", SqlTypeName.VARCHAR,true)
-    )))
-
-  def calciteSchema:SchemaPlus = Frameworks
-    .createRootSchema(false)
-    .add("test", testSchema)
-
-
   it should "relbuilder" in {
-    val parserConfig = SqlParser.Config.DEFAULT
-      .withQuoting(Quoting.BACK_TICK)
-
-    val config = Frameworks.newConfigBuilder()
-      .defaultSchema(calciteSchema)
-      .parserConfig(parserConfig)
-      .build()
-
-    val planner = Frameworks.getPlanner(config)
-    val parsed = planner.parse("SELECT A.* FROM `tt`.`aa` A where A.`id`='aaa'")
-    val valid = planner.validate(parsed)
-    val rel = planner.rel(valid).rel
+    val p = planner
+    val parsed = p.parse("SELECT CL.* FROM `test`.`CLIENT` CL WHERE CL.`ID`='2'")
+    val valid = p.validate(parsed)
+    val rel = p.rel(valid).rel
 
     val pw = new PrintWriter(System.out)
     val w = new RelWriterImpl(pw)
     w.explain(rel, List().asJava)
   }
-}
+
+  it should "create record reader" in {
+    val r = readerFromResource("reldata/CLIENT.csv")
+    r.toSeq.size > 0 shouldBe (true)
+  }
 
 }
