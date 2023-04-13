@@ -1,0 +1,17 @@
+experiments:
+  write_parquet:
+    type : parquet
+    path : "./rapids-formats/src/test/resources/td/parquet/{dataset-name}.parquet"
+models:
+  - name : formats
+    locales: ['en-US']
+    schemas:
+      - name : fmttypes
+        rows : 100
+        attributes:
+          - name: id
+            type: random_int
+          - name: last_name
+            type: last_name
+          - name: first_name
+            type: first_name

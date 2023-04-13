@@ -1,7 +1,9 @@
 pandas
 pathlib
-faker
-pyyaml
-croniter
-pyarrow
+faker=>18.4.0
 faker_airtravel
+pyyaml
+croniter>=1.3.14
+pyarrow
+pytest
+argparse

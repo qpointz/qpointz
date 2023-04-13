@@ -1,7 +1,7 @@
 experiments:
   write_csv:
     type : csv
-    path : "../.test-data/airlines/{dataset-name}.csv"
+    path : "./data/{dataset-name}.csv"
     params:
       sep : ";"
       header : true
@@ -54,3 +54,35 @@ models:
             params:
               min: 200
               max: 2500
+      - name: passenger
+        rows: 10000
+        attributes:
+          - name: id
+            type: random_int
+            params:
+              min: 1000000
+              max: 9999999
+          - name: first_name
+            type: first_name
+          - name: last_name
+            type: last_name
+          - name: domicile_address
+            type: address
+          - name: domicile_city_id
+            type: ${ref}
+            params:
+              dataset: cities
+              attribute: id
+          - name: age
+            type: random_int
+            params:
+              min: 12
+              max: 90
+      - name: flights
+        rows: 100000
+        attributes:
+          - name: segment_id
+            type: ${ref}
+            params:
+              dataset: segments
+              attribute: id

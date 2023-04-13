@@ -7,7 +7,6 @@ import org.apache.calcite.avatica.jdbc.JdbcMeta;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.schema.SchemaPlus;
-
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;

@@ -17,16 +17,16 @@ public class GraphQlCalciteHandler implements GraphQLHandler {
     }
 
     private void init() {
-        log.info("Initing GraphQL handler");
+//        log.info("Initing GraphQL handler");
+//
+//        var builder = new GraphQLObjectType.Builder();
+//        builder.name("root");
 
-        var builder = new GraphQLObjectType.Builder();
-        builder.name("root");
+        //new GraphQLSchema()
 
-        new GraphQLSchema()
-
-        final var rootSchema = this.calcite.getRootSchema();
-        buildSchema(builder, rootSchema);
-
+  //      final var rootSchema = this.calcite.getRootSchema();
+//        buildSchema(builder, rootSchema);
+//
     }
 
 

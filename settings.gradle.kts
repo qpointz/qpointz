@@ -76,6 +76,13 @@ dependencyResolutionManagement {
             val graphQl = version("graphql", "20.2")
             library("graphql-java", "com.graphql-java", "graphql-java").versionRef(graphQl)
 
+            val junit = version("junit", "5.9.2")
+            library("junit-jupiter-api", "org.junit.jupiter", "junit-jupiter-api").versionRef(junit)
+            library("junit-jupiter-engine", "org.junit.jupiter", "junit-jupiter-engine").versionRef(junit)
+            library("junit-vintage-engine", "org.junit.vintage", "junit-vintage-engine").versionRef(junit)
+
+            library("azure-storage-file-datalake", "com.azure", "azure-storage-file-datalake").version("12.14.1")
+
             bundle("quarkus-base-impl", listOf("quarkus-arc", "quarkus-config-yaml"))
             bundle("quarkus-base-test", listOf("quarkus-junit5"))
         }
