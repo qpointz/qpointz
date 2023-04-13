@@ -1,0 +1,7 @@
+pandas
+pathlib
+faker
+pyyaml
+croniter
+pyarrow
+faker_airtravel
