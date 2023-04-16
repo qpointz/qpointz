@@ -1,0 +1,84 @@
+experiments:
+  write_parquet:
+    type : parquet
+    path : "./airlines/{dataset-name}.parquet"
+models:
+  - name : airlines
+    locales: ['en-US']
+    schemas:
+      - name : cities
+        rows : 300
+        attributes:
+          - name: id
+            type: random_int
+            params:
+              min: 100000
+              max: 500000
+          - name: state
+            type: state
+          - name: city
+            type: city
+          - name: population
+            type: random_int
+            params:
+              min: 10000
+              max: 5000000
+          - name: airport
+            type: airport_name
+          - name: airport_iata
+            type: airport_iata
+      - name: segments
+        rows: 5000
+        attributes:
+          - name: id
+            type: random_int
+            params:
+              min: 100000
+              max: 500000
+          - name: from
+            type: ${ref}
+            params:
+              dataset: cities
+              attribute: id
+          - name: to
+            type: ${ref}
+            params:
+              dataset: cities
+              attribute: id
+          - name: distance
+            type: random_int
+            params:
+              min: 200
+              max: 2500
+      - name: passenger
+        rows: 10000
+        attributes:
+          - name: id
+            type: random_int
+            params:
+              min: 1000000
+              max: 9999999
+          - name: first_name
+            type: first_name
+          - name: last_name
+            type: last_name
+          - name: domicile_address
+            type: address
+          - name: domicile_city_id
+            type: ${ref}
+            params:
+              dataset: cities
+              attribute: id
+          - name: age
+            type: random_int
+            params:
+              min: 12
+              max: 90
+      - name: flights
+        rows: 100000
+        attributes:
+          - name: segment_id
+            type: ${ref}
+            params:
+              dataset: segments
+              attribute: id

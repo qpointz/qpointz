@@ -19,14 +19,17 @@ experiments:
     path: "./partitioned/{dataset-name}-{cron-date:%Y-%m-%d}.parquet"
     writer:
       name: parquet
+  write_parquet:
+    type : parquet
+    path : "./single/{dataset-name}.parquet"
 models:
   - name : airlines
     locales: ['en-US']
     schemas:
       - name: sample
         rows :
-          min: 100
-          max: 5000
+          min: 2000
+          max: 10000
         attributes:
           - name : id
             type : random_int

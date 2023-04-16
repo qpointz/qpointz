@@ -5,6 +5,8 @@ import io.qpointz.rapids.parcels.ParcelTable;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.FileNotFoundException;
 import java.nio.file.FileSystem;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,9 +51,13 @@ public class FileSystemParcel implements Parcel {
         stateBuilder.parcelName(this.getName());
 
         var partitions = new ArrayList<Optional<TablePartitionInfo>>();
-        FileSystemParcelUtils.traverse(
-                this.getFileSystem().getPath(this.parcelRootPath),
-                p-> partitions.add(this.getPartitionMatcher().match(p.toUri())));
+        try {
+            FileSystemParcelUtils.traverse(
+                    this.getFileSystem().getPath(this.parcelRootPath),
+                    p-> partitions.add(this.getPartitionMatcher().match(p.toUri())));
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
         var allPartitions = partitions.stream()
                 .filter(Optional::isPresent)
                 .map(Optional::get)
