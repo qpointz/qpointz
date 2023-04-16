@@ -3,9 +3,7 @@ package io.qpointz.rapids.formats.parquet;
 import io.qpointz.rapids.parcels.filesystem.FileSystemParcelUtils;
 import io.qpointz.rapids.parcels.filesystem.TablePartitionInfo;
 import io.qpointz.rapids.parcels.filesystem.TableRegexPartitionMatcher;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import io.qpointz.rapids.util.Pair;
 import org.apache.calcite.schema.Table;
 import org.apache.calcite.schema.impl.AbstractSchema;
 
@@ -16,16 +14,6 @@ import java.util.*;
 import java.util.stream.Stream;
 
 public class RapidsParquetSchema extends AbstractSchema {
-
-    @AllArgsConstructor
-    @EqualsAndHashCode
-    private class Pair<A,B> {
-        @Getter
-        private final A left;
-
-        @Getter
-        final B right;
-    }
 
     private final TableRegexPartitionMatcher partitionMapper;
     private final FileSystem fileSystem;
@@ -55,16 +43,16 @@ public class RapidsParquetSchema extends AbstractSchema {
 
     private Set<String> tableNames() {
         return Set.copyOf(listPartitionsFiles()
-                .filter(p -> p.right.isPresent())
-                .map(p-> p.right.get().getTableName())
+                .filter(p -> p.getRight().isPresent())
+                .map(p-> p.getRight().get().getTableName())
                 .distinct()
                 .toList());
     }
 
      Set<Path> getTablePaths(String tableName) {
         return Set.copyOf(listPartitionsFiles()
-                .filter(p->p.right.isPresent() && p.right.get().getTableName().equals(tableName))
-                .map(p-> p.left)
+                .filter(p-> p.getRight().isPresent() && p.getRight().get().getTableName().equals(tableName))
+                .map(Pair::getLeft)
                 .toList()
         );
     }

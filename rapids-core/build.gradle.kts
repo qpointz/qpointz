@@ -15,6 +15,9 @@ dependencies {
 
     implementation(libs.graphql.java)
 
+    implementation(libs.parquet.avro)
+    implementation(libs.avro)
+
     implementation(libs.lombok)
     annotationProcessor(libs.lombok)
 }

@@ -1,11 +1,12 @@
-package io.qpointz.rapids.parcels;
+package io.qpointz.rapids.types;
 
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 
-public interface ParcelDataType {
+public interface RapidsType {
 
     RelDataType asRelDataType(RelDataTypeFactory typeFactory);
 
+    Boolean nullable();
 
 }
