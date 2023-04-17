@@ -4,7 +4,7 @@ qpointz:
       mode: standard
       standard:
         properties:
-          - "model=etc/example/model.json"
+          - "model=etc/model.json"
           - "quoting=BACK_TICK"
     services:
       jdbc:

@@ -1,25 +1,14 @@
 package io.qpointz.rapids.services;
 
 import io.qpointz.rapids.ServerUtils;
-import io.qpointz.rapids.config.WorkerPoolConfig;
-import io.qpointz.rapids.services.jdbc.JdbcServiceConfig;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.calcite.avatica.jdbc.JdbcMeta;
-import org.apache.calcite.avatica.remote.LocalService;
-import org.apache.calcite.avatica.server.AvaticaHandler;
-import org.apache.calcite.avatica.server.AvaticaJsonHandler;
-import org.apache.calcite.avatica.server.AvaticaProtobufHandler;
-import org.apache.calcite.avatica.server.HttpServer;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.event.Observes;
-import javax.ws.rs.Path;
-import java.sql.SQLException;
 
 
 @Slf4j

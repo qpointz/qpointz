@@ -1,4 +1,4 @@
-package io.qpointz.rapids.graphql;
-
-public interface GraphQLHandler {
-}
+//package io.qpointz.rapids.graphql;
+//
+//public interface GraphQLHandler {
+//}

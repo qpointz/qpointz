@@ -1,0 +1,16 @@
+{
+  "version": "1.0",
+  "defaultSchema": "TEST",
+  "schemas": [
+    {
+      "name": "AIRLINES",
+      "type": "custom",
+      "factory": "io.qpointz.rapids.formats.parquet.RapidsParquetSchemaFactory",
+      "operand": {
+        "rootDir": "/home/vm/wip/rapids/etc/testModels/formats/parquet/airlines",
+        "rx.datasetGroup": "dataset",
+        "rx.pattern": ".*(\\/(?<dataset>[^\\/]+)\\.parquet$)"
+      }
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 package io.qpointz.rapids.calcite;
 
 import io.qpointz.rapids.ServerUtils;
-import io.qpointz.rapids.graphql.GraphQLHandler;
-import io.qpointz.rapids.graphql.GraphQlCalciteHandler;
+//import io.qpointz.rapids.graphql.GraphQLHandler;
+//import io.qpointz.rapids.graphql.GraphQlCalciteHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -23,9 +23,9 @@ public class CalciteUtils {
         }
     }
 
-    @ApplicationScoped
-    public static GraphQLHandler graphQLHandler(CalciteHandler calciteHandler)  {
-        return new GraphQlCalciteHandler(calciteHandler);
-    }
+//    @ApplicationScoped
+//    public static GraphQLHandler graphQLHandler(CalciteHandler calciteHandler)  {
+//        return new GraphQlCalciteHandler(calciteHandler);
+//    }
 
 }

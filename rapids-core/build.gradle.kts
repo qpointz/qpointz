@@ -13,10 +13,16 @@ dependencies {
     implementation(libs.bundles.quarkus.base.impl)
     testImplementation(libs.bundles.quarkus.base.test)
 
-    implementation(libs.graphql.java)
+    //implementation(libs.graphql.java)
 
     implementation(libs.parquet.avro)
+    //implementation(libs.parquet.common)
+    //implementation(libs.parquet.column)
+    //implementation(libs.parquet.hadoop)
     implementation(libs.avro)
+    implementation(libs.avro.mapred)
+    implementation(libs.hadoop.common)
+    implementation(libs.hadoop.client)
 
     implementation(libs.lombok)
     annotationProcessor(libs.lombok)

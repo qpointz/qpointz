@@ -1,11 +1,16 @@
 package io.qpointz.rapids.formats.parquet;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.calcite.jdbc.CalciteConnection;
 import org.junit.jupiter.api.Test;
 
-import java.io.FileNotFoundException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Properties;
+
+import static org.apache.calcite.avatica.util.Quoting.SINGLE_QUOTE;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
@@ -75,6 +80,37 @@ class RapidsParquetSchemaTest {
                 ".*(\\/(?<dataset>[^\\/]+)\\.parquet$)",
                 "dataset");
         assertThrows(RuntimeException.class, schema::getTableMap);
+    }
+
+    private CalciteConnection createAirlinesSchemaConnection() throws ClassNotFoundException, SQLException {
+        Class.forName("org.apache.calcite.jdbc.Driver");
+        var prop = new Properties();
+        prop.put("quoting", "BACK_TICK");
+        var con = DriverManager.getConnection("jdbc:calcite:", prop).unwrap(CalciteConnection.class);
+        var typeFactory = con.getTypeFactory();
+        var sc = airlinesRapidsSchema();
+        con.getRootSchema().add("airlines", sc);
+        return con;
+    }
+
+    @Test
+    void tableMustReturnSchema() throws SQLException, ClassNotFoundException {
+        var con = createAirlinesSchemaConnection();
+        var typeFactory = con.getTypeFactory();
+        var sc = con.getRootSchema().getSubSchema("airlines");
+        var cities = sc.getTable("cities");
+        var rowType = cities.getRowType(typeFactory);
+        assertNotNull(rowType);
+    }
+
+    @Test
+    void queryTable() throws SQLException, ClassNotFoundException {
+        var con = createAirlinesSchemaConnection();
+        var stmt = con.prepareStatement("SELECT COUNT(*) FROM `airlines`.`cities`");
+        var rs = stmt.executeQuery();
+        assertTrue(rs.next());
+        var cnt = rs.getLong(1);
+        assertTrue(cnt>1);
     }
 
 }

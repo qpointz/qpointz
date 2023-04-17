@@ -48,7 +48,9 @@ dependencyResolutionManagement {
             val quarkus = version("quarkus", "2.16.6.Final")
             library("quarkus-bom", "io.quarkus", "quarkus-bom").versionRef(quarkus)
             library("quarkus-arc", "io.quarkus", "quarkus-arc").versionRef(quarkus)
-            library("quarkus-resteasy-reactive", "io.quarkus", "quarkus-resteasy-reactive").versionRef(quarkus)
+            //library("quarkus-resteasy-reactive", "io.quarkus", "quarkus-resteasy-reactive").versionRef(quarkus)
+            //library("quarkus-resteasy-reactive-jackson", "io.quarkus", "quarkus-resteasy-reactive-jackson").versionRef(quarkus)
+
             library("quarkus-junit5", "io.quarkus", "quarkus-junit5").versionRef(quarkus)
             library("quarkus-config-yaml", "io.quarkus", "quarkus-config-yaml").versionRef(quarkus)
             library("quarkus-vertx", "io.quarkus", "quarkus-vertx").versionRef(quarkus)
@@ -68,13 +70,20 @@ dependencyResolutionManagement {
 
             val apacheParuet = version("apacheParquet", "1.13.0")
             library("parquet-avro","org.apache.parquet", "parquet-avro").versionRef(apacheParuet)
+            library("parquet-common","org.apache.parquet", "parquet-common").versionRef(apacheParuet)
+            library("parquet-column","org.apache.parquet", "parquet-column").versionRef(apacheParuet)
+            library("parquet-hadoop","org.apache.parquet", "parquet-hadoop").versionRef(apacheParuet)
+
+            val apacheHadoop = version("apacheHadoop", "3.3.5")
+            library("hadoop-common","org.apache.hadoop", "hadoop-common" ).versionRef(apacheHadoop)
+            library("hadoop-client","org.apache.hadoop", "hadoop-client" ).versionRef(apacheHadoop)
 
             val apacheAvro = version("apacheAvro", "1.11.1")
             library("avro", "org.apache.avro", "avro").versionRef(apacheAvro)
             library("avro-mapred", "org.apache.avro", "avro-mapred").versionRef(apacheAvro)
 
-            val graphQl = version("graphql", "20.2")
-            library("graphql-java", "com.graphql-java", "graphql-java").versionRef(graphQl)
+            /*val graphQl = version("graphql", "20.2")
+            library("graphql-java", "com.graphql-java", "graphql-java").versionRef(graphQl)*/
 
             val junit = version("junit", "5.9.2")
             library("junit-jupiter-api", "org.junit.jupiter", "junit-jupiter-api").versionRef(junit)

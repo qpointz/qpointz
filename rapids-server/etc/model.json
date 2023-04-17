@@ -1,0 +1,23 @@
+{
+  "version": "1.0",
+  "defaultSchema": "TEST",
+  "schemas": [{
+    "name": "TEST",
+    "type": "custom",
+    "factory": "org.apache.calcite.adapter.csv.CsvSchemaFactory",
+    "operand": {
+      "directory": ".\\testModels\\example\\data"
+    }
+  },
+    {
+      "name": "AIRLINES",
+      "type": "custom",
+      "factory": "io.qpointz.rapids.formats.parquet.RapidsParquetSchemaFactory",
+      "operand": {
+        "rootDir": ".\\etc\\testModels\\airlines\\data",
+        "rx.datasetGroup": "dataset",
+        "rx.pattern": ".*(\\/(?<dataset>[^\\/]+)\\.parquet$)"
+      }
+    }
+  ]
+}

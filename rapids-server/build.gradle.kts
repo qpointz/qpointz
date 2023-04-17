@@ -1,3 +1,5 @@
+import io.quarkus.gradle.tasks.QuarkusBuild
+
 plugins {
     java
     id("io.quarkus")
@@ -27,15 +29,52 @@ dependencies {
 
     testImplementation(libs.rest.assured)
     implementation(libs.quarkus.vertx)
-    implementation(libs.quarkus.resteasy.reactive)
+    //implementation(libs.quarkus.resteasy.reactive)
+    //implementation(libs.quarkus.resteasy.reactive.jackson)
 
-    implementation(libs.graphql.java)
+    //implementation(libs.graphql.java)
 
 }
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
+}
+
+tasks.register("bootstrapSampleServer") {
+    //ugly hack
+    outputs.upToDateWhen { false }
+
+    delete(
+            fileTree("$buildDir/quarkus-app-sample/etc")
+    )
+
+    copy {
+        from(layout.projectDirectory.file("etc/model.json"))
+        into("$buildDir/quarkus-app-sample/etc")
+    }
+
+    copy {
+        from(layout.projectDirectory.file("etc/application.yaml"))
+        into(file("$buildDir/quarkus-app-sample/config"))
+        //rename ("application.yaml.sample","application.yaml")
+    }
+
+    copy {
+        from(layout.projectDirectory.dir("../etc/testModels/example/"))
+        into("$buildDir/quarkus-app-sample/etc/testModels/example")
+    }
+
+    copy {
+        from(layout.projectDirectory.dir("../etc/testModels/formats/parquet/airlines/"))
+        into("$buildDir/quarkus-app-sample/etc/testModels/airlines/data")
+    }
+
+    copy {
+        from("$buildDir/quarkus-app")
+        into("$buildDir/quarkus-app-sample")
+    }
+
 }
 
 tasks.withType<Test> {
