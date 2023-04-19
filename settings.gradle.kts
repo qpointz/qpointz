@@ -54,6 +54,8 @@ dependencyResolutionManagement {
             library("quarkus-junit5", "io.quarkus", "quarkus-junit5").versionRef(quarkus)
             library("quarkus-config-yaml", "io.quarkus", "quarkus-config-yaml").versionRef(quarkus)
             library("quarkus-vertx", "io.quarkus", "quarkus-vertx").versionRef(quarkus)
+            library("quarkus-container-image-docker", "io.quarkus", "quarkus-container-image-docker").versionRef(quarkus)
+
 
             val apacheArrowFlight = version("arrow", "11.0.0")
             library("arrow-format", "org.apache.arrow", "arrow-format").versionRef(apacheArrowFlight)

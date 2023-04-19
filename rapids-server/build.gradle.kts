@@ -29,6 +29,8 @@ dependencies {
 
     testImplementation(libs.rest.assured)
     implementation(libs.quarkus.vertx)
+    implementation(libs.quarkus.container.image.docker)
+
     //implementation(libs.quarkus.resteasy.reactive)
     //implementation(libs.quarkus.resteasy.reactive.jackson)
 
@@ -41,7 +43,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-tasks.register("bootstrapSampleServer") {
+val bootstrapSampleTask = tasks.register("bootstrapSampleServer") {
     //ugly hack
     outputs.upToDateWhen { false }
 
@@ -71,10 +73,19 @@ tasks.register("bootstrapSampleServer") {
     }
 
     copy {
+        from(layout.projectDirectory.dir("../etc/testModels/formats/parquet/partitioned/"))
+        into("$buildDir/quarkus-app-sample/etc/testModels/partitioned/data")
+    }
+
+    copy {
         from("$buildDir/quarkus-app")
         into("$buildDir/quarkus-app-sample")
     }
 
+}
+
+tasks.withType<QuarkusBuild> {
+    dependsOn(bootstrapSampleTask)
 }
 
 tasks.withType<Test> {

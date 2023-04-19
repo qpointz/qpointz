@@ -1,3 +1,4 @@
+
 qpointz:
   rapids:
     calcite:
@@ -5,7 +6,8 @@ qpointz:
       standard:
         properties:
           - "model=etc/model.json"
-          - "quoting=BACK_TICK"
+          - "quoting=DOUBLE_QUOTE"
+          - "caseSensitive=false"
     services:
       jdbc:
         enabled: true

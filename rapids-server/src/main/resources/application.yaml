@@ -1,3 +1,6 @@
+quarkus:
+  container-image:
+    build: true
 qpointz:
   rapids:
     calcite:

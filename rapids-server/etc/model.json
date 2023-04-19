@@ -6,7 +6,7 @@
     "type": "custom",
     "factory": "org.apache.calcite.adapter.csv.CsvSchemaFactory",
     "operand": {
-      "directory": ".\\testModels\\example\\data"
+      "directory": "./testModels/example/data"
     }
   },
     {
@@ -14,7 +14,17 @@
       "type": "custom",
       "factory": "io.qpointz.rapids.formats.parquet.RapidsParquetSchemaFactory",
       "operand": {
-        "rootDir": ".\\etc\\testModels\\airlines\\data",
+        "rootDir": "./etc/testModels/airlines/data",
+        "rx.datasetGroup": "dataset",
+        "rx.pattern": ".*(\\/(?<dataset>[^\\/]+)\\.parquet$)"
+      }
+    },
+    {
+      "name": "feed",
+      "type": "custom",
+      "factory": "io.qpointz.rapids.formats.parquet.RapidsParquetSchemaFactory",
+      "operand": {
+        "rootDir": "./etc/testModels/partitioned/data",
         "rx.datasetGroup": "dataset",
         "rx.pattern": ".*(\\/(?<dataset>[^\\/]+)\\.parquet$)"
       }
