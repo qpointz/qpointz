@@ -21,8 +21,12 @@ dependencies {
     //implementation(libs.parquet.hadoop)
     implementation(libs.avro)
     implementation(libs.avro.mapred)
-    implementation(libs.hadoop.common)
-    implementation(libs.hadoop.client)
+    implementation(libs.hadoop.common) {
+        exclude("javax.ws.rs")
+    }
+    implementation(libs.hadoop.client) {
+        exclude("javax.ws.rs")
+    }
 
     implementation(libs.lombok)
     annotationProcessor(libs.lombok)
