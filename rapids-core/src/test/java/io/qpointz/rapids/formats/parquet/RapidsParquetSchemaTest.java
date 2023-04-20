@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.junit.jupiter.api.Test;
 
+import java.io.BufferedInputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.sql.DriverManager;

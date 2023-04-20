@@ -46,10 +46,10 @@ dependencyResolutionManagement {
             library("rest-assured", "io.rest-assured", "rest-assured").versionRef("rest-assured")
 
             val quarkus = version("quarkus", "2.16.6.Final")
-            library("quarkus-bom", "io.quarkus", "quarkus-bom").versionRef(quarkus)
+            library("quarkus-bom", "io.quarkus.platform", "quarkus-bom").versionRef(quarkus)
             library("quarkus-arc", "io.quarkus", "quarkus-arc").versionRef(quarkus)
-            //library("quarkus-resteasy-reactive", "io.quarkus", "quarkus-resteasy-reactive").versionRef(quarkus)
-            //library("quarkus-resteasy-reactive-jackson", "io.quarkus", "quarkus-resteasy-reactive-jackson").versionRef(quarkus)
+            library("quarkus-resteasy-reactive", "io.quarkus", "quarkus-resteasy-reactive").versionRef(quarkus)
+            library("quarkus-resteasy-reactive-jackson", "io.quarkus", "quarkus-resteasy-reactive-jackson").versionRef(quarkus)
 
             library("quarkus-junit5", "io.quarkus", "quarkus-junit5").versionRef(quarkus)
             library("quarkus-config-yaml", "io.quarkus", "quarkus-config-yaml").versionRef(quarkus)

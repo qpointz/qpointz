@@ -23,7 +23,8 @@ dependencies {
     implementation(libs.apache.mina.ftpserver.core)
     implementation(libs.apache.mina.ftpserver.ftplet.api)
 
-    implementation(enforcedPlatform(libs.quarkus.bom))
+    //implementation(enforcedPlatform(libs.quarkus.bom))
+    implementation(enforcedPlatform("io.quarkus.platform:quarkus-bom:2.16.6.Final"))
     implementation(libs.bundles.quarkus.base.impl)
     testImplementation(libs.bundles.quarkus.base.test)
 
@@ -31,8 +32,8 @@ dependencies {
     implementation(libs.quarkus.vertx)
     implementation(libs.quarkus.container.image.docker)
 
-    //implementation(libs.quarkus.resteasy.reactive)
-    //implementation(libs.quarkus.resteasy.reactive.jackson)
+    implementation(libs.quarkus.resteasy.reactive)
+    implementation(libs.quarkus.resteasy.reactive.jackson)
 
     //implementation(libs.graphql.java)
 
