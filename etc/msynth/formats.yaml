@@ -2,6 +2,9 @@ experiments:
   write_parquet:
     type : parquet
     path : "./rapids-formats/src/test/resources/td/parquet/{dataset-name}.parquet"
+  write_avro:
+    type: avro
+    path: "./rapids-formats/src/test/resources/td/avro/{dataset-name}.avro"
 models:
   - name : formats
     locales: ['en-US']

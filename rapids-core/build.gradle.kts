@@ -21,6 +21,13 @@ dependencies {
     implementation(libs.azure.storage.file.datalake)
     implementation(libs.azure.storage.blob.nio)
 
+    implementation(libs.sdl.odata.common)
+    implementation(libs.sdl.odata.service)
+    implementation(libs.sdl.odata.processor)
+    implementation(libs.sdl.odata.renderer)
+    implementation(libs.sdl.odata.edm)
+    implementation(libs.sdl.odata.api)
+
     implementation(libs.lombok)
     testImplementation(project(mapOf("path" to ":rapids-core")))
     annotationProcessor(libs.lombok)

@@ -2,6 +2,8 @@ import argparse
 import inspect
 import os.path
 import sys
+
+import pandavro
 from croniter import croniter
 from datetime import datetime
 from pandas import DataFrame
@@ -45,6 +47,10 @@ class ParquetWriter(Writer):
     def write(self, path, pd: DataFrame, writeparams={}):
         pd.to_parquet(path, **writeparams)
 
+class AvroWriter(Writer):
+    def write(self, path, pd: DataFrame, writeparams={}):
+        pandavro.to_avro(path, pd, **writeparams)
+
 
 def get_writer(name) -> Writer:
     if name == 'csv':
@@ -52,6 +58,9 @@ def get_writer(name) -> Writer:
 
     if name == 'parquet':
         return ParquetWriter()
+
+    if name == 'avro':
+        return AvroWriter()
 
     raise Exception(f"Unknown writer '{name}'")
 
@@ -240,6 +249,10 @@ class ParquetWriteExperiment(WriteExperiment):
     def writer(self) -> Writer:
         return ParquetWriter()
 
+class AvroWriteExperiment(WriteExperiment):
+    def writer(self) -> Writer:
+        return AvroWriter()
+
 
 class Experiments:
     def __init__(self, exps, models, relative_to=None):
@@ -266,6 +279,9 @@ class Experiments:
                 pass
             if et == 'parquet':
                 return ParquetWriteExperiment(e, self.models, self.relative_to)
+                pass
+            if et == 'avro':
+                return AvroWriteExperiment(e, self.models, self.relative_to)
                 pass
             if et == 'cron_feed':
                 return CronFeedExperiment(e, self.models, self.relative_to)
