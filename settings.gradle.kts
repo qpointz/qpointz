@@ -11,7 +11,7 @@
 rootProject.name = "rapids"
 
 include (":rapids-core")
-include (":rapids-formats")
+include (":rapids-jdbc-driver")
 include (":rapids-jdbc-driver")
 include (":rapids-server")
 
