@@ -40,4 +40,6 @@ public abstract class AbstractService extends AbstractVerticle {
 
     protected abstract void startService() throws Exception;
 
+    protected abstract void stopService() throws Exception;
+
 }

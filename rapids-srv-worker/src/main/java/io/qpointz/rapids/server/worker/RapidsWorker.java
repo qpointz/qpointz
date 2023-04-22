@@ -20,9 +20,11 @@ public class RapidsWorker {
 
 
         var vertx = ctx.getBean(Vertx.class);
-        var services = ctx.getBean(JdbcService.class);
 
-        vertx.deployVerticle(services);
+        vertx.deployVerticle(
+                ctx.getBean(JdbcService.class));
+        vertx.deployVerticle(
+                ctx.getBean(ODataService.class));
 
         Thread haltedHook = new Thread(() -> log.info("Exiting"));
         Runtime.getRuntime().addShutdownHook(haltedHook);

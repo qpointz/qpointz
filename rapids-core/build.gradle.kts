@@ -21,12 +21,17 @@ dependencies {
     implementation(libs.azure.storage.file.datalake)
     implementation(libs.azure.storage.blob.nio)
 
-    implementation(libs.sdl.odata.common)
+    /*implementation(libs.sdl.odata.common)
     implementation(libs.sdl.odata.service)
     implementation(libs.sdl.odata.processor)
     implementation(libs.sdl.odata.renderer)
     implementation(libs.sdl.odata.edm)
-    implementation(libs.sdl.odata.api)
+    implementation(libs.sdl.odata.api)*/
+
+    implementation(libs.olingo.odata.server.core)
+    implementation(libs.olingo.odata.server.api)
+    implementation(libs.olingo.odata.commons.core)
+    implementation(libs.olingo.odata.commons.api)
 
     implementation(libs.lombok)
     testImplementation(project(mapOf("path" to ":rapids-core")))

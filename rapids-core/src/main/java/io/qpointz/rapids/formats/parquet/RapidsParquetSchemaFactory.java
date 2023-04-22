@@ -64,11 +64,6 @@ public class RapidsParquetSchemaFactory implements SchemaFactory {
             fstype = operand.get(FS_TYPE).toString();
         }
 
-        log.info("Installed providers:");
-        FileSystemProvider.installedProviders().forEach(p -> {
-            log.info("Provider '{}'", p.getScheme());
-        });
-
         switch (fstype) {
             case "local":
                 return createLocalFileSystemSystemAdapter(operand);

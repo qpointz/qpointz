@@ -5,5 +5,7 @@ import io.smallrye.config.ConfigMapping;
 
 public interface ServicesConfig {
     JdbcServiceConfig jdbc();
+
+    ODataServiceConfig odata();
 }
 

@@ -19,6 +19,7 @@ public class JdbcService extends AbstractService {
 
     private final JdbcServiceConfig config;
     private final CalciteHandler calciteHandler;
+    private HttpServer server;
 
     public JdbcService(JdbcServiceConfig config, CalciteHandler calciteHandler) {
         super("JDBC", config.enabled());
@@ -45,15 +46,19 @@ public class JdbcService extends AbstractService {
             throw new RuntimeException(String.format("Unknwon protocol %s", this.config.protocol()));
         }
 
-        final var srv = new HttpServer.Builder()
+        this.server = new HttpServer.Builder()
                 .withHandler(handler)
                 .withPort(this.config.port())
                 .build();
 
         log.info("About to start JDBC HTTP Server");
-        srv.start();
+        this.server.start();
     }
 
+    @Override
+    protected void stopService() throws Exception {
+        this.server.stop();
+    }
 
 
 }

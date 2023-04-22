@@ -48,6 +48,9 @@ public class RapidsWorkerApplicationConfiguration {
         return new JdbcService(config.services().jdbc(), calciteHandler);
     }
 
-
+    @Bean
+    public ODataService oDataService(RapidsConfig config, CalciteHandler calciteHandler) {
+        return new ODataService(config.services().odata(), calciteHandler);
+    }
 
 }

@@ -135,6 +135,19 @@ dependencyResolutionManagement {
             //odata_war - OData WAR distribution artifact
             //odata_webservice - Spring Boot based OData HTTP webservice container
 
+            val olingo = version("olingo", "4.9.0")
+            library("olingo-odata-server-core", "org.apache.olingo", "odata-server-core").versionRef(olingo)
+            library("olingo-odata-server-api", "org.apache.olingo", "odata-server-api").versionRef(olingo)
+            library("olingo-odata-commons-api", "org.apache.olingo", "odata-commons-api").versionRef(olingo)
+            library("olingo-odata-commons-core", "org.apache.olingo", "odata-commons-core").versionRef(olingo)
+
+
+            val jetty = version("jetty","9.4.44.v20210927")
+            //library("jetty-http", "org.eclipse.jetty","jetty-http").versionRef(jetty)
+            library("jetty-server", "org.eclipse.jetty","jetty-server").versionRef(jetty)
+            library("jetty-servlet", "org.eclipse.jetty","jetty-servlet").versionRef(jetty)
+
+
             //bundle("quarkus-base-impl", listOf("quarkus-arc", "quarkus-config-yaml"))
             //bundle("quarkus-base-test", listOf("quarkus-junit5"))
         }

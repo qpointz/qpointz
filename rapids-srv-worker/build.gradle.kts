@@ -37,6 +37,14 @@ dependencies {
 	implementation(libs.avatica.core)
 	implementation(libs.avatica.server)
 
+	implementation(libs.jetty.server)
+	implementation(libs.jetty.servlet)
+
+	implementation(libs.olingo.odata.server.core)
+	implementation(libs.olingo.odata.server.api)
+	implementation(libs.olingo.odata.commons.core)
+	implementation(libs.olingo.odata.commons.api)
+
 	runtimeOnly(libs.postgresql)
 }
 
