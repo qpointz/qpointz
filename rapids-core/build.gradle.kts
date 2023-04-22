@@ -20,6 +20,8 @@ dependencies {
         exclude("javax.ws.rs")
     }
 
+    implementation(libs.azure.storage.file.datalake)
+
     implementation(libs.lombok)
     annotationProcessor(libs.lombok)
 }
