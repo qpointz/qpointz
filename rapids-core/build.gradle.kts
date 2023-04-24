@@ -1,5 +1,6 @@
 plugins {
     java
+    jacoco
 }
 
 dependencies {
@@ -21,9 +22,25 @@ dependencies {
     }
 
     implementation(libs.azure.storage.file.datalake)
+    implementation(libs.azure.storage.blob.nio)
 
     implementation(libs.lombok)
+    testImplementation(project(mapOf("path" to ":rapids-core")))
     annotationProcessor(libs.lombok)
+}
+
+tasks.test {
+    finalizedBy(tasks.jacocoTestReport) // report is always generated after tests run
+}
+tasks.jacocoTestReport {
+    dependsOn(tasks.test) // tests are required to run before generating the report
+}
+
+tasks.jacocoTestReport {
+    reports {
+        xml.required.set(true)
+        csv.required.set(false)
+    }
 }
 
 testing {
@@ -32,6 +49,24 @@ testing {
         val test by getting(JvmTestSuite::class) {
             // Use JUnit Jupiter test framework
             useJUnitJupiter("5.9.2")
+        }
+
+
+        register<JvmTestSuite>("integrationTest") {
+            useJUnitJupiter("5.9.2")
+            testType.set(TestSuiteType.INTEGRATION_TEST)
+
+            dependencies {
+                implementation(project())
+            }
+
+            targets {
+                all {
+                    testTask.configure {
+                        shouldRunAfter(test)
+                    }
+                }
+            }
         }
     }
 }

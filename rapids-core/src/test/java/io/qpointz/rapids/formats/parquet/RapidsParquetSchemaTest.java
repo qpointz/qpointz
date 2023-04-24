@@ -1,38 +1,35 @@
 package io.qpointz.rapids.formats.parquet;
 
+import io.qpointz.rapids.filesystem.LocalFileSystemAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.junit.jupiter.api.Test;
 
-import java.io.BufferedInputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
-import static org.apache.calcite.avatica.util.Quoting.SINGLE_QUOTE;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
 class RapidsParquetSchemaTest {
 
     private static RapidsParquetSchema airlinesRapidsSchema() {
-        var fs = FileSystems.getDefault();
         var rootDir = Path.of(System.getProperty("user.dir") + "/../etc/testModels/formats/parquet/airlines/");
+        var fileSystemAdapter = new LocalFileSystemAdapter(rootDir);
         return new RapidsParquetSchema(
-                fs,
-                rootDir,
+                fileSystemAdapter,
                 ".*(\\/(?<dataset>[^\\/]+)\\.parquet$)",
                 "dataset");
     }
 
     private static RapidsParquetSchema partitionedSchema() {
-        var fs = FileSystems.getDefault();
         var rootDir = Path.of(System.getProperty("user.dir") + "/../etc/testModels/formats/parquet/partitioned/");
+        var fileSystemAdapter = new LocalFileSystemAdapter(rootDir);
         return new RapidsParquetSchema(
-                fs,
-                rootDir,
+                fileSystemAdapter,
                 ".*(\\/(?<dataset>[^\\/]+)-(?<year>\\d{4})-(?<month>\\d{2})-\\d{2}\\.parquet$)",
                 "dataset");
     }
@@ -67,7 +64,7 @@ class RapidsParquetSchemaTest {
     @Test
     void getTablesPartitioned() {
         var schema = partitionedSchema();
-        var files = schema.getTablePaths("sample").stream().toList();
+        var files = schema.getTablePaths("person").stream().toList();
         assertTrue(files.size()>1);
     }
 
@@ -75,9 +72,9 @@ class RapidsParquetSchemaTest {
     void openNonExistentPathThrows() {
         var fs = FileSystems.getDefault();
         var rootDir = Path.of("/../etc/testModels/formats/parquet/doesntexists/");
-        var schema = new RapidsParquetSchema(
-                fs,
-                rootDir,
+        var fileSystemAdapter = new LocalFileSystemAdapter(rootDir);
+        var schema =  new RapidsParquetSchema(
+                fileSystemAdapter,
                 ".*(\\/(?<dataset>[^\\/]+)\\.parquet$)",
                 "dataset");
         assertThrows(RuntimeException.class, schema::getTableMap);

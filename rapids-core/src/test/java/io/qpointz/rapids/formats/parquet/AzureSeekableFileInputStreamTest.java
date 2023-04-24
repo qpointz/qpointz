@@ -2,6 +2,7 @@ package io.qpointz.rapids.formats.parquet;
 
 import com.azure.storage.common.StorageSharedKeyCredential;
 import com.azure.storage.file.datalake.DataLakeServiceClientBuilder;
+import io.qpointz.rapids.azure.AzureDataLakeSeekableInputStream;
 import org.apache.parquet.io.SeekableInputStream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -15,14 +16,18 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.function.Function;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 class AzureSeekableFileInputStreamTest {
 
     private static String refFileName = "hallo.bin";
     private static Path refFilePath = Paths.get(".tmp", refFileName).toAbsolutePath();
+
+    private static String storageAccountName = System.getenv("RAPIDS_IT_AZURE_STORAGE_ACCOUNT_NAME");
+    private static String storageAccountKey = System.getenv("RAPIDS_IT_AZURE_STORAGE_ACCOUNT_KEY");
+
+    private static String fileSystem = "rapids-it";
 
     @BeforeAll
     public static void prepareInputFile() throws IOException {
@@ -38,8 +43,8 @@ class AzureSeekableFileInputStreamTest {
         var filePath = Files.createFile(refFilePath);
         var fos = new FileOutputStream(filePath.toFile(), false);
         var r = new Random(Instant.now().toEpochMilli());
-        var bytes = new byte[2048];
-        for (var i=0;i<10000;i++) {
+        var bytes = new byte[1024];
+        for (var i=0;i<20000;i++) {
             r.nextBytes(bytes);
             fos.write(bytes);
             fos.flush();
@@ -47,9 +52,6 @@ class AzureSeekableFileInputStreamTest {
         fos.close();
 
         //ingest
-        var storageAccountName = System.getenv("RAPIDS_IT_AZURE_STORAGE_ACCOUNT_NAME");
-        var storageAccountKey = System.getenv("RAPIDS_IT_AZURE_STORAGE_ACCOUNT_KEY");
-        var fileSystem = "rapids-it";
         var credentials = new StorageSharedKeyCredential(storageAccountName, storageAccountKey);
         var endpoint = "https://%s.dfs.core.windows.net".formatted(storageAccountName);
         var dlsClient = new DataLakeServiceClientBuilder()
@@ -81,7 +83,13 @@ class AzureSeekableFileInputStreamTest {
     }
 
     SeekableInputStream stream2() throws FileNotFoundException {
-        return new RapidsSeekableFileInputStream(new FileInputStream(refFilePath.toFile()));
+        return AzureDataLakeSeekableInputStream.create(
+                storageAccountName,
+                storageAccountKey,
+                fileSystem,
+                "/rapids/azure/stream",
+                "hallo.bin"
+        );
     }
 
     @Test
@@ -101,7 +109,7 @@ class AzureSeekableFileInputStreamTest {
         var bf1 = fn.apply(s1);
         var s2 = stream2();
         var bf2 = fn.apply(s2);
-        assertTrue(Arrays.equals(bf1,bf2));
+        assertArrayEquals(bf1, bf2);
         assertEquals(s1.getPos(), s2.getPos());
     }
 
@@ -125,7 +133,7 @@ class AzureSeekableFileInputStreamTest {
         var bf1 = fn.apply(s1);
         var s2 = stream2();
         var bf2 = fn.apply(s2);
-        assertTrue(Arrays.equals(bf1,bf2));
+        assertArrayEquals(bf1, bf2);
         assertEquals(s1.getPos(), s2.getPos());
     }
 
@@ -143,6 +151,6 @@ class AzureSeekableFileInputStreamTest {
         };
         var bf1 = fn.apply(stream1());
         var bf2 = fn.apply(stream2());
-        assertTrue(Arrays.equals(bf1,bf2));
+        assertArrayEquals(bf1, bf2);
     }
 }

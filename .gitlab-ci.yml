@@ -1,0 +1,39 @@
+image: docker-ci.qpointz.io/ci-gradle-graalvm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+stages:
+  - init
+  - test
+  - package
+
+docker:buildImages:
+  stage: init
+  image: docker:latest
+  script:
+    - echo "$NEXUS_PASSWORD" | docker login $DOCKER_REPO_CI  -u $NEXUS_USER --password-stdin
+    - docker build etc/docker/ci-graalvm -t docker-ci.qpointz.io/ci-gradle-graalvm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    - docker push docker-ci.qpointz.io/ci-gradle-graalvm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+
+runTests:
+  stage: test
+  script:
+    - gradle test
+  artifacts:
+    reports:
+      junit: ./**/*/build/test-results/test/*.xml
+    paths:
+      - ./**/*/build/reports/jacoco/test/*.xml
+
+runTestsIT:
+  stage: test
+  script:
+    - gradle integrationTest
+  artifacts:
+    reports:
+      junit: ./**/*/build/test-results/integrationTest/*.xml
+
+packageJDBCDriver:
+  stage: package
+  script:
+    - gradle shadowJar
+  artifacts:
+    paths:
+      - ./rapids-jdbc-driver/build/libs/*-all.jar

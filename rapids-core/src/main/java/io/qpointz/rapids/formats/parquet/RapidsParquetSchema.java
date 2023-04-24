@@ -1,5 +1,7 @@
 package io.qpointz.rapids.formats.parquet;
 
+import io.qpointz.rapids.filesystem.FileSystemAdapter;
+import io.qpointz.rapids.filesystem.RapidsSeekableInputStream;
 import io.qpointz.rapids.parcels.filesystem.FileSystemParcelUtils;
 import io.qpointz.rapids.parcels.filesystem.TablePartitionInfo;
 import io.qpointz.rapids.parcels.filesystem.TableRegexPartitionMatcher;
@@ -11,13 +13,16 @@ import org.apache.calcite.schema.Table;
 import org.apache.calcite.schema.impl.AbstractSchema;
 import org.apache.parquet.avro.AvroParquetReader;
 import org.apache.parquet.hadoop.ParquetReader;
+import org.apache.parquet.io.DelegatingSeekableInputStream;
 import org.apache.parquet.io.InputFile;
 import org.apache.parquet.io.SeekableInputStream;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.FileSystem;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Stream;
@@ -25,26 +30,24 @@ import java.util.stream.Stream;
 public class RapidsParquetSchema extends AbstractSchema {
 
     private final TableRegexPartitionMatcher partitionMapper;
-    private final FileSystem fileSystem;
-    private final Path rootPath;
 
-    public RapidsParquetSchema(FileSystem fs, Path rootDirectory, String matchRegex, String datasetGroupName) {
-        this.fileSystem = fs;
+    private final FileSystemAdapter fileSystemAdapter;
+    public RapidsParquetSchema(FileSystemAdapter fileSystemAdapter, String matchRegex, String datasetGroupName) {
+        this.fileSystemAdapter = fileSystemAdapter;
         this.partitionMapper = TableRegexPartitionMatcher.builder()
                 .regexPattern(matchRegex)
                 .datasetGroup(datasetGroupName)
                 .partitionValueGroups(Map.of())
                 .build();
-        this.rootPath = rootDirectory;
     }
 
     private Stream<Pair<Path, Optional<TablePartitionInfo>>> listPartitionsFiles() {
         var partitions = new ArrayList<Pair<Path, Optional<TablePartitionInfo>>>();
         try {
             FileSystemParcelUtils.traverse(
-                        this.rootPath.toAbsolutePath(),
+                        this.fileSystemAdapter.getTraverseRoot(),
                         p-> partitions.add(new Pair<>(p, this.partitionMapper.match(p.toUri()))));
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return partitions.stream();
@@ -99,40 +102,73 @@ public class RapidsParquetSchema extends AbstractSchema {
     }
 
     public ParquetReader<GenericRecord> getParquetReader(Path path) throws IOException {
-        //var fins = new FileInputStream(path.toFile());
         var file = new InputFile() {
 
             @Override
-            public long getLength() throws IOException {
-                return path.toFile().length();
+            public long getLength() {
+                try {
+                    return Files.newByteChannel(path).size();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
             }
 
             @Override
             public SeekableInputStream newStream() throws IOException {
-                return new RapidsSeekableFileInputStream(new FileInputStream(path.toFile()));
+                var channel = Files.newByteChannel(path);
+                return new SeekableInputStream() {
+                    @Override
+                    public int read() throws IOException {
+                        var bf = ByteBuffer.allocate(1);
+                        var bytesRead = channel.read(bf);
+                        if (bytesRead == 0) {
+                            return -1;
+                        } else {
+                            return bf.get(0);
+                        }
+                    }
+
+                    @Override
+                    public long getPos() throws IOException {
+                        return channel.size();
+                    }
+
+                    @Override
+                    public void seek(long newPos) throws IOException {
+                        channel.position(newPos);
+                    }
+
+                    @Override
+                    public void readFully(byte[] bytes) throws IOException {
+                        readFully(bytes, 0, bytes.length);
+                    }
+
+                    @Override
+                    public void readFully(byte[] bytes, int start, int len) throws IOException {
+                        channel.position(0);
+                        var byteBuffer = ByteBuffer.wrap(bytes, start, len);
+                        channel.read(byteBuffer);
+                    }
+
+                    @Override
+                    public int read(ByteBuffer buf) throws IOException {
+                        return channel.read(buf);
+                    }
+
+                    @Override
+                    public void readFully(ByteBuffer buf) throws IOException {
+                        channel.read(buf);
+                    }
+
+                };
             }
         };
-
 
         ParquetReader<GenericRecord> reader = AvroParquetReader.<GenericRecord>builder(file).build();
         return reader;
     }
 
-//    public void lala(Path path) throws IOException {
-//        var reader = this.getParquetReader(path);
-//        var a = new Iterator<GenericRecord>() {
-//
-//            @Override
-//            public boolean hasNext() {
-//                return false;
-//            }
-//
-//            @Override
-//            public GenericRecord next() {
-//                return null;
-//            }
-//        }
-//    }
 
 
 }

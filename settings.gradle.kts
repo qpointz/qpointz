@@ -93,6 +93,7 @@ dependencyResolutionManagement {
             library("junit-vintage-engine", "org.junit.vintage", "junit-vintage-engine").versionRef(junit)
 
             library("azure-storage-file-datalake", "com.azure", "azure-storage-file-datalake").version("12.15.0")
+            library("azure-storage-blob-nio", "com.azure", "azure-storage-blob-nio").version("12.0.0-beta.19")
 
             bundle("quarkus-base-impl", listOf("quarkus-arc", "quarkus-config-yaml"))
             bundle("quarkus-base-test", listOf("quarkus-junit5"))
