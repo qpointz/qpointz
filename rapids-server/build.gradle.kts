@@ -35,6 +35,8 @@ dependencies {
     implementation(libs.quarkus.resteasy.reactive)
     implementation(libs.quarkus.resteasy.reactive.jackson)
 
+    implementation(libs.azure.storage.blob.nio)
+
     //implementation(libs.graphql.java)
 
 }

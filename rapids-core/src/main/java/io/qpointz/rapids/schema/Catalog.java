@@ -1,6 +1,5 @@
 package io.qpointz.rapids.schema;
 
-import io.quarkus.arc.All;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

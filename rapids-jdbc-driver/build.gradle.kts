@@ -7,8 +7,6 @@ shadow {
     //archiveBaseName("lala")
 }
 
-
-
 dependencies {
     implementation(libs.calcite.core)
     implementation(libs.calcite.csv)

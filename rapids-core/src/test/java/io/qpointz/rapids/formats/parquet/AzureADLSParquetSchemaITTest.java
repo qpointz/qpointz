@@ -57,4 +57,14 @@ public class AzureADLSParquetSchemaITTest {
         assertTrue(cnt>1);
     }
 
+    @Test
+    void querySegmentsTable() throws SQLException, ClassNotFoundException, IOException {
+        var con = createAirlinesSchemaConnection();
+        var stmt = con.prepareStatement("SELECT COUNT(*) FROM `airlines`.`segments`");
+        var rs = stmt.executeQuery();
+        assertTrue(rs.next());
+        var cnt = rs.getLong(1);
+        assertTrue(cnt>1);
+    }
+
 }

@@ -13,7 +13,8 @@ rootProject.name = "rapids"
 include (":rapids-core")
 include (":rapids-jdbc-driver")
 include (":rapids-jdbc-driver")
-include (":rapids-server")
+//include (":rapids-server")
+include (":rapids-srv-worker")
 
 include (":etc:msynth")
 project(":etc:msynth").projectDir = file("etc/msynth")
@@ -38,7 +39,7 @@ dependencyResolutionManagement {
             library("calcite-csv", "org.apache.calcite", "calcite-csv").versionRef("calcite")
 
 
-            version("avatica", "1.23.0")
+            version("avatica", "1.22.0")
             library("avatica-core", "org.apache.calcite.avatica", "avatica-core").versionRef("avatica")
             library("avatica-server", "org.apache.calcite.avatica", "avatica-server").versionRef("avatica")
 

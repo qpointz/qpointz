@@ -1,30 +1,17 @@
 {
   "version": "1.0",
-  "defaultSchema": "TEST",
-  "schemas": [{
-    "name": "TEST",
-    "type": "custom",
-    "factory": "org.apache.calcite.adapter.csv.CsvSchemaFactory",
-    "operand": {
-      "directory": "./testModels/example/data"
-    }
-  },
+  "defaultSchema": "AIRLINES",
+  "schemas": [
     {
       "name": "AIRLINES",
       "type": "custom",
       "factory": "io.qpointz.rapids.formats.parquet.RapidsParquetSchemaFactory",
       "operand": {
-        "rootDir": "./etc/testModels/airlines/data",
-        "rx.datasetGroup": "dataset",
-        "rx.pattern": ".*(\\/(?<dataset>[^\\/]+)\\.parquet$)"
-      }
-    },
-    {
-      "name": "feed",
-      "type": "custom",
-      "factory": "io.qpointz.rapids.formats.parquet.RapidsParquetSchemaFactory",
-      "operand": {
-        "rootDir": "./etc/testModels/partitioned/data",
+        "fs.type" : "az",
+        "rootDir": "models/formats/parquet/airlines",
+        "az.storage.account.name" :  "<account_name>",
+        "az.storage.account.key" : "<account_key>",
+        "az.storage.container" : "<containers>",
         "rx.datasetGroup": "dataset",
         "rx.pattern": ".*(\\/(?<dataset>[^\\/]+)\\.parquet$)"
       }

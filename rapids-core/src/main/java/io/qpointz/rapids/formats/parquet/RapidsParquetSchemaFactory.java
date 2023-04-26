@@ -1,5 +1,6 @@
 package io.qpointz.rapids.formats.parquet;
 
+import com.azure.storage.blob.nio.AzureFileSystem;
 import io.qpointz.rapids.azure.AzureFileSystemAdapter;
 import io.qpointz.rapids.filesystem.FileSystemAdapter;
 import io.qpointz.rapids.filesystem.LocalFileSystemAdapter;
@@ -11,11 +12,15 @@ import org.apache.calcite.schema.SchemaPlus;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Paths;
+import java.nio.file.spi.FileSystemProvider;
 import java.util.Map;
 
 @Slf4j
 public class RapidsParquetSchemaFactory implements SchemaFactory {
 
+    private static final String AZ_STORAGE_ACCOUNT_NAME = "az.storage.account.name";
+    private static final String AZ_STORAGE_ACCOUNT_KEY = "az.storage.account.key";
+    private static final String AZ_STORAGE_CONTAINERS = "az.storage.container";
     private static String DIR_KEY = "rootDir";
     private static String RX_DATASET_GROUP_KEY = "rx.datasetGroup";
 
@@ -59,6 +64,11 @@ public class RapidsParquetSchemaFactory implements SchemaFactory {
             fstype = operand.get(FS_TYPE).toString();
         }
 
+        log.info("Installed providers:");
+        FileSystemProvider.installedProviders().forEach(p -> {
+            log.info("Provider '{}'", p.getScheme());
+        });
+
         switch (fstype) {
             case "local":
                 return createLocalFileSystemSystemAdapter(operand);
@@ -74,9 +84,23 @@ public class RapidsParquetSchemaFactory implements SchemaFactory {
         if (!operand.containsKey(DIR_KEY)) {
             throw new IllegalArgumentException("Missing '%s' parameter".formatted(DIR_KEY));
         }
-        String accountName = null;
-        String accountKey = null;
-        String containerName = null;
+
+        if (!operand.containsKey(AZ_STORAGE_ACCOUNT_NAME)) {
+            throw new IllegalArgumentException("Missing ADLS storage account name. Provide '%s' parameter".formatted(AZ_STORAGE_ACCOUNT_NAME));
+        }
+
+        if (!operand.containsKey(AZ_STORAGE_ACCOUNT_KEY)) {
+            throw new IllegalArgumentException("Missing ADLS storage account key. Provide '%s' parameter".formatted(AZ_STORAGE_ACCOUNT_KEY));
+        }
+
+        if (!operand.containsKey(AZ_STORAGE_CONTAINERS)) {
+            throw new IllegalArgumentException("Missing ADLS conatiner(s). Provide '%s' parameter".formatted(AZ_STORAGE_CONTAINERS));
+        }
+
+        String accountName = operand.get(AZ_STORAGE_ACCOUNT_NAME).toString();
+        String accountKey = operand.get(AZ_STORAGE_ACCOUNT_KEY).toString();
+        String containerName = operand.get(AZ_STORAGE_CONTAINERS).toString();
+
         return AzureFileSystemAdapter.create(accountName, accountKey, containerName, rootPath);
     }
 

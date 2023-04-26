@@ -1,0 +1,13 @@
+rapids:
+  calcite:
+    mode: standard
+    standard:
+      properties:
+        model : /home/vm/wip/rapids/rapids-server/etc/model.json
+        quoting : DOUBLE_QUOTE
+        caseSensitive : true
+  services:
+    jdbc:
+      enabled : true
+      port : 18200
+      protocol: json

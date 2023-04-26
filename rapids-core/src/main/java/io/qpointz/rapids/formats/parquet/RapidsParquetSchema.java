@@ -1,7 +1,6 @@
 package io.qpointz.rapids.formats.parquet;
 
 import io.qpointz.rapids.filesystem.FileSystemAdapter;
-import io.qpointz.rapids.filesystem.RapidsSeekableInputStream;
 import io.qpointz.rapids.parcels.filesystem.FileSystemParcelUtils;
 import io.qpointz.rapids.parcels.filesystem.TablePartitionInfo;
 import io.qpointz.rapids.parcels.filesystem.TableRegexPartitionMatcher;
@@ -13,15 +12,10 @@ import org.apache.calcite.schema.Table;
 import org.apache.calcite.schema.impl.AbstractSchema;
 import org.apache.parquet.avro.AvroParquetReader;
 import org.apache.parquet.hadoop.ParquetReader;
-import org.apache.parquet.io.DelegatingSeekableInputStream;
 import org.apache.parquet.io.InputFile;
 import org.apache.parquet.io.SeekableInputStream;
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -125,7 +119,7 @@ public class RapidsParquetSchema extends AbstractSchema {
                         if (bytesRead == 0) {
                             return -1;
                         } else {
-                            return bf.get(0);
+                            return Byte.toUnsignedInt(bf.get(0));
                         }
                     }
 

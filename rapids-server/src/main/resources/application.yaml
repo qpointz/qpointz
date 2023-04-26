@@ -1,10 +1,17 @@
+quarkus:
+  index-dependency:
+    azurefs:
+      group-id :  com.azure
+      artifact-id: azure-storage-blob-nio
+  log:
+    level: ALL
 qpointz:
   rapids:
     calcite:
       mode: standard
       standard:
         properties:
-          - "model=etc/example/model.json"
+          - "model=C:\\Users\\vital\\wip\\qpointz\\rapids\\rapids-server\\etc\\model.json"
           - "quoting=BACK_TICK"
     services:
       jdbc:

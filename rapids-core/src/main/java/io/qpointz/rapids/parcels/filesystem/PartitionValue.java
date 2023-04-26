@@ -1,6 +1,5 @@
 package io.qpointz.rapids.parcels.filesystem;
 
-import io.quarkus.arc.All;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;

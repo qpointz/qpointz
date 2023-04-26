@@ -1,17 +1,14 @@
 package io.qpointz.rapids.parcels.filesystem;
 
-import io.quarkus.arc.All;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.calcite.linq4j.Enumerable;
 
 import java.util.Collection;
 import java.util.List;
 
 @Builder
 @Slf4j
-@All
 public class FileSystemParcelState {
 
     @Getter

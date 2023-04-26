@@ -8,9 +8,6 @@ dependencies {
     implementation(libs.calcite.csv)
     implementation(libs.avatica.core)
     implementation(libs.avatica.server)
-    implementation(enforcedPlatform(libs.quarkus.bom))
-    implementation(libs.bundles.quarkus.base.impl)
-    testImplementation(libs.bundles.quarkus.base.test)
     implementation(libs.parquet.avro)
     implementation(libs.avro)
     implementation(libs.avro.mapred)
@@ -27,6 +24,11 @@ dependencies {
     implementation(libs.lombok)
     testImplementation(project(mapOf("path" to ":rapids-core")))
     annotationProcessor(libs.lombok)
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 tasks.test {

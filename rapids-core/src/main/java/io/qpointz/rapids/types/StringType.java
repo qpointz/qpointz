@@ -1,6 +1,5 @@
 package io.qpointz.rapids.types;
 
-import io.quarkus.arc.All;
 import lombok.*;
 import lombok.experimental.Accessors;
 import org.apache.calcite.rel.type.RelDataType;

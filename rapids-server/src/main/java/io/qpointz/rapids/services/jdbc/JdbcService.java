@@ -12,6 +12,8 @@ import org.apache.calcite.avatica.Meta;
 import org.apache.calcite.avatica.remote.LocalService;
 import org.apache.calcite.avatica.server.*;
 
+import java.nio.file.spi.FileSystemProvider;
+
 @ApplicationScoped
 @Slf4j
 public class JdbcService extends AbstractBackgroundService {
@@ -23,6 +25,13 @@ public class JdbcService extends AbstractBackgroundService {
     public JdbcService(Vertx vertx, JdbcServiceConfig config, CalciteHandler calciteHandler) {
         super(vertx, config);
         //this.calcite = calciteService;
+
+        log.info("Installed filesystem providers:Service start");
+        FileSystemProvider.installedProviders().forEach(p -> {
+            log.info("Provider '%s'".formatted(p.getScheme()));
+        });
+
+
         this.calciteHandler = calciteHandler;
         this.jdbcServerConfig = config;
     }
@@ -41,6 +50,11 @@ public class JdbcService extends AbstractBackgroundService {
     protected void startService()  {
         final Meta meta = this.calciteHandler.getMeta();
         var localService = new LocalService(meta);
+
+        log.info("Installed filesystem providers:Service start===========================================");
+        FileSystemProvider.installedProviders().forEach(p -> {
+            log.info("Provider '%s'".formatted(p.getScheme()));
+        });
 
         AvaticaHandler handler = null;
         if (jdbcServerConfig.protocol()== JdbcServiceConfig.HandlerProtocol.JSON) {
