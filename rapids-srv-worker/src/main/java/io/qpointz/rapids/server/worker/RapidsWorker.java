@@ -11,7 +11,13 @@ public class RapidsWorker {
 
     public static void main(String[] args) throws SQLException, ClassNotFoundException, InterruptedException {
         log.info("Worker is starting");
+        var i = 1;
+        log.info("Arguments");
+        for (var a : args) {
+            log.info("Arg {}:{}", i++, a);
+        }
         var ctx = new AnnotationConfigApplicationContext(RapidsWorkerApplicationConfiguration.class);
+
 
         var vertx = ctx.getBean(Vertx.class);
         var services = ctx.getBean(JdbcService.class);

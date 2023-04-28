@@ -6,8 +6,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.spi.ConfigSource;
 import org.eclipse.microprofile.config.spi.ConfigSourceProvider;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,20 +25,25 @@ public class RapidsConfigSourceProvider implements ConfigSourceProvider {
 
         sources.add(new YamlConfigSource(Objects.requireNonNull(RapidsConfigSourceProvider.class.getResource("/application.yaml")), 120));
 
-        var etcApp = Paths.get("./etc/application.yaml").toAbsolutePath();
-        log.debug("Probing config file {}", etcApp.toAbsolutePath());
-        if (Files.exists(etcApp)) {
-            log.info("Config file {} used with {} priority", etcApp, 140);
-            sources.add(new YamlConfigSource(etcApp.toUri().toURL(), 140));
-        }
+        probeFile(sources, Paths.get("./etc/application.yaml"), 140);
+        probeFile(sources, Paths.get("./application.yaml"), 145);
 
-        var app = Paths.get("./application.yaml").toAbsolutePath();
-        log.debug("Probing configuration path {}", app.toAbsolutePath());
-        if (Files.exists(app)) {
-            log.info("Config file {} used with {} priority", app, 160);
-            sources.add(new YamlConfigSource(app.toUri().toURL(), 160));
+        var additionalProbe = System.getenv("RAPIDS_APPLICATION_CONFIG_ADDITIONAL_DIR");
+        if (additionalProbe!=null) {
+            log.info("Probing additional configuration directory {}", additionalProbe);
+            probeFile(sources, Paths.get(additionalProbe, "etc",  "application.yaml"), 150);
+            probeFile(sources, Paths.get(additionalProbe, "application.yaml"), 155);
         }
 
         return sources;
+    }
+
+    private void probeFile(ArrayList<ConfigSource> sources, Path path, int priority) throws IOException {
+        var probePath = path.toAbsolutePath();
+        log.debug("Probing config file {}", probePath.toAbsolutePath());
+        if (Files.exists(probePath)) {
+            log.info("Config file {} used with {} priority", probePath, priority);
+            sources.add(new YamlConfigSource(probePath.toUri().toURL(), priority));
+        }
     }
 }

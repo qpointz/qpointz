@@ -11,35 +11,66 @@ configurations {
 
 application {
 	mainClass.set("io.qpointz.rapids.server.worker.RapidsWorker")
-	executableDir = "./"
+	executableDir = "bin"
 }
 
 
 dependencies {
+	implementation(project(":rapids-core"))
+
 	implementation(libs.lombok)
 	annotationProcessor(libs.lombok)
 
-	implementation("io.vertx:vertx-core:4.4.1")
-	implementation(project(":rapids-core"))
 
+	implementation(libs.vertx.core)
+	implementation(libs.smallrye.config)
+	implementation(libs.smallrye.config.source.yaml)
 
-	implementation("io.smallrye.config:smallrye-config:3.2.1")
-	implementation("io.smallrye.config:smallrye-config-source-yaml:3.2.1")
-	implementation("org.eclipse.microprofile.config:microprofile-config-api:3.0.2")
+	implementation(libs.microprofile.config.api)
 
+	implementation(libs.spring.context)
 
-
-	// https://mvnrepository.com/artifact/org.springframework/spring-context
-	implementation("org.springframework:spring-context:6.0.8")
-	implementation("org.slf4j:slf4j-api:2.0.7")
-	implementation("ch.qos.logback:logback-classic:1.4.6")
-
+	implementation(libs.bundles.logging)
 
 	implementation(libs.calcite.core)
 	implementation(libs.calcite.csv)
 	implementation(libs.avatica.core)
 	implementation(libs.avatica.server)
 }
+
+val bootstrapAppTask = tasks.register("bootstrapApp") {
+
+	dependsOn(tasks.findByPath("installDist"))
+
+	outputs.upToDateWhen { false }
+	//ugly hack
+	doLast {
+
+		val appDir = "$buildDir/rapids-app"
+
+		delete(
+				fileTree("$appDir")
+		)
+
+		copy {
+			from(layout.projectDirectory.file("$buildDir/install/rapids-srv-worker/"))
+			into("$appDir")
+		}
+
+		copy {
+			from(layout.projectDirectory.file("etc"))
+			into("$appDir/etc")
+			rename("model.json", "model.json.sample")
+		}
+
+		copy {
+			from(layout.projectDirectory.file("src/main/resources/application.yaml"))
+			into("$appDir/etc/")
+		}
+	}
+
+}
+
 
 tasks.withType<Test> {
 	useJUnitPlatform()

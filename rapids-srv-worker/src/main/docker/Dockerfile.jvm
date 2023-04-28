@@ -16,14 +16,20 @@ RUN \
   rm graalvm-ce-java${JAVA_VERSION}-linux-amd64-${GRAAL_VERSION}.tar.gz && \
   rm -rf /var/lib/apt/lists/*
 
-COPY build/quarkus-app/ /home/app/
+COPY rapids-srv-worker/build/rapids-app/ /home/app/
+COPY rapids-srv-worker/src/main/docker/application.yaml /home/app/etc/application.yaml
+
+RUN \
+   chmod +x /home/app/bin/rapids-srv-worker
 
 EXPOSE 18200
 EXPOSE 18220
 EXPOSE 18300
 
-WORKDIR /data
+WORKDIR /home/app
 
-VOLUME /data
+VOLUME /model
 
-ENTRYPOINT ["java", "-jar", "/home/app/quarkus-run.jar"]
+ENV RAPIDS_APPLICATION_CONFIG_ADDITIONAL_DIR="/data"
+
+ENTRYPOINT ["./bin/rapids-srv-worker", "-"]

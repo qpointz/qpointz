@@ -96,8 +96,25 @@ dependencyResolutionManagement {
             library("azure-storage-file-datalake", "com.azure", "azure-storage-file-datalake").version("12.15.0")
             library("azure-storage-blob-nio", "com.azure", "azure-storage-blob-nio").version("12.0.0-beta.19")
 
-            bundle("quarkus-base-impl", listOf("quarkus-arc", "quarkus-config-yaml"))
-            bundle("quarkus-base-test", listOf("quarkus-junit5"))
+            val vertx = version("vertx", "4.4.1")
+            library("vertx-core", "io.vertx", "vertx-core").versionRef(vertx)
+
+            val smallrye = version("smallrye", "3.2.1")
+            library("smallrye-config", "io.smallrye.config", "smallrye-config").versionRef(smallrye)
+            library("smallrye-config-source-yaml", "io.smallrye.config", "smallrye-config-source-yaml").versionRef(smallrye)
+
+            val microprofile = version("microprofile", "3.0.2")
+            library("microprofile-config-api", "org.eclipse.microprofile.config", "microprofile-config-api").versionRef(microprofile)
+
+            library("slf4j-api", "org.slf4j", "slf4j-api").version("2.0.7")
+            library("logback-classic", "ch.qos.logback", "logback-classic").version("1.4.6")
+            bundle("logging", listOf("slf4j-api", "logback-classic"))
+
+            val spring = version("spring", "6.0.8")
+            library("spring-context", "org.springframework","spring-context").versionRef(spring)
+
+            //bundle("quarkus-base-impl", listOf("quarkus-arc", "quarkus-config-yaml"))
+            //bundle("quarkus-base-test", listOf("quarkus-junit5"))
         }
     }
 }

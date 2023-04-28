@@ -2,6 +2,7 @@ image: docker-ci.qpointz.io/ci-gradle-graalvm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_R
 stages:
   - init
   - test
+  - build
   - package
 
 docker:buildImages:
@@ -30,10 +31,26 @@ runTestsIT:
     reports:
       junit: ./**/*/build/test-results/integrationTest/*.xml
 
-packageJDBCDriver:
-  stage: package
+buildJDBCDriver:
+  stage: build
   script:
     - gradle shadowJar
   artifacts:
     paths:
       - ./rapids-jdbc-driver/build/libs/*-all.jar
+
+buildRapidsApp:
+  stage: build
+  script:
+    - gradle :rapids-srv-worker:bootstrapApp
+  artifacts:
+    paths:
+      - ./rapids-srv-worker/build/rapids-app/*/*
+
+buildRapidsDocker:
+  stage: package
+  image: docker:latest
+  script:
+    - echo "$NEXUS_PASSWORD" | docker login $DOCKER_REPO_CI  -u $NEXUS_USER --password-stdin
+    - docker build -f ./rapids-srv-worker/src/main/docker/Dockerfile.jvm -t docker-ci.qpointz.io/rapids:$CI_COMMIT_REF_SLUG .
+    - docker push docker-ci.qpointz.io/rapids:$CI_COMMIT_REF_SLUG
