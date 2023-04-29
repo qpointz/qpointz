@@ -36,6 +36,8 @@ dependencies {
 	implementation(libs.calcite.csv)
 	implementation(libs.avatica.core)
 	implementation(libs.avatica.server)
+
+	runtimeOnly(libs.postgresql)
 }
 
 val bootstrapAppTask = tasks.register("bootstrapApp") {

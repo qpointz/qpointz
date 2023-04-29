@@ -77,7 +77,7 @@ dependencyResolutionManagement {
             library("parquet-column","org.apache.parquet", "parquet-column").versionRef(apacheParuet)
             library("parquet-hadoop","org.apache.parquet", "parquet-hadoop").versionRef(apacheParuet)
 
-            val apacheHadoop = version("apacheHadoop", "3.3.5")
+            val apacheHadoop = version("apacheHadoop", "3.3.2")
             library("hadoop-common","org.apache.hadoop", "hadoop-common" ).versionRef(apacheHadoop)
             library("hadoop-client","org.apache.hadoop", "hadoop-client" ).versionRef(apacheHadoop)
 
@@ -112,6 +112,10 @@ dependencyResolutionManagement {
 
             val spring = version("spring", "6.0.8")
             library("spring-context", "org.springframework","spring-context").versionRef(spring)
+
+            val postgre = version("postgre", "42.6.0")
+            library("postgresql", "org.postgresql","postgresql").versionRef(postgre)
+
 
             //bundle("quarkus-base-impl", listOf("quarkus-arc", "quarkus-config-yaml"))
             //bundle("quarkus-base-test", listOf("quarkus-junit5"))

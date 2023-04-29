@@ -25,14 +25,15 @@ public class RapidsConfigSourceProvider implements ConfigSourceProvider {
 
         sources.add(new YamlConfigSource(Objects.requireNonNull(RapidsConfigSourceProvider.class.getResource("/application.yaml")), 120));
 
-        probeFile(sources, Paths.get("./etc/application.yaml"), 140);
-        probeFile(sources, Paths.get("./application.yaml"), 145);
+        probeFile(sources, Paths.get("./application.yaml"), 120);
+        probeFile(sources, Paths.get("./etc/application.yaml"), 119);
+
 
         var additionalProbe = System.getenv("RAPIDS_APPLICATION_CONFIG_ADDITIONAL_DIR");
         if (additionalProbe!=null) {
             log.info("Probing additional configuration directory {}", additionalProbe);
-            probeFile(sources, Paths.get(additionalProbe, "etc",  "application.yaml"), 150);
-            probeFile(sources, Paths.get(additionalProbe, "application.yaml"), 155);
+            probeFile(sources, Paths.get(additionalProbe, "application.yaml"), 130);
+            probeFile(sources, Paths.get(additionalProbe, "etc",  "application.yaml"), 129);
         }
 
         return sources;
