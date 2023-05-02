@@ -4,6 +4,10 @@ import io.qpointz.rapids.calcite.CalciteHandler;
 import io.qpointz.rapids.server.worker.config.ODataServiceConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.schema.SchemaPlus;
+import org.eclipse.jetty.http.pathmap.PathSpec;
+import org.eclipse.jetty.http.pathmap.RegexPathSpec;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletHandler;
@@ -26,19 +30,20 @@ public class ODataService extends AbstractService {
     @Override
     protected void startService() throws Exception {
         log.info("Configuring ODATA http server");
-        this.httpServer = new Server();
-        this.connector = new ServerConnector(this.httpServer);
-        this.connector.setPort(this.config.port());
-
+        final var httpConfig = new HttpConfiguration();
+        final var httpConnectionFactory = new HttpConnectionFactory(httpConfig);
+        this.httpServer = new Server(this.config.port());
         log.debug("Creating http handler");
-        var sh = new ServletHandler();
         final var rootSchema = this.calciteHandler.getRootSchema();
+        final var sh = new ServletHandler();
         for (final var schemaName : rootSchema.getSubSchemaNames()) {
-            final var serviceName = "/%s.svc/*".formatted(schemaName);
+            final var serviceName = "/%s.svc".formatted(schemaName).toLowerCase();
             log.info("Mapping {} service to {} schema", serviceName, schemaName);
             final var schema = rootSchema.getSubSchema(schemaName);
-            final var holder = ODataServlet.create(schema, this.config.namespace());
-            sh.addServletWithMapping(holder, serviceName);
+            final var holder = ODataServlet.create(schema, this.config.namespace(), this.calciteHandler);
+            //sh.addServletWithMapping(new ServletHolder(holder), serviceName);
+
+            sh.addServletWithMapping(new ServletHolder(holder), serviceName+"/*");
         }
         this.httpServer.setHandler(sh);
         log.info("Starting http server");

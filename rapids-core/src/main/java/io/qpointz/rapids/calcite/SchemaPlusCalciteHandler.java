@@ -15,8 +15,6 @@ import java.util.List;
 
 public interface SchemaPlusCalciteHandler extends CalciteHandler /*, GraphQLHandler*/ {
 
-    RelDataTypeFactory getTypeFactory();
-
     @Override
     default Catalog getCatalog() {
         var schema = this.getRootSchema();

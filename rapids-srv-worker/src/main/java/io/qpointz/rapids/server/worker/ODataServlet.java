@@ -1,12 +1,13 @@
 package io.qpointz.rapids.server.worker;
 
+import io.qpointz.rapids.calcite.CalciteHandler;
 import io.qpointz.rapids.services.odata.CalciteEdmProvider;
 import io.qpointz.rapids.services.odata.CalciteODataProcessor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ServiceMetadata;
-import org.eclipse.jetty.servlet.ServletHolder;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -20,20 +21,22 @@ public class ODataServlet extends HttpServlet {
 
     private final SchemaPlus schema;
     private final String namespace;
+    private final CalciteHandler calciteHandler;
 
-    private ODataServlet(SchemaPlus schema, String namespace) {
+    private ODataServlet(SchemaPlus schema, String namespace, CalciteHandler calciteHandler) {
         this.schema = schema;
         this.namespace = namespace;
+        this.calciteHandler = calciteHandler;
     }
 
     @Override
     protected void service(final HttpServletRequest req, final HttpServletResponse resp)
             throws ServletException, IOException {
         try {
-            OData odata = OData.newInstance();
-            ServiceMetadata edm = odata.createServiceMetadata(new CalciteEdmProvider(this.namespace, this.schema), new ArrayList<>());
+            OData odata = OData.newInstance();ServiceMetadata edm = odata.createServiceMetadata(new CalciteEdmProvider(this.namespace, this.schema, this.calciteHandler), new ArrayList<>());
             final var handler = odata.createHandler(edm);
-            handler.register(new CalciteODataProcessor(odata, schema, namespace, edm));
+            handler.register(new CalciteODataProcessor(odata, edm, this.schema.getName(), this.calciteHandler));
+            log.debug("Req:{}", req.getRequestURI());
             handler.process(req, resp);
         } catch (RuntimeException e) {
             log.error("Server Error", e);
@@ -41,8 +44,8 @@ public class ODataServlet extends HttpServlet {
         }
     }
 
-    public static ServletHolder create(SchemaPlus schema, String namespace) {
-        return new ServletHolder(new ODataServlet(schema, namespace));
+    public static ODataServlet create(SchemaPlus schema, String namespace, CalciteHandler calciteHandler) {
+        return new ODataServlet(schema, namespace, calciteHandler);
     }
 
 }

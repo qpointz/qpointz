@@ -31,7 +31,11 @@ public class RapidsConfigSourceProvider implements ConfigSourceProvider {
 
         var additionalProbe = System.getenv("RAPIDS_APPLICATION_CONFIG_ADDITIONAL_DIR");
         if (additionalProbe!=null) {
-            log.info("Probing additional configuration directory {}", additionalProbe);
+            var probeDir = Paths.get(additionalProbe).normalize().toAbsolutePath();
+            log.info("Probing additional configuration directory {} ({})",additionalProbe, probeDir.toString());
+            if (!Files.exists(probeDir)) {
+                log.warn("Additional probe dir: {} doesn't exists", additionalProbe);
+            }
             probeFile(sources, Paths.get(additionalProbe, "application.yaml"), 130);
             probeFile(sources, Paths.get(additionalProbe, "etc",  "application.yaml"), 129);
         }

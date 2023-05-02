@@ -20,9 +20,16 @@ public class TableEntityInfo {
     private final String entityTypeName;
 
     @Getter
-    private final FullQualifiedName containerFqdn;
+    private final String containerName;
 
-    public static TableEntityInfo create(String schemaName, String tableName, FullQualifiedName container) {
-        return new TableEntityInfo(schemaName, tableName, tableName, "%sType".formatted(tableName), container);
+    @Getter
+    final String namespace;
+
+    public FullQualifiedName getEntityTypeFqdn() {
+        return new FullQualifiedName(this.namespace, this.entityTypeName);
+    }
+
+    public static TableEntityInfo create(String schemaName, String tableName, String namespace, String containerName) {
+        return new TableEntityInfo(schemaName, tableName, tableName, "%sType".formatted(tableName), containerName, namespace);
     }
 }

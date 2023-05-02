@@ -10,7 +10,7 @@
         <pattern> %d{HH:mm:ss.SSS} - %-10.10thread - %5p - %-20.20logger{20} - %m%n</pattern>
     </encoder>
 </appender>
-<root level="INFO">
+<root level="DEBUG">
     <!-- to use enable this mode pass -Dcolor to jvm -->
     <if condition='isDefined("color")'>
         <then>

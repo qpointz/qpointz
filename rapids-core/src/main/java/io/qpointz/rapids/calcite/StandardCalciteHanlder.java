@@ -5,8 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.avatica.Meta;
 import org.apache.calcite.avatica.jdbc.JdbcMeta;
 import org.apache.calcite.jdbc.CalciteConnection;
+import org.apache.calcite.plan.Contexts;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.schema.SchemaPlus;
+import org.apache.calcite.tools.FrameworkConfig;
+import org.apache.calcite.tools.Frameworks;
+import org.apache.calcite.tools.RelRunner;
+
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
@@ -57,5 +62,18 @@ public class StandardCalciteHanlder implements SchemaPlusCalciteHandler  {
     @Override
     public RelDataTypeFactory getTypeFactory() {
         return this.getCalciteConnection().getTypeFactory();
+    }
+
+    @Override
+    public FrameworkConfig getFrameworkConfig() {
+        return Frameworks.newConfigBuilder()
+                .defaultSchema(this.getRootSchema())
+                .context(Contexts.of(this.getCalciteConnection().config()))
+                .build();
+    }
+
+    @Override
+    public RelRunner getRelRunner() throws SQLException {
+        return this.getCalciteConnection().unwrap(RelRunner.class);
     }
 }
