@@ -4,6 +4,7 @@ import com.azure.storage.common.StorageSharedKeyCredential;
 import com.azure.storage.file.datalake.DataLakeServiceClientBuilder;
 import io.qpointz.rapids.azure.AzureDataLakeSeekableInputStream;
 import org.apache.parquet.io.SeekableInputStream;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -110,7 +111,7 @@ class AzureSeekableFileInputStreamTest {
         var s2 = stream2();
         var bf2 = fn.apply(s2);
         assertArrayEquals(bf1, bf2);
-        assertEquals(s1.getPos(), s2.getPos());
+        Assertions.assertEquals(s1.getPos(), s2.getPos());
     }
 
     @Test
@@ -134,7 +135,7 @@ class AzureSeekableFileInputStreamTest {
         var s2 = stream2();
         var bf2 = fn.apply(s2);
         assertArrayEquals(bf1, bf2);
-        assertEquals(s1.getPos(), s2.getPos());
+        Assertions.assertEquals(s1.getPos(), s2.getPos());
     }
 
     @Test

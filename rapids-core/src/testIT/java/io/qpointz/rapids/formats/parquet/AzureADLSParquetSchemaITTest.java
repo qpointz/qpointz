@@ -3,6 +3,7 @@ package io.qpointz.rapids.formats.parquet;
 import io.qpointz.rapids.azure.AzureFileSystemAdapter;
 import io.qpointz.rapids.formats.parquet.RapidsParquetSchema;
 import org.apache.calcite.jdbc.CalciteConnection;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.sql.DriverManager;
@@ -33,7 +34,7 @@ public class AzureADLSParquetSchemaITTest {
     void readTables() throws IOException {
         RapidsParquetSchema schema = airlinesRapidsSchema();
         var tableNames = schema.getTableNames();
-        assertEquals(4, tableNames.size());
+        Assertions.assertEquals(4, tableNames.size());
     }
 
     private CalciteConnection createAirlinesSchemaConnection() throws ClassNotFoundException, SQLException, IOException {
@@ -52,7 +53,7 @@ public class AzureADLSParquetSchemaITTest {
         var con = createAirlinesSchemaConnection();
         var stmt = con.prepareStatement("SELECT COUNT(*) FROM `airlines`.`cities`");
         var rs = stmt.executeQuery();
-        assertTrue(rs.next());
+        Assertions.assertTrue(rs.next());
         var cnt = rs.getLong(1);
         assertTrue(cnt>1);
     }
@@ -62,7 +63,7 @@ public class AzureADLSParquetSchemaITTest {
         var con = createAirlinesSchemaConnection();
         var stmt = con.prepareStatement("SELECT COUNT(*) FROM `airlines`.`segments`");
         var rs = stmt.executeQuery();
-        assertTrue(rs.next());
+        Assertions.assertTrue(rs.next());
         var cnt = rs.getLong(1);
         assertTrue(cnt>1);
     }

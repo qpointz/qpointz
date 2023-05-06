@@ -16,20 +16,22 @@ docker:buildImages:
 runTests:
   stage: test
   script:
-    - gradle test
+    - gradle testCodeCoverageReport
   artifacts:
     reports:
       junit: ./**/*/build/test-results/test/*.xml
     paths:
-      - ./**/*/build/reports/jacoco/test/*.xml
+      - ./**/*/build/reports/jacoco/testCodeCoverageReport/*.xml
 
 runTestsIT:
   stage: test
   script:
-    - gradle integrationTest
+    - gradle testITCodeCoverageReport
   artifacts:
     reports:
-      junit: ./**/*/build/test-results/integrationTest/*.xml
+      junit: ./**/*/build/test-results/testIT/*.xml
+    paths:
+      - ./**/*/build/reports/jacoco/testITCodeCoverageReport/*.xml
 
 buildJDBCDriver:
   stage: build
@@ -49,6 +51,8 @@ buildRapidsApp:
 
 buildRapidsDocker:
   stage: package
+  dependencies:
+    - buildRapidsApp
   image: docker:latest
   script:
     - echo "$NEXUS_PASSWORD" | docker login $DOCKER_REPO_CI  -u $NEXUS_USER --password-stdin

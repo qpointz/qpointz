@@ -1,14 +1,20 @@
 plugins {
-    java
+    `java-library`
     jacoco
+    id("jacoco-report-aggregation")
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 dependencies {
-    implementation(libs.calcite.core)
+    api(libs.calcite.core)
     implementation(libs.calcite.csv)
     implementation(libs.avatica.core)
     implementation(libs.avatica.server)
-    implementation(libs.parquet.avro)
+    api(libs.parquet.avro)
     implementation(libs.avro)
     implementation(libs.avro.mapred)
     implementation(libs.hadoop.common) {
@@ -18,15 +24,8 @@ dependencies {
         exclude("javax.ws.rs")
     }
 
-    implementation(libs.azure.storage.file.datalake)
+    api(libs.azure.storage.file.datalake)
     implementation(libs.azure.storage.blob.nio)
-
-    /*implementation(libs.sdl.odata.common)
-    implementation(libs.sdl.odata.service)
-    implementation(libs.sdl.odata.processor)
-    implementation(libs.sdl.odata.renderer)
-    implementation(libs.sdl.odata.edm)
-    implementation(libs.sdl.odata.api)*/
 
     implementation(libs.olingo.odata.server.core)
     implementation(libs.olingo.odata.server.api)
@@ -34,27 +33,7 @@ dependencies {
     implementation(libs.olingo.odata.commons.api)
 
     implementation(libs.lombok)
-    testImplementation(project(mapOf("path" to ":rapids-core")))
     annotationProcessor(libs.lombok)
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
-tasks.test {
-    finalizedBy(tasks.jacocoTestReport) // report is always generated after tests run
-}
-tasks.jacocoTestReport {
-    dependsOn(tasks.test) // tests are required to run before generating the report
-}
-
-tasks.jacocoTestReport {
-    reports {
-        xml.required.set(true)
-        csv.required.set(false)
-    }
 }
 
 testing {
@@ -66,21 +45,16 @@ testing {
         }
 
 
-        register<JvmTestSuite>("integrationTest") {
+        register<JvmTestSuite>("testIT") {
             useJUnitJupiter("5.9.2")
-            testType.set(TestSuiteType.INTEGRATION_TEST)
 
             dependencies {
                 implementation(project())
+                implementation(libs.lombok)
+                annotationProcessor(libs.lombok)
             }
 
-            targets {
-                all {
-                    testTask.configure {
-                        shouldRunAfter(test)
-                    }
-                }
-            }
+            testType.set(TestSuiteType.INTEGRATION_TEST)
         }
     }
 }
