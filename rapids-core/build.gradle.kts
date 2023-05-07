@@ -24,6 +24,8 @@ dependencies {
         exclude("javax.ws.rs")
     }
 
+    implementation("com.google.guava:guava:31.1-jre")
+
     api(libs.azure.storage.file.datalake)
     implementation(libs.azure.storage.blob.nio)
 
@@ -34,6 +36,8 @@ dependencies {
 
     implementation(libs.lombok)
     annotationProcessor(libs.lombok)
+
+    implementation(libs.bundles.logging)
 }
 
 testing {

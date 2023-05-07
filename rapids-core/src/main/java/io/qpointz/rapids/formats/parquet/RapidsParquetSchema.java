@@ -1,10 +1,15 @@
 package io.qpointz.rapids.formats.parquet;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import io.qpointz.rapids.filesystem.FileSystemAdapter;
 import io.qpointz.rapids.parcels.filesystem.FileSystemParcelUtils;
 import io.qpointz.rapids.parcels.filesystem.TablePartitionInfo;
 import io.qpointz.rapids.parcels.filesystem.TableRegexPartitionMatcher;
 import io.qpointz.rapids.util.Pair;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
@@ -19,6 +24,8 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 public class RapidsParquetSchema extends AbstractSchema {
@@ -26,14 +33,25 @@ public class RapidsParquetSchema extends AbstractSchema {
     private final TableRegexPartitionMatcher partitionMapper;
 
     private final FileSystemAdapter fileSystemAdapter;
-    public RapidsParquetSchema(FileSystemAdapter fileSystemAdapter, String matchRegex, String datasetGroupName) {
+    private final Cache<String, RelDataType> relTypeCache;
+    private final int cacheExpiresAfter;
+
+    public RapidsParquetSchema(FileSystemAdapter fileSystemAdapter, String matchRegex, String datasetGroupName, int cacheExpiresAfter) {
         this.fileSystemAdapter = fileSystemAdapter;
         this.partitionMapper = TableRegexPartitionMatcher.builder()
                 .regexPattern(matchRegex)
                 .datasetGroup(datasetGroupName)
                 .partitionValueGroups(Map.of())
                 .build();
+
+        this.cacheExpiresAfter = cacheExpiresAfter;
+
+        this.relTypeCache = CacheBuilder
+                .newBuilder()
+                .expireAfterAccess(this.cacheExpiresAfter, TimeUnit.SECONDS)
+                .build();
     }
+
 
     private Stream<Pair<Path, Optional<TablePartitionInfo>>> listPartitionsFiles() {
         var partitions = new ArrayList<Pair<Path, Optional<TablePartitionInfo>>>();
@@ -73,6 +91,16 @@ public class RapidsParquetSchema extends AbstractSchema {
     }
 
     public RelDataType getRowType(String tableName, RelDataTypeFactory typeFactory) throws IOException {
+        try {
+            return this.relTypeCache.get(tableName, () -> {
+                return loadRowType(tableName, typeFactory);
+            });
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public RelDataType loadRowType(String tableName, RelDataTypeFactory typeFactory) throws IOException {
         var mayBeFirst = this.getTablePaths(tableName).stream().findAny();
 
         if (mayBeFirst.isEmpty()) {

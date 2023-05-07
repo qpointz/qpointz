@@ -22,7 +22,7 @@ class RapidsParquetSchemaTest {
         return new RapidsParquetSchema(
                 fileSystemAdapter,
                 ".*(\\/(?<dataset>[^\\/]+)\\.parquet$)",
-                "dataset");
+                "dataset", 300);
     }
 
     private static RapidsParquetSchema partitionedSchema() {
@@ -31,7 +31,7 @@ class RapidsParquetSchemaTest {
         return new RapidsParquetSchema(
                 fileSystemAdapter,
                 ".*(\\/(?<dataset>[^\\/]+)-(?<year>\\d{4})-(?<month>\\d{2})-\\d{2}\\.parquet$)",
-                "dataset");
+                "dataset", 300);
     }
 
     @Test
@@ -76,7 +76,7 @@ class RapidsParquetSchemaTest {
         var schema =  new RapidsParquetSchema(
                 fileSystemAdapter,
                 ".*(\\/(?<dataset>[^\\/]+)\\.parquet$)",
-                "dataset");
+                "dataset", 300);
         assertThrows(RuntimeException.class, schema::getTableMap);
     }
 

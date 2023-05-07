@@ -22,6 +22,9 @@ public class RapidsParquetSchemaFactory implements SchemaFactory {
     private static final String AZ_STORAGE_ACCOUNT_KEY = "az.storage.account.key";
     private static final String AZ_STORAGE_CONTAINERS = "az.storage.container";
     private static String DIR_KEY = "rootDir";
+
+    private static String CACHE_EXPIRES_AFTER = "cache.expiresAfter";
+
     private static String RX_DATASET_GROUP_KEY = "rx.datasetGroup";
 
     private static String RX_PATTERN_KEY = "rx.pattern";
@@ -45,6 +48,12 @@ public class RapidsParquetSchemaFactory implements SchemaFactory {
 
         var pattern = operand.get(RX_PATTERN_KEY).toString();
         var datasetGroup = operand.get(RX_DATASET_GROUP_KEY).toString();
+        var cahceExpiresAfter = 300;
+
+        if (operand.containsKey(CACHE_EXPIRES_AFTER)) {
+            cahceExpiresAfter = Integer.parseInt(operand.get(CACHE_EXPIRES_AFTER).toString());
+        }
+        log.info("Schema caching set to {} seconds", cahceExpiresAfter);
 
         FileSystemAdapter fileSysteAdapter = null;
         try {
@@ -53,7 +62,7 @@ public class RapidsParquetSchemaFactory implements SchemaFactory {
             throw new RuntimeException(e);
         }
 
-        return new RapidsParquetSchema(fileSysteAdapter, pattern, datasetGroup);
+        return new RapidsParquetSchema(fileSysteAdapter, pattern, datasetGroup, cahceExpiresAfter);
     }
 
     private FileSystemAdapter getFileSystemAdapter(Map<String, Object> operand) throws IOException {
