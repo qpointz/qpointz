@@ -18,7 +18,7 @@ public class Namespace {
     @Getter
     private final String name;
 
-    public static Namespace RootNs = new Namespace(null, "root");
+    public static final Namespace rootNs = new Namespace(null, "root");
 
 
     public Namespace createChild(String childName) {

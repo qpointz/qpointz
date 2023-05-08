@@ -1,6 +1,6 @@
 package io.qpointz.rapids.server.worker.config;
+
 import java.util.Map;
-import java.util.Properties;
 
 public interface CalciteConfig {
 

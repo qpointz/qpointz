@@ -33,9 +33,9 @@ public class JdbcService extends AbstractService {
         var localService = new LocalService(meta);
 
         log.info("Installed filesystem providers:Service start");
-        FileSystemProvider.installedProviders().forEach(p -> {
-            log.info("Provider '%s'".formatted(p.getScheme()));
-        });
+        FileSystemProvider.installedProviders().forEach(p ->
+            log.info("Provider '%s'".formatted(p.getScheme()))
+        );
 
         AvaticaHandler handler = null;
         if (this.config.protocol()== JdbcServiceConfig.HandlerProtocol.JSON) {

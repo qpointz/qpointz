@@ -5,6 +5,11 @@ import io.qpointz.rapids.filesystem.FileSystemAdapterBaseTest;
 import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class AzureFileSystemAdapterTest extends FileSystemAdapterBaseTest {
 
@@ -27,19 +32,24 @@ class AzureFileSystemAdapterTest extends FileSystemAdapterBaseTest {
     }
 
     @Test
-    public void createAdapter() throws IOException {
+    void createAdapter() throws IOException {
         var fs = AzureFileSystemAdapter.create(AzureUtils.storageAccountName, AzureUtils.storageAccountKey, AzureUtils.itContainerModels, "models");
         var p = fs.getFileSytem().getPath("models", "formats", "parquet", "airlines");
-        var files = Files.newDirectoryStream(p);
+        var files = new ArrayList<Path>();
+        Files.newDirectoryStream(p)
+                .forEach(files::add);
+        assertTrue(files.size()>0);
+        var hasDir = false;
+        var hasFile = false;
         for (var p1: files) {
             if (Files.isDirectory(p1)) {
-                System.out.println("dir dir");
+                hasDir=true;
             } else {
-                System.out.println(p1.toString());
+                hasFile=true;
             }
         }
-
-        //assertTrue(files.size()==4);
+        assertTrue(hasFile, "shouldHaveFiles");
+        assertFalse(hasDir, "shoud not Have Subdirs");
     }
 
 

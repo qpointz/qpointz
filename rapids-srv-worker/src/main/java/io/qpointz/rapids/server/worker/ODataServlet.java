@@ -33,7 +33,8 @@ public class ODataServlet extends HttpServlet {
     protected void service(final HttpServletRequest req, final HttpServletResponse resp)
             throws ServletException, IOException {
         try {
-            OData odata = OData.newInstance();ServiceMetadata edm = odata.createServiceMetadata(new CalciteEdmProvider(this.namespace, this.schema, this.calciteHandler), new ArrayList<>());
+            OData odata = OData.newInstance();
+            ServiceMetadata edm = odata.createServiceMetadata(new CalciteEdmProvider(this.namespace, this.schema, this.calciteHandler), new ArrayList<>());
             final var handler = odata.createHandler(edm);
             handler.register(new CalciteODataProcessor(odata, edm, this.schema.getName(), this.calciteHandler));
             log.debug("Req:{}", req.getRequestURI());

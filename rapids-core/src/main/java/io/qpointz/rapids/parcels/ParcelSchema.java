@@ -10,12 +10,10 @@ import java.util.Map;
 
 public class ParcelSchema extends AbstractSchema {
 
-    private final SchemaPlus parentSchema;
     private final Parcel parcel;
 
     protected ParcelSchema(SchemaPlus parentSchema, Parcel parcel) {
         super();
-        this.parentSchema = parentSchema;
         this.parcel = parcel;
     }
 

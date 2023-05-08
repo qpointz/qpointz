@@ -3,7 +3,6 @@ package io.qpointz.rapids.services.odata;
 import io.qpointz.rapids.calcite.CalciteHandler;
 import jdk.jshell.spi.ExecutionControl;
 import lombok.SneakyThrows;
-import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.tools.RelBuilder;
 import org.apache.olingo.commons.api.data.*;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
@@ -23,7 +22,6 @@ import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.apache.olingo.server.api.uri.queryoption.SelectOption;
 
-import javax.naming.OperationNotSupportedException;
 import java.net.URI;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -80,7 +78,7 @@ public class CalciteODataProcessor implements EntityCollectionProcessor, EntityP
         EntityIterator entitySet = null;
 
         try {
-            entitySet = toEntityIterator(uriInfo, responseFormat);
+            entitySet = toEntityIterator(uriInfo);
         } catch (SQLException e) {
             throw new ODataApplicationException("SQL Exception thrown: %s".formatted(e.getMessage()), HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH, e);
         }
@@ -98,14 +96,12 @@ public class CalciteODataProcessor implements EntityCollectionProcessor, EntityP
     private ContextURL getContextUrl(final EdmEntitySet entitySet, final boolean isSingleEntity,
                                      final ExpandOption expand, final SelectOption select, final String navOrPropertyPath, final URI serviceRoot)
             throws SerializerException {
-
-        var contextUrl =  ContextURL.with().entitySet(entitySet)
+        return ContextURL.with().entitySet(entitySet)
                 .serviceRoot(serviceRoot)
                 .selectList(odata.createUriHelper().buildContextURLSelectList(entitySet.getEntityType(), expand, select))
                 .suffix(isSingleEntity ? ContextURL.Suffix.ENTITY : null)
                 .navOrPropertyPath(navOrPropertyPath)
                 .build();
-        return contextUrl;
     }
 
     private EdmEntitySet getEdmEntitySet(final UriInfoResource uriInfo) throws ODataApplicationException {
@@ -159,10 +155,9 @@ public class CalciteODataProcessor implements EntityCollectionProcessor, EntityP
 
     @Override
     public void init(OData odata, ServiceMetadata serviceMetadata) {
-       // throw new RuntimeException(new OperationNotSupportedException("Not supported init"));
     }
 
-    private EntityIterator toEntityIterator(UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, SQLException {
+    private EntityIterator toEntityIterator(UriInfo uriInfo) throws ODataApplicationException, SQLException {
         final var edmEntitySet = getEdmEntitySet(uriInfo.asUriInfoResource());
 
         final var builder = RelBuilder.create(this.calciteHandler.getFrameworkConfig());
@@ -173,7 +168,6 @@ public class CalciteODataProcessor implements EntityCollectionProcessor, EntityP
         var resultSet = statement.executeQuery();
         final var rsMeta = resultSet.getMetaData();
         final var columns = new HashMap<Integer, String>();
-        final var etfqdn = edmEntitySet.getEntityType().getFullQualifiedName().getFullQualifiedNameAsString();
         for(int i=1;i<= rsMeta.getColumnCount();i++) {
             columns.put(i, rsMeta.getColumnName(i));
         }

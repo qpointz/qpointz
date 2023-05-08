@@ -29,13 +29,13 @@ public abstract class AbstractService extends AbstractVerticle {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        }).onSuccess(p -> {
-            log.info("{} service started", this.name);
-        }).onFailure(ex-> {
-            log.error(String.format("%s service failed to start", this.name), ex);
-        }).onComplete(p -> {
-            log.info("{} server start completed", this.name);
-        });
+        }).onSuccess(p ->
+            log.info("{} service started", this.name)
+        ).onFailure(ex->
+            log.error(String.format("%s service failed to start", this.name), ex)
+        ).onComplete(p ->
+            log.info("{} server start completed", this.name)
+        );
     }
 
     protected abstract void startService() throws Exception;

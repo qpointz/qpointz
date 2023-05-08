@@ -66,7 +66,7 @@ public abstract class FileEnumerator<TRec> extends AbstractEnumerable<Object[]> 
 
             @Override
             public void close() {
-
+                // no close logic required
             }
         };
     }

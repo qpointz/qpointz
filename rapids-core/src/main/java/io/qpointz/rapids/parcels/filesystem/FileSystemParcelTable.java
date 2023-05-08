@@ -21,7 +21,7 @@ public class FileSystemParcelTable extends ParcelTable {
     private final FileSystemParcel parentParcel;
 
     @Getter
-    private final Boolean exposePartitions = true;
+    private static final boolean exposePartitions = true;
 
     public FileSystemParcelTable(FileSystemParcel parentParcel) {
         this.parentParcel = parentParcel;
@@ -36,7 +36,7 @@ public class FileSystemParcelTable extends ParcelTable {
     }
 
     private void addPartitions(Collection<RelDataType> types, Collection<String> names, RelDataTypeFactory typeFactory) {
-        if (!this.exposePartitions) {
+        if (! this.exposePartitions) {
             return;
         }
 
@@ -46,7 +46,6 @@ public class FileSystemParcelTable extends ParcelTable {
             types.add(switch (pd.getValue()) {
                 case STRING -> typeFactory.createSqlType(SqlTypeName.VARCHAR);
                 case INT -> typeFactory.createSqlType(SqlTypeName.INTEGER);
-                default -> throw new IllegalArgumentException("Unknow partition type %s".formatted(pd.getValue()));
             });
         }
     }

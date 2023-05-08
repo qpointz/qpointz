@@ -6,14 +6,10 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @Slf4j
-public class FileSystemParcelTest {
+class FileSystemParcelTest {
 
     public void traverse(Path path, Consumer<Path> consumer) {
         this.traverse(path.toFile(), x -> consumer.accept(x.toPath()));
@@ -30,7 +26,7 @@ public class FileSystemParcelTest {
     }
 
     @Test
-    public void traverseFileSystem() {
+    void traverseFileSystem() {
         var fs = FileSystems.getDefault();
         var path = Path.of("../");
         var ps = fs.getPath(String.valueOf(path.toAbsolutePath()));

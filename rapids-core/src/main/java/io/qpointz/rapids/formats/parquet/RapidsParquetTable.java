@@ -86,70 +86,15 @@ public class RapidsParquetTable extends AbstractTable implements ScannableTable 
             }
 
             @Override
-            Object[] mapRecord(GenericRecord record) {
+            Object[] mapRecord(GenericRecord genericRecord) {
                 var r = new Object[fieldCount];
                 for (int i=0;i<fieldCount;i++) {
                     var f = fieldList.get(i);
-                    r[i] = record.get(f.getName());
+                    r[i] = genericRecord.get(f.getName());
                 }
                 return r;
             }
         };
     }
-
-//    private Stream<GenericRecord> sr(Path p) {
-//        ParquetReader<GenericRecord> reader = null;
-//        try {
-//            reader = this.parentSchema.getParquetReader(p);
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//        var iterable = new ParquetIterator(reader);
-//        return StreamSupport.stream(iterable.spliterator(), false);
-//    }
-//
-//    private Object[] mapRecord(GenericRecord genericRecord) {
-//    }
-
-//    @Override
-//    public Enumerable<Object[]> scan(DataContext root) {
-//        return new AbstractEnumerable<Object[]>() {
-//            @Override
-//            public Enumerator<Object[]> enumerator() {
-//                var stream =  RapidsParquetTable.this.parentSchema.getTablePaths(RapidsParquetTable.this.getName())
-//                        .stream()
-//                        .flatMap(RapidsParquetTable.this::sr)
-//                        .map(RapidsParquetTable.this::mapRecord)
-//                        .iterator();
-//                return new Enumerator<Object[]>() {
-//                    @Override
-//                    public Object[] current() {
-//                        stream.
-//                    }
-//
-//                    @Override
-//                    public boolean moveNext() {
-//                        return false;
-//                    }
-//
-//                    @Override
-//                    public void reset() {
-//
-//                    }
-//
-//                    @Override
-//                    public void close() {
-//
-//                    }
-//                }
-//            }
-//        }
-
-
-
-
-//    }
-
-
 }
 

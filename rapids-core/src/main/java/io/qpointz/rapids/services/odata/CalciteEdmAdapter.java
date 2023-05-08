@@ -7,14 +7,11 @@ import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.schema.SchemaPlus;
-import org.apache.olingo.commons.api.edm.EdmPrimitiveType;
-import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntitySet;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -72,10 +69,6 @@ public class CalciteEdmAdapter {
         }
 
         throw new RuntimeException("%s type not found".formatted(entityTypeName.getFullQualifiedNameAsString()));
-    }
-
-    private FullQualifiedName tableEntityTypeFqdn(String tableName) {
-        return new FullQualifiedName(this.namespace, tableName);
     }
 
     public Stream<CsdlEntitySet> entitySets() {

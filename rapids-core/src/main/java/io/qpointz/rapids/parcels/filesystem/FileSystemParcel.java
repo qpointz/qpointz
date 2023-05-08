@@ -19,13 +19,13 @@ import java.util.Optional;
 public class FileSystemParcel implements Parcel {
 
     @Getter
-    final private String name;
+    private final String name;
 
     @Getter
-    final private FileSystem fileSystem;
+    private final FileSystem fileSystem;
 
     @Getter
-    final private String parcelRootPath;
+    private final String parcelRootPath;
 
     @Getter
     private FileSystemParcelState state;

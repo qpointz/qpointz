@@ -12,8 +12,6 @@ rootProject.name = "rapids"
 
 include (":rapids-core")
 include (":rapids-jdbc-driver")
-include (":rapids-jdbc-driver")
-//include (":rapids-server")
 include (":rapids-srv-worker")
 
 include (":etc:msynth")

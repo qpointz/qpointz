@@ -2,11 +2,10 @@ package io.qpointz.rapids.azure;
 
 import com.azure.storage.common.StorageSharedKeyCredential;
 import com.azure.storage.file.datalake.*;
-import com.azure.storage.file.datalake.models.DataLakeFileOpenInputStreamResult;
-import com.azure.storage.file.datalake.models.FileRange;
 import com.azure.storage.file.datalake.options.DataLakeFileInputStreamOptions;
 import org.apache.parquet.io.SeekableInputStream;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -15,7 +14,6 @@ public class AzureDataLakeSeekableInputStream extends SeekableInputStream {
 
     private final DataLakeFileClient fileClient;
     private long pos;
-    private DataLakeFileOpenInputStreamResult fileInputStream;
     private InputStream inputStream;
 
     public static AzureDataLakeSeekableInputStream create(String storageAccount,
@@ -57,8 +55,10 @@ public class AzureDataLakeSeekableInputStream extends SeekableInputStream {
             this.inputStream.close();
         }
         var opts = new DataLakeFileInputStreamOptions();
-        this.fileInputStream = this.fileClient.openInputStream(opts);
-        this.inputStream = this.fileInputStream.getInputStream();
+
+        this.inputStream = this.fileClient
+                .openInputStream(opts)
+                .getInputStream();
     }
 
     @Override
@@ -75,14 +75,11 @@ public class AzureDataLakeSeekableInputStream extends SeekableInputStream {
 
     @Override
     public void readFully(byte[] bytes) throws IOException {
-        this.resetStream();
-        bytes = this.inputStream.readAllBytes();
-        this.pos+=bytes.length;
+        this.readFully(bytes, 0, bytes.length);
     }
 
     @Override
     public void readFully(byte[] bytes, int start, int len) throws IOException {
-        this.resetStream();
         var read = this.inputStream.read(bytes, start, len);
         this.pos+=read;
     }
@@ -97,7 +94,10 @@ public class AzureDataLakeSeekableInputStream extends SeekableInputStream {
 
     @Override
     public void readFully(ByteBuffer buf) throws IOException {
-        throw new RuntimeException("Not implemented yet");
+        var read = read(buf);
+        if (read==-1) {
+            throw new EOFException();
+        }
     }
 
     @Override

@@ -7,9 +7,6 @@ import io.qpointz.rapids.parcels.filesystem.FileSystemParcelUtils;
 import io.qpointz.rapids.parcels.filesystem.TablePartitionInfo;
 import io.qpointz.rapids.parcels.filesystem.TableRegexPartitionMatcher;
 import io.qpointz.rapids.util.Pair;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
@@ -19,6 +16,7 @@ import org.apache.parquet.avro.AvroParquetReader;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.io.InputFile;
 import org.apache.parquet.io.SeekableInputStream;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
@@ -92,9 +90,8 @@ public class RapidsParquetSchema extends AbstractSchema {
 
     public RelDataType getRowType(String tableName, RelDataTypeFactory typeFactory) throws IOException {
         try {
-            return this.relTypeCache.get(tableName, () -> {
-                return loadRowType(tableName, typeFactory);
-            });
+            return this.relTypeCache
+                    .get(tableName, () -> loadRowType(tableName, typeFactory));
         } catch (ExecutionException e) {
             throw new RuntimeException(e);
         }
@@ -109,8 +106,8 @@ public class RapidsParquetSchema extends AbstractSchema {
         var path = mayBeFirst.get();
 
         ParquetReader<GenericRecord> reader = getParquetReader(path);
-        var record = reader.read();
-        var schema = record.getSchema();
+        var topRecord = reader.read();
+        var schema = topRecord.getSchema();
         var s = new AvroSchemaConverter().convert(schema);
 
         final var names = new ArrayList<String>();
@@ -187,8 +184,7 @@ public class RapidsParquetSchema extends AbstractSchema {
             }
         };
 
-        ParquetReader<GenericRecord> reader = AvroParquetReader.<GenericRecord>builder(file).build();
-        return reader;
+        return AvroParquetReader.<GenericRecord>builder(file).build();
     }
 
 

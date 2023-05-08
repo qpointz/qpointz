@@ -94,7 +94,7 @@ class AzureSeekableFileInputStreamTest {
     }
 
     @Test
-    public void seekForward() throws IOException {
+    void seekForward() throws IOException {
         Function<SeekableInputStream, byte[]> fn = s -> {
             try {
                 s.seek(1024L);
@@ -115,7 +115,7 @@ class AzureSeekableFileInputStreamTest {
     }
 
     @Test
-    public void seekBackward() throws IOException {
+    void seekBackward() throws IOException {
         Function<SeekableInputStream, byte[]> fn = s -> {
             try {
                 var b = new byte[1024];

@@ -1,11 +1,9 @@
 package io.qpointz.rapids.formats.parquet;
 
 import org.apache.parquet.io.DelegatingSeekableInputStream;
-import org.apache.parquet.io.SeekableInputStream;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 public class RapidsSeekableFileInputStream extends DelegatingSeekableInputStream {
 

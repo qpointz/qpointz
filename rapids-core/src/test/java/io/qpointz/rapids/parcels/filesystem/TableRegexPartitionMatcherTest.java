@@ -30,7 +30,7 @@ class TableRegexPartitionMatcherTest {
             .build();
 
     @Test
-    public void uriAndStringMustEquals() {
+    void uriAndStringMustEquals() {
         var m1 = defMatcher.match("/drive/root/dataset1/datataset-2015-10.csv").get();
         var m2 = defMatcher.match(URI.create("/drive/root/dataset1/datataset-2015-10.csv")).get();
         assertEquals(m1.getTableName(), m2.getTableName());
@@ -38,13 +38,13 @@ class TableRegexPartitionMatcherTest {
     }
 
     @Test
-    public void returnsEmptyWhenNotMatching() {
+    void returnsEmptyWhenNotMatching() {
         var m1 = defMatcher.match("lala");
         assertEquals(Optional.empty(), m1);
     }
 
     @Test
-    public void match() {
+    void match() {
         var m = defMatcher.match("/drive/root/dataset1/datataset-2015-10.csv").get();
         assertEquals("dataset1", m.getTableName());
         assertEquals(2015, m.getPartitionMap().get("year").getInt());
@@ -52,7 +52,7 @@ class TableRegexPartitionMatcherTest {
     }
 
     @Test
-    public void throwsOnWrongFormat() {
+    void throwsOnWrongFormat() {
         var m = TableRegexPartitionMatcher.builder()
                 .regexPattern("/drive/root/(?<dataset>[^/]+)\\/datataset-(?<year>.{4})-(?<month>\\d{2}).csv$")
                 .datasetGroup("dataset")

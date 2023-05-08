@@ -6,8 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 class AvroSchemaConverterTest {
 
@@ -29,13 +28,13 @@ class AvroSchemaConverterTest {
     }
 
     @Test
-    public void readSchema() {
+    void readSchema() {
         var s = this.byName("city");
         assertNotNull(s);
     }
 
     @Test
-    public void convertSchema(){
+    void convertSchema(){
         var s = this.byName("city");
         var c = new AvroSchemaConverter();
         var cs = c.convert(s);
@@ -43,25 +42,24 @@ class AvroSchemaConverterTest {
     }
 
     @Test
-    public void multiunionShouldThrow() {
+    void multiunionShouldThrow() {
         assertThrows(RuntimeException.class, ()-> convertByName("multiunion"));
     }
 
     @Test
-    public void nonnullableShouldThrow() {
+    void nonnullableShouldThrow() {
         assertThrows(RuntimeException.class, ()-> convertByName("notnullableunion"));
     }
 
     @Test
-    public void unsupportedThrows() {
+    void unsupportedThrows() {
         assertThrows(RuntimeException.class, ()-> convertByName("unsupported"));
     }
 
     @Test
-    public void allTypes() {
-        convertByName("allTypes");
+    void allValidTypes() {
+        var r = convertByName("allTypes");
+        assertNotNull(r);
+        assertTrue(r.keySet().size()>0);
     }
-
-
-
 }

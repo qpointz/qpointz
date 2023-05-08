@@ -19,7 +19,6 @@ public class ODataService extends AbstractService {
     private final CalciteHandler calciteHandler;
     private final ODataServiceConfig config;
     private Server httpServer;
-    private ServerConnector connector;
 
     public ODataService(ODataServiceConfig config, CalciteHandler calciteHandler) {
         super("ODATA", config.enabled());
@@ -30,8 +29,6 @@ public class ODataService extends AbstractService {
     @Override
     protected void startService() throws Exception {
         log.info("Configuring ODATA http server");
-        final var httpConfig = new HttpConfiguration();
-        final var httpConnectionFactory = new HttpConnectionFactory(httpConfig);
         this.httpServer = new Server(this.config.port());
         log.debug("Creating http handler");
         final var rootSchema = this.calciteHandler.getRootSchema();
@@ -41,8 +38,6 @@ public class ODataService extends AbstractService {
             log.info("Mapping {} service to {} schema", serviceName, schemaName);
             final var schema = rootSchema.getSubSchema(schemaName);
             final var holder = ODataServlet.create(schema, this.config.namespace(), this.calciteHandler);
-            //sh.addServletWithMapping(new ServletHolder(holder), serviceName);
-
             sh.addServletWithMapping(new ServletHolder(holder), serviceName+"/*");
         }
         this.httpServer.setHandler(sh);

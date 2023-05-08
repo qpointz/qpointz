@@ -21,15 +21,16 @@ public class RapidsParquetSchemaFactory implements SchemaFactory {
     private static final String AZ_STORAGE_ACCOUNT_NAME = "az.storage.account.name";
     private static final String AZ_STORAGE_ACCOUNT_KEY = "az.storage.account.key";
     private static final String AZ_STORAGE_CONTAINERS = "az.storage.container";
-    private static String DIR_KEY = "rootDir";
+    private static final String MISSING_S_PARAMETER = "Missing '%s' parameter";
+    private static final String DIR_KEY = "rootDir";
 
-    private static String CACHE_EXPIRES_AFTER = "cache.expiresAfter";
+    private static final String CACHE_EXPIRES_AFTER = "cache.expiresAfter";
 
-    private static String RX_DATASET_GROUP_KEY = "rx.datasetGroup";
+    private static final String RX_DATASET_GROUP_KEY = "rx.datasetGroup";
 
-    private static String RX_PATTERN_KEY = "rx.pattern";
+    private static final String RX_PATTERN_KEY = "rx.pattern";
 
-    private static String FS_TYPE = "fs.type";
+    private static final String FS_TYPE = "fs.type";
 
     public RapidsParquetSchemaFactory() {
 
@@ -39,11 +40,11 @@ public class RapidsParquetSchemaFactory implements SchemaFactory {
     public Schema create(SchemaPlus parentSchema, String name, Map<String, Object> operand) {
 
         if (!operand.containsKey(RX_DATASET_GROUP_KEY)) {
-            throw new IllegalArgumentException("Missing '%s' parameter".formatted(RX_DATASET_GROUP_KEY));
+            throw new IllegalArgumentException(MISSING_S_PARAMETER.formatted(RX_DATASET_GROUP_KEY));
         }
 
         if (!operand.containsKey(RX_PATTERN_KEY)) {
-            throw new IllegalArgumentException("Missing '%s' parameter".formatted(RX_PATTERN_KEY));
+            throw new IllegalArgumentException(MISSING_S_PARAMETER.formatted(RX_PATTERN_KEY));
         }
 
         var pattern = operand.get(RX_PATTERN_KEY).toString();
@@ -86,7 +87,7 @@ public class RapidsParquetSchemaFactory implements SchemaFactory {
     private FileSystemAdapter createAzureDataLakeAdapter(Map<String, Object> operand) throws IOException {
         var rootPath = operand.get(DIR_KEY).toString();
         if (!operand.containsKey(DIR_KEY)) {
-            throw new IllegalArgumentException("Missing '%s' parameter".formatted(DIR_KEY));
+            throw new IllegalArgumentException(MISSING_S_PARAMETER.formatted(DIR_KEY));
         }
 
         if (!operand.containsKey(AZ_STORAGE_ACCOUNT_NAME)) {
@@ -111,7 +112,7 @@ public class RapidsParquetSchemaFactory implements SchemaFactory {
     private FileSystemAdapter createLocalFileSystemSystemAdapter(Map<String, Object> operand) {
         var rootPath = operand.get(DIR_KEY).toString();
         if (!operand.containsKey(DIR_KEY)) {
-            throw new IllegalArgumentException("Missing '%s' parameter".formatted(DIR_KEY));
+            throw new IllegalArgumentException(MISSING_S_PARAMETER.formatted(DIR_KEY));
         }
         return new LocalFileSystemAdapter(Paths.get(rootPath));
     }
