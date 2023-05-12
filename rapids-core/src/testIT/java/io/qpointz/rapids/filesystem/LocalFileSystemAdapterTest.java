@@ -11,7 +11,7 @@ class LocalFileSystemAdapterTest  extends FileSystemAdapterBaseTest {
     private final String traversePath;
 
     public LocalFileSystemAdapterTest() {
-        this.traversePath = "../etc/testModels/formats/parquet/partitioned-hierarchy";
+        this.traversePath = "../rapids-example/data/partitioned-hierarchy";
         this.adapter = new LocalFileSystemAdapter(Paths.get(this.traversePath).toAbsolutePath());
     }
 

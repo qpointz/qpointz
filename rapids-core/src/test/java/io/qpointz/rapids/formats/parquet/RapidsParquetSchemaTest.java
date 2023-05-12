@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class RapidsParquetSchemaTest {
 
     private static RapidsParquetSchema airlinesRapidsSchema() {
-        var rootDir = Path.of(System.getProperty("user.dir") + "/../etc/testModels/formats/parquet/airlines/");
+        var rootDir = Path.of(System.getProperty("user.dir") + "/../rapids-example/data/airlines_parquet/");
         var fileSystemAdapter = new LocalFileSystemAdapter(rootDir);
         return new RapidsParquetSchema(
                 fileSystemAdapter,
@@ -26,7 +26,7 @@ class RapidsParquetSchemaTest {
     }
 
     private static RapidsParquetSchema partitionedSchema() {
-        var rootDir = Path.of(System.getProperty("user.dir") + "/../etc/testModels/formats/parquet/partitioned/");
+        var rootDir = Path.of(System.getProperty("user.dir") + "/../rapids-example/data/partitioned/");
         var fileSystemAdapter = new LocalFileSystemAdapter(rootDir);
         return new RapidsParquetSchema(
                 fileSystemAdapter,
@@ -71,7 +71,7 @@ class RapidsParquetSchemaTest {
     @Test
     void openNonExistentPathThrows() {
         var fs = FileSystems.getDefault();
-        var rootDir = Path.of("/../etc/testModels/formats/parquet/doesntexists/");
+        var rootDir = Path.of("/../rapids-example/data/doesntexists/");
         var fileSystemAdapter = new LocalFileSystemAdapter(rootDir);
         var schema =  new RapidsParquetSchema(
                 fileSystemAdapter,

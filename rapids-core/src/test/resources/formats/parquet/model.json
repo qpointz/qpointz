@@ -7,7 +7,7 @@
       "type": "custom",
       "factory": "io.qpointz.rapids.formats.parquet.RapidsParquetSchemaFactory",
       "operand": {
-        "rootDir": "/home/vm/wip/rapids/etc/testModels/formats/parquet/airlines",
+        "rootDir": "./rapids-example/data/airlines_parquet",
         "rx.datasetGroup": "dataset",
         "rx.pattern": ".*(\\/(?<dataset>[^\\/]+)\\.parquet$)"
       }

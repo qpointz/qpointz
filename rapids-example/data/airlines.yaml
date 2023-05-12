@@ -1,7 +1,7 @@
 experiments:
   write_parquet:
     type : parquet
-    path : "./airlines/{dataset-name}.parquet"
+    path : "./airlines_parquet/{dataset-name}.parquet"
 models:
   - name : airlines
     locales: ['en-US']

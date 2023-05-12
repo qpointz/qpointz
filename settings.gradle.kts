@@ -10,9 +10,12 @@
 
 rootProject.name = "rapids"
 
+include (":rapids-api")
+include (":rapids-testkit")
 include (":rapids-core")
 include (":rapids-jdbc-driver")
 include (":rapids-srv-worker")
+
 
 include (":etc:msynth")
 project(":etc:msynth").projectDir = file("etc/msynth")
