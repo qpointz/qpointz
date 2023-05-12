@@ -16,6 +16,9 @@ include (":rapids-core")
 include (":rapids-jdbc-driver")
 include (":rapids-srv-worker")
 
+include (":rapids-formats-avro-parquet")
+include (":rapids-providers-azure")
+
 
 include (":etc:msynth")
 project(":etc:msynth").projectDir = file("etc/msynth")
@@ -32,13 +35,11 @@ dependencyResolutionManagement {
             version("lombok", "1.18.26")
             library("lombok", "org.projectlombok", "lombok").versionRef("lombok")
 
-
             version("calcite", "1.34.0")
             library("calcite-core", "org.apache.calcite", "calcite-core").versionRef("calcite")
             library("calcite-testkit", "org.apache.calcite", "calcite-testkit").versionRef("calcite")
             library("calcite-file", "org.apache.calcite", "calcite-file").versionRef("calcite")
             library("calcite-csv", "org.apache.calcite", "calcite-csv").versionRef("calcite")
-
 
             version("avatica", "1.22.0")
             library("avatica-core", "org.apache.calcite.avatica", "avatica-core").versionRef("avatica")
@@ -52,12 +53,10 @@ dependencyResolutionManagement {
             library("quarkus-arc", "io.quarkus", "quarkus-arc").versionRef(quarkus)
             library("quarkus-resteasy-reactive", "io.quarkus", "quarkus-resteasy-reactive").versionRef(quarkus)
             library("quarkus-resteasy-reactive-jackson", "io.quarkus", "quarkus-resteasy-reactive-jackson").versionRef(quarkus)
-
             library("quarkus-junit5", "io.quarkus", "quarkus-junit5").versionRef(quarkus)
             library("quarkus-config-yaml", "io.quarkus", "quarkus-config-yaml").versionRef(quarkus)
             library("quarkus-vertx", "io.quarkus", "quarkus-vertx").versionRef(quarkus)
             library("quarkus-container-image-docker", "io.quarkus", "quarkus-container-image-docker").versionRef(quarkus)
-
 
             val apacheArrowFlight = version("arrow", "11.0.0")
             library("arrow-format", "org.apache.arrow", "arrow-format").versionRef(apacheArrowFlight)
@@ -85,9 +84,6 @@ dependencyResolutionManagement {
             val apacheAvro = version("apacheAvro", "1.11.1")
             library("avro", "org.apache.avro", "avro").versionRef(apacheAvro)
             library("avro-mapred", "org.apache.avro", "avro-mapred").versionRef(apacheAvro)
-
-            /*val graphQl = version("graphql", "20.2")
-            library("graphql-java", "com.graphql-java", "graphql-java").versionRef(graphQl)*/
 
             val junit = version("junit", "5.9.2")
             library("junit-jupiter-api", "org.junit.jupiter", "junit-jupiter-api").versionRef(junit)
@@ -124,17 +120,6 @@ dependencyResolutionManagement {
             library("sdl-odata-processor","com.sdl", "odata_parser").versionRef(sdl) //- OData URI parser
             library("sdl-odata-renderer","com.sdl", "odata_renderer").versionRef(sdl) //- Renderers for Atom and JSON output
             library("sdl-odata-edm","com.sdl", "odata_edm").versionRef(sdl) //- The OData EDM metadata (Entity Data Model)
-            //odata_assembly - Assembly structure for standalone distribution
-            //odata_checkstyle - Checkstyle configuration
-            //odata_client - OData Java Client library
-            //odata_common - Common packages and utilities
-            //odata_controller - Spring Boot REST controller
-            //odata_parser
-            //odata_processor - Handlers for processing requests
-            //odata_service - The core OData service and Akka based processing engine
-            //odata_test - Test components
-            //odata_war - OData WAR distribution artifact
-            //odata_webservice - Spring Boot based OData HTTP webservice container
 
             val olingo = version("olingo", "4.9.0")
             library("olingo-odata-server-core", "org.apache.olingo", "odata-server-core").versionRef(olingo)
@@ -142,15 +127,15 @@ dependencyResolutionManagement {
             library("olingo-odata-commons-api", "org.apache.olingo", "odata-commons-api").versionRef(olingo)
             library("olingo-odata-commons-core", "org.apache.olingo", "odata-commons-core").versionRef(olingo)
 
-
             val jetty = version("jetty","9.4.44.v20210927")
-            //library("jetty-http", "org.eclipse.jetty","jetty-http").versionRef(jetty)
             library("jetty-server", "org.eclipse.jetty","jetty-server").versionRef(jetty)
             library("jetty-servlet", "org.eclipse.jetty","jetty-servlet").versionRef(jetty)
 
+            val mockito = version("mockito", "5.3.1")
+            library("mockito-core", "org.mockito", "mockito-core").versionRef(mockito)
+            library("mockito-junit-jupiter", "org.mockito", "mockito-junit-jupiter").versionRef(mockito)
 
-            //bundle("quarkus-base-impl", listOf("quarkus-arc", "quarkus-config-yaml"))
-            //bundle("quarkus-base-test", listOf("quarkus-junit5"))
+
         }
     }
 }

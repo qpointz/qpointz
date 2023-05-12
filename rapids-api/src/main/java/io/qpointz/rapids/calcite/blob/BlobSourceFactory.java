@@ -1,4 +1,4 @@
-package io.qpointz.rapids.calcite.schemas.blob;
+package io.qpointz.rapids.calcite.blob;
 
 
 public interface BlobSourceFactory {
