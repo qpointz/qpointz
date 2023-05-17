@@ -2,7 +2,6 @@ package io.qpointz.rapids.providers.local.blob;
 
 import io.qpointz.rapids.calcite.blob.BlobPath;
 import io.qpointz.rapids.calcite.blob.BlobSource;
-import org.apache.hadoop.fs.PathIOException;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,9 +9,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Objects;
-import java.util.Spliterator;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 

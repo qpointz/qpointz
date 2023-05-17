@@ -49,12 +49,17 @@ buildRapidsApp:
     paths:
       - ./rapids-srv-worker/build/rapids-app/*/*
 
-buildRapidsDocker:
+buildRapidsDockerBranch:
   stage: package
+  except:
+    - main
+    - dev
   dependencies:
     - buildRapidsApp
   image: docker:latest
   script:
     - echo "$NEXUS_PASSWORD" | docker login $DOCKER_REPO_CI  -u $NEXUS_USER --password-stdin
-    - docker build -f ./rapids-srv-worker/src/main/docker/Dockerfile.jvm -t docker-ci.qpointz.io/rapids:$CI_COMMIT_REF_SLUG .
-    - docker push docker-ci.qpointz.io/rapids:$CI_COMMIT_REF_SLUG
+    - echo "$DOCKER_HUB_PASSWORD" | docker login -u $DOCKER_HUB_USER --password-stdin
+    - docker build -f ./rapids-srv-worker/src/main/docker/Dockerfile -t docker-ci.qpointz.io/rapids-worker:$CI_COMMIT_REF_SLUG -t qpointz/rapids-worker:$CI_COMMIT_REF_SLUG .
+    - docker push docker-ci.qpointz.io/rapids-worker:$CI_COMMIT_REF_SLUG
+    - docker push qpointz/rapids-worker:$CI_COMMIT_REF_SLUG
