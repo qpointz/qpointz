@@ -14,6 +14,7 @@ ThisBuild / scalaVersion := BuildSettings.scalaLangVersion
 Global / cancelable := true
 ThisBuild / parallelExecution := false
 ThisBuild / versionScheme := Some("pvp")
+ThisBuild / evictionErrorLevel := Level.Warn
 
 logLevel:= Level.Debug
 
@@ -48,6 +49,7 @@ lazy val `qpointz` = project.in(file("."))
     `flow-aws`,
     `flow-stream`,
     `flow-workflow`,
+    `flow-calcite`,
     `shape-core`)
 /* temporaly disabled
 ThisBuild / coverageFailOnMinimum := true
@@ -189,6 +191,14 @@ lazy val `flow-workflow` = libProject("flow","workflow")
     libraryDependencies ++= modules(
       akka.actorsTyped,
       akka.actorsTypedTestKit % Test
+    )
+  )
+
+lazy val `flow-calcite` = libProject("flow","calcite")
+  .dependsOn(`flow-core`)
+  .settings(
+    libraryDependencies ++= modules(
+      apacheCalcite.core
     )
   )
 

@@ -11,3 +11,4 @@ addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.0.6")
 ////addSbtPlugin("com.lightbend.lagom" % "lagom-sbt-plugin" % "1.6.5")
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.0.0")
 addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.5.4-14-7cb43276")
+ThisBuild / libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
