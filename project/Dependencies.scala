@@ -43,17 +43,17 @@ object Dependencies {
   }
 
   object slf4j {
-    lazy val v = "org.slf4j" ~% "2.0.3"
+    lazy val v = "org.slf4j" ~% "2.0.9"
     lazy val api = "slf4j-api" ~~ v
   }
 
   object logback {
-    lazy val v = "ch.qos.logback" ~% "1.4.4"
+    lazy val v = "ch.qos.logback" ~% "1.4.11"
     lazy val classic = "logback-classic" ~~ v
   }
 
   object akka {
-    lazy val v = "com.typesafe.akka" ~%% "2.7.0"
+    lazy val v = "com.typesafe.akka" ~%% "2.8.5"
 
     lazy val actors                 = v ~~ "akka-actor"
     lazy val actorsTyped            = v ~~ "akka-actor-typed"
@@ -71,7 +71,7 @@ object Dependencies {
   }
 
   object scalaTest {
-    lazy val v = "org.scalatest" ~%% "3.2.14"
+    lazy val v = "org.scalatest" ~%% "3.2.17"
     lazy val scalaTest = v ~~ "scalatest"
   }
 
@@ -93,7 +93,7 @@ object Dependencies {
   }
 
   object scoverage {
-    lazy val v = "2.0.7"
+    lazy val v = "2.0.11"
     lazy val p = "org.scoverage" ~%% v
     lazy val scalacRuntime = "scalac-scoverage-runtime" ~~ p
   }
@@ -140,20 +140,20 @@ object Dependencies {
   }
 
   object apacheAvro {
-    val v = "1.11.1"
+    val v = "1.11.2"
     val p = "org.apache.avro" ~% v
     val avro = "avro" ~~ p
     val avroMapred = "avro-mapred" ~~ p
   }
 
   object apacheParquet {
-    val v = "1.12.3"
+    val v = "1.13.1"
     val p = "org.apache.parquet" ~% v
     val parquetAvro = "parquet-avro" ~~ p
   }
 
   object apacheHadoop {
-    val v = "3.3.4"
+    val v = "3.3.6"
     val p = "org.apache.hadoop" ~% v
     val client = "hadoop-client" ~~ p
     val common = "hadoop-common" ~~ p
@@ -161,7 +161,7 @@ object Dependencies {
   }
 
   object amazonAWSSDK {
-    val v = "2.18.16"
+    val v = "2.20.153"
     val g = "software.amazon.awssdk"
     val p = g ~% v
     val sdkJava = "aws-sdk-java" ~~ p
@@ -176,13 +176,13 @@ object Dependencies {
   }
 
   object h2db {
-    val v = "2.1.214"
+    val v = "2.2.224"
     val p = "com.h2database" ~% v
     val h2 = "h2" ~~ p
   }
 
   object minio {
-    val v = "8.4.5"
+    val v = "8.5.6"
     val p = "io.minio" ~% v
     val minio = "minio" ~~ p
   }
@@ -194,12 +194,12 @@ object Dependencies {
   }
 
   object commons {
-    val io = "commons-io" % "commons-io" % "2.11.0"
-    val lang3 = "org.apache.commons" % "commons-lang3" % "3.12.0"
+    val io = "commons-io" % "commons-io" % "2.13.0"
+    val lang3 = "org.apache.commons" % "commons-lang3" % "3.13.0"
   }
 
   object apacheCalcite {
-    val v = "1.32.0"
+    val v = "1.35.0"
     val p = "org.apache.calcite" ~% v
     val core = "calcite-core" ~~ p
   }
@@ -217,7 +217,7 @@ object Dependencies {
   }
 
   object picocli {
-    val v = "4.7.0"
+    val v = "4.7.5"
     val p = "info.picocli" ~% v
     val picocli = "picocli" ~~ p
     val jline3shell = "picocli-shell-jline3" ~~ p
