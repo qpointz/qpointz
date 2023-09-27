@@ -16,6 +16,7 @@ import org.apache.calcite.schema.QueryableTable;
 import org.apache.calcite.schema.ScannableTable;
 import org.apache.calcite.schema.TranslatableTable;
 import org.apache.calcite.schema.impl.AbstractTable;
+import org.apache.calcite.tools.Planner;
 import org.apache.parquet.hadoop.ParquetReader;
 
 import java.io.IOException;

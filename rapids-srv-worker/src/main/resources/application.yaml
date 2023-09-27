@@ -3,9 +3,20 @@ rapids:
     mode: standard
     standard:
       properties:
-        model : /home/vm/wip/rapids/rapids-server/etc/model.json
+        model : ./etc/model.json
         quoting : DOUBLE_QUOTE
         caseSensitive : true
+#  security:
+#    identity:
+#      provider: basic
+#      basic:
+#        config: ./config/passwd
+#    auth:
+#      provider: simple
+#      simple:
+#        allow-roles:
+#          - reader
+#          - grinder
   services:
     jdbc:
       enabled : true

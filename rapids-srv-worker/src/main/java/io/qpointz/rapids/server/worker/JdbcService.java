@@ -4,14 +4,17 @@ import io.qpointz.rapids.calcite.CalciteHandler;
 import io.qpointz.rapids.server.worker.config.JdbcServiceConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.avatica.Meta;
+import org.apache.calcite.avatica.remote.AuthenticationType;
 import org.apache.calcite.avatica.remote.LocalService;
-import org.apache.calcite.avatica.server.AvaticaHandler;
-import org.apache.calcite.avatica.server.AvaticaJsonHandler;
-import org.apache.calcite.avatica.server.AvaticaProtobufHandler;
-import org.apache.calcite.avatica.server.HttpServer;
+import org.apache.calcite.avatica.server.*;
+import org.eclipse.jetty.server.Server;
 
+import javax.servlet.http.HttpServletRequest;
 import java.nio.file.spi.FileSystemProvider;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
 
 
 @Slf4j
@@ -49,6 +52,7 @@ public class JdbcService extends AbstractService {
         this.server = new HttpServer.Builder()
                 .withHandler(handler)
                 .withPort(this.config.port())
+                .withBasicAuthentication("./config/passwd", new String[] {"reader"})
                 .build();
 
         log.info("About to start JDBC HTTP Server");

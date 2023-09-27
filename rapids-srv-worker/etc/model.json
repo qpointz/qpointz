@@ -7,8 +7,8 @@
       "type": "custom",
       "factory": "io.qpointz.rapids.formats.parquet.RapidsParquetSchemaFactory",
       "operand": {
-        "fs.type" : "az",
-        "rootDir": "models/formats/parquet/airlines",
+        "fs.type" : "local",
+        "rootDir": "../rapids-example/data/airlines_parquet",
         "az.storage.account.name" :  "<account_name>",
         "az.storage.account.key" : "<account_key>",
         "az.storage.container" : "<containers>",

@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+option java_package="io.qpointz.rapids.service.protocol";
+option java_outer_classname = "Protocol";
+option java_multiple_files = true;
+
+
+service MetaInfo {
+  rpc GetMetaInfo (MetaInfoRequest) returns (MetaInfoResponse) {}
+}
+
+message Version {
+  string major = 1;
+  string minor = 2;
+  string build = 3;
+  string revision = 4;
+}
+
+message Schema {
+  string name = 1;
+  string fqn  = 2;
+}
+
+message MetaInfoRequest {
+}
+
+message MetaInfoResponse {
+  Version protocolVersion = 1;
+}

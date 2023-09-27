@@ -15,9 +15,11 @@ include (":rapids-testkit")
 include (":rapids-core")
 include (":rapids-jdbc-driver")
 include (":rapids-srv-worker")
-
 include (":rapids-formats-avro-parquet")
 include (":rapids-providers-azure")
+include (":rapids-grpc")
+
+include(":rapids-service-core")
 
 
 include (":etc:msynth")
@@ -35,13 +37,13 @@ dependencyResolutionManagement {
             version("lombok", "1.18.26")
             library("lombok", "org.projectlombok", "lombok").versionRef("lombok")
 
-            version("calcite", "1.34.0")
+            version("calcite", "1.35.0")
             library("calcite-core", "org.apache.calcite", "calcite-core").versionRef("calcite")
             library("calcite-testkit", "org.apache.calcite", "calcite-testkit").versionRef("calcite")
             library("calcite-file", "org.apache.calcite", "calcite-file").versionRef("calcite")
             library("calcite-csv", "org.apache.calcite", "calcite-csv").versionRef("calcite")
 
-            version("avatica", "1.22.0")
+            version("avatica", "1.23.0")
             library("avatica-core", "org.apache.calcite.avatica", "avatica-core").versionRef("avatica")
             library("avatica-server", "org.apache.calcite.avatica", "avatica-server").versionRef("avatica")
 
@@ -95,6 +97,8 @@ dependencyResolutionManagement {
 
             val vertx = version("vertx", "4.4.1")
             library("vertx-core", "io.vertx", "vertx-core").versionRef(vertx)
+            library("vertx-grpc-server", "io.vertx", "vertx-grpc-server").versionRef(vertx)
+            library("vertx-grpc-client", "io.vertx", "vertx-grpc-client").versionRef(vertx)
 
             val smallrye = version("smallrye", "3.2.1")
             library("smallrye-config", "io.smallrye.config", "smallrye-config").versionRef(smallrye)
@@ -127,14 +131,23 @@ dependencyResolutionManagement {
             library("olingo-odata-commons-api", "org.apache.olingo", "odata-commons-api").versionRef(olingo)
             library("olingo-odata-commons-core", "org.apache.olingo", "odata-commons-core").versionRef(olingo)
 
-            val jetty = version("jetty","9.4.44.v20210927")
+            val jetty = version("jetty","9.4.48.v20220622")
             library("jetty-server", "org.eclipse.jetty","jetty-server").versionRef(jetty)
             library("jetty-servlet", "org.eclipse.jetty","jetty-servlet").versionRef(jetty)
+            library("jetty-security", "org.eclipse.jetty","jetty-security").versionRef(jetty)
+            library("jetty-openid", "org.eclipse.jetty","jetty-openid").versionRef(jetty)
 
             val mockito = version("mockito", "5.3.1")
             library("mockito-core", "org.mockito", "mockito-core").versionRef(mockito)
             library("mockito-junit-jupiter", "org.mockito", "mockito-junit-jupiter").versionRef(mockito)
 
+            val googleProtobuf = version("protobuf", "3.24.3" )
+            library("google-protobuf-protoc", "com.google.protobuf", "protoc").versionRef(googleProtobuf)
+            library("google-protobuf-java", "com.google.protobuf", "protobuf-java").versionRef(googleProtobuf)
+
+            val grpc = version("grpc", "1.58.0")
+            library("grpc-core", "io.grpc", "grpc-core").versionRef(grpc)
+            library("grpc-protoc-gen-grpc-java", "io.grpc", "protoc-gen-grpc-java").versionRef(grpc)
 
         }
     }

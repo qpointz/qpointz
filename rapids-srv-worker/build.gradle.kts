@@ -39,6 +39,8 @@ dependencies {
 
 	implementation(libs.jetty.server)
 	implementation(libs.jetty.servlet)
+	implementation(libs.jetty.security)
+	implementation(libs.jetty.openid)
 
 	implementation(libs.olingo.odata.server.core)
 	implementation(libs.olingo.odata.server.api)

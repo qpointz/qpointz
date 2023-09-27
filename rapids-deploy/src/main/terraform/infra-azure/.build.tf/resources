@@ -1,0 +1,4 @@
+saaccount=qpradevsa
+sakey=OFb+RjkLzSB2BrBgtUcoOvDZl1rftjjM+N8uFItoFhBvIntvqG6Z/NElWoPion/gqKZEfXjCrl9J+AStdDcBCg==
+rgname=qpra-test-dev-rg
+k8sname=qpra-test-dev-aks
