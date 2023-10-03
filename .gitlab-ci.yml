@@ -1,17 +1,28 @@
-image: docker-ci.qpointz.io/ci-gradle-graalvm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+image: ${CI_REGISTRY_IMAGE}/gradle-graalvm:$CI_COMMIT_REF_SLUG-ci
 stages:
   - init
   - test
   - build
   - package
 
+
 docker:buildImages:
   stage: init
-  image: docker:latest
+  image:
+    name: gcr.io/kaniko-project/executor:v1.16.0-debug
+    entrypoint: [""]
+  before_script:
+    - mkdir -p /kaniko/.docker
+    - >
+      echo "{ \"auths\":
+        { \"$CI_REGISTRY\":{\"auth\":\"$(echo -n "${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}" | base64 )\"}
+      }}" > /kaniko/.docker/.config.json
   script:
-    - echo "$NEXUS_PASSWORD" | docker login $DOCKER_REPO_CI  -u $NEXUS_USER --password-stdin
-    - docker build etc/docker/ci-graalvm -t docker-ci.qpointz.io/ci-gradle-graalvm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
-    - docker push docker-ci.qpointz.io/ci-gradle-graalvm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    - >
+      /kaniko/executor  
+      --context "${CI_PROJECT_DIR}/etc/docker/ci-graalvm"  
+      --destination "${CI_REGISTRY_IMAGE}/gradle-graalvm:$CI_COMMIT_REF_SLUG-ci"  
+      --cache=true
 
 runTests:
   stage: test
