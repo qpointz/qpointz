@@ -14,6 +14,7 @@ ThisBuild / scalaVersion := BuildSettings.scalaLangVersion
 Global / cancelable := true
 ThisBuild / parallelExecution := false
 ThisBuild / versionScheme := Some("pvp")
+ThisBuild / evictionErrorLevel := Level.Warn
 
 logLevel:= Level.Debug
 
@@ -48,6 +49,7 @@ lazy val `qpointz` = project.in(file("."))
     `flow-aws`,
     `flow-stream`,
     `flow-workflow`,
+    `flow-calcite`,
     `shape-core`)
 /* temporaly disabled
 ThisBuild / coverageFailOnMinimum := true
@@ -82,9 +84,9 @@ lazy val `flow-cli` = libProject("flow","cli")
       picocli.picocli,
       picocli.jline3shell,
       "de.vandermeer" % "asciitable" % "0.3.2",
-      "org.jline" % "jline" % "3.21.0" ,
-      "org.jline" % "jline-builtins" % "3.21.0",
-      "org.jline" % "jline-terminal-jansi" % "3.21.0"% Runtime,
+      "org.jline" % "jline" % "3.23.0" ,
+      "org.jline" % "jline-builtins" % "3.23.0",
+      "org.jline" % "jline-terminal-jansi" % "3.23.0" % Runtime,
       //"org.jline" % "jline-terminal-jna" % "3.18.0"% Runtime,
       //"org.jline" % "jline-reader" % "3.18.0"% Runtime,
       //"org.jline" % "jline-console" % "3.18.0"% Runtime,
@@ -189,6 +191,14 @@ lazy val `flow-workflow` = libProject("flow","workflow")
     libraryDependencies ++= modules(
       akka.actorsTyped,
       akka.actorsTypedTestKit % Test
+    )
+  )
+
+lazy val `flow-calcite` = libProject("flow","calcite")
+  .dependsOn(`flow-core`)
+  .settings(
+    libraryDependencies ++= modules(
+      apacheCalcite.core
     )
   )
 
