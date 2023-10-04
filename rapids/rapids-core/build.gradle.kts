@@ -40,6 +40,10 @@ dependencies {
     implementation(libs.bundles.logging)
 }
 
+tasks.withType<Test> {
+    testLogging.showStandardStreams = true
+}
+
 testing {
     suites {
         register<JvmTestSuite>("testIT") {

@@ -1,3 +1,50 @@
 stages:
   - init
-  - build 
+  - test
+  - build
+  - package
+
+
+init-job:
+  stage: init
+  trigger:
+    include:
+      - local: .gitlab/pipelines/ci-init.yml
+    strategy: depend
+  rules:
+    - changes:
+        - .gitlab-ci.yml
+        - .gitlab/**/*
+        - etc/docker/**/*
+        
+build-rapids:
+  stage: build
+  needs:
+    - job: init-job
+      optional: true
+  trigger:
+    include:
+      - local: rapids/.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - changes:
+        - .gitlab-ci.yml
+        - .gitlab/**/*
+        - etc/docker/**/*
+        - rapids/**/*
+
+build-flow:
+  stage: build
+  needs:
+    - job: init-job
+      optional: true
+  trigger:
+    include:
+      - local: flow/.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - changes:
+        - .gitlab-ci.yml
+        - .gitlab/**/*
+        - etc/docker/**/*
+        - flow/**/*        

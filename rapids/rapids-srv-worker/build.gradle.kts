@@ -58,26 +58,28 @@ val bootstrapAppTask = tasks.register("bootstrapApp") {
 	//ugly hack
 	doLast {
 
-		val appDir = "$buildDir/rapids-app"
+		val appDir = layout.buildDirectory.dir("rapids-app")
+		val etcDir = layout.buildDirectory.dir("rapids-app/etc")
+		val installDir = layout.buildDirectory.dir("install/rapids-srv-worker/")
 
 		delete(
-				fileTree("$appDir")
+				fileTree(appDir)
 		)
 
 		copy {
-			from(layout.projectDirectory.file("$buildDir/install/rapids-srv-worker/"))
-			into("$appDir")
+			from(installDir)
+			into(appDir)
 		}
 
 		copy {
 			from(layout.projectDirectory.file("etc"))
-			into("$appDir/etc")
+			into(etcDir)
 			rename("model.json", "model.json.sample")
 		}
 
 		copy {
 			from(layout.projectDirectory.file("src/main/resources/application.yaml"))
-			into("$appDir/etc/")
+			into(etcDir)
 		}
 	}
 

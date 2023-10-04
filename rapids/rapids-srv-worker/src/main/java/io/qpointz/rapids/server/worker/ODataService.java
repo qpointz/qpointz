@@ -3,7 +3,10 @@ package io.qpointz.rapids.server.worker;
 import io.qpointz.rapids.calcite.CalciteHandler;
 import io.qpointz.rapids.server.worker.config.ODataServiceConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.jetty.security.*;
+import org.eclipse.jetty.security.ConstraintMapping;
+import org.eclipse.jetty.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.security.HashLoginService;
+import org.eclipse.jetty.security.SecurityHandler;
 import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.security.openid.OpenIdAuthenticator;
 import org.eclipse.jetty.security.openid.OpenIdConfiguration;
@@ -12,7 +15,6 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.security.Constraint;
-import org.eclipse.jetty.util.security.Password;
 
 @Slf4j
 public class ODataService extends AbstractService {
@@ -62,7 +64,7 @@ public class ODataService extends AbstractService {
     }
 
     private SecurityHandler openIdAuth(ConstraintMapping conMap) {
-        final var config = new OpenIdConfiguration(("",
+        final var config = new OpenIdConfiguration("",
                 "",
                 "");
         //ee1edf86-1c09-4dea-9c73-cc228f379a2d

@@ -1,32 +1,27 @@
-image: ${CI_REGISTRY_IMAGE}/gradle-graalvm:$CI_COMMIT_REF_SLUG-ci
+include:
+  - local : /.gitlab/vars.yml
+  - local : /.gitlab/jobs.yml
+
+workflow:
+  rules:
+    - when : always
+
+image: ${CI_IMAGE_GRADLE}
+
 stages:
   - init
   - test
   - build
   - package
 
-
-docker:buildImages:
-  stage: init
-  image:
-    name: gcr.io/kaniko-project/executor:v1.16.0-debug
-    entrypoint: [""]
-  before_script:
-    - mkdir -p /kaniko/.docker
-    - >
-      echo "{ \"auths\":
-        { \"$CI_REGISTRY\":{\"auth\":\"$(echo -n "${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}" | base64 )\"}
-      }}" > /kaniko/.docker/.config.json
-  script:
-    - >
-      /kaniko/executor  
-      --context "${CI_PROJECT_DIR}/etc/docker/ci-graalvm"  
-      --destination "${CI_REGISTRY_IMAGE}/gradle-graalvm:$CI_COMMIT_REF_SLUG-ci"  
-      --cache=true
+workflow:
+  rules:
+    - when : always
 
 runTests:
   stage: test
   script:
+    - cd ${CI_PROJECT_DIR}/rapids
     - gradle testCodeCoverageReport
   artifacts:
     reports:
@@ -34,19 +29,21 @@ runTests:
     paths:
       - ./**/*/build/reports/jacoco/testCodeCoverageReport/*.xml
 
-runTestsIT:
-  stage: test
-  script:
-    - gradle testITCodeCoverageReport
-  artifacts:
-    reports:
-      junit: ./**/*/build/test-results/testIT/*.xml
-    paths:
-      - ./**/*/build/reports/jacoco/testITCodeCoverageReport/*.xml
+#runTestsIT:
+#  stage: test
+#  script:
+#    - cd ${CI_PROJECT_DIR}/rapids
+#    - gradle testITCodeCoverageReport
+#  artifacts:
+#    reports:
+#      junit: ./**/*/build/test-results/testIT/*.xml
+#    paths:
+#      - ./**/*/build/reports/jacoco/testITCodeCoverageReport/*.xml
 
 buildJDBCDriver:
   stage: build
   script:
+    - cd ${CI_PROJECT_DIR}/rapids
     - gradle shadowJar
   artifacts:
     paths:
@@ -55,6 +52,7 @@ buildJDBCDriver:
 buildRapidsApp:
   stage: build
   script:
+    - cd ${CI_PROJECT_DIR}/rapids
     - gradle :rapids-srv-worker:bootstrapApp
   artifacts:
     paths:

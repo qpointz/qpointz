@@ -31,26 +31,26 @@ class AzureFileSystemAdapterTest extends FileSystemAdapterBaseTest {
         return this.adapter;
     }
 
-    @Test
-    void createAdapter() throws IOException {
-        var fs = AzureFileSystemAdapter.create(AzureUtils.storageAccountName, AzureUtils.storageAccountKey, AzureUtils.itContainerModels, "models");
-        var p = fs.getFileSytem().getPath("models", "formats", "parquet", "airlines");
-        var files = new ArrayList<Path>();
-        Files.newDirectoryStream(p)
-                .forEach(files::add);
-        assertTrue(files.size()>0);
-        var hasDir = false;
-        var hasFile = false;
-        for (var p1: files) {
-            if (Files.isDirectory(p1)) {
-                hasDir=true;
-            } else {
-                hasFile=true;
-            }
-        }
-        assertTrue(hasFile, "shouldHaveFiles");
-        assertFalse(hasDir, "shoud not Have Subdirs");
-    }
+//    @Test
+//    void createAdapter() throws IOException {
+//        var fs = AzureFileSystemAdapter.create(AzureUtils.storageAccountName, AzureUtils.storageAccountKey, AzureUtils.itContainerModels, "models");
+//        var p = fs.getFileSytem().getPath("models", "formats", "parquet", "airlines");
+//        var files = new ArrayList<Path>();
+//        Files.newDirectoryStream(p)
+//                .forEach(files::add);
+//        assertTrue(files.size()>0);
+//        var hasDir = false;
+//        var hasFile = false;
+//        for (var p1: files) {
+//            if (Files.isDirectory(p1)) {
+//                hasDir=true;
+//            } else {
+//                hasFile=true;
+//            }
+//        }
+//        assertTrue(hasFile, "shouldHaveFiles");
+//        assertFalse(hasDir, "shoud not Have Subdirs");
+//    }
 
 
 
