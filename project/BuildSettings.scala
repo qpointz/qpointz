@@ -19,7 +19,7 @@ import sbt.Keys.{testOptions, _}
 import sbt.{TestFrameworks, Tests}
 
 object BuildSettings {
-  lazy val scalaLangVersion = "2.13.8"
+  lazy val scalaLangVersion = "2.13.10"
   lazy val version = "0.0.4"
 
   lazy val testSettings = Seq(

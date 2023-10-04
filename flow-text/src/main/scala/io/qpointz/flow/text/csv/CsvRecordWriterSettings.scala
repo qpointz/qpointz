@@ -63,7 +63,7 @@ case class CsvRecordWriterSettings(
                                     ignoreLeadingWhitespaces: Option[Boolean] = None,
                                     headers: Option[Array[String]] = None,
                                     skipBitsAsWhitespace: Option[Boolean] = None,
-                                    columnReorderingEnabled: Option[Boolean] = None,
+                                    columnReorderingEnabled: Option[Boolean] = None
                                   ) extends TextWriterSettings {
 
   def format(format: CsvFormat): CsvRecordWriterSettings = {

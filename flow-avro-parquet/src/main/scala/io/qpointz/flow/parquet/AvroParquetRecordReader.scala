@@ -35,6 +35,7 @@ class AvroParquetRecordReader(settings:AvroParquetRecordReaderSettings) extends 
 
   override def iterator: Iterator[Record] = {
 
+
     def toRecord(gr:GenericRecord):Record = {
       val vals = gr.getSchema.getFields.asScala.map(x=> {
         x.name() -> gr.get(x.pos())

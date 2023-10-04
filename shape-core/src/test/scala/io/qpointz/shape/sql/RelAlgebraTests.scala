@@ -37,7 +37,7 @@ class RelAlgebraTests extends AnyFlatSpec with Matchers with SqlBaseTest {
 
   it should "build" in {
     //import java.sql.DriverManager
-    //Class.forName("org.apache.calcite.jdbc.Driver")
+    Class.forName("org.apache.calcite.jdbc.Driver")
     val root = DriverManager.getConnection("jdbc:calcite:").unwrap(classOf[CalciteConnection]).getRootSchema
     val dataSource = JdbcSchema.dataSource(session.url, session.dialect.driver, "","")
     val sp = JdbcSchema.create(root, "H2", dataSource,null,null)
