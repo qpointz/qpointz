@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: srv-worker-app-properties
+data:
+  application.yaml: |
+    rapids:
+      calcite:
+        mode: standard
+        standard:
+          properties:
+            model : /config/model.json
+            quoting : DOUBLE_QUOTE
+            caseSensitive : true
+      services:
+        jdbc:
+          enabled : true
+          port : 18200
+          protocol: json
+        odata:
+          enabled : true
+          port : 18080
+          namespace : "io.qpointz.test"
+  model.json : |
+    {
+      "version": "1.0",
+      "defaultSchema": "AIRLINES",
+      "schemas":
+      [{
+        "name": "AIRLINES",
+        "type": "custom",
+        "factory": "io.qpointz.rapids.formats.parquet.RapidsParquetSchemaFactory",
+        "operand": {
+          "fs.type" : "az",
+          "rootDir": "models/formats/parquet/airlines",
+          "az.storage.account.name" :  "",
+          "az.storage.account.key" : "",
+          "az.storage.container" : "",
+          "rx.datasetGroup": "dataset",
+          "rx.pattern": ".*(\\/(?<dataset>[^\\/]+)\\.parquet$)"
+        }
+      }]}

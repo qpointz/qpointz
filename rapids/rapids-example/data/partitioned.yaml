@@ -1,0 +1,95 @@
+experiments:
+  cron_feed_1h:
+    type: cron_feed
+    cron: "5 4 2,11,12 JAN,FEB,MAR *"
+    dates:
+      from : '2023-01-01'
+      to : '2023-09-01'
+      count : 20
+    path: "./partitioned/{dataset-name}-{cron-date:%Y-%m-%d}.parquet"
+    writer:
+      name : parquet
+  cron_feed_2h:
+    type: cron_feed
+    cron: "5 4 2,15 APR,MAY,JUN,JUL *"
+    dates:
+      from: '2023-01-01'
+      to: '2023-09-01'
+      count: 20
+    path: "./partitioned/{dataset-name}-{cron-date:%Y-%m-%d}.parquet"
+    writer:
+      name: parquet
+  write_parquet:
+    type : parquet
+    path : "./single/{dataset-name}.parquet"
+
+  cron_feed_1h_hierarchical:
+    type: cron_feed
+    cron: "5 4 2,11,12 JAN,FEB,MAR *"
+    dates:
+      from: '2023-01-01'
+      to: '2023-09-01'
+      count: 20
+    path: "./partitioned-hierarchy/{cron-date:%Y}/{cron-date:%m}/{dataset-name}-{cron-date:%Y-%m-%d}.parquet"
+    writer:
+      name: parquet
+  cron_feed_2h_hierarchical:
+    type: cron_feed
+    cron: "5 4 2,15 APR,MAY,JUN,JUL *"
+    dates:
+      from: '2023-01-01'
+      to: '2023-09-01'
+      count: 20
+    path: "./partitioned-hierarchy/{cron-date:%Y}/{cron-date:%m}/{dataset-name}-{cron-date:%Y-%m-%d}.parquet"
+    writer:
+      name: parquet
+
+models:
+  - name : airlines
+    locales: ['en-US']
+    schemas:
+      - name: person
+        rows :
+          min: 2000
+          max: 10000
+        attributes:
+          - name : id
+            type : random_int
+            params:
+              min : 100000
+              max : 500000
+          - name : first_name
+            type : first_name
+          - name : second_name
+            type : last_name
+          - name : rating
+            type : random_double
+            params:
+              min : 0
+              max : 1000
+          - name : r_date_time
+            type: date_time
+      - name: items
+        rows:
+          min: 2000
+          max: 10000
+        attributes:
+          - name: id
+            type: random_int
+            params:
+              min: 100000
+              max: 500000
+          - name: person_id
+            type: ${ref}
+            params:
+              dataset : person
+              attribute: id
+          - name: count
+            type: random_int
+            params:
+              min: 1
+              max: 200
+          - name: price
+            type: random_double
+          - name: item
+            type: ean
