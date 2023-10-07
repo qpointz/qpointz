@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "schema",
+  "fields": [
+    {
+      "name": "multiunion",
+      "type": [
+        "null",
+        "string",
+        "int"
+      ]
+    }
+  ]
+}

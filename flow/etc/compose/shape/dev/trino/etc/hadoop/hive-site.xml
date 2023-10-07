@@ -1,0 +1,6 @@
+<configuration>
+    <property>
+        <name>hive.metastore.warehouse.dir</name>
+        <value>/home/vm/tmp/trino-server-392/hive/warehouse</value>        
+    </property>
+</configuration>

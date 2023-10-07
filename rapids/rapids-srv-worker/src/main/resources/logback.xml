@@ -1,0 +1,24 @@
+<configuration>
+<appender name="COLOR" class="ch.qos.logback.core.ConsoleAppender">
+    <withJansi>true</withJansi>
+    <encoder>
+        <pattern> %green(%d{HH:mm:ss.SSS}) %gray(-) %-10.10thread %gray(-) %highlight(%5p) %gray(-) %blue(%-20.20logger{20}) %gray(-) %m%n</pattern>
+    </encoder>
+</appender>
+<appender name="NOCOLOR" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+        <pattern> %d{HH:mm:ss.SSS} - %-10.10thread - %5p - %-20.20logger{20} - %m%n</pattern>
+    </encoder>
+</appender>
+<root level="DEBUG">
+    <!-- to use enable this mode pass -Dcolor to jvm -->
+    <if condition='isDefined("color")'>
+        <then>
+            <appender-ref ref="COLOR"/>
+        </then>
+        <else>
+            <appender-ref ref="COLOR"/>
+        </else>
+    </if>
+</root>
+</configuration>

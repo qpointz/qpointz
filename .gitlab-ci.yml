@@ -1,85 +1,49 @@
-image: docker-ci.qpointz.io/ci-sbt-graalvm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
 stages:
   - init
-  - test
-  - integration
-  - report
+  - build
   - package
-  - deploy
 
-cache:
-  key: "$CI_COMMIT_SHA"
-  paths:
-    - project/
-    - ./**/target/
-    - target/
-    - project/project
 
-docker:buildCiSBT:
+ci-init:init:
   stage: init
-  image: docker:latest
-  script:
-    - echo "$DOCKER_REPO_CI_PASSWORD" | docker login $DOCKER_REPO_CI  -u $DOCKER_REPO_CI_USER --password-stdin
-    - docker build etc/docker/ci-sbt-graalvm -t docker-ci.qpointz.io/ci-sbt-graalvm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
-    - docker push docker-ci.qpointz.io/ci-sbt-graalvm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+  trigger:
+    include:
+      - local: .gitlab/pipelines/ci-init.yml
+    strategy: depend
+  rules:
+    - changes:
+        - .gitlab-ci.yml
+        - .gitlab/**/*
+        - etc/docker/**/*
+        
+rapids:build:
+  stage: build
+  needs:
+    - job: ci-init:init
+      optional: true
+  trigger:
+    include:
+      - local: rapids/.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - changes:
+        - .gitlab-ci.yml
+        - .gitlab/**/*
+        - etc/docker/**/*
+        - rapids/**/*
 
-docker:buildCiPython:
-  stage: init
-  image: docker:latest
-  script:
-    - echo "$DOCKER_REPO_CI_PASSWORD" | docker login $DOCKER_REPO_CI  -u $DOCKER_REPO_CI_USER --password-stdin
-    - docker build etc/docker/ci-npm -t docker-ci.qpointz.io/ci-npm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
-    - docker push docker-ci.qpointz.io/ci-npm:$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
-
-docker:buildDevStack:
-  stage: init
-  image: docker:latest
-  only:
-    - dev
-    - master
-  script:
-    - echo "$DOCKER_REPO_PASSWORD" | docker login $DOCKER_REPO  -u $DOCKER_REPO_USER --password-stdin
-    - docker build etc/docker/theia-scala -t docker.qpointz.io/theia-scala
-    - docker push docker.qpointz.io/theia-scala
-
-test:
-  stage: test
-  script:
-    - sbt clean coverage test coverageReport coverageAggregate && cd target/scala-2.13 && ls -lac && tar -czvf ./scoverage-report.tar.gz ./scoverage-report
-  artifacts:
-    paths:
-      - target/scala-2.13/scoverage-report.tar.gz
-    reports:
-      junit: ./**/*/target/test-reports/*.xml
-
-doc:html:
-  stage: test
-  script:
-    - cd docs && make html && cd build && tar -czvf ./docs-html.tar.gz ./html
-  artifacts:
-    name: "doc-html-$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG"
-    paths:
-      - ./docs/build/docs-html.tar.gz
-
-publish:
-  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
-  stage: deploy
-  script:
-    - aws s3 rm --recursive s3://qpointz-cicd/$CI_COMMIT_REF_SLUG
-    - mkdir pub
-    - mkdir pub/docs && tar -xzf ./docs/build/docs-html.tar.gz  -C ./pub/docs --strip-components=2
-    - cp -R ./target/scalastyle/ ./pub/scalastyle
-    - mkdir pub/coverage && tar -xzvf ./target/scala-2.13/scoverage-report.tar.gz -C ./pub/coverage --strip-components=2
-    - aws s3 cp --recursive pub s3://qpointz-cicd/$CI_COMMIT_REF_SLUG
-    - rm -Rf ./pub
-
-scalastyle:
-  stage: report
-  script:
-    - sbt scalastyle
-    - etc/misc/checkstyle.sh
-  artifacts:
-    untracked: true
-    paths:
-      - target/scalastyle/*.*
-    expire_in: 10 days
+flow:build:
+  stage: build
+  needs:
+    - job: ci-init:init
+      optional: true
+  trigger:
+    include:
+      - local: flow/.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - changes:
+        - .gitlab-ci.yml
+        - .gitlab/**/*
+        - etc/docker/**/*
+        - flow/**/*        

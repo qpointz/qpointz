@@ -1,0 +1,81 @@
+include:
+  - local : /.gitlab/vars.yml
+  - local : /.gitlab/jobs.yml
+
+image: ${CI_IMAGE_GRADLE}
+
+stages:
+  - init
+  - test
+  - build
+  - package
+
+workflow:
+  rules:
+    - when : always
+
+rapids:unitTests:
+  stage: test
+  script:
+    - cd ${CI_PROJECT_DIR}/rapids
+    - gradle testCodeCoverageReport
+  artifacts:
+    reports:
+      junit: ./**/*/build/test-results/test/*.xml
+    paths:
+      - ./**/*/build/reports/jacoco/testCodeCoverageReport/*.xml
+
+#runTestsIT:
+#  stage: test
+#  script:
+#    - cd ${CI_PROJECT_DIR}/rapids
+#    - gradle testITCodeCoverageReport
+#  artifacts:
+#    reports:
+#      junit: ./**/*/build/test-results/testIT/*.xml
+#    paths:
+#      - ./**/*/build/reports/jacoco/testITCodeCoverageReport/*.xml
+
+rapids:jdbcDriverJar:
+  stage: build
+  needs:
+    - job: rapids:unitTests
+      artifacts: false
+  script:
+    - cd ${CI_PROJECT_DIR}/rapids
+    - gradle shadowJar
+  artifacts:
+    paths:
+      - ./rapids-jdbc-driver/build/libs/*-all.jar
+
+rapids:bootstrapApp:
+  stage: build
+  needs:
+    - job: rapids:unitTests
+      artifacts: false
+  script:
+    - cd ${CI_PROJECT_DIR}/rapids
+    - gradle :rapids-srv-worker:bootstrapApp
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/rapids/rapids-srv-worker/build/rapids-app/*/*
+
+
+rapids:build-worker-image:
+  stage: package
+  extends: .docker-build-job
+  needs:
+    - job: rapids:bootstrapApp
+      artifacts: true
+  except:
+    - main
+    - dev
+  script:
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}/rapids"
+      --dockerfile "${CI_PROJECT_DIR}/rapids/rapids-srv-worker/src/main/docker/Dockerfile"
+      --cache-dir "${CI_KANIKO_CACHE_DIR}/rapids-worker"      
+      --destination "${CI_REGISTRY_IMAGE}/rapids-worker:${CI_COMMIT_REF_SLUG}"
+      --destination "${CI_REGISTRY_IMAGE}/rapids-worker:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}"      
+      --cache=true
