@@ -2,10 +2,6 @@ include:
   - local : /.gitlab/vars.yml
   - local : /.gitlab/jobs.yml
 
-workflow:
-  rules:
-    - when : always
-
 image: ${CI_IMAGE_GRADLE}
 
 stages:
@@ -18,7 +14,7 @@ workflow:
   rules:
     - when : always
 
-runTests:
+rapids:unitTests:
   stage: test
   script:
     - cd ${CI_PROJECT_DIR}/rapids
@@ -40,8 +36,11 @@ runTests:
 #    paths:
 #      - ./**/*/build/reports/jacoco/testITCodeCoverageReport/*.xml
 
-buildJDBCDriver:
+rapids:jdbcDriverJar:
   stage: build
+  needs:
+    - job: rapids:unitTests
+      artifacts: false
   script:
     - cd ${CI_PROJECT_DIR}/rapids
     - gradle shadowJar
@@ -49,26 +48,34 @@ buildJDBCDriver:
     paths:
       - ./rapids-jdbc-driver/build/libs/*-all.jar
 
-buildRapidsApp:
+rapids:bootstrapApp:
   stage: build
+  needs:
+    - job: rapids:unitTests
+      artifacts: false
   script:
     - cd ${CI_PROJECT_DIR}/rapids
     - gradle :rapids-srv-worker:bootstrapApp
   artifacts:
     paths:
-      - ./rapids-srv-worker/build/rapids-app/*/*
+      - ${CI_PROJECT_DIR}/rapids/rapids-srv-worker/build/rapids-app/*/*
 
-buildRapidsDockerBranch:
+
+rapids:build-worker-image:
   stage: package
+  extends: .docker-build-job
+  needs:
+    - job: rapids:bootstrapApp
+      artifacts: true
   except:
     - main
     - dev
-  dependencies:
-    - buildRapidsApp
-  image: docker:latest
   script:
-    - echo "$NEXUS_PASSWORD" | docker login $DOCKER_REPO_CI  -u $NEXUS_USER --password-stdin
-    - echo "$DOCKER_HUB_PASSWORD" | docker login -u $DOCKER_HUB_USER --password-stdin
-    - docker build -f ./rapids-srv-worker/src/main/docker/Dockerfile -t docker-ci.qpointz.io/rapids-worker:$CI_COMMIT_REF_SLUG -t qpointz/rapids-worker:$CI_COMMIT_REF_SLUG .
-    - docker push docker-ci.qpointz.io/rapids-worker:$CI_COMMIT_REF_SLUG
-    - docker push qpointz/rapids-worker:$CI_COMMIT_REF_SLUG
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}/rapids"
+      --dockerfile "${CI_PROJECT_DIR}/rapids/rapids-srv-worker/src/main/docker/Dockerfile"
+      --cache-dir "${CI_KANIKO_CACHE_DIR}/rapids-worker"      
+      --destination "${CI_REGISTRY_IMAGE}/rapids-worker:${CI_COMMIT_REF_SLUG}"
+      --destination "${CI_REGISTRY_IMAGE}/rapids-worker:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}"      
+      --cache=true

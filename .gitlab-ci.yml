@@ -1,11 +1,10 @@
 stages:
   - init
-  - test
   - build
   - package
 
 
-init-job:
+ci-init:init:
   stage: init
   trigger:
     include:
@@ -17,10 +16,10 @@ init-job:
         - .gitlab/**/*
         - etc/docker/**/*
         
-build-rapids:
+rapids:build:
   stage: build
   needs:
-    - job: init-job
+    - job: ci-init:init
       optional: true
   trigger:
     include:
@@ -33,10 +32,10 @@ build-rapids:
         - etc/docker/**/*
         - rapids/**/*
 
-build-flow:
+flow:build:
   stage: build
   needs:
-    - job: init-job
+    - job: ci-init:init
       optional: true
   trigger:
     include:
