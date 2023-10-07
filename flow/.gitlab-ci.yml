@@ -23,24 +23,18 @@ cache:
     - target/
     - project/project
 
-clean:
-  stage: init
-  when: manual
-  script:
-    - rm -Rf /root/.ivy2/*
-    - rm -Rf /root/.m2/*
-    - rm -Rf /root/.sbt/*
-
-test:
+flow:test:
   stage: test
   script:
     - cd ${CI_PROJECT_DIR}/flow
-    - sbt clean coverage test coverageReport coverageAggregate && cd target/scala-2.13 && ls -lac && tar -czvf ./scoverage-report.tar.gz ./scoverage-report
+    - sbt clean coverage test coverageReport coverageAggregate
+    - cd target/scala-2.13
+    - tar -czvf ./scoverage-report.tar.gz ./scoverage-report
   artifacts:
     paths:
-      - target/scala-2.13/scoverage-report.tar.gz
+      - ${CI_PROJECT_DIR}/flow/target/scala-2.13/scoverage-report.tar.gz
     reports:
-      junit: ./**/*/target/test-reports/*.xml
+      junit: ${CI_PROJECT_DIR}/flow/**/*/target/test-reports/*.xml
 
 # doc:html:
 #   stage: test
@@ -52,15 +46,15 @@ test:
 #     paths:
 #       - ./docs/build/docs-html.tar.gz
 
-publishToMaven:
-  stage: package
-  only:
-    - dev
-    - master
-    - main
-  script:
-    - cd ${CI_PROJECT_DIR}/flow
-    - sbt clean publish
+#publishToMaven:
+#  stage: package
+#  only:
+#    - dev
+#    - master
+#    - main
+#  script:
+#    - cd ${CI_PROJECT_DIR}/flow
+#    - sbt clean publish
 
 # scalastyle:
 #   stage: report

@@ -18,6 +18,7 @@ ThisBuild / evictionErrorLevel := Level.Warn
 
 logLevel:= Level.Debug
 
+/*
 ThisBuild / publishTo := {
   val nexus = "https://nexus.qpointz.io"
   if (isSnapshot.value) {
@@ -26,7 +27,9 @@ ThisBuild / publishTo := {
     Some( ("releases" at nexus + "/repository/maven-releases/"))
   }
 }
+*/
 
+/*
 val nexusUser = sys.env.get("NEXUS_USER")
 val nexusPassword = sys.env.get("NEXUS_PASSWORD")
 if (nexusUser.nonEmpty && nexusPassword.nonEmpty) {
@@ -36,6 +39,7 @@ if (nexusUser.nonEmpty && nexusPassword.nonEmpty) {
   println("Use nexus credentials from ~/.ivy2/.credentials")
   credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 }
+*/
 
 ThisBuild / publishMavenStyle := true
 
