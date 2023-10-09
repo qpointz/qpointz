@@ -14,7 +14,7 @@ include (":rapids-api")
 include (":rapids-core")
 include (":rapids-jdbc-driver")
 include (":rapids-srv-worker")
-include (":rapids-formats-avro-parquet")
+include (":rapids-grpc")
 
 dependencyResolutionManagement {
 
@@ -85,8 +85,10 @@ dependencyResolutionManagement {
             library("azure-storage-file-datalake", "com.azure", "azure-storage-file-datalake").version("12.15.0")
             library("azure-storage-blob-nio", "com.azure", "azure-storage-blob-nio").version("12.0.0-beta.19")
 
-            val vertx = version("vertx", "4.4.1")
+            val vertx = version("vertx", "4.4.5")
             library("vertx-core", "io.vertx", "vertx-core").versionRef(vertx)
+            library("vertx-grpc-server", "io.vertx", "vertx-grpc-server").versionRef(vertx)
+            library("vertx-grpc-client", "io.vertx", "vertx-grpc-client").versionRef(vertx)
 
             val smallrye = version("smallrye", "3.2.1")
             library("smallrye-config", "io.smallrye.config", "smallrye-config").versionRef(smallrye)
