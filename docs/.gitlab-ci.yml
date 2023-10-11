@@ -1,0 +1,34 @@
+include:
+  - local : /.gitlab/vars.yml
+  - local : /.gitlab/jobs.yml
+
+workflow:
+  rules:
+    - when : always
+
+image: $CI_IMAGE_SPHINX
+stages:
+  - build
+
+pages:
+  stage: build
+  script:
+    - cd ${CI_PROJECT_DIR}/docs
+    - make html
+    - mv ./build/html/ ../public
+    - ls -lac ../public
+  artifacts:
+    paths:
+      - public
+
+# publishDocAndReports:
+#   image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+#   stage: deploy
+#   script:
+#     - aws s3 rm --recursive s3://qpointz-cicd/$CI_COMMIT_REF_SLUG
+#     - mkdir pub
+#     - mkdir pub/docs && tar -xzf ./docs/build/docs-html.tar.gz  -C ./pub/docs --strip-components=2
+#     - cp -R ./target/scalastyle/ ./pub/scalastyle
+#     - mkdir pub/coverage && tar -xzvf ./target/scala-2.13/scoverage-report.tar.gz -C ./pub/coverage --strip-components=2
+#     - aws s3 cp --recursive pub s3://qpointz-cicd/$CI_COMMIT_REF_SLUG
+#     - rm -Rf ./pub
