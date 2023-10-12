@@ -6,7 +6,10 @@ workflow:
   rules:
     - when : always
 
-image: $CI_IMAGE_SPHINX
+image:
+  name: $CI_IMAGE_SPHINX
+  pull_policy: always
+
 stages:
   - build
 
@@ -16,8 +19,10 @@ pages:
     GIT_STRATEGY: clone
   script:        
     - sphinx-multiversion ${CI_PROJECT_DIR}/docs/source ${CI_PROJECT_DIR}/docs/build
+    - multi-version-info.py ${CI_PROJECT_DIR}/docs/build ${CI_PROJECT_DIR}/docs/build/versions.json
+    - multi-version-info.py ${CI_PROJECT_DIR}/docs/build ${CI_PROJECT_DIR}/docs/build/fix-v2.3.6/versions.json
     - mv ${CI_PROJECT_DIR}/docs/build/ ${CI_PROJECT_DIR}/public/
-    - ls -lac ${CI_PROJECT_DIR}/public
+    - ls -lactr ${CI_PROJECT_DIR}/public
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/public

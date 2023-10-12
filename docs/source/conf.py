@@ -60,7 +60,8 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'sphinx_tabs.tabs'
+    'sphinx_tabs.tabs',
+    "sphinxcontrib.jquery"
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -104,17 +105,14 @@ html_theme = 'sphinx_material'
 #html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 html_theme_options = {
     'color_primary' : 'indigo',
-    'html_minify' : True,
     'repo_url' : 'https://github.com/qpointz/qpointz',
     'globaltoc_depth': 1,
     'globaltoc_collapse': False,
     'nav_title' : 'QPointz',
-    
-    'version_dropdown' : True, 
-    'version_info' : {
-        'dev' : '../dev',
-        'code' : '../code/codebase-cleanup'
-    }
+    'logo_icon': '&#xe869',
+    'version_dropdown' : True,
+    #'version_dropdown_text' : 'Versions',
+    'version_json' : 'versions.json'
 }
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -236,20 +234,20 @@ sphinx_tabs_disable_css_loading = True
 
 # -- Options for Multiversion -------------------------------------------------
 # Whitelist pattern for tags (set to None to ignore all tags)
-smv_tag_whitelist = r'^[^-]+-v\d+\.\d+\.\d+(\.d+)*$'
+smv_tag_whitelist = r'^(?P<type>[\w-]+)-v(er)*(?P<fullversion>(?P<version>\d+\.\d+\.\d+)(-(?P<milestone>\w[\w-]+))*)$'
 
 # Whitelist pattern for branches (set to None to ignore all branches)
-smv_branch_whitelist = None
+smv_branch_whitelist = r'^dev.*'
 
 # Whitelist pattern for remotes (set to None to use local branches only)
-smv_remote_whitelist = r'^tags\/[^-]+-v\d+\.\d+\.\d+(\.d+)*$'
+smv_remote_whitelist = r'^tags\/(?P<type>[\w-]+)-v(er)*(?P<fullversion>(?P<version>\d+\.\d+\.\d+)(-(?P<milestone>\w[\w-]+))*)$'
 
 # Pattern for released versions
-smv_released_pattern = r'^tags\/release-v\d+\.\d+\.\d+(\..+)*$'
+smv_released_pattern = r'^tags\/release-v(er)*(?P<fullversion>(?P<version>\d+\.\d+\.\d+))$'
 
 # Format for versioned output directories inside the build directory
 smv_outputdir_format = '{ref.name}'
 
 # Determines whether remote or local git branches/tags are preferred if their output dirs conflict
-smv_prefer_remote_refs = True
+smv_prefer_remote_refs = False
 
