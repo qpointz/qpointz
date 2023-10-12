@@ -12,9 +12,11 @@ stages:
 
 pages:
   stage: build
+  variables:
+    GIT_STRATEGY: clone
   script:
     - cd ${CI_PROJECT_DIR}/docs
-    - make html
+    - sphinx_multiversion source build
     - mv ./build/html/ ../public
     - ls -lac ../public
   artifacts:
