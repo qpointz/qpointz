@@ -100,8 +100,22 @@ pygments_style = 'sphinx'
 #html_theme = 'sphinx_pdj_theme'
 #html_theme_path = [sphinx_pdj_theme.get_html_theme_path()]
 import sphinx_rtd_theme
-html_theme = 'sphinx_rtd_theme'
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+html_theme = 'sphinx_material'
+#html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+html_theme_options = {
+    'color_primary' : 'indigo',
+    'html_minify' : True,
+    'repo_url' : 'https://github.com/qpointz/qpointz',
+    'globaltoc_depth': 1,
+    'globaltoc_collapse': False,
+    'nav_title' : 'QPointz',
+    
+    'version_dropdown' : True, 
+    'version_info' : {
+        'dev' : '../dev',
+        'code' : '../code/codebase-cleanup'
+    }
+}
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -123,6 +137,9 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
+html_sidebars = {
+    "**": ["logo-text.html", "globaltoc.html", "localtoc.html", "searchbox.html"]
+}
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
@@ -155,7 +172,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'qpointz.tex', 'qpointz Documentation',
+    (master_doc, 'qpointz.tex', 'qpointz Documentation44',
      'qpointz.io', 'manual'),
 ]
 
@@ -165,7 +182,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'qpointz', 'qpointz Documentation',
+    (master_doc, 'qpointz', 'qpointz Documentation33',
      [author], 1)
 ]
 
@@ -208,7 +225,7 @@ epub_exclude_files = ['search.html']
 # -- Options for intersphinx extension ---------------------------------------
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+# intersphinx_mapping = {'https://docs.python.org/': None}
 
 # -- Options for todo extension ----------------------------------------------
 
@@ -216,3 +233,23 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 todo_include_todos = True
 
 sphinx_tabs_disable_css_loading = True
+
+# -- Options for Multiversion -------------------------------------------------
+# Whitelist pattern for tags (set to None to ignore all tags)
+smv_tag_whitelist = r'^[^-]+-v\d+\.\d+\.\d+(\.d+)*$'
+
+# Whitelist pattern for branches (set to None to ignore all branches)
+smv_branch_whitelist = None
+
+# Whitelist pattern for remotes (set to None to use local branches only)
+smv_remote_whitelist = r'^tags\/[^-]+-v\d+\.\d+\.\d+(\.d+)*$'
+
+# Pattern for released versions
+smv_released_pattern = r'^tags\/release-v\d+\.\d+\.\d+(\..+)*$'
+
+# Format for versioned output directories inside the build directory
+smv_outputdir_format = '{ref.name}'
+
+# Determines whether remote or local git branches/tags are preferred if their output dirs conflict
+smv_prefer_remote_refs = True
+
