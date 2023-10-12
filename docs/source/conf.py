@@ -12,10 +12,20 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+#sys.path.insert(0, os.path.abspath('.'))
 
+
+# -- Helper functions --------------------------------------------------------------
+def get_glob_release():        
+    grelease = open("../../VERSION").read()        
+    return grelease
+
+def get_glob_version():
+    grelease=get_glob_release().split('.')
+    version=".".join(grelease[:-1])    
+    return "0.0.4"
 
 # -- Project information -----------------------------------------------------
 
@@ -23,11 +33,12 @@ project = 'qpointz'
 copyright = '2021, qpointz.io'
 author = 'qpointz.io'
 
-# The short X.Y version
-version = ''
-# The full version, including alpha/beta/rc tags
-release = '0.2.0'
 
+# The full version, including alpha/beta/rc tags
+release = get_glob_release() #"" #get_version()
+
+# The short X.Y version
+version = get_glob_version()
 
 # -- General configuration ---------------------------------------------------
 

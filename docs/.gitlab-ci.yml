@@ -14,14 +14,13 @@ pages:
   stage: build
   variables:
     GIT_STRATEGY: clone
-  script:
-    - cd ${CI_PROJECT_DIR}/docs
-    - sphinx_multiversion source build
-    - mv ./build/html/ ../public
-    - ls -lac ../public
+  script:        
+    - sphinx-multiversion ${CI_PROJECT_DIR}/docs/source ${CI_PROJECT_DIR}/docs/build
+    - mv ${CI_PROJECT_DIR}/docs/build/ ${CI_PROJECT_DIR}/public/
+    - ls -lac ${CI_PROJECT_DIR}/public
   artifacts:
     paths:
-      - public
+      - ${CI_PROJECT_DIR}/public
 
 # publishDocAndReports:
 #   image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
