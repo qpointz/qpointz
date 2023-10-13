@@ -14,17 +14,21 @@ def scan(indir, outfilepath):
             print(f"skipping file {fullpath}")
             continue
 
-        print(f"matching {a}")
         va.append(a)
         if 'dev' == a:
             print("development version")
-            versions.update({"development" : "dev/"})    
+            versions.update({"development" : "dev"})    
+            continue
+        if 'master' == a or 'main' == a:
+            print("stable version")
+            versions.update({"stable" : "stable"})
+            continue
 
         match = re.match(pattern, a)
         path=a
         fversion=match.group('fullversion')
         print(f"version:{fversion} => path:{path}")
-        versions.update({f"v{fversion}" : f"{path}/"})
+        versions.update({f"v{fversion}" : f"{path}"})
     if (os.path.exists(outfilepath)):
         print(f"{outfilepath} exists.deleting")
         os.remove(outfilepath)

@@ -234,20 +234,20 @@ sphinx_tabs_disable_css_loading = True
 
 # -- Options for Multiversion -------------------------------------------------
 # Whitelist pattern for tags (set to None to ignore all tags)
-smv_tag_whitelist = r'^(?P<type>[\w-]+)-v(er)*(?P<fullversion>(?P<version>\d+\.\d+\.\d+)(-(?P<milestone>\w[\w-]+))*)$'
+smv_tag_whitelist = r'^[\w-]+-v(er)*\d+\.\d+\.\d+(-\w[\w-]+)*$'
 
 # Whitelist pattern for branches (set to None to ignore all branches)
-smv_branch_whitelist = r'^dev.*'
+smv_branch_whitelist = r'^(dev|master)$'
 
 # Whitelist pattern for remotes (set to None to use local branches only)
-smv_remote_whitelist = r'^tags\/(?P<type>[\w-]+)-v(er)*(?P<fullversion>(?P<version>\d+\.\d+\.\d+)(-(?P<milestone>\w[\w-]+))*)$'
+smv_remote_whitelist = r'(^tags\/[\w-]+-v(er)*\d+\.\d+\.\d+(-\w[\w-]+)*$)|(^.*origin\/(dev|master)$)'
 
 # Pattern for released versions
-smv_released_pattern = r'^tags\/release-v(er)*(?P<fullversion>(?P<version>\d+\.\d+\.\d+))$'
+smv_released_pattern = r'^tags\/release-v(er)*\d+\.\d+\.\d+(-\w[\w-]+)*$'
 
 # Format for versioned output directories inside the build directory
 smv_outputdir_format = '{ref.name}'
 
 # Determines whether remote or local git branches/tags are preferred if their output dirs conflict
-smv_prefer_remote_refs = False
+smv_prefer_remote_refs = True
 
