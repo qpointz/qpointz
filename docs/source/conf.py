@@ -14,18 +14,20 @@
 #
 import os
 import sys
+import re
 #sys.path.insert(0, os.path.abspath('.'))
 
 
 # -- Helper functions --------------------------------------------------------------
 def get_glob_release():        
-    grelease = open("../../VERSION").read()        
+    grelease = open("../../VERSION").read()            
     return grelease
 
 def get_glob_version():
-    grelease=get_glob_release().split('.')
-    version=".".join(grelease[:-1])    
-    return "0.0.4"
+    pattern=r'(?P<fullversion>(?P<version>\d+\.\d+\.\d+)(-(?P<milestone>\w[\w-]+))*)'
+    match = re.match(pattern, get_glob_release())    
+    version=match.group('version')    
+    return version    
 
 # -- Project information -----------------------------------------------------
 
