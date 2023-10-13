@@ -45,7 +45,7 @@ flow:build:
     - changes:
         - .gitlab-ci.yml
         - .gitlab/**/*
-        - etc/docker/**/*
+        - etc/docker/ci-sbt/*
         - flow/**/*        
 
 docs:build:

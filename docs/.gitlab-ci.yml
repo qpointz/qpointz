@@ -6,20 +6,26 @@ workflow:
   rules:
     - when : always
 
-image: $CI_IMAGE_SPHINX
+image:
+  name: $CI_IMAGE_SPHINX
+  pull_policy: always
+
 stages:
   - build
 
 pages:
   stage: build
-  script:
-    - cd ${CI_PROJECT_DIR}/docs
-    - make html
-    - mv ./build/html/ ../public
-    - ls -lac ../public
+  variables:
+    GIT_STRATEGY: clone
+  script:        
+    - sphinx-multiversion ${CI_PROJECT_DIR}/docs/source ${CI_PROJECT_DIR}/docs/build
+    - multi-version-info.py ${CI_PROJECT_DIR}/docs/build ${CI_PROJECT_DIR}/docs/build/versions.json
+    - multi-version-info.py ${CI_PROJECT_DIR}/docs/build ${CI_PROJECT_DIR}/docs/build/fix-v2.3.6/versions.json
+    - mv ${CI_PROJECT_DIR}/docs/build/ ${CI_PROJECT_DIR}/public/
+    - ls -lactr ${CI_PROJECT_DIR}/public
   artifacts:
     paths:
-      - public
+      - ${CI_PROJECT_DIR}/public
 
 # publishDocAndReports:
 #   image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
