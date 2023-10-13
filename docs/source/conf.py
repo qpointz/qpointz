@@ -12,10 +12,20 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+#sys.path.insert(0, os.path.abspath('.'))
 
+
+# -- Helper functions --------------------------------------------------------------
+def get_glob_release():        
+    grelease = open("../../VERSION").read()        
+    return grelease
+
+def get_glob_version():
+    grelease=get_glob_release().split('.')
+    version=".".join(grelease[:-1])    
+    return "0.0.4"
 
 # -- Project information -----------------------------------------------------
 
@@ -23,11 +33,12 @@ project = 'qpointz'
 copyright = '2021, qpointz.io'
 author = 'qpointz.io'
 
-# The short X.Y version
-version = ''
-# The full version, including alpha/beta/rc tags
-release = '0.2.0'
 
+# The full version, including alpha/beta/rc tags
+release = get_glob_release() #"" #get_version()
+
+# The short X.Y version
+version = get_glob_version()
 
 # -- General configuration ---------------------------------------------------
 
@@ -39,6 +50,7 @@ release = '0.2.0'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinx_multiversion',
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
@@ -48,7 +60,8 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'sphinx_tabs.tabs'
+    'sphinx_tabs.tabs',
+    "sphinxcontrib.jquery"
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -68,7 +81,7 @@ master_doc = 'index'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -84,9 +97,23 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'press' #'sphinx_rtd_theme' #'sphinx_material'
-#import sphinx_rtd_theme
+
+#html_theme = 'sphinx_pdj_theme'
+#html_theme_path = [sphinx_pdj_theme.get_html_theme_path()]
+import sphinx_rtd_theme
+html_theme = 'sphinx_material'
 #html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+html_theme_options = {
+    'color_primary' : 'indigo',
+    'repo_url' : 'https://github.com/qpointz/qpointz',
+    'globaltoc_depth': 1,
+    'globaltoc_collapse': False,
+    'nav_title' : 'QPointz',
+    'logo_icon': '&#xe869',
+    'version_dropdown' : True,
+    #'version_dropdown_text' : 'Versions',
+    'version_json' : 'versions.json'
+}
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -108,6 +135,9 @@ html_theme = 'press' #'sphinx_rtd_theme' #'sphinx_material'
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
+html_sidebars = {
+    "**": ["logo-text.html", "globaltoc.html", "localtoc.html", "searchbox.html"]
+}
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
@@ -140,7 +170,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'qpointz.tex', 'qpointz Documentation',
+    (master_doc, 'qpointz.tex', 'qpointz Documentation44',
      'qpointz.io', 'manual'),
 ]
 
@@ -150,7 +180,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'qpointz', 'qpointz Documentation',
+    (master_doc, 'qpointz', 'qpointz Documentation33',
      [author], 1)
 ]
 
@@ -193,7 +223,7 @@ epub_exclude_files = ['search.html']
 # -- Options for intersphinx extension ---------------------------------------
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+# intersphinx_mapping = {'https://docs.python.org/': None}
 
 # -- Options for todo extension ----------------------------------------------
 
@@ -201,3 +231,23 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 todo_include_todos = True
 
 sphinx_tabs_disable_css_loading = True
+
+# -- Options for Multiversion -------------------------------------------------
+# Whitelist pattern for tags (set to None to ignore all tags)
+smv_tag_whitelist = r'^(?P<type>[\w-]+)-v(er)*(?P<fullversion>(?P<version>\d+\.\d+\.\d+)(-(?P<milestone>\w[\w-]+))*)$'
+
+# Whitelist pattern for branches (set to None to ignore all branches)
+smv_branch_whitelist = r'^dev.*'
+
+# Whitelist pattern for remotes (set to None to use local branches only)
+smv_remote_whitelist = r'^tags\/(?P<type>[\w-]+)-v(er)*(?P<fullversion>(?P<version>\d+\.\d+\.\d+)(-(?P<milestone>\w[\w-]+))*)$'
+
+# Pattern for released versions
+smv_released_pattern = r'^tags\/release-v(er)*(?P<fullversion>(?P<version>\d+\.\d+\.\d+))$'
+
+# Format for versioned output directories inside the build directory
+smv_outputdir_format = '{ref.name}'
+
+# Determines whether remote or local git branches/tags are preferred if their output dirs conflict
+smv_prefer_remote_refs = False
+

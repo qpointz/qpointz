@@ -1,0 +1,40 @@
+include:
+  - local : /.gitlab/vars.yml
+  - local : /.gitlab/jobs.yml
+
+workflow:
+  rules:
+    - when : always
+
+image:
+  name: $CI_IMAGE_SPHINX
+  pull_policy: always
+
+stages:
+  - build
+
+pages:
+  stage: build
+  variables:
+    GIT_STRATEGY: clone
+  script:        
+    - sphinx-multiversion ${CI_PROJECT_DIR}/docs/source ${CI_PROJECT_DIR}/docs/build
+    - multi-version-info.py ${CI_PROJECT_DIR}/docs/build ${CI_PROJECT_DIR}/docs/build/versions.json
+    - multi-version-info.py ${CI_PROJECT_DIR}/docs/build ${CI_PROJECT_DIR}/docs/build/fix-v2.3.6/versions.json
+    - mv ${CI_PROJECT_DIR}/docs/build/ ${CI_PROJECT_DIR}/public/
+    - ls -lactr ${CI_PROJECT_DIR}/public
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/public
+
+# publishDocAndReports:
+#   image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+#   stage: deploy
+#   script:
+#     - aws s3 rm --recursive s3://qpointz-cicd/$CI_COMMIT_REF_SLUG
+#     - mkdir pub
+#     - mkdir pub/docs && tar -xzf ./docs/build/docs-html.tar.gz  -C ./pub/docs --strip-components=2
+#     - cp -R ./target/scalastyle/ ./pub/scalastyle
+#     - mkdir pub/coverage && tar -xzvf ./target/scala-2.13/scoverage-report.tar.gz -C ./pub/coverage --strip-components=2
+#     - aws s3 cp --recursive pub s3://qpointz-cicd/$CI_COMMIT_REF_SLUG
+#     - rm -Rf ./pub

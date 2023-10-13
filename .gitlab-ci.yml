@@ -45,5 +45,21 @@ flow:build:
     - changes:
         - .gitlab-ci.yml
         - .gitlab/**/*
-        - etc/docker/**/*
+        - etc/docker/ci-sbt/*
         - flow/**/*        
+
+docs:build:
+  stage: build
+  needs:
+    - job: ci-init:init
+      optional: true
+  trigger:
+    include:
+      - local: docs/.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - changes:
+        - .gitlab-ci.yml
+        - .gitlab/**/*
+        - etc/docker/**/*
+        - docs/**/*                
