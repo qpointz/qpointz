@@ -17,11 +17,28 @@ pages:
   stage: build
   variables:
     GIT_STRATEGY: clone
-  script:        
+  script:            
+    - git fetch --all
+    - git branch master origin/master
+    - git branch dev origin/dev
+    - git for-each-ref --format "%(refname)" 
     - sphinx-multiversion ${CI_PROJECT_DIR}/docs/source ${CI_PROJECT_DIR}/docs/build
     - multi-version-info.py ${CI_PROJECT_DIR}/docs/build ${CI_PROJECT_DIR}/docs/build/versions.json
-    - multi-version-info.py ${CI_PROJECT_DIR}/docs/build ${CI_PROJECT_DIR}/docs/build/fix-v2.3.6/versions.json
-    - mv ${CI_PROJECT_DIR}/docs/build/ ${CI_PROJECT_DIR}/public/
+    - cd ${CI_PROJECT_DIR}/docs    
+    - ls -lac ./build
+    - cp -R ./build/master/ ./out/    
+    - cp -R ./build/* ./out/
+    - mv ./out/master ./out/stable
+    - cp ${CI_PROJECT_DIR}/docs/build/versions.json ./out
+    - | 
+      for i in ./out/* # iterate over all files in current dir
+      do
+          if [ -d "$i" ] 
+          then
+              cp ${CI_PROJECT_DIR}/docs/build/versions.json "$i"
+          fi
+      done
+    - mv ${CI_PROJECT_DIR}/docs/out/ ${CI_PROJECT_DIR}/public/
     - ls -lactr ${CI_PROJECT_DIR}/public
   artifacts:
     paths:
