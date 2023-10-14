@@ -1,13 +1,32 @@
+.global-vars:
+    before_script:
+        - export QP_VERSION="$(cat ${CI_PROJECT_DIR}/VERSION)"
+        - |
+           export QP_CONTAINER_TAG="${CI_COMMIT_REF_SLUG}"
+           if [[ "dev" == "${CI_COMMIT_REF_SLUG}" ]]
+           then
+              export QP_CONTAINER_TAG="${QP_VERSION}-develop"
+           fi
+
+           if [[ "master" == "${CI_COMMIT_REF_SLUG}" ]]
+           then
+              export QP_CONTAINER_TAG="${QP_VERSION}"
+           fi
+        - >
+          cat <<EOF
+            QP_VERSION=${QP_VERSION}
+            QP_CONTAINER_TAG=${QP_CONTAINER_TAG}
+          EOF
+
 .docker-build-job:
     image:
         name: gcr.io/kaniko-project/executor:v1.16.0-debug
         entrypoint: [""]
     before_script:
+        - !reference [.global-vars, before_script]
         - mkdir -p /kaniko/.docker
         - >
             echo "{ \"auths\":
-            { \"$CI_REGISTRY\":{\"auth\":\"$(echo -n "${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}\" | base64 )\"},
-            { \"https://index.docker.io/v1/\":{\"auth\":\"$(echo -n "${DOCKER_HUB_USER}:${DOCKER_HUB_PASSWORD}" | base64 )\"}
+            { \"$CI_REGISTRY\":{\"auth\":\"$(echo -n \"${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}\" | base64) \"},
+            { \"https://index.docker.io/v1/\":{\"auth\":\"$(echo -n "${DOCKER_HUB_USER}:${DOCKER_HUB_PASSWORD}" | base64) \"}
             }}" > /kaniko/.docker/.config.json
-
-        - cat /kaniko/.docker/.config.json
