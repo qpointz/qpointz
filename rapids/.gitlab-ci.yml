@@ -68,7 +68,8 @@ rapids:build-worker-image-dev:
     - job: rapids:bootstrapApp
       artifacts: true
   except:
-    - main
+    - master
+    - main 
     - dev
   script:
     - >
@@ -79,7 +80,25 @@ rapids:build-worker-image-dev:
       --destination "${CI_REGISTRY_IMAGE}/rapids-worker:${QP_CONTAINER_TAG}"
       --cache=true
 
-rapids:build-worker-image-official:
+rapids:build-worker-image-development:
+  stage: package
+  extends: .docker-build-job
+  needs:
+    - job: rapids:bootstrapApp
+      artifacts: true
+  only:
+    - dev
+  script:     
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}/rapids"      
+      --dockerfile "${CI_PROJECT_DIR}/rapids/rapids-srv-worker/src/main/docker/Dockerfile"      
+      --destination "${CI_REGISTRY_IMAGE}/rapids-worker:${QP_CONTAINER_TAG}"                  
+      --destination "qpointz/rapids-worker:${QP_CONTAINER_TAG}"
+      --destination "qpointzcr.azurecr.io/rapids-worker:${QP_CONTAINER_TAG}"
+
+
+rapids:build-worker-image-latest:
   stage: package
   extends: .docker-build-job
   needs:
@@ -87,13 +106,15 @@ rapids:build-worker-image-official:
       artifacts: true
   only:
     - main
-    - dev
-  script:
+    - master
+  script:     
     - >
       /kaniko/executor
-      --context "${CI_PROJECT_DIR}/rapids"
-      --dockerfile "${CI_PROJECT_DIR}/rapids/rapids-srv-worker/src/main/docker/Dockerfile"
-      --cache-dir "${CI_KANIKO_CACHE_DIR}/rapids-worker"
-      --destination "${CI_REGISTRY_IMAGE}/rapids-worker:${QP_CONTAINER_TAG}"
+      --context "${CI_PROJECT_DIR}/rapids"      
+      --dockerfile "${CI_PROJECT_DIR}/rapids/rapids-srv-worker/src/main/docker/Dockerfile"      
+      --destination "${CI_REGISTRY_IMAGE}/rapids-worker:${QP_CONTAINER_TAG}"                  
+      --destination "${CI_REGISTRY_IMAGE}/rapids-worker"                        
       --destination "qpointz/rapids-worker:${QP_CONTAINER_TAG}"
-      --cache=true
+      --destination "qpointz/rapids-worker"
+      --destination "qpointzcr.azurecr.io/rapids-worker:${QP_CONTAINER_TAG}"      
+      --destination "qpointzcr.azurecr.io/rapids-worker"      

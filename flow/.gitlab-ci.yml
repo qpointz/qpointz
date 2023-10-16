@@ -51,7 +51,6 @@ flow:test:
 #  only:
 #    - dev
 #    - master
-#    - main
 #  script:
 #    - cd ${CI_PROJECT_DIR}/flow
 #    - sbt clean publish
