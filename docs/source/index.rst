@@ -3,8 +3,27 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to flow's documentation! 113333
+QPointz
 ==================================
+* :ref:`rapids_toc`
+
+
+.. _rapids_toc:
+.. toctree::    
+   :titlesonly: 
+   :maxdepth: 2
+   :caption: Rapids services
+   :glob:
+
+   Quick Start <rapids/quickstart>
+   Services <rapids/services>
+   Deployments <rapids/deployment>
+   Configuration <rapids/configuration>
+
+
+Legacy
+======
+
 
 * :ref:`about_toc`
 * :ref:`overview_toc`
@@ -12,6 +31,7 @@ Welcome to flow's documentation! 113333
 * :ref:`formats_toc`
 * :ref:`install_toc`
 * :ref:`schema_toc`
+
 
 .. _about_toc:
 .. toctree::    
