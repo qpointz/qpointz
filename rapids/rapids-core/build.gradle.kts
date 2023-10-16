@@ -56,11 +56,8 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation(project(":rapids-testkit"))
-
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
-
                     implementation(libs.lombok)
                     annotationProcessor(libs.lombok)
                 }
