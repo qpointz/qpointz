@@ -43,7 +43,7 @@ public class ODataService extends AbstractService {
             final var holder = ODataServlet.create(schema, this.config.namespace(), this.calciteHandler);
             sh.addServlet(new ServletHolder(holder), serviceName+"/*");
         }
-        sh.setSecurityHandler(securityHandler());
+        //sh.setSecurityHandler(securityHandler());
         this.httpServer.setHandler(sh);
         log.info("Starting http server");
         this.httpServer.start();

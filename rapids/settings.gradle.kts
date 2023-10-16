@@ -96,8 +96,11 @@ dependencyResolutionManagement {
             library("microprofile-config-api", "org.eclipse.microprofile.config", "microprofile-config-api").versionRef(microprofile)
 
             library("slf4j-api", "org.slf4j", "slf4j-api").version("2.0.7")
-            library("logback-classic", "ch.qos.logback", "logback-classic").version("1.4.6")
-            bundle("logging", listOf("slf4j-api", "logback-classic"))
+
+            library("logback-classic", "ch.qos.logback", "logback-classic").version("1.4.11")
+            library("logback-core", "ch.qos.logback", "logback-core").version("1.4.11")
+            library("fusesource-jansi","org.fusesource.jansi", "jansi").version("1.18")
+            bundle("logging", listOf("slf4j-api", "logback-core", "logback-classic"))
 
             val spring = version("spring", "6.0.8")
             library("spring-context", "org.springframework","spring-context").versionRef(spring)

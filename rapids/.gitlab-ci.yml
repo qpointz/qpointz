@@ -61,7 +61,7 @@ rapids:bootstrapApp:
       - ${CI_PROJECT_DIR}/rapids/rapids-srv-worker/build/rapids-app/*/*
 
 
-rapids:build-worker-image-dev:
+rapids:build-docker-image-development:
   stage: package
   extends: .docker-build-job
   needs:
@@ -80,7 +80,7 @@ rapids:build-worker-image-dev:
       --destination "${CI_REGISTRY_IMAGE}/rapids-worker:${QP_CONTAINER_TAG}"
       --cache=true
 
-rapids:build-worker-image-development:
+rapids:publish-docker-image-development:
   stage: package
   extends: .docker-build-job
   needs:
@@ -98,7 +98,7 @@ rapids:build-worker-image-development:
       --destination "qpointzcr.azurecr.io/rapids-worker:${QP_CONTAINER_TAG}"
 
 
-rapids:build-worker-image-latest:
+rapids:publish-docker-image-latest:
   stage: package
   extends: .docker-build-job
   needs:

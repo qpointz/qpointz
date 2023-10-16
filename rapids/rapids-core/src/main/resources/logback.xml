@@ -1,4 +1,5 @@
-<configuration>
+<configuration debug="false">
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
 <appender name="COLOR" class="ch.qos.logback.core.ConsoleAppender">
     <withJansi>false</withJansi>
     <encoder>
@@ -6,6 +7,7 @@
     </encoder>
 </appender>
 <appender name="NOCOLOR" class="ch.qos.logback.core.ConsoleAppender">
+    <withJansi>false</withJansi>
     <encoder>
         <pattern> %d{HH:mm:ss.SSS} - %-10.10thread - %5p - %-20.20logger{20} - %m%n</pattern>
     </encoder>
@@ -17,7 +19,7 @@
             <appender-ref ref="COLOR"/>
         </then>
         <else>
-            <appender-ref ref="COLOR"/>
+            <appender-ref ref="NOCOLOR"/>
         </else>
     </if>
 </root>
