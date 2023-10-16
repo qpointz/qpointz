@@ -1,10 +1,36 @@
+.global-vars:
+    before_script:
+        - export QP_VERSION="$(cat ${CI_PROJECT_DIR}/VERSION)"
+        - export QP_UPDATE_LATEST_CONTAINER=false
+        - |
+           export QP_CONTAINER_TAG="${CI_COMMIT_REF_SLUG}"
+           if [[ "dev" == "${CI_COMMIT_REF_SLUG}" ]]
+           then
+              export QP_CONTAINER_TAG="${QP_VERSION}-develop"
+              export QP_UPDATE_LATEST_CONTAINER=false
+           fi
+
+           if [[ "master" == "${CI_COMMIT_REF_SLUG}" ]]
+           then
+              export QP_CONTAINER_TAG="${QP_VERSION}"
+              export QP_UPDATE_LATEST_CONTAINER=true
+           fi
+        - >
+          cat <<EOF
+            QP_VERSION=${QP_VERSION}
+            QP_CONTAINER_TAG=${QP_CONTAINER_TAG}
+          EOF
+
 .docker-build-job:
     image:
         name: gcr.io/kaniko-project/executor:v1.16.0-debug
         entrypoint: [""]
     before_script:
+        - !reference [.global-vars, before_script]
         - mkdir -p /kaniko/.docker
         - >
-          echo "{ \"auths\":
-            { \"$CI_REGISTRY\":{\"auth\":\"$(echo -n "${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}" | base64 )\"}
-          }}" > /kaniko/.docker/.config.json
+            echo "{ \"auths\": {
+            \"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n' )\"}
+            ,\"https://index.docker.io/v1/\":{\"auth\":\"$(printf "%s:%s" "${DOCKER_HUB_USER}" "${DOCKER_HUB_PASSWORD}" | base64 | tr -d '\n')\"} 
+            ,\"qpointzcr.azurecr.io\":{\"auth\":\"$(printf "%s:%s" "${AZ_CR_USERNAME}" "${AZ_CR_PASSWORD}" | base64 | tr -d '\n')\"}            
+            }}" > /kaniko/.docker/config.json        
