@@ -10,11 +10,12 @@
 
 rootProject.name = "rapids"
 
-include (":rapids-api")
-include (":rapids-core")
+include (":rapids-common")
+include (":rapids-core-legacy")
 include (":rapids-jdbc-driver")
 include (":rapids-srv-worker")
-include (":rapids-server-core")
+include (":rapids-grpc")
+include (":rapids-grpc-server")
 
 dependencyResolutionManagement {
 
@@ -86,10 +87,12 @@ dependencyResolutionManagement {
             library("azure-storage-file-datalake", "com.azure", "azure-storage-file-datalake").version("12.15.0")
             library("azure-storage-blob-nio", "com.azure", "azure-storage-blob-nio").version("12.0.0-beta.19")
 
-            val vertx = version("vertx", "4.4.5")
+            val vertx = version("vertx", "4.4.6")
             library("vertx-core", "io.vertx", "vertx-core").versionRef(vertx)
+            library("vertx-grpc", "io.vertx", "vertx-grpc").versionRef(vertx)
             library("vertx-grpc-server", "io.vertx", "vertx-grpc-server").versionRef(vertx)
             library("vertx-grpc-client", "io.vertx", "vertx-grpc-client").versionRef(vertx)
+            library("vertx-grpc-protoc-plugin2", "io.vertx", "vertx-grpc-protoc-plugin2").versionRef(vertx)
 
             val smallrye = version("smallrye", "3.2.1")
             library("smallrye-config", "io.smallrye.config", "smallrye-config").versionRef(smallrye)
@@ -138,6 +141,12 @@ dependencyResolutionManagement {
             val mockito = version("mockito", "5.3.1")
             library("mockito-core", "org.mockito", "mockito-core").versionRef(mockito)
             library("mockito-junit-jupiter", "org.mockito", "mockito-junit-jupiter").versionRef(mockito)
+
+            val protobuf = version("protobuf", "3.24.4")
+            library("protobuf-java", "com.google.protobuf", "protobuf-java").versionRef(protobuf)
+            library("protobuf-protoc", "com.google.protobuf", "protoc").versionRef(protobuf)
+
+            library("javax-annotation-api" ,"javax.annotation" , "javax.annotation-api").version("1.3.2")
 
 
         }

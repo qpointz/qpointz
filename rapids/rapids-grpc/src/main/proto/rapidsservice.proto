@@ -1,0 +1,141 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "io.qpointz.rapids.grpc";
+option java_outer_classname = "RapidsDataSvc";
+
+package io.qpointz.rapids.protocol;
+
+service RapidsDataService {
+  rpc Handshake (HandshakeRequest) returns (HandshakeResponse) {}
+  rpc ListCatalogs(ListCatalogRequest) returns (ListCatalogResponse) {}
+  rpc GetCatalog(GetCatalogRequest) returns (GetCatalogResponse) {}
+}
+
+enum ResponseCode {
+  OK=0;
+  ERROR =1;
+  INVALID_REQUEST =2 ;
+}
+
+message ResponseStatus {
+  ResponseCode code = 1;
+  string message = 2;
+}
+
+enum ServiceVersion {
+  V_10 = 0;
+}
+
+message HandshakeRequest {
+}
+
+message HandshakeResponse {
+  ResponseStatus status = 1;
+  optional ServiceVersion version = 3;
+}
+
+message ListCatalogRequest {
+}
+message ListCatalogResponse {
+  ResponseStatus status = 1;
+  repeated string catalogues = 2;
+}
+
+message GetCatalogRequest {
+  string catalogName = 2;
+}
+
+message GetCatalogResponse {
+  ResponseStatus status = 1;
+  repeated Table tables = 3;
+}
+
+message Table {
+  string catalogName = 1;
+  string name = 2;
+  Schema schema = 3;
+}
+
+message Schema {
+  repeated Field fields = 1;
+}
+
+message Field {
+  string name = 1;
+  uint32 index = 2;
+  bool nullable = 3;
+}
+
+//
+//
+//
+//
+//
+//enum DataType {
+//  UNKNOWN_DATA_TYPE = 0;
+//
+//  BOOLEAN = 1;
+//
+//  DOUBLE  = 3; //16 bit
+//  REAL    = 4; //32 bit
+//  DECIMAL = 5; //64 bit
+//
+//  BYTE    = 6; //8 bit
+//  SMALLINT= 7; //16 bit
+//  INTEGER = 8; //32 bit
+//  BIGINT  = 9; //64 bit
+//
+//  STRING  = 10;
+//
+//  DATE      = 11; //zone date
+//  TIME      = 12; //zone date
+//  DATETIME  = 13; //zone date time
+//
+//  TIMESTAMP = 14; //local timestamp
+//}
+//
+//message RecordValue {
+//  uint32 index = 1;
+//
+//  bool bool_value = 2;
+//
+//  double double_value = 3;
+//  float float_value = 4;
+//
+//  string string_value = 5;
+//
+//}
+//
+//enum TimeUnit {
+//  UNKNOWN_TIME_UNIT = 0;
+//  NS = 1;
+//  MS = 2;
+//  S = 3;
+//}
+//
+//message Field {
+//  uint32 index = 1;
+//  string name = 2;
+//  bool nullable = 3;
+//  uint32 size = 4;
+//  uint32 precision = 5;
+//  uint32 scale = 6;
+//  TimeUnit timeUnit = 7;
+//}
+//
+//message Schema {
+//  repeated Field fields;
+//}
+//
+//message TableInfo {
+//  string name = 1;
+//  string schema = 2;
+//}
+//
+//message Table {
+//  string schemaName = 1;
+//  string tableName = 2;
+//  repeated Field fields;
+//}
+//

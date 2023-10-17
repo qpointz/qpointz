@@ -16,7 +16,7 @@ application {
 
 
 dependencies {
-	implementation(project(":rapids-core"))
+	implementation(project(":rapids-core-legacy"))
 
 	implementation(libs.lombok)
 	annotationProcessor(libs.lombok)

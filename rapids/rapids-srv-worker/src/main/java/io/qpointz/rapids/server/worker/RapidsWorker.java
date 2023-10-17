@@ -18,7 +18,6 @@ public class RapidsWorker {
         }
         var ctx = new AnnotationConfigApplicationContext(RapidsWorkerApplicationConfiguration.class);
 
-
         var vertx = ctx.getBean(Vertx.class);
 
         vertx.deployVerticle(
