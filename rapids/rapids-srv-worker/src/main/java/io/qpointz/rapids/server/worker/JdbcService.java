@@ -47,7 +47,7 @@ public class JdbcService extends AbstractService {
         this.server = new HttpServer.Builder()
                 .withHandler(handler)
                 .withPort(this.config.port())
-                .withBasicAuthentication("./config/passwd", new String[] {"**"})
+                //.withBasicAuthentication("./config/passwd", new String[] {"**"})
                 .build();
 
         log.info("About to start JDBC HTTP Server");

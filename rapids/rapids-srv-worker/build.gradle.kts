@@ -48,6 +48,7 @@ dependencies {
 	implementation(libs.olingo.odata.commons.api)
 
 	runtimeOnly(libs.postgresql)
+	runtimeOnly(libs.fusesource.jansi)
 }
 
 val bootstrapAppTask = tasks.register("bootstrapApp") {
