@@ -1,7 +1,6 @@
 package io.qpointz.rapids.formats.parquet;
 
 import io.qpointz.rapids.azure.AzureFileSystemAdapter;
-import io.qpointz.rapids.formats.parquet.RapidsParquetSchema;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.junit.jupiter.api.Assertions;
@@ -10,10 +9,7 @@ import java.io.IOException;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
-import java.util.function.BiFunction;
 import java.util.function.Function;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j

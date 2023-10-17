@@ -14,7 +14,7 @@ include (":rapids-api")
 include (":rapids-core")
 include (":rapids-jdbc-driver")
 include (":rapids-srv-worker")
-include (":rapids-grpc")
+include (":rapids-server-core")
 
 dependencyResolutionManagement {
 
@@ -24,6 +24,7 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("libs") {
+
             version("lombok", "1.18.26")
             library("lombok", "org.projectlombok", "lombok").versionRef("lombok")
 
@@ -98,11 +99,15 @@ dependencyResolutionManagement {
             library("microprofile-config-api", "org.eclipse.microprofile.config", "microprofile-config-api").versionRef(microprofile)
 
             library("slf4j-api", "org.slf4j", "slf4j-api").version("2.0.7")
-
-            library("logback-classic", "ch.qos.logback", "logback-classic").version("1.4.11")
             library("logback-core", "ch.qos.logback", "logback-core").version("1.4.11")
+            library("logback-classic", "ch.qos.logback", "logback-classic").version("1.4.11")
             library("fusesource-jansi","org.fusesource.jansi", "jansi").version("1.18")
-            bundle("logging", listOf("slf4j-api", "logback-core", "logback-classic"))
+            bundle("logging", listOf(
+                    "slf4j-api",
+                    "logback-core",
+                    "logback-classic",
+                    "fusesource-jansi"
+            ))
 
             val spring = version("spring", "6.0.8")
             library("spring-context", "org.springframework","spring-context").versionRef(spring)

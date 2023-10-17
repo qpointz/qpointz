@@ -11,7 +11,7 @@ java {
 
 dependencies {
     implementation(project(":rapids-api"))
-
+    api(libs.calcite.core)
     implementation(libs.calcite.csv)
     implementation(libs.avatica.server)
     api(libs.parquet.avro)
