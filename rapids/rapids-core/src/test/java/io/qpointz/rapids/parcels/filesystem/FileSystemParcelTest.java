@@ -30,7 +30,7 @@ class FileSystemParcelTest {
         var fs = FileSystems.getDefault();
         var path = Path.of("../");
         var ps = fs.getPath(String.valueOf(path.toAbsolutePath()));
-        traverse(ps, p-> System.out.println(p));
+        traverse(ps, p-> {});
     }
 
 
