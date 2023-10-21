@@ -1,13 +1,18 @@
 package io.qpointz.rapids.server;
 
+import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import io.qpointz.rapids.grpc.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Iterator;
 import java.util.function.Function;
 
 @Slf4j
-public abstract class AbstractRapidsDataService extends RapidsDataServiceGrpc.RapidsDataServiceImplBase implements RapidsDataServiceGrpc.AsyncService {
+public abstract class AbstractRapidsDataService extends RapidsDataServiceGrpc.RapidsDataServiceImplBase {
 
     @Override
     public void handshake(HandshakeRequest request, StreamObserver<HandshakeResponse> responseObserver) {
@@ -39,7 +44,6 @@ public abstract class AbstractRapidsDataService extends RapidsDataServiceGrpc.Ra
         }
     }
 
-
     protected abstract ListCatalogResponse onListCatalogs(ListCatalogRequest listCatalogRequest);
 
     protected HandshakeResponse onHandshakeRequest(HandshakeRequest handshakeRequest) {
@@ -49,15 +53,99 @@ public abstract class AbstractRapidsDataService extends RapidsDataServiceGrpc.Ra
     protected static ServiceVersion CURRENT_VERSION = ServiceVersion.V_10;
 
     protected static HandshakeResponse DEFAULT_HANDSHAKE = HandshakeResponse.newBuilder()
-            .setStatus(ResponseStatus
-                    .newBuilder()
-                    .setCode(ResponseCode.OK)
-                    .setMessage("OK")
-                    .build())
+            .setStatus(ResponseStatuses.statusOk())
             .setVersion(CURRENT_VERSION)
             .build();
 
-
     protected abstract GetCatalogResponse onGetCatalog(GetCatalogRequest getCatalogRequest) ;
+
+    @Builder
+    @AllArgsConstructor
+    public static class ExecSqlBatchedResult {
+
+        @Getter
+        private ResponseStatus status;
+
+        @Getter
+        private Schema schema;
+
+        @Getter
+        Iterator<VectorBlock> vectorBlocks;
+    }
+
+    @Override
+    public void execSqlBatched(ExecSqlRequest request, StreamObserver<ExecSqlResponse> responseObserver) {
+        ServerCallStreamObserver<ExecSqlResponse> serverCallObserver = null;
+        try {
+            serverCallObserver = (ServerCallStreamObserver<ExecSqlResponse>)responseObserver;
+        } catch (Exception e) {
+            log.warn("ServerCall observer not available. Backpressure/cancelation will be ignored");
+        }
+        try {
+            var result = onExecSqlBatched(request);
+
+            if (result.status.getCode() != ResponseCode.OK) {
+
+                responseObserver.onNext(ExecSqlResponse.newBuilder().setStatus(result.status).build());
+                responseObserver.onCompleted();
+                return;
+            }
+
+            var schemaResponse = ExecSqlResponse.newBuilder()
+                    .setSchema(result.getSchema());
+
+            if (result.schema==null) {
+                schemaResponse
+                    .setStatus(ResponseStatuses.statusError("Schema unknown"));
+                responseObserver.onNext(schemaResponse.build());
+                responseObserver.onCompleted();
+                return;
+            }
+
+            schemaResponse.setStatus(ResponseStatuses.statusOk());
+            responseObserver.onNext(schemaResponse.build());
+
+            if (result.vectorBlocks==null) {
+                responseObserver.onCompleted();
+                return;
+            }
+
+            var vectorBlock = result.vectorBlocks.next();
+            var canceled = serverCallObserver!=null && serverCallObserver.isCancelled();
+            var ready = true;
+            while (vectorBlock!=null) {
+                if (canceled) {
+                    log.info("Request canceled. Exiting");
+                    break;
+                }
+
+                if (serverCallObserver!=null) {
+                    ready = serverCallObserver.isReady();
+                }
+
+                if (!ready) {
+                    log.info("Consumer not ready sleeping for {} ms", 200);
+                    Thread.sleep(200);
+                    continue;
+                }
+
+                final var blockResponse = ExecSqlResponse.newBuilder()
+                        .setStatus(ResponseStatuses.statusOk())
+                        .setVector(vectorBlock)
+                        .build();
+                responseObserver.onNext(blockResponse);
+
+                vectorBlock = result.vectorBlocks.next();
+                log.info("next block");
+                canceled = serverCallObserver!=null && serverCallObserver.isCancelled();
+            }
+            responseObserver.onCompleted();
+
+        } catch (Exception ex) {
+            responseObserver.onError(ex);
+        }
+    }
+
+    protected abstract ExecSqlBatchedResult onExecSqlBatched(ExecSqlRequest request);
 
 }

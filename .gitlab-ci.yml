@@ -1,7 +1,6 @@
 stages:
   - init
-  - build
-  - package
+  - build-components  
 
 
 ci-init:init:
@@ -17,7 +16,7 @@ ci-init:init:
         - etc/docker/**/*
         
 rapids:build:
-  stage: build
+  stage: build-components
   needs:
     - job: ci-init:init
       optional: true
@@ -33,7 +32,7 @@ rapids:build:
         - rapids/**/*
 
 flow:build:
-  stage: build
+  stage: build-components
   needs:
     - job: ci-init:init
       optional: true
@@ -45,11 +44,11 @@ flow:build:
     - changes:
         - .gitlab-ci.yml
         - .gitlab/**/*
-        - etc/docker/ci-sbt/*
+        - etc/docker/**/*
         - flow/**/*        
 
 docs:build:
-  stage: build
+  stage: build-components
   needs:
     - job: ci-init:init
       optional: true

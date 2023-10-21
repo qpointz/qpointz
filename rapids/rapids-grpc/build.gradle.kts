@@ -1,6 +1,7 @@
 plugins {
     `java-library`
     id("com.google.protobuf") version "0.9.4"
+    jacoco
 }
 
 buildscript {

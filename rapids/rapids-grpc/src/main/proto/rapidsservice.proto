@@ -6,10 +6,13 @@ option java_outer_classname = "RapidsDataSvc";
 
 package io.qpointz.rapids.protocol;
 
+import "google/protobuf/wrappers.proto";
+
 service RapidsDataService {
-  rpc Handshake (HandshakeRequest) returns (HandshakeResponse) {}
-  rpc ListCatalogs(ListCatalogRequest) returns (ListCatalogResponse) {}
-  rpc GetCatalog(GetCatalogRequest) returns (GetCatalogResponse) {}
+  rpc Handshake (HandshakeRequest) returns (HandshakeResponse);
+  rpc ListCatalogs(ListCatalogRequest) returns (ListCatalogResponse);
+  rpc GetCatalog(GetCatalogRequest) returns (GetCatalogResponse);
+  rpc ExecSqlBatched(ExecSqlRequest) returns (stream ExecSqlResponse);
 }
 
 enum ResponseCode {
@@ -61,81 +64,109 @@ message Schema {
   repeated Field fields = 1;
 }
 
+
 message Field {
-  string name = 1;
-  uint32 index = 2;
-  bool nullable = 3;
+  string name         = 1;
+  uint32 index        = 2;
+  DataType fieldType  = 3;
 }
 
-//
-//
-//
-//
-//
-//enum DataType {
-//  UNKNOWN_DATA_TYPE = 0;
-//
-//  BOOLEAN = 1;
-//
-//  DOUBLE  = 3; //16 bit
-//  REAL    = 4; //32 bit
-//  DECIMAL = 5; //64 bit
-//
-//  BYTE    = 6; //8 bit
-//  SMALLINT= 7; //16 bit
-//  INTEGER = 8; //32 bit
-//  BIGINT  = 9; //64 bit
-//
-//  STRING  = 10;
-//
-//  DATE      = 11; //zone date
-//  TIME      = 12; //zone date
-//  DATETIME  = 13; //zone date time
-//
-//  TIMESTAMP = 14; //local timestamp
-//}
-//
-//message RecordValue {
-//  uint32 index = 1;
-//
-//  bool bool_value = 2;
-//
-//  double double_value = 3;
-//  float float_value = 4;
-//
-//  string string_value = 5;
-//
-//}
-//
-//enum TimeUnit {
-//  UNKNOWN_TIME_UNIT = 0;
-//  NS = 1;
-//  MS = 2;
-//  S = 3;
-//}
-//
-//message Field {
-//  uint32 index = 1;
-//  string name = 2;
-//  bool nullable = 3;
-//  uint32 size = 4;
-//  uint32 precision = 5;
-//  uint32 scale = 6;
-//  TimeUnit timeUnit = 7;
-//}
-//
-//message Schema {
-//  repeated Field fields;
-//}
-//
-//message TableInfo {
-//  string name = 1;
-//  string schema = 2;
-//}
-//
-//message Table {
-//  string schemaName = 1;
-//  string tableName = 2;
-//  repeated Field fields;
-//}
-//
+message DataType {
+  bool nullable     = 1;
+  ValueType dataType = 2;
+
+  optional uint32 length = 3;
+  optional bool withTimezone =4;
+  optional uint32 precision = 5;
+  optional uint32 scale = 6;
+}
+
+enum ValueType {
+  UNKNOWN_VALUE_TYPE = 0;
+
+  BOOLEAN = 1;
+  STRING = 2;
+
+  BINARY = 3;
+
+  //INT8 = 4;
+  //INT16 = 5;
+  INT32 = 6;
+  INT64 = 7;
+
+  DATE = 8;
+  TIME = 9;
+  TIMESTAMP = 10;
+
+  //DECIMAL = 11;
+  FLOAT =12;
+  //REAL =13;
+  DOUBLE = 14;
+
+}
+
+message ExecSqlRequest {
+  string sql = 1;
+  uint32 batchSize = 2;
+}
+
+message ExecSqlResponse {
+  ResponseStatus status = 1;
+  oneof payload {
+    Schema schema = 100;
+    VectorBlock vector = 101;
+  }
+}
+
+message VectorBlock {
+  uint32 vectorSize = 1;
+  repeated Vector vectors = 2;
+}
+
+message Vector {
+  uint32 index = 1;
+  oneof data {
+    StringVector stringVector = 100;
+    Int32Vector int32Vector = 101;
+    Int64Vector int64Vector = 102;
+    DoubleVector doubleVector = 103;
+    FloatVector floatVector = 104;
+    BoolVector  boolVector =105;
+    ByteVector byteVector = 106;
+  }
+}
+
+message StringVector {
+  repeated string values  = 1;
+  repeated bool nulls = 2;
+}
+
+message Int32Vector {
+  repeated sint32 values = 1;
+  repeated bool nulls = 2;
+}
+
+message Int64Vector {
+  repeated sint64 values = 1;
+  repeated bool nulls = 2;
+}
+
+message DoubleVector {
+  repeated double values = 1;
+  repeated bool nulls = 2;
+}
+
+message FloatVector {
+  repeated float values = 1;
+  repeated bool nulls = 2;
+}
+
+message BoolVector {
+  repeated bool values = 1;
+  repeated bool nulls = 2;
+}
+
+message ByteVector {
+  repeated bytes values = 1;
+  repeated bool nulls = 2;
+}

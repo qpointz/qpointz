@@ -7,7 +7,7 @@ import org.mockito.Answers;
 
 import static org.mockito.Mockito.*;
 
-class AbstractRapidsDataServiceTest {
+class   AbstractRapidsDataServiceTest {
 
     @Test
     void processCall() {

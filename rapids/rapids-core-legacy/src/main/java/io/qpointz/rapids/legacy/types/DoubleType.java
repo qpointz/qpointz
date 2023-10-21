@@ -1,4 +1,4 @@
-package io.qpointz.rapids.types;
+package io.qpointz.rapids.legacy.types;
 
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -9,14 +9,15 @@ import java.util.Optional;
 
 @EqualsAndHashCode(callSuper = true)
 @Accessors(fluent=true)
-public class BooleanType extends NullableType {
+public class DoubleType extends NullableType {
 
-    public BooleanType(Boolean nullable, Optional<Object> defaultValue) {
+
+    public DoubleType(Boolean nullable, Optional<Object> defaultValue) {
         super(nullable, defaultValue);
     }
 
     @Override
     public RelDataType asRelDataType(RelDataTypeFactory typeFactory) {
-        return typeFactory.createJavaType(Boolean.class);
+        return typeFactory.createJavaType(Double.class);
     }
 }

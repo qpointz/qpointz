@@ -1,6 +1,7 @@
 plugins {
 	java
 	application
+	jacoco
 }
 
 configurations {

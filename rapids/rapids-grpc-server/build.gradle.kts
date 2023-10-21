@@ -1,5 +1,7 @@
 plugins {
+    java
     application
+    jacoco
 }
 
 dependencies {
@@ -7,6 +9,7 @@ dependencies {
     annotationProcessor(libs.lombok)
     implementation(libs.bundles.logging)
 
+    implementation(libs.spring.context)
     implementation(project(":rapids-grpc"))
     implementation(project(":rapids-core-legacy"))
     implementation(libs.calcite.core)
@@ -30,6 +33,7 @@ testing {
                 useJUnitJupiter(libs.versions.junit.get())
 
                 dependencies {
+                    implementation(libs.h2.database)
                     implementation(project())
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)

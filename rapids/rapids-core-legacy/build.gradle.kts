@@ -1,7 +1,6 @@
 plugins {
     `java-library`
     jacoco
-    id("jacoco-report-aggregation")
 }
 
 

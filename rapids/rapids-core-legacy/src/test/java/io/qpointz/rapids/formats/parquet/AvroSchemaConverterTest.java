@@ -1,6 +1,6 @@
 package io.qpointz.rapids.formats.parquet;
 
-import io.qpointz.rapids.types.RapidsType;
+import io.qpointz.rapids.legacy.types.RapidsType;
 import org.apache.avro.Schema;
 import org.junit.jupiter.api.Test;
 

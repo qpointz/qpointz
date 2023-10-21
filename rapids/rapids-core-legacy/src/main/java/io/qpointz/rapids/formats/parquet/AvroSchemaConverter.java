@@ -1,6 +1,6 @@
 package io.qpointz.rapids.formats.parquet;
 
-import io.qpointz.rapids.types.*;
+import io.qpointz.rapids.legacy.types.*;
 import io.qpointz.rapids.util.Pair;
 import org.apache.avro.Schema;
 

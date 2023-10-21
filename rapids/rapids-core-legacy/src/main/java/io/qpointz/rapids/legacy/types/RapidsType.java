@@ -1,4 +1,4 @@
-package io.qpointz.rapids.types;
+package io.qpointz.rapids.legacy.types;
 
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;

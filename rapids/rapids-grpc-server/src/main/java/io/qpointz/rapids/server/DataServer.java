@@ -5,9 +5,14 @@ import io.qpointz.rapids.formats.parquet.RapidsParquetSchemaFactory;
 import io.vertx.core.Vertx;
 import io.vertx.grpc.VertxServerBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.calcite.avatica.util.Quoting;
 import org.apache.calcite.jdbc.CalciteConnection;
+import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.SchemaPlus;
+import org.apache.calcite.sql.parser.SqlParser;
+import org.apache.calcite.sql.validate.SqlConformance;
+import org.apache.calcite.sql.validate.SqlConformanceEnum;
 
 import java.io.IOException;
 import java.sql.DriverManager;
@@ -21,38 +26,35 @@ import static io.qpointz.rapids.formats.parquet.RapidsParquetSchemaFactory.RX_PA
 @Slf4j
 public class DataServer {
 
-    private static Schema createSchema(SchemaPlus parentSchema, String name) {
+    private static void createSchema(CalciteDataServiceConfig.CalciteDataServiceConfigBuilder config , String name) {
         final var factory = new RapidsParquetSchemaFactory();
         final var operand = Map.<String,Object>of(
                 FS_TYPE, "local",
-                DIR_KEY, "./example/data/airlines_parquet",
+                DIR_KEY, "./../example/data/airlines_parquet",
                 RX_DATASET_GROUP_KEY, "dataset",
                 RX_PATTERN_KEY, ".*(\\/(?<dataset>[^\\/]+)\\.parquet$)"
         );
-        final var schema = (RapidsParquetSchema)factory.create(parentSchema, name, operand);
-        parentSchema.add(name, schema);
-        return schema;
+        config.add(factory, name, operand);
     }
 
-    public static void main(String[] args) throws SQLException, ClassNotFoundException, IOException {
-        final var vertx = Vertx.vertx();
+    public static void main(String[] args) throws IOException {
+        final var serviceConfig = CalciteDataServiceConfig.builder()
+                .defaultConfig();
 
-        Class.forName("org.apache.calcite.jdbc.Driver");
-        final var properties = new Properties();
-        properties.put("quoting" , "BACK_TICK");
-        properties.put("caseSensitive" , true);
-        final var connection = DriverManager.getConnection("jdbc:calcite:");
-        final var calcite = connection.unwrap(CalciteConnection.class);
-        calcite.getRootSchema().add("airlines", createSchema(calcite.getRootSchema(),"airlines"));
+        createSchema(serviceConfig, "airlines");
 
-        final var service = new CalciteDataService(calcite);
+        final var service = serviceConfig.buildService();
 
-        final var server = VertxServerBuilder.forPort(vertx, 8080)
-                .addService(service)
+        final var serverConfig = CalciteDataServerConfig.builder()
+                .defaultConfig()
+                .service(service)
                 .build();
 
-        server.start();
-        log.info("GRPC service started");
+        final var vertx = Vertx.vertx();
+
+        log.info("About to start service");
+        final var server = CalciteDataServer.start(vertx, serverConfig);
+        log.info("Service started");
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             log.info("Shutting down server...");

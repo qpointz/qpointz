@@ -4,8 +4,11 @@ include:
 
 image: ${CI_IMAGE_GRADLE}
 
-stages:
-  - init
+variables:
+  PROTOC_SRC : rapids/rapids-grpc/src/main/proto
+  PROTOC_OUT : rapids/build/protoc
+
+stages:  
   - test
   - build
   - package
@@ -18,23 +21,28 @@ rapids:unitTests:
   stage: test
   script:
     - cd ${CI_PROJECT_DIR}/rapids
-    - gradle testCodeCoverageReport
+    - gradle clean test testCodeCoverageReport
   artifacts:
     reports:
       junit: ./**/*/build/test-results/test/*.xml
     paths:
       - ./**/*/build/reports/jacoco/testCodeCoverageReport/*.xml
 
-#runTestsIT:
-#  stage: test
-#  script:
-#    - cd ${CI_PROJECT_DIR}/rapids
-#    - gradle testITCodeCoverageReport
-#  artifacts:
-#    reports:
-#      junit: ./**/*/build/test-results/testIT/*.xml
-#    paths:
-#      - ./**/*/build/reports/jacoco/testITCodeCoverageReport/*.xml
+rapids:build-protoc-codegen:
+  stage: test
+  image: ${CI_IMAGE_BASE}  
+  script:             
+    - mkdir -p ${PROTOC_OUT}/py
+    - mkdir -p ${PROTOC_OUT}/net        
+    - >
+      protoc --proto_path=${PROTOC_SRC}      
+      --csharp_out=${PROTOC_OUT}/net      
+      --python_out=${PROTOC_OUT}/py  
+      --experimental_allow_proto3_optional
+      ${PROTOC_SRC}/rapidsservice.proto
+  artifacts:
+    paths:
+      - ${PROTOC_OUT}/**/*      
 
 rapids:jdbcDriverJar:
   stage: build

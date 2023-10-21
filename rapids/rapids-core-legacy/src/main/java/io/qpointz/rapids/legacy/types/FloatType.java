@@ -1,4 +1,4 @@
-package io.qpointz.rapids.types;
+package io.qpointz.rapids.legacy.types;
 
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
