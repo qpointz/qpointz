@@ -1,10 +1,14 @@
 package io.qpointz.rapids.server.vectors;
 
-import io.qpointz.rapids.grpc.*;
+import io.qpointz.rapids.grpc.Int64Vector;
+import io.qpointz.rapids.grpc.Vector;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
-public class Int64VectorConsumer extends VectorConsumer<Long> {
+public class TimeVectorConsumer extends VectorConsumer<Long> {
     @Override
     protected void vector(Vector.Builder vectorBuilder, Iterable<Long> longs, Iterable<Boolean> nulls) {
         final var vector = Int64Vector.newBuilder()
@@ -15,7 +19,11 @@ public class Int64VectorConsumer extends VectorConsumer<Long> {
 
     @Override
     protected Long getValue(ResultSet resultSet, int columnIndex) throws SQLException {
-        return resultSet.getLong(columnIndex);
+        final var value = resultSet.getTime(columnIndex);
+        if (value==null) {
+            return this.nullValue();
+        }
+        return value.toLocalTime().toNanoOfDay();
     }
 
     @Override

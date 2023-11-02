@@ -61,7 +61,7 @@ public abstract class AbstractRapidsDataService extends RapidsDataServiceGrpc.Ra
 
     @Builder
     @AllArgsConstructor
-    public static class ExecSqlBatchedResult {
+    public static class ExecQueryStreamResult {
 
         @Getter
         private ResponseStatus status;
@@ -74,24 +74,24 @@ public abstract class AbstractRapidsDataService extends RapidsDataServiceGrpc.Ra
     }
 
     @Override
-    public void execSqlBatched(ExecSqlRequest request, StreamObserver<ExecSqlResponse> responseObserver) {
-        ServerCallStreamObserver<ExecSqlResponse> serverCallObserver = null;
+    public void execQueryStream(ExecQueryStreamRequest request, StreamObserver<ExecQueryResponse> responseObserver) {
+        ServerCallStreamObserver<ExecQueryResponse> serverCallObserver = null;
         try {
-            serverCallObserver = (ServerCallStreamObserver<ExecSqlResponse>)responseObserver;
+            serverCallObserver = (ServerCallStreamObserver<ExecQueryResponse>)responseObserver;
         } catch (Exception e) {
             log.warn("ServerCall observer not available. Backpressure/cancelation will be ignored");
         }
         try {
-            var result = onExecSqlBatched(request);
+            var result = onExecQueryStream(request);
 
             if (result.status.getCode() != ResponseCode.OK) {
 
-                responseObserver.onNext(ExecSqlResponse.newBuilder().setStatus(result.status).build());
+                responseObserver.onNext(ExecQueryResponse.newBuilder().setStatus(result.status).build());
                 responseObserver.onCompleted();
                 return;
             }
 
-            var schemaResponse = ExecSqlResponse.newBuilder()
+            var schemaResponse = ExecQueryResponse.newBuilder()
                     .setSchema(result.getSchema());
 
             if (result.schema==null) {
@@ -129,7 +129,7 @@ public abstract class AbstractRapidsDataService extends RapidsDataServiceGrpc.Ra
                     continue;
                 }
 
-                final var blockResponse = ExecSqlResponse.newBuilder()
+                final var blockResponse = ExecQueryResponse.newBuilder()
                         .setStatus(ResponseStatuses.statusOk())
                         .setVector(vectorBlock)
                         .build();
@@ -146,6 +146,13 @@ public abstract class AbstractRapidsDataService extends RapidsDataServiceGrpc.Ra
         }
     }
 
-    protected abstract ExecSqlBatchedResult onExecSqlBatched(ExecSqlRequest request);
+    protected abstract ExecQueryStreamResult onExecQueryStream(ExecQueryStreamRequest request);
 
+
+    @Override
+    public void execQuery(ExecQueryRequest request, StreamObserver<ExecQueryResponse> responseObserver) {
+        process(request, responseObserver, this::onExecQuery);
+    }
+
+    protected abstract ExecQueryResponse onExecQuery(ExecQueryRequest execQueryRequest);
 }

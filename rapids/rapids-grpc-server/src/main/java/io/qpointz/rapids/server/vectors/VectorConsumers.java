@@ -2,7 +2,7 @@ package io.qpointz.rapids.server.vectors;
 
 import io.qpointz.rapids.grpc.Field;
 
-public class VectorConsumers {
+public class VectorConsumers<T> {
     public static VectorConsumer<?> of(Field field) {
         return switch (field.getFieldType().getDataType()) {
             case BOOLEAN -> new BooleanVectorConsumer();
@@ -14,10 +14,12 @@ public class VectorConsumers {
             case FLOAT -> new FloatVectorConsumer();
             case DOUBLE -> new DoubleVectorConsumer();
 
-            case BINARY -> missingConsumer(field);
-            case DATE -> missingConsumer(field);
-            case TIME -> missingConsumer(field);
-            case TIMESTAMP -> missingConsumer(field);
+            case BINARY -> new BytesVectorConsumer();
+
+            case DATE -> new DateVectorConsumer();
+            case TIME -> new TimeVectorConsumer();
+            case TIMESTAMP -> new TimestampVectorConsumer();
+
             case UNRECOGNIZED -> missingConsumer(field);
             case UNKNOWN_VALUE_TYPE -> missingConsumer(field);
         };

@@ -1,4 +1,4 @@
-package io.qpointz.rapids.server;
+package io.qpointz.rapids.grpc;
 
 import io.qpointz.rapids.grpc.ResponseCode;
 import io.qpointz.rapids.grpc.ResponseStatus;

@@ -12,7 +12,8 @@ service RapidsDataService {
   rpc Handshake (HandshakeRequest) returns (HandshakeResponse);
   rpc ListCatalogs(ListCatalogRequest) returns (ListCatalogResponse);
   rpc GetCatalog(GetCatalogRequest) returns (GetCatalogResponse);
-  rpc ExecSqlBatched(ExecSqlRequest) returns (stream ExecSqlResponse);
+  rpc ExecQuery(ExecQueryRequest) returns (ExecQueryResponse);
+  rpc ExecQueryStream(ExecQueryStreamRequest) returns (stream ExecQueryResponse);
 }
 
 enum ResponseCode {
@@ -86,36 +87,47 @@ enum ValueType {
 
   BOOLEAN = 1;
   STRING = 2;
-
   BINARY = 3;
-
-  //INT8 = 4;
-  //INT16 = 5;
-  INT32 = 6;
-  INT64 = 7;
-
-  DATE = 8;
-  TIME = 9;
-  TIMESTAMP = 10;
-
-  //DECIMAL = 11;
-  FLOAT =12;
-  //REAL =13;
-  DOUBLE = 14;
-
+  INT32 = 4;
+  INT64 = 5;
+  DATE = 6;
+  TIME = 7;
+  TIMESTAMP = 8;
+  FLOAT =9;
+  DOUBLE = 10;
 }
 
-message ExecSqlRequest {
+message SqlParameter {
+  uint32 index = 1;
+  optional string name=2;
+  ValueType valueType = 3;
+  oneof value {
+    bool booleanValue = 10;
+    string stringValue = 11;
+    int32 int32Value = 12;
+    int64 int64Value = 13;
+    float floatValue = 14;
+    double doubleValue = 15;
+  }
+}
+
+message ExecQueryRequest {
   string sql = 1;
+  repeated SqlParameter parameters = 2;
+  uint32 batchSize = 3;
+}
+
+message ExecQueryStreamRequest {
+  ExecQueryRequest sqlRequest = 1;
   uint32 batchSize = 2;
 }
 
-message ExecSqlResponse {
+
+
+message ExecQueryResponse {
   ResponseStatus status = 1;
-  oneof payload {
-    Schema schema = 100;
-    VectorBlock vector = 101;
-  }
+  optional Schema schema = 100;
+  VectorBlock vector = 101;
 }
 
 message VectorBlock {

@@ -16,6 +16,7 @@ include (":rapids-jdbc-driver")
 include (":rapids-srv-worker")
 include (":rapids-grpc")
 include (":rapids-grpc-server")
+include (":rapids-test-kit")
 
 dependencyResolutionManagement {
 
@@ -138,11 +139,11 @@ dependencyResolutionManagement {
             library("jetty-security", "org.eclipse.jetty","jetty-security").versionRef(jetty)
             library("jetty-openid", "org.eclipse.jetty","jetty-openid").versionRef(jetty)
 
-            val mockito = version("mockito", "5.6.0")
+            val mockito = version("mockito", "5.7.0")
             library("mockito-core", "org.mockito", "mockito-core").versionRef(mockito)
             library("mockito-junit-jupiter", "org.mockito", "mockito-junit-jupiter").versionRef(mockito)
 
-            val protobuf = version("protobuf", "3.24.4")
+            val protobuf = version("protobuf", "3.25.0")
             library("protobuf-java", "com.google.protobuf", "protobuf-java").versionRef(protobuf)
             library("protobuf-protoc", "com.google.protobuf", "protoc").versionRef(protobuf)
 
@@ -151,6 +152,15 @@ dependencyResolutionManagement {
             library ("hadoop-bare-naked-local-fs", "com.globalmentor", "hadoop-bare-naked-local-fs").version("0.1.0")
 
             library ("h2-database", "com.h2database", "h2").version("2.2.224")
+
+            val apacheCommons = version("apacheCommons", "3.13.0")
+            library("apache-commons-lang3","org.apache.commons", "commons-lang3").versionRef(apacheCommons)
+
+            val scala = version("scala", "2.13.12")
+            library("scala-library", "org.scala-lang", "scala-library").versionRef(scala)
+            library("scala-reflect", "org.scala-lang", "scala-reflect").versionRef(scala)
+            library("scala-compiler", "org.scala-lang", "scala-compiler").versionRef(scala)
+
         }
     }
 }

@@ -8,7 +8,7 @@ import java.sql.SQLException;
 import java.util.Iterator;
 
 
-public class VectorBlockIterator implements Iterator<VectorBlock> {
+public class VectorBlockBatchedIterator implements Iterator<VectorBlock> {
 
     private final Schema schema;
     private final ResultSet resultSet;
@@ -19,7 +19,7 @@ public class VectorBlockIterator implements Iterator<VectorBlock> {
     private boolean didNext = false;
     private VectorBlock block;
 
-    public VectorBlockIterator(Schema schema, ResultSet resultSet, int batchSize) {
+    public VectorBlockBatchedIterator(Schema schema, ResultSet resultSet, int batchSize) {
         this.schema = schema;
         this.resultSet = resultSet;
         this.batchSize = batchSize;
@@ -40,7 +40,11 @@ public class VectorBlockIterator implements Iterator<VectorBlock> {
         if (!didNext) {
             doNext();
         }
-        return this.block!=null;
+        var result = this.block!=null;
+        if (!result && !resultSet.isClosed()) {
+            resultSet.close();
+        }
+        return result;
     }
 
     @SneakyThrows

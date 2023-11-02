@@ -18,5 +18,10 @@ public final class BooleanVectorConsumer extends VectorConsumer<Boolean> {
     protected Boolean getValue(ResultSet resultSet, int columnIndex) throws SQLException {
         return resultSet.getBoolean(columnIndex);
     }
+
+    @Override
+    protected Boolean nullValue() {
+        return false;
+    }
 }
 

@@ -21,18 +21,18 @@ import java.util.Map;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CalciteDataServiceConfig {
-
-    public SchemaPlus getRootSchema() {
-        return this.connection.getRootSchema();
-    }
-
-    public RelDataTypeFactory getTypeFactory() {
-        return this.connection.getTypeFactory();
-    }
-
-    public RelRunner getRelRunner() throws SQLException {
-        return this.connection.unwrap(RelRunner.class);
-    }
+//
+//    public SchemaPlus getRootSchema() {
+//        return this.connection.getRootSchema();
+//    }
+//
+//    public RelDataTypeFactory getTypeFactory() {
+//        return this.connection.getTypeFactory();
+//    }
+//
+//    public RelRunner getRelRunner() throws SQLException {
+//        return this.connection.unwrap(RelRunner.class);
+//    }
 
     @Getter
     private CalciteConnection connection;

@@ -1,7 +1,8 @@
 package io.qpointz.rapids.server;
 
 import io.grpc.Channel;
-import io.qpointz.rapids.grpc.ExecSqlRequest;
+import io.qpointz.rapids.grpc.ExecQueryRequest;
+import io.qpointz.rapids.grpc.ExecQueryStreamRequest;
 import io.qpointz.rapids.grpc.RapidsDataServiceGrpc;
 import io.qpointz.rapids.grpc.ResponseCode;
 import io.vertx.core.Vertx;
@@ -22,12 +23,16 @@ public class DataServerClient {
         final var met = RapidsDataServiceGrpc.newBlockingStub(channel);
 
         var sql = "SELECT `city` AS `c1`, `id`,`state`,`city` FROM `airlines`.`cities`";
-        var req = ExecSqlRequest.newBuilder()
-                .setBatchSize(53)
+        var queryReq = ExecQueryRequest.newBuilder()
                 .setSql(sql)
                 .build();
 
-        final var iter = met.execSqlBatched(req);
+        var req = ExecQueryStreamRequest.newBuilder()
+                .setSqlRequest(queryReq)
+                .setBatchSize(53)
+                .build();
+
+        final var iter = met.execQueryStream(req);
 
         if (!iter.hasNext()) {
             throw new RuntimeException("No response");

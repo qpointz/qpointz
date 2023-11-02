@@ -12,10 +12,6 @@ public class RapidsConnection implements java.sql.Connection {
         this.config = config;
     }
 
-    public static Connection empty() {
-        return new RapidsConnection(null);
-    }
-
     @Override
     public Statement createStatement() throws SQLException {
         return null;

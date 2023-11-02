@@ -18,4 +18,9 @@ public class DoubleVectorConsumer extends VectorConsumer<Double> {
     protected Double getValue(ResultSet resultSet, int columnIndex) throws SQLException {
         return resultSet.getDouble(columnIndex);
     }
+
+    @Override
+    protected Double nullValue() {
+        return 0D;
+    }
 }

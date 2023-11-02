@@ -18,4 +18,9 @@ public class StringVectorConsumer extends VectorConsumer<String> {
     protected String getValue(ResultSet resultSet, int columnIndex) throws SQLException {
         return resultSet.getString(columnIndex);
     }
+
+    @Override
+    protected String nullValue() {
+        return "";
+    }
 }

@@ -22,7 +22,7 @@ class VectorBlockIteratorTest {
         final var sql = "SELECT `city` AS `c1`, `id`,`state`,`city` FROM `airlines`.`cities`";
         final var schema = ctx.schema(sql);
         final var rs = ctx.execQuery(sql);
-        final var iterator = new VectorBlockIterator(schema, rs, 73);
+        final var iterator = new VectorBlockBatchedIterator(schema, rs, 73);
         var result = StreamSupport.stream(
                 Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL), false)
                 .toList();

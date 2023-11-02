@@ -31,9 +31,11 @@ abstract class VectorConsumer<TValue> {
     public void read(ResultSet resultSet, int columnIndex, int rowIndex) throws SQLException {
         final var value = this.getValue(resultSet, columnIndex);
         final var isnull = resultSet.wasNull();
-        this.values.add(value);
         this.nulls.add(isnull);
+        this.values.add(isnull ? this.nullValue() : value);
     }
 
     protected abstract TValue getValue(ResultSet resultSet, int columnIndex) throws SQLException;
+
+    protected abstract TValue nullValue();
 }

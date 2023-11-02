@@ -26,15 +26,10 @@ public class SchemaBuilder {
 
         final DataType dataType = switch (sqlType) {
             case BOOLEAN -> onBoolean(fieldType);
-
             case CHAR, VARCHAR -> onString(fieldType);
-
             case BINARY, VARBINARY -> onBinary(fieldType);
-
             case BIGINT, TINYINT, SMALLINT, INTEGER  -> onInteger(fieldType);
-
             case DECIMAL, FLOAT, REAL, DOUBLE -> onNumeric(fieldType);
-
             case DATE -> onDate(fieldType);
 
             case TIME -> onTime(fieldType, false);
@@ -85,8 +80,8 @@ public class SchemaBuilder {
 
     private static DataType onNumeric(RelDataType fieldType) {
         final var builder = switch (fieldType.getSqlTypeName()) {
-            case FLOAT -> onFieldType(fieldType, ValueType.FLOAT);
-            case DOUBLE -> onFieldType(fieldType, ValueType.DOUBLE);
+            case FLOAT, REAL -> onFieldType(fieldType, ValueType.FLOAT);
+            case DOUBLE, DECIMAL -> onFieldType(fieldType, ValueType.DOUBLE);
             default -> throw new IllegalArgumentException(
                     String.format("%s non numeric type", fieldType.getSqlTypeName().getName()));
         };

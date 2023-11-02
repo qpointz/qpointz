@@ -17,4 +17,9 @@ public class Int32VectorConsumer extends VectorConsumer<Integer> {
     protected Integer getValue(ResultSet resultSet, int columnIndex) throws SQLException {
         return resultSet.getInt(columnIndex);
     }
+
+    @Override
+    protected Integer nullValue() {
+        return 0;
+    }
 }

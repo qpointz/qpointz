@@ -4,6 +4,7 @@ import io.grpc.stub.StreamObserver;
 import io.qpointz.rapids.grpc.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
+import org.mockito.Mockito;
 
 import static org.mockito.Mockito.*;
 
@@ -16,7 +17,7 @@ class   AbstractRapidsDataServiceTest {
         final var request = ListCatalogRequest.newBuilder().build();
         final var resp = ListCatalogResponse.newBuilder().build();
 
-        final var service = mock(AbstractRapidsDataService.class, Answers.CALLS_REAL_METHODS);
+        final var service = Mockito.mock(AbstractRapidsDataService.class, Answers.CALLS_REAL_METHODS);
         when(service.onListCatalogs(request)).thenReturn(resp);
 
         service.listCatalogs(request, observer);
@@ -31,7 +32,7 @@ class   AbstractRapidsDataServiceTest {
     void processCallsOnErorr() {
         final var observer = (StreamObserver<GetCatalogResponse>)mock(StreamObserver.class);
 
-        final var service = mock(AbstractRapidsDataService.class, Answers.CALLS_REAL_METHODS);
+        final var service = Mockito.mock(AbstractRapidsDataService.class, Answers.CALLS_REAL_METHODS);
         final var request = GetCatalogRequest.newBuilder().build();
         final var throwable = new IllegalArgumentException();
         when(service.onGetCatalog(request)).thenThrow(throwable);
@@ -44,7 +45,7 @@ class   AbstractRapidsDataServiceTest {
     @Test
     void processCallsOnErrorOnNullReply() {
         final var observer = (StreamObserver<GetCatalogResponse>)mock(StreamObserver.class);
-        final var service = mock(AbstractRapidsDataService.class, Answers.CALLS_REAL_METHODS);
+        final var service = Mockito.mock(AbstractRapidsDataService.class, Answers.CALLS_REAL_METHODS);
         when(service.onGetCatalog(isA(GetCatalogRequest.class))).thenReturn(null);
 
         service.getCatalog(GetCatalogRequest.getDefaultInstance(), observer);

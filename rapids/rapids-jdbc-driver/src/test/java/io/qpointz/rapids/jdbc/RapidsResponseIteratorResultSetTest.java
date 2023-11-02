@@ -1,7 +1,9 @@
 package io.qpointz.rapids.jdbc;
 
-import io.qpointz.rapids.grpc.ExecSqlRequest;
+import io.qpointz.rapids.grpc.ExecQueryRequest;
+import io.qpointz.rapids.grpc.ExecQueryStreamRequest;
 import io.qpointz.rapids.grpc.RapidsDataServiceGrpc;
+import io.qpointz.rapids.testing.H2Db;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.grpc.VertxServer;
@@ -17,40 +19,36 @@ import java.io.InputStreamReader;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @Slf4j
 class RapidsResponseIteratorResultSetTest  {
 
-    private static Vertx vertx = Vertx.vertx();
-    private static VertxServer server;
+    private static TestGrpcServer ctx;
 
     @SneakyThrows
     @BeforeAll
     public static void beforeAll() {
-        final var stream = RapidsResponseIteratorResultSetTest.class.getClassLoader().getResourceAsStream("h2-samples/sample.sql");
-        final var reader = new InputStreamReader(stream);
-        server = H2ServerTestUtils.startSample(vertx, "sample", reader);
+        ctx = TestGrpcServer.createServer();
     }
 
     @AfterAll
     public static void afterAll() {
-        H2ServerTestUtils.stopServer(server);
+        ctx.shutdown();
     }
 
-    private java.util.Iterator<io.qpointz.rapids.grpc.ExecSqlResponse> iterable(String sql) {
-        final var vertx = Vertx.vertx();
-        final var client = GrpcClient.client(vertx);
-        final SocketAddress socket = SocketAddress.inetSocketAddress(server.getPort(), "127.0.0.1");
+    private java.util.Iterator<io.qpointz.rapids.grpc.ExecQueryResponse> iterable(String sql) {
+        final var client = GrpcClient.client(TestGrpcServer.vertx);
+        final SocketAddress socket = SocketAddress.inetSocketAddress(ctx.getServer().getPort(), "127.0.0.1");
         final var channel = new GrpcClientChannel(client, socket);
         final var met = RapidsDataServiceGrpc.newBlockingStub(channel);
-        var req = ExecSqlRequest.newBuilder()
-                .setBatchSize(53)
+        var sqlreq = ExecQueryRequest.newBuilder()
                 .setSql(sql)
                 .build();
-        return  met.execSqlBatched(req);
+        var req = ExecQueryStreamRequest.newBuilder()
+                .setSqlRequest(sqlreq)
+                .setBatchSize(53)
+                .build();
+        return  met.execQueryStream(req);
     }
-
 
     @Test
     void trivia() throws SQLException {

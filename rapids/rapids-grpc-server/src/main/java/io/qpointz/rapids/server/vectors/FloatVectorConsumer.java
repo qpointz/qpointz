@@ -18,4 +18,9 @@ public class FloatVectorConsumer extends VectorConsumer<Float> {
     protected Float getValue(ResultSet resultSet, int columnIndex) throws SQLException {
         return resultSet.getFloat(columnIndex);
     }
+
+    @Override
+    protected Float nullValue() {
+        return 0F;
+    }
 }
