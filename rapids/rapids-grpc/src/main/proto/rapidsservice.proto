@@ -90,9 +90,9 @@ enum ValueType {
   BINARY = 3;
   INT32 = 4;
   INT64 = 5;
-  DATE = 6;
-  TIME = 7;
-  TIMESTAMP = 8;
+  DATE = 110;
+  TIME = 111;
+  DATETIME = 112;
   FLOAT =9;
   DOUBLE = 10;
 }

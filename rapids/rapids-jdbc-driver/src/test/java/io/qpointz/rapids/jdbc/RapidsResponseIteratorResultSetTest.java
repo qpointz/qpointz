@@ -5,6 +5,7 @@ import io.qpointz.rapids.grpc.ExecQueryStreamRequest;
 import io.qpointz.rapids.grpc.RapidsDataServiceGrpc;
 import io.qpointz.rapids.testing.H2Db;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.grpc.VertxServer;
 import io.vertx.grpc.client.GrpcClient;
@@ -16,8 +17,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStreamReader;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
 class RapidsResponseIteratorResultSetTest  {
@@ -50,6 +54,11 @@ class RapidsResponseIteratorResultSetTest  {
         return  met.execQueryStream(req);
     }
 
+    private ResultSet resultSet(String sql) {
+        final var iter = iterable(sql);
+        return ResultSets.from(iter);
+    }
+
     @Test
     void trivia() throws SQLException {
         final var iter = iterable("SELECT * FROM `sample`.`T1`");
@@ -64,5 +73,54 @@ class RapidsResponseIteratorResultSetTest  {
             i++;
         }
     }
+
+    @Test
+    void isBeforeFirstReturns() throws SQLException {
+        final var rs = resultSet("SELECT * FROM `sample`.`T1`");
+        assertTrue(rs.isBeforeFirst());
+        while (rs.next()) {
+            assertFalse(rs.isBeforeFirst());
+        }
+    }
+
+    @Test
+    void isFirstReturns() throws SQLException {
+        final var rs = resultSet("SELECT * FROM `sample`.`T1`");
+        rs.next();
+        assertTrue(rs.isFirst());
+        while (rs.next()) {
+            assertFalse(rs.isFirst());
+        }
+    }
+
+    @Test
+    void isLastReturns() throws SQLException {
+        final var cntRs = resultSet("SELECT COUNT(*) AS CNT FROM `sample`.`T1`");
+        cntRs.next();
+        final var cnt = cntRs.getLong(0);
+        assertTrue(cnt>1);
+
+        final var rs = resultSet("SELECT * FROM `sample`.`T1`");
+
+        for (var i=0;i<cnt;i++) {
+            rs.next();
+            if (i<cnt-1) {
+                assertFalse(rs.isLast());
+            } else {
+                assertTrue(rs.isLast());
+            }
+        }
+    }
+
+    @Test
+    void isAfterLastReturns() throws SQLException {
+        final var rs = resultSet("SELECT * FROM `sample`.`T1`");
+        while(rs.next()) {
+            assertFalse(rs.isAfterLast());
+        }
+        assertTrue(rs.isAfterLast());
+    }
+
+
 
 }

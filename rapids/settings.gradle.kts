@@ -15,7 +15,8 @@ include (":rapids-core-legacy")
 include (":rapids-jdbc-driver")
 include (":rapids-srv-worker")
 include (":rapids-grpc")
-include (":rapids-grpc-server")
+include (":rapids-grpc-service")
+include (":rapids-odata-service")
 include (":rapids-test-kit")
 
 dependencyResolutionManagement {
@@ -30,7 +31,7 @@ dependencyResolutionManagement {
             version("lombok", "1.18.30")
             library("lombok", "org.projectlombok", "lombok").versionRef("lombok")
 
-            version("calcite", "1.35.0")
+            version("calcite", "1.36.0")
             library("calcite-core", "org.apache.calcite", "calcite-core").versionRef("calcite")
             library("calcite-testkit", "org.apache.calcite", "calcite-testkit").versionRef("calcite")
             library("calcite-file", "org.apache.calcite", "calcite-file").versionRef("calcite")
@@ -80,22 +81,22 @@ dependencyResolutionManagement {
             library("avro", "org.apache.avro", "avro").versionRef(apacheAvro)
             library("avro-mapred", "org.apache.avro", "avro-mapred").versionRef(apacheAvro)
 
-            val junit = version("junit", "5.10.0")
+            val junit = version("junit", "5.10.1")
             library("junit-jupiter-api", "org.junit.jupiter", "junit-jupiter-api").versionRef(junit)
             library("junit-jupiter-engine", "org.junit.jupiter", "junit-jupiter-engine").versionRef(junit)
             library("junit-vintage-engine", "org.junit.vintage", "junit-vintage-engine").versionRef(junit)
 
-            library("azure-storage-file-datalake", "com.azure", "azure-storage-file-datalake").version("12.17.1")
+            library("azure-storage-file-datalake", "com.azure", "azure-storage-file-datalake").version("12.18.0")
             library("azure-storage-blob-nio", "com.azure", "azure-storage-blob-nio").version("12.0.0-beta.19")
 
-            val vertx = version("vertx", "4.4.6")
+            val vertx = version("vertx", "4.5.0")
             library("vertx-core", "io.vertx", "vertx-core").versionRef(vertx)
             library("vertx-grpc", "io.vertx", "vertx-grpc").versionRef(vertx)
             library("vertx-grpc-server", "io.vertx", "vertx-grpc-server").versionRef(vertx)
             library("vertx-grpc-client", "io.vertx", "vertx-grpc-client").versionRef(vertx)
             library("vertx-grpc-protoc-plugin2", "io.vertx", "vertx-grpc-protoc-plugin2").versionRef(vertx)
 
-            val smallrye = version("smallrye", "3.4.1")
+            val smallrye = version("smallrye", "3.4.4")
             library("smallrye-config", "io.smallrye.config", "smallrye-config").versionRef(smallrye)
             library("smallrye-config-source-yaml", "io.smallrye.config", "smallrye-config-source-yaml").versionRef(smallrye)
 
@@ -113,13 +114,13 @@ dependencyResolutionManagement {
                     "fusesource-jansi"
             ))
 
-            val spring = version("spring", "6.0.13")
+            val spring = version("spring", "6.1.0")
             library("spring-context", "org.springframework","spring-context").versionRef(spring)
 
             val postgre = version("postgre", "42.6.0")
             library("postgresql", "org.postgresql","postgresql").versionRef(postgre)
 
-            val sdl = version("sdl","2.10.23")
+            val sdl = version("sdl","2.11.2")
             library("sdl-odata-service","com.sdl", "odata_service").versionRef(sdl)
             library("sdl-odata-common","com.sdl", "odata_common").versionRef(sdl)
             library("sdl-odata-api","com.sdl", "odata_api").versionRef(sdl) //- Framework APIs
@@ -143,7 +144,7 @@ dependencyResolutionManagement {
             library("mockito-core", "org.mockito", "mockito-core").versionRef(mockito)
             library("mockito-junit-jupiter", "org.mockito", "mockito-junit-jupiter").versionRef(mockito)
 
-            val protobuf = version("protobuf", "3.25.0")
+            val protobuf = version("protobuf", "3.25.1")
             library("protobuf-java", "com.google.protobuf", "protobuf-java").versionRef(protobuf)
             library("protobuf-protoc", "com.google.protobuf", "protoc").versionRef(protobuf)
 

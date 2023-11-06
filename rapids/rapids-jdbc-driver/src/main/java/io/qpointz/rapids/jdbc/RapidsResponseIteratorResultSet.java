@@ -1,9 +1,6 @@
 package io.qpointz.rapids.jdbc;
 
-import io.qpointz.rapids.grpc.ExecQueryResponse;
-import io.qpointz.rapids.grpc.Field;
-import io.qpointz.rapids.grpc.ResponseCode;
-import io.qpointz.rapids.grpc.Schema;
+import io.qpointz.rapids.grpc.*;
 import io.qpointz.rapids.grpc.Vector;
 
 import java.io.InputStream;
@@ -110,150 +107,149 @@ public class RapidsResponseIteratorResultSet implements ResultSet {
         return idx;
     }
 
-    private Vector vectorOf(int columnIndex) {
-        return this.currentResponse
-                .getVector()
-                .getVectors(columnIndex);
+    private <T> T get(VectorReader<T> reader, int columnIndex) throws SQLException {
+        try {
+            final var mayBeVal = reader.read(this.currentResponse, columnIndex, recordIdx);
+            this.wasNull = mayBeVal.isEmpty();
+            return reader.valueOrNull(mayBeVal);
+        } catch (Exception e) {
+            throw new SQLException(e);
+        }
     }
+
+    private <T> T get(VectorReader<T> reader, String columnLabel) throws SQLException {
+        return this.get(reader, findColumn(columnLabel));
+    }
+
     @Override
     public String getString(String columnLabel) throws SQLException {
-        return this.getString(findColumn(columnLabel));
+        return this.get(RapidsTypes.STRING.VECTOR_READER, columnLabel);
     }
 
     @Override
     public String getString(int columnIndex) throws SQLException {
-        final var vector = vectorOf(columnIndex).getStringVector();
-        if (vector.getNulls(this.recordIdx)) {
-            this.wasNull = true;
-            return null;
-        }
-        this.wasNull = false;
-        return vector.getValues(this.recordIdx);
+        return this.get(RapidsTypes.STRING.VECTOR_READER, columnIndex);
     }
 
     @Override
     public int getInt(String columnLabel) throws SQLException {
-        return this.getInt(findColumn(columnLabel));
+        return this.get(RapidsTypes.INT32.VECTOR_READER, columnLabel);
     }
     @Override
     public int getInt(int columnIndex) throws SQLException {
-        final var vector = vectorOf(columnIndex).getInt32Vector();
-        if (vector.getNulls(this.recordIdx)) {
-            this.wasNull = true;
-            return 0;
-        }
-        this.wasNull = false;
-        return vector.getValues(this.recordIdx);
-    }
-
-    @Override
-    public boolean getBoolean(int columnIndex) throws SQLException {
-        final var vector = vectorOf(columnIndex).getBoolVector();
-        if (vector.getNulls(this.recordIdx)) {
-            this.wasNull = true;
-            return false;
-        }
-        this.wasNull = false;
-        return vector.getValues(this.recordIdx);
-    }
-
-    @Override
-    public boolean getBoolean(String columnLabel) throws SQLException {
-        return this.getBoolean(findColumn(columnLabel));
-    }
-
-    @Override
-    public byte getByte(int columnIndex) throws SQLException {
-        return 0;
-    }
-
-    @Override
-    public byte getByte(String columnLabel) throws SQLException {
-        return this.getByte(findColumn(columnLabel));
-    }
-
-    @Override
-    public short getShort(int columnIndex) throws SQLException {
-        return 0;
-    }
-
-    @Override
-    public short getShort(String columnLabel) throws SQLException {
-        return this.getShort(findColumn(columnLabel));
+        return this.get(RapidsTypes.INT32.VECTOR_READER, columnIndex);
     }
 
     @Override
     public long getLong(int columnIndex) throws SQLException {
-        return 0;
+        return this.get(RapidsTypes.INT64.VECTOR_READER, columnIndex);
     }
 
     @Override
     public long getLong(String columnLabel) throws SQLException {
-        return this.getLong(findColumn(columnLabel));
+        return this.get(RapidsTypes.INT64.VECTOR_READER, columnLabel);
+    }
+
+    @Override
+    public boolean getBoolean(int columnIndex) throws SQLException {
+        return this.get(RapidsTypes.BOOLEAN.VECTOR_READER, columnIndex);
+    }
+
+    @Override
+    public boolean getBoolean(String columnLabel) throws SQLException {
+        return this.get(RapidsTypes.BOOLEAN.VECTOR_READER, columnLabel);
     }
 
     @Override
     public float getFloat(int columnIndex) throws SQLException {
-        return 0;
+        return this.get(RapidsTypes.FLOAT.VECTOR_READER, columnIndex);
     }
 
     @Override
     public float getFloat(String columnLabel) throws SQLException {
-        return this.getFloat(findColumn(columnLabel));
+        return this.get(RapidsTypes.FLOAT.VECTOR_READER, columnLabel);
     }
 
     @Override
     public double getDouble(int columnIndex) throws SQLException {
-        return 0;
+        return this.get(RapidsTypes.DOUBLE.VECTOR_READER, columnIndex);
     }
 
     @Override
     public double getDouble(String columnLabel) throws SQLException {
-        return this.getDouble(findColumn(columnLabel));
+        return this.get(RapidsTypes.DOUBLE.VECTOR_READER, columnLabel);
     }
 
     @Override
     public byte[] getBytes(int columnIndex) throws SQLException {
-        return new byte[0];
+        return this.get(RapidsTypes.BYTES.VECTOR_READER, columnIndex).toByteArray();
     }
 
     @Override
     public byte[] getBytes(String columnLabel) throws SQLException {
-        return this.getBytes(findColumn(columnLabel));
+        return this.get(RapidsTypes.BYTES.VECTOR_READER, columnLabel).toByteArray();
     }
-
     @Override
     public Date getDate(int columnIndex) throws SQLException {
-        return null;
+        return Date.valueOf(this.get(RapidsTypes.DATE.VECTOR_READER, columnIndex));
     }
 
     @Override
     public Date getDate(String columnLabel) throws SQLException {
-        return this.getDate(findColumn(columnLabel));
+        return Date.valueOf(this.get(RapidsTypes.DATE.VECTOR_READER, columnLabel));
+    }
+
+    @Override
+    public Date getDate(int columnIndex, Calendar cal) throws SQLException {
+        throwSqlException("Calendar operation not supported");
+        return null;
+    }
+
+    @Override
+    public Date getDate(String columnLabel, Calendar cal) throws SQLException {
+        throwSqlException("Calendar operation not supported");
+        return null;
     }
 
     @Override
     public Time getTime(int columnIndex) throws SQLException {
-        return null;
+        return Time.valueOf(this.get(RapidsTypes.TIME.VECTOR_READER, columnIndex));
     }
 
     @Override
     public Time getTime(String columnLabel) throws SQLException {
-        return this.getTime(findColumn(columnLabel));
+        return Time.valueOf(this.get(RapidsTypes.TIME.VECTOR_READER, columnLabel));
     }
 
     @Override
     public Timestamp getTimestamp(int columnIndex) throws SQLException {
-        return null;
+        return Timestamp.valueOf(this.get(RapidsTypes.DATETIME.VECTOR_READER, columnIndex));
     }
 
     @Override
     public Timestamp getTimestamp(String columnLabel) throws SQLException {
-        return this.getTimestamp(findColumn(columnLabel));
+        return Timestamp.valueOf(this.get(RapidsTypes.DATETIME.VECTOR_READER, columnLabel));
     }
 
+    @Override
+    public byte getByte(int columnIndex) throws SQLException {
+        return (byte)this.getInt(columnIndex);
+    }
 
-    /* position methods */
+    @Override
+    public byte getByte(String columnLabel) throws SQLException {
+        return (byte)this.getInt(columnLabel);
+    }
+
+    @Override
+    public short getShort(int columnIndex) throws SQLException {
+        return (short)this.getInt(columnIndex);
+    }
+
+    @Override
+    public short getShort(String columnLabel) throws SQLException {
+        return (short)this.getInt(columnLabel);
+    }
 
     @Override
     public boolean isBeforeFirst() throws SQLException {
@@ -980,16 +976,6 @@ public class RapidsResponseIteratorResultSet implements ResultSet {
 
     @Override
     public Array getArray(String columnLabel) throws SQLException {
-        return null;
-    }
-
-    @Override
-    public Date getDate(int columnIndex, Calendar cal) throws SQLException {
-        return null;
-    }
-
-    @Override
-    public Date getDate(String columnLabel, Calendar cal) throws SQLException {
         return null;
     }
 

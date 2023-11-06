@@ -23,10 +23,18 @@ public class TestGrpcServer {
     @Getter
     private final H2Db db;
 
-
     @SneakyThrows
     public static TestGrpcServer createServer()  {
-        final var stream = RapidsResponseIteratorResultSetTest.class.getClassLoader().getResourceAsStream("h2-samples/sample.sql");
+        return TestGrpcServer.createServer("h2-test/sample.sql");
+    }
+
+    @SneakyThrows
+    public static TestGrpcServer createServer(String resourcePath)  {
+        final var stream = RapidsResponseIteratorResultSetTest
+                .class
+                .getClassLoader()
+                .getResourceAsStream(resourcePath);
+
         final var reader = new InputStreamReader(stream);
         final var db = H2Db.create("sample", reader);
 

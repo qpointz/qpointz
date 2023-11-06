@@ -12,12 +12,13 @@ stages:
   - test
   - build
   - package
+  - contrib-test
 
 workflow:
   rules:
     - when : always
 
-rapids:unitTests:
+rapids:unit-tests:
   stage: test
   script:
     - cd ${CI_PROJECT_DIR}/rapids
@@ -44,10 +45,10 @@ rapids:build-protoc-codegen:
     paths:
       - ${PROTOC_OUT}/**/*      
 
-rapids:jdbcDriverJar:
+rapids:jdbc-driver-uber-jar:
   stage: build
   needs:
-    - job: rapids:unitTests
+    - job: rapids:unit-tests
       artifacts: false
   script:
     - cd ${CI_PROJECT_DIR}/rapids
@@ -56,10 +57,10 @@ rapids:jdbcDriverJar:
     paths:
       - ./rapids-jdbc-driver/build/libs/*-all.jar
 
-rapids:bootstrapApp:
+rapids:bootstrap-app:
   stage: build
   needs:
-    - job: rapids:unitTests
+    - job: rapids:unit-tests
       artifacts: false
   script:
     - cd ${CI_PROJECT_DIR}/rapids
@@ -68,12 +69,39 @@ rapids:bootstrapApp:
     paths:
       - ${CI_PROJECT_DIR}/rapids/rapids-srv-worker/build/rapids-app/*/*
 
+rapids:grpc-service-install-dist:
+  stage: build
+  needs:
+    - job: rapids:unit-tests
+      artifacts: false
+  script:
+    - cd ${CI_PROJECT_DIR}/rapids
+    - gradle installDist
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/rapids/rapids-grpc-service/build/install/*/*
+
+rapids:grpc-service-publish-docker:
+  stage: build
+  extends: .docker-build-job
+  needs:
+    - job: rapids:grpc-service-install-dist
+      artifacts: true
+  script:
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}/rapids/rapids-grpc-service"
+      --dockerfile "${CI_PROJECT_DIR}/rapids/rapids-grpc-service/Dockerfile"
+      --cache-dir "${CI_KANIKO_CACHE_DIR}/rapids-grpc-service"      
+      --destination "${CI_REGISTRY_IMAGE}/rapids-grpc-service:${QP_CONTAINER_TAG}"
+      --cache=true
+
 
 rapids:build-docker-image-development:
   stage: package
   extends: .docker-build-job
   needs:
-    - job: rapids:bootstrapApp
+    - job: rapids:bootstrap-app
       artifacts: true
   except:
     - master
@@ -92,7 +120,7 @@ rapids:publish-docker-image-development:
   stage: package
   extends: .docker-build-job
   needs:
-    - job: rapids:bootstrapApp
+    - job: rapids:bootstrap-app
       artifacts: true
   only:
     - dev
@@ -110,7 +138,7 @@ rapids:publish-docker-image-latest:
   stage: package
   extends: .docker-build-job
   needs:
-    - job: rapids:bootstrapApp
+    - job: rapids:bootstrap-app
       artifacts: true
   only:
     - main
@@ -126,3 +154,4 @@ rapids:publish-docker-image-latest:
       --destination "qpointz/rapids-worker"
       --destination "qpointzcr.azurecr.io/rapids-worker:${QP_CONTAINER_TAG}"      
       --destination "qpointzcr.azurecr.io/rapids-worker"      
+      

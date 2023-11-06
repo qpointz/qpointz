@@ -3,6 +3,13 @@ package io.qpointz.rapids.jdbc;
 import java.sql.*;
 
 public class RapidsStatement implements Statement {
+
+    private final RapidsConnection connection;
+
+    RapidsStatement(RapidsConnection connection) {
+        this.connection = connection;
+    }
+
     @Override
     public ResultSet executeQuery(String sql) throws SQLException {
         return null;

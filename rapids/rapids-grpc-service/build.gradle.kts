@@ -1,23 +1,35 @@
 plugins {
-    id("com.github.johnrengelman.shadow") version("8.1.1")
-    `java-library`
+    java
+    application
+    scala
     jacoco
 }
 
-shadow {
-    //archiveBaseName("lala")
-    //baseN
-}
-
 dependencies {
-    implementation(libs.calcite.core)
-    implementation(libs.calcite.csv)
-    implementation(project(":rapids-grpc"))
-    implementation(libs.avatica.core)
-    implementation(libs.avatica.server)
-
     implementation(libs.lombok)
     annotationProcessor(libs.lombok)
+    implementation(libs.bundles.logging)
+
+    implementation(project(":rapids-grpc"))
+    implementation(project(":rapids-common"))
+    implementation(project(":rapids-core-legacy"))
+    implementation(libs.calcite.core)
+    implementation(libs.calcite.csv)
+
+    implementation(libs.spring.context)
+
+    implementation(libs.vertx.core)
+    implementation(libs.vertx.grpc)
+    implementation(libs.vertx.grpc.server)
+    implementation(libs.vertx.grpc.client)
+
+    implementation(libs.protobuf.java)
+    implementation(libs.javax.annotation.api)
+}
+
+application {
+    mainClass.set("io.qpointz.rapids.server.GrpcService")
+    executableDir = "bin"
 }
 
 testing {
@@ -33,10 +45,9 @@ testing {
                 dependencies {
                     implementation(project())
                     implementation(project(":rapids-test-kit"))
-                    implementation(project(":rapids-grpc-service"))
+                    implementation(libs.apache.commons.lang3)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
-                    implementation(libs.h2.database)
                     implementation(libs.lombok)
                     annotationProcessor(libs.lombok)
                 }

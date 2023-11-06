@@ -10,7 +10,7 @@ dependencies {
     jacocoAggregation(project(":rapids-jdbc-driver"))
     jacocoAggregation(project(":rapids-srv-worker"))
     jacocoAggregation(project(":rapids-grpc"))
-    jacocoAggregation(project(":rapids-grpc-server"))
+    jacocoAggregation(project(":rapids-grpc-service"))
 }
 
 

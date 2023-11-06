@@ -19,7 +19,7 @@ dependencies {
         exclude("javax.ws.rs")
     }
 
-    implementation("com.google.guava:guava:31.1-jre")
+    implementation("com.google.guava:guava:32.1.3-jre")
 
     api(libs.azure.storage.file.datalake)
     implementation(libs.azure.storage.blob.nio)
