@@ -1,12 +1,11 @@
 #!/usr/bin/python3
 import os
 import re
-import json
 import sys
 
 def scan(indir, outfilepath):
     pattern=r'(?P<type>^[\w-]+)-v(er)*(?P<fullversion>(?P<version>\d+\.\d+\.\d+)(-(?P<milestone>\w[\w-]+))*)'
-    versions={}
+    versions=[]
     va=[]
     for a in os.listdir(indir):
         fullpath=os.path.join(indir,a)
@@ -17,23 +16,35 @@ def scan(indir, outfilepath):
         va.append(a)
         if 'dev' == a:
             print("development version")
-            versions.update({"development" : "dev"})    
+            versions.append((1, "development","dev"))    
             continue
         if 'master' == a or 'main' == a:
             print("stable version")
-            versions.update({"stable" : "stable"})
+            versions.append((0, "stable" , "stable"))
             continue
 
         match = re.match(pattern, a)
-        path=a
-        fversion=match.group('fullversion')
-        print(f"version:{fversion} => path:{path}")
-        versions.update({f"v{fversion}" : f"{path}"})
+
+        if (match and match.groupdict().get('fullversion')):
+            path=a
+            fversion=match.group('fullversion')
+            print(f"version:{fversion} => path:{path}")
+            versions.append((2, f"v{fversion}" , f"{path}"))
+        else:
+            versions.append((3, f"branch-{a}" , f"{a}" ))
+            print(f"version:branch-{a} => path:{a}")
+
     if (os.path.exists(outfilepath)):
         print(f"{outfilepath} exists.deleting")
         os.remove(outfilepath)
+    
+    versions.sort(key=lambda x:x[0])
+    nv = []
+    for ta in versions:
+        nv.append(f"\"{ta[1]}\":\"{ta[2]}\"")
+    json ="{" + ",".join(nv) + "}"
     with open(outfilepath, "w") as outfile:
-        json.dump(versions, outfile)
+        outfile.write(json)
 
 
 if __name__ == '__main__':
