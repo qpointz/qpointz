@@ -1,0 +1,184 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "io.qpointz.rapids.grpc";
+option java_outer_classname = "RapidsDataSvc";
+
+package io.qpointz.rapids.protocol;
+
+import "google/protobuf/wrappers.proto";
+
+service RapidsDataService {
+  rpc Handshake (HandshakeRequest) returns (HandshakeResponse);
+  rpc ListCatalogs(ListCatalogRequest) returns (ListCatalogResponse);
+  rpc GetCatalog(GetCatalogRequest) returns (GetCatalogResponse);
+  rpc ExecQuery(ExecQueryRequest) returns (ExecQueryResponse);
+  rpc ExecQueryStream(ExecQueryStreamRequest) returns (stream ExecQueryResponse);
+}
+
+enum ResponseCode {
+  OK=0;
+  ERROR =1;
+  INVALID_REQUEST =2 ;
+}
+
+message ResponseStatus {
+  ResponseCode code = 1;
+  string message = 2;
+}
+
+enum ServiceVersion {
+  V_10 = 0;
+}
+
+message HandshakeRequest {
+}
+
+message HandshakeResponse {
+  ResponseStatus status = 1;
+  optional ServiceVersion version = 3;
+}
+
+message ListCatalogRequest {
+}
+message ListCatalogResponse {
+  ResponseStatus status = 1;
+  repeated string catalogues = 2;
+}
+
+message GetCatalogRequest {
+  string catalogName = 2;
+}
+
+message GetCatalogResponse {
+  ResponseStatus status = 1;
+  repeated Table tables = 3;
+}
+
+message Table {
+  string catalogName = 1;
+  string name = 2;
+  Schema schema = 3;
+}
+
+message Schema {
+  repeated Field fields = 1;
+}
+
+
+message Field {
+  string name         = 1;
+  uint32 index        = 2;
+  DataType fieldType  = 3;
+}
+
+message DataType {
+  bool nullable     = 1;
+  ValueType dataType = 2;
+
+  optional uint32 length = 3;
+  optional bool withTimezone =4;
+  optional uint32 precision = 5;
+  optional uint32 scale = 6;
+}
+
+enum ValueType {
+  UNKNOWN_VALUE_TYPE = 0;
+
+  BOOLEAN = 1;
+  STRING = 2;
+  BINARY = 3;
+  INT32 = 4;
+  INT64 = 5;
+  DATE = 110;
+  TIME = 111;
+  DATETIME = 112;
+  FLOAT =9;
+  DOUBLE = 10;
+}
+
+message SqlParameter {
+  uint32 index = 1;
+  optional string name=2;
+  ValueType valueType = 3;
+  oneof value {
+    bool booleanValue = 10;
+    string stringValue = 11;
+    int32 int32Value = 12;
+    int64 int64Value = 13;
+    float floatValue = 14;
+    double doubleValue = 15;
+  }
+}
+
+message ExecQueryRequest {
+  string sql = 1;
+  repeated SqlParameter parameters = 2;
+  uint32 batchSize = 3;
+}
+
+message ExecQueryStreamRequest {
+  ExecQueryRequest sqlRequest = 1;
+  uint32 batchSize = 2;
+}
+
+
+
+message ExecQueryResponse {
+  ResponseStatus status = 1;
+  optional Schema schema = 100;
+  VectorBlock vector = 101;
+}
+
+message VectorBlock {
+  uint32 vectorSize = 1;
+  repeated Vector vectors = 2;
+}
+
+message Vector {
+  uint32 index = 1;
+  oneof data {
+    StringVector stringVector = 100;
+    Int32Vector int32Vector = 101;
+    Int64Vector int64Vector = 102;
+    DoubleVector doubleVector = 103;
+    FloatVector floatVector = 104;
+    BoolVector  boolVector =105;
+    ByteVector byteVector = 106;
+  }
+}
+
+message StringVector {
+  repeated string values  = 1;
+  repeated bool nulls = 2;
+}
+
+message Int32Vector {
+  repeated sint32 values = 1;
+  repeated bool nulls = 2;
+}
+
+message Int64Vector {
+  repeated sint64 values = 1;
+  repeated bool nulls = 2;
+}
+
+message DoubleVector {
+  repeated double values = 1;
+  repeated bool nulls = 2;
+}
+
+message FloatVector {
+  repeated float values = 1;
+  repeated bool nulls = 2;
+}
+
+message BoolVector {
+  repeated bool values = 1;
+  repeated bool nulls = 2;
+}
+
+message ByteVector {
+  repeated bytes values = 1;
+  repeated bool nulls = 2;
+}
