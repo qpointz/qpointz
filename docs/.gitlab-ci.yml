@@ -42,7 +42,11 @@ pages:
       -D "smv_branch_whitelist=$DOC_BRANCH_WHITE_LIST" 
       ${CI_PROJECT_DIR}/docs/source ${CI_PROJECT_DIR}/docs/build
     - cd ${CI_PROJECT_DIR}/docs/build
-    - git branch --remote --format "%(refname:lstrip=3)" | grep -E '\/' | xargs -l bash -c 'mv $0 $(echo "$0" | sed '"'"'s/\//-/g'"'"' )'
+    - |
+      if git branch --remote --format "%(refname:lstrip=3)" | grep -E '\/'
+      then  
+        git branch --remote --format "%(refname:lstrip=3)" | grep -E '\/' | xargs -l bash -c 'mv $0 $(echo "$0" | sed '"'"'s/\//-/g'"'"' )'
+      fi
     - find ${CI_PROJECT_DIR}/docs/build -empty -type d -delete    
     - multi-version-info.py ${CI_PROJECT_DIR}/docs/build ${CI_PROJECT_DIR}/docs/build/versions.json
     - cd ${CI_PROJECT_DIR}/docs        
