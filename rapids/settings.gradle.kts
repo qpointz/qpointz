@@ -28,45 +28,45 @@ dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
 
-            version("lombok", "1.18.30")
-            library("lombok", "org.projectlombok", "lombok").versionRef("lombok")
+            val lombok = version("lombok", "1.18.30")
+            library("lombok", "org.projectlombok", "lombok").versionRef(lombok)
 
-            version("calcite", "1.36.0")
-            library("calcite-core", "org.apache.calcite", "calcite-core").versionRef("calcite")
+            val calcite = version("calcite", "1.36.0")
+            library("calcite-core", "org.apache.calcite", "calcite-core").versionRef(calcite)
             library("calcite-testkit", "org.apache.calcite", "calcite-testkit").versionRef("calcite")
             library("calcite-file", "org.apache.calcite", "calcite-file").versionRef("calcite")
-            library("calcite-csv", "org.apache.calcite", "calcite-csv").versionRef("calcite")
+            library("calcite-csv", "org.apache.calcite", "calcite-csv").versionRef(calcite)
 
-            version("avatica", "1.23.0")
-            library("avatica-core", "org.apache.calcite.avatica", "avatica-core").versionRef("avatica")
-            library("avatica-server", "org.apache.calcite.avatica", "avatica-server").versionRef("avatica")
+            val avatica = version("avatica", "1.23.0")
+            library("avatica-core", "org.apache.calcite.avatica", "avatica-core").versionRef(avatica)
+            library("avatica-server", "org.apache.calcite.avatica", "avatica-server").versionRef(avatica)
 
-            version("rest-assured", "5.3.0")
-            library("rest-assured", "io.rest-assured", "rest-assured").versionRef("rest-assured")
-
-            val quarkus = version("quarkus", "2.16.6.Final")
-            library("quarkus-bom", "io.quarkus.platform", "quarkus-bom").versionRef(quarkus)
-            library("quarkus-arc", "io.quarkus", "quarkus-arc").versionRef(quarkus)
-            library("quarkus-resteasy-reactive", "io.quarkus", "quarkus-resteasy-reactive").versionRef(quarkus)
-            library("quarkus-resteasy-reactive-jackson", "io.quarkus", "quarkus-resteasy-reactive-jackson").versionRef(quarkus)
-            library("quarkus-junit5", "io.quarkus", "quarkus-junit5").versionRef(quarkus)
-            library("quarkus-config-yaml", "io.quarkus", "quarkus-config-yaml").versionRef(quarkus)
-            library("quarkus-vertx", "io.quarkus", "quarkus-vertx").versionRef(quarkus)
-            library("quarkus-container-image-docker", "io.quarkus", "quarkus-container-image-docker").versionRef(quarkus)
-
-            val apacheArrowFlight = version("arrow", "11.0.0")
-            library("arrow-format", "org.apache.arrow", "arrow-format").versionRef(apacheArrowFlight)
-            library("arrow-jdbc", "org.apache.arrow", "arrow-jdbc").versionRef(apacheArrowFlight)
-            library("arrow-vector", "org.apache.arrow", "arrow-vector").versionRef(apacheArrowFlight)
-            library("arrow-flight-core", "org.apache.arrow", "flight-core").versionRef(apacheArrowFlight)
-            library("arrow-flight-grpc", "org.apache.arrow", "flight-grpc").versionRef(apacheArrowFlight)
-            library("arrow-flight-sql", "org.apache.arrow", "flight-sql").versionRef(apacheArrowFlight)
-
-            val apacheMinaFtpServer = version("minaftpserver", "1.2.0")
-            library("apache-mina-ftpserver-core", "org.apache.ftpserver", "ftpserver-core").versionRef(apacheMinaFtpServer)
-            library("apache-mina-ftpserver-ftplet-api", "org.apache.ftpserver", "ftplet-api").versionRef(apacheMinaFtpServer)
-            library("apache-mina-ftpserver", "org.apache.ftpserver", "ftpserver").versionRef(apacheMinaFtpServer)
-
+//            version("rest-assured", "5.3.0")
+//            library("rest-assured", "io.rest-assured", "rest-assured").versionRef("rest-assured")
+//
+//            val quarkus = version("quarkus", "2.16.6.Final")
+//            library("quarkus-bom", "io.quarkus.platform", "quarkus-bom").versionRef(quarkus)
+//            library("quarkus-arc", "io.quarkus", "quarkus-arc").versionRef(quarkus)
+//            library("quarkus-resteasy-reactive", "io.quarkus", "quarkus-resteasy-reactive").versionRef(quarkus)
+//            library("quarkus-resteasy-reactive-jackson", "io.quarkus", "quarkus-resteasy-reactive-jackson").versionRef(quarkus)
+//            library("quarkus-junit5", "io.quarkus", "quarkus-junit5").versionRef(quarkus)
+//            library("quarkus-config-yaml", "io.quarkus", "quarkus-config-yaml").versionRef(quarkus)
+//            library("quarkus-vertx", "io.quarkus", "quarkus-vertx").versionRef(quarkus)
+//            library("quarkus-container-image-docker", "io.quarkus", "quarkus-container-image-docker").versionRef(quarkus)
+//
+//            val apacheArrowFlight = version("arrow", "11.0.0")
+//            library("arrow-format", "org.apache.arrow", "arrow-format").versionRef(apacheArrowFlight)
+//            library("arrow-jdbc", "org.apache.arrow", "arrow-jdbc").versionRef(apacheArrowFlight)
+//            library("arrow-vector", "org.apache.arrow", "arrow-vector").versionRef(apacheArrowFlight)
+//            library("arrow-flight-core", "org.apache.arrow", "flight-core").versionRef(apacheArrowFlight)
+//            library("arrow-flight-grpc", "org.apache.arrow", "flight-grpc").versionRef(apacheArrowFlight)
+//            library("arrow-flight-sql", "org.apache.arrow", "flight-sql").versionRef(apacheArrowFlight)
+//
+//            val apacheMinaFtpServer = version("minaftpserver", "1.2.0")
+//            library("apache-mina-ftpserver-core", "org.apache.ftpserver", "ftpserver-core").versionRef(apacheMinaFtpServer)
+//            library("apache-mina-ftpserver-ftplet-api", "org.apache.ftpserver", "ftplet-api").versionRef(apacheMinaFtpServer)
+//            library("apache-mina-ftpserver", "org.apache.ftpserver", "ftpserver").versionRef(apacheMinaFtpServer)
+//
             val apacheParuet = version("apacheParquet", "1.13.1")
             library("parquet-avro","org.apache.parquet", "parquet-avro").versionRef(apacheParuet)
             library("parquet-common","org.apache.parquet", "parquet-common").versionRef(apacheParuet)
@@ -113,21 +113,21 @@ dependencyResolutionManagement {
                     "logback-classic",
                     "fusesource-jansi"
             ))
-
-            val spring = version("spring", "6.1.0")
+//
+            val spring = version("spring", "6.1.1")
             library("spring-context", "org.springframework","spring-context").versionRef(spring)
-
-            val postgre = version("postgre", "42.6.0")
+//
+            val postgre = version("postgre", "42.7.0")
             library("postgresql", "org.postgresql","postgresql").versionRef(postgre)
-
-            val sdl = version("sdl","2.11.2")
-            library("sdl-odata-service","com.sdl", "odata_service").versionRef(sdl)
-            library("sdl-odata-common","com.sdl", "odata_common").versionRef(sdl)
-            library("sdl-odata-api","com.sdl", "odata_api").versionRef(sdl) //- Framework APIs
-            library("sdl-odata-processor","com.sdl", "odata_parser").versionRef(sdl) //- OData URI parser
-            library("sdl-odata-renderer","com.sdl", "odata_renderer").versionRef(sdl) //- Renderers for Atom and JSON output
-            library("sdl-odata-edm","com.sdl", "odata_edm").versionRef(sdl) //- The OData EDM metadata (Entity Data Model)
-
+//
+//            val sdl = version("sdl","2.11.2")
+//            library("sdl-odata-service","com.sdl", "odata_service").versionRef(sdl)
+//            library("sdl-odata-common","com.sdl", "odata_common").versionRef(sdl)
+//            library("sdl-odata-api","com.sdl", "odata_api").versionRef(sdl) //- Framework APIs
+//            library("sdl-odata-processor","com.sdl", "odata_parser").versionRef(sdl) //- OData URI parser
+//            library("sdl-odata-renderer","com.sdl", "odata_renderer").versionRef(sdl) //- Renderers for Atom and JSON output
+//            library("sdl-odata-edm","com.sdl", "odata_edm").versionRef(sdl) //- The OData EDM metadata (Entity Data Model)
+//
             val olingo = version("olingo", "4.10.0")
             library("olingo-odata-server-core", "org.apache.olingo", "odata-server-core").versionRef(olingo)
             library("olingo-odata-server-api", "org.apache.olingo", "odata-server-api").versionRef(olingo)
@@ -154,13 +154,13 @@ dependencyResolutionManagement {
 
             library ("h2-database", "com.h2database", "h2").version("2.2.224")
 
-            val apacheCommons = version("apacheCommons", "3.13.0")
+            val apacheCommons = version("apacheCommons", "3.14.0")
             library("apache-commons-lang3","org.apache.commons", "commons-lang3").versionRef(apacheCommons)
 
-            val scala = version("scala", "2.13.12")
-            library("scala-library", "org.scala-lang", "scala-library").versionRef(scala)
-            library("scala-reflect", "org.scala-lang", "scala-reflect").versionRef(scala)
-            library("scala-compiler", "org.scala-lang", "scala-compiler").versionRef(scala)
+//            val scala = version("scala", "2.13.12")
+//            library("scala-library", "org.scala-lang", "scala-library").versionRef(scala)
+//            library("scala-reflect", "org.scala-lang", "scala-reflect").versionRef(scala)
+//            library("scala-compiler", "org.scala-lang", "scala-compiler").versionRef(scala)
 
         }
     }
