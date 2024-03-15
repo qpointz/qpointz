@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: demo
+grpc:
+  server:
+    address: '*'
+    port: 8080
+    security:
+      enabled: on
+delta:
+  service:
+    auth:
+      basic:

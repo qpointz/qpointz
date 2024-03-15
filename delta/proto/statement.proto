@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package qpointz.delta;
+
+option java_multiple_files = true;
+option java_package = "io.qpointz.delta.proto";
+
+import "substrait/plan.proto";
+import "substrait/type.proto";
+import "common.proto";
+
+message Parameter {
+  uint32 index = 1;
+  optional string name=2;
+  substrait.Type type = 3;
+  oneof value {
+    bool booleanValue = 10;
+    string stringValue = 11;
+    int32 int32Value = 12;
+    int64 int64Value = 13;
+    float floatValue = 14;
+    double doubleValue = 15;
+  }
+}
+
+message SQLStatement {
+  string statement = 1;
+  repeated Parameter parameters = 2;
+}
+
+message PlanStatement {
+  substrait.Plan plan = 1;
+}
+
+message TextPlanStatement {
+  enum TextPlanFormat {
+    JSON=0;
+    YAML=1;
+  }
+  string plan = 1;
+  TextPlanFormat format = 2;
+}
+
+message Statement {
+  oneof content {
+    SQLStatement sql = 10;
+    PlanStatement plan = 20;
+    TextPlanStatement text = 30;
+  }
+}
+
+message PreparedStatement {
+  oneof content {
+    SQLStatement sql = 10;
+    PlanStatement plan = 20;
+  }
+}

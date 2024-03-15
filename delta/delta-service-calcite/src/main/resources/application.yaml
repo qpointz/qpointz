@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: delta-calcite
+grpc:
+  server:
+    address: '*'
+    port: 8080
+    security:
+      enabled: off
+  client:
+    hello:
+      address: "localhost:8080"
+      negotiation-type: plaintext
+calcite:
+  connection:
+    quoting: BACK_TICK
+    caseSensitive: true
+    unquotedCasing: UNCHANGED

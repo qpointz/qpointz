@@ -45,7 +45,23 @@ flow:build:
         - .gitlab-ci.yml
         - .gitlab/**/*
         - etc/docker/**/*
-        - flow/**/*        
+        - flow/**/*  
+
+delta:build:
+  stage: build-components
+  needs:
+    - job: ci-init:init
+      optional: true
+  trigger:
+    include:
+      - local: delta/.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - changes:
+        - .gitlab-ci.yml
+        - .gitlab/**/*
+        - etc/docker/**/*
+        - delta/**/*              
 
 docs:build:
   stage: build-components
