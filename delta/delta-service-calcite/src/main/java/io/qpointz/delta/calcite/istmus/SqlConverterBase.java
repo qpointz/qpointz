@@ -141,6 +141,17 @@ class SqlConverterBase {
     return Pair.of(validator, catalogReader);
   }
 
+  Pair<SqlValidator, CalciteCatalogReader> registerSchema(CalciteSchema rootSchema) {
+    CalciteCatalogReader catalogReader =
+            new CalciteCatalogReader(rootSchema, List.of(), factory, config);
+    SqlValidator validator = Validator.create(factory, catalogReader, SqlValidator.Config.DEFAULT);
+
+    return Pair.of(validator, catalogReader);
+  }
+
+
+
+
   protected List<DefinedTable> parseCreateTable(
       RelDataTypeFactory factory, SqlValidator validator, String sql) throws SqlParseException {
     SqlParser parser = SqlParser.create(sql, parserConfig);

@@ -1,22 +1,31 @@
 package io.qpointz.delta.calcite;
 
+import io.qpointz.delta.proto.PlanStatement;
 import io.qpointz.delta.proto.PreparedStatement;
 import io.qpointz.delta.proto.SQLStatement;
 import io.qpointz.delta.proto.VectorBlock;
 import io.qpointz.delta.service.ExecutionProvider;
 import io.qpointz.delta.service.SqlExecutionProvider;
 import io.qpointz.delta.service.SubstraitExecutionProvider;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.val;
+import io.qpointz.delta.sql.BlockReader;
+import io.substrait.extension.ExtensionCollector;
+import io.substrait.extension.ImmutableSimpleExtension;
+import io.substrait.extension.SimpleExtension;
+import io.substrait.isthmus.SubstraitToCalcite;
+import io.substrait.isthmus.SubstraitToSql;
+import io.substrait.plan.ProtoPlanConverter;
+import io.substrait.relation.Rel;
+import lombok.*;
 import org.apache.calcite.jdbc.CalciteConnection;
+import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.tools.RelRunner;
 
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Iterator;
 
 @AllArgsConstructor
-public class CalciteExecutionProvider extends SubstraitExecutionProvider implements ExecutionProvider, SqlExecutionProvider  {
+public class CalciteExecutionProvider  implements SubstraitExecutionProvider, ExecutionProvider, SqlExecutionProvider  {
 
     @Getter(AccessLevel.PROTECTED)
     private CalciteConnection calciteConnection;
@@ -32,21 +41,29 @@ public class CalciteExecutionProvider extends SubstraitExecutionProvider impleme
     }
 
     @Override
-    public Iterator<VectorBlock> execute(PreparedStatement statement, int batchSize) {
-        try {
-            if (statement.hasSql()) {
-                    return executeSql(statement.getSql(), batchSize);
-            }
-
-            throw new RuntimeException("Unsuported prepared statement");
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    public Iterator<VectorBlock> execute(SQLStatement sql, int batchSize) throws SQLException {
+        return executeSql(sql.getStatement(), batchSize);
     }
 
-    private Iterator<VectorBlock> executeSql(SQLStatement sql, int batchSize) throws SQLException {
+    private BlockReader executeSql(String sql, int batchSize) throws SQLException {
         val stmt = this.getCalciteConnection().createStatement();
-        val resultSet = stmt.executeQuery(sql.getStatement());
-        throw new RuntimeException("Not implemented yet");
+        val resultSet = stmt.executeQuery(sql);
+        return new BlockReader(resultSet, batchSize);
+    }
+
+    @SneakyThrows
+    @Override
+    public Iterator<VectorBlock> execute(PlanStatement plan, int batchSize) throws SQLException {
+        val extensions = ImmutableSimpleExtension.ExtensionCollection.builder().build();
+        val a = new io.substrait.isthmus.SubstraitToCalcite(extensions, this.calciteConnection.getTypeFactory());
+        val c = new ProtoPlanConverter();
+        val p = c.from(plan.getPlan());
+        val node = a.convert(p.getRoots().get(0).getInput());
+        /*val relRunner = this.getCalciteConnection().unwrap(RelRunner.class);
+        val stmt = relRunner.prepareStatement(node);
+        val resultSet = stmt.executeQuery();
+        return new BlockReader(resultSet, batchSize);*/
+        val sql = io.substrait.isthmus.SubstraitToSql.toSql(node);
+        return executeSql(sql, batchSize);
     }
 }

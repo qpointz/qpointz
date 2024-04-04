@@ -2,23 +2,33 @@ plugins {
     `java-library`
     //id("org.springframework.boot") version libs.versions.boot
     id("io.spring.dependency-management") version "1.1.4"
-    id("com.google.protobuf") version "0.9.4"
+    //id("com.google.protobuf") version "0.9.4"
     jacoco
 }
 
-buildscript {
-    dependencies {
-        classpath("com.google.protobuf:protobuf-gradle-plugin:0.9.4")
-    }
-}
+//buildscript {
+//    dependencies {
+//        classpath("com.google.protobuf:protobuf-gradle-plugin:0.9.4")
+//    }
+//}
 
-sourceSets {
-    main {
-        proto {
-            srcDir("../proto")
-            exclude("substrait/**")
-        }
-    }
+//sourceSets {
+//    main {
+//        proto {
+//            srcDir("../proto")
+//            exclude("substrait/**")
+//        }
+//
+//        resources {
+//            srcDir("../delta-ui/build")
+//        }
+//    }
+//}
+
+
+tasks.register<Copy>("copyUI") {
+    from(layout.projectDirectory.dir("../delta-ui/build"))
+    into(layout.projectDirectory.dir("/src/main/resources/ui"))
 }
 
 java {
@@ -38,11 +48,15 @@ tasks.jacocoTestReport {
 }
 
 dependencies {
-    api(libs.substrait.core)
-    implementation(libs.grpc.protobuf)
-    implementation(libs.grpc.stub)
+    implementation(project(":delta-core"))
+//    implementation(libs.grpc.protobuf)
+//    implementation(libs.grpc.stub)
     implementation(libs.javax.annotation.api)
     api(libs.boot.starter.security)
+    //api(libs.boot.starter.web)
+
+    implementation("jakarta.servlet:jakarta.servlet-api:6.0.0")
+
 
     implementation(libs.bundles.logging)
     compileOnly(libs.lombok)
@@ -63,25 +77,25 @@ dependencies {
 	//developmentOnly("org.springframework.boot:spring-boot-docker-compose")
 }
 
-protobuf {
-    protoc {
-        artifact = libs.protobuf.protoc.get().toString()
-    }
-    plugins {
-        create("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:1.58.0"
-        }
-    }
-    generateProtoTasks {
-        all().forEach {
-            it.plugins{
-                create("grpc") {
-                    ofSourceSet("main")
-                }
-            }
-        }
-    }
-}
+//protobuf {
+//    protoc {
+//        artifact = libs.protobuf.protoc.get().toString()
+//    }
+//    plugins {
+//        create("grpc") {
+//            artifact = "io.grpc:protoc-gen-grpc-java:1.58.0"
+//        }
+//    }
+//    generateProtoTasks {
+//        all().forEach {
+//            it.plugins{
+//                create("grpc") {
+//                    ofSourceSet("main")
+//                }
+//            }
+//        }
+//    }
+//}
 
 testing {
     suites {

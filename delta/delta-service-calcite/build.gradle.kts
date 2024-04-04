@@ -19,7 +19,7 @@ configurations {
 
 dependencies {
     implementation(project(":delta-service-core"))
-
+    implementation(project(":delta-core"))
     implementation(libs.calcite.core)
     implementation(libs.calcite.csv)
     implementation(libs.calcite.file)

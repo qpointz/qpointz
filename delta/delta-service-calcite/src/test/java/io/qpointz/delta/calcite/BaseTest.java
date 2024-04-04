@@ -1,6 +1,7 @@
 package io.qpointz.delta.calcite;
 
 import io.qpointz.delta.service.ServiceSecurityConfig;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.calcite.jdbc.CalciteConnection;
@@ -27,7 +28,10 @@ import java.util.Properties;
 public class BaseTest {
 
     @Autowired
+    @Getter
     private CalciteConnection connection;
+
+
 
     @Test
     void createConnection() throws ClassNotFoundException, SQLException {

@@ -2,7 +2,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version("8.1.1")
     `java-library`
     jacoco
-    id("com.google.protobuf") version "0.9.4"
+    //id("com.google.protobuf") version "0.9.4"
 }
 
 shadow {
@@ -10,19 +10,19 @@ shadow {
     //baseN
 }
 
-sourceSets {
-    main {
-        proto {
-            srcDir("../proto")
-            exclude("substrait/**")
-        }
-    }
-}
+//sourceSets {
+//    main {
+//        proto {
+//            srcDir("../proto")
+//            exclude("substrait/**")
+//        }
+//    }
+//}
 
 dependencies {
-    api(libs.substrait.core)
-    implementation(libs.grpc.protobuf)
-    implementation(libs.grpc.stub)
+    implementation(project(":delta-core"))
+    //implementation(libs.grpc.protobuf)
+    //implementation(libs.grpc.stub)
 
     //implementation(libs.calcite.core)
     //implementation(libs.calcite.csv)

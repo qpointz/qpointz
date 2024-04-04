@@ -1,5 +1,6 @@
 package io.qpointz.delta.service;
 
+import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import io.qpointz.delta.proto.*;
 import lombok.*;
@@ -7,8 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
 
@@ -127,9 +128,10 @@ public class DeltaServiceBase extends DeltaServiceGrpc.DeltaServiceImplBase {
             return PrepareResult.of(List.of(error));
         }
 
-        public static PrepareResult ok() {
+        public static PrepareResult ok(PreparedStatement preparedStatement) {
             return PrepareResult.builder()
                     .errors(List.of())
+                    .statement(preparedStatement)
                     .build();
         }
     }
@@ -176,7 +178,11 @@ public class DeltaServiceBase extends DeltaServiceGrpc.DeltaServiceImplBase {
             return PrepareResult.of("Substrait plans not supported");
         }
 
-        return PrepareResult.ok();
+        val preparedStatement = PreparedStatement.newBuilder()
+                .setPlan(statement)
+                .build();
+
+        return PrepareResult.ok(preparedStatement);
     }
 
     private PrepareResult prepareAndValidateText(TextPlanStatement statement) {
@@ -191,28 +197,83 @@ public class DeltaServiceBase extends DeltaServiceGrpc.DeltaServiceImplBase {
         val parseResult = this.getSqlParserProvider()
                 .parse(statement.getStatement());
 
+        val planStatement = PlanStatement.newBuilder()
+                        .setPlan(parseResult.getPlan())
+                .build();
+
+        val preparedStatement = PreparedStatement.newBuilder()
+                .setPlan(planStatement)
+                .build();
+
         if (!parseResult.isSuccess()) {
             return PrepareResult.of(parseResult.getMessage());
         } else {
-            return PrepareResult.ok();
+            return PrepareResult.ok(preparedStatement);
         }
     }
 
     @Override
-    public void executeQueryStream(ExecQueryStreamRequest request, StreamObserver<ExecQueryResponse> responseObserver) {
+    public void executeQueryStream(ExecQueryStreamRequest request, StreamObserver<ExecQueryResponse> respObserver) {
+        var observer = (ServerCallStreamObserver<ExecQueryResponse>)respObserver;
         try {
-            var iterator = this.executionProvider.execute(request.getStatement(), request.getBatchSize());
-            while (iterator.hasNext()) {
-                val resp = ExecQueryResponse.newBuilder()
-                        .setStatus(ResponseStatuses.ok())
-                        .setVector(iterator.next());
-                responseObserver.onNext(resp.build());
+            val prepared = request.getStatement();
+            if (prepared.hasPlan()) {
+                if (!this.executionProvider.canExecuteSubstraitPlan()) {
+                    val resp = ExecQueryResponse.newBuilder()
+                                    .setStatus(ResponseStatuses.error("Plan execution not suported"))
+                                    .build();
+                    observer.onNext(resp);
+                    observer.onCompleted();
+                }
+
+                val executor = this.executionProvider
+                        .getSubstraitExecutionProvider();
+                val iterator = executor.execute(prepared.getPlan(), request.getBatchSize());
+
+                streamResult(iterator, observer);
+                return;
             }
-            responseObserver.onCompleted();
+
+            if (prepared.hasSql()) {
+                if (!this.executionProvider.canExecuteSql()) {
+                    val resp = ExecQueryResponse.newBuilder()
+                            .setStatus(ResponseStatuses.error("Sql execution not supported"))
+                            .build();
+                    observer.onNext(resp);
+                    observer.onCompleted();
+                }
+
+                val executor = this.executionProvider
+                        .getSqlExecutionProvider();
+                val iterator = executor.execute(prepared.getSql(), request.getBatchSize());
+
+                streamResult(iterator, observer);
+                return;
+            }
+
+            val resp = ExecQueryResponse.newBuilder()
+                    .setStatus(ResponseStatuses.error("No Plan nor Sql provided"))
+                    .build();
+            observer.onNext(resp);
+            observer.onCompleted();
         }
         catch (Exception ex) {
-            responseObserver.onError(ex);
+            val status = ResponseStatuses.error(ex);
+            observer.onNext(ExecQueryResponse.newBuilder()
+                            .setStatus(status)
+                                    .build());
+            observer.onCompleted();
         }
+    }
+
+    private void streamResult(Iterator<VectorBlock> iterator, ServerCallStreamObserver<ExecQueryResponse> observer) {
+        while (iterator.hasNext()) {
+            val resp = ExecQueryResponse.newBuilder()
+                    .setStatus(ResponseStatuses.ok())
+                    .setVector(iterator.next());
+            observer.onNext(resp.build());
+        }
+        observer.onCompleted();
     }
 
     protected <TResp> void process(StreamObserver<TResp> observer, TResp reply) {

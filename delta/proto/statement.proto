@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package qpointz.delta;
+package qpointzdelta;
 
 option java_multiple_files = true;
 option java_package = "io.qpointz.delta.proto";

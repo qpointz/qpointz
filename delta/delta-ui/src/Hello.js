@@ -1,8 +1,8 @@
 
-function Hello()  {
+function Hello(hh)  {
     return (
       <div>
-          Hello block
+          Hello block {hh}
       </div>
     );
 }

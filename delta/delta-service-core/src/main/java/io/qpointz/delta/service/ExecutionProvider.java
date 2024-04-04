@@ -19,5 +19,5 @@ public interface ExecutionProvider {
         return this.getSubstraitExecutionProvider()!=null;
     }
 
-    Iterator<VectorBlock> execute(PreparedStatement statement, int batchSize);
+    //Iterator<VectorBlock> execute(PreparedStatement statement, int batchSize);
 }

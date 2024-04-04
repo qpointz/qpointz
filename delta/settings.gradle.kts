@@ -10,10 +10,10 @@
 
 rootProject.name = "delta"
 
-
+include (":delta-core")
 include (":delta-service-core")
 include (":delta-service-calcite")
-//include (":delta-jdbc-driver")
+include (":delta-jdbc-driver")
 
 dependencyResolutionManagement {
 
@@ -32,6 +32,8 @@ dependencyResolutionManagement {
             library("boot-configuration-processor","org.springframework.boot","spring-boot-configuration-processor").versionRef(boot)
             library("boot-starter-test","org.springframework.boot","spring-boot-starter-test").versionRef(boot)
             library("boot-starter-security","org.springframework.boot","spring-boot-starter-security").versionRef(boot)
+            library("boot-starter-web","org.springframework.boot","spring-boot-starter-web").versionRef(boot)
+
 
 
             val calcite = version("calcite", "1.36.0")
@@ -119,6 +121,9 @@ dependencyResolutionManagement {
 
             val spring = version("spring", "6.1.1")
             library("spring-context", "org.springframework","spring-context").versionRef(spring)
+            library("spring-web","org.springframework","spring-web").versionRef(spring)
+            library("spring-webmvc","org.springframework","spring-webmvc").versionRef(spring)
+
 
 //            val postgre = version("postgre", "42.7.0")
 //            library("postgresql", "org.postgresql","postgresql").versionRef(postgre)

@@ -56,8 +56,6 @@ public class CalciteDeltaServiceCtx {
                 .withCaseSensitive(connectionConfig.caseSensitive())
                 .withLex(connectionConfig.lex())
                 .withQuoting(connectionConfig.quoting());
-        return new SubstraitSqlParserProvider(calciteConnection.getTypeFactory(),
-                connectionConfig,
-                parserConfig, calciteConnection.getRootSchema());
+        return new SubstraitSqlParserProvider(parserConfig, calciteConnection);
     }
 }

@@ -29,6 +29,18 @@ delta:unit-tests:
     paths:
       - ${CI_PROJECT_DIR}/delta/**/*/build/reports/jacoco/*/*.xml
 
+delta:build-ui:
+  stage: test 
+  image: ${CI_IMAGE_NPM}
+  script:
+    - cd ${CI_PROJECT_DIR}/delta/delta-ui
+    - npm install 
+    - npm run build
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/delta/delta-ui/**/*
+
+
 #rapids:build-protoc-codegen:
 #  stage: test
 #  image: ${CI_IMAGE_BASE}

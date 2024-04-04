@@ -10,12 +10,14 @@ import io.substrait.proto.PlanRel;
 import io.substrait.relation.RelProtoConverter;
 import io.substrait.type.NamedStruct;
 import org.apache.calcite.config.CalciteConnectionConfig;
+import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.plan.hep.HepPlanner;
 import org.apache.calcite.plan.hep.HepProgram;
 import org.apache.calcite.prepare.CalciteCatalogReader;
 import org.apache.calcite.rel.RelRoot;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.schema.Schema;
+import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
@@ -46,6 +48,11 @@ public class SqlToSubstrait extends SqlConverterBase {
 
   public Plan execute(String sql, String name, Schema schema) throws SqlParseException {
     var pair = registerSchema(name, schema);
+    return executeInner(sql, factory, pair.left, pair.right);
+  }
+
+  public Plan execute(String sql, CalciteSchema schema) throws SqlParseException {
+    var pair = registerSchema(schema);
     return executeInner(sql, factory, pair.left, pair.right);
   }
 

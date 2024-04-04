@@ -1,12 +1,14 @@
 spring:
   application:
     name: delta-calcite
+  main:
+    web-application-type: none
 grpc:
   server:
     address: '*'
     port: 8080
     security:
-      enabled: off
+      enabled: false
   client:
     hello:
       address: "localhost:8080"
