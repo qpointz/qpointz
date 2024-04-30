@@ -14,6 +14,7 @@ include (":delta-core")
 include (":delta-service-core")
 include (":delta-service-calcite")
 include (":delta-jdbc-driver")
+include (":delta-lineage")
 
 dependencyResolutionManagement {
 
@@ -33,11 +34,13 @@ dependencyResolutionManagement {
             library("boot-starter-test","org.springframework.boot","spring-boot-starter-test").versionRef(boot)
             library("boot-starter-security","org.springframework.boot","spring-boot-starter-security").versionRef(boot)
             library("boot-starter-web","org.springframework.boot","spring-boot-starter-web").versionRef(boot)
+            library("boot-starter", "org.springframework.boot","spring-boot-starter").versionRef(boot)
 
 
 
             val calcite = version("calcite", "1.36.0")
             library("calcite-core", "org.apache.calcite", "calcite-core").versionRef(calcite)
+            library("calcite-server", "org.apache.calcite", "calcite-server").versionRef(calcite)
             library("calcite-testkit", "org.apache.calcite", "calcite-testkit").versionRef("calcite")
             library("calcite-file", "org.apache.calcite", "calcite-file").versionRef("calcite")
             library("calcite-csv", "org.apache.calcite", "calcite-csv").versionRef(calcite)
