@@ -1,7 +1,8 @@
 create table Dim1
 (
     id   INT NOT NULL,
-    name VARCHAR(100) NULL
+    first_name VARCHAR(100) NULL,
+    second_name VARCHAR(100) NULL
 );
 
 create table Dim2
@@ -17,6 +18,6 @@ SELECT a.*
     FROM Dim1 a inner join Dim2 D on a.name = D.name
 ;
 
-SELECT *
+SELECT Dim1.*, Dim1.first_name || ' ' || Dim1.second_name AS NAME
     FROM Dim1
-    where ID > 10;
+  --  where ID > 10;
