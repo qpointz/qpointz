@@ -4,3 +4,6 @@ calcite:
     caseSensitive: true
     unquotedCasing: UNCHANGED
     model: ./src/test/data/model.yaml
+grpc:
+  server:
+    in-process-name: test-service

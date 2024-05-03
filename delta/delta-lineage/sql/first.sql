@@ -12,6 +12,13 @@ create table Dim2
 )
 ;
 
+create table Dim3
+(
+    id INT NOT NULL,
+    name VARCHAR(100) NULL
+)
+;
+
 create view DD4
     AS
 SELECT a.*
@@ -19,5 +26,9 @@ SELECT a.*
 ;
 
 SELECT Dim1.*, Dim1.first_name || ' ' || Dim1.second_name AS NAME
-    FROM Dim1
+    FROM Dim1;
   --  where ID > 10;
+
+insert into Dim3(id, name)
+    SELECT Dim1.id, Dim1.first_name || ' ' || Dim1.second_name AS NAME
+    FROM Dim1;

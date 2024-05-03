@@ -2,6 +2,7 @@ plugins {
     java
     application
     jacoco
+    id("org.graalvm.buildtools.native").version("0.10.1")
 }
 
 java {
@@ -20,10 +21,21 @@ dependencies {
     implementation(libs.calcite.server)
     implementation(libs.calcite.csv)
     implementation(libs.calcite.file)
+    implementation("io.openlineage:openlineage-java:1.13.1")
+
 
     implementation(libs.bundles.logging)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
+    annotationProcessor("info.picocli:picocli-codegen:4.7.5")
+}
+
+graalvmNative {
+    toolchainDetection = true
+}
+
+application {
+    mainClass = "io.qpointz.delta.lineage.Entry"
 }
 
 testing {

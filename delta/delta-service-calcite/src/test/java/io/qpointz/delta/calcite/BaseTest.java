@@ -32,14 +32,4 @@ public class BaseTest {
     private CalciteConnection connection;
 
 
-
-    @Test
-    void createConnection() throws ClassNotFoundException, SQLException {
-        val stmt = this.connection.createStatement();
-        val rs = stmt.executeQuery("SELECT * FROM `kyc`.`CLIENT`");
-        while (rs.next()) {
-            log.info("{} {}",rs.getObject(1),rs.getObject(2));
-        }
-    }
-
 }
