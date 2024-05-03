@@ -1,9 +1,6 @@
-import org.springframework.boot.gradle.tasks.bundling.BootJar
-
 plugins {
     java
-    id("org.springframework.boot") version libs.versions.boot
-    id("io.spring.dependency-management") version "1.1.4"
+    application
     jacoco
 }
 
@@ -18,7 +15,7 @@ configurations {
 }
 
 dependencies {
-    implementation(libs.boot.starter)
+    implementation("info.picocli:picocli:4.7.5")
     implementation(libs.calcite.core)
     implementation(libs.calcite.server)
     implementation(libs.calcite.csv)
@@ -27,15 +24,6 @@ dependencies {
     implementation(libs.bundles.logging)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
-
-    implementation(libs.substrait.isthmus)
-    developmentOnly(libs.boot.devtools)
-    annotationProcessor(libs.boot.configuration.processor)
-    testImplementation(libs.boot.starter.test)
-}
-
-springBoot {
-    //mainClass = "io.qpointz.delta.calcite.CalciteDeltaService"
 }
 
 testing {

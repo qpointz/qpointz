@@ -7,7 +7,6 @@ import org.apache.calcite.rel.core.TableFunctionScan;
 import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rel.logical.*;
 import org.apache.calcite.rex.*;
-import org.apache.calcite.sql.SqlIdentifier;
 
 import java.util.*;
 
@@ -15,24 +14,35 @@ public class LineageShuttle implements RelShuttle, RexVisitor<Set<Integer>> {
 
     private LineageItems<RelNode> items = new LineageItems<>();
 
+    public ArrayList<Set<LineageItems.TableAttribute>> attributesOf(RelNode rel) {
+        var res = new ArrayList<Set<LineageItems.TableAttribute >>();
+        for (var idx=0;idx < rel.getRowType().getFieldCount();idx++) {
+            res.add(items.attributesOf(rel, idx));
+        }
+        return res;
+    }
+
     @Override
     public RelNode visit(TableScan scan) {
         val tableName = scan.getTable().getQualifiedName();
         val rowType = scan.getRowType();
         val names = rowType.getFieldNames();
         for (int i=0;i< rowType.getFieldCount(); i++) {
-            items.add(scan, i, null, -1, tableName, names.get(i));
+            items.addAttributes(scan, i, tableName, names.get(i));
         }
         return scan;
     }
 
     @Override
     public RelNode visit(LogicalProject project) {
-        project.getInput().accept(this);
-        val
-        for (val p: project.getProjects()) {
-            val indexes = p.accept(this);
-            for (val idx :  )
+        val input = project.getInput();
+        input.accept(this);
+        val projects = project.getProjects();
+        val cnt = projects.size();
+        for (var idx=0;idx < cnt;idx++) {
+            val proj = projects.get(idx);
+            val indexes = proj.accept(this);
+            items.add(project, idx, input, indexes);
         }
         return project;
     }
@@ -44,7 +54,7 @@ public class LineageShuttle implements RelShuttle, RexVisitor<Set<Integer>> {
 
     @Override
     public RelNode visit(LogicalValues values) {
-        return null;
+        throw new RuntimeException("Not supported yet.");
     }
 
     @Override
