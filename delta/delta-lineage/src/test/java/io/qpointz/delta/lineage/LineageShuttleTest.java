@@ -87,7 +87,14 @@ class LineageShuttleTest {
                 List.of("PERSON", "FIRST_NAME"),
                 List.of("PERSON", "LAST_NAME")
         );
+
+        val used = LineageItems.TableAttribute.of(
+                List.of("PERSON", "ID")
+        );
+
+
         assertEquals(atts, s.flatAttributes());
+        assertEquals(used, s.flatUsed());
     }
 
 

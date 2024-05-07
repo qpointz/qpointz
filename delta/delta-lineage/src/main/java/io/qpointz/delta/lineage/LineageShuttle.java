@@ -14,11 +14,18 @@ public class LineageShuttle implements RelShuttle, RexVisitor<Set<Integer>> {
 
     private LineageItems<RelNode> items = new LineageItems<>();
 
-    public record RelNodeLineage(RelNode node, ArrayList<Set<LineageItems.TableAttribute>> attributes) {
+    public record RelNodeLineage(RelNode node, ArrayList<Set<LineageItems.TableAttribute>> attributes, ArrayList<Set<LineageItems.TableAttribute>> used) {
 
         public Set<LineageItems.TableAttribute> flatAttributes() {
             val res = new HashSet<LineageItems.TableAttribute>();
             this.attributes().stream()
+                    .forEach(z -> res.addAll(z));
+            return res;
+        }
+
+        public Set<LineageItems.TableAttribute> flatUsed() {
+            val res = new HashSet<LineageItems.TableAttribute>();
+            this.used().stream()
                     .forEach(z -> res.addAll(z));
             return res;
         }
@@ -29,13 +36,22 @@ public class LineageShuttle implements RelShuttle, RexVisitor<Set<Integer>> {
         val ls = new LineageShuttle();
         rel.accept(ls);
         val attributes = ls.attributesOf(rel);
-        return new RelNodeLineage(rel, attributes);
+        val used =  ls.attributesUsed(rel);
+        return new RelNodeLineage(rel, attributes, used);
     }
 
     public ArrayList<Set<LineageItems.TableAttribute>> attributesOf(RelNode rel) {
         var res = new ArrayList<Set<LineageItems.TableAttribute >>();
         for (var idx=0;idx < rel.getRowType().getFieldCount();idx++) {
             res.add(items.attributesOf(rel, idx));
+        }
+        return res;
+    }
+
+    public ArrayList<Set<LineageItems.TableAttribute>> attributesUsed(RelNode rel) {
+        var res = new ArrayList<Set<LineageItems.TableAttribute >>();
+        for (var idx=0;idx < rel.getRowType().getFieldCount();idx++) {
+            res.add(items.usedBy(rel));
         }
         return res;
     }
