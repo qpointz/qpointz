@@ -1,6 +1,7 @@
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
+    application
     java
     id("org.springframework.boot") version libs.versions.boot
     id("io.spring.dependency-management") version "1.1.4"
@@ -24,7 +25,7 @@ dependencies {
     implementation(libs.calcite.csv)
     implementation(libs.calcite.file)
 
-    implementation(libs.bundles.logging)
+    //implementation(libs.bundles.logging)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 
@@ -47,6 +48,10 @@ dependencies {
 }
 
 springBoot {
+    mainClass = "io.qpointz.delta.calcite.CalciteDeltaService"
+}
+
+application {
     mainClass = "io.qpointz.delta.calcite.CalciteDeltaService"
 }
 

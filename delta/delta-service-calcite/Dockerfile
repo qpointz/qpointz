@@ -27,11 +27,11 @@ FROM debian:12-slim
 ENV JAVA_HOME="/usr/lib/jvm/graalvm"
 ENV PATH="$JAVA_HOME:$JAVA_HOME/bin:$PATH"
 COPY --from=graalvm-jdk /customjre $JAVA_HOME
-COPY build/install/delta-lineage/ /home/app/
+COPY build/install/delta-service-calcite/ /home/app/
 
 RUN du -h $JAVA_HOME --max-depth=0
 VOLUME /data
 WORKDIR /home/app
-ENTRYPOINT ["./bin/delta-lineage"]
+ENTRYPOINT ["./bin/delta-service-calcite"]
 
 
