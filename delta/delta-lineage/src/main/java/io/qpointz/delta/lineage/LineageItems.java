@@ -9,12 +9,28 @@ public class LineageItems<T> {
 
     private Set<Item<T>> items = new HashSet<>();
 
+    private Set<Item<T>> used = new HashSet<>();
+
     private Map<Pair<T>, TableAttribute> attributes = new HashMap<>();
+
+    public void add(T target, int targetIdx, T source, int sourceIdx) {
+        items.add(new Item<>(Pair.of(target,targetIdx), Pair.of(source,sourceIdx)));
+    }
 
     public void add(T target, int targetIdx, T source, Set<Integer> sourceIdxes) {
         for (val idx : sourceIdxes) {
             this.add(target, targetIdx, source, idx);
         }
+    }
+
+    public void addUsed(T target, int targetIdx, T source, Set<Integer> sourceIdxes) {
+        for (val idx : sourceIdxes) {
+            this.addUsed(target, targetIdx, source, idx);
+        }
+    }
+
+    public void addUsed(T target, int targetIdx, T source, Integer sourceIdx) {
+        used.add(new Item<>(Pair.of(target,targetIdx), Pair.of(source,sourceIdx)));
     }
 
     public record Pair<T>(T owner, int idx) {
@@ -24,6 +40,17 @@ public class LineageItems<T> {
     }
 
     public record TableAttribute(List<String> table, String attribute){
+        public static TableAttribute of(List<String> name) {
+            return  new TableAttribute(name.subList(0, name.size() - 1), name.get(name.size() - 1));
+        }
+
+        public static Set<TableAttribute> of(List<String>... name) {
+            val res = new HashSet<TableAttribute>();
+            for (val n: name) {
+                res.add(of(n));
+            }
+            return res;
+        }
     }
 
     public record Item<T>(Pair<T> target, Pair<T> source) {
@@ -56,10 +83,6 @@ public class LineageItems<T> {
                 .filter(k-> this.attributes.containsKey(k))
                 .map(k-> this.attributes.get(k))
                 .collect(Collectors.toSet());
-    }
-
-    public void add(T target, int targetIdx, T source, int sourceIdx) {
-        items.add(new Item<>(Pair.of(target,targetIdx), Pair.of(source,sourceIdx)));
     }
 
     public void addAttributes(T source, int sourceIndex, List<String> sourceTableName, String sourceAttribute) {

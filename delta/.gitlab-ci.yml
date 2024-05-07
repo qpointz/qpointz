@@ -30,7 +30,7 @@ delta:unit-tests:
       - ${CI_PROJECT_DIR}/delta/**/*/build/reports/jacoco/*/*.xml
 
 delta:build-ui:
-  stage: test 
+  stage: build
   image: ${CI_IMAGE_NPM}
   script:
     - cd ${CI_PROJECT_DIR}/delta/delta-ui
@@ -39,6 +39,31 @@ delta:build-ui:
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/delta/delta-ui/**/*
+
+delta:build-dist:
+  stage: build
+  script:
+    - cd ${CI_PROJECT_DIR}/delta
+    - gradle clean installDist
+  needs:
+    - delta:unit-tests
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/delta/**/*/build/install/**/*
+
+delta:lineage-cli-build-docker:
+  stage: package
+  extends: .docker-build-job
+  needs:
+    - job: delta:build-dist
+      artifacts: true
+  script:
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}/delta/delta-lineage"
+      --dockerfile "${CI_PROJECT_DIR}/delta/delta-lineage/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}/delta-lineage-cli:${QP_CONTAINER_TAG}"               
+
 
 
 #rapids:build-protoc-codegen:
