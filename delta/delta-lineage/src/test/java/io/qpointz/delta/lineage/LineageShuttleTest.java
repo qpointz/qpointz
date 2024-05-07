@@ -6,7 +6,6 @@ import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.tools.RelConversionException;
 import org.apache.calcite.tools.ValidationException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -14,6 +13,9 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class LineageShuttleTest {
 
@@ -38,7 +40,7 @@ class LineageShuttleTest {
         return planner.rel(validated).rel;
     }
 
-    private LineageShuttle parseToShuttle(String sql)  {
+    private LineageShuttle.RelNodeLineage parseToShuttle(String sql)  {
         RelNode rel = null;
         try {
             rel = asRel(sql);
@@ -51,26 +53,41 @@ class LineageShuttleTest {
         } catch (RelConversionException e) {
             throw new RuntimeException(e);
         }
-        val shuttle = new LineageShuttle();
-        rel.accept(shuttle);
-        return shuttle;
+        return LineageShuttle.extract(rel);
     }
 
     @Test
     void simpleQuery()  {
-        val shuttle = parseToShuttle("select * from Person");
+        val s = parseToShuttle("select * from Person");
+        assertEquals(
+            Set.of(
+                    LineageItems.TableAttribute.of(List.of("PERSON", "ID")),
+                    LineageItems.TableAttribute.of(List.of("PERSON", "FIRST_NAME")),
+                    LineageItems.TableAttribute.of(List.of("PERSON", "LAST_NAME"))
+            ),
+            s.flatAttributes());
     }
 
     @Test
-    @Disabled
     void joinQuery() {
-        val s = parseToShuttle("SELECT p.*, pi.* FROM Person p INNER JOIN PersonItem pi ON p.id = pi.person_id");
+        val s = parseToShuttle("SELECT p.*, pi.id FROM Person p INNER JOIN PersonItem pi ON p.id = pi.person_id");
+        val atts = LineageItems.TableAttribute.of(
+                List.of("PERSON", "ID"),
+                List.of("PERSON", "FIRST_NAME"),
+                List.of("PERSON", "LAST_NAME"),
+                List.of("PERSONITEM", "ID")
+        );
+        assertEquals(atts, s.flatAttributes());
     }
 
     @Test
-    @Disabled
     void filterQuery() {
         val s = parseToShuttle("SELECT p.first_name||p.last_name as full_name FROM Person p WHERE id>100 ");
+        val atts = LineageItems.TableAttribute.of(
+                List.of("PERSON", "FIRST_NAME"),
+                List.of("PERSON", "LAST_NAME")
+        );
+        assertEquals(atts, s.flatAttributes());
     }
 
 

@@ -14,6 +14,24 @@ public class LineageShuttle implements RelShuttle, RexVisitor<Set<Integer>> {
 
     private LineageItems<RelNode> items = new LineageItems<>();
 
+    public record RelNodeLineage(RelNode node, ArrayList<Set<LineageItems.TableAttribute>> attributes) {
+
+        public Set<LineageItems.TableAttribute> flatAttributes() {
+            val res = new HashSet<LineageItems.TableAttribute>();
+            this.attributes().stream()
+                    .forEach(z -> res.addAll(z));
+            return res;
+        }
+
+    }
+
+    public static RelNodeLineage extract(RelNode rel) {
+        val ls = new LineageShuttle();
+        rel.accept(ls);
+        val attributes = ls.attributesOf(rel);
+        return new RelNodeLineage(rel, attributes);
+    }
+
     public ArrayList<Set<LineageItems.TableAttribute>> attributesOf(RelNode rel) {
         var res = new ArrayList<Set<LineageItems.TableAttribute >>();
         for (var idx=0;idx < rel.getRowType().getFieldCount();idx++) {
@@ -59,7 +77,14 @@ public class LineageShuttle implements RelShuttle, RexVisitor<Set<Integer>> {
 
     @Override
     public RelNode visit(LogicalFilter filter) {
-        throw new RuntimeException("Not supported yet.");
+        val input = filter.getInput();
+        input.accept(this);
+        val conditionIndexes = filter.getCondition().accept(this);
+        for (var idx=0;idx < filter.getRowType().getFieldCount();idx++) {
+            items.add(filter, idx, input, idx);
+        }
+        items.addUsed(filter, 0, input, conditionIndexes);
+        return filter;
     }
 
     @Override
@@ -69,7 +94,34 @@ public class LineageShuttle implements RelShuttle, RexVisitor<Set<Integer>> {
 
     @Override
     public RelNode visit(LogicalJoin join) {
-        throw new RuntimeException("Not supported yet.");
+        val left = join.getLeft();
+        val right = join.getRight();
+        left.accept(this);
+        right.accept(this);
+
+        val leftSize = left.getRowType().getFieldCount();
+
+        for (var idx=0; idx < leftSize;idx++) {
+            items.add(join, idx, left, idx);
+        }
+
+        for (var idx=0; idx < right.getRowType().getFieldCount();idx++) {
+            items.add(join, idx + leftSize, right, idx);
+        }
+
+        val conditionIdx = join.getCondition().accept(this);
+        for (val idx : conditionIdx) {
+            if (idx < leftSize) {
+                items.addUsed(join, -1, left, idx);
+            } else {
+                items.addUsed(join, -1 , right, idx - leftSize);
+            }
+
+        }
+
+        return join;
+
+
     }
 
     @Override
