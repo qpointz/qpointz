@@ -9,7 +9,7 @@ import java.util.concurrent.Callable;
 
 @Slf4j
 @Command(name = "lineage", mixinStandardHelpOptions = true, description = "Lineage tool", version = "1.0",
-        subcommands = {Dialects.class, Report.class}
+        subcommands = {Dialects.class, Report.class, Parse.class}
 )
 public class Root implements Callable<Integer> {
 

@@ -1,10 +1,7 @@
 package io.qpointz.delta.lineage.commands;
 
 import io.qpointz.delta.lineage.FileParse;
-import io.qpointz.delta.lineage.SqlParse;
-import io.qpointz.delta.lineage.model.LineageRepository;
 import io.qpointz.delta.lineage.reports.BasicReport;
-import io.qpointz.delta.lineage.reports.OpenLineageReport;
 import lombok.val;
 import org.apache.calcite.sql.SqlDialect;
 
@@ -24,7 +21,7 @@ public class Report implements Callable<Integer> {
     @Override
     public Integer call() throws Exception {
         val parse = FileParse.create(files, databaseProduct);
-        parse.parse();
+        parse.report();
 
         val basicReport = new BasicReport(parse.getLineageRepository());
         System.out.println(basicReport.report().toString());
