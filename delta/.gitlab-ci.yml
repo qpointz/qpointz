@@ -51,12 +51,16 @@ delta:build-dist:
     paths:
       - ${CI_PROJECT_DIR}/delta/**/*/build/install/**/*
 
-delta:lineage-cli-build-docker:
+delta:lineage-cli-docker:branch:
   stage: package
   extends: .docker-build-job
   needs:
     - job: delta:build-dist
       artifacts: true
+  except:
+    - dev
+    - main
+    - master
   script:
     - >
       /kaniko/executor
@@ -64,7 +68,37 @@ delta:lineage-cli-build-docker:
       --dockerfile "${CI_PROJECT_DIR}/delta/delta-lineage/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}/delta-lineage-cli:${QP_CONTAINER_TAG}"               
 
+delta:lineage-cli-docker:version:
+  stage: package
+  extends: .docker-build-job
+  needs:
+    - job: delta:build-dist
+      artifacts: true
+  only:
+    - dev
+  script:
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}/delta/delta-lineage"
+      --dockerfile "${CI_PROJECT_DIR}/delta/delta-lineage/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}/delta-lineage-cli:${QP_VERSION}"
 
+delta:lineage-cli-docker:latest:
+  stage: package
+  extends: .docker-build-job
+  needs:
+    - job: delta:build-dist
+      artifacts: true
+  only:
+    - main
+    - master
+  script:
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}/delta/delta-lineage"
+      --dockerfile "${CI_PROJECT_DIR}/delta/delta-lineage/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}/delta-lineage-cli:${QP_VERSION}"            
+      --destination "${CI_REGISTRY_IMAGE}/delta-lineage-cli"
 
 #rapids:build-protoc-codegen:
 #  stage: test

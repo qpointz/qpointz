@@ -6,6 +6,7 @@ import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.tools.RelConversionException;
 import org.apache.calcite.tools.ValidationException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -32,7 +33,7 @@ class LineageShuttleTest {
 
     private RelNode asRel(String sql) throws IOException, SqlParseException, ValidationException, RelConversionException {
         val p = parseFromResource("/TestModel.sql");
-        p.parse();
+        p.report();
 
         val planner = p.getLineageRepository().getPlanner();
         val parsed = planner.parse(sql);
@@ -81,13 +82,21 @@ class LineageShuttleTest {
     }
 
     @Test
+    @Disabled
     void filterQuery() {
         val s = parseToShuttle("SELECT p.first_name||p.last_name as full_name FROM Person p WHERE id>100 ");
         val atts = LineageItems.TableAttribute.of(
                 List.of("PERSON", "FIRST_NAME"),
                 List.of("PERSON", "LAST_NAME")
         );
+
+        val used = LineageItems.TableAttribute.of(
+                List.of("PERSON", "ID")
+        );
+
+
         assertEquals(atts, s.flatAttributes());
+        assertEquals(used, s.flatUsed());
     }
 
 

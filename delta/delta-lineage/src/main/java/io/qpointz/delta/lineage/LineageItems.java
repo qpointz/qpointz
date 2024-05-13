@@ -90,4 +90,24 @@ public class LineageItems<T> {
                 new TableAttribute(sourceTableName, sourceAttribute));
     }
 
+    private Set<Pair<T>> traverseAll(T target, Set<Item<T>> set) {
+        val directs = set.stream()
+                .filter(k-> k.target.equals(target))
+                .map(k-> k.source)
+                .collect(Collectors.toSet());
+        val res = new HashSet<Pair<T>>();
+        for (val k : directs) {
+            res.add(k);
+            res.addAll(traverseAll(k.owner(), set));
+        }
+        return res;
+    }
+
+    public Set<TableAttribute> usedBy(T target) {
+        return traverseAll(target, this.used).stream()
+                .filter(k-> this.attributes.containsKey(k))
+                .map(k-> this.attributes.get(k))
+                .collect(Collectors.toSet());
+    }
+
 }
