@@ -6,16 +6,6 @@ import {Component} from "react";
 import axios from "axios";
 import React from "react";
 
-const treeData = [
-    { title: 'pages', key: 'pages', selectable: false },
-    { title: 'dashboards', key: 'dashboards', selectable: false},
-    {
-        title: 'experiments', key: 'experiments', selectable: false, children: [
-            {title: "sample.yaml", key: 'analysis/simple.yaml' }
-        ]} ,
-    { title: 'catalogs', key: 'catalogs', selectable: false}
-];
-
 type TreeNavigationState = {
     loaded: boolean,
     treeData: any[]

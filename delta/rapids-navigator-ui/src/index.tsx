@@ -6,18 +6,24 @@ import reportWebVitals from './reportWebVitals';
 import {createBrowserRouter, createRoutesFromElements, Route, RouterProvider} from 'react-router-dom';
 import {Dashboard} from "./layout/Dashboard";
 import {ProjectFile} from "./layout/ProjectFile";
-import {Experiment} from "./layout/Experiment";
+import {Experiment, ExperimentList} from "./layout/Experiment";
+import store from "./features/store"
+import {Provider} from "react-redux";
+import {Source, SourcesList} from "./layout/Source";
 
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
-);
+const container = document.getElementById('root')
+const root = ReactDOM.createRoot(container!);
+const app = <Provider store={store}><App/></Provider>
 
 const router = createBrowserRouter(createRoutesFromElements(
-   <Route path={"/"} element={<App/>} >
-       <Route path={`project/experiments/*`} element={<Experiment/>} />
-       <Route path={`project/dashboards/*`} element={<Dashboard/>} />
-       <Route path={`project/*`} element={<ProjectFile/>} />
-   </Route>
+    <Route path={"/"} element={app}>
+           <Route path={`project/sources`} element={<SourcesList/>} />
+           <Route path={`project/sources/*`} element={<Source/>} />
+           <Route path={`project/experiments`} element={<ExperimentList/>} />
+           <Route path={`project/experiments/*`} element={<Experiment/>} />
+           <Route path={`project/dashboards/*`} element={<Dashboard/>} />
+           <Route path={`project/*`} element={<ProjectFile/>} />
+      </Route>
 ));
 
 root.render(
