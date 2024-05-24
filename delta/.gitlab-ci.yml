@@ -21,6 +21,7 @@ workflow:
 delta:unit-tests:
   stage: test
   script:
+    - cat ${CI_PROJECT_DIR}/VERSION
     - cd ${CI_PROJECT_DIR}/delta
     - gradle clean test testCodeCoverage jacocoTestReport
   artifacts:

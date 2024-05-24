@@ -1,0 +1,51 @@
+{
+    "branches": ["master", "main", {"name" : "dev", "prerelease": true}],
+    "plugins" : [
+        ["@semantic-release/commit-analyzer", {
+            "preset" : "angular",
+            "parserOpts" : {
+                "headerPattern" : "^\\[(\\w*)(?:\\:([^\\]]*))*\\](.*)$",
+                "headerCorrespondence" : [
+                    "type",
+                    "scope",
+                    "subject"
+                ]
+            }, 
+            "releaseRules" : [
+                { "type" : "MAJOR", "release" : "major"},
+                { "type": "feature", "release": "minor" },
+                { "type": "feat", "release": "minor" },
+                { "type": "fix", "release": "patch"  },
+                { "type": "build", "release": "patch" },
+                { "type": "code", "release": "patch" },
+                { "type": "refactor", "release": "patch"}
+            ]
+        }],
+
+        ["@semantic-release/exec", {
+            "success": "echo ${nextRelease.version}${QP_VERSION_SFX} > VERSION",
+            "verifyReleaseCmd": "echo ${nextRelease.version} > VERSION"
+        }],
+        
+        ["@semantic-release/release-notes-generator", {
+            "preset" : "angular",
+            "parserOpts" : {
+                "headerPattern" : "^\\[(\\w*)(?:\\:([^\\]]*))*\\](.*)$",
+                "headerCorrespondence" : [
+                    "type",
+                    "scope",
+                    "subject"
+                ]
+            }, 
+            "releaseRules" : [
+                { "type" : "MAJOR", "release" : "major"},
+                { "type": "feature", "release": "minor" },
+                { "type": "feat", "release": "minor" },
+                { "type": "fix", "release": "patch"  },
+                { "type": "build", "release": "patch" },
+                { "type": "code", "release": "patch" },
+                { "type": "refactor", "release": "patch"}
+            ]
+        }]
+    ]
+}

@@ -17,13 +17,13 @@
 
 package io.qpointz.flow.cli.noise
 
-import org.graalvm.polyglot._
+//import org.graalvm.polyglot._
 
 
 object Polyglot {
   def main(args: Array[String]): Unit = {
-    val context = Context.newBuilder("python").allowIO(true).build()
-    val array = context.eval("python", "def func(i): return i+10")
+    //val context = Context.newBuilder("python").allowIO(true).build()
+    //val array = context.eval("python", "def func(i): return i+10")
     //val result = array.as(classOf[Array[Int]]).toSeq
     System.out.println("result")
   }
