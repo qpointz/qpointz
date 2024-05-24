@@ -1,5 +1,8 @@
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import App from './App';
+import {Simulate} from "react-dom/test-utils";
+import click = Simulate.click;
 
 test('renders learn react link', () => {
   render(<App />);

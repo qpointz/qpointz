@@ -32,13 +32,15 @@ delta:unit-tests:
 delta:build-ui:
   stage: build
   image: ${CI_IMAGE_NPM}
+  variables:
+    CI: false
   script:
-    - cd ${CI_PROJECT_DIR}/delta/delta-ui
+    - cd ${CI_PROJECT_DIR}/delta/rapids-navigator-ui
     - npm install 
     - npm run build
   artifacts:
     paths:
-      - ${CI_PROJECT_DIR}/delta/delta-ui/**/*
+      - ${CI_PROJECT_DIR}/delta/rapids-navigator-ui/build/**/*
 
 delta:build-dist:
   stage: build

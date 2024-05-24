@@ -1,8 +1,10 @@
+import org.springframework.boot.gradle.tasks.bundling.BootJar
+
 plugins {
     java
-    application
+    id("org.springframework.boot") version libs.versions.boot
+    id("io.spring.dependency-management") version "1.1.4"
     jacoco
-    id("org.graalvm.buildtools.native").version("0.10.1")
 }
 
 java {
@@ -16,30 +18,22 @@ configurations {
 }
 
 dependencies {
-
-    implementation("org.commonmark:commonmark:0.22.0")
-    implementation("org.jsoup:jsoup:1.17.2")
-
-    implementation("info.picocli:picocli:4.7.5")
-    implementation(libs.calcite.core)
-    implementation(libs.calcite.server)
-    implementation(libs.calcite.csv)
-    implementation(libs.calcite.file)
-    implementation("io.openlineage:openlineage-java:1.13.1")
-
-
-    implementation(libs.bundles.logging)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
-    annotationProcessor("info.picocli:picocli-codegen:4.7.5")
+
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+
+    //developmentOnly("org.springframework.boot:spring-boot-docker-compose")
+    developmentOnly(libs.boot.devtools)
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("io.projectreactor:reactor-test")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-graalvmNative {
-    toolchainDetection = true
-}
-
-application {
-    mainClass = "io.qpointz.delta.lineage.Entry"
+springBoot {
+    mainClass = "io.qpointz.rapids.navigator.Entry"
 }
 
 testing {

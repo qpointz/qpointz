@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
+import org.apache.calcite.schema.Function;
+import org.apache.calcite.schema.FunctionParameter;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.SqlIdentifier;
@@ -17,10 +19,7 @@ import org.apache.calcite.tools.Frameworks;
 import org.apache.calcite.tools.Planner;
 
 import java.sql.DriverManager;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 @Slf4j
 public class LineageRepository {
@@ -66,6 +65,7 @@ public class LineageRepository {
                 .getConnection("jdbc:calcite:", new Properties())
                 .unwrap(CalciteConnection.class);
         val schema = this.connection.getRootSchema();
+        this.addFunction();
         for(val vk : this.tables.entrySet()) {
             String tableName = vk.getKey().toString();
             schema.add(tableName, vk.getValue());
@@ -86,5 +86,14 @@ public class LineageRepository {
     public void addTable(LineageTable tbl) {
         this.connection.getRootSchema().add(tbl.getTableName().toString(), tbl);
         log.info("Create table");
+    }
+
+    public void addFunction() {
+        this.connection.getRootSchema().add("CURRENT", new Function() {
+            @Override
+            public List<FunctionParameter> getParameters() {
+                return List.of();
+            }
+        });
     }
 }

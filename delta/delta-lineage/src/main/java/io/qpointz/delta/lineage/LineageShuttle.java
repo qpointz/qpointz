@@ -253,4 +253,14 @@ public class LineageShuttle implements RelShuttle, RexVisitor<Set<Integer>> {
     public Set<Integer> visitPatternFieldRef(RexPatternFieldRef fieldRef) {
         throw new RuntimeException("Not supported yet.");
     }
+
+    @Override
+    public Set<Integer> visitLambda(RexLambda rexLambda) {
+        throw new RuntimeException("Not supported yet.");
+    }
+
+    @Override
+    public Set<Integer> visitLambdaRef(RexLambdaRef rexLambdaRef) {
+        throw new RuntimeException("Not supported yet.");
+    }
 }
