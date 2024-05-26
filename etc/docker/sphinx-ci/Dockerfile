@@ -1,6 +1,12 @@
-ARG BASE_IMAGE=python-ci:latest
+FROM python:3
 
-FROM $BASE_IMAGE
+RUN \    
+    pip install rst2pdf sphinx sphinx-multiversion sphinx_rtd_theme sphinx-material sphinx-pdj-theme sphinx-tabs myst-parser && \ 
+    apt update && \
+    apt-get install -y latexmk texlive-formats-extra  && \
+    apt-get clean autoclean && \
+    apt-get autoremove --yes && \
+    rm -rf /var/lib/{apt,dpkg,cache,log}/
 
 WORKDIR /usr/src/app
 
