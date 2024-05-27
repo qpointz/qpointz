@@ -1,0 +1,24 @@
+{
+  "id": "5e890255-6969-4e5c-9f9d-5b803b87e43f",
+  "importStreams": [
+    {
+      "id": "b92e9b42-624a-4bbb-9e21-e30293bb6850",
+      "name": "proto-file",
+      "importerName": "ProtoFile",
+      "createMissingOperations": true,
+      "options": {
+        "files": [
+          "../../delta/proto/common.proto",
+          "../../delta/proto/service.proto",
+          "../../delta/proto/statement.proto",
+          "../../delta/proto/vector.proto"
+        ],
+        "importPaths": [
+          "../../delta/proto/substrait"
+        ]
+      }
+    }
+  ],
+  "authConfigs": [],
+  "certificates": []
+}
