@@ -62,22 +62,9 @@ init:build-sbt-ci-image:
       --build-arg "BASE_IMAGE=${CI_IMAGE_GRAALVM}"
       --cache=true
 
-init:build-python-ci-image:
-  stage: init
-  extends: .docker-build-job
-  script:
-    - >
-      /kaniko/executor
-      --context "${CI_PROJECT_DIR}/etc/docker/python-ci"
-      --destination "${CI_IMAGE_PYTHON}"
-      --cache=true      
-
 init:build-sphinx-ci-image:
   stage: init
   extends: .docker-build-job
-  needs:
-    - job: init:build-python-ci-image
-      artifacts: false
   script:
     - >
       /kaniko/executor
@@ -85,3 +72,24 @@ init:build-sphinx-ci-image:
       --build-arg "BASE_IMAGE=${CI_IMAGE_PYTHON}"
       --destination "${CI_IMAGE_SPHINX}"
       --cache=true      
+
+init:build-npm-ci-image:
+  stage: init
+  extends: .docker-build-job
+  script:
+      - >
+        /kaniko/executor
+        --context "${CI_PROJECT_DIR}/etc/docker/npm-ci" 
+        --destination "${CI_IMAGE_NPM}"        
+        --cache=true
+
+init:build-semantic-release-image:
+  stage: init
+  extends: .docker-build-job
+  script:
+      - >
+        /kaniko/executor
+        --context "${CI_PROJECT_DIR}/etc/docker/sem-release-ci" 
+        --destination "${CI_IMAGE_SEM_RELEASE}"        
+        --build-arg "BASE_IMAGE=${CI_IMAGE_NPM}"
+        --cache=true        

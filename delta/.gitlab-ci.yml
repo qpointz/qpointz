@@ -1,0 +1,231 @@
+include:
+  - local : /.gitlab/vars.yml
+  - local : /.gitlab/jobs.yml
+
+image: ${CI_IMAGE_GRADLE}
+
+#variables:
+#  PROTOC_SRC : rapids/rapids-grpc/src/main/proto
+#  PROTOC_OUT : rapids/build/protoc
+
+stages:  
+  - test
+  - build
+  - package
+  - contrib-test
+
+workflow:
+  rules:
+    - when : always
+
+delta:unit-tests:
+  stage: test
+  script:
+    - cat ${CI_PROJECT_DIR}/VERSION
+    - cd ${CI_PROJECT_DIR}/delta
+    - gradle clean test testCodeCoverage jacocoTestReport
+  artifacts:
+    reports:
+      junit: ${CI_PROJECT_DIR}/delta/**/*/build/test-results/*/*.xml
+    paths:
+      - ${CI_PROJECT_DIR}/delta/**/*/build/reports/jacoco/*/*.xml
+
+delta:build-ui:
+  stage: build
+  image: ${CI_IMAGE_NPM}
+  variables:
+    CI: false
+  script:
+    - cd ${CI_PROJECT_DIR}/delta/rapids-navigator-ui
+    - npm install 
+    - npm run build
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/delta/rapids-navigator-ui/build/**/*
+
+delta:build-dist:
+  stage: build
+  script:
+    - cd ${CI_PROJECT_DIR}/delta
+    - gradle clean installDist
+  needs:
+    - delta:unit-tests
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/delta/**/*/build/install/**/*
+
+delta:lineage-cli-docker:branch:
+  stage: package
+  extends: .docker-build-job
+  needs:
+    - job: delta:build-dist
+      artifacts: true
+  except:
+    - dev
+    - main
+    - master
+  script:
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}/delta/delta-lineage"
+      --dockerfile "${CI_PROJECT_DIR}/delta/delta-lineage/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}/delta-lineage-cli:${QP_CONTAINER_TAG}"               
+
+delta:lineage-cli-docker:version:
+  stage: package
+  extends: .docker-build-job
+  needs:
+    - job: delta:build-dist
+      artifacts: true
+  only:
+    - dev
+  script:
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}/delta/delta-lineage"
+      --dockerfile "${CI_PROJECT_DIR}/delta/delta-lineage/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}/delta-lineage-cli:${QP_VERSION}"
+
+delta:lineage-cli-docker:latest:
+  stage: package
+  extends: .docker-build-job
+  needs:
+    - job: delta:build-dist
+      artifacts: true
+  only:
+    - main
+    - master
+  script:
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}/delta/delta-lineage"
+      --dockerfile "${CI_PROJECT_DIR}/delta/delta-lineage/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}/delta-lineage-cli:${QP_VERSION}"            
+      --destination "${CI_REGISTRY_IMAGE}/delta-lineage-cli"
+
+#rapids:build-protoc-codegen:
+#  stage: test
+#  image: ${CI_IMAGE_BASE}
+#  script:
+#    - mkdir -p ${PROTOC_OUT}/py
+#    - mkdir -p ${PROTOC_OUT}/net
+#    - >
+#      protoc --proto_path=${PROTOC_SRC}
+#      --csharp_out=${PROTOC_OUT}/net
+#      --python_out=${PROTOC_OUT}/py
+#      --experimental_allow_proto3_optional
+#      ${PROTOC_SRC}/rapidsservice.proto
+#  artifacts:
+#    paths:
+#      - ${PROTOC_OUT}/**/*
+#
+#rapids:jdbc-driver-uber-jar:
+#  stage: build
+#  needs:
+#    - job: rapids:unit-tests
+#      artifacts: false
+#  script:
+#    - cd ${CI_PROJECT_DIR}/rapids
+#    - gradle shadowJar
+#  artifacts:
+#    paths:
+#      - ./rapids-jdbc-driver/build/libs/*-all.jar
+#
+#rapids:bootstrap-app:
+#  stage: build
+#  needs:
+#    - job: rapids:unit-tests
+#      artifacts: false
+#  script:
+#    - cd ${CI_PROJECT_DIR}/rapids
+#    - gradle :rapids-srv-worker:bootstrapApp
+#  artifacts:
+#    paths:
+#      - ${CI_PROJECT_DIR}/rapids/rapids-srv-worker/build/rapids-app/*/*
+#
+#rapids:grpc-service-install-dist:
+#  stage: build
+#  needs:
+#    - job: rapids:unit-tests
+#      artifacts: false
+#  script:
+#    - cd ${CI_PROJECT_DIR}/rapids
+#    - gradle installDist
+#  artifacts:
+#    paths:
+#      - ${CI_PROJECT_DIR}/rapids/rapids-grpc-service/build/install/*/*
+#
+#rapids:grpc-service-publish-docker:
+#  stage: build
+#  extends: .docker-build-job
+#  needs:
+#    - job: rapids:grpc-service-install-dist
+#      artifacts: true
+#  script:
+#    - >
+#      /kaniko/executor
+#      --context "${CI_PROJECT_DIR}/rapids/rapids-grpc-service"
+#      --dockerfile "${CI_PROJECT_DIR}/rapids/rapids-grpc-service/Dockerfile"
+#      --cache-dir "${CI_KANIKO_CACHE_DIR}/rapids-grpc-service"
+#      --destination "${CI_REGISTRY_IMAGE}/rapids-grpc-service:${QP_CONTAINER_TAG}"
+#      --cache=true
+#
+#
+#rapids:build-docker-image-development:
+#  stage: package
+#  extends: .docker-build-job
+#  needs:
+#    - job: rapids:bootstrap-app
+#      artifacts: true
+#  except:
+#    - master
+#    - main
+#    - dev
+#  script:
+#    - >
+#      /kaniko/executor
+#      --context "${CI_PROJECT_DIR}/rapids"
+#      --dockerfile "${CI_PROJECT_DIR}/rapids/rapids-srv-worker/src/main/docker/Dockerfile"
+#      --cache-dir "${CI_KANIKO_CACHE_DIR}/rapids-worker"
+#      --destination "${CI_REGISTRY_IMAGE}/rapids-worker:${QP_CONTAINER_TAG}"
+#      --cache=true
+#
+#rapids:publish-docker-image-development:
+#  stage: package
+#  extends: .docker-build-job
+#  needs:
+#    - job: rapids:bootstrap-app
+#      artifacts: true
+#  only:
+#    - dev
+#  script:
+#    - >
+#      /kaniko/executor
+#      --context "${CI_PROJECT_DIR}/rapids"
+#      --dockerfile "${CI_PROJECT_DIR}/rapids/rapids-srv-worker/src/main/docker/Dockerfile"
+#      --destination "${CI_REGISTRY_IMAGE}/rapids-worker:${QP_CONTAINER_TAG}"
+#      --destination "qpointz/rapids-worker:${QP_CONTAINER_TAG}"
+#      --destination "qpointzcr.azurecr.io/rapids-worker:${QP_CONTAINER_TAG}"
+#
+#
+#rapids:publish-docker-image-latest:
+#  stage: package
+#  extends: .docker-build-job
+#  needs:
+#    - job: rapids:bootstrap-app
+#      artifacts: true
+#  only:
+#    - main
+#    - master
+#  script:
+#    - >
+#      /kaniko/executor
+#      --context "${CI_PROJECT_DIR}/rapids"
+#      --dockerfile "${CI_PROJECT_DIR}/rapids/rapids-srv-worker/src/main/docker/Dockerfile"
+#      --destination "${CI_REGISTRY_IMAGE}/rapids-worker:${QP_CONTAINER_TAG}"
+#      --destination "${CI_REGISTRY_IMAGE}/rapids-worker"
+#      --destination "qpointz/rapids-worker:${QP_CONTAINER_TAG}"
+#      --destination "qpointz/rapids-worker"
+#      --destination "qpointzcr.azurecr.io/rapids-worker:${QP_CONTAINER_TAG}"
+#      --destination "qpointzcr.azurecr.io/rapids-worker"
+#

@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package qpointzdelta;
+
+option java_multiple_files = true;
+option java_package = "io.qpointz.delta.proto";
+
+option java_generic_services = true;
+option py_generic_services = true;
+
+import "google/protobuf/wrappers.proto";
+import "common.proto";
+
+message VectorBlock {
+  Table schema = 1;
+  uint32 vectorSize = 2;
+  repeated Vector vectors = 3;
+}
+
+message Vector {
+
+  message StringVector {
+    repeated string values  = 1;
+    repeated bool nulls = 2;
+  }
+
+  message Int32Vector {
+    repeated sint32 values = 1;
+    repeated bool nulls = 2;
+  }
+
+  message Int64Vector {
+    repeated sint64 values = 1;
+    repeated bool nulls = 2;
+  }
+
+  message DoubleVector {
+    repeated double values = 1;
+    repeated bool nulls = 2;
+  }
+
+  message FloatVector {
+    repeated float values = 1;
+    repeated bool nulls = 2;
+  }
+
+  message BoolVector {
+    repeated bool values = 1;
+    repeated bool nulls = 2;
+  }
+
+  message ByteVector {
+    repeated bytes values = 1;
+    repeated bool nulls = 2;
+  }
+
+  uint32 index = 1;
+  oneof data {
+    Vector.StringVector stringVector = 100;
+    Vector.Int32Vector int32Vector = 101;
+    Vector.Int64Vector int64Vector = 102;
+    Vector.DoubleVector doubleVector = 103;
+    Vector.FloatVector floatVector = 104;
+    Vector.BoolVector  boolVector =105;
+    Vector.ByteVector byteVector = 106;
+  }
+}

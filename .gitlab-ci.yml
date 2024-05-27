@@ -1,9 +1,14 @@
+include:
+  - local : /.gitlab/vars.yml
+  - local : /.gitlab/jobs.yml
+
 stages:
   - init
-  - build-components  
+  - build  
+  - finalize
 
 
-ci-init:init:
+ci-init:
   stage: init
   trigger:
     include:
@@ -14,12 +19,40 @@ ci-init:init:
         - .gitlab-ci.yml
         - .gitlab/**/*
         - etc/docker/**/*
+
+ci-init:release-init:
+  image: ${CI_IMAGE_SEM_RELEASE}
+  stage: init
+  needs:
+    - job: ci-init
+      artifacts: false
+      optional: true
+  script:
+    - export QP_VERSION_SFX="-${CI_COMMIT_REF_SLUG}"
+    - export REL_BRANCHES="--branches main,master,dev,$CI_COMMIT_REF_NAME"
+    - |
+        if [[ "master" == "${CI_COMMIT_REF_SLUG}" || "main" == "${CI_COMMIT_REF_SLUG}" || "dev" == "${CI_COMMIT_REF_SLUG}" ]]
+        then
+          export QP_VERSION_SFX=""
+          export REL_BRANCHES=""
+        fi
+    - echo "VERSION_SFX:${QP_VERSION_SFX}"
+    - npx semantic-release ${REL_BRANCHES} --dry-run --no-ci
+    - echo $(cat ${CI_PROJECT_DIR}/VERSION)${QP_VERSION_SFX} > ${CI_PROJECT_DIR}/VERSION
+    - echo "BUILD VERSION:$(cat ${CI_PROJECT_DIR}/VERSION)"
+
+finalize:release:
+  image: ${CI_IMAGE_SEM_RELEASE}
+  stage: finalize
+  only:
+    - master
+    - main 
+    - dev
+  script:
+    - npx semantic-release --ci --debug
         
 rapids:build:
-  stage: build-components
-  needs:
-    - job: ci-init:init
-      optional: true
+  stage: build
   trigger:
     include:
       - local: rapids/.gitlab-ci.yml
@@ -32,10 +65,7 @@ rapids:build:
         - rapids/**/*
 
 flow:build:
-  stage: build-components
-  needs:
-    - job: ci-init:init
-      optional: true
+  stage: build
   trigger:
     include:
       - local: flow/.gitlab-ci.yml
@@ -45,13 +75,23 @@ flow:build:
         - .gitlab-ci.yml
         - .gitlab/**/*
         - etc/docker/**/*
-        - flow/**/*        
+        - flow/**/*  
+
+delta:build:
+  stage: build
+  trigger:
+    include:
+      - local: delta/.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - changes:
+        - .gitlab-ci.yml
+        - .gitlab/**/*
+        - etc/docker/**/*
+        - delta/**/*              
 
 docs:build:
-  stage: build-components
-  needs:
-    - job: ci-init:init
-      optional: true
+  stage: build
   trigger:
     include:
       - local: docs/.gitlab-ci.yml
