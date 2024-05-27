@@ -46,6 +46,12 @@
                 { "type": "code", "release": "patch" },
                 { "type": "refactor", "release": "patch"}
             ]
-        }]
+        }],
+
+        ["@semantic-release/changelog", {
+              "changelogFile": "CHANGELOG"
+        }],
+
+        "@semantic-release/gitlab"
     ]
 }

@@ -21,7 +21,7 @@ ci-init:
         - etc/docker/**/*
 
 ci-init:release-init:
-  image: ${CI_IMAGE_SEM_RELEASE}
+  image: ${CI_IMAGE_SEM_RELEASE}  
   stage: init
   needs:
     - job: ci-init
