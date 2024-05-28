@@ -17,12 +17,18 @@ configurations {
 	}
 }
 
+tasks.jacocoTestReport {
+    reports {
+        xml.required = true
+    }
+}
+
 dependencies {
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation(libs.boot.starter.web)
+    implementation(libs.boot.starter.webflux)
 
     //developmentOnly("org.springframework.boot:spring-boot-docker-compose")
     developmentOnly(libs.boot.devtools)

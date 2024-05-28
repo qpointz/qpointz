@@ -24,7 +24,7 @@ message Parameter {
 }
 
 message SQLStatement {
-  string statement = 1;
+  string sql = 1;
   repeated Parameter parameters = 2;
 }
 
@@ -39,19 +39,4 @@ message TextPlanStatement {
   }
   string plan = 1;
   TextPlanFormat format = 2;
-}
-
-message Statement {
-  oneof content {
-    SQLStatement sql = 10;
-    PlanStatement plan = 20;
-    TextPlanStatement text = 30;
-  }
-}
-
-message PreparedStatement {
-  oneof content {
-    SQLStatement sql = 10;
-    PlanStatement plan = 20;
-  }
 }

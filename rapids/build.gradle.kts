@@ -1,7 +1,15 @@
 plugins {
     base
-    id("org.sonarqube") version "4.0.0.2929"
     id("jacoco-report-aggregation")
+    id ("org.sonarqube") version "5.0.0.4638"
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "qpointz-rapids")
+        property("sonar.projectName", "qpointz-rapids")
+        property("sonar.qualitygate.wait", true)        
+    }
 }
 
 dependencies {

@@ -49,24 +49,19 @@ tasks.jacocoTestReport {
 
 dependencies {
     implementation(project(":delta-core"))
-//    implementation(libs.grpc.protobuf)
-//    implementation(libs.grpc.stub)
+
     implementation(libs.javax.annotation.api)
     api(libs.boot.starter.security)
-    //api(libs.boot.starter.web)
-
+    api(libs.grpc.core)
     implementation("jakarta.servlet:jakarta.servlet-api:6.0.0")
-
-
-    implementation(libs.bundles.logging)
+    compileOnly(libs.bundles.logging)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
-
     implementation(libs.bootGRPC.server)
 
     //developmentOnly(libs.boot.devtools)
     //annotationProcessor(libs.boot.configuration.processor)
-    testImplementation(libs.boot.starter.test)
+    //testImplementation(libs.boot.starter.test)
     //testImplementation("io.projectreactor:reactor-test:${libs.versions.boot.get()}")
 
     //implementation("org.springframework.boot:spring-boot-starter-oauth2-authorization-server")
@@ -112,6 +107,9 @@ testing {
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.h2.database)
+                    implementation(libs.calcite.core)
+                    implementation(libs.calcite.file)
+                    implementation(libs.calcite.csv)
                     implementation(libs.lombok)
                     annotationProcessor(libs.lombok)
                 }

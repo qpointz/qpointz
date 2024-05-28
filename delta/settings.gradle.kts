@@ -12,9 +12,9 @@ rootProject.name = "delta"
 
 include (":delta-core")
 include (":delta-service-core")
-include (":delta-service-calcite")
-include (":delta-jdbc-driver")
-include (":delta-lineage")
+//include (":delta-service-calcite")
+//include (":delta-jdbc-driver")
+//include (":delta-lineage")
 
 include ( ":rapids-navigator-api")
 
@@ -36,6 +36,7 @@ dependencyResolutionManagement {
             library("boot-starter-test","org.springframework.boot","spring-boot-starter-test").versionRef(boot)
             library("boot-starter-security","org.springframework.boot","spring-boot-starter-security").versionRef(boot)
             library("boot-starter-web","org.springframework.boot","spring-boot-starter-web").versionRef(boot)
+            library("boot-starter-webflux","org.springframework.boot","spring-boot-starter-webflux").versionRef(boot)
             library("boot-starter", "org.springframework.boot","spring-boot-starter").versionRef(boot)
 
 
@@ -164,6 +165,8 @@ dependencyResolutionManagement {
             val grpc = version("grpc", "1.64.0")
             library("grpc-protobuf","io.grpc","grpc-protobuf").versionRef(grpc)
             library("grpc-stub","io.grpc","grpc-stub").versionRef(grpc)
+            library("grpc-api","io.grpc","grpc-api").versionRef(grpc)
+            library("grpc-core","io.grpc","grpc-core").versionRef(grpc)
 
             library("javax-annotation-api" ,"javax.annotation" , "javax.annotation-api").version("1.3.2")
 
@@ -192,13 +195,9 @@ dependencyResolutionManagement {
 }
 
 pluginManagement {
-    val quarkusPluginVersion: String by settings
     repositories {
         mavenCentral()
         gradlePluginPortal()
         mavenLocal()
-    }
-    plugins {
-        id("io.quarkus") version quarkusPluginVersion
     }
 }

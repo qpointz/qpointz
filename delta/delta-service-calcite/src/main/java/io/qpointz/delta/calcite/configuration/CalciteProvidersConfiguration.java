@@ -1,25 +1,26 @@
-package io.qpointz.delta.calcite;
+package io.qpointz.delta.calcite.configuration;
 
-import io.qpointz.delta.service.DeltaServiceBase;
+
+import io.qpointz.delta.calcite.CalciteExecutionProvider;
+import io.qpointz.delta.calcite.SchemaPlusMetadataProvider;
+import io.qpointz.delta.calcite.SubstraitSqlParserProvider;
 import io.qpointz.delta.service.ExecutionProvider;
-import io.qpointz.delta.service.SchemaProvider;
-import io.qpointz.delta.service.SqlParserProvider;
+import io.qpointz.delta.service.MetadataProvider;
+import io.qpointz.delta.service.SqlProvider;
+import io.qpointz.delta.service.configuration.ProvidersConfig;
 import lombok.val;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.apache.calcite.sql.parser.SqlParser;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.context.properties.bind.Name;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
 @Configuration
-public class CalciteDeltaServiceCtx {
+public class CalciteProvidersConfiguration implements ProvidersConfig {
 
     @Bean
     @Qualifier("CALCITE_CONNECTION_PROPS")
@@ -31,7 +32,7 @@ public class CalciteDeltaServiceCtx {
 
     @Bean
     public static CalciteConnection calciteConnection(@Qualifier("CALCITE_CONNECTION_PROPS") Properties properties
-                                                      ) throws ClassNotFoundException, SQLException {
+    ) throws ClassNotFoundException, SQLException {
         Class.forName("org.apache.calcite.jdbc.Driver");
         return DriverManager
                 .getConnection("jdbc:calcite:", properties)
@@ -39,8 +40,8 @@ public class CalciteDeltaServiceCtx {
     }
 
     @Bean
-    public SchemaProvider schemaProvider(CalciteConnection connection) {
-        return new SchemaPlusSchemaProvider(connection.getRootSchema(), connection.getTypeFactory());
+    public MetadataProvider schemaProvider(CalciteConnection connection) {
+        return new SchemaPlusMetadataProvider(connection.getRootSchema(), connection.getTypeFactory());
     }
 
     @Bean
@@ -49,7 +50,7 @@ public class CalciteDeltaServiceCtx {
     }
 
     @Bean
-    public static SqlParserProvider sqlParserProvider(CalciteConnection calciteConnection) {
+    public static SqlProvider sqlParserProvider(CalciteConnection calciteConnection) {
         val connectionConfig = calciteConnection.config();
         val parserConfig = SqlParser.Config.DEFAULT
                 .withConformance(connectionConfig.conformance())
@@ -58,4 +59,7 @@ public class CalciteDeltaServiceCtx {
                 .withQuoting(connectionConfig.quoting());
         return new SubstraitSqlParserProvider(parserConfig, calciteConnection);
     }
+
+
+
 }

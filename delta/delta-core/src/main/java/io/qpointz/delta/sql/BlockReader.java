@@ -60,7 +60,7 @@ public class BlockReader implements Iterator<VectorBlock> {
                 .map(TypeHandler::createVectorProducer)
                 .toList();
         val columnCount = md.getColumnCount();
-        val schema = sb.asTable();
+        val schema = sb.asVectorBlockSchema();
 
         while (this.resultSet.next()) {
             for (var column=0;column<columnCount;column++) {

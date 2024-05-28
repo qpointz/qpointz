@@ -3,18 +3,24 @@ import java.nio.file.Paths
 
 plugins {
     base
-    id("org.sonarqube") version "4.0.0.2929"
     id("jacoco-report-aggregation")
+    id ("org.sonarqube") version "5.0.0.4638"
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "qpointz-delta")
+        property("sonar.projectName", "qpointz-delta")
+        property("sonar.qualitygate.wait", true)        
+    }
 }
 
 dependencies {
-    //jacocoAggregation(project(":delta-jdbc-driver"))
-    //jacocoAggregation(project(":delta-proto"))
-    //jacocoAggregation(project(":delta-grpc-service"))
+    jacocoAggregation(project(":delta-core"))
     jacocoAggregation(project(":delta-service-core"))
+    //jacocoAggregation(project(":delta-service-calcite"))
+    jacocoAggregation(project(":rapids-navigator-api"))
 }
-
-
 
 allprojects {
     fun getVersion():String {

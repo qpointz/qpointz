@@ -11,8 +11,13 @@ option py_generic_services = true;
 import "google/protobuf/wrappers.proto";
 import "common.proto";
 
+
+message VectorBlockSchema {
+  repeated Field fields = 3;
+}
+
 message VectorBlock {
-  Table schema = 1;
+  VectorBlockSchema schema = 1;
   uint32 vectorSize = 2;
   repeated Vector vectors = 3;
 }

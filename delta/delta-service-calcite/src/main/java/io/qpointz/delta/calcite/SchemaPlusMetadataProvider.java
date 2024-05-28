@@ -2,10 +2,9 @@ package io.qpointz.delta.calcite;
 
 import io.qpointz.delta.proto.Field;
 import io.qpointz.delta.proto.Table;
-import io.qpointz.delta.service.SchemaProvider;
+import io.qpointz.delta.service.MetadataProvider;
 import io.substrait.extension.ExtensionCollector;
 import io.substrait.isthmus.TypeConverter;
-import io.substrait.type.TypeCreator;
 import io.substrait.type.proto.TypeProtoConverter;
 import lombok.val;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
@@ -13,15 +12,14 @@ import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.SchemaPlus;
 import java.util.ArrayList;
 import java.util.Optional;
-import java.util.stream.StreamSupport;
 
-public class SchemaPlusSchemaProvider implements SchemaProvider {
+public class SchemaPlusMetadataProvider implements MetadataProvider {
 
     private final SchemaPlus schema;
     private final RelDataTypeFactory typeFactory;
     private final TypeProtoConverter typeProtoConverter;
 
-    public SchemaPlusSchemaProvider(SchemaPlus schema, RelDataTypeFactory typeFactory) {
+    public SchemaPlusMetadataProvider(SchemaPlus schema, RelDataTypeFactory typeFactory) {
         this.schema = schema;
         this.typeFactory = typeFactory;
         this.typeProtoConverter = new TypeProtoConverter(new ExtensionCollector());
