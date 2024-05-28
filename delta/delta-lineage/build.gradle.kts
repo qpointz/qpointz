@@ -2,7 +2,7 @@ plugins {
     java
     application
     jacoco
-    id("org.graalvm.buildtools.native").version("0.10.1")
+    id("org.graalvm.buildtools.native").version("0.10.2")
 }
 
 java {
@@ -20,18 +20,18 @@ dependencies {
     implementation("org.commonmark:commonmark:0.22.0")
     implementation("org.jsoup:jsoup:1.17.2")
 
-    implementation("info.picocli:picocli:4.7.5")
+    implementation("info.picocli:picocli:4.7.6")
     implementation(libs.calcite.core)
     implementation(libs.calcite.server)
     implementation(libs.calcite.csv)
     implementation(libs.calcite.file)
-    implementation("io.openlineage:openlineage-java:1.13.1")
+    implementation("io.openlineage:openlineage-java:1.16.0")
 
 
     implementation(libs.bundles.logging)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
-    annotationProcessor("info.picocli:picocli-codegen:4.7.5")
+    annotationProcessor("info.picocli:picocli-codegen:4.7.6")
 }
 
 graalvmNative {

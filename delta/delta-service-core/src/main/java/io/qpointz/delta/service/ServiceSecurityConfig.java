@@ -1,6 +1,6 @@
 package io.qpointz.delta.service;
 
-import io.qpointz.delta.proto.DeltaServiceGrpc;
+import io.qpointz.delta.proto.MetaDataServiceGrpc;
 import lombok.val;
 import net.devh.boot.grpc.server.security.authentication.BasicGrpcAuthenticationReader;
 import net.devh.boot.grpc.server.security.authentication.CompositeGrpcAuthenticationReader;
@@ -59,7 +59,7 @@ public class ServiceSecurityConfig {
     @Bean
     GrpcSecurityMetadataSource grpcSecurityMetadataSource() {
         val source = new ManualGrpcSecurityMetadataSource();
-        source.set(DeltaServiceGrpc.getServiceDescriptor(), AccessPredicate.authenticated());
+        source.set(MetaDataServiceGrpc.getServiceDescriptor(), AccessPredicate.authenticated());
         return source;
     }
 

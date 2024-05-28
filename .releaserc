@@ -12,13 +12,19 @@
                 ]
             }, 
             "releaseRules" : [
-                { "type" : "MAJOR", "release" : "major"},
                 { "type": "feature", "release": "minor" },
                 { "type": "feat", "release": "minor" },
+
                 { "type": "fix", "release": "patch"  },
                 { "type": "build", "release": "patch" },
                 { "type": "code", "release": "patch" },
-                { "type": "refactor", "release": "patch"}
+                { "type": "refactor", "release": "patch"},
+
+                { "type": "fix", "scope":"doc", "release": "patch" },
+                { "type": "update", "scope":"doc", "release": "patch" },
+
+                { "type" : "release", "scope":"major", "release" : "major"},
+                { "type" : "release", "scope":"minor", "release" : "minor"}
             ]
         }],
 
@@ -38,13 +44,19 @@
                 ]
             }, 
             "releaseRules" : [
-                { "type" : "MAJOR", "release" : "major"},
                 { "type": "feature", "release": "minor" },
                 { "type": "feat", "release": "minor" },
+
                 { "type": "fix", "release": "patch"  },
                 { "type": "build", "release": "patch" },
                 { "type": "code", "release": "patch" },
-                { "type": "refactor", "release": "patch"}
+                { "type": "refactor", "release": "patch"},
+
+                { "type": "fix", "scope":"doc", "release": "patch" },
+                { "type": "update", "scope":"doc", "release": "patch" },
+
+                { "type" : "release", "scope":"major", "release" : "major"},
+                { "type" : "release", "scope":"minor", "release" : "minor"}
             ]
         }],
 
