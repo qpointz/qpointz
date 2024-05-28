@@ -15,6 +15,11 @@ application {
 	executableDir = "bin"
 }
 
+tasks.jacocoTestReport {
+    reports {
+        xml.required = true
+    }
+}
 
 dependencies {
 	implementation(project(":rapids-core-legacy"))

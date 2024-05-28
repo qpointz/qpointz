@@ -7,40 +7,39 @@ option java_package = "io.qpointz.delta.proto";
 
 import "google/protobuf/wrappers.proto";
 import "substrait/type.proto";
+import "substrait/plan.proto";
 import "common.proto";
 import "statement.proto";
 import "vector.proto";
 
-service MetaDataService {
+service DeltaService {
   rpc Handshake (HandshakeRequest) returns (HandshakeResponse);
   rpc ListSchemas(ListSchemasRequest) returns (ListSchemasResponse);
   rpc GetSchema(GetSchemaRequest) returns (GetSchemaResponse);
+
+  rpc ExecPlan(ExecPlanRequest) returns(stream ExecQueryResponse);
+
+  rpc ParseSql(ParseSqlRequest) returns(ParseSqlResponse);
+  rpc ExecSql(ExecSqlRequest) returns(stream ExecQueryResponse);
 
   //rpc PrepareStatement(PrepareStatementRequest) returns (PrepareStatementResponse);
   //rpc ExecuteQueryStream(ExecQueryStreamRequest) returns (stream ExecQueryResponse);
 
   //rpc ExecuteSql(ExecuteSqlRequest) returns (stream ExecQueryResponse);
 
-//  rpc ExecQuery(ExecQueryRequest) returns (ExecQueryResponse);
-//  rpc ExecQueryStream(ExecQueryStreamRequest) returns (stream ExecQueryResponse);
-}
-
-service SqlService {
+  //  rpc ExecQuery(ExecQueryRequest) returns (ExecQueryResponse);
+  //  rpc ExecQueryStream(ExecQueryStreamRequest) returns (stream ExecQueryResponse);
 
 }
 
-service PlanService {
-
-}
 
 message HandshakeRequest {
 }
 
 message HandshakeResponse {
+
   message Capabilities {
     bool supportSql = 3;
-    bool supportPlan = 4;
-    bool supportJsonPlan = 5;
   }
 
   message SecurityContext {
@@ -55,14 +54,12 @@ message HandshakeResponse {
 
 
 message ListSchemasRequest {
-
 }
 
 message ListSchemasResponse {
   ResponseStatus status = 1;
   repeated string schemas = 2;
 }
-
 
 message GetSchemaRequest {
   string schemaName = 2;
@@ -73,42 +70,32 @@ message GetSchemaResponse {
   Schema schema = 2;
 }
 
-message PrepareStatementRequest {
-  Statement statement = 1;
+message ParseSqlRequest {
+  SQLStatement statement = 1;
 }
 
-message PrepareStatementResponse {
+message ParseSqlResponse {
   ResponseStatus status = 1;
-  Statement originalStatement = 2;
-  PreparedStatement statement = 3;
+  bool success = 2;
+  optional substrait.Plan plan = 3;
+  optional string errorMessage = 4;
 }
 
-message ExecQueryStreamRequest {
-  PreparedStatement statement = 1;
-  uint32 batchSize = 2;
+message QueryExecutionConfig {
+  int32 batchSize = 1;
+}
+
+message ExecPlanRequest {
+  QueryExecutionConfig config = 1;
+  substrait.Plan plan = 2;
+}
+
+message ExecSqlRequest {
+  QueryExecutionConfig config = 1;
+  SQLStatement statement = 2;
 }
 
 message ExecQueryResponse {
   ResponseStatus status = 1;
   VectorBlock vector = 101;
 }
-
-
-
-
-/*
-
-
-message ExecQueryStreamRequest {
-  ExecQueryRequest sqlRequest = 1;
-  uint32 batchSize = 2;
-}
-
-message ExecQueryResponse {
-  ResponseStatus status = 1;
-  optional Schema schema = 100;
-  VectorBlock vector = 101;
-}
-
-
- */

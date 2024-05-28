@@ -4,37 +4,46 @@ import io.qpointz.delta.proto.ResponseCode;
 import io.qpointz.delta.proto.ResponseStatus;
 import lombok.val;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 public class ResponseStatuses {
 
-    static ResponseStatus error() {
-        return error("ERROR");
+//    static ResponseStatus error() {
+//        return error("ERROR");
+//    }
+//
+//    static ResponseStatus error(String message) {
+//        return error(message, List.of());
+//    }
+//
+//    static ResponseStatus error(Exception ex) {
+//        val errors = Arrays.stream(ex.getStackTrace())
+//                .map(StackTraceElement::toString)
+//                .toList();
+//        return error(ex.getMessage(), errors);
+//    }
+//
+//    static ResponseStatus error(String message, Collection<String> errors) {
+//        return of(ResponseCode.ERROR, message, errors);
+//    }
+
+    static ResponseStatus notSupported(String message) {
+        return of(ResponseCode.ERROR_NOT_SUPPORTED, message);
     }
 
-    static ResponseStatus error(String message) {
-        return error(message, List.of());
-    }
-
-    static ResponseStatus error(Exception ex) {
-        val errors = Arrays.stream(ex.getStackTrace())
-                .map(StackTraceElement::toString)
-                .toList();
-        return error(ex.getMessage(), errors);
-    }
-
-    static ResponseStatus error(String message, Collection<String> errors) {
-        return of(ResponseCode.ERROR, message, errors);
-    }
-
-    static ResponseStatus invalidRequest() {
-        return invalidRequest("INVALID REQUEST");
+    static ResponseStatus executionFailed(String message) {
+        return of(ResponseCode.ERROR_EXECUTION_FAILED, message);
     }
 
     static ResponseStatus invalidRequest(String message) {
-        return of(ResponseCode.INVALID_REQUEST, message);
+        return of(ResponseCode.ERROR_INVALID_REQUEST, message);
+    }
+
+    public static ResponseStatus serverError(Exception e) {
+        return ResponseStatuses.of(ResponseCode.ERROR_SERVER_ERROR, e.getMessage());
     }
 
     static ResponseStatus ok() {return ok("OK");}
@@ -54,5 +63,4 @@ public class ResponseStatuses {
                 .addAllErrors(errors)
                 .build();
     }
-
 }

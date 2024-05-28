@@ -29,7 +29,7 @@ public abstract class AbstractRapidsDataService extends RapidsDataServiceGrpc.Ra
         process(request,responseObserver, this::onListCatalogs);
     }
 
-    protected <TRec, TResp> void process(TRec request, StreamObserver<TResp> response, Function<TRec, TResp> onHandle) {
+    protected <R, P> void process(R request, StreamObserver<P> response, Function<R, P> onHandle) {
         try {
             final var reply = onHandle.apply(request);
             if (reply!=null) {
@@ -47,14 +47,14 @@ public abstract class AbstractRapidsDataService extends RapidsDataServiceGrpc.Ra
     protected abstract ListCatalogResponse onListCatalogs(ListCatalogRequest listCatalogRequest);
 
     protected HandshakeResponse onHandshakeRequest(HandshakeRequest handshakeRequest) {
-        return DEFAULT_HANDSHAKE;
+        return defaultHandshake;
     }
 
-    protected static ServiceVersion CURRENT_VERSION = ServiceVersion.V_10;
+    protected static ServiceVersion currentVersion = ServiceVersion.V_10;
 
-    protected static HandshakeResponse DEFAULT_HANDSHAKE = HandshakeResponse.newBuilder()
+    protected static HandshakeResponse defaultHandshake = HandshakeResponse.newBuilder()
             .setStatus(ResponseStatuses.statusOk())
-            .setVersion(CURRENT_VERSION)
+            .setVersion(currentVersion)
             .build();
 
     protected abstract GetCatalogResponse onGetCatalog(GetCatalogRequest getCatalogRequest) ;
@@ -113,9 +113,11 @@ public abstract class AbstractRapidsDataService extends RapidsDataServiceGrpc.Ra
             var vectorBlock = result.vectorBlocks.next();
             var canceled = serverCallObserver!=null && serverCallObserver.isCancelled();
             var ready = true;
+
             while (vectorBlock!=null) {
                 if (canceled) {
                     log.info("Request canceled. Exiting");
+                    responseObserver.omCompleted();
                     break;
                 }
 

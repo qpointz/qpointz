@@ -5,31 +5,29 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-public interface SqlParserProvider {
+public interface SqlProvider {
 
     @AllArgsConstructor
     @Builder
     class ParseResult {
 
         @Getter
-        public String originalSql;
+        private String originalSql;
 
         @Getter
-        boolean success;
+        private boolean success;
 
         @Getter
-        Throwable exception;
+        private Throwable exception;
 
         @Getter
-        String message;
+        private String message;
 
         @Getter
-        Plan plan;
-
+        private Plan plan;
 
     }
-    boolean getAcceptsSql();
 
-    ParseResult parse(String sql);
+    ParseResult parseSql(String sql);
 
 }

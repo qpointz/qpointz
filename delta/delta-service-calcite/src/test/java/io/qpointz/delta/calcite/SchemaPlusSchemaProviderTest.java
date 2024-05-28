@@ -1,6 +1,8 @@
 package io.qpointz.delta.calcite;
 
-import io.qpointz.delta.service.SchemaProvider;
+import io.qpointz.delta.calcite.configuration.CalciteDataServiceConfiguration;
+import io.qpointz.delta.calcite.configuration.CalciteProvidersConfiguration;
+import io.qpointz.delta.service.MetadataProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.junit.jupiter.api.Test;
@@ -10,13 +12,11 @@ import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ActiveProfiles("test")
-@SpringBootTest
 @Slf4j
 class SchemaPlusSchemaProviderTest extends BaseTest {
 
     @Autowired
-    SchemaPlusSchemaProvider schemaProvider;
+    MetadataProvider schemaProvider;
 
     @Autowired
     CalciteConnection connection;

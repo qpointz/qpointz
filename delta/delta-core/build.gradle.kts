@@ -3,10 +3,15 @@ plugins {
     id("io.spring.dependency-management") version "1.1.4"
     id("com.google.protobuf") version "0.9.4"
     jacoco
+    id("com.github.johnrengelman.shadow") version("8.1.1")
 }
 
 java {
 	sourceCompatibility = JavaVersion.VERSION_17
+}
+
+shadow {
+    //baseN
 }
 
 configurations {
@@ -38,6 +43,11 @@ sourceSets {
             srcDir("../delta-ui/build")
         }
     }
+}
+
+tasks.register<Sync>("copyResources") {
+    from(configurations.runtimeClasspath)
+    into(layout.buildDirectory.dir("extraResources1"))
 }
 
 dependencies {
@@ -90,6 +100,7 @@ testing {
                     implementation(libs.lombok)
                     implementation(libs.h2.database)
                     annotationProcessor(libs.lombok)
+                    compileOnly(libs.lombok)
                 }
             }
         }

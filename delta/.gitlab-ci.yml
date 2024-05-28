@@ -13,6 +13,7 @@ stages:
   - build
   - package
   - contrib-test
+  - check
 
 workflow:
   rules:
@@ -21,87 +22,119 @@ workflow:
 delta:unit-tests:
   stage: test
   script:
-    - cat ${CI_PROJECT_DIR}/VERSION
     - cd ${CI_PROJECT_DIR}/delta
     - gradle clean test testCodeCoverage jacocoTestReport
   artifacts:
+    when: always
     reports:
-      junit: ${CI_PROJECT_DIR}/delta/**/*/build/test-results/*/*.xml
+      junit: ${CI_PROJECT_DIR}/delta/*/build/test-results/test/*.xml
     paths:
-      - ${CI_PROJECT_DIR}/delta/**/*/build/reports/jacoco/*/*.xml
+      - ${CI_PROJECT_DIR}/delta/*/build/test-results/test/*.xml
 
-delta:build-ui:
-  stage: build
-  image: ${CI_IMAGE_NPM}
+
+sonarqube-check:
+  stage: check  
   variables:
-    CI: false
-  script:
-    - cd ${CI_PROJECT_DIR}/delta/rapids-navigator-ui
-    - npm install 
-    - npm run build
-  artifacts:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/delta/.sonar"  # Defines the location of the analysis task cache
+    GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+    SONAR_TOKEN: ${SONAR_DELTA_TOKEN}
+  cache:
+    key: "${CI_JOB_NAME}"
     paths:
-      - ${CI_PROJECT_DIR}/delta/rapids-navigator-ui/build/**/*
-
-delta:build-dist:
-  stage: build
+      - .sonar/cache
   script:
     - cd ${CI_PROJECT_DIR}/delta
-    - gradle clean installDist
-  needs:
-    - delta:unit-tests
-  artifacts:
-    paths:
-      - ${CI_PROJECT_DIR}/delta/**/*/build/install/**/*
+    - gradle clean test jacocoTestReport  jacocoTestReport sonar
+  allow_failure: true
 
-delta:lineage-cli-docker:branch:
-  stage: package
-  extends: .docker-build-job
-  needs:
-    - job: delta:build-dist
-      artifacts: true
-  except:
-    - dev
-    - main
-    - master
-  script:
-    - >
-      /kaniko/executor
-      --context "${CI_PROJECT_DIR}/delta/delta-lineage"
-      --dockerfile "${CI_PROJECT_DIR}/delta/delta-lineage/Dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}/delta-lineage-cli:${QP_CONTAINER_TAG}"               
+# sonarqube-vulnerability-report:
+#   stage: check
+#   image: ${CI_IMAGE_BASE}
+#   script:
+#     - cd ${CI_PROJECT_DIR}/delta
+#     - 'curl -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/issues/gitlab_sast_export?projectKey=qpointz_qpointz_83f6d4c2-6041-4fbb-884b-27a3c90fb10b&branch=${CI_COMMIT_BRANCH}&pullRequest=${CI_MERGE_REQUEST_IID}" -o gl-sast-sonar-report.json'
+#   allow_failure: true
+#   artifacts:
+#     expire_in: 1 day
+#     reports:
+#       sast: gl-sast-sonar-report.json
+#   dependencies:
+#     - sonarqube-check
 
-delta:lineage-cli-docker:version:
-  stage: package
-  extends: .docker-build-job
-  needs:
-    - job: delta:build-dist
-      artifacts: true
-  only:
-    - dev
-  script:
-    - >
-      /kaniko/executor
-      --context "${CI_PROJECT_DIR}/delta/delta-lineage"
-      --dockerfile "${CI_PROJECT_DIR}/delta/delta-lineage/Dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}/delta-lineage-cli:${QP_VERSION}"
 
-delta:lineage-cli-docker:latest:
-  stage: package
-  extends: .docker-build-job
-  needs:
-    - job: delta:build-dist
-      artifacts: true
-  only:
-    - main
-    - master
-  script:
-    - >
-      /kaniko/executor
-      --context "${CI_PROJECT_DIR}/delta/delta-lineage"
-      --dockerfile "${CI_PROJECT_DIR}/delta/delta-lineage/Dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}/delta-lineage-cli:${QP_VERSION}"            
-      --destination "${CI_REGISTRY_IMAGE}/delta-lineage-cli"
+
+#delta:build-ui:
+#  stage: build
+#  image: ${CI_IMAGE_NPM}
+#  variables:
+#    CI: false
+#  script:
+#    - cd ${CI_PROJECT_DIR}/delta/rapids-navigator-ui
+#    - npm install
+#    - npm run build
+#  artifacts:
+#    paths:
+#      - ${CI_PROJECT_DIR}/delta/rapids-navigator-ui/build/**/*
+#
+#delta:build-dist:
+#  stage: build
+#  script:
+#    - cd ${CI_PROJECT_DIR}/delta
+#    - gradle clean installDist
+#  needs:
+#    - delta:unit-tests
+#  artifacts:
+#    paths:
+#      - ${CI_PROJECT_DIR}/delta/**/*/build/install/**/*
+#
+#delta:lineage-cli-docker:branch:
+#  stage: package
+#  extends: .docker-build-job
+#  needs:
+#    - job: delta:build-dist
+#      artifacts: true
+#  except:
+#    - dev
+#    - main
+#    - master
+#  script:
+#    - >
+#      /kaniko/executor
+#      --context "${CI_PROJECT_DIR}/delta/delta-lineage"
+#      --dockerfile "${CI_PROJECT_DIR}/delta/delta-lineage/Dockerfile"
+#      --destination "${CI_REGISTRY_IMAGE}/delta-lineage-cli:${QP_CONTAINER_TAG}"
+#
+#delta:lineage-cli-docker:version:
+#  stage: package
+#  extends: .docker-build-job
+#  needs:
+#    - job: delta:build-dist
+#      artifacts: true
+#  only:
+#    - dev
+#  script:
+#    - >
+#      /kaniko/executor
+#      --context "${CI_PROJECT_DIR}/delta/delta-lineage"
+#      --dockerfile "${CI_PROJECT_DIR}/delta/delta-lineage/Dockerfile"
+#      --destination "${CI_REGISTRY_IMAGE}/delta-lineage-cli:${QP_VERSION}"
+#
+#delta:lineage-cli-docker:latest:
+#  stage: package
+#  extends: .docker-build-job
+#  needs:
+#    - job: delta:build-dist
+#      artifacts: true
+#  only:
+#    - main
+#    - master
+#  script:
+#    - >
+#      /kaniko/executor
+#      --context "${CI_PROJECT_DIR}/delta/delta-lineage"
+#      --dockerfile "${CI_PROJECT_DIR}/delta/delta-lineage/Dockerfile"
+#      --destination "${CI_REGISTRY_IMAGE}/delta-lineage-cli:${QP_VERSION}"
+#      --destination "${CI_REGISTRY_IMAGE}/delta-lineage-cli"
 
 #rapids:build-protoc-codegen:
 #  stage: test

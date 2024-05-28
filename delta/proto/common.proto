@@ -9,9 +9,22 @@ import "substrait/type.proto";
 
 enum ResponseCode {
   OK=0;
-  ERROR =100;
-  INVALID_REQUEST =200 ;
-  SERVER_ERROR = 300;
+
+  //unspecified error
+  // any response code greater or equal 500 considered as errors
+  ERROR_UNSPECIFIED =500;
+
+  //request not supported by server e.g. capability not provided by server
+  ERROR_NOT_SUPPORTED = 510;
+
+  //valid supported request not passing parameters validation
+  ERROR_INVALID_REQUEST =520 ;
+
+  //valid request passing validation but failing execution
+  ERROR_EXECUTION_FAILED = 530;
+
+  //server fails with unhandled exception
+  ERROR_SERVER_ERROR = 540;
 }
 
 message ResponseStatus {
