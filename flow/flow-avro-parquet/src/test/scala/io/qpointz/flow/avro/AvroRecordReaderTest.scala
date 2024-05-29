@@ -26,7 +26,7 @@ import java.nio.file.Paths
 
 class AvroRecordReaderTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
-  def avr(name:String="nyc-bronx-2009"):File = Paths.get("flow-test/data/formats/avro/nyc/", s"${name}.avro").toFile
+  def avr(name:String="nyc-bronx-2009"):File = Paths.get("../etc/data/flow-test/data/formats/avro/nyc/", s"${name}.avro").toFile
 
   behavior of "read"
 

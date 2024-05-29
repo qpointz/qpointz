@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class LocalFilesystemBlobSourceTest {
 
     private static Path getDataFolder(String name) {
-        return Path.of(System.getProperty("user.dir"), "/../../example/data" , name);
+        return Path.of(System.getProperty("user.dir"), "/../../etc/data/example/data" , name);
     }
     @Test
     void listBlobs() throws IOException {
