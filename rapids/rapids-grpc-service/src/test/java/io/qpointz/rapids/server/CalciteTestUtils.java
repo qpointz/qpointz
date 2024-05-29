@@ -56,7 +56,7 @@ public class CalciteTestUtils {
         final var factory = new RapidsParquetSchemaFactory();
         final var operand = Map.<String,Object>of(
                 FS_TYPE, "local",
-                DIR_KEY, "../../example/data/airlines_parquet",
+                DIR_KEY, "../../etc/data/example/data/airlines_parquet",
                 RX_DATASET_GROUP_KEY, "dataset",
                 RX_PATTERN_KEY, ".*(\\/(?<dataset>[^\\/]+)\\.parquet$)"
         );

@@ -26,7 +26,7 @@ class RapidsParquetSchemaTest {
     }
 
     private static Path getDataFolder(String name) {
-        return Path.of(System.getProperty("user.dir"), "/../../example/data" , name);
+        return Path.of(System.getProperty("user.dir"), "../../etc/data/example/data" , name);
     }
 
     private static RapidsParquetSchema partitionedSchema() {
