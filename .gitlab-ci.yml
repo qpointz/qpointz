@@ -23,6 +23,8 @@ ci-init:
 ci-init:release-init:
   image: ${CI_IMAGE_SEM_RELEASE}  
   stage: init
+  variables:
+    GIT_STRATEGY: clone
   needs:
     - job: ci-init
       artifacts: false
@@ -44,6 +46,8 @@ ci-init:release-init:
 finalize:release:
   image: ${CI_IMAGE_SEM_RELEASE}
   stage: finalize
+  variables:
+    GIT_STRATEGY: clone  
   only:
     - master
     - main 
