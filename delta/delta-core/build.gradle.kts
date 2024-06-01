@@ -53,14 +53,11 @@ tasks.register<Sync>("copyResources") {
 dependencies {
     api(libs.substrait.core)
     implementation(libs.bundles.logging)
-
     api(libs.grpc.protobuf)
     api(libs.grpc.stub)
     api(libs.javax.annotation.api)
-
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
-    testImplementation(libs.h2.database)
 }
 
 protobuf {
@@ -95,6 +92,7 @@ testing {
 
                 dependencies {
                     implementation(project())
+                    implementation(libs.boot.starter.test)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.lombok)

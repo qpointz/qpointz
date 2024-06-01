@@ -58,7 +58,8 @@ dependencies {
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
     implementation(libs.bootGRPC.server)
-
+    implementation("com.google.api.grpc:proto-google-common-protos:2.29.0")
+    implementation(libs.grpc.testing)
     //developmentOnly(libs.boot.devtools)
     //annotationProcessor(libs.boot.configuration.processor)
     //testImplementation(libs.boot.starter.test)
@@ -104,12 +105,14 @@ testing {
 
                 dependencies {
                     implementation(project())
+                    implementation(libs.boot.starter.test)
+                    implementation(libs.bootGRPC.client)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.h2.database)
-                    implementation(libs.calcite.core)
-                    implementation(libs.calcite.file)
-                    implementation(libs.calcite.csv)
+//                    implementation(libs.calcite.core)
+//                    implementation(libs.calcite.file)
+//                    implementation(libs.calcite.csv)
                     implementation(libs.lombok)
                     annotationProcessor(libs.lombok)
                 }

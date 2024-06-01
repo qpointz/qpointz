@@ -1,30 +1,42 @@
 package io.qpointz.delta.service;
 
 import io.substrait.proto.Plan;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 public interface SqlProvider {
 
-    @AllArgsConstructor
-    @Builder
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     class ParseResult {
 
-        @Getter
-        private String originalSql;
+        private ParseResult() {}
 
         @Getter
-        private boolean success;
+        private Plan plan;
 
         @Getter
         private Throwable exception;
 
-        @Getter
-        private String message;
+        public boolean isSuccess() {
+            return exception == null;
+        }
 
-        @Getter
-        private Plan plan;
+        public String getMessage() {
+            return this.exception == null
+                    ? null
+                    : this.exception.getMessage();
+        }
+
+        public static ParseResult success(Plan plan) {
+            return new ParseResult( plan, null);
+        }
+
+        public static ParseResult fail(Throwable th) {
+            return new ParseResult( null, th);
+        }
+
+        public static ParseResult fail(String message) {
+            return new ParseResult( null, new IllegalArgumentException(message));
+        }
 
     }
 

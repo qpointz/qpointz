@@ -1,8 +1,10 @@
 package io.qpointz.delta.service.configuration;
 
+import io.qpointz.delta.service.DeltaService;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import net.devh.boot.grpc.server.autoconfigure.GrpcAdviceAutoConfiguration;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -13,6 +15,11 @@ public class DeltaServiceConfiguration {
     private DeltaServiceConfiguration() {
 
     }
+
+    protected static final Class<?>[] DEFAULTS = {
+            DeltaService.class,
+            GrpcAdviceAutoConfiguration.class,
+    };
 
     public static DeltaServiceConfiguration newConfiguration() {
         return new DeltaServiceConfiguration();
@@ -31,8 +38,8 @@ public class DeltaServiceConfiguration {
     @Getter
     private String serviceName = "in-process-service";
 
-    public DeltaServiceConfiguration withServiceName(String name) {
-        this.serviceName = name;
+    public DeltaServiceConfiguration withDefaults() {
+        this.additionalConfigs.addAll(Arrays.asList(DEFAULTS));
         return this;
     }
 
@@ -74,12 +81,16 @@ public class DeltaServiceConfiguration {
         return this;
     }
 
+    private String okOrMissingMessage(Object obj) {
+        return obj !=null ? "OK" : "MISSING";
+    }
+
     public Collection<Class<?>> configs() {
         if (this.providersConfiguration == null && (this.executionProviderConfiguration==null || this.metadataProviderConfiguration == null || this.sqlProviderConfiguration == null)) {
             throw new IllegalArgumentException(String.format("All provider configuration must be provided sql:%s, execution:%s, metadata:%s"
-                    , this.providersConfiguration!=null || this.sqlProviderConfiguration!=null ? "OK" : "MISSING"
-                    , this.providersConfiguration!=null || this.executionProviderConfiguration!=null ? "OK" : "MISSING"
-                    , this.providersConfiguration!=null || this.metadataProviderConfiguration!=null ? "OK" : "MISSING" ));
+                    , okOrMissingMessage(this.sqlProviderConfiguration)
+                    , okOrMissingMessage(this.executionProviderConfiguration)
+                    , okOrMissingMessage(this.metadataProviderConfiguration)));
         }
 
         val allConfigs = new ArrayList<Class<?>>();

@@ -9,6 +9,8 @@ import org.junit.jupiter.api.function.Executable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -139,6 +141,21 @@ class DeltaServiceConfigurationTest {
         );
     }
 
+    @Test
+    void testWithDefaults() {
+        val config = DeltaServiceConfiguration.newConfiguration()
+                .withProviders(TestAllConfigs.class)
+                .withDefaults();
+
+        val expected = new HashSet<Class<?>>();
+        expected.addAll(Arrays.stream(DeltaServiceConfiguration.DEFAULTS).toList());
+        expected.add(TestAllConfigs.class);
+
+        checkConfig(config, expected,
+                TestAllConfigs.class, TestAllConfigs.class, TestAllConfigs.class);
+
+    }
+
     private void checkConfig(DeltaServiceConfiguration config,
                              Set<Class<?>> expectedConfigs,
                              Class<?> metadataConfig,
@@ -149,6 +166,8 @@ class DeltaServiceConfigurationTest {
         assertEquals(sqlConfigClass, config.getSqlProviderConfiguration());
         assertEquals(executionConfigClass, config.getExecutionProviderConfiguration());
     }
+
+
 
 
 }
