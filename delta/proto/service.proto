@@ -46,7 +46,6 @@ message HandshakeResponse {
     string principal = 1;
   }
 
-  ResponseStatus status = 1;
   ProtocolVersion version = 2;
   Capabilities capabilities = 3;
   SecurityContext security = 4;
@@ -57,7 +56,6 @@ message ListSchemasRequest {
 }
 
 message ListSchemasResponse {
-  ResponseStatus status = 1;
   repeated string schemas = 2;
 }
 
@@ -66,7 +64,6 @@ message GetSchemaRequest {
 }
 
 message GetSchemaResponse {
-  ResponseStatus status = 1;
   Schema schema = 2;
 }
 
@@ -75,10 +72,7 @@ message ParseSqlRequest {
 }
 
 message ParseSqlResponse {
-  ResponseStatus status = 1;
-  bool success = 2;
   optional substrait.Plan plan = 3;
-  optional string errorMessage = 4;
 }
 
 message QueryExecutionConfig {
@@ -96,6 +90,5 @@ message ExecSqlRequest {
 }
 
 message ExecQueryResponse {
-  ResponseStatus status = 1;
   VectorBlock vector = 101;
 }

@@ -41,6 +41,7 @@ dependencyResolutionManagement {
 
 
 
+
             val calcite = version("calcite", "1.37.0")
             library("calcite-core", "org.apache.calcite", "calcite-core").versionRef(calcite)
             library("calcite-server", "org.apache.calcite", "calcite-server").versionRef(calcite)
@@ -167,6 +168,7 @@ dependencyResolutionManagement {
             library("grpc-stub","io.grpc","grpc-stub").versionRef(grpc)
             library("grpc-api","io.grpc","grpc-api").versionRef(grpc)
             library("grpc-core","io.grpc","grpc-core").versionRef(grpc)
+            library("grpc-testing","io.grpc","grpc-testing").versionRef(grpc)
 
             library("javax-annotation-api" ,"javax.annotation" , "javax.annotation-api").version("1.3.2")
 

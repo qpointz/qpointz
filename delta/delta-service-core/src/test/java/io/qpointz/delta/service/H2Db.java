@@ -2,10 +2,6 @@ package io.qpointz.delta.service;
 
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.calcite.adapter.jdbc.JdbcSchema;
-import org.apache.calcite.schema.Schema;
-import org.apache.calcite.schema.SchemaFactory;
-import org.apache.calcite.schema.SchemaPlus;
 import org.h2.tools.RunScript;
 
 import java.io.IOException;
@@ -15,7 +11,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Map;
 
 @Slf4j
 @Builder(access = AccessLevel.PRIVATE)
@@ -48,7 +43,6 @@ public class H2Db implements java.io.Closeable {
     public static H2Db create(String schemaName, Reader scriptReader) throws ClassNotFoundException {
         final var driverName = "org.h2.Driver";
         Class.forName(driverName);
-        Class.forName("org.apache.calcite.jdbc.Driver");
         final var url = String.format("jdbc:h2:mem:%s;DB_CLOSE_DELAY=-1", schemaName);
         final var username = "test";
         final var password = "test";
@@ -76,23 +70,6 @@ public class H2Db implements java.io.Closeable {
     @SneakyThrows
     public void execScript(Reader reader) {
         RunScript.execute(connect(), reader);
-    }
-
-    public SchemaFactory schemaFactory() {
-        return JdbcSchema.Factory.INSTANCE;
-    }
-
-    public Map<String, Object> schemaOperand() {
-        return Map.of(
-                "jdbcUrl", this.getUrl(),
-                "jdbcUser", this.getUserName(),
-                "jdbcPassword", this.getPassword(),
-                "jdbcDriver", this.getDriver()
-        );
-    }
-
-    public Schema createSchema(SchemaPlus parentSchema) {
-        return schemaFactory().create(parentSchema, this.getSchemaName(), this.schemaOperand());
     }
 
     @SneakyThrows

@@ -7,7 +7,6 @@ option java_package = "io.qpointz.delta.proto";
 
 import "substrait/plan.proto";
 import "substrait/type.proto";
-import "common.proto";
 
 message Parameter {
   uint32 index = 1;
