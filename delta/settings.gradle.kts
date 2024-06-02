@@ -12,7 +12,7 @@ rootProject.name = "delta"
 
 include (":delta-core")
 include (":delta-service-core")
-//include (":delta-service-calcite")
+include (":delta-service-calcite")
 //include (":delta-jdbc-driver")
 //include (":delta-lineage")
 

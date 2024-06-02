@@ -1,19 +1,13 @@
 package io.qpointz.delta.calcite;
 
-import io.qpointz.delta.calcite.configuration.CalciteDataServiceConfiguration;
-import io.qpointz.delta.calcite.configuration.CalciteProvidersConfiguration;
-import io.qpointz.delta.proto.QueryExecutionConfig;
+import io.qpointz.delta.calcite.providers.CalciteExecutionProvider;
 import io.qpointz.delta.proto.SQLStatement;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.sql.SQLException;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
 class CalciteExecutionProviderTest extends BaseTest {

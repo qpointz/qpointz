@@ -14,24 +14,13 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 
 public class CalciteDeltaService {
-//    public CalciteDeltaService(@Autowired SchemaProvider schemaProvider,
-//                               @Autowired ExecutionProvider executionProvider,
-//                               @Autowired SqlParserProvider sqlParserProvider) {
-//        super(schemaProvider, executionProvider, sqlParserProvider);
-//    }
-//
-//    public final static Class<?>[] configClasses = {
-//            CalciteDeltaService.class,
-//            CalciteDataServiceConfiguration.class,
-//            CalciteDeltaServiceCtx.class //,
-//            //ServiceSecurityConfig.class
-//    };
 
     public static void main(String[] args) {
         val configuration = DeltaServiceConfiguration
                 .newConfiguration()
                 .withProviders(CalciteProvidersConfiguration.class)
-                .withAdditionalConfig(CalciteDataServiceConfiguration.class);
+                .withAdditionalConfig(CalciteDataServiceConfiguration.class)
+                .withDefaults();
         DeltaService.run(configuration ,args);
     }
 
