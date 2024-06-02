@@ -3,9 +3,10 @@ package io.qpointz.delta.service;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.qpointz.delta.proto.*;
+import io.qpointz.delta.service.utils.SubstraitUtils;
 import io.qpointz.delta.sql.VectorBlockIterators;
-import io.substrait.plan.PlanProtoConverter;
-import io.substrait.proto.Plan;
+import io.substrait.plan.ImmutablePlan;
+import io.substrait.plan.Plan;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,11 +73,10 @@ class DeltaServiceExecuteTest extends DeltaServiceBaseTest {
         val sql = "SELECT * FROM A";
         val relPlan = io.substrait.plan.ImmutablePlan.builder()
                 .build();
-        val plan = new PlanProtoConverter().toProto(relPlan);
         when(sqlProvider.parseSql(sql))
-            .thenReturn(SqlProvider.ParseResult.success(plan));
+            .thenReturn(SqlProvider.ParseResult.success(relPlan));
         val resp = stub.parseSql(sqlParseRequest(sql).build());
-        assertEquals(plan , resp.getPlan());
+        assertEquals(SubstraitUtils.planToProto(relPlan) , resp.getPlan());
     }
 
     @Test
@@ -111,9 +111,9 @@ class DeltaServiceExecuteTest extends DeltaServiceBaseTest {
                                   @Autowired SqlProvider sqlProvider,
                                   @Autowired ExecutionProvider execProvider) throws ClassNotFoundException {
         String query = "SELECT * FROM A";
-        Plan protoPlan = Plan.newBuilder().build();
+        Plan plan = ImmutablePlan.builder().build();
         val sqlRequest = sqlExecuteRequest(query).build();
-        val parseResult = SqlProvider.ParseResult.success(protoPlan);
+        val parseResult = SqlProvider.ParseResult.success(plan);
         when(sqlProvider.parseSql(query)).thenReturn(parseResult);
 
         val db = H2Db.createFromResource("sql-scripts/test.sql");
@@ -136,7 +136,7 @@ class DeltaServiceExecuteTest extends DeltaServiceBaseTest {
         when(execProvider.execute(any(io.substrait.plan.Plan.class), any(QueryExecutionConfig.class))).thenReturn(iter);
         val res = stub
                 .execPlan(ExecPlanRequest.newBuilder()
-                            .setPlan(Plan.newBuilder().build())
+                            .setPlan(io.substrait.proto.Plan.newBuilder().build())
                             .build());
         assertTrue(res.hasNext());
         val on = res.next();

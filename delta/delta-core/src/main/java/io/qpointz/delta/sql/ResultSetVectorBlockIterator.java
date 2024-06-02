@@ -38,15 +38,6 @@ public class ResultSetVectorBlockIterator implements VectorBlockIterator {
             doNext();
         }
         var result = this.block != null;
-
-//        try {
-//            if (!result && !resultSet.isClosed()) {
-//                resultSet.close();
-//            }
-//        } catch (SQLException e) {
-//            throw new RuntimeException(e);
-//        }
-
         return result;
     }
 

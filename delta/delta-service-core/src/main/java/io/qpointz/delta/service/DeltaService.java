@@ -122,7 +122,7 @@ public class DeltaService extends DeltaServiceGrpc.DeltaServiceImplBase {
         replyOne(request, responseObserver, r -> {
             val parseResult = parseSql(request.getStatement().getSql());
             return ParseSqlResponse.newBuilder()
-                    .setPlan(parseResult.getPlan())
+                    .setPlan(convertPlanToProto(parseResult.getPlan()))
                     .build();
         });
     }
@@ -156,8 +156,13 @@ public class DeltaService extends DeltaServiceGrpc.DeltaServiceImplBase {
     }
 
     @SneakyThrows
-    protected io.substrait.plan.Plan convertProtoToPlan(Plan plan) {
+    protected io.substrait.plan.Plan convertProtoToPlan(io.substrait.proto.Plan plan) {
         return SubstraitUtils.protoToPlan(plan);
+    }
+
+    @SneakyThrows
+    protected io.substrait.proto.Plan convertPlanToProto(io.substrait.plan.Plan plan) {
+        return SubstraitUtils.planToProto(plan);
     }
 
     @Override
@@ -165,7 +170,7 @@ public class DeltaService extends DeltaServiceGrpc.DeltaServiceImplBase {
         traceRequest("execSql", request::toString);
         val parseResult = parseSql(request.getStatement().getSql());
         execPlan(ExecPlanRequest.newBuilder()
-                    .setPlan(parseResult.getPlan())
+                    .setPlan(convertPlanToProto(parseResult.getPlan()))
                     .setConfig(request.getConfig())
                     .build(), responseObserver);
     }

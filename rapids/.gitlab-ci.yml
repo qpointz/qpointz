@@ -170,19 +170,3 @@ sonarqube-check:
     - cd ${CI_PROJECT_DIR}/rapids
     - gradle clean test jacocoTestReport jacocoTestReport sonar
   allow_failure: true
-
-# sonarqube-vulnerability-report:
-#   stage: check
-#   image: ${CI_IMAGE_BASE}
-#   script:
-#     - cd ${CI_PROJECT_DIR}/rapids
-#     - 'curl -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/issues/gitlab_sast_export?projectKey=qpointz_qpointz_83f6d4c2-6041-4fbb-884b-27a3c90fb10b&branch=${CI_COMMIT_BRANCH}&pullRequest=${CI_MERGE_REQUEST_IID}" -o gl-sast-sonar-report.json'
-#   allow_failure: true
-#   artifacts:
-#     expire_in: 1 day
-#     reports:
-#       sast: gl-sast-sonar-report.json
-#   needs:
-#     - job: sonarqube-check
-#       artifacts: true
-      

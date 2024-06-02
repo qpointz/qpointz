@@ -21,15 +21,6 @@ service DeltaService {
 
   rpc ParseSql(ParseSqlRequest) returns(ParseSqlResponse);
   rpc ExecSql(ExecSqlRequest) returns(stream ExecQueryResponse);
-
-  //rpc PrepareStatement(PrepareStatementRequest) returns (PrepareStatementResponse);
-  //rpc ExecuteQueryStream(ExecQueryStreamRequest) returns (stream ExecQueryResponse);
-
-  //rpc ExecuteSql(ExecuteSqlRequest) returns (stream ExecQueryResponse);
-
-  //  rpc ExecQuery(ExecQueryRequest) returns (ExecQueryResponse);
-  //  rpc ExecQueryStream(ExecQueryStreamRequest) returns (stream ExecQueryResponse);
-
 }
 
 

@@ -1,0 +1,6 @@
+calcite:
+  connection:
+    quoting: BACK_TICK
+    caseSensitive: true
+    unquotedCasing: UNCHANGED
+    model: ./config/model.json

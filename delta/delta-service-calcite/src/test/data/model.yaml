@@ -3,6 +3,6 @@ defaultSchema: kyc
 schemas:
   - name: kyc
     type: custom
-    factory: org.apache.calcite.adapter.file.FileSchemaFactory
+    factory: org.apache.calcite.adapter.csv.CsvSchemaFactory
     operand:
       directory: client

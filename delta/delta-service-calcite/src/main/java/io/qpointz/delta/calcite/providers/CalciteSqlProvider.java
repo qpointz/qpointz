@@ -2,29 +2,27 @@ package io.qpointz.delta.calcite.providers;
 
 import io.qpointz.delta.calcite.istmus.SqlToSubstrait;
 import io.qpointz.delta.service.SqlProvider;
-import lombok.AllArgsConstructor;
-import lombok.val;
-import org.apache.calcite.jdbc.CalciteConnection;
-import org.apache.calcite.jdbc.CalciteSchema;
+import io.qpointz.delta.service.utils.SubstraitUtils;
+import lombok.*;
 import org.apache.calcite.sql.parser.SqlParseException;
-import org.apache.calcite.sql.parser.SqlParser;
 
 @AllArgsConstructor
 public class CalciteSqlProvider implements SqlProvider {
 
-    private final SqlParser.Config parserConfig;
-    private final CalciteConnection calciteConnection;
+    @Getter
+    private final CalciteContext calciteCtx;
 
+    @SneakyThrows
     @Override
     public ParseResult parseSql(String sql) {
-        val calciteSchema = calciteConnection.getRootSchema().unwrap(CalciteSchema.class);
         val planConverter = new SqlToSubstrait(null,
-                this.calciteConnection.getTypeFactory(),
-                this.calciteConnection.config(),
-                this.parserConfig);
+                this.getCalciteCtx().getTypeFactory(),
+                this.getCalciteCtx().getCalciteConnection().config(),
+                this.getCalciteCtx().getParserConfig());
         try {
-            val plan = planConverter.execute(sql, calciteSchema);
-            return ParseResult.success(plan);
+            val plan = planConverter.execute(sql, this.getCalciteCtx().getCalciteRootSchema());
+            val proto = SubstraitUtils.protoToPlan(plan);
+            return ParseResult.success(proto);
         } catch (SqlParseException e) {
             return ParseResult.fail(e);
         }

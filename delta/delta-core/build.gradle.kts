@@ -3,15 +3,10 @@ plugins {
     id("io.spring.dependency-management") version "1.1.4"
     id("com.google.protobuf") version "0.9.4"
     jacoco
-    id("com.github.johnrengelman.shadow") version("8.1.1")
 }
 
 java {
 	sourceCompatibility = JavaVersion.VERSION_17
-}
-
-shadow {
-    //baseN
 }
 
 configurations {
