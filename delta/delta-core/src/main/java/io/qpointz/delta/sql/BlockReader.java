@@ -27,7 +27,6 @@ public class BlockReader implements Iterator<VectorBlock> {
     }
 
 
-
     @SneakyThrows
     @Override
     public boolean hasNext() {
@@ -41,8 +40,8 @@ public class BlockReader implements Iterator<VectorBlock> {
         return result;
     }
 
-    @SneakyThrows
     @Override
+    @SneakyThrows
     public VectorBlock next() {
         if (!didNext) {
             doNext();
@@ -50,6 +49,7 @@ public class BlockReader implements Iterator<VectorBlock> {
         this.didNext = false;
         return block;
     }
+
 
     private void doNext() throws SQLException {
         var rowIndex = 0;

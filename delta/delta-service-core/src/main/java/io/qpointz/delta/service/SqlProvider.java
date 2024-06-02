@@ -1,6 +1,6 @@
 package io.qpointz.delta.service;
 
-import io.substrait.proto.Plan;
+import io.substrait.plan.Plan;
 import lombok.*;
 
 public interface SqlProvider {

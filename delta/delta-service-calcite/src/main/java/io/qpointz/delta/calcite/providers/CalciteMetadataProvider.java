@@ -6,32 +6,35 @@ import io.qpointz.delta.service.MetadataProvider;
 import io.substrait.extension.ExtensionCollector;
 import io.substrait.isthmus.TypeConverter;
 import io.substrait.type.proto.TypeProtoConverter;
+import lombok.Getter;
 import lombok.val;
-import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.schema.Schema;
-import org.apache.calcite.schema.SchemaPlus;
+
 import java.util.ArrayList;
+import java.util.Set;
 
 public class CalciteMetadataProvider implements MetadataProvider {
 
-    private final SchemaPlus rootSchema;
-    private final RelDataTypeFactory typeFactory;
+    @Getter
+    private final CalciteContext calciteContext;
+
+    @Getter
     private final TypeProtoConverter typeProtoConverter;
 
-    public CalciteMetadataProvider(SchemaPlus schema, RelDataTypeFactory typeFactory) {
-        this.rootSchema = schema;
-        this.typeFactory = typeFactory;
-        this.typeProtoConverter = new TypeProtoConverter(new ExtensionCollector());
+    public CalciteMetadataProvider(CalciteContext calciteContext, ExtensionCollector extensionCollector) {
+        this.calciteContext = calciteContext;
+        this.typeProtoConverter = new TypeProtoConverter(extensionCollector);
     }
 
     @Override
-    public Iterable<String> getSchemaNames() {
-        return this.rootSchema.getSubSchemaNames();
+    public Set<String> getSchemaNames() {
+        return this.getCalciteContext().getRootSchema()
+                .getSubSchemaNames();
     }
 
     @Override
     public boolean isSchemaExists(String schemaName) {
-        return isRootSchema(schemaName) || this.rootSchema.getSubSchemaNames().contains(schemaName);
+        return isRootSchema(schemaName) || this.getSchemaNames().contains(schemaName);
     }
 
     private boolean isRootSchema(String schemaName) {
@@ -41,8 +44,8 @@ public class CalciteMetadataProvider implements MetadataProvider {
     @Override
     public io.qpointz.delta.proto.Schema getSchema(String schemaName) {
         val schema = isRootSchema(schemaName)
-                ? this.rootSchema
-                : this.rootSchema.getSubSchema(schemaName);
+                ? this.getCalciteContext().getRootSchema()
+                : this.getCalciteContext().getRootSchema().getSubSchema(schemaName);
 
         return io.qpointz.delta.proto.Schema.newBuilder()
                 .addAllTables(this.getTables(schemaName, schema))
@@ -64,15 +67,15 @@ public class CalciteMetadataProvider implements MetadataProvider {
 
     private Iterable<Field> getFields(org.apache.calcite.schema.Table table) {
         val res = new ArrayList<Field>();
-        val rowType = table.getRowType(this.typeFactory);
+        val rowType = table.getRowType(this.getCalciteContext().getTypeFactory());
         for (var tableField : rowType.getFieldList()) {
-            val stype = TypeConverter.DEFAULT
+            val substraitType = TypeConverter.DEFAULT
                     .toSubstrait(tableField.getType())
-                    .accept(this.typeProtoConverter);
+                    .accept(this.getTypeProtoConverter());
             val field = Field.newBuilder()
                     .setName(tableField.getName())
                     .setIndex(tableField.getIndex())
-                    .setType(stype)
+                    .setType(substraitType)
                     .build();
             res.add(field);
         }

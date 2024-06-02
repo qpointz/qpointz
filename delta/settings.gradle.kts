@@ -42,7 +42,7 @@ dependencyResolutionManagement {
 
 
 
-            val calcite = version("calcite", "1.37.0")
+            val calcite = version("calcite", "1.36.0")
             library("calcite-core", "org.apache.calcite", "calcite-core").versionRef(calcite)
             library("calcite-server", "org.apache.calcite", "calcite-server").versionRef(calcite)
             library("calcite-testkit", "org.apache.calcite", "calcite-testkit").versionRef("calcite")
