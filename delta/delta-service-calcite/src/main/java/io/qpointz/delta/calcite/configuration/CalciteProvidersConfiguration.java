@@ -1,9 +1,9 @@
 package io.qpointz.delta.calcite.configuration;
 
 
-import io.qpointz.delta.calcite.CalciteExecutionProvider;
-import io.qpointz.delta.calcite.SchemaPlusMetadataProvider;
-import io.qpointz.delta.calcite.SubstraitSqlParserProvider;
+import io.qpointz.delta.calcite.providers.CalciteExecutionProvider;
+import io.qpointz.delta.calcite.providers.CalciteMetadataProvider;
+import io.qpointz.delta.calcite.providers.CalciteSqlProvider;
 import io.qpointz.delta.service.ExecutionProvider;
 import io.qpointz.delta.service.MetadataProvider;
 import io.qpointz.delta.service.SqlProvider;
@@ -41,7 +41,7 @@ public class CalciteProvidersConfiguration implements ProvidersConfig {
 
     @Bean
     public MetadataProvider schemaProvider(CalciteConnection connection) {
-        return new SchemaPlusMetadataProvider(connection.getRootSchema(), connection.getTypeFactory());
+        return new CalciteMetadataProvider(connection.getRootSchema(), connection.getTypeFactory());
     }
 
     @Bean
@@ -57,7 +57,7 @@ public class CalciteProvidersConfiguration implements ProvidersConfig {
                 .withCaseSensitive(connectionConfig.caseSensitive())
                 .withLex(connectionConfig.lex())
                 .withQuoting(connectionConfig.quoting());
-        return new SubstraitSqlParserProvider(parserConfig, calciteConnection);
+        return new CalciteSqlProvider(parserConfig, calciteConnection);
     }
 
 
