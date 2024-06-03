@@ -40,17 +40,19 @@ sourceSets {
     }
 }
 
+tasks.register<Sync>("copyResources") {
+    from(configurations.runtimeClasspath)
+    into(layout.buildDirectory.dir("extraResources1"))
+}
+
 dependencies {
     api(libs.substrait.core)
     implementation(libs.bundles.logging)
-
     api(libs.grpc.protobuf)
     api(libs.grpc.stub)
     api(libs.javax.annotation.api)
-
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
-    testImplementation(libs.h2.database)
 }
 
 protobuf {
@@ -59,7 +61,7 @@ protobuf {
     }
     plugins {
         create("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:1.58.0"
+            artifact = "io.grpc:protoc-gen-grpc-java:1.64.0"
         }
     }
     generateProtoTasks {
@@ -85,11 +87,13 @@ testing {
 
                 dependencies {
                     implementation(project())
+                    implementation(libs.boot.starter.test)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.lombok)
                     implementation(libs.h2.database)
                     annotationProcessor(libs.lombok)
+                    compileOnly(libs.lombok)
                 }
             }
         }

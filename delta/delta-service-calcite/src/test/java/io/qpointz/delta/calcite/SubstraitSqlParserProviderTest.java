@@ -1,26 +1,27 @@
 package io.qpointz.delta.calcite;
 
-import io.qpointz.delta.service.SqlParserProvider;
+import io.qpointz.delta.calcite.configuration.CalciteServiceProvidersContextConfiguration;
+import io.qpointz.delta.calcite.providers.CalciteContext;
+import io.qpointz.delta.service.SqlProvider;
 import lombok.val;
-import org.apache.calcite.jdbc.CalciteConnection;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+
 @ActiveProfiles("test")
-class SubstraitSqlParserProviderTest {
+class SubstraitSqlParserProviderTest extends BaseTest {
 
     @Autowired
-    CalciteConnection connection;
+    CalciteContext calciteCtx;
 
-    private SqlParserProvider.ParseResult parse(String sql) {
-        return CalciteDeltaServiceCtx
-                .sqlParserProvider(connection)
-                .parse(sql);
+    private SqlProvider.ParseResult parse(String sql) {
+        return CalciteServiceProvidersContextConfiguration
+                .sqlParserProvider(calciteCtx)
+                .parseSql(sql);
     }
 
     @Test

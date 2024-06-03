@@ -25,7 +25,7 @@ dependencies {
     implementation(libs.calcite.csv)
     implementation(libs.calcite.file)
 
-    //implementation(libs.bundles.logging)
+    runtimeOnly(libs.bundles.logging)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 
@@ -53,6 +53,12 @@ springBoot {
 
 application {
     mainClass = "io.qpointz.delta.calcite.CalciteDeltaService"
+}
+
+tasks.jacocoTestReport {
+    reports {
+        xml.required = true
+    }
 }
 
 testing {

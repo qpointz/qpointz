@@ -3,6 +3,7 @@ package io.qpointz.delta.sql;
 import io.qpointz.delta.proto.Field;
 import io.qpointz.delta.proto.Schema;
 import io.qpointz.delta.proto.Table;
+import io.qpointz.delta.proto.VectorBlockSchema;
 import io.qpointz.delta.sql.types.*;
 import io.substrait.proto.Type;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,12 @@ public class ResultSetMetadataToSubstrait {
     public Schema asSchema() throws SQLException {
         return Schema.newBuilder()
                 .addAllTables(List.of(this.asTable()))
+                .build();
+    }
+
+    public VectorBlockSchema asVectorBlockSchema() throws SQLException {
+        return VectorBlockSchema.newBuilder()
+                .addAllFields(this.asFields())
                 .build();
     }
 

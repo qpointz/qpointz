@@ -13,8 +13,8 @@ rootProject.name = "delta"
 include (":delta-core")
 include (":delta-service-core")
 include (":delta-service-calcite")
-include (":delta-jdbc-driver")
-include (":delta-lineage")
+//include (":delta-jdbc-driver")
+//include (":delta-lineage")
 
 include ( ":rapids-navigator-api")
 
@@ -27,20 +27,22 @@ dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
 
-            val lombok = version("lombok", "1.18.30")
+            val lombok = version("lombok", "1.18.32")
             library("lombok", "org.projectlombok", "lombok").versionRef(lombok)
 
-            val boot = version("boot", "3.2.3")
+            val boot = version("boot", "3.3.0")
             library("boot-devtools", "org.springframework.boot","spring-boot-devtools").versionRef(boot)
             library("boot-configuration-processor","org.springframework.boot","spring-boot-configuration-processor").versionRef(boot)
             library("boot-starter-test","org.springframework.boot","spring-boot-starter-test").versionRef(boot)
             library("boot-starter-security","org.springframework.boot","spring-boot-starter-security").versionRef(boot)
             library("boot-starter-web","org.springframework.boot","spring-boot-starter-web").versionRef(boot)
+            library("boot-starter-webflux","org.springframework.boot","spring-boot-starter-webflux").versionRef(boot)
             library("boot-starter", "org.springframework.boot","spring-boot-starter").versionRef(boot)
 
 
 
-            val calcite = version("calcite", "1.37.0")
+
+            val calcite = version("calcite", "1.36.0")
             library("calcite-core", "org.apache.calcite", "calcite-core").versionRef(calcite)
             library("calcite-server", "org.apache.calcite", "calcite-server").versionRef(calcite)
             library("calcite-testkit", "org.apache.calcite", "calcite-testkit").versionRef("calcite")
@@ -91,7 +93,7 @@ dependencyResolutionManagement {
             library("avro", "org.apache.avro", "avro").versionRef(apacheAvro)
             library("avro-mapred", "org.apache.avro", "avro-mapred").versionRef(apacheAvro)
 */
-            val junit = version("junit", "5.10.1")
+            val junit = version("junit", "5.10.2")
             library("junit-jupiter-api", "org.junit.jupiter", "junit-jupiter-api").versionRef(junit)
             library("junit-jupiter-engine", "org.junit.jupiter", "junit-jupiter-engine").versionRef(junit)
             library("junit-vintage-engine", "org.junit.vintage", "junit-vintage-engine").versionRef(junit)
@@ -113,9 +115,9 @@ dependencyResolutionManagement {
 //            val microprofile = version("microprofile", "3.1")
 //            library("microprofile-config-api", "org.eclipse.microprofile.config", "microprofile-config-api").versionRef(microprofile)
 
-            library("slf4j-api", "org.slf4j", "slf4j-api").version("2.0.9")
-            library("logback-core", "ch.qos.logback", "logback-core").version("1.4.11")
-            library("logback-classic", "ch.qos.logback", "logback-classic").version("1.4.11")
+            library("slf4j-api", "org.slf4j", "slf4j-api").version("2.0.13")
+            library("logback-core", "ch.qos.logback", "logback-core").version("1.5.6")
+            library("logback-classic", "ch.qos.logback", "logback-classic").version("1.5.6")
             library("fusesource-jansi","org.fusesource.jansi", "jansi").version("2.4.1")
             bundle("logging", listOf(
                     "slf4j-api",
@@ -153,7 +155,7 @@ dependencyResolutionManagement {
             library("jetty-security", "org.eclipse.jetty","jetty-security").versionRef(jetty)
             library("jetty-openid", "org.eclipse.jetty","jetty-openid").versionRef(jetty)
 */
-            val mockito = version("mockito", "5.7.0")
+            val mockito = version("mockito", "5.12.0")
             library("mockito-core", "org.mockito", "mockito-core").versionRef(mockito)
             library("mockito-junit-jupiter", "org.mockito", "mockito-junit-jupiter").versionRef(mockito)
 
@@ -161,9 +163,12 @@ dependencyResolutionManagement {
             library("protobuf-java", "com.google.protobuf", "protobuf-java").versionRef(protobuf)
             library("protobuf-protoc", "com.google.protobuf", "protoc").versionRef(protobuf)
 
-            val grpc = version("grpc", "1.60.1")
+            val grpc = version("grpc", "1.64.0")
             library("grpc-protobuf","io.grpc","grpc-protobuf").versionRef(grpc)
             library("grpc-stub","io.grpc","grpc-stub").versionRef(grpc)
+            library("grpc-api","io.grpc","grpc-api").versionRef(grpc)
+            library("grpc-core","io.grpc","grpc-core").versionRef(grpc)
+            library("grpc-testing","io.grpc","grpc-testing").versionRef(grpc)
 
             library("javax-annotation-api" ,"javax.annotation" , "javax.annotation-api").version("1.3.2")
 
@@ -174,11 +179,11 @@ dependencyResolutionManagement {
             val apacheCommons = version("apacheCommons", "3.14.0")
             library("apache-commons-lang3","org.apache.commons", "commons-lang3").versionRef(apacheCommons)
 
-            val substrait = version("substrait", "0.29.0")
+            val substrait = version("substrait", "0.31.0")
             library("substrait-core", "io.substrait", "core").versionRef(substrait)
             library("substrait-isthmus", "io.substrait", "isthmus").versionRef(substrait)
 
-            val bootGrpc = version("bootGRPC", "3.0.0.RELEASE")
+            val bootGrpc = version("bootGRPC", "3.1.0.RELEASE")
             library("bootGRPC-server", "net.devh", "grpc-server-spring-boot-starter" ).versionRef(bootGrpc)
             library("bootGRPC-client", "net.devh", "grpc-client-spring-boot-starter" ).versionRef(bootGrpc)
 
@@ -192,13 +197,9 @@ dependencyResolutionManagement {
 }
 
 pluginManagement {
-    val quarkusPluginVersion: String by settings
     repositories {
         mavenCentral()
         gradlePluginPortal()
         mavenLocal()
-    }
-    plugins {
-        id("io.quarkus") version quarkusPluginVersion
     }
 }
