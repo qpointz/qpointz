@@ -48,7 +48,7 @@ class CalciteDataServiceTest {
         final var factory = new RapidsParquetSchemaFactory();
         final var operand = Map.<String, Object>of(
                 FS_TYPE, "local",
-                DIR_KEY, "../../etc/data/example/data/airlines_parquet",
+                DIR_KEY, "../../etc/data/datasets/airlines/parquet",
                 RX_DATASET_GROUP_KEY, "dataset",
                 RX_PATTERN_KEY, ".*(\\/(?<dataset>[^\\/]+)\\.parquet$)"
         );
@@ -157,7 +157,7 @@ class CalciteDataServiceTest {
 
         final var resp = svc.onExecQuery(req);
         assertEquals(ResponseCode.OK, resp.getStatus().getCode());
-        assertEquals(300, resp.getVector().getVectorSize());
+        assertEquals(10, resp.getVector().getVectorSize());
     }
 
 

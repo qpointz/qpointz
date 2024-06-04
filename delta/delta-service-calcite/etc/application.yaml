@@ -1,0 +1,12 @@
+grpc:
+  server:
+    address: "*"
+    port: 9099
+    security:
+      enabled: false
+calcite:
+  connection:
+    quoting: BACK_TICK
+    caseSensitive: true
+    unquotedCasing: UNCHANGED
+    model: ./config/model.yaml
