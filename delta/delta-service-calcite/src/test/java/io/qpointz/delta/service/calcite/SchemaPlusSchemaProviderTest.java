@@ -1,4 +1,4 @@
-package io.qpointz.delta.calcite;
+package io.qpointz.delta.service.calcite;
 
 import io.qpointz.delta.service.MetadataProvider;
 import lombok.extern.slf4j.Slf4j;

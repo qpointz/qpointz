@@ -1,4 +1,4 @@
-package io.qpointz.delta.calcite.istmus;
+package io.qpointz.delta.service.calcite.istmus;
 
 import io.substrait.extension.SimpleExtension;
 import io.substrait.isthmus.FeatureBoard;
@@ -7,9 +7,7 @@ import io.substrait.isthmus.TypeConverter;
 import io.substrait.isthmus.calcite.SubstraitOperatorTable;
 import io.substrait.type.NamedStruct;
 import org.apache.calcite.config.CalciteConnectionConfig;
-import org.apache.calcite.config.CalciteConnectionProperty;
 import org.apache.calcite.jdbc.CalciteSchema;
-import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.jdbc.LookupCalciteSchema;
 import org.apache.calcite.plan.Contexts;
 import org.apache.calcite.plan.RelOptCluster;

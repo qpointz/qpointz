@@ -3,4 +3,7 @@ calcite:
     quoting: BACK_TICK
     caseSensitive: true
     unquotedCasing: UNCHANGED
-    model: ./config/model.json
+    model: ../etc/data/datasets/airlines/model-csv.yaml
+grpc:
+  server:
+    port: 9099

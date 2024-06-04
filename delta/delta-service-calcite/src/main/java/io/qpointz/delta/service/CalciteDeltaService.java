@@ -1,14 +1,14 @@
-package io.qpointz.delta.calcite;
+package io.qpointz.delta.service;
 
-import io.qpointz.delta.calcite.configuration.CalciteConfiguration;
-import io.qpointz.delta.calcite.configuration.CalciteServiceProvidersContextConfiguration;
-import io.qpointz.delta.calcite.configuration.CalciteServiceCalciteContextConfiguration;
-import io.qpointz.delta.service.*;
-/* import io.qpointz.delta.service.ui.UIConfig; */
+import io.qpointz.delta.service.calcite.configuration.CalciteConfiguration;
+import io.qpointz.delta.service.calcite.configuration.CalciteServiceProvidersContextConfiguration;
+import io.qpointz.delta.service.calcite.configuration.CalciteServiceCalciteContextConfiguration;
 import io.qpointz.delta.service.configuration.DeltaServiceConfiguration;
 import lombok.val;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 
+@SpringBootApplication
 public class CalciteDeltaService {
 
     public static void main(String[] args) {
@@ -20,6 +20,4 @@ public class CalciteDeltaService {
                 .withDefaults();
         DeltaService.run(configuration ,args);
     }
-
-
 }

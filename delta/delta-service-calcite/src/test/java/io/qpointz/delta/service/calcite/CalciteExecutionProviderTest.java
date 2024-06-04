@@ -1,24 +1,23 @@
-package io.qpointz.delta.calcite;
+package io.qpointz.delta.service.calcite;
 
-import io.qpointz.delta.calcite.providers.CalciteContext;
-import io.qpointz.delta.calcite.providers.CalciteExecutionProvider;
+import io.qpointz.delta.service.calcite.providers.CalciteContext;
+import io.qpointz.delta.service.calcite.providers.CalciteExecutionProvider;
 import io.qpointz.delta.proto.QueryExecutionConfig;
-import io.qpointz.delta.proto.SQLStatement;
 import io.qpointz.delta.service.SqlProvider;
 import io.substrait.extension.ExtensionCollector;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.calcite.tools.RelBuilder;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @Slf4j
+@ActiveProfiles("test")
 class CalciteExecutionProviderTest extends BaseTest {
 
     @Autowired
@@ -29,6 +28,20 @@ class CalciteExecutionProviderTest extends BaseTest {
 
     @Autowired
     CalciteContext context;
+
+
+    @Test
+    public void executeDirectly() throws SQLException {
+        val sql = "SELECT * FROM `airlines`.`cities`";
+        val conn = context.getCalciteConnection();
+        val stmt = conn.prepareStatement(sql);
+        val rs = stmt.executeQuery();
+        var i =0;
+        while (rs.next()) {
+            i++;
+        }
+        assertTrue(i>0);
+    }
 
     @Test
     public void relBuilderTest() throws SQLException {
@@ -60,6 +73,4 @@ class CalciteExecutionProviderTest extends BaseTest {
             log.info("{} {}",rs.getObject(1),rs.getObject(2));
         }
     }
-
-
 }

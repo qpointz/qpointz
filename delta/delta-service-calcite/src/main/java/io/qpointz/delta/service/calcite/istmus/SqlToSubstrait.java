@@ -1,4 +1,4 @@
-package io.qpointz.delta.calcite.istmus;
+package io.qpointz.delta.service.calcite.istmus;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.substrait.extension.ExtensionCollector;
@@ -17,7 +17,6 @@ import org.apache.calcite.prepare.CalciteCatalogReader;
 import org.apache.calcite.rel.RelRoot;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.schema.Schema;
-import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;

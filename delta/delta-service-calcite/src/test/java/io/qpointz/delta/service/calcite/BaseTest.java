@@ -1,9 +1,9 @@
-package io.qpointz.delta.calcite;
+package io.qpointz.delta.service.calcite;
 
 
-import io.qpointz.delta.calcite.configuration.CalciteConfiguration;
-import io.qpointz.delta.calcite.configuration.CalciteServiceProvidersContextConfiguration;
-import io.qpointz.delta.calcite.configuration.CalciteServiceCalciteContextConfiguration;
+import io.qpointz.delta.service.calcite.configuration.CalciteConfiguration;
+import io.qpointz.delta.service.calcite.configuration.CalciteServiceProvidersContextConfiguration;
+import io.qpointz.delta.service.calcite.configuration.CalciteServiceCalciteContextConfiguration;
 import io.qpointz.delta.proto.DeltaServiceGrpc;
 import io.qpointz.delta.proto.HandshakeRequest;
 import io.qpointz.delta.service.DeltaService;

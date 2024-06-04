@@ -1,6 +1,6 @@
-package io.qpointz.delta.calcite.providers;
+package io.qpointz.delta.service.calcite.providers;
 
-import io.qpointz.delta.calcite.istmus.SqlToSubstrait;
+import io.qpointz.delta.service.calcite.istmus.SqlToSubstrait;
 import io.qpointz.delta.service.SqlProvider;
 import io.qpointz.delta.service.utils.SubstraitUtils;
 import lombok.*;

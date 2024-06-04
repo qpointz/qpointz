@@ -1,6 +1,6 @@
-package io.qpointz.delta.calcite.configuration;
+package io.qpointz.delta.service.calcite.configuration;
 
-import io.qpointz.delta.calcite.providers.CalciteContext;
+import io.qpointz.delta.service.calcite.providers.CalciteContext;
 import io.substrait.extension.ExtensionCollector;
 import lombok.val;
 import org.apache.calcite.jdbc.CalciteConnection;

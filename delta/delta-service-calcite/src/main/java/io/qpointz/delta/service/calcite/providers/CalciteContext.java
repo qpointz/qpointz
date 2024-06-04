@@ -1,4 +1,4 @@
-package io.qpointz.delta.calcite.providers;
+package io.qpointz.delta.service.calcite.providers;
 
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import io.substrait.extension.ExtensionCollector;

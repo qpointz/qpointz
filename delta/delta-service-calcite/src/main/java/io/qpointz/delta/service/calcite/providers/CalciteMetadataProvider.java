@@ -1,4 +1,4 @@
-package io.qpointz.delta.calcite.providers;
+package io.qpointz.delta.service.calcite.providers;
 
 import io.qpointz.delta.proto.Field;
 import io.qpointz.delta.proto.Table;

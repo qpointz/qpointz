@@ -1,4 +1,4 @@
-package io.qpointz.delta.calcite.configuration;
+package io.qpointz.delta.service.calcite.configuration;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
