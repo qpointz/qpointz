@@ -1,5 +1,6 @@
 package io.qpointz.delta.service;
 
+import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,15 @@ public class DeltaServiceExceptionAdvice {
     @GrpcExceptionHandler(StatusException.class)
     public StatusException handleRuntimeStatus(StatusException e) {
         return e;
+    }
+
+    @GrpcExceptionHandler(Error.class)
+    public StatusException handeError(Error e) {
+        log.error("Intercepted error:\r", e);
+        return Status.INTERNAL
+                .withDescription(String.format("ERROR:%s", e.getMessage()))
+                .withCause(e)
+                .asException();
     }
 
 }

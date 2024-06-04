@@ -33,7 +33,7 @@ class CalciteExecutionProviderTest extends BaseTest {
     @Test
     public void relBuilderTest() throws SQLException {
         val relBuilder = RelBuilder.create(this.context.getFrameworkConfig());
-        val node = relBuilder.scan("kyc", "CLIENT").build();
+        val node = relBuilder.scan("airlines", "cities").build();
         val stmt = this.context.getRelRunner().prepareStatement(node);
         val rs = stmt.executeQuery();
     }
@@ -43,17 +43,19 @@ class CalciteExecutionProviderTest extends BaseTest {
         val con = this.getConnection();
         val calciteContext = new CalciteContext(con);
         val ep = new CalciteExecutionProvider(calciteContext);
-        val pr = sqlProvider.parseSql("SELECT * FROM `kyc`.`CLIENT`");
+        val pr = sqlProvider.parseSql("SELECT * FROM `airlines`.`cities`");
         assertTrue(pr.isSuccess());
         val res = ep.execute(pr.getPlan(), QueryExecutionConfig.newBuilder().setBatchSize(100).build());
-//        assertNotNull(res);
+        while (res.hasNext()) {
+            val r = res.next();
+            log.debug(r.toString());
+        }
     }
 
     @Test
-    @Disabled
     void createConnection() throws ClassNotFoundException, SQLException {
         val stmt = this.getConnection().createStatement();
-        val rs = stmt.executeQuery("SELECT `ID` FROM `kyc`.`CLIENT`");
+        val rs = stmt.executeQuery("SELECT `id`, `state` FROM `airlines`.`cities`");
         while (rs.next()) {
             log.info("{} {}",rs.getObject(1),rs.getObject(2));
         }
