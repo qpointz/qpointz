@@ -7,7 +7,6 @@ import io.qpointz.delta.proto.*;
 import io.qpointz.delta.service.configuration.DeltaServiceConfiguration;
 import io.qpointz.delta.service.utils.SubstraitUtils;
 import io.qpointz.delta.sql.VectorBlockIterator;
-import io.substrait.proto.Plan;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;

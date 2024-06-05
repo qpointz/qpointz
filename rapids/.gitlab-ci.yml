@@ -18,10 +18,12 @@ stages:
 workflow:
   rules:
     - when : always
-
+     
+       
 rapids:unit-tests:
   stage: test
   script:
+    - find ${CI_PROJECT_DIR}/etc/data
     - cd ${CI_PROJECT_DIR}/rapids
     - gradle clean test testCodeCoverageReport
   artifacts:
@@ -169,4 +171,6 @@ sonarqube-check:
   script:
     - cd ${CI_PROJECT_DIR}/rapids
     - gradle clean test jacocoTestReport jacocoTestReport sonar
+  only:
+    - dev
   allow_failure: true

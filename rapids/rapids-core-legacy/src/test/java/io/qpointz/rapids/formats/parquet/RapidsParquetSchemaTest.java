@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class RapidsParquetSchemaTest {
 
     private static RapidsParquetSchema airlinesRapidsSchema() {
-        var rootDir = RapidsParquetSchemaTest.getDataFolder("airlines_parquet");
+        var rootDir = RapidsParquetSchemaTest.getDataFolder("airlines/parquet");
         var fileSystemAdapter = new LocalFileSystemAdapter(rootDir);
         return new RapidsParquetSchema(
                 fileSystemAdapter,
@@ -26,7 +26,7 @@ class RapidsParquetSchemaTest {
     }
 
     private static Path getDataFolder(String name) {
-        return Path.of(System.getProperty("user.dir"), "../../etc/data/example/data" , name);
+        return Path.of(System.getProperty("user.dir"), "../../etc/data/datasets" , name);
     }
 
     private static RapidsParquetSchema partitionedSchema() {
