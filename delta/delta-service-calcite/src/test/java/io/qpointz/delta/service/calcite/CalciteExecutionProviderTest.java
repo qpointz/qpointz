@@ -17,7 +17,6 @@ import java.sql.SQLException;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
-@ActiveProfiles("test")
 class CalciteExecutionProviderTest extends BaseTest {
 
     @Autowired
@@ -52,7 +51,7 @@ class CalciteExecutionProviderTest extends BaseTest {
     }
 
     @Test
-    public void execTest() throws SQLException {
+    public void execTest() {
         val con = this.getConnection();
         val calciteContext = new CalciteContext(con);
         val ep = new CalciteExecutionProvider(calciteContext);
@@ -66,7 +65,7 @@ class CalciteExecutionProviderTest extends BaseTest {
     }
 
     @Test
-    void createConnection() throws ClassNotFoundException, SQLException {
+    void createConnection() throws SQLException {
         val stmt = this.getConnection().createStatement();
         val rs = stmt.executeQuery("SELECT `id`, `state` FROM `airlines`.`cities`");
         while (rs.next()) {

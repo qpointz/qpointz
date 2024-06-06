@@ -48,11 +48,11 @@ dependencies {
 }
 
 springBoot {
-    mainClass = "io.qpointz.delta.calcite.CalciteDeltaService"
+    mainClass = "io.qpointz.delta.service.CalciteDeltaService"
 }
 
 application {
-    mainClass = "io.qpointz.delta.calcite.CalciteDeltaService"
+    mainClass = "io.qpointz.delta.service.CalciteDeltaService"
 }
 
 tasks.jacocoTestReport {

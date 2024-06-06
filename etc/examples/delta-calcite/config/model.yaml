@@ -1,0 +1,12 @@
+version: 1.0
+schemas:
+  - name: airlines
+    type: custom
+    factory: org.apache.calcite.adapter.csv.CsvSchemaFactory
+    operand:
+      directory: /data/airlines/csv
+  - name: kyc
+    type: custom
+    factory: org.apache.calcite.adapter.csv.CsvSchemaFactory
+    operand:
+      directory: /data/kyc/csv

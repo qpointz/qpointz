@@ -31,6 +31,37 @@ delta:unit-tests:
     paths:
       - ${CI_PROJECT_DIR}/delta/*/build/test-results/test/*.xml
 
+delta:install-dist-delta:
+  stage: package
+  script:
+    - cd ${CI_PROJECT_DIR}/delta
+    - gradle clean installDist
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/delta/*/build/install/**/*
+
+delta:calcite-service-build-docker:
+  stage: package
+  extends: .docker-build-job
+  needs:
+    - job: delta:install-dist-delta
+      artifacts: true
+  script:
+    - |
+       export EXTRA_DEST=""
+       export LATEST_DEST=""
+       if [ $CI_COMMIT_REF_PROTECTED == true ]
+       then 
+         export EXTRA_DEST="--destination \"delta-calcite:${QP_CONTAINER_TAG}\""                
+       fi
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}/delta/delta-service-calcite"
+      --dockerfile "${CI_PROJECT_DIR}/delta/delta-service-calcite/src/main/docker/Dockerfile"
+      --cache-dir "${CI_KANIKO_CACHE_DIR}/delta-service-calcite" 
+      $EXTRA_DEST $LATEST_DEST 
+      --destination "${CI_REGISTRY_IMAGE}/delta-calcite:${QP_CONTAINER_TAG}"
+      --cache=true
 
 sonarqube-check:
   stage: check  
