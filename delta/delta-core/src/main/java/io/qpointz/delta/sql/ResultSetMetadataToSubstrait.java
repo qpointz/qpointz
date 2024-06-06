@@ -80,14 +80,14 @@ public class ResultSetMetadataToSubstrait {
         val scale = md.getScale(idx);
 
         TypeHandler typeHandler = switch (typeId) {
-            case Types.BOOLEAN , Types.BIT -> BooleanTypeHandler.get(nullable);
-            case Types.INTEGER  -> new IntegerTypeHandler(nullable);
-            case Types.TINYINT -> new TinyIntTypeHandler(nullable);
-            case Types.SMALLINT -> new SmallIntTypeHandler(nullable);
+            case Types.BOOLEAN , Types.BIT      -> BooleanTypeHandler.get(nullable);
+            case Types.INTEGER                  -> new IntegerTypeHandler(nullable);
+            case Types.TINYINT                  -> new TinyIntTypeHandler(nullable);
+            case Types.SMALLINT                 -> new SmallIntTypeHandler(nullable);
             case Types.NVARCHAR , Types.VARCHAR -> new VarCharTypeHandler(nullable, prec);
-            case Types.CHAR , Types.NCHAR -> new CharTypeHandler(nullable, prec);
+            case Types.CHAR , Types.NCHAR       -> new CharTypeHandler(nullable, prec);
+            case Types.BIGINT                   -> new BigIntTypeHandler(nullable);
 
-//            case Types.BIGINT          ->
 //            case Types.FLOAT           ->
 //            case Types.REAL            ->
 //            case Types.DOUBLE          ->

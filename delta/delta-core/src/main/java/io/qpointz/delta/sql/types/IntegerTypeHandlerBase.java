@@ -20,33 +20,30 @@ abstract class IntegerTypeHandlerBase extends SimpleTypeHandler<Integer> {
 
     @Override
     boolean hasVector(Vector vector) {
-        return vector.hasInt32Vector();
+        return vector.hasI32Vector();
     }
 
     @Override
     Integer readVectorValue(Vector vector, int rowIdx) {
-        return vector.getInt32Vector().getValues(rowIdx);
-    }
-
-    @Override
-    boolean isNullValue(Vector vector, int rowIdx) {
-        return vector.getInt32Vector().getNulls(rowIdx);
+        return vector.getI32Vector().getValues(rowIdx);
     }
 
     static class IntegerVectorProducer implements VectorProducer {
 
-        private final Vector.Int32Vector.Builder builder = Vector.Int32Vector.newBuilder();
+        private final Vector.I32Vector.Builder builder = Vector.I32Vector.newBuilder();
+        private final Vector.NullsVector.Builder nulls = Vector.NullsVector.newBuilder();
 
         @Override
         public void read(ResultSet rs, int idx) throws SQLException {
             builder.addValues(rs.getInt(idx));
-            builder.addNulls(rs.wasNull());
+            nulls.addNulls(rs.wasNull());
         }
 
         @Override
         public Vector toVector() {
             return Vector.newBuilder()
-                    .setInt32Vector(builder.build())
+                    .setI32Vector(builder)
+                    .setNulls(nulls)
                     .build();
         }
     }

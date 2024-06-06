@@ -4,14 +4,21 @@ include:
 
 variables:
   DOC_BRANCH_WHITE_LIST : '.*'
-  DOC_TAGS_WHITE_LIST : '^[\w-]+-v(er)*\d+\.\d+\.\d+(-\w[\w-]+)*$'
+  DOC_TAGS_WHITE_LIST : '^v\d+\.\d+\.\d+(-.+)*$'
 
 workflow:
   rules:
     - if: $CI_COMMIT_REF == "dev" || $CI_COMMIT_REF == "rc" || $CI_COMMIT_REF == "main"
       variables:
+<<<<<<< HEAD
         DOC_BRANCH_WHITE_LIST : '^(dev|main|rc)$'
         DOC_TAGS_WHITE_LIST : '^[\w-]+-v(er)*\d+\.\d+\.\d+(-\w[\w-]+)*$'
+=======
+        DOC_BRANCH_WHITE_LIST : '^(master|main)$'  
+    - if: $CI_COMMIT_REF != "dev" && $CI_COMMIT_REF != "master" && $CI_COMMIT_REF != "main"
+      variables:
+        DOC_BRANCH_WHITE_LIST: '^(?:(?!dev).)*$'
+>>>>>>> d0431f4 ([fix:delta] Extend type handling to support JDBC / Calcite / Substrait type mapping)
     - when : always
 
 

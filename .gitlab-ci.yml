@@ -100,13 +100,19 @@ delta:build:
         - delta/**/*              
 
 docs:build:
-  stage: build
+  stage: finalize
   inherit:
     variables: false
   trigger:
     include:
       - local: docs/.gitlab-ci.yml
     strategy: depend
+  needs:
+    - job: ci-init:release-init
+      artifacts: false
+    - job: finalize:release
+      artifacts: false
+      optional: true
   rules:
     - changes:
         - .gitlab-ci.yml

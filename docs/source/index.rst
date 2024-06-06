@@ -5,7 +5,17 @@
 
 QPointz
 ==================================
+* :ref:`delta_toc`
 * :ref:`rapids_toc`
+
+.. _delta_toc:
+.. toctree::    
+   :titlesonly: 
+   :maxdepth: 2
+   :caption: Delta services
+   :glob:
+
+   Types system <delta/typessystem>
 
 
 .. _rapids_toc:

@@ -13,6 +13,9 @@ rootProject.name = "delta"
 include (":delta-core")
 include (":delta-service-core")
 include (":delta-service-calcite")
+
+include (":test-kit:core-test-kit")
+
 //include (":delta-jdbc-driver")
 //include (":delta-lineage")
 
@@ -202,4 +205,10 @@ pluginManagement {
         gradlePluginPortal()
         mavenLocal()
     }
+    plugins {
+        kotlin("jvm") version "1.9.23"
+    }
+}
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.5.0"
 }

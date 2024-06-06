@@ -16,7 +16,7 @@ def scan(indir, outfilepath):
         va.append(a)
         if 'dev' == a:
             print("development version")
-            versions.append((1, "development","dev"))    
+            versions.append(("1", "development","dev"))    
             continue
         if 'rc' == a:
             print("rc version")
@@ -24,7 +24,7 @@ def scan(indir, outfilepath):
             continue
         if 'main' == a:
             print("stable version")
-            versions.append((0, "stable" , "stable"))
+            versions.append(("0", "stable" , "stable"))
             continue
 
         match = re.match(pattern, a)
@@ -33,10 +33,10 @@ def scan(indir, outfilepath):
             path=a
             fversion=match.group('fullversion')
             print(f"version:{fversion} => path:{path}")
-            versions.append((2, f"v{fversion}" , f"{path}"))
+            versions.append((fversion, f"v{fversion}" , f"{path}"))
         else:
-            versions.append((3, f"branch-{a}" , f"{a}" ))
-            print(f"version:branch-{a} => path:{a}")
+            versions.append((f"9999{a}", f"{a}" , f"{a}" ))
+            print(f"version:{a} => path:{a}")
 
     if (os.path.exists(outfilepath)):
         print(f"{outfilepath} exists.deleting")
@@ -46,6 +46,7 @@ def scan(indir, outfilepath):
     nv = []
     for ta in versions:
         nv.append(f"\"{ta[1]}\":\"{ta[2]}\"")
+        print(f"{ta}")
     json ="{" + ",".join(nv) + "}"
     with open(outfilepath, "w") as outfile:
         outfile.write(json)

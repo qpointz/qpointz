@@ -3,10 +3,10 @@ plugins {
     id("io.spring.dependency-management") version "1.1.4"
     id("com.google.protobuf") version "0.9.4"
     jacoco
+    kotlin("jvm")
 }
 
 java {
-	sourceCompatibility = JavaVersion.VERSION_17
 }
 
 configurations {
@@ -53,6 +53,7 @@ dependencies {
     api(libs.javax.annotation.api)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
+    implementation(kotlin("stdlib-jdk8"))
 }
 
 protobuf {
@@ -98,4 +99,10 @@ testing {
             }
         }
     }
+}
+repositories {
+    mavenCentral()
+}
+kotlin {
+    jvmToolchain(17)
 }

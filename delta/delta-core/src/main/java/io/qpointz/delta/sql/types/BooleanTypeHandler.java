@@ -40,25 +40,22 @@ public class BooleanTypeHandler extends SimpleTypeHandler<Boolean> {
         return vector.getBoolVector().getValues(rowIdx);
     }
 
-    @Override
-    boolean isNullValue(Vector vector, int rowIdx) {
-        return vector.getBoolVector().getNulls(rowIdx);
-    }
-
     private class VectorBlockProducer implements VectorProducer {
 
         private final Vector.BoolVector.Builder builder = Vector.BoolVector.newBuilder();
+        private final Vector.NullsVector.Builder nulls = Vector.NullsVector.newBuilder();
 
         @Override
         public void read(ResultSet rs, int idx) throws SQLException {
             builder.addValues(rs.getBoolean(idx));
-            builder.addNulls(rs.wasNull());
+            nulls.addNulls(rs.wasNull());
         }
 
         @Override
         public Vector toVector() {
             return Vector.newBuilder()
                     .setBoolVector(builder.build())
+                    .setNulls(nulls.build())
             .build();
         }
     }

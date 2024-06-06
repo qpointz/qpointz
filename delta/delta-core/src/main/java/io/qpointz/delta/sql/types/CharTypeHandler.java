@@ -30,16 +30,17 @@ public class CharTypeHandler extends LengthTypeHandler {
     static class StringVectorProducer implements VectorProducer {
 
         private final Vector.StringVector.Builder builder = Vector.StringVector.newBuilder();
+        private final Vector.NullsVector.Builder nulls = Vector.NullsVector.newBuilder();
 
         @Override
         public void read(ResultSet rs, int idx) throws SQLException {
             val str = rs.getString(idx);
             if (rs.wasNull()) {
                 builder.addValues("");
-                builder.addNulls(true);
+                nulls.addNulls(true);
             } else {
                 builder.addValues(str);
-                builder.addNulls(false);
+                nulls.addNulls(false);
             }
         }
 
@@ -47,6 +48,7 @@ public class CharTypeHandler extends LengthTypeHandler {
         public Vector toVector() {
             return Vector.newBuilder()
                     .setStringVector(builder.build())
+                    .setNulls(nulls)
                     .build();
         }
     }

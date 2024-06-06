@@ -31,6 +31,8 @@ abstract class SimpleTypeHandler<T> implements TypeHandler, VectorReader<T> {
 
     abstract T readVectorValue(Vector vector, int rowIdx);
 
-    abstract boolean isNullValue(Vector vector, int rowIdx);
+    public boolean isNullValue(Vector vector, int rowIdx) {
+        return vector.getNulls().getNulls(rowIdx);
+    }
 
 }
