@@ -18,7 +18,11 @@ def scan(indir, outfilepath):
             print("development version")
             versions.append((1, "development","dev"))    
             continue
-        if 'master' == a or 'main' == a:
+        if 'rc' == a:
+            print("rc version")
+            versions.append((1, "release-candidate","rc"))    
+            continue
+        if 'main' == a:
             print("stable version")
             versions.append((0, "stable" , "stable"))
             continue

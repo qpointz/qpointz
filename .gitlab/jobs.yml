@@ -12,7 +12,7 @@
 
            export QP_VERSION="$(cat ${CI_PROJECT_DIR}/VERSION)"
            
-           if [[ "master" == "${CI_COMMIT_REF_SLUG}" || "main" == "${CI_COMMIT_REF_SLUG}" ]]
+           if [[ "main" == "${CI_COMMIT_REF_SLUG}" ]]
            then              
               export QP_CONTAINER_TAG="${QP_VERSION}"
               export QP_UPDATE_LATEST_CONTAINER=true

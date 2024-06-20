@@ -107,7 +107,6 @@ rapids:build-docker-image-development:
     - job: rapids:bootstrap-app
       artifacts: true
   except:
-    - master
     - main 
     - dev
   script:
@@ -127,6 +126,7 @@ rapids:publish-docker-image-development:
       artifacts: true
   only:
     - dev
+    - rc
   script:     
     - >
       /kaniko/executor
@@ -144,8 +144,7 @@ rapids:publish-docker-image-latest:
     - job: rapids:bootstrap-app
       artifacts: true
   only:
-    - main
-    - master
+    - main    
   script:     
     - >
       /kaniko/executor
@@ -172,5 +171,6 @@ sonarqube-check:
     - cd ${CI_PROJECT_DIR}/rapids
     - gradle clean test jacocoTestReport jacocoTestReport sonar
   only:
+    - rc
     - dev
   allow_failure: true
