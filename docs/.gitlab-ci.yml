@@ -8,9 +8,9 @@ variables:
 
 workflow:
   rules:
-    - if: $CI_COMMIT_REF == "dev" || $CI_COMMIT_REF == "master" || $CI_COMMIT_REF == "main"
+    - if: $CI_COMMIT_REF == "dev" || $CI_COMMIT_REF == "rc" || $CI_COMMIT_REF == "main"
       variables:
-        DOC_BRANCH_WHITE_LIST : '^(dev|main|master)$'
+        DOC_BRANCH_WHITE_LIST : '^(dev|main|rc)$'
         DOC_TAGS_WHITE_LIST : '^[\w-]+-v(er)*\d+\.\d+\.\d+(-\w[\w-]+)*$'
     - when : always
 
@@ -50,9 +50,9 @@ pages:
     - find ${CI_PROJECT_DIR}/docs/build -empty -type d -delete    
     - multi-version-info.py ${CI_PROJECT_DIR}/docs/build ${CI_PROJECT_DIR}/docs/build/versions.json
     - cd ${CI_PROJECT_DIR}/docs        
-    - cp -R ./build/master/ ./out/    
+    - cp -R ./build/main/ ./out/    
     - cp -R ./build/* ./out/
-    - mv ./out/master ./out/stable
+    - mv ./out/main ./out/stable
     - cat ${CI_PROJECT_DIR}/docs/build/versions.json
     - cp ${CI_PROJECT_DIR}/docs/build/versions.json ./out
     - | 

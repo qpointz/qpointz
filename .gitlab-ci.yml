@@ -31,9 +31,9 @@ ci-init:release-init:
       optional: true
   script:
     - export QP_VERSION_SFX="-${CI_COMMIT_REF_SLUG}"
-    - export REL_BRANCHES="--branches master,dev,$CI_COMMIT_REF_NAME"
+    - export REL_BRANCHES="--branches main,rc,$CI_COMMIT_REF_NAME"
     - |
-        if [[ "master" == "${CI_COMMIT_REF_SLUG}" || "main" == "${CI_COMMIT_REF_SLUG}" || "dev" == "${CI_COMMIT_REF_SLUG}" ]]
+        if [[ "main" == "${CI_COMMIT_REF_SLUG}" || "rc" == "${CI_COMMIT_REF_SLUG}" ]]
         then
           export QP_VERSION_SFX=""
           export REL_BRANCHES=""
@@ -49,9 +49,8 @@ finalize:release:
   variables:
     GIT_STRATEGY: clone  
   only:
-    - master
     - main 
-    - dev
+    - rc
   script:
     - npx semantic-release --ci --debug
         
