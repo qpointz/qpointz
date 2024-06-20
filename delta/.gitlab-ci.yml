@@ -8,7 +8,8 @@ image: ${CI_IMAGE_GRADLE}
 #  PROTOC_SRC : rapids/rapids-grpc/src/main/proto
 #  PROTOC_OUT : rapids/build/protoc
 
-stages:  
+stages:
+  - init  
   - test
   - build
   - package
@@ -19,11 +20,18 @@ workflow:
   rules:
     - when : always
 
+delta:init-version:
+  stage: init
+  extends: .init-next-version
+
 delta:unit-tests:
   stage: test
   script:
     - cd ${CI_PROJECT_DIR}/delta
     - gradle clean test testCodeCoverage jacocoTestReport
+  needs:
+    - job: delta:init-version
+      artifacts: true
   artifacts:
     when: always
     reports:
@@ -33,6 +41,9 @@ delta:unit-tests:
 
 delta:install-dist-delta:
   stage: package
+  needs:
+    - job: delta:init-version
+      artifacts: true
   script:
     - cd ${CI_PROJECT_DIR}/delta
     - gradle clean installDist
