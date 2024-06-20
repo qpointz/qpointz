@@ -13,14 +13,17 @@ stages:
   - build
   - package
   - contrib-test
+  - check
 
 workflow:
   rules:
     - when : always
-
+     
+       
 rapids:unit-tests:
   stage: test
   script:
+    - find ${CI_PROJECT_DIR}/etc/data
     - cd ${CI_PROJECT_DIR}/rapids
     - gradle clean test testCodeCoverageReport
   artifacts:
@@ -104,7 +107,6 @@ rapids:build-docker-image-development:
     - job: rapids:bootstrap-app
       artifacts: true
   except:
-    - master
     - main 
     - dev
   script:
@@ -124,6 +126,7 @@ rapids:publish-docker-image-development:
       artifacts: true
   only:
     - dev
+    - rc
   script:     
     - >
       /kaniko/executor
@@ -141,8 +144,7 @@ rapids:publish-docker-image-latest:
     - job: rapids:bootstrap-app
       artifacts: true
   only:
-    - main
-    - master
+    - main    
   script:     
     - >
       /kaniko/executor
@@ -155,3 +157,20 @@ rapids:publish-docker-image-latest:
       --destination "qpointzcr.azurecr.io/rapids-worker:${QP_CONTAINER_TAG}"      
       --destination "qpointzcr.azurecr.io/rapids-worker"      
       
+sonarqube-check:
+  stage: check  
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/rapids/.sonar"  # Defines the location of the analysis task cache  # Defines the location of the analysis task cache
+    GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+    SONAR_TOKEN: ${SONAR_RAPIDS_TOKEN}
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  script:
+    - cd ${CI_PROJECT_DIR}/rapids
+    - gradle clean test jacocoTestReport jacocoTestReport sonar
+  only:
+    - rc
+    - dev
+  allow_failure: true

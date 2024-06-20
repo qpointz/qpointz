@@ -23,36 +23,41 @@ ci-init:
 ci-init:release-init:
   image: ${CI_IMAGE_SEM_RELEASE}  
   stage: init
+  variables:
+    GIT_STRATEGY: clone
   needs:
     - job: ci-init
       artifacts: false
       optional: true
   script:
     - export QP_VERSION_SFX="-${CI_COMMIT_REF_SLUG}"
-    - export REL_BRANCHES="--branches main,master,dev,$CI_COMMIT_REF_NAME"
+    - export REL_BRANCHES="--branches main,rc,$CI_COMMIT_REF_NAME"
     - |
-        if [[ "master" == "${CI_COMMIT_REF_SLUG}" || "main" == "${CI_COMMIT_REF_SLUG}" || "dev" == "${CI_COMMIT_REF_SLUG}" ]]
+        if [[ "main" == "${CI_COMMIT_REF_SLUG}" || "rc" == "${CI_COMMIT_REF_SLUG}" ]]
         then
           export QP_VERSION_SFX=""
           export REL_BRANCHES=""
         fi
     - echo "VERSION_SFX:${QP_VERSION_SFX}"
-    - npx semantic-release ${REL_BRANCHES} --dry-run --no-ci
+    - npx semantic-release ${REL_BRANCHES} --dry-run --no-ci --debug
     - echo $(cat ${CI_PROJECT_DIR}/VERSION)${QP_VERSION_SFX} > ${CI_PROJECT_DIR}/VERSION
     - echo "BUILD VERSION:$(cat ${CI_PROJECT_DIR}/VERSION)"
 
 finalize:release:
   image: ${CI_IMAGE_SEM_RELEASE}
   stage: finalize
+  variables:
+    GIT_STRATEGY: clone  
   only:
-    - master
     - main 
-    - dev
+    - rc
   script:
     - npx semantic-release --ci --debug
         
 rapids:build:
   stage: build
+  inherit:
+    variables: false
   trigger:
     include:
       - local: rapids/.gitlab-ci.yml
@@ -66,6 +71,8 @@ rapids:build:
 
 flow:build:
   stage: build
+  inherit:
+    variables: false
   trigger:
     include:
       - local: flow/.gitlab-ci.yml
@@ -79,6 +86,8 @@ flow:build:
 
 delta:build:
   stage: build
+  inherit:
+    variables: false
   trigger:
     include:
       - local: delta/.gitlab-ci.yml
@@ -92,6 +101,8 @@ delta:build:
 
 docs:build:
   stage: build
+  inherit:
+    variables: false
   trigger:
     include:
       - local: docs/.gitlab-ci.yml

@@ -12,6 +12,12 @@ dependencies {
     api(libs.smallrye.config.source.yaml)
 }
 
+tasks.jacocoTestReport {
+    reports {
+        xml.required = true
+    }
+}
+
 testing {
     suites {
         register<JvmTestSuite>("testIT") {

@@ -110,4 +110,4 @@ insert into TEST (id, first_name, last_name, premium, age, amount, account) valu
 insert into TEST (id, first_name, last_name, premium, age, amount, account) values (99, 'Avie', 'Rasper', false, 53, 3643, 7736);
 insert into TEST (id, first_name, last_name, premium, age, amount, account) values (100, 'Florence', 'Pakeman', true, 18, 325, 9221);
 
---SELECT * from TEST;
+SELECT * from TEST;

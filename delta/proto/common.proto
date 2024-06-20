@@ -1,24 +1,11 @@
 syntax = "proto3";
 
-package qpointzdelta;
+package io.qpointz.delta;
 
 option java_multiple_files = true;
 option java_package = "io.qpointz.delta.proto";
 
 import "substrait/type.proto";
-
-enum ResponseCode {
-  OK=0;
-  ERROR =1;
-  INVALID_REQUEST =2 ;
-  SERVER_ERROR = 3;
-}
-
-message ResponseStatus {
-  ResponseCode code = 1;
-  string message = 2;
-  repeated string errors = 3;
-}
 
 enum ProtocolVersion {
   UNKNOWN = 0;

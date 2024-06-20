@@ -3,7 +3,11 @@ calcite:
     quoting: BACK_TICK
     caseSensitive: true
     unquotedCasing: UNCHANGED
-    model: ./src/test/data/model.yaml
+    model: ../../etc/data/datasets/airlines/model-csv.yaml
 grpc:
   server:
-    in-process-name: test-service
+    in-process-name: testservice
+    port: -1
+  client:
+    testservice:
+      address: in-process:testservice

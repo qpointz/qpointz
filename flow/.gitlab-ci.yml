@@ -50,7 +50,8 @@ flow:test:
 #  stage: package
 #  only:
 #    - dev
-#    - master
+#    - main
+#    - rc
 #  script:
 #    - cd ${CI_PROJECT_DIR}/flow
 #    - sbt clean publish
