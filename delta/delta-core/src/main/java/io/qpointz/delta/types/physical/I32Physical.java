@@ -1,8 +1,7 @@
 package io.qpointz.delta.types.physical;
 
 import io.qpointz.delta.proto.Vector;
-import io.qpointz.delta.vectors.PhysicalTypeVectorProducer;
-import io.qpointz.delta.vectors.VectorProducer;
+import io.qpointz.delta.vectors.VectorProducerBase;
 
 public final class I32Physical implements PhysicalType<Integer> {
 
@@ -15,11 +14,11 @@ public final class I32Physical implements PhysicalType<Integer> {
         return shuttle.visit(this);
     }
 
-    public PhysicalTypeVectorProducer<Integer, Vector.I32Vector.Builder> createVectorProducer() {
-        return PhysicalTypeVectorProducer.createProducer(
+    public VectorProducerBase<Integer, Vector.I32Vector.Builder> createVectorProducer() {
+        return VectorProducerBase.createProducer(
                 Vector.I32Vector::newBuilder,
                 0,
-                Vector.I32Vector.Builder::addValues, Vector.I32Vector.Builder::addAllValues,
+                Vector.I32Vector.Builder::addValues,
                 Vector.Builder::setI32Vector
         );
     }

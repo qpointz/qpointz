@@ -1,6 +1,7 @@
 package io.qpointz.delta.types.logical;
 
 import io.qpointz.delta.types.physical.I64Physical;
+import io.substrait.type.Type;
 
 public final class TimeLogical implements LogicalType<Long, I64Physical> {
 
@@ -17,4 +18,5 @@ public final class TimeLogical implements LogicalType<Long, I64Physical> {
     public I64Physical getPhysicalType() {
         return I64Physical.INSTANCE;
     }
+
 }

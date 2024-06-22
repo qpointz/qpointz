@@ -2,8 +2,8 @@ package io.qpointz.delta.service.calcite.providers;
 
 import io.qpointz.delta.proto.QueryExecutionConfig;
 import io.qpointz.delta.service.ExecutionProvider;
-import io.qpointz.delta.sql.VectorBlockIterator;
-import io.qpointz.delta.sql.VectorBlockIterators;
+import io.qpointz.delta.vectors.VectorBlockIterator;
+import io.qpointz.delta.vectors.sql.ResultSetVectorBlockIterator;
 import io.substrait.isthmus.SubstraitRelNodeConverter;
 import io.substrait.plan.Plan;
 import lombok.*;
@@ -45,7 +45,7 @@ public class CalciteExecutionProvider implements ExecutionProvider {
             val node = toRel(plan);
             val stmt = this.calciteCtx.getRelRunner().prepareStatement(node);
             val resultSet = stmt.executeQuery();
-            return VectorBlockIterators.fromResultSet(resultSet, config.getBatchSize());
+            return new ResultSetVectorBlockIterator(resultSet, config.getBatchSize());
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

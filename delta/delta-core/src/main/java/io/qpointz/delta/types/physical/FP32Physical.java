@@ -1,8 +1,7 @@
 package io.qpointz.delta.types.physical;
 
-import com.google.protobuf.ByteString;
 import io.qpointz.delta.proto.Vector;
-import io.qpointz.delta.vectors.PhysicalTypeVectorProducer;
+import io.qpointz.delta.vectors.VectorProducerBase;
 
 public final class FP32Physical implements PhysicalType<Float> { //fp32
 
@@ -15,11 +14,11 @@ public final class FP32Physical implements PhysicalType<Float> { //fp32
         return shuttle.visit(this);
     }
 
-    public PhysicalTypeVectorProducer<Float, Vector.FP32Vector.Builder> createVectorProducer() {
-        return PhysicalTypeVectorProducer.createProducer(
+    public VectorProducerBase<Float, Vector.FP32Vector.Builder> createVectorProducer() {
+        return VectorProducerBase.createProducer(
                 Vector.FP32Vector::newBuilder,
                 0F,
-                Vector.FP32Vector.Builder::addValues, Vector.FP32Vector.Builder::addAllValues,
+                Vector.FP32Vector.Builder::addValues,
                 Vector.Builder::setFp32Vector
         );
     }

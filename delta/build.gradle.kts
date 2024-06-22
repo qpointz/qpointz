@@ -19,14 +19,13 @@ dependencies {
     jacocoAggregation(project(":delta-core"))
     jacocoAggregation(project(":delta-service-core"))
     jacocoAggregation(project(":delta-service-calcite"))
-    jacocoAggregation(project(":rapids-navigator-api"))
 }
 
 allprojects {
     fun getVersion():String {
         val path = Paths.get("${project.rootProject.projectDir}/../VERSION")
         if (!Files.exists(path)) {
-            logger.warn("VERSION file missing {}:", path.toAbsolutePath().toString())
+            logger.trace("VERSION file missing {}:", path.toAbsolutePath().toString())
             return "0.0.1-NO-VERSION"
         }
         val version =  Files.readAllLines(path).get(0)

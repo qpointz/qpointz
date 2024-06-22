@@ -1,5 +1,7 @@
 package io.qpointz.delta.sql;
 
+import io.qpointz.delta.vectors.VectorBlockIterator;
+import io.qpointz.delta.vectors.sql.ResultSetVectorBlockIterator;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 
@@ -19,7 +21,7 @@ class ResultSetVectorBlockIteratorTest {
 
     private VectorBlockIterator sql(String sql, int batchSize) {
         var rs = db.query(sql);
-        return VectorBlockIterators.fromResultSet(rs, batchSize);
+        return new ResultSetVectorBlockIterator(rs, batchSize);
     }
 
     @Test

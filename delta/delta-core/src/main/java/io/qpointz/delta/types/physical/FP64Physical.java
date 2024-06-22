@@ -1,7 +1,7 @@
 package io.qpointz.delta.types.physical;
 
 import io.qpointz.delta.proto.Vector;
-import io.qpointz.delta.vectors.PhysicalTypeVectorProducer;
+import io.qpointz.delta.vectors.VectorProducerBase;
 
 public final class FP64Physical implements PhysicalType<Double> { //fp64
 
@@ -14,11 +14,11 @@ public final class FP64Physical implements PhysicalType<Double> { //fp64
         return shuttle.visit(this);
     }
 
-    public PhysicalTypeVectorProducer<Double, Vector.FP64Vector.Builder> createVectorProducer() {
-        return PhysicalTypeVectorProducer.createProducer(
+    public VectorProducerBase<Double, Vector.FP64Vector.Builder> createVectorProducer() {
+        return VectorProducerBase.createProducer(
                 Vector.FP64Vector::newBuilder,
                 0D,
-                Vector.FP64Vector.Builder::addValues, Vector.FP64Vector.Builder::addAllValues,
+                Vector.FP64Vector.Builder::addValues,
                 Vector.Builder::setFp64Vector
         );
     }

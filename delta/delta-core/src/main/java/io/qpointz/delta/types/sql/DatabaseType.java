@@ -1,4 +1,4 @@
-package io.qpointz.delta.types;
+package io.qpointz.delta.types.sql;
 
 import io.qpointz.delta.types.logical.*;
 
@@ -6,15 +6,15 @@ public record DatabaseType(LogicalType type, boolean nullable, int precision, in
 
     public static int PREC_SCALE_NOT_APPLICABLE = -1;
 
-    public static DatabaseType of(LogicalType type, boolean nullable) {
+    public static DatabaseType of(LogicalType<?,?> type, boolean nullable) {
         return new DatabaseType(type, nullable, PREC_SCALE_NOT_APPLICABLE, PREC_SCALE_NOT_APPLICABLE);
     }
 
-    public static DatabaseType of(LogicalType type, boolean nullable, int size) {
+    public static DatabaseType of(LogicalType<?,?> type, boolean nullable, int size) {
         return new DatabaseType(type, nullable, size, PREC_SCALE_NOT_APPLICABLE);
     }
 
-    public static DatabaseType of(LogicalType type, boolean nullable, int precision, int scale) {
+    public static DatabaseType of(LogicalType<?,?> type, boolean nullable, int precision, int scale) {
         return new DatabaseType(type, nullable, precision, scale);
     }
 

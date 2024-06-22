@@ -1,19 +1,24 @@
 package io.qpointz.delta.vectors.sql;
 
+import io.qpointz.delta.proto.Field;
+import io.qpointz.delta.proto.Vector;
 import io.qpointz.delta.proto.VectorBlock;
 import io.qpointz.delta.proto.VectorBlockSchema;
-import io.qpointz.delta.sql.types.TypeHandler;
-import io.qpointz.delta.sql.types.VectorProducer;
+import io.qpointz.delta.types.sql.JdbcToSubstraitTypeMapper;
+import io.qpointz.delta.types.sql.JdbcTypeInfo;
+import io.qpointz.delta.vectors.MappingVectorProducer;
 import io.qpointz.delta.vectors.VectorBlockIterator;
+import io.qpointz.delta.vectors.VectorProducer;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
-@RequiredArgsConstructor
 public class ResultSetVectorBlockIterator implements VectorBlockIterator {
 
     @Getter
@@ -21,6 +26,40 @@ public class ResultSetVectorBlockIterator implements VectorBlockIterator {
 
     @Getter
     private final int batchSize;
+    private final ResultSetColumnReader[] columnReaders;
+    private final MappingVectorProducer<ResultSetColumnReader, ?>[] vectorProducers;
+    private final int columnCount;
+
+    public ResultSetVectorBlockIterator(ResultSet resultSet, int batchSize) {
+        this.resultSet = resultSet;
+        this.batchSize = batchSize;
+        try {
+            this.columnCount = this.resultSet.getMetaData().getColumnCount();
+            columnReaders = new ResultSetColumnReader[columnCount];
+            vectorProducers = new MappingVectorProducer[columnCount];
+            val meta = resultSet.getMetaData();
+            val schemaBuilder = VectorBlockSchema.newBuilder();
+            for (int i = 0; i < this.columnCount; i++) {
+                val colIdx = i + 1;
+                columnReaders[i]=new ResultSetColumnReader(resultSet, colIdx);
+                val jdbcInfo = new JdbcTypeInfo(
+                        meta.getColumnType(colIdx),
+                        meta.isNullable(colIdx) != ResultSetMetaData.columnNoNulls,
+                        meta.getPrecision(colIdx),
+                        meta.getScale(colIdx)
+                );
+                vectorProducers[i] = ResultSetVectorProducerFactory.DEFAULT.fromJdbcType(jdbcInfo);
+                schemaBuilder.addFields(Field.newBuilder()
+                                .setIndex(i)
+                                .setType(JdbcToSubstraitTypeMapper.DEFAULT.jdbc(jdbcInfo))
+                                .setName(meta.getColumnName(colIdx))
+                                .build());
+            }
+            this.schema = schemaBuilder.build();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private boolean didNext = false;
 
@@ -38,8 +77,7 @@ public class ResultSetVectorBlockIterator implements VectorBlockIterator {
         if (!didNext) {
             doNext();
         }
-        var result = this.block != null;
-        return result;
+        return this.block != null;
     }
 
 
@@ -56,43 +94,32 @@ public class ResultSetVectorBlockIterator implements VectorBlockIterator {
     private void doNext() {
         var rowIndex = 0;
         this.block = null;
-        var columnCount = -1;
-        List<VectorProducer> producers = null;
 
-//        try {
-//            val md = this.resultSet.getMetaData();
-//            val sb = new ResultSetMetadataToSubstrait(md);
-//            producers = sb.asTypeHandlers().stream()
-//                    .map(TypeHandler::createVectorProducer)
-//                    .toList();
-//            columnCount = md.getColumnCount();
-//            this.schema = sb.asVectorBlockSchema();
-//
-//            while (this.resultSet.next()) {
-//                for (var column = 0; column < columnCount; column++) {
-//                    producers.get(column).read(this.resultSet, column + 1);
-//                }
-//                rowIndex++;
-//
-//                if (rowIndex >= this.batchSize) {
-//                    break;
-//                }
-//            }
-//        } catch (SQLException e) {
-//            throw new RuntimeException(e);
-//        }
-//
-//        if (rowIndex>0) {
-//            final var blockBuilder = VectorBlock.newBuilder()
-//                    .setSchema(schema)
-//                    .setVectorSize(rowIndex);
-//
-//            for (int column = 0; column < columnCount; column++) {
-//                val vector = producers.get(column).toVector();
-//                blockBuilder.addVectors(vector);
-//            }
-//            this.block = blockBuilder.build();
-//        }
+        try {
+            while (this.resultSet.next()) {
+                for (var column = 0; column < this.columnCount; column++) {
+                    vectorProducers[column].append(columnReaders[column]);
+                }
+                rowIndex++;
+                if (rowIndex >= this.batchSize) {
+                    break;
+                }
+            }
+            if (rowIndex>0) {
+                val blockBuilder = VectorBlock.newBuilder()
+                        //.setSchema(schema)
+                        .setVectorSize(rowIndex);
+
+                for (int column = 0; column < this.columnCount; column++) {
+                    final Vector vector = vectorProducers[column].vectorBuilder().build();
+                    blockBuilder.addVectors(vector);
+                    vectorProducers[column].reset();
+                }
+                this.block = blockBuilder.build();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         this.didNext = true;
     }
 }

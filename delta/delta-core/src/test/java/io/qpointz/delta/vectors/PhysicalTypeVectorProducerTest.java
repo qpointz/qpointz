@@ -15,12 +15,10 @@ class PhysicalTypeVectorProducerTest {
     @Test
     void vanilaProducer() {
         val producer = I32Physical.INSTANCE.createVectorProducer();
-        producer.append(23);
-        producer.append(34);
-        producer.appendNull();
-        val builder = Vector.newBuilder();
-        producer.addToVector(builder);
-        val vector = builder.build();
+        producer.append(23, false);
+        producer.append(34, false);
+        producer.append(null, true);
+        val vector = producer.vectorBuilder().build();
         val nulls = vector.getNulls().getNullsList();
         val values = vector.getI32Vector().getValuesList();
         assertEquals(List.of(23,34, producer.getNullValue()), values);
@@ -30,11 +28,9 @@ class PhysicalTypeVectorProducerTest {
     @Test
     void addAllValues() {
         val producer = StringPhysical.INSTANCE.createVectorProducer();
-        producer.appendAll(List.of("a","b"));
-        producer.appendNulls(2);
-        val builder = Vector.newBuilder();
-        producer.addToVector(builder);
-        val vector = builder.build();
+        producer.append(List.of("a","b"), List.of(false, false));
+        producer.append(List.of("null", "null"), List.of(true, true) );
+        val vector = producer.vectorBuilder().build();
         val values = vector.getStringVector().getValuesList();
         val nulls = vector.getNulls().getNullsList();
         assertEquals(List.of("a","b", producer.getNullValue(), producer.getNullValue()), values);
@@ -44,12 +40,11 @@ class PhysicalTypeVectorProducerTest {
     @Test
     void resetProducer() {
         val producer = I32Physical.INSTANCE.createVectorProducer();
-        producer.appendAll(List.of(1,2));
-        producer.appendNulls(2);
+        producer.append(List.of(1,2), List.of(false, false));
         producer.reset();
-        producer.appendAll(List.of(3,4));
-        producer.appendNull();
-        val vector = producer.asVectorBuilder().build();
+        producer.append(List.of(3,4), List.of(false, false));
+        producer.append(null, true);
+        val vector = producer.vectorBuilder().build();
         val values = vector.getI32Vector().getValuesList();
         val nulls = vector.getNulls().getNullsList();
         assertEquals(List.of(3,4, producer.getNullValue()), values);

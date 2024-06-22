@@ -1,7 +1,8 @@
 package io.qpointz.delta.types.physical;
 
+import com.google.protobuf.Message;
 import io.qpointz.delta.proto.Vector;
-import io.qpointz.delta.vectors.PhysicalTypeVectorProducer;
+import io.qpointz.delta.vectors.VectorProducerBase;
 
 public final class BoolPhysical implements PhysicalType<Boolean> {
 
@@ -15,11 +16,11 @@ public final class BoolPhysical implements PhysicalType<Boolean> {
     }
 
     @Override
-    public PhysicalTypeVectorProducer<Boolean, Vector.BoolVector.Builder> createVectorProducer() {
-        return PhysicalTypeVectorProducer.createProducer(
+    public VectorProducerBase<Boolean, Vector.BoolVector.Builder> createVectorProducer() {
+        return VectorProducerBase.createProducer(
                 Vector.BoolVector::newBuilder,
                 false,
-                Vector.BoolVector.Builder::addValues, Vector.BoolVector.Builder::addAllValues,
+                Vector.BoolVector.Builder::addValues,
                 Vector.Builder::setBoolVector
         );
     }

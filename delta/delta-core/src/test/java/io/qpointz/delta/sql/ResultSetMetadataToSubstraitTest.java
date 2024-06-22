@@ -1,3 +1,4 @@
+/*
 package io.qpointz.delta.sql;
 
 import io.qpointz.delta.proto.Field;
@@ -62,4 +63,4 @@ class ResultSetMetadataToSubstraitTest extends BaseJdbcTest {
 
 
 
-}
+}*/

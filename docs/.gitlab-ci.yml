@@ -10,6 +10,10 @@ stages:
   - init
   - build
 
+workflow:
+  rules:
+    - when : always
+
 pages:init-version:
   stage: init
   extends: .init-next-version
