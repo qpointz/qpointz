@@ -7,13 +7,9 @@ spring:
 grpc:
   server:
     address: '*'
-    port: 8080
+    port: 9099
     security:
       enabled: false
-  client:
-    hello:
-      address: "localhost:8080"
-      negotiation-type: plaintext
 calcite:
   connection:
     quoting: BACK_TICK

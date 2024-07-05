@@ -6,7 +6,7 @@ import io.grpc.stub.StreamObserver;
 import io.qpointz.delta.proto.*;
 import io.qpointz.delta.service.configuration.DeltaServiceConfiguration;
 import io.qpointz.delta.service.utils.SubstraitUtils;
-import io.qpointz.delta.sql.VectorBlockIterator;
+import io.qpointz.delta.vectors.VectorBlockIterator;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;

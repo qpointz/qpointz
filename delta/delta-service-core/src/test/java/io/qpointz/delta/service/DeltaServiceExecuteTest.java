@@ -4,7 +4,7 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.qpointz.delta.proto.*;
 import io.qpointz.delta.service.utils.SubstraitUtils;
-import io.qpointz.delta.sql.VectorBlockIterators;
+import io.qpointz.delta.vectors.sql.ResultSetVectorBlockIterator;
 import io.substrait.plan.ImmutablePlan;
 import io.substrait.plan.Plan;
 import lombok.val;
@@ -118,7 +118,7 @@ class DeltaServiceExecuteTest extends DeltaServiceBaseTest {
 
         val db = H2Db.createFromResource("sql-scripts/test.sql");
         val rs = db.query("SELECT * from T1");
-        val iter = VectorBlockIterators.fromResultSet(rs, 10);
+        val iter = new ResultSetVectorBlockIterator(rs, 10);
         when(execProvider.execute(any(io.substrait.plan.Plan.class), any(QueryExecutionConfig.class))).thenReturn(iter);
         val res = stub.execSql(sqlRequest);
         assertTrue(res.hasNext());
@@ -132,7 +132,7 @@ class DeltaServiceExecuteTest extends DeltaServiceBaseTest {
                              @Autowired ExecutionProvider execProvider ) throws ClassNotFoundException {
         val db = H2Db.createFromResource("sql-scripts/test.sql");
         val rs = db.query("SELECT * from T1");
-        val iter = VectorBlockIterators.fromResultSet(rs, 10);
+        val iter = new ResultSetVectorBlockIterator(rs, 10);
         when(execProvider.execute(any(io.substrait.plan.Plan.class), any(QueryExecutionConfig.class))).thenReturn(iter);
         val res = stub
                 .execPlan(ExecPlanRequest.newBuilder()

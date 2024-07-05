@@ -22,49 +22,48 @@ message VectorBlock {
 
 message Vector {
 
+  message NullsVector {
+    repeated bool nulls = 2;
+  }
+
   message StringVector {
     repeated string values  = 1;
-    repeated bool nulls = 2;
   }
 
-  message Int32Vector {
-    repeated sint32 values = 1;
-    repeated bool nulls = 2;
+  message I32Vector {
+    repeated int32 values = 1;
   }
 
-  message Int64Vector {
-    repeated sint64 values = 1;
-    repeated bool nulls = 2;
+  message I64Vector {
+    repeated int64 values = 1;
   }
 
-  message DoubleVector {
+  message FP64Vector {
     repeated double values = 1;
-    repeated bool nulls = 2;
   }
 
-  message FloatVector {
+  message FP32Vector {
     repeated float values = 1;
-    repeated bool nulls = 2;
   }
 
   message BoolVector {
     repeated bool values = 1;
-    repeated bool nulls = 2;
   }
 
-  message ByteVector {
+  message BytesVector {
     repeated bytes values = 1;
-    repeated bool nulls = 2;
   }
 
   uint32 index = 1;
-  oneof data {
+  NullsVector nulls = 2;
+  oneof values {
     Vector.StringVector stringVector = 100;
-    Vector.Int32Vector int32Vector = 101;
-    Vector.Int64Vector int64Vector = 102;
-    Vector.DoubleVector doubleVector = 103;
-    Vector.FloatVector floatVector = 104;
+    Vector.I32Vector i32Vector = 101;
+    Vector.I64Vector i64Vector = 102;
+    Vector.FP64Vector fp64Vector = 103;
+    Vector.FP32Vector fp32Vector = 104;
     Vector.BoolVector  boolVector =105;
-    Vector.ByteVector byteVector = 106;
+    Vector.BytesVector byteVector = 106;
   }
+
 }
