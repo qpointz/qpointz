@@ -29,9 +29,7 @@ delta:unit-tests:
   script:
     - cd ${CI_PROJECT_DIR}/delta
     - gradle clean test testCodeCoverage jacocoTestReport
-  needs:
-    - job: delta:init-version
-      artifacts: true
+  needs: []
   artifacts:
     when: always
     reports:
@@ -54,25 +52,15 @@ delta:install-dist-delta:
 delta:calcite-service-build-docker:
   stage: package
   extends: .docker-build-job
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/delta/delta-service-calcite
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/delta/delta-service-calcite/src/main/docker/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : delta-calcite-service
   needs:
     - job: delta:install-dist-delta
       artifacts: true
-  script:
-    - |
-       export EXTRA_DEST=""
-       export LATEST_DEST=""
-       if [ $CI_COMMIT_REF_PROTECTED == true ]
-       then 
-         export EXTRA_DEST="--destination \"delta-calcite:${QP_CONTAINER_TAG}\""                
-       fi
-    - >
-      /kaniko/executor
-      --context "${CI_PROJECT_DIR}/delta/delta-service-calcite"
-      --dockerfile "${CI_PROJECT_DIR}/delta/delta-service-calcite/src/main/docker/Dockerfile"
-      --cache-dir "${CI_KANIKO_CACHE_DIR}/delta-service-calcite" 
-      $EXTRA_DEST $LATEST_DEST 
-      --destination "${CI_REGISTRY_IMAGE}/delta-calcite:${QP_CONTAINER_TAG}"
-      --cache=true
+    - job: delta:init-version
+      artifacts: true
 
 sonarqube-check:
   stage: check  
@@ -80,6 +68,7 @@ sonarqube-check:
     SONAR_USER_HOME: "${CI_PROJECT_DIR}/delta/.sonar"  # Defines the location of the analysis task cache
     GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
     SONAR_TOKEN: ${SONAR_DELTA_TOKEN}
+  needs: []
   cache:
     key: "${CI_JOB_NAME}"
     paths:

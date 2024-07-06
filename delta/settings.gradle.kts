@@ -13,8 +13,6 @@ rootProject.name = "delta"
 include (":delta-core")
 include (":delta-service-core")
 include (":delta-service-calcite")
-include (":test-kit:core-test-kit")
-
 
 dependencyResolutionManagement {
 

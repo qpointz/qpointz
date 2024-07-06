@@ -9,6 +9,7 @@ variables:
   PROTOC_OUT : rapids/build/protoc
 
 stages:  
+  - init
   - test
   - build
   - package
@@ -19,7 +20,10 @@ workflow:
   rules:
     - when : always
      
-       
+rapids:init-version:
+  stage: init
+  extends: .init-next-version
+
 rapids:unit-tests:
   stage: test
   script:
@@ -84,78 +88,32 @@ rapids:grpc-service-install-dist:
     paths:
       - ${CI_PROJECT_DIR}/rapids/rapids-grpc-service/build/install/*/*
 
-rapids:grpc-service-publish-docker:
-  stage: build
+
+rapids:grpc-service-build-docker:
+  stage: package
   extends: .docker-build-job
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/rapids/rapids-grpc-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/rapids/rapids-grpc-service/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : rapids-grpc-service
   needs:
+    - job: rapids:init-version
+      artifacts: true
     - job: rapids:grpc-service-install-dist
       artifacts: true
-  script:
-    - >
-      /kaniko/executor
-      --context "${CI_PROJECT_DIR}/rapids/rapids-grpc-service"
-      --dockerfile "${CI_PROJECT_DIR}/rapids/rapids-grpc-service/Dockerfile"
-      --cache-dir "${CI_KANIKO_CACHE_DIR}/rapids-grpc-service"      
-      --destination "${CI_REGISTRY_IMAGE}/rapids-grpc-service:${QP_CONTAINER_TAG}"
-      --cache=true
 
-
-rapids:build-docker-image-development:
+rapids:rapids-worker-build-docker:
   stage: package
   extends: .docker-build-job
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/rapids
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/rapids/rapids-srv-worker/src/main/docker/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : rapids-worker
   needs:
+    - job: rapids:init-version
+      artifacts: true
     - job: rapids:bootstrap-app
       artifacts: true
-  except:
-    - main 
-    - dev
-  script:
-    - >
-      /kaniko/executor
-      --context "${CI_PROJECT_DIR}/rapids"
-      --dockerfile "${CI_PROJECT_DIR}/rapids/rapids-srv-worker/src/main/docker/Dockerfile"
-      --cache-dir "${CI_KANIKO_CACHE_DIR}/rapids-worker"      
-      --destination "${CI_REGISTRY_IMAGE}/rapids-worker:${QP_CONTAINER_TAG}"
-      --cache=true
-
-rapids:publish-docker-image-development:
-  stage: package
-  extends: .docker-build-job
-  needs:
-    - job: rapids:bootstrap-app
-      artifacts: true
-  only:
-    - dev
-    - rc
-  script:     
-    - >
-      /kaniko/executor
-      --context "${CI_PROJECT_DIR}/rapids"      
-      --dockerfile "${CI_PROJECT_DIR}/rapids/rapids-srv-worker/src/main/docker/Dockerfile"      
-      --destination "${CI_REGISTRY_IMAGE}/rapids-worker:${QP_CONTAINER_TAG}"                  
-      --destination "qpointz/rapids-worker:${QP_CONTAINER_TAG}"
-      --destination "qpointzcr.azurecr.io/rapids-worker:${QP_CONTAINER_TAG}"
-
-
-rapids:publish-docker-image-latest:
-  stage: package
-  extends: .docker-build-job
-  needs:
-    - job: rapids:bootstrap-app
-      artifacts: true
-  only:
-    - main    
-  script:     
-    - >
-      /kaniko/executor
-      --context "${CI_PROJECT_DIR}/rapids"      
-      --dockerfile "${CI_PROJECT_DIR}/rapids/rapids-srv-worker/src/main/docker/Dockerfile"      
-      --destination "${CI_REGISTRY_IMAGE}/rapids-worker:${QP_CONTAINER_TAG}"                  
-      --destination "${CI_REGISTRY_IMAGE}/rapids-worker"                        
-      --destination "qpointz/rapids-worker:${QP_CONTAINER_TAG}"
-      --destination "qpointz/rapids-worker"
-      --destination "qpointzcr.azurecr.io/rapids-worker:${QP_CONTAINER_TAG}"      
-      --destination "qpointzcr.azurecr.io/rapids-worker"      
       
 sonarqube-check:
   stage: check  
