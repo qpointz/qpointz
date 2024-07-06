@@ -24,6 +24,6 @@ message Table {
 
 message Field {
   string name         = 1;
-  uint32 index        = 2;
+  uint32 fieldIdx     = 2;
   substrait.Type type  = 3;
 }

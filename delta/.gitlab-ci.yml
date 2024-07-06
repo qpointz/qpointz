@@ -53,8 +53,8 @@ delta:calcite-service-build-docker:
   stage: package
   extends: .docker-build-job
   variables:
-    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/delta/delta-service-calcite
-    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/delta/delta-service-calcite/src/main/docker/Dockerfile
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/delta/service-calcite
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/delta/service-calcite/src/main/docker/Dockerfile
     DOCKER_BUILD_CONTAINER_NAME : delta-calcite-service
   needs:
     - job: delta:install-dist-delta

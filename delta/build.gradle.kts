@@ -16,9 +16,9 @@ sonar {
 }
 
 dependencies {
-    jacocoAggregation(project(":delta-core"))
-    jacocoAggregation(project(":delta-service-core"))
-    jacocoAggregation(project(":delta-service-calcite"))
+    jacocoAggregation(project(":core"))
+    jacocoAggregation(project(":service-core"))
+    jacocoAggregation(project(":service-calcite"))
 }
 
 allprojects {

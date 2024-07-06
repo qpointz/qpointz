@@ -10,9 +10,9 @@
 
 rootProject.name = "delta"
 
-include (":delta-core")
-include (":delta-service-core")
-include (":delta-service-calcite")
+include (":core")
+include (":service-core")
+include (":service-calcite")
 
 dependencyResolutionManagement {
 
@@ -23,27 +23,34 @@ dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
 
-            val lombok = version("lombok", "1.18.32")
+            val lombok = version("lombok", "1.18.34")
             library("lombok", "org.projectlombok", "lombok").versionRef(lombok)
 
-            val boot = version("boot", "3.3.0")
+            val boot = version("boot", "3.3.1")
             library("boot-devtools", "org.springframework.boot","spring-boot-devtools").versionRef(boot)
             library("boot-configuration-processor","org.springframework.boot","spring-boot-configuration-processor").versionRef(boot)
             library("boot-starter-test","org.springframework.boot","spring-boot-starter-test").versionRef(boot)
             library("boot-starter-security","org.springframework.boot","spring-boot-starter-security").versionRef(boot)
+            library("boot-starter-security-oauth2-client","org.springframework.boot", "spring-boot-starter-oauth2-client").versionRef(boot)
+            library("boot-starter-security-oauth2-resource-server","org.springframework.boot", "spring-boot-starter-oauth2-resource-server").versionRef(boot)
             library("boot-starter-web","org.springframework.boot","spring-boot-starter-web").versionRef(boot)
             library("boot-starter-webflux","org.springframework.boot","spring-boot-starter-webflux").versionRef(boot)
             library("boot-starter", "org.springframework.boot","spring-boot-starter").versionRef(boot)
 
+            val spring = version("spring", "6.3.0")
+            library("spring-context", "org.springframework","spring-context").versionRef(spring)
+            library("spring-web","org.springframework","spring-web").versionRef(spring)
+            library("spring-webmvc","org.springframework","spring-webmvc").versionRef(spring)
+            library("spring-security-oauth2-core","org.springframework","spring-security-oauth2-core").versionRef(spring)
 
-            val calcite = version("calcite", "1.36.0")
+            val calcite = version("calcite", "1.37.0")
             library("calcite-core", "org.apache.calcite", "calcite-core").versionRef(calcite)
             library("calcite-server", "org.apache.calcite", "calcite-server").versionRef(calcite)
             library("calcite-testkit", "org.apache.calcite", "calcite-testkit").versionRef("calcite")
             library("calcite-file", "org.apache.calcite", "calcite-file").versionRef("calcite")
             library("calcite-csv", "org.apache.calcite", "calcite-csv").versionRef(calcite)
 
-            val junit = version("junit", "5.10.2")
+            val junit = version("junit", "5.10.3")
             library("junit-jupiter-api", "org.junit.jupiter", "junit-jupiter-api").versionRef(junit)
             library("junit-jupiter-engine", "org.junit.jupiter", "junit-jupiter-engine").versionRef(junit)
             library("junit-vintage-engine", "org.junit.vintage", "junit-vintage-engine").versionRef(junit)
@@ -59,11 +66,6 @@ dependencyResolutionManagement {
                     "fusesource-jansi"
             ))
 
-            val spring = version("spring", "6.1.1")
-            library("spring-context", "org.springframework","spring-context").versionRef(spring)
-            library("spring-web","org.springframework","spring-web").versionRef(spring)
-            library("spring-webmvc","org.springframework","spring-webmvc").versionRef(spring)
-
             val mockito = version("mockito", "5.12.0")
             library("mockito-core", "org.mockito", "mockito-core").versionRef(mockito)
             library("mockito-junit-jupiter", "org.mockito", "mockito-junit-jupiter").versionRef(mockito)
@@ -72,7 +74,7 @@ dependencyResolutionManagement {
             library("protobuf-java", "com.google.protobuf", "protobuf-java").versionRef(protobuf)
             library("protobuf-protoc", "com.google.protobuf", "protoc").versionRef(protobuf)
 
-            val grpc = version("grpc", "1.64.0")
+            val grpc = version("grpc", "1.65.0")
             library("grpc-protobuf","io.grpc","grpc-protobuf").versionRef(grpc)
             library("grpc-stub","io.grpc","grpc-stub").versionRef(grpc)
             library("grpc-api","io.grpc","grpc-api").versionRef(grpc)
@@ -88,7 +90,7 @@ dependencyResolutionManagement {
             val apacheCommons = version("apacheCommons", "3.14.0")
             library("apache-commons-lang3","org.apache.commons", "commons-lang3").versionRef(apacheCommons)
 
-            val substrait = version("substrait", "0.31.0")
+            val substrait = version("substrait", "0.35.0")
             library("substrait-core", "io.substrait", "core").versionRef(substrait)
             library("substrait-isthmus", "io.substrait", "isthmus").versionRef(substrait)
 

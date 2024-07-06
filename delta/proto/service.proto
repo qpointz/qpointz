@@ -33,13 +33,13 @@ message HandshakeResponse {
     bool supportSql = 3;
   }
 
-  message SecurityContext {
-    string principal = 1;
+  message AuthenticationContext {
+    string name = 1;
   }
 
   ProtocolVersion version = 2;
   Capabilities capabilities = 3;
-  SecurityContext security = 4;
+  AuthenticationContext authentication = 4;
 }
 
 

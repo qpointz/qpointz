@@ -54,7 +54,7 @@ message Vector {
     repeated bytes values = 1;
   }
 
-  uint32 index = 1;
+  uint32 fieldIdx   = 1;
   NullsVector nulls = 2;
   oneof values {
     Vector.StringVector stringVector = 100;
