@@ -61,20 +61,20 @@ flow:build:
         - etc/docker/**/*
         - flow/**/*  
 
-delta:build:
+mill:build:
   stage: build
   inherit:
     variables: false
   trigger:
     include:
-      - local: delta/.gitlab-ci.yml
+      - local: mill/.gitlab-ci.yml
     strategy: depend
   rules:
     - changes:
         - .gitlab-ci.yml
         - .gitlab/**/*
         - etc/docker/**/*
-        - delta/**/*              
+        - mill/**/*              
 
 docs:build:
   stage: finalize

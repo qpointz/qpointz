@@ -1,6 +1,6 @@
 # Calcite backend example
 
-Example demonstrates how to run delta service using calcite backend. It uses synthetic data generated using qpointz/qsynth synthetic data generator 
+Example demonstrates how to run mill service using calcite backend. It uses synthetic data generated using qpointz/qsynth synthetic data generator 
 
 # Run 
 
