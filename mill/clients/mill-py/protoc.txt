@@ -1,5 +1,7 @@
 
- python -m grpc_tools.protoc -I../mill/proto --pyi_out=stubs --python_out=qpointz_mill --grpc_python_out=qpointz_mill  ../mill/proto/*.proto ../mill/proto/substrait/*.proto ../mill/proto/substrait/extensions/*.proto
+ python -m grpc_tools.protoc -I../mill/proto \
+        --pyi_out=stubs --python_out=qpointz_mill \
+        --grpc_python_out=qpointz_mill  ../mill/proto/*.proto ../mill/proto/substrait/*.proto ../mill/proto/substrait/extensions/*.proto
 
 
   python -m grpc_tools.protoc -I../mill/proto

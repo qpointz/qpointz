@@ -12,7 +12,7 @@ import "common.proto";
 import "statement.proto";
 import "vector.proto";
 
-service DeltaService {
+service MillService {
   rpc Handshake (HandshakeRequest) returns (HandshakeResponse);
   rpc ListSchemas(ListSchemasRequest) returns (ListSchemasResponse);
   rpc GetSchema(GetSchemaRequest) returns (GetSchemaResponse);

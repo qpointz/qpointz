@@ -33,9 +33,9 @@ mill:unit-tests:
   artifacts:
     when: always
     reports:
-      junit: ${CI_PROJECT_DIR}/mill/*/build/test-results/test/*.xml
+      junit: ${CI_PROJECT_DIR}/mill/**/build/test-results/test/*.xml
     paths:
-      - ${CI_PROJECT_DIR}/mill/*/build/test-results/test/*.xml
+      - ${CI_PROJECT_DIR}/mill/**/build/test-results/test/*.xml
 
 mill:install-dist:
   stage: package
@@ -53,8 +53,8 @@ mill:calcite-backend-service:build-docker:
   stage: package
   extends: .docker-build-job
   variables:
-    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/backends/calcite
-    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/backends/calcite/src/main/docker/Dockerfile
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/backend-calcite
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/backend-calcite/src/main/docker/Dockerfile
     DOCKER_BUILD_CONTAINER_NAME : mill-calcite-backend
   needs:
     - job: mill:install-dist

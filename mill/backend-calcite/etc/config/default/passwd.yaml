@@ -1,0 +1,9 @@
+users:
+  - name: admin
+    password: "{noop}admin"
+    roles:
+      - admin
+  - name: reader
+    password: "{noop}reader"
+    roles:
+      - reader

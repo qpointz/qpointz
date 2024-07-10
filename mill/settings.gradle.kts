@@ -11,8 +11,8 @@
 rootProject.name = "mill"
 
 include (":core")
-include (":backends:backend-core")
-include (":backends:calcite")
+include (":backend-core")
+include (":backend-calcite")
 include (":services:auth-service")
 
 dependencyResolutionManagement {
@@ -104,6 +104,13 @@ dependencyResolutionManagement {
 
             val googleApiGrpc = version("googleApiGrpc", "2.41.0")
             library("googleapigrpc-proto-common-protos", "com.google.api.grpc", "proto-google-common-protos").versionRef(googleApiGrpc)
+
+            val jackson = version("jackson", "2.17.2")
+            library("jackson-core", "com.fasterxml.jackson.core", "jackson-core").versionRef(jackson)
+            library("jackson-dataformat-yaml", "com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml").versionRef(jackson)
+            library("jackson-datatype-jsr310", "com.fasterxml.jackson.datatype","jackson-datatype-jsr310").versionRef(jackson)
+
+
 
         }
     }

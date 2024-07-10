@@ -4,6 +4,11 @@ plugins {
     jacoco
 }
 
+//tasks.register<Copy>("copyUI") {
+//    from(layout.projectDirectory.dir("../delta-ui/build"))
+//    into(layout.projectDirectory.dir("/src/main/resources/ui"))
+//}
+
 java {
 	sourceCompatibility = JavaVersion.VERSION_17
 }
@@ -21,14 +26,21 @@ tasks.jacocoTestReport {
 }
 
 dependencies {
+    api(project(":core"))
     implementation(libs.javax.annotation.api)
     api(libs.boot.starter.security)
     api(libs.boot.starter.security.oauth2.client)
     api(libs.boot.starter.security.oauth2.resource.server)
+    api(libs.grpc.core)
     implementation(libs.jakarta.servlet.api)
+    implementation(libs.jackson.dataformat.yaml)
+    implementation(libs.jackson.datatype.jsr310)
     compileOnly(libs.bundles.logging)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
+    implementation(libs.bootGRPC.server)
+    implementation(libs.googleapigrpc.proto.common.protos)
+    implementation(libs.grpc.testing)
 }
 
 testing {
@@ -44,6 +56,7 @@ testing {
                 dependencies {
                     implementation(project())
                     implementation(libs.boot.starter.test)
+                    implementation(libs.bootGRPC.client)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.h2.database)
