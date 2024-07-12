@@ -1,0 +1,19 @@
+logging:
+  level:
+    root: INFO
+spring:
+  main:
+    web-application-type: none
+    banner-mode: off
+grpc:
+  server:
+    address: '*'
+    port: 9099
+    security:
+      enabled: false
+qp:
+  mill:
+    backend:
+      security:
+        enabled: false
+        providers: []

@@ -5,8 +5,8 @@ services:
       - "./data:/data"
     command: ["run", "--input-file", "/data/datasets.yaml", "--run-all-experiments" ]
   
-  delta-calcite:
-    image: registry.qpointz.io/qpointz/qpointz/delta-calcite:feat-calcite-jdbc-delta-service
+  mill-calcite:
+    image: registry.qpointz.io/qpointz/qpointz/mill-calcite:feat-calcite-jdbc-mill-service
     depends_on: 
       - "qsynth"
     ports:

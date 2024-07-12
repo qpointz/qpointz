@@ -1,0 +1,17 @@
+grpc:
+  server:
+    in-process-name: test
+    port: -1
+  client:
+    test:
+      address: in-process:test
+qp:
+  mill:
+    backend:
+      security:
+        enabled: false
+        authentication:
+          providers:
+            - type: file
+              path: ./backends/backend-core/src/test/config/passwd.yml
+            - type: deny

@@ -1,0 +1,18 @@
+grpc:
+  server:
+    in-process-name: testservice
+    port: -1
+  client:
+    testservice:
+      address: in-process:testservice
+qp:
+  mill:
+    backend:
+      security:
+        enabled: false
+      calcite:
+        connection:
+          quoting: BACK_TICK
+          caseSensitive: true
+          unquotedCasing: UNCHANGED
+          model: ../../etc/data/datasets/airlines/model-csv.yaml
