@@ -31,20 +31,20 @@ finalize:release:
   script:
     - npx semantic-release --ci --debug
         
-rapids:build:
-  stage: build
-  inherit:
-    variables: false
-  trigger:
-    include:
-      - local: rapids/.gitlab-ci.yml
-    strategy: depend
-  rules:
-    - changes:
-        - .gitlab-ci.yml
-        - .gitlab/**/*
-        - etc/docker/**/*
-        - rapids/**/*
+#rapids:build:
+#  stage: build
+#  inherit:
+#    variables: false
+#  trigger:
+#    include:
+#      - local: rapids/.gitlab-ci.yml
+#    strategy: depend
+#  rules:
+#    - changes:
+#        - .gitlab-ci.yml
+#        - .gitlab/**/*
+#        - etc/docker/**/*
+#        - rapids/**/*
 
 flow:build:
   stage: build
@@ -74,7 +74,26 @@ mill:build:
         - .gitlab-ci.yml
         - .gitlab/**/*
         - etc/docker/**/*
-        - mill/**/*              
+        - mill/**/*      
+
+mill-clients:build:
+  stage: build
+  inherit:
+    variables: false
+  needs:
+    - job: mill:build  
+      optional: true
+  trigger:
+    include:
+      - local: mill-clients/.gitlab-ci.yml      
+    strategy: depend
+  rules:
+    - changes:
+        - .gitlab-ci.yml
+        - .gitlab/**/*
+        - etc/docker/**/*
+        - mill/**/*
+        - mill-clients/**/*                 
 
 docs:build:
   stage: finalize

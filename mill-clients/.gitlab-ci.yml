@@ -1,0 +1,35 @@
+include:
+  - local : /.gitlab/vars.yml
+  - local : /.gitlab/jobs.yml
+
+image: ${CI_IMAGE_GRADLE}
+
+stages:
+  - init  
+  - test
+
+workflow:
+  rules:
+    - when : always
+
+mill-clients:init-version:
+  stage: init
+  extends: .init-next-version  
+
+.mill-client:python:test:  
+  stage: test
+  script:
+    - echo "hallo"    
+  needs: []
+
+mill-client:python:test-3.10:
+  extends: .mill-client:python:test
+  image: python:3.10-slim  
+
+mill-client:python:test-3.11:
+  extends: .mill-client:python:test
+  image: python:3.11-slim   
+
+mill-client:python:test-3.12:
+  extends: .mill-client:python:test
+  image: python:3.12-slim    
