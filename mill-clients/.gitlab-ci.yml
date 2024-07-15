@@ -29,7 +29,8 @@ mill-clients:init-version:
       command:
         - ""
   variables:
-    CALCITE_HOST: calcite-backend
+    MILL_HOST_INSECURE: calcite-backend
+    #MILL_HOST_SECURE: calcite-backend
   before_script:
     - !reference [.global-vars, before_script]
     - cd ${CI_PROJECT_DIR}/mill-clients/mill-py

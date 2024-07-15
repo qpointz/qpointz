@@ -1,0 +1,11 @@
+services:
+  mill-backend:
+    image: registry.qpointz.io/qpointz/qpointz/mill-calcite-backend:v0.2.0-dev
+    ports:
+      - "9099:9099"
+    environment:
+      - MILL_OAUTH_ISSUER_URL=${MILL_OAUTH_ISSUER_URL}
+    volumes:
+      - ./config:/config
+
+  
