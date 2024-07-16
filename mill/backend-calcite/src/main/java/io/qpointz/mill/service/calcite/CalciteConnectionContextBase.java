@@ -1,7 +1,5 @@
-package io.qpointz.mill.service.calcite.providers;
+package io.qpointz.mill.service.calcite;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.val;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.apache.calcite.jdbc.CalciteSchema;
@@ -14,32 +12,33 @@ import org.apache.calcite.tools.RelRunner;
 
 import java.sql.SQLException;
 
-@AllArgsConstructor
-public class CalciteContext {
-
-    @Getter
-    private final CalciteConnection calciteConnection;
+public abstract class CalciteConnectionContextBase implements CalciteContext {
 
 
+    @Override
     public RelDataTypeFactory getTypeFactory() {
         return this.getCalciteConnection().getTypeFactory();
     }
 
+    @Override
     public RelRunner getRelRunner() throws SQLException {
         return this.getCalciteConnection()
                 .unwrap(RelRunner.class);
     }
 
+    @Override
     public SchemaPlus getRootSchema() {
-        return calciteConnection.getRootSchema()
+        return this.getCalciteConnection().getRootSchema()
                 .unwrap(SchemaPlus.class);
     }
 
+    @Override
     public CalciteSchema getCalciteRootSchema() {
-        return calciteConnection.getRootSchema()
+        return this.getCalciteConnection().getRootSchema()
                 .unwrap(CalciteSchema.class);
     }
 
+    @Override
     public SqlParser.Config getParserConfig() {
         val connectionConfig = this.getCalciteConnection().config();
         return SqlParser.Config.DEFAULT
@@ -49,6 +48,7 @@ public class CalciteContext {
                 .withQuoting(connectionConfig.quoting());
     }
 
+    @Override
     public FrameworkConfig getFrameworkConfig() {
         return Frameworks.newConfigBuilder()
                 .parserConfig(this.getParserConfig())

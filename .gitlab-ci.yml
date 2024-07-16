@@ -96,7 +96,7 @@ mill-clients:build:
         - mill-clients/**/*                 
 
 docs:build:
-  stage: finalize
+  stage: build
   inherit:
     variables: false
   trigger:

@@ -1,6 +1,5 @@
 package io.qpointz.mill.service.calcite;
 
-import io.qpointz.mill.service.calcite.providers.CalciteContext;
 import io.qpointz.mill.service.calcite.providers.CalciteExecutionProvider;
 import io.qpointz.mill.proto.QueryExecutionConfig;
 import io.qpointz.mill.service.SqlProvider;
@@ -25,35 +24,41 @@ class CalciteExecutionProviderTest extends BaseTest {
     ExtensionCollector extensionCollector;
 
     @Autowired
-    CalciteContext context;
+    CalciteContextFactory ctxFactory;
 
 
     @Test
     public void executeDirectly() throws SQLException {
         val sql = "SELECT * FROM `airlines`.`cities`";
-        val conn = context.getCalciteConnection();
-        val stmt = conn.prepareStatement(sql);
-        val rs = stmt.executeQuery();
-        var i =0;
-        while (rs.next()) {
-            i++;
+        try (val ctx = ctxFactory.createContext()) {
+            val conn = ctx.getCalciteConnection();
+            val stmt = conn.prepareStatement(sql);
+            val rs = stmt.executeQuery();
+            var i = 0;
+            while (rs.next()) {
+                i++;
+            }
+            assertTrue(i > 0);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        assertTrue(i>0);
     }
 
     @Test
     public void relBuilderTest() throws SQLException {
-        val relBuilder = RelBuilder.create(this.context.getFrameworkConfig());
-        val node = relBuilder.scan("airlines", "cities").build();
-        val stmt = this.context.getRelRunner().prepareStatement(node);
-        val rs = stmt.executeQuery();
+        try (val ctx = ctxFactory.createContext()) {
+            val relBuilder = RelBuilder.create(ctx.getFrameworkConfig());
+            val node = relBuilder.scan("airlines", "cities").build();
+            val stmt = ctx.getRelRunner().prepareStatement(node);
+            val rs = stmt.executeQuery();
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     @Test
     public void execTest() {
-        val con = this.getConnection();
-        val calciteContext = new CalciteContext(con);
-        val ep = new CalciteExecutionProvider(calciteContext);
+        val ep = new CalciteExecutionProvider(this.getCtxFactory());
         val pr = sqlProvider.parseSql("SELECT * FROM `airlines`.`cities`");
         assertTrue(pr.isSuccess());
         val res = ep.execute(pr.getPlan(), QueryExecutionConfig.newBuilder().setBatchSize(100).build());
@@ -64,8 +69,9 @@ class CalciteExecutionProviderTest extends BaseTest {
     }
 
     @Test
-    void createConnection() throws SQLException {
-        val stmt = this.getConnection().createStatement();
+    void createConnection() throws Exception {
+        val ctx = this.getCtxFactory().createContext();
+        val stmt = ctx.getCalciteConnection().createStatement();
         val rs = stmt.executeQuery("SELECT `id`, `state` FROM `airlines`.`cities`");
         while (rs.next()) {
             log.info("{} {}",rs.getObject(1),rs.getObject(2));

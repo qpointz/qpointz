@@ -1,7 +1,7 @@
 package io.qpointz.mill.service.calcite.configuration;
 
 
-import io.qpointz.mill.service.calcite.providers.CalciteContext;
+import io.qpointz.mill.service.calcite.CalciteContextFactory;
 import io.qpointz.mill.service.calcite.providers.CalciteExecutionProvider;
 import io.qpointz.mill.service.calcite.providers.CalciteMetadataProvider;
 import io.qpointz.mill.service.calcite.providers.CalciteSqlProvider;
@@ -17,18 +17,18 @@ import org.springframework.context.annotation.Configuration;
 public class CalciteServiceProvidersContextConfiguration implements ProvidersConfig {
 
     @Bean
-    public MetadataProvider schemaProvider(CalciteContext calciteContext, ExtensionCollector extensionCollector) {
-        return new CalciteMetadataProvider(calciteContext, extensionCollector);
+    public MetadataProvider schemaProvider(CalciteContextFactory ctxFactory, ExtensionCollector extensionCollector) {
+        return new CalciteMetadataProvider(ctxFactory, extensionCollector);
     }
 
     @Bean
-    public ExecutionProvider executionProvider(CalciteContext calciteContext) {
-        return new CalciteExecutionProvider(calciteContext);
+    public ExecutionProvider executionProvider(CalciteContextFactory ctxFactory) {
+        return new CalciteExecutionProvider(ctxFactory);
     }
 
     @Bean
-    public static SqlProvider sqlParserProvider(CalciteContext calciteContext) {
-        return new CalciteSqlProvider(calciteContext);
+    public static SqlProvider sqlParserProvider(CalciteContextFactory ctxFactory) {
+        return new CalciteSqlProvider(ctxFactory);
     }
 
 

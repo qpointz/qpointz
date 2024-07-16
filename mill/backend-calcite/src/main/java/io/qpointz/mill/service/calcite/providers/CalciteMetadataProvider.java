@@ -3,6 +3,7 @@ package io.qpointz.mill.service.calcite.providers;
 import io.qpointz.mill.proto.Field;
 import io.qpointz.mill.proto.Table;
 import io.qpointz.mill.service.MetadataProvider;
+import io.qpointz.mill.service.calcite.CalciteContextFactory;
 import io.substrait.extension.ExtensionCollector;
 import io.substrait.isthmus.TypeConverter;
 import io.substrait.type.proto.TypeProtoConverter;
@@ -11,25 +12,32 @@ import lombok.val;
 import org.apache.calcite.schema.Schema;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Set;
 
 public class CalciteMetadataProvider implements MetadataProvider {
 
     @Getter
-    private final CalciteContext calciteContext;
+    private final CalciteContextFactory ctxFactory;
 
     @Getter
     private final TypeProtoConverter typeProtoConverter;
 
-    public CalciteMetadataProvider(CalciteContext calciteContext, ExtensionCollector extensionCollector) {
-        this.calciteContext = calciteContext;
+    public CalciteMetadataProvider(CalciteContextFactory calciteContextFactory, ExtensionCollector extensionCollector) {
+        this.ctxFactory = calciteContextFactory;
         this.typeProtoConverter = new TypeProtoConverter(extensionCollector);
     }
 
     @Override
     public Set<String> getSchemaNames() {
-        return this.getCalciteContext().getRootSchema()
-                .getSubSchemaNames();
+        try (
+                val ctx = ctxFactory.createContext()
+        ) {
+            return ctx.getRootSchema()
+                    .getSubSchemaNames();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -43,13 +51,17 @@ public class CalciteMetadataProvider implements MetadataProvider {
 
     @Override
     public io.qpointz.mill.proto.Schema getSchema(String schemaName) {
-        val schema = isRootSchema(schemaName)
-                ? this.getCalciteContext().getRootSchema()
-                : this.getCalciteContext().getRootSchema().getSubSchema(schemaName);
+        try (val ctx = this.ctxFactory.createContext()) {
+            val schema = isRootSchema(schemaName)
+                    ? ctx.getRootSchema()
+                    : ctx.getRootSchema().getSubSchema(schemaName);
 
-        return io.qpointz.mill.proto.Schema.newBuilder()
-                .addAllTables(this.getTables(schemaName, schema))
-                .build();
+            return io.qpointz.mill.proto.Schema.newBuilder()
+                    .addAllTables(this.getTables(schemaName, schema))
+                    .build();
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     private Iterable<Table> getTables(String schemaName, Schema schema) {
@@ -67,19 +79,23 @@ public class CalciteMetadataProvider implements MetadataProvider {
 
     private Iterable<Field> getFields(org.apache.calcite.schema.Table table) {
         val res = new ArrayList<Field>();
-        val rowType = table.getRowType(this.getCalciteContext().getTypeFactory());
-        for (var tableField : rowType.getFieldList()) {
-            val substraitType = TypeConverter.DEFAULT
-                    .toSubstrait(tableField.getType())
-                    .accept(this.getTypeProtoConverter());
-            val field = Field.newBuilder()
-                    .setName(tableField.getName())
-                    .setFieldIdx(tableField.getIndex())
-                    .setType(substraitType)
-                    .build();
-            res.add(field);
+        try (val ctx = this.ctxFactory.createContext()) {
+            val rowType = table.getRowType(ctx.getTypeFactory());
+            for (var tableField : rowType.getFieldList()) {
+                val substraitType = TypeConverter.DEFAULT
+                        .toSubstrait(tableField.getType())
+                        .accept(this.getTypeProtoConverter());
+                val field = Field.newBuilder()
+                        .setName(tableField.getName())
+                        .setFieldIdx(tableField.getIndex())
+                        .setType(substraitType)
+                        .build();
+                res.add(field);
+            }
+            return res;
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
         }
-        return res;
     }
 
 }

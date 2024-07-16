@@ -1,6 +1,4 @@
 package io.qpointz.mill.service;
-
-import io.qpointz.mill.service.calcite.configuration.CalciteConfiguration;
 import io.qpointz.mill.service.calcite.configuration.CalciteServiceProvidersContextConfiguration;
 import io.qpointz.mill.service.calcite.configuration.CalciteServiceCalciteContextConfiguration;
 import io.qpointz.mill.service.configuration.MillServiceConfiguration;
@@ -16,7 +14,7 @@ public class CalciteMillService {
                 .newConfiguration()
                 .withDefaults()
                 .withProviders(CalciteServiceProvidersContextConfiguration.class)
-                .withAdditionalConfig(CalciteConfiguration.class)
+                //.withAdditionalConfig(CalciteConfiguration.class)
                 .withAdditionalConfig(CalciteServiceCalciteContextConfiguration.class)
                 .enableSecurity();
 

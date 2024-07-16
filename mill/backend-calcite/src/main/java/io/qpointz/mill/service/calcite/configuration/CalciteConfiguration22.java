@@ -12,11 +12,11 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Map;
 
 @Configuration
-@EnableConfigurationProperties
-@ConfigurationProperties(prefix="qp.mill.backend.calcite")
+//@EnableConfigurationProperties
+//@ConfigurationProperties(prefix="qp.mill.backend.calcite")
 @AllArgsConstructor
 @NoArgsConstructor
-public class CalciteConfiguration {
+public class CalciteConfiguration22 {
 
     @Getter
     @Setter

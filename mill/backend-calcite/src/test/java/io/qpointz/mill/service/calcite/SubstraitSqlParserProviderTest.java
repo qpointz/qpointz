@@ -1,7 +1,6 @@
 package io.qpointz.mill.service.calcite;
 
 import io.qpointz.mill.service.calcite.configuration.CalciteServiceProvidersContextConfiguration;
-import io.qpointz.mill.service.calcite.providers.CalciteContext;
 import io.qpointz.mill.service.SqlProvider;
 import lombok.val;
 import org.junit.jupiter.api.Test;
@@ -15,11 +14,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class SubstraitSqlParserProviderTest extends BaseTest {
 
     @Autowired
-    CalciteContext calciteCtx;
+    CalciteContextFactory ctxFactory;
 
     private SqlProvider.ParseResult parse(String sql) {
         return CalciteServiceProvidersContextConfiguration
-                .sqlParserProvider(calciteCtx)
+                .sqlParserProvider(ctxFactory)
                 .parseSql(sql);
     }
 

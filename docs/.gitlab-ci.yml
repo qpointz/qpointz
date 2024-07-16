@@ -40,6 +40,8 @@ pages:
   needs:
     - job: pages:init-version
       artifacts: true
+    - job: build-sphinx-ci-image
+      optional: true
   before_script:
     - pip install semver
     - pip3 install semver

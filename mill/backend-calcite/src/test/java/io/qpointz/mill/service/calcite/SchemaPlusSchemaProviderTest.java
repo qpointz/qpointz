@@ -15,7 +15,7 @@ class SchemaPlusSchemaProviderTest extends BaseTest {
     MetadataProvider schemaProvider;
 
     @Autowired
-    CalciteConnection connection;
+    CalciteContextFactory contextFactory;
 
     @Test
     void test() {
