@@ -1,0 +1,19 @@
+users:
+  - name: user
+    password: "{noop}password"
+  - name: reader
+    password: "{bcrypt}$2a$10$4iDRMez2KcmpzwbWlEn.i.FusvLjjvHZ9j0OA0WQfPhcyKLjbcIni"
+    groups:
+      - user      
+      - reader
+  - name: admin
+    password: "{bcrypt}$2a$10$yDIuQzTe7V3WA/um6nbC8u6UopqhkiSzMv4Ogiu4A6zmjwkgwrMEu"
+    groups:
+      - user      
+      - reader
+      - admin
+    email: usrdt@domain.test
+    first_name: John
+    last_name: Dow
+    phone: "+9999 343 343 34343"
+  
