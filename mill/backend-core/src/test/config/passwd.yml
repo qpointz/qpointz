@@ -1,0 +1,11 @@
+users:
+  - name: reader
+    password: "{noop}reader"
+    groups:
+      - reader
+  - name: admin
+    password: "{noop}admin"
+    groups:
+      - user
+      - admin
+      - reader

@@ -24,9 +24,9 @@ def get_glob_release():
     return grelease
 
 def get_glob_version():
-    pattern=r'(?P<fullversion>(?P<version>\d+\.\d+\.\d+)(-(?P<milestone>\w[\w-]+))*)'
+    pattern=r'(?P<fullv>(?P<v>\d+\.\d+\.\d+)(-(?P<ms>\w[\w-]+)\.(?P<msid>\d+))*)'
     match = re.match(pattern, get_glob_release())    
-    version=match.group('version')    
+    version=match.group('v')    
     return version    
 
 # -- Project information -----------------------------------------------------
@@ -37,10 +37,10 @@ author = 'qpointz.io'
 
 
 # The full version, including alpha/beta/rc tags
-release = get_glob_release() #"" #get_version()
+#release = get_glob_release() #"" #get_version()
 
 # The short X.Y version
-version = get_glob_version()
+#version = get_glob_version()
 
 # -- General configuration ---------------------------------------------------
 

@@ -2,38 +2,62 @@ include:
   - local : /.gitlab/vars.yml
   - local : /.gitlab/jobs.yml
 
-variables:
-  DOC_BRANCH_WHITE_LIST : '.*'
-  DOC_TAGS_WHITE_LIST : '^[\w-]+-v(er)*\d+\.\d+\.\d+(-\w[\w-]+)*$'
-
-workflow:
-  rules:
-    - if: $CI_COMMIT_REF == "dev" || $CI_COMMIT_REF == "rc" || $CI_COMMIT_REF == "main"
-      variables:
-        DOC_BRANCH_WHITE_LIST : '^(dev|main|rc)$'
-        DOC_TAGS_WHITE_LIST : '^[\w-]+-v(er)*\d+\.\d+\.\d+(-\w[\w-]+)*$'
-    - when : always
-
-
 image:
   name: $CI_IMAGE_SPHINX
   pull_policy: always
 
 stages:
+  - init
   - build
+
+workflow:
+  rules:
+    - when : always
+
+pages:init-version:
+  stage: init
+  extends: .init-next-version
+
+pages:build-sphinx-ci-image:
+  stage: init
+  extends: .docker-build-job
+  script:
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}/etc/docker/sphinx-ci" 
+      --build-arg "BASE_IMAGE=${CI_IMAGE_PYTHON}"
+      --destination "${CI_IMAGE_SPHINX}"
+      --cache=true        
+  rules:
+    - changes:
+      - ${CI_PROJECT_DIR}/etc/docker/sphinx-ci
+
 
 pages:
   stage: build
   variables:
     GIT_STRATEGY: clone
+  needs:
+    - job: pages:init-version
+      artifacts: true
+    - job: build-sphinx-ci-image
+      optional: true
   before_script:
+    - pip install semver
+    - pip3 install semver
     - git fetch --all
     - >
        git branch --remote --format "%(refname:lstrip=3) %(refname:lstrip=2)" | 
        grep -v 'HEAD' | 
        xargs -l bash -c 'git branch $0 $1 2>/dev/null ||echo "$0 already exists"'    
-    - git for-each-ref --format "%(refname)"        
-  script:                
+    - git for-each-ref --format "%(refname)"  
+    - git branch --remote --format "b:%(refname:lstrip=3)" | grep -v 'HEAD' > ${CI_PROJECT_DIR}/.versioner.in
+    - git tag --format "t:%(refname:lstrip=2)"  >> ${CI_PROJECT_DIR}/.versioner.in
+  script:       
+    - versioner.py ${CI_PROJECT_DIR}/.versioner.in > ${CI_PROJECT_DIR}/.versioner.out
+    - cat ${CI_PROJECT_DIR}/.versioner.out 
+    - DOC_TAGS_WHITE_LIST=$(cat ${CI_PROJECT_DIR}/.versioner.out | sed -n '1p')
+    - DOC_BRANCH_WHITE_LIST=$(cat ${CI_PROJECT_DIR}/.versioner.out | sed -n '2p') 
     - echo "smv_tag_whitelist=$DOC_TAGS_WHITE_LIST"
     - echo "smv_branch_whitelis=$DOC_BRANCH_WHITE_LIST"
     - >
@@ -48,11 +72,13 @@ pages:
         git branch --remote --format "%(refname:lstrip=3)" | grep -E '\/' | xargs -l bash -c 'mv $0 $(echo "$0" | sed '"'"'s/\//-/g'"'"' )'
       fi
     - find ${CI_PROJECT_DIR}/docs/build -empty -type d -delete    
-    - multi-version-info.py ${CI_PROJECT_DIR}/docs/build ${CI_PROJECT_DIR}/docs/build/versions.json
+    - ls -l ${CI_PROJECT_DIR}/docs/build
+    - cat ${CI_PROJECT_DIR}/.versioner.out | sed -n '3p' > ${CI_PROJECT_DIR}/docs/build/versions.json
+    - cat ${CI_PROJECT_DIR}/docs/build/versions.json
     - cd ${CI_PROJECT_DIR}/docs        
     - cp -R ./build/main/ ./out/    
     - cp -R ./build/* ./out/
-    - mv ./out/main ./out/stable
+    - mv ./out/main ./out/latest
     - cat ${CI_PROJECT_DIR}/docs/build/versions.json
     - cp ${CI_PROJECT_DIR}/docs/build/versions.json ./out
     - | 

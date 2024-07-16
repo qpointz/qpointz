@@ -1,0 +1,9 @@
+users:
+     name: usr1
+password: "{noop}password"
+- name: usr2
+    password: "{bcrypt}$2a$10$Zx4XAbocN53W67tQM2YDuuUhuqzqNmb/QC5IHzqHXQ3LAWpN9VncO"
+    roles:
+      - user
+      - admin
+      - reader

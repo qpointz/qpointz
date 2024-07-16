@@ -1,0 +1,18 @@
+#grpc:
+#  server:
+#    security:
+#      enabled: true
+#      certificate-chain: file:/config/ssl/server.crt
+#      private-key: file:/config/ssl/server.key
+#logging:
+#  level:
+#    root: DEBUG
+qp:
+  mill:
+    backend:
+      security:                        
+        providers:
+          - type: file
+            path: /config/passwd.yml
+          - type: jwt
+            issuer-uri: "${MILL_OAUTH_ISSUER_URL}"
