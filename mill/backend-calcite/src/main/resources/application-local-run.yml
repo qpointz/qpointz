@@ -1,4 +1,3 @@
-
 qp:
   mill:
     backend:
@@ -10,13 +9,3 @@ qp:
         providers:
           - type: file
             path: ./backend-calcite/etc/config/default/passwd.yaml
-grpc:
-  server:
-    security:
-      enabled: true
-      certificate-chain: file:/home/vm/wip/qpointz/qpointz/sample/mill/mill-oauth/config/ssl/server.crt
-      private-key: file:/home/vm/wip/qpointz/qpointz/sample/mill/mill-oauth/config/ssl/server.key
-
-logging:
-  level:
-    root: debug

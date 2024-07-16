@@ -2,7 +2,6 @@ package io.qpointz.mill.service.calcite;
 
 
 import io.qpointz.mill.proto.MillServiceGrpc;
-import io.qpointz.mill.service.calcite.configuration.CalciteConfiguration;
 import io.qpointz.mill.service.calcite.configuration.CalciteServiceProvidersContextConfiguration;
 import io.qpointz.mill.service.calcite.configuration.CalciteServiceCalciteContextConfiguration;
 import io.qpointz.mill.proto.HandshakeRequest;
@@ -20,12 +19,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest(classes = {
-        CalciteConfiguration.class,
         CalciteServiceProvidersContextConfiguration.class
 } )
 @ContextConfiguration(classes = {
         CalciteServiceProvidersContextConfiguration.class,
-        CalciteConfiguration.class,
         CalciteServiceCalciteContextConfiguration.class,
         MillService.class,
         GrpcAdviceAutoConfiguration.class
@@ -35,9 +32,10 @@ import org.springframework.test.context.ContextConfiguration;
 @Slf4j
 public class BaseTest {
 
+
     @Autowired
     @Getter
-    private CalciteConnection connection;
+    protected CalciteContextFactory ctxFactory;
 
     @GrpcClient("testservice")
     protected MillServiceGrpc.MillServiceBlockingStub blockingStub;
