@@ -27,11 +27,7 @@ pages:build-sphinx-ci-image:
       --context "${CI_PROJECT_DIR}/etc/docker/sphinx-ci" 
       --build-arg "BASE_IMAGE=${CI_IMAGE_PYTHON}"
       --destination "${CI_IMAGE_SPHINX}"
-      --cache=true        
-  rules:
-    - changes:
-      - ${CI_PROJECT_DIR}/etc/docker/sphinx-ci
-
+      --cache=true          
 
 pages:
   stage: build
@@ -40,8 +36,9 @@ pages:
   needs:
     - job: pages:init-version
       artifacts: true
-    - job: build-sphinx-ci-image
-      optional: true
+    - job: pages:build-sphinx-ci-image
+      artifacts: false
+
   before_script:
     - pip install semver
     - pip3 install semver
