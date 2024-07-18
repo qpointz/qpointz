@@ -14,7 +14,6 @@ include (":core")
 include (":backend-service-core")
 include (":backends:calcite-backend-service")
 include (":services:auth-service")
-include (":clients:mill-spark")
 
 dependencyResolutionManagement {
 
@@ -111,14 +110,14 @@ dependencyResolutionManagement {
             library("jackson-dataformat-yaml", "com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml").versionRef(jackson)
             library("jackson-datatype-jsr310", "com.fasterxml.jackson.datatype","jackson-datatype-jsr310").versionRef(jackson)
 
-            val scala = version("scala", "2.13.10")
+            val scala = version("scala", "2.13.14")
             library("scala-lang", "org.scala-lang", "scala-library" ).versionRef(scala)
             library("scala-reflect", "org.scala-lang", "scala-reflect" ).versionRef(scala)
             library("scala-compiler", "org.scala-lang", "scala-compiler" ).versionRef(scala)
 
-            val apacheSpark = version("apache-spark", "3.5.1")
-            library("apache-spark-core", "org.apache.spark", "spark-core_2.13" ).versionRef(apacheSpark)
-            library("apache-spark-sql", "org.apache.spark", "spark-sql_2.13" ).versionRef(apacheSpark)
+//            val apacheSpark = version("apache-spark", "3.5.1")
+//            library("apache-spark-core", "org.apache.spark", "spark-core_2.13" ).versionRef(apacheSpark)
+//            library("apache-spark-sql", "org.apache.spark", "spark-sql_2.13" ).versionRef(apacheSpark)
 
 
         }
