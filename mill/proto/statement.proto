@@ -6,12 +6,12 @@ option java_multiple_files = true;
 option java_package = "io.qpointz.mill.proto";
 
 import "substrait/plan.proto";
-import "substrait/type.proto";
+import "common.proto";
 
 message Parameter {
   uint32 index = 1;
   optional string name=2;
-  substrait.Type type = 3;
+  DataType type = 3;
   oneof value {
     bool booleanValue = 10;
     string stringValue = 11;

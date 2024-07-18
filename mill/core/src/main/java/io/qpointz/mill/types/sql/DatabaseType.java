@@ -1,5 +1,7 @@
 package io.qpointz.mill.types.sql;
 
+import io.qpointz.mill.proto.DataType;
+import io.qpointz.mill.proto.LogicalDataType;
 import io.qpointz.mill.types.logical.*;
 
 public record DatabaseType(LogicalType type, boolean nullable, int precision, int scale) {
@@ -61,4 +63,20 @@ public record DatabaseType(LogicalType type, boolean nullable, int precision, in
     public static DatabaseType timetz(boolean nullable) {
         return of(TimestampTZLogical.INSTANCE, nullable);
     }
+
+    public DataType asDataType() {
+        return DataType.newBuilder()
+                .setType(this.asLogicalDataType())
+                .setNullability(nullable ? DataType.Nullability.NULL : DataType.Nullability.NOT_NULL)
+                .build();
+    }
+
+    public LogicalDataType asLogicalDataType() {
+        return LogicalDataType.newBuilder()
+                .setTypeId(this.type.getLogicalTypeId())
+                .setPrecision(this.precision)
+                .setScale(this.scale)
+                .build();
+    }
+
 }
