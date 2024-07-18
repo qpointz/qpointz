@@ -11,8 +11,8 @@
 rootProject.name = "mill"
 
 include (":core")
-include (":backend-core")
-include (":backend-calcite")
+include (":backend-service-core")
+include (":backends:calcite-backend-service")
 include (":services:auth-service")
 include (":clients:mill-spark")
 

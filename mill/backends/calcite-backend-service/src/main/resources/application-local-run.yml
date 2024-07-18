@@ -5,7 +5,7 @@ qp:
         connection:
           model: ../etc/data/datasets/airlines/model-csv.yaml
       security:
-        enabled: true
+        enabled: false
         providers:
           - type: file
-            path: ./backend-calcite/etc/config/default/passwd.yaml
+            path: ./backends/calcite-backend-service/etc/config/default/passwd.yaml

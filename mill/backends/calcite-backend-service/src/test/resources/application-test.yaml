@@ -15,4 +15,4 @@ qp:
           quoting: BACK_TICK
           caseSensitive: true
           unquotedCasing: UNCHANGED
-          model: ../../etc/data/datasets/airlines/model-csv.yaml
+          model: ../../../etc/data/datasets/airlines/model-csv.yaml
