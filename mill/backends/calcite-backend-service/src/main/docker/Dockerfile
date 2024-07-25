@@ -34,7 +34,7 @@ RUN adduser --no-create-home --uid 1000 $APPLICATION_USER
 # Configure working directory
 RUN mkdir -p /app/config && \
     chown -R $APPLICATION_USER /app && \
-    mkdir /data && \
+    mkdir -p /data && \
     chown -R $APPLICATION_USER /data
 
 USER 1000
