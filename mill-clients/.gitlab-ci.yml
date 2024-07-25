@@ -21,6 +21,7 @@ mill-clients:init-version:
   stage: test
   services:
     - name: ${CI_REGISTRY_IMAGE}/mill-calcite-backend:${CI_COMMIT_REF_SLUG}
+      pull_policy: always
       variables:
         QP_MILL_BACKEND_SECURITY_ENABLED : false
       alias: calcite-backend
