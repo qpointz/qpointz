@@ -11,8 +11,8 @@
 rootProject.name = "mill"
 
 include (":core")
-include (":backend-core")
-include (":backend-calcite")
+include (":backend-service-core")
+include (":backends:calcite-backend-service")
 include (":services:auth-service")
 
 dependencyResolutionManagement {
@@ -86,12 +86,12 @@ dependencyResolutionManagement {
 
             library ("hadoop-bare-naked-local-fs", "com.globalmentor", "hadoop-bare-naked-local-fs").version("0.1.0")
 
-            library ("h2-database", "com.h2database", "h2").version("2.2.224")
+            library ("h2-database", "com.h2database", "h2").version("2.3.230")
 
             val apacheCommons = version("apacheCommons", "3.14.0")
             library("apache-commons-lang3","org.apache.commons", "commons-lang3").versionRef(apacheCommons)
 
-            val substrait = version("substrait", "0.35.0")
+            val substrait = version("substrait", "0.36.0")
             library("substrait-core", "io.substrait", "core").versionRef(substrait)
             library("substrait-isthmus", "io.substrait", "isthmus").versionRef(substrait)
 
@@ -110,6 +110,14 @@ dependencyResolutionManagement {
             library("jackson-dataformat-yaml", "com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml").versionRef(jackson)
             library("jackson-datatype-jsr310", "com.fasterxml.jackson.datatype","jackson-datatype-jsr310").versionRef(jackson)
 
+            val scala = version("scala", "2.13.14")
+            library("scala-lang", "org.scala-lang", "scala-library" ).versionRef(scala)
+            library("scala-reflect", "org.scala-lang", "scala-reflect" ).versionRef(scala)
+            library("scala-compiler", "org.scala-lang", "scala-compiler" ).versionRef(scala)
+
+//            val apacheSpark = version("apache-spark", "3.5.1")
+//            library("apache-spark-core", "org.apache.spark", "spark-core_2.13" ).versionRef(apacheSpark)
+//            library("apache-spark-sql", "org.apache.spark", "spark-sql_2.13" ).versionRef(apacheSpark)
 
 
         }

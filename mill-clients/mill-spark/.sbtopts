@@ -1,0 +1,6 @@
+-J-XX:MaxMetaspaceSize=1024M
+-Dconfig.override_with_env_vars=true
+-J-Xmx6G
+-J--add-opens=java.base/java.lang=ALL-UNNAMED
+-J--add-opens=java.base/java.util=ALL-UNNAMED
+-J--add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED

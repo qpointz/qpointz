@@ -1,6 +1,7 @@
 package io.qpointz.mill.vectors.sql;
 
 import io.qpointz.mill.proto.*;
+import io.qpointz.mill.types.sql.JdbcDatabaseTypeMapper;
 import io.qpointz.mill.types.sql.JdbcToSubstraitTypeMapper;
 import io.qpointz.mill.types.sql.JdbcTypeInfo;
 import io.qpointz.mill.vectors.MappingVectorProducer;
@@ -44,7 +45,7 @@ public class ResultSetVectorBlockIterator implements VectorBlockIterator {
                 vectorProducers[i] = ResultSetVectorProducerFactory.DEFAULT.fromJdbcType(jdbcInfo);
                 schemaBuilder.addFields(Field.newBuilder()
                                 .setFieldIdx(i)
-                                .setType(JdbcToSubstraitTypeMapper.DEFAULT.jdbc(jdbcInfo))
+                                .setType(JdbcDatabaseTypeMapper.DEFAULT.jdbc(jdbcInfo).asDataType())
                                 .setName(meta.getColumnName(colIdx))
                                 .build());
             }

@@ -1,0 +1,76 @@
+#idea files
+.idea
+.idea/libraries/
+.idea/modules/
+.idea/codeStyles/
+.idea/*.xml
+.idea/$PRODUCT_WORKSPACE_FILE$
+.idea/sonarlint
+*.ipr
+*.iws
+*.iml
+*.log
+
+.bsp
+
+.ideaDataSources/
+dataSources/
+tmp/
+
+.bloop/
+.metals/
+.theia/
+.vscode/
+
+
+#eclipse files
+bin 
+.settings
+.project
+.cache-*
+.classpath
+/target
+*.iml
+
+#sbt
+bin/
+target/
+.cache
+.classpath
+.project
+.settings
+
+#ignore generated poms 
+/projects/*/pom.xml
+pom.xml
+
+logs/
+lib_managed/
+_grd
+
+#ignore python files
+__pycache__/
+venv/
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+.ammonite/
+.test/
+.tmp/
