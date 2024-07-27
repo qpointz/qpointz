@@ -2,8 +2,8 @@ package io.qpointz.mill.service.calcite;
 
 
 import io.qpointz.mill.proto.MillServiceGrpc;
-import io.qpointz.mill.service.calcite.configuration.CalciteServiceProvidersContextConfiguration;
-import io.qpointz.mill.service.calcite.configuration.CalciteServiceCalciteContextConfiguration;
+import io.qpointz.mill.service.calcite.configuration.CalciteServiceProvidersConfiguration;
+import io.qpointz.mill.service.calcite.configuration.CalciteServiceCalciteConfiguration;
 import io.qpointz.mill.proto.HandshakeRequest;
 import io.qpointz.mill.service.MillService;
 import lombok.Getter;
@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import net.devh.boot.grpc.server.autoconfigure.GrpcAdviceAutoConfiguration;
-import org.apache.calcite.jdbc.CalciteConnection;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,11 +18,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest(classes = {
-        CalciteServiceProvidersContextConfiguration.class
+        CalciteServiceProvidersConfiguration.class
 } )
 @ContextConfiguration(classes = {
-        CalciteServiceProvidersContextConfiguration.class,
-        CalciteServiceCalciteContextConfiguration.class,
+        CalciteServiceProvidersConfiguration.class,
+        CalciteServiceCalciteConfiguration.class,
         MillService.class,
         GrpcAdviceAutoConfiguration.class
     }

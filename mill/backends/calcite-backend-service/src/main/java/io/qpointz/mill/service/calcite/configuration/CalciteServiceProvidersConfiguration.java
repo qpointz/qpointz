@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class CalciteServiceProvidersContextConfiguration implements ProvidersConfig {
+public class CalciteServiceProvidersConfiguration implements ProvidersConfig {
 
     @Bean
     public MetadataProvider schemaProvider(CalciteContextFactory ctxFactory, ExtensionCollector extensionCollector) {

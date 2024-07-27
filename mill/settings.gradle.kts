@@ -13,6 +13,7 @@ rootProject.name = "mill"
 include (":core")
 include (":backend-service-core")
 include (":backends:calcite-backend-service")
+include (":backends:jdbc-backend-service")
 include (":services:auth-service")
 
 dependencyResolutionManagement {
