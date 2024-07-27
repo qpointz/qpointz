@@ -28,7 +28,7 @@ dependencyResolutionManagement {
             val lombok = version("lombok", "1.18.34")
             library("lombok", "org.projectlombok", "lombok").versionRef(lombok)
 
-            val boot = version("boot", "3.3.1")
+            val boot = version("boot", "3.3.2")
             library("boot-devtools", "org.springframework.boot","spring-boot-devtools").versionRef(boot)
             library("boot-configuration-processor","org.springframework.boot","spring-boot-configuration-processor").versionRef(boot)
             library("boot-starter-test","org.springframework.boot","spring-boot-starter-test").versionRef(boot)
@@ -76,12 +76,13 @@ dependencyResolutionManagement {
             library("protobuf-java", "com.google.protobuf", "protobuf-java").versionRef(protobuf)
             library("protobuf-protoc", "com.google.protobuf", "protoc").versionRef(protobuf)
 
-            val grpc = version("grpc", "1.65.0")
+            val grpc = version("grpc", "1.65.1")
             library("grpc-protobuf","io.grpc","grpc-protobuf").versionRef(grpc)
             library("grpc-stub","io.grpc","grpc-stub").versionRef(grpc)
             library("grpc-api","io.grpc","grpc-api").versionRef(grpc)
             library("grpc-core","io.grpc","grpc-core").versionRef(grpc)
             library("grpc-testing","io.grpc","grpc-testing").versionRef(grpc)
+            library("grpc-netty-shaded", "io.grpc", "grpc-netty-shaded").versionRef(grpc)
 
             library("javax-annotation-api" ,"javax.annotation" , "javax.annotation-api").version("1.3.2")
 
@@ -103,7 +104,7 @@ dependencyResolutionManagement {
             val jakartaServletApi = version("jakartaServletApi", "6.1.0")
             library("jakarta-servlet-api", "jakarta.servlet", "jakarta.servlet-api").versionRef(jakartaServletApi)
 
-            val googleApiGrpc = version("googleApiGrpc", "2.41.0")
+            val googleApiGrpc = version("googleApiGrpc", "2.42.0")
             library("googleapigrpc-proto-common-protos", "com.google.api.grpc", "proto-google-common-protos").versionRef(googleApiGrpc)
 
             val jackson = version("jackson", "2.17.2")
@@ -115,11 +116,6 @@ dependencyResolutionManagement {
             library("scala-lang", "org.scala-lang", "scala-library" ).versionRef(scala)
             library("scala-reflect", "org.scala-lang", "scala-reflect" ).versionRef(scala)
             library("scala-compiler", "org.scala-lang", "scala-compiler" ).versionRef(scala)
-
-//            val apacheSpark = version("apache-spark", "3.5.1")
-//            library("apache-spark-core", "org.apache.spark", "spark-core_2.13" ).versionRef(apacheSpark)
-//            library("apache-spark-sql", "org.apache.spark", "spark-sql_2.13" ).versionRef(apacheSpark)
-
 
         }
     }

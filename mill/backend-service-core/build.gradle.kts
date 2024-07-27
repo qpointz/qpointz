@@ -27,7 +27,7 @@ tasks.jacocoTestReport {
 
 dependencies {
     api(project(":core"))
-    implementation("io.grpc:grpc-netty-shaded:1.63.0")
+    implementation(libs.grpc.netty.shaded)
     implementation(libs.javax.annotation.api)
     api(libs.boot.starter.security)
     api(libs.boot.starter.security.oauth2.client)
