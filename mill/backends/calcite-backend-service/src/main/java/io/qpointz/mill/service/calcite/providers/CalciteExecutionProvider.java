@@ -25,6 +25,9 @@ public class CalciteExecutionProvider implements ExecutionProvider {
     @Getter(AccessLevel.PROTECTED)
     private CalciteContextFactory ctxFactory;
 
+    @Getter(AccessLevel.PROTECTED)
+    private PlanConverter planConverter;
+
     private RelNode toRel(Plan plan) throws Exception {
         val ctx = Objects.requireNonNull(this.getCtxFactory().createContext());
         val defaultSchemas = ctx.getFrameworkConfig()
@@ -49,7 +52,7 @@ public class CalciteExecutionProvider implements ExecutionProvider {
     public VectorBlockIterator execute(Plan plan, QueryExecutionConfig config) {
         try {
             val ctx = Objects.requireNonNull(this.getCtxFactory().createContext());
-            val node = toRel(plan);
+            val node = planConverter.toRelNode(plan);
             val stmt = ctx.getRelRunner().prepareStatement(node);
             val resultSet = stmt.executeQuery();
             return new ResultSetVectorBlockIterator(resultSet, config.getBatchSize());

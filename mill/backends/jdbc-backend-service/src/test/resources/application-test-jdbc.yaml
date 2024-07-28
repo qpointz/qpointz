@@ -1,6 +1,3 @@
-logging:
-  level:
-    root: debug
 grpc:
   server:
     in-process-name: testservice
@@ -18,4 +15,8 @@ qp:
           quoting: BACK_TICK
           caseSensitive: true
           unquotedCasing: UNCHANGED
-          model: ./etc/config/test/model.yaml
+      jdbc:
+        connection:
+          url: "jdbc:h2:mem:test2;INIT=RUNSCRIPT FROM './etc/config/test/testdata.sql'"
+          driver: "org.h2.Driver"
+        schema-name: "ts"

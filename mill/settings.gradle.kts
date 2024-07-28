@@ -76,7 +76,7 @@ dependencyResolutionManagement {
             library("protobuf-java", "com.google.protobuf", "protobuf-java").versionRef(protobuf)
             library("protobuf-protoc", "com.google.protobuf", "protoc").versionRef(protobuf)
 
-            val grpc = version("grpc", "1.65.1")
+            val grpc = version("grpc", "1.63.0")
             library("grpc-protobuf","io.grpc","grpc-protobuf").versionRef(grpc)
             library("grpc-stub","io.grpc","grpc-stub").versionRef(grpc)
             library("grpc-api","io.grpc","grpc-api").versionRef(grpc)
@@ -104,7 +104,7 @@ dependencyResolutionManagement {
             val jakartaServletApi = version("jakartaServletApi", "6.1.0")
             library("jakarta-servlet-api", "jakarta.servlet", "jakarta.servlet-api").versionRef(jakartaServletApi)
 
-            val googleApiGrpc = version("googleApiGrpc", "2.42.0")
+            val googleApiGrpc = version("googleApiGrpc", "2.29.0")
             library("googleapigrpc-proto-common-protos", "com.google.api.grpc", "proto-google-common-protos").versionRef(googleApiGrpc)
 
             val jackson = version("jackson", "2.17.2")

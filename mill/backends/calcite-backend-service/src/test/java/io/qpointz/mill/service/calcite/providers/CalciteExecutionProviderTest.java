@@ -27,6 +27,9 @@ class CalciteExecutionProviderTest extends BaseTest {
     @Autowired
     CalciteContextFactory ctxFactory;
 
+    @Autowired
+    PlanConverter planConverter;
+
 
     @Test
     public void executeDirectly() throws SQLException {
@@ -59,7 +62,7 @@ class CalciteExecutionProviderTest extends BaseTest {
 
     @Test
     public void execTest() {
-        val ep = new CalciteExecutionProvider(this.getCtxFactory());
+        val ep = new CalciteExecutionProvider(this.getCtxFactory(), planConverter);
         val pr = sqlProvider.parseSql("SELECT * FROM `airlines`.`cities`");
         assertTrue(pr.isSuccess());
         val res = ep.execute(pr.getPlan(), QueryExecutionConfig.newBuilder().setBatchSize(100).build());

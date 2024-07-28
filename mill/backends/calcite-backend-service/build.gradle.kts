@@ -58,7 +58,7 @@ dependencies {
     developmentOnly(libs.boot.devtools)
     annotationProcessor(libs.boot.configuration.processor)
     testImplementation(libs.boot.starter.test)
-    testImplementation("io.projectreactor:reactor-test")
+    //testImplementation("io.projectreactor:reactor-test")
 }
 
 tasks.jacocoTestReport {

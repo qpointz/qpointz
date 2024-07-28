@@ -66,7 +66,7 @@ public class MillService extends MillServiceGrpc.MillServiceImplBase {
 
     @Override
     public void handshake(HandshakeRequest request, StreamObserver<HandshakeResponse> observer) {
-        traceRequest("Handshake", request::toString);
+        //traceRequest("Handshake", request::toString);
         replyOne(request, observer, r-> {
             val capabilities = HandshakeResponse.Capabilities.newBuilder()
                     .setSupportSql(this.supportsSql())

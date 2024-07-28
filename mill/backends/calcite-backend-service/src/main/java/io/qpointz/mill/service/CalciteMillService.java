@@ -1,6 +1,7 @@
 package io.qpointz.mill.service;
+import io.qpointz.mill.service.calcite.configuration.CalciteServiceConfiguration;
 import io.qpointz.mill.service.calcite.configuration.CalciteServiceProvidersConfiguration;
-import io.qpointz.mill.service.calcite.configuration.CalciteServiceCalciteConfiguration;
+import io.qpointz.mill.service.calcite.configuration.CalciteServiceProperties;
 import io.qpointz.mill.service.configuration.MillServiceConfiguration;
 import lombok.val;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,8 +15,8 @@ public class CalciteMillService {
                 .newConfiguration()
                 .withDefaults()
                 .withProviders(CalciteServiceProvidersConfiguration.class)
-                //.withAdditionalConfig(CalciteConfiguration.class)
-                .withAdditionalConfig(CalciteServiceCalciteConfiguration.class)
+                .withAdditionalConfig(CalciteServiceProperties.class)
+                .withAdditionalConfig(CalciteServiceConfiguration.class)
                 .enableSecurity();
 
         MillService.run(configuration ,args);

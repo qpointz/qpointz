@@ -2,8 +2,9 @@ package io.qpointz.mill.service.calcite;
 
 
 import io.qpointz.mill.proto.MillServiceGrpc;
+import io.qpointz.mill.service.calcite.configuration.CalciteServiceConfiguration;
 import io.qpointz.mill.service.calcite.configuration.CalciteServiceProvidersConfiguration;
-import io.qpointz.mill.service.calcite.configuration.CalciteServiceCalciteConfiguration;
+import io.qpointz.mill.service.calcite.configuration.CalciteServiceProperties;
 import io.qpointz.mill.proto.HandshakeRequest;
 import io.qpointz.mill.service.MillService;
 import lombok.Getter;
@@ -21,8 +22,8 @@ import org.springframework.test.context.ContextConfiguration;
         CalciteServiceProvidersConfiguration.class
 } )
 @ContextConfiguration(classes = {
-        CalciteServiceProvidersConfiguration.class,
-        CalciteServiceCalciteConfiguration.class,
+        CalciteServiceProperties.class,
+        CalciteServiceConfiguration.class,
         MillService.class,
         GrpcAdviceAutoConfiguration.class
     }

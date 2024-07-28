@@ -14,11 +14,11 @@ java {
 
 
 springBoot {
- //   mainClass = "io.qpointz.mill.service.CalciteMillService"
+    mainClass = "io.qpointz.mill.service.JdbcMillService"
 }
 
 application {
- //   mainClass = springBoot.mainClass
+    mainClass = "io.qpointz.mill.service.JdbcMillService"
     applicationName = "jdbc-backend-service"
 }
 
@@ -45,6 +45,7 @@ configurations {
 dependencies {
     implementation(project(":backend-service-core"))
     implementation(project(":backends:calcite-backend-service"))
+    implementation(libs.calcite.core)
    // implementation(libs.calcite.core)
    // implementation(libs.calcite.csv)
    // implementation(libs.calcite.file)
@@ -61,6 +62,8 @@ dependencies {
     annotationProcessor(libs.boot.configuration.processor)
     testImplementation(libs.boot.starter.test)
     testImplementation("io.projectreactor:reactor-test")
+
+    runtimeOnly(libs.h2.database)
 }
 
 tasks.jacocoTestReport {
