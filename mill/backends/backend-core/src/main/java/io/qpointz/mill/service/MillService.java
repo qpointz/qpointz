@@ -7,6 +7,7 @@ import io.qpointz.mill.proto.*;
 import io.qpointz.mill.service.configuration.MillServiceConfiguration;
 import io.qpointz.mill.service.utils.SubstraitUtils;
 import io.qpointz.mill.vectors.VectorBlockIterator;
+import io.substrait.plan.Plan;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -29,11 +30,13 @@ public class MillService extends MillServiceGrpc.MillServiceImplBase {
 
     public MillService(@Autowired MetadataProvider metadataProvider,
                        @Autowired ExecutionProvider executionProvider,
-                       @Autowired SqlProvider sqlProvider) {
+                       @Autowired SqlProvider sqlProvider,
+                       @Autowired(required = false) PlanRewriteChain rewriteChain) {
         this.metadataProvider = metadataProvider;
         this.executionProvider = executionProvider;
         this.sqlProvider = sqlProvider;
         this.securityProvider = new SecurityProvider();
+        this.rewriteChain = rewriteChain;
     }
 
     @Getter(AccessLevel.PROTECTED)
@@ -47,6 +50,13 @@ public class MillService extends MillServiceGrpc.MillServiceImplBase {
 
     @Getter(AccessLevel.PROTECTED)
     private final SecurityProvider securityProvider;
+
+    @Getter(AccessLevel.PROTECTED)
+    private final PlanRewriteChain rewriteChain;
+
+    protected boolean hasRewritesChain() {
+        return this.rewriteChain != null && !this.rewriteChain.getRewriters().isEmpty();
+    }
 
 
     protected boolean supportsSql() {
@@ -148,10 +158,22 @@ public class MillService extends MillServiceGrpc.MillServiceImplBase {
     @Override
     public void execPlan(ExecPlanRequest request, StreamObserver<ExecQueryResponse> responseObserver) {
         traceRequest("execPlan", request::toString);
-        val plan = convertProtoToPlan(request.getPlan());
+        val originalPlan = convertProtoToPlan(request.getPlan());
+        val plan = this.rewritePlan(originalPlan);
         val config = request.getConfig();
         val iterator = this.executionProvider.execute(plan, config);
         streamResult(iterator, responseObserver);
+    }
+
+    private Plan rewritePlan(Plan originalPlan) {
+        if (!this.hasRewritesChain()) {
+            return originalPlan;
+        }
+        var plan = originalPlan;
+        for (val rewriter : this.rewriteChain.getRewriters()) {
+            plan = rewriter.rewritePlan(plan);
+        }
+        return plan;
     }
 
     @SneakyThrows

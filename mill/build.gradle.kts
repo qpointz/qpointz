@@ -17,7 +17,7 @@ sonar {
 
 dependencies {
     jacocoAggregation(project(":core"))
-    jacocoAggregation(project(":backend-service-core"))
+    jacocoAggregation(project(":backends:backend-core"))
     jacocoAggregation(project(":backends:calcite-backend-service"))
     jacocoAggregation(project(":services:auth-service"))
 }

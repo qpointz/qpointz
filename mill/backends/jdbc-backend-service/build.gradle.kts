@@ -43,7 +43,7 @@ configurations {
 //}
 
 dependencies {
-    implementation(project(":backend-service-core"))
+    implementation(project(":backends:backend-core"))
     implementation(project(":backends:calcite-backend-service"))
     implementation(libs.calcite.core)
    // implementation(libs.calcite.core)
