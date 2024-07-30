@@ -1,0 +1,17 @@
+qp:
+  mill:
+    backend:
+      security:
+        enabled: false
+      calcite:
+        connection:
+          quoting: BACK_TICK
+          caseSensitive: true
+          unquotedCasing: UNCHANGED
+      jdbc:
+        connection:
+          url: "jdbc:h2:mem:test2;INIT=RUNSCRIPT FROM './backends/jdbc-backend-service/etc/config/test/testdata.sql'"
+          driver: "org.h2.Driver"
+          username: "*"
+          password: "*"
+        schema-name: "ts"

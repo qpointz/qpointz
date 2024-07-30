@@ -4,6 +4,9 @@ import io.qpointz.mill.proto.DataType;
 import io.qpointz.mill.proto.LogicalDataType;
 import io.qpointz.mill.types.physical.I32Physical;
 
+import java.sql.Date;
+import java.time.Instant;
+
 public final class DateLogical implements LogicalType<Integer, I32Physical> {
 
     private DateLogical() {}

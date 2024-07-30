@@ -62,6 +62,19 @@ mill:calcite-backend-service:build-docker:
     - job: mill:init-version
       artifacts: true
 
+mill:jdbc-backend-service:build-docker:
+  stage: package
+  extends: .docker-build-job
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/backends/jdbc-backend-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/backends/jdbc-backend-service/src/main/docker/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : mill-jdbc-backend
+  needs:
+    - job: mill:install-dist
+      artifacts: true
+    - job: mill:init-version
+      artifacts: true
+
 sonarqube-check:
   stage: check  
   variables:

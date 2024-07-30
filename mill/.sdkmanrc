@@ -2,4 +2,4 @@
 # Add key=value pairs of SDKs to use below
 java=21.0.3-zulu
 gradle=8.8
-springboot=3.3.1
+springboot=3.3.2

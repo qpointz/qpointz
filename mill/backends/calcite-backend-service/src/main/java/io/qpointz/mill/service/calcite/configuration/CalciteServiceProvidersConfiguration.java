@@ -8,13 +8,12 @@ import io.qpointz.mill.service.calcite.providers.CalciteSqlProvider;
 import io.qpointz.mill.service.ExecutionProvider;
 import io.qpointz.mill.service.MetadataProvider;
 import io.qpointz.mill.service.SqlProvider;
+import io.qpointz.mill.service.calcite.providers.PlanConverter;
 import io.qpointz.mill.service.configuration.ProvidersConfig;
 import io.substrait.extension.ExtensionCollector;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
-@Configuration
-public class CalciteServiceProvidersContextConfiguration implements ProvidersConfig {
+public class CalciteServiceProvidersConfiguration implements ProvidersConfig {
 
     @Bean
     public MetadataProvider schemaProvider(CalciteContextFactory ctxFactory, ExtensionCollector extensionCollector) {
@@ -22,8 +21,8 @@ public class CalciteServiceProvidersContextConfiguration implements ProvidersCon
     }
 
     @Bean
-    public ExecutionProvider executionProvider(CalciteContextFactory ctxFactory) {
-        return new CalciteExecutionProvider(ctxFactory);
+    public ExecutionProvider executionProvider(CalciteContextFactory ctxFactory, PlanConverter converter) {
+        return new CalciteExecutionProvider(ctxFactory, converter);
     }
 
     @Bean

@@ -54,12 +54,11 @@ dependencies {
 
     implementation(libs.substrait.isthmus)
 
-    implementation(libs.bootGRPC.server)
-    implementation(libs.bootGRPC.client)
+
     developmentOnly(libs.boot.devtools)
     annotationProcessor(libs.boot.configuration.processor)
     testImplementation(libs.boot.starter.test)
-    testImplementation("io.projectreactor:reactor-test")
+    //testImplementation("io.projectreactor:reactor-test")
 }
 
 tasks.jacocoTestReport {
@@ -80,9 +79,11 @@ testing {
 
                 dependencies {
                     implementation(project())
+                    implementation(libs.bootGRPC.client)
+                    implementation(libs.bootGRPC.server)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
-                    //implementation(libs.h2.database)
+                    implementation(libs.h2.database)
                     implementation(libs.lombok)
                     annotationProcessor(libs.lombok)
                 }

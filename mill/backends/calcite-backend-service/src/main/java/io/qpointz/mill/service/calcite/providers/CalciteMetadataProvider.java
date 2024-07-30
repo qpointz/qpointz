@@ -56,12 +56,16 @@ public class CalciteMetadataProvider implements MetadataProvider {
                     ? ctx.getRootSchema()
                     : ctx.getRootSchema().getSubSchema(schemaName);
 
-            return io.qpointz.mill.proto.Schema.newBuilder()
-                    .addAllTables(this.getTables(schemaName, schema))
-                    .build();
+            return this.calciteToMillSchema(schema, schemaName);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    protected io.qpointz.mill.proto.Schema calciteToMillSchema(Schema schema , String schemaName) {
+        return io.qpointz.mill.proto.Schema.newBuilder()
+                .addAllTables(this.getTables(schemaName, schema))
+                .build();
     }
 
     private Iterable<Table> getTables(String schemaName, Schema schema) {

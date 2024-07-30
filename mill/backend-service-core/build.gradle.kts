@@ -27,21 +27,20 @@ tasks.jacocoTestReport {
 
 dependencies {
     api(project(":core"))
-    implementation("io.grpc:grpc-netty-shaded:1.63.0")
+    api(libs.grpc.netty.shaded)
     implementation(libs.javax.annotation.api)
     api(libs.boot.starter.security)
     api(libs.boot.starter.security.oauth2.client)
     api(libs.boot.starter.security.oauth2.resource.server)
     api(libs.grpc.core)
-    implementation(libs.jakarta.servlet.api)
+    api(libs.jakarta.servlet.api)
     implementation(libs.jackson.dataformat.yaml)
     implementation(libs.jackson.datatype.jsr310)
     compileOnly(libs.bundles.logging)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
-    implementation(libs.bootGRPC.server)
-    implementation(libs.googleapigrpc.proto.common.protos)
-    implementation(libs.grpc.testing)
+    api(libs.bootGRPC.server)
+    api(libs.googleapigrpc.proto.common.protos)
 }
 
 testing {
@@ -58,6 +57,7 @@ testing {
                     implementation(project())
                     implementation(libs.boot.starter.test)
                     implementation(libs.bootGRPC.client)
+                    implementation(libs.grpc.testing)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.h2.database)
