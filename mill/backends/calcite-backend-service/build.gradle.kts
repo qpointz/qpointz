@@ -43,7 +43,7 @@ tasks.getByName("installDist").doLast {
 }
 
 dependencies {
-    implementation(project(":backend-service-core"))
+    implementation(project(":backends:backend-core"))
     implementation(libs.calcite.core)
     implementation(libs.calcite.csv)
     implementation(libs.calcite.file)

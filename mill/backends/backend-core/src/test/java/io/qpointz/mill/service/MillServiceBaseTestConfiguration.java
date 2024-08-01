@@ -5,6 +5,7 @@ import net.devh.boot.grpc.client.autoconfigure.GrpcClientAutoConfiguration;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import net.devh.boot.grpc.server.autoconfigure.GrpcAdviceAutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -41,6 +42,11 @@ public class MillServiceBaseTestConfiguration {
     @Bean
     public ExecutionProvider executionProvider() {
         return mock(ExecutionProvider.class);
+    }
+
+    @Bean
+    public PlanRewriteChain rewriteChain() {
+        return mock(PlanRewriteChain.class);
     }
 
     @Bean

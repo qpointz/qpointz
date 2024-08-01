@@ -17,23 +17,7 @@ import static org.mockito.Mockito.*;
 
 class MillServiceExecuteTest extends MillServiceBaseTest {
 
-    private static ExecSqlRequest.Builder sqlExecuteRequest(String sql) {
-        val statement = SQLStatement.newBuilder()
-                .setSql(sql)
-                .build();
-        val request = ExecSqlRequest.newBuilder()
-                .setStatement(statement);
-        return request;
-    }
 
-    private static ParseSqlRequest.Builder sqlParseRequest(String sql) {
-        val statement = SQLStatement.newBuilder()
-                .setSql(sql)
-                .build();
-        val request = ParseSqlRequest.newBuilder()
-                .setStatement(statement);
-        return request;
-    }
 
     @Test
     void parseSqlSqlNotSupportedTest(@Autowired MillServiceGrpc.MillServiceBlockingStub stub, @Autowired MillService millService) {
