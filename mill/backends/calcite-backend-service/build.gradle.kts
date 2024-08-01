@@ -1,17 +1,8 @@
-import org.springframework.boot.gradle.tasks.bundling.BootJar
-
 plugins {
     application
-    java
     id("org.springframework.boot") version libs.versions.boot
     id("io.spring.dependency-management") version "1.1.4"
-    jacoco
 }
-
-java {
-	sourceCompatibility = JavaVersion.VERSION_17
-}
-
 
 springBoot {
     mainClass = "io.qpointz.mill.service.CalciteMillService"
@@ -20,12 +11,6 @@ springBoot {
 application {
     mainClass = springBoot.mainClass
     applicationName = "calcite-backend-service"
-}
-
-configurations {
-	compileOnly {
-		extendsFrom(configurations.annotationProcessor.get())
-	}
 }
 
 tasks.getByName("installDist").doLast {
@@ -59,12 +44,6 @@ dependencies {
     annotationProcessor(libs.boot.configuration.processor)
     testImplementation(libs.boot.starter.test)
     //testImplementation("io.projectreactor:reactor-test")
-}
-
-tasks.jacocoTestReport {
-    reports {
-        xml.required = true
-    }
 }
 
 testing {

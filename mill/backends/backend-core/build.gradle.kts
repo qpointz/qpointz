@@ -1,28 +1,6 @@
 plugins {
     `java-library`
     id("io.spring.dependency-management") version "1.1.5"
-    jacoco
-}
-
-//tasks.register<Copy>("copyUI") {
-//    from(layout.projectDirectory.dir("../delta-ui/build"))
-//    into(layout.projectDirectory.dir("/src/main/resources/ui"))
-//}
-
-java {
-	sourceCompatibility = JavaVersion.VERSION_17
-}
-
-configurations {
-	compileOnly {
-		extendsFrom(configurations.annotationProcessor.get())
-	}
-}
-
-tasks.jacocoTestReport {
-    reports {
-        xml.required = true
-    }
 }
 
 dependencies {
