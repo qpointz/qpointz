@@ -76,19 +76,11 @@ configure(javaProjects) {
     publishing {
         repositories {
             maven {
-                //url = uri(layout.buildDirectory.dir("repo"))
-                url = uri("https://gitlab.qpointz.io/api/v4/projects/63/packages/maven")
-                credentials(HttpHeaderCredentials::class) {
-                    name = "Job-Token"
-                    value = System.getenv("CI_JOB_TOKEN")
-                }
-                authentication {
-                    create("header", HttpHeaderAuthentication::class)
-                }
+                url = uri(layout.buildDirectory.dir("repo"))
             }
         }
         publications {
-            create<MavenPublication>("maven") {
+            create<MavenPublication>("mavenJava") {
                 from(components["java"])
                 pom {
                     name = (project.properties["lib.name"] ?:this.name).toString()
@@ -118,7 +110,7 @@ configure(javaProjects) {
     }
 
     signing {
-        sign(publishing.publications["maven"])
+        sign(publishing.publications)
     }
 }
 
