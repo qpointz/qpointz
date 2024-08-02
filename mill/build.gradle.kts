@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.support.zipTo
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -24,11 +25,17 @@ val javaProjects = listOf(
     project(":backends:backend-core"),
     project(":backends:calcite-backend-service"),
     project(":backends:jdbc-backend-service"),
-    project(":services:auth-service")
 )
 
 dependencies {
     javaProjects.forEach { proj -> jacocoAggregation(proj)}
+}
+
+tasks.register<Zip>("publishSonatypeBundle") {
+    from(layout.buildDirectory.dir("repo"))
+    include ("**/*")
+    archiveBaseName.set("sonatype-bundle")
+    destinationDirectory.set(layout.buildDirectory.dir("sonatype-bundle"))
 }
 
 
@@ -39,7 +46,11 @@ configure(javaProjects) {
             logger.trace("VERSION file missing {}:", path.toAbsolutePath().toString())
             return "0.0.1"
         }
-        val version =  Files.readAllLines(path).get(0)
+        var version =  Files.readAllLines(path).get(0).uppercase()
+        if (".*\\-\\w+\\.\\d+$".toRegex().matches(version)) {
+            logger.debug("candidate version")
+            version = "\\.(?=\\d+\$)".toRegex().replace(version, "")
+        }
         logger.info("Version set to : {}", version)
         return version
     }
@@ -76,7 +87,7 @@ configure(javaProjects) {
     publishing {
         repositories {
             maven {
-                url = uri(layout.buildDirectory.dir("repo"))
+                url = uri(rootProject.layout.buildDirectory.dir("repo"))
             }
         }
         publications {
