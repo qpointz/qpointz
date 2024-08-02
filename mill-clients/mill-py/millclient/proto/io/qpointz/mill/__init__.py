@@ -30,6 +30,32 @@ class ProtocolVersion(betterproto.Enum):
     V1_0 = 1
 
 
+class LogicalDataTypeLogicalDataTypeId(betterproto.Enum):
+    NOT_SPECIFIED_TYPE = 0
+    TINY_INT = 1
+    SMALL_INT = 2
+    INT = 3
+    BIG_INT = 4
+    BINARY = 5
+    BOOL = 6
+    DATE = 7
+    FLOAT = 8
+    DOUBLE = 9
+    INTERVAL_DAY = 10
+    INTERVAL_YEAR = 11
+    STRING = 12
+    TIMESTAMP = 13
+    TIMESTAMP_TZ = 14
+    TIME = 15
+    UUID = 16
+
+
+class DataTypeNullability(betterproto.Enum):
+    NOT_SPECIFIED_NULL = 0
+    NULL = 1
+    NOT_NULL = 2
+
+
 class TextPlanStatementTextPlanFormat(betterproto.Enum):
     JSON = 0
     YAML = 1
@@ -48,17 +74,30 @@ class Table(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
+class LogicalDataType(betterproto.Message):
+    type_id: "LogicalDataTypeLogicalDataTypeId" = betterproto.enum_field(2)
+    precision: int = betterproto.uint32_field(3)
+    scale: int = betterproto.uint32_field(4)
+
+
+@dataclass(eq=False, repr=False)
+class DataType(betterproto.Message):
+    type: "LogicalDataType" = betterproto.message_field(1)
+    nullability: "DataTypeNullability" = betterproto.enum_field(2)
+
+
+@dataclass(eq=False, repr=False)
 class Field(betterproto.Message):
     name: str = betterproto.string_field(1)
     field_idx: int = betterproto.uint32_field(2)
-    type: "___substrait__.Type" = betterproto.message_field(3)
+    type: "DataType" = betterproto.message_field(3)
 
 
 @dataclass(eq=False, repr=False)
 class Parameter(betterproto.Message):
     index: int = betterproto.uint32_field(1)
     name: Optional[str] = betterproto.string_field(2, optional=True, group="_name")
-    type: "___substrait__.Type" = betterproto.message_field(3)
+    type: "DataType" = betterproto.message_field(3)
     boolean_value: bool = betterproto.bool_field(10, group="value")
     string_value: str = betterproto.string_field(11, group="value")
     int32_value: int = betterproto.int32_field(12, group="value")

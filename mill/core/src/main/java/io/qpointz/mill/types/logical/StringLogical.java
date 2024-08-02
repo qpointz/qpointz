@@ -1,5 +1,7 @@
 package io.qpointz.mill.types.logical;
 
+import io.qpointz.mill.proto.DataType;
+import io.qpointz.mill.proto.LogicalDataType;
 import io.qpointz.mill.types.physical.StringPhysical;
 
 public final class StringLogical implements LogicalType<String, StringPhysical> {
@@ -17,5 +19,10 @@ public final class StringLogical implements LogicalType<String, StringPhysical> 
     @Override
     public StringPhysical getPhysicalType() {
         return StringPhysical.INSTANCE;
+    }
+
+    @Override
+    public LogicalDataType.LogicalDataTypeId getLogicalTypeId() {
+        return LogicalDataType.LogicalDataTypeId.STRING;
     }
 }

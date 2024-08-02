@@ -1,5 +1,7 @@
 package io.qpointz.mill.types.logical;
 
+import io.qpointz.mill.proto.DataType;
+import io.qpointz.mill.proto.LogicalDataType;
 import io.qpointz.mill.types.physical.FP32Physical;
 
 public final class FloatLogical implements LogicalType<Float, FP32Physical> {
@@ -16,5 +18,10 @@ public final class FloatLogical implements LogicalType<Float, FP32Physical> {
     @Override
     public FP32Physical getPhysicalType() {
         return FP32Physical.INSTANCE;
+    }
+
+    @Override
+    public LogicalDataType.LogicalDataTypeId getLogicalTypeId() {
+        return LogicalDataType.LogicalDataTypeId.FLOAT;
     }
 }

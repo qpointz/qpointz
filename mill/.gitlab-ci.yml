@@ -15,6 +15,7 @@ stages:
   - package
   - contrib-test
   - check
+  - publish
 
 workflow:
   rules:
@@ -50,12 +51,25 @@ mill:install-dist:
       - ${CI_PROJECT_DIR}/mill/**/build/install/**/*
 
 mill:calcite-backend-service:build-docker:
-  stage: package
+  stage: publish
   extends: .docker-build-job
   variables:
-    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/backend-calcite
-    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/backend-calcite/src/main/docker/Dockerfile
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/backends/calcite-backend-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/backends/calcite-backend-service/src/main/docker/Dockerfile
     DOCKER_BUILD_CONTAINER_NAME : mill-calcite-backend
+  needs:
+    - job: mill:install-dist
+      artifacts: true
+    - job: mill:init-version
+      artifacts: true
+
+mill:jdbc-backend-service:build-docker:
+  stage: publish
+  extends: .docker-build-job
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/backends/jdbc-backend-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/backends/jdbc-backend-service/src/main/docker/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : mill-jdbc-backend
   needs:
     - job: mill:install-dist
       artifacts: true
@@ -79,3 +93,15 @@ sonarqube-check:
   allow_failure: true
   only:
     - dev
+
+mill:maven-publish:
+  stage: publish
+  only:
+    - main
+    - rc
+    - dev
+  before_script:
+    - echo -n "${SIGN_PGP_RING}" | base64 --decode > ${CI_PROJECT_DIR}/.keyring.kbx
+  script:
+    - cd ${CI_PROJECT_DIR}/mill
+    - ./gradlew publish -Psigning.keyId=${SIGN_PGP_KEY_ID} -Psigning.password=${SIGN_PGP_PASS} -Psigning.secretKeyRingFile=${CI_PROJECT_DIR}/.keyring.kbx -Pgitlab_token=${CI_JOB_TOKEN}

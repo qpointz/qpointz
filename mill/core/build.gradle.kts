@@ -2,24 +2,12 @@ plugins {
     `java-library`
     id("io.spring.dependency-management") version "1.1.4"
     id("com.google.protobuf") version "0.9.4"
-    jacoco
-    kotlin("jvm")
 }
 
-java {
-}
+val projectName = "lala2"
+val projectDescription = "Lala2"
 
-configurations {
-	compileOnly {
-		extendsFrom(configurations.annotationProcessor.get())
-	}
-}
-
-tasks.jacocoTestReport {
-    reports {
-        xml.required = true
-    }
-}
+//properties["pom.name"] = "lala2"
 
 buildscript {
     dependencies {
@@ -41,6 +29,8 @@ tasks.register<Sync>("copyResources") {
     into(layout.buildDirectory.dir("extraResources1"))
 }
 
+
+
 dependencies {
     api(libs.substrait.core)
     implementation(libs.bundles.logging)
@@ -49,7 +39,6 @@ dependencies {
     api(libs.javax.annotation.api)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
-    implementation(kotlin("stdlib-jdk8"))
 }
 
 protobuf {
@@ -95,10 +84,4 @@ testing {
             }
         }
     }
-}
-repositories {
-    mavenCentral()
-}
-kotlin {
-    jvmToolchain(17)
 }

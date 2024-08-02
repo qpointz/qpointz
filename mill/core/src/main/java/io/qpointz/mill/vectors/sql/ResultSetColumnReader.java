@@ -1,7 +1,7 @@
 package io.qpointz.mill.vectors.sql;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.time.ZoneId;
 
 public class ResultSetColumnReader {
 
@@ -54,9 +54,6 @@ public class ResultSetColumnReader {
         }
     }
 
-
-
-
     public String getString() {
         try {
             return resultSet.getString(this.columnIndex);
@@ -72,4 +69,45 @@ public class ResultSetColumnReader {
             throw new RuntimeException(e);
         }
     }
+
+    public Date getDate() {
+        try {
+            return resultSet.getDate(this.columnIndex);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Float getFloat() {
+        try {
+            return resultSet.getFloat(this.columnIndex);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Double getDouble() {
+        try {
+            return resultSet.getDouble(this.columnIndex);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Time getTime() {
+        try {
+            return resultSet.getTime(this.columnIndex);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Timestamp getTimestamp() {
+        try {
+            return resultSet.getTimestamp(this.columnIndex);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

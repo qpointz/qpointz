@@ -2,7 +2,7 @@ import pyarrow as pa
 from pyarrow import RecordBatch
 
 from millclient.exceptions import MillError
-from millclient.proto.io.qpointz.mill import ExecQueryResponse, Vector, Field
+from millclient.proto.io.qpointz.mill import ExecQueryResponse, Vector, Field, LogicalDataTypeLogicalDataTypeId
 
 
 def __get_reader(field: Field):
@@ -12,13 +12,13 @@ def __get_reader(field: Field):
     def __bool_reader(vector: Vector, idx: int) -> bool:
         return vector.bool_vector.values[idx]
 
-    if field.type.is_set("string") or field.type.is_set("varchar") or field.type.is_set("fixed_char"):
-        return __string_reader
-    if field.type.is_set("bool"):
-        return __bool_reader
-
-    raise MillError(f"Unknown field type: {field.type}")
-
+    match field.type.type.type_id:
+        case LogicalDataTypeLogicalDataTypeId.STRING:
+            return __string_reader
+        case LogicalDataTypeLogicalDataTypeId.BOOL:
+            return __bool_reader
+        case _:
+            raise MillError(f"Unknown field type: {field.type}")
 
 def response_to_record_batch(response: ExecQueryResponse) -> RecordBatch:
     arrays = []
