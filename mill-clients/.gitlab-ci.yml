@@ -1,0 +1,55 @@
+include:
+  - local : /.gitlab/vars.yml
+  - local : /.gitlab/jobs.yml
+
+image: ${CI_IMAGE_GRADLE}
+
+stages:
+  - init  
+  - test
+
+workflow:
+  rules:
+    - when : always
+
+mill-clients:init-version:
+  stage: init
+  extends: .init-next-version  
+
+
+.mill-client:python:test:  
+  stage: test
+  services:
+    - name: ${CI_REGISTRY_IMAGE}/mill-calcite-backend:${CI_COMMIT_REF_SLUG}
+      pull_policy: always
+      variables:
+        QP_MILL_BACKEND_SECURITY_ENABLED : false
+      alias: calcite-backend
+      entrypoint:
+        - "./bin/calcite-backend-service"
+      command:
+        - ""
+  variables:
+    MILL_HOST_INSECURE: calcite-backend
+    #MILL_HOST_SECURE: calcite-backend
+  before_script:
+    - !reference [.global-vars, before_script]
+    - cd ${CI_PROJECT_DIR}/mill-clients/mill-py
+    - pip install -r requirements.txt
+    #- python codegen.py
+  script:
+    - cd ${CI_PROJECT_DIR}/mill-clients/mill-py
+    - python -m unittest discover -s ./tests
+  needs: []
+
+mill-client:python:test-3.10:
+  extends: .mill-client:python:test
+  image: python:3.10-slim  
+
+mill-client:python:test-3.11:
+  extends: .mill-client:python:test
+  image: python:3.11-slim   
+
+mill-client:python:test-3.12:
+  extends: .mill-client:python:test
+  image: python:3.12-slim

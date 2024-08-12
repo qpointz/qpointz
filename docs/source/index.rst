@@ -5,7 +5,17 @@
 
 QPointz
 ==================================
+* :ref:`mill_toc`
 * :ref:`rapids_toc`
+
+.. _mill_toc:
+.. toctree::    
+   :titlesonly: 
+   :maxdepth: 2
+   :caption: Mill services
+   :glob:
+
+   Types system <mill/typessystem>
 
 
 .. _rapids_toc:

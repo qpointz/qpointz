@@ -20,52 +20,36 @@ ci-init:
         - .gitlab/**/*
         - etc/docker/**/*
 
-ci-init:release-init:
-  image: ${CI_IMAGE_SEM_RELEASE}  
-  stage: init
-  needs:
-    - job: ci-init
-      artifacts: false
-      optional: true
-  script:
-    - export QP_VERSION_SFX="-${CI_COMMIT_REF_SLUG}"
-    - export REL_BRANCHES="--branches main,master,dev,$CI_COMMIT_REF_NAME"
-    - |
-        if [[ "master" == "${CI_COMMIT_REF_SLUG}" || "main" == "${CI_COMMIT_REF_SLUG}" || "dev" == "${CI_COMMIT_REF_SLUG}" ]]
-        then
-          export QP_VERSION_SFX=""
-          export REL_BRANCHES=""
-        fi
-    - echo "VERSION_SFX:${QP_VERSION_SFX}"
-    - npx semantic-release ${REL_BRANCHES} --dry-run --no-ci
-    - echo $(cat ${CI_PROJECT_DIR}/VERSION)${QP_VERSION_SFX} > ${CI_PROJECT_DIR}/VERSION
-    - echo "BUILD VERSION:$(cat ${CI_PROJECT_DIR}/VERSION)"
-
 finalize:release:
   image: ${CI_IMAGE_SEM_RELEASE}
   stage: finalize
+  variables:
+    GIT_STRATEGY: clone  
   only:
-    - master
     - main 
-    - dev
+    - rc
   script:
     - npx semantic-release --ci --debug
         
-rapids:build:
-  stage: build
-  trigger:
-    include:
-      - local: rapids/.gitlab-ci.yml
-    strategy: depend
-  rules:
-    - changes:
-        - .gitlab-ci.yml
-        - .gitlab/**/*
-        - etc/docker/**/*
-        - rapids/**/*
+#rapids:build:
+#  stage: build
+#  inherit:
+#    variables: false
+#  trigger:
+#    include:
+#      - local: rapids/.gitlab-ci.yml
+#    strategy: depend
+#  rules:
+#    - changes:
+#        - .gitlab-ci.yml
+#        - .gitlab/**/*
+#        - etc/docker/**/*
+#        - rapids/**/*
 
 flow:build:
   stage: build
+  inherit:
+    variables: false
   trigger:
     include:
       - local: flow/.gitlab-ci.yml
@@ -77,28 +61,60 @@ flow:build:
         - etc/docker/**/*
         - flow/**/*  
 
-delta:build:
+mill:build:
   stage: build
+  inherit:
+    variables: false
   trigger:
     include:
-      - local: delta/.gitlab-ci.yml
+      - local: mill/.gitlab-ci.yml
     strategy: depend
-  rules:
-    - changes:
+  rules:    
+    - if: $CI_COMMIT_REF_PROTECTED != "true"
+      changes:
         - .gitlab-ci.yml
         - .gitlab/**/*
         - etc/docker/**/*
-        - delta/**/*              
+        - mill/**/*      
+    - if: $CI_COMMIT_REF_PROTECTED == "true"
+      when: always
+
+mill-clients:build:
+  stage: build
+  inherit:
+    variables: false
+  needs:
+    - job: mill:build  
+      optional: true
+  trigger:
+    include:
+      - local: mill-clients/.gitlab-ci.yml      
+    strategy: depend
+  rules:
+    - if: $CI_COMMIT_REF_PROTECTED != "true"
+      changes:
+        - .gitlab-ci.yml
+        - .gitlab/**/*
+        - etc/docker/**/*
+        - mill/**/*
+        - mill-clients/**/*  
+    - if: $CI_COMMIT_REF_PROTECTED == "true"
+      when: always               
 
 docs:build:
   stage: build
+  inherit:
+    variables: false
   trigger:
     include:
       - local: docs/.gitlab-ci.yml
     strategy: depend
   rules:
-    - changes:
+    - if: $CI_COMMIT_REF_PROTECTED != "true"
+      changes:
         - .gitlab-ci.yml
         - .gitlab/**/*
         - etc/docker/**/*
-        - docs/**/*                
+        - docs/**/* 
+    - if: $CI_COMMIT_REF_PROTECTED == "true"
+      when: always

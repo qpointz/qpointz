@@ -1,0 +1,40 @@
+
+ python -m grpc_tools.protoc -I../mill/proto \
+        --pyi_out=stubs --python_out=qpointz_mill \
+        --grpc_python_out=qpointz_mill  ../mill/proto/*.proto ../mill/proto/substrait/*.proto ../mill/proto/substrait/extensions/*.proto
+
+
+  python -m grpc_tools.protoc -I../mill/proto
+    --pyi_out=stubs/grpc \
+    --python_out=qpointz_mill/grpc \
+    --grpc_python_out=qpointz_mill/grpc  \
+    ../mill/proto/*.proto ../mill/proto/substrait/*.proto ../mill/proto/substrait/extensions/*.proto
+
+python -m grpc_tools.protoc -I../mill/proto \
+    --python_betterproto_out=lib \
+    ../mill/proto/*.proto ../mill/proto/substrait/*.proto ../mill/proto/substrait/extensions/*.proto
+
+mkdir -p qpointz_mill && \
+cd qpointz_mill && \
+python -m grpc_tools.protoc -I../../mill/proto \
+    --pyi_out=../stubs \
+    --python_out=. \
+    --grpc_python_out=.  \
+    --python_betterproto_out=./lib \
+    ../../mill/proto/*.proto ../../mill/proto/substrait/*.proto ../../mill/proto/substrait/extensions/*.proto && \
+
+
+
+mkdir -p qpointz_mill/libs &&  \
+mkdir -p stubs/libs && \
+python -m grpc_tools.protoc -I../mill/proto \
+    --pyi_out=stubs \
+    --python_out=qpointz_mill \
+    --grpc_python_out=qpointz_mill  \
+    --python_betterproto_out=qpointz_mill/libs \
+    ../mill/proto/*.proto ../mill/proto/substrait/*.proto ../mill/proto/substrait/extensions/*.proto
+
+mkdir -p qpointz_mill/libs &&  \
+python -m grpc_tools.protoc -I../mill/proto \
+    --python_betterproto_out=qpointz_mill/libs \
+    ../mill/proto/*.proto ../mill/proto/substrait/*.proto ../mill/proto/substrait/extensions/*.proto

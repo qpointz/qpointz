@@ -2,7 +2,7 @@ ARG BASE_IMAGE=graalvm-ci:latest
 
 FROM $BASE_IMAGE
 
-ARG GRADLE_VERSION="8.6"
+ARG GRADLE_VERSION="8.8"
 ENV PATH="/opt/gradle/gradle-${GRADLE_VERSION}/bin:${PATH}"
 COPY settings.xml /root/.m2/settings.xml
 

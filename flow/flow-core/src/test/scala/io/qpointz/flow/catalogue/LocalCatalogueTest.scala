@@ -25,7 +25,7 @@ import scala.util.Success
 
 class LocalCatalogueTest extends AnyFlatSpec with Matchers {
 
-  val gc = new LocalCatalogue(Paths.get("flow-test/data/catalogues/good"))
+  val gc = new LocalCatalogue(Paths.get("../etc/data/catalogues/good"))
 
   behavior of "local catalogue"
 

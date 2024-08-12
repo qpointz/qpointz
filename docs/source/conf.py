@@ -24,9 +24,9 @@ def get_glob_release():
     return grelease
 
 def get_glob_version():
-    pattern=r'(?P<fullversion>(?P<version>\d+\.\d+\.\d+)(-(?P<milestone>\w[\w-]+))*)'
+    pattern=r'(?P<fullv>(?P<v>\d+\.\d+\.\d+)(-(?P<ms>\w[\w-]+)\.(?P<msid>\d+))*)'
     match = re.match(pattern, get_glob_release())    
-    version=match.group('version')    
+    version=match.group('v')    
     return version    
 
 # -- Project information -----------------------------------------------------
@@ -37,10 +37,10 @@ author = 'qpointz.io'
 
 
 # The full version, including alpha/beta/rc tags
-release = get_glob_release() #"" #get_version()
+#release = get_glob_release() #"" #get_version()
 
 # The short X.Y version
-version = get_glob_version()
+#version = get_glob_version()
 
 # -- General configuration ---------------------------------------------------
 
@@ -245,10 +245,10 @@ sphinx_tabs_disable_css_loading = True
 smv_tag_whitelist = r'^[\w-]+-v(er)*\d+\.\d+\.\d+(-\w[\w-]+)*$'
 
 # Whitelist pattern for branches (set to None to ignore all branches)
-smv_branch_whitelist = r'^(dev|master)$'
+smv_branch_whitelist = r'^(dev|master|rc)$'
 
 # Whitelist pattern for remotes (set to None to use local branches only)
-smv_remote_whitelist = r'(^tags\/[\w-]+-v(er)*\d+\.\d+\.\d+(-\w[\w-]+)*$)|(^.*origin\/(dev|master)$)'
+smv_remote_whitelist = r'(^tags\/[\w-]+-v(er)*\d+\.\d+\.\d+(-\w[\w-]+)*$)|(^.*origin\/(dev|maste|rc)$)'
 
 # Pattern for released versions
 smv_released_pattern = r'^tags\/release-v(er)*\d+\.\d+\.\d+(-\w[\w-]+)*$'

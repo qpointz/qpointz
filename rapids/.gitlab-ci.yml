@@ -2,25 +2,34 @@ include:
   - local : /.gitlab/vars.yml
   - local : /.gitlab/jobs.yml
 
-image: ${CI_IMAGE_GRADLE}
+image:
+  name: ${CI_IMAGE_GRADLE}
+  pull_policy: always
 
 variables:
   PROTOC_SRC : rapids/rapids-grpc/src/main/proto
   PROTOC_OUT : rapids/build/protoc
 
 stages:  
+  - init
   - test
   - build
   - package
   - contrib-test
+  - check
 
 workflow:
   rules:
     - when : always
+     
+rapids:init-version:
+  stage: init
+  extends: .init-next-version
 
 rapids:unit-tests:
   stage: test
   script:
+    - find ${CI_PROJECT_DIR}/etc/data
     - cd ${CI_PROJECT_DIR}/rapids
     - gradle clean test testCodeCoverageReport
   artifacts:
@@ -81,77 +90,47 @@ rapids:grpc-service-install-dist:
     paths:
       - ${CI_PROJECT_DIR}/rapids/rapids-grpc-service/build/install/*/*
 
-rapids:grpc-service-publish-docker:
-  stage: build
+
+rapids:grpc-service-build-docker:
+  stage: package
   extends: .docker-build-job
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/rapids/rapids-grpc-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/rapids/rapids-grpc-service/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : rapids-grpc-service
   needs:
+    - job: rapids:init-version
+      artifacts: true
     - job: rapids:grpc-service-install-dist
       artifacts: true
-  script:
-    - >
-      /kaniko/executor
-      --context "${CI_PROJECT_DIR}/rapids/rapids-grpc-service"
-      --dockerfile "${CI_PROJECT_DIR}/rapids/rapids-grpc-service/Dockerfile"
-      --cache-dir "${CI_KANIKO_CACHE_DIR}/rapids-grpc-service"      
-      --destination "${CI_REGISTRY_IMAGE}/rapids-grpc-service:${QP_CONTAINER_TAG}"
-      --cache=true
 
-
-rapids:build-docker-image-development:
+rapids:rapids-worker-build-docker:
   stage: package
   extends: .docker-build-job
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/rapids
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/rapids/rapids-srv-worker/src/main/docker/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : rapids-worker
   needs:
+    - job: rapids:init-version
+      artifacts: true
     - job: rapids:bootstrap-app
       artifacts: true
-  except:
-    - master
-    - main 
-    - dev
-  script:
-    - >
-      /kaniko/executor
-      --context "${CI_PROJECT_DIR}/rapids"
-      --dockerfile "${CI_PROJECT_DIR}/rapids/rapids-srv-worker/src/main/docker/Dockerfile"
-      --cache-dir "${CI_KANIKO_CACHE_DIR}/rapids-worker"      
-      --destination "${CI_REGISTRY_IMAGE}/rapids-worker:${QP_CONTAINER_TAG}"
-      --cache=true
-
-rapids:publish-docker-image-development:
-  stage: package
-  extends: .docker-build-job
-  needs:
-    - job: rapids:bootstrap-app
-      artifacts: true
-  only:
-    - dev
-  script:     
-    - >
-      /kaniko/executor
-      --context "${CI_PROJECT_DIR}/rapids"      
-      --dockerfile "${CI_PROJECT_DIR}/rapids/rapids-srv-worker/src/main/docker/Dockerfile"      
-      --destination "${CI_REGISTRY_IMAGE}/rapids-worker:${QP_CONTAINER_TAG}"                  
-      --destination "qpointz/rapids-worker:${QP_CONTAINER_TAG}"
-      --destination "qpointzcr.azurecr.io/rapids-worker:${QP_CONTAINER_TAG}"
-
-
-rapids:publish-docker-image-latest:
-  stage: package
-  extends: .docker-build-job
-  needs:
-    - job: rapids:bootstrap-app
-      artifacts: true
-  only:
-    - main
-    - master
-  script:     
-    - >
-      /kaniko/executor
-      --context "${CI_PROJECT_DIR}/rapids"      
-      --dockerfile "${CI_PROJECT_DIR}/rapids/rapids-srv-worker/src/main/docker/Dockerfile"      
-      --destination "${CI_REGISTRY_IMAGE}/rapids-worker:${QP_CONTAINER_TAG}"                  
-      --destination "${CI_REGISTRY_IMAGE}/rapids-worker"                        
-      --destination "qpointz/rapids-worker:${QP_CONTAINER_TAG}"
-      --destination "qpointz/rapids-worker"
-      --destination "qpointzcr.azurecr.io/rapids-worker:${QP_CONTAINER_TAG}"      
-      --destination "qpointzcr.azurecr.io/rapids-worker"      
       
+sonarqube-check:
+  stage: check  
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/rapids/.sonar"  # Defines the location of the analysis task cache  # Defines the location of the analysis task cache
+    GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+    SONAR_TOKEN: ${SONAR_RAPIDS_TOKEN}
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  script:
+    - cd ${CI_PROJECT_DIR}/rapids
+    - gradle clean test jacocoTestReport jacocoTestReport sonar
+  only:
+    - rc
+    - dev
+  allow_failure: true

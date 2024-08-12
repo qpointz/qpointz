@@ -1,0 +1,117 @@
+include:
+  - local : /.gitlab/vars.yml
+  - local : /.gitlab/jobs.yml
+
+image:
+  name: ${CI_IMAGE_GRADLE}
+  pull_policy: always
+
+#variables:
+#  PROTOC_SRC : rapids/rapids-grpc/src/main/proto
+#  PROTOC_OUT : rapids/build/protoc
+
+stages:
+  - init  
+  - test
+  - build
+  - package
+  - contrib-test
+  - check
+  - publish
+
+workflow:
+  rules:
+    - when : always
+
+mill:init-version:
+  stage: init
+  extends: .init-next-version
+
+mill:unit-tests:
+  stage: test
+  script:
+    - cd ${CI_PROJECT_DIR}/mill
+    - gradle clean test testCodeCoverage jacocoTestReport
+  needs: []
+  artifacts:
+    when: always
+    reports:
+      junit: ${CI_PROJECT_DIR}/mill/**/build/test-results/test/*.xml
+    paths:
+      - ${CI_PROJECT_DIR}/mill/**/build/test-results/test/*.xml
+
+mill:install-dist:
+  stage: package
+  needs:
+    - job: mill:init-version
+      artifacts: true
+    - job: mill:unit-tests
+      artifacts: true
+  script:
+    - cd ${CI_PROJECT_DIR}/mill
+    - gradle clean installDist
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/mill/**/build/install/**/*
+
+mill:calcite-backend-service:build-docker:
+  stage: publish
+  extends: .docker-build-job
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/backends/calcite-backend-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/backends/calcite-backend-service/src/main/docker/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : mill-calcite-backend
+  needs:
+    - job: mill:install-dist
+      artifacts: true
+    - job: mill:init-version
+      artifacts: true
+
+mill:jdbc-backend-service:build-docker:
+  stage: publish
+  extends: .docker-build-job
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/backends/jdbc-backend-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/backends/jdbc-backend-service/src/main/docker/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : mill-jdbc-backend
+  needs:
+    - job: mill:install-dist
+      artifacts: true
+    - job: mill:init-version
+      artifacts: true
+
+sonarqube-check:
+  stage: check  
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/mill/.sonar"  # Defines the location of the analysis task cache
+    GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+    SONAR_TOKEN: ${SONAR_DELTA_TOKEN}
+  needs: []
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  script:
+    - cd ${CI_PROJECT_DIR}/mill
+    - gradle clean test jacocoTestReport  jacocoTestReport sonar
+  allow_failure: true
+  only:
+    - dev
+
+mill:maven-publish:
+  stage: publish
+  before_script:
+    - echo -n "${SIGN_PGP_RING}" | base64 --decode > ${CI_PROJECT_DIR}/.keyring.kbx
+    - export SONATYPE_TOKEN=Authorization:\ Bearer\ $(echo -n $SONATYPE_USERNAME:$SONATYPE_PASSWORD | base64)
+  script:
+    - cd ${CI_PROJECT_DIR}/mill
+    - ./gradlew clean publish publishSonatypeBundle -Psigning.keyId=${SIGN_PGP_KEY_ID} -Psigning.password=${SIGN_PGP_PASS} -Psigning.secretKeyRingFile=${CI_PROJECT_DIR}/.keyring.kbx -Pgitlab_token=${CI_JOB_TOKEN}
+    - curl -X POST -v -o /dev/null --header "$SONATYPE_TOKEN" --form bundle=@${CI_PROJECT_DIR}/mill/build/sonatype-bundle/sonatype-bundle.zip 'https://central.sonatype.com/api/v1/publisher/upload?publishingType=USER_MANAGED'
+  needs:
+    - job: mill:unit-tests
+      artifacts: true
+    - job: mill:init-version
+      artifacts: true
+  rules:
+    - if: $CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_REF_SLUG != "dev"
+      when: always
