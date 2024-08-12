@@ -2,7 +2,9 @@ include:
   - local : /.gitlab/vars.yml
   - local : /.gitlab/jobs.yml
 
-image: ${CI_IMAGE_GRADLE}
+image:
+  name: ${CI_IMAGE_GRADLE}
+  pull_policy: always
 
 #variables:
 #  PROTOC_SRC : rapids/rapids-grpc/src/main/proto
