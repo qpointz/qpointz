@@ -2,7 +2,9 @@ include:
   - local : /.gitlab/vars.yml
   - local : /.gitlab/jobs.yml
 
-image: ${CI_IMAGE_GRADLE}
+image:
+  name: ${CI_IMAGE_GRADLE}
+  pull_policy: always
 
 #variables:
 #  PROTOC_SRC : rapids/rapids-grpc/src/main/proto
@@ -42,6 +44,8 @@ mill:install-dist:
   stage: package
   needs:
     - job: mill:init-version
+      artifacts: true
+    - job: mill:unit-tests
       artifacts: true
   script:
     - cd ${CI_PROJECT_DIR}/mill
@@ -96,12 +100,18 @@ sonarqube-check:
 
 mill:maven-publish:
   stage: publish
-  only:
-    - main
-    - rc
-    - dev
   before_script:
     - echo -n "${SIGN_PGP_RING}" | base64 --decode > ${CI_PROJECT_DIR}/.keyring.kbx
+    - export SONATYPE_TOKEN=Authorization:\ Bearer\ $(echo -n $SONATYPE_USERNAME:$SONATYPE_PASSWORD | base64)
   script:
     - cd ${CI_PROJECT_DIR}/mill
-    - ./gradlew publish -Psigning.keyId=${SIGN_PGP_KEY_ID} -Psigning.password=${SIGN_PGP_PASS} -Psigning.secretKeyRingFile=${CI_PROJECT_DIR}/.keyring.kbx -Pgitlab_token=${CI_JOB_TOKEN}
+    - ./gradlew clean publish publishSonatypeBundle -Psigning.keyId=${SIGN_PGP_KEY_ID} -Psigning.password=${SIGN_PGP_PASS} -Psigning.secretKeyRingFile=${CI_PROJECT_DIR}/.keyring.kbx -Pgitlab_token=${CI_JOB_TOKEN}
+    - curl -X POST -v -o /dev/null --header "$SONATYPE_TOKEN" --form bundle=@${CI_PROJECT_DIR}/mill/build/sonatype-bundle/sonatype-bundle.zip 'https://central.sonatype.com/api/v1/publisher/upload?publishingType=USER_MANAGED'
+  needs:
+    - job: mill:unit-tests
+      artifacts: true
+    - job: mill:init-version
+      artifacts: true
+  rules:
+    - if: $CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_REF_SLUG != "dev"
+      when: always
