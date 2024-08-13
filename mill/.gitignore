@@ -12,3 +12,4 @@ bin
 .data
 .tmp/
 out/
+target/
