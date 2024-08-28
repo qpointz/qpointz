@@ -33,6 +33,7 @@ mill-clients:init-version:
     MILL_HOST_INSECURE: calcite-backend
     #MILL_HOST_SECURE: calcite-backend
   before_script:
+    - python -c "import ssl; print(ssl.get_default_verify_paths())"
     - !reference [.global-vars, before_script]
     - cd ${CI_PROJECT_DIR}/mill-clients/mill-py
     - pip install -r requirements.txt

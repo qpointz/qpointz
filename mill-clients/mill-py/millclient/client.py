@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import enum
 from abc import abstractmethod
 from asyncio import AbstractEventLoop
@@ -7,6 +8,7 @@ from aiostream import stream, await_
 from grpclib import GRPCError
 from grpclib.client import Channel
 import pyarrow as pa
+from urllib3 import request
 
 from millclient import utils
 from millclient.exceptions import MillServerError, MillError
@@ -80,7 +82,7 @@ class MillClient(object):
         self.__svc.channel.close()
 
     async def handshake_async(self, req: HandshakeRequest) -> HandshakeResponse:
-        return await self.__svc.handshake(req)
+        return await self.__svc.handshake(handshake_request=req)
 
     def handshake(self, request: HandshakeRequest = None) -> HandshakeResponse:
         req = request or HandshakeRequest()
@@ -157,6 +159,8 @@ class MillSqlQuery(MillQuery):
 
 
 def create_client(channel: Channel, event_loop: AbstractEventLoop = None) -> MillClient:
-    stub = MillServiceStub(channel=channel)
+    v = base64.b64encode("reader:reader".encode()).decode()
+    md = [("authorization",f"Basic {v}")]
+    stub = MillServiceStub(channel=channel, metadata=md)
     el = event_loop or asyncio.get_event_loop()
     return MillClient(stub=stub, event_loop=el)

@@ -1,13 +1,14 @@
 package io.qpointz.mill.types.logical;
 
-import io.qpointz.mill.proto.DataType;
 import io.qpointz.mill.proto.LogicalDataType;
+import io.qpointz.mill.types.conversion.LocalDateToEpochConverter;
 import io.qpointz.mill.types.physical.I32Physical;
+import io.qpointz.mill.types.physical.I64Physical;
 
-import java.sql.Date;
-import java.time.Instant;
 
-public final class DateLogical implements LogicalType<Integer, I32Physical> {
+import java.time.LocalDate;
+
+public final class DateLogical implements LogicalType<Long, I64Physical> {
 
     private DateLogical() {}
 
@@ -19,12 +20,22 @@ public final class DateLogical implements LogicalType<Integer, I32Physical> {
     }
 
     @Override
-    public I32Physical getPhysicalType() {
-        return I32Physical.INSTANCE;
+    public I64Physical getPhysicalType() {
+        return I64Physical.INSTANCE;
     }
 
     @Override
     public LogicalDataType.LogicalDataTypeId getLogicalTypeId() {
         return LogicalDataType.LogicalDataTypeId.DATE;
     }
+
+    private static LocalDateToEpochConverter DEFAULT_CONVERTER = new LocalDateToEpochConverter();
+
+    public static Long toPhysical(LocalDate localDate) {
+        return DEFAULT_CONVERTER.to(localDate);
+    }
+    public static LocalDate fromPhysical(Long value) {
+        return DEFAULT_CONVERTER.from(value);
+    }
+
 }

@@ -2,21 +2,32 @@ import os
 import unittest
 
 import grpc
+import grpclib.client
 import pandas as pd
 
 from millclient import *
+from millclient import _auth
 
 
 def client():
-    mill_host = os.environ.get('MILL_HOST_SECURE', None)
-    mill_token = os.environ.get('MILL_TOKEN', None)
-    if mill_host is not None:
-        creds = grpc.composite_channel_credentials(None,grpc.access_token_call_credentials(mill_token))
-        channel = grpc.secure_channel(f"http://{mill_host}:9099", creds)
-        return create_client(channel=channel)
-
+    #target = "api-local.qpointz.com"
+    target = "api-local.qpointz.com"
+    mill_host = os.environ.get('MILL_HOST_SECURE', target)
+    # mill_token = os.environ.get('MILL_TOKEN', None)
+    # if mill_host is not None:
+    #     grpc.ssl_channel_credentials()
+    #     creds = grpc.composite_channel_credentials(None,grpc.access_token_call_credentials(mill_token))
+    #     channel = grpc.secure_channel(f"http://{mill_host}:9099", creds)
+    #     return create_client(channel=channel)
     mill_host = os.environ.get("MILL_HOST_INSECURE", "localhost")
-    channel = Channel(host = mill_host, port = 9099)
+
+    # grpclib.client.Channel()
+    # call_creds = _auth.username_password_call_credentials("reader","reader")
+    # chanel_creds = grpc.ssl_channel_credentials()
+    # creds = grpc.composite_channel_credentials(chanel_creds, call_creds)
+
+    # channel = grpc.secure_channel(target, creds)
+    channel = Channel(host = mill_host, port = 9099, ssl=False)
     return create_client(channel=channel)
 
 
