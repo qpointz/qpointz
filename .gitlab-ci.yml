@@ -1,4 +1,4 @@
-include:
+include:  
   - local : /.gitlab/vars.yml
   - local : /.gitlab/jobs.yml
 
@@ -19,6 +19,10 @@ ci-init:
         - .gitlab-ci.yml
         - .gitlab/**/*
         - etc/docker/**/*
+    - if: $CI_COMMIT_REF_PROTECTED == "true"
+      when: always
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      when: always
 
 finalize:release:
   image: ${CI_IMAGE_SEM_RELEASE}
