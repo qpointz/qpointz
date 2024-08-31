@@ -1,34 +1,26 @@
 import os
+import ssl
 import unittest
-
-import grpc
-import grpclib.client
-import pandas as pd
-
 from millclient import *
-from millclient import _auth
+from millclient._auth import BasicAuthCredentials
 
 
-def client():
-    #target = "api-local.qpointz.com"
-    target = "api-local.qpointz.com"
-    mill_host = os.environ.get('MILL_HOST_SECURE', target)
-    # mill_token = os.environ.get('MILL_TOKEN', None)
-    # if mill_host is not None:
-    #     grpc.ssl_channel_credentials()
-    #     creds = grpc.composite_channel_credentials(None,grpc.access_token_call_credentials(mill_token))
-    #     channel = grpc.secure_channel(f"http://{mill_host}:9099", creds)
-    #     return create_client(channel=channel)
-    mill_host = os.environ.get("MILL_HOST_INSECURE", "localhost")
-
-    # grpclib.client.Channel()
-    # call_creds = _auth.username_password_call_credentials("reader","reader")
-    # chanel_creds = grpc.ssl_channel_credentials()
-    # creds = grpc.composite_channel_credentials(chanel_creds, call_creds)
-
-    # channel = grpc.secure_channel(target, creds)
-    channel = Channel(host = mill_host, port = 9099, ssl=False)
-    return create_client(channel=channel)
+def client():    
+    host = os.environ.get("MILL_HOST_SECURE", "mill.local")
+    port = 0
+    ctx = False
+    if host != "mill.local":
+        port = int(os.environ.get("MILL_PORT_SECURE", "9099"))
+        ca_file = os.environ.get("MILL_CA_FILE", '../../../etc/ssl/ca.pem')
+        ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=ca_file)
+        ctx.set_alpn_protocols(['h2'])
+        ctx.check_hostname = False 
+    else:
+        host = os.environ.get("MILL_HOST", "localhost")
+        port = os.environ.get("MILL_PORT", "9099")
+    
+    print(f"Connect to {host}:{port}")       
+    return create_client(host=host, port=int(port), ssl=ctx, creds=BasicAuthCredentials("reader", "reader"))
 
 
 class MillClientTests(unittest.TestCase):
@@ -81,13 +73,8 @@ class MillClientTests(unittest.TestCase):
 
     def test_query_to_pandas(self):
         with client() as c:
-            q = c.sql_query(sql = "select * from `airlines`.`passenger`")
+            q = c.sql_query(sql = "select * from `airlines`.`segments`")
             df = q.to_pandas()
-            with pd.option_context('display.max_rows', None,
-                                   'display.max_columns', None,
-                                   'display.precision', 3,
-                                   ):
-                print(df.to_string())
             assert len(df) > 0
 
 

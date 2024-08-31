@@ -3,14 +3,18 @@ import base64
 import enum
 from abc import abstractmethod
 from asyncio import AbstractEventLoop
+from importlib.metadata import metadata
+from typing import Optional
 
 from aiostream import stream, await_
+from betterproto.grpc.grpclib_client import MetadataLike
 from grpclib import GRPCError
 from grpclib.client import Channel
 import pyarrow as pa
 from urllib3 import request
 
 from millclient import utils
+from millclient._auth import MillCallCredentials
 from millclient.exceptions import MillServerError, MillError
 from millclient.proto.io.qpointz.mill import AsyncIterator, ExecQueryResponse, List, MillServiceStub, HandshakeRequest, \
     HandshakeResponse, ListSchemasRequest, ListSchemasResponse, GetSchemaRequest, GetSchemaResponse, ExecSqlRequest, \
@@ -158,9 +162,14 @@ class MillSqlQuery(MillQuery):
         return self.__client.event_loop()
 
 
-def create_client(channel: Channel, event_loop: AbstractEventLoop = None) -> MillClient:
-    v = base64.b64encode("reader:reader".encode()).decode()
-    md = [("authorization",f"Basic {v}")]
-    stub = MillServiceStub(channel=channel, metadata=md)
+def create_client(*, channel: Channel = None, creds: MillCallCredentials = None, host:str = "localhost", port: int = 9099, ssl: bool = False, event_loop: AbstractEventLoop = None, metadata: Optional[MetadataLike] = None ) -> MillClient:
+    if not channel:
+        channel = Channel(host = host, port = port, ssl= ssl)
+    if not metadata:
+        metadata = {}
+    if creds:
+        metadata.update(creds.get_metadata())
+
+    stub = MillServiceStub(channel=channel, metadata = metadata)
     el = event_loop or asyncio.get_event_loop()
     return MillClient(stub=stub, event_loop=el)

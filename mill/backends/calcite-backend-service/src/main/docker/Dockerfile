@@ -6,7 +6,7 @@ ENV PATH="/usr/lib/jvm/graalvm/bin:${PATH}"
 
 RUN \
   apt-get update && \
-  apt-get install -y binutils wget && \
+  apt-get install -y binutils wget openssl && \
   wget https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-${GRAAL_CE_VERSION}/graalvm-community-jdk-${GRAAL_CE_VERSION}_linux-x64_bin.tar.gz -O graalvm.tar.gz && \
   mkdir -p ${JAVA_HOME} && \
   tar -C ${JAVA_HOME} -xvzf graalvm.tar.gz --strip-components=1 && \

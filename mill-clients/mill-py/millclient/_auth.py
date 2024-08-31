@@ -1,36 +1,42 @@
 import base64
+from abc import abstractmethod
 
-from grpc import AuthMetadataPlugin, AuthMetadataContext, AuthMetadataPluginCallback
 
+class MillCallCredentials(object):
 
-class UsernamePasswordAuthMetadataPlugin(AuthMetadataPlugin):
-    """Metadata wrapper for username/password credentials."""
+    @abstractmethod
+    def get_metadata(self):
+        pass
+    @abstractmethod
+    def creds_type(self):
+        pass
 
-    _auth: bytes
+class BasicAuthCredentials(MillCallCredentials):
 
-    def __init__(self, username: str, password: str):
-        self._auth = base64.b64encode(f"{username}:{password}".encode())
+    def creds_type(self):
+        return "USERNAME_PASSWORD"
 
-    def __call__(
-            self,
-            context: AuthMetadataContext,
-            callback: AuthMetadataPluginCallback,
-    ):
-        metadata = (("authorization", self._auth),)
-        callback(metadata, None)
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
 
-def username_password_call_credentials(username, password):
-    """Construct CallCredentials from an username and password.
+    def get_metadata(self):
+        auth = base64.b64encode(f"{self.username}:{self.password}".encode()).decode()
+        return [("authorization",f"Basic {auth}")]
 
-    Args:
-      username: A username user in 'authorization' header
-      password: A password user in 'authorization' header
+    def __str__(self):
+        return f"<{self.creds_type().capitalize()}_Credentials Username='{self.username}'>"
 
-    Returns:
-      A CallCredentials.
-    """
-    from grpc import _plugin_wrapping  # pylint: disable=cyclic-import
+class BearerTokenCredentials(MillCallCredentials):
 
-    return _plugin_wrapping.metadata_plugin_call_credentials(
-        UsernamePasswordAuthMetadataPlugin(username, password), None
-    )
+    def creds_type(self):
+        return "BEARER_TOKEN"
+
+    def __init__(self, token):
+        self.token = token
+
+    def get_metadata(self):
+        return [("authorization",f"Bearer {self.token}")]
+
+    def __str__(self):
+        return f"<{self.creds_type().capitalize()}_Credentials Token='HIDDEN'>"

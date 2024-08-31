@@ -21,6 +21,7 @@ tasks.getByName("installDist").doLast {
         from(layout.projectDirectory.dir("etc/config/default"))
         into(outdir.dir("config"))
     }
+
     copy {
         from(rootProject.layout.projectDirectory.dir("../etc/data/datasets/airlines/csv"))
         into(outdir.dir("examples/data/airlines"))
@@ -42,8 +43,7 @@ dependencies {
 
     developmentOnly(libs.boot.devtools)
     annotationProcessor(libs.boot.configuration.processor)
-    testImplementation(libs.boot.starter.test)
-    //testImplementation("io.projectreactor:reactor-test")
+    testImplementation(libs.boot.starter.test)    
 }
 
 testing {

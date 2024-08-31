@@ -4,9 +4,6 @@ import unittest
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
-
-from tabulate import tabulate
-
 from millclient import utils, MillError
 from millclient.proto.io.qpointz.mill import VectorBlock, LogicalDataTypeLogicalDataTypeId
 
@@ -105,7 +102,6 @@ class MillClientTests(unittest.TestCase):
                 self.do_test(vb, k, v, ref[k])
         with self.subTest("Read To Pandas"):
             df = utils.vector_block_to_pandas(vb)
-            print(tabulate(df, headers = 'keys', tablefmt = 'psql'))
 
 
 if __name__ == '__main__':
