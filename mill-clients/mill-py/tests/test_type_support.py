@@ -3,7 +3,9 @@ import os
 import unittest
 import uuid
 from dataclasses import dataclass
-from datetime import datetime
+
+from whenever import LocalDateTime
+
 from millclient import utils, MillError
 from millclient.proto.io.qpointz.mill import VectorBlock, LogicalDataTypeLogicalDataTypeId
 
@@ -42,8 +44,19 @@ class RefData:
             case LogicalDataTypeLogicalDataTypeId.UUID:
                 return uuid.UUID(self.value)
             case LogicalDataTypeLogicalDataTypeId.DATE:
-                return datetime.strptime(self.value, "%Y-%m-%d").date()
-
+                return LocalDateTime.strptime(self.value, "%Y-%m-%d").date()
+            case LogicalDataTypeLogicalDataTypeId.TIME:
+                ldt = LocalDateTime.strptime(self.value[:-10], "%H:%M:%S")
+                nanos = int(self.value[9:])
+                return ldt.add(nanoseconds=nanos, ignore_dst=True).time()
+            case LogicalDataTypeLogicalDataTypeId.TIMESTAMP_TZ:
+                ldt = LocalDateTime.strptime(self.value[:-10], "%Y-%m-%d %H:%M:%S")
+                nanos = int(self.value[-9:])
+                return ldt.add(nanoseconds=nanos, ignore_dst=True).assume_tz("UTC", disambiguate="raise")
+            case LogicalDataTypeLogicalDataTypeId.TIMESTAMP:
+                ldt = LocalDateTime.strptime(self.value[:-10], "%Y-%m-%d %H:%M:%S")
+                nanos = int(self.value[-9:])
+                return ldt.add(nanoseconds=nanos, ignore_dst=True)
             case _:
                 raise MillError(f"Not Parsable {self}")
 

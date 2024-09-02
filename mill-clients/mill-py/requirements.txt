@@ -9,4 +9,4 @@ pyarrow >= 16.1.0
 pandas >= 2.2.2
 certifi
 urllib3
-tabulate
+whenever

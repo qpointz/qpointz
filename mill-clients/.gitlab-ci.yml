@@ -15,6 +15,8 @@ workflow:
 mill-clients:init-version:
   stage: init
   extends: .init-next-version  
+  rules:
+    - when: never
 
 mill:init-certs:
   stage: init
@@ -42,8 +44,6 @@ init:build-test-backend-service:
         --destination "${CI_REGISTRY_IMAGE}/test-backend-mill-py:${CI_COMMIT_REF_SLUG}"                
         --cache=true      
   needs:
-    - job: mill-clients:init-version
-      artifacts: true
     - job: mill:init-certs
       artifacts: true
 
@@ -87,9 +87,7 @@ mill:init-az-login:
     - python -m unittest discover -s ./tests
   needs: 
     - job: mill:init-certs
-      artifacts: true
-    - job: mill-clients:init-version
-      artifacts: true
+      artifacts: true    
     - job: mill:init-az-login
       artifacts: true
     - job: init:build-test-backend-service

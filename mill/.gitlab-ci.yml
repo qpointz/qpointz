@@ -26,17 +26,7 @@ mill:init-version:
   stage: init
   extends: .init-next-version
 
-mill:init-certs:
-  stage: init
-  image: "${CI_IMAGE_MINICA}"
-  script:     
-    - cp -R /certs ${CI_PROJECT_DIR}/etc
-  artifacts:    
-    when: always
-    expire_in: "1 days"
-    paths:
-      - ${CI_PROJECT_DIR}/etc/certs/**/*
-    
+   
 mill:unit-tests:
   stage: test
   script:
@@ -56,9 +46,7 @@ mill:install-dist:
     - job: mill:init-version
       artifacts: true
     - job: mill:unit-tests
-      artifacts: true
-    - job: mill:init-certs
-      artifacts: true
+      artifacts: true    
   script:
     - cd ${CI_PROJECT_DIR}/mill
     - gradle clean installDist

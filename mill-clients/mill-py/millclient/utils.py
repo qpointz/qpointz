@@ -1,12 +1,13 @@
 import uuid
-from datetime import timedelta, datetime, date
 
+import pyarrow as pa
+import whenever
 from pandas import DataFrame
 from pyarrow import RecordBatch
-import pyarrow as pa
+from whenever import Date, LocalDateTime, Time, ZonedDateTime
 
 from millclient.exceptions import MillError
-from millclient.proto.io.qpointz.mill import ExecQueryResponse, Vector, Field, LogicalDataTypeLogicalDataTypeId, \
+from millclient.proto.io.qpointz.mill import ExecQueryResponse, Vector, LogicalDataTypeLogicalDataTypeId, \
     VectorBlock
 
 
@@ -35,11 +36,24 @@ def __get_reader(type_id: LogicalDataTypeLogicalDataTypeId):
     def __uuid_reader(vector: Vector, idx: int) -> uuid.UUID:
         return uuid.UUID(bytes=vector.byte_vector.values[idx])
 
-    def __date_reader(vector: Vector, idx: int) -> date:
+    epoch_ldt = whenever.LocalDateTime(1970, 1, 1)
+    epoch_utct = whenever.ZonedDateTime(1970, 1, 1, tz= "UTC")
+
+    def __date_reader(vector: Vector, idx: int) -> Date:
         iv = vector.i64_vector.values[idx]
-        delta = timedelta(days= iv)
-        r = (datetime.fromtimestamp(0) + delta).date()
-        return r
+        return epoch_ldt.add(days=iv).date()
+
+    def __time_reader(vector: Vector, idx: int) -> Time:
+        ms = vector.i64_vector.values[idx]
+        return epoch_ldt.add(nanoseconds=ms, ignore_dst=True).time()
+
+    def __timestamp_reader(vector: Vector, idx: int) -> LocalDateTime:
+        iv = vector.i64_vector.values[idx]
+        return epoch_ldt.add(milliseconds=iv, ignore_dst=True)
+
+    def __timestamp_tz_reader(vector: Vector, idx: int) -> ZonedDateTime:
+        iv = vector.i64_vector.values[idx]
+        return epoch_ldt.add(milliseconds=iv, ignore_dst=True).assume_tz("UTC", disambiguate="raise")
 
     match type_id:
         case LogicalDataTypeLogicalDataTypeId.STRING:
@@ -64,6 +78,12 @@ def __get_reader(type_id: LogicalDataTypeLogicalDataTypeId):
             return __uuid_reader
         case LogicalDataTypeLogicalDataTypeId.DATE:
             return __date_reader
+        case LogicalDataTypeLogicalDataTypeId.TIME:
+            return __time_reader
+        case LogicalDataTypeLogicalDataTypeId.TIMESTAMP:
+            return __timestamp_reader
+        case LogicalDataTypeLogicalDataTypeId.TIMESTAMP_TZ:
+            return __timestamp_tz_reader
         case _:
             raise MillError(f"No reader for type: {type_id}")
 
@@ -90,7 +110,13 @@ def __get_pyarrow_type(type_id: LogicalDataTypeLogicalDataTypeId):
         case LogicalDataTypeLogicalDataTypeId.UUID:
             return pa.string(), lambda x: str(x)
         case LogicalDataTypeLogicalDataTypeId.DATE:
-            return pa.date64(), None
+            return pa.date64(), lambda x: x.py_date()
+        case LogicalDataTypeLogicalDataTypeId.TIME:
+            return pa.time64('us'), lambda x: x.py_time()
+        case LogicalDataTypeLogicalDataTypeId.TIMESTAMP:
+            return pa.date64(), lambda x: x.py_datetime()
+        case LogicalDataTypeLogicalDataTypeId.TIMESTAMP_TZ:
+            return pa.date64(), lambda x: x.py_datetime()
         case _:
             raise MillError(f"No pyarrow type mapper for type: {type_id}")
 

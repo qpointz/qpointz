@@ -14,6 +14,9 @@ public final class DateLogical implements LogicalType<Long, I64Physical> {
 
     public static final DateLogical INSTANCE = new DateLogical();
 
+    public static long MIN_DAYS = -719162L; //lowe bound date 01-01-0001
+    public static long MAX_DAYS = 2932896L; //high bound date 31-12-9999
+
     @Override
     public <T> T accept(LogicalTypeShuttle<T> shuttle) {
         return shuttle.visit(this);

@@ -8,8 +8,8 @@ import lombok.val;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.time.Instant;
-import java.time.LocalDate;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
 
@@ -29,6 +29,10 @@ public class GenerateRoundTripData {
 
         @Getter
         private final LogicalType<T, ?> logicalType;
+
+        private final int getLength() {
+            return values.size();
+        }
 
 
         public LogicalTypeData(String name, LogicalType<T, ?> logicalType, Function<T,String> sr, T[] initial) {
@@ -78,8 +82,14 @@ public class GenerateRoundTripData {
         val sb = new StringBuilder();
         var vectorSize = 0;
 
+        val maxSize = contexts.stream().map(k -> k.getLength()).reduce(Integer::max).get();
+
         for (var idx=0;idx<contexts.size();idx++) {
             val ctx = contexts.get(idx);
+
+            while(ctx.getLength()<maxSize) {
+                ctx.appendNull();
+            }
 
             val vector = ctx.vectorProducer.vectorBuilder().build();
             vb.addVectors(vector);
@@ -117,7 +127,6 @@ public class GenerateRoundTripData {
         try (val fos = new PrintWriter(suitePath + ".msg")) {
             fos.write(vectorBlock.toString());
         }
-
 
         System.out.println(vectorBlock.toString());
         System.out.println(vectorBlock.toByteString().toString());
@@ -174,11 +183,9 @@ public class GenerateRoundTripData {
                     new Long[]{
                             DateLogical.toPhysical(LocalDate.EPOCH),
                             null,
-                            (long)-719162,
-                            (long)2932896,
+                            DateLogical.MIN_DAYS,
+                            DateLogical.MAX_DAYS
                     }),
-                //-719162 //low days 01-01-0001
-                //2932896 //high days 31-12-9999
 
                 //Double
                 new LogicalTypeData<>("Double", DoubleLogical.INSTANCE, Object::toString,
@@ -204,17 +211,33 @@ public class GenerateRoundTripData {
 
                 //String
                 new LogicalTypeData<>("String", StringLogical.INSTANCE, k->k,
-                        new String[] {"Hello world", null, "", "NULL"}),
+                        new String[] {"Hello world", null, "", "NULL", "StrangeString"}),
 
                 //Time
-                // new Context<>("Time", DateLogical.INSTANCE, Object::toString,
+                new LogicalTypeData<>("Time", TimeLogical.INSTANCE, k-> TimeLogical.fromPhysical(k).format( DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSSSSS")),
+                        new Long[]{
+                                TimeLogical.toPhysical(LocalTime.of(13,10,8,238049834)),
+                                null,
+                                TimeLogical.MIN,
+                                TimeLogical.MAX
+                        }),
 
                 //Timestamp
-                // new Context<>("Timestamp", DateLogical.INSTANCE, Object::toString,
-
+                new LogicalTypeData<>("Timestamp", TimestampLogical.INSTANCE, k-> TimestampLogical.fromPhysical(k).format( DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSSSSS")),
+                    new Long[] {
+                            TimestampLogical.toPhysical(LocalDateTime.of(2012, 10, 3, 14, 12, 45, 345334533)),
+                            null,
+                            TimestampLogical.MIN,
+                            TimestampLogical.MAX,
+                    }),
                 //TimestampTZ
-                // new Context<>("TimestampTZ", DateLogical.INSTANCE, Object::toString,
-
+                new LogicalTypeData<>("TimestampTZ", TimestampTZLogical.INSTANCE, k-> TimestampTZLogical.fromPhysical(k).format( DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSSSSS")),
+                        new Long[] {
+                                TimestampTZLogical.toPhysical(ZonedDateTime.of(2012, 10, 3, 14, 12, 45, 345334533, ZoneId.of("CET"))),
+                                null,
+                                TimestampTZLogical.MIN,
+                                TimestampTZLogical.MAX,
+                        }),
                 //TinyInt
                 new LogicalTypeData<>("TinyInt", TinyIntLogical.INSTANCE, Object::toString,
                         new Integer[] {(int)Short.MIN_VALUE, (int)Short.MAX_VALUE, 234})
