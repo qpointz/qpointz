@@ -128,4 +128,23 @@ class MillServiceExecuteTest extends MillServiceBaseTest {
         assertNotNull(on.getVector().getSchema());
     }
 
+    @Test
+    void emptyResultShouldReturnOneBlockWithSchema(@Autowired MillServiceGrpc.MillServiceBlockingStub stub,
+                      @Autowired ExecutionProvider execProvider ) throws ClassNotFoundException {
+        val db = H2Db.createFromResource("sql-scripts/test.sql");
+        val rs = db.query("SELECT * from T1 WHERE 1=2");
+        val iter = new ResultSetVectorBlockIterator(rs, 10);
+        when(execProvider.execute(any(io.substrait.plan.Plan.class), any(QueryExecutionConfig.class))).thenReturn(iter);
+        val res = stub
+                .execPlan(ExecPlanRequest.newBuilder()
+                        .setPlan(io.substrait.proto.Plan.newBuilder().build())
+                        .build());
+        assertTrue(res.hasNext());
+        val on = res.next();
+        assertEquals(0, on.getVector().getVectorSize());
+        assertNotNull(on.getVector().getSchema());
+        assertFalse(on.getVector().getSchema().getAllFields().isEmpty());
+
+    }
+
 }

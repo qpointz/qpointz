@@ -12,6 +12,7 @@ import lombok.val;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ResultSetVectorBlockIterator implements VectorBlockIterator {
 
@@ -23,10 +24,12 @@ public class ResultSetVectorBlockIterator implements VectorBlockIterator {
     private final ResultSetColumnReader[] columnReaders;
     private final MappingVectorProducer<ResultSetColumnReader, ?>[] vectorProducers;
     private final int columnCount;
+    private final AtomicInteger blockIdx;
 
     public ResultSetVectorBlockIterator(ResultSet resultSet, int batchSize) {
         this.resultSet = resultSet;
         this.batchSize = batchSize;
+        this.blockIdx = new AtomicInteger(-1);
         try {
             this.columnCount = this.resultSet.getMetaData().getColumnCount();
             columnReaders = new ResultSetColumnReader[columnCount];
@@ -99,7 +102,8 @@ public class ResultSetVectorBlockIterator implements VectorBlockIterator {
                     break;
                 }
             }
-            if (rowIndex>0) {
+            val currentBlockIdx = this.blockIdx.incrementAndGet();
+            if (rowIndex>0 || currentBlockIdx==0) {
                 val blockBuilder = VectorBlock.newBuilder()
                         .setSchema(schema)
                         .setVectorSize(rowIndex);
