@@ -77,6 +77,13 @@ class MillClientTests(unittest.TestCase):
             df = q.to_pandas()
             assert len(df) > 0
 
+    def test_empty_query_returns_schema(self):
+        with client() as c:
+            q = c.sql_query(sql = "select * from `airlines`.`segments` WHERE 1=2")
+            df = q.to_pandas()
+            assert len(df) == 0
+            assert len(df.columns)>0
+
 
 if __name__ == '__main__':
     unittest.main()
