@@ -11,7 +11,7 @@ class SqlDateToEpochDayConverterTest {
 
     @Test
     void fromTest() {
-        val fct = SqlDateToEpochDayConverter.DEFAULT.from(1);
+        val fct = SqlDateToEpochDayConverter.DEFAULT.from(1L);
         val exp = java.sql.Date.valueOf(LocalDate.of(1970, 1,2));
         assertEquals(exp, fct);
     }

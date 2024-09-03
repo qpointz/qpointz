@@ -1,3 +1,7 @@
+grpc:
+  server:
+    security:
+      enabled: false      
 qp:
   mill:
     backend:
@@ -9,6 +13,3 @@ qp:
         providers:
           - type: file
             path: ./config/passwd.yaml
-logging:
-  level:
-    root: info

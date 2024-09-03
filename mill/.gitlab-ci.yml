@@ -26,6 +26,7 @@ mill:init-version:
   stage: init
   extends: .init-next-version
 
+   
 mill:unit-tests:
   stage: test
   script:
@@ -45,7 +46,7 @@ mill:install-dist:
     - job: mill:init-version
       artifacts: true
     - job: mill:unit-tests
-      artifacts: true
+      artifacts: true    
   script:
     - cd ${CI_PROJECT_DIR}/mill
     - gradle clean installDist

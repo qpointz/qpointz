@@ -1,2 +1,2 @@
 variables:
-    CI_TOOLCHAIN_ROLL: tc-0030
+    CI_TOOLCHAIN_ROLL: tc-0040

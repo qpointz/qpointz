@@ -1,16 +1,24 @@
 import asyncio
+import base64
 import enum
 from abc import abstractmethod
 from asyncio import AbstractEventLoop
+from importlib.metadata import metadata
+from typing import Optional
 
-from aiostream import stream
+from aiostream import stream, await_
+from betterproto.grpc.grpclib_client import MetadataLike
 from grpclib import GRPCError
 from grpclib.client import Channel
 import pyarrow as pa
+from urllib3 import request
 
 from millclient import utils
+from millclient._auth import MillCallCredentials
 from millclient.exceptions import MillServerError, MillError
-from millclient.proto.io.qpointz.mill import *
+from millclient.proto.io.qpointz.mill import AsyncIterator, ExecQueryResponse, List, MillServiceStub, HandshakeRequest, \
+    HandshakeResponse, ListSchemasRequest, ListSchemasResponse, GetSchemaRequest, GetSchemaResponse, ExecSqlRequest, \
+    SqlStatement, QueryExecutionConfig
 
 
 class AuthType(enum.Enum):
@@ -30,27 +38,30 @@ class MillQuery(object):
     async def responses(self) -> AsyncIterator[ExecQueryResponse]:
         pass
 
+    async def responses_async(self):
+        return await stream.list(self.responses())
+
     def responses_fetch(self):
-        async def exec_sql_fetch_async():
-            return await stream.list(self.responses())
-            pass
-        return self.__event_loop__().run_until_complete(exec_sql_fetch_async())
+        return self.__event_loop__().run_until_complete(self.responses_async())
 
     async def record_batches(self) -> AsyncIterator[pa.RecordBatch]:
         async for response in self.responses():
             yield utils.response_to_record_batch(response)
 
-    def record_batches_fetch(self) -> List[pa.RecordBatch]:
-        async def record_batches_fetch_async():
-            return await stream.list(self.record_batches())
-        return self.__event_loop__().run_until_complete(record_batches_fetch_async())
+    async def record_batches_async(self):
+        return await stream.list(self.record_batches())
 
-    def to_pandas(self):
-        record_batches = self.record_batches_fetch()
+    def record_batches_fetch(self) -> List[pa.RecordBatch]:
+        return self.__event_loop__().run_until_complete(self.record_batches_async())
+
+    async def to_pandas_async(self):
+        record_batches = await self.record_batches_async()
         schema = record_batches[0].schema
         reader = pa.RecordBatchReader.from_batches(schema, record_batches)
         return reader.read_pandas()
 
+    def to_pandas(self):
+        return self.__event_loop__().run_until_complete(self.to_pandas_async())
 
 
 class MillSqlQuery(MillQuery):
@@ -74,24 +85,24 @@ class MillClient(object):
     def close(self):
         self.__svc.channel.close()
 
-    def handshake(self, request: HandshakeRequest = None) -> HandshakeResponse:
-        async def handshake_async(req: HandshakeRequest) -> HandshakeResponse:
-            return await self.__svc.handshake(req)
+    async def handshake_async(self, req: HandshakeRequest) -> HandshakeResponse:
+        return await self.__svc.handshake(handshake_request=req)
 
+    def handshake(self, request: HandshakeRequest = None) -> HandshakeResponse:
         req = request or HandshakeRequest()
-        return self.__event_loop.run_until_complete(handshake_async(req))
+        return self.__event_loop.run_until_complete(self.handshake_async(req))
+
+    async def list_schemas_async(self, req):
+        return await self.__svc.list_schemas(req)
 
     def list_schemas(self, request: ListSchemasRequest = None) -> ListSchemasResponse:
-        async def list_schemas_async(req):
-            return await self.__svc.list_schemas(req)
-
         req = request or ListSchemasRequest()
-        return self.__event_loop.run_until_complete(list_schemas_async(req))
+        return self.__event_loop.run_until_complete(self.list_schemas_async(req))
+
+    async def get_schema_async(self, req):
+        return await self.__svc.get_schema(req)
 
     def get_schema(self, request: GetSchemaRequest = None, **kwarg) -> GetSchemaResponse:
-        async def get_schema_async(req):
-            return await self.__svc.get_schema(req)
-
         req = request
         if req is None:
             schema_name = kwarg.get('schema_name', None)
@@ -99,7 +110,7 @@ class MillClient(object):
                 raise MillError('Missing schema_name parameter')
             req = GetSchemaRequest(schema_name=schema_name)
         try:
-            return self.__event_loop.run_until_complete(get_schema_async(req))
+            return self.__event_loop.run_until_complete(self.get_schema_async(req))
         except GRPCError as e:
             msg = f"Failed to get schema '{req.schema_name}'.{self.grpcErrorMessage(e)}"
             raise MillServerError(msg, e)
@@ -119,11 +130,11 @@ class MillClient(object):
         async for response in self.__svc.exec_sql(req):
             yield response
 
-    def exec_sql_fetch(self, request: ExecSqlRequest = None, **kwarg):
-        async def exec_sql_fetch_async():
-            return await stream.list(self.exec_sql(request=request, **kwarg))
+    async def exec_sql_async(self, request, **kwarg) -> AsyncIterator[ExecQueryResponse]:
+        return await stream.list(self.exec_sql(request=request, **kwarg))
 
-        return self.__event_loop.run_until_complete(exec_sql_fetch_async())
+    def exec_sql_fetch(self, request: ExecSqlRequest = None, **kwarg):
+        return self.__event_loop.run_until_complete(self.exec_sql_async(request, **kwarg))
 
     def sql_query(self, request: ExecSqlRequest = None, **kwarg) -> MillSqlQuery:
         req = self.__to_sql_request(request, **kwarg)
@@ -151,7 +162,14 @@ class MillSqlQuery(MillQuery):
         return self.__client.event_loop()
 
 
-def create_client(channel: Channel, event_loop: AbstractEventLoop = None) -> MillClient:
-    stub = MillServiceStub(channel=channel)
+def create_client(*, channel: Channel = None, creds: MillCallCredentials = None, host:str = "localhost", port: int = 9099, ssl: bool = False, event_loop: AbstractEventLoop = None, metadata: Optional[MetadataLike] = None ) -> MillClient:
+    if not channel:
+        channel = Channel(host = host, port = port, ssl= ssl)
+    if not metadata:
+        metadata = {}
+    if creds:
+        metadata.update(creds.get_metadata())
+
+    stub = MillServiceStub(channel=channel, metadata = metadata)
     el = event_loop or asyncio.get_event_loop()
     return MillClient(stub=stub, event_loop=el)
