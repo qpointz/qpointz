@@ -10,10 +10,12 @@
 
 rootProject.name = "mill"
 
-include (":core")
-include (":backends:backend-core")
-include (":backends:calcite-backend-service")
-include (":backends:jdbc-backend-service")
+include (":mill-core")
+include (":mill-backend-core")
+include (":mill-calcite-backend")
+include (":mill-jdbc-backend")
+include (":mill-jdbc-driver")
+include (":clients:mill-jdbc-driver")
 
 dependencyResolutionManagement {
 
@@ -22,6 +24,15 @@ dependencyResolutionManagement {
     }
 
     versionCatalogs {
+
+        create("spring") {
+         /*   val spring = version("spring", "6.3.0")
+            library("context", "org.springframework","spring-context").versionRef(spring)
+            library("web","org.springframework","spring-web").versionRef(spring)
+            library("webmvc","org.springframework","spring-webmvc").versionRef(spring)
+            library("security-oauth2-core","org.springframework","spring-security-oauth2-core").versionRef(spring)*/
+        }
+
         create("libs") {
 
             val lombok = version("lombok", "1.18.34")
@@ -37,12 +48,6 @@ dependencyResolutionManagement {
             library("boot-starter-web","org.springframework.boot","spring-boot-starter-web").versionRef(boot)
             library("boot-starter-webflux","org.springframework.boot","spring-boot-starter-webflux").versionRef(boot)
             library("boot-starter", "org.springframework.boot","spring-boot-starter").versionRef(boot)
-
-            val spring = version("spring", "6.3.0")
-            library("spring-context", "org.springframework","spring-context").versionRef(spring)
-            library("spring-web","org.springframework","spring-web").versionRef(spring)
-            library("spring-webmvc","org.springframework","spring-webmvc").versionRef(spring)
-            library("spring-security-oauth2-core","org.springframework","spring-security-oauth2-core").versionRef(spring)
 
             val calcite = version("calcite", "1.37.0")
             library("calcite-core", "org.apache.calcite", "calcite-core").versionRef(calcite)
@@ -111,10 +116,7 @@ dependencyResolutionManagement {
             library("jackson-dataformat-yaml", "com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml").versionRef(jackson)
             library("jackson-datatype-jsr310", "com.fasterxml.jackson.datatype","jackson-datatype-jsr310").versionRef(jackson)
 
-            val scala = version("scala", "2.13.14")
-            library("scala-lang", "org.scala-lang", "scala-library" ).versionRef(scala)
-            library("scala-reflect", "org.scala-lang", "scala-reflect" ).versionRef(scala)
-            library("scala-compiler", "org.scala-lang", "scala-compiler" ).versionRef(scala)
+
 
         }
     }

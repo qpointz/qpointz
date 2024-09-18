@@ -19,12 +19,12 @@ sonar {
     }
 }
 
-
 val javaProjects = listOf(
-    project(":core"),
-    project(":backends:backend-core"),
-    project(":backends:calcite-backend-service"),
-    project(":backends:jdbc-backend-service"),
+    project(":mill-core"),
+    project(":mill-backend-core"),
+    project(":mill-calcite-backend"),
+    project(":mill-jdbc-backend"),
+    project(":clients:mill-jdbc-driver")
 )
 
 dependencies {
@@ -65,6 +65,7 @@ configure(javaProjects) {
     apply(plugin = "maven-publish")
     apply(plugin = "signing")
     apply(plugin = "jacoco")
+    apply(plugin = "jvm-test-suite")
 
     java {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -93,6 +94,9 @@ configure(javaProjects) {
         publications {
             create<MavenPublication>("mavenJava") {
                 from(components["java"])
+                if (project.tasks.findByName("shadowJar") != null) {
+                    artifact(tasks["shadowJar"])
+                }
                 pom {
                     name = (project.properties["lib.name"] ?:this.name).toString()
                     description = (project.properties["lib.description"] ?:"").toString()

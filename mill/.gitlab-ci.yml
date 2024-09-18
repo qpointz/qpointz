@@ -14,9 +14,9 @@ stages:
   - test
   - build
   - package
-  - contrib-test
   - check
   - publish
+  - test-integration
 
 workflow:
   rules:
@@ -26,7 +26,10 @@ mill:init-version:
   stage: init
   extends: .init-next-version
 
-   
+mill:init-certs:
+  stage: init
+  extends: .init-dev-certs    
+
 mill:unit-tests:
   stage: test
   script:
@@ -58,8 +61,8 @@ mill:calcite-backend-service:build-docker:
   stage: publish
   extends: .docker-build-job
   variables:
-    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/backends/calcite-backend-service
-    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/backends/calcite-backend-service/src/main/docker/Dockerfile
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/mill-calcite-backend
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/mill-calcite-backend/src/main/docker/Dockerfile
     DOCKER_BUILD_CONTAINER_NAME : mill-calcite-backend
   needs:
     - job: mill:install-dist
@@ -71,8 +74,8 @@ mill:jdbc-backend-service:build-docker:
   stage: publish
   extends: .docker-build-job
   variables:
-    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/backends/jdbc-backend-service
-    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/backends/jdbc-backend-service/src/main/docker/Dockerfile
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/mill-jdbc-backend
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/mill-jdbc-backend/src/main/docker/Dockerfile
     DOCKER_BUILD_CONTAINER_NAME : mill-jdbc-backend
   needs:
     - job: mill:install-dist
@@ -104,7 +107,13 @@ mill:maven-publish:
     - !reference [.global-vars, before_script]
     - echo -n "${SIGN_PGP_RING}" | base64 --decode > ${CI_PROJECT_DIR}/.keyring.kbx
     - export SONATYPE_TOKEN=Authorization:\ Bearer\ $(echo -n $SONATYPE_USERNAME:$SONATYPE_PASSWORD | base64)
-    - export SONATYPE_URL="https://central.sonatype.com/api/v1/publisher/upload?publishingType=USER_MANAGED&name=mill-${QP_VERSION}-${CI_COMMIT_REF_SLUG}-$(date +%Y%m%d_%H%M%S)"
+    - export SONATYPE_PUBLISHING_TYPE="USER_MANAGED"
+    - |
+        if [[ "main" == "${CI_COMMIT_REF_SLUG}" ]]
+        then
+          export SONATYPE_PUBLISHING_TYPE="AUTOMATIC"
+        fi      
+    - export SONATYPE_URL="https://central.sonatype.com/api/v1/publisher/upload?publishingType=${SONATYPE_PUBLISHING_TYPE}&name=mill-${QP_VERSION}-${CI_COMMIT_REF_SLUG}-$(date +%Y%m%d_%H%M%S)"
     - echo $SONATYPE_URL
   script:
     - cd ${CI_PROJECT_DIR}/mill
@@ -116,5 +125,5 @@ mill:maven-publish:
     - job: mill:init-version
       artifacts: true
   rules:
-    - if: $CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_REF_SLUG != "dev"
+    - if: $CI_COMMIT_REF_PROTECTED == "true" #&& $CI_COMMIT_REF_SLUG != "dev"
       when: always

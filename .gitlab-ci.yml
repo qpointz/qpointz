@@ -74,12 +74,15 @@ mill:build:
       - local: mill/.gitlab-ci.yml
     strategy: depend
   rules:    
+    - changes:        
+        - mill/clients/**/*        
+      when: never  
     - if: $CI_COMMIT_REF_PROTECTED != "true"
       changes:
         - .gitlab-ci.yml
         - .gitlab/**/*
         - etc/docker/**/*
-        - mill/**/*      
+        - mill/**/*
     - if: $CI_COMMIT_REF_PROTECTED == "true"
       when: always
 
@@ -92,7 +95,7 @@ mill-clients:build:
       optional: true
   trigger:
     include:
-      - local: mill-clients/.gitlab-ci.yml      
+      - local: mill/clients/.gitlab-ci.yml      
     strategy: depend
   rules:
     - if: $CI_COMMIT_REF_PROTECTED != "true"
@@ -101,7 +104,7 @@ mill-clients:build:
         - .gitlab/**/*
         - etc/docker/**/*
         - mill/**/*
-        - mill-clients/**/*  
+        - mill/clients/**/*  
     - if: $CI_COMMIT_REF_PROTECTED == "true"
       when: always               
 
