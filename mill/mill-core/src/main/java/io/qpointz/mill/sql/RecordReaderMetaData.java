@@ -49,13 +49,7 @@ public class RecordReaderMetaData implements ResultSetMetaData {
     @Override
     public int isNullable(int column) throws SQLException {
         val nullability = this.getColumnMetaData(column).getIsNullable();
-        if (nullability == DataType.Nullability.NOT_NULL) {
-            return ResultSetMetaData.columnNoNulls;
-        } else if (nullability == DataType.Nullability.NULL) {
-            return ResultSetMetaData.columnNullable;
-        } else {
-            return ResultSetMetaData.columnNullableUnknown;
-        }
+        return JdbcUtils.jdbcNullability(nullability);
     }
 
     @Override
@@ -106,26 +100,7 @@ public class RecordReaderMetaData implements ResultSetMetaData {
     @Override
     public int getColumnType(int column) throws SQLException {
         LogicalDataType.LogicalDataTypeId typeId = this.getColumnMetaData(column).getLogicalTypeId();
-        return switch (typeId) {
-            case NOT_SPECIFIED_TYPE -> Types.OTHER;
-            case TINY_INT ->  Types.TINYINT;
-            case SMALL_INT -> Types.SMALLINT;
-            case INT -> Types.INTEGER;
-            case BIG_INT -> Types.BIGINT;
-            case BINARY -> Types.BINARY;
-            case BOOL -> Types.BLOB;
-            case DATE -> Types.DATE;
-            case FLOAT -> Types.FLOAT;
-            case DOUBLE -> Types.DOUBLE;
-            case INTERVAL_DAY -> Types.BIGINT;
-            case INTERVAL_YEAR -> Types.BIGINT;
-            case STRING -> Types.NVARCHAR;
-            case TIMESTAMP -> Types.TIMESTAMP;
-            case TIMESTAMP_TZ -> Types.TIMESTAMP_WITH_TIMEZONE;
-            case TIME -> Types.TIME;
-            case UUID -> Types.BINARY;
-            case UNRECOGNIZED -> Types.OTHER;
-        };
+        return JdbcUtils.logicalTypeIdToJdbcTypeId(typeId);
     }
 
     @Override

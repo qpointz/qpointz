@@ -10,8 +10,20 @@ public class MetadataUtils {
                 : Optional.of(value);
     }
 
+    public static Optional<Integer> integerOf(Integer value) {
+        return value == null
+                ? Optional.empty()
+                : Optional.of(value);
+    }
+
+    public static Optional<Integer> integerOf(Integer value, Integer nullValue) {
+        return value == null || value.equals(nullValue)
+                ? Optional.empty()
+                : Optional.of(value);
+    }
+
     public static <T> Optional<T> dbnull() {
-        return Optional.<T>empty();
+        return Optional.empty();
     }
 
 }

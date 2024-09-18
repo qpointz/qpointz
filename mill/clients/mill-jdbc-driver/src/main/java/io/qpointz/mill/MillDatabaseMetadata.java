@@ -692,7 +692,7 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     @Override
     public ResultSet getColumns(String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern) throws SQLException {
-        return null;
+        return ColumnsMetadata.asResultSet(this.connection, catalog, schemaPattern, tableNamePattern, columnNamePattern);
     }
 
     @Override

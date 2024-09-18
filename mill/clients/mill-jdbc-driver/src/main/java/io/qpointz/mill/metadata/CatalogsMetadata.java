@@ -7,6 +7,7 @@ import io.qpointz.mill.vectors.ObjectToVectorProducer;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 import static io.qpointz.mill.metadata.MetadataUtils.*;
 import static io.qpointz.mill.vectors.ObjectToVectorProducer.mapper;
@@ -14,6 +15,7 @@ import static io.qpointz.mill.vectors.ObjectToVectorProducer.mapper;
 public class CatalogsMetadata {
 
     private record CatalogRecord(String catalog) {};
+
 
     private static List<ObjectToVectorProducer.MapperInfo<CatalogsMetadata.CatalogRecord,?>> MAPPINGS = List.of(
             mapper("TABLE_CAT", StringLogical.INSTANCE, k-> dbnull())

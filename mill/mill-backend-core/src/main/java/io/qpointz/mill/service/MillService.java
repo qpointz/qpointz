@@ -57,7 +57,6 @@ public class MillService extends MillServiceGrpc.MillServiceImplBase {
         return this.rewriteChain != null && !this.rewriteChain.getRewriters().isEmpty();
     }
 
-
     protected boolean supportsSql() {
         return this.sqlProvider != null;
     }
