@@ -35,21 +35,6 @@ finalize:release:
   script:
     - npx semantic-release --ci --debug
         
-#rapids:build:
-#  stage: build
-#  inherit:
-#    variables: false
-#  trigger:
-#    include:
-#      - local: rapids/.gitlab-ci.yml
-#    strategy: depend
-#  rules:
-#    - changes:
-#        - .gitlab-ci.yml
-#        - .gitlab/**/*
-#        - etc/docker/**/*
-#        - rapids/**/*
-
 flow:build:
   stage: build
   inherit:
@@ -73,17 +58,18 @@ mill:build:
     include:
       - local: mill/.gitlab-ci.yml
     strategy: depend
-  rules:    
-    - changes:        
-        - mill/clients/**/*        
-      when: never  
-    - if: $CI_COMMIT_REF_PROTECTED != "true"
-      changes:
+  rules:        
+    - if: $CI_COMMIT_REF_PROTECTED == "true"
+      when: always
+    - changes:      
         - .gitlab-ci.yml
         - .gitlab/**/*
-        - etc/docker/**/*
-        - mill/**/*
-    - if: $CI_COMMIT_REF_PROTECTED == "true"
+        - etc/docker/**/*        
+        - mill/[!clients]*/**/*
+        - mill/[!clients]*/*
+        - mill/*.yml
+        - mill/*.kts
+        - mill/*.properties
       when: always
 
 mill-clients:build:
@@ -103,8 +89,7 @@ mill-clients:build:
         - .gitlab-ci.yml
         - .gitlab/**/*
         - etc/docker/**/*
-        - mill/**/*
-        - mill/clients/**/*  
+        - mill/**/*        
     - if: $CI_COMMIT_REF_PROTECTED == "true"
       when: always               
 
