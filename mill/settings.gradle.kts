@@ -15,6 +15,7 @@ include (":mill-backend-core")
 include (":mill-calcite-backend")
 include (":mill-jdbc-backend")
 include (":clients:mill-jdbc-driver")
+include (":clients:mill-sql-line")
 
 dependencyResolutionManagement {
 
@@ -85,7 +86,12 @@ dependencyResolutionManagement {
             library("grpc-api","io.grpc","grpc-api").versionRef(grpc)
             library("grpc-core","io.grpc","grpc-core").versionRef(grpc)
             library("grpc-testing","io.grpc","grpc-testing").versionRef(grpc)
+            library("grpc-inprocess","io.grpc","grpc-inprocess").versionRef(grpc)
+            library("grpc-census","io.grpc","grpc-census").versionRef(grpc)
+            library("grpc-all","io.grpc","grpc-all").versionRef(grpc)
+            library("grpc-context","io.grpc","grpc-context").versionRef(grpc)
             library("grpc-netty-shaded", "io.grpc", "grpc-netty-shaded").versionRef(grpc)
+
 
             library("javax-annotation-api" ,"javax.annotation" , "javax.annotation-api").version("1.3.2")
 

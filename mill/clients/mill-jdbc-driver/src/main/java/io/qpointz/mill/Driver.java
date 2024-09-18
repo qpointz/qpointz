@@ -1,6 +1,7 @@
 package io.qpointz.mill;
 
 import io.qpointz.mill.client.MillClientConfiguration;
+import io.qpointz.mill.client.MillUrlParser;
 import lombok.extern.java.Log;
 import lombok.val;
 

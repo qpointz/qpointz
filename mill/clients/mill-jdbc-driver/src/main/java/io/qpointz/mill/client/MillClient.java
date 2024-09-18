@@ -1,6 +1,7 @@
 package io.qpointz.mill.client;
 
 import io.grpc.*;
+import io.grpc.inprocess.InProcessChannelBuilder;
 import io.qpointz.mill.proto.MillServiceGrpc;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -15,8 +16,10 @@ import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import static io.qpointz.mill.client.MillClientConfiguration.*;
+
 @Log
-public class MillClient {
+public class MillClient implements AutoCloseable {
 
     @Getter
     private final MillClientConfiguration configuration;
@@ -42,6 +45,12 @@ public class MillClient {
 
     @SneakyThrows
     private static ManagedChannel createNewChannel(MillClientConfiguration config)  {
+
+        if (CLIENT_CHANNEL_INPROC_VALUE.equals(config.getClientChannel())) {
+            log.warning("InProcess channel choosen. All configuration parameters will be ignored");
+            return InProcessChannelBuilder.forName(config.getHost()).build();
+        }
+
         val channelCredentials = createChannelCredentials(config);
         val callCredentials = createCallCredentials(config);
 
@@ -59,9 +68,14 @@ public class MillClient {
             finalCreds = ChoiceChannelCredentials.create(allCreds);
         }
 
-        val channelBuilder = Grpc.newChannelBuilderForAddress(config.getHost(), config.getPort(), finalCreds);
+        if (CLIENT_CHANNEL_GRPC_VALUE.equals(config.getClientChannel())) {
+            val channelBuilder = Grpc.newChannelBuilderForAddress(config.getHost(), config.getPort(), finalCreds);
+            return channelBuilder.build();
+        }
 
-        return channelBuilder.build();
+        throw new IllegalArgumentException(String.format("'%s' client channels not supported. Suported: '%s','%s' ",
+                config.getClientChannel(),
+                CLIENT_CHANNEL_GRPC_VALUE, CLIENT_CHANNEL_INPROC_VALUE));
     }
 
     private static Collection<CallCredentials> createCallCredentials(MillClientConfiguration config) {
@@ -142,4 +156,7 @@ public class MillClient {
     }
 
 
+    @Override
+    public void close() throws Exception {
+    }
 }

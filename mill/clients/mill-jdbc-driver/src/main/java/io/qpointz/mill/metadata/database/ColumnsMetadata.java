@@ -1,6 +1,7 @@
-package io.qpointz.mill.metadata;
+package io.qpointz.mill.metadata.database;
 
 import io.qpointz.mill.MillConnection;
+import io.qpointz.mill.metadata.ResultSetProvidingMetadata;
 import io.qpointz.mill.proto.DataType;
 import io.qpointz.mill.proto.GetSchemaRequest;
 import io.qpointz.mill.proto.ListSchemasRequest;
@@ -8,34 +9,44 @@ import io.qpointz.mill.proto.Table;
 import io.qpointz.mill.sql.JdbcUtils;
 import io.qpointz.mill.types.logical.IntLogical;
 import io.qpointz.mill.types.logical.StringLogical;
-import io.qpointz.mill.types.sql.DatabaseType;
 import io.qpointz.mill.vectors.ObjectToVectorProducer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.java.Log;
 import lombok.val;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 
-import static io.qpointz.mill.metadata.MetadataUtils.*;
+import static io.qpointz.mill.metadata.database.MetadataUtils.*;
 import static io.qpointz.mill.vectors.ObjectToVectorProducer.mapper;
 
 @Log
 @AllArgsConstructor
-public class ColumnsMetadata {
+public class ColumnsMetadata extends ResultSetProvidingMetadata<ColumnsMetadata.ColumnRecord> {
 
     @Getter
     private final MillConnection connection;
 
-    private record ColumnRecord(String catalog, String schema, String tableName, String name, Integer index, Integer dataType, String dataTypeName,
+    @Getter
+    private final String catalogPattern;
+
+    @Getter
+    private final String schemaPattern;
+
+    @Getter
+    private final String tableNamePattern;
+
+    @Getter
+    private final String columnNamePattern;
+
+    protected record ColumnRecord(String catalog, String schema, String tableName, String name, Integer index, Integer dataType, String dataTypeName,
         Integer size, Integer decimalDigits,  Integer numPrecRadix, int nullable, String isNullable, int sizeBytes) {}
 
     private static List<ObjectToVectorProducer.MapperInfo<ColumnsMetadata.ColumnRecord,?>> MAPPINGS = List.of(
-            mapper("TABLE_CAT", StringLogical.INSTANCE, k-> stringOf(k.catalog)),
+            mapper("TABLE_CAT", StringLogical.INSTANCE, k-> dbnull()),
             mapper("TABLE_SCHEM", StringLogical.INSTANCE, k-> stringOf(k.schema)),
             mapper("TABLE_NAME", StringLogical.INSTANCE, k-> stringOf(k.tableName)),
             mapper("COLUMN_NAME", StringLogical.INSTANCE, k-> stringOf(k.name)),
@@ -61,18 +72,16 @@ public class ColumnsMetadata {
             mapper("IS_GENERATEDCOLUMN", StringLogical.INSTANCE, k-> stringOf("NO"))
             );
 
-    public static ResultSet asResultSet(MillConnection connection, String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern) throws SQLException {
-        return new ColumnsMetadata(connection).asResultSet(catalog, schemaPattern, tableNamePattern, columnNamePattern);
+
+    @Override
+    protected List<ObjectToVectorProducer.MapperInfo<ColumnRecord, ?>> getMappers() {
+        return MAPPINGS;
     }
 
-    private ResultSet asResultSet(String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern) throws SQLException {
-        val allColumns = getAllColumns();
-        return ObjectToVectorProducer.resultSet(MAPPINGS, allColumns);
-    }
-
-    private List<ColumnsMetadata.ColumnRecord> getAllColumns() {
+    @Override
+    protected Collection<ColumnRecord> getMetadata() {
         log.log(Level.INFO, "Getting all tables");
-        val client = this.connection.createClient();
+        val client = this.connection.getClient();
         val stub = client.newBlockingStub();
 
         val allSchemas = stub
@@ -90,7 +99,11 @@ public class ColumnsMetadata {
                 allColumns.addAll(tableColumns);
             }
         }
-        return allColumns;
+
+        var filtered = this.filterByPattern(this.catalogPattern, allColumns, k-> k.catalog);
+        filtered = this.filterByPattern(this.schemaPattern, filtered, k-> k.schema);
+        filtered = this.filterByPattern(this.tableNamePattern, filtered, k -> k.tableName);
+        return this.filterByPattern(this.columnNamePattern, filtered, k -> k.name);
     }
 
     private List<ColumnRecord> getColumns(String schemaName, Table table) {

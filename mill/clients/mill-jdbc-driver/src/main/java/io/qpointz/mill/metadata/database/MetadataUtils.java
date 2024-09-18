@@ -1,4 +1,4 @@
-package io.qpointz.mill.metadata;
+package io.qpointz.mill.metadata.database;
 
 import java.util.Optional;
 

@@ -1,6 +1,5 @@
-package io.qpointz.mill;
+package io.qpointz.mill.client;
 
-import io.qpointz.mill.client.MillClientConfiguration;
 import lombok.val;
 
 import java.net.URI;
@@ -8,9 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import static io.qpointz.mill.MillUrlParser.KnownPropertyType.*;
+import static io.qpointz.mill.client.MillUrlParser.KnownPropertyType.*;
 
 public class MillUrlParser {
 
@@ -38,14 +36,6 @@ public class MillUrlParser {
             KnownProperty.of(MillClientConfiguration.PORT_PROP, INT, true, "Mill backend port")
     );
 
-    public String getString(String key) {
-        return this.props.getProperty(key);
-    }
-
-    public Integer getInteger(String key) {
-        return Integer.parseInt(this.props.getProperty(key));
-    }
-
     public MillUrlParser(String url, Properties... props) {
         this.props = apply(url, props);
     }
@@ -70,13 +60,27 @@ public class MillUrlParser {
     }
 
     public static Properties parseUrl(String url) {
-        if (!url.startsWith(URL_PREFIX)) {
+        if (!acceptsURL(url)) {
             throw new IllegalArgumentException("Not supported URL format:" + url);
         }
 
         var cleanUrl = url.replace(URL_PREFIX, "");
         val effectiveProps = new Properties();
         var parsedUrl = URI.create(cleanUrl);
+
+        var parsedScheme = parsedUrl.getScheme();
+        if (parsedScheme == null || parsedScheme.trim().isEmpty()) {
+            parsedScheme = MillClientConfiguration.CLIENT_CHANNEL_GRPC_VALUE;
+        }
+
+        switch (parsedScheme) {
+            case MillClientConfiguration.CLIENT_CHANNEL_GRPC_VALUE:
+            case MillClientConfiguration.CLIENT_CHANNEL_INPROC_VALUE:
+                effectiveProps.setProperty(MillClientConfiguration.CLIENT_CHANNEL_PROP, parsedScheme);
+                break;
+            default:
+                throw new IllegalArgumentException("Not supported scheme:" + parsedScheme);
+        }
 
         var query = parsedUrl.getQuery();
         if (query != null) {

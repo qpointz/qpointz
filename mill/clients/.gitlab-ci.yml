@@ -7,6 +7,8 @@ image: ${CI_IMAGE_GRADLE}
 stages:
   - init  
   - test
+  - build
+  - publish
 
 workflow:
   rules:
@@ -15,8 +17,6 @@ workflow:
 mill-clients:init-version:
   stage: init
   extends: .init-next-version  
-  rules:
-    - when: never
 
 mill-clients:init-certs:
   stage: init
@@ -171,3 +171,33 @@ mill:jdbc-driver:integration-test:
     - cd ${CI_PROJECT_DIR}/mill
     - export MILL_JWT_TOKEN="$(cat ${CI_PROJECT_DIR}/etc/.test_az_token)"
     - ./gradlew --console plain clean :clients:mill-jdbc-driver:testIT
+
+mill-clients:install-dist:
+  stage: build
+  image: ${CI_IMAGE_GRADLE}
+  needs:
+    - job: mill-clients:init-version
+      artifacts: true    
+  script:
+    - cd ${CI_PROJECT_DIR}/mill/clients
+    - ../gradlew clean installDist distTar distZip
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/mill/clients/*/build/install/**/*
+      - ${CI_PROJECT_DIR}/mill/clients/*/build/distributions/*.tar
+      - ${CI_PROJECT_DIR}/mill/clients/*/build/distributions/*.zip
+
+mill-clients:mill-sql-line:build-docker:
+  stage: publish
+  extends: .docker-build-job
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/clients/mill-sql-line
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/clients/mill-sql-line/src/main/docker/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : mill-sql-line
+  needs:
+    - job: mill-clients:install-dist
+      artifacts: true
+    - job: mill-clients:init-version
+      artifacts: true
+    - job: mill:jdbc-driver:integration-test
+      artifacts: false

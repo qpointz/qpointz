@@ -4,6 +4,7 @@ import lombok.extern.java.Log;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
