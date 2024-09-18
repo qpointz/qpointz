@@ -12,6 +12,8 @@ public class ColumnMetadataFactory extends LogicalTypeIdMapper<ColumnMetadata> {
     @Getter
     private final Field field;
 
+
+
     private ColumnMetadata.ColumnMetadataBuilder buildCommon() {
         val type = field.getType();
         val logType = type.getType();

@@ -52,4 +52,6 @@ public class ColumnMetadata {
 
     @Getter
     private final LogicalDataType.LogicalDataTypeId logicalTypeId;
+
+    public static class ColumnMetadataBuilder {}
 }
