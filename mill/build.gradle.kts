@@ -24,7 +24,8 @@ val javaProjects = listOf(
     project(":mill-backend-core"),
     project(":mill-calcite-backend"),
     project(":mill-jdbc-backend"),
-    project(":clients:mill-jdbc-driver")
+    project(":clients:mill-jdbc-driver"),
+    project (":clients:mill-sql-line")
 )
 
 dependencies {

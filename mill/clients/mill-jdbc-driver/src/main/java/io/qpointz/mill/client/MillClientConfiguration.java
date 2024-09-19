@@ -1,5 +1,6 @@
 package io.qpointz.mill.client;
 
+import io.qpointz.mill.MillConnection;
 import lombok.*;
 
 import java.util.Properties;
@@ -24,6 +25,10 @@ public class MillClientConfiguration {
     public static final String TLS_KEY_PRIVATE_KEY_PROP = "tlsKeyPrivateKey";
     public static final String TLS_KEY_PRIVATE_KEY_PASSWORD_PROP = "tlsKeyPrivateKeyPassword";
     public static final String TLS_TRUST_ROOT_CERT_PROP = "tlsTrustRootCert";
+
+    public static final String CLIENT_CHANNEL_PROP = "clientChannel";
+    public static final String CLIENT_CHANNEL_GRPC_VALUE = "grpc";
+    public static final String CLIENT_CHANNEL_INPROC_VALUE = "in-proc";
 
     @Getter
     @Builder.Default
@@ -61,6 +66,19 @@ public class MillClientConfiguration {
     @Builder.Default
     private String tlsTrustRootCert = null;
 
+    @Getter
+    @Builder.Default
+    private String clientChannel = CLIENT_CHANNEL_GRPC_VALUE;
+
+
+    public static MillClientConfigurationBuilder builder() {
+        return new MillClientConfigurationBuilder();
+    }
+
+    public static MillClientConfigurationBuilder builder(String url) {
+        return builder().url(url);
+    }
+
     public boolean requiresTls() {
         return this.tlsKeyCertChain != null || this.tlsKeyPrivateKey != null || this.tlsKeyPrivateKeyPassword != null || this.tlsTrustRootCert != null;
     }
@@ -90,8 +108,15 @@ public class MillClientConfiguration {
                     .stringProp(properties, TLS_KEY_PRIVATE_KEY_PROP, null, this::tlsKeyPrivateKey)
                     .stringProp(properties, TLS_KEY_PRIVATE_KEY_PASSWORD_PROP, null, this::tlsKeyPrivateKeyPassword)
                     .stringProp(properties, TLS_TRUST_ROOT_CERT_PROP, null, this::tlsTrustRootCert)
+                    .stringProp(properties, CLIENT_CHANNEL_PROP, null, this::clientChannel)
                     ;
 
+        }
+
+        public MillClientConfigurationBuilder url(String url) {
+            var props = new Properties();
+            props = MillUrlParser.apply(url, props);
+            return this.fromProperties(props);
         }
 
         public MillClientConfigurationBuilder basicCredentials(String username, String password) {

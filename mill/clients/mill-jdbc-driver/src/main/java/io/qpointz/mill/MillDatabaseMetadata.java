@@ -1,6 +1,6 @@
 package io.qpointz.mill;
 
-import io.qpointz.mill.metadata.*;
+import io.qpointz.mill.metadata.database.*;
 
 import java.sql.*;
 
@@ -197,7 +197,7 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     @Override
     public String getIdentifierQuoteString() throws SQLException {
-        return "";
+        return "`";
     }
 
     @Override
@@ -672,27 +672,30 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     @Override
     public ResultSet getTables(String catalog, String schemaPattern, String tableNamePattern, String[] types) throws SQLException {
-        return TablesMetadata.asResultSet(this.connection, catalog, schemaPattern, tableNamePattern, types);
+        return new TablesMetadata(this.connection, catalog, schemaPattern, tableNamePattern, types).asResultSet();
     }
 
     @Override
     public ResultSet getSchemas() throws SQLException {
-        return SchemasMetadata.asResultSet(this.connection);
+        return new SchemasMetadata(this.connection)
+                .asResultSet();
     }
 
     @Override
     public ResultSet getCatalogs() throws SQLException {
-        return CatalogsMetadata.asResultSet(this.connection);
+        return CatalogsMetadata.DEFAULT
+                .asResultSet();
     }
 
     @Override
     public ResultSet getTableTypes() throws SQLException {
-        return TableTypesMetadata.asResultSet(this.connection);
+        return new TableTypesMetadata()
+                .asResultSet();
     }
 
     @Override
     public ResultSet getColumns(String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern) throws SQLException {
-        return null;
+        return new ColumnsMetadata(this.connection, catalog, schemaPattern, tableNamePattern, columnNamePattern).asResultSet();
     }
 
     @Override

@@ -17,9 +17,9 @@ distributions {
 
 dependencies {
     implementation(project(":mill-core"))
-    implementation(libs.grpc.netty.shaded)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
+    testImplementation(libs.boot.starter.test)
 }
 
 testing {
@@ -35,10 +35,18 @@ testing {
                 dependencies {
                     implementation(project())
                     implementation(project(":mill-core"))
+                    implementation(project(":mill-calcite-backend"))
+                    implementation(project(":mill-backend-core"))
+                    implementation(libs.bootGRPC.client)
+                    implementation(libs.bootGRPC.server)
                     implementation(libs.boot.starter.test)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.lombok)
+                    runtimeOnly("io.opencensus:opencensus-impl:0.31.1")
+                    runtimeOnly(libs.grpc.census)
+                    runtimeOnly(libs.grpc.context)
+                    runtimeOnly(libs.grpc.all)
                     implementation(libs.h2.database)
                     annotationProcessor(libs.lombok)
                     compileOnly(libs.lombok)

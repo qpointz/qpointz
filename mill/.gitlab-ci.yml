@@ -125,5 +125,5 @@ mill:maven-publish:
     - job: mill:init-version
       artifacts: true
   rules:
-    - if: $CI_COMMIT_REF_PROTECTED == "true" #&& $CI_COMMIT_REF_SLUG != "dev"
+    - if: $CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_REF_SLUG != "dev"
       when: always

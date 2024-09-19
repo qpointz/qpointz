@@ -14,8 +14,8 @@ include (":mill-core")
 include (":mill-backend-core")
 include (":mill-calcite-backend")
 include (":mill-jdbc-backend")
-include (":mill-jdbc-driver")
 include (":clients:mill-jdbc-driver")
+include (":clients:mill-sql-line")
 
 dependencyResolutionManagement {
 
@@ -38,7 +38,7 @@ dependencyResolutionManagement {
             val lombok = version("lombok", "1.18.34")
             library("lombok", "org.projectlombok", "lombok").versionRef(lombok)
 
-            val boot = version("boot", "3.3.2")
+            val boot = version("boot", "3.3.3")
             library("boot-devtools", "org.springframework.boot","spring-boot-devtools").versionRef(boot)
             library("boot-configuration-processor","org.springframework.boot","spring-boot-configuration-processor").versionRef(boot)
             library("boot-starter-test","org.springframework.boot","spring-boot-starter-test").versionRef(boot)
@@ -56,14 +56,14 @@ dependencyResolutionManagement {
             library("calcite-file", "org.apache.calcite", "calcite-file").versionRef("calcite")
             library("calcite-csv", "org.apache.calcite", "calcite-csv").versionRef(calcite)
 
-            val junit = version("junit", "5.10.3")
+            val junit = version("junit", "5.11.0")
             library("junit-jupiter-api", "org.junit.jupiter", "junit-jupiter-api").versionRef(junit)
             library("junit-jupiter-engine", "org.junit.jupiter", "junit-jupiter-engine").versionRef(junit)
             library("junit-vintage-engine", "org.junit.vintage", "junit-vintage-engine").versionRef(junit)
 
-            library("slf4j-api", "org.slf4j", "slf4j-api").version("2.0.13")
-            library("logback-core", "ch.qos.logback", "logback-core").version("1.5.6")
-            library("logback-classic", "ch.qos.logback", "logback-classic").version("1.5.6")
+            library("slf4j-api", "org.slf4j", "slf4j-api").version("2.0.16")
+            library("logback-core", "ch.qos.logback", "logback-core").version("1.5.8")
+            library("logback-classic", "ch.qos.logback", "logback-classic").version("1.5.8")
             library("fusesource-jansi","org.fusesource.jansi", "jansi").version("2.4.1")
             bundle("logging", listOf(
                     "slf4j-api",
@@ -72,7 +72,7 @@ dependencyResolutionManagement {
                     "fusesource-jansi"
             ))
 
-            val mockito = version("mockito", "5.12.0")
+            val mockito = version("mockito", "5.13.0")
             library("mockito-core", "org.mockito", "mockito-core").versionRef(mockito)
             library("mockito-junit-jupiter", "org.mockito", "mockito-junit-jupiter").versionRef(mockito)
 
@@ -86,13 +86,18 @@ dependencyResolutionManagement {
             library("grpc-api","io.grpc","grpc-api").versionRef(grpc)
             library("grpc-core","io.grpc","grpc-core").versionRef(grpc)
             library("grpc-testing","io.grpc","grpc-testing").versionRef(grpc)
+            library("grpc-inprocess","io.grpc","grpc-inprocess").versionRef(grpc)
+            library("grpc-census","io.grpc","grpc-census").versionRef(grpc)
+            library("grpc-all","io.grpc","grpc-all").versionRef(grpc)
+            library("grpc-context","io.grpc","grpc-context").versionRef(grpc)
             library("grpc-netty-shaded", "io.grpc", "grpc-netty-shaded").versionRef(grpc)
+
 
             library("javax-annotation-api" ,"javax.annotation" , "javax.annotation-api").version("1.3.2")
 
             library ("hadoop-bare-naked-local-fs", "com.globalmentor", "hadoop-bare-naked-local-fs").version("0.1.0")
 
-            library ("h2-database", "com.h2database", "h2").version("2.3.230")
+            library ("h2-database", "com.h2database", "h2").version("2.3.232")
 
             val apacheCommons = version("apacheCommons", "3.14.0")
             library("apache-commons-lang3","org.apache.commons", "commons-lang3").versionRef(apacheCommons)
@@ -108,7 +113,7 @@ dependencyResolutionManagement {
             val jakartaServletApi = version("jakartaServletApi", "6.1.0")
             library("jakarta-servlet-api", "jakarta.servlet", "jakarta.servlet-api").versionRef(jakartaServletApi)
 
-            val googleApiGrpc = version("googleApiGrpc", "2.29.0")
+            val googleApiGrpc = version("googleApiGrpc", "2.44.0")
             library("googleapigrpc-proto-common-protos", "com.google.api.grpc", "proto-google-common-protos").versionRef(googleApiGrpc)
 
             val jackson = version("jackson", "2.17.2")

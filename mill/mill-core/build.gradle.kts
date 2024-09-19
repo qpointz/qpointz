@@ -34,9 +34,10 @@ tasks.register<Sync>("copyResources") {
 dependencies {
     api(libs.substrait.core)
     implementation(libs.bundles.logging)
-    runtimeOnly(libs.grpc.netty.shaded)
+    api(libs.grpc.netty.shaded)
     api(libs.grpc.protobuf)
     api(libs.grpc.stub)
+    api(libs.grpc.inprocess)
     api(libs.javax.annotation.api)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
@@ -48,7 +49,7 @@ protobuf {
     }
     plugins {
         create("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:1.64.0"
+            artifact = "io.grpc:protoc-gen-grpc-java:${libs.versions.grpc.get()}"
         }
     }
     generateProtoTasks {
