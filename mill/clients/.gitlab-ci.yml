@@ -104,7 +104,7 @@ mill-client:mill-py:test-3.12:
   extends: .mill-client:mill-py:test
   image: python:3.12-slim
 
-mill:jdbc-driver:integration-test:
+mill:jdbc-driver:test:
   stage: test
   image: ${CI_IMAGE_GRADLE}
   services:
@@ -151,6 +151,8 @@ mill:jdbc-driver:integration-test:
       artifacts: true
     - job: init:build-test-backend-service
       artifacts: false
+    - job: mill-clients:init-version
+      artifacts: true
   variables:
     MILL_HOST: backend.local
     MILL_PORT: "9099"
@@ -168,9 +170,9 @@ mill:jdbc-driver:integration-test:
     - mkdir -p ${CI_PROJECT_DIR}/.certs/client
     - openssl req -x509 -out ${TLS_CERT_CHAIN} -keyout ${TLS_CERT_PK} -newkey rsa:2048 -nodes -sha256 -subj '/CN=TESTUSER'
   script:
-    - cd ${CI_PROJECT_DIR}/mill
+    - cd ${CI_PROJECT_DIR}/mill/
     - export MILL_JWT_TOKEN="$(cat ${CI_PROJECT_DIR}/etc/.test_az_token)"
-    - ./gradlew --console plain clean :clients:mill-jdbc-driver:testIT
+    - ./gradlew --console plain clean :clients:mill-jdbc-driver:test :clients:mill-jdbc-driver:testIT
 
 mill-clients:install-dist:
   stage: build
@@ -199,5 +201,5 @@ mill-clients:mill-sql-line:build-docker:
       artifacts: true
     - job: mill-clients:init-version
       artifacts: true
-    - job: mill:jdbc-driver:integration-test
+    - job: mill:jdbc-driver:test
       artifacts: false

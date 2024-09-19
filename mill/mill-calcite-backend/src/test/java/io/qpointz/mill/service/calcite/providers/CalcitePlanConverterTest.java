@@ -44,5 +44,18 @@ class CalcitePlanConverterTest extends BaseTest {
         assertNotNull(relNode);
     }
 
+    @Test
+    void aggregateProjectionName() {
+        val sql = new CalciteSqlProvider(ctxFactory);
+        val pr = sql.parseSql("SELECT COUNT(*) as `cnt` FROM `airlines`.`cities` c inner join `airlines`.`passenger` p ON c.`id` = p.`domicile_city_id`");
+        val plan = pr.getPlan();
+        val pc = new CalcitePlanConverter(ctxFactory, dialect);
+        val relNode = pc.toRelNode(plan);
+        val rowType = relNode.getRowType();
+        val field = rowType.getFieldNames();
+        assertEquals("cnt", field.get(0));
+        assertNotNull(relNode);
+    }
+
 
 }

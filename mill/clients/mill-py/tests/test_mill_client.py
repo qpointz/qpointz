@@ -54,16 +54,16 @@ class MillClientTests(unittest.TestCase):
 
     def test_exec_sql(self):
         with client() as c:
-            l = c.exec_sql_fetch(sql = "select * from `airlines`.`segments`", batch_size = 10)
+            l = c.exec_sql_fetch(sql = "select * from `airlines`.`segments`", fetch_size = 10)
 
     def test_sql_querty_trivial(self):
         with client() as c:
-            q = c.sql_query(sql = "select * from `airlines`.`segments`", batch_size = 10)
+            q = c.sql_query(sql = "select * from `airlines`.`segments`", fetch_size = 10)
             l = q.responses_fetch()
             assert len(l) > 0
 
     def trivia(self, c: MillClient):
-        return c.sql_query(sql = "select * from `airlines`.`segments`", batch_size = 10)
+        return c.sql_query(sql = "select * from `airlines`.`segments`", fetch_size = 10)
 
     def test_query_record_batches(self):
         with client() as c:

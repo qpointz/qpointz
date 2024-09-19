@@ -39,7 +39,7 @@ class JdbcExecutionProviderTest extends BaseTest {
         when(planConverter.toSql(any(Plan.class))).thenReturn(sql);
         val ep = new JdbcExecutionProvider(planConverter, jdbcContextFactory);
         val r = ep.execute(ImmutablePlan.builder().build(),
-                QueryExecutionConfig.newBuilder().setBatchSize(10).build());
+                QueryExecutionConfig.newBuilder().setFetchSize(10).build());
         assertTrue(r.hasNext());
         val b = r.next();
         assertTrue(b.getVectorSize()>0);

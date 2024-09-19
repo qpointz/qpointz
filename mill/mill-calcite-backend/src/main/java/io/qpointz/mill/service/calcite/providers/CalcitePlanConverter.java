@@ -91,12 +91,8 @@ public class CalcitePlanConverter implements PlanConverter {
         public RelNode convert(Plan plan) {
             val root = plan.getRoots().get(0);
             RelNode noProj = root.getInput().accept(this);
-            val rexes = new ArrayList<RexNode>();
-            for (int i=0;i<root.getNames().size();i++) {
-                rexes.add(this.rexBuilder.makeInputRef(noProj, i));
-            }
             return this.relBuilder.push(noProj)
-                    .project(rexes, root.getNames())
+                    .rename(root.getNames())
                     .build();
         }
     }
