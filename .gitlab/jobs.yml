@@ -80,3 +80,14 @@
     expire_in: "30 days"
     paths:
       - ${CI_PROJECT_DIR}/VERSION
+
+.init-dev-certs:
+  stage: init
+  image: "${CI_IMAGE_MINICA}"
+  script:         
+    - cp -R /certs ${CI_PROJECT_DIR}/etc
+  artifacts:    
+    when: always
+    expire_in: "1 days"
+    paths:
+      - ${CI_PROJECT_DIR}/etc/certs/**/*      

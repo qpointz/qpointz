@@ -1,0 +1,15 @@
+grpc:
+  server:
+    security:
+      enabled: false      
+qp:
+  mill:
+    backend:
+      calcite:
+        connection:
+          model: ./config/model.yaml
+      security:
+        enabled: true
+        providers:
+          - type: file
+            path: ./config/passwd.yaml

@@ -1,0 +1,6 @@
+grpc:
+  server:
+    security:
+      enabled: true
+      certificate-chain: file:./config/ssl/server.crt
+      private-key: file:./config/ssl/server.key

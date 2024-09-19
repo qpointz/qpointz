@@ -5,7 +5,6 @@ package io.qpointz.mill;
 option java_multiple_files = true;
 option java_package = "io.qpointz.mill.proto";
 
-import "google/protobuf/wrappers.proto";
 import "substrait/plan.proto";
 import "common.proto";
 import "statement.proto";

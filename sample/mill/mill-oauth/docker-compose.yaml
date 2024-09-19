@@ -1,6 +1,6 @@
 services:
   mill-backend:
-    image: registry.qpointz.io/qpointz/qpointz/mill-calcite-backend:v0.2.0-dev
+    image: qpointz/mill-calcite-backend:v0.2.1-dev
     ports:
       - "9099:9099"
     environment:

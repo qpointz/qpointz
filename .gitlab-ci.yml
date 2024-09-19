@@ -1,4 +1,4 @@
-include:
+include:  
   - local : /.gitlab/vars.yml
   - local : /.gitlab/jobs.yml
 
@@ -19,6 +19,10 @@ ci-init:
         - .gitlab-ci.yml
         - .gitlab/**/*
         - etc/docker/**/*
+    - if: $CI_COMMIT_REF_PROTECTED == "true"
+      when: always
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      when: always
 
 finalize:release:
   image: ${CI_IMAGE_SEM_RELEASE}
@@ -31,21 +35,6 @@ finalize:release:
   script:
     - npx semantic-release --ci --debug
         
-#rapids:build:
-#  stage: build
-#  inherit:
-#    variables: false
-#  trigger:
-#    include:
-#      - local: rapids/.gitlab-ci.yml
-#    strategy: depend
-#  rules:
-#    - changes:
-#        - .gitlab-ci.yml
-#        - .gitlab/**/*
-#        - etc/docker/**/*
-#        - rapids/**/*
-
 flow:build:
   stage: build
   inherit:
@@ -69,14 +58,18 @@ mill:build:
     include:
       - local: mill/.gitlab-ci.yml
     strategy: depend
-  rules:    
-    - if: $CI_COMMIT_REF_PROTECTED != "true"
-      changes:
+  rules:        
+    - if: $CI_COMMIT_REF_PROTECTED == "true"
+      when: always
+    - changes:      
         - .gitlab-ci.yml
         - .gitlab/**/*
-        - etc/docker/**/*
-        - mill/**/*      
-    - if: $CI_COMMIT_REF_PROTECTED == "true"
+        - etc/docker/**/*        
+        - mill/[!clients]*/**/*
+        - mill/[!clients]*/*
+        - mill/*.yml
+        - mill/*.kts
+        - mill/*.properties
       when: always
 
 mill-clients:build:
@@ -88,7 +81,7 @@ mill-clients:build:
       optional: true
   trigger:
     include:
-      - local: mill-clients/.gitlab-ci.yml      
+      - local: mill/clients/.gitlab-ci.yml      
     strategy: depend
   rules:
     - if: $CI_COMMIT_REF_PROTECTED != "true"
@@ -96,8 +89,7 @@ mill-clients:build:
         - .gitlab-ci.yml
         - .gitlab/**/*
         - etc/docker/**/*
-        - mill/**/*
-        - mill-clients/**/*  
+        - mill/**/*        
     - if: $CI_COMMIT_REF_PROTECTED == "true"
       when: always               
 
