@@ -19,9 +19,9 @@ class ResultSetVectorBlockIteratorTest {
         db.close();
     }
 
-    private VectorBlockIterator sql(String sql, int batchSize) {
+    private VectorBlockIterator sql(String sql, int fetchSize) {
         var rs = db.query(sql);
-        return new ResultSetVectorBlockIterator(rs, batchSize);
+        return new ResultSetVectorBlockIterator(rs, fetchSize);
     }
 
     @Test

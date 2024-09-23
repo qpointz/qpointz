@@ -83,8 +83,8 @@ class Table(betterproto.Message):
 @dataclass(eq=False, repr=False)
 class LogicalDataType(betterproto.Message):
     type_id: "LogicalDataTypeLogicalDataTypeId" = betterproto.enum_field(2)
-    precision: int = betterproto.uint32_field(3)
-    scale: int = betterproto.uint32_field(4)
+    precision: int = betterproto.int32_field(3)
+    scale: int = betterproto.int32_field(4)
 
 
 @dataclass(eq=False, repr=False)
@@ -251,7 +251,7 @@ class ParseSqlResponse(betterproto.Message):
 
 @dataclass(eq=False, repr=False)
 class QueryExecutionConfig(betterproto.Message):
-    batch_size: int = betterproto.int32_field(1)
+    fetch_size: int = betterproto.int32_field(1)
 
 
 @dataclass(eq=False, repr=False)

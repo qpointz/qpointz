@@ -35,7 +35,9 @@ mill:unit-tests:
   script:
     - cd ${CI_PROJECT_DIR}/mill
     - gradle clean test testCodeCoverage jacocoTestReport
-  needs: []
+  needs:
+    - job: mill:init-version
+      artifacts: true
   artifacts:
     when: always
     reports:

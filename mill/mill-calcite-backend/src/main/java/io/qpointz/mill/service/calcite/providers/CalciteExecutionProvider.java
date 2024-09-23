@@ -55,7 +55,7 @@ public class CalciteExecutionProvider implements ExecutionProvider {
             val node = planConverter.toRelNode(plan);
             val stmt = ctx.getRelRunner().prepareStatement(node);
             val resultSet = stmt.executeQuery();
-            return new ResultSetVectorBlockIterator(resultSet, config.getBatchSize());
+            return new ResultSetVectorBlockIterator(resultSet, config.getFetchSize());
         } catch (Exception  e) {
             throw new RuntimeException(e);
         }

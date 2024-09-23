@@ -65,11 +65,22 @@ class CalciteExecutionProviderTest extends BaseTest {
         val ep = new CalciteExecutionProvider(this.getCtxFactory(), planConverter);
         val pr = sqlProvider.parseSql("SELECT * FROM `airlines`.`cities`");
         assertTrue(pr.isSuccess());
-        val res = ep.execute(pr.getPlan(), QueryExecutionConfig.newBuilder().setBatchSize(100).build());
+        val res = ep.execute(pr.getPlan(), QueryExecutionConfig.newBuilder().setFetchSize(100).build());
         while (res.hasNext()) {
             val r = res.next();
             log.debug(r.toString());
         }
+    }
+
+    @Test
+    public void execAggregateTest() {
+        val ep = new CalciteExecutionProvider(this.getCtxFactory(), planConverter);
+        val pr = sqlProvider.parseSql("SELECT `id` as `city_id`, COUNT(*) as `cnt` FROM `airlines`.`cities` GROUP BY `id`");
+        assertTrue(pr.isSuccess());
+        val res = ep.execute(pr.getPlan(), QueryExecutionConfig.newBuilder().setFetchSize(100).build());
+        val fields = res.schema().getFieldsList();
+        assertEquals("city_id", fields.get(0).getName());
+        assertEquals("cnt", fields.get(1).getName());
     }
 
     @Test

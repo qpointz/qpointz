@@ -28,7 +28,7 @@ public class JdbcExecutionProvider implements ExecutionProvider {
             val con = ctx.getConnection();
             val stmt = con.createStatement();
             val rs = stmt.executeQuery(statement);
-            return new ResultSetVectorBlockIterator(rs, config.getBatchSize());
+            return new ResultSetVectorBlockIterator(rs, config.getFetchSize());
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

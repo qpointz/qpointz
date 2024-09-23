@@ -15,20 +15,19 @@ public class MillClientConfiguration {
 
     public static final String HOST_PROP = "host";
     public static final String PORT_PROP = "port";
-
     public static final String USERNAME_PROP = "user";
     public static final String PASSWORD_PROP = "password";
-
     public static final String BEARER_TOKEN_PROP = "bearerToken";
-
     public static final String TLS_KEY_CERT_CHAIN_PROP = "tlsKeyCertChain";
     public static final String TLS_KEY_PRIVATE_KEY_PROP = "tlsKeyPrivateKey";
     public static final String TLS_KEY_PRIVATE_KEY_PASSWORD_PROP = "tlsKeyPrivateKeyPassword";
     public static final String TLS_TRUST_ROOT_CERT_PROP = "tlsTrustRootCert";
+    public static final String FETCH_SIZE_PROP = "fetchSize";
 
     public static final String CLIENT_CHANNEL_PROP = "clientChannel";
     public static final String CLIENT_CHANNEL_GRPC_VALUE = "grpc";
     public static final String CLIENT_CHANNEL_INPROC_VALUE = "in-proc";
+    public static final int DEFAULT_FETCH_SIZE = 1000;
 
     @Getter
     @Builder.Default
@@ -69,6 +68,10 @@ public class MillClientConfiguration {
     @Getter
     @Builder.Default
     private String clientChannel = CLIENT_CHANNEL_GRPC_VALUE;
+
+    @Getter
+    @Builder.Default
+    private int fetchSize = DEFAULT_FETCH_SIZE;
 
 
     public static MillClientConfigurationBuilder builder() {

@@ -27,7 +27,7 @@ class AuthType(enum.Enum):
     BEARER = 2
     pass
 
-
+#fakeit
 class MillQuery(object):
 
     @abstractmethod
@@ -73,7 +73,7 @@ class MillClient(object):
     def __init__(self, stub: MillServiceStub, event_loop: AbstractEventLoop | None = None):
         self.__svc = stub
         self.__event_loop = event_loop or asyncio.get_event_loop()
-        self.__batch_size = 10000
+        self.__fetch_size = 10000
         pass
 
     def __enter__(self):
@@ -121,9 +121,9 @@ class MillClient(object):
         sql = kwarg.get('sql', None)
         if sql is None:
             raise MillError('Missing sql parameter')
-        batch_size = int(kwarg.get('batch_size', self.__batch_size))
+        fetch_size = int(kwarg.get('fetch_size', self.__fetch_size))
         return ExecSqlRequest(statement=SqlStatement(sql=str(sql), parameters=[]),
-                              config=QueryExecutionConfig(batch_size=batch_size))
+                              config=QueryExecutionConfig(fetch_size=fetch_size))
 
     async def exec_sql(self, request: ExecSqlRequest = None, **kwarg: object) -> AsyncIterator[ExecQueryResponse]:
         req = self.__to_sql_request(request, **kwarg)
