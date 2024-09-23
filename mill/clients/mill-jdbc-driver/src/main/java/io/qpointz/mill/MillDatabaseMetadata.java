@@ -1,6 +1,9 @@
 package io.qpointz.mill;
 
 import io.qpointz.mill.metadata.database.*;
+import io.qpointz.mill.proto.HandshakeRequest;
+import io.qpointz.mill.proto.HandshakeResponse;
+import lombok.val;
 
 import java.sql.*;
 
@@ -49,6 +52,12 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
         this.connection = millConnection;
     }
 
+    private HandshakeResponse handshake() {
+        return connection.getClient()
+                .newBlockingStub()
+                .handshake(HandshakeRequest.getDefaultInstance());
+    }
+
     /**
      * Indicates whether all procedures can be called by the current user.
      * 
@@ -87,7 +96,12 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     @Override
     public String getUserName() throws SQLException {
-        return "";
+        val handshakeUser =  handshake()
+                .getAuthentication()
+                .getName();
+        return  handshakeUser.isBlank() || handshakeUser.isEmpty() || handshakeUser.equals("ANONYMOUS")
+                ? ""
+                : handshakeUser;
     }
 
     @Override
