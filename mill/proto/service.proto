@@ -57,7 +57,7 @@ message GetSchemaResponse {
 }
 
 message ParseSqlRequest {
-  SQLStatement statement = 1;
+  SQLStatement statement = 2;
 }
 
 message ParseSqlResponse {
@@ -65,7 +65,13 @@ message ParseSqlResponse {
 }
 
 message QueryExecutionConfig {
-  int32 batchSize = 1;
+  message Attributes {
+    repeated string names = 1;
+    repeated int32 indexes = 2;
+  }
+
+  int32 fetchSize = 1;
+  optional Attributes attributes = 2;
 }
 
 message ExecPlanRequest {

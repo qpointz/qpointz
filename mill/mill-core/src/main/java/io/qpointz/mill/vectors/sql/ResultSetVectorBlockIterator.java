@@ -2,7 +2,6 @@ package io.qpointz.mill.vectors.sql;
 
 import io.qpointz.mill.proto.*;
 import io.qpointz.mill.types.sql.JdbcDatabaseTypeMapper;
-import io.qpointz.mill.types.sql.JdbcToSubstraitTypeMapper;
 import io.qpointz.mill.types.sql.JdbcTypeInfo;
 import io.qpointz.mill.vectors.MappingVectorProducer;
 import io.qpointz.mill.vectors.VectorBlockIterator;
@@ -20,15 +19,15 @@ public class ResultSetVectorBlockIterator implements VectorBlockIterator {
     private final ResultSet resultSet;
 
     @Getter
-    private final int batchSize;
+    private final int fetchSize;
     private final ResultSetColumnReader[] columnReaders;
     private final MappingVectorProducer<ResultSetColumnReader, ?>[] vectorProducers;
     private final int columnCount;
     private final AtomicInteger blockIdx;
 
-    public ResultSetVectorBlockIterator(ResultSet resultSet, int batchSize) {
+    public ResultSetVectorBlockIterator(ResultSet resultSet, int fetchSize) {
         this.resultSet = resultSet;
-        this.batchSize = batchSize;
+        this.fetchSize = fetchSize;
         this.blockIdx = new AtomicInteger(-1);
         try {
             this.columnCount = this.resultSet.getMetaData().getColumnCount();
@@ -98,7 +97,7 @@ public class ResultSetVectorBlockIterator implements VectorBlockIterator {
                     vectorProducers[column].append(columnReaders[column]);
                 }
                 rowIndex++;
-                if (rowIndex >= this.batchSize) {
+                if (rowIndex >= this.fetchSize) {
                     break;
                 }
             }

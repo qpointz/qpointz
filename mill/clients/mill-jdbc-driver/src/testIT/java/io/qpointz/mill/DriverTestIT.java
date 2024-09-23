@@ -4,14 +4,13 @@ import lombok.extern.java.Log;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 
-import java.net.URI;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @Log
-class DriverTest extends BaseTest {
+class DriverTestIT extends BaseTest {
 
     @Test
     public void getMillDriver() throws SQLException, ClassNotFoundException {

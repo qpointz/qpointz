@@ -24,13 +24,6 @@ sourceSets {
     }
 }
 
-tasks.register<Sync>("copyResources") {
-    from(configurations.runtimeClasspath)
-    into(layout.buildDirectory.dir("extraResources1"))
-}
-
-
-
 dependencies {
     api(libs.substrait.core)
     implementation(libs.bundles.logging)

@@ -1,12 +1,11 @@
 plugins {
     `java-library`
+    java
     `java-library-distribution`
     id("com.github.johnrengelman.shadow") version("8.1.1")
 }
 
 fun shadow() {
-    //archiveBaseName("lala")
-    //baseN
 }
 
 distributions {
@@ -21,6 +20,26 @@ dependencies {
     annotationProcessor(libs.lombok)
     testImplementation(libs.boot.starter.test)
 }
+
+tasks.withType<ProcessResources>() {
+    from(rootProject.layout.projectDirectory.dir("../").file("VERSION"))
+}
+
+
+//tasks.getByName("processResources").doFirst {
+//    val distName = distributions.getByName("main").distributionBaseName.get()
+//    val outdir = project.layout.buildDirectory.dir("install/${distName}").get()
+//
+    //val versionFile =
+    //copy {
+    //    from(versionFile)
+    //    into(layout.buildDirectory.dir("resources/main"))
+    //}
+//    copy {
+//        from(rootProject.layout.projectDirectory.dir("../etc/data/datasets/airlines/csv"))
+//        into(outdir.dir("examples/data/airlines"))
+//    }
+//}
 
 testing {
     suites {

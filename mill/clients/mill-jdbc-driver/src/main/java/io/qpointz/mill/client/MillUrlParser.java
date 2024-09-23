@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import static io.qpointz.mill.client.MillClientConfiguration.*;
+import static io.qpointz.mill.client.MillClientConfiguration.PORT_PROP;
 import static io.qpointz.mill.client.MillUrlParser.KnownPropertyType.*;
 
 public class MillUrlParser {
@@ -32,8 +34,16 @@ public class MillUrlParser {
     }
 
     public static Set<KnownProperty> KNOWN_PROPERTIES = Set.of(
-            KnownProperty.of(MillClientConfiguration.HOST_PROP, STRING, true, "Mill backend host name"),
-            KnownProperty.of(MillClientConfiguration.PORT_PROP, INT, true, "Mill backend port")
+            KnownProperty.of(HOST_PROP, STRING, true, "Mill backend host name"),
+            KnownProperty.of(PORT_PROP, INT, true, "Mill backend port"),
+            KnownProperty.of(USERNAME_PROP, STRING, false, "Username to use for BASIC authentication"),
+            KnownProperty.of(PASSWORD_PROP, STRING, false, "Password to use for BASIC authentication"),
+            KnownProperty.of(BEARER_TOKEN_PROP, STRING, false, "Bearer token authentication token"),
+            KnownProperty.of(TLS_KEY_CERT_CHAIN_PROP, STRING, false, "TLS path to certificate chain"),
+            KnownProperty.of(TLS_KEY_PRIVATE_KEY_PROP, STRING, false, "TLS path to private key"),
+            KnownProperty.of(TLS_KEY_PRIVATE_KEY_PASSWORD_PROP, STRING, false, "TLS private key password"),
+            KnownProperty.of(TLS_TRUST_ROOT_CERT_PROP, STRING, false, "TLS custom root CA certificate path"),
+            KnownProperty.of(FETCH_SIZE_PROP, INT, true, String.format("Record batch fetch size. Default %s", DEFAULT_FETCH_SIZE))
     );
 
     public MillUrlParser(String url, Properties... props) {
@@ -105,10 +115,10 @@ public class MillUrlParser {
         }
 
         if (parsedUrl.getHost() != null) {
-            effectiveProps.put(MillClientConfiguration.HOST_PROP, parsedUrl.getHost());
+            effectiveProps.put(HOST_PROP, parsedUrl.getHost());
         }
 
-        effectiveProps.put(MillClientConfiguration.PORT_PROP, Integer.valueOf(parsedUrl.getPort()).toString());
+        effectiveProps.put(PORT_PROP, Integer.valueOf(parsedUrl.getPort()).toString());
         return effectiveProps;
     }
 

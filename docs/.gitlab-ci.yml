@@ -27,13 +27,13 @@ pages:build-sphinx-ci-image:
       --build-arg "BASE_IMAGE=${CI_IMAGE_PYTHON}"
       --destination "${CI_IMAGE_SPHINX}"
       --cache=true
-  rules:
-    - changes:
-        - etc/docker/sphinx-ci/*
-    - if: $CI_COMMIT_REF_PROTECTED == "true"
-      when: always
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-      when: always
+#  rules:
+#    - changes:
+#        - etc/docker/sphinx-ci/*
+#    - if: $CI_COMMIT_REF_PROTECTED == "true"
+#      when: always
+#    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+#      when: always
   
 pages:
   stage: build
@@ -42,6 +42,8 @@ pages:
   needs:
     - job: pages:init-version
       artifacts: true    
+    - job: pages:build-sphinx-ci-image      
+      artifacts: false
   before_script:
     - pip install semver
     - pip3 install semver
