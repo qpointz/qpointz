@@ -69,6 +69,7 @@ mill:init-az-login:
     MILL_HOST_SECURE: backend-secure.local
     MILL_CA_FILE: ${CI_PROJECT_DIR}/etc/certs/ca.pem    
     MILL_PORT_SECURE: "9099"
+    CI_DEBUG_SERVICES: "true"
   before_script:    
     - !reference [.global-vars, before_script]
     - cd ${CI_PROJECT_DIR}/mill/clients/mill-py

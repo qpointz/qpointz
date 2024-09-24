@@ -11,11 +11,13 @@
 rootProject.name = "mill"
 
 include (":mill-core")
-include (":mill-backend-core")
+include (":mill-service-core")
+include (":mill-backend-service-core")
 include (":mill-calcite-backend")
 include (":mill-jdbc-backend")
 include (":clients:mill-jdbc-driver")
 include (":clients:mill-sql-line")
+
 
 dependencyResolutionManagement {
 

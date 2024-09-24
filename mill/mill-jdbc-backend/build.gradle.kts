@@ -5,11 +5,11 @@ plugins {
 }
 
 springBoot {
-    mainClass = "io.qpointz.mill.service.JdbcMillService"
+    mainClass = "io.qpointz.mill.services.JdbcMillService"
 }
 
 application {
-    mainClass = "io.qpointz.mill.service.JdbcMillService"
+    mainClass = "io.qpointz.mill.services.JdbcMillService"
     applicationName = "jdbc-backend-service"
 }
 
@@ -28,7 +28,7 @@ application {
 //}
 
 dependencies {
-    implementation(project(":mill-backend-core"))
+    implementation(project(":mill-backend-service-core"))
     implementation(project(":mill-calcite-backend"))
     implementation(libs.calcite.core)
     runtimeOnly(libs.bundles.logging)

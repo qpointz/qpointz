@@ -55,7 +55,7 @@ testing {
                     implementation(project())
                     implementation(project(":mill-core"))
                     implementation(project(":mill-calcite-backend"))
-                    implementation(project(":mill-backend-core"))
+                    implementation(project(":mill-backend-service-core"))
                     implementation(libs.bootGRPC.client)
                     implementation(libs.bootGRPC.server)
                     implementation(libs.boot.starter.test)

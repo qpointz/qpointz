@@ -5,7 +5,7 @@ plugins {
 }
 
 springBoot {
-    mainClass = "io.qpointz.mill.service.CalciteMillService"
+    mainClass = "io.qpointz.mill.services.CalciteMillService"
 }
 
 application {
@@ -29,7 +29,7 @@ tasks.getByName("installDist").doLast {
 }
 
 dependencies {
-    implementation(project(":mill-backend-core"))
+    implementation(project(":mill-backend-service-core"))
     implementation(libs.calcite.core)
     implementation(libs.calcite.csv)
     implementation(libs.calcite.file)
