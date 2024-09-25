@@ -1,8 +1,17 @@
 package io.qpointz.mill;
 
 import io.qpointz.mill.metadata.database.*;
+import io.qpointz.mill.proto.HandshakeRequest;
+import io.qpointz.mill.proto.HandshakeResponse;
+import io.qpointz.mill.proto.MetaInfoKey;
+import io.qpointz.mill.proto.MetaInfoValue;
+import lombok.Getter;
+import lombok.val;
 
 import java.sql.*;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * MillDatabaseMetadata is an implementation of the {@link DatabaseMetaData} interface.
@@ -49,6 +58,31 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
         this.connection = millConnection;
     }
 
+    @Getter(lazy = true)
+    private final HandshakeResponse handshake = callHandshake();
+
+    protected Map<Integer, MetaInfoValue> getMeta() {
+        val hs = getHandshake();
+        return hs.getMetasMap();
+    }
+
+    protected <T> T getMetaOr(MetaInfoKey key, T or, Predicate<MetaInfoValue> typeCheck, Function<MetaInfoValue, T> getValue) {
+        val value = getMeta().getOrDefault(key.getNumber(), null);
+        if (value == null) {
+            return or;
+        }
+        if (!typeCheck.test(value)) {
+            throw new ClassCastException(String.format("'%s' cast failed", key));
+        }
+        return getValue.apply(value);
+    }
+
+    private HandshakeResponse callHandshake() {
+        return connection.getClient()
+                .newBlockingStub()
+                .handshake(HandshakeRequest.getDefaultInstance());
+    }
+
     /**
      * Indicates whether all procedures can be called by the current user.
      * 
@@ -87,7 +121,12 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     @Override
     public String getUserName() throws SQLException {
-        return "";
+        val handshakeUser =  getHandshake()
+                .getAuthentication()
+                .getName();
+        return  handshakeUser.isBlank() || handshakeUser.isEmpty() || handshakeUser.equals("ANONYMOUS")
+                ? ""
+                : handshakeUser;
     }
 
     @Override

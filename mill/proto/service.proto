@@ -38,8 +38,23 @@ message HandshakeResponse {
   ProtocolVersion version = 2;
   Capabilities capabilities = 3;
   AuthenticationContext authentication = 4;
+  map<int32, MetaInfoValue> metas = 1;
+
 }
 
+enum MetaInfoKey {
+  SEP = 0;
+  DEP = 1;
+}
+
+message MetaInfoValue {
+  oneof value {
+    bool booleanValue = 10;
+    string stringValue = 11;
+    int32 int32Value = 12;
+    int64 int64Value = 13;
+  }
+}
 
 message ListSchemasRequest {
 }
