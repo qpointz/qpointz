@@ -2,7 +2,7 @@ include:
   - local : /.gitlab/vars.yml
   - local : /.gitlab/jobs.yml
 
-image: ${CI_IMAGE_GRADLE}
+image: azul/zulu-openjdk:17-latest
 
 stages:
   - init  
@@ -107,7 +107,7 @@ mill-client:mill-py:test-3.12:
 
 mill:jdbc-driver:test:
   stage: test
-  image: ${CI_IMAGE_GRADLE}
+  image: azul/zulu-openjdk:17-latest
   services:
     - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
       pull_policy: always
@@ -177,7 +177,7 @@ mill:jdbc-driver:test:
 
 mill-clients:install-dist:
   stage: build
-  image: ${CI_IMAGE_GRADLE}
+  image: azul/zulu-openjdk:17-latest
   needs:
     - job: mill-clients:init-version
       artifacts: true    

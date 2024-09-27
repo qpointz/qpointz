@@ -1,5 +1,10 @@
 plugins {
     application
+    mill
+}
+
+mill {
+    publishToSonatype = false
 }
 
 application {

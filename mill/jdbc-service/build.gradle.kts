@@ -1,6 +1,8 @@
 plugins {
     id("org.springframework.boot") version libs.versions.boot
     id("io.spring.dependency-management") version "1.1.4"
+    mill
+    `mill-publish`
 }
 
 dependencies {

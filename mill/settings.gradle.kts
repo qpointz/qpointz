@@ -24,6 +24,7 @@ include (":clients:jdbc-driver")
 include (":clients:jdbc-shell")
 
 
+
 dependencyResolutionManagement {
 
     repositories {

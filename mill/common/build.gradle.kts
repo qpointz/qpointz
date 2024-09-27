@@ -2,12 +2,14 @@ plugins {
     `java-library`
     id("io.spring.dependency-management") version "1.1.4"
     id("com.google.protobuf") version "0.9.4"
+    mill
+    `mill-publish`
 }
 
-val projectName = "lala2"
-val projectDescription = "Lala2"
-
-//properties["pom.name"] = "lala2"
+mill {
+    publishToSonatype = true
+    description = "Library provides common mill's classes"
+}
 
 buildscript {
     dependencies {

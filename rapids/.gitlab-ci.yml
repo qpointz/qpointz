@@ -3,7 +3,7 @@ include:
   - local : /.gitlab/jobs.yml
 
 image:
-  name: ${CI_IMAGE_GRADLE}  
+  name: azul/zulu-openjdk:17-latest
 
 variables:
   PROTOC_SRC : rapids/rapids-grpc/src/main/proto
@@ -30,7 +30,7 @@ rapids:unit-tests:
   script:
     - find ${CI_PROJECT_DIR}/etc/data
     - cd ${CI_PROJECT_DIR}/rapids
-    - gradle clean test testCodeCoverageReport
+    - ./gradlew --no-daemon --console plain clean test testCodeCoverageReport
   artifacts:
     reports:
       junit: ./**/*/build/test-results/test/*.xml
@@ -60,7 +60,7 @@ rapids:jdbc-driver-uber-jar:
       artifacts: false
   script:
     - cd ${CI_PROJECT_DIR}/rapids
-    - gradle shadowJar
+    - ./gradlew --no-daemon --console plain shadowJar
   artifacts:
     paths:
       - ./rapids-jdbc-driver/build/libs/*-all.jar
@@ -72,7 +72,7 @@ rapids:bootstrap-app:
       artifacts: false
   script:
     - cd ${CI_PROJECT_DIR}/rapids
-    - gradle :rapids-srv-worker:bootstrapApp
+    - ./gradlew --no-daemon --console plain :rapids-srv-worker:bootstrapApp
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/rapids/rapids-srv-worker/build/rapids-app/*/*
@@ -84,7 +84,7 @@ rapids:grpc-service-install-dist:
       artifacts: false
   script:
     - cd ${CI_PROJECT_DIR}/rapids
-    - gradle installDist
+    - ./gradlew --no-daemon --console plain installDist
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/rapids/rapids-grpc-service/build/install/*/*
@@ -128,7 +128,7 @@ sonarqube-check:
       - .sonar/cache
   script:
     - cd ${CI_PROJECT_DIR}/rapids
-    - gradle clean test jacocoTestReport jacocoTestReport sonar
+    - ./gradlew --no-daemon --console plain clean test jacocoTestReport jacocoTestReport sonar
   only:
     - rc
     - dev

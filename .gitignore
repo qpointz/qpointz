@@ -2,3 +2,5 @@
 .kreya
 .quarkus
 .metals
+*.kbx
+*.sh

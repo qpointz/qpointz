@@ -1,11 +1,11 @@
+import org.gradle.internal.declarativedsl.schemaBuilder.isPublic
+
 plugins {
     `java-library`
     java
     `java-library-distribution`
-    id("com.github.johnrengelman.shadow") version("8.1.1")
-}
-
-fun shadow() {
+    mill
+    `mill-publish`
 }
 
 distributions {
