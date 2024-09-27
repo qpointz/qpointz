@@ -8,14 +8,14 @@ grpc:
   client:
     testservice:
       address: in-process:testservice
-qp:
-  mill:
-    backend:
-      security:
-        enabled: false
-      calcite:
-        connection:
-          quoting: BACK_TICK
-          caseSensitive: true
-          unquotedCasing: UNCHANGED
-          model: ./config/test/model.yaml
+      
+mill:
+  backend:
+    security:
+      enabled: false
+    calcite:
+      connection:
+        quoting: BACK_TICK
+        caseSensitive: true
+        unquotedCasing: UNCHANGED
+        model: ./config/test/model.yaml

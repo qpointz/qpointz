@@ -2,14 +2,14 @@ grpc:
   server:
     security:
       enabled: false
-qp:
-  mill:
-    backend:
-      calcite:
-        connection:
-          model: ./config/model.yaml
-      security:
-        enabled: false
+
+mill:
+  backend:
+    calcite:
+      connection:
+        model: ./config/model.yaml
+    security:
+      enabled: false
 
 logging:
   level:

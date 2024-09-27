@@ -4,11 +4,11 @@ spring:
       - 'backend'
   application:
     name: mill-calcite-backend
-qp:
-  mill:
-    backend:
-      calcite:
-        connection:
-          quoting: BACK_TICK
-          caseSensitive: true
-          unquotedCasing: UNCHANGED
+
+mill:
+  backend:
+    calcite:
+      connection:
+        quoting: BACK_TICK
+        caseSensitive: true
+        unquotedCasing: UNCHANGED

@@ -5,13 +5,13 @@ grpc:
   client:
     test:
       address: in-process:test
-qp:
-  mill:
-    backend:
-      security:
-        enabled: false
-        authentication:
-          providers:
-            - type: file
-              path: ./mill-backend-core/src/test/config/passwd.yml
-            - type: deny
+
+mill:
+  backend:
+    security:
+      enabled: false
+      authentication:
+        providers:
+          - type: file
+            path: ./mill-backend-core/src/test/config/passwd.yml
+          - type: deny

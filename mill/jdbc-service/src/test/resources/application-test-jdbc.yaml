@@ -5,18 +5,18 @@ grpc:
   client:
     testservice:
       address: in-process:testservice
-qp:
-  mill:
-    backend:
-      security:
-        enabled: false
-      calcite:
-        connection:
-          quoting: BACK_TICK
-          caseSensitive: true
-          unquotedCasing: UNCHANGED
-      jdbc:
-        connection:
-          url: "jdbc:h2:mem:test2;INIT=RUNSCRIPT FROM './config/test/testdata.sql'"
-          driver: "org.h2.Driver"
-        schema-name: "ts"
+
+mill:
+  backend:
+    security:
+      enabled: false
+    calcite:
+      connection:
+        quoting: BACK_TICK
+        caseSensitive: true
+        unquotedCasing: UNCHANGED
+    jdbc:
+      connection:
+        url: "jdbc:h2:mem:test2;INIT=RUNSCRIPT FROM './config/test/testdata.sql'"
+        driver: "org.h2.Driver"
+      schema-name: "ts"

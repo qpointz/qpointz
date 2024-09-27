@@ -31,10 +31,10 @@ import java.util.*;
 @Configuration
 @EnableConfigurationProperties
 @EnableWebSecurity
-@ConfigurationProperties(prefix="qp.mill.backend.security")
+@ConfigurationProperties(prefix="mill.backend.security")
 @AllArgsConstructor
 @NoArgsConstructor
-@ConditionalOnExpression("${qp.mill.backend.security.enabled}")
+@ConditionalOnExpression("${mill.backend.security.enabled}")
 public class MillStandartSecurityConfig {
 
     private List<Map<String,Object>> providers;

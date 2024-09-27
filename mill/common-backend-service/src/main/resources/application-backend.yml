@@ -11,9 +11,9 @@ grpc:
     port: 9099
     security:
       enabled: false
-qp:
-  mill:
-    backend:
-      security:
-        enabled: false
-        providers: []
+
+mill:
+  backend:
+    security:
+      enabled: false
+      providers: []

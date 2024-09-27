@@ -19,7 +19,7 @@ public class JdbcCalciteConfiguration {
     @Bean
     public CalciteContextFactory calciteContextFactory(CalciteServiceProperties properties,
                                                        JdbcConnectionConfiguration jdbcConfig,
-                                                       @Value("${qp.mill.backend.jdbc.schema-name}") String schemaName) {
+                                                       @Value("${mill.backend.jdbc.schema-name}") String schemaName) {
         val props = new Properties();
         props.putAll(properties.getConnection());
         return new JdbcCalciteContextFactory(props, jdbcConfig, schemaName);

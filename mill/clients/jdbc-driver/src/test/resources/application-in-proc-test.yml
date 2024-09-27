@@ -5,14 +5,14 @@ grpc:
   server:
     in-process-name: jdbc-test-service
     port: -1
-qp:
-  mill:
-    backend:
-      security:
-        enabled: false
-      calcite:
-        connection:
-          quoting: BACK_TICK
-          caseSensitive: true
-          unquotedCasing: UNCHANGED
-          model: ./etc/config/test/model.yaml
+
+mill:
+  backend:
+    security:
+      enabled: false
+    calcite:
+      connection:
+        quoting: BACK_TICK
+        caseSensitive: true
+        unquotedCasing: UNCHANGED
+        model: ./etc/config/test/model.yaml

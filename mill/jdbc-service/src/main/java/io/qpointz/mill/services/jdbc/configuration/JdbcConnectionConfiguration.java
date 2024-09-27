@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @Configuration
 @EnableConfigurationProperties
-@ConfigurationProperties(prefix="qp.mill.backend.jdbc.connection")
+@ConfigurationProperties(prefix="mill.backend.jdbc.connection")
 public class JdbcConnectionConfiguration {
 
     @Getter

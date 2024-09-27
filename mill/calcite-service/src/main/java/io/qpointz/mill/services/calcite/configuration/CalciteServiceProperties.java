@@ -10,7 +10,7 @@ import java.util.Map;
 
 @Configuration
 @EnableConfigurationProperties
-@ConfigurationProperties(prefix="qp.mill.backend.calcite")
+@ConfigurationProperties(prefix="mill.backend.calcite")
 public class CalciteServiceProperties {
 
     @Getter
