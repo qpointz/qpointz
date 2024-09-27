@@ -20,14 +20,15 @@ sonar {
 }
 
 val javaProjects = listOf(
-    project (":mill-core"),
-    project (":mill-service-core"),
-    project (":mill-backend-service-core"),
-    project (":mill-calcite-backend"),
-    project (":mill-jdbc-backend"),
-    project (":clients:mill-jdbc-driver"),
-    project (":clients:mill-sql-line") ,
-
+    project (":common"),
+    project (":common-service"),
+    project (":common-backend-service"),
+    project (":calcite-service"),
+    project (":calcite-backend-service"),
+    project (":jdbc-service"),
+    project (":jdbc-backend-service"),
+    project (":clients:jdbc-driver"),
+    project (":clients:jdbc-shell")
 )
 
 dependencies {

@@ -10,13 +10,18 @@
 
 rootProject.name = "mill"
 
-include (":mill-core")
-include (":mill-service-core")
-include (":mill-backend-service-core")
-include (":mill-calcite-backend")
-include (":mill-jdbc-backend")
-include (":clients:mill-jdbc-driver")
-include (":clients:mill-sql-line")
+include (":common")
+include (":common-service")
+include (":common-backend-service")
+
+include (":calcite-service")
+include (":calcite-backend-service")
+
+include (":jdbc-service")
+include (":jdbc-backend-service")
+
+include (":clients:jdbc-driver")
+include (":clients:jdbc-shell")
 
 
 dependencyResolutionManagement {

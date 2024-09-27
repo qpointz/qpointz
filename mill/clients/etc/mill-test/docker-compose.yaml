@@ -1,6 +1,6 @@
 services:
   mill-backend:
-    image: registry.qpointz.io/qpointz/qpointz/test-integration-backend-mill:feat-jdbc-driver 
+    image: registry.qpointz.io/qpointz/qpointz/clients-test-backend-server:feat-jdbc-driver 
     pull_policy: always
     ports:
       - "9099:9099"
@@ -8,7 +8,7 @@ services:
       - ./config/ssl/_.local/cert-full.pem:/app/config/ssl/server.crt
       - ./config/ssl/_.local/key.pem:/app/config/ssl/server.key
   mill-backend-auth-tls:
-    image: registry.qpointz.io/qpointz/qpointz/test-integration-backend-mill:feat-jdbc-driver 
+    image: registry.qpointz.io/qpointz/qpointz/clients-test-backend-server:feat-jdbc-driver 
     pull_policy: always
     ports:
       - "9098:9099"
@@ -18,7 +18,7 @@ services:
       - ./config/ssl/_.local/cert-full.pem:/app/config/ssl/server.crt
       - ./config/ssl/_.local/key.pem:/app/config/ssl/server.key
   mill-backend-auth:
-    image: registry.qpointz.io/qpointz/qpointz/test-integration-backend-mill:feat-jdbc-driver 
+    image: registry.qpointz.io/qpointz/qpointz/clients-test-backend-server:feat-jdbc-driver 
     pull_policy: always
     ports:
       - "9097:9099"
@@ -28,7 +28,7 @@ services:
       - ./config/ssl/_.local/cert-full.pem:/app/config/ssl/server.crt
       - ./config/ssl/_.local/key.pem:/app/config/ssl/server.key
   mill-backend-tls:
-    image: registry.qpointz.io/qpointz/qpointz/test-integration-backend-mill:feat-jdbc-driver 
+    image: registry.qpointz.io/qpointz/qpointz/clients-test-backend-server:feat-jdbc-driver 
     pull_policy: always
     ports:
       - "9096:9099"
