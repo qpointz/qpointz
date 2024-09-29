@@ -64,7 +64,7 @@ mill:install-dist:
       artifacts: true
   script:
     - cd ${CI_PROJECT_DIR}/mill
-    - ./gradlew --no-daemon --console plain clean installDist
+    - ./gradlew --no-daemon --console plain clean installBootDist
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/mill/**/build/install/**/*
@@ -167,6 +167,6 @@ mill:maven-publish:
       artifacts: true
     - job: mill:init-version
       artifacts: true
-#  rules:
-#    - if: $CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_REF_SLUG != "dev"
-#      when: always
+  rules:
+    - if: $CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_REF_SLUG != "dev"
+      when: always

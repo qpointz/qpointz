@@ -19,18 +19,21 @@ application {
     applicationName = "calcite-backend-service"
 }
 
-tasks.getByName("installDist").doLast {
-    val distName = distributions.getByName("main").distributionBaseName.get()
-    val outdir = project.layout.buildDirectory.dir("install/${distName}").get()
+copyDistro("installDist", "main" )
+copyDistro("installBootDist", "boot")
 
-    copy {
-        from(layout.projectDirectory.dir("config/default"))
-        into(outdir.dir("config"))
-    }
-
-    copy {
-        from(rootProject.layout.projectDirectory.dir("../etc/data/datasets/airlines/csv"))
-        into(outdir.dir("examples/data/airlines"))
+fun copyDistro(tk:String, distName: String) {
+    tasks.findByName(tk)!!.doLast {
+        val distName = distributions.getByName(distName).distributionBaseName.get()
+        val outdir = project.layout.buildDirectory.dir("install/${distName}").get()
+        copy {
+            from(layout.projectDirectory.dir("config/default"))
+            into(outdir.dir("config"))
+        }
+        copy {
+            from(rootProject.layout.projectDirectory.dir("../etc/data/datasets/airlines/csv"))
+            into(outdir.dir("examples/data/airlines"))
+        }
     }
 }
 
