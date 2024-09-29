@@ -2,7 +2,7 @@ include:
   - local : /.gitlab/vars.yml
   - local : /.gitlab/jobs.yml
 
-image: ${CI_IMAGE_GRADLE}
+image: azul/zulu-openjdk:17-latest
 
 stages:
   - init  
@@ -26,15 +26,15 @@ init:build-test-backend-service:
   stage: init
   extends: .docker-build-job
   before_script:
-    - cp ${CI_PROJECT_DIR}/etc/certs/_\.local/cert.pem ${CI_PROJECT_DIR}/mill/clients/etc/mill-test-service/server.crt
-    - cp ${CI_PROJECT_DIR}/etc/certs/_\.local/key.pem ${CI_PROJECT_DIR}/mill/clients/etc/mill-test-service/server.key
+    - cp ${CI_PROJECT_DIR}/etc/certs/_\.local/cert.pem ${CI_PROJECT_DIR}/mill/clients/etc/test-backend-server/server.crt
+    - cp ${CI_PROJECT_DIR}/etc/certs/_\.local/key.pem ${CI_PROJECT_DIR}/mill/clients/etc/test-backend-server/server.key
   script:
       - >
         /kaniko/executor
         --build-arg AZ_TID=$AZ_TEST_TENANT_ID
-        --build-arg BASE_IMAGE=${CI_REGISTRY_IMAGE}/mill-calcite-backend:${CI_COMMIT_REF_SLUG} 
-        --context "${CI_PROJECT_DIR}/mill/clients/etc/mill-test-service" 
-        --destination "${CI_REGISTRY_IMAGE}/test-integration-backend-mill:${CI_COMMIT_REF_SLUG}"                
+        --build-arg BASE_IMAGE=${CI_REGISTRY_IMAGE}/calcite-backend-service:${CI_COMMIT_REF_SLUG} 
+        --context "${CI_PROJECT_DIR}/mill/clients/etc/test-backend-server" 
+        --destination "${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}"                
         --cache=true      
   needs:
     - job: mill-clients:init-certs
@@ -56,7 +56,7 @@ mill:init-az-login:
 .mill-client:mill-py:test:
   stage: test
   services:
-    - name: ${CI_REGISTRY_IMAGE}/test-integration-backend-mill:${CI_COMMIT_REF_SLUG}
+    - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
       pull_policy: always
       variables:
         SPRING_PROFILES_ACTIVE: "auth,tls"
@@ -69,6 +69,7 @@ mill:init-az-login:
     MILL_HOST_SECURE: backend-secure.local
     MILL_CA_FILE: ${CI_PROJECT_DIR}/etc/certs/ca.pem    
     MILL_PORT_SECURE: "9099"
+    CI_DEBUG_SERVICES: "true"
   before_script:    
     - !reference [.global-vars, before_script]
     - cd ${CI_PROJECT_DIR}/mill/clients/mill-py
@@ -106,9 +107,9 @@ mill-client:mill-py:test-3.12:
 
 mill:jdbc-driver:test:
   stage: test
-  image: ${CI_IMAGE_GRADLE}
+  image: azul/zulu-openjdk:17-latest
   services:
-    - name: ${CI_REGISTRY_IMAGE}/test-integration-backend-mill:${CI_COMMIT_REF_SLUG}
+    - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
       pull_policy: always
       #variables:
         #SPRING_PROFILES_ACTIVE: "insecure"
@@ -117,7 +118,7 @@ mill:jdbc-driver:test:
         - "./bin/calcite-backend-service"
       command:
         - ""
-    - name: ${CI_REGISTRY_IMAGE}/test-integration-backend-mill:${CI_COMMIT_REF_SLUG}
+    - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
       pull_policy: always
       variables:
         SPRING_PROFILES_ACTIVE: "auth,tls"
@@ -126,7 +127,7 @@ mill:jdbc-driver:test:
         - "./bin/calcite-backend-service"
       command:
         - ""
-    - name: ${CI_REGISTRY_IMAGE}/test-integration-backend-mill:${CI_COMMIT_REF_SLUG}
+    - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
       pull_policy: always
       variables:
         SPRING_PROFILES_ACTIVE: "auth"
@@ -135,7 +136,7 @@ mill:jdbc-driver:test:
         - "./bin/calcite-backend-service"
       command:
         - ""
-    - name: ${CI_REGISTRY_IMAGE}/test-integration-backend-mill:${CI_COMMIT_REF_SLUG}
+    - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
       pull_policy: always
       variables:
         SPRING_PROFILES_ACTIVE: "tls"
@@ -172,11 +173,11 @@ mill:jdbc-driver:test:
   script:
     - cd ${CI_PROJECT_DIR}/mill/
     - export MILL_JWT_TOKEN="$(cat ${CI_PROJECT_DIR}/etc/.test_az_token)"
-    - ./gradlew --console plain clean :clients:mill-jdbc-driver:test :clients:mill-jdbc-driver:testIT
+    - ./gradlew --console plain clean :clients:jdbc-driver:test :clients:jdbc-driver:testIT
 
 mill-clients:install-dist:
   stage: build
-  image: ${CI_IMAGE_GRADLE}
+  image: azul/zulu-openjdk:17-latest
   needs:
     - job: mill-clients:init-version
       artifacts: true    
@@ -193,9 +194,9 @@ mill-clients:mill-sql-line:build-docker:
   stage: publish
   extends: .docker-build-job
   variables:
-    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/clients/mill-sql-line
-    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/clients/mill-sql-line/src/main/docker/Dockerfile
-    DOCKER_BUILD_CONTAINER_NAME : mill-sql-line
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/clients/jdbc-shell
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/clients/jdbc-shell/src/main/docker/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : jdbc-shell
   needs:
     - job: mill-clients:install-dist
       artifacts: true
