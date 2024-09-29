@@ -72,8 +72,8 @@ mill:install-dist:
 .calcite-backend-service-build-docker-image:
   extends: .docker-build-job
   variables:
-    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/calcite-backend-service
-    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/calcite-backend-service/src/main/docker/Dockerfile
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/mill-calcite-backend-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/mill-calcite-backend-service/src/main/docker/Dockerfile
     DOCKER_BUILD_CONTAINER_NAME : calcite-backend-service
   needs:
     - job: mill:install-dist
@@ -98,8 +98,8 @@ mill:jdbc-backend-service:build-docker:
   extends: .docker-build-job
   stage: publish
   variables:
-    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/jdbc-backend-service
-    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/jdbc-backend-service/src/main/docker/Dockerfile
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/mill-jdbc-backend-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/mill-jdbc-backend-service/src/main/docker/Dockerfile
     DOCKER_BUILD_CONTAINER_NAME : jdbc-backend-service
     DOCKER_BUILD_ARGS: "--build-arg MY=HJ"
   needs:

@@ -62,7 +62,7 @@ mill:init-az-login:
         SPRING_PROFILES_ACTIVE: "auth,tls"
       alias: backend-secure.local
       entrypoint:
-        - "./bin/calcite-backend-service"        
+        - "./bin/mill-calcite-backend-service"        
       command:
         - ""
   variables:
@@ -115,7 +115,7 @@ mill:jdbc-driver:test:
         #SPRING_PROFILES_ACTIVE: "insecure"
       alias: backend.local
       entrypoint:
-        - "./bin/calcite-backend-service"
+        - "./bin/mill-calcite-backend-service"
       command:
         - ""
     - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
@@ -124,7 +124,7 @@ mill:jdbc-driver:test:
         SPRING_PROFILES_ACTIVE: "auth,tls"
       alias: backend-auth-tls.local
       entrypoint:
-        - "./bin/calcite-backend-service"
+        - "./bin/mill-calcite-backend-service"
       command:
         - ""
     - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
@@ -133,7 +133,7 @@ mill:jdbc-driver:test:
         SPRING_PROFILES_ACTIVE: "auth"
       alias: backend-auth.local
       entrypoint:
-        - "./bin/calcite-backend-service"
+        - "./bin/mill-calcite-backend-service"
       command:
         - ""
     - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
@@ -142,7 +142,7 @@ mill:jdbc-driver:test:
         SPRING_PROFILES_ACTIVE: "tls"
       alias: backend-tls.local
       entrypoint:
-        - "./bin/calcite-backend-service"
+        - "./bin/mill-calcite-backend-service"
       command:
         - ""
   needs:
@@ -194,8 +194,8 @@ mill-clients:mill-sql-line:build-docker:
   stage: publish
   extends: .docker-build-job
   variables:
-    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/clients/jdbc-shell
-    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/clients/jdbc-shell/src/main/docker/Dockerfile
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/clients/mill-jdbc-shell
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/clients/mill-jdbc-shell/src/main/docker/Dockerfile
     DOCKER_BUILD_CONTAINER_NAME : jdbc-shell
   needs:
     - job: mill-clients:install-dist
