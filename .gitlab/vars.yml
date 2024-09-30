@@ -1,5 +1,5 @@
 include:
-  - local : /etc/docker/toolchain.yml
+  - local : /etc/toolchain/toolchain.yml
 
 variables:        
     CI_IMAGE_BASE: ${CI_REGISTRY_IMAGE}/base-ci:${CI_TOOLCHAIN_ROLL}-${CI_COMMIT_REF_SLUG}

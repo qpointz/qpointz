@@ -1,6 +1,6 @@
 plugins {
     `java-library`
-    id("org.springframework.boot") version libs.versions.boot
+    //id("org.springframework.boot") version libs.versions.boot
     id("io.spring.dependency-management") version "1.1.4"
     mill
     `mill-publish`
@@ -13,7 +13,7 @@ dependencies {
     runtimeOnly(libs.bundles.logging)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
-    developmentOnly(libs.boot.devtools)
+    //developmentOnly(libs.boot.devtools)
     annotationProcessor(libs.boot.configuration.processor)
     testImplementation(libs.boot.starter.test)
 }

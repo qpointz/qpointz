@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class DefaultServiceHandlerConfiguration {
+public class ServiceHandlerConfig {
 
     @Bean
     public static ServiceHandler serviceHandler(@Autowired MetadataProvider metadataProvider,

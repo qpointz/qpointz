@@ -1,6 +1,8 @@
 package io.qpointz.mill.services;
 
+import io.grpc.Status;
 import io.qpointz.mill.proto.*;
+import io.qpointz.mill.services.utils.SubstraitUtils;
 import io.qpointz.mill.vectors.VectorBlockIterator;
 import io.substrait.plan.Plan;
 import lombok.AllArgsConstructor;
@@ -45,9 +47,26 @@ public class ServiceHandler {
         return this.getMetadataProvider().isSchemaExists(schemaName);
     }
 
+
     public SqlProvider.ParseResult parseSql(String sql) {
-        return this.getSqlProvider().parseSql(sql);
+        if (!this.supportsSql()) {
+            throw Status.UNIMPLEMENTED
+                    .augmentDescription("SQL not supported")
+                    .asRuntimeException();
+        }
+
+        val parseResult = this.getSqlProvider().parseSql(sql);
+
+        if (!parseResult.isSuccess()) {
+            throw Status.INVALID_ARGUMENT
+                    .augmentDescription(parseResult.getMessage())
+                    .withCause(parseResult.getException())
+                    .asRuntimeException();
+        }
+
+        return parseResult;
     }
+
 
     private Plan rewritePlan(Plan originalPlan) {
         if (!this.hasPlanRewritesChain()) {
@@ -91,4 +110,27 @@ public class ServiceHandler {
                 .build();
     }
 
+    public GetSchemaResponse getSchemaProto(GetSchemaRequest r) {
+        val builder = GetSchemaResponse.newBuilder();
+        val requestedSchema = r.getSchemaName();
+        val schema = this.getSchema(requestedSchema);
+
+        if (!schemaExists(r.getSchemaName())) {
+            val message = String.format("Schema '%s' not found",
+                    requestedSchema == null ? "<root>" : requestedSchema);
+            throw Status.NOT_FOUND
+                    .augmentDescription(message)
+                    .asRuntimeException();
+        }
+        return builder
+                .setSchema(schema)
+                .build();
+    }
+
+    public ParseSqlResponse parseSqlProto(ParseSqlRequest request) {
+        val parseResult = parseSql(request.getStatement().getSql());
+        return ParseSqlResponse.newBuilder()
+                .setPlan(SubstraitUtils.planToProto(parseResult.getPlan()))
+                .build();
+    }
 }

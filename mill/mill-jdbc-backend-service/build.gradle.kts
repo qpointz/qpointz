@@ -15,13 +15,14 @@ springBoot {
 
 application {
     mainClass = "io.qpointz.mill.services.JdbcMillService"
-    applicationName = "jdbc-backend-service"
+    applicationName = "mill-jdbc-backend-service"
 }
 
 
 dependencies {
     implementation(project(":mill-common-backend-service"))
     implementation(project(":mill-calcite-service"))
+    implementation(project(":mill-jdbc-service"))
     implementation(libs.calcite.core)
     runtimeOnly(libs.bundles.logging)
     compileOnly(libs.lombok)

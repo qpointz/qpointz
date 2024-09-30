@@ -33,16 +33,6 @@ public class MillService extends MillServiceGrpc.MillServiceImplBase {
         return new SecurityContextSecurityProvider();
     }
 
-    @Bean
-    public static ServiceHandler serviceHandlerBean(@Autowired MetadataProvider metadataProvider,
-                                                    @Autowired ExecutionProvider executionProvider,
-                                                    @Autowired SqlProvider sqlProvider,
-                                                    @Autowired(required = false) PlanRewriteChain rewriteChain,
-                                                    @Autowired SecurityProvider securityProvider) {
-        return new ServiceHandler(metadataProvider, executionProvider, sqlProvider, securityProvider, rewriteChain);
-    }
-
-
     public MillService(@Autowired ServiceHandler serviceHandler) {
         this.serviceHandler = serviceHandler;
     }
@@ -76,53 +66,13 @@ public class MillService extends MillServiceGrpc.MillServiceImplBase {
     @Override
     public void getSchema(GetSchemaRequest request, StreamObserver<GetSchemaResponse> responseObserver) {
         traceRequest("getSchema", request::toString);
-        replyOne(request, responseObserver, r-> {
-            val builder = GetSchemaResponse.newBuilder();
-            val requestedSchema = r.getSchemaName();
-            val handler = this.getServiceHandler();
-            val schema = handler.getSchema(requestedSchema);
-
-            if (!handler.schemaExists(r.getSchemaName())) {
-                val message = String.format("Schema '%s' not found",
-                        requestedSchema == null ? "<root>" : requestedSchema);
-                throw Status.NOT_FOUND
-                        .augmentDescription(message)
-                        .asRuntimeException();
-            }
-            return builder
-                    .setSchema(schema)
-                    .build();
-        });
+        replyOne(request, responseObserver, this.serviceHandler::getSchemaProto);
     }
 
     @Override
     public void parseSql(ParseSqlRequest request, StreamObserver<ParseSqlResponse> responseObserver) {
         traceRequest("parseSql", request::toString);
-        replyOne(request, responseObserver, r -> {
-            val parseResult = parseSql(request.getStatement().getSql());
-            return ParseSqlResponse.newBuilder()
-                    .setPlan(convertPlanToProto(parseResult.getPlan()))
-                    .build();
-        });
-    }
-
-    private SqlProvider.ParseResult parseSql(String sql) {
-        if (!this.getServiceHandler().supportsSql()) {
-            throw Status.UNIMPLEMENTED
-                    .augmentDescription("SQL not supported")
-                    .asRuntimeException();
-        }
-
-        val parseResult = this.serviceHandler.parseSql(sql);
-
-        if (!parseResult.isSuccess()) {
-            throw Status.INVALID_ARGUMENT
-                    .augmentDescription(parseResult.getMessage())
-                    .withCause(parseResult.getException())
-                    .asRuntimeException();
-        }
-
-        return parseResult;
+        replyOne(request, responseObserver, this.serviceHandler::parseSqlProto);
     }
 
     @Override
@@ -148,7 +98,7 @@ public class MillService extends MillServiceGrpc.MillServiceImplBase {
     @Override
     public void execSql(ExecSqlRequest request, StreamObserver<ExecQueryResponse> responseObserver) {
         traceRequest("execSql", request::toString);
-        val parseResult = parseSql(request.getStatement().getSql());
+        val parseResult = this.serviceHandler.parseSql(request.getStatement().getSql());
         execPlan(ExecPlanRequest.newBuilder()
                     .setPlan(convertPlanToProto(parseResult.getPlan()))
                     .setConfig(request.getConfig())

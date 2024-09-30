@@ -1,5 +1,5 @@
 plugins {
-    id("org.springframework.boot") version libs.versions.boot
+    //id("org.springframework.boot") version libs.versions.boot
     id("io.spring.dependency-management") version "1.1.4"
     mill
     `mill-publish`
@@ -22,7 +22,7 @@ dependencies {
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
     implementation(libs.substrait.isthmus)
-    developmentOnly(libs.boot.devtools)
+    //developmentOnly(libs.boot.devtools)
     annotationProcessor(libs.boot.configuration.processor)
     testImplementation(libs.boot.starter.test)    
 }

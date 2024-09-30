@@ -1,20 +1,29 @@
+import com.microsoft.azure.plugin.functions.gradle.AzureFunctionsPlugin
+
 plugins {
     application
     mill
-    libs.plugins.spring.dependency.management
-    //libs.plugins.spring.boot
+    //id("org.springframework.boot") version "3.3.3"
+    id("io.spring.dependency-management") version "1.1.4"
     id("com.microsoft.azure.azurefunctions") version "1.11.0"
+   // id ("com.gradleup.shadow") version "8.3.2"
+    id("org.springframework.boot.experimental.thin-launcher") version "1.0.31.RELEASE"
 }
-apply(plugin = "com.microsoft.azure.azurefunctions")
 
-//springBoot {
-//    mainClass = "io.qpointz.mill.services.CalciteMillService"
-//}
+/*springBoot {
+    mainClass = "io.qpointz.mill.azure.functions.FunctionApplication"
+}*/
 //
 //application {
 //    mainClass = springBoot.mainClass
 //    applicationName = "calcite-backend-service"
 //}
+
+//shadow {
+    //archiveB
+//}
+
+
 
 mill {
     description = "Provides azure function to run jdbc backend"
@@ -23,14 +32,21 @@ mill {
 tasks.withType<Jar> {
     manifest {
         attributes["Main-Class"] = "io.qpointz.mill.azure.functions.FunctionApplication"
+        //attributes["Class-Path"] = "lib/"
     }
 }
 
 
 dependencies {
     implementation(project(":mill-common"))
-    implementation(project(":mill-common-service"))
+    implementation(libs.protobuf.java.util)
+    implementation(project(":mill-jdbc-service"))
     implementation(project(":mill-calcite-service"))
+    implementation(project(":mill-common-service"))
+    implementation(project(":mill-common-backend-service"))
+    implementation(libs.calcite.core)
+    ///////implementation(project(":mill-common-service"))
+    ///////implementation(project(":mill-calcite-service"))
     /*implementation(project(":calcite-backend-service"))
     implementation(project(":common-backend-service"))*/
     implementation(libs.boot.starter)
@@ -39,6 +55,18 @@ dependencies {
     //implementation(libs.spring.cloud.function.grpc)
     //implementation(libs.spring.cloud.starter.function.web)
 }
+
+val isntallDistTask = tasks.withType<Sync>().getByName("installDist")
+
+tasks.getByName("azureFunctionsPackage") {
+    doLast {
+       copy {
+           from(isntallDistTask.outputs.files)
+           into(project.layout.buildDirectory.dir("azure-functions/scff-azure-gradle-sample/lib"))
+       }
+    }
+}.dependsOn(isntallDistTask)
+
 
 
 azurefunctions {

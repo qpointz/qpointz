@@ -23,7 +23,7 @@ include (":mill-jdbc-backend-service")
 include (":clients:mill-jdbc-driver")
 include (":clients:mill-jdbc-shell")
 
-include (":azure:mill-azure-jdbc-backend-function")
+include (":azure:mill-azure-calcite-backend-function")
 
 
 dependencyResolutionManagement {
@@ -92,6 +92,7 @@ dependencyResolutionManagement {
             val protobuf = version("protobuf", "3.24.0")
             library("protobuf-java", "com.google.protobuf", "protobuf-java").versionRef(protobuf)
             library("protobuf-protoc", "com.google.protobuf", "protoc").versionRef(protobuf)
+            library("protobuf-java-util", "com.google.protobuf", "protobuf-java-util").versionRef(protobuf)
 
             val grpc = version("grpc", "1.63.0")
             library("grpc-protobuf","io.grpc","grpc-protobuf").versionRef(grpc)

@@ -28,7 +28,8 @@ message HandshakeRequest {
 message HandshakeResponse {
 
   message Capabilities {
-    bool supportSql = 3;
+    bool supportSql = 1;
+    bool supportResultPaging = 2;
   }
 
   message AuthenticationContext {
@@ -100,5 +101,10 @@ message ExecSqlRequest {
 }
 
 message ExecQueryResponse {
-  VectorBlock vector = 101;
+  optional string pagingId = 1;
+  VectorBlock vector = 2;
+}
+
+message GetNextPageRequest {
+  string pagingId = 1;
 }

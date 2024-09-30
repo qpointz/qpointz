@@ -1,18 +1,35 @@
+import io
 import unittest
 
 import requests
 
-from millclient import HandshakeRequest
+from millclient import HandshakeRequest, HandshakeResponse, ListSchemasRequest, GetSchemaRequest, ListSchemasResponse, \
+    GetSchemaResponse
 
 
 class CloudFuncClientTests(unittest.TestCase):
 
-    def test_trivial_handshake(self):
-        req = HandshakeRequest()
-        a = req.__bytes__()
-        res = requests.post(url='http://localhost:7072/api/handshake',
-                            data=a,
-                            headers={'Content-Type': 'application/octet-stream'})
+    def test_trivial_list_schemas(self):
+        req = ListSchemasRequest()
+        res = requests.post(url='http://localhost:7072/api/listSchemas',
+                            data = req.to_json()
+                            , headers={'Content-Type': 'application/json'}
+                            )
+        cnt = res.content.__bytes__()
+        resPB = ListSchemasResponse().parse(cnt)
+        print(resPB.to_json())
+
+    def test_trivial_getschema(self):
+        req = GetSchemaRequest()
+        req.schema_name = "ts"
+        res = requests.post(url='http://localhost:7072/api/getSchema',
+                            data = req.to_json(),
+                            headers={
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/protobuf'
+                            })
+        cnt = GetSchemaResponse().parse(res.content.__bytes__())
+        print(cnt)
 
 
 

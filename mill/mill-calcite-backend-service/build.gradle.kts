@@ -16,7 +16,7 @@ springBoot {
 
 application {
     mainClass = springBoot.mainClass
-    applicationName = "calcite-backend-service"
+    applicationName = "mill-calcite-backend-service"
 }
 
 copyDistro("installDist", "main" )

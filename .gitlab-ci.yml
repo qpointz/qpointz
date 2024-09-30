@@ -18,6 +18,7 @@ ci-init:
         - .gitlab-ci.yml
         - .gitlab/**/*
         - etc/docker/**/*
+        - etc/toolchain/**/*
     - if: $CI_COMMIT_REF_PROTECTED == "true"
       when: always
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
