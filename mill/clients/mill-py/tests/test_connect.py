@@ -3,15 +3,13 @@ import ssl
 import unittest
 
 from millclient import *
-from millclient._auth import *
-
 
 class MillConnectTests(unittest.TestCase):
 
     def mill_host_params(self):
-        host = os.environ.get("MILL_HOST_SECURE", "mill.local")
-        port = int(os.environ.get("MILL_PORT_SECURE", "9099"))
-        ca_file = os.environ.get("MILL_CA_FILE", '../../../etc/ssl/ca.pem')
+        host = os.environ.get("MILL_AUTH_TLS_HOST", "mill.local")
+        port = int(os.environ.get("MILL_AUTH_TLS_PORT", "9099"))
+        ca_file = os.environ.get("TLS_ROOT_CA", '../../../etc/ssl/ca.pem')
         ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=ca_file)
         ctx.set_alpn_protocols(['h2'])
         ctx.check_hostname = False #test purpose for wildcard certificates
@@ -21,7 +19,7 @@ class MillConnectTests(unittest.TestCase):
     def test_connect_secure(self):
         host, port, ssl_context = self.mill_host_params()
         all_creds = [
-            BasicAuthCredentials("reader", "reader"),      
+            BasicAuthCredentials("reader", "reader"),
         ]
         az_test_token=os.environ.get('AZ_TEST_TOKEN', None)
         if az_test_token:

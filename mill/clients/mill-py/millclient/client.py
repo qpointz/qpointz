@@ -14,7 +14,7 @@ import pyarrow as pa
 from urllib3 import request
 
 from millclient import utils
-from millclient._auth import MillCallCredentials
+from millclient.auth import MillCallCredentials
 from millclient.exceptions import MillServerError, MillError
 from millclient.proto.io.qpointz.mill import AsyncIterator, ExecQueryResponse, List, MillServiceStub, HandshakeRequest, \
     HandshakeResponse, ListSchemasRequest, ListSchemasResponse, GetSchemaRequest, GetSchemaResponse, ExecSqlRequest, \

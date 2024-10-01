@@ -3,11 +3,10 @@ import unittest
 
 import requests
 
-from millclient import HandshakeRequest, HandshakeResponse, ListSchemasRequest, GetSchemaRequest, ListSchemasResponse, \
-    GetSchemaResponse
+from millclient import *
 
 
-class CloudFuncClientTests(unittest.TestCase):
+class CloudFuncClientTests:
 
     def test_trivial_list_schemas(self):
         req = ListSchemasRequest()
@@ -30,9 +29,3 @@ class CloudFuncClientTests(unittest.TestCase):
                             })
         cnt = GetSchemaResponse().parse(res.content.__bytes__())
         print(cnt)
-
-
-
-
-if __name__ == '__main__':
-    unittest.main()
