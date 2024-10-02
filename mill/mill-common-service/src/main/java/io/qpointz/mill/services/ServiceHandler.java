@@ -7,6 +7,7 @@ import io.qpointz.mill.vectors.VectorBlockIterator;
 import io.substrait.plan.Plan;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.val;
 
 @AllArgsConstructor
@@ -32,7 +33,7 @@ public class ServiceHandler {
     }
 
     public boolean supportsSql() {
-        return this.sqlProvider != null;
+        return this.getSqlProvider() != null;
     }
 
     public Iterable<String> getSchemaNames() {
@@ -50,23 +51,22 @@ public class ServiceHandler {
 
     public SqlProvider.ParseResult parseSql(String sql) {
         if (!this.supportsSql()) {
-            throw Status.UNIMPLEMENTED
+            return SqlProvider.ParseResult.fail(Status.UNIMPLEMENTED
                     .augmentDescription("SQL not supported")
-                    .asRuntimeException();
+                    .asRuntimeException());
         }
 
         val parseResult = this.getSqlProvider().parseSql(sql);
-
-        if (!parseResult.isSuccess()) {
-            throw Status.INVALID_ARGUMENT
-                    .augmentDescription(parseResult.getMessage())
-                    .withCause(parseResult.getException())
-                    .asRuntimeException();
+        if (parseResult.isSuccess()) {
+            return parseResult;
         }
 
-        return parseResult;
-    }
+        val ex = Status.INVALID_ARGUMENT
+                .augmentDescription(parseResult.getMessage())
+                .asRuntimeException();
 
+        return SqlProvider.ParseResult.fail(ex);
+    }
 
     private Plan rewritePlan(Plan originalPlan) {
         if (!this.hasPlanRewritesChain()) {
@@ -127,10 +127,13 @@ public class ServiceHandler {
                 .build();
     }
 
+    @SneakyThrows
     public ParseSqlResponse parseSqlProto(ParseSqlRequest request) {
         val parseResult = parseSql(request.getStatement().getSql());
-        return ParseSqlResponse.newBuilder()
-                .setPlan(SubstraitUtils.planToProto(parseResult.getPlan()))
-                .build();
+        if (parseResult.isSuccess())
+            return ParseSqlResponse.newBuilder()
+                    .setPlan(SubstraitUtils.planToProto(parseResult.getPlan()))
+                    .build();
+        throw parseResult.getException();
     }
 }

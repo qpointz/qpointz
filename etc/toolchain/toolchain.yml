@@ -1,2 +1,2 @@
 variables:
-    CI_TOOLCHAIN_ROLL: toolchain-0090
+    CI_TOOLCHAIN_ROLL: toolchain-0095

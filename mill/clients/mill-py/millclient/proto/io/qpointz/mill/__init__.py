@@ -106,6 +106,36 @@ class Field(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
+class Parameter(betterproto.Message):
+    index: int = betterproto.uint32_field(1)
+    name: Optional[str] = betterproto.string_field(2, optional=True)
+    type: "DataType" = betterproto.message_field(3)
+    boolean_value: bool = betterproto.bool_field(10, group="value")
+    string_value: str = betterproto.string_field(11, group="value")
+    int32_value: int = betterproto.int32_field(12, group="value")
+    int64_value: int = betterproto.int64_field(13, group="value")
+    float_value: float = betterproto.float_field(14, group="value")
+    double_value: float = betterproto.double_field(15, group="value")
+
+
+@dataclass(eq=False, repr=False)
+class SqlStatement(betterproto.Message):
+    sql: str = betterproto.string_field(1)
+    parameters: List["Parameter"] = betterproto.message_field(2)
+
+
+@dataclass(eq=False, repr=False)
+class PlanStatement(betterproto.Message):
+    plan: "___substrait__.Plan" = betterproto.message_field(1)
+
+
+@dataclass(eq=False, repr=False)
+class TextPlanStatement(betterproto.Message):
+    plan: str = betterproto.string_field(1)
+    format: "TextPlanStatementTextPlanFormat" = betterproto.enum_field(2)
+
+
+@dataclass(eq=False, repr=False)
 class VectorBlockSchema(betterproto.Message):
     fields: List["Field"] = betterproto.message_field(3)
 
@@ -168,36 +198,6 @@ class VectorBoolVector(betterproto.Message):
 @dataclass(eq=False, repr=False)
 class VectorBytesVector(betterproto.Message):
     values: List[bytes] = betterproto.bytes_field(1)
-
-
-@dataclass(eq=False, repr=False)
-class Parameter(betterproto.Message):
-    index: int = betterproto.uint32_field(1)
-    name: Optional[str] = betterproto.string_field(2, optional=True)
-    type: "DataType" = betterproto.message_field(3)
-    boolean_value: bool = betterproto.bool_field(10, group="value")
-    string_value: str = betterproto.string_field(11, group="value")
-    int32_value: int = betterproto.int32_field(12, group="value")
-    int64_value: int = betterproto.int64_field(13, group="value")
-    float_value: float = betterproto.float_field(14, group="value")
-    double_value: float = betterproto.double_field(15, group="value")
-
-
-@dataclass(eq=False, repr=False)
-class SqlStatement(betterproto.Message):
-    sql: str = betterproto.string_field(1)
-    parameters: List["Parameter"] = betterproto.message_field(2)
-
-
-@dataclass(eq=False, repr=False)
-class PlanStatement(betterproto.Message):
-    plan: "___substrait__.Plan" = betterproto.message_field(1)
-
-
-@dataclass(eq=False, repr=False)
-class TextPlanStatement(betterproto.Message):
-    plan: str = betterproto.string_field(1)
-    format: "TextPlanStatementTextPlanFormat" = betterproto.enum_field(2)
 
 
 @dataclass(eq=False, repr=False)

@@ -14,7 +14,7 @@ public interface SqlProvider {
         private Plan plan;
 
         @Getter
-        private Throwable exception;
+        private RuntimeException exception;
 
         public boolean isSuccess() {
             return exception == null;
@@ -30,7 +30,11 @@ public interface SqlProvider {
             return new ParseResult( plan, null);
         }
 
-        public static ParseResult fail(Throwable th) {
+        public static ParseResult fail(Exception exception) {
+            return ParseResult.fail(new RuntimeException(exception));
+        }
+
+        public static ParseResult fail(RuntimeException th) {
             return new ParseResult( null, th);
         }
 

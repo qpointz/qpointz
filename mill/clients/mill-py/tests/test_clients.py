@@ -78,6 +78,7 @@ class ClientBaseTests:
                 query = self.__valid_sql + " WHERE 1=2"
                 q = c.sql_query(sql = query, fetch_size = 10)
                 df = q.to_pandas()
+                print(df)
                 assert len(df) == 0
                 assert len(df.columns)>0
 
@@ -103,7 +104,6 @@ class MillGrpcClientTests(ClientBaseTests.MillClientTest):
 
         print(f"Connect to {host}:{port}")
         return create_client(host=host, port=int(port), ssl=ctx, creds=BasicAuthCredentials("reader", "reader"))
-
 
 if __name__ == '__main__':
     loop = asyncio.new_event_loop()

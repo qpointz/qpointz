@@ -22,24 +22,6 @@ mill-clients:init-certs:
   stage: init
   extends: .init-dev-certs  
 
-init:build-test-backend-service:
-  stage: init
-  extends: .docker-build-job
-  before_script:
-    - cp ${CI_PROJECT_DIR}/etc/certs/_\.local/cert.pem ${CI_PROJECT_DIR}/mill/clients/etc/test-backend-server/server.crt
-    - cp ${CI_PROJECT_DIR}/etc/certs/_\.local/key.pem ${CI_PROJECT_DIR}/mill/clients/etc/test-backend-server/server.key
-  script:
-      - >
-        /kaniko/executor
-        --build-arg AZ_TID=$AZ_TEST_TENANT_ID
-        --build-arg BASE_IMAGE=${CI_REGISTRY_IMAGE}/calcite-backend-service:${CI_COMMIT_REF_SLUG} 
-        --context "${CI_PROJECT_DIR}/mill/clients/etc/test-backend-server" 
-        --destination "${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}"                
-        --cache=true      
-  needs:
-    - job: mill-clients:init-certs
-      artifacts: true
-
 mill:init-az-login:
   stage: init
   image: mcr.microsoft.com/azure-cli:cbl-mariner2.0  
@@ -98,8 +80,6 @@ mill:init-az-login:
       artifacts: true
     - job: mill:init-az-login
       artifacts: true
-    - job: init:build-test-backend-service
-      artifacts: false
     - job: mill-clients:init-version
       artifacts: true
   variables:
@@ -126,7 +106,6 @@ mill:init-az-login:
 .mill-client:mill-py:test:
   extends: .mill:client-test
   script:    
-    - !reference [.mill:client-test, before_script]
     - cd ${CI_PROJECT_DIR}/mill/clients/mill-py
     - pip install -r requirements.txt        
 #    - python codegen.py
@@ -168,6 +147,7 @@ mill-clients:install-dist:
     - cd ${CI_PROJECT_DIR}/mill/clients
     - ../gradlew --no-daemon --console plain clean installDist distTar distZip
   artifacts:
+    expire_in: "5 days"
     paths:
       - ${CI_PROJECT_DIR}/mill/clients/*/build/install/**/*
       - ${CI_PROJECT_DIR}/mill/clients/*/build/distributions/*.tar

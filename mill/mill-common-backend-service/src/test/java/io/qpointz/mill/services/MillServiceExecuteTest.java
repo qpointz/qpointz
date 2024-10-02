@@ -20,13 +20,13 @@ class MillServiceExecuteTest extends MillServiceBaseTest {
 
 
     @Test
-    void parseSqlSqlNotSupportedTest(@Autowired MillServiceGrpc.MillServiceBlockingStub stub, @Autowired MillService millService) {
-        val handlerSpy = spy(millService.getServiceHandler());
-        val serviceSpy = spy(millService);
-        when(serviceSpy.getServiceHandler()).thenReturn(handlerSpy);
-        when(handlerSpy.supportsSql()).thenReturn(false);
+    void parseSqlSqlNotSupportedTest(@Autowired MetadataProvider metadataProvider,
+                                     @Autowired ExecutionProvider executionProvider,
+                                     @Autowired SecurityProvider securityProvide) {
+        val serviceHander = new ServiceHandler(metadataProvider, executionProvider, null, securityProvide, null);
+        val service = new MillService(serviceHander);
         val ex = assertThrows(StatusRuntimeException.class,
-                ()-> serviceSpy.parseSql(ParseSqlRequest.getDefaultInstance(), null));
+                ()-> service.parseSql(ParseSqlRequest.getDefaultInstance(), null));
         assertEquals(Status.Code.UNIMPLEMENTED, ex.getStatus().getCode());
     }
 
@@ -66,14 +66,13 @@ class MillServiceExecuteTest extends MillServiceBaseTest {
     }
 
     @Test
-    void execSqlSqlNotSupportedTest(@Autowired MillService millService) {
-        val handlerSpy = spy(millService.getServiceHandler());
-        val serviceSpy = spy(millService);
-        when(serviceSpy.getServiceHandler()).thenReturn(handlerSpy);
-        when(handlerSpy.supportsSql()).thenReturn(false);
-
+    void execSqlSqlNotSupportedTest(@Autowired MetadataProvider metadataProvider,
+                                    @Autowired ExecutionProvider executionProvider,
+                                    @Autowired SecurityProvider securityProvide) {
+        val serviceHander = new ServiceHandler(metadataProvider, executionProvider, null, securityProvide, null);
+        val service = new MillService(serviceHander);
         val ex = assertThrows(StatusRuntimeException.class,
-                ()-> serviceSpy.execSql(ExecSqlRequest.getDefaultInstance(), null));
+                ()-> service.execSql(ExecSqlRequest.getDefaultInstance(), null));
         assertEquals(Status.Code.UNIMPLEMENTED, ex.getStatus().getCode());
     }
 

@@ -46,7 +46,7 @@ COPY --chown=1000:1000 ./build/install/mill-jdbc-shell/ /app/
 
 WORKDIR /app
 
-ENTRYPOINT ["./bin/mill-sql-line"]
+ENTRYPOINT ["./bin/mill-jdbc-shell"]
 
 CMD [""]
 

@@ -13,7 +13,6 @@ public class CalciteSqlProvider implements SqlProvider {
     @Getter
     private final CalciteContextFactory ctxFactory;
 
-    @SneakyThrows
     @Override
     public ParseResult parseSql(String sql) {
         try (val ctx = this.ctxFactory.createContext()) {
@@ -26,7 +25,7 @@ public class CalciteSqlProvider implements SqlProvider {
             val proto = SubstraitUtils.protoToPlan(plan);
             return ParseResult.success(proto);
         }
-        catch (SqlParseException e) {
+        catch (Exception e) {
             return ParseResult.fail(e);
         }
     }

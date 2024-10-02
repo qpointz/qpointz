@@ -98,11 +98,18 @@ public class MillService extends MillServiceGrpc.MillServiceImplBase {
     @Override
     public void execSql(ExecSqlRequest request, StreamObserver<ExecQueryResponse> responseObserver) {
         traceRequest("execSql", request::toString);
-        val parseResult = this.serviceHandler.parseSql(request.getStatement().getSql());
+        val parseResult = parseSqlAndValidate(request.getStatement().getSql());
         execPlan(ExecPlanRequest.newBuilder()
                     .setPlan(convertPlanToProto(parseResult.getPlan()))
                     .setConfig(request.getConfig())
                     .build(), responseObserver);
+    }
+
+    private SqlProvider.ParseResult parseSqlAndValidate(String sql) {
+        val parseResult = this.serviceHandler.parseSql(sql);
+        if (parseResult.isSuccess())
+            return parseResult;
+        throw parseResult.getException();
     }
 
     protected static void streamResult(VectorBlockIterator iterator, StreamObserver<ExecQueryResponse> responseObserver) {

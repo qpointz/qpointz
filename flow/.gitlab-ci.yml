@@ -46,6 +46,7 @@ flow:test:
     - job: flow:build-sbt-ci-image
       artifacts: false
   artifacts:
+    expire_in: "15 days"
     paths:
       - ${CI_PROJECT_DIR}/flow/target/scala-2.13/scoverage-report.tar.gz
     reports:

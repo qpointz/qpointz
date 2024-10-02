@@ -1,6 +1,7 @@
 package io.qpointz.mill.services.configuration;
 
 import io.qpointz.mill.services.MillService;
+import io.qpointz.mill.services.MillServiceExceptionAdvice;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -19,6 +20,7 @@ public class MillServiceConfiguration {
     protected static final Class<?>[] DEFAULTS = {
             MillService.class,
             GrpcAdviceAutoConfiguration.class,
+            MillServiceExceptionAdvice.class
     };
 
     public static MillServiceConfiguration newConfiguration() {

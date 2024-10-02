@@ -127,8 +127,12 @@ class MillClient(object):
 
     async def exec_sql(self, request: ExecSqlRequest = None, **kwarg: object) -> AsyncIterator[ExecQueryResponse]:
         req = self.__to_sql_request(request, **kwarg)
-        async for response in self.__svc.exec_sql(req):
-            yield response
+        try:
+            iter = self.__svc.exec_sql(req)
+            async for response in iter:
+                yield response
+        except GRPCError as e:
+            raise MillServerError(f"Error : {e.status}. Message: {e.message}", e)
 
     async def exec_sql_async(self, request, **kwarg) -> AsyncIterator[ExecQueryResponse]:
         return await stream.list(self.exec_sql(request=request, **kwarg))

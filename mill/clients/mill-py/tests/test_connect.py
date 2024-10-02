@@ -21,7 +21,7 @@ class MillConnectTests(unittest.TestCase):
         all_creds = [
             BasicAuthCredentials("reader", "reader"),
         ]
-        az_test_token=os.environ.get('AZ_TEST_TOKEN', None)
+        az_test_token=os.environ.get('MILL_JWT_TOKEN', None)
         if az_test_token:
             print("AZ token provided")
             all_creds.append(BearerTokenCredentials(az_test_token))
@@ -36,5 +36,7 @@ class MillConnectTests(unittest.TestCase):
                     self.assertNotEqual(r.authentication.name, "ANONYMOUS")
 
 if __name__ == '__main__':
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     unittest.main()
 

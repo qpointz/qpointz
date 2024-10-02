@@ -12,6 +12,10 @@ import net.devh.boot.grpc.server.advice.GrpcExceptionHandler;
 @GrpcAdvice
 public class MillServiceExceptionAdvice {
 
+    public MillServiceExceptionAdvice() {
+        log.trace("Mill Exception advice");
+    }
+
     @GrpcExceptionHandler(StatusRuntimeException.class)
     public StatusRuntimeException handleRuntimeStatus(StatusRuntimeException e) {
         return e;
