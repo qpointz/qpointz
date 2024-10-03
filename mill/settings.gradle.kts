@@ -135,7 +135,8 @@ dependencyResolutionManagement {
             library("jackson-dataformat-yaml", "com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml").versionRef(jackson)
             library("jackson-datatype-jsr310", "com.fasterxml.jackson.datatype","jackson-datatype-jsr310").versionRef(jackson)
 
-
+            val guava = version("guava", "33.3.1-jre")
+            library("guava", "com.google.guava", "guava").versionRef(guava)
 
         }
     }

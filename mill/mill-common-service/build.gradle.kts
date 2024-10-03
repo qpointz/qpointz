@@ -33,6 +33,7 @@ testing {
                     implementation(project())
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
+                    implementation(libs.h2.database)
                     implementation(libs.lombok)
                     annotationProcessor(libs.lombok)
                 }

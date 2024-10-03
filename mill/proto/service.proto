@@ -16,11 +16,16 @@ service MillService {
   rpc GetSchema(GetSchemaRequest) returns (GetSchemaResponse);
 
   rpc ExecPlan(ExecPlanRequest) returns(stream ExecQueryResponse);
+  rpc SubmitPlanQuery(ExecPlanRequest) returns (FetchQueryResultResponse);
 
   rpc ParseSql(ParseSqlRequest) returns(ParseSqlResponse);
   rpc ExecSql(ExecSqlRequest) returns(stream ExecQueryResponse);
-}
+  rpc SubmitSql(ExecSqlRequest) returns (FetchQueryResultResponse);
 
+  rpc FetchQueryResult(FetchQueryResultRequest) returns (FetchQueryResultResponse);
+
+
+}
 
 message HandshakeRequest {
 }
@@ -105,6 +110,12 @@ message ExecQueryResponse {
   VectorBlock vector = 2;
 }
 
-message GetNextPageRequest {
+message FetchQueryResultRequest {
   string pagingId = 1;
+  int32 fetchSize = 2;
+}
+
+message FetchQueryResultResponse {
+  optional string pagingId = 1;
+  optional VectorBlock vector = 2;
 }

@@ -1,5 +1,7 @@
 package io.qpointz.mill.services;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import io.grpc.Status;
 import io.qpointz.mill.proto.*;
 import io.qpointz.mill.services.utils.SubstraitUtils;
@@ -9,6 +11,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.val;
+
+import java.security.SecureRandom;
+import java.util.Base64;
+import java.util.concurrent.TimeUnit;
 
 @AllArgsConstructor
 public class ServiceHandler {
@@ -28,20 +34,24 @@ public class ServiceHandler {
     @Getter
     private final PlanRewriteChain planRewriteChain;
 
+    @Getter(lazy = true)
+    private final Cache<String, VectorBlockIterator> submitCache = createCache();
+    private Cache<String, VectorBlockIterator> createCache() {
+        return CacheBuilder.newBuilder()
+                .expireAfterAccess(10, TimeUnit.MINUTES)
+                .build();
+    }
+
     private boolean hasPlanRewritesChain() {
         return this.planRewriteChain != null && !this.planRewriteChain.getRewriters().isEmpty();
     }
 
-    public boolean supportsSql() {
+    private boolean supportsSql() {
         return this.getSqlProvider() != null;
     }
 
-    public Iterable<String> getSchemaNames() {
+    private Iterable<String> getSchemaNames() {
         return this.getMetadataProvider().getSchemaNames();
-    }
-
-    public Schema getSchema(String schemaName) {
-        return this.getMetadataProvider().getSchema(schemaName);
     }
 
     public boolean schemaExists(String schemaName) {
@@ -113,7 +123,7 @@ public class ServiceHandler {
     public GetSchemaResponse getSchemaProto(GetSchemaRequest r) {
         val builder = GetSchemaResponse.newBuilder();
         val requestedSchema = r.getSchemaName();
-        val schema = this.getSchema(requestedSchema);
+        val schema = this.getMetadataProvider().getSchema(requestedSchema);
 
         if (!schemaExists(r.getSchemaName())) {
             val message = String.format("Schema '%s' not found",
@@ -136,4 +146,68 @@ public class ServiceHandler {
                     .build();
         throw parseResult.getException();
     }
+
+    @SneakyThrows
+    protected io.substrait.plan.Plan convertProtoToPlan(io.substrait.proto.Plan plan) {
+        return SubstraitUtils.protoToPlan(plan);
+    }
+
+    public VectorBlockIterator executeToIterator(ExecPlanRequest request) {
+        val originalPlan = convertProtoToPlan(request.getPlan());
+        val config = request.getConfig();
+        return this.execute(originalPlan, config);
+    }
+
+    private String newKey() {
+        val random = new SecureRandom();
+        val bytes = new byte[32];
+        random.nextBytes(bytes);
+        return new String(Base64.getEncoder().encode(bytes));
+    }
+
+    public FetchQueryResultResponse submitSqlQuery(ExecSqlRequest request) {
+        val parseResult = this.parseSql(request.getStatement().getSql());
+        if (!parseResult.isSuccess()) {
+            throw parseResult.getException();
+        }
+        val planRequest = ExecPlanRequest.newBuilder()
+                .setConfig(request.getConfig())
+                .setPlan(SubstraitUtils.planToProto(parseResult.getPlan()))
+                .build();
+        return submitPlanQuery(planRequest);
+    }
+
+    public FetchQueryResultResponse submitPlanQuery(ExecPlanRequest request) {
+        val iterator = this.executeToIterator(request);
+        val key = newKey();
+        this.getSubmitCache().put(key, iterator);
+        return fetchResult(FetchQueryResultRequest.newBuilder().setPagingId(key).build());
+    }
+
+    public FetchQueryResultResponse fetchResult(FetchQueryResultRequest request) {
+        val key = request.getPagingId();
+        val cache = this.getSubmitCache();
+        VectorBlockIterator iter;
+        val builder = FetchQueryResultResponse.newBuilder();
+        synchronized (cache) {
+            iter = cache.getIfPresent(key);
+            if (iter == null) {
+                return builder.build();
+            }
+            cache.invalidate(key);
+        }
+
+        if (iter.hasNext()) {
+            val nextKey = newKey();
+            builder
+                    .setVector(iter.next())
+                    .setPagingId(nextKey);
+            cache.put(nextKey, iter);
+        }
+
+        return builder
+                .build();
+
+    }
+
 }

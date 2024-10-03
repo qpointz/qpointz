@@ -113,6 +113,10 @@ public class MillServiceConfiguration {
         return configs;
     }
 
+    public Class<?>[] configsToArray() {
+        return configs().toArray(new Class<?>[0]);
+    }
+
     public MillServiceConfiguration withAdditionalConfig(Class<?> config) {
         this.additionalConfigs.add(config);
         return this;
