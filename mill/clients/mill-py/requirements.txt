@@ -10,3 +10,4 @@ pandas >= 2.2.2
 certifi
 urllib3
 whenever
+requests

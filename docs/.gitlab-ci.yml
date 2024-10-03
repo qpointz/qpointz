@@ -23,8 +23,7 @@ pages:build-sphinx-ci-image:
   script:
     - >
       /kaniko/executor
-      --context "${CI_PROJECT_DIR}/etc/docker/sphinx-ci" 
-      --build-arg "BASE_IMAGE=${CI_IMAGE_PYTHON}"
+      --context "${CI_PROJECT_DIR}/etc/docker/sphinx-ci"       
       --destination "${CI_IMAGE_SPHINX}"
       --cache=true
 #  rules:
@@ -98,3 +97,4 @@ pages:
     paths:
       - ${CI_PROJECT_DIR}/public
       - ${CI_PROJECT_DIR}/docs.tar.gz
+    expire_in: "5 days"

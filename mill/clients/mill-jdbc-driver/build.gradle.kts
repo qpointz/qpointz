@@ -1,11 +1,11 @@
+import org.gradle.internal.declarativedsl.schemaBuilder.isPublic
+
 plugins {
     `java-library`
     java
     `java-library-distribution`
-    id("com.github.johnrengelman.shadow") version("8.1.1")
-}
-
-fun shadow() {
+    mill
+    `mill-publish`
 }
 
 distributions {
@@ -15,7 +15,7 @@ distributions {
 }
 
 dependencies {
-    implementation(project(":mill-core"))
+    implementation(project(":mill-common"))
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
     testImplementation(libs.boot.starter.test)
@@ -53,9 +53,9 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation(project(":mill-core"))
-                    implementation(project(":mill-calcite-backend"))
-                    implementation(project(":mill-backend-core"))
+                    implementation(project(":mill-common"))
+                    implementation(project(":mill-calcite-service"))
+                    implementation(project(":mill-common-backend-service"))
                     implementation(libs.bootGRPC.client)
                     implementation(libs.bootGRPC.server)
                     implementation(libs.boot.starter.test)

@@ -1,12 +1,14 @@
-ARG BASE_IMAGE=graalvm-ci:latest
+ARG BASE_IMAGE=azul/zulu-openjdk:17-latest
 FROM $BASE_IMAGE
 
-ENV PATH="/usr/lib/jvm/graalvm/bin:${PATH}"
+#ENV PATH="/usr/lib/jvm/graalvm/bin:${PATH}"
 COPY ivysettings-file.properties /root/.ivy2/ivysettings-file.properties
 COPY settings.xml /root/.m2/settings.xml
 
 # Install sbt
 RUN \
+  apt-get update && \  
+  apt-get install -yqq gnupg curl apt-transport-https && \
   echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/apt/sources.list.d/sbt.list && \
   echo "deb https://repo.scala-sbt.org/scalasbt/debian /" | tee /etc/apt/sources.list.d/sbt_old.list && \
   curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" | gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/scalasbt-release.gpg --import && \

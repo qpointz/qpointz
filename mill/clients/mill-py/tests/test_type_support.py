@@ -1,13 +1,8 @@
-import base64
 import os
 import unittest
-import uuid
 from dataclasses import dataclass
 
-from whenever import LocalDateTime
-
-from millclient import utils, MillError
-from millclient.proto.io.qpointz.mill import VectorBlock, LogicalDataTypeLogicalDataTypeId
+from millclient import *
 
 
 @dataclass(init=True)
@@ -118,4 +113,6 @@ class MillClientTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     unittest.main()
