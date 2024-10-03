@@ -1,0 +1,32 @@
+component common as cmn
+component "common-service" as cmnService
+component "common-backend-service" as cmnBackendService
+
+
+cmn <-- cmnService
+cmnService <-down- cmnBackendService
+
+component "jdbc-service" as jdbcService
+jdbcService -up-> cmnService
+
+component "jdbc-backend-service" as jdbcBackend
+jdbcBackend -u-> cmnBackendService
+jdbcBackend -u-> jdbcService
+
+
+component "calcite-service" as calciteService
+calciteService -up-> cmnService
+
+component "calcite-backend-service" as calciteBackend
+calciteBackend -up-> calciteService
+calciteBackend -up-> cmnBackendService
+
+
+component "odata-service" as odataSvc
+odataSvc -up-> cmnService
+
+component "bulk-service" as bulkSvc
+bulkSvc -up-> cmnService
+
+component "jdbc-driver" as jdbcDriver
+jdbcDriver -up-> cmn

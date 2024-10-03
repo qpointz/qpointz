@@ -67,6 +67,11 @@ class TextPlanStatementTextPlanFormat(betterproto.Enum):
     YAML = 1
 
 
+class MetaInfoKey(betterproto.Enum):
+    SEP = 0
+    DEP = 1
+
+
 @dataclass(eq=False, repr=False)
 class Schema(betterproto.Message):
     tables: List["Table"] = betterproto.message_field(1)
@@ -98,6 +103,36 @@ class Field(betterproto.Message):
     name: str = betterproto.string_field(1)
     field_idx: int = betterproto.uint32_field(2)
     type: "DataType" = betterproto.message_field(3)
+
+
+@dataclass(eq=False, repr=False)
+class Parameter(betterproto.Message):
+    index: int = betterproto.uint32_field(1)
+    name: Optional[str] = betterproto.string_field(2, optional=True)
+    type: "DataType" = betterproto.message_field(3)
+    boolean_value: bool = betterproto.bool_field(10, group="value")
+    string_value: str = betterproto.string_field(11, group="value")
+    int32_value: int = betterproto.int32_field(12, group="value")
+    int64_value: int = betterproto.int64_field(13, group="value")
+    float_value: float = betterproto.float_field(14, group="value")
+    double_value: float = betterproto.double_field(15, group="value")
+
+
+@dataclass(eq=False, repr=False)
+class SqlStatement(betterproto.Message):
+    sql: str = betterproto.string_field(1)
+    parameters: List["Parameter"] = betterproto.message_field(2)
+
+
+@dataclass(eq=False, repr=False)
+class PlanStatement(betterproto.Message):
+    plan: "___substrait__.Plan" = betterproto.message_field(1)
+
+
+@dataclass(eq=False, repr=False)
+class TextPlanStatement(betterproto.Message):
+    plan: str = betterproto.string_field(1)
+    format: "TextPlanStatementTextPlanFormat" = betterproto.enum_field(2)
 
 
 @dataclass(eq=False, repr=False)
@@ -166,36 +201,6 @@ class VectorBytesVector(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
-class Parameter(betterproto.Message):
-    index: int = betterproto.uint32_field(1)
-    name: Optional[str] = betterproto.string_field(2, optional=True)
-    type: "DataType" = betterproto.message_field(3)
-    boolean_value: bool = betterproto.bool_field(10, group="value")
-    string_value: str = betterproto.string_field(11, group="value")
-    int32_value: int = betterproto.int32_field(12, group="value")
-    int64_value: int = betterproto.int64_field(13, group="value")
-    float_value: float = betterproto.float_field(14, group="value")
-    double_value: float = betterproto.double_field(15, group="value")
-
-
-@dataclass(eq=False, repr=False)
-class SqlStatement(betterproto.Message):
-    sql: str = betterproto.string_field(1)
-    parameters: List["Parameter"] = betterproto.message_field(2)
-
-
-@dataclass(eq=False, repr=False)
-class PlanStatement(betterproto.Message):
-    plan: "___substrait__.Plan" = betterproto.message_field(1)
-
-
-@dataclass(eq=False, repr=False)
-class TextPlanStatement(betterproto.Message):
-    plan: str = betterproto.string_field(1)
-    format: "TextPlanStatementTextPlanFormat" = betterproto.enum_field(2)
-
-
-@dataclass(eq=False, repr=False)
 class HandshakeRequest(betterproto.Message):
     pass
 
@@ -207,16 +212,28 @@ class HandshakeResponse(betterproto.Message):
     authentication: "HandshakeResponseAuthenticationContext" = (
         betterproto.message_field(4)
     )
+    metas: Dict[int, "MetaInfoValue"] = betterproto.map_field(
+        1, betterproto.TYPE_INT32, betterproto.TYPE_MESSAGE
+    )
 
 
 @dataclass(eq=False, repr=False)
 class HandshakeResponseCapabilities(betterproto.Message):
-    support_sql: bool = betterproto.bool_field(3)
+    support_sql: bool = betterproto.bool_field(1)
+    support_result_paging: bool = betterproto.bool_field(2)
 
 
 @dataclass(eq=False, repr=False)
 class HandshakeResponseAuthenticationContext(betterproto.Message):
     name: str = betterproto.string_field(1)
+
+
+@dataclass(eq=False, repr=False)
+class MetaInfoValue(betterproto.Message):
+    boolean_value: bool = betterproto.bool_field(10, group="value")
+    string_value: str = betterproto.string_field(11, group="value")
+    int32_value: int = betterproto.int32_field(12, group="value")
+    int64_value: int = betterproto.int64_field(13, group="value")
 
 
 @dataclass(eq=False, repr=False)
@@ -241,7 +258,7 @@ class GetSchemaResponse(betterproto.Message):
 
 @dataclass(eq=False, repr=False)
 class ParseSqlRequest(betterproto.Message):
-    statement: "SqlStatement" = betterproto.message_field(1)
+    statement: "SqlStatement" = betterproto.message_field(2)
 
 
 @dataclass(eq=False, repr=False)
@@ -252,6 +269,15 @@ class ParseSqlResponse(betterproto.Message):
 @dataclass(eq=False, repr=False)
 class QueryExecutionConfig(betterproto.Message):
     fetch_size: int = betterproto.int32_field(1)
+    attributes: Optional["QueryExecutionConfigAttributes"] = betterproto.message_field(
+        2, optional=True
+    )
+
+
+@dataclass(eq=False, repr=False)
+class QueryExecutionConfigAttributes(betterproto.Message):
+    names: List[str] = betterproto.string_field(1)
+    indexes: List[int] = betterproto.int32_field(2)
 
 
 @dataclass(eq=False, repr=False)
@@ -268,7 +294,13 @@ class ExecSqlRequest(betterproto.Message):
 
 @dataclass(eq=False, repr=False)
 class ExecQueryResponse(betterproto.Message):
-    vector: "VectorBlock" = betterproto.message_field(101)
+    paging_id: Optional[str] = betterproto.string_field(1, optional=True)
+    vector: "VectorBlock" = betterproto.message_field(2)
+
+
+@dataclass(eq=False, repr=False)
+class GetNextPageRequest(betterproto.Message):
+    paging_id: str = betterproto.string_field(1)
 
 
 class MillServiceStub(betterproto.ServiceStub):

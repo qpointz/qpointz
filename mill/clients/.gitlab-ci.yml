@@ -22,24 +22,6 @@ mill-clients:init-certs:
   stage: init
   extends: .init-dev-certs  
 
-init:build-test-backend-service:
-  stage: init
-  extends: .docker-build-job
-  before_script:
-    - cp ${CI_PROJECT_DIR}/etc/certs/_\.local/cert.pem ${CI_PROJECT_DIR}/mill/clients/etc/test-backend-server/server.crt
-    - cp ${CI_PROJECT_DIR}/etc/certs/_\.local/key.pem ${CI_PROJECT_DIR}/mill/clients/etc/test-backend-server/server.key
-  script:
-      - >
-        /kaniko/executor
-        --build-arg AZ_TID=$AZ_TEST_TENANT_ID
-        --build-arg BASE_IMAGE=${CI_REGISTRY_IMAGE}/calcite-backend-service:${CI_COMMIT_REF_SLUG} 
-        --context "${CI_PROJECT_DIR}/mill/clients/etc/test-backend-server" 
-        --destination "${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}"                
-        --cache=true      
-  needs:
-    - job: mill-clients:init-certs
-      artifacts: true
-
 mill:init-az-login:
   stage: init
   image: mcr.microsoft.com/azure-cli:cbl-mariner2.0  
@@ -53,59 +35,7 @@ mill:init-az-login:
     paths:
       - ${CI_PROJECT_DIR}/etc/.test_az_token
 
-.mill-client:mill-py:test:
-  stage: test
-  services:
-    - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
-      pull_policy: always
-      variables:
-        SPRING_PROFILES_ACTIVE: "auth,tls"
-      alias: backend-secure.local
-      entrypoint:
-        - "./bin/calcite-backend-service"        
-      command:
-        - ""
-  variables:
-    MILL_HOST_SECURE: backend-secure.local
-    MILL_CA_FILE: ${CI_PROJECT_DIR}/etc/certs/ca.pem    
-    MILL_PORT_SECURE: "9099"
-    CI_DEBUG_SERVICES: "true"
-  before_script:    
-    - !reference [.global-vars, before_script]
-    - cd ${CI_PROJECT_DIR}/mill/clients/mill-py
-    - pip install -r requirements.txt    
-  script:    
-    - cd ${CI_PROJECT_DIR}/mill/clients/mill-py
-    - python codegen.py   
-    - cd ${CI_PROJECT_DIR}/mill/clients/mill-py
-    - export AZ_TEST_TOKEN="$(cat ${CI_PROJECT_DIR}/etc/.test_az_token)"
-    - python -m unittest discover -s ./tests
-  needs: 
-    - job: mill-clients:init-certs
-      artifacts: true    
-    - job: mill:init-az-login
-      artifacts: true
-    - job: init:build-test-backend-service
-      artifacts: false
-  artifacts:
-    paths:
-      - ${CI_PROJECT_DIR}/mill/clients/mill-py
-    when: always
-    expire_in: "1 days"
-
-mill-client:mill-py:test-3.10:
-  extends: .mill-client:mill-py:test
-  image: python:3.10-slim  
-
-mill-client:mill-py:test-3.11:
-  extends: .mill-client:mill-py:test
-  image: python:3.11-slim   
-
-mill-client:mill-py:test-3.12:
-  extends: .mill-client:mill-py:test
-  image: python:3.12-slim
-
-mill:jdbc-driver:test:
+.mill:client-test:
   stage: test
   image: azul/zulu-openjdk:17-latest
   services:
@@ -115,7 +45,7 @@ mill:jdbc-driver:test:
         #SPRING_PROFILES_ACTIVE: "insecure"
       alias: backend.local
       entrypoint:
-        - "./bin/calcite-backend-service"
+        - "./bin/mill-calcite-backend-service"
       command:
         - ""
     - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
@@ -124,7 +54,7 @@ mill:jdbc-driver:test:
         SPRING_PROFILES_ACTIVE: "auth,tls"
       alias: backend-auth-tls.local
       entrypoint:
-        - "./bin/calcite-backend-service"
+        - "./bin/mill-calcite-backend-service"
       command:
         - ""
     - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
@@ -133,7 +63,7 @@ mill:jdbc-driver:test:
         SPRING_PROFILES_ACTIVE: "auth"
       alias: backend-auth.local
       entrypoint:
-        - "./bin/calcite-backend-service"
+        - "./bin/mill-calcite-backend-service"
       command:
         - ""
     - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
@@ -142,7 +72,7 @@ mill:jdbc-driver:test:
         SPRING_PROFILES_ACTIVE: "tls"
       alias: backend-tls.local
       entrypoint:
-        - "./bin/calcite-backend-service"
+        - "./bin/mill-calcite-backend-service"
       command:
         - ""
   needs:
@@ -150,8 +80,6 @@ mill:jdbc-driver:test:
       artifacts: true
     - job: mill:init-az-login
       artifacts: true
-    - job: init:build-test-backend-service
-      artifacts: false
     - job: mill-clients:init-version
       artifacts: true
   variables:
@@ -168,13 +96,47 @@ mill:jdbc-driver:test:
     TLS_ROOT_CA: "${CI_PROJECT_DIR}/etc/certs/ca.pem"
     CI_DEBUG_SERVICES: "true"
   before_script:
+    - !reference [.global-vars, before_script]
     - mkdir -p ${CI_PROJECT_DIR}/.certs/client
     - openssl req -x509 -out ${TLS_CERT_CHAIN} -keyout ${TLS_CERT_PK} -newkey rsa:2048 -nodes -sha256 -subj '/CN=TESTUSER'
-  script:
-    - cd ${CI_PROJECT_DIR}/mill/
     - export MILL_JWT_TOKEN="$(cat ${CI_PROJECT_DIR}/etc/.test_az_token)"
-    - ./gradlew --console plain clean :clients:jdbc-driver:test :clients:jdbc-driver:testIT
+    - find  ${CI_PROJECT_DIR}/etc/certs/
 
+
+.mill-client:mill-py:test:
+  extends: .mill:client-test
+  script:    
+    - cd ${CI_PROJECT_DIR}/mill/clients/mill-py
+    - pip install -r requirements.txt        
+#    - python codegen.py
+    - python -m unittest tests/*
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/mill/clients/mill-py
+    when: always
+    expire_in: "1 days"    
+
+
+mill-client:mill-py:test-3.10:
+  extends: .mill-client:mill-py:test
+  image: python:3.10-slim  
+
+mill-client:mill-py:test-3.11:
+  extends: .mill-client:mill-py:test
+  image: python:3.11-slim   
+
+mill-client:mill-py:test-3.12:
+  extends: .mill-client:mill-py:test
+  image: python:3.12-slim
+
+mill:jdbc-driver:test:
+  extends: .mill:client-test
+  stage: test
+  image: azul/zulu-openjdk:17-latest
+  script:
+    - cd ${CI_PROJECT_DIR}/mill/clients
+    - ../gradlew --no-daemon --console plain clean test testIT
+ 
 mill-clients:install-dist:
   stage: build
   image: azul/zulu-openjdk:17-latest
@@ -183,8 +145,9 @@ mill-clients:install-dist:
       artifacts: true    
   script:
     - cd ${CI_PROJECT_DIR}/mill/clients
-    - ../gradlew clean installDist distTar distZip
+    - ../gradlew --no-daemon --console plain clean installDist distTar distZip
   artifacts:
+    expire_in: "5 days"
     paths:
       - ${CI_PROJECT_DIR}/mill/clients/*/build/install/**/*
       - ${CI_PROJECT_DIR}/mill/clients/*/build/distributions/*.tar
@@ -194,8 +157,8 @@ mill-clients:mill-sql-line:build-docker:
   stage: publish
   extends: .docker-build-job
   variables:
-    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/clients/jdbc-shell
-    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/clients/jdbc-shell/src/main/docker/Dockerfile
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/clients/mill-jdbc-shell
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/clients/mill-jdbc-shell/src/main/docker/Dockerfile
     DOCKER_BUILD_CONTAINER_NAME : jdbc-shell
   needs:
     - job: mill-clients:install-dist

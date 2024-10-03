@@ -85,7 +85,7 @@
     - echo $(cat ${CI_PROJECT_DIR}/VERSION)${QP_VERSION_SFX} > ${CI_PROJECT_DIR}/VERSION
     - echo "BUILD VERSION:$(cat ${CI_PROJECT_DIR}/VERSION)"
   artifacts:
-    expire_in: "30 days"
+    expire_in: "2 days"
     paths:
       - ${CI_PROJECT_DIR}/VERSION
 

@@ -97,3 +97,4 @@ pages:
     paths:
       - ${CI_PROJECT_DIR}/public
       - ${CI_PROJECT_DIR}/docs.tar.gz
+    expire_in: "5 days"

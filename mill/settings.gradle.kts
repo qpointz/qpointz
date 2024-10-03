@@ -10,19 +10,20 @@
 
 rootProject.name = "mill"
 
-include (":common")
-include (":common-service")
-include (":common-backend-service")
+include (":mill-common")
+include (":mill-common-service")
+include (":mill-common-backend-service")
 
-include (":calcite-service")
-include (":calcite-backend-service")
+include (":mill-calcite-service")
+include (":mill-calcite-backend-service")
 
-include (":jdbc-service")
-include (":jdbc-backend-service")
+include (":mill-jdbc-service")
+include (":mill-jdbc-backend-service")
 
-include (":clients:jdbc-driver")
-include (":clients:jdbc-shell")
+include (":clients:mill-jdbc-driver")
+include (":clients:mill-jdbc-shell")
 
+include (":azure:mill-azure-calcite-backend-function")
 
 
 dependencyResolutionManagement {
@@ -32,30 +33,34 @@ dependencyResolutionManagement {
     }
 
     versionCatalogs {
-
-        create("spring") {
-         /*   val spring = version("spring", "6.3.0")
-            library("context", "org.springframework","spring-context").versionRef(spring)
-            library("web","org.springframework","spring-web").versionRef(spring)
-            library("webmvc","org.springframework","spring-webmvc").versionRef(spring)
-            library("security-oauth2-core","org.springframework","spring-security-oauth2-core").versionRef(spring)*/
-        }
-
         create("libs") {
 
             val lombok = version("lombok", "1.18.34")
             library("lombok", "org.projectlombok", "lombok").versionRef(lombok)
 
-            val boot = version("boot", "3.3.3")
-            library("boot-devtools", "org.springframework.boot","spring-boot-devtools").versionRef(boot)
-            library("boot-configuration-processor","org.springframework.boot","spring-boot-configuration-processor").versionRef(boot)
-            library("boot-starter-test","org.springframework.boot","spring-boot-starter-test").versionRef(boot)
-            library("boot-starter-security","org.springframework.boot","spring-boot-starter-security").versionRef(boot)
-            library("boot-starter-security-oauth2-client","org.springframework.boot", "spring-boot-starter-oauth2-client").versionRef(boot)
-            library("boot-starter-security-oauth2-resource-server","org.springframework.boot", "spring-boot-starter-oauth2-resource-server").versionRef(boot)
-            library("boot-starter-web","org.springframework.boot","spring-boot-starter-web").versionRef(boot)
-            library("boot-starter-webflux","org.springframework.boot","spring-boot-starter-webflux").versionRef(boot)
-            library("boot-starter", "org.springframework.boot","spring-boot-starter").versionRef(boot)
+            val springBootV = version("boot", "3.3.3")
+            val springBootG = "org.springframework.boot"
+            plugin("spring-dependency-management","io.spring.dependency-management").version("1.1.4")
+            plugin("spring-boot", "org.springframework.boot").versionRef(springBootV)
+
+            library("boot-devtools", springBootG,"spring-boot-devtools").versionRef(springBootV)
+            library("boot-configuration-processor",springBootG,"spring-boot-configuration-processor").versionRef(springBootV)
+            library("boot-starter-test",springBootG,"spring-boot-starter-test").versionRef(springBootV)
+            library("boot-starter-security",springBootG,"spring-boot-starter-security").versionRef(springBootV)
+            library("boot-starter-security-oauth2-client",springBootG, "spring-boot-starter-oauth2-client").versionRef(springBootV)
+            library("boot-starter-security-oauth2-resource-server",springBootG, "spring-boot-starter-oauth2-resource-server").versionRef(springBootV)
+            library("boot-starter-web",springBootG,"spring-boot-starter-web").versionRef(springBootV)
+            library("boot-starter-webflux",springBootG,"spring-boot-starter-webflux").versionRef(springBootV)
+            library("boot-starter", springBootG,"spring-boot-starter").versionRef(springBootV)
+
+            val springCloudV = version("springCloud", "4.1.3")
+            val springCloudG = "org.springframework.cloud"
+            library("spring-cloud-function-grpc", springCloudG, "spring-cloud-function-grpc").versionRef(springCloudV)
+            library("spring-cloud-function-context", springCloudG, "spring-cloud-function-context").versionRef(springCloudV)
+            library("spring-cloud-function-adapter-azure", springCloudG, "spring-cloud-function-adapter-azure").versionRef(springCloudV)
+            library("spring-cloud-function-adapter-azure-web", springCloudG, "spring-cloud-function-adapter-azure-web").versionRef(springCloudV)
+            library("spring-cloud-starter-function-web", springCloudG, "spring-cloud-starter-function-web").versionRef(springCloudV)
+
 
             val calcite = version("calcite", "1.37.0")
             library("calcite-core", "org.apache.calcite", "calcite-core").versionRef(calcite)
@@ -87,6 +92,7 @@ dependencyResolutionManagement {
             val protobuf = version("protobuf", "3.24.0")
             library("protobuf-java", "com.google.protobuf", "protobuf-java").versionRef(protobuf)
             library("protobuf-protoc", "com.google.protobuf", "protoc").versionRef(protobuf)
+            library("protobuf-java-util", "com.google.protobuf", "protobuf-java-util").versionRef(protobuf)
 
             val grpc = version("grpc", "1.63.0")
             library("grpc-protobuf","io.grpc","grpc-protobuf").versionRef(grpc)
