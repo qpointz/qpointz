@@ -2,16 +2,18 @@ import os
 import ssl
 import unittest
 from millclient import *
+from millclient.proto.io.qpointz.mill import ProtocolVersion
 
 
 class ClientBaseTests:
 
     class MillClientTest(unittest.TestCase):
 
-        def __init__(self, methodName, valid_sql, schema_name):
+        def __init__(self, methodName, valid_sql, schema_name, empty_query_predicate = None):
             super().__init__(methodName)
             self.__valid_sql = valid_sql
             self.__schema_name = schema_name
+            self.__empty_query_predicate = empty_query_predicate or " `ID` < 0 "
 
         @abstractmethod
         def __client__(self):
@@ -24,7 +26,7 @@ class ClientBaseTests:
         def test_handshake(self):
             with self.__client__() as c:
                 r = c.handshake()
-                print(r)
+                assert r.version == ProtocolVersion.V1_0
 
         def test_list_schemas(self):
             with self.__client__() as c:
@@ -34,7 +36,7 @@ class ClientBaseTests:
 
         def test_get_schema(self):
             with self.__client__() as c:
-                r = c.get_schema(schema_name="airlines")
+                r = c.get_schema(schema_name=self.__schema_name)
                 assert len(r.schema.tables) > 0
 
         def test_schema_doesnt_exist(self):
@@ -75,7 +77,7 @@ class ClientBaseTests:
 
         def test_empty_query_returns_schema(self):
             with self.__client__() as c:
-                query = self.__valid_sql + " WHERE 1=2"
+                query = self.__valid_sql + " WHERE " + self.__empty_query_predicate or " 1 = 2 "
                 q = c.sql_query(sql = query, fetch_size = 10)
                 df = q.to_pandas()
                 print(df)
@@ -85,7 +87,7 @@ class ClientBaseTests:
 class MillGrpcClientTests(ClientBaseTests.MillClientTest):
 
     def __init__(self, methodName):
-        super().__init__(methodName, "select * from `airlines`.`segments`", "airlines")
+        super().__init__(methodName, "select * from `airlines`.`segments`", "airlines", " 1 = 2 ")
 
 
     def __client__(self):
@@ -105,7 +107,16 @@ class MillGrpcClientTests(ClientBaseTests.MillClientTest):
         print(f"Connect to {host}:{port}")
         return create_client(host=host, port=int(port), ssl=ctx, creds=BasicAuthCredentials("reader", "reader"))
 
+class MillHttpClientTests(ClientBaseTests.MillClientTest):
+
+    def __init__(self, methodName):
+        super().__init__(methodName,"select * from `ts`.`TEST`", "ts", " `ID` < 0 ")
+
+    def __client__(self):
+        host = os.environ.get("MILL_AZ_FUNC_HOST", "localhost")
+        port = os.environ.get("MILL_AZ_FUNC_PORT", "7071")
+        return create_client(url=f"http://{host}:{port}/api/")
+
 if __name__ == '__main__':
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    asyncio.set_event_loop(asyncio.new_event_loop())
     unittest.main()

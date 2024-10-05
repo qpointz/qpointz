@@ -47,6 +47,7 @@ dependencies {
     implementation(libs.calcite.core)
     implementation(libs.boot.starter)
     implementation(libs.spring.cloud.function.adapter.azure)
+    implementation(libs.boot.starter.test)
     implementation(libs.h2.database)
 }
 
@@ -90,3 +91,23 @@ tasks.getByName("azureFunctionsPackage") {
         }
     }
 }.dependsOn(isntallDistTask)
+
+testing {
+    suites {
+        configureEach {
+            if (this is JvmTestSuite) {
+                useJUnitJupiter(libs.versions.junit.get())
+
+                dependencies {
+                    implementation(project())
+                    implementation(libs.boot.starter.test)
+                    implementation(libs.mockito.core)
+                    implementation(libs.mockito.junit.jupiter)
+                    implementation(libs.h2.database)
+                    implementation(libs.lombok)
+                    annotationProcessor(libs.lombok)
+                }
+            }
+        }
+    }
+}

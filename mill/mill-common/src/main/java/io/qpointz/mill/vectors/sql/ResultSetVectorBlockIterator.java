@@ -6,6 +6,7 @@ import io.qpointz.mill.types.sql.JdbcTypeInfo;
 import io.qpointz.mill.vectors.MappingVectorProducer;
 import io.qpointz.mill.vectors.VectorBlockIterator;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import java.sql.ResultSet;
@@ -13,6 +14,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Slf4j
 public class ResultSetVectorBlockIterator implements VectorBlockIterator {
 
     @Getter
@@ -44,6 +46,7 @@ public class ResultSetVectorBlockIterator implements VectorBlockIterator {
                         meta.getPrecision(colIdx),
                         meta.getScale(colIdx)
                 );
+                log.trace("Mapping column {}. {}", colIdx, jdbcInfo.toString());
                 vectorProducers[i] = ResultSetVectorProducerFactory.DEFAULT.fromJdbcType(jdbcInfo);
                 schemaBuilder.addFields(Field.newBuilder()
                                 .setFieldIdx(i)

@@ -37,13 +37,35 @@ class ServiceHandlerTest extends ServiceBaseTest {
         assertNotEquals(resp.getPagingId(), pagingId);
     }
 
+    private VectorBlock mockVectorBlock() {
+        return VectorBlock.newBuilder()
+                .setVectorSize(3)
+                .setSchema(VectorBlockSchema.newBuilder()
+                        .addFields(Field.newBuilder()
+                                .setFieldIdx(0)
+                                .setName("ID")
+                                .setType(DataType.newBuilder()
+                                        .setType(LogicalDataType.newBuilder()
+                                                .setTypeId(LogicalDataType.LogicalDataTypeId.INT)
+                                                .build())
+                                        .setNullability(DataType.Nullability.NULL)
+                                        .build())
+                        ))
+                .addVectors(Vector.newBuilder()
+                        .setNulls(Vector.NullsVector.newBuilder().addAllNulls(List.of(false,false,false)).build())
+                        .setI32Vector(Vector.I32Vector.newBuilder()
+                            .addAllValues(List.of(1,2,3))
+                        ))
+                .build();
+    }
+
     private VectorBlockIterator mockVectorBlockIterator() {
         return new VectorBlockIterator() {
 
             private Iterator<VectorBlock> blocks = List.<VectorBlock>of(
-                    VectorBlock.getDefaultInstance(),
-                    VectorBlock.getDefaultInstance(),
-                    VectorBlock.getDefaultInstance()
+                    mockVectorBlock(),
+                    mockVectorBlock(),
+                    mockVectorBlock()
             ).iterator();
 
             @Override

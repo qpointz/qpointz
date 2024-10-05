@@ -16,7 +16,6 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.concurrent.TimeUnit;
 
-@AllArgsConstructor
 public class ServiceHandler {
 
     @Getter
@@ -36,6 +35,15 @@ public class ServiceHandler {
 
     @Getter(lazy = true)
     private final Cache<String, VectorBlockIterator> submitCache = createCache();
+
+    public ServiceHandler(MetadataProvider metadataProvider, ExecutionProvider executionProvider, SqlProvider sqlProvider, SecurityProvider securityProvider, PlanRewriteChain planRewriteChain) {
+        this.metadataProvider = metadataProvider;
+        this.executionProvider = executionProvider;
+        this.sqlProvider = sqlProvider;
+        this.securityProvider = securityProvider !=null ? securityProvider : new NoneSecurityProvider();
+        this.planRewriteChain = planRewriteChain;
+    }
+
     private Cache<String, VectorBlockIterator> createCache() {
         return CacheBuilder.newBuilder()
                 .expireAfterAccess(10, TimeUnit.MINUTES)
@@ -199,10 +207,12 @@ public class ServiceHandler {
 
         if (iter.hasNext()) {
             val nextKey = newKey();
-            builder
-                    .setVector(iter.next())
-                    .setPagingId(nextKey);
-            cache.put(nextKey, iter);
+            val vector = iter.next();
+            builder.setVector(vector);
+            if (vector.getVectorSize() > 0) {
+                cache.put(nextKey, iter);
+                builder.setPagingId(nextKey);
+            }
         }
 
         return builder

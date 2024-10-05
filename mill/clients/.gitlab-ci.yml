@@ -75,6 +75,10 @@ mill:init-az-login:
         - "./bin/mill-calcite-backend-service"
       command:
         - ""
+    - name: ${CI_REGISTRY_IMAGE}/azure-functions-test-host:${CI_COMMIT_REF_SLUG}
+      pull_policy: always
+      alias: func.local
+      command: ["func","host","start"]
   needs:
     - job: mill-clients:init-certs
       artifacts: true
@@ -91,6 +95,8 @@ mill:init-az-login:
     MILL_AUTH_PORT: "9099"
     MILL_TLS_HOST: backend-tls.local
     MILL_TLS_PORT: "9099"
+    MILL_AZ_FUNC_HOST: "func.local"
+    MILL_AZ_FUNC_PORT: "7071"
     TLS_CERT_CHAIN: "${CI_PROJECT_DIR}/.certs/client/client.pem"
     TLS_CERT_PK: "${CI_PROJECT_DIR}/.certs/client/client.key"
     TLS_ROOT_CA: "${CI_PROJECT_DIR}/etc/certs/ca.pem"

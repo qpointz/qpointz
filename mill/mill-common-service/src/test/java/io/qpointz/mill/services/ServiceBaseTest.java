@@ -18,7 +18,7 @@ import static org.mockito.Mockito.reset;
 
 @Slf4j
 @SpringBootTest()
-//@ActiveProfiles("test")
+@ActiveProfiles("test")
 @ContextConfiguration(classes = {ServiceBaseTestConfiguration.class})
 public abstract class ServiceBaseTest {
 
@@ -48,12 +48,10 @@ public abstract class ServiceBaseTest {
 
     @Test
     public void testContext(@Autowired SqlProvider sqlProvider, @Autowired MetadataProvider metadataProvider,
-                            @Autowired ExecutionProvider executionProvider,
-                            @Autowired MillServiceGrpc.MillServiceBlockingStub blocking) {
+                            @Autowired ExecutionProvider executionProvider) {
         assertNotNull(sqlProvider);
         assertNotNull(metadataProvider);
         assertNotNull(executionProvider);
-        assertNotNull(blocking);
     }
 
 
