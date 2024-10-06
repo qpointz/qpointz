@@ -144,5 +144,47 @@ public class AzureBackendFunctions {
         return apply(context, req, ParseSqlRequest::newBuilder, ParseSqlRequest.Builder::build, parseSqlImpl);
     }
 
+    @Autowired
+    @Qualifier("submitSqlQuery")
+    protected Function<ExecSqlRequest, FetchQueryResultResponse> submitSqlQueryImpl;
+
+    @FunctionName("submitSqlQuery")
+    public HttpResponseMessage submitSqlQuery (
+            @HttpTrigger(name = "req",
+                    methods = { HttpMethod.POST },
+                    authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> req,
+            ExecutionContext context) throws InvalidProtocolBufferException {
+
+        return apply(context, req, ExecSqlRequest::newBuilder, ExecSqlRequest.Builder::build, submitSqlQueryImpl);
+    }
+
+    @Autowired
+    @Qualifier("submitPlanQuery")
+    protected Function<ExecPlanRequest, FetchQueryResultResponse> submitPlanQueryImpl;
+
+    @FunctionName("submitPlanQuery")
+    public HttpResponseMessage submitPlanQuery (
+            @HttpTrigger(name = "req",
+                    methods = { HttpMethod.POST },
+                    authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> req,
+            ExecutionContext context) throws InvalidProtocolBufferException {
+
+        return apply(context, req, ExecPlanRequest::newBuilder, ExecPlanRequest.Builder::build, submitPlanQueryImpl);
+    }
+
+
+    @Autowired
+    @Qualifier("fetchQueryResult")
+    protected Function<FetchQueryResultRequest, FetchQueryResultResponse> fetchQueryResultImpl;
+
+    @FunctionName("fetchQueryResult")
+    public HttpResponseMessage fetchQueryResult (
+            @HttpTrigger(name = "req",
+                    methods = { HttpMethod.POST },
+                    authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> req,
+            ExecutionContext context) throws InvalidProtocolBufferException {
+
+        return apply(context, req, FetchQueryResultRequest::newBuilder, FetchQueryResultRequest.Builder::build, fetchQueryResultImpl);
+    }
 }
 

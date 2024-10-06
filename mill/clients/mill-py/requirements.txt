@@ -11,3 +11,4 @@ certifi
 urllib3
 whenever
 requests
+aiohttp

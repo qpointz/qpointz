@@ -42,4 +42,17 @@ class JdbcExecutionProviderTest extends BaseTest {
         assertTrue(b.getSchema().getFieldsList().stream().toList().size()>1);
     }
 
+    @Test
+    void executeEmptyRecordset() throws SQLException {
+        reset(planConverter);
+        val sql = "SELECT * FROM TEST WHERE 1=2";
+        when(planConverter.toSql(any(Plan.class))).thenReturn(sql);
+        val ep = new JdbcExecutionProvider(planConverter, jdbcContextFactory);
+        val r = ep.execute(ImmutablePlan.builder().build(),
+                QueryExecutionConfig.newBuilder().setFetchSize(10).build());
+        assertTrue(r.schema()!=null);
+    }
+
+
+
 }

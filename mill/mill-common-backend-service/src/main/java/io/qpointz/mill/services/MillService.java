@@ -78,9 +78,7 @@ public class MillService extends MillServiceGrpc.MillServiceImplBase {
     @Override
     public void execPlan(ExecPlanRequest request, StreamObserver<ExecQueryResponse> responseObserver) {
         traceRequest("execPlan", request::toString);
-        val originalPlan = convertProtoToPlan(request.getPlan());
-        val config = request.getConfig();
-        val iterator = this.getServiceHandler().execute(originalPlan, config);
+        val iterator = this.getServiceHandler().executeToIterator(request);
         streamResult(iterator, responseObserver);
     }
 
