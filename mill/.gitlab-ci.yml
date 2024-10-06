@@ -65,11 +65,12 @@ mill:install-dist:
       artifacts: true
   script:
     - cd ${CI_PROJECT_DIR}/mill
-    - ./gradlew --no-daemon --console plain clean installBootDist
+    - ./gradlew --no-daemon --console plain clean installBootDist azureFunctionsPackage
   artifacts:
     expire_in: "5 days"
     paths:
       - ${CI_PROJECT_DIR}/mill/**/build/install/**/*
+      - ${CI_PROJECT_DIR}/mill/**/build/azure-functions/**/*
 
 .calcite-backend-service-build-docker-image:
   extends: .docker-build-job
@@ -90,6 +91,22 @@ mill:calcite-backend:build-docker-local:
   stage: package
   variables:
     DOCKER_LOCAL_ONLY: "true"
+
+mill:azure-functions-test-docker-local:
+  extends: .docker-build-job
+  stage: package
+  variables:
+    DOCKER_LOCAL_ONLY: "true"
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/azure/mill-azure-calcite-backend-function
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/azure/mill-azure-calcite-backend-function/src/main/docker/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : azure-functions-test-host
+  needs:
+    - job: mill:install-dist
+      artifacts: true
+    - job: mill:unit-tests
+      artifacts: false
+    - job: mill:init-version
+      artifacts: true
 
 mill:calcite-backend:build-docker:
   extends: .calcite-backend-service-build-docker-image

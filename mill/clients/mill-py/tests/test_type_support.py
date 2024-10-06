@@ -1,7 +1,6 @@
 import os
 import unittest
 from dataclasses import dataclass
-
 from millclient import *
 
 
@@ -113,6 +112,5 @@ class MillClientTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    asyncio.set_event_loop(asyncio.new_event_loop())
     unittest.main()

@@ -5,6 +5,7 @@ import io.qpointz.mill.services.calcite.CalciteContext;
 import io.qpointz.mill.services.calcite.CalciteContextFactory;
 import io.qpointz.mill.services.jdbc.configuration.JdbcConnectionConfiguration;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.adapter.jdbc.JdbcSchema;
 import org.apache.calcite.jdbc.CalciteConnection;
 
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.Properties;
 
 @AllArgsConstructor
+@Slf4j
 public class JdbcCalciteContextFactory implements CalciteContextFactory {
 
     @Getter
@@ -28,7 +30,7 @@ public class JdbcCalciteContextFactory implements CalciteContextFactory {
     public final String schemaName ;
 
     @AllArgsConstructor
-    private class JdbcCalciteContext extends CalciteConnectionContextBase {
+    private static class JdbcCalciteContext extends CalciteConnectionContextBase {
 
         @Getter
         private final CalciteConnection connection;
@@ -53,10 +55,13 @@ public class JdbcCalciteContextFactory implements CalciteContextFactory {
                 .getConnection("jdbc:calcite:", this.getConnectionProperty())
                 .unwrap(CalciteConnection.class);
 
+        log.info("Getting root schema");
         val rootSchema = calciteConnection.getRootSchema();
 
-
+        log.info("Getting driver");
         val op = this.getJdbcConnection();
+        log.info("Connection is null {}", (op != null));
+
         Class.forName(op.getDriver());
         val operand = new HashMap<String,Object>();
         operand.put("jdbcUrl", op.getUrl());

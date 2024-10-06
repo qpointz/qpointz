@@ -26,15 +26,15 @@ import java.util.Properties;
 @Import({CalciteServiceProperties.class})
 public class BackendFunctionConfiguration {
 
-    @Bean
-    public static ServiceHandler serviceHandler(@Autowired MetadataProvider metadataProvider,
-                                                @Autowired ExecutionProvider executionProvider,
-                                                @Autowired(required = false) SqlProvider sqlProvider,
-                                                @Autowired(required = false) SecurityProvider securityProvider,
-                                                @Autowired(required = false) PlanRewriteChain planRewriteChain)
-    {
-        return new ServiceHandler(metadataProvider, executionProvider, sqlProvider, securityProvider, planRewriteChain);
-    }
+//    @Bean
+//    public static ServiceHandler serviceHandler(@Autowired MetadataProvider metadataProvider,
+//                                                @Autowired ExecutionProvider executionProvider,
+//                                                @Autowired(required = false) SqlProvider sqlProvider,
+//                                                @Autowired(required = false) SecurityProvider securityProvider,
+//                                                @Autowired(required = false) PlanRewriteChain planRewriteChain)
+//    {
+//        return new ServiceHandler(metadataProvider, executionProvider, sqlProvider, securityProvider, planRewriteChain);
+//    }
 
     @Bean
     public CalciteContextFactory calciteContextFactory(CalciteServiceProperties properties,

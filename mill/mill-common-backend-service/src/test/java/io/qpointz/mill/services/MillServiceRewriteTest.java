@@ -19,7 +19,7 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 
 @Slf4j
-@SpringBootTest()
+@SpringBootTest
 @ExtendWith(MockitoExtension.class)
 class MillServiceRewriteTest extends MillServiceBaseTest {
 
