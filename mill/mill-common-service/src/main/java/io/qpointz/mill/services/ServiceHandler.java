@@ -7,7 +7,6 @@ import io.qpointz.mill.proto.*;
 import io.qpointz.mill.services.utils.SubstraitUtils;
 import io.qpointz.mill.vectors.VectorBlockIterator;
 import io.substrait.plan.Plan;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -160,10 +159,20 @@ public class ServiceHandler {
         return SubstraitUtils.protoToPlan(plan);
     }
 
-    public VectorBlockIterator executeToIterator(ExecPlanRequest request) {
-        val originalPlan = convertProtoToPlan(request.getPlan());
+    public VectorBlockIterator executeToIterator(QueryRequest request) {
+        Plan plan;
+        if (request.hasStatement()) {
+            val sqlStatement = request.getStatement();
+            val parseResult = this.parseSql(sqlStatement.getSql());
+            if (!parseResult.isSuccess()) {
+                throw parseResult.getException();
+            }
+            plan = parseResult.getPlan();
+        } else {
+            plan = convertProtoToPlan(request.getPlan());
+        }
         val config = request.getConfig();
-        return this.execute(originalPlan, config);
+        return this.execute(plan, config);
     }
 
     private String newKey() {
@@ -173,30 +182,18 @@ public class ServiceHandler {
         return new String(Base64.getEncoder().encode(bytes));
     }
 
-    public FetchQueryResultResponse submitSqlQuery(ExecSqlRequest request) {
-        val parseResult = this.parseSql(request.getStatement().getSql());
-        if (!parseResult.isSuccess()) {
-            throw parseResult.getException();
-        }
-        val planRequest = ExecPlanRequest.newBuilder()
-                .setConfig(request.getConfig())
-                .setPlan(SubstraitUtils.planToProto(parseResult.getPlan()))
-                .build();
-        return submitPlanQuery(planRequest);
-    }
-
-    public FetchQueryResultResponse submitPlanQuery(ExecPlanRequest request) {
+    public QueryResultResponse submitQuery(QueryRequest request) {
         val iterator = this.executeToIterator(request);
         val key = newKey();
         this.getSubmitCache().put(key, iterator);
-        return fetchResult(FetchQueryResultRequest.newBuilder().setPagingId(key).build());
+        return fetchResult(QueryResultRequest.newBuilder().setPagingId(key).build());
     }
 
-    public FetchQueryResultResponse fetchResult(FetchQueryResultRequest request) {
+    public QueryResultResponse fetchResult(QueryResultRequest request) {
         val key = request.getPagingId();
         val cache = this.getSubmitCache();
         VectorBlockIterator iter;
-        val builder = FetchQueryResultResponse.newBuilder();
+        val builder = QueryResultResponse.newBuilder();
         synchronized (cache) {
             iter = cache.getIfPresent(key);
             if (iter == null) {

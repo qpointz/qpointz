@@ -50,9 +50,9 @@ class ClientBaseTests:
                 r = c.get_schema(request=req)
                 assert len(r.schema.tables) > 0
 
-        def test_exec_sql(self):
+        def test_exec_query(self):
             with self.__client__() as c:
-                l = c.exec_sql_fetch(sql = self.__valid_sql, fetch_size = 10)
+                l = c.exec_query_fetch(sql = self.__valid_sql, fetch_size = 10)
 
         def test_sql_querty_trivial(self):
             with self.__client__() as c:

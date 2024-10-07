@@ -2514,6 +2514,52 @@ class Version(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
+class ExpressionReference(betterproto.Message):
+    expression: "Expression" = betterproto.message_field(1, group="expr_type")
+    measure: "AggregateFunction" = betterproto.message_field(2, group="expr_type")
+    output_names: List[str] = betterproto.string_field(3)
+    """Field names in depth-first order"""
+
+
+@dataclass(eq=False, repr=False)
+class ExtendedExpression(betterproto.Message):
+    """
+    Describe a set of operations to complete.
+     For compactness sake, identifiers are normalized at the plan level.
+    """
+
+    version: "Version" = betterproto.message_field(7)
+    """
+    Substrait version of the expression. Optional up to 0.17.0, required for later
+     versions.
+    """
+
+    extension_uris: List["extensions.SimpleExtensionUri"] = betterproto.message_field(1)
+    """a list of yaml specifications this expression may depend on"""
+
+    extensions: List["extensions.SimpleExtensionDeclaration"] = (
+        betterproto.message_field(2)
+    )
+    """a list of extensions this expression may depend on"""
+
+    referred_expr: List["ExpressionReference"] = betterproto.message_field(3)
+    """one or more expression trees with same order in plan rel"""
+
+    base_schema: "NamedStruct" = betterproto.message_field(4)
+    advanced_extensions: "extensions.AdvancedExtension" = betterproto.message_field(5)
+    """additional extensions associated with this expression."""
+
+    expected_type_urls: List[str] = betterproto.string_field(6)
+    """
+    A list of com.google.Any entities that this plan may use. Can be used to
+     warn if some embedded message types are unknown. Note that this list may
+     include message types that are ignorable (optimizations) or that are
+     unused. In many cases, a consumer may be able to work with a plan even if
+     one or more message types defined here are unknown.
+    """
+
+
+@dataclass(eq=False, repr=False)
 class Capabilities(betterproto.Message):
     """
     Defines a set of Capabilities that a system (producer or consumer) supports.
@@ -3079,49 +3125,3 @@ class FunctionSignatureArgumentTypeArgument(betterproto.Message):
 class FunctionSignatureArgumentEnumArgument(betterproto.Message):
     options: List[str] = betterproto.string_field(1)
     optional: bool = betterproto.bool_field(2)
-
-
-@dataclass(eq=False, repr=False)
-class ExpressionReference(betterproto.Message):
-    expression: "Expression" = betterproto.message_field(1, group="expr_type")
-    measure: "AggregateFunction" = betterproto.message_field(2, group="expr_type")
-    output_names: List[str] = betterproto.string_field(3)
-    """Field names in depth-first order"""
-
-
-@dataclass(eq=False, repr=False)
-class ExtendedExpression(betterproto.Message):
-    """
-    Describe a set of operations to complete.
-     For compactness sake, identifiers are normalized at the plan level.
-    """
-
-    version: "Version" = betterproto.message_field(7)
-    """
-    Substrait version of the expression. Optional up to 0.17.0, required for later
-     versions.
-    """
-
-    extension_uris: List["extensions.SimpleExtensionUri"] = betterproto.message_field(1)
-    """a list of yaml specifications this expression may depend on"""
-
-    extensions: List["extensions.SimpleExtensionDeclaration"] = (
-        betterproto.message_field(2)
-    )
-    """a list of extensions this expression may depend on"""
-
-    referred_expr: List["ExpressionReference"] = betterproto.message_field(3)
-    """one or more expression trees with same order in plan rel"""
-
-    base_schema: "NamedStruct" = betterproto.message_field(4)
-    advanced_extensions: "extensions.AdvancedExtension" = betterproto.message_field(5)
-    """additional extensions associated with this expression."""
-
-    expected_type_urls: List[str] = betterproto.string_field(6)
-    """
-    A list of com.google.Any entities that this plan may use. Can be used to
-     warn if some embedded message types are unknown. Note that this list may
-     include message types that are ignorable (optimizations) or that are
-     unused. In many cases, a consumer may be able to work with a plan even if
-     one or more message types defined here are unknown.
-    """

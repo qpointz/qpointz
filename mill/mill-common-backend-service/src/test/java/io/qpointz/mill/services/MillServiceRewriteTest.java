@@ -1,8 +1,8 @@
 package io.qpointz.mill.services;
 
-import io.qpointz.mill.proto.ExecPlanRequest;
 import io.qpointz.mill.proto.MillServiceGrpc;
 import io.qpointz.mill.proto.QueryExecutionConfig;
+import io.qpointz.mill.proto.QueryRequest;
 import io.qpointz.mill.vectors.sql.ResultSetVectorBlockIterator;
 import io.substrait.plan.ImmutablePlan;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +39,7 @@ class MillServiceRewriteTest extends MillServiceBaseTest {
         when(rewriter.rewritePlan(any())).thenReturn(ImmutablePlan.builder().build());
 
         val res = stub
-                .execPlan(ExecPlanRequest.newBuilder()
+                .execQuery(QueryRequest.newBuilder()
                         .setPlan(io.substrait.proto.Plan.newBuilder().build())
                         .build());
 

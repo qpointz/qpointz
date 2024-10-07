@@ -81,23 +81,23 @@ public class MillSqlQuery {
         return statement;
     }
 
-    private ExecSqlRequest.Builder request() {
-        return ExecSqlRequest.newBuilder()
+    private QueryRequest.Builder request() {
+        return QueryRequest.newBuilder()
               .setConfig(this.queryConfig())
               .setStatement(this.statement());
     }
 
-    public Iterator<ExecQueryResponse> executeResponses() {
+    public Iterator<QueryResultResponse> executeResponses() {
         val client = this.connection.getClient();
         val request = this.request()
                 .build();
-        return client.newBlockingStub().execSql(request);
+        return client.newBlockingStub().execQuery(request);
     }
 
     public class VectorBlockIterator implements Iterator<VectorBlock> {
-        private final Iterator<ExecQueryResponse> responses;
+        private final Iterator<QueryResultResponse> responses;
 
-        VectorBlockIterator(Iterator<ExecQueryResponse> responses) {
+        VectorBlockIterator(Iterator<QueryResultResponse> responses) {
             this.responses = responses;
         }
 

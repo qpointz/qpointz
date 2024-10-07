@@ -71,8 +71,12 @@ class MillServiceExecuteTest extends MillServiceBaseTest {
                                     @Autowired SecurityProvider securityProvide) {
         val serviceHander = new ServiceHandler(metadataProvider, executionProvider, null, securityProvide, null);
         val service = new MillService(serviceHander);
+        val request = QueryRequest.newBuilder()
+                .setStatement(SQLStatement.newBuilder().setSql("select * from `A`"))
+                .setConfig(QueryExecutionConfig.newBuilder().setFetchSize(10).build())
+                .build();
         val ex = assertThrows(StatusRuntimeException.class,
-                ()-> service.execSql(ExecSqlRequest.getDefaultInstance(), null));
+                ()-> service.execQuery(request, null));
         assertEquals(Status.Code.UNIMPLEMENTED, ex.getStatus().getCode());
     }
 
@@ -86,7 +90,7 @@ class MillServiceExecuteTest extends MillServiceBaseTest {
             .thenReturn(SqlProvider.ParseResult.fail(th));
 
         val ex = assertThrows(StatusRuntimeException.class, ()->
-                stub.execSql(sqlExecuteRequest(sql).build())
+                stub.execQuery(sqlExecuteRequest(sql).build())
                         .hasNext()
         );
         assertEquals(Status.Code.INVALID_ARGUMENT, ex.getStatus().getCode());
@@ -107,7 +111,7 @@ class MillServiceExecuteTest extends MillServiceBaseTest {
         val rs = db.query("SELECT * from T1");
         val iter = new ResultSetVectorBlockIterator(rs, 10);
         when(execProvider.execute(any(io.substrait.plan.Plan.class), any(QueryExecutionConfig.class))).thenReturn(iter);
-        val res = stub.execSql(sqlRequest);
+        val res = stub.execQuery(sqlRequest);
         assertTrue(res.hasNext());
         val on = res.next();
         assertEquals(4, on.getVector().getVectorSize());
@@ -122,7 +126,7 @@ class MillServiceExecuteTest extends MillServiceBaseTest {
         val iter = new ResultSetVectorBlockIterator(rs, 10);
         when(execProvider.execute(any(io.substrait.plan.Plan.class), any(QueryExecutionConfig.class))).thenReturn(iter);
         val res = stub
-                .execPlan(ExecPlanRequest.newBuilder()
+                .execQuery(QueryRequest.newBuilder()
                             .setPlan(io.substrait.proto.Plan.newBuilder().build())
                             .build());
         assertTrue(res.hasNext());
@@ -139,7 +143,7 @@ class MillServiceExecuteTest extends MillServiceBaseTest {
         val iter = new ResultSetVectorBlockIterator(rs, 10);
         when(execProvider.execute(any(io.substrait.plan.Plan.class), any(QueryExecutionConfig.class))).thenReturn(iter);
         val res = stub
-                .execPlan(ExecPlanRequest.newBuilder()
+                .execQuery(QueryRequest.newBuilder()
                         .setPlan(io.substrait.proto.Plan.newBuilder().build())
                         .build());
         assertTrue(res.hasNext());
