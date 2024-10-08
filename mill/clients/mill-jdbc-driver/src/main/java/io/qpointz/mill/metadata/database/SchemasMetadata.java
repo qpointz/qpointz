@@ -35,8 +35,9 @@ public class SchemasMetadata extends ResultSetProvidingMetadata<SchemasMetadata.
 
     @Override
     protected Collection<SchemaRecord> getMetadata() {
-        val schemas = this.getConnection().getClient().newBlockingStub()
+        val schemas = this.getConnection().getClient()
                 .listSchemas(ListSchemasRequest.newBuilder().build());
+
         return schemas.getSchemasList().stream()
                 .map(k-> new SchemaRecord(null, k))
                 .toList();

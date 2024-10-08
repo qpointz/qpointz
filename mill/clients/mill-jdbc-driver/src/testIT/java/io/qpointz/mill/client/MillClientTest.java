@@ -19,18 +19,15 @@ class MillClientTest extends BaseTest {
                 .host(getMillHost())
                 .port(getMillPort())
                 .build();
-        val client = new MillClient(clientCfg);
-        val resp  = client.newBlockingStub().handshake(HandshakeRequest.newBuilder().build());
+        val client = MillClient.fromConfig(clientCfg);
+        val resp  = client.handshake(HandshakeRequest.newBuilder().build());
         assertNotNull(resp);
     }
 
     void connectAndTest(String tag, MillClient client, Function<String, Boolean> principalEval) {
         try {
-            log.info(String.format("Testing '%s' connection to %s:%s", tag, client.getConfiguration().getHost(), client.getConfiguration().getPort()));
-            val stub = client.newBlockingStub();
-            val resp = stub.handshake(HandshakeRequest.newBuilder().build());
+            val resp = client.handshake(HandshakeRequest.newBuilder().build());
             assertNotNull(resp);
-            log.info(String.format("Successfully '%s' handshake using %s", tag, client.getConfiguration().toString()));
             val name = resp.getAuthentication().getName();
             log.info(String.format("User name %s", name));
             assertTrue(principalEval.apply(name));

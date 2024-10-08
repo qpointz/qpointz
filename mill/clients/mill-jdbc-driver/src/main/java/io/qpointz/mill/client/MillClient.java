@@ -1,162 +1,38 @@
 package io.qpointz.mill.client;
 
-import io.grpc.*;
-import io.grpc.inprocess.InProcessChannelBuilder;
-import io.qpointz.mill.proto.MillServiceGrpc;
+import io.qpointz.mill.proto.*;
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 import lombok.val;
 
-import javax.net.ssl.SSLException;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Iterator;
 
 import static io.qpointz.mill.client.MillClientConfiguration.*;
 
 @Log
-public class MillClient implements AutoCloseable {
+public abstract class MillClient implements AutoCloseable {
 
-    @Getter
-    private final MillClientConfiguration configuration;
+    public static MillClient fromConfig(MillClientConfiguration millClientConfiguration) {
+        val proto = millClientConfiguration.getProtocol();
+        if (proto.equals(CLIENT_PROTOCOL_IN_PROC_VALUE) || proto.equals(CLIENT_PROTOCOL_GRPC_VALUE)) {
+            return new GrpcMillClient(millClientConfiguration);
+        }
 
-    public MillClient(MillClientConfiguration configuration) {
-        this.configuration = configuration;
+        if (proto.equals(CLIENT_PROTOCOL_HTTP_VALUE) || proto.equals(CLIENT_PROTOCOL_HTTPS_VALUE)) {
+            return HttpMillClient.builder()
+                    .useConfig(millClientConfiguration)
+                    .build();
+        }
+
+        throw new IllegalArgumentException("Unsupported protocol: " + proto);
     }
 
-    public static MillClient fromConfig(MillClientConfiguration.MillClientConfigurationBuilder millClientConfigurationBuilder) {
-        return new MillClient(millClientConfigurationBuilder.build());
-    }
+    public abstract HandshakeResponse handshake(HandshakeRequest request);
 
-    public MillServiceGrpc.MillServiceBlockingStub newBlockingStub() {
-        val channel = this.createChannel();
-        return MillServiceGrpc.newBlockingStub(channel);
-    }
+    public abstract ListSchemasResponse listSchemas(ListSchemasRequest request);
 
-    private static final ConcurrentMap<MillClientConfiguration, ManagedChannel> channels = new ConcurrentHashMap<>();
+    public abstract GetSchemaResponse getSchema(GetSchemaRequest request);
 
-    private ManagedChannel createChannel() {
-        return channels.computeIfAbsent(this.configuration, MillClient::createNewChannel);
-    }
-
-    @SneakyThrows
-    private static ManagedChannel createNewChannel(MillClientConfiguration config)  {
-
-        if (CLIENT_CHANNEL_INPROC_VALUE.equals(config.getClientChannel())) {
-            log.warning("InProcess channel choosen. All configuration parameters will be ignored");
-            return InProcessChannelBuilder.forName(config.getHost()).build();
-        }
-
-        val channelCredentials = createChannelCredentials(config);
-        val callCredentials = createCallCredentials(config);
-
-        ChannelCredentials finalCreds;
-
-        if (callCredentials==null || callCredentials.isEmpty()) {
-            finalCreds = channelCredentials;
-        } else {
-            val allCreds = new ChannelCredentials[callCredentials.size()];
-            var idx =0;
-            for (val callCreds : callCredentials) {
-                val creds = CompositeChannelCredentials.create(channelCredentials, callCreds);
-                allCreds[idx++] = creds;
-            }
-            finalCreds = ChoiceChannelCredentials.create(allCreds);
-        }
-
-        if (CLIENT_CHANNEL_GRPC_VALUE.equals(config.getClientChannel())) {
-            val channelBuilder = Grpc.newChannelBuilderForAddress(config.getHost(), config.getPort(), finalCreds);
-            return channelBuilder.build();
-        }
-
-        throw new IllegalArgumentException(String.format("'%s' client channels not supported. Suported: '%s','%s' ",
-                config.getClientChannel(),
-                CLIENT_CHANNEL_GRPC_VALUE, CLIENT_CHANNEL_INPROC_VALUE));
-    }
-
-    private static Collection<CallCredentials> createCallCredentials(MillClientConfiguration config) {
-        val callCreds = new ArrayList<CallCredentials>();
-
-        val bearerCreds = createBearerTokenCreds(config);
-        if (bearerCreds!=null) {
-            callCreds.add(bearerCreds);
-        }
-
-        val basicCreds = createBasicCreds(config);
-        if (basicCreds!=null) {
-            callCreds.add(basicCreds);
-        }
-
-        return callCreds;
-    }
-
-    private static CallCredentials createBearerTokenCreds(MillClientConfiguration config) {
-        if (!config.requiresBearerAuth()) {
-            return null;
-        }
-
-        if (config.getBearerToken()==null || config.getBearerToken().trim().isEmpty()) {
-            throw new IllegalArgumentException("'token' should not be empty");
-        }
-
-        return MillClientCallCredentials.bearerTokenCredentials(config.getBearerToken());
-
-    }
-
-    private static CallCredentials createBasicCreds(MillClientConfiguration config) {
-        if (!config.requiresBasicAuth()) {
-            return null;
-        }
-
-        if (config.getUsername()==null || config.getUsername().trim().isEmpty()) {
-            throw new IllegalArgumentException("'user' should not be empty");
-        }
-
-        if (config.getPassword()==null || config.getPassword().trim().isEmpty()) {
-            throw new IllegalArgumentException("'password' should not be empty");
-        }
-
-        return MillClientCallCredentials.basicCredentials(config.getUsername(), config.getPassword());
-    }
-
-    private static ChannelCredentials createChannelCredentials(MillClientConfiguration config) throws IOException {
-        if (!config.requiresTls()) {
-            log.warning(String.format("Insercure channel used for host %s:%s", config.getHost(), config.getPort()));
-            return InsecureChannelCredentials.create();
-        }
-
-        val tlsKeyCertChain = config.getTlsKeyCertChain();
-        if (tlsKeyCertChain == null || tlsKeyCertChain.trim().isEmpty()) {
-            throw new SSLException("SSL Certificate chain is empty");
-        }
-
-        val tlsKeyPrivateKey = config.getTlsKeyPrivateKey();
-        if (tlsKeyPrivateKey == null || tlsKeyPrivateKey.trim().isEmpty()) {
-            throw new SSLException("SSL Private Key  is empty");
-        }
-
-        val builder =  TlsChannelCredentials.newBuilder();
-        log.info(String.format("Use TLS for host %s:%s", config.getHost(), config.getPort()));
-
-        if (config.getTlsKeyPrivateKeyPassword() == null || config.getTlsKeyPrivateKeyPassword().trim().isEmpty()) {
-            builder.keyManager(new File(tlsKeyCertChain), new File(tlsKeyPrivateKey));
-        } else {
-            builder.keyManager(new File(tlsKeyCertChain), new File(tlsKeyPrivateKey), config.getTlsKeyPrivateKeyPassword());
-        }
-
-        if (config.getTlsTrustRootCert() !=null && !config.getTlsTrustRootCert().trim().isEmpty()) {
-            builder.trustManager(new File(config.getTlsTrustRootCert()));
-        }
-
-        return builder.build();
-    }
-
-
-    @Override
-    public void close() throws Exception {
-    }
+    public abstract Iterator<QueryResultResponse> execQuery(QueryRequest request);
 }

@@ -13,6 +13,7 @@ sonar {
     }
 }
 
+
 tasks.register<Zip>("publishSonatypeBundle") {
     group = "publishing"
     from(layout.buildDirectory.dir("repo"))
@@ -27,7 +28,7 @@ tasks.register<Zip>("publishSonatypeBundle") {
                 testType = TestSuiteType.UNIT_TEST
             }
         }
-    }*/
+ }*/
 
 
 tasks.check {

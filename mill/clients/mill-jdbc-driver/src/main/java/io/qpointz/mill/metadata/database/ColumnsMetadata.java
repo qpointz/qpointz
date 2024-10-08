@@ -82,14 +82,13 @@ public class ColumnsMetadata extends ResultSetProvidingMetadata<ColumnsMetadata.
     protected Collection<ColumnRecord> getMetadata() {
         log.log(Level.INFO, "Getting all tables");
         val client = this.connection.getClient();
-        val stub = client.newBlockingStub();
 
-        val allSchemas = stub
+        val allSchemas = client
                 .listSchemas(ListSchemasRequest.newBuilder().build())
                 .getSchemasList();
         val allColumns = new ArrayList<ColumnRecord>();
         for (val schemaName : allSchemas) {
-            val schema = stub
+            val schema = client
                     .getSchema(GetSchemaRequest.newBuilder()
                             .setSchemaName(schemaName)
                             .build())

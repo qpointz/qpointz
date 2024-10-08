@@ -51,20 +51,19 @@ public abstract class InProcessTest {
     }
 
     protected MillClient createClient() {
-        return new MillClient(this.createConfig());
+        return MillClient.fromConfig(this.createConfig());
     }
 
     @Test
     void handshake() {
         val client = createClient();
-        assertDoesNotThrow(()-> client.newBlockingStub()
-                .handshake(HandshakeRequest.getDefaultInstance()));
+        assertDoesNotThrow(()-> client.handshake(HandshakeRequest.getDefaultInstance()));
     }
 
     @Test
     void airlinesSchemaExists() {
         val client = createClient();
-        val schema = client.newBlockingStub().getSchema(GetSchemaRequest.newBuilder().setSchemaName("airlines").build());
+        val schema = client.getSchema(GetSchemaRequest.newBuilder().setSchemaName("airlines").build());
         assertTrue(schema.getSchema().getTablesList().size()>0);
     }
 

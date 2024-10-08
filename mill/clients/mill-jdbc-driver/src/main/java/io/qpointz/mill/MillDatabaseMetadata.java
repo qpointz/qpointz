@@ -79,7 +79,6 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     private HandshakeResponse callHandshake() {
         return connection.getClient()
-                .newBlockingStub()
                 .handshake(HandshakeRequest.getDefaultInstance());
     }
 

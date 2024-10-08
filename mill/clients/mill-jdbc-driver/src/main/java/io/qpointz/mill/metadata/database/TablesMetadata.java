@@ -103,14 +103,13 @@ public class TablesMetadata extends ResultSetProvidingMetadata<TablesMetadata.Ta
     private Collection<TableRecord> getAllTables() {
         log.log(Level.INFO, "Getting all tables");
         val client = this.connection.getClient();
-        val stub = client.newBlockingStub();
 
-        val allSchemas = stub
+        val allSchemas = client
                 .listSchemas(ListSchemasRequest.newBuilder().build())
                 .getSchemasList();
         val allTables = new ArrayList<TableRecord>();
         for (val schemaName : allSchemas) {
-            val schema = stub
+            val schema = client
                     .getSchema(GetSchemaRequest.newBuilder()
                             .setSchemaName(schemaName)
                             .build())

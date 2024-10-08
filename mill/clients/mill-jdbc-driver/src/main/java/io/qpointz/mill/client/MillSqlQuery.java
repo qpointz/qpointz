@@ -91,7 +91,7 @@ public class MillSqlQuery {
         val client = this.connection.getClient();
         val request = this.request()
                 .build();
-        return client.newBlockingStub().execQuery(request);
+        return client.execQuery(request);
     }
 
     public class VectorBlockIterator implements Iterator<VectorBlock> {

@@ -13,19 +13,19 @@ class MillUrlParserTest {
     @Test
     void parseDefault() {
         val parser = MillUrlParser.parseUrl("jdbc:mill://host:1000");
-        assertEquals(Map.of(CLIENT_CHANNEL_PROP, CLIENT_CHANNEL_GRPC_VALUE, HOST_PROP, "host", PORT_PROP, "1000"), parser);
+        assertEquals(Map.of(CLIENT_PROTOCOL_PROP, CLIENT_PROTOCOL_GRPC_VALUE, HOST_PROP, "host", PORT_PROP, "1000"), parser);
     }
 
     @Test
     void withScheme() {
         val parser = MillUrlParser.parseUrl("jdbc:mill:grpc://host:1000");
-        assertEquals(Map.of(CLIENT_CHANNEL_PROP, CLIENT_CHANNEL_GRPC_VALUE, HOST_PROP, "host", PORT_PROP, "1000"), parser);
+        assertEquals(Map.of(CLIENT_PROTOCOL_PROP, CLIENT_PROTOCOL_GRPC_VALUE, HOST_PROP, "host", PORT_PROP, "1000"), parser);
     }
 
     @Test
     void inProcScheme() {
         val parser = MillUrlParser.parseUrl("jdbc:mill:in-proc://host:1000");
-        assertEquals(Map.of(CLIENT_CHANNEL_PROP, CLIENT_CHANNEL_INPROC_VALUE, HOST_PROP, "host", PORT_PROP, "1000"), parser);
+        assertEquals(Map.of(CLIENT_PROTOCOL_PROP, CLIENT_PROTOCOL_IN_PROC_VALUE, HOST_PROP, "host", PORT_PROP, "1000"), parser);
     }
 
     @Test
