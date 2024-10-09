@@ -12,6 +12,10 @@ import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.internal.duplex.DuplexResponseBody;
 import okio.Buffer;
 import okio.ByteString;
+import org.junit.Assert;
+import org.junit.Assume;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -48,8 +52,7 @@ class HttpMillClientTest {
             srv.start();
 
             val client = HttpMillClient.builder()
-                    .baseUrl(srv.url("/").toString())
-                    .apiPath("/api")
+                    .url(srv.url("/api").toString())
                     .build();
 
             val resp = client.handshake(HandshakeRequest.getDefaultInstance());

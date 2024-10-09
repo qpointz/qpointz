@@ -9,6 +9,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Iterator;
 import java.util.function.Function;
 
@@ -16,6 +17,48 @@ import java.util.function.Function;
 @Builder
 public class HttpMillClient extends MillClient implements AutoCloseable {
 
+    @Getter
+    private final String protocol;
+
+    @Getter
+    private final String host;
+
+    @Getter
+    private final int port;
+
+    @Getter
+    private final String path;
+
+    @Getter(lazy = true)
+    private final String requestUrl = buildUrl();
+
+    private String buildUrl() {
+        val sb = new StringBuilder();
+        sb.append(protocol);
+        sb.append("://");
+        sb.append(host);
+        if (this.port>0) {
+            sb.append(":");
+            sb.append(port);
+        }
+
+        if (!this.path.startsWith("/")) {
+            sb.append("/");
+        }
+        sb.append(this.path);
+        if (!this.path.endsWith("/")) {
+            sb.append("/");
+        }
+        return sb.toString();
+    }
+
+    private String requestUrl(String path) {
+        if (path.startsWith("/")) {
+            return this.getRequestUrl() + path.substring(1);
+        } else {
+            return this.getRequestUrl() + path;
+        }
+    }
 
     @Getter(value = AccessLevel.PRIVATE, lazy = true)
     private final OkHttpClient httpClient = createHttpClient();
@@ -28,46 +71,28 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
 
     public static class HttpMillClientBuilder {
 
-        public HttpMillClientBuilder() {
-            this.apiPath("/api/");
-            this.uriBuilder = new UriBuilder();
-        }
-
-        public HttpMillClientBuilder baseUrl(String value) {
-            if (value !=null && !value.isEmpty()) {
-                if (value.endsWith("/")) {
-                    this.baseUrl = value.substring(0, value.length() - 1);
-                } else {
-                    this.baseUrl = value;
-                }
-                return this;
-            }
-            throw new IllegalArgumentException("baseUrl is invalid");
-        }
-
-        public HttpMillClientBuilder apiPath(String value) {
-            if (value !=null && !value.isEmpty()) {
-                if (! value.startsWith("/")) {
-                    value = "/" + value;
-                }
-
-                if (! value.endsWith("/")) {
-                    value += "/";
-                }
-                this.apiPath = value ;
-                return this;
-            }
-            throw new IllegalArgumentException("apiPath is invalid");
-        }
-
         public HttpMillClientBuilder useConfig(MillClientConfiguration config) {
-            this.
+            if (config.getPort()>0) {
+                this.port(config.getPort());
+            }
+            if (config.getHost()!=null && !config.getHost().isEmpty()) {
+                this.host(config.getHost());
+            }
+            if (config.getPath()!=null && !config.getPath().isEmpty()) {
+                this.path(config.getPath());
+            }
+
+            return this;
         }
 
-    }
-
-    private String requestUrl(String s) {
-        return baseUrl + apiPath + s;
+        public HttpMillClientBuilder url(String url) {
+            val uri = URI.create(url);
+            return this
+                    .protocol(uri.getScheme())
+                    .host(uri.getHost())
+                    .port(uri.getPort())
+                    .path(uri.getPath());
+        }
     }
 
     private <T extends Message> T post(String path, Message message, Function<byte[], T> produce) {

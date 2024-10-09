@@ -2,6 +2,8 @@ package io.qpointz.mill;
 
 import lombok.extern.java.Log;
 import lombok.val;
+import org.junit.Assume;
+import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 
 import java.sql.DriverManager;
@@ -19,7 +21,7 @@ class DriverTestIT extends BaseTest {
         assertNotNull(driver);
     }
 
-    @Test
+    @Test()
     public void createConnectionAndStatement() throws ClassNotFoundException, SQLException {
         Class.forName("io.qpointz.mill.Driver");
         val url = getMillUrl();

@@ -116,3 +116,23 @@
     expire_in: "1 days"
     paths:
       - ${CI_PROJECT_DIR}/etc/certs/**/*
+
+.deploy-job:
+  image: ${CI_REGISTRY_IMAGE}/deploy-tools:${CI_TOOLCHAIN_ROLL}-${CI_COMMIT_REF_SLUG}
+  before_script:
+    - az login -t $AZ_DEPLOY_SPN_TENANT_ID -u $AZ_DEPLOY_SPN_CLIENT_ID -p $AZ_DEPLOY_SPN_SECRET --service-principal
+    - |-
+      cat << HCL >  ${CI_PROJECT_DIR}/.tf.backend.tf
+      resource_group_name="${TF_STATE_AZR_RG_NAME}"
+      storage_account_name="${TF_STATE_AZR_SA_NAME}"
+      container_name="${TF_STATE_AZR_SA_CONTAINER}"
+      key="${TF_DEPLOY_NAME}.tfstate"
+      access_key="${TF_STATE_AZR_SA_KEY}"
+      HCL
+    - export TF_BACKEND_FILE=${CI_PROJECT_DIR}/.tf.backend.tf
+    - |
+      export TF_SLUG="${CI_COMMIT_REF_SLUG}"
+      if [[ "true" == "${CI_COMMIT_REF_PROTECTED}" ]]
+      then              
+         export TF_SLUG="${CI_COMMIT_BRANCH}"         
+      fi      

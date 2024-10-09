@@ -1,5 +1,6 @@
 package io.qpointz.mill.client;
 
+import io.qpointz.mill.MillCodeException;
 import io.qpointz.mill.proto.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -28,11 +29,11 @@ public abstract class MillClient implements AutoCloseable {
         throw new IllegalArgumentException("Unsupported protocol: " + proto);
     }
 
-    public abstract HandshakeResponse handshake(HandshakeRequest request);
+    public abstract HandshakeResponse handshake(HandshakeRequest request) throws MillCodeException;
 
-    public abstract ListSchemasResponse listSchemas(ListSchemasRequest request);
+    public abstract ListSchemasResponse listSchemas(ListSchemasRequest request) throws MillCodeException;
 
-    public abstract GetSchemaResponse getSchema(GetSchemaRequest request);
+    public abstract GetSchemaResponse getSchema(GetSchemaRequest request) throws MillCodeException;
 
-    public abstract Iterator<QueryResultResponse> execQuery(QueryRequest request);
+    public abstract Iterator<QueryResultResponse> execQuery(QueryRequest request) throws MillCodeException;
 }

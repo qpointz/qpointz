@@ -37,7 +37,7 @@ public abstract class InProcessTest {
     private String serverName;
 
     protected String connectionUrl() {
-        return String.format("jdbc:mill:in-proc://%s", serverName);
+        return String.format("jdbc:mill:mem://%s", serverName);
     }
 
     protected MillClientConfiguration createConfig() {
@@ -61,7 +61,7 @@ public abstract class InProcessTest {
     }
 
     @Test
-    void airlinesSchemaExists() {
+    void airlinesSchemaExists() throws MillCodeException {
         val client = createClient();
         val schema = client.getSchema(GetSchemaRequest.newBuilder().setSchemaName("airlines").build());
         assertTrue(schema.getSchema().getTablesList().size()>0);

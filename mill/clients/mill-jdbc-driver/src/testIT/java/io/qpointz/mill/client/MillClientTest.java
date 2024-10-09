@@ -1,6 +1,7 @@
 package io.qpointz.mill.client;
 
 import io.qpointz.mill.BaseTest;
+import io.qpointz.mill.MillCodeException;
 import io.qpointz.mill.proto.HandshakeRequest;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -14,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class MillClientTest extends BaseTest {
 
     @Test
-    void blockingStubConnect() {
+    void blockingStubConnect() throws MillCodeException {
         val clientCfg = MillClientConfiguration.builder()
                 .host(getMillHost())
                 .port(getMillPort())
@@ -24,7 +25,7 @@ class MillClientTest extends BaseTest {
         assertNotNull(resp);
     }
 
-    void connectAndTest(String tag, MillClient client, Function<String, Boolean> principalEval) {
+    void connectAndTest(String tag, MillClient client, Function<String, Boolean> principalEval) throws MillCodeException {
         try {
             val resp = client.handshake(HandshakeRequest.newBuilder().build());
             assertNotNull(resp);
@@ -38,7 +39,7 @@ class MillClientTest extends BaseTest {
     }
 
     @Test
-    void connectNoAuthNoTls() {
+    void connectNoAuthNoTls() throws MillCodeException {
         val client = MillClientConfiguration.builder()
                 .host(getMillHost())
                 .port(getMillPort())
@@ -47,7 +48,7 @@ class MillClientTest extends BaseTest {
     }
 
     @Test
-    void connectNoAuthTls() {
+    void connectNoAuthTls() throws MillCodeException {
         val client = MillClientConfiguration.builder()
                 .host(getMillTlsHost())
                 .port(getMillTlsPort())
@@ -59,7 +60,7 @@ class MillClientTest extends BaseTest {
     }
 
     @Test
-    void connectAuthNoTlsBasicAuth() {
+    void connectAuthNoTlsBasicAuth() throws MillCodeException {
         val client = MillClientConfiguration.builder()
                 .host(getMillAuthHost())
                 .port(getMillAuthPort())
@@ -70,7 +71,7 @@ class MillClientTest extends BaseTest {
     }
 
     @Test
-    void connectAuthNoTlsMultiCredentialsTokenAuth() {
+    void connectAuthNoTlsMultiCredentialsTokenAuth() throws MillCodeException {
         val client = MillClientConfiguration.builder()
                 .host(getMillAuthHost())
                 .port(getMillAuthPort())
@@ -82,7 +83,7 @@ class MillClientTest extends BaseTest {
     }
 
     @Test
-    void connectAuthNoTlsBearerTokenAuth() {
+    void connectAuthNoTlsBearerTokenAuth() throws MillCodeException {
         val client = MillClientConfiguration.builder()
                 .host(getMillAuthHost())
                 .port(getMillAuthPort())
@@ -92,7 +93,7 @@ class MillClientTest extends BaseTest {
     }
 
     @Test
-    void connectAuthTlsBasicAuth() {
+    void connectAuthTlsBasicAuth() throws MillCodeException {
         val client = MillClientConfiguration.builder()
                 .host(getMillAuthTlsHost())
                 .port(getMillAuthTlsPort())
@@ -106,7 +107,7 @@ class MillClientTest extends BaseTest {
     }
 
     @Test
-    void connectAuthTlsBearerTokenAuth() {
+    void connectAuthTlsBearerTokenAuth() throws MillCodeException {
         val client = MillClientConfiguration.builder()
                 .host(getMillAuthTlsHost())
                 .port(getMillAuthTlsPort())
@@ -119,7 +120,7 @@ class MillClientTest extends BaseTest {
     }
 
     @Test
-    void connectAuthTlsMultiCredentialsTokenAuth() {
+    void connectAuthTlsMultiCredentialsTokenAuth() throws MillCodeException {
         val client = MillClientConfiguration.builder()
                 .host(getMillAuthTlsHost())
                 .port(getMillAuthTlsPort())

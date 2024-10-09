@@ -14,6 +14,10 @@ public class MillClientConfiguration {
 
     public static final String HOST_PROP = "host";
     public static final String PORT_PROP = "port";
+
+    public static final String API_PATH_PROP = "api_path";
+    public static final String DEFAULT_API_PATH = "/api/";
+
     public static final String USERNAME_PROP = "user";
     public static final String PASSWORD_PROP = "password";
     public static final String BEARER_TOKEN_PROP = "bearerToken";
@@ -30,8 +34,7 @@ public class MillClientConfiguration {
     public static final String CLIENT_PROTOCOL_HTTPS_VALUE = "https";
     public static final int DEFAULT_FETCH_SIZE = 1000;
 
-    public static final String HTTP_API_PATH_PROP = "api_path";
-    public static final String DEFAULT_HTTP_API_PATH = "/api/";
+
 
     @Getter
     @Builder.Default
@@ -40,6 +43,14 @@ public class MillClientConfiguration {
     @Getter
     @Builder.Default
     private int port = 9099;
+
+    @Getter
+    @Builder.Default
+    private String path = DEFAULT_API_PATH;
+
+    @Getter
+    @Builder.Default
+    private String protocol = CLIENT_PROTOCOL_GRPC_VALUE;
 
     @Getter
     @Builder.Default
@@ -68,10 +79,6 @@ public class MillClientConfiguration {
     @Getter
     @Builder.Default
     private String tlsTrustRootCert = null;
-
-    @Getter
-    @Builder.Default
-    private String protocol = CLIENT_PROTOCOL_GRPC_VALUE;
 
     @Getter
     @Builder.Default

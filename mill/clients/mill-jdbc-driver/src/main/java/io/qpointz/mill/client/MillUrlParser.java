@@ -44,7 +44,7 @@ public class MillUrlParser {
             KnownProperty.of(TLS_KEY_PRIVATE_KEY_PASSWORD_PROP, STRING, false, "TLS private key password"),
             KnownProperty.of(TLS_TRUST_ROOT_CERT_PROP, STRING, false, "TLS custom root CA certificate path"),
             KnownProperty.of(FETCH_SIZE_PROP, INT, true, String.format("Record batch fetch size. Default %s", DEFAULT_FETCH_SIZE)),
-            KnownProperty.of(HTTP_API_PATH_PROP,STRING, false, String.format("API relative path. Default %s", DEFAULT_HTTP_API_PATH))
+            KnownProperty.of(API_PATH_PROP,STRING, false, String.format("API relative path. Default %s", DEFAULT_API_PATH))
     );
 
     public MillUrlParser(String url, Properties... props) {
@@ -97,7 +97,7 @@ public class MillUrlParser {
 
         val path = parsedUrl.getPath();
         if (!(path==null || path.isEmpty())) {
-            effectiveProps.setProperty(HTTP_API_PATH_PROP, path);
+            effectiveProps.setProperty(API_PATH_PROP, path);
         }
 
         var query = parsedUrl.getQuery();

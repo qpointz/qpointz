@@ -22,15 +22,19 @@ tasks.register<Zip>("publishSonatypeBundle") {
     destinationDirectory.set(layout.buildDirectory.dir("sonatype-bundle"))
 }
 
-/*reporting {
-        reports {
-            val testCodeCoverageReport by creating(JacocoCoverageReport::class) {
-                testType = TestSuiteType.UNIT_TEST
-            }
+/*
+
+reporting {
+    reports {
+        val testCodeCoverageReport by creating(JacocoCoverageReport::class) {
+            testType.set(TestSuiteType.UNIT_TEST)
+            reportTask.get().classDirectories.setFrom(reportTask.get().classDirectories.map {
+                fileTree(it).matching {
+                    exclude(listOf("**proto**"))
+                }
+            })
         }
- }*/
-
-
-tasks.check {
-    dependsOn(tasks.named<JacocoReport>("testCodeCoverageReport"))
+    }
 }
+
+*/

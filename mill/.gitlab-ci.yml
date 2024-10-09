@@ -65,13 +65,42 @@ mill:install-dist:
       artifacts: true
   script:
     - cd ${CI_PROJECT_DIR}/mill
-    - ./gradlew --no-daemon --console plain clean installBootDist azureFunctionsPackage azureFunctionsPackageZip
+    - ./gradlew --no-daemon --console plain clean installBootDist bootDistTar bootDistZip distTar distZip azureFunctionsPackage azureFunctionsPackageZip
   artifacts:
     expire_in: "5 days"
     paths:
       - ${CI_PROJECT_DIR}/mill/**/build/install/**/*
+      - ${CI_PROJECT_DIR}/mill/**/build/distributions/*.tar
+      - ${CI_PROJECT_DIR}/mill/**/build/distributions/*.zip
+      - ${CI_PROJECT_DIR}/mill/**/build/install/*.tar
+      - ${CI_PROJECT_DIR}/mill/**/build/install/*.zip
       - ${CI_PROJECT_DIR}/mill/**/build/azure-functions/**/*
       - ${CI_PROJECT_DIR}/mill/**/build/azure-functions/*.zip
+
+mill:upload-packages:
+  extends: .deploy-job
+  stage: package
+  needs:
+    - job: mill:init-version
+      artifacts: true
+    - job: mill:install-dist
+      artifacts: true
+  script:
+    - !reference [.global-vars, before_script]
+    - BASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/mill-packages/${QP_VERSION}/"
+    - >  
+      curl --fail-with-body --output file.txt --header "JOB-TOKEN: ${CI_JOB_TOKEN}" 
+      --upload-file ${CI_PROJECT_DIR}/mill/azure/mill-azure-calcite-backend-function/build/azure-functions/mill-calcite-backend-func.zip
+      "${BASE_URL}/mill-calcite-backend-func.zip"
+    - >
+      curl --fail-with-body --output file.txt --header "JOB-TOKEN: ${CI_JOB_TOKEN}" 
+      --upload-file "${CI_PROJECT_DIR}/mill/clients/mill-jdbc-shell/build/distributions/mill-jdbc-shell-${QP_VERSION}.tar"      
+      "${BASE_URL}/mill-jdbc-shell-${QP_VERSION}.tar"
+    - >
+      curl --fail-with-body --output file.txt --header "JOB-TOKEN: ${CI_JOB_TOKEN}" 
+      --upload-file "${CI_PROJECT_DIR}/mill/clients/mill-jdbc-shell/build/distributions/mill-jdbc-shell-${QP_VERSION}.zip"      
+      "${BASE_URL}/mill-jdbc-shell-${QP_VERSION}.zip"
+
 
 .calcite-backend-service-build-docker-image:
   extends: .docker-build-job
@@ -212,34 +241,20 @@ mill:maven-publish:
     - if: $CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_REF_SLUG != "dev"
       when: always
 
-.deploy-job:
-  image: ${CI_REGISTRY_IMAGE}/deploy-tools:${CI_TOOLCHAIN_ROLL}-${CI_COMMIT_REF_SLUG}
-  before_script:
-    - az login -t $AZ_DEPLOY_SPN_TENANT_ID -u $AZ_DEPLOY_SPN_CLIENT_ID -p $AZ_DEPLOY_SPN_SECRET --service-principal
-    - |-
-      cat << HCL >  ${CI_PROJECT_DIR}/.tf.backend.tf
-      resource_group_name="${TF_STATE_AZR_RG_NAME}"
-      storage_account_name="${TF_STATE_AZR_SA_NAME}"
-      container_name="${TF_STATE_AZR_SA_CONTAINER}"
-      key="${TF_DEPLOY_NAME}.tfstate"
-      access_key="${TF_STATE_AZR_SA_KEY}"
-      HCL
-    - export TF_BACKEND_FILE=${CI_PROJECT_DIR}/.tf.backend.tf
-
 mill:deploy-infra:
   extends: .deploy-job
   stage: init
   variables:
-    TF_DEPLOY_NAME: bck_func_${CI_COMMIT_REF_SLUG}
+    TF_DEPLOY_NAME: bck_func
     TF_DEPLOY_DIR: ${CI_PROJECT_DIR}/mill/deploy/azure-function-deployment
   script:
     - terraform -chdir=${TF_DEPLOY_DIR} init -backend-config=${TF_BACKEND_FILE}
-    - terraform -chdir=${TF_DEPLOY_DIR} plan -var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}"
-    - terraform -chdir=${TF_DEPLOY_DIR} apply -auto-approve  -var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}"
+    - terraform -chdir=${TF_DEPLOY_DIR} plan -var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}_${TF_SLUG}" -var "deployment_id=${TF_SLUG}"
+    - terraform -chdir=${TF_DEPLOY_DIR} apply -auto-approve  -var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}_${TF_SLUG}"  -var "deployment_id=${TF_SLUG}"
     - terraform -chdir=${TF_DEPLOY_DIR} output -json > ${TF_DEPLOY_DIR}/.${TF_DEPLOY_NAME}.out.json
     - cat ${TF_DEPLOY_DIR}/.${TF_DEPLOY_NAME}.out.json
-    - APP_NAME="$(cat $CI_PROJECT_DIR/mill/deploy/azure-function-deployment/.${TF_DEPLOY_NAME}.out.json | jq -r '.app.value')"
-    - RG_NAME="$(cat $CI_PROJECT_DIR/mill/deploy/azure-function-deployment/.${TF_DEPLOY_NAME}.out.json | jq -r '.rg.value')"
+    - APP_NAME="$(cat $TF_DEPLOY_DIR/.${TF_DEPLOY_NAME}.out.json | jq -r '.app.value')"
+    - RG_NAME="$(cat $TF_DEPLOY_DIR/.${TF_DEPLOY_NAME}.out.json | jq -r '.rg.value')"
     - echo $APP_NAME
     - echo $RG_NAME
   artifacts:
@@ -249,14 +264,17 @@ mill:deploy-infra:
 mill:deploy-app:
   extends: .deploy-job
   stage: publish
+  variables:
+    TF_DEPLOY_NAME: bck_func
+    TF_DEPLOY_DIR: ${CI_PROJECT_DIR}/mill/deploy/azure-function-deployment
   needs:
     - job: mill:deploy-infra
       artifacts: true
     - job: mill:install-dist
       artifacts: true
   script:
-    - APP_NAME="$(cat $CI_PROJECT_DIR/mill/deploy/azure-function-deployment/.bck_func_${CI_COMMIT_REF_SLUG}.out.json | jq -r '.app.value')"
-    - RG_NAME="$(cat $CI_PROJECT_DIR/mill/deploy/azure-function-deployment/.bck_func_${CI_COMMIT_REF_SLUG}.out.json | jq -r '.rg.value')"
+    - APP_NAME="$(cat $TF_DEPLOY_DIR/.${TF_DEPLOY_NAME}.out.json | jq -r '.app.value')"
+    - RG_NAME="$(cat $TF_DEPLOY_DIR/.${TF_DEPLOY_NAME}.out.json | jq -r '.rg.value')"
     - az functionapp deployment source config-zip -g $RG_NAME -n $APP_NAME --src ${CI_PROJECT_DIR}/mill/azure/mill-azure-calcite-backend-function/build/azure-functions/mill-calcite-backend-func.zip
     - az functionapp cors add -g $RG_NAME -n $APP_NAME --allowed-origins https://myapps.com
     - ROOT_API_URL="$(az functionapp function list -g $RG_NAME -n $APP_NAME | jq -r '.[0].invokeUrlTemplate' | sed 's|\(.*\)/.*|\1|')/"
@@ -265,7 +283,7 @@ mill:deploy-app:
     paths:
       - $CI_PROJECT_DIR/mill/deploy/azure-function-deployment/.app.json
   environment:
-    name: mill/backend_function/$CI_COMMIT_REF_SLUG
+    name: mill/${CI_COMMIT_BRANCH}/backend_function
     url: $ROOT_API_URL
     on_stop: mill:destroy-infra
 
@@ -273,13 +291,13 @@ mill:destroy-infra:
   extends: .deploy-job
   stage: init
   variables:
-    TF_DEPLOY_NAME: bck_func_${CI_COMMIT_REF_SLUG}
+    TF_DEPLOY_NAME: bck_func
     TF_DEPLOY_DIR: ${CI_PROJECT_DIR}/mill/deploy/azure-function-deployment
   script:
     - terraform -chdir=${TF_DEPLOY_DIR} init -backend-config=${TF_BACKEND_FILE}
-    - terraform -chdir=${TF_DEPLOY_DIR} plan -destroy -var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}"
-    - terraform -chdir=${TF_DEPLOY_DIR} destroy -auto-approve  -var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}"
+    - terraform -chdir=${TF_DEPLOY_DIR} plan -destroy var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}_${TF_SLUG}" -var "deployment_id=${TF_SLUG}"
+    - terraform -chdir=${TF_DEPLOY_DIR} destroy -auto-approve  var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}_${TF_SLUG}" -var "deployment_id=${TF_SLUG}"
   when: manual
   environment:
-    name: mill/backend_function/$CI_COMMIT_REF_SLUG
+    name: mill/${CI_COMMIT_BRANCH}/backend_function
     action: stop
