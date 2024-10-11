@@ -39,4 +39,10 @@ init:build-minica-image:
         /kaniko/executor
         --context "${CI_PROJECT_DIR}/etc/docker/minica" 
         --destination "${CI_IMAGE_MINICA}"
-        --cache=true               
+        --cache=true    
+
+init:build-deploy-tools-image:
+  stage: init
+  extends: .toolchain-docker-build
+  variables:
+    TOOLCHAIN_NAME: deploy-tools

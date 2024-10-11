@@ -9,7 +9,7 @@ stages:
   - package
   - check
   - publish
-  - test-integration
+  - deploy
 
 workflow:
   rules:
@@ -65,12 +65,13 @@ mill:install-dist:
       artifacts: true
   script:
     - cd ${CI_PROJECT_DIR}/mill
-    - ./gradlew --no-daemon --console plain clean installBootDist azureFunctionsPackage
+    - ./gradlew --no-daemon --console plain clean installBootDist azureFunctionsPackage azureFunctionsPackageZip
   artifacts:
     expire_in: "5 days"
     paths:
       - ${CI_PROJECT_DIR}/mill/**/build/install/**/*
       - ${CI_PROJECT_DIR}/mill/**/build/azure-functions/**/*
+      - ${CI_PROJECT_DIR}/mill/**/build/azure-functions/*.zip
 
 .calcite-backend-service-build-docker-image:
   extends: .docker-build-job
@@ -149,7 +150,6 @@ mill:calcite-test-backend:build-docker-local:
     - job: mill:calcite-backend:build-docker-local
       artifacts: false
 
-
 sonarqube-check:
   extends: .gradle-job
   stage: check
@@ -211,3 +211,75 @@ mill:maven-publish:
   rules:
     - if: $CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_REF_SLUG != "dev"
       when: always
+
+.deploy-job:
+  image: ${CI_REGISTRY_IMAGE}/deploy-tools:${CI_TOOLCHAIN_ROLL}-${CI_COMMIT_REF_SLUG}
+  before_script:
+    - az login -t $AZ_DEPLOY_SPN_TENANT_ID -u $AZ_DEPLOY_SPN_CLIENT_ID -p $AZ_DEPLOY_SPN_SECRET --service-principal
+    - |-
+      cat << HCL >  ${CI_PROJECT_DIR}/.tf.backend.tf
+      resource_group_name="${TF_STATE_AZR_RG_NAME}"
+      storage_account_name="${TF_STATE_AZR_SA_NAME}"
+      container_name="${TF_STATE_AZR_SA_CONTAINER}"
+      key="${TF_DEPLOY_NAME}.tfstate"
+      access_key="${TF_STATE_AZR_SA_KEY}"
+      HCL
+    - export TF_BACKEND_FILE=${CI_PROJECT_DIR}/.tf.backend.tf
+
+mill:deploy-infra:
+  extends: .deploy-job
+  stage: init
+  variables:
+    TF_DEPLOY_NAME: bck_func_${CI_COMMIT_REF_SLUG}
+    TF_DEPLOY_DIR: ${CI_PROJECT_DIR}/mill/deploy/azure-function-deployment
+  script:
+    - terraform -chdir=${TF_DEPLOY_DIR} init -backend-config=${TF_BACKEND_FILE}
+    - terraform -chdir=${TF_DEPLOY_DIR} plan -var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}"
+    - terraform -chdir=${TF_DEPLOY_DIR} apply -auto-approve  -var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}"
+    - terraform -chdir=${TF_DEPLOY_DIR} output -json > ${TF_DEPLOY_DIR}/.${TF_DEPLOY_NAME}.out.json
+    - cat ${TF_DEPLOY_DIR}/.${TF_DEPLOY_NAME}.out.json
+    - APP_NAME="$(cat $CI_PROJECT_DIR/mill/deploy/azure-function-deployment/.${TF_DEPLOY_NAME}.out.json | jq -r '.app.value')"
+    - RG_NAME="$(cat $CI_PROJECT_DIR/mill/deploy/azure-function-deployment/.${TF_DEPLOY_NAME}.out.json | jq -r '.rg.value')"
+    - echo $APP_NAME
+    - echo $RG_NAME
+  artifacts:
+    paths:
+      - ${TF_DEPLOY_DIR}/.${TF_DEPLOY_NAME}.out.json
+
+mill:deploy-app:
+  extends: .deploy-job
+  stage: publish
+  needs:
+    - job: mill:deploy-infra
+      artifacts: true
+    - job: mill:install-dist
+      artifacts: true
+  script:
+    - APP_NAME="$(cat $CI_PROJECT_DIR/mill/deploy/azure-function-deployment/.bck_func_${CI_COMMIT_REF_SLUG}.out.json | jq -r '.app.value')"
+    - RG_NAME="$(cat $CI_PROJECT_DIR/mill/deploy/azure-function-deployment/.bck_func_${CI_COMMIT_REF_SLUG}.out.json | jq -r '.rg.value')"
+    - az functionapp deployment source config-zip -g $RG_NAME -n $APP_NAME --src ${CI_PROJECT_DIR}/mill/azure/mill-azure-calcite-backend-function/build/azure-functions/mill-calcite-backend-func.zip
+    - az functionapp cors add -g $RG_NAME -n $APP_NAME --allowed-origins https://myapps.com
+    - ROOT_API_URL="$(az functionapp function list -g $RG_NAME -n $APP_NAME | jq -r '.[0].invokeUrlTemplate' | sed 's|\(.*\)/.*|\1|')/"
+    - echo -n $ROOT_API_URL > $CI_PROJECT_DIR/mill/deploy/azure-function-deployment/.app.json
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR/mill/deploy/azure-function-deployment/.app.json
+  environment:
+    name: mill/backend_function/$CI_COMMIT_REF_SLUG
+    url: $ROOT_API_URL
+    on_stop: mill:destroy-infra
+
+mill:destroy-infra:
+  extends: .deploy-job
+  stage: init
+  variables:
+    TF_DEPLOY_NAME: bck_func_${CI_COMMIT_REF_SLUG}
+    TF_DEPLOY_DIR: ${CI_PROJECT_DIR}/mill/deploy/azure-function-deployment
+  script:
+    - terraform -chdir=${TF_DEPLOY_DIR} init -backend-config=${TF_BACKEND_FILE}
+    - terraform -chdir=${TF_DEPLOY_DIR} plan -destroy -var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}"
+    - terraform -chdir=${TF_DEPLOY_DIR} destroy -auto-approve  -var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}"
+  when: manual
+  environment:
+    name: mill/backend_function/$CI_COMMIT_REF_SLUG
+    action: stop
