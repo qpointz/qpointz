@@ -9,7 +9,7 @@ mill:
         unquotedCasing: UNCHANGED
     jdbc:
       connection:
-        url: "jdbc:h2:mem:test2;INIT=RUNSCRIPT FROM './mill-jdbc-backend/etc/config/test/testdata.sql'"
+        url: "jdbc:h2:mem:test2;INIT=RUNSCRIPT FROM './mill-jdbc-backend-service/config/local-run/testdata.sql'"
         driver: "org.h2.Driver"
         username: "*"
         password: "*"

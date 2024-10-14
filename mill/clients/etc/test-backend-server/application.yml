@@ -5,11 +5,20 @@ grpc:
 
 mill:
   backend:
-    calcite:
-      connection:
-        model: ./config/model.yaml
     security:
       enabled: false
+    calcite:
+      connection:
+        quoting: BACK_TICK
+        caseSensitive: true
+        unquotedCasing: UNCHANGED
+    jdbc:
+      connection:
+        url: "jdbc:h2:mem:test2;INIT=RUNSCRIPT FROM '/app/config/testdata.sql'"
+        driver: "org.h2.Driver"
+        username: "*"
+        password: "*"
+      schema-name: "ts"
 
 logging:
   level:

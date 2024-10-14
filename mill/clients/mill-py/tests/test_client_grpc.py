@@ -7,7 +7,8 @@ from tests.clients_base_test import ClientBaseTests, run_test_profile
 class MillGrpcClientTests(ClientBaseTests.MillClientTest):
 
     def __init__(self, methodName):
-        super().__init__(methodName, "select * from `airlines`.`segments`", "airlines", " 1 = 2 ", "grpc")
+        #super().__init__(methodName, "select * from `airlines`.`segments`", "airlines", " 1 = 2 ", "grpc")
+        super().__init__(methodName, "select * from `ts`.`TEST`", "ts", " `ID` < 0 ", "grpc")
 
     def __client__(self):
         host = os.environ.get("MILL_AUTH_TLS_HOST", "mill.local")

@@ -13,7 +13,7 @@ import java.util.function.Function;
 public abstract class BaseTest {
 
     protected String getMillHost() {
-        return envOr("MILL_HOST", "backend.local");
+        return envOr("MILL_HOST", "localhost");
     }
 
     protected Integer getMillPort() {
@@ -81,11 +81,11 @@ public abstract class BaseTest {
         return envOr("TLS_ROOT_CA", "../etc/mill-test/config/ssl/ca.pem");
     }
 
-    private static String envOr(String key, String or) {
+    protected static String envOr(String key, String or) {
         return envOr(key, or, k->k);
     }
 
-    private static <T> T envOr(String key, T or, Function<String, T> map) {
+    protected static <T> T envOr(String key, T or, Function<String, T> map) {
         val mayBeEnv = Optional.ofNullable(System.getenv(key));
         return mayBeEnv.isPresent()
                 ? map.apply(mayBeEnv.get())

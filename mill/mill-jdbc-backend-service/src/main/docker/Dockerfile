@@ -40,7 +40,6 @@ COPY --chown=1000:1000 ./build/install/mill-jdbc-backend-service-boot/ /app/
 RUN ln -s /config /app/config
 
 VOLUME /config
-VOLUME /data
 
 WORKDIR /app
 
