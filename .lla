@@ -1,8 +1,0 @@
-{
-  "resourceGroup": "bckfuncchangefuncjdb-rg",
-  "name": "bckfuncchangefuncjdb-app",
-  "enabledHostNames": [
-    "bckfuncchangefuncjdb-app.azurewebsites.net",
-    "bckfuncchangefuncjdb-app.scm.azurewebsites.net"
-  ]
-}
