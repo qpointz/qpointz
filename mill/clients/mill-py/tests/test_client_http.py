@@ -11,7 +11,8 @@ class MillHttpClientTests(ClientBaseTests.MillClientTest):
     def __client__(self):
         host = os.environ.get("MILL_HOST", "localhost")
         port = os.environ.get("MILL_PORT", "7071")
-        return create_client(url=f"http://{host}:{port}/api/")
+        #return create_client(url=f"http://{host}:{port}/api/")
+        return create_client(url="https://bckfuncchangefuncjdb-app.azurewebsites.net/api/")
 
 if __name__ == '__main__':
     run_test_profile("http")

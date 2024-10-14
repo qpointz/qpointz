@@ -184,12 +184,13 @@ class MillGrpcClient(MillClient):
         return await self.__svc.get_schema(req)
 
 class MillHttpSession(object):
-    def __init__(self, session: ClientSession, base_url: str):
+    def __init__(self, session: ClientSession, base_url: str, event_loop: AbstractEventLoop ):
         self.__session = session
         self.__base_url = base_url
+        self.__event_loop = event_loop
 
     def close(self):
-        self.__session.close()
+        self.__event_loop.run_until_complete(self.__session.close())
 
     async def post(self, command: str, req: Message, res: Message):
         resp = await self.__session.post(f"{self.__base_url}{command}", data=req.to_json())
@@ -218,7 +219,7 @@ class MillHttpClient(MillClient):
             ('Accept', 'application/protobuf')
         ])
         sess = aiohttp.ClientSession(headers=headers, raise_for_status= False, loop= event_loop)
-        self.__session = MillHttpSession(session=sess, base_url=self.__url)
+        self.__session = MillHttpSession(session=sess, base_url=self.__url, event_loop = event_loop)
 
     def get_base_url(self):
         return f"{self.__url}"

@@ -17,4 +17,9 @@ public class BigIntColumnVectorReader extends VectorColumnReader {
     public Object getObject(int rowIdx) {
         return this.getVectorValue(rowIdx);
     }
+
+    @Override
+    public long getLong(int rowIdx) {
+        return (long) this.getInt(rowIdx);
+    }
 }

@@ -22,7 +22,7 @@ resource "azurerm_service_plan" "app_service_plan" {
   name                = "${local.app_name_slug}-serviceplan"
   os_type             = "Linux"
   resource_group_name = azurerm_resource_group.rg.name
-  sku_name            = "B1"
+  sku_name            = "B2"
   tags = merge({
     "qp-component-id" = "backend-service-plan"
   }, local.default_tags)

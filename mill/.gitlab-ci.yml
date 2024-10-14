@@ -246,7 +246,7 @@ mill:deploy-infra:
   stage: init
   variables:
     TF_DEPLOY_NAME: bck_func
-    TF_DEPLOY_DIR: ${CI_PROJECT_DIR}/mill/deploy/azure-function-deployment
+    TF_DEPLOY_DIR: ${CI_PROJECT_DIR}/mill/deploy/azure-mill-basic
   script:
     - terraform -chdir=${TF_DEPLOY_DIR} init -backend-config=${TF_BACKEND_FILE}
     - terraform -chdir=${TF_DEPLOY_DIR} plan -var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}_${TF_SLUG}" -var "deployment_id=${TF_SLUG}"
@@ -266,7 +266,7 @@ mill:deploy-app:
   stage: publish
   variables:
     TF_DEPLOY_NAME: bck_func
-    TF_DEPLOY_DIR: ${CI_PROJECT_DIR}/mill/deploy/azure-function-deployment
+    TF_DEPLOY_DIR: ${CI_PROJECT_DIR}/mill/deploy/azure-mill-basic
   needs:
     - job: mill:deploy-infra
       artifacts: true
@@ -276,12 +276,12 @@ mill:deploy-app:
     - APP_NAME="$(cat $TF_DEPLOY_DIR/.${TF_DEPLOY_NAME}.out.json | jq -r '.app.value')"
     - RG_NAME="$(cat $TF_DEPLOY_DIR/.${TF_DEPLOY_NAME}.out.json | jq -r '.rg.value')"
     - az functionapp deployment source config-zip -g $RG_NAME -n $APP_NAME --src ${CI_PROJECT_DIR}/mill/azure/mill-azure-calcite-backend-function/build/azure-functions/mill-calcite-backend-func.zip
-    - az functionapp cors add -g $RG_NAME -n $APP_NAME --allowed-origins https://myapps.com
+    - az functionapp cors add -g $RG_NAME -n $APP_NAME --allowed-origins '*'
     - ROOT_API_URL="$(az functionapp function list -g $RG_NAME -n $APP_NAME | jq -r '.[0].invokeUrlTemplate' | sed 's|\(.*\)/.*|\1|')/"
-    - echo -n $ROOT_API_URL > $CI_PROJECT_DIR/mill/deploy/azure-function-deployment/.app.json
+    - echo -n $ROOT_API_URL > $CI_PROJECT_DIR/mill/deploy/azure-mill-basic/.app.json
   artifacts:
     paths:
-      - $CI_PROJECT_DIR/mill/deploy/azure-function-deployment/.app.json
+      - $CI_PROJECT_DIR/mill/deploy/azure-mill-basic/.app.json
   environment:
     name: mill/${CI_COMMIT_BRANCH}/backend_function
     url: $ROOT_API_URL
@@ -292,7 +292,7 @@ mill:destroy-infra:
   stage: init
   variables:
     TF_DEPLOY_NAME: bck_func
-    TF_DEPLOY_DIR: ${CI_PROJECT_DIR}/mill/deploy/azure-function-deployment
+    TF_DEPLOY_DIR: ${CI_PROJECT_DIR}/mill/deploy/azure-mill-basic
   script:
     - terraform -chdir=${TF_DEPLOY_DIR} init -backend-config=${TF_BACKEND_FILE}
     - terraform -chdir=${TF_DEPLOY_DIR} plan -destroy var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}_${TF_SLUG}" -var "deployment_id=${TF_SLUG}"

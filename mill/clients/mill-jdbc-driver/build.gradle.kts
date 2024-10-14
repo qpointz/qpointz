@@ -16,6 +16,7 @@ distributions {
 
 dependencies {
     implementation(project(":mill-common"))
+    implementation(libs.protobuf.java.util)
     implementation(libs.okhttp)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)

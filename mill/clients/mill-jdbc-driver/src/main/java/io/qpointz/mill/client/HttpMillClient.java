@@ -2,8 +2,10 @@ package io.qpointz.mill.client;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
+import com.google.protobuf.util.JsonFormat;
 import io.qpointz.mill.proto.*;
 import lombok.*;
+import okhttp3.Headers;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -11,6 +13,7 @@ import okhttp3.RequestBody;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.function.Function;
 
 @AllArgsConstructor
@@ -56,7 +59,7 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
         if (path.startsWith("/")) {
             return this.getRequestUrl() + path.substring(1);
         } else {
-            return this.getRequestUrl() + path;
+            return this.getRequestUrl() + path ;
         }
     }
 
@@ -82,6 +85,10 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
                 this.path(config.getPath());
             }
 
+            if (config.getProtocol()!=null && !config.getProtocol().isEmpty()) {
+                this.protocol(config.getProtocol());
+            }
+
             return this;
         }
 
@@ -95,10 +102,16 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
         }
     }
 
+    private static final okhttp3.MediaType JSON = okhttp3.MediaType.get("application/json");
+
+    @SneakyThrows
     private <T extends Message> T post(String path, Message message, Function<byte[], T> produce) {
+        val jsonMessage = JsonFormat.printer().print(message);
         val req = new Request.Builder()
                 .url(this.requestUrl(path))
-                .post(RequestBody.create(message.toByteArray()))
+                .post(RequestBody.create(jsonMessage.getBytes()))
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Accept", "application/protobuf")
                 .build();
 
         val call = this.getHttpClient().newCall(req);
@@ -150,6 +163,81 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
 
     @Override
     public Iterator<QueryResultResponse> execQuery(QueryRequest request) {
-        throw new UnsupportedOperationException();
+        return new QueryResultResponseIterator(request);
     }
+
+    private class QueryResultResponseIterator implements Iterator<QueryResultResponse> {
+
+        private final int fetchSize;
+        private String pagingId;
+        private QueryResultResponse response;
+        private boolean didNext;
+        private boolean hasNext;
+
+        public QueryResultResponseIterator(QueryRequest initialRequest) {
+            this.fetchSize = initialRequest.getConfig().getFetchSize();
+            this.doInitial(initialRequest);
+        }
+
+        private void doInitial(QueryRequest initialRequest) {
+            var initial = post("SubmitQuery", initialRequest, b-> {
+                try {
+                    return QueryResultResponse.parseFrom(b);
+                } catch (InvalidProtocolBufferException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            setNext(initial);
+        }
+
+        private void setNext(QueryResultResponse response) {
+            this.didNext = true;
+            this.response = response;
+            this.pagingId = response!=null ? response.getPagingId() : null;
+            this.hasNext = this.pagingId !=null && ! this.pagingId.isEmpty();
+        }
+
+        private void doNext() {
+            if (!this.hasNext) {
+                setNext(null);
+                return;
+            }
+
+            val request = QueryResultRequest.newBuilder()
+                    .setPagingId(this.pagingId)
+                    .setFetchSize(this.fetchSize)
+                    .build();
+
+            val response = HttpMillClient.this.post("FetchQueryResult", request,b-> {
+                try {
+                    return QueryResultResponse.parseFrom(b);
+                } catch (InvalidProtocolBufferException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+            setNext(response);
+        }
+
+        @Override
+        public boolean hasNext() {
+            if (!this.didNext) {
+                doNext();
+            }
+            return this.hasNext;
+        }
+
+        @Override
+        public QueryResultResponse next() {
+            if (!this.didNext) {
+                doNext();
+            }
+            if (this.response == null || !this.hasNext) {
+                throw new NoSuchElementException("No results available");
+            }
+            this.didNext = false;
+            return this.response;
+        }
+    }
+
 }
