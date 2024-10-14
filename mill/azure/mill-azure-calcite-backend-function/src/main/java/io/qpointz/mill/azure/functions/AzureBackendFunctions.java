@@ -11,7 +11,6 @@ import io.qpointz.mill.proto.*;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -90,7 +89,7 @@ public class AzureBackendFunctions {
     @Qualifier("listSchemas")
     protected Function<ListSchemasRequest, ListSchemasResponse> listSchemasImpl;
 
-    @FunctionName("listSchemas")
+    @FunctionName("ListSchemas")
     public HttpResponseMessage listSchemas (
             @HttpTrigger(name = "req",
                     methods = { HttpMethod.POST },
@@ -104,7 +103,7 @@ public class AzureBackendFunctions {
     @Qualifier("handshake")
     protected Function<HandshakeRequest, HandshakeResponse> handshakeImpl;
 
-    @FunctionName("handshake")
+    @FunctionName("Handshake")
     public HttpResponseMessage handshake (
             @HttpTrigger(name = "req",
                     methods = { HttpMethod.POST },
@@ -119,7 +118,7 @@ public class AzureBackendFunctions {
     @Qualifier("getSchema")
     protected Function<GetSchemaRequest, GetSchemaResponse> getSchemaImpl;
 
-    @FunctionName("getSchema")
+    @FunctionName("GetSchema")
     public HttpResponseMessage getSchema (
             @HttpTrigger(name = "req",
                     methods = { HttpMethod.POST },
@@ -134,7 +133,7 @@ public class AzureBackendFunctions {
     @Qualifier("parseSql")
     protected Function<ParseSqlRequest, ParseSqlResponse> parseSqlImpl;
 
-    @FunctionName("parseSql")
+    @FunctionName("ParseSql")
     public HttpResponseMessage parseSql (
             @HttpTrigger(name = "req",
                     methods = { HttpMethod.POST },
@@ -145,46 +144,31 @@ public class AzureBackendFunctions {
     }
 
     @Autowired
-    @Qualifier("submitSqlQuery")
-    protected Function<ExecSqlRequest, FetchQueryResultResponse> submitSqlQueryImpl;
+    @Qualifier("submitQuery")
+    protected Function<QueryRequest, QueryResultResponse> submitQueryImpl;
 
-    @FunctionName("submitSqlQuery")
-    public HttpResponseMessage submitSqlQuery (
+    @FunctionName("SubmitQuery")
+    public HttpResponseMessage submitQuery (
             @HttpTrigger(name = "req",
                     methods = { HttpMethod.POST },
                     authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> req,
             ExecutionContext context) throws InvalidProtocolBufferException {
 
-        return apply(context, req, ExecSqlRequest::newBuilder, ExecSqlRequest.Builder::build, submitSqlQueryImpl);
+        return apply(context, req, QueryRequest::newBuilder, QueryRequest.Builder::build, submitQueryImpl);
     }
-
-    @Autowired
-    @Qualifier("submitPlanQuery")
-    protected Function<ExecPlanRequest, FetchQueryResultResponse> submitPlanQueryImpl;
-
-    @FunctionName("submitPlanQuery")
-    public HttpResponseMessage submitPlanQuery (
-            @HttpTrigger(name = "req",
-                    methods = { HttpMethod.POST },
-                    authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> req,
-            ExecutionContext context) throws InvalidProtocolBufferException {
-
-        return apply(context, req, ExecPlanRequest::newBuilder, ExecPlanRequest.Builder::build, submitPlanQueryImpl);
-    }
-
 
     @Autowired
     @Qualifier("fetchQueryResult")
-    protected Function<FetchQueryResultRequest, FetchQueryResultResponse> fetchQueryResultImpl;
+    protected Function<QueryResultRequest, QueryResultResponse> fetchQueryResultImpl;
 
-    @FunctionName("fetchQueryResult")
+    @FunctionName("FetchQueryResult")
     public HttpResponseMessage fetchQueryResult (
             @HttpTrigger(name = "req",
                     methods = { HttpMethod.POST },
                     authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> req,
             ExecutionContext context) throws InvalidProtocolBufferException {
 
-        return apply(context, req, FetchQueryResultRequest::newBuilder, FetchQueryResultRequest.Builder::build, fetchQueryResultImpl);
+        return apply(context, req, QueryResultRequest::newBuilder, QueryResultRequest.Builder::build, fetchQueryResultImpl);
     }
 }
 

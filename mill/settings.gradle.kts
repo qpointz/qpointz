@@ -138,6 +138,12 @@ dependencyResolutionManagement {
             val guava = version("guava", "33.3.1-jre")
             library("guava", "com.google.guava", "guava").versionRef(guava)
 
+            val okhttp3 = version("okhttp", "4.12.0")
+            library("okhttp-mock-webserver", "com.squareup.okhttp3", "mockwebserver").versionRef(okhttp3)
+            library("okhttp", "com.squareup.okhttp3", "okhttp").versionRef(okhttp3)
+
+
+
         }
     }
 }

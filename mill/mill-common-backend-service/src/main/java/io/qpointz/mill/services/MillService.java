@@ -76,8 +76,8 @@ public class MillService extends MillServiceGrpc.MillServiceImplBase {
     }
 
     @Override
-    public void execPlan(ExecPlanRequest request, StreamObserver<ExecQueryResponse> responseObserver) {
-        traceRequest("execPlan", request::toString);
+    public void execQuery(QueryRequest request, StreamObserver<QueryResultResponse> responseObserver) {
+        traceRequest("execQuery", request::toString);
         val iterator = this.getServiceHandler().executeToIterator(request);
         streamResult(iterator, responseObserver);
     }
@@ -93,15 +93,15 @@ public class MillService extends MillServiceGrpc.MillServiceImplBase {
         return SubstraitUtils.planToProto(plan);
     }
 
-    @Override
-    public void execSql(ExecSqlRequest request, StreamObserver<ExecQueryResponse> responseObserver) {
-        traceRequest("execSql", request::toString);
-        val parseResult = parseSqlAndValidate(request.getStatement().getSql());
-        execPlan(ExecPlanRequest.newBuilder()
-                    .setPlan(convertPlanToProto(parseResult.getPlan()))
-                    .setConfig(request.getConfig())
-                    .build(), responseObserver);
-    }
+//    @Override
+//    public void execSql(ExecSqlRequest request, StreamObserver<QueryResultResponse> responseObserver) {
+//        traceRequest("execSql", request::toString);
+//        val parseResult = parseSqlAndValidate(request.getStatement().getSql());
+//        execPlan(ExecPlanRequest.newBuilder()
+//                    .setPlan(convertPlanToProto(parseResult.getPlan()))
+//                    .setConfig(request.getConfig())
+//                    .build(), responseObserver);
+//    }
 
     private SqlProvider.ParseResult parseSqlAndValidate(String sql) {
         val parseResult = this.serviceHandler.parseSql(sql);
@@ -110,11 +110,11 @@ public class MillService extends MillServiceGrpc.MillServiceImplBase {
         throw parseResult.getException();
     }
 
-    protected static void streamResult(VectorBlockIterator iterator, StreamObserver<ExecQueryResponse> responseObserver) {
-        var callObserver = (ServerCallStreamObserver<ExecQueryResponse>)responseObserver;
+    protected static void streamResult(VectorBlockIterator iterator, StreamObserver<QueryResultResponse> responseObserver) {
+        var callObserver = (ServerCallStreamObserver<QueryResultResponse>)responseObserver;
         while (iterator.hasNext()) {
             val vectorBlock = iterator.next();
-            val resp = ExecQueryResponse.newBuilder()
+            val resp = QueryResultResponse.newBuilder()
                     .setVector(vectorBlock)
                     .build();
             callObserver.onNext(resp);

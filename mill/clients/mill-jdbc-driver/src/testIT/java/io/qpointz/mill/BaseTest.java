@@ -13,7 +13,7 @@ import java.util.function.Function;
 public abstract class BaseTest {
 
     protected String getMillHost() {
-        return envOr("MILL_HOST", "backend.local");
+        return envOr("MILL_HOST", "localhost");
     }
 
     protected Integer getMillPort() {
@@ -38,7 +38,7 @@ public abstract class BaseTest {
     }
 
     protected Integer getMillAuthTlsPort() {
-        return envOr("MILL_AUTH_TLS_PORT", 9098, Integer::parseInt);
+        return envOr("MILL_PORT", 9098, Integer::parseInt);
     }
 
     protected String getMillAuthHost() {
@@ -46,7 +46,7 @@ public abstract class BaseTest {
     }
 
     protected Integer getMillAuthPort() {
-        return envOr("MILL_AUTH_PORT", 9097, Integer::parseInt);
+        return envOr("MILL_PORT", 9097, Integer::parseInt);
     }
 
     protected String getMillTlsHost() {
@@ -54,7 +54,7 @@ public abstract class BaseTest {
     }
 
     protected Integer getMillTlsPort() {
-        return envOr("MILL_TLS_PORT", 9096, Integer::parseInt);
+        return envOr("MILL_PORT", 9096, Integer::parseInt);
     }
 
     protected String getMillUser() {
@@ -81,11 +81,11 @@ public abstract class BaseTest {
         return envOr("TLS_ROOT_CA", "../etc/mill-test/config/ssl/ca.pem");
     }
 
-    private static String envOr(String key, String or) {
+    protected static String envOr(String key, String or) {
         return envOr(key, or, k->k);
     }
 
-    private static <T> T envOr(String key, T or, Function<String, T> map) {
+    protected static <T> T envOr(String key, T or, Function<String, T> map) {
         val mayBeEnv = Optional.ofNullable(System.getenv(key));
         return mayBeEnv.isPresent()
                 ? map.apply(mayBeEnv.get())

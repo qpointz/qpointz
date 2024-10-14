@@ -93,6 +93,10 @@ pages:
     - mv ${CI_PROJECT_DIR}/docs/out/ ${CI_PROJECT_DIR}/public/
     - cd ${CI_PROJECT_DIR}
     - tar -czf ${CI_PROJECT_DIR}/docs.tar.gz -C ${CI_PROJECT_DIR} public/    
+    - mkdir -p /cache/qpointz_doc_out
+    - rm -Rf /cache/qpointz_doc_out
+    - mkdir -p /cache/qpointz_doc_out
+    - cp -R ${CI_PROJECT_DIR}/public /cache/qpointz_doc_out
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/public

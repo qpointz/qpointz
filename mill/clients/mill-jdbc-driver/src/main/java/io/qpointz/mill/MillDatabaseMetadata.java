@@ -77,10 +77,13 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
         return getValue.apply(value);
     }
 
-    private HandshakeResponse callHandshake() {
-        return connection.getClient()
-                .newBlockingStub()
-                .handshake(HandshakeRequest.getDefaultInstance());
+    private HandshakeResponse callHandshake()  {
+        try {
+            return connection.getClient()
+                    .handshake(HandshakeRequest.getDefaultInstance());
+        } catch (MillCodeException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

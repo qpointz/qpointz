@@ -36,18 +36,13 @@ public class BackendFunctions {
         return serviceHandler::parseSqlProto;
     }
 
-    @Bean("submitSqlQuery")
-    public Function<ExecSqlRequest, FetchQueryResultResponse> submitSqlQuery() {
-        return serviceHandler::submitSqlQuery;
-    }
-
-    @Bean("submitPlanQuery")
-    public Function<ExecPlanRequest, FetchQueryResultResponse> submitPlanQuery() {
-        return serviceHandler::submitPlanQuery;
+    @Bean("submitQuery")
+    public Function<QueryRequest, QueryResultResponse> submitQuery() {
+        return serviceHandler::submitQuery;
     }
 
     @Bean("fetchQueryResult")
-    public Function<FetchQueryResultRequest, FetchQueryResultResponse> fetchQueryResult() {
+    public Function<QueryResultRequest, QueryResultResponse> fetchQueryResult() {
         return serviceHandler::fetchResult;
     }
 

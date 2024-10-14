@@ -1,5 +1,7 @@
 package io.qpointz.mill.sql;
 
+import lombok.val;
+
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -12,7 +14,8 @@ public abstract class ColumnReader {
     }
 
     private RuntimeException notSupported() {
-        return new RuntimeException("Operation not supported");
+        val elem = Thread.currentThread().getStackTrace()[2];
+        return new RuntimeException("Operation not supported:Column Reader:"+elem.getClassName()+":"+elem.getMethodName());
     }
 
     public String getString(int rowIdx) {

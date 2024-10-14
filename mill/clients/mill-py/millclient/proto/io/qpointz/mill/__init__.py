@@ -106,36 +106,6 @@ class Field(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
-class Parameter(betterproto.Message):
-    index: int = betterproto.uint32_field(1)
-    name: Optional[str] = betterproto.string_field(2, optional=True)
-    type: "DataType" = betterproto.message_field(3)
-    boolean_value: bool = betterproto.bool_field(10, group="value")
-    string_value: str = betterproto.string_field(11, group="value")
-    int32_value: int = betterproto.int32_field(12, group="value")
-    int64_value: int = betterproto.int64_field(13, group="value")
-    float_value: float = betterproto.float_field(14, group="value")
-    double_value: float = betterproto.double_field(15, group="value")
-
-
-@dataclass(eq=False, repr=False)
-class SqlStatement(betterproto.Message):
-    sql: str = betterproto.string_field(1)
-    parameters: List["Parameter"] = betterproto.message_field(2)
-
-
-@dataclass(eq=False, repr=False)
-class PlanStatement(betterproto.Message):
-    plan: "___substrait__.Plan" = betterproto.message_field(1)
-
-
-@dataclass(eq=False, repr=False)
-class TextPlanStatement(betterproto.Message):
-    plan: str = betterproto.string_field(1)
-    format: "TextPlanStatementTextPlanFormat" = betterproto.enum_field(2)
-
-
-@dataclass(eq=False, repr=False)
 class VectorBlockSchema(betterproto.Message):
     fields: List["Field"] = betterproto.message_field(3)
 
@@ -198,6 +168,36 @@ class VectorBoolVector(betterproto.Message):
 @dataclass(eq=False, repr=False)
 class VectorBytesVector(betterproto.Message):
     values: List[bytes] = betterproto.bytes_field(1)
+
+
+@dataclass(eq=False, repr=False)
+class Parameter(betterproto.Message):
+    index: int = betterproto.uint32_field(1)
+    name: Optional[str] = betterproto.string_field(2, optional=True)
+    type: "DataType" = betterproto.message_field(3)
+    boolean_value: bool = betterproto.bool_field(10, group="value")
+    string_value: str = betterproto.string_field(11, group="value")
+    int32_value: int = betterproto.int32_field(12, group="value")
+    int64_value: int = betterproto.int64_field(13, group="value")
+    float_value: float = betterproto.float_field(14, group="value")
+    double_value: float = betterproto.double_field(15, group="value")
+
+
+@dataclass(eq=False, repr=False)
+class SqlStatement(betterproto.Message):
+    sql: str = betterproto.string_field(1)
+    parameters: List["Parameter"] = betterproto.message_field(2)
+
+
+@dataclass(eq=False, repr=False)
+class PlanStatement(betterproto.Message):
+    plan: "___substrait__.Plan" = betterproto.message_field(1)
+
+
+@dataclass(eq=False, repr=False)
+class TextPlanStatement(betterproto.Message):
+    plan: str = betterproto.string_field(1)
+    format: "TextPlanStatementTextPlanFormat" = betterproto.enum_field(2)
 
 
 @dataclass(eq=False, repr=False)
@@ -281,31 +281,20 @@ class QueryExecutionConfigAttributes(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
-class ExecPlanRequest(betterproto.Message):
+class QueryRequest(betterproto.Message):
     config: "QueryExecutionConfig" = betterproto.message_field(1)
-    plan: "___substrait__.Plan" = betterproto.message_field(2)
+    plan: "___substrait__.Plan" = betterproto.message_field(2, group="query")
+    statement: "SqlStatement" = betterproto.message_field(3, group="query")
 
 
 @dataclass(eq=False, repr=False)
-class ExecSqlRequest(betterproto.Message):
-    config: "QueryExecutionConfig" = betterproto.message_field(1)
-    statement: "SqlStatement" = betterproto.message_field(2)
-
-
-@dataclass(eq=False, repr=False)
-class ExecQueryResponse(betterproto.Message):
-    paging_id: Optional[str] = betterproto.string_field(1, optional=True)
-    vector: "VectorBlock" = betterproto.message_field(2)
-
-
-@dataclass(eq=False, repr=False)
-class FetchQueryResultRequest(betterproto.Message):
+class QueryResultRequest(betterproto.Message):
     paging_id: str = betterproto.string_field(1)
     fetch_size: int = betterproto.int32_field(2)
 
 
 @dataclass(eq=False, repr=False)
-class FetchQueryResultResponse(betterproto.Message):
+class QueryResultResponse(betterproto.Message):
     paging_id: Optional[str] = betterproto.string_field(1, optional=True)
     vector: Optional["VectorBlock"] = betterproto.message_field(2, optional=True)
 
@@ -362,41 +351,6 @@ class MillServiceStub(betterproto.ServiceStub):
             metadata=metadata,
         )
 
-    async def exec_plan(
-        self,
-        exec_plan_request: "ExecPlanRequest",
-        *,
-        timeout: Optional[float] = None,
-        deadline: Optional["Deadline"] = None,
-        metadata: Optional["MetadataLike"] = None
-    ) -> AsyncIterator[ExecQueryResponse]:
-        async for response in self._unary_stream(
-            "/io.qpointz.mill.MillService/ExecPlan",
-            exec_plan_request,
-            ExecQueryResponse,
-            timeout=timeout,
-            deadline=deadline,
-            metadata=metadata,
-        ):
-            yield response
-
-    async def submit_plan_query(
-        self,
-        exec_plan_request: "ExecPlanRequest",
-        *,
-        timeout: Optional[float] = None,
-        deadline: Optional["Deadline"] = None,
-        metadata: Optional["MetadataLike"] = None
-    ) -> "FetchQueryResultResponse":
-        return await self._unary_unary(
-            "/io.qpointz.mill.MillService/SubmitPlanQuery",
-            exec_plan_request,
-            FetchQueryResultResponse,
-            timeout=timeout,
-            deadline=deadline,
-            metadata=metadata,
-        )
-
     async def parse_sql(
         self,
         parse_sql_request: "ParseSqlRequest",
@@ -414,36 +368,36 @@ class MillServiceStub(betterproto.ServiceStub):
             metadata=metadata,
         )
 
-    async def exec_sql(
+    async def exec_query(
         self,
-        exec_sql_request: "ExecSqlRequest",
+        query_request: "QueryRequest",
         *,
         timeout: Optional[float] = None,
         deadline: Optional["Deadline"] = None,
         metadata: Optional["MetadataLike"] = None
-    ) -> AsyncIterator[ExecQueryResponse]:
+    ) -> AsyncIterator[QueryResultResponse]:
         async for response in self._unary_stream(
-            "/io.qpointz.mill.MillService/ExecSql",
-            exec_sql_request,
-            ExecQueryResponse,
+            "/io.qpointz.mill.MillService/ExecQuery",
+            query_request,
+            QueryResultResponse,
             timeout=timeout,
             deadline=deadline,
             metadata=metadata,
         ):
             yield response
 
-    async def submit_sql(
+    async def submit_query(
         self,
-        exec_sql_request: "ExecSqlRequest",
+        query_request: "QueryRequest",
         *,
         timeout: Optional[float] = None,
         deadline: Optional["Deadline"] = None,
         metadata: Optional["MetadataLike"] = None
-    ) -> "FetchQueryResultResponse":
+    ) -> "QueryResultResponse":
         return await self._unary_unary(
-            "/io.qpointz.mill.MillService/SubmitSql",
-            exec_sql_request,
-            FetchQueryResultResponse,
+            "/io.qpointz.mill.MillService/SubmitQuery",
+            query_request,
+            QueryResultResponse,
             timeout=timeout,
             deadline=deadline,
             metadata=metadata,
@@ -451,16 +405,16 @@ class MillServiceStub(betterproto.ServiceStub):
 
     async def fetch_query_result(
         self,
-        fetch_query_result_request: "FetchQueryResultRequest",
+        query_result_request: "QueryResultRequest",
         *,
         timeout: Optional[float] = None,
         deadline: Optional["Deadline"] = None,
         metadata: Optional["MetadataLike"] = None
-    ) -> "FetchQueryResultResponse":
+    ) -> "QueryResultResponse":
         return await self._unary_unary(
             "/io.qpointz.mill.MillService/FetchQueryResult",
-            fetch_query_result_request,
-            FetchQueryResultResponse,
+            query_result_request,
+            QueryResultResponse,
             timeout=timeout,
             deadline=deadline,
             metadata=metadata,
@@ -484,36 +438,25 @@ class MillServiceBase(ServiceBase):
     ) -> "GetSchemaResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def exec_plan(
-        self, exec_plan_request: "ExecPlanRequest"
-    ) -> AsyncIterator[ExecQueryResponse]:
-        raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
-        yield ExecQueryResponse()
-
-    async def submit_plan_query(
-        self, exec_plan_request: "ExecPlanRequest"
-    ) -> "FetchQueryResultResponse":
-        raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
-
     async def parse_sql(
         self, parse_sql_request: "ParseSqlRequest"
     ) -> "ParseSqlResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def exec_sql(
-        self, exec_sql_request: "ExecSqlRequest"
-    ) -> AsyncIterator[ExecQueryResponse]:
+    async def exec_query(
+        self, query_request: "QueryRequest"
+    ) -> AsyncIterator[QueryResultResponse]:
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
-        yield ExecQueryResponse()
+        yield QueryResultResponse()
 
-    async def submit_sql(
-        self, exec_sql_request: "ExecSqlRequest"
-    ) -> "FetchQueryResultResponse":
+    async def submit_query(
+        self, query_request: "QueryRequest"
+    ) -> "QueryResultResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
     async def fetch_query_result(
-        self, fetch_query_result_request: "FetchQueryResultRequest"
-    ) -> "FetchQueryResultResponse":
+        self, query_result_request: "QueryResultRequest"
+    ) -> "QueryResultResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
     async def __rpc_handshake(
@@ -537,23 +480,6 @@ class MillServiceBase(ServiceBase):
         response = await self.get_schema(request)
         await stream.send_message(response)
 
-    async def __rpc_exec_plan(
-        self, stream: "grpclib.server.Stream[ExecPlanRequest, ExecQueryResponse]"
-    ) -> None:
-        request = await stream.recv_message()
-        await self._call_rpc_handler_server_stream(
-            self.exec_plan,
-            stream,
-            request,
-        )
-
-    async def __rpc_submit_plan_query(
-        self, stream: "grpclib.server.Stream[ExecPlanRequest, FetchQueryResultResponse]"
-    ) -> None:
-        request = await stream.recv_message()
-        response = await self.submit_plan_query(request)
-        await stream.send_message(response)
-
     async def __rpc_parse_sql(
         self, stream: "grpclib.server.Stream[ParseSqlRequest, ParseSqlResponse]"
     ) -> None:
@@ -561,26 +487,25 @@ class MillServiceBase(ServiceBase):
         response = await self.parse_sql(request)
         await stream.send_message(response)
 
-    async def __rpc_exec_sql(
-        self, stream: "grpclib.server.Stream[ExecSqlRequest, ExecQueryResponse]"
+    async def __rpc_exec_query(
+        self, stream: "grpclib.server.Stream[QueryRequest, QueryResultResponse]"
     ) -> None:
         request = await stream.recv_message()
         await self._call_rpc_handler_server_stream(
-            self.exec_sql,
+            self.exec_query,
             stream,
             request,
         )
 
-    async def __rpc_submit_sql(
-        self, stream: "grpclib.server.Stream[ExecSqlRequest, FetchQueryResultResponse]"
+    async def __rpc_submit_query(
+        self, stream: "grpclib.server.Stream[QueryRequest, QueryResultResponse]"
     ) -> None:
         request = await stream.recv_message()
-        response = await self.submit_sql(request)
+        response = await self.submit_query(request)
         await stream.send_message(response)
 
     async def __rpc_fetch_query_result(
-        self,
-        stream: "grpclib.server.Stream[FetchQueryResultRequest, FetchQueryResultResponse]",
+        self, stream: "grpclib.server.Stream[QueryResultRequest, QueryResultResponse]"
     ) -> None:
         request = await stream.recv_message()
         response = await self.fetch_query_result(request)
@@ -606,40 +531,28 @@ class MillServiceBase(ServiceBase):
                 GetSchemaRequest,
                 GetSchemaResponse,
             ),
-            "/io.qpointz.mill.MillService/ExecPlan": grpclib.const.Handler(
-                self.__rpc_exec_plan,
-                grpclib.const.Cardinality.UNARY_STREAM,
-                ExecPlanRequest,
-                ExecQueryResponse,
-            ),
-            "/io.qpointz.mill.MillService/SubmitPlanQuery": grpclib.const.Handler(
-                self.__rpc_submit_plan_query,
-                grpclib.const.Cardinality.UNARY_UNARY,
-                ExecPlanRequest,
-                FetchQueryResultResponse,
-            ),
             "/io.qpointz.mill.MillService/ParseSql": grpclib.const.Handler(
                 self.__rpc_parse_sql,
                 grpclib.const.Cardinality.UNARY_UNARY,
                 ParseSqlRequest,
                 ParseSqlResponse,
             ),
-            "/io.qpointz.mill.MillService/ExecSql": grpclib.const.Handler(
-                self.__rpc_exec_sql,
+            "/io.qpointz.mill.MillService/ExecQuery": grpclib.const.Handler(
+                self.__rpc_exec_query,
                 grpclib.const.Cardinality.UNARY_STREAM,
-                ExecSqlRequest,
-                ExecQueryResponse,
+                QueryRequest,
+                QueryResultResponse,
             ),
-            "/io.qpointz.mill.MillService/SubmitSql": grpclib.const.Handler(
-                self.__rpc_submit_sql,
+            "/io.qpointz.mill.MillService/SubmitQuery": grpclib.const.Handler(
+                self.__rpc_submit_query,
                 grpclib.const.Cardinality.UNARY_UNARY,
-                ExecSqlRequest,
-                FetchQueryResultResponse,
+                QueryRequest,
+                QueryResultResponse,
             ),
             "/io.qpointz.mill.MillService/FetchQueryResult": grpclib.const.Handler(
                 self.__rpc_fetch_query_result,
                 grpclib.const.Cardinality.UNARY_UNARY,
-                FetchQueryResultRequest,
-                FetchQueryResultResponse,
+                QueryResultRequest,
+                QueryResultResponse,
             ),
         }

@@ -1,7 +1,7 @@
 package io.qpointz.mill.azure.functions;
 
-import io.qpointz.mill.proto.ExecSqlRequest;
 import io.qpointz.mill.proto.QueryExecutionConfig;
+import io.qpointz.mill.proto.QueryRequest;
 import io.qpointz.mill.proto.SQLStatement;
 import lombok.val;
 import org.junit.jupiter.api.Test;
@@ -23,7 +23,7 @@ class BackendFunctionsTest {
 
     @Test
     void executeSimple() {
-        val req = ExecSqlRequest.newBuilder()
+        val req = QueryRequest.newBuilder()
                 .setStatement(SQLStatement.newBuilder()
                         .setSql("select * from `ts`.`TEST`")
                         .build())
@@ -31,7 +31,7 @@ class BackendFunctionsTest {
                         .setFetchSize(10)
                         .build())
                 .build();
-        val resp = funcs.submitSqlQuery().apply(req);
+        val resp = funcs.submitQuery().apply(req);
         assertNotNull(resp);
         assertTrue(resp.hasPagingId());
         assertTrue(resp.hasVector());
@@ -40,7 +40,7 @@ class BackendFunctionsTest {
 
     @Test
     void executeNoRecordsReturnsSchema() {
-        val req = ExecSqlRequest.newBuilder()
+        val req = QueryRequest.newBuilder()
                 .setStatement(SQLStatement.newBuilder()
                         .setSql("select * from `ts`.`TEST` WHERE `ID`< 0")
                         .build())
@@ -48,7 +48,7 @@ class BackendFunctionsTest {
                         .setFetchSize(10)
                         .build())
                 .build();
-        val resp = funcs.submitSqlQuery().apply(req);
+        val resp = funcs.submitQuery().apply(req);
         assertNotNull(resp);
         assertFalse(resp.hasPagingId());
         assertTrue(resp.hasVector());

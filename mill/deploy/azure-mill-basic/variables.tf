@@ -11,3 +11,8 @@ variable "app_name" {
   description = "Application name"
   default = "bck-func-feat-az-deploy-ndrf"
 }
+
+variable "deployment_id" {
+  description = "Deployment id"
+  default = "qp-deployment"
+}

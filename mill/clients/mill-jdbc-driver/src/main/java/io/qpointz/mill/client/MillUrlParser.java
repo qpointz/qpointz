@@ -26,16 +26,16 @@ public class MillUrlParser {
     }
 
     public record KnownProperty(String key, KnownPropertyType type, Boolean mandatory, String description) {
-
         public static KnownProperty of(String key, KnownPropertyType type, Boolean mandatory, String description) {
             return new KnownProperty(key, type, mandatory, description);
         }
-
     }
 
     public static Set<KnownProperty> KNOWN_PROPERTIES = Set.of(
+            KnownProperty.of(CLIENT_PROTOCOL_PROP, STRING, true, String.format("Client protocol valid values '%s', '%s','%s','%s'.",
+                    CLIENT_PROTOCOL_GRPC_VALUE, CLIENT_PROTOCOL_HTTP_VALUE, CLIENT_PROTOCOL_HTTPS_VALUE, CLIENT_PROTOCOL_IN_PROC_VALUE)),
             KnownProperty.of(HOST_PROP, STRING, true, "Mill backend host name"),
-            KnownProperty.of(PORT_PROP, INT, true, "Mill backend port"),
+            KnownProperty.of(PORT_PROP, INT, false, "Mill backend port"),
             KnownProperty.of(USERNAME_PROP, STRING, false, "Username to use for BASIC authentication"),
             KnownProperty.of(PASSWORD_PROP, STRING, false, "Password to use for BASIC authentication"),
             KnownProperty.of(BEARER_TOKEN_PROP, STRING, false, "Bearer token authentication token"),
@@ -43,7 +43,8 @@ public class MillUrlParser {
             KnownProperty.of(TLS_KEY_PRIVATE_KEY_PROP, STRING, false, "TLS path to private key"),
             KnownProperty.of(TLS_KEY_PRIVATE_KEY_PASSWORD_PROP, STRING, false, "TLS private key password"),
             KnownProperty.of(TLS_TRUST_ROOT_CERT_PROP, STRING, false, "TLS custom root CA certificate path"),
-            KnownProperty.of(FETCH_SIZE_PROP, INT, true, String.format("Record batch fetch size. Default %s", DEFAULT_FETCH_SIZE))
+            KnownProperty.of(FETCH_SIZE_PROP, INT, true, String.format("Record batch fetch size. Default %s", DEFAULT_FETCH_SIZE)),
+            KnownProperty.of(API_PATH_PROP,STRING, false, String.format("API relative path. Default %s", DEFAULT_API_PATH))
     );
 
     public MillUrlParser(String url, Properties... props) {
@@ -80,16 +81,23 @@ public class MillUrlParser {
 
         var parsedScheme = parsedUrl.getScheme();
         if (parsedScheme == null || parsedScheme.trim().isEmpty()) {
-            parsedScheme = MillClientConfiguration.CLIENT_CHANNEL_GRPC_VALUE;
+            parsedScheme = MillClientConfiguration.CLIENT_PROTOCOL_GRPC_VALUE;
         }
 
         switch (parsedScheme) {
-            case MillClientConfiguration.CLIENT_CHANNEL_GRPC_VALUE:
-            case MillClientConfiguration.CLIENT_CHANNEL_INPROC_VALUE:
-                effectiveProps.setProperty(MillClientConfiguration.CLIENT_CHANNEL_PROP, parsedScheme);
+            case CLIENT_PROTOCOL_GRPC_VALUE:
+            case CLIENT_PROTOCOL_IN_PROC_VALUE:
+            case CLIENT_PROTOCOL_HTTP_VALUE:
+            case CLIENT_PROTOCOL_HTTPS_VALUE:
+                effectiveProps.setProperty(MillClientConfiguration.CLIENT_PROTOCOL_PROP, parsedScheme);
                 break;
             default:
                 throw new IllegalArgumentException("Not supported scheme:" + parsedScheme);
+        }
+
+        val path = parsedUrl.getPath();
+        if (!(path==null || path.isEmpty())) {
+            effectiveProps.setProperty(API_PATH_PROP, path);
         }
 
         var query = parsedUrl.getQuery();

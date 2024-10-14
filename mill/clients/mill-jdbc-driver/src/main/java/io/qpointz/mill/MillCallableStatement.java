@@ -42,7 +42,11 @@ public class MillCallableStatement implements CallableStatement {
     public ResultSet executeQuery() throws SQLException {
         val millQuery = this.queryBuilder
                 .build();
-        this.resultSet = new MillRecordReaderResultSet(millQuery.executeRecordIterator());
+        try {
+            this.resultSet = new MillRecordReaderResultSet(millQuery.executeRecordIterator());
+        } catch (MillCodeException e) {
+            throw e.asSqlException();
+        }
         return this.resultSet;
     }
 

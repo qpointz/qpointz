@@ -11,8 +11,6 @@ import lombok.val;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.Executor;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Log
 public class MillConnection implements java.sql.Connection {
@@ -28,7 +26,7 @@ public class MillConnection implements java.sql.Connection {
     @Getter(lazy = true)
     private final MillClient client = createClient();
     private MillClient createClient() {
-        return new MillClient(this.config);
+        return MillClient.fromConfig(this.config);
     }
 
 
@@ -278,7 +276,7 @@ public class MillConnection implements java.sql.Connection {
     @Override
     public boolean isValid(int timeout) throws SQLException {
         try {
-            val resp = this.createClient().newBlockingStub().handshake(HandshakeRequest.getDefaultInstance());
+            val resp = this.createClient().handshake(HandshakeRequest.getDefaultInstance());
             return resp!=null;
         } catch (Exception exception) {
             log.warning(exception.getMessage());

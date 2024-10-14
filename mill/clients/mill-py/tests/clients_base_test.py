@@ -1,19 +1,30 @@
 import os
-import ssl
 import unittest
+
 from millclient import *
 from millclient.proto.io.qpointz.mill import ProtocolVersion
-
 
 class ClientBaseTests:
 
     class MillClientTest(unittest.TestCase):
 
-        def __init__(self, methodName, valid_sql, schema_name, empty_query_predicate = None):
-            super().__init__(methodName)
+        def skip_all(self):
+            print(f"Skipping tests. Active profile: {self.__active_profile}. Test profile: {self.__test_profile}")
+
+        def __init__(self, methodName, valid_sql, schema_name, empty_query_predicate = None, test_profile:str = "all"):
             self.__valid_sql = valid_sql
             self.__schema_name = schema_name
             self.__empty_query_predicate = empty_query_predicate or " `ID` < 0 "
+
+            self.__test_profile = test_profile
+
+            profile = os.environ.get("MILL_TEST_PROFILE", "all")
+            self.__active_profile = profile
+            if (profile == "all" or profile == self.__test_profile):
+                super().__init__(methodName)
+            else:
+                self.skip_all()
+                super().__init__('skip_all')
 
         @abstractmethod
         def __client__(self):
@@ -22,6 +33,7 @@ class ClientBaseTests:
         @abstractmethod
         def __get_schema_name__(self):
             pass
+
 
         def test_handshake(self):
             with self.__client__() as c:
@@ -50,9 +62,9 @@ class ClientBaseTests:
                 r = c.get_schema(request=req)
                 assert len(r.schema.tables) > 0
 
-        def test_exec_sql(self):
+        def test_exec_query(self):
             with self.__client__() as c:
-                l = c.exec_sql_fetch(sql = self.__valid_sql, fetch_size = 10)
+                l = c.exec_query_fetch(sql = self.__valid_sql, fetch_size = 10)
 
         def test_sql_querty_trivial(self):
             with self.__client__() as c:
@@ -84,39 +96,13 @@ class ClientBaseTests:
                 assert len(df) == 0
                 assert len(df.columns)>0
 
-class MillGrpcClientTests(ClientBaseTests.MillClientTest):
 
-    def __init__(self, methodName):
-        super().__init__(methodName, "select * from `airlines`.`segments`", "airlines", " 1 = 2 ")
-
-
-    def __client__(self):
-        host = os.environ.get("MILL_AUTH_TLS_HOST", "mill.local")
-        ctx = False
-        if host != "mill.local":
-            port = int(os.environ.get("MILL_AUTH_TLS_PORT", "9099"))
-            ca_file = os.environ.get("TLS_ROOT_CA", '../../../etc/ssl/ca.pem')
-            print(f"use CA:{ca_file}:exists{os.path.isfile(ca_file)}")
-            ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=ca_file)
-            ctx.set_alpn_protocols(['h2'])
-            ctx.check_hostname = False
-        else:
-            host = os.environ.get("MILL_HOST", "localhost")
-            port = os.environ.get("MILL_PORT", "9099")
-
-        print(f"Connect to {host}:{port}")
-        return create_client(host=host, port=int(port), ssl=ctx, creds=BasicAuthCredentials("reader", "reader"))
-
-class MillHttpClientTests(ClientBaseTests.MillClientTest):
-
-    def __init__(self, methodName):
-        super().__init__(methodName,"select * from `ts`.`TEST`", "ts", " `ID` < 0 ")
-
-    def __client__(self):
-        host = os.environ.get("MILL_AZ_FUNC_HOST", "localhost")
-        port = os.environ.get("MILL_AZ_FUNC_PORT", "7071")
-        return create_client(url=f"http://{host}:{port}/api/")
-
-if __name__ == '__main__':
-    asyncio.set_event_loop(asyncio.new_event_loop())
-    unittest.main()
+def run_test_profile(name):
+    profile = os.environ.get("MILL_TEST_PROFILE", "all")
+    print(f"Profiles: Requested:{name}. Selected:{profile}")
+    if (profile == "all" or profile == name):
+        print(f"Executing tests in profile {name}")
+        asyncio.set_event_loop(asyncio.new_event_loop())
+        unittest.main()
+    else:
+        print(f"Skipping tests in profile {name}")

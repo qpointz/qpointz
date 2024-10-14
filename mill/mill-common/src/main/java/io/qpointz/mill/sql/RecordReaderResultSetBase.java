@@ -228,7 +228,9 @@ public abstract class RecordReaderResultSetBase implements ResultSet {
     }
 
     protected SQLException operationNotSupported() {
-        return new SQLFeatureNotSupportedException("Operation not supported");
+        val elem = Thread.currentThread().getStackTrace()[0];
+        val methodName = elem.getMethodName();
+        return new SQLFeatureNotSupportedException(String.format("Operation not supported:%s", methodName));
     }
 
 
@@ -285,7 +287,7 @@ public abstract class RecordReaderResultSetBase implements ResultSet {
 
     @Override
     public Object getObject(int columnIndex, Map<String, Class<?>> map) throws SQLException {
-           throw operationNotSupported();
+           return this.getObject(columnIndex);
     }
 
     @Override
@@ -345,7 +347,7 @@ public abstract class RecordReaderResultSetBase implements ResultSet {
 
     @Override
     public Time getTime(int columnIndex, Calendar cal) throws SQLException {
-           throw operationNotSupported();
+        throw  operationNotSupported();
     }
 
     @Override

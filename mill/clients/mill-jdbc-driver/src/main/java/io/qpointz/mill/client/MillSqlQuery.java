@@ -1,5 +1,6 @@
 package io.qpointz.mill.client;
 
+import io.qpointz.mill.MillCodeException;
 import io.qpointz.mill.MillConnection;
 import io.qpointz.mill.proto.*;
 import io.qpointz.mill.sql.VectorBlockRecordIterator;
@@ -81,23 +82,23 @@ public class MillSqlQuery {
         return statement;
     }
 
-    private ExecSqlRequest.Builder request() {
-        return ExecSqlRequest.newBuilder()
+    private QueryRequest.Builder request() {
+        return QueryRequest.newBuilder()
               .setConfig(this.queryConfig())
               .setStatement(this.statement());
     }
 
-    public Iterator<ExecQueryResponse> executeResponses() {
+    public Iterator<QueryResultResponse> executeResponses() throws MillCodeException {
         val client = this.connection.getClient();
         val request = this.request()
                 .build();
-        return client.newBlockingStub().execSql(request);
+        return client.execQuery(request);
     }
 
     public class VectorBlockIterator implements Iterator<VectorBlock> {
-        private final Iterator<ExecQueryResponse> responses;
+        private final Iterator<QueryResultResponse> responses;
 
-        VectorBlockIterator(Iterator<ExecQueryResponse> responses) {
+        VectorBlockIterator(Iterator<QueryResultResponse> responses) {
             this.responses = responses;
         }
 
@@ -114,7 +115,7 @@ public class MillSqlQuery {
         }
     }
 
-    public Iterator<VectorBlock> executeVectorBlocks() {
+    public Iterator<VectorBlock> executeVectorBlocks() throws MillCodeException {
         return new VectorBlockIterator(this.executeResponses());
     }
 
@@ -128,7 +129,7 @@ public class MillSqlQuery {
         }
     }
 
-    public VectorBlockRecordIterator executeRecordIterator() {
+    public VectorBlockRecordIterator executeRecordIterator() throws MillCodeException {
         return new RecordIterator(this.executeVectorBlocks());
     }
 

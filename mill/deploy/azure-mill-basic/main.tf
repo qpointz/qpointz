@@ -1,6 +1,9 @@
 resource "azurerm_resource_group" "rg" {
   location = var.location
   name     = "${local.app_name_slug}-rg"
+  tags = merge({
+    "qp-component-id" = "deployment-rg"
+  }, local.default_tags)
 }
 
 resource "azurerm_storage_account" "app_storage_account" {
@@ -9,6 +12,9 @@ resource "azurerm_storage_account" "app_storage_account" {
   name = "${local.app_name_slug}sa"
   account_tier = "Standard"
   account_replication_type = "LRS"
+  tags = merge({
+    "qp-component-id" = "backend-function-sa"
+  }, local.default_tags)
 }
 
 resource "azurerm_service_plan" "app_service_plan" {
@@ -16,13 +22,19 @@ resource "azurerm_service_plan" "app_service_plan" {
   name                = "${local.app_name_slug}-serviceplan"
   os_type             = "Linux"
   resource_group_name = azurerm_resource_group.rg.name
-  sku_name            = "B1"
+  sku_name            = "B2"
+  tags = merge({
+    "qp-component-id" = "backend-service-plan"
+  }, local.default_tags)
 }
 
 resource "azurerm_user_assigned_identity" "app_uami" {
   location            = var.location
   name                = "${local.app_name_slug}-uami"
   resource_group_name = azurerm_resource_group.rg.name
+  tags = merge({
+    "qp-component-id" = "runtime-uami"
+  }, local.default_tags)
 }
 
 resource "azurerm_linux_function_app" "application" {
@@ -43,10 +55,17 @@ resource "azurerm_linux_function_app" "application" {
       java_version = "17"
     }
   }
+  tags = merge({
+    "qp-component-id" = "backend-function"
+  }, local.default_tags)
 }
 
 output "app" {
   value = azurerm_linux_function_app.application.name
+}
+
+output "app_resource_id" {
+  value = azurerm_linux_function_app.application.id
 }
 
 output "rg" {

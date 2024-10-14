@@ -1,8 +1,7 @@
 package io.qpointz.mill.services;
 
-import io.qpointz.mill.proto.ExecSqlRequest;
-import io.qpointz.mill.proto.MillServiceGrpc;
 import io.qpointz.mill.proto.ParseSqlRequest;
+import io.qpointz.mill.proto.QueryRequest;
 import io.qpointz.mill.proto.SQLStatement;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -23,11 +22,11 @@ import static org.mockito.Mockito.reset;
 public abstract class ServiceBaseTest {
 
 
-    protected static ExecSqlRequest.Builder sqlExecuteRequest(String sql) {
+    protected static QueryRequest.Builder sqlExecuteRequest(String sql) {
         val statement = SQLStatement.newBuilder()
                 .setSql(sql)
                 .build();
-        val request = ExecSqlRequest.newBuilder()
+        val request = QueryRequest.newBuilder()
                 .setStatement(statement);
         return request;
     }

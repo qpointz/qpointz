@@ -1,5 +1,6 @@
 package io.qpointz.mill.metadata.database;
 
+import io.qpointz.mill.MillCodeException;
 import io.qpointz.mill.MillConnection;
 import io.qpointz.mill.metadata.ResultSetProvidingMetadata;
 import io.qpointz.mill.proto.GetSchemaRequest;
@@ -84,7 +85,12 @@ public class TablesMetadata extends ResultSetProvidingMetadata<TablesMetadata.Ta
      */
     @Override
     protected Collection<TableRecord> getMetadata() {
-        var allTables = getAllTables();
+        Collection<TableRecord> allTables = null;
+        try {
+            allTables = getAllTables();
+        } catch (MillCodeException e) {
+            throw new RuntimeException(e);
+        }
         log.info(String.format("Filter tables by cat:%s, schema:%s, table:%s, types:%s", this.catalogPattern, this.schemaPattern, this.tableNamePattern, this.typesPattern));
         allTables = this.filterByPattern(this.catalogPattern, allTables, k-> k.catalog);
         allTables = this.filterByPattern(this.schemaPattern, allTables, k-> k.schema);
@@ -100,17 +106,16 @@ public class TablesMetadata extends ResultSetProvidingMetadata<TablesMetadata.Ta
      * Retrieves all table records from the database based on schemas.
      * @return Collection of all TableRecord
      */
-    private Collection<TableRecord> getAllTables() {
+    private Collection<TableRecord> getAllTables() throws MillCodeException {
         log.log(Level.INFO, "Getting all tables");
         val client = this.connection.getClient();
-        val stub = client.newBlockingStub();
 
-        val allSchemas = stub
+        val allSchemas = client
                 .listSchemas(ListSchemasRequest.newBuilder().build())
                 .getSchemasList();
         val allTables = new ArrayList<TableRecord>();
         for (val schemaName : allSchemas) {
-            val schema = stub
+            val schema = client
                     .getSchema(GetSchemaRequest.newBuilder()
                             .setSchemaName(schemaName)
                             .build())

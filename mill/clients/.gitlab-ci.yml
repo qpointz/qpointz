@@ -5,8 +5,9 @@ include:
 image: azul/zulu-openjdk:17-latest
 
 stages:
-  - init  
+  - init
   - test
+  - integration-test
   - build
   - publish
 
@@ -22,7 +23,7 @@ mill-clients:init-certs:
   stage: init
   extends: .init-dev-certs  
 
-mill:init-az-login:
+mill-clients:init-az-login:
   stage: init
   image: mcr.microsoft.com/azure-cli:cbl-mariner2.0  
   script:
@@ -35,9 +36,7 @@ mill:init-az-login:
     paths:
       - ${CI_PROJECT_DIR}/etc/.test_az_token
 
-.mill:client-test:
-  stage: test
-  image: azul/zulu-openjdk:17-latest
+.mill:grpc-services:
   services:
     - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
       pull_policy: always
@@ -45,7 +44,7 @@ mill:init-az-login:
         #SPRING_PROFILES_ACTIVE: "insecure"
       alias: backend.local
       entrypoint:
-        - "./bin/mill-calcite-backend-service"
+        - "./bin/mill-jdbc-backend-service"
       command:
         - ""
     - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
@@ -54,7 +53,7 @@ mill:init-az-login:
         SPRING_PROFILES_ACTIVE: "auth,tls"
       alias: backend-auth-tls.local
       entrypoint:
-        - "./bin/mill-calcite-backend-service"
+        - "./bin/mill-jdbc-backend-service"
       command:
         - ""
     - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
@@ -63,7 +62,7 @@ mill:init-az-login:
         SPRING_PROFILES_ACTIVE: "auth"
       alias: backend-auth.local
       entrypoint:
-        - "./bin/mill-calcite-backend-service"
+        - "./bin/mill-jdbc-backend-service"
       command:
         - ""
     - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
@@ -72,7 +71,7 @@ mill:init-az-login:
         SPRING_PROFILES_ACTIVE: "tls"
       alias: backend-tls.local
       entrypoint:
-        - "./bin/mill-calcite-backend-service"
+        - "./bin/mill-jdbc-backend-service"
       command:
         - ""
     - name: ${CI_REGISTRY_IMAGE}/azure-functions-test-host:${CI_COMMIT_REF_SLUG}
@@ -82,24 +81,21 @@ mill:init-az-login:
   needs:
     - job: mill-clients:init-certs
       artifacts: true
-    - job: mill:init-az-login
+    - job: mill-clients:init-az-login
       artifacts: true
     - job: mill-clients:init-version
       artifacts: true
   variables:
+    MILL_TEST_PROFILE: "all"
     MILL_HOST: backend.local
     MILL_PORT: "9099"
     MILL_AUTH_TLS_HOST: backend-auth-tls.local
-    MILL_AUTH_TLS_PORT: "9099"
     MILL_AUTH_HOST: backend-auth.local
-    MILL_AUTH_PORT: "9099"
     MILL_TLS_HOST: backend-tls.local
-    MILL_TLS_PORT: "9099"
-    MILL_AZ_FUNC_HOST: "func.local"
-    MILL_AZ_FUNC_PORT: "7071"
     TLS_CERT_CHAIN: "${CI_PROJECT_DIR}/.certs/client/client.pem"
     TLS_CERT_PK: "${CI_PROJECT_DIR}/.certs/client/client.key"
     TLS_ROOT_CA: "${CI_PROJECT_DIR}/etc/certs/ca.pem"
+    MILL_AZ_FUNC_API_URL: "http://func.local:7071/api/"
     CI_DEBUG_SERVICES: "true"
   before_script:
     - !reference [.global-vars, before_script]
@@ -108,36 +104,42 @@ mill:init-az-login:
     - export MILL_JWT_TOKEN="$(cat ${CI_PROJECT_DIR}/etc/.test_az_token)"
     - find  ${CI_PROJECT_DIR}/etc/certs/
 
-
 .mill-client:mill-py:test:
-  extends: .mill:client-test
   script:    
     - cd ${CI_PROJECT_DIR}/mill/clients/mill-py
-    - pip install -r requirements.txt        
-#    - python codegen.py
+    - pip install -r requirements.txt
     - python -m unittest tests/*
-  artifacts:
-    paths:
-      - ${CI_PROJECT_DIR}/mill/clients/mill-py
-    when: always
-    expire_in: "1 days"    
 
 
+##python 3.10
 mill-client:mill-py:test-3.10:
-  extends: .mill-client:mill-py:test
-  image: python:3.10-slim  
+  stage: integration-test
+  extends:
+    - .mill:grpc-services
+    - .mill-client:mill-py:test
+  image: python:3.10-slim
 
+##python 3.11
 mill-client:mill-py:test-3.11:
-  extends: .mill-client:mill-py:test
+  stage: integration-test
+  extends:
+    - .mill:grpc-services
+    - .mill-client:mill-py:test
   image: python:3.11-slim   
 
+##python 3.12
 mill-client:mill-py:test-3.12:
-  extends: .mill-client:mill-py:test
+  stage: integration-test
+  extends:
+    - .mill:grpc-services
+    - .mill-client:mill-py:test
   image: python:3.12-slim
 
+
+##JDBC driver
 mill:jdbc-driver:test:
-  extends: .mill:client-test
-  stage: test
+  extends: .mill:grpc-services
+  stage: integration-test
   image: azul/zulu-openjdk:17-latest
   script:
     - cd ${CI_PROJECT_DIR}/mill/clients

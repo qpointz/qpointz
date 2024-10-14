@@ -15,14 +15,11 @@ service MillService {
   rpc ListSchemas(ListSchemasRequest) returns (ListSchemasResponse);
   rpc GetSchema(GetSchemaRequest) returns (GetSchemaResponse);
 
-  rpc ExecPlan(ExecPlanRequest) returns(stream ExecQueryResponse);
-  rpc SubmitPlanQuery(ExecPlanRequest) returns (FetchQueryResultResponse);
-
   rpc ParseSql(ParseSqlRequest) returns(ParseSqlResponse);
-  rpc ExecSql(ExecSqlRequest) returns(stream ExecQueryResponse);
-  rpc SubmitSql(ExecSqlRequest) returns (FetchQueryResultResponse);
 
-  rpc FetchQueryResult(FetchQueryResultRequest) returns (FetchQueryResultResponse);
+  rpc ExecQuery(QueryRequest) returns(stream QueryResultResponse);
+  rpc SubmitQuery(QueryRequest) returns (QueryResultResponse);
+  rpc FetchQueryResult(QueryResultRequest) returns (QueryResultResponse);
 
 
 }
@@ -95,27 +92,20 @@ message QueryExecutionConfig {
   optional Attributes attributes = 2;
 }
 
-message ExecPlanRequest {
+message QueryRequest {
   QueryExecutionConfig config = 1;
-  substrait.Plan plan = 2;
+  oneof query {
+    substrait.Plan plan = 2;
+    SQLStatement statement = 3;
+  }
 }
 
-message ExecSqlRequest {
-  QueryExecutionConfig config = 1;
-  SQLStatement statement = 2;
-}
-
-message ExecQueryResponse {
-  optional string pagingId = 1;
-  VectorBlock vector = 2;
-}
-
-message FetchQueryResultRequest {
+message QueryResultRequest {
   string pagingId = 1;
   int32 fetchSize = 2;
 }
 
-message FetchQueryResultResponse {
+message QueryResultResponse {
   optional string pagingId = 1;
   optional VectorBlock vector = 2;
 }

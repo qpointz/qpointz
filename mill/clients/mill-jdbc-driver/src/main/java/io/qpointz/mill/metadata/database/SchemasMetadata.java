@@ -1,8 +1,10 @@
 package io.qpointz.mill.metadata.database;
 
+import io.qpointz.mill.MillCodeException;
 import io.qpointz.mill.MillConnection;
 import io.qpointz.mill.metadata.ResultSetProvidingMetadata;
 import io.qpointz.mill.proto.ListSchemasRequest;
+import io.qpointz.mill.proto.ListSchemasResponse;
 import io.qpointz.mill.types.logical.StringLogical;
 import io.qpointz.mill.vectors.ObjectToVectorProducer;
 import lombok.AllArgsConstructor;
@@ -35,8 +37,14 @@ public class SchemasMetadata extends ResultSetProvidingMetadata<SchemasMetadata.
 
     @Override
     protected Collection<SchemaRecord> getMetadata() {
-        val schemas = this.getConnection().getClient().newBlockingStub()
-                .listSchemas(ListSchemasRequest.newBuilder().build());
+        ListSchemasResponse schemas = null;
+        try {
+            schemas = this.getConnection().getClient()
+                    .listSchemas(ListSchemasRequest.newBuilder().build());
+        } catch (MillCodeException e) {
+            throw new RuntimeException(e);
+        }
+
         return schemas.getSchemasList().stream()
                 .map(k-> new SchemaRecord(null, k))
                 .toList();
