@@ -126,7 +126,7 @@
       resource_group_name="${TF_STATE_AZR_RG_NAME}"
       storage_account_name="${TF_STATE_AZR_SA_NAME}"
       container_name="${TF_STATE_AZR_SA_CONTAINER}"
-      key="${TF_DEPLOY_NAME}.tfstate"
+      key="${TF_DEPLOY_NAME}_${CI_COMMIT_REF_SLUG}.tfstate"
       access_key="${TF_STATE_AZR_SA_KEY}"
       HCL
     - export TF_BACKEND_FILE=${CI_PROJECT_DIR}/.tf.backend.tf
