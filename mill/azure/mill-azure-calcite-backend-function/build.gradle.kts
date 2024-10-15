@@ -40,7 +40,6 @@ tasks.withType<Jar> {
 dependencies {
     implementation(project(":mill-common"))
     implementation(libs.protobuf.java.util)
-    implementation(project(":mill-jdbc-service"))
     implementation(project(":mill-calcite-service"))
     implementation(project(":mill-common-service"))
     //implementation(project(":mill-common-backend-service"))

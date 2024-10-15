@@ -17,7 +17,7 @@ include (":mill-common-backend-service")
 include (":mill-calcite-service")
 include (":mill-calcite-backend-service")
 
-include (":mill-jdbc-service")
+//include (":mill-jdbc-service")
 include (":mill-jdbc-backend-service")
 
 include (":clients:mill-jdbc-driver")

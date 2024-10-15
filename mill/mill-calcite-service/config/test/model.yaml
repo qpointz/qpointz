@@ -9,5 +9,5 @@ schemas:
   - name: testdb
     type: jdbc
     jdbcDriver: "org.h2.Driver"
-    jdbcUrl: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM './config/test/testdata.sql'"
+    jdbcUrl: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM './config/test/testdata-types.sql'"
     jdbcSchema: "test"

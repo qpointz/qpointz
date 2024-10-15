@@ -22,7 +22,6 @@ application {
 dependencies {
     implementation(project(":mill-common-backend-service"))
     implementation(project(":mill-calcite-service"))
-    implementation(project(":mill-jdbc-service"))
     implementation(libs.calcite.core)
     runtimeOnly(libs.bundles.logging)
     compileOnly(libs.lombok)

@@ -3,11 +3,11 @@ logging:
     root: debug
 grpc:
   server:
-    in-process-name: testservice
+    in-process-name: test-service-calcite
     port: -1
   client:
-    testservice:
-      address: in-process:testservice
+    test-service-calcite:
+      address: in-process:test-service-calcite
       
 mill:
   backend:

@@ -1,10 +1,10 @@
 grpc:
   server:
-    in-process-name: testservice
+    in-process-name: testservice-jdbc
     port: -1
   client:
     testservice:
-      address: in-process:testservice
+      address: in-process:testservice-jdbc
 
 mill:
   backend:

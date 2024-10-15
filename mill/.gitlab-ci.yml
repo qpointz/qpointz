@@ -40,7 +40,7 @@ mill:unit-tests:
   script:
     - echo $HOME
     - cd ${CI_PROJECT_DIR}/mill
-    - ./gradlew --no-daemon --console plain clean test check
+    - ./gradlew --no-daemon --console plain clean test check testCodeCoverageReport
     - ls ${CI_PROJECT_DIR}/mill/.gradle-home
   needs:
     - job: mill:init-version

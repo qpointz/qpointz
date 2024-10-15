@@ -24,7 +24,8 @@ dependencies {
     implementation(libs.substrait.isthmus)
     //developmentOnly(libs.boot.devtools)
     annotationProcessor(libs.boot.configuration.processor)
-    testImplementation(libs.boot.starter.test)    
+    testImplementation(libs.boot.starter.test)
+    runtimeOnly(libs.h2.database)
 }
 
 testing {

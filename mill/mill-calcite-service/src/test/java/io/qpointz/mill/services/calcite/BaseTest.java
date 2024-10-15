@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -29,15 +30,16 @@ import org.springframework.test.context.ContextConfiguration;
         GrpcAdviceAutoConfiguration.class
     }
 )
-@ActiveProfiles("test")
+@ActiveProfiles("test-calcite")
 @Slf4j
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class BaseTest {
 
     @Autowired
     @Getter
     protected CalciteContextFactory ctxFactory;
 
-    @GrpcClient("testservice")
+    @GrpcClient("test-service-calcite")
     protected MillServiceGrpc.MillServiceBlockingStub blockingStub;
 
     @Test
