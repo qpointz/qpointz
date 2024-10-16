@@ -4,21 +4,19 @@ grpc:
       enabled: false
 
 mill:
+  security:
+    enabled: false
   backend:
-    security:
-      enabled: false
-    calcite:
-      connection:
-        quoting: BACK_TICK
-        caseSensitive: true
-        unquotedCasing: UNCHANGED
+    connection:
+      quoting: BACK_TICK
+      caseSensitive: true
+      unquotedCasing: UNCHANGED
     jdbc:
-      connection:
-        url: "jdbc:h2:mem:test2;INIT=RUNSCRIPT FROM '/app/config/testdata.sql'"
-        driver: "org.h2.Driver"
-        username: "*"
-        password: "*"
-      schema-name: "ts"
+      url: "jdbc:h2:mem:test2;INIT=RUNSCRIPT FROM '/app/config/testdata.sql'"
+      driver: "org.h2.Driver"
+      username: "*"
+      password: "*"
+      output-schema: "ts"
 
 logging:
   level:

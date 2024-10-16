@@ -40,9 +40,8 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation(project(":mill-common"))
-                    implementation(project(":mill-calcite-service"))
-                    implementation(project(":mill-common-backend-service"))
+                    implementation(project(":mill-backends"))
+                    implementation(project(":mill-grpc-service"))
                     implementation(libs.okhttp.mock.webserver)
                     implementation(libs.bootGRPC.client)
                     implementation(libs.bootGRPC.server)

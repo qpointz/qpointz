@@ -1,0 +1,8 @@
+grpc:
+  server:
+    security:
+      enabled: false
+
+mill:
+  security:
+    enabled: false

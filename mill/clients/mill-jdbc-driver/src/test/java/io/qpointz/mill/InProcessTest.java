@@ -6,8 +6,6 @@ import io.qpointz.mill.proto.GetSchemaRequest;
 import io.qpointz.mill.proto.HandshakeRequest;
 import io.qpointz.mill.services.MillService;
 import io.qpointz.mill.services.calcite.configuration.CalciteServiceConfiguration;
-import io.qpointz.mill.services.calcite.configuration.CalciteServiceProperties;
-import io.qpointz.mill.services.calcite.configuration.CalciteServiceProvidersConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import net.devh.boot.grpc.server.autoconfigure.GrpcAdviceAutoConfiguration;
@@ -19,11 +17,8 @@ import org.springframework.test.context.ContextConfiguration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(classes = {
-        CalciteServiceProvidersConfiguration.class
-} )
+@SpringBootTest
 @ContextConfiguration(classes = {
-        CalciteServiceProperties.class,
         CalciteServiceConfiguration.class,
         MillService.class,
         GrpcAdviceAutoConfiguration.class

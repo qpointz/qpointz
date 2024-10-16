@@ -37,26 +37,6 @@ public abstract class BaseTest {
         return envOr("MILL_AUTH_TLS_HOST", "backend.local");
     }
 
-    protected Integer getMillAuthTlsPort() {
-        return envOr("MILL_PORT", 9098, Integer::parseInt);
-    }
-
-    protected String getMillAuthHost() {
-        return envOr("MILL_AUTH_HOST", "backend.local");
-    }
-
-    protected Integer getMillAuthPort() {
-        return envOr("MILL_PORT", 9097, Integer::parseInt);
-    }
-
-    protected String getMillTlsHost() {
-        return envOr("MILL_TLS_HOST", "backend.local");
-    }
-
-    protected Integer getMillTlsPort() {
-        return envOr("MILL_PORT", 9096, Integer::parseInt);
-    }
-
     protected String getMillUser() {
         return envOr("MILL_USER", "reader");
     }

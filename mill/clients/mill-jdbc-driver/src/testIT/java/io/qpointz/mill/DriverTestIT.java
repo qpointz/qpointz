@@ -20,7 +20,7 @@ class DriverTestIT extends BaseTest {
         Class.forName("io.qpointz.mill.Driver");
         val url = String.format("jdbc:mill://%s:%s?user=%s&password=%s&bearerToken=%s&tlsKeyCertChain=%s&tlsKeyPrivateKey=%s&tlsTrustRootCert=%s",
                 getMillAuthTlsHost(),
-                getMillAuthTlsPort(),
+                getMillPort(),
                 getMillUser(),
                 getMillPassword(),
                 getMillJwtToken(),
