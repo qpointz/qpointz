@@ -47,56 +47,12 @@ class MillClientTest extends BaseTest {
         connectAndTest("Anonymous no auth no tls", client, k-> k.equals("ANONYMOUS"));
     }
 
-    @Test
-    void connectNoAuthTls() throws MillCodeException {
-        val client = MillClientConfiguration.builder()
-                .host(getMillTlsHost())
-                .port(getMillTlsPort())
-                .tlsKeyCertChain(getTlsCertChain())
-                .tlsKeyPrivateKey(getTlsCertPk())
-                .tlsTrustRootCert(getTlsRootCa())
-                .buildClient();
-        connectAndTest("Anonymous no auth no tls", client, k-> k.equals("ANONYMOUS"));
-    }
-
-    @Test
-    void connectAuthNoTlsBasicAuth() throws MillCodeException {
-        val client = MillClientConfiguration.builder()
-                .host(getMillAuthHost())
-                .port(getMillAuthPort())
-                .username(getMillUser())
-                .password(getMillPassword())
-                .buildClient();
-        connectAndTest("Basic authentication no tls", client, k-> k.equals("reader"));
-    }
-
-    @Test
-    void connectAuthNoTlsMultiCredentialsTokenAuth() throws MillCodeException {
-        val client = MillClientConfiguration.builder()
-                .host(getMillAuthHost())
-                .port(getMillAuthPort())
-                .bearerToken(getMillJwtToken())
-                .username(getMillUser())
-                .password(getMillPassword())
-                .buildClient();
-        connectAndTest("Bearer token authentication no tls", client, k-> !k.equals("ANONYMOUS") && !k.equals("reader"));
-    }
-
-    @Test
-    void connectAuthNoTlsBearerTokenAuth() throws MillCodeException {
-        val client = MillClientConfiguration.builder()
-                .host(getMillAuthHost())
-                .port(getMillAuthPort())
-                .bearerToken(getMillJwtToken())
-                .buildClient();
-        connectAndTest("Bearer token authentication no tls", client, k-> !k.equals("ANONYMOUS"));
-    }
 
     @Test
     void connectAuthTlsBasicAuth() throws MillCodeException {
         val client = MillClientConfiguration.builder()
                 .host(getMillAuthTlsHost())
-                .port(getMillAuthTlsPort())
+                .port(getMillPort())
                 .username(getMillUser())
                 .password(getMillPassword())
                 .tlsKeyCertChain(getTlsCertChain())
@@ -110,7 +66,7 @@ class MillClientTest extends BaseTest {
     void connectAuthTlsBearerTokenAuth() throws MillCodeException {
         val client = MillClientConfiguration.builder()
                 .host(getMillAuthTlsHost())
-                .port(getMillAuthTlsPort())
+                .port(getMillPort())
                 .bearerToken(getMillJwtToken())
                 .tlsKeyCertChain(getTlsCertChain())
                 .tlsKeyPrivateKey(getTlsCertPk())
@@ -123,7 +79,7 @@ class MillClientTest extends BaseTest {
     void connectAuthTlsMultiCredentialsTokenAuth() throws MillCodeException {
         val client = MillClientConfiguration.builder()
                 .host(getMillAuthTlsHost())
-                .port(getMillAuthTlsPort())
+                .port(getMillPort())
                 .bearerToken(getMillJwtToken())
                 .username(getMillUser())
                 .password(getMillPassword())

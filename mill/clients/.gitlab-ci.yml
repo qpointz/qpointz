@@ -30,48 +30,32 @@ mill-clients:init-az-login:
     - az config set core.only_show_errors=yes
     - az login --service-principal -u ${AZ_TEST_SPN} --password ${AZ_TEST_SPN_SECRET} --tenant ${AZ_TEST_TENANT_ID} --allow-no-subscription
     - AZ_TOKEN=$(az account get-access-token --scope ${AZ_TEST_SCOPE}/.default --query "accessToken" --output tsv)
-    - echo -n $AZ_TOKEN > ${CI_PROJECT_DIR}/etc/.test_az_token    
-  artifacts:    
+    - echo -n $AZ_TOKEN > ${CI_PROJECT_DIR}/etc/.test_az_token
+  artifacts:
     expire_in: "1 days"
     paths:
       - ${CI_PROJECT_DIR}/etc/.test_az_token
 
 .mill:grpc-services:
   services:
-    - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
+    - name: ${CI_REGISTRY_IMAGE}/mill-service-test:${CI_COMMIT_REF_SLUG}
       pull_policy: always
-      #variables:
-        #SPRING_PROFILES_ACTIVE: "insecure"
+      variables:
+        SPRING_PROFILES_ACTIVE: "jdbc-sample"
+        AZ_TENANT_ID : $AZ_TEST_TENANT_ID
       alias: backend.local
       entrypoint:
-        - "./bin/mill-jdbc-backend-service"
+        - "./bin/mill-service"
       command:
         - ""
-    - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
+    - name: ${CI_REGISTRY_IMAGE}/mill-service-test:${CI_COMMIT_REF_SLUG}
       pull_policy: always
       variables:
-        SPRING_PROFILES_ACTIVE: "auth,tls"
+        SPRING_PROFILES_ACTIVE: "jdbc-sample,auth,tls"
+        AZ_TENANT_ID : $AZ_TEST_TENANT_ID
       alias: backend-auth-tls.local
       entrypoint:
-        - "./bin/mill-jdbc-backend-service"
-      command:
-        - ""
-    - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
-      pull_policy: always
-      variables:
-        SPRING_PROFILES_ACTIVE: "auth"
-      alias: backend-auth.local
-      entrypoint:
-        - "./bin/mill-jdbc-backend-service"
-      command:
-        - ""
-    - name: ${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}
-      pull_policy: always
-      variables:
-        SPRING_PROFILES_ACTIVE: "tls"
-      alias: backend-tls.local
-      entrypoint:
-        - "./bin/mill-jdbc-backend-service"
+        - "./bin/mill-service"
       command:
         - ""
     - name: ${CI_REGISTRY_IMAGE}/azure-functions-test-host:${CI_COMMIT_REF_SLUG}
@@ -90,8 +74,8 @@ mill-clients:init-az-login:
     MILL_HOST: backend.local
     MILL_PORT: "9099"
     MILL_AUTH_TLS_HOST: backend-auth-tls.local
-    MILL_AUTH_HOST: backend-auth.local
-    MILL_TLS_HOST: backend-tls.local
+#    MILL_AUTH_HOST: backend-auth.local
+#    MILL_TLS_HOST: backend-tls.local
     TLS_CERT_CHAIN: "${CI_PROJECT_DIR}/.certs/client/client.pem"
     TLS_CERT_PK: "${CI_PROJECT_DIR}/.certs/client/client.key"
     TLS_ROOT_CA: "${CI_PROJECT_DIR}/etc/certs/ca.pem"

@@ -18,11 +18,35 @@ class MillDatabaseMetadataTest extends BaseTest {
 
 
     @Test
-    void getUserName() throws SQLException {
-        val url = String.format("jdbc:mill://%s:%s", getMillAuthHost(), getMillAuthPort());
-        try (val con = DriverManager.getConnection(url, getMillUser(), getMillPassword() )) {
+    void getUserNameBasicAuth() throws SQLException {
+        val url = String.format("jdbc:mill://%s:%s?user=%s&password=%s&tlsKeyCertChain=%s&tlsKeyPrivateKey=%s&tlsTrustRootCert=%s",
+                getMillAuthTlsHost(),
+                getMillPort(),
+                getMillUser(),
+                getMillPassword(),
+                getTlsCertChain(),
+                getTlsCertPk(),
+                getTlsRootCa()
+        );
+        try (val con = DriverManager.getConnection(url)) {
             val meta = con.getMetaData();
             assertEquals(getMillUser(), meta.getUserName());
+        }
+    }
+
+    @Test
+    void getUserNameBearerToken() throws SQLException {
+        val url = String.format("jdbc:mill://%s:%s?bearerToken=%s&tlsKeyCertChain=%s&tlsKeyPrivateKey=%s&tlsTrustRootCert=%s",
+                getMillAuthTlsHost(),
+                getMillPort(),
+                getMillJwtToken(),
+                getTlsCertChain(),
+                getTlsCertPk(),
+                getTlsRootCa()
+        );
+        try (val con = DriverManager.getConnection(url)) {
+            val meta = con.getMetaData();
+            assertNotEquals("ANONYMOUS", meta.getUserName());
         }
     }
 

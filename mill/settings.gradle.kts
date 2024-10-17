@@ -12,18 +12,13 @@ rootProject.name = "mill"
 
 include (":mill-common")
 include (":mill-common-service")
-include (":mill-common-backend-service")
-
-include (":mill-calcite-service")
-include (":mill-calcite-backend-service")
-
-include (":mill-jdbc-service")
-include (":mill-jdbc-backend-service")
-
+include (":mill-backends")
+include (":mill-service")
+include (":mill-grpc-service")
 include (":clients:mill-jdbc-driver")
 include (":clients:mill-jdbc-shell")
+include (":mill-azure-service-function")
 
-include (":azure:mill-azure-calcite-backend-function")
 
 
 dependencyResolutionManagement {
@@ -142,6 +137,9 @@ dependencyResolutionManagement {
             library("okhttp-mock-webserver", "com.squareup.okhttp3", "mockwebserver").versionRef(okhttp3)
             library("okhttp", "com.squareup.okhttp3", "okhttp").versionRef(okhttp3)
 
+            bundle("jdbc-pack", listOf(
+                "h2-database"
+            ))
 
 
         }

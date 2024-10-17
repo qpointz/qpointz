@@ -1,9 +1,8 @@
 mill:
-  backend:
-    security:                        
-      enabled: true
-      providers:
-        - type: file
-          path: /app/config/passwd.yaml
-        - type: jwt
-          issuer-uri: "https://login.microsoftonline.com/${AZURE_TEST_TENANT_ID}/discovery/v2.0/keys"
+  security:
+    enabled: true
+    providers:
+      - type: file
+        path: /app/config/passwd.yaml
+      - type: jwt
+        issuer-uri: "https://login.microsoftonline.com/${AZURE_TEST_TENANT_ID}/discovery/v2.0/keys"

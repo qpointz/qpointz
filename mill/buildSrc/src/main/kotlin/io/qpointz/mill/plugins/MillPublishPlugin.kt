@@ -2,9 +2,11 @@ package io.qpointz.mill.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.logging.LogLevel
 import org.gradle.kotlin.dsl.configure
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.internal.cc.base.logger
 
 
 class MillPublishPlugin : Plugin<Project> {
@@ -30,6 +32,10 @@ class MillPublishPlugin : Plugin<Project> {
 
         project.extensions.configure(org.gradle.plugins.signing.SigningExtension::class.java) {
             sign(publishing?.publications)
+            if (! project.hasProperty("signing.keyId")) {
+                logger.log(LogLevel.WARN, "No signing key provided. Skipping signing task")
+                setRequired(false)
+            }
         }
 
         project.extensions.configure<PublishingExtension> {
@@ -39,7 +45,7 @@ class MillPublishPlugin : Plugin<Project> {
             publications.create("mavenJava", MavenPublication::class.java, {
                 val comp = project.components.findByName("java")
                 from(comp)
-                createPom(project, millExt, comp!!.name)
+                createPom(millExt, comp!!.name)
             })
 
 //            val shadowComponent = project.components.findByName("shadow")
@@ -56,7 +62,6 @@ class MillPublishPlugin : Plugin<Project> {
 }
 
     private fun MavenPublication.createPom(
-        project: Project,
         millExt: MillExtension?,
         pomName: String
     ) {

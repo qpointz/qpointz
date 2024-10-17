@@ -40,7 +40,7 @@ mill:unit-tests:
   script:
     - echo $HOME
     - cd ${CI_PROJECT_DIR}/mill
-    - ./gradlew --no-daemon --console plain clean test check
+    - ./gradlew --no-daemon --console plain clean test check testCodeCoverageReport
     - ls ${CI_PROJECT_DIR}/mill/.gradle-home
   needs:
     - job: mill:init-version
@@ -90,7 +90,7 @@ mill:upload-packages:
     - BASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/mill-packages/${QP_VERSION}/"
     - >  
       curl --fail-with-body --output file.txt --header "JOB-TOKEN: ${CI_JOB_TOKEN}" 
-      --upload-file ${CI_PROJECT_DIR}/mill/azure/mill-azure-calcite-backend-function/build/azure-functions/mill-calcite-backend-func.zip
+      --upload-file ${CI_PROJECT_DIR}/mill/mill-azure-service-function/build/azure-functions/mill-service-func.zip
       "${BASE_URL}/mill-calcite-backend-func.zip"
     - >
       curl --fail-with-body --output file.txt --header "JOB-TOKEN: ${CI_JOB_TOKEN}" 
@@ -101,12 +101,13 @@ mill:upload-packages:
       --upload-file "${CI_PROJECT_DIR}/mill/clients/mill-jdbc-shell/build/distributions/mill-jdbc-shell-${QP_VERSION}.zip"      
       "${BASE_URL}/mill-jdbc-shell-${QP_VERSION}.zip"
 
-.jdbc-backend-service-build-docker-image:
+mill:service:build-docker:
+  stage: publish
   extends: .docker-build-job
   variables:
-    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/mill-jdbc-backend-service
-    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/mill-jdbc-backend-service/src/main/docker/Dockerfile
-    DOCKER_BUILD_CONTAINER_NAME : jdbc-backend-service
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/mill-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/mill-service/src/main/docker/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : mill-service
   needs:
     - job: mill:install-dist
       artifacts: true
@@ -115,23 +116,35 @@ mill:upload-packages:
     - job: mill:init-version
       artifacts: true
 
-mill:jdbc-backend:build-docker-local:
-  extends: .jdbc-backend-service-build-docker-image
-  stage: package
-  variables:
-    DOCKER_LOCAL_ONLY: "true"
-
-mill:jdbc-backend:build-docker:
-  extends: .jdbc-backend-service-build-docker-image
+mill:service:build-test-docker:
   stage: publish
+  extends: .docker-build-job
+  before_script:
+    - mkdir -p ${CI_PROJECT_DIR}/mill/mill-service/config/test/ssl
+    - cp ${CI_PROJECT_DIR}/etc/certs/_\.local/cert.pem ${CI_PROJECT_DIR}/mill/mill-service/config/test/ssl/server.crt
+    - cp ${CI_PROJECT_DIR}/etc/certs/_\.local/key.pem ${CI_PROJECT_DIR}/mill/mill-service/config/test/ssl/server.key
+  script:
+    - >
+      /kaniko/executor      
+      --context "${CI_PROJECT_DIR}/mill/mill-service/config/test/"
+      --dockerfile "${CI_PROJECT_DIR}/mill/mill-service/config/test/Dockerfile"
+      --build-arg AZ_TID=$AZ_TEST_TENANT_ID
+      --build-arg BASE_IMAGE=${CI_REGISTRY_IMAGE}/mill-service:${CI_COMMIT_REF_SLUG} 
+      --destination "${CI_REGISTRY_IMAGE}/mill-service-test:${CI_COMMIT_REF_SLUG}"
+      --cache=true
+  needs:
+    - job: mill:init-certs
+      artifacts: true
+    - job: mill:service:build-docker
+      artifacts: false
 
 mill:azure-functions-test-docker-local:
   extends: .docker-build-job
   stage: package
   variables:
     DOCKER_LOCAL_ONLY: "true"
-    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/azure/mill-azure-calcite-backend-function
-    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/azure/mill-azure-calcite-backend-function/src/main/docker/Dockerfile
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/mill-azure-service-function
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/mill-azure-service-function/src/main/docker/Dockerfile
     DOCKER_BUILD_CONTAINER_NAME : azure-functions-test-host
   needs:
     - job: mill:install-dist
@@ -140,42 +153,6 @@ mill:azure-functions-test-docker-local:
       artifacts: false
     - job: mill:init-version
       artifacts: true
-
-
-mill:calcite-backend:build-docker:
-  extends: .docker-build-job
-  stage: publish
-  variables:
-    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/mill-calcite-backend-service
-    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/mill-calcite-backend-service/src/main/docker/Dockerfile
-    DOCKER_BUILD_CONTAINER_NAME : calcite-backend-service
-  needs:
-    - job: mill:install-dist
-      artifacts: true
-    - job: mill:unit-tests
-      artifacts: false
-    - job: mill:init-version
-      artifacts: true
-
-mill:jdbc-test-backend:build-docker-local:
-  stage: package
-  extends: .docker-build-job
-  before_script:
-    - cp ${CI_PROJECT_DIR}/etc/certs/_\.local/cert.pem ${CI_PROJECT_DIR}/mill/clients/etc/test-backend-server/server.crt
-    - cp ${CI_PROJECT_DIR}/etc/certs/_\.local/key.pem ${CI_PROJECT_DIR}/mill/clients/etc/test-backend-server/server.key
-  script:
-    - >
-      /kaniko/executor
-      --build-arg AZ_TID=$AZ_TEST_TENANT_ID
-      --build-arg BASE_IMAGE=${CI_REGISTRY_IMAGE}/jdbc-backend-service:${CI_COMMIT_REF_SLUG} 
-      --context "${CI_PROJECT_DIR}/mill/clients/etc/test-backend-server" 
-      --destination "${CI_REGISTRY_IMAGE}/clients-test-backend-server:${CI_COMMIT_REF_SLUG}"                
-      --cache=true
-  needs:
-    - job: mill:init-certs
-      artifacts: true
-    - job: mill:jdbc-backend:build-docker-local
-      artifacts: false
 
 sonarqube-check:
   extends: .gradle-job
@@ -273,7 +250,7 @@ mill:deploy-app:
   script:
     - APP_NAME="$(cat $TF_DEPLOY_DIR/.${TF_DEPLOY_NAME}.out.json | jq -r '.app.value')"
     - RG_NAME="$(cat $TF_DEPLOY_DIR/.${TF_DEPLOY_NAME}.out.json | jq -r '.rg.value')"
-    - az functionapp deployment source config-zip -g $RG_NAME -n $APP_NAME --src ${CI_PROJECT_DIR}/mill/azure/mill-azure-calcite-backend-function/build/azure-functions/mill-calcite-backend-func.zip
+    - az functionapp deployment source config-zip -g $RG_NAME -n $APP_NAME --src ${CI_PROJECT_DIR}/mill/mill-azure-service-function/build/azure-functions/mill-service-func.zip
     - az functionapp cors add -g $RG_NAME -n $APP_NAME --allowed-origins '*'
     - ROOT_API_URL="$(az functionapp function list -g $RG_NAME -n $APP_NAME | jq -r '.[0].invokeUrlTemplate' | sed 's|\(.*\)/.*|\1|')/"
     - echo -n $ROOT_API_URL > $CI_PROJECT_DIR/mill/deploy/azure-mill-basic/.app.json
