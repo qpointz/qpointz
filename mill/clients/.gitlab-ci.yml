@@ -74,8 +74,6 @@ mill-clients:init-az-login:
     MILL_HOST: backend.local
     MILL_PORT: "9099"
     MILL_AUTH_TLS_HOST: backend-auth-tls.local
-#    MILL_AUTH_HOST: backend-auth.local
-#    MILL_TLS_HOST: backend-tls.local
     TLS_CERT_CHAIN: "${CI_PROJECT_DIR}/.certs/client/client.pem"
     TLS_CERT_PK: "${CI_PROJECT_DIR}/.certs/client/client.key"
     TLS_ROOT_CA: "${CI_PROJECT_DIR}/etc/certs/ca.pem"
@@ -128,7 +126,18 @@ mill:jdbc-driver:test:
   script:
     - cd ${CI_PROJECT_DIR}/mill/clients
     - ../gradlew --no-daemon --console plain clean test testIT
- 
+  artifacts:
+    when: always
+    expire_in: "15 days"
+    reports:
+      junit: ${CI_PROJECT_DIR}/mill/**/build/test-results/*/*.xml
+      coverage_report:
+        coverage_format: jacoco
+        path: ${CI_PROJECT_DIR}/mill/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml
+    paths:
+      - ${CI_PROJECT_DIR}/mill/**/build/test-results/*/*.xml
+      - ${CI_PROJECT_DIR}/mill/**/build/test-results/*/*.xml
+
 mill-clients:install-dist:
   stage: build
   image: azul/zulu-openjdk:17-latest

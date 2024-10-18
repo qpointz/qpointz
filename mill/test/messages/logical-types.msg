@@ -4,8 +4,8 @@ schema {
     type {
       type {
         typeId: BIG_INT
-        precision: 4294967295
-        scale: 4294967295
+        precision: -1
+        scale: -1
       }
       nullability: NULL
     }
@@ -16,8 +16,8 @@ schema {
     type {
       type {
         typeId: BINARY
-        precision: 4294967295
-        scale: 4294967295
+        precision: -1
+        scale: -1
       }
       nullability: NULL
     }
@@ -28,8 +28,8 @@ schema {
     type {
       type {
         typeId: BOOL
-        precision: 4294967295
-        scale: 4294967295
+        precision: -1
+        scale: -1
       }
       nullability: NULL
     }
@@ -40,8 +40,8 @@ schema {
     type {
       type {
         typeId: DATE
-        precision: 4294967295
-        scale: 4294967295
+        precision: -1
+        scale: -1
       }
       nullability: NULL
     }
@@ -52,8 +52,8 @@ schema {
     type {
       type {
         typeId: DOUBLE
-        precision: 4294967295
-        scale: 4294967295
+        precision: -1
+        scale: -1
       }
       nullability: NULL
     }
@@ -64,8 +64,8 @@ schema {
     type {
       type {
         typeId: FLOAT
-        precision: 4294967295
-        scale: 4294967295
+        precision: -1
+        scale: -1
       }
       nullability: NULL
     }
@@ -76,8 +76,8 @@ schema {
     type {
       type {
         typeId: INT
-        precision: 4294967295
-        scale: 4294967295
+        precision: -1
+        scale: -1
       }
       nullability: NULL
     }
@@ -88,8 +88,8 @@ schema {
     type {
       type {
         typeId: SMALL_INT
-        precision: 4294967295
-        scale: 4294967295
+        precision: -1
+        scale: -1
       }
       nullability: NULL
     }
@@ -100,8 +100,8 @@ schema {
     type {
       type {
         typeId: STRING
-        precision: 4294967295
-        scale: 4294967295
+        precision: -1
+        scale: -1
       }
       nullability: NULL
     }
@@ -112,8 +112,8 @@ schema {
     type {
       type {
         typeId: TIME
-        precision: 4294967295
-        scale: 4294967295
+        precision: -1
+        scale: -1
       }
       nullability: NULL
     }
@@ -124,8 +124,8 @@ schema {
     type {
       type {
         typeId: TIMESTAMP
-        precision: 4294967295
-        scale: 4294967295
+        precision: -1
+        scale: -1
       }
       nullability: NULL
     }
@@ -136,8 +136,8 @@ schema {
     type {
       type {
         typeId: TIMESTAMP_TZ
-        precision: 4294967295
-        scale: 4294967295
+        precision: -1
+        scale: -1
       }
       nullability: NULL
     }
@@ -148,8 +148,8 @@ schema {
     type {
       type {
         typeId: TINY_INT
-        precision: 4294967295
-        scale: 4294967295
+        precision: -1
+        scale: -1
       }
       nullability: NULL
     }
@@ -160,8 +160,8 @@ schema {
     type {
       type {
         typeId: UUID
-        precision: 4294967295
-        scale: 4294967295
+        precision: -1
+        scale: -1
       }
       nullability: NULL
     }
@@ -385,10 +385,10 @@ vectors {
     nulls: true
   }
   byteVector {
-    values: "\370\024\311\266\246!I\035\225\327dN\323d\250\222"
+    values: "\372\031\332sp\364E\236\201!<6/\257\250\340"
     values: ""
-    values: "\250\300fi\202\212B\256\243\030\317\264\035\375[\003"
-    values: "\300\370*Z\323\031A\272\215R\300(y\270\250\343"
+    values: "\a3lXk\262H\364\242p;3\361\264$\350"
+    values: "Atv4U\222D.\226\261\312\276\020>8m"
     values: ""
   }
 }

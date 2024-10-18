@@ -119,7 +119,7 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     @Override
     public String getURL() throws SQLException {
-        return "";
+        return this.connection.getUrl();
     }
 
     @Override
@@ -167,24 +167,27 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
         return "";
     }
 
+
+    private static final String DRIVER_NAME = "Mill JDBC driver";
+
     @Override
     public String getDriverName() throws SQLException {
-        return "";
+        return DRIVER_NAME;
     }
 
     @Override
     public String getDriverVersion() throws SQLException {
-        return "";
+        return String.format("%s.%s.%s", Driver.majorVersion, Driver.minorVersion, Driver.buildVersion);
     }
 
     @Override
     public int getDriverMajorVersion() {
-        return 0;
+        return Driver.majorVersion;
     }
 
     @Override
     public int getDriverMinorVersion() {
-        return 0;
+        return Driver.minorVersion;
     }
 
     @Override

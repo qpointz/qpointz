@@ -25,7 +25,7 @@ class MillPlugin: Plugin<Project> {
         val path = Paths.get("${project.rootProject.projectDir}/../VERSION")
         if (!Files.exists(path)) {
             logger.trace("VERSION file missing {}:", path.toAbsolutePath().toString())
-            return "0.0.1"
+            return "0.1.0"
         }
         var version =  Files.readAllLines(path).get(0)
         if (".*\\-\\w+\\.\\d+$".toRegex().matches(version)) {

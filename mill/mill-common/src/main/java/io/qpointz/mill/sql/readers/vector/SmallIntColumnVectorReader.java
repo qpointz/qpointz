@@ -15,19 +15,32 @@ public class SmallIntColumnVectorReader extends VectorColumnReader {
     }
 
     @Override
-    public Object getObject(int rowIdx) {
-        return this.getVectorValue(rowIdx);
-    }
-
-    @Override
     public int getInt(int rowIdx) {
+        return this.getVectorInt(rowIdx);
+    }
+
+    @Override
+    public short getShort(int rowIdx) {
         return this.getVectorValue(rowIdx);
     }
 
     @Override
-    public long getLong(int rowIdx) {
+    public byte getByte(int rowIdx) {
+        return (byte) this.getShort(rowIdx);
+    }
+
+    @Override
+    public float getFloat(int rowIdx) {
         return this.getVectorValue(rowIdx);
     }
 
+    @Override
+    public double getDouble(int rowIdx) {
+        return this.getVectorValue(rowIdx);
+    }
 
+    @Override
+    public Object getObject(int rowIdx) {
+        return this.getShort(rowIdx);
+    }
 }

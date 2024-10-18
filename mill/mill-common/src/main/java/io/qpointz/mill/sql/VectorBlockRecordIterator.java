@@ -1,5 +1,6 @@
 package io.qpointz.mill.sql;
 
+import io.qpointz.mill.MillRuntimeDataException;
 import io.qpointz.mill.proto.VectorBlock;
 import io.qpointz.mill.sql.readers.vector.ColumnMetadata;
 import io.qpointz.mill.sql.readers.vector.ColumnMetadataFactory;
@@ -13,6 +14,7 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.function.BiFunction;
 
 public abstract class VectorBlockRecordIterator implements RecordReader {
 
@@ -103,89 +105,154 @@ public abstract class VectorBlockRecordIterator implements RecordReader {
         return this.columnReader(columnIndex).isNull(rowIdx);
     }
 
+    private enum ColumnReaderOp {
+        GET_BOOLEAN,
+        GET_BYTE,
+        GET_SHORT,
+        GET_INT,
+        GET_LONG,
+        GET_FLOAT,
+        GET_DOUBLE,
+        GET_BIG_DECIMAL,
+        GET_BYTES,
+        GET_DATE,
+        GET_TIME,
+        GET_TIMESTAMP,
+        GET_ASCII_STREAM,
+        GET_UNICODE_STREAM,
+        GET_BINARY_STREAM,
+        GET_OBJECT,
+        GET_STRING
+    }
+
+    private <T> T doColumnReaderOp(ColumnReaderOp op, int columnIdx, int rowIdx, BiFunction<ColumnReader, Integer, T> getVal) {
+        try {
+            val columnReader = this.columnReader(columnIdx);
+            return getVal.apply(columnReader, rowIdx);
+        } catch (Exception ex) {
+            val column = this.vectorBlock.getSchema().getFields(columnIdx);
+            val msg = String.format("Failed operation '%s' on column %s: %s (%s)",op.name(), columnIdx, column.getName(), column.getType().getType().getTypeId().name());
+            throw new MillRuntimeDataException(msg, ex);
+        }
+    }
+
     @Override
     public String getString(int columnIndex) {
-        return this.columnReader(columnIndex).getString(rowIdx);
+        return doColumnReaderOp(ColumnReaderOp.GET_STRING,
+                columnIndex, rowIdx,
+                ColumnReader::getString);
     }
 
     @Override
     public Boolean getBoolean(int columnIndex) {
-        return this.columnReader(columnIndex).getBoolean(rowIdx);
+        return doColumnReaderOp(ColumnReaderOp.GET_BOOLEAN,
+                columnIndex, rowIdx,
+                ColumnReader::getBoolean);
     }
 
     @Override
     public byte getByte(int columnIndex) {
-        return this.columnReader(columnIndex).getByte(rowIdx);
+        return doColumnReaderOp(ColumnReaderOp.GET_BYTE,
+                columnIndex, rowIdx,
+                ColumnReader::getByte);
     }
 
     @Override
     public short getShort(int columnIndex) {
-        return this.columnReader(columnIndex).getShort(rowIdx);
+        return doColumnReaderOp(ColumnReaderOp.GET_SHORT,
+                columnIndex, rowIdx,
+                ColumnReader::getShort);
     }
 
     @Override
     public int getInt(int columnIndex) {
-        return this.columnReader(columnIndex).getInt(rowIdx);
+        return doColumnReaderOp(ColumnReaderOp.GET_INT,
+                columnIndex, rowIdx,
+                ColumnReader::getInt);
     }
 
     @Override
     public long getLong(int columnIndex) {
-        return this.columnReader(columnIndex).getLong(rowIdx);
+        return doColumnReaderOp(ColumnReaderOp.GET_LONG,
+                columnIndex, rowIdx,
+                ColumnReader::getLong);
     }
 
     @Override
     public float getFloat(int columnIndex) {
-        return this.columnReader(columnIndex).getFloat(rowIdx);
+        return doColumnReaderOp(ColumnReaderOp.GET_FLOAT,
+                columnIndex, rowIdx,
+                ColumnReader::getFloat);
     }
 
     @Override
     public double getDouble(int columnIndex) {
-        return this.columnReader(columnIndex).getDouble(rowIdx);
+        return doColumnReaderOp(ColumnReaderOp.GET_DOUBLE,
+                columnIndex, rowIdx,
+                ColumnReader::getDouble);
     }
 
     @Override
     public BigDecimal getBigDecimal(int columnIndex) {
-        return this.columnReader(columnIndex).getBigDecimal(rowIdx);
+        return doColumnReaderOp(ColumnReaderOp.GET_BIG_DECIMAL,
+                columnIndex, rowIdx,
+                ColumnReader::getBigDecimal);
     }
 
     @Override
     public byte[] getBytes(int columnIndex) {
-        return this.columnReader(columnIndex).getBytes(rowIdx);
+        return doColumnReaderOp(ColumnReaderOp.GET_BYTES,
+                columnIndex, rowIdx,
+                ColumnReader::getBytes);
     }
 
     @Override
     public Date getDate(int columnIndex) {
-        return this.columnReader(columnIndex).getDate(rowIdx);
+        return doColumnReaderOp(ColumnReaderOp.GET_DATE,
+                columnIndex, rowIdx,
+                ColumnReader::getDate);
     }
 
     @Override
     public Time getTime(int columnIndex) {
-        return this.columnReader(columnIndex).getTime(rowIdx);
+        return doColumnReaderOp(ColumnReaderOp.GET_TIME,
+                columnIndex, rowIdx,
+                ColumnReader::getTime);
     }
 
     @Override
     public Timestamp getTimestamp(int columnIndex) {
-        return this.columnReader(columnIndex).getTimestamp(rowIdx);
+        return doColumnReaderOp(ColumnReaderOp.GET_TIMESTAMP,
+                columnIndex, rowIdx,
+                ColumnReader::getTimestamp);
     }
 
     @Override
     public InputStream getAsciiStream(int columnIndex) {
-        return this.columnReader(columnIndex).getAsciiString(rowIdx);
+        return doColumnReaderOp(ColumnReaderOp.GET_ASCII_STREAM,
+                columnIndex, rowIdx,
+                ColumnReader::getAsciiString);
     }
 
     @Override
     public InputStream getUnicodeStream(int columnIndex) {
-        return this.columnReader(columnIndex).getUnicodeString(rowIdx);
+        return doColumnReaderOp(ColumnReaderOp.GET_UNICODE_STREAM,
+                columnIndex, rowIdx,
+                ColumnReader::getUnicodeString);
     }
 
     @Override
     public InputStream getBinaryStream(int columnIndex) {
-        return this.columnReader(columnIndex).getBinaryStream(rowIdx);
+        return doColumnReaderOp(ColumnReaderOp.GET_BINARY_STREAM,
+                columnIndex, rowIdx,
+                ColumnReader::getBinaryStream);
     }
 
     @Override
     public Object getObject(int columnIndex) {
-        return this.columnReader(columnIndex).getObject(rowIdx);
+        return doColumnReaderOp(ColumnReaderOp.GET_OBJECT,
+                columnIndex, rowIdx,
+                ColumnReader::getObject);
     }
 
     @Override
@@ -214,6 +281,5 @@ public abstract class VectorBlockRecordIterator implements RecordReader {
             }
         };
     }
-
 
 }

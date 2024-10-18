@@ -13,7 +13,6 @@ sonar {
     }
 }
 
-
 tasks.register<Zip>("publishSonatypeBundle") {
     group = "publishing"
     from(layout.buildDirectory.dir("repo"))
@@ -22,19 +21,15 @@ tasks.register<Zip>("publishSonatypeBundle") {
     destinationDirectory.set(layout.buildDirectory.dir("sonatype-bundle"))
 }
 
-/*
-
-reporting {
+/* reporting {
     reports {
         val testCodeCoverageReport by creating(JacocoCoverageReport::class) {
             testType.set(TestSuiteType.UNIT_TEST)
             reportTask.get().classDirectories.setFrom(reportTask.get().classDirectories.map {
                 fileTree(it).matching {
-                    exclude(listOf("**proto**"))
+                    exclude(listOf("proto/**"))
                 }
             })
         }
     }
-}
-
-*/
+} */
