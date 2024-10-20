@@ -1,0 +1,18 @@
+logging:
+  level:
+    root: debug
+grpc:
+  server:
+    in-process-name: jdbc-test-service
+    port: -1
+
+mill:
+  backend:
+    provider: calcite
+    connection:
+      quoting: BACK_TICK
+      caseSensitive: true
+      unquotedCasing: UNCHANGED
+      model: ./etc/config/test/model.yaml
+  security:
+    enabled: false

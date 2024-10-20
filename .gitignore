@@ -1,3 +1,7 @@
 .vscode
 .kreya
 .quarkus
+.metals
+*.kbx
+*.sh
+VERSION

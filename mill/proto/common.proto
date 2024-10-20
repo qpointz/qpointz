@@ -15,9 +15,17 @@ message Schema {
 }
 
 message Table {
+
+  enum TableTypeId {
+    NOT_SPECIFIED_TABLE_TYPE = 0;
+    TABLE = 1;
+    VIEW  = 2;
+  }
+
   string schemaName = 1;
   string name = 2;
-  repeated Field fields = 3;
+  TableTypeId tableType = 3;
+  repeated Field fields = 4;
 }
 
 message LogicalDataType {
@@ -43,8 +51,8 @@ message LogicalDataType {
   }
 
   LogicalDataTypeId typeId    = 2;
-  uint32 precision        = 3;
-  uint32 scale            = 4;
+  int32 precision        = 3;
+  int32 scale            = 4;
 }
 
 message DataType {

@@ -23,6 +23,18 @@ cache:
     - target/
     - project/project
 
+flow:build-sbt-ci-image:
+  stage: init
+  extends: .docker-build-job
+  script:
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}/etc/docker/sbt-ci"
+      --destination "${CI_IMAGE_SBT}"
+      --build-arg "BASE_IMAGE=azul/zulu-openjdk:17-latest"
+      --cache=true
+
+
 flow:test:
   stage: test
   script:
@@ -30,7 +42,11 @@ flow:test:
     - sbt clean coverage test coverageReport coverageAggregate
     - cd target/scala-2.13
     - tar -czvf ./scoverage-report.tar.gz ./scoverage-report
+  needs:
+    - job: flow:build-sbt-ci-image
+      artifacts: false
   artifacts:
+    expire_in: "15 days"
     paths:
       - ${CI_PROJECT_DIR}/flow/target/scala-2.13/scoverage-report.tar.gz
     reports:

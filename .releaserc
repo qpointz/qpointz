@@ -14,13 +14,13 @@
             "releaseRules" : [
                 { "type": "feature", "release": "minor" },
                 { "type": "feat", "release": "minor" },
-
+		
+		{ "type": "change", "release": "patch" },
                 { "type": "fix", "release": "patch"  },
                 { "type": "build", "release": "patch" },
                 { "type": "code", "release": "patch" },
                 { "type": "refactor", "release": "patch"},
 	        { "type": "new", "release":"patch"},
-
                 { "type": "fix", "scope":"doc", "release": "patch" },
                 { "type": "update", "scope":"doc", "release": "patch" },
 

@@ -1,0 +1,23 @@
+grpc:
+  server:
+    security:
+      enabled: false
+
+mill:
+  security:
+    enabled: false
+  backend:
+    connection:
+      quoting: BACK_TICK
+      caseSensitive: true
+      unquotedCasing: UNCHANGED
+    jdbc:
+      url: "jdbc:h2:mem:test2;INIT=RUNSCRIPT FROM '/app/config/testdata.sql'"
+      driver: "org.h2.Driver"
+      username: "*"
+      password: "*"
+      output-schema: "ts"
+
+logging:
+  level:
+    root: info

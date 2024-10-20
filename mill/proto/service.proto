@@ -5,7 +5,6 @@ package io.qpointz.mill;
 option java_multiple_files = true;
 option java_package = "io.qpointz.mill.proto";
 
-import "google/protobuf/wrappers.proto";
 import "substrait/plan.proto";
 import "common.proto";
 import "statement.proto";
@@ -16,12 +15,14 @@ service MillService {
   rpc ListSchemas(ListSchemasRequest) returns (ListSchemasResponse);
   rpc GetSchema(GetSchemaRequest) returns (GetSchemaResponse);
 
-  rpc ExecPlan(ExecPlanRequest) returns(stream ExecQueryResponse);
-
   rpc ParseSql(ParseSqlRequest) returns(ParseSqlResponse);
-  rpc ExecSql(ExecSqlRequest) returns(stream ExecQueryResponse);
-}
 
+  rpc ExecQuery(QueryRequest) returns(stream QueryResultResponse);
+  rpc SubmitQuery(QueryRequest) returns (QueryResultResponse);
+  rpc FetchQueryResult(QueryResultRequest) returns (QueryResultResponse);
+
+
+}
 
 message HandshakeRequest {
 }
@@ -29,7 +30,8 @@ message HandshakeRequest {
 message HandshakeResponse {
 
   message Capabilities {
-    bool supportSql = 3;
+    bool supportSql = 1;
+    bool supportResultPaging = 2;
   }
 
   message AuthenticationContext {
@@ -39,8 +41,23 @@ message HandshakeResponse {
   ProtocolVersion version = 2;
   Capabilities capabilities = 3;
   AuthenticationContext authentication = 4;
+  map<int32, MetaInfoValue> metas = 1;
+
 }
 
+enum MetaInfoKey {
+  SEP = 0;
+  DEP = 1;
+}
+
+message MetaInfoValue {
+  oneof value {
+    bool booleanValue = 10;
+    string stringValue = 11;
+    int32 int32Value = 12;
+    int64 int64Value = 13;
+  }
+}
 
 message ListSchemasRequest {
 }
@@ -58,7 +75,7 @@ message GetSchemaResponse {
 }
 
 message ParseSqlRequest {
-  SQLStatement statement = 1;
+  SQLStatement statement = 2;
 }
 
 message ParseSqlResponse {
@@ -66,19 +83,29 @@ message ParseSqlResponse {
 }
 
 message QueryExecutionConfig {
-  int32 batchSize = 1;
+  message Attributes {
+    repeated string names = 1;
+    repeated int32 indexes = 2;
+  }
+
+  int32 fetchSize = 1;
+  optional Attributes attributes = 2;
 }
 
-message ExecPlanRequest {
+message QueryRequest {
   QueryExecutionConfig config = 1;
-  substrait.Plan plan = 2;
+  oneof query {
+    substrait.Plan plan = 2;
+    SQLStatement statement = 3;
+  }
 }
 
-message ExecSqlRequest {
-  QueryExecutionConfig config = 1;
-  SQLStatement statement = 2;
+message QueryResultRequest {
+  string pagingId = 1;
+  int32 fetchSize = 2;
 }
 
-message ExecQueryResponse {
-  VectorBlock vector = 101;
+message QueryResultResponse {
+  optional string pagingId = 1;
+  optional VectorBlock vector = 2;
 }

@@ -1,0 +1,14 @@
+protobuf >=5.27.2
+betterproto >=2.0.0b6
+betterproto[compiler] >= 2.0.0b6
+grpcio >=1.64.1
+grpcio-tools >=1.64.1
+grpclib >=0.4.7
+aiostream >= 0.6.1
+pyarrow >= 16.1.0
+pandas >= 2.2.2
+certifi
+urllib3
+whenever
+requests
+aiohttp

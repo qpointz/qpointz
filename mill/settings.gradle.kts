@@ -10,10 +10,16 @@
 
 rootProject.name = "mill"
 
-include (":core")
-include (":backends:backend-core")
-include (":backends:calcite-backend-service")
-include (":backends:jdbc-backend-service")
+include (":mill-common")
+include (":mill-common-service")
+include (":mill-backends")
+include (":mill-service")
+include (":mill-grpc-service")
+include (":clients:mill-jdbc-driver")
+include (":clients:mill-jdbc-shell")
+include (":mill-azure-service-function")
+
+
 
 dependencyResolutionManagement {
 
@@ -27,38 +33,45 @@ dependencyResolutionManagement {
             val lombok = version("lombok", "1.18.34")
             library("lombok", "org.projectlombok", "lombok").versionRef(lombok)
 
-            val boot = version("boot", "3.3.2")
-            library("boot-devtools", "org.springframework.boot","spring-boot-devtools").versionRef(boot)
-            library("boot-configuration-processor","org.springframework.boot","spring-boot-configuration-processor").versionRef(boot)
-            library("boot-starter-test","org.springframework.boot","spring-boot-starter-test").versionRef(boot)
-            library("boot-starter-security","org.springframework.boot","spring-boot-starter-security").versionRef(boot)
-            library("boot-starter-security-oauth2-client","org.springframework.boot", "spring-boot-starter-oauth2-client").versionRef(boot)
-            library("boot-starter-security-oauth2-resource-server","org.springframework.boot", "spring-boot-starter-oauth2-resource-server").versionRef(boot)
-            library("boot-starter-web","org.springframework.boot","spring-boot-starter-web").versionRef(boot)
-            library("boot-starter-webflux","org.springframework.boot","spring-boot-starter-webflux").versionRef(boot)
-            library("boot-starter", "org.springframework.boot","spring-boot-starter").versionRef(boot)
+            val springBootV = version("boot", "3.3.4")
+            val springBootG = "org.springframework.boot"
+            plugin("spring-dependency-management","io.spring.dependency-management").version("1.1.4")
+            plugin("spring-boot", "org.springframework.boot").versionRef(springBootV)
 
-            val spring = version("spring", "6.3.0")
-            library("spring-context", "org.springframework","spring-context").versionRef(spring)
-            library("spring-web","org.springframework","spring-web").versionRef(spring)
-            library("spring-webmvc","org.springframework","spring-webmvc").versionRef(spring)
-            library("spring-security-oauth2-core","org.springframework","spring-security-oauth2-core").versionRef(spring)
+            library("boot-devtools", springBootG,"spring-boot-devtools").versionRef(springBootV)
+            library("boot-configuration-processor",springBootG,"spring-boot-configuration-processor").versionRef(springBootV)
+            library("boot-starter-test",springBootG,"spring-boot-starter-test").versionRef(springBootV)
+            library("boot-starter-security",springBootG,"spring-boot-starter-security").versionRef(springBootV)
+            library("boot-starter-security-oauth2-client",springBootG, "spring-boot-starter-oauth2-client").versionRef(springBootV)
+            library("boot-starter-security-oauth2-resource-server",springBootG, "spring-boot-starter-oauth2-resource-server").versionRef(springBootV)
+            library("boot-starter-web",springBootG,"spring-boot-starter-web").versionRef(springBootV)
+            library("boot-starter-webflux",springBootG,"spring-boot-starter-webflux").versionRef(springBootV)
+            library("boot-starter", springBootG,"spring-boot-starter").versionRef(springBootV)
 
-            val calcite = version("calcite", "1.37.0")
+            val springCloudV = version("springCloud", "4.1.3")
+            val springCloudG = "org.springframework.cloud"
+            library("spring-cloud-function-grpc", springCloudG, "spring-cloud-function-grpc").versionRef(springCloudV)
+            library("spring-cloud-function-context", springCloudG, "spring-cloud-function-context").versionRef(springCloudV)
+            library("spring-cloud-function-adapter-azure", springCloudG, "spring-cloud-function-adapter-azure").versionRef(springCloudV)
+            library("spring-cloud-function-adapter-azure-web", springCloudG, "spring-cloud-function-adapter-azure-web").versionRef(springCloudV)
+            library("spring-cloud-starter-function-web", springCloudG, "spring-cloud-starter-function-web").versionRef(springCloudV)
+
+
+            val calcite = version("calcite", "1.38.0")
             library("calcite-core", "org.apache.calcite", "calcite-core").versionRef(calcite)
             library("calcite-server", "org.apache.calcite", "calcite-server").versionRef(calcite)
             library("calcite-testkit", "org.apache.calcite", "calcite-testkit").versionRef("calcite")
             library("calcite-file", "org.apache.calcite", "calcite-file").versionRef("calcite")
             library("calcite-csv", "org.apache.calcite", "calcite-csv").versionRef(calcite)
 
-            val junit = version("junit", "5.10.3")
+            val junit = version("junit", "5.11.2")
             library("junit-jupiter-api", "org.junit.jupiter", "junit-jupiter-api").versionRef(junit)
             library("junit-jupiter-engine", "org.junit.jupiter", "junit-jupiter-engine").versionRef(junit)
             library("junit-vintage-engine", "org.junit.vintage", "junit-vintage-engine").versionRef(junit)
 
-            library("slf4j-api", "org.slf4j", "slf4j-api").version("2.0.13")
-            library("logback-core", "ch.qos.logback", "logback-core").version("1.5.6")
-            library("logback-classic", "ch.qos.logback", "logback-classic").version("1.5.6")
+            library("slf4j-api", "org.slf4j", "slf4j-api").version("2.0.16")
+            library("logback-core", "ch.qos.logback", "logback-core").version("1.5.11")
+            library("logback-classic", "ch.qos.logback", "logback-classic").version("1.5.11")
             library("fusesource-jansi","org.fusesource.jansi", "jansi").version("2.4.1")
             bundle("logging", listOf(
                     "slf4j-api",
@@ -67,27 +80,33 @@ dependencyResolutionManagement {
                     "fusesource-jansi"
             ))
 
-            val mockito = version("mockito", "5.12.0")
+            val mockito = version("mockito", "5.14.2")
             library("mockito-core", "org.mockito", "mockito-core").versionRef(mockito)
             library("mockito-junit-jupiter", "org.mockito", "mockito-junit-jupiter").versionRef(mockito)
 
-            val protobuf = version("protobuf", "3.24.0")
+            val protobuf = version("protobuf", "3.25.5")
             library("protobuf-java", "com.google.protobuf", "protobuf-java").versionRef(protobuf)
             library("protobuf-protoc", "com.google.protobuf", "protoc").versionRef(protobuf)
+            library("protobuf-java-util", "com.google.protobuf", "protobuf-java-util").versionRef(protobuf)
 
-            val grpc = version("grpc", "1.63.0")
+            val grpc = version("grpc", "1.68.0")
             library("grpc-protobuf","io.grpc","grpc-protobuf").versionRef(grpc)
             library("grpc-stub","io.grpc","grpc-stub").versionRef(grpc)
             library("grpc-api","io.grpc","grpc-api").versionRef(grpc)
             library("grpc-core","io.grpc","grpc-core").versionRef(grpc)
             library("grpc-testing","io.grpc","grpc-testing").versionRef(grpc)
+            library("grpc-inprocess","io.grpc","grpc-inprocess").versionRef(grpc)
+            library("grpc-census","io.grpc","grpc-census").versionRef(grpc)
+            library("grpc-all","io.grpc","grpc-all").versionRef(grpc)
+            library("grpc-context","io.grpc","grpc-context").versionRef(grpc)
             library("grpc-netty-shaded", "io.grpc", "grpc-netty-shaded").versionRef(grpc)
+
 
             library("javax-annotation-api" ,"javax.annotation" , "javax.annotation-api").version("1.3.2")
 
             library ("hadoop-bare-naked-local-fs", "com.globalmentor", "hadoop-bare-naked-local-fs").version("0.1.0")
 
-            library ("h2-database", "com.h2database", "h2").version("2.3.230")
+            library ("h2-database", "com.h2database", "h2").version("2.3.232")
 
             val apacheCommons = version("apacheCommons", "3.14.0")
             library("apache-commons-lang3","org.apache.commons", "commons-lang3").versionRef(apacheCommons)
@@ -103,18 +122,43 @@ dependencyResolutionManagement {
             val jakartaServletApi = version("jakartaServletApi", "6.1.0")
             library("jakarta-servlet-api", "jakarta.servlet", "jakarta.servlet-api").versionRef(jakartaServletApi)
 
-            val googleApiGrpc = version("googleApiGrpc", "2.29.0")
+            val googleApiGrpc = version("googleApiGrpc", "2.44.0")
             library("googleapigrpc-proto-common-protos", "com.google.api.grpc", "proto-google-common-protos").versionRef(googleApiGrpc)
 
-            val jackson = version("jackson", "2.17.2")
+            val jackson = version("jackson", "2.18.0")
             library("jackson-core", "com.fasterxml.jackson.core", "jackson-core").versionRef(jackson)
             library("jackson-dataformat-yaml", "com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml").versionRef(jackson)
             library("jackson-datatype-jsr310", "com.fasterxml.jackson.datatype","jackson-datatype-jsr310").versionRef(jackson)
 
-            val scala = version("scala", "2.13.14")
-            library("scala-lang", "org.scala-lang", "scala-library" ).versionRef(scala)
-            library("scala-reflect", "org.scala-lang", "scala-reflect" ).versionRef(scala)
-            library("scala-compiler", "org.scala-lang", "scala-compiler" ).versionRef(scala)
+            val guava = version("guava", "33.3.1-jre")
+            library("guava", "com.google.guava", "guava").versionRef(guava)
+
+            val okhttp3 = version("okhttp", "4.12.0")
+            library("okhttp-mock-webserver", "com.squareup.okhttp3", "mockwebserver").versionRef(okhttp3)
+            library("okhttp", "com.squareup.okhttp3", "okhttp").versionRef(okhttp3)
+
+
+            library("drivers-postgressql","org.postgresql","postgresql").version("42.7.4")
+            library("drivers-sqllite", "org.xerial","sqlite-jdbc").version("3.46.1.3")
+            library("drivers-mariadb", "org.mariadb.jdbc","mariadb-java-client").version("3.4.1")
+            library("drivers-oracle","com.oracle","ojdbc14").version("10.2.0.4.0")
+            library("drivers-trino", "io.trino","trino-jdbc").version("462")
+            library("drivers-duckdb", "org.duckdb","duckdb_jdbc").version("1.1.2")
+            library("drivers-snowflake","net.snowflake", "snowflake-jdbc").version("3.19.0")
+            library("drivers-clickhouse","com.clickhouse", "clickhouse-jdbc").version("0.6.5")
+
+
+            bundle("jdbc-pack", listOf(
+                "h2-database",
+                "drivers-postgressql",
+                "drivers-sqllite",
+                "drivers-mariadb",
+                "drivers-trino",
+                "drivers-duckdb",
+                "drivers-snowflake",
+                "drivers-clickhouse",
+            ))
+
 
         }
     }
