@@ -1,6 +1,7 @@
 package io.qpointz.mill.client;
 
 import io.qpointz.mill.BaseTest;
+import io.qpointz.mill.MillCodeException;
 import io.qpointz.mill.proto.HandshakeRequest;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -14,23 +15,20 @@ import static org.junit.jupiter.api.Assertions.*;
 class MillClientTest extends BaseTest {
 
     @Test
-    void blockingStubConnect() {
+    void blockingStubConnect() throws MillCodeException {
         val clientCfg = MillClientConfiguration.builder()
                 .host(getMillHost())
                 .port(getMillPort())
                 .build();
-        val client = new MillClient(clientCfg);
-        val resp  = client.newBlockingStub().handshake(HandshakeRequest.newBuilder().build());
+        val client = MillClient.fromConfig(clientCfg);
+        val resp  = client.handshake(HandshakeRequest.newBuilder().build());
         assertNotNull(resp);
     }
 
-    void connectAndTest(String tag, MillClient client, Function<String, Boolean> principalEval) {
+    void connectAndTest(String tag, MillClient client, Function<String, Boolean> principalEval) throws MillCodeException {
         try {
-            log.info(String.format("Testing '%s' connection to %s:%s", tag, client.getConfiguration().getHost(), client.getConfiguration().getPort()));
-            val stub = client.newBlockingStub();
-            val resp = stub.handshake(HandshakeRequest.newBuilder().build());
+            val resp = client.handshake(HandshakeRequest.newBuilder().build());
             assertNotNull(resp);
-            log.info(String.format("Successfully '%s' handshake using %s", tag, client.getConfiguration().toString()));
             val name = resp.getAuthentication().getName();
             log.info(String.format("User name %s", name));
             assertTrue(principalEval.apply(name));
@@ -41,7 +39,7 @@ class MillClientTest extends BaseTest {
     }
 
     @Test
-    void connectNoAuthNoTls() {
+    void connectNoAuthNoTls() throws MillCodeException {
         val client = MillClientConfiguration.builder()
                 .host(getMillHost())
                 .port(getMillPort())
@@ -49,56 +47,12 @@ class MillClientTest extends BaseTest {
         connectAndTest("Anonymous no auth no tls", client, k-> k.equals("ANONYMOUS"));
     }
 
-    @Test
-    void connectNoAuthTls() {
-        val client = MillClientConfiguration.builder()
-                .host(getMillTlsHost())
-                .port(getMillTlsPort())
-                .tlsKeyCertChain(getTlsCertChain())
-                .tlsKeyPrivateKey(getTlsCertPk())
-                .tlsTrustRootCert(getTlsRootCa())
-                .buildClient();
-        connectAndTest("Anonymous no auth no tls", client, k-> k.equals("ANONYMOUS"));
-    }
 
     @Test
-    void connectAuthNoTlsBasicAuth() {
-        val client = MillClientConfiguration.builder()
-                .host(getMillAuthHost())
-                .port(getMillAuthPort())
-                .username(getMillUser())
-                .password(getMillPassword())
-                .buildClient();
-        connectAndTest("Basic authentication no tls", client, k-> k.equals("reader"));
-    }
-
-    @Test
-    void connectAuthNoTlsMultiCredentialsTokenAuth() {
-        val client = MillClientConfiguration.builder()
-                .host(getMillAuthHost())
-                .port(getMillAuthPort())
-                .bearerToken(getMillJwtToken())
-                .username(getMillUser())
-                .password(getMillPassword())
-                .buildClient();
-        connectAndTest("Bearer token authentication no tls", client, k-> !k.equals("ANONYMOUS") && !k.equals("reader"));
-    }
-
-    @Test
-    void connectAuthNoTlsBearerTokenAuth() {
-        val client = MillClientConfiguration.builder()
-                .host(getMillAuthHost())
-                .port(getMillAuthPort())
-                .bearerToken(getMillJwtToken())
-                .buildClient();
-        connectAndTest("Bearer token authentication no tls", client, k-> !k.equals("ANONYMOUS"));
-    }
-
-    @Test
-    void connectAuthTlsBasicAuth() {
+    void connectAuthTlsBasicAuth() throws MillCodeException {
         val client = MillClientConfiguration.builder()
                 .host(getMillAuthTlsHost())
-                .port(getMillAuthTlsPort())
+                .port(getMillPort())
                 .username(getMillUser())
                 .password(getMillPassword())
                 .tlsKeyCertChain(getTlsCertChain())
@@ -109,10 +63,10 @@ class MillClientTest extends BaseTest {
     }
 
     @Test
-    void connectAuthTlsBearerTokenAuth() {
+    void connectAuthTlsBearerTokenAuth() throws MillCodeException {
         val client = MillClientConfiguration.builder()
                 .host(getMillAuthTlsHost())
-                .port(getMillAuthTlsPort())
+                .port(getMillPort())
                 .bearerToken(getMillJwtToken())
                 .tlsKeyCertChain(getTlsCertChain())
                 .tlsKeyPrivateKey(getTlsCertPk())
@@ -122,10 +76,10 @@ class MillClientTest extends BaseTest {
     }
 
     @Test
-    void connectAuthTlsMultiCredentialsTokenAuth() {
+    void connectAuthTlsMultiCredentialsTokenAuth() throws MillCodeException {
         val client = MillClientConfiguration.builder()
                 .host(getMillAuthTlsHost())
-                .port(getMillAuthTlsPort())
+                .port(getMillPort())
                 .bearerToken(getMillJwtToken())
                 .username(getMillUser())
                 .password(getMillPassword())

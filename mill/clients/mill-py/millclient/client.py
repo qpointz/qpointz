@@ -16,9 +16,9 @@ from grpclib.client import Channel
 from millclient import utils
 from millclient.auth import MillCallCredentials
 from millclient.exceptions import MillServerError, MillError
-from millclient.proto.io.qpointz.mill import AsyncIterator, ExecQueryResponse, List, MillServiceStub, HandshakeRequest, \
-    HandshakeResponse, ListSchemasRequest, ListSchemasResponse, GetSchemaRequest, GetSchemaResponse, ExecSqlRequest, \
-    SqlStatement, QueryExecutionConfig, FetchQueryResultResponse, FetchQueryResultRequest
+from millclient.proto.io.qpointz.mill import AsyncIterator, List, MillServiceStub, HandshakeRequest, \
+    HandshakeResponse, ListSchemasRequest, ListSchemasResponse, GetSchemaRequest, GetSchemaResponse, \
+    SqlStatement, QueryExecutionConfig, QueryResultResponse, QueryRequest
 
 
 class AuthType(enum.Enum):
@@ -35,7 +35,7 @@ class MillQuery(object):
         pass
 
     @abstractmethod
-    async def responses(self) -> AsyncIterator[ExecQueryResponse | FetchQueryResultResponse]:
+    async def responses(self) -> AsyncIterator[QueryResultResponse]:
         pass
 
     async def responses_async(self):
@@ -121,36 +121,36 @@ class MillClient(object):
             msg = f"Failed to get schema '{req.schema_name}'.{self.grpcErrorMessage(e)}"
             raise MillServerError(msg, e)
 
-    def __to_sql_request(self, request: ExecSqlRequest = None, **kwarg) -> ExecSqlRequest:
-        if request and isinstance(request, ExecSqlRequest):
+    def __to_sql_request(self, request: QueryRequest = None, **kwarg) -> QueryRequest:
+        if request and isinstance(request, QueryRequest):
             return request
         sql = kwarg.get('sql', None)
         if sql is None:
             raise MillError('Missing sql parameter')
         fetch_size = int(kwarg.get('fetch_size', self.__fetch_size))
-        return ExecSqlRequest(statement=SqlStatement(sql=str(sql), parameters=[]),
+        return QueryRequest(statement=SqlStatement(sql=str(sql), parameters=[]),
                               config=QueryExecutionConfig(fetch_size=fetch_size))
 
     @abstractmethod
-    def exec_sql_async_iter(self, request: ExecSqlRequest, **kwarg) -> AsyncIterator[ExecQueryResponse | FetchQueryResultResponse]:
+    def exec_query_async_iter(self, request: QueryRequest, **kwarg) -> AsyncIterator[QueryResultResponse]:
         pass
 
-    async def exec_sql(self, request: ExecSqlRequest = None, **kwarg: object) -> AsyncIterator[ExecQueryResponse | FetchQueryResultResponse]:
+    async def exec_query(self, request: QueryRequest = None, **kwarg: object) -> AsyncIterator[QueryResultResponse]:
         req = self.__to_sql_request(request, **kwarg)
         try:
-            iter = self.exec_sql_async_iter(req)
+            iter = self.exec_query_async_iter(req)
             async for response in iter:
                 yield response
         except GRPCError as e:
             raise MillServerError(f"Error : {e.status}. Message: {e.message}", e)
 
-    async def exec_sql_async(self, request, **kwarg) -> AsyncIterator[ExecQueryResponse | FetchQueryResultResponse]:
-        return await stream.list(self.exec_sql(request=request, **kwarg))
+    async def exec_query_async(self, request, **kwarg) -> AsyncIterator[QueryResultResponse]:
+        return await stream.list(self.exec_query(request=request, **kwarg))
 
-    def exec_sql_fetch(self, request: ExecSqlRequest = None, **kwarg):
-        return self.__event_loop.run_until_complete(self.exec_sql_async(request, **kwarg))
+    def exec_query_fetch(self, request: QueryRequest = None, **kwarg):
+        return self.__event_loop.run_until_complete(self.exec_query_async(request, **kwarg))
 
-    def sql_query(self, request: ExecSqlRequest = None, **kwarg) -> MillSqlQuery:
+    def sql_query(self, request: QueryRequest = None, **kwarg) -> MillSqlQuery:
         req = self.__to_sql_request(request, **kwarg)
         return MillSqlQuery(self, req)
         pass
@@ -177,19 +177,20 @@ class MillGrpcClient(MillClient):
     async def list_schemas_async(self, req):
         return await self.__svc.list_schemas(req)
 
-    def exec_sql_async_iter(self, request: ExecSqlRequest, **kwarg) -> AsyncIterator[ExecQueryResponse | FetchQueryResultResponse]:
-        return self.__svc.exec_sql(request)
+    def exec_query_async_iter(self, request: QueryRequest, **kwarg) -> AsyncIterator[QueryResultResponse]:
+        return self.__svc.exec_query(request)
 
     async def get_schema_async(self, req):
         return await self.__svc.get_schema(req)
 
 class MillHttpSession(object):
-    def __init__(self, session: ClientSession, base_url: str):
+    def __init__(self, session: ClientSession, base_url: str, event_loop: AbstractEventLoop ):
         self.__session = session
         self.__base_url = base_url
+        self.__event_loop = event_loop
 
     def close(self):
-        self.__session.close()
+        self.__event_loop.run_until_complete(self.__session.close())
 
     async def post(self, command: str, req: Message, res: Message):
         resp = await self.__session.post(f"{self.__base_url}{command}", data=req.to_json())
@@ -218,7 +219,7 @@ class MillHttpClient(MillClient):
             ('Accept', 'application/protobuf')
         ])
         sess = aiohttp.ClientSession(headers=headers, raise_for_status= False, loop= event_loop)
-        self.__session = MillHttpSession(session=sess, base_url=self.__url)
+        self.__session = MillHttpSession(session=sess, base_url=self.__url, event_loop = event_loop)
 
     def get_base_url(self):
         return f"{self.__url}"
@@ -228,18 +229,17 @@ class MillHttpClient(MillClient):
 
 
     async def handshake_async(self, req: HandshakeRequest) -> HandshakeResponse:
-        return await self.__session.post("handshake", req, HandshakeResponse())
+        return await self.__session.post("Handshake", req, HandshakeResponse())
 
     async def list_schemas_async(self, req: ListSchemasRequest) -> ListSchemasResponse:
-        return await self.__session.post("listSchemas", req, ListSchemasResponse())
+        return await self.__session.post("ListSchemas", req, ListSchemasResponse())
 
     async def get_schema_async(self, req: GetSchemaRequest) -> GetSchemaResponse:
-        return await self.__session.post("getSchema", req, GetSchemaResponse())
+        return await self.__session.post("GetSchema", req, GetSchemaResponse())
 
-    def exec_sql_async_iter(self, request: ExecSqlRequest, **kwarg) -> AsyncIterator[
-        ExecQueryResponse | FetchQueryResultResponse]:
-        class PagingIterator(AsyncIterator[ExecQueryResponse | FetchQueryResultResponse]):
-            def __init__(self, session: MillHttpSession, request: ExecSqlRequest, **kwarg):
+    def exec_query_async_iter(self, request: QueryRequest, **kwarg) -> AsyncIterator[QueryResultResponse]:
+        class PagingIterator(AsyncIterator[QueryResultResponse]):
+            def __init__(self, session: MillHttpSession, request: QueryRequest, **kwarg):
                 self.__session = session
                 self.__did_next = False
                 self.__request = request
@@ -251,15 +251,15 @@ class MillHttpClient(MillClient):
 
             async def __anext__(self):
                 if not self.__did_next:
-                    resp = await self.__session.post("submitSqlQuery", self.__request, FetchQueryResultResponse())
+                    resp = await self.__session.post("SubmitQuery", self.__request, QueryResultResponse())
                     self.__did_next = True
                     self.__pagingId = resp.paging_id
                     return resp
                 if not self.__pagingId:
                     raise StopAsyncIteration
-                req = FetchQueryResultRequest()
+                req = QueryResultResponse()
                 req.paging_id = self.__pagingId
-                resp = await self.__session.post("fetchQueryResult", req, FetchQueryResultResponse())
+                resp = await self.__session.post("FetchQueryResult", req, QueryResultResponse())
                 if not resp.vector:
                     self.__pagingId = None
                     raise StopAsyncIteration
@@ -270,13 +270,13 @@ class MillHttpClient(MillClient):
 
 
 class MillSqlQuery(MillQuery):
-    def __init__(self, client: MillClient, request: ExecSqlRequest):
+    def __init__(self, client: MillClient, request: QueryRequest):
         self.__client = client
         self.__request = request
         pass
 
-    async def responses(self) -> AsyncIterator[ExecQueryResponse | FetchQueryResultResponse]:
-        async for response in self.__client.exec_sql(request=self.__request):
+    async def responses(self) -> AsyncIterator[QueryResultResponse]:
+        async for response in self.__client.exec_query(request=self.__request):
             yield response
 
     def __event_loop__(self) -> AbstractEventLoop:

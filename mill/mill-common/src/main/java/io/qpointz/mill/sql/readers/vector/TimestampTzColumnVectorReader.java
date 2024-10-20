@@ -4,6 +4,7 @@ import io.qpointz.mill.proto.Vector;
 import io.qpointz.mill.sql.ColumnReader;
 import io.qpointz.mill.types.logical.TimestampTZLogical;
 
+import java.sql.Timestamp;
 import java.time.ZonedDateTime;
 
 public class TimestampTzColumnVectorReader extends ConvertingVectorColumnReader<ZonedDateTime, Long> {
@@ -16,5 +17,11 @@ public class TimestampTzColumnVectorReader extends ConvertingVectorColumnReader<
     @Override
     protected Long getVectorValue(int rowIdx) {
         return this.getVectorLong(rowIdx);
+    }
+
+
+    @Override
+    public Timestamp getTimestamp(int rowIdx) {
+        return Timestamp.from(getValue(rowIdx).toInstant());
     }
 }

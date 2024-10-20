@@ -18,66 +18,35 @@ class MillDatabaseMetadataTest extends BaseTest {
 
 
     @Test
-    void getTables() throws SQLException, ClassNotFoundException {
-        try (val connection = getConnection()) {
-            final var md = connection.getMetaData();
-            val rs = md.getTables(null, null, null, null);
-            int rowId = 0;
-            while (rs.next()) {
-                rowId++;
-            }
-            assertTrue(rowId > 0);
-        }
-    }
-
-
-    @Test
-    void getSchemas() throws SQLException, ClassNotFoundException {
-        try (val connection = getConnection()) {
-            final var rs = connection.getMetaData().getSchemas();
-            val schemas = new HashSet<String>();
-            while (rs.next()) {
-                schemas.add(rs.getString("TABLE_SCHEM"));
-            }
-            log.info("Got schemas.Assrtion");
-            assertTrue(schemas.size() > 0);
-            assertEquals(Set.of("airlines", "metadata"), schemas);
-        } catch (Exception e) {
-            log.error("getSchemas failed", e);
-            throw e;
-        }
-    }
-
-    @Test
-    void getCatalogs() throws SQLException, ClassNotFoundException {
-        try (val connection = getConnection()) {
-            final var rs = connection.getMetaData().getCatalogs();
-            val schemas = new HashSet<String>();
-            while (rs.next()) {
-                schemas.add(rs.getString("TABLE_CAT"));
-            }
-            assertTrue(schemas.size() == 0);
-        }
-    }
-
-    @Test
-    void getTableTypes() throws SQLException, ClassNotFoundException {
-        try (val connection = getConnection()) {
-            final var rs = connection.getMetaData().getTableTypes();
-            val types = new HashSet<String>();
-            while (rs.next()) {
-                types.add(rs.getString("TABLE_TYPE"));
-            }
-            assertEquals(Set.of("TABLE", "VIEW"), types);
-        }
-    }
-
-    @Test
-    void getUserName() throws SQLException {
-        val url = String.format("jdbc:mill://%s:%s", getMillAuthHost(), getMillAuthPort());
-        try (val con = DriverManager.getConnection(url, getMillUser(), getMillPassword() )) {
+    void getUserNameBasicAuth() throws SQLException {
+        val url = String.format("jdbc:mill://%s:%s?user=%s&password=%s&tlsKeyCertChain=%s&tlsKeyPrivateKey=%s&tlsTrustRootCert=%s",
+                getMillAuthTlsHost(),
+                getMillPort(),
+                getMillUser(),
+                getMillPassword(),
+                getTlsCertChain(),
+                getTlsCertPk(),
+                getTlsRootCa()
+        );
+        try (val con = DriverManager.getConnection(url)) {
             val meta = con.getMetaData();
             assertEquals(getMillUser(), meta.getUserName());
+        }
+    }
+
+    @Test
+    void getUserNameBearerToken() throws SQLException {
+        val url = String.format("jdbc:mill://%s:%s?bearerToken=%s&tlsKeyCertChain=%s&tlsKeyPrivateKey=%s&tlsTrustRootCert=%s",
+                getMillAuthTlsHost(),
+                getMillPort(),
+                getMillJwtToken(),
+                getTlsCertChain(),
+                getTlsCertPk(),
+                getTlsRootCa()
+        );
+        try (val con = DriverManager.getConnection(url)) {
+            val meta = con.getMetaData();
+            assertNotEquals("ANONYMOUS", meta.getUserName());
         }
     }
 

@@ -1,0 +1,12 @@
+grpc:
+  server:
+    security:
+      enabled: false
+mill:
+  backend:
+    provider: calcite
+    connection:
+      quoting: BACK_TICK
+      caseSensitive: true
+      unquotedCasing: UNCHANGED
+      model: ./etc/sample/sample-model.yaml

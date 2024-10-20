@@ -26,12 +26,12 @@ class ServiceHandlerTest extends ServiceBaseTest {
         val serviceHander = new ServiceHandler(metadataProvider, executionProvider, null, securityProvide, null);
         VectorBlockIterator mockIterator = mockVectorBlockIterator();
         when(executionProvider.execute(any(),any())).thenReturn(mockIterator);
-        var resp = serviceHander.submitPlanQuery(ExecPlanRequest.getDefaultInstance());
+        var resp = serviceHander.submitQuery(QueryRequest.getDefaultInstance());
         assertTrue(resp.hasPagingId());
         assertTrue(resp.hasVector());
         var pagingId = resp.getPagingId();
 
-        resp = serviceHander.fetchResult(FetchQueryResultRequest.newBuilder().setPagingId(pagingId).build());
+        resp = serviceHander.fetchResult(QueryResultRequest.newBuilder().setPagingId(pagingId).build());
         assertTrue(resp.hasPagingId());
         assertTrue(resp.hasVector());
         assertNotEquals(resp.getPagingId(), pagingId);

@@ -1,5 +1,7 @@
 package io.qpointz.mill.metadata.database;
 
+import com.google.protobuf.ProtocolStringList;
+import io.qpointz.mill.MillCodeException;
 import io.qpointz.mill.MillConnection;
 import io.qpointz.mill.metadata.ResultSetProvidingMetadata;
 import io.qpointz.mill.proto.DataType;
@@ -42,35 +44,38 @@ public class ColumnsMetadata extends ResultSetProvidingMetadata<ColumnsMetadata.
     @Getter
     private final String columnNamePattern;
 
-    protected record ColumnRecord(String catalog, String schema, String tableName, String name, Integer index, Integer dataType, String dataTypeName,
-        Integer size, Integer decimalDigits,  Integer numPrecRadix, int nullable, String isNullable, int sizeBytes) {}
+    protected record ColumnRecord(String catalog, String schema, String tableName, String name, Integer index,
+                                  Integer dataType, String dataTypeName,
+                                  Integer size, Integer decimalDigits, Integer numPrecRadix, int nullable,
+                                  String isNullable, int sizeBytes) {
+    }
 
-    private static List<ObjectToVectorProducer.MapperInfo<ColumnsMetadata.ColumnRecord,?>> MAPPINGS = List.of(
-            mapper("TABLE_CAT", StringLogical.INSTANCE, k-> dbnull()),
-            mapper("TABLE_SCHEM", StringLogical.INSTANCE, k-> stringOf(k.schema)),
-            mapper("TABLE_NAME", StringLogical.INSTANCE, k-> stringOf(k.tableName)),
-            mapper("COLUMN_NAME", StringLogical.INSTANCE, k-> stringOf(k.name)),
-            mapper("DATA_TYPE", IntLogical.INSTANCE, k-> integerOf(k.dataType)),
-            mapper("TYPE_NAME", StringLogical.INSTANCE, k-> stringOf(k.dataTypeName)),
-            mapper("COLUMN_SIZE", IntLogical.INSTANCE, k-> integerOf(k.size, -1)),
-            mapper("BUFFER_LENGTH", IntLogical.INSTANCE, k-> dbnull()),
-            mapper("DECIMAL_DIGITS", IntLogical.INSTANCE, k-> integerOf(k.decimalDigits, -1)),
-            mapper("NUM_PREC_RADIX", IntLogical.INSTANCE, k-> integerOf(k.numPrecRadix, -1)),
-            mapper("NULLABLE", IntLogical.INSTANCE, k-> integerOf(k.nullable, -1)),
-            mapper("REMARKS", StringLogical.INSTANCE, k-> dbnull()),
-            mapper("COLUMN_DEF", StringLogical.INSTANCE, k-> dbnull()),
-            mapper("SQL_DATA_TYPE", IntLogical.INSTANCE, k-> dbnull()),
-            mapper("SQL_DATETIME_SUB", IntLogical.INSTANCE, k-> dbnull()),
-            mapper("CHAR_OCTET_LENGTH", IntLogical.INSTANCE, k-> integerOf(k.sizeBytes, -1)),
-            mapper("ORDINAL_POSITION", IntLogical.INSTANCE, k-> integerOf(k.index)),
-            mapper("IS_NULLABLE", StringLogical.INSTANCE, k-> stringOf(k.isNullable)),
-            mapper("SCOPE_CATALOG", StringLogical.INSTANCE, k-> dbnull()),
-            mapper("SCOPE_SCHEMA", StringLogical.INSTANCE, k-> dbnull()),
-            mapper("SCOPE_TABLE", StringLogical.INSTANCE, k-> dbnull()),
-            mapper("SOURCE_DATA_TYPE", StringLogical.INSTANCE, k-> dbnull()),
-            mapper("IS_AUTOINCREMENT", StringLogical.INSTANCE, k-> stringOf("NO")),
-            mapper("IS_GENERATEDCOLUMN", StringLogical.INSTANCE, k-> stringOf("NO"))
-            );
+    private static List<ObjectToVectorProducer.MapperInfo<ColumnsMetadata.ColumnRecord, ?>> MAPPINGS = List.of(
+            mapper("TABLE_CAT", StringLogical.INSTANCE, k -> dbnull()),
+            mapper("TABLE_SCHEM", StringLogical.INSTANCE, k -> stringOf(k.schema)),
+            mapper("TABLE_NAME", StringLogical.INSTANCE, k -> stringOf(k.tableName)),
+            mapper("COLUMN_NAME", StringLogical.INSTANCE, k -> stringOf(k.name)),
+            mapper("DATA_TYPE", IntLogical.INSTANCE, k -> integerOf(k.dataType)),
+            mapper("TYPE_NAME", StringLogical.INSTANCE, k -> stringOf(k.dataTypeName)),
+            mapper("COLUMN_SIZE", IntLogical.INSTANCE, k -> integerOf(k.size, -1)),
+            mapper("BUFFER_LENGTH", IntLogical.INSTANCE, k -> dbnull()),
+            mapper("DECIMAL_DIGITS", IntLogical.INSTANCE, k -> integerOf(k.decimalDigits, -1)),
+            mapper("NUM_PREC_RADIX", IntLogical.INSTANCE, k -> integerOf(k.numPrecRadix, -1)),
+            mapper("NULLABLE", IntLogical.INSTANCE, k -> integerOf(k.nullable, -1)),
+            mapper("REMARKS", StringLogical.INSTANCE, k -> dbnull()),
+            mapper("COLUMN_DEF", StringLogical.INSTANCE, k -> dbnull()),
+            mapper("SQL_DATA_TYPE", IntLogical.INSTANCE, k -> dbnull()),
+            mapper("SQL_DATETIME_SUB", IntLogical.INSTANCE, k -> dbnull()),
+            mapper("CHAR_OCTET_LENGTH", IntLogical.INSTANCE, k -> integerOf(k.sizeBytes, -1)),
+            mapper("ORDINAL_POSITION", IntLogical.INSTANCE, k -> integerOf(k.index)),
+            mapper("IS_NULLABLE", StringLogical.INSTANCE, k -> stringOf(k.isNullable)),
+            mapper("SCOPE_CATALOG", StringLogical.INSTANCE, k -> dbnull()),
+            mapper("SCOPE_SCHEMA", StringLogical.INSTANCE, k -> dbnull()),
+            mapper("SCOPE_TABLE", StringLogical.INSTANCE, k -> dbnull()),
+            mapper("SOURCE_DATA_TYPE", StringLogical.INSTANCE, k -> dbnull()),
+            mapper("IS_AUTOINCREMENT", StringLogical.INSTANCE, k -> stringOf("NO")),
+            mapper("IS_GENERATEDCOLUMN", StringLogical.INSTANCE, k -> stringOf("NO"))
+    );
 
 
     @Override
@@ -82,35 +87,39 @@ public class ColumnsMetadata extends ResultSetProvidingMetadata<ColumnsMetadata.
     protected Collection<ColumnRecord> getMetadata() {
         log.log(Level.INFO, "Getting all tables");
         val client = this.connection.getClient();
-        val stub = client.newBlockingStub();
 
-        val allSchemas = stub
-                .listSchemas(ListSchemasRequest.newBuilder().build())
-                .getSchemasList();
-        val allColumns = new ArrayList<ColumnRecord>();
-        for (val schemaName : allSchemas) {
-            val schema = stub
-                    .getSchema(GetSchemaRequest.newBuilder()
-                            .setSchemaName(schemaName)
-                            .build())
-                    .getSchema();
-            for (val table : schema.getTablesList()) {
-                val tableColumns = getColumns(schemaName, table);
-                allColumns.addAll(tableColumns);
+        ProtocolStringList allSchemas = null;
+        try {
+            allSchemas = client
+                    .listSchemas(ListSchemasRequest.newBuilder().build())
+                    .getSchemasList();
+            val allColumns = new ArrayList<ColumnRecord>();
+            for (val schemaName : allSchemas) {
+                val schema = client
+                        .getSchema(GetSchemaRequest.newBuilder()
+                                .setSchemaName(schemaName)
+                                .build())
+                        .getSchema();
+                for (val table : schema.getTablesList()) {
+                    val tableColumns = getColumns(schemaName, table);
+                    allColumns.addAll(tableColumns);
+                }
             }
-        }
 
-        var filtered = this.filterByPattern(this.catalogPattern, allColumns, k-> k.catalog);
-        filtered = this.filterByPattern(this.schemaPattern, filtered, k-> k.schema);
-        filtered = this.filterByPattern(this.tableNamePattern, filtered, k -> k.tableName);
-        return this.filterByPattern(this.columnNamePattern, filtered, k -> k.name);
+            var filtered = this.filterByPattern(this.catalogPattern, allColumns, k -> k.catalog);
+            filtered = this.filterByPattern(this.schemaPattern, filtered, k -> k.schema);
+            filtered = this.filterByPattern(this.tableNamePattern, filtered, k -> k.tableName);
+            return this.filterByPattern(this.columnNamePattern, filtered, k -> k.name);
+        } catch (MillCodeException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private List<ColumnRecord> getColumns(String schemaName, Table table) {
         val columns = new ArrayList<ColumnRecord>();
-        for (val field: table.getFieldsList()) {
+        for (val field : table.getFieldsList()) {
             val fieldType = field.getType();
-            columns.add(new ColumnRecord(null, schemaName, table.getName(), field.getName(), field.getFieldIdx()+1,
+            columns.add(new ColumnRecord(null, schemaName, table.getName(), field.getName(), field.getFieldIdx() + 1,
                     sqlDataType(fieldType), sqlDataTypeName(fieldType), sizeOf(fieldType), decimalDigits(fieldType), numPrecRadix(fieldType),
                     nullable(fieldType), nullableLabel(fieldType), sizeBytes(fieldType)));
         }

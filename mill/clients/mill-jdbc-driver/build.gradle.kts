@@ -16,6 +16,8 @@ distributions {
 
 dependencies {
     implementation(project(":mill-common"))
+    implementation(libs.protobuf.java.util)
+    implementation(libs.okhttp)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
     testImplementation(libs.boot.starter.test)
@@ -25,21 +27,6 @@ tasks.withType<ProcessResources>() {
     from(rootProject.layout.projectDirectory.dir("../").file("VERSION"))
 }
 
-
-//tasks.getByName("processResources").doFirst {
-//    val distName = distributions.getByName("main").distributionBaseName.get()
-//    val outdir = project.layout.buildDirectory.dir("install/${distName}").get()
-//
-    //val versionFile =
-    //copy {
-    //    from(versionFile)
-    //    into(layout.buildDirectory.dir("resources/main"))
-    //}
-//    copy {
-//        from(rootProject.layout.projectDirectory.dir("../etc/data/datasets/airlines/csv"))
-//        into(outdir.dir("examples/data/airlines"))
-//    }
-//}
 
 testing {
     suites {
@@ -53,9 +40,9 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation(project(":mill-common"))
-                    implementation(project(":mill-calcite-service"))
-                    implementation(project(":mill-common-backend-service"))
+                    implementation(project(":mill-backends"))
+                    implementation(project(":mill-grpc-service"))
+                    implementation(libs.okhttp.mock.webserver)
                     implementation(libs.bootGRPC.client)
                     implementation(libs.bootGRPC.server)
                     implementation(libs.boot.starter.test)

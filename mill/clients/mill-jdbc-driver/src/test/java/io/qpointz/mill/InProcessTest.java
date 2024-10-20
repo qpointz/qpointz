@@ -6,8 +6,6 @@ import io.qpointz.mill.proto.GetSchemaRequest;
 import io.qpointz.mill.proto.HandshakeRequest;
 import io.qpointz.mill.services.MillService;
 import io.qpointz.mill.services.calcite.configuration.CalciteServiceConfiguration;
-import io.qpointz.mill.services.calcite.configuration.CalciteServiceProperties;
-import io.qpointz.mill.services.calcite.configuration.CalciteServiceProvidersConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import net.devh.boot.grpc.server.autoconfigure.GrpcAdviceAutoConfiguration;
@@ -19,11 +17,8 @@ import org.springframework.test.context.ContextConfiguration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(classes = {
-        CalciteServiceProvidersConfiguration.class
-} )
+@SpringBootTest
 @ContextConfiguration(classes = {
-        CalciteServiceProperties.class,
         CalciteServiceConfiguration.class,
         MillService.class,
         GrpcAdviceAutoConfiguration.class
@@ -37,7 +32,7 @@ public abstract class InProcessTest {
     private String serverName;
 
     protected String connectionUrl() {
-        return String.format("jdbc:mill:in-proc://%s", serverName);
+        return String.format("jdbc:mill:mem://%s", serverName);
     }
 
     protected MillClientConfiguration createConfig() {
@@ -51,20 +46,19 @@ public abstract class InProcessTest {
     }
 
     protected MillClient createClient() {
-        return new MillClient(this.createConfig());
+        return MillClient.fromConfig(this.createConfig());
     }
 
     @Test
     void handshake() {
         val client = createClient();
-        assertDoesNotThrow(()-> client.newBlockingStub()
-                .handshake(HandshakeRequest.getDefaultInstance()));
+        assertDoesNotThrow(()-> client.handshake(HandshakeRequest.getDefaultInstance()));
     }
 
     @Test
-    void airlinesSchemaExists() {
+    void airlinesSchemaExists() throws MillCodeException {
         val client = createClient();
-        val schema = client.newBlockingStub().getSchema(GetSchemaRequest.newBuilder().setSchemaName("airlines").build());
+        val schema = client.getSchema(GetSchemaRequest.newBuilder().setSchemaName("airlines").build());
         assertTrue(schema.getSchema().getTablesList().size()>0);
     }
 

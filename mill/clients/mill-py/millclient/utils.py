@@ -7,7 +7,7 @@ from pyarrow import RecordBatch
 from whenever import Date, LocalDateTime, Time, ZonedDateTime
 
 from millclient.exceptions import MillError
-from millclient.proto.io.qpointz.mill import ExecQueryResponse, Vector, LogicalDataTypeLogicalDataTypeId, \
+from millclient.proto.io.qpointz.mill import QueryResultResponse, Vector, LogicalDataTypeLogicalDataTypeId, \
     VectorBlock
 
 
@@ -158,5 +158,5 @@ def vector_block_to_pandas(vector: VectorBlock) -> DataFrame:
         reader = pa.RecordBatchReader.from_batches(schema,[record_batch])
         return reader.read_pandas()
 
-def response_to_record_batch(response: ExecQueryResponse) -> RecordBatch:
+def response_to_record_batch(response: QueryResultResponse) -> RecordBatch:
     return vector_block_to_record_batch(response.vector)

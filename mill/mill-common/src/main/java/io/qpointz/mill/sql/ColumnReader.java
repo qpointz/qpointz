@@ -1,5 +1,7 @@
 package io.qpointz.mill.sql;
 
+import lombok.val;
+
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -11,12 +13,13 @@ public abstract class ColumnReader {
         throw notSupported();
     }
 
-    private RuntimeException notSupported() {
-        return new RuntimeException("Operation not supported");
+    protected RuntimeException notSupported() {
+        val elem = Thread.currentThread().getStackTrace()[2];
+        return new RuntimeException("Operation not supported:Column Reader:"+elem.getClassName()+":"+elem.getMethodName());
     }
 
     public String getString(int rowIdx) {
-        throw notSupported();
+        return this.getObject(rowIdx).toString();
     }
 
     public Boolean getBoolean(int rowIdx) {
@@ -79,8 +82,6 @@ public abstract class ColumnReader {
         throw notSupported();
     }
 
-    public Object getObject(int rowIdx) {
-        throw notSupported();
-    }
+    public abstract Object getObject(int rowIdx);
 
 }

@@ -8,11 +8,11 @@ grpc:
 
 mill:
   backend:
-    security:
-      enabled: false
-    calcite:
-      connection:
-        quoting: BACK_TICK
-        caseSensitive: true
-        unquotedCasing: UNCHANGED
-        model: ./etc/config/test/model.yaml
+    provider: calcite
+    connection:
+      quoting: BACK_TICK
+      caseSensitive: true
+      unquotedCasing: UNCHANGED
+      model: ./etc/config/test/model.yaml
+  security:
+    enabled: false

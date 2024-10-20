@@ -22,4 +22,9 @@ public class IntColumnVectorReader extends VectorColumnReader {
     public int getInt(int rowIdx) {
         return this.getVectorInt(rowIdx);
     }
+
+    @Override
+    public long getLong(int rowIdx) {
+        return (long) this.getInt(rowIdx);
+    }
 }

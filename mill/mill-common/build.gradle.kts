@@ -1,6 +1,6 @@
 plugins {
     `java-library`
-    id("io.spring.dependency-management") version "1.1.4"
+    id("io.spring.dependency-management") version "1.1.6"
     id("com.google.protobuf") version "0.9.4"
     mill
     `mill-publish`

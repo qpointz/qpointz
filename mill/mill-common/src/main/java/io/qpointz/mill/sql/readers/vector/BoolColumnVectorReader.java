@@ -12,10 +12,12 @@ public class BoolColumnVectorReader extends VectorColumnReader {
 
     @Override
     public Object getObject(int rowIdx) {
-        return this.getVectorValue(rowIdx);
-    }
-
-    private Boolean getVectorValue(int rowIdx) {
         return this.getVectorBoolean(rowIdx);
     }
+
+    @Override
+    public Boolean getBoolean(int rowIdx) {
+        return this.getVectorBoolean(rowIdx);
+    }
+
 }

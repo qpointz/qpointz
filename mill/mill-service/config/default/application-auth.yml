@@ -1,0 +1,6 @@
+mill:
+  security:
+    enabled: true
+    providers:
+      - type: file
+        path: ./etc/sample/passwd.yaml

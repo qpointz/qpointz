@@ -8,8 +8,8 @@ from millclient import *
 class MillConnectTests(unittest.TestCase):
 
     def mill_host_params(self):
-        host = os.environ.get("MILL_AUTH_TLS_HOST", "mill.local")
-        port = int(os.environ.get("MILL_AUTH_TLS_PORT", "9099"))
+        host = os.environ.get("MILL_AUTH_TLS_HOST", "backend.local")
+        port = int(os.environ.get("MILL_PORT", "9099"))
         ca_file = os.environ.get("TLS_ROOT_CA", '../../../etc/ssl/ca.pem')
         ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=ca_file)
         ctx.set_alpn_protocols(['h2'])
@@ -23,8 +23,8 @@ class MillConnectTests(unittest.TestCase):
             BasicAuthCredentials("reader", "reader"),
         ]
         az_test_token=os.environ.get('MILL_JWT_TOKEN', None)
-        if az_test_token:
-            print("AZ token provided")
+        if az_test_token or os.environ.get('CI','false') == 'true':
+            print("AZ token provided OR CI mode")
             all_creds.append(BearerTokenCredentials(az_test_token))
         else:
             print("No AZ token provided skipping")

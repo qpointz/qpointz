@@ -17,4 +17,14 @@ public class TinyIntColumnVectorReader extends VectorColumnReader {
     public Object getObject(int rowIdx) {
         return this.getVectorValue(rowIdx);
     }
+
+    @Override
+    public int getInt(int rowIdx) {
+        return this.getVectorValue(rowIdx);
+    }
+
+    @Override
+    public long getLong(int rowIdx) {
+        return this.getVectorValue(rowIdx);
+    }
 }

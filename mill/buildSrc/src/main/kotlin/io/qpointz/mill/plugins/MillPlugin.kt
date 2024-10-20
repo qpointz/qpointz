@@ -9,6 +9,7 @@ import org.gradle.internal.cc.base.logger
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.task
 import org.gradle.kotlin.dsl.withType
+import org.gradle.testing.jacoco.plugins.JacocoPlugin
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -24,9 +25,9 @@ class MillPlugin: Plugin<Project> {
         val path = Paths.get("${project.rootProject.projectDir}/../VERSION")
         if (!Files.exists(path)) {
             logger.trace("VERSION file missing {}:", path.toAbsolutePath().toString())
-            return "0.0.1"
+            return "0.1.0"
         }
-        var version =  Files.readAllLines(path).get(0).uppercase()
+        var version =  Files.readAllLines(path).get(0)
         if (".*\\-\\w+\\.\\d+$".toRegex().matches(version)) {
             logger.debug("candidate version")
             version = "\\.(?=\\d+\$)".toRegex().replace(version, "")
@@ -68,6 +69,7 @@ class MillPlugin: Plugin<Project> {
         compileOnly!!.extendsFrom(annotProcessors!!)
 
         project.rootProject.dependencies.add("jacocoAggregation", project)
+
 
         /*project.afterEvaluate({
             project.tasks.withType<org.gradle.api.tasks.bundling.Jar> {
