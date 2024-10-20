@@ -57,7 +57,7 @@ abstract class BaseDriverTestIT extends BaseTest {
         val rs = stmt.executeQuery("select * from `ts`.`TEST`");
         var rowId = 0;
         val md = rs.getMetaData();
-        assertEquals(7, md.getColumnCount());
+        assertEquals(9, md.getColumnCount());
         while (rs.next()) {
             rowId++;
         }

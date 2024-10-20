@@ -32,6 +32,11 @@ public class GrpcMillClient extends MillClient implements AutoCloseable {
     }
 
     @Override
+    public String getClientUrl() {
+        return String.format("grpc://%s:%s", this.configuration.getHost(), this.configuration.getPort());
+    }
+
+    @Override
     public HandshakeResponse handshake(HandshakeRequest request) {
         return this.blockingStub()
                 .handshake(request);

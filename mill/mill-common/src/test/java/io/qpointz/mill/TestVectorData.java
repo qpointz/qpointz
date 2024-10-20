@@ -1,7 +1,8 @@
-package io.qpointz.mill.vectors;
+package io.qpointz.mill;
 
 import io.qpointz.mill.proto.*;
 import io.qpointz.mill.types.logical.*;
+import io.qpointz.mill.vectors.VectorProducer;
 import lombok.Getter;
 import lombok.val;
 
@@ -13,9 +14,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
 
-public class GenerateRoundTripData {
+public class TestVectorData {
 
-    public static class LogicalTypeData<T> {
+    public static class LogicalTypeVectorData<T> {
 
         @Getter
         private final VectorProducer<T> vectorProducer;
@@ -35,7 +36,7 @@ public class GenerateRoundTripData {
         }
 
 
-        public LogicalTypeData(String name, LogicalType<T, ?> logicalType, Function<T,String> sr, T[] initial) {
+        public LogicalTypeVectorData(String name, LogicalType<T, ?> logicalType, Function<T,String> sr, T[] initial) {
 
             this.vectorProducer = logicalType.getVectorProducer();
             this.logicalType = logicalType;
@@ -46,15 +47,15 @@ public class GenerateRoundTripData {
             }
         }
 
-        public LogicalTypeData<T> appendNotNull(T value) {
+        public LogicalTypeVectorData<T> appendNotNull(T value) {
             return this.append(value, false);
         }
 
-        public LogicalTypeData<T> appendNull() {
+        public LogicalTypeVectorData<T> appendNull() {
             return this.append(null, true);
         }
 
-        public LogicalTypeData<T> append(T value, Boolean isNull) {
+        public LogicalTypeVectorData<T> append(T value, Boolean isNull) {
             this.values.add(value);
             this.nulls.add(isNull);
             this.vectorProducer.append(value, isNull);
@@ -76,7 +77,7 @@ public class GenerateRoundTripData {
 
     }
 
-    public static void GenerateRoundTripData(List<LogicalTypeData<?>> contexts, String suitePath) throws IOException {
+    public static void GenerateRoundTripData(List<LogicalTypeVectorData<?>> contexts, String suitePath) throws IOException {
         val sc = VectorBlockSchema.newBuilder();
         val vb = VectorBlock.newBuilder();
         val sb = new StringBuilder();
@@ -133,18 +134,18 @@ public class GenerateRoundTripData {
         System.out.println(sb.toString());
     }
 
-    private static String bytesToString(byte[] bytes) {
+    public static String bytesToString(byte[] bytes) {
         return Base64.getEncoder().encodeToString(bytes) + "|base64";
     }
 
     public static void main(String[] args) throws IOException {
-        val ctx = List.<LogicalTypeData<?>>of(
+        val ctx = List.<LogicalTypeVectorData<?>>of(
                 //Big Int
-                new LogicalTypeData<>("BigInt", BigIntLogical.INSTANCE, Object::toString,
+                new LogicalTypeVectorData<>("BigInt", BigIntLogical.INSTANCE, Object::toString,
                         new Long[]{1L, null, Long.MIN_VALUE, Long.MAX_VALUE}),
 
                 //Binary
-                new LogicalTypeData<>("Binary", BinaryLogical.INSTANCE, GenerateRoundTripData::bytesToString  ,
+                new LogicalTypeVectorData<>("Binary", BinaryLogical.INSTANCE, TestVectorData::bytesToString  ,
                         new byte[][]{
                                 new byte[] {100, 12, -100, 12, (byte)234, (byte)-234},
                                 null,
@@ -170,7 +171,7 @@ public class GenerateRoundTripData {
                         }),
 
                 //Boolean
-                new LogicalTypeData<>("Boolean", BoolLogical.INSTANCE, Object::toString,
+                new LogicalTypeVectorData<>("Boolean", BoolLogical.INSTANCE, Object::toString,
                         new Boolean[] {
                             true,
                             null,
@@ -179,7 +180,7 @@ public class GenerateRoundTripData {
                         }),
 
                 //DATE
-                new LogicalTypeData<>("Date", DateLogical.INSTANCE, k -> DateLogical.fromPhysical(k).toString(),
+                new LogicalTypeVectorData<>("Date", DateLogical.INSTANCE, k -> DateLogical.fromPhysical(k).toString(),
                     new Long[]{
                             DateLogical.toPhysical(LocalDate.EPOCH),
                             null,
@@ -188,11 +189,11 @@ public class GenerateRoundTripData {
                     }),
 
                 //Double
-                new LogicalTypeData<>("Double", DoubleLogical.INSTANCE, Object::toString,
+                new LogicalTypeVectorData<>("Double", DoubleLogical.INSTANCE, Object::toString,
                         new Double[] {-23423423.234D, Double.MIN_VALUE, Double.MAX_VALUE, null}),
 
                 //Float
-                new LogicalTypeData<>("Float", FloatLogical.INSTANCE, k -> String.format("%.27e",k),
+                new LogicalTypeVectorData<>("Float", FloatLogical.INSTANCE, k -> String.format("%.27e",k),
                         new Float[] {-3.4e38f, 3.4e38f, -23423.234F, null}),
 
                 //INTERVAL_DAY
@@ -202,19 +203,19 @@ public class GenerateRoundTripData {
                 // new Context<>("IntervalDay", DateLogical.INSTANCE, Object::toString,
 
                 //Int
-                new LogicalTypeData<>("Int", IntLogical.INSTANCE, Object::toString,
+                new LogicalTypeVectorData<>("Int", IntLogical.INSTANCE, Object::toString,
                         new Integer[] {23, Integer.MIN_VALUE, Integer.MAX_VALUE, null }),
 
                 //SmallInt
-                new LogicalTypeData<>("SmallInt", SmallIntLogical.INSTANCE, Object::toString,
+                new LogicalTypeVectorData<>("SmallInt", SmallIntLogical.INSTANCE, Object::toString,
                     new Integer[] {null, Integer.MIN_VALUE, Integer.MAX_VALUE, -34234}),
 
                 //String
-                new LogicalTypeData<>("String", StringLogical.INSTANCE, k->k,
+                new LogicalTypeVectorData<>("String", StringLogical.INSTANCE, k->k,
                         new String[] {"Hello world", null, "", "NULL", "StrangeString"}),
 
                 //Time
-                new LogicalTypeData<>("Time", TimeLogical.INSTANCE, k-> TimeLogical.fromPhysical(k).format( DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSSSSS")),
+                new LogicalTypeVectorData<>("Time", TimeLogical.INSTANCE, k-> TimeLogical.fromPhysical(k).format( DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSSSSS")),
                         new Long[]{
                                 TimeLogical.toPhysical(LocalTime.of(13,10,8,238049834)),
                                 null,
@@ -223,7 +224,7 @@ public class GenerateRoundTripData {
                         }),
 
                 //Timestamp
-                new LogicalTypeData<>("Timestamp", TimestampLogical.INSTANCE, k-> TimestampLogical.fromPhysical(k).format( DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSSSSS")),
+                new LogicalTypeVectorData<>("Timestamp", TimestampLogical.INSTANCE, k-> TimestampLogical.fromPhysical(k).format( DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSSSSS")),
                     new Long[] {
                             TimestampLogical.toPhysical(LocalDateTime.of(2012, 10, 3, 14, 12, 45, 345334533)),
                             null,
@@ -231,7 +232,7 @@ public class GenerateRoundTripData {
                             TimestampLogical.MAX,
                     }),
                 //TimestampTZ
-                new LogicalTypeData<>("TimestampTZ", TimestampTZLogical.INSTANCE, k-> TimestampTZLogical.fromPhysical(k).format( DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSSSSS")),
+                new LogicalTypeVectorData<>("TimestampTZ", TimestampTZLogical.INSTANCE, k-> TimestampTZLogical.fromPhysical(k).format( DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSSSSS")),
                         new Long[] {
                                 TimestampTZLogical.toPhysical(ZonedDateTime.of(2012, 10, 3, 14, 12, 45, 345334533, ZoneId.of("CET"))),
                                 null,
@@ -239,12 +240,12 @@ public class GenerateRoundTripData {
                                 TimestampTZLogical.MAX,
                         }),
                 //TinyInt
-                new LogicalTypeData<>("TinyInt", TinyIntLogical.INSTANCE, Object::toString,
+                new LogicalTypeVectorData<>("TinyInt", TinyIntLogical.INSTANCE, Object::toString,
                         new Integer[] {(int)Short.MIN_VALUE, (int)Short.MAX_VALUE, 234})
                         .appendNull(),
 
                 //UUID
-                new LogicalTypeData<>("GUId", UUIDLogical.INSTANCE, k-> UUIDLogical.fromPhysical(k).toString(),
+                new LogicalTypeVectorData<>("GUId", UUIDLogical.INSTANCE, k-> UUIDLogical.fromPhysical(k).toString(),
                         new byte[][]{
                             UUIDLogical.toPhysical(UUID.randomUUID()),
                             null,
@@ -252,7 +253,7 @@ public class GenerateRoundTripData {
                             UUIDLogical.toPhysical(UUID.randomUUID())
                         })
         );
-        GenerateRoundTripData.GenerateRoundTripData(ctx, "test/messages/logical-types");
+        TestVectorData.GenerateRoundTripData(ctx, "test/messages/logical-types");
     }
 
 

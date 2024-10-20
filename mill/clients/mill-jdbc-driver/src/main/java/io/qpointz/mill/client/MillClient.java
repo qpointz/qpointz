@@ -29,6 +29,8 @@ public abstract class MillClient implements AutoCloseable {
         throw new IllegalArgumentException("Unsupported protocol: " + proto);
     }
 
+    public abstract String getClientUrl();
+
     public abstract HandshakeResponse handshake(HandshakeRequest request) throws MillCodeException;
 
     public abstract ListSchemasResponse listSchemas(ListSchemasRequest request) throws MillCodeException;

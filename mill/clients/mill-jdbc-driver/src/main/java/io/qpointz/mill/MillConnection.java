@@ -29,6 +29,9 @@ public class MillConnection implements java.sql.Connection {
         return MillClient.fromConfig(this.config);
     }
 
+    public String getUrl() {
+        return this.getClient().getClientUrl();
+    }
 
     private CallableStatement createStatement(String sql, int[] columnIndexes, String[] columnNames ) throws SQLException {
         val query = MillSqlQuery.builder()

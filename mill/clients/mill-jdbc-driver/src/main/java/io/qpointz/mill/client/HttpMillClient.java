@@ -125,6 +125,11 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
     }
 
     @Override
+    public String getClientUrl() {
+        return this.buildUrl();
+    }
+
+    @Override
     public HandshakeResponse handshake(HandshakeRequest request) {
         return post("Handshake", request, b -> {
             try {

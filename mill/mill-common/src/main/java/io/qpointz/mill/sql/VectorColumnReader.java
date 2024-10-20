@@ -2,7 +2,7 @@ package io.qpointz.mill.sql;
 
 import io.qpointz.mill.proto.Vector;
 
-public class VectorColumnReader extends ColumnReader {
+public abstract class VectorColumnReader extends ColumnReader {
 
     private final Vector vector;
 

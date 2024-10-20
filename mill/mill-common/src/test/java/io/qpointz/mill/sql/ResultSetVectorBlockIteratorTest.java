@@ -36,8 +36,8 @@ class ResultSetVectorBlockIteratorTest {
             blockCount++;
             rowCount+=block.getVectorSize();
         }
-        assertEquals(100, rowCount);
-        assertEquals(4, blockCount);
+        assertEquals(1000, rowCount);
+        assertEquals(31, blockCount);
     }
 
 }
