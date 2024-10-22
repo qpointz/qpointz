@@ -1,0 +1,31 @@
+dump:
+  in:
+    root_dir: /home/vm/wip/qpointz/qpointz/mill
+  actions:
+    - move_package:
+        from: io.qpointz.mill
+        to: com.tras.bas.yuki
+    - delete_dir:
+        paths:
+          - clients/mill-py/millclient/proto/io
+          - clients/mill-spark
+          - clients/etc/mill-test
+    - delete_file:
+        paths:
+          - clients/mill-py/protoc.txt
+          - clients/mill-py/gen.sh
+          - .sdkmanrc
+          - .gitlab-ci.yml
+          - clients/.gitlab-ci.yml
+    - delete_empty_folder:
+    - replace_in_files:
+        exts:  [".java", ".py", ".kt", ".kts", ".Driver", ".proto", ".json"]
+        replace:
+          - old: io.qpointz.mill
+            new: com.tras.bas.yuki
+          - old: io.qpointz
+            new: com.tras.bas.yuki
+          - old: qpointz.io
+            new: tras.com
+          - old: qpointz
+            new: yuki
