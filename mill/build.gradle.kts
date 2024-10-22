@@ -10,6 +10,8 @@ sonar {
         property("sonar.projectKey", "qpointz-delta")
         property("sonar.projectName", "qpointz-delta")
         property("sonar.qualitygate.wait", true)        
+        property("sonar.sources", project.sourceSets.get("main").allJava.srcDirs + listOf(project.layout.projectDirectory.dir("clients/mill-py/millclient")))
+        property("sonar.tests", project.sourceSets.get("test").allJava.srcDirs + listOf(project.layout.projectDirectory.dir("clients/mill-py/tests")))
     }
 }
 
