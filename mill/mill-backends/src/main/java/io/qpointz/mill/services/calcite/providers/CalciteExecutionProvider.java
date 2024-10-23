@@ -27,27 +27,6 @@ public class CalciteExecutionProvider implements ExecutionProvider {
     @Getter(AccessLevel.PROTECTED)
     private PlanConverter planConverter;
 
-    private RelNode toRel(Plan plan) throws Exception {
-        val ctx = Objects.requireNonNull(this.getCtxFactory().createContext());
-        val defaultSchemas = ctx.getFrameworkConfig()
-                .getDefaultSchema()
-                .getSubSchemaNames()
-                .stream().toList();
-
-        val catalogReader = new CalciteCatalogReader(ctx.getCalciteRootSchema(),
-                defaultSchemas,
-                ctx.getTypeFactory(),
-                ctx.getCalciteConnection().config());
-
-        val relOptCluster = RelOptCluster.create(new VolcanoPlanner(), new RexBuilder(ctx.getTypeFactory()));
-        return SubstraitRelNodeConverter.convert(
-                plan.getRoots().get(0).getInput(),
-                relOptCluster,
-                catalogReader,
-                ctx.getParserConfig());
-    }
-
-
     public VectorBlockIterator execute(Plan plan, QueryExecutionConfig config) {
         try {
             val ctx = Objects.requireNonNull(this.getCtxFactory().createContext());

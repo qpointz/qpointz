@@ -22,7 +22,7 @@ public class JwtSecurityProviderFactory implements SecurityProviderFactory<JwtAu
 
     @Override
     public Set<AuthReaderType> getRequeiredAuthReaderTypes() {
-        return Set.of(AuthReaderType.Bearer);
+        return Set.of(AuthReaderType.BEARER);
     }
 
     @Override

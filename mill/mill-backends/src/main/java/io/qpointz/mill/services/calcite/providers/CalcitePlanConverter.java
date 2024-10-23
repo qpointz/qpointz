@@ -70,12 +70,11 @@ public class CalcitePlanConverter implements PlanConverter {
                 RelOptCluster relOptCluster,
                 Prepare.CatalogReader catalogReader,
                 SqlParser.Config parserConfig) {
-            var relBuilder =
-                    RelBuilder.create(
+            var relBuilder = RelBuilder.create(
                             Frameworks.newConfigBuilder()
                                     .parserConfig(parserConfig)
                                     .defaultSchema(catalogReader.getRootSchema().plus())
-                                    .traitDefs((List<RelTraitDef>) null)
+                                    .traitDefs()
                                     .programs()
                                     .build());
             val converter = new PlanConverter(EXTENSION_COLLECTION , relOptCluster.getTypeFactory(), relBuilder);

@@ -62,8 +62,8 @@ public final class SecurityProviders {
 
     public static GrpcAuthenticationReader createAuthReader(AuthReaderType type) {
         return switch (type) {
-            case BasicGrpc -> new BasicGrpcAuthenticationReader();
-            case Bearer -> new BearerAuthenticationReader(BearerTokenAuthenticationToken::new);
+            case BASIC_GRPC -> new BasicGrpcAuthenticationReader();
+            case BEARER -> new BearerAuthenticationReader(BearerTokenAuthenticationToken::new);
         };
     }
 

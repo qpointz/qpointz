@@ -28,7 +28,7 @@ import org.springframework.test.context.ContextConfiguration;
 @ActiveProfiles("test-calcite")
 @Slf4j
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class BaseTest {
+public abstract class BaseTest {
 
     @Autowired
     @Getter
@@ -38,7 +38,7 @@ public class BaseTest {
     protected MillServiceGrpc.MillServiceBlockingStub blockingStub;
 
     @Test
-    public void checkConnection() throws Exception {
+    void checkConnection() throws Exception {
         val repl = blockingStub.handshake(HandshakeRequest.getDefaultInstance());
         log.info(repl.toString());
     }

@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class ServiceHandlerConfig {
+public class ServiceHandlerConfig { //NOSONAR explicit public constructor required to inject class into context
 
     @Bean
     public static ServiceHandler serviceHandler(@Autowired MetadataProvider metadataProvider,

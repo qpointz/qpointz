@@ -50,7 +50,7 @@ public class ColumnsMetadata extends ResultSetProvidingMetadata<ColumnsMetadata.
                                   String isNullable, int sizeBytes) {
     }
 
-    private static List<ObjectToVectorProducer.MapperInfo<ColumnsMetadata.ColumnRecord, ?>> MAPPINGS = List.of(
+    private static final List<ObjectToVectorProducer.MapperInfo<ColumnsMetadata.ColumnRecord, ?>> recordSetFieldMappings = List.of(
             mapper("TABLE_CAT", StringLogical.INSTANCE, k -> dbnull()),
             mapper("TABLE_SCHEM", StringLogical.INSTANCE, k -> stringOf(k.schema)),
             mapper("TABLE_NAME", StringLogical.INSTANCE, k -> stringOf(k.tableName)),
@@ -80,7 +80,7 @@ public class ColumnsMetadata extends ResultSetProvidingMetadata<ColumnsMetadata.
 
     @Override
     protected List<ObjectToVectorProducer.MapperInfo<ColumnRecord, ?>> getMappers() {
-        return MAPPINGS;
+        return recordSetFieldMappings;
     }
 
     @Override
@@ -120,14 +120,13 @@ public class ColumnsMetadata extends ResultSetProvidingMetadata<ColumnsMetadata.
         for (val field : table.getFieldsList()) {
             val fieldType = field.getType();
             columns.add(new ColumnRecord(null, schemaName, table.getName(), field.getName(), field.getFieldIdx() + 1,
-                    sqlDataType(fieldType), sqlDataTypeName(fieldType), sizeOf(fieldType), decimalDigits(fieldType), numPrecRadix(fieldType),
-                    nullable(fieldType), nullableLabel(fieldType), sizeBytes(fieldType)));
+                    sqlDataType(fieldType), sqlDataTypeName(fieldType), sizeOf(fieldType), decimalDigits(fieldType), NUM_PREC_RADIX,
+                    nullable(fieldType), nullableLabel(fieldType), sizeBytes()));
         }
         return columns;
     }
 
-    private int sizeBytes(DataType fieldType) {
-        //physical layout unknown
+    private int sizeBytes() {
         return -1;
     }
 
@@ -139,10 +138,7 @@ public class ColumnsMetadata extends ResultSetProvidingMetadata<ColumnsMetadata.
         return fieldType.getType().getScale();
     }
 
-    private Integer numPrecRadix(DataType fieldType) {
-        //assuming JVM types used base 2 used to express scale and precision
-        return 2;
-    }
+    private static final Integer NUM_PREC_RADIX = 2;
 
 
     private int nullable(DataType fieldType) {

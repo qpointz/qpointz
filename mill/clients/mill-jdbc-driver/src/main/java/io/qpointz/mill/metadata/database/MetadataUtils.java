@@ -4,6 +4,9 @@ import java.util.Optional;
 
 public class MetadataUtils {
 
+    private MetadataUtils() {
+    }
+
     public static Optional<String> stringOf(String value) {
         return value == null || value.isEmpty() || value.isBlank()
                 ? Optional.empty()

@@ -10,7 +10,7 @@ import java.util.stream.StreamSupport;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
-public class JdbcMetadataProviderTest extends BaseTest {
+class JdbcMetadataProviderTest extends BaseTest {
 
     @Test
     void trivial() {

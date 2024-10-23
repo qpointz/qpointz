@@ -32,7 +32,6 @@ import org.apache.calcite.sql.ddl.SqlKeyConstraint;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.sql.parser.SqlParserPos;
-//import org.apache.calcite.sql.parser.ddl.SqlDdlParserImpl;
 import org.apache.calcite.sql.validate.SqlValidator;
 import org.apache.calcite.sql.validate.SqlValidatorCatalogReader;
 import org.apache.calcite.sql.validate.SqlValidatorImpl;
@@ -82,7 +81,7 @@ class SqlConverterBase {
     try {
       defaults = SimpleExtension.loadDefaults();
     } catch (IOException e) {
-      throw new RuntimeException("Failure while loading defaults.", e);
+      throw new RuntimeException("Failure while loading defaults.", e); //NOSONAR
     }
 
     EXTENSION_COLLECTION = defaults;
@@ -106,7 +105,7 @@ class SqlConverterBase {
   }
 
   Pair<SqlValidator, CalciteCatalogReader> registerCreateTables(
-      Function<List<String>, NamedStruct> tableLookup) throws SqlParseException {
+      Function<List<String>, NamedStruct> tableLookup)  {
     Function<List<String>, Table> lookup =
         id -> {
           NamedStruct table = tableLookup.apply(id);
@@ -150,7 +149,7 @@ class SqlConverterBase {
 
 
 
-  protected List<DefinedTable> parseCreateTable(
+  protected List<DefinedTable> parseCreateTable( //NOSONAR
       RelDataTypeFactory factory, SqlValidator validator, String sql) throws SqlParseException {
     SqlParser parser = SqlParser.create(sql, parserConfig);
     List<DefinedTable> definedTableList = new ArrayList<>();
@@ -229,7 +228,7 @@ class SqlConverterBase {
   protected static final class DefinedTable extends AbstractTable {
 
     private final String name;
-    private final RelDataTypeFactory factory;
+    private final RelDataTypeFactory factory; //NOSONAR
     private final RelDataType type;
 
     public DefinedTable(String name, RelDataTypeFactory factory, RelDataType type) {
@@ -240,7 +239,7 @@ class SqlConverterBase {
 
     @Override
     public RelDataType getRowType(RelDataTypeFactory typeFactory) {
-      //      if (factory != typeFactory) {
+      //      if (factory != typeFactory) { //NOSONAR
       //        throw new IllegalStateException("Different type factory than previously used.");
       //      }
       return type;

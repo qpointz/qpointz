@@ -54,13 +54,13 @@ public class MillService extends MillServiceGrpc.MillServiceImplBase {
     @Override
     public void handshake(HandshakeRequest request, StreamObserver<HandshakeResponse> observer) {
         traceRequest("Handshake", request::toString);
-        replyOne(request, observer, this.serviceHandler::handshake);
+        replyOne(request, observer, r-> this.serviceHandler.handshake());
     }
 
     @Override
     public void listSchemas(ListSchemasRequest request, StreamObserver<ListSchemasResponse> responseObserver) {
         traceRequest("listSchemas", request::toString);
-        replyOne(request, responseObserver, this.serviceHandler::listSchemas);
+        replyOne(request, responseObserver, r-> this.serviceHandler.listSchemas());
     }
 
     @Override
@@ -88,28 +88,6 @@ public class MillService extends MillServiceGrpc.MillServiceImplBase {
         return SubstraitUtils.protoToPlan(plan);
     }
 
-    @SneakyThrows
-    protected io.substrait.proto.Plan convertPlanToProto(io.substrait.plan.Plan plan) {
-        return SubstraitUtils.planToProto(plan);
-    }
-
-//    @Override
-//    public void execSql(ExecSqlRequest request, StreamObserver<QueryResultResponse> responseObserver) {
-//        traceRequest("execSql", request::toString);
-//        val parseResult = parseSqlAndValidate(request.getStatement().getSql());
-//        execPlan(ExecPlanRequest.newBuilder()
-//                    .setPlan(convertPlanToProto(parseResult.getPlan()))
-//                    .setConfig(request.getConfig())
-//                    .build(), responseObserver);
-//    }
-
-    private SqlProvider.ParseResult parseSqlAndValidate(String sql) {
-        val parseResult = this.serviceHandler.parseSql(sql);
-        if (parseResult.isSuccess())
-            return parseResult;
-        throw parseResult.getException();
-    }
-
     protected static void streamResult(VectorBlockIterator iterator, StreamObserver<QueryResultResponse> responseObserver) {
         var callObserver = (ServerCallStreamObserver<QueryResultResponse>)responseObserver;
         while (iterator.hasNext()) {
@@ -120,13 +98,6 @@ public class MillService extends MillServiceGrpc.MillServiceImplBase {
             callObserver.onNext(resp);
         }
         callObserver.onCompleted();
-    }
-
-    public static void run(MillServiceConfiguration configuration, String[] args) {
-        val configs = new ArrayList<Class<?>>();
-        configs.addAll(configuration.configs());
-        val all = configs.toArray(new Class<?>[0]);
-        SpringApplication.run(all, args);
     }
 
 }

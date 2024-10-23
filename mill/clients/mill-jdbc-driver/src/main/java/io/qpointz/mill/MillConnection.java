@@ -7,6 +7,7 @@ import io.qpointz.mill.proto.HandshakeRequest;
 import lombok.Getter;
 import lombok.extern.java.Log;
 import lombok.val;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.*;
 import java.util.*;
@@ -70,6 +71,7 @@ public class MillConnection implements java.sql.Connection {
 
     @Override
     public void setAutoCommit(boolean autoCommit) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
@@ -79,10 +81,12 @@ public class MillConnection implements java.sql.Connection {
 
     @Override
     public void commit() throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public void rollback() throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
@@ -102,6 +106,7 @@ public class MillConnection implements java.sql.Connection {
 
     @Override
     public void setReadOnly(boolean readOnly) throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
@@ -134,11 +139,12 @@ public class MillConnection implements java.sql.Connection {
 
     @Override
     public SQLWarning getWarnings() throws SQLException {
-        return null;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public void clearWarnings() throws SQLException {
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
@@ -227,14 +233,16 @@ public class MillConnection implements java.sql.Connection {
 
     @Override
     public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
-        validateResultSetConcurency(resultSetConcurrency);
-        validateResultSetHoldability(resultSetHoldability);
-        validateResultSetType(resultSetType);
-        return this.createStatement(sql, null, null);
+        return prepareStatementImpl(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
     }
 
     @Override
     public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
+        return prepareStatementImpl(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
+    }
+
+    @NotNull
+    private CallableStatement prepareStatementImpl(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
         validateResultSetConcurency(resultSetConcurrency);
         validateResultSetHoldability(resultSetHoldability);
         validateResultSetType(resultSetType);
@@ -289,22 +297,22 @@ public class MillConnection implements java.sql.Connection {
 
     @Override
     public void setClientInfo(String name, String value) throws SQLClientInfoException {
-
+        throw new SQLClientInfoException("Feature not supported", Map.of());
     }
 
     @Override
     public void setClientInfo(Properties properties) throws SQLClientInfoException {
-
+        throw new SQLClientInfoException("Feature not supported", Map.of());
     }
 
     @Override
     public String getClientInfo(String name) throws SQLException {
-        return null;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public Properties getClientInfo() throws SQLException {
-        return null;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override

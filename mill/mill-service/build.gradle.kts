@@ -55,14 +55,14 @@ dependencies {
     implementation(libs.calcite.core)
     implementation(libs.calcite.csv)
     implementation(libs.calcite.file)
+    implementation(libs.substrait.isthmus)
+    testImplementation(libs.boot.starter.test)
+    compileOnly(libs.lombok)
     runtimeOnly(libs.bundles.logging)
     runtimeOnly(libs.bundles.jdbc.pack)
-    compileOnly(libs.lombok)
-    annotationProcessor(libs.lombok)
-    implementation(libs.substrait.isthmus)
     developmentOnly(libs.boot.devtools)
     annotationProcessor(libs.boot.configuration.processor)
-    testImplementation(libs.boot.starter.test)    
+    annotationProcessor(libs.lombok)
 }
 
 testing {
