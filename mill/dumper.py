@@ -27,6 +27,16 @@ class Dumper:
                     shutil.move(np, new_path)
                     print(f"Deleting {np}")
 
+    def move_dir(self, *, config=None, from_path: str = None, to_path: str = None):
+        if config:
+            from_path = config['from']
+            to_path = config['to']
+
+        from_sp = os.path.join(self.root_dir, from_path)
+        to_sp = os.path.join(self.root_dir, to_path)
+        print(f"==== Moving directory {from_sp} to {to_sp}")
+        if os.path.exists(from_sp):
+            shutil.move(from_sp, to_sp)
     def delete_dir(self, * , config = None, dirs:list = None):
         def delete(subdir):
             fp = os.path.join(self.root_dir, subdir)
@@ -61,7 +71,7 @@ class Dumper:
             def replace_content(f):
                 print(f"Replacing in:{f}")
                 # Read in the file
-                with open(f, 'r') as file:
+                with open(f, 'r', encoding='utf-8') as file:
                     filedata = file.read()
 
                 # Replace the target string
@@ -116,6 +126,8 @@ class Dumper:
                 self.delete_empty_folder()
             case "replace_in_files":
                 self.replace_in_files(config = config)
+            case "move_dir":
+                self.move_dir(config = config)
             case _:
                 raise ValueError(f"Invalid action: {action}")
 
@@ -132,32 +144,3 @@ if __name__ == '__main__':
     with open(".dumper.yml", 'r') as stream:
         rs = yaml.safe_load(stream)
         run_actions(rs)
-
-
-    # root_dir="/home/vm/wip/qpointz/qpointz/mill"
-    # old_pkg = "io.qpointz.mill"
-    # new_pkg = "com.tras.bas.yuki"
-    #
-    # t = old_pkg.split(".")
-    # t.reverse()
-    # new_forward_pkg = ".".join(t)
-    #
-    # d = Dumper(root_dir)
-    # d.move_files(old_pkg, new_pkg)
-    # d.delete_empty_folders()
-    # d.delete_dir("clients/mill-py/millclient/proto/io")
-    # d.delete_dir("clients/mill-spark")
-    # d.delete_dir("clients/etc/mill-test")
-    #
-    # default_exts = {'.java', '.py', '.kt', '.kts', '.Driver', '.proto', '.json'}
-    # d.replace_in_file(old = old_pkg, new=new_pkg, exts=default_exts)
-    # d.replace_in_file(old = 'io.qpointz', new=new_pkg, exts=default_exts)
-    # d.replace_in_file(old = 'qpointz.io', new = new_forward_pkg, exts=default_exts)
-    # d.replace_in_file(old='qpointz', new="yuki", exts=default_exts)
-    #
-    # d.delete_files("clients/mill-py/protoc.txt")
-    # d.delete_files("clients/mill-py/gen.sh")
-    # d.delete_files(".sdkmanrc")
-    # d.delete_files(".gitlab-ci.yml")
-    # d.delete_files("clients/.gitlab-ci.yml")
-    #
