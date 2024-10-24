@@ -1,6 +1,6 @@
 dump:
   in:
-    root_dir: /home/vm/wip/qpointz/qpointz/mill
+    root_dir: C:\\Users\\vm\\wip\\qpointz\\qpointz\\mill
   actions:
     - move_package:
         from: io.qpointz.mill
@@ -29,3 +29,56 @@ dump:
             new: tras.com
           - old: qpointz
             new: yuki
+    - move_dir:
+        from: mill-azure-service-function
+        to: yuki-azure-service-function
+    - move_dir:
+        from: mill-backends
+        to: yuki-backends
+    - move_dir:
+        from: mill-common
+        to: yuki-common
+    - move_dir:
+        from: mill-common-service
+        to: yuki-common-service
+    - move_dir:
+        from: mill-grpc-service
+        to: yuki-grpc-service
+    - move_dir:
+        from: mill-service
+        to: yuki-service
+    - move_dir:
+        from: clients/mill-jdbc-driver
+        to: clients/yuki-jdbc-driver
+    - move_dir:
+        from: clients/mill-jdbc-shell
+        to: clients/yuki-jdbc-shell
+    - delete_dir:
+        paths:
+          - mill-azure-service-function
+          - mill-backends
+          - mill-common
+          - mill-common-service
+          - mill-grpc-service
+          - mill-service
+    - replace_in_files:
+        exts: [ ".kt", ".kts" ]
+        replace:
+          - old: ":mill-azure-service-function"
+            new: ":yuki-azure-service-function"
+          - old: ":mill-backends"
+            new: ":yuki-backends"
+          - old: ":mill-common"
+            new: ":yuki-common"
+          - old: ":mill-common-service"
+            new: ":yuki-common-service"
+          - old: ":mill-grpc-service"
+            new: ":yuki-grpc-service"
+          - old: ":mill-service"
+            new: ":yuki-service"
+          - old: ":mill-service"
+            new: ":yuki-service"
+          - old: ":clients:mill-jdbc-driver"
+            new: ":clients:yuki-jdbc-driver"
+          - old: ":clients:mill-jdbc-shell"
+            new: ":clients:yuki-jdbc-shell"
