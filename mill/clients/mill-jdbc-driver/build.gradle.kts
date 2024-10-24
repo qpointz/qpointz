@@ -49,13 +49,14 @@ testing {
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.lombok)
+                    implementation(libs.h2.database)
+                    compileOnly(libs.lombok)
                     runtimeOnly("io.opencensus:opencensus-impl:0.31.1")
                     runtimeOnly(libs.grpc.census)
                     runtimeOnly(libs.grpc.context)
                     runtimeOnly(libs.grpc.all)
-                    implementation(libs.h2.database)
                     annotationProcessor(libs.lombok)
-                    compileOnly(libs.lombok)
+
                 }
 
                 targets {

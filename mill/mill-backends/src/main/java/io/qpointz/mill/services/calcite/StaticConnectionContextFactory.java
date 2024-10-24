@@ -17,6 +17,7 @@ public class StaticConnectionContextFactory implements CalciteContextFactory {
 
         @Override
         public void close() throws Exception {
+            //no closable resources associated
         }
 
     }

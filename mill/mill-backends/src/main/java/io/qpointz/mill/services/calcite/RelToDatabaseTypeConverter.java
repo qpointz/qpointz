@@ -9,93 +9,93 @@ import java.util.Objects;
 
 public class RelToDatabaseTypeConverter extends RelDataTypeConverter<DatabaseType> {
 
-    public static RelToDatabaseTypeConverter DEFAULT = new RelToDatabaseTypeConverter();
+    public static final RelToDatabaseTypeConverter DEFAULT = new RelToDatabaseTypeConverter();
 
-    private RuntimeException NotImplemented(RelDataType relDataType) {
+    private RuntimeException notImplemented(RelDataType relDataType) {
         return new RuntimeException(String.format("Conversion from '%s' not implemented.", Objects.requireNonNull(relDataType.getSqlIdentifier()).toString()));
     }
 
     @Override
     protected DatabaseType convertSArg(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertFunction(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertMeasure(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertGeometry(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertDynamicStar(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertColumnList(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertCursor(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertOther(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertRow(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertStructured(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertDistinct(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertMap(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertArray(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertMultiSet(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertSymbol(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertNull(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
-    private DatabaseType from(LogicalType logical, RelDataType relDataType) {
+    private DatabaseType from(LogicalType<?,?> logical, RelDataType relDataType) {
         val nullable = relDataType.isNullable();
         val sqlTypeName = relDataType.getSqlTypeName();
         val precision = sqlTypeName.allowsPrec()
@@ -131,67 +131,67 @@ public class RelToDatabaseTypeConverter extends RelDataTypeConverter<DatabaseTyp
 
     @Override
     protected DatabaseType convertIntervalSecond(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertIntervalMinuteSecond(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertIntervalMinute(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertIntervalHourSecond(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertIntervalHourMinute(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertIntervalHour(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertIntervalDaySecond(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertIntervalDayMinute(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertIntervalDayHour(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertIntervalDay(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertIntervalMonth(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertIntervalYearMonth(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
     protected DatabaseType convertIntervalYear(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 
     @Override
@@ -276,6 +276,6 @@ public class RelToDatabaseTypeConverter extends RelDataTypeConverter<DatabaseTyp
 
     @Override
     protected DatabaseType convertAny(RelDataType relDataType) {
-        throw NotImplemented(relDataType);
+        throw notImplemented(relDataType);
     }
 }

@@ -31,18 +31,16 @@ public abstract class MillServiceBaseTest {
         val statement = SQLStatement.newBuilder()
                 .setSql(sql)
                 .build();
-        val request = QueryRequest.newBuilder()
+        return QueryRequest.newBuilder()
                 .setStatement(statement);
-        return request;
     }
 
     protected static ParseSqlRequest.Builder sqlParseRequest(String sql) {
         val statement = SQLStatement.newBuilder()
                 .setSql(sql)
                 .build();
-        val request = ParseSqlRequest.newBuilder()
+        return ParseSqlRequest.newBuilder()
                 .setStatement(statement);
-        return request;
     }
 
     @BeforeEach

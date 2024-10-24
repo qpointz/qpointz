@@ -137,6 +137,8 @@ dependencyResolutionManagement {
             library("okhttp-mock-webserver", "com.squareup.okhttp3", "mockwebserver").versionRef(okhttp3)
             library("okhttp", "com.squareup.okhttp3", "okhttp").versionRef(okhttp3)
 
+            val sqlline = version("sqlline","1.12.0")
+            library("sqlline", "sqlline", "sqlline").versionRef(sqlline)
 
             library("drivers-postgressql","org.postgresql","postgresql").version("42.7.4")
             library("drivers-sqllite", "org.xerial","sqlite-jdbc").version("3.46.1.3")

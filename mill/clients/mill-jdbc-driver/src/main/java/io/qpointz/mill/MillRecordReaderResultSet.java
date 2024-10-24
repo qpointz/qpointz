@@ -15,12 +15,12 @@ class MillRecordReaderResultSet extends RecordReaderResultSetBase {
 
     @Override
     public SQLWarning getWarnings() throws SQLException {
-        return null;
+        throw new UnsupportedOperationException("Operation not supported");
     }
 
     @Override
     public void clearWarnings() throws SQLException {
-
+        throw new UnsupportedOperationException("Operation not supported");
     }
 
     @Override
@@ -50,12 +50,12 @@ class MillRecordReaderResultSet extends RecordReaderResultSetBase {
 
     @Override
     public void beforeFirst() throws SQLException {
-
+        throw new UnsupportedOperationException("Non scrollable dataset");
     }
 
     @Override
     public void afterLast() throws SQLException {
-
+        throw new UnsupportedOperationException("Non scrollable dataset");
     }
 
     @Override
@@ -75,7 +75,7 @@ class MillRecordReaderResultSet extends RecordReaderResultSetBase {
 
     @Override
     public void setFetchSize(int rows) throws SQLException {
-
+        throw new UnsupportedOperationException("Fetch size cant be set");
     }
 
     @Override

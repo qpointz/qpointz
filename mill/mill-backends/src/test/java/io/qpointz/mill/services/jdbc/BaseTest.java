@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("test-jdbc")
 @Slf4j
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class BaseTest {
+public abstract class BaseTest {
 
     @Autowired
     @Getter(AccessLevel.PROTECTED)

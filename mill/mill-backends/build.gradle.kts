@@ -19,14 +19,13 @@ dependencies {
     implementation(libs.calcite.csv)
     implementation(libs.calcite.file)
     implementation(libs.boot.starter)
-    runtimeOnly(libs.bundles.logging)
-    compileOnly(libs.lombok)
-    annotationProcessor(libs.lombok)
     implementation(libs.substrait.isthmus)
-    //developmentOnly(libs.boot.devtools)
+    compileOnly(libs.lombok)
+    runtimeOnly(libs.bundles.logging)
+    runtimeOnly(libs.h2.database)
+    annotationProcessor(libs.lombok)
     annotationProcessor(libs.boot.configuration.processor)
     testImplementation(libs.boot.starter.test)
-    runtimeOnly(libs.h2.database)
 }
 
 testing {

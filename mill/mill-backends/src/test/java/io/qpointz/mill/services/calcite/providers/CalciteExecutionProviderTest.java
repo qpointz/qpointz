@@ -32,7 +32,7 @@ class CalciteExecutionProviderTest extends BaseTest {
 
 
     @Test
-    public void executeDirectly() throws SQLException {
+    void executeDirectly() throws SQLException {
         val sql = "SELECT * FROM `airlines`.`cities`";
         try (val ctx = ctxFactory.createContext()) {
             val conn = ctx.getCalciteConnection();
@@ -49,19 +49,19 @@ class CalciteExecutionProviderTest extends BaseTest {
     }
 
     @Test
-    public void relBuilderTest() throws SQLException {
+    void relBuilderTest() {
         try (val ctx = ctxFactory.createContext()) {
             val relBuilder = RelBuilder.create(ctx.getFrameworkConfig());
             val node = relBuilder.scan("airlines", "cities").build();
             val stmt = ctx.getRelRunner().prepareStatement(node);
-            val rs = stmt.executeQuery();
+            stmt.executeQuery();
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     }
 
     @Test
-    public void execTest() {
+    void execTest() {
         val ep = new CalciteExecutionProvider(this.getCtxFactory(), planConverter);
         val pr = sqlProvider.parseSql("SELECT * FROM `airlines`.`cities`");
         assertTrue(pr.isSuccess());
@@ -73,7 +73,7 @@ class CalciteExecutionProviderTest extends BaseTest {
     }
 
     @Test
-    public void execAggregateTest() {
+    void execAggregateTest() {
         val ep = new CalciteExecutionProvider(this.getCtxFactory(), planConverter);
         val pr = sqlProvider.parseSql("SELECT `id` as `city_id`, COUNT(*) as `cnt` FROM `airlines`.`cities` GROUP BY `id`");
         assertTrue(pr.isSuccess());

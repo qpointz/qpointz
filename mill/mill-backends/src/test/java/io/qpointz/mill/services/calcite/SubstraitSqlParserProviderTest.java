@@ -23,13 +23,7 @@ class SubstraitSqlParserProviderTest extends BaseTest {
     }
 
     @Test
-    public void vanilaParse() {
-        val result = parse("select * from `metadata`.`COLUMNS`");
-        assertTrue(result.isSuccess());
-    }
-
-    @Test
-    public void params() {
+    void vanilaParse() {
         val result = parse("select * from `metadata`.`COLUMNS`");
         assertTrue(result.isSuccess());
     }

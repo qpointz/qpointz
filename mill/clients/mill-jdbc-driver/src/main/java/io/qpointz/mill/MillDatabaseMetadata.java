@@ -728,7 +728,7 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     @Override
     public ResultSet getCatalogs() throws SQLException {
-        return CatalogsMetadata.DEFAULT
+        return CatalogsMetadata.getInstance()
                 .asResultSet();
     }
 

@@ -1,13 +1,13 @@
 package io.qpointz.mill.services;
 
-import lombok.*;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class BootstrapTest {
+class BootstrapTest {
 
     @Test
-    void createDb() throws ClassNotFoundException {
-        val db = H2Db.createFromResource("sql-scripts/test.sql");
+    void createDb()  {
+        assertDoesNotThrow(()->H2Db.createFromResource("sql-scripts/test.sql"));
     }
 
 }

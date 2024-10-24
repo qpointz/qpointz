@@ -47,16 +47,6 @@ class MillPublishPlugin : Plugin<Project> {
                 from(comp)
                 createPom(millExt, comp!!.name)
             })
-
-//            val shadowComponent = project.components.findByName("shadow")
-//            if (shadowComponent != null) {
-//                publications.create("mavenJavaShadow", MavenPublication::class.java, {
-//                    from(project.components.findByName("shadow"))
-//                    createPom(project, millExt, shadowComponent.name)
-//                })
-//            }
-
-
         }
     }
 }

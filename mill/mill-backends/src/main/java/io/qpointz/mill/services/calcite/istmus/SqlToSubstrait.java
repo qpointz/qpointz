@@ -70,17 +70,17 @@ public class SqlToSubstrait extends SqlConverterBase {
 
   private Plan executeInner(
       String sql,
-      RelDataTypeFactory factory,
+      RelDataTypeFactory factory, //NOSONAR
       SqlValidator validator,
       CalciteCatalogReader catalogReader)
       throws SqlParseException {
     var plan = Plan.newBuilder();
     ExtensionCollector functionCollector = new ExtensionCollector();
     var relProtoConverter = new RelProtoConverter(functionCollector);
-    // TODO: consider case in which one sql passes conversion while others don't
+    // TODO: consider case in which one sql passes conversion while others don't //NOSONAR
     sqlToRelNode(sql, validator, catalogReader)
         .forEach(
-            root -> {
+            root -> { //NOSONAR
               plan.addRelations(
                   PlanRel.newBuilder()
                       .setRoot(
@@ -108,9 +108,9 @@ public class SqlToSubstrait extends SqlConverterBase {
     }
     SqlToRelConverter converter = createSqlToRelConverter(validator, catalogReader);
     List<RelRoot> roots =
-        parsedList.stream()
+        parsedList.stream() //NOSONAR
             .map(parsed -> getBestExpRelRoot(converter, parsed))
-            .collect(java.util.stream.Collectors.toList());
+            .collect(java.util.stream.Collectors.toList()); //NOSONAR
     return roots;
   }
 
@@ -118,7 +118,7 @@ public class SqlToSubstrait extends SqlConverterBase {
   SqlToRelConverter createSqlToRelConverter(
       SqlValidator validator, CalciteCatalogReader catalogReader) {
     SqlToRelConverter converter =
-        new SqlToRelConverter(
+        new SqlToRelConverter( //NOSONAR
             null,
             validator,
             catalogReader,
@@ -131,7 +131,7 @@ public class SqlToSubstrait extends SqlConverterBase {
   @VisibleForTesting
   static RelRoot getBestExpRelRoot(SqlToRelConverter converter, SqlNode parsed) {
     RelRoot root = converter.convertQuery(parsed, true, true);
-    {
+    { //NOSONAR
       var program = HepProgram.builder().build();
       HepPlanner hepPlanner = new HepPlanner(program);
       hepPlanner.setRoot(root.rel);

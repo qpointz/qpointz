@@ -14,7 +14,7 @@ public class NoopSecurityProviderFactory implements SecurityProviderFactory<Noop
 
     @Override
     public Set<AuthReaderType> getRequeiredAuthReaderTypes() {
-        return Set.of(AuthReaderType.BasicGrpc);
+        return Set.of(AuthReaderType.BASIC_GRPC);
     }
 
     private static NoopAuthenticationProvider DEFAULT = new NoopAuthenticationProvider();

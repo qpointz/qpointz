@@ -128,7 +128,4 @@ public class MillServiceConfiguration {
         return this;
     }
 
-    public <T extends ProvidersConfig> MillServiceConfiguration enableSecurity() {
-        return this.withAdditionalConfig(MillStandartSecurityConfig.class);
-    }
 }

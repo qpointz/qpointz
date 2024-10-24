@@ -57,7 +57,7 @@ public class FileBasedSecurityProviderFactory implements SecurityProviderFactory
 
     @Override
     public Set<AuthReaderType> getRequeiredAuthReaderTypes() {
-        return Set.of(AuthReaderType.BasicGrpc);
+        return Set.of(AuthReaderType.BASIC_GRPC);
     }
 
     @Slf4j

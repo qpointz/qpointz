@@ -130,9 +130,7 @@ public class JdbcCalciteConfiguration {
                     return DriverManager.getConnection(this.config.getUrl(),
                             this.config.getUser().orElse(""),
                             this.config.getPassword().orElse(""));
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                } catch (ClassNotFoundException e) {
+                } catch (SQLException | ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
             }

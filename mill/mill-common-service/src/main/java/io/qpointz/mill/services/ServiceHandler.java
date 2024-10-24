@@ -105,7 +105,7 @@ public class ServiceHandler {
         return this.getSecurityProvider().getPrincipalName();
     }
 
-    public HandshakeResponse handshake(HandshakeRequest request) {
+    public HandshakeResponse handshake() {
         val capabilities = HandshakeResponse.Capabilities.newBuilder()
                 .setSupportSql(this.supportsSql())
                 .build();
@@ -121,7 +121,7 @@ public class ServiceHandler {
                 .build();
     }
 
-    public ListSchemasResponse listSchemas(ListSchemasRequest request) {
+    public ListSchemasResponse listSchemas() {
         return ListSchemasResponse.newBuilder()
                 .addAllSchemas(this.getSchemaNames())
                 .build();
@@ -179,7 +179,7 @@ public class ServiceHandler {
         val random = new SecureRandom();
         val bytes = new byte[32];
         random.nextBytes(bytes);
-        return new String(Base64.getEncoder().encode(bytes));
+        return String.valueOf(Base64.getEncoder().encode(bytes));
     }
 
     public QueryResultResponse submitQuery(QueryRequest request) {
