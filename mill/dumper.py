@@ -92,6 +92,7 @@ class Dumper:
                     else:
                         ignored.append(ext)
             print(set(ignored))
+
         if not config:
             replace(old, new, exts)
             return

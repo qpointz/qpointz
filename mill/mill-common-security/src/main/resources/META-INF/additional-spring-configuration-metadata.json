@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "mill.security.enable",
+      "type": "java.lang.Boolean",
+      "description": "Enables mill security."
+  }
+] }

@@ -1,11 +1,8 @@
 package io.qpointz.mill.services;
 
-import io.grpc.Status;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import io.qpointz.mill.proto.*;
-import io.qpointz.mill.services.configuration.MillServiceConfiguration;
-import io.qpointz.mill.services.security.SecurityContextSecurityProvider;
 import io.qpointz.mill.services.utils.SubstraitUtils;
 import io.qpointz.mill.vectors.VectorBlockIterator;
 import lombok.AccessLevel;
@@ -15,11 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
-import java.util.ArrayList;
 import java.util.function.Function;
 import java.util.function.Supplier;
 

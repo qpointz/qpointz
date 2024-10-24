@@ -12,6 +12,7 @@ rootProject.name = "mill"
 
 include (":mill-common")
 include (":mill-common-service")
+include (":mill-common-security")
 include (":mill-backends")
 include (":mill-service")
 include (":mill-grpc-service")
@@ -33,10 +34,13 @@ dependencyResolutionManagement {
             val lombok = version("lombok", "1.18.34")
             library("lombok", "org.projectlombok", "lombok").versionRef(lombok)
 
-            val springBootV = version("boot", "3.3.4")
+            val springBootV = version("boot", "3.3.3")
             val springBootG = "org.springframework.boot"
-            plugin("spring-dependency-management","io.spring.dependency-management").version("1.1.4")
-            plugin("spring-boot", "org.springframework.boot").versionRef(springBootV)
+            plugin("spring-dependency-management","io.spring.dependency-management").version("1.1.6")
+            plugin("spring-boot-plugin", "org.springframework.boot").versionRef(springBootV)
+
+            val protobufPluginV = version("protobuf-plugin", "0.9.4")
+            plugin("google-protobuf-plugin", "com.google.protobuf").versionRef(protobufPluginV)
 
             library("boot-devtools", springBootG,"spring-boot-devtools").versionRef(springBootV)
             library("boot-configuration-processor",springBootG,"spring-boot-configuration-processor").versionRef(springBootV)

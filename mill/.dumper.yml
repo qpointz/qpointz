@@ -42,6 +42,9 @@ dump:
         from: mill-common-service
         to: yuki-common-service
     - move_dir:
+        from: mill-common-security
+        to: yuki-common-security
+    - move_dir:
         from: mill-grpc-service
         to: yuki-grpc-service
     - move_dir:

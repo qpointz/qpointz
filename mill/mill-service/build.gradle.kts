@@ -1,7 +1,6 @@
 plugins {
     application
-    id("org.springframework.boot") version "3.3.3"
-    id("io.spring.dependency-management") version "1.1.4"
+    alias(libs.plugins.spring.boot.plugin)
     mill
 }
 
@@ -11,7 +10,7 @@ mill {
 }
 
 springBoot {
-    mainClass = "io.qpointz.mill.services.CalciteMillService"
+    mainClass = "io.qpointz.mill.CalciteMillService"
 }
 
 application {
@@ -50,17 +49,13 @@ fun copyDistro(tk:String, distributionName: String) {
 }
 
 dependencies {
+    implementation(project(":mill-common-security"))
     implementation(project(":mill-grpc-service"))
     implementation(project(":mill-backends"))
-    implementation(libs.calcite.core)
-    implementation(libs.calcite.csv)
-    implementation(libs.calcite.file)
-    implementation(libs.substrait.isthmus)
     testImplementation(libs.boot.starter.test)
     compileOnly(libs.lombok)
     runtimeOnly(libs.bundles.logging)
     runtimeOnly(libs.bundles.jdbc.pack)
-    developmentOnly(libs.boot.devtools)
     annotationProcessor(libs.boot.configuration.processor)
     annotationProcessor(libs.lombok)
 }
