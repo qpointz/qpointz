@@ -78,7 +78,7 @@ mill-clients:init-az-login:
     TLS_CERT_PK: "${CI_PROJECT_DIR}/.certs/client/client.key"
     TLS_ROOT_CA: "${CI_PROJECT_DIR}/etc/certs/ca.pem"
     MILL_AZ_FUNC_API_URL: "http://func.local:7071/api/"
-    CI_DEBUG_SERVICES: "true"
+    CI_DEBUG_SERVICES: "false"
   before_script:
     - !reference [.global-vars, before_script]
     - mkdir -p ${CI_PROJECT_DIR}/.certs/client
@@ -89,8 +89,19 @@ mill-clients:init-az-login:
 .mill-client:mill-py:test:
   script:    
     - cd ${CI_PROJECT_DIR}/mill/clients/mill-py
-    - pip install -r requirements.txt
-    - python -m unittest tests/*
+    - pip install poetry
+    - poetry install --with dev,test
+    - poetry run coverage run -m pytest --junitxml build/test-results/test-report-${PY_VER}.xml
+    - poetry run coverage xml  -o build/coverage-results/coverage-${PY_VER}.xml
+  artifacts:
+    reports:
+      junit: ${CI_PROJECT_DIR}/mill/clients/mill-py/build/test-results/*.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: ${CI_PROJECT_DIR}/mill/clients/mill-py/build/coverage-results/*.xml
+    paths:      
+      - ${CI_PROJECT_DIR}/mill/clients/mill-py/build/test-results/*.xml
+      - ${CI_PROJECT_DIR}/mill/clients/mill-py/build/coverage-results/*.xml
 
 
 ##python 3.10
@@ -99,6 +110,8 @@ mill-client:mill-py:test-3.10:
   extends:
     - .mill:grpc-services
     - .mill-client:mill-py:test
+  variables:
+    PY_VER: "3.10"
   image: python:3.10-slim
 
 ##python 3.11
@@ -107,6 +120,8 @@ mill-client:mill-py:test-3.11:
   extends:
     - .mill:grpc-services
     - .mill-client:mill-py:test
+  variables:
+    PY_VER: "3.11"
   image: python:3.11-slim   
 
 ##python 3.12
@@ -115,6 +130,8 @@ mill-client:mill-py:test-3.12:
   extends:
     - .mill:grpc-services
     - .mill-client:mill-py:test
+  variables:
+    PY_VER: "3.12"
   image: python:3.12-slim
 
 
