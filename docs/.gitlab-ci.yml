@@ -61,6 +61,7 @@ pages:
       then 
         INCLUDE_DEVS="no"
       fi       
+      echo "INCLUDE_DEVS=${INCLUDE_DEVS}"
     - versioner.py ${CI_PROJECT_DIR}/.versioner.in $INCLUDE_DEVS > ${CI_PROJECT_DIR}/.versioner.out
     - cat ${CI_PROJECT_DIR}/.versioner.out 
     - DOC_TAGS_WHITE_LIST=$(cat ${CI_PROJECT_DIR}/.versioner.out | sed -n '1p')
@@ -102,8 +103,8 @@ pages:
     - | 
       if $CI_COMMIT_REF_PROTECTED == "true"
       then 
-        mkdir -p /out/docs
-        rm -Rf /out/docs
+        mkdir -p /out/docs/public
+        rm -Rf /out/docs/public
         mkdir -p /out/docs
         cp -R ${CI_PROJECT_DIR}/public /out/docs
       fi 
