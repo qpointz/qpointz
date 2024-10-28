@@ -5,7 +5,7 @@ schemas:
     type: custom
     factory: org.apache.calcite.adapter.csv.CsvSchemaFactory
     operand:
-      directory: ../../../../etc/data/datasets/airlines/csv
+      directory: ../../../test/datasets/airlines/csv
   - name: testdb
     type: jdbc
     jdbcDriver: "org.h2.Driver"

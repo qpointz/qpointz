@@ -15,3 +15,7 @@ mill:
       username: "*"
       password: "*"
       target-schema: "ts"
+
+spring:
+  main:
+    web-application-type: SERVLET

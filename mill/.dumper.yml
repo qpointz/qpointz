@@ -51,6 +51,9 @@ dump:
         from: mill-service
         to: yuki-service
     - move_dir:
+        from: mill-sample-service
+        to: yuki-sample-service
+    - move_dir:
         from: clients/mill-jdbc-driver
         to: clients/yuki-jdbc-driver
     - move_dir:
@@ -63,6 +66,7 @@ dump:
           - mill-common
           - mill-common-service
           - mill-grpc-service
+          - mill-sample-service
           - mill-service
     - replace_in_files:
         exts: [ ".kt", ".kts" ]
@@ -81,6 +85,8 @@ dump:
             new: ":yuki-service"
           - old: ":mill-service"
             new: ":yuki-service"
+          - old: ":mill-sample-service"
+            new: ":yuki-sample-service"
           - old: ":clients:mill-jdbc-driver"
             new: ":clients:yuki-jdbc-driver"
           - old: ":clients:mill-jdbc-shell"

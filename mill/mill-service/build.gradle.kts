@@ -10,7 +10,7 @@ mill {
 }
 
 springBoot {
-    mainClass = "io.qpointz.mill.CalciteMillService"
+    mainClass = "io.qpointz.mill.services.MillService"
 }
 
 application {
@@ -51,7 +51,9 @@ fun copyDistro(tk:String, distributionName: String) {
 dependencies {
     implementation(project(":mill-common-security"))
     implementation(project(":mill-grpc-service"))
+    implementation(project(":mill-sample-service"))
     implementation(project(":mill-backends"))
+    implementation(libs.boot.starter.web)
     testImplementation(libs.boot.starter.test)
     compileOnly(libs.lombok)
     runtimeOnly(libs.bundles.logging)
