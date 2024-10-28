@@ -1,0 +1,6 @@
+mill:
+  security:
+    enable: true
+  services:
+    grpc:
+      enable: true

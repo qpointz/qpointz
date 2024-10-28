@@ -1,0 +1,16 @@
+mill:
+  security:
+    enable: true
+    authentication:
+        password:
+          file-store: classpath:userstore/passwd.yml
+        token:
+          jwt:
+            jwk-set-uri: https://dummy-jwk(
+    authorization:
+      policy:
+        odrl:
+          - policy auth
+  services:
+    grpc:
+      enable: true

@@ -1,7 +1,7 @@
 plugins {
     `java-library`
-    id("io.spring.dependency-management") version "1.1.6"
-    id("com.google.protobuf") version "0.9.4"
+    libs.plugins.spring.dependency.management
+    alias(libs.plugins.google.protobuf.plugin)
     mill
     `mill-publish`
 }
@@ -13,7 +13,7 @@ mill {
 
 buildscript {
     dependencies {
-        classpath("com.google.protobuf:protobuf-gradle-plugin:0.9.4")
+        classpath("com.google.protobuf:protobuf-gradle-plugin:${libs.versions.protobuf.plugin.get()}")
     }
 }
 

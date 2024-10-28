@@ -8,9 +8,7 @@ grpc:
 
 mill:
   security:
-    enabled: false
+    enable: false
     authentication:
-      providers:
-        - type: file
-          path: ./mill-backend-core/src/test/config/passwd.yml
-        - type: deny
+      password:
+        file-store: file:./mill-backend-core/src/test/config/passwd.yml

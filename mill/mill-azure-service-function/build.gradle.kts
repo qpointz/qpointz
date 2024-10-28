@@ -1,30 +1,12 @@
 import com.microsoft.azure.plugin.functions.gradle.AzureFunctionsExtension
-import com.microsoft.azure.plugin.functions.gradle.AzureFunctionsPlugin
 
 plugins {
     application
     mill
-    //id("org.springframework.boot") version "3.3.3"
-    id("io.spring.dependency-management") version "1.1.4"
+    alias(libs.plugins.spring.dependency.management)
     id("com.microsoft.azure.azurefunctions") version "1.11.0"
-   // id ("com.gradleup.shadow") version "8.3.2"
     id("org.springframework.boot.experimental.thin-launcher") version "1.0.31.RELEASE"
 }
-
-/*springBoot {
-    mainClass = "io.qpointz.mill.azure.functions.FunctionApplication"
-}*/
-//
-//application {
-//    mainClass = springBoot.mainClass
-//    applicationName = "calcite-backend-service"
-//}
-
-//shadow {
-    //archiveB
-//}
-
-
 
 mill {
     description = "Provides azure function to run jdbc backend"

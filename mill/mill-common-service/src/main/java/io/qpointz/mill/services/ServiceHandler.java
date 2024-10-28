@@ -35,6 +35,13 @@ public class ServiceHandler {
     @Getter(lazy = true)
     private final Cache<String, VectorBlockIterator> submitCache = createCache();
 
+    private class NoneSecurityProvider implements SecurityProvider {
+        @Override
+        public String getPrincipalName() {
+            return "ANONYMOUS";
+        }
+    }
+
     public ServiceHandler(MetadataProvider metadataProvider, ExecutionProvider executionProvider, SqlProvider sqlProvider, SecurityProvider securityProvider, PlanRewriteChain planRewriteChain) {
         this.metadataProvider = metadataProvider;
         this.executionProvider = executionProvider;

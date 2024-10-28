@@ -18,4 +18,4 @@ mill:
       unquotedCasing: UNCHANGED
       model: ./config/test/model.yaml
   security:
-    enabled: false
+    enable: false

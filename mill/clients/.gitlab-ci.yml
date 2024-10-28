@@ -78,7 +78,7 @@ mill-clients:init-az-login:
     TLS_CERT_PK: "${CI_PROJECT_DIR}/.certs/client/client.key"
     TLS_ROOT_CA: "${CI_PROJECT_DIR}/etc/certs/ca.pem"
     MILL_AZ_FUNC_API_URL: "http://func.local:7071/api/"
-    CI_DEBUG_SERVICES: "false"
+    CI_DEBUG_SERVICES: "true"
   before_script:
     - !reference [.global-vars, before_script]
     - mkdir -p ${CI_PROJECT_DIR}/.certs/client
@@ -94,6 +94,7 @@ mill-clients:init-az-login:
     - poetry run coverage run -m pytest --junitxml build/test-results/test-report-${PY_VER}.xml
     - poetry run coverage xml  -o build/coverage-results/coverage-${PY_VER}.xml
   artifacts:
+    expire_in: "5 days"
     reports:
       junit: ${CI_PROJECT_DIR}/mill/clients/mill-py/build/test-results/*.xml
       coverage_report:

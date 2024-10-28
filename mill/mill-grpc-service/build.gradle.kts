@@ -1,6 +1,6 @@
 plugins {
     `java-library`
-    id("io.spring.dependency-management") version "1.1.5"
+    alias(libs.plugins.spring.dependency.management)
     mill
     `mill-publish`
 }
