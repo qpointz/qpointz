@@ -38,11 +38,11 @@ public class JdbcCalciteConfiguration {
 
     @Getter
     @Value("${mill.backend.provider}")
-    String  providerName;
+    private String  providerName;
 
     @Getter
     @Setter
-    Map<String, String> connection;
+    private Map<String, String> connection;
 
     @Getter
     @Setter

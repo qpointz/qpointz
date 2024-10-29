@@ -10,6 +10,7 @@ dependencies {
     api(project(":mill-common"))
     api(project(":mill-common-security"))
     api(libs.boot.starter)
+    api(libs.jakarta.servlet.api)
     runtimeOnly(libs.bundles.logging)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)

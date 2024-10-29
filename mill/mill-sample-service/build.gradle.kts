@@ -12,7 +12,10 @@ mill {
 
 dependencies {
     api(project(":mill-common-service"))
+    api(project(":mill-common-security"))
     api(libs.boot.starter)
+    api(libs.boot.starter.web)
+    implementation(project(":mill-backends"))
     implementation(libs.boot.starter.security)
     implementation(libs.jackson.dataformat.yaml)
     implementation(libs.jackson.datatype.jsr310)
@@ -34,13 +37,11 @@ testing {
                 dependencies {
                     implementation(project())
                     implementation(libs.boot.starter.test)
-                    implementation(libs.bootGRPC.client)
-                    implementation(libs.grpc.testing)
+                    implementation(libs.boot.starter.web)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.h2.database)
                     implementation(libs.lombok)
-                    runtimeOnly(":mill-backends")
                     annotationProcessor(libs.lombok)
                 }
             }

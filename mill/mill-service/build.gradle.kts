@@ -11,11 +11,9 @@ mill {
 
 springBoot {
     mainClass = "io.qpointz.mill.services.MillService"
-}
-
-application {
-    mainClass = springBoot.mainClass
-    applicationName = "mill-service"
+    application {
+        applicationName = "mill-service"
+    }
 }
 
 copyDistro("installDist", "main" )
@@ -53,34 +51,19 @@ dependencies {
     implementation(project(":mill-grpc-service"))
     implementation(project(":mill-sample-service"))
     implementation(project(":mill-backends"))
-    implementation(libs.boot.starter.web)
-    testImplementation(libs.boot.starter.test)
-    compileOnly(libs.lombok)
+
     runtimeOnly(libs.bundles.logging)
     runtimeOnly(libs.bundles.jdbc.pack)
-    annotationProcessor(libs.boot.configuration.processor)
-    annotationProcessor(libs.lombok)
 }
 
 testing {
     suites {
-        register<JvmTestSuite>("testIT") {
-            testType.set(TestSuiteType.INTEGRATION_TEST)
-        }
-
         configureEach {
             if (this is JvmTestSuite) {
                 useJUnitJupiter(libs.versions.junit.get())
 
                 dependencies {
                     implementation(project())
-                    implementation(libs.bootGRPC.client)
-                    implementation(libs.bootGRPC.server)
-                    implementation(libs.mockito.core)
-                    implementation(libs.mockito.junit.jupiter)
-                    implementation(libs.h2.database)
-                    implementation(libs.lombok)
-                    annotationProcessor(libs.lombok)
                 }
             }
         }
