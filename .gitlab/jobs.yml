@@ -89,6 +89,7 @@
       artifacts: false
       optional: true
   script:
+    - export GITLAB_TOKEN=${CI_PUSH_TOKEN} 
     - export QP_VERSION_SFX="-${CI_COMMIT_REF_SLUG}"
     - export REL_BRANCHES="--branches main,rc,$CI_COMMIT_REF_NAME"
     - |

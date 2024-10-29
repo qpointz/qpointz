@@ -33,6 +33,7 @@ finalize:release:
     - main 
     - rc
   script:
+    - export GITLAB_TOKEN=${CI_PUSH_TOKEN}
     - npx semantic-release --ci --debug
         
 flow:build:
