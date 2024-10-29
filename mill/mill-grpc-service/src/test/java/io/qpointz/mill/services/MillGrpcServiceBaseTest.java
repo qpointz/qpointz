@@ -21,10 +21,10 @@ import static org.mockito.Mockito.reset;
 @SpringBootTest()
 @ActiveProfiles("test")
 @ContextConfiguration(classes = {
-        MillServiceMetadataTest.class,
-        MillService.class,
+        MillGrpcServiceMetadataTest.class,
+        MillGrpcService.class,
         MillServiceBaseTestConfiguration.class})
-public abstract class MillServiceBaseTest {
+public abstract class MillGrpcServiceBaseTest {
 
 
     protected static QueryRequest.Builder sqlExecuteRequest(String sql) {
@@ -50,12 +50,12 @@ public abstract class MillServiceBaseTest {
 
     @Test
     public void testContext(@Autowired SqlProvider sqlProvider, @Autowired MetadataProvider metadataProvider,
-                            @Autowired ExecutionProvider executionProvider, @Autowired MillService millService,
+                            @Autowired ExecutionProvider executionProvider, @Autowired MillGrpcService millGrpcService,
                             @Autowired MillServiceGrpc.MillServiceBlockingStub blocking, @Autowired PasswordEncoder passwordEncoder) {
         assertNotNull(sqlProvider);
         assertNotNull(metadataProvider);
         assertNotNull(executionProvider);
-        assertNotNull(millService);
+        assertNotNull(millGrpcService);
         assertNotNull(blocking);
         assertNotNull(passwordEncoder);
     }

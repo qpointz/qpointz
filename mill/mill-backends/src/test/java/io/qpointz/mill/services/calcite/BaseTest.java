@@ -13,7 +13,6 @@ import net.devh.boot.grpc.server.autoconfigure.GrpcAdviceAutoConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -21,7 +20,7 @@ import org.springframework.test.context.ContextConfiguration;
 @SpringBootTest
 @ContextConfiguration(classes = {
         CalciteServiceConfiguration.class,
-        MillService.class,
+        MillGrpcService.class,
         GrpcAdviceAutoConfiguration.class
     }
 )

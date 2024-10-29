@@ -10,9 +10,9 @@ import net.devh.boot.grpc.server.advice.GrpcExceptionHandler;
 
 @Slf4j
 @GrpcAdvice
-public class MillServiceExceptionAdvice {
+public class MillGrpcServiceExceptionAdvice {
 
-    public MillServiceExceptionAdvice() {
+    public MillGrpcServiceExceptionAdvice() {
         log.trace("Mill Exception advice");
     }
 

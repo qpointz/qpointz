@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 
-class MillServiceMetadataTest extends MillServiceBaseTest {
+class MillGrpcServiceMetadataTest extends MillGrpcServiceBaseTest {
 
 
     @Test

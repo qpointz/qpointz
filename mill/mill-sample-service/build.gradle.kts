@@ -5,6 +5,11 @@ plugins {
     `mill-publish`
 }
 
+mill {
+    description = "Sample service implementation"
+    publishToSonatype = false
+}
+
 dependencies {
     api(project(":mill-common-service"))
     api(libs.boot.starter)

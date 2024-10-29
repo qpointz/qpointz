@@ -2,7 +2,7 @@ package io.qpointz.mill.services.jdbc;
 
 import io.qpointz.mill.services.ExecutionProvider;
 import io.qpointz.mill.services.MetadataProvider;
-import io.qpointz.mill.services.MillService;
+import io.qpointz.mill.services.MillGrpcService;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ContextConfiguration(classes = {
-        MillService.class,
+        MillGrpcService.class,
         GrpcAdviceAutoConfiguration.class
 }
 )

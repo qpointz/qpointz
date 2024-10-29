@@ -12,13 +12,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/sample")
+@Configuration
 public class SampleController {
 
     @Autowired
     ServiceHandler serviceHandler;
 
     @GetMapping("schemas")
-    public List<String> get1() {
+    public List<String> listSchemas() {
         return serviceHandler.listSchemas().getSchemasList();
     }
 

@@ -37,12 +37,12 @@ fun copyDistro(tk:String, distributionName: String) {
         }
 
         copy {
-            from(rootProject.layout.projectDirectory.dir("../etc/data/datasets/airlines/csv"))
+            from(rootProject.layout.projectDirectory.dir("test/datasets/airlines/csv"))
             into(outDir.dir("etc/sample/airlines"))
         }
 
         copy {
-            from(rootProject.layout.projectDirectory.dir("../etc/data/datasets/users/sql"))
+            from(rootProject.layout.projectDirectory.dir("test/datasets/users/sql"))
             into(outDir.dir("etc/sample/users"))
         }
     }

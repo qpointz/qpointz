@@ -9,11 +9,5 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SampleConfiguration {
 
-    @Bean
-    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-        return http.authorizeHttpRequests(authHttp -> {
-            authHttp.requestMatchers("**").permitAll();
-        }).build();
-    }
 
 }

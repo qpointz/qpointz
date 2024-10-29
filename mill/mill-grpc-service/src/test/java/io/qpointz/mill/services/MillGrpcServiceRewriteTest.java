@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
 @Slf4j
 @SpringBootTest
 @ExtendWith(MockitoExtension.class)
-class MillServiceRewriteTest extends MillServiceBaseTest {
+class MillGrpcServiceRewriteTest extends MillGrpcServiceBaseTest {
 
 
     @Test

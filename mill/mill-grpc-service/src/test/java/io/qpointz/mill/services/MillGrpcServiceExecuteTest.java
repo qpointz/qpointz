@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 
-class MillServiceExecuteTest extends MillServiceBaseTest {
+class MillGrpcServiceExecuteTest extends MillGrpcServiceBaseTest {
 
 
 
@@ -24,7 +24,7 @@ class MillServiceExecuteTest extends MillServiceBaseTest {
                                      @Autowired ExecutionProvider executionProvider,
                                      @Autowired SecurityProvider securityProvide) {
         val serviceHander = new ServiceHandler(metadataProvider, executionProvider, null, securityProvide, null);
-        val service = new MillService(serviceHander);
+        val service = new MillGrpcService(serviceHander);
         val ex = assertThrows(StatusRuntimeException.class,
                 ()-> service.parseSql(ParseSqlRequest.getDefaultInstance(), null));
         assertEquals(Status.Code.UNIMPLEMENTED, ex.getStatus().getCode());
@@ -70,7 +70,7 @@ class MillServiceExecuteTest extends MillServiceBaseTest {
                                     @Autowired ExecutionProvider executionProvider,
                                     @Autowired SecurityProvider securityProvide) {
         val serviceHander = new ServiceHandler(metadataProvider, executionProvider, null, securityProvide, null);
-        val service = new MillService(serviceHander);
+        val service = new MillGrpcService(serviceHander);
         val request = QueryRequest.newBuilder()
                 .setStatement(SQLStatement.newBuilder().setSql("select * from `A`"))
                 .setConfig(QueryExecutionConfig.newBuilder().setFetchSize(10).build())

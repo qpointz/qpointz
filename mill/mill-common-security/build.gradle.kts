@@ -15,6 +15,7 @@ dependencies {
 
     implementation(libs.boot.starter.security.oauth2.resource.server)
     implementation(libs.boot.starter)
+    implementation(libs.boot.starter.security)
     implementation(libs.jackson.core)
     implementation(libs.jackson.dataformat.yaml)
     implementation(libs.jackson.datatype.jsr310)

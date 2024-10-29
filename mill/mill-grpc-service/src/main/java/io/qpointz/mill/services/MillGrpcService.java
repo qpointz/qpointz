@@ -21,14 +21,14 @@ import java.util.function.Supplier;
 @Slf4j
 @GrpcService
 @SpringBootApplication
-public class MillService extends MillServiceGrpc.MillServiceImplBase {
+public class MillGrpcService extends MillServiceGrpc.MillServiceImplBase {
 
     @Bean
     public static SecurityProvider securityProvider() {
         return new SecurityContextSecurityProvider();
     }
 
-    public MillService(@Autowired ServiceHandler serviceHandler) {
+    public MillGrpcService(@Autowired ServiceHandler serviceHandler) {
         this.serviceHandler = serviceHandler;
     }
 
