@@ -1,6 +1,6 @@
 mill:
   security:
-    enabled: true
-    providers:
-      - type: file
-        path: ./etc/sample/passwd.yaml
+    enable: true
+    authentication:
+      password:
+        file-store: file:./etc/sample/passwd.yaml

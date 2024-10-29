@@ -1,8 +1,6 @@
 package io.qpointz.mill.sql.readers.vector;
 
 import io.qpointz.mill.proto.Vector;
-import io.qpointz.mill.sql.ColumnReader;
-import io.qpointz.mill.types.conversion.ValueConverter;
 import io.qpointz.mill.types.logical.DateLogical;
 
 import java.sql.Date;
@@ -34,16 +32,3 @@ public class DateColumnVectorReader extends ConvertingVectorColumnReader<LocalDa
         return this.getDate(rowIdx);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -126,6 +126,7 @@ public class MillSqlQuery {
 
         @Override
         public void close() {
+            //no closable associated resources
         }
     }
 

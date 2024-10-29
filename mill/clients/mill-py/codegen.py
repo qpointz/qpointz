@@ -24,11 +24,8 @@ if __name__ == "__main__":
 
     args = [
         "",
-        # "--python_out=./qpointz_delta",
         f"-I{in_dir}",
         "-I/usr/include/",
-        # "--pyi_out=./stubs",
-        # "--grpc_python_out=./qpointz_delta",
         f"--python_betterproto_out={out_dir}"
     ]
 

@@ -1,0 +1,18 @@
+{
+  "properties": [
+    {
+      "name": "mill.services.grpc.enable",
+      "type": "java.lang.Boolean",
+      "description": "Enables grpc service."
+    },
+    {
+      "name": "mill.services.grpc.port",
+      "type": "java.lang.Integer",
+      "description": "Grpc server {@link net.devh.boot.grpc.server.config.GrpcServerProperties#port :port}."
+    },
+    {
+      "name": "mill.services.grpc.address",
+      "type": "java.lang.String",
+      "description": "Grpc service bind address as specified in {@link net.devh.boot.grpc.server.config.GrpcServerProperties#address :documentation} ."
+    }
+  ] }

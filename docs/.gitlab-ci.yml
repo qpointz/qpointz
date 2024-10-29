@@ -55,7 +55,15 @@ pages:
     - git branch --remote --format "b:%(refname:lstrip=3)" | grep -v 'HEAD' > ${CI_PROJECT_DIR}/.versioner.in
     - git tag --format "t:%(refname:lstrip=2)"  >> ${CI_PROJECT_DIR}/.versioner.in
   script:       
-    - versioner.py ${CI_PROJECT_DIR}/.versioner.in > ${CI_PROJECT_DIR}/.versioner.out
+    - | 
+      if $CI_COMMIT_REF_PROTECTED == "true"
+      then 
+        export INCLUDE_DEVS="no"
+      else 
+        export INCLUDE_DEVS="yes"
+      fi       
+      echo "INCLUDE_DEVS=${INCLUDE_DEVS}"
+    - versioner.py ${CI_PROJECT_DIR}/.versioner.in $INCLUDE_DEVS > ${CI_PROJECT_DIR}/.versioner.out
     - cat ${CI_PROJECT_DIR}/.versioner.out 
     - DOC_TAGS_WHITE_LIST=$(cat ${CI_PROJECT_DIR}/.versioner.out | sed -n '1p')
     - DOC_BRANCH_WHITE_LIST=$(cat ${CI_PROJECT_DIR}/.versioner.out | sed -n '2p') 
@@ -70,7 +78,7 @@ pages:
     - |
       if git branch --remote --format "%(refname:lstrip=3)" | grep -E '\/'
       then  
-        git branch --remote --format "%(refname:lstrip=3)" | grep -E '\/' | xargs -l bash -c 'mv $0 $(echo "$0" | sed '"'"'s/\//-/g'"'"' )'
+        git branch --remote --format "%(refname:lstrip=3)" | grep -E '\/' | xargs -l bash -c '[ ! -d $0 ] || mv $0 $(echo "$0" | sed '"'"'s/\//-/g'"'"' )'
       fi
     - find ${CI_PROJECT_DIR}/docs/build -empty -type d -delete    
     - ls -l ${CI_PROJECT_DIR}/docs/build
@@ -93,10 +101,15 @@ pages:
     - mv ${CI_PROJECT_DIR}/docs/out/ ${CI_PROJECT_DIR}/public/
     - cd ${CI_PROJECT_DIR}
     - tar -czf ${CI_PROJECT_DIR}/docs.tar.gz -C ${CI_PROJECT_DIR} public/    
-    - mkdir -p /cache/qpointz_doc_out
-    - rm -Rf /cache/qpointz_doc_out
-    - mkdir -p /cache/qpointz_doc_out
-    - cp -R ${CI_PROJECT_DIR}/public /cache/qpointz_doc_out
+    - | 
+      if $CI_COMMIT_REF_PROTECTED == "true"
+      then 
+        mkdir -p /out/docs/public
+        rm -Rf /out/docs/public
+        mkdir -p /out/docs
+        cp -R ${CI_PROJECT_DIR}/public /out/docs
+      fi 
+
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/public

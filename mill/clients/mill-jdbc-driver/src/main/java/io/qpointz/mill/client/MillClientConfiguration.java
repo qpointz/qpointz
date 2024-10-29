@@ -16,7 +16,7 @@ public class MillClientConfiguration {
     public static final String PORT_PROP = "port";
 
     public static final String API_PATH_PROP = "api_path";
-    public static final String DEFAULT_API_PATH = "/api/";
+    public static final String DEFAULT_API_PATH = "/api/"; //NOSONAR relative URI for hhtp service can be hardcoded
 
     public static final String USERNAME_PROP = "user";
     public static final String PASSWORD_PROP = "password";

@@ -27,6 +27,20 @@ public class AzureBackendFunctions {
     private static final String CONTENT_TYPE_JSON  = "application/json";
     private static final String CONTENT_TYPE_PROTO = "application/protobuf"; //; proto=org.some.Message
 
+    public AzureBackendFunctions(@Qualifier("listSchemas") Function<ListSchemasRequest, ListSchemasResponse> listSchemasImpl,
+                                 @Qualifier("handshake") Function<HandshakeRequest, HandshakeResponse> handshakeImpl,
+                                 @Qualifier("getSchema") Function<GetSchemaRequest, GetSchemaResponse> getSchemaImpl,
+                                 @Qualifier("parseSql") Function<ParseSqlRequest, ParseSqlResponse> parseSqlImpl,
+                                 @Qualifier("submitQuery") Function<QueryRequest, QueryResultResponse> submitQueryImpl,
+                                 @Qualifier("fetchQueryResult") Function<QueryResultRequest, QueryResultResponse> fetchQueryResultImpl) {
+        this.listSchemasImpl = listSchemasImpl;
+        this.handshakeImpl = handshakeImpl;
+        this.getSchemaImpl = getSchemaImpl;
+        this.parseSqlImpl = parseSqlImpl;
+        this.submitQueryImpl = submitQueryImpl;
+        this.fetchQueryResultImpl = fetchQueryResultImpl;
+    }
+
     private Map<String, String> normailizeHeaders(HttpRequestMessage<Optional<String>> req) {
         return req.getHeaders()
                 .entrySet().stream()
@@ -86,9 +100,7 @@ public class AzureBackendFunctions {
         return buildResponse(context, req, func.apply(request));
     }
 
-    @Autowired
-    @Qualifier("listSchemas")
-    protected Function<ListSchemasRequest, ListSchemasResponse> listSchemasImpl;
+    protected final Function<ListSchemasRequest, ListSchemasResponse> listSchemasImpl;
 
     @FunctionName("ListSchemas")
     public HttpResponseMessage listSchemas (
@@ -100,9 +112,7 @@ public class AzureBackendFunctions {
         return apply(context, req, ListSchemasRequest::newBuilder, ListSchemasRequest.Builder::build, listSchemasImpl);
     }
 
-    @Autowired
-    @Qualifier("handshake")
-    protected Function<HandshakeRequest, HandshakeResponse> handshakeImpl;
+    protected final Function<HandshakeRequest, HandshakeResponse> handshakeImpl;
 
     @FunctionName("Handshake")
     public HttpResponseMessage handshake (
@@ -115,9 +125,7 @@ public class AzureBackendFunctions {
     }
 
 
-    @Autowired
-    @Qualifier("getSchema")
-    protected Function<GetSchemaRequest, GetSchemaResponse> getSchemaImpl;
+    protected final Function<GetSchemaRequest, GetSchemaResponse> getSchemaImpl;
 
     @FunctionName("GetSchema")
     public HttpResponseMessage getSchema (
@@ -130,9 +138,7 @@ public class AzureBackendFunctions {
     }
 
 
-    @Autowired
-    @Qualifier("parseSql")
-    protected Function<ParseSqlRequest, ParseSqlResponse> parseSqlImpl;
+    protected final Function<ParseSqlRequest, ParseSqlResponse> parseSqlImpl;
 
     @FunctionName("ParseSql")
     public HttpResponseMessage parseSql (
@@ -144,9 +150,7 @@ public class AzureBackendFunctions {
         return apply(context, req, ParseSqlRequest::newBuilder, ParseSqlRequest.Builder::build, parseSqlImpl);
     }
 
-    @Autowired
-    @Qualifier("submitQuery")
-    protected Function<QueryRequest, QueryResultResponse> submitQueryImpl;
+    protected final Function<QueryRequest, QueryResultResponse> submitQueryImpl;
 
     @FunctionName("SubmitQuery")
     public HttpResponseMessage submitQuery (
@@ -158,9 +162,7 @@ public class AzureBackendFunctions {
         return apply(context, req, QueryRequest::newBuilder, QueryRequest.Builder::build, submitQueryImpl);
     }
 
-    @Autowired
-    @Qualifier("fetchQueryResult")
-    protected Function<QueryResultRequest, QueryResultResponse> fetchQueryResultImpl;
+    protected final Function<QueryResultRequest, QueryResultResponse> fetchQueryResultImpl;
 
     @FunctionName("FetchQueryResult")
     public HttpResponseMessage fetchQueryResult (

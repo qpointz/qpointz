@@ -12,13 +12,19 @@ rootProject.name = "mill"
 
 include (":mill-common")
 include (":mill-common-service")
-include (":mill-backends")
-include (":mill-service")
-include (":mill-grpc-service")
+include (":mill-common-security")
+
 include (":clients:mill-jdbc-driver")
 include (":clients:mill-jdbc-shell")
+
+include (":mill-starter-backends")
+include (":mill-starter-services")
+include (":mill-starter-grpc-service")
+
+include (":mill-service")
 include (":mill-azure-service-function")
 
+include (":mill-sample-service") //temp to be removed
 
 
 dependencyResolutionManagement {
@@ -33,10 +39,13 @@ dependencyResolutionManagement {
             val lombok = version("lombok", "1.18.34")
             library("lombok", "org.projectlombok", "lombok").versionRef(lombok)
 
-            val springBootV = version("boot", "3.3.4")
+            val springBootV = version("boot", "3.3.3")
             val springBootG = "org.springframework.boot"
-            plugin("spring-dependency-management","io.spring.dependency-management").version("1.1.4")
-            plugin("spring-boot", "org.springframework.boot").versionRef(springBootV)
+            plugin("spring-dependency-management","io.spring.dependency-management").version("1.1.6")
+            plugin("spring-boot-plugin", "org.springframework.boot").versionRef(springBootV)
+
+            val protobufPluginV = version("protobuf-plugin", "0.9.4")
+            plugin("google-protobuf-plugin", "com.google.protobuf").versionRef(protobufPluginV)
 
             library("boot-devtools", springBootG,"spring-boot-devtools").versionRef(springBootV)
             library("boot-configuration-processor",springBootG,"spring-boot-configuration-processor").versionRef(springBootV)
@@ -137,6 +146,8 @@ dependencyResolutionManagement {
             library("okhttp-mock-webserver", "com.squareup.okhttp3", "mockwebserver").versionRef(okhttp3)
             library("okhttp", "com.squareup.okhttp3", "okhttp").versionRef(okhttp3)
 
+            val sqlline = version("sqlline","1.12.0")
+            library("sqlline", "sqlline", "sqlline").versionRef(sqlline)
 
             library("drivers-postgressql","org.postgresql","postgresql").version("42.7.4")
             library("drivers-sqllite", "org.xerial","sqlite-jdbc").version("3.46.1.3")

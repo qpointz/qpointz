@@ -4,7 +4,7 @@ import io.qpointz.mill.proto.DataType;
 import io.qpointz.mill.proto.LogicalDataType;
 import io.qpointz.mill.types.logical.*;
 
-public record DatabaseType(LogicalType type, boolean nullable, int precision, int scale) {
+public record DatabaseType(LogicalType<?,?> type, boolean nullable, int precision, int scale) {
 
     public static int PREC_SCALE_NOT_APPLICABLE = -1;
 

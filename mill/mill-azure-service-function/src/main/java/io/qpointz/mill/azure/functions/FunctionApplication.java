@@ -8,20 +8,11 @@ import org.springframework.context.annotation.Import;
 
 @SpringBootApplication
 @ComponentScan(basePackages = "io.qpointz.mill")
-@Import({BackendFunctions.class})
+@Import({BackendFunctions.class, AzureBackendFunctions.class})
 @Slf4j
 public class FunctionApplication {
 
     public static void main(String[] args) {
-//        val configuration = MillServiceConfiguration
-//                .newConfiguration()
-//                .withDefaults()
-//                .withProviders(JdbcServiceProvidersConfiguration.class)
-//                .withAdditionalConfig(CalciteServiceProperties.class)
-//                .withAdditionalConfig(JdbcCalciteConfiguration.class)
-//                .withAdditionalConfig(BackendFunctions.class)
-//                .withAdditionalConfig(AzureBackendFunctions.class)
-//                .configsToArray();
         log.info("Starting Azure Function Backend Function Application");
         SpringApplication.run(FunctionApplication.class , args);
     }

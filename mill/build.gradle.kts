@@ -9,11 +9,12 @@ sonar {
     properties {
         property("sonar.projectKey", "qpointz-delta")
         property("sonar.projectName", "qpointz-delta")
-        property("sonar.qualitygate.wait", true)        
+        property("sonar.qualitygate.wait", true)
     }
 }
 
 tasks.register<Zip>("publishSonatypeBundle") {
+    description = "Zips Sonatype Bundle to be published to Maven Central Repository"
     group = "publishing"
     from(layout.buildDirectory.dir("repo"))
     include ("**/*")

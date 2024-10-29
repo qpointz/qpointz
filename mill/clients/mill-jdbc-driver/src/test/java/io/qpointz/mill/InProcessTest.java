@@ -4,7 +4,7 @@ import io.qpointz.mill.client.MillClient;
 import io.qpointz.mill.client.MillClientConfiguration;
 import io.qpointz.mill.proto.GetSchemaRequest;
 import io.qpointz.mill.proto.HandshakeRequest;
-import io.qpointz.mill.services.MillService;
+import io.qpointz.mill.services.MillGrpcService;
 import io.qpointz.mill.services.calcite.configuration.CalciteServiceConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ContextConfiguration(classes = {
         CalciteServiceConfiguration.class,
-        MillService.class,
+        MillGrpcService.class,
         GrpcAdviceAutoConfiguration.class
 }
 )

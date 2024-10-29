@@ -1,0 +1,6 @@
+mill:
+  services:
+    grpc:
+      enable: true
+    meta:
+      enable: true

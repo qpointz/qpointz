@@ -1,7 +1,6 @@
 plugins {
     application
-    id("org.springframework.boot") version "3.3.3"
-    id("io.spring.dependency-management") version "1.1.4"
+    alias(libs.plugins.spring.boot.plugin)
     mill
 }
 
@@ -11,12 +10,10 @@ mill {
 }
 
 springBoot {
-    mainClass = "io.qpointz.mill.services.CalciteMillService"
-}
-
-application {
-    mainClass = springBoot.mainClass
-    applicationName = "mill-service"
+    mainClass = "io.qpointz.mill.services.MillService"
+    application {
+        applicationName = "mill-service"
+    }
 }
 
 copyDistro("installDist", "main" )
@@ -38,52 +35,36 @@ fun copyDistro(tk:String, distributionName: String) {
         }
 
         copy {
-            from(rootProject.layout.projectDirectory.dir("../etc/data/datasets/airlines/csv"))
+            from(rootProject.layout.projectDirectory.dir("test/datasets/airlines/csv"))
             into(outDir.dir("etc/sample/airlines"))
         }
 
         copy {
-            from(rootProject.layout.projectDirectory.dir("../etc/data/datasets/users/sql"))
+            from(rootProject.layout.projectDirectory.dir("test/datasets/users/sql"))
             into(outDir.dir("etc/sample/users"))
         }
     }
 }
 
 dependencies {
-    implementation(project(":mill-grpc-service"))
-    implementation(project(":mill-backends"))
-    implementation(libs.calcite.core)
-    implementation(libs.calcite.csv)
-    implementation(libs.calcite.file)
+    implementation(project(":mill-common-security"))
+    implementation(project(":mill-starter-grpc-service"))
+    implementation(project(":mill-starter-services"))
+    implementation(project(":mill-sample-service"))
+    implementation(project(":mill-starter-backends"))
+
     runtimeOnly(libs.bundles.logging)
     runtimeOnly(libs.bundles.jdbc.pack)
-    compileOnly(libs.lombok)
-    annotationProcessor(libs.lombok)
-    implementation(libs.substrait.isthmus)
-    developmentOnly(libs.boot.devtools)
-    annotationProcessor(libs.boot.configuration.processor)
-    testImplementation(libs.boot.starter.test)    
 }
 
 testing {
     suites {
-        register<JvmTestSuite>("testIT") {
-            testType.set(TestSuiteType.INTEGRATION_TEST)
-        }
-
         configureEach {
             if (this is JvmTestSuite) {
                 useJUnitJupiter(libs.versions.junit.get())
 
                 dependencies {
                     implementation(project())
-                    implementation(libs.bootGRPC.client)
-                    implementation(libs.bootGRPC.server)
-                    implementation(libs.mockito.core)
-                    implementation(libs.mockito.junit.jupiter)
-                    implementation(libs.h2.database)
-                    implementation(libs.lombok)
-                    annotationProcessor(libs.lombok)
                 }
             }
         }

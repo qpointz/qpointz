@@ -62,6 +62,7 @@ public class GrpcMillClient extends MillClient implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
+        //no associated closable resources
     }
 
     private MillServiceGrpc.MillServiceBlockingStub blockingStub() {
