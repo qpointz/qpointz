@@ -1,6 +1,6 @@
 dump:
   in:
-    root_dir: C:\\Users\\vm\\wip\\qpointz\\qpointz\\mill
+    root_dir: /home/vm/Downloads/qpointz-build-improve-toolchain-roll/mill
   actions:
     - move_package:
         from: io.qpointz.mill
@@ -33,8 +33,8 @@ dump:
         from: mill-azure-service-function
         to: yuki-azure-service-function
     - move_dir:
-        from: mill-backends
-        to: yuki-backends
+        from: mill-starter-backends
+        to: yuki-starter-backends
     - move_dir:
         from: mill-common
         to: yuki-common
@@ -45,8 +45,11 @@ dump:
         from: mill-common-security
         to: yuki-common-security
     - move_dir:
-        from: mill-grpc-service
-        to: yuki-grpc-service
+        from: mill-starter-grpc-service
+        to: yuki-starter-grpc-service
+    - move_dir:
+        from: mill-starter-services
+        to: yuki-starter-services
     - move_dir:
         from: mill-service
         to: yuki-service
@@ -62,10 +65,11 @@ dump:
     - delete_dir:
         paths:
           - mill-azure-service-function
-          - mill-backends
+          - mill-starter-backends
           - mill-common
           - mill-common-service
-          - mill-grpc-service
+          - mill-starter-grpc-service
+          - mill-starter-services
           - mill-sample-service
           - mill-service
     - replace_in_files:
@@ -81,6 +85,8 @@ dump:
             new: ":yuki-common-service"
           - old: ":mill-starter-grpc-service"
             new: ":yuki-starter-grpc-service"
+          - old: ":mill-starter-services"
+            new: ":yuki-starter-services"
           - old: ":mill-service"
             new: ":yuki-service"
           - old: ":mill-service"

@@ -55,10 +55,11 @@ pages:
     - git branch --remote --format "b:%(refname:lstrip=3)" | grep -v 'HEAD' > ${CI_PROJECT_DIR}/.versioner.in
     - git tag --format "t:%(refname:lstrip=2)"  >> ${CI_PROJECT_DIR}/.versioner.in
   script:       
-    - |
-      export INCLUDE_DEVS="no" 
-      if $CI_COMMIT_REF_PROTECTED != "true"
+    - | 
+      if $CI_COMMIT_REF_PROTECTED == "true"
       then 
+        export INCLUDE_DEVS="no"
+      else 
         export INCLUDE_DEVS="yes"
       fi       
       echo "INCLUDE_DEVS=${INCLUDE_DEVS}"
