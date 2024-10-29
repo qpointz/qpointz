@@ -4,12 +4,8 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalogsExtension
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.internal.cc.base.logger
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.kotlin.dsl.task
-import org.gradle.kotlin.dsl.withType
-import org.gradle.testing.jacoco.plugins.JacocoPlugin
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -27,7 +23,7 @@ class MillPlugin: Plugin<Project> {
             logger.trace("VERSION file missing {}:", path.toAbsolutePath().toString())
             return "0.1.0"
         }
-        var version =  Files.readAllLines(path).get(0)
+        var version =  Files.readAllLines(path)[0]
         if (".*\\-\\w+\\.\\d+$".toRegex().matches(version)) {
             logger.debug("candidate version")
             version = "\\.(?=\\d+\$)".toRegex().replace(version, "")
@@ -69,15 +65,5 @@ class MillPlugin: Plugin<Project> {
         compileOnly!!.extendsFrom(annotProcessors!!)
 
         project.rootProject.dependencies.add("jacocoAggregation", project)
-
-
-        /*project.afterEvaluate({
-            project.tasks.withType<org.gradle.api.tasks.bundling.Jar> {
-                val an = this.archiveBaseName
-                if (an.isPresent && ! an.get().startsWith("mill-")) {
-                    this.archiveBaseName.set("mill-"+an.get())
-                }
-            }
-        })*/
     }
 }

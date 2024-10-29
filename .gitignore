@@ -4,4 +4,6 @@
 .metals
 *.kbx
 *.sh
+!sonar-project.sh
 VERSION
+.gradle_home

@@ -4,5 +4,8 @@ grpc:
       enabled: false
 
 mill:
-  security:
-    enabled: false
+  services:
+    grpc:
+      enable: true
+    meta:
+      enable: true

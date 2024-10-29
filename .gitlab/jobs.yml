@@ -40,7 +40,7 @@
 .toolchain-docker-build:
     extends: .docker-base
     script:
-      - export TOOLCHAIN_TAG="${CI_TOOLCHAIN_ROLL}-${CI_COMMIT_REF_SLUG}"
+      - export TOOLCHAIN_TAG="${CI_TOOLCHAIN_ROLL}"
       - echo "TOOLCHAIN=${TOOLCHAIN_TAG}"
       - >
         /kaniko/executor
@@ -95,10 +95,14 @@
         if [[ "main" == "${CI_COMMIT_REF_SLUG}" || "rc" == "${CI_COMMIT_REF_SLUG}" ]]
         then
           export QP_VERSION_SFX=""
-          export REL_BRANCHES=""
+          export REL_BRANCHES="$CI_COMMIT_REF_NAME"
+          echo "RUN ON RELEASE BRUNCH"
+          npx semantic-release --dry-run --no-ci --debug
+        else 
+          echo "RUN ON FEATURE BRUNCH"
+          npx semantic-release ${REL_BRANCHES} --dry-run --no-ci --debug
         fi
     - echo "VERSION_SFX:${QP_VERSION_SFX}"
-    - npx semantic-release ${REL_BRANCHES} --dry-run --no-ci --debug
     - echo $(cat ${CI_PROJECT_DIR}/VERSION)${QP_VERSION_SFX} > ${CI_PROJECT_DIR}/VERSION
     - echo "BUILD VERSION:$(cat ${CI_PROJECT_DIR}/VERSION)"
   artifacts:
@@ -118,7 +122,8 @@
       - ${CI_PROJECT_DIR}/etc/certs/**/*
 
 .deploy-job:
-  image: ${CI_REGISTRY_IMAGE}/deploy-tools:${CI_TOOLCHAIN_ROLL}-${CI_COMMIT_REF_SLUG}
+  image: ${CI_REGISTRY_IMAGE}/deploy-tools:${CI_TOOLCHAIN_ROLL}
+  resource_group: ${CI_COMMIT_REF_SLUG}
   before_script:
     - az login -t $AZ_DEPLOY_SPN_TENANT_ID -u $AZ_DEPLOY_SPN_CLIENT_ID -p $AZ_DEPLOY_SPN_SECRET --service-principal
     - |-

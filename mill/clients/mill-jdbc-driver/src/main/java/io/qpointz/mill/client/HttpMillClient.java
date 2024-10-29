@@ -164,6 +164,7 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
+        //no closable resources associated with client
     }
 
     @Override
@@ -213,7 +214,7 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
                     .setFetchSize(this.fetchSize)
                     .build();
 
-            val response = HttpMillClient.this.post("FetchQueryResult", request,b-> {
+            val nextResponse = HttpMillClient.this.post("FetchQueryResult", request,b-> {
                 try {
                     return QueryResultResponse.parseFrom(b);
                 } catch (InvalidProtocolBufferException e) {
@@ -221,7 +222,7 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
                 }
             });
 
-            setNext(response);
+            setNext(nextResponse);
         }
 
         @Override

@@ -40,8 +40,8 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation(project(":mill-backends"))
-                    implementation(project(":mill-grpc-service"))
+                    implementation(project(":mill-starter-backends"))
+                    implementation(project(":mill-starter-grpc-service"))
                     implementation(libs.okhttp.mock.webserver)
                     implementation(libs.bootGRPC.client)
                     implementation(libs.bootGRPC.server)
@@ -49,13 +49,14 @@ testing {
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.lombok)
+                    implementation(libs.h2.database)
+                    compileOnly(libs.lombok)
                     runtimeOnly("io.opencensus:opencensus-impl:0.31.1")
                     runtimeOnly(libs.grpc.census)
                     runtimeOnly(libs.grpc.context)
                     runtimeOnly(libs.grpc.all)
-                    implementation(libs.h2.database)
                     annotationProcessor(libs.lombok)
-                    compileOnly(libs.lombok)
+
                 }
 
                 targets {

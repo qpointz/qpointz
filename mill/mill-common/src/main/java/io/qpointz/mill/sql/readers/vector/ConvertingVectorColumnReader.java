@@ -8,7 +8,7 @@ public abstract class ConvertingVectorColumnReader<L,P> extends VectorColumnRead
 
     private final ValueConverter<L,P> converter;
 
-    public ConvertingVectorColumnReader(Vector vector, ValueConverter<L,P> converter) {
+    protected ConvertingVectorColumnReader(Vector vector, ValueConverter<L, P> converter) {
         super(vector);
         this.converter = converter;
     }

@@ -12,17 +12,26 @@ import static io.qpointz.mill.vectors.ObjectToVectorProducer.mapper;
 
 public class CatalogsMetadata extends ResultSetProvidingMetadata<CatalogsMetadata.CatalogRecord> {
 
-    public static CatalogsMetadata DEFAULT = new CatalogsMetadata();
+    private static final CatalogsMetadata instance;
 
-    protected record CatalogRecord(String catalog) {};
+    static {
+         instance = new CatalogsMetadata();
+    }
 
-    private static List<ObjectToVectorProducer.MapperInfo<CatalogsMetadata.CatalogRecord,?>> MAPPINGS = List.of(
+    public static CatalogsMetadata getInstance() {
+        return instance;
+    }
+
+    protected record CatalogRecord(String catalog) {
+    }
+
+    private static final List<ObjectToVectorProducer.MapperInfo<CatalogsMetadata.CatalogRecord,?>> recordSetFieldMappings = List.of(
             mapper("TABLE_CAT", StringLogical.INSTANCE, k-> dbnull())
     );
 
     @Override
     protected List<ObjectToVectorProducer.MapperInfo<CatalogRecord, ?>> getMappers() {
-        return MAPPINGS;
+        return recordSetFieldMappings;
     }
 
     @Override

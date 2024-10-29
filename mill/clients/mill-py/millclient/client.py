@@ -25,7 +25,6 @@ class AuthType(enum.Enum):
     NONE = 0,
     BASIC = 1,
     BEARER = 2
-    pass
 
 #fakeit
 class MillQuery(object):
@@ -76,7 +75,6 @@ class MillClient(object):
     def __init__(self, event_loop: AbstractEventLoop | None = None):
         self.__event_loop = event_loop or asyncio.get_event_loop()
         self.__fetch_size = 10000
-        pass
 
     def __enter__(self):
         return self
@@ -118,7 +116,7 @@ class MillClient(object):
         try:
             return self.__event_loop.run_until_complete(self.get_schema_async(req))
         except GRPCError as e:
-            msg = f"Failed to get schema '{req.schema_name}'.{self.grpcErrorMessage(e)}"
+            msg = f"Failed to get schema '{req.schema_name}'.{self.grpc_error_message(e)}"
             raise MillServerError(msg, e)
 
     def __to_sql_request(self, request: QueryRequest = None, **kwarg) -> QueryRequest:
@@ -153,12 +151,11 @@ class MillClient(object):
     def sql_query(self, request: QueryRequest = None, **kwarg) -> MillSqlQuery:
         req = self.__to_sql_request(request, **kwarg)
         return MillSqlQuery(self, req)
-        pass
 
     def event_loop(self):
         return self.__event_loop
 
-    def grpcErrorMessage(self, error: GRPCError):
+    def grpc_error_message(self, error: GRPCError):
         return f"Error code:{error.status}. Message:{error.message}."
 
 
@@ -273,7 +270,6 @@ class MillSqlQuery(MillQuery):
     def __init__(self, client: MillClient, request: QueryRequest):
         self.__client = client
         self.__request = request
-        pass
 
     async def responses(self) -> AsyncIterator[QueryResultResponse]:
         async for response in self.__client.exec_query(request=self.__request):

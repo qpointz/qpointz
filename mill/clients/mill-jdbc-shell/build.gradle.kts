@@ -13,7 +13,7 @@ application {
 
 dependencies {
     implementation(project(":clients:mill-jdbc-driver"))
-    implementation("sqlline:sqlline:1.12.0")
+    implementation(libs.sqlline)
     runtimeOnly(libs.bundles.logging)
     runtimeOnly(libs.bundles.jdbc.pack)
     compileOnly(libs.lombok)

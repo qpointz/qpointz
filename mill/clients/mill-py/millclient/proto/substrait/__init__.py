@@ -1499,7 +1499,6 @@ class ExpressionEnum(betterproto.Message):
 
 @dataclass(eq=False, repr=False)
 class ExpressionEnumEmpty(betterproto.Message):
-    pass
 
     def __post_init__(self) -> None:
         warnings.warn("ExpressionEnumEmpty is deprecated", DeprecationWarning)

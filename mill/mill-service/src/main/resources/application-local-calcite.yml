@@ -1,0 +1,10 @@
+mill:
+  backend:
+    provider: calcite
+    connection:
+      model: ../etc/data/datasets/airlines/model-csv.yaml
+  security:
+    enable: true
+    authentication:
+      password:
+        file-store: file:./backends/calcite-backend-service/etc/config/default/passwd.yaml

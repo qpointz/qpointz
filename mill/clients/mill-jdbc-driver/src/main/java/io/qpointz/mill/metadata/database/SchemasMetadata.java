@@ -9,7 +9,6 @@ import io.qpointz.mill.types.logical.StringLogical;
 import io.qpointz.mill.vectors.ObjectToVectorProducer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.val;
 
 import java.util.Collection;
 import java.util.List;
@@ -25,14 +24,14 @@ public class SchemasMetadata extends ResultSetProvidingMetadata<SchemasMetadata.
 
     protected record SchemaRecord(String catalog, String schema) {}
 
-    private static List<ObjectToVectorProducer.MapperInfo<SchemasMetadata.SchemaRecord,?>> MAPPINGS = List.of(
+    private static final List<ObjectToVectorProducer.MapperInfo<SchemasMetadata.SchemaRecord,?>> recordSetFieldMappings = List.of(
             mapper("TABLE_CATALOG", StringLogical.INSTANCE, k-> dbnull()),
             mapper("TABLE_SCHEM", StringLogical.INSTANCE, k-> stringOf(k.schema))
     );
 
     @Override
     protected List<ObjectToVectorProducer.MapperInfo<SchemaRecord, ?>> getMappers() {
-        return MAPPINGS;
+        return recordSetFieldMappings;
     }
 
     @Override

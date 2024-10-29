@@ -12,16 +12,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Log
-public class Driver implements java.sql.Driver {
+public class Driver implements java.sql.Driver { //NOSONAR it is convention to name JDBC Driver classes
 
     private static final Driver INSTANCE = new Driver();
     private static boolean registered = false;
     static int majorVersion;
     static int minorVersion;
     static int buildVersion;
-
-    public Driver() {
-    }
 
     @Override
     public Connection connect(String url, Properties info) throws SQLException {
@@ -85,12 +82,7 @@ public class Driver implements java.sql.Driver {
 
             Driver.majorVersion = Integer.parseInt(v[0]);
             Driver.minorVersion = Integer.parseInt(v[1]);
-            try {
-                Driver.buildVersion = Integer.parseInt(v[2]);
-            } catch (Exception ex) {
-                log.warning(String.format("Failed to parse build version '%s'", v[2]));
-                Driver.buildVersion = 0;
-            }
+            Driver.buildVersion = Integer.parseInt(v[2]);
         } catch (Exception ex) {
             log.info(String.format("Cant read version %s", ex.getMessage()));
             Driver.majorVersion = 0;
