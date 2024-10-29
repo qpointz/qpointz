@@ -6,20 +6,13 @@ plugins {
 }
 
 mill {
-    description = "Sample service implementation"
-    publishToSonatype = false
+    description = "Mill essential starter services"
+    publishToSonatype = true
 }
 
 dependencies {
     api(project(":mill-common-service"))
-    api(project(":mill-common-security"))
-    api(libs.boot.starter)
-    api(libs.boot.starter.web)
-    implementation(project(":mill-starter-backends"))
-    implementation(libs.boot.starter.security)
-    implementation(libs.jackson.dataformat.yaml)
-    implementation(libs.jackson.datatype.jsr310)
-    compileOnly(libs.bundles.logging)
+    implementation(libs.boot.starter.web)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 }

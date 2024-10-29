@@ -1,0 +1,13 @@
+grpc:
+  server:
+    address: ${mill.services.grpc.address}
+    port: ${mill.services.grpc.port}
+    security:
+      enable: false
+
+mill:
+  services:
+    grpc:
+      port: 9099
+      address: '*'
+      enable: true

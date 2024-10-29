@@ -48,9 +48,10 @@ fun copyDistro(tk:String, distributionName: String) {
 
 dependencies {
     implementation(project(":mill-common-security"))
-    implementation(project(":mill-grpc-service"))
+    implementation(project(":mill-starter-grpc-service"))
+    implementation(project(":mill-starter-services"))
     implementation(project(":mill-sample-service"))
-    implementation(project(":mill-backends"))
+    implementation(project(":mill-starter-backends"))
 
     runtimeOnly(libs.bundles.logging)
     runtimeOnly(libs.bundles.jdbc.pack)

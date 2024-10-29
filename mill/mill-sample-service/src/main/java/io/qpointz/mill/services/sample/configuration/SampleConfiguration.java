@@ -1,19 +1,22 @@
 package io.qpointz.mill.services.sample.configuration;
 
 
-import org.springframework.beans.factory.annotation.Qualifier;
+import io.qpointz.mill.services.meta.ServiceDescriptor;
+import lombok.Getter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class SampleConfiguration {
 
-    @Bean(name = "lala")
-    @Qualifier("lala")
-    public int getLala() {
-        return 100;
+    @Bean
+    ServiceDescriptor serviceDescriptor() {
+        return new SimpleServiceDescriptor("simple", "hallo");
     }
+
+    public record SimpleServiceDescriptor(@Getter String stereotype,
+                                          @Getter String port) implements ServiceDescriptor {
+    }
+
 
 }

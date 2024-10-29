@@ -7,8 +7,6 @@ import lombok.Builder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
-import javax.annotation.Nullable;
-
 @AllArgsConstructor
 @Builder
 public class PasswordAuthenticationReader implements AuthenticationReader {
@@ -19,7 +17,6 @@ public class PasswordAuthenticationReader implements AuthenticationReader {
     @Builder.Default
     private String prefix = "Basic";
 
-    @Nullable
     @Override
     public Authentication readAuthentication(AuthenticationContext context) throws AuthenticationException {
         //UsernamePasswordAuthenticationToken

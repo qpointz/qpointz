@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "mill.services.meta.enable",
+      "type": "java.lang.Boolean",
+      "description": "Enables meta (/.well-knonw/mill) service "
+  }
+]
+}

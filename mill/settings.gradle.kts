@@ -13,14 +13,18 @@ rootProject.name = "mill"
 include (":mill-common")
 include (":mill-common-service")
 include (":mill-common-security")
-include (":mill-backends")
-include (":mill-service")
-include (":mill-grpc-service")
-include (":mill-sample-service")
+
 include (":clients:mill-jdbc-driver")
 include (":clients:mill-jdbc-shell")
+
+include (":mill-starter-backends")
+include (":mill-starter-services")
+include (":mill-starter-grpc-service")
+
+include (":mill-service")
 include (":mill-azure-service-function")
 
+include (":mill-sample-service") //temp to be removed
 
 
 dependencyResolutionManagement {
