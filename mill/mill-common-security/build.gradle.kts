@@ -10,15 +10,13 @@ mill {
 }
 
 dependencies {
-    api(project(":mill-common"))
     api(libs.boot.starter.security)
 
     implementation(libs.boot.starter.security.oauth2.resource.server)
-    implementation(libs.boot.starter)
     implementation(libs.jackson.core)
     implementation(libs.jackson.dataformat.yaml)
     implementation(libs.jackson.datatype.jsr310)
-
+    implementation(libs.javax.annotation.api)
     annotationProcessor(libs.lombok)
     annotationProcessor(libs.boot.configuration.processor)
 

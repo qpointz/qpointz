@@ -1,0 +1,4 @@
+mill:
+  services:
+    meta:
+      enable: true
