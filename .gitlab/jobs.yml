@@ -40,7 +40,7 @@
 .toolchain-docker-build:
     extends: .docker-base
     script:
-      - export TOOLCHAIN_TAG="${CI_TOOLCHAIN_ROLL}-${CI_COMMIT_REF_SLUG}"
+      - export TOOLCHAIN_TAG="${CI_TOOLCHAIN_ROLL}"
       - echo "TOOLCHAIN=${TOOLCHAIN_TAG}"
       - >
         /kaniko/executor
@@ -118,7 +118,7 @@
       - ${CI_PROJECT_DIR}/etc/certs/**/*
 
 .deploy-job:
-  image: ${CI_REGISTRY_IMAGE}/deploy-tools:${CI_TOOLCHAIN_ROLL}-${CI_COMMIT_REF_SLUG}
+  image: ${CI_REGISTRY_IMAGE}/deploy-tools:${CI_TOOLCHAIN_ROLL}
   resource_group: ${CI_COMMIT_REF_SLUG}
   before_script:
     - az login -t $AZ_DEPLOY_SPN_TENANT_ID -u $AZ_DEPLOY_SPN_CLIENT_ID -p $AZ_DEPLOY_SPN_SECRET --service-principal

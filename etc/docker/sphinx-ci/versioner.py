@@ -111,7 +111,7 @@ class Versioner(object):
             np = path.replace('/', '-')
             vrs.append(f"\"{label}\":\"{np}\"")
         for v in versions:
-            apnd(v.label, v.source)
+            apnd(v.label, v.label)
         return "{" + ','.join(vrs) + "}"
 
 if __name__ == '__main__':
