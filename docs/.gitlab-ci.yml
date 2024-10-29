@@ -56,10 +56,10 @@ pages:
     - git tag --format "t:%(refname:lstrip=2)"  >> ${CI_PROJECT_DIR}/.versioner.in
   script:       
     - |
-      export INCLUDE_DEVS="yes" 
-      if $CI_COMMIT_REF_PROTECTED == "true"
+      export INCLUDE_DEVS="no" 
+      if $CI_COMMIT_REF_PROTECTED != "true"
       then 
-        INCLUDE_DEVS="no"
+        export INCLUDE_DEVS="yes"
       fi       
       echo "INCLUDE_DEVS=${INCLUDE_DEVS}"
     - versioner.py ${CI_PROJECT_DIR}/.versioner.in $INCLUDE_DEVS > ${CI_PROJECT_DIR}/.versioner.out
@@ -77,7 +77,7 @@ pages:
     - |
       if git branch --remote --format "%(refname:lstrip=3)" | grep -E '\/'
       then  
-        git branch --remote --format "%(refname:lstrip=3)" | grep -E '\/' | xargs -l bash -c 'mv $0 $(echo "$0" | sed '"'"'s/\//-/g'"'"' )'
+        git branch --remote --format "%(refname:lstrip=3)" | grep -E '\/' | xargs -l bash -c '[ ! -d $0 ] || mv $0 $(echo "$0" | sed '"'"'s/\//-/g'"'"' )'
       fi
     - find ${CI_PROJECT_DIR}/docs/build -empty -type d -delete    
     - ls -l ${CI_PROJECT_DIR}/docs/build
