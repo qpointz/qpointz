@@ -28,7 +28,9 @@ finalize:release:
   image: ${CI_IMAGE_SEM_RELEASE}
   stage: finalize
   variables:
-    GIT_STRATEGY: clone  
+    GIT_STRATEGY: clone      
+    GL_TOKEN: ${CI_PUSH_TOKEN}
+    GL_URL: "https://gitlab.qpointz.io"
   only:
     - main 
     - rc
