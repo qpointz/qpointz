@@ -1,6 +1,5 @@
 package io.qpointz.mill.sql.readers.vector;
 
-import io.qpointz.mill.proto.Field;
 import io.qpointz.mill.proto.Vector;
 import io.qpointz.mill.sql.ColumnReader;
 import io.qpointz.mill.types.logical.*;
@@ -8,10 +7,8 @@ import io.qpointz.mill.types.logical.*;
 public class VectorColumnReaderFactory extends LogicalTypeIdMapper<ColumnReader> {
 
     private final Vector vector;
-    private final Field field;
 
-    public VectorColumnReaderFactory(Field field, Vector vector) {
-        this.field = field;
+    public VectorColumnReaderFactory(Vector vector) {
         this.vector = vector;
     }
 

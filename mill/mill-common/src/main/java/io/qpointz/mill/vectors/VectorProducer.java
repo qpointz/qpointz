@@ -10,7 +10,7 @@ public interface VectorProducer<T>  {
 
     void reset();
 
-    void append(T value, Boolean isNull);
+    void append(T value, boolean isNull);
 
     default void append(Collection<T> values, Collection<Boolean> nulls) {
         if (values.isEmpty() != nulls.isEmpty()) {

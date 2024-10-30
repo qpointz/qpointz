@@ -6,7 +6,7 @@ mill:
           file-store: classpath:userstore/passwd.yml
         token:
           jwt:
-            jwk-set-uri: https://dummy-jwk(
+            jwk-set-uri: https://dummy-jwk
     authorization:
       policy:
         odrl:

@@ -1,11 +1,11 @@
-package io.qpointz.mill.security.authentication.configuration;
+package io.qpointz.mill.security.configuration;
 
+import io.qpointz.mill.security.annotations.ConditionalOnSecurity;
 import io.qpointz.mill.security.authentication.AuthenticationMethod;
 import io.qpointz.mill.security.authentication.password.PasswordAuthenticationMethod;
 import io.qpointz.mill.security.authentication.password.UserRepo;
 import io.qpointz.mill.security.authentication.password.UserRepoAuthenticationProvider;
 import lombok.val;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -17,7 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.io.IOException;
 
 @Configuration
-@ConditionalOnProperty(name="mill.security.enable")
+@ConditionalOnSecurity
 public class PasswordAuthenticationConfiguration {
 
     @Bean

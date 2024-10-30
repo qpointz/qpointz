@@ -11,8 +11,12 @@
 rootProject.name = "mill"
 
 include (":mill-common")
+include (":mill-test-common")
+
 include (":mill-common-service")
 include (":mill-common-security")
+
+
 
 include (":clients:mill-jdbc-driver")
 include (":clients:mill-jdbc-shell")
@@ -44,6 +48,9 @@ dependencyResolutionManagement {
             plugin("spring-dependency-management","io.spring.dependency-management").version("1.1.6")
             plugin("spring-boot-plugin", "org.springframework.boot").versionRef(springBootV)
 
+            //library("spring-test", "org.springframework", "spring-test").version("6.1.14")
+            library("spring-security-test", "org.springframework.security", "spring-security-test").version("6.3.4")
+
             val protobufPluginV = version("protobuf-plugin", "0.9.4")
             plugin("google-protobuf-plugin", "com.google.protobuf").versionRef(protobufPluginV)
 
@@ -56,6 +63,8 @@ dependencyResolutionManagement {
             library("boot-starter-web",springBootG,"spring-boot-starter-web").versionRef(springBootV)
             library("boot-starter-webflux",springBootG,"spring-boot-starter-webflux").versionRef(springBootV)
             library("boot-starter", springBootG,"spring-boot-starter").versionRef(springBootV)
+            library("boot-starter-actuator", springBootG,"spring-boot-starter-actuator").versionRef(springBootV)
+
 
             val springCloudV = version("springCloud", "4.1.3")
             val springCloudG = "org.springframework.cloud"
@@ -145,6 +154,8 @@ dependencyResolutionManagement {
             val okhttp3 = version("okhttp", "4.12.0")
             library("okhttp-mock-webserver", "com.squareup.okhttp3", "mockwebserver").versionRef(okhttp3)
             library("okhttp", "com.squareup.okhttp3", "okhttp").versionRef(okhttp3)
+
+            library("opencensus-impl", "io.opencensus","opencensus-impl").version("0.31.1")
 
             val sqlline = version("sqlline","1.12.0")
             library("sqlline", "sqlline", "sqlline").versionRef(sqlline)

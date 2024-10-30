@@ -1,8 +1,6 @@
 package io.qpointz.mill.sql.readers.vector;
 
 import io.qpointz.mill.proto.Vector;
-import io.qpointz.mill.sql.VectorColumnReader;
-import io.qpointz.mill.types.conversion.LocalTimeToNanoConverter;
 import io.qpointz.mill.types.logical.TimeLogical;
 
 import java.time.LocalTime;

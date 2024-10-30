@@ -20,8 +20,6 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class JdbcExecutionProviderTest extends BaseTest {
 
-   // private final String connectionUrl = "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM './etc/config/test/testdata.sql'";
-
     @Autowired
     JdbcContextFactory jdbcContextFactory;
 

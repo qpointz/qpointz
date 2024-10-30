@@ -1,7 +1,6 @@
 package io.qpointz.mill.sql.readers.vector;
 
 import io.qpointz.mill.proto.Vector;
-import io.qpointz.mill.sql.VectorColumnReader;
 import io.qpointz.mill.types.logical.UUIDLogical;
 
 import java.util.UUID;

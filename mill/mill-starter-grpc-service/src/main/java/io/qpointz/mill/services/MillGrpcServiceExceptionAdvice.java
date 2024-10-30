@@ -3,6 +3,7 @@ package io.qpointz.mill.services;
 import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
+import io.qpointz.mill.services.annotations.ConditionalOnService;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.advice.GrpcAdvice;
 import net.devh.boot.grpc.server.advice.GrpcExceptionHandler;
@@ -10,6 +11,7 @@ import net.devh.boot.grpc.server.advice.GrpcExceptionHandler;
 
 @Slf4j
 @GrpcAdvice
+@ConditionalOnService("grpc")
 public class MillGrpcServiceExceptionAdvice {
 
     public MillGrpcServiceExceptionAdvice() {

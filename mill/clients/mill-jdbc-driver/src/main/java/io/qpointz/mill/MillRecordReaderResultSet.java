@@ -9,7 +9,7 @@ import java.sql.Statement;
 
 class MillRecordReaderResultSet extends RecordReaderResultSetBase {
 
-    public MillRecordReaderResultSet(VectorBlockRecordIterator recordIterator) throws SQLException {
+    public MillRecordReaderResultSet(VectorBlockRecordIterator recordIterator) {
         super(recordIterator);
     }
 

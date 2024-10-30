@@ -24,7 +24,7 @@ public abstract class ResultSetProvidingMetadata<T> {
      *
      * @return a list of mapper information objects
      */
-    protected abstract List<ObjectToVectorProducer.MapperInfo<T, ?>> getMappers();
+    protected abstract List<ObjectToVectorProducer.MapperInfo<T,?>> getMappers();
 
     /**
      * Provides the metadata collection.

@@ -6,9 +6,6 @@ public abstract class LogicalTypeIdMapper<T> {
 
     public T byId(LogicalDataType.LogicalDataTypeId logicalDataTypeId) {
         switch (logicalDataTypeId) {
-            case NOT_SPECIFIED_TYPE -> {
-                throw new RuntimeException("TypeIsNotRecognized");
-            }
             case TINY_INT -> {
                 return mapTinyInt();
             }
@@ -57,9 +54,11 @@ public abstract class LogicalTypeIdMapper<T> {
             case UUID -> {
                 return mapUUID();
             }
+            
+            default -> throw new RuntimeException("TypeIsNotRecognized");
         }
 
-        throw new RuntimeException("TypeIsNotRecognized");
+
     }
 
     protected abstract T mapUUID();

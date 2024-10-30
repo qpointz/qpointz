@@ -39,6 +39,7 @@ testing {
 
                 dependencies {
                     implementation(project())
+                    implementation(project(":mill-test-common"))
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.h2.database)

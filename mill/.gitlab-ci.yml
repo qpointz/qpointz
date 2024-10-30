@@ -54,9 +54,9 @@ mill:unit-tests:
         coverage_format: jacoco
         path: ${CI_PROJECT_DIR}/mill/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml
     paths:
-      - ${CI_PROJECT_DIR}/mill/**/build/test-results/*/*.xml
-      - ${CI_PROJECT_DIR}/mill/**/build/test-results/*/*.xml
-      - ${CI_PROJECT_DIR}/mill/**/build/reports/jacoco/**/*
+      - ${CI_PROJECT_DIR}/mill/**/build/test-results/**/*.xml
+      - ${CI_PROJECT_DIR}/mill/**/build/test-results/**/*.xml
+      - ${CI_PROJECT_DIR}/mill/**/reports/jacoco/**/*.xml
 
 mill:install-dist:
   extends: .gradle-job

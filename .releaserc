@@ -1,6 +1,33 @@
 {
     "branches": ["main", {"name" : "rc", "prerelease": true}],
     "plugins" : [
+        ["semantic-release-unsquash", {
+            "commitAnalyzerConfig": {
+                "preset" : "angular",
+                "parserOpts" : {
+                    "headerPattern" : "^\\[(\\w*)(?:\\:([^\\]]*))*\\](.*)$",
+                    "headerCorrespondence" : [
+                        "type",
+                        "scope",
+                        "subject"
+                    ]
+                }
+            },
+            "notesGeneratorConfig": {
+                "preset" : "angular",
+                "parserOpts" : {
+                    "headerPattern" : "^\\[(\\w*)(?:\\:([^\\]]*))*\\](.*)$",
+                    "headerCorrespondence" : [
+                        "type",
+                        "scope",
+                        "subject"
+                    ]
+                },
+                "writerOpts": {
+                    "commitsSort": ["subject", "scope"]
+                }
+            }
+        }],
         ["@semantic-release/commit-analyzer", {
             "preset" : "angular",
             "parserOpts" : {
@@ -15,12 +42,16 @@
                 { "type": "feature", "release": "minor" },
                 { "type": "feat", "release": "minor" },
 		
-		{ "type": "change", "release": "patch" },
+		        { "type": "change", "release": "patch" },
                 { "type": "fix", "release": "patch"  },
                 { "type": "build", "release": "patch" },
                 { "type": "code", "release": "patch" },
                 { "type": "refactor", "release": "patch"},
-	        { "type": "new", "release":"patch"},
+	            { "type": "new", "release":"patch"},
+
+                { "type": "debt", "release":"patch"},
+                { "type": "quality", "release":"patch"},
+                
                 { "type": "fix", "scope":"doc", "release": "patch" },
                 { "type": "update", "scope":"doc", "release": "patch" },
 
@@ -33,6 +64,7 @@
             "success": "echo ${nextRelease.version}${QP_VERSION_SFX} > VERSION",
             "verifyReleaseCmd": "echo ${nextRelease.version} > VERSION"
         }],
+        
         
         ["@semantic-release/release-notes-generator", {
             "preset" : "angular",
@@ -54,6 +86,8 @@
                 { "type": "refactor", "release": "patch"},
 	            { "type": "new", "release":"patch"},
 
+                { "type": "debt", "release":"patch"},
+                { "type": "quality", "release":"patch"},
 
                 { "type": "fix", "scope":"doc", "release": "patch" },
                 { "type": "update", "scope":"doc", "release": "patch" },
@@ -64,7 +98,7 @@
         }],
 
         ["@semantic-release/changelog", {
-              "changelogFile": "CHANGELOG"
+              "changelogFile": "${process.env.CI_PROJECT_DIR}/CHANGELOG"
         }],
 
         "@semantic-release/gitlab"

@@ -8,6 +8,16 @@ import java.sql.Types;
 
 public class JdbcUtils {
 
+    private JdbcUtils() {
+        //hiding constructor
+    }
+
+    private static final String NO_LABEL = "NO";
+
+    private static final String YES_LABEL = "YES";
+
+    private static final String NULL_LABEL = "";
+
     public static String logicalTypeIdToJdbcTypeName(LogicalDataType.LogicalDataTypeId typeId) {
         return typeId.name();
     }
@@ -44,10 +54,6 @@ public class JdbcUtils {
             return ResultSetMetaData.columnNullableUnknown;
         }
     }
-
-    private final static String NO_LABEL = "NO";
-    private final static String YES_LABEL = "YES";
-    private final static String NULL_LABEL = "";
 
     public static String jdbcNullabilityLabel(DataType.Nullability nullability) {
         if (nullability == DataType.Nullability.NOT_NULL) {

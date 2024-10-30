@@ -74,7 +74,7 @@ public abstract class VectorBlockRecordIterator implements RecordReader {
         for (var i=0;i<schema.getFieldsCount();i++) {
             val field = schema.getFields(i);
             val logicalType = field.getType().getType();
-            val columnReader = new VectorColumnReaderFactory(field, vBlock.getVectors(i)).byId(logicalType.getTypeId());
+            val columnReader = new VectorColumnReaderFactory(vBlock.getVectors(i)).byId(logicalType.getTypeId());
             readers.add(columnReader);
 
             val cMeta = new ColumnMetadataFactory(field).byId(logicalType.getTypeId());
@@ -278,6 +278,7 @@ public abstract class VectorBlockRecordIterator implements RecordReader {
         return new VectorBlockRecordIterator(blocks) {
             @Override
             public void close() {
+                //no closable resources associtated with record iterator
             }
         };
     }

@@ -1,7 +1,6 @@
 package io.qpointz.mill.vectors.sql;
 
 import java.sql.*;
-import java.time.ZoneId;
 
 public class ResultSetColumnReader {
 

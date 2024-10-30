@@ -1,5 +1,6 @@
-package io.qpointz.mill.security.authentication.configuration;
+package io.qpointz.mill.security.configuration;
 
+import io.qpointz.mill.security.annotations.ConditionalOnSecurity;
 import io.qpointz.mill.security.authentication.AuthenticationMethod;
 import io.qpointz.mill.security.authentication.token.DefaultJwtDecoder;
 import io.qpointz.mill.security.authentication.token.TokenAuthenticationMethod;
@@ -7,14 +8,13 @@ import lombok.val;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 
 @Configuration
-@ConditionalOnProperty(name="mill.security.enable")
+@ConditionalOnSecurity
 public class TokenAuthenticationConfiguration {
 
     @Bean

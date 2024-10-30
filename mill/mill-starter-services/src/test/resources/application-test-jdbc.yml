@@ -1,0 +1,32 @@
+mill:
+  backend:
+    provider: jdbc
+    connection:
+      quoting: BACK_TICK
+      caseSensitive: true
+      unquotedCasing: UNCHANGED
+    jdbc:
+      url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '../test/datasets/users/sql/users.sql'"
+      driver: "org.h2.Driver"
+      username: "*"
+      password: "*"
+      target-schema: "ts"
+
+  security:
+    enable: false
+  services:
+    meta:
+      enable: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: auth-basic
+
+mill:
+  security:
+    enable: true
+    authentication:
+      password:
+        file-store: classpath:passwd.yml

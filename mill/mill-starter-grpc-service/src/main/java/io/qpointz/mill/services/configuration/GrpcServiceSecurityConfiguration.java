@@ -1,9 +1,11 @@
 package io.qpointz.mill.services.configuration;
 
 import io.qpointz.mill.proto.MillServiceGrpc;
+import io.qpointz.mill.security.annotations.ConditionalOnSecurity;
 import io.qpointz.mill.security.authentication.AuthenticationMethod;
 import io.qpointz.mill.security.authentication.AuthenticationMethods;
 import io.qpointz.mill.security.authentication.AuthenticationType;
+import io.qpointz.mill.services.annotations.ConditionalOnService;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.security.authentication.BasicGrpcAuthenticationReader;
@@ -38,34 +40,20 @@ import java.util.*;
 @EnableAutoConfiguration
 @EnableConfigurationProperties
 @EnableWebSecurity
-@ConditionalOnProperty(name="mill.security.enable")
-public class MillStandardSecurityConfig {
+@ConditionalOnSecurity
+@ConditionalOnService("grpc")
+public class GrpcServiceSecurityConfiguration {
 
     private final AuthenticationMethods authenticationMethods;
 
-    public MillStandardSecurityConfig(@Autowired AuthenticationMethods authenticationMethods) {
+    public GrpcServiceSecurityConfiguration(@Autowired AuthenticationMethods authenticationMethods) {
         this.authenticationMethods = authenticationMethods;
-    }
-
-    @Bean
-    public List<AuthenticationProvider> authenticationProviders() {
-        return authenticationMethods.getProviders().stream()
-                .map(AuthenticationMethod::getAuthenticationProvider)
-                .toList();
-    }
-
-    @Bean
-    AuthenticationManager authenticationManager(List<AuthenticationProvider> providers) {
-        if (log.isInfoEnabled()) {
-            providers.stream().forEach(k-> log.info("Registered auth provider:{}",k.getClass().getCanonicalName()));
-        }
-        return new ProviderManager(providers);
     }
 
     @Bean
     List<GrpcAuthenticationReader> authReaders() {
         return authenticationMethods.getAuthenticationTypes()
-                .stream().map(MillStandardSecurityConfig::createAuthReader)
+                .stream().map(GrpcServiceSecurityConfiguration::createAuthReader)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .toList();

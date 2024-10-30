@@ -17,7 +17,7 @@ public class DefaultServiceHandlerConfiguration {
     public DefaultServiceHandlerConfiguration(
             @Autowired MetadataProvider metadataProvider,
             @Autowired ExecutionProvider executionProvider,
-            @Autowired SqlProvider sqlProvider,
+            @Autowired(required = false) SqlProvider sqlProvider,
             @Autowired(required = false) SecurityProvider securityProvider,
             @Autowired(required = false) PlanRewriteChain planRewriteChain
     ) {

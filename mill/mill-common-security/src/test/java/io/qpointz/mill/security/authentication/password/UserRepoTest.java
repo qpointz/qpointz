@@ -22,7 +22,7 @@ class UserRepoTest extends BaseTest {
 
     @Test
     void throwsOnMalformedYaml() {
-        assertThrows(JsonProcessingException.class, ()-> createFromYamlFile("/userstore/passwd_corrupt.yml"));
+        assertThrows(JsonProcessingException.class, ()-> createFromYamlFile("classpath:userstore/passwd_corrupt.yml"));
     }
 
 }

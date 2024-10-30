@@ -53,5 +53,7 @@ public class ColumnMetadata {
     @Getter
     private final LogicalDataType.LogicalDataTypeId logicalTypeId;
 
-    public static class ColumnMetadataBuilder {}
+    public static class ColumnMetadataBuilder { //NOSONAR builder need to kept
+
+    }
 }

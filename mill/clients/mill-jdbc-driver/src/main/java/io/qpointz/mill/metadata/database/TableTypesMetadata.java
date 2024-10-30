@@ -1,13 +1,9 @@
 package io.qpointz.mill.metadata.database;
 
-import io.qpointz.mill.MillConnection;
 import io.qpointz.mill.metadata.ResultSetProvidingMetadata;
 import io.qpointz.mill.types.logical.StringLogical;
 import io.qpointz.mill.vectors.ObjectToVectorProducer;
-import lombok.val;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import static io.qpointz.mill.metadata.database.MetadataUtils.stringOf;

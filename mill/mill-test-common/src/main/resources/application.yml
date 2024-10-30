@@ -1,0 +1,14 @@
+spring:
+  main:
+    web-application-type: servlet
+
+mill:
+  security:
+    enable: false
+  services:
+    trivial:
+      enabled: true
+      testcondition: lala
+      hulla:
+        bulla: 12
+        rocky: true

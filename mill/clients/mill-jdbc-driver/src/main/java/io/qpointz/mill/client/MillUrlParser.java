@@ -14,10 +14,6 @@ import static io.qpointz.mill.client.MillUrlParser.KnownPropertyType.*;
 
 public class MillUrlParser {
 
-    public static final String URL_PREFIX = "jdbc:mill:";
-
-    private final Properties props;
-
     protected enum KnownPropertyType {
         STRING,
         INT,
@@ -31,7 +27,9 @@ public class MillUrlParser {
         }
     }
 
-    public static Set<KnownProperty> KNOWN_PROPERTIES = Set.of(
+    public static final String URL_PREFIX = "jdbc:mill:";
+
+    public static final Set<KnownProperty> KNOWN_PROPERTIES = Set.of(
             KnownProperty.of(CLIENT_PROTOCOL_PROP, STRING, true, String.format("Client protocol valid values '%s', '%s','%s','%s'.",
                     CLIENT_PROTOCOL_GRPC_VALUE, CLIENT_PROTOCOL_HTTP_VALUE, CLIENT_PROTOCOL_HTTPS_VALUE, CLIENT_PROTOCOL_IN_PROC_VALUE)),
             KnownProperty.of(HOST_PROP, STRING, true, "Mill backend host name"),
@@ -48,7 +46,7 @@ public class MillUrlParser {
     );
 
     public MillUrlParser(String url, Properties... props) {
-        this.props = apply(url, props);
+        apply(url, props);
     }
 
     public static boolean acceptsURL(String url) {
@@ -84,15 +82,11 @@ public class MillUrlParser {
             parsedScheme = MillClientConfiguration.CLIENT_PROTOCOL_GRPC_VALUE;
         }
 
-        switch (parsedScheme) {
-            case CLIENT_PROTOCOL_GRPC_VALUE:
-            case CLIENT_PROTOCOL_IN_PROC_VALUE:
-            case CLIENT_PROTOCOL_HTTP_VALUE:
-            case CLIENT_PROTOCOL_HTTPS_VALUE:
-                effectiveProps.setProperty(MillClientConfiguration.CLIENT_PROTOCOL_PROP, parsedScheme);
-                break;
-            default:
-                throw new IllegalArgumentException("Not supported scheme:" + parsedScheme);
+        if (parsedScheme.equals(CLIENT_PROTOCOL_GRPC_VALUE) || parsedScheme.equals(CLIENT_PROTOCOL_IN_PROC_VALUE) ||
+            parsedScheme.equals(CLIENT_PROTOCOL_HTTP_VALUE) || parsedScheme.equals(CLIENT_PROTOCOL_HTTPS_VALUE)) {
+            effectiveProps.setProperty(CLIENT_PROTOCOL_PROP, parsedScheme);
+        } else {
+            throw new IllegalArgumentException("Not supported scheme:" + parsedScheme);
         }
 
         val path = parsedUrl.getPath();
@@ -126,7 +120,7 @@ public class MillUrlParser {
             effectiveProps.put(HOST_PROP, parsedUrl.getHost());
         }
 
-        effectiveProps.put(PORT_PROP, Integer.valueOf(parsedUrl.getPort()).toString());
+        effectiveProps.put(PORT_PROP, Integer.toString(parsedUrl.getPort()));
         return effectiveProps;
     }
 

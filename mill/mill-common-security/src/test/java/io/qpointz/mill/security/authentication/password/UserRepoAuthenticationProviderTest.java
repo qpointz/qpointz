@@ -37,7 +37,7 @@ class UserRepoAuthenticationProviderTest extends BaseTest {
 
 
     private UserRepoAuthenticationProvider getProvider() throws IOException {
-        return createFromYamlFile("/userstore/passwd.yml");
+        return createFromYamlFile("classpath:userstore/passwd.yml");
     }
 
     @Test

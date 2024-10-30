@@ -1,12 +1,9 @@
 package io.qpointz.mill.security.authentication;
 
 import lombok.Getter;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 
@@ -34,6 +31,11 @@ public class AuthenticationMethods {
                 .distinct()
                 .sorted(Comparator.comparing(AuthenticationType::getValue))
                 .toList();
+    }
+
+    public boolean supportsAuthenticationType(AuthenticationType authenticationType) {
+        return providers.stream()
+                .anyMatch(f-> f.getAuthenticationType() == authenticationType);
     }
 
     private List<AuthenticationMethod> streamToPrioritizedList(Stream<AuthenticationMethod> stream) {

@@ -1,6 +1,5 @@
 package io.qpointz.mill.sql;
 
-import io.qpointz.mill.proto.Schema;
 import io.qpointz.mill.sql.readers.vector.ColumnMetadata;
 
 import java.io.InputStream;

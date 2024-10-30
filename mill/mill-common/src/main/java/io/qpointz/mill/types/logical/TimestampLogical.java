@@ -1,13 +1,10 @@
 package io.qpointz.mill.types.logical;
 
-import io.qpointz.mill.proto.DataType;
 import io.qpointz.mill.proto.LogicalDataType;
 import io.qpointz.mill.types.conversion.LocalDateTimeToEpochMilli;
 import io.qpointz.mill.types.physical.I64Physical;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZonedDateTime;
 
 public final class TimestampLogical implements LogicalType<Long, I64Physical> {
 
