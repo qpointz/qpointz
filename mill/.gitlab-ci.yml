@@ -17,7 +17,7 @@ workflow:
 
 .gradle-job:
   image:
-    name: gitlab.qpointz.io/qpointz/dependency_proxy/containers/azul/zulu-openjdk:17-latest
+    name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/azul/zulu-openjdk:17-latest
   variables:
     GRADLE_USER_HOME: ${CI_PROJECT_DIR}/mill/.gradle-home
   cache: &global_cache
@@ -225,63 +225,67 @@ mill:maven-publish:
     - if: $CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_REF_SLUG != "dev"
       when: always
 
-mill:deploy-infra:
-  extends: .deploy-job
-  stage: init
-  variables:
-    TF_DEPLOY_NAME: bck_func
-    TF_DEPLOY_DIR: ${CI_PROJECT_DIR}/mill/deploy/azure-mill-basic
-  script:
-    - terraform -chdir=${TF_DEPLOY_DIR} init -backend-config=${TF_BACKEND_FILE}
-    - terraform -chdir=${TF_DEPLOY_DIR} plan -var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}_${TF_SLUG}" -var "deployment_id=${TF_SLUG}"
-    - terraform -chdir=${TF_DEPLOY_DIR} apply -auto-approve  -var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}_${TF_SLUG}"  -var "deployment_id=${TF_SLUG}"
-    - terraform -chdir=${TF_DEPLOY_DIR} output -json > ${TF_DEPLOY_DIR}/.${TF_DEPLOY_NAME}.out.json
-    - cat ${TF_DEPLOY_DIR}/.${TF_DEPLOY_NAME}.out.json
-    - APP_NAME="$(cat $TF_DEPLOY_DIR/.${TF_DEPLOY_NAME}.out.json | jq -r '.app.value')"
-    - RG_NAME="$(cat $TF_DEPLOY_DIR/.${TF_DEPLOY_NAME}.out.json | jq -r '.rg.value')"
-    - echo $APP_NAME
-    - echo $RG_NAME
-  artifacts:
-    paths:
-      - ${TF_DEPLOY_DIR}/.${TF_DEPLOY_NAME}.out.json
+# mill:deploy-infra:
+#   extends: .deploy-job
+#   stage: init
+#   variables:
+#     TF_DEPLOY_NAME: bck_func
+#     TF_DEPLOY_DIR: ${CI_PROJECT_DIR}/mill/deploy/azure-mill-basic
+#   script:
+#     - terraform -chdir=${TF_DEPLOY_DIR} init -backend-config=${TF_BACKEND_FILE}
+#     - terraform -chdir=${TF_DEPLOY_DIR} plan -var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}_${TF_SLUG}" -var "deployment_id=${TF_SLUG}"
+#     - terraform -chdir=${TF_DEPLOY_DIR} apply -auto-approve  -var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}_${TF_SLUG}"  -var "deployment_id=${TF_SLUG}"
+#     - terraform -chdir=${TF_DEPLOY_DIR} output -json > ${TF_DEPLOY_DIR}/.${TF_DEPLOY_NAME}.out.json
+#     - cat ${TF_DEPLOY_DIR}/.${TF_DEPLOY_NAME}.out.json
+#     - APP_NAME="$(cat $TF_DEPLOY_DIR/.${TF_DEPLOY_NAME}.out.json | jq -r '.app.value')"
+#     - RG_NAME="$(cat $TF_DEPLOY_DIR/.${TF_DEPLOY_NAME}.out.json | jq -r '.rg.value')"
+#     - echo $APP_NAME
+#     - echo $RG_NAME
+#   artifacts:
+#     paths:
+#       - ${TF_DEPLOY_DIR}/.${TF_DEPLOY_NAME}.out.json
+#   rules:
+#     - when: never
 
-mill:deploy-app:
-  extends: .deploy-job
-  stage: publish
-  variables:
-    TF_DEPLOY_NAME: bck_func
-    TF_DEPLOY_DIR: ${CI_PROJECT_DIR}/mill/deploy/azure-mill-basic
-  needs:
-    - job: mill:deploy-infra
-      artifacts: true
-    - job: mill:install-dist
-      artifacts: true
-  script:
-    - APP_NAME="$(cat $TF_DEPLOY_DIR/.${TF_DEPLOY_NAME}.out.json | jq -r '.app.value')"
-    - RG_NAME="$(cat $TF_DEPLOY_DIR/.${TF_DEPLOY_NAME}.out.json | jq -r '.rg.value')"
-    - az functionapp deployment source config-zip -g $RG_NAME -n $APP_NAME --src ${CI_PROJECT_DIR}/mill/mill-azure-service-function/build/azure-functions/mill-service-func.zip
-    - az functionapp cors add -g $RG_NAME -n $APP_NAME --allowed-origins '*'
-    - ROOT_API_URL="$(az functionapp function list -g $RG_NAME -n $APP_NAME | jq -r '.[0].invokeUrlTemplate' | sed 's|\(.*\)/.*|\1|')/"
-    - echo -n $ROOT_API_URL > $CI_PROJECT_DIR/mill/deploy/azure-mill-basic/.app.json
-  artifacts:
-    paths:
-      - $CI_PROJECT_DIR/mill/deploy/azure-mill-basic/.app.json
-  environment:
-    name: mill/${CI_COMMIT_BRANCH}/backend_function
-    url: $ROOT_API_URL
-    on_stop: mill:destroy-infra
+# mill:deploy-app:
+#   extends: .deploy-job
+#   stage: publish
+#   variables:
+#     TF_DEPLOY_NAME: bck_func
+#     TF_DEPLOY_DIR: ${CI_PROJECT_DIR}/mill/deploy/azure-mill-basic
+#   needs:
+# #    - job: mill:deploy-infra
+# #      artifacts: true
+#     - job: mill:install-dist
+#       artifacts: true
+#   script:
+#     - APP_NAME="$(cat $TF_DEPLOY_DIR/.${TF_DEPLOY_NAME}.out.json | jq -r '.app.value')"
+#     - RG_NAME="$(cat $TF_DEPLOY_DIR/.${TF_DEPLOY_NAME}.out.json | jq -r '.rg.value')"
+#     - az functionapp deployment source config-zip -g $RG_NAME -n $APP_NAME --src ${CI_PROJECT_DIR}/mill/mill-azure-service-function/build/azure-functions/mill-service-func.zip
+#     - az functionapp cors add -g $RG_NAME -n $APP_NAME --allowed-origins '*'
+#     - ROOT_API_URL="$(az functionapp function list -g $RG_NAME -n $APP_NAME | jq -r '.[0].invokeUrlTemplate' | sed 's|\(.*\)/.*|\1|')/"
+#     - echo -n $ROOT_API_URL > $CI_PROJECT_DIR/mill/deploy/azure-mill-basic/.app.json
+#   artifacts:
+#     paths:
+#       - $CI_PROJECT_DIR/mill/deploy/azure-mill-basic/.app.json
+#   environment:
+#     name: mill/${CI_COMMIT_BRANCH}/backend_function
+#     url: $ROOT_API_URL
+#     on_stop: mill:destroy-infra
+#   rules:
+#     - when: never
 
-mill:destroy-infra:
-  extends: .deploy-job
-  stage: init
-  variables:
-    TF_DEPLOY_NAME: bck_func
-    TF_DEPLOY_DIR: ${CI_PROJECT_DIR}/mill/deploy/azure-mill-basic
-  script:
-    - terraform -chdir=${TF_DEPLOY_DIR} init -backend-config=${TF_BACKEND_FILE}
-    - terraform -chdir=${TF_DEPLOY_DIR} plan -destroy var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}_${TF_SLUG}" -var "deployment_id=${TF_SLUG}"
-    - terraform -chdir=${TF_DEPLOY_DIR} destroy -auto-approve  var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}_${TF_SLUG}" -var "deployment_id=${TF_SLUG}"
-  when: manual
-  environment:
-    name: mill/${CI_COMMIT_BRANCH}/backend_function
-    action: stop
+# mill:destroy-infra:
+#   extends: .deploy-job
+#   stage: init
+#   variables:
+#     TF_DEPLOY_NAME: bck_func
+#     TF_DEPLOY_DIR: ${CI_PROJECT_DIR}/mill/deploy/azure-mill-basic
+#   script:
+#     - terraform -chdir=${TF_DEPLOY_DIR} init -backend-config=${TF_BACKEND_FILE}
+#     - terraform -chdir=${TF_DEPLOY_DIR} plan -destroy var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}_${TF_SLUG}" -var "deployment_id=${TF_SLUG}"
+#     - terraform -chdir=${TF_DEPLOY_DIR} destroy -auto-approve  var "subscription_id=${AZ_DEPLOY_SUBSCRIPTION_ID}" -var "app_name=${TF_DEPLOY_NAME}_${TF_SLUG}" -var "deployment_id=${TF_SLUG}"
+#   when: never
+#   environment:
+#     name: mill/${CI_COMMIT_BRANCH}/backend_function
+#     action: stop
