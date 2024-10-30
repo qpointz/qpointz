@@ -7,8 +7,8 @@ plugins {
 
 sonar {
     properties {
-        property("sonar.projectKey", "qpointz-delta")
-        property("sonar.projectName", "qpointz-delta")
+        property("sonar.projectKey", "qpointz")
+        property("sonar.projectName", "qpointz")
         property("sonar.qualitygate.wait", true)
     }
 }
