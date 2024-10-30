@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=azul/zulu-openjdk:17-latest
+ARG BASE_IMAGE=gitlab.qpointz.io/qpointz/dependency_proxy/containers/azul/zulu-openjdk:17-latest
 FROM $BASE_IMAGE
 
 #ENV PATH="/usr/lib/jvm/graalvm/bin:${PATH}"

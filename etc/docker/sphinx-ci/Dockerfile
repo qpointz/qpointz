@@ -1,4 +1,4 @@
-FROM python:3
+FROM gitlab.qpointz.io/qpointz/dependency_proxy/containers/python:3
 
 RUN \    
     pip install rst2pdf sphinx sphinx-multiversion sphinx_rtd_theme sphinx-material sphinx-pdj-theme sphinx-tabs myst-parser semver && \ 

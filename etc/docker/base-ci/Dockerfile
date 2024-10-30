@@ -1,4 +1,4 @@
-FROM debian:11-slim
+FROM gitlab.qpointz.io/qpointz/dependency_proxy/containers/debian:11-slim
 
 RUN \
   apt-get update && \  

@@ -2,7 +2,7 @@ include:
   - local : /.gitlab/vars.yml
   - local : /.gitlab/jobs.yml
 
-image: azul/zulu-openjdk:17-latest
+image: gitlab.qpointz.io/qpointz/dependency_proxy/containers/azul/zulu-openjdk:17-latest
 
 stages:
   - init
@@ -140,7 +140,7 @@ mill-client:mill-py:test-3.12:
 mill:jdbc-driver:test:
   extends: .mill:grpc-services
   stage: integration-test
-  image: azul/zulu-openjdk:17-latest
+  image: gitlab.qpointz.io/qpointz/dependency_proxy/containers/azul/zulu-openjdk:17-latest
   script:
     - cd ${CI_PROJECT_DIR}/mill/clients
     - ../gradlew --no-daemon --console plain clean test testIT
@@ -158,7 +158,7 @@ mill:jdbc-driver:test:
 
 mill-clients:install-dist:
   stage: build
-  image: azul/zulu-openjdk:17-latest
+  image: gitlab.qpointz.io/qpointz/dependency_proxy/containers/azul/zulu-openjdk:17-latest
   needs:
     - job: mill-clients:init-version
       artifacts: true    

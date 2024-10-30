@@ -1,4 +1,4 @@
-FROM azul/zulu-openjdk:17-latest
+FROM gitlab.qpointz.io/qpointz/dependency_proxy/containers/azul/zulu-openjdk:17-latest
 
 ARG APPLICATION_USER=appuser
 

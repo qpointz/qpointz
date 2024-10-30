@@ -31,7 +31,7 @@ flow:build-sbt-ci-image:
       /kaniko/executor
       --context "${CI_PROJECT_DIR}/etc/docker/sbt-ci"
       --destination "${CI_IMAGE_SBT}"
-      --build-arg "BASE_IMAGE=azul/zulu-openjdk:17-latest"
+      --build-arg "BASE_IMAGE=gitlab.qpointz.io/qpointz/dependency_proxy/containers/azul/zulu-openjdk:17-latest"
       --cache=true
 
 

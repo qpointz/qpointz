@@ -1,4 +1,4 @@
-FROM azul/zulu-openjdk:17-latest AS openjdk
+FROM gitlab.qpointz.io/qpointz/dependency_proxy/containers/azul/zulu-openjdk:17-latest AS openjdk
 
 RUN apt update && \
     apt install binutils -y && \

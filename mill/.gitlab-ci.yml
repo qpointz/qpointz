@@ -17,7 +17,7 @@ workflow:
 
 .gradle-job:
   image:
-    name: azul/zulu-openjdk:17-latest
+    name: gitlab.qpointz.io/qpointz/dependency_proxy/containers/azul/zulu-openjdk:17-latest
   variables:
     GRADLE_USER_HOME: ${CI_PROJECT_DIR}/mill/.gradle-home
   cache: &global_cache
