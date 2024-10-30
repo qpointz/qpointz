@@ -2,6 +2,8 @@ package io.qpointz.mill.security.configuration;
 
 import io.qpointz.mill.security.annotations.ConditionalOnSecurity;
 import io.qpointz.mill.security.authentication.AuthenticationMethod;
+import io.qpointz.mill.security.authentication.AuthenticationMethods;
+import io.qpointz.mill.security.authentication.AuthenticationType;
 import io.qpointz.mill.security.authentication.password.PasswordAuthenticationMethod;
 import io.qpointz.mill.security.authentication.password.UserRepo;
 import io.qpointz.mill.security.authentication.password.UserRepoAuthenticationProvider;
@@ -11,6 +13,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.HttpBasicConfigurer;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 

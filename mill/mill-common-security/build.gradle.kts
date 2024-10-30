@@ -19,6 +19,7 @@ dependencies {
     implementation(libs.javax.annotation.api)
     annotationProcessor(libs.lombok)
     annotationProcessor(libs.boot.configuration.processor)
+    implementation(libs.boot.starter.web)
 
     compileOnly(libs.lombok)
     runtimeOnly(libs.bundles.logging)
@@ -40,6 +41,8 @@ testing {
                 dependencies {
                     implementation(project())
                     implementation(project(":mill-test-common"))
+                    implementation(libs.boot.starter.test)
+
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.h2.database)

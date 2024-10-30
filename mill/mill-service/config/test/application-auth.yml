@@ -4,6 +4,6 @@ mill:
     authentication:
       password:
         file-store: file:./etc/sample/passwd.yaml
-      token:
+      oauth2-resource-server:
         jwt:
           jwk-set-uri: "https://login.microsoftonline.com/${AZURE_TEST_TENANT_ID}/discovery/v2.0/keys"

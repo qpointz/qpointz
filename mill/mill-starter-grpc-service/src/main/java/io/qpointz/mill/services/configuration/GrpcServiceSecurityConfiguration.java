@@ -2,7 +2,6 @@ package io.qpointz.mill.services.configuration;
 
 import io.qpointz.mill.proto.MillServiceGrpc;
 import io.qpointz.mill.security.annotations.ConditionalOnSecurity;
-import io.qpointz.mill.security.authentication.AuthenticationMethod;
 import io.qpointz.mill.security.authentication.AuthenticationMethods;
 import io.qpointz.mill.security.authentication.AuthenticationType;
 import io.qpointz.mill.services.annotations.ConditionalOnService;
@@ -18,16 +17,12 @@ import net.devh.boot.grpc.server.security.check.GrpcSecurityMetadataSource;
 import net.devh.boot.grpc.server.security.check.ManualGrpcSecurityMetadataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.vote.UnanimousBased;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
 
@@ -61,8 +56,8 @@ public class GrpcServiceSecurityConfiguration {
 
     private static Optional<GrpcAuthenticationReader> createAuthReader(AuthenticationType type) {
         return switch (type) {
-            case PASSWORD -> Optional.of(new BasicGrpcAuthenticationReader());
-            case BEARER_TOKEN -> Optional.of(new BearerAuthenticationReader(BearerTokenAuthenticationToken::new));
+            case BASIC -> Optional.of(new BasicGrpcAuthenticationReader());
+            case OAUTH2 -> Optional.of(new BearerAuthenticationReader(BearerTokenAuthenticationToken::new));
             case CUSTOM -> Optional.empty();
         };
     }

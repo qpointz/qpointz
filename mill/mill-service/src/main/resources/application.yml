@@ -64,3 +64,6 @@ mill:
     authentication:
       password:
         file-store: file:./mill-service/config/sample/passwd.yaml
+      token:
+        oauth2-resource-server:
+          jwk-set-uri: http://localhost:8989/default/jwks

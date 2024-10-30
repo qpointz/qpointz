@@ -18,6 +18,7 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.HttpBasicConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import io.qpointz.mill.security.annotations.ConditionalOnSecurity;
 
@@ -57,22 +58,26 @@ public class SecurityConfig {
         return new ProviderManager(providers);
     }
 
+
+
+
     @Bean
     @ConditionalOnSecurity
     @Order
     SecurityFilterChain secureAll(HttpSecurity http ,
                                   AuthenticationManager authenticationManager,
-                                  AuthenticationMethods authenticationMethods
-                                  ) throws Exception {
-        http.authenticationManager(authenticationManager)
-            .authorizeHttpRequests(authHttp ->  authHttp
-                .requestMatchers("/**").authenticated()
-            );
+                                  AuthenticationMethods authenticationMethods) throws Exception {
 
-        if (authenticationMethods.supportsAuthenticationType(AuthenticationType.PASSWORD)) {
-              http.formLogin(Customizer.withDefaults())
-                      .httpBasic(Customizer.withDefaults());
+        http.authenticationManager(authenticationManager)
+                .securityMatcher("/**")
+                .authorizeHttpRequests(authHttp ->  authHttp
+                    .anyRequest().authenticated()
+                );
+
+        for (var m: authenticationMethods.getProviders()) {
+            m.applyDefaultHttpSecurity(http);
         }
+
         return http.build();
     }
 

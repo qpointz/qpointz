@@ -47,21 +47,6 @@ class OnSecurityEnabledConditionTest {
 
     @Nested
     @SpringBootTest(classes = AnnotationsTestConfiguration.class)
-    @EnableAutoConfiguration
-    @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-    @TestPropertySource(properties = {"mill.security.provider.default=hallo"})
-    class MatchIfHasGroupShouldBeExpecitelyEnabled {
-
-        @Test
-        void hallo(@Autowired @Qualifier("SecurityEnabled") Boolean securityEnabled) {
-            assertFalse(securityEnabled);
-        }
-
-    }
-
-
-    @Nested
-    @SpringBootTest(classes = AnnotationsTestConfiguration.class)
     @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
     class MatchMissing {
 
