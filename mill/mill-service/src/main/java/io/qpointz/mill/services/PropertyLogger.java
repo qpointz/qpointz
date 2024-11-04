@@ -12,12 +12,9 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.stream.StreamSupport;
 
-@Component
 @Slf4j
 public class PropertyLogger  {
 
-
-    @EventListener
     public void handleContextRefresh(ContextRefreshedEvent event) {
         final Environment env = event.getApplicationContext().getEnvironment();
         log.info("====== Environment and configuration ======");

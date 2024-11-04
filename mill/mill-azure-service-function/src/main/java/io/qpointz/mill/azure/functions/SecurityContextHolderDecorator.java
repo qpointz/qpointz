@@ -7,6 +7,7 @@ import io.qpointz.mill.security.authentication.AuthenticationReader;
 import io.qpointz.mill.security.authentication.AuthenticationType;
 import io.qpointz.mill.security.authentication.CompositeAuthenticationReader;
 import io.qpointz.mill.security.authentication.basic.BasicAuthenticationReader;
+import io.qpointz.mill.security.authentication.token.BearerTokenAuthenticationReader;
 import io.qpointz.mill.services.SecurityContextSecurityProvider;
 import io.qpointz.mill.services.SecurityProvider;
 import lombok.extern.slf4j.Slf4j;
@@ -85,14 +86,34 @@ public class SecurityContextHolderDecorator {
 
     private <T> AuthenticationReader getAuthenticationReader(HttpRequestMessage<Optional<T>> httpRequestMessage) {
         val readers = new ArrayList<AuthenticationReader>();
+        log.info("Providers {}", authenticationMethods.getProviders().size());
+        log.info("Providers {}", authenticationMethods.getProviders());
+        log.info("AuthTypes {}", authenticationMethods.getAuthenticationTypes().size());
+        log.info("AuthTypes {}", authenticationMethods.getAuthenticationTypes());
         for (val authType : authenticationMethods.getAuthenticationTypes()) {
+            log.info("Detected authentication type {}", authType.name());
             if (authType == AuthenticationType.BASIC) {
+                log.info("Configure 'Basic' authentication reader");
                 val reader = BasicAuthenticationReader.builder()
-                        .headerValueSupplier(() -> httpRequestMessage.getHeaders()
+                        .tokenSupplier(() -> httpRequestMessage.getHeaders()
                                 .getOrDefault("authorization", null))
                         .build();
                 readers.add(reader);
+                continue;
             }
+
+            if (authType == AuthenticationType.OAUTH2) {
+                log.info("Configure 'Bearer' token authentication reader");
+                val reader = BearerTokenAuthenticationReader.builder()
+                        .tokenSupplier(() -> httpRequestMessage.getHeaders()
+                                .getOrDefault("authorization", null))
+                        .build();
+                readers.add(reader);
+                continue;
+            }
+
+            log.warn("Authentication '{}' not supported", authType.name());
+
         }
         return new CompositeAuthenticationReader(readers);
     }

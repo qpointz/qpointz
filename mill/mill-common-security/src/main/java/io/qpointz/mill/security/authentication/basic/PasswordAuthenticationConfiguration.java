@@ -25,9 +25,9 @@ public class PasswordAuthenticationConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(prefix = "mill.security.authentication.password", name = "file-store")
+    @ConditionalOnProperty(prefix = "mill.security.authentication.basic", name = "file-store")
     public AuthenticationMethod fileStoreAuthMethod(
-            @Value("${mill.security.authentication.password.file-store}") String pathToFileStore,
+            @Value("${mill.security.authentication.basic.file-store}") String pathToFileStore,
             ResourceLoader resourceLoader,
             PasswordEncoder passwordEncoder
     ) throws IOException {

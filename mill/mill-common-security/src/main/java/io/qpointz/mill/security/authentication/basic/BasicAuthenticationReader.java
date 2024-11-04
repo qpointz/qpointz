@@ -22,19 +22,16 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class BasicAuthenticationReader implements AuthenticationReader {
 
     @Builder.Default
-    private String headerName = "Authorization";
-
-    @Builder.Default
     private String prefix = "Basic";
 
     @Getter
-    private Supplier<String> headerValueSupplier;
+    private Supplier<String> tokenSupplier;
 
     @Override
     public Authentication readAuthentication() throws AuthenticationException {
-        val header = headerValueSupplier.get();
+        val header = tokenSupplier.get();
         if (header == null || header.isEmpty() || !header.toLowerCase().startsWith(prefix.toLowerCase())) {
-            log.debug("Not 'Basic' authorization header");
+            log.debug("No value for 'Basic' authentication provided");
             return null;
         }
 
@@ -43,13 +40,13 @@ public class BasicAuthenticationReader implements AuthenticationReader {
         try {
             decoded = Base64.getDecoder().decode(token);
         } catch (final IllegalArgumentException e) {
-            throw new BadCredentialsException("Invalid 'Basic' token.Decode failure.");
+            throw new BadCredentialsException("Invalid 'Basic' token. Decode failure.");
         }
 
         final String decodedToken = new String(decoded, UTF_8);
         val indexOf = decodedToken.indexOf(':');
         if (indexOf == -1) {
-            throw new BadCredentialsException("Invalid 'Basic' token.Malformed token.");
+            throw new BadCredentialsException("Invalid 'Basic' token. Malformed token.");
         }
 
         return new UsernamePasswordAuthenticationToken(

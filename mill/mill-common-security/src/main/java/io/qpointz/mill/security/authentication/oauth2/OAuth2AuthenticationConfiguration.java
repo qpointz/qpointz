@@ -15,10 +15,10 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 
 @Slf4j
-@Configuration
-@ConditionalOnSecurity
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "mill.security.authentication.oauth2-resource-server")
+@Configuration
+@ConditionalOnSecurity
 public class OAuth2AuthenticationConfiguration {
 
     @Getter
@@ -26,9 +26,9 @@ public class OAuth2AuthenticationConfiguration {
     private OAuth2ResourceServerProperties.Jwt jwt;
 
     @Bean
-    AuthenticationMethod oauthResourceServerAuthenticationMethod() {
+    public AuthenticationMethod oauthResourceServerAuthenticationMethod() {
         if (jwt == null || jwt.getJwkSetUri()==null) {
-            log.warn("Only JwkSetUri decoder supported");
+            log.warn("No valid JWT configuration provided. OAuth resource service method will not be used");
             return null;
         }
 
