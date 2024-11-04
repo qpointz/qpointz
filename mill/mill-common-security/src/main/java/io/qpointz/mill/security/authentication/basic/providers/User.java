@@ -1,4 +1,4 @@
-package io.qpointz.mill.security.authentication.password;
+package io.qpointz.mill.security.authentication.basic.providers;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;

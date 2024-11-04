@@ -1,8 +1,7 @@
-package io.qpointz.mill.security.configuration;
+package io.qpointz.mill.security.authentication.oauth2;
 
 import io.qpointz.mill.security.annotations.ConditionalOnSecurity;
 import io.qpointz.mill.security.authentication.AuthenticationMethod;
-import io.qpointz.mill.security.authentication.oauth2.OAuth2ResourceServiceAuthenticationMethod;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +28,7 @@ public class OAuth2AuthenticationConfiguration {
     @Bean
     AuthenticationMethod oauthResourceServerAuthenticationMethod() {
         if (jwt == null || jwt.getJwkSetUri()==null) {
+            log.warn("Only JwkSetUri decoder supported");
             return null;
         }
 

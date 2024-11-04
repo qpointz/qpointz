@@ -1,4 +1,4 @@
-package io.qpointz.mill.security.authentication.password;
+package io.qpointz.mill.security.authentication.basic.providers;
 
 import io.qpointz.mill.security.authentication.BaseTest;
 import lombok.val;

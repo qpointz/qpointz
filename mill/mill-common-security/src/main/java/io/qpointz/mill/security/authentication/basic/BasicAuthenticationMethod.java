@@ -1,4 +1,4 @@
-package io.qpointz.mill.security.authentication.password;
+package io.qpointz.mill.security.authentication.basic;
 
 import io.qpointz.mill.security.authentication.AuthenticationMethod;
 import io.qpointz.mill.security.authentication.AuthenticationType;
@@ -9,7 +9,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
 @AllArgsConstructor
-public class PasswordAuthenticationMethod implements AuthenticationMethod {
+public class BasicAuthenticationMethod implements AuthenticationMethod {
 
     @Getter
     private final AuthenticationProvider authenticationProvider;

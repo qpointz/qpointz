@@ -12,6 +12,8 @@ import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -26,19 +28,22 @@ public class AzureBackendFunctions {
 
     private static final String CONTENT_TYPE_JSON  = "application/json";
     private static final String CONTENT_TYPE_PROTO = "application/protobuf"; //; proto=org.some.Message
+    private final SecurityContextHolderDecorator securityContextHolderDecorator;
 
     public AzureBackendFunctions(@Qualifier("listSchemas") Function<ListSchemasRequest, ListSchemasResponse> listSchemasImpl,
                                  @Qualifier("handshake") Function<HandshakeRequest, HandshakeResponse> handshakeImpl,
                                  @Qualifier("getSchema") Function<GetSchemaRequest, GetSchemaResponse> getSchemaImpl,
                                  @Qualifier("parseSql") Function<ParseSqlRequest, ParseSqlResponse> parseSqlImpl,
                                  @Qualifier("submitQuery") Function<QueryRequest, QueryResultResponse> submitQueryImpl,
-                                 @Qualifier("fetchQueryResult") Function<QueryResultRequest, QueryResultResponse> fetchQueryResultImpl) {
+                                 @Qualifier("fetchQueryResult") Function<QueryResultRequest, QueryResultResponse> fetchQueryResultImpl,
+                                 @Autowired(required = false) SecurityContextHolderDecorator contextHolderDecorator) {
         this.listSchemasImpl = listSchemasImpl;
         this.handshakeImpl = handshakeImpl;
         this.getSchemaImpl = getSchemaImpl;
         this.parseSqlImpl = parseSqlImpl;
         this.submitQueryImpl = submitQueryImpl;
         this.fetchQueryResultImpl = fetchQueryResultImpl;
+        this.securityContextHolderDecorator = contextHolderDecorator;
     }
 
     private Map<String, String> normailizeHeaders(HttpRequestMessage<Optional<String>> req) {
@@ -56,6 +61,8 @@ public class AzureBackendFunctions {
         val content = mayBeBody.get();
         val headers = normailizeHeaders(httpRequestMessage);
         val contentType = headers.getOrDefault(HttpHeaders.CONTENT_TYPE.toLowerCase(), CONTENT_TYPE_JSON);
+
+        securityContextHolderDecorator.decorate(httpRequestMessage);
 
         if (contentType.equals(CONTENT_TYPE_JSON)) {
             JsonFormat.parser().merge(content, messageBuilder);

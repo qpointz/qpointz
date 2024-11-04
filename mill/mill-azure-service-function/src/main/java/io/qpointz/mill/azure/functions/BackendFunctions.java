@@ -17,6 +17,11 @@ public class BackendFunctions {
         this.serviceHandler = serviceHandler;
     }
 
+    @Bean("functionContextFlag")
+    public Object functionContextFlag() {
+        return "FunctionFalg";
+    }
+
     @Bean("handshake")
     public Function<HandshakeRequest, HandshakeResponse>  handshake() {
         return r-> serviceHandler.handshake();

@@ -1,11 +1,10 @@
-package io.qpointz.mill.security.authentication.password;
+package io.qpointz.mill.security.authentication.basic;
 
 import io.qpointz.mill.security.AuthenticationBaseTest;
 import io.qpointz.mill.test.services.TestController;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,9 +15,9 @@ public class BasicAuthenticationTest extends AuthenticationBaseTest {
 
     @Test
     void nonAuthenticatedReturns401() {
-        val statusCode = this.getRestTemplate()
-                .getForEntity(this.getBaseUrl() + "/test-security/auth-info", String.class)
-                .getStatusCode()
+        val entity = this.getRestTemplate()
+                .getForEntity(this.getBaseUrl() + "/test-security/auth-info", String.class);
+        val statusCode = entity.getStatusCode()
                 .value();
         assertEquals(HttpStatus.UNAUTHORIZED.value(), statusCode);
     }

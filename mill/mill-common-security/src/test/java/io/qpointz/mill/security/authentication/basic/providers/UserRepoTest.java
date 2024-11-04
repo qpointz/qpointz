@@ -1,4 +1,4 @@
-package io.qpointz.mill.security.authentication.password;
+package io.qpointz.mill.security.authentication.basic.providers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.qpointz.mill.security.authentication.BaseTest;

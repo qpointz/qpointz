@@ -1,4 +1,4 @@
-package io.qpointz.mill.security.authentication.password;
+package io.qpointz.mill.security.authentication.basic.providers;
 
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
