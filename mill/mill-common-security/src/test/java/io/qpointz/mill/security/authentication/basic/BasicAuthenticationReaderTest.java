@@ -24,7 +24,7 @@ class BasicAuthenticationReaderTest {
     void trivial() {
         val token = getValidHeader("user", "password");
         val reader = BasicAuthenticationReader.builder()
-                .headerValueSupplier(()->token)
+                .tokenSupplier(()->token)
                 .build();
         val c = reader.readAuthentication();
         assertTrue(c instanceof UsernamePasswordAuthenticationToken);
@@ -38,7 +38,7 @@ class BasicAuthenticationReaderTest {
         val token = Base64.getEncoder().encode("user:password".getBytes());
         val encoded = new String(token);
         val reader = BasicAuthenticationReader.builder()
-                .headerValueSupplier(()->encoded)
+                .tokenSupplier(()->encoded)
                 .build();
         assertNull(reader.readAuthentication());
     }
@@ -46,7 +46,7 @@ class BasicAuthenticationReaderTest {
     @Test
     void nullWhenNullToken() {
         val reader = BasicAuthenticationReader.builder()
-                .headerValueSupplier(()->null)
+                .tokenSupplier(()->null)
                 .build();
         assertNull(reader.readAuthentication());
     }
@@ -55,7 +55,7 @@ class BasicAuthenticationReaderTest {
     @ValueSource(strings = {"", "    "})
     void nullWhenEmpty(String token) {
         val reader = BasicAuthenticationReader.builder()
-                .headerValueSupplier(()->token)
+                .tokenSupplier(()->token)
                 .build();
         assertNull(reader.readAuthentication());
     }
@@ -63,7 +63,7 @@ class BasicAuthenticationReaderTest {
     @Test
     void throwOnMalformed() {
         val reader = BasicAuthenticationReader.builder()
-                .headerValueSupplier(()->"Basic II9900")
+                .tokenSupplier(()->"Basic II9900")
                 .build();
         assertThrows(AuthenticationException.class, ()->reader.readAuthentication());
     }
@@ -73,7 +73,7 @@ class BasicAuthenticationReaderTest {
         val token = Base64.getEncoder().encode("user".getBytes());
         val encoded = String.format("Basic %s",new String(token));
         val reader = BasicAuthenticationReader.builder()
-                .headerValueSupplier(()->encoded)
+                .tokenSupplier(()->encoded)
                 .build();
         assertThrows(AuthenticationException.class, ()->reader.readAuthentication());
     }

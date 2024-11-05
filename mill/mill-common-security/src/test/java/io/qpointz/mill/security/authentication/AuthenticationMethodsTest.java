@@ -2,6 +2,7 @@ package io.qpointz.mill.security.authentication;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +27,7 @@ class AuthenticationMethodsTest extends BaseTest {
 
     @Test
     void methodsSortedByPriority(@Autowired AuthenticationMethods methods) {
-        List<AuthenticationMethod> providers = methods.getProviders();
+        val providers = methods.getProviders();
         assertEquals("CUSTOM1", ((TestConfig.TestAuthMethod) providers.get(0)).getName());
         assertEquals("TOKEN1", ((TestConfig.TestAuthMethod) providers.get(1)).getName());
         assertEquals("PASSWORD2", ((TestConfig.TestAuthMethod) providers.get(2)).getName());
@@ -34,8 +35,8 @@ class AuthenticationMethodsTest extends BaseTest {
     }
 
     @Test
-    void getMethodByTypeShouldBeSourted(@Autowired AuthenticationMethods allMethods) {
-        List<AuthenticationMethod> providers = allMethods.getProviders(AuthenticationType.BASIC);
+    void getMethodByTypeShouldBeSorted(@Autowired AuthenticationMethods allMethods) {
+        val providers = allMethods.getProviders(AuthenticationType.BASIC);
         assertEquals(2, providers.size());
         assertEquals("PASSWORD2", ((TestConfig.TestAuthMethod) providers.get(0)).getName());
         assertEquals("PASSWORD1", ((TestConfig.TestAuthMethod) providers.get(1)).getName());
@@ -43,12 +44,11 @@ class AuthenticationMethodsTest extends BaseTest {
 
     @Test
     void getTypes(@Autowired AuthenticationMethods allMethods) {
-        List<AuthenticationType> types = allMethods.getAuthenticationTypes();
+        val types = allMethods.getAuthenticationTypes();
         assertEquals(3, types.size());
         assertEquals(AuthenticationType.CUSTOM, types.get(0));
         assertEquals(AuthenticationType.OAUTH2, types.get(1));
         assertEquals(AuthenticationType.BASIC, types.get(2));
-
     }
 
     public static class TestConfig {

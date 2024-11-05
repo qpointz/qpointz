@@ -2,5 +2,5 @@ mill:
   security:
     enable: true
     authentication:
-      password:
+      basic:
         file-store: file:./etc/sample/passwd.yaml

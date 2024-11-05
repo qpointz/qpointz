@@ -10,17 +10,17 @@ import java.util.stream.Stream;
 public class AuthenticationMethods {
 
     @Getter
-    private final List<AuthenticationMethod> providers;
+    private final List<? extends AuthenticationMethod> providers;
 
     private static final Comparator<AuthenticationMethod> authPriorityComparer = Comparator
             .<AuthenticationMethod, Integer>comparing(f-> f.getAuthenticationType().getValue())
             .thenComparing(AuthenticationMethod::getMethodPriority);
 
-    public AuthenticationMethods(List<AuthenticationMethod> providers) {
+    public AuthenticationMethods(List<? extends AuthenticationMethod> providers) {
         this.providers = streamToPrioritizedList(providers.stream());
     }
 
-    public List<AuthenticationMethod> getProviders(AuthenticationType type) {
+    public List<? extends AuthenticationMethod> getProviders(AuthenticationType type) {
         return streamToPrioritizedList(providers.stream()
                 .filter(f-> f.getAuthenticationType().equals(type)));
     }
@@ -38,7 +38,7 @@ public class AuthenticationMethods {
                 .anyMatch(f-> f.getAuthenticationType() == authenticationType);
     }
 
-    private List<AuthenticationMethod> streamToPrioritizedList(Stream<AuthenticationMethod> stream) {
+    private List<? extends AuthenticationMethod> streamToPrioritizedList(Stream<? extends AuthenticationMethod> stream) {
         return stream.sorted(authPriorityComparer)
                 .toList();
     }

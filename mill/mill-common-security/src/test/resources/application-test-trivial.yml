@@ -14,11 +14,13 @@ mill:
   security:
     enable: true
     authentication:
-        password:
+        basic:
           file-store: classpath:userstore/passwd.yml
         oauth2-resource-server:
           jwt:
             jwk-set-uri: http://localhost:8989/default/jwks
+        entra-id-token:
+          enable: true
 
   services:
     grpc:

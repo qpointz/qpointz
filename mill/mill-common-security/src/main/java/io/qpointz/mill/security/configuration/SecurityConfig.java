@@ -5,8 +5,8 @@ import io.qpointz.mill.security.authentication.AuthenticationMethods;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -24,7 +24,7 @@ import io.qpointz.mill.security.annotations.ConditionalOnSecurity;
 import java.util.List;
 import java.util.Optional;
 
-@Configuration(proxyBeanMethods = false)
+@Configuration
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "mill.security")
 @EnableWebSecurity
@@ -35,8 +35,13 @@ public class SecurityConfig {
     @Setter
     private boolean enable;
 
+    public SecurityConfig() {
+        log.debug("Default security configuration initialized");
+    }
+
     @Bean
-    public AuthenticationMethods authenticationMethods(Optional<List<AuthenticationMethod>> providers) {
+    public AuthenticationMethods authenticationMethods(Optional<List<? extends AuthenticationMethod>> providers) {
+        log.debug("Build Authentication methods");
         return new AuthenticationMethods(providers.orElse(List.of()));
     }
 
@@ -58,8 +63,6 @@ public class SecurityConfig {
     }
 
 
-
-
     @Bean
     @ConditionalOnSecurity
     @Order
@@ -67,18 +70,22 @@ public class SecurityConfig {
     SecurityFilterChain secureAll(HttpSecurity http ,
                                   AuthenticationManager authenticationManager,
                                   AuthenticationMethods authenticationMethods) throws Exception {
+        log.debug("Security config. Secure all");
+        try {
+            http.authenticationManager(authenticationManager)
+                    .securityMatcher("/**")
+                    .authorizeHttpRequests(authHttp -> authHttp
+                            .anyRequest().authenticated()
+                    );
 
-        http.authenticationManager(authenticationManager)
-                .securityMatcher("/**")
-                .authorizeHttpRequests(authHttp ->  authHttp
-                    .anyRequest().authenticated()
-                );
+            for (var m : authenticationMethods.getProviders()) {
+                m.applyDefaultHttpSecurity(http);
+            }
 
-        for (var m: authenticationMethods.getProviders()) {
-            m.applyDefaultHttpSecurity(http);
+            return http.build();
+        } catch (Exception e) {
+            return null;
         }
-
-        return http.build();
     }
 
     @Bean

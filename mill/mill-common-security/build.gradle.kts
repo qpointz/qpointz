@@ -17,9 +17,11 @@ dependencies {
     implementation(libs.jackson.dataformat.yaml)
     implementation(libs.jackson.datatype.jsr310)
     implementation(libs.javax.annotation.api)
+    implementation(libs.boot.starter.web)
+    implementation(libs.okhttp)
+
     annotationProcessor(libs.lombok)
     annotationProcessor(libs.boot.configuration.processor)
-    implementation(libs.boot.starter.web)
 
     compileOnly(libs.lombok)
     runtimeOnly(libs.bundles.logging)
