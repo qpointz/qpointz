@@ -4,5 +4,10 @@
       "name": "mill.security.enable",
       "type": "java.lang.Boolean",
       "description": "Enables mill security."
-  }
+    },
+    {
+      "name": "mill.security.authentication.oauth2-resource-server.jwt",
+      "type": "org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties$Jwt",
+      "description": "OAuth2 resource server Jwt configuration"
+    }
 ] }

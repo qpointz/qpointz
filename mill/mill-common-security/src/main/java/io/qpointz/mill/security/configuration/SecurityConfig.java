@@ -2,11 +2,12 @@ package io.qpointz.mill.security.configuration;
 
 import io.qpointz.mill.security.authentication.AuthenticationMethod;
 import io.qpointz.mill.security.authentication.AuthenticationMethods;
-import io.qpointz.mill.security.authentication.AuthenticationType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +16,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -57,22 +57,27 @@ public class SecurityConfig {
         return new ProviderManager(providers);
     }
 
+
+
+
     @Bean
     @ConditionalOnSecurity
     @Order
+    @ConditionalOnMissingBean(name = "functionContextFlag") //TODO: hack to figure out if it running as function
     SecurityFilterChain secureAll(HttpSecurity http ,
                                   AuthenticationManager authenticationManager,
-                                  AuthenticationMethods authenticationMethods
-                                  ) throws Exception {
-        http.authenticationManager(authenticationManager)
-            .authorizeHttpRequests(authHttp ->  authHttp
-                .requestMatchers("/**").authenticated()
-            );
+                                  AuthenticationMethods authenticationMethods) throws Exception {
 
-        if (authenticationMethods.supportsAuthenticationType(AuthenticationType.PASSWORD)) {
-              http.formLogin(Customizer.withDefaults())
-                      .httpBasic(Customizer.withDefaults());
+        http.authenticationManager(authenticationManager)
+                .securityMatcher("/**")
+                .authorizeHttpRequests(authHttp ->  authHttp
+                    .anyRequest().authenticated()
+                );
+
+        for (var m: authenticationMethods.getProviders()) {
+            m.applyDefaultHttpSecurity(http);
         }
+
         return http.build();
     }
 

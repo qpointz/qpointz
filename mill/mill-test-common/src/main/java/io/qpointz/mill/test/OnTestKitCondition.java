@@ -9,6 +9,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -25,13 +26,16 @@ public class OnTestKitCondition implements Condition {
             return Map.of();
         }
 
-        return ((ConfigurableEnvironment)env).getPropertySources().stream()
+        val map = new HashMap<String, Object>();
+
+        ((ConfigurableEnvironment)env).getPropertySources().stream()
                 .filter(propertySource -> propertySource instanceof EnumerablePropertySource)
                 .map(propertySource -> ((EnumerablePropertySource)propertySource))
                 .flatMap(k-> Arrays.stream(k
                         .getPropertyNames())
                         .filter(name -> name.startsWith(prefix))
                         .map(z-> Map.entry(z, k.getProperty(z))))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .forEach(k-> map.put(k.getKey(), k.getValue()));
+        return map;
     }
 }

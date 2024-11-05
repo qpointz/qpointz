@@ -24,7 +24,7 @@ public class ApplicationDescriptorController {
     SecurityFilterChain allowAnonymousAccessToMetaService(HttpSecurity http) throws Exception {
         return http.securityMatcher("/.well-known/**")
                 .authorizeHttpRequests(a ->
-                        a.anyRequest().permitAll()
+                    a.anyRequest().permitAll()
                 ).build();
     }
 

@@ -6,9 +6,9 @@ public enum AuthenticationType {
 
     CUSTOM(0),
 
-    BEARER_TOKEN(100),
+    OAUTH2(100),
 
-    PASSWORD(200);
+    BASIC(300);
 
     @Getter
     private int value;

@@ -9,12 +9,14 @@ import io.qpointz.mill.vectors.VectorBlockIterator;
 import io.substrait.plan.Plan;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class ServiceHandler {
 
     @Getter
@@ -38,6 +40,7 @@ public class ServiceHandler {
     private class NoneSecurityProvider implements SecurityProvider {
         @Override
         public String getPrincipalName() {
+            log.warn("None Security Provider used");
             return "ANONYMOUS";
         }
     }

@@ -22,6 +22,7 @@ tasks.withType<Jar> {
 dependencies {
     implementation(libs.protobuf.java.util)
     implementation(project(":mill-starter-backends"))
+    implementation(project(":mill-common-security"))
     implementation(libs.calcite.core)
     implementation(libs.boot.starter)
     implementation(libs.spring.cloud.function.adapter.azure)

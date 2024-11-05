@@ -14,6 +14,7 @@ dependencies {
     api(project(":mill-common"))
     api(project(":mill-common-security"))
     api(project(":mill-common-service"))
+    api(project(":mill-starter-backends"))
     api(libs.boot.starter)
     api(libs.boot.starter.web)
     api(libs.boot.starter.test)
@@ -23,7 +24,7 @@ dependencies {
     api(libs.jackson.dataformat.yaml)
     api(libs.jackson.datatype.jsr310)
     api(libs.javax.annotation.api)
-
+    api("no.nav.security:mock-oauth2-server:2.1.10")
     api(libs.h2.database)
     compileOnly(libs.lombok)
 
