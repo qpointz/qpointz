@@ -2,7 +2,7 @@ package io.qpointz.mill.types.sql;
 
 public class JdbcDatabaseTypeMapper extends JdbcTypeMapper<DatabaseType> {
 
-    public static JdbcDatabaseTypeMapper DEFAULT = new JdbcDatabaseTypeMapper();
+    public static final JdbcDatabaseTypeMapper DEFAULT = new JdbcDatabaseTypeMapper();
 
     @Override
     protected DatabaseType mapBoolean(JdbcTypeInfo jdbcTypeInfo) {

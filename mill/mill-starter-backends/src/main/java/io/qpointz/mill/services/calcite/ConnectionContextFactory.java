@@ -21,7 +21,7 @@ public class ConnectionContextFactory implements CalciteContextFactory {
 
         public ConnectionContext(Properties connectionProperties) throws SQLException, ClassNotFoundException {
             Class.forName("org.apache.calcite.jdbc.Driver");
-            this.calciteConnection = DriverManager
+            this.calciteConnection = DriverManager //NOSONAR try resourcer can't be use as wrapping class must close reference
                     .getConnection("jdbc:calcite:", connectionProperties)
                     .unwrap(CalciteConnection.class);
         }

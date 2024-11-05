@@ -6,7 +6,7 @@ public abstract class VectorColumnReader extends ColumnReader {
 
     private final Vector vector;
 
-    public VectorColumnReader(Vector vector) {
+    protected VectorColumnReader(Vector vector) {
         this.vector = vector;
     }
 

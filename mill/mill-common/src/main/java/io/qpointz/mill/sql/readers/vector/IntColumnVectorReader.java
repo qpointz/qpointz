@@ -1,7 +1,6 @@
 package io.qpointz.mill.sql.readers.vector;
 
 import io.qpointz.mill.proto.Vector;
-import io.qpointz.mill.sql.ColumnReader;
 import io.qpointz.mill.sql.VectorColumnReader;
 
 public class IntColumnVectorReader extends VectorColumnReader {
@@ -25,6 +24,6 @@ public class IntColumnVectorReader extends VectorColumnReader {
 
     @Override
     public long getLong(int rowIdx) {
-        return (long) this.getInt(rowIdx);
+        return this.getInt(rowIdx);
     }
 }

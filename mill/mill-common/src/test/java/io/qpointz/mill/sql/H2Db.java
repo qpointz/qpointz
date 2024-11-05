@@ -43,7 +43,6 @@ public class H2Db implements java.io.Closeable {
     public static H2Db create(String schemaName, Reader scriptReader) throws ClassNotFoundException {
         final var driverName = "org.h2.Driver";
         Class.forName(driverName);
-        //Class.forName("org.apache.calcite.jdbc.Driver");
         final var url = String.format("jdbc:h2:mem:%s;DB_CLOSE_DELAY=-1", schemaName);
         final var username = "test";
         final var password = "test";

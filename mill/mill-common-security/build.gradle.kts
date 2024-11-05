@@ -17,6 +17,9 @@ dependencies {
     implementation(libs.jackson.dataformat.yaml)
     implementation(libs.jackson.datatype.jsr310)
     implementation(libs.javax.annotation.api)
+    implementation(libs.boot.starter.web)
+    implementation(libs.okhttp)
+
     annotationProcessor(libs.lombok)
     annotationProcessor(libs.boot.configuration.processor)
 
@@ -39,6 +42,9 @@ testing {
 
                 dependencies {
                     implementation(project())
+                    implementation(project(":mill-test-common"))
+                    implementation(libs.boot.starter.test)
+
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.h2.database)

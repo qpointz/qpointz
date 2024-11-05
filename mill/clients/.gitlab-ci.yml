@@ -153,8 +153,8 @@ mill:jdbc-driver:test:
         coverage_format: jacoco
         path: ${CI_PROJECT_DIR}/mill/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml
     paths:
-      - ${CI_PROJECT_DIR}/mill/**/build/test-results/*/*.xml
-      - ${CI_PROJECT_DIR}/mill/**/build/test-results/*/*.xml
+      - ${CI_PROJECT_DIR}/mill/**/build/test-results/**/*.xml
+      - ${CI_PROJECT_DIR}/mill/**/build/test-results/**/*.xml
 
 mill-clients:install-dist:
   stage: build

@@ -1,6 +1,5 @@
 package io.qpointz.mill.types.logical;
 
-import io.qpointz.mill.proto.DataType;
 import io.qpointz.mill.proto.LogicalDataType;
 import io.qpointz.mill.types.physical.StringPhysical;
 

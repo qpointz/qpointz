@@ -10,5 +10,5 @@ mill:
   security:
     enable: false
     authentication:
-      password:
+      basic:
         file-store: file:./mill-backend-core/src/test/config/passwd.yml

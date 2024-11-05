@@ -47,7 +47,7 @@ public class ObjectToVectorProducer<T> {
     }
 
     public static <T,F> MapperInfo<T,F> mapper(String name, LogicalType<F,?> type, Function<T, Optional<F>> mapper) {
-        return new MapperInfo<T,F>(name,type,mapper);
+        return new MapperInfo<>(name,type,mapper);
     }
 
     public static <K> ResultSet resultSet(List<MapperInfo<K,?>> mappers, Collection<K> objects) throws SQLException {

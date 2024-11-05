@@ -25,7 +25,7 @@ class MillGrpcServiceRewriteTest extends MillGrpcServiceBaseTest {
 
 
     @Test
-    @Disabled
+    @Disabled("Irrelevant test. Subject to review")
     void execPlanTest(@Autowired MillServiceGrpc.MillServiceBlockingStub stub,
                       @Autowired ExecutionProvider execProvider,
                       @Autowired PlanRewriteChain chain) throws ClassNotFoundException {
@@ -38,10 +38,10 @@ class MillGrpcServiceRewriteTest extends MillGrpcServiceBaseTest {
         when(chain.getRewriters()).thenReturn(List.of(rewriter));
         when(rewriter.rewritePlan(any())).thenReturn(ImmutablePlan.builder().build());
 
-        val res = stub
-                .execQuery(QueryRequest.newBuilder()
-                        .setPlan(io.substrait.proto.Plan.newBuilder().build())
-                        .build());
+        stub
+          .execQuery(QueryRequest.newBuilder()
+                  .setPlan(io.substrait.proto.Plan.newBuilder().build())
+                  .build());
 
         verify(chain).getRewriters();
     }

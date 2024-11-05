@@ -5,7 +5,7 @@ import java.time.LocalDate;
 
 public class SqlDateToEpochDayConverter implements ValueConverter<Date, Long> {
 
-    public static SqlDateToEpochDayConverter DEFAULT = new SqlDateToEpochDayConverter();
+    public static final SqlDateToEpochDayConverter DEFAULT = new SqlDateToEpochDayConverter();
 
     @Override
     public Long to(Date value) {

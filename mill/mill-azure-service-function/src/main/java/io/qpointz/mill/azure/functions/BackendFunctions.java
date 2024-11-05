@@ -1,8 +1,10 @@
 package io.qpointz.mill.azure.functions;
 
 import io.qpointz.mill.proto.*;
+import io.qpointz.mill.security.configuration.SecurityConfig;
 import io.qpointz.mill.services.ServiceHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 

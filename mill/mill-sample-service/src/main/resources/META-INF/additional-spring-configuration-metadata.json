@@ -1,0 +1,13 @@
+{
+  "properties": [
+    {
+      "name": "mill.services.sample.enable",
+      "type": "java.lang.Boolean",
+      "description": "Enable sample service."
+  },
+    {
+      "name": "mill.services.sample.captions",
+      "type": "java.lang.String[]",
+      "description": "Captions list"
+    }
+] }

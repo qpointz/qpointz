@@ -1,0 +1,12 @@
+spring:
+  config:
+    activate:
+      on-profile: local-jdbc
+
+mill:
+  name: look
+  services:
+    sample:
+      enable: true
+      captions:
+        - bo

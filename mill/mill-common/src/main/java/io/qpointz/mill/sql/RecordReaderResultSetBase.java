@@ -16,7 +16,7 @@ public abstract class RecordReaderResultSetBase implements ResultSet {
 
     private final RecordReader reader;
 
-    public RecordReaderResultSetBase(RecordReader reader) throws SQLException  {
+    protected RecordReaderResultSetBase(RecordReader reader) {
         this.reader = reader;
     }
 
@@ -259,7 +259,7 @@ public abstract class RecordReaderResultSetBase implements ResultSet {
         return this.getColumnIndex(columnLabel)+1;
     }
 
-    public int getColumnIndex(String columnLabel) throws SQLException {
+    public int getColumnIndex(String columnLabel) {
         return this.reader.getColumnIndex(columnLabel);
     }
 

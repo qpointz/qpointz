@@ -27,7 +27,7 @@ public final class UUIDLogical implements LogicalType<byte[], BytesPhysical> {
         return LogicalDataType.LogicalDataTypeId.UUID;
     }
 
-    public static BinaryToUUIDConverter DEFAULT_CONVERTER = new BinaryToUUIDConverter();
+    public static final BinaryToUUIDConverter DEFAULT_CONVERTER = new BinaryToUUIDConverter();
 
     public static byte[] toPhysical(UUID uuid) {
         return DEFAULT_CONVERTER.to(uuid);

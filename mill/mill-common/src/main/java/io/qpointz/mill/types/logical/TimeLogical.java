@@ -1,6 +1,5 @@
 package io.qpointz.mill.types.logical;
 
-import io.qpointz.mill.proto.DataType;
 import io.qpointz.mill.proto.LogicalDataType;
 import io.qpointz.mill.types.conversion.LocalTimeToNanoConverter;
 import io.qpointz.mill.types.physical.I64Physical;
@@ -31,7 +30,7 @@ public final class TimeLogical implements LogicalType<Long, I64Physical> {
         return LogicalDataType.LogicalDataTypeId.TIME;
     }
 
-    public static LocalTimeToNanoConverter DEFAULT_CONVERTER = new LocalTimeToNanoConverter();
+    public static final LocalTimeToNanoConverter DEFAULT_CONVERTER = new LocalTimeToNanoConverter();
 
     public static Long toPhysical(LocalTime of) {
 

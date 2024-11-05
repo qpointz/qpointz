@@ -1,0 +1,69 @@
+grpc:
+  server:
+    port: ${mill.services.grpc.port}
+    address: ${mill.services.grpc.address}
+
+mill:
+  services:
+    meta:
+      enable: true
+    grpc:
+      port: 9099
+      enable: true
+      address: '*'
+
+logging:
+  level:
+    root: info
+
+spring:
+  config:
+    import: classpath:application-defaults.yml
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local-jdbc
+
+mill:
+  backend:
+    provider: jdbc
+    connection:
+      quoting: BACK_TICK
+      caseSensitive: true
+      unquotedCasing: UNCHANGED
+    jdbc:
+      url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM './test/datasets/users/sql/users.sql'"
+      driver: "org.h2.Driver"
+      username: "*"
+      password: "*"
+      target-schema: "ts"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local-calcite
+
+mill:
+  backend:
+    provider: calcite
+    connection:
+      model: ../etc/data/datasets/airlines/model-csv.yaml
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local-auth
+
+mill:
+  security:
+    enable: true
+    authentication:
+      basic:
+        file-store: file:./mill-service/config/sample/passwd.yaml
+      oauth2-resource-server:
+        jwt:
+          jwk-set-uri: http://localhost:8989/default/jwks

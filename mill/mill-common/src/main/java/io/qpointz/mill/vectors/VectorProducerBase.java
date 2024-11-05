@@ -27,7 +27,7 @@ public abstract class VectorProducerBase<T,B> implements VectorProducer<T> {
     protected abstract void buildBy(Vector.Builder vectorBuilder, B builder);
 
     @Override
-    public void append(T value, Boolean isNull) {
+    public void append(T value, boolean isNull) {
         this.append(this.builder, isNull ? this.getNullValue() : value, isNull);
     }
 

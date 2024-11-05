@@ -54,9 +54,9 @@ mill:unit-tests:
         coverage_format: jacoco
         path: ${CI_PROJECT_DIR}/mill/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml
     paths:
-      - ${CI_PROJECT_DIR}/mill/**/build/test-results/*/*.xml
-      - ${CI_PROJECT_DIR}/mill/**/build/test-results/*/*.xml
-      - ${CI_PROJECT_DIR}/mill/**/build/reports/jacoco/**/*
+      - ${CI_PROJECT_DIR}/mill/**/build/test-results/**/*.xml
+      - ${CI_PROJECT_DIR}/mill/**/build/test-results/**/*.xml
+      - ${CI_PROJECT_DIR}/mill/**/reports/jacoco/**/*.xml
 
 mill:install-dist:
   extends: .gradle-job
@@ -178,6 +178,8 @@ sonarqube-check:
   allow_failure: true
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      when: always
     - if: $CI_COMMIT_REF_NAME =~ /quality/
       when: always
     - when: never

@@ -4,7 +4,7 @@ import io.qpointz.mill.types.physical.*;
 
 public class VectorProducerFactory implements PhysicalTypeShuttle<VectorProducer<?>> {
 
-    public static VectorProducerFactory DEFAULT = new VectorProducerFactory();
+    public static final VectorProducerFactory DEFAULT = new VectorProducerFactory();
 
     @Override
     public VectorProducer<byte[]> visit(BytesPhysical binaryType) {

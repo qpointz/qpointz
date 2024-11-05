@@ -11,14 +11,9 @@ mill {
 }
 
 dependencies {
-    api(project(":mill-common-service"))
-    api(project(":mill-common-security"))
-    api(libs.boot.starter)
-    api(libs.boot.starter.web)
     implementation(project(":mill-starter-backends"))
-    implementation(libs.boot.starter.security)
-    implementation(libs.jackson.dataformat.yaml)
-    implementation(libs.jackson.datatype.jsr310)
+    implementation(project(":mill-starter-services"))
+
     compileOnly(libs.bundles.logging)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)

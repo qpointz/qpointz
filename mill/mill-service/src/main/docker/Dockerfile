@@ -46,6 +46,4 @@ WORKDIR /app
 
 ENTRYPOINT ["./bin/mill-service"]
 
-CMD [""]
-
 

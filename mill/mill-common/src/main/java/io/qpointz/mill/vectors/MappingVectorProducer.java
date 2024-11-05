@@ -3,6 +3,7 @@ package io.qpointz.mill.vectors;
 import io.qpointz.mill.proto.Vector;
 
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public abstract class MappingVectorProducer<F,T> implements VectorProducer<F> {
 
@@ -16,7 +17,7 @@ public abstract class MappingVectorProducer<F,T> implements VectorProducer<F> {
 
         private final VectorProducer<T> delegateTo  ;
 
-        public DelegatingMappingVectorProducer(VectorProducer<T> delegateTo) {
+        protected DelegatingMappingVectorProducer(VectorProducer<T> delegateTo) {
             this.delegateTo = delegateTo;
         }
 
@@ -26,7 +27,7 @@ public abstract class MappingVectorProducer<F,T> implements VectorProducer<F> {
         }
 
         @Override
-        public void append(F value, Boolean isNull) {
+        public void append(F value, boolean isNull) {
             this.delegateTo.append(this.mapValue(value), isNull);
         }
 
@@ -43,7 +44,7 @@ public abstract class MappingVectorProducer<F,T> implements VectorProducer<F> {
     }
 
     public static <K,L> MappingVectorProducer<K,L> createProducer(VectorProducer<L> producer,
-                                                                  Function<K,L> mapFunc, Function<K, Boolean> isNullFunc ) {
+                                                                  Function<K,L> mapFunc, Predicate<K> isNullFunc ) {
         return new DelegatingMappingVectorProducer<K,L>(producer) {
 
             @Override
@@ -53,7 +54,7 @@ public abstract class MappingVectorProducer<F,T> implements VectorProducer<F> {
 
             @Override
             protected boolean isNull(K from) {
-                return isNullFunc.apply(from);
+                return isNullFunc.test(from);
             }
         };
     }

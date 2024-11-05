@@ -52,6 +52,7 @@ dependencies {
     implementation(project(":mill-starter-services"))
     implementation(project(":mill-sample-service"))
     implementation(project(":mill-starter-backends"))
+    implementation(libs.boot.starter.actuator)
 
     runtimeOnly(libs.bundles.logging)
     runtimeOnly(libs.bundles.jdbc.pack)

@@ -3,6 +3,7 @@ package io.qpointz.mill.services;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import io.qpointz.mill.proto.*;
+import io.qpointz.mill.services.annotations.ConditionalOnService;
 import io.qpointz.mill.services.utils.SubstraitUtils;
 import io.qpointz.mill.vectors.VectorBlockIterator;
 import lombok.AccessLevel;
@@ -21,6 +22,7 @@ import java.util.function.Supplier;
 @Slf4j
 @GrpcService
 @SpringBootApplication
+@ConditionalOnService("grpc")
 public class MillGrpcService extends MillServiceGrpc.MillServiceImplBase {
 
     @Bean

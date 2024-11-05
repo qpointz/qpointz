@@ -4,7 +4,7 @@ import io.substrait.proto.Type;
 
 public class JdbcToSubstraitTypeMapper extends JdbcTypeMapper<io.substrait.proto.Type> {
 
-    public static JdbcToSubstraitTypeMapper DEFAULT = new JdbcToSubstraitTypeMapper();
+    public static final JdbcToSubstraitTypeMapper DEFAULT = new JdbcToSubstraitTypeMapper();
 
     private Type.Nullability getNullability(JdbcTypeInfo jdbcTypeInfo) {
         return jdbcTypeInfo.nullable() ? Type.Nullability.NULLABILITY_NULLABLE

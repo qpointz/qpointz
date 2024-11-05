@@ -12,7 +12,14 @@ mill {
 
 dependencies {
     api(project(":mill-common-service"))
-    implementation(libs.boot.starter.web)
+    api(project(":mill-common-security"))
+
+    api(libs.boot.starter)
+    api(libs.boot.starter.web)
+    api(libs.boot.starter.security)
+    api(libs.jackson.dataformat.yaml)
+    api(libs.jackson.datatype.jsr310)
+
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 }
@@ -29,6 +36,8 @@ testing {
 
                 dependencies {
                     implementation(project())
+                    implementation(project(":mill-starter-backends"))
+                    implementation(libs.spring.security.test)
                     implementation(libs.boot.starter.test)
                     implementation(libs.boot.starter.web)
                     implementation(libs.mockito.core)

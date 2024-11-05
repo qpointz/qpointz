@@ -5,6 +5,7 @@ import io.qpointz.mill.MillConnection;
 import io.qpointz.mill.metadata.ResultSetProvidingMetadata;
 import io.qpointz.mill.proto.GetSchemaRequest;
 import io.qpointz.mill.proto.ListSchemasRequest;
+import io.qpointz.mill.proto.Table;
 import io.qpointz.mill.types.logical.StringLogical;
 import io.qpointz.mill.vectors.ObjectToVectorProducer;
 import lombok.AllArgsConstructor;
@@ -121,15 +122,9 @@ public class TablesMetadata extends ResultSetProvidingMetadata<TablesMetadata.Ta
                             .build())
                     .getSchema();
             for (val table: schema.getTablesList()) {
-                var tableType = "TABLE";
-                switch (table.getTableType()) {
-                    case VIEW:
-                        tableType = "VIEW";
-                        break;
-                    case TABLE, NOT_SPECIFIED_TABLE_TYPE, UNRECOGNIZED:
-                        tableType = "TABLE";
-                        break;
-                }
+                var tableType = table.getTableType() == Table.TableTypeId.VIEW
+                        ? "VIEW"
+                        : "TABLE";
                 val tableRecord = new TableRecord(null, schemaName, table.getName(), tableType, "");
                 allTables.add(tableRecord);
             }

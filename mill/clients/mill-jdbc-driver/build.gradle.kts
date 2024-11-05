@@ -51,7 +51,7 @@ testing {
                     implementation(libs.lombok)
                     implementation(libs.h2.database)
                     compileOnly(libs.lombok)
-                    runtimeOnly("io.opencensus:opencensus-impl:0.31.1")
+                    runtimeOnly(libs.opencensus.impl)
                     runtimeOnly(libs.grpc.census)
                     runtimeOnly(libs.grpc.context)
                     runtimeOnly(libs.grpc.all)

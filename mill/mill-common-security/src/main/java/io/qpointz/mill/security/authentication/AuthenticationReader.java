@@ -5,6 +5,6 @@ import org.springframework.security.core.AuthenticationException;
 
 public interface AuthenticationReader {
 
-    Authentication readAuthentication(AuthenticationContext context) throws AuthenticationException;
+    Authentication readAuthentication() throws AuthenticationException;
 
 }

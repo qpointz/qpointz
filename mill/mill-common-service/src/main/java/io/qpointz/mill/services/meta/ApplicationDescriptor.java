@@ -2,7 +2,9 @@ package io.qpointz.mill.services.meta;
 
 import io.qpointz.mill.security.authentication.AuthenticationMethods;
 import io.qpointz.mill.security.authentication.AuthenticationType;
+import io.qpointz.mill.security.configuration.SecurityConfig;
 import io.qpointz.mill.services.MetadataProvider;
+import io.qpointz.mill.services.SecurityContextSecurityProvider;
 import lombok.Data;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +24,7 @@ public class ApplicationDescriptor {
 
     @Bean
     public static SecurityDescriptor securityDescriptor(
-            @Value("${mill.security.enable:false}") Boolean enabled,
+            @Value("${mill.security.enable:false}") Boolean enabled, //TODO: replace with conditional injection
             @Autowired(required = false) Optional<AuthenticationMethods> authMethods
     ) {
         Collection<AuthenticationType> authTypes = authMethods.isPresent()

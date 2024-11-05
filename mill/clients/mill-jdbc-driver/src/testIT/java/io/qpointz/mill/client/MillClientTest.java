@@ -27,6 +27,7 @@ class MillClientTest extends BaseTest {
 
     void connectAndTest(String tag, MillClient client, Function<String, Boolean> principalEval) throws MillCodeException {
         try {
+            log.info("Test:{}", tag);
             val resp = client.handshake(HandshakeRequest.newBuilder().build());
             assertNotNull(resp);
             val name = resp.getAuthentication().getName();

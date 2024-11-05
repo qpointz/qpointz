@@ -5,9 +5,7 @@ import io.qpointz.mill.vectors.VectorProducerBase;
 
 public final class I64Physical implements PhysicalType<Long> {
 
-    public I64Physical() {}
-
-    public static I64Physical INSTANCE = new I64Physical();
+    public static final I64Physical INSTANCE = new I64Physical();
 
     @Override
     public <T> T accept(PhysicalTypeShuttle<T> shuttle) {

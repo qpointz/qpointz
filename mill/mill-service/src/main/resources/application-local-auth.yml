@@ -1,7 +1,0 @@
-mill:
-  security:
-    authentication:
-      password:
-        file-store: file:./config/sample/passwd.yaml
-    enable: true
-
