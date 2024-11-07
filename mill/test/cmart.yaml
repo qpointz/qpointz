@@ -1,0 +1,154 @@
+experiments:
+  write_csv:
+    type : csv
+    path : "./datasets/cmart/csv/{dataset-name}.csv"
+    params:
+      header: true
+      index: false
+  write_sql:
+    type: sql
+    path: "./datasets/cmart/sql/cmart.sql"
+  write_model:
+    type: ermodel
+    path: "./datasets/cmart/cmart.puml"
+models:
+  - name : cmart
+    locales: ['en-US']
+    schemas:    
+      - name: client
+        rows: 100
+        attributes:
+          - name: client_id
+            type: random_int
+            params:
+              min: 1000000
+              max: 9999999
+          - name: first_name
+            type: first_name
+          - name: last_name
+            type: last_name
+          - name: is_pep
+            type: random_element
+            params:
+              elements: ['Y', 'N']
+          - name: domicile_region
+            type: random_element
+            params:
+              elements: [ 'EMEA', 'APAC', 'AM' ]
+          - name: domicile_country
+            type: country_code            
+          - name: client_segment
+            type: random_element
+            params:
+              elements: [ 'REGULAR', 'WEALTH', 'ULTRA']
+      - name: account
+        rows: 250
+        attributes:
+          - name: account_id
+            type: random_int
+            params:
+              min: 1000000
+              max: 9999999
+          - name: account_region
+            type: random_element
+            params:
+              elements: [ 'EMEA', 'APAC', 'AM' ]
+          - name: client_id
+            type: "${ref}"
+            params:
+              dataset: client
+              attribute: client_id
+              cord: '1-*'
+          - name: booking_region
+            type: random_element
+            params:
+              elements: [ 'EMEA', 'APAC', 'AM' ]
+          - name: booking_country
+            type: country_code
+      - name: account_transaction
+        rows: 500
+        attributes:
+          - name: account_1
+            type: "${ref}"
+            params:
+              dataset: account
+              attribute: account_id
+          - name: account_2
+            type: "${ref}"
+            params:
+              dataset: account
+              attribute: account_id
+          - name: amount
+            type: random_double
+          - name: transaction_date
+            type: date_this_decade
+      - name: ticker
+        rows: 50 
+        attributes:
+          - name: ticker_id
+            type: random_int
+            params:
+              min: 1000000
+              max: 9999999
+          - name: ticker
+            type: ticker
+          - name: market_sector
+            type: marketType
+          - name: market_region
+            type: random_element
+            params:
+              elements: [ 'EMEA', 'APAC', 'AM' ] 
+      - name: portfolio
+        rows: 200
+        attributes:
+          - name: portfolio_id
+            type: random_int
+            params:
+              min: 1000000
+              max: 9999999
+          - name: client_id
+            type: "${ref}"
+            params:
+              dataset: client
+              attribute: client_id
+              cord: '1-*'
+          - name: portfolio_name
+            type: lexify
+            params:
+              text: "???????"
+              letters: "ABCDEFGHJALDJHHSGDZ"
+      - name: portfolio_transaction
+        rows: 200
+        attributes:
+          - name: portfolio_transaction_id
+            type: random_int
+            params:
+              min: 1000000
+              max: 9999999
+          - name: portfolio_id
+            type: "${ref}"
+            params:
+              dataset: portfolio
+              attribute: portfolio_id
+              cord: '1-*'
+          - name: ticker_id
+            type: "${ref}"
+            params:
+              dataset: ticker
+              attribute: ticker_id
+              cord: '1-*'          
+          - name: buy_sell
+            type: random_element
+            params:
+              elements: ['B', 'S']
+          - name: transaction_date
+            type: date_this_year            
+          - name: notional
+            type: random_int
+          - name: price
+            type: random_double
+      
+          
+
+
+            

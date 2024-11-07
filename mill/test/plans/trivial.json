@@ -1,0 +1,138 @@
+{
+  "relations": [{
+    "root": {
+      "input": {
+        "project": {
+          "common": {
+            "emit": {
+              "outputMapping": [7, 8, 9, 10, 11, 12, 13]
+            }
+          },
+          "input": {
+            "read": {
+              "common": {
+                "direct": {
+                }
+              },
+              "baseSchema": {
+                "names": ["CLIENT_ID", "FIRST_NAME", "LAST_NAME", "IS_PEP", "DOMICILE_REGION", "DOMICILE_COUNTRY", "CLIENT_SEGMENT"],
+                "struct": {
+                  "types": [{
+                    "i32": {
+                      "nullability": "NULLABILITY_REQUIRED"
+                    }
+                  }, {
+                    "varchar": {
+                      "length": 65536,
+                      "nullability": "NULLABILITY_REQUIRED"
+                    }
+                  }, {
+                    "varchar": {
+                      "length": 65536,
+                      "nullability": "NULLABILITY_REQUIRED"
+                    }
+                  }, {
+                    "varchar": {
+                      "length": 65536,
+                      "nullability": "NULLABILITY_REQUIRED"
+                    }
+                  }, {
+                    "varchar": {
+                      "length": 65536,
+                      "nullability": "NULLABILITY_REQUIRED"
+                    }
+                  }, {
+                    "varchar": {
+                      "length": 65536,
+                      "nullability": "NULLABILITY_REQUIRED"
+                    }
+                  }, {
+                    "varchar": {
+                      "length": 65536,
+                      "nullability": "NULLABILITY_REQUIRED"
+                    }
+                  }],
+                  "nullability": "NULLABILITY_REQUIRED"
+                }
+              },
+              "namedTable": {
+                "names": ["cmart", "CLIENT"]
+              }
+            }
+          },
+          "expressions": [{
+            "selection": {
+              "directReference": {
+                "structField": {
+                }
+              },
+              "rootReference": {
+              }
+            }
+          }, {
+            "selection": {
+              "directReference": {
+                "structField": {
+                  "field": 1
+                }
+              },
+              "rootReference": {
+              }
+            }
+          }, {
+            "selection": {
+              "directReference": {
+                "structField": {
+                  "field": 2
+                }
+              },
+              "rootReference": {
+              }
+            }
+          }, {
+            "selection": {
+              "directReference": {
+                "structField": {
+                  "field": 3
+                }
+              },
+              "rootReference": {
+              }
+            }
+          }, {
+            "selection": {
+              "directReference": {
+                "structField": {
+                  "field": 4
+                }
+              },
+              "rootReference": {
+              }
+            }
+          }, {
+            "selection": {
+              "directReference": {
+                "structField": {
+                  "field": 5
+                }
+              },
+              "rootReference": {
+              }
+            }
+          }, {
+            "selection": {
+              "directReference": {
+                "structField": {
+                  "field": 6
+                }
+              },
+              "rootReference": {
+              }
+            }
+          }]
+        }
+      },
+      "names": ["CLIENT_ID", "FIRST_NAME", "LAST_NAME", "IS_PEP", "DOMICILE_REGION", "DOMICILE_COUNTRY", "CLIENT_SEGMENT"]
+    }
+  }]
+}

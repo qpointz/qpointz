@@ -65,5 +65,13 @@ class MillPlugin: Plugin<Project> {
         compileOnly!!.extendsFrom(annotProcessors!!)
 
         project.rootProject.dependencies.add("jacocoAggregation", project)
+
+        project.tasks.findByName("clean")?.apply {
+            //delete vscode bin folders
+            doLast {
+                project.file("bin").deleteRecursively()
+            }
+        }
+
     }
 }

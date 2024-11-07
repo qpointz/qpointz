@@ -25,7 +25,7 @@ class CalciteMetadataProviderTest extends BaseTest {
     void testListSchemas() {
         val mp = new CalciteMetadataProvider(this.ctxFactory, this.extensionCollector);
         val schemas = mp.getSchemaNames();
-        assertEquals(Set.of("airlines", "metadata", "testdb"), schemas);
+        assertEquals(Set.of("airlines", "metadata", "testdb", "cmart"), schemas);
     }
 
     @Test

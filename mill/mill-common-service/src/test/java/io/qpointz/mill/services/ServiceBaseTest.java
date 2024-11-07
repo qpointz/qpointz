@@ -3,13 +3,15 @@ package io.qpointz.mill.services;
 import io.qpointz.mill.proto.ParseSqlRequest;
 import io.qpointz.mill.proto.QueryRequest;
 import io.qpointz.mill.proto.SQLStatement;
+import io.qpointz.mill.services.configuration.BackendConfiguration;
+import io.qpointz.mill.services.configuration.DefaultServiceConfiguration;
+import io.qpointz.mill.services.configuration.ServiceBaseTestConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -19,7 +21,7 @@ import static org.mockito.Mockito.reset;
 @Slf4j
 @SpringBootTest()
 @ActiveProfiles("test")
-@ContextConfiguration(classes = {ServiceBaseTestConfiguration.class})
+@ContextConfiguration(classes = {ServiceBaseTestConfiguration.class, BackendConfiguration.class, DefaultServiceConfiguration.class})
 public abstract class ServiceBaseTest {
 
 

@@ -1,7 +1,7 @@
 package io.qpointz.mill.services.sample.configuration;
 
 
-import io.qpointz.mill.services.meta.ServiceDescriptor;
+import io.qpointz.mill.services.descriptors.ServiceDescriptor;
 import lombok.Getter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

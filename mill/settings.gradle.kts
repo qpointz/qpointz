@@ -43,7 +43,7 @@ dependencyResolutionManagement {
             val lombok = version("lombok", "1.18.34")
             library("lombok", "org.projectlombok", "lombok").versionRef(lombok)
 
-            val springBootV = version("boot", "3.3.3")
+            val springBootV = version("boot", "3.3.5")
             val springBootG = "org.springframework.boot"
             plugin("spring-dependency-management","io.spring.dependency-management").version("1.1.6")
             plugin("spring-boot-plugin", "org.springframework.boot").versionRef(springBootV)
@@ -82,14 +82,14 @@ dependencyResolutionManagement {
             library("calcite-file", "org.apache.calcite", "calcite-file").versionRef("calcite")
             library("calcite-csv", "org.apache.calcite", "calcite-csv").versionRef(calcite)
 
-            val junit = version("junit", "5.11.2")
+            val junit = version("junit", "5.11.3")
             library("junit-jupiter-api", "org.junit.jupiter", "junit-jupiter-api").versionRef(junit)
             library("junit-jupiter-engine", "org.junit.jupiter", "junit-jupiter-engine").versionRef(junit)
             library("junit-vintage-engine", "org.junit.vintage", "junit-vintage-engine").versionRef(junit)
 
             library("slf4j-api", "org.slf4j", "slf4j-api").version("2.0.16")
-            library("logback-core", "ch.qos.logback", "logback-core").version("1.5.11")
-            library("logback-classic", "ch.qos.logback", "logback-classic").version("1.5.11")
+            library("logback-core", "ch.qos.logback", "logback-core").version("1.5.12")
+            library("logback-classic", "ch.qos.logback", "logback-classic").version("1.5.12")
             library("fusesource-jansi","org.fusesource.jansi", "jansi").version("2.4.1")
             bundle("logging", listOf(
                     "slf4j-api",
@@ -107,7 +107,7 @@ dependencyResolutionManagement {
             library("protobuf-protoc", "com.google.protobuf", "protoc").versionRef(protobuf)
             library("protobuf-java-util", "com.google.protobuf", "protobuf-java-util").versionRef(protobuf)
 
-            val grpc = version("grpc", "1.68.0")
+            val grpc = version("grpc", "1.68.1")
             library("grpc-protobuf","io.grpc","grpc-protobuf").versionRef(grpc)
             library("grpc-stub","io.grpc","grpc-stub").versionRef(grpc)
             library("grpc-api","io.grpc","grpc-api").versionRef(grpc)
@@ -129,7 +129,7 @@ dependencyResolutionManagement {
             val apacheCommons = version("apacheCommons", "3.14.0")
             library("apache-commons-lang3","org.apache.commons", "commons-lang3").versionRef(apacheCommons)
 
-            val substrait = version("substrait", "0.36.0")
+            val substrait = version("substrait", "0.45.0")
             library("substrait-core", "io.substrait", "core").versionRef(substrait)
             library("substrait-isthmus", "io.substrait", "isthmus").versionRef(substrait)
 
@@ -140,10 +140,10 @@ dependencyResolutionManagement {
             val jakartaServletApi = version("jakartaServletApi", "6.1.0")
             library("jakarta-servlet-api", "jakarta.servlet", "jakarta.servlet-api").versionRef(jakartaServletApi)
 
-            val googleApiGrpc = version("googleApiGrpc", "2.44.0")
+            val googleApiGrpc = version("googleApiGrpc", "2.48.0")
             library("googleapigrpc-proto-common-protos", "com.google.api.grpc", "proto-google-common-protos").versionRef(googleApiGrpc)
 
-            val jackson = version("jackson", "2.18.0")
+            val jackson = version("jackson", "2.18.1")
             library("jackson-core", "com.fasterxml.jackson.core", "jackson-core").versionRef(jackson)
             library("jackson-dataformat-yaml", "com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml").versionRef(jackson)
             library("jackson-datatype-jsr310", "com.fasterxml.jackson.datatype","jackson-datatype-jsr310").versionRef(jackson)
@@ -161,13 +161,13 @@ dependencyResolutionManagement {
             library("sqlline", "sqlline", "sqlline").versionRef(sqlline)
 
             library("drivers-postgressql","org.postgresql","postgresql").version("42.7.4")
-            library("drivers-sqllite", "org.xerial","sqlite-jdbc").version("3.46.1.3")
-            library("drivers-mariadb", "org.mariadb.jdbc","mariadb-java-client").version("3.4.1")
+            library("drivers-sqllite", "org.xerial","sqlite-jdbc").version("3.47.0.0")
+            library("drivers-mariadb", "org.mariadb.jdbc","mariadb-java-client").version("3.5.0")
             library("drivers-oracle","com.oracle","ojdbc14").version("10.2.0.4.0")
-            library("drivers-trino", "io.trino","trino-jdbc").version("462")
-            library("drivers-duckdb", "org.duckdb","duckdb_jdbc").version("1.1.2")
-            library("drivers-snowflake","net.snowflake", "snowflake-jdbc").version("3.19.0")
-            library("drivers-clickhouse","com.clickhouse", "clickhouse-jdbc").version("0.6.5")
+            library("drivers-trino", "io.trino","trino-jdbc").version("464")
+            library("drivers-duckdb", "org.duckdb","duckdb_jdbc").version("1.1.3")
+            library("drivers-snowflake","net.snowflake", "snowflake-jdbc").version("3.20.0")
+            library("drivers-clickhouse","com.clickhouse", "clickhouse-jdbc").version("0.7.1")
 
 
             bundle("jdbc-pack", listOf(

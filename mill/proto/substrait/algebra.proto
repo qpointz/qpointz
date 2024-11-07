@@ -37,6 +37,14 @@ message RelCommon {
   message Hint {
     Stats stats = 1;
     RuntimeConstraint constraint = 2;
+
+    // Name (alias) for this relation. Can be used for e.g. qualifying the relation (see e.g.
+    // Spark's SubqueryAlias), or debugging.
+    string alias = 3;
+    // Assigns alternative output field names for any relation.  Equivalent to the names field
+    // in RelRoot but applies to the output of the relation this RelCommon is attached to.
+    repeated string output_names = 4;
+
     substrait.extensions.AdvancedExtension advanced_extension = 10;
 
     // The statistics related to a hint (physical properties of records)
@@ -131,14 +139,41 @@ message ReadRel {
       message ArrowReadOptions {}
       message OrcReadOptions {}
       message DwrfReadOptions {}
+      message DelimiterSeparatedTextReadOptions {
+        // Delimiter separated files may be compressed.  The reader should
+        // autodetect this and decompress as needed.
 
-      // The format of the files.
+        // The character(s) used to separate fields.  Common values are comma,
+        // tab, and pipe.  Multiple characters are allowed.
+        string field_delimiter = 1;
+        // The maximum number of bytes to read from a single line.  If a line
+        // exceeds this limit the resulting behavior is undefined.
+        uint64 max_line_size = 2;
+        // The character(s) used to quote strings.  Common values are single
+        // and double quotation marks.
+        string quote = 3;
+        // The number of lines to skip at the beginning of the file.
+        uint64 header_lines_to_skip = 4;
+        // The character used to escape characters in strings.  Backslash is
+        // a common value.  Note that a double quote mark can also be used as an
+        // escape character but the external quotes should be removed first.
+        string escape = 5;
+        // If this value is encountered (including empty string), the resulting
+        // value is null instead.  Leave unset to disable.  If this value is
+        // provided, the effective schema of this file is comprised entirely of
+        // nullable strings.  If not provided, the effective schema is instead
+        // made up of non-nullable strings.
+        optional string value_treated_as_null = 6;
+      }
+
+      // The format of the files along with options for reading those files.
       oneof file_format {
         ParquetReadOptions parquet = 9;
         ArrowReadOptions arrow = 10;
         OrcReadOptions orc = 11;
         google.protobuf.Any extension = 12;
         DwrfReadOptions dwrf = 13;
+        DelimiterSeparatedTextReadOptions text = 14;
       }
     }
   }
@@ -168,11 +203,14 @@ message JoinRel {
     JOIN_TYPE_OUTER = 2;
     JOIN_TYPE_LEFT = 3;
     JOIN_TYPE_RIGHT = 4;
-    JOIN_TYPE_SEMI = 5;
-    JOIN_TYPE_ANTI = 6;
-    // This join is useful for nested sub-queries where we need exactly one record in output (or throw exception)
-    // See Section 3.2 of https://15721.courses.cs.cmu.edu/spring2018/papers/16-optimizer2/hyperjoins-btw2017.pdf
-    JOIN_TYPE_SINGLE = 7;
+    JOIN_TYPE_LEFT_SEMI = 5;
+    JOIN_TYPE_LEFT_ANTI = 6;
+    JOIN_TYPE_LEFT_SINGLE = 7;
+    JOIN_TYPE_RIGHT_SEMI = 8;
+    JOIN_TYPE_RIGHT_ANTI = 9;
+    JOIN_TYPE_RIGHT_SINGLE = 10;
+    JOIN_TYPE_LEFT_MARK = 11;
+    JOIN_TYPE_RIGHT_MARK = 12;
   }
 
   substrait.extensions.AdvancedExtension advanced_extension = 10;
@@ -206,18 +244,30 @@ message AggregateRel {
   // Input of the aggregation
   Rel input = 2;
 
-  // A list of one or more grouping expression sets that the aggregation measures should be calculated for.
-  // Required if there are no measures.
+  // A list of zero or more grouping sets that the aggregation measures should
+  // be calculated for. There must be at least one grouping set if there are no
+  // measures (but it can be the empty grouping set).
   repeated Grouping groupings = 3;
 
   // A list of one or more aggregate expressions along with an optional filter.
   // Required if there are no groupings.
   repeated Measure measures = 4;
 
+  // A list of zero or more grouping expressions that grouping sets (i.e.,
+  // `Grouping` messages in the `groupings` field) can reference. Each
+  // expression in this list must be referred to by at least one
+  // `Grouping.expression_references`.
+  repeated Expression grouping_expressions = 5;
+
   substrait.extensions.AdvancedExtension advanced_extension = 10;
 
   message Grouping {
-    repeated Expression grouping_expressions = 1;
+    // Deprecated in favor of `expression_references` below.
+    repeated Expression grouping_expressions = 1 [deprecated = true];
+
+    // A list of zero or more references to grouping expressions, i.e., indices
+    // into the `grouping_expression` list.
+    repeated uint32 expression_references = 2;
   }
 
   message Measure {
@@ -295,9 +345,11 @@ message SetRel {
   enum SetOp {
     SET_OP_UNSPECIFIED = 0;
     SET_OP_MINUS_PRIMARY = 1;
+    SET_OP_MINUS_PRIMARY_ALL = 7;
     SET_OP_MINUS_MULTISET = 2;
     SET_OP_INTERSECTION_PRIMARY = 3;
     SET_OP_INTERSECTION_MULTISET = 4;
+    SET_OP_INTERSECTION_MULTISET_ALL = 8;
     SET_OP_UNION_DISTINCT = 5;
     SET_OP_UNION_ALL = 6;
   }
@@ -649,6 +701,10 @@ message HashJoinRel {
     JOIN_TYPE_RIGHT_SEMI = 6;
     JOIN_TYPE_LEFT_ANTI = 7;
     JOIN_TYPE_RIGHT_ANTI = 8;
+    JOIN_TYPE_LEFT_SINGLE = 9;
+    JOIN_TYPE_RIGHT_SINGLE = 10;
+    JOIN_TYPE_LEFT_MARK = 11;
+    JOIN_TYPE_RIGHT_MARK = 12;
   }
 
   substrait.extensions.AdvancedExtension advanced_extension = 10;
@@ -695,6 +751,10 @@ message MergeJoinRel {
     JOIN_TYPE_RIGHT_SEMI = 6;
     JOIN_TYPE_LEFT_ANTI = 7;
     JOIN_TYPE_RIGHT_ANTI = 8;
+    JOIN_TYPE_LEFT_SINGLE = 9;
+    JOIN_TYPE_RIGHT_SINGLE = 10;
+    JOIN_TYPE_LEFT_MARK = 11;
+    JOIN_TYPE_RIGHT_MARK = 12;
   }
 
   substrait.extensions.AdvancedExtension advanced_extension = 10;
@@ -721,6 +781,10 @@ message NestedLoopJoinRel {
     JOIN_TYPE_RIGHT_SEMI = 6;
     JOIN_TYPE_LEFT_ANTI = 7;
     JOIN_TYPE_RIGHT_ANTI = 8;
+    JOIN_TYPE_LEFT_SINGLE = 9;
+    JOIN_TYPE_RIGHT_SINGLE = 10;
+    JOIN_TYPE_LEFT_MARK = 11;
+    JOIN_TYPE_RIGHT_MARK = 12;
   }
 
   substrait.extensions.AdvancedExtension advanced_extension = 10;
@@ -805,14 +869,13 @@ message Expression {
       int64 time = 17;
       IntervalYearToMonth interval_year_to_month = 19;
       IntervalDayToSecond interval_day_to_second = 20;
+      IntervalCompound interval_compound = 36;
       string fixed_char = 21;
       VarChar var_char = 22;
       bytes fixed_binary = 23;
       Decimal decimal = 24;
-      // If the precision is 6 or less then this is the microseconds since the UNIX epoch
-      // If the precision is more than 6 then this is the nanoseconds since the UNIX epoch
-      uint64 precision_timestamp = 34;
-      uint64 precision_timestamp_tz = 35;
+      PrecisionTimestamp precision_timestamp = 34;
+      PrecisionTimestamp precision_timestamp_tz = 35;
       Struct struct = 25;
       Map map = 26;
       // Timestamp in units of microseconds since the UNIX epoch.
@@ -854,6 +917,13 @@ message Expression {
       int32 scale = 3;
     }
 
+    message PrecisionTimestamp {
+      // Sub-second precision, 0 means the value given is in seconds, 3 is milliseconds, 6 microseconds, 9 is nanoseconds
+      int32 precision = 1;
+      // Time passed since 1970-01-01 00:00:00.000000 in UTC for PrecisionTimestampTZ and unspecified timezone for PrecisionTimestamp
+      int64 value = 2;
+    }
+
     message Map {
       message KeyValue {
         Literal key = 1;
@@ -871,7 +941,21 @@ message Expression {
     message IntervalDayToSecond {
       int32 days = 1;
       int32 seconds = 2;
-      int32 microseconds = 3;
+
+      // Consumers should expect either (miroseconds) to be set or (precision and subseconds) to be set
+      oneof precision_mode {
+        int32 microseconds = 3 [deprecated = true]; // use precision and subseconds below, they cover and replace microseconds.
+        // Sub-second precision, 0 means the value given is in seconds, 3 is milliseconds, 6 microseconds, 9 is nanoseconds. Should be used with subseconds below.
+        int32 precision = 4;
+      }
+
+      // the number of fractional seconds using 1e(-precision) units. Should only be used with precision field, not microseconds.
+      int64 subseconds = 5;
+    }
+
+    message IntervalCompound {
+      IntervalYearToMonth interval_year_to_month = 1;
+      IntervalDayToSecond interval_day_to_second = 2;
     }
 
     message Struct {

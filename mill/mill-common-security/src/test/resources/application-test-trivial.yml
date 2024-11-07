@@ -21,7 +21,6 @@ mill:
             jwk-set-uri: http://localhost:8989/default/jwks
         entra-id-token:
           enable: true
-
   services:
     grpc:
       enable: true

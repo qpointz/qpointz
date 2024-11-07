@@ -1,6 +1,8 @@
 package io.qpointz.mill.services;
 
 import io.qpointz.mill.proto.MillServiceGrpc;
+import io.substrait.extension.SimpleExtension;
+import lombok.val;
 import net.devh.boot.grpc.client.autoconfigure.GrpcClientAutoConfiguration;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import net.devh.boot.grpc.server.autoconfigure.GrpcAdviceAutoConfiguration;
@@ -10,7 +12,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.io.IOException;
+
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @Configuration
 @ImportAutoConfiguration({
@@ -18,6 +23,11 @@ import static org.mockito.Mockito.mock;
         GrpcClientAutoConfiguration.class,
 })
 public class MillServiceBaseTestConfiguration {
+
+    @Bean
+    public SimpleExtension.ExtensionCollection testExtensionsCollection() throws IOException {
+        return SimpleExtension.loadDefaults();
+    }
 
     @GrpcClient("test")
     public MillServiceGrpc.MillServiceBlockingStub blockingStub;
@@ -34,17 +44,14 @@ public class MillServiceBaseTestConfiguration {
 
     @Bean
     public SqlProvider sqlProvider() {
-        return mock(SqlProvider.class);
+        val m = mock(SqlProvider.class);
+        when(m.supportsSql()).thenReturn(Boolean.TRUE);
+        return m;
     }
 
     @Bean
     public ExecutionProvider executionProvider() {
         return mock(ExecutionProvider.class);
-    }
-
-    @Bean
-    public PlanRewriteChain rewriteChain() {
-        return mock(PlanRewriteChain.class);
     }
 
     @Bean

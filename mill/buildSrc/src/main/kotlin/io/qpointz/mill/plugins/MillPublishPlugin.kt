@@ -33,7 +33,7 @@ class MillPublishPlugin : Plugin<Project> {
         project.extensions.configure(org.gradle.plugins.signing.SigningExtension::class.java) {
             sign(publishing?.publications)
             if (! project.hasProperty("signing.keyId")) {
-                logger.log(LogLevel.WARN, "No signing key provided. Skipping signing task")
+                logger.log(LogLevel.DEBUG, "No signing key provided. Skipping signing task")
                 setRequired(false)
             }
         }
