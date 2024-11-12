@@ -50,9 +50,9 @@ class BackendFunctionsTest {
                 .build();
         val resp = funcs.submitQuery().apply(req);
         assertNotNull(resp);
-        assertFalse(resp.hasPagingId());
         assertTrue(resp.hasVector());
         assertTrue(resp.getVector().hasSchema());
+        assertFalse(resp.hasPagingId());
     }
 
 }

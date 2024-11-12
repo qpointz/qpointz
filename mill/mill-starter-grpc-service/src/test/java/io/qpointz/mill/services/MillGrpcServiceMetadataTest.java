@@ -3,6 +3,7 @@ package io.qpointz.mill.services;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.qpointz.mill.proto.*;
+import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,7 @@ class MillGrpcServiceMetadataTest extends MillGrpcServiceBaseTest {
     @Test
     void handshakeTest(@Autowired MillServiceGrpc.MillServiceBlockingStub stub) {
         val on = stub.handshake(HandshakeRequest.getDefaultInstance());
-        assertTrue(on.getCapabilities().getSupportSql());
+        assertFalse(on.getCapabilities().getSupportSql());
         assertEquals(ProtocolVersion.V1_0, on.getVersion());
     }
 
@@ -46,11 +47,13 @@ class MillGrpcServiceMetadataTest extends MillGrpcServiceBaseTest {
 
     @Test
     void getSchema(@Autowired MillServiceGrpc.MillServiceBlockingStub stub,
+                   @Autowired DataOperationDispatcher dataOperationDispatcher,
                    @Autowired MetadataProvider metadataProvider) {
         val schema = Schema.newBuilder().build();
-        when(metadataProvider.getSchema(any())).thenReturn(schema);
-        when(metadataProvider.isSchemaExists(any())).thenReturn(true);
-        val request = GetSchemaRequest.getDefaultInstance();
+        val schemaName = "schemaName";
+        val request = GetSchemaRequest.newBuilder().setSchemaName(schemaName).build();
+        when(metadataProvider.isSchemaExists("schemaName")).thenReturn(true);
+        when(metadataProvider.getSchema("schemaName")).thenReturn(schema);
         val resp = stub.getSchema(request);
         assertEquals(schema, resp.getSchema());
     }

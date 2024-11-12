@@ -38,6 +38,9 @@ testing {
 
                 dependencies {
                     implementation(project())
+                    implementation(project(":mill-starter-backends"))
+                    implementation(libs.boot.starter.actuator)
+                    implementation(libs.protobuf.java.util)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.h2.database)

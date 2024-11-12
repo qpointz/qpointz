@@ -4,7 +4,10 @@
 # This file has been @generated
 import warnings
 from dataclasses import dataclass
-from typing import List
+from typing import (
+    List,
+    Optional,
+)
 
 import betterproto
 import betterproto.lib.google.protobuf as betterproto_lib_google_protobuf
@@ -65,21 +68,24 @@ class JoinRelJoinType(betterproto.Enum):
     JOIN_TYPE_OUTER = 2
     JOIN_TYPE_LEFT = 3
     JOIN_TYPE_RIGHT = 4
-    JOIN_TYPE_SEMI = 5
-    JOIN_TYPE_ANTI = 6
-    JOIN_TYPE_SINGLE = 7
-    """
-    This join is useful for nested sub-queries where we need exactly one record in output (or throw exception)
-     See Section 3.2 of https://15721.courses.cs.cmu.edu/spring2018/papers/16-optimizer2/hyperjoins-btw2017.pdf
-    """
+    JOIN_TYPE_LEFT_SEMI = 5
+    JOIN_TYPE_LEFT_ANTI = 6
+    JOIN_TYPE_LEFT_SINGLE = 7
+    JOIN_TYPE_RIGHT_SEMI = 8
+    JOIN_TYPE_RIGHT_ANTI = 9
+    JOIN_TYPE_RIGHT_SINGLE = 10
+    JOIN_TYPE_LEFT_MARK = 11
+    JOIN_TYPE_RIGHT_MARK = 12
 
 
 class SetRelSetOp(betterproto.Enum):
     SET_OP_UNSPECIFIED = 0
     SET_OP_MINUS_PRIMARY = 1
+    SET_OP_MINUS_PRIMARY_ALL = 7
     SET_OP_MINUS_MULTISET = 2
     SET_OP_INTERSECTION_PRIMARY = 3
     SET_OP_INTERSECTION_MULTISET = 4
+    SET_OP_INTERSECTION_MULTISET_ALL = 8
     SET_OP_UNION_DISTINCT = 5
     SET_OP_UNION_ALL = 6
 
@@ -187,6 +193,10 @@ class HashJoinRelJoinType(betterproto.Enum):
     JOIN_TYPE_RIGHT_SEMI = 6
     JOIN_TYPE_LEFT_ANTI = 7
     JOIN_TYPE_RIGHT_ANTI = 8
+    JOIN_TYPE_LEFT_SINGLE = 9
+    JOIN_TYPE_RIGHT_SINGLE = 10
+    JOIN_TYPE_LEFT_MARK = 11
+    JOIN_TYPE_RIGHT_MARK = 12
 
 
 class MergeJoinRelJoinType(betterproto.Enum):
@@ -199,6 +209,10 @@ class MergeJoinRelJoinType(betterproto.Enum):
     JOIN_TYPE_RIGHT_SEMI = 6
     JOIN_TYPE_LEFT_ANTI = 7
     JOIN_TYPE_RIGHT_ANTI = 8
+    JOIN_TYPE_LEFT_SINGLE = 9
+    JOIN_TYPE_RIGHT_SINGLE = 10
+    JOIN_TYPE_LEFT_MARK = 11
+    JOIN_TYPE_RIGHT_MARK = 12
 
 
 class NestedLoopJoinRelJoinType(betterproto.Enum):
@@ -211,6 +225,10 @@ class NestedLoopJoinRelJoinType(betterproto.Enum):
     JOIN_TYPE_RIGHT_SEMI = 6
     JOIN_TYPE_LEFT_ANTI = 7
     JOIN_TYPE_RIGHT_ANTI = 8
+    JOIN_TYPE_LEFT_SINGLE = 9
+    JOIN_TYPE_RIGHT_SINGLE = 10
+    JOIN_TYPE_LEFT_MARK = 11
+    JOIN_TYPE_RIGHT_MARK = 12
 
 
 class ExpressionWindowFunctionBoundsType(betterproto.Enum):
@@ -345,6 +363,9 @@ class Type(betterproto.Message):
     time: "TypeTime" = betterproto.message_field(17, group="kind")
     interval_year: "TypeIntervalYear" = betterproto.message_field(19, group="kind")
     interval_day: "TypeIntervalDay" = betterproto.message_field(20, group="kind")
+    interval_compound: "TypeIntervalCompound" = betterproto.message_field(
+        35, group="kind"
+    )
     timestamp_tz: "TypeTimestampTz" = betterproto.message_field(29, group="kind")
     """Deprecated in favor of `PrecisionTimestampTZ precision_timestamp_tz`"""
 
@@ -463,14 +484,37 @@ class TypeTimestampTz(betterproto.Message):
 
 @dataclass(eq=False, repr=False)
 class TypeIntervalYear(betterproto.Message):
+    """An interval consisting of years and months"""
+
     type_variation_reference: int = betterproto.uint32_field(1)
     nullability: "TypeNullability" = betterproto.enum_field(2)
 
 
 @dataclass(eq=False, repr=False)
 class TypeIntervalDay(betterproto.Message):
+    """An interval consisting of days, seconds, and microseconds"""
+
     type_variation_reference: int = betterproto.uint32_field(1)
     nullability: "TypeNullability" = betterproto.enum_field(2)
+    precision: Optional[int] = betterproto.int32_field(3, optional=True)
+    """
+    Sub-second precision, 0 means the value given is in seconds, 3 is milliseconds, 6 microseconds, 9 is nanoseconds, etc.
+     if unset, treat as 6.
+    """
+
+
+@dataclass(eq=False, repr=False)
+class TypeIntervalCompound(betterproto.Message):
+    """
+    An interval consisting of the components of both IntervalMonth and IntervalDay
+    """
+
+    type_variation_reference: int = betterproto.uint32_field(1)
+    nullability: "TypeNullability" = betterproto.enum_field(2)
+    precision: int = betterproto.int32_field(3)
+    """
+    Sub-second precision, 0 means the value given is in seconds, 3 is milliseconds, 6 microseconds, 9 is nanoseconds, etc.
+    """
 
 
 @dataclass(eq=False, repr=False)
@@ -513,7 +557,9 @@ class TypeDecimal(betterproto.Message):
 @dataclass(eq=False, repr=False)
 class TypePrecisionTimestamp(betterproto.Message):
     precision: int = betterproto.int32_field(1)
-    """Defaults to 6"""
+    """
+    Sub-second precision, 0 means the value given is in seconds, 3 is milliseconds, 6 microseconds, 9 is nanoseconds
+    """
 
     type_variation_reference: int = betterproto.uint32_field(2)
     nullability: "TypeNullability" = betterproto.enum_field(3)
@@ -522,7 +568,9 @@ class TypePrecisionTimestamp(betterproto.Message):
 @dataclass(eq=False, repr=False)
 class TypePrecisionTimestampTz(betterproto.Message):
     precision: int = betterproto.int32_field(1)
-    """Defaults to 6"""
+    """
+    Sub-second precision, 0 means the value given is in seconds, 3 is milliseconds, 6 microseconds, 9 is nanoseconds
+    """
 
     type_variation_reference: int = betterproto.uint32_field(2)
     nullability: "TypeNullability" = betterproto.enum_field(3)
@@ -650,6 +698,18 @@ class RelCommonHint(betterproto.Message):
 
     stats: "RelCommonHintStats" = betterproto.message_field(1)
     constraint: "RelCommonHintRuntimeConstraint" = betterproto.message_field(2)
+    alias: str = betterproto.string_field(3)
+    """
+    Name (alias) for this relation. Can be used for e.g. qualifying the relation (see e.g.
+     Spark's SubqueryAlias), or debugging.
+    """
+
+    output_names: List[str] = betterproto.string_field(4)
+    """
+    Assigns alternative output field names for any relation.  Equivalent to the names field
+     in RelRoot but applies to the output of the relation this RelCommon is attached to.
+    """
+
     advanced_extension: "extensions.AdvancedExtension" = betterproto.message_field(10)
 
 
@@ -776,6 +836,9 @@ class ReadRelLocalFilesFileOrFiles(betterproto.Message):
     dwrf: "ReadRelLocalFilesFileOrFilesDwrfReadOptions" = betterproto.message_field(
         13, group="file_format"
     )
+    text: "ReadRelLocalFilesFileOrFilesDelimiterSeparatedTextReadOptions" = (
+        betterproto.message_field(14, group="file_format")
+    )
 
 
 @dataclass(eq=False, repr=False)
@@ -796,6 +859,48 @@ class ReadRelLocalFilesFileOrFilesOrcReadOptions(betterproto.Message):
 @dataclass(eq=False, repr=False)
 class ReadRelLocalFilesFileOrFilesDwrfReadOptions(betterproto.Message):
     pass
+
+
+@dataclass(eq=False, repr=False)
+class ReadRelLocalFilesFileOrFilesDelimiterSeparatedTextReadOptions(
+    betterproto.Message
+):
+    field_delimiter: str = betterproto.string_field(1)
+    """
+    The character(s) used to separate fields.  Common values are comma,
+     tab, and pipe.  Multiple characters are allowed.
+    """
+
+    max_line_size: int = betterproto.uint64_field(2)
+    """
+    The maximum number of bytes to read from a single line.  If a line
+     exceeds this limit the resulting behavior is undefined.
+    """
+
+    quote: str = betterproto.string_field(3)
+    """
+    The character(s) used to quote strings.  Common values are single
+     and double quotation marks.
+    """
+
+    header_lines_to_skip: int = betterproto.uint64_field(4)
+    """The number of lines to skip at the beginning of the file."""
+
+    escape: str = betterproto.string_field(5)
+    """
+    The character used to escape characters in strings.  Backslash is
+     a common value.  Note that a double quote mark can also be used as an
+     escape character but the external quotes should be removed first.
+    """
+
+    value_treated_as_null: Optional[str] = betterproto.string_field(6, optional=True)
+    """
+    If this value is encountered (including empty string), the resulting
+     value is null instead.  Leave unset to disable.  If this value is
+     provided, the effective schema of this file is comprised entirely of
+     nullable strings.  If not provided, the effective schema is instead
+     made up of non-nullable strings.
+    """
 
 
 @dataclass(eq=False, repr=False)
@@ -865,8 +970,9 @@ class AggregateRel(betterproto.Message):
 
     groupings: List["AggregateRelGrouping"] = betterproto.message_field(3)
     """
-    A list of one or more grouping expression sets that the aggregation measures should be calculated for.
-     Required if there are no measures.
+    A list of zero or more grouping sets that the aggregation measures should
+     be calculated for. There must be at least one grouping set if there are no
+     measures (but it can be the empty grouping set).
     """
 
     measures: List["AggregateRelMeasure"] = betterproto.message_field(4)
@@ -875,12 +981,35 @@ class AggregateRel(betterproto.Message):
      Required if there are no groupings.
     """
 
+    grouping_expressions: List["Expression"] = betterproto.message_field(5)
+    """
+    A list of zero or more grouping expressions that grouping sets (i.e.,
+     `Grouping` messages in the `groupings` field) can reference. Each
+     expression in this list must be referred to by at least one
+     `Grouping.expression_references`.
+    """
+
     advanced_extension: "extensions.AdvancedExtension" = betterproto.message_field(10)
 
 
 @dataclass(eq=False, repr=False)
 class AggregateRelGrouping(betterproto.Message):
     grouping_expressions: List["Expression"] = betterproto.message_field(1)
+    """Deprecated in favor of `expression_references` below."""
+
+    expression_references: List[int] = betterproto.uint32_field(2)
+    """
+    A list of zero or more references to grouping expressions, i.e., indices
+     into the `grouping_expression` list.
+    """
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        if self.is_set("grouping_expressions"):
+            warnings.warn(
+                "AggregateRelGrouping.grouping_expressions is deprecated",
+                DeprecationWarning,
+            )
 
 
 @dataclass(eq=False, repr=False)
@@ -1499,6 +1628,7 @@ class ExpressionEnum(betterproto.Message):
 
 @dataclass(eq=False, repr=False)
 class ExpressionEnumEmpty(betterproto.Message):
+    pass
 
     def __post_init__(self) -> None:
         warnings.warn("ExpressionEnumEmpty is deprecated", DeprecationWarning)
@@ -1534,6 +1664,9 @@ class ExpressionLiteral(betterproto.Message):
     interval_day_to_second: "ExpressionLiteralIntervalDayToSecond" = (
         betterproto.message_field(20, group="literal_type")
     )
+    interval_compound: "ExpressionLiteralIntervalCompound" = betterproto.message_field(
+        36, group="literal_type"
+    )
     fixed_char: str = betterproto.string_field(21, group="literal_type")
     var_char: "ExpressionLiteralVarChar" = betterproto.message_field(
         22, group="literal_type"
@@ -1542,13 +1675,12 @@ class ExpressionLiteral(betterproto.Message):
     decimal: "ExpressionLiteralDecimal" = betterproto.message_field(
         24, group="literal_type"
     )
-    precision_timestamp: int = betterproto.uint64_field(34, group="literal_type")
-    """
-    If the precision is 6 or less then this is the microseconds since the UNIX epoch
-     If the precision is more than 6 then this is the nanoseconds since the UNIX epoch
-    """
-
-    precision_timestamp_tz: int = betterproto.uint64_field(35, group="literal_type")
+    precision_timestamp: "ExpressionLiteralPrecisionTimestamp" = (
+        betterproto.message_field(34, group="literal_type")
+    )
+    precision_timestamp_tz: "ExpressionLiteralPrecisionTimestamp" = (
+        betterproto.message_field(35, group="literal_type")
+    )
     struct: "ExpressionLiteralStruct" = betterproto.message_field(
         25, group="literal_type"
     )
@@ -1620,6 +1752,19 @@ class ExpressionLiteralDecimal(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
+class ExpressionLiteralPrecisionTimestamp(betterproto.Message):
+    precision: int = betterproto.int32_field(1)
+    """
+    Sub-second precision, 0 means the value given is in seconds, 3 is milliseconds, 6 microseconds, 9 is nanoseconds
+    """
+
+    value: int = betterproto.int64_field(2)
+    """
+    Time passed since 1970-01-01 00:00:00.000000 in UTC for PrecisionTimestampTZ and unspecified timezone for PrecisionTimestamp
+    """
+
+
+@dataclass(eq=False, repr=False)
 class ExpressionLiteralMap(betterproto.Message):
     key_values: List["ExpressionLiteralMapKeyValue"] = betterproto.message_field(1)
 
@@ -1640,7 +1785,34 @@ class ExpressionLiteralIntervalYearToMonth(betterproto.Message):
 class ExpressionLiteralIntervalDayToSecond(betterproto.Message):
     days: int = betterproto.int32_field(1)
     seconds: int = betterproto.int32_field(2)
-    microseconds: int = betterproto.int32_field(3)
+    microseconds: int = betterproto.int32_field(3, group="precision_mode")
+    precision: int = betterproto.int32_field(4, group="precision_mode")
+    """
+    Sub-second precision, 0 means the value given is in seconds, 3 is milliseconds, 6 microseconds, 9 is nanoseconds. Should be used with subseconds below.
+    """
+
+    subseconds: int = betterproto.int64_field(5)
+    """
+    the number of fractional seconds using 1e(-precision) units. Should only be used with precision field, not microseconds.
+    """
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        if self.is_set("microseconds"):
+            warnings.warn(
+                "ExpressionLiteralIntervalDayToSecond.microseconds is deprecated",
+                DeprecationWarning,
+            )
+
+
+@dataclass(eq=False, repr=False)
+class ExpressionLiteralIntervalCompound(betterproto.Message):
+    interval_year_to_month: "ExpressionLiteralIntervalYearToMonth" = (
+        betterproto.message_field(1)
+    )
+    interval_day_to_second: "ExpressionLiteralIntervalDayToSecond" = (
+        betterproto.message_field(2)
+    )
 
 
 @dataclass(eq=False, repr=False)
@@ -2606,7 +2778,12 @@ class ParameterizedType(betterproto.Message):
     date: "TypeDate" = betterproto.message_field(16, group="kind")
     time: "TypeTime" = betterproto.message_field(17, group="kind")
     interval_year: "TypeIntervalYear" = betterproto.message_field(19, group="kind")
-    interval_day: "TypeIntervalDay" = betterproto.message_field(20, group="kind")
+    interval_day: "ParameterizedTypeParameterizedIntervalDay" = (
+        betterproto.message_field(20, group="kind")
+    )
+    interval_compound: "ParameterizedTypeParameterizedIntervalCompound" = (
+        betterproto.message_field(36, group="kind")
+    )
     timestamp_tz: "TypeTimestampTz" = betterproto.message_field(29, group="kind")
     """
     Deprecated in favor of `ParameterizedPrecisionTimestampTZ precision_timestamp_tz`
@@ -2723,6 +2900,20 @@ class ParameterizedTypeParameterizedDecimal(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
+class ParameterizedTypeParameterizedIntervalDay(betterproto.Message):
+    precision: "ParameterizedTypeIntegerOption" = betterproto.message_field(1)
+    variation_pointer: int = betterproto.uint32_field(2)
+    nullability: "TypeNullability" = betterproto.enum_field(3)
+
+
+@dataclass(eq=False, repr=False)
+class ParameterizedTypeParameterizedIntervalCompound(betterproto.Message):
+    precision: "ParameterizedTypeIntegerOption" = betterproto.message_field(1)
+    variation_pointer: int = betterproto.uint32_field(2)
+    nullability: "TypeNullability" = betterproto.enum_field(3)
+
+
+@dataclass(eq=False, repr=False)
 class ParameterizedTypeParameterizedPrecisionTimestamp(betterproto.Message):
     precision: "ParameterizedTypeIntegerOption" = betterproto.message_field(1)
     variation_pointer: int = betterproto.uint32_field(2)
@@ -2800,13 +2991,18 @@ class DerivationExpression(betterproto.Message):
     date: "TypeDate" = betterproto.message_field(16, group="kind")
     time: "TypeTime" = betterproto.message_field(17, group="kind")
     interval_year: "TypeIntervalYear" = betterproto.message_field(19, group="kind")
-    interval_day: "TypeIntervalDay" = betterproto.message_field(20, group="kind")
     timestamp_tz: "TypeTimestampTz" = betterproto.message_field(29, group="kind")
     """
     Deprecated in favor of `ExpressionPrecisionTimestampTZ precision_timestamp_tz`
     """
 
     uuid: "TypeUuid" = betterproto.message_field(32, group="kind")
+    interval_day: "DerivationExpressionExpressionIntervalDay" = (
+        betterproto.message_field(20, group="kind")
+    )
+    interval_compound: "DerivationExpressionExpressionIntervalCompound" = (
+        betterproto.message_field(42, group="kind")
+    )
     fixed_char: "DerivationExpressionExpressionFixedChar" = betterproto.message_field(
         21, group="kind"
     )
@@ -2906,6 +3102,20 @@ class DerivationExpressionExpressionDecimal(betterproto.Message):
 
 @dataclass(eq=False, repr=False)
 class DerivationExpressionExpressionPrecisionTimestamp(betterproto.Message):
+    precision: "DerivationExpression" = betterproto.message_field(1)
+    variation_pointer: int = betterproto.uint32_field(2)
+    nullability: "TypeNullability" = betterproto.enum_field(3)
+
+
+@dataclass(eq=False, repr=False)
+class DerivationExpressionExpressionIntervalDay(betterproto.Message):
+    precision: "DerivationExpression" = betterproto.message_field(1)
+    variation_pointer: int = betterproto.uint32_field(2)
+    nullability: "TypeNullability" = betterproto.enum_field(3)
+
+
+@dataclass(eq=False, repr=False)
+class DerivationExpressionExpressionIntervalCompound(betterproto.Message):
     precision: "DerivationExpression" = betterproto.message_field(1)
     variation_pointer: int = betterproto.uint32_field(2)
     nullability: "TypeNullability" = betterproto.enum_field(3)

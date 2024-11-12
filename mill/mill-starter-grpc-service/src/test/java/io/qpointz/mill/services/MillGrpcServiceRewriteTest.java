@@ -36,7 +36,7 @@ class MillGrpcServiceRewriteTest extends MillGrpcServiceBaseTest {
 
         val rewriter = mock(PlanRewriter.class);
         when(chain.getRewriters()).thenReturn(List.of(rewriter));
-        when(rewriter.rewritePlan(any())).thenReturn(ImmutablePlan.builder().build());
+        when(rewriter.rewritePlan(any(),any())).thenReturn(ImmutablePlan.builder().build());
 
         stub
           .execQuery(QueryRequest.newBuilder()

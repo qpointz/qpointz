@@ -14,5 +14,35 @@
       "name": "mill.security.authentication.entra-id-token.enable",
       "type": "java.lang.Boolean",
       "description": "Enables EntraId authentication."
+    },
+    {
+      "name": "mill.security.authorization.policy.enable",
+      "type": "java.lang.Boolean",
+      "description": "Enables policy based authorization."
+    },
+    {
+      "name": "mill.security.authorization.policy.actions",
+      "type": "java.util.List<io.qpointz.mill.security.authorization.policy.PolicyActionDescriptor>",
+      "description": "Defines inline list of policy actions."
+    },
+    {
+      "name": "mill.security.authorization.policy.actions.policy",
+      "type": "java.lang.String",
+      "description": "Policy name."
+    },
+    {
+      "name": "mill.security.authorization.policy.actions.verb",
+      "type": "io.qpointz.mill.security.authorization.policy.ActionVerb",
+      "description": "Policy action. Allowed values 'ALLOW', 'DENY'."
+    },
+    {
+      "name": "mill.security.authorization.policy.actions[0].action",
+      "type": "java.lang.String",
+      "description": "Action to be applied."
+    },
+    {
+      "name": "mill.security.authorization.policy.actions[0].params",
+      "type": "java.util.Map<String,Object>",
+      "description": "Action to be applied."
     }
-] }
+  ] }

@@ -1,6 +1,6 @@
 # What is Mill
 
-desribe what is mill 
+describe what is mill 
 
 ## Motivation 
 

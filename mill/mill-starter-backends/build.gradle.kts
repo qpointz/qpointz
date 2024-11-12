@@ -40,6 +40,7 @@ testing {
                 dependencies {
                     implementation(project())
                     implementation(project(":mill-starter-grpc-service"))
+                    implementation(libs.protobuf.java.util)
                     implementation(libs.bootGRPC.client)
                     implementation(libs.bootGRPC.server)
                     implementation(libs.mockito.core)

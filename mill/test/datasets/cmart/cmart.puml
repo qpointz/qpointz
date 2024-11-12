@@ -1,0 +1,52 @@
+@startuml
+skinparam linetype ortho
+left to right direction
+entity "client" {
+	client_id: INT
+	first_name: VARCHAR
+	last_name: VARCHAR
+	is_pep: VARCHAR
+	domicile_region: VARCHAR
+	domicile_country: VARCHAR
+	client_segment: VARCHAR
+}
+entity "account" {
+	account_id: INT
+	account_region: VARCHAR
+	client_id: INT
+	booking_region: VARCHAR
+	booking_country: VARCHAR
+}
+entity "account_transaction" {
+	account_1: INT
+	account_2: INT
+	amount: DECIMAL(15,4)
+	transaction_date: VARCHAR
+}
+entity "ticker" {
+	ticker_id: INT
+	ticker: VARCHAR
+	market_sector: VARCHAR
+	market_region: VARCHAR
+}
+entity "portfolio" {
+	portfolio_id: INT
+	client_id: INT
+	portfolio_name: VARCHAR
+}
+entity "portfolio_transaction" {
+	portfolio_transaction_id: INT
+	portfolio_id: INT
+	ticker_id: INT
+	buy_sell: VARCHAR
+	transaction_date: VARCHAR
+	notional: INT
+	price: DECIMAL(15,4)
+}
+"client"  ||..|{  "account"
+"account"  ||..|{  "account_transaction"
+"account"  ||..|{  "account_transaction"
+"client"  ||..|{  "portfolio"
+"portfolio"  ||..|{  "portfolio_transaction"
+"ticker"  ||..|{  "portfolio_transaction"
+@enduml

@@ -1,0 +1,21 @@
+logging:
+  level:
+    root: debug
+grpc:
+  server:
+    in-process-name: test-service-calcite
+    port: -1
+  client:
+    test-service-calcite:
+      address: in-process:test-service-calcite
+      
+mill:
+  backend:
+    provider: calcite
+    connection:
+      quoting: BACK_TICK
+      caseSensitive: true
+      unquotedCasing: UNCHANGED
+      model: ./config/test/model.yaml
+  security:
+    enable: false
