@@ -4,6 +4,7 @@
 # This file has been @generated
 
 from dataclasses import dataclass
+from typing import List
 
 import betterproto
 import betterproto.lib.google.protobuf as betterproto_lib_google_protobuf
@@ -102,7 +103,9 @@ class AdvancedExtension(betterproto.Message):
      into the serialized substrait plan.
     """
 
-    optimization: "betterproto_lib_google_protobuf.Any" = betterproto.message_field(1)
+    optimization: List["betterproto_lib_google_protobuf.Any"] = (
+        betterproto.message_field(1)
+    )
     """
     An optimization is helpful information that don't influence semantics. May
      be ignored by a consumer.

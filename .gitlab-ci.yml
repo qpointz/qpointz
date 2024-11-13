@@ -31,6 +31,7 @@ finalize:release:
     GIT_STRATEGY: clone      
     GL_TOKEN: ${CI_PUSH_TOKEN}
     GL_URL: "https://gitlab.qpointz.io"
+    GIT_DEPTH: 0
   only:
     - main 
     - rc

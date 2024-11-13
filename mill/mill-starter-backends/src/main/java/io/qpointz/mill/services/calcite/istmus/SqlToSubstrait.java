@@ -2,6 +2,7 @@ package io.qpointz.mill.services.calcite.istmus;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.substrait.extension.ExtensionCollector;
+import io.substrait.extension.SimpleExtension;
 import io.substrait.isthmus.FeatureBoard;
 import io.substrait.isthmus.SubstraitRelVisitor;
 import io.substrait.isthmus.TypeConverter;
@@ -9,6 +10,9 @@ import io.substrait.proto.Plan;
 import io.substrait.proto.PlanRel;
 import io.substrait.relation.RelProtoConverter;
 import io.substrait.type.NamedStruct;
+import java.util.List;
+import java.util.function.Function;
+
 import org.apache.calcite.config.CalciteConnectionConfig;
 import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.plan.hep.HepPlanner;
@@ -24,14 +28,14 @@ import org.apache.calcite.sql.validate.SqlValidator;
 import org.apache.calcite.sql2rel.SqlToRelConverter;
 import org.apache.calcite.sql2rel.StandardConvertletTable;
 
-import java.util.List;
-import java.util.function.Function;
-
 /** Take a SQL statement and a set of table definitions and return a substrait plan. */
 public class SqlToSubstrait extends SqlConverterBase {
 
-  public SqlToSubstrait(FeatureBoard features, RelDataTypeFactory relDataTypeFactory, CalciteConnectionConfig calciteConnectionConfig, SqlParser.Config parserConfig) {
+  private final SimpleExtension.ExtensionCollection extensionCollection;
+
+  public SqlToSubstrait(FeatureBoard features, RelDataTypeFactory relDataTypeFactory, CalciteConnectionConfig calciteConnectionConfig, SqlParser.Config parserConfig, SimpleExtension.ExtensionCollection extensionCollection) {
     super(features, relDataTypeFactory, calciteConnectionConfig, parserConfig);
+    this.extensionCollection = extensionCollection;
   }
 
   public Plan execute(String sql, Function<List<String>, NamedStruct> tableLookup)
@@ -87,7 +91,7 @@ public class SqlToSubstrait extends SqlConverterBase {
                           io.substrait.proto.RelRoot.newBuilder()
                               .setInput(
                                   SubstraitRelVisitor.convert(
-                                          root, EXTENSION_COLLECTION, featureBoard)
+                                          root, this.extensionCollection, featureBoard)
                                       .accept(relProtoConverter))
                               .addAllNames(
                                   TypeConverter.DEFAULT

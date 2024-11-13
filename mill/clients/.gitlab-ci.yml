@@ -164,7 +164,7 @@ mill-clients:install-dist:
       artifacts: true    
   script:
     - cd ${CI_PROJECT_DIR}/mill/clients
-    - ../gradlew --no-daemon --console plain clean installDist distTar distZip
+    - ../gradlew --no-daemon --console plain clean installDist #distTar distZip
   artifacts:
     expire_in: "5 days"
     paths:

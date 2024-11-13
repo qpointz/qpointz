@@ -1,9 +1,9 @@
 users:
   - name: admin
     password: "{noop}admin"
-    roles:
+    groups:
       - admin
   - name: reader
     password: "{noop}reader"
-    roles:
+    groups:
       - reader

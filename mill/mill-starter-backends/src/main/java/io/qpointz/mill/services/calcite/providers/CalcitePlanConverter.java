@@ -36,6 +36,9 @@ public class CalcitePlanConverter implements PlanConverter {
     @Getter(AccessLevel.PROTECTED)
     private SqlDialect dialect;
 
+    @Getter
+    private SimpleExtension.ExtensionCollection extensionCollection;
+
     public RelNode toRelNode(Plan plan) {
         try {
             val ctx = Objects.requireNonNull(this.getCtxFactory().createContext());
@@ -52,24 +55,12 @@ public class CalcitePlanConverter implements PlanConverter {
             super(extensions, typeFactory, relBuilder);
         }
 
-        protected static final SimpleExtension.ExtensionCollection EXTENSION_COLLECTION;
-
-        static {
-            SimpleExtension.ExtensionCollection defaults;
-            try {
-                defaults = SimpleExtension.loadDefaults();
-            } catch (IOException e) {
-                throw new RuntimeException("Failure while loading defaults.", e);
-            }
-
-            EXTENSION_COLLECTION = defaults;
-        }
-
         public static RelNode convertPlan(
                 Plan relPlan,
                 RelOptCluster relOptCluster,
                 Prepare.CatalogReader catalogReader,
-                SqlParser.Config parserConfig) {
+                SqlParser.Config parserConfig,
+                SimpleExtension.ExtensionCollection extensionCollection) {
             var relBuilder = RelBuilder.create(
                             Frameworks.newConfigBuilder()
                                     .parserConfig(parserConfig)
@@ -77,7 +68,7 @@ public class CalcitePlanConverter implements PlanConverter {
                                     .traitDefs()
                                     .programs()
                                     .build());
-            val converter = new PlanConverter(EXTENSION_COLLECTION , relOptCluster.getTypeFactory(), relBuilder);
+            val converter = new PlanConverter(extensionCollection , relOptCluster.getTypeFactory(), relBuilder);
             return converter.convert(relPlan);
         }
 
@@ -103,7 +94,7 @@ public class CalcitePlanConverter implements PlanConverter {
                     ctx.getCalciteConnection().config());
 
             val relOptCluster = RelOptCluster.create(new VolcanoPlanner(), new RexBuilder(ctx.getTypeFactory()));
-            return PlanConverter.convertPlan(plan, relOptCluster, catalogReader, ctx.getParserConfig());
+            return PlanConverter.convertPlan(plan, relOptCluster, catalogReader, ctx.getParserConfig(), this.extensionCollection);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

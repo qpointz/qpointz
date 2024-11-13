@@ -1,0 +1,20 @@
+mill:
+  security:
+    enable: true
+    authentication:
+      basic:
+        file-store: classpath:userstore/passwd.yml
+    authorization:
+      policy:
+        enable: true
+        actions:
+          - policy: POL1
+            verb: allow
+            action: rel-read
+            params:
+              rel-name: x.y.z
+          - policy: POL1
+            verb: deny
+            action: rel-read
+            params:
+              rel-name: x.y.z

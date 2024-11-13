@@ -1,0 +1,49 @@
+site_name: mill docs
+docs_dir: src
+theme: 
+  name: material
+#  palette:
+#    scheme: dracula
+#    primary: deep purple
+#    accent: deep purple
+  font:
+    text: Roboto
+    code: Roboto Mono
+  features:
+#    - announce.dismiss
+#    - navigation.tabs
+    - navigation.top
+    - navigation.instant
+    - navigation.indexes
+#    - toc.follow
+#    - content.tabs.link
+#    - search.share
+#    - search.highlight
+#    - search.suggest
+#    - content.code.copy
+#    - content.code.annotations
+
+markdown_extensions: 
+  - markdown.extensions.tables:  
+  - pymdownx.blocks.tab:
+      alternate_style: true 
+  - pymdownx.details:
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:pymdownx.emoji.to_png
+  - pymdownx.fancylists:
+  - pymdownx.saneheaders:
+
+nav:
+    - index.md    
+    - quickstart.md
+    - installation.md          
+    - Backends: 
+      - backends/index.md
+      - backends/jdbc.md
+      - backends/calcite.md
+    - Security:
+      - security/index.md
+      - test.md
+      - test.md
+    - Configuration: lala.md
+    

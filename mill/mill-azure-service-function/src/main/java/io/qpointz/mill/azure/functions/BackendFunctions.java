@@ -3,6 +3,7 @@ package io.qpointz.mill.azure.functions;
 import io.qpointz.mill.proto.*;
 import io.qpointz.mill.security.configuration.SecurityConfig;
 import io.qpointz.mill.services.ServiceHandler;
+import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -13,40 +14,40 @@ import java.util.function.Function;
 @Component
 public class BackendFunctions {
 
-    private final ServiceHandler serviceHandler;
+    private final DataOperationDispatcher dataDispatcher;
 
-    public BackendFunctions(@Autowired ServiceHandler serviceHandler) {
-        this.serviceHandler = serviceHandler;
+    public BackendFunctions(@Autowired DataOperationDispatcher dataDispatcher) {
+        this.dataDispatcher = dataDispatcher;
     }
 
     @Bean("handshake")
     public Function<HandshakeRequest, HandshakeResponse>  handshake() {
-        return r-> serviceHandler.handshake();
+        return dataDispatcher::handshake;
     }
 
     @Bean("listSchemas")
     public Function<ListSchemasRequest, ListSchemasResponse> listSchemas() {
-        return r -> serviceHandler.listSchemas();
+        return dataDispatcher::listSchemas;
     }
 
     @Bean("getSchema")
     public Function<GetSchemaRequest, GetSchemaResponse> getSchemas() {
-        return serviceHandler::getSchemaProto;
+        return dataDispatcher::getSchema;
     }
 
     @Bean("parseSql")
     public Function<ParseSqlRequest, ParseSqlResponse> parseSql() {
-        return serviceHandler::parseSqlProto;
+        return dataDispatcher::parseSql;
     }
 
     @Bean("submitQuery")
     public Function<QueryRequest, QueryResultResponse> submitQuery() {
-        return serviceHandler::submitQuery;
+        return dataDispatcher::submitQuery;
     }
 
     @Bean("fetchQueryResult")
     public Function<QueryResultRequest, QueryResultResponse> fetchQueryResult() {
-        return serviceHandler::fetchResult;
+        return dataDispatcher::fetchResult;
     }
 
 }

@@ -6,7 +6,9 @@ import io.qpointz.mill.services.SqlProvider;
 import io.qpointz.mill.services.calcite.CalciteContextFactory;
 import io.qpointz.mill.services.calcite.ConnectionContextFactory;
 import io.qpointz.mill.services.calcite.providers.*;
+import io.qpointz.mill.services.dispatchers.SubstraitDispatcher;
 import io.substrait.extension.ExtensionCollector;
+import io.substrait.extension.SimpleExtension;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.val;
@@ -18,6 +20,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 
@@ -42,8 +45,8 @@ public class CalciteServiceConfiguration {
     }
 
     @Bean
-    public PlanConverter planConverter(CalciteContextFactory calciteConextFactory) {
-        return new CalcitePlanConverter(calciteConextFactory, SqlDialect.DatabaseProduct.CALCITE.getDialect());
+    public PlanConverter planConverter(CalciteContextFactory calciteConextFactory, SimpleExtension.ExtensionCollection extensionCollection) {
+        return new CalcitePlanConverter(calciteConextFactory, SqlDialect.DatabaseProduct.CALCITE.getDialect(), extensionCollection);
     }
 
     @Bean
@@ -62,8 +65,8 @@ public class CalciteServiceConfiguration {
     }
 
     @Bean
-    public static SqlProvider sqlParserProvider(CalciteContextFactory ctxFactory) {
-        return new CalciteSqlProvider(ctxFactory);
+    public static SqlProvider sqlParserProvider(CalciteContextFactory ctxFactory, SubstraitDispatcher substraitDispatcher) {
+        return new CalciteSqlProvider(ctxFactory, substraitDispatcher);
     }
 
 

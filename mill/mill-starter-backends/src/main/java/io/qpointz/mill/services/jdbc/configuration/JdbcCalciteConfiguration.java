@@ -9,11 +9,13 @@ import io.qpointz.mill.services.calcite.providers.CalciteMetadataProvider;
 import io.qpointz.mill.services.calcite.providers.CalcitePlanConverter;
 import io.qpointz.mill.services.calcite.providers.CalciteSqlProvider;
 import io.qpointz.mill.services.calcite.providers.PlanConverter;
+import io.qpointz.mill.services.dispatchers.SubstraitDispatcher;
 import io.qpointz.mill.services.jdbc.providers.JdbcCalciteContextFactory;
 import io.qpointz.mill.services.jdbc.providers.JdbcContext;
 import io.qpointz.mill.services.jdbc.providers.JdbcContextFactory;
 import io.qpointz.mill.services.jdbc.providers.JdbcExecutionProvider;
 import io.substrait.extension.ExtensionCollector;
+import io.substrait.extension.SimpleExtension;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.val;
@@ -24,6 +26,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -99,8 +102,8 @@ public class JdbcCalciteConfiguration {
     }
 
     @Bean
-    public static SqlProvider sqlParserProvider(CalciteContextFactory ctxFactory) {
-        return new CalciteSqlProvider(ctxFactory);
+    public static SqlProvider sqlParserProvider(CalciteContextFactory ctxFactory, SubstraitDispatcher substraitDispatcher) {
+        return new CalciteSqlProvider(ctxFactory, substraitDispatcher);
     }
 
     @Bean
@@ -111,8 +114,8 @@ public class JdbcCalciteConfiguration {
     }
 
     @Bean
-    public PlanConverter planConverter(CalciteContextFactory calciteConextFactory) {
-        return new CalcitePlanConverter(calciteConextFactory, SqlDialect.DatabaseProduct.CALCITE.getDialect());
+    public PlanConverter planConverter(CalciteContextFactory calciteConextFactory, SimpleExtension.ExtensionCollection extensionCollection) {
+        return new CalcitePlanConverter(calciteConextFactory, SqlDialect.DatabaseProduct.CALCITE.getDialect(), extensionCollection);
     }
 
     @Bean

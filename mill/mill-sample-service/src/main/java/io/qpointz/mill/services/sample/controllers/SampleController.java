@@ -1,5 +1,6 @@
 package io.qpointz.mill.services.sample.controllers;
 
+import io.qpointz.mill.proto.ListSchemasRequest;
 import io.qpointz.mill.services.ServiceHandler;
 import io.qpointz.mill.services.annotations.ConditionalOnService;
 import lombok.Getter;
@@ -38,7 +39,7 @@ public class SampleController {
 
     @GetMapping("schemas")
     public List<String> listSchemas() {
-        return serviceHandler.listSchemas().getSchemasList();
+        return serviceHandler.data().listSchemas(ListSchemasRequest.getDefaultInstance()).getSchemasList();
     }
 
     @GetMapping("captions")

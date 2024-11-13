@@ -6,8 +6,14 @@ import io.substrait.isthmus.ImmutableFeatureBoard;
 import io.substrait.isthmus.TypeConverter;
 import io.substrait.isthmus.calcite.SubstraitOperatorTable;
 import io.substrait.type.NamedStruct;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
 import org.apache.calcite.config.CalciteConnectionConfig;
+import org.apache.calcite.config.CalciteConnectionProperty;
 import org.apache.calcite.jdbc.CalciteSchema;
+import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.jdbc.LookupCalciteSchema;
 import org.apache.calcite.plan.Contexts;
 import org.apache.calcite.plan.RelOptCluster;
@@ -38,11 +44,6 @@ import org.apache.calcite.sql.validate.SqlValidatorImpl;
 import org.apache.calcite.sql2rel.SqlToRelConverter;
 import org.apache.calcite.util.Pair;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Function;
-
 class SqlConverterBase {
   final RelDataTypeFactory factory;
   final RelOptCluster relOptCluster;
@@ -58,7 +59,7 @@ class SqlConverterBase {
                              RelDataTypeFactory relDataTypeFactory,
                              CalciteConnectionConfig calciteConnectionConfig,
                              SqlParser.Config parserConfig
-  ) {
+                             ) {
     this.factory = relDataTypeFactory;
     this.config = calciteConnectionConfig;
     this.converterConfig = SqlToRelConverter.config().withTrimUnusedFields(true).withExpand(false);
@@ -72,19 +73,6 @@ class SqlConverterBase {
         });
     featureBoard = features == null ? FEATURES_DEFAULT : features;
     this.parserConfig = parserConfig;
-  }
-
-  protected static final SimpleExtension.ExtensionCollection EXTENSION_COLLECTION;
-
-  static {
-    SimpleExtension.ExtensionCollection defaults;
-    try {
-      defaults = SimpleExtension.loadDefaults();
-    } catch (IOException e) {
-      throw new RuntimeException("Failure while loading defaults.", e); //NOSONAR
-    }
-
-    EXTENSION_COLLECTION = defaults;
   }
 
   Pair<SqlValidator, CalciteCatalogReader> registerCreateTables(List<String> tables)
@@ -105,7 +93,7 @@ class SqlConverterBase {
   }
 
   Pair<SqlValidator, CalciteCatalogReader> registerCreateTables(
-      Function<List<String>, NamedStruct> tableLookup)  {
+      Function<List<String>, NamedStruct> tableLookup) throws SqlParseException {
     Function<List<String>, Table> lookup =
         id -> {
           NamedStruct table = tableLookup.apply(id);

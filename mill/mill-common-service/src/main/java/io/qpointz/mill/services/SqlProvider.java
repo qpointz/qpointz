@@ -1,14 +1,17 @@
 package io.qpointz.mill.services;
 
+import io.substrait.expression.Expression;
 import io.substrait.plan.Plan;
 import lombok.*;
+
+import java.util.List;
 
 public interface SqlProvider {
 
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    class ParseResult {
+    class PlanParseResult {
 
-        private ParseResult() {}
+        private PlanParseResult() {}
 
         @Getter
         private Plan plan;
@@ -26,24 +29,38 @@ public interface SqlProvider {
                     : this.exception.getMessage();
         }
 
-        public static ParseResult success(Plan plan) {
-            return new ParseResult( plan, null);
+        public static PlanParseResult success(Plan plan) {
+            return new PlanParseResult( plan, null);
         }
 
-        public static ParseResult fail(Exception exception) {
-            return ParseResult.fail(new RuntimeException(exception));
+        public static PlanParseResult fail(Exception exception) {
+            return PlanParseResult.fail(new RuntimeException(exception));
         }
 
-        public static ParseResult fail(RuntimeException th) {
-            return new ParseResult( null, th);
+        public static PlanParseResult fail(RuntimeException th) {
+            return new PlanParseResult( null, th);
         }
 
-        public static ParseResult fail(String message) {
-            return new ParseResult( null, new IllegalArgumentException(message));
+        public static PlanParseResult fail(String message) {
+            return new PlanParseResult( null, new IllegalArgumentException(message));
         }
 
     }
 
-    ParseResult parseSql(String sql);
+    record ExpressionParseResult (boolean isSuccess, Expression expression, Exception exception) {
+
+        public static ExpressionParseResult fail(Exception exception) {
+            return new ExpressionParseResult(false, null, exception);
+        }
+
+    }
+
+    default boolean supportsSql() {
+        return true;
+    }
+
+    PlanParseResult parseSql(String sql);
+
+    ExpressionParseResult parseSqlExpression(List<String> tableName, String expression);
 
 }

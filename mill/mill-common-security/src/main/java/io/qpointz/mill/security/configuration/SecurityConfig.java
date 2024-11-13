@@ -91,12 +91,16 @@ public class SecurityConfig {
     @Bean
     @ConditionalOnSecurity(false)
     SecurityFilterChain allPermited(@Autowired(required = false) HttpSecurity http) throws Exception {
-        if (http == null) {
+        try {
+            if (http == null) {
+                return null;
+            }
+            return http.authorizeHttpRequests(authHttp -> authHttp
+                    .requestMatchers("/**").permitAll()
+            ).build();
+        } catch (Exception e) {
             return null;
         }
-        return   http.authorizeHttpRequests(authHttp -> authHttp
-                .requestMatchers("/**").permitAll()
-        ).build();
     }
 
 }

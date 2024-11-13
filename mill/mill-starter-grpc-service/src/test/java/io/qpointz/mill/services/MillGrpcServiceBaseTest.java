@@ -4,6 +4,7 @@ import io.qpointz.mill.proto.MillServiceGrpc;
 import io.qpointz.mill.proto.ParseSqlRequest;
 import io.qpointz.mill.proto.QueryRequest;
 import io.qpointz.mill.proto.SQLStatement;
+import io.qpointz.mill.services.configuration.DefaultServiceConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.reset;
 @ContextConfiguration(classes = {
         MillGrpcServiceMetadataTest.class,
         MillGrpcService.class,
+        DefaultServiceConfiguration.class,
         MillServiceBaseTestConfiguration.class})
 public abstract class MillGrpcServiceBaseTest {
 

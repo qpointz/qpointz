@@ -67,3 +67,43 @@ mill:
       oauth2-resource-server:
         jwt:
           jwk-set-uri: http://localhost:8989/default/jwks
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local-cmart
+
+mill:
+  backend:
+    provider: jdbc
+    connection:
+      quoting: BACK_TICK
+      caseSensitive: true
+      unquotedCasing: UNCHANGED
+    jdbc:
+      url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM './test/datasets/cmart/sql/cmart.sql'"
+      driver: "org.h2.Driver"
+      username: "*"
+      password: "*"
+      target-schema: "cmart"
+  security:
+    enable: true
+    authentication:
+      basic:
+        file-store: file:./test/datasets/cmart/passwd.yaml
+    authorization:
+      policy:
+        enable: true
+        selector:
+          granted-authority:
+            remap:
+              xyz: zyx
+              abc: def
+        actions:
+          - policy: admin
+            verb: deny
+            action: rel-filter
+            params:
+              name: cmart.CLIENT
+              expression: "`IS_PEP` <> 'Y'"
