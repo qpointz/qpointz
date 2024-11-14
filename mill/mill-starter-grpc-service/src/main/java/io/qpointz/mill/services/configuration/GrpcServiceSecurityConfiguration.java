@@ -1,6 +1,6 @@
 package io.qpointz.mill.services.configuration;
 
-import io.qpointz.mill.proto.MillServiceGrpc;
+import io.qpointz.mill.proto.DataConnectServiceGrpc;
 import io.qpointz.mill.security.annotations.ConditionalOnSecurity;
 import io.qpointz.mill.security.authentication.AuthenticationMethods;
 import io.qpointz.mill.security.authentication.AuthenticationType;
@@ -73,7 +73,7 @@ public class GrpcServiceSecurityConfiguration {
     @Bean
     GrpcSecurityMetadataSource grpcSecurityMetadataSource() {
         val source = new ManualGrpcSecurityMetadataSource();
-        source.set(MillServiceGrpc.getServiceDescriptor(), AccessPredicate.authenticated());
+        source.set(DataConnectServiceGrpc.getServiceDescriptor(), AccessPredicate.authenticated());
         return source;
     }
 

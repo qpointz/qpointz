@@ -16,9 +16,9 @@ from grpclib.client import Channel
 from millclient import utils
 from millclient.auth import MillCallCredentials
 from millclient.exceptions import MillServerError, MillError
-from millclient.proto.io.qpointz.mill import AsyncIterator, List, MillServiceStub, HandshakeRequest, \
+from millclient.proto.io.qpointz.mill import AsyncIterator, List, HandshakeRequest, \
     HandshakeResponse, ListSchemasRequest, ListSchemasResponse, GetSchemaRequest, GetSchemaResponse, \
-    SqlStatement, QueryExecutionConfig, QueryResultResponse, QueryRequest
+    SqlStatement, QueryExecutionConfig, QueryResultResponse, QueryRequest, DataConnectServiceStub
 
 
 class AuthType(enum.Enum):
@@ -64,9 +64,6 @@ class MillQuery(object):
 
 
 class MillSqlQuery(MillQuery):
-    pass
-
-class MillServiceImpl:
     pass
 
 
@@ -161,7 +158,7 @@ class MillClient(object):
 
 class MillGrpcClient(MillClient):
 
-    def __init__(self, stub: MillServiceStub, event_loop: AbstractEventLoop | None = None):
+    def __init__(self, stub: DataConnectServiceStub, event_loop: AbstractEventLoop | None = None):
         super().__init__(event_loop)
         self.__svc = stub
 
@@ -305,7 +302,7 @@ def create_client(*, channel: Channel = None, creds: MillCallCredentials = None,
             channel = Channel(host = host, port = port, ssl= ssl)
         if creds:
             metadata.update(creds.get_metadata())
-        stub = MillServiceStub(channel=channel, metadata = metadata)
+        stub = DataConnectServiceStub(channel=channel, metadata = metadata)
         return MillGrpcClient(stub=stub, event_loop=el)
 
     def create_http_client(el:AbstractEventLoop, ssl: bool, host: str, port: int, base_path: str, metadata: MetadataLike):

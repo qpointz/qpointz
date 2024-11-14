@@ -1,7 +1,7 @@
 package io.qpointz.mill.services.calcite;
 
 
-import io.qpointz.mill.proto.MillServiceGrpc;
+import io.qpointz.mill.proto.DataConnectServiceGrpc;
 import io.qpointz.mill.services.*;
 import io.qpointz.mill.services.calcite.configuration.CalciteServiceConfiguration;
 import io.qpointz.mill.proto.HandshakeRequest;
@@ -34,7 +34,7 @@ public abstract class BaseTest {
     protected CalciteContextFactory ctxFactory;
 
     @GrpcClient("test-service-calcite")
-    protected MillServiceGrpc.MillServiceBlockingStub blockingStub;
+    protected DataConnectServiceGrpc.DataConnectServiceBlockingStub blockingStub;
 
     @Test
     void checkConnection() throws Exception {

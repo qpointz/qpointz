@@ -35,7 +35,7 @@ class MillGrpcServiceExecuteTest extends MillGrpcServiceBaseTest {
     }
 
 
-    void parseSqlFails(MillServiceGrpc.MillServiceBlockingStub stub,
+    void parseSqlFails(DataConnectServiceGrpc.DataConnectServiceBlockingStub stub,
                        SqlProvider sqlProvider,
                        SqlProvider.PlanParseResult planParseResult,
                        String sql) {
@@ -49,7 +49,7 @@ class MillGrpcServiceExecuteTest extends MillGrpcServiceBaseTest {
     }
 
     @Test
-    void parseSqlWithExceptionTest(@Autowired MillServiceGrpc.MillServiceBlockingStub stub,
+    void parseSqlWithExceptionTest(@Autowired DataConnectServiceGrpc.DataConnectServiceBlockingStub stub,
                                    @Autowired SqlProvider sqlProvider) {
         val sql = "SELECT * FROM A";
         //fail on success only
@@ -59,7 +59,7 @@ class MillGrpcServiceExecuteTest extends MillGrpcServiceBaseTest {
     }
 
     @Test
-    void parseSqlTest(@Autowired MillServiceGrpc.MillServiceBlockingStub stub,
+    void parseSqlTest(@Autowired DataConnectServiceGrpc.DataConnectServiceBlockingStub stub,
                       @Autowired SqlProvider sqlProvider) {
         val sql = "SELECT * FROM A";
         val relPlan = io.substrait.plan.ImmutablePlan.builder()
@@ -84,7 +84,7 @@ class MillGrpcServiceExecuteTest extends MillGrpcServiceBaseTest {
     }
 
     @Test
-    void execSqlparseFailToParseTest(@Autowired MillServiceGrpc.MillServiceBlockingStub stub,
+    void execSqlparseFailToParseTest(@Autowired DataConnectServiceGrpc.DataConnectServiceBlockingStub stub,
                                      @Autowired SqlProvider sqlProvider) {
         val sql = "SELECT * FROM A";
         val th = new RuntimeException("non sql");
@@ -102,10 +102,10 @@ class MillGrpcServiceExecuteTest extends MillGrpcServiceBaseTest {
     }
 
     @Test
-    void execSqlTestSimple(@Autowired MillServiceGrpc.MillServiceBlockingStub stub,
-                                  @Autowired SqlProvider sqlProvider,
-                                  @Autowired ExecutionProvider execProvider,
-                                  @Autowired PlanRewriteChain planRewriteChain) throws ClassNotFoundException {
+    void execSqlTestSimple(@Autowired DataConnectServiceGrpc.DataConnectServiceBlockingStub stub,
+                            @Autowired SqlProvider sqlProvider,
+                            @Autowired ExecutionProvider execProvider,
+                            @Autowired PlanRewriteChain planRewriteChain) throws ClassNotFoundException {
         String query = "SELECT * FROM A";
         Plan plan = ImmutablePlan.builder().build();
         val sqlRequest = sqlExecuteRequest(query).build();
@@ -125,7 +125,7 @@ class MillGrpcServiceExecuteTest extends MillGrpcServiceBaseTest {
     }
 
     @Test
-    void execPlanTest(@Autowired MillServiceGrpc.MillServiceBlockingStub stub,
+    void execPlanTest(@Autowired DataConnectServiceGrpc.DataConnectServiceBlockingStub stub,
                              @Autowired ExecutionProvider execProvider ) throws ClassNotFoundException {
         val db = H2Db.createFromResource("sql-scripts/test.sql");
         val rs = db.query("SELECT * from T1");
@@ -142,7 +142,7 @@ class MillGrpcServiceExecuteTest extends MillGrpcServiceBaseTest {
     }
 
     @Test
-    void emptyResultShouldReturnOneBlockWithSchema(@Autowired MillServiceGrpc.MillServiceBlockingStub stub,
+    void emptyResultShouldReturnOneBlockWithSchema(@Autowired DataConnectServiceGrpc.DataConnectServiceBlockingStub stub,
                       @Autowired ExecutionProvider execProvider ) throws ClassNotFoundException {
         val db = H2Db.createFromResource("sql-scripts/test.sql");
         val rs = db.query("SELECT * from T1 WHERE 1=2");

@@ -1,6 +1,6 @@
 package io.qpointz.mill.services;
 
-import io.qpointz.mill.proto.MillServiceGrpc;
+import io.qpointz.mill.proto.DataConnectServiceGrpc;
 import io.qpointz.mill.proto.QueryExecutionConfig;
 import io.qpointz.mill.proto.QueryRequest;
 import io.qpointz.mill.vectors.sql.ResultSetVectorBlockIterator;
@@ -26,7 +26,7 @@ class MillGrpcServiceRewriteTest extends MillGrpcServiceBaseTest {
 
     @Test
     @Disabled("Irrelevant test. Subject to review")
-    void execPlanTest(@Autowired MillServiceGrpc.MillServiceBlockingStub stub,
+    void execPlanTest(@Autowired DataConnectServiceGrpc.DataConnectServiceBlockingStub stub,
                       @Autowired ExecutionProvider execProvider,
                       @Autowired PlanRewriteChain chain) throws ClassNotFoundException {
         val db = H2Db.createFromResource("sql-scripts/test.sql");

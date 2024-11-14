@@ -65,9 +65,9 @@ public class GrpcMillClient extends MillClient implements AutoCloseable {
         //no associated closable resources
     }
 
-    private MillServiceGrpc.MillServiceBlockingStub blockingStub() {
+    private DataConnectServiceGrpc.DataConnectServiceBlockingStub blockingStub() {
         val channel = this.createChannel();
-        return MillServiceGrpc.newBlockingStub(channel);
+        return DataConnectServiceGrpc.newBlockingStub(channel);
     }
 
     private static final ConcurrentMap<MillClientConfiguration, ManagedChannel> channels = new ConcurrentHashMap<>();

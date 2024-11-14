@@ -22,7 +22,7 @@ import java.util.function.Supplier;
 @GrpcService
 @SpringBootApplication
 @ConditionalOnService("grpc")
-public class MillGrpcService extends MillServiceGrpc.MillServiceImplBase {
+public class MillGrpcService extends DataConnectServiceGrpc.DataConnectServiceImplBase {
 
     @Bean
     public static SecurityProvider securityProvider() {

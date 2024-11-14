@@ -1,11 +1,12 @@
 package io.qpointz.mill.services;
 
-import io.qpointz.mill.proto.MillServiceGrpc;
+import io.qpointz.mill.proto.DataConnectServiceGrpc;
 import io.substrait.extension.SimpleExtension;
 import lombok.val;
 import net.devh.boot.grpc.client.autoconfigure.GrpcClientAutoConfiguration;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import net.devh.boot.grpc.server.autoconfigure.GrpcAdviceAutoConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,7 +31,7 @@ public class MillServiceBaseTestConfiguration {
     }
 
     @GrpcClient("test")
-    public MillServiceGrpc.MillServiceBlockingStub blockingStub;
+    public DataConnectServiceGrpc.DataConnectServiceBlockingStub blockingStub;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -38,7 +39,7 @@ public class MillServiceBaseTestConfiguration {
     }
 
     @Bean
-    public MillServiceGrpc.MillServiceBlockingStub blockingStub() {
+    public DataConnectServiceGrpc.DataConnectServiceBlockingStub blockingStub() {
         return blockingStub;
     }
 

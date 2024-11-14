@@ -18,14 +18,14 @@ class MillGrpcServiceMetadataTest extends MillGrpcServiceBaseTest {
 
 
     @Test
-    void handshakeTest(@Autowired MillServiceGrpc.MillServiceBlockingStub stub) {
+    void handshakeTest(@Autowired DataConnectServiceGrpc.DataConnectServiceBlockingStub stub) {
         val on = stub.handshake(HandshakeRequest.getDefaultInstance());
         assertFalse(on.getCapabilities().getSupportSql());
         assertEquals(ProtocolVersion.V1_0, on.getVersion());
     }
 
     @Test
-    void listSchemas(@Autowired MillServiceGrpc.MillServiceBlockingStub stub,
+    void listSchemas(@Autowired DataConnectServiceGrpc.DataConnectServiceBlockingStub stub,
                      @Autowired MetadataProvider metadataProvider) {
         val exp = List.of("A", "B", "C");
         when(metadataProvider.getSchemaNames()).thenReturn(exp);
@@ -35,7 +35,7 @@ class MillGrpcServiceMetadataTest extends MillGrpcServiceBaseTest {
     }
 
     @Test
-    void getMissingSchema(@Autowired MillServiceGrpc.MillServiceBlockingStub stub,
+    void getMissingSchema(@Autowired DataConnectServiceGrpc.DataConnectServiceBlockingStub stub,
                           @Autowired MetadataProvider metadataProvider) {
         when(metadataProvider.isSchemaExists(any())).thenReturn(false);
         val request = GetSchemaRequest.getDefaultInstance();
@@ -46,7 +46,7 @@ class MillGrpcServiceMetadataTest extends MillGrpcServiceBaseTest {
     }
 
     @Test
-    void getSchema(@Autowired MillServiceGrpc.MillServiceBlockingStub stub,
+    void getSchema(@Autowired DataConnectServiceGrpc.DataConnectServiceBlockingStub stub,
                    @Autowired DataOperationDispatcher dataOperationDispatcher,
                    @Autowired MetadataProvider metadataProvider) {
         val schema = Schema.newBuilder().build();

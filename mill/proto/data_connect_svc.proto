@@ -10,7 +10,7 @@ import "common.proto";
 import "statement.proto";
 import "vector.proto";
 
-service MillService {
+service DataConnectService {
   rpc Handshake (HandshakeRequest) returns (HandshakeResponse);
   rpc ListSchemas(ListSchemasRequest) returns (ListSchemasResponse);
   rpc GetSchema(GetSchemaRequest) returns (GetSchemaResponse);
@@ -20,8 +20,6 @@ service MillService {
   rpc ExecQuery(QueryRequest) returns(stream QueryResultResponse);
   rpc SubmitQuery(QueryRequest) returns (QueryResultResponse);
   rpc FetchQueryResult(QueryResultRequest) returns (QueryResultResponse);
-
-
 }
 
 message HandshakeRequest {

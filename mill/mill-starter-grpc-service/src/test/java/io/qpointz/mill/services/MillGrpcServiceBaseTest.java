@@ -1,6 +1,6 @@
 package io.qpointz.mill.services;
 
-import io.qpointz.mill.proto.MillServiceGrpc;
+import io.qpointz.mill.proto.DataConnectServiceGrpc;
 import io.qpointz.mill.proto.ParseSqlRequest;
 import io.qpointz.mill.proto.QueryRequest;
 import io.qpointz.mill.proto.SQLStatement;
@@ -53,7 +53,7 @@ public abstract class MillGrpcServiceBaseTest {
     @Test
     public void testContext(@Autowired SqlProvider sqlProvider, @Autowired MetadataProvider metadataProvider,
                             @Autowired ExecutionProvider executionProvider, @Autowired MillGrpcService millGrpcService,
-                            @Autowired MillServiceGrpc.MillServiceBlockingStub blocking, @Autowired PasswordEncoder passwordEncoder) {
+                            @Autowired DataConnectServiceGrpc.DataConnectServiceBlockingStub blocking, @Autowired PasswordEncoder passwordEncoder) {
         assertNotNull(sqlProvider);
         assertNotNull(metadataProvider);
         assertNotNull(executionProvider);
