@@ -6,6 +6,7 @@ import io.qpointz.mill.types.physical.I32Physical;
 public final class IntervalDayLogical implements LogicalType<Integer, I32Physical> {
 
     public static final IntervalDayLogical INSTANCE = new IntervalDayLogical();
+    public static final int DEFAULT_PRECISION = 4;
 
     @Override
     public <T> T accept(LogicalTypeShuttle<T> shuttle) {
@@ -15,6 +16,10 @@ public final class IntervalDayLogical implements LogicalType<Integer, I32Physica
     @Override
     public I32Physical getPhysicalType() {
         return I32Physical.INSTANCE;
+    }
+
+    public int precision() {
+        return DEFAULT_PRECISION;
     }
 
     @Override

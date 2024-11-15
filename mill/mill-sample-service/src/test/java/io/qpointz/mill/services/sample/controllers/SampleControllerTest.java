@@ -47,5 +47,15 @@ class SampleControllerTest {
         log.info(result.getResponse().getContentAsString());
     }
 
+    @Test
+    void getData() throws Exception {
+        val result = mockMvc.perform(MockMvcRequestBuilders
+                .get("/sample/data/ts/TEST")
+                .accept(MediaType.APPLICATION_JSON)
+        ).andReturn();
+        assertEquals(200, result.getResponse().getStatus());
+        log.info(result.getResponse().getContentAsString());
+    }
+
 
 }

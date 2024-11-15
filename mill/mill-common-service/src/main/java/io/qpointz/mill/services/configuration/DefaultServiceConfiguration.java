@@ -20,6 +20,7 @@ public class DefaultServiceConfiguration {
         return new ServiceHandler(dataOperationDispatcher, securityDispatcher, resultAllocator, substraitDispatcher);
     }
 
+
     @Bean
     public ResultAllocator resultAllocator() {
         return new ResultAllocatorImpl();
@@ -50,6 +51,11 @@ public class DefaultServiceConfiguration {
     @Bean
     public PlanRewriteChain planRewriteChain(List<PlanRewriter> rewriters) {
         return new PlanRewriteChain(rewriters);
+    }
+
+    @Bean
+    public PlanDispatcher planDispatcher(SimpleExtension.ExtensionCollection extensionCollection, MetadataProvider metadataProvider) {
+        return new PlanDispatcherImpl(extensionCollection, metadataProvider);
     }
 
 
