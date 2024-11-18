@@ -32,6 +32,9 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
     @Getter
     private final String path;
 
+    @Getter
+    private final String authenticationHeaderValue;
+
     @Getter(lazy = true)
     private final String requestUrl = buildUrl();
 
@@ -89,6 +92,14 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
                 this.protocol(config.getProtocol());
             }
 
+            if (config.getBearerToken()!=null && !config.getBearerToken().isEmpty()) {
+                this.useBearerToken(config.getBearerToken());
+            } else if (config.getUsername()!=null && !config.getUsername().isEmpty() && config.getPassword()!=null && !config.getPassword().isEmpty()) {
+                this.useBasicAuthentication(config.getUsername(), config.getPassword());
+            } else {
+                this.authenticationHeaderValue = null;
+            }
+
             return this;
         }
 
@@ -100,6 +111,16 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
                     .port(uri.getPort())
                     .path(uri.getPath());
         }
+
+        public HttpMillClientBuilder useBasicAuthentication(String username, String password) {
+            val headerValue = MillClientCallCredentials.basicAuthHeaderValue(username, password);
+            return this.authenticationHeaderValue(headerValue);
+        }
+
+        public HttpMillClientBuilder useBearerToken(String bearerToken) {
+            val headerValue = MillClientCallCredentials.bearerTokenHeaderValue(bearerToken);
+            return this.authenticationHeaderValue(headerValue);
+        }
     }
 
     private static final okhttp3.MediaType JSON = okhttp3.MediaType.get("application/json");
@@ -107,13 +128,15 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
     @SneakyThrows
     private <T extends Message> T post(String path, Message message, Function<byte[], T> produce) {
         val jsonMessage = JsonFormat.printer().print(message);
-        val req = new Request.Builder()
+        val builder = new Request.Builder()
                 .url(this.requestUrl(path))
                 .post(RequestBody.create(jsonMessage.getBytes()))
                 .addHeader("Content-Type", "application/json")
-                .addHeader("Accept", "application/protobuf")
-                .build();
-
+                .addHeader("Accept", "application/protobuf");
+        if (authenticationHeaderValue!=null) {
+            builder.addHeader("Authorization", this.getAuthenticationHeaderValue());
+        }
+        val req = builder.build();
         val call = this.getHttpClient().newCall(req);
         try {
             val resp = call.execute();

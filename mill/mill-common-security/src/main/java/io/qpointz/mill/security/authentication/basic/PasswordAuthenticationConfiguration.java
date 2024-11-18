@@ -4,6 +4,7 @@ import io.qpointz.mill.security.annotations.ConditionalOnSecurity;
 import io.qpointz.mill.security.authentication.AuthenticationMethod;
 import io.qpointz.mill.security.authentication.basic.providers.UserRepo;
 import io.qpointz.mill.security.authentication.basic.providers.UserRepoAuthenticationProvider;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -17,6 +18,7 @@ import java.io.IOException;
 
 @Configuration
 @ConditionalOnSecurity
+@Slf4j
 public class PasswordAuthenticationConfiguration {
 
     @Bean
@@ -25,7 +27,7 @@ public class PasswordAuthenticationConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(prefix = "mill.security.authentication.basic", name = "file-store")
+    @ConditionalOnProperty(prefix = "mill.security.authentication.basic", name = "enable")
     public AuthenticationMethod fileStoreAuthMethod(
             @Value("${mill.security.authentication.basic.file-store}") String pathToFileStore,
             ResourceLoader resourceLoader,

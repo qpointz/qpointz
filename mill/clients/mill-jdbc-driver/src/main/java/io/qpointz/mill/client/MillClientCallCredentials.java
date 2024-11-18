@@ -4,6 +4,7 @@ import io.grpc.CallCredentials;
 import io.grpc.Metadata;
 import lombok.AllArgsConstructor;
 import lombok.val;
+import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -20,16 +21,25 @@ public class MillClientCallCredentials extends CallCredentials {
     }
 
     public static MillClientCallCredentials basicCredentials(String username, String password) {
+        final var headerValue = basicAuthHeaderValue(username, password);
+        return withAuthorizationHeader(headerValue);
+    }
+
+    @NotNull
+    public static String basicAuthHeaderValue(String username, String password) {
         val authBytes = String.format("%s:%s", username, password)
                 .getBytes(StandardCharsets.UTF_8);
         val authEncoded = Base64.getEncoder().encodeToString(authBytes);
         val headerValue = String.format("Basic %s", authEncoded);
-        return withAuthorizationHeader(headerValue);
+        return headerValue;
+    }
+
+    public static String bearerTokenHeaderValue(String token) {
+        return String.format("Bearer %s", token);
     }
 
     public static MillClientCallCredentials bearerTokenCredentials(String token) {
-        val headerValue = String.format("Bearer %s", token);
-        return withAuthorizationHeader(headerValue);
+        return withAuthorizationHeader(bearerTokenHeaderValue(token));
     }
 
     private static MillClientCallCredentials withAuthorizationHeader(String headerValue) {
