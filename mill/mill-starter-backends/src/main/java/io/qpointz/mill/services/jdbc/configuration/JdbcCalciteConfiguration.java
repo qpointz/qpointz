@@ -9,6 +9,7 @@ import io.qpointz.mill.services.calcite.providers.CalciteMetadataProvider;
 import io.qpointz.mill.services.calcite.providers.CalcitePlanConverter;
 import io.qpointz.mill.services.calcite.providers.CalciteSqlProvider;
 import io.qpointz.mill.services.calcite.providers.PlanConverter;
+import io.qpointz.mill.services.configuration.BackendConfiguration;
 import io.qpointz.mill.services.dispatchers.SubstraitDispatcher;
 import io.qpointz.mill.services.jdbc.providers.JdbcCalciteContextFactory;
 import io.qpointz.mill.services.jdbc.providers.JdbcContext;
@@ -20,11 +21,14 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.val;
 import org.apache.calcite.sql.SqlDialect;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -34,18 +38,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
-@Configuration
-@ConfigurationProperties(prefix = "mill.backend")
+@Component
 @ConditionalOnProperty(prefix = "mill.backend", name="provider", havingValue = "jdbc")
+@EnableConfigurationProperties
+@ConfigurationProperties(prefix="mill.backend.jdbc")
 public class JdbcCalciteConfiguration {
-
-    @Getter
-    @Value("${mill.backend.provider}")
-    private String  providerName;
-
-    @Getter
-    @Setter
-    private Map<String, String> connection;
 
     @Getter
     @Setter
@@ -59,6 +56,7 @@ public class JdbcCalciteConfiguration {
 
     @Getter
     @Setter
+    @Value("${mill.backend.jdbc.dialect:#{null}}")
     private String dialect;
 
     @Getter
@@ -109,9 +107,9 @@ public class JdbcCalciteConfiguration {
     }
 
     @Bean
-    public CalciteContextFactory calciteContextFactory() {
+    public CalciteContextFactory calciteContextFactory(BackendConfiguration backendConfiguration) {
         val props = new Properties();
-        props.putAll(connection);
+        props.putAll(backendConfiguration.getConnection());
         return new JdbcCalciteContextFactory(props, this, this.targetSchema);
     }
 

@@ -1,0 +1,301 @@
+stock_id;ticker;company_name;sector;exchange
+5936;AISW;Colon, Gonzalez and Montgomery;Energy;HKEX
+8947;BTGX;Brown, Molina and Edwards;Healthcare;NASDAQ
+2801;OXLC;Jones-Allen;Retail;NASDAQ
+8605;EUJM;Padilla-Oliver;Retail;HKEX
+3265;CBGJ;Allen PLC;Finance;NASDAQ
+6887;LQRL;Ewing, King and Sullivan;Healthcare;HKEX
+5493;BWOW;Hall and Sons;Energy;LSE
+3596;MPMI;Jones, Armstrong and Hanson;Retail;NASDAQ
+7020;AKUB;Avila PLC;Retail;NYSE
+6355;SUEB;Morales LLC;Energy;NASDAQ
+4885;WGWE;Hobbs-Franklin;Energy;LSE
+6456;WDEN;Fowler, Hoffman and Murphy;Energy;HKEX
+1383;SBWO;Olsen-Villa;Energy;HKEX
+2148;UBMF;Jensen, Wiggins and Flynn;Finance;NYSE
+2984;TUKD;Duncan LLC;Finance;LSE
+5653;XXRY;Wright, Forbes and Fox;Finance;LSE
+1471;JCKO;Fernandez, Freeman and Yoder;Healthcare;HKEX
+8291;SAMJ;Walker-Logan;Technology;NASDAQ
+1184;KPFW;Washington PLC;Finance;LSE
+6606;ABNB;Smith, Calderon and Arnold;Retail;NYSE
+3853;EODH;Golden-Hopkins;Energy;NYSE
+7451;KGHD;Kelly-Rogers;Healthcare;HKEX
+3066;SWEK;Williams PLC;Healthcare;HKEX
+9804;RXWR;Washington Group;Healthcare;LSE
+4261;DXEB;Cunningham Inc;Healthcare;NASDAQ
+6810;CQAZ;Riley, Porter and Camacho;Technology;NYSE
+7700;QOIP;Wilson, Castaneda and Harrell;Energy;NASDAQ
+9670;KUSI;Fisher LLC;Retail;HKEX
+2911;ZDVO;Matthews, Hoffman and Hendricks;Technology;HKEX
+4853;RFIK;Leon Group;Healthcare;NYSE
+9998;BQBT;Garcia-Wise;Retail;HKEX
+5045;RELB;Huang Group;Healthcare;HKEX
+5292;WUVU;Mendez and Sons;Retail;LSE
+3330;ZNIC;Novak Ltd;Healthcare;NYSE
+6397;EQYK;Austin Group;Technology;NASDAQ
+5782;LJAU;Singh, Williams and Austin;Finance;LSE
+5091;FCWP;Montes PLC;Energy;NYSE
+5463;NQLA;Hutchinson, Phillips and Allen;Healthcare;LSE
+1525;SWAG;Mitchell LLC;Retail;NYSE
+3821;UOGS;Lopez-Fernandez;Technology;LSE
+2229;RSLB;Williams PLC;Finance;LSE
+8492;BBQV;Moore, Welch and Morales;Healthcare;NYSE
+4336;YWVO;Johnston, Smith and Torres;Healthcare;LSE
+3133;FXCX;Thomas, Zimmerman and Morrow;Healthcare;LSE
+3215;DDFY;Smith, Schneider and Wall;Energy;HKEX
+3980;MULT;Guerra, Smith and Davies;Technology;HKEX
+5861;ODXA;Brandt Inc;Healthcare;LSE
+7729;VEWW;Butler Group;Energy;LSE
+6355;MQYV;Pittman Ltd;Retail;NYSE
+2385;XHPJ;Sheppard, Keith and Davis;Technology;HKEX
+4783;TMWW;Becker-Rodriguez;Retail;NYSE
+7808;CUMN;Sweeney Ltd;Healthcare;NYSE
+8194;THPO;Campbell, Short and Blake;Energy;NASDAQ
+7594;OYEW;Perez, Bowers and Moody;Energy;HKEX
+5003;HUAH;Petty PLC;Retail;HKEX
+5561;ICMQ;Cooke-Vargas;Energy;LSE
+9379;FEJN;Clark, Perez and Hopkins;Healthcare;HKEX
+6154;YWCC;Mueller-Dixon;Retail;HKEX
+1204;ELWO;Mccullough, Ford and Nguyen;Energy;NYSE
+1122;RJQB;Davis-Thomas;Technology;NYSE
+4845;PJOM;Brown PLC;Retail;HKEX
+6576;JAVY;Hill and Sons;Energy;NASDAQ
+3651;UAUH;Schultz PLC;Finance;NYSE
+9940;GAOA;Martin Inc;Technology;LSE
+7098;VFWQ;Wagner, Gutierrez and Kennedy;Energy;NYSE
+8724;XZLQ;Martin-Ochoa;Technology;NASDAQ
+5440;LMJH;Goodman, Castaneda and Snyder;Retail;LSE
+8219;BFEC;Sanders Group;Healthcare;HKEX
+8535;CCJX;Montgomery Ltd;Healthcare;HKEX
+2947;KANM;Bates, Lewis and Adams;Retail;NASDAQ
+5244;WPWR;Contreras, Owens and Griffin;Technology;NYSE
+6113;ICXM;Bradley, Walker and Barker;Technology;NYSE
+9202;DAXP;Gonzalez-Jones;Technology;HKEX
+3866;HDQH;Pierce, Velez and Ward;Healthcare;NYSE
+3951;OFOV;Lynch-Reynolds;Technology;HKEX
+9929;ZGDB;Morris-Arias;Healthcare;NASDAQ
+9913;OIMC;Brown PLC;Retail;LSE
+1740;JPBZ;Greer Ltd;Energy;NASDAQ
+5631;UFYE;Thompson LLC;Energy;NASDAQ
+1646;NTMW;Cannon, Banks and Miranda;Energy;NYSE
+2372;YSWK;Tucker, Johnson and Coleman;Technology;NYSE
+6573;XEUR;Bates, Walters and Hendricks;Finance;LSE
+9164;ITOP;Wheeler-Lee;Retail;NYSE
+7424;UQFV;Rodriguez, Moreno and Munoz;Healthcare;HKEX
+7996;LRYJ;Oliver PLC;Retail;NASDAQ
+1182;WCIX;Nelson PLC;Energy;HKEX
+3642;KRDY;Norris, Rangel and Collins;Retail;NYSE
+4990;FLZO;Russell, Williams and Davis;Energy;NYSE
+9679;CWRJ;Neal, Acosta and Taylor;Retail;LSE
+9265;EYTB;Watson-Steele;Finance;LSE
+1943;IQMS;Hansen Inc;Retail;NYSE
+3529;HMQV;Patton Group;Technology;NASDAQ
+9169;IIAC;Lyons, Jensen and Dixon;Finance;HKEX
+8926;GHMC;Morgan-Meyer;Technology;LSE
+7803;NDWS;Wilson, Day and Martin;Energy;HKEX
+7827;PSUJ;Johnson-Jackson;Energy;NYSE
+2673;TTJR;Reed, Taylor and Lester;Energy;LSE
+8128;VCGB;Harris, Gray and Long;Energy;HKEX
+5104;ZQZO;Perez-Shea;Retail;NASDAQ
+4298;OTSI;James, Christensen and Mitchell;Technology;NASDAQ
+4210;OTUO;Petersen-Robinson;Healthcare;LSE
+1685;VFKH;Guzman-Johnson;Energy;LSE
+9284;MCNC;Mooney, Hill and Williams;Technology;NASDAQ
+8551;RRCD;Parker LLC;Technology;NYSE
+7637;LHXY;Davila-Hoffman;Healthcare;NYSE
+3444;FQEH;Collins Inc;Energy;HKEX
+7282;OCDJ;Hayes-Ward;Retail;NASDAQ
+6039;VKST;Flores-Turner;Technology;NYSE
+1506;WMDT;Rogers PLC;Energy;NYSE
+9279;BCNL;Young, Peterson and Clark;Retail;NYSE
+9913;HGMC;Bell-Russell;Technology;NYSE
+7051;OILU;Wagner LLC;Retail;HKEX
+6747;CUJA;Gordon Inc;Energy;NASDAQ
+8077;COVM;Johnson Group;Finance;LSE
+6089;OLDA;Smith-Guzman;Technology;HKEX
+6587;GDMW;Barrera, Alvarez and Martin;Healthcare;NYSE
+8441;OCTV;Mcdaniel Group;Finance;NASDAQ
+1757;EHCS;Schultz LLC;Finance;HKEX
+8850;XRLP;Harper Inc;Technology;NASDAQ
+1885;YUTN;Johnson, Vaughn and Green;Finance;HKEX
+5530;KBRF;Cook-Webb;Energy;LSE
+5995;PVPM;Rivera PLC;Energy;NYSE
+8225;DVFP;Lee-Mckinney;Healthcare;HKEX
+6447;REFG;Davis, Barnes and Alvarez;Retail;NYSE
+6266;TQIS;Schwartz, Moss and Townsend;Technology;NASDAQ
+8154;YNOP;Haynes PLC;Energy;HKEX
+2615;BQZC;Hudson Inc;Healthcare;LSE
+1108;WYNF;Anderson Group;Retail;LSE
+8426;NWTY;Smith, Williams and Strickland;Technology;LSE
+8145;WHTO;Matthews-Roberts;Energy;NASDAQ
+4773;HPCW;Thomas-Davis;Finance;NASDAQ
+9748;BEOU;Lewis-Oliver;Finance;LSE
+2340;XTVR;Alexander, Conley and Hall;Healthcare;HKEX
+6018;FLEM;Brooks-Morgan;Healthcare;NASDAQ
+2153;VMBK;Rodriguez Inc;Technology;LSE
+4880;OFTY;Hatfield LLC;Energy;NASDAQ
+4227;XBGK;Garrett Ltd;Energy;HKEX
+3749;ZTMQ;Campbell, Brooks and Lane;Healthcare;NYSE
+9635;OTYX;Miller, Parker and Alexander;Retail;HKEX
+7843;ZOZG;Murray Ltd;Retail;NASDAQ
+9955;JEGB;Stokes, Long and Whitehead;Healthcare;NYSE
+5889;VYPP;Moore-Frazier;Finance;NASDAQ
+8562;OLQP;Davenport-Rogers;Retail;HKEX
+8676;CMJH;Carlson, Harris and Neal;Healthcare;LSE
+7687;MEVO;Mcdonald LLC;Energy;HKEX
+7616;JJQM;Brown-Hartman;Finance;NASDAQ
+1066;SQZI;Waters and Sons;Energy;LSE
+3828;LCBD;Donovan, Smith and Conner;Retail;LSE
+7244;ISPY;Owens-Hawkins;Healthcare;NYSE
+5402;GYHD;Higgins-Matthews;Retail;HKEX
+9555;ZITV;Mckenzie and Sons;Technology;HKEX
+3359;YQQX;Hayes, Pruitt and Anderson;Technology;NASDAQ
+5518;AWJY;Fields-Walker;Healthcare;HKEX
+9754;UOWA;Bryant Group;Retail;HKEX
+2945;LNUQ;Taylor-White;Energy;NASDAQ
+3818;KANG;Perry Inc;Technology;LSE
+4845;UBBK;Davila-Mitchell;Retail;NASDAQ
+2136;MUJR;Gordon-Clark;Finance;HKEX
+5490;ETBK;Archer and Sons;Finance;LSE
+3927;EXZY;Harvey-Maldonado;Finance;NYSE
+5248;DQQR;Reyes Ltd;Finance;NASDAQ
+4339;DGHA;Castillo-Saunders;Retail;HKEX
+4653;ICNO;Warren, Perez and Alvarez;Healthcare;LSE
+8159;XLJL;Tucker Inc;Technology;LSE
+1329;CEMJ;Smith-Morrow;Finance;NYSE
+8804;PLMZ;Miller, Clark and Curtis;Energy;NASDAQ
+1862;VVNH;Vazquez Inc;Healthcare;HKEX
+1550;TGMY;Watson-Watson;Finance;LSE
+5728;VPEY;Solis, Stone and Salazar;Retail;LSE
+3824;GETW;Watson, Summers and Clark;Technology;NASDAQ
+4079;BRKR;Stephenson, Perkins and Martin;Finance;HKEX
+2510;OFTZ;Parker Inc;Finance;LSE
+8792;BKGN;Christensen-Wilson;Retail;HKEX
+6294;PHMM;Lawson and Sons;Energy;NASDAQ
+9149;OWOI;Carpenter Inc;Healthcare;LSE
+4183;BONR;Baird Group;Healthcare;HKEX
+3443;PAAR;Myers, Ramsey and Martin;Energy;NYSE
+3426;ENHW;Martin-Mann;Energy;HKEX
+1641;UIWS;Chase-Fischer;Finance;HKEX
+3297;XOXW;Hill-Snyder;Healthcare;LSE
+6457;LKIZ;Gonzalez, Jordan and Parker;Energy;NYSE
+7252;XKIJ;Pennington, White and Chambers;Finance;NASDAQ
+2122;WABA;Davis Group;Finance;NASDAQ
+5719;KMZB;Martinez and Sons;Finance;LSE
+3441;OKYO;Beck, Cherry and Davis;Technology;NYSE
+6230;IDQE;Harris, Guerra and Glenn;Technology;NYSE
+6202;HKCJ;Byrd-Klein;Energy;LSE
+1168;QFBX;Anderson Group;Finance;HKEX
+2303;ATKF;Case-Ward;Healthcare;NASDAQ
+4085;UFMT;Holder-Smith;Finance;NASDAQ
+2287;FTXI;Wilson-Allen;Technology;HKEX
+6778;GGWH;Jones Group;Energy;NYSE
+6563;VBKZ;Newman, Todd and Wolfe;Energy;LSE
+3937;ZPFB;Ramirez, Collins and Smith;Technology;NASDAQ
+6190;UHFZ;Schwartz Ltd;Technology;NYSE
+7813;ZYGW;Peters, Guerrero and Smith;Healthcare;LSE
+4967;WTRX;Kennedy, Anderson and Roberts;Finance;HKEX
+8820;XASE;Spencer, Osborne and Watts;Finance;LSE
+1229;CCSZ;Mitchell Group;Technology;LSE
+9604;HUTA;Wood, White and Stuart;Retail;LSE
+1611;APUJ;Jones Ltd;Retail;NYSE
+5247;GRML;Taylor-Anderson;Technology;HKEX
+7409;SVYY;Cooper, Jones and Lambert;Technology;LSE
+7265;DRRC;Mccormick PLC;Finance;LSE
+3696;LVOO;Salinas, Garcia and Bentley;Retail;HKEX
+7762;GJTO;Carter, Holmes and Graham;Technology;HKEX
+8725;QLZR;Atkinson Ltd;Finance;NASDAQ
+4182;YLEP;Ray LLC;Energy;NYSE
+5047;ENKH;Mullins Group;Finance;NYSE
+9192;UPLQ;Nelson, Garner and Richards;Finance;NASDAQ
+3002;JYKD;Castillo, Schneider and Ferguson;Technology;HKEX
+4536;LFRB;Carrillo Ltd;Finance;LSE
+9743;GIEO;Gomez, Fletcher and Nguyen;Energy;LSE
+4777;WNZE;Ortiz, Shannon and Lopez;Healthcare;NYSE
+8731;KXBG;Booth-Olson;Finance;NYSE
+2703;VKIV;Chen-Farley;Healthcare;LSE
+7069;LEGI;Bishop-Thomas;Technology;NASDAQ
+4009;NKFO;Walton-Thompson;Retail;LSE
+5116;ZRPZ;Oneill, Conrad and Miller;Retail;HKEX
+3083;ZGSY;Yu-Smith;Healthcare;NASDAQ
+7850;OQXN;Campbell, Miller and Martin;Healthcare;NASDAQ
+5608;JEUE;Shaw, Brown and Black;Energy;NYSE
+8596;JTJT;Richardson PLC;Technology;NASDAQ
+1249;OABW;Meyers-Sloan;Technology;HKEX
+8374;SMBG;Miller Ltd;Healthcare;NASDAQ
+3333;DAGI;Miller-Ramos;Healthcare;NASDAQ
+4533;KVBY;Cummings, Bennett and Lopez;Energy;LSE
+6668;LJOZ;Roberts-Tate;Energy;NYSE
+5123;ZWFP;Swanson and Sons;Technology;NASDAQ
+2152;KKZW;Blake Ltd;Technology;NASDAQ
+7394;RDIX;Webster, Singleton and Blake;Healthcare;HKEX
+9195;EXUT;Kelley LLC;Healthcare;NASDAQ
+3175;PLYF;Vargas LLC;Technology;LSE
+4725;PVYS;Moran-Petty;Healthcare;NASDAQ
+2380;XOKN;Knight-Weaver;Energy;HKEX
+8814;CYCI;Allen, Koch and Carter;Healthcare;LSE
+2113;HSQK;Perez-Williams;Energy;NYSE
+3769;PWQY;Simmons-Vega;Healthcare;HKEX
+9822;FBZL;Martin, James and Osborn;Technology;LSE
+3645;ISFL;Mcguire Inc;Retail;NASDAQ
+9234;EQHA;Thompson, Johnson and Hartman;Energy;HKEX
+5208;ANGE;Lawrence Group;Finance;LSE
+8645;UHWJ;Hale PLC;Healthcare;HKEX
+6164;UOHI;Smith, Butler and Shannon;Healthcare;LSE
+5563;FIAM;Huynh, Snyder and Barnes;Technology;NASDAQ
+2659;AFAN;Jones, Swanson and Simmons;Technology;HKEX
+2460;CTQW;Jones-Sanchez;Retail;HKEX
+2253;GARQ;Walsh-Hoffman;Energy;NYSE
+5334;VLFJ;Powell Ltd;Technology;HKEX
+6864;LZHL;Crosby-Livingston;Retail;LSE
+6301;DADS;Davis, Larson and Mitchell;Energy;NYSE
+9275;KKIN;Price LLC;Technology;LSE
+1532;FZEH;Ballard-Allen;Energy;NASDAQ
+3314;NKXS;Velez-Jones;Retail;HKEX
+2355;JCYU;Myers, Walters and Hernandez;Retail;NYSE
+5625;LYXY;Sloan, Martin and Weaver;Healthcare;NYSE
+8308;OAAH;Landry PLC;Technology;HKEX
+9066;KEWZ;Hubbard and Sons;Finance;HKEX
+6146;BJBU;Moreno, Acosta and Wilson;Finance;LSE
+1006;CIRW;Christensen-Hansen;Technology;HKEX
+4736;EBBJ;Carter-Herrera;Energy;LSE
+8561;BAUG;Houston-Wilson;Finance;HKEX
+3914;NLXU;Berry-Richardson;Finance;NYSE
+9390;PNXN;Orr Inc;Retail;HKEX
+1082;EUAR;Cox, Evans and Richardson;Healthcare;NYSE
+2305;YDPE;Terrell-Smith;Technology;NYSE
+2811;CIVK;Ibarra PLC;Energy;LSE
+1301;VLKW;Jones-Hill;Healthcare;NASDAQ
+7991;DJYA;Rivers Ltd;Technology;NYSE
+1284;PEIC;Rodriguez-Cunningham;Energy;LSE
+9924;QBIH;Moreno and Sons;Energy;HKEX
+1671;ZHUS;Anderson and Sons;Technology;NYSE
+4485;TNRY;Stafford-Adams;Finance;NASDAQ
+1685;JINI;Campbell-Wilson;Energy;HKEX
+4437;VOLU;Mclaughlin Inc;Healthcare;NASDAQ
+1787;YJNH;Lin Ltd;Energy;NASDAQ
+4299;GTOH;Joseph-Johnson;Technology;LSE
+2635;IBIE;Garcia-Wagner;Energy;NYSE
+3995;NYVX;Cunningham-Daniels;Technology;NYSE
+6451;AFZF;Williams Ltd;Technology;HKEX
+5697;RFRY;Vasquez Ltd;Finance;LSE
+2827;SBVA;Moore, Russo and Reyes;Finance;LSE
+3744;RVIG;Brown-Crawford;Retail;NASDAQ
+6610;ICWI;Smith, Weber and Blair;Retail;NYSE
+9336;QSEC;Martin, Williams and Clark;Technology;LSE
+1164;ICGR;Flores-Howard;Retail;HKEX
+1277;KLVR;Murray, Castillo and Ross;Energy;HKEX
+1923;WVJM;Salas, Dawson and Fitzpatrick;Energy;HKEX
+5479;VUKD;Mccoy-Garcia;Energy;LSE
+6548;VHJZ;Perry, Smith and Hall;Retail;NYSE
+7332;LIQJ;Greer Ltd;Technology;NYSE
+4530;HGEP;Lawrence Ltd;Energy;LSE
+8021;FRTM;Horton, Johnson and Lawrence;Technology;NASDAQ
+7021;BOBK;Simmons, Hester and Lewis;Finance;NYSE
+3122;BWCQ;Burns LLC;Technology;NASDAQ
+2847;HIQR;Flores, Garcia and Miller;Technology;HKEX
+8180;QFGN;Cook Inc;Energy;NYSE
+3152;TBVF;Sanchez, Taylor and Wilson;Technology;HKEX
+8981;GENE;Bruce, Butler and Rodriguez;Healthcare;NASDAQ
+1887;JHRY;Booker, Tucker and Stevens;Retail;NASDAQ

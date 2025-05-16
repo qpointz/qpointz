@@ -51,8 +51,10 @@ dependencies {
     implementation(project(":services:mill-grpc-service"))
     implementation(project(":services:mill-starter-services"))
     implementation(project(":mill-starter-backends"))
+    //implementation(project(":ai:mill-ai-llm-service"))
+    //implementation(project(":ai:mill-ai-mcp-service"))
     implementation(libs.boot.starter.actuator)
-
+    implementation(libs.boot.starter)
     runtimeOnly(libs.bundles.logging)
     runtimeOnly(libs.bundles.jdbc.pack)
 }

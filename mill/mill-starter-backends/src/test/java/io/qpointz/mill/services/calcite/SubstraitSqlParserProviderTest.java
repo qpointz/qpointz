@@ -38,6 +38,14 @@ class SubstraitSqlParserProviderTest extends BaseTest {
     }
 
     @Test
+    void aggregateAndNamesPreservedInPlan() {
+        val result = parse("select count(`c`.`id`) as `ID_CNT`, `c`.`id` as `MY_ID`, `c`.`id` from `airlines`.`cities` as `c` group by `id`");
+        assertTrue(result.isSuccess());
+        val plan = result.getPlan();
+        assertNotNull(plan);
+    }
+
+    @Test
     void parseExpression() {
         val result = this.sqlProvider.parseSqlExpression(List.of("airlines", "cities"), "`id` <> '0'");
         assertNotNull(result);

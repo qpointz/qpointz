@@ -1,0 +1,33 @@
+logging:
+  level:
+    root: info
+    org.springframework.boot.context.config: DEBUG
+grpc:
+  server:
+    in-process-name: test-service-calcite
+    port: -1
+  client:
+    test-service-calcite:
+      address: in-process:test-service-calcite
+
+spring:
+  main:
+    web-application-type: servlet
+      
+mill:
+  backend:
+    connection:
+      quoting: BACK_TICK
+      caseSensitive: true
+      unquotedCasing: UNCHANGED
+      model: ./config/test/model.yaml
+    provider: calcite
+  security:
+    enable: false
+  services:
+    meta:
+      enable: true
+    grpc:
+      port: 9099
+      enable: true
+      address: '*'

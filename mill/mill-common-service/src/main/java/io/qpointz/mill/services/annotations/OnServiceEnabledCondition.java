@@ -42,7 +42,7 @@ public class OnServiceEnabledCondition implements Condition {
         if (!hasProperty) {
             return expected;
         }
-
-        return expected == Boolean.TRUE.equals(environment.getProperty(serviceEnableKey, boolean.class));
+        val isMatching = expected == Boolean.TRUE.equals(environment.getProperty(serviceEnableKey, boolean.class));
+        return isMatching;
     }
 }

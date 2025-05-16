@@ -1,0 +1,82 @@
+erDiagram
+clients {
+	int client_id
+	varchar first_name
+	varchar last_name
+	varchar email
+	varchar phone
+	varchar created_at
+	varchar country
+	varchar city
+	varchar address
+	varchar segment
+}
+accounts {
+	int account_id
+	int client_id
+	varchar account_type
+	decimal balance
+	varchar opened_at
+}
+transactions {
+	int transaction_id
+	int account_id
+	varchar transaction_type
+	decimal amount
+	varchar transaction_date
+	varchar description
+}
+loans {
+	int loan_id
+	int client_id
+	decimal amount
+	decimal interest_rate
+	varchar start_date
+	varchar end_date
+	varchar status
+}
+loan_payments {
+	int payment_id
+	int loan_id
+	varchar payment_date
+	decimal amount
+}
+stock_portfolios {
+	int portfolio_id
+	int client_id
+	varchar portfolio_name
+	varchar created_at
+}
+stocks {
+	int stock_id
+	varchar ticker
+	varchar company_name
+	varchar sector
+	varchar exchange
+}
+stock_holdings {
+	int holding_id
+	int portfolio_id
+	int stock_id
+	int shares
+	decimal average_price
+}
+trade_orders {
+	int order_id
+	int portfolio_id
+	int stock_id
+	varchar order_type
+	varchar order_date
+	int shares
+	decimal limit_price
+	varchar status
+}
+clients  ||--o{ accounts:has
+accounts  ||--o{ transactions:has
+clients  ||--o{ loans:has
+loans  ||--o{ loan_payments:has
+clients  ||--o{ stock_portfolios:has
+stock_portfolios  ||--o{ stock_holdings:has
+stocks  ||--o{ stock_holdings:has
+stock_portfolios  ||--o{ trade_orders:has
+stocks  ||--o{ trade_orders:has

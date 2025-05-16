@@ -3,6 +3,25 @@ grpc:
     port: ${mill.services.grpc.port}
     address: ${mill.services.grpc.address}
 
+spring:
+  main:
+    web-application-type: servlet
+  ai:
+    azure:
+      openai:
+        api-key: provide_api_key
+        endpoint: https://provide-endpoint.openai.azure.com/
+        chat:
+          options:
+            deployment-name: provide_deployment_name
+    mcp:
+      server:
+        enabled: false
+        name: provide-agent-name
+        transport:
+          type: http
+          endpoint: mcp-endpoint
+
 mill:
   services:
     meta:
@@ -11,6 +30,8 @@ mill:
       port: 9099
       enable: true
       address: '*'
+    data-bot:
+      enable: false
 
 logging:
   level:
@@ -25,6 +46,27 @@ spring:
   config:
     activate:
       on-profile: local-jdbc
+  main:
+    web-application-type: servlet
+  ai:
+    openai:
+      api-key: api_key
+      chat:
+        model: model_name
+      azure:
+        openai:
+          api-key: api_key
+          endpoint: endpoint
+          chat:
+            options:
+              deployment-name: deployment_name
+      mcp:
+        server:
+          enabled: true
+          name: agent-name
+          transport:
+            type: http
+            endpoint: mcp-endpoint
 
 mill:
   backend:
@@ -39,6 +81,9 @@ mill:
       username: "*"
       password: "*"
       target-schema: "ts"
+  services:
+    data-bot:
+      enable: false
 
 ---
 spring:
@@ -51,6 +96,9 @@ mill:
     provider: calcite
     connection:
       model: ../etc/data/datasets/airlines/model-csv.yaml
+  services:
+    data-bot:
+      enable: false
 
 ---
 spring:
@@ -110,3 +158,6 @@ mill:
             params:
               name: cmart.CLIENT
               expression: "`IS_PEP` <> 'Y'"
+  services:
+    data-bot:
+      enable: false

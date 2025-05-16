@@ -11,3 +11,6 @@ mill:
       username: "*"
       password: "*"
       output-schema: "ts"
+  services:
+    data-bot:
+      enable: false

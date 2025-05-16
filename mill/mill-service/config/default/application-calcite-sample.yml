@@ -6,3 +6,6 @@ mill:
       caseSensitive: true
       unquotedCasing: UNCHANGED
       model: ./etc/sample/sample-model.yaml
+  services:
+    data-bot:
+      enable: false

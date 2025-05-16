@@ -30,6 +30,11 @@ include (":services:mill-grpc-service")
 include (":services:mill-sample-service")
 include (":services:mill-starter-services")
 
+include (":ai:mill-ai-core")
+include (":ai:mill-ai-llm-service")
+include (":ai:mill-ai-mcp-service")
+
+
 
 dependencyResolutionManagement {
 
@@ -64,6 +69,7 @@ dependencyResolutionManagement {
             library("boot-starter-webflux",springBootG,"spring-boot-starter-webflux").versionRef(springBootV)
             library("boot-starter", springBootG,"spring-boot-starter").versionRef(springBootV)
             library("boot-starter-actuator", springBootG,"spring-boot-starter-actuator").versionRef(springBootV)
+            library("boot-starter", springBootG,"spring-boot-starter").versionRef(springBootV)
 
 
             val springCloudV = version("springCloud", "4.1.3")
@@ -73,6 +79,13 @@ dependencyResolutionManagement {
             library("spring-cloud-function-adapter-azure", springCloudG, "spring-cloud-function-adapter-azure").versionRef(springCloudV)
             library("spring-cloud-function-adapter-azure-web", springCloudG, "spring-cloud-function-adapter-azure-web").versionRef(springCloudV)
             library("spring-cloud-starter-function-web", springCloudG, "spring-cloud-starter-function-web").versionRef(springCloudV)
+
+            val springAiV = version("springAi", "1.0.0")
+            val springAiG = "org.springframework.ai"
+            library("spring-ai-starter-model-azureopenai", springAiG, "spring-ai-starter-model-azure-openai").versionRef(springAiV)
+            library("spring-ai-starter-model-openai", springAiG, "spring-ai-starter-model-openai").versionRef(springAiV)
+            library("spring-ai-starter-mcp-server-starter", springAiG, "spring-ai-mcp-server-spring-boot-starter").versionRef(springAiV)
+            library("spring-ai-starter-mcp-server-webmvc", springAiG, "spring-ai-starter-mcp-server-webmvc").versionRef(springAiV)
 
 
             val calcite = version("calcite", "1.38.0")
@@ -169,6 +182,18 @@ dependencyResolutionManagement {
             library("drivers-snowflake","net.snowflake", "snowflake-jdbc").version("3.20.0")
             library("drivers-clickhouse","com.clickhouse", "clickhouse-jdbc").version("0.7.1")
 
+            /*val langchain4j = version("langchain4j", "1.0.0")
+            library("langchain4j-core", "dev.langchain4j" , "langchain4j").versionRef(langchain4j)
+            library("langchain4j-openai", "dev.langchain4j", "langchain4j-open-ai").versionRef(langchain4j)
+            library("langchain4j-okhttp", "dev.langchain4j", "langchain4j-okhttp").versionRef(langchain4j)
+*/
+
+            library("apache-httpclient5", "org.apache.httpcomponents.client5", "httpclient5").version("5.4.4")
+            library("apache-httpcore5", "org.apache.httpcomponents.core5", "httpcore5").version("5.3.4")
+
+            /*val mcpsdkV = version("mcp", "0.10.0")
+            val mcpsdkG = "io.modelcontextprotocol.sdk"
+            library("mcp-sdk-bom", mcpsdkG, "mcp-bom").version(mcpsdkV)*/
 
             bundle("jdbc-pack", listOf(
                 "h2-database",

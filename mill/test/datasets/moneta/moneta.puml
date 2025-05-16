@@ -1,0 +1,85 @@
+@startuml
+skinparam linetype ortho
+left to right direction
+entity "clients" {
+	client_id: INT
+	first_name: VARCHAR
+	last_name: VARCHAR
+	email: VARCHAR
+	phone: VARCHAR
+	created_at: VARCHAR
+	country: VARCHAR
+	city: VARCHAR
+	address: VARCHAR
+	segment: VARCHAR
+}
+entity "accounts" {
+	account_id: INT
+	client_id: INT
+	account_type: VARCHAR
+	balance: DECIMAL(15,4)
+	opened_at: VARCHAR
+}
+entity "transactions" {
+	transaction_id: INT
+	account_id: INT
+	transaction_type: VARCHAR
+	amount: DECIMAL(15,4)
+	transaction_date: VARCHAR
+	description: VARCHAR
+}
+entity "loans" {
+	loan_id: INT
+	client_id: INT
+	amount: DECIMAL(15,4)
+	interest_rate: DECIMAL(15,4)
+	start_date: VARCHAR
+	end_date: VARCHAR
+	status: VARCHAR
+}
+entity "loan_payments" {
+	payment_id: INT
+	loan_id: INT
+	payment_date: VARCHAR
+	amount: DECIMAL(15,4)
+}
+entity "stock_portfolios" {
+	portfolio_id: INT
+	client_id: INT
+	portfolio_name: VARCHAR
+	created_at: VARCHAR
+}
+entity "stocks" {
+	stock_id: INT
+	ticker: VARCHAR
+	company_name: VARCHAR
+	sector: VARCHAR
+	exchange: VARCHAR
+}
+entity "stock_holdings" {
+	holding_id: INT
+	portfolio_id: INT
+	stock_id: INT
+	shares: INT
+	average_price: DECIMAL(15,4)
+}
+entity "trade_orders" {
+	order_id: INT
+	portfolio_id: INT
+	stock_id: INT
+	order_type: VARCHAR
+	order_date: VARCHAR
+	shares: INT
+	limit_price: DECIMAL(15,4)
+	status: VARCHAR
+}
+"clients"  ||..|{  "accounts"
+"accounts"  ||..|{  "transactions"
+"clients"  ||..|{  "loans"
+"loans"  ||..|{  "loan_payments"
+"clients"  ||..|{  "stock_portfolios"
+"stock_portfolios"  ||..|{  "stock_holdings"
+"stocks"  ||..|{  "stock_holdings"
+"stock_portfolios"  ||..|{  "trade_orders"
+"stocks"  ||..|{  "trade_orders"
+@enduml

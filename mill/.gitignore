@@ -14,3 +14,4 @@ bin
 .tmp/
 out/
 target/
+.secrets

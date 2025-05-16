@@ -95,8 +95,12 @@ public class SecurityConfig {
             if (http == null) {
                 return null;
             }
-            return http.authorizeHttpRequests(authHttp -> authHttp
+            return http
+                    .csrf(c->c.disable())
+                    .cors(c-> c.disable())
+                    .authorizeHttpRequests(authHttp -> authHttp
                     .requestMatchers("/**").permitAll()
+
             ).build();
         } catch (Exception e) {
             return null;

@@ -6,6 +6,8 @@ import io.qpointz.mill.proto.GetSchemaRequest;
 import io.qpointz.mill.proto.HandshakeRequest;
 import io.qpointz.mill.services.MillGrpcService;
 import io.qpointz.mill.services.calcite.configuration.CalciteServiceConfiguration;
+import io.qpointz.mill.services.configuration.BackendConfiguration;
+import io.qpointz.mill.services.configuration.DefaultServiceConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import net.devh.boot.grpc.server.autoconfigure.GrpcAdviceAutoConfiguration;
@@ -21,7 +23,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @ContextConfiguration(classes = {
         CalciteServiceConfiguration.class,
         MillGrpcService.class,
-        GrpcAdviceAutoConfiguration.class
+        GrpcAdviceAutoConfiguration.class,
+        BackendConfiguration.class,
+        DefaultServiceConfiguration.class
 }
 )
 @ActiveProfiles("in-proc-test")

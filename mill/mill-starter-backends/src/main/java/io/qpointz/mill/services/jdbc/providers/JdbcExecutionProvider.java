@@ -8,6 +8,7 @@ import io.qpointz.mill.vectors.sql.ResultSetVectorBlockIterator;
 import io.substrait.plan.Plan;
 import lombok.AllArgsConstructor;
 import lombok.val;
+import org.apache.calcite.tools.RelRunner;
 
 import java.sql.SQLException;
 

@@ -13,3 +13,6 @@ mill:
       basic:
         enable: true
         file-store: file:./mill-backend-core/src/test/config/passwd.yml
+  services:
+    grpc:
+      enable: true

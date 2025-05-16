@@ -1,0 +1,247 @@
+schemas:
+- name: moneta
+  tables:
+  - name: clients
+    attributes:
+    - name: client_id
+      type: int
+      description: Unique identifier of the client.
+    - name: first_name
+      type: varchar
+      description: Client's first name.
+    - name: last_name
+      type: varchar
+      description: Client's last name.
+    - name: email
+      type: varchar
+      description: Client email address.
+    - name: phone
+      type: varchar
+      description: Client contact phone number.
+    - name: created_at
+      type: varchar
+      description: Date when the client was registered.
+    - name: country
+      type: varchar
+      description: Country of residence.
+    - name: city
+      type: varchar
+      description: City of residence.
+    - name: address
+      type: varchar
+      description: Street address of the client.
+    - name: segment
+      type: varchar
+      description: Client service segment classification.
+  - name: accounts
+    attributes:
+    - name: account_id
+      type: int
+      description: ID of the associated bank account.
+    - name: client_id
+      type: int
+      description: Unique identifier of the client.
+    - name: account_type
+      type: varchar
+      description: Type of bank account (e.g., checking, savings).
+    - name: balance
+      type: decimal
+      description: Current balance of the account.
+    - name: opened_at
+      type: varchar
+      description: Date when the account was opened.
+  - name: transactions
+    attributes:
+    - name: transaction_id
+      type: int
+      description: Unique ID of the transaction.
+    - name: account_id
+      type: int
+      description: ID of the associated bank account.
+    - name: transaction_type
+      type: varchar
+      description: Type of transaction (deposit, withdrawal, transfer).
+    - name: amount
+      type: decimal
+      description: Total loan amount.
+    - name: transaction_date
+      type: varchar
+      description: Date of the transaction.
+    - name: description
+      type: varchar
+      description: Text description of the transaction.
+  - name: loans
+    attributes:
+    - name: loan_id
+      type: int
+      description: Unique ID of the loan.
+    - name: client_id
+      type: int
+      description: Unique identifier of the client.
+    - name: amount
+      type: decimal
+      description: Total loan amount.
+    - name: interest_rate
+      type: decimal
+      description: Annual interest rate of the loan.
+    - name: start_date
+      type: varchar
+      description: Loan start date.
+    - name: end_date
+      type: varchar
+      description: Loan end date.
+    - name: status
+      type: varchar
+      description: Order status (pending, executed, cancelled).
+  - name: loan_payments
+    attributes:
+    - name: payment_id
+      type: int
+      description: Unique ID of the loan payment.
+    - name: loan_id
+      type: int
+      description: Unique ID of the loan.
+    - name: payment_date
+      type: varchar
+      description: Date of the payment.
+    - name: amount
+      type: decimal
+      description: Total loan amount.
+  - name: stock_portfolios
+    attributes:
+    - name: portfolio_id
+      type: int
+      description: Unique identifier of the portfolio.
+    - name: client_id
+      type: int
+      description: Unique identifier of the client.
+    - name: portfolio_name
+      type: varchar
+      description: Human-readable name of the portfolio.
+    - name: created_at
+      type: varchar
+      description: Date when the client was registered.
+  - name: stocks
+    attributes:
+    - name: stock_id
+      type: int
+      description: Unique ID of the stock.
+    - name: ticker
+      type: varchar
+      description: Stock market ticker symbol.
+    - name: company_name
+      type: varchar
+      description: Name of the company issuing the stock.
+    - name: sector
+      type: varchar
+      description: Industry sector of the stock.
+    - name: exchange
+      type: varchar
+      description: Stock exchange where the stock is traded.
+  - name: stock_holdings
+    attributes:
+    - name: holding_id
+      type: int
+      description: Unique ID of the holding entry.
+    - name: portfolio_id
+      type: int
+      description: Unique identifier of the portfolio.
+    - name: stock_id
+      type: int
+      description: Unique ID of the stock.
+    - name: shares
+      type: int
+      description: Number of shares held.
+    - name: average_price
+      type: decimal
+      description: Average price per share held.
+  - name: trade_orders
+    attributes:
+    - name: order_id
+      type: int
+      description: Unique ID of the trade order.
+    - name: portfolio_id
+      type: int
+      description: Unique identifier of the portfolio.
+    - name: stock_id
+      type: int
+      description: Unique ID of the stock.
+    - name: order_type
+      type: varchar
+      description: Type of order (buy or sell).
+    - name: order_date
+      type: varchar
+      description: Date when the order was placed.
+    - name: shares
+      type: int
+      description: Number of shares held.
+    - name: limit_price
+      type: decimal
+      description: Limit price for the trade order.
+    - name: status
+      type: varchar
+      description: Order status (pending, executed, cancelled).
+  references:
+  - parent:
+      table: clients
+      attribute: client_id
+    child:
+      table: accounts
+      attribute: client_id
+    cardinality: 1-*
+  - parent:
+      table: accounts
+      attribute: account_id
+    child:
+      table: transactions
+      attribute: account_id
+    cardinality: 1-*
+  - parent:
+      table: clients
+      attribute: client_id
+    child:
+      table: loans
+      attribute: client_id
+    cardinality: 1-*
+  - parent:
+      table: loans
+      attribute: loan_id
+    child:
+      table: loan_payments
+      attribute: loan_id
+    cardinality: 1-*
+  - parent:
+      table: clients
+      attribute: client_id
+    child:
+      table: stock_portfolios
+      attribute: client_id
+    cardinality: 1-*
+  - parent:
+      table: stock_portfolios
+      attribute: portfolio_id
+    child:
+      table: stock_holdings
+      attribute: portfolio_id
+    cardinality: 1-*
+  - parent:
+      table: stocks
+      attribute: stock_id
+    child:
+      table: stock_holdings
+      attribute: stock_id
+    cardinality: 1-*
+  - parent:
+      table: stock_portfolios
+      attribute: portfolio_id
+    child:
+      table: trade_orders
+      attribute: portfolio_id
+    cardinality: 1-*
+  - parent:
+      table: stocks
+      attribute: stock_id
+    child:
+      table: trade_orders
+      attribute: stock_id
+    cardinality: 1-*
