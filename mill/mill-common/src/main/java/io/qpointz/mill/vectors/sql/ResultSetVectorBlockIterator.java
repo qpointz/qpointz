@@ -51,7 +51,7 @@ public class ResultSetVectorBlockIterator implements VectorBlockIterator {
                 schemaBuilder.addFields(Field.newBuilder()
                                 .setFieldIdx(i)
                                 .setType(JdbcDatabaseTypeMapper.DEFAULT.jdbc(jdbcInfo).asDataType())
-                                .setName(meta.getColumnName(colIdx))
+                                .setName(meta.getColumnLabel(colIdx))
                                 .build());
             }
             this.schema = schemaBuilder.build();

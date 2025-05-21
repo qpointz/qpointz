@@ -15,7 +15,7 @@ RUN \
   chmod 644 /etc/apt/trusted.gpg.d/scalasbt-release.gpg && \
   apt-get update && \
   apt-get install -yqq sbt && \
-  sbt -Dsbt.rootdir=true version && \
+  sbt -Dsbt.rootdir=true --allow-empty version && \
   apt-get clean autoclean && \
   apt-get autoremove --yes && \
   rm -rf /var/lib/{apt,dpkg,cache,log}/ 
