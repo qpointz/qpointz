@@ -164,7 +164,7 @@ dependencyResolutionManagement {
             library("drivers-sqllite", "org.xerial","sqlite-jdbc").version("3.47.0.0")
             library("drivers-mariadb", "org.mariadb.jdbc","mariadb-java-client").version("3.5.0")
             library("drivers-oracle","com.oracle","ojdbc14").version("10.2.0.4.0")
-            library("drivers-trino", "io.trino","trino-jdbc").version("464")
+            library("drivers-trino", "io.trino","trino-jdbc").version("475")
             library("drivers-duckdb", "org.duckdb","duckdb_jdbc").version("1.1.3")
             library("drivers-snowflake","net.snowflake", "snowflake-jdbc").version("3.20.0")
             library("drivers-clickhouse","com.clickhouse", "clickhouse-jdbc").version("0.7.1")

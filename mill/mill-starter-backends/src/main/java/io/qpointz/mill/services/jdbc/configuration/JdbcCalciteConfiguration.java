@@ -63,10 +63,12 @@ public class JdbcCalciteConfiguration {
 
     @Getter
     @Setter
+    @Value("${mill.backend.jdbc.user:#{null}}")
     private Optional<String> user = Optional.empty();
 
     @Getter
     @Setter
+    @Value("${mill.backend.jdbc.password:#{null}}")
     private Optional<String> password = Optional.empty();
 
     @Getter
