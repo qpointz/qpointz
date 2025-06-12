@@ -16,9 +16,9 @@ logging:
   level:
     root: info
 
-spring:
-  config:
-    import: classpath:application-defaults.yml
+#spring:
+#  config:
+#    import: classpath:application-defaults.yml
 
 ---
 spring:

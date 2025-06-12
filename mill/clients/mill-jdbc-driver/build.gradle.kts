@@ -10,7 +10,6 @@ plugins {
 
 distributions {
     main {
-        //distributionBaseName = "my-name"
     }
 }
 
@@ -41,7 +40,7 @@ testing {
                 dependencies {
                     implementation(project())
                     implementation(project(":mill-starter-backends"))
-                    implementation(project(":mill-starter-grpc-service"))
+                    implementation(project(":services:mill-grpc-service"))
                     implementation(libs.okhttp.mock.webserver)
                     implementation(libs.bootGRPC.client)
                     implementation(libs.bootGRPC.server)

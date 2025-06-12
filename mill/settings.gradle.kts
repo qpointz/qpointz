@@ -22,13 +22,13 @@ include (":clients:mill-jdbc-driver")
 include (":clients:mill-jdbc-shell")
 
 include (":mill-starter-backends")
-include (":mill-starter-services")
-include (":mill-starter-grpc-service")
-
 include (":mill-service")
 include (":mill-azure-service-function")
 
-include (":mill-sample-service") //temp to be removed
+
+include (":services:mill-grpc-service")
+include (":services:mill-sample-service")
+include (":services:mill-starter-services")
 
 
 dependencyResolutionManagement {

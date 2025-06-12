@@ -48,9 +48,8 @@ fun copyDistro(tk:String, distributionName: String) {
 
 dependencies {
     implementation(project(":mill-common-security"))
-    implementation(project(":mill-starter-grpc-service"))
-    implementation(project(":mill-starter-services"))
-    implementation(project(":mill-sample-service"))
+    implementation(project(":services:mill-grpc-service"))
+    implementation(project(":services:mill-starter-services"))
     implementation(project(":mill-starter-backends"))
     implementation(libs.boot.starter.actuator)
 

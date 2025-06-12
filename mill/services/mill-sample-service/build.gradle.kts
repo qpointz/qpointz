@@ -12,7 +12,7 @@ mill {
 
 dependencies {
     implementation(project(":mill-starter-backends"))
-    implementation(project(":mill-starter-services"))
+    implementation(project(":services:mill-starter-services"))
 
     compileOnly(libs.bundles.logging)
     compileOnly(libs.lombok)

@@ -6,7 +6,7 @@ mill:
       caseSensitive: true
       unquotedCasing: UNCHANGED
     jdbc:
-      url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '../test/datasets/users/sql/users.sql'"
+      url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '../../test/datasets/users/sql/users.sql'"
       driver: "org.h2.Driver"
       username: "*"
       password: "*"
