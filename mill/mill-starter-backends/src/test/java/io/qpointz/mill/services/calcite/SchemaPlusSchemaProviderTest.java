@@ -1,6 +1,6 @@
 package io.qpointz.mill.services.calcite;
 
-import io.qpointz.mill.services.MetadataProvider;
+import io.qpointz.mill.services.SchemaProvider;
 import io.qpointz.mill.services.MillGrpcService;
 import io.qpointz.mill.services.calcite.configuration.CalciteServiceConfiguration;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class SchemaPlusSchemaProviderTest extends BaseTest {
 
     @Autowired
-    MetadataProvider schemaProvider;
+    SchemaProvider schemaProvider;
 
     @Test
     void test() {

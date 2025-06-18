@@ -3,7 +3,7 @@ package io.qpointz.mill.services.dispatchers;
 import io.qpointz.mill.plan.LogicalFunctionHelper;
 import io.qpointz.mill.proto.DataType;
 import io.qpointz.mill.proto.Field;
-import io.qpointz.mill.services.MetadataProvider;
+import io.qpointz.mill.services.SchemaProvider;
 import io.qpointz.mill.types.DataTypeToSubstrait;
 import io.substrait.dsl.SubstraitBuilder;
 import io.substrait.extension.SimpleExtension;
@@ -21,13 +21,13 @@ import java.util.List;
 
 public class PlanHelper {
 
-    private final MetadataProvider metadataProvider;
+    private final SchemaProvider schemaProvider;
     private final SimpleExtension.ExtensionCollection extensions;
     private final SubstraitBuilder builder;
     private final LogicalFunctionHelper logicalFn;
 
-    public PlanHelper(MetadataProvider metadataProvider, SimpleExtension.ExtensionCollection extensions) {
-        this.metadataProvider = metadataProvider;
+    public PlanHelper(SchemaProvider schemaProvider, SimpleExtension.ExtensionCollection extensions) {
+        this.schemaProvider = schemaProvider;
         this.extensions = extensions;
         this.builder = new SubstraitBuilder(this.extensions);
         this.logicalFn = new LogicalFunctionHelper(this.builder);
@@ -38,7 +38,7 @@ public class PlanHelper {
     }
 
     public NamedScan createNamedScan(String schemaName, String tableName) {
-        val mayBeTable = this.metadataProvider.
+        val mayBeTable = this.schemaProvider.
                 getSchema(schemaName)
                 .getTablesList().stream()
                 .filter(t-> t.getName().equals(tableName))

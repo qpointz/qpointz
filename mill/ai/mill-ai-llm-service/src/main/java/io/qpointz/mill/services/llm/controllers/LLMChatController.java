@@ -5,16 +5,12 @@ import io.qpointz.mill.proto.ParseSqlRequest;
 import io.qpointz.mill.proto.QueryExecutionConfig;
 import io.qpointz.mill.proto.QueryRequest;
 import io.qpointz.mill.proto.SQLStatement;
-import io.qpointz.mill.services.MetadataProvider;
 import io.qpointz.mill.services.annotations.ConditionalOnService;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.services.llm.SqlAgent;
-import io.qpointz.mill.sql.RecordReader;
 import io.qpointz.mill.sql.RecordReaders;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;

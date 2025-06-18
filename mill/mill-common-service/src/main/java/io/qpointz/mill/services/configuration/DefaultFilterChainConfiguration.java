@@ -4,7 +4,7 @@ import io.qpointz.mill.security.annotations.ConditionalOnSecurity;
 import io.qpointz.mill.security.authorization.policy.*;
 import io.qpointz.mill.security.authorization.policy.repositories.PolicyActionDescriptorRepository;
 import io.qpointz.mill.security.configuration.PolicyActionsConfiguration;
-import io.qpointz.mill.services.MetadataProvider;
+import io.qpointz.mill.services.SchemaProvider;
 import io.qpointz.mill.services.PlanRewriter;
 import io.qpointz.mill.services.SqlProvider;
 import io.qpointz.mill.services.dispatchers.SecurityDispatcher;
@@ -54,10 +54,10 @@ public class DefaultFilterChainConfiguration {
     @Bean
     public TableFacetFactory tableFacetFactory(PolicyEvaluator policyEvaluator,
                                                SecurityDispatcher securityDispatcher,
-                                               MetadataProvider metadataProvider,
+                                               SchemaProvider schemaProvider,
                                                SqlProvider sqlProvider,
                                                SubstraitDispatcher substraitDispatcher) {
-        return new TableFacetFactoryImpl(policyEvaluator, securityDispatcher, metadataProvider, sqlProvider, substraitDispatcher);
+        return new TableFacetFactoryImpl(policyEvaluator, securityDispatcher, schemaProvider, sqlProvider, substraitDispatcher);
     }
 
     @Bean

@@ -42,15 +42,15 @@ public abstract class ServiceBaseTest {
     }
 
     @BeforeEach
-    public void resetMocks(@Autowired SqlProvider sqlProvider, @Autowired MetadataProvider metadataProvider, @Autowired ExecutionProvider executionProvider) {
-        reset(sqlProvider, executionProvider, metadataProvider);
+    public void resetMocks(@Autowired SqlProvider sqlProvider, @Autowired SchemaProvider schemaProvider, @Autowired ExecutionProvider executionProvider) {
+        reset(sqlProvider, executionProvider, schemaProvider);
     }
 
     @Test
-    public void testContext(@Autowired SqlProvider sqlProvider, @Autowired MetadataProvider metadataProvider,
+    public void testContext(@Autowired SqlProvider sqlProvider, @Autowired SchemaProvider schemaProvider,
                             @Autowired ExecutionProvider executionProvider) {
         assertNotNull(sqlProvider);
-        assertNotNull(metadataProvider);
+        assertNotNull(schemaProvider);
         assertNotNull(executionProvider);
     }
 

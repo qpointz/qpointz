@@ -2,8 +2,7 @@ package io.qpointz.mill.services.rewriters;
 
 import io.qpointz.mill.security.authorization.policy.PolicyEvaluator;
 import io.qpointz.mill.security.authorization.policy.actions.ExpressionFilterAction;
-import io.qpointz.mill.services.MetadataProvider;
-import io.qpointz.mill.services.ServiceHandler;
+import io.qpointz.mill.services.SchemaProvider;
 import io.qpointz.mill.services.SqlProvider;
 import io.qpointz.mill.services.dispatchers.SecurityDispatcher;
 import io.qpointz.mill.services.dispatchers.SubstraitDispatcher;
@@ -12,7 +11,6 @@ import io.substrait.expression.Expression;
 import io.substrait.extension.DefaultExtensionCatalog;
 import io.substrait.type.TypeCreator;
 import lombok.val;
-import org.springframework.security.core.GrantedAuthority;
 
 import java.util.*;
 import java.util.function.BiFunction;
@@ -25,19 +23,19 @@ import static io.qpointz.mill.security.authorization.policy.ActionVerb.DENY;
 public class TableFacetFactoryImpl implements TableFacetFactory {
 
     private final PolicyEvaluator policyEvaluator;
-    private final MetadataProvider metadataProvider;
+    private final SchemaProvider schemaProvider;
     private final SecurityDispatcher securityDispatcher;
     private final SqlProvider sqlProvider;
     private final SubstraitDispatcher substraitDispatcher;
 
     public TableFacetFactoryImpl(PolicyEvaluator policyEvaluator,
                              SecurityDispatcher securityDispatcher,
-                             MetadataProvider metadataProvider,
+                             SchemaProvider schemaProvider,
                              SqlProvider sqlProvider,
                              SubstraitDispatcher substraitDispatcher) {
         this.policyEvaluator = policyEvaluator;
         this.securityDispatcher = securityDispatcher;
-        this.metadataProvider = metadataProvider;
+        this.schemaProvider = schemaProvider;
         this.sqlProvider = sqlProvider;
         this.substraitDispatcher = substraitDispatcher;
 
@@ -45,14 +43,14 @@ public class TableFacetFactoryImpl implements TableFacetFactory {
 
     public TableFacetsCollection facets() {
         val facets = new HashMap<List<String>, TableFacet>();
-        StreamSupport.stream(this.metadataProvider.getSchemaNames().spliterator(), false)
+        StreamSupport.stream(this.schemaProvider.getSchemaNames().spliterator(), false)
                 .map(k-> getFacets(k))
                 .forEach(facets::putAll);
         return new TableFacetsCollection(facets);
     }
 
     private Map<List<String>, TableFacet> getFacets(String schemaName) {
-        return this.metadataProvider.getSchema(schemaName).getTablesList().stream()
+        return this.schemaProvider.getSchema(schemaName).getTablesList().stream()
                 .map(z-> List.of(schemaName, z.getName()))
                 .collect(Collectors.toMap(z -> z , o-> getFacet(o)));
     }

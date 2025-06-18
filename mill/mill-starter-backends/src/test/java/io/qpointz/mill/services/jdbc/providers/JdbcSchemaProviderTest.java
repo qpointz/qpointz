@@ -28,11 +28,11 @@ import static org.junit.jupiter.api.Assertions.*;
 )
 @ActiveProfiles("test-jdbc")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class JdbcMetadataProviderTest extends BaseTest {
+class JdbcSchemaProviderTest extends BaseTest {
 
     @Test
     void trivial() {
-        val names = StreamSupport.stream(this.getMetadataProvider().getSchemaNames().spliterator(), false).toList();
+        val names = StreamSupport.stream(this.getSchemaProvider().getSchemaNames().spliterator(), false).toList();
         assertTrue(names.size()==2);
     }
 

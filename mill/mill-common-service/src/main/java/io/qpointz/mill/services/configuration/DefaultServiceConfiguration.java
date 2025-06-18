@@ -40,11 +40,11 @@ public class DefaultServiceConfiguration {
     public DataOperationDispatcher dataOperationDispatcher(@Autowired(required = false) SqlProvider sqlProvider,
                                                            @Autowired ExecutionProvider executionProvider,
                                                            @Autowired(required = false) PlanRewriteChain planRewriteChain,
-                                                           MetadataProvider metadataProvider,
+                                                           SchemaProvider schemaProvider,
                                                            SecurityDispatcher securityDispatcher,
                                                            SubstraitDispatcher substraitDispatcher,
                                                            ResultAllocator resultAllocator) {
-        return new DataOperationDispatcherImpl(metadataProvider, executionProvider, sqlProvider,
+        return new DataOperationDispatcherImpl(schemaProvider, executionProvider, sqlProvider,
                 securityDispatcher, planRewriteChain, substraitDispatcher, resultAllocator);
     }
 
@@ -54,8 +54,8 @@ public class DefaultServiceConfiguration {
     }
 
     @Bean
-    public PlanDispatcher planDispatcher(SimpleExtension.ExtensionCollection extensionCollection, MetadataProvider metadataProvider) {
-        return new PlanDispatcherImpl(extensionCollection, metadataProvider);
+    public PlanDispatcher planDispatcher(SimpleExtension.ExtensionCollection extensionCollection, SchemaProvider schemaProvider) {
+        return new PlanDispatcherImpl(extensionCollection, schemaProvider);
     }
 
 

@@ -2,12 +2,9 @@ package io.qpointz.mill.services.dispatchers;
 
 import io.qpointz.mill.proto.QueryExecutionConfig;
 import io.qpointz.mill.services.ExecutionProvider;
-import io.qpointz.mill.services.MetadataProvider;
+import io.qpointz.mill.services.SchemaProvider;
 import io.qpointz.mill.services.configuration.DefaultServiceConfiguration;
-import io.substrait.expression.Expression;
 import io.substrait.extension.SimpleExtension;
-import io.substrait.plan.ImmutablePlan;
-import io.substrait.plan.ImmutableRoot;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class PlanHelperTest {
 
     @Autowired
-    MetadataProvider metadataProvider;
+    SchemaProvider schemaProvider;
 
     @Autowired
     ExecutionProvider executionProvider;
@@ -39,15 +36,15 @@ class PlanHelperTest {
 
     @Test
     void trivialNamesScan()  {
-        val ph = new PlanHelper(metadataProvider, extensionCollection);
+        val ph = new PlanHelper(schemaProvider, extensionCollection);
         assertDoesNotThrow(()-> ph.createNamedScan("cmart", "CLIENT"));
     }
 
     @Test
     void namedScan() {
-        val ph = new PlanHelper(metadataProvider, extensionCollection);
+        val ph = new PlanHelper(schemaProvider, extensionCollection);
 
-        val table = metadataProvider.getSchema("cmart").getTablesList().stream()
+        val table = schemaProvider.getSchema("cmart").getTablesList().stream()
                 .filter(k-> k.getName().equals("CLIENT"))
                 .findFirst().get();
 
@@ -58,7 +55,7 @@ class PlanHelperTest {
 
     @Test
     void executePlan() {
-        val ph = new PlanHelper(metadataProvider, extensionCollection);
+        val ph = new PlanHelper(schemaProvider, extensionCollection);
         val namedScan = ph.createNamedScan("cmart", "CLIENT");
         val plan = ph.createPlan(namedScan);
         val res = executionProvider.execute(plan, QueryExecutionConfig.newBuilder().setFetchSize(10).build());
@@ -68,7 +65,7 @@ class PlanHelperTest {
 
     @Test
     void builder() {
-        val ph = new PlanHelper(metadataProvider, extensionCollection);
+        val ph = new PlanHelper(schemaProvider, extensionCollection);
         val namedScan = ph.createNamedScan("cmart", "CLIENT");
         val builder = ph.substraitBuilder();
         val idx = namedScan.getInitialSchema().names().indexOf("CLIENT_ID");

@@ -46,16 +46,16 @@ public abstract class MillGrpcServiceBaseTest {
     }
 
     @BeforeEach
-    public void resetMocks(@Autowired SqlProvider sqlProvider, @Autowired MetadataProvider metadataProvider, @Autowired ExecutionProvider executionProvider) {
-        reset(sqlProvider, executionProvider, metadataProvider);
+    public void resetMocks(@Autowired SqlProvider sqlProvider, @Autowired SchemaProvider schemaProvider, @Autowired ExecutionProvider executionProvider) {
+        reset(sqlProvider, executionProvider, schemaProvider);
     }
 
     @Test
-    public void testContext(@Autowired SqlProvider sqlProvider, @Autowired MetadataProvider metadataProvider,
+    public void testContext(@Autowired SqlProvider sqlProvider, @Autowired SchemaProvider schemaProvider,
                             @Autowired ExecutionProvider executionProvider, @Autowired MillGrpcService millGrpcService,
                             @Autowired DataConnectServiceGrpc.DataConnectServiceBlockingStub blocking, @Autowired PasswordEncoder passwordEncoder) {
         assertNotNull(sqlProvider);
-        assertNotNull(metadataProvider);
+        assertNotNull(schemaProvider);
         assertNotNull(executionProvider);
         assertNotNull(millGrpcService);
         assertNotNull(blocking);

@@ -6,7 +6,6 @@ import lombok.val;
 import net.devh.boot.grpc.client.autoconfigure.GrpcClientAutoConfiguration;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import net.devh.boot.grpc.server.autoconfigure.GrpcAdviceAutoConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -56,8 +55,8 @@ public class MillServiceBaseTestConfiguration {
     }
 
     @Bean
-    public MetadataProvider metadataProvider() {
-        return mock(MetadataProvider.class);
+    public SchemaProvider metadataProvider() {
+        return mock(SchemaProvider.class);
     }
 
 }

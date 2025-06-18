@@ -1,7 +1,7 @@
 package io.qpointz.mill.services.jdbc;
 
 import io.qpointz.mill.services.ExecutionProvider;
-import io.qpointz.mill.services.MetadataProvider;
+import io.qpointz.mill.services.SchemaProvider;
 import io.qpointz.mill.services.MillGrpcService;
 import io.qpointz.mill.services.configuration.BackendConfiguration;
 import io.qpointz.mill.services.configuration.DefaultServiceConfiguration;
@@ -38,13 +38,13 @@ public abstract class BaseTest {
 
     @Autowired
     @Getter(AccessLevel.PROTECTED)
-    private MetadataProvider metadataProvider;
+    private SchemaProvider schemaProvider;
 
 
     @Test
     void basicCheck() {
         assertNotNull(executionProvider);
-        assertNotNull(metadataProvider);
+        assertNotNull(schemaProvider);
     }
 
 }

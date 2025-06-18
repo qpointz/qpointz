@@ -3,7 +3,7 @@ package io.qpointz.mill.services.calcite.providers;
 import io.qpointz.mill.proto.DataType;
 import io.qpointz.mill.proto.Field;
 import io.qpointz.mill.proto.Table;
-import io.qpointz.mill.services.MetadataProvider;
+import io.qpointz.mill.services.SchemaProvider;
 import io.qpointz.mill.services.calcite.CalciteContextFactory;
 import io.qpointz.mill.services.calcite.RelToDatabaseTypeConverter;
 import io.substrait.extension.ExtensionCollector;
@@ -15,7 +15,7 @@ import org.apache.calcite.schema.Schema;
 import java.util.ArrayList;
 import java.util.Set;
 
-public class CalciteMetadataProvider implements MetadataProvider {
+public class CalciteSchemaProvider implements SchemaProvider {
 
     @Getter
     private final CalciteContextFactory ctxFactory;
@@ -23,7 +23,7 @@ public class CalciteMetadataProvider implements MetadataProvider {
     @Getter
     private final TypeProtoConverter typeProtoConverter;
 
-    public CalciteMetadataProvider(CalciteContextFactory calciteContextFactory, ExtensionCollector extensionCollector) {
+    public CalciteSchemaProvider(CalciteContextFactory calciteContextFactory, ExtensionCollector extensionCollector) {
         this.ctxFactory = calciteContextFactory;
         this.typeProtoConverter = new TypeProtoConverter(extensionCollector);
     }

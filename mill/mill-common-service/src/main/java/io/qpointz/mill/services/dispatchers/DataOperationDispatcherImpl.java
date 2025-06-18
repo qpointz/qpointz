@@ -11,7 +11,7 @@ import java.io.IOException;
 
 public class DataOperationDispatcherImpl implements DataOperationDispatcher {
 
-    private final MetadataProvider metadataProvider;
+    private final SchemaProvider schemaProvider;
 
     private final ExecutionProvider executionProvider;
 
@@ -25,14 +25,14 @@ public class DataOperationDispatcherImpl implements DataOperationDispatcher {
 
     private final ResultAllocator resultAllocator;
 
-    public DataOperationDispatcherImpl(MetadataProvider metadataProvider,
+    public DataOperationDispatcherImpl(SchemaProvider schemaProvider,
                                        ExecutionProvider executionProvider,
                                        SqlProvider sqlProvider,
                                        SecurityDispatcher securityDispatcher,
                                        PlanRewriteChain planRewriteChain,
                                        SubstraitDispatcher substrait,
                                        ResultAllocator resultAllocator) {
-        this.metadataProvider = metadataProvider;
+        this.schemaProvider = schemaProvider;
         this.executionProvider = executionProvider;
         this.sqlProvider = sqlProvider;
         this.securityDispatcher = securityDispatcher;
@@ -66,7 +66,7 @@ public class DataOperationDispatcherImpl implements DataOperationDispatcher {
     @Override
     public ListSchemasResponse listSchemas(ListSchemasRequest listSchemasRequest) {
         return ListSchemasResponse.newBuilder()
-                .addAllSchemas(this.metadataProvider.getSchemaNames())
+                .addAllSchemas(this.schemaProvider.getSchemaNames())
                 .build();
     }
 
@@ -75,7 +75,7 @@ public class DataOperationDispatcherImpl implements DataOperationDispatcher {
         val builder = GetSchemaResponse.newBuilder();
         val requestedSchema = r.getSchemaName();
 
-        if (!this.metadataProvider.isSchemaExists(requestedSchema)) {
+        if (!this.schemaProvider.isSchemaExists(requestedSchema)) {
             val message = String.format("Schema '%s' not found",
                     requestedSchema == null ? "<root>" : requestedSchema);
             throw Status.NOT_FOUND
@@ -83,7 +83,7 @@ public class DataOperationDispatcherImpl implements DataOperationDispatcher {
                     .asRuntimeException();
         }
 
-        val schema = this.metadataProvider.getSchema(requestedSchema);
+        val schema = this.schemaProvider.getSchema(requestedSchema);
         return builder
                 .setSchema(schema)
                 .build();

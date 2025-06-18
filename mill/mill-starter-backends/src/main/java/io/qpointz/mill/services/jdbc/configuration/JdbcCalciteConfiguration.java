@@ -2,10 +2,10 @@ package io.qpointz.mill.services.jdbc.configuration;
 
 
 import io.qpointz.mill.services.ExecutionProvider;
-import io.qpointz.mill.services.MetadataProvider;
+import io.qpointz.mill.services.SchemaProvider;
 import io.qpointz.mill.services.SqlProvider;
 import io.qpointz.mill.services.calcite.CalciteContextFactory;
-import io.qpointz.mill.services.calcite.providers.CalciteMetadataProvider;
+import io.qpointz.mill.services.calcite.providers.CalciteSchemaProvider;
 import io.qpointz.mill.services.calcite.providers.CalcitePlanConverter;
 import io.qpointz.mill.services.calcite.providers.CalciteSqlProvider;
 import io.qpointz.mill.services.calcite.providers.PlanConverter;
@@ -21,20 +21,16 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.val;
 import org.apache.calcite.sql.SqlDialect;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -97,8 +93,8 @@ public class JdbcCalciteConfiguration {
     }
 
     @Bean
-    public MetadataProvider jdbcMetadataProvider(CalciteContextFactory ctxFactory, io.substrait.extension.ExtensionCollector extensionCollector) {
-        return new CalciteMetadataProvider(ctxFactory, extensionCollector);
+    public SchemaProvider jdbcMetadataProvider(CalciteContextFactory ctxFactory, io.substrait.extension.ExtensionCollector extensionCollector) {
+        return new CalciteSchemaProvider(ctxFactory, extensionCollector);
     }
 
     @Bean

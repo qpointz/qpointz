@@ -13,7 +13,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class CalciteMetadataProviderTest extends BaseTest {
+class CalciteSchemaProviderTest extends BaseTest {
 
     @Autowired
     ExtensionCollector extensionCollector;
@@ -23,21 +23,21 @@ class CalciteMetadataProviderTest extends BaseTest {
 
     @Test
     void testListSchemas() {
-        val mp = new CalciteMetadataProvider(this.ctxFactory, this.extensionCollector);
+        val mp = new CalciteSchemaProvider(this.ctxFactory, this.extensionCollector);
         val schemas = mp.getSchemaNames();
         assertEquals(Set.of("airlines", "metadata", "testdb", "cmart"), schemas);
     }
 
     @Test
     void getSchemaReturnsTables() {
-        val mp = new CalciteMetadataProvider(this.ctxFactory, this.extensionCollector);
+        val mp = new CalciteSchemaProvider(this.ctxFactory, this.extensionCollector);
         val schema = mp.getSchema("airlines");
         assertFalse(schema.getTablesList().isEmpty());
     }
 
     @Test
     void mapsFieldsToDataType() {
-        val mp = new CalciteMetadataProvider(this.ctxFactory, this.extensionCollector);
+        val mp = new CalciteSchemaProvider(this.ctxFactory, this.extensionCollector);
         val schema = mp.getSchema("airlines");
         assertFalse(schema.getTablesList().isEmpty());
         val table = schema.getTablesList().stream().filter(k-> k.getName().equals("passenger")).findFirst().get();

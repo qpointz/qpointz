@@ -3,7 +3,7 @@ package io.qpointz.mill.services.descriptors;
 import io.qpointz.mill.security.annotations.ConditionalOnSecurity;
 import io.qpointz.mill.security.authentication.AuthenticationMethods;
 import io.qpointz.mill.security.authentication.AuthenticationType;
-import io.qpointz.mill.services.MetadataProvider;
+import io.qpointz.mill.services.SchemaProvider;
 import lombok.Data;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +41,7 @@ public class ApplicationDescriptor {
     public record SchemaDescriptor(String name, URI link) {}
 
     @Bean
-    public static Map<String, SchemaDescriptor> schemaDescriptors(@Autowired(required = false) MetadataProvider provider) {
+    public static Map<String, SchemaDescriptor> schemaDescriptors(@Autowired(required = false) SchemaProvider provider) {
         if (provider == null || provider.getSchemaNames() == null) {
             return Collections.emptyMap();
         }

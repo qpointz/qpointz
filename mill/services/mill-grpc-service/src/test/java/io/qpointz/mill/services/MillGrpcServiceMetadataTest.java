@@ -26,9 +26,9 @@ class MillGrpcServiceMetadataTest extends MillGrpcServiceBaseTest {
 
     @Test
     void listSchemas(@Autowired DataConnectServiceGrpc.DataConnectServiceBlockingStub stub,
-                     @Autowired MetadataProvider metadataProvider) {
+                     @Autowired SchemaProvider schemaProvider) {
         val exp = List.of("A", "B", "C");
-        when(metadataProvider.getSchemaNames()).thenReturn(exp);
+        when(schemaProvider.getSchemaNames()).thenReturn(exp);
         val resp = stub.listSchemas(ListSchemasRequest.newBuilder().build());
         val s = resp.getSchemasList().stream().toList();
         assertEquals(s, exp);
@@ -36,8 +36,8 @@ class MillGrpcServiceMetadataTest extends MillGrpcServiceBaseTest {
 
     @Test
     void getMissingSchema(@Autowired DataConnectServiceGrpc.DataConnectServiceBlockingStub stub,
-                          @Autowired MetadataProvider metadataProvider) {
-        when(metadataProvider.isSchemaExists(any())).thenReturn(false);
+                          @Autowired SchemaProvider schemaProvider) {
+        when(schemaProvider.isSchemaExists(any())).thenReturn(false);
         val request = GetSchemaRequest.getDefaultInstance();
         val e = assertThrows(StatusRuntimeException.class,
                 () -> stub.getSchema(request));
@@ -48,12 +48,12 @@ class MillGrpcServiceMetadataTest extends MillGrpcServiceBaseTest {
     @Test
     void getSchema(@Autowired DataConnectServiceGrpc.DataConnectServiceBlockingStub stub,
                    @Autowired DataOperationDispatcher dataOperationDispatcher,
-                   @Autowired MetadataProvider metadataProvider) {
+                   @Autowired SchemaProvider schemaProvider) {
         val schema = Schema.newBuilder().build();
         val schemaName = "schemaName";
         val request = GetSchemaRequest.newBuilder().setSchemaName(schemaName).build();
-        when(metadataProvider.isSchemaExists("schemaName")).thenReturn(true);
-        when(metadataProvider.getSchema("schemaName")).thenReturn(schema);
+        when(schemaProvider.isSchemaExists("schemaName")).thenReturn(true);
+        when(schemaProvider.getSchema("schemaName")).thenReturn(schema);
         val resp = stub.getSchema(request);
         assertEquals(schema, resp.getSchema());
     }
