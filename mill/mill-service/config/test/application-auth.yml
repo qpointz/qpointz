@@ -9,6 +9,3 @@ mill:
         enable: true
         jwt:
           jwk-set-uri: "https://login.microsoftonline.com/${AZURE_TEST_TENANT_ID}/discovery/v2.0/keys"
-  services:
-    data-bot:
-      enable: true

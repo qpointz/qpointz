@@ -59,6 +59,7 @@ public class LLMConfiguration {
                         MessageChatMemoryAdvisor.builder(chatMemory).build(),
                         PromptChatMemoryAdvisor.builder(chatMemory).build()
                 )
+                //.defaultSystem(promptBuilder.prompt())
                 .build();
         return new SqlAgent(chatClient, promptBuilder);
     }

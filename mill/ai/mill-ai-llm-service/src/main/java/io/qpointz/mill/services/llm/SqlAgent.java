@@ -16,10 +16,9 @@ public class SqlAgent {
     private final ChatClient chatClient;
     private final PromptBuilder promptBuilder;
 
-
     public SqlAgent(ChatClient chatClient, PromptBuilder promptBuilder) {
-        val prompt = new Prompt(promptBuilder.prompt());
-        chatClient.prompt(prompt);
+        //val prompt = new Prompt(promptBuilder.prompt());
+        //chatClient.prompt(prompt);
        this.chatClient = chatClient;
        this.promptBuilder = promptBuilder;
        val resp = this.chatClient.prompt(promptBuilder.prompt()).call().content();
@@ -28,7 +27,7 @@ public class SqlAgent {
 
     public String query(String query) {
         return this.chatClient
-                .prompt()
+                .prompt(promptBuilder.prompt())
                 .user(query)
                 .call()
                 .content()

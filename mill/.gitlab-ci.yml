@@ -58,15 +58,33 @@ mill:unit-tests:
       - ${CI_PROJECT_DIR}/mill/**/build/test-results/**/*.xml
       - ${CI_PROJECT_DIR}/mill/**/reports/jacoco/**/*.xml
 
+mill:ui:sql-chat:
+  image: node:24-alpine
+  stage: build
+  needs:
+    - job: mill:init-version
+      artifacts: true
+  script:
+    - cd ${CI_PROJECT_DIR}/mill/ai/mill-ai-llm-service/src/main/ui/sql-chat
+    - npm install
+    - npm run build
+  artifacts:
+    expire_in: "5 days"
+    paths:
+      - ${CI_PROJECT_DIR}/mill/ai/mill-ai-llm-service/src/main/resources/ui/sql-chat/**/*
+
+
 mill:install-dist:
   extends: .gradle-job
   stage: package
   needs:
     - job: mill:init-version
       artifacts: true
+    - job: mill:ui:sql-chat
+      artifacts: true
   script:
     - cd ${CI_PROJECT_DIR}/mill
-    - ./gradlew --no-daemon --console plain clean installBootDist azureFunctionsPackage azureFunctionsPackageZip #distTar distZip bootDistTar bootDistZip
+    - ./gradlew --no-daemon --console plain clean installBootDist azureFunctionsPackage azureFunctionsPackageZip
   artifacts:
     expire_in: "5 days"
     paths:
@@ -118,6 +136,22 @@ mill:service:build-docker:
       artifacts: false
     - job: mill:init-version
       artifacts: true
+
+mill:service:build-docker-moneta:
+  stage: publish
+  extends: .docker-build-job
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/mill-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/mill-service/config/moneta/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : mill-service-moneta
+    DOCKER_BUILD_ARGS: --build-arg BASE_IMAGE=${CI_REGISTRY_IMAGE}/mill-service:${CI_COMMIT_REF_SLUG}
+  before_script:
+    - mkdir -p ${CI_PROJECT_DIR}/mill/mill-service/build/test/datasets/
+    - cp -r ${CI_PROJECT_DIR}/mill/test/datasets/moneta ${CI_PROJECT_DIR}/mill/mill-service/build/test/datasets/
+  needs:
+    - job: mill:service:build-docker
+      artifacts: false
+
 
 mill:service:build-test-docker:
   stage: publish

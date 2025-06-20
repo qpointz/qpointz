@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":mill-starter-backends"))
     implementation(libs.spring.ai.starter.model.azureopenai)
     implementation(libs.boot.starter)
+    implementation(libs.boot.starter.web)
     implementation(libs.jackson.core)
 
     compileOnly(libs.bundles.logging)

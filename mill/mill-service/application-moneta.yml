@@ -1,6 +1,15 @@
 logging.level:
   org.springframework.security.web.csrf.CsrfFilter: debug
 
+spring:
+  mcp:
+    server:
+      enabled: false
+      name: moneta-agent
+      transport:
+        type: http
+        endpoint: http://localhost:8080/mcp/task
+
 mill:
   security:
     enable: false
@@ -11,14 +20,13 @@ mill:
       caseSensitive: false
       unquotedCasing: UNCHANGED
     jdbc:
-      url: "jdbc:trino://localhost:8082/tpch/sf1"
-      driver: "io.trino.jdbc.TrinoDriver"
-      user: "admin"
-      password: ""
-      target-schema: "trino"
+      url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '../test/datasets/moneta/moneta.sql'"
+      driver: "org.h2.Driver"
+      username: "*"
+      password: "*"
+      target-schema: "MONETA"
   services:
     data-bot:
       enable: true
       prompt-file: file:../test/datasets/moneta/moneta.prompt
-      api-key: ##
       model-name: gpt-4.1
