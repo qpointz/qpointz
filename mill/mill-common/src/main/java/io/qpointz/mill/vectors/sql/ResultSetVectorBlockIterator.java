@@ -12,6 +12,7 @@ import lombok.val;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
@@ -27,7 +28,7 @@ public class ResultSetVectorBlockIterator implements VectorBlockIterator {
     private final int columnCount;
     private final AtomicInteger blockIdx;
 
-    public ResultSetVectorBlockIterator(ResultSet resultSet, int fetchSize) {
+    public ResultSetVectorBlockIterator(ResultSet resultSet, int fetchSize, List<String> names) {
         this.resultSet = resultSet;
         this.fetchSize = fetchSize;
         this.blockIdx = new AtomicInteger(-1);
@@ -48,10 +49,16 @@ public class ResultSetVectorBlockIterator implements VectorBlockIterator {
                 );
                 log.trace("Mapping column {}. {}", colIdx, jdbcInfo.toString());
                 vectorProducers[i] = ResultSetVectorProducerFactory.DEFAULT.fromJdbcType(jdbcInfo);
+
+                var columnName = meta.getColumnLabel(colIdx);
+                if (names!=null && !names.isEmpty()) {
+                    columnName = names.get(i);
+                }
+
                 schemaBuilder.addFields(Field.newBuilder()
                                 .setFieldIdx(i)
                                 .setType(JdbcDatabaseTypeMapper.DEFAULT.jdbc(jdbcInfo).asDataType())
-                                .setName(meta.getColumnLabel(colIdx))
+                                .setName(columnName)
                                 .build());
             }
             this.schema = schemaBuilder.build();

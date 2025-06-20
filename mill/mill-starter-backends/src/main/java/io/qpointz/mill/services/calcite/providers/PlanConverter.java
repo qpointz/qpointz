@@ -3,12 +3,20 @@ package io.qpointz.mill.services.calcite.providers;
 import io.substrait.plan.Plan;
 import org.apache.calcite.rel.RelNode;
 
+import java.util.List;
+
 public interface PlanConverter {
 
-    String toSql(Plan plan);
+    record ConvertedPlanRelNode(RelNode node, List<String> names) {
+    }
 
-    String toSql(RelNode plan);
+    record ConvertedPlanSql(String sql, List<String> names) {
+    }
 
-    RelNode toRelNode(Plan plan);
+    ConvertedPlanSql toSql(Plan plan);
+
+    ConvertedPlanSql toSql(RelNode plan);
+
+    ConvertedPlanRelNode toRelNode(Plan plan);
 
 }

@@ -22,6 +22,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -49,7 +50,7 @@ class JdbcExecutionProviderTest extends BaseTest {
     @Test
     void trivial() throws SQLException {
         reset(planConverter);
-        val sql = "SELECT * FROM TEST";
+        val sql = new PlanConverter.ConvertedPlanSql("SELECT * FROM TEST", List.of());
         when(planConverter.toSql(any(Plan.class))).thenReturn(sql);
         val ep = new JdbcExecutionProvider(planConverter, jdbcContextFactory);
         val r = ep.execute(ImmutablePlan.builder().build(),
@@ -63,7 +64,7 @@ class JdbcExecutionProviderTest extends BaseTest {
     @Test
     void executeEmptyRecordset() throws SQLException {
         reset(planConverter);
-        val sql = "SELECT * FROM TEST WHERE 1=2";
+        val sql = new PlanConverter.ConvertedPlanSql("SELECT * FROM TEST WHERE 1=2", List.of());
         when(planConverter.toSql(any(Plan.class))).thenReturn(sql);
         val ep = new JdbcExecutionProvider(planConverter, jdbcContextFactory);
         val r = ep.execute(ImmutablePlan.builder().build(),

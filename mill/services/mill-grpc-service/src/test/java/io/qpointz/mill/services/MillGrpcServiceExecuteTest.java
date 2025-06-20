@@ -11,6 +11,8 @@ import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -115,7 +117,7 @@ class MillGrpcServiceExecuteTest extends MillGrpcServiceBaseTest {
 
         val db = H2Db.createFromResource("sql-scripts/test.sql");
         val rs = db.query("SELECT * from T1");
-        val iter = new ResultSetVectorBlockIterator(rs, 10);
+        val iter = new ResultSetVectorBlockIterator(rs, 10, List.of());
         when(execProvider.execute(any(io.substrait.plan.Plan.class), any(QueryExecutionConfig.class))).thenReturn(iter);
         val res = stub.execQuery(sqlRequest);
         assertTrue(res.hasNext());
@@ -129,7 +131,7 @@ class MillGrpcServiceExecuteTest extends MillGrpcServiceBaseTest {
                              @Autowired ExecutionProvider execProvider ) throws ClassNotFoundException {
         val db = H2Db.createFromResource("sql-scripts/test.sql");
         val rs = db.query("SELECT * from T1");
-        val iter = new ResultSetVectorBlockIterator(rs, 10);
+        val iter = new ResultSetVectorBlockIterator(rs, 10, List.of());
         when(execProvider.execute(any(io.substrait.plan.Plan.class), any(QueryExecutionConfig.class))).thenReturn(iter);
         val res = stub
                 .execQuery(QueryRequest.newBuilder()
@@ -146,7 +148,7 @@ class MillGrpcServiceExecuteTest extends MillGrpcServiceBaseTest {
                       @Autowired ExecutionProvider execProvider ) throws ClassNotFoundException {
         val db = H2Db.createFromResource("sql-scripts/test.sql");
         val rs = db.query("SELECT * from T1 WHERE 1=2");
-        val iter = new ResultSetVectorBlockIterator(rs, 10);
+        val iter = new ResultSetVectorBlockIterator(rs, 10, List.of());
         when(execProvider.execute(any(io.substrait.plan.Plan.class), any(QueryExecutionConfig.class))).thenReturn(iter);
         val res = stub
                 .execQuery(QueryRequest.newBuilder()

@@ -5,6 +5,8 @@ import io.qpointz.mill.vectors.sql.ResultSetVectorBlockIterator;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class ResultSetVectorBlockIteratorTest {
@@ -19,14 +21,14 @@ class ResultSetVectorBlockIteratorTest {
         db.close();
     }
 
-    private VectorBlockIterator sql(String sql, int fetchSize) {
+    private VectorBlockIterator sql(String sql, int fetchSize, List<String> names) {
         var rs = db.query(sql);
-        return new ResultSetVectorBlockIterator(rs, fetchSize);
+        return new ResultSetVectorBlockIterator(rs, fetchSize, names);
     }
 
     @Test
     public void iterateOver() {
-        val iter = sql("select * from TEST", 33);
+        val iter = sql("select * from TEST", 33, null);
         assertTrue(iter.hasNext());
         var rowCount = 0;
         var blockCount = 0;
@@ -39,5 +41,34 @@ class ResultSetVectorBlockIteratorTest {
         assertEquals(1000, rowCount);
         assertEquals(31, blockCount);
     }
+
+    @Test
+    public void rewriteNames() {
+        val iter = sql("select id, first_name from TEST", 33, List.of("NEWID", "NEWNAME"));
+        assertTrue(iter.hasNext());
+        val schema = iter.schema().getFieldsList();
+        assertEquals("NEWID", schema.get(0).getName());
+        assertEquals("NEWNAME", schema.get(1).getName());
+    }
+
+    @Test
+    public void emptyNames() {
+        val iter = sql("select ID, FIRST_NAME from TEST", 33, List.of());
+        assertTrue(iter.hasNext());
+        val schema = iter.schema().getFieldsList();
+        assertEquals("ID", schema.get(0).getName());
+        assertEquals("FIRST_NAME", schema.get(1).getName());
+    }
+
+    @Test
+    public void nullNames() {
+        val iter = sql("select ID, FIRST_NAME from TEST", 33, null);
+        assertTrue(iter.hasNext());
+        val schema = iter.schema().getFieldsList();
+        assertEquals("ID", schema.get(0).getName());
+        assertEquals("FIRST_NAME", schema.get(1).getName());
+    }
+
+
 
 }

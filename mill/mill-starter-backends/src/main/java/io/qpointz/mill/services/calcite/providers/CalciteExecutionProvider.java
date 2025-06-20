@@ -31,9 +31,9 @@ public class CalciteExecutionProvider implements ExecutionProvider {
         try {
             val ctx = Objects.requireNonNull(this.getCtxFactory().createContext());
             val node = planConverter.toRelNode(plan);
-            val stmt = ctx.getRelRunner().prepareStatement(node);
+            val stmt = ctx.getRelRunner().prepareStatement(node.node());
             val resultSet = stmt.executeQuery();
-            return new ResultSetVectorBlockIterator(resultSet, config.getFetchSize());
+            return new ResultSetVectorBlockIterator(resultSet, config.getFetchSize(), node.names());
         } catch (Exception  e) {
             throw new RuntimeException(e);
         }

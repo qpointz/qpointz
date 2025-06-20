@@ -7,7 +7,6 @@ import io.substrait.isthmus.SubstraitRelNodeConverter;
 import io.substrait.plan.Plan;
 import lombok.*;
 import org.apache.calcite.plan.RelOptCluster;
-import org.apache.calcite.plan.RelTraitDef;
 import org.apache.calcite.plan.volcano.VolcanoPlanner;
 import org.apache.calcite.prepare.CalciteCatalogReader;
 import org.apache.calcite.prepare.Prepare;
@@ -22,8 +21,6 @@ import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.tools.Frameworks;
 import org.apache.calcite.tools.RelBuilder;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 
@@ -39,7 +36,7 @@ public class CalcitePlanConverter implements PlanConverter {
     @Getter
     private SimpleExtension.ExtensionCollection extensionCollection;
 
-    public RelNode toRelNode(Plan plan) {
+    public ConvertedPlanRelNode toRelNode(Plan plan) {
         try {
             val ctx = Objects.requireNonNull(this.getCtxFactory().createContext());
             return toRelNode(plan, ctx);
@@ -49,13 +46,14 @@ public class CalcitePlanConverter implements PlanConverter {
         }
     }
 
+
     private static class PlanConverter extends SubstraitRelNodeConverter {
 
         public PlanConverter(SimpleExtension.ExtensionCollection extensions, RelDataTypeFactory typeFactory, RelBuilder relBuilder) {
             super(extensions, typeFactory, relBuilder);
         }
 
-        public static RelNode convertPlan(
+        public static ConvertedPlanRelNode convertPlan(
                 Plan relPlan,
                 RelOptCluster relOptCluster,
                 Prepare.CatalogReader catalogReader,
@@ -72,16 +70,15 @@ public class CalcitePlanConverter implements PlanConverter {
             return converter.convert(relPlan);
         }
 
-        public RelNode convert(Plan plan) {
+        public ConvertedPlanRelNode convert(Plan plan) {
             val root = plan.getRoots().get(0);
-            RelNode noProj = root.getInput().accept(this);
-            return this.relBuilder.push(noProj)
-                    .rename(root.getNames())
-                    .build();
+            RelNode topMost = root.getInput().accept(this);
+            topMost.getCluster().getTypeFactory();
+            return new ConvertedPlanRelNode(topMost, root.getNames());
         }
     }
 
-    public RelNode toRelNode(Plan plan, CalciteContext ctx) {
+    public ConvertedPlanRelNode toRelNode(Plan plan, CalciteContext ctx) {
         try {
             val defaultSchemas = ctx.getFrameworkConfig()
                     .getDefaultSchema()
@@ -101,11 +98,12 @@ public class CalcitePlanConverter implements PlanConverter {
     }
 
     @Override
-    public String toSql(Plan plan) {
+    public ConvertedPlanSql toSql(Plan plan) {
         try {
             val ctx = Objects.requireNonNull(this.getCtxFactory().createContext());
             val relNode = toRelNode(plan, ctx);
-            return toSql(relNode);
+            val sql = toSql(relNode.node());
+            return new ConvertedPlanSql(sql.sql(), plan.getRoots().get(0).getNames());
         }
         catch (Exception e) {
             throw new RuntimeException(e);
@@ -113,7 +111,7 @@ public class CalcitePlanConverter implements PlanConverter {
     }
 
     @Override
-    public String toSql(RelNode plan) {
+    public ConvertedPlanSql toSql(RelNode plan) {
         try {
             final RelToSqlConverter converter = new RelToSqlConverter(this.getDialect());
             final SqlNode sqlNode = converter.visitRoot(plan).asStatement();
@@ -124,7 +122,9 @@ public class CalcitePlanConverter implements PlanConverter {
                             .withUpdateSetListNewline(false)
                             .withIndentation(0);
 
-            return sqlNode.toSqlString(c -> transform.apply(c.withDialect(this.getDialect()))).getSql();
+            return new ConvertedPlanSql(
+                    sqlNode.toSqlString(c -> transform.apply(c.withDialect(this.getDialect()))).getSql(),
+                    plan.getRowType().getFieldNames());
         }
         catch (Exception e) {
             throw new RuntimeException(e);

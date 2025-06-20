@@ -31,7 +31,7 @@ class MillGrpcServiceRewriteTest extends MillGrpcServiceBaseTest {
                       @Autowired PlanRewriteChain chain) throws ClassNotFoundException {
         val db = H2Db.createFromResource("sql-scripts/test.sql");
         val rs = db.query("SELECT * from T1");
-        val iter = new ResultSetVectorBlockIterator(rs, 10);
+        val iter = new ResultSetVectorBlockIterator(rs, 10, List.of());
         when(execProvider.execute(any(io.substrait.plan.Plan.class), any(QueryExecutionConfig.class))).thenReturn(iter);
 
         val rewriter = mock(PlanRewriter.class);
