@@ -134,5 +134,9 @@
       },
       "names": ["CLIENT_ID", "FIRST_NAME", "LAST_NAME", "IS_PEP", "DOMICILE_REGION", "DOMICILE_COUNTRY", "CLIENT_SEGMENT"]
     }
-  }]
+  }],
+  "version": {
+    "minorNumber": 69,
+    "producer": "isthmus"
+  }
 }

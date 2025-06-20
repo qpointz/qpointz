@@ -47,6 +47,12 @@ message RelCommon {
 
     substrait.extensions.AdvancedExtension advanced_extension = 10;
 
+    // Save or load a system-specific computation for use in optimizing a remote operation.
+    // The anchor refers to the source/destination of the computation.  The computation type
+    // and number refer to the current relation.
+    repeated SavedComputation saved_computations = 11;
+    repeated LoadedComputation loaded_computations = 12;
+
     // The statistics related to a hint (physical properties of records)
     message Stats {
       double row_count = 1;
@@ -58,6 +64,37 @@ message RelCommon {
       // TODO: nodes, cpu threads/%, memory, iops, etc.
 
       substrait.extensions.AdvancedExtension advanced_extension = 10;
+    }
+
+    enum ComputationType {
+      COMPUTATION_TYPE_UNSPECIFIED = 0;
+      COMPUTATION_TYPE_HASHTABLE = 1;
+      COMPUTATION_TYPE_BLOOM_FILTER = 2;
+      COMPUTATION_TYPE_UNKNOWN = 9999;
+    }
+
+    message SavedComputation {
+      // The value corresponds to a plan unique number for that datastructure.  Any particular
+      // computation may be saved only once but it may be loaded multiple times.
+      int32 computation_id = 1;
+      // The type of this computation.  While a plan may use COMPUTATION_TYPE_UNKNOWN for all
+      // of its types it is recommended to use a more specific type so that the optimization
+      // is more portable.  The consumer should be able to decide if an unknown type here
+      // matches the same unknown type at a different plan and ignore the optimization if they
+      // are mismatched.
+      ComputationType type = 2;
+    }
+
+    message LoadedComputation {
+      // The value corresponds to a plan unique number for that datastructure.  Any particular
+      // computation may be saved only once but it may be loaded multiple times.
+      int32 computation_id_reference = 1;
+      // The type of this computation.  While a plan may use COMPUTATION_TYPE_UNKNOWN for all
+      // of its types it is recommended to use a more specific type so that the optimization
+      // is more portable.  The consumer should be able to decide if an unknown type here
+      // matches the same unknown type at a different plan and ignore the optimization if they
+      // are mismatched.
+      ComputationType type = 2;
     }
   }
 }
@@ -77,6 +114,7 @@ message ReadRel {
     LocalFiles local_files = 6;
     NamedTable named_table = 7;
     ExtensionTable extension_table = 8;
+    IcebergTable iceberg_table = 9;
   }
 
   // A base table. The list of string is used to represent namespacing (e.g., mydb.mytable).
@@ -86,9 +124,33 @@ message ReadRel {
     substrait.extensions.AdvancedExtension advanced_extension = 10;
   }
 
-  // A table composed of literals.
+  // Read an Iceberg Table
+  message IcebergTable {
+    oneof table_type {
+      MetadataFileRead direct = 1;
+      // future: add catalog table types (e.g. rest api, latest metadata in path, etc)
+    }
+
+    // Read an Iceberg table using a metadata file. Implicit assumption: required credentials are already known by plan consumer.
+    message MetadataFileRead {
+      // the specific uri of a metadata file (e.g. s3://mybucket/mytable/<ver>-<uuid>.metadata.json)
+      string metadata_uri = 1;
+
+      // snapshot options. if none set, uses the current snapshot listed in the metadata file
+      oneof snapshot {
+        // the snapshot id to read.
+        string snapshot_id = 2;
+
+        // the timestamp that should be used to select the snapshot (Time passed in microseconds since 1970-01-01 00:00:00.000000 in UTC)
+        int64 snapshot_timestamp = 3;
+      }
+    }
+  }
+
+  // A table composed of expressions.
   message VirtualTable {
-    repeated Expression.Literal.Struct values = 1;
+    repeated Expression.Literal.Struct values = 1 [deprecated = true];
+    repeated Expression.Nested.Struct expressions = 2;
   }
 
   // A stub type that can be used to extend/introduce new table types outside
@@ -229,11 +291,34 @@ message CrossRel {
 message FetchRel {
   RelCommon common = 1;
   Rel input = 2;
-  // the offset expressed in number of records
-  int64 offset = 3;
-  // the amount of records to return
-  // use -1 to signal that ALL records should be returned
-  int64 count = 4;
+  // Note: A oneof field is inherently optional, whereas individual fields
+  // within a oneof cannot be marked as optional. The unset state of offset
+  // should therefore be checked at the oneof level. Unset is treated as 0.
+  oneof offset_mode {
+    // the offset expressed in number of records
+    // Deprecated: use `offset_expr` instead
+    int64 offset = 3 [deprecated = true];
+    // Expression evaluated into a non-negative integer specifying the number
+    // of records to skip. An expression evaluating to null is treated as 0.
+    // Evaluating to a negative integer should result in an error.
+    // Recommended type for offset is int64.
+    Expression offset_expr = 5;
+  }
+  // Note: A oneof field is inherently optional, whereas individual fields
+  // within a oneof cannot be marked as optional. The unset state of count
+  // should therefore be checked at the oneof level. Unset is treated as ALL.
+  oneof count_mode {
+    // the amount of records to return
+    // use -1 to signal that ALL records should be returned
+    // Deprecated: use `count_expr` instead
+    int64 count = 4 [deprecated = true];
+    // Expression evaluated into a non-negative integer specifying the number
+    // of records to return. An expression evaluating to null signals that ALL
+    // records should be returned.
+    // Evaluating to a negative integer should result in an error.
+    // Recommended type for count is int64.
+    Expression count_expr = 6;
+  }
   substrait.extensions.AdvancedExtension advanced_extension = 10;
 }
 
@@ -493,6 +578,7 @@ message Rel {
     ReferenceRel reference = 21;
     WriteRel write = 19;
     DdlRel ddl = 20;
+    UpdateRel update = 22;
     // Physical relations
     HashJoinRel hash_join = 13;
     MergeJoinRel merge_join = 14;
@@ -563,6 +649,9 @@ message DdlRel {
     // An operation that removes an object from the system (without throwing an exception if the object did not exist)
     DDL_OP_DROP_IF_EXIST = 5;
   }
+
+  substrait.extensions.AdvancedExtension advanced_extension = 9;
+
   //TODO add PK/constraints/indexes/etc..?
 }
 
@@ -587,6 +676,8 @@ message WriteRel {
   // occur in case of DELETE to ensure multi-engine plans are unequivocal.
   Rel input = 5;
 
+  CreateMode create_mode = 8; // Used with CTAS to determine what to do if the table already exists
+
   // Output mode determines what is the output of executing this rel
   OutputMode output = 6;
   RelCommon common = 7;
@@ -603,6 +694,14 @@ message WriteRel {
     WRITE_OP_CTAS = 4;
   }
 
+  enum CreateMode {
+    CREATE_MODE_UNSPECIFIED = 0;
+    CREATE_MODE_APPEND_IF_EXISTS = 1; // Append the data to the table if it already exists
+    CREATE_MODE_REPLACE_IF_EXISTS = 2; // Replace the table if it already exists ("OR REPLACE")
+    CREATE_MODE_IGNORE_IF_EXISTS = 3; // Ignore the request if the table already exists ("IF NOT EXISTS")
+    CREATE_MODE_ERROR_IF_EXISTS = 4; // Throw an error if the table already exists (default behavior)
+  }
+
   enum OutputMode {
     OUTPUT_MODE_UNSPECIFIED = 0;
     // return no records at all
@@ -614,6 +713,35 @@ message WriteRel {
     // subplans in the body of the Rel input) and return those with anounter PlanRel.relations.
     OUTPUT_MODE_MODIFIED_RECORDS = 2;
   }
+
+  substrait.extensions.AdvancedExtension advanced_extension = 9;
+}
+
+// The operator that modifies the columns of a table
+message UpdateRel {
+  oneof update_type {
+    NamedTable named_table = 1;
+  }
+
+  NamedStruct table_schema = 2; // The full schema of the named_table
+  Expression condition = 3; // condition to be met for the update to be applied on a record
+
+  // The list of transformations to apply to the columns of the named_table
+  repeated TransformExpression transformations = 4;
+
+  message TransformExpression {
+    Expression transformation = 1; // the transformation to apply
+    int32 column_target = 2; // index of the column to apply the transformation to
+  }
+
+  substrait.extensions.AdvancedExtension advanced_extension = 5;
+}
+
+// A base table. The list of string is used to represent namespacing (e.g., mydb.mytable).
+// This assumes shared catalog between systems exchanging a message.
+message NamedTable {
+  repeated string names = 1;
+  substrait.extensions.AdvancedExtension advanced_extension = 10;
 }
 
 // Hash joins and merge joins are a specialization of the general join where the join
@@ -829,6 +957,7 @@ message Expression {
     Cast cast = 11;
     Subquery subquery = 12;
     Nested nested = 13;
+    DynamicParameter dynamic_parameter = 14;
 
     // deprecated: enum literals are only sensible in the context of
     // function arguments, for which FunctionArgument should now be
@@ -861,11 +990,12 @@ message Expression {
       string string = 12;
       bytes binary = 13;
       // Timestamp in units of microseconds since the UNIX epoch.
-      // Deprecated in favor of `precision_timestamp`
+      // Deprecated in favor of `precision_timestamp`.
       int64 timestamp = 14 [deprecated = true];
       // Date in units of days since the UNIX epoch.
       int32 date = 16;
-      // Time in units of microseconds past midnight
+      // Time in units of microseconds past midnight.
+      // Deprecated in favor of `precision_time`.
       int64 time = 17;
       IntervalYearToMonth interval_year_to_month = 19;
       IntervalDayToSecond interval_day_to_second = 20;
@@ -874,6 +1004,8 @@ message Expression {
       VarChar var_char = 22;
       bytes fixed_binary = 23;
       Decimal decimal = 24;
+      // Time in precision units past midnight.
+      PrecisionTime precision_time = 37;
       PrecisionTimestamp precision_timestamp = 34;
       PrecisionTimestamp precision_timestamp_tz = 35;
       Struct struct = 25;
@@ -917,8 +1049,15 @@ message Expression {
       int32 scale = 3;
     }
 
+    message PrecisionTime {
+      // Sub-second precision, 0 means the value given is in seconds, 3 is milliseconds, 6 microseconds, 9 is nanoseconds, 12 is picoseconds
+      int32 precision = 1;
+      // Time passed since midnight in precision units.
+      int64 value = 2;
+    }
+
     message PrecisionTimestamp {
-      // Sub-second precision, 0 means the value given is in seconds, 3 is milliseconds, 6 microseconds, 9 is nanoseconds
+      // Sub-second precision, 0 means the value given is in seconds, 3 is milliseconds, 6 microseconds, 9 is nanoseconds, 12 is picoseconds
       int32 precision = 1;
       // Time passed since 1970-01-01 00:00:00.000000 in UTC for PrecisionTimestampTZ and unspecified timezone for PrecisionTimestamp
       int64 value = 2;
@@ -1481,6 +1620,16 @@ message Expression {
       Rel right = 4;
     }
   }
+}
+
+// Expression that represents a dynamic parameter.
+// Dynamic parameters are identified by a surrogate key within a plan.
+message DynamicParameter {
+  // The type of the dynamic parameter.
+  Type type = 1;
+
+  // The surrogate key used within a plan to reference a specific parameter binding.
+  uint32 parameter_reference = 2;
 }
 
 // The description of a field to sort on (including the direction of sorting and null semantics)

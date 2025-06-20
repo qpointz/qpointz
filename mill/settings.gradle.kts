@@ -88,7 +88,7 @@ dependencyResolutionManagement {
             library("spring-ai-starter-mcp-server-webmvc", springAiG, "spring-ai-starter-mcp-server-webmvc").versionRef(springAiV)
 
 
-            val calcite = version("calcite", "1.38.0")
+            val calcite = version("calcite", "1.40.0")
             library("calcite-core", "org.apache.calcite", "calcite-core").versionRef(calcite)
             library("calcite-server", "org.apache.calcite", "calcite-server").versionRef(calcite)
             library("calcite-testkit", "org.apache.calcite", "calcite-testkit").versionRef("calcite")
@@ -142,7 +142,7 @@ dependencyResolutionManagement {
             val apacheCommons = version("apacheCommons", "3.14.0")
             library("apache-commons-lang3","org.apache.commons", "commons-lang3").versionRef(apacheCommons)
 
-            val substrait = version("substrait", "0.45.0")
+            val substrait = version("substrait", "0.60.0")
             library("substrait-core", "io.substrait", "core").versionRef(substrait)
             library("substrait-isthmus", "io.substrait", "isthmus").versionRef(substrait)
 

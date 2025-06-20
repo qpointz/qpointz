@@ -1,23 +1,22 @@
 package io.qpointz.mill.services.calcite.istmus;
 
 import com.google.common.annotations.VisibleForTesting;
-import io.substrait.extension.ExtensionCollector;
 import io.substrait.extension.SimpleExtension;
 import io.substrait.isthmus.FeatureBoard;
 import io.substrait.isthmus.SubstraitRelVisitor;
-import io.substrait.isthmus.TypeConverter;
+import io.substrait.plan.ImmutablePlan.Builder;
+import io.substrait.plan.ImmutableVersion;
+import io.substrait.plan.Plan.Version;
+import io.substrait.plan.PlanProtoConverter;
 import io.substrait.proto.Plan;
-import io.substrait.proto.PlanRel;
-import io.substrait.relation.RelProtoConverter;
-import io.substrait.type.NamedStruct;
 import java.util.List;
-import java.util.function.Function;
 
 import org.apache.calcite.config.CalciteConnectionConfig;
 import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.plan.hep.HepPlanner;
 import org.apache.calcite.plan.hep.HepProgram;
 import org.apache.calcite.prepare.CalciteCatalogReader;
+import org.apache.calcite.prepare.Prepare;
 import org.apache.calcite.rel.RelRoot;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.schema.Schema;
@@ -38,91 +37,45 @@ public class SqlToSubstrait extends SqlConverterBase {
     this.extensionCollection = extensionCollection;
   }
 
-  public Plan execute(String sql, Function<List<String>, NamedStruct> tableLookup)
-      throws SqlParseException {
-    var pair = registerCreateTables(tableLookup);
-    return executeInner(sql, factory, pair.left, pair.right);
-  }
-
-  public Plan execute(String sql, List<String> tables) throws SqlParseException {
-    var pair = registerCreateTables(tables);
-    return executeInner(sql, factory, pair.left, pair.right);
-  }
-
-  public Plan execute(String sql, String name, Schema schema) throws SqlParseException {
-    var pair = registerSchema(name, schema);
-    return executeInner(sql, factory, pair.left, pair.right);
-  }
-
   public Plan execute(String sql, CalciteSchema schema) throws SqlParseException {
     var pair = registerSchema(schema);
-    return executeInner(sql, factory, pair.left, pair.right);
+    return executeInner(sql, pair.left, pair.right);
   }
 
-  // Package protected for testing
-  List<RelRoot> sqlToRelNode(String sql, List<String> tables) throws SqlParseException {
-    var pair = registerCreateTables(tables);
-    return sqlToRelNode(sql, pair.left, pair.right);
-  }
-
-  // Package protected for testing
-  List<RelRoot> sqlToRelNode(String sql, Function<List<String>, NamedStruct> tableLookup)
+  private Plan executeInner(String sql, SqlValidator validator, Prepare.CatalogReader catalogReader)
       throws SqlParseException {
-    var pair = registerCreateTables(tableLookup);
-    return sqlToRelNode(sql, pair.left, pair.right);
-  }
+    Builder builder = io.substrait.plan.Plan.builder();
+    builder.version(
+        ImmutableVersion.builder().from(Version.DEFAULT_VERSION).producer("isthmus").build());
 
-  private Plan executeInner(
-      String sql,
-      RelDataTypeFactory factory, //NOSONAR
-      SqlValidator validator,
-      CalciteCatalogReader catalogReader)
-      throws SqlParseException {
-    var plan = Plan.newBuilder();
-    ExtensionCollector functionCollector = new ExtensionCollector();
-    var relProtoConverter = new RelProtoConverter(functionCollector);
-    // TODO: consider case in which one sql passes conversion while others don't //NOSONAR
-    sqlToRelNode(sql, validator, catalogReader)
-        .forEach(
-            root -> { //NOSONAR
-              plan.addRelations(
-                  PlanRel.newBuilder()
-                      .setRoot(
-                          io.substrait.proto.RelRoot.newBuilder()
-                              .setInput(
-                                  SubstraitRelVisitor.convert(
-                                          root, this.extensionCollection, featureBoard)
-                                      .accept(relProtoConverter))
-                              .addAllNames(
-                                  TypeConverter.DEFAULT
-                                      .toNamedStruct(root.validatedRowType)
-                                      .names())));
-            });
-    functionCollector.addExtensionsToPlan(plan);
-    return plan.build();
+    // TODO: consider case in which one sql passes conversion while others don't
+    sqlToRelNode(sql, validator, catalogReader).stream()
+        .map(root -> SubstraitRelVisitor.convert(root, EXTENSION_COLLECTION, featureBoard))
+        .forEach(root -> builder.addRoots(root));
+
+    PlanProtoConverter planToProto = new PlanProtoConverter();
+
+    return planToProto.toProto(builder.build());
   }
 
   private List<RelRoot> sqlToRelNode(
-      String sql, SqlValidator validator, CalciteCatalogReader catalogReader)
+      String sql, SqlValidator validator, Prepare.CatalogReader catalogReader)
       throws SqlParseException {
     SqlParser parser = SqlParser.create(sql, parserConfig);
     var parsedList = parser.parseStmtList();
-    if (!featureBoard.allowsSqlBatch() && parsedList.size() > 1) {
-      throw new UnsupportedOperationException("SQL must contain only a single statement: " + sql);
-    }
     SqlToRelConverter converter = createSqlToRelConverter(validator, catalogReader);
     List<RelRoot> roots =
-        parsedList.stream() //NOSONAR
+        parsedList.stream()
             .map(parsed -> getBestExpRelRoot(converter, parsed))
-            .collect(java.util.stream.Collectors.toList()); //NOSONAR
+            .collect(java.util.stream.Collectors.toList());
     return roots;
   }
 
   @VisibleForTesting
   SqlToRelConverter createSqlToRelConverter(
-      SqlValidator validator, CalciteCatalogReader catalogReader) {
+      SqlValidator validator, Prepare.CatalogReader catalogReader) {
     SqlToRelConverter converter =
-        new SqlToRelConverter( //NOSONAR
+        new SqlToRelConverter(
             null,
             validator,
             catalogReader,
