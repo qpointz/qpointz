@@ -45,10 +45,10 @@ dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
 
-            val lombok = version("lombok", "1.18.34")
+            val lombok = version("lombok", "1.18.38")
             library("lombok", "org.projectlombok", "lombok").versionRef(lombok)
 
-            val springBootV = version("boot", "3.3.5")
+            val springBootV = version("boot", "3.5.3")
             val springBootG = "org.springframework.boot"
             plugin("spring-dependency-management","io.spring.dependency-management").version("1.1.6")
             plugin("spring-boot-plugin", "org.springframework.boot").versionRef(springBootV)
@@ -95,15 +95,15 @@ dependencyResolutionManagement {
             library("calcite-file", "org.apache.calcite", "calcite-file").versionRef("calcite")
             library("calcite-csv", "org.apache.calcite", "calcite-csv").versionRef(calcite)
 
-            val junit = version("junit", "5.11.3")
+            val junit = version("junit", "5.13.1")
             library("junit-jupiter-api", "org.junit.jupiter", "junit-jupiter-api").versionRef(junit)
             library("junit-jupiter-engine", "org.junit.jupiter", "junit-jupiter-engine").versionRef(junit)
             library("junit-vintage-engine", "org.junit.vintage", "junit-vintage-engine").versionRef(junit)
 
-            library("slf4j-api", "org.slf4j", "slf4j-api").version("2.0.16")
-            library("logback-core", "ch.qos.logback", "logback-core").version("1.5.12")
-            library("logback-classic", "ch.qos.logback", "logback-classic").version("1.5.12")
-            library("fusesource-jansi","org.fusesource.jansi", "jansi").version("2.4.1")
+            library("slf4j-api", "org.slf4j", "slf4j-api").version("2.0.17")
+            library("logback-core", "ch.qos.logback", "logback-core").version("1.5.18")
+            library("logback-classic", "ch.qos.logback", "logback-classic").version("1.5.18")
+            library("fusesource-jansi","org.fusesource.jansi", "jansi").version("2.4.2")
             bundle("logging", listOf(
                     "slf4j-api",
                     "logback-core",
@@ -111,7 +111,7 @@ dependencyResolutionManagement {
                     "fusesource-jansi"
             ))
 
-            val mockito = version("mockito", "5.14.2")
+            val mockito = version("mockito", "5.18.0")
             library("mockito-core", "org.mockito", "mockito-core").versionRef(mockito)
             library("mockito-junit-jupiter", "org.mockito", "mockito-junit-jupiter").versionRef(mockito)
 
@@ -156,7 +156,7 @@ dependencyResolutionManagement {
             val googleApiGrpc = version("googleApiGrpc", "2.48.0")
             library("googleapigrpc-proto-common-protos", "com.google.api.grpc", "proto-google-common-protos").versionRef(googleApiGrpc)
 
-            val jackson = version("jackson", "2.18.1")
+            val jackson = version("jackson", "2.19.1")
             library("jackson-core", "com.fasterxml.jackson.core", "jackson-core").versionRef(jackson)
             library("jackson-dataformat-yaml", "com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml").versionRef(jackson)
             library("jackson-datatype-jsr310", "com.fasterxml.jackson.datatype","jackson-datatype-jsr310").versionRef(jackson)
@@ -173,27 +173,17 @@ dependencyResolutionManagement {
             val sqlline = version("sqlline","1.12.0")
             library("sqlline", "sqlline", "sqlline").versionRef(sqlline)
 
-            library("drivers-postgressql","org.postgresql","postgresql").version("42.7.4")
-            library("drivers-sqllite", "org.xerial","sqlite-jdbc").version("3.47.0.0")
-            library("drivers-mariadb", "org.mariadb.jdbc","mariadb-java-client").version("3.5.0")
+            library("drivers-postgressql","org.postgresql","postgresql").version("42.7.7")
+            library("drivers-sqllite", "org.xerial","sqlite-jdbc").version("3.50.1.0")
+            library("drivers-mariadb", "org.mariadb.jdbc","mariadb-java-client").version("3.5.3")
             library("drivers-oracle","com.oracle","ojdbc14").version("10.2.0.4.0")
-            library("drivers-trino", "io.trino","trino-jdbc").version("475")
-            library("drivers-duckdb", "org.duckdb","duckdb_jdbc").version("1.1.3")
-            library("drivers-snowflake","net.snowflake", "snowflake-jdbc").version("3.20.0")
-            library("drivers-clickhouse","com.clickhouse", "clickhouse-jdbc").version("0.7.1")
-
-            /*val langchain4j = version("langchain4j", "1.0.0")
-            library("langchain4j-core", "dev.langchain4j" , "langchain4j").versionRef(langchain4j)
-            library("langchain4j-openai", "dev.langchain4j", "langchain4j-open-ai").versionRef(langchain4j)
-            library("langchain4j-okhttp", "dev.langchain4j", "langchain4j-okhttp").versionRef(langchain4j)
-*/
+            library("drivers-trino", "io.trino","trino-jdbc").version("476")
+            library("drivers-duckdb", "org.duckdb","duckdb_jdbc").version("1.3.1.0")
+            library("drivers-snowflake","net.snowflake", "snowflake-jdbc").version("3.24.2")
+            library("drivers-clickhouse","com.clickhouse", "clickhouse-jdbc").version("0.9.0")
 
             library("apache-httpclient5", "org.apache.httpcomponents.client5", "httpclient5").version("5.4.4")
             library("apache-httpcore5", "org.apache.httpcomponents.core5", "httpcore5").version("5.3.4")
-
-            /*val mcpsdkV = version("mcp", "0.10.0")
-            val mcpsdkG = "io.modelcontextprotocol.sdk"
-            library("mcp-sdk-bom", mcpsdkG, "mcp-bom").version(mcpsdkV)*/
 
             bundle("jdbc-pack", listOf(
                 "h2-database",

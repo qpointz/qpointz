@@ -278,4 +278,14 @@ public class RelToDatabaseTypeConverter extends RelDataTypeConverter<DatabaseTyp
     protected DatabaseType convertAny(RelDataType relDataType) {
         throw notImplemented(relDataType);
     }
+
+    @Override
+    protected DatabaseType convertUUID(RelDataType relDataType) {
+        return from(UUIDLogical.INSTANCE, relDataType);
+    }
+
+    @Override
+    protected DatabaseType convertVariant(RelDataType relDataType) {
+        throw notImplemented(relDataType);
+    }
 }

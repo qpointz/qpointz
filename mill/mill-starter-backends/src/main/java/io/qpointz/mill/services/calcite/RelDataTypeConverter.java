@@ -59,6 +59,8 @@ public abstract class RelDataTypeConverter<T> {
             case MEASURE -> convertMeasure(relDataType);
             case FUNCTION -> convertFunction(relDataType);
             case SARG -> convertSArg(relDataType);
+            case UUID -> convertUUID(relDataType);
+            case VARIANT -> convertVariant(relDataType);
         };
     }
 
@@ -161,6 +163,10 @@ public abstract class RelDataTypeConverter<T> {
     protected abstract T convertBoolean(RelDataType relDataType);
 
     protected abstract T convertAny(RelDataType relDataType);
+
+    protected abstract T convertUUID(RelDataType relDataType);
+
+    protected abstract T convertVariant(RelDataType relDataType);
 
 
 }
