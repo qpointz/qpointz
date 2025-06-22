@@ -85,6 +85,8 @@ mill:install-dist:
   script:
     - cd ${CI_PROJECT_DIR}/mill
     - ./gradlew --no-daemon --console plain clean installBootDist azureFunctionsPackage azureFunctionsPackageZip
+    - mkdir -p ${CI_PROJECT_DIR}/mill/mill-service/build/test/datasets/
+    - cp -r ${CI_PROJECT_DIR}/mill/test/datasets/moneta ${CI_PROJECT_DIR}/mill/mill-service/build/test/datasets/
   artifacts:
     expire_in: "5 days"
     paths:
@@ -95,6 +97,7 @@ mill:install-dist:
       - ${CI_PROJECT_DIR}/mill/**/build/install/*.zip
       - ${CI_PROJECT_DIR}/mill/**/build/azure-functions/**/*
       - ${CI_PROJECT_DIR}/mill/**/build/azure-functions/*.zip
+      - ${CI_PROJECT_DIR}/mill/mill-service/build/test/datasets/**/*
 
 mill:upload-packages:
   extends: .deploy-job
@@ -145,12 +148,13 @@ mill:service:build-docker-moneta:
     DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/mill-service/config/moneta/Dockerfile
     DOCKER_BUILD_CONTAINER_NAME : mill-service-moneta
     DOCKER_BUILD_ARGS: --build-arg BASE_IMAGE=${CI_REGISTRY_IMAGE}/mill-service:${CI_COMMIT_REF_SLUG}
-  before_script:
-    - mkdir -p ${CI_PROJECT_DIR}/mill/mill-service/build/test/datasets/
-    - cp -r ${CI_PROJECT_DIR}/mill/test/datasets/moneta ${CI_PROJECT_DIR}/mill/mill-service/build/test/datasets/
   needs:
     - job: mill:service:build-docker
       artifacts: false
+    - job: mill:init-version
+      artifacts: true
+    - job: mill:install-dist
+      artifacts: true
 
 
 mill:service:build-test-docker:
