@@ -13,7 +13,8 @@ mill {
 dependencies {
     implementation(project(":ai:mill-ai-core"))
     implementation(project(":mill-starter-backends"))
-    implementation(libs.spring.ai.starter.model.azureopenai)
+    api(libs.spring.ai.starter.model.azureopenai)
+    api(libs.spring.ai.starter.model.openai)
     implementation(libs.boot.starter)
     implementation(libs.boot.starter.web)
     implementation(libs.jackson.core)

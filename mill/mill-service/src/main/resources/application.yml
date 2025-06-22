@@ -7,13 +7,14 @@ spring:
   main:
     web-application-type: servlet
   ai:
-    azure:
-      openai:
-        api-key: provide_api_key
-        endpoint: https://provide-endpoint.openai.azure.com/
-        chat:
-          options:
-            deployment-name: provide_deployment_name
+    model:
+      chat: none
+      audio:
+        speech: none
+        transcription: none
+      embedding: none
+      image: none
+      moderation: none
     mcp:
       server:
         enabled: false
