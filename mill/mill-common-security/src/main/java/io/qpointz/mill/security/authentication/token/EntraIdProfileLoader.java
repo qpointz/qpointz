@@ -2,6 +2,7 @@ package io.qpointz.mill.security.authentication.token;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.qpointz.mill.utils.JsonUtils;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -58,8 +59,8 @@ public class EntraIdProfileLoader {
                         url, response.code(), response.message(),
                         response.body()!=null ? response.body().string() : ""));
             }
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.readTree(response.body().string());
+
+            return JsonUtils.defaultJsonMapper().readTree(response.body().string());
         }
     }
 

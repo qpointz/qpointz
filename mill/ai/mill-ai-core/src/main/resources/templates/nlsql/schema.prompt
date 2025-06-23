@@ -1,0 +1,33 @@
+
+Available schemas and tables:
+{% for s in schemas %}
+
+Schema: {{ s.name }}
+
+{% if s.description %}{{ s.description }}{% endif %}
+
+Tables:
+{% for t in s.tables %}
+  {{ t.fullName }}
+
+  {% if t.description %}{{ t.description }}{% endif %}
+
+{% if includeAttributes %}
+{% for a in t.attributes %}
+    - {{a.name}} ({{a.typeName}}){% if a.description %} : {{ a.description }}{% endif %}
+
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+{% endfor %}
+
+{% if includeRelations %}
+Table relationships:
+{% for s in relations %}
+  - {{s.sourceFullTableName}} -> {{s.targetFullTableName}} {% if s.cardinality %}({{ s.cardinality }}){% endif %}
+ {% if includeRelationExpressions %}via {{s.sourceFullAttributeName}} = {{s.targetFullAttributeName}} {% endif %}
+{% if s.description %}: {{ s.description }}{% endif %}
+
+{% endfor %}
+{% endif %}

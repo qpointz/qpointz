@@ -11,31 +11,43 @@ experiments:
     params:
       header: true
       index: false
+  write_meta:
+    type: meta
+    path: "./datasets/{model-name}/{model-name}-meta.yaml"
+
 models:
-  - name : airlines
+  - name: airlines
     locales: ['en-US']
     schemas:
-      - name : cities
-        rows : 10
+      - name: cities
+        rows: 10
         attributes:
           - name: id
             type: random_int
             params:
               min: 100000
               max: 500000
+            description: Unique identifier for the city.
           - name: state
             type: state
+            description: State where the city is located.
           - name: city
             type: city
+            description: Name of the city.
           - name: population
             type: random_int
             params:
               min: 10000
               max: 5000000
+            description: Total population of the city.
           - name: airport
             type: airport_name
+            description: Full name of the airport in the city.
           - name: airport_iata
             type: airport_iata
+            description: IATA code for the city's airport.
+        description: Master data for cities served by the airline network.
+
       - name: segments
         rows: 100
         attributes:
@@ -44,21 +56,27 @@ models:
             params:
               min: 100000
               max: 500000
+            description: Unique identifier for the flight segment.
           - name: from
             type: ${ref}
             params:
               dataset: cities
               attribute: id
+            description: Origin city ID (foreign key to `cities`).
           - name: to
             type: ${ref}
             params:
               dataset: cities
               attribute: id
+            description: Destination city ID (foreign key to `cities`).
           - name: distance
             type: random_int
             params:
               min: 200
               max: 2500
+            description: Distance between origin and destination in kilometers.
+        description: Direct travel segments between cities.
+
       - name: passenger
         rows: 300
         attributes:
@@ -67,22 +85,30 @@ models:
             params:
               min: 1000000
               max: 9999999
+            description: Unique identifier for each passenger.
           - name: first_name
             type: first_name
+            description: Passenger's first name.
           - name: last_name
             type: last_name
+            description: Passenger's last name.
           - name: domicile_address
             type: address
+            description: Passenger's home street address.
           - name: domicile_city_id
             type: ${ref}
             params:
               dataset: cities
               attribute: id
+            description: City of residence (foreign key to `cities`).
           - name: age
             type: random_int
             params:
               min: 12
               max: 90
+            description: Age of the passenger.
+        description: Personal details of registered passengers.
+
       - name: flights
         rows: 500
         attributes:
@@ -91,3 +117,5 @@ models:
             params:
               dataset: segments
               attribute: id
+            description: Flight route (foreign key to `segments`).
+        description: Individual flight entries referencing a route segment.

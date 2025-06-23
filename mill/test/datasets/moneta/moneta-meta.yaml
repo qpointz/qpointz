@@ -1,5 +1,9 @@
+model:
+  name: Moneta test model
+  description: Test model fictional financial database
 schemas:
 - name: moneta
+  description: Client moneta schema
   tables:
   - name: clients
     attributes:
@@ -33,6 +37,7 @@ schemas:
     - name: segment
       type: varchar
       description: Client service segment classification.
+    description: Contains client personal and contact information.
   - name: accounts
     attributes:
     - name: account_id
@@ -50,6 +55,7 @@ schemas:
     - name: opened_at
       type: varchar
       description: Date when the account was opened.
+    description: Represents client bank accounts and balances.
   - name: transactions
     attributes:
     - name: transaction_id
@@ -70,6 +76,7 @@ schemas:
     - name: description
       type: varchar
       description: Text description of the transaction.
+    description: Bank account transactions including deposits and withdrawals.
   - name: loans
     attributes:
     - name: loan_id
@@ -93,6 +100,7 @@ schemas:
     - name: status
       type: varchar
       description: Order status (pending, executed, cancelled).
+    description: Loan contracts issued to clients with interest and duration.
   - name: loan_payments
     attributes:
     - name: payment_id
@@ -107,6 +115,7 @@ schemas:
     - name: amount
       type: decimal
       description: Total loan amount.
+    description: Records payments made toward outstanding loans.
   - name: stock_portfolios
     attributes:
     - name: portfolio_id
@@ -121,6 +130,7 @@ schemas:
     - name: created_at
       type: varchar
       description: Date when the client was registered.
+    description: Client investment portfolios containing financial assets.
   - name: stocks
     attributes:
     - name: stock_id
@@ -138,6 +148,7 @@ schemas:
     - name: exchange
       type: varchar
       description: Stock exchange where the stock is traded.
+    description: Stock market instruments with tickers and sectors.
   - name: stock_holdings
     attributes:
     - name: holding_id
@@ -155,6 +166,7 @@ schemas:
     - name: average_price
       type: decimal
       description: Average price per share held.
+    description: Detailed records of stocks held in each portfolio.
   - name: trade_orders
     attributes:
     - name: order_id
@@ -181,6 +193,7 @@ schemas:
     - name: status
       type: varchar
       description: Order status (pending, executed, cancelled).
+    description: Buy and sell orders placed for stocks within portfolios.
   references:
   - parent:
       table: clients
@@ -189,6 +202,7 @@ schemas:
       table: accounts
       attribute: client_id
     cardinality: 1-*
+    description: client accounts
   - parent:
       table: accounts
       attribute: account_id

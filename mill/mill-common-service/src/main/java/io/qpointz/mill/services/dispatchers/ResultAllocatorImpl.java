@@ -26,7 +26,7 @@ public class ResultAllocatorImpl implements ResultAllocator {
         val random = new SecureRandom();
         val bytes = new byte[32];
         random.nextBytes(bytes);
-        return String.valueOf(Base64.getEncoder().encode(bytes));
+        return new String(Base64.getEncoder().encode(bytes));
     }
 
 

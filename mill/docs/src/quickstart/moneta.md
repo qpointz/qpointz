@@ -1,7 +1,14 @@
 # Moneta Quickstart
 
-This quickstart demonstrates the natural language to SQL (NL2SQL) capabilities of **Mill**, using a lightweight, chat-based interface.  
-It enables you to explore, visualize, and describe structured data using plain English queries — powered by Large Language Models (LLMs).
+This quickstart demonstrates the natural language to SQL (NL2SQL) capabilities of **Mill**, using a lightweight, chat-based asistance.
+
+Our AI-powered data chat assistant enables business users, analysts, and domain experts to ask questions about their data using plain language — and instantly receive structured, reliable answers in the form of SQL queries, charts, or clear explanations.
+
+It intelligently understands user intent (e.g., “get data,” “visualize trends,” “explain a query”), identifies the necessary tables and relationships, and determines the optimal way to inject schema context — ensuring both performance and precision.
+
+Designed for flexibility, it supports both reasoning and retrieval-augmented (RAG) workflows, allowing teams to scale from small schemas to complex data models. Users can also enrich the system with domain knowledge and generate consistent, filesystem-safe query names for exports and reproducibility.
+
+Whether you’re exploring KPIs, validating assumptions, or preparing reports — this assistant turns your data into actionable answers without needing technical expertise.
 
 The sample data is based on a fictional financial domain and includes:
 
@@ -24,7 +31,7 @@ Follow the installation guide for your operating system:
 
 ## Running Moneta
 
-Moneta can run using different LLM providers.  
+Moneta can run using different LLM providers.
 
 ### OpenAI
 
@@ -51,7 +58,7 @@ Run the following command, replacing the placeholders with your actual OpenAI va
 
 /// tab | bash (Linux, macOS)
 ```bash
-docker run -ti -p "8080:8080" qpointz/mill-service-moneta:v0.5.0-dev \
+docker run -ti -p "8080:8080" qpointz/mill-service-moneta:**{{ version }}** \
   --spring.ai.model.chat=openai \
   --spring.ai.openai.api-key=<your-openai-api-key> \
   --spring.ai.openai.chat.options.model=<chat-model>
@@ -60,7 +67,7 @@ docker run -ti -p "8080:8080" qpointz/mill-service-moneta:v0.5.0-dev \
 
 /// tab | PowerShell (Windows)
 ```powershell
-docker run -ti -p "8080:8080" qpointz/mill-service-moneta:v0.5.0-dev `
+docker run -ti -p "8080:8080" qpointz/mill-service-moneta:**{{ version }}** `
   --spring.ai.model.chat=openai `
   --spring.ai.openai.api-key=<your-openai-api-key>` 
   --spring.ai.openai.chat.options.model=<chat-model>
@@ -77,12 +84,12 @@ To connect Moneta with Azure OpenAI:
    Go to the Azure Portal and follow this guide:  
    [Quickstart: Get started with Azure OpenAI](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quickstart)
 
-2. **Deploy a chat model**  
+2. **Deploy a chat model**
    - Navigate to your Azure OpenAI resource
    - Open the **Deployments** tab
    - Deploy a model like `gpt-4` or `gpt-35-turbo`
 
-3. **Gather API credentials**  
+3. **Gather API credentials**
    - Copy your **API key**
    - Note your **endpoint URL**
    - Record the **deployment name**
@@ -93,7 +100,7 @@ Run the following command, replacing the placeholders with your actual Azure Ope
 
 /// tab | bash (Linux, macOS)
 ```bash
-docker run -ti -p "8080:8080" qpointz/mill-service-moneta:v0.5.0-dev \
+docker run -ti -p "8080:8080" qpointz/mill-service-moneta:**{{ version }}** \
   --spring.ai.model.chat=azure-openai \
   --spring.ai.azure.openai.api-key=<your-azure-open-ai-key> \
   --spring.ai.azure.openai.endpoint=<your-azure-open-ai-endpoint> \
@@ -103,7 +110,7 @@ docker run -ti -p "8080:8080" qpointz/mill-service-moneta:v0.5.0-dev \
 
 /// tab | PowerShell (Windows)
 ```powershell
-docker run -ti -p "8080:8080" qpointz/mill-service-moneta:v0.5.0-dev `
+docker run -ti -p "8080:8080" qpointz/mill-service-moneta:**{{ version }}** `
   --spring.ai.model.chat=azure-openai `
   --spring.ai.azure.openai.api-key="<your-azure-open-ai-key>" `
   --spring.ai.azure.openai.endpoint="<your-azure-open-ai-endpoint>" `

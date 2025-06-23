@@ -18,6 +18,7 @@ import java.util.Map;
 @Component
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix="mill.backend")
+@Configuration
 public class BackendConfiguration {
 
     @Getter

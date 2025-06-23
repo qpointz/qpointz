@@ -1,0 +1,158 @@
+model:
+  name: cmart
+  description: Fictional financial model
+schemas:
+- name: cmart
+  description: Client and account schema
+  tables:
+  - name: client
+    attributes:
+    - name: client_id
+      type: int
+      description: Unique identifier for each client.
+    - name: first_name
+      type: varchar
+      description: Client's first name.
+    - name: last_name
+      type: varchar
+      description: Client's last name.
+    - name: is_pep
+      type: varchar
+      description: Indicates if the client is a politically exposed person (Y/N).
+    - name: domicile_region
+      type: varchar
+      description: Region where the client resides.
+    - name: domicile_country
+      type: varchar
+      description: "ISO country code of the client\u2019s domicile."
+    - name: client_segment
+      type: varchar
+      description: Client service segment classification.
+    description: Master table containing information about clients.
+  - name: account
+    attributes:
+    - name: account_id
+      type: int
+      description: Unique identifier for the account.
+    - name: account_region
+      type: varchar
+      description: Region in which the account operates.
+    - name: client_id
+      type: int
+      description: Foreign key linking to the owning client.
+    - name: booking_region
+      type: varchar
+      description: Region where the account is booked.
+    - name: booking_country
+      type: varchar
+      description: ISO code of the country where the account is booked.
+    description: Bank or financial accounts held by clients.
+  - name: account_transaction
+    attributes:
+    - name: account_1
+      type: int
+      description: Source account in the transaction.
+    - name: account_2
+      type: int
+      description: Destination account in the transaction.
+    - name: amount
+      type: decimal
+      description: Monetary amount of the transaction.
+    - name: transaction_date
+      type: varchar
+      description: Date when the transaction occurred.
+    description: Transaction records between two accounts.
+  - name: ticker
+    attributes:
+    - name: ticker_id
+      type: int
+      description: Unique identifier of the ticker.
+    - name: ticker
+      type: varchar
+      description: Stock ticker symbol.
+    - name: market_sector
+      type: varchar
+      description: Sector to which the ticker belongs (e.g., finance, tech).
+    - name: market_region
+      type: varchar
+      description: Geographic region of the market.
+    description: Reference data for securities or tickers.
+  - name: portfolio
+    attributes:
+    - name: portfolio_id
+      type: int
+      description: Unique identifier of the investment portfolio.
+    - name: client_id
+      type: int
+      description: Owner client of the portfolio.
+    - name: portfolio_name
+      type: varchar
+      description: Human-readable identifier for the portfolio.
+    description: Investment portfolios managed for clients.
+  - name: portfolio_transaction
+    attributes:
+    - name: portfolio_transaction_id
+      type: int
+      description: Unique identifier of the portfolio transaction.
+    - name: portfolio_id
+      type: int
+      description: Portfolio in which the transaction occurred.
+    - name: ticker_id
+      type: int
+      description: Security involved in the transaction.
+    - name: buy_sell
+      type: varchar
+      description: Indicates whether it was a buy (B) or sell (S).
+    - name: transaction_date
+      type: varchar
+      description: Date when the transaction occurred.
+    - name: notional
+      type: int
+      description: Notional value of the trade.
+    - name: price
+      type: decimal
+      description: Execution price of the security.
+    description: Buy/sell activity for client portfolios.
+  references:
+  - parent:
+      table: client
+      attribute: client_id
+    child:
+      table: account
+      attribute: client_id
+    cardinality: 1-*
+  - parent:
+      table: account
+      attribute: account_id
+    child:
+      table: account_transaction
+      attribute: account_1
+    cardinality: 1-*
+  - parent:
+      table: account
+      attribute: account_id
+    child:
+      table: account_transaction
+      attribute: account_2
+    cardinality: 1-*
+  - parent:
+      table: client
+      attribute: client_id
+    child:
+      table: portfolio
+      attribute: client_id
+    cardinality: 1-*
+  - parent:
+      table: portfolio
+      attribute: portfolio_id
+    child:
+      table: portfolio_transaction
+      attribute: portfolio_id
+    cardinality: 1-*
+  - parent:
+      table: ticker
+      attribute: ticker_id
+    child:
+      table: portfolio_transaction
+      attribute: ticker_id
+    cardinality: 1-*

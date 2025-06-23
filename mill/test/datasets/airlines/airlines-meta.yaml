@@ -1,0 +1,99 @@
+model:
+  name: MillFly
+  description: Fictional airlines data
+schemas:
+- name: airlines
+  description: Passenger and flights information
+  tables:
+  - name: cities
+    attributes:
+    - name: id
+      type: int
+      description: Unique identifier for the city.
+    - name: state
+      type: varchar
+      description: State where the city is located.
+    - name: city
+      type: varchar
+      description: Name of the city.
+    - name: population
+      type: int
+      description: Total population of the city.
+    - name: airport
+      type: varchar
+      description: Full name of the airport in the city.
+    - name: airport_iata
+      type: varchar
+      description: IATA code for the city's airport.
+    description: Master data for cities served by the airline network.
+  - name: segments
+    attributes:
+    - name: id
+      type: int
+      description: Unique identifier for the flight segment.
+    - name: from
+      type: int
+      description: Origin city ID (foreign key to `cities`).
+    - name: to
+      type: int
+      description: Destination city ID (foreign key to `cities`).
+    - name: distance
+      type: int
+      description: Distance between origin and destination in kilometers.
+    description: Direct travel segments between cities.
+  - name: passenger
+    attributes:
+    - name: id
+      type: int
+      description: Unique identifier for each passenger.
+    - name: first_name
+      type: varchar
+      description: Passenger's first name.
+    - name: last_name
+      type: varchar
+      description: Passenger's last name.
+    - name: domicile_address
+      type: varchar
+      description: Passenger's home street address.
+    - name: domicile_city_id
+      type: int
+      description: City of residence (foreign key to `cities`).
+    - name: age
+      type: int
+      description: Age of the passenger.
+    description: Personal details of registered passengers.
+  - name: flights
+    attributes:
+    - name: segment_id
+      type: int
+      description: Flight route (foreign key to `segments`).
+    description: Individual flight entries referencing a route segment.
+  references:
+  - parent:
+      table: cities
+      attribute: id
+    child:
+      table: segments
+      attribute: from
+    cardinality: 1-*
+  - parent:
+      table: cities
+      attribute: id
+    child:
+      table: segments
+      attribute: to
+    cardinality: 1-*
+  - parent:
+      table: cities
+      attribute: id
+    child:
+      table: passenger
+      attribute: domicile_city_id
+    cardinality: 1-*
+  - parent:
+      table: segments
+      attribute: id
+    child:
+      table: flights
+      attribute: segment_id
+    cardinality: 1-*

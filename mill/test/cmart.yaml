@@ -1,7 +1,7 @@
 experiments:
   write_csv:
     type : csv
-    path : "./datasets/cmart/csv/{dataset-name}.csv"
+    path: "./datasets/cmart/csv/{dataset-name}.csv"
     params:
       header: true
       index: false
@@ -11,10 +11,14 @@ experiments:
   write_model:
     type: ermodel
     path: "./datasets/cmart/cmart.puml"
+  write_meta:
+    type: meta
+    path: "./datasets/{model-name}/{model-name}-meta.yaml"
+
 models:
-  - name : cmart
+  - name: cmart
     locales: ['en-US']
-    schemas:    
+    schemas:
       - name: client
         rows: 100
         attributes:
@@ -23,24 +27,33 @@ models:
             params:
               min: 1000000
               max: 9999999
+            description: Unique identifier for each client.
           - name: first_name
             type: first_name
+            description: Client's first name.
           - name: last_name
             type: last_name
+            description: Client's last name.
           - name: is_pep
             type: random_element
             params:
               elements: ['Y', 'N']
+            description: Indicates if the client is a politically exposed person (Y/N).
           - name: domicile_region
             type: random_element
             params:
-              elements: [ 'EMEA', 'APAC', 'AM' ]
+              elements: ['EMEA', 'APAC', 'AM']
+            description: Region where the client resides.
           - name: domicile_country
-            type: country_code            
+            type: country_code
+            description: ISO country code of the client’s domicile.
           - name: client_segment
             type: random_element
             params:
-              elements: [ 'REGULAR', 'WEALTH', 'ULTRA']
+              elements: ['REGULAR', 'WEALTH', 'ULTRA']
+            description: Client service segment classification.
+        description: Master table containing information about clients.
+
       - name: account
         rows: 250
         attributes:
@@ -49,22 +62,29 @@ models:
             params:
               min: 1000000
               max: 9999999
+            description: Unique identifier for the account.
           - name: account_region
             type: random_element
             params:
-              elements: [ 'EMEA', 'APAC', 'AM' ]
+              elements: ['EMEA', 'APAC', 'AM']
+            description: Region in which the account operates.
           - name: client_id
             type: "${ref}"
             params:
               dataset: client
               attribute: client_id
               cord: '1-*'
+            description: Foreign key linking to the owning client.
           - name: booking_region
             type: random_element
             params:
-              elements: [ 'EMEA', 'APAC', 'AM' ]
+              elements: ['EMEA', 'APAC', 'AM']
+            description: Region where the account is booked.
           - name: booking_country
             type: country_code
+            description: ISO code of the country where the account is booked.
+        description: Bank or financial accounts held by clients.
+
       - name: account_transaction
         rows: 500
         attributes:
@@ -73,31 +93,43 @@ models:
             params:
               dataset: account
               attribute: account_id
+            description: Source account in the transaction.
           - name: account_2
             type: "${ref}"
             params:
               dataset: account
               attribute: account_id
+            description: Destination account in the transaction.
           - name: amount
             type: random_double
+            description: Monetary amount of the transaction.
           - name: transaction_date
             type: date_this_decade
+            description: Date when the transaction occurred.
+        description: Transaction records between two accounts.
+
       - name: ticker
-        rows: 50 
+        rows: 50
         attributes:
           - name: ticker_id
             type: random_int
             params:
               min: 1000000
               max: 9999999
+            description: Unique identifier of the ticker.
           - name: ticker
             type: ticker
+            description: Stock ticker symbol.
           - name: market_sector
             type: marketType
+            description: Sector to which the ticker belongs (e.g., finance, tech).
           - name: market_region
             type: random_element
             params:
-              elements: [ 'EMEA', 'APAC', 'AM' ] 
+              elements: ['EMEA', 'APAC', 'AM']
+            description: Geographic region of the market.
+        description: Reference data for securities or tickers.
+
       - name: portfolio
         rows: 200
         attributes:
@@ -106,17 +138,22 @@ models:
             params:
               min: 1000000
               max: 9999999
+            description: Unique identifier of the investment portfolio.
           - name: client_id
             type: "${ref}"
             params:
               dataset: client
               attribute: client_id
               cord: '1-*'
+            description: Owner client of the portfolio.
           - name: portfolio_name
             type: lexify
             params:
               text: "???????"
               letters: "ABCDEFGHJALDJHHSGDZ"
+            description: Human-readable identifier for the portfolio.
+        description: Investment portfolios managed for clients.
+
       - name: portfolio_transaction
         rows: 200
         attributes:
@@ -125,30 +162,33 @@ models:
             params:
               min: 1000000
               max: 9999999
+            description: Unique identifier of the portfolio transaction.
           - name: portfolio_id
             type: "${ref}"
             params:
               dataset: portfolio
               attribute: portfolio_id
               cord: '1-*'
+            description: Portfolio in which the transaction occurred.
           - name: ticker_id
             type: "${ref}"
             params:
               dataset: ticker
               attribute: ticker_id
-              cord: '1-*'          
+              cord: '1-*'
+            description: Security involved in the transaction.
           - name: buy_sell
             type: random_element
             params:
               elements: ['B', 'S']
+            description: Indicates whether it was a buy (B) or sell (S).
           - name: transaction_date
-            type: date_this_year            
+            type: date_this_year
+            description: Date when the transaction occurred.
           - name: notional
             type: random_int
+            description: Notional value of the trade.
           - name: price
             type: random_double
-      
-          
-
-
-            
+            description: Execution price of the security.
+        description: Buy/sell activity for client portfolios.

@@ -1,7 +1,40 @@
 logging.level:
   org.springframework.security.web.csrf.CsrfFilter: debug
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus
+
 spring:
+
+  main:
+    web-application-type:servlet
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  ai:
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: always
+  datasource:
+    hikari:
+      maximum-pool-size: 20
+      hikari.minimum-idle: 5
+      idle-timeout: 600000
+      connection-timeout: 30000
+      max-lifetime: 1800000
+    url: jdbc:h2:mem:moneta
+    username: sa
+    password: sa
+#    url: jdbc:postgresql://localhost:5432/postgres
+#    username: postgres
+#    password: postgres
+
+
   mcp:
     server:
       enabled: false
@@ -11,6 +44,11 @@ spring:
         endpoint: http://localhost:8080/mcp/task
 
 mill:
+  ai:
+    chat:
+      memory: in-memory
+    nl2sql:
+      enable: true
   security:
     enable: false
   backend:
@@ -26,7 +64,9 @@ mill:
       password: "*"
       target-schema: "MONETA"
   services:
-    data-bot:
+    ai-nl2data:
       enable: true
+    data-bot:
+      enable: false
       prompt-file: file:../test/datasets/moneta/moneta.prompt
       model-name: gpt-4.1

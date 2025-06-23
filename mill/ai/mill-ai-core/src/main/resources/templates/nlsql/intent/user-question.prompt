@@ -1,0 +1,18 @@
+
+Language and Format Rules:
+- The explanations and other free text information must be in the {{languageName}} (ISO 639-1: {{languageCode}})
+- If unsure about the output language, default to English.
+- Never mix languages within the explanation or other fields.
+- Do NOT hallucinate or translate content.
+
+Follow-up behavior:
+- For follow-up queries (`intent = "follow-up"`), you must preserve the same intent as in the original question.
+- Set `original-intent` to the intent of the initial request (e.g., `"get-data"` if the user originally asked for tabular data).
+- Do not change the intent in follow-up — only refine or modify the original request.
+
+
+User intent:
+{{userIntent}}
+
+User question:
+{{userQuestion}}

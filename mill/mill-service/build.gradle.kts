@@ -51,8 +51,19 @@ dependencies {
     implementation(project(":services:mill-grpc-service"))
     implementation(project(":services:mill-starter-services"))
     implementation(project(":mill-starter-backends"))
-    implementation(project(":ai:mill-ai-llm-service"))
-    implementation(project(":ai:mill-ai-mcp-service"))
+    //implementation(project(":services:mill-ai-llm-service"))
+    implementation(project(":services:mill-ai-mcp-service"))
+    implementation(project(":services:mill-grinder-service"))
+    implementation(project(":ai:mill-ai-nlsql-chat-service"))
+
+
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9")
+    implementation("org.springdoc:springdoc-openapi-starter-webflux-api:2.8.9")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.15.1")
+
+    runtimeOnly(libs.spring.ai.starter.model.openai)
+    runtimeOnly(libs.spring.ai.starter.model.azureopenai)
+
     implementation(libs.boot.starter.actuator)
     implementation(libs.boot.starter)
     runtimeOnly(libs.bundles.logging)

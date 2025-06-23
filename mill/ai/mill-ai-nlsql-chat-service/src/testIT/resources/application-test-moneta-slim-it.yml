@@ -1,0 +1,69 @@
+logging:
+  level:
+    root: info
+    org.apache.calcite: WARN
+
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+  datasource:
+    url: jdbc:h2:~/.db_jpa2;DB_CLOSE_DELAY=-1
+    username: sa
+    password: sa
+  ai:
+    chat:
+      memory:
+        repository:
+          jdbc:
+            schema: classpath:org/springframework/ai/chat/memory/repository/jdbc/schema-hsqldb.sql
+    model:
+      chat: openai
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4.1
+  mcp:
+    server:
+      enabled: false
+      name: moneta-agent
+      transport:
+        type: http
+        endpoint: http://localhost:8080/mcp/task
+
+mill:
+  ai:
+    chat:
+      memory: in-memory
+  metadata:
+    relations: file
+    annotations: file
+    file:
+      repository:
+        path: file:../../test/datasets/moneta/moneta-meta.yaml
+
+  security:
+    enable: false
+  backend:
+    provider: jdbc
+    connection:
+      quoting: BACK_TICK
+      caseSensitive: false
+      unquotedCasing: UNCHANGED
+    jdbc:
+      url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '../../test/datasets/moneta/moneta-slim.sql'"
+      driver: "org.h2.Driver"
+      username: "*"
+      password: "*"
+      target-schema: "MONETA"
+  services:
+    ai-nl2data:
+      enable: true
+    grpc:
+      enable: false
+    data-bot:
+      enable: true
+      prompt-file: file:../test/datasets/moneta/moneta.prompt
+      model-name: gpt-4.1

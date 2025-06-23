@@ -29,6 +29,10 @@ sourceSets {
 dependencies {
     api(libs.substrait.core)
     implementation(libs.bundles.logging)
+    api(libs.jackson.databind)
+    implementation(libs.jackson.dataformat.yaml)
+    implementation(libs.jackson.datatype.jsr310)
+    implementation(libs.jackson.datatype.jdk8)
     api(libs.grpc.netty.shaded)
     api(libs.grpc.protobuf)
     api(libs.grpc.stub)

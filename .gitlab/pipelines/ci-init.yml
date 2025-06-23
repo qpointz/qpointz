@@ -9,16 +9,6 @@ workflow:
 stages:
   - init
 
-init:build-base-ci-image:
-  stage: init
-  extends: .docker-build-job
-  script:
-      - >
-        /kaniko/executor
-        --context "${CI_PROJECT_DIR}/etc/docker/base-ci" 
-        --destination "${CI_IMAGE_BASE}"
-        --cache=true
-
 
 init:build-semantic-release-image:
   stage: init
@@ -40,9 +30,3 @@ init:build-minica-image:
         --context "${CI_PROJECT_DIR}/etc/docker/minica" 
         --destination "${CI_IMAGE_MINICA}"
         --cache=true    
-
-init:build-deploy-tools-image:
-  stage: init
-  extends: .toolchain-docker-build
-  variables:
-    TOOLCHAIN_NAME: deploy-tools

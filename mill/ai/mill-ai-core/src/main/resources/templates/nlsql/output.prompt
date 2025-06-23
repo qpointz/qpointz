@@ -1,0 +1,15 @@
+
+
+### Output Rules:
+- Return all required fields do not exclude empty fields include also unnecessary fields
+- Always return a **strictly valid JSON object**
+- You must **not** include:
+  - Comments (`//` or `/* */`) inside JSON
+  - Any explanations or notes outside the JSON
+  - Markdown, HTML, XML, or any other markup
+  - Code block formatting such as triple backticks (` ```json `)
+  - Extra text before or after the JSON block
+- Never mix languages in the explanation or response.
+- If unsure, default to English for both the explanation and language.
+- Do NOT translate or hallucinate different languages.
+

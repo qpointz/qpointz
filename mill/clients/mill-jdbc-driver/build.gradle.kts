@@ -30,7 +30,6 @@ tasks.withType<ProcessResources>() {
 testing {
     suites {
         register<JvmTestSuite>("testIT") {
-            testType.set(TestSuiteType.INTEGRATION_TEST)
         }
 
         configureEach {

@@ -41,10 +41,34 @@ mill:unit-tests:
     - echo $HOME
     - cd ${CI_PROJECT_DIR}/mill
     - ./gradlew --no-daemon --console plain clean test check testCodeCoverageReport jacocoTestReport
-    - ls ${CI_PROJECT_DIR}/mill/.gradle-home
   needs:
     - job: mill:init-version
       artifacts: true
+  artifacts:
+    when: always
+    expire_in: "5 days"
+    reports:
+      junit: ${CI_PROJECT_DIR}/mill/**/build/test-results/*/*.xml
+      coverage_report:
+        coverage_format: jacoco
+        path: ${CI_PROJECT_DIR}/mill/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml
+    paths:
+      - ${CI_PROJECT_DIR}/mill/**/build/test-results/**/*.xml
+      - ${CI_PROJECT_DIR}/mill/**/build/test-results/**/*.xml
+      - ${CI_PROJECT_DIR}/mill/**/reports/jacoco/**/*.xml
+
+mill:ai-integration-tests:
+  extends: .gradle-job
+  stage: test
+  script:
+    - echo $HOME
+    - cd ${CI_PROJECT_DIR}/mill/ai
+    - ../gradlew --no-daemon --console plain clean testIT check jacocoTestReport
+    - cd ../
+    - ./gradlew --no-daemon --console plain testCodeCoverageReport
+  needs:
+    - job: mill:unit-tests
+      artifacts: false
   artifacts:
     when: always
     expire_in: "5 days"
@@ -65,13 +89,29 @@ mill:ui:sql-chat:
     - job: mill:init-version
       artifacts: true
   script:
-    - cd ${CI_PROJECT_DIR}/mill/ai/mill-ai-llm-service/src/main/ui/sql-chat
+    - cd ${CI_PROJECT_DIR}/mill/services/mill-ai-llm-service/src/main/ui/sql-chat
     - npm install
     - npm run build
   artifacts:
     expire_in: "5 days"
     paths:
-      - ${CI_PROJECT_DIR}/mill/ai/mill-ai-llm-service/src/main/resources/ui/sql-chat/**/*
+      - ${CI_PROJECT_DIR}/mill/services/mill-ai-llm-service/src/main/ui/sql-chat/**/*
+
+mill:ui:grinder:
+  image: node:24-alpine
+  stage: build
+  needs:
+    - job: mill:init-version
+      artifacts: true
+  script:
+    - cd ${CI_PROJECT_DIR}/mill-ui
+    - npm install
+    - npm run build
+  artifacts:
+    expire_in: "5 days"
+    paths:
+      - ${CI_PROJECT_DIR}/mill/services/mill-grinder-service/src/main/resources/static/app
+
 
 
 mill:install-dist:
@@ -81,6 +121,8 @@ mill:install-dist:
     - job: mill:init-version
       artifacts: true
     - job: mill:ui:sql-chat
+      artifacts: true
+    - job: mill:ui:grinder
       artifacts: true
   script:
     - cd ${CI_PROJECT_DIR}/mill

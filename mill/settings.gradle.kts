@@ -30,9 +30,14 @@ include (":services:mill-grpc-service")
 include (":services:mill-sample-service")
 include (":services:mill-starter-services")
 
+
 include (":ai:mill-ai-core")
-include (":ai:mill-ai-llm-service")
-include (":ai:mill-ai-mcp-service")
+include (":ai:mill-ai-nlsql-chat-service")
+include (":services:mill-grinder-service")
+
+include (":services:mill-ai-llm-service")
+include (":services:mill-ai-mcp-service")
+
 
 
 
@@ -69,8 +74,7 @@ dependencyResolutionManagement {
             library("boot-starter-webflux",springBootG,"spring-boot-starter-webflux").versionRef(springBootV)
             library("boot-starter", springBootG,"spring-boot-starter").versionRef(springBootV)
             library("boot-starter-actuator", springBootG,"spring-boot-starter-actuator").versionRef(springBootV)
-            library("boot-starter", springBootG,"spring-boot-starter").versionRef(springBootV)
-
+            library("boot-starter-data-jpa", springBootG,"spring-boot-starter-data-jpa").versionRef(springBootV)
 
             val springCloudV = version("springCloud", "4.1.3")
             val springCloudG = "org.springframework.cloud"
@@ -82,10 +86,12 @@ dependencyResolutionManagement {
 
             val springAiV = version("springAi", "1.0.0")
             val springAiG = "org.springframework.ai"
+            library("spring-ai-client-chat", springAiG, "spring-ai-client-chat").versionRef(springAiV)
             library("spring-ai-starter-model-azureopenai", springAiG, "spring-ai-starter-model-azure-openai").versionRef(springAiV)
             library("spring-ai-starter-model-openai", springAiG, "spring-ai-starter-model-openai").versionRef(springAiV)
             library("spring-ai-starter-mcp-server-starter", springAiG, "spring-ai-mcp-server-spring-boot-starter").versionRef(springAiV)
             library("spring-ai-starter-mcp-server-webmvc", springAiG, "spring-ai-starter-mcp-server-webmvc").versionRef(springAiV)
+            library("spring-ai-starter-model-chat-memory-repository-jdbc", springAiG, "spring-ai-starter-model-chat-memory-repository-jdbc").versionRef(springAiV)
 
 
             val calcite = version("calcite", "1.40.0")
@@ -139,8 +145,11 @@ dependencyResolutionManagement {
 
             library ("h2-database", "com.h2database", "h2").version("2.3.232")
 
+            library ("hsqldb", "org.hsqldb", "hsqldb").version("2.7.4")
+
             val apacheCommons = version("apacheCommons", "3.14.0")
             library("apache-commons-lang3","org.apache.commons", "commons-lang3").versionRef(apacheCommons)
+            library("apache-commons-codec", "commons-codec", "commons-codec").version ("1.18.0")
 
             val substrait = version("substrait", "0.60.0")
             library("substrait-core", "io.substrait", "core").versionRef(substrait)
@@ -158,8 +167,12 @@ dependencyResolutionManagement {
 
             val jackson = version("jackson", "2.19.1")
             library("jackson-core", "com.fasterxml.jackson.core", "jackson-core").versionRef(jackson)
+            library("jackson-databind", "com.fasterxml.jackson.core", "jackson-databind").versionRef(jackson)
             library("jackson-dataformat-yaml", "com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml").versionRef(jackson)
             library("jackson-datatype-jsr310", "com.fasterxml.jackson.datatype","jackson-datatype-jsr310").versionRef(jackson)
+            library("jackson-datatype-jdk8", "com.fasterxml.jackson.datatype","jackson-datatype-jdk8").versionRef(jackson)
+
+
 
             val guava = version("guava", "33.3.1-jre")
             library("guava", "com.google.guava", "guava").versionRef(guava)
@@ -169,6 +182,8 @@ dependencyResolutionManagement {
             library("okhttp", "com.squareup.okhttp3", "okhttp").versionRef(okhttp3)
 
             library("opencensus-impl", "io.opencensus","opencensus-impl").version("0.31.1")
+
+            library("pebble-templates", "io.pebbletemplates", "pebble" ).version("3.2.4")
 
             val sqlline = version("sqlline","1.12.0")
             library("sqlline", "sqlline", "sqlline").versionRef(sqlline)
@@ -185,8 +200,10 @@ dependencyResolutionManagement {
             library("apache-httpclient5", "org.apache.httpcomponents.client5", "httpclient5").version("5.4.4")
             library("apache-httpcore5", "org.apache.httpcomponents.core5", "httpcore5").version("5.3.4")
 
+
             bundle("jdbc-pack", listOf(
                 "h2-database",
+                "hsqldb",
                 "drivers-postgressql",
                 "drivers-sqllite",
                 "drivers-mariadb",

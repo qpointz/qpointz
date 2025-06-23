@@ -22,6 +22,23 @@ tasks.register<Zip>("publishSonatypeBundle") {
     destinationDirectory.set(layout.buildDirectory.dir("sonatype-bundle"))
 }
 
+//val delombok by configurations.creating
+//
+//val delombokTask = tasks.register<JavaExec>("delombok") {
+//    classpath = delombok
+//    mainClass.set("lombok.launch.Main")
+//    args("delombok", "src/main/java", "-d", "build/delombok")
+//}
+//
+//dependencies {
+//    delombok(libs.lombok)
+//}
+
+//tasks.named<Javadoc>("javadoc") {
+//    dependsOn(delombokTask)
+//    source = fileTree("build/delombok") { include("**/*.java") }
+//}
+
 /* reporting {
     reports {
         val testCodeCoverageReport by creating(JacocoCoverageReport::class) {

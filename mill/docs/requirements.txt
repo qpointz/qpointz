@@ -8,3 +8,4 @@ pipx ensurepath
 source ~/.bashrc  # or ~/.zshrc depending on your shell
 pipx install mkdocs
 pipx install mike
+pipx inject mkdocs mkdocs-macros-plugin

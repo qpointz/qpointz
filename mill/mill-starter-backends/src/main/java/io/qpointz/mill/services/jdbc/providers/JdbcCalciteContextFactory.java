@@ -56,12 +56,12 @@ public class JdbcCalciteContextFactory implements CalciteContextFactory {
                 .getConnection("jdbc:calcite:", this.getConnectionProperty())
                 .unwrap(CalciteConnection.class);
 
-        log.info("Getting root schema");
+        log.trace("Getting root schema");
         val rootSchema = calciteConnection.getRootSchema();
 
-        log.info("Getting driver");
+        log.trace("Getting driver");
         val op = this.getJdbcConnection();
-        log.info("Connection is null {}", (op != null));
+        log.trace("Connection is null {}", (op != null));
 
         Class.forName(op.getDriver());
         val operand = new HashMap<String,Object>();

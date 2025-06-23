@@ -4,9 +4,19 @@ grpc:
     address: ${mill.services.grpc.address}
 
 spring:
+  datasource:
+    #url: jdbc:hsqldb:mem:testdb
+    url: jdbc:h2:mem:db;DB_CLOSE_DELAY=-1
+    username: sa
+    password: sa
   main:
     web-application-type: servlet
   ai:
+    chat:
+      memory:
+        repository:
+          jdbc:
+            schema: classpath:org/springframework/ai/chat/memory/repository/jdbc/schema-hsqldb.sql
     model:
       chat: none
       audio:
@@ -24,7 +34,14 @@ spring:
           endpoint: mcp-endpoint
 
 mill:
+  metadata:
+    relations: none
+    annotations: none
   services:
+    ai-nl2data:
+      enable: false
+    grinder:
+      enable: false
     meta:
       enable: true
     grpc:

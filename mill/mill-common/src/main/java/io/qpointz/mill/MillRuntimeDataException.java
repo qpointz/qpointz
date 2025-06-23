@@ -2,7 +2,7 @@ package io.qpointz.mill;
 
 import java.io.Serial;
 
-public class MillRuntimeDataException extends RuntimeException {
+public class MillRuntimeDataException extends MillRuntimeException {
 
     @Serial
     private static final long serialVersionUID = -92678462L;
