@@ -1,11 +1,13 @@
 package io.qpointz.mill.services.descriptors;
 
 import io.qpointz.mill.security.annotations.ConditionalOnSecurity;
+import io.qpointz.mill.security.authentication.AuthenticationMethodDescriptor;
 import io.qpointz.mill.security.authentication.AuthenticationMethods;
 import io.qpointz.mill.security.authentication.AuthenticationType;
 import io.qpointz.mill.services.SchemaProvider;
 import lombok.Data;
 import lombok.Getter;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -24,10 +26,10 @@ public class ApplicationDescriptor {
     @ConditionalOnSecurity
     public static SecurityDescriptor securityDescriptor(@Autowired(required = false) Optional<AuthenticationMethods> authMethods)
     {
-        Collection<AuthenticationType> authTypes = authMethods.isPresent()
-                ? authMethods.get().getAuthenticationTypes()
-                : List.of();
-        return new SecurityDescriptor(true, Set.copyOf(authTypes));
+        val methodDescriptors = authMethods.isPresent()
+                ? authMethods.get().getAuthenticationMethodDescriptors()
+                : List.<AuthenticationMethodDescriptor>of();
+        return new SecurityDescriptor(true, methodDescriptors);
     }
 
     @Bean

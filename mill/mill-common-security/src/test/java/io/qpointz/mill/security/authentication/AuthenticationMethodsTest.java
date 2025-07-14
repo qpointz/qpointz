@@ -69,8 +69,23 @@ class AuthenticationMethodsTest extends BaseTest {
             private final AuthenticationProvider authenticationProvider = new TestingAuthenticationProvider();
 
             @Override
-            public void applyDefaultHttpSecurity(HttpSecurity http) throws Exception {
-                //no customization required
+            public void applyLoginConfig(HttpSecurity http) throws Exception {
+                //no customization
+            }
+
+            @Override
+            public void applySecurityConfig(HttpSecurity http) throws Exception {
+                //no customization
+            }
+
+            @Override
+            public AuthenticationMethodDescriptor getDescriptor() {
+                return new AuthenticationMethodDescriptor() {
+                    @Override
+                    public AuthenticationType getAuthenticationType() {
+                        return AuthenticationType.CUSTOM;
+                    }
+                };
             }
         }
 

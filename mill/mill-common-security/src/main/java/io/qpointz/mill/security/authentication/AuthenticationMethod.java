@@ -11,6 +11,9 @@ public interface AuthenticationMethod {
 
     AuthenticationType getAuthenticationType();
 
-    void applyDefaultHttpSecurity(HttpSecurity http) throws Exception;
+    void applyLoginConfig(HttpSecurity http) throws Exception;
 
+    void applySecurityConfig(HttpSecurity http) throws Exception;
+
+    AuthenticationMethodDescriptor getDescriptor();
 }

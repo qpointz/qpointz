@@ -11,12 +11,10 @@ mill {
 
 dependencies {
     api(libs.boot.starter.security)
+
     implementation(project(":mill-common"))
     implementation(libs.boot.starter.security.oauth2.resource.server)
-    implementation(libs.jackson.core)
-    implementation(libs.jackson.dataformat.yaml)
-    implementation(libs.jackson.datatype.jsr310)
-    implementation(libs.javax.annotation.api)
+    implementation(libs.boot.starter.security.oauth2.client)
     implementation(libs.boot.starter.web)
     implementation(libs.okhttp)
 
@@ -24,6 +22,7 @@ dependencies {
     annotationProcessor(libs.boot.configuration.processor)
 
     compileOnly(libs.lombok)
+
     runtimeOnly(libs.bundles.logging)
 
     testImplementation(libs.boot.starter.test)

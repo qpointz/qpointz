@@ -24,6 +24,12 @@ spring:
     activate:
       on-profile: auth-basic
 
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
+
+
 mill:
   security:
     enable: true

@@ -61,50 +61,5 @@ public class SecurityConfig {
         }
         return new ProviderManager(providers);
     }
-
-
-    @Bean
-    @ConditionalOnSecurity
-    @Order
-    @ConditionalOnMissingBean(name = "functionContextFlag") //TODO: hack to figure out if it running as function
-    SecurityFilterChain secureAll(HttpSecurity http ,
-                                  AuthenticationManager authenticationManager,
-                                  AuthenticationMethods authenticationMethods) throws Exception {
-        log.debug("Security config. Secure all");
-        try {
-            http.authenticationManager(authenticationManager)
-                    .securityMatcher("/**")
-                    .authorizeHttpRequests(authHttp -> authHttp
-                            .anyRequest().authenticated()
-                    );
-
-            for (var m : authenticationMethods.getProviders()) {
-                m.applyDefaultHttpSecurity(http);
-            }
-
-            return http.build();
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    @Bean
-    @ConditionalOnSecurity(false)
-    SecurityFilterChain allPermited(@Autowired(required = false) HttpSecurity http) throws Exception {
-        try {
-            if (http == null) {
-                return null;
-            }
-            return http
-                    .csrf(c->c.disable())
-                    .cors(c-> c.disable())
-                    .authorizeHttpRequests(authHttp -> authHttp
-                    .requestMatchers("/**").permitAll()
-
-            ).build();
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
+    
 }

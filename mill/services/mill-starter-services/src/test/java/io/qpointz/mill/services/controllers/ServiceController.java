@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/security-test")
+@RequestMapping("/services/security-test")
 public class ServiceController {
 
     @GetMapping("ping")

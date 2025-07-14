@@ -64,6 +64,8 @@ mill:
       password: "*"
       target-schema: "MONETA"
   services:
+    grinder:
+      enable: true
     ai-nl2data:
       enable: true
     jet-http:

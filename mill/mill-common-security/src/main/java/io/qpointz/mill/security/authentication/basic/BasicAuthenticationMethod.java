@@ -1,6 +1,7 @@
 package io.qpointz.mill.security.authentication.basic;
 
 import io.qpointz.mill.security.authentication.AuthenticationMethod;
+import io.qpointz.mill.security.authentication.AuthenticationMethodDescriptor;
 import io.qpointz.mill.security.authentication.AuthenticationType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,8 +24,29 @@ public class BasicAuthenticationMethod implements AuthenticationMethod {
     }
 
     @Override
-    public void applyDefaultHttpSecurity(HttpSecurity http) throws Exception {
-       http.httpBasic(Customizer.withDefaults());
+    public void applyLoginConfig(HttpSecurity http) throws Exception {
+        //no specific configuration required
+        //potentially to be extended with formLogin
+        http.httpBasic(Customizer.withDefaults());
+    }
+
+    @Override
+    public void applySecurityConfig(HttpSecurity http) throws Exception {
+
+    }
+
+
+    @Override
+    public AuthenticationMethodDescriptor getDescriptor() {
+        return new BasicAuthenticationMethodDescriptor();
+    }
+
+    public static class BasicAuthenticationMethodDescriptor implements AuthenticationMethodDescriptor {
+
+        @Override
+        public AuthenticationType getAuthenticationType() {
+            return AuthenticationType.BASIC;
+        }
     }
 
 

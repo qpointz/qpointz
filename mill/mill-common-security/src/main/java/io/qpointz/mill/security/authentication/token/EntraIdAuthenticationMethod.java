@@ -1,6 +1,7 @@
 package io.qpointz.mill.security.authentication.token;
 
 import io.qpointz.mill.security.authentication.AuthenticationMethod;
+import io.qpointz.mill.security.authentication.AuthenticationMethodDescriptor;
 import io.qpointz.mill.security.authentication.AuthenticationType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,7 +27,24 @@ public class EntraIdAuthenticationMethod implements AuthenticationMethod {
     }
 
     @Override
-    public void applyDefaultHttpSecurity(HttpSecurity http) throws Exception {
-        //no specific configuration need to be applied
+    public void applyLoginConfig(HttpSecurity http) throws Exception {
+        //no specific configuration required
+    }
+
+    @Override
+    public void applySecurityConfig(HttpSecurity http) throws Exception {
+        //no specific configuration required
+    }
+
+    @Override
+    public AuthenticationMethodDescriptor getDescriptor() {
+        return null;
+    }
+
+    public static class EntraIdAuthenticationMethodDescriptor implements AuthenticationMethodDescriptor {
+        @Override
+        public AuthenticationType getAuthenticationType() {
+            return AuthenticationType.CUSTOM;
+        }
     }
 }

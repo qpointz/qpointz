@@ -4,15 +4,18 @@ import io.qpointz.mill.services.SchemaProvider;
 import io.qpointz.mill.services.configuration.DefaultServiceConfiguration;
 import io.qpointz.mill.services.metadata.impl.file.FileAnnotationsRepository;
 import io.qpointz.mill.services.metadata.impl.file.FileRepository;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.io.Resource;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.io.IOException;
 
@@ -23,6 +26,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ComponentScan("io.qpointz")
 @ActiveProfiles("test-cmart")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@WebAppConfiguration
+@EnableAutoConfiguration
+@Slf4j
 class MetadataProviderImplTest {
 
     @Autowired

@@ -24,3 +24,4 @@ dist-ssr
 *.sw?
 
 .vite-inspect/
+stats.html

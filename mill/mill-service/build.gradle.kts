@@ -68,6 +68,10 @@ dependencies {
     implementation("org.springdoc:springdoc-openapi-starter-webflux-api:2.8.9")
     implementation("io.micrometer:micrometer-registry-prometheus:1.15.1")
 
+    runtimeOnly(libs.boot.starter.security)
+    runtimeOnly(libs.boot.starter.security.oauth2.client)
+    runtimeOnly(libs.boot.starter.security.oauth2.resource.server)
+
     runtimeOnly(libs.spring.ai.starter.model.openai)
     runtimeOnly(libs.spring.ai.starter.model.azureopenai)
 

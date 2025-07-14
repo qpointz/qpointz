@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping(value = "/api/nl2sql", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {"http://localhost:5173","http://localhost:8080"})
 @ConditionalOnService("ai-nl2data")
 public class NlSqlChatController {
 

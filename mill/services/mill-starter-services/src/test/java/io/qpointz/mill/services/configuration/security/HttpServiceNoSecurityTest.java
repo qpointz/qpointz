@@ -14,14 +14,14 @@ public class HttpServiceNoSecurityTest extends BaseSecurityTest {
 
     @Test
     void noAuthPingRequest() throws Exception {
-        val response = getResponse("/security-test/ping");
+        val response = getResponse("/services/security-test/ping");
         assertEquals(200, response.getStatus());
         log.info(response.getContentAsString());
     }
 
     @Test
     void noAuthUserRequest() throws Exception {
-        val response = getResponse("/security-test/username");
+        val response = getResponse("/services/security-test/username");
         assertEquals(200, response.getStatus());
         log.info(response.getContentAsString());
         assertEquals("anonymousUser",  response.getContentAsString());

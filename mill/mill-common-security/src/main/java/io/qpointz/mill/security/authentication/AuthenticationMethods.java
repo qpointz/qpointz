@@ -2,6 +2,7 @@ package io.qpointz.mill.security.authentication;
 
 import lombok.Getter;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
@@ -27,9 +28,16 @@ public class AuthenticationMethods {
 
     public List<AuthenticationType> getAuthenticationTypes() {
         return providers.stream()
-                .map(f-> f.getAuthenticationType())
+                .map(AuthenticationMethod::getAuthenticationType)
                 .distinct()
                 .sorted(Comparator.comparing(AuthenticationType::getValue))
+                .toList();
+    }
+
+    public Collection<AuthenticationMethodDescriptor> getAuthenticationMethodDescriptors() {
+        return providers.stream()
+                .map(AuthenticationMethod::getDescriptor)
+                .distinct()
                 .toList();
     }
 
