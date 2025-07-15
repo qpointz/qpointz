@@ -1,0 +1,347 @@
+experiments:
+  write_parquet:
+    type : parquet
+    path : "./datasets/{model-name}/parquet/{dataset-name}.parquet"
+  write_avro:
+    type : avro
+    path : "./datasets/{model-name}/avro/{dataset-name}.avro"
+  write_csv:
+    type : csv
+    path : "./datasets/{model-name}/csv/{dataset-name}.csv"
+    params:
+      header: true
+      index: false
+  write_meta:
+    type: meta
+    path: "./datasets/{model-name}/{model-name}-meta.yaml"
+
+models:
+  - name: airlines
+    locales:
+    - en-US
+    schemas:
+    - name: passenger
+      rows: 300
+      description: Personal details of registered passengers, including name, age, residence,
+        and loyalty status.
+      attributes:
+      - name: id
+        type: random_int
+        params:
+          min: 1000000
+          max: 9999999
+        description: Unique identifier for each passenger.
+        primary_key: true
+        nullable: false
+      - name: first_name
+        type: first_name
+        description: Passenger's first name.
+        nullable: true
+      - name: last_name
+        type: last_name
+        description: Passenger's last name.
+        nullable: true
+      - name: domicile_address
+        type: address
+        description: Passenger's home street address.
+        nullable: true
+      - name: domicile_city_id
+        type: ${ref}
+        params:
+          dataset: cities
+          attribute: id
+        description: City of residence.
+        nullable: true
+        foreign_key: cities.id
+      - name: age
+        type: random_int
+        params:
+          min: 12
+          max: 90
+        description: Age of the passenger.
+        nullable: true
+      - name: loyalty_program_member
+        type: boolean
+        description: Whether the passenger is enrolled in the loyalty program.
+        nullable: true
+      - name: loyalty_tier
+        type: enum
+        params:
+          values:
+          - basic
+          - silver
+          - gold
+          - platinum
+        description: Loyalty level tier.
+        nullable: true
+    - name: bookings
+      rows: 1500
+      description: Bookings made by passengers for specific flight instances.
+      attributes:
+      - name: id
+        type: uuid
+        description: Unique booking reference.
+        primary_key: true
+        nullable: false
+      - name: passenger_id
+        type: ${ref}
+        params:
+          dataset: passenger
+          attribute: id
+        description: Passenger making the booking.
+        nullable: true
+        foreign_key: passenger.id
+      - name: flight_instance_id
+        type: ${ref}
+        params:
+          dataset: flight_instances
+          attribute: id
+        description: Flight instance booked by the passenger.
+        nullable: true
+        foreign_key: flight_instances.id
+      - name: seat_number
+        type: seat_number
+        description: Seat number assigned (e.g., 12A).
+        nullable: true
+    - name: loyalty_earnings
+      rows: 1000
+      description: Loyalty program mileage earnings for each booking.
+      attributes:
+      - name: id
+        type: uuid
+        description: Unique identifier for loyalty mileage record.
+        primary_key: true
+        nullable: false
+      - name: booking_id
+        type: ${ref}
+        params:
+          dataset: bookings
+          attribute: id
+        description: Booking from which miles were earned.
+        nullable: true
+        foreign_key: bookings.id
+      - name: passenger_id
+        type: ${ref}
+        params:
+          dataset: passenger
+          attribute: id
+        description: Passenger who earned the miles.
+        nullable: true
+        foreign_key: passenger.id
+      - name: miles_earned
+        type: random_int
+        params:
+          min: 500
+          max: 5000
+        description: Number of miles earned for the booking.
+        nullable: true
+      - name: earning_date
+        type: datetime
+        params:
+          start: '2025-01-01T00:00:00'
+          end: '2025-12-31T23:59:59'
+        description: Date when the miles were credited.
+        nullable: true
+    - rows: 400
+      description: Records of flight delays including duration and reason for each affected
+        flight instance.
+      attributes:
+      - name: id
+        type: uuid
+        description: Unique identifier for the delay record.
+        primary_key: true
+        nullable: false
+      - name: flight_instance_id
+        type: ${ref}
+        params:
+          dataset: flight_instances
+          attribute: id
+        description: Flight instance affected by the delay.
+        primary_key: false
+        nullable: true
+        foreign_key: flight_instances.id
+      - name: delay_minutes
+        type: random_int
+        params:
+          min: 5
+          max: 180
+        description: Total duration of the delay in minutes.
+        primary_key: false
+        nullable: true
+      - name: reason
+        type: enum
+        params:
+          values:
+          - weather
+          - technical
+          - crew
+          - other
+        description: Primary cause of the delay.
+        primary_key: false
+        nullable: true
+      name: delays
+    - rows: 100
+      description: Cancellations of scheduled flight instances and their associated
+        reasons.
+      attributes:
+      - name: id
+        type: uuid
+        description: Unique identifier for the cancellation record.
+        primary_key: true
+        nullable: false
+      - name: flight_instance_id
+        type: ${ref}
+        params:
+          dataset: flight_instances
+          attribute: id
+        description: Flight instance that was cancelled.
+        primary_key: false
+        nullable: true
+        foreign_key: flight_instances.id
+      - name: cancellation_reason
+        type: enum
+        params:
+          values:
+          - weather
+          - technical
+          - operational
+          - low_demand
+        description: Reason the flight was cancelled.
+        primary_key: false
+        nullable: true
+      - name: cancellation_time
+        type: datetime
+        params:
+          start: '2025-01-01T00:00:00'
+          end: '2025-12-31T23:59:59'
+        description: Timestamp when the cancellation was recorded.
+        primary_key: false
+        nullable: true
+      name: cancellations
+    - rows: 1500
+      description: Detailed pricing information for each booking including fare breakdown
+        and travel class.
+      attributes:
+      - name: booking_id
+        type: ${ref}
+        params:
+          dataset: bookings
+          attribute: id
+        description: Reference to the booking this price record belongs to.
+        primary_key: false
+        nullable: true
+        foreign_key: bookings.id
+      - name: base_price
+        type: random_float
+        params:
+          min: 50
+          max: 1500
+        description: Base fare amount before taxes.
+        primary_key: false
+        nullable: true
+      - name: taxes
+        type: random_float
+        params:
+          min: 10
+          max: 300
+        description: Taxes and surcharges applied to the ticket.
+        primary_key: false
+        nullable: true
+      - name: total_price
+        type: expression
+        params:
+          expr: base_price + taxes
+        description: Total ticket price including all applicable taxes.
+        primary_key: false
+        nullable: true
+      - name: class
+        type: enum
+        params:
+          values:
+          - economy
+          - business
+          - first
+        description: Travel class for the ticket.
+        primary_key: false
+        nullable: true
+      - name: currency
+        type: enum
+        params:
+          values:
+          - USD
+          - EUR
+          - CHF
+        description: Currency used for this ticket price.
+        primary_key: false
+        nullable: true
+      name: ticket_prices
+    - rows: 800
+      description: Passenger-provided feedback scores for completed flight instances.
+      attributes:
+      - name: id
+        type: uuid
+        description: Unique identifier for the rating entry.
+        primary_key: true
+        nullable: false
+      - name: passenger_id
+        type: ${ref}
+        params:
+          dataset: passenger
+          attribute: id
+        description: Passenger who provided the rating.
+        primary_key: false
+        nullable: true
+        foreign_key: passenger.id
+      - name: flight_instance_id
+        type: ${ref}
+        params:
+          dataset: flight_instances
+          attribute: id
+        description: Flight instance being rated.
+        primary_key: false
+        nullable: true
+        foreign_key: flight_instances.id
+      - name: rating
+        type: random_int
+        params:
+          min: 1
+          max: 5
+        description: Numeric satisfaction rating between 1 (poor) and 5 (excellent).
+        primary_key: false
+        nullable: true
+      - name: comment
+        type: text
+        description: Optional text comment by the passenger.
+        primary_key: false
+        nullable: true
+      - name: timestamp
+        type: datetime
+        params:
+          start: '2025-01-01T00:00:00'
+          end: '2025-12-31T23:59:59'
+        description: Date and time when the rating was submitted.
+        primary_key: false
+        nullable: true
+      name: ratings
+    - rows: 50
+      description: Reference data for countries used to categorize cities geographically.
+      attributes:
+      - name: id
+        type: random_int
+        params:
+          min: 1
+          max: 500
+        description: Unique identifier for the country.
+        primary_key: true
+        nullable: false
+      - name: country_name
+        type: country
+        description: Official name of the country.
+        primary_key: false
+        nullable: true
+      - name: iso_code
+        type: country_code
+        description: ISO 3166-1 alpha-2 code for the country (e.g., US, DE).
+        primary_key: false
+        nullable: true
+      name: countries

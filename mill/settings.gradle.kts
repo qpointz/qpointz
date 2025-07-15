@@ -16,18 +16,15 @@ include (":mill-test-common")
 include (":mill-common-service")
 include (":mill-common-security")
 
-
-
 include (":clients:mill-jdbc-driver")
 include (":clients:mill-jdbc-shell")
 
 include (":mill-starter-backends")
 include (":mill-service")
-include (":mill-azure-service-function")
 
 
-include (":services:mill-grpc-service")
-include (":services:mill-sample-service")
+include (":services:mill-jet-grpc-service")
+include (":services:mill-jet-http-service")
 include (":services:mill-starter-services")
 
 

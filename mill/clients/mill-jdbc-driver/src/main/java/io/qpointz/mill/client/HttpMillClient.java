@@ -3,12 +3,11 @@ package io.qpointz.mill.client;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import com.google.protobuf.util.JsonFormat;
+import io.qpointz.mill.MillCodeException;
+import io.qpointz.mill.MillRuntimeException;
 import io.qpointz.mill.proto.*;
 import lombok.*;
-import okhttp3.Headers;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
+import okhttp3.*;
 
 import java.io.IOException;
 import java.net.URI;
@@ -124,27 +123,42 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
     }
 
     private static final okhttp3.MediaType JSON = okhttp3.MediaType.get("application/json");
+    private static final okhttp3.MediaType PROTOBUF = okhttp3.MediaType.get("application/x-protobuf");
 
-    @SneakyThrows
-    private <T extends Message> T post(String path, Message message, Function<byte[], T> produce) {
-        val jsonMessage = JsonFormat.printer().print(message);
+    private <T extends Message> T post(String path, Message message, Function<byte[], T> produce) throws MillCodeException {
+        String jsonMessage = null;
+        try {
+            jsonMessage = JsonFormat.printer().print(message);
+        } catch (InvalidProtocolBufferException e) {
+            throw new MillCodeException(e);
+        }
         val builder = new Request.Builder()
                 .url(this.requestUrl(path))
                 .post(RequestBody.create(jsonMessage.getBytes()))
-                .addHeader("Content-Type", "application/json")
-                .addHeader("Accept", "application/protobuf");
+                .addHeader("Content-Type", JSON.toString())
+                .addHeader("Accept", PROTOBUF.toString());
         if (authenticationHeaderValue!=null) {
             builder.addHeader("Authorization", this.getAuthenticationHeaderValue());
         }
         val req = builder.build();
         val call = this.getHttpClient().newCall(req);
+
+        Response resp;
         try {
-            val resp = call.execute();
-            return produce.apply(resp.body().bytes());
+            resp = call.execute();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new MillCodeException("Failed to execute HTTP request", e);
         }
 
+        if (!resp.isSuccessful()) {
+            throw new MillCodeException("HTTP request failed with status code: " + resp.code() + " and message: " + resp.message());
+        }
+
+        try {
+            return produce.apply(resp.body().bytes());
+        } catch (IOException e) {
+            throw new MillCodeException("Failed to read response body", e);
+        }
     }
 
     @Override
@@ -153,7 +167,7 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
     }
 
     @Override
-    public HandshakeResponse handshake(HandshakeRequest request) {
+    public HandshakeResponse handshake(HandshakeRequest request) throws MillCodeException {
         return post("Handshake", request, b -> {
             try {
                 return HandshakeResponse.parseFrom(b);
@@ -164,7 +178,7 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
     }
 
     @Override
-    public ListSchemasResponse listSchemas(ListSchemasRequest request) {
+    public ListSchemasResponse listSchemas(ListSchemasRequest request) throws MillCodeException {
         return post("ListSchemas", request, b -> {
             try {
                 return ListSchemasResponse.parseFrom(b);
@@ -175,7 +189,7 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
     }
 
     @Override
-    public GetSchemaResponse getSchema(GetSchemaRequest request) {
+    public GetSchemaResponse getSchema(GetSchemaRequest request) throws MillCodeException {
         return post("GetSchema", request, b -> {
             try {
                 return GetSchemaResponse.parseFrom(b);
@@ -209,13 +223,18 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
         }
 
         private void doInitial(QueryRequest initialRequest) {
-            var initial = post("SubmitQuery", initialRequest, b-> {
-                try {
-                    return QueryResultResponse.parseFrom(b);
-                } catch (InvalidProtocolBufferException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+            QueryResultResponse initial = null;
+            try {
+                initial = post("SubmitQuery", initialRequest, b -> {
+                    try {
+                        return QueryResultResponse.parseFrom(b);
+                    } catch (InvalidProtocolBufferException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            } catch (MillCodeException e) {
+                throw new MillRuntimeException(e);
+            }
             setNext(initial);
         }
 
@@ -237,15 +256,18 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
                     .setFetchSize(this.fetchSize)
                     .build();
 
-            val nextResponse = HttpMillClient.this.post("FetchQueryResult", request,b-> {
-                try {
-                    return QueryResultResponse.parseFrom(b);
-                } catch (InvalidProtocolBufferException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-
-            setNext(nextResponse);
+            try {
+                val nextResponse = HttpMillClient.this.post("FetchQueryResult", request, b -> {
+                    try {
+                        return QueryResultResponse.parseFrom(b);
+                    } catch (InvalidProtocolBufferException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+                setNext(nextResponse);
+            } catch (MillCodeException ex1) {
+                throw new MillRuntimeException(ex1);
+            }
         }
 
         @Override

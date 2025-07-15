@@ -1,0 +1,4 @@
+#structure
+# host,port,<Y-tls,N-NO TLS>,<N - no authentication,BASIC- basic authentication>
+localhost,8080,http,N,N
+localhost,9099,grpc,N,N

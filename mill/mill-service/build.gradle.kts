@@ -43,12 +43,19 @@ fun copyDistro(tk:String, distributionName: String) {
             from(rootProject.layout.projectDirectory.dir("test/datasets/users/sql"))
             into(outDir.dir("etc/sample/users"))
         }
+
+        copy {
+            from(rootProject.layout.projectDirectory.file("test/datasets/moneta/moneta-slim.sql"))
+            into(outDir.file("etc/sample/moneta"))
+            rename { fileName -> "moneta.sql" }
+        }
     }
 }
 
 dependencies {
     implementation(project(":mill-common-security"))
-    implementation(project(":services:mill-grpc-service"))
+    implementation(project(":services:mill-jet-grpc-service"))
+    implementation(project(":services:mill-jet-http-service"))
     implementation(project(":services:mill-starter-services"))
     implementation(project(":mill-starter-backends"))
     //implementation(project(":services:mill-ai-llm-service"))

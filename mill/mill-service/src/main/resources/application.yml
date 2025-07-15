@@ -44,6 +44,8 @@ mill:
       enable: false
     meta:
       enable: true
+    jet-http:
+      enable: true
     grpc:
       port: 9099
       enable: true

@@ -210,7 +210,7 @@ class MillHttpClient(MillClient):
         self.__url = f"{protoc}://{host}{portsfx}{base_path}"
         headers.update([
             ('Content-Type', 'application/json'),
-            ('Accept', 'application/protobuf')
+            ('Accept', 'application/x-protobuf')
         ])
         sess = aiohttp.ClientSession(headers=headers, raise_for_status= False, loop= event_loop)
         self.__session = MillHttpSession(session=sess, base_url=self.__url, event_loop = event_loop)
@@ -278,7 +278,7 @@ class MillSqlQuery(MillQuery):
 from urllib.parse import urlparse
 
 def create_client(*, channel: Channel = None, creds: MillCallCredentials = None,
-                  url:str = None, protocol:str = "grpc", host:str = None, port: int = None, base_path:str="/api/",
+                  url:str = None, protocol:str = "grpc", host:str = None, port: int = None, base_path:str="/services/jet/",
                   ssl: bool = False, event_loop: AbstractEventLoop = None, metadata: Optional[MetadataLike] = None ) -> MillClient:
     if host is None:
         parsed = urlparse(url)
@@ -316,4 +316,4 @@ def create_client(*, channel: Channel = None, creds: MillCallCredentials = None,
     if protocol.lower() == "http":
         return create_http_client(el, ssl, host, port, base_path, metadata)
 
-    raise MillError("Unsupported protocol:{protocol}")
+    raise MillError(f"Unsupported protocol:{protocol}")

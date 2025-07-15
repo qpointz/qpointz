@@ -126,7 +126,7 @@ mill:install-dist:
       artifacts: true
   script:
     - cd ${CI_PROJECT_DIR}/mill
-    - ./gradlew --no-daemon --console plain clean installBootDist azureFunctionsPackage azureFunctionsPackageZip
+    - ./gradlew --no-daemon --console plain clean installBootDist
     - mkdir -p ${CI_PROJECT_DIR}/mill/mill-service/build/test/datasets/
     - cp -r ${CI_PROJECT_DIR}/mill/test/datasets/moneta ${CI_PROJECT_DIR}/mill/mill-service/build/test/datasets/
   artifacts:
@@ -137,8 +137,6 @@ mill:install-dist:
       - ${CI_PROJECT_DIR}/mill/**/build/distributions/*.zip
       - ${CI_PROJECT_DIR}/mill/**/build/install/*.tar
       - ${CI_PROJECT_DIR}/mill/**/build/install/*.zip
-      - ${CI_PROJECT_DIR}/mill/**/build/azure-functions/**/*
-      - ${CI_PROJECT_DIR}/mill/**/build/azure-functions/*.zip
       - ${CI_PROJECT_DIR}/mill/mill-service/build/test/datasets/**/*
 
 mill:upload-packages:
@@ -154,10 +152,6 @@ mill:upload-packages:
   script:
     - !reference [.global-vars, before_script]
     - BASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/mill-packages/${QP_VERSION}/"
-    - >  
-      curl --fail-with-body --output file.txt --header "JOB-TOKEN: ${CI_JOB_TOKEN}" 
-      --upload-file ${CI_PROJECT_DIR}/mill/mill-azure-service-function/build/azure-functions/mill-service-func.zip
-      "${BASE_URL}/mill-calcite-backend-func.zip"
     - >
       curl --fail-with-body --output file.txt --header "JOB-TOKEN: ${CI_JOB_TOKEN}" 
       --upload-file "${CI_PROJECT_DIR}/mill/clients/mill-jdbc-shell/build/distributions/mill-jdbc-shell-${QP_VERSION}.tar"      
@@ -222,21 +216,6 @@ mill:service:build-test-docker:
     - job: mill:service:build-docker
       artifacts: false
 
-mill:azure-functions-test-docker-local:
-  extends: .docker-build-job
-  stage: package
-  variables:
-    DOCKER_LOCAL_ONLY: "true"
-    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/mill/mill-azure-service-function
-    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/mill/mill-azure-service-function/src/main/docker/Dockerfile
-    DOCKER_BUILD_CONTAINER_NAME : azure-functions-test-host
-  needs:
-    - job: mill:install-dist
-      artifacts: true
-    - job: mill:unit-tests
-      artifacts: false
-    - job: mill:init-version
-      artifacts: true
 
 sonarqube-check:
   extends: .gradle-job

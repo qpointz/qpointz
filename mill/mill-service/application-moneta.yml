@@ -66,6 +66,8 @@ mill:
   services:
     ai-nl2data:
       enable: true
+    jet-http:
+      enable: true
     data-bot:
       enable: false
       prompt-file: file:../test/datasets/moneta/moneta.prompt

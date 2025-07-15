@@ -114,6 +114,7 @@ public class MillClientConfiguration {
         public MillClientConfigurationBuilder fromProperties(Properties properties) {
             return this
                     .stringProp(properties, HOST_PROP, null, this::host)
+                    .stringProp(properties, API_PATH_PROP, DEFAULT_API_PATH, this::path)
                     .anyProp(properties, PORT_PROP, 9099, Integer::parseInt, this::port)
                     .stringProp(properties, USERNAME_PROP, null, this::username)
                     .stringProp(properties, PASSWORD_PROP, null, this::password)

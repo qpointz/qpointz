@@ -1,30 +1,31 @@
 plugins {
+    `java-library`
     alias(libs.plugins.spring.dependency.management)
     mill
     `mill-publish`
-    `java-library`
 }
 
 mill {
-    description = "Library provides base Mill Service implementation"
+    description = "Access service implementation for GRPC protocol"
     publishToSonatype = true
 }
 
-
 dependencies {
     api(project(":mill-common-service"))
-    api(project(":mill-common"))
-    implementation(libs.calcite.core)
-    implementation(libs.calcite.csv)
-    implementation(libs.calcite.file)
-    implementation(libs.boot.starter)
-    implementation(libs.substrait.isthmus)
+    api(libs.grpc.netty.shaded)
+    implementation(libs.javax.annotation.api)
+    api(libs.boot.starter.security)
+    api(libs.boot.starter.security.oauth2.client)
+    api(libs.boot.starter.security.oauth2.resource.server)
+    api(libs.grpc.core)
+    api(libs.jakarta.servlet.api)
+    implementation(libs.jackson.dataformat.yaml)
+    implementation(libs.jackson.datatype.jsr310)
+    compileOnly(libs.bundles.logging)
     compileOnly(libs.lombok)
-    runtimeOnly(libs.bundles.logging)
-    runtimeOnly(libs.h2.database)
     annotationProcessor(libs.lombok)
-    annotationProcessor(libs.boot.configuration.processor)
-    testImplementation(libs.boot.starter.test)
+    api(libs.bootGRPC.server)
+    api(libs.googleapigrpc.proto.common.protos)
 }
 
 testing {
@@ -35,10 +36,9 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation(project(":services:mill-jet-grpc-service"))
-                    implementation(libs.protobuf.java.util)
+                    implementation(libs.boot.starter.test)
                     implementation(libs.bootGRPC.client)
-                    implementation(libs.bootGRPC.server)
+                    implementation(libs.grpc.testing)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.h2.database)
