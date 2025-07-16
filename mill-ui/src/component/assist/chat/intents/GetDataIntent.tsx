@@ -34,6 +34,10 @@ export default function GetDataIntent(data: any) {
                     <Tabs.Tab value="sql" leftSection={<TbFileTypeSql size={12} />}>
                         SQL
                     </Tabs.Tab>
+
+                    <Tabs.Tab value="answer" leftSection={<TbFileTypeSql size={12} />}>
+                        Answer
+                    </Tabs.Tab>
                 </Tabs.List>
 
                 { hasChart && (
@@ -42,11 +46,11 @@ export default function GetDataIntent(data: any) {
                 </Tabs.Panel> )}
 
                 <Tabs.Panel value="data">
-                    <DataContainer data={message.content.data.container}/>
+                    <DataContainer data={message.content.data?.container}/>
                 </Tabs.Panel>
 
                 <Tabs.Panel value="sql">
-                    <CodeHighlight code={format(message.content.sql)} language="sql"/>
+                    <CodeHighlight code={format(message.content?.sql ?? "")} language="sql"/>
                 </Tabs.Panel>
 
             </Tabs>

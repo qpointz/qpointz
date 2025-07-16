@@ -1,0 +1,15 @@
+## Return format (example):
+
+{
+  "intent": "follow_up",
+  "original-intent": "get_chart",
+  "sql": "SELECT ... WHERE ...",
+  "query-name": "clients_in_korea_with_balance_over_1000",
+  "chart": {
+    "type": "bar",
+    "config": {
+      ...
+    }
+  },
+  "explanation": "CLient filter"
+}

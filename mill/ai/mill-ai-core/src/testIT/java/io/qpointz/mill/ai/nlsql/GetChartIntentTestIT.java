@@ -37,15 +37,15 @@ public class GetChartIntentTestIT extends BaseIntentTestIT {
     }
 
     private Map<String, Object> getChart(String query) {
-        val rc = callSpecs()
-                .reasonSpec(query).call()
+        val rc = intentSpecs()
+                .reasonCall(query)
                 .as(ReasoningResponse.class);
 
         log.info("Reason: ({}) => {}", query, rc);
         assertEquals("get-chart", rc.intent());
 
-        val ec = callSpecs()
-                .getChartSpec(rc).call()
+        val ec = intentSpecs()
+                .getChartIntent().getCall(rc)
                 .asMap();
         log.info("SQL: ({}) => {}", query, ec.getOrDefault("sql", "NULL"));
         assertTrue(ec.containsKey("data"));

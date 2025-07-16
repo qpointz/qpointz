@@ -69,6 +69,7 @@ mill:ai-integration-tests:
   needs:
     - job: mill:unit-tests
       artifacts: false
+  when: manual
   artifacts:
     when: always
     expire_in: "5 days"

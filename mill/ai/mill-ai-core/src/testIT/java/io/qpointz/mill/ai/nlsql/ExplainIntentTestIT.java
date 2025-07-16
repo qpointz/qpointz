@@ -39,17 +39,18 @@ public class ExplainIntentTestIT extends BaseIntentTestIT {
             "What is client_id attribute and in which tables it exists"
     })
     void roundtrip(String query) {
-        val rc = callSpecs()
-                .reasonSpec(query).call()
+        val rc = intentSpecs()
+                .reasonCall(query)
                 .as(ReasoningResponse.class);
         log.info("Reason: ({}) => {}", query, rc);
         assertEquals("explain", rc.intent());
-        val spec = callSpecs()
-                .explainSpec(rc);
+        val spec = intentSpecs()
+                .getExplainIntent()
+                .getCall(rc);
 
-        val ec = spec.call()
+        val ec = spec
                 .asMap();
-        logPrompt(spec);
+        //logPrompt(spec);
         log.info("Description:");
         log.info("==============================================");
         log.info("\n{}", ec.get("description"));

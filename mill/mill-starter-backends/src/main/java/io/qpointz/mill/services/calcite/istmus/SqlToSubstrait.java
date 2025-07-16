@@ -11,6 +11,7 @@ import io.substrait.plan.PlanProtoConverter;
 import io.substrait.proto.Plan;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.config.CalciteConnectionConfig;
 import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.plan.hep.HepPlanner;
@@ -20,13 +21,17 @@ import org.apache.calcite.prepare.Prepare;
 import org.apache.calcite.rel.RelRoot;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.schema.Schema;
+import org.apache.calcite.sql.SqlDialects;
 import org.apache.calcite.sql.SqlNode;
+import org.apache.calcite.sql.dialect.AnsiSqlDialect;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.sql.validate.SqlValidator;
 import org.apache.calcite.sql2rel.SqlToRelConverter;
 import org.apache.calcite.sql2rel.StandardConvertletTable;
 
+
+@Slf4j
 /** Take a SQL statement and a set of table definitions and return a substrait plan. */
 public class SqlToSubstrait extends SqlConverterBase {
 
@@ -87,6 +92,9 @@ public class SqlToSubstrait extends SqlConverterBase {
 
   @VisibleForTesting
   static RelRoot getBestExpRelRoot(SqlToRelConverter converter, SqlNode parsed) {
+    if (log.isDebugEnabled()) {
+      log.debug("Parsed SQL: {}", parsed.toSqlString(AnsiSqlDialect.DEFAULT));
+    }
     RelRoot root = converter.convertQuery(parsed, true, true);
     { //NOSONAR
       var program = HepProgram.builder().build();

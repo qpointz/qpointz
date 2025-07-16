@@ -23,6 +23,14 @@ class MillPlugin: Plugin<Project> {
             logger.trace("VERSION file missing {}:", path.toAbsolutePath().toString())
             return "0.1.0"
         }
+
+        /*
+         val versionFile = project.rootProject.file("version.txt")
+        val resolvedVersion = versionFile.takeIf { it.exists() }?.readText()?.trim()
+            ?: project.findProperty("projectVersion")?.toString()
+            ?: "0.0.1-SNAPSHOT"
+         */
+
         var version =  Files.readAllLines(path)[0]
         if (".*\\-\\w+\\.\\d+$".toRegex().matches(version)) {
             logger.debug("candidate version")

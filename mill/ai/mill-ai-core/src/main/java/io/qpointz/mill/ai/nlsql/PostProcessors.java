@@ -26,4 +26,8 @@ public class PostProcessors {
         return new ExecuteQueryProcessor(dispatcher);
     }
 
+    public static RefineIntentProcessor refineProcessor(ReasoningResponse response, IntentSpecs specs) {
+        return new RefineIntentProcessor(response, specs);
+    }
+
 }

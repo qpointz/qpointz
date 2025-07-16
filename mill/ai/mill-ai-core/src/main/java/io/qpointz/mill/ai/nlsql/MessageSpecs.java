@@ -145,14 +145,14 @@ public class MessageSpecs {
         ));
     }
 
-    private static MessageSpec getFollowUpUser() {
-        return userStatic("templates/nlsql/intent/follow-up/user.prompt");
+    private static MessageSpec getRefineUser() {
+        return userStatic("templates/nlsql/intent/refine/user.prompt");
     }
 
-    public static MessageList followUp(ReasoningResponse reason, MetadataProvider provider) {
+    public static MessageList refineQuery(ReasoningResponse reason, MetadataProvider provider) {
         return new MessageList(List.of(
                 intentSystem(),
-                getFollowUpUser(),
+                getRefineUser(),
                 fullSchema(provider),
                 outputRules(),
                 intentUserQuestion(reason)

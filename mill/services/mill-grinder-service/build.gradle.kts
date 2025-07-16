@@ -11,7 +11,7 @@ mill {
 }
 
 dependencies {
-    implementation(project(":mill-common-service"))
+    implementation(project(":core:mill-service-core"))
     implementation(libs.boot.starter)
     implementation(libs.boot.starter.web)
     compileOnly(libs.bundles.logging)

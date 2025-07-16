@@ -2,6 +2,7 @@ logging:
   level:
     root: info
     org.apache.calcite: WARN
+    io.qpointz.mill: DEBUG
 
 
 spring:

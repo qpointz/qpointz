@@ -23,7 +23,12 @@ public class CallSpecsChatClientBuilders {
 
     public ChatClientBuilder reasoningChat() {
         return ChatClientBuilders
-                .defaultBuilder(ChatClient.builder(this.chatModel));
+                .defaultBuilder(ChatClient.builder(this.chatModel)
+                    .defaultAdvisors(
+                            MessageChatMemoryAdvisor.builder(this.chatMemory)
+                                    .conversationId(this.conversationId+"_reason")
+                                    .build()
+                    ));
     }
 
     public ChatClientBuilder conversationChat() {

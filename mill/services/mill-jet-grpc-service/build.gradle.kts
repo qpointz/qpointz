@@ -11,7 +11,7 @@ mill {
 }
 
 dependencies {
-    api(project(":mill-common-service"))
+    api(project(":core:mill-service-core"))
     api(libs.grpc.netty.shaded)
     implementation(libs.javax.annotation.api)
     api(libs.boot.starter.security)

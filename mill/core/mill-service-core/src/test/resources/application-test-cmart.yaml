@@ -1,0 +1,41 @@
+grpc:
+  server:
+    in-process-name: testservice-jdbc
+    port: -1
+  client:
+    testservice:
+      address: in-process:testservice-jdbc
+
+mill:
+  backend:
+    provider: jdbc
+    connection:
+      quoting: BACK_TICK
+      caseSensitive: true
+      unquotedCasing: UNCHANGED
+    jdbc:
+      url: "jdbc:h2:mem:cmart;INIT=RUNSCRIPT FROM '../../test/datasets/cmart/sql/cmart.sql'"
+      driver: "org.h2.Driver"
+      target-schema: "cmart"
+
+  security:
+    enable: true
+    authentication:
+      basic:
+        enable: true
+        file-store: classpath:userstore/passwd.yml
+    authorization:
+      policy:
+        enable: true
+        selector:
+          granted-authority:
+            remap:
+              XYZ: lala2
+              BGZ: HUDR
+        actions:
+          - policy: POL1
+            verb: deny
+            action: rel-filter
+            params:
+              rel-name: "cmart.CLIENT"
+              filter: "`IS_PEP`<>0"

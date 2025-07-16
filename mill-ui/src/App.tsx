@@ -15,7 +15,8 @@ function App() {
             footer={{ height: 50 }}
             navbar={{ width: 35, breakpoint:"lg" }}
             styles={{
-                main: { flex: 1, display: 'flex', flexDirection: 'column' }
+                //main : {minWidth: 800},
+                navbar: {maxWidth: 20}
             }}
         >
           <AppShell.Header>

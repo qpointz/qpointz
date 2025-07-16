@@ -1,0 +1,10 @@
+- follow-up: The user is referring to a previous query or result (e.g. modifying, repeating, or extending it)
+
+
+If the user’s request is unsupported, but you can identify a likely future intent type, return it in the `plannedIntent` field using one of:
+- constraint_check: Check for invalid or missing data based on constraints
+- metadata_lookup: Explore available tables, columns, or schema information
+- compare: Compare data across groups or time periods (e.g. A/B comparison)
+- trend_analysis: Analyze change over time (e.g. sales over months)
+- summarize: Summarize results or trends in natural language
+- export_data: The user wants to export results (e.g. to Excel, CSV, or other format)

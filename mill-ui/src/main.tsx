@@ -51,7 +51,7 @@ const shikiAdapter = createShikiAdapter(loadShiki);
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter basename="/app" >
-      <MantineProvider  theme={theme} >
+      <MantineProvider  theme={theme}  >
           <CodeHighlightAdapterProvider adapter={shikiAdapter}>
             <App />
           </CodeHighlightAdapterProvider>

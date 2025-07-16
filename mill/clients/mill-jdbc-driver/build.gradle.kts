@@ -14,7 +14,7 @@ distributions {
 }
 
 dependencies {
-    implementation(project(":mill-common"))
+    implementation(project(":core:mill-core"))
     implementation(libs.protobuf.java.util)
     implementation(libs.okhttp)
     compileOnly(libs.lombok)

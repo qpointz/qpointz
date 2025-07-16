@@ -1,11 +1,12 @@
 import React from "react";
 const ReactECharts = React.lazy(() => import('echarts-for-react'));
 
-export default function ChartView(data: any) {
-    const { chart, container } = data;
+export default function ChartView(params: any) {
+    const { chart, container } = params;
+    const data = container?.data || [];
 
-    const labels = container?.data.map((r: string)=> r[0]);
-    const values = container.data.map((r: any) => r[1]);
+    const labels = data.map((r: string)=> r[0]);
+    const values = data.map((r: any) => r[1]);
 
     const options = {
         tooltip: {},

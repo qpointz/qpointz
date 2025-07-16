@@ -15,7 +15,7 @@ import java.util.Map;
 public final class RetainReasoningProcessor implements ChatCallPostProcessor {
 
 
-    private static final String REASONING_KEY = "reasoning";
+    public static final String REASONING_KEY = "reasoning";
 
 
     @Getter
@@ -23,13 +23,14 @@ public final class RetainReasoningProcessor implements ChatCallPostProcessor {
 
     @Override
     public Map<String, Object> process(Map<String, Object> result) {
-        if (result.containsKey(REASONING_KEY)) {
+        val m = new HashMap<>(result);
+        if (!result.containsKey(REASONING_KEY)) {
             log.warn("Response already contains reasoning information {}: Skipping postprocessing.", result.get(REASONING_KEY));
-            return result;
+            m.put(REASONING_KEY, reason);
         }
 
-        val m = new HashMap<>(result);
-        m.put(REASONING_KEY, reason);
+        m.putIfAbsent("resultIntent", reason.intent());
+
         return m;
     }
 }

@@ -9,11 +9,13 @@ import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.sql.VectorBlockRecordIterator;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import java.util.*;
 
 @AllArgsConstructor
+@Slf4j
 public class ExecuteQueryProcessor implements ChatCallPostProcessor {
 
     @Getter
@@ -28,6 +30,9 @@ public class ExecuteQueryProcessor implements ChatCallPostProcessor {
         }
 
         val sql = result.get("sql").toString();
+
+        log.debug("Executing SQL: {}", sql);
+
         val execution = execute(sql);
         val updated = new HashMap<>(result);
         updated.put("data", execution);

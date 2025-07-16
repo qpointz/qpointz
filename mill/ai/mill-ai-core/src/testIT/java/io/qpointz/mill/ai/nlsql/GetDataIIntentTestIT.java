@@ -1,7 +1,5 @@
 package io.qpointz.mill.ai.nlsql;
 
-import io.qpointz.mill.ai.BaseIntegrationTestIT;
-import io.qpointz.mill.ai.chat.ChatCallSpec;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.services.metadata.MetadataProvider;
@@ -11,7 +9,6 @@ import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -41,15 +38,16 @@ public class GetDataIIntentTestIT extends BaseIntentTestIT {
             "List exchanges where most of the clients trading"
     })
     void roundtrip(String query) {
-        val rc = callSpecs()
-                .reasonSpec(query).call()
+        val rc = intentSpecs()
+                .reasonCall(query)
                 .as(ReasoningResponse.class);
 
         log.info("Reason: ({}) => {}", query, rc);
         assertEquals("get-data", rc.intent());
 
-        val ec = callSpecs()
-                .getDataSpec(rc).call()
+        val ec = intentSpecs()
+                .getChartIntent()
+                .getCall(rc)
                 .asMap();
         log.info("SQL: ({}) => {}", query, ec.getOrDefault("sql", "NULL"));
         assertTrue(ec.containsKey("data"));
@@ -67,11 +65,10 @@ public class GetDataIIntentTestIT extends BaseIntentTestIT {
                 new ReasoningResponse.IntentTable("MONETA", "CLIENTS", false)),
             SchemaScope.PARTIAL, SchemaStrategy.PARTIAL_RUNTIME_INJECTION, "en"
         );
-        val gd = this.callSpecs()
-                .getDataSpec(reason);
+        val gd = this.intentSpecs()
+                .getDataIntent().getCall(reason);
 
-        logPrompt(gd);
-        val result = gd.call().asMap();
+        val result = gd.asMap();
         assertTrue(result.containsKey("sql"));
         assertTrue(result.containsKey("data"));
     }

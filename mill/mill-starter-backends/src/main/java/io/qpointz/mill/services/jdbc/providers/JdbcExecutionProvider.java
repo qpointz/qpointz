@@ -1,5 +1,6 @@
 package io.qpointz.mill.services.jdbc.providers;
 
+import io.qpointz.mill.MillRuntimeException;
 import io.qpointz.mill.proto.QueryExecutionConfig;
 import io.qpointz.mill.services.ExecutionProvider;
 import io.qpointz.mill.services.calcite.providers.PlanConverter;
@@ -31,7 +32,7 @@ public class JdbcExecutionProvider implements ExecutionProvider {
             val rs = stmt.executeQuery(statement.sql());
             return new ResultSetVectorBlockIterator(rs, config.getFetchSize(), statement.names());
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new MillRuntimeException("Jdbc Executor failed execution:", e);
         }
     }
 

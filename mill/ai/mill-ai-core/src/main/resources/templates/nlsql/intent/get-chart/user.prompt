@@ -45,5 +45,8 @@ Rules:
 - The `explanation` field must:
   - Be one or two sentences explaining what the user is asking for
   - Be written in the **output language**
+- Never mix languages in the explanation or response.
+- If unsure, default to English for both the explanation and language.
+- Do NOT translate or hallucinate different languages.
 - Return strictly one valid SQL query in the `sql` field.
 - Ensure all SQL complies with the expected dialect and naming conventions.

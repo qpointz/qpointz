@@ -10,11 +10,14 @@
 
 rootProject.name = "mill"
 
-include (":mill-common")
+include (":core:mill-core")
+include (":core:mill-security-core")
+include (":core:mill-service-core")
+
 include (":mill-test-common")
 
-include (":mill-common-service")
-include (":mill-common-security")
+
+
 
 include (":clients:mill-jdbc-driver")
 include (":clients:mill-jdbc-shell")

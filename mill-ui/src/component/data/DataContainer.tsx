@@ -3,7 +3,8 @@ import {Table} from "@mantine/core";
 
 export default function DataContainer(input: any) {
     const container = input.data || {} ;
-    const {data, fields} = container;
+    const data = container.data ?? [];
+    const fields = container.fields ?? [];
 
     const columnHelper = createColumnHelper<Array<any>>();
     const columns = fields.map((field: string, idx: number) => {

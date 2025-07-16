@@ -1,21 +1,20 @@
 package io.qpointz.mill.ai.nlsql;
 
 import io.qpointz.mill.ai.BaseIntegrationTestIT;
-import io.qpointz.mill.ai.chat.ChatCallSpec;
+import io.qpointz.mill.ai.chat.messages.MessageSelectors;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.services.metadata.MetadataProvider;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 
-import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,7 +24,8 @@ public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
 
 
     @Getter(AccessLevel.PROTECTED)
-    private final CallSpecs callSpecs;
+    @Accessors(fluent = true)
+    private final IntentSpecs intentSpecs;
 
     @Getter(AccessLevel.PROTECTED)
     private final MetadataProvider metadataProvider;
@@ -37,10 +37,6 @@ public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
     @Getter(AccessLevel.PROTECTED)
     private final CallSpecsChatClientBuilders callSpecBuilders;
     private final MessageWindowChatMemory chatMemory;
-
-    protected CallSpecs callSpecs() {
-        return this.callSpecs;
-    }
 
     protected BaseIntentTestIT(ChatModel model,
                                MetadataProvider metadataProvider,
@@ -56,17 +52,17 @@ public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
         this.chatModel = model;
         this.callSpecBuilders = new CallSpecsChatClientBuilders(
                 model, this.chatMemory, UUID.randomUUID().toString());
-        this.callSpecs = new CallSpecs(metadataProvider, this.callSpecBuilders, dispatcher, Set.of());
+        this.intentSpecs = new IntentSpecs(metadataProvider, this.callSpecBuilders, dispatcher, MessageSelectors.SIMPLE);
     }
 
-    protected void logPrompt(ChatCallSpec gd) {
-        val sb = new StringBuilder();
-        gd.getSelectedMessages().stream().forEach(k-> {
-            sb.append(k.getText());
-            sb.append("--------------");
-        });
-        log.info("\n{}", sb.toString());
-    }
+//    protected void logPrompt(ChatCall gd) {
+//        val sb = new StringBuilder();
+//        gd.getSelectedMessages().stream().forEach(k-> {
+//            sb.append(k.getText());
+//            sb.append("--------------");
+//        });
+//        log.info("\n{}", sb.toString());
+//    }
 
     protected void intentAppTest(String query, String expectedIntent) {
         val app = new ChatApplication(
@@ -75,7 +71,7 @@ public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
                         UUID.randomUUID().toString()),
                 this.metadataProvider,
                 this.dispatcher,
-                Set.of());
+                MessageSelectors.SIMPLE);
         val reason = app.reason(query)
                 .as(ReasoningResponse.class);
         assertEquals(expectedIntent, reason.intent(), "Intent missmatch after reasoning");

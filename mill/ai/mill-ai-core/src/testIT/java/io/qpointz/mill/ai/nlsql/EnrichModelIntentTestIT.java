@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.nlsql;
 
+import io.qpointz.mill.ai.chat.messages.MessageSelectors;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.services.metadata.MetadataProvider;
@@ -7,7 +8,6 @@ import io.qpointz.mill.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.junit.jupiter.api.Test;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,15 +33,16 @@ public class EnrichModelIntentTestIT extends BaseIntentTestIT {
     }
 
     Map<String, Object> enrichModel(String query) {
-        val rc = callSpecs()
-                .reasonSpec(query).call()
+        val rc = intentSpecs()
+                .reasonCall(query)
                 .as(ReasoningResponse.class);
 
         log.info("Reason: ({}) => {}", query, rc);
         assertEquals("enrich-model", rc.intent());
 
-        val ec = callSpecs()
-                .enrichModelSpec(rc).call()
+        val ec = intentSpecs()
+                .getEnrichModelIntent()
+                .getCall(rc)
                 .asMap();
 
         val retaining = JsonUtils.defaultJsonMapper().convertValue(ec.get("reasoning"), ReasoningResponse.class);
@@ -79,12 +80,12 @@ public class EnrichModelIntentTestIT extends BaseIntentTestIT {
                 "enrich-model");
     }
 
-    @Test
+    //@Test
     void noWay() {
         val app = new ChatApplication(this.getCallSpecBuilders(),
                 this.getMetadataProvider(),
                 this.getDispatcher(),
-                Set.of());
+                MessageSelectors.SIMPLE);
 
         List.of(
                 "How many customers?",

@@ -1,6 +1,7 @@
 package io.qpointz.mill.ai.nlsql;
 
 import io.qpointz.mill.ai.BaseIntegrationTestIT;
+import io.qpointz.mill.ai.chat.messages.MessageSelectors;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.services.metadata.MetadataProvider;
@@ -45,9 +46,8 @@ public class ReasoningTestIT extends BaseIntegrationTestIT {
 
     private ReasoningResponse reason(String query) {
         val chatBuilder = new CallSpecsChatClientBuilders(chatModel, chatMemory, UUID.randomUUID().toString());
-        val specs = new CallSpecs(metadataProvider, chatBuilder, dispatcher, Set.of());
-        return specs.reasonSpec(query)
-                .call()
+        val specs = new IntentSpecs(metadataProvider, chatBuilder, dispatcher, MessageSelectors.SIMPLE);
+        return specs.reasonCall(query)
                 .as(ReasoningResponse.class);
     }
 

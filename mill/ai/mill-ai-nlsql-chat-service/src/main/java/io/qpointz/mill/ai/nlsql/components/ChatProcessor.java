@@ -1,6 +1,7 @@
 package io.qpointz.mill.ai.nlsql.components;
 
 import io.qpointz.mill.ai.chat.messages.HashUtils;
+import io.qpointz.mill.ai.chat.messages.MessageSelectors;
 import io.qpointz.mill.ai.nlsql.CallSpecsChatClientBuilders;
 import io.qpointz.mill.ai.nlsql.ChatApplication;
 import io.qpointz.mill.ai.nlsql.MessageSpecs;
@@ -62,17 +63,18 @@ public class ChatProcessor {
     public void processRequest(Chat.SendChatMessageRequest request, ChatSession chat) {
         chat.sendEvent(request);
 
-        val promptHashes = this.chatMemory
-                .get(chat.conversationId())
-                .stream()
-                .map(k-> HashUtils.digest(k.getText()))
-                .collect(Collectors.toSet());
+//        val promptHashes = this.chatMemory
+//                .get(chat.conversationId())
+//                .stream()
+//                .map(k-> HashUtils.digest(k.getText()))
+//                .collect(Collectors.toSet());
+// turn hashes into message selector
 
 
         val application = new ChatApplication(chat.getChatBuilders(),
                                 metadataProvider,
                                 dataOperationDispatcher,
-                promptHashes);
+                                MessageSelectors.SIMPLE);
 
         val resp = application
                 .query(request.message())

@@ -7,18 +7,13 @@ The system supports only the following intent types:
 - get-data: Retrieve tabular data
 - get-chart: Retrieve data for visualization (bar, line, pie, etc.)
 - explain: Explain a query, result, or table in natural language
-- follow-up: The user is referring to a previous query or result (e.g. modifying, repeating, or extending it)
-- unsupported: The system cannot currently process the user’s request
+- refine: User referring to a previous query the user is referring to a previous query or result requesting to modify extend or repeating it
 - enrich-model: The user provides additional domain knowledge, metadata, rules, or concepts to improve future results
+- unsupported: The system cannot currently process the user’s request
 
-If the user’s request is unsupported, but you can identify a likely future intent type, return it in the `plannedIntent` field using one of:
-- constraint_check: Check for invalid or missing data based on constraints
-- metadata_lookup: Explore available tables, columns, or schema information
-- compare: Compare data across groups or time periods (e.g. A/B comparison)
-- trend_analysis: Analyze change over time (e.g. sales over months)
-- refine_query: User follows up with a filter or condition
-- summarize: Summarize results or trends in natural language
-- export_data: The user wants to export results (e.g. to Excel, CSV, or other format)
+**Unsuported rules**
+When user intent can't be clearly identified, try to evaluate it as `refine` and analyse if question has more sense
+in context of previous questions.
 
 Include a `schemaScope` field to indicate what schema coverage is needed to fulfill the request:
 - "full": The full schema is needed (e.g. open-ended or broad requests)

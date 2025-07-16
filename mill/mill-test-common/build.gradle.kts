@@ -11,9 +11,9 @@ mill {
 }
 
 dependencies {
-    api(project(":mill-common"))
-    api(project(":mill-common-security"))
-    api(project(":mill-common-service"))
+    api(project(":core:mill-core"))
+    api(project(":core:mill-security-core"))
+    api(project(":core:mill-service-core"))
     api(project(":mill-starter-backends"))
     api(libs.boot.starter)
     api(libs.boot.starter.web)

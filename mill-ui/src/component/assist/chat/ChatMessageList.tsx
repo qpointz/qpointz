@@ -47,7 +47,7 @@ export default function ChatMessageList() {
         }
 
         if (message.role === "CHAT") {
-            const intent = message?.content?.reasoning?.intent;
+            const intent: string = message?.content?.resultIntent ?? "";
             switch (intent) {
                 case "explain" : return (<ExplainIntent  message={message}/>)
                 case "get-data" : return (<GetDataIntent  message={message}/>)
