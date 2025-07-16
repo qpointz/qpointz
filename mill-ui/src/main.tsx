@@ -5,7 +5,8 @@ import App from './App'
 import {createTheme, MantineProvider} from '@mantine/core';
 import {BrowserRouter} from "react-router";
 import {CodeHighlightAdapterProvider, createShikiAdapter} from "@mantine/code-highlight";
-import {createHighlighterCore, createOnigurumaEngine} from "shiki"; // or any theme you want
+import {createHighlighterCore, createOnigurumaEngine} from "shiki";
+import {Notifications} from "@mantine/notifications"; // or any theme you want
 
 const theme = createTheme({
     fontFamily: 'Inter, sans-serif',
@@ -52,6 +53,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter basename="/app" >
       <MantineProvider  theme={theme}  >
+          <Notifications/>
           <CodeHighlightAdapterProvider adapter={shikiAdapter}>
             <App />
           </CodeHighlightAdapterProvider>

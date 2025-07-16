@@ -1,12 +1,13 @@
 import {ActionIcon, Center, Group, Loader, Stack, Textarea, Title} from "@mantine/core";
-import {TbSend} from "react-icons/tb";
+import {TbPlayerPlay} from "react-icons/tb";
 import { useState } from "react";
-import {useChat} from "./chat.ts";
+import {useChatContext} from "./ChatProvider.tsx";
 
-export default function NewChat() {
+
+export default function BeginNewChat() {
     const [input, setInput] = useState("");
     const [creatingChat, setCreatingChat] = useState(false);
-    const { chats } = useChat();
+    const {chats} = useChatContext();
 
     const createChat = () => {
         if (!input.trim()) {
@@ -32,7 +33,6 @@ export default function NewChat() {
 
     return (
         <Stack h={220} m={50} p={20} bg="white" style={{borderRadius: 10, height: "100%"}}>
-
             { !creatingChat && (
                 <>
                     <Title order={3} mb={10}>New Chat</Title>
@@ -49,7 +49,7 @@ export default function NewChat() {
                         onChange={e => setInput(e.target.value)}
                         onKeyDown = {handleCtrlEnterTextArea}
                     />
-                        <ActionIcon onClick={handleButtonClick} ><TbSend /></ActionIcon>
+                        <ActionIcon onClick={handleButtonClick} ><TbPlayerPlay /></ActionIcon>
                     </Group>
                 </>
             )}

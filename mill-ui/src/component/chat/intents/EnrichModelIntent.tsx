@@ -1,4 +1,4 @@
-import {Title, Text, Card, Group, Pill, Tabs, Button, NavLink, Box} from "@mantine/core";
+import {Title, Text, Card, Group, Pill, Tabs, Button, NavLink, Box, Stack} from "@mantine/core";
 import {
     TbBlocks,
     TbBucket,
@@ -9,6 +9,7 @@ import {
 import {Link} from "react-router";
 import {format} from "sql-formatter";
 import {CodeHighlight} from "@mantine/code-highlight";
+import type {ReactElement} from "react";
 
 export default function EnrichModelIntent(data:any = {}) {
     const {content} = data.message;
@@ -17,6 +18,7 @@ export default function EnrichModelIntent(data:any = {}) {
     const enrichments = (enrichment || [])
         .sort((a: any, b: any) => a.type > b.type);
 
+    console.log(data.message);
 
     const enrichmentIcon = (e:any) => {
         const {type} = e;
@@ -28,77 +30,97 @@ export default function EnrichModelIntent(data:any = {}) {
         }
     }
 
-    const renderTarget = (target:string)=> {
+    const renderObjectLink = (target:string, location:string, icon:ReactElement) => {
+        return (
+            <NavLink
+                to={location}
+                component={Link}
+                label={target}
+                mt={10}
+                p={0} m={0}
+                w={400}
+                leftSection={<>{icon}</>}  />
+        )
+    }
+
+    const renderTargetLink = (target:string) => {
         const segments = target.split('.');
         if (segments.length === 1) {
-            return (
-                <Group>
-                    <NavLink
-                        to={`/data/schema/${segments[0]}`}
-                        component={Link}
-                        label={target}
-                        mt={10}
-                        p={0} m={0}
-                        leftSection={<><TbBucket size={20}/><Title order={6}>Schema:</Title></>}  />
-                </Group>
-            )
+            return renderObjectLink(target, `/data/schema/${segments[0]}`, <TbBucket size={20}/>)
         }
 
         if (segments.length === 2) {
-            return (
-                <Group>
-                    <NavLink
-                        to={`/data/schema/${segments[0]}/table/${segments[1]}`}
-                        component={Link}
-                        label={target}
-                        mt={10}
-                        p={0} m={0}
-                        leftSection={<><TbTable size={20}/><Title order={6}>Table:</Title></>} />
-                </Group>
-            )
+            return renderObjectLink(target, `/data/schema/${segments[0]}/table/${segments[1]}`, <TbTable size={20}/>)
         }
 
         if (segments.length === 3) {
-            return (
-                <Group>
-                    <NavLink
-                        to={`/data/schema/${segments[0]}/table/${segments[1]}`}
-                        component={Link}
-                        label={target}
-                        mt={10}
-                        p={0} m={0}
-                        leftSection={<><TbLabel size={20}/><Title order={6}>Table:</Title></>} />
-                </Group>
-            )
+            return renderObjectLink(target, `/data/schema/${segments[0]}/table/${segments[1]}/attributes/${segments[2]}`, <TbLabel size={20}/>)
         }
-
-
 
         return (
             <Text>{ JSON.stringify(segments, null, 2) }</Text>
         )
     }
 
+    const renderTarget = (target:string)=> {
+        return (
+            <Group>
+                {renderTargetLink(target)}
+            </Group>
+        )
+    }
+
+    const renderRelation = (relation:any) => {
+        return (
+            <Group>
+                {renderTargetLink(relation.source)}
+                <Text>{relation.cardinality}</Text>
+                {renderTargetLink(relation.target)}
+                <Stack pl={40}>
+                    {relation.columns.map ((col:any) =>{
+                        const sourcecolumn = `${relation.source}.${col.source}`;
+                        const targetcolumn = `${relation.target}.${col.target}`;
+                        return (
+                            <Group key={sourcecolumn}>
+                                {renderTargetLink(sourcecolumn)}
+                                <Text>→</Text>
+                                {renderTargetLink(targetcolumn)}
+                            </Group>
+                        )
+                    })}
+                </Stack>
+            </Group>
+        )
+    }
+
     const renderEnrichmentDetails = (e:any)=> {
         return (
-            <Tabs defaultValue="targets">
+            <Tabs defaultValue={e.type === 'relation' ? 'relation' : (e.targets ? "targets" : "")} mt={10} mb={10}>
                     <Tabs.List>
                         { (e.targets || e.target) && (<Tabs.Tab value="targets" leftSection={<TbTarget size={12}/>}>
                             Targets
                         </Tabs.Tab>)}
+
+                        {e.type === 'relation' && (<Tabs.Tab value="relation" leftSection={<TbHierarchy2 size={12}/>}>
+                            Relation
+                        </Tabs.Tab>) }
+
                         {e.sql && (<Tabs.Tab value="sql" leftSection={<TbFileTypeSql size={12}/>}>
                             SQL
                         </Tabs.Tab>)}
+
                     </Tabs.List>
                     {(e.targets || e.target) && (<Tabs.Panel value="targets">
                         {e.targets && e.targets.map((target:any) => renderTarget(target))}
                         {e.target && [e.target].map((target:any) => renderTarget(target))}
                     </Tabs.Panel>)}
 
+                    {e.type === 'relation' && (<Tabs.Panel value="relation">
+                        {e.relation.map((rel:any) => renderRelation(rel))}
+                    </Tabs.Panel>)}
 
                     {e.sql && (<Tabs.Panel value="sql">
                         <CodeHighlight code={format(e.sql)} language="sql"/>
-                        <Text>{e.sql}</Text>
                     </Tabs.Panel>)}
             </Tabs>
         )}

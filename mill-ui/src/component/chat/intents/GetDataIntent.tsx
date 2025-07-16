@@ -1,8 +1,8 @@
 import {Box, Group, Tabs, Text, Title} from "@mantine/core";
 import {TbChartBar, TbDatabase, TbFileTypeSql} from "react-icons/tb";
 import { format } from 'sql-formatter';
-import ChartView from "../../../data/ChartView.tsx";
-import DataContainer from "../../../data/DataContainer.tsx";
+import ChartView from "../../data/ChartView.tsx";
+import DataContainer from "../../data/DataContainer.tsx";
 import {CodeHighlight} from "@mantine/code-highlight";
 
 
@@ -33,10 +33,6 @@ export default function GetDataIntent(data: any) {
                     </Tabs.Tab>
                     <Tabs.Tab value="sql" leftSection={<TbFileTypeSql size={12} />}>
                         SQL
-                    </Tabs.Tab>
-
-                    <Tabs.Tab value="answer" leftSection={<TbFileTypeSql size={12} />}>
-                        Answer
                     </Tabs.Tab>
                 </Tabs.List>
 

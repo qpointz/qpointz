@@ -5,7 +5,8 @@ import Navbar from "./component/layout/Navbar";
 import Footer from './component/layout/Footer';
 import {Navigate, Route, Routes} from "react-router";
 import NotFound from "./component/NotFound";
-import AssistLayout from "./component/assist/AssistLayout";
+import ChatLayout from "./component/chat/ChatLayout.tsx";
+
 function App() {
   return (
       <AppShell
@@ -13,10 +14,10 @@ function App() {
             padding={0}
             header={{ height: 50 }}
             footer={{ height: 50 }}
-            navbar={{ width: 35, breakpoint:"lg" }}
+            navbar={{ width: 50, breakpoint: "sm" }}
             styles={{
-                //main : {minWidth: 800},
-                navbar: {maxWidth: 20}
+                main : {minWidth: 1024, width: "100%"},
+                navbar: { maxWidth: 50, minWidth: 50, width: 50 }
             }}
         >
           <AppShell.Header>
@@ -32,11 +33,9 @@ function App() {
                   <Route path="/overview/*" element={<NotFound />} />
                   <Route path="/data/*" element={<NotFound />} />
                   <Route path="/explore/*" element={<NotFound />} />
-
-                  <Route path="/assist/*" element={<AssistLayout  />} />
-
+                  <Route path="/chat/*" element={<ChatLayout  />} />
                   <Route path="/stats/*" element={<NotFound />} />
-                  <Route path="/" element={<Navigate replace to="/assist" />} />
+                  <Route index element={<Navigate to="/chat" replace/>} />
               </Routes>
           </AppShell.Main>
 

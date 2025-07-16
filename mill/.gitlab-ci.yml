@@ -262,7 +262,7 @@ mill:maven-publication-create:
       - ${CI_PROJECT_DIR}/mill/build/sonatype-bundle/*
 
 mill:maven-publish:
-  image: ${CI_IMAGE_BASE}
+  image: curlimages/curl
   stage: publish
   script:
     - !reference [.global-vars, before_script]

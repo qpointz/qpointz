@@ -11,7 +11,7 @@ export default function Navbar() {
           { key: "overview", label: "Overview", icon: <TbHome size={20} color={iconColor}  /> },
           { key: "data", label: "Data", icon: <TbDatabase size={20} color={iconColor}  /> },
           { key: "explore", label: "Explore", icon: <TbCompass size={20} color={iconColor} /> },
-          { key: "assist", label: "Copilot", icon: <TbTerminal2 size={20} color={iconColor}  /> },
+          { key: "chat", label: "Chat", icon: <TbTerminal2 size={20} color={iconColor}  /> },
      ];
 
     return (

@@ -12,9 +12,7 @@ Your task is to:
 - The user may ask in any language
 
 **Important:**
-You must **not apply** any enrichments automatically.
-All enrichments must first be reviewed and confirmed by the user before updating the internal model.
-Your job is to extract, classify, and describe — not to execute.
+You must **apply** all enrichments automatically and apply enrichments in consequent queries.
 
 ---
 
@@ -57,8 +55,8 @@ Your job is to extract, classify, and describe — not to execute.
    - Optional:
      - `name`: short relation name
      - `description`: human-readable explanation
-     - `source-table`: fully qualified source table name
-     - `target-table`: fully qualified target table name
+     - `source`: fully qualified source table name
+     - `target`: fully qualified target table name
      - `cardinality`: one of `"one-to-one"`, `"one-to-many"`, `"many-to-many"`
      - `sql`: SQL join expression
      - `columns`: list of pairs of `source` and `target` columns
@@ -98,8 +96,8 @@ Your job is to extract, classify, and describe — not to execute.
       "description": "Each client can have multiple accounts",
       "relation": [
         {
-          "source-table": "MONETA.CLIENTS",
-          "target-table": "MONETA.ACCOUNTS",
+          "source": "MONETA.CLIENTS",
+          "target": "MONETA.ACCOUNTS",
           "cardinality": "one-to-many",
           "sql": "`MONETA`.`CLIENTS`.`CLIENT_ID` = `MONETA`.`ACCOUNTS`.`CLIENT_ID`",
           "columns": [

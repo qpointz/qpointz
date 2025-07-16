@@ -1,16 +1,15 @@
 import {Box, Menu, NavLink, ScrollArea, UnstyledButton, useMantineTheme} from "@mantine/core";
 import {TbStar, TbStarFilled, TbTrash} from "react-icons/tb";
-import {deleteChat, markChatFavorite, unMarkChatFavorite} from "./mockData.ts";
-import type {Chat} from "../../../api/mill";
 import {Link} from "react-router";
-import { useChat } from "./chat.ts";
+import type {Chat} from "../../api/mill";
+import {unMarkChatFavorite,markChatFavorite,deleteChat} from "./mockData.ts";
+import {useChatContext} from "./ChatProvider.tsx";
 
 
 export function ChatList() {
     const theme = useMantineTheme();
-    const { chats } = useChat();
+    const {chats} = useChatContext();
 
-    const activeChatId = '';// activeChat['*'].replace('chat/','');
     const linkMenu = (chat:Chat) => {
         return (
             <Menu shadow="md" width={200} position="right-start">
@@ -35,12 +34,12 @@ export function ChatList() {
 
                  style={{ height: "100%", width: "100%", boxSizing: "border-box", borderRight: `1px solid ${theme.colors.gray[3]}` }}>
                 <Box mt={6} p={1} bg="transparent" style={{borderRadius: 6}} key="new-chat">
-                    <NavLink c="blue" key={"new-chat"} to="/assist/chat" component={Link} label="New Chat+" p={0} m={0}/>
+                    <NavLink c="blue" key={"new-chat"} to="/chat" component={Link} label="New Chat+" p={0} m={0}/>
                 </Box>
                 {chats.list.map((chat: Chat) => (
-                    <Box mt={6} p={1} bg={ activeChatId === chat.id ? "gray.3" : "transparent"} style={{borderRadius: 6}} key={chat.id}>
+                    <Box mt={6} p={1} bg={ chats.activeId === chat.id ? "gray.3" : "transparent"} style={{borderRadius: 6}} key={chat.id}>
                         <NavLink
-                            to={`/assist/chat/${chat.id}`}
+                            to={`/chat/${chat.id}`}
                             key={chat.id}
                             component={Link}
                             label={chat.name}
@@ -50,11 +49,11 @@ export function ChatList() {
                             style={{
                                 borderRadius: 8,
                                 marginBottom: 4,
-                                background: activeChatId === String(chat.id) ? theme.colors.blue[0] : undefined,
+                                background: chats.activeId === String(chat.id) ? theme.colors.blue[0] : undefined,
                                 transition: 'background 0.2s',
                             }}
                             onMouseEnter={e => e.currentTarget.style.background = theme.colors.gray[1]}
-                            onMouseLeave={e => e.currentTarget.style.background = activeChatId === String(chat.id) ? theme.colors.blue[0] : ''}
+                            onMouseLeave={e => e.currentTarget.style.background = chats.activeId === String(chat.id) ? theme.colors.blue[0] : ''}
                         />
                     </Box>
                 ))}

@@ -1,4 +1,4 @@
-import type {Chat, ChatMessage} from "../../../api/mill";
+import type {Chat, ChatMessage} from "../../api/mill";
 
 const mockChatList: Array<Chat> = [
     {"id":"eecdf92d7ea54d98b0b7b13516e21073","name":"Sales Forecast","isFavorite":true,"created":"2025-07-11T13:07:45.265Z"},
