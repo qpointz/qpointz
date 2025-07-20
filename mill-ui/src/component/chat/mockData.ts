@@ -1,4 +1,5 @@
 import type {Chat, ChatMessage} from "../../api/mill";
+import {showNotification} from "@mantine/notifications";
 
 const mockChatList: Array<Chat> = [
     {"id":"eecdf92d7ea54d98b0b7b13516e21073","name":"Sales Forecast","isFavorite":true,"created":"2025-07-11T13:07:45.265Z"},
@@ -13,6 +14,12 @@ export function getChatList():Array<Chat> {
 
 export function deleteChat(chat: Chat) {
     console.log("Deleting chat:", chat.id);
+    showNotification({
+        title: 'Delete chat',
+        message: 'Delete chat.Not implemented yet',
+        color: 'red',
+        autoClose: false, // stays until dismissed
+    });
 }
 
 export function markChatFavorite(chat: Chat) {

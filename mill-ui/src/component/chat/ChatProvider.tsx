@@ -73,21 +73,22 @@ export const ChatProvider: React.FC<{ children: React.ReactNode, chatId?: string
         const req: SendChatMessageRequest = { message };
 
         setPostingMessage(true);
-        try {
-            await api.postChatMessages(chatId, req);
-        } catch (err:any) {
-            console.error(err);
-            showNotification({
-                title: 'Post failed',
-                message: err.toString(),
-                color: 'red',
-                icon: <TbRadioactive />,
-                autoClose: false, // stays until dismissed
-            });
 
-        } finally {
-            setPostingMessage(false);
-        }
+        await api
+            .postChatMessages(chatId, req)
+            .catch( (reason:any) => {
+                console.error(reason);
+                showNotification({
+                    title: 'Post failed',
+                    message: reason.toString(),
+                    color: 'red',
+                    icon: <TbRadioactive />,
+                    autoClose: false, // stays until dismissed
+                });
+            } )
+            .finally(()=> {
+                setPostingMessage(false);
+            })
     }, [chatId]);
 
     useEffect(() => {
@@ -115,14 +116,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode, chatId?: string
         const source = new EventSource(`/api/nl2sql/chats/${chatId}/stream`);
         source.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            console.log("new message received", data);
             setMessageList(prev => {
                 if (!data?.id || prev.some(m => m.id === data.id)) {
-                    console.log("duplilcate message received", data.id);
                     return prev;
                 }
                 else {
-                    console.log("append to received", data.id);
                     return [...prev, data]
                 }
             });

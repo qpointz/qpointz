@@ -18,8 +18,6 @@ export default function EnrichModelIntent(data:any = {}) {
     const enrichments = (enrichment || [])
         .sort((a: any, b: any) => a.type > b.type);
 
-    console.log(data.message);
-
     const enrichmentIcon = (e:any) => {
         const {type} = e;
         switch (type) {
@@ -131,7 +129,6 @@ export default function EnrichModelIntent(data:any = {}) {
 
     const renderEnrichment = (e:any) => {
         const tags = e.tags || [];
-        console.log(e);
         return (
                 <Card>
                     <Group>

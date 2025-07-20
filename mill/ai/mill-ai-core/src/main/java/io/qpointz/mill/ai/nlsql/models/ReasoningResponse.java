@@ -16,7 +16,7 @@ public record ReasoningResponse(
         @JsonProperty("requiredTables") List<IntentTable> requiredTables,
         @JsonProperty("schemaScope") SchemaScope schemaScope,
         @JsonProperty("schemaStrategy") SchemaStrategy schemaStrategy,
-        @JsonProperty(value = "language", required = true) String language,
+        @JsonProperty(value = "language", required = false, defaultValue = "en") String language,
         @JsonProperty(value = "hints", required = false) List<String> hints
 ) {
     public record IntentTable(

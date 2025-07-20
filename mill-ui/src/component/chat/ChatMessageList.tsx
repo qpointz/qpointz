@@ -1,4 +1,4 @@
-import {Box, ScrollArea, Stack, Text} from "@mantine/core";
+import {Box, Center, Loader, ScrollArea, Stack, Text} from "@mantine/core";
 import type {ChatMessage} from "../../api/mill";
 import GetDataIntent from "./intents/GetDataIntent";
 import ExplainIntent from "./intents/ExplainIntent";
@@ -15,8 +15,8 @@ export default function ChatMessageListRender() {
     const UserMessage = (message: ChatMessage) => {
         return (
             <Box key={message.id} maw="70%" bg="primary.1" p={10} mb={10}
-                 style={{borderRadius: 10, alignSelf: "flex-end"}}>
-                <Text>{message.message}</Text>
+                 style={{borderRadius: 10, alignSelf: "flex-end", minWidth:"400px"}} >
+                <Text ><pre>{message.message}</pre></Text>
             </Box>
         )
     }
@@ -56,8 +56,6 @@ export default function ChatMessageListRender() {
             setLastMessageId(lastId);
         }
 
-        console.log("update list", lastId);
-
         if (viewport.current) {
             viewport.current.scrollTop = viewport.current.scrollHeight
         }
@@ -71,7 +69,12 @@ export default function ChatMessageListRender() {
                     {messages.list.map(m => Message(m))}
                 </Stack>
             </ScrollArea>
-            {messages.postingMessage ? "Posting" : ""}
+            {messages.postingMessage && (
+                <Center mb={10} inline>
+                    <Loader size="sm" variant="dots" color="blue" mr={20} />
+                    <Box>Analyzing</Box>
+                </Center>)}
+
             <ChatPostMessage/>
         </Stack>
     );

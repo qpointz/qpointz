@@ -1,4 +1,4 @@
-import {ActionIcon, Center, Group, Loader, Stack, Textarea, Title} from "@mantine/core";
+import {ActionIcon, Center, Group, Loader, Stack, Textarea, Title, Box} from "@mantine/core";
 import {TbPlayerPlay} from "react-icons/tb";
 import { useState } from "react";
 import {useChatContext} from "./ChatProvider.tsx";
@@ -55,9 +55,9 @@ export default function BeginNewChat() {
             )}
 
             { creatingChat && (
-                <Center>
+                <Center mb={10}>
                     <Loader size="sm" variant="dots" color="blue" mr={20} />
-                    <Title order={3} mb={10}>Creating Chat...</Title>
+                    <Box>Creating Chat...</Box>
                 </Center>
             )}
         </Stack>
