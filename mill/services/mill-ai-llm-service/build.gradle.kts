@@ -1,8 +1,7 @@
 plugins {
     `java-library`
     alias(libs.plugins.spring.dependency.management)
-    mill
-    `mill-publish`
+    id("io.qpointz.plugins.mill")
 }
 
 mill {

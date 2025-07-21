@@ -1,7 +1,7 @@
 plugins {
     application
     alias(libs.plugins.spring.boot.plugin)
-    mill
+    id("io.qpointz.plugins.mill")
 }
 
 mill {

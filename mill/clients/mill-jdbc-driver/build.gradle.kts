@@ -4,8 +4,7 @@ plugins {
     `java-library`
     java
     `java-library-distribution`
-    mill
-    `mill-publish`
+    id("io.qpointz.plugins.mill")
 }
 
 distributions {

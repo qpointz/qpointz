@@ -3,8 +3,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 plugins {
     `java-library`
     alias(libs.plugins.spring.dependency.management)
-    mill
-    `mill-publish`
+    id("io.qpointz.plugins.mill")
 }
 
 mill {

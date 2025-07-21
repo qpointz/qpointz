@@ -9,11 +9,11 @@ repositories {
 gradlePlugin {
     plugins {
         create("mill-publish") {
-            id = "mill-publish"
+            id = "io.qpointz.plugins.mill-publish"
             implementationClass = "io.qpointz.mill.plugins.MillPublishPlugin"
         }
         create("mill") {
-            id = "mill"
+            id = "io.qpointz.plugins.mill"
             implementationClass = "io.qpointz.mill.plugins.MillPlugin"
         }
     }

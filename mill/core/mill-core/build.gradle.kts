@@ -2,8 +2,7 @@ plugins {
     `java-library`
     libs.plugins.spring.dependency.management
     alias(libs.plugins.google.protobuf.plugin)
-    mill
-    `mill-publish`
+    id("io.qpointz.plugins.mill")
 }
 
 mill {

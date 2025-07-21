@@ -1,6 +1,6 @@
 plugins {
     application
-    mill
+    id("io.qpointz.plugins.mill")
 }
 
 mill {
