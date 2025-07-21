@@ -17,19 +17,17 @@ open class MillExtension {
 
 class MillPlugin: Plugin<Project> {
 
-    fun getVersion(project: Project):String {
+    fun getVersion(project: Project): String {
+        return project.findProperty("projectVersion")?.toString()
+            ?: getVersionFromFile(project)
+    }
+
+    fun getVersionFromFile(project: Project):String {
         val path = Paths.get("${project.rootProject.projectDir}/../VERSION")
         if (!Files.exists(path)) {
             logger.trace("VERSION file missing {}:", path.toAbsolutePath().toString())
             return "0.1.0"
         }
-
-        /*
-         val versionFile = project.rootProject.file("version.txt")
-        val resolvedVersion = versionFile.takeIf { it.exists() }?.readText()?.trim()
-            ?: project.findProperty("projectVersion")?.toString()
-            ?: "0.0.1-SNAPSHOT"
-         */
 
         var version =  Files.readAllLines(path)[0]
         if (".*\\-\\w+\\.\\d+$".toRegex().matches(version)) {

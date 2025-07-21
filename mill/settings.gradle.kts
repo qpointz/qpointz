@@ -10,10 +10,8 @@
 
 rootProject.name = "mill"
 
-
-include (":core:mill-core")
-include (":core:mill-security-core")
-include (":core:mill-service-core")
+include (":mill-security-core")
+include (":mill-service-core")
 
 include (":mill-test-common")
 
@@ -34,6 +32,12 @@ include (":services:mill-grinder-service")
 include (":services:mill-ai-llm-service")
 include (":services:mill-ai-mcp-service")
 
+includeBuild("core") {
+   dependencySubstitution {
+        substitute(module("io.qpointz.mill:mill-core"))
+            .using(project(":mill-core"))
+   }
+}
 
 dependencyResolutionManagement {
     repositories {

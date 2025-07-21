@@ -10,6 +10,7 @@ mockito = "5.18.0"
 protobuf = "3.25.5"
 grpc = "1.68.1"
 apacheCommons = "3.14.0"
+apachePoi = "5.4.1"
 substrait = "0.60.0"
 bootGRPC = "3.1.0.RELEASE"
 jakartaServletApi = "6.1.0"
@@ -129,6 +130,12 @@ drivers-clickhouse = { module = "com.clickhouse:clickhouse-jdbc", version = "0.9
 
 apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.4.4" }
 apache-httpcore5 = { module = "org.apache.httpcomponents.core5:httpcore5", version = "5.3.4" }
+
+apache-poi-ooxml-lite = { module = "org.apache.poi:poi-ooxml-lite", version.ref = "apachePoi" }
+apache-poi-ooxml-full = { module = "org.apache.poi:poi-ooxml-full", version.ref = "apachePoi" }
+apache-poi-ooxml = { module = "org.apache.poi:poi-ooxml", version.ref = "apachePoi" }
+apache-poi = { module = "org.apache.poi:poi", version.ref = "apachePoi" }
+
 
 [bundles]
 logging = ["slf4j-api", "logback-core", "logback-classic", "fusesource-jansi"]

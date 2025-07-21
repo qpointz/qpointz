@@ -11,8 +11,8 @@ mill {
 
 
 dependencies {
-    api(project(":core:mill-service-core"))
-    api(project(":core:mill-core"))
+    api(project(":mill-service-core"))
+    //api(project(":core:mill-core"))
     implementation(libs.calcite.core)
     implementation(libs.calcite.csv)
     implementation(libs.calcite.file)

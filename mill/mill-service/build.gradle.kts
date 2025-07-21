@@ -53,7 +53,7 @@ fun copyDistro(tk:String, distributionName: String) {
 }
 
 dependencies {
-    implementation(project(":core:mill-security-core"))
+    implementation(project(":mill-security-core"))
     implementation(project(":services:mill-jet-grpc-service"))
     implementation(project(":services:mill-jet-http-service"))
     implementation(project(":services:mill-starter-services"))

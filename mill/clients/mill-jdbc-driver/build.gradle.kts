@@ -13,7 +13,7 @@ distributions {
 }
 
 dependencies {
-    implementation(project(":core:mill-core"))
+    implementation("io.qpointz.mill:mill-core")
     implementation(libs.protobuf.java.util)
     implementation(libs.okhttp)
     compileOnly(libs.lombok)

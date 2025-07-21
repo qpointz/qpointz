@@ -12,7 +12,7 @@ mill {
 }
 
 dependencies {
-    api(project(":core:mill-service-core"))
+    api(project(":mill-service-core"))
     implementation(libs.pebble.templates)
     implementation(libs.boot.starter)
     implementation(libs.jackson.core)
@@ -43,7 +43,7 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation(project(":core:mill-security-core"))
+                    implementation(project(":mill-security-core"))
                     implementation(project(":services:mill-starter-services"))
                     implementation(project(":mill-starter-backends"))
                     implementation(libs.boot.starter.test)

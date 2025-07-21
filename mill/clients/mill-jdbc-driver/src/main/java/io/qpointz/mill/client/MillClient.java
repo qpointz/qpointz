@@ -2,8 +2,6 @@ package io.qpointz.mill.client;
 
 import io.qpointz.mill.MillCodeException;
 import io.qpointz.mill.proto.*;
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.extern.java.Log;
 import lombok.val;
 

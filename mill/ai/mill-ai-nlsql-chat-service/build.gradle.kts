@@ -40,7 +40,7 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation(project(":core:mill-security-core"))
+                    implementation(project(":mill-security-core"))
                     implementation(project(":services:mill-starter-services"))
                     implementation(project(":mill-starter-backends"))
                     implementation(libs.boot.starter.test)
