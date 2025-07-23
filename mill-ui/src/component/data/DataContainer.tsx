@@ -1,5 +1,5 @@
 import {useReactTable, flexRender, createColumnHelper, getCoreRowModel} from "@tanstack/react-table";
-import {Table} from "@mantine/core";
+import {ScrollArea, Table} from "@mantine/core";
 
 export default function DataContainer(input: any) {
     const container = input.data || {} ;
@@ -22,12 +22,13 @@ export default function DataContainer(input: any) {
     })
 
     return (
+        <ScrollArea scrollbars="xy" type={"auto"} offsetScrollbars={true} scrollbarSize={15} mah={"80%"} >
             <Table>
                 <Table.Thead>
                     {table.getHeaderGroups().map(headerGroup => (
                         <Table.Tr key={headerGroup.id}>
                             {headerGroup.headers.map(header => (
-                                <Table.Th key={header.column.columnDef.id}>
+                                <Table.Th key={header.column.columnDef.id} style={{position: 'sticky', top: 0, background: 'white', zIndex: 1}}>
                                     {header.isPlaceholder
                                         ? null
                                         : flexRender(
@@ -50,5 +51,6 @@ export default function DataContainer(input: any) {
                         </Table.Tr>))}
                 </Table.Tbody>
             </Table>
+        </ScrollArea>
     )
 }
