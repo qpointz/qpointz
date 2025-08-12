@@ -33,6 +33,7 @@ dependencies {
     api(libs.jackson.datatype.jdk8)
     api(libs.grpc.netty.shaded)
     api(libs.grpc.protobuf)
+    api(libs.protobuf.java)
     api(libs.grpc.stub)
     api(libs.grpc.inprocess)
     api(libs.javax.annotation.api)

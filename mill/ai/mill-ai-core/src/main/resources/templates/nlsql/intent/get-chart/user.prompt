@@ -11,8 +11,6 @@ Your task is to:
 - The user may ask in any language
 
 
-
-
 Chart requirements:
 - Identify the appropriate chart type (e.g., bar, pie, line, treemap)
 - Populate the `chart.config` field with a configuration compatible with Apache ECharts

@@ -66,7 +66,7 @@ dependencies {
 
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9")
     implementation("org.springdoc:springdoc-openapi-starter-webflux-api:2.8.9")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.15.1")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.15.3")
 
     runtimeOnly(libs.boot.starter.security)
     runtimeOnly(libs.boot.starter.security.oauth2.client)

@@ -1,21 +1,24 @@
 [versions]
 lombok = "1.18.38"
-boot = "3.5.3"
+
 protobuf-plugin = "0.9.4"
+
 springCloud = "4.1.3"
-springAi = "1.0.0"
+springAi = "1.0.1"
+springBoot = "3.5.4"
+
 calcite = "1.40.0"
-junit = "5.13.1"
+junit = "5.13.4"
 mockito = "5.18.0"
-protobuf = "3.25.5"
-grpc = "1.68.1"
+protobuf = "4.31.1"
+grpc = "1.74.0"
 apacheCommons = "3.14.0"
 apachePoi = "5.4.1"
 substrait = "0.60.0"
 bootGRPC = "3.1.0.RELEASE"
 jakartaServletApi = "6.1.0"
-googleApiGrpc = "2.48.0"
-jackson = "2.19.1"
+googleApiGrpc = "2.60.0"
+jackson = "2.19.2"
 guava = "33.3.1-jre"
 okhttp = "4.12.0"
 sqlline = "1.12.0"
@@ -23,19 +26,19 @@ sqlline = "1.12.0"
 [libraries]
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 
-spring-security-test = { module = "org.springframework.security:spring-security-test", version = "6.3.4" }
+spring-security-test = { module = "org.springframework.security:spring-security-test", version = "6.5.2" }
 
-boot-devtools = { module = "org.springframework.boot:spring-boot-devtools", version.ref = "boot" }
-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "boot" }
-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "boot" }
-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security", version.ref = "boot" }
-boot-starter-security-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client", version.ref = "boot" }
-boot-starter-security-oauth2-resource-server = { module = "org.springframework.boot:spring-boot-starter-oauth2-resource-server", version.ref = "boot" }
-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "boot" }
-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux", version.ref = "boot" }
-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "boot" }
-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator", version.ref = "boot" }
-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "boot" }
+boot-devtools = { module = "org.springframework.boot:spring-boot-devtools", version.ref = "springBoot" }
+boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "springBoot" }
+boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
+boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security", version.ref = "springBoot" }
+boot-starter-security-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client", version.ref = "springBoot" }
+boot-starter-security-oauth2-resource-server = { module = "org.springframework.boot:spring-boot-starter-oauth2-resource-server", version.ref = "springBoot" }
+boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
+boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux", version.ref = "springBoot" }
+boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "springBoot" }
+boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator", version.ref = "springBoot" }
+boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "springBoot" }
 
 spring-cloud-function-grpc = { module = "org.springframework.cloud:spring-cloud-function-grpc", version.ref = "springCloud" }
 spring-cloud-function-context = { module = "org.springframework.cloud:spring-cloud-function-context", version.ref = "springCloud" }
@@ -90,7 +93,7 @@ h2-database = { module = "com.h2database:h2", version = "2.3.232" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
 
 apache-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "apacheCommons" }
-apache-commons-codec = { module = "commons-codec:commons-codec", version = "1.18.0" }
+apache-commons-codec = { module = "commons-codec:commons-codec", version = "1.19.0" }
 
 substrait-core = { module = "io.substrait:core", version.ref = "substrait" }
 substrait-isthmus = { module = "io.substrait:isthmus", version.ref = "substrait" }
@@ -120,15 +123,15 @@ pebble-templates = { module = "io.pebbletemplates:pebble", version = "3.2.4" }
 sqlline = { module = "sqlline:sqlline", version.ref = "sqlline" }
 
 drivers-postgressql = { module = "org.postgresql:postgresql", version = "42.7.7" }
-drivers-sqllite = { module = "org.xerial:sqlite-jdbc", version = "3.50.1.0" }
-drivers-mariadb = { module = "org.mariadb.jdbc:mariadb-java-client", version = "3.5.3" }
+drivers-sqllite = { module = "org.xerial:sqlite-jdbc", version = "3.50.3.0" }
+drivers-mariadb = { module = "org.mariadb.jdbc:mariadb-java-client", version = "3.5.5" }
 drivers-oracle = { module = "com.oracle:ojdbc14", version = "10.2.0.4.0" }
 drivers-trino = { module = "io.trino:trino-jdbc", version = "476" }
-drivers-duckdb = { module = "org.duckdb:duckdb_jdbc", version = "1.3.1.0" }
-drivers-snowflake = { module = "net.snowflake:snowflake-jdbc", version = "3.24.2" }
-drivers-clickhouse = { module = "com.clickhouse:clickhouse-jdbc", version = "0.9.0" }
+drivers-duckdb = { module = "org.duckdb:duckdb_jdbc", version = "1.3.2.0" }
+drivers-snowflake = { module = "net.snowflake:snowflake-jdbc", version = "3.25.1" }
+drivers-clickhouse = { module = "com.clickhouse:clickhouse-jdbc", version = "0.9.1" }
 
-apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.4.4" }
+apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.5" }
 apache-httpcore5 = { module = "org.apache.httpcomponents.core5:httpcore5", version = "5.3.4" }
 
 apache-poi-ooxml-lite = { module = "org.apache.poi:poi-ooxml-lite", version.ref = "apachePoi" }
@@ -153,5 +156,5 @@ jdbc-pack = [
 
 [plugins]
 spring-dependency-management = { id = "io.spring.dependency-management", version = "1.1.6" }
-spring-boot-plugin = { id = "org.springframework.boot", version.ref = "boot" }
+spring-boot-plugin = { id = "org.springframework.boot", version.ref = "springBoot" }
 google-protobuf-plugin = { id = "com.google.protobuf", version.ref = "protobuf-plugin" }
