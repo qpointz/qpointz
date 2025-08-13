@@ -33,10 +33,7 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation(project(":mill-jet-grpc-service"))
                     implementation(libs.protobuf.java.util)
-                    implementation(libs.bootGRPC.client)
-                    implementation(libs.bootGRPC.server)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.h2.database)

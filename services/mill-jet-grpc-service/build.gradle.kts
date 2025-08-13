@@ -10,7 +10,8 @@ mill {
 }
 
 dependencies {
-    api(project(":mill-service-core"))
+    implementation("io.qpointz.mill:mill-starter-backends")
+    implementation("io.qpointz.mill:mill-starter-service")
     api(libs.grpc.netty.shaded)
     implementation(libs.javax.annotation.api)
     api(libs.boot.starter.security)
@@ -35,6 +36,7 @@ testing {
 
                 dependencies {
                     implementation(project())
+                    implementation("io.qpointz.mill:mill-starter-backends")
                     implementation(libs.boot.starter.test)
                     implementation(libs.bootGRPC.client)
                     implementation(libs.grpc.testing)

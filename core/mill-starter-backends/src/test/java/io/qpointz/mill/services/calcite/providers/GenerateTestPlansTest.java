@@ -4,21 +4,17 @@ import com.google.protobuf.util.JsonFormat;
 import io.qpointz.mill.services.calcite.BaseTest;
 import io.qpointz.mill.services.calcite.CalciteContextFactory;
 import io.qpointz.mill.services.dispatchers.SubstraitDispatcher;
-import io.substrait.extension.SimpleExtension;
 import lombok.val;
 import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.dialect.CalciteSqlDialect;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class GenerateTestPlansTest extends BaseTest {
 

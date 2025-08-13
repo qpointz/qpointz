@@ -11,6 +11,7 @@
 rootProject.name = "services"
 
 include (":mill-jet-http-service")
+include (":mill-jet-grpc-service")
 include (":mill-starter-service")
 include (":mill-grinder-service")
 

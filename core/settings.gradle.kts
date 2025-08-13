@@ -16,7 +16,6 @@ include (":mill-service-core")
 include (":mill-starter-backends")
 include (":mill-starter-service")
 include (":mill-test-common")
-include (":mill-jet-grpc-service")
 
 dependencyResolutionManagement {
 

@@ -24,11 +24,6 @@ import static org.mockito.Mockito.when;
 })
 public class MillServiceBaseTestConfiguration {
 
-    @Bean
-    public SimpleExtension.ExtensionCollection testExtensionsCollection() throws IOException {
-        return SimpleExtension.loadDefaults();
-    }
-
     @GrpcClient("test")
     public DataConnectServiceGrpc.DataConnectServiceBlockingStub blockingStub;
 

@@ -4,6 +4,7 @@ import io.qpointz.mill.proto.DataConnectServiceGrpc;
 import io.qpointz.mill.proto.ParseSqlRequest;
 import io.qpointz.mill.proto.QueryRequest;
 import io.qpointz.mill.proto.SQLStatement;
+import io.qpointz.mill.services.configuration.BackendConfiguration;
 import io.qpointz.mill.services.configuration.DefaultServiceConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
