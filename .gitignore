@@ -1,9 +1,17 @@
-.vscode
-.kreya
-.quarkus
-.metals
-*.kbx
-*.sh
-!sonar-project.sh
-VERSION
-.gradle_home
+# Ignore Gradle project-specific cache directory
+.gradle
+.gradle/
+.gradle-home/
+.kreya/
+.conda
+# Ignore Gradle build output directory
+build
+bin 
+.idea
+.idea/
+*.iml
+.data
+.tmp/
+out/
+target/
+.secrets

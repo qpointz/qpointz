@@ -17,12 +17,12 @@ variables:
   GIT_DEPTH: "1"             
   GIT_CLEAN_FLAGS: none      
   GIT_SUBMODULE_STRATEGY: none  
-  GIT_LFS_SKIP_SMUDGE: "1"
+  GIT_LFS_SKIP_SMUDGE: "1"    
      
 test:
   stage: test
   extends: .gradle-job
   script:
     - echo $HOME
-    - cd ${CI_PROJECT_DIR}/flow
+    - cd ${CI_PROJECT_DIR}/core
     - ./gradlew --no-daemon --console plain test check
