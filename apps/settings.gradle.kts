@@ -12,24 +12,8 @@ rootProject.name = "apps"
 
 include ("mill-service")
 
-includeBuild("../services") {
-    dependencySubstitution {
-        substitute(module("io.qpointz.mill:mill-grinder-service"))
-            .using(project(":mill-grinder-service"))
-        substitute(module("io.qpointz.mill:mill-jet-http-service"))
-            .using(project(":mill-jet-http-service"))
-        substitute(module("io.qpointz.mill:mill-jet-grpc-service"))
-            .using(project(":mill-jet-grpc-service"))
-    }
-}
-
-includeBuild("../ai") {
-    dependencySubstitution {
-        substitute(module("io.qpointz.mill:mill-ai-nlsql-chat-service"))
-            .using(project(":mill-ai-nlsql-chat-service"))
-
-    }
-}
+includeBuild("../services")
+includeBuild("../ai")
 
 dependencyResolutionManagement {
     repositories {

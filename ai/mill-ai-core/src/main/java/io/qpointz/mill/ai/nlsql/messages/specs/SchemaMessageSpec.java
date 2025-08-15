@@ -74,7 +74,6 @@ public class SchemaMessageSpec extends MessageSpec  {
         return this.requiredTables == null || this.requiredTables.isEmpty();
     }
 
-
     private List<SchemaMessageModel.Schema> getSchemas() {
         final Set<String> requieredSchemas = this.requiredTables.stream()
                 .map(z-> z.schema().toUpperCase())

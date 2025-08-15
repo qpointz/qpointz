@@ -12,21 +12,9 @@ rootProject.name = "services"
 
 include (":mill-jet-http-service")
 include (":mill-jet-grpc-service")
-include (":mill-starter-service")
 include (":mill-grinder-service")
 
-includeBuild("../core") {
-    dependencySubstitution {
-        substitute(module("io.qpointz.mill:mill-starter-backends"))
-            .using(project(":mill-starter-backends"))
-        substitute(module("io.qpointz.mill:mill-service-core"))
-            .using(project(":mill-service-core"))
-        substitute(module("io.qpointz.mill:mill-security-core"))
-            .using(project(":mill-security-core"))
-        substitute(module("io.qpointz.mill:mill-starter-service"))
-            .using(project(":mill-starter-service"))
-    }
-}
+includeBuild("../core")
 
 dependencyResolutionManagement {
 

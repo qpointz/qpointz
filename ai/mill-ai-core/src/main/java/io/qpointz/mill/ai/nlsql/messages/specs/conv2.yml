@@ -1,0 +1,108 @@
+sql-conventions:
+  dialect: "Apache Calcite"
+
+  identifiers:
+    case: UPPER
+    quote: { start: "`", end: "`" }
+    alias_quote: { start: "`", end: "`" }
+    fully_qualified_names: true
+
+  literals:
+    strings:
+      quote: "'"
+      concat: "||"
+      escape: STANDARD
+      note: "quoting relevant to target type"
+    booleans: ["TRUE","FALSE"]
+    null: "NULL"
+
+    # ⬇️ здесь теперь только ЛИТЕРАЛЫ даты/времени (не функции)
+    dates_times:
+      date_literal:
+        syntax: "DATE 'YYYY-MM-DD'"         # пример/шаблон
+        quote: "'"                          # чем окружён
+        pattern: "YYYY-MM-DD"               # формат
+      time_literal:
+        syntax: "TIME 'HH:MI:SS'"
+        quote: "'"
+        pattern: "HH:MI:SS"
+      timestamp_literal:
+        syntax: "TIMESTAMP 'YYYY-MM-DD HH:MI:SS'"
+        quote: "'"
+        pattern: "YYYY-MM-DD HH:MI:SS"
+      interval_literal:
+        style: ANSI                         # ANSI | KEYWORD | FUNCTION
+        examples:
+          - "INTERVAL '1' DAY"
+          - "INTERVAL '2' HOUR"
+      notes:
+        - "Литералы времени/даты всегда в одинарных кавычках."
+        - "Интервалы — согласно стилю диалекта."
+
+  joins:
+    style: "ALWAYS USE EXPLICIT JOIN"
+    cross_join_keyword: "CROSS JOIN"
+
+  # ⬇️ predicates без equality / null_safe_equality
+  predicates:
+    null_checks: ["IS NULL","IS NOT NULL"]
+    like: "LIKE"
+    ilike: null
+    regex: "REGEXP"
+    between: "BETWEEN"
+    in: "IN"
+
+  operators:
+    equality: ["="]
+    null-safe: ["IS NOT DISTINCT FROM"]     # MySQL: ["<=>"]
+    inequality: ["<>","!="]
+    comparison: [">", ">=", "<", "<="]
+    set: ["IN", "NOT IN"]
+    like: ["LIKE", "ILIKE"]
+    regex:
+      - symbol: "REGEXP"
+        description: "Regex match operator"
+    null: ["IS NULL", "IS NOT NULL"]
+
+  ordering_paging:
+    order_by_nulls: "NULLS LAST"
+    limit: "LIMIT {n}"
+    offset: "OFFSET {m}"
+    top: null
+
+  arithmetic_operators: ["+","-","*","/","%"]
+
+  logical_operators:
+    precedence: ["NOT","AND","OR"]
+    tokens: ["AND","OR","NOT"]
+
+  casting:
+    cast: "CAST({expr} AS {type})"
+    safe_cast: null
+
+  functions:
+    dates_times:
+      - name: "CURRENT_DATE"
+        return: { type: DATE, nullable: false }
+        signatures:
+          - dialect: "ANSI"
+            syntax: "CURRENT_DATE"
+            args: []
+      - name: "CURRENT_TIMESTAMP"
+        return: { type: TIMESTAMP, nullable: false }
+        signatures:
+          - dialect: "ANSI"
+            syntax: "CURRENT_TIMESTAMP"
+            args: []
+      # при желании добавить NOW() / GETDATE() для других диалектов
+      - name: "NOW"
+        return: { type: TIMESTAMP, nullable: false }
+        signatures:
+          - dialect: "MySQL"
+            syntax: "NOW()"
+            args: []
+          - dialect: "PostgreSQL"
+            syntax: "NOW()"
+            args: []
+
+    # ... остальной раздел functions (strings/regex/numerics/aggregates/conditionals) без изменений

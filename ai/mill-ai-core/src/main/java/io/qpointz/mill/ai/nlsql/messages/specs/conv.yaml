@@ -1,0 +1,235 @@
+sql-conventions:
+  dialect: "Apache Calcite"   # Название диалекта (пример)
+
+  identifiers:
+    case: UPPER               # UPPER | LOWER | AS_IS
+    quote: { start: "`", end: "`" }
+    alias_quote: { start: "`", end: "`" }
+    fully_qualified_names: true
+
+  literals:
+    strings:
+      quote: "'"
+      concat: "||"            # "||" | "CONCAT" | и т.п.
+      escape: STANDARD        # STANDARD | BACKSLASH | DOUBLED
+      note: "quoting relevant to target type"
+    booleans: ["TRUE","FALSE"]
+    null: "NULL"
+    dates_times:
+      current_date: "CURRENT_DATE"
+      current_timestamp: "CURRENT_TIMESTAMP"
+      interval_syntax: ANSI   # ANSI | KEYWORD | FUNCTION
+
+  joins:
+    style: "ALWAYS USE EXPLICIT JOIN"
+    cross_join_keyword: "CROSS JOIN"
+
+  predicates:
+    null_checks: ["IS NULL","IS NOT NULL"]
+    equality: "="
+    null_safe_equality: "IS NOT DISTINCT FROM"  # для MySQL будет "<=>"
+    like: "LIKE"
+    ilike: null                                  # напр. "ILIKE" (PostgreSQL)
+    regex: "REGEXP"                              # если операторов нет — оставьте null
+    between: "BETWEEN"
+    in: "IN"
+
+  operators:
+    equality: ["="]
+    null-safe: ["IS NOT DISTINCT FROM"]         # MySQL: ["<=>"]
+    inequality: ["<>","!="]
+    comparison: [">", ">=", "<", "<="]
+    set: ["IN", "NOT IN"]
+    like: ["LIKE", "ILIKE"]                     # если ILIKE нет — уберите
+    regex:
+      - symbol: "REGEXP"
+        description: "Regex match operator (case sensitivity depends on collation/engine)"
+      # для PostgreSQL, напр.:
+      # - { symbol: "~",  description: "Regex match (case-sensitive)" }
+      # - { symbol: "~*", description: "Regex match (case-insensitive)" }
+      # - { symbol: "!~", description: "Regex does not match (case-sensitive)" }
+      # - { symbol: "!~*",description: "Regex does not match (case-insensitive)" }
+    null: ["IS NULL", "IS NOT NULL"]
+
+  ordering_paging:
+    order_by_nulls: "NULLS LAST"                # "NULLS FIRST" | "NULLS LAST" | "unsupported"
+    limit: "LIMIT {n}"                          # паттерн подстановки
+    offset: "OFFSET {m}"
+    top: null                                   # для MSSQL: "TOP {n}"
+
+  arithmetic_operators: ["+","-","*","/","%"]
+
+  logical_operators:
+    precedence: ["NOT","AND","OR"]
+    tokens: ["AND","OR","NOT"]
+
+  casting:
+    cast: "CAST({expr} AS {type})"
+    safe_cast: null                              # если есть SAFE_CAST — укажите
+
+  # ===== ФУНКЦИИ (структурно, с аргументами и сигнатурами) =====
+  functions:
+
+    aggregates:
+      - name: "COUNT"
+        return: { type: INTEGER, nullable: false }
+        signatures:
+          - dialect: "ANSI"
+            syntax: "COUNT(expr)"
+            args:
+              - { name: "expr", type: COLUMN_REF, required: false }
+        notes: ["COUNT(*) is allowed"]
+
+      - name: "SUM"
+        return: { type: DECIMAL, nullable: true }
+        signatures:
+          - dialect: "ANSI"
+            syntax: "SUM(expr)"
+            args:
+              - { name: "expr", type: DECIMAL, required: true }
+
+    strings:
+      - name: "SUBSTRING"
+        synonyms: ["SUBSTR"]
+        return: { type: STRING, nullable: true }
+        signatures:
+          - dialect: "PostgreSQL"
+            style: "keyword"
+            syntax: "SUBSTRING(text FROM start FOR length)"
+            args:
+              - { name: "text",   type: STRING,  required: true }
+              - { name: "start",  type: INTEGER, required: true, min: 1 }
+              - { name: "length", type: INTEGER, required: false, min: 0 }
+          - dialect: "MySQL"
+            style: "positional"
+            syntax: "SUBSTRING(text, start, length)"
+            args:
+              - { name: "text",   type: STRING,  required: true }
+              - { name: "start",  type: INTEGER, required: true, min: 1 }
+              - { name: "length", type: INTEGER, required: false, min: 0 }
+
+      - name: "TRIM"
+        return: { type: STRING, nullable: true }
+        signatures:
+          - dialect: "ANSI"
+            syntax: "TRIM([LEADING|TRAILING|BOTH] [chars] FROM text)"
+            args:
+              - { name: "spec",  type: ENUM,    required: false, enum: ["LEADING","TRAILING","BOTH"] }
+              - { name: "chars", type: STRING,  required: false }
+              - { name: "text",  type: STRING,  required: true }
+
+      - name: "CONCAT"
+        return: { type: STRING, nullable: true }
+        signatures:
+          - dialect: "ANSI"
+            syntax: "CONCAT(a, b, ...)"
+            args:
+              - { name: "a",  type: STRING, required: true }
+              - { name: "b",  type: STRING, required: true, variadic: true }
+
+    regex:
+      - name: "REGEXP_LIKE"
+        return: { type: BOOLEAN, nullable: false }
+        signatures:
+          - dialect: "MySQL"
+            syntax: "REGEXP_LIKE(text, pattern[, flags])"
+            args:
+              - { name: "text",    type: STRING,  required: true }
+              - { name: "pattern", type: PATTERN, required: true }
+              - { name: "flags",   type: ENUM,    required: false, multi: true, enum: ["i","c","m","n","u","s","x"] }
+          - dialect: "PostgreSQL"
+            kind: "operator"
+            syntax: "text ~ pattern"
+            args:
+              - { name: "text",    type: STRING,  required: true }
+              - { name: "pattern", type: PATTERN, required: true }
+        notes:
+          - "Case sensitivity зависит от флагов/коллации."
+          - "PATTERN должен соответствовать движку конкретного диалекта."
+
+      - name: "REGEXP_REPLACE"
+        return: { type: STRING, nullable: true }
+        signatures:
+          - dialect: "PostgreSQL"
+            syntax: "REGEXP_REPLACE(text, pattern, replacement)"
+            args:
+              - { name: "text",        type: STRING,  required: true }
+              - { name: "pattern",     type: PATTERN, required: true }
+              - { name: "replacement", type: STRING,  required: true }
+          - dialect: "MySQL"
+            syntax: "REGEXP_REPLACE(text, pattern, replacement[, position[, occurrence[, match_type]]])"
+            args:
+              - { name: "text",        type: STRING,  required: true }
+              - { name: "pattern",     type: PATTERN, required: true }
+              - { name: "replacement", type: STRING,  required: true }
+              - { name: "position",    type: INTEGER, required: false, min: 1, default: 1 }
+              - { name: "occurrence",  type: INTEGER, required: false, min: 0, default: 0 }
+              - { name: "match_type",  type: STRING,  required: false }
+
+    dates_times:
+      - name: "DATE_TRUNC"
+        return: { type: TIMESTAMP, nullable: false }
+        signatures:
+          - dialect: "PostgreSQL"
+            syntax: "DATE_TRUNC(unit, ts)"
+            args:
+              - { name: "unit", type: ENUM, required: true,
+                  enum: ["millennium","century","decade","year","quarter","month","week","day","hour","minute","second"] }
+              - { name: "ts",   type: TIMESTAMP, required: true }
+          - dialect: "Calcite"
+            syntax: "FLOOR(ts TO unit)"
+            args:
+              - { name: "ts",   type: TIMESTAMP, required: true }
+              - { name: "unit", type: ENUM, required: true, enum: ["YEAR","MONTH","DAY","HOUR","MINUTE","SECOND"] }
+
+      - name: "EXTRACT"
+        return: { type: INTEGER, nullable: true }
+        signatures:
+          - dialect: "ANSI"
+            syntax: "EXTRACT(field FROM ts)"
+            args:
+              - { name: "field", type: ENUM, required: true,
+                  enum: ["YEAR","MONTH","DAY","HOUR","MINUTE","SECOND","DOW","DOY","WEEK","QUARTER"] }
+              - { name: "ts",    type: TIMESTAMP, required: true }
+
+    numerics:
+      - name: "ROUND"
+        return: { type: DECIMAL, nullable: true }
+        signatures:
+          - dialect: "ANSI"
+            syntax: "ROUND(num[, scale])"
+            args:
+              - { name: "num",   type: DECIMAL, required: true }
+              - { name: "scale", type: INTEGER, required: false }
+
+      - name: "ABS"
+        return: { type: DECIMAL, nullable: true }
+        signatures:
+          - dialect: "ANSI"
+            syntax: "ABS(num)"
+            args:
+              - { name: "num", type: DECIMAL, required: true }
+
+    conditionals:
+      - name: "COALESCE"
+        return: { type: STRING, nullable: true }
+        signatures:
+          - dialect: "ANSI"
+            syntax: "COALESCE(a, b, ...)"
+            args:
+              - { name: "a", type: STRING, required: true, variadic: true }
+
+      - name: "NULLIF"
+        return: { type: STRING, nullable: true }
+        signatures:
+          - dialect: "ANSI"
+            syntax: "NULLIF(a, b)"
+            args:
+              - { name: "a", type: STRING, required: true }
+              - { name: "b", type: STRING, required: true }
+
+  notes:
+    - "Identifiers & aliases must respect chosen quoting and case."
+    - "String concatenation must follow the dialect rule."
+    - "Use IS NULL / IS NOT NULL for null checks."
+    - "Apply 'quoting relevant to target type'."

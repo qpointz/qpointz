@@ -18,6 +18,10 @@ import static io.qpointz.mill.ai.chat.messages.MessageTemplates.staticTemplate;
 
 public class MessageSpecs {
 
+    private MessageSpecs() {
+        // Prevent instantiation
+    }
+
     private static MessageSpec systemStatic(String location) {
         return new TemplateMessageSpec(MessageType.SYSTEM,
                 staticTemplate(location, MessageSpecs.class));

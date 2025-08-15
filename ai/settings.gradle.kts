@@ -13,16 +13,7 @@ rootProject.name = "ai"
 include ("mill-ai-core")
 include ("mill-ai-nlsql-chat-service")
 
-includeBuild("../core") {
-    dependencySubstitution {
-        substitute(module("io.qpointz.mill:mill-service-core"))
-            .using(project(":mill-service-core"))
-        substitute(module("io.qpointz.mill:mill-starter-backends"))
-            .using(project(":mill-starter-backends"))
-        substitute(module("io.qpointz.mill:mill-starter-service"))
-            .using(project(":mill-starter-service"))
-    }
-}
+includeBuild("../core")
 
 dependencyResolutionManagement {
     repositories {
