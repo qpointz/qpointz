@@ -1,6 +1,7 @@
 package io.qpointz.mill.ai.nlsql;
 
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
+import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.services.metadata.MetadataProvider;
 import io.qpointz.mill.utils.JsonUtils;
@@ -25,8 +26,9 @@ public class GetDataIIntentTestIT extends BaseIntentTestIT {
 
     public GetDataIIntentTestIT(@Autowired ChatModel chatModel,
                                 @Autowired MetadataProvider metadataProvider,
+                                @Autowired SqlDialect sqlDialect,
                                 @Autowired DataOperationDispatcher dispatcher) {
-        super(chatModel, metadataProvider, dispatcher);
+        super(chatModel, metadataProvider, sqlDialect, dispatcher);
     }
 
 
@@ -63,7 +65,7 @@ public class GetDataIIntentTestIT extends BaseIntentTestIT {
         String query = "how many clients";
         val reason = new ReasoningResponse(query, "get-data", null, List.of(
                 new ReasoningResponse.IntentTable("MONETA", "CLIENTS", false)),
-            SchemaScope.PARTIAL, SchemaStrategy.PARTIAL_RUNTIME_INJECTION, "en", List.of());
+            SchemaScope.PARTIAL, SchemaStrategy.PARTIAL_RUNTIME_INJECTION, "en", List.of(), SqlDialect.SqlFeatures.DEFAULT);
         val gd = this.intentSpecs()
                 .getDataIntent().getCall(reason);
 

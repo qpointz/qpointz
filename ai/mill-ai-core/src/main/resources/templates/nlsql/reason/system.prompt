@@ -28,6 +28,18 @@ Use the following to guide downstream schema usage:
   - `"partial_runtime_injection"`: Inject selected tables at runtime
   - `"none"`: Do not include schema
 
+### SQL Features Handling
+Determine which SQL features are required for this request.
+
+- `identifiers`: Whether identifier quoting/casing rules are needed
+- `literals`: Whether string/date/boolean/null literal rules are needed
+- `joins`: Whether JOIN syntax is needed
+- `ordering`: Whether ORDER BY / NULLS handling is needed
+- `grouping`: GROUP BY / HAVING (and related aggregate grouping behavior) required
+- `paging`: Whether LIMIT/OFFSET/TOP rules are needed
+- `operators`: List which operator categories are required (equality, inequality, comparison, arithmetic_operators, null_checks, set, null-safe, logical, like, between, casting, regex)
+- `functions`: List which function groups are required (strings, regex, numerics, aggregates, dates_times, conditionals)
+
 ### Language Detection
 - Detect the user's language
 - Return ISO 639-1 code in `language` (e.g., `"en"`, `"de"`, `"fr"`)
@@ -52,6 +64,16 @@ Always return a **strictly valid JSON object** with the following fields:
   "schemaStrategy": "full_in_system_prompt | partial_runtime_injection | none",
   "language": "ISO 639-1 code",
   "hints": [ "string", "string", "string" ] mandatory if intent is unsupported,
+  "sqlFeatures": {
+    "identifiers": true | false,
+    "literals": true | false,
+    "joins": true | false,
+    "ordering": true | false,
+    "grouping": true | false,
+    "paging": true | false,
+    "operators": [ "equality", "comparison", "like", "between", "regex" ],
+    "functions": [ "strings", "regex", "numerics", "aggregates", "dates_times", "conditionals" ]
+  }
 }
 ```
 

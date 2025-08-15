@@ -6,6 +6,7 @@ import io.qpointz.mill.ai.chat.messages.MessageTemplates;
 import io.qpointz.mill.ai.chat.messages.specs.TemplateMessageSpec;
 import io.qpointz.mill.ai.nlsql.messages.specs.SchemaMessageSpec;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
+import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.services.metadata.MetadataProvider;
 import lombok.val;
 import org.springframework.ai.chat.messages.MessageType;
@@ -89,9 +90,10 @@ public class MessageSpecs {
         return userStatic("templates/nlsql/intent/get-data/user.prompt");
     }
 
-    public static MessageList getData(ReasoningResponse reason, MetadataProvider provider) {
+    public static MessageList getData(ReasoningResponse reason, MetadataProvider provider, SqlDialect dialect) {
         return new MessageList(List.of(
             intentSystem(),
+            dialect.getConventionsSpec(reason.sqlFeatures() != null ? reason.sqlFeatures() : SqlDialect.SqlFeatures.DEFAULT),
             getDataUser(),
             intentSchema(reason, provider),
             outputRules(),
@@ -103,9 +105,10 @@ public class MessageSpecs {
         return userStatic("templates/nlsql/intent/get-chart/user.prompt");
     }
 
-    public static MessageList getChart(ReasoningResponse reason, MetadataProvider provider) {
+    public static MessageList getChart(ReasoningResponse reason, MetadataProvider provider, SqlDialect dialect) {
         return new MessageList(List.of(
                 intentSystem(),
+                dialect.getConventionsSpec(reason.sqlFeatures() != null ? reason.sqlFeatures() : SqlDialect.SqlFeatures.DEFAULT),
                 getChartUser(),
                 intentSchema(reason, provider),
                 outputRules(),
@@ -125,9 +128,10 @@ public class MessageSpecs {
                 .build();
     }
 
-    public static MessageList explain(ReasoningResponse reason, MetadataProvider provider) {
+    public static MessageList explain(ReasoningResponse reason, MetadataProvider provider, SqlDialect dialect) {
         return new MessageList(List.of(
                 intentSystem(),
+                dialect.getConventionsSpec(reason.sqlFeatures() != null ? reason.sqlFeatures() : SqlDialect.SqlFeatures.DEFAULT),
                 getExplainUser(),
                 fullSchema(provider),
                 outputRules(),
@@ -139,9 +143,10 @@ public class MessageSpecs {
         return userStatic("templates/nlsql/intent/enrich-model/user.prompt");
     }
 
-    public static MessageList enrichModel(ReasoningResponse reason, MetadataProvider provider) {
+    public static MessageList enrichModel(ReasoningResponse reason, MetadataProvider provider, SqlDialect dialect) {
         return new MessageList(List.of(
                 intentSystem(),
+                dialect.getConventionsSpec(reason.sqlFeatures() != null ? reason.sqlFeatures() : SqlDialect.SqlFeatures.DEFAULT),
                 getEnrichModelUser(),
                 fullSchema(provider),
                 outputRules(),
@@ -153,9 +158,10 @@ public class MessageSpecs {
         return userStatic("templates/nlsql/intent/refine/user.prompt");
     }
 
-    public static MessageList refineQuery(ReasoningResponse reason, MetadataProvider provider) {
+    public static MessageList refineQuery(ReasoningResponse reason, MetadataProvider provider, SqlDialect dialect) {
         return new MessageList(List.of(
                 intentSystem(),
+                dialect.getConventionsSpec(reason.sqlFeatures() != null ? reason.sqlFeatures() : SqlDialect.SqlFeatures.DEFAULT),
                 getRefineUser(),
                 fullSchema(provider),
                 outputRules(),

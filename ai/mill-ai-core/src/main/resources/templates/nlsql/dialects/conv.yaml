@@ -24,20 +24,22 @@ sql-conventions:
     style: "ALWAYS USE EXPLICIT JOIN"
     cross_join_keyword: "CROSS JOIN"
 
-  predicates:
-    null_checks: ["IS NULL","IS NOT NULL"]
-    equality: "="
-    null_safe_equality: "IS NOT DISTINCT FROM"  # для MySQL будет "<=>"
-    like: "LIKE"
-    ilike: null                                  # напр. "ILIKE" (PostgreSQL)
-    regex: "REGEXP"                              # если операторов нет — оставьте null
-    between: "BETWEEN"
-    in: "IN"
+  operators:
+    predicates:
+      between: "BETWEEN"
+      null_checks: ["IS NULL","IS NOT NULL"]
+      in: ["IN", "IS NOT NULL"]
+      like: "LIKE"
+      ilike: null # напр. "ILIKE" (PostgreSQL)
+      equality: ["="]
+      inequality: ["<>","!="]
+      null_safe_equality: "IS NOT DISTINCT FROM"  # для MySQL будет "<=>"
+
 
   operators:
-    equality: ["="]
+
     null-safe: ["IS NOT DISTINCT FROM"]         # MySQL: ["<=>"]
-    inequality: ["<>","!="]
+
     comparison: [">", ">=", "<", "<="]
     set: ["IN", "NOT IN"]
     like: ["LIKE", "ILIKE"]                     # если ILIKE нет — уберите

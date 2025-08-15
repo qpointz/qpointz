@@ -2,6 +2,7 @@ package io.qpointz.mill.ai.nlsql;
 
 import io.qpointz.mill.ai.chat.messages.MessageSelectors;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
+import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.services.metadata.MetadataProvider;
 import io.qpointz.mill.utils.JsonUtils;
@@ -28,8 +29,9 @@ public class EnrichModelIntentTestIT extends BaseIntentTestIT {
 
     public EnrichModelIntentTestIT(@Autowired ChatModel chatModel,
                                    @Autowired MetadataProvider metadataProvider,
+                                   @Autowired SqlDialect sqlDialect,
                                    @Autowired DataOperationDispatcher dispatcher) {
-        super(chatModel, metadataProvider, dispatcher);
+        super(chatModel, metadataProvider, sqlDialect, dispatcher);
     }
 
     Map<String, Object> enrichModel(String query) {
@@ -84,6 +86,7 @@ public class EnrichModelIntentTestIT extends BaseIntentTestIT {
     void noWay() {
         val app = new ChatApplication(this.getCallSpecBuilders(),
                 this.getMetadataProvider(),
+                this.getSqlDialect(),
                 this.getDispatcher(),
                 MessageSelectors.SIMPLE);
 

@@ -1,0 +1,41 @@
+sql-conventions:
+  dialect: "Apache Calcite"   # Название диалекта (пример)
+  name: calcite #short sluggified name
+
+  identifiers:
+    case: UPPER  # UPPER | LOWER | AS_IS
+    quote: { start: "`", end: "`" }
+    alias_quote: { start: "`", end: "`" }
+    fully_qualified_names: true
+
+  literals:
+    strings:
+      quote: "'"
+      escape: STANDARD # STANDARD | BACKSLASH | DOUBLED
+    booleans: [ "TRUE","FALSE" ]
+    null: "NULL"
+    date:
+      syntax: "DATE 'YYYY-MM-DD'"         # пример/шаблон
+      quote: "'"                          # чем окружён
+      format: "YYYY-MM-DD"               # формат
+    time:
+      syntax: "TIME 'HH:MI:SS'"
+      quote: "'"
+      format: "HH:MI:SS"
+    timestamp:
+      syntax: "TIMESTAMP 'YYYY-MM-DD HH:MI:SS'"
+      quote: "'"
+      format: "YYYY-MM-DD HH:MI:SS"
+    interval:
+      style: ANSI                         # ANSI | KEYWORD | FUNCTION
+      examples:
+        - "INTERVAL '1' DAY"
+        - "INTERVAL '2' HOUR"
+
+  predicates:
+    null_checks: [ "IS NULL","IS NOT NULL" ]
+    like: "LIKE"
+    ilike: null
+    regex: "REGEXP"
+    between: "BETWEEN"
+    in: ["IN", "NOT IN"]

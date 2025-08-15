@@ -21,6 +21,7 @@ public abstract class PebblePromptTemplate implements PromptTemplate {
     @Getter(value = AccessLevel.PROTECTED, lazy = true)
     private final static PebbleEngine defaultEngine = new PebbleEngine.Builder()
             .cacheActive(true)
+            .autoEscaping(false)
             .build();
 
     protected abstract PebbleTemplate getTemplate();

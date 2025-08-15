@@ -1,6 +1,7 @@
 package io.qpointz.mill.ai.nlsql;
 
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
+import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.services.metadata.MetadataProvider;
 import io.qpointz.mill.utils.JsonUtils;
@@ -27,8 +28,9 @@ public class ExplainIntentTestIT extends BaseIntentTestIT {
 
     public ExplainIntentTestIT(@Autowired ChatModel chatModel,
                                @Autowired MetadataProvider metadataProvider,
+                               @Autowired SqlDialect sqlDialect,
                                @Autowired DataOperationDispatcher dispatcher) {
-        super(chatModel, metadataProvider, dispatcher);
+        super(chatModel, metadataProvider, sqlDialect, dispatcher);
     }
 
     @ParameterizedTest

@@ -1,0 +1,144 @@
+# Rules
+- Follow the dialect’s identifier quoting/casing and literal formats when the corresponding sections are present.
+- Prefer explicit JOIN with ON; avoid NATURAL/USING unless explicitly allowed by the dialect.
+- Use the provided operators and functions only; do not invent unsupported syntax.
+- Return only SQL unless explicitly asked otherwise.
+- Generate SQL strictly following the dialect rules below.
+- Do not guess unsupported syntax.
+
+# Dialect
+- key: {{ d.key }}
+
+- name: {{ d.name }}
+
+{# ---------------- Identifiers ---------------- #}
+{% if sf.identifiers %}
+
+# Identifiers
+- Case: {{ d.identifiers.case }}
+
+- Quote for identifiers: {{ d.identifiers.quote.start }}...{{ d.identifiers.quote.end }}
+
+- Quote for aliases: {{ d.identifiers["alias-quote"].start }}...{{ d.identifiers["alias-quote"].end }}
+
+- Use fully qualified names: {{ d.identifiers["use-fully-qualified-names"] }}
+{% endif %}
+
+
+{# ---------------- Literals ---------------- #}
+{% if sf.literals %}
+
+# Literals
+- Strings:
+  - Quote: {{ d.literals.strings.quote }}
+
+  - Concatenation: {{ d.literals.strings.concat }}
+
+  - Escape: {{ d.literals.strings.escape }}
+
+  - Note: {{ d.literals.strings.note }}
+
+- Booleans: {{ d.literals.booleans | join(", ") }}
+
+- NULL: {{ d.literals.null }}
+
+{% set dt = d.literals["dates-times"] %}
+- Date/Time/Timestamp Literals:
+  - DATE:      {{ dt.date.syntax }} (pattern {{ dt.date.pattern }})
+  - TIME:      {{ dt.time.syntax }} (pattern {{ dt.time.pattern }})
+  - TIMESTAMP: {{ dt.timestamp.syntax }} (pattern {{ dt.timestamp.pattern }})
+  - INTERVAL: supported={{ dt.interval.supported }}, style={{ dt.interval.style }}
+{% endif %}
+
+{# ---------------- Joins ---------------- #}
+{% if sf.joins %}
+
+# Joins
+- Style: {{ d.joins.style }}
+
+- CROSS JOIN: enabled={{ d.joins["cross-join"].enabled }} → {{ d.joins["cross-join"].keyword }}
+
+- INNER JOIN: {{ d.joins["inner-join"].keyword }}, require ON={{ d.joins["inner-join"]["require-on"] }}
+
+- LEFT  JOIN: {{ d.joins["left-join"].keyword }}, enabled={{ d.joins["left-join"].enabled }}, require ON={{ d.joins["left-join"]["require-on"] }}
+
+- RIGHT JOIN: {{ d.joins["right-join"].keyword }}, enabled={{ d.joins["right-join"].enabled }}, require ON={{ d.joins["right-join"]["require-on"] }}
+
+- FULL  JOIN: {{ d.joins["full-join"].keyword }}, enabled={{ d.joins["full-join"].enabled }}, require ON={{ d.joins["full-join"]["require-on"] }}
+
+- ON clause: keyword={{ d.joins["on-clause"].keyword }}, require-condition={{ d.joins["on-clause"]["require-condition"] }}
+{% endif %}
+
+{# ---------------- Ordering ---------------- #}
+{% if sf.ordering %}
+
+# Ordering
+- ORDER BY NULLS: {{ d.ordering["order-by-nulls"] }}
+
+{% endif %}
+
+{# ---------------- Grouping ---------------- #}
+{% if sf.grouping %}
+
+# Grouping
+- Use GROUP BY for aggregated queries; HAVING for post-aggregate filters.
+{% if d.functions.aggregates is not null and (d.functions.aggregates | length) > 0 %}
+- Supported aggregate functions:
+{% for f in d.functions.aggregates %}
+
+  - {{ f.name }}: {{ f.syntax }}
+{% endfor %}
+{% else %}
+- (No aggregate functions listed in dialect config)
+{% endif %}
+{% endif %}
+
+{# ---------------- Paging ---------------- #}
+{% if sf.paging %}
+
+# Paging
+- LIMIT:  {{ d.paging.limit }}
+
+- OFFSET: {{ d.paging.offset }}
+
+- TOP:    {{ d.paging.top }}
+{% endif %}
+
+{# ---------------- Operators (selected categories) ---------------- #}
+{% if sf.operators is not null and (sf.operators | length) > 0 %}
+
+# Operators
+{% set op = d.operators %}
+{% for cat in sf.operators %}{% set list = op[cat] %}{% if list is not null %}
+
+- {{ cat }}:
+{% for item in list %}{% if item.symbol is not null %}
+  - {{ item.symbol }}{% if item.syntax %} — {{ item.syntax }}{% endif %}{% if item.description %} — {{ item.description }}{% endif %}{% if item.supported is not null %} (supported={{ item.supported }}){% endif %},
+{% else %}{# some categories could be strings/other shapes in future; guard left intentionally #}{% endif %}{% endfor %}{% else %}- {{ cat }}: (no entries in dialect config){% endif %}
+{% endfor %}{% endif %}
+
+{# ---------------- Functions (selected groups) ---------------- #}
+{% if sf.functions is not empty %}
+# Functions
+{% for group in sf.functions %}
+{% set fnList = (d.functions[group] | default(null)) %}
+{% if fnList is not empty %}
+
+  -{{ group | capitalize }}:{% for f in fnList %}
+
+    - {{ f.name }}: {{ f.syntax }}
+
+      - returns: {{ f.return.type }} (nullable={{ f.return.nullable }}){% if f.args is not empty %}
+
+      - args:{% for a in f.args %}
+
+        * {{ a.name }}: type={{ a.type }}, required={{ a.required }}
+{% if a.default is not null %}, default={{ a.default }}{% endif %}
+{% if a.min is not null %}, min={{ a.min }}{% endif %}
+{% if a.max is not null %}, max={{ a.max }}{% endif %}
+{% if a.regex is not null %}, regex={{ a.regex }}{% endif %}
+{% if a.enum is not empty %}, enum=[{{ a.enum | join(", ") }}]{% endif %}
+{% if a.multi is not null %}, multi={{ a.multi }}{% endif %}
+{% if a.variadic is not null %}, variadic={{ a.variadic }}{% endif %}
+{% if a.notes is not empty %}
+    — {{ a.notes }}{% endif %}{% endfor %}{% endif %}{% endfor %}{% endif %}{% endfor %}{% endif %}

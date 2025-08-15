@@ -8,6 +8,7 @@ import io.qpointz.mill.ai.nlsql.MessageSpecs;
 import io.qpointz.mill.ai.nlsql.model.MessageRole;
 import io.qpointz.mill.ai.nlsql.model.UserChatMessage;
 import io.qpointz.mill.ai.nlsql.model.pojo.Chat;
+import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.ai.nlsql.repositories.UserChatMessageRepository;
 import io.qpointz.mill.services.annotations.ConditionalOnService;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
@@ -33,8 +34,10 @@ public class ChatProcessor {
     private final MetadataProvider metadataProvider;
     private final DataOperationDispatcher dataOperationDispatcher;
     private final ChatClient.Builder chatBuilder;
+    private final SqlDialect sqlDialect;
 
     public ChatProcessor(MetadataProvider metadataProvider,
+                         SqlDialect dialect,
                          DataOperationDispatcher dataOperationDispatcher,
                          UserChatMessageRepository userChatMessageRepository,
                          ChatMemory chatMemory, 
@@ -43,6 +46,7 @@ public class ChatProcessor {
         this.chatMemory = chatMemory;
         this.chatBuilder = chatBuilder;
         this.metadataProvider = metadataProvider;
+        this.sqlDialect = dialect;
         this.dataOperationDispatcher = dataOperationDispatcher;
     }
 
@@ -73,6 +77,7 @@ public class ChatProcessor {
 
         val application = new ChatApplication(chat.getChatBuilders(),
                                 metadataProvider,
+                                sqlDialect,
                                 dataOperationDispatcher,
                                 MessageSelectors.SIMPLE);
 

@@ -16,6 +16,7 @@ public class PebbleTemplate implements MessageTemplate {
 
     private final static PebbleEngine defaultEngine = new PebbleEngine.Builder()
             .cacheActive(true)
+            .autoEscaping(false)
             .build();
 
     public PebbleTemplate(MessageTemplateSource source) {

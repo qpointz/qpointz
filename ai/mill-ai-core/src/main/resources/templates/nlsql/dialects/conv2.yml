@@ -1,0 +1,242 @@
+sql-dialect:
+  key: CALCITE
+  name: "Apache Calcite"
+
+  identifiers:
+    case: UPPER
+    quote: { start: "`", end: "`" }
+    alias-quote: { start: "`", end: "`" }
+    use-fully-qualified-names: true
+
+  literals:
+    strings:
+      quote: "'"name
+      concat: "||"
+      escape: STANDARD
+      note: "quoting relevant to target type"
+    booleans: ["TRUE","FALSE"]
+    null: "NULL"
+    dates-times:
+      date:
+        syntax: "DATE 'YYYY-MM-DD'"
+        quote: "'"
+        pattern: "YYYY-MM-DD"
+        notes:
+          - ""
+      time:
+        syntax: "TIME 'HH:MI:SS'"
+        quote: "'"
+        pattern: "HH:MI:SS"
+        notes:
+          - ""
+      timestamp:
+        syntax: "TIMESTAMP 'YYYY-MM-DD HH:MI:SS'"
+        quote: "'"
+        pattern: "YYYY-MM-DD HH:MI:SS"
+        notes:
+          - ""
+      interval:
+        supported: true # | or false
+        style: ANSI
+        notes:
+          - ""
+
+  joins:
+    style: "explicit"                  # options: explicit | implicit
+    cross-join:
+      enabled: true
+      keyword: "CROSS JOIN"
+    inner-join:
+      keyword: "INNER JOIN"
+      require-on: true
+      null-safe: false
+    left-join:
+      enabled: true
+      keyword: "LEFT JOIN"
+      null-safe: false
+      require-on: true
+    right-join:
+      keyword: "RIGHT JOIN"
+      enabled: true
+      null-safe: false
+      require-on: true
+    full-join:
+      keyword: "FULL JOIN"
+      enabled: true
+      null-safe: false
+      require-on: true
+    on-clause:
+      keyword: "ON"
+      require-condition: true         # disallow NATURAL JOIN or USING
+
+  ordering:
+    order-by-nulls: "NULLS LAST"
+
+  paging:
+    limit: "LIMIT {n}"
+    offset: "OFFSET {m}"
+    top: null
+
+  operators:
+    equality:
+      - { symbol: "=", description: "Equality comparison" }
+
+    inequality:
+      - { symbol: "<>", description: "Not equal" }
+      - { symbol: "!=", description: "Not equal (alternative)" }
+
+    comparison:
+      - { symbol: ">",  description: "Greater than" }
+      - { symbol: ">=", description: "Greater than or equal" }
+      - { symbol: "<",  description: "Less than" }
+      - { symbol: "<=", description: "Less than or equal" }
+
+    arithmetic_operators:
+      - { symbol: "+", description: "Addition" }
+      - { symbol: "-", description: "Subtraction" }
+      - { symbol: "*", description: "Multiplication" }
+      - { symbol: "/", description: "Division" }
+      - { symbol: "%", description: "Modulo" }
+
+    null_checks:
+      - { symbol: "IS NULL",     description: "Check for null" }
+      - { symbol: "IS NOT NULL", description: "Check for not null" }
+
+    set:
+      - { symbol: "IN",     description: "Membership test" }
+      - { symbol: "NOT IN", description: "Negated membership test" }
+
+    null-safe:
+      - { symbol: "IS NOT DISTINCT FROM", description: "Null-safe equality (Calcite/PostgreSQL)" }
+
+    logical:
+      - { symbol: "NOT", description: "Logical NOT" }
+      - { symbol: "AND", description: "Logical AND" }
+      - { symbol: "OR",  description: "Logical OR" }
+
+    like:
+      - { symbol: "LIKE", description: "Pattern match with wildcards" }
+
+    between:
+      - { symbol: "BETWEEN", description: "Inclusive range comparison" }
+
+    casting:
+      - { symbol: "CAST",      syntax: "CAST({expr} AS {type})", description: "Explicit type cast", supported: true }
+      - { symbol: "SAFE_CAST", syntax: null,                      description: "Null on failure (not supported in this dialect)", supported: false }
+
+    regex:
+      - { symbol: "REGEXP", description: "Regex match operator (case sensitivity depends on collation/engine)" }
+      - { symbol: "~",      description: "Regex match (case-sensitive)" }
+      - { symbol: "~*",     description: "Regex match (case-insensitive)" }
+      - { symbol: "!~",     description: "Regex does not match (case-sensitive)" }
+      - { symbol: "!~*",    description: "Regex does not match (case-insensitive)" }
+
+  functions:
+    strings:
+      - name: "SUBSTRING"
+        synonyms: [ "SUBSTR" ]
+        return:
+          type: STRING
+          nullable: true
+        syntax: "SUBSTRING(text FROM start FOR length)"
+        args:
+          - name: "text"
+            type: STRING
+            required: true
+            notes: "Исходная строка"
+          - name: "start"
+            type: INTEGER
+            required: true
+            min: 1
+            notes: "Начальная позиция (1-based)"
+          - name: "length"
+            type: INTEGER
+            required: false
+            min: 0
+            default: null
+            notes: "Длина подстроки, опционально"
+
+      - name: "CONCAT"
+        return: { type: STRING, nullable: true }
+        syntax: "CONCAT(a, b, ...)"
+        args:
+          - name: "a"
+            type: STRING
+            required: true
+            notes: "Первый операнд"
+          - name: "b"
+            type: STRING
+            required: true
+            variadic: true
+            notes: "Один или несколько дополнительных операндов"
+
+    regex:
+      - name: "REGEXP_LIKE"
+        return: { type: BOOLEAN, nullable: false }
+        syntax: "REGEXP_LIKE(text, pattern[, flags])"
+        args:
+          - { name: "text", type: STRING, required: true, notes: "Текст для проверки" }
+          - { name: "pattern", type: PATTERN, required: true, notes: "Регулярное выражение" }
+          - name: "flags"
+            type: ENUM
+            required: false
+            multi: true
+            enum: [ "i","c","m","n","u","s","x" ]
+            notes: "Флаги управления сопоставлением"
+
+    numerics:
+      - name: "ROUND"
+        return: { type: DECIMAL, nullable: true }
+        syntax: "ROUND(num[, scale])"
+        args:
+          - { name: "num", type: DECIMAL, required: true, notes: "Число для округления" }
+          - { name: "scale", type: INTEGER, required: false, min: 0, notes: "Количество знаков после запятой" }
+
+    aggregates:
+      - name: "COUNT"
+        return: { type: INTEGER, nullable: false }
+        syntax: "COUNT(expr)"
+        args:
+          - name: "expr"
+            type: COLUMN_REF
+            required: false
+            default: "*"
+            notes: "Выражение или *, допускается COUNT(*)"
+
+    dates_times:
+      - name: "CURRENT_DATE"
+        return: { type: DATE, nullable: false }
+        syntax: "CURRENT_DATE"
+        args: [ ]
+
+      - name: "DATE_TRUNC"
+        return: { type: TIMESTAMP, nullable: false }
+        syntax: "DATE_TRUNC(unit, ts)"
+        args:
+          - name: "unit"
+            type: ENUM
+            required: true
+            enum: [ "year","quarter","month","week","day","hour","minute","second" ]
+            notes: "Единица усечения"
+          - name: "ts"
+            type: TIMESTAMP
+            required: true
+            notes: "Временная метка для усечения"
+
+    conditionals:
+      - name: "COALESCE"
+        return: { type: STRING, nullable: true }
+        syntax: "COALESCE(a, b, ...)"
+        args:
+          - name: "a"
+            type: STRING
+            required: true
+            variadic: true
+            notes: "Первый и последующие аргументы"
+
+      - name: "NULLIF"
+        return: { type: STRING, nullable: true }
+        syntax: "NULLIF(a, b)"
+        args:
+          - { name: "a", type: STRING, required: true, notes: "Первое выражение" }
+          - { name: "b", type: STRING, required: true, notes: "Второе выражение" }

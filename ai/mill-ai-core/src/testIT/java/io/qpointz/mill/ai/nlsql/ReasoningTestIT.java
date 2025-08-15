@@ -3,6 +3,7 @@ package io.qpointz.mill.ai.nlsql;
 import io.qpointz.mill.ai.BaseIntegrationTestIT;
 import io.qpointz.mill.ai.chat.messages.MessageSelectors;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
+import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.services.metadata.MetadataProvider;
 import lombok.extern.slf4j.Slf4j;
@@ -43,10 +44,13 @@ public class ReasoningTestIT extends BaseIntegrationTestIT {
     @Autowired
     ChatMemory chatMemory;
 
+    @Autowired
+    SqlDialect sqlDialect;
+
 
     private ReasoningResponse reason(String query) {
         val chatBuilder = new CallSpecsChatClientBuilders(chatModel, chatMemory, UUID.randomUUID().toString());
-        val specs = new IntentSpecs(metadataProvider, chatBuilder, dispatcher, MessageSelectors.SIMPLE);
+        val specs = new IntentSpecs(metadataProvider, sqlDialect, chatBuilder, dispatcher, MessageSelectors.SIMPLE);
         return specs.reasonCall(query)
                 .as(ReasoningResponse.class);
     }

@@ -4,6 +4,7 @@ import io.qpointz.mill.MillRuntimeException;
 import io.qpointz.mill.ai.chat.ChatCall;
 import io.qpointz.mill.ai.chat.messages.MessageSelector;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
+import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.services.metadata.MetadataProvider;
 import lombok.Getter;
@@ -34,12 +35,19 @@ public class IntentSpecs {
     @Getter
     private final MessageSelector messageSelector;
 
+    @Getter
+    private final SqlDialect sqlDialect;
 
-    public IntentSpecs(MetadataProvider metadataProvider, CallSpecsChatClientBuilders chatBuilders, DataOperationDispatcher dispatcher, MessageSelector messageSelector) {
+    public IntentSpecs(MetadataProvider metadataProvider,
+                       SqlDialect sqlDialect,
+                       CallSpecsChatClientBuilders chatBuilders,
+                       DataOperationDispatcher dispatcher,
+                       MessageSelector messageSelector) {
         this.metadataProvider = metadataProvider;
         this.chatBuilders = chatBuilders;
         this.dispatcher = dispatcher;
         this.messageSelector = messageSelector;
+        this.sqlDialect = sqlDialect;
         this.intents  = List.of(
                 getDataIntent(),
                 getChartIntent(),
@@ -65,7 +73,7 @@ public class IntentSpecs {
     public IntentSpec getDataIntent() {
         return IntentSpec.builder(GET_DATA_INTENT_KEY)
                 .callFunc(reason -> new IntentCall(reason, this, this.chatBuilders.conversationChat(),
-                        getData(reason, metadataProvider),
+                        getData(reason, metadataProvider, sqlDialect),
                         this.messageSelector))
                 .postProcessorFunc(reason -> List.of(
                         submitQueryProcessor(dispatcher, 10),
@@ -77,7 +85,7 @@ public class IntentSpecs {
     public IntentSpec getChartIntent() {
         return IntentSpec.builder(GET_CHART_INTENT_KEY)
                 .callFunc(reason -> new IntentCall(reason, this, this.chatBuilders.conversationChat(),
-                        getChart(reason, metadataProvider),
+                        getChart(reason, metadataProvider, sqlDialect),
                         this.messageSelector))
                 .postProcessorFunc(reason -> List.of(
                         executeQueryProcessor(dispatcher),
@@ -89,7 +97,7 @@ public class IntentSpecs {
     public IntentSpec getExplainIntent() {
         return IntentSpec.builder(EXPLAIN_INTENT_KEY)
                 .callFunc(reason -> new IntentCall(reason, this, this.chatBuilders.conversationChat(),
-                        explain(reason, metadataProvider),
+                        explain(reason, metadataProvider, sqlDialect),
                         this.messageSelector))
                 .postProcessorFunc(reason -> List.of(
                         retainReasoning(reason)))
@@ -100,7 +108,7 @@ public class IntentSpecs {
     public IntentSpec getEnrichModelIntent() {
         return IntentSpec.builder(ENRICH_MODEL_INTENT_KEY)
                 .callFunc(reason -> new IntentCall(reason, this, this.chatBuilders.conversationChat(),
-                        enrichModel(reason, metadataProvider),
+                        enrichModel(reason, metadataProvider, sqlDialect),
                         this.messageSelector))
                 .postProcessorFunc(reason -> List.of(
                         retainReasoning(reason)))
@@ -111,7 +119,7 @@ public class IntentSpecs {
     public IntentSpec getRefineIntent() {
         return IntentSpec.builder(REFINE_QUERY_INTENT_KEY)
                 .callFunc(reason -> new IntentCall(reason, this, this.chatBuilders.conversationChat(),
-                        refineQuery(reason, metadataProvider),
+                        refineQuery(reason, metadataProvider, sqlDialect),
                         this.messageSelector))
                 .postProcessorFunc(reason -> List.of(
                         retainReasoning(reason),

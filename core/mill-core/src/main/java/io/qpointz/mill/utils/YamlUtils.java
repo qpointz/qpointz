@@ -1,28 +1,27 @@
 package io.qpointz.mill.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-public class JsonUtils {
+public class YamlUtils {
 
-    private JsonUtils() {
+    private YamlUtils() {
         //only static methods to be used
     }
 
-    private static final ObjectMapper defaultJsonMapper;
+    private static final ObjectMapper defaultYamlMapper;
 
     static {
-        defaultJsonMapper = new ObjectMapper();
-        defaultJsonMapper()
+        defaultYamlMapper = new ObjectMapper(new YAMLFactory());
+        defaultYamlMapper()
                 .registerModule(new JavaTimeModule())
                 .registerModule(new Jdk8Module());
-
     }
 
-    public static ObjectMapper defaultJsonMapper() {
-        return defaultJsonMapper;
+    public static ObjectMapper defaultYamlMapper() {
+        return defaultYamlMapper;
     }
 
 }

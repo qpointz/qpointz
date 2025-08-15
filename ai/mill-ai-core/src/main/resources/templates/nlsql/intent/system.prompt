@@ -30,14 +30,5 @@ Supported **user intents**:
 - unsupported: The system cannot currently process the user’s request
 - enrich-model: The user provides additional domain knowledge, metadata, rules, or concepts to improve future results
 
-SQL conventions:
-- Use the **H2 dialect**
-- Use `||` for string concatenation
-- Always use **fully qualified table names** in the **FROM** clause
-- Always use explicit table aliases in clauses other than **FROM** (e.g., **WHERE**, **JOIN**, **SELECT**, **ORDER BY**)
-- Use **UPPERCASE** for all table and column names
-- Quote **all SQL identifiers and aliases with backticks (`)** — example:
-  `SELECT COUNT(*) AS `COUNT_FIELD` FROM `MONETA`.`CLIENTS``
-- Use **JOIN**, **UNION** if required
 
 

@@ -3,6 +3,7 @@ package io.qpointz.mill.ai.nlsql;
 import io.qpointz.mill.ai.BaseIntegrationTestIT;
 import io.qpointz.mill.ai.chat.messages.MessageSelectors;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
+import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.services.metadata.MetadataProvider;
 import io.qpointz.mill.utils.JsonUtils;
@@ -36,10 +37,15 @@ public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
 
     @Getter(AccessLevel.PROTECTED)
     private final CallSpecsChatClientBuilders callSpecBuilders;
+
     private final MessageWindowChatMemory chatMemory;
+
+    @Getter(AccessLevel.PROTECTED)
+    private final SqlDialect sqlDialect;
 
     protected BaseIntentTestIT(ChatModel model,
                                MetadataProvider metadataProvider,
+                               SqlDialect sqlDialect,
                                DataOperationDispatcher dispatcher) {
 
         this.chatMemory = MessageWindowChatMemory.builder()
@@ -52,17 +58,9 @@ public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
         this.chatModel = model;
         this.callSpecBuilders = new CallSpecsChatClientBuilders(
                 model, this.chatMemory, UUID.randomUUID().toString());
-        this.intentSpecs = new IntentSpecs(metadataProvider, this.callSpecBuilders, dispatcher, MessageSelectors.SIMPLE);
+        this.sqlDialect = sqlDialect;
+        this.intentSpecs = new IntentSpecs(metadataProvider, sqlDialect, this.callSpecBuilders, dispatcher, MessageSelectors.SIMPLE);
     }
-
-//    protected void logPrompt(ChatCall gd) {
-//        val sb = new StringBuilder();
-//        gd.getSelectedMessages().stream().forEach(k-> {
-//            sb.append(k.getText());
-//            sb.append("--------------");
-//        });
-//        log.info("\n{}", sb.toString());
-//    }
 
     protected void intentAppTest(String query, String expectedIntent) {
         val app = new ChatApplication(
@@ -70,6 +68,7 @@ public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
                         this.chatMemory,
                         UUID.randomUUID().toString()),
                 this.metadataProvider,
+                this.sqlDialect,
                 this.dispatcher,
                 MessageSelectors.SIMPLE);
         val reason = app.reason(query)
@@ -85,7 +84,5 @@ public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
 
         assertEquals(expectedIntent, callReason.intent(), "Call intent missmatch");
     }
-
-
 
 }
