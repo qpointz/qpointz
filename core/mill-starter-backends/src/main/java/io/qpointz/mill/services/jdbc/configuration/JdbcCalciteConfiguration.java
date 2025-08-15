@@ -80,7 +80,10 @@ public class JdbcCalciteConfiguration {
     @Value("${mill.backend.jdbc.catalog:#{null}}")
     private Optional<String> catalog= Optional.empty();
 
-
+    @Getter
+    @Setter
+    @Value("${mill.backend.jdbc.multi-shema:#{false}}")
+    private Boolean multiSchema= false;
 
     @Bean
     public JdbcContextFactory jdbcContextFactory() {

@@ -1,0 +1,22 @@
+grpc:
+  server:
+    in-process-name: testservice-jdbc
+    port: -1
+  client:
+    testservice:
+      address: in-process:testservice-jdbc
+
+mill:
+  backend:
+    provider: jdbc
+    connection:
+      quoting: BACK_TICK
+      caseSensitive: true
+      unquotedCasing: UNCHANGED
+    jdbc:
+      url: "jdbc:h2:mem:multi;INIT=RUNSCRIPT FROM './config/test/multi-schema.sql'"
+      driver: "org.h2.Driver"
+      output-schema: "ts"
+      multi-schema: true
+  security:
+    enable: false
