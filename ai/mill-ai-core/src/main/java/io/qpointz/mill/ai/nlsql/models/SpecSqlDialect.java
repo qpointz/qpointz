@@ -4,6 +4,8 @@ import io.qpointz.mill.MillRuntimeException;
 import io.qpointz.mill.ai.chat.messages.MessageSpec;
 import io.qpointz.mill.ai.chat.messages.specs.TemplateMessageSpec;
 import io.qpointz.mill.utils.YamlUtils;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.val;
 import org.springframework.ai.chat.messages.MessageType;
 
@@ -14,16 +16,24 @@ import static io.qpointz.mill.ai.chat.messages.MessageTemplates.pebbleTemplate;
 
 public class SpecSqlDialect implements SqlDialect {
 
-    private final Map<String, Object> sqlDialectConfig;
+    @Getter(AccessLevel.PROTECTED)
+    private final Map<String, Object> sqlDialectSpec;
 
-    public SpecSqlDialect(Map<String, Object> sqlDialectConfig) {
-        this.sqlDialectConfig = sqlDialectConfig;
+    public SpecSqlDialect(Map<String, Object> sqlDialectSpec) {
+        this.sqlDialectSpec = sqlDialectSpec;
+    }
+
+    @Override
+    public String getId() {
+        return this.sqlDialectSpec
+                .get("id")
+                .toString();
     }
 
     @Override
     public MessageSpec getConventionsSpec(SqlFeatures features) {
         val metadata = Map.of(
-                "d", this.sqlDialectConfig,
+                "d", this.sqlDialectSpec,
                 "sf" , features
         );
         return new TemplateMessageSpec(MessageType.SYSTEM,

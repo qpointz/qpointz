@@ -10,6 +10,11 @@ import static io.qpointz.mill.ai.chat.messages.MessageTemplates.staticTemplate;
 public class DefaultSqlDialect implements SqlDialect {
 
     @Override
+    public String getId() {
+        return "generic";
+    }
+
+    @Override
     public MessageSpec getConventionsSpec(SqlDialect.SqlFeatures features) {
         return new TemplateMessageSpec(MessageType.SYSTEM,
                 staticTemplate("templates/nlsql/dialects/default/dialect.prompt",

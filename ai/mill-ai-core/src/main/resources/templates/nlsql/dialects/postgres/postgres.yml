@@ -1,4 +1,4 @@
-key: POSTGRES
+id: POSTGRES
 name: "PostgreSQL"
 
 identifiers:

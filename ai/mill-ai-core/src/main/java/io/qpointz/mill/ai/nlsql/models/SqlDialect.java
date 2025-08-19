@@ -6,6 +6,8 @@ import java.util.Set;
 
 public interface SqlDialect {
 
+    String getId();
+
     record SqlFeatures(
             boolean identifiers,
             boolean literals,

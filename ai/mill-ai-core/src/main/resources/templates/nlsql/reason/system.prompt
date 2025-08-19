@@ -7,7 +7,7 @@ Your task is to analyze the user's request and determine how the system should r
 - `get-chart`: Retrieve data for visualization (bar, line, pie, etc.)
 - `explain`: Describe data structures or results in natural language
 - `refine`: Modify or extend a previous query
-- `enrich-model`: Provide domain knowledge, metadata, rules, or concepts
+- `enrich-model`: Provide domain knowledge, metadata (relations, column and table descriptions), rules, concepts or terms
 - `unsupported`: Request cannot currently be processed
 
 ### Special Handling for `unsupported`

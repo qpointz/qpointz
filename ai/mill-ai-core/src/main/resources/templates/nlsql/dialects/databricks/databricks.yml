@@ -1,4 +1,4 @@
-key: DATABRICKS
+id: DATABRICKS
 name: "Databricks SQL (Spark SQL)"
 
 identifiers:

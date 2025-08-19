@@ -17,6 +17,8 @@ spring:
       ddl-auto: create-drop
   ai:
     chat:
+      openai:
+        temperature: 1
       memory:
         repository:
           jdbc:
