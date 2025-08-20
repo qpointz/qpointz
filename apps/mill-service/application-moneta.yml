@@ -17,8 +17,6 @@ spring:
       ddl-auto: create-drop
   ai:
     chat:
-      openai:
-        temperature: 1
       memory:
         repository:
           jdbc:
@@ -53,14 +51,17 @@ mill:
       memory: in-memory
     nl2sql:
       enable: true
+      dialect: H2
   security:
     enable: false
   backend:
     provider: jdbc
     connection:
-      quoting: BACK_TICK
-      caseSensitive: false
+      quoting: DOUBLE_QUOTE
+      caseSensitive: true
       unquotedCasing: UNCHANGED
+      fun: oracle
+      conformance: ORACLE_12
     jdbc:
       url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '../../test/datasets/moneta/moneta.sql'"
       driver: "org.h2.Driver"

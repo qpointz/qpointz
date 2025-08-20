@@ -29,10 +29,8 @@ export function ChatList() {
     }
 
     return (
-        <ScrollArea type="hover" style={{ height: "100%"}}>
-            <Box w={350} m={0} pl={10} pr={10} pt={10}
-
-                 style={{ height: "100%", width: "100%", boxSizing: "border-box", borderRight: `1px solid ${theme.colors.gray[3]}` }}>
+        <ScrollArea type="hover" style={{ minHeight: "100%"}}>
+            <Box w={350} m={0} pl={10} pr={10} pt={10} style={{ height: "100vh", width: "100%", boxSizing: "border-box", borderRight: `1px solid ${theme.colors.gray[3]}` }}>
                 <Box mt={6} p={1} bg="transparent" style={{borderRadius: 6}} key="new-chat">
                     <NavLink c="blue" key={"new-chat"} to="/chat" component={Link} label="New Chat+" p={0} m={0}/>
                 </Box>

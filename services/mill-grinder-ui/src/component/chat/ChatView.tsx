@@ -3,7 +3,7 @@ import {ChatList} from "./ChatList.tsx";
 import {ChatProvider} from "./ChatProvider.tsx";
 import BeginNewChat from "./BeginNewChat.tsx";
 import {Box, Group} from "@mantine/core";
-import ChatMessageList from "./ChatMessageList.tsx";
+import {ChatMessageListRender as ChatMessageList} from "./ChatMessageList.tsx";
 
 export default function ChatView() {
     const nav = useParams<{ chatid?: string }>();

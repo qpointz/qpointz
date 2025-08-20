@@ -1,6 +1,8 @@
 id: DATABRICKS
 name: "Databricks SQL (Spark SQL)"
 
+notes: []
+
 identifiers:
   case: AS_IS
   quote: { start: "`", end: "`" }

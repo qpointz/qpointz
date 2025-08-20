@@ -34,6 +34,7 @@ Always return your output using **strict JSON format** with the following fields
 }
 
 Rules:
+- Return exactly one SQL statement in `sql` (CTEs allowed). Omit the trailing statement delimiter (semicolon).
 - include a short `query-name`: a lowercase, file-name–friendly slug that summarizes the request.
   - Use only lowercase letters, digits, and underscores
   - No spaces or punctuation

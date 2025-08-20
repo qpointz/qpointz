@@ -1,6 +1,9 @@
 id: H2
 name: "H2 Database"
 
+notes:
+  - "When using regular expressions use Java regex syntax."
+
 identifiers:
   case: AS_IS
   quote: { start: "\"", end: "\"" }
@@ -168,12 +171,41 @@ functions:
         - { name: "str", type: STRING, required: true }
 
   regex:
-    - name: "REGEXP_MATCHES"
+    - name: "REGEXP_LIKE"
       return: { type: BOOLEAN, nullable: false }
-      syntax: "REGEXP_MATCHES(text, pattern)"
+      syntax: "REGEXP_LIKE(input, pattern[, flags])"
       args:
-        - { name: "text", type: STRING, required: true }
+        - { name: "input", type: STRING, required: true, notes: "String to test" }
+        - { name: "pattern", type: PATTERN, required: true, notes: "Java regex (java.util.regex)" }
+        - { name: "flags", type: ENUM, required: false, multi: true, enum: [ "i","c","m","n","u","s","x" ], notes: "Oracle-style flags; mapped to Java regex options" }
+
+    - name: "REGEXP_REPLACE"
+      return: { type: STRING, nullable: true }
+      syntax: "REGEXP_REPLACE(input, pattern, replacement[, flags])"
+      args:
+        - { name: "input", type: STRING, required: true }
         - { name: "pattern", type: PATTERN, required: true }
+        - { name: "replacement", type: STRING, required: true }
+        - { name: "flags", type: ENUM, required: false, multi: true, enum: [ "i","c","m","n","u","s","x" ] }
+
+    - name: "REGEXP_SUBSTR"
+      return: { type: STRING, nullable: true }
+      syntax: "REGEXP_SUBSTR(input, pattern[, occurrence[, flags]])"
+      args:
+        - { name: "input", type: STRING, required: true }
+        - { name: "pattern", type: PATTERN, required: true }
+        - { name: "occurrence", type: INTEGER, required: false, min: 1, notes: "Nth match to return (default 1)" }
+        - { name: "flags", type: ENUM, required: false, multi: true, enum: [ "i","c","m","n","u","s","x" ] }
+
+    - name: "REGEXP_INSTR"
+      return: { type: INTEGER, nullable: true }
+      syntax: "REGEXP_INSTR(input, pattern[, start[, occurrence[, flags]]])"
+      args:
+        - { name: "input", type: STRING, required: true }
+        - { name: "pattern", type: PATTERN, required: true }
+        - { name: "start", type: INTEGER, required: false, min: 1, notes: "Start position (default 1)" }
+        - { name: "occurrence", type: INTEGER, required: false, min: 1 }
+        - { name: "flags", type: ENUM, required: false, multi: true, enum: [ "i","c","m","n","u","s","x" ] }
 
   numerics:
     - name: "ABS"

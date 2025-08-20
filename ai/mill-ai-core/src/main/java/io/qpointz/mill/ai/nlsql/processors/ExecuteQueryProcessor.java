@@ -32,10 +32,16 @@ public class ExecuteQueryProcessor implements ChatCallPostProcessor {
         val sql = result.get("sql").toString();
 
         log.debug("Executing SQL: {}", sql);
-
-        val execution = execute(sql);
         val updated = new HashMap<>(result);
-        updated.put("data", execution);
+
+        try {
+            val execution = execute(sql);
+            updated.put("data", execution);
+        } catch (Exception ex) {
+            val error = ex.getMessage();
+            log.error("Error executing SQL: {}", sql, ex);
+            updated.put("error", error);
+        }
         return updated;
     }
 

@@ -8,14 +8,15 @@ import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.adapter.jdbc.JdbcSchema;
 import org.apache.calcite.jdbc.CalciteConnection;
+import org.apache.calcite.plan.Contexts;
 import org.apache.calcite.schema.SchemaPlus;
+import org.apache.calcite.sql.parser.SqlParser;
+import org.apache.calcite.tools.FrameworkConfig;
+import org.apache.calcite.tools.Frameworks;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 
 @AllArgsConstructor
 @Slf4j
@@ -49,6 +50,27 @@ public class JdbcCalciteContextFactory implements CalciteContextFactory {
             connection.close();
         }
 
+        @Override
+        public SqlParser.Config getParserConfig() {
+            val connectionConfig = this.getCalciteConnection().config();
+            return SqlParser.Config.DEFAULT
+                    .withConformance(connectionConfig.conformance())
+                    .withCaseSensitive(connectionConfig.caseSensitive())
+                    .withLex(connectionConfig.lex())
+                    .withQuoting(connectionConfig.quoting());
+        }
+
+        @Override
+        public FrameworkConfig getFrameworkConfig() {
+            val connectionConfig = this.getCalciteConnection()
+                    .config();
+
+            return Frameworks.newConfigBuilder()
+                    .context(Contexts.of(connectionConfig))
+                    .parserConfig(this.getParserConfig())
+                    .defaultSchema(this.getRootSchema())
+                    .build();
+        }
     }
 
     @Override

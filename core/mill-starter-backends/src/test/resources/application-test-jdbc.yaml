@@ -13,6 +13,7 @@ mill:
       quoting: BACK_TICK
       caseSensitive: true
       unquotedCasing: UNCHANGED
+      lenientOperatorLookup: TRUE
     jdbc:
       url: "jdbc:h2:mem:test2;INIT=RUNSCRIPT FROM './config/test/testdata.sql'"
       driver: "org.h2.Driver"

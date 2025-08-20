@@ -14,13 +14,11 @@
 {# ---------------- Identifiers ---------------- #}
 {% if sf.identifiers %}
 
-# Identifiers
+## Identifiers
 - Case: {{ d.identifiers.case }}
 
-- Quote for identifiers: {{ d.identifiers.quote.start }}...{{ d.identifiers.quote.end }}
-
-- Quote for aliases: {{ d.identifiers["alias-quote"].start }}...{{ d.identifiers["alias-quote"].end }}
-
+- Quote for identifiers: start:{{ d.identifiers.quote.start }} end:{{ d.identifiers.quote.end }} (Example: {{ d.identifiers.quote.start }}IDENTIFIER{{ d.identifiers.quote.end }})
+- Quote for aliases: start:{{ d.identifiers.quote.start }} end:{{ d.identifiers.quote.end }} (Example: {{ d.identifiers.quote.start }}ALIAS{{ d.identifiers.quote.end }})
 - Use fully qualified names: {{ d.identifiers["use-fully-qualified-names"] }}
 {% endif %}
 
@@ -28,7 +26,7 @@
 {# ---------------- Literals ---------------- #}
 {% if sf.literals %}
 
-# Literals
+## Literals
 - Strings:
   - Quote: {{ d.literals.strings.quote }}
 
@@ -53,7 +51,7 @@
 {# ---------------- Joins ---------------- #}
 {% if sf.joins %}
 
-# Joins
+## Joins
 - Style: {{ d.joins.style }}
 
 - CROSS JOIN: enabled={{ d.joins["cross-join"].enabled }} → {{ d.joins["cross-join"].keyword }}
@@ -72,7 +70,7 @@
 {# ---------------- Ordering ---------------- #}
 {% if sf.ordering %}
 
-# Ordering
+## Ordering
 - ORDER BY NULLS: {{ d.ordering["order-by-nulls"] }}
 
 {% endif %}
@@ -80,7 +78,7 @@
 {# ---------------- Grouping ---------------- #}
 {% if sf.grouping %}
 
-# Grouping
+## Grouping
 - Use GROUP BY for aggregated queries; HAVING for post-aggregate filters.
 {% if d.functions.aggregates is not null and (d.functions.aggregates | length) > 0 %}
 - Supported aggregate functions:
@@ -96,7 +94,7 @@
 {# ---------------- Paging ---------------- #}
 {% if sf.paging %}
 
-# Paging
+## Paging
 - LIMIT:  {{ d.paging.limit }}
 
 - OFFSET: {{ d.paging.offset }}
@@ -107,7 +105,7 @@
 {# ---------------- Operators (selected categories) ---------------- #}
 {% if sf.operators is not null and (sf.operators | length) > 0 %}
 
-# Operators
+## Operators
 {% set op = d.operators %}
 {% for cat in sf.operators %}{% set list = op[cat] %}{% if list is not null %}
 
@@ -142,3 +140,12 @@
 {% if a.variadic is not null %}, variadic={{ a.variadic }}{% endif %}
 {% if a.notes is not empty %}
     — {{ a.notes }}{% endif %}{% endfor %}{% endif %}{% endfor %}{% endif %}{% endfor %}{% endif %}
+
+{% if d.notes is not empty %}
+
+## Sql Dialect Notes
+{% for note in d.notes %}
+- {{ note }}
+
+{% endfor %}
+{% endif %}

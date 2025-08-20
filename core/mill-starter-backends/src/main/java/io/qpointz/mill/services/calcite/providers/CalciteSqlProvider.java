@@ -1,7 +1,7 @@
 package io.qpointz.mill.services.calcite.providers;
 
 import io.qpointz.mill.services.calcite.CalciteContextFactory;
-import io.qpointz.mill.services.calcite.istmus.SqlToSubstrait;
+//import io.qpointz.mill.services.calcite.istmus.SqlToSubstrait;
 import io.qpointz.mill.services.SqlProvider;
 import io.qpointz.mill.services.dispatchers.SubstraitDispatcher;
 import io.substrait.expression.Expression;
@@ -9,15 +9,19 @@ import io.substrait.isthmus.CallConverter;
 import io.substrait.isthmus.SubstraitRelVisitor;
 import io.substrait.isthmus.TypeConverter;
 import io.substrait.isthmus.expression.*;
+import io.substrait.proto.Plan;
+import io.substrait.proto.PlanRel;
 import lombok.*;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.volcano.VolcanoPlanner;
 import org.apache.calcite.prepare.CalciteCatalogReader;
+import org.apache.calcite.rel.RelRoot;
 import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.sql.validate.SqlValidatorUtil;
 import org.apache.calcite.sql2rel.SqlToRelConverter;
+import org.apache.calcite.tools.Frameworks;
 import org.apache.calcite.tools.RelBuilder;
 
 import java.util.ArrayList;
@@ -36,15 +40,17 @@ public class CalciteSqlProvider implements SqlProvider {
     @Override
     public PlanParseResult parseSql(String sql) {
         try (val ctx = this.ctxFactory.createContext()) {
-            val planConverter = new SqlToSubstrait(null,
-                    ctx.getTypeFactory(),
-                    ctx.getCalciteConnection().config(),
-                    ctx.getParserConfig(),
-                    substraitDispatcher.getExtensionCollection());
+            val config = ctx.getFrameworkConfig();
+            val planner = Frameworks.getPlanner(config);
 
-            val plan = planConverter.execute(sql, ctx.getCalciteRootSchema());
-            val proto = substraitDispatcher.protoToPlan(plan);
-            return PlanParseResult.success(proto);
+            val parsed = planner.parse(sql);
+            val validated = planner.validate(parsed);
+            val relRoot = planner.rel(validated);
+
+            val root = SubstraitRelVisitor.convert(relRoot, substraitDispatcher.getExtensionCollection());
+            val plan = io.substrait.plan.Plan.builder().addRoots(root)
+                            .build();
+            return PlanParseResult.success(plan);
         }
         catch (Exception e) {
             return PlanParseResult.fail(e);

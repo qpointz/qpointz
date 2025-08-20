@@ -1,6 +1,8 @@
 id: CALCITE
 name: "Apache Calcite"
 
+notes: []
+
 identifiers:
   case: UPPER
   quote: { start: "`", end: "`" }

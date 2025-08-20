@@ -1,0 +1,251 @@
+id: MYSQL
+name: "MySQL"
+
+notes: []
+
+identifiers:
+  case: LOWER
+  quote: { start: "`", end: "`" }
+  alias-quote: { start: "`", end: "`" }
+  use-fully-qualified-names: true
+
+literals:
+  strings:
+    quote: "'"
+    concat: "CONCAT"   # MySQL uses CONCAT() instead of ||
+    escape: STANDARD
+    note: "Escape single quotes by doubling them ('') or with backslash if enabled"
+  booleans: ["TRUE","FALSE"]
+  null: "NULL"
+  dates-times:
+    date:
+      syntax: "DATE 'YYYY-MM-DD'"
+      quote: "'"
+      pattern: "YYYY-MM-DD"
+      notes:
+        - "ANSI DATE literal supported"
+    time:
+      syntax: "TIME 'HH:MM:SS'"
+      quote: "'"
+      pattern: "HH:MM:SS"
+      notes:
+        - "TIME values stored with range -838:59:59 to 838:59:59"
+    timestamp:
+      syntax: "TIMESTAMP 'YYYY-MM-DD HH:MM:SS'"
+      quote: "'"
+      pattern: "YYYY-MM-DD HH:MM:SS"
+      notes:
+        - "Supports fractional seconds from MySQL 5.6+"
+    interval:
+      supported: true
+      style: MYSQL
+      notes:
+        - "INTERVAL keyword used with DATE_ADD/DATE_SUB (e.g., DATE_ADD(NOW(), INTERVAL 1 DAY))"
+
+joins:
+  style: "explicit"
+  cross-join:
+    enabled: true
+    keyword: "CROSS JOIN"
+  inner-join:
+    keyword: "INNER JOIN"
+    require-on: true
+    null-safe: false
+  left-join:
+    enabled: true
+    keyword: "LEFT JOIN"
+    null-safe: false
+    require-on: true
+  right-join:
+    enabled: true
+    keyword: "RIGHT JOIN"
+    null-safe: false
+    require-on: true
+  full-join:
+    keyword: null
+    enabled: false
+    null-safe: false
+    require-on: true
+    notes: "MySQL does not support FULL OUTER JOIN natively"
+  on-clause:
+    keyword: "ON"
+    require-condition: true
+
+ordering:
+  order-by-nulls: null
+  notes: "MySQL does not support NULLS FIRST/LAST in ORDER BY"
+
+paging:
+  limit: "LIMIT {n}"
+  offset: "LIMIT {m}, {n}"   # MySQL style LIMIT offset, count
+  top: null
+
+operators:
+  equality:
+    - { symbol: "=", description: "Equality comparison" }
+    - { symbol: "<=>", description: "NULL-safe equality" }
+  inequality:
+    - { symbol: "<>", description: "Not equal" }
+    - { symbol: "!=", description: "Not equal (alternative)" }
+  comparison:
+    - { symbol: ">", description: "Greater than" }
+    - { symbol: ">=", description: "Greater than or equal" }
+    - { symbol: "<", description: "Less than" }
+    - { symbol: "<=", description: "Less than or equal" }
+  arithmetic_operators:
+    - { symbol: "+", description: "Addition" }
+    - { symbol: "-", description: "Subtraction" }
+    - { symbol: "*", description: "Multiplication" }
+    - { symbol: "/", description: "Division" }
+    - { symbol: "%", description: "Modulo" }
+  null_checks:
+    - { symbol: "IS NULL", description: "Check for null" }
+    - { symbol: "IS NOT NULL", description: "Check for not null" }
+  set:
+    - { symbol: "IN", description: "Membership test" }
+    - { symbol: "NOT IN", description: "Negated membership test" }
+  logical:
+    - { symbol: "NOT", description: "Logical NOT" }
+    - { symbol: "AND", description: "Logical AND" }
+    - { symbol: "OR", description: "Logical OR" }
+  like:
+    - { symbol: "LIKE", description: "Pattern match with wildcards" }
+  between:
+    - { symbol: "BETWEEN", description: "Inclusive range comparison" }
+  casting:
+    - { symbol: "CAST", syntax: "CAST({expr} AS {type})", description: "ANSI SQL cast", supported: true }
+    - { symbol: "CONVERT", syntax: "CONVERT({expr}, {type})", description: "MySQL-specific cast/convert", supported: true }
+  regex:
+    - { symbol: "REGEXP", description: "Regex match (case-insensitive default)" }
+    - { symbol: "RLIKE", description: "Synonym for REGEXP" }
+
+functions:
+  strings:
+    - name: "SUBSTRING"
+      synonyms: [ "SUBSTR" ]
+      return: { type: STRING, nullable: true }
+      syntax: "SUBSTRING(string, start, length)"
+      args:
+        - { name: "string", type: STRING, required: true, notes: "Input string" }
+        - { name: "start", type: INTEGER, required: true, notes: "Starting position (1-based)" }
+        - { name: "length", type: INTEGER, required: false, notes: "Substring length" }
+
+    - name: "CONCAT"
+      return: { type: STRING, nullable: true }
+      syntax: "CONCAT(a, b, ...)"
+      args:
+        - { name: "a", type: STRING, required: true, variadic: true, notes: "Strings to concatenate" }
+
+    - name: "LENGTH"
+      return: { type: INTEGER, nullable: true }
+      syntax: "LENGTH(string)"
+      args:
+        - { name: "string", type: STRING, required: true, notes: "String to measure" }
+
+    - name: "LOWER"
+      return: { type: STRING, nullable: true }
+      syntax: "LOWER(string)"
+      args:
+        - { name: "string", type: STRING, required: true, notes: "Convert to lowercase" }
+
+    - name: "UPPER"
+      return: { type: STRING, nullable: true }
+      syntax: "UPPER(string)"
+      args:
+        - { name: "string", type: STRING, required: true, notes: "Convert to uppercase" }
+
+  regex:
+    - name: "REGEXP_LIKE"
+      return: { type: BOOLEAN, nullable: false }
+      syntax: "expr REGEXP pattern"
+      args:
+        - { name: "expr", type: STRING, required: true, notes: "Input expression" }
+        - { name: "pattern", type: PATTERN, required: true, notes: "Regex pattern" }
+
+  numerics:
+    - name: "ROUND"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "ROUND(num[, decimals])"
+      args:
+        - { name: "num", type: DECIMAL, required: true, notes: "Number to round" }
+        - { name: "decimals", type: INTEGER, required: false, notes: "Number of decimal places" }
+
+    - name: "CEIL"
+      synonyms: [ "CEILING" ]
+      return: { type: DECIMAL, nullable: true }
+      syntax: "CEIL(num)"
+      args:
+        - { name: "num", type: DECIMAL, required: true, notes: "Number to round up" }
+
+    - name: "FLOOR"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "FLOOR(num)"
+      args:
+        - { name: "num", type: DECIMAL, required: true, notes: "Number to round down" }
+
+  aggregates:
+    - name: "COUNT"
+      return: { type: INTEGER, nullable: false }
+      syntax: "COUNT(expr)"
+      args:
+        - { name: "expr", type: COLUMN_REF, required: false, default: "*", notes: "Expression or *" }
+
+    - name: "AVG"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "AVG(expr)"
+      args:
+        - { name: "expr", type: DECIMAL, required: true, notes: "Numeric expression" }
+
+    - name: "GROUP_CONCAT"
+      return: { type: STRING, nullable: true }
+      syntax: "GROUP_CONCAT(expr [ORDER BY expr] SEPARATOR ',')"
+      args:
+        - { name: "expr", type: STRING, required: true, notes: "Expression to concatenate" }
+
+  dates_times:
+    - name: "NOW"
+      return: { type: TIMESTAMP, nullable: false }
+      syntax: "NOW()"
+      args: []
+
+    - name: "CURDATE"
+      return: { type: DATE, nullable: false }
+      syntax: "CURDATE()"
+      args: []
+
+    - name: "DATE_ADD"
+      return: { type: DATE, nullable: true }
+      syntax: "DATE_ADD(date, INTERVAL expr unit)"
+      args:
+        - { name: "date", type: DATE, required: true, notes: "Base date" }
+        - { name: "expr", type: INTEGER, required: true, notes: "Value to add" }
+        - { name: "unit", type: ENUM, required: true, enum: [ "DAY","MONTH","YEAR","HOUR","MINUTE","SECOND" ], notes: "Interval unit" }
+
+    - name: "DATE_SUB"
+      return: { type: DATE, nullable: true }
+      syntax: "DATE_SUB(date, INTERVAL expr unit)"
+      args:
+        - { name: "date", type: DATE, required: true, notes: "Base date" }
+        - { name: "expr", type: INTEGER, required: true, notes: "Value to subtract" }
+        - { name: "unit", type: ENUM, required: true, enum: [ "DAY","MONTH","YEAR","HOUR","MINUTE","SECOND" ], notes: "Interval unit" }
+
+  conditionals:
+    - name: "COALESCE"
+      return: { type: STRING, nullable: true }
+      syntax: "COALESCE(a, b, ...)"
+      args:
+        - { name: "a", type: STRING, required: true, variadic: true, notes: "Arguments to evaluate" }
+
+    - name: "IFNULL"
+      return: { type: STRING, nullable: true }
+      syntax: "IFNULL(expr1, expr2)"
+      args:
+        - { name: "expr1", type: STRING, required: true, notes: "Expression to check" }
+        - { name: "expr2", type: STRING, required: true, notes: "Value if expr1 is NULL" }
+
+    - name: "NULLIF"
+      return: { type: STRING, nullable: true }
+      syntax: "NULLIF(expr1, expr2)"
+      args:
+        - { name: "expr1", type: STRING, required: true, notes: "First expression" }
+        - { name: "expr2", type: STRING, required: true, notes: "Second expression" }

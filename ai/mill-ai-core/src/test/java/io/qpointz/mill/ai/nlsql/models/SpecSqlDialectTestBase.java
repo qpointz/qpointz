@@ -51,7 +51,7 @@ abstract class SpecSqlDialectTestBase {
         val keys = map.keySet();
         val expects = Set.of("id", "name",
                 "identifiers", "literals",
-                "joins", "ordering", "paging", "operators", "functions");
+                "joins", "ordering", "paging", "operators", "functions", "notes");
         assertEquals(expects, keys);
     }
 

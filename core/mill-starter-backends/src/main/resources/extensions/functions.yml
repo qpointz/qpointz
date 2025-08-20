@@ -1,0 +1,18 @@
+%YAML 1.2
+---
+scalar_functions:
+  -
+    name: REGEXP_LIKE
+    description: Boolean regex match predicate (H2 semantics).
+    impls:
+      - args:
+          - value: "varchar<L1>"
+            name: "input"
+          - value: "varchar<L1>"
+            name: "pattern"
+        options:
+          null_handling:
+            values: [ IGNORE_NULLS, ACCEPT_NULLS ]
+          case_sensitivity:
+            values: [ CASE_SENSITIVE, CASE_INSENSITIVE, CASE_INSENSITIVE_ASCII ]
+        return: "boolean"

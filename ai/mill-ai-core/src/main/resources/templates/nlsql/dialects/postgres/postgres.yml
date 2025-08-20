@@ -1,6 +1,8 @@
 id: POSTGRES
 name: "PostgreSQL"
 
+notes: []
+
 identifiers:
   case: AS_IS
   quote: { start: "\"", end: "\"" }

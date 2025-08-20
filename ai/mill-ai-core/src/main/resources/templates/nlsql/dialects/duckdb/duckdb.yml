@@ -1,5 +1,5 @@
-id: TRINO
-name: "Trino"
+id: DUCKDB
+name: "DuckDB"
 
 notes: []
 
@@ -14,7 +14,7 @@ literals:
     quote: "'"
     concat: "||"
     escape: STANDARD
-    note: "Use single quotes for string literals; concatenation with ||."
+    note: "Use single quotes for strings; concatenate with ||."
   booleans: ["TRUE","FALSE"]
   null: "NULL"
   dates-times:
@@ -23,7 +23,7 @@ literals:
       quote: "'"
       pattern: "YYYY-MM-DD"
       notes:
-        - "ANSI DATE literal format."
+        - "ANSI DATE literal."
     time:
       syntax: "TIME 'HH:MI:SS'"
       quote: "'"
@@ -35,15 +35,15 @@ literals:
       quote: "'"
       pattern: "YYYY-MM-DD HH:MI:SS"
       notes:
-        - "Use TIMESTAMP with or without time zone per use case."
+        - "TIMESTAMP WITH/WITHOUT TIME ZONE supported by engine settings."
     interval:
       supported: true
       style: ANSI
       notes:
-        - "ANSI INTERVAL syntax (e.g., INTERVAL '1' DAY)."
+        - "Use ANSI INTERVAL (e.g., INTERVAL '1 day') or arithmetic with INTERVAL."
 
 joins:
-  style: "explicit"                  # options: explicit | implicit
+  style: "explicit"
   cross-join:
     enabled: true
     keyword: "CROSS JOIN"
@@ -57,21 +57,21 @@ joins:
     null-safe: false
     require-on: true
   right-join:
-    keyword: "RIGHT JOIN"
     enabled: true
+    keyword: "RIGHT JOIN"
     null-safe: false
     require-on: true
   full-join:
-    keyword: "FULL JOIN"
     enabled: true
+    keyword: "FULL JOIN"
     null-safe: false
     require-on: true
   on-clause:
     keyword: "ON"
-    require-condition: true         # disallow NATURAL JOIN or USING
+    require-condition: true
 
 ordering:
-  order-by-nulls: "NULLS FIRST/LAST"   # both modifiers supported
+  order-by-nulls: "NULLS FIRST/LAST"   # explicit modifiers supported
 
 paging:
   limit: "LIMIT {n}"
@@ -124,11 +124,13 @@ operators:
 
   casting:
     - { symbol: "CAST",     syntax: "CAST({expr} AS {type})", description: "Explicit type cast", supported: true }
-    - { symbol: "TRY_CAST", syntax: "TRY_CAST({expr} AS {type})", description: "Null on cast failure", supported: true }
+    - { symbol: "TRY_CAST", syntax: "TRY_CAST({expr} AS {type})", description: "Returns NULL on cast failure", supported: true }
 
   regex:
-    # Trino uses regex *functions*; there are no regex *operators* like ~, ~*, etc.
-    - { symbol: "", description: "No regex operators; use REGEXP_* functions instead" }
+    - { symbol: "~",   description: "Regex match (case-sensitive)" }
+    - { symbol: "~*",  description: "Regex match (case-insensitive)" }
+    - { symbol: "!~",  description: "Regex does not match (case-sensitive)" }
+    - { symbol: "!~*", description: "Regex does not match (case-insensitive)" }
 
 functions:
   strings:
@@ -137,6 +139,12 @@ functions:
       syntax: "LENGTH(text)"
       args:
         - { name: "text", type: STRING, required: true, notes: "Character length." }
+
+    - name: "CHAR_LENGTH"
+      return: { type: INTEGER, nullable: false }
+      syntax: "CHAR_LENGTH(text)"
+      args:
+        - { name: "text", type: STRING, required: true, notes: "Alias for LENGTH (characters)." }
 
     - name: "LOWER"
       return: { type: STRING, nullable: true }
@@ -150,13 +158,49 @@ functions:
       args:
         - { name: "text", type: STRING, required: true }
 
-    - name: "SUBSTRING"
+    - name: "INITCAP"
       return: { type: STRING, nullable: true }
-      syntax: "SUBSTRING(text, start[, length])"
+      syntax: "INITCAP(text)"
+      args:
+        - { name: "text", type: STRING, required: true, notes: "Capitalize words." }
+
+    - name: "SUBSTRING"
+      synonyms: ["SUBSTR"]
+      return: { type: STRING, nullable: true }
+      syntax: "SUBSTRING(text FROM start FOR length)"
       args:
         - { name: "text", type: STRING, required: true, notes: "Source string." }
         - { name: "start", type: INTEGER, required: true, min: 1, notes: "1-based index." }
         - { name: "length", type: INTEGER, required: false, min: 0, notes: "Optional length." }
+
+    - name: "LEFT"
+      return: { type: STRING, nullable: true }
+      syntax: "LEFT(text, n)"
+      args:
+        - { name: "text", type: STRING, required: true }
+        - { name: "n", type: INTEGER, required: true, min: 0 }
+
+    - name: "RIGHT"
+      return: { type: STRING, nullable: true }
+      syntax: "RIGHT(text, n)"
+      args:
+        - { name: "text", type: STRING, required: true }
+        - { name: "n", type: INTEGER, required: true, min: 0 }
+
+    - name: "TRIM"
+      return: { type: STRING, nullable: true }
+      syntax: "TRIM([LEADING|TRAILING|BOTH] [chars] FROM text)"
+      args:
+        - { name: "chars", type: STRING, required: false }
+        - { name: "text", type: STRING, required: true }
+
+    - name: "REPLACE"
+      return: { type: STRING, nullable: true }
+      syntax: "REPLACE(text, from_str, to_str)"
+      args:
+        - { name: "text", type: STRING, required: true }
+        - { name: "from_str", type: STRING, required: true }
+        - { name: "to_str", type: STRING, required: true }
 
     - name: "CONCAT"
       return: { type: STRING, nullable: true }
@@ -169,31 +213,9 @@ functions:
       return: { type: STRING, nullable: true }
       syntax: "CONCAT_WS(sep, a, b, ...)"
       args:
-        - { name: "sep", type: STRING, required: true, notes: "Separator." }
+        - { name: "sep", type: STRING, required: true }
         - { name: "a", type: STRING, required: true }
         - { name: "b", type: STRING, required: true, variadic: true }
-
-    - name: "POSITION"
-      return: { type: INTEGER, nullable: true }
-      syntax: "POSITION(substr IN text)"
-      args:
-        - { name: "substr", type: STRING, required: true }
-        - { name: "text", type: STRING, required: true }
-
-    - name: "REPLACE"
-      return: { type: STRING, nullable: true }
-      syntax: "REPLACE(text, from_str, to_str)"
-      args:
-        - { name: "text", type: STRING, required: true }
-        - { name: "from_str", type: STRING, required: true }
-        - { name: "to_str", type: STRING, required: true }
-
-    - name: "TRIM"
-      return: { type: STRING, nullable: true }
-      syntax: "TRIM([LEADING|TRAILING|BOTH] [chars] FROM text)"
-      args:
-        - { name: "chars", type: STRING, required: false, notes: "Characters to trim (optional)." }
-        - { name: "text", type: STRING, required: true }
 
     - name: "SPLIT_PART"
       return: { type: STRING, nullable: true }
@@ -201,15 +223,15 @@ functions:
       args:
         - { name: "text", type: STRING, required: true }
         - { name: "delimiter", type: STRING, required: true }
-        - { name: "index", type: INTEGER, required: true, min: 1, notes: "1-based part index." }
+        - { name: "index", type: INTEGER, required: true, min: 1 }
 
   regex:
     - name: "REGEXP_LIKE"
       return: { type: BOOLEAN, nullable: false }
-      syntax: "REGEXP_LIKE(text, pattern)"
+      syntax: "text ~ pattern"
       args:
-        - { name: "text", type: STRING, required: true }
-        - { name: "pattern", type: PATTERN, required: true }
+        - { name: "text", type: STRING, required: true, notes: "Left-hand expression." }
+        - { name: "pattern", type: PATTERN, required: true, notes: "POSIX regex pattern." }
 
     - name: "REGEXP_REPLACE"
       return: { type: STRING, nullable: true }
@@ -227,28 +249,20 @@ functions:
         - { name: "pattern", type: PATTERN, required: true }
         - { name: "group", type: INTEGER, required: false, min: 0, notes: "Capture group index; 0 for full match." }
 
-    - name: "REGEXP_EXTRACT_ALL"
-      return: { type: STRING, nullable: true }
-      syntax: "REGEXP_EXTRACT_ALL(text, pattern)"
-      args:
-        - { name: "text", type: STRING, required: true }
-        - { name: "pattern", type: PATTERN, required: true }
-      # Note: actually returns array; adapt if you model ARRAY type later.
-
   numerics:
     - name: "ROUND"
       return: { type: DECIMAL, nullable: true }
       syntax: "ROUND(num[, digits])"
       args:
         - { name: "num", type: DECIMAL, required: true }
-        - { name: "digits", type: INTEGER, required: false }
+        - { name: "digits", type: INTEGER, required: false, min: 0 }
 
-    - name: "TRUNCATE"
+    - name: "TRUNC"
       return: { type: DECIMAL, nullable: true }
-      syntax: "TRUNCATE(num[, digits])"
+      syntax: "TRUNC(num[, digits])"
       args:
         - { name: "num", type: DECIMAL, required: true }
-        - { name: "digits", type: INTEGER, required: false }
+        - { name: "digits", type: INTEGER, required: false, min: 0 }
 
     - name: "CEIL"
       synonyms: ["CEILING"]
@@ -314,11 +328,18 @@ functions:
       args:
         - { name: "expr", type: DECIMAL, required: true }
 
-    - name: "APPROX_DISTINCT"
-      return: { type: INTEGER, nullable: true }
-      syntax: "APPROX_DISTINCT(expr)"
+    - name: "STRING_AGG"
+      return: { type: STRING, nullable: true }
+      syntax: "STRING_AGG(text, delimiter)"
       args:
-        - { name: "expr", type: COLUMN_REF, required: true }
+        - { name: "text", type: STRING, required: true }
+        - { name: "delimiter", type: STRING, required: true }
+
+    - name: "LIST"
+      return: { type: STRING, nullable: true }
+      syntax: "LIST(expr)"
+      args:
+        - { name: "expr", type: COLUMN_REF, required: true, notes: "Returns array/list; model as STRING if arrays unsupported." }
 
   dates_times:
     - name: "CURRENT_DATE"
@@ -343,35 +364,32 @@ functions:
         - { name: "unit", type: ENUM, required: true, enum: ["year","quarter","month","week","day","hour","minute","second"], notes: "Truncation unit." }
         - { name: "ts", type: TIMESTAMP, required: true }
 
-    - name: "DATE_ADD"
-      return: { type: TIMESTAMP, nullable: false }
-      syntax: "DATE_ADD(unit, value, ts)"
+    - name: "EXTRACT"
+      return: { type: INTEGER, nullable: true }
+      syntax: "EXTRACT(field FROM ts)"
       args:
-        - { name: "unit", type: ENUM, required: true, enum: ["year","quarter","month","week","day","hour","minute","second"] }
-        - { name: "value", type: INTEGER, required: true }
+        - { name: "field", type: ENUM, required: true, enum: ["YEAR","MONTH","DAY","HOUR","MINUTE","SECOND","DOW","DOY","WEEK","QUARTER"] }
         - { name: "ts", type: TIMESTAMP, required: true }
 
-    - name: "DATE_DIFF"
-      return: { type: INTEGER, nullable: false }
-      syntax: "DATE_DIFF(unit, ts1, ts2)"
-      args:
-        - { name: "unit", type: ENUM, required: true, enum: ["year","quarter","month","week","day","hour","minute","second"] }
-        - { name: "ts1", type: TIMESTAMP, required: true, notes: "Start timestamp." }
-        - { name: "ts2", type: TIMESTAMP, required: true, notes: "End timestamp." }
-
-    - name: "DATE_PARSE"
+    - name: "STRPTIME"
       return: { type: TIMESTAMP, nullable: false }
-      syntax: "DATE_PARSE(text, format)"
+      syntax: "STRPTIME(text, format)"
       args:
         - { name: "text", type: STRING, required: true }
-        - { name: "format", type: STRING, required: true, notes: "Java SimpleDateFormat-like patterns." }
+        - { name: "format", type: STRING, required: true, notes: "Parse string to timestamp." }
 
-    - name: "DATE_FORMAT"
+    - name: "STRFTIME"
       return: { type: STRING, nullable: false }
-      syntax: "DATE_FORMAT(ts, format)"
+      syntax: "STRFTIME(ts, format)"
       args:
         - { name: "ts", type: TIMESTAMP, required: true }
-        - { name: "format", type: STRING, required: true }
+        - { name: "format", type: STRING, required: true, notes: "Format timestamp to string." }
+
+    - name: "EPOCH_MS"
+      return: { type: BIGINT, nullable: false }
+      syntax: "EPOCH_MS(ts)"
+      args:
+        - { name: "ts", type: TIMESTAMP, required: true, notes: "Milliseconds since epoch from timestamp." }
 
   conditionals:
     - name: "COALESCE"
@@ -387,16 +405,21 @@ functions:
         - { name: "a", type: STRING, required: true }
         - { name: "b", type: STRING, required: true }
 
-    - name: "IF"
+    - name: "GREATEST"
       return: { type: STRING, nullable: true }
-      syntax: "IF(condition, true_value, false_value)"
+      syntax: "GREATEST(a, b, ...)"
+      args:
+        - { name: "a", type: STRING, required: true, variadic: true }
+
+    - name: "LEAST"
+      return: { type: STRING, nullable: true }
+      syntax: "LEAST(a, b, ...)"
+      args:
+        - { name: "a", type: STRING, required: true, variadic: true }
+
+    - name: "CASE"
+      return: { type: STRING, nullable: true }
+      syntax: "CASE WHEN condition THEN result [ELSE result] END"
       args:
         - { name: "condition", type: BOOLEAN, required: true }
-        - { name: "true_value", type: STRING, required: true }
-        - { name: "false_value", type: STRING, required: true }
-
-    - name: "TRY"
-      return: { type: STRING, nullable: true }
-      syntax: "TRY(expr)"
-      args:
-        - { name: "expr", type: STRING, required: true, notes: "Returns NULL if evaluation fails." }
+        - { name: "result", type: STRING, required: true, variadic: true }
