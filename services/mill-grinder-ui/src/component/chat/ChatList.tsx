@@ -1,5 +1,5 @@
 import {Box, Menu, NavLink, ScrollArea, UnstyledButton, useMantineTheme} from "@mantine/core";
-import {TbStar, TbStarFilled, TbTrash} from "react-icons/tb";
+import {TbDotsVertical, TbStar, TbStarFilled, TbTrash} from "react-icons/tb";
 import {Link} from "react-router";
 import type {Chat} from "../../api/mill";
 import {unMarkChatFavorite,markChatFavorite,deleteChat} from "./mockData.ts";
@@ -14,7 +14,7 @@ export function ChatList() {
         return (
             <Menu shadow="md" width={200} position="right-start">
                 <Menu.Target>
-                    <UnstyledButton w={20} h={20}>...</UnstyledButton>
+                    <UnstyledButton w={20} h={20}><TbDotsVertical/></UnstyledButton>
                 </Menu.Target>
 
                 <Menu.Dropdown>
@@ -31,17 +31,17 @@ export function ChatList() {
     return (
         <ScrollArea type="hover" style={{ minHeight: "100%"}}>
             <Box w={350} m={0} pl={10} pr={10} pt={10} style={{ height: "100vh", width: "100%", boxSizing: "border-box", borderRight: `1px solid ${theme.colors.gray[3]}` }}>
-                <Box mt={6} p={1} bg="transparent" style={{borderRadius: 6}} key="new-chat">
+                <Box mt={6} p={1} mb={2} bg="transparent" style={{borderRadius: 6}} key="new-chat">
                     <NavLink c="blue" key={"new-chat"} to="/chat" component={Link} label="New Chat+" p={0} m={0}/>
                 </Box>
                 {chats.list.map((chat: Chat) => (
-                    <Box mt={6} p={1} bg={ chats.activeId === chat.id ? "gray.3" : "transparent"} style={{borderRadius: 6}} key={chat.id}>
+                    <Box mt={6} p={0} bg={ chats.activeId === chat.id ? "gray.3" : "transparent"} style={{borderRadius: 6}} key={chat.id}>
                         <NavLink
                             to={`/chat/${chat.id}`}
                             key={chat.id}
                             component={Link}
                             label={chat.name}
-                            p={0} m={0}
+                            p={3} m={0}
                             leftSection={chat.isFavorite ? <TbStar size={14} color={theme.colors.yellow[6]} /> : <></>}
                             rightSection={linkMenu(chat)}
                             style={{

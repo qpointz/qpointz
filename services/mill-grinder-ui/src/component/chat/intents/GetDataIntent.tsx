@@ -14,7 +14,7 @@ export default function GetDataIntent(data: any) {
     const chart = message?.content?.chart || {};
     const hasChart = chart?.type && chart?.type !== 'none';
     return (
-        <Box bg="white" p={20} m={10} key={message.id} maw={"70%"} >
+        <Box bg="white" p={20} m={10} key={message.id} maw={"70%"} style={{borderRadius: 10}}>
             <Group>
                 { hasChart && ( <><TbChartBar/><Title order={4}>Chart</Title></> )}
                 { !hasChart && ( <><TbDatabase/><Title order={4}>Query</Title></> )}

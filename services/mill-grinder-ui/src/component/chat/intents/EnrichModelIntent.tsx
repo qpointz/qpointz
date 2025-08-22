@@ -1,4 +1,4 @@
-import {Title, Text, Card, Group, Pill, Tabs, Button, NavLink, Box, Stack} from "@mantine/core";
+import {Title, Text, Group, Pill, Tabs, Button, NavLink, Box, Stack} from "@mantine/core";
 import {
     TbBlocks,
     TbBucket,
@@ -130,7 +130,8 @@ export default function EnrichModelIntent(data:any = {}) {
     const renderEnrichment = (e:any) => {
         const tags = e.tags || [];
         return (
-                <Card>
+            <>
+                <Box bg="white" p={20} m={10} maw={"70%"} >
                     <Group>
                         {(enrichmentIcon(e))}
                         <Title order={5}>{e.type}</Title>
@@ -140,19 +141,20 @@ export default function EnrichModelIntent(data:any = {}) {
                         { e.category && (<Group><Text c="primary.4" size="xs">Category:</Text><Link to={"/explore/category/" + e.category}><Pill bg="success.1">{ e.category }</Pill></Link></Group>)}
                         { (tags && tags.length>0) && <Group><Text c="primary.4" size="xs">Tags:</Text>{renderTags(tags)}</Group> }
                     </Group>
-                    { renderEnrichmentDetails(e)}
-                    <Group mt={12} justify="flex-end">
-                        <Button variant="outline" color="danger">Reject</Button>
-                        <Button variant="outline" color="success">Accept</Button>
-                        <Button variant="outline" >Promote</Button>
-                    </Group>
-                </Card>
+                    { renderEnrichmentDetails(e)}                    
+                </Box>
+                <Group mt={12} justify="flex-end">
+                    <Button variant="outline" size="xs" color="danger">Reject</Button>
+                    <Button variant="outline" size="xs"color="success">Accept</Button>
+                    <Button variant="outline" size="xs">Promote</Button>
+                </Group>
+            </>
         );
     }
 
     return (
         <>
-            <Box bg="white" p={20} m={10} key={data.message.id}>
+            <Box bg="white" p={20} m={10} key={data.message.id} maw={"70%"} style={{borderRadius: 10}}> 
                 <Group><TbSpeakerphone/><Title order={4}>Enrichment</Title></Group>
                 { enrichments.map((e:any) => (renderEnrichment(e))) }
             </Box>

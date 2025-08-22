@@ -23,7 +23,7 @@ function ExplainIntent(data: any) {
     }
 
     return (
-        <Box bg="white" p={12} m={4} style={{borderRadius: 10}}>
+        <Box bg="white" p={12} m={4} style={{borderRadius: 10}} maw={"70%"}>
             <Group><TbSchool/><Title order={4}>Explain</Title></Group>
             {(renderDescription(data?.message?.content?.description || ''))}
         </Box>

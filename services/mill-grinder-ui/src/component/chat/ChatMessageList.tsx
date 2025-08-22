@@ -16,7 +16,14 @@ export function ChatMessageListRender() {
         return (
             <Box key={message.id} maw="70%" bg="primary.1" p={10} mb={10}
                  style={{borderRadius: 10, alignSelf: "flex-end", minWidth: "400px"}}>
-                <Text>{message.message}</Text>
+                <Text>
+                    {(message?.message ?? '').split('\n').map((line, idx, arr) => (
+                        <span key={idx}>
+                            {line}
+                            {idx < arr.length - 1 && <br />}
+                        </span>
+                    ))}                    
+                </Text>
             </Box>
         )
     }

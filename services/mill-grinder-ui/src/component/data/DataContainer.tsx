@@ -1,5 +1,6 @@
 import {useReactTable, flexRender, createColumnHelper, getCoreRowModel} from "@tanstack/react-table";
-import {ScrollArea, Table} from "@mantine/core";
+import {ScrollArea, Table, Group, Button, Menu} from "@mantine/core";
+import {TbChevronLeft, TbChevronRight, TbDownload, TbShare} from "react-icons/tb";
 
 export default function DataContainer(input: any) {
     const container = input.data || {} ;
@@ -22,13 +23,40 @@ export default function DataContainer(input: any) {
     })
 
     return (
-        <ScrollArea scrollbars="xy" type={"auto"} offsetScrollbars={true} scrollbarSize={15} mah={"80%"} >
-            <Table>
+        <>
+        <ScrollArea
+            scrollbars="xy"
+            type="auto"
+            offsetScrollbars={true}
+            scrollbarSize={15}
+            mah="80%"
+            style={{ width: "100%" }}
+        >
+            <Table
+                style={{
+                    tableLayout: "auto",
+                    minWidth: "max-content",
+                    width: "100%",
+                    whiteSpace: "nowrap"
+                }}
+            >
                 <Table.Thead>
                     {table.getHeaderGroups().map(headerGroup => (
                         <Table.Tr key={headerGroup.id}>
                             {headerGroup.headers.map(header => (
-                                <Table.Th key={header.column.columnDef.id} style={{position: 'sticky', top: 0, background: 'white', zIndex: 1}}>
+                                <Table.Th
+                                    key={header.column.columnDef.id}
+                                    style={{
+                                        position: 'sticky',
+                                        top: 0,
+                                        background: 'white',
+                                        zIndex: 1,
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        maxWidth: 300
+                                    }}
+                                >
                                     {header.isPlaceholder
                                         ? null
                                         : flexRender(
@@ -44,13 +72,72 @@ export default function DataContainer(input: any) {
                     {table.getRowModel().rows.map(row => (
                         <Table.Tr key={row.id}>
                             {row.getVisibleCells().map(cell => (
-                                <Table.Td key={cell.column.columnDef.id}>
+                                <Table.Td
+                                    key={cell.column.columnDef.id}
+                                    style={{
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        maxWidth: 300
+                                    }}
+                                >
                                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                 </Table.Td>
                             ))}
-                        </Table.Tr>))}
+                        </Table.Tr>
+                    ))}
                 </Table.Tbody>
             </Table>
         </ScrollArea>
+        {/* Toolbar with paging and export menu */}
+        <Group justify="space-between" mt="xs" px="xs">
+            <Group>
+                <Button
+                    variant="subtle"
+                    leftSection={<TbChevronLeft size={16} />}
+                    size="xs"
+                    // onClick={handlePrevPage}
+                    disabled
+                >
+                    Prev
+                </Button>
+                <Button
+                    variant="subtle"
+                    rightSection={<TbChevronRight size={16} />}
+                    size="xs"
+                    // onClick={handleNextPage}
+                    disabled
+                >
+                    Next
+                </Button>
+            </Group>
+            <Group mt={12} justify="flex-end">
+            <Button
+                        variant="outline"
+                        leftSection={<TbShare size={16} />}
+                        size="xs"
+                    >
+                        Share
+                    </Button>
+            <Menu shadow="md" width={160} position="bottom-end">
+                <Menu.Target>
+                    <Button
+                        variant="outline"
+                        leftSection={<TbDownload size={16} />}
+                        size="xs"
+                    >
+                        Export
+                    </Button>
+                </Menu.Target>
+                <Menu.Dropdown>
+                    <Menu.Item>Export as Excel</Menu.Item>
+                    <Menu.Item>Export as CSV</Menu.Item>
+                </Menu.Dropdown>
+            </Menu>
+            </Group>
+        </Group>
+        </>
     )
+    // Tiny toolbar with paging links
+    
 }
