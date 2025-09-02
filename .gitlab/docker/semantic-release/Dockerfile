@@ -1,4 +1,4 @@
-FROM gitlab.qpointz.io/qpointz/dependency_proxy/containers/node:21.7-alpine3.18
+ FROM node:24-alpine
 
 RUN apk add git jq && \
     npm install -g semantic-release semantic-release-unsquash @semantic-release/exec \

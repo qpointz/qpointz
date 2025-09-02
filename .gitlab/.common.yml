@@ -1,0 +1,6 @@
+include:
+  - local : /.gitlab/.rules.yml 
+  - local : /.gitlab/.jobs.yml
+  - local : /.gitlab/.vars.yml
+
+    

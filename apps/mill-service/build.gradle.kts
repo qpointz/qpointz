@@ -21,6 +21,7 @@ copyDistro("installBootDist", "boot")
 
 fun copyDistro(tk:String, distributionName: String) {
     tasks.findByName(tk)!!.doLast {
+        logger.warn("Copy copy")
         val distBaseName = distributions.getByName(distributionName).distributionBaseName.get()
         val buildDir = project.layout.buildDirectory
         val outDir = buildDir.dir("install/${distBaseName}").get()

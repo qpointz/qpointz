@@ -1,0 +1,17 @@
+stages:
+  - init
+  - integration
+
+workflow:
+  rules:
+    - when: always
+
+init:
+  stage: init
+  script:
+    - echo "Integration build"
+
+integration:
+  stage: integration
+  script:
+    - echo "Integration build"

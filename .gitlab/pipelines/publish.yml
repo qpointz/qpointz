@@ -1,0 +1,29 @@
+stages:
+  - init
+  - package
+  - publish
+
+workflow:
+  rules:
+    - when: always  
+
+init:
+  stage: init
+  script:
+    - echo "Publish init"
+
+package:
+  stage: package
+  trigger:    
+    strategy: mirror
+    include:
+      - local: .gitlab/pipelines/package.yml        
+        inputs:
+          package-local-only: "false"
+    
+integration:
+  stage: publish
+  script:
+    - echo "Publish run"
+
+

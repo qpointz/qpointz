@@ -1,4 +1,4 @@
-FROM gitlab.qpointz.io/qpointz/dependency_proxy/containers/golang:latest
+FROM golang:latest
 
 ENV TEST='TestPass1234'
 

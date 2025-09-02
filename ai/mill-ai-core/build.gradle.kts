@@ -40,7 +40,6 @@ testing {
 
         configureEach {
             if (this is JvmTestSuite) {
-                logger.warn(this.name)
                 useJUnitJupiter(libs.versions.junit.get())
 
                 dependencies {

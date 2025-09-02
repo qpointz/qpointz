@@ -1,0 +1,26 @@
+
+
+.core-changes: &core-changes
+  changes: 
+    - core/**/*
+  when: always
+
+.services-changes: &services-changes
+  changes: 
+    - services/**/*
+  when: always
+
+.flow-changes: &flow-changes
+  changes: 
+    - flow/**/*
+  when: always
+
+.ai-changes: &ai-changes
+  changes: 
+    - ai/**/*
+  when: always
+
+.apps-changes: &apps-changes
+  changes: 
+    - apps/**/*
+  when: always

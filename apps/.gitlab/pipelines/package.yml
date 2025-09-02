@@ -1,0 +1,46 @@
+spec:
+  inputs:
+    package-local-only: 
+      default: "true"
+      description: "Package local only"
+      options:  
+        - "true"
+        - "false"
+---
+include:  
+  - local : /.gitlab/.common.yml
+
+stages:  
+  - build
+  - package  
+
+workflow:
+  rules:
+    - when : always  
+
+init-version:
+  stage: build
+  extends: .get-build-version
+
+install-dist:
+  extends: .gradle-job
+  stage: build
+  script:
+    - cd ${CI_PROJECT_DIR}/apps
+    - ./gradlew --no-daemon --console plain clean installBootDist
+    - mkdir -p ${CI_PROJECT_DIR}/apps/mill-service/build/test/datasets/
+    - cp -r ${CI_PROJECT_DIR}/test/datasets/moneta ${CI_PROJECT_DIR}/apps/mill-service/build/test/datasets/
+  artifacts:
+    expire_in: "5 days"
+    paths:
+      - ${CI_PROJECT_DIR}/apps/**/build/install/**/*
+      - ${CI_PROJECT_DIR}/apps/mill-service/build/test/datasets/**/*
+
+build-docker:
+  stage: package
+  extends: .docker-build-job
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : mill-service
+    DOCKER_LOCAL_ONLY: $[[ inputs.package-local-only ]]

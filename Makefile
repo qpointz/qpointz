@@ -3,7 +3,8 @@ SHELL := /bin/bash
 .PHONY: help build test clean ai-test svc-build \
 	ui-install ui-dev ui-build ui-preview ui-lint ui-lint-fix ui-clean ui-test \
 	ui-type-check ui-format ui-deps-check ui-rebuild ui-dev-setup ui-generate-api \
-	ui-api-clean ui-deploy
+	ui-api-clean ui-deploy tools-build-info tools-build-sem-release \
+	tools-build-minica tools-build-deploy-tools tools-build-all
 
 help:
 	@echo "Available targets:"
@@ -32,6 +33,13 @@ help:
 	@echo "  make ui-generate-api # Generate API client from OpenAPI spec"
 	@echo "  make ui-api-clean    # Remove generated API client files"
 	@echo "  make ui-deploy       # Build UI artifacts for service packaging"
+	@echo ""
+	@echo "Tools (CI/CD build images):"
+	@echo "  make tools-build-info        # Display build tools version and registry"
+	@echo "  make tools-build-sem-release # Build and push semantic-release image"
+	@echo "  make tools-build-minica      # Build and push minica image"
+	@echo "  make tools-build-deploy-tools # Build and push deploy-tools image"
+	@echo "  make tools-build-all         # Build and push all tool images"
 
 build:
 	./gradlew build
@@ -108,3 +116,27 @@ ui-api-clean:
 ui-deploy: ui-clean ui-install ui-build
 	@echo "Production build complete!"
 	@echo "Files are in services/mill-grinder-service/src/main/resources/static/app"
+
+BUILD_TOOLS_VERSION := $(shell grep "BUILD_TOOLS_VERSION:" .gitlab/vars.yml | awk '{print $$2}')
+BUILD_TOOLS_REGISTRY := $(shell grep "BUILD_TOOLS_REGISTRY:" .gitlab/vars.yml | awk '{print $$2}')
+
+tools-build-info:
+	@echo "Version: $(BUILD_TOOLS_VERSION)" 
+	@echo "Registry: $(BUILD_TOOLS_REGISTRY)"
+	
+tools-build-sem-release:
+	cd .gitlab/docker/semantic-release && \
+	docker build -t $(BUILD_TOOLS_REGISTRY)/semantic-release:$(BUILD_TOOLS_VERSION) . && \
+	docker push $(BUILD_TOOLS_REGISTRY)/semantic-release:$(BUILD_TOOLS_VERSION)
+
+tools-build-minica:
+	cd .gitlab/docker/minica && \
+	docker build -t $(BUILD_TOOLS_REGISTRY)/minica:$(BUILD_TOOLS_VERSION) . && \
+	docker push $(BUILD_TOOLS_REGISTRY)/minica:$(BUILD_TOOLS_VERSION)
+
+tools-build-deploy-tools:
+	cd .gitlab/docker/deploy-tools && \
+	docker build -t $(BUILD_TOOLS_REGISTRY)/deploy-tools:$(BUILD_TOOLS_VERSION) . && \
+	docker push $(BUILD_TOOLS_REGISTRY)/deploy-tools:$(BUILD_TOOLS_VERSION)
+
+tools-build-all: tools-build-sem-release tools-build-minica tools-build-deploy-tools

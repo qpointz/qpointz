@@ -1,67 +1,17 @@
 include:  
-  - local : /.gitlab/jobs.yml
+  - local : /.gitlab/.common.yml
 
 stages:  
-  - test 
-  - package
+  - build  
 
 workflow:
   rules:
-    - when : always
-
-variables:
-  GIT_CLEAN_FLAGS: >-
-      -ffdx
-      -e .gradle-home/
-      -e **/.gradle/  
-  GIT_STRATEGY: fetch        
-  GIT_DEPTH: "1"             
-  GIT_CLEAN_FLAGS: none      
-  GIT_SUBMODULE_STRATEGY: none  
-  GIT_LFS_SKIP_SMUDGE: "1"  
-     
+    - when : always  
+ 
 test:
-  stage: test
+  stage: build
   extends: .gradle-job
   script:
     - echo $HOME
     - cd ${CI_PROJECT_DIR}/apps
     - ./gradlew --no-daemon --console plain test check
-
-
-install-dist:
-  extends: .gradle-job
-  stage: package
-#  needs:
-#    - job: mill:init-version
-#      artifacts: true
-#    - job: mill:ui:sql-chat
-#      artifacts: true
-#    - job: mill:ui:grinder
-#      artifacts: true
-  script:
-    - cd ${CI_PROJECT_DIR}/apps
-    - ./gradlew --no-daemon --console plain clean installBootDist
-    - mkdir -p ${CI_PROJECT_DIR}/apps/mill-service/build/test/datasets/
-    - cp -r ${CI_PROJECT_DIR}/test/datasets/moneta ${CI_PROJECT_DIR}/apps/mill-service/build/test/datasets/
-  artifacts:
-    expire_in: "5 days"
-    paths:
-      - ${CI_PROJECT_DIR}/apps/**/build/install/**/*
-#      - ${CI_PROJECT_DIR}/mill/**/build/distributions/*.tar
-#      - ${CI_PROJECT_DIR}/mill/**/build/distributions/*.zip
-#      - ${CI_PROJECT_DIR}/mill/**/build/install/*.tar
-#      - ${CI_PROJECT_DIR}/mill/**/build/install/*.zip
-      - ${CI_PROJECT_DIR}/apps/mill-service/build/test/datasets/**/*
-
-
-build-docker:
-  stage: package
-  extends: .docker-build-job
-  variables:
-    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
-    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/Dockerfile
-    DOCKER_BUILD_CONTAINER_NAME : mill-service
-  needs:
-    - job: install-dist
-      artifacts: true

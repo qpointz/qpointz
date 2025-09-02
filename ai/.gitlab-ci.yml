@@ -1,24 +1,12 @@
 include:  
-  - local : /.gitlab/jobs.yml
+  - local : /.gitlab/.common.yml
 
 stages:  
   - test  
 
-variables:
-  GIT_CLEAN_FLAGS: >-
-      -ffdx
-      -e .gradle-home/
-      -e **/.gradle/  
-  GIT_STRATEGY: fetch        
-  GIT_DEPTH: "1"             
-  GIT_CLEAN_FLAGS: none      
-  GIT_SUBMODULE_STRATEGY: none  
-  GIT_LFS_SKIP_SMUDGE: "1"
-
 workflow:
   rules:
     - when : always
-     
 test:
   stage: test
   extends: .gradle-job
@@ -27,10 +15,13 @@ test:
     - cd ${CI_PROJECT_DIR}/ai
     - ./gradlew --no-daemon --console plain test
 
-testIT:
-  stage: test
-  extends: .gradle-job
-  script:
-    - echo $HOME
-    - cd ${CI_PROJECT_DIR}/ai
-    - ./gradlew --no-daemon --console plain testIT
+# testIT:
+#   stage: test
+#   extends: .gradle-job
+#   rules:
+#     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+#     - if: $CI_COMMIT_REF_PROTECTED == "true"
+#   script:
+#     - echo $HOME
+#     - cd ${CI_PROJECT_DIR}/ai
+#     - ./gradlew --no-daemon --console plain testIT

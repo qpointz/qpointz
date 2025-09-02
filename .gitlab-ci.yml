@@ -1,103 +1,165 @@
 stages:
-  - build
+  - Modules    
+  - Package
+  - Integration
+  - Publish 
+
+variables:
+  RUN_INTEGRATION: 
+    value: "false"
+    description: "Run integration pipelines"    
+    options:
+      - "true"
+      - "false"
+  RUN_PUBLISH: 
+    value: "false"
+    description: "Publish artifacts"    
+    options:
+      - "true"
+      - "false"
+
+.if-protected: &if-protected
+  if: $CI_COMMIT_REF_PROTECTED == "true"
+  when: always
+
+.if-mr: &if-mr
+  if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  when: always
+
+.build-changes: &build-changes
+  changes:
+    - .gitlab-ci.yml
+    - .gitlab/**/*
+    - build-logic/**/*
+  when: always
+
+package:
+  stage: Package
+  trigger:    
+    strategy: mirror
+    include:
+      - local: .gitlab/pipelines/package.yml        
+        inputs:
+          package-local-only: "true"
+  rules:
+    - when: always  
+
+integration:
+  stage: Integration
+  trigger:
+    strategy: mirror
+    include:    
+      - local: .gitlab/pipelines/integration.yml    
+  rules:
+    - *if-protected
+    - *if-mr    
+    - if: $RUN_INTEGRATION == "true"
+      when: always
+    
+publish:
+  stage: Publish
+  trigger:    
+    strategy: mirror
+    include:
+      - local: .gitlab/pipelines/package.yml        
+        inputs:
+          package-local-only: "true"
+  rules:
+    - *if-protected    
+    - if: $RUN_PUBLISH == "true"
+      when: always
+
+.build-base: &build-base
+  stage: Modules
+  inherit:
+    variables: true
+  trigger:
+    strategy: mirror
 
 # MINIMAL CI/CD ONLY UNIT TESTS
 core:build:
-  stage: build
-  inherit:
-    variables: false
+  extends: .build-base
   trigger:
+    strategy: mirror
     include:
       - local: core/.gitlab-ci.yml
-    strategy: depend
-  rules:        
-    - if: $CI_COMMIT_REF_PROTECTED == "true"
-      when: always
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: always
-    - changes:      
-        - .gitlab-ci.yml
-        - .gitlab/**/*
-        - gradle/**/*
-        - core/**/*        
+  rules:
+    - *if-protected
+    - *if-mr
+    - *build-changes
+    - changes:
+        - core/**/*
+      when: always    
+
+apps:build:
+  extends: .build-base  
+  trigger:
+    strategy: mirror
+    include:
+      - local: apps/.gitlab-ci.yml    
+  rules:
+    - *if-protected
+    - *if-mr
+    - *build-changes
+    - changes:
+        - apps/**/*
       when: always
 
 services:build:
-  stage: build
-  inherit:
-    variables: false
+  extends: .build-base
   trigger:
+    strategy: mirror
     include:
       - local: services/.gitlab-ci.yml
-    strategy: depend
-  rules:        
-    - if: $CI_COMMIT_REF_PROTECTED == "true"
+  rules:
+    - *if-protected
+    - *if-mr
+    - *build-changes
+    - changes:
+        - services/**/*
       when: always
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: always
-    - changes:      
-        - .gitlab-ci.yml
-        - .gitlab/**/*
-        - gradle/**/*
-        - services/**/*        
-      when: always 
 
-flow:build:
-  stage: build
-  inherit:
-    variables: false
-  trigger:
-    include:
-      - local: flow/.gitlab-ci.yml
-    strategy: depend
-  rules:        
-    - if: $CI_COMMIT_REF_PROTECTED == "true"
-      when: always
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: always
-    - changes:      
-        - .gitlab-ci.yml
-        - .gitlab/**/*
-        - gradle/**/*
-        - flow/**/*        
-      when: always
 
 ai:build:
-  stage: build
-  inherit:
-    variables: false
+  extends: .build-base
   trigger:
+    strategy: mirror
     include:
       - local: ai/.gitlab-ci.yml
-    strategy: depend
-  rules:        
-    - if: $CI_COMMIT_REF_PROTECTED == "true"
-      when: always
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: always
-    - changes:      
-        - .gitlab-ci.yml
-        - .gitlab/**/*
-        - gradle/**/*
-        - ai/**/*        
+  rules:
+    - *if-protected
+    - *if-mr
+    - *build-changes
+    - changes:
+        - ai/**/*
       when: always
 
-apps:build:
-  stage: build
-  inherit:
-    variables: false
+clients:build:
+  extends: .build-base
   trigger:
+    strategy: mirror
     include:
-      - local: apps/.gitlab-ci.yml
-    strategy: depend
-  rules:        
-    - if: $CI_COMMIT_REF_PROTECTED == "true"
+      - local: clients/.gitlab-ci.yml
+  rules:
+    - *if-protected
+    - *if-mr
+    - *build-changes
+    - changes:
+        - clients/**/*
       when: always
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: always
-    - changes:      
-        - .gitlab-ci.yml
-        - .gitlab/**/*
-        - gradle/**/*
-        - apps/**/*        
-      when: always                   
+  
+
+
+# flow:build:
+#   extends: .build-base
+#   trigger:
+#     strategy: mirror
+#     include:
+#       - local: flow/.gitlab-ci.yml
+#   rules:
+#     - *if-protected
+#     - *if-mr
+#     - *flow-changes
+#     - *build-changes
+
+                   

@@ -23,16 +23,57 @@
             QP_CONTAINER_TAG=${QP_CONTAINER_TAG}
           EOF
 
+
+.get-build-version:
+  stage: init
+  image: ${IMAGE_SEM_RELEASE}
+  variables:
+    GIT_STRATEGY: clone
+    GL_TOKEN: ${CI_PUSH_TOKEN}
+    GL_URL: "https://gitlab.qpointz.io"
+    GIT_DEPTH: 0
+  script:
+    - |
+      export BUILD_VERSION_SFX=""
+      if [[ "main" == "${CI_COMMIT_REF_SLUG}" || "rc" == "${CI_COMMIT_REF_SLUG}" ]]
+      then 
+        npx semantic-release --dry-run --no-ci --debug
+      else         
+        export BUILD_VERSION_SFX="-${CI_COMMIT_REF_SLUG}"
+        export REL_BRANCHES="--branches main,rc,$CI_COMMIT_REF_NAME"
+        npx semantic-release -b ${REL_BRANCHES} --dry-run --no-ci --debug
+        echo "Version suffix:${BUILD_VERSION_SFX}"    
+      fi
+    - echo $(cat ${CI_PROJECT_DIR}/VERSION)${BUILD_VERSION_SFX} > ${CI_PROJECT_DIR}/VERSION
+    - echo "BUILD VERSION:$(cat ${CI_PROJECT_DIR}/VERSION)"
+    - |
+      if [ -f "${CI_PROJECT_DIR}/VERSION" ]; then
+        export BUILD_VERSION=$(cat ${CI_PROJECT_DIR}/VERSION)
+        echo "BUILD_VERSION=${BUILD_VERSION}" >> version.env
+        echo "Exported BUILD_VERSION=${BUILD_VERSION} to dotenv"
+      else
+        echo "ERROR: VERSION file not found"
+        exit 1
+      fi
+  artifacts:
+    expire_in: "2 days"
+    paths:
+      - ${CI_PROJECT_DIR}/VERSION
+    reports:
+      dotenv: version.env
+
+
 .gradle-job:
   image:
     name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/azul/zulu-openjdk:17-latest
   variables:
     GRADLE_USER_HOME: ${CI_PROJECT_DIR}/.gradle-home      
   cache: &global_cache
-    key: $CI_COMMIT_REF_SLUG
+    key: ${CI_COMMIT_REF_SLUG}     
     paths:
       - ${CI_PROJECT_DIR}/**/.gradle
       - ${CI_PROJECT_DIR}/.gradle-home
+    policy: pull-push
 
 .docker-base:
     image: 

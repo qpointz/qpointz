@@ -1,4 +1,4 @@
-FROM gitlab.qpointz.io/qpointz/dependency_proxy/containers/debian:bookworm-slim 
+FROM debian:bookworm-slim 
 
 RUN apt-get update && \
     apt-get install -y gnupg software-properties-common wget apt-transport-https ca-certificates curl gnupg lsb-release jq && \

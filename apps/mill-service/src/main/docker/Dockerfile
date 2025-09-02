@@ -3,7 +3,7 @@ FROM azul/zulu-openjdk:17-latest AS openjdk
 
 RUN apt update && \
     apt install binutils -y && \
-      $JAVA_HOME/bin/jlink \
+      "$JAVA_HOME"/bin/jlink \
          --verbose \
          --add-modules ALL-MODULE-PATH \
          --strip-debug \
@@ -46,5 +46,3 @@ VOLUME /data
 WORKDIR /app
 
 ENTRYPOINT ["./bin/mill-service"]
-
-
