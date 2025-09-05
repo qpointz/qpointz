@@ -39,6 +39,15 @@ export const useChat = () => {
            //.then(()=> loadChats())
     },  []);
 
+    const deleteChat = useCallback(async (chat: Chat) => {
+        apiInstance.deleteChat(chat.id!)
+            .then((r)=> {
+                loadChats();
+            });
+    }, []);
+
+    
+
     // Load list of chats
     const loadChats = useCallback(async () => {
         setChatListLoading(true);
@@ -87,7 +96,8 @@ export const useChat = () => {
                 loading: chatListLoading,
                 reload: loadChats,
                 active: activeChat,
-                create: createChat
+                create: createChat,
+                delete: deleteChat
             },
             messages: {
                 list: messageList,
@@ -101,6 +111,8 @@ export const useChat = () => {
             chatListLoading,
             loadChats,
             activeChat,
+            createChat,
+            deleteChat,
             messageList,
             messageListLoading
         ]

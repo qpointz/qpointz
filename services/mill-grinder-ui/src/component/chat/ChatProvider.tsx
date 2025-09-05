@@ -31,6 +31,7 @@ interface ChatContextType {
         activeId?: string;
         reload: () => void;
         create: (name: string) => void;
+        delete: (chat: Chat) => void;
     };
     messages: {
         list: ChatMessage[];
@@ -88,6 +89,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode, chatId?: string
         } catch (err) {
             console.error("Failed to create chat", err);
         }
+    }, [navigate, loadChats]);
+
+    const deleteChat = useCallback(async (chat: Chat) => {
+        await api.deleteChat(chat.id!);
+        await loadChats();
     }, [navigate, loadChats]);
 
     /**
@@ -178,7 +184,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode, chatId?: string
             loading: chatListLoading,
             activeId: chatId,
             reload: loadChats,
-            create: createChat
+            create: createChat,
+            delete: deleteChat
         },
         messages: {
             list: messageList,

@@ -2,14 +2,14 @@ import {Box, Menu, NavLink, ScrollArea, UnstyledButton, useMantineTheme} from "@
 import {TbDotsVertical, TbStar, TbStarFilled, TbTrash} from "react-icons/tb";
 import {Link} from "react-router";
 import type {Chat} from "../../api/mill";
-import {unMarkChatFavorite,markChatFavorite,deleteChat} from "./mockData.ts";
+import {unMarkChatFavorite,markChatFavorite} from "./mockData.ts";
 import {useChatContext} from "./ChatProvider.tsx";
 
 
 export function ChatList() {
     const theme = useMantineTheme();
     const {chats} = useChatContext();
-
+    console.log(chats);
     const linkMenu = (chat:Chat) => {
         return (
             <Menu shadow="md" width={200} position="right-start">
@@ -22,7 +22,7 @@ export function ChatList() {
                         ? (<Menu.Item onClick={()=> unMarkChatFavorite(chat)} leftSection={<TbStar size={14}/>}>Unmark favorite</Menu.Item>)
                         : (<Menu.Item onClick={()=>markChatFavorite(chat)} leftSection={<TbStarFilled size={14}/>}>Mark favorite</Menu.Item>)
                     }
-                    <Menu.Item onClick={()=> deleteChat(chat)} leftSection={<TbTrash color="red" size={14}/>}>Delete</Menu.Item>
+                    <Menu.Item onClick={()=> chats.delete(chat)} leftSection={<TbTrash color="red" size={14}/>}>Delete</Menu.Item>
                 </Menu.Dropdown>
             </Menu>
         )

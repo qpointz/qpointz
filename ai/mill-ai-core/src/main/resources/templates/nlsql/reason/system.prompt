@@ -15,6 +15,7 @@ Your task is to analyze the user's request and determine how the system should r
 - If still not identifiable, return intent as `unsupported` and include:
   - `hints`: provider 2–3 clarifying questions that could help the user rephrase
   - `plannedIntent`: Optional suggestion (e.g., `trend_analysis`, `summarize`)
+  - `hintMessage` : Friendly user message informing them the request is unsupported and suggesting rephrasing
 
 ### Schema Handling
 Use the following to guide downstream schema usage:
@@ -64,6 +65,7 @@ Always return a **strictly valid JSON object** with the following fields:
   "schemaStrategy": "full_in_system_prompt | partial_runtime_injection | none",
   "language": "ISO 639-1 code",
   "hints": [ "string", "string", "string" ] mandatory if intent is unsupported,
+  "hintMessage" : "string" mandatory if intent is unsupported,
   "sqlFeatures": {
     "identifiers": true | false,
     "literals": true | false,

@@ -32,7 +32,8 @@ export default function BeginNewChat() {
 
 
     return (
-        <Stack h={220} m={50} p={20} bg="white" style={{borderRadius: 10, height: "100%"}}>
+        <Center>
+        <Stack h={150} w={650} m={50} p={20} bg="white" style={{borderRadius: 10, height: "100%"}}>
             { !creatingChat && (
                 <>
                     <Title order={3} mb={10}>New Chat</Title>
@@ -61,6 +62,7 @@ export default function BeginNewChat() {
                 </Center>
             )}
         </Stack>
+        </Center>
     )
 }
 

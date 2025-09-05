@@ -131,7 +131,7 @@ export default function EnrichModelIntent(data:any = {}) {
         const tags = e.tags || [];
         return (
             <>
-                <Box bg="white" p={20} m={10} maw={"70%"} >
+                <Box bg="white" p={20} m={10} maw={"95%"} >
                     <Group>
                         {(enrichmentIcon(e))}
                         <Title order={5}>{e.type}</Title>

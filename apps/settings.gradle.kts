@@ -14,6 +14,7 @@ include ("mill-service")
 
 includeBuild("../services")
 includeBuild("../ai")
+includeBuild("../docs")
 
 dependencyResolutionManagement {
     repositories {

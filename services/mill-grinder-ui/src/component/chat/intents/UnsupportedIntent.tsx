@@ -10,10 +10,11 @@ type UnsupportedIntentProps = {
 
 export default function UnsupportedIntent(ct: UnsupportedIntentProps) {
     const hints = ct.content?.reasoning?.hints ?? [];
+    const message = ct.content?.reasoning?.hintMessage ?? null;
     const [opened, { open, close }] = useDisclosure(false);
 
     return (
-        <Box bg="white" p={20} m={10} maw={"70%"} style={{borderRadius: 10}}>        
+        <Box bg="white" p={20} m={10} maw={"95%"} style={{borderRadius: 10}}>        
             <Group>
                 <><TbHelp/><Title order={4}>Question</Title></>
             </Group>
@@ -30,6 +31,7 @@ export default function UnsupportedIntent(ct: UnsupportedIntentProps) {
                 </Alert>
             </Modal>
             <Stack>
+                <Text fs="italic">{message}</Text>
                 <Text>
                 {hints && hints.join("\n").split("\n").map((line:string, idx:number) => (
                     <span key={idx}>

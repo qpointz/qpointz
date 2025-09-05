@@ -76,7 +76,8 @@ export function ChatMessageListRender() {
     }, [messages.list, viewport])
 
     return (
-        <Stack p="md" style={{height: "100vh", minHeight: 0}} key={lastMessageId}>
+        <Center>
+        <Stack p="md" style={{height: "100vh", minHeight: 0}} w={1024} key={lastMessageId} >
             <ScrollArea w="100%" style={{flex: 1}} viewportRef={viewport}>
                 <>
                     <Box style={{minWidth:"100%"}} mx="auto">
@@ -94,6 +95,7 @@ export function ChatMessageListRender() {
 
             <ChatPostMessage/>
         </Stack>
+        </Center>
     );
 
 }

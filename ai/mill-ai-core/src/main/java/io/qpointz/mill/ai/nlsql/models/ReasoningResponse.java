@@ -18,7 +18,8 @@ public record ReasoningResponse(
         @JsonProperty("schemaStrategy") SchemaStrategy schemaStrategy,
         @JsonProperty(value = "language", required = false, defaultValue = "en") String language,
         @JsonProperty(value = "hints", required = false) List<String> hints,
-        @JsonProperty(value = "sqlFeatures", required = false) SqlDialect.SqlFeatures sqlFeatures
+        @JsonProperty(value = "hintMessage", required = false) String hintMessage,
+        @JsonProperty(value = "sqlFeatures", required = false, defaultValue = "") SqlDialect.SqlFeatures sqlFeatures
 
 ) {
     public record IntentTable(
@@ -26,13 +27,5 @@ public record ReasoningResponse(
             @JsonProperty("name") String name,
             @JsonProperty("includeConstraints") boolean includeConstraints
     ) {}
-
-//    public boolean isPlannedIntent() {
-//        return intent == IntentTypes.UNSUPPORTED && (plannedIntent!=null && !plannedIntent.isBlank());
-//    }
-//
-//    public boolean isUnknownIntent() {
-//        return intent == IntentTypes.UNSUPPORTED && (plannedIntent==null || plannedIntent.isEmpty());
-//    }
 
 }
