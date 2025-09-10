@@ -11,7 +11,7 @@ export default defineConfig({
             build: true,
             outputDir: '.vite-inspect'
         }),
-        visualizer({open: true})
+        visualizer({open: false})
     ],
     base: '/app/',
     build: {

@@ -1,0 +1,139 @@
+# Mill Configuration Keys
+# Complete list of all Mill configuration keys found in the codebase
+
+## Backend Configuration
+mill.backend.provider
+mill.backend.connection.quoting
+mill.backend.connection.caseSensitive
+mill.backend.connection.unquotedCasing
+mill.backend.connection.fun
+mill.backend.connection.conformance
+mill.backend.connection.model
+mill.backend.connection.lenientOperatorLookup
+
+## JDBC Configuration
+mill.backend.jdbc.url
+mill.backend.jdbc.driver
+mill.backend.jdbc.username
+mill.backend.jdbc.password
+mill.backend.jdbc.target-schema
+mill.backend.jdbc.output-schema
+mill.backend.jdbc.multi-schema
+
+## Security Configuration
+mill.security.enable
+mill.security.enabled
+mill.security.authentication.basic.enable
+mill.security.authentication.basic.file-store
+mill.security.authentication.oauth2-resource-server.enable
+mill.security.authentication.oauth2-resource-server.jwt.jwk-set-uri
+mill.security.authentication.entra-id-token.enable
+mill.security.authorization.policy.enable
+mill.security.authorization.policy.selector.granted-authority.remap
+mill.security.authorization.policy.actions[].policy
+mill.security.authorization.policy.actions[].verb
+mill.security.authorization.policy.actions[].action
+mill.security.authorization.policy.actions[].params.rel-name
+mill.security.authorization.policy.actions[].params.name
+mill.security.authorization.policy.actions[].params.expression
+
+## Services Configuration
+mill.services.grpc.enable
+mill.services.grpc.port
+mill.services.grpc.address
+mill.services.jet-http.enable
+mill.services.ai-nl2data.enable
+mill.services.grinder.enable
+mill.services.meta.enable
+mill.services.data-bot.enable
+mill.services.data-bot.prompt-file
+mill.services.data-bot.model-name
+
+## AI Configuration
+mill.ai.chat.memory
+mill.ai.nl2sql.enable
+mill.ai.nl2sql.dialect
+mill.ai.metadata.relations
+mill.ai.metadata.annotations
+mill.ai.metadata.file.repository.path
+
+## Metadata Configuration
+mill.metadata.relations
+mill.metadata.annotations
+mill.metadata.file.repository.path
+
+## Distribution Configuration
+mill.name
+mill.description
+mill.schemas[].name
+mill.schemas[].tables[].name
+mill.schemas[].tables[].desccription
+
+## Security Providers (Alternative Format)
+mill.security.providers[].type
+mill.security.providers[].path
+mill.security.providers[].issuer-uri
+
+## Configuration Values Summary
+
+### Backend Provider Values
+- jdbc
+- calcite
+
+### Quoting Values
+- BACK_TICK
+- DOUBLE_QUOTE
+
+### Case Sensitivity Values
+- true
+- false
+
+### Unquoted Casing Values
+- UNCHANGED
+- UPPER
+- LOWER
+
+### Function Values
+- oracle
+
+### Conformance Values
+- ORACLE_12
+
+### Security Enable Values
+- true
+- false
+
+### Authentication Types
+- basic
+- oauth2-resource-server
+- entra-id-token
+
+### Service Enable Values
+- true
+- false
+
+### AI Memory Values
+- in-memory
+- jdbc
+
+### SQL Dialect Values
+- H2
+- POSTGRESQL
+- MYSQL
+
+### Metadata Source Values
+- none
+- file
+
+### Policy Verb Values
+- allow
+- deny
+
+### Policy Action Values
+- rel-read
+- rel-filter
+- rel-write
+
+### Security Provider Types
+- file
+- jwt

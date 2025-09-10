@@ -32,6 +32,8 @@ interface ChatContextType {
         reload: () => void;
         create: (name: string) => void;
         delete: (chat: Chat) => void;
+        favorite: (chat: Chat) => void;
+        unFavorite: (chat: Chat) => void;
     };
     messages: {
         list: ChatMessage[];
@@ -93,6 +95,16 @@ export const ChatProvider: React.FC<{ children: React.ReactNode, chatId?: string
 
     const deleteChat = useCallback(async (chat: Chat) => {
         await api.deleteChat(chat.id!);
+        await loadChats();
+    }, [navigate, loadChats]);
+
+    const markChatFavorite = useCallback(async (chat: Chat) => {
+        await api.updateChat(chat.id!, { chatName: chat.name!, isFavorite: true });
+        await loadChats();
+    }, [navigate, loadChats]);
+    
+    const unMarkChatFavorite = useCallback(async (chat: Chat) => {
+        await api.updateChat(chat.id!, { chatName: chat.name!, isFavorite: false });
         await loadChats();
     }, [navigate, loadChats]);
 
@@ -185,7 +197,9 @@ export const ChatProvider: React.FC<{ children: React.ReactNode, chatId?: string
             activeId: chatId,
             reload: loadChats,
             create: createChat,
-            delete: deleteChat
+            delete: deleteChat, 
+            favorite: markChatFavorite,
+            unFavorite: unMarkChatFavorite
         },
         messages: {
             list: messageList,

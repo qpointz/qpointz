@@ -47,12 +47,15 @@ public class NlSqlChatController {
     }
 
     @PatchMapping(value = "/chats/{chatId}")
-    public Chat updateChat(@PathVariable("chatId") UUID chatId, Chat.UpdateChatRequest request) throws MIllNotFoundStatusException {
+    @Operation(summary = "Updates chat")
+    public Chat updateChat(@RequestBody Chat.UpdateChatRequest request, @PathVariable("chatId") UUID chatId) throws MIllNotFoundStatusException {
         return chatService.updateChat(chatId, request)
                 .orElseThrow(()-> MillStatuses.notFound("Chat not found"));
     }
 
-    @DeleteMapping(value = "/chats/{chatId}")
+    @DeleteMapping(value = "/chats/{chatId}", consumes = MediaType.ALL_VALUE, produces = MediaType.ALL_VALUE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Deletes chat chat")
     public void deleteChat(@PathVariable("chatId") UUID chatId) throws MIllNotFoundStatusException {
         if (!chatService.deleteChat(chatId)) {
             throw MillStatuses.notFound("Chat not found");

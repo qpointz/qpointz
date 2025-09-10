@@ -6,12 +6,12 @@ All URIs are relative to *http://localhost:8080*
 |------------- | ------------- | -------------|
 |[**chatStream**](#chatstream) | **GET** /api/nl2sql/chats/{chatId}/stream | |
 |[**createChat**](#createchat) | **POST** /api/nl2sql/chats | Creates new chat|
-|[**deleteChat**](#deletechat) | **DELETE** /api/nl2sql/chats/{chatId} | |
+|[**deleteChat**](#deletechat) | **DELETE** /api/nl2sql/chats/{chatId} | Deletes chat chat|
 |[**getChat**](#getchat) | **GET** /api/nl2sql/chats/{chatId} | |
 |[**listChatMessages**](#listchatmessages) | **GET** /api/nl2sql/chats/{chatId}/messages | |
 |[**listChats**](#listchats) | **GET** /api/nl2sql/chats | |
 |[**postChatMessages**](#postchatmessages) | **POST** /api/nl2sql/chats/{chatId}/messages | |
-|[**updateChat**](#updatechat) | **PATCH** /api/nl2sql/chats/{chatId} | |
+|[**updateChat**](#updatechat) | **PATCH** /api/nl2sql/chats/{chatId} | Updates chat|
 
 # **chatStream**
 > Array<any> chatStream()
@@ -53,12 +53,13 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: application/json
+ - **Accept**: */*, text/event-stream, application/json
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
+|**404** | Not Found |  -  |
 |**200** | OK |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -154,13 +155,14 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: */*
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
+|**404** | Not Found |  -  |
+|**204** | No Content |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -204,12 +206,13 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: application/json
+ - **Accept**: */*, application/json
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
+|**404** | Not Found |  -  |
 |**200** | OK |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -254,12 +257,13 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: application/json
+ - **Accept**: */*, application/json
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
+|**404** | Not Found |  -  |
 |**200** | OK |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -351,18 +355,19 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
- - **Accept**: application/json
+ - **Accept**: */*, application/json
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
+|**404** | Not Found |  -  |
 |**200** | OK |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **updateChat**
-> Chat updateChat()
+> Chat updateChat(updateChatRequest)
 
 
 ### Example
@@ -378,11 +383,11 @@ const configuration = new Configuration();
 const apiInstance = new NlSqlChatControllerApi(configuration);
 
 let chatId: string; // (default to undefined)
-let arg1: UpdateChatRequest; // (default to undefined)
+let updateChatRequest: UpdateChatRequest; //
 
 const { status, data } = await apiInstance.updateChat(
     chatId,
-    arg1
+    updateChatRequest
 );
 ```
 
@@ -390,8 +395,8 @@ const { status, data } = await apiInstance.updateChat(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
+| **updateChatRequest** | **UpdateChatRequest**|  | |
 | **chatId** | [**string**] |  | defaults to undefined|
-| **arg1** | **UpdateChatRequest** |  | defaults to undefined|
 
 
 ### Return type
@@ -404,13 +409,14 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+ - **Content-Type**: application/json
+ - **Accept**: */*, application/json
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
+|**404** | Not Found |  -  |
 |**200** | OK |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

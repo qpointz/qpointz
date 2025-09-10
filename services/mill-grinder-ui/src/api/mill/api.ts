@@ -51,6 +51,28 @@ export interface ApplicationDescriptor {
 /**
  * 
  * @export
+ * @interface AuthenticationMethodDescriptor
+ */
+export interface AuthenticationMethodDescriptor {
+    /**
+     * 
+     * @type {string}
+     * @memberof AuthenticationMethodDescriptor
+     */
+    'authType'?: AuthenticationMethodDescriptorAuthTypeEnum;
+}
+
+export const AuthenticationMethodDescriptorAuthTypeEnum = {
+    Custom: 'CUSTOM',
+    Oauth2: 'OAUTH2',
+    Basic: 'BASIC'
+} as const;
+
+export type AuthenticationMethodDescriptorAuthTypeEnum = typeof AuthenticationMethodDescriptorAuthTypeEnum[keyof typeof AuthenticationMethodDescriptorAuthTypeEnum];
+
+/**
+ * 
+ * @export
  * @interface Chat
  */
 export interface Chat {
@@ -122,6 +144,83 @@ export type ChatMessageRoleEnum = typeof ChatMessageRoleEnum[keyof typeof ChatMe
 /**
  * 
  * @export
+ * @interface ContentDisposition
+ */
+export interface ContentDisposition {
+    /**
+     * 
+     * @type {string}
+     * @memberof ContentDisposition
+     */
+    'type'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ContentDisposition
+     */
+    'name'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ContentDisposition
+     */
+    'filename'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ContentDisposition
+     */
+    'charset'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ContentDisposition
+     * @deprecated
+     */
+    'size'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ContentDisposition
+     * @deprecated
+     */
+    'creationDate'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ContentDisposition
+     * @deprecated
+     */
+    'modificationDate'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ContentDisposition
+     * @deprecated
+     */
+    'readDate'?: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ContentDisposition
+     */
+    'inline'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ContentDisposition
+     */
+    'formData'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ContentDisposition
+     */
+    'attachment'?: boolean;
+}
+/**
+ * 
+ * @export
  * @interface CreateChatRequest
  */
 export interface CreateChatRequest {
@@ -131,6 +230,722 @@ export interface CreateChatRequest {
      * @memberof CreateChatRequest
      */
     'name'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface DefaultHttpStatusCode
+ */
+export interface DefaultHttpStatusCode {
+    /**
+     * 
+     * @type {boolean}
+     * @memberof DefaultHttpStatusCode
+     */
+    'error'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof DefaultHttpStatusCode
+     */
+    'is5xxServerError'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof DefaultHttpStatusCode
+     */
+    'is4xxClientError'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof DefaultHttpStatusCode
+     */
+    'is2xxSuccessful'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof DefaultHttpStatusCode
+     */
+    'is3xxRedirection'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof DefaultHttpStatusCode
+     */
+    'is1xxInformational'?: boolean;
+}
+/**
+ * 
+ * @export
+ * @interface ErrorResponse
+ */
+export interface ErrorResponse {
+    /**
+     * 
+     * @type {string}
+     * @memberof ErrorResponse
+     */
+    'typeMessageCode'?: string;
+    /**
+     * 
+     * @type {Array<any>}
+     * @memberof ErrorResponse
+     */
+    'detailMessageArguments'?: Array<any>;
+    /**
+     * 
+     * @type {string}
+     * @memberof ErrorResponse
+     */
+    'titleMessageCode'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ErrorResponse
+     */
+    'detailMessageCode'?: string;
+    /**
+     * 
+     * @type {ErrorResponseHeaders}
+     * @memberof ErrorResponse
+     */
+    'headers'?: ErrorResponseHeaders;
+    /**
+     * 
+     * @type {ErrorResponseStatusCode}
+     * @memberof ErrorResponse
+     */
+    'statusCode'?: ErrorResponseStatusCode;
+    /**
+     * 
+     * @type {ProblemDetail}
+     * @memberof ErrorResponse
+     */
+    'body'?: ProblemDetail;
+}
+/**
+ * 
+ * @export
+ * @interface ErrorResponseHeaders
+ */
+export interface ErrorResponseHeaders {
+    [key: string]: Array<string> | any;
+
+    /**
+     * 
+     * @type {string}
+     * @memberof ErrorResponseHeaders
+     */
+    'origin'?: string;
+    /**
+     * 
+     * @type {MediaType}
+     * @memberof ErrorResponseHeaders
+     */
+    'contentType'?: MediaType;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ErrorResponseHeaders
+     */
+    'connection'?: Array<string>;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ErrorResponseHeaders
+     */
+    'empty'?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof ErrorResponseHeaders
+     */
+    'location'?: string;
+    /**
+     * 
+     * @type {ErrorResponseHeadersHost}
+     * @memberof ErrorResponseHeaders
+     */
+    'host'?: ErrorResponseHeadersHost;
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof ErrorResponseHeaders
+     */
+    'all'?: { [key: string]: string; };
+    /**
+     * 
+     * @type {number}
+     * @memberof ErrorResponseHeaders
+     */
+    'lastModified'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ErrorResponseHeaders
+     */
+    'date'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ErrorResponseHeaders
+     */
+    'contentLength'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ErrorResponseHeaders
+     */
+    'ifModifiedSince'?: number;
+    /**
+     * 
+     * @type {Array<any>}
+     * @memberof ErrorResponseHeaders
+     */
+    'range'?: Array<any>;
+    /**
+     * 
+     * @type {ContentDisposition}
+     * @memberof ErrorResponseHeaders
+     */
+    'contentDisposition'?: ContentDisposition;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ErrorResponseHeaders
+     */
+    'acceptCharset'?: Array<string>;
+    /**
+     * 
+     * @type {string}
+     * @memberof ErrorResponseHeaders
+     */
+    'bearerAuth'?: string;
+    /**
+     * 
+     * @type {Set<any>}
+     * @memberof ErrorResponseHeaders
+     */
+    'allow'?: Set<any>;
+    /**
+     * 
+     * @type {string}
+     * @memberof ErrorResponseHeaders
+     */
+    'cacheControl'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ErrorResponseHeaders
+     */
+    'contentLanguage'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ErrorResponseHeaders
+     */
+    'etag'?: string;
+    /**
+     * 
+     * @type {Array<ErrorResponseHeadersAcceptLanguageInner>}
+     * @memberof ErrorResponseHeaders
+     */
+    'acceptLanguage'?: Array<ErrorResponseHeadersAcceptLanguageInner>;
+    /**
+     * 
+     * @type {string}
+     * @memberof ErrorResponseHeaders
+     */
+    'basicAuth'?: string;
+    /**
+     * 
+     * @type {Array<MediaType>}
+     * @memberof ErrorResponseHeaders
+     */
+    'accept'?: Array<MediaType>;
+    /**
+     * 
+     * @type {Array<MediaType>}
+     * @memberof ErrorResponseHeaders
+     */
+    'acceptPatch'?: Array<MediaType>;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ErrorResponseHeaders
+     */
+    'ifNoneMatch'?: Array<string>;
+    /**
+     * 
+     * @type {string}
+     * @memberof ErrorResponseHeaders
+     */
+    'pragma'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ErrorResponseHeaders
+     */
+    'upgrade'?: string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ErrorResponseHeaders
+     */
+    'vary'?: Array<string>;
+    /**
+     * 
+     * @type {number}
+     * @memberof ErrorResponseHeaders
+     */
+    'expires'?: number;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ErrorResponseHeaders
+     */
+    'ifMatch'?: Array<string>;
+    /**
+     * 
+     * @type {number}
+     * @memberof ErrorResponseHeaders
+     */
+    'accessControlMaxAge'?: number;
+    /**
+     * 
+     * @type {any}
+     * @memberof ErrorResponseHeaders
+     */
+    'accessControlRequestMethod'?: any;
+    /**
+     * 
+     * @type {number}
+     * @memberof ErrorResponseHeaders
+     */
+    'ifUnmodifiedSince'?: number;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ErrorResponseHeaders
+     */
+    'accessControlRequestHeaders'?: Array<string>;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ErrorResponseHeaders
+     */
+    'acceptLanguageAsLocales'?: Array<string>;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ErrorResponseHeaders
+     */
+    'accessControlAllowCredentials'?: boolean;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ErrorResponseHeaders
+     */
+    'accessControlAllowHeaders'?: Array<string>;
+    /**
+     * 
+     * @type {Array<any>}
+     * @memberof ErrorResponseHeaders
+     */
+    'accessControlAllowMethods'?: Array<any>;
+    /**
+     * 
+     * @type {string}
+     * @memberof ErrorResponseHeaders
+     */
+    'accessControlAllowOrigin'?: string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ErrorResponseHeaders
+     */
+    'accessControlExposeHeaders'?: Array<string>;
+}
+/**
+ * 
+ * @export
+ * @interface ErrorResponseHeadersAcceptLanguageInner
+ */
+export interface ErrorResponseHeadersAcceptLanguageInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof ErrorResponseHeadersAcceptLanguageInner
+     */
+    'range'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ErrorResponseHeadersAcceptLanguageInner
+     */
+    'weight'?: number;
+}
+/**
+ * 
+ * @export
+ * @interface ErrorResponseHeadersHost
+ */
+export interface ErrorResponseHeadersHost {
+    /**
+     * 
+     * @type {string}
+     * @memberof ErrorResponseHeadersHost
+     */
+    'hostString'?: string;
+    /**
+     * 
+     * @type {ErrorResponseHeadersHostAddress}
+     * @memberof ErrorResponseHeadersHost
+     */
+    'address'?: ErrorResponseHeadersHostAddress;
+    /**
+     * 
+     * @type {number}
+     * @memberof ErrorResponseHeadersHost
+     */
+    'port'?: number;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ErrorResponseHeadersHost
+     */
+    'unresolved'?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof ErrorResponseHeadersHost
+     */
+    'hostName'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface ErrorResponseHeadersHostAddress
+ */
+export interface ErrorResponseHeadersHostAddress {
+    /**
+     * 
+     * @type {string}
+     * @memberof ErrorResponseHeadersHostAddress
+     */
+    'hostAddress'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ErrorResponseHeadersHostAddress
+     */
+    'address'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ErrorResponseHeadersHostAddress
+     */
+    'hostName'?: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ErrorResponseHeadersHostAddress
+     */
+    'linkLocalAddress'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ErrorResponseHeadersHostAddress
+     */
+    'multicastAddress'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ErrorResponseHeadersHostAddress
+     */
+    'anyLocalAddress'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ErrorResponseHeadersHostAddress
+     */
+    'loopbackAddress'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ErrorResponseHeadersHostAddress
+     */
+    'siteLocalAddress'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ErrorResponseHeadersHostAddress
+     */
+    'mcglobal'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ErrorResponseHeadersHostAddress
+     */
+    'mcnodeLocal'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ErrorResponseHeadersHostAddress
+     */
+    'mclinkLocal'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ErrorResponseHeadersHostAddress
+     */
+    'mcsiteLocal'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ErrorResponseHeadersHostAddress
+     */
+    'mcorgLocal'?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof ErrorResponseHeadersHostAddress
+     */
+    'canonicalHostName'?: string;
+}
+/**
+ * @type ErrorResponseStatusCode
+ * @export
+ */
+export type ErrorResponseStatusCode = DefaultHttpStatusCode | HttpStatus;
+
+/**
+ * 
+ * @export
+ * @enum {HttpStatusCode}
+ */
+
+export const HttpStatus = {
+    _100Continue: '100 CONTINUE',
+    _101SwitchingProtocols: '101 SWITCHING_PROTOCOLS',
+    _102Processing: '102 PROCESSING',
+    _103EarlyHints: '103 EARLY_HINTS',
+    _103Checkpoint: '103 CHECKPOINT',
+    _200Ok: '200 OK',
+    _201Created: '201 CREATED',
+    _202Accepted: '202 ACCEPTED',
+    _203NonAuthoritativeInformation: '203 NON_AUTHORITATIVE_INFORMATION',
+    _204NoContent: '204 NO_CONTENT',
+    _205ResetContent: '205 RESET_CONTENT',
+    _206PartialContent: '206 PARTIAL_CONTENT',
+    _207MultiStatus: '207 MULTI_STATUS',
+    _208AlreadyReported: '208 ALREADY_REPORTED',
+    _226ImUsed: '226 IM_USED',
+    _300MultipleChoices: '300 MULTIPLE_CHOICES',
+    _301MovedPermanently: '301 MOVED_PERMANENTLY',
+    _302Found: '302 FOUND',
+    _302MovedTemporarily: '302 MOVED_TEMPORARILY',
+    _303SeeOther: '303 SEE_OTHER',
+    _304NotModified: '304 NOT_MODIFIED',
+    _305UseProxy: '305 USE_PROXY',
+    _307TemporaryRedirect: '307 TEMPORARY_REDIRECT',
+    _308PermanentRedirect: '308 PERMANENT_REDIRECT',
+    _400BadRequest: '400 BAD_REQUEST',
+    _401Unauthorized: '401 UNAUTHORIZED',
+    _402PaymentRequired: '402 PAYMENT_REQUIRED',
+    _403Forbidden: '403 FORBIDDEN',
+    _404NotFound: '404 NOT_FOUND',
+    _405MethodNotAllowed: '405 METHOD_NOT_ALLOWED',
+    _406NotAcceptable: '406 NOT_ACCEPTABLE',
+    _407ProxyAuthenticationRequired: '407 PROXY_AUTHENTICATION_REQUIRED',
+    _408RequestTimeout: '408 REQUEST_TIMEOUT',
+    _409Conflict: '409 CONFLICT',
+    _410Gone: '410 GONE',
+    _411LengthRequired: '411 LENGTH_REQUIRED',
+    _412PreconditionFailed: '412 PRECONDITION_FAILED',
+    _413PayloadTooLarge: '413 PAYLOAD_TOO_LARGE',
+    _413RequestEntityTooLarge: '413 REQUEST_ENTITY_TOO_LARGE',
+    _414UriTooLong: '414 URI_TOO_LONG',
+    _414RequestUriTooLong: '414 REQUEST_URI_TOO_LONG',
+    _415UnsupportedMediaType: '415 UNSUPPORTED_MEDIA_TYPE',
+    _416RequestedRangeNotSatisfiable: '416 REQUESTED_RANGE_NOT_SATISFIABLE',
+    _417ExpectationFailed: '417 EXPECTATION_FAILED',
+    _418IAmATeapot: '418 I_AM_A_TEAPOT',
+    _419InsufficientSpaceOnResource: '419 INSUFFICIENT_SPACE_ON_RESOURCE',
+    _420MethodFailure: '420 METHOD_FAILURE',
+    _421DestinationLocked: '421 DESTINATION_LOCKED',
+    _422UnprocessableEntity: '422 UNPROCESSABLE_ENTITY',
+    _423Locked: '423 LOCKED',
+    _424FailedDependency: '424 FAILED_DEPENDENCY',
+    _425TooEarly: '425 TOO_EARLY',
+    _426UpgradeRequired: '426 UPGRADE_REQUIRED',
+    _428PreconditionRequired: '428 PRECONDITION_REQUIRED',
+    _429TooManyRequests: '429 TOO_MANY_REQUESTS',
+    _431RequestHeaderFieldsTooLarge: '431 REQUEST_HEADER_FIELDS_TOO_LARGE',
+    _451UnavailableForLegalReasons: '451 UNAVAILABLE_FOR_LEGAL_REASONS',
+    _500InternalServerError: '500 INTERNAL_SERVER_ERROR',
+    _501NotImplemented: '501 NOT_IMPLEMENTED',
+    _502BadGateway: '502 BAD_GATEWAY',
+    _503ServiceUnavailable: '503 SERVICE_UNAVAILABLE',
+    _504GatewayTimeout: '504 GATEWAY_TIMEOUT',
+    _505HttpVersionNotSupported: '505 HTTP_VERSION_NOT_SUPPORTED',
+    _506VariantAlsoNegotiates: '506 VARIANT_ALSO_NEGOTIATES',
+    _507InsufficientStorage: '507 INSUFFICIENT_STORAGE',
+    _508LoopDetected: '508 LOOP_DETECTED',
+    _509BandwidthLimitExceeded: '509 BANDWIDTH_LIMIT_EXCEEDED',
+    _510NotExtended: '510 NOT_EXTENDED',
+    _511NetworkAuthenticationRequired: '511 NETWORK_AUTHENTICATION_REQUIRED'
+} as const;
+
+export type HttpStatus = typeof HttpStatus[keyof typeof HttpStatus];
+
+
+/**
+ * 
+ * @export
+ * @interface HttpStatusCode
+ */
+export interface HttpStatusCode {
+    /**
+     * 
+     * @type {boolean}
+     * @memberof HttpStatusCode
+     */
+    'error'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof HttpStatusCode
+     */
+    'is5xxServerError'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof HttpStatusCode
+     */
+    'is4xxClientError'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof HttpStatusCode
+     */
+    'is2xxSuccessful'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof HttpStatusCode
+     */
+    'is3xxRedirection'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof HttpStatusCode
+     */
+    'is1xxInformational'?: boolean;
+}
+/**
+ * 
+ * @export
+ * @interface MediaType
+ */
+export interface MediaType {
+    /**
+     * 
+     * @type {string}
+     * @memberof MediaType
+     */
+    'type'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof MediaType
+     */
+    'subtype'?: string;
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof MediaType
+     */
+    'parameters'?: { [key: string]: string; };
+    /**
+     * 
+     * @type {number}
+     * @memberof MediaType
+     */
+    'qualityValue'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof MediaType
+     */
+    'charset'?: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof MediaType
+     */
+    'concrete'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof MediaType
+     */
+    'wildcardSubtype'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof MediaType
+     */
+    'wildcardType'?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof MediaType
+     */
+    'subtypeSuffix'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface ProblemDetail
+ */
+export interface ProblemDetail {
+    /**
+     * 
+     * @type {string}
+     * @memberof ProblemDetail
+     */
+    'type'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ProblemDetail
+     */
+    'title'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ProblemDetail
+     */
+    'status'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ProblemDetail
+     */
+    'detail'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ProblemDetail
+     */
+    'instance'?: string;
+    /**
+     * 
+     * @type {{ [key: string]: any; }}
+     * @memberof ProblemDetail
+     */
+    'properties'?: { [key: string]: any; };
 }
 /**
  * 
@@ -165,20 +980,11 @@ export interface SecurityDescriptor {
     'enabled'?: boolean;
     /**
      * 
-     * @type {Set<string>}
+     * @type {Array<AuthenticationMethodDescriptor>}
      * @memberof SecurityDescriptor
      */
-    'authMethods'?: Set<SecurityDescriptorAuthMethodsEnum>;
+    'authMethods'?: Array<AuthenticationMethodDescriptor>;
 }
-
-export const SecurityDescriptorAuthMethodsEnum = {
-    Custom: 'CUSTOM',
-    Oauth2: 'OAUTH2',
-    Basic: 'BASIC'
-} as const;
-
-export type SecurityDescriptorAuthMethodsEnum = typeof SecurityDescriptorAuthMethodsEnum[keyof typeof SecurityDescriptorAuthMethodsEnum];
-
 /**
  * 
  * @export
@@ -230,6 +1036,527 @@ export interface UpdateChatRequest {
      */
     'isFavorite'?: boolean;
 }
+
+/**
+ * AccessServiceControllerApi - axios parameter creator
+ * @export
+ */
+export const AccessServiceControllerApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {string} body 
+         * @param {string} [accept] 
+         * @param {string} [contentType] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        fetchQueryResult: async (body: string, accept?: string, contentType?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'body' is not null or undefined
+            assertParamExists('fetchQueryResult', 'body', body)
+            const localVarPath = `/services/jet/FetchQueryResult`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (accept != null) {
+                localVarHeaderParameter['Accept'] = String(accept);
+            }
+            if (contentType != null) {
+                localVarHeaderParameter['Content-Type'] = String(contentType);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} body 
+         * @param {string} [accept] 
+         * @param {string} [contentType] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getSchema: async (body: string, accept?: string, contentType?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'body' is not null or undefined
+            assertParamExists('getSchema', 'body', body)
+            const localVarPath = `/services/jet/GetSchema`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (accept != null) {
+                localVarHeaderParameter['Accept'] = String(accept);
+            }
+            if (contentType != null) {
+                localVarHeaderParameter['Content-Type'] = String(contentType);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} [accept] 
+         * @param {string} [contentType] 
+         * @param {string} [body] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        handshake: async (accept?: string, contentType?: string, body?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/services/jet/Handshake`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (accept != null) {
+                localVarHeaderParameter['Accept'] = String(accept);
+            }
+            if (contentType != null) {
+                localVarHeaderParameter['Content-Type'] = String(contentType);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} [accept] 
+         * @param {string} [contentType] 
+         * @param {string} [body] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listSchemas: async (accept?: string, contentType?: string, body?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/services/jet/ListSchemas`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (accept != null) {
+                localVarHeaderParameter['Accept'] = String(accept);
+            }
+            if (contentType != null) {
+                localVarHeaderParameter['Content-Type'] = String(contentType);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} body 
+         * @param {string} [accept] 
+         * @param {string} [contentType] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        parseSql: async (body: string, accept?: string, contentType?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'body' is not null or undefined
+            assertParamExists('parseSql', 'body', body)
+            const localVarPath = `/services/jet/ParseSql`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (accept != null) {
+                localVarHeaderParameter['Accept'] = String(accept);
+            }
+            if (contentType != null) {
+                localVarHeaderParameter['Content-Type'] = String(contentType);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} body 
+         * @param {string} [accept] 
+         * @param {string} [contentType] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        submitQuery: async (body: string, accept?: string, contentType?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'body' is not null or undefined
+            assertParamExists('submitQuery', 'body', body)
+            const localVarPath = `/services/jet/SubmitQuery`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (accept != null) {
+                localVarHeaderParameter['Accept'] = String(accept);
+            }
+            if (contentType != null) {
+                localVarHeaderParameter['Content-Type'] = String(contentType);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * AccessServiceControllerApi - functional programming interface
+ * @export
+ */
+export const AccessServiceControllerApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = AccessServiceControllerApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {string} body 
+         * @param {string} [accept] 
+         * @param {string} [contentType] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async fetchQueryResult(body: string, accept?: string, contentType?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.fetchQueryResult(body, accept, contentType, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AccessServiceControllerApi.fetchQueryResult']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} body 
+         * @param {string} [accept] 
+         * @param {string} [contentType] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getSchema(body: string, accept?: string, contentType?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getSchema(body, accept, contentType, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AccessServiceControllerApi.getSchema']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} [accept] 
+         * @param {string} [contentType] 
+         * @param {string} [body] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async handshake(accept?: string, contentType?: string, body?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.handshake(accept, contentType, body, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AccessServiceControllerApi.handshake']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} [accept] 
+         * @param {string} [contentType] 
+         * @param {string} [body] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listSchemas(accept?: string, contentType?: string, body?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listSchemas(accept, contentType, body, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AccessServiceControllerApi.listSchemas']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} body 
+         * @param {string} [accept] 
+         * @param {string} [contentType] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async parseSql(body: string, accept?: string, contentType?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.parseSql(body, accept, contentType, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AccessServiceControllerApi.parseSql']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} body 
+         * @param {string} [accept] 
+         * @param {string} [contentType] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async submitQuery(body: string, accept?: string, contentType?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.submitQuery(body, accept, contentType, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AccessServiceControllerApi.submitQuery']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * AccessServiceControllerApi - factory interface
+ * @export
+ */
+export const AccessServiceControllerApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = AccessServiceControllerApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {string} body 
+         * @param {string} [accept] 
+         * @param {string} [contentType] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        fetchQueryResult(body: string, accept?: string, contentType?: string, options?: RawAxiosRequestConfig): AxiosPromise<object> {
+            return localVarFp.fetchQueryResult(body, accept, contentType, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {string} body 
+         * @param {string} [accept] 
+         * @param {string} [contentType] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getSchema(body: string, accept?: string, contentType?: string, options?: RawAxiosRequestConfig): AxiosPromise<object> {
+            return localVarFp.getSchema(body, accept, contentType, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {string} [accept] 
+         * @param {string} [contentType] 
+         * @param {string} [body] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        handshake(accept?: string, contentType?: string, body?: string, options?: RawAxiosRequestConfig): AxiosPromise<object> {
+            return localVarFp.handshake(accept, contentType, body, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {string} [accept] 
+         * @param {string} [contentType] 
+         * @param {string} [body] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listSchemas(accept?: string, contentType?: string, body?: string, options?: RawAxiosRequestConfig): AxiosPromise<object> {
+            return localVarFp.listSchemas(accept, contentType, body, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {string} body 
+         * @param {string} [accept] 
+         * @param {string} [contentType] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        parseSql(body: string, accept?: string, contentType?: string, options?: RawAxiosRequestConfig): AxiosPromise<object> {
+            return localVarFp.parseSql(body, accept, contentType, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {string} body 
+         * @param {string} [accept] 
+         * @param {string} [contentType] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        submitQuery(body: string, accept?: string, contentType?: string, options?: RawAxiosRequestConfig): AxiosPromise<object> {
+            return localVarFp.submitQuery(body, accept, contentType, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * AccessServiceControllerApi - object-oriented interface
+ * @export
+ * @class AccessServiceControllerApi
+ * @extends {BaseAPI}
+ */
+export class AccessServiceControllerApi extends BaseAPI {
+    /**
+     * 
+     * @param {string} body 
+     * @param {string} [accept] 
+     * @param {string} [contentType] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessServiceControllerApi
+     */
+    public fetchQueryResult(body: string, accept?: string, contentType?: string, options?: RawAxiosRequestConfig) {
+        return AccessServiceControllerApiFp(this.configuration).fetchQueryResult(body, accept, contentType, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {string} body 
+     * @param {string} [accept] 
+     * @param {string} [contentType] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessServiceControllerApi
+     */
+    public getSchema(body: string, accept?: string, contentType?: string, options?: RawAxiosRequestConfig) {
+        return AccessServiceControllerApiFp(this.configuration).getSchema(body, accept, contentType, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {string} [accept] 
+     * @param {string} [contentType] 
+     * @param {string} [body] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessServiceControllerApi
+     */
+    public handshake(accept?: string, contentType?: string, body?: string, options?: RawAxiosRequestConfig) {
+        return AccessServiceControllerApiFp(this.configuration).handshake(accept, contentType, body, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {string} [accept] 
+     * @param {string} [contentType] 
+     * @param {string} [body] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessServiceControllerApi
+     */
+    public listSchemas(accept?: string, contentType?: string, body?: string, options?: RawAxiosRequestConfig) {
+        return AccessServiceControllerApiFp(this.configuration).listSchemas(accept, contentType, body, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {string} body 
+     * @param {string} [accept] 
+     * @param {string} [contentType] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessServiceControllerApi
+     */
+    public parseSql(body: string, accept?: string, contentType?: string, options?: RawAxiosRequestConfig) {
+        return AccessServiceControllerApiFp(this.configuration).parseSql(body, accept, contentType, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {string} body 
+     * @param {string} [accept] 
+     * @param {string} [contentType] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessServiceControllerApi
+     */
+    public submitQuery(body: string, accept?: string, contentType?: string, options?: RawAxiosRequestConfig) {
+        return AccessServiceControllerApiFp(this.configuration).submitQuery(body, accept, contentType, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
 
 /**
  * ApplicationDescriptorControllerApi - axios parameter creator
@@ -405,6 +1732,7 @@ export const NlSqlChatControllerApiAxiosParamCreator = function (configuration?:
         },
         /**
          * 
+         * @summary Deletes chat chat
          * @param {string} chatId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -572,16 +1900,17 @@ export const NlSqlChatControllerApiAxiosParamCreator = function (configuration?:
         },
         /**
          * 
+         * @summary Updates chat
          * @param {string} chatId 
-         * @param {UpdateChatRequest} arg1 
+         * @param {UpdateChatRequest} updateChatRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateChat: async (chatId: string, arg1: UpdateChatRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        updateChat: async (chatId: string, updateChatRequest: UpdateChatRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'chatId' is not null or undefined
             assertParamExists('updateChat', 'chatId', chatId)
-            // verify required parameter 'arg1' is not null or undefined
-            assertParamExists('updateChat', 'arg1', arg1)
+            // verify required parameter 'updateChatRequest' is not null or undefined
+            assertParamExists('updateChat', 'updateChatRequest', updateChatRequest)
             const localVarPath = `/api/nl2sql/chats/{chatId}`
                 .replace(`{${"chatId"}}`, encodeURIComponent(String(chatId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -595,17 +1924,14 @@ export const NlSqlChatControllerApiAxiosParamCreator = function (configuration?:
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
-            if (arg1 !== undefined) {
-                for (const [key, value] of Object.entries(arg1)) {
-                    localVarQueryParameter[key] = value;
-                }
-            }
-
 
     
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(updateChatRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -649,6 +1975,7 @@ export const NlSqlChatControllerApiFp = function(configuration?: Configuration) 
         },
         /**
          * 
+         * @summary Deletes chat chat
          * @param {string} chatId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -709,13 +2036,14 @@ export const NlSqlChatControllerApiFp = function(configuration?: Configuration) 
         },
         /**
          * 
+         * @summary Updates chat
          * @param {string} chatId 
-         * @param {UpdateChatRequest} arg1 
+         * @param {UpdateChatRequest} updateChatRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateChat(chatId: string, arg1: UpdateChatRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Chat>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateChat(chatId, arg1, options);
+        async updateChat(chatId: string, updateChatRequest: UpdateChatRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Chat>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateChat(chatId, updateChatRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['NlSqlChatControllerApi.updateChat']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -751,6 +2079,7 @@ export const NlSqlChatControllerApiFactory = function (configuration?: Configura
         },
         /**
          * 
+         * @summary Deletes chat chat
          * @param {string} chatId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -796,13 +2125,14 @@ export const NlSqlChatControllerApiFactory = function (configuration?: Configura
         },
         /**
          * 
+         * @summary Updates chat
          * @param {string} chatId 
-         * @param {UpdateChatRequest} arg1 
+         * @param {UpdateChatRequest} updateChatRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateChat(chatId: string, arg1: UpdateChatRequest, options?: RawAxiosRequestConfig): AxiosPromise<Chat> {
-            return localVarFp.updateChat(chatId, arg1, options).then((request) => request(axios, basePath));
+        updateChat(chatId: string, updateChatRequest: UpdateChatRequest, options?: RawAxiosRequestConfig): AxiosPromise<Chat> {
+            return localVarFp.updateChat(chatId, updateChatRequest, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -839,6 +2169,7 @@ export class NlSqlChatControllerApi extends BaseAPI {
 
     /**
      * 
+     * @summary Deletes chat chat
      * @param {string} chatId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -894,14 +2225,15 @@ export class NlSqlChatControllerApi extends BaseAPI {
 
     /**
      * 
+     * @summary Updates chat
      * @param {string} chatId 
-     * @param {UpdateChatRequest} arg1 
+     * @param {UpdateChatRequest} updateChatRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof NlSqlChatControllerApi
      */
-    public updateChat(chatId: string, arg1: UpdateChatRequest, options?: RawAxiosRequestConfig) {
-        return NlSqlChatControllerApiFp(this.configuration).updateChat(chatId, arg1, options).then((request) => request(this.axios, this.basePath));
+    public updateChat(chatId: string, updateChatRequest: UpdateChatRequest, options?: RawAxiosRequestConfig) {
+        return NlSqlChatControllerApiFp(this.configuration).updateChat(chatId, updateChatRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

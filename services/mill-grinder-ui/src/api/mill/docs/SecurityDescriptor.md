@@ -6,7 +6,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **enabled** | **boolean** |  | [optional] [default to undefined]
-**authMethods** | **Set&lt;string&gt;** |  | [optional] [default to undefined]
+**authMethods** | [**Array&lt;AuthenticationMethodDescriptor&gt;**](AuthenticationMethodDescriptor.md) |  | [optional] [default to undefined]
 
 ## Example
 
