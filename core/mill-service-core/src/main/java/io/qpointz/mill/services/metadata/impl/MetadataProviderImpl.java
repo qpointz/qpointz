@@ -101,4 +101,14 @@ public class MetadataProviderImpl implements MetadataProvider {
                 .findFirst());
 
     }
+
+    @Override
+    public Collection<ValueMappingWithContext> getAllValueMappings() {
+        return this.annotationsRepository.getAllValueMappings();
+    }
+
+    @Override
+    public Collection<ValueMappingSourceWithContext> getAllValueMappingSources() {
+        return this.annotationsRepository.getAllValueMappingSources();
+    }
 }

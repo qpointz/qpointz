@@ -10,6 +10,7 @@ import io.qpointz.mill.services.metadata.impl.file.FileAnnotationsRepository;
 import io.qpointz.mill.services.metadata.impl.file.FileRelationsProvider;
 import io.qpointz.mill.services.metadata.impl.MetadataProviderImpl;
 import io.qpointz.mill.services.metadata.impl.file.FileRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -21,6 +22,7 @@ import org.springframework.core.io.ResourceLoader;
 
 import java.io.IOException;
 
+@Slf4j
 @Configuration
 public class MetadataConfiguration {
 
@@ -37,6 +39,7 @@ public class MetadataConfiguration {
     @Lazy
     @ConditionalOnProperty(prefix = "mill.metadata.file.repository", name = "path")
     public FileRepository metadataFileRepository(@Value("${mill.metadata.file.repository.path}")Resource resource) throws IOException {
+        log.info("Using file-based metadata repository at {}", resource.getURI());
         return FileRepository.from(resource);
     }
 

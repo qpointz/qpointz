@@ -1,0 +1,6 @@
+value-mapping:
+  - type: sql
+    target: A.B.C
+    sql: lala1
+    cron: * * * 1
+

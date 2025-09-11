@@ -1,9 +1,7 @@
 package io.qpointz.mill.services.metadata.impl.file;
 
 import io.qpointz.mill.services.metadata.AnnotationsRepository;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -69,6 +67,60 @@ public class FileAnnotationsRepository implements AnnotationsRepository {
                 .filter(z-> z.name().compareToIgnoreCase(attributeNam)==0)
                 .findFirst()
         );
+    }
+
+    @Override
+    public java.util.Collection<io.qpointz.mill.services.metadata.MetadataProvider.ValueMappingWithContext> getAllValueMappings() {
+        return repository.schemas().stream()
+            .flatMap(schema -> schema.tables().stream()
+                .flatMap(table -> table.attributes().stream()
+                    .filter(attr -> attr.valueMappings().isPresent())
+                    .flatMap(attr -> {
+                        var valueMappings = attr.valueMappings().get();
+                        var mappings = valueMappings.mappings();
+                        return mappings.stream()
+                            .map(mapping -> new io.qpointz.mill.services.metadata.MetadataProvider.ValueMappingWithContext(
+                                schema.name(),
+                                table.name(),
+                                attr.name(),
+                                valueMappings.context(),
+                                valueMappings.similarityThreshold(),
+                                mapping
+                            ))
+                            .flatMap(io.qpointz.mill.services.metadata.MetadataProvider.ValueMappingWithContext::expand);
+                    })
+                )
+            )
+            .toList();
+    }
+
+    @Override
+    public java.util.Collection<io.qpointz.mill.services.metadata.MetadataProvider.ValueMappingSourceWithContext> getAllValueMappingSources() {
+        return repository.schemas().stream()
+            .flatMap(schema -> schema.tables().stream()
+                .flatMap(table -> table.attributes().stream()
+                    .filter(attr -> attr.valueMappings().isPresent())
+                    .flatMap(attr -> {
+                        var valueMappings = attr.valueMappings().get();
+                        var sources = valueMappings.sources();
+                        return sources.stream()
+                            .filter(FileRepository.ValueMappingSource::isEnabled)
+                            .map(source -> new io.qpointz.mill.services.metadata.MetadataProvider.ValueMappingSourceWithContext(
+                                schema.name(),
+                                table.name(),
+                                attr.name(),
+                                valueMappings.context(),
+                                valueMappings.similarityThreshold(),
+                                source.name(),
+                                source.sql(),
+                                source.description().orElse(""),
+                                source.isEnabled(),
+                                source.getCacheTtl()
+                            ));
+                    })
+                )
+            )
+            .toList();
     }
 
 

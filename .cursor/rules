@@ -1,0 +1,356 @@
+# Mill Data Integration Platform - AI Assistant Rules
+
+## Project Overview
+
+Mill is an experimental data integration platform built on Spring Boot 3.x that provides:
+- Unified SQL querying across multiple data sources (CSV, Parquet, JDBC databases)
+- gRPC and HTTP service layers
+- AI-powered natural language to SQL (NL2SQL) conversion
+- Fine-grained security with role-based access control
+- JDBC driver and Python client libraries
+
+## Repository Structure
+
+This is a Gradle multi-module repository with the following organization:
+
+```
+mill/
+├── core/                   # Foundation libraries (6 modules)
+│   ├── mill-core/         # Vector data, SQL utilities, type system
+│   ├── mill-security-core/    # Authentication & authorization
+│   ├── mill-service-core/     # Service orchestration
+│   ├── mill-starter-backends/ # Backend providers (Calcite, JDBC)
+│   ├── mill-starter-service/  # Common service startup
+│   └── mill-test-common/      # Shared test utilities
+│
+├── services/               # Runtime services (3 modules)
+│   ├── mill-jet-grpc-service/ # gRPC API
+│   ├── mill-jet-http-service/ # REST/HTTP API
+│   └── mill-grinder-service/  # Web UI (React + TypeScript)
+│
+├── ai/                     # AI/NL2SQL functionality (2 modules)
+│   ├── mill-ai-core/      # NL2SQL engine, value mapping
+│   └── mill-ai-nlsql-chat-service/ # Chat API
+│
+├── clients/                # Client libraries
+│   ├── mill-jdbc-driver/  # JDBC 4.x driver
+│   ├── mill-py/           # Python client
+│   └── mill-spark/        # Spark connector (Scala)
+│
+├── apps/                   # Demo applications
+├── build-logic/            # Custom Gradle plugins
+├── proto/                  # Protocol Buffer definitions
+└── docs/                   # Documentation
+```
+
+## Key Documentation Files
+
+**MUST READ** these files for context:
+
+1. **[docs/CODEBASE_ANALYSIS.md](../docs/CODEBASE_ANALYSIS.md)** - Comprehensive codebase analysis
+   - Architecture overview
+   - Technology stack (Spring Boot 3.5.4, Calcite 1.40.0, gRPC 1.74.0)
+   - Module descriptions
+   - Security model
+   - ~15,000 lines of detailed analysis
+
+2. **[docs/design/metadata-service-design.md](./docs/design/metadata-service-design.md)** - Metadata service design (NEW)
+   - Faceted architecture for extensible metadata
+   - Core facets: Structural, Descriptive, Relation, Concept
+   - AI facets: ValueMapping, Enrichment, DataQuality, Semantic
+   - Implementation roadmap (6 phases)
+   - Complete examples and API specifications
+
+3. **[AGENTS.md](./AGENTS.md)** - Repository guidelines
+   - Build commands
+   - Coding style conventions
+   - Testing guidelines
+   - Commit message format
+
+## Build & Development
+
+### Build Commands
+```bash
+# From module root (e.g., core/, services/, ai/)
+./gradlew build              # Compile + test + assemble
+./gradlew test               # Run unit tests
+./gradlew testIT             # Run integration tests
+./gradlew clean build        # Clean build
+./gradlew jacocoTestReport   # Coverage report
+
+# Specific module
+./gradlew :core:mill-core:test
+```
+
+### Module-Level Gradlew
+Each top-level directory (core/, services/, ai/, clients/) has its own `gradlew` wrapper.
+Always use the appropriate wrapper for the module you're working in.
+
+### Running Services
+```bash
+# List runnable services
+./gradlew tasks --group application
+
+# Example: Run gRPC service (from services/)
+./gradlew :mill-jet-grpc-service:bootRun
+```
+
+## Coding Conventions
+
+### Java
+- **Version:** Java 17+
+- **Indentation:** 4 spaces
+- **Naming:** 
+  - Classes: `PascalCase`
+  - Methods/variables: `camelCase`
+  - Constants: `UPPER_SNAKE_CASE`
+- **Lombok:** Use liberally (`@Slf4j`, `@Getter`, `@Setter`, `@Builder`, `val`)
+- **Package structure:** `io.qpointz.mill.[module].[layer]`
+  - Example: `io.qpointz.mill.services.metadata`
+
+### Testing
+- **Framework:** JUnit 5 + Mockito
+- **Test class naming:** `<Subject>Test.java`
+- **Test method naming:** `shouldX_whenY()` or `testX()`
+- **Location:** 
+  - Unit tests: `src/test/java`
+  - Integration tests: `src/testIT/java`
+- **Coverage:** Minimum 80% (Jacoco)
+
+### Protocol Buffers
+- **Fields:** `lower_snake_case`
+- **Location:** `proto/` directory
+- **Generated code:** Committed to repository
+
+## Key Technologies
+
+| Layer | Technology | Version |
+|-------|-----------|---------|
+| Language | Java | 17+ |
+| Framework | Spring Boot | 3.5.4 |
+| Security | Spring Security | 6.5.2 |
+| AI/LLM | Spring AI | 1.0.3 |
+| Query Engine | Apache Calcite | 1.40.0 |
+| Query IR | Substrait | 0.60.0 |
+| RPC | gRPC | 1.74.0 |
+| Serialization | Protocol Buffers | 4.31.1 |
+| Build | Gradle | 8.x (Kotlin DSL) |
+| Testing | JUnit 5 | 5.13.4 |
+
+## Current Development Focus
+
+### Metadata Service Implementation (Active)
+We are implementing a new centralized metadata service with faceted architecture.
+
+**Status:** Design approved, ready for Phase 1 implementation
+
+**Design Document:** [docs/design/metadata-service-design.md](./docs/design/metadata-service-design.md)
+
+**Implementation Phases:**
+1. **Phase 1 (Week 1):** Core foundation - `mill-metadata-core` module
+   - MetadataEntity with facet support
+   - Core facets: Structural, Descriptive, Relation, Concept
+   - FacetRegistry plugin system
+   - File-based YAML repository
+
+2. **Phase 2 (Week 2):** AI facets - `mill-metadata-ai` module
+   - ValueMappingFacet, EnrichmentFacet
+   - Migration of existing value mapping
+
+3. **Phase 3 (Week 3):** NL2SQL integration
+   - Enrichment capture from chat sessions
+   - Approval workflow
+   - Enhanced schema prompts
+
+4. **Phase 4-6:** Persistence, search, future facets
+
+**Key Concepts:**
+- **Faceted Architecture:** Each metadata entity can have multiple pluggable "facets" (aspects)
+- **Extensibility:** Add new facets without changing core
+- **Separation:** Core metadata (no AI deps) + AI-specific facets (optional)
+
+## Common Patterns & Best Practices
+
+### 1. Module Dependencies
+- Core modules are self-contained
+- Services depend on core
+- AI modules are optional (feature flag)
+- Use composite builds: `includeBuild("../core")`
+
+### 2. Configuration
+- Spring Boot properties: `application.yml`
+- Profiles: `application-{profile}.yml`
+- Environment variables for secrets
+- Version catalog: `libs.versions.toml`
+
+### 3. Security
+- Authentication: Basic, OAuth2/JWT, Microsoft Entra ID
+- Authorization: Policy-based (ALLOW/DENY)
+- Row-level security via SQL expressions
+- Route-based security chains
+
+### 4. Data Flow
+```
+SQL → Substrait Plan → Backend (Calcite/JDBC) → VectorBlock → gRPC/HTTP → Client
+```
+
+### 5. Error Handling
+- Use custom exceptions: `MillException`, `MillRuntimeException`
+- Include status codes: `io.qpointz.mill.excepions.statuses`
+- Log with context using `@Slf4j`
+
+## AI/NL2SQL Specifics
+
+### NL2SQL Flow
+1. **Reasoning Phase:** User query → intent detection (get-data, get-chart, explain, etc.)
+2. **Execution Phase:** Intent → SQL generation with value mapping → execution
+
+### Intent Types
+- `get-data` - Retrieve tabular data
+- `get-chart` - Generate visualization data
+- `explain` - Explain schema/query
+- `refine` - Modify previous query
+- `enrich-model` - Add metadata (NEW - captures enrichments)
+- `unsupported` - Cannot process
+
+### Value Mapping
+Maps user terms to database values:
+- "premium" → "PREMIUM"
+- "California" → "CA"
+- Multi-language support
+
+### Dialect Support
+SQL dialects: H2, PostgreSQL, MySQL, Oracle, SQL Server, Databricks, DuckDB, Trino
+
+**Prompt templates:** `ai/mill-ai-core/src/main/resources/templates/nlsql/`
+
+## Commit Message Format
+
+Follow bracketed prefix style:
+
+```
+[feat] Add metadata service core module
+[fix] Resolve value mapping null pointer
+[change] Update Substrait dependency to 0.60.0
+[docs] Add metadata service design document
+[wip] Work in progress on enrichment facet
+```
+
+## When Making Changes
+
+### Before Creating New Features
+1. Check if similar functionality exists in codebase
+2. Review relevant design documents
+3. Follow established patterns in the module
+4. Consider backwards compatibility
+
+### When Adding Dependencies
+1. Use version catalog (`libs.versions.toml`)
+2. Check for conflicts with existing dependencies
+3. Update all affected modules
+
+### When Writing Tests
+1. Unit tests for business logic
+2. Integration tests for end-to-end flows
+3. Mock external dependencies
+4. Use test fixtures from `mill-test-common`
+
+### Before Committing
+1. Run tests: `./gradlew test`
+2. Check coverage: `./gradlew jacocoTestReport`
+3. Fix linting errors
+4. Update documentation if needed
+
+## File Locations
+
+### Configuration
+- `application.yml` - Main config
+- `src/main/resources/META-INF/additional-spring-configuration-metadata.json` - Config metadata
+
+### Templates (NL2SQL)
+- `ai/mill-ai-core/src/main/resources/templates/nlsql/`
+
+### Test Resources
+- Sample data: `test/datasets/`
+- Test configs: `src/test/resources/application-test.yml`
+
+### Protocol Buffers
+- Definitions: `proto/*.proto`
+- Generated: Committed to repository
+
+## Quick Reference Commands
+
+```bash
+# Build all modules
+cd core && ./gradlew build
+
+# Run specific test
+./gradlew test --tests MetadataProviderTest
+
+# Clean all
+./gradlew clean
+
+# Check dependencies
+./gradlew dependencies
+
+# Generate coverage report
+./gradlew jacocoTestReport
+# Report: build/reports/jacoco/test/html/index.html
+```
+
+## Important Notes
+
+1. **DO NOT** edit generated protobuf code - extend it instead
+2. **DO NOT** commit secrets - use environment variables
+3. **DO NOT** skip tests in CI - ensure green builds
+4. **DO** write meaningful commit messages
+5. **DO** update documentation when changing APIs
+6. **DO** follow the existing code style
+7. **DO** consider security implications of changes
+8. **DO** review metadata service design before adding metadata features
+
+## Module-Specific Notes
+
+### mill-metadata-core (NEW - In Development)
+- Pure Java, no AI dependencies
+- Faceted architecture for extensibility
+- File-based and JPA persistence options
+- See design doc for complete architecture
+
+### mill-ai-core
+- NL2SQL engine
+- Two-phase query processing (reasoning + execution)
+- Value mapping and enrichment capture
+- Will integrate with new metadata service
+
+### mill-security-core
+- Pluggable authentication methods
+- Policy-based authorization
+- Row/column/schema level security
+- Spring Security integration
+
+### mill-service-core
+- Service orchestration
+- DataOperationDispatcher routes queries
+- MetadataProvider interface (being replaced)
+
+## Getting Help
+
+1. Read CODEBASE_ANALYSIS.md for architecture
+2. Read relevant design documents in docs/design/
+3. Check existing tests for usage examples
+4. Review similar modules for patterns
+5. Ask specific questions with context
+
+## Project Status
+
+- **Production Ready:** Core data access, gRPC/HTTP services, security
+- **Stable:** NL2SQL basic functionality, JDBC driver, Python client
+- **In Development:** Metadata service (faceted architecture)
+- **Planned:** Data quality facets, semantic search, lineage tracking
+
+---
+
+**Last Updated:** November 5, 2025
+**Current Sprint:** Metadata Service - Phase 1 (Core Foundation)
+

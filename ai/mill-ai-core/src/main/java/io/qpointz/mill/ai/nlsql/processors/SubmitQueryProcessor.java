@@ -9,10 +9,12 @@ import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.sql.VectorBlockRecordIterator;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import java.util.*;
 
+@Slf4j
 @AllArgsConstructor
 public class SubmitQueryProcessor implements ChatCallPostProcessor {
 
@@ -31,9 +33,16 @@ public class SubmitQueryProcessor implements ChatCallPostProcessor {
         }
 
         val sql = result.get("sql").toString();
-        val execution = submit(sql);
         val updated = new HashMap<>(result);
-        updated.put("data", execution);
+        try {
+            val execution = submit(sql);
+            updated.put("data", execution);
+        } catch (Exception ex) {
+            val error = ex.getMessage();
+            log.error("Error submitting SQL: {}", sql, ex);
+            updated.put("error", error);
+        }
+
         return updated;
     }
 

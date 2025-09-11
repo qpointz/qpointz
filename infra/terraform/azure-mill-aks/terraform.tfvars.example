@@ -1,0 +1,77 @@
+# Example Terraform Variables for Azure AKS
+# Copy this file to terraform.tfvars and customize with your values
+
+# Resource Configuration
+resource_group_name = "rg-aks-mill"
+location            = "eastus"
+
+# Cluster Configuration
+cluster_name       = "aks-mill-cluster"
+kubernetes_version = "1.28"
+
+# Network Configuration
+vnet_address_space        = "10.0.0.0/16"
+nodes_subnet_address_prefix = "10.0.1.0/24"
+pods_subnet_address_prefix  = "10.0.2.0/24"
+
+# Azure Container Registry
+acr_name = "acrmill"  # Must be globally unique, lowercase alphanumeric
+
+# Tags
+tags = {
+  Environment = "Development"
+  Project     = "QPointz"
+  ManagedBy   = "Terraform"
+  CostCenter  = "Engineering"
+}
+
+# AKS Features
+azure_rbac_enabled           = true
+enable_network_policy        = false
+enable_azure_policy          = true
+enable_http_application_routing = false
+
+# Default Node Pool Configuration
+default_node_pool_count      = 2
+default_node_pool_vm_size    = "Standard_B2s"
+default_node_pool_os_disk_size = 30
+
+# Auto Scaling
+enable_auto_scaling   = true
+auto_scaling_min_count = 2
+auto_scaling_max_count = 5
+
+# Additional Node Pool
+create_additional_node_pool    = true
+additional_node_pool_count     = 2
+additional_node_pool_vm_size   = "Standard_B2s"
+additional_node_pool_os_disk_size = 30
+
+# Availability Zones
+node_pool_zones = ["1", "2", "3"]
+
+# Production Example Overrides:
+# 
+# resource_group_name = "rg-aks-mill-production"
+# location            = "eastus"
+# cluster_name        = "aks-mill-prod"
+# kubernetes_version  = "1.28"
+# acr_name            = "acrmillprod"
+# 
+# default_node_pool_vm_size    = "Standard_DS3_v2"
+# additional_node_pool_vm_size = "Standard_DS4_v2"
+# default_node_pool_count      = 3
+# additional_node_pool_count   = 3
+# auto_scaling_min_count       = 3
+# auto_scaling_max_count       = 10
+# 
+# enable_network_policy        = true
+# 
+# tags = {
+#   Environment = "Production"
+#   Project     = "QPointz"
+#   ManagedBy   = "Terraform"
+#   Criticality = "High"
+#   Backup      = "Required"
+# }
+

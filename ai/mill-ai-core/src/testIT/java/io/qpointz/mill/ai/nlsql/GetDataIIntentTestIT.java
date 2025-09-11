@@ -37,7 +37,8 @@ public class GetDataIIntentTestIT extends BaseIntentTestIT {
             "How many clients?",
             "Count clients by country. Take five countries with most clients.",
             "List clients who trades LME stocks and has loan",
-            "List exchanges where most of the clients trading"
+            "List exchanges where most of the clients trading",
+            "Get clients in REGULAR segment",
     })
     void roundtrip(String query) {
         val rc = intentSpecs()

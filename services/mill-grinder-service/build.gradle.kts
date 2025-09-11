@@ -6,7 +6,7 @@ plugins {
 
 mill {
     description = "Mill grinder UI service"
-    publishToSonatype = false
+    publishArtifacts = false
 }
 
 dependencies {

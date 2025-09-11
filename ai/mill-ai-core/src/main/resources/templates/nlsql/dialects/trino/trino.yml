@@ -345,10 +345,10 @@ functions:
 
     - name: "DATE_ADD"
       return: { type: TIMESTAMP, nullable: false }
-      syntax: "DATE_ADD(unit, value, ts)"
+      syntax: "DATE_ADD(unit, text, ts)"
       args:
         - { name: "unit", type: ENUM, required: true, enum: ["year","quarter","month","week","day","hour","minute","second"] }
-        - { name: "value", type: INTEGER, required: true }
+        - { name: "text", type: INTEGER, required: true }
         - { name: "ts", type: TIMESTAMP, required: true }
 
     - name: "DATE_DIFF"

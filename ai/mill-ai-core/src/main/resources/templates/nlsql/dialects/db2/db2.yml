@@ -169,11 +169,11 @@ functions:
 
     - name: "TIMESTAMPADD"
       return: { type: TIMESTAMP, nullable: false }
-      syntax: "TIMESTAMPADD(unit, value, ts)"
+      syntax: "TIMESTAMPADD(unit, text, ts)"
       args:
         - { name: "unit", type: ENUM, required: true, enum: ["DAY","HOUR","MINUTE","SECOND"], notes: "Time unit" }
-        - { name: "value", type: INTEGER, required: true, notes: "Amount to add" }
-        - { name: "ts", type: TIMESTAMP, required: true, notes: "Timestamp value" }
+        - { name: "text", type: INTEGER, required: true, notes: "Amount to add" }
+        - { name: "ts", type: TIMESTAMP, required: true, notes: "Timestamp text" }
 
   conditionals:
     - name: "COALESCE"

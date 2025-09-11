@@ -1,5 +1,8 @@
 package io.qpointz.mill.services.metadata;
 
+import io.qpointz.mill.services.metadata.impl.file.FileRepository;
+
+import java.util.Collection;
 import java.util.Optional;
 
 public interface AnnotationsRepository {
@@ -12,4 +15,20 @@ public interface AnnotationsRepository {
     Optional<String> getTableDescription(String schemaName, String tableName);
 
     Optional<String> getAttributeDescription(String schemaName, String tableName, String attributeNam);
+    
+    /**
+     * Get all static value mappings from metadata.
+     * Returns a flat list of all mappings from all attributes.
+     * 
+     * @return collection of value mappings with context
+     */
+    Collection<MetadataProvider.ValueMappingWithContext> getAllValueMappings();
+    
+    /**
+     * Get all SQL-based value mapping sources from metadata.
+     * Returns a flat list of all sources that are enabled.
+     * 
+     * @return collection of value mapping sources with context
+     */
+    Collection<MetadataProvider.ValueMappingSourceWithContext> getAllValueMappingSources();
 }

@@ -26,6 +26,10 @@ public class PostProcessors {
         return new ExecuteQueryProcessor(dispatcher);
     }
 
+    public static MapValueProcessor mapValueProcessor(ValueMapper valueMapper) {
+        return new MapValueProcessor(valueMapper);
+    }
+
     public static RefineIntentProcessor refineProcessor(ReasoningResponse response, IntentSpecs specs) {
         return new RefineIntentProcessor(response, specs);
     }

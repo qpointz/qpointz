@@ -16,6 +16,9 @@
 import type { Configuration } from './configuration';
 import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
 import globalAxios from 'axios';
+// URLSearchParams not necessarily used
+// @ts-ignore
+import { URL, URLSearchParams } from 'url';
 // Some imports not used depending on template conditions
 // @ts-ignore
 import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from './common';
@@ -1471,12 +1474,86 @@ export const AccessServiceControllerApiFactory = function (configuration?: Confi
 };
 
 /**
+ * AccessServiceControllerApi - interface
+ * @export
+ * @interface AccessServiceControllerApi
+ */
+export interface AccessServiceControllerApiInterface {
+    /**
+     * 
+     * @param {string} body 
+     * @param {string} [accept] 
+     * @param {string} [contentType] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessServiceControllerApiInterface
+     */
+    fetchQueryResult(body: string, accept?: string, contentType?: string, options?: RawAxiosRequestConfig): AxiosPromise<object>;
+
+    /**
+     * 
+     * @param {string} body 
+     * @param {string} [accept] 
+     * @param {string} [contentType] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessServiceControllerApiInterface
+     */
+    getSchema(body: string, accept?: string, contentType?: string, options?: RawAxiosRequestConfig): AxiosPromise<object>;
+
+    /**
+     * 
+     * @param {string} [accept] 
+     * @param {string} [contentType] 
+     * @param {string} [body] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessServiceControllerApiInterface
+     */
+    handshake(accept?: string, contentType?: string, body?: string, options?: RawAxiosRequestConfig): AxiosPromise<object>;
+
+    /**
+     * 
+     * @param {string} [accept] 
+     * @param {string} [contentType] 
+     * @param {string} [body] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessServiceControllerApiInterface
+     */
+    listSchemas(accept?: string, contentType?: string, body?: string, options?: RawAxiosRequestConfig): AxiosPromise<object>;
+
+    /**
+     * 
+     * @param {string} body 
+     * @param {string} [accept] 
+     * @param {string} [contentType] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessServiceControllerApiInterface
+     */
+    parseSql(body: string, accept?: string, contentType?: string, options?: RawAxiosRequestConfig): AxiosPromise<object>;
+
+    /**
+     * 
+     * @param {string} body 
+     * @param {string} [accept] 
+     * @param {string} [contentType] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessServiceControllerApiInterface
+     */
+    submitQuery(body: string, accept?: string, contentType?: string, options?: RawAxiosRequestConfig): AxiosPromise<object>;
+
+}
+
+/**
  * AccessServiceControllerApi - object-oriented interface
  * @export
  * @class AccessServiceControllerApi
  * @extends {BaseAPI}
  */
-export class AccessServiceControllerApi extends BaseAPI {
+export class AccessServiceControllerApi extends BaseAPI implements AccessServiceControllerApiInterface {
     /**
      * 
      * @param {string} body 
@@ -1636,12 +1713,28 @@ export const ApplicationDescriptorControllerApiFactory = function (configuration
 };
 
 /**
+ * ApplicationDescriptorControllerApi - interface
+ * @export
+ * @interface ApplicationDescriptorControllerApi
+ */
+export interface ApplicationDescriptorControllerApiInterface {
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApplicationDescriptorControllerApiInterface
+     */
+    getInfo(options?: RawAxiosRequestConfig): AxiosPromise<ApplicationDescriptor>;
+
+}
+
+/**
  * ApplicationDescriptorControllerApi - object-oriented interface
  * @export
  * @class ApplicationDescriptorControllerApi
  * @extends {BaseAPI}
  */
-export class ApplicationDescriptorControllerApi extends BaseAPI {
+export class ApplicationDescriptorControllerApi extends BaseAPI implements ApplicationDescriptorControllerApiInterface {
     /**
      * 
      * @param {*} [options] Override http request option.
@@ -2138,12 +2231,96 @@ export const NlSqlChatControllerApiFactory = function (configuration?: Configura
 };
 
 /**
+ * NlSqlChatControllerApi - interface
+ * @export
+ * @interface NlSqlChatControllerApi
+ */
+export interface NlSqlChatControllerApiInterface {
+    /**
+     * 
+     * @param {string} chatId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof NlSqlChatControllerApiInterface
+     */
+    chatStream(chatId: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<any>>;
+
+    /**
+     * 
+     * @summary Creates new chat
+     * @param {CreateChatRequest} createChatRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof NlSqlChatControllerApiInterface
+     */
+    createChat(createChatRequest: CreateChatRequest, options?: RawAxiosRequestConfig): AxiosPromise<Chat>;
+
+    /**
+     * 
+     * @summary Deletes chat chat
+     * @param {string} chatId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof NlSqlChatControllerApiInterface
+     */
+    deleteChat(chatId: string, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+
+    /**
+     * 
+     * @param {string} chatId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof NlSqlChatControllerApiInterface
+     */
+    getChat(chatId: string, options?: RawAxiosRequestConfig): AxiosPromise<Chat>;
+
+    /**
+     * 
+     * @param {string} chatId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof NlSqlChatControllerApiInterface
+     */
+    listChatMessages(chatId: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<ChatMessage>>;
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof NlSqlChatControllerApiInterface
+     */
+    listChats(options?: RawAxiosRequestConfig): AxiosPromise<Array<Chat>>;
+
+    /**
+     * 
+     * @param {string} chatId 
+     * @param {SendChatMessageRequest} sendChatMessageRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof NlSqlChatControllerApiInterface
+     */
+    postChatMessages(chatId: string, sendChatMessageRequest: SendChatMessageRequest, options?: RawAxiosRequestConfig): AxiosPromise<ChatMessage>;
+
+    /**
+     * 
+     * @summary Updates chat
+     * @param {string} chatId 
+     * @param {UpdateChatRequest} updateChatRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof NlSqlChatControllerApiInterface
+     */
+    updateChat(chatId: string, updateChatRequest: UpdateChatRequest, options?: RawAxiosRequestConfig): AxiosPromise<Chat>;
+
+}
+
+/**
  * NlSqlChatControllerApi - object-oriented interface
  * @export
  * @class NlSqlChatControllerApi
  * @extends {BaseAPI}
  */
-export class NlSqlChatControllerApi extends BaseAPI {
+export class NlSqlChatControllerApi extends BaseAPI implements NlSqlChatControllerApiInterface {
     /**
      * 
      * @param {string} chatId 

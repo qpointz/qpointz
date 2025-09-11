@@ -6,7 +6,7 @@ plugins {
 
 mill {
     description = "Library provides base Mill Service implementation"
-    publishToSonatype = true
+    publishArtifacts = true
 }
 
 

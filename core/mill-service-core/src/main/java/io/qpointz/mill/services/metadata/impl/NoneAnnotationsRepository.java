@@ -1,10 +1,13 @@
 package io.qpointz.mill.services.metadata.impl;
 
 import io.qpointz.mill.services.metadata.AnnotationsRepository;
+import io.qpointz.mill.services.metadata.MetadataProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Lazy
@@ -35,5 +38,14 @@ public class NoneAnnotationsRepository implements AnnotationsRepository {
     public Optional<String> getAttributeDescription(String schemaName, String tableName, String attributeNam) {
         return Optional.empty();
     }
-}
 
+    @Override
+    public Collection<MetadataProvider.ValueMappingWithContext> getAllValueMappings() {
+        return List.of();
+    }
+
+    @Override
+    public Collection<MetadataProvider.ValueMappingSourceWithContext> getAllValueMappingSources() {
+        return List.of();
+    }
+}

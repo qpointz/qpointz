@@ -113,23 +113,27 @@ public class RefineIntentTestIt extends BaseIntentTestIT {
         var r1 = getData("get clients");
         var r2 = followUp("- drop phone column.");
         assertNotEquals(r1.get("sql"), r2.get("sql"));
-        assertTrue(r2.containsKey("original-intent"));
-        assertEquals("get-data", r2.get("original-intent"));
+        assertTrue(r2.containsKey("refine"));
+        var refine = (Map<String, Object>)r2.get("refine");
+        assertEquals("get-data", refine.get("original-intent"));
 
         r1 = r2;
         r2 = followUp("limit to customers in Korea and Singapore");
         assertNotEquals(r1.get("sql"), r2.get("sql"));
-        assertEquals("get-data", r2.get("original-intent"));
+        refine = (Map<String, Object>)r2.get("refine");
+        assertEquals("get-data", refine.get("original-intent"));
 
         r1 = r2;
         r2 = followUp("Exclude customers in REGULAR SEGMENT");
         assertNotEquals(r1.get("sql"), r2.get("sql"));
-        assertEquals("get-data", r2.get("original-intent"));
+        refine = (Map<String, Object>)r2.get("refine");
+        assertEquals("get-data", refine.get("original-intent"));
 
         r1 = getChart("count clients by country and present as bar chart");
         r2 = followUp("show only 10 countries with most clients");
+        refine = (Map<String, Object>)r2.get("refine");
         assertNotEquals(r1.get("sql"), r2.get("sql"));
-        assertEquals("get-chart", r2.get("original-intent"));
+        assertEquals("get-chart", refine.get("original-intent"));
     }
 
     @Test

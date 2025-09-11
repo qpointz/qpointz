@@ -1,6 +1,7 @@
 package io.qpointz.mill.ai.nlsql;
 
 import io.qpointz.mill.ai.chat.messages.MessageSelectors;
+import io.qpointz.mill.ai.nlsql.components.DefaultValueMapper;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
@@ -88,7 +89,8 @@ public class EnrichModelIntentTestIT extends BaseIntentTestIT {
                 this.getMetadataProvider(),
                 this.getSqlDialect(),
                 this.getDispatcher(),
-                MessageSelectors.SIMPLE);
+                MessageSelectors.SIMPLE,
+                new DefaultValueMapper());
 
         List.of(
                 "How many customers?",

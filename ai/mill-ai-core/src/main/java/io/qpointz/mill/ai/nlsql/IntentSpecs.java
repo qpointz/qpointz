@@ -38,16 +38,21 @@ public class IntentSpecs {
     @Getter
     private final SqlDialect sqlDialect;
 
+    @Getter
+    private final ValueMapper valueMapper;
+
     public IntentSpecs(MetadataProvider metadataProvider,
                        SqlDialect sqlDialect,
                        CallSpecsChatClientBuilders chatBuilders,
                        DataOperationDispatcher dispatcher,
-                       MessageSelector messageSelector) {
+                       MessageSelector messageSelector,
+                       ValueMapper valueMapper) {
         this.metadataProvider = metadataProvider;
         this.chatBuilders = chatBuilders;
         this.dispatcher = dispatcher;
         this.messageSelector = messageSelector;
         this.sqlDialect = sqlDialect;
+        this.valueMapper = valueMapper;
         this.intents  = List.of(
                 getDataIntent(),
                 getChartIntent(),
@@ -76,6 +81,7 @@ public class IntentSpecs {
                         getData(reason, metadataProvider, sqlDialect),
                         this.messageSelector))
                 .postProcessorFunc(reason -> List.of(
+                        mapValueProcessor(this.valueMapper),
                         submitQueryProcessor(dispatcher, 10),
                         retainReasoning(reason)))
                 .build();

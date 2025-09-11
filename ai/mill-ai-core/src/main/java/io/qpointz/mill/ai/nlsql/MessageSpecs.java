@@ -8,6 +8,7 @@ import io.qpointz.mill.ai.nlsql.messages.specs.SchemaMessageSpec;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.services.metadata.MetadataProvider;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.ai.chat.messages.MessageType;
 
@@ -17,6 +18,7 @@ import java.util.Map;
 
 import static io.qpointz.mill.ai.chat.messages.MessageTemplates.staticTemplate;
 
+@Slf4j
 public class MessageSpecs {
 
     private MessageSpecs() {
@@ -93,7 +95,8 @@ public class MessageSpecs {
     public static MessageList getData(ReasoningResponse reason, MetadataProvider provider, SqlDialect dialect) {
         return new MessageList(List.of(
             intentSystem(),
-            dialect.getConventionsSpec(reason.sqlFeatures() != null ? reason.sqlFeatures() : SqlDialect.SqlFeatures.DEFAULT),
+            //dialect.getConventionsSpec(reason.sqlFeatures() != null ? reason.sqlFeatures() : SqlDialect.SqlFeatures.DEFAULT),
+            dialect.getConventionsSpec(SqlDialect.SqlFeatures.DEFAULT),
             getDataUser(),
             intentSchema(reason, provider),
             outputRules(),
@@ -108,7 +111,8 @@ public class MessageSpecs {
     public static MessageList getChart(ReasoningResponse reason, MetadataProvider provider, SqlDialect dialect) {
         return new MessageList(List.of(
                 intentSystem(),
-                dialect.getConventionsSpec(reason.sqlFeatures() != null ? reason.sqlFeatures() : SqlDialect.SqlFeatures.DEFAULT),
+                //dialect.getConventionsSpec(reason.sqlFeatures() != null ? reason.sqlFeatures() : SqlDialect.SqlFeatures.DEFAULT),
+                dialect.getConventionsSpec(SqlDialect.SqlFeatures.DEFAULT),
                 getChartUser(),
                 intentSchema(reason, provider),
                 outputRules(),

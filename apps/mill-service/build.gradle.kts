@@ -6,7 +6,7 @@ plugins {
 
 mill {
     description = "calcite service desc"
-    publishToSonatype = false
+    publishArtifacts = false
 }
 
 springBoot {
@@ -72,6 +72,7 @@ dependencies {
 
     runtimeOnly(libs.spring.ai.starter.model.openai)
     runtimeOnly(libs.spring.ai.starter.model.azureopenai)
+    runtimeOnly(libs.spring.ai.starter.model.ollama)
 
     runtimeOnly(libs.boot.starter.actuator)
     runtimeOnly(libs.boot.starter)

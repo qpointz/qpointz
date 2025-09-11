@@ -66,7 +66,89 @@ public record FileRepository(
     public record Attribute(
             @JsonProperty("name") String name,
             @JsonProperty("description") Optional<String> description,
-            @JsonProperty("type") Optional<String> typeName
+            @JsonProperty("type") Optional<String> typeName,
+            @JsonProperty("value-mappings") Optional<ValueMappings> valueMappings
     ) {}
+    
+    /**
+     * Value mappings for an attribute (tactical solution for RAG)
+     */
+    public record ValueMappings(
+            @JsonProperty("mappings") List<ValueMapping> mappings,
+            @JsonProperty("sources") List<ValueMappingSource> sources,
+            @JsonProperty("context") Optional<String> context,
+            @JsonProperty("similarity-threshold") Optional<Double> similarityThreshold
+    ) {
+        public ValueMappings {
+            if (mappings == null) {
+                mappings = List.of();
+            }
+            if (sources == null) {
+                sources = List.of();
+            }
+            if (context == null) {
+                context = Optional.empty();
+            }
+            if (similarityThreshold == null) {
+                similarityThreshold = Optional.empty();
+            }
+        }
+    }
+    
+    /**
+     * Single value mapping entry
+     */
+    public record ValueMapping(
+            @JsonProperty("user-term") String userTerm,
+            @JsonProperty("database-value") String databaseValue,
+            @JsonProperty("display-value") Optional<String> displayValue,
+            @JsonProperty("description") Optional<String> description,
+            @JsonProperty("language") Optional<String> language,
+            @JsonProperty("aliases") Optional<List<String>> aliases
+    ) {
+        public ValueMapping {
+            if (language == null || language.isEmpty()) {
+                language = Optional.of("en");
+            }
+        }
+        
+        public String getDisplayValueOrDefault() {
+            return displayValue.orElse(databaseValue);
+        }
+        
+        public String getLanguageCode() {
+            return language.orElse("en");
+        }
+    }
+    
+    /**
+     * Dynamic value mapping source (SQL query, reference table, etc.)
+     */
+    public record ValueMappingSource(
+            @JsonProperty("type") String type,
+            @JsonProperty("name") String name,
+            @JsonProperty("sql") String sql,
+            @JsonProperty("description") Optional<String> description,
+            @JsonProperty("enabled") Optional<Boolean> enabled,
+            @JsonProperty("cron") Optional<String> cron,
+            @JsonProperty("cache-ttl-seconds") Optional<Integer> cacheTtlSeconds
+    ) {
+        public ValueMappingSource {
+            if (enabled == null || enabled.isEmpty()) {
+                enabled = Optional.of(true);
+            }
+            if (cacheTtlSeconds == null || cacheTtlSeconds.isEmpty()) {
+                cacheTtlSeconds = Optional.of(3600);
+            }
+        }
+        
+        public boolean isEnabled() {
+            return enabled.orElse(true);
+        }
+        
+        public int getCacheTtl() {
+            return cacheTtlSeconds.orElse(3600);
+        }
+    }
 }
 

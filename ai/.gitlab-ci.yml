@@ -25,4 +25,12 @@ test:
   script:
     - echo $HOME
     - cd ${CI_PROJECT_DIR}/ai
-    - ./gradlew --no-daemon --console plain test check
+    - ./gradlew --no-daemon --console plain test
+
+testIT:
+  stage: test
+  extends: .gradle-job
+  script:
+    - echo $HOME
+    - cd ${CI_PROJECT_DIR}/ai
+    - ./gradlew --no-daemon --console plain testIT

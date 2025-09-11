@@ -6,7 +6,7 @@ plugins {
 
 mill {
     description = "Mill essential starter services"
-    publishToSonatype = true
+    publishArtifacts = true
 }
 
 dependencies {

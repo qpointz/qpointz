@@ -6,7 +6,7 @@ plugins {
 
 mill {
     description = "Mill testing kit"
-    publishToSonatype = true
+    publishArtifacts = true
 }
 
 dependencies {

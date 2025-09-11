@@ -5,7 +5,7 @@ plugins {
 }
 
 mill {
-    publishToSonatype = true
+    publishArtifacts = true
 }
 
 dependencies {

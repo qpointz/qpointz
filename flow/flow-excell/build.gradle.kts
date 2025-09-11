@@ -4,7 +4,7 @@ plugins {
 }
 
 mill {
-    publishToSonatype = true
+    publishArtifacts = true
     description = "Flow module, which provides the Excell integration for the Flow framework."
 }
 

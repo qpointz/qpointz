@@ -8,7 +8,7 @@ plugins {
 
 mill {
     description = "Natural language to sql (NL2SQL) core library"
-    publishToSonatype = false
+    publishArtifacts = false
 }
 
 dependencies {
@@ -18,6 +18,7 @@ dependencies {
     implementation(libs.jackson.core)
     implementation(libs.apache.commons.codec)
     api(libs.spring.ai.client.chat)
+    api(libs.spring.ai.vector.store)
     compileOnly(libs.bundles.logging)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
@@ -39,6 +40,7 @@ testing {
 
         configureEach {
             if (this is JvmTestSuite) {
+                logger.warn(this.name)
                 useJUnitJupiter(libs.versions.junit.get())
 
                 dependencies {
@@ -60,7 +62,6 @@ testing {
 }
 
 tasks.named<Test>("testIT") {
-    ignoreFailures = true
     testLogging {
         events("passed", "failed", "skipped")
         exceptionFormat = TestExceptionFormat.SHORT

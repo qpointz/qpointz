@@ -12,7 +12,7 @@ import java.nio.file.Paths
 
 open class MillExtension {
     var description: String = ""
-    var publishToSonatype: Boolean = true
+    var publishArtifacts: Boolean = true
 }
 
 class MillPlugin: Plugin<Project> {

@@ -248,10 +248,10 @@ functions:
 
     - name: "DATEADD"
       return: { type: TIMESTAMP, nullable: false }
-      syntax: "DATEADD(unit, value, ts)"
+      syntax: "DATEADD(unit, text, ts)"
       args:
         - { name: "unit", type: ENUM, required: true, enum: ["year","quarter","month","week","day","hour","minute","second","millisecond"] }
-        - { name: "value", type: INTEGER, required: true }
+        - { name: "text", type: INTEGER, required: true }
         - { name: "ts", type: TIMESTAMP, required: true }
 
     - name: "DATEDIFF"

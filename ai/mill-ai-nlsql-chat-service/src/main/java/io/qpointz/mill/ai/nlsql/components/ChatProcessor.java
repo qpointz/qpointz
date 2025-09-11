@@ -5,6 +5,7 @@ import io.qpointz.mill.ai.chat.messages.MessageSelectors;
 import io.qpointz.mill.ai.nlsql.CallSpecsChatClientBuilders;
 import io.qpointz.mill.ai.nlsql.ChatApplication;
 import io.qpointz.mill.ai.nlsql.MessageSpecs;
+import io.qpointz.mill.ai.nlsql.ValueMapper;
 import io.qpointz.mill.ai.nlsql.model.MessageRole;
 import io.qpointz.mill.ai.nlsql.model.UserChatMessage;
 import io.qpointz.mill.ai.nlsql.model.pojo.Chat;
@@ -35,19 +36,22 @@ public class ChatProcessor {
     private final DataOperationDispatcher dataOperationDispatcher;
     private final ChatClient.Builder chatBuilder;
     private final SqlDialect sqlDialect;
+    private final ValueMapper valueMapper;
 
     public ChatProcessor(MetadataProvider metadataProvider,
                          SqlDialect dialect,
                          DataOperationDispatcher dataOperationDispatcher,
                          UserChatMessageRepository userChatMessageRepository,
-                         ChatMemory chatMemory, 
-                         ChatClient.Builder chatBuilder) {
+                         ChatMemory chatMemory,
+                         ChatClient.Builder chatBuilder,
+                         ValueMapper valueMapper) {
         this.userChatMessageRepository = userChatMessageRepository;
         this.chatMemory = chatMemory;
         this.chatBuilder = chatBuilder;
         this.metadataProvider = metadataProvider;
         this.sqlDialect = dialect;
         this.dataOperationDispatcher = dataOperationDispatcher;
+        this.valueMapper = valueMapper;
     }
 
     //try {
@@ -79,7 +83,8 @@ public class ChatProcessor {
                                 metadataProvider,
                                 sqlDialect,
                                 dataOperationDispatcher,
-                                MessageSelectors.SIMPLE);
+                                MessageSelectors.SIMPLE,
+                                valueMapper);
 
         val resp = application
                 .query(request.message())

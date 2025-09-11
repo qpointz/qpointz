@@ -6,9 +6,6 @@ management:
     web:
       exposure:
         include: health, info, prometheus
-
-
-
 spring:
   main:
     web-application-type:servlet
@@ -54,6 +51,12 @@ mill:
       dialect: H2
   security:
     enable: false
+  metadata:
+    relations: file
+    annotations: file
+    file:
+      repository:
+        path: file:../../test/datasets/moneta/moneta-meta.yaml
   backend:
     provider: jdbc
     connection:

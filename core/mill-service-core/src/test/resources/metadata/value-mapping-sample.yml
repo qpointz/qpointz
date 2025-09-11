@@ -1,0 +1,86 @@
+model:
+  name: sample-metadata
+  description: Sample metadata used to verify value mapping parsing
+
+schemas:
+  - name: SAMPLE
+    description: Sample schema containing value mappings
+    tables:
+      - name: CUSTOMERS
+        description: Customer master data
+        attributes:
+          - name: SEGMENT
+            description: Customer segmentation level
+            type: VARCHAR
+            value-mappings:
+              context: Customer segment
+              similarity-threshold: 0.62
+              mappings:
+                - user-term: premium
+                  database-value: PREMIUM
+                  display-value: Premium Customers
+                  description: Highest value customers
+                  language: en
+                  aliases: [gold, vip]
+
+                - user-term: standard
+                  database-value: STANDARD
+                  display-value: Standard Customers
+                  description: Regular customers
+                  language: en
+
+                - user-term: basic
+                  database-value: BASIC
+                  display-value: Basic Customers
+                  description: Entry level customers
+                  language: en
+              sources: []
+
+          - name: COUNTRY
+            description: Country of residence
+            type: VARCHAR
+            value-mappings:
+              context: Country name
+              similarity-threshold: 0.58
+              mappings:
+                - user-term: usa
+                  database-value: US
+                  display-value: United States
+                  description: United States of America
+                  language: en
+                  aliases: [United States, America]
+              sources:
+                - type: sql
+                  name: country_lookup
+                  description: Distinct country values from database
+                  enabled: true
+                  sql: |
+                    SELECT DISTINCT
+                      "COUNTRY" AS "ID",
+                      "COUNTRY" AS "VALUE",
+                      "COUNTRY" AS "TEXT"
+                    FROM "SAMPLE"."CUSTOMERS"
+                    WHERE "COUNTRY" IS NOT NULL
+                  cache-ttl-seconds: 3600
+
+          - name: STATUS
+            description: Customer status
+            type: VARCHAR
+            value-mappings:
+              context: Customer status
+              similarity-threshold: 0.5
+              mappings: []
+              sources:
+                - type: sql
+                  name: status_lookup
+                  description: Distinct status values from database
+                  enabled: true
+                  sql: |
+                    SELECT DISTINCT
+                      "STATUS" AS "ID",
+                      "STATUS" AS "VALUE",
+                      "STATUS" AS "TEXT"
+                    FROM "SAMPLE"."CUSTOMERS"
+                    WHERE "STATUS" IS NOT NULL
+                  cache-ttl-seconds: 900
+

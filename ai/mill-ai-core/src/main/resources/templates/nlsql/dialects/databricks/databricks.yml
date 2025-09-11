@@ -464,9 +464,9 @@ functions:
 
     - name: "NVL"
       return: { type: STRING, nullable: true }
-      syntax: "NVL(value, default)"
+      syntax: "NVL(text, default)"
       args:
-        - { name: "value", type: STRING, required: true }
+        - { name: "text", type: STRING, required: true }
         - { name: "default", type: STRING, required: true }
 
     - name: "NVL2"

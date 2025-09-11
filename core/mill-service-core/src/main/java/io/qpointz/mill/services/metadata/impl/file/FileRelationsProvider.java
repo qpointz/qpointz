@@ -2,6 +2,7 @@ package io.qpointz.mill.services.metadata.impl.file;
 
 import io.qpointz.mill.services.metadata.RelationsProvider;
 import io.qpointz.mill.services.metadata.model.Relation;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -12,6 +13,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @Lazy
 @ConditionalOnProperty(prefix = "mill.metadata", name = "relations", havingValue = "file")
@@ -20,6 +22,7 @@ public class FileRelationsProvider implements RelationsProvider {
     private final FileRepository repository;
 
     public FileRelationsProvider(FileRepository repository) {
+        log.info("Using file-based relations repository");
         this.repository = repository;
     }
 

@@ -1,13 +1,22 @@
-import {Box, Menu, NavLink, ScrollArea, UnstyledButton, useMantineTheme} from "@mantine/core";
-import {TbDotsVertical, TbStar, TbStarFilled, TbTrash} from "react-icons/tb";
+import {Box, Menu, NavLink, ScrollArea, UnstyledButton, useMantineTheme, Button, Divider, Text} from "@mantine/core";
+import {useMediaQuery} from "@mantine/hooks";
+import {TbDotsVertical, TbStar, TbStarFilled, TbTrash, TbLayoutSidebarRightExpand, TbLayoutSidebarLeftExpand, TbCirclePlus, TbCompass, TbDatabase} from "react-icons/tb";
 import {Link} from "react-router";
+import {useState} from "react";
 import type {Chat} from "../../api/mill";
 import {useChatContext} from "./ChatProvider.tsx";
 
 
 export function ChatList() {
     const theme = useMantineTheme();
-    const {chats} = useChatContext();    
+    const {chats} = useChatContext();
+    const [isCollapsed, setIsCollapsed] = useState(false);
+    const isMobile = useMediaQuery('(max-width: 768px)');
+        
+    // Auto-collapse on mobile only, manual toggle on tablet and desktop
+    const shouldCollapse = isMobile || isCollapsed;
+    
+    
     const linkMenu = (chat:Chat) => {
         return (
             <Menu shadow="md" width={200} position="right-start">
@@ -27,33 +36,141 @@ export function ChatList() {
     }
 
     return (
-        <ScrollArea type="hover" style={{ minHeight: "100%"}}>
-            <Box w={350} m={0} pl={10} pr={10} pt={10} style={{ height: "100vh", width: "100%", boxSizing: "border-box", borderRight: `1px solid ${theme.colors.gray[3]}` }}>
-                <Box mt={6} p={1} mb={2} bg="transparent" style={{borderRadius: 6}} key="new-chat">
-                    <NavLink c="blue" key={"new-chat"} to="/chat" component={Link} label="New Chat+" p={0} m={0}/>
-                </Box>
-                {chats.list.map((chat: Chat) => (
-                    <Box mt={6} p={0} bg={ chats.activeId === chat.id ? "gray.3" : "transparent"} style={{borderRadius: 6}} key={chat.id}>
-                        <NavLink
-                            to={`/chat/${chat.id}`}
-                            key={chat.id}
-                            component={Link}
-                            label={chat.name}
-                            p={3} m={0}
-                            leftSection={chat.isFavorite ? <TbStar size={14} color={theme.colors.yellow[6]} /> : <></>}
-                            rightSection={linkMenu(chat)}
-                            style={{
-                                borderRadius: 8,
-                                marginBottom: 4,
-                                background: chats.activeId === String(chat.id) ? theme.colors.blue[0] : undefined,
-                                transition: 'background 0.2s',
-                            }}
-                            onMouseEnter={e => e.currentTarget.style.background = theme.colors.gray[1]}
-                            onMouseLeave={e => e.currentTarget.style.background = chats.activeId === String(chat.id) ? theme.colors.blue[0] : ''}
-                        />
+        <Box 
+            w={shouldCollapse ? 50 : 350} 
+            style={{ 
+                height: "100vh", 
+                boxSizing: "border-box", 
+                borderRight: `1px solid ${theme.colors.gray[3]}`,
+                transition: 'width 0.3s ease, border 0.3s ease',
+                overflow: 'hidden',
+                position: 'relative'
+            }}
+        >
+            {/* Toggle Button - only show on tablet and larger */}
+            {!isMobile && (
+                <Button
+                    variant="subtle"
+                    size="xs"
+                    pos="absolute"
+                    top={10}
+                    right={shouldCollapse ? 0 : -5}
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    style={{ 
+                        transition: 'right 0.3s ease',
+                        zIndex: 10
+                    }}
+                >
+                    {shouldCollapse ? <TbLayoutSidebarLeftExpand size={20} /> : <TbLayoutSidebarRightExpand size={20} />}
+                </Button>
+            )}
+
+            <ScrollArea type="hover" style={{ minHeight: "100%", height: "100vh" }}>
+                <Box m={0} pl={shouldCollapse ? 5 : 10} pr={shouldCollapse ? 5 : 10} pt={40} style={{ width: "100%", boxSizing: "border-box" }}>
+                    
+                    {/* Explore Button */}
+                    <Box p={1} mb={shouldCollapse ? 4 : 8} bg="transparent" style={{borderRadius: 6}} key="explore">
+                        {shouldCollapse ? (
+                            <UnstyledButton
+                                component={Link}
+                                to="/explore"
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '100%',
+                                    padding: '6px',
+                                    borderRadius: 6,
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.background = theme.colors.gray[1]}
+                                onMouseLeave={e => e.currentTarget.style.background = ''}
+                            >
+                                <TbCompass size={20} />
+                            </UnstyledButton>
+                        ) : (
+                            <NavLink to="/explore" component={Link} label="Explore" p={0} m={0} leftSection={<TbCompass size={20} />}/>
+                        )}
                     </Box>
-                ))}
-            </Box>
-        </ScrollArea>
+                    
+                    {/* Data Button */}
+                    <Box p={1} mb={shouldCollapse ? 4 : 8} bg="transparent" style={{borderRadius: 6}} key="data">
+                        {shouldCollapse ? (
+                            <UnstyledButton
+                                component={Link}
+                                to="/data"
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '100%',
+                                    padding: '6px',
+                                    borderRadius: 6,
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.background = theme.colors.gray[1]}
+                                onMouseLeave={e => e.currentTarget.style.background = ''}
+                            >
+                                <TbDatabase size={20} />
+                            </UnstyledButton>
+                        ) : (
+                            <NavLink to="/data" component={Link} label="Data" p={0} m={0} leftSection={<TbDatabase size={20} />}/>
+                        )}
+                    </Box>
+
+                    {/* New Chat Button */}
+                    <Box p={1} mb={shouldCollapse ? 4 : 8} bg="transparent" style={{borderRadius: 6}} key="new-chat">
+                        {shouldCollapse ? (
+                            <UnstyledButton
+                                component={Link}
+                                to="/chat"
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '100%',
+                                    padding: '6px',
+                                    borderRadius: 6,
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.background = theme.colors.gray[1]}
+                                onMouseLeave={e => e.currentTarget.style.background = ''}
+                            >
+                                <TbCirclePlus size={20} />
+                            </UnstyledButton>
+                        ) : (
+                            <NavLink to="/chat" component={Link} label="New chat" p={0} m={0} leftSection={<TbCirclePlus size={20} />}/>
+                        )}
+                    </Box>
+                    
+                    {!shouldCollapse && (
+                        <>
+                            <Divider mt={15}/>
+                            
+                            <Text mt={15} size="sm" color="gray.5">Chats</Text>
+
+                            {chats.list.map((chat: Chat) => (
+                                <Box m={0}mt={6} p={0} bg={ chats.activeId === chat.id ? "gray.3" : "transparent"} style={{borderRadius: 6}} key={chat.id}>
+                                    <NavLink
+                                        to={`/chat/${chat.id}`}
+                                        key={chat.id}
+                                        component={Link}
+                                        label={chat.name}
+                                        p={3} m={0}
+                                        leftSection={chat.isFavorite ? <TbStar size={14} color={theme.colors.yellow[6]} /> : <></>}
+                                        rightSection={linkMenu(chat)}
+                                        style={{
+                                            borderRadius: 8,
+                                            marginBottom: 4,
+                                            background: chats.activeId === String(chat.id) ? theme.colors.blue[0] : undefined,
+                                            transition: 'background 0.2s',
+                                        }}
+                                        onMouseEnter={e => e.currentTarget.style.background = theme.colors.gray[1]}
+                                        onMouseLeave={e => e.currentTarget.style.background = chats.activeId === String(chat.id) ? theme.colors.blue[0] : ''}
+                                    />
+                                </Box>
+                            ))}
+                        </>
+                    )}
+                </Box>
+            </ScrollArea>
+        </Box>
     );
 }

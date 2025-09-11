@@ -28,6 +28,96 @@ schemas:
     - name: country
       type: varchar
       description: Country of residence.
+      value-mappings:
+        context: Country name
+        similarity-threshold: 0.4
+        # mappings:
+        #   - user-term: united states
+        #     database-value: US
+        #     display-value: United States
+        #     language: en
+        #     aliases: [usa, america, united states of america]
+        #   - user-term: canada
+        #     database-value: CA
+        #     display-value: Canada
+        #     language: en
+        #     aliases: [ca]
+        #   - user-term: united kingdom
+        #     database-value: GB
+        #     display-value: United Kingdom
+        #     language: en
+        #     aliases: [uk, great britain, britain]
+        #   - user-term: germany
+        #     database-value: DE
+        #     display-value: Germany
+        #     language: en
+        #     aliases: [deutschland]
+        #   - user-term: france
+        #     database-value: FR
+        #     display-value: France
+        #     language: en
+        #     aliases: [republique francaise]
+        #   - user-term: italy
+        #     database-value: IT
+        #     display-value: Italy
+        #     language: en
+        #     aliases: [italia]
+        #   - user-term: japan
+        #     database-value: JP
+        #     display-value: Japan
+        #     language: en
+        #     aliases: [nihon, nippon]
+        #   - user-term: south korea
+        #     database-value: KR
+        #     display-value: South Korea
+        #     language: en
+        #     aliases: [korea, republic of korea, south korea]
+        #   - user-term: korea
+        #     database-value: KR
+        #     display-value: South Korea
+        #     language: en
+        #     aliases: [south korea, republic of korea]
+        #   - user-term: singapore
+        #     database-value: SG
+        #     display-value: Singapore
+        #     language: en
+        #     aliases: [sg]
+        #   - user-term: australia
+        #     database-value: AU
+        #     display-value: Australia
+        #     language: en
+        #     aliases: [australian commonwealth]
+        #   - user-term: switzerland
+        #     database-value: CH
+        #     display-value: Switzerland
+        #     language: en
+        #     aliases: [confederatio helvetica, swiss]
+        #   - user-term: netherlands
+        #     database-value: NL
+        #     display-value: Netherlands
+        #     language: en
+        #     aliases: [holland, dutch]
+        #   - user-term: hong kong
+        #     database-value: HK
+        #     display-value: Hong Kong
+        #     language: en
+        #     aliases: [hong kong sar, hk, hongkong]
+        #   - user-term: vietnam
+        #     database-value: VN
+        #     display-value: Vietnam
+        #     language: en
+        #     aliases: [viet nam]
+        sources:
+        - type: sql
+          name: country_values
+          sql: >-
+            SELECT DISTINCT "COUNTRY" AS "ID", 
+                            "COUNTRY" AS "VALUE", 
+                            "COUNTRY" AS "TEXT" 
+            FROM "MONETA"."CLIENTS" 
+            WHERE "COUNTRY" IS NOT NULL
+          description: Discover all country values
+          enabled: true
     - name: city
       type: varchar
       description: City of residence.
@@ -37,6 +127,20 @@ schemas:
     - name: segment
       type: varchar
       description: Client service segment classification.
+      value-mappings:
+        context: Client segment
+        similarity-threshold: 0.5
+        sources:
+        - type: sql
+          name: segment_values
+          sql: >-
+            SELECT DISTINCT "SEGMENT" AS "ID", 
+                            "SEGMENT" AS "VALUE", 
+                            "SEGMENT" AS "TEXT" 
+            FROM "MONETA"."CLIENTS" 
+            WHERE "SEGMENT" IS NOT NULL
+          description: Discover all segment values
+          enabled: true
     description: Contains client personal and contact information.
   - name: accounts
     attributes:

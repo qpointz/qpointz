@@ -1,0 +1,190 @@
+model:
+  name: moneta-banking
+  description: Moneta Banking System with static and dynamic value mappings
+
+schemas:
+  - name: MONETA
+    description: Core banking schema
+    
+    tables:
+      - name: CLIENTS
+        description: Client master data
+        
+        attributes:
+          - name: CLIENT_ID
+            description: Unique client identifier
+            type: INTEGER
+          
+          - name: SEGMENT
+            description: Client segmentation
+            type: VARCHAR
+            value-mappings:
+              context: Client segment
+              similarity-threshold: 0.62
+              # Static mappings (acronyms, fixed values)
+              mappings:
+                - user-term: premium
+                  database-value: PREMIUM
+                  display-value: Premium
+                  description: High-value customers
+                  language: en
+                  aliases: [gold, golden, vip]
+                
+                - user-term: standard
+                  database-value: STANDARD
+                  display-value: Standard
+                  description: Regular customers
+                  language: en
+                  aliases: [regular, normal]
+                
+                - user-term: basic
+                  database-value: BASIC
+                  display-value: Basic
+                  description: Entry-level customers
+                  language: en
+                  aliases: [entry, starter]
+              
+              # Dynamic sources (SQL-based) - currently none for SEGMENT
+              sources: []
+          
+          - name: COUNTRY
+            description: Country of residence
+            type: VARCHAR
+            value-mappings:
+              context: Country name
+              similarity-threshold: 0.6
+              # Static mappings for common acronyms
+              mappings:
+                - user-term: USA
+                  database-value: US
+                  display-value: United States
+                  description: United States of America
+                  language: en
+                  aliases: [United States, America, US]
+                
+                - user-term: UK
+                  database-value: GB
+                  display-value: United Kingdom
+                  language: en
+                  aliases: [United Kingdom, Great Britain, GB]
+              
+              # Dynamic sources - get all distinct country values from database
+              sources:
+                - type: sql
+                  name: country_distinct_values
+                  description: Auto-discover all country values from database
+                  enabled: true
+                  sql: |
+                    SELECT DISTINCT 
+                      "COUNTRY" AS "ID",
+                      "COUNTRY" AS "VALUE",
+                      "COUNTRY" AS "TEXT"
+                    FROM "MONETA"."CLIENTS"
+                    WHERE "COUNTRY" IS NOT NULL
+                  cache-ttl-seconds: 3600
+          
+          - name: STATUS
+            description: Client status
+            type: VARCHAR
+            value-mappings:
+              context: Client status
+              similarity-threshold: 0.55
+              # No static mappings - all dynamic
+              mappings: []
+              
+              # Dynamic sources only
+              sources:
+                - type: sql
+                  name: status_values
+                  description: Get all possible status values
+                  enabled: true
+                  sql: |
+                    SELECT DISTINCT
+                      "STATUS" AS "ID",
+                      "STATUS" AS "VALUE", 
+                      "STATUS" AS "TEXT"
+                    FROM "MONETA"."CLIENTS"
+                    WHERE "STATUS" IS NOT NULL
+                  cache-ttl-seconds: 1800
+      
+      - name: ACCOUNTS
+        description: Client bank accounts
+        
+        attributes:
+          - name: ACCOUNT_ID
+            description: Unique account identifier
+            type: INTEGER
+          
+          - name: ACCOUNT_TYPE
+            description: Type of account
+            type: VARCHAR
+            value-mappings:
+              context: Account type
+              similarity-threshold: 0.6
+              # Static mappings
+              mappings:
+                - user-term: checking
+                  database-value: CHECKING
+                  display-value: Checking Account
+                  description: Standard checking account
+                  language: en
+                  aliases: [current, transactional]
+                
+                - user-term: savings
+                  database-value: SAVINGS
+                  display-value: Savings Account
+                  description: Savings account
+                  language: en
+                  aliases: [deposit]
+                
+                - user-term: investment
+                  database-value: INVESTMENT
+                  display-value: Investment Account
+                  language: en
+                  aliases: [brokerage, trading]
+              
+              # No dynamic sources
+              sources: []
+          
+          - name: CURRENCY
+            description: Account currency
+            type: VARCHAR
+            value-mappings:
+              context: Currency name
+              similarity-threshold: 0.58
+              # Static mappings for major currencies
+              mappings:
+                - user-term: Dollar
+                  database-value: USD
+                  display-value: US Dollar
+                  language: en
+                  aliases: [USD, $, US Dollar]
+                
+                - user-term: Euro
+                  database-value: EUR
+                  display-value: Euro
+                  language: en
+                  aliases: [EUR, €]
+                
+                - user-term: Pound
+                  database-value: GBP
+                  display-value: British Pound
+                  language: en
+                  aliases: [GBP, £, Sterling]
+              
+              # Dynamic source for all currencies in database
+              sources:
+                - type: sql
+                  name: currency_from_db
+                  description: Get all currencies actually used in accounts
+                  enabled: true
+                  sql: |
+                    SELECT DISTINCT
+                      "CURRENCY" AS "ID",
+                      "CURRENCY" AS "VALUE",
+                      "CURRENCY" AS "TEXT"
+                    FROM "MONETA"."ACCOUNTS"
+                    WHERE "CURRENCY" IS NOT NULL
+                  cache-ttl-seconds: 7200
+
+

@@ -6,7 +6,7 @@ plugins {
 
 mill {
     description = "Mill core library"
-    publishToSonatype = true
+    publishArtifacts = true
 }
 
 

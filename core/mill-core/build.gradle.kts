@@ -6,7 +6,7 @@ plugins {
 }
 
 mill {
-    publishToSonatype = true
+    publishArtifacts = true
     description = "Library provides common mill's classes"
 }
 

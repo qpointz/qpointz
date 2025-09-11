@@ -6,7 +6,7 @@ plugins {
 
 mill {
     description = "Natural language to sql (NL2SQL) chat service"
-    publishToSonatype = false
+    publishArtifacts = false
 }
 
 dependencies {

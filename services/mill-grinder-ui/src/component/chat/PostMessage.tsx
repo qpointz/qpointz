@@ -44,7 +44,7 @@ export default function PostMessage() {
                 minRows={5}
                 maxRows={5}
                 rows={5}
-                autosize
+                autosize                
                 w="100%"
                 h="100%"
                 value={input}
@@ -56,7 +56,7 @@ export default function PostMessage() {
             <ActionIcon disabled={messages.postingMessage}
                         ml={10} w={20}
                         onClick={handleButtonClick}>
-                { messages.postingMessage ? (<TbPlayerStop />) : (<TbPlayerPlay />) }
+                { messages.postingMessage ? (<TbPlayerStop/>) : (<TbPlayerPlay/>) }
             </ActionIcon>
         </Box>
     );

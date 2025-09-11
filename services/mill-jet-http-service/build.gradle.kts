@@ -6,7 +6,7 @@ plugins {
 
 mill {
     description = "Access service implementation for HTTP 1.1 protocol"
-    publishToSonatype = true
+    publishArtifacts = true
 }
 
 dependencies {

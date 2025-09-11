@@ -4,7 +4,7 @@ lombok = "1.18.38"
 protobuf-plugin = "0.9.4"
 
 springCloud = "4.1.3"
-springAi = "1.0.1"
+springAi = "1.0.3"
 springBoot = "3.5.4"
 springDoc = "2.8.9"
 
@@ -50,8 +50,10 @@ spring-cloud-function-adapter-azure-web = { module = "org.springframework.cloud:
 spring-cloud-starter-function-web = { module = "org.springframework.cloud:spring-cloud-starter-function-web", version.ref = "springCloud" }
 
 spring-ai-client-chat = { module = "org.springframework.ai:spring-ai-client-chat", version.ref = "springAi" }
+spring-ai-vector-store = { module = "org.springframework.ai:spring-ai-vector-store", version.ref = "springAi" }
 spring-ai-starter-model-azureopenai = { module = "org.springframework.ai:spring-ai-starter-model-azure-openai", version.ref = "springAi" }
 spring-ai-starter-model-openai = { module = "org.springframework.ai:spring-ai-starter-model-openai", version.ref = "springAi" }
+spring-ai-starter-model-ollama = { module = "org.springframework.ai:spring-ai-starter-model-ollama", version.ref = "springAi" }
 spring-ai-starter-mcp-server-starter = { module = "org.springframework.ai:spring-ai-mcp-server-spring-boot-starter", version.ref = "springAi" }
 spring-ai-starter-mcp-server-webmvc = { module = "org.springframework.ai:spring-ai-starter-mcp-server-webmvc", version.ref = "springAi" }
 spring-ai-starter-model-chat-memory-repository-jdbc = { module = "org.springframework.ai:spring-ai-starter-model-chat-memory-repository-jdbc", version.ref = "springAi" }

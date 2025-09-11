@@ -12,6 +12,7 @@ bin
 *.iml
 .data
 .tmp/
+.temp/
 out/
 target/
 .secrets

@@ -20,8 +20,9 @@ public class ChatApplication {
                            MetadataProvider metadataProvider,
                            SqlDialect dialect,
                            DataOperationDispatcher dispatcher,
-                           MessageSelector messageSelector) {
-        this.intentSpecs = new IntentSpecs(metadataProvider, dialect, chatBuilders , dispatcher, messageSelector);
+                           MessageSelector messageSelector,
+                           ValueMapper valueMapper) {
+        this.intentSpecs = new IntentSpecs(metadataProvider, dialect, chatBuilders , dispatcher, messageSelector, valueMapper);
     }
 
     public ChatCall reason(String query) {

@@ -6,7 +6,7 @@ plugins {
 
 mill {
     description = "Access service implementation for GRPC protocol"
-    publishToSonatype = true
+    publishArtifacts = true
 }
 
 dependencies {

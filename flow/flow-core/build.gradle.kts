@@ -4,7 +4,7 @@ plugins {
 }
 
 mill {
-    publishToSonatype = true
+    publishArtifacts = true
     description = "Flow core module, which provides the core functionality for the Flow framework."
 }
 

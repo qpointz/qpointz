@@ -2,6 +2,7 @@ package io.qpointz.mill.ai.nlsql;
 
 import io.qpointz.mill.ai.BaseIntegrationTestIT;
 import io.qpointz.mill.ai.chat.messages.MessageSelectors;
+import io.qpointz.mill.ai.nlsql.components.DefaultValueMapper;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
@@ -59,7 +60,7 @@ public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
         this.callSpecBuilders = new CallSpecsChatClientBuilders(
                 model, this.chatMemory, UUID.randomUUID().toString());
         this.sqlDialect = sqlDialect;
-        this.intentSpecs = new IntentSpecs(metadataProvider, sqlDialect, this.callSpecBuilders, dispatcher, MessageSelectors.SIMPLE);
+        this.intentSpecs = new IntentSpecs(metadataProvider, sqlDialect, this.callSpecBuilders, dispatcher, MessageSelectors.SIMPLE, new DefaultValueMapper());
     }
 
     protected void intentAppTest(String query, String expectedIntent) {
@@ -70,7 +71,8 @@ public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
                 this.metadataProvider,
                 this.sqlDialect,
                 this.dispatcher,
-                MessageSelectors.SIMPLE);
+                MessageSelectors.SIMPLE,
+                new DefaultValueMapper());
         val reason = app.reason(query)
                 .as(ReasoningResponse.class);
         assertEquals(expectedIntent, reason.intent(), "Intent missmatch after reasoning");
