@@ -1,6 +1,5 @@
 include:
-  - local : /.gitlab/vars.yml
-  - local : /.gitlab/jobs.yml
+  - local : /.gitlab/.common.yml
 
 image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/azul/zulu-openjdk:17-latest
 
@@ -14,17 +13,6 @@ stages:
 workflow:
   rules:
     - when : always
-
-variables:
-  GIT_CLEAN_FLAGS: >-
-      -ffdx
-      -e .gradle-home/
-      -e **/.gradle/  
-  GIT_STRATEGY: fetch        
-  GIT_DEPTH: "1"             
-  GIT_CLEAN_FLAGS: none      
-  GIT_SUBMODULE_STRATEGY: none  
-  GIT_LFS_SKIP_SMUDGE: "1"    
 
 mill-clients:init-version:
   stage: init

@@ -19,55 +19,17 @@ variables:
       - "false"
 
 .if-protected: &if-protected
-  if: $CI_COMMIT_REF_PROTECTED == "true"
-  when: always
+  if: $CI_COMMIT_REF_PROTECTED == "true"  
 
 .if-mr: &if-mr
-  if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-  when: always
+  if: '$CI_PIPELINE_SOURCE == "merge_request_event"'  
 
 .build-changes: &build-changes
   changes:
     - .gitlab-ci.yml
     - .gitlab/**/*
-    - build-logic/**/*
-  when: always
-
-package:
-  stage: Package
-  trigger:    
-    strategy: mirror
-    include:
-      - local: .gitlab/pipelines/package.yml        
-        inputs:
-          package-local-only: "true"
-  rules:
-    - when: always  
-
-integration:
-  stage: Integration
-  trigger:
-    strategy: mirror
-    include:    
-      - local: .gitlab/pipelines/integration.yml    
-  rules:
-    - *if-protected
-    - *if-mr    
-    - if: $RUN_INTEGRATION == "true"
-      when: always
-    
-publish:
-  stage: Publish
-  trigger:    
-    strategy: mirror
-    include:
-      - local: .gitlab/pipelines/package.yml        
-        inputs:
-          package-local-only: "true"
-  rules:
-    - *if-protected    
-    - if: $RUN_PUBLISH == "true"
-      when: always
+    - '**/.gitlab/**/*'
+    - build-logic/**/*  
 
 .build-base: &build-base
   stage: Modules
@@ -80,75 +42,58 @@ publish:
 core:build:
   extends: .build-base
   trigger:
-    strategy: mirror
     include:
       - local: core/.gitlab-ci.yml
   rules:
     - *if-protected
-    - *if-mr
     - *build-changes
     - changes:
-        - core/**/*
-      when: always    
+        - core/**/*      
 
 apps:build:
   extends: .build-base  
   trigger:
-    strategy: mirror
     include:
       - local: apps/.gitlab-ci.yml    
   rules:
     - *if-protected
-    - *if-mr
     - *build-changes
     - changes:
-        - apps/**/*
-      when: always
+        - apps/**/*      
 
 services:build:
   extends: .build-base
   trigger:
-    strategy: mirror
     include:
       - local: services/.gitlab-ci.yml
   rules:
     - *if-protected
-    - *if-mr
     - *build-changes
     - changes:
-        - services/**/*
-      when: always
-
+        - services/**/*      
 
 ai:build:
   extends: .build-base
   trigger:
-    strategy: mirror
     include:
       - local: ai/.gitlab-ci.yml
   rules:
     - *if-protected
-    - *if-mr
     - *build-changes
     - changes:
-        - ai/**/*
-      when: always
+        - ai/**/*      
 
 clients:build:
   extends: .build-base
   trigger:
-    strategy: mirror
     include:
       - local: clients/.gitlab-ci.yml
   rules:
     - *if-protected
-    - *if-mr
     - *build-changes
     - changes:
-        - clients/**/*
-      when: always
+        - clients/**/*      
   
-
 
 # flow:build:
 #   extends: .build-base
@@ -162,4 +107,35 @@ clients:build:
 #     - *flow-changes
 #     - *build-changes
 
-                   
+package:
+  stage: Package
+  trigger:    
+    strategy: mirror
+    include:
+      - local: .gitlab/pipelines/package.yml        
+        inputs:
+          package-local-only: "true"
+
+integration:
+  stage: Integration
+  trigger:
+    strategy: mirror
+    include:    
+      - local: .gitlab/pipelines/integration.yml    
+  rules:
+    - *if-protected
+    - *if-mr
+    - *build-changes
+    - if: $RUN_INTEGRATION == "true"      
+    
+publish:
+  stage: Publish
+  trigger:    
+    strategy: mirror
+    include:
+      - local: .gitlab/pipelines/package.yml        
+        inputs:
+          package-local-only: "true"
+  rules:
+    - *if-protected    
+    - if: $RUN_PUBLISH == "true"      

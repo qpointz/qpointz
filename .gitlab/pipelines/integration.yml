@@ -1,17 +1,20 @@
-stages:
-  - init
+stages:  
   - integration
 
 workflow:
   rules:
     - when: always
 
-init:
-  stage: init
-  script:
-    - echo "Integration build"
-
-integration:
+ai:integration:
   stage: integration
-  script:
-    - echo "Integration build"
+  trigger:
+    strategy: mirror
+    include:    
+      - local: ai/.gitlab/pipelines/integration.yml        
+
+clients:integration:
+  stage: integration
+  trigger:
+    strategy: mirror
+    include:    
+      - local: clients/.gitlab/pipelines/integration.yml

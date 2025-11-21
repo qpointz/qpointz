@@ -1,0 +1,23 @@
+include:  
+  - local : /.gitlab/.common.yml
+
+stages:  
+  - integration  
+
+workflow:
+  rules:
+    - when : always
+
+testIT:
+  stage: integration
+  extends: .gradle-job
+  script:
+    - echo $HOME    
+
+# jdbc-driver:test:
+#   stage: integration
+#   extends: .gradle-job
+#   script:
+#     - echo $HOME
+#     - cd ${CI_PROJECT_DIR}/clients
+#     - ./gradlew --no-daemon --console plain testIT    

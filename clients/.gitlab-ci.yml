@@ -35,11 +35,3 @@ mill-py:test-3.12:
   variables:
     TEST_TYPE: "unit"
     PY_VER: "3.12"  
-
-# jdbc-driver:test:
-#   stage: test
-#   extends: .gradle-job
-#   script:
-#     - echo $HOME
-#     - cd ${CI_PROJECT_DIR}/clients
-#     - ./gradlew --no-daemon --console plain test

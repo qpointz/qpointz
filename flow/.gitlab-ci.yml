@@ -7,17 +7,6 @@ stages:
 workflow:
   rules:
     - when : always
-
-variables:
-  GIT_CLEAN_FLAGS: >-
-      -ffdx
-      -e .gradle-home/
-      -e **/.gradle/  
-  GIT_STRATEGY: fetch        
-  GIT_DEPTH: "1"             
-  GIT_CLEAN_FLAGS: none      
-  GIT_SUBMODULE_STRATEGY: none  
-  GIT_LFS_SKIP_SMUDGE: "1"
      
 test:
   stage: test

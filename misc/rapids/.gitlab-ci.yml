@@ -17,9 +17,9 @@ stages:
   - contrib-test
   - check
 
-workflow:
-  rules:
-    - when : always
+# workflow:
+#   rules:
+#     - when : always
      
 rapids:init-version:
   stage: init

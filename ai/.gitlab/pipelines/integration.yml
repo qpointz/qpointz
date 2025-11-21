@@ -2,16 +2,16 @@ include:
   - local : /.gitlab/.common.yml
 
 stages:  
-  - test  
+  - integration  
 
 workflow:
   rules:
     - when : always
-    
-test:
-  stage: test
+
+testIT:
+  stage: integration
   extends: .gradle-job
   script:
     - echo $HOME
     - cd ${CI_PROJECT_DIR}/ai
-    - ./gradlew --no-daemon --console plain test
+    - ./gradlew --no-daemon --console plain testIT    
