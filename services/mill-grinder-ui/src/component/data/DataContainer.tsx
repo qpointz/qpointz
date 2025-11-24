@@ -111,29 +111,31 @@ export default function DataContainer(input: any) {
                     Next
                 </Button>
             </Group>
-            <Group mt={12} justify="flex-end">
-            <Button
-                        variant="outline"
-                        leftSection={<TbShare size={16} />}
-                        size="xs"
-                    >
-                        Share
-                    </Button>
-            <Menu shadow="md" width={160} position="bottom-end">
-                <Menu.Target>
-                    <Button
-                        variant="outline"
-                        leftSection={<TbDownload size={16} />}
-                        size="xs"
-                    >
-                        Export
-                    </Button>
-                </Menu.Target>
-                <Menu.Dropdown>
-                    <Menu.Item>Export as Excel</Menu.Item>
-                    <Menu.Item>Export as CSV</Menu.Item>
-                </Menu.Dropdown>
-            </Menu>
+            <Group mt={12} justify="flex-end" hidden={false}>
+            {/*<Button*/}
+            {/*            variant="outline"*/}
+            {/*            leftSection={<TbShare size={16} />}*/}
+            {/*            size="xs"*/}
+            {/*            hidden={true}*/}
+            {/*        >*/}
+            {/*            Share*/}
+            {/*        </Button>*/}
+            {/*<Menu shadow="md" width={160} position="bottom-end">*/}
+            {/*    <Menu.Target>*/}
+            {/*        <Button*/}
+            {/*            variant="outline"*/}
+            {/*            leftSection={<TbDownload size={16} />}*/}
+            {/*            size="xs"*/}
+            {/*            hidden={true}*/}
+            {/*        >*/}
+            {/*            Export*/}
+            {/*        </Button>*/}
+            {/*    </Menu.Target>*/}
+            {/*    <Menu.Dropdown>*/}
+            {/*        <Menu.Item>Export as Excel</Menu.Item>*/}
+            {/*        <Menu.Item>Export as CSV</Menu.Item>*/}
+            {/*    </Menu.Dropdown>*/}
+            {/*</Menu>*/}
             </Group>
         </Group>
         </>

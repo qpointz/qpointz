@@ -1,7 +1,5 @@
 import '@mantine/core/styles.css';
 import {AppShell} from '@mantine/core';
-import Topbar from "./component/layout/Topbar";
-import Footer from './component/layout/Footer';
 import {Navigate, Route, Routes} from "react-router";
 import NotFound from "./component/NotFound";
 import ChatLayout from "./component/chat/ChatLayout.tsx";
