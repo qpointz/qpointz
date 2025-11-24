@@ -38,12 +38,11 @@ testing {
                     implementation(project())
                     implementation(project(":mill-test-common"))
                     implementation(libs.boot.starter.test)
-
+                    implementation(libs.boot.starter.web)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.h2.database)
                     implementation(libs.lombok)
-                    implementation(libs.boot.starter.test)
                     annotationProcessor(libs.lombok)
                 }
             }

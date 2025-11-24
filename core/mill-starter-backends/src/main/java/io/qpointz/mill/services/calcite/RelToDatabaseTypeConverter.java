@@ -16,6 +16,26 @@ public class RelToDatabaseTypeConverter extends RelDataTypeConverter<DatabaseTyp
     }
 
     @Override
+    protected DatabaseType convertUTinyInt(RelDataType relDataType) {
+        return convertTinyInt(relDataType);
+    }
+
+    @Override
+    protected DatabaseType convertUSmallInt(RelDataType relDataType) {
+        return convertSmallInt(relDataType);
+    }
+
+    @Override
+    protected DatabaseType convertUInt(RelDataType relDataType) {
+        return convertInt(relDataType);
+    }
+
+    @Override
+    protected DatabaseType convertUBigInt(RelDataType relDataType) {
+        return convertBigInt(relDataType);
+    }
+
+    @Override
     protected DatabaseType convertSArg(RelDataType relDataType) {
         throw notImplemented(relDataType);
     }

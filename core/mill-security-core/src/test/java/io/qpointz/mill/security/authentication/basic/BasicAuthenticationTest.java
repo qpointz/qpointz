@@ -29,7 +29,6 @@ public class BasicAuthenticationTest extends AuthenticationBaseTest {
                 .withBasicAuth("usr1", "password")
                 .getForEntity(this.getBaseUrl() + "/test-security/auth-info", TestController.AuthInfo.class);
 
-
         assertEquals(HttpStatus.OK, entity.getStatusCode());
         val body = entity.getBody();
         assertNotNull(body);

@@ -15,7 +15,6 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @AllArgsConstructor
 @Slf4j

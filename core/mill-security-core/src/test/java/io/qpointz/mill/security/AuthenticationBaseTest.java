@@ -9,12 +9,12 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(classes = {AuthenticationBaseTest.class},
                 webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ComponentScan(basePackages = {"io.qpointz"})
 @Import({TestController.class})
+//@AutoConfigureTestRestTemplate
 public abstract class AuthenticationBaseTest {
 
     @Autowired

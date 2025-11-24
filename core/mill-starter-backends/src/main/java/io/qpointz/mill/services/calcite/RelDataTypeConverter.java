@@ -13,6 +13,10 @@ public abstract class RelDataTypeConverter<T> {
             case SMALLINT -> convertSmallInt(relDataType);
             case INTEGER -> convertInt(relDataType);
             case BIGINT -> convertBigInt(relDataType);
+            case UTINYINT -> convertUTinyInt(relDataType);
+            case USMALLINT -> convertUSmallInt(relDataType);
+            case UINTEGER -> convertUInt(relDataType);
+            case UBIGINT -> convertUBigInt(relDataType);
             case DECIMAL -> convertDecimal(relDataType);
             case FLOAT -> convertFloat(relDataType);
             case REAL -> convertReal(relDataType);
@@ -63,6 +67,14 @@ public abstract class RelDataTypeConverter<T> {
             case VARIANT -> convertVariant(relDataType);
         };
     }
+
+    protected abstract T convertUTinyInt(RelDataType relDataType);
+
+    protected abstract T convertUSmallInt(RelDataType relDataType);
+
+    protected abstract T convertUInt(RelDataType relDataType);
+
+    protected abstract T convertUBigInt(RelDataType relDataType);
 
     protected abstract T convertSArg(RelDataType relDataType);
 

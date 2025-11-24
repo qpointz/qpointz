@@ -22,7 +22,7 @@ dependencies {
     api(libs.jackson.dataformat.yaml)
     api(libs.jackson.datatype.jsr310)
     api(libs.javax.annotation.api)
-    api("no.nav.security:mock-oauth2-server:2.2.1")
+    api("no.nav.security:mock-oauth2-server:3.0.1")
     api(libs.h2.database)
     compileOnly(libs.lombok)
 

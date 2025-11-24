@@ -9,7 +9,7 @@ create table TEST (
                       amount SMALLINT,
                       account INT,
                       birthday DATE,
-                      last_login DATETIME2
+                      last_login TIMESTAMP
 );
 
 insert into TEST (id, first_name, last_name, premium, age, amount, account, birthday, last_login) values (1, 'Peadar', 'Vannar', true, 66, 9517, 9671, '2023-12-01', '2023-12-12T13:30:22Z');
