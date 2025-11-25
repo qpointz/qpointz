@@ -3,10 +3,10 @@ lombok = "1.18.42"
 
 protobuf-plugin = "0.9.4"
 
-springCloud = "4.1.3"
+springCloud = "3.2.12"
 springAi = "1.1.0"
 springBoot = "3.5.8"
-springDoc = "3.0.0"
+springDoc = "2.8.14"
 
 calcite = "1.41.0"
 junit = "6.0.1"

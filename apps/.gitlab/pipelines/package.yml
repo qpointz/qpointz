@@ -27,20 +27,35 @@ install-dist:
   stage: build
   script:
     - cd ${CI_PROJECT_DIR}/apps
-    - ./gradlew --no-daemon --console plain clean installBootDist
-    - mkdir -p ${CI_PROJECT_DIR}/apps/mill-service/build/test/datasets/
-    - cp -r ${CI_PROJECT_DIR}/test/datasets/moneta ${CI_PROJECT_DIR}/apps/mill-service/build/test/datasets/
+    - ./gradlew --no-daemon --console plain clean installBootDist assembleSamples
   artifacts:
     expire_in: "5 days"
     paths:
-      - ${CI_PROJECT_DIR}/apps/**/build/install/**/*
-      - ${CI_PROJECT_DIR}/apps/mill-service/build/test/datasets/**/*
+      - ${CI_PROJECT_DIR}/apps/mill-service/build/install/**/*
 
-build-docker:
+build-base-docker:
   stage: package
   extends: .docker-build-job
+  needs:
+    - job: install-dist
+      artifacts: true
   variables:
     DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
-    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/Dockerfile
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/base/Dockerfile
     DOCKER_BUILD_CONTAINER_NAME : mill-service
     DOCKER_LOCAL_ONLY: $[[ inputs.package-local-only ]]
+
+build-docker-samples:
+  stage: package
+  extends: .docker-build-job
+  needs:
+    - job: build-base-docker
+      artifacts: false
+    - job: install-dist
+      artifacts: true
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/samples/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : mill-service-samples
+    DOCKER_LOCAL_ONLY: $[[ inputs.package-local-only ]]
+    DOCKER_BUILD_ARGS: --build-arg BASE_IMAGE=${CI_REGISTRY_IMAGE}/mill-service:${CI_COMMIT_REF_SLUG}
