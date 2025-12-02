@@ -1,8 +1,28 @@
 # Metadata Service Design - Faceted Architecture
 
-**Status:** Design Approved  
+**Status:** Design Approved, Implementation In Progress  
 **Date:** November 5, 2025  
+**Last Updated:** December 2024  
 **Author:** Architecture Team
+
+---
+
+## Implementation Notes (December 2024)
+
+**Important Changes from Original Design:**
+
+1. **Simplified Hierarchy**: The `catalogName` field was removed from the domain model. The hierarchy is now `schema → table → attribute` instead of `catalog → schema → table → attribute`. Entity IDs follow the format `schema.table` or `schema.table.attribute`.
+
+2. **Phase 1 & 2 Completed**: 
+   - ✅ Core foundation (M1) - domain model, facets, file-based repository
+   - ✅ REST API service (M2) - read-only endpoints with Swagger documentation
+   - ✅ Metadata browser UI - collapsible sidebar, entity details, URL routing
+
+3. **Tree API Enhancement**: The `/api/metadata/v1/explorer/tree` endpoint now includes attributes as children of tables, enabling expandable table views in the UI.
+
+4. **URL Routing**: The UI supports shareable URLs in the format `/explore/:schema/:table/:attribute?` for bookmarking and sharing specific entities.
+
+5. **Read-Only API**: Initial implementation is read-only (PUT/DELETE endpoints removed) to establish the foundation before adding editing capabilities.
 
 ---
 
@@ -40,13 +60,13 @@ This document describes the design for a centralized metadata service in Mill us
 
 1. **Separation of Concerns**
    - Core metadata in `mill-metadata-core` (no AI dependencies)
-   - AI features in `mill-metadata-ai` (optional dependency)
+   - AI features in `mill-ai-core` (optional dependency)
    - Clear module boundaries
 
 2. **Faceted Architecture**
    - Each metadata entity can have multiple "facets" (aspects)
-   - Core facets: Structural, Descriptive, Relation, Concept
-   - AI facets: ValueMapping, Enrichment, DataQuality, Semantic
+   - Core facets: Structural, Descriptive, Relation, Concept (in `mill-metadata-core`)
+   - AI facets: ValueMapping, Enrichment, DataQuality, Semantic (in `mill-ai-core`)
    - New facets added without schema changes
 
 3. **Pluggable Persistence**
@@ -70,46 +90,56 @@ This document describes the design for a centralized metadata service in Mill us
 
 ```
 core/
-├── mill-metadata-core/              # ⭐ NEW - Core metadata system
-│   ├── domain/
-│   │   ├── MetadataEntity.java          # Base entity with facets
-│   │   ├── MetadataFacet.java           # Base facet interface
-│   │   ├── FacetRegistry.java           # Plugin registry
-│   │   └── core/                         # Core facets
-│   │       ├── StructuralFacet.java     # Physical schema binding
-│   │       ├── DescriptiveFacet.java    # Descriptions, display names
-│   │       ├── RelationFacet.java       # Relationships
-│   │       └── ConceptFacet.java        # Business concepts
-│   │
-│   ├── repository/
-│   │   ├── MetadataRepository.java      # Main repository interface
-│   │   ├── file/                         # YAML/JSON implementation
-│   │   ├── jdbc/                         # Database implementation
-│   │   └── composite/                    # Composite (physical + annotations)
-│   │
-│   ├── service/
-│   │   ├── MetadataService.java         # CRUD + search
-│   │   ├── MetadataSyncService.java     # Sync physical schema
-│   │   └── FacetService.java            # Facet management
-│   │
-│   └── api/
-│       ├── MetadataController.java      # Main metadata API
-│       ├── SchemaExplorerController.java # Navigation API
-│       └── FacetController.java         # Facet CRUD API
-│
-└── mill-metadata-ai/                # ⭐ NEW - AI-specific facets
-    ├── facets/
-    │   ├── ValueMappingFacet.java       # Value mapping (NL2SQL)
-    │   ├── EnrichmentFacet.java         # NL2SQL enrichments
-    │   ├── DataQualityFacet.java        # DQ rules (future)
-    │   └── SemanticFacet.java           # Embeddings (future)
+└── mill-metadata-core/              # ⭐ NEW - Core metadata system
+    ├── domain/
+    │   ├── MetadataEntity.java          # Base entity with facets
+    │   ├── MetadataFacet.java           # Base facet interface
+    │   ├── FacetRegistry.java           # Plugin registry
+    │   └── core/                         # Core facets
+    │       ├── StructuralFacet.java     # Physical schema binding
+    │       ├── DescriptiveFacet.java    # Descriptions, display names
+    │       ├── RelationFacet.java       # Relationships
+    │       └── ConceptFacet.java        # Business concepts
     │
-    ├── service/
-    │   ├── ValueMappingService.java
-    │   └── EnrichmentService.java
+    ├── repository/
+    │   ├── MetadataRepository.java      # Main repository interface
+    │   ├── file/                         # YAML/JSON implementation
+    │   ├── jdbc/                         # Database implementation
+    │   └── composite/                    # Composite (physical + annotations)
     │
-    └── api/
-        └── AIMetadataController.java
+    └── service/
+        ├── MetadataService.java         # CRUD + search
+        ├── MetadataSyncService.java     # Sync physical schema
+        └── FacetService.java            # Facet management
+
+ai/
+└── mill-ai-core/                     # AI-specific facets and services
+    ├── metadata/                      # ⭐ NEW - AI metadata facets
+    │   ├── facets/
+    │   │   ├── ValueMappingFacet.java       # Value mapping (NL2SQL)
+    │   │   ├── EnrichmentFacet.java         # NL2SQL enrichments
+    │   │   ├── DataQualityFacet.java        # DQ rules (future)
+    │   │   └── SemanticFacet.java           # Embeddings (future)
+    │   │
+    │   └── service/
+    │       ├── ValueMappingService.java
+    │       └── EnrichmentService.java
+    │
+    └── ...                            # Other AI core functionality (NL2SQL, etc.)
+
+services/
+└── mill-metadata-service/            # ⭐ NEW - REST API service
+    ├── api/
+    │   ├── MetadataController.java      # Main metadata API
+    │   ├── SchemaExplorerController.java # Navigation API
+    │   ├── FacetController.java         # Facet CRUD API
+    │   └── AIMetadataController.java    # AI-specific API
+    │
+    ├── dto/
+    │   └── ...                          # API DTOs (separate from domain)
+    │
+    └── config/
+        └── MetadataServiceConfiguration.java  # Spring Boot configuration
 ```
 
 ---
@@ -118,20 +148,19 @@ core/
 
 ### 1. Metadata Entity
 
-A `MetadataEntity` represents any metadata object (catalog, schema, table, attribute). Each entity:
+A `MetadataEntity` represents any metadata object (schema, table, attribute, concept). Each entity:
 
-- Has a unique identifier
-- Has a hierarchical location (catalog → schema → table → attribute)
+- Has a unique identifier (e.g., `moneta.clients` or `moneta.clients.account_id`)
+- Has a hierarchical location (schema → table → attribute) - **simplified from original design (catalog removed)**
 - Contains multiple **facets** (pluggable aspects of metadata)
 - Tracks audit information (created/updated by/at)
 
 ```java
 public class MetadataEntity {
     private String id;
-    private MetadataType type;  // CATALOG, SCHEMA, TABLE, ATTRIBUTE
+    private MetadataType type;  // SCHEMA, TABLE, ATTRIBUTE, CONCEPT (CATALOG removed)
     
-    // Hierarchical location
-    private String catalogName;
+    // Hierarchical location (null for unbound entities like CONCEPT)
     private String schemaName;
     private String tableName;
     private String attributeName;
@@ -139,9 +168,20 @@ public class MetadataEntity {
     // Audit
     private Instant createdAt;
     private Instant updatedAt;
+    private String createdBy;
+    private String updatedBy;
     
-    // Facets (pluggable aspects)
-    private Map<String, MetadataFacet> facets = new HashMap<>();
+    // Facets: Map<facetType, Map<scope, facetData>>
+    // Structure: { "descriptive": { "global": {...}, "user:alice": {...} } }
+    // All facets stored as JSON-serializable maps with scope support
+    private Map<String, Map<String, Object>> facets = new HashMap<>();
+    
+    // Helper methods for scope-aware facet access
+    public <T> Optional<T> getFacet(String facetType, String scope, Class<T> facetClass);
+    public <T> Optional<T> getMergedFacet(String facetType, String userId, 
+                                         List<String> userTeams, List<String> userRoles, 
+                                         Class<T> facetClass);
+    public void setFacet(String facetType, String scope, Object facetData);
 }
 ```
 
@@ -160,6 +200,36 @@ Each facet:
 - Can be added/removed dynamically
 - Serializes consistently (YAML/JSON/DB)
 - Has its own validation rules
+- Can have **scope** for visibility control (global, user-specific, team-specific)
+
+**Facet Binding Types:**
+
+Facets can be bound in three ways:
+
+1. **Entity-Bound Facets** - Attached to a single physical entity (schema, table, attribute)
+   - Examples: `DescriptiveFacet`, `ValueMappingFacet`, `StructuralFacet`
+   - Stored directly on the entity's facets map
+
+2. **Cross-Entity Facets** - Span multiple physical elements
+   - Examples: `RelationFacet` (stored on source table, references target table)
+   - Contains references to other entities via FQN or entity IDs
+
+3. **Unbound Facets** - Standalone concepts not tied to a single entity
+   - Examples: `ConceptFacet` (e.g., "Premium Customers" spanning multiple tables)
+   - Stored as standalone `MetadataEntity` with `type = CONCEPT`
+   - References multiple physical entities but exists independently
+
+**Facet Scope:**
+
+Each facet can have a **scope** attribute that controls visibility:
+
+- `"global"` - visible to everyone
+- `"user:{userId}"` - visible only to specific user (e.g., `"user:alice@company.com"`)
+- `"team:{teamName}"` - visible to team members (e.g., `"team:engineering"`)
+- `"role:{roleName}"` - visible to users with role (e.g., `"role:admin"`)
+- Custom scopes as needed
+
+When querying facets, the system merges facets in priority order: user > team > role > global.
 
 ```java
 public interface MetadataFacet {
@@ -199,6 +269,160 @@ This allows:
 - Auto-discovery of schema from databases
 - Enrichment with business metadata
 - Sync between physical and logical views
+
+---
+
+## Facet Binding Types
+
+Facets can be bound to entities in three distinct ways, each serving different use cases:
+
+### 1. Entity-Bound Facets
+
+**Definition:** Facets attached to a single physical entity (catalog, schema, table, or attribute).
+
+**Examples:**
+- `DescriptiveFacet` - descriptions, synonyms, tags for a table/column
+- `ValueMappingFacet` - value mappings for a specific attribute
+- `StructuralFacet` - physical schema info for a table/attribute
+
+**Storage:**
+- Stored directly on the `MetadataEntity` in the `facets` map
+- Entity has a clear hierarchical location (catalog → schema → table → attribute)
+
+**YAML Example:**
+```yaml
+entities:
+  - id: prod.moneta.customers.customer_id
+    type: ATTRIBUTE
+    catalogName: production
+    schemaName: moneta
+    tableName: customers
+    attributeName: customer_id
+    facets:
+      descriptive:
+        global:
+          displayName: Customer ID
+          description: Unique customer identifier
+      value-mapping:
+        global:
+          mappings:
+            - userTerm: customer number
+              databaseValue: customer_id
+```
+
+**API Access:**
+```
+GET /api/metadata/v1/catalogs/{catalog}/schemas/{schema}/tables/{table}/attributes/{attr}/facets/descriptive
+```
+
+### 2. Cross-Entity Facets
+
+**Definition:** Facets that span multiple physical entities. The facet is stored on one entity but references others.
+
+**Examples:**
+- `RelationFacet` - relationships between tables (stored on source table, references target table)
+- `LineageFacet` - data lineage spanning multiple tables
+
+**Storage:**
+- Stored on one of the participating entities (typically the "source" or "primary" entity)
+- Contains references to other entities via FQN or entity IDs
+- Can be queried from any participating entity via service layer
+
+**YAML Example:**
+```yaml
+entities:
+  - id: prod.moneta.customers
+    type: TABLE
+    catalogName: production
+    schemaName: moneta
+    tableName: customers
+    facets:
+      relation:  # ← Stored on "customers" but references "accounts"
+        global:
+          relations:
+            - name: customer_accounts
+              sourceTable:
+                catalog: production
+                schema: moneta
+                table: customers
+              targetTable:
+                catalog: production
+                schema: moneta
+                table: accounts
+              cardinality: ONE_TO_MANY
+              type: FOREIGN_KEY
+```
+
+**API Access:**
+```
+# Get relations from source table
+GET /api/metadata/v1/catalogs/{catalog}/schemas/{schema}/tables/{table}/facets/relation
+
+# Query relations (bidirectional - service layer handles this)
+GET /api/metadata/v1/catalogs/{catalog}/schemas/{schema}/tables/{table}/relations
+```
+
+### 3. Unbound Facets
+
+**Definition:** Facets that represent standalone concepts not tied to a single physical entity. They may reference multiple entities but exist independently.
+
+**Examples:**
+- `ConceptFacet` - business concepts like "Premium Customers" that span multiple tables
+- `SemanticFacet` - semantic embeddings for search
+- Future: `DataQualityFacet` for cross-table quality rules
+
+**Storage:**
+- Stored as standalone `MetadataEntity` with `type = CONCEPT`
+- No hierarchical location (catalog/schema/table/attribute are null or used for organization)
+- Contains references to physical entities it relates to
+
+**YAML Example:**
+```yaml
+entities:
+  - id: concept_premium_customers
+    type: CONCEPT
+    catalogName: production  # Optional: for organization
+    schemaName: business-concepts  # Optional: logical grouping
+    facets:
+      concept:
+        global:
+          concepts:
+            - name: Premium Customers
+              description: High-value customer segment
+              sql: "segment = 'PREMIUM' AND balance > 100000"
+              referencedTables:
+                - catalog: production
+                  schema: moneta
+                  table: customers
+                - catalog: production
+                  schema: moneta
+                  table: accounts
+              referencedAttributes:
+                - catalog: production
+                  schema: moneta
+                  table: customers
+                  attribute: segment
+```
+
+**API Access:**
+```
+# List all concepts
+GET /api/metadata/v1/concepts
+
+# Get concept by ID
+GET /api/metadata/v1/concepts/{conceptId}
+
+# Find concepts referencing a table
+GET /api/metadata/v1/concepts?referencedTable={catalog}.{schema}.{table}
+```
+
+### Summary Table
+
+| Facet Type | Storage Location | Entity Type | References | Example |
+|------------|------------------|-------------|------------|---------|
+| **Entity-Bound** | On the entity itself | CATALOG, SCHEMA, TABLE, ATTRIBUTE | None (self-contained) | `DescriptiveFacet` on `customers.customer_id` |
+| **Cross-Entity** | On one participating entity | TABLE (typically) | References other entities | `RelationFacet` on `customers` referencing `accounts` |
+| **Unbound** | Standalone entity | CONCEPT | References multiple entities | `ConceptFacet` for "Premium Customers" |
 
 ---
 
@@ -368,7 +592,7 @@ concept:
 
 ---
 
-### AI Facets (mill-metadata-ai)
+### AI Facets (mill-ai-core)
 
 #### 5. ValueMappingFacet - Term Mapping
 
@@ -567,92 +791,130 @@ semantic:
 
 ## Persistence
 
-### File-Based Repository (YAML)
+### Document-Style Persistence
 
-**Complete YAML format:**
+The metadata system uses **document-style persistence** where each `MetadataEntity` is stored as a single document with all facets serialized as JSON within it. This approach:
+
+- **Simplifies the model** - no joins, single read/write per entity
+- **Enables flexibility** - add facets without schema changes
+- **Supports atomicity** - update all facets of an entity in one transaction
+- **Maintains consistency** - same structure for file and database backends
+
+### File-Based Repository (YAML/JSON)
+
+**Complete YAML format with scoped facets:**
 
 ```yaml
 # metadata/complete.yml
-catalog:
-  name: production
-  displayName: Production Data Catalog
-
-schemas:
-  - name: moneta
-    displayName: Moneta Banking System
-    
+entities:
+  # Entity-bound facet example
+  - id: prod.moneta.customers.customer_id
+    type: ATTRIBUTE
+    catalogName: production
+    schemaName: moneta
+    tableName: customers
+    attributeName: customer_id
     facets:
+      structural:
+        global:  # ← Scope: visible to everyone
+          physicalName: CUSTOMER_ID
+          physicalType: INTEGER
+          isPrimaryKey: true
       descriptive:
-        description: Core banking system
-        owner: banking-team@company.com
-        tags: [banking, financial]
-        businessDomain: finance
-    
-    tables:
-      - name: customers
-        
-        facets:
-          structural:
-            physicalName: CUSTOMERS
-            tableType: TABLE
-            backendType: jdbc
-            lastSyncedAt: "2025-11-05T10:00:00Z"
-          
-          descriptive:
-            displayName: Customers
-            description: Customer master data
-            businessMeaning: Central repository for all customer information
-            synonyms: [clients, customer base]
-            tags: [pii, gdpr]
-            businessDomain: customer-management
-            owner: crm-team@company.com
-            classification: CONFIDENTIAL
-          
-          relation:
-            relations:
-              - name: customer_accounts
-                description: Customer to accounts relationship
-                sourceTable: customers
-                sourceAttributes: [customer_id]
-                targetTable: accounts
-                targetAttributes: [customer_id]
-                cardinality: ONE_TO_MANY
-                type: FOREIGN_KEY
-          
-          concept:
-            concepts:
-              - name: Premium Customers
-                description: High-value customer segment
-                sql: "segment = 'PREMIUM' AND balance > 100000"
-                category: segmentation
-                source: MANUAL
-          
-          value-mapping:
-            mappings:
-              - userTerm: premium
-                databaseValue: PREMIUM
-                displayValue: Premium
-                language: en
-                sourceType: MANUAL
-          
-          enrichment:
-            enrichments:
-              - id: enrich_001
-                type: MODEL
-                description: "User explanation"
-                sessionId: "nl2sql-session-123"
-                status: APPROVED
-        
-        attributes:
-          - name: customer_id
-            facets:
-              structural:
-                physicalName: CUSTOMER_ID
-                physicalType: INTEGER
-                isPrimaryKey: true
-              descriptive:
-                displayName: Customer ID
-                description: Unique identifier
+        global:
+          displayName: Customer ID
+          description: Unique customer identifier
+        user:alice@company.com:  # ← User-specific override
+          description: My personal notes about customer ID
+          notes: "This is my annotation"
+      value-mapping:
+        global:
+          mappings:
+            - userTerm: customer number
+              databaseValue: customer_id
+              language: en
+        user:bob@company.com:  # ← User's personal mapping
+          mappings:
+            - userTerm: cust id
+              databaseValue: customer_id
+              language: en
+  
+  # Cross-entity facet example (stored on source table)
+  - id: prod.moneta.customers
+    type: TABLE
+    catalogName: production
+    schemaName: moneta
+    tableName: customers
+    facets:
+      structural:
+        global:
+          physicalName: CUSTOMERS
+          tableType: TABLE
+          backendType: jdbc
+          lastSyncedAt: "2025-11-05T10:00:00Z"
+      descriptive:
+        global:
+          displayName: Customers
+          description: Customer master data
+          businessMeaning: Central repository for all customer information
+          synonyms: [clients, customer base]
+          tags: [pii, gdpr]
+          businessDomain: customer-management
+          owner: crm-team@company.com
+          classification: CONFIDENTIAL
+        team:engineering:  # ← Team-specific
+          owner: engineering-team@company.com
+          technicalNotes: "High-volume table, optimize queries"
+      relation:  # ← Cross-entity facet
+        global:
+          relations:
+            - name: customer_accounts
+              description: Customer to accounts relationship
+              sourceTable:
+                catalog: production
+                schema: moneta
+                table: customers
+              sourceAttributes: [customer_id]
+              targetTable:
+                catalog: production
+                schema: moneta
+                table: accounts
+              targetAttributes: [customer_id]
+              cardinality: ONE_TO_MANY
+              type: FOREIGN_KEY
+              joinSql: "customers.customer_id = accounts.customer_id"
+  
+  # Unbound facet example (standalone CONCEPT entity)
+  - id: concept_premium_customers
+    type: CONCEPT
+    catalogName: production  # Optional: for organization
+    schemaName: business-concepts  # Optional: logical grouping
+    facets:
+      concept:
+        global:
+          concepts:
+            - name: Premium Customers
+              description: High-value customer segment
+              sql: "segment = 'PREMIUM' AND balance > 100000"
+              referencedTables:
+                - catalog: production
+                  schema: moneta
+                  table: customers
+                - catalog: production
+                  schema: moneta
+                  table: accounts
+              referencedAttributes:
+                - catalog: production
+                  schema: moneta
+                  table: customers
+                  attribute: segment
+                - catalog: production
+                  schema: moneta
+                  table: accounts
+                  attribute: balance
+              tags: [segmentation, marketing]
+              category: segmentation
+              source: MANUAL
 ```
 
 **Benefits:**
@@ -660,84 +922,150 @@ schemas:
 - Human-readable
 - Easy to edit
 - Diff/merge support
+- Scope-aware facets for personalization
 
-### Database Repository (JPA)
+### Database Repository (Document-Style)
 
-**Schema:**
+**Single Table Schema:**
 
 ```sql
--- Main entity table
+-- Single table for all metadata entities (document-style)
 CREATE TABLE metadata_entity (
     id VARCHAR(255) PRIMARY KEY,
-    type VARCHAR(50) NOT NULL,
+    type VARCHAR(50) NOT NULL,  -- CATALOG, SCHEMA, TABLE, ATTRIBUTE, CONCEPT
+    
+    -- Hierarchical location (for physical entities)
     catalog_name VARCHAR(255),
     schema_name VARCHAR(255),
     table_name VARCHAR(255),
     attribute_name VARCHAR(255),
+    
+    -- All facets stored as single JSON document with scope support
+    -- Structure: { "facetType": { "scope": {...}, "scope2": {...} } }
+    facets JSONB NOT NULL DEFAULT '{}'::jsonb,
+    
+    -- Audit
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
     created_by VARCHAR(255),
-    updated_by VARCHAR(255)
+    updated_by VARCHAR(255),
+    
+    -- Unique constraint for physical entities
+    CONSTRAINT unique_physical_entity UNIQUE NULLS NOT DISTINCT (
+        catalog_name, schema_name, table_name, attribute_name
+    ) WHERE type IN ('CATALOG', 'SCHEMA', 'TABLE', 'ATTRIBUTE')
 );
 
--- Facets stored as JSON
-CREATE TABLE metadata_facet (
-    id UUID PRIMARY KEY,
-    entity_id VARCHAR(255) NOT NULL REFERENCES metadata_entity(id),
-    facet_type VARCHAR(100) NOT NULL,
-    facet_data JSONB NOT NULL,  -- PostgreSQL JSONB
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL,
-    UNIQUE(entity_id, facet_type)
-);
+-- Indexes
+CREATE INDEX idx_metadata_type ON metadata_entity(type);
+CREATE INDEX idx_metadata_location ON metadata_entity(catalog_name, schema_name, table_name, attribute_name);
+CREATE INDEX idx_metadata_facets_gin ON metadata_entity USING GIN (facets);  -- Full JSONB index
+CREATE INDEX idx_metadata_facets_descriptive ON metadata_entity USING GIN ((facets->'descriptive'));  -- Specific facet index
+CREATE INDEX idx_metadata_facets_tags ON metadata_entity USING GIN ((facets->'descriptive'->'global'->'tags'));  -- Tags array index
+```
 
-CREATE INDEX idx_facet_entity ON metadata_facet(entity_id);
-CREATE INDEX idx_facet_type ON metadata_facet(facet_type);
-CREATE INDEX idx_facet_data ON metadata_facet USING GIN (facet_data);  -- JSONB index
+**Example JSON in `facets` column:**
+
+```json
+{
+  "structural": {
+    "global": {
+      "physicalName": "CUSTOMERS",
+      "physicalType": "TABLE",
+      "tableType": "TABLE",
+      "backendType": "jdbc",
+      "lastSyncedAt": "2025-11-05T10:00:00Z"
+    }
+  },
+  "descriptive": {
+    "global": {
+      "displayName": "Customers",
+      "description": "Customer master data",
+      "tags": ["pii", "gdpr"]
+    },
+    "user:alice@company.com": {
+      "description": "My custom description",
+      "notes": "This is my personal annotation"
+    },
+    "team:engineering": {
+      "owner": "engineering-team@company.com",
+      "technicalNotes": "High-volume table"
+    }
+  },
+  "relation": {
+    "global": {
+      "relations": [
+        {
+          "name": "customer_accounts",
+          "sourceTable": {
+            "catalog": "production",
+            "schema": "moneta",
+            "table": "customers"
+          },
+          "targetTable": {
+            "catalog": "production",
+            "schema": "moneta",
+            "table": "accounts"
+          },
+          "cardinality": "ONE_TO_MANY",
+          "type": "FOREIGN_KEY"
+        }
+      ]
+    }
+  }
+}
 ```
 
 **Benefits:**
-- Multi-user support
-- Transactional updates
-- Query facet data
-- Full-text search
+- Single table/document per entity - no joins needed
+- All facets in one JSON document - atomic updates
+- Scope support built-in - personalization and access control
+- Flexible querying via JSONB operators
+- Multi-user support with transactional updates
 
 ### Composite Repository
 
 **Merges physical schema + annotations:**
+
+The composite repository combines physical schema discovery with user-defined annotations stored in the document-style repository.
 
 ```java
 @Service
 public class CompositeMetadataRepository implements MetadataRepository {
     
     private final SchemaProvider physicalProvider;  // From JDBC/Calcite
-    private final MetadataRepository annotationsRepo;  // From file/DB
+    private final MetadataRepository annotationsRepo;  // From file/DB (document-style)
     
     @Override
-    public Optional<TableMetadata> getTable(String catalog, String schema, String table) {
+    public Optional<MetadataEntity> findByLocation(String catalog, String schema, String table, String attribute) {
         // Get physical schema
         var physical = physicalProvider.getTable(schema, table);
         
-        // Get annotations
-        var annotations = annotationsRepo.findById(tableId(catalog, schema, table));
+        // Get annotations from document repository
+        var annotations = annotationsRepo.findByLocation(catalog, schema, table, attribute);
         
         // Merge: physical + annotations
         return Optional.of(merge(physical, annotations));
     }
     
-    private TableMetadata merge(
+    private MetadataEntity merge(
         io.qpointz.mill.proto.Table physical,
         Optional<MetadataEntity> annotations
     ) {
         var entity = annotations.orElse(new MetadataEntity());
         
-        // Structural facet from physical schema
-        var structural = entity.getOrCreateFacet(StructuralFacet.class);
-        structural.setPhysicalName(physical.getName());
-        structural.setLastSyncedAt(Instant.now());
+        // Structural facet from physical schema (always global scope)
+        var structuralData = Map.of(
+            "physicalName", physical.getName(),
+            "physicalType", "TABLE",
+            "tableType", physical.getType().toString(),
+            "backendType", "jdbc",
+            "lastSyncedAt", Instant.now().toString()
+        );
+        entity.setFacet("structural", "global", structuralData);
         
         // Preserve user annotations (descriptive, value-mapping, etc.)
-        // ...
+        // All user annotations remain in their respective scopes
         
         return entity;
     }
@@ -746,9 +1074,375 @@ public class CompositeMetadataRepository implements MetadataRepository {
 
 **Benefits:**
 - Auto-sync physical schema
-- Preserve user annotations
+- Preserve user annotations with scope support
 - Single source of truth
 - Schema drift detection
+- Document-style storage for all metadata
+
+### External Metadata Provider (Pluggable Architecture)
+
+**Design for External Metadata Integration:**
+
+The metadata system supports plugging in external metadata sources (e.g., Collibra, Alation, DataHub, custom systems) through a provider interface. External providers map their native metadata format to Mill's faceted model.
+
+**Architecture:**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              MetadataService                            │
+│  (uses MetadataRepository interface)                   │
+└─────────────────────────────────────────────────────────┘
+                        │
+                        ▼
+        ┌───────────────────────────────┐
+        │   MetadataRepository          │  (interface)
+        └───────────────────────────────┘
+                        │
+        ┌───────────────┼───────────────┐
+        │               │               │
+        ▼               ▼               ▼
+┌─────────────┐ ┌─────────────┐ ┌──────────────────┐
+│   JPA Repo  │ │  YAML Repo  │ │ External Provider │
+│  (default)  │ │  (default)  │ │   (pluggable)     │
+└─────────────┘ └─────────────┘ └──────────────────┘
+                                              │
+                                              ▼
+                                    ┌──────────────────┐
+                                    │ External System  │
+                                    │ (Collibra, etc.) │
+                                    └──────────────────┘
+```
+
+**Provider Interface:**
+
+```java
+// In mill-metadata-core/repository/provider/
+public interface ExternalMetadataProvider {
+    
+    /**
+     * Provider identifier (e.g., "collibra", "alation", "datahub")
+     */
+    String getProviderId();
+    
+    /**
+     * Provider name for display
+     */
+    String getProviderName();
+    
+    /**
+     * Check if provider is available/configured
+     */
+    boolean isAvailable();
+    
+    /**
+     * Initialize provider with configuration
+     */
+    void initialize(Map<String, Object> config);
+    
+    /**
+     * Fetch metadata entities from external system
+     * Returns entities mapped to Mill's MetadataEntity format
+     */
+    List<MetadataEntity> fetchEntities(
+        String catalog, 
+        String schema, 
+        Optional<String> table
+    );
+    
+    /**
+     * Fetch specific entity by location
+     */
+    Optional<MetadataEntity> fetchEntity(
+        String catalog, 
+        String schema, 
+        String table, 
+        Optional<String> attribute
+    );
+    
+    /**
+     * Search entities in external system
+     */
+    List<MetadataEntity> search(String query, MetadataType... types);
+    
+    /**
+     * Get capabilities of this provider
+     */
+    ProviderCapabilities getCapabilities();
+}
+
+@Data
+public class ProviderCapabilities {
+    private boolean supportsRead = true;
+    private boolean supportsWrite = false;  // Most external systems are read-only
+    private boolean supportsScopes = false;  // External systems may not support scopes
+    private boolean supportsRealTimeSync = false;
+    private List<String> supportedFacetTypes = List.of();  // Which facets can be mapped
+}
+```
+
+**External Repository Adapter:**
+
+```java
+// In mill-metadata-core/repository/external/
+@Service
+public class ExternalMetadataRepository implements MetadataRepository {
+    
+    private final ExternalMetadataProvider provider;
+    private final MetadataEntityMapper mapper;
+    private final Cache<EntityKey, MetadataEntity> cache;  // Optional caching
+    
+    public ExternalMetadataRepository(
+        ExternalMetadataProvider provider,
+        MetadataEntityMapper mapper
+    ) {
+        this.provider = provider;
+        this.mapper = mapper;
+        this.cache = Caffeine.newBuilder()
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .build();
+    }
+    
+    @Override
+    public Optional<MetadataEntity> findByLocation(
+        String catalog, String schema, String table, String attribute
+    ) {
+        EntityKey key = new EntityKey(catalog, schema, table, attribute);
+        
+        // Check cache first
+        return Optional.ofNullable(cache.getIfPresent(key))
+            .or(() -> {
+                // Fetch from external provider
+                var entity = provider.fetchEntity(catalog, schema, table, Optional.ofNullable(attribute));
+                
+                // Map external format to Mill facets
+                var mappedEntity = entity.map(e -> mapper.mapToMillFormat(e));
+                
+                // Cache result
+                mappedEntity.ifPresent(e -> cache.put(key, e));
+                
+                return mappedEntity;
+            });
+    }
+    
+    @Override
+    public List<MetadataEntity> findByType(MetadataType type) {
+        return provider.fetchEntities(null, null, Optional.empty())
+            .stream()
+            .filter(e -> e.getType() == type)
+            .map(mapper::mapToMillFormat)
+            .toList();
+    }
+    
+    @Override
+    public void save(MetadataEntity entity) {
+        if (!provider.getCapabilities().isSupportsWrite()) {
+            throw new UnsupportedOperationException(
+                "Provider " + provider.getProviderId() + " does not support writes"
+            );
+        }
+        // Write back to external system (if supported)
+        // ...
+    }
+}
+```
+
+**Metadata Entity Mapper:**
+
+```java
+// In mill-metadata-core/repository/external/
+public interface MetadataEntityMapper {
+    
+    /**
+     * Map external metadata format to Mill's MetadataEntity
+     */
+    MetadataEntity mapToMillFormat(Object externalEntity);
+    
+    /**
+     * Map Mill's MetadataEntity to external format (for writes)
+     */
+    Object mapToExternalFormat(MetadataEntity millEntity);
+}
+
+// Example implementation for Collibra
+@Component
+public class CollibraMetadataMapper implements MetadataEntityMapper {
+    
+    @Override
+    public MetadataEntity mapToMillFormat(Object externalEntity) {
+        CollibraAsset asset = (CollibraAsset) externalEntity;
+        
+        MetadataEntity entity = new MetadataEntity();
+        entity.setId(asset.getId());
+        entity.setType(mapType(asset.getType()));
+        
+        // Map location
+        entity.setCatalogName(asset.getDomain());
+        entity.setSchemaName(asset.getCommunity());
+        entity.setTableName(asset.getName());
+        
+        // Map facets from Collibra attributes
+        Map<String, Map<String, Object>> facets = new HashMap<>();
+        
+        // Descriptive facet from Collibra description/attributes
+        Map<String, Object> descriptive = new HashMap<>();
+        descriptive.put("global", Map.of(
+            "displayName", asset.getName(),
+            "description", asset.getDescription().orElse(""),
+            "tags", asset.getTags(),
+            "owner", asset.getOwner().orElse("")
+        ));
+        facets.put("descriptive", descriptive);
+        
+        // Map other Collibra attributes to appropriate facets
+        // ...
+        
+        entity.setFacets(facets);
+        return entity;
+    }
+    
+    private MetadataType mapType(String collibraType) {
+        return switch (collibraType) {
+            case "Table" -> MetadataType.TABLE;
+            case "Column" -> MetadataType.ATTRIBUTE;
+            case "Schema" -> MetadataType.SCHEMA;
+            default -> MetadataType.TABLE;
+        };
+    }
+}
+```
+
+**Provider Registry:**
+
+```java
+// In mill-metadata-core/repository/provider/
+@Service
+public class MetadataProviderRegistry {
+    
+    private final Map<String, ExternalMetadataProvider> providers = new HashMap<>();
+    private final ApplicationContext applicationContext;
+    
+    @PostConstruct
+    public void registerProviders() {
+        // Auto-discover providers via Spring
+        applicationContext.getBeansOfType(ExternalMetadataProvider.class)
+            .values()
+            .forEach(provider -> {
+                providers.put(provider.getProviderId(), provider);
+                if (provider.isAvailable()) {
+                    log.info("Registered metadata provider: {}", provider.getProviderName());
+                }
+            });
+    }
+    
+    public Optional<ExternalMetadataProvider> getProvider(String providerId) {
+        return Optional.ofNullable(providers.get(providerId));
+    }
+    
+    public List<ExternalMetadataProvider> getAvailableProviders() {
+        return providers.values().stream()
+            .filter(ExternalMetadataProvider::isAvailable)
+            .toList();
+    }
+}
+```
+
+**Configuration:**
+
+```yaml
+# application.yml
+mill:
+  metadata:
+    storage:
+      type: external  # file, jpa, composite, external
+      provider: collibra  # Provider ID
+    
+    # External provider configuration
+    external:
+      provider: collibra
+      config:
+        baseUrl: https://collibra.company.com/api
+        apiKey: ${COLLIBRA_API_KEY}
+        timeout: 30s
+        cache:
+          enabled: true
+          ttl: 5m
+      
+      # Mapping configuration
+      mapping:
+        # Map Collibra asset types to Mill types
+        typeMapping:
+          "Table": TABLE
+          "Column": ATTRIBUTE
+          "Schema": SCHEMA
+        
+        # Map Collibra attributes to Mill facets
+        facetMapping:
+          "Description": descriptive.description
+          "Business Owner": descriptive.owner
+          "Tags": descriptive.tags
+          "Data Classification": descriptive.classification
+```
+
+**Multi-Source Composite Repository:**
+
+```java
+// In mill-metadata-core/repository/composite/
+@Service
+public class MultiSourceMetadataRepository implements MetadataRepository {
+    
+    private final List<MetadataRepository> sources;  // Ordered list
+    private final MetadataRepository primarySource;  // For writes
+    
+    public MultiSourceMetadataRepository(
+        List<MetadataRepository> sources,
+        @Qualifier("primaryMetadataRepository") MetadataRepository primarySource
+    ) {
+        this.sources = sources;
+        this.primarySource = primarySource;
+    }
+    
+    @Override
+    public Optional<MetadataEntity> findByLocation(
+        String catalog, String schema, String table, String attribute
+    ) {
+        // Try sources in order, merge results
+        List<MetadataEntity> found = sources.stream()
+            .map(repo -> repo.findByLocation(catalog, schema, table, attribute))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .toList();
+        
+        if (found.isEmpty()) {
+            return Optional.empty();
+        }
+        
+        // Merge entities (primary source wins for conflicts)
+        return Optional.of(mergeEntities(found));
+    }
+    
+    private MetadataEntity mergeEntities(List<MetadataEntity> entities) {
+        MetadataEntity merged = new MetadataEntity();
+        // Merge logic: combine facets from all sources
+        // Primary source facets take precedence
+        // ...
+        return merged;
+    }
+    
+    @Override
+    public void save(MetadataEntity entity) {
+        // Always write to primary source
+        primarySource.save(entity);
+    }
+}
+```
+
+**Benefits:**
+- **Pluggable**: Add external providers without changing core code
+- **Flexible**: Support multiple metadata sources simultaneously
+- **Mappable**: External formats mapped to Mill's faceted model
+- **Cached**: Optional caching for performance
+- **Configurable**: Provider selection via configuration
+- **Extensible**: Easy to add new providers by implementing interface
 
 ---
 
@@ -774,13 +1468,23 @@ GET    /api/metadata/v1/catalogs/{catalog}/schemas/{schema}/tables/{table}/attri
 PUT    /api/metadata/v1/catalogs/{catalog}/schemas/{schema}/tables/{table}/attributes/{attr}
 ```
 
-### Facet Management
+### Facet Management (Scope-Aware)
 
 ```
-GET    /api/metadata/v1/entities/{entityId}/facets
+# Get merged facet for current user (global + user + team + role merged)
 GET    /api/metadata/v1/entities/{entityId}/facets/{facetType}
-PUT    /api/metadata/v1/entities/{entityId}/facets/{facetType}
-DELETE /api/metadata/v1/entities/{entityId}/facets/{facetType}
+
+# Get all scopes for a facet type
+GET    /api/metadata/v1/entities/{entityId}/facets/{facetType}/scopes
+
+# Get facet for specific scope (admin only)
+GET    /api/metadata/v1/entities/{entityId}/facets/{facetType}/scopes/{scope}
+
+# Save facet with scope
+PUT    /api/metadata/v1/entities/{entityId}/facets/{facetType}/scopes/{scope}
+
+# Delete facet for specific scope
+DELETE /api/metadata/v1/entities/{entityId}/facets/{facetType}/scopes/{scope}
 ```
 
 ### Search & Navigation
@@ -988,28 +1692,54 @@ public class SchemaPromptGenerator {
 
 ## Implementation Roadmap
 
-### Phase 1: Core Foundation (Week 1)
-- [ ] Create `mill-metadata-core` module
-- [ ] Implement `MetadataEntity` with facet support
-- [ ] Implement core facets: Structural, Descriptive, Relation, Concept
-- [ ] Implement `FacetRegistry` plugin system
-- [ ] File-based repository with YAML serialization
-- [ ] Basic REST API (CRUD)
-- [ ] Unit tests
+**Last Updated:** December 2024
 
-**Deliverables:**
+### Phase 1: Core Foundation ✅ COMPLETED
+- [x] Create `mill-metadata-core` module
+- [x] Implement `MetadataEntity` with facet support
+- [x] Implement core facets: Structural, Descriptive, Relation, Concept
+- [x] Implement `FacetRegistry` plugin system
+- [x] File-based repository with YAML serialization
+- [x] Basic REST API (read-only)
+- [x] Unit tests and integration tests
+- [x] Removed `catalogName` from model (simplified hierarchy)
+- [x] Converted classes to records where appropriate (EntityReference, Relation, Concept)
+
+**Deliverables:** ✅
 - Working file-based metadata system
-- YAML format defined
-- REST API for basic operations
-- Example metadata files
+- YAML format defined (document-style with scoped facets)
+- REST API for read operations
+- Example metadata files (`moneta-meta-repository.yaml`)
+- Spring Boot auto-configuration
+- Swagger/OpenAPI documentation
 
-### Phase 2: AI Facets (Week 2)
-- [ ] Create `mill-metadata-ai` module
-- [ ] Implement `ValueMappingFacet`
-- [ ] Implement `EnrichmentFacet`
+### Phase 2: REST API Service & UI ✅ COMPLETED
+- [x] Create `mill-metadata-service` module
+- [x] Implement REST controllers (MetadataController, SchemaExplorerController, FacetController)
+- [x] Read-only API endpoints
+- [x] DTOs for API responses
+- [x] Swagger/OpenAPI annotations
+- [x] Tree API with attributes as children
+- [x] Metadata browser UI at `/explore` route
+- [x] Collapsible sidebar matching chat view design
+- [x] URL routing for shareable links (`/explore/:schema/:table/:attribute?`)
+- [x] OpenAPI-generated TypeScript client
+- [x] React context provider for state management
+
+**Deliverables:** ✅
+- Fully functional read-only REST API
+- Metadata browser UI with tree navigation
+- Entity details view with facet tabs
+- Shareable/bookmarkable URLs
+- Type-safe API integration
+
+### Phase 3: AI Facets (Pending)
+- [ ] Add AI metadata facets to `mill-ai-core` module (under `metadata/` package)
+- [ ] Implement `ValueMappingFacet` in `mill-ai-core/metadata/facets/`
+- [ ] Implement `EnrichmentFacet` in `mill-ai-core/metadata/facets/`
 - [ ] Migrate existing value mapping to new structure
 - [ ] Auto-registration of AI facets
-- [ ] AI-specific REST API
+- [ ] AI-specific REST API (`AIMetadataController`)
 - [ ] Integration tests
 
 **Deliverables:**
@@ -1218,17 +1948,18 @@ mill:
   metadata:
     # Storage backend
     storage:
-      type: composite  # file, jpa, composite
+      type: composite  # file, jpa, composite, external, multi-source
     
     # File-based
     file:
       path: classpath:metadata/complete.yml
       watch: true  # Auto-reload on changes
     
-    # Database
+    # Database (document-style with JSONB)
     jpa:
       database-platform: org.hibernate.dialect.PostgreSQLDialect
       ddl-auto: update
+      # Single table: metadata_entity with facets as JSONB column
     
     # Composite
     composite:
@@ -1254,6 +1985,45 @@ mill:
     # Search
     search:
       provider: postgres  # elasticsearch, lucene, postgres
+    
+    # External metadata provider (optional, for future use)
+    external:
+      enabled: false
+      provider: collibra  # collibra, alation, datahub, custom
+      config:
+        baseUrl: https://collibra.company.com/api
+        apiKey: ${EXTERNAL_METADATA_API_KEY}
+        timeout: 30s
+        cache:
+          enabled: true
+          ttl: 5m
+      mapping:
+        # Map external asset types to Mill types
+        typeMapping:
+          "Table": TABLE
+          "Column": ATTRIBUTE
+          "Schema": SCHEMA
+        # Map external attributes to Mill facets
+        facetMapping:
+          "Description": descriptive.description
+          "Business Owner": descriptive.owner
+          "Tags": descriptive.tags
+    
+    # Multi-source configuration (optional, for future use)
+    multi-source:
+      enabled: false
+      sources:
+        - type: jpa  # Primary source (for writes)
+          priority: 1
+        - type: external
+          provider: collibra
+          priority: 2  # Lower priority (read-only)
+    
+    # Scope support
+    scope:
+      enabled: true
+      default-scope: global  # Default scope for new facets
+      merge-priority: [user, team, role, global]  # Priority order for merging
 ```
 
 ---
@@ -1262,7 +2032,7 @@ mill:
 
 ### 1. Separation of Concerns
 - ✅ Core metadata in `mill-metadata-core` (no AI dependencies)
-- ✅ AI features in `mill-metadata-ai` (optional)
+- ✅ AI features in `mill-ai-core` (optional)
 - ✅ Clean module boundaries
 
 ### 2. Easy Extensibility

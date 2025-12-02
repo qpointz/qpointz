@@ -1,13 +1,36 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI definition",
-    "version": "v0"
+    "title": "Mill Metadata Service API",
+    "description": "REST API for faceted metadata management with scope support",
+    "contact": {
+      "name": "Mill Team",
+      "email": "support@qpointz.io"
+    },
+    "license": {
+      "name": "Proprietary",
+      "url": "https://qpointz.io"
+    },
+    "version": "v1"
   },
   "servers": [
     {
       "url": "http://localhost:8080",
       "description": "Generated server url"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Facets",
+      "description": "Scope-aware facet management endpoints"
+    },
+    {
+      "name": "Metadata",
+      "description": "Metadata entity CRUD operations"
+    },
+    {
+      "name": "Schema Explorer",
+      "description": "Schema exploration, search, and navigation endpoints"
     }
   ],
   "paths": {
@@ -688,13 +711,675 @@
                     "$ref": "#/components/schemas/ServerSentEventObject"
                   }
                 }
-              },
-              "application/json": {
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/metadata/v1/schemas/{schema}/tables/{table}": {
+      "get": {
+        "tags": [
+          "Metadata"
+        ],
+        "summary": "Get table by location",
+        "description": "Retrieves a table metadata entity by schema and table name",
+        "operationId": "getTable",
+        "parameters": [
+          {
+            "name": "schema",
+            "in": "path",
+            "description": "Schema name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "moneta"
+          },
+          {
+            "name": "table",
+            "in": "path",
+            "description": "Table name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "clients"
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "Scope for facet merging (default: global)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "global"
+            },
+            "example": "global"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Table found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetadataEntityDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Table not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetadataEntityDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/metadata/v1/schemas/{schema}/tables/{table}/attributes/{attribute}": {
+      "get": {
+        "tags": [
+          "Metadata"
+        ],
+        "summary": "Get attribute by location",
+        "description": "Retrieves an attribute (column) metadata entity by its hierarchical location",
+        "operationId": "getAttribute",
+        "parameters": [
+          {
+            "name": "schema",
+            "in": "path",
+            "description": "Schema name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "moneta"
+          },
+          {
+            "name": "table",
+            "in": "path",
+            "description": "Table name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "clients"
+          },
+          {
+            "name": "attribute",
+            "in": "path",
+            "description": "Attribute name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "id"
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "Scope for facet merging (default: global)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "global"
+            },
+            "example": "global"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attribute found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetadataEntityDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Attribute not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetadataEntityDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/metadata/v1/facets/entities/{entityId}/types/{facetType}": {
+      "get": {
+        "tags": [
+          "Facets"
+        ],
+        "summary": "Get merged facet",
+        "description": "Retrieves a facet merged from multiple scopes (user \u003E team \u003E role \u003E global) for the specified user context",
+        "operationId": "getMergedFacet",
+        "parameters": [
+          {
+            "name": "entityId",
+            "in": "path",
+            "description": "Entity ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "moneta.clients"
+          },
+          {
+            "name": "facetType",
+            "in": "path",
+            "description": "Facet type",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "descriptive"
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "User ID for user-scoped facets",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "alice@company.com"
+          },
+          {
+            "name": "teams",
+            "in": "query",
+            "description": "List of team names for team-scoped facets",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "example": "engineering"
+          },
+          {
+            "name": "roles",
+            "in": "query",
+            "description": "List of role names for role-scoped facets",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "example": "admin"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Merged facet found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/FacetDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entity or facet not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/FacetDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/metadata/v1/facets/entities/{entityId}/types/{facetType}/scopes/{scope}": {
+      "get": {
+        "tags": [
+          "Facets"
+        ],
+        "summary": "Get facet by scope",
+        "description": "Retrieves a facet for a specific scope (e.g., global, user:alice@company.com, team:engineering)",
+        "operationId": "getFacetByScope",
+        "parameters": [
+          {
+            "name": "entityId",
+            "in": "path",
+            "description": "Entity ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "moneta.clients"
+          },
+          {
+            "name": "facetType",
+            "in": "path",
+            "description": "Facet type",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "descriptive"
+          },
+          {
+            "name": "scope",
+            "in": "path",
+            "description": "Scope (e.g., global, user:alice@company.com)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "global"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Facet found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/FacetDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entity or facet not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/FacetDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/metadata/v1/explorer/tree": {
+      "get": {
+        "tags": [
+          "Schema Explorer"
+        ],
+        "summary": "Get schema tree",
+        "description": "Retrieves a hierarchical tree structure of schemas and tables, optionally filtered by schema",
+        "operationId": "getTree",
+        "parameters": [
+          {
+            "name": "schema",
+            "in": "query",
+            "description": "Filter by schema name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "moneta"
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "Scope for facet merging (default: global)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "global"
+            },
+            "example": "global"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tree structure",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreeNodeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/metadata/v1/explorer/search": {
+      "get": {
+        "tags": [
+          "Schema Explorer"
+        ],
+        "summary": "Search metadata",
+        "description": "Searches metadata entities by query string, optionally filtered by type",
+        "operationId": "search",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Search query string",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "client"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Filter by metadata type (e.g., TABLE, ATTRIBUTE)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "TABLE"
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "Scope for facet merging (default: global)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "global"
+            },
+            "example": "global"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResultDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/metadata/v1/explorer/lineage": {
+      "get": {
+        "tags": [
+          "Schema Explorer"
+        ],
+        "summary": "Get data lineage",
+        "description": "Retrieves data lineage information for a table, showing upstream and downstream dependencies",
+        "operationId": "getLineage",
+        "parameters": [
+          {
+            "name": "table",
+            "in": "query",
+            "description": "Table fully qualified name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "moneta.clients"
+          },
+          {
+            "name": "depth",
+            "in": "query",
+            "description": "Lineage traversal depth (default: 1)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lineage information",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/metadata/v1/entities": {
+      "get": {
+        "tags": [
+          "Metadata"
+        ],
+        "summary": "List all entities",
+        "description": "Retrieves all metadata entities, optionally filtered by type",
+        "operationId": "getEntities",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Filter by metadata type (e.g., TABLE, ATTRIBUTE)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "TABLE"
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "Scope for facet merging (default: global)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "global"
+            },
+            "example": "global"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of entities",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetadataEntityDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/metadata/v1/entities/{id}": {
+      "get": {
+        "tags": [
+          "Metadata"
+        ],
+        "summary": "Get entity by ID",
+        "description": "Retrieves a metadata entity by its unique identifier with optional scope filtering",
+        "operationId": "getEntityById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Entity ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "moneta.clients"
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "Scope for facet merging (default: global)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "global"
+            },
+            "example": "global"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Entity found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetadataEntityDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entity not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetadataEntityDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/metadata/v1/entities/{id}/facets/{facetType}": {
+      "get": {
+        "tags": [
+          "Metadata"
+        ],
+        "summary": "Get facet by type",
+        "description": "Retrieves a specific facet for an entity by facet type and scope",
+        "operationId": "getFacet",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Entity ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "moneta.clients"
+          },
+          {
+            "name": "facetType",
+            "in": "path",
+            "description": "Facet type (e.g., descriptive, structural, value-mapping)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "descriptive"
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "Scope for facet (default: global)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "global"
+            },
+            "example": "global"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Facet found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/FacetDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entity or facet not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/FacetDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/metadata/v1/entities/{id}/facets/{facetType}/scopes": {
+      "get": {
+        "tags": [
+          "Metadata"
+        ],
+        "summary": "Get facet scopes",
+        "description": "Retrieves all available scopes for a specific facet type on an entity",
+        "operationId": "getFacetScopes",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Entity ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "moneta.clients"
+          },
+          {
+            "name": "facetType",
+            "in": "path",
+            "description": "Facet type",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "descriptive"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of scopes",
+            "content": {
+              "*/*": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ServerSentEventObject"
-                  }
+                    "type": "string"
+                  },
+                  "uniqueItems": true
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entity not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "uniqueItems": true
                 }
               }
             }
@@ -781,21 +1466,6 @@
       "ErrorResponse": {
         "type": "object",
         "properties": {
-          "typeMessageCode": {
-            "type": "string"
-          },
-          "detailMessageArguments": {
-            "type": "array",
-            "items": {
-
-            }
-          },
-          "titleMessageCode": {
-            "type": "string"
-          },
-          "detailMessageCode": {
-            "type": "string"
-          },
           "headers": {
             "type": "object",
             "additionalProperties": {
@@ -810,19 +1480,6 @@
               },
               "contentType": {
                 "$ref": "#/components/schemas/MediaType"
-              },
-              "connection": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "empty": {
-                "type": "boolean"
-              },
-              "location": {
-                "type": "string",
-                "format": "uri"
               },
               "host": {
                 "type": "object",
@@ -890,6 +1547,13 @@
                   }
                 }
               },
+              "empty": {
+                "type": "boolean"
+              },
+              "location": {
+                "type": "string",
+                "format": "uri"
+              },
               "all": {
                 "type": "object",
                 "additionalProperties": {
@@ -913,6 +1577,12 @@
                 "type": "integer",
                 "format": "int64"
               },
+              "connection": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
               "range": {
                 "type": "array",
                 "items": {
@@ -932,6 +1602,12 @@
                 "type": "string",
                 "writeOnly": true
               },
+              "accept": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MediaType"
+                }
+              },
               "allow": {
                 "type": "array",
                 "items": {
@@ -947,6 +1623,53 @@
               },
               "etag": {
                 "type": "string"
+              },
+              "acceptLanguageAsLocales": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "accessControlAllowCredentials": {
+                "type": "boolean"
+              },
+              "accessControlAllowMethods": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/HttpMethod"
+                }
+              },
+              "accessControlAllowOrigin": {
+                "type": "string"
+              },
+              "accessControlExposeHeaders": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "accessControlMaxAge": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "accessControlAllowHeaders": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "accessControlRequestHeaders": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "accessControlRequestMethod": {
+                "$ref": "#/components/schemas/HttpMethod"
+              },
+              "ifUnmodifiedSince": {
+                "type": "integer",
+                "format": "int64"
               },
               "acceptLanguage": {
                 "type": "array",
@@ -967,29 +1690,11 @@
                 "type": "string",
                 "writeOnly": true
               },
-              "accept": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/MediaType"
-                }
-              },
               "acceptPatch": {
                 "type": "array",
                 "items": {
                   "$ref": "#/components/schemas/MediaType"
                 }
-              },
-              "ifNoneMatch": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "pragma": {
-                "type": "string"
-              },
-              "upgrade": {
-                "type": "string"
               },
               "vary": {
                 "type": "array",
@@ -997,58 +1702,23 @@
                   "type": "string"
                 }
               },
-              "expires": {
-                "type": "integer",
-                "format": "int64"
-              },
               "ifMatch": {
                 "type": "array",
                 "items": {
                   "type": "string"
                 }
               },
-              "accessControlMaxAge": {
-                "type": "integer",
-                "format": "int64"
-              },
-              "accessControlRequestMethod": {
-                "$ref": "#/components/schemas/HttpMethod"
-              },
-              "ifUnmodifiedSince": {
-                "type": "integer",
-                "format": "int64"
-              },
-              "accessControlRequestHeaders": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "acceptLanguageAsLocales": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "accessControlAllowCredentials": {
-                "type": "boolean"
-              },
-              "accessControlAllowHeaders": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "accessControlAllowMethods": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/HttpMethod"
-                }
-              },
-              "accessControlAllowOrigin": {
+              "upgrade": {
                 "type": "string"
               },
-              "accessControlExposeHeaders": {
+              "pragma": {
+                "type": "string"
+              },
+              "expires": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "ifNoneMatch": {
                 "type": "array",
                 "items": {
                   "type": "string"
@@ -1068,6 +1738,21 @@
           },
           "body": {
             "$ref": "#/components/schemas/ProblemDetail"
+          },
+          "detailMessageCode": {
+            "type": "string"
+          },
+          "detailMessageArguments": {
+            "type": "array",
+            "items": {
+
+            }
+          },
+          "titleMessageCode": {
+            "type": "string"
+          },
+          "typeMessageCode": {
+            "type": "string"
           }
         }
       },
@@ -1161,19 +1846,19 @@
           "error": {
             "type": "boolean"
           },
+          "is4xxClientError": {
+            "type": "boolean"
+          },
           "is5xxServerError": {
             "type": "boolean"
           },
-          "is4xxClientError": {
+          "is1xxInformational": {
             "type": "boolean"
           },
           "is2xxSuccessful": {
             "type": "boolean"
           },
           "is3xxRedirection": {
-            "type": "boolean"
-          },
-          "is1xxInformational": {
             "type": "boolean"
           }
         }
@@ -1203,14 +1888,14 @@
           "concrete": {
             "type": "boolean"
           },
+          "subtypeSuffix": {
+            "type": "string"
+          },
           "wildcardSubtype": {
             "type": "boolean"
           },
           "wildcardType": {
             "type": "boolean"
-          },
-          "subtypeSuffix": {
-            "type": "string"
           }
         }
       },
@@ -1323,6 +2008,141 @@
       },
       "ServerSentEventObject": {
 
+      },
+      "MetadataEntityDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CATALOG",
+              "SCHEMA",
+              "TABLE",
+              "ATTRIBUTE",
+              "CONCEPT"
+            ]
+          },
+          "schemaName": {
+            "type": "string"
+          },
+          "tableName": {
+            "type": "string"
+          },
+          "attributeName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "updatedBy": {
+            "type": "string"
+          },
+          "facets": {
+            "type": "object",
+            "additionalProperties": {
+
+            }
+          }
+        }
+      },
+      "FacetDto": {
+        "type": "object",
+        "properties": {
+          "facetType": {
+            "type": "string"
+          },
+          "data": {
+
+          },
+          "availableScopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          }
+        }
+      },
+      "TreeNodeDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CATALOG",
+              "SCHEMA",
+              "TABLE",
+              "ATTRIBUTE",
+              "CONCEPT"
+            ]
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TreeNodeDto"
+            }
+          },
+          "hasChildren": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SearchResultDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CATALOG",
+              "SCHEMA",
+              "TABLE",
+              "ATTRIBUTE",
+              "CONCEPT"
+            ]
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number",
+            "format": "double"
+          }
+        }
       },
       "ApplicationDescriptor": {
         "type": "object",

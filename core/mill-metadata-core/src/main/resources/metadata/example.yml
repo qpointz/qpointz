@@ -1,0 +1,102 @@
+# Example metadata file for mill-metadata-core
+# This demonstrates the document-style YAML format with scoped facets
+
+entities:
+  # Entity-bound facet example: Attribute with structural and descriptive facets
+  - id: moneta.customers.customer_id
+    type: ATTRIBUTE
+    schemaName: moneta
+    tableName: customers
+    attributeName: customer_id
+    createdAt: "2025-11-05T10:00:00Z"
+    updatedAt: "2025-11-05T10:00:00Z"
+    facets:
+      structural:
+        global:
+          physicalName: CUSTOMER_ID
+          physicalType: INTEGER
+          nullable: false
+          isPrimaryKey: true
+          backendType: jdbc
+      descriptive:
+        global:
+          displayName: Customer ID
+          description: Unique customer identifier
+          businessMeaning: Primary identifier for customer records across all systems
+          synonyms: [customer number, client id, cust id]
+          tags: [pii, primary-key]
+          businessDomain: customer-management
+          businessOwner: crm-team@company.com
+          classification: CONFIDENTIAL
+  
+  # Cross-entity facet example: Table with relation facet
+  - id: moneta.customers
+    type: TABLE
+    schemaName: moneta
+    tableName: customers
+    createdAt: "2025-11-05T10:00:00Z"
+    updatedAt: "2025-11-05T10:00:00Z"
+    facets:
+      structural:
+        global:
+          physicalName: CUSTOMERS
+          tableType: TABLE
+          backendType: jdbc
+          lastSyncedAt: "2025-11-05T10:00:00Z"
+      descriptive:
+        global:
+          displayName: Customers
+          description: Customer master data
+          businessMeaning: Central repository for all customer information
+          synonyms: [clients, customer base]
+          tags: [pii, gdpr]
+          businessDomain: customer-management
+          businessOwner: crm-team@company.com
+          classification: CONFIDENTIAL
+      relation:
+        global:
+          relations:
+            - name: customer_accounts
+              description: Customer to accounts relationship
+              sourceTable:
+                schema: moneta
+                table: customers
+              sourceAttributes: [customer_id]
+              targetTable:
+                schema: moneta
+                table: accounts
+              targetAttributes: [customer_id]
+              cardinality: ONE_TO_MANY
+              type: FOREIGN_KEY
+              joinSql: "customers.customer_id = accounts.customer_id"
+              businessMeaning: One customer can have multiple accounts
+  
+  # Unbound facet example: Standalone CONCEPT entity
+  - id: concept_premium_customers
+    type: CONCEPT
+    schemaName: business-concepts
+    createdAt: "2025-11-05T10:00:00Z"
+    updatedAt: "2025-11-05T10:00:00Z"
+    facets:
+      concept:
+        global:
+          concepts:
+            - name: Premium Customers
+              description: High-value customer segment
+              sql: "segment = 'PREMIUM' AND balance > 100000"
+              referencedTables:
+                - schema: moneta
+                  table: customers
+                - schema: moneta
+                  table: accounts
+              referencedAttributes:
+                - schema: moneta
+                  table: customers
+                  attribute: segment
+                - schema: moneta
+                  table: accounts
+                  attribute: balance
+              tags: [segmentation, marketing]
+              category: segmentation
+              source: MANUAL
+

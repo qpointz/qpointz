@@ -11,9 +11,9 @@ Name | Type | Description | Notes
 **qualityValue** | **number** |  | [optional] [default to undefined]
 **charset** | **string** |  | [optional] [default to undefined]
 **concrete** | **boolean** |  | [optional] [default to undefined]
+**subtypeSuffix** | **string** |  | [optional] [default to undefined]
 **wildcardSubtype** | **boolean** |  | [optional] [default to undefined]
 **wildcardType** | **boolean** |  | [optional] [default to undefined]
-**subtypeSuffix** | **string** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -27,9 +27,9 @@ const instance: MediaType = {
     qualityValue,
     charset,
     concrete,
+    subtypeSuffix,
     wildcardSubtype,
     wildcardType,
-    subtypeSuffix,
 };
 ```
 

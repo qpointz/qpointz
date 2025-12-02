@@ -6,11 +6,11 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **error** | **boolean** |  | [optional] [default to undefined]
-**is5xxServerError** | **boolean** |  | [optional] [default to undefined]
 **is4xxClientError** | **boolean** |  | [optional] [default to undefined]
+**is5xxServerError** | **boolean** |  | [optional] [default to undefined]
+**is1xxInformational** | **boolean** |  | [optional] [default to undefined]
 **is2xxSuccessful** | **boolean** |  | [optional] [default to undefined]
 **is3xxRedirection** | **boolean** |  | [optional] [default to undefined]
-**is1xxInformational** | **boolean** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -19,11 +19,11 @@ import { ErrorResponseStatusCode } from './api';
 
 const instance: ErrorResponseStatusCode = {
     error,
-    is5xxServerError,
     is4xxClientError,
+    is5xxServerError,
+    is1xxInformational,
     is2xxSuccessful,
     is3xxRedirection,
-    is1xxInformational,
 };
 ```
 

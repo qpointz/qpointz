@@ -52,11 +52,18 @@ mill:
   security:
     enable: false
   metadata:
+    # Legacy metadata configuration
     relations: file
     annotations: file
     file:
       repository:
         path: file:../../test/datasets/moneta/moneta-meta.yaml
+    # New faceted metadata service (v2) - separate section
+    v2:
+      storage:
+        type: file
+      file:
+        path: file:../../test/datasets/moneta/moneta-meta-repository.yaml
   backend:
     provider: jdbc
     connection:

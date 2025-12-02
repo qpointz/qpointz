@@ -10,6 +10,7 @@
 
 rootProject.name = "services"
 
+include (":mill-metadata-service")
 include (":mill-jet-http-service")
 include (":mill-jet-grpc-service")
 include (":mill-grinder-service")

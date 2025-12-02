@@ -53,7 +53,7 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: */*, text/event-stream, application/json
+ - **Accept**: */*, text/event-stream
 
 
 ### HTTP response details

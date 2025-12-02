@@ -1,0 +1,1283 @@
+entities:
+- id: moneta
+  type: SCHEMA
+  schemaName: moneta
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    descriptive:
+      global:
+        displayName: Moneta
+        description: Client moneta schema
+- id: moneta.clients
+  type: TABLE
+  schemaName: moneta
+  tableName: clients
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CLIENTS
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Clients
+        description: Contains client personal and contact information.
+    relation:
+      global:
+        relations:
+        - name: clients_accounts
+          description: client accounts
+          sourceTable:
+            schema: moneta
+            table: clients
+          sourceAttributes:
+          - client_id
+          targetTable:
+            schema: moneta
+            table: accounts
+          targetAttributes:
+          - client_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: clients.client_id = accounts.client_id
+        - name: clients_loans
+          description: Client to loans relationship
+          sourceTable:
+            schema: moneta
+            table: clients
+          sourceAttributes:
+          - client_id
+          targetTable:
+            schema: moneta
+            table: loans
+          targetAttributes:
+          - client_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: clients.client_id = loans.client_id
+        - name: clients_stock_portfolios
+          description: Client to stock portfolios relationship
+          sourceTable:
+            schema: moneta
+            table: clients
+          sourceAttributes:
+          - client_id
+          targetTable:
+            schema: moneta
+            table: stock_portfolios
+          targetAttributes:
+          - client_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: clients.client_id = stock_portfolios.client_id
+- id: moneta.clients.client_id
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: clients
+  attributeName: client_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CLIENT_ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Client ID
+        description: Unique identifier of the client.
+- id: moneta.clients.first_name
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: clients
+  attributeName: first_name
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: FIRST_NAME
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: First Name
+        description: Client's first name.
+- id: moneta.clients.last_name
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: clients
+  attributeName: last_name
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: LAST_NAME
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Last Name
+        description: Client's last name.
+- id: moneta.clients.email
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: clients
+  attributeName: email
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: EMAIL
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Email
+        description: Client email address.
+- id: moneta.clients.phone
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: clients
+  attributeName: phone
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: PHONE
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Phone
+        description: Client contact phone number.
+- id: moneta.clients.created_at
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: clients
+  attributeName: created_at
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CREATED_AT
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Created At
+        description: Date when the client was registered.
+- id: moneta.clients.country
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: clients
+  attributeName: country
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: COUNTRY
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Country
+        description: Country of residence.
+    value-mapping:
+      global:
+        context: Country name
+        similarity-threshold: 0.4
+        sources:
+        - type: SQL_QUERY
+          name: country_values
+          definition: "SELECT DISTINCT \"COUNTRY\" AS \"ID\", \n                \"COUNTRY\" AS \"VALUE\", \n             \
+            \   \"COUNTRY\" AS \"TEXT\" \nFROM \"MONETA\".\"CLIENTS\"  WHERE \"COUNTRY\" IS NOT NULL"
+          description: Discover all country values
+          enabled: true
+          cronExpression: 0 0 * * * *
+- id: moneta.clients.city
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: clients
+  attributeName: city
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CITY
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: City
+        description: City of residence.
+- id: moneta.clients.address
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: clients
+  attributeName: address
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ADDRESS
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Address
+        description: Street address of the client.
+- id: moneta.clients.segment
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: clients
+  attributeName: segment
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: SEGMENT
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Segment
+        description: Client service segment classification.
+    value-mapping:
+      global:
+        context: Client segment
+        similarity-threshold: 0.5
+        sources:
+        - type: SQL_QUERY
+          name: segment_values
+          definition: "SELECT DISTINCT \"SEGMENT\" AS \"ID\", \n                \"SEGMENT\" AS \"VALUE\", \n             \
+            \   \"SEGMENT\" AS \"TEXT\" \nFROM \"MONETA\".\"CLIENTS\"  WHERE \"SEGMENT\" IS NOT NULL"
+          description: Discover all segment values
+          enabled: true
+          cronExpression: 0 0 * * * *
+- id: moneta.accounts
+  type: TABLE
+  schemaName: moneta
+  tableName: accounts
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ACCOUNTS
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Accounts
+        description: Represents client bank accounts and balances.
+    relation:
+      global:
+        relations:
+        - name: accounts_transactions
+          description: Account to transactions relationship
+          sourceTable:
+            schema: moneta
+            table: accounts
+          sourceAttributes:
+          - account_id
+          targetTable:
+            schema: moneta
+            table: transactions
+          targetAttributes:
+          - account_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: accounts.account_id = transactions.account_id
+- id: moneta.accounts.account_id
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: accounts
+  attributeName: account_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ACCOUNT_ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Account ID
+        description: ID of the associated bank account.
+- id: moneta.accounts.client_id
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: accounts
+  attributeName: client_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CLIENT_ID
+        physicalType: INTEGER
+        nullable: false
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Client ID
+        description: Unique identifier of the client.
+- id: moneta.accounts.account_type
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: accounts
+  attributeName: account_type
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ACCOUNT_TYPE
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Account Type
+        description: Type of bank account (e.g., checking, savings).
+- id: moneta.accounts.balance
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: accounts
+  attributeName: balance
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: BALANCE
+        physicalType: DECIMAL
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Balance
+        description: Current balance of the account.
+- id: moneta.accounts.opened_at
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: accounts
+  attributeName: opened_at
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: OPENED_AT
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Opened At
+        description: Date when the account was opened.
+- id: moneta.transactions
+  type: TABLE
+  schemaName: moneta
+  tableName: transactions
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: TRANSACTIONS
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Transactions
+        description: Bank account transactions including deposits and withdrawals.
+- id: moneta.transactions.transaction_id
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: transactions
+  attributeName: transaction_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: TRANSACTION_ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Transaction ID
+        description: Unique ID of the transaction.
+- id: moneta.transactions.account_id
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: transactions
+  attributeName: account_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ACCOUNT_ID
+        physicalType: INTEGER
+        nullable: false
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Account ID
+        description: ID of the associated bank account.
+- id: moneta.transactions.transaction_type
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: transactions
+  attributeName: transaction_type
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: TRANSACTION_TYPE
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Transaction Type
+        description: Type of transaction (deposit, withdrawal, transfer).
+- id: moneta.transactions.amount
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: transactions
+  attributeName: amount
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: AMOUNT
+        physicalType: DECIMAL
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Amount
+        description: Total loan amount.
+- id: moneta.transactions.transaction_date
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: transactions
+  attributeName: transaction_date
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: TRANSACTION_DATE
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Transaction Date
+        description: Date of the transaction.
+- id: moneta.transactions.description
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: transactions
+  attributeName: description
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: DESCRIPTION
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Description
+        description: Text description of the transaction.
+- id: moneta.loans
+  type: TABLE
+  schemaName: moneta
+  tableName: loans
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: LOANS
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Loans
+        description: Loan contracts issued to clients with interest and duration.
+    relation:
+      global:
+        relations:
+        - name: loans_loan_payments
+          description: Loan to loan payments relationship
+          sourceTable:
+            schema: moneta
+            table: loans
+          sourceAttributes:
+          - loan_id
+          targetTable:
+            schema: moneta
+            table: loan_payments
+          targetAttributes:
+          - loan_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: loans.loan_id = loan_payments.loan_id
+- id: moneta.loans.loan_id
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: loans
+  attributeName: loan_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: LOAN_ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Loan ID
+        description: Unique ID of the loan.
+- id: moneta.loans.client_id
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: loans
+  attributeName: client_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CLIENT_ID
+        physicalType: INTEGER
+        nullable: false
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Client ID
+        description: Unique identifier of the client.
+- id: moneta.loans.amount
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: loans
+  attributeName: amount
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: AMOUNT
+        physicalType: DECIMAL
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Amount
+        description: Total loan amount.
+- id: moneta.loans.interest_rate
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: loans
+  attributeName: interest_rate
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: INTEREST_RATE
+        physicalType: DECIMAL
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Interest Rate
+        description: Annual interest rate of the loan.
+- id: moneta.loans.start_date
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: loans
+  attributeName: start_date
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: START_DATE
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Start Date
+        description: Loan start date.
+- id: moneta.loans.end_date
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: loans
+  attributeName: end_date
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: END_DATE
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: End Date
+        description: Loan end date.
+- id: moneta.loans.status
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: loans
+  attributeName: status
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: STATUS
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Status
+        description: Order status (pending, executed, cancelled).
+- id: moneta.loan_payments
+  type: TABLE
+  schemaName: moneta
+  tableName: loan_payments
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: LOAN_PAYMENTS
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Loan Payments
+        description: Records payments made toward outstanding loans.
+- id: moneta.loan_payments.payment_id
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: loan_payments
+  attributeName: payment_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: PAYMENT_ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Payment ID
+        description: Unique ID of the loan payment.
+- id: moneta.loan_payments.loan_id
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: loan_payments
+  attributeName: loan_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: LOAN_ID
+        physicalType: INTEGER
+        nullable: false
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Loan ID
+        description: Unique ID of the loan.
+- id: moneta.loan_payments.payment_date
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: loan_payments
+  attributeName: payment_date
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: PAYMENT_DATE
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Payment Date
+        description: Date of the payment.
+- id: moneta.loan_payments.amount
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: loan_payments
+  attributeName: amount
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: AMOUNT
+        physicalType: DECIMAL
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Amount
+        description: Total loan amount.
+- id: moneta.stock_portfolios
+  type: TABLE
+  schemaName: moneta
+  tableName: stock_portfolios
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: STOCK_PORTFOLIOS
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Stock Portfolios
+        description: Client investment portfolios containing financial assets.
+    relation:
+      global:
+        relations:
+        - name: stock_portfolios_stock_holdings
+          description: Portfolio to stock holdings relationship
+          sourceTable:
+            schema: moneta
+            table: stock_portfolios
+          sourceAttributes:
+          - portfolio_id
+          targetTable:
+            schema: moneta
+            table: stock_holdings
+          targetAttributes:
+          - portfolio_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: stock_portfolios.portfolio_id = stock_holdings.portfolio_id
+        - name: stock_portfolios_trade_orders
+          description: Portfolio to trade orders relationship
+          sourceTable:
+            schema: moneta
+            table: stock_portfolios
+          sourceAttributes:
+          - portfolio_id
+          targetTable:
+            schema: moneta
+            table: trade_orders
+          targetAttributes:
+          - portfolio_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: stock_portfolios.portfolio_id = trade_orders.portfolio_id
+- id: moneta.stock_portfolios.portfolio_id
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: stock_portfolios
+  attributeName: portfolio_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: PORTFOLIO_ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Portfolio ID
+        description: Unique identifier of the portfolio.
+- id: moneta.stock_portfolios.client_id
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: stock_portfolios
+  attributeName: client_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CLIENT_ID
+        physicalType: INTEGER
+        nullable: false
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Client ID
+        description: Unique identifier of the client.
+- id: moneta.stock_portfolios.portfolio_name
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: stock_portfolios
+  attributeName: portfolio_name
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: PORTFOLIO_NAME
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Portfolio Name
+        description: Human-readable name of the portfolio.
+- id: moneta.stock_portfolios.created_at
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: stock_portfolios
+  attributeName: created_at
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CREATED_AT
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Created At
+        description: Date when the client was registered.
+- id: moneta.stocks
+  type: TABLE
+  schemaName: moneta
+  tableName: stocks
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: STOCKS
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Stocks
+        description: Stock market instruments with tickers and sectors.
+    relation:
+      global:
+        relations:
+        - name: stocks_stock_holdings
+          description: Stock to stock holdings relationship
+          sourceTable:
+            schema: moneta
+            table: stocks
+          sourceAttributes:
+          - stock_id
+          targetTable:
+            schema: moneta
+            table: stock_holdings
+          targetAttributes:
+          - stock_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: stocks.stock_id = stock_holdings.stock_id
+        - name: stocks_trade_orders
+          description: Stock to trade orders relationship
+          sourceTable:
+            schema: moneta
+            table: stocks
+          sourceAttributes:
+          - stock_id
+          targetTable:
+            schema: moneta
+            table: trade_orders
+          targetAttributes:
+          - stock_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: stocks.stock_id = trade_orders.stock_id
+- id: moneta.stocks.stock_id
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: stocks
+  attributeName: stock_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: STOCK_ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Stock ID
+        description: Unique ID of the stock.
+- id: moneta.stocks.ticker
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: stocks
+  attributeName: ticker
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: TICKER
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Ticker
+        description: Stock market ticker symbol.
+- id: moneta.stocks.company_name
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: stocks
+  attributeName: company_name
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: COMPANY_NAME
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Company Name
+        description: Name of the company issuing the stock.
+- id: moneta.stocks.sector
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: stocks
+  attributeName: sector
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: SECTOR
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Sector
+        description: Industry sector of the stock.
+- id: moneta.stocks.exchange
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: stocks
+  attributeName: exchange
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: EXCHANGE
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Exchange
+        description: Stock exchange where the stock is traded.
+- id: moneta.stock_holdings
+  type: TABLE
+  schemaName: moneta
+  tableName: stock_holdings
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: STOCK_HOLDINGS
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Stock Holdings
+        description: Detailed records of stocks held in each portfolio.
+- id: moneta.stock_holdings.holding_id
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: stock_holdings
+  attributeName: holding_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: HOLDING_ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Holding ID
+        description: Unique ID of the holding entry.
+- id: moneta.stock_holdings.portfolio_id
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: stock_holdings
+  attributeName: portfolio_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: PORTFOLIO_ID
+        physicalType: INTEGER
+        nullable: false
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Portfolio ID
+        description: Unique identifier of the portfolio.
+- id: moneta.stock_holdings.stock_id
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: stock_holdings
+  attributeName: stock_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: STOCK_ID
+        physicalType: INTEGER
+        nullable: false
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Stock ID
+        description: Unique ID of the stock.
+- id: moneta.stock_holdings.shares
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: stock_holdings
+  attributeName: shares
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: SHARES
+        physicalType: INTEGER
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Shares
+        description: Number of shares held.
+- id: moneta.stock_holdings.average_price
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: stock_holdings
+  attributeName: average_price
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: AVERAGE_PRICE
+        physicalType: DECIMAL
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Average Price
+        description: Average price per share held.
+- id: moneta.trade_orders
+  type: TABLE
+  schemaName: moneta
+  tableName: trade_orders
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: TRADE_ORDERS
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Trade Orders
+        description: Buy and sell orders placed for stocks within portfolios.
+- id: moneta.trade_orders.order_id
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: trade_orders
+  attributeName: order_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ORDER_ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Order ID
+        description: Unique ID of the trade order.
+- id: moneta.trade_orders.portfolio_id
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: trade_orders
+  attributeName: portfolio_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: PORTFOLIO_ID
+        physicalType: INTEGER
+        nullable: false
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Portfolio ID
+        description: Unique identifier of the portfolio.
+- id: moneta.trade_orders.stock_id
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: trade_orders
+  attributeName: stock_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: STOCK_ID
+        physicalType: INTEGER
+        nullable: false
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Stock ID
+        description: Unique ID of the stock.
+- id: moneta.trade_orders.order_type
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: trade_orders
+  attributeName: order_type
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ORDER_TYPE
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Order Type
+        description: Type of order (buy or sell).
+- id: moneta.trade_orders.order_date
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: trade_orders
+  attributeName: order_date
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ORDER_DATE
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Order Date
+        description: Date when the order was placed.
+- id: moneta.trade_orders.shares
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: trade_orders
+  attributeName: shares
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: SHARES
+        physicalType: INTEGER
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Shares
+        description: Number of shares held.
+- id: moneta.trade_orders.limit_price
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: trade_orders
+  attributeName: limit_price
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: LIMIT_PRICE
+        physicalType: DECIMAL
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Limit Price
+        description: Limit price for the trade order.
+- id: moneta.trade_orders.status
+  type: ATTRIBUTE
+  schemaName: moneta
+  tableName: trade_orders
+  attributeName: status
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: STATUS
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Status
+        description: Order status (pending, executed, cancelled).

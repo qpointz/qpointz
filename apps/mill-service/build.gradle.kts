@@ -102,8 +102,9 @@ fun copyDistro(tk:String, distributionName: String) {
 dependencies {
     implementation("io.qpointz.mill:mill-starter-service")
 
+    runtimeOnly("io.qpointz.mill:mill-metadata-service")
     runtimeOnly("io.qpointz.mill:mill-starter-backends")
-    runtimeOnly("io.qpointz.mill:mill-grinder-service")
+    runtimeOnly("io.qpointz.mill:mill-grinder-service")    
     runtimeOnly("io.qpointz.mill:mill-jet-grpc-service")
     runtimeOnly("io.qpointz.mill:mill-jet-http-service")
 

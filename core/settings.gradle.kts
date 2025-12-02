@@ -12,6 +12,7 @@
 rootProject.name = "core"
 
 include (":mill-core")
+include (":mill-metadata-core")
 include (":mill-security-core")
 include (":mill-service-core")
 include (":mill-starter-backends")

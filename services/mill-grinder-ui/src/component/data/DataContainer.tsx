@@ -1,6 +1,6 @@
 import {useReactTable, flexRender, createColumnHelper, getCoreRowModel} from "@tanstack/react-table";
-import {ScrollArea, Table, Group, Button, Menu} from "@mantine/core";
-import {TbChevronLeft, TbChevronRight, TbDownload, TbShare} from "react-icons/tb";
+import {ScrollArea, Table, Group, Button} from "@mantine/core";
+import {TbChevronLeft, TbChevronRight} from "react-icons/tb";
 
 export default function DataContainer(input: any) {
     const container = input.data || {} ;

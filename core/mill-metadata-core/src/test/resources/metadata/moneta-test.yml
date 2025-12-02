@@ -1,0 +1,43 @@
+# Test metadata file for moneta dataset
+# Simplified version for testing
+
+entities:
+  - id: production.moneta.clients
+    type: TABLE
+    catalogName: production
+    schemaName: moneta
+    tableName: clients
+    createdAt: "2025-11-05T10:00:00Z"
+    updatedAt: "2025-11-05T10:00:00Z"
+    facets:
+      structural:
+        global:
+          physicalName: CLIENTS
+          tableType: TABLE
+          backendType: jdbc
+      descriptive:
+        global:
+          displayName: Clients
+          description: Contains client personal and contact information.
+
+  - id: production.moneta.clients.client_id
+    type: ATTRIBUTE
+    catalogName: production
+    schemaName: moneta
+    tableName: clients
+    attributeName: client_id
+    createdAt: "2025-11-05T10:00:00Z"
+    updatedAt: "2025-11-05T10:00:00Z"
+    facets:
+      structural:
+        global:
+          physicalName: CLIENT_ID
+          physicalType: INTEGER
+          nullable: false
+          isPrimaryKey: true
+          backendType: jdbc
+      descriptive:
+        global:
+          displayName: Client ID
+          description: Unique identifier of the client.
+

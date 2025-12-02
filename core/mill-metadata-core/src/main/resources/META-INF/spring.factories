@@ -1,0 +1,4 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+io.qpointz.mill.metadata.configuration.MetadataCoreConfiguration,\
+io.qpointz.mill.metadata.configuration.MetadataRepositoryAutoConfiguration
+
