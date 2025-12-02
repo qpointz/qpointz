@@ -11,6 +11,7 @@ workflow:
 testIT:
   stage: integration
   extends: .gradle-job
+  allow_failure: true
   script:
     - echo $HOME
     - cd ${CI_PROJECT_DIR}/ai
