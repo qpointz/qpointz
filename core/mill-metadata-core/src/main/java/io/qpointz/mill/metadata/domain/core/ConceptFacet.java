@@ -5,6 +5,7 @@ import io.qpointz.mill.metadata.domain.ConceptSource;
 import io.qpointz.mill.metadata.domain.MetadataFacet;
 import io.qpointz.mill.metadata.domain.ValidationException;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
  * Unbound facet stored as standalone CONCEPT entity.
  */
 @EqualsAndHashCode(callSuper = true)
+@Getter
 public class ConceptFacet extends AbstractFacet {
     
     private List<Concept> concepts = new ArrayList<>();
@@ -25,8 +27,7 @@ public class ConceptFacet extends AbstractFacet {
         String name,
         String description,
         String sql,  // SQL definition (optional)
-        List<EntityReference> referencedTables,
-        List<EntityReference> referencedAttributes,
+        List<ConceptTarget> targets,  // List of tables with optional attributes
         List<String> tags,
         String category,
         ConceptSource source,
@@ -36,11 +37,8 @@ public class ConceptFacet extends AbstractFacet {
          * Constructor with default empty lists.
          */
         public Concept {
-            if (referencedTables == null) {
-                referencedTables = new ArrayList<>();
-            }
-            if (referencedAttributes == null) {
-                referencedAttributes = new ArrayList<>();
+            if (targets == null) {
+                targets = new ArrayList<>();
             }
             if (tags == null) {
                 tags = new ArrayList<>();

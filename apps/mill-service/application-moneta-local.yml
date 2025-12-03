@@ -18,6 +18,7 @@ spring:
         repository:
           jdbc:
             initialize-schema: always
+
   datasource:
     hikari:
       registerMbeans: true

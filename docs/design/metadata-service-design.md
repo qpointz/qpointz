@@ -390,18 +390,12 @@ entities:
             - name: Premium Customers
               description: High-value customer segment
               sql: "segment = 'PREMIUM' AND balance > 100000"
-              referencedTables:
-                - catalog: production
-                  schema: moneta
+              targets:
+                - schema: moneta
                   table: customers
-                - catalog: production
-                  schema: moneta
+                - schema: moneta
                   table: accounts
-              referencedAttributes:
-                - catalog: production
-                  schema: moneta
-                  table: customers
-                  attribute: segment
+                  attributes: [segment, balance]
 ```
 
 **API Access:**
@@ -566,7 +560,10 @@ relation:
   - `name` - concept name
   - `description` - explanation
   - `sql` - SQL definition (optional)
-  - `referencedTables`, `referencedAttributes` - references
+  - `targets[]` - list of target tables with optional attributes
+    - `schema` - schema name
+    - `table` - table name
+    - `attributes[]` - optional list of attribute names
   - `tags`, `category` - organization
   - `source` - MANUAL, INFERRED, NL2SQL
   - `sourceSession` - NL2SQL session ID (if applicable)
@@ -583,8 +580,12 @@ concept:
     - name: Premium Customers
       description: High-value customer segment
       sql: "segment = 'PREMIUM' AND balance > 100000"
-      referencedTables: [customers, accounts]
-      referencedAttributes: [segment, balance]
+      targets:
+        - schema: moneta
+          table: customers
+        - schema: moneta
+          table: accounts
+          attributes: [segment, balance]
       tags: [segmentation, marketing]
       category: segmentation
       source: MANUAL
@@ -896,22 +897,12 @@ entities:
             - name: Premium Customers
               description: High-value customer segment
               sql: "segment = 'PREMIUM' AND balance > 100000"
-              referencedTables:
-                - catalog: production
-                  schema: moneta
+              targets:
+                - schema: moneta
                   table: customers
-                - catalog: production
-                  schema: moneta
+                - schema: moneta
                   table: accounts
-              referencedAttributes:
-                - catalog: production
-                  schema: moneta
-                  table: customers
-                  attribute: segment
-                - catalog: production
-                  schema: moneta
-                  table: accounts
-                  attribute: balance
+                  attributes: [segment, balance]
               tags: [segmentation, marketing]
               category: segmentation
               source: MANUAL

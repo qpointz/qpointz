@@ -1,10 +1,12 @@
-import {Box, Menu, NavLink, ScrollArea, UnstyledButton, useMantineTheme, Button, Divider, Text} from "@mantine/core";
+import {Box, Menu, NavLink, ScrollArea, UnstyledButton, useMantineTheme, Button, Text} from "@mantine/core";
 import {useMediaQuery} from "@mantine/hooks";
-import {TbDotsVertical, TbStar, TbStarFilled, TbTrash, TbLayoutSidebarRightExpand, TbLayoutSidebarLeftExpand, TbCirclePlus, TbCompass, TbDatabase} from "react-icons/tb";
+import {TbDotsVertical, TbStar, TbStarFilled, TbTrash, TbLayoutSidebarRightExpand, TbLayoutSidebarLeftExpand, TbCirclePlus} from "react-icons/tb";
 import {Link} from "react-router";
 import {useState} from "react";
 import type {Chat} from "../../api/mill";
 import {useChatContext} from "./ChatProvider.tsx";
+import TopNavigation from "../data-model/components/TopNavigation";
+import SidebarNavSection from "../data-model/components/SidebarNavSection";
 
 
 export function ChatList() {
@@ -68,106 +70,49 @@ export function ChatList() {
             <ScrollArea type="hover" style={{ minHeight: "100%", height: "100vh" }}>
                 <Box m={0} pl={shouldCollapse ? 5 : 10} pr={shouldCollapse ? 5 : 10} pt={40} style={{ width: "100%", boxSizing: "border-box" }}>
                     
-                    {/* Explore Button */}
-                    <Box p={1} mb={shouldCollapse ? 4 : 8} bg="transparent" style={{borderRadius: 6}} key="explore">
-                        {shouldCollapse ? (
-                            <UnstyledButton
-                                component={Link}
-                                to="/explore"
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    width: '100%',
-                                    padding: '6px',
-                                    borderRadius: 6,
-                                }}
-                                onMouseEnter={e => e.currentTarget.style.background = theme.colors.gray[1]}
-                                onMouseLeave={e => e.currentTarget.style.background = ''}
-                            >
-                                <TbCompass size={20} />
-                            </UnstyledButton>
-                        ) : (
-                            <NavLink to="/explore" component={Link} label="Explore" p={0} m={0} leftSection={<TbCompass size={20} />}/>
-                        )}
-                    </Box>
-                    
-                    {/* Data Button */}
-                    <Box p={1} mb={shouldCollapse ? 4 : 8} bg="transparent" style={{borderRadius: 6}} key="data">
-                        {shouldCollapse ? (
-                            <UnstyledButton
-                                component={Link}
-                                to="/data"
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    width: '100%',
-                                    padding: '6px',
-                                    borderRadius: 6,
-                                }}
-                                onMouseEnter={e => e.currentTarget.style.background = theme.colors.gray[1]}
-                                onMouseLeave={e => e.currentTarget.style.background = ''}
-                            >
-                                <TbDatabase size={20} />
-                            </UnstyledButton>
-                        ) : (
-                            <NavLink to="/data" component={Link} label="Data" p={0} m={0} leftSection={<TbDatabase size={20} />}/>
-                        )}
-                    </Box>
-
-                    {/* New Chat Button */}
-                    <Box p={1} mb={shouldCollapse ? 4 : 8} bg="transparent" style={{borderRadius: 6}} key="new-chat">
-                        {shouldCollapse ? (
-                            <UnstyledButton
-                                component={Link}
-                                to="/chat"
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    width: '100%',
-                                    padding: '6px',
-                                    borderRadius: 6,
-                                }}
-                                onMouseEnter={e => e.currentTarget.style.background = theme.colors.gray[1]}
-                                onMouseLeave={e => e.currentTarget.style.background = ''}
-                            >
-                                <TbCirclePlus size={20} />
-                            </UnstyledButton>
-                        ) : (
-                            <NavLink to="/chat" component={Link} label="New chat" p={0} m={0} leftSection={<TbCirclePlus size={20} />}/>
-                        )}
-                    </Box>
+                    {/* Top Navigation */}
+                    <TopNavigation collapsed={shouldCollapse} />
                     
                     {!shouldCollapse && (
-                        <>
-                            <Divider mt={15}/>
-                            
-                            <Text mt={15} size="sm" color="gray.5">Chats</Text>
-
-                            {chats.list.map((chat: Chat) => (
-                                <Box m={0}mt={6} p={0} bg={ chats.activeId === chat.id ? "gray.3" : "transparent"} style={{borderRadius: 6}} key={chat.id}>
-                                    <NavLink
-                                        to={`/chat/${chat.id}`}
-                                        key={chat.id}
-                                        component={Link}
-                                        label={chat.name}
-                                        p={3} m={0}
-                                        leftSection={chat.isFavorite ? <TbStar size={14} color={theme.colors.yellow[6]} /> : <></>}
-                                        rightSection={linkMenu(chat)}
-                                        style={{
-                                            borderRadius: 8,
-                                            marginBottom: 4,
-                                            background: chats.activeId === String(chat.id) ? theme.colors.blue[0] : undefined,
-                                            transition: 'background 0.2s',
-                                        }}
-                                        onMouseEnter={e => e.currentTarget.style.background = theme.colors.gray[1]}
-                                        onMouseLeave={e => e.currentTarget.style.background = chats.activeId === String(chat.id) ? theme.colors.blue[0] : ''}
+                        <SidebarNavSection collapsed={shouldCollapse}>
+                            {/* New Chat Button */}
+                            <Box mt={15}>
+                                <Box p={1} mb={8} bg="transparent" style={{borderRadius: 6}}>
+                                    <NavLink 
+                                        to="/chat" 
+                                        component={Link} 
+                                        label="New chat" 
+                                        p={0} 
+                                        m={0} 
+                                        leftSection={<TbCirclePlus size={20} />}
                                     />
                                 </Box>
-                            ))}
-                        </>
+                                
+                                <Text mt={15} size="sm" color="gray.5">Chats</Text>
+
+                                {chats.list.map((chat: Chat) => (
+                                    <Box m={0}mt={6} p={0} bg={ chats.activeId === chat.id ? "gray.3" : "transparent"} style={{borderRadius: 6}} key={chat.id}>
+                                        <NavLink
+                                            to={`/chat/${chat.id}`}
+                                            key={chat.id}
+                                            component={Link}
+                                            label={chat.name}
+                                            p={3} m={0}
+                                            leftSection={chat.isFavorite ? <TbStar size={14} color={theme.colors.yellow[6]} /> : <></>}
+                                            rightSection={linkMenu(chat)}
+                                            style={{
+                                                borderRadius: 8,
+                                                marginBottom: 4,
+                                                background: chats.activeId === String(chat.id) ? theme.colors.blue[0] : undefined,
+                                                transition: 'background 0.2s',
+                                            }}
+                                            onMouseEnter={e => e.currentTarget.style.background = theme.colors.gray[1]}
+                                            onMouseLeave={e => e.currentTarget.style.background = chats.activeId === String(chat.id) ? theme.colors.blue[0] : ''}
+                                        />
+                                    </Box>
+                                ))}
+                            </Box>
+                        </SidebarNavSection>
                     )}
                 </Box>
             </ScrollArea>

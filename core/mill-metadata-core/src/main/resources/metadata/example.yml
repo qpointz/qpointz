@@ -84,18 +84,12 @@ entities:
             - name: Premium Customers
               description: High-value customer segment
               sql: "segment = 'PREMIUM' AND balance > 100000"
-              referencedTables:
+              targets:
                 - schema: moneta
                   table: customers
                 - schema: moneta
                   table: accounts
-              referencedAttributes:
-                - schema: moneta
-                  table: customers
-                  attribute: segment
-                - schema: moneta
-                  table: accounts
-                  attribute: balance
+                  attributes: [segment, balance]
               tags: [segmentation, marketing]
               category: segmentation
               source: MANUAL

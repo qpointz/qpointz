@@ -6,6 +6,7 @@ import io.qpointz.mill.metadata.domain.RelationCardinality;
 import io.qpointz.mill.metadata.domain.RelationType;
 import io.qpointz.mill.metadata.domain.ValidationException;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.List;
  * Cross-entity facet stored on source entity, references target entities.
  */
 @EqualsAndHashCode(callSuper = true)
+@Getter
 public class RelationFacet extends AbstractFacet {
     
     private List<Relation> relations = new ArrayList<>();

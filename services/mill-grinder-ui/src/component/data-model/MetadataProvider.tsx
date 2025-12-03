@@ -19,6 +19,94 @@ import { showNotification } from "@mantine/notifications";
 import { TbRadioactive } from "react-icons/tb";
 
 /**
+ * Helper function to extract schemas from tree nodes.
+ */
+function getSchemas(nodes: TreeNodeDto[]): TreeNodeDto[] {
+    const schemas: TreeNodeDto[] = [];
+    for (const node of nodes) {
+        if (node.type === 'SCHEMA') {
+            schemas.push(node);
+        } else if (node.children) {
+            // Recursively search in children
+            schemas.push(...getSchemas(node.children));
+        }
+    }
+    return schemas;
+}
+
+/**
+ * Extract categories from concept entities.
+ */
+function extractCategories(concepts: MetadataEntityDto[]): string[] {
+    const categories = new Set<string>();
+    for (const concept of concepts) {
+        const conceptFacet = concept.facets?.concept;
+        if (conceptFacet) {
+            const globalFacet = conceptFacet.global || conceptFacet;
+            const conceptsList = globalFacet.concepts || [];
+            for (const c of conceptsList) {
+                if (c.category) {
+                    categories.add(c.category);
+                }
+            }
+        }
+    }
+    return Array.from(categories).sort();
+}
+
+/**
+ * Extract tags from concept entities.
+ */
+function extractTags(concepts: MetadataEntityDto[]): string[] {
+    const tags = new Set<string>();
+    for (const concept of concepts) {
+        const conceptFacet = concept.facets?.concept;
+        if (conceptFacet) {
+            const globalFacet = conceptFacet.global || conceptFacet;
+            const conceptsList = globalFacet.concepts || [];
+            for (const c of conceptsList) {
+                if (c.tags && Array.isArray(c.tags)) {
+                    c.tags.forEach((tag: string) => tags.add(tag));
+                }
+            }
+        }
+    }
+    return Array.from(tags).sort();
+}
+
+/**
+ * Filter concepts by category.
+ */
+function filterConceptsByCategory(concepts: MetadataEntityDto[], category: string): MetadataEntityDto[] {
+    return concepts.filter(concept => {
+        const conceptFacet = concept.facets?.concept;
+        if (conceptFacet) {
+            const globalFacet = conceptFacet.global || conceptFacet;
+            const conceptsList = globalFacet.concepts || [];
+            return conceptsList.some((c: any) => c.category === category);
+        }
+        return false;
+    });
+}
+
+/**
+ * Filter concepts by tag.
+ */
+function filterConceptsByTag(concepts: MetadataEntityDto[], tag: string): MetadataEntityDto[] {
+    return concepts.filter(concept => {
+        const conceptFacet = concept.facets?.concept;
+        if (conceptFacet) {
+            const globalFacet = conceptFacet.global || conceptFacet;
+            const conceptsList = globalFacet.concepts || [];
+            return conceptsList.some((c: any) => 
+                c.tags && Array.isArray(c.tags) && c.tags.includes(tag)
+            );
+        }
+        return false;
+    });
+}
+
+/**
  * Public shape of the metadata context consumed by metadata UI components.
  */
 interface MetadataContextType {
@@ -37,6 +125,20 @@ interface MetadataContextType {
     scope: {
         current: string;
         set: (scope: string) => void;
+    };
+    schema: {
+        selected?: string;
+        schemas: TreeNodeDto[];
+        select: (schemaName: string) => void;
+    };
+    concepts: {
+        data: MetadataEntityDto[];
+        loading: boolean;
+        categories: string[];
+        tags: string[];
+        getByCategory: (category: string) => MetadataEntityDto[];
+        getByTag: (tag: string) => MetadataEntityDto[];
+        reload: () => void;
     };
 }
 
@@ -58,19 +160,20 @@ export const MetadataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const [selectedEntity, setSelectedEntity] = useState<MetadataEntityDto | undefined>(undefined);
     const [entityLoading, setEntityLoading] = useState(false);
     const [currentScope, setCurrentScope] = useState<string>("global");
+    const [selectedSchema, setSelectedSchema] = useState<string | undefined>(undefined);
+    const [conceptsData, setConceptsData] = useState<MetadataEntityDto[]>([]);
+    const [conceptsLoading, setConceptsLoading] = useState(false);
 
     /**
      * Load schema tree from backend.
      */
     const loadTree = useCallback(async () => {
         if (loadingRef.current) {
-            console.log("Tree already loading, skipping...");
             return; // Prevent concurrent loads
         }
         loadingRef.current = true;
         setTreeLoading(true);
         try {
-            console.log("Loading tree with scope:", currentScope);
             // Add timeout to prevent hanging
             const timeoutPromise = new Promise((_, reject) => 
                 setTimeout(() => reject(new Error("Request timeout after 10 seconds")), 10000)
@@ -81,10 +184,6 @@ export const MetadataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 timeoutPromise
             ]) as any;
             
-            console.log("Tree API response:", response);
-            console.log("Response data:", response.data);
-            console.log("Response data type:", typeof response.data, "IsArray:", Array.isArray(response.data));
-            
             // Backend returns List<TreeNodeDto> (array), but OpenAPI spec says TreeNodeDto (single)
             // The actual response is an array, so handle it as such
             let data: TreeNodeDto[] = [];
@@ -93,10 +192,7 @@ export const MetadataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             } else if (response.data) {
                 // If it's a single object, wrap it in an array
                 data = [response.data];
-            } else {
-                console.warn("Unexpected response format:", response);
             }
-            console.log("Processed tree data:", data, "Length:", data.length);
             setTreeData(data);
         } catch (err) {
             console.error("Failed to load schema tree", err);
@@ -148,6 +244,9 @@ export const MetadataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             } else {
                 response = await metadataApi.getTable(schema, table, currentScope);
             }
+            if (!response.data) {
+                throw new Error(`Entity not found: ${schema}.${table}${attribute ? '.' + attribute : ''}`);
+            }
             setSelectedEntity(response.data);
         } catch (err) {
             console.error("Failed to load entity by location", err);
@@ -192,12 +291,89 @@ export const MetadataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }, []);
 
     /**
+     * Select schema.
+     */
+    const selectSchema = useCallback((schemaName: string) => {
+        setSelectedSchema(schemaName);
+    }, []);
+
+    /**
+     * Load concepts from backend.
+     */
+    const loadConcepts = useCallback(async () => {
+        setConceptsLoading(true);
+        try {
+            const response = await metadataApi.getEntities('CONCEPT', currentScope);
+            
+            // Handle both single entity and array responses
+            let allEntities: MetadataEntityDto[] = [];
+            if (Array.isArray(response.data)) {
+                allEntities = response.data;
+            } else if (response.data) {
+                allEntities = [response.data];
+            }
+            
+            // Filter to only include entities with type === 'CONCEPT'
+            const concepts = allEntities.filter(entity => entity.type === 'CONCEPT');
+            setConceptsData(concepts);
+        } catch (err) {
+            console.error("Failed to load concepts", err);
+            showNotification({
+                title: 'Failed to load concepts',
+                message: err instanceof Error ? err.message : String(err),
+                color: 'red',
+                icon: <TbRadioactive />,
+            });
+            setConceptsData([]);
+        } finally {
+            setConceptsLoading(false);
+        }
+    }, [metadataApi, currentScope]);
+
+    /**
+     * Extract schemas from tree data.
+     */
+    const schemas = useMemo(() => {
+        return getSchemas(treeData);
+    }, [treeData]);
+
+    /**
+     * Extract categories and tags from concepts.
+     */
+    const conceptCategories = useMemo(() => {
+        return extractCategories(conceptsData);
+    }, [conceptsData]);
+
+    const conceptTags = useMemo(() => {
+        return extractTags(conceptsData);
+    }, [conceptsData]);
+
+    /**
+     * Auto-select first schema when tree loads (if no schema selected).
+     */
+    useEffect(() => {
+        if (selectedSchema === undefined && schemas.length > 0) {
+            const firstSchema = schemas[0];
+            const schemaName = firstSchema.name || firstSchema.displayName || firstSchema.id;
+            if (schemaName) {
+                setSelectedSchema(schemaName);
+            }
+        }
+    }, [schemas, selectedSchema]);
+
+    /**
      * Initial load of tree on mount and when scope changes.
      */
     useEffect(() => {
-        console.log("useEffect triggered - loading tree, scope:", currentScope);
         loadTree();
     }, [currentScope, loadTree]);
+
+    /**
+     * Load concepts on mount and when scope changes.
+     */
+    useEffect(() => {
+        loadConcepts();
+    }, [currentScope, loadConcepts]);
 
     /**
      * Reload selected entity when scope changes (but not on initial mount).
@@ -225,6 +401,20 @@ export const MetadataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         scope: {
             current: currentScope,
             set: updateScope,
+        },
+        schema: {
+            selected: selectedSchema,
+            schemas: schemas,
+            select: selectSchema,
+        },
+        concepts: {
+            data: conceptsData,
+            loading: conceptsLoading,
+            categories: conceptCategories,
+            tags: conceptTags,
+            getByCategory: (category: string) => filterConceptsByCategory(conceptsData, category),
+            getByTag: (tag: string) => filterConceptsByTag(conceptsData, tag),
+            reload: loadConcepts,
         },
     };
 

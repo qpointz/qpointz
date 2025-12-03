@@ -1281,3 +1281,26 @@ entities:
       global:
         displayName: Status
         description: Order status (pending, executed, cancelled).
+
+
+- id: concept_premium_customers
+  type: CONCEPT
+  schemaName: moneta
+  createdAt: "2025-11-05T10:00:00Z"
+  updatedAt: "2025-11-05T10:00:00Z"
+  facets:
+    concept:
+      global:
+        concepts:
+          - name: Premium Customers
+            description: High-value customer segment
+            sql: "segment = 'PREMIUM' AND balance > 100000"
+            targets:
+              - schema: moneta
+                table: customers
+              - schema: moneta
+                table: accounts
+                attributes: [segment, balance]
+            tags: [segmentation, marketing]
+            category: segmentation
+            source: MANUAL

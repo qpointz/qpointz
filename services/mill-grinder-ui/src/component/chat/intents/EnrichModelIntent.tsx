@@ -118,7 +118,7 @@ export default function EnrichModelIntent(data:any = {}) {
                     </Tabs.Panel>)}
 
                     {e.sql && (<Tabs.Panel value="sql">
-                        <CodeHighlight code={format(e.sql)} language="sql"/>
+                        <CodeHighlight code={format(e.sql)} language="sql" expandCodeLabel=""/>
                     </Tabs.Panel>)}
             </Tabs>
         )}

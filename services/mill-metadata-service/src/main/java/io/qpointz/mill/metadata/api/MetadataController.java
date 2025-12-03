@@ -211,5 +211,38 @@ public class MetadataController {
             .orElse(ResponseEntity.notFound().build());
     }
     
+    /**
+     * Get related entities.
+     */
+    @Operation(
+        summary = "Get related entities",
+        description = "Retrieves all entities related to the given entity (bidirectional). " +
+                     "Finds entities that reference this entity and entities that this entity references.",
+        parameters = {
+            @Parameter(name = "id", description = "Entity ID", required = true, example = "moneta.clients"),
+            @Parameter(name = "scope", description = "Scope for facet access (default: global)", required = false, example = "global")
+        }
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "List of related entities",
+            content = @Content(schema = @Schema(implementation = MetadataEntityDto.class))),
+        @ApiResponse(responseCode = "404", description = "Entity not found")
+    })
+    @GetMapping("/entities/{id}/related")
+    public ResponseEntity<List<MetadataEntityDto>> getRelatedEntities(
+        @PathVariable String id,
+        @RequestParam(required = false, defaultValue = "global") String scope
+    ) {
+        return metadataService.findById(id)
+            .map(entity -> {
+                List<MetadataEntity> relatedEntities = metadataService.findRelatedEntities(id, scope);
+                List<MetadataEntityDto> relatedDtos = relatedEntities.stream()
+                    .map(e -> dtoMapper.toDto(e, scope))
+                    .toList();
+                return ResponseEntity.ok(relatedDtos);
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+    
 }
 

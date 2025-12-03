@@ -1,6 +1,9 @@
 package io.qpointz.mill.metadata.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -36,6 +39,14 @@ public class MetadataEntity {
     private String createdBy;
     private String updatedBy;
     
+    // Static ObjectMapper for facet deserialization
+    private static final ObjectMapper objectMapper;
+    static {
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.registerModule(new Jdk8Module());
+    }
+    
     /**
      * Get facet data for a specific scope.
      *
@@ -53,9 +64,20 @@ public class MetadataEntity {
         if (facetData == null) {
             return Optional.empty();
         }
-        // For now, return as-is. Jackson will handle deserialization.
-        // In a full implementation, we'd use ObjectMapper to convert.
-        return Optional.of(facetClass.cast(facetData));
+        
+        // If already the correct type, return as-is
+        if (facetClass.isInstance(facetData)) {
+            return Optional.of(facetClass.cast(facetData));
+        }
+        
+        // Otherwise, deserialize from Map using ObjectMapper
+        try {
+            T deserialized = objectMapper.convertValue(facetData, facetClass);
+            return Optional.of(deserialized);
+        } catch (Exception e) {
+            // Log error and return empty
+            return Optional.empty();
+        }
     }
     
     /**
@@ -141,7 +163,20 @@ public class MetadataEntity {
         // For now, return the highest priority facet (last in list).
         // Full implementation would merge facet objects.
         Object merged = facetDataList.get(facetDataList.size() - 1);
-        return Optional.of(facetClass.cast(merged));
+        
+        // If already the correct type, return as-is
+        if (facetClass.isInstance(merged)) {
+            return Optional.of(facetClass.cast(merged));
+        }
+        
+        // Otherwise, deserialize from Map using ObjectMapper
+        try {
+            T deserialized = objectMapper.convertValue(merged, facetClass);
+            return Optional.of(deserialized);
+        } catch (Exception e) {
+            // Log error and return empty
+            return Optional.empty();
+        }
     }
 }
 

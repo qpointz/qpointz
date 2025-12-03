@@ -16,9 +16,11 @@ import {
     Group,
     Code,
 } from "@mantine/core";
-import { TbInfoCircle, TbDatabase, TbTable, TbColumns } from "react-icons/tb";
+import { TbInfoCircle, TbDatabase, TbTable, TbColumns, TbBulb } from "react-icons/tb";
 import FacetViewer from "./FacetViewer";
+import RelatedItems from "./components/RelatedItems";
 import type { MetadataEntityDto } from "../../api/mill/api.ts";
+import { buildLocation } from "./utils/entityUtils";
 
 export default function EntityDetails() {
     const { entity, scope } = useMetadataContext();
@@ -52,21 +54,38 @@ export default function EntityDetails() {
                 return <TbTable size={20} />;
             case 'ATTRIBUTE':
                 return <TbColumns size={20} />;
+            case 'CONCEPT':
+                return <TbBulb size={20} />;
             default:
                 return null;
         }
     };
 
-    const buildLocation = (entity: MetadataEntityDto): string => {
-        const parts: string[] = [];
-        if (entity.schemaName) parts.push(entity.schemaName);
-        if (entity.tableName) parts.push(entity.tableName);
-        if (entity.attributeName) parts.push(entity.attributeName);
-        return parts.join('.');
-    };
-
     const location = buildLocation(selected);
-    const facets = selected.facets || {};
+    // Handle both merged facets (from DTO) and scoped facets format
+    const rawFacets = selected.facets || {};
+    const facets: Record<string, any> = {};
+    
+    // Convert scoped format to merged format if needed
+    // DTO should return merged format, but handle both cases
+    Object.entries(rawFacets).forEach(([facetType, facetData]) => {
+        // If facetData is an object with scope keys (like { global: {...} }), extract the scope data
+        if (facetData && typeof facetData === 'object' && !Array.isArray(facetData)) {
+            const keys = Object.keys(facetData);
+            // Check if it looks like scoped format (has "global", "user:", etc.)
+            if (keys.length > 0 && (keys.includes('global') || keys.some(k => k.startsWith('user:') || k.startsWith('team:') || k.startsWith('role:')))) {
+                // It's scoped format, use the current scope or global
+                const scopeData = facetData[scope.current] || facetData['global'] || facetData[keys[0]];
+                facets[facetType] = scopeData;
+            } else {
+                // It's already merged format
+                facets[facetType] = facetData;
+            }
+        } else {
+            // Not an object or is array, use as-is
+            facets[facetType] = facetData;
+        }
+    });
 
     return (
         <Box p="md">
@@ -128,6 +147,12 @@ export default function EntityDetails() {
                         <Text c="dimmed" size="sm">No facets available for this entity</Text>
                     </Card>
                 )}
+
+                {/* Related Items */}
+                <RelatedItems
+                    entityId={selected.id!}
+                    scope={scope.current}
+                />
             </Stack>
         </Box>
     );

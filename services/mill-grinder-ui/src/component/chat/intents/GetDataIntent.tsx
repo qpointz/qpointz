@@ -53,6 +53,7 @@ function TabbedContent({
                     code={format(message.content?.sql ?? "")} 
                     language="sql"
                     style={codeHighlightStyle}
+                    expandCodeLabel=""
                 />
             </Tabs.Panel>
         </Tabs>
