@@ -1,7 +1,7 @@
 ## Return format (example):
 
 {
-  "intent": "follow_up",
+  "intent": "refine",
   "original-intent": "get_chart",
   "sql": "SELECT ... WHERE ...",
   "query-name": "clients_in_korea_with_balance_over_1000",

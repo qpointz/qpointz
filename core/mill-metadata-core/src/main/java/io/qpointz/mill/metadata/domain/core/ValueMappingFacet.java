@@ -1,5 +1,6 @@
 package io.qpointz.mill.metadata.domain.core;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.qpointz.mill.metadata.domain.AbstractFacet;
 import io.qpointz.mill.metadata.domain.MetadataFacet;
@@ -18,9 +19,16 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 public class ValueMappingFacet extends AbstractFacet {
     
+    @JsonProperty("context")
     private String context;
+    
+    @JsonProperty("similarity-threshold")
     private Double similarityThreshold;
+    
+    @JsonProperty("mappings")
     private List<ValueMapping> mappings = new ArrayList<>();
+    
+    @JsonProperty("sources")
     private List<ValueMappingSource> sources = new ArrayList<>();
     
     /**
@@ -50,7 +58,7 @@ public class ValueMappingFacet extends AbstractFacet {
     public record ValueMappingSource(
         @JsonProperty("type") String type,
         @JsonProperty("name") String name,
-        @JsonProperty("definition") String definition,  // YAML uses "definition", can also be "sql"
+        @JsonProperty("definition") @JsonAlias("sql") String definition,  // YAML uses "definition", can also be "sql"
         @JsonProperty("description") String description,
         @JsonProperty("enabled") Boolean enabled,
         @JsonProperty("cronExpression") String cronExpression,

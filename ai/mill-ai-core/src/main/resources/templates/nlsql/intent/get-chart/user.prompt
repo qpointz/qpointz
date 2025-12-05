@@ -4,13 +4,19 @@ User intent code: get-chart
 
 ### Note: Follow the SQL quoting and syntax conventions of the active dialect
 (as defined in a separate system prompt).
-Examples below use neutral quoting only for illustration.
+Examples below use backticks (`) for identifier quoting only for illustration.
+**You must apply the dialect-specific quoting rules** (which may use double quotes, square brackets, or other delimiters) instead of backticks in your actual SQL output.
 
 Your task is to:
-- Analyze the user’s request
+- Analyze the user's request
 - Generate a valid SQL query in the required dialect
+- **Replace every constant value in the query with a placeholder**:
+  - strings, numbers, dates, booleans
+  - LIKE/ILIKE patterns
+  - regex patterns
+  - range boundaries (BETWEEN, >=, <=, etc.)
 - Provide a filename-safe `query-name`
-- Return a brief explanation in the same language as the user’s input
+- Return a brief explanation in the same language as the user's input
 - Determine the chart type and configuration needed for visualization
 - Return structured `value-mapping` metadata for **all placeholders**
 - If the query contains **no constants**, `value-mapping` must still be present as an empty array (`[]`)
@@ -29,77 +35,87 @@ Chart requirements:
 
 Always return your output using **strict JSON format** with the following fields:
 {
-  "sql": "valid SQL query string",
+  "sql": "valid SQL query string with placeholders for ALL constants",
   "query-name": "short_lowercase_slug_string",
   "chart": {
     "type": "bar | pie | line | scatter | treemap | etc.",
     "config": {
-      // Apache ECharts chart configuration using only column names
+      "Apache ECharts chart configuration object using only column names (no table or schema names, no SQL identifier quotes)"
     }
   },
   "value-mapping": [
-      {
-        "placeholder": "the logical name used inside the placeholder",
-        "target": "fully qualified name of the target column",
-        "display": "user-facing term or phrase from the original input",
-        "resolved-value": "mapped value as it will appear in SQL **without any quotes or escaping**. DO NOT include quotation marks.",
-        "type": "string | number | date | boolean",
-        "kind": "constant | pattern",
-        "meaning": "short natural-language explanation of the value's interpretation"
-      }
-    ],
-  "explanation": "Explanation of the user question in the same language",
+    {
+      "placeholder": "the logical name used inside the placeholder",
+      "target": "fully qualified name of the target column",
+      "display": "user-facing term or phrase from the original input",
+      "resolved-value": "mapped value as it will appear in SQL **without any quotes or escaping**. DO NOT include quotation marks.",
+      "type": "string | number | date | boolean",
+      "kind": "constant | pattern",
+      "meaning": "short natural-language explanation of the value's interpretation"
+    }
+  ],
+  "explanation": "Explanation of the user question in the same language"
 }
 
-### Rules
-
-1. Return exactly one SQL statement in `sql` (CTEs allowed). Omit the trailing semicolon.
-2. include a short `query-name`: a lowercase, file-name–friendly slug that summarizes the request.
-  - Use only lowercase letters, digits, and underscores
-  - No spaces or punctuation
-  - Max length: 180 characters
-  - Contain no spaces or punctuation
-  - Example: "clients_in_korea"
-3. The `explanation` field must:
-  - Be one or two sentences explaining what the user is asking for
-  - Be written in the **output language**
-4. Never mix languages in the explanation or response.
-5. If unsure, default to English for both the explanation and language.
-6. Do NOT translate or hallucinate different languages.
-7. Return strictly one valid SQL query in the `sql` field.
-8. Ensure all SQL complies with the expected dialect and naming conventions.
-9. **Every constant value MUST be replaced with a placeholder.**
-   - Wrong: WHERE SEGMENT = "premium"
-   - Correct: WHERE SEGMENT = "@{MONETA.CLIENTS.SEGMENT:segment_premium}"
-10. Each placeholder must have a matching entry in `value-mapping`.
-11. `resolved-value` must equal the literal value as it appears logically in SQL, but without surrounding quotes or escaping.
-12. `kind` must be:
-   - "constant" for exact matches (=, IN, BETWEEN, etc.)
-   - "pattern" for LIKE/ILIKE/regex conditions
-13. Never leave raw constants in SQL.
-14. If no constants → `value-mapping: []`
-15. Do not translate or hallucinate content
-16. Ensure SQL matches dialect (backtick identifiers, correct literal quoting)
-17. One unique placeholder **per value per target**
-18. Multiple values for the same column → multiple placeholders
-19. Do not resolve or guess values — placeholders stay unresolved
-20. Placeholders inside the SQL must include quotes appropriate to their type, but resolved-value in value-mapping must always be raw — no surrounding quotes, no escaping.
+- If no constants exist → "value-mapping": []
 
 ---
 
 ### Placeholder Format
 "@{SCHEMA.TABLE.COLUMN:placeholder_name}"
 
-- Fully qualified column name (`SCHEMA.TABLE.COLUMN`), backtick-quoted in SQL
+- Fully qualified column name (SCHEMA.TABLE.COLUMN) - the target column this placeholder represents
 - `placeholder_name`: lowercase letters, digits, underscores; unique per SQL
 - **One placeholder per constant** — never group multiple values
 
 ---
 
+### Rules
+1. **Every constant value MUST be replaced with a placeholder.**
+   - Wrong: WHERE SEGMENT = "premium"
+   - Correct: WHERE SEGMENT = "@{MONETA.CLIENTS.SEGMENT:segment_premium}"
+2. Each placeholder must have a matching entry in `value-mapping`.
+3. `resolved-value` must equal the literal value as it appears logically in SQL, but without surrounding quotes or escaping.
+4. `kind` must be:
+   - "constant" for exact matches (=, IN, BETWEEN, etc.)
+   - "pattern" for LIKE/ILIKE/regex conditions
+5. Never leave raw constants in SQL.
+6. If no constants → `value-mapping: []`
+7. Return exactly one SQL statement in `sql` (CTEs allowed). Omit the trailing semicolon.
+8. `query-name`:
+   - lowercase, underscores only
+   - max length 180 characters
+   - file-name–friendly (no spaces, punctuation)
+9. `explanation`: one or two sentences in the **same language** as the input
+10. Never mix languages in the explanation or response
+11. If unsure, default to English
+12. Do not translate or hallucinate content
+13. Ensure SQL matches dialect (use dialect-specific identifier quoting rules, not backticks unless the dialect requires them)
+14. One unique placeholder **per value per target**
+15. Multiple values for the same column → multiple placeholders
+16. Do not resolve or guess values — placeholders stay unresolved
+17. Placeholders inside the SQL must include quotes appropriate to their type, but resolved-value in value-mapping must always be raw — no surrounding quotes, no escaping.
+18. **Fully qualified identifiers must quote each component separately.**
+   - Wrong: `"MONETA.CLIENTS.CLIENT_ID"` or `"MONETA.STOCK_HOLDINGS.HOLDING_ID"`
+   - Correct: `"MONETA"."CLIENTS"."CLIENT_ID"` or `"MONETA"."STOCK_HOLDINGS"."HOLDING_ID"`
+   - Each component (schema, table, column) must have its own quotes
+   - This applies to all SQL contexts: SELECT, FROM, JOIN, WHERE, ORDER BY, GROUP BY, etc.
+   - Example: `SELECT "MONETA"."CLIENTS"."CLIENT_ID", COUNT(DISTINCT "MONETA"."STOCK_HOLDINGS"."HOLDING_ID") FROM "MONETA"."CLIENTS"`
+
+**Important:** All examples below use backticks (`) for identifier quoting as illustrations only. In your actual SQL output, you must use the dialect-specific identifier quoting rules (double quotes, square brackets, or other delimiters as specified in the dialect conventions), not backticks. However, the component-by-component quoting rule (rule 18) always applies regardless of the quoting style.
+
 ### Example — Constant
 {
-  "sql": "SELECT * FROM `MONETA`.`CLIENTS` WHERE `SEGMENT` = '@{MONETA.CLIENTS.SEGMENT:segment_premium}'",
+  "sql": "SELECT `MONETA`.`CLIENTS`.`CLIENT_ID`, `MONETA`.`CLIENTS`.`SEGMENT` FROM `MONETA`.`CLIENTS` WHERE `MONETA`.`CLIENTS`.`SEGMENT` = '@{MONETA.CLIENTS.SEGMENT:segment_premium}'",
   "query-name": "clients_segment_premium",
+  "chart": {
+    "type": "bar",
+    "config": {
+      "xAxis": { "type": "category", "data": ["SEGMENT"] },
+      "yAxis": { "type": "value" },
+      "series": [{ "type": "bar", "data": [] }]
+    }
+  },
   "explanation": "The user wants to list clients belonging to the premium segment.",
   "value-mapping": [
     {
@@ -118,8 +134,16 @@ Always return your output using **strict JSON format** with the following fields
 
 ### Example — Pattern
 {
-  "sql": "SELECT * FROM `CATALOG`.`PRODUCTS` WHERE `NAME` LIKE \"@{CATALOG.PRODUCTS.NAME:name_prefix}\"",
+  "sql": "SELECT `CATALOG`.`PRODUCTS`.`PRODUCT_ID`, `CATALOG`.`PRODUCTS`.`NAME` FROM `CATALOG`.`PRODUCTS` WHERE `CATALOG`.`PRODUCTS`.`NAME` LIKE \"@{CATALOG.PRODUCTS.NAME:name_prefix}\"",
   "query-name": "products_name_prefix",
+  "chart": {
+    "type": "line",
+    "config": {
+      "xAxis": { "type": "category", "data": ["NAME"] },
+      "yAxis": { "type": "value" },
+      "series": [{ "type": "line", "data": [] }]
+    }
+  },
   "explanation": "The user wants products whose names start with Acme.",
   "value-mapping": [
     {
@@ -138,8 +162,16 @@ Always return your output using **strict JSON format** with the following fields
 
 ### Example — No Constants
 {
-  "sql": "SELECT * FROM `MONETA`.`CLIENTS`",
+  "sql": "SELECT `MONETA`.`CLIENTS`.`CLIENT_ID`, `MONETA`.`CLIENTS`.`SEGMENT` FROM `MONETA`.`CLIENTS`",
   "query-name": "all_clients",
+  "chart": {
+    "type": "bar",
+    "config": {
+      "xAxis": { "type": "category", "data": [] },
+      "yAxis": { "type": "value" },
+      "series": [{ "type": "bar", "data": [] }]
+    }
+  },
   "explanation": "The user wants a list of all clients.",
   "value-mapping": []
 }

@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.nlsql.processors;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.qpointz.mill.ai.chat.ChatCallPostProcessor;
 import io.qpointz.mill.ai.nlsql.IntentSpecs;
@@ -22,6 +23,7 @@ public class RefineIntentProcessor implements ChatCallPostProcessor {
 
     private final IntentSpecs specs;
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record RefineResult(
             @JsonProperty(value = "original-intent", required = false) String originalIntent,
             @JsonProperty(value = "refine-intent", required = false) String refineIntent) {

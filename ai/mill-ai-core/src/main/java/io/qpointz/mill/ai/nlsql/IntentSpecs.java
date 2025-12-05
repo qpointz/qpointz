@@ -94,6 +94,7 @@ public class IntentSpecs {
                         getChart(reason, metadataProvider, sqlDialect),
                         this.messageSelector))
                 .postProcessorFunc(reason -> List.of(
+                        mapValueProcessor(this.valueMapper),
                         executeQueryProcessor(dispatcher),
                         retainReasoning(reason)))
                 .build();

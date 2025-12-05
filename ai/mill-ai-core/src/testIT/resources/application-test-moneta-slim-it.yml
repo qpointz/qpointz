@@ -28,6 +28,12 @@ spring:
         endpoint: http://localhost:8080/mcp/task
 
 mill:
+  ai:
+    chat:
+      memory: in-memory
+    nl2sql:
+      enable: true
+      dialect: H2
   metadata:
     relations: file
     annotations: file
@@ -40,7 +46,7 @@ mill:
   backend:
     provider: jdbc
     connection:
-      quoting: BACK_TICK
+      quoting: DOUBLE_QUOTE
       caseSensitive: false
       unquotedCasing: UNCHANGED
     jdbc:
