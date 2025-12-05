@@ -16,7 +16,12 @@ stages:
 
 workflow:
   rules:
-    - when : always  
+    - if: $CI_COMMIT_REF_PROTECTED == "true"  
+      variables: 
+        PACKAGE_LOCAL_ONLY: "false"
+    - when: always
+      variables: 
+        PACKAGE_LOCAL_ONLY: "true"
 
 init-version:
   stage: build
@@ -43,7 +48,7 @@ build-base-docker:
     DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
     DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/base/Dockerfile
     DOCKER_BUILD_CONTAINER_NAME : mill-service
-    DOCKER_LOCAL_ONLY: $[[ inputs.package-local-only ]]
+    DOCKER_LOCAL_ONLY: $PACKAGE_LOCAL_ONLY
 
 build-docker-samples:
   stage: package
@@ -57,5 +62,5 @@ build-docker-samples:
     DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
     DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/samples/Dockerfile
     DOCKER_BUILD_CONTAINER_NAME : mill-service-samples
-    DOCKER_LOCAL_ONLY: $[[ inputs.package-local-only ]]
+    DOCKER_LOCAL_ONLY: $PACKAGE_LOCAL_ONLY
     DOCKER_BUILD_ARGS: --build-arg BASE_IMAGE=${CI_REGISTRY_IMAGE}/mill-service:${CI_COMMIT_REF_SLUG}
