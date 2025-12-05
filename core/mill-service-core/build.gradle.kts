@@ -13,6 +13,7 @@ mill {
 dependencies {
     api(project(":mill-core"))
     api(project(":mill-security-core"))
+    api(project(":mill-metadata-core"))
     api(libs.boot.starter)
     api(libs.jackson.core)
     api(libs.jackson.dataformat.yaml)

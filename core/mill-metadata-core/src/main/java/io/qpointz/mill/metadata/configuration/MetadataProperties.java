@@ -21,6 +21,12 @@ public class MetadataProperties {
     
     @Data
     public static class File {
+        /**
+         * Comma-separated list of file paths or patterns.
+         * Supports glob patterns (e.g., "classpath:metadata/*.yml").
+         * Files are loaded in order, with later files overriding earlier ones.
+         * Example: "classpath:metadata/base.yml,classpath:metadata/overrides/*.yml"
+         */
         private String path = "classpath:metadata/example.yml";
         private boolean watch = false;  // Auto-reload on changes
     }

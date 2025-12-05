@@ -5,6 +5,7 @@ import io.qpointz.mill.metadata.domain.core.ConceptFacet;
 import io.qpointz.mill.metadata.domain.core.DescriptiveFacet;
 import io.qpointz.mill.metadata.domain.core.RelationFacet;
 import io.qpointz.mill.metadata.domain.core.StructuralFacet;
+import io.qpointz.mill.metadata.domain.core.ValueMappingFacet;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
@@ -25,8 +26,9 @@ public class MetadataCoreConfiguration {
         registry.register(DescriptiveFacet.class);
         registry.register(RelationFacet.class);
         registry.register(ConceptFacet.class);
+        registry.register(ValueMappingFacet.class);
         
-        log.info("Registered core metadata facets: structural, descriptive, relation, concept");
+        log.info("Registered core metadata facets: structural, descriptive, relation, concept, value-mapping");
     }
 }
 

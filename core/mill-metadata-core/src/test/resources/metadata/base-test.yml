@@ -1,0 +1,22 @@
+entities:
+  - id: test.schema.table1
+    type: TABLE
+    schemaName: test
+    tableName: table1
+    facets:
+      descriptive:
+        global:
+          displayName: "Base Table"
+          description: "Base description"
+      structural:
+        global:
+          physicalName: "BASE_TABLE"
+  - id: test.schema.table2
+    type: TABLE
+    schemaName: test
+    tableName: table2
+    facets:
+      descriptive:
+        global:
+          displayName: "Second Table"
+

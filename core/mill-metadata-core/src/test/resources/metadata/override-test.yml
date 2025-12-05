@@ -1,0 +1,14 @@
+entities:
+  - id: test.schema.table1
+    type: TABLE
+    schemaName: test
+    tableName: table1
+    facets:
+      descriptive:
+        global:
+          displayName: "Overridden Table"
+          # description removed - should be completely replaced
+        user:alice:
+          displayName: "My Table"
+      # structural facet not present - should be preserved from base
+

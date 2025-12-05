@@ -10,12 +10,12 @@ import io.qpointz.mill.metadata.repository.MetadataRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.support.ResourcePatternResolver;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -25,13 +25,27 @@ import java.util.stream.Collectors;
 @Slf4j
 public class FileMetadataRepository implements MetadataRepository {
     
-    private final Map<String, MetadataEntity> entities = new ConcurrentHashMap<>();
+    private final Map<String, MetadataEntity> entities = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     private final ObjectMapper yamlMapper;
     private final ResourceLoader resourceLoader;
-    private final String location;
+    private final List<String> locations;
     
+    /**
+     * Constructor accepting a single location (for backward compatibility).
+     */
     public FileMetadataRepository(String location, ResourceLoader resourceLoader) {
-        this.location = location;
+        this(Arrays.asList(location), resourceLoader);
+    }
+    
+    /**
+     * Constructor accepting multiple file locations/patterns.
+     * Files are loaded in order, with later files overriding earlier ones.
+     *
+     * @param locations list of file paths or patterns (e.g., "classpath:metadata/*.yml")
+     * @param resourceLoader resource loader (must implement ResourcePatternResolver for glob support)
+     */
+    public FileMetadataRepository(List<String> locations, ResourceLoader resourceLoader) {
+        this.locations = new ArrayList<>(locations);
         this.resourceLoader = resourceLoader;
         this.yamlMapper = new ObjectMapper(new YAMLFactory());
         this.yamlMapper.registerModule(new JavaTimeModule());
@@ -39,51 +53,190 @@ public class FileMetadataRepository implements MetadataRepository {
     }
     
     private void loadEntities() {
-        try {
-            Resource resource = resourceLoader.getResource(location);
-            if (!resource.exists()) {
-                log.warn("Metadata file not found: {}", location);
-                return;
+        List<Resource> resources = resolveFilePatterns(locations);
+        
+        if (resources.isEmpty()) {
+            log.warn("No metadata files found for locations: {}", locations);
+            return;
+        }
+        
+        int totalEntitiesLoaded = 0;
+        for (Resource resource : resources) {
+            try {
+                if (!resource.exists()) {
+                    log.warn("Metadata file not found: {}", resource);
+                    continue;
+                }
+                
+                int entitiesFromFile = loadEntitiesFromResource(resource);
+                totalEntitiesLoaded += entitiesFromFile;
+                log.debug("Loaded {} entities from {}", entitiesFromFile, resource);
+            } catch (IOException e) {
+                log.error("Failed to load metadata from file: {}", resource, e);
+                throw new RuntimeException("Failed to load metadata from file: " + resource, e);
+            }
+        }
+        
+        log.info("Loaded {} total metadata entities from {} files", totalEntitiesLoaded, resources.size());
+    }
+    
+    /**
+     * Resolve file patterns to actual resources.
+     * Supports glob patterns (e.g., "classpath:metadata/*.yml").
+     *
+     * @param patterns list of file paths or patterns
+     * @return ordered list of resources to load
+     */
+    private List<Resource> resolveFilePatterns(List<String> patterns) {
+        List<Resource> resources = new ArrayList<>();
+        
+        // Check if ResourceLoader supports pattern resolution
+        ResourcePatternResolver patternResolver = null;
+        if (resourceLoader instanceof ResourcePatternResolver) {
+            patternResolver = (ResourcePatternResolver) resourceLoader;
+        }
+        
+        for (String pattern : patterns) {
+            try {
+                if (patternResolver != null && (pattern.contains("*") || pattern.contains("?"))) {
+                    // Glob pattern - resolve all matching resources
+                    Resource[] matchedResources = patternResolver.getResources(pattern);
+                    for (Resource resource : matchedResources) {
+                        if (resource.exists()) {
+                            resources.add(resource);
+                        }
+                    }
+                } else {
+                    // Simple file path
+                    Resource resource = resourceLoader.getResource(pattern);
+                    if (resource.exists()) {
+                        resources.add(resource);
+                    }
+                }
+            } catch (IOException e) {
+                log.warn("Failed to resolve file pattern: {}", pattern, e);
+            }
+        }
+        
+        return resources;
+    }
+    
+    /**
+     * Load entities from a single resource file.
+     * Merges entities with existing ones: replaces entity if same ID, merges facets by type+scope.
+     *
+     * @param resource resource to load from
+     * @return number of entities loaded from this file
+     * @throws IOException if file cannot be read
+     */
+    private int loadEntitiesFromResource(Resource resource) throws IOException {
+        try (InputStream is = resource.getInputStream()) {
+            MetadataFileFormat fileFormat = yamlMapper.readValue(is, MetadataFileFormat.class);
+            
+            if (fileFormat.getEntities() == null || fileFormat.getEntities().isEmpty()) {
+                return 0;
             }
             
-            try (InputStream is = resource.getInputStream()) {
-                MetadataFileFormat fileFormat = yamlMapper.readValue(is, MetadataFileFormat.class);
-                
-                if (fileFormat.getEntities() != null) {
-                    for (MetadataEntity entity : fileFormat.getEntities()) {
-                        // Set defaults
-                        if (entity.getCreatedAt() == null) {
-                            entity.setCreatedAt(Instant.now());
-                        }
-                        if (entity.getUpdatedAt() == null) {
-                            entity.setUpdatedAt(Instant.now());
-                        }
-                        if (entity.getFacets() == null) {
-                            entity.setFacets(new HashMap<>());
-                        }
-                        
-                        entities.put(entity.getId(), entity);
-                    }
-                    log.info("Loaded {} metadata entities from {}", entities.size(), location);
+            int count = 0;
+            for (MetadataEntity incomingEntity : fileFormat.getEntities()) {
+                // Set defaults
+                if (incomingEntity.getCreatedAt() == null) {
+                    incomingEntity.setCreatedAt(Instant.now());
                 }
+                if (incomingEntity.getUpdatedAt() == null) {
+                    incomingEntity.setUpdatedAt(Instant.now());
+                }
+                if (incomingEntity.getFacets() == null) {
+                    incomingEntity.setFacets(new HashMap<>());
+                }
+                
+                // Normalize ID to lowercase for case-insensitive storage
+                String normalizedId = normalizeId(incomingEntity.getId());
+                incomingEntity.setId(normalizedId);
+                
+                // Check if entity already exists
+                MetadataEntity existingEntity = entities.get(normalizedId);
+                if (existingEntity != null) {
+                    // Entity exists - replace entity info and merge facets
+                    mergeEntityFacets(existingEntity, incomingEntity);
+                    // Replace entity properties (type, location, audit fields)
+                    existingEntity.setType(incomingEntity.getType());
+                    existingEntity.setSchemaName(incomingEntity.getSchemaName());
+                    existingEntity.setTableName(incomingEntity.getTableName());
+                    existingEntity.setAttributeName(incomingEntity.getAttributeName());
+                    existingEntity.setUpdatedAt(incomingEntity.getUpdatedAt());
+                    if (incomingEntity.getCreatedBy() != null) {
+                        existingEntity.setCreatedBy(incomingEntity.getCreatedBy());
+                    }
+                    if (incomingEntity.getUpdatedBy() != null) {
+                        existingEntity.setUpdatedBy(incomingEntity.getUpdatedBy());
+                    }
+                } else {
+                    // New entity - add it
+                    entities.put(normalizedId, incomingEntity);
+                }
+                count++;
             }
-        } catch (IOException e) {
-            log.error("Failed to load metadata from file: {}", location, e);
-            throw new RuntimeException("Failed to load metadata from file: " + location, e);
+            
+            return count;
+        }
+    }
+    
+    /**
+     * Merge facets from incoming entity into existing entity.
+     * Facets are replaced (not merged) when same facet type and scope exist.
+     * Facets from existing entity that don't exist in incoming entity are preserved.
+     *
+     * @param existing existing entity (will be modified)
+     * @param incoming incoming entity (source of new/updated facets)
+     */
+    private void mergeEntityFacets(MetadataEntity existing, MetadataEntity incoming) {
+        if (incoming.getFacets() == null || incoming.getFacets().isEmpty()) {
+            return; // Nothing to merge
+        }
+        
+        // Ensure existing entity has facets map
+        if (existing.getFacets() == null) {
+            existing.setFacets(new HashMap<>());
+        }
+        
+        // For each facet type in incoming entity
+        for (Map.Entry<String, Map<String, Object>> incomingFacetType : incoming.getFacets().entrySet()) {
+            String facetType = incomingFacetType.getKey();
+            Map<String, Object> incomingScopes = incomingFacetType.getValue();
+            
+            if (incomingScopes == null || incomingScopes.isEmpty()) {
+                continue;
+            }
+            
+            // Get or create facet type map in existing entity
+            Map<String, Object> existingScopes = existing.getFacets().computeIfAbsent(facetType, k -> new HashMap<>());
+            
+            // For each scope in incoming facet type, replace the facet
+            for (Map.Entry<String, Object> incomingScope : incomingScopes.entrySet()) {
+                String scope = incomingScope.getKey();
+                Object facetData = incomingScope.getValue();
+                
+                // Replace facet at this type+scope (completely replace, not merge within facet)
+                existingScopes.put(scope, facetData);
+            }
         }
     }
     
     @Override
     public void save(MetadataEntity entity) {
         entity.setUpdatedAt(Instant.now());
-        entities.put(entity.getId(), entity);
+        // Normalize ID to lowercase for case-insensitive storage
+        String normalizedId = normalizeId(entity.getId());
+        entity.setId(normalizedId);
+        entities.put(normalizedId, entity);
         // Note: In a full implementation, we'd write back to file
-        log.debug("Saved entity: {}", entity.getId());
+        log.debug("Saved entity: {}", normalizedId);
     }
     
     @Override
     public Optional<MetadataEntity> findById(String id) {
-        return Optional.ofNullable(entities.get(id));
+        return Optional.ofNullable(entities.get(normalizeId(id)));
     }
     
     @Override
@@ -113,13 +266,24 @@ public class FileMetadataRepository implements MetadataRepository {
     
     @Override
     public void deleteById(String id) {
-        entities.remove(id);
-        log.debug("Deleted entity: {}", id);
+        String normalizedId = normalizeId(id);
+        entities.remove(normalizedId);
+        log.debug("Deleted entity: {}", normalizedId);
     }
     
     @Override
     public boolean existsById(String id) {
-        return entities.containsKey(id);
+        return entities.containsKey(normalizeId(id));
+    }
+    
+    /**
+     * Normalize entity ID to lowercase for case-insensitive operations.
+     *
+     * @param id entity ID
+     * @return normalized (lowercase) ID
+     */
+    private String normalizeId(String id) {
+        return id != null ? id.toLowerCase() : null;
     }
     
     /**

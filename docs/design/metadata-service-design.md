@@ -24,6 +24,10 @@
 
 5. **Read-Only API**: Initial implementation is read-only (PUT/DELETE endpoints removed) to establish the foundation before adding editing capabilities.
 
+6. **Multi-file Repository Support**: FileMetadataRepository now supports loading from multiple files or file patterns (e.g., `classpath:metadata/base.yml,classpath:metadata/overrides/*.yml`). Later files replace entities with the same ID, and facets are merged by type+scope (replaced, not merged within facet).
+
+7. **ValueMappingFacet**: Strongly-typed facet implementation for value mappings, replacing HashMap-based parsing. Registered in FacetRegistry and used by MetadataV2AnnotationsProvider.
+
 ---
 
 ## Executive Summary
@@ -802,6 +806,55 @@ The metadata system uses **document-style persistence** where each `MetadataEnti
 - **Maintains consistency** - same structure for file and database backends
 
 ### File-Based Repository (YAML/JSON)
+
+**Multi-file Support:**
+
+The file-based repository supports loading metadata from multiple files or file patterns:
+
+```yaml
+# application.yml
+mill:
+  metadata:
+    v2:
+      file:
+        path: "classpath:metadata/base.yml,classpath:metadata/overrides/*.yml"
+```
+
+**Merging Strategy:**
+- Files are loaded in order (left to right)
+- Entities with the same ID: later files completely replace earlier entities
+- Facets: For each `facetType + scope` combination, later files replace facets completely (not merged within facet)
+- Facets from earlier files that don't exist in later files are preserved
+
+**Example:**
+```yaml
+# base.yml
+entities:
+  - id: moneta.clients
+    facets:
+      descriptive:
+        global:
+          displayName: "Clients"
+          description: "Base description"
+      structural:
+        global:
+          physicalName: "CLIENTS"
+
+# overrides.yml
+entities:
+  - id: moneta.clients
+    facets:
+      descriptive:
+        global:
+          displayName: "Customer Accounts"  # Replaces entire descriptive.global
+        user:alice:
+          displayName: "My Clients"  # New scope
+
+# Result:
+# - descriptive.global: {displayName: "Customer Accounts"} (description removed)
+# - structural.global: {physicalName: "CLIENTS"} (preserved from base)
+# - descriptive.user:alice: {displayName: "My Clients"} (new from override)
+```
 
 **Complete YAML format with scoped facets:**
 

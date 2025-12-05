@@ -4,6 +4,13 @@
 **Last Updated:** December 2024  
 **Scope:** Implement new faceted metadata system, migrate existing metadata + value mapping, and adopt it in the UI and NL2SQL.
 
+## Recent Updates (December 2024)
+
+- ✅ **Multi-file repository support**: FileMetadataRepository now supports loading from multiple files/patterns with entity replacement and facet merging
+- ✅ **ValueMappingFacet**: Strongly-typed facet implementation replacing HashMap-based parsing
+- ✅ **MetadataV2RelationsProvider**: Relations provider based on new metadata service and RelationFacet
+- ✅ **MetadataV2AnnotationsProvider**: Annotations provider based on new metadata service and DescriptiveFacet/ValueMappingFacet
+
 ## Implementation Status
 
 ### ✅ Phase 1 – Core Foundation (M1) - COMPLETED
@@ -16,7 +23,12 @@
 - URL routing for shareable links
 - Tree API includes attributes as children of tables
 
-### 🔄 Phase 3 – NL2SQL & Value Mapping Migration - PENDING
+### 🔄 Phase 3 – NL2SQL & Value Mapping Migration - IN PROGRESS
+- ✅ ValueMappingFacet implemented in `mill-metadata-core` (strongly-typed)
+- ✅ MetadataV2RelationsProvider implemented (replaces FileRelationsProvider)
+- ✅ MetadataV2AnnotationsProvider implemented (replaces FileAnnotationsRepository)
+- ⏳ Value mapping migration to new facet structure
+- ⏳ NL2SQL integration with new providers
 ### 🔄 Phase 4 – Legacy Metadata Migration - PENDING
 ### 🔄 Phase 5 – Enrichments, Editing & JPA/Composite Persistence - PENDING
 ### 🔄 Phase 6 – Advanced Facets & Search - PENDING
@@ -115,9 +127,12 @@ Details below are intentionally implementation-oriented so they can be turned in
   - ✅ `MetadataRepository` interface in `repository/` package
   - ✅ `FileMetadataRepository` in `repository/file/` that:
     - Reads YAML files with **document-style structure** (entities array with scoped facets)
+    - **Multi-file support**: Loads from multiple files/patterns (comma-separated or glob patterns)
+    - **Entity merging**: Later files replace entities with same ID, facets merged by type+scope
     - Maps YAML structures into `MetadataEntity` with scoped facets map
     - Supports lookups: by ID, by location (schema/table/attribute), list all
     - Handles all three facet binding types
+    - Case-insensitive entity ID operations
 
 - **Service layer (in `mill-metadata-core/service/`)** ✅
   - ✅ `MetadataService` in `service/` package over `MetadataRepository` with:

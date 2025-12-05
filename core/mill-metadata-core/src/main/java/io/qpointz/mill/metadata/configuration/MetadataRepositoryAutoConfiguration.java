@@ -8,8 +8,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Auto-configuration for metadata repository.
@@ -32,9 +34,16 @@ public class MetadataRepositoryAutoConfiguration {
         ResourceLoader resourceLoader,
         MetadataProperties properties
     ) {
-        String location = properties.getFile().getPath();
-        log.info("Creating FileMetadataRepository with location: {}", location);
-        return new FileMetadataRepository(location, resourceLoader);
+        String pathConfig = properties.getFile().getPath();
+        
+        // Parse comma-separated paths
+        List<String> locations = Arrays.stream(pathConfig.split(","))
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .collect(java.util.stream.Collectors.toList());
+        
+        log.info("Creating FileMetadataRepository with {} location(s): {}", locations.size(), locations);
+        return new FileMetadataRepository(locations, resourceLoader);
     }
 }
 
