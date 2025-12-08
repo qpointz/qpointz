@@ -6,7 +6,6 @@ import {
     Badge,
     Divider,
     Code,
-    Table,
 } from "@mantine/core";
 import { TbDatabase, TbCode, TbClock, TbCheck, TbX } from "react-icons/tb";
 import type { ReactNode } from "react";

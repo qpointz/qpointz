@@ -17,6 +17,7 @@ import type { Configuration } from "./configuration";
 import type { RequestArgs } from "./base";
 import type { AxiosInstance, AxiosResponse } from 'axios';
 import { RequiredError } from "./base";
+// URL and URLSearchParams are global in modern browsers and Node.js 18+
 
 /**
  *

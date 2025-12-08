@@ -1,25 +1,41 @@
-import {useReactTable, flexRender, createColumnHelper, getCoreRowModel} from "@tanstack/react-table";
-import {ScrollArea, Table, Group, Button} from "@mantine/core";
+import {useReactTable, flexRender, createColumnHelper, getCoreRowModel, getPaginationRowModel} from "@tanstack/react-table";
+import {ScrollArea, Table, Group, Button, Text} from "@mantine/core";
 import {TbChevronLeft, TbChevronRight} from "react-icons/tb";
+import {useMemo} from "react";
 
 export default function DataContainer(input: any) {
     const container = input.data || {} ;
-    const data = container.data ?? [];
+    const rawData = container.data ?? [];
     const fields = container.fields ?? [];
 
+    // Limit data to prevent browser freezing with very large datasets
+    // Pagination will handle showing more data
+    const MAX_INITIAL_ROWS = 10000;
+    const data = useMemo(() => {
+        return rawData.slice(0, MAX_INITIAL_ROWS);
+    }, [rawData]);
+
     const columnHelper = createColumnHelper<Array<any>>();
-    const columns = fields.map((field: string, idx: number) => {
-        return columnHelper.accessor(row => row[idx], {
-            id: field,
-            header: field,
-            cell: info => info.renderValue()
+    const columns = useMemo(() => {
+        return fields.map((field: string, idx: number) => {
+            return columnHelper.accessor(row => row[idx], {
+                id: field,
+                header: field,
+                cell: info => info.renderValue()
+            });
         });
-    });
+    }, [fields, columnHelper]);
 
     const table = useReactTable({
         data,
         columns,
         getCoreRowModel: getCoreRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        initialState: {
+            pagination: {
+                pageSize: 100,
+            },
+        },
     })
 
     return (
@@ -86,6 +102,13 @@ export default function DataContainer(input: any) {
                             ))}
                         </Table.Tr>
                     ))}
+                    {table.getRowModel().rows.length === 0 && (
+                        <Table.Tr>
+                            <Table.Td colSpan={columns.length} style={{ textAlign: 'center', padding: '20px' }}>
+                                <Text c="dimmed">No data to display</Text>
+                            </Table.Td>
+                        </Table.Tr>
+                    )}
                 </Table.Tbody>
             </Table>
         </ScrollArea>
@@ -96,8 +119,8 @@ export default function DataContainer(input: any) {
                     variant="subtle"
                     leftSection={<TbChevronLeft size={16} />}
                     size="xs"
-                    // onClick={handlePrevPage}
-                    disabled
+                    onClick={() => table.previousPage()}
+                    disabled={!table.getCanPreviousPage()}
                 >
                     Prev
                 </Button>
@@ -105,11 +128,15 @@ export default function DataContainer(input: any) {
                     variant="subtle"
                     rightSection={<TbChevronRight size={16} />}
                     size="xs"
-                    // onClick={handleNextPage}
-                    disabled
+                    onClick={() => table.nextPage()}
+                    disabled={!table.getCanNextPage()}
                 >
                     Next
                 </Button>
+                <Text size="sm" c="dimmed">
+                    Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()} 
+                    {rawData.length > MAX_INITIAL_ROWS && ` (showing first ${MAX_INITIAL_ROWS} of ${rawData.length} rows)`}
+                </Text>
             </Group>
             <Group mt={12} justify="flex-end" hidden={false}>
             {/*<Button*/}

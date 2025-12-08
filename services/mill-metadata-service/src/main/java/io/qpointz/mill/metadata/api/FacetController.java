@@ -27,6 +27,7 @@ import java.util.*;
 @ConditionalOnBean(MetadataService.class)
 @RequiredArgsConstructor
 @Tag(name = "Facets", description = "Scope-aware facet management endpoints")
+@CrossOrigin(origins = {"http://localhost:5173","http://localhost:8080"})
 public class FacetController {
     
     private final MetadataService metadataService;

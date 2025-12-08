@@ -16,9 +16,7 @@
 import type { Configuration } from './configuration';
 import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
 import globalAxios from 'axios';
-// URLSearchParams not necessarily used
-// @ts-ignore
-
+// URL and URLSearchParams are global in modern browsers and Node.js 18+
 // Some imports not used depending on template conditions
 // @ts-ignore
 import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from './common';
@@ -2360,44 +2358,6 @@ export const MetadataApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Retrieves all entities related to the given entity (bidirectional)
-         * @summary Get related entities
-         * @param {string} id Entity ID
-         * @param {string} [scope] Scope for facet access (default: global)
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getRelatedEntities: async (id: string, scope?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('getRelatedEntities', 'id', id)
-            const localVarPath = `/api/metadata/v1/entities/{id}/related`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            if (scope !== undefined) {
-                localVarQueryParameter['scope'] = scope;
-            }
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * Retrieves a specific facet for an entity by facet type and scope
          * @summary Get facet by type
          * @param {string} id Entity ID
@@ -2576,20 +2536,6 @@ export const MetadataApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Retrieves all entities related to the given entity (bidirectional)
-         * @summary Get related entities
-         * @param {string} id Entity ID
-         * @param {string} [scope] Scope for facet access (default: global)
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async getRelatedEntities(id: string, scope?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<MetadataEntityDto>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getRelatedEntities(id, scope, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['MetadataApi.getRelatedEntities']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
          * Retrieves a specific facet for an entity by facet type and scope
          * @summary Get facet by type
          * @param {string} id Entity ID
@@ -2679,17 +2625,6 @@ export const MetadataApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.getEntityById(id, scope, options).then((request) => request(axios, basePath));
         },
         /**
-         * Retrieves all entities related to the given entity (bidirectional)
-         * @summary Get related entities
-         * @param {string} id Entity ID
-         * @param {string} [scope] Scope for facet access (default: global)
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getRelatedEntities(id: string, scope?: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<MetadataEntityDto>> {
-            return localVarFp.getRelatedEntities(id, scope, options).then((request) => request(axios, basePath));
-        },
-        /**
          * Retrieves a specific facet for an entity by facet type and scope
          * @summary Get facet by type
          * @param {string} id Entity ID
@@ -2767,17 +2702,6 @@ export interface MetadataApiInterface {
      * @memberof MetadataApiInterface
      */
     getEntityById(id: string, scope?: string, options?: RawAxiosRequestConfig): AxiosPromise<MetadataEntityDto>;
-
-    /**
-     * Retrieves all entities related to the given entity (bidirectional)
-     * @summary Get related entities
-     * @param {string} id Entity ID
-     * @param {string} [scope] Scope for facet access (default: global)
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof MetadataApiInterface
-     */
-    getRelatedEntities(id: string, scope?: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<MetadataEntityDto>>;
 
     /**
      * Retrieves a specific facet for an entity by facet type and scope
@@ -2862,19 +2786,6 @@ export class MetadataApi extends BaseAPI implements MetadataApiInterface {
      */
     public getEntityById(id: string, scope?: string, options?: RawAxiosRequestConfig) {
         return MetadataApiFp(this.configuration).getEntityById(id, scope, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Retrieves all entities related to the given entity (bidirectional)
-     * @summary Get related entities
-     * @param {string} id Entity ID
-     * @param {string} [scope] Scope for facet access (default: global)
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof MetadataApi
-     */
-    public getRelatedEntities(id: string, scope?: string, options?: RawAxiosRequestConfig) {
-        return MetadataApiFp(this.configuration).getRelatedEntities(id, scope, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

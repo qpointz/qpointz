@@ -2,7 +2,6 @@ package io.qpointz.mill.ai.nlsql.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.qpointz.mill.ai.nlsql.IntentTypes;
 import io.qpointz.mill.ai.nlsql.SchemaScope;
 import io.qpointz.mill.ai.nlsql.SchemaStrategy;
 
@@ -19,6 +18,7 @@ public record ReasoningResponse(
         @JsonProperty(value = "language", required = false, defaultValue = "en") String language,
         @JsonProperty(value = "hints", required = false) List<String> hints,
         @JsonProperty(value = "hintMessage", required = false) String hintMessage,
+        @JsonProperty(value = "suggestedIntents", required = false) List<SuggestedIntent> suggestedIntents,
         @JsonProperty(value = "sqlFeatures", required = false, defaultValue = "") SqlDialect.SqlFeatures sqlFeatures
 
 ) {
@@ -26,6 +26,12 @@ public record ReasoningResponse(
             @JsonProperty("schema") String schema,
             @JsonProperty("name") String name,
             @JsonProperty("includeConstraints") boolean includeConstraints
+    ) {}
+
+    public record SuggestedIntent(
+            @JsonProperty("intent") String intent,
+            @JsonProperty("description") String description,
+            @JsonProperty(value = "exampleQuery", required = false) String exampleQuery
     ) {}
 
 }

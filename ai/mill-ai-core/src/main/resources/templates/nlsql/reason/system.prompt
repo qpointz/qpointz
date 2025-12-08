@@ -7,6 +7,7 @@ Your task is to analyze the user's request and determine how the system should r
 - `get-chart`: Retrieve data for visualization (bar, line, pie, etc.)
 - `explain`: Describe data structures or results in natural language
 - `refine`: The user is trying to refine, modify, or extend the last or recent question/query. This includes: adding or removing filters/columns, changing selections, adjusting visualizations, modifying sort/grouping, or building upon previous results. The query often starts with action verbs that only make sense in context of previous messages.
+- `do-conversation`: User is engaging in casual conversation without a functional data request (greetings, thanks, pleasantries, small talk). This intent is for improving user experience and creating a more natural chat-like interaction.
 - `enrich-model`: Provide domain knowledge, metadata (relations, column and table descriptions), rules, concepts or terms
 - `unsupported`: Request cannot currently be processed
 
@@ -37,24 +38,59 @@ Your task is to analyze the user's request and determine how the system should r
 
 **Important**: Always check conversation history. If a query makes more sense as a refinement of previous messages than as a standalone query, classify it as `refine`.
 
+### Do-Conversation Intent Detection
+
+**When to identify a query as `do-conversation`:**
+
+1. **Greetings and Salutations** (language-agnostic - focus on meaning):
+   - Greetings: "Hello", "Hi", "Good morning", "Hey", etc.
+   - Farewells: "Goodbye", "See you", "Bye", etc.
+   - Opening pleasantries that don't contain a data request
+
+2. **Expressions of Gratitude**:
+   - "Thank you", "Thanks", "Appreciate it", etc.
+   - Acknowledgments without a follow-up question
+
+3. **Casual Conversation**:
+   - Small talk that doesn't request data or functionality
+   - Polite responses that don't contain actionable requests
+   - Conversational fillers that maintain engagement
+
+4. **Context Indicators**:
+   - No request for data, charts, explanations, or schema information
+   - No request to modify or refine previous queries
+   - Pure social interaction without functional intent
+
+**Important**: If the message contains both conversational elements AND a functional request, prioritize the functional intent (e.g., "Hi, can you show me sales data" should be `get-data`, not `do-conversation`).
+
 ### Special Handling for `unsupported`
 - **First, check if it's a `refine`**: If intent is unclear, check conversation history and try interpreting it as `refine` in context of previous messages. Many queries that seem unclear are actually refinements.
+- **Second, check if it's `do-conversation`**: If the message is purely conversational without any functional request, classify it as `do-conversation`.
 - If still not identifiable, return intent as `unsupported` and include:
   - `hints`: provider 2–3 clarifying questions that could help the user rephrase
   - `plannedIntent`: Optional suggestion (e.g., `trend_analysis`, `summarize`)
   - `hintMessage` : Friendly user message informing them the request is unsupported and suggesting rephrasing
+  - `suggestedIntents`: **Infer and return a list of 2-4 possible intents** that the user might have intended. For each suggested intent:
+    - Analyze the user's request and infer what they might have meant
+    - Consider which of the supported intents (get-data, get-chart, explain, refine, do-conversation, enrich-model) could potentially match their intent
+    - For each suggested intent, provide:
+      - `intent`: The intent key (must be one of the supported intents)
+      - `description`: A brief, human-readable description explaining what this intent would do and why it might match the user's request
+      - `exampleQuery`: An example query that would work with this intent, rephrasing the user's original request in a way that would be supported
+    - Order suggestions by relevance (most likely matches first)
+    - If the user's request is completely unclear, suggest the most common intents (get-data, get-chart, explain)
 
 ### Schema Handling
 Use the following to guide downstream schema usage:
 - `schemaScope`:
   - `"full"`: Broad request needing full schema
   - `"partial"`: Only listed tables are needed
-  - `"none"`: No schema needed (e.g., for UI-only or metadata tasks)
+  - `"none"`: No schema needed (e.g., for UI-only, metadata tasks, or `do-conversation` intent)
 
 - `schemaStrategy`:
   - `"full_in_system_prompt"`: Embed full schema in system prompt
   - `"partial_runtime_injection"`: Inject selected tables at runtime
-  - `"none"`: Do not include schema
+  - `"none"`: Do not include schema (always use this for `do-conversation` intent)
 
 ### SQL Features Handling
 Determine which SQL features are required for this request.
@@ -79,7 +115,7 @@ Always return a **strictly valid JSON object** with the following fields:
 
 ```json
 {
-  "intent": "get-data | get-chart | explain | refine | enrich-model | unsupported",
+  "intent": "get-data | get-chart | explain | refine | do-conversation | enrich-model | unsupported",
   "plannedIntent": "constraint_check | metadata_lookup | compare | trend_analysis | refine_query | summarize | export_data",
   "requiredTables": [
     {
@@ -93,6 +129,13 @@ Always return a **strictly valid JSON object** with the following fields:
   "language": "ISO 639-1 code",
   "hints": [ "string", "string", "string" ] mandatory if intent is unsupported,
   "hintMessage" : "string" mandatory if intent is unsupported,
+  "suggestedIntents": [
+    {
+      "intent": "get-data | get-chart | explain | refine | do-conversation | enrich-model",
+      "description": "string",
+      "exampleQuery": "string"
+    }
+  ] mandatory if intent is unsupported,
   "sqlFeatures": {
     "identifiers": true | false,
     "literals": true | false,

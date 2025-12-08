@@ -27,7 +27,8 @@ Supported **user intents**:
 - get-chart: Retrieve data for visualization (bar, line, pie, etc.)
 - explain: Explain a query, result, or table in natural language
 - refine: User referring to a previous query the user is referring to a previous query or result requesting to modify extend or repeating it
-- unsupported: The system cannot currently process the user’s request
+- do-conversation: User is engaging in casual conversation (greetings, thanks, pleasantries) without a functional data request
+- unsupported: The system cannot currently process the user's request
 - enrich-model: The user provides additional domain knowledge, metadata, rules, or concepts to improve future results
 
 

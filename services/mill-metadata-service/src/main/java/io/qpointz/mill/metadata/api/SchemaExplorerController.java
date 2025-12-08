@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 @ConditionalOnBean(MetadataService.class)
 @RequiredArgsConstructor
 @Tag(name = "Schema Explorer", description = "Schema exploration, search, and navigation endpoints")
+@CrossOrigin(origins = {"http://localhost:5173","http://localhost:8080"})
 public class SchemaExplorerController {
     
     private final MetadataService metadataService;

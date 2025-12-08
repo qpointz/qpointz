@@ -7,7 +7,10 @@ help:
 	@echo ""
 	@echo "make build-docker     # rebuild docker images"
 	@echo "make run-moneta     # runs moneta sample docker"
-	
+
+rebuild:
+	./gradlew clean installBootDist assembleSamples
+
 build-docker:
 	./gradlew installBootDist assembleSamples
 	docker buildx build --tag mill-service --progress plain --file mill-service/src/main/docker/base/Dockerfile ./mill-service

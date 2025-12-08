@@ -3,9 +3,9 @@
  * 
  * Displays facet data with scope selection and routes to appropriate facet component.
  */
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useMetadataContext } from "./MetadataProvider";
-import { FacetsApi } from "../../api/mill/api.ts";
+import { MetadataApi, FacetsApi } from "../../api/mill/api.ts";
 import { Configuration } from "../../api/mill";
 import FacetViewerRouter from "./components/facets/FacetViewerRouter";
 
@@ -22,7 +22,10 @@ export default function FacetViewer({ entityId, facetType, data }: FacetViewerPr
     const [loading, setLoading] = useState(false);
     const [selectedScope, setSelectedScope] = useState<string>(scope.current);
 
-    const facetsApi = new FacetsApi(new Configuration());
+    // Memoize API instances to prevent recreation on every render
+    const configuration = useMemo(() => new Configuration(), []);
+    const metadataApi = useMemo(() => new MetadataApi(configuration), [configuration]);
+    const facetsApi = useMemo(() => new FacetsApi(configuration), [configuration]);
 
     useEffect(() => {
         setSelectedScope(scope.current);
@@ -31,7 +34,7 @@ export default function FacetViewer({ entityId, facetType, data }: FacetViewerPr
     const loadFacetScopes = useCallback(async () => {
         if (!entityId || !facetType) return;
         try {
-            const response = await facetsApi.getFacetScopes(entityId, facetType);
+            const response = await metadataApi.getFacetScopes(entityId, facetType);
             if (response.data) {
                 const scopes = Array.isArray(response.data)
                     ? response.data
@@ -42,7 +45,8 @@ export default function FacetViewer({ entityId, facetType, data }: FacetViewerPr
             // If scope loading fails, it's not critical - just log it
             console.debug("Failed to load facet scopes", err);
         }
-    }, [entityId, facetType, facetsApi]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [entityId, facetType]);
 
     const loadFacet = useCallback(async () => {
         if (!entityId || !facetType) return;
@@ -64,7 +68,8 @@ export default function FacetViewer({ entityId, facetType, data }: FacetViewerPr
         } finally {
             setLoading(false);
         }
-    }, [entityId, facetType, selectedScope, facetsApi]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [entityId, facetType, selectedScope]);
 
     // Load facet data when entityId, facetType, or data changes
     useEffect(() => {

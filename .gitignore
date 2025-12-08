@@ -17,3 +17,5 @@ out/
 target/
 .secrets
 .kotlin/
+.cursor/
+.vscode/

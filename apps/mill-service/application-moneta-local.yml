@@ -81,6 +81,12 @@ mill:
       enable: true
     jet-http:
       enable: true
+    grpc:
+      enable: true
+      port: 9090
+    jet-grpc:
+      enable: true
+      port: 9090
     data-bot:
       enable: false
       prompt-file: file:../../test/datasets/moneta/moneta.prompt

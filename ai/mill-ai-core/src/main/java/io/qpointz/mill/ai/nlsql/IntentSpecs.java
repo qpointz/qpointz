@@ -59,6 +59,7 @@ public class IntentSpecs {
                 getExplainIntent(),
                 getEnrichModelIntent(),
                 getRefineIntent(),
+                getDoConversationIntent(),
                 getUnsuportedInten()
         );
     }
@@ -131,6 +132,17 @@ public class IntentSpecs {
                 .postProcessorFunc(reason -> List.of(
                         retainReasoning(reason),
                         refineProcessor(reason, this)))
+                .build();
+    }
+
+    public static final String DO_CONVERSATION_INTENT_KEY = "do-conversation";
+    public IntentSpec getDoConversationIntent() {
+        return IntentSpec.builder(DO_CONVERSATION_INTENT_KEY)
+                .callFunc(reason -> new IntentCall(reason, this, this.chatBuilders.conversationChat(),
+                        doConversation(reason, metadataProvider, sqlDialect),
+                        this.messageSelector))
+                .postProcessorFunc(reason -> List.of(
+                        retainReasoning(reason)))
                 .build();
     }
 

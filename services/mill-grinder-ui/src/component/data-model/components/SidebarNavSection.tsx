@@ -1,5 +1,5 @@
-import { Divider, Box } from "@mantine/core";
-import { ReactNode } from "react";
+import { Divider } from "@mantine/core";
+import type { ReactNode } from "react";
 
 interface SidebarNavSectionProps {
     children: ReactNode;

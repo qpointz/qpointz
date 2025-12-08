@@ -10,7 +10,6 @@ import {
 } from "@mantine/core";
 import { TbDatabase, TbTable, TbColumns, TbBulb } from "react-icons/tb";
 import type { MetadataEntityDto } from "../../../api/mill/api.ts";
-import { MetadataApi, Configuration } from "../../../api/mill";
 import RelatedItemLink from "./RelatedItemLink";
 
 interface RelatedItemsProps {
@@ -32,19 +31,25 @@ export default function RelatedItems({ entityId, scope }: RelatedItemsProps) {
         setLoading(true);
         setError(null);
 
-        const metadataApi = new MetadataApi(new Configuration());
-        metadataApi.getRelatedEntities(entityId, scope)
-            .then(response => {
-                setRelatedEntities(response.data || []);
-            })
-            .catch(err => {
-                console.error("Failed to load related entities", err);
-                setError(err instanceof Error ? err.message : String(err));
-                setRelatedEntities([]);
-            })
-            .finally(() => {
-                setLoading(false);
-            });
+        // TODO: getRelatedEntities method does not exist in MetadataApi
+        // This feature is not yet available in the API
+        // For now, we'll show an empty state
+        setLoading(false);
+        setRelatedEntities([]);
+        
+        // const metadataApi = new MetadataApi(new Configuration());
+        // metadataApi.getRelatedEntities(entityId, scope)
+        //     .then((response: any) => {
+        //         setRelatedEntities(response.data || []);
+        //     })
+        //     .catch((err: any) => {
+        //         console.error("Failed to load related entities", err);
+        //         setError(err instanceof Error ? err.message : String(err));
+        //         setRelatedEntities([]);
+        //     })
+        //     .finally(() => {
+        //         setLoading(false);
+        //     });
     }, [entityId, scope]);
 
     // Group entities by type

@@ -6,6 +6,7 @@ public enum IntentTypes {
     GET_DATA,
     GET_CHART,
     EXPLAIN,
+    DO_CONVERSATION,
     UNSUPPORTED;
 
     @JsonCreator

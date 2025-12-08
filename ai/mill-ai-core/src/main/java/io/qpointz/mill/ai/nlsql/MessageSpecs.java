@@ -173,4 +173,17 @@ public class MessageSpecs {
         ));
     }
 
+    private static MessageSpec getDoConversationUser() {
+        return userStatic("templates/nlsql/intent/do-conversation/user.prompt");
+    }
+
+    public static MessageList doConversation(ReasoningResponse reason, MetadataProvider provider, SqlDialect dialect) {
+        return new MessageList(List.of(
+                intentSystem(),
+                getDoConversationUser(),
+                outputRules(),
+                intentUserQuestion(reason)
+        ));
+    }
+
 }

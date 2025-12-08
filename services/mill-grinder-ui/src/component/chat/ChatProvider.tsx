@@ -7,7 +7,7 @@
  * - Subscribe to SSE stream for real-time message updates per chat
  * - Expose a typed context API for child components
  */
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState, useMemo } from "react";
 import {
     NlSqlChatControllerApi,
     type Chat,
@@ -54,8 +54,8 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
  */
 export const ChatProvider: React.FC<{ children: React.ReactNode, chatId?: string }> = ({ children, chatId }) => {
     const navigate = useNavigate();
-    const configuration = new Configuration();
-    const api = new NlSqlChatControllerApi(configuration);
+    const configuration = useMemo(() => new Configuration(), []);
+    const api = useMemo(() => new NlSqlChatControllerApi(configuration), [configuration]);
 
     const [chatList, setChatList] = useState<Chat[]>([]);
     const [chatListLoading, setChatListLoading] = useState(false);
@@ -77,7 +77,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode, chatId?: string
         } finally {
             setChatListLoading(false);
         }
-    }, []);
+    }, [api]);
 
     /**
      * Create a new chat, refresh sidebar, and navigate to the created chat.
@@ -96,17 +96,17 @@ export const ChatProvider: React.FC<{ children: React.ReactNode, chatId?: string
     const deleteChat = useCallback(async (chat: Chat) => {
         await api.deleteChat(chat.id!);
         await loadChats();
-    }, [navigate, loadChats]);
+    }, [api, loadChats]);
 
     const markChatFavorite = useCallback(async (chat: Chat) => {
         await api.updateChat(chat.id!, { chatName: chat.name!, isFavorite: true });
         await loadChats();
-    }, [navigate, loadChats]);
+    }, [api, loadChats]);
     
     const unMarkChatFavorite = useCallback(async (chat: Chat) => {
         await api.updateChat(chat.id!, { chatName: chat.name!, isFavorite: false });
         await loadChats();
-    }, [navigate, loadChats]);
+    }, [api, loadChats]);
 
     /**
      * Post a message to the active chat.
@@ -140,7 +140,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode, chatId?: string
             .finally(()=> {
                 setPostingMessage(false);
             })
-    }, [chatId]);
+    }, [chatId, api]);
 
     /**
      * Initial load of chats (and refresh on demand via loadChats).
@@ -165,7 +165,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode, chatId?: string
                 console.error("Failed to load messages", err);
             })
             .finally(() => setMessageListLoading(false));
-    }, [chatId]);
+    }, [chatId, api]);
 
     /**
      * Subscribe to SSE stream for the active chat; append new messages uniquely.

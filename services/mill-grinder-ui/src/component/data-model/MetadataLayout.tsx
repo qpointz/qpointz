@@ -40,7 +40,7 @@ function MetadataContent() {
             // No params to load, reset flag
             isUpdatingFromUrl.current = false;
         }
-    }, [params.schema, params.table, params.attribute, entity]);
+    }, [params.schema, params.table, params.attribute, entity.selected?.id, entity.selectByLocation]);
 
     // Reset the flag when entity finishes loading
     useEffect(() => {
@@ -82,7 +82,7 @@ function MetadataContent() {
                 navigate(expectedPath, { replace: true });
             }
         }
-    }, [entity.selected?.id, entity.loading, location.pathname, navigate]);
+    }, [entity.selected?.id, entity.selected?.schemaName, entity.selected?.tableName, entity.selected?.attributeName, entity.selected?.type, entity.loading, location.pathname, navigate]);
 
     return (
         <Group h="100%" p={0} align="top">

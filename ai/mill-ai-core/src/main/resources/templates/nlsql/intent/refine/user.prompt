@@ -4,14 +4,31 @@ The user is refining a previous query or result.
 
 User intent code: refine
 
+### Note: Follow the SQL quoting and syntax conventions of the active dialect
+(as defined in a separate system prompt).
+Examples below use backticks (`) for identifier quoting only for illustration.
+**You must apply the dialect-specific quoting rules** (which may use double quotes, square brackets, or other delimiters) instead of backticks in your actual SQL output.
+
+---
+
 Your task is to:
 - Analyze the current user question
-- Apply it as a refinement, filter, or extension of the previous query , result , explanation or model enrichment.
+- Apply it as a refinement, filter, or extension of the previous query, result, explanation or model enrichment
+- **Apply value mapping logic same as get-data and get-chart intents**:
+  - **Replace every constant value in the query with a placeholder**:
+    - strings, numbers, dates, booleans
+    - LIKE/ILIKE patterns
+    - regex patterns
+    - range boundaries (BETWEEN, >=, <=, etc.)
+  - Return structured `value-mapping` metadata for **all placeholders**
+  - If the query contains **no constants**, `value-mapping` must still be present as an empty array (`[]`)
+  - Placeholders for values must include **quoting appropriate to their type** in the SQL string (e.g., string values in quotes, numbers without quotes, etc.)
 
 ## Output format:
 - You must return a full JSON object in the same format as you would reply to **original-intent**
 - User intent may differ from the **original intent** your must identify refinement intent and put it into `refineAs` field
 - Your response must follow ##Output format of **original intent** and include all required fields of **original intent** response
+- **You MUST include `value-mapping` field with placeholder mappings for all constants**, same as get-data and get-chart intents
 - Also include the `refine` field with refinement details.
 
 ##Refinement details:
@@ -23,6 +40,49 @@ Your task is to:
     }
 }
 
+### Placeholder Format
+"@{SCHEMA.TABLE.COLUMN:placeholder_name}"
+
+- Fully qualified column name (SCHEMA.TABLE.COLUMN) - the target column this placeholder represents
+- `placeholder_name`: lowercase letters, digits, underscores; unique per SQL
+- **One placeholder per constant** — never group multiple values
+
+### Value Mapping Rules (Same as get-data/get-chart):
+1. **Every constant value MUST be replaced with a placeholder.**
+   - Wrong: WHERE SEGMENT = "premium"
+   - Correct: WHERE SEGMENT = "@{MONETA.CLIENTS.SEGMENT:segment_premium}"
+2. Each placeholder must have a matching entry in `value-mapping`.
+3. `resolved-value` must equal the literal value as it appears logically in SQL, but without surrounding quotes or escaping.
+4. `kind` must be:
+   - "constant" for exact matches (=, IN, BETWEEN, etc.)
+   - "pattern" for LIKE/ILIKE/regex conditions
+5. Never leave raw constants in SQL.
+6. If no constants → `value-mapping: []`
+7. One unique placeholder **per value per target**
+8. Multiple values for the same column → multiple placeholders
+9. Placeholders inside the SQL must include quotes appropriate to their type, but resolved-value in value-mapping must always be raw — no surrounding quotes, no escaping.
+10. **Fully qualified identifiers must quote each component separately.**
+    - Wrong: `"MONETA.CLIENTS.CLIENT_ID"` or `"MONETA.STOCK_HOLDINGS.HOLDING_ID"`
+    - Correct: `"MONETA"."CLIENTS"."CLIENT_ID"` or `"MONETA"."STOCK_HOLDINGS"."HOLDING_ID"`
+    - Each component (schema, table, column) must have its own quotes
+    - This applies to all SQL contexts: SELECT, FROM, JOIN, WHERE, ORDER BY, GROUP BY, etc.
+
+**Important:** All examples below use backticks (`) for identifier quoting as illustrations only. In your actual SQL output, you must use the dialect-specific identifier quoting rules (double quotes, square brackets, or other delimiters as specified in the dialect conventions), not backticks. However, the component-by-component quoting rule (rule 10) always applies regardless of the quoting style.
+
+### Critical: Value Mapping for Refine Queries
+When refining queries, you MUST apply value mapping logic to ALL constants, including:
+- **Values that appeared in the original query**: Even if the user's refinement references the same values (e.g., "ultra", "wealth"), you must create placeholders and value-mapping entries for them
+- **New values introduced in the refinement**: Any new constants must also use placeholders
+- **DO NOT use raw user input values directly in SQL**: Always replace them with placeholders and include them in value-mapping
+
+Example scenario:
+- Original query filtered by SEGMENT = 'ULTRA' or 'WEALTH' (mapped from user input "ultra" and "wealth")
+- Refinement: "apply grouping by client segment"
+- **WRONG**: `GROUP BY SEGMENT` with WHERE clause using raw values: `SEGMENT = 'ultra' OR SEGMENT = 'wealth'`
+- **CORRECT**: `GROUP BY SEGMENT` with WHERE clause using placeholders: `SEGMENT = '@{MONETA.CLIENTS.SEGMENT:segment_ultra}' OR SEGMENT = '@{MONETA.CLIENTS.SEGMENT:segment_wealth}'` with corresponding value-mapping entries
+
+The value mapping system will resolve placeholders to the correct mapped values (e.g., 'ULTRA', 'WEALTH') automatically. Your job is to create the placeholders and value-mapping entries, using the user's input terms in the `display` field and the logical value in `resolved-value`.
+
 ## Rules:
 - Do not change the original intent type — always keep it as-is
 - Do not regenerate from scratch — build upon the previous SQL or chart
@@ -30,5 +90,8 @@ Your task is to:
 - Do not use code blocks or markdown
 - Do not hallucinate changes in table structure or schema
 - If chart is involved, update only chart config relevant to user refinement
+- **CRITICAL: Apply value mapping to ALL constants in the refined query, including values that were in the original query**
+- When refining queries that reference the same columns/values from previous queries, you must still create placeholders and value-mapping entries for those constants
+- Do not use raw user input values directly — always use placeholders with value-mapping
 
 

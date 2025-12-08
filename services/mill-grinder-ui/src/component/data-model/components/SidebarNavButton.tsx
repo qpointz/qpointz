@@ -1,7 +1,7 @@
 import { Box, NavLink, UnstyledButton } from "@mantine/core";
 import { Link, useLocation } from "react-router";
 import { useMantineTheme } from "@mantine/core";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface SidebarNavButtonProps {
     to: string;

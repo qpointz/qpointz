@@ -19,7 +19,6 @@ import {
 import { TbInfoCircle, TbDatabase, TbTable, TbColumns, TbBulb } from "react-icons/tb";
 import FacetViewer from "./FacetViewer";
 import RelatedItems from "./components/RelatedItems";
-import type { MetadataEntityDto } from "../../api/mill/api.ts";
 import { buildLocation } from "./utils/entityUtils";
 
 export default function EntityDetails() {

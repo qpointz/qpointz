@@ -27,7 +27,6 @@ interface BaseFacetViewerProps {
 
 export default function BaseFacetViewer({
     facetType,
-    entityId,
     data,
     availableScopes,
     selectedScope,

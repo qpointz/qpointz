@@ -3,7 +3,8 @@ import type {ChatMessage} from "../../api/mill";
 import GetDataIntent from "./intents/GetDataIntent";
 import ExplainIntent from "./intents/ExplainIntent";
 import EnrichModelIntent from "./intents/EnrichModelIntent";
-import {useRef, useEffect, useState, useLayoutEffect} from "react";
+import DoConversationIntent from "./intents/DoConversationIntent";
+import {useRef, useEffect, useState, useLayoutEffect, useCallback} from "react";
 import ChatPostMessage from "./PostMessage.tsx";
 import {useChatContext} from "./ChatProvider.tsx";
 import UnsupportedIntent from "./intents/UnsupportedIntent.tsx";
@@ -44,6 +45,8 @@ export function ChatMessageListRender() {
                     return (<GetDataIntent key={message.id} message={message}/>)
                 case "enrich-model" :
                     return (<EnrichModelIntent key={message.id} message={message}/>)
+                case "do-conversation" :
+                    return (<DoConversationIntent key={message.id} message={message}/>)
             }
 
             return <UnsupportedIntent intent={intent} content={message.content}/>
@@ -54,8 +57,11 @@ export function ChatMessageListRender() {
 
     const viewport = useRef<HTMLDivElement>(null);
 
-    const scrollToBottom = () =>
-        viewport.current!.scrollTo({top: viewport.current!.scrollHeight, behavior: 'smooth'});
+    const scrollToBottom = useCallback(() => {
+        if (viewport.current) {
+            viewport.current.scrollTo({top: viewport.current.scrollHeight, behavior: 'smooth'});
+        }
+    }, []);
 
     useLayoutEffect(() => {
         requestAnimationFrame(scrollToBottom);
@@ -70,10 +76,7 @@ export function ChatMessageListRender() {
         if (lastId !== lastMessageId) {
             setLastMessageId(lastId);
         }
-
-
-
-    }, [messages.list, viewport])
+    }, [messages.list, lastMessageId])
 
     return (
         <Center>

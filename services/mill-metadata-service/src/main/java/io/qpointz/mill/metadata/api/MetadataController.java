@@ -28,6 +28,7 @@ import java.util.Set;
 @RequestMapping("/api/metadata/v1")
 @RequiredArgsConstructor
 @Tag(name = "Metadata", description = "Metadata entity CRUD operations")
+@CrossOrigin(origins = {"http://localhost:5173","http://localhost:8080"})
 public class MetadataController {
     
     private final MetadataService metadataService;
