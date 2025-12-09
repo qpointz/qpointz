@@ -10,6 +10,7 @@ import io.qpointz.mill.services.metadata.MetadataProvider;
 import io.qpointz.mill.sql.RecordReaders;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -28,7 +29,6 @@ import java.util.List;
  */
 @Component
 @ConditionalOnService("ai-nl2data")
-@ConditionalOnBean({ValueRepository.class, DataOperationDispatcher.class})
 @EnableScheduling
 @Slf4j
 public class ValueMappingComponents {
@@ -37,9 +37,9 @@ public class ValueMappingComponents {
     private final DataOperationDispatcher dataDispatcher;
     private final MetadataProvider metadataProvider;
 
-    public ValueMappingComponents(ValueRepository repository, 
-                                  DataOperationDispatcher dataOperation,
-                                  MetadataProvider metadataProvider) {
+    public ValueMappingComponents(@Autowired(required = false) ValueRepository repository,
+                                  @Autowired(required = false) DataOperationDispatcher dataOperation,
+                                  @Autowired(required = false) MetadataProvider metadataProvider) {
         this.repository = repository;
         this.dataDispatcher = dataOperation;
         this.metadataProvider = metadataProvider;
@@ -48,6 +48,12 @@ public class ValueMappingComponents {
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
         log.info("Value Mapping RAG component initialized.");
+        //temp workaround
+        if (repository==null || this.dataDispatcher==null || this.metadataProvider==null) {
+            log.info("Value mapping not set up");
+            return;
+        }
+
         try {
             // 1. Ingest static mappings from metadata
             ingestStaticValueMappings();

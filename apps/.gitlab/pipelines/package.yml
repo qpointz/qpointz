@@ -27,9 +27,25 @@ init-version:
   stage: build
   extends: .get-build-version
 
+mill-ui-grinder:build:
+ image: node:24-alpine
+ stage: build
+ script:
+   - cd ${CI_PROJECT_DIR}/services/mill-grinder-ui
+   - npm install
+   - npm run build
+ artifacts:
+   expire_in: "5 days"
+   paths:
+     - ${CI_PROJECT_DIR}/services/mill-grinder-service/src/main/resources/static/app
+
+
 install-dist:
   extends: .gradle-job
   stage: build
+  needs:
+    - job: mill-ui-grinder:build
+      artifacts: true
   script:
     - cd ${CI_PROJECT_DIR}/apps
     - ./gradlew --no-daemon --console plain clean installBootDist assembleSamples
@@ -44,6 +60,8 @@ build-base-docker:
   needs:
     - job: install-dist
       artifacts: true
+    - job: init-version
+      artifacts: true
   variables:
     DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
     DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/base/Dockerfile
@@ -57,6 +75,8 @@ build-docker-samples:
     - job: build-base-docker
       artifacts: false
     - job: install-dist
+      artifacts: true
+    - job: init-version
       artifacts: true
   variables:
     DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service

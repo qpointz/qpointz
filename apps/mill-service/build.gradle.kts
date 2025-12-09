@@ -70,6 +70,7 @@ tasks.register("assembleSamples") {
 
         copy {
             from(datasetsDir.file("moneta/moneta-meta.yaml"))
+            from(datasetsDir.file("moneta/moneta-meta-repository.yaml"))
             into(outDir.file("etc"))
         }
 

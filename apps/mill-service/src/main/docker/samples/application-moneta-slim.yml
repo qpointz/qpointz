@@ -48,19 +48,19 @@ mill:
   security:
     enable: false
   metadata:
-    relations: file
-    annotations: file
-    file:
-      repository:
-        path: file:/app/etc/moneta-meta.yaml
+    relations: v2
+    annotations: v2
+    v2:
+      storage:
+        type: file
+      file:
+        path: file:/app/etc/moneta-meta-repository.yaml
   backend:
     provider: jdbc
     connection:
       quoting: DOUBLE_QUOTE
       caseSensitive: true
       unquotedCasing: UNCHANGED
-      fun: oracle
-      conformance: ORACLE_12
     jdbc:
       url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '/data/moneta/moneta-slim.sql'"
       driver: "org.h2.Driver"
