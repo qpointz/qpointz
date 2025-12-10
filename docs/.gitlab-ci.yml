@@ -1,0 +1,56 @@
+stages:
+  - Init
+
+include:  
+  - local : /.gitlab/.common.yml
+
+init-version:
+  stage: Init
+  extends: .get-build-version
+
+deploy-docs:
+  stage: Init
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:3.12-slim
+  needs:
+    - job: init-version
+      artifacts: true
+  variables:
+    GIT_STRATEGY: clone
+    GL_TOKEN: ${CI_PUSH_TOKEN}
+    GL_URL: "https://gitlab.qpointz.io"
+    GIT_DEPTH: 0
+    GIT_COMMITTER_NAME: docs-bot
+    GIT_COMMITTER_EMAIL: docs-bot@qpointz.io
+  before_script:
+    - cd ${CI_PROJECT_DIR}/docs
+    - pip install -r requirements.txt    
+    - apt-get update && 
+    - apt-get install -y git && 
+    - apt-get clean && 
+    - rm -rf /var/lib/apt/lists/*
+    - echo $CI_PUSH_TOKEN
+    - git remote add push_origin https://oauth2:${CI_PUSH_TOKEN}@gitlab.qpointz.io/${CI_PROJECT_PATH}.git
+    - git remote get-url push_origin
+  script:
+    - !reference [.global-vars, before_script]
+    - echo "VERSION:${QP_VERSION}"
+    - cd ${CI_PROJECT_DIR}/docs    
+    - export VERSION_ALIAS=""
+    - |
+      if [[ "main" == "${CI_COMMIT_REF_SLUG}" ]]
+      then
+        export VERSION_ALIAS="latest"
+      fi
+      mike deploy --update-aliases ${QP_VERSION} ${VERSION_ALIAS}        
+    - git push push_origin gh-pages:gh-pages --force
+  # rules:
+  #   - if: $CI_COMMIT_REF_PROTECTED == "true"  
+  #     when: always
+    
+    #- ls -lacr ${CI_PROJECT_DIR}/docs/site
+    #- ls -lacr /out/docs/public
+    #- |             
+    #  mkdir -p /out/docs/public
+    #  rm -Rf /out/docs/public
+    #  mkdir -p /out/docs      
+    #  cp -a ${CI_PROJECT_DIR}/docs/site/. /out/docs/public/    

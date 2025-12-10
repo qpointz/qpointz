@@ -1,8 +1,9 @@
-stages:
+stages:  
   - Modules
   - Package
   - Integration
   - Publish 
+
 
 # workflow:
 #   rules:
@@ -59,7 +60,7 @@ core:build:
     - *if-protected
     - *build-changes
     - changes:
-        - core/**/*      
+        - core/**/* 
 
 apps:build:
   extends: .build-base  
@@ -105,7 +106,6 @@ clients:build:
     - changes:
         - clients/**/*      
   
-
 # flow:build:
 #   extends: .build-base
 #   trigger:
@@ -144,9 +144,7 @@ publish:
   trigger:    
     strategy: mirror
     include:
-      - local: .gitlab/pipelines/package.yml        
-        inputs:
-          package-local-only: "true"
+      - local: .gitlab/pipelines/publish.yml
   rules:
     - *if-protected    
     - if: $RUN_PUBLISH == "true"      

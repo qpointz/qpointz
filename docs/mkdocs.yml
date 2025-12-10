@@ -4,9 +4,12 @@ docs_dir: src
 plugins:
   - search
   - macros
+  - mike:
+     version_selector: true
 
 extra:
-  version: "0.5.0-rc1"
+  version: 
+    provider: mike
 
 #  - multiversion:
 #      branch_whitelist: ^doc\/doc-moneta-example$
@@ -58,7 +61,7 @@ markdown_extensions:
 nav:
     - index.md    
     - quickstart.md
-#    - installation.md          
+    - installation.md          
 #    - Backends: 
 #      - backends/index.md
 #      - backends/jdbc.md

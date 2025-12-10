@@ -2,10 +2,12 @@ mkdocs
 mkdocs-material>=9.4.4
 pymdown-extensions>=10.12
 Pygments
+mike
+mkdocs-macros-plugin
 
 #sudo apt update && sudo apt install pipx python3-venv -y pipx
-pipx ensurepath
-source ~/.bashrc  # or ~/.zshrc depending on your shell
-pipx install mkdocs
-pipx install mike
-pipx inject mkdocs mkdocs-macros-plugin
+#pipx ensurepath
+#source ~/.bashrc  # or ~/.zshrc depending on your shell
+#pipx install mkdocs
+#pipx install mike
+#pipx inject mkdocs mkdocs-macros-plugin

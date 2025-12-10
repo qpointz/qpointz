@@ -7,3 +7,4 @@ Mill is a natural language to SQL (NL2SQL) exploration tool that enables users t
 The NL2SQL Quickstart guide lets you launch Mill locally as a Docker container. It comes with sample test data and supports integration with various LLM providers.
 
 For detailed setup instructions and examples, refer to the [Moneta sample documentation](quickstart/moneta.md).
+22
