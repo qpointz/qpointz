@@ -1,37 +1,12 @@
 stages:  
-  - Modules
-  - Package
-  - Integration
-  - Publish 
-
-
-# workflow:
-#   rules:
-#     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-#       when: always
-#     - if: $CI_COMMIT_REF_PROTECTED != 'true' && $CI_PIPELINE_SOURCE != 'merge_request_event' && $CI_OPEN_MERGE_REQUESTS != ""
-#       when: never
-#     - if: $CI_COMMIT_REF_PROTECTED == 'true'
-#       when: always
-#     - when: always
-    
-
-variables:
-  RUN_INTEGRATION: 
-    value: "false"
-    description: "Run integration pipelines"    
-    options:
-      - "true"
-      - "false"
-  RUN_PUBLISH: 
-    value: "false"
-    description: "Publish artifacts"    
-    options:
-      - "true"
-      - "false"
+  - init 
+  - build
+  - package
+  - integration
+  - publish
 
 .if-protected: &if-protected
-  if: $CI_COMMIT_REF_PROTECTED == "true"  
+  if: '$CI_COMMIT_REF_PROTECTED == "true"'  
 
 .if-mr: &if-mr
   if: '$CI_PIPELINE_SOURCE == "merge_request_event"'  
@@ -39,112 +14,87 @@ variables:
 .build-changes: &build-changes
   changes:
     - .gitlab-ci.yml
-    - .gitlab/**/*
-    - '**/.gitlab/**/*'
-    - build-logic/**/*  
+    - .gitlab/**/*    
+    - build-logic/**/*
 
-.build-base: &build-base
-  stage: Modules
-  inherit:
-    variables: true
-  trigger:
-    strategy: mirror
+include:
+  - local: ${CI_PROJECT_DIR}/.gitlab/.vars.yml
+  - local: ${CI_PROJECT_DIR}/.gitlab/.common.yml
+  - local: ${CI_PROJECT_DIR}/.gitlab/pipelines/integration.yml
+    rules:    
+      - *if-mr
+      - *if-protected
+      - when: never
+  - local : ${CI_PROJECT_DIR}/core/.gitlab-ci.yml
+    rules:
+      - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      - if: '$CI_COMMIT_REF_PROTECTED == "true"'
+      - changes:
+        - .gitlab-ci.yml
+        - .gitlab/**/*    
+        - build-logic/**/*
+        - core/**/*
+      - when: never
+  - local : ${CI_PROJECT_DIR}/services/.gitlab-ci.yml
+    rules:
+      - *if-mr
+      - *if-protected
+      - *build-changes    
+      - changes:
+        - services/**/*
+      - when: never        
+  - local : ${CI_PROJECT_DIR}/apps/.gitlab-ci.yml
+    rules:
+      - *if-mr
+      - *if-protected
+      - *build-changes    
+      - changes:
+        - apps/**/*
+      - when: never
+  - local : ${CI_PROJECT_DIR}/ai/.gitlab-ci.yml
+    rules:
+      - *if-mr
+      - *if-protected
+      - *build-changes    
+      - changes:
+        - ai/**/*
+      - when: never
+  - local : ${CI_PROJECT_DIR}/clients/.gitlab-ci.yml
+    rules:
+      - *if-mr
+      - *if-protected
+      - *build-changes    
+      - changes:
+        - clients/**/*
+      - when: never          
+  - local: ${CI_PROJECT_DIR}/.gitlab/pipelines/publish.yml
+    rules:
+      - *if-protected
+      - when: never
 
-# MINIMAL CI/CD ONLY UNIT TESTS
-core:build:
-  extends: .build-base
-  trigger:
-    include:
-      - local: core/.gitlab-ci.yml
+init-version:
+  stage: init
+  extends: .get-build-version
+
+test:
+  stage: init
+  script:
+    - echo "CI_PIPELINE_SOURCE=${CI_PIPELINE_SOURCE}"
+    - echo "CI_OPEN_MERGE_REQUESTS=${CI_OPEN_MERGE_REQUESTS}"
+    - echo "CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED=${CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED}"
+
+is-mr:
+  stage: init
   rules:
-    - *if-protected
-    - *build-changes
-    - changes:
-        - core/**/* 
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - when: never
+  script:
+    - echo "IS MR"
 
-apps:build:
-  extends: .build-base  
-  trigger:
-    include:
-      - local: apps/.gitlab-ci.yml    
+is-not-mr:
+  stage: init
   rules:
-    - *if-protected
-    - *build-changes
-    - changes:
-        - apps/**/*      
-
-services:build:
-  extends: .build-base
-  trigger:
-    include:
-      - local: services/.gitlab-ci.yml
-  rules:
-    - *if-protected
-    - *build-changes
-    - changes:
-        - services/**/*      
-
-ai:build:
-  extends: .build-base
-  trigger:
-    include:
-      - local: ai/.gitlab-ci.yml
-  rules:
-    - *if-protected
-    - *build-changes
-    - changes:
-        - ai/**/*      
-
-clients:build:
-  extends: .build-base
-  trigger:
-    include:
-      - local: clients/.gitlab-ci.yml
-  rules:
-    - *if-protected
-    - *build-changes
-    - changes:
-        - clients/**/*      
-  
-# flow:build:
-#   extends: .build-base
-#   trigger:
-#     strategy: mirror
-#     include:
-#       - local: flow/.gitlab-ci.yml
-#   rules:
-#     - *if-protected
-#     - *if-mr
-#     - *flow-changes
-#     - *build-changes
-
-package:
-  stage: Package
-  trigger:    
-    strategy: mirror
-    include:
-      - local: .gitlab/pipelines/package.yml        
-        inputs:
-          package-local-only: "true"
-
-integration:
-  stage: Integration
-  trigger:
-    strategy: mirror
-    include:    
-      - local: .gitlab/pipelines/integration.yml    
-  rules:
-    - *if-protected
-    - *if-mr
-    - *build-changes
-    - if: $RUN_INTEGRATION == "true"      
-    
-publish:
-  stage: Publish
-  trigger:    
-    strategy: mirror
-    include:
-      - local: .gitlab/pipelines/publish.yml
-  rules:
-    - *if-protected    
-    - if: $RUN_PUBLISH == "true"      
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+  script:
+    - echo "IS NOT MR"

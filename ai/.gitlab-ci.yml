@@ -1,17 +1,28 @@
-include:  
-  - local : /.gitlab/.common.yml
-
-stages:  
-  - test  
-
-workflow:
-  rules:
-    - when : always
-    
-test:
-  stage: test
+ai:build:
+  stage: build
   extends: .gradle-job
   script:
     - echo $HOME
     - cd ${CI_PROJECT_DIR}/ai
-    - ./gradlew --no-daemon --console plain test
+    - ./gradlew --no-daemon --console plain test compileTestIT
+
+ai:integration:
+  stage: integration
+  extends: 
+#    - .gradle-job
+#    - .integration-job
+  allow_failure: true
+  script:
+    - echo "CI_PIPELINE_SOURCE=${CI_PIPELINE_SOURCE}"
+    - echo "CI_OPEN_MERGE_REQUESTS=${CI_OPEN_MERGE_REQUESTS}"
+    - echo "CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED=${CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED}"
+    - echo "CI_COMMIT_REF_PROTECTED=${CI_COMMIT_REF_PROTECTED}"
+    - echo "CI_COMMIT_REF_SLUG=${CI_COMMIT_REF_SLUG}"
+    - echo "CI_COMMIT_REF_NAME=${CI_COMMIT_REF_NAME}"
+    - echo "CI_COMMIT_REF_SHA=${CI_COMMIT_REF_SHA}"
+    - echo "CI_COMMIT_REF_MESSAGE=${CI_COMMIT_REF_MESSAGE}"
+    - echo "CI_COMMIT_REF_TIMESTAMP=${CI_COMMIT_REF_TIMESTAMP}"
+    - echo "CI_COMMIT_REF_AUTHOR=${CI_COMMIT_REF_AUTHOR}"
+    - echo "CI_COMMIT_REF_AUTHOR_EMAIL=${CI_COMMIT_REF_AUTHOR_EMAIL}"
+    - cd ${CI_PROJECT_DIR}/ai
+    - ./gradlew --no-daemon --console plain testIT

@@ -1,20 +1,36 @@
-stages:  
-  - integration
+init-integration:
+  stage: init
+  script:
+    - echo "Init integration"
+    - echo "CI_PIPELINE_SOURCE=${CI_PIPELINE_SOURCE}"
+    - echo "CI_OPEN_MERGE_REQUESTS=${CI_OPEN_MERGE_REQUESTS}"
+    - echo "CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED=${CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED}"
+    - echo "CI_COMMIT_REF_PROTECTED=${CI_COMMIT_REF_PROTECTED}"
+    - echo "CI_COMMIT_REF_SLUG=${CI_COMMIT_REF_SLUG}"
+    - echo "CI_COMMIT_REF_NAME=${CI_COMMIT_REF_NAME}"
+    - echo "CI_COMMIT_REF_MESSAGE=${CI_COMMIT_REF_MESSAGE}"
+    - echo "CI_COMMIT_REF_TIMESTAMP=${CI_COMMIT_REF_TIMESTAMP}"
 
-workflow:
-  rules:
-    - when: always
+# integration:init-dev-certs:
+#   stage: init
+#   image: "${IMAGE_MINICA}"
+#   script:         
+#     - cp -R /certs ${CI_PROJECT_DIR}/etc
+#   artifacts:    
+#     when: always
+#     expire_in: "1 days"
+#     paths:
+#       - ${CI_PROJECT_DIR}/etc/certs/**/*
 
-ai:integration:
-  stage: integration
-  trigger:
-    strategy: mirror
-    include:    
-      - local: ai/.gitlab/pipelines/integration.yml        
-
-clients:integration:
-  stage: integration
-  trigger:
-    strategy: mirror
-    include:    
-      - local: clients/.gitlab/pipelines/integration.yml
+# integration:az-login:
+#   stage: init
+#   image: mcr.microsoft.com/azure-cli:cbl-mariner2.0  
+#   script:
+#     - az config set core.only_show_errors=yes
+#     - az login --service-principal -u ${AZ_TEST_SPN} --password ${AZ_TEST_SPN_SECRET} --tenant ${AZ_TEST_TENANT_ID} --allow-no-subscription
+#     - AZ_TOKEN=$(az account get-access-token --scope ${AZ_TEST_SCOPE}/.default --query "accessToken" --output tsv)
+#     - echo -n $AZ_TOKEN > ${CI_PROJECT_DIR}/etc/.test_az_token
+#   artifacts:
+#     expire_in: "1 days"
+#     paths:
+#       - ${CI_PROJECT_DIR}/etc/.test_az_token

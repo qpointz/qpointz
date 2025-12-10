@@ -1,17 +1,43 @@
-include:  
-  - local : /.gitlab/.common.yml
-
-stages:  
-  - build  
-
-workflow:
-  rules:
-    - when : always  
- 
-test:
-  stage: build
+apps:package-dist:
   extends: .gradle-job
+  stage: package
+  needs:
+    - job: services:grinder-ui:build
+      artifacts: true
+      optional: true
   script:
-    - echo $HOME
     - cd ${CI_PROJECT_DIR}/apps
-    - ./gradlew --no-daemon --console plain test check
+    - ./gradlew --no-daemon --console plain clean installBootDist assembleSamples
+  artifacts:
+    expire_in: "5 days"
+    paths:
+      - ${CI_PROJECT_DIR}/apps/mill-service/build/install/**/*
+
+apps:mill-service-base-docker:
+  stage: package
+  extends: .docker-build-job
+  needs:
+    - job: apps:package-dist
+      artifacts: true
+    - job: init-version
+      artifacts: true
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/base/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : mill-service
+    DOCKER_LOCAL_ONLY: $PACKAGE_LOCAL_ONLY
+
+apps:mill-service-samples-docker:
+  stage: package
+  extends: .docker-build-job
+  needs:
+    - job: apps:mill-service-base-docker
+      artifacts: false
+    - job: init-version
+      artifacts: true
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/samples/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : mill-service-samples
+    DOCKER_LOCAL_ONLY: $PACKAGE_LOCAL_ONLY
+    DOCKER_BUILD_ARGS: --build-arg BASE_IMAGE=${CI_REGISTRY_IMAGE}/mill-service:${CI_COMMIT_REF_SLUG}      

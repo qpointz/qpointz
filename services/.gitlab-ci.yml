@@ -1,17 +1,22 @@
-include:  
-  - local : /.gitlab/.common.yml
-  
-stages:  
-  - test  
+services:grinder-ui:build:
+ image: node:24-alpine
+ stage: build
+ script:
+   - cd ${CI_PROJECT_DIR}/services/mill-grinder-ui
+   - npm install
+   - npm run build
+ artifacts:
+   expire_in: "5 days"
+   paths:
+     - ${CI_PROJECT_DIR}/services/mill-grinder-service/src/main/resources/static/app
 
-workflow:
-  rules:
-    - when : always  
-
-test:
-  stage: test
+services:build:
+  stage: build
   extends: .gradle-job
+  needs:
+    - job: services:grinder-ui:build
+      artifacts: true
   script:
     - echo $HOME
     - cd ${CI_PROJECT_DIR}/services
-    - ./gradlew --no-daemon --console plain test check
+    - ./gradlew --no-daemon --console plain test check     

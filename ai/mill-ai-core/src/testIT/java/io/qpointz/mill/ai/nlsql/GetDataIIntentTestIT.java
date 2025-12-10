@@ -66,7 +66,8 @@ public class GetDataIIntentTestIT extends BaseIntentTestIT {
         String query = "how many clients";
         val reason = new ReasoningResponse(query, "get-data", null, List.of(
                 new ReasoningResponse.IntentTable("MONETA", "CLIENTS", false)),
-            SchemaScope.PARTIAL, SchemaStrategy.PARTIAL_RUNTIME_INJECTION, "en", List.of(), "", SqlDialect.SqlFeatures.DEFAULT);
+            SchemaScope.PARTIAL, SchemaStrategy.PARTIAL_RUNTIME_INJECTION, "en", List.of(), "", List.of(),
+                SqlDialect.SqlFeatures.DEFAULT);
         val gd = this.intentSpecs()
                 .getDataIntent().getCall(reason);
 

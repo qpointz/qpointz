@@ -62,6 +62,10 @@
     reports:
       dotenv: version.env
 
+.integration-job:
+  rules:
+      - if: $CI_COMMIT_REF_PROTECTED == "true"
+      - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
 .gradle-job:
   image:

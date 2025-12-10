@@ -1,36 +1,47 @@
-include:  
-  - local : /.gitlab/.common.yml
-
-stages:  
-  - init
-  - test  
-
-workflow:
-  rules:
-    - when : always
-
-
-include:
-  - local : /.gitlab/.common.yml
-  - local : /clients/.gitlab/common.yml
+.mill-py-test: &mill-py-test
+  stage: build
+  variables:
+    TEST_TYPE: "unit"
+    PY_VER: "3.10"
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:${PY_VER}-slim
+  script:    
+    - cd ${CI_PROJECT_DIR}/clients/mill-py
+    - |
+      echo "Python version: ${PY_VER}"
+      echo "Test type: ${TEST_TYPE}"
+    - |
+      pip install poetry
+      poetry install --with dev,test
+    - poetry run coverage run -m pytest tests/${TEST_TYPE} --junitxml build/test-results/test-report-${TEST_TYPE}-${PY_VER}.xml
+    - poetry run coverage xml -o build/coverage-results/coverage-${TEST_TYPE}-${PY_VER}.xml
+  artifacts:
+    expire_in: "5 days"
+    reports:
+      junit: ${CI_PROJECT_DIR}/clients/mill-py/build/test-results/*.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: ${CI_PROJECT_DIR}/clients/mill-py/build/coverage-results/*.xml
+    paths:      
+      - ${CI_PROJECT_DIR}/clients/mill-py/build/test-results/*.xml
+      - ${CI_PROJECT_DIR}/clients/mill-py/build/coverage-results/*.xml
 
 
 ##python 3.10
-mill-py:test-3.10:  
+clients:mill-py:test-3.10:  
   extends: .mill-py-test    
   variables:
     TEST_TYPE: "unit"
     PY_VER: "3.10"
   
 ##python 3.11
-mill-py:test-3.11:  
+clients:mill-py:test-3.11:  
   extends: .mill-py-test    
   variables:
     TEST_TYPE: "unit"
     PY_VER: "3.11"  
 
 ##python 3.12
-mill-py:test-3.12:
+clients:mill-py:test-3.12:
   extends: .mill-py-test    
   variables:
     TEST_TYPE: "unit"

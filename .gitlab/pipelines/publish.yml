@@ -1,37 +1,4 @@
-stages:
-  - init
-  - package
-  - publish
-
-workflow:
-  rules:
-    - when: always  
-
-include:
-  - local : /.gitlab/.vars.yml
-
-init:
-  stage: init
-  script:
-    - echo "Publish init"
-
-apps:publish:
-  stage: package
-  trigger:
-    strategy: mirror
-    include:    
-      - local: apps/.gitlab/pipelines/package.yml    
-        inputs:
-          package-local-only: false
-
-publish-docs:
-  stage: package
-  trigger:    
-    strategy: mirror
-    include:
-      - local: docs/.gitlab-ci.yml
-
-semantic-release:
+publish:semantic-release:
   image: ${IMAGE_SEM_RELEASE}
   stage: publish
   variables:
@@ -44,4 +11,40 @@ semantic-release:
     - rc
   script:
     - export GITLAB_TOKEN=${CI_PUSH_TOKEN}
-    - npx semantic-release --ci --debug      
+    - npx semantic-release --ci --debug
+
+publish:docs:
+  stage: publish
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:3.12-slim
+  needs:
+    - job: init-version
+      artifacts: true
+  variables:
+    GIT_STRATEGY: clone
+    GL_TOKEN: ${CI_PUSH_TOKEN}
+    GL_URL: "https://gitlab.qpointz.io"
+    GIT_DEPTH: 0
+    GIT_COMMITTER_NAME: docs-bot
+    GIT_COMMITTER_EMAIL: docs-bot@qpointz.io
+  before_script:
+    - cd ${CI_PROJECT_DIR}/docs
+    - pip install -r requirements.txt    
+    - apt-get update && 
+    - apt-get install -y git && 
+    - apt-get clean && 
+    - rm -rf /var/lib/apt/lists/*
+    - echo $CI_PUSH_TOKEN
+    - git remote add push_origin https://oauth2:${CI_PUSH_TOKEN}@gitlab.qpointz.io/${CI_PROJECT_PATH}.git
+    - git remote get-url push_origin
+  script:
+    - !reference [.global-vars, before_script]
+    - echo "VERSION:${QP_VERSION}"
+    - cd ${CI_PROJECT_DIR}/docs    
+    - export VERSION_ALIAS=""
+    - |
+      if [[ "main" == "${CI_COMMIT_REF_SLUG}" ]]
+      then
+        export VERSION_ALIAS="latest"
+      fi
+      mike deploy --update-aliases ${QP_VERSION} ${VERSION_ALIAS}        
+    - git push push_origin gh-pages:gh-pages --force

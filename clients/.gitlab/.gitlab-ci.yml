@@ -18,22 +18,7 @@ mill-clients:init-version:
   stage: init
   extends: .init-next-version  
 
-mill-clients:init-certs:
-  stage: init
-  extends: .init-dev-certs  
 
-mill-clients:init-az-login:
-  stage: init
-  image: mcr.microsoft.com/azure-cli:cbl-mariner2.0  
-  script:
-    - az config set core.only_show_errors=yes
-    - az login --service-principal -u ${AZ_TEST_SPN} --password ${AZ_TEST_SPN_SECRET} --tenant ${AZ_TEST_TENANT_ID} --allow-no-subscription
-    - AZ_TOKEN=$(az account get-access-token --scope ${AZ_TEST_SCOPE}/.default --query "accessToken" --output tsv)
-    - echo -n $AZ_TOKEN > ${CI_PROJECT_DIR}/etc/.test_az_token
-  artifacts:
-    expire_in: "1 days"
-    paths:
-      - ${CI_PROJECT_DIR}/etc/.test_az_token
 
 .mill:grpc-services:
   services:
