@@ -5,11 +5,33 @@ stages:
   - integration
   - publish
 
+variables:
+  RUN_INTEGRATION: 
+    value: "false" 
+    description: "Set to true to run integration tests"
+    options:
+      - "true"
+      - "false"
+  
+
+workflow:
+  rules:
+    - if: '$CI_COMMIT_REF_PROTECTED == "true"'
+      variables:
+        RUN_INTEGRATION: "true"
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      variables:
+        RUN_INTEGRATION: "true"
+    - when: always
+
 .if-protected: &if-protected
-  if: '$CI_COMMIT_REF_PROTECTED == "true"'  
+  if: '$CI_COMMIT_REF_PROTECTED == "true"'
 
 .if-mr: &if-mr
-  if: '$CI_PIPELINE_SOURCE == "merge_request_event"'  
+  if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+.if-run-integration: &if-run-integration
+  if: '$RUN_INTEGRATION == "true"'
 
 .build-changes: &build-changes
   changes:
@@ -22,8 +44,7 @@ include:
   - local: ${CI_PROJECT_DIR}/.gitlab/.common.yml
   - local: ${CI_PROJECT_DIR}/.gitlab/pipelines/integration.yml
     rules:    
-      - *if-mr
-      - *if-protected
+      - *if-run-integration
       - when: never
   - local : ${CI_PROJECT_DIR}/core/.gitlab-ci.yml
     rules:
@@ -75,26 +96,8 @@ include:
 init-version:
   stage: init
   extends: .get-build-version
-
-test:
-  stage: init
-  script:
-    - echo "CI_PIPELINE_SOURCE=${CI_PIPELINE_SOURCE}"
-    - echo "CI_OPEN_MERGE_REQUESTS=${CI_OPEN_MERGE_REQUESTS}"
-    - echo "CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED=${CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED}"
-
-is-mr:
-  stage: init
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - when: never
-  script:
-    - echo "IS MR"
-
-is-not-mr:
-  stage: init
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: never
-  script:
-    - echo "IS NOT MR"
+      - *if-mr
+      - *if-protected
+      - *build-changes
+      - when: never

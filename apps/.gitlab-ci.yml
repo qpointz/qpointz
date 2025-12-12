@@ -21,6 +21,7 @@ apps:mill-service-base-docker:
       artifacts: true
     - job: init-version
       artifacts: true
+      optional: true
   variables:
     DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
     DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/base/Dockerfile
@@ -35,6 +36,7 @@ apps:mill-service-samples-docker:
       artifacts: false
     - job: init-version
       artifacts: true
+      optional: true
   variables:
     DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
     DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/samples/Dockerfile

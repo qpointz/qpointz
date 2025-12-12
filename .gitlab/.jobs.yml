@@ -64,8 +64,7 @@
 
 .integration-job:
   rules:
-      - if: $CI_COMMIT_REF_PROTECTED == "true"
-      - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      - if: '$RUN_INTEGRATION == "true"'
 
 .gradle-job:
   image:
@@ -77,7 +76,7 @@
     paths:
       - ${CI_PROJECT_DIR}/**/.gradle
       - ${CI_PROJECT_DIR}/.gradle-home
-    policy: pull-push
+    #policy: pull-push
 
 .docker-base:
     image: 

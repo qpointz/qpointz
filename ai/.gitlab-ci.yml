@@ -9,8 +9,8 @@ ai:build:
 ai:integration:
   stage: integration
   extends: 
-#    - .gradle-job
-#    - .integration-job
+    - .gradle-job
+    - .integration-job
   allow_failure: true
   script:
     - echo "CI_PIPELINE_SOURCE=${CI_PIPELINE_SOURCE}"
