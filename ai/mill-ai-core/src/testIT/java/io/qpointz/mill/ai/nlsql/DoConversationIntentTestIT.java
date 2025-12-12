@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.nlsql;
 
+import io.qpointz.mill.ai.chat.ChatUserRequests;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
@@ -32,9 +33,10 @@ public class DoConversationIntentTestIT extends BaseIntentTestIT {
     }
 
     Map<String, Object> doConversation(String query) {
-        val rc = intentSpecs()
-                .reasonCall(query)
-                .as(ReasoningResponse.class);
+        val response = this.getReasoner()
+                .reason(ChatUserRequests.query(query));
+        val rc = response
+                .reasoningResponse();
 
         log.info("Reason: ({}) => {}", query, rc);
         assertEquals("do-conversation", rc.intent());

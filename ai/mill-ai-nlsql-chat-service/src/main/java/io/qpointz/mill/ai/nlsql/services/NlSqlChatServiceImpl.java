@@ -13,20 +13,27 @@ import io.qpointz.mill.ai.nlsql.repositories.UserChatMessageRepository;
 import io.qpointz.mill.ai.nlsql.repositories.UserChatRepository;
 import io.qpointz.mill.services.annotations.ConditionalOnService;
 import lombok.val;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.http.codec.ServerSentEvent;
-        import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
-        import java.util.List;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Orchestrates chat lifecycle operations (CRUD, message handling, SSE streaming).
+ * Critical path: maintains per-chat sessions so chat memory and event streams stay aligned;
+ * altering session reuse semantics can break conversation continuity.
+ */
 @Service
 @ConditionalOnService("ai-nl2data")
+@Slf4j
 public class NlSqlChatServiceImpl implements NlSqlChatService {
 
     private static final String ANON_USER = "<ANONYMOUS>";
@@ -49,6 +56,9 @@ public class NlSqlChatServiceImpl implements NlSqlChatService {
         this.chatProcessor = chatProcessor;
     }
 
+    /**
+     * Resolves the current principal name or an anonymous marker.
+     */
     private static String getUserName() {
         val ctx = SecurityContextHolder.getContext();
         val auth = ctx.getAuthentication();
@@ -59,23 +69,35 @@ public class NlSqlChatServiceImpl implements NlSqlChatService {
         return auth.getName();
     }
 
+    /**
+     * Lists chats for the active user.
+     */
     @Override
     public List<Chat> listChats() {
+        log.debug("Listing chats for user {}", getUserName());
         return this.userChatRepository
                 .chatsByUser(getUserName()).stream()
                 .map(UserChat::toPojo)
                 .toList();
     }
 
+    /**
+     * Retrieves chat metadata.
+     */
     @Override
     public Optional<Chat> getChat(UUID chatId) {
+        log.debug("Getting chat {}", chatId);
         return this.userChatRepository
                 .findById(chatId)
                 .map(UserChat::toPojo);
     }
 
+    /**
+     * Updates chat name/favorite flags and persists.
+     */
     @Override
     public Optional<Chat> updateChat(UUID chatId, Chat.UpdateChatRequest request) {
+        log.info("Updating chat {} favorite={} namePresent={}", chatId, request.isFavorite().isPresent(), request.chatName().isPresent());
         val uc = this.userChatRepository.findById(chatId);
         return uc.map(k-> {
             if (request.chatName().isPresent()) {
@@ -91,8 +113,12 @@ public class NlSqlChatServiceImpl implements NlSqlChatService {
         .map(UserChat::toPojo);
     }
 
+    /**
+     * Deletes a chat if it exists.
+     */
     @Override
     public boolean deleteChat(UUID chatId) {
+        log.info("Deleting chat {}", chatId);
         val uc = this.userChatRepository
                 .findById(chatId);
         if (uc.isPresent()) {
@@ -102,8 +128,12 @@ public class NlSqlChatServiceImpl implements NlSqlChatService {
         return false;
     }
 
+    /**
+     * Lists messages for a chat id.
+     */
     @Override
     public Optional<List<ChatMessage>> listChatMessages(UUID chatId) {
+        log.debug("Listing messages for chat {}", chatId);
         val mayBeChat = this.userChatRepository.findById(chatId);
 
         if (mayBeChat.isEmpty()) {
@@ -119,8 +149,12 @@ public class NlSqlChatServiceImpl implements NlSqlChatService {
     }
 
 
+    /**
+     * Creates a new chat, emits the initial user message, and triggers processing.
+     */
     @Override
     public Chat createChat(Chat.CreateChatRequest request) {
+        log.info("Creating chat name='{}'", request.name());
         val userChat =  this.userChatRepository.save(UserChat.builder()
                 .name(request.name())
                 .userName(getUserName())
@@ -145,6 +179,9 @@ public class NlSqlChatServiceImpl implements NlSqlChatService {
     }
 
 
+    /**
+     * Locates or creates the session backing a chat id.
+     */
     private Optional<ChatSession> getSession(UUID chatId) {
         val mayBeChat =  this.userChatRepository
                 .findById(chatId);
@@ -160,8 +197,12 @@ public class NlSqlChatServiceImpl implements NlSqlChatService {
     }
 
 
+    /**
+     * Posts a user message to an existing chat and triggers NL→SQL processing.
+     */
     @Override
     public Optional<ChatMessage> postChatMessage(UUID chatId, Chat.SendChatMessageRequest request) {
+        log.info("Posting user message to chat {}", chatId);
         return getSession(chatId).map(session -> {
                     val userChatMessage = this.userChatMessageRepository.save(UserChatMessage.builder()
                             .role(MessageRole.USER)
@@ -178,6 +219,9 @@ public class NlSqlChatServiceImpl implements NlSqlChatService {
                 });
     }
 
+    /**
+     * Returns the SSE stream for a chat session.
+     */
     @Override
     public Optional<Flux<ServerSentEvent<?>>> chatStrtream(UUID chatId) {
         return getSession(chatId).map(ChatSession::stream);

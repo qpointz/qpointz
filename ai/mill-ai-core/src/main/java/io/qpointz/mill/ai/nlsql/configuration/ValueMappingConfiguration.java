@@ -39,6 +39,14 @@ public class ValueMappingConfiguration {
     private String dialect;
 
     /**
+     * Reasoner type to use for NL2SQL processing. Valid values: "default", "stepback".
+     * Defaults to "default" which uses DefaultReasoner.
+     */
+    @Getter
+    @Setter
+    private String reasoner = "default";
+
+    /**
      * Raw value mapping source documents. Each entry is further deserialised into a specialised
      * {@link ValueMappingDocumentSource}.
      */

@@ -4,7 +4,7 @@ ai:build:
   script:
     - echo $HOME
     - cd ${CI_PROJECT_DIR}/ai
-    - ./gradlew --no-daemon --console plain test compileTestIT
+    - ./gradlew --no-daemon --console plain clean test compileTestIT
 
 ai:integration:
   stage: integration

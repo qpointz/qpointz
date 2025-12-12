@@ -1,7 +1,6 @@
 package io.qpointz.mill.ai.nlsql.components;
 
 import io.qpointz.mill.ai.nlsql.model.UserChat;
-import io.qpointz.mill.ai.nlsql.model.pojo.Chat;
 import lombok.AllArgsConstructor;
 import lombok.val;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -11,6 +10,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
+/**
+ * Manages per-chat sessions, ensuring each chat has isolated builders and sinks.
+ */
 @AllArgsConstructor
 public class ChatSessionManager {
 
@@ -21,6 +23,14 @@ public class ChatSessionManager {
     private final ConcurrentHashMap<UUID,ChatSession> sessions =
             new ConcurrentHashMap<>();
 
+    /**
+     * Returns an existing chat session or creates one bound to the provided chat entity.
+     * Critical path: uses a concurrent map to ensure per-chat session/memory isolation;
+     * avoid bypassing computeIfAbsent to prevent duplicate sessions and memory divergence.
+     *
+     * @param of user chat entity
+     * @return session wrapper with chat builders and SSE sink
+     */
     public ChatSession getOrCreate(UserChat of) {
         return this.sessions.computeIfAbsent(of.getId(),
                 k -> new ChatSession(of, chatModel, chatMemory));

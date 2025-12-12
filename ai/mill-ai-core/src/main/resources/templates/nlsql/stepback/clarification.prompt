@@ -1,0 +1,18 @@
+Previous step-back response paused for clarification.
+
+Original user request:
+{{ originalQuestion }}
+
+Prior clarification questions:
+{% if previousQuestions is not empty %}
+{% for q in previousQuestions %}
+- {{ q.id }}: {{ q.question }}{% if q.expectedType %} (expected: {{ q.expectedType }}){% endif %}
+{% endfor %}
+{% else %}
+- None
+{% endif %}
+
+User clarification provided:
+{{ clarificationAnswer }}
+
+Re-run the step-back analysis with this clarification applied. Keep the JSON output format and continue the paused reasoning session; only clear the clarification flag if the ambiguity is resolved.

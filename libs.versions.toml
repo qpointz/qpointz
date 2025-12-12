@@ -148,6 +148,7 @@ springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openap
 springdoc-openapi-starter-webflux-api = { module = "org.springdoc:springdoc-openapi-starter-webflux-api", version.ref = "springDoc" }
 
 micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer" }
+caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version = "3.2.3" }
 
 [bundles]
 logging = ["slf4j-api", "logback-core", "logback-classic", "fusesource-jansi"]

@@ -37,8 +37,8 @@ class DefaultValueRepositoryTestIT extends BaseIntegrationTestIT {
     void test() {
         val rep = new DefaultValueRepository(this.vectorStore);
         val docs = List.of(
-                new ValueRepository.ValueDocument("1", List.of("P","T", "A"), "US", "Country name: United States of America", Optional.of("Country name"), Optional.empty()),
-                new ValueRepository.ValueDocument("2", List.of("P","T", "A"), "KR", "Country name: Republic of South Korea", Optional.of("Country name"), Optional.empty())
+                new ValueRepository.ValueDocument("1", List.of("P","T", "A"), "US", "Country name: United States of America", Optional.of("Country name"), Optional.of(0.4)),
+                new ValueRepository.ValueDocument("2", List.of("P","T", "A"), "KR", "Country name: Republic of South Korea", Optional.of("Country name"), Optional.of(0.4))
         );
         rep.ingest(docs);
         val res = rep.lookupValue(List.of("P","T","A"), "Korea");

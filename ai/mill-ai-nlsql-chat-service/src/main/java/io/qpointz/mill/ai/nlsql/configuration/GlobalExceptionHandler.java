@@ -11,12 +11,21 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+/**
+ * Handles module-specific exceptions and maps them to HTTP responses.
+ */
 @RestControllerAdvice
 @Configuration
 @ConditionalOnService("ai-nl2data")
 @Order(Ordered.LOWEST_PRECEDENCE)
 public class GlobalExceptionHandler {
 
+    /**
+     * Maps domain not-found exceptions to HTTP 404 responses.
+     *
+     * @param ex domain not-found exception
+     * @return framework error response payload
+     */
     @ExceptionHandler(MIllNotFoundStatusException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFoundException(MIllNotFoundStatusException ex) {

@@ -1,10 +1,13 @@
 package io.qpointz.mill.ai.nlsql;
 
 import io.qpointz.mill.ai.BaseIntegrationTestIT;
+import io.qpointz.mill.ai.chat.ChatUserRequests;
+import io.qpointz.mill.ai.chat.messages.MessageSelector;
 import io.qpointz.mill.ai.chat.messages.MessageSelectors;
 import io.qpointz.mill.ai.nlsql.components.DefaultValueMapper;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.models.SqlDialect;
+import io.qpointz.mill.ai.nlsql.reasoners.DefaultReasoner;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.services.metadata.MetadataProvider;
 import io.qpointz.mill.utils.JsonUtils;
@@ -44,6 +47,12 @@ public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
     @Getter(AccessLevel.PROTECTED)
     private final SqlDialect sqlDialect;
 
+    @Getter(AccessLevel.PROTECTED)
+    private final DefaultReasoner reasoner;
+
+    @Getter(AccessLevel.PROTECTED)
+    private final MessageSelector messageSelector;
+
     protected BaseIntentTestIT(ChatModel model,
                                MetadataProvider metadataProvider,
                                SqlDialect sqlDialect,
@@ -60,7 +69,9 @@ public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
         this.callSpecBuilders = new CallSpecsChatClientBuilders(
                 model, this.chatMemory, UUID.randomUUID().toString());
         this.sqlDialect = sqlDialect;
-        this.intentSpecs = new IntentSpecs(metadataProvider, sqlDialect, this.callSpecBuilders, dispatcher, MessageSelectors.SIMPLE, new DefaultValueMapper());
+        this.messageSelector = MessageSelectors.SIMPLE;
+        this.intentSpecs = new IntentSpecs(metadataProvider, sqlDialect, this.callSpecBuilders, dispatcher, this.messageSelector, new DefaultValueMapper(), ChatEventProducer.DEFAULT);
+        this.reasoner = new DefaultReasoner(this.callSpecBuilders, metadataProvider, MessageSelectors.SIMPLE);
     }
 
     protected void intentAppTest(String query, String expectedIntent) {
@@ -72,12 +83,14 @@ public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
                 this.sqlDialect,
                 this.dispatcher,
                 MessageSelectors.SIMPLE,
-                new DefaultValueMapper());
-        val reason = app.reason(query)
-                .as(ReasoningResponse.class);
+                new DefaultValueMapper(),
+                this.getReasoner(),
+                ChatEventProducer.DEFAULT);
+        val reason = app.reason(ChatUserRequests.query(query))
+                        .reasoningResponse();
         assertEquals(expectedIntent, reason.intent(), "Intent missmatch after reasoning");
 
-        val call = app.query(query)
+        val call = app.query(ChatUserRequests.query(query))
                 .asMap();
 
         val callReason = JsonUtils.defaultJsonMapper()

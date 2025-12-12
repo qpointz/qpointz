@@ -11,6 +11,9 @@ import java.util.UUID;
 @Transactional
 public interface UserChatMessageRepository extends CrudRepository<UserChatMessage, Long> {
 
+    /**
+     * Lists chat messages for a chat ordered by creation time.
+     */
     @Query("SELECT u FROM UserChatMessage u WHERE u.userChat.id = ?1 ORDER BY u.created ASC")
     List<UserChatMessage> listMessagesByChatId(UUID chatId);
 }

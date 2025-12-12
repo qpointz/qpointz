@@ -21,23 +21,38 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
+/**
+ * Declares AI-related beans: chat memory, vector store, and value mapping.
+ */
 @Configuration
 @Component
 @ConditionalOnService("ai-nl2data")
 public class AIConfiguration {
 
+    /**
+     * AI-related beans: chat memory, vector store, and value mapping.
+     */
+    /**
+     * In-memory chat memory window for lightweight/local profiles.
+     */
     @Bean
     @ConditionalOnProperty(prefix = "mill.ai.chat", name = "memory", havingValue = "in-memory")
     public ChatMemory millAiChatMemoryinMemory() {
         return createChatMemory(new InMemoryChatMemoryRepository());
     }
 
+    /**
+     * JDBC-backed chat memory window when persistence is configured.
+     */
     @Bean
     @ConditionalOnProperty(prefix = "mill.ai.chat", name = "memory", havingValue = "jdbc")
     public ChatMemory nlssqlChatMemory(JdbcChatMemoryRepository repository) {
         return createChatMemory(repository);
     }
 
+    /**
+     * Common builder for windowed chat memory; critical for prompt grounding and clarification continuity.
+     */
     private static ChatMemory createChatMemory(ChatMemoryRepository chatMemoryRepository) {
         return MessageWindowChatMemory.builder()
                 .maxMessages(10)
@@ -45,6 +60,9 @@ public class AIConfiguration {
                 .build();
     }
 
+    /**
+     * Vector store used for value mapping / retrieval in NL→SQL flows.
+     */
     @Bean
     public VectorStore vectorStore(EmbeddingModel embeddingModel) {
         return SimpleVectorStore
@@ -52,11 +70,17 @@ public class AIConfiguration {
                 .build();
     }
 
+    /**
+     * Repository providing value mappings; defaults to a vector-backed store.
+     */
     @Bean
     public ValueRepository defaultValueRepository(VectorStore vectorStore) {
         return new DefaultValueRepository(vectorStore);
     }
 
+    /**
+     * Mapper that translates user-provided values using configured repository (vector-backed when available).
+     */
     @Bean
     public ValueMapper defaultValueMapper(@Autowired(required = true) ValueRepository defaultValueRepository) {
         return defaultValueRepository != null

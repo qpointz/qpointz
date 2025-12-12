@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.nlsql.processors;
 
+import io.qpointz.mill.ai.nlsql.ChatEventProducer;
 import io.qpointz.mill.ai.nlsql.components.DefaultValueMapper;
 import lombok.val;
 import org.junit.jupiter.api.Test;
@@ -13,7 +14,7 @@ class MapValueProcessorTest {
 
 
     private MapValueProcessor processor() {
-        return new MapValueProcessor(new DefaultValueMapper());
+        return new MapValueProcessor(new DefaultValueMapper(), ChatEventProducer.DEFAULT);
     }
 
     @Test

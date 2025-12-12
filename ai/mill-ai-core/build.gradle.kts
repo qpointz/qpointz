@@ -17,6 +17,7 @@ dependencies {
     implementation(libs.boot.starter)
     implementation(libs.jackson.core)
     implementation(libs.apache.commons.codec)
+    implementation(libs.caffeine)
     api(libs.spring.ai.client.chat)
     api(libs.spring.ai.vector.store)
     compileOnly(libs.bundles.logging)

@@ -8,6 +8,7 @@ import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.services.metadata.MetadataProvider;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import java.util.HashMap;
@@ -18,6 +19,7 @@ import static io.qpointz.mill.ai.nlsql.ChatCallBase.applyPostProcessors;
 import static io.qpointz.mill.ai.nlsql.MessageSpecs.*;
 import static io.qpointz.mill.ai.nlsql.PostProcessors.*;
 
+@Slf4j
 public class IntentSpecs {
 
     @Getter
@@ -41,18 +43,23 @@ public class IntentSpecs {
     @Getter
     private final ValueMapper valueMapper;
 
+    @Getter
+    private final ChatEventProducer eventProducer;
+
     public IntentSpecs(MetadataProvider metadataProvider,
                        SqlDialect sqlDialect,
                        CallSpecsChatClientBuilders chatBuilders,
                        DataOperationDispatcher dispatcher,
                        MessageSelector messageSelector,
-                       ValueMapper valueMapper) {
+                       ValueMapper valueMapper,
+                       ChatEventProducer eventProducer) {
         this.metadataProvider = metadataProvider;
         this.chatBuilders = chatBuilders;
         this.dispatcher = dispatcher;
         this.messageSelector = messageSelector;
         this.sqlDialect = sqlDialect;
         this.valueMapper = valueMapper;
+        this.eventProducer = eventProducer;
         this.intents  = List.of(
                 getDataIntent(),
                 getChartIntent(),
@@ -64,17 +71,6 @@ public class IntentSpecs {
         );
     }
 
-
-    public ChatCall reasonCall(String query) {
-        return new ReasonCall(
-                query,
-                this.chatBuilders.reasoningChat(),
-                reason(query, metadataProvider),
-                this.messageSelector);
-    }
-
-
-
     public static final String GET_DATA_INTENT_KEY = "get-data";
     public IntentSpec getDataIntent() {
         return IntentSpec.builder(GET_DATA_INTENT_KEY)
@@ -82,8 +78,8 @@ public class IntentSpecs {
                         getData(reason, metadataProvider, sqlDialect),
                         this.messageSelector))
                 .postProcessorFunc(reason -> List.of(
-                        mapValueProcessor(this.valueMapper),
-                        submitQueryProcessor(dispatcher, 10),
+                        mapValueProcessor(this.valueMapper, this.eventProducer),
+                        submitQueryProcessor(dispatcher, 10, this.eventProducer),
                         retainReasoning(reason)))
                 .build();
     }
@@ -95,8 +91,8 @@ public class IntentSpecs {
                         getChart(reason, metadataProvider, sqlDialect),
                         this.messageSelector))
                 .postProcessorFunc(reason -> List.of(
-                        mapValueProcessor(this.valueMapper),
-                        executeQueryProcessor(dispatcher),
+                        mapValueProcessor(this.valueMapper, this.eventProducer),
+                        executeQueryProcessor(dispatcher, eventProducer),
                         retainReasoning(reason)))
                 .build();
     }
@@ -158,6 +154,17 @@ public class IntentSpecs {
                 .filter(k-> k.getKey().equals(intent))
                 .findFirst()
                 .orElseThrow(() -> new MillRuntimeException("Unknown intent: " + intent));
+    }
+
+    public ChatCall getIntentCall(ReasoningResponse reasoningResponse) {
+        log.info("Resolving intent '{}'", reasoningResponse.intent());
+        log.info("Reasoning response:'{}'", reasoningResponse);
+        val intent = reasoningResponse
+                .intent()
+                .toLowerCase();
+        return this
+                .getIntent(intent)
+                .getCall(reasoningResponse);
     }
 
 }

@@ -1,6 +1,7 @@
 package io.qpointz.mill.ai.nlsql.processors;
 
 import io.qpointz.mill.ai.chat.ChatCallPostProcessor;
+import io.qpointz.mill.ai.nlsql.ChatEventProducer;
 import io.qpointz.mill.proto.Field;
 import io.qpointz.mill.proto.QueryExecutionConfig;
 import io.qpointz.mill.proto.QueryRequest;
@@ -24,6 +25,9 @@ public class SubmitQueryProcessor implements ChatCallPostProcessor {
     @Getter
     private final int resultPageSize;
 
+    @Getter
+    private final ChatEventProducer eventProducer;
+
     public record PagingResult(String continueLink, List<List<Object>> data, List<String> fields) implements QueryResult.DataContainer {}
 
     @Override
@@ -35,9 +39,12 @@ public class SubmitQueryProcessor implements ChatCallPostProcessor {
         val sql = result.get("sql").toString();
         val updated = new HashMap<>(result);
         try {
+            eventProducer.beginProgressEvent("Execute query");
             val execution = submit(sql);
             updated.put("data", execution);
+            eventProducer.endProgressEvent();
         } catch (Exception ex) {
+            eventProducer.chatErrorEvent(ex.getMessage());
             val error = ex.getMessage();
             log.error("Error submitting SQL: {}", sql, ex);
             updated.put("error", error);

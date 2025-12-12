@@ -18,16 +18,16 @@ public class PostProcessors {
         return new RetainReasoningProcessor(reason);
     }
 
-    public static SubmitQueryProcessor submitQueryProcessor(DataOperationDispatcher dispatcher, int i) {
-        return new SubmitQueryProcessor(dispatcher, 10);
+    public static SubmitQueryProcessor submitQueryProcessor(DataOperationDispatcher dispatcher, int i, ChatEventProducer eventProducer) {
+        return new SubmitQueryProcessor(dispatcher, 10, eventProducer);
     }
 
-    public static ExecuteQueryProcessor executeQueryProcessor(DataOperationDispatcher dispatcher) {
-        return new ExecuteQueryProcessor(dispatcher);
+    public static ExecuteQueryProcessor executeQueryProcessor(DataOperationDispatcher dispatcher, ChatEventProducer eventProducer) {
+        return new ExecuteQueryProcessor(dispatcher, eventProducer);
     }
 
-    public static MapValueProcessor mapValueProcessor(ValueMapper valueMapper) {
-        return new MapValueProcessor(valueMapper);
+    public static MapValueProcessor mapValueProcessor(ValueMapper valueMapper, ChatEventProducer eventProducer) {
+        return new MapValueProcessor(valueMapper, eventProducer);
     }
 
     public static RefineIntentProcessor refineProcessor(ReasoningResponse response, IntentSpecs specs) {

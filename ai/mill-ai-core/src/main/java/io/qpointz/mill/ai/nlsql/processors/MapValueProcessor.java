@@ -1,6 +1,7 @@
 package io.qpointz.mill.ai.nlsql.processors;
 
 import io.qpointz.mill.ai.chat.ChatCallPostProcessor;
+import io.qpointz.mill.ai.nlsql.ChatEventProducer;
 import io.qpointz.mill.ai.nlsql.ValueMapper;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.AllArgsConstructor;
@@ -22,8 +23,12 @@ public class MapValueProcessor implements ChatCallPostProcessor {
     @Getter
     private final ValueMapper valueMapper;
 
+    @Getter
+    private final ChatEventProducer eventProducer;
+
     @Override
     public Map<String, Object> process(Map<String, Object> result) {
+        eventProducer.beginProgressEvent("Prepare query...");
         val proc =  new HashMap<String, Object>();
         proc.putAll(result);
 
@@ -54,6 +59,8 @@ public class MapValueProcessor implements ChatCallPostProcessor {
         }
 
         proc.put("sql", sql);
+
+        eventProducer.endProgressEvent();
         return proc;
     }
 

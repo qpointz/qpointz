@@ -1,0 +1,18 @@
+Continue reasoning using the clarified request.
+
+Original request:
+{{ originalQuestion }}
+
+Clarification answer:
+{{ clarificationAnswer }}
+
+Previously asked clarification questions:
+{% if previousQuestions is not empty %}
+{% for q in previousQuestions %}
+- {{ q.id }}: {{ q.question }}{% if q.expectedType %} (expected: {{ q.expectedType }}){% endif %}
+{% endfor %}
+{% else %}
+- None
+{% endif %}
+
+Return the intent JSON in the exact structure defined in the system prompt. No markdown.

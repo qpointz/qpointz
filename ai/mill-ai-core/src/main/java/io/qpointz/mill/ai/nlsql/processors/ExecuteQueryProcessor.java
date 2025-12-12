@@ -1,6 +1,7 @@
 package io.qpointz.mill.ai.nlsql.processors;
 
 import io.qpointz.mill.ai.chat.ChatCallPostProcessor;
+import io.qpointz.mill.ai.nlsql.ChatEventProducer;
 import io.qpointz.mill.proto.Field;
 import io.qpointz.mill.proto.QueryExecutionConfig;
 import io.qpointz.mill.proto.QueryRequest;
@@ -21,6 +22,9 @@ public class ExecuteQueryProcessor implements ChatCallPostProcessor {
     @Getter
     private final DataOperationDispatcher dispatcher;
 
+    @Getter
+    private final ChatEventProducer eventProducer;
+
     public record ExecutionResult(List<List<Object>> data, List<String> fields) implements QueryResult.DataContainer {}
 
     @Override
@@ -35,9 +39,12 @@ public class ExecuteQueryProcessor implements ChatCallPostProcessor {
         val updated = new HashMap<>(result);
 
         try {
+            eventProducer.beginProgressEvent("Executing query");
             val execution = execute(sql);
             updated.put("data", execution);
+            eventProducer.endProgressEvent();
         } catch (Exception ex) {
+            eventProducer.chatErrorEvent(ex.getMessage());
             val error = ex.getMessage();
             log.error("Error executing SQL: {}", sql, ex);
             updated.put("error", error);
@@ -49,7 +56,7 @@ public class ExecuteQueryProcessor implements ChatCallPostProcessor {
     public QueryResult execute(String sql) {
         val request = QueryRequest.newBuilder()
                 .setConfig(QueryExecutionConfig.newBuilder()
-                        .setFetchSize(1000)
+                        .setFetchSize(100)
                         .build())
                 .setStatement(SQLStatement.newBuilder()
                         .setSql(sql)

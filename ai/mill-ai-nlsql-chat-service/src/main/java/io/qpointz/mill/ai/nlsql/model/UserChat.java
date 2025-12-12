@@ -24,6 +24,9 @@ import java.util.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+/**
+ * Entity representing a user-scoped chat session metadata and messages.
+ */
 public class UserChat {
 
     public static final String TABLE_NAME = "user_chat";
@@ -64,6 +67,9 @@ public class UserChat {
     @Builder.Default
     private List<UserChatMessage> chatMessages = new ArrayList<>();
 
+    /**
+     * Converts the entity into its API-facing DTO.
+     */
     public Chat toPojo() {
         return new Chat(this.id, this.name, this.isFavorite, this.created);
     }

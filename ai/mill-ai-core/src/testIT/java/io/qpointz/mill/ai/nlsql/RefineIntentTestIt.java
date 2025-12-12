@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.nlsql;
 
+import io.qpointz.mill.ai.chat.ChatUserRequests;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
@@ -48,9 +49,9 @@ public class RefineIntentTestIt extends BaseIntentTestIT {
 
     //original request get-data
     Map<String, Object> getData(String query) {
-        val rc = intentSpecs()
-                .reasonCall(query)
-                .as(ReasoningResponse.class);
+        val rc = this.getReasoner()
+                .reason(ChatUserRequests.query(query))
+                .reasoningResponse();
 
         log.info("Reason: ({}) => {}", query, rc);
         assertEquals("get-data", rc.intent());
@@ -71,9 +72,9 @@ public class RefineIntentTestIt extends BaseIntentTestIT {
 
     //original request get-chart
     private Map<String, Object> getChart(String query) {
-        val rc = intentSpecs()
-                .reasonCall(query)
-                .as(ReasoningResponse.class);
+        val rc = this.getReasoner()
+                .reason(ChatUserRequests.query(query))
+                .reasoningResponse();
 
         log.info("Reason: ({}) => {}", query, rc);
         assertEquals("get-chart", rc.intent());
@@ -94,9 +95,9 @@ public class RefineIntentTestIt extends BaseIntentTestIT {
 
     //original request get-chart
     private Map<String, Object> followUp(String query) {
-        val rc = intentSpecs()
-                .reasonCall(query)
-                .as(ReasoningResponse.class);
+        val rc = this.getReasoner()
+                .reason(ChatUserRequests.query(query))
+                .reasoningResponse();
 
         log.info("Reason: ({}) => {}", query, rc);
         //assertEquals("follow-up", rc.intent());

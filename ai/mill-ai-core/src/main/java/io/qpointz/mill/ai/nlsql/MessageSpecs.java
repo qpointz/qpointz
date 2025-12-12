@@ -7,6 +7,8 @@ import io.qpointz.mill.ai.chat.messages.specs.TemplateMessageSpec;
 import io.qpointz.mill.ai.nlsql.messages.specs.SchemaMessageSpec;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.models.SqlDialect;
+import io.qpointz.mill.ai.nlsql.models.stepback.StepBackResponse;
+import io.qpointz.mill.ai.nlsql.models.stepback.ClarificationQuestion;
 import io.qpointz.mill.services.metadata.MetadataProvider;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -33,6 +35,10 @@ public class MessageSpecs {
     private static MessageSpec userStatic(String location) {
         return new TemplateMessageSpec(MessageType.USER,
                 staticTemplate(location, MessageSpecs.class));
+    }
+
+    public static MessageSpec stepBackSystem() {
+        return systemStatic("templates/nlsql/stepback/system.prompt");
     }
 
     public static MessageSpec reasonSystem() {
@@ -62,6 +68,80 @@ public class MessageSpecs {
 
     public static MessageSpec plainUserQuestion(String userQuestion) {
         return new TemplateMessageSpec(MessageType.USER, staticTemplate(userQuestion));
+    }
+
+    public static MessageSpec stepBackUserQuestion(String userQuestion) {
+        val template = MessageTemplates.pebbleTemplate("templates/nlsql/stepback/user-question.prompt", MessageSpecs.class);
+        val params = Map.<String, Object>of(
+                "userQuestion", userQuestion
+        );
+        return new TemplateMessageSpec(MessageType.USER, template, params);
+    }
+
+    public static MessageSpec stepBackClarification(String originalQuestion,
+                                                    String clarificationAnswer,
+                                                    StepBackResponse previousResponse) {
+        val template = MessageTemplates.pebbleTemplate("templates/nlsql/stepback/clarification.prompt", MessageSpecs.class);
+        val params = Map.<String, Object>of(
+                "originalQuestion", originalQuestion,
+                "clarificationAnswer", clarificationAnswer,
+                "previousQuestions", previousResponse != null ? previousResponse.questionsSafe() : List.of()
+        );
+        return new TemplateMessageSpec(MessageType.USER, template, params);
+    }
+
+    public static MessageSpec reasonClarification(String originalQuestion,
+                                                  String clarificationAnswer,
+                                                  List<ClarificationQuestion> previousQuestions) {
+        val template = MessageTemplates.pebbleTemplate("templates/nlsql/reason/clarification.prompt", MessageSpecs.class);
+        val params = Map.<String, Object>of(
+                "originalQuestion", originalQuestion,
+                "clarificationAnswer", clarificationAnswer,
+                "previousQuestions", previousQuestions == null ? List.of() : previousQuestions
+        );
+        return new TemplateMessageSpec(MessageType.USER, template, params);
+    }
+
+    public static MessageList stepBack(String question, MetadataProvider metadataProvider) {
+        return new MessageList(List.of(
+                stepBackSystem(),
+                SchemaMessageSpec.builder(MessageType.USER, metadataProvider)
+                        .includeAttributes(true)
+                        .includeRelationExpressions(true)
+                        .includeRelations(true)
+                        .build(),
+                outputRules(),
+                stepBackUserQuestion(question)
+        ));
+    }
+
+    public static MessageList stepBackWithClarification(String originalQuestion,
+                                                        String clarificationAnswer,
+                                                        StepBackResponse previousResponse,
+                                                        MetadataProvider metadataProvider) {
+        return new MessageList(List.of(
+                stepBackSystem(),
+                SchemaMessageSpec.builder(MessageType.USER, metadataProvider)
+                        .includeAttributes(true)
+                        .includeRelationExpressions(true)
+                        .includeRelations(true)
+                        .build(),
+                outputRules(),
+                stepBackUserQuestion(originalQuestion),
+                stepBackClarification(originalQuestion, clarificationAnswer, previousResponse)
+        ));
+    }
+
+    public static MessageList reasonWithClarification(String originalQuestion,
+                                                      String clarificationAnswer,
+                                                      List<ClarificationQuestion> previousQuestions,
+                                                      MetadataProvider metadataProvider) {
+        return new MessageList(List.of(
+                reasonSystem(),
+                reasonSchema(metadataProvider),
+                outputRules(),
+                reasonClarification(originalQuestion, clarificationAnswer, previousQuestions)
+        ));
     }
 
     public static MessageList reason(String question, MetadataProvider metadataProvider) {

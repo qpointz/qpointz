@@ -39,7 +39,13 @@ interface ChatContextType {
         list: ChatMessage[];
         loading: boolean;
         post: (msg: string) => void;
-        postingMessage: boolean;
+        postingMessage: boolean | string;
+    };
+    clarification: {
+        reasoningId?: string;
+        initialQuestion?: string;
+        reply: (message: ChatMessage) => void;
+        cancel: () => void;
     };
 }
 
@@ -62,7 +68,16 @@ export const ChatProvider: React.FC<{ children: React.ReactNode, chatId?: string
 
     const [messageList, setMessageList] = useState<ChatMessage[]>([]);
     const [messageListLoading, setMessageListLoading] = useState(false);
-    const [postingMessage, setPostingMessage] = useState(false);
+    const [postingMessage, setPostingMessage] = useState<boolean | string>(false);
+    
+    // Clarification context state
+    const [clarificationContext, setClarificationContext] = useState<{
+        reasoningId?: string;
+        initialQuestion?: string;
+    }>({});
+    
+    // Track if clarification was explicitly canceled by user to prevent auto-reactivation
+    const [clarificationCanceled, setClarificationCanceled] = useState(false);
 
     /**
      * Load list of chats from backend and update sidebar state.
@@ -84,12 +99,15 @@ export const ChatProvider: React.FC<{ children: React.ReactNode, chatId?: string
      */
     const createChat = useCallback(async (name: string) => {
         const req: CreateChatRequest = { name };
+        setPostingMessage("Creating new chat...");
         try {
             const res = await api.createChat(req);
             await loadChats();
             navigate(`/chat/${res.data.id}`);
         } catch (err) {
             console.error("Failed to create chat", err);
+        } finally {
+            setPostingMessage(false);
         }
     }, [navigate, loadChats]);
 
@@ -114,6 +132,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode, chatId?: string
      * Notes:
      * - UI disables input while posting.
      * - Message list is updated by SSE; on post failure we notify the user.
+     * - Includes reasoning-id in content if clarification is active.
      */
     const messagePost = useCallback(async (message: string) => {
         if (!chatId) {
@@ -121,7 +140,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode, chatId?: string
             return;
         }
 
-        const req: SendChatMessageRequest = { message };
+        const req: SendChatMessageRequest = { 
+            message,
+            content: clarificationContext.reasoningId ? { 'reasoning-id': clarificationContext.reasoningId } : undefined
+        };
 
         setPostingMessage(true);
 
@@ -136,11 +158,54 @@ export const ChatProvider: React.FC<{ children: React.ReactNode, chatId?: string
                     icon: <TbRadioactive />,
                     autoClose: false, // stays until dismissed
                 });
-            } )
-            .finally(()=> {
+                // Only reset on error - SSE events control normal progress
                 setPostingMessage(false);
             })
-    }, [chatId, api]);
+    }, [chatId, api, clarificationContext.reasoningId]);
+
+    /**
+     * Extract initial user question from message list.
+     * Looks for the most recent USER message before the given clarification message.
+     */
+    const extractInitialQuestion = useCallback((messages: ChatMessage[], clarificationMessageIndex: number): string => {
+        // Look backwards from clarification message to find previous USER message
+        for (let i = clarificationMessageIndex - 1; i >= 0; i--) {
+            if (messages[i]?.role === "USER") {
+                return messages[i]?.message || "";
+            }
+        }
+        return "";
+    }, []);
+
+    /**
+     * Handle clarification reply - reactivate clarification mode for the specific clarification message.
+     */
+    const handleClarificationReply = useCallback((clarificationMessage: ChatMessage) => {
+        const reasoningId = clarificationMessage.content?.['reasoning-id'];
+        
+        if (reasoningId) {
+            // Reset canceled flag when user explicitly clicks Reply
+            setClarificationCanceled(false);
+            // Find the index of this clarification message in the message list
+            const clarificationIndex = messageList.findIndex(m => m.id === clarificationMessage.id);
+            
+            if (clarificationIndex >= 0) {
+                const initialQuestion = extractInitialQuestion(messageList, clarificationIndex);
+                setClarificationContext({
+                    reasoningId,
+                    initialQuestion
+                });
+            }
+        }
+    }, [messageList, extractInitialQuestion]);
+
+    /**
+     * Handle clarification cancel - clear clarification context to allow fresh query.
+     */
+    const handleClarificationCancel = useCallback(() => {
+        setClarificationContext({});
+        setClarificationCanceled(true);
+    }, []);
 
     /**
      * Initial load of chats (and refresh on demand via loadChats).
@@ -168,27 +233,117 @@ export const ChatProvider: React.FC<{ children: React.ReactNode, chatId?: string
     }, [chatId, api]);
 
     /**
+     * Monitor message list for clarification state changes (for initial load).
+     * Auto-activates clarification mode if last message requires clarification.
+     * But only if clarification wasn't explicitly canceled by the user.
+     */
+    useEffect(() => {
+        if (messageList.length === 0) {
+            setClarificationContext({});
+            setClarificationCanceled(false);
+            return;
+        }
+
+        // If clarification was explicitly canceled, don't auto-reactivate
+        if (clarificationCanceled) {
+            return;
+        }
+
+        // Check the most recent CHAT message for clarification state
+        let lastChatMessageIndex = -1;
+        for (let i = messageList.length - 1; i >= 0; i--) {
+            if (messageList[i]?.role === "CHAT") {
+                lastChatMessageIndex = i;
+                break;
+            }
+        }
+        
+        if (lastChatMessageIndex >= 0) {
+            const lastChatMessage = messageList[lastChatMessageIndex];
+            const needClarification = lastChatMessage?.content?.['need-clarification'] === true;
+            const reasoningId = lastChatMessage?.content?.['reasoning-id'];
+            
+            if (needClarification && reasoningId) {
+                // Auto-activate clarification mode
+                const initialQuestion = extractInitialQuestion(messageList, lastChatMessageIndex);
+                setClarificationContext({
+                    reasoningId,
+                    initialQuestion
+                });
+            } else if (!needClarification) {
+                // Clear clarification context when clarification is resolved
+                setClarificationContext({});
+                setClarificationCanceled(false);
+            }
+        }
+    }, [messageList, extractInitialQuestion, clarificationCanceled]);
+
+    /**
      * Subscribe to SSE stream for the active chat; append new messages uniquely.
      * Stream is closed automatically on cleanup or when chatId changes.
+     * Also tracks clarification state from incoming messages.
      */
     useEffect(() => {
         if (!chatId) return;
 
         const source = new EventSource(`/api/nl2sql/chats/${chatId}/stream`);
-        source.onmessage = (event) => {
+        
+        // Show progress notification on chat_begin_progress_event
+        source.addEventListener("chat_begin_progress_event", (event) => {
+            const data = JSON.parse(event.data);
+            console.log("chat_begin_progress_event - full data:", data);
+            console.log("chat_begin_progress_event - entity:", data?.entity);
+            console.log("chat_begin_progress_event - message:", data?.message);
+            console.log("chat_begin_progress_event - raw event.data:", event.data);
+            const progressText = data?.entity || data?.message || "Processing...";            
+            setPostingMessage(progressText);
+        });
+
+        // Hide progress notification on chat_end_progress_event
+        source.addEventListener("chat_end_progress_event", () => {            
+            setPostingMessage(false);
+        });
+        
+
+        source.addEventListener("chat_message_event", (event) => {
             const data = JSON.parse(event.data);
             setMessageList(prev => {
                 if (!data?.id || prev.some(m => m.id === data.id)) {
                     return prev;
                 }
-                else {
-                    return [...prev, data]
+                
+                const updatedList = [...prev, data];
+                
+                // Track clarification state from incoming CHAT messages
+                if (data?.role === "CHAT") {
+                    const needClarification = data?.content?.['need-clarification'] === true;
+                    const reasoningId = data?.content?.['reasoning-id'];
+                    
+                    if (needClarification && reasoningId) {
+                        // Auto-activate clarification mode when NEW clarification is needed
+                        // Reset canceled flag when new clarification arrives
+                        setClarificationCanceled(false);
+                        // Extract initial question from message list
+                        const clarificationIndex = updatedList.length - 1;
+                        const initialQuestion = extractInitialQuestion(updatedList, clarificationIndex);
+                        setClarificationContext({
+                            reasoningId,
+                            initialQuestion
+                        });
+                    } else if (!needClarification) {
+                        // Clear clarification context when clarification is resolved
+                        setClarificationContext({});
+                        setClarificationCanceled(false);
+                    }
                 }
+                
+                return updatedList;
             });
-        };
+        });
 
         return () => source.close();
     }, [chatId]);
+    
 
     const value: ChatContextType = {
         chats: {
@@ -206,6 +361,12 @@ export const ChatProvider: React.FC<{ children: React.ReactNode, chatId?: string
             loading: messageListLoading,
             post: messagePost,
             postingMessage
+        },
+        clarification: {
+            reasoningId: clarificationContext.reasoningId,
+            initialQuestion: clarificationContext.initialQuestion,
+            reply: handleClarificationReply,
+            cancel: handleClarificationCancel
         }
     };
 

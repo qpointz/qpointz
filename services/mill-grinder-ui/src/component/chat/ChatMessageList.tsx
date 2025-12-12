@@ -1,16 +1,18 @@
-import {Box, Center, Loader, ScrollArea, Stack, Text} from "@mantine/core";
+import {Box, Center, ScrollArea, Stack, Text} from "@mantine/core";
 import type {ChatMessage} from "../../api/mill";
 import GetDataIntent from "./intents/GetDataIntent";
 import ExplainIntent from "./intents/ExplainIntent";
 import EnrichModelIntent from "./intents/EnrichModelIntent";
 import DoConversationIntent from "./intents/DoConversationIntent";
+import ClarificationMessage from "./intents/ClarificationMessage";
+import AssistantMessage from "./intents/AssistantMessage";
 import {useRef, useEffect, useState, useLayoutEffect, useCallback} from "react";
 import ChatPostMessage from "./PostMessage.tsx";
 import {useChatContext} from "./ChatProvider.tsx";
 import UnsupportedIntent from "./intents/UnsupportedIntent.tsx";
 
 export function ChatMessageListRender() {
-    const {messages} = useChatContext();
+    const {messages, clarification} = useChatContext();
     const [lastMessageId, setLastMessageId] = useState<string | undefined>('');
 
     const UserMessage = (message: ChatMessage) => {
@@ -30,23 +32,57 @@ export function ChatMessageListRender() {
     }
 
     const Message = (message: ChatMessage) => {
+        // Priority 1: User messages
         if (message.role === "USER") {
             return UserMessage(message);
         }
 
+        // Priority 2: Clarification requests
         if (message.role === "CHAT") {
+            const needClarification = message?.content?.['need-clarification'] === true;
+            const hasQuestions = (message?.content?.questions && Array.isArray(message.content.questions) && message.content.questions.length > 0) ||
+                                (message?.content?.['step-back']?.questions && Array.isArray(message.content['step-back'].questions) && message.content['step-back'].questions.length > 0);
+            
+            if (needClarification && hasQuestions) {
+                return (
+                    <ClarificationMessage 
+                        key={message.id} 
+                        message={message}
+                        onReply={clarification.reply}
+                        onCancel={clarification.cancel}
+                    />
+                );
+            }
+            
+            // Priority 3: Assistant messages (user-message exists)
+            const userMessage = message?.content?.['user-message'] || message?.message;
             const intent: string = message?.content?.resultIntent ?? "";
-            switch (intent) {
-                case "explain" :
-                    return (<ExplainIntent key={message.id} message={message}/>)
-                case "get-data" :
-                    return (<GetDataIntent key={message.id} message={message}/>)
-                case "get-chart" :
-                    return (<GetDataIntent key={message.id} message={message}/>)
-                case "enrich-model" :
-                    return (<EnrichModelIntent key={message.id} message={message}/>)
-                case "do-conversation" :
-                    return (<DoConversationIntent key={message.id} message={message}/>)
+            
+            // If user-message exists and no intent or intent is not yet determined, show assistant message
+            if (userMessage && (!intent || intent === "")) {
+                return (
+                    <AssistantMessage 
+                        key={message.id} 
+                        message={message}
+                        isLoading={!!messages.postingMessage}
+                    />
+                );
+            }
+            
+            // Priority 4: Intent-based messages
+            if (intent) {
+                switch (intent) {
+                    case "explain" :
+                        return (<ExplainIntent key={message.id} message={message}/>)
+                    case "get-data" :
+                        return (<GetDataIntent key={message.id} message={message}/>)
+                    case "get-chart" :
+                        return (<GetDataIntent key={message.id} message={message}/>)
+                    case "enrich-model" :
+                        return (<EnrichModelIntent key={message.id} message={message}/>)
+                    case "do-conversation" :
+                        return (<DoConversationIntent key={message.id} message={message}/>)
+                }
             }
 
             return <UnsupportedIntent intent={intent} content={message.content}/>
@@ -90,12 +126,6 @@ export function ChatMessageListRender() {
                     </Box>
                 </>
             </ScrollArea>
-            {messages.postingMessage && (
-                <Center mb={10} inline>
-                    <Loader size="sm" variant="dots" color="blue" mr={20}/>
-                    <Box>Analyzing</Box>
-                </Center>)}
-
             <ChatPostMessage/>
         </Stack>
         </Center>

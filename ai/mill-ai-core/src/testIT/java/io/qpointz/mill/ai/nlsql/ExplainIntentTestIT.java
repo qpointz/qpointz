@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.nlsql;
 
+import io.qpointz.mill.ai.chat.ChatUserRequests;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
@@ -41,9 +42,9 @@ public class ExplainIntentTestIT extends BaseIntentTestIT {
             "What is client_id attribute and in which tables it exists"
     })
     void roundtrip(String query) {
-        val rc = intentSpecs()
-                .reasonCall(query)
-                .as(ReasoningResponse.class);
+        val rc = this.getReasoner()
+                .reason(ChatUserRequests.query(query))
+                .reasoningResponse();
         log.info("Reason: ({}) => {}", query, rc);
         assertEquals("explain", rc.intent());
         val spec = intentSpecs()

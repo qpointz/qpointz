@@ -1,9 +1,11 @@
 package io.qpointz.mill.ai.nlsql;
 
+import io.qpointz.mill.ai.chat.ChatUserRequests;
 import io.qpointz.mill.ai.chat.messages.MessageSelectors;
 import io.qpointz.mill.ai.nlsql.components.DefaultValueMapper;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.models.SqlDialect;
+import io.qpointz.mill.ai.nlsql.reasoners.DefaultReasoner;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.services.metadata.MetadataProvider;
 import io.qpointz.mill.utils.JsonUtils;
@@ -36,9 +38,9 @@ public class EnrichModelIntentTestIT extends BaseIntentTestIT {
     }
 
     Map<String, Object> enrichModel(String query) {
-        val rc = intentSpecs()
-                .reasonCall(query)
-                .as(ReasoningResponse.class);
+        val rc = this.getReasoner()
+                .reason(ChatUserRequests.query(query))
+                .reasoningResponse();
 
         log.info("Reason: ({}) => {}", query, rc);
         assertEquals("enrich-model", rc.intent());
@@ -85,12 +87,16 @@ public class EnrichModelIntentTestIT extends BaseIntentTestIT {
 
     //@Test
     void noWay() {
+        val reasoner = new DefaultReasoner(this.getCallSpecBuilders(), this.getMetadataProvider(), MessageSelectors.SIMPLE);
         val app = new ChatApplication(this.getCallSpecBuilders(),
                 this.getMetadataProvider(),
                 this.getSqlDialect(),
                 this.getDispatcher(),
                 MessageSelectors.SIMPLE,
-                new DefaultValueMapper());
+                new DefaultValueMapper(),
+                reasoner,
+                ChatEventProducer.DEFAULT
+                );
 
         List.of(
                 "How many customers?",
@@ -107,7 +113,7 @@ public class EnrichModelIntentTestIT extends BaseIntentTestIT {
         ).stream().forEach(k-> {
             try {
                 log.info("Question:{}", k);
-                val respone = app.query(k)
+                val respone = app.query(ChatUserRequests.query(k))
                                 .asMap();
                 log.info("Response:{}", respone);
                 val reason = respone.getOrDefault("reasoning", Map.of());
