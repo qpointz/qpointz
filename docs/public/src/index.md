@@ -153,7 +153,6 @@ Built for production with security, scalability, and reliability in mind. Deploy
 
 - **[Quickstart Guide](quickstart.md)**: Get up and running quickly
 - **[Installation Guide](installation.md)**: Detailed setup instructions
-- **Chat Assistant Intents**: Learn what you can ask Mill to do (see reference documentation in `docs/public_old/`)
 
 ---
 
