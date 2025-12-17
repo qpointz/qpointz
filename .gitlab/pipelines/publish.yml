@@ -27,7 +27,7 @@ publish:docs:
     GIT_COMMITTER_NAME: docs-bot
     GIT_COMMITTER_EMAIL: docs-bot@qpointz.io
   before_script:
-    - cd ${CI_PROJECT_DIR}/docs
+    - cd ${CI_PROJECT_DIR}/docs/public
     - pip install -r requirements.txt    
     - apt-get update && 
     - apt-get install -y git && 
@@ -39,7 +39,7 @@ publish:docs:
   script:
     - !reference [.global-vars, before_script]
     - echo "VERSION:${QP_VERSION}"
-    - cd ${CI_PROJECT_DIR}/docs    
+    - cd ${CI_PROJECT_DIR}/docs/public    
     - export VERSION_ALIAS=""
     - |
       if [[ "main" == "${CI_COMMIT_REF_SLUG}" ]]

@@ -1,0 +1,74 @@
+site_name: mill docs
+docs_dir: src
+
+plugins:
+  - search
+  - macros
+  - mike:
+     version_selector: true
+
+extra:
+  version: 
+    provider: mike
+
+#  - multiversion:
+#      branch_whitelist: ^doc\/doc-moneta-example$
+#      tag_whitelist: ^notags$
+#      version_in_site_name: False
+
+#      versions:
+#        - type: tag
+#          pattern: '^v\d+\.\d+$'   # only tags like v1.0, v2.1
+#        - type: branch
+#          pattern: '^main$|^dev$'  # only main and dev branches
+
+    
+
+theme: 
+  name: material
+#  palette:
+#    scheme: dracula
+#    primary: deep purple
+#    accent: deep purple
+  font:
+    text: Roboto
+    code: Roboto Mono
+  features:
+#    - announce.dismiss
+#    - navigation.tabs
+    - navigation.top
+    - navigation.instant
+    - navigation.indexes
+    - content.code.copy
+#    - toc.follow
+#    - content.tabs.link
+#    - search.share
+#    - search.highlight
+#    - search.suggest
+#    - content.code.copy
+#    - content.code.annotations
+
+markdown_extensions: 
+  - markdown.extensions.tables:  
+  - pymdownx.blocks.tab:
+      alternate_style: true 
+  - pymdownx.details:
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:pymdownx.emoji.to_png
+  - pymdownx.fancylists:
+  - pymdownx.saneheaders:
+
+nav:
+    - index.md    
+    - quickstart.md
+    - installation.md
+    - grinder-ui.md
+#    - Backends: 
+#      - backends/index.md
+#      - backends/jdbc.md
+#      - backends/calcite.md
+#    - Security:
+#      - security/index.md
+#      - test.md
+#      - test.md    
+    
