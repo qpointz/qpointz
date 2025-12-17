@@ -1,6 +1,6 @@
-import {Box, Button, Stack, Text, Group, Title} from "@mantine/core";
-import type {ChatMessage} from "../../../api/mill";
-import {TbHelp} from "react-icons/tb";
+import { Card, Button, Stack, Text, Group } from "@mantine/core";
+import type { ChatMessage } from "../../../api/mill";
+import { TbHelp } from "react-icons/tb";
 
 interface ClarificationMessageProps {
     message: ChatMessage;
@@ -8,7 +8,7 @@ interface ClarificationMessageProps {
     onCancel: () => void;
 }
 
-export default function ClarificationMessage({message, onReply, onCancel}: ClarificationMessageProps) {
+export default function ClarificationMessage({ message, onReply, onCancel }: ClarificationMessageProps) {
     // Extract questions from various possible locations
     const questions = message?.content?.questions || 
                      message?.content?.['step-back']?.questions || 
@@ -28,33 +28,27 @@ export default function ClarificationMessage({message, onReply, onCancel}: Clari
     });
 
     return (
-        <Box 
-            bg="white" 
-            p={20} 
-            m={10} 
-            maw="95%" 
-            style={{borderRadius: 10}}
-        >
-            <Group mb="md">
-                <TbHelp />
-                <Title order={4}>Clarification</Title>
+        <Card w="100%" p="md" mb="xs">
+            <Group gap="xs" mb="sm">
+                <TbHelp size={16} />
+                <Text fw={600} size="sm">Clarification</Text>
             </Group>
-            <Text mb="md">{userMessage}</Text>
-            <Stack gap="sm" mb="md">
-                {questionList.map((q: {id: string, question: string}) => (
-                    <Text key={q.id} size="sm">• {q.question}</Text>
+            <Text size="sm" mb="sm">{userMessage}</Text>
+            <Stack gap="xs" mb="md">
+                {questionList.map((q: { id: string, question: string }) => (
+                    <Text key={q.id} size="sm" c="dimmed">• {q.question}</Text>
                 ))}
             </Stack>
-            <Group justify="flex-end" mt="md" gap="sm">
+            <Group justify="flex-end" gap="xs">
                 <Button 
-                    size="sm" 
+                    size="xs" 
                     variant="light"
                     onClick={() => onReply(message)}
                 >
                     Reply
                 </Button>
                 <Button 
-                    size="sm" 
+                    size="xs" 
                     variant="subtle" 
                     color="gray"
                     onClick={onCancel}
@@ -62,6 +56,6 @@ export default function ClarificationMessage({message, onReply, onCancel}: Clari
                     Start Over
                 </Button>
             </Group>
-        </Box>
+        </Card>
     );
 }

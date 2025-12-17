@@ -1,17 +1,17 @@
 /**
- * Metadata Layout Component
+ * Context Layout Component
  * 
- * Main layout for the metadata browser.
+ * Main layout for the context browser.
  * Sidebar content is rendered via AppSidebar in App.tsx.
  */
-import { MetadataProvider, useMetadataContext } from "./MetadataProvider";
-import EntityDetails from "./EntityDetails";
+import { MetadataProvider, useMetadataContext } from "../data-model/MetadataProvider";
+import EntityDetails from "../data-model/EntityDetails";
 import { Box } from "@mantine/core";
 import { useParams, useNavigate, useLocation } from "react-router";
 import { useEffect, useRef } from "react";
 
-function MetadataContent() {
-    const params = useParams<{ schema?: string; table?: string; attribute?: string }>();
+function ContextContent() {
+    const params = useParams<{ contextId?: string }>();
     const location = useLocation();
     const { entity } = useMetadataContext();
     const navigate = useNavigate();
@@ -21,24 +21,23 @@ function MetadataContent() {
     useEffect(() => {
         isUpdatingFromUrl.current = true;
         
-        if (params.schema && params.table) {
-            // Load table/attribute entity by location
+        if (params.contextId) {
+            // Load context entity by ID
             const current = entity.selected;
-            const urlMatches = current?.schemaName === params.schema && 
-                             current?.tableName === params.table &&
-                             (params.attribute ? current?.attributeName === params.attribute : !current?.attributeName);
-            
-            if (urlMatches) {
+            if (current?.id !== params.contextId) {
+                entity.select(params.contextId);
+            } else {
                 // Already matches, reset flag immediately
                 isUpdatingFromUrl.current = false;
-            } else {
-                entity.selectByLocation(params.schema, params.table, params.attribute);
             }
         } else {
-            // No params to load, reset flag
+            // On context route without contextId - clear selected entity to show list
+            if (entity.selected && entity.selected.type !== 'CONCEPT') {
+                entity.clear();
+            }
             isUpdatingFromUrl.current = false;
         }
-    }, [params.schema, params.table, params.attribute, entity.selected?.id, entity.selectByLocation]);
+    }, [params.contextId, entity]);
 
     // Reset the flag when entity finishes loading
     useEffect(() => {
@@ -61,26 +60,27 @@ function MetadataContent() {
         if (entity.selected && !entity.loading) {
             const selected = entity.selected;
             
-            // Only handle data model entities (not contexts)
-            if (selected.type === 'CONCEPT') {
-                return; // Contexts are handled by ContextLayout
+            // Don't redirect if we're on context route without a contextId (showing list)
+            if (!params.contextId && selected.type !== 'CONCEPT') {
+                // On context route but selected entity is not a concept - don't redirect
+                return;
             }
             
             // Build expected path based on entity
             let expectedPath: string | null = null;
-            if (selected.schemaName && selected.tableName) {
-                expectedPath = `/data-model/${selected.schemaName}/${selected.tableName}`;
-                if (selected.attributeName) {
-                    expectedPath += `/${selected.attributeName}`;
-                }
+            if (selected.type === 'CONCEPT') {
+                expectedPath = `/context/${selected.id}`;
             }
             
             // Only navigate if we have an expected path and it's different from current
             if (expectedPath && location.pathname !== expectedPath) {
-                navigate(expectedPath, { replace: true });
+                // Only navigate if we're on the correct route type
+                if (selected.type === 'CONCEPT') {
+                    navigate(expectedPath, { replace: true });
+                }
             }
         }
-    }, [entity.selected?.id, entity.selected?.schemaName, entity.selected?.tableName, entity.selected?.attributeName, entity.selected?.type, entity.loading, location.pathname, navigate]);
+    }, [entity.selected?.id, entity.loading, location.pathname, params.contextId, navigate]);
 
     return (
         <Box h="100%">
@@ -89,11 +89,10 @@ function MetadataContent() {
     );
 }
 
-export default function MetadataLayout() {
+export default function ContextLayout() {
     return (
         <MetadataProvider>
-            <MetadataContent />
+            <ContextContent />
         </MetadataProvider>
     );
 }
-

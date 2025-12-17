@@ -1,6 +1,5 @@
-import { Box, NavLink, UnstyledButton } from "@mantine/core";
+import { NavLink, ActionIcon, Tooltip } from "@mantine/core";
 import { Link, useLocation } from "react-router";
-import { useMantineTheme } from "@mantine/core";
 import type { ReactNode } from "react";
 
 interface SidebarNavButtonProps {
@@ -12,46 +11,34 @@ interface SidebarNavButtonProps {
 }
 
 export default function SidebarNavButton({ to, label, icon, active, collapsed }: SidebarNavButtonProps) {
-    const theme = useMantineTheme();
     const location = useLocation();
-    
     const isActive = active !== undefined ? active : location.pathname.startsWith(to);
 
     if (collapsed) {
         return (
-            <Box p={1} mb={4} bg="transparent" style={{ borderRadius: 6 }}>
-                <UnstyledButton
+            <Tooltip label={label} position="right">
+                <ActionIcon
                     component={Link}
                     to={to}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: '100%',
-                        padding: '6px',
-                        borderRadius: 6,
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = theme.colors.gray[1]}
-                    onMouseLeave={e => e.currentTarget.style.background = ''}
+                    variant={isActive ? "light" : "subtle"}
+                    size="lg"
+                    mb="xs"
                 >
                     {icon}
-                </UnstyledButton>
-            </Box>
+                </ActionIcon>
+            </Tooltip>
         );
     }
 
     return (
-        <Box p={1} mb={8} bg="transparent" style={{ borderRadius: 6 }}>
-            <NavLink 
-                to={to} 
-                component={Link} 
-                label={label} 
-                p={0} 
-                m={0} 
-                leftSection={icon}
-                active={isActive}
-            />
-        </Box>
+        <NavLink 
+            component={Link}
+            to={to} 
+            label={label} 
+            leftSection={icon}
+            active={isActive}
+            mb="xs"
+        />
     );
 }
 

@@ -1,35 +1,42 @@
-import {Box, Center, ScrollArea, Stack, Text} from "@mantine/core";
-import type {ChatMessage} from "../../api/mill";
+import { Box, Card, ScrollArea, Stack, Text } from "@mantine/core";
+import type { ChatMessage } from "../../api/mill";
 import GetDataIntent from "./intents/GetDataIntent";
 import ExplainIntent from "./intents/ExplainIntent";
 import EnrichModelIntent from "./intents/EnrichModelIntent";
 import DoConversationIntent from "./intents/DoConversationIntent";
 import ClarificationMessage from "./intents/ClarificationMessage";
 import AssistantMessage from "./intents/AssistantMessage";
-import {useRef, useEffect, useState, useLayoutEffect, useCallback} from "react";
+import { useRef, useEffect } from "react";
 import ChatPostMessage from "./PostMessage.tsx";
-import {useChatContext} from "./ChatProvider.tsx";
+import { useChatContext } from "./ChatProvider.tsx";
 import UnsupportedIntent from "./intents/UnsupportedIntent.tsx";
 
 export function ChatMessageListRender() {
-    const {messages, clarification} = useChatContext();
-    const [lastMessageId, setLastMessageId] = useState<string | undefined>('');
+    const { messages, clarification } = useChatContext();
+    const bottomRef = useRef<HTMLDivElement>(null);
 
     const UserMessage = (message: ChatMessage) => {
         return (
-            <Box key={message.id} maw="70%" bg="primary.1" p={10} mb={10}
-                 style={{borderRadius: 10, alignSelf: "flex-end", minWidth: "400px"}}>
-                <Text>
+            <Card
+                key={message.id}
+                maw="70%"
+                bg="primary.1"
+                p="sm"
+                mb="xs"
+                shadow="none"
+                style={{ alignSelf: "flex-end" }}
+            >
+                <Text size="sm">
                     {(message?.message ?? '').split('\n').map((line, idx, arr) => (
                         <span key={idx}>
                             {line}
                             {idx < arr.length - 1 && <br />}
                         </span>
-                    ))}                    
+                    ))}
                 </Text>
-            </Box>
-        )
-    }
+            </Card>
+        );
+    };
 
     const Message = (message: ChatMessage) => {
         // Priority 1: User messages
@@ -91,44 +98,26 @@ export function ChatMessageListRender() {
         return (<Text>{message.role}:</Text>)
     }
 
-    const viewport = useRef<HTMLDivElement>(null);
-
-    const scrollToBottom = useCallback(() => {
-        if (viewport.current) {
-            viewport.current.scrollTo({top: viewport.current.scrollHeight, behavior: 'smooth'});
-        }
-    }, []);
-
-    useLayoutEffect(() => {
-        requestAnimationFrame(scrollToBottom);
-    }, [messages.list.length, scrollToBottom]);
-
-
+    // Scroll to bottom when messages change, when switching chats, or when posting
     useEffect(() => {
-        const lastId = messages.list.length === 0
-            ? "no-messages"
-            : messages.list[0].id;
-
-        if (lastId !== lastMessageId) {
-            setLastMessageId(lastId);
-        }
-    }, [messages.list, lastMessageId])
+        const timeoutId = setTimeout(() => {
+            bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+        return () => clearTimeout(timeoutId);
+    }, [messages.list, messages.postingMessage]);
 
     return (
-        <Center>
-        <Stack p="md" style={{height: "100vh", minHeight: 0}} w={1024} key={lastMessageId} >
-            <ScrollArea w="100%" style={{flex: 1}} viewportRef={viewport}>
-                <>
-                    <Box style={{minWidth:"100%"}} mx="auto">
-                        <Stack p="md" style={{minHeight: "100%"}} gap={"sm"} >
-                            {messages.list.map(m => Message(m))}
-                        </Stack>
-                    </Box>
-                </>
-            </ScrollArea>
-            <ChatPostMessage/>
+        <Stack p="md" h="100%" w="100%" style={{ overflow: 'hidden' }}>
+            <Box style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+                <ScrollArea h="100%" w="100%" type="auto" offsetScrollbars scrollbarSize={8}>
+                    <Stack gap="sm" pr="sm">
+                        {messages.list.map(m => Message(m))}
+                        <Box ref={bottomRef} />
+                    </Stack>
+                </ScrollArea>
+            </Box>
+            <ChatPostMessage />
         </Stack>
-        </Center>
     );
 
 }

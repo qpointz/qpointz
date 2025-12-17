@@ -4,6 +4,7 @@ services:grinder-ui:build:
  script:
    - cd ${CI_PROJECT_DIR}/services/mill-grinder-ui
    - npm install
+   - npm run test:run
    - npm run build
  artifacts:
    expire_in: "5 days"

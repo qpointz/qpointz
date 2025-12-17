@@ -1,5 +1,5 @@
 import SidebarNavButton from "./SidebarNavButton";
-import { TbTerminal2, TbCompass, TbBulb } from "react-icons/tb";
+import { TbTerminal2, TbCompass, TbFocusCentered } from "react-icons/tb";
 
 interface TopNavigationProps {
     collapsed: boolean;
@@ -23,9 +23,9 @@ export default function TopNavigation({ collapsed }: TopNavigationProps) {
             />
 
             <SidebarNavButton
-                to="/concepts"
-                label="Concept"
-                icon={<TbBulb size={20} />}
+                to="/context"
+                label="Context"
+                icon={<TbFocusCentered size={20} />}
                 collapsed={collapsed}
             />
         </>

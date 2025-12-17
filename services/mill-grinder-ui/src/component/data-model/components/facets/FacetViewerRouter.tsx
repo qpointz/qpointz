@@ -15,6 +15,7 @@ interface FacetViewerRouterProps {
     selectedScope: string;
     onScopeChange: (scope: string) => void;
     loading?: boolean;
+    hideScope?: boolean;
 }
 
 export default function FacetViewerRouter({
@@ -25,6 +26,7 @@ export default function FacetViewerRouter({
     selectedScope,
     onScopeChange,
     loading = false,
+    hideScope = false,
 }: FacetViewerRouterProps) {
     // Route to appropriate facet component based on facet type
     const renderFacetView = (toggleButton: ReactNode) => {
@@ -60,6 +62,7 @@ export default function FacetViewerRouter({
                 selectedScope={selectedScope}
                 onScopeChange={onScopeChange}
                 loading={loading}
+                hideScope={hideScope}
             >
                 {({ toggleButton }) => <JsonFacetView data={data} toggleButton={toggleButton} />}
             </BaseFacetViewer>
@@ -75,6 +78,7 @@ export default function FacetViewerRouter({
             selectedScope={selectedScope}
             onScopeChange={onScopeChange}
             loading={loading}
+            hideScope={hideScope}
         >
             {({ toggleButton }) => renderFacetView(toggleButton)}
         </BaseFacetViewer>

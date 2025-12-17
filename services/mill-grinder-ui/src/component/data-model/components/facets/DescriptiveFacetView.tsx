@@ -1,10 +1,8 @@
 import {
-    Card,
     Stack,
     Group,
     Text,
     Badge,
-    Divider,
 } from "@mantine/core";
 import { TbTag, TbUser, TbBuilding, TbShield, TbRuler } from "react-icons/tb";
 import type { ReactNode } from "react";
@@ -16,7 +14,6 @@ interface DescriptiveFacetViewProps {
 
 export default function DescriptiveFacetView({ data, toggleButton }: DescriptiveFacetViewProps) {
     // Handle both direct merged data and scoped data (global, user:xxx, etc.)
-    // DTO returns merged facet data directly, but we also support scoped structure
     const facetData = data?.global || data;
     
     const displayName = facetData?.displayName;
@@ -45,147 +42,102 @@ export default function DescriptiveFacetView({ data, toggleButton }: Descriptive
         }
     };
 
+    // Empty state
+    if (!displayName && !description && !businessMeaning && 
+        !businessDomain && !businessOwner && !classification && !unit &&
+        synonyms.length === 0 && aliases.length === 0 && tags.length === 0) {
+        return (
+            <Group justify="space-between">
+                <Text c="dimmed" size="sm">No descriptive information available</Text>
+                {toggleButton}
+            </Group>
+        );
+    }
+
     return (
-        <Card withBorder>
-            <Stack gap="md">
-                {/* Header with Display Name and Toggle */}
-                {displayName && (
-                    <Group justify="space-between" align="flex-start">
-                        <div style={{ flex: 1 }}>
-                            <Text size="sm" c="dimmed" mb={4}>Display Name</Text>
-                            <Text fw={600} size="lg">{displayName}</Text>
-                        </div>
-                        {toggleButton && (
-                            <div style={{ marginTop: 4 }}>
-                                {toggleButton}
-                            </div>
-                        )}
-                    </Group>
-                )}
-                {!displayName && toggleButton && (
-                    <Group justify="flex-end">
-                        {toggleButton}
-                    </Group>
-                )}
+        <Stack gap="xs">
+            {/* Toggle button row */}
+            {toggleButton && (
+                <Group justify="flex-end">
+                    {toggleButton}
+                </Group>
+            )}
 
-                {/* Description */}
-                {description && (
-                    <div>
-                        <Text size="sm" c="dimmed" mb={4}>Description</Text>
-                        <Text>{description}</Text>
-                    </div>
-                )}
+            {/* Display Name */}
+            {displayName && (
+                <Text fw={600}>{displayName}</Text>
+            )}
 
-                {/* Business Meaning */}
-                {businessMeaning && (
-                    <div>
-                        <Text size="sm" c="dimmed" mb={4}>Business Meaning</Text>
-                        <Text>{businessMeaning}</Text>
-                    </div>
-                )}
+            {/* Description */}
+            {description && (
+                <Text size="sm">{description}</Text>
+            )}
 
-                {/* Metadata Row */}
-                {(businessDomain || businessOwner || classification || unit) && (
-                    <>
-                        <Divider />
-                        <Group gap="md">
-                            {businessDomain && (
-                                <Group gap={4}>
-                                    <TbBuilding size={16} />
-                                    <div>
-                                        <Text size="xs" c="dimmed">Domain</Text>
-                                        <Badge variant="light" size="sm">{businessDomain}</Badge>
-                                    </div>
-                                </Group>
-                            )}
-                            {businessOwner && (
-                                <Group gap={4}>
-                                    <TbUser size={16} />
-                                    <div>
-                                        <Text size="xs" c="dimmed">Owner</Text>
-                                        <Text size="sm" fw={500}>{businessOwner}</Text>
-                                    </div>
-                                </Group>
-                            )}
-                            {classification && (
-                                <Group gap={4}>
-                                    <TbShield size={16} />
-                                    <div>
-                                        <Text size="xs" c="dimmed">Classification</Text>
-                                        <Badge variant="light" color={getClassificationColor(classification)} size="sm">
-                                            {classification}
-                                        </Badge>
-                                    </div>
-                                </Group>
-                            )}
-                            {unit && (
-                                <Group gap={4}>
-                                    <TbRuler size={16} />
-                                    <div>
-                                        <Text size="xs" c="dimmed">Unit</Text>
-                                        <Text size="sm" fw={500}>{unit}</Text>
-                                    </div>
-                                </Group>
-                            )}
-                        </Group>
-                    </>
-                )}
+            {/* Business Meaning */}
+            {businessMeaning && (
+                <Text size="sm" c="dimmed" fs="italic">{businessMeaning}</Text>
+            )}
 
-                {/* Synonyms */}
-                {synonyms.length > 0 && (
-                    <div>
-                        <Text size="sm" c="dimmed" mb={8}>Synonyms</Text>
+            {/* Metadata Row - compact inline */}
+            {(businessDomain || businessOwner || classification || unit) && (
+                <Group gap="md" mt="xs">
+                    {businessDomain && (
                         <Group gap={4}>
-                            {synonyms.map((synonym: string, index: number) => (
-                                <Badge key={index} variant="outline" size="sm">
-                                    {synonym}
-                                </Badge>
-                            ))}
+                            <TbBuilding size={14} />
+                            <Badge variant="light" size="xs">{businessDomain}</Badge>
                         </Group>
-                    </div>
-                )}
-
-                {/* Aliases */}
-                {aliases.length > 0 && (
-                    <div>
-                        <Text size="sm" c="dimmed" mb={8}>Aliases</Text>
+                    )}
+                    {businessOwner && (
                         <Group gap={4}>
-                            {aliases.map((alias: string, index: number) => (
-                                <Badge key={index} variant="outline" size="sm">
-                                    {alias}
-                                </Badge>
-                            ))}
+                            <TbUser size={14} />
+                            <Text size="xs">{businessOwner}</Text>
                         </Group>
-                    </div>
-                )}
-
-                {/* Tags */}
-                {tags.length > 0 && (
-                    <div>
-                        <Group gap={4} mb={8}>
-                            <TbTag size={16} />
-                            <Text size="sm" c="dimmed">Tags</Text>
-                        </Group>
+                    )}
+                    {classification && (
                         <Group gap={4}>
-                            {tags.map((tag: string, index: number) => (
-                                <Badge key={index} variant="light" color="blue" size="sm">
-                                    #{tag}
-                                </Badge>
-                            ))}
+                            <TbShield size={14} />
+                            <Badge variant="light" color={getClassificationColor(classification)} size="xs">
+                                {classification}
+                            </Badge>
                         </Group>
-                    </div>
-                )}
+                    )}
+                    {unit && (
+                        <Group gap={4}>
+                            <TbRuler size={14} />
+                            <Text size="xs">{unit}</Text>
+                        </Group>
+                    )}
+                </Group>
+            )}
 
-                {/* Empty State */}
-                {!displayName && !description && !businessMeaning && 
-                 !businessDomain && !businessOwner && !classification && !unit &&
-                 synonyms.length === 0 && aliases.length === 0 && tags.length === 0 && (
-                    <Text c="dimmed" size="sm" ta="center" py="md">
-                        No descriptive information available
-                    </Text>
-                )}
-            </Stack>
-        </Card>
+            {/* Synonyms & Aliases - combined row */}
+            {(synonyms.length > 0 || aliases.length > 0) && (
+                <Group gap="xs">
+                    {synonyms.map((synonym: string, index: number) => (
+                        <Badge key={`syn-${index}`} variant="outline" size="xs">
+                            {synonym}
+                        </Badge>
+                    ))}
+                    {aliases.map((alias: string, index: number) => (
+                        <Badge key={`alias-${index}`} variant="outline" size="xs" color="gray">
+                            {alias}
+                        </Badge>
+                    ))}
+                </Group>
+            )}
+
+            {/* Tags */}
+            {tags.length > 0 && (
+                <Group gap={4}>
+                    <TbTag size={14} />
+                    {tags.map((tag: string, index: number) => (
+                        <Badge key={index} variant="light" color="blue" size="xs">
+                            #{tag}
+                        </Badge>
+                    ))}
+                </Group>
+            )}
+        </Stack>
     );
 }
 

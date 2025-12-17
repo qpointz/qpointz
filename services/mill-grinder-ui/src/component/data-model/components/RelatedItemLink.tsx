@@ -1,7 +1,6 @@
-import { Box, Group, Text, Badge } from "@mantine/core";
+import { Group, Text, UnstyledButton } from "@mantine/core";
 import { TbDatabase, TbTable, TbColumns, TbBulb } from "react-icons/tb";
 import { useNavigate } from "react-router";
-import { useMantineTheme } from "@mantine/core";
 import { useMetadataContext } from "../MetadataProvider";
 import type { MetadataEntityDto } from "../../../api/mill/api.ts";
 import { buildLocation } from "../utils/entityUtils";
@@ -12,20 +11,19 @@ interface RelatedItemLinkProps {
 }
 
 export default function RelatedItemLink({ entity, onClick }: RelatedItemLinkProps) {
-    const theme = useMantineTheme();
     const navigate = useNavigate();
     const { entity: entityContext } = useMetadataContext();
 
     const getTypeIcon = () => {
         switch (entity.type) {
             case 'SCHEMA':
-                return <TbDatabase size={16} />;
+                return <TbDatabase size={12} />;
             case 'TABLE':
-                return <TbTable size={16} />;
+                return <TbTable size={12} />;
             case 'ATTRIBUTE':
-                return <TbColumns size={16} />;
+                return <TbColumns size={12} />;
             case 'CONCEPT':
-                return <TbBulb size={16} />;
+                return <TbBulb size={12} />;
             default:
                 return null;
         }
@@ -41,13 +39,12 @@ export default function RelatedItemLink({ entity, onClick }: RelatedItemLinkProp
         // Navigate based on entity type
         switch (entity.type) {
             case 'CONCEPT':
-                navigate(`/concepts/${entity.id}`);
+                navigate(`/context/${entity.id}`);
                 break;
             case 'TABLE':
                 if (entity.schemaName && entity.tableName) {
                     navigate(`/data-model/${entity.schemaName}/${entity.tableName}`);
                 } else if (entity.id) {
-                    // Select entity by ID as fallback
                     entityContext.select(entity.id);
                 }
                 break;
@@ -55,18 +52,15 @@ export default function RelatedItemLink({ entity, onClick }: RelatedItemLinkProp
                 if (entity.schemaName && entity.tableName && entity.attributeName) {
                     navigate(`/data-model/${entity.schemaName}/${entity.tableName}/${entity.attributeName}`);
                 } else if (entity.id) {
-                    // Select entity by ID as fallback
                     entityContext.select(entity.id);
                 }
                 break;
             case 'SCHEMA':
-                // For schemas, select by ID since we don't have a schema-only route
                 if (entity.id) {
                     entityContext.select(entity.id);
                 }
                 break;
             default:
-                // Fallback: select by ID
                 if (entity.id) {
                     entityContext.select(entity.id);
                 }
@@ -76,32 +70,25 @@ export default function RelatedItemLink({ entity, onClick }: RelatedItemLinkProp
     const displayName = entity.id || buildLocation(entity) || 'Unknown';
 
     return (
-        <Box
-            p={8}
-            mb={4}
-            style={{
-                borderRadius: 6,
-                cursor: 'pointer',
-                transition: 'background 0.2s',
-            }}
+        <UnstyledButton
             onClick={handleClick}
-            onMouseEnter={e => e.currentTarget.style.background = theme.colors.gray[1]}
-            onMouseLeave={e => e.currentTarget.style.background = ''}
+            py={2}
+            px={4}
+            w="100%"
+            style={{ borderRadius: 'var(--mantine-radius-sm)' }}
+            styles={{
+                root: {
+                    '&:hover': {
+                        backgroundColor: 'var(--mantine-color-gray-2)',
+                    },
+                },
+            }}
         >
-            <Group gap="sm" justify="space-between">
-                <Group gap="xs">
-                    {getTypeIcon()}
-                    <Text size="sm" fw={500}>
-                        {displayName}
-                    </Text>
-                </Group>
-                {entity.type && (
-                    <Badge variant="light" size="xs" color="primary">
-                        {entity.type}
-                    </Badge>
-                )}
+            <Group gap={4} wrap="nowrap">
+                {getTypeIcon()}
+                <Text size="xs" truncate>{displayName}</Text>
             </Group>
-        </Box>
+        </UnstyledButton>
     );
 }
 

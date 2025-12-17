@@ -1,20 +1,22 @@
-import {useParams} from "react-router";
-import {ChatList} from "./ChatList.tsx";
-import {ChatProvider} from "./ChatProvider.tsx";
+/**
+ * Chat View Component
+ * 
+ * Main view for the chat interface.
+ * Sidebar content is rendered via AppSidebar in App.tsx.
+ */
+import { useParams } from "react-router";
+import { ChatProvider } from "./ChatProvider.tsx";
 import BeginNewChat from "./BeginNewChat.tsx";
-import {Box, Group} from "@mantine/core";
-import {ChatMessageListRender as ChatMessageList} from "./ChatMessageList.tsx";
+import { Box } from "@mantine/core";
+import { ChatMessageListRender as ChatMessageList } from "./ChatMessageList.tsx";
 
 export default function ChatView() {
     const nav = useParams<{ chatid?: string }>();
     return (
-      <ChatProvider chatId={nav.chatid}>
-          <Group h="100%" p={0}  align="top">
-              <ChatList/>
-              <Box flex="1" p={0} mx={0}>
-                  {nav.chatid ? (<ChatMessageList/>) : (<BeginNewChat/>) }
-              </Box>
-          </Group>
-      </ChatProvider>
+        <ChatProvider chatId={nav.chatid}>
+            <Box h="100%">
+                {nav.chatid ? <ChatMessageList /> : <BeginNewChat />}
+            </Box>
+        </ChatProvider>
     );
 }

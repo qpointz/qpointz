@@ -1,17 +1,17 @@
-import {Box, Group, Title, Text} from "@mantine/core";
-import {TbMessage} from "react-icons/tb";
+import { Card, Group, Text } from "@mantine/core";
+import { TbMessage } from "react-icons/tb";
 
 export default function DoConversationIntent(data: any) {
-    const {message} = data;
+    const { message } = data;
     const response = message?.content?.response || '';
     
     return (
-        <Box bg="white" p={20} m={10} maw={"95%"} style={{borderRadius: 10}}>
-            <Group>
-                <TbMessage/>
-                <Title order={4}>Chat</Title>
+        <Card w="100%" p="md" mb="xs">
+            <Group gap="xs" mb="xs">
+                <TbMessage size={16} />
+                <Text fw={600} size="sm">Chat</Text>
             </Group>
-            <Text mt="md">{response}</Text>
-        </Box>
+            <Text size="sm">{response}</Text>
+        </Card>
     );
 }

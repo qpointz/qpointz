@@ -1,6 +1,6 @@
-import {Text, Alert, Box, Group, Stack, Title, Modal, Button} from "@mantine/core";
-import {CodeHighlight} from "@mantine/code-highlight";
-import {TbDetails, TbHelp, TbDatabase, TbChartBar, TbBulb, TbMessage, TbRefresh, TbCode} from "react-icons/tb";
+import { Card, Text, Alert, Box, Group, Stack, Modal, Button, UnstyledButton } from "@mantine/core";
+import { CodeHighlight } from "@mantine/code-highlight";
+import { TbDetails, TbHelp, TbDatabase, TbChartBar, TbBulb, TbMessage, TbRefresh, TbCode } from "react-icons/tb";
 import { useDisclosure } from "@mantine/hooks";
 import { useChatContext } from "../ChatProvider";
 
@@ -18,19 +18,19 @@ type SuggestedIntent = {
 const getIntentIcon = (intent: string) => {
     switch (intent) {
         case "get-data":
-            return <TbDatabase size={16} />;
+            return <TbDatabase size={14} />;
         case "get-chart":
-            return <TbChartBar size={16} />;
+            return <TbChartBar size={14} />;
         case "explain":
-            return <TbBulb size={16} />;
+            return <TbBulb size={14} />;
         case "refine":
-            return <TbRefresh size={16} />;
+            return <TbRefresh size={14} />;
         case "do-conversation":
-            return <TbMessage size={16} />;
+            return <TbMessage size={14} />;
         case "enrich-model":
-            return <TbCode size={16} />;
+            return <TbCode size={14} />;
         default:
-            return <TbHelp size={16} />;
+            return <TbHelp size={14} />;
     }
 };
 
@@ -68,66 +68,71 @@ export default function UnsupportedIntent(ct: UnsupportedIntentProps) {
     };
 
     return (
-        <Box bg="white" p={20} m={10} maw={"95%"} style={{borderRadius: 10}}>        
-            <Group>
-                <><TbHelp/><Title order={4}>Question</Title></>
+        <Card w="100%" p="md" mb="xs">
+            <Group gap="xs" mb="xs">
+                <TbHelp size={16} />
+                <Text fw={600} size="sm">Question</Text>
             </Group>
-            <Modal  size={"70%"} opened={opened}
-                        onClose={close}
-                        title={`${ct.intent}`}
-                        overlayProps={{
-                        backgroundOpacity: 0.55,
-                        blur: 3}}>
-                <Alert title={`${ct.intent}`} color="danger">
+
+            <Modal
+                size="70%"
+                opened={opened}
+                onClose={close}
+                title={ct.intent}
+                overlayProps={{
+                    backgroundOpacity: 0.55,
+                    blur: 3
+                }}
+            >
+                <Alert title={ct.intent} color="red">
                     <Box w="400px">
-                        <CodeHighlight expanded={true} expandCodeLabel={""} code={JSON.stringify(ct.content, null, 2)} language="json"/>
+                        <CodeHighlight expanded={true} expandCodeLabel="" code={JSON.stringify(ct.content, null, 2)} language="json" />
                     </Box>
                 </Alert>
             </Modal>
-            <Stack>
-                <Text fs="italic">{message}</Text>
-                <Text>
-                {hints && hints.join("\n").split("\n").map((line:string, idx:number) => (
-                    <span key={idx}>
-                        {line}
-                        {idx < hints.length - 1 && <br />}
-                    </span>
-                ))}
+
+            <Stack gap="xs">
+                <Text size="sm" c="dimmed" fs="italic">{message}</Text>
+                <Text size="sm">
+                    {hints && hints.join("\n").split("\n").map((line: string, idx: number) => (
+                        <span key={idx}>
+                            {line}
+                            {idx < hints.length - 1 && <br />}
+                        </span>
+                    ))}
                 </Text>
-                
+
                 {suggestedIntents && suggestedIntents.length > 0 && (
-                    <Box mt="md">
-                        <Text size="sm" fw={500} mb="sm">Suggested Actions:</Text>
+                    <Box mt="sm">
+                        <Text size="xs" fw={500} c="dimmed" mb="xs">Suggested Actions:</Text>
                         <Stack gap={4}>
                             {suggestedIntents.map((suggestedIntent, idx) => {
-                                const letter = String.fromCharCode(65 + idx); // A, B, C, etc.
+                                const letter = String.fromCharCode(65 + idx);
                                 return (
-                                    <Box
+                                    <UnstyledButton
                                         key={idx}
-                                        p={8}
-                                        style={{ 
-                                            cursor: 'pointer',
-                                            borderRadius: 4,
-                                            border: '1px solid var(--mantine-color-gray-3)'
-                                        }}
                                         onClick={() => handleSuggestedIntentClick(suggestedIntent)}
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'var(--mantine-color-gray-0)';
-                                            e.currentTarget.style.borderColor = 'var(--mantine-color-blue-4)';
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'transparent';
-                                            e.currentTarget.style.borderColor = 'var(--mantine-color-gray-3)';
+                                        p="xs"
+                                        w="100%"
+                                        styles={{
+                                            root: {
+                                                borderRadius: 'var(--mantine-radius-sm)',
+                                                border: '1px solid var(--mantine-color-gray-3)',
+                                                '&:hover': {
+                                                    backgroundColor: 'var(--mantine-color-gray-0)',
+                                                    borderColor: 'var(--mantine-color-primary-4)',
+                                                },
+                                            },
                                         }}
                                     >
                                         <Group gap="xs" align="center" wrap="nowrap">
-                                            <Text fw={700} size="sm" c="blue" style={{ minWidth: 20 }}>
+                                            <Text fw={700} size="xs" c="primary" style={{ minWidth: 16 }}>
                                                 {letter}.
                                             </Text>
                                             {getIntentIcon(suggestedIntent.intent)}
                                             <Box style={{ flex: 1 }}>
-                                                <Group gap={6} align="center" wrap="nowrap">
-                                                    <Text fw={500} size="sm">
+                                                <Group gap={4} align="center" wrap="nowrap">
+                                                    <Text fw={500} size="xs">
                                                         {getIntentLabel(suggestedIntent.intent)}
                                                     </Text>
                                                     <Text size="xs" c="dimmed" style={{ flex: 1 }}>
@@ -135,23 +140,25 @@ export default function UnsupportedIntent(ct: UnsupportedIntentProps) {
                                                     </Text>
                                                 </Group>
                                                 {suggestedIntent.exampleQuery && (
-                                                    <Text size="xs" fs="italic" c="blue" mt={2}>
+                                                    <Text size="xs" fs="italic" c="primary" mt={2}>
                                                         "{suggestedIntent.exampleQuery}"
                                                     </Text>
                                                 )}
                                             </Box>
                                         </Group>
-                                    </Box>
+                                    </UnstyledButton>
                                 );
                             })}
                         </Stack>
                     </Box>
                 )}
-                
-                <Group mt={12} justify="flex-end">
-                    <Button variant="outline" size="xs" onClick={open} leftSection={<TbDetails size={16} />}>Details</Button>
+
+                <Group mt="sm" justify="flex-end">
+                    <Button variant="outline" size="xs" onClick={open} leftSection={<TbDetails size={14} />}>
+                        Details
+                    </Button>
                 </Group>
-            </Stack>            
-        </Box>
+            </Stack>
+        </Card>
     );
 }

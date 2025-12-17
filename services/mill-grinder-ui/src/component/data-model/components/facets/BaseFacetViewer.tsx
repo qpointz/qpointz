@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
     Box,
-    Card,
     Select,
     Stack,
     Group,
@@ -22,6 +21,7 @@ interface BaseFacetViewerProps {
     selectedScope: string;
     onScopeChange: (scope: string) => void;
     loading?: boolean;
+    hideScope?: boolean;
     children: (props: { toggleButton: ReactNode; showJson: boolean }) => ReactNode; // Render function that receives toggle button
 }
 
@@ -32,6 +32,7 @@ export default function BaseFacetViewer({
     selectedScope,
     onScopeChange,
     loading = false,
+    hideScope = false,
     children,
 }: BaseFacetViewerProps) {
     const [showJson, setShowJson] = useState(false);
@@ -49,18 +50,14 @@ export default function BaseFacetViewer({
     // Handle null, undefined, or empty object (but allow arrays and objects with properties)
     if (data === null || data === undefined) {
         return (
-            <Card withBorder>
-                <Text c="dimmed" size="sm">No facet data available</Text>
-            </Card>
+            <Text c="dimmed" size="sm">No facet data available</Text>
         );
     }
     
     // Check for empty object (but allow arrays and objects with properties)
     if (typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length === 0) {
         return (
-            <Card withBorder>
-                <Text c="dimmed" size="sm">No facet data available</Text>
-            </Card>
+            <Text c="dimmed" size="sm">No facet data available</Text>
         );
     }
 
@@ -78,8 +75,8 @@ export default function BaseFacetViewer({
 
     return (
         <Stack gap="sm">
-            {/* Scope Selector */}
-            {availableScopes.length > 0 && (
+            {/* Scope Selector - only shown if not hidden */}
+            {!hideScope && availableScopes.length > 0 && (
                 <Group gap="sm">
                     <Text size="sm" fw={500}>Scope:</Text>
                     <Select

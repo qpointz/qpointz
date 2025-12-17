@@ -13,9 +13,10 @@ interface FacetViewerProps {
     entityId: string;
     facetType: string;
     data?: any;
+    hideScope?: boolean;
 }
 
-export default function FacetViewer({ entityId, facetType, data }: FacetViewerProps) {
+export default function FacetViewer({ entityId, facetType, data, hideScope = false }: FacetViewerProps) {
     const { scope } = useMetadataContext();
     const [facetData, setFacetData] = useState<any>(data);
     const [availableScopes, setAvailableScopes] = useState<string[]>([]);
@@ -103,6 +104,7 @@ export default function FacetViewer({ entityId, facetType, data }: FacetViewerPr
             selectedScope={selectedScope}
             onScopeChange={handleScopeChange}
             loading={loading}
+            hideScope={hideScope}
         />
     );
 }

@@ -42,10 +42,10 @@ export default function DataContainer(input: any) {
         <>
         <ScrollArea
             scrollbars="xy"
-            type="auto"
+            type="always"
             offsetScrollbars={true}
-            scrollbarSize={15}
-            mah="80%"
+            scrollbarSize={12}
+            mah="60vh"
             style={{ width: "100%" }}
         >
             <Table

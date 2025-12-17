@@ -1,14 +1,15 @@
 import {
-    Card,
     Stack,
     Group,
     Text,
     Badge,
-    Divider,
-    Code,
+    Box,
+    Tooltip,
+    UnstyledButton,
 } from "@mantine/core";
-import { TbArrowRight, TbKey, TbLink, TbHierarchy2 } from "react-icons/tb";
+import { TbArrowRight, TbKey, TbLink, TbHierarchy2, TbArrowsJoin2 } from "react-icons/tb";
 import type { ReactNode } from "react";
+import { useState } from "react";
 
 interface RelationFacetViewProps {
     data: any;
@@ -19,6 +20,7 @@ export default function RelationFacetView({ data, toggleButton }: RelationFacetV
     // Handle both direct data and scoped data (global, user:xxx, etc.)
     const facetData = data?.global || data;
     const relations = facetData?.relations || [];
+    const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
     const formatEntityReference = (ref: any): string => {
         if (!ref) return '';
@@ -26,6 +28,11 @@ export default function RelationFacetView({ data, toggleButton }: RelationFacetV
             return `${ref.schema}.${ref.table}.${ref.attribute}`;
         }
         return `${ref.schema}.${ref.table}`;
+    };
+
+    const formatShortRef = (ref: any): string => {
+        if (!ref) return '';
+        return ref.table || '';
     };
 
     const getCardinalityColor = (cardinality?: string): string => {
@@ -40,6 +47,21 @@ export default function RelationFacetView({ data, toggleButton }: RelationFacetV
                 return 'purple';
             default:
                 return 'gray';
+        }
+    };
+
+    const formatCardinality = (cardinality?: string): string => {
+        switch (cardinality?.toUpperCase()) {
+            case 'ONE_TO_ONE':
+                return '1:1';
+            case 'ONE_TO_MANY':
+                return '1:N';
+            case 'MANY_TO_ONE':
+                return 'N:1';
+            case 'MANY_TO_MANY':
+                return 'N:N';
+            default:
+                return cardinality || '';
         }
     };
 
@@ -58,124 +80,171 @@ export default function RelationFacetView({ data, toggleButton }: RelationFacetV
 
     if (relations.length === 0) {
         return (
-            <Card withBorder>
-                <Text c="dimmed" size="sm" ta="center" py="md">
-                    No relations defined
-                </Text>
-            </Card>
+            <Group justify="space-between">
+                <Text c="dimmed" size="sm">No relations defined</Text>
+                {toggleButton}
+            </Group>
         );
     }
 
     return (
-        <Stack gap="md">
-            {relations.map((relation: any, index: number) => (
-                <Card key={index} withBorder>
-                    <Stack gap="sm">
-                        {/* Header with Relation Name and Toggle (only on first relation) */}
-                        {relation.name && (
-                            <Group justify="space-between" align="flex-start">
-                                <div style={{ flex: 1 }}>
-                                    <Text size="sm" c="dimmed" mb={4}>Relation</Text>
-                                    <Text fw={600} size="lg">{relation.name}</Text>
-                                </div>
-                                {index === 0 && toggleButton && (
-                                    <div style={{ marginTop: 4 }}>
-                                        {toggleButton}
-                                    </div>
-                                )}
-                            </Group>
-                        )}
-                        {!relation.name && index === 0 && toggleButton && (
-                            <Group justify="flex-end">
-                                {toggleButton}
-                            </Group>
-                        )}
+        <Stack gap="xs">
+            {/* Toggle button */}
+            {toggleButton && (
+                <Group justify="flex-end">
+                    {toggleButton}
+                </Group>
+            )}
 
-                        {/* Description */}
-                        {relation.description && (
-                            <Text size="sm" c="dimmed">{relation.description}</Text>
-                        )}
+            {/* Compact relation list */}
+            {relations.map((relation: any, index: number) => {
+                const isExpanded = expandedIndex === index;
+                const hasDetails = relation.description || relation.businessMeaning || relation.joinSql ||
+                    (relation.sourceAttributes?.length > 0) || (relation.targetAttributes?.length > 0);
 
-                        <Divider />
-
-                        {/* Source → Target */}
-                        {relation.sourceTable && relation.targetTable && (
-                            <div>
-                                <Text size="sm" c="dimmed" mb={8}>Relationship</Text>
-                                <Group gap="sm" align="center" wrap="nowrap">
-                                    <div style={{ flex: 1 }}>
-                                        <Text size="xs" c="dimmed" mb={2}>Source</Text>
-                                        <Group gap={4}>
-                                            <TbKey size={14} />
-                                            <Text size="sm" fw={500}>{formatEntityReference(relation.sourceTable)}</Text>
+                return (
+                    <Box key={index}>
+                        <UnstyledButton
+                            w="100%"
+                            onClick={() => hasDetails && setExpandedIndex(isExpanded ? null : index)}
+                            style={{ 
+                                cursor: hasDetails ? 'pointer' : 'default',
+                                borderRadius: 'var(--mantine-radius-sm)',
+                                border: '1px solid var(--mantine-color-gray-2)',
+                            }}
+                            styles={{
+                                root: {
+                                    '&:hover': {
+                                        backgroundColor: 'var(--mantine-color-gray-0)',
+                                        borderColor: 'var(--mantine-color-gray-4)',
+                                    },
+                                },
+                            }}
+                        >
+                            <Group gap="xs" p="xs" wrap="nowrap" justify="space-between">
+                                {/* Left side: Icon + Source → Target */}
+                                <Group gap="sm" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+                                    {/* Relation icon */}
+                                    <TbArrowsJoin2 size={16} style={{ flexShrink: 0, color: 'var(--mantine-color-primary-5)' }} />
+                                    
+                                    {/* Relation name or source */}
+                                    {relation.name ? (
+                                        <Text size="sm" fw={500} truncate>{relation.name}</Text>
+                                    ) : (
+                                        <Group gap={4} wrap="nowrap">
+                                            <Tooltip label={formatEntityReference(relation.sourceTable)} withArrow>
+                                                <Group gap={2} wrap="nowrap">
+                                                    <TbKey size={12} style={{ flexShrink: 0 }} />
+                                                    <Text size="xs" fw={500} truncate>{formatShortRef(relation.sourceTable)}</Text>
+                                                </Group>
+                                            </Tooltip>
+                                            <TbArrowRight size={14} style={{ flexShrink: 0, color: 'var(--mantine-color-dimmed)' }} />
+                                            <Tooltip label={formatEntityReference(relation.targetTable)} withArrow>
+                                                <Group gap={2} wrap="nowrap">
+                                                    <TbLink size={12} style={{ flexShrink: 0 }} />
+                                                    <Text size="xs" fw={500} truncate>{formatShortRef(relation.targetTable)}</Text>
+                                                </Group>
+                                            </Tooltip>
                                         </Group>
-                                        {relation.sourceAttributes && relation.sourceAttributes.length > 0 && (
-                                            <Group gap={4} mt={4}>
-                                                {relation.sourceAttributes.map((attr: string, i: number) => (
-                                                    <Badge key={i} variant="outline" size="xs">{attr}</Badge>
-                                                ))}
-                                            </Group>
-                                        )}
-                                    </div>
-                                    <TbArrowRight size={20} style={{ flexShrink: 0 }} />
-                                    <div style={{ flex: 1 }}>
-                                        <Text size="xs" c="dimmed" mb={2}>Target</Text>
-                                        <Group gap={4}>
-                                            <TbLink size={14} />
-                                            <Text size="sm" fw={500}>{formatEntityReference(relation.targetTable)}</Text>
-                                        </Group>
-                                        {relation.targetAttributes && relation.targetAttributes.length > 0 && (
-                                            <Group gap={4} mt={4}>
-                                                {relation.targetAttributes.map((attr: string, i: number) => (
-                                                    <Badge key={i} variant="outline" size="xs">{attr}</Badge>
-                                                ))}
-                                            </Group>
-                                        )}
-                                    </div>
+                                    )}
                                 </Group>
-                            </div>
-                        )}
 
-                        {/* Metadata */}
-                        <Group gap="sm">
-                            {relation.cardinality && (
-                                <Badge 
-                                    variant="light" 
-                                    color={getCardinalityColor(relation.cardinality)}
-                                    leftSection={<TbHierarchy2 size={12} />}
-                                >
-                                    {relation.cardinality}
-                                </Badge>
-                            )}
-                            {relation.type && (
-                                <Badge 
-                                    variant="light" 
-                                    color={getRelationTypeColor(relation.type)}
-                                >
-                                    {relation.type}
-                                </Badge>
-                            )}
-                        </Group>
+                                {/* Right side: Badges */}
+                                <Group gap={4} wrap="nowrap">
+                                    {relation.cardinality && (
+                                        <Tooltip label={relation.cardinality} withArrow>
+                                            <Badge 
+                                                variant="light" 
+                                                color={getCardinalityColor(relation.cardinality)}
+                                                size="xs"
+                                                leftSection={<TbHierarchy2 size={10} />}
+                                            >
+                                                {formatCardinality(relation.cardinality)}
+                                            </Badge>
+                                        </Tooltip>
+                                    )}
+                                    {relation.type && (
+                                        <Badge 
+                                            variant="outline" 
+                                            color={getRelationTypeColor(relation.type)}
+                                            size="xs"
+                                        >
+                                            {relation.type === 'FOREIGN_KEY' ? 'FK' : relation.type}
+                                        </Badge>
+                                    )}
+                                </Group>
+                            </Group>
+                        </UnstyledButton>
 
-                        {/* Join SQL */}
-                        {relation.joinSql && (
-                            <div>
-                                <Text size="sm" c="dimmed" mb={4}>Join SQL</Text>
-                                <Code block style={{ fontSize: '12px' }}>{relation.joinSql}</Code>
-                            </div>
+                        {/* Expanded details */}
+                        {isExpanded && hasDetails && (
+                            <Box 
+                                ml="xs" 
+                                mt="xs" 
+                                p="sm" 
+                                style={{ 
+                                    borderRadius: 'var(--mantine-radius-sm)',
+                                    border: '1px solid var(--mantine-color-gray-3)',
+                                }}
+                            >
+                                <Stack gap="sm">
+                                    {/* Full source → target path */}
+                                    {relation.sourceTable && relation.targetTable && (
+                                        <Box>
+                                            <Text size="xs" fw={500} c="dimmed" mb={4}>Path</Text>
+                                            <Group gap="xs" wrap="wrap" align="center">
+                                                <Badge variant="light" color="blue" size="sm">
+                                                    {formatEntityReference(relation.sourceTable)}
+                                                </Badge>
+                                                {relation.sourceAttributes?.length > 0 && (
+                                                    <Text size="xs" c="dimmed">({relation.sourceAttributes.join(', ')})</Text>
+                                                )}
+                                                <TbArrowRight size={14} style={{ color: 'var(--mantine-color-primary-5)' }} />
+                                                <Badge variant="light" color="green" size="sm">
+                                                    {formatEntityReference(relation.targetTable)}
+                                                </Badge>
+                                                {relation.targetAttributes?.length > 0 && (
+                                                    <Text size="xs" c="dimmed">({relation.targetAttributes.join(', ')})</Text>
+                                                )}
+                                            </Group>
+                                        </Box>
+                                    )}
+                                    
+                                    {/* Description */}
+                                    {relation.description && (
+                                        <Box>
+                                            <Text size="xs" fw={500} c="dimmed" mb={4}>Description</Text>
+                                            <Text size="sm">{relation.description}</Text>
+                                        </Box>
+                                    )}
+                                    
+                                    {/* Business Meaning */}
+                                    {relation.businessMeaning && (
+                                        <Box>
+                                            <Text size="xs" fw={500} c="dimmed" mb={4}>Business Meaning</Text>
+                                            <Text size="sm" fs="italic" c="dark.4">{relation.businessMeaning}</Text>
+                                        </Box>
+                                    )}
+                                    
+                                    {/* Join SQL */}
+                                    {relation.joinSql && (
+                                        <Box>
+                                            <Text size="xs" fw={500} c="dimmed" mb={4}>Join SQL</Text>
+                                            <Box 
+                                                p="xs" 
+                                                bg="dark.8" 
+                                                style={{ borderRadius: 'var(--mantine-radius-sm)' }}
+                                            >
+                                                <Text size="xs" ff="monospace" c="gray.4">{relation.joinSql}</Text>
+                                            </Box>
+                                        </Box>
+                                    )}
+                                </Stack>
+                            </Box>
                         )}
-
-                        {/* Business Meaning */}
-                        {relation.businessMeaning && (
-                            <div>
-                                <Text size="sm" c="dimmed" mb={4}>Business Meaning</Text>
-                                <Text size="sm">{relation.businessMeaning}</Text>
-                            </div>
-                        )}
-                    </Stack>
-                </Card>
-            ))}
+                    </Box>
+                );
+            })}
         </Stack>
     );
 }
-

@@ -1,4 +1,5 @@
-import {defineConfig} from 'vite'
+/// <reference types="vitest/config" />
+import {defineConfig} from 'vitest/config'
 import react from '@vitejs/plugin-react-swc'
 import Inspect from 'vite-plugin-inspect'
 import {visualizer} from 'rollup-plugin-visualizer';
@@ -31,5 +32,11 @@ export default defineConfig({
                 changeOrigin: true
             }
         }
+    },
+    test: {
+        globals: true,
+        environment: 'jsdom',
+        setupFiles: './src/test/setup.ts',
+        css: true,
     }
 })

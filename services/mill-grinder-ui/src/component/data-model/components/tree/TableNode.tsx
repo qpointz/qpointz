@@ -1,6 +1,5 @@
 import { Box, NavLink, Group, Text, Collapse } from "@mantine/core";
 import { TbTable, TbChevronRight, TbChevronDown } from "react-icons/tb";
-import { useMantineTheme } from "@mantine/core";
 import { useNavigate } from "react-router";
 import type { TreeNodeDto } from "../../../../api/mill/api.ts";
 import { parseEntityId } from "../../utils/entityUtils";
@@ -27,7 +26,6 @@ export default function TableNode({
     onSelect,
     onColumnSelect 
 }: TableNodeProps) {
-    const theme = useMantineTheme();
     const navigate = useNavigate();
     const hasColumns = columns.length > 0;
 
@@ -47,19 +45,11 @@ export default function TableNode({
     };
 
     return (
-        <Box 
-            m={0} 
-            mt={6} 
-            p={0} 
-            bg={isSelected ? "gray.3" : "transparent"} 
-            style={{ borderRadius: 6 }} 
-            key={table.id}
-        >
+        <Box mt="xs">
             <NavLink
                 component="div"
                 label={table.name || parseEntityId(table.id).table || table.id}
-                p={3} 
-                m={0}
+                active={isSelected}
                 leftSection={
                     <Group gap={4}>
                         {hasColumns && (
@@ -71,20 +61,11 @@ export default function TableNode({
                 rightSection={hasColumns ? (
                     <Text size="xs" c="dimmed">{columns.length}</Text>
                 ) : undefined}
-                style={{
-                    borderRadius: 8,
-                    marginBottom: 4,
-                    background: isSelected ? theme.colors.blue[0] : undefined,
-                    transition: 'background 0.2s',
-                    cursor: 'pointer',
-                }}
                 onClick={handleClick}
-                onMouseEnter={e => e.currentTarget.style.background = theme.colors.gray[1]}
-                onMouseLeave={e => e.currentTarget.style.background = isSelected ? theme.colors.blue[0] : ''}
             />
             {hasColumns && (
                 <Collapse in={isExpanded}>
-                    <Box pl={20} pt={4}>
+                    <Box pl="lg" pt="xs">
                         {columns.map((column) => {
                             const isColumnSelected = selectedEntityId === column.id;
                             return (
