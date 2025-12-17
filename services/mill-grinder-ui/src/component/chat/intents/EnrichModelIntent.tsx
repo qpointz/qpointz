@@ -57,9 +57,9 @@ export default function EnrichModelIntent(data: any = {}) {
         return <Text size="sm">{JSON.stringify(segments, null, 2)}</Text>;
     };
 
-    const renderTarget = (target: string) => {
+    const renderTarget = (target: string, key?: string | number) => {
         return (
-            <Group>
+            <Group key={key}>
                 {renderTargetLink(target)}
             </Group>
         );
@@ -110,13 +110,17 @@ export default function EnrichModelIntent(data: any = {}) {
                 </Tabs.List>
                 {(e.targets || e.target) && (
                     <Tabs.Panel value="targets">
-                        {e.targets && e.targets.map((target: any) => renderTarget(target))}
-                        {e.target && [e.target].map((target: any) => renderTarget(target))}
+                        {e.targets && e.targets.map((target: any, idx: number) => renderTarget(target, idx))}
+                        {e.target && [e.target].map((target: any, idx: number) => renderTarget(target, `single-${idx}`))}
                     </Tabs.Panel>
                 )}
                 {e.type === 'relation' && (
                     <Tabs.Panel value="relation">
-                        {e.relation.map((rel: any) => renderRelation(rel))}
+                        {e.relation.map((rel: any, idx: number) => (
+                            <div key={idx}>
+                                {renderRelation(rel)}
+                            </div>
+                        ))}
                     </Tabs.Panel>
                 )}
                 {e.sql && (

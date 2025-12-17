@@ -49,8 +49,8 @@ Your task is to:
 
 ### Value Mapping Rules (Same as get-data/get-chart):
 1. **Every constant value MUST be replaced with a placeholder.**
-   - Wrong: WHERE SEGMENT = "premium"
-   - Correct: WHERE SEGMENT = "@{MONETA.CLIENTS.SEGMENT:segment_premium}"
+   - Wrong: WHERE SEGMENT = 'premium'
+   - Correct: WHERE SEGMENT = '@{MONETA.CLIENTS.SEGMENT:segment_premium}'
 2. Each placeholder must have a matching entry in `value-mapping`.
 3. `resolved-value` must equal the literal value as it appears logically in SQL, but without surrounding quotes or escaping.
 4. `kind` must be:
@@ -61,13 +61,22 @@ Your task is to:
 7. One unique placeholder **per value per target**
 8. Multiple values for the same column → multiple placeholders
 9. Placeholders inside the SQL must include quotes appropriate to their type, but resolved-value in value-mapping must always be raw — no surrounding quotes, no escaping.
+   - **String placeholders must always be quoted in SQL using the dialect's string quote character**, just like string literals would be. This applies to all SQL contexts: WHERE conditions, IN clauses, JOIN conditions, etc.
+   - The examples below use single quotes (') for illustration, but you must use the actual dialect's string quote character (typically single quotes, but check the dialect conventions).
+   - Wrong: `WHERE COUNTRY IN (@{MONETA.CLIENTS.COUNTRY:country_korea}, @{MONETA.CLIENTS.COUNTRY:country_singapore})` or `WHERE SEGMENT = @{MONETA.CLIENTS.SEGMENT:segment_premium}`
+   - Correct (example using single quotes): `WHERE COUNTRY IN ('@{MONETA.CLIENTS.COUNTRY:country_korea}', '@{MONETA.CLIENTS.COUNTRY:country_singapore}')` or `WHERE SEGMENT = '@{MONETA.CLIENTS.SEGMENT:segment_premium}'`
+   - In your actual output, replace the example quote characters with the dialect's actual string quote character.
 10. **Fully qualified identifiers must quote each component separately.**
     - Wrong: `"MONETA.CLIENTS.CLIENT_ID"` or `"MONETA.STOCK_HOLDINGS.HOLDING_ID"`
     - Correct: `"MONETA"."CLIENTS"."CLIENT_ID"` or `"MONETA"."STOCK_HOLDINGS"."HOLDING_ID"`
     - Each component (schema, table, column) must have its own quotes
     - This applies to all SQL contexts: SELECT, FROM, JOIN, WHERE, ORDER BY, GROUP BY, etc.
 
-**Important:** All examples below use backticks (`) for identifier quoting as illustrations only. In your actual SQL output, you must use the dialect-specific identifier quoting rules (double quotes, square brackets, or other delimiters as specified in the dialect conventions), not backticks. However, the component-by-component quoting rule (rule 10) always applies regardless of the quoting style.
+**Important:** All examples below use backticks (`) for identifier quoting and single quotes (') for string literals as illustrations only. In your actual SQL output, you must use the dialect-specific quoting rules:
+- Use the dialect's identifier quoting characters (double quotes, square brackets, backticks, or other delimiters as specified in the dialect conventions) instead of backticks
+- Use the dialect's string literal quote character (usually single quotes, but check the dialect conventions) instead of the single quotes shown in examples
+- The component-by-component quoting rule (rule 10) always applies for identifiers regardless of the quoting style
+- String placeholders must use the dialect's actual string quote character, not the example quotes shown here
 
 ### Critical: Value Mapping for Refine Queries
 When refining queries, you MUST apply value mapping logic to ALL constants, including:

@@ -185,6 +185,19 @@ Components updated:
 
 ---
 
+## Chat Input Enhancements
+
+The chat input component (`PostMessage.tsx`) has been enhanced with command palette and @ mention features:
+
+- **Command Palette (`/`)**: Type `/` to access available intents (get-data, get-chart, explain, etc.)
+- **@ Mentions (`@`)**: Type `@` to search and reference metadata entities (tables and attributes)
+- **Keyboard Navigation**: Arrow keys, Enter, and Escape support
+- **Compact UI**: Streamlined menu design with 4px padding, xs text, and 200px max height
+
+See [Chat Input Enhancements](./chat-input-enhancements.md) for detailed documentation.
+
+---
+
 ## Data Table Fixes (`DataContainer.tsx`)
 
 ```tsx

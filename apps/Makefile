@@ -9,6 +9,9 @@ help:
 	@echo "make run-moneta     # runs moneta sample docker"
 
 rebuild:
+	cd ../services/mill-grinder-ui ; \
+	npm install ; \
+	npm run build
 	./gradlew clean installBootDist assembleSamples
 
 build-docker: rebuild

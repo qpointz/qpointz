@@ -72,8 +72,8 @@ Always return your output using **strict JSON format** with the following fields
 
 ### Rules
 1. **Every constant value MUST be replaced with a placeholder.**
-   - Wrong: WHERE SEGMENT = "premium"
-   - Correct: WHERE SEGMENT = "@{MONETA.CLIENTS.SEGMENT:segment_premium}"
+- Wrong: WHERE SEGMENT = 'premium'
+   - Correct: WHERE SEGMENT = '@{MONETA.CLIENTS.SEGMENT:segment_premium}'
 2. Each placeholder must have a matching entry in `value-mapping`.
 3. `resolved-value` must equal the literal value as it appears logically in SQL, but without surrounding quotes or escaping.
 4. `kind` must be:
@@ -95,6 +95,11 @@ Always return your output using **strict JSON format** with the following fields
 15. Multiple values for the same column → multiple placeholders
 16. Do not resolve or guess values — placeholders stay unresolved
 17. Placeholders inside the SQL must include quotes appropriate to their type, but resolved-value in value-mapping must always be raw — no surrounding quotes, no escaping.
+   - **String placeholders must always be quoted in SQL using the dialect's string quote character**, just like string literals would be. This applies to all SQL contexts: WHERE conditions, IN clauses, JOIN conditions, etc.
+   - The examples below use single quotes (') for illustration, but you must use the actual dialect's string quote character (typically single quotes, but check the dialect conventions).
+   - Wrong: `WHERE COUNTRY IN (@{MONETA.CLIENTS.COUNTRY:country_korea}, @{MONETA.CLIENTS.COUNTRY:country_singapore})` or `WHERE SEGMENT = @{MONETA.CLIENTS.SEGMENT:segment_premium}`
+   - Correct (example using single quotes): `WHERE COUNTRY IN ('@{MONETA.CLIENTS.COUNTRY:country_korea}', '@{MONETA.CLIENTS.COUNTRY:country_singapore}')` or `WHERE SEGMENT = '@{MONETA.CLIENTS.SEGMENT:segment_premium}'`
+   - In your actual output, replace the example quote characters with the dialect's actual string quote character.
 18. **Fully qualified identifiers must quote each component separately.**
    - Wrong: `"MONETA.CLIENTS.CLIENT_ID"` or `"MONETA.STOCK_HOLDINGS.HOLDING_ID"`
    - Correct: `"MONETA"."CLIENTS"."CLIENT_ID"` or `"MONETA"."STOCK_HOLDINGS"."HOLDING_ID"`
@@ -102,7 +107,11 @@ Always return your output using **strict JSON format** with the following fields
    - This applies to all SQL contexts: SELECT, FROM, JOIN, WHERE, ORDER BY, GROUP BY, etc.
    - Example: `SELECT "MONETA"."CLIENTS"."CLIENT_ID", COUNT(DISTINCT "MONETA"."STOCK_HOLDINGS"."HOLDING_ID") FROM "MONETA"."CLIENTS"`
 
-**Important:** All examples below use backticks (`) for identifier quoting as illustrations only. In your actual SQL output, you must use the dialect-specific identifier quoting rules (double quotes, square brackets, or other delimiters as specified in the dialect conventions), not backticks. However, the component-by-component quoting rule (rule 18) always applies regardless of the quoting style.
+**Important:** All examples below use backticks (`) for identifier quoting and single quotes (') for string literals as illustrations only. In your actual SQL output, you must use the dialect-specific quoting rules:
+- Use the dialect's identifier quoting characters (double quotes, square brackets, backticks, or other delimiters as specified in the dialect conventions) instead of backticks
+- Use the dialect's string literal quote character (usually single quotes, but check the dialect conventions) instead of the single quotes shown in examples
+- The component-by-component quoting rule (rule 18) always applies for identifiers regardless of the quoting style
+- String placeholders must use the dialect's actual string quote character, not the example quotes shown here
 
 ### Example — Constant
 {
@@ -134,7 +143,7 @@ Always return your output using **strict JSON format** with the following fields
 
 ### Example — Pattern
 {
-  "sql": "SELECT `CATALOG`.`PRODUCTS`.`PRODUCT_ID`, `CATALOG`.`PRODUCTS`.`NAME` FROM `CATALOG`.`PRODUCTS` WHERE `CATALOG`.`PRODUCTS`.`NAME` LIKE \"@{CATALOG.PRODUCTS.NAME:name_prefix}\"",
+  "sql": "SELECT `CATALOG`.`PRODUCTS`.`PRODUCT_ID`, `CATALOG`.`PRODUCTS`.`NAME` FROM `CATALOG`.`PRODUCTS` WHERE `CATALOG`.`PRODUCTS`.`NAME` LIKE '@{CATALOG.PRODUCTS.NAME:name_prefix}'",
   "query-name": "products_name_prefix",
   "chart": {
     "type": "line",
@@ -154,6 +163,43 @@ Always return your output using **strict JSON format** with the following fields
       "type": "string",
       "kind": "pattern",
       "meaning": "Product names beginning with 'Acme'"
+    }
+  ]
+}
+
+---
+
+### Example — Multiple Values (IN clause)
+{
+  "sql": "SELECT `MONETA`.`CLIENTS`.`CLIENT_ID` FROM `MONETA`.`CLIENTS` WHERE `MONETA`.`CLIENTS`.`COUNTRY` IN ('@{MONETA.CLIENTS.COUNTRY:country_korea}', '@{MONETA.CLIENTS.COUNTRY:country_singapore}')",
+  "query-name": "clients_countries_korea_singapore",
+  "chart": {
+    "type": "bar",
+    "config": {
+      "xAxis": { "type": "category", "data": ["COUNTRY"] },
+      "yAxis": { "type": "value" },
+      "series": [{ "type": "bar", "data": [] }]
+    }
+  },
+  "explanation": "The user wants clients from Korea and Singapore.",
+  "value-mapping": [
+    {
+      "placeholder": "country_korea",
+      "target": "MONETA.CLIENTS.COUNTRY",
+      "display": "Korea",
+      "resolved-value": "Korea",
+      "type": "string",
+      "kind": "constant",
+      "meaning": "Country equals Korea"
+    },
+    {
+      "placeholder": "country_singapore",
+      "target": "MONETA.CLIENTS.COUNTRY",
+      "display": "Singapore",
+      "resolved-value": "Singapore",
+      "type": "string",
+      "kind": "constant",
+      "meaning": "Country equals Singapore"
     }
   ]
 }

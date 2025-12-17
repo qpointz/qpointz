@@ -4,6 +4,7 @@ import { format } from 'sql-formatter';
 import { useState } from 'react';
 import ChartView from "../../data/ChartView.tsx";
 import DataContainer from "../../data/DataContainer.tsx";
+import { ErrorBoundary } from "../../data/ErrorBoundary.tsx";
 import { CodeHighlight } from "@mantine/code-highlight";
 
 // Reusable component for tabbed content
@@ -20,11 +21,14 @@ function TabbedContent({
     hasChart: boolean;
     isModal?: boolean;
 }) {
-    const tabPanelHeight = isModal ? "calc(100% - 50px)" : undefined;
+    const tabPanelHeight = isModal ? "100%" : undefined;
     const codeHighlightStyle = isModal ? { height: '100%', overflow: 'auto' } : undefined;
+    const [activeTab, setActiveTab] = useState<string>(hasChart ? "chart" : "data");
 
     return (
-        <Tabs defaultValue={hasChart ? "chart" : "data"} h={isModal ? "100%" : undefined}>
+        <Tabs value={activeTab} onChange={(val) => {
+            setActiveTab(val || (hasChart ? "chart" : "data"));
+        }} h={isModal ? "100%" : undefined} style={isModal ? { display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' } : undefined}>
             <Tabs.List>
                 {hasChart && (
                     <Tabs.Tab value="chart" leftSection={<TbChartBar size={12} />}>
@@ -40,23 +44,35 @@ function TabbedContent({
             </Tabs.List>
 
             {hasChart && (
-                <Tabs.Panel value="chart" h={tabPanelHeight}>
+                <Tabs.Panel value="chart" h={tabPanelHeight} style={isModal ? { flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' } : undefined}>
                     <ChartView chart={chart} container={container} />
                 </Tabs.Panel>
             )}
 
-            <Tabs.Panel value="data" h={tabPanelHeight}>
-                <DataContainer data={message.content.data?.container} />
-            </Tabs.Panel>
+            {activeTab === "data" && (
+                <Tabs.Panel value="data" h={tabPanelHeight} style={isModal ? { flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' } : undefined}>
+                    <ErrorBoundary>
+                        <DataContainer data={message.content.data?.container} fullHeight={isModal} />
+                    </ErrorBoundary>
+                </Tabs.Panel>
+            )}
 
-            <Tabs.Panel value="sql" h={tabPanelHeight}>
-                <CodeHighlight 
-                    code={format(message.content?.sql ?? "")} 
-                    language="sql"
-                    style={codeHighlightStyle}
-                    expandCodeLabel=""
-                />
-            </Tabs.Panel>
+            {activeTab === "sql" && (
+                <Tabs.Panel value="sql" h={tabPanelHeight}>
+                    <CodeHighlight 
+                        code={(() => {
+                            try {
+                                return format(message.content?.sql ?? "");
+                            } catch (error) {
+                                return message.content?.sql ?? "";
+                            }
+                        })()}
+                        language="sql"
+                        style={codeHighlightStyle}
+                        expandCodeLabel=""
+                    />
+                </Tabs.Panel>
+            )}
         </Tabs>
     );
 }
@@ -110,21 +126,26 @@ export default function GetDataIntent(data: any) {
                 }
                 size="100%"
                 styles={{
-                    content: { height: '100vh' },
-                    body: { height: 'calc(100vh - 60px)', padding: 0 }
+                    content: { height: '100vh', maxHeight: '100vh' },
+                    body: { height: 'calc(100vh - 60px)', padding: 0, overflow: 'hidden' },
+                    inner: { padding: 0 }
                 }}
+                centered={false}
+                fullScreen={false}
             >
-                <Box p="md" h="100%">
-                    <Text size="sm" c="dimmed" fs="italic" mb="md">
+                <Box p="md" h="100%" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                    <Text size="sm" c="dimmed" fs="italic" mb="md" style={{ flexShrink: 0 }}>
                         {message.content.explanation}
                     </Text>
-                    <TabbedContent 
-                        message={message}
-                        container={container}
-                        chart={chart}
-                        hasChart={hasChart}
-                        isModal={true}
-                    />
+                    <Box style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+                        <TabbedContent 
+                            message={message}
+                            container={container}
+                            chart={chart}
+                            hasChart={hasChart}
+                            isModal={true}
+                        />
+                    </Box>
                 </Box>
             </Modal>
         </>

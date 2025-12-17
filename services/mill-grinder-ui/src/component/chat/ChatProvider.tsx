@@ -291,10 +291,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode, chatId?: string
         // Show progress notification on chat_begin_progress_event
         source.addEventListener("chat_begin_progress_event", (event) => {
             const data = JSON.parse(event.data);
-            console.log("chat_begin_progress_event - full data:", data);
-            console.log("chat_begin_progress_event - entity:", data?.entity);
-            console.log("chat_begin_progress_event - message:", data?.message);
-            console.log("chat_begin_progress_event - raw event.data:", event.data);
             const progressText = data?.entity || data?.message || "Processing...";            
             setPostingMessage(progressText);
         });
