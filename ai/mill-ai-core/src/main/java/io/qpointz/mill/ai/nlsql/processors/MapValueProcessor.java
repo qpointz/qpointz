@@ -6,6 +6,7 @@ import io.qpointz.mill.ai.nlsql.ValueMapper;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import java.util.List;
 
@@ -18,6 +19,7 @@ import java.util.Map;
  * {@code @{target:placeholder}} within the SQL text.
  */
 @AllArgsConstructor
+@Slf4j
 public class MapValueProcessor implements ChatCallPostProcessor {
 
     @Getter
@@ -54,6 +56,7 @@ public class MapValueProcessor implements ChatCallPostProcessor {
 
         for (val p : placeholders) {
             val repl = String.format("@{%s:%s}", p.target(), p.placeholder());
+            log.info("Sql value postprocessing: {}", p.target());
             val mappedValue =this.valueMapper.mapValue(p);
             sql = sql.replace(repl, mappedValue.mappedValue());
         }

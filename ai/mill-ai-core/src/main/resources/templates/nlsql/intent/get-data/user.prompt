@@ -10,7 +10,7 @@ Examples below use backticks (`) for identifier quoting only for illustration.
 ---
 
 ### Your Task
-- Analyze the user’s request
+- Analyze the user's request
 - Generate a valid SQL query in the required dialect
 - **Replace every constant value in the query with a placeholder**:
   - strings, numbers, dates, booleans
@@ -18,7 +18,7 @@ Examples below use backticks (`) for identifier quoting only for illustration.
   - regex patterns
   - range boundaries (BETWEEN, >=, <=, etc.)
 - Provide a filename-safe `query-name`
-- Return a brief explanation in the same language as the user’s input
+- Return a brief explanation in the same language as the user's input
 - Return structured `value-mapping` metadata for **all placeholders**
 - If the query contains **no constants**, `value-mapping` must still be present as an empty array (`[]`)
 - Placeholders for values must include **quoting appropriate to their type** in the SQL string (e.g., string values in quotes, numbers without quotes, etc.)

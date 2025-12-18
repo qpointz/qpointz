@@ -67,7 +67,7 @@ public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
         this.dispatcher = dispatcher;
         this.chatModel = model;
         this.callSpecBuilders = new CallSpecsChatClientBuilders(
-                model, this.chatMemory, UUID.randomUUID().toString());
+                model, this.chatMemory, UUID.randomUUID().toString(), null);
         this.sqlDialect = sqlDialect;
         this.messageSelector = MessageSelectors.SIMPLE;
         this.intentSpecs = new IntentSpecs(metadataProvider, sqlDialect, this.callSpecBuilders, dispatcher, this.messageSelector, new DefaultValueMapper(), ChatEventProducer.DEFAULT);
@@ -78,7 +78,8 @@ public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
         val app = new ChatApplication(
                 new CallSpecsChatClientBuilders(this.chatModel,
                         this.chatMemory,
-                        UUID.randomUUID().toString()),
+                        UUID.randomUUID().toString(),
+                        null),
                 this.metadataProvider,
                 this.sqlDialect,
                 this.dispatcher,

@@ -1,0 +1,21 @@
+name: scenario-name #sceanrio name
+parameters:
+  runner: chat-app
+  reasoner: default
+run: #list of actions to run
+  #each action is composition of steps
+  - do-get: #step get message
+      message: -1
+  - do-ask: question222  #step ask question
+  #after action performed check applies
+  - check-has-sql:
+      pass: WARN #minimal level to PASS
+  - check-data:
+    - expect:
+        columns:
+          - A
+          - B
+          - C
+          - D
+        records: 20
+      pass: WARN

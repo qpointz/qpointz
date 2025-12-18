@@ -11,16 +11,44 @@ ai:integration:
     - .gradle-job
     - .integration-job
   allow_failure: true
+  needs:
+    - job: init-version
+      artifacts: true
+      optional: true
   script:
-    - echo "CI_PIPELINE_SOURCE=${CI_PIPELINE_SOURCE}"
-    - echo "CI_OPEN_MERGE_REQUESTS=${CI_OPEN_MERGE_REQUESTS}"
-    - echo "CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED=${CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED}"
-    - echo "CI_COMMIT_REF_PROTECTED=${CI_COMMIT_REF_PROTECTED}"
-    - echo "CI_COMMIT_REF_SLUG=${CI_COMMIT_REF_SLUG}"
-    - echo "CI_COMMIT_REF_NAME=${CI_COMMIT_REF_NAME}"
-    - echo "CI_COMMIT_REF_SHA=${CI_COMMIT_REF_SHA}"
-    - echo "CI_COMMIT_REF_MESSAGE=${CI_COMMIT_REF_MESSAGE}"
-    - echo "CI_COMMIT_REF_TIMESTAMP=${CI_COMMIT_REF_TIMESTAMP}"
-    - echo "CI_COMMIT_REF_AUTHOR=${CI_COMMIT_REF_AUTHOR}"
-    - echo "CI_COMMIT_REF_AUTHOR_EMAIL=${CI_COMMIT_REF_AUTHOR_EMAIL}"    
+    - !reference [ .global-vars, before_script ]
+    - export REGRESSION_VERSION_TAG=${QP_VERSION}
+    - echo "REGRESSION_VERSION_TAG=${REGRESSION_VERSION_TAG}"
     - ./gradlew --no-daemon --console plain :ai:testIT
+  artifacts:
+    when: always
+    expire_in: "5 days"
+    paths:
+      - ${CI_PROJECT_DIR}/ai/mill-ai-core/build/reports/scenarios/*.json
+
+ai:publish-regression:
+  stage: integration
+  extends:
+    - .integration-job
+  needs:
+    - job: ai:integration
+      artifacts: true
+    - job: init-version
+      artifacts: true
+      optional: true
+  script:
+    - !reference [ .global-vars, before_script ]
+    - export REGRESSION_VERSION_TAG=${QP_VERSION}
+    - mkdir -p /out/regression/reports/ai/${REGRESSION_VERSION_TAG}
+    - rm -Rf /out/regression/reports/ai/${REGRESSION_VERSION_TAG}/ 2> /dev/null
+    - mkdir -p /out/regression/reports/ai/${REGRESSION_VERSION_TAG}
+    - ls -l ${CI_PROJECT_DIR}/ai/mill-ai-core/build/reports/scenarios/*.*
+    - cp -Rf ${CI_PROJECT_DIR}/ai/mill-ai-core/build/reports/scenarios/*.* /out/regression/reports/ai/${REGRESSION_VERSION_TAG}/
+    - ls -lacr /out/regression/reports/
+    - cd /out/regression/
+    - tar czfv /out/regression/pack-${REGRESSION_VERSION_TAG}-$(date +%Y%m%d-%H%M%S).tar.gz ./reports
+    - cp /out/regression/pack-${REGRESSION_VERSION_TAG}-$(date +%Y%m%d-%H%M%S).tar.gz ${CI_PROJECT_DIR}/ai/mill-ai-core/build/reports/scenarios/
+  artifacts:
+    expire_in: "5 days"
+    paths:
+      - ${CI_PROJECT_DIR}/ai/mill-ai-core/build/reports/scenarios/pack-*.tar.gz

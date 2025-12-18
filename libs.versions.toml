@@ -4,7 +4,7 @@ lombok = "1.18.42"
 protobuf-plugin = "0.9.4"
 
 springCloud = "3.2.12"
-springAi = "1.1.0"
+springAi = "1.1.2"
 springBoot = "3.5.8"
 springDoc = "2.8.14"
 

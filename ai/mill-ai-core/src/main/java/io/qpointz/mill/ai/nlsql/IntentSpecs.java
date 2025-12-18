@@ -11,11 +11,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static io.qpointz.mill.ai.nlsql.ChatCallBase.applyPostProcessors;
 import static io.qpointz.mill.ai.nlsql.MessageSpecs.*;
 import static io.qpointz.mill.ai.nlsql.PostProcessors.*;
 
@@ -145,7 +142,7 @@ public class IntentSpecs {
     public static final String UNSUPPORTED_INTENT_KEY = "unsupported";
     public IntentSpec getUnsuportedInten() {
         return IntentSpec.builder(UNSUPPORTED_INTENT_KEY)
-                .callFunc(UnsuportedCall::new)
+                .callFunc(UnsupportedCall::new)
                 .build();
     }
 

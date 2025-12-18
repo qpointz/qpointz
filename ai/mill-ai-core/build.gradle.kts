@@ -48,6 +48,7 @@ testing {
                     implementation(project(":core:mill-security-core"))
                     implementation(project(":core:mill-starter-service"))
                     implementation(project(":core:mill-starter-backends"))
+                    implementation(project(":ai:mill-ai-testing"))
                     implementation(libs.boot.starter.test)
                     implementation(libs.boot.starter.web)
                     implementation(libs.mockito.core)

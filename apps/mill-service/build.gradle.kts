@@ -29,23 +29,23 @@ fun copySample(outDirProvider: Provider<Directory>) {
     }
 
     copy {
-        from(rootProject.layout.projectDirectory.dir("../test/datasets/airlines/csv"))
+        from(rootProject.layout.projectDirectory.dir("test/datasets/airlines/csv"))
         into(outDir.dir("etc/sample/airlines"))
     }
 
     copy {
-        from(rootProject.layout.projectDirectory.dir("../test/datasets/users/sql"))
+        from(rootProject.layout.projectDirectory.dir("test/datasets/users/sql"))
         into(outDir.dir("etc/sample/users"))
     }
 
     copy {
-        from(rootProject.layout.projectDirectory.file("../test/datasets/moneta/moneta-slim.sql"))
+        from(rootProject.layout.projectDirectory.file("test/datasets/moneta/moneta-slim.sql"))
         into(outDir.file("etc/sample/moneta-slim"))
         rename { fileName -> "moneta.sql" }
     }
 
     copy {
-        from(rootProject.layout.projectDirectory.dir("../test/datasets/moneta/"))
+        from(rootProject.layout.projectDirectory.dir("test/datasets/moneta/"))
         into(outDir.dir("etc/sample/moneta"))
     }
 }
@@ -55,7 +55,8 @@ tasks.register("assembleSamples") {
     description = "Installs sample data "
     doLast {
         val outDir = project.layout.buildDirectory.dir("install/samples").get()
-        val datasetsDir = rootProject.layout.projectDirectory.dir("../test/datasets/")
+        val datasetsDir = rootProject.layout.projectDirectory.dir("test/datasets/")
+        logger.warn(datasetsDir.toString())
 
         //moneta sample
         copy {
@@ -103,30 +104,30 @@ fun copyDistro(tk:String, distributionName: String) {
 dependencies {
     implementation(project(":core:mill-starter-service"))
 
-    runtimeOnly(project(":services:mill-metadata-service"))
-    runtimeOnly(project(":core:mill-starter-backends"))
-    runtimeOnly(project(":services:mill-grinder-service"))    
-    runtimeOnly(project(":services:mill-jet-grpc-service"))
-    runtimeOnly(project(":services:mill-jet-http-service"))
+    implementation(project(":services:mill-metadata-service"))
+    implementation(project(":core:mill-starter-backends"))
+    implementation(project(":services:mill-grinder-service"))
+    implementation(project(":services:mill-jet-grpc-service"))
+    implementation(project(":services:mill-jet-http-service"))
 
-    runtimeOnly(project(":ai:mill-ai-nlsql-chat-service"))
+    implementation(project(":ai:mill-ai-nlsql-chat-service"))
 
-    runtimeOnly(libs.springdoc.openapi.starter.webmvc.ui)
-    runtimeOnly(libs.springdoc.openapi.starter.webflux.api)
-    runtimeOnly(libs.micrometer.registry.prometheus)
+    implementation(libs.springdoc.openapi.starter.webmvc.ui)
+    implementation(libs.springdoc.openapi.starter.webflux.api)
+    implementation(libs.micrometer.registry.prometheus)
 
-    runtimeOnly(libs.boot.starter.security)
-    runtimeOnly(libs.boot.starter.security.oauth2.client)
-    runtimeOnly(libs.boot.starter.security.oauth2.resource.server)
+    implementation(libs.boot.starter.security)
+    implementation(libs.boot.starter.security.oauth2.client)
+    implementation(libs.boot.starter.security.oauth2.resource.server)
 
-    runtimeOnly(libs.spring.ai.starter.model.openai)
-    runtimeOnly(libs.spring.ai.starter.model.azureopenai)
-    runtimeOnly(libs.spring.ai.starter.model.ollama)
+    implementation(libs.spring.ai.starter.model.openai)
+    implementation(libs.spring.ai.starter.model.azureopenai)
+    implementation(libs.spring.ai.starter.model.ollama)
 
-    runtimeOnly(libs.boot.starter.actuator)
-    runtimeOnly(libs.boot.starter)
-    runtimeOnly(libs.bundles.logging)
-    runtimeOnly(libs.bundles.jdbc.pack)
+    implementation(libs.boot.starter.actuator)
+    implementation(libs.boot.starter)
+    implementation(libs.bundles.logging)
+    implementation(libs.bundles.jdbc.pack)
 }
 
 testing {

@@ -26,35 +26,22 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(classes = {BaseIntegrationTestIT.class})
+@SpringBootTest(classes = {ReasoningTestIT.class})
 @ActiveProfiles("test-moneta-slim-it")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Slf4j
-public class ReasoningTestIT extends BaseIntegrationTestIT {
+public class ReasoningTestIT extends BaseIntentTestIT {
 
-    @Autowired
-    ChatClient.Builder chatBuilder;
-
-    @Autowired
-    MetadataProvider metadataProvider;
-
-    @Autowired
-    DataOperationDispatcher dispatcher;
-
-    @Autowired
-    ChatModel chatModel;
-
-    @Autowired
-    ChatMemory chatMemory;
-
-    @Autowired
-    SqlDialect sqlDialect;
+    protected ReasoningTestIT(@Autowired ChatModel model,
+                              @Autowired MetadataProvider metadataProvider,
+                              @Autowired SqlDialect sqlDialect,
+                              @Autowired DataOperationDispatcher dispatcher) {
+        super(model, metadataProvider, sqlDialect, dispatcher);
+    }
 
 
     private ReasoningResponse reason(String query) {
-        val chatBuilder = new CallSpecsChatClientBuilders(chatModel, chatMemory, UUID.randomUUID().toString());
-        val reasoner = new DefaultReasoner(chatBuilder, metadataProvider, MessageSelectors.SIMPLE);
-        return reasoner
+        return this.getReasoner()
                 .reason(ChatUserRequests.query(query))
                 .reasoningResponse();
     }

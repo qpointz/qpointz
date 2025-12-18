@@ -1,6 +1,7 @@
 package io.qpointz.mill.ai.nlsql.components;
 
 import io.qpointz.mill.ai.nlsql.CallSpecsChatClientBuilders;
+import io.qpointz.mill.ai.nlsql.ValueMapper;
 import io.qpointz.mill.ai.nlsql.model.UserChat;
 import lombok.Getter;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -28,12 +29,13 @@ public class ChatSession {
     /**
      * Constructs a session with dedicated chat memory/builder and replayable SSE sink.
      */
-    public ChatSession(UserChat chat, ChatModel model, ChatMemory chatMemory) {
+    public ChatSession(UserChat chat, ChatModel model, ChatMemory chatMemory, ValueMapper valueMapper) {
         this.chat = chat;
         this.sink = Sinks.many()
                 .replay()
                 .limit(5);
-        this.chatBuilders = new CallSpecsChatClientBuilders(model, chatMemory, conversationId());
+
+        this.chatBuilders = new CallSpecsChatClientBuilders(model, chatMemory, conversationId(), valueMapper);
     }
 
     /**

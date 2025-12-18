@@ -33,6 +33,8 @@ apps:mill-service-samples-docker:
   needs:
     - job: apps:mill-service-base-docker
       artifacts: false
+    - job: apps:package-dist
+      artifacts: true
     - job: init-version
       artifacts: true
       optional: true

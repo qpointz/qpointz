@@ -1,6 +1,5 @@
 package io.qpointz.mill.client;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import io.qpointz.mill.proto.HandshakeRequest;
 import io.qpointz.mill.proto.HandshakeResponse;
@@ -9,19 +8,11 @@ import lombok.SneakyThrows;
 import lombok.val;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.internal.duplex.DuplexResponseBody;
 import okio.Buffer;
-import okio.ByteString;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.function.Function;
 
 
 import static org.junit.jupiter.api.Assertions.*;

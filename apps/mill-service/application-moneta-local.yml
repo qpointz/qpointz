@@ -1,5 +1,6 @@
 logging.level:
   org.springframework.security.web.csrf.CsrfFilter: debug
+  org.apache.calcite.adapter.jdbc.JdbcSchema: warn
 
 management:
   endpoints:

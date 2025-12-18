@@ -28,6 +28,7 @@ include (":services:mill-metadata-service")
 include (":ai")
 include (":ai:mill-ai-core")
 include (":ai:mill-ai-nlsql-chat-service")
+include (":ai:mill-ai-testing")
 
 include (":clients:mill-jdbc-driver")
 include (":clients:mill-jdbc-shell")

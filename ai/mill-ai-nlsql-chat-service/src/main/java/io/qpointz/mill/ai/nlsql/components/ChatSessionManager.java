@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.nlsql.components;
 
+import io.qpointz.mill.ai.nlsql.ValueMapper;
 import io.qpointz.mill.ai.nlsql.model.UserChat;
 import lombok.AllArgsConstructor;
 import lombok.val;
@@ -20,6 +21,8 @@ public class ChatSessionManager {
 
     private final ChatMemory chatMemory;
 
+    private final ValueMapper valueMapper;
+
     private final ConcurrentHashMap<UUID,ChatSession> sessions =
             new ConcurrentHashMap<>();
 
@@ -33,7 +36,7 @@ public class ChatSessionManager {
      */
     public ChatSession getOrCreate(UserChat of) {
         return this.sessions.computeIfAbsent(of.getId(),
-                k -> new ChatSession(of, chatModel, chatMemory));
+                k -> new ChatSession(of, chatModel, chatMemory, valueMapper));
     }
 
 }

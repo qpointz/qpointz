@@ -1,6 +1,7 @@
 package io.qpointz.mill.ai.nlsql.services;
 
 //import io.qpointz.mill.ai.nlsql.components.ChatTaskWorkflow;
+import io.qpointz.mill.ai.nlsql.ValueMapper;
 import io.qpointz.mill.ai.nlsql.components.ChatProcessor;
 import io.qpointz.mill.ai.nlsql.components.ChatSession;
 import io.qpointz.mill.ai.nlsql.components.ChatSessionManager;
@@ -44,16 +45,18 @@ public class NlSqlChatServiceImpl implements NlSqlChatService {
 
     private final ChatSessionManager chatSessionManager;
     private final ChatProcessor chatProcessor;
+    private final ValueMapper valueMapper;
 
     public NlSqlChatServiceImpl(UserChatRepository userChatRepository,
                                 UserChatMessageRepository userChatMessageRepository,
                                 ChatProcessor chatProcessor,
                                 ChatModel chatModel,
-                                ChatMemory chatMemory) {
+                                ChatMemory chatMemory, ValueMapper valueMapper) {
         this.userChatRepository = userChatRepository;
         this.userChatMessageRepository = userChatMessageRepository;
-        this.chatSessionManager = new ChatSessionManager(chatModel, chatMemory);
+        this.chatSessionManager = new ChatSessionManager(chatModel, chatMemory, valueMapper);
         this.chatProcessor = chatProcessor;
+        this.valueMapper = valueMapper;
     }
 
     /**

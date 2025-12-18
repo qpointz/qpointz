@@ -7,13 +7,18 @@ import java.util.Map;
 
 public interface ChatCall {
 
-    Map<String,Object> asMap();
-
-    default <T> T as(Class<T> valueType) {
-        val map = this.asMap();
-        return JsonUtils
-                .defaultJsonMapper()
-                .convertValue(map, valueType);
+    @Deprecated
+    default Map<String,Object> asMap() {
+        return this.call().contentAsMap();
     }
+
+    @Deprecated
+    default <T> T as(Class<T> valueType) {
+        return this.call().contentAs(valueType);
+    }
+
+    ChatCallResponse call();
+
+
 
 }
