@@ -5,9 +5,8 @@ apps:package-dist:
     - job: services:grinder-ui:build
       artifacts: true
       optional: true
-  script:
-    - cd ${CI_PROJECT_DIR}/apps
-    - ./gradlew --no-daemon --console plain clean installBootDist assembleSamples
+  script:    
+    - ./gradlew --no-daemon --console plain clean :apps:mill-service:installBootDist :apps:mill-service:assembleSamples
   artifacts:
     expire_in: "5 days"
     paths:

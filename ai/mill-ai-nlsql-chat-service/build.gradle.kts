@@ -10,7 +10,7 @@ mill {
 }
 
 dependencies {
-    api(project(":mill-ai-core"))
+    api(project(":ai:mill-ai-core"))
     implementation(libs.boot.starter.data.jpa)
     implementation(libs.boot.starter)
     implementation(libs.boot.starter.security)
@@ -40,9 +40,9 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation("io.qpointz.mill:mill-security-core")
-                    implementation("io.qpointz.mill:mill-starter-service")
-                    implementation("io.qpointz.mill:mill-starter-backends")
+                    implementation(project(":core:mill-security-core"))
+                    implementation(project(":core:mill-starter-service"))
+                    implementation(project(":core:mill-starter-backends"))
                     implementation(libs.boot.starter.test)
                     implementation(libs.boot.starter.webflux)
                     implementation(libs.mockito.core)

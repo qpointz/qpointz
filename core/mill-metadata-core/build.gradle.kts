@@ -10,7 +10,7 @@ mill {
 }
 
 dependencies {
-    api(project(":mill-core"))    
+    api(project(":core:mill-core"))    
     api(libs.boot.starter)    
     api(libs.jackson.dataformat.yaml)
     api(libs.jackson.datatype.jsr310)

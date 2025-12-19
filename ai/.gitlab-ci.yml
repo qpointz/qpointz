@@ -2,9 +2,8 @@ ai:build:
   stage: build
   extends: .gradle-job
   script:
-    - echo $HOME
-    - cd ${CI_PROJECT_DIR}/ai
-    - ./gradlew --no-daemon --console plain clean test compileTestIT
+    - echo $HOME    
+    - ./gradlew --no-daemon --console plain :ai:test :ai:compileTestIT
 
 ai:integration:
   stage: integration
@@ -23,6 +22,5 @@ ai:integration:
     - echo "CI_COMMIT_REF_MESSAGE=${CI_COMMIT_REF_MESSAGE}"
     - echo "CI_COMMIT_REF_TIMESTAMP=${CI_COMMIT_REF_TIMESTAMP}"
     - echo "CI_COMMIT_REF_AUTHOR=${CI_COMMIT_REF_AUTHOR}"
-    - echo "CI_COMMIT_REF_AUTHOR_EMAIL=${CI_COMMIT_REF_AUTHOR_EMAIL}"
-    - cd ${CI_PROJECT_DIR}/ai
-    - ./gradlew --no-daemon --console plain testIT
+    - echo "CI_COMMIT_REF_AUTHOR_EMAIL=${CI_COMMIT_REF_AUTHOR_EMAIL}"    
+    - ./gradlew --no-daemon --console plain :ai:testIT

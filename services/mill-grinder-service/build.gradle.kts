@@ -10,7 +10,7 @@ mill {
 }
 
 dependencies {
-    implementation("io.qpointz.mill:mill-service-core")
+    implementation(project(":core:mill-service-core"))
     implementation(libs.boot.starter)
     implementation(libs.boot.starter.web)
     compileOnly(libs.bundles.logging)

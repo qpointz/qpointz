@@ -11,9 +11,9 @@ mill {
 
 
 dependencies {
-    api(project(":mill-core"))
-    api(project(":mill-security-core"))
-    api(project(":mill-metadata-core"))
+    api(project(":core:mill-core"))
+    api(project(":core:mill-security-core"))
+    api(project(":core:mill-metadata-core"))
     api(libs.boot.starter)
     api(libs.jackson.core)
     api(libs.jackson.dataformat.yaml)
@@ -37,7 +37,7 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation(project(":mill-starter-backends"))
+                    implementation(project(":core:mill-starter-backends"))
                     implementation(libs.boot.starter.actuator)
                     implementation(libs.protobuf.java.util)
                     implementation(libs.mockito.core)

@@ -10,9 +10,8 @@ mill {
 }
 
 dependencies {
-    api("io.qpointz.mill:mill-metadata-core")
-
-    implementation("io.qpointz.mill:mill-service-core")
+    api(project(":core:mill-metadata-core"))
+    implementation(project(":core:mill-service-core"))
     implementation(libs.boot.starter)
     implementation(libs.boot.starter.web)
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")

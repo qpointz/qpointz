@@ -10,9 +10,9 @@ mill {
 }
 
 dependencies {
-    api("io.qpointz.mill:mill-security-core")
-    api(project(":mill-service-core"))
-    api(project(":mill-starter-backends"))
+    api(project(":core:mill-security-core"))
+    api(project(":core:mill-service-core"))
+    api(project(":core:mill-starter-backends"))
     api(libs.boot.starter)
     api(libs.boot.starter.web)
     api(libs.boot.starter.test)

@@ -1,5 +1,6 @@
 plugins {
     id ("org.sonarqube") version "5.0.0.4638"
+    kotlin("jvm") version "1.9.23" apply false
 }
 
 sonar {
@@ -13,4 +14,34 @@ sonar {
             listOf(project.layout.projectDirectory.dir("mill-py/tests"))
         )
     }
+}
+
+tasks.register("test") {
+    description = "Runs all test tasks in Clients subprojects"
+    group = "verification"
+    dependsOn(
+        subprojects.mapNotNull { sub ->
+            sub.tasks.findByName("test")
+        }
+    )
+}
+
+tasks.register("compileTestIT") {
+    description = "Compiles all testIT sources in Clients subprojects"
+    group = "verification"
+    dependsOn(
+        subprojects.mapNotNull { sub ->
+            sub.tasks.findByName("compileTestIT")
+        }
+    )
+}
+
+tasks.register("testIT") {
+    description = "Runs all testIT tasks in Clients subprojects"
+    group = "verification"
+    dependsOn(
+        subprojects.mapNotNull { sub ->
+            sub.tasks.findByName("testIT")
+        }
+    )
 }

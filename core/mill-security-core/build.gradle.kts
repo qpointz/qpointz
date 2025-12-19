@@ -11,7 +11,7 @@ mill {
 dependencies {
     api(libs.boot.starter.security)
 
-    implementation(project(":mill-core"))
+    implementation(project(":core:mill-core"))
     implementation(libs.boot.starter.security.oauth2.resource.server)
     implementation(libs.boot.starter.security.oauth2.client)
     implementation(libs.boot.starter.web)
@@ -36,7 +36,7 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation(project(":mill-test-common"))
+                    implementation(project(":core:mill-test-common"))
                     implementation(libs.boot.starter.test)
                     implementation(libs.boot.starter.web)
                     implementation(libs.mockito.core)

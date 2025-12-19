@@ -4,7 +4,7 @@ plugins {
 }
 
 mill {
-    publishToSonatype = false
+    publishArtifacts = false
 }
 
 application {

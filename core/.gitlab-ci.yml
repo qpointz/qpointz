@@ -2,6 +2,5 @@ core:build:
   stage: build
   extends: .gradle-job
   script:
-    - echo $HOME
-    - cd ${CI_PROJECT_DIR}/core
-    - ./gradlew --no-daemon --console plain test check
+    - echo $HOME    
+    - ./gradlew --no-daemon --console plain :core:test

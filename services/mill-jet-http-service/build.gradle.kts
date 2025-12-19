@@ -10,8 +10,8 @@ mill {
 }
 
 dependencies {
-    implementation("io.qpointz.mill:mill-starter-backends")
-    implementation("io.qpointz.mill:mill-starter-service")
+    implementation(project(":core:mill-starter-backends"))
+    implementation(project(":core:mill-starter-service"))
     implementation(libs.protobuf.java.util)
 
     compileOnly(libs.bundles.logging)

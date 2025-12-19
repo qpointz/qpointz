@@ -101,15 +101,15 @@ fun copyDistro(tk:String, distributionName: String) {
 
 
 dependencies {
-    implementation("io.qpointz.mill:mill-starter-service")
+    implementation(project(":core:mill-starter-service"))
 
-    runtimeOnly("io.qpointz.mill:mill-metadata-service")
-    runtimeOnly("io.qpointz.mill:mill-starter-backends")
-    runtimeOnly("io.qpointz.mill:mill-grinder-service")    
-    runtimeOnly("io.qpointz.mill:mill-jet-grpc-service")
-    runtimeOnly("io.qpointz.mill:mill-jet-http-service")
+    runtimeOnly(project(":services:mill-metadata-service"))
+    runtimeOnly(project(":core:mill-starter-backends"))
+    runtimeOnly(project(":services:mill-grinder-service"))    
+    runtimeOnly(project(":services:mill-jet-grpc-service"))
+    runtimeOnly(project(":services:mill-jet-http-service"))
 
-    runtimeOnly("io.qpointz.mill:mill-ai-nlsql-chat-service")
+    runtimeOnly(project(":ai:mill-ai-nlsql-chat-service"))
 
     runtimeOnly(libs.springdoc.openapi.starter.webmvc.ui)
     runtimeOnly(libs.springdoc.openapi.starter.webflux.api)

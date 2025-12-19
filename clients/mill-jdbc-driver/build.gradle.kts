@@ -13,7 +13,7 @@ distributions {
 }
 
 dependencies {
-    implementation("io.qpointz.mill:mill-core")
+    implementation(project(":core:mill-core"))
     implementation(libs.protobuf.java.util)
     implementation(libs.okhttp)
     compileOnly(libs.lombok)
@@ -37,8 +37,8 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation("io.qpointz.mill:mill-starter-backends")
-                    implementation("io.qpointz.mill:mill-jet-grpc-service")
+                    implementation(project(":core:mill-starter-backends"))
+                    implementation(project(":services:mill-jet-grpc-service"))
                     implementation(libs.okhttp.mock.webserver)
                     implementation(libs.bootGRPC.client)
                     implementation(libs.bootGRPC.server)

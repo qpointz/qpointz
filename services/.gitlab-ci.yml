@@ -18,6 +18,6 @@ services:build:
     - job: services:grinder-ui:build
       artifacts: true
   script:
-    - echo $HOME
-    - cd ${CI_PROJECT_DIR}/services
-    - ./gradlew --no-daemon --console plain test check     
+    - echo $HOME    
+    - ./gradlew --no-daemon --console plain :services:test :service:compileTestIT
+    

@@ -12,7 +12,7 @@ mill {
 }
 
 dependencies {
-    api("io.qpointz.mill:mill-service-core")
+    api(project(":core:mill-service-core"))
     implementation(libs.pebble.templates)
     implementation(libs.boot.starter)
     implementation(libs.jackson.core)
@@ -45,9 +45,9 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation("io.qpointz.mill:mill-security-core")
-                    implementation("io.qpointz.mill:mill-starter-service")
-                    implementation("io.qpointz.mill:mill-starter-backends")
+                    implementation(project(":core:mill-security-core"))
+                    implementation(project(":core:mill-starter-service"))
+                    implementation(project(":core:mill-starter-backends"))
                     implementation(libs.boot.starter.test)
                     implementation(libs.boot.starter.web)
                     implementation(libs.mockito.core)
