@@ -1,0 +1,40 @@
+{
+  "scenarioName": "test-scenario",
+  "results": [
+    {
+      "action": {
+        "key": "ask",
+        "params": {
+          "value": "list clients"
+        }
+      },
+      "success": true,
+      "outcome": {
+        "status": "PASS",
+        "data": {
+          "resultIntent": "get-data",
+          "sql": "SELECT * FROM CLIENTS",
+          "data": {
+            "container": {
+              "container-type": "paging",
+              "data": [[1, "John", "Doe"]],
+              "fields": ["ID", "FIRST_NAME", "LAST_NAME"]
+            }
+          }
+        },
+        "metrics": {
+          "execution.time": 1000,
+          "llm.usage.prompt-tokens": 1000,
+          "llm.usage.total-tokens": 1500,
+          "data.size": 1,
+          "sql.shape": {
+            "tables": ["CLIENTS"],
+            "hasJoin": false,
+            "hasWhere": false
+          }
+        }
+      }
+    }
+  ]
+}
+

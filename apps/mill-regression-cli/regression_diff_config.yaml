@@ -1,0 +1,59 @@
+# Default configuration for regression diff table builder
+
+metrics:
+  # LLM token usage metrics (less is better)
+  llm.usage.prompt-tokens:
+    direction: "less_is_better"
+    threshold: 5000
+    threshold_type: "absolute"
+    warn_on_threshold_exceeded: true
+
+  llm.usage.completion-tokens:
+    direction: "less_is_better"
+    threshold: 5000
+    threshold_type: "absolute"
+    warn_on_threshold_exceeded: true
+
+  llm.usage.total-tokens:
+    direction: "less_is_better"
+    threshold: 10000
+    threshold_type: "absolute"
+    warn_on_threshold_exceeded: true
+
+  # Execution time (less is better, in milliseconds)
+  execution.time:
+    direction: "less_is_better"
+    threshold: 15000
+    threshold_type: "absolute"
+    warn_on_threshold_exceeded: true
+
+  # Data metrics (should match exactly)
+  data.size:
+    direction: "equal"
+    threshold: 0
+    threshold_type: "absolute"
+    warn_on_threshold_exceeded: true
+
+  data.fields.count:
+    direction: "equal"
+    threshold: 0
+    threshold_type: "absolute"
+    warn_on_threshold_exceeded: true
+
+  # Intent and SQL shape (contracts - any change is failure)
+  intent:
+    direction: "equal"
+    warn_on_threshold_exceeded: false  # Intent change = FAIL
+
+  sqlShape.hasJoin:
+    direction: "equal"
+    warn_on_threshold_exceeded: false  # Unexpected join = FAIL
+
+  sqlShape.hasWhere:
+    direction: "equal"
+    warn_on_threshold_exceeded: true
+
+  sqlShape.hasAggregation:
+    direction: "equal"
+    warn_on_threshold_exceeded: true
+
