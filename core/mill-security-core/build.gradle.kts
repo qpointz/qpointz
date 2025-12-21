@@ -36,7 +36,7 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation(project(":core:mill-test-common"))
+                    implementation(project(":core:mill-test-kit"))
                     implementation(libs.boot.starter.test)
                     implementation(libs.boot.starter.web)
                     implementation(libs.mockito.core)

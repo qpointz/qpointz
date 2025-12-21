@@ -2,11 +2,12 @@ package io.qpointz.mill.ai.scenarios;
 
 import io.qpointz.mill.ai.chat.ChatUserRequests;
 import io.qpointz.mill.ai.scenarios.actions.AskAction;
+import io.qpointz.mill.ai.scenarios.actions.ReplyAction;
 import io.qpointz.mill.ai.scenarios.actions.VerifyAction;
-import io.qpointz.mill.ai.testing.scenario.Action;
-import io.qpointz.mill.ai.testing.scenario.ActionOutcome;
-import io.qpointz.mill.ai.testing.scenario.ActionResult;
-import io.qpointz.mill.ai.testing.scenario.ScenarioRunner;
+import io.qpointz.mill.test.scenario.Action;
+import io.qpointz.mill.test.scenario.ActionOutcome;
+import io.qpointz.mill.test.scenario.ActionResult;
+import io.qpointz.mill.test.scenario.ScenarioRunner;
 import lombok.val;
 
 public class ChatAppScenarioRunner extends ScenarioRunner<ChatAppScenarioContext, ActionResult> {
@@ -30,6 +31,7 @@ public class ChatAppScenarioRunner extends ScenarioRunner<ChatAppScenarioContext
         return switch (action.key()) {
             case "ask" -> new AskAction();
             case "verify" -> new VerifyAction();
+            case "reply" -> new ReplyAction();
             default -> throw new Exception("Unknwon action:"+action.key());
         };
     }

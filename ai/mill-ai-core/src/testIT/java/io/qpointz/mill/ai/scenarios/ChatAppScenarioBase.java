@@ -1,10 +1,10 @@
 package io.qpointz.mill.ai.scenarios;
 
 import io.qpointz.mill.ai.nlsql.models.SqlDialect;
-import io.qpointz.mill.ai.testing.scenario.ActionResult;
-import io.qpointz.mill.ai.testing.scenario.Scenario;
-import io.qpointz.mill.ai.testing.scenario.ScenarioRunner;
-import io.qpointz.mill.ai.testing.scenario.ScenarioTestBase;
+import io.qpointz.mill.test.scenario.ActionResult;
+import io.qpointz.mill.test.scenario.Scenario;
+import io.qpointz.mill.test.scenario.ScenarioRunner;
+import io.qpointz.mill.test.scenario.ScenarioTestBase;
 import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.services.metadata.MetadataProvider;
 import lombok.AccessLevel;
@@ -13,6 +13,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,7 +28,7 @@ import java.io.InputStream;
 @ComponentScan(basePackages = {"io.qpointz"})
 @EnableAutoConfiguration
 @SpringBootTest(classes = {ChatAppScenarioBase.class})
-@ActiveProfiles("test-moneta-slim-it")
+@ActiveProfiles("test-moneta-it")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public abstract class ChatAppScenarioBase extends ScenarioTestBase<ChatAppScenarioContext, ActionResult> {
 
@@ -49,6 +50,11 @@ public abstract class ChatAppScenarioBase extends ScenarioTestBase<ChatAppScenar
     @Autowired
     @Getter(AccessLevel.PROTECTED)
     @Setter(AccessLevel.PROTECTED)
+    private EmbeddingModel embeddingModel;
+
+    @Autowired
+    @Getter(AccessLevel.PROTECTED)
+    @Setter(AccessLevel.PROTECTED)
     private SqlDialect sqlDialect;
 
     @Override
@@ -58,7 +64,7 @@ public abstract class ChatAppScenarioBase extends ScenarioTestBase<ChatAppScenar
 
     @Override
     protected ChatAppScenarioContext createContext(Scenario scenario) {
-        return new ChatAppScenarioContext(scenario, this.chatModel, this.metadataProvider, this.sqlDialect, this.dispatcher);
+        return new ChatAppScenarioContext(scenario, this.chatModel, this.metadataProvider, this.sqlDialect, this.dispatcher, this.embeddingModel);
     }
 
     protected abstract InputStream getScenarioStream(ClassLoader classLoader);

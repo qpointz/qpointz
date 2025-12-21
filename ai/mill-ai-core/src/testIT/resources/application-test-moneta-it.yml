@@ -1,0 +1,66 @@
+logging:
+  level:
+    root: info
+    org.apache.calcite: WARN
+    io.qpointz.mill: DEBUG
+
+
+spring:
+  ai:
+    model:
+      chat: openai
+      embedding: openai
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4.1
+      embedding:
+        options:
+          model: text-embedding-3-large
+
+  mcp:
+    server:
+      enabled: false
+      name: moneta-agent
+      transport:
+        type: http
+        endpoint: http://localhost:8080/mcp/task
+
+mill:
+  ai:
+    chat:
+      memory: in-memory
+    nl2sql:
+      enable: true
+      dialect: H2
+  metadata:
+    relations: file
+    annotations: file
+    file:
+      repository:
+        path: file:../../test/datasets/moneta/moneta-meta.yaml
+
+  security:
+    enable: false
+  backend:
+    provider: jdbc
+    connection:
+      quoting: DOUBLE_QUOTE
+      caseSensitive: false
+      unquotedCasing: UNCHANGED
+    jdbc:
+      url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '../../test/datasets/moneta/moneta.sql'"
+      driver: "org.h2.Driver"
+      username: "*"
+      password: "*"
+      target-schema: "MONETA"
+  services:
+    grpc:
+      enable: false
+    ai-nl2data:
+      enable: true
+    data-bot:
+      enable: true
+      prompt-file: file:../test/datasets/moneta/moneta.prompt
+      model-name: gpt-4.1

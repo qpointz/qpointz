@@ -4,8 +4,8 @@ import io.qpointz.mill.ai.chat.ChatCallResponse;
 import io.qpointz.mill.ai.chat.ChatUserRequests;
 import io.qpointz.mill.ai.scenarios.ChatAppActionExecutor;
 import io.qpointz.mill.ai.scenarios.ChatAppScenarioContext;
-import io.qpointz.mill.ai.testing.scenario.Action;
-import io.qpointz.mill.ai.testing.scenario.ActionOutcome;
+import io.qpointz.mill.test.scenario.Action;
+import io.qpointz.mill.test.scenario.ActionOutcome;
 import lombok.val;
 
 import java.util.Map;
@@ -23,6 +23,10 @@ public class AskAction implements ChatAppActionExecutor {
     }
 
     public static Map<String,Object> getCallMetrics(ChatCallResponse resp) {
+        if (resp==null) {
+            return Map.of();
+        }
+
         return resp.getResponse()
                 .map(r-> Map.<String,Object>of(
                         "llm.model", r.getMetadata().getModel(),

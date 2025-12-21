@@ -1,0 +1,22 @@
+<configuration debug="${MILL_LOGGING_LEVEL:-false}">
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
+    <appender name="COLOR_JANSI" class="ch.qos.logback.core.ConsoleAppender">
+        <withJansi>true</withJansi>
+        <encoder>
+            <pattern>%cyan(%d{HH:mm:ss.SSS}) %gray(|) %yellow(%-8.8thread) %gray(|) %highlight(%5p) %gray(|) %magenta(%-20.20logger{20}) %gray(|) %m%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="COLOR" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%cyan(%d{HH:mm:ss.SSS}) %gray(|) %yellow(%-8.8thread) %gray(|) %highlight(%5p) %gray(|) %magenta(%-20.20logger{20}) %gray(|) %m%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="NOCOLOR" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} | %5p | %-8.8thread | %-20.20logger{20} | %m%n</pattern>
+        </encoder>
+    </appender>
+    <root level="${MILL_LOGGING_LEVEL:-INFO}">
+        <appender-ref ref="${MILL_LOGGING_APPENDER:-COLOR}"/>
+    </root>
+</configuration>

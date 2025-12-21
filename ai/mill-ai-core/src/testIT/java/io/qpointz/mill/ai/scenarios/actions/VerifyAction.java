@@ -5,24 +5,41 @@ import io.qpointz.mill.ai.nlsql.processors.QueryResult;
 import io.qpointz.mill.ai.nlsql.processors.SubmitQueryProcessor;
 import io.qpointz.mill.ai.scenarios.ChatAppActionExecutor;
 import io.qpointz.mill.ai.scenarios.ChatAppScenarioContext;
-import io.qpointz.mill.ai.testing.scenario.Action;
-import io.qpointz.mill.ai.testing.scenario.ActionOutcome;
+import io.qpointz.mill.ai.scenarios.actions.checks.CheckCollection;
+import io.qpointz.mill.ai.scenarios.actions.checks.CheckRegistry;
+import io.qpointz.mill.ai.scenarios.actions.checks.CheckResult;
+import io.qpointz.mill.test.scenario.Action;
+import io.qpointz.mill.test.scenario.ActionOutcome;
+import io.qpointz.mill.utils.JsonUtils;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import java.util.*;
 
+@Slf4j
 public class VerifyAction implements ChatAppActionExecutor {
+
+    private final CheckRegistry checkRegistry;
+
+    public VerifyAction() {
+        this.checkRegistry = new CheckRegistry();
+    }
+
+    public VerifyAction(CheckRegistry checkRegistry) {
+        this.checkRegistry = checkRegistry;
+    }
 
     @Override
     public ActionOutcome executeAction(ChatAppScenarioContext context, Action action) throws Exception {
         val msgIdx = action.getParamAs("message", Integer.class)
                 .orElse(0);
-        val idx = context.getResults().size()-msgIdx-1;
-        val result = context.getResults().get(idx)
+
+        val result = context.getLastResult(msgIdx)
                 .outcome()
                 .getDataAs(Map.class)
                 .orElse(Map.of());
 
+       log.info("Verify:{}", JsonUtils.defaultJsonMapper().writeValueAsString(result));
        List<CheckResult> checks = action.getParamAs("check", ArrayList.class)
                .orElse(new ArrayList())
                .stream()
@@ -31,7 +48,7 @@ public class VerifyAction implements ChatAppActionExecutor {
                .toList();
 
        val status = checks.stream()
-               .map(k-> k.status)
+               .map(k-> k.status())
                .min(Comparator.comparingInt(Enum::ordinal))
                .map(k-> (ActionOutcome.OutcomeStatus)k)
                .orElse(ActionOutcome.OutcomeStatus.PASS);
@@ -53,43 +70,30 @@ public class VerifyAction implements ChatAppActionExecutor {
         return Map.of("sql.shape", SqlToSqlShape.extract(sql));
     }
 
-    public record CheckCollection(ActionOutcome.OutcomeStatus status, List<CheckResult> results) {}
+    private List<CheckResult> check(Map<String, Object> checkParams, Map<String, Object> result) {
+        // Find the check key by looking for known check parameter keys
+        val checkKey = checkParams.keySet().stream()
+                .filter(key -> checkRegistry.getCheck(key).isPresent())
+                .findFirst()
+                .orElse(null);
 
-    public record CheckResult(ActionOutcome.OutcomeStatus status, String key, String message, Map<String,Object> params) {
-
-    }
-
-    private List<CheckResult> check(Map<String, Object> k, Map result) {
-        if (k.containsKey("intent")) {
-            return checkIntent(k, result);
+        if (checkKey == null) {
+            return List.of(new CheckResult(
+                    ActionOutcome.OutcomeStatus.ERROR,
+                    "verify-unknown",
+                    "Unknown check",
+                    checkParams
+            ));
         }
 
-        if (k.containsKey("has")) {
-            return checkHas(k,result);
-        }
-
-        return List.of(new CheckResult(ActionOutcome.OutcomeStatus.ERROR, "verify-unknown", "Unknown check", k));
-    }
-
-    private List<CheckResult> checkIntent(Map<String, Object> k, Map result) {
-        val intent = k.get("intent").toString();
-        val resIntent = result.getOrDefault("resultIntent", "");
-
-        return List.of(new CheckResult(resIntent.equals(intent) ? ActionOutcome.OutcomeStatus.PASS : ActionOutcome.OutcomeStatus.ERROR,
-                "verify-intent",
-                String.format("Expected:%s Got:%s", intent, resIntent),
-                k));
-    }
-
-    private List<CheckResult> checkHas(Map<String, Object> k, Map result) {
-        val keys = (ArrayList<String>)k.getOrDefault("has", List.of());
-        return keys.stream().map(key-> {
-                    val hasKey = result.containsKey(key);
-                    return new CheckResult(hasKey ? ActionOutcome.OutcomeStatus.PASS : ActionOutcome.OutcomeStatus.ERROR,
-                        String.format("verify-has-%s",key),
-                        "Result should contain:"+key.toString(),k);
-                })
-                .toList();
+        return checkRegistry.getCheck(checkKey)
+                .map(check -> check.execute(checkParams, result))
+                .orElse(List.of(new CheckResult(
+                        ActionOutcome.OutcomeStatus.ERROR,
+                        "verify-unknown",
+                        "Unknown check",
+                        checkParams
+                )));
     }
 
     private Map<String, ?> dataMetrics(Map result) {
@@ -120,5 +124,6 @@ public class VerifyAction implements ChatAppActionExecutor {
                 "data.container", qr.getClass().getName()
         );
     }
+
 
 }

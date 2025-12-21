@@ -1,0 +1,44 @@
+name: step-back-regression
+parameters:
+  reasoner: step-back
+
+run:
+  - ask: count all clients by country
+  - verify:
+      check:
+        - intent: get-data
+        - has:
+            - sql
+            - data
+        - sql-shape:
+            has-aggregation: true
+        - returns: not-empty
+
+  - ask: list premium clients in emerging countries
+  - verify:
+      check:
+        - has:
+            - reasoning-id
+            - questions
+            - step-back
+  - reply:
+      message: 1
+      with: Premium clients are clients in ULTRA and WEALTH segment
+  - verify:
+      check:
+        - has:
+            - reasoning-id
+            - questions
+            - step-back
+  - reply:
+      message: 1
+      with: Emerging countries are Brazil, South Africa and China
+  - verify:
+      check:
+        - intent: get-data
+        - has:
+            - sql
+            - data
+        - sql-shape:
+            has-where: true
+        - returns: not-empty

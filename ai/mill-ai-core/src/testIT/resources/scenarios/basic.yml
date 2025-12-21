@@ -1,0 +1,110 @@
+name: basic-regression
+parameters:
+  reasoner: default
+  value-mapping:
+    - { id: mcc-korea, target: [ MONETA, CLIENTS, COUNTRY ], value: "Korea", text: "Country name: Korea", context: "Country name", similarityThreshold: 0.4 }
+    - { id: mcc-sgp, target: [ MONETA, CLIENTS, COUNTRY ], value: "Singapore", text: "Country name: Singapore", context: "Country name", similarityThreshold: 0.4 }
+    - { id: mcc-ch, target: [ MONETA, CLIENTS, COUNTRY ], value: "Switzerland", text: "Country name: Switzerland", context: "Country name", similarityThreshold: 0.4 }
+
+run:
+
+  - ask: Climb little snail climb , but slowly
+  - verify:
+      check:
+        - intent: unsupported
+
+  - ask: Hello
+  - verify:
+      check:
+        - intent: do-conversation
+
+  - ask: list clients in KoReA
+  - verify:
+      check:
+        - intent: get-data
+        - has:
+            - sql
+            - data
+        - sql-shape:
+            has-where: true
+        - returns : not-empty
+
+  - ask: count clients by country list 10 with most clients
+  - verify:
+      check:
+        - intent: get-data
+        - has:
+            - sql
+            - data
+        - sql-shape:
+            has-join: false
+            has-where: false
+            has-limit: true
+        - returns: 10
+
+  - ask: show last result as pie chart
+  - verify:
+      check:
+        - intent: get-chart
+        - has:
+            - sql
+            - data
+            - chart
+
+  - ask: describe last query
+  - verify:
+      check:
+        - intent: explain
+        - has:
+            - description
+
+  - ask: get clients in Singapore
+  - verify:
+      - check:
+          - intent: get-data
+
+  - ask: |
+          - add account and transactions information to result 
+          - include only customers in ULTRA and WEALTH segment
+  - verify:
+      - check:
+          - intent: get-data
+          - has:
+              - sql
+              - data
+          - sql-shape:
+              joins: true
+              filter: true
+
+  - ask: enrich model - Premium clients are clients in ULTRA and WEALTH segment
+  - verify:
+      check:
+        - intent: enrich-model
+        - has:
+            - enrichment
+        - enrichment:
+            types: [ concept ]
+
+  - ask: |
+      - client_id field in clients table must be not null and greater than zero
+      - client table has one to many relationship to account table by client_id field
+      - toxic loan - is a loan with defaulted status
+  - verify:
+      check:
+        - intent: enrich-model
+        - has:
+            - enrichment
+        - enrichment:
+            types: [ concept, rule, relation ]
+
+  #value mapping
+  - ask: gib mir Kunden aus der Schweiz
+  - verify:
+      check:
+        - intent: get-data
+        - has:
+            - sql
+            - data
+        - sql-shape:
+            has-where: true
+        - returns: not-empty
