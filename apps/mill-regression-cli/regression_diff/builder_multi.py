@@ -1,11 +1,104 @@
 """Builder to create multi-version DiffTable models."""
 
-from typing import Dict, List, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 from regression_diff.parser import ParsedResult, parse_regression_artifact
 from regression_diff.normalizer import normalize_result, normalize_to_dict, NormalizedMetrics
 from regression_diff.models_multi import MultiVersionDiffTable, MultiVersionDiffRow
 from regression_diff.config import Config
+from regression_diff.metric_comparers.registry import get_default_registry
 from collections import defaultdict
+
+
+def _calculate_multi_version_status(
+    metric_name: str,
+    version_values: Dict[str, Any],
+    versions: List[str],
+    absolute_changes: Dict[str, float],
+    is_numeric: bool,
+    config: Config,
+) -> Tuple[str, Optional[str]]:
+    """
+    Calculate overall status for a metric across multiple versions.
+    
+    Args:
+        metric_name: Name of the metric
+        version_values: Dictionary mapping version -> value
+        versions: List of versions in order
+        absolute_changes: Dictionary of version pair -> absolute change
+        is_numeric: Whether this is a numeric metric
+        config: Configuration
+        
+    Returns:
+        Tuple of (status, reason) where status is PASS/WARN/FAIL
+    """
+    status = "PASS"
+    reasons: List[str] = []
+    
+    # Get metric config
+    metric_config = config.get_metric_config(metric_name)
+    
+    # Check for missing values (version appeared/disappeared)
+    present_versions = [v for v, val in version_values.items() if val is not None]
+    if len(present_versions) < len(versions):
+        status = "WARN"
+        reasons.append("Some versions missing")
+    
+    # Check if there are differences between versions
+    values_list = [v for v in version_values.values() if v is not None]
+    if len(values_list) > 1:
+        # Check for differences (handle unhashable types like lists)
+        first_value = values_list[0]
+        all_same = True
+        for val in values_list[1:]:
+            # Compare values - for lists/sets, convert to sorted tuple for comparison
+            if isinstance(first_value, (list, set, tuple)) and isinstance(val, (list, set, tuple)):
+                if tuple(sorted(first_value)) != tuple(sorted(val)):
+                    all_same = False
+                    break
+            elif first_value != val:
+                all_same = False
+                break
+        
+        if not all_same:
+            # There are differences - check each version pair using comparers
+            comparer_registry = get_default_registry()
+            
+            # Check each adjacent version pair
+            for i in range(len(versions) - 1):
+                prev_version = versions[i]
+                next_version = versions[i + 1]
+                prev_value = version_values.get(prev_version)
+                next_value = version_values.get(next_version)
+                
+                if prev_value is None or next_value is None:
+                    continue
+                
+                # Get appropriate comparer
+                comparer = comparer_registry.get_comparer_for_value(metric_name, prev_value if prev_value is not None else next_value)
+                
+                # Compare this pair
+                comparison_result = comparer.compare(prev_value, next_value, metric_config)
+                
+                # Update status based on comparison
+                if comparison_result.status == "FAIL":
+                    status = "FAIL"
+                    reasons.append(f"{prev_version}→{next_version}: {comparison_result.reason or 'FAIL'}")
+                elif comparison_result.status == "WARN" and status != "FAIL":
+                    status = "WARN"
+                    if comparison_result.reason:
+                        reasons.append(f"{prev_version}→{next_version}: {comparison_result.reason}")
+                
+                # For "equal" direction metrics, any change is a failure
+                if metric_config.direction == "equal" and prev_value != next_value:
+                    if not metric_config.warn_on_threshold_exceeded:
+                        status = "FAIL"
+                        reasons.append(f"{prev_version}→{next_version}: Value changed (must be equal)")
+                    elif status != "FAIL":
+                        status = "WARN"
+                        reasons.append(f"{prev_version}→{next_version}: Value changed")
+    
+    reason_str = "; ".join(reasons) if reasons else None
+    return status, reason_str
 
 
 def build_multi_version_diff_table(
@@ -126,40 +219,15 @@ def build_multi_version_diff_table(
                                 # Not numeric after all, skip
                                 pass
                 
-                # Determine overall status - for now, set to PASS if all versions have same value
-                # More sophisticated status calculation can be added later
-                status = "PASS"
-                status_reason = None
-                
-                # Check if there are differences between versions
-                values_list = [v for v in version_values.values() if v is not None]
-                if len(values_list) > 1:
-                    # Check for differences (handle unhashable types like lists)
-                    first_value = values_list[0]
-                    all_same = True
-                    for val in values_list[1:]:
-                        # Compare values - for lists/sets, convert to sorted tuple for comparison
-                        if isinstance(first_value, (list, set, tuple)) and isinstance(val, (list, set, tuple)):
-                            if tuple(sorted(first_value)) != tuple(sorted(val)):
-                                all_same = False
-                                break
-                        elif first_value != val:
-                            all_same = False
-                            break
-                    
-                    if not all_same:
-                        # There are differences
-                        status = "WARN"
-                        status_reason = "Values differ across versions"
-                
-                # Check for missing values (version appeared/disappeared)
-                present_versions = [v for v, val in version_values.items() if val is not None]
-                if len(present_versions) < len(versions):
-                    status = "WARN"
-                    if status_reason:
-                        status_reason += "; Some versions missing"
-                    else:
-                        status_reason = "Some versions missing"
+                # Determine overall status using config and metric comparers
+                status, status_reason = _calculate_multi_version_status(
+                    metric_name=metric_name,
+                    version_values=version_values,
+                    versions=versions,
+                    absolute_changes=absolute_changes,
+                    is_numeric=is_numeric,
+                    config=config,
+                )
                 
                 row = MultiVersionDiffRow(
                     step=step_label,

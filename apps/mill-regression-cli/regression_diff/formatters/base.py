@@ -1,19 +1,19 @@
 """Base formatter interface."""
 
 from abc import ABC, abstractmethod
-from regression_diff.models import DiffTable
+from typing import Any
 
 
 class Formatter(ABC):
     """Abstract base class for formatters."""
 
     @abstractmethod
-    def format(self, diff_table: DiffTable) -> str:
+    def format(self, data: Any) -> str:
         """
-        Format a DiffTable into a string representation.
+        Format data into a string representation.
 
         Args:
-            diff_table: DiffTable to format
+            data: Data to format (MultiVersionDiffTable, ActionGroupedReport, etc.)
 
         Returns:
             Formatted string

@@ -1,42 +1,33 @@
 """CLI entry point for regression diff tool."""
 
 import sys
+import json
+import traceback
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, Tuple
 import click
 
 from regression_diff.archive import extract_archive, cleanup_extracted
-from regression_diff.parser import parse_regression_artifact
-from regression_diff.matcher import match_results
-from regression_diff.comparator import compare_results
-from regression_diff.builder import build_diff_table
+from regression_diff.parser import parse_regression_artifact, ParsedResult
 from regression_diff.builder_multi import build_multi_version_diff_table
-from regression_diff.config import load_config, Config
-from regression_diff.version_selector import AllVersionsSelector
-from regression_diff.formatters.markdown import MarkdownFormatter
+from regression_diff.builder_action_grouped import build_action_grouped_report
+from regression_diff.config import load_config
 from regression_diff.formatters.markdown_multi import MarkdownMultiVersionFormatter
-from regression_diff.formatters.csv import CSVFormatter
 from regression_diff.formatters.csv_multi import CSVMultiVersionFormatter
-from regression_diff.formatters.json import JSONFormatter
+from regression_diff.formatters.json_multi import JSONMultiVersionFormatter
 from regression_diff.formatters.base import Formatter
-from typing import Dict, Tuple
+from regression_diff.reports.config import ReportConfig
+from regression_diff.reports.generator import MetricsReportGenerator
+from regression_diff.reports.formatters.csv import CSVMetricsFormatter
 
 
-def get_formatter(format_name: str, multi_version: bool = False) -> Formatter:
+def get_formatter(format_name: str) -> Formatter:
     """Get formatter by name."""
-    if multi_version:
-        formatters = {
-            "markdown": MarkdownMultiVersionFormatter(),
-            "csv": CSVMultiVersionFormatter(),
-            # TODO: Add JSON multi-version formatter if needed
-            "json": JSONFormatter(),  # Fallback to single-version for now
-        }
-    else:
-        formatters = {
-            "markdown": MarkdownFormatter(),
-            "csv": CSVFormatter(),
-            "json": JSONFormatter(),
-        }
+    formatters = {
+        "markdown": MarkdownMultiVersionFormatter(),
+        "csv": CSVMultiVersionFormatter(),
+        "json": JSONMultiVersionFormatter(),
+    }
 
     if format_name not in formatters:
         raise ValueError(
@@ -46,7 +37,13 @@ def get_formatter(format_name: str, multi_version: bool = False) -> Formatter:
     return formatters[format_name]
 
 
-@click.command()
+@click.group()
+def cli():
+    """Regression diff tool for comparing test run artifacts."""
+    pass
+
+
+@cli.command(name="diff")
 @click.argument("archive", type=click.Path(exists=True, path_type=Path))
 @click.option(
     "--config",
@@ -73,19 +70,13 @@ def get_formatter(format_name: str, multi_version: bool = False) -> Formatter:
     "--versions",
     help="Specify version pair as 'baseline:candidate' (default: auto-detect adjacent)",
 )
-@click.option(
-    "--version-selector",
-    default="all",
-    help="Version selector strategy (default: all)",
-)
-def main(
+def diff_command(
     archive: Path,
     config: Optional[Path],
     output: Optional[Path],
     output_format: str,
     group: Optional[str],
     versions: Optional[str],
-    version_selector: str,
 ):
     """
     Compare regression test run artifacts and generate diff tables.
@@ -151,7 +142,6 @@ def main(
                 selected_versions = versions_list
 
             # Collect data for all versions
-            from regression_diff.parser import ParsedResult
             version_results: Dict[str, Dict[Tuple[str, str, str, str], ParsedResult]] = {}
             for version in selected_versions:
                 version_files = structure.get_files(group_name, version)
@@ -160,17 +150,25 @@ def main(
                 )
                 version_results[version] = parsed_results
 
-            # Build multi-version diff table
-            formatter = get_formatter(output_format, multi_version=True)
-            diff_table = build_multi_version_diff_table(
-                group=group_name,
-                versions=selected_versions,
-                version_results=version_results,
-                config=app_config,
-            )
-
-            # Format output
-            formatted_output = formatter.format(diff_table)
+            # Build output based on format
+            formatter = get_formatter(output_format)
+            if output_format == "json":
+                # Use action-grouped structure for JSON
+                report = build_action_grouped_report(
+                    group=group_name,
+                    versions=selected_versions,
+                    version_results=version_results,
+                )
+                formatted_output = formatter.format(report)
+            else:
+                # Use multi-version diff table for other formats
+                diff_table = build_multi_version_diff_table(
+                    group=group_name,
+                    versions=selected_versions,
+                    version_results=version_results,
+                    config=app_config,
+                )
+                formatted_output = formatter.format(diff_table)
 
             # Write output
             if use_directory:
@@ -195,11 +193,105 @@ def main(
 
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
-        import traceback
         traceback.print_exc()
         sys.exit(1)
 
 
+@cli.command()
+@click.argument("json_file", type=click.Path(exists=True, path_type=Path))
+@click.option(
+    "--metrics",
+    required=True,
+    help="Comma-separated list of hierarchical metric paths (e.g., 'action.success,action.outcome.metrics.execution.time')",
+)
+@click.option(
+    "--versions",
+    help="Optional comma-separated list of versions to include (if omitted, includes all versions)",
+)
+@click.option(
+    "--format",
+    "output_format",
+    default="csv",
+    type=click.Choice(["csv"], case_sensitive=False),
+    help="Output format (default: csv)",
+)
+@click.option(
+    "--output",
+    type=click.Path(path_type=Path),
+    help="Output file path (default: stdout)",
+)
+def report(
+    json_file: Path,
+    metrics: str,
+    versions: Optional[str],
+    output_format: str,
+    output: Optional[Path],
+):
+    """
+    Generate metrics report from action-grouped JSON file.
+    
+    JSON_FILE: Path to JSON file containing action-grouped data
+    """
+    try:
+        # Parse metrics list
+        metrics_list = [m.strip() for m in metrics.split(",") if m.strip()]
+        if not metrics_list:
+            click.echo("Error: At least one metric must be specified", err=True)
+            sys.exit(1)
+        
+        # Parse versions list (if provided)
+        versions_list = None
+        if versions:
+            versions_list = [v.strip() for v in versions.split(",") if v.strip()]
+        
+        # Load JSON data
+        with open(json_file, "r", encoding="utf-8") as f:
+            action_grouped_data = json.load(f)
+        
+        if not isinstance(action_grouped_data, list):
+            click.echo("Error: JSON file must contain an array of action entries", err=True)
+            sys.exit(1)
+        
+        # Create report configuration
+        config = ReportConfig(
+            metrics=metrics_list,
+            versions=versions_list,
+            output_format=output_format,
+        )
+        
+        # Generate report
+        generator = MetricsReportGenerator()
+        report = generator.generate_from_action_grouped(action_grouped_data, config)
+        
+        # Format output
+        if output_format == "csv":
+            formatter = CSVMetricsFormatter()
+            formatted_output = formatter.format(report)
+        else:
+            click.echo(f"Error: Unsupported format: {output_format}", err=True)
+            sys.exit(1)
+        
+        # Write output
+        if output:
+            output.write_text(formatted_output, encoding="utf-8")
+            click.echo(f"Written: {output}")
+        else:
+            click.echo(formatted_output)
+    
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        traceback.print_exc()
+        sys.exit(1)
+
+
+# For backwards compatibility, keep main() as alias
+# This allows the entry point to work with both old and new CLI structure
+def main():
+    """Main entry point for backwards compatibility."""
+    # If called directly, use the group CLI
+    cli()
+
+
 if __name__ == "__main__":
-    main()
+    cli()
 

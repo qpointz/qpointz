@@ -30,17 +30,32 @@ The Regression Diff Table Builder is a CLI tool that compares regression test re
    - Calculates absolute and percent changes for numeric metrics
    - Handles missing values (None) across versions
 
-5. **Formatters**
+5. **Action-Grouped Builder** (`regression_diff/builder_action_grouped.py`)
+   - Groups results by action (composite key)
+   - Creates structure with action metadata and versions array
+   - Each version entry contains full result_data
+   - Used for JSON format output
+
+6. **Formatters**
    - **Markdown** (`regression_diff/formatters/markdown_multi.py`): Human-readable tables
    - **CSV** (`regression_diff/formatters/csv_multi.py`): Spreadsheet-friendly format
-   - Both formats include:
+   - **JSON** (`regression_diff/formatters/json_multi.py`): Action-grouped JSON structure
+   - All formats include:
      - Version value columns
      - Absolute change columns (Δ abs)
      - Percent change columns (Δ %)
 
-6. **CLI** (`regression_diff/cli.py`)
-   - Command-line interface using Click
-   - Supports: `--format`, `--output`, `--config`, `--versions`, `--group`
+7. **Metrics Report Framework** (`regression_diff/reports/`)
+   - **Metric Extractor**: Extracts metrics using hierarchical dot-notation paths
+   - **Report Generator**: Orchestrates extraction and report building
+   - **CSV Formatter**: Formats metrics reports as CSV
+   - Supports configurable metric selection and version filtering
+
+8. **CLI** (`regression_diff/cli.py`)
+   - Command-line interface using Click with subcommands
+   - `diff` command: Compare versions and generate diff tables
+   - `report` command: Generate metrics reports from JSON
+   - Supports: `--format`, `--output`, `--config`, `--versions`, `--group`, `--metrics`
    - Outputs to stdout, single file, or directory
 
 ## Data Models
@@ -149,24 +164,48 @@ metrics:
 
 ## Usage Examples
 
-### Basic usage
+### Diff Command
+
+#### Basic usage
 ```bash
-python -m regression_diff.cli test.tar.gz --format markdown
+poetry run regression-diff diff test.tar.gz --format markdown
 ```
 
-### Output to file
+#### Output to file
 ```bash
-python -m regression_diff.cli test.tar.gz --format csv --output results.csv
+poetry run regression-diff diff test.tar.gz --format csv --output results.csv
 ```
 
-### Specific versions
+#### Generate action-grouped JSON
 ```bash
-python -m regression_diff.cli test.tar.gz --versions "0.5.0-dev:0.5.0-rc.6"
+poetry run regression-diff diff test.tar.gz --format json --output report.json
 ```
 
-### With config
+#### Specific versions
 ```bash
-python -m regression_diff.cli test.tar.gz --config regression_diff_config.yaml
+poetry run regression-diff diff test.tar.gz --versions "0.5.0-dev:0.5.0-rc.6"
+```
+
+#### With config
+```bash
+poetry run regression-diff diff test.tar.gz --config regression_diff_config.yaml
+```
+
+### Report Command
+
+#### Generate metrics report
+```bash
+poetry run regression-diff report test_output.json \
+  --metrics "action.success,action.outcome.metrics.execution.time,action.outcome.metrics.llm.usage.total-tokens" \
+  --output metrics_report.csv
+```
+
+#### With version filtering
+```bash
+poetry run regression-diff report test_output.json \
+  --metrics "action.outcome.metrics.execution.time" \
+  --versions "0.5.0-rc.6,0.5.0-test-regression-scenario" \
+  --output execution_times.csv
 ```
 
 ## Implementation Details
@@ -186,6 +225,37 @@ python -m regression_diff.cli test.tar.gz --config regression_diff_config.yaml
 - Serializes action parameters to JSON string for stable matching
 - Handles different action types: "ask", "verify", "reply"
 
+## Metrics Report Framework
+
+The tool includes a flexible metrics report generation framework (`regression_diff/reports/`) that allows extracting specific metrics from action-grouped JSON data.
+
+### Key Components
+
+1. **MetricExtractor** (`reports/extractor.py`)
+   - Extracts metrics using hierarchical dot-notation paths
+   - Handles keys containing dots (e.g., "execution.time")
+   - Supports paths like: `action.success`, `action.outcome.metrics.execution.time`
+
+2. **MetricsReportGenerator** (`reports/generator.py`)
+   - Orchestrates metric extraction across all actions and versions
+   - Supports version filtering and ordering
+   - Creates MetricRow objects for each metric per action
+
+3. **CSVMetricsFormatter** (`reports/formatters/csv.py`)
+   - Formats metrics reports as CSV
+   - Output: `group,scenario,action,metric,v1,v2,...,vN`
+   - One row per metric per action
+
+### Usage
+
+```bash
+# Generate report from action-grouped JSON
+poetry run regression-diff report test_output.json \
+  --metrics "action.success,action.outcome.metrics.execution.time" \
+  --versions "v1,v2" \
+  --output report.csv
+```
+
 ## Future Enhancements
 
 1. **Advanced Version Selectors**
@@ -193,21 +263,22 @@ python -m regression_diff.cli test.tar.gz --config regression_diff_config.yaml
    - Latest N versions: `--version-selector "latest-3"`
    - Date-based: `--version-selector "after:2024-01-01"`
 
-2. **JSON Multi-Version Formatter**
-   - Structured JSON output for programmatic consumption
-
-3. **Enhanced Status Calculation**
+2. **Enhanced Status Calculation**
    - Apply configuration thresholds to changes
    - More sophisticated PASS/WARN/FAIL logic
 
-4. **Filtering Options**
+3. **Filtering Options**
    - Filter by step/scenario
    - Filter by metric type
    - Show only changed metrics
 
-5. **Statistical Summaries**
+4. **Statistical Summaries**
    - Aggregate statistics across all steps
    - Trend analysis (improving/degrading metrics)
+
+5. **Additional Report Formatters**
+   - Markdown formatter for metrics reports
+   - JSON formatter for metrics reports
 
 ## File Structure
 
@@ -218,14 +289,13 @@ apps/mill-regression-cli/
 │   ├── archive.py              # Archive extraction & structure discovery
 │   ├── parser.py               # JSON parsing & composite key generation
 │   ├── normalizer.py           # Flattening JSON to metrics
-│   ├── matcher.py              # Matching results between versions (pairwise)
 │   ├── builder_multi.py        # Multi-version table builder
+│   ├── builder_action_grouped.py  # Action-grouped JSON report builder
 │   ├── models_multi.py         # Multi-version data models
-│   ├── comparator.py           # Metric comparison logic
-│   ├── classifier.py           # Status classification
+│   ├── models_action_grouped.py  # Action-grouped data models
 │   ├── config.py               # Configuration loading
 │   ├── version_selector.py     # Version selection interface
-│   ├── cli.py                  # Command-line interface
+│   ├── cli.py                  # Command-line interface (diff & report commands)
 │   ├── metric_comparers/       # Modular metric comparison strategies
 │   │   ├── base.py
 │   │   ├── numeric.py
@@ -233,10 +303,19 @@ apps/mill-regression-cli/
 │   │   ├── string.py
 │   │   ├── set.py
 │   │   └── registry.py
-│   └── formatters/             # Output formatters
-│       ├── base.py
-│       ├── markdown_multi.py
-│       └── csv_multi.py
+│   ├── formatters/             # Output formatters for diff command
+│   │   ├── base.py
+│   │   ├── markdown_multi.py
+│   │   ├── csv_multi.py
+│   │   └── json_multi.py
+│   └── reports/                # Metrics report generation framework
+│       ├── config.py           # Report configuration
+│       ├── models.py            # Report data models
+│       ├── extractor.py        # Metric extraction from action data
+│       ├── generator.py        # Report generator orchestrator
+│       └── formatters/         # Report formatters
+│           ├── base.py
+│           └── csv.py
 ├── regression_diff_config.yaml # Default configuration
 └── pyproject.toml              # Project dependencies
 ```
