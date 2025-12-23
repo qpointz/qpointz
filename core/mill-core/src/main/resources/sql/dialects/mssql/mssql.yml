@@ -1,0 +1,292 @@
+id: MSSQL
+name: "Microsoft SQL Server"
+
+notes: []
+
+identifiers:
+  case: AS_IS
+  quote: { start: "[", end: "]" }
+  alias-quote: { start: "[", end: "]" }
+  use-fully-qualified-names: true
+  notes:
+    - "Square brackets [] are default quoting style."
+    - "ANSI_QUOTES (QUOTED_IDENTIFIER ON) allows use of double quotes \"identifier\"."
+
+literals:
+  strings:
+    quote: "'"
+    concat: "+"
+    escape: STANDARD
+    note: "Use single quotes; concatenate with +"
+  booleans: [ "1", "0" ]   # MSSQL uses BIT type (0/1)
+  null: "NULL"
+  dates-times:
+    date:
+      syntax: "'YYYY-MM-DD'"
+      quote: "'"
+      pattern: "YYYY-MM-DD"
+      notes:
+        - "Standard date literal"
+    time:
+      syntax: "'HH:MI:SS'"
+      quote: "'"
+      pattern: "HH:MI:SS"
+      notes:
+        - "24-hour clock"
+    timestamp:
+      syntax: "'YYYY-MM-DD HH:MI:SS'"
+      quote: "'"
+      pattern: "YYYY-MM-DD HH:MI:SS"
+      notes:
+        - "Datetime literal"
+    interval:
+      supported: false
+      style: KEYWORD
+      notes:
+        - "No ANSI INTERVAL support; use DATEADD/DATEDIFF functions instead."
+
+joins:
+  style: "explicit"
+  cross-join:
+    enabled: true
+    keyword: "CROSS JOIN"
+  inner-join:
+    keyword: "INNER JOIN"
+    require-on: true
+    null-safe: false
+  left-join:
+    enabled: true
+    keyword: "LEFT JOIN"
+    null-safe: false
+    require-on: true
+  right-join:
+    enabled: true
+    keyword: "RIGHT JOIN"
+    null-safe: false
+    require-on: true
+  full-join:
+    enabled: true
+    keyword: "FULL OUTER JOIN"
+    null-safe: false
+    require-on: true
+  on-clause:
+    keyword: "ON"
+    require-condition: true
+
+ordering:
+  order-by-nulls: "NULLS FIRST/LAST not directly supported; use CASE WHEN for custom null ordering."
+
+paging:
+  limit: "OFFSET {m} ROWS FETCH NEXT {n} ROWS ONLY"
+  offset: "OFFSET {m} ROWS"
+  top: "TOP {n}"
+
+operators:
+  equality:
+    - { symbol: "=", description: "Equality comparison" }
+
+  inequality:
+    - { symbol: "<>", description: "Not equal" }
+
+  comparison:
+    - { symbol: ">",  description: "Greater than" }
+    - { symbol: ">=", description: "Greater than or equal" }
+    - { symbol: "<",  description: "Less than" }
+    - { symbol: "<=", description: "Less than or equal" }
+
+  arithmetic_operators:
+    - { symbol: "+", description: "Addition or string concatenation" }
+    - { symbol: "-", description: "Subtraction" }
+    - { symbol: "*", description: "Multiplication" }
+    - { symbol: "/", description: "Division" }
+    - { symbol: "%", description: "Modulo" }
+
+  null_checks:
+    - { symbol: "IS NULL",     description: "Check for null" }
+    - { symbol: "IS NOT NULL", description: "Check for not null" }
+
+  set:
+    - { symbol: "IN",     description: "Membership test" }
+    - { symbol: "NOT IN", description: "Negated membership test" }
+
+  null-safe: [ ]  # not supported natively
+
+  logical:
+    - { symbol: "NOT", description: "Logical NOT" }
+    - { symbol: "AND", description: "Logical AND" }
+    - { symbol: "OR",  description: "Logical OR" }
+
+  like:
+    - { symbol: "LIKE", description: "Pattern match with wildcards" }
+
+  between:
+    - { symbol: "BETWEEN", description: "Inclusive range comparison" }
+
+  casting:
+    - { symbol: "CAST", syntax: "CAST({expr} AS {type})", description: "Explicit type cast", supported: true }
+    - { symbol: "CONVERT", syntax: "CONVERT({type}, {expr}[, style])", description: "MSSQL-specific type cast", supported: true }
+
+  regex: [ ]   # regex not natively supported; use LIKE or CLR functions
+
+functions:
+  strings:
+    - name: "LEN"
+      return: { type: INTEGER, nullable: false }
+      syntax: "LEN(text)"
+      args:
+        - { name: "text", type: STRING, required: true }
+
+    - name: "SUBSTRING"
+      return: { type: STRING, nullable: true }
+      syntax: "SUBSTRING(text, start, length)"
+      args:
+        - { name: "text", type: STRING, required: true }
+        - { name: "start", type: INTEGER, required: true, min: 1 }
+        - { name: "length", type: INTEGER, required: true, min: 0 }
+
+    - name: "CONCAT"
+      return: { type: STRING, nullable: true }
+      syntax: "CONCAT(a, b, ...)"
+      args:
+        - { name: "a", type: STRING, required: true }
+        - { name: "b", type: STRING, required: true, variadic: true }
+
+    - name: "LTRIM"
+      return: { type: STRING, nullable: true }
+      syntax: "LTRIM(text)"
+      args:
+        - { name: "text", type: STRING, required: true }
+
+    - name: "RTRIM"
+      return: { type: STRING, nullable: true }
+      syntax: "RTRIM(text)"
+      args:
+        - { name: "text", type: STRING, required: true }
+
+    - name: "REPLACE"
+      return: { type: STRING, nullable: true }
+      syntax: "REPLACE(text, search, replace)"
+      args:
+        - { name: "text", type: STRING, required: true }
+        - { name: "search", type: STRING, required: true }
+        - { name: "replace", type: STRING, required: true }
+
+  numerics:
+    - name: "ROUND"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "ROUND(num, decimals)"
+      args:
+        - { name: "num", type: DECIMAL, required: true }
+        - { name: "decimals", type: INTEGER, required: true }
+
+    - name: "ABS"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "ABS(num)"
+      args:
+        - { name: "num", type: DECIMAL, required: true }
+
+    - name: "CEILING"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "CEILING(num)"
+      args:
+        - { name: "num", type: DECIMAL, required: true }
+
+    - name: "FLOOR"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "FLOOR(num)"
+      args:
+        - { name: "num", type: DECIMAL, required: true }
+
+  aggregates:
+    - name: "COUNT"
+      return: { type: INTEGER, nullable: false }
+      syntax: "COUNT(expr)"
+      args:
+        - { name: "expr", type: COLUMN_REF, required: false, default: "*" }
+
+    - name: "SUM"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "SUM(expr)"
+      args:
+        - { name: "expr", type: DECIMAL, required: true }
+
+    - name: "AVG"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "AVG(expr)"
+      args:
+        - { name: "expr", type: DECIMAL, required: true }
+
+    - name: "MIN"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "MIN(expr)"
+      args:
+        - { name: "expr", type: DECIMAL, required: true }
+
+    - name: "MAX"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "MAX(expr)"
+      args:
+        - { name: "expr", type: DECIMAL, required: true }
+
+    - name: "STRING_AGG"
+      return: { type: STRING, nullable: true }
+      syntax: "STRING_AGG(expr, delimiter)"
+      args:
+        - { name: "expr", type: STRING, required: true }
+        - { name: "delimiter", type: STRING, required: true }
+
+  dates_times:
+    - name: "GETDATE"
+      return: { type: TIMESTAMP, nullable: false }
+      syntax: "GETDATE()"
+      args: []
+
+    - name: "CURRENT_TIMESTAMP"
+      return: { type: TIMESTAMP, nullable: false }
+      syntax: "CURRENT_TIMESTAMP"
+      args: []
+
+    - name: "DATEADD"
+      return: { type: TIMESTAMP, nullable: false }
+      syntax: "DATEADD(unit, text, ts)"
+      args:
+        - { name: "unit", type: ENUM, required: true, enum: ["year","quarter","month","week","day","hour","minute","second","millisecond"] }
+        - { name: "text", type: INTEGER, required: true }
+        - { name: "ts", type: TIMESTAMP, required: true }
+
+    - name: "DATEDIFF"
+      return: { type: INTEGER, nullable: false }
+      syntax: "DATEDIFF(unit, start, end)"
+      args:
+        - { name: "unit", type: ENUM, required: true, enum: ["year","quarter","month","week","day","hour","minute","second","millisecond"] }
+        - { name: "start", type: TIMESTAMP, required: true }
+        - { name: "end", type: TIMESTAMP, required: true }
+
+    - name: "DATENAME"
+      return: { type: STRING, nullable: false }
+      syntax: "DATENAME(unit, ts)"
+      args:
+        - { name: "unit", type: ENUM, required: true, enum: ["year","quarter","month","week","day","weekday","hour","minute","second"] }
+        - { name: "ts", type: TIMESTAMP, required: true }
+
+  conditionals:
+    - name: "COALESCE"
+      return: { type: STRING, nullable: true }
+      syntax: "COALESCE(a, b, ...)"
+      args:
+        - { name: "a", type: STRING, required: true, variadic: true }
+
+    - name: "IIF"
+      return: { type: STRING, nullable: true }
+      syntax: "IIF(condition, true_expr, false_expr)"
+      args:
+        - { name: "condition", type: BOOLEAN, required: true }
+        - { name: "true_expr", type: STRING, required: true }
+        - { name: "false_expr", type: STRING, required: true }
+
+    - name: "NULLIF"
+      return: { type: STRING, nullable: true }
+      syntax: "NULLIF(a, b)"
+      args:
+        - { name: "a", type: STRING, required: true }
+        - { name: "b", type: STRING, required: true }

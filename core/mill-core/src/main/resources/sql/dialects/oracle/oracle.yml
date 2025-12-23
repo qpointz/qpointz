@@ -1,0 +1,241 @@
+id: ORACLE
+name: "Oracle Database"
+
+notes: []
+
+identifiers:
+  case: UPPER
+  quote: { start: "\"", end: "\"" }
+  alias-quote: { start: "\"", end: "\"" }
+  use-fully-qualified-names: true
+
+literals:
+  strings:
+    quote: "'"
+    concat: "||"
+    escape: STANDARD
+    note: "Escape single quote by doubling it ('')"
+  booleans: ["1","0"]  # Oracle has no native BOOLEAN in SQL (only PL/SQL)
+  null: "NULL"
+  dates-times:
+    date:
+      syntax: "DATE 'YYYY-MM-DD'"
+      quote: "'"
+      pattern: "YYYY-MM-DD"
+      notes:
+        - "ANSI DATE literal supported"
+    time:
+      syntax: "TO_DATE('HH24:MI:SS','HH24:MI:SS')"
+      quote: "'"
+      pattern: "HH24:MI:SS"
+      notes:
+        - "Stored internally as DATE type"
+    timestamp:
+      syntax: "TIMESTAMP 'YYYY-MM-DD HH24:MI:SS'"
+      quote: "'"
+      pattern: "YYYY-MM-DD HH24:MI:SS"
+      notes:
+        - "Supports fractional seconds and time zones"
+    interval:
+      supported: true
+      style: ANSI
+      notes:
+        - "INTERVAL DAY TO SECOND and INTERVAL YEAR TO MONTH supported"
+
+joins:
+  style: "explicit"
+  cross-join:
+    enabled: true
+    keyword: "CROSS JOIN"
+  inner-join:
+    keyword: "INNER JOIN"
+    require-on: true
+    null-safe: false
+  left-join:
+    enabled: true
+    keyword: "LEFT OUTER JOIN"
+    null-safe: false
+    require-on: true
+  right-join:
+    enabled: true
+    keyword: "RIGHT OUTER JOIN"
+    null-safe: false
+    require-on: true
+  full-join:
+    keyword: "FULL OUTER JOIN"
+    enabled: true
+    null-safe: false
+    require-on: true
+  on-clause:
+    keyword: "ON"
+    require-condition: true
+
+ordering:
+  order-by-nulls: "NULLS LAST"   # Oracle supports NULLS FIRST / LAST
+
+paging:
+  limit: "FETCH FIRST {n} ROWS ONLY"
+  offset: "OFFSET {m} ROWS"
+  top: null   # Not used in Oracle
+
+operators:
+  equality:
+    - { symbol: "=", description: "Equality comparison" }
+  inequality:
+    - { symbol: "<>", description: "Not equal" }
+  comparison:
+    - { symbol: ">", description: "Greater than" }
+    - { symbol: ">=", description: "Greater than or equal" }
+    - { symbol: "<", description: "Less than" }
+    - { symbol: "<=", description: "Less than or equal" }
+  arithmetic_operators:
+    - { symbol: "+", description: "Addition" }
+    - { symbol: "-", description: "Subtraction" }
+    - { symbol: "*", description: "Multiplication" }
+    - { symbol: "/", description: "Division" }
+    - { symbol: "||", description: "String concatenation" }
+  null_checks:
+    - { symbol: "IS NULL", description: "Check for null" }
+    - { symbol: "IS NOT NULL", description: "Check for not null" }
+  set:
+    - { symbol: "IN", description: "Membership test" }
+    - { symbol: "NOT IN", description: "Negated membership test" }
+  logical:
+    - { symbol: "NOT", description: "Logical NOT" }
+    - { symbol: "AND", description: "Logical AND" }
+    - { symbol: "OR", description: "Logical OR" }
+  like:
+    - { symbol: "LIKE", description: "Pattern match with wildcards" }
+  between:
+    - { symbol: "BETWEEN", description: "Inclusive range comparison" }
+  casting:
+    - { symbol: "CAST", syntax: "CAST({expr} AS {type})", description: "ANSI SQL cast", supported: true }
+    - { symbol: "TO_CHAR", syntax: "TO_CHAR(expr, format)", description: "Convert to string with format", supported: true }
+    - { symbol: "TO_NUMBER", syntax: "TO_NUMBER(expr, format)", description: "Convert to number with format", supported: true }
+    - { symbol: "TO_DATE", syntax: "TO_DATE(expr, format)", description: "Convert to DATE using format mask", supported: true }
+    - { symbol: "TO_TIMESTAMP", syntax: "TO_TIMESTAMP(expr, format)", description: "Convert to TIMESTAMP", supported: true }
+  regex:
+    - { symbol: "REGEXP_LIKE", description: "Regex match predicate" }
+    - { symbol: "REGEXP_REPLACE", description: "Regex replace function" }
+    - { symbol: "REGEXP_SUBSTR", description: "Regex substring extraction" }
+    - { symbol: "REGEXP_INSTR", description: "Regex position finder" }
+
+functions:
+  strings:
+    - name: "SUBSTR"
+      return: { type: STRING, nullable: true }
+      syntax: "SUBSTR(string, start, length)"
+      args:
+        - { name: "string", type: STRING, required: true, notes: "Input string" }
+        - { name: "start", type: INTEGER, required: true, notes: "Starting position (1-based)" }
+        - { name: "length", type: INTEGER, required: false, notes: "Substring length" }
+
+    - name: "CONCAT"
+      return: { type: STRING, nullable: true }
+      syntax: "CONCAT(a, b)"
+      args:
+        - { name: "a", type: STRING, required: true, notes: "First string" }
+        - { name: "b", type: STRING, required: true, notes: "Second string" }
+
+    - name: "LENGTH"
+      return: { type: INTEGER, nullable: true }
+      syntax: "LENGTH(string)"
+      args:
+        - { name: "string", type: STRING, required: true, notes: "String to measure" }
+
+  regex:
+    - name: "REGEXP_LIKE"
+      return: { type: BOOLEAN, nullable: false }
+      syntax: "REGEXP_LIKE(string, pattern[, flags])"
+      args:
+        - { name: "string", type: STRING, required: true, notes: "Input string" }
+        - { name: "pattern", type: PATTERN, required: true, notes: "Regex pattern" }
+        - { name: "flags", type: STRING, required: false, notes: "Optional regex flags" }
+
+    - name: "REGEXP_SUBSTR"
+      return: { type: STRING, nullable: true }
+      syntax: "REGEXP_SUBSTR(string, pattern[, start[, occurrence[, flags]]])"
+      args:
+        - { name: "string", type: STRING, required: true, notes: "Input string" }
+        - { name: "pattern", type: PATTERN, required: true, notes: "Regex pattern" }
+
+  numerics:
+    - name: "ROUND"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "ROUND(num[, scale])"
+      args:
+        - { name: "num", type: DECIMAL, required: true, notes: "Number to round" }
+        - { name: "scale", type: INTEGER, required: false, notes: "Decimal places" }
+
+    - name: "TRUNC"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "TRUNC(num[, scale])"
+      args:
+        - { name: "num", type: DECIMAL, required: true, notes: "Number to truncate" }
+        - { name: "scale", type: INTEGER, required: false, notes: "Decimal places" }
+
+  aggregates:
+    - name: "COUNT"
+      return: { type: INTEGER, nullable: false }
+      syntax: "COUNT(expr)"
+      args:
+        - { name: "expr", type: COLUMN_REF, required: false, default: "*", notes: "Expression or *" }
+
+    - name: "AVG"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "AVG(expr)"
+      args:
+        - { name: "expr", type: DECIMAL, required: true, notes: "Numeric expression" }
+
+    - name: "LISTAGG"
+      return: { type: STRING, nullable: true }
+      syntax: "LISTAGG(expr, delimiter) WITHIN GROUP (ORDER BY expr)"
+      args:
+        - { name: "expr", type: STRING, required: true, notes: "Expression to aggregate" }
+        - { name: "delimiter", type: STRING, required: true, notes: "Delimiter string" }
+
+  dates_times:
+    - name: "SYSDATE"
+      return: { type: DATE, nullable: false }
+      syntax: "SYSDATE"
+      args: []
+
+    - name: "SYSTIMESTAMP"
+      return: { type: TIMESTAMP, nullable: false }
+      syntax: "SYSTIMESTAMP"
+      args: []
+
+    - name: "ADD_MONTHS"
+      return: { type: DATE, nullable: true }
+      syntax: "ADD_MONTHS(date, n)"
+      args:
+        - { name: "date", type: DATE, required: true, notes: "Base date" }
+        - { name: "n", type: INTEGER, required: true, notes: "Number of months to add" }
+
+    - name: "TRUNC"
+      return: { type: DATE, nullable: true }
+      syntax: "TRUNC(date, format)"
+      args:
+        - { name: "date", type: DATE, required: true, notes: "Date to truncate" }
+        - { name: "format", type: STRING, required: false, notes: "Format like 'YEAR', 'MONTH', 'DAY'" }
+
+  conditionals:
+    - name: "COALESCE"
+      return: { type: STRING, nullable: true }
+      syntax: "COALESCE(a, b, ...)"
+      args:
+        - { name: "a", type: STRING, required: true, variadic: true, notes: "Arguments to evaluate" }
+
+    - name: "NVL"
+      return: { type: STRING, nullable: true }
+      syntax: "NVL(expr1, expr2)"
+      args:
+        - { name: "expr1", type: STRING, required: true, notes: "Expression to check" }
+        - { name: "expr2", type: STRING, required: true, notes: "Value if expr1 is NULL" }
+
+    - name: "NULLIF"
+      return: { type: STRING, nullable: true }
+      syntax: "NULLIF(expr1, expr2)"
+      args:
+        - { name: "expr1", type: STRING, required: true, notes: "First expression" }
+        - { name: "expr2", type: STRING, required: true, notes: "Second expression" }

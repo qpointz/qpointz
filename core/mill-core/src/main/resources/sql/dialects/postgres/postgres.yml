@@ -1,0 +1,460 @@
+id: POSTGRES
+name: "PostgreSQL"
+
+notes: []
+
+identifiers:
+  case: AS_IS
+  quote: { start: "\"", end: "\"" }
+  alias-quote: { start: "\"", end: "\"" }
+  use-fully-qualified-names: true
+
+literals:
+  strings:
+    quote: "'"
+    concat: "||"
+    escape: STANDARD
+    note: "quoting relevant to target type"
+  booleans: ["TRUE","FALSE"]
+  null: "NULL"
+  dates-times:
+    date:
+      syntax: "DATE 'YYYY-MM-DD'"
+      quote: "'"
+      pattern: "YYYY-MM-DD"
+      notes:
+        - "Use ISO-8601 style date literal."
+    time:
+      syntax: "TIME 'HH:MI:SS'"
+      quote: "'"
+      pattern: "HH:MI:SS"
+      notes:
+        - "Use 24-hour clock; add fractional seconds if needed."
+    timestamp:
+      syntax: "TIMESTAMP 'YYYY-MM-DD HH:MI:SS'"
+      quote: "'"
+      pattern: "YYYY-MM-DD HH:MI:SS"
+      notes:
+        - "Use TIMESTAMP WITH TIME ZONE as needed."
+    interval:
+      supported: true
+      style: ANSI
+      notes:
+        - "ANSI INTERVAL syntax supported, e.g., INTERVAL '1 day'."
+
+joins:
+  style: "explicit"                  # options: explicit | implicit
+  cross-join:
+    enabled: true
+    keyword: "CROSS JOIN"
+  inner-join:
+    keyword: "INNER JOIN"
+    require-on: true
+    null-safe: false
+  left-join:
+    enabled: true
+    keyword: "LEFT JOIN"
+    null-safe: false
+    require-on: true
+  right-join:
+    keyword: "RIGHT JOIN"
+    enabled: true
+    null-safe: false
+    require-on: true
+  full-join:
+    keyword: "FULL JOIN"
+    enabled: true
+    null-safe: false
+    require-on: true
+  on-clause:
+    keyword: "ON"
+    require-condition: true         # disallow NATURAL JOIN or USING
+
+ordering:
+  order-by-nulls: "NULLS FIRST/LAST"   # both supported explicitly
+
+paging:
+  limit: "LIMIT {n}"
+  offset: "OFFSET {m}"
+  top: null
+
+operators:
+  equality:
+    - { symbol: "=", description: "Equality comparison" }
+
+  inequality:
+    - { symbol: "<>", description: "Not equal" }
+    - { symbol: "!=", description: "Not equal (alternative)" }
+
+  comparison:
+    - { symbol: ">",  description: "Greater than" }
+    - { symbol: ">=", description: "Greater than or equal" }
+    - { symbol: "<",  description: "Less than" }
+    - { symbol: "<=", description: "Less than or equal" }
+
+  arithmetic_operators:
+    - { symbol: "+", description: "Addition" }
+    - { symbol: "-", description: "Subtraction" }
+    - { symbol: "*", description: "Multiplication" }
+    - { symbol: "/", description: "Division" }
+    - { symbol: "%", description: "Modulo" }
+
+  null_checks:
+    - { symbol: "IS NULL",     description: "Check for null" }
+    - { symbol: "IS NOT NULL", description: "Check for not null" }
+
+  set:
+    - { symbol: "IN",     description: "Membership test" }
+    - { symbol: "NOT IN", description: "Negated membership test" }
+
+  null-safe:
+    - { symbol: "IS NOT DISTINCT FROM", description: "Null-safe equality (treats two NULLs as equal)" }
+
+  logical:
+    - { symbol: "NOT", description: "Logical NOT" }
+    - { symbol: "AND", description: "Logical AND" }
+    - { symbol: "OR",  description: "Logical OR" }
+
+  like:
+    - { symbol: "LIKE",  description: "Pattern match with wildcards" }
+    - { symbol: "ILIKE", description: "Case-insensitive pattern match" }
+    - { symbol: "SIMILAR TO", description: "SQL regex-like pattern operator" }
+
+  between:
+    - { symbol: "BETWEEN", description: "Inclusive range comparison" }
+
+  casting:
+    - { symbol: "CAST",      syntax: "CAST({expr} AS {type})", description: "Explicit type cast", supported: true }
+    - { symbol: "::",        syntax: "{expr}::{type}",          description: "Type cast operator", supported: true }
+    - { symbol: "SAFE_CAST", syntax: null,                      description: "Not supported in PostgreSQL", supported: false }
+
+  regex:
+    - { symbol: "~",   description: "Regex match (case-sensitive)" }
+    - { symbol: "~*",  description: "Regex match (case-insensitive)" }
+    - { symbol: "!~",  description: "Regex does not match (case-sensitive)" }
+    - { symbol: "!~*", description: "Regex does not match (case-insensitive)" }
+
+functions:
+  strings:
+    - name: "LENGTH"
+      return: { type: INTEGER, nullable: false }
+      syntax: "LENGTH(text)"
+      args:
+        - { name: "text", type: STRING, required: true, notes: "Input string; use CHAR_LENGTH for characters count." }
+
+    - name: "CHAR_LENGTH"
+      return: { type: INTEGER, nullable: false }
+      syntax: "CHAR_LENGTH(text)"
+      args:
+        - { name: "text", type: STRING, required: true, notes: "Number of characters." }
+
+    - name: "OCTET_LENGTH"
+      return: { type: INTEGER, nullable: false }
+      syntax: "OCTET_LENGTH(text)"
+      args:
+        - { name: "text", type: STRING, required: true, notes: "Number of bytes." }
+
+    - name: "LOWER"
+      return: { type: STRING, nullable: true }
+      syntax: "LOWER(text)"
+      args:
+        - { name: "text", type: STRING, required: true }
+
+    - name: "UPPER"
+      return: { type: STRING, nullable: true }
+      syntax: "UPPER(text)"
+      args:
+        - { name: "text", type: STRING, required: true }
+
+    - name: "INITCAP"
+      return: { type: STRING, nullable: true }
+      syntax: "INITCAP(text)"
+      args:
+        - { name: "text", type: STRING, required: true, notes: "Capitalize words." }
+
+    - name: "SUBSTRING"
+      synonyms: ["SUBSTR"]
+      return: { type: STRING, nullable: true }
+      syntax: "SUBSTRING(text FROM start FOR length)"
+      args:
+        - { name: "text", type: STRING, required: true, notes: "Source string." }
+        - { name: "start", type: INTEGER, required: true, min: 1, notes: "1-based index." }
+        - { name: "length", type: INTEGER, required: false, min: 0, notes: "Optional length." }
+
+    - name: "LEFT"
+      return: { type: STRING, nullable: true }
+      syntax: "LEFT(text, n)"
+      args:
+        - { name: "text", type: STRING, required: true }
+        - { name: "n", type: INTEGER, required: true, min: 0 }
+
+    - name: "RIGHT"
+      return: { type: STRING, nullable: true }
+      syntax: "RIGHT(text, n)"
+      args:
+        - { name: "text", type: STRING, required: true }
+        - { name: "n", type: INTEGER, required: true, min: 0 }
+
+    - name: "TRIM"
+      return: { type: STRING, nullable: true }
+      syntax: "TRIM([LEADING|TRAILING|BOTH] [chars] FROM text)"
+      args:
+        - { name: "chars", type: STRING, required: false, notes: "Characters to trim." }
+        - { name: "text", type: STRING, required: true }
+
+    - name: "LTRIM"
+      return: { type: STRING, nullable: true }
+      syntax: "LTRIM(text[, chars])"
+      args:
+        - { name: "text", type: STRING, required: true }
+        - { name: "chars", type: STRING, required: false }
+
+    - name: "RTRIM"
+      return: { type: STRING, nullable: true }
+      syntax: "RTRIM(text[, chars])"
+      args:
+        - { name: "text", type: STRING, required: true }
+        - { name: "chars", type: STRING, required: false }
+
+    - name: "CONCAT"
+      return: { type: STRING, nullable: true }
+      syntax: "CONCAT(a, b, ...)"
+      args:
+        - { name: "a", type: STRING, required: true }
+        - { name: "b", type: STRING, required: true, variadic: true }
+
+    - name: "CONCAT_WS"
+      return: { type: STRING, nullable: true }
+      syntax: "CONCAT_WS(sep, a, b, ...)"
+      args:
+        - { name: "sep", type: STRING, required: true, notes: "Separator." }
+        - { name: "a", type: STRING, required: true }
+        - { name: "b", type: STRING, required: true, variadic: true }
+
+    - name: "POSITION"
+      return: { type: INTEGER, nullable: true }
+      syntax: "POSITION(substr IN text)"
+      args:
+        - { name: "substr", type: STRING, required: true }
+        - { name: "text", type: STRING, required: true }
+
+    - name: "STRPOS"
+      return: { type: INTEGER, nullable: true }
+      syntax: "STRPOS(text, substr)"
+      args:
+        - { name: "text", type: STRING, required: true }
+        - { name: "substr", type: STRING, required: true }
+
+    - name: "OVERLAY"
+      return: { type: STRING, nullable: true }
+      syntax: "OVERLAY(text PLACING replacement FROM start FOR length)"
+      args:
+        - { name: "text", type: STRING, required: true }
+        - { name: "replacement", type: STRING, required: true }
+        - { name: "start", type: INTEGER, required: true, min: 1 }
+        - { name: "length", type: INTEGER, required: false, min: 0 }
+
+    - name: "REPLACE"
+      return: { type: STRING, nullable: true }
+      syntax: "REPLACE(text, from_str, to_str)"
+      args:
+        - { name: "text", type: STRING, required: true }
+        - { name: "from_str", type: STRING, required: true }
+        - { name: "to_str", type: STRING, required: true }
+
+    - name: "REGEXP_REPLACE"
+      return: { type: STRING, nullable: true }
+      syntax: "REGEXP_REPLACE(text, pattern, replacement[, flags])"
+      args:
+        - { name: "text", type: STRING, required: true }
+        - { name: "pattern", type: PATTERN, required: true }
+        - { name: "replacement", type: STRING, required: true }
+        - { name: "flags", type: ENUM, required: false, multi: true, enum: ["g","i","m","n","p","s","u","x"] , notes: "Use 'g' for global." }
+
+  regex:
+    - name: "REGEXP_LIKE"
+      return: { type: BOOLEAN, nullable: false }
+      syntax: "text ~ pattern"
+      args:
+        - { name: "text", type: STRING, required: true, notes: "Left-hand expression." }
+        - { name: "pattern", type: PATTERN, required: true, notes: "POSIX regex pattern." }
+
+  numerics:
+    - name: "ROUND"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "ROUND(num[, scale])"
+      args:
+        - { name: "num", type: DECIMAL, required: true }
+        - { name: "scale", type: INTEGER, required: false, min: 0 }
+
+    - name: "TRUNC"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "TRUNC(num[, scale])"
+      args:
+        - { name: "num", type: DECIMAL, required: true }
+        - { name: "scale", type: INTEGER, required: false, min: 0 }
+
+    - name: "CEIL"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "CEIL(num)"
+      args:
+        - { name: "num", type: DECIMAL, required: true }
+    - name: "FLOOR"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "FLOOR(num)"
+      args:
+        - { name: "num", type: DECIMAL, required: true }
+
+    - name: "ABS"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "ABS(num)"
+      args:
+        - { name: "num", type: DECIMAL, required: true }
+
+    - name: "POWER"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "POWER(base, exp)"
+      args:
+        - { name: "base", type: DECIMAL, required: true }
+        - { name: "exp", type: DECIMAL, required: true }
+
+    - name: "MOD"
+      return: { type: INTEGER, nullable: true }
+      syntax: "MOD(a, b)"
+      args:
+        - { name: "a", type: INTEGER, required: true }
+        - { name: "b", type: INTEGER, required: true }
+
+  aggregates:
+    - name: "COUNT"
+      return: { type: INTEGER, nullable: false }
+      syntax: "COUNT(expr)"
+      args:
+        - { name: "expr", type: COLUMN_REF, required: false, default: "*", notes: "COUNT(*) allowed." }
+
+    - name: "SUM"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "SUM(expr)"
+      args:
+        - { name: "expr", type: DECIMAL, required: true }
+
+    - name: "AVG"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "AVG(expr)"
+      args:
+        - { name: "expr", type: DECIMAL, required: true }
+
+    - name: "MIN"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "MIN(expr)"
+      args:
+        - { name: "expr", type: DECIMAL, required: true }
+
+    - name: "MAX"
+      return: { type: DECIMAL, nullable: true }
+      syntax: "MAX(expr)"
+      args:
+        - { name: "expr", type: DECIMAL, required: true }
+
+    - name: "STRING_AGG"
+      return: { type: STRING, nullable: true }
+      syntax: "STRING_AGG(text, delimiter)"
+      args:
+        - { name: "text", type: STRING, required: true }
+        - { name: "delimiter", type: STRING, required: true }
+
+  dates_times:
+    - name: "CURRENT_DATE"
+      return: { type: DATE, nullable: false }
+      syntax: "CURRENT_DATE"
+      args: []
+
+    - name: "CURRENT_TIMESTAMP"
+      return: { type: TIMESTAMP, nullable: false }
+      syntax: "CURRENT_TIMESTAMP"
+      args: []
+
+    - name: "NOW"
+      return: { type: TIMESTAMP, nullable: false }
+      syntax: "NOW()"
+      args: []
+
+    - name: "DATE_TRUNC"
+      return: { type: TIMESTAMP, nullable: false }
+      syntax: "DATE_TRUNC(unit, ts)"
+      args:
+        - { name: "unit", type: ENUM, required: true, enum: ["millennium","century","decade","year","quarter","month","week","day","hour","minute","second"], notes: "Truncation unit." }
+        - { name: "ts", type: TIMESTAMP, required: true }
+
+    - name: "EXTRACT"
+      return: { type: INTEGER, nullable: true }
+      syntax: "EXTRACT(field FROM ts)"
+      args:
+        - { name: "field", type: ENUM, required: true, enum: ["YEAR","MONTH","DAY","HOUR","MINUTE","SECOND","DOW","DOY","WEEK","QUARTER"] }
+        - { name: "ts", type: TIMESTAMP, required: true }
+
+    - name: "AGE"
+      return: { type: INTERVAL, nullable: true }
+      syntax: "AGE(ts1, ts2)"
+      args:
+        - { name: "ts1", type: TIMESTAMP, required: true }
+        - { name: "ts2", type: TIMESTAMP, required: false, notes: "If omitted, uses current_timestamp." }
+
+    - name: "MAKE_DATE"
+      return: { type: DATE, nullable: false }
+      syntax: "MAKE_DATE(y, m, d)"
+      args:
+        - { name: "y", type: INTEGER, required: true }
+        - { name: "m", type: INTEGER, required: true }
+        - { name: "d", type: INTEGER, required: true }
+
+    - name: "MAKE_TIMESTAMP"
+      return: { type: TIMESTAMP, nullable: false }
+      syntax: "MAKE_TIMESTAMP(y, m, d, h, mi, s)"
+      args:
+        - { name: "y", type: INTEGER, required: true }
+        - { name: "m", type: INTEGER, required: true }
+        - { name: "d", type: INTEGER, required: true }
+        - { name: "h", type: INTEGER, required: true }
+        - { name: "mi", type: INTEGER, required: true }
+        - { name: "s", type: DECIMAL, required: true }
+
+    - name: "TO_DATE"
+      return: { type: DATE, nullable: false }
+      syntax: "TO_DATE(text, format)"
+      args:
+        - { name: "text", type: STRING, required: true }
+        - { name: "format", type: STRING, required: true, notes: "Format pattern, e.g., 'YYYY-MM-DD'." }
+
+    - name: "TO_TIMESTAMP"
+      return: { type: TIMESTAMP, nullable: false }
+      syntax: "TO_TIMESTAMP(text, format)"
+      args:
+        - { name: "text", type: STRING, required: true }
+        - { name: "format", type: STRING, required: true }
+
+  conditionals:
+    - name: "COALESCE"
+      return: { type: STRING, nullable: true }
+      syntax: "COALESCE(a, b, ...)"
+      args:
+        - { name: "a", type: STRING, required: true, variadic: true }
+
+    - name: "NULLIF"
+      return: { type: STRING, nullable: true }
+      syntax: "NULLIF(a, b)"
+      args:
+        - { name: "a", type: STRING, required: true }
+        - { name: "b", type: STRING, required: true }
+
+    - name: "GREATEST"
+      return: { type: STRING, nullable: true }
+      syntax: "GREATEST(a, b, ...)"
+      args:
+        - { name: "a", type: STRING, required: true, variadic: true }
+
+    - name: "LEAST"
+      return: { type: STRING, nullable: true }
+      syntax: "LEAST(a, b, ...)"
+      args:
+        - { name: "a", type: STRING, required: true, variadic: true }
