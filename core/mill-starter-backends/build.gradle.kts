@@ -27,12 +27,19 @@ dependencies {
 
 testing {
     suites {
+        register<JvmTestSuite>("testIT") {
+            dependencies {
+                implementation(libs.boot.starter.test)
+            }
+        }
+
         configureEach {
             if (this is JvmTestSuite) {
                 useJUnitJupiter(libs.versions.junit.get())
 
                 dependencies {
                     implementation(project())
+                    implementation(libs.calcite.core)
                     implementation(libs.protobuf.java.util)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)

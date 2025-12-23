@@ -11,10 +11,9 @@ import io.qpointz.mill.services.calcite.providers.CalciteSqlProvider;
 import io.qpointz.mill.services.calcite.providers.PlanConverter;
 import io.qpointz.mill.services.configuration.BackendConfiguration;
 import io.qpointz.mill.services.dispatchers.SubstraitDispatcher;
-import io.qpointz.mill.services.jdbc.providers.JdbcCalciteContextFactory;
-import io.qpointz.mill.services.jdbc.providers.JdbcContext;
-import io.qpointz.mill.services.jdbc.providers.JdbcContextFactory;
-import io.qpointz.mill.services.jdbc.providers.JdbcExecutionProvider;
+import io.qpointz.mill.services.jdbc.providers.*;
+import io.qpointz.mill.services.jdbc.providers.impl.JdbcConnectionCustomizerImpl;
+import io.qpointz.mill.services.jdbc.providers.impl.JdbcContextFactoryImpl;
 import io.substrait.extension.ExtensionCollector;
 import io.substrait.extension.SimpleExtension;
 import lombok.Getter;
@@ -22,15 +21,13 @@ import lombok.Setter;
 import lombok.val;
 import org.apache.calcite.sql.SqlDialect;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -49,11 +46,6 @@ public class JdbcCalciteConfiguration {
     @Setter
     @Value("${mill.backend.jdbc.driver}")
     private String driver;
-
-    @Getter
-    @Setter
-    @Value("${mill.backend.jdbc.dialect:#{null}}")
-    private String dialect;
 
     @Getter
     @Setter
@@ -86,8 +78,8 @@ public class JdbcCalciteConfiguration {
     private Boolean multiSchema= false;
 
     @Bean
-    public JdbcContextFactory jdbcContextFactory() {
-        return this.jdbcContext();
+    public JdbcContextFactory jdbcContextFactory(JdbcConnectionProvider jdbcConnectionProvider) {
+        return new JdbcContextFactoryImpl(this, jdbcConnectionProvider);
     }
 
     @Bean
@@ -106,10 +98,11 @@ public class JdbcCalciteConfiguration {
     }
 
     @Bean
-    public CalciteContextFactory calciteContextFactory(BackendConfiguration backendConfiguration) {
+    public CalciteContextFactory calciteContextFactory(BackendConfiguration backendConfiguration,
+                                                       JdbcConnectionProvider jdbcConnectionProvider) {
         val props = new Properties();
         props.putAll(backendConfiguration.getConnection());
-        return new JdbcCalciteContextFactory(props, this, this.targetSchema);
+        return new JdbcCalciteContextFactory(props, this, this.targetSchema, jdbcConnectionProvider);
     }
 
     @Bean
@@ -122,21 +115,10 @@ public class JdbcCalciteConfiguration {
         return new ExtensionCollector();
     }
 
-    public JdbcContextFactory jdbcContext() {
-        return () -> new JdbcContext() {
-            private JdbcCalciteConfiguration config = JdbcCalciteConfiguration.this;
-            @Override
-            public Connection getConnection() {
-                try {
-                    Class.forName(this.config.getDriver());
-                    return DriverManager.getConnection(this.config.getUrl(),
-                            this.config.getUser().orElse(""),
-                            this.config.getPassword().orElse(""));
-                } catch (SQLException | ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
+    @Bean
+    @ConditionalOnMissingBean(JdbcConnectionProvider.class)
+    public JdbcConnectionProvider defaultJdbcConnectionProvider() {
+        return new JdbcConnectionCustomizerImpl();
     }
 
 }

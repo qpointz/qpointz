@@ -1,0 +1,23 @@
+grpc:
+  server:
+    in-process-name: testservice-jdbc-moneta
+    port: -1
+  client:
+    testservice:
+      address: in-process:testservice-jdbc-moneta
+
+mill:
+  backend:
+    provider: jdbc
+    connection:
+      quoting: BACK_TICK
+      caseSensitive: true
+      unquotedCasing: UNCHANGED
+      lenientOperatorLookup: TRUE
+    jdbc:
+      url: "jdbc:h2:mem:moneta-slim;INIT=RUNSCRIPT FROM '../../test/datasets/moneta/moneta-slim.sql'"
+      driver: "org.h2.Driver"
+      output-schema: "PUBLIC"
+  security:
+    enable: false
+

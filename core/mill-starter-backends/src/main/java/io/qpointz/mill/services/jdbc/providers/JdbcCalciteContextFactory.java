@@ -34,6 +34,10 @@ public class JdbcCalciteContextFactory implements CalciteContextFactory {
     @Setter
     public Optional<String> targetSchema ;
 
+    @Getter
+    @Setter
+    public JdbcConnectionProvider jdbcCustomizer;
+
     @AllArgsConstructor
     private static class JdbcCalciteContext extends CalciteConnectionContextBase {
 
@@ -127,7 +131,11 @@ public class JdbcCalciteContextFactory implements CalciteContextFactory {
         createJdbcSchema(rootSchema, this.targetSchema.orElse("jdbc"), op.getCatalog(), op.getSchema());
     }
 
-    private void createJdbcSchema(SchemaPlus rootSchema, String targetName, Optional<String> catalog, Optional<String> schema) {
+    private void createJdbcSchema(SchemaPlus rootSchema,
+                                  String targetName,
+                                  Optional<String> catalog,
+                                  Optional<String> schema) {
+
         val op = this.getJdbcConnection();
 
         val operand = new HashMap<String,Object>();
@@ -146,7 +154,11 @@ public class JdbcCalciteContextFactory implements CalciteContextFactory {
         schema
                 .ifPresent(s -> operand.put("jdbcSchema", s));
 
-        val jdbcSchema = JdbcSchema.create(rootSchema, targetName, operand);
+        val customizedOperand = jdbcCustomizer
+                .customizeSchemaOperand(targetName, catalog, schema, operand);
+
+        val jdbcSchema = JdbcSchema.create(rootSchema, targetName, customizedOperand);
+
         rootSchema.add(targetName, jdbcSchema);
     }
 

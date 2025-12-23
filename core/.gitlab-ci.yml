@@ -3,4 +3,12 @@ core:build:
   extends: .gradle-job
   script:
     - echo $HOME    
-    - ./gradlew --no-daemon --console plain :core:test
+    - ./gradlew --no-daemon --console plain :core:test :core:compileTestIT
+
+core:integration:
+  stage: integration
+  extends:
+    - .gradle-job
+    - .integration-job
+  script:
+    - ./gradlew --no-daemon --console plain :core:testIT
