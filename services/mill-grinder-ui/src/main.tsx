@@ -1,8 +1,11 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
+import '@mantine/code-highlight/styles.css';
 import './index.css'
 import App from './App'
-import { MantineProvider } from '@mantine/core';
+import { localStorageColorSchemeManager, MantineProvider } from '@mantine/core';
 import { BrowserRouter } from "react-router";
 import { CodeHighlightAdapterProvider, createShikiAdapter } from "@mantine/code-highlight";
 import { createHighlighterCore, createOnigurumaEngine } from "shiki";
@@ -27,11 +30,12 @@ async function loadShiki() {
 }
 
 const shikiAdapter = createShikiAdapter(loadShiki);
+const colorSchemeManager = localStorageColorSchemeManager({ key: 'mill-grinder-color-scheme' });
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter basename="/app" >
-      <MantineProvider theme={theme} defaultColorScheme="light">
+      <MantineProvider theme={theme} defaultColorScheme="light" colorSchemeManager={colorSchemeManager}>
           <Notifications />
           <CodeHighlightAdapterProvider adapter={shikiAdapter}>
             <App />

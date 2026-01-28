@@ -1,7 +1,19 @@
-body {
-    overflow: hidden;
+html,
+body,
+#root {
+    height: 100%;
 }
 
+body {
+    margin: 0;
+    overflow: hidden;
+    background: var(--mantine-color-body);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Keep tree hover readable in both schemes */
 .tree-node:hover {
-    background-color: var(--mantine-color-gray-2) !important;
+    background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6)) !important;
 }

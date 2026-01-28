@@ -49,6 +49,7 @@ mill:
     chat:
       memory: in-memory
     nl2sql:
+      reasoner: stepback
       enable: true
       dialect: H2
   security:

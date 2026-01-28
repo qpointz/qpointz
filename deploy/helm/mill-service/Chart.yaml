@@ -1,0 +1,14 @@
+apiVersion: v2
+name: mill-service
+description: Mill Service - Data access and NL-to-SQL platform
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - mill
+  - data
+  - sql
+  - grpc
+  - api
+maintainers:
+  - name: qpointz

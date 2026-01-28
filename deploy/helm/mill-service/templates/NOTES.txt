@@ -1,0 +1,43 @@
+================================================================================
+   Mill Service has been deployed!
+================================================================================
+
+Release: {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+
+1. Get the application URL:
+
+   The service is not exposed externally. Use port-forward to access:
+
+   HTTP (REST API):
+     kubectl port-forward svc/{{ include "mill-service.fullname" . }} {{ .Values.service.httpPort }}:{{ .Values.service.httpPort }} -n {{ .Release.Namespace }}
+     Then visit: http://localhost:{{ .Values.service.httpPort }}
+
+   gRPC:
+     kubectl port-forward svc/{{ include "mill-service.fullname" . }} {{ .Values.service.grpcPort }}:{{ .Values.service.grpcPort }} -n {{ .Release.Namespace }}
+     Then connect to: localhost:{{ .Values.service.grpcPort }}
+
+2. Health endpoints:
+
+   Liveness:  /actuator/health/liveness
+   Readiness: /actuator/health/readiness
+   Health:    /actuator/health
+
+3. Check deployment status:
+
+   kubectl get pods -n {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "mill-service.name" . }},app.kubernetes.io/instance={{ .Release.Name }}"
+
+4. View logs:
+
+   kubectl logs -n {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "mill-service.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -f
+
+{{- if .Values.secrets.create }}
+
+5. Secrets:
+
+   Secrets are stored in: {{ include "mill-service.secretName" . }}
+   They are automatically mounted as environment variables.
+
+{{- end }}
+
+================================================================================

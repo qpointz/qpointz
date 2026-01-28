@@ -2,12 +2,12 @@
  * Chat Sidebar Content Component
  * 
  * Content displayed in the sidebar when on chat routes.
- * Self-contained with its own ChatProvider.
+ * Uses the shared ChatProvider from App.tsx.
  */
 import { Stack, Text, NavLink, Menu, UnstyledButton } from "@mantine/core";
-import { Link, useParams } from "react-router";
+import { Link } from "react-router";
 import { TbCirclePlus, TbDotsVertical, TbStar, TbStarFilled, TbTrash } from "react-icons/tb";
-import { ChatProvider, useChatContext } from "./ChatProvider";
+import { useChatContext } from "./ChatProvider";
 import type { Chat } from "../../api/mill";
 
 function ChatMenu({ chat }: { chat: Chat }) {
@@ -16,28 +16,49 @@ function ChatMenu({ chat }: { chat: Chat }) {
     return (
         <Menu shadow="md" width={200} position="right-start">
             <Menu.Target>
-                <UnstyledButton w={20} h={20} onClick={(e) => e.stopPropagation()}>
+                <UnstyledButton
+                    w={20}
+                    h={20}
+                    onMouseDown={(e) => {
+                        // Prevent the surrounding <a> (Link) from navigating/selecting on click.
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }}
+                >
                     <TbDotsVertical />
                 </UnstyledButton>
             </Menu.Target>
             <Menu.Dropdown>
                 {chat.isFavorite ? (
                     <Menu.Item 
-                        onClick={() => chats.unFavorite(chat)} 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            chats.unFavorite(chat);
+                        }}
                         leftSection={<TbStar size={14} />}
                     >
                         Unmark favorite
                     </Menu.Item>
                 ) : (
                     <Menu.Item 
-                        onClick={() => chats.favorite(chat)} 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            chats.favorite(chat);
+                        }}
                         leftSection={<TbStarFilled size={14} />}
                     >
                         Mark favorite
                     </Menu.Item>
                 )}
                 <Menu.Item 
-                    onClick={() => chats.delete(chat)} 
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        chats.delete(chat);
+                    }}
                     leftSection={<TbTrash size={14} />}
                     c="red"
                 >
@@ -82,11 +103,5 @@ function ChatListContent() {
 }
 
 export function ChatSidebarContent() {
-    const params = useParams<{ chatid?: string }>();
-    
-    return (
-        <ChatProvider chatId={params.chatid}>
-            <ChatListContent />
-        </ChatProvider>
-    );
+    return <ChatListContent />;
 }

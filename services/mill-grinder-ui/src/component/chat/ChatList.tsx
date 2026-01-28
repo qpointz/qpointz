@@ -23,15 +23,57 @@ export function ChatList() {
         return (
             <Menu shadow="md" width={200} position="right-start">
                 <Menu.Target>
-                    <UnstyledButton w={20} h={20}><TbDotsVertical/></UnstyledButton>
+                    <UnstyledButton
+                        w={20}
+                        h={20}
+                        onMouseDown={(e) => {
+                            // Prevent surrounding Link/NavLink from handling the click.
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }}
+                    >
+                        <TbDotsVertical />
+                    </UnstyledButton>
                 </Menu.Target>
 
                 <Menu.Dropdown>
                     {chat.isFavorite
-                        ? (<Menu.Item onClick={()=> chats.unFavorite(chat)} leftSection={<TbStar size={14}/>}>Unmark favorite</Menu.Item>)
-                        : (<Menu.Item onClick={()=>chats.favorite(chat)} leftSection={<TbStarFilled size={14}/>}>Mark favorite</Menu.Item>)
+                        ? (
+                            <Menu.Item
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    chats.unFavorite(chat);
+                                }}
+                                leftSection={<TbStar size={14} />}
+                            >
+                                Unmark favorite
+                            </Menu.Item>
+                        )
+                        : (
+                            <Menu.Item
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    chats.favorite(chat);
+                                }}
+                                leftSection={<TbStarFilled size={14} />}
+                            >
+                                Mark favorite
+                            </Menu.Item>
+                        )
                     }
-                    <Menu.Item onClick={()=> chats.delete(chat)} leftSection={<TbTrash color="red" size={14}/>}>Delete</Menu.Item>
+                    <Menu.Item
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            chats.delete(chat);
+                        }}
+                        leftSection={<TbTrash color="red" size={14} />}
+                    >
+                        Delete
+                    </Menu.Item>
                 </Menu.Dropdown>
             </Menu>
         )
