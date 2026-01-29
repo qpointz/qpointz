@@ -6,8 +6,8 @@ replicaCount: 1
 
 # -- Image configuration
 image:
-  repository: mill-service
-  tag: "latest"
+  repository: qpointz/mill-service-samples
+  tag: "v0.6.0-dev"
   pullPolicy: IfNotPresent
 
 # -- Image pull secrets for private registries
@@ -95,7 +95,13 @@ readinessProbe:
 # =================================
 
 # -- Command line arguments passed to mill-service
-# Example: ["--spring.profiles.active=prod", "--server.port=8080"]
+# Environment variables from secrets will be expanded automatically.
+# Example: 
+#   args:
+#     - "--spring.profiles.active=moneta"
+#     - "--spring.ai.openai.api-key=${SPRING_AI_OPENAI_API_KEY}"
+#     - "--spring.ai.openai.chat.options.model=gpt-4.1"
+# Note: Secrets should be defined in the 'secrets.data' section below.
 args: []
 
 # -- Additional environment variables (non-sensitive)
@@ -120,51 +126,87 @@ config:
 # -- Application configuration (will be mounted as application.yml)
 # This is your main Spring Boot configuration (only used when config.enabled=true)
 applicationConfig: |
+  logging.level:
+    org.springframework.security.web.csrf.CsrfFilter: debug
+
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health, info, prometheus
   spring:
+    main:
+      web-application-type:servlet
+    jpa:
+      hibernate:
+        ddl-auto: create-drop
+    ai:
+      chat:
+        memory:
+          repository:
+            jdbc:
+              initialize-schema: always
     datasource:
-      url: jdbc:h2:mem:db;DB_CLOSE_DELAY=-1
+      hikari:
+        registerMbeans: true
+        maximum-pool-size: 200
+        hikari.minimum-idle: 5
+        idle-timeout: 600000
+        connection-timeout: 30000
+        max-lifetime: 1800000
+      url: jdbc:h2:mem:moneta
       username: sa
       password: sa
-    main:
-      web-application-type: servlet
-    ai:
-      model:
-        chat: none
-        audio:
-          speech: none
-          transcription: none
-        embedding: none
-        image: none
-        moderation: none
+
+    mcp:
+      server:
+        enabled: false
+        name: moneta-agent
+        transport:
+          type: http
+          endpoint: http://localhost:8080/mcp/task
 
   mill:
+    ai:
+      chat:
+        memory: in-memory
+      nl2sql:
+        enable: true
+        dialect: H2
+    security:
+      enable: false
     metadata:
-      relations: none
-      annotations: none
+      relations: v2
+      annotations: v2
+      v2:
+        storage:
+          type: file
+        file:
+          path: file:/app/etc/moneta-meta-repository.yaml
+    backend:
+      provider: jdbc
+      connection:
+        quoting: DOUBLE_QUOTE
+        caseSensitive: true
+        unquotedCasing: UNCHANGED
+      jdbc:
+        url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '/data/moneta/moneta.sql'"
+        driver: "org.h2.Driver"
+        username: "*"
+        password: "*"
+        target-schema: "MONETA"
     services:
-      ai-nl2data:
-        enable: false
       grinder:
-        enable: false
-      meta:
+        enable: true
+      ai-nl2data:
         enable: true
       jet-http:
         enable: true
-      grpc:
-        port: 9099
-        enable: true
-        address: '*'
       data-bot:
         enable: false
+        prompt-file: file:../../test/datasets/moneta/moneta.prompt
+        model-name: gpt-4.1
 
-  grpc:
-    server:
-      port: 9099
-      address: '*'
-
-  logging:
-    level:
-      root: info
 
 # =================================
 # Secrets Configuration
@@ -179,6 +221,12 @@ secrets:
   existingSecretName: ""
   # -- Secret data (key: value pairs become environment variables)
   # Values should be base64 encoded in production or use --set-string
+  # These environment variables can be referenced in 'args' using ${VAR_NAME} syntax
+  # Example:
+  #   data:
+  #     SPRING_AI_OPENAI_API_KEY: "sk-..."
+  #   args:
+  #     - "--spring.ai.openai.api-key=${SPRING_AI_OPENAI_API_KEY}"
   data: {}
     # SPRING_AI_OPENAI_API_KEY: "your-openai-api-key"
     # SPRING_AI_AZURE_OPENAI_API_KEY: "your-azure-openai-key"

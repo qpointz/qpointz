@@ -1,0 +1,142 @@
+@startuml
+skinparam linetype ortho
+left to right direction
+entity "cities" {
+	id: i
+	state: O
+	city: O
+	population: i
+	airport: O
+	airport_iata: O
+}
+entity "segments" {
+	id: i
+	origin: i
+	destination: i
+	distance: i
+}
+entity "aircraft_types" {
+	id: i
+	name: O
+	description: O
+}
+entity "aircraft" {
+	id: i
+	aircraft_code: O
+	aircraft_type_id: i
+	capacity: i
+}
+entity "passenger" {
+	id: i
+	first_name: O
+	last_name: O
+	domicile_address: O
+	domicile_city_id: i
+	age: i
+	loyalty_program_member: b
+	loyalty_tier: O
+}
+entity "flight_instances" {
+	id: i
+	aircraft_id: i
+	segment_id: i
+	departure_date: O
+	arrival_date: O
+}
+entity "cargo_flights" {
+	id: i
+	aircraft_id: i
+	segment_id: i
+	departure_date: O
+	arrival_date: O
+}
+entity "bookings" {
+	id: i
+	passenger_id: i
+	flight_instance_id: i
+	seat_number: O
+}
+entity "loyalty_earnings" {
+	id: i
+	booking_id: i
+	passenger_id: i
+	miles_earned: i
+	earning_date: O
+}
+entity "delays" {
+	id: i
+	flight_instance_id: i
+	delay_minutes: i
+	reason: O
+}
+entity "cancellations" {
+	id: i
+	flight_instance_id: i
+	cancellation_reason: O
+	cancellation_time: O
+}
+entity "ticket_prices" {
+	booking_id: i
+	base_price: f
+	taxes: f
+	total_price: f
+	travel_class: O
+	currency: O
+}
+entity "ratings" {
+	id: i
+	passenger_id: i
+	flight_instance_id: i
+	rating: i
+	rating_comment: O
+	rated_at: O
+}
+entity "countries" {
+	id: i
+	iso_code: O
+	name: O
+}
+entity "cargo_clients" {
+	id: i
+	client_name: O
+	address: O
+	city: O
+	country_id: i
+	postal_code: O
+	region: O
+}
+entity "cargo_types" {
+	id: i
+	name: O
+	description: O
+}
+entity "cargo_shipments" {
+	id: i
+	cargo_flight_id: i
+	cargo_type_id: i
+	weight_kg: i
+	client_id: i
+	revenue: f
+}
+"cities"  ||..|{  "segments"
+"cities"  ||..|{  "segments"
+"aircraft_types"  ||..|{  "aircraft"
+"cities"  ||..|{  "passenger"
+"aircraft"  ||..|{  "flight_instances"
+"segments"  ||..|{  "flight_instances"
+"aircraft"  ||..|{  "cargo_flights"
+"segments"  ||..|{  "cargo_flights"
+"passenger"  ||..|{  "bookings"
+"flight_instances"  ||..|{  "bookings"
+"bookings"  ||..|{  "loyalty_earnings"
+"passenger"  ||..|{  "loyalty_earnings"
+"flight_instances"  ||..|{  "delays"
+"flight_instances"  ||..|{  "cancellations"
+"bookings"  ||..|{  "ticket_prices"
+"passenger"  ||..|{  "ratings"
+"flight_instances"  ||..|{  "ratings"
+"countries"  ||..|{  "cargo_clients"
+"cargo_flights"  ||..|{  "cargo_shipments"
+"cargo_types"  ||..|{  "cargo_shipments"
+"cargo_clients"  ||..|{  "cargo_shipments"
+@enduml

@@ -1,0 +1,139 @@
+erDiagram
+cities {
+	i id
+	o state
+	o city
+	i population
+	o airport
+	o airport_iata
+}
+segments {
+	i id
+	i origin
+	i destination
+	i distance
+}
+aircraft_types {
+	i id
+	o name
+	o description
+}
+aircraft {
+	i id
+	o aircraft_code
+	i aircraft_type_id
+	i capacity
+}
+passenger {
+	i id
+	o first_name
+	o last_name
+	o domicile_address
+	i domicile_city_id
+	i age
+	b loyalty_program_member
+	o loyalty_tier
+}
+flight_instances {
+	i id
+	i aircraft_id
+	i segment_id
+	o departure_date
+	o arrival_date
+}
+cargo_flights {
+	i id
+	i aircraft_id
+	i segment_id
+	o departure_date
+	o arrival_date
+}
+bookings {
+	i id
+	i passenger_id
+	i flight_instance_id
+	o seat_number
+}
+loyalty_earnings {
+	i id
+	i booking_id
+	i passenger_id
+	i miles_earned
+	o earning_date
+}
+delays {
+	i id
+	i flight_instance_id
+	i delay_minutes
+	o reason
+}
+cancellations {
+	i id
+	i flight_instance_id
+	o cancellation_reason
+	o cancellation_time
+}
+ticket_prices {
+	i booking_id
+	f base_price
+	f taxes
+	f total_price
+	o travel_class
+	o currency
+}
+ratings {
+	i id
+	i passenger_id
+	i flight_instance_id
+	i rating
+	o rating_comment
+	o rated_at
+}
+countries {
+	i id
+	o iso_code
+	o name
+}
+cargo_clients {
+	i id
+	o client_name
+	o address
+	o city
+	i country_id
+	o postal_code
+	o region
+}
+cargo_types {
+	i id
+	o name
+	o description
+}
+cargo_shipments {
+	i id
+	i cargo_flight_id
+	i cargo_type_id
+	i weight_kg
+	i client_id
+	f revenue
+}
+cities  ||--o{ segments:has
+cities  ||--o{ segments:has
+aircraft_types  ||--o{ aircraft:has
+cities  ||--o{ passenger:has
+aircraft  ||--o{ flight_instances:has
+segments  ||--o{ flight_instances:has
+aircraft  ||--o{ cargo_flights:has
+segments  ||--o{ cargo_flights:has
+passenger  ||--o{ bookings:has
+flight_instances  ||--o{ bookings:has
+bookings  ||--o{ loyalty_earnings:has
+passenger  ||--o{ loyalty_earnings:has
+flight_instances  ||--o{ delays:has
+flight_instances  ||--o{ cancellations:has
+bookings  ||--o{ ticket_prices:has
+passenger  ||--o{ ratings:has
+flight_instances  ||--o{ ratings:has
+countries  ||--o{ cargo_clients:has
+cargo_flights  ||--o{ cargo_shipments:has
+cargo_types  ||--o{ cargo_shipments:has
+cargo_clients  ||--o{ cargo_shipments:has

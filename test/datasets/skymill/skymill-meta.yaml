@@ -1,0 +1,437 @@
+schemas:
+- name: skymill
+  tables:
+  - name: cities
+    attributes:
+    - name: id
+      type: int
+      description: City code used to link routes and passenger locations.
+    - name: state
+      type: varchar
+      description: State or region where the city is located.
+    - name: city
+      type: varchar
+      description: City name.
+    - name: population
+      type: int
+      description: Number of people living in the city.
+    - name: airport
+      type: varchar
+      description: Full airport name.
+    - name: airport_iata
+      type: varchar
+      description: IATA 3-letter airport code (e.g. JFK, LAX).
+  - name: segments
+    attributes:
+    - name: id
+      type: int
+      description: Route code used to link flights to origin and destination.
+    - name: origin
+      type: int
+      description: Flight origin. References cities.
+    - name: destination
+      type: int
+      description: Flight destination. References cities.
+    - name: distance
+      type: int
+      description: Flight distance in kilometers.
+  - name: aircraft_types
+    attributes:
+    - name: id
+      type: int
+      description: null
+    - name: name
+      type: varchar
+      description: null
+    - name: description
+      type: varchar
+      description: null
+  - name: aircraft
+    attributes:
+    - name: id
+      type: int
+      description: Plane identifier used to link flights to the aircraft.
+    - name: aircraft_code
+      type: varchar
+      description: Aircraft registration code (e.g. SKY123).
+    - name: aircraft_type_id
+      type: int
+      description: Type of plane (narrow, wide, or regional). Links to aircraft_types.
+    - name: capacity
+      type: int
+      description: Passenger capacity.
+  - name: passenger
+    attributes:
+    - name: id
+      type: int
+      description: Passenger identifier used to link bookings and loyalty earnings.
+    - name: first_name
+      type: varchar
+      description: Passenger's first name.
+    - name: last_name
+      type: varchar
+      description: Passenger's last name.
+    - name: domicile_address
+      type: varchar
+      description: Passenger's home address.
+    - name: domicile_city_id
+      type: int
+      description: Passenger residence city. References cities.
+    - name: age
+      type: int
+      description: Passenger's age.
+    - name: loyalty_program_member
+      type: boolean
+      description: Indicates enrollment in the loyalty program.
+    - name: loyalty_tier
+      type: varchar
+      description: Loyalty tier (basic, silver, gold, platinum). Higher tiers receive
+        additional benefits.
+  - name: flight_instances
+    attributes:
+    - name: id
+      type: int
+      description: Flight identifier used to link bookings, delays, and ratings.
+    - name: aircraft_id
+      type: int
+      description: Aircraft that operated the flight. References aircraft.
+    - name: segment_id
+      type: int
+      description: Route flown. References segments.
+    - name: departure_date
+      type: varchar
+      description: Departure date.
+    - name: arrival_date
+      type: varchar
+      description: Arrival date.
+  - name: cargo_flights
+    attributes:
+    - name: id
+      type: int
+      description: Cargo flight identifier used to link shipments.
+    - name: aircraft_id
+      type: int
+      description: Aircraft used for the cargo. References aircraft.
+    - name: segment_id
+      type: int
+      description: Route of the cargo flight. References segments.
+    - name: departure_date
+      type: varchar
+      description: Cargo flight departure date.
+    - name: arrival_date
+      type: varchar
+      description: Cargo flight arrival date.
+  - name: bookings
+    attributes:
+    - name: id
+      type: int
+      description: Booking reference used to link ticket prices and loyalty earnings.
+    - name: passenger_id
+      type: int
+      description: Passenger who made the booking. References passenger.
+    - name: flight_instance_id
+      type: int
+      description: Booked flight. References flight_instances.
+    - name: seat_number
+      type: varchar
+      description: Assigned seat (e.g. 12A).
+  - name: loyalty_earnings
+    attributes:
+    - name: id
+      type: int
+      description: Mileage record ID used to link points to the passenger and booking.
+    - name: booking_id
+      type: int
+      description: Booking that earned the miles. References bookings.
+    - name: passenger_id
+      type: int
+      description: Passenger who earned the miles. References passenger.
+    - name: miles_earned
+      type: int
+      description: Miles credited for this flight.
+    - name: earning_date
+      type: varchar
+      description: Date miles were credited.
+  - name: delays
+    attributes:
+    - name: id
+      type: int
+      description: ID for this delay entry.
+    - name: flight_instance_id
+      type: int
+      description: Delayed flight. References flight_instances.
+    - name: delay_minutes
+      type: int
+      description: Delay duration in minutes.
+    - name: reason
+      type: varchar
+      description: Delay cause (weather, technical, crew, other).
+  - name: cancellations
+    attributes:
+    - name: id
+      type: int
+      description: ID for this cancellation entry.
+    - name: flight_instance_id
+      type: int
+      description: Cancelled flight. References flight_instances.
+    - name: cancellation_reason
+      type: varchar
+      description: Cancellation reason (weather, technical, operational, low demand).
+    - name: cancellation_time
+      type: varchar
+      description: Cancellation timestamp.
+  - name: ticket_prices
+    attributes:
+    - name: booking_id
+      type: int
+      description: Booking to which this price applies. References bookings.
+    - name: base_price
+      type: decimal(15,4)
+      description: Ticket price before taxes and fees.
+    - name: taxes
+      type: decimal(15,4)
+      description: Taxes and fees added to the ticket.
+    - name: total_price
+      type: decimal(15,4)
+      description: Final price paid (base plus taxes).
+    - name: travel_class
+      type: varchar
+      description: Cabin class (economy, business, first). Suitable for revenue or
+        counts by class.
+    - name: currency
+      type: varchar
+      description: Currency of the price (USD, EUR, CHF).
+  - name: ratings
+    attributes:
+    - name: id
+      type: int
+      description: Rating record ID used to identify each feedback entry.
+    - name: passenger_id
+      type: int
+      description: Passenger who provided the rating. References passenger.
+    - name: flight_instance_id
+      type: int
+      description: Rated flight. References flight_instances.
+    - name: rating
+      type: int
+      description: Numeric satisfaction rating between 1 (poor) and 5 (excellent).
+    - name: rating_comment
+      type: varchar
+      description: Free-text feedback or comment from the passenger.
+    - name: rated_at
+      type: varchar
+      description: Rating submission timestamp.
+  - name: countries
+    attributes:
+    - name: id
+      type: int
+      description: Country identifier. Referenced by cargo_clients.
+    - name: iso_code
+      type: varchar
+      description: ISO 2-letter country code (e.g. US, DE).
+    - name: name
+      type: varchar
+      description: Full country name.
+  - name: cargo_clients
+    attributes:
+    - name: id
+      type: int
+      description: Client ID used to link shipments to the shipper.
+    - name: client_name
+      type: varchar
+      description: Name of the company shipping freight.
+    - name: address
+      type: varchar
+      description: Street address of the shipping company.
+    - name: city
+      type: varchar
+      description: City where the client is located.
+    - name: country_id
+      type: int
+      description: Client country. References countries.
+    - name: postal_code
+      type: varchar
+      description: Postal or ZIP code of the client.
+    - name: region
+      type: varchar
+      description: Client business region (EMEA, APAC, AM).
+  - name: cargo_types
+    attributes:
+    - name: id
+      type: int
+      description: null
+    - name: name
+      type: varchar
+      description: null
+    - name: description
+      type: varchar
+      description: null
+  - name: cargo_shipments
+    attributes:
+    - name: id
+      type: int
+      description: Shipment ID used to identify each freight shipment.
+    - name: cargo_flight_id
+      type: int
+      description: Cargo flight for this shipment. References cargo_flights.
+    - name: cargo_type_id
+      type: int
+      description: Freight type (containers, bulk, refrigerated, vehicles). References
+        cargo_types.
+    - name: weight_kg
+      type: int
+      description: Weight of the shipment in kilograms.
+    - name: client_id
+      type: int
+      description: Shipper. References cargo_clients.
+    - name: revenue
+      type: decimal(15,4)
+      description: Revenue generated by the shipment.
+  references:
+  - parent:
+      table: cities
+      attribute: id
+    child:
+      table: segments
+      attribute: origin
+    cardinality: 1-*
+  - parent:
+      table: cities
+      attribute: id
+    child:
+      table: segments
+      attribute: destination
+    cardinality: 1-*
+  - parent:
+      table: aircraft_types
+      attribute: id
+    child:
+      table: aircraft
+      attribute: aircraft_type_id
+    cardinality: 1-*
+  - parent:
+      table: cities
+      attribute: id
+    child:
+      table: passenger
+      attribute: domicile_city_id
+    cardinality: 1-*
+  - parent:
+      table: aircraft
+      attribute: id
+    child:
+      table: flight_instances
+      attribute: aircraft_id
+    cardinality: 1-*
+  - parent:
+      table: segments
+      attribute: id
+    child:
+      table: flight_instances
+      attribute: segment_id
+    cardinality: 1-*
+  - parent:
+      table: aircraft
+      attribute: id
+    child:
+      table: cargo_flights
+      attribute: aircraft_id
+    cardinality: 1-*
+  - parent:
+      table: segments
+      attribute: id
+    child:
+      table: cargo_flights
+      attribute: segment_id
+    cardinality: 1-*
+  - parent:
+      table: passenger
+      attribute: id
+    child:
+      table: bookings
+      attribute: passenger_id
+    cardinality: 1-*
+  - parent:
+      table: flight_instances
+      attribute: id
+    child:
+      table: bookings
+      attribute: flight_instance_id
+    cardinality: 1-*
+  - parent:
+      table: bookings
+      attribute: id
+    child:
+      table: loyalty_earnings
+      attribute: booking_id
+    cardinality: 1-*
+  - parent:
+      table: passenger
+      attribute: id
+    child:
+      table: loyalty_earnings
+      attribute: passenger_id
+    cardinality: 1-*
+  - parent:
+      table: flight_instances
+      attribute: id
+    child:
+      table: delays
+      attribute: flight_instance_id
+    cardinality: 1-*
+  - parent:
+      table: flight_instances
+      attribute: id
+    child:
+      table: cancellations
+      attribute: flight_instance_id
+    cardinality: 1-*
+  - parent:
+      table: bookings
+      attribute: id
+    child:
+      table: ticket_prices
+      attribute: booking_id
+    cardinality: 1-*
+  - parent:
+      table: passenger
+      attribute: id
+    child:
+      table: ratings
+      attribute: passenger_id
+    cardinality: 1-*
+  - parent:
+      table: flight_instances
+      attribute: id
+    child:
+      table: ratings
+      attribute: flight_instance_id
+    cardinality: 1-*
+  - parent:
+      table: countries
+      attribute: id
+    child:
+      table: cargo_clients
+      attribute: country_id
+    cardinality: 1-*
+  - parent:
+      table: cargo_flights
+      attribute: id
+    child:
+      table: cargo_shipments
+      attribute: cargo_flight_id
+    cardinality: 1-*
+  - parent:
+      table: cargo_types
+      attribute: id
+    child:
+      table: cargo_shipments
+      attribute: cargo_type_id
+    cardinality: 1-*
+  - parent:
+      table: cargo_clients
+      attribute: id
+    child:
+      table: cargo_shipments
+      attribute: client_id
+    cardinality: 1-*

@@ -45,6 +45,7 @@ mill:
     nl2sql:
       enable: true
       dialect: H2
+      reasoner: stepback
   security:
     enable: false
   metadata:
@@ -76,5 +77,3 @@ mill:
       enable: true
     data-bot:
       enable: false
-      prompt-file: file:../../test/datasets/moneta/moneta.prompt
-      model-name: gpt-4.1

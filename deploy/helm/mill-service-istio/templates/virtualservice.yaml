@@ -1,0 +1,95 @@
+{{- if .Values.virtualService.enabled }}
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ include "mill-service-istio.virtualServiceName" . }}
+  namespace: {{ .Values.service.namespace }}
+  labels:
+    {{- include "mill-service-istio.labels" . | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  hosts:
+    {{- range .Values.virtualService.hosts }}
+    - {{ . | quote }}
+    {{- end }}
+  {{- if .Values.virtualService.gateways }}
+  gateways:
+    {{- range .Values.virtualService.gateways }}
+    - {{ . | quote }}
+    {{- end }}
+  {{- else if .Values.gateway.existingGateway }}
+  gateways:
+    - {{ .Values.gateway.existingGateway | quote }}
+  {{- else if .Values.gateway.enabled }}
+  gateways:
+    - {{ include "mill-service-istio.gatewayName" . }}
+  {{- end }}
+  {{- if .Values.virtualService.http }}
+  http:
+    {{- range .Values.virtualService.http }}
+    - {{- $route := . }}
+      {{- if $route.match }}
+      match:
+        {{- toYaml $route.match | nindent 8 }}
+      {{- end }}
+      route:
+        {{- range $route.route }}
+        - destination:
+            host: {{ $.Values.service.name }}
+            {{- if .destination.subset }}
+            subset: {{ .destination.subset | quote }}
+            {{- end }}
+            port:
+              number: {{ .destination.port.number | default $.Values.service.httpPort }}
+          {{- if .weight }}
+          weight: {{ .weight }}
+          {{- end }}
+        {{- end }}
+      {{- if $route.timeout }}
+      timeout: {{ $route.timeout }}
+      {{- end }}
+      {{- if $route.retries }}
+      retries:
+        {{- toYaml $route.retries | nindent 8 }}
+      {{- end }}
+      {{- if $route.fault }}
+      fault:
+        {{- toYaml $route.fault | nindent 8 }}
+      {{- end }}
+      {{- if $route.mirror }}
+      mirror:
+        {{- toYaml $route.mirror | nindent 8 }}
+      {{- end }}
+      {{- if $route.corsPolicy }}
+      corsPolicy:
+        {{- toYaml $route.corsPolicy | nindent 8 }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.virtualService.tcp }}
+  tcp:
+    {{- range .Values.virtualService.tcp }}
+    - {{- $route := . }}
+      {{- if $route.match }}
+      match:
+        {{- toYaml $route.match | nindent 8 }}
+      {{- end }}
+      route:
+        {{- range $route.route }}
+        - destination:
+            host: {{ $.Values.service.name }}
+            {{- if .destination.subset }}
+            subset: {{ .destination.subset | quote }}
+            {{- end }}
+            port:
+              number: {{ .destination.port.number | default $.Values.service.grpcPort }}
+          {{- if .weight }}
+          weight: {{ .weight }}
+          {{- end }}
+        {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

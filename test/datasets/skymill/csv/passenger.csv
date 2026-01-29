@@ -1,0 +1,421 @@
+id;first_name;last_name;domicile_address;domicile_city_id;age;loyalty_program_member;loyalty_tier
+5274247;Bianca;Santos;"1821 Scott Locks
+Ronaldtown, WV 81817";345407;18;False;silver
+2772540;Heather;Brooks;"65146 Karen Cape
+Elliottstad, PR 70263";283875;22;False;basic
+4942153;Keith;Pierce;"11372 Moreno Skyway Apt. 006
+South Danielleview, AL 45679";186452;13;True;silver
+9220356;Adam;Lambert;"PSC 4356, Box 3933
+APO AE 21447";266176;43;False;silver
+9827604;Monica;Villegas;"411 Jennifer Point
+Hardyside, IA 30459";187262;87;True;basic
+5564357;Erin;Glover;"9657 Ho Isle
+Ericport, CT 53319";336174;58;True;platinum
+9769734;Nicholas;Davis;"684 Ryan Inlet Apt. 651
+Williamsfort, NV 03644";283875;55;False;basic
+5522529;Shelly;Gibson;"4870 Vasquez Flats
+New Josephborough, NM 04852";226419;21;False;platinum
+5910443;Joshua;Ortiz;"22805 Dunn Field Apt. 425
+Lake Ashleymouth, GU 25564";226419;47;True;platinum
+8529690;Vincent;Brooks;"4720 Kenneth Throughway
+East Taylorfurt, MI 17776";472473;41;True;gold
+8426450;Todd;Holmes;"73466 Perez Loop Apt. 193
+Lake Maxwell, WV 30212";336174;74;True;platinum
+7809345;Thomas;Cline;"PSC 7954, Box 1214
+APO AA 54643";283875;74;False;gold
+7989511;Jackie;Phillips;"049 Sherman Stravenue
+Port Sara, WI 94460";283875;58;False;gold
+6487803;Ashley;Obrien;"4258 Courtney Views Suite 945
+Moniquechester, RI 43418";266176;71;False;silver
+2968622;Carol;Walker;"812 Rachael Squares Apt. 607
+West Lori, MH 30953";206581;12;False;basic
+5481528;Julie;Neal;"2435 Chase Fords Suite 070
+Davidberg, MO 41087";226419;51;True;gold
+5193032;Michael;Sutton;"124 Julie Hollow Suite 953
+West Maurice, TN 24016";457744;81;True;platinum
+4268049;Edward;Bailey;"9098 Rhonda Vista
+Taylormouth, MH 50604";345407;52;True;basic
+6466279;Charles;Smith;"42909 Evans Highway Apt. 578
+Richardfurt, GU 30248";187262;50;True;gold
+8904629;Ashley;Frazier;"0208 Christian River
+East Gracefurt, AZ 21422";266176;33;False;platinum
+1602969;Scott;Benson;"025 Alison Port Suite 452
+Lake Michele, AK 81416";194711;58;False;platinum
+4754935;Charles;Roach;"503 Grant Prairie Suite 338
+West Katrinafurt, MS 50762";356281;58;False;gold
+2250466;Olivia;Flynn;"96501 Daniel Crossing
+South Tamarafort, MO 46444";283875;89;False;gold
+2939375;Hunter;Cox;"1811 Matthew Cove Apt. 353
+Port Ashley, ID 31333";206581;39;False;silver
+1740172;Terri;Peters;"1672 Frank Lodge Apt. 035
+Jessicaton, UT 71433";206581;90;False;platinum
+9195620;Stefanie;Ramirez;"60585 Paul Harbor
+Markport, OR 79123";185806;21;True;gold
+7245087;Shelby;Jackson;"20521 Jennifer Trace
+Mcclurestad, NV 90416";194711;17;False;platinum
+7647603;James;Murillo;"443 Joel Shore Apt. 438
+North Sally, MS 68032";226419;70;False;platinum
+4542520;Stephanie;Leonard;"88440 Bryant Passage
+West Charles, OH 78195";222664;13;True;silver
+5652225;Richard;Walker;"571 Pamela Corner
+Lake Frank, MA 66456";266176;63;False;platinum
+6006004;Matthew;Rogers;"74106 Zimmerman Knoll
+Alanland, MN 27125";283875;29;False;gold
+2695179;Morgan;Mckinney;"62507 Kenneth Walk Suite 588
+North Cynthia, MA 56632";345407;12;False;basic
+1403574;Marvin;Gray;"273 Alicia Landing Suite 559
+West Duane, VT 90151";345407;32;False;basic
+6018444;Elizabeth;Ward;"17922 Richard Estates Apt. 854
+Rachelside, NJ 13924";457744;20;False;basic
+1730188;Jeffrey;Boone;"9027 Mills Circles
+Millertown, FM 86131";194711;41;False;basic
+1329853;Katherine;Mitchell;"598 Katherine Island Apt. 430
+Sandersmouth, NC 84129";283875;28;False;gold
+1038513;Ralph;Jackson;"7258 Bond Curve
+Port Adamchester, DC 57118";356281;64;False;platinum
+7922303;Mary;Larson;"9499 Laura Orchard Suite 801
+Port Dannyberg, TN 85893";457744;42;False;platinum
+4247120;Wayne;Mcgrath;"0086 Tyler Ways Suite 445
+New Michelle, UT 20609";226419;67;True;platinum
+3283454;Robyn;Bartlett;"21872 Michael Mountain Suite 140
+South Jennifer, FL 91394";194711;73;False;gold
+4677199;Robert;Miller;"PSC 8601, Box 7848
+APO AE 97740";187262;16;False;platinum
+9694215;Julie;Moran;"075 Rebecca Plains Apt. 562
+Port Matthew, NE 87178";187262;34;True;platinum
+3016415;Kevin;Yang;"PSC 5459, Box 2770
+APO AE 37117";186452;24;False;gold
+3772167;Steven;Lamb;"9380 Price Forge Suite 867
+New Levi, VA 57939";185806;22;True;platinum
+3214094;Victor;Oconnor;"2799 Ayers Parkway
+New Davidborough, LA 47218";266176;49;True;platinum
+8653618;Anita;Cook;"1300 Charles Light Apt. 642
+North Wandatown, SD 36176";457744;37;False;basic
+8717636;Vanessa;Church;"028 Miller Wells
+Kelseyhaven, PA 72442";457744;54;True;platinum
+3700861;Anita;Mason;"12707 Hendricks Stream
+South Henry, MT 50832";186452;58;False;platinum
+8903617;Monica;Bennett;"019 Davis Courts Apt. 052
+Kerriville, VA 37480";222664;85;True;silver
+1632689;Chad;Wilson;"14405 Paul Port
+Franciscoland, AZ 81515";222664;28;False;silver
+2582646;Jamie;Brown;"9665 Timothy Course Suite 227
+Johnsonborough, MP 41133";186452;86;False;basic
+4091998;Barbara;Scott;"89454 Cindy Branch
+Davidmouth, MO 61134";345407;62;True;basic
+2012366;Sonya;Williams;"216 Robert Fields Suite 640
+Mooreton, AL 72598";472473;78;False;basic
+4438684;George;Johnson;"19110 Moore Oval
+Derekton, NE 22835";194711;14;True;platinum
+5636167;Monica;Webb;"13323 Alexander Meadows
+West Bonnie, IN 09562";457744;45;True;silver
+7640462;Mitchell;Yates;"12076 Delgado Mountain
+Jonathanshire, KS 34477";336174;37;True;silver
+1478046;Jennifer;Davidson;"92527 Deborah Alley
+West Jennifer, CO 60019";336174;55;False;gold
+4753680;Rebecca;Wilson;"2420 Hayes Centers Suite 245
+Lake Tiffanyview, CO 63708";222664;33;True;basic
+1361701;Mitchell;Wise;"341 Gibbs Plains
+Lake Edwardburgh, DE 56538";472473;56;False;silver
+7986284;Ashley;Mann;"2944 Hanna Square Suite 848
+North Lindsey, WY 56098";266176;35;False;gold
+2872143;Richard;Davenport;"993 Lauren Stream
+Wallshaven, AR 30988";194711;19;False;silver
+2122935;Eric;Bishop;"32053 Durham Flats
+North Pamela, MH 95187";356281;13;True;basic
+4208881;Justin;Alexander;"73239 Anthony Lodge
+Sandramouth, NH 08826";336174;86;True;gold
+1914475;Amy;Davis;"PSC 1565, Box 7423
+APO AA 21445";266176;84;True;platinum
+1911054;Amy;Rodriguez;"PSC 8457, Box 1389
+APO AE 36665";472473;14;False;basic
+8716585;Matthew;Byrd;"467 Evans Plain Apt. 917
+Hunterfurt, WY 38655";457744;87;False;gold
+7306733;Tracy;Davis;"USCGC Lynch
+FPO AE 14662";472473;37;False;silver
+1646944;Alyssa;Nelson;"44930 Williams Rest
+Wheelerville, MN 41881";222664;51;False;gold
+1958377;Joseph;Fowler;"3778 Mitchell Parkway Apt. 948
+Lake Debra, NE 95805";222664;81;False;silver
+9262383;Heather;Cruz;"250 Yvette Court
+South Melaniemouth, KY 14203";457744;49;True;gold
+2639192;Randall;Price;"18799 Kellie Manor
+Lake Davidfurt, CA 97357";336174;24;False;platinum
+9297686;Michael;Lee;"96053 Moody Ridge Apt. 807
+Steveberg, RI 72196";266176;62;False;platinum
+3299190;Jennifer;Miller;"67892 Carter Ports Suite 353
+Patriciabury, NY 50351";345407;26;False;gold
+4389248;Daniel;Sanchez;"295 Nicholas Orchard
+New Matthewside, NC 86779";194711;67;False;silver
+4885099;Max;Perry;"27058 Christopher Camp Apt. 305
+East Katrina, RI 77998";185806;80;False;silver
+5280220;Matthew;Hunter;"230 Ball Extensions
+Cassidyberg, VI 69109";186452;34;False;silver
+3525104;Angela;Boyd;"USNV Johnson
+FPO AA 07375";356281;69;False;silver
+3651793;Michaela;Martinez;"525 Robert Valleys Suite 776
+North Michael, SC 16780";206581;30;False;platinum
+9837591;Christopher;Walsh;"Unit 8122 Box 2209
+DPO AE 64013";266176;29;True;basic
+2633335;Daniel;Manning;"5856 Robert Springs Apt. 117
+South Jill, MH 52897";186452;77;True;gold
+6146640;Tina;Richards;"9474 Lutz Trail Apt. 525
+East Victoriamouth, FM 11175";187262;79;False;basic
+6151457;Michael;Jones;"5597 Acosta Pass Apt. 437
+Kennethburgh, AS 77855";222664;73;True;silver
+2459339;Julie;Juarez;"09648 Ramirez Mill
+Lake Williammouth, ID 31497";187262;69;False;gold
+7372109;Jessica;Ramirez;"Unit 8154 Box 7979
+DPO AP 65120";336174;30;False;gold
+9983417;Sandra;Glenn;"9072 Taylor Square
+Adkinsburgh, OH 86329";187262;88;True;silver
+8543108;Aaron;Brooks;"502 Barton Mission
+Claireport, LA 93886";266176;73;False;platinum
+2966228;Christopher;Johnson;"13380 Khan Knoll Suite 496
+Harrisonhaven, DC 53410";187262;28;True;platinum
+5691276;Henry;Alexander;"02679 Taylor Mountains Apt. 613
+New Cameron, OR 95299";186452;27;False;platinum
+2291383;Ryan;Hale;"385 Shaw Port
+Boydshire, AZ 86058";356281;37;False;gold
+9921123;Keith;Lopez;"128 Diaz Estate
+Gonzalezburgh, MN 45953";226419;87;True;platinum
+1380830;Robert;Campbell;"76347 Kevin Orchard Suite 425
+South Heather, ME 24165";457744;23;False;platinum
+3916554;Allison;Logan;"868 Jerry Highway
+Russellhaven, IL 43276";336174;38;True;gold
+2181442;Lisa;Mathis;"98370 Morris Glens Apt. 972
+West Richardstad, NE 66986";457744;69;False;basic
+8068711;Matthew;Edwards;"78118 Rocha Village Suite 089
+Ericamouth, MH 25362";187262;80;False;silver
+1736522;Mark;Keith;"0148 Mary Point
+Lake Paulview, MP 90029";186452;18;False;platinum
+2202304;Timothy;Oconnell;"8981 Taylor Motorway Suite 967
+South Shannonstad, WV 06403";457744;17;False;gold
+7305928;Brandon;Patterson;"899 Mccormick Drive Suite 941
+Annemouth, LA 57640";356281;34;True;platinum
+1451323;Kim;Harris;"99777 Bianca Ways
+East Patrickmouth, PA 63496";194711;43;False;basic
+3143581;Molly;Perez;"745 Kevin Valley Apt. 844
+Paultown, TX 08542";457744;59;True;platinum
+7517439;Heather;Garcia;"422 Harrington Parkway
+Danielfurt, HI 13529";356281;35;False;silver
+7563283;Christopher;Chen;"339 Garcia Ridge Suite 180
+North Eric, GA 33378";226419;50;True;basic
+9548624;Cody;Hansen;"1564 Jessica Village Apt. 787
+South Sean, OK 81939";222664;67;False;silver
+2971257;Spencer;Hebert;"29946 Silva Courts
+Kariland, MO 66775";336174;76;True;basic
+6818246;Natalie;Carr;"4867 Francis Lodge Apt. 870
+South Michael, IL 18651";187262;71;False;basic
+8482468;Shirley;Wallace;"PSC 9608, Box 2558
+APO AA 97025";186452;34;False;platinum
+7142738;Stephen;Blackwell;"2506 Bates Fords
+Stanleyton, MO 74068";336174;15;False;gold
+5263723;Christine;Bridges;"200 Frank Place Apt. 520
+Sandovalview, GU 86909";345407;80;True;platinum
+7928586;Valerie;Lyons;"84483 Angelica Village Apt. 073
+Thomasberg, TX 16179";472473;54;False;platinum
+3243173;Joanna;Johnson;"738 Evans Run
+South Ryan, IN 29682";283875;84;False;basic
+5585166;Mark;Olson;"1129 Marshall Extension Apt. 784
+North Elizabethburgh, NE 06789";206581;84;True;basic
+5303490;Michele;Thompson;"370 Hannah Knoll
+Georgeside, VI 83338";457744;33;True;gold
+6304368;Heidi;Rogers;"39677 Edward Key Suite 073
+Thorntonbury, UT 51784";185806;24;False;platinum
+1797720;Tiffany;Ellis;"247 Tracy Skyway
+Port Debra, OH 20332";266176;17;True;platinum
+3024237;Aaron;Castro;"37303 Banks Run
+Daniellemouth, WY 69834";206581;79;False;silver
+2410562;Ronald;Gomez;"PSC 0406, Box 3368
+APO AP 87036";206581;52;True;gold
+4994665;Colin;Valenzuela;"199 Dennis Run Apt. 910
+East Chelsea, CA 61844";222664;26;False;silver
+3957727;Kelly;Ibarra;"414 Bentley Rue
+Simmonsland, DE 48452";472473;87;False;silver
+3963520;Anna;Mccarthy;"07260 Victoria Courts Apt. 550
+North Jessica, AR 78764";185806;72;True;gold
+9599334;Michael;Curry;"00402 Tony Rest
+Marthaland, NE 36911";226419;83;False;gold
+2331969;Jamie;Henderson;"448 David Track
+Valerieborough, MA 12742";206581;18;True;platinum
+7101744;Edward;Hernandez;"940 Berger Curve Apt. 455
+Harrisonside, WA 97229";206581;72;False;gold
+5359368;Jennifer;Smith;"7883 Barnes Canyon Suite 675
+Michaelfort, PA 69375";457744;17;True;silver
+1769633;Rodney;Mccarthy;"65620 Vaughan Plains
+Brownshire, WI 64494";226419;55;False;basic
+6003125;Daniel;Moran;"632 Tammy Ridge
+Ronaldport, IL 87009";186452;65;False;basic
+4073707;Vanessa;Anderson;"4782 Mary Knolls Apt. 684
+Port Clarence, SD 87109";222664;36;True;platinum
+4416304;Cynthia;Steele;"3083 Kenneth Divide Apt. 538
+New Davidfort, CO 13613";194711;88;False;silver
+7679398;Brittany;Long;"2698 Alexis Branch Suite 649
+Lisafort, MA 40503";185806;13;True;gold
+3383050;Stephen;Shah;"461 Steven Creek
+Tanyashire, VI 34770";356281;33;False;gold
+7793741;Connie;Reynolds;"Unit 8949 Box 7035
+DPO AA 78207";266176;14;False;silver
+7000600;Julie;Graves;"4359 Thomas Groves
+Michaelport, NV 71805";185806;77;True;basic
+6536801;Claire;Baker;"289 Zachary Vista Apt. 056
+Griffithland, MD 77157";283875;62;False;silver
+4294616;Denise;Hawkins;"548 Franklin Inlet
+East Kevin, AK 86350";194711;22;False;basic
+9671652;Charles;Anderson;"535 Richard Groves Suite 357
+Larsenstad, PR 07795";283875;18;False;platinum
+9328354;Ronald;Andrews;"180 Flores Groves
+Lake Karen, SD 49410";206581;35;True;basic
+4672440;Kaitlyn;Bailey;"880 Stephanie Light
+East Wyatthaven, NC 98677";356281;88;True;platinum
+8060069;Sarah;Moreno;"7332 Patel Club Suite 235
+Abbottview, AZ 59524";356281;24;True;gold
+7607800;Jake;Brandt;"2685 Salazar Mills
+Adamview, CA 10278";187262;39;True;platinum
+1409842;Katherine;Smith;"749 Donna Pike Apt. 956
+Simpsonchester, AK 01563";187262;64;True;platinum
+4755978;Heather;Allen;"8770 Jenkins Falls
+Port Brendashire, WY 24194";194711;43;False;basic
+1732140;Krystal;Merritt;"PSC 1538, Box 1615
+APO AA 38997";206581;43;True;gold
+9099398;Elizabeth;Martin;"22044 Susan Motorway
+Davidview, SD 12090";356281;50;False;basic
+2389993;Paul;Brewer;"632 Dalton Keys
+East Kathleen, WY 55004";222664;17;False;gold
+9600797;Robert;Webb;"04435 Clark Glen
+New Stephanie, NM 70127";222664;28;True;gold
+3181518;Robin;Long;"879 Mercado Freeway
+East Emily, NC 29826";457744;86;False;silver
+1517069;Stacey;Davidson;"274 April Parkway Apt. 175
+East John, FM 66822";266176;25;True;platinum
+9758725;Jacob;Rubio;"51180 Cynthia Springs Suite 307
+Lake Jessica, OK 50745";356281;86;False;basic
+8842261;Monica;Horton;"0517 Johnson Rapids Apt. 210
+West Benjaminview, GA 28235";283875;55;True;gold
+1370795;John;Wright;"857 Price Plaza Suite 236
+Ayalabury, NM 90329";206581;31;False;gold
+6777507;Antonio;Brown;"0527 Ruth Via Suite 608
+Port Matthewchester, MO 32066";222664;47;False;basic
+7796324;Sheila;Horton;"08713 Cox Inlet
+Joneschester, MI 41975";226419;65;True;silver
+4517898;Maria;Rice;"04885 Danielle Fork Suite 536
+South Jacquelineburgh, CO 06825";266176;13;False;platinum
+2703965;Mary;Jenkins;"609 Davis Ridge
+North Kyle, AZ 25742";457744;67;True;silver
+5666929;Alicia;Adams;"7631 Weber Ports
+South Sandraport, OK 82608";266176;12;False;silver
+7826061;Richard;Robles;"685 Dawson Gateway
+West Angela, TN 21266";185806;83;True;platinum
+5466592;Raymond;Guerra;"USNV Hill
+FPO AP 30162";345407;29;False;basic
+3837044;Colleen;Fleming;"432 Yesenia Fords Suite 120
+Hermanchester, GA 02369";336174;36;False;silver
+5091680;Julian;Clark;"84081 Mark Ways
+New Crystalview, OR 83189";266176;25;True;gold
+2637001;James;Gomez;"09693 Brad Grove Suite 173
+West Craigland, FM 19301";283875;81;True;silver
+2692847;Michael;Valencia;"97457 Burns Rapids
+Kevinfort, WY 87436";226419;57;True;basic
+2731915;Sherry;Torres;"344 Lane View
+Ericaport, VI 67673";194711;58;False;silver
+4089369;John;Howell;"770 Amber Expressway
+South Sabrinaton, PR 71033";345407;71;True;silver
+6705703;Hannah;Cervantes;"01070 Johnson Orchard Apt. 304
+Lake Cassandra, ID 46397";283875;84;True;silver
+9955839;Amber;Ellis;"Unit 3871 Box 5932
+DPO AP 54837";336174;85;True;basic
+7876550;Jade;Griffin;"093 Kimberly Curve
+Johnton, NJ 61280";283875;46;False;gold
+4784317;Rebecca;Medina;"7741 Kimberly Pike
+West Wendy, TN 84553";345407;30;False;platinum
+5184829;Christine;Rodgers;"6184 Karen Unions
+Mitchellville, ND 04480";185806;88;False;silver
+4061521;Ryan;Meyer;"7469 Michael Loop
+Mitchellchester, ND 80514";206581;34;False;platinum
+5120451;Kathryn;Haynes;"9432 White Corners
+Joshuamouth, FL 53533";194711;73;False;basic
+8682303;Daniel;Freeman;"0166 Kathleen Crossroad
+New Aliciaville, HI 14434";457744;85;False;platinum
+2615676;Lisa;Sanchez;"58147 Kathleen Streets Apt. 393
+Lake Carrie, UT 47683";345407;74;False;platinum
+9707735;David;Butler;"16224 Ana Flats Suite 087
+Laceymouth, NE 13529";206581;25;True;platinum
+3188787;James;Johnson;"204 Monica Spur
+North Debra, MN 77001";206581;15;False;silver
+7931423;Thomas;Thomas;"79896 White Square
+South Monicashire, WA 19889";206581;76;True;basic
+3624821;Jeremy;Jones;"040 Parker Ways Apt. 629
+Warrenport, NC 27642";194711;57;True;platinum
+1388583;Caroline;Cunningham;"87800 Kathy Burg
+New Stephenchester, MH 05219";336174;75;False;silver
+9707187;Brian;Sanchez;"96311 Robinson Mountains
+North Gabrielleport, CO 06153";266176;17;False;silver
+9378810;Lisa;Powers;"942 Jared Valleys
+West Sarah, FL 05969";226419;83;False;platinum
+2610664;Kimberly;Larsen;"891 Kristina Center Suite 735
+Port Brenda, NM 39988";336174;28;True;platinum
+1328885;Roberto;Potter;"740 Hall Avenue
+Deborahberg, FL 51385";266176;74;False;gold
+6364802;Francisco;Owens;"75554 Smith Groves
+New Cory, NM 95567";186452;27;True;basic
+5575848;Elizabeth;Lester;"201 Walsh Cape Apt. 861
+South Joshuaside, AK 94013";345407;55;False;basic
+9956959;Victoria;Chandler;"1838 Graves Drive Apt. 146
+Port Roger, RI 16779";336174;50;True;gold
+4273650;Regina;Walker;"6566 Albert Lights Apt. 253
+Jonathanberg, MA 69445";226419;43;False;silver
+3835426;Dennis;Elliott;"1988 Janice Prairie Apt. 117
+Nicholaschester, PA 84984";186452;28;True;silver
+8564754;Brittany;Russell;"9994 Gonzalez Spring
+Virginiahaven, GA 27792";186452;30;True;gold
+2060185;Curtis;Mata;"PSC 6018, Box 5652
+APO AA 11410";336174;32;False;gold
+2778663;Deborah;Everett;"698 Conley Walk Apt. 408
+Matthewfurt, NE 52542";472473;87;False;platinum
+4409206;Jeffrey;Hawkins;"8518 Monica Stravenue
+West Dennisside, CO 20078";226419;40;False;gold
+7023299;Kathleen;Lawrence;"98679 Phillip Plain Apt. 228
+Port Carolfurt, MS 25492";283875;65;False;gold
+8225568;Tiffany;Nguyen;"54477 Jeff Burgs Suite 289
+North Stephanie, ND 12561";356281;45;True;gold
+9326266;Sarah;Armstrong;"777 Ross Rapids
+Lake Nicolemouth, WI 56631";226419;35;True;basic
+1162684;Brian;Lopez;"590 Glenn Pines Apt. 057
+North Jacobberg, DE 28416";266176;83;False;gold
+5192953;Kayla;Brock;"23702 Davis Skyway
+Lake Jonathonview, IA 93353";356281;61;False;gold
+9486563;Gregory;Simpson;"8846 Danielle Stravenue Apt. 280
+Harringtonborough, IN 25466";266176;20;False;basic
+6872486;Erica;Miller;"8742 Damon Groves
+Dominicton, WA 26429";356281;69;True;basic
+9879250;Daniel;Price;"44877 Olivia Plains Apt. 121
+Charlesmouth, FL 58083";186452;35;True;gold
+9132452;Brenda;Mcdaniel;"640 Allen Prairie
+East Jameston, MS 93347";222664;17;False;gold
+7485611;Michael;Mccarthy;"90391 Castaneda Trafficway
+Ryanshire, KY 92317";345407;76;False;platinum
+2753905;Maria;Santos;"7337 Paul Fords Suite 195
+Amberchester, RI 86793";472473;76;False;silver
+4753080;Ashley;Smith;"30560 Wong Burgs Apt. 066
+New Jennifer, FL 67008";356281;32;False;platinum
+2123120;Austin;Phillips;"097 Cynthia Fields
+Ortizville, UT 16024";187262;70;True;silver
+5197605;Nicole;Morrison;"6652 Danielle Run Apt. 951
+West Nancybury, MA 93064";194711;38;True;platinum
+5682273;Evan;Smith;"7429 Miller Creek Apt. 926
+Miguelfort, NV 21573";266176;42;True;gold
+8069346;Brenda;Castillo;"57998 Scott Station
+Bradleyborough, FM 61517";226419;29;False;platinum
+7350163;Brandon;Fitzgerald;"00055 Kyle Shore Apt. 166
+Rodriguezburgh, NV 13595";472473;60;True;platinum
+6842806;Nancy;Young;"65999 Maldonado Brooks Suite 065
+Sherrymouth, AL 59929";222664;73;False;gold
+4115684;Heather;Richardson;"45537 Anna Lights Suite 269
+North Lisa, NV 95699";187262;14;False;basic
+4203900;Jared;Nelson;"400 Robinson Road
+East Ryan, PA 01864";266176;18;True;basic
+3157566;Kimberly;Dixon;"810 John Tunnel Apt. 267
+New Jeffreytown, VA 40957";457744;71;False;gold
+8364539;Anthony;Miller;"PSC 7544, Box 0798
+APO AP 30156";266176;78;False;gold

@@ -1,0 +1,222 @@
+# Mill Service Istio Chart Values
+# ================================
+
+# -- Override chart name
+nameOverride: ""
+fullnameOverride: ""
+
+# =================================
+# Service Reference
+# =================================
+# Reference to the deployed mill-service
+# This chart manages traffic for an existing mill-service deployment
+
+service:
+  # -- Name of the Kubernetes Service to manage
+  # This should match the service name from mill-service chart
+  name: mill-service
+  
+  # -- Namespace where the service is deployed
+  namespace: default
+  
+  # -- HTTP port (REST API and Web UI)
+  httpPort: 8080
+  
+  # -- gRPC port (Mill protocol)
+  grpcPort: 9099
+
+# =================================
+# Destination Targeting
+# =================================
+# Target specific deployments or pods using labels
+
+destination:
+  # -- Target specific deployment by name (optional)
+  # If set, will try to match pods with app.kubernetes.io/instance=<deploymentName>
+  deploymentName: ""
+  
+  # -- Target pods by labels
+  # These labels will be used to create a subset in DestinationRule
+  # Example: { version: "v1", env: "prod" }
+  podLabels: {}
+    # version: "v1"
+    # env: "production"
+    # app.kubernetes.io/instance: "mill-service"
+  
+  # -- Kubernetes label selector (advanced)
+  # Format: "key1=value1,key2=value2"
+  labelSelector: ""
+
+# =================================
+# Gateway Configuration
+# =================================
+
+gateway:
+  # -- Enable Gateway resource creation
+  # Set to false if you want to use an existing shared Gateway
+  enabled: true
+  
+  # -- Gateway name (defaults to release-name-gateway)
+  # If using a shared Gateway, set this to the existing Gateway name
+  name: ""
+  
+  # -- Use existing Gateway (for multi-instance deployments)
+  # If set, VirtualService will reference this Gateway instead of creating one
+  # Example: "shared-gateway" or "istio-system/istio-ingressgateway"
+  existingGateway: ""
+  
+  # -- Gateway selector (matches Istio ingress gateway)
+  selector:
+    istio: ingressgateway
+  
+  # -- Hosts to expose
+  hosts:
+    - "*"  # Accept traffic from any host
+    # - "mill.example.com"
+    # - "api.example.com"
+  
+  # -- Gateway ports (HTTP only by default; gRPC omitted - Calico often uses 9099)
+  ports:
+    - name: http
+      number: 80
+      protocol: HTTP
+    # gRPC (uncomment if 9099 is free; Calico Typha may use it):
+    # - name: grpc
+    #   number: 9099
+    #   protocol: TCP
+    # HTTPS example (uncomment and set credentialName when you have TLS certs):
+    # - name: https
+    #   number: 443
+    #   protocol: HTTPS
+    #   tls:
+    #     mode: SIMPLE
+    #     credentialName: "mill-tls-cert"
+
+# =================================
+# VirtualService Configuration
+# =================================
+
+virtualService:
+  # -- Enable VirtualService resource
+  enabled: true
+  
+  # -- VirtualService name (defaults to release-name-vs)
+  name: ""
+  
+  # -- Hosts to route (should match gateway hosts or be more specific)
+  hosts:
+    - "*"
+    # - "mill.example.com"
+  
+  # -- Gateways to bind to (empty = all gateways in namespace)
+  # If specified, must include the gateway name
+  gateways: []
+    # - "mill-service-gateway"
+  
+  # -- HTTP routes
+  http:
+    - match:
+        - uri:
+            prefix: /
+      route:
+        - destination:
+            host: mill-service  # Service name (will be overridden by service.name)
+            # subset: ""  # Optional: route to specific subset (e.g., "v1", "v2")
+            port:
+              number: 8080
+          weight: 100
+      # -- Timeout for HTTP requests
+      timeout: 30s
+      # -- Retry policy
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+        retryOn: "5xx,gateway-error,connect-failure,refused-stream"
+  
+  # -- TCP routes (for gRPC)
+  # Note: TCP routes do not support timeout (HTTP-only feature)
+  tcp:
+    - match:
+        - port: 9099
+      route:
+        - destination:
+            host: mill-service  # Service name (will be overridden by service.name)
+            # subset: ""  # Optional: route to specific subset
+            port:
+              number: 9099
+
+# =================================
+# DestinationRule Configuration
+# =================================
+
+destinationRule:
+  # -- Enable DestinationRule resource
+  enabled: true
+  
+  # -- DestinationRule name (defaults to release-name-dr)
+  name: ""
+  
+  # -- Service host (should match service.name)
+  host: mill-service
+  
+  # -- Automatically create subsets based on deployment/pod labels
+  autoSubsets:
+    enabled: false
+    # -- Label keys to use for subset creation
+    # Creates subsets for each unique combination of these labels
+    labelKeys: []
+      # - "version"
+      # - "env"
+  
+  # -- Traffic policy
+  trafficPolicy:
+    # -- Load balancing policy
+    loadBalancer:
+      simple: ROUND_ROBIN
+      # Options: ROUND_ROBIN, LEAST_CONN, RANDOM, PASSTHROUGH
+      # Or use consistentHash for session affinity
+    
+    # -- Connection pool settings
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 10s
+      http:
+        http1MaxPendingRequests: 10
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 2
+        idleTimeout: 90s
+        h2UpgradePolicy: UPGRADE
+        useClientProtocol: false
+    
+    # -- Circuit breaker / Outlier detection
+    outlierDetection:
+      consecutive5xxErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 50
+      splitExternalLocalOriginErrors: false
+  
+  # -- Subsets for version-based routing (optional)
+  # If destination.podLabels is set, a subset will be auto-generated
+  # Otherwise, define subsets manually here
+  # Example:
+  # subsets:
+  #   - name: v1
+  #     labels:
+  #       version: v1
+  #   - name: v2
+  #     labels:
+  #       version: v2
+  subsets: []
+
+# =================================
+# Advanced Configuration
+# =================================
+
+# -- Additional labels for all resources
+commonLabels: {}
+
+# -- Additional annotations for all resources
+commonAnnotations: {}

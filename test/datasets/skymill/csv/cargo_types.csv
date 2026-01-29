@@ -1,0 +1,5 @@
+id;name;description
+1;containers;Standard shipping containers (boxes, pallets)
+2;bulk;Loose bulk goods (grains, minerals)
+3;refrigerated;Temperature-controlled perishables
+4;vehicles;Cars, trucks, and other vehicles

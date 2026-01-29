@@ -1,0 +1,51 @@
+{{- if .Values.gateway.enabled }}
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: {{ include "mill-service-istio.gatewayName" . }}
+  namespace: {{ .Values.service.namespace }}
+  labels:
+    {{- include "mill-service-istio.labels" . | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    {{- toYaml .Values.gateway.selector | nindent 4 }}
+  servers:
+    {{- range .Values.gateway.ports }}
+    - port:
+        number: {{ .number }}
+        name: {{ .name }}
+        protocol: {{ .protocol }}
+      hosts:
+        {{- range $.Values.gateway.hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      {{- if or (eq .protocol "HTTPS") (eq .protocol "TLS") .tls }}
+      tls:
+        {{- if .tls }}
+        {{- if .tls.mode }}
+        mode: {{ .tls.mode }}
+        {{- else }}
+        mode: SIMPLE
+        {{- end }}
+        {{- if .tls.credentialName }}
+        credentialName: {{ .tls.credentialName | quote }}
+        {{- end }}
+        {{- if .tls.serverCertificate }}
+        serverCertificate: {{ .tls.serverCertificate | quote }}
+        {{- end }}
+        {{- if .tls.privateKey }}
+        privateKey: {{ .tls.privateKey | quote }}
+        {{- end }}
+        {{- if .tls.caCertificates }}
+        caCertificates: {{ .tls.caCertificates | quote }}
+        {{- end }}
+        {{- else }}
+        mode: SIMPLE
+        {{- end }}
+      {{- end }}
+    {{- end }}
+{{- end }}

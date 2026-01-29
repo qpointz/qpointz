@@ -1,0 +1,71 @@
+================================================================================
+   Mill Service Istio Traffic Management has been deployed!
+================================================================================
+
+Release: {{ .Release.Name }}
+Namespace: {{ .Values.service.namespace }}
+
+Managed Service: {{ .Values.service.name }}
+
+{{- if .Values.gateway.enabled }}
+Gateway: {{ include "mill-service-istio.gatewayName" . }}
+{{- end }}
+
+{{- if .Values.virtualService.enabled }}
+VirtualService: {{ include "mill-service-istio.virtualServiceName" . }}
+{{- end }}
+
+{{- if .Values.destinationRule.enabled }}
+DestinationRule: {{ include "mill-service-istio.destinationRuleName" . }}
+{{- end }}
+
+{{- if .Values.destination.podLabels }}
+Target Pod Labels: {{- toYaml .Values.destination.podLabels | nindent 2 }}
+{{- if .Values.destinationRule.enabled }}
+Subset: {{ include "mill-service-istio.subsetName" . }}
+{{- end }}
+{{- end }}
+
+1. Verify Istio resources:
+
+   kubectl get gateway,virtualservice,destinationrule -n {{ .Values.service.namespace }}
+
+2. Check Gateway status:
+
+   kubectl get gateway {{ include "mill-service-istio.gatewayName" . }} -n {{ .Values.service.namespace }}
+
+3. Get Istio ingress gateway IP:
+
+   kubectl get svc istio-ingressgateway -n istio-system
+
+4. Test HTTP endpoint:
+
+   curl -H "Host: {{ (index .Values.virtualService.hosts 0) }}" \
+        http://$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+5. View VirtualService routes:
+
+   kubectl describe virtualservice {{ include "mill-service-istio.virtualServiceName" . }} -n {{ .Values.service.namespace }}
+
+6. View DestinationRule policies:
+
+   kubectl describe destinationrule {{ include "mill-service-istio.destinationRuleName" . }} -n {{ .Values.service.namespace }}
+
+{{- if .Values.destinationRule.subsets }}
+7. Configured Subsets:
+{{- range .Values.destinationRule.subsets }}
+   - {{ .name }}: {{- toYaml .labels | nindent 5 }}
+{{- end }}
+{{- end }}
+
+{{- if .Values.gateway.ports }}
+8. Exposed Ports:
+{{- range .Values.gateway.ports }}
+   - {{ .name }}: {{ .number }} ({{ .protocol }})
+{{- end }}
+{{- end }}
+
+================================================================================
+Note: This chart manages traffic for the existing {{ .Values.service.name }} service.
+Make sure the service is deployed and running before using this chart.
+================================================================================

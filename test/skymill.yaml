@@ -1,36 +1,186 @@
+rows_multiply: 0.7
 experiments:
-  write_parquet:
-    type : parquet
-    path : "./datasets/{model-name}/parquet/{dataset-name}.parquet"
-  write_avro:
-    type : avro
-    path : "./datasets/{model-name}/avro/{dataset-name}.avro"
   write_csv:
-    type : csv
-    path : "./datasets/{model-name}/csv/{dataset-name}.csv"
+    type: csv
+    path: "./datasets/{model-name}/csv/{dataset-name}.csv"
     params:
+      sep: ";"
       header: true
       index: false
+  write_parquet:
+    type: parquet
+    path: "./datasets/{model-name}/parquet/{dataset-name}.parquet"
+  write_sql:
+    type: sql
+    path: "./datasets/{model-name}/{model-name}.sql"
+  write_model:
+    type: ermodel
+    path: "./datasets/{model-name}/{model-name}.puml"
+  write_model_mermaid:
+    type: mermaid
+    path: "./datasets/{model-name}/{model-name}.mmd"
   write_meta:
     type: meta
     path: "./datasets/{model-name}/{model-name}-meta.yaml"
+  write_model_prompt:
+    type: llm-prompt
+    path: "./datasets/{model-name}/{model-name}.prompt"
+    params:
+      prologue: You are SQL bot
+      rules:
+        - Generate **valid SQL query** by default
+        - always use fully qualified table names
+        - table and columns names are always in capitals
+        - Generate Substrait plan if explicitly asked in question
+        - quote sql identifiers with `
+        - Use **JOIN**, if required
+        - |
+          Determine desired output type
+          -table: if result should be displayed as table
+              -- if query contains order expression ascending or descending, suggest it in table config
+          -pivot: result should be represented as pivot table
+              -- if pivot selected suggest measures, aggregates and pivoted measures
+          -text: if result should be displayed as text
+          -chart: result should be displayed as chart. if chart selected as output determine chart type (bar, scatter, pie etc.)
+              -- suggest how columns to be used with selected chart data in chart_config field
+                -- provide hints for chart legend
+        - add comment to your response
+        - add sql query confidence level rated from 0.0 (no confidence) to 1.0 (confidence)
+        - |
+          add level of confidence
+          -- high when confidence 1.0..0.98
+          -- medium when confidence 0.97..0.8
+          -- low otherwise
+        - |
+          Reply in JSON format example:
+          {
+            "query": {
+              "type": "sql or substrait",
+              "sql": "if query type is sql",
+              "plan": "if query type is substrait"
+            },
+            "output": "desired output type",
+            "table": { "config": "table view config" },
+            "chart": { "type": "if output type is chart", "config": "chart configuration" },
+            "pivot": { "config": "pivot config" },
+            "comment": "add comment if you like",
+            "confidence": { "rate": "value 0..1", "level": "confidence level" }
+          }
+      epilogue: Skymill Airlines flight and cargo data.
 
 models:
-  - name: airlines
+  - name: skymill
     locales:
     - en-US
     schemas:
+    - name: cities
+      rows: 20
+      description: Airport cities served by the airline. Suitable for queries about destinations, routes, passenger residence, or city coverage.
+      attributes:
+      - name: id
+        type: random_int
+        params:
+          min: 100000
+          max: 500000
+        description: City code used to link routes and passenger locations.
+      - name: state
+        type: state
+        description: State or region where the city is located.
+      - name: city
+        type: city
+        description: City name.
+      - name: population
+        type: random_int
+        params:
+          min: 10000
+          max: 5000000
+        description: Number of people living in the city.
+      - name: airport
+        type: airport_name
+        description: Full airport name.
+      - name: airport_iata
+        type: airport_iata
+        description: IATA 3-letter airport code (e.g. JFK, LAX).
+    - name: segments
+      rows: 80
+      description: Flight routes between cities. Each row represents a direct route. Suitable for queries about route lists, flights between cities, or route distance.
+      attributes:
+      - name: id
+        type: random_int
+        params:
+          min: 100000
+          max: 500000
+        description: Route code used to link flights to origin and destination.
+      - name: origin
+        type: ${ref}
+        params:
+          dataset: cities
+          attribute: id
+        description: Flight origin. References cities.
+      - name: destination
+        type: ${ref}
+        params:
+          dataset: cities
+          attribute: id
+        description: Flight destination. References cities.
+      - name: distance
+        type: random_int
+        params:
+          min: 200
+          max: 2500
+        description: Flight distance in kilometers.
+    - name: aircraft_types
+      data_mode: static
+      description: "Aircraft types in the fleet: narrow-body (small), wide-body (large), regional (short-haul). Suitable for queries about fleet mix or capacity by type."
+      data:
+      - id: 1
+        name: narrow
+        description: Narrow-body (small) aircraft
+      - id: 2
+        name: wide
+        description: Wide-body (large) aircraft
+      - id: 3
+        name: regional
+        description: Regional (short-haul) aircraft
+    - name: aircraft
+      rows: 40
+      description: Aircraft fleet. Suitable for queries about fleet size, capacity, or aircraft-route assignments.
+      attributes:
+      - name: id
+        type: random_int
+        params:
+          min: 10000
+          max: 99999
+        description: Plane identifier used to link flights to the aircraft.
+      - name: aircraft_code
+        type: bothify
+        params:
+          text: "SKY###"
+          letters: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        description: Aircraft registration code (e.g. SKY123).
+      - name: aircraft_type_id
+        type: ${ref}
+        params:
+          dataset: aircraft_types
+          attribute: id
+        description: Type of plane (narrow, wide, or regional). Links to aircraft_types.
+        foreign_key: aircraft_types.id
+      - name: capacity
+        type: random_int
+        params:
+          min: 80
+          max: 400
+        description: Passenger capacity.
     - name: passenger
       rows: 300
-      description: Personal details of registered passengers, including name, age, residence,
-        and loyalty status.
+      description: Passengers with travel history. Includes loyalty program members. Suitable for queries about passenger counts, demographics, or loyalty status.
       attributes:
       - name: id
         type: random_int
         params:
           min: 1000000
           max: 9999999
-        description: Unique identifier for each passenger.
+        description: Passenger identifier used to link bookings and loyalty earnings.
         primary_key: true
         nullable: false
       - name: first_name
@@ -43,14 +193,14 @@ models:
         nullable: true
       - name: domicile_address
         type: address
-        description: Passenger's home street address.
+        description: Passenger's home address.
         nullable: true
       - name: domicile_city_id
         type: ${ref}
         params:
           dataset: cities
           attribute: id
-        description: City of residence.
+        description: Passenger residence city. References cities.
         nullable: true
         foreign_key: cities.id
       - name: age
@@ -58,29 +208,88 @@ models:
         params:
           min: 12
           max: 90
-        description: Age of the passenger.
+        description: Passenger's age.
         nullable: true
       - name: loyalty_program_member
         type: boolean
-        description: Whether the passenger is enrolled in the loyalty program.
+        description: Indicates enrollment in the loyalty program.
         nullable: true
       - name: loyalty_tier
-        type: enum
+        type: random_element
         params:
-          values:
+          elements:
           - basic
           - silver
           - gold
           - platinum
-        description: Loyalty level tier.
+        description: Loyalty tier (basic, silver, gold, platinum). Higher tiers receive additional benefits.
         nullable: true
-    - name: bookings
-      rows: 1500
-      description: Bookings made by passengers for specific flight instances.
+    - name: flight_instances
+      rows: 600
+      description: Passenger flight occurrences. Each row represents a specific aircraft on a route for given dates. Suitable for queries about flight counts, delays, cancellations, or flight dates.
       attributes:
       - name: id
-        type: uuid
-        description: Unique booking reference.
+        type: random_int
+        params:
+          min: 1000000
+          max: 9999999
+        description: Flight identifier used to link bookings, delays, and ratings.
+      - name: aircraft_id
+        type: ${ref}
+        params:
+          dataset: aircraft
+          attribute: id
+        description: Aircraft that operated the flight. References aircraft.
+      - name: segment_id
+        type: ${ref}
+        params:
+          dataset: segments
+          attribute: id
+        description: Route flown. References segments.
+      - name: departure_date
+        type: date_this_year
+        description: Departure date.
+      - name: arrival_date
+        type: date_this_year
+        description: Arrival date.
+    - name: cargo_flights
+      rows: 400
+      description: Cargo flight occurrences. Same structure as passenger flights for freight operations. Suitable for queries about cargo volume, revenue by route, or freight flight counts.
+      attributes:
+      - name: id
+        type: random_int
+        params:
+          min: 100000
+          max: 999999
+        description: Cargo flight identifier used to link shipments.
+      - name: aircraft_id
+        type: ${ref}
+        params:
+          dataset: aircraft
+          attribute: id
+        description: Aircraft used for the cargo. References aircraft.
+      - name: segment_id
+        type: ${ref}
+        params:
+          dataset: segments
+          attribute: id
+        description: Route of the cargo flight. References segments.
+      - name: departure_date
+        type: date_this_year
+        description: Cargo flight departure date.
+      - name: arrival_date
+        type: date_this_year
+        description: Cargo flight arrival date.
+    - name: bookings
+      rows: 1500
+      description: Ticket purchases. Each row represents a passenger seat reservation on a flight. Suitable for queries about booking counts, revenue, or passenger itineraries.
+      attributes:
+      - name: id
+        type: random_int
+        params:
+          min: 1000000
+          max: 9999999
+        description: Booking reference used to link ticket prices and loyalty earnings.
         primary_key: true
         nullable: false
       - name: passenger_id
@@ -88,7 +297,7 @@ models:
         params:
           dataset: passenger
           attribute: id
-        description: Passenger making the booking.
+        description: Passenger who made the booking. References passenger.
         nullable: true
         foreign_key: passenger.id
       - name: flight_instance_id
@@ -96,20 +305,26 @@ models:
         params:
           dataset: flight_instances
           attribute: id
-        description: Flight instance booked by the passenger.
+        description: Booked flight. References flight_instances.
         nullable: true
         foreign_key: flight_instances.id
       - name: seat_number
-        type: seat_number
-        description: Seat number assigned (e.g., 12A).
+        type: bothify
+        params:
+          text: "??#"
+          letters: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        description: Assigned seat (e.g. 12A).
         nullable: true
     - name: loyalty_earnings
       rows: 1000
-      description: Loyalty program mileage earnings for each booking.
+      description: Miles earned per flight. Suitable for queries about loyalty program activity, miles by tier, or total miles earned.
       attributes:
       - name: id
-        type: uuid
-        description: Unique identifier for loyalty mileage record.
+        type: random_int
+        params:
+          min: 1000000
+          max: 9999999
+        description: Mileage record ID used to link points to the passenger and booking.
         primary_key: true
         nullable: false
       - name: booking_id
@@ -117,7 +332,7 @@ models:
         params:
           dataset: bookings
           attribute: id
-        description: Booking from which miles were earned.
+        description: Booking that earned the miles. References bookings.
         nullable: true
         foreign_key: bookings.id
       - name: passenger_id
@@ -125,7 +340,7 @@ models:
         params:
           dataset: passenger
           attribute: id
-        description: Passenger who earned the miles.
+        description: Passenger who earned the miles. References passenger.
         nullable: true
         foreign_key: passenger.id
       - name: miles_earned
@@ -133,22 +348,21 @@ models:
         params:
           min: 500
           max: 5000
-        description: Number of miles earned for the booking.
+        description: Miles credited for this flight.
         nullable: true
       - name: earning_date
-        type: datetime
-        params:
-          start: '2025-01-01T00:00:00'
-          end: '2025-12-31T23:59:59'
-        description: Date when the miles were credited.
+        type: date_this_year
+        description: Date miles were credited.
         nullable: true
     - rows: 400
-      description: Records of flight delays including duration and reason for each affected
-        flight instance.
+      description: Delayed flights. Suitable for queries about delays, on-time performance, or delay causes.
       attributes:
       - name: id
-        type: uuid
-        description: Unique identifier for the delay record.
+        type: random_int
+        params:
+          min: 1000000
+          max: 9999999
+        description: ID for this delay entry.
         primary_key: true
         nullable: false
       - name: flight_instance_id
@@ -156,7 +370,7 @@ models:
         params:
           dataset: flight_instances
           attribute: id
-        description: Flight instance affected by the delay.
+        description: Delayed flight. References flight_instances.
         primary_key: false
         nullable: true
         foreign_key: flight_instances.id
@@ -165,28 +379,30 @@ models:
         params:
           min: 5
           max: 180
-        description: Total duration of the delay in minutes.
+        description: Delay duration in minutes.
         primary_key: false
         nullable: true
       - name: reason
-        type: enum
+        type: random_element
         params:
-          values:
+          elements:
           - weather
           - technical
           - crew
           - other
-        description: Primary cause of the delay.
+        description: Delay cause (weather, technical, crew, other).
         primary_key: false
         nullable: true
       name: delays
     - rows: 100
-      description: Cancellations of scheduled flight instances and their associated
-        reasons.
+      description: Cancelled flights. Suitable for queries about cancellations, cancellation rates, or cancellation reasons.
       attributes:
       - name: id
-        type: uuid
-        description: Unique identifier for the cancellation record.
+        type: random_int
+        params:
+          min: 1000000
+          max: 9999999
+        description: ID for this cancellation entry.
         primary_key: true
         nullable: false
       - name: flight_instance_id
@@ -194,93 +410,90 @@ models:
         params:
           dataset: flight_instances
           attribute: id
-        description: Flight instance that was cancelled.
+        description: Cancelled flight. References flight_instances.
         primary_key: false
         nullable: true
         foreign_key: flight_instances.id
       - name: cancellation_reason
-        type: enum
+        type: random_element
         params:
-          values:
+          elements:
           - weather
           - technical
           - operational
           - low_demand
-        description: Reason the flight was cancelled.
+        description: Cancellation reason (weather, technical, operational, low demand).
         primary_key: false
         nullable: true
       - name: cancellation_time
-        type: datetime
-        params:
-          start: '2025-01-01T00:00:00'
-          end: '2025-12-31T23:59:59'
-        description: Timestamp when the cancellation was recorded.
+        type: date_this_year
+        description: Cancellation timestamp.
         primary_key: false
         nullable: true
       name: cancellations
     - rows: 1500
-      description: Detailed pricing information for each booking including fare breakdown
-        and travel class.
+      description: Ticket prices paid by passengers. Suitable for queries about revenue, average ticket price, pricing by class, or fare breakdown.
       attributes:
       - name: booking_id
         type: ${ref}
         params:
           dataset: bookings
           attribute: id
-        description: Reference to the booking this price record belongs to.
+        description: Booking to which this price applies. References bookings.
         primary_key: false
         nullable: true
         foreign_key: bookings.id
       - name: base_price
-        type: random_float
+        type: random_double
         params:
           min: 50
           max: 1500
-        description: Base fare amount before taxes.
+        description: Ticket price before taxes and fees.
         primary_key: false
         nullable: true
       - name: taxes
-        type: random_float
+        type: random_double
         params:
           min: 10
           max: 300
-        description: Taxes and surcharges applied to the ticket.
+        description: Taxes and fees added to the ticket.
         primary_key: false
         nullable: true
       - name: total_price
-        type: expression
-        params:
-          expr: base_price + taxes
-        description: Total ticket price including all applicable taxes.
+        type: random_double
+        description: Final price paid (base plus taxes).
         primary_key: false
         nullable: true
-      - name: class
-        type: enum
+      - name: travel_class
+        type: random_element
         params:
-          values:
+          elements:
           - economy
           - business
           - first
-        description: Travel class for the ticket.
+        description: Cabin class (economy, business, first). Suitable for revenue or counts by class.
         primary_key: false
         nullable: true
       - name: currency
-        type: enum
+        type: random_element
         params:
-          values:
+          elements:
           - USD
           - EUR
           - CHF
-        description: Currency used for this ticket price.
+        description: Currency of the price (USD, EUR, CHF).
         primary_key: false
         nullable: true
       name: ticket_prices
     - rows: 800
-      description: Passenger-provided feedback scores for completed flight instances.
+      description: Customer satisfaction scores (1–5) and post-flight comments. Suitable for queries about ratings, feedback, or service quality.
       attributes:
       - name: id
-        type: uuid
-        description: Unique identifier for the rating entry.
+        type: random_int
+        params:
+          min: 1000000
+          max: 9999999
+        description: Rating record ID used to identify each feedback entry.
         primary_key: true
         nullable: false
       - name: passenger_id
@@ -288,7 +501,7 @@ models:
         params:
           dataset: passenger
           attribute: id
-        description: Passenger who provided the rating.
+        description: Passenger who provided the rating. References passenger.
         primary_key: false
         nullable: true
         foreign_key: passenger.id
@@ -297,7 +510,7 @@ models:
         params:
           dataset: flight_instances
           attribute: id
-        description: Flight instance being rated.
+        description: Rated flight. References flight_instances.
         primary_key: false
         nullable: true
         foreign_key: flight_instances.id
@@ -309,39 +522,128 @@ models:
         description: Numeric satisfaction rating between 1 (poor) and 5 (excellent).
         primary_key: false
         nullable: true
-      - name: comment
+      - name: rating_comment
         type: text
-        description: Optional text comment by the passenger.
+        description: Free-text feedback or comment from the passenger.
         primary_key: false
         nullable: true
-      - name: timestamp
-        type: datetime
-        params:
-          start: '2025-01-01T00:00:00'
-          end: '2025-12-31T23:59:59'
-        description: Date and time when the rating was submitted.
+      - name: rated_at
+        type: date_this_year
+        description: Rating submission timestamp.
         primary_key: false
         nullable: true
       name: ratings
-    - rows: 50
-      description: Reference data for countries used to categorize cities geographically.
+    - name: countries
+      rows: 50
+      description: Country reference list. Suitable for queries about geographic coverage, breakdowns by country, or country grouping.
       attributes:
       - name: id
         type: random_int
         params:
           min: 1
           max: 500
-        description: Unique identifier for the country.
+        description: Country identifier. Referenced by cargo_clients.
         primary_key: true
         nullable: false
-      - name: country_name
-        type: country
-        description: Official name of the country.
-        primary_key: false
-        nullable: true
       - name: iso_code
         type: country_code
-        description: ISO 3166-1 alpha-2 code for the country (e.g., US, DE).
+        description: ISO 2-letter country code (e.g. US, DE).
         primary_key: false
         nullable: true
-      name: countries
+      - name: name
+        type: country
+        description: Full country name.
+        primary_key: false
+        nullable: true
+    - name: cargo_clients
+      rows: 200
+      description: Freight-shipping clients. Suitable for queries about top shippers, revenue by client, or client locations.
+      attributes:
+      - name: id
+        type: random_int
+        params:
+          min: 10000
+          max: 99999
+        description: Client ID used to link shipments to the shipper.
+      - name: client_name
+        type: company
+        description: Name of the company shipping freight.
+      - name: address
+        type: street_address
+        description: Street address of the shipping company.
+      - name: city
+        type: city
+        description: City where the client is located.
+      - name: country_id
+        type: ${ref}
+        params:
+          dataset: countries
+          attribute: id
+        description: Client country. References countries.
+        foreign_key: countries.id
+      - name: postal_code
+        type: postalcode
+        description: Postal or ZIP code of the client.
+      - name: region
+        type: random_element
+        params:
+          elements:
+          - EMEA
+          - APAC
+          - AM
+        description: Client business region (EMEA, APAC, AM).
+    - name: cargo_types
+      data_mode: static
+      description: "Freight types carried: containers, bulk, refrigerated, vehicles. Suitable for queries about cargo mix, volumes by product type, or shipment breakdown."
+      data:
+      - id: 1
+        name: containers
+        description: Standard shipping containers (boxes, pallets)
+      - id: 2
+        name: bulk
+        description: Loose bulk goods (grains, minerals)
+      - id: 3
+        name: refrigerated
+        description: Temperature-controlled perishables
+      - id: 4
+        name: vehicles
+        description: Cars, trucks, and other vehicles
+    - name: cargo_shipments
+      rows: 2000
+      description: Individual freight shipments on cargo flights. Suitable for queries about cargo volume, freight revenue, weight by route, or shipment counts.
+      attributes:
+      - name: id
+        type: random_int
+        params:
+          min: 1000000
+          max: 9999999
+        description: Shipment ID used to identify each freight shipment.
+      - name: cargo_flight_id
+        type: ${ref}
+        params:
+          dataset: cargo_flights
+          attribute: id
+        description: Cargo flight for this shipment. References cargo_flights.
+        foreign_key: cargo_flights.id
+      - name: cargo_type_id
+        type: ${ref}
+        params:
+          dataset: cargo_types
+          attribute: id
+        description: Freight type (containers, bulk, refrigerated, vehicles). References cargo_types.
+        foreign_key: cargo_types.id
+      - name: weight_kg
+        type: random_int
+        params:
+          min: 1000
+          max: 50000
+        description: Weight of the shipment in kilograms.
+      - name: client_id
+        type: ${ref}
+        params:
+          dataset: cargo_clients
+          attribute: id
+        description: Shipper. References cargo_clients.
+      - name: revenue
+        type: random_double
+        description: Revenue generated by the shipment.

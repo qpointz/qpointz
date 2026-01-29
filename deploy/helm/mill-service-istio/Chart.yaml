@@ -1,0 +1,14 @@
+apiVersion: v2
+name: mill-service-istio
+description: Istio traffic management for Mill Service
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - mill
+  - istio
+  - traffic-management
+  - gateway
+  - virtualservice
+maintainers:
+  - name: qpointz

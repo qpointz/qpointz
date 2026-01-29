@@ -43,11 +43,17 @@ spec:
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- if .Values.image.name }}
+          image: {{ .Values.image.name | quote }}
+          {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- with .Values.args }}
+          {{- if .Values.args }}
+          command: ["/bin/sh", "-c"]
           args:
-            {{- toYaml . | nindent 12 }}
+            - |
+              exec ./bin/mill-service{{- range .Values.args }} "{{ . }}"{{- end }}
           {{- end }}
           ports:
             - name: http

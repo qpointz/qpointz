@@ -1,0 +1,2106 @@
+entities:
+- id: skymill
+  type: SCHEMA
+  schemaName: skymill
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    descriptive:
+      global:
+        displayName: Skymill
+        description: Skymill Airlines flight and cargo schema
+- id: skymill.cities
+  type: TABLE
+  schemaName: skymill
+  tableName: cities
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CITIES
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Cities
+        description: Airport cities served by the airline. Suitable for queries about destinations, routes, passenger residence, or city coverage.
+    relation:
+      global:
+        relations:
+        - name: cities_segments_origin
+          description: Origin city for segments
+          sourceTable:
+            schema: skymill
+            table: cities
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: segments
+          targetAttributes:
+          - origin
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: cities.id = segments.origin
+        - name: cities_segments_destination
+          description: Destination city for segments
+          sourceTable:
+            schema: skymill
+            table: cities
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: segments
+          targetAttributes:
+          - destination
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: cities.id = segments.destination
+        - name: cities_passenger
+          description: City of residence for passengers
+          sourceTable:
+            schema: skymill
+            table: cities
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: passenger
+          targetAttributes:
+          - domicile_city_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: cities.id = passenger.domicile_city_id
+- id: skymill.cities.id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cities
+  attributeName: id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: ID
+        description: City code used to link routes and passenger locations.
+- id: skymill.cities.state
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cities
+  attributeName: state
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: STATE
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: State
+        description: State where the city is located.
+- id: skymill.cities.city
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cities
+  attributeName: city
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CITY
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: City
+        description: Name of the city.
+- id: skymill.cities.population
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cities
+  attributeName: population
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: POPULATION
+        physicalType: INTEGER
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Population
+        description: Total population of the city.
+- id: skymill.cities.airport
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cities
+  attributeName: airport
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: AIRPORT
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Airport
+        description: Full name of the airport in the city.
+- id: skymill.cities.airport_iata
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cities
+  attributeName: airport_iata
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: AIRPORT_IATA
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Airport IATA
+        description: IATA code for the city's airport.
+- id: skymill.segments
+  type: TABLE
+  schemaName: skymill
+  tableName: segments
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: SEGMENTS
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Segments
+        description: Flight routes between cities. Each row represents a direct route. Suitable for queries about route lists, flights between cities, or route distance.
+    relation:
+      global:
+        relations:
+        - name: segments_flight_instances
+          description: Route for flight instances
+          sourceTable:
+            schema: skymill
+            table: segments
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: flight_instances
+          targetAttributes:
+          - segment_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: segments.id = flight_instances.segment_id
+        - name: segments_cargo_flights
+          description: Route for cargo flights
+          sourceTable:
+            schema: skymill
+            table: segments
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: cargo_flights
+          targetAttributes:
+          - segment_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: segments.id = cargo_flights.segment_id
+- id: skymill.segments.id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: segments
+  attributeName: id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: ID
+        description: Route code used to link flights to origin and destination.
+- id: skymill.segments.origin
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: segments
+  attributeName: origin
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ORIGIN
+        physicalType: INTEGER
+        nullable: false
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Origin
+        description: Flight origin. References cities.
+- id: skymill.segments.destination
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: segments
+  attributeName: destination
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: DESTINATION
+        physicalType: INTEGER
+        nullable: false
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Destination
+        description: Flight destination. References cities.
+- id: skymill.segments.distance
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: segments
+  attributeName: distance
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: DISTANCE
+        physicalType: INTEGER
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Distance
+        description: Distance between origin and destination in kilometers.
+- id: skymill.aircraft_types
+  type: TABLE
+  schemaName: skymill
+  tableName: aircraft_types
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: AIRCRAFT_TYPES
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Aircraft Types
+        description: "Aircraft types in the fleet: narrow-body (small), wide-body (large), regional (short-haul). Suitable for queries about fleet mix or capacity by type."
+    relation:
+      global:
+        relations:
+        - name: aircraft_types_aircraft
+          description: Aircraft type for aircraft
+          sourceTable:
+            schema: skymill
+            table: aircraft_types
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: aircraft
+          targetAttributes:
+          - aircraft_type_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: aircraft_types.id = aircraft.aircraft_type_id
+- id: skymill.aircraft_types.id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: aircraft_types
+  attributeName: id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: ID
+        description: Unique identifier for the aircraft type.
+- id: skymill.aircraft_types.name
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: aircraft_types
+  attributeName: name
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: NAME
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Name
+        description: Aircraft type name (narrow, wide, regional).
+- id: skymill.aircraft_types.description
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: aircraft_types
+  attributeName: description
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: DESCRIPTION
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Description
+        description: Description of the aircraft type.
+- id: skymill.aircraft
+  type: TABLE
+  schemaName: skymill
+  tableName: aircraft
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: AIRCRAFT
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Aircraft
+        description: Aircraft fleet.
+    relation:
+      global:
+        relations:
+        - name: aircraft_flight_instances
+          description: Aircraft operating flight instances
+          sourceTable:
+            schema: skymill
+            table: aircraft
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: flight_instances
+          targetAttributes:
+          - aircraft_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: aircraft.id = flight_instances.aircraft_id
+        - name: aircraft_cargo_flights
+          description: Aircraft for cargo flights
+          sourceTable:
+            schema: skymill
+            table: aircraft
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: cargo_flights
+          targetAttributes:
+          - aircraft_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: aircraft.id = cargo_flights.aircraft_id
+- id: skymill.aircraft.id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: aircraft
+  attributeName: id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: ID
+        description: Unique identifier for the aircraft.
+- id: skymill.aircraft.aircraft_code
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: aircraft
+  attributeName: aircraft_code
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: AIRCRAFT_CODE
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Aircraft Code
+        description: Aircraft registration code (e.g. SKY123).
+- id: skymill.aircraft.aircraft_type_id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: aircraft
+  attributeName: aircraft_type_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: AIRCRAFT_TYPE_ID
+        physicalType: INTEGER
+        nullable: false
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Aircraft Type ID
+        description: Aircraft type (foreign key to aircraft_types).
+- id: skymill.aircraft.capacity
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: aircraft
+  attributeName: capacity
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CAPACITY
+        physicalType: INTEGER
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Capacity
+        description: Passenger capacity.
+- id: skymill.passenger
+  type: TABLE
+  schemaName: skymill
+  tableName: passenger
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: PASSENGER
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Passenger
+        description: Passengers with travel history. Includes loyalty program members. Suitable for queries about passenger counts, demographics, or loyalty status.
+    relation:
+      global:
+        relations:
+        - name: passenger_bookings
+          description: Passenger bookings
+          sourceTable:
+            schema: skymill
+            table: passenger
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: bookings
+          targetAttributes:
+          - passenger_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: passenger.id = bookings.passenger_id
+        - name: passenger_loyalty_earnings
+          description: Passenger loyalty earnings
+          sourceTable:
+            schema: skymill
+            table: passenger
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: loyalty_earnings
+          targetAttributes:
+          - passenger_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: passenger.id = loyalty_earnings.passenger_id
+        - name: passenger_ratings
+          description: Passenger ratings
+          sourceTable:
+            schema: skymill
+            table: passenger
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: ratings
+          targetAttributes:
+          - passenger_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: passenger.id = ratings.passenger_id
+- id: skymill.passenger.id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: passenger
+  attributeName: id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: ID
+        description: Passenger identifier used to link bookings and loyalty earnings.
+- id: skymill.passenger.first_name
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: passenger
+  attributeName: first_name
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: FIRST_NAME
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: First Name
+        description: Passenger's first name.
+- id: skymill.passenger.last_name
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: passenger
+  attributeName: last_name
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: LAST_NAME
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Last Name
+        description: Passenger's last name.
+- id: skymill.passenger.domicile_address
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: passenger
+  attributeName: domicile_address
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: DOMICILE_ADDRESS
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Domicile Address
+        description: Passenger's home street address.
+- id: skymill.passenger.domicile_city_id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: passenger
+  attributeName: domicile_city_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: DOMICILE_CITY_ID
+        physicalType: INTEGER
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Domicile City ID
+        description: Passenger residence city. References cities.
+- id: skymill.passenger.age
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: passenger
+  attributeName: age
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: AGE
+        physicalType: INTEGER
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Age
+        description: Age of the passenger.
+- id: skymill.passenger.loyalty_program_member
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: passenger
+  attributeName: loyalty_program_member
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: LOYALTY_PROGRAM_MEMBER
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Loyalty Program Member
+        description: Indicates enrollment in the loyalty program.
+- id: skymill.passenger.loyalty_tier
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: passenger
+  attributeName: loyalty_tier
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: LOYALTY_TIER
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Loyalty Tier
+        description: Loyalty tier (basic, silver, gold, platinum). Higher tiers receive additional benefits.
+- id: skymill.flight_instances
+  type: TABLE
+  schemaName: skymill
+  tableName: flight_instances
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: FLIGHT_INSTANCES
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Flight Instances
+        description: Passenger flight occurrences. Each row represents a specific aircraft on a route for given dates. Suitable for queries about flight counts, delays, cancellations, or flight dates.
+    relation:
+      global:
+        relations:
+        - name: flight_instances_bookings
+          description: Flight instance bookings
+          sourceTable:
+            schema: skymill
+            table: flight_instances
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: bookings
+          targetAttributes:
+          - flight_instance_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: flight_instances.id = bookings.flight_instance_id
+        - name: flight_instances_delays
+          description: Flight instance delays
+          sourceTable:
+            schema: skymill
+            table: flight_instances
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: delays
+          targetAttributes:
+          - flight_instance_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: flight_instances.id = delays.flight_instance_id
+        - name: flight_instances_cancellations
+          description: Flight instance cancellations
+          sourceTable:
+            schema: skymill
+            table: flight_instances
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: cancellations
+          targetAttributes:
+          - flight_instance_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: flight_instances.id = cancellations.flight_instance_id
+        - name: flight_instances_ratings
+          description: Flight instance ratings
+          sourceTable:
+            schema: skymill
+            table: flight_instances
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: ratings
+          targetAttributes:
+          - flight_instance_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: flight_instances.id = ratings.flight_instance_id
+- id: skymill.flight_instances.id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: flight_instances
+  attributeName: id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: ID
+        description: Flight identifier used to link bookings, delays, and ratings.
+- id: skymill.flight_instances.aircraft_id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: flight_instances
+  attributeName: aircraft_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: AIRCRAFT_ID
+        physicalType: INTEGER
+        nullable: false
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Aircraft ID
+        description: Aircraft that operated the flight. References aircraft.
+- id: skymill.flight_instances.segment_id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: flight_instances
+  attributeName: segment_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: SEGMENT_ID
+        physicalType: INTEGER
+        nullable: false
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Segment ID
+        description: Route flown. References segments.
+- id: skymill.flight_instances.departure_date
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: flight_instances
+  attributeName: departure_date
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: DEPARTURE_DATE
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Departure Date
+        description: Departure date.
+- id: skymill.flight_instances.arrival_date
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: flight_instances
+  attributeName: arrival_date
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ARRIVAL_DATE
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Arrival Date
+        description: Arrival date.
+- id: skymill.cargo_flights
+  type: TABLE
+  schemaName: skymill
+  tableName: cargo_flights
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CARGO_FLIGHTS
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Cargo Flights
+        description: Cargo flight occurrences. Same structure as passenger flights for freight operations. Suitable for queries about cargo volume, revenue by route, or freight flight counts.
+    relation:
+      global:
+        relations:
+        - name: cargo_flights_cargo_shipments
+          description: Cargo flight shipments
+          sourceTable:
+            schema: skymill
+            table: cargo_flights
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: cargo_shipments
+          targetAttributes:
+          - cargo_flight_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: cargo_flights.id = cargo_shipments.cargo_flight_id
+- id: skymill.cargo_flights.id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_flights
+  attributeName: id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: ID
+        description: Cargo flight identifier used to link shipments.
+- id: skymill.cargo_flights.aircraft_id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_flights
+  attributeName: aircraft_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: AIRCRAFT_ID
+        physicalType: INTEGER
+        nullable: false
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Aircraft ID
+        description: Aircraft used for the cargo. References aircraft.
+- id: skymill.cargo_flights.segment_id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_flights
+  attributeName: segment_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: SEGMENT_ID
+        physicalType: INTEGER
+        nullable: false
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Segment ID
+        description: Route of the cargo flight. References segments.
+- id: skymill.cargo_flights.departure_date
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_flights
+  attributeName: departure_date
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: DEPARTURE_DATE
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Departure Date
+        description: Departure date.
+- id: skymill.cargo_flights.arrival_date
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_flights
+  attributeName: arrival_date
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ARRIVAL_DATE
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Arrival Date
+        description: Arrival date.
+- id: skymill.bookings
+  type: TABLE
+  schemaName: skymill
+  tableName: bookings
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: BOOKINGS
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Bookings
+        description: Ticket purchases. Each row represents a passenger seat reservation on a flight. Suitable for queries about booking counts, revenue, or passenger itineraries.
+    relation:
+      global:
+        relations:
+        - name: bookings_loyalty_earnings
+          description: Booking loyalty earnings
+          sourceTable:
+            schema: skymill
+            table: bookings
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: loyalty_earnings
+          targetAttributes:
+          - booking_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: bookings.id = loyalty_earnings.booking_id
+        - name: bookings_ticket_prices
+          description: Booking ticket prices
+          sourceTable:
+            schema: skymill
+            table: bookings
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: ticket_prices
+          targetAttributes:
+          - booking_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: bookings.id = ticket_prices.booking_id
+- id: skymill.bookings.id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: bookings
+  attributeName: id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: ID
+        description: Booking reference used to link ticket prices and loyalty earnings.
+- id: skymill.bookings.passenger_id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: bookings
+  attributeName: passenger_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: PASSENGER_ID
+        physicalType: INTEGER
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Passenger ID
+        description: Passenger who made the booking. References passenger.
+- id: skymill.bookings.flight_instance_id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: bookings
+  attributeName: flight_instance_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: FLIGHT_INSTANCE_ID
+        physicalType: INTEGER
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Flight Instance ID
+        description: Booked flight. References flight_instances.
+- id: skymill.bookings.seat_number
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: bookings
+  attributeName: seat_number
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: SEAT_NUMBER
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Seat Number
+        description: Seat number assigned (e.g. 12A).
+- id: skymill.loyalty_earnings
+  type: TABLE
+  schemaName: skymill
+  tableName: loyalty_earnings
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: LOYALTY_EARNINGS
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Loyalty Earnings
+        description: Miles earned per flight. Suitable for queries about loyalty program activity, miles by tier, or total miles earned.
+- id: skymill.loyalty_earnings.id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: loyalty_earnings
+  attributeName: id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: ID
+        description: Mileage record ID used to link points to the passenger and booking.
+- id: skymill.loyalty_earnings.booking_id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: loyalty_earnings
+  attributeName: booking_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: BOOKING_ID
+        physicalType: INTEGER
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Booking ID
+        description: Booking that earned the miles. References bookings.
+- id: skymill.loyalty_earnings.passenger_id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: loyalty_earnings
+  attributeName: passenger_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: PASSENGER_ID
+        physicalType: INTEGER
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Passenger ID
+        description: Passenger who earned the miles.
+- id: skymill.loyalty_earnings.miles_earned
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: loyalty_earnings
+  attributeName: miles_earned
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: MILES_EARNED
+        physicalType: INTEGER
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Miles Earned
+        description: Number of miles earned for the booking.
+- id: skymill.loyalty_earnings.earning_date
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: loyalty_earnings
+  attributeName: earning_date
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: EARNING_DATE
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Earning Date
+        description: Date when the miles were credited.
+- id: skymill.delays
+  type: TABLE
+  schemaName: skymill
+  tableName: delays
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: DELAYS
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Delays
+        description: Delayed flights. Suitable for queries about delays, on-time performance, or delay causes.
+- id: skymill.delays.id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: delays
+  attributeName: id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: ID
+        description: ID for this delay entry.
+- id: skymill.delays.flight_instance_id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: delays
+  attributeName: flight_instance_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: FLIGHT_INSTANCE_ID
+        physicalType: INTEGER
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Flight Instance ID
+        description: Flight instance affected by the delay.
+- id: skymill.delays.delay_minutes
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: delays
+  attributeName: delay_minutes
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: DELAY_MINUTES
+        physicalType: INTEGER
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Delay Minutes
+        description: Total duration of the delay in minutes.
+- id: skymill.delays.reason
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: delays
+  attributeName: reason
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: REASON
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Reason
+        description: Delay cause (weather, technical, crew, other).
+- id: skymill.cancellations
+  type: TABLE
+  schemaName: skymill
+  tableName: cancellations
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CANCELLATIONS
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Cancellations
+        description: Cancelled flights. Suitable for queries about cancellations, cancellation rates, or cancellation reasons.
+- id: skymill.cancellations.id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cancellations
+  attributeName: id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: ID
+        description: ID for this cancellation entry.
+- id: skymill.cancellations.flight_instance_id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cancellations
+  attributeName: flight_instance_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: FLIGHT_INSTANCE_ID
+        physicalType: INTEGER
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Flight Instance ID
+        description: Flight instance that was cancelled.
+- id: skymill.cancellations.cancellation_reason
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cancellations
+  attributeName: cancellation_reason
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CANCELLATION_REASON
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Cancellation Reason
+        description: Cancellation reason (weather, technical, operational, low demand).
+- id: skymill.cancellations.cancellation_time
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cancellations
+  attributeName: cancellation_time
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CANCELLATION_TIME
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Cancellation Time
+        description: Cancellation timestamp.
+- id: skymill.ticket_prices
+  type: TABLE
+  schemaName: skymill
+  tableName: ticket_prices
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: TICKET_PRICES
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Ticket Prices
+        description: Ticket prices paid by passengers. Suitable for queries about revenue, average ticket price, pricing by class, or fare breakdown.
+- id: skymill.ticket_prices.booking_id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: ticket_prices
+  attributeName: booking_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: BOOKING_ID
+        physicalType: INTEGER
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Booking ID
+        description: Booking to which this price applies. References bookings.
+- id: skymill.ticket_prices.base_price
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: ticket_prices
+  attributeName: base_price
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: BASE_PRICE
+        physicalType: DECIMAL
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Base Price
+        description: Ticket price before taxes and fees.
+- id: skymill.ticket_prices.taxes
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: ticket_prices
+  attributeName: taxes
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: TAXES
+        physicalType: DECIMAL
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Taxes
+        description: Taxes and fees added to the ticket.
+- id: skymill.ticket_prices.total_price
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: ticket_prices
+  attributeName: total_price
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: TOTAL_PRICE
+        physicalType: DECIMAL
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Total Price
+        description: Final price paid (base plus taxes).
+- id: skymill.ticket_prices.travel_class
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: ticket_prices
+  attributeName: travel_class
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: TRAVEL_CLASS
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Travel Class
+        description: Cabin class (economy, business, first). Suitable for revenue or counts by class.
+- id: skymill.ticket_prices.currency
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: ticket_prices
+  attributeName: currency
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CURRENCY
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Currency
+        description: Currency of the price (USD, EUR, CHF).
+- id: skymill.ratings
+  type: TABLE
+  schemaName: skymill
+  tableName: ratings
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: RATINGS
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Ratings
+        description: Customer satisfaction scores (1–5) and post-flight comments. Suitable for queries about ratings, feedback, or service quality.
+- id: skymill.ratings.id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: ratings
+  attributeName: id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: ID
+        description: Rating record ID used to identify each feedback entry.
+- id: skymill.ratings.passenger_id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: ratings
+  attributeName: passenger_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: PASSENGER_ID
+        physicalType: INTEGER
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Passenger ID
+        description: Passenger who provided the rating.
+- id: skymill.ratings.flight_instance_id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: ratings
+  attributeName: flight_instance_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: FLIGHT_INSTANCE_ID
+        physicalType: INTEGER
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Flight Instance ID
+        description: Rated flight. References flight_instances.
+- id: skymill.ratings.rating
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: ratings
+  attributeName: rating
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: RATING
+        physicalType: INTEGER
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Rating
+        description: Numeric satisfaction rating between 1 (poor) and 5 (excellent).
+- id: skymill.ratings.rating_comment
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: ratings
+  attributeName: rating_comment
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: RATING_COMMENT
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Rating Comment
+        description: Free-text feedback or comment from the passenger.
+- id: skymill.ratings.rated_at
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: ratings
+  attributeName: rated_at
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: RATED_AT
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Rated At
+        description: Rating submission timestamp.
+- id: skymill.countries
+  type: TABLE
+  schemaName: skymill
+  tableName: countries
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: COUNTRIES
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Countries
+        description: Country reference list. Suitable for queries about geographic coverage, breakdowns by country, or country grouping.
+    relation:
+      global:
+        relations:
+        - name: countries_cargo_clients
+          description: Country for cargo clients
+          sourceTable:
+            schema: skymill
+            table: countries
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: cargo_clients
+          targetAttributes:
+          - country_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: countries.id = cargo_clients.country_id
+- id: skymill.countries.id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: countries
+  attributeName: id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: ID
+        description: Country identifier. Referenced by cargo_clients.
+- id: skymill.countries.iso_code
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: countries
+  attributeName: iso_code
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ISO_CODE
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: ISO Code
+        description: ISO 2-letter country code (e.g. US, DE).
+- id: skymill.countries.name
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: countries
+  attributeName: name
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: NAME
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Name
+        description: Full country name.
+- id: skymill.cargo_clients
+  type: TABLE
+  schemaName: skymill
+  tableName: cargo_clients
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CARGO_CLIENTS
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Cargo Clients
+        description: Freight-shipping clients. Suitable for queries about top shippers, revenue by client, or client locations.
+    relation:
+      global:
+        relations:
+        - name: cargo_clients_cargo_shipments
+          description: Cargo client shipments
+          sourceTable:
+            schema: skymill
+            table: cargo_clients
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: cargo_shipments
+          targetAttributes:
+          - client_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: cargo_clients.id = cargo_shipments.client_id
+- id: skymill.cargo_clients.id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_clients
+  attributeName: id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: ID
+        description: Client ID used to link shipments to the shipper.
+- id: skymill.cargo_clients.client_name
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_clients
+  attributeName: client_name
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CLIENT_NAME
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Client Name
+        description: Name of the company shipping freight.
+- id: skymill.cargo_clients.address
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_clients
+  attributeName: address
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ADDRESS
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Address
+        description: Street address of the shipping company.
+- id: skymill.cargo_clients.city
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_clients
+  attributeName: city
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CITY
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: City
+        description: City where the client is located.
+- id: skymill.cargo_clients.country_id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_clients
+  attributeName: country_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: COUNTRY_ID
+        physicalType: INTEGER
+        nullable: false
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Country ID
+        description: Client country. References countries.
+- id: skymill.cargo_clients.postal_code
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_clients
+  attributeName: postal_code
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: POSTAL_CODE
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Postal Code
+        description: Postal or ZIP code of the client.
+- id: skymill.cargo_clients.region
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_clients
+  attributeName: region
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: REGION
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Region
+        description: Client business region (EMEA, APAC, AM).
+- id: skymill.cargo_types
+  type: TABLE
+  schemaName: skymill
+  tableName: cargo_types
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CARGO_TYPES
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Cargo Types
+        description: "Freight types carried: containers, bulk, refrigerated, vehicles. Suitable for queries about cargo mix, volumes by product type, or shipment breakdown."
+    relation:
+      global:
+        relations:
+        - name: cargo_types_cargo_shipments
+          description: Cargo type for shipments
+          sourceTable:
+            schema: skymill
+            table: cargo_types
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: cargo_shipments
+          targetAttributes:
+          - cargo_type_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: cargo_types.id = cargo_shipments.cargo_type_id
+- id: skymill.cargo_types.id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_types
+  attributeName: id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: ID
+        description: Unique identifier for the cargo type.
+- id: skymill.cargo_types.name
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_types
+  attributeName: name
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: NAME
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Name
+        description: Cargo type name (containers, bulk, refrigerated, vehicles).
+- id: skymill.cargo_types.description
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_types
+  attributeName: description
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: DESCRIPTION
+        physicalType: VARCHAR
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Description
+        description: Description of the cargo type.
+- id: skymill.cargo_shipments
+  type: TABLE
+  schemaName: skymill
+  tableName: cargo_shipments
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CARGO_SHIPMENTS
+        tableType: TABLE
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Cargo Shipments
+        description: Individual freight shipments on cargo flights. Suitable for queries about cargo volume, freight revenue, weight by route, or shipment counts.
+- id: skymill.cargo_shipments.id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_shipments
+  attributeName: id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: ID
+        physicalType: INTEGER
+        nullable: false
+        isPrimaryKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: ID
+        description: Shipment ID used to identify each freight shipment.
+- id: skymill.cargo_shipments.cargo_flight_id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_shipments
+  attributeName: cargo_flight_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CARGO_FLIGHT_ID
+        physicalType: INTEGER
+        nullable: false
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Cargo Flight ID
+        description: Cargo flight for this shipment. References cargo_flights.
+- id: skymill.cargo_shipments.cargo_type_id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_shipments
+  attributeName: cargo_type_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CARGO_TYPE_ID
+        physicalType: INTEGER
+        nullable: false
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Cargo Type ID
+        description: Freight type (containers, bulk, refrigerated, vehicles). References cargo_types.
+- id: skymill.cargo_shipments.weight_kg
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_shipments
+  attributeName: weight_kg
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: WEIGHT_KG
+        physicalType: INTEGER
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Weight Kg
+        description: Weight of the shipment in kilograms.
+- id: skymill.cargo_shipments.client_id
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_shipments
+  attributeName: client_id
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: CLIENT_ID
+        physicalType: INTEGER
+        nullable: false
+        isForeignKey: true
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Client ID
+        description: Shipper. References cargo_clients.
+- id: skymill.cargo_shipments.revenue
+  type: ATTRIBUTE
+  schemaName: skymill
+  tableName: cargo_shipments
+  attributeName: revenue
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    structural:
+      global:
+        physicalName: REVENUE
+        physicalType: DECIMAL
+        backendType: jdbc
+    descriptive:
+      global:
+        displayName: Revenue
+        description: Revenue from the shipment.

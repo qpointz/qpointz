@@ -55,7 +55,7 @@ mill:
       storage:
         type: file
       file:
-        path: file:/app/etc/moneta-meta-repository.yaml
+        path: file:/app/etc/skymill-meta-repository.yaml
   backend:
     provider: jdbc
     connection:
@@ -63,7 +63,7 @@ mill:
       caseSensitive: true
       unquotedCasing: UNCHANGED
     jdbc:
-      url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '/data/moneta/moneta.sql'"
+      url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '/data/skymill/skymill-slim.sql'"
       driver: "org.h2.Driver"
       username: "*"
       password: "*"
