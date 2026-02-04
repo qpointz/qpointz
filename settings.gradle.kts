@@ -15,18 +15,22 @@ include (":core:mill-core")
 include (":core:mill-metadata-core")
 include (":core:mill-security-core")
 include (":core:mill-service-core")
-include (":core:mill-starter-backends")
-include (":core:mill-starter-service")
 include (":core:mill-test-kit")
 
+include (":data")
+include (":data:mill-data-backends")
+include (":data:mill-data-grpc-service")
+include (":data:mill-data-http-service")
+
 include (":services")
-include (":services:mill-grinder-service")
-include (":services:mill-jet-grpc-service")
-include (":services:mill-jet-http-service")
+include (":services:mill-well-known-service")
 include (":services:mill-metadata-service")
+
+include (":ui:mill-grinder-service")
 
 include (":ai")
 include (":ai:mill-ai-core")
+include (":ai:mill-ai-core-ext")
 include (":ai:mill-ai-nlsql-chat-service")
 
 include (":clients:mill-jdbc-driver")
@@ -57,7 +61,7 @@ pluginManagement {
     }
 
     plugins {
-        kotlin("jvm") version "1.9.23"
+        kotlin("jvm") version "2.3.0"
     }
 }
 

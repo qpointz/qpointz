@@ -1,0 +1,7 @@
+data:build:
+  stage: build
+  extends: .gradle-job
+  script:
+    - echo $HOME    
+    - ./gradlew --no-daemon --console plain :ui:test :ui:compileTestIT
+    

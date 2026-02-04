@@ -37,7 +37,7 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation(project(":core:mill-starter-backends"))
+                    implementation(project(":data:mill-data-backends"))
                     implementation(libs.boot.starter.actuator)
                     implementation(libs.protobuf.java.util)
                     implementation(libs.mockito.core)

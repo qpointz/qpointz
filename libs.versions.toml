@@ -5,7 +5,7 @@ protobuf-plugin = "0.9.4"
 
 springCloud = "3.2.12"
 springAi = "1.1.2"
-springBoot = "3.5.8"
+springBoot = "3.5.10"
 springDoc = "2.8.14"
 
 calcite = "1.41.0"
@@ -25,6 +25,8 @@ okhttp = "5.3.2"
 sqlline = "1.12.0"
 
 micrometer = "1.16.0"
+
+kotlin = "2.3.0"
 
 [libraries]
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
@@ -115,6 +117,7 @@ jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", ver
 jackson-dataformat-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson" }
 jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
 jackson-datatype-jdk8 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jdk8", version.ref = "jackson" }
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 
@@ -168,3 +171,5 @@ jdbc-pack = [
 spring-dependency-management = { id = "io.spring.dependency-management", version = "1.1.6" }
 spring-boot-plugin = { id = "org.springframework.boot", version.ref = "springBoot" }
 google-protobuf-plugin = { id = "com.google.protobuf", version.ref = "protobuf-plugin" }
+kotlin = {id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin"}
+kotlin-spring = {id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin"}

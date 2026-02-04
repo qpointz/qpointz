@@ -74,15 +74,16 @@ tasks.register("assembleSamples") {
 
 
 dependencies {
-    implementation(project(":core:mill-starter-service"))
-
+    implementation(project(":services:mill-well-known-service"))
     implementation(project(":services:mill-metadata-service"))
-    implementation(project(":core:mill-starter-backends"))
-    implementation(project(":services:mill-grinder-service"))
-    implementation(project(":services:mill-jet-grpc-service"))
-    implementation(project(":services:mill-jet-http-service"))
+
+    implementation(project(":data:mill-data-backends"))
+    implementation(project(":data:mill-data-grpc-service"))
+    implementation(project(":data:mill-data-http-service"))
 
     implementation(project(":ai:mill-ai-nlsql-chat-service"))
+
+    implementation(project(":ui:mill-grinder-service"))
 
     implementation(libs.springdoc.openapi.starter.webmvc.ui)
     implementation(libs.springdoc.openapi.starter.webflux.api)

@@ -4,7 +4,8 @@ SHELL := /bin/bash
 	ui-install ui-dev ui-build ui-preview ui-lint ui-lint-fix ui-clean ui-test \
 	ui-type-check ui-format ui-deps-check ui-rebuild ui-dev-setup ui-generate-api \
 	ui-api-clean ui-deploy tools-build-info tools-build-sem-release \
-	tools-build-minica tools-build-deploy-tools tools-build-all
+	tools-build-minica tools-build-deploy-tools tools-build-all \
+	git-clean-branches
 
 help:
 	@echo "Available targets:"
@@ -33,6 +34,9 @@ help:
 	@echo "  make ui-generate-api # Generate API client from OpenAPI spec"
 	@echo "  make ui-api-clean    # Remove generated API client files"
 	@echo "  make ui-deploy       # Build UI artifacts for service packaging"
+	@echo ""
+	@echo "Git:"
+	@echo "  make git-clean-branches  # Delete local feat/ poc/ fix/ branches with no remote"
 	@echo ""
 	@echo "Tools (CI/CD build images):"
 	@echo "  make tools-build-info        # Display build tools version and registry"
@@ -140,3 +144,14 @@ tools-build-deploy-tools:
 	docker push $(BUILD_TOOLS_REGISTRY)/deploy-tools:$(BUILD_TOOLS_VERSION)
 
 tools-build-all: tools-build-sem-release tools-build-minica tools-build-deploy-tools
+
+git-clean-branches:
+	@git fetch origin --prune
+	@for branch in $$(git for-each-ref --format='%(refname:short)' refs/heads/feat/ refs/heads/poc/ refs/heads/fix/); do \
+		if ! git show-ref --quiet refs/remotes/origin/$$branch; then \
+			echo "Deleting $$branch (no remote on origin)"; \
+			git branch -D $$branch; \
+		else \
+			echo "Keeping $$branch (remote exists)"; \
+		fi; \
+	done

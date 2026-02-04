@@ -85,6 +85,22 @@ include:
       - changes:
         - ai/**/*
       - when: never
+  - local: ${CI_PROJECT_DIR}/ui/.gitlab-ci.yml
+    rules:
+      - *if-mr
+      - *if-protected
+      - *build-changes
+      - changes:
+          - ui/**/*
+      - when: never
+  - local: ${CI_PROJECT_DIR}/data/.gitlab-ci.yml
+    rules:
+      - *if-mr
+      - *if-protected
+      - *build-changes
+      - changes:
+          - data/**/*
+      - when: never
   - local : ${CI_PROJECT_DIR}/clients/.gitlab-ci.yml
     rules:
       - *if-mr

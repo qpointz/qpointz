@@ -50,9 +50,9 @@ class MillPlugin: Plugin<Project> {
         project.pluginManager.apply("jvm-test-suite")
 
         project.extensions.configure(org.gradle.api.plugins.JavaPluginExtension::class.java) {
-            sourceCompatibility = JavaVersion.VERSION_17
+            sourceCompatibility = JavaVersion.VERSION_21
             toolchain {
-                languageVersion.set(JavaLanguageVersion.of(17))
+                languageVersion.set(JavaLanguageVersion.of(21))
             }
         }
 

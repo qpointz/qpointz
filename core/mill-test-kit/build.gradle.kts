@@ -12,7 +12,7 @@ mill {
 dependencies {
     api(project(":core:mill-security-core"))
     api(project(":core:mill-service-core"))
-    api(project(":core:mill-starter-backends"))
+    api(project(":data:mill-data-backends"))
     api(libs.boot.starter)
     api(libs.boot.starter.web)
     api(libs.boot.starter.test)

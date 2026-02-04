@@ -41,8 +41,7 @@ testing {
                 dependencies {
                     implementation(project())
                     implementation(project(":core:mill-security-core"))
-                    implementation(project(":core:mill-starter-service"))
-                    implementation(project(":core:mill-starter-backends"))
+                    implementation(project(":data:mill-data-backends"))
                     implementation(libs.boot.starter.test)
                     implementation(libs.boot.starter.webflux)
                     implementation(libs.mockito.core)

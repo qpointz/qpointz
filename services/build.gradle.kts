@@ -1,9 +1,9 @@
 plugins {
-    kotlin("jvm") version "1.9.23" apply false
+    kotlin("jvm") version "2.3.0" apply false
 }
 
 tasks.register("test") {
-    description = "Runs all test tasks in Services subprojects"
+    description = "Runs all test tasks in AI subprojects"
     group = "verification"
     dependsOn(
         subprojects.mapNotNull { sub ->
@@ -13,7 +13,7 @@ tasks.register("test") {
 }
 
 tasks.register("compileTestIT") {
-    description = "Compiles all testIT sources in Services subprojects"
+    description = "Compiles all testIT sources in AI subprojects"
     group = "verification"
     dependsOn(
         subprojects.mapNotNull { sub ->
@@ -23,7 +23,7 @@ tasks.register("compileTestIT") {
 }
 
 tasks.register("testIT") {
-    description = "Runs all testIT tasks in Services subprojects"
+    description = "Runs all testIT tasks in AI subprojects"
     group = "verification"
     dependsOn(
         subprojects.mapNotNull { sub ->

@@ -37,8 +37,8 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation(project(":core:mill-starter-backends"))
-                    implementation(project(":services:mill-jet-grpc-service"))
+                    implementation(project(":data:mill-data-backends"))
+                    implementation(project(":data:mill-data-grpc-service"))
                     implementation(libs.okhttp.mock.webserver)
                     implementation(libs.bootGRPC.client)
                     implementation(libs.bootGRPC.server)
