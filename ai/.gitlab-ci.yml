@@ -24,7 +24,7 @@ ai:integration:
     when: always
     expire_in: "5 days"
     paths:
-      - ${CI_PROJECT_DIR}/ai/mill-ai-core/build/reports/scenarios/*.json
+      - ${CI_PROJECT_DIR}/ai/mill-ai-v1-core/build/reports/scenarios/*.json
 
 ai:publish-regression:
   stage: integration
@@ -42,13 +42,13 @@ ai:publish-regression:
     - mkdir -p /out/regression/reports/ai/${REGRESSION_VERSION_TAG}
     - rm -Rf /out/regression/reports/ai/${REGRESSION_VERSION_TAG}/ 2> /dev/null
     - mkdir -p /out/regression/reports/ai/${REGRESSION_VERSION_TAG}
-    - ls -l ${CI_PROJECT_DIR}/ai/mill-ai-core/build/reports/scenarios/*.*
-    - cp -Rf ${CI_PROJECT_DIR}/ai/mill-ai-core/build/reports/scenarios/*.* /out/regression/reports/ai/${REGRESSION_VERSION_TAG}/
+    - ls -l ${CI_PROJECT_DIR}/ai/mill-ai-v1-core/build/reports/scenarios/*.*
+    - cp -Rf ${CI_PROJECT_DIR}/ai/mill-ai-v1-core/build/reports/scenarios/*.* /out/regression/reports/ai/${REGRESSION_VERSION_TAG}/
     - ls -lacr /out/regression/reports/
     - cd /out/regression/
     - tar czfv /out/regression/pack-${REGRESSION_VERSION_TAG}-$(date +%Y%m%d-%H%M%S).tar.gz ./reports
-    - cp /out/regression/pack-${REGRESSION_VERSION_TAG}-$(date +%Y%m%d-%H%M%S).tar.gz ${CI_PROJECT_DIR}/ai/mill-ai-core/build/reports/scenarios/
+    - cp /out/regression/pack-${REGRESSION_VERSION_TAG}-$(date +%Y%m%d-%H%M%S).tar.gz ${CI_PROJECT_DIR}/ai/mill-ai-v1-core/build/reports/scenarios/
   artifacts:
     expire_in: "5 days"
     paths:
-      - ${CI_PROJECT_DIR}/ai/mill-ai-core/build/reports/scenarios/pack-*.tar.gz
+      - ${CI_PROJECT_DIR}/ai/mill-ai-v1-core/build/reports/scenarios/pack-*.tar.gz

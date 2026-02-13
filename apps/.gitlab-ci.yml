@@ -2,7 +2,7 @@ apps:package-dist:
   extends: .gradle-job
   stage: package
   needs:
-    - job: ui:grinder-ui:build
+    - job: ui:build
       artifacts: true
       optional: true
   script:    

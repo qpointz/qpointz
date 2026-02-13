@@ -1,6 +1,6 @@
 logging.level:
-  org.springframework.security.web.csrf.CsrfFilter: debug
-  org.apache.calcite.adapter.jdbc.JdbcSchema: warn
+  root: INFO
+  io.qpointz.mill.services.grinder.filters.GrinderUIFilter: TRACE
 
 management:
   endpoints:

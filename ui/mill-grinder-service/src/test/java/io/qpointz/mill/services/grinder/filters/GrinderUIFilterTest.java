@@ -26,7 +26,7 @@ class GrinderUIFilterTest {
 
     @BeforeEach
     void setUp() {
-        filter = GrinderUIFilter.withDefaultUIVersion();
+        filter = new GrinderUIFilter();
         request = mock(HttpServletRequest.class);
         response = mock(HttpServletResponse.class);
         chain = mock(FilterChain.class);
@@ -72,7 +72,7 @@ class GrinderUIFilterTest {
         when(request.getMethod()).thenReturn("GET");
 
         val dispatcher = mock(RequestDispatcher.class);
-        when(request.getRequestDispatcher("/app/v1/index.html")).thenReturn(dispatcher);
+        when(request.getRequestDispatcher("/app/index.html")).thenReturn(dispatcher);
         filter.doFilter(request, response, chain);
         verify(dispatcher).forward(request, response);
         verifyNoInteractions(chain);
@@ -109,37 +109,5 @@ class GrinderUIFilterTest {
         verify(chain).doFilter(request, response);
         verify(response, never()).sendRedirect(anyString());
     }
-
-
-    @ParameterizedTest
-    @ValueSource(strings = {
-            "v1",
-            "v2",
-    })
-    void versionRouting(String version) throws ServletException, IOException {
-        val filterWithVersions = new GrinderUIFilter(version);
-        when(request.getRequestURI()).thenReturn("/app/foo-bar");
-        when(request.getMethod()).thenReturn("GET");
-        val dispatcher = mock(RequestDispatcher.class);
-        when(request.getRequestDispatcher("/app/" + version + "/index.html")).thenReturn(dispatcher);
-
-        filterWithVersions.doFilter(request, response, chain);
-        verify(dispatcher).forward(request, response);
-        verifyNoInteractions(chain);
-    }
-
-    @Test
-    void defaultRoutesToV1() throws ServletException, IOException {
-        val filterWithVersions = GrinderUIFilter.withDefaultUIVersion(); //default version filter
-        when(request.getRequestURI()).thenReturn("/app/foo-bar");
-        when(request.getMethod()).thenReturn("GET");
-        val dispatcher = mock(RequestDispatcher.class);
-        when(request.getRequestDispatcher("/app/v1/index.html")).thenReturn(dispatcher);
-
-        filterWithVersions.doFilter(request, response, chain);
-        verify(dispatcher).forward(request, response);
-        verifyNoInteractions(chain);
-    }
-
 
 }

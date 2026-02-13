@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schema/talk-fragment-event.v1.json",
+  "title": "Talk Fragment Event",
+  "description": "Schema for a single `talk:fragment` event in the `mill-talk` streaming protocol. This schema validates the shape of one stream event only. Event ordering and stream completeness (begin → fragments → end) are enforced by the runtime state machine.",
+  "type": "object",
+  "required": ["event", "content"],
+  "properties": {
+    "event": {
+      "const": "talk:fragment",
+      "description": "Identifies this event as a continuation fragment within an active talk stream."
+    },
+    "content": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Markdown-formatted text fragment. This field contains only user-visible content and must not include protocol markers or control information."
+    }
+  },
+  "additionalProperties": false
+}

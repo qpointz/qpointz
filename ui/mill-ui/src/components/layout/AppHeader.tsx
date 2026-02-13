@@ -91,7 +91,7 @@ export function AppHeader() {
         onClick={() => navigate('/home')}
       >
         <img
-          src="/mill.svg"
+          src={`${import.meta.env.BASE_URL}mill.svg`}
           alt="Mill logo"
           style={{
             width: 32,

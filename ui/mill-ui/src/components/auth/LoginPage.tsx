@@ -126,7 +126,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         {/* Brand */}
         <Stack align="center" gap="xs" mb="xl">
           <img
-            src="/mill.svg"
+            src={`${import.meta.env.BASE_URL}mill.svg`}
             alt="Mill logo"
             style={{
               width: 48,

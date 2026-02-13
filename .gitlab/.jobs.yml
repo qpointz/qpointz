@@ -68,7 +68,7 @@
 
 .gradle-job:
   image:
-    name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/azul/zulu-openjdk:21-latest
+    name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/azul/zulu-openjdk:25-latest
   variables:
     GRADLE_USER_HOME: ${CI_PROJECT_DIR}/.gradle-home      
   cache: &global_cache

@@ -22,23 +22,13 @@ import java.util.regex.Pattern;
 @ConditionalOnService("grinder")
 public class GrinderUIFilter implements Filter {
 
-    private static final String DEFAULT_UI_VERSION = "v1";
-
-    private final String uiVersion;
-
-    public GrinderUIFilter(@Autowired @Value("${mill.ui.version:" + DEFAULT_UI_VERSION +  "}") String version) {
-        this.uiVersion = version;
-    }
-
-    public static GrinderUIFilter withDefaultUIVersion() {
-        return new GrinderUIFilter(DEFAULT_UI_VERSION);
-    }
-
     private static final Predicate<String> ROOT_REQUEST_PATTERN;
 
     private static final Predicate<String> ANY_APP_PREDICATE;
 
     private static final Predicate<String> APP_STATIC_RESOURCE_PATTERN;
+
+    private static final String SPA_DISPATCH_URL = "/app/index.html";
 
     static {
         //if / or /app/index.html requested need to be redirected to /app/ to keep BrowserRouter working
@@ -85,12 +75,11 @@ public class GrinderUIFilter implements Filter {
             return;
         }
 
-        val dispatchTo = "/app/" + this.uiVersion + "/index.html";
-        log.debug("Dispatching SPA to {}", dispatchTo);
+        log.debug("Dispatching SPA to {}", SPA_DISPATCH_URL);
 
         //for any other forward to /app/v1/index
         val requestDispatcher = servletRequest
-                .getRequestDispatcher(dispatchTo);
+                .getRequestDispatcher(SPA_DISPATCH_URL);
 
         requestDispatcher
                 .forward(req, res);
