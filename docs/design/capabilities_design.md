@@ -85,9 +85,49 @@ Tools replace schema injection in prompts.
 
 ---
 
-## 4. Reasoner
+## 4. Capability Protocol
 
-### 4.1 What the Reasoner IS
+A **Capability Protocol** defines the structure and sequencing of events that a Capability emits in a streaming response.
+
+**Definition**
+
+Every Capability communicates its output as a stream of discrete JSON event objects. A protocol schema (JSON Schema) declares the valid event types, their fields, and the ordering contract for that Capability.
+
+**Streaming Event Model**
+
+All capability protocols follow a uniform three-phase lifecycle:
+
+1. **Begin event** – Required. Always the first event in the stream. Opens the response.
+2. **Continuation events** – Optional. Zero or more intermediate events emitted when the response is split into multiple parts.
+3. **End event** – Required. Always the last event in the stream. Closes the response.
+
+The minimal valid stream contains exactly two events: one begin and one end. Longer responses interleave continuation events between them.
+
+**Event Structure**
+
+Every event is a JSON object with at least two fields:
+
+- `event` – a namespaced string constant that identifies the event type (e.g. `talk:begin-fragment`, `sql:result-row`)
+- One or more payload fields carrying the event data (e.g. `content`, `data`)
+
+The event namespace prefix (before the colon) matches the Capability identifier, ensuring events from different Capabilities never collide.
+
+**Protocol Schema**
+
+Each Capability declares its protocol as a JSON Schema file (`protocol.json`) using `oneOf` to enumerate valid event types. The schema's `description` fields are written to be consumed by an LLM, since the protocol is included in the LLM execution context to guide output formatting.
+
+**Design Principles**
+
+- Protocols are **self-describing** – the schema is the single source of truth for event structure.
+- Protocols are **capability-scoped** – each Capability owns its event namespace and schema.
+- Protocols are **LLM-readable** – descriptions are written as clear instructions an LLM can follow.
+- Protocols are **streaming-first** – events are emitted one at a time, never batched.
+
+---
+
+## 5. Reasoner
+
+### 5.1 What the Reasoner IS
 
 The **Reasoner** is a *pre-execution analytical step* whose sole responsibility is to determine **what the user wants to do**, not **how it will be done**.
 
@@ -106,7 +146,7 @@ The Reasoner:
 
 ---
 
-## 5. Reasoner Descriptions
+## 6. Reasoner Descriptions
 
 Each Capability may declare one or more **Reasoner Descriptions**.
 
@@ -138,7 +178,7 @@ If a Capability is not active, its Reasoner Descriptions are not included in the
 
 ---
 
-## 6. Reasoner Prompt Construction
+## 7. Reasoner Prompt Construction
 
 The Reasoner prompt is assembled dynamically:
 
@@ -153,7 +193,7 @@ This guarantees:
 
 ---
 
-## 7. Reasoner Output (Final Contract)
+## 8. Reasoner Output (Final Contract)
 
 The Reasoner output is intentionally minimal.
 
@@ -173,9 +213,9 @@ No schema, table, SQL, or execution-related information appears here.
 
 ---
 
-## 8. Intent
+## 9. Intent
 
-### 8.1 What an Intent Is
+### 9.1 What an Intent Is
 
 An **Intent** is a **system-level execution contract** that defines *what will be executed*.
 
@@ -192,7 +232,7 @@ description: Retrieve data and produce a visualization
 
 ---
 
-## 9. Mapping Task Class to Intent
+## 10. Mapping Task Class to Intent
 
 After reasoning:
 
@@ -209,7 +249,7 @@ LLM assistance is optional and only for ambiguity resolution, never for final au
 
 ---
 
-## 10. Orchestrator
+## 11. Orchestrator
 
 The **Orchestrator** is responsible for selecting the execution path, not for understanding the user.
 
@@ -228,7 +268,7 @@ Temporary if/else orchestration is acceptable at early stages.
 
 ---
 
-## 11. Chat Profiles / Modes
+## 12. Chat Profiles / Modes
 
 A **Chat Profile** defines:
 - Which Capabilities are active
@@ -244,7 +284,7 @@ Rules:
 
 ---
 
-## 12. End-to-End Flow
+## 13. End-to-End Flow
 
 User input  
 → Reasoner (WHAT the user wants)  
@@ -261,7 +301,7 @@ No execution planning appears during reasoning.
 
 ---
 
-## 13. Core Architectural Principles
+## 14. Core Architectural Principles
 
 - Reasoner answers WHAT
 - Capabilities define WHAT IS POSSIBLE

@@ -15,3 +15,10 @@ export interface ConceptFilter {
   type: 'category' | 'tag' | null;
   value: string | null;
 }
+
+export interface ConceptService {
+  getConcepts(filter?: ConceptFilter): Promise<Concept[]>;
+  getConceptById(id: string): Promise<Concept | null>;
+  getCategories(): Promise<{ name: string; count: number }[]>;
+  getTags(): Promise<{ name: string; count: number }[]>;
+}

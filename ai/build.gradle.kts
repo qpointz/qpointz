@@ -1,5 +1,7 @@
 plugins {
-    kotlin("jvm") version "2.3.0" apply false
+    base
+    id("jacoco-report-aggregation")
+    kotlin("jvm") version libs.versions.kotlin apply false
 }
 
 tasks.register("test") {

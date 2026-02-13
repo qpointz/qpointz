@@ -9,25 +9,25 @@ springBoot = "3.5.10"
 springDoc = "2.8.14"
 
 calcite = "1.41.0"
-junit = "6.0.1"
-mockito = "5.20.0"
-protobuf = "4.33.1"
-grpc = "1.77.0"
+junit = "6.0.2"
+mockito = "5.21.0"
+protobuf = "4.33.5"
+grpc = "1.79.0"
 apacheCommons = "3.14.0"
 apachePoi = "5.4.1"
 substrait = "0.60.0"
 bootGRPC = "3.1.0.RELEASE"
 jakartaServletApi = "6.1.0"
 googleApiGrpc = "2.63.1"
-jackson = "2.20.1"
+jackson = "2.21.0"
 guava = "33.3.1-jre"
 okhttp = "5.3.2"
 sqlline = "1.12.0"
 
 micrometer = "1.16.0"
 
-kotlin = "2.3.0"
-
+kotlin = "2.3.10"
+logback = "1.5.28"
 [libraries]
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 
@@ -69,10 +69,11 @@ calcite-csv = { module = "org.apache.calcite:calcite-csv", version.ref = "calcit
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junit" }
+junit-bom = { module = "org.junit.jupiter:junit-bom", version.ref = "junit" }
 
 slf4j-api = { module = "org.slf4j:slf4j-api", version = "2.0.17" }
-logback-core = { module = "ch.qos.logback:logback-core", version = "1.5.21" }
-logback-classic = { module = "ch.qos.logback:logback-classic", version = "1.5.21" }
+logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 fusesource-jansi = { module = "org.fusesource.jansi:jansi", version = "2.4.2" }
 
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
@@ -100,7 +101,7 @@ h2-database = { module = "com.h2database:h2", version = "2.4.240" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
 
 apache-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "apacheCommons" }
-apache-commons-codec = { module = "commons-codec:commons-codec", version = "1.20.0" }
+apache-commons-codec = { module = "commons-codec:commons-codec", version = "1.21.0" }
 
 substrait-core = { module = "io.substrait:core", version.ref = "substrait" }
 substrait-isthmus = { module = "io.substrait:isthmus", version.ref = "substrait" }
@@ -126,21 +127,20 @@ okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 
 opencensus-impl = { module = "io.opencensus:opencensus-impl", version = "0.31.1" }
 
-pebble-templates = { module = "io.pebbletemplates:pebble", version = "4.0.0" }
+pebble-templates = { module = "io.pebbletemplates:pebble", version = "4.1.1" }
 
 sqlline = { module = "sqlline:sqlline", version.ref = "sqlline" }
 
-drivers-postgressql = { module = "org.postgresql:postgresql", version = "42.7.8" }
-drivers-sqllite = { module = "org.xerial:sqlite-jdbc", version = "3.51.0.0" }
-drivers-mariadb = { module = "org.mariadb.jdbc:mariadb-java-client", version = "3.5.6" }
+drivers-postgressql = { module = "org.postgresql:postgresql", version = "42.7.9" }
+drivers-sqllite = { module = "org.xerial:sqlite-jdbc", version = "3.51.1.0" }
+drivers-mariadb = { module = "org.mariadb.jdbc:mariadb-java-client", version = "3.5.7" }
 drivers-oracle = { module = "com.oracle:ojdbc14", version = "10.2.0.4.0" }
-drivers-trino = { module = "io.trino:trino-jdbc", version = "478" }
-drivers-duckdb = { module = "org.duckdb:duckdb_jdbc", version = "1.4.2.0" }
-drivers-snowflake = { module = "net.snowflake:snowflake-jdbc", version = "3.27.1" }
-drivers-clickhouse = { module = "com.clickhouse:clickhouse-jdbc", version = "0.9.4" }
+drivers-trino = { module = "io.trino:trino-jdbc", version = "479" }
+drivers-duckdb = { module = "org.duckdb:duckdb_jdbc", version = "1.4.4.0" }
+drivers-snowflake = { module = "net.snowflake:snowflake-jdbc", version = "4.0.0" }
 
-apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.5.1" }
-apache-httpcore5 = { module = "org.apache.httpcomponents.core5:httpcore5", version = "5.3.6" }
+apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.6" }
+apache-httpcore5 = { module = "org.apache.httpcomponents.core5:httpcore5", version = "5.4" }
 
 apache-poi-ooxml-lite = { module = "org.apache.poi:poi-ooxml-lite", version.ref = "apachePoi" }
 apache-poi-ooxml-full = { module = "org.apache.poi:poi-ooxml-full", version.ref = "apachePoi" }
@@ -163,8 +163,7 @@ jdbc-pack = [
     "drivers-mariadb",
     "drivers-trino",
     "drivers-duckdb",
-    "drivers-snowflake",
-    "drivers-clickhouse"
+    "drivers-snowflake"
 ]
 
 [plugins]

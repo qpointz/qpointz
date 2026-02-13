@@ -49,3 +49,9 @@ export interface EntityWithFacets {
   entity: SchemaEntity;
   facets: EntityFacets;
 }
+
+export interface SchemaService {
+  getTree(): Promise<SchemaEntity[]>;
+  getEntityById(id: string): Promise<SchemaEntity | null>;
+  getEntityFacets(id: string): Promise<EntityFacets>;
+}

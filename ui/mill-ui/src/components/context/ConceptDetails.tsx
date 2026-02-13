@@ -2,6 +2,9 @@ import { Box, Text, Badge, Group, Stack, Card, useMantineColorScheme } from '@ma
 import { CodeHighlight } from '@mantine/code-highlight';
 import { HiOutlineLightBulb, HiOutlineLink } from 'react-icons/hi2';
 import type { Concept } from '../../types/context';
+import { InlineChatButton } from '../common/InlineChatButton';
+import { RelatedContentButton } from '../common/RelatedContentButton';
+import { useFeatureFlags } from '../../features/FeatureFlagContext';
 import '@mantine/code-highlight/styles.css';
 
 interface ConceptDetailsProps {
@@ -17,6 +20,7 @@ const sourceColors: Record<string, string> = {
 export function ConceptDetails({ concept }: ConceptDetailsProps) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
+  const flags = useFeatureFlags();
 
   return (
     <Box h="100%">
@@ -24,44 +28,59 @@ export function ConceptDetails({ concept }: ConceptDetailsProps) {
       <Box
         p="md"
         style={{
-          borderBottom: `1px solid ${isDark ? 'var(--mantine-color-slate-7)' : 'var(--mantine-color-gray-3)'}`,
+          borderBottom: `1px solid var(--mantine-color-default-border)`,
           background: isDark
-            ? 'linear-gradient(135deg, var(--mantine-color-slate-9) 0%, var(--mantine-color-slate-8) 100%)'
+            ? 'linear-gradient(135deg, var(--mantine-color-dark-8) 0%, var(--mantine-color-dark-7) 100%)'
             : 'linear-gradient(135deg, var(--mantine-color-teal-0) 0%, white 100%)',
         }}
       >
-        <Group gap="md" mb="xs">
-          <Box
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 8,
-              backgroundColor: isDark ? 'var(--mantine-color-cyan-9)' : 'var(--mantine-color-teal-1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <HiOutlineLightBulb
-              size={20}
-              color={isDark ? 'var(--mantine-color-cyan-4)' : 'var(--mantine-color-teal-6)'}
-            />
-          </Box>
-          <Box style={{ flex: 1 }}>
-            <Text size="lg" fw={600} c={isDark ? 'slate.1' : 'slate.8'}>
-              {concept.name}
-            </Text>
-            <Group gap="xs" mt={4}>
-              <Badge variant="light" color={isDark ? 'cyan' : 'teal'} size="sm">
-                {concept.category}
-              </Badge>
-              {concept.source && (
-                <Badge variant="outline" color={sourceColors[concept.source] || 'gray'} size="sm">
-                  {concept.source}
+        <Group gap="md" mb="xs" justify="space-between" wrap="nowrap">
+          <Group gap="md" wrap="nowrap" style={{ minWidth: 0, flex: 1 }}>
+            <Box
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 8,
+                backgroundColor: isDark ? 'var(--mantine-color-cyan-9)' : 'var(--mantine-color-teal-1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <HiOutlineLightBulb
+                size={20}
+                color={isDark ? 'var(--mantine-color-cyan-4)' : 'var(--mantine-color-teal-6)'}
+              />
+            </Box>
+            <Box style={{ minWidth: 0, flex: 1 }}>
+              <Text size="lg" fw={600} c={isDark ? 'gray.1' : 'gray.8'} truncate>
+                {concept.name}
+              </Text>
+              <Group gap="xs" mt={4}>
+                <Badge variant="light" color={isDark ? 'cyan' : 'teal'} size="sm">
+                  {concept.category}
                 </Badge>
-              )}
-            </Group>
-          </Box>
+                {flags.knowledgeSourceBadge && concept.source && (
+                  <Badge variant="outline" color={sourceColors[concept.source] || 'gray'} size="sm">
+                    {concept.source}
+                  </Badge>
+                )}
+              </Group>
+            </Box>
+          </Group>
+          <Group gap={4} wrap="nowrap">
+            <RelatedContentButton
+              contextType="knowledge"
+              contextId={concept.id}
+              contextLabel={concept.name}
+            />
+            <InlineChatButton
+              contextType="knowledge"
+              contextId={concept.id}
+              contextLabel={concept.name}
+            />
+          </Group>
         </Group>
       </Box>
 
@@ -69,17 +88,19 @@ export function ConceptDetails({ concept }: ConceptDetailsProps) {
       <Box p="md" style={{ overflow: 'auto', height: 'calc(100% - 100px)' }}>
         <Stack gap="lg">
           {/* Description */}
-          <Box>
-            <Text size="xs" c="dimmed" tt="uppercase" fw={600} mb={8}>
-              Description
-            </Text>
-            <Text size="sm" c={isDark ? 'slate.2' : 'slate.7'} style={{ lineHeight: 1.6 }}>
-              {concept.description}
-            </Text>
-          </Box>
+          {flags.knowledgeDescription && (
+            <Box>
+              <Text size="xs" c="dimmed" tt="uppercase" fw={600} mb={8}>
+                Description
+              </Text>
+              <Text size="sm" c={isDark ? 'gray.2' : 'gray.7'} style={{ lineHeight: 1.6 }}>
+                {concept.description}
+              </Text>
+            </Box>
+          )}
 
           {/* Tags */}
-          {concept.tags.length > 0 && (
+          {flags.knowledgeTags && concept.tags.length > 0 && (
             <Box>
               <Text size="xs" c="dimmed" tt="uppercase" fw={600} mb={8}>
                 Tags
@@ -95,7 +116,7 @@ export function ConceptDetails({ concept }: ConceptDetailsProps) {
           )}
 
           {/* SQL Definition */}
-          {concept.sql && (
+          {flags.knowledgeSqlDefinition && concept.sql && (
             <Box>
               <Text size="xs" c="dimmed" tt="uppercase" fw={600} mb={8}>
                 SQL Definition
@@ -105,7 +126,7 @@ export function ConceptDetails({ concept }: ConceptDetailsProps) {
           )}
 
           {/* Related Entities */}
-          {concept.relatedEntities && concept.relatedEntities.length > 0 && (
+          {flags.knowledgeRelatedEntities && concept.relatedEntities && concept.relatedEntities.length > 0 && (
             <Box>
               <Text size="xs" c="dimmed" tt="uppercase" fw={600} mb={8}>
                 Related Entities
@@ -118,12 +139,12 @@ export function ConceptDetails({ concept }: ConceptDetailsProps) {
                     padding="xs"
                     radius="sm"
                     style={{
-                      borderColor: isDark ? 'var(--mantine-color-slate-7)' : 'var(--mantine-color-gray-3)',
-                      backgroundColor: isDark ? 'var(--mantine-color-slate-8)' : 'var(--mantine-color-gray-0)',
+                      borderColor: 'var(--mantine-color-default-border)',
+                      backgroundColor: isDark ? 'var(--mantine-color-dark-6)' : 'var(--mantine-color-gray-0)',
                     }}
                   >
                     <Group gap="xs">
-                      <HiOutlineLink size={14} color={isDark ? 'var(--mantine-color-slate-4)' : 'var(--mantine-color-gray-5)'} />
+                      <HiOutlineLink size={14} color={isDark ? 'var(--mantine-color-gray-4)' : 'var(--mantine-color-gray-5)'} />
                       <Text size="sm" ff="monospace">
                         {entity}
                       </Text>
@@ -135,7 +156,7 @@ export function ConceptDetails({ concept }: ConceptDetailsProps) {
           )}
 
           {/* Metadata */}
-          {concept.createdAt && (
+          {flags.knowledgeMetadata && concept.createdAt && (
             <Box>
               <Text size="xs" c="dimmed">
                 Created: {new Date(concept.createdAt).toLocaleDateString()}

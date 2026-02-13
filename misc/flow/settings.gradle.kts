@@ -41,7 +41,7 @@ pluginManagement {
     }
 
     plugins {
-        kotlin("jvm") version "2.3.0"
+        kotlin("jvm") version libs.versions.kotlin.get()
     }
 }
 plugins {

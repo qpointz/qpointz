@@ -75,7 +75,7 @@ export function StructuralFacet({ facet }: StructuralFacetProps) {
             <Text size="xs" c="dimmed" tt="uppercase" fw={600} mb={4}>
               Data Type
             </Text>
-            <Badge variant="outline" color={isDark ? 'slate.4' : 'slate.6'} size="lg">
+            <Badge variant="outline" color={isDark ? 'gray.4' : 'gray.6'} size="lg">
               {formatType()}
             </Badge>
           </Box>
@@ -87,7 +87,7 @@ export function StructuralFacet({ facet }: StructuralFacetProps) {
           <Text size="xs" c="dimmed" tt="uppercase" fw={600} mb={4}>
             Default Value
           </Text>
-          <Text size="sm" ff="monospace" c={isDark ? 'slate.3' : 'slate.6'}>
+          <Text size="sm" ff="monospace" c={isDark ? 'gray.3' : 'gray.6'}>
             {facet.defaultValue || 'NULL'}
           </Text>
         </Box>

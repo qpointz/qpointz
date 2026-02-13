@@ -1,4 +1,4 @@
-import { Box, NavLink, Collapse, Text, useMantineColorScheme } from '@mantine/core';
+import { Box, NavLink, Collapse, Text, Badge, useMantineColorScheme } from '@mantine/core';
 import { useState } from 'react';
 import {
   HiOutlineCircleStack,
@@ -6,8 +6,12 @@ import {
   HiOutlineViewColumns,
   HiChevronRight,
   HiChevronDown,
+  HiOutlineChatBubbleLeftRight,
 } from 'react-icons/hi2';
 import type { SchemaEntity } from '../../types/schema';
+import { useInlineChat } from '../../context/InlineChatContext';
+import { useChatReferencesContext } from '../../context/ChatReferencesContext';
+import { useFeatureFlags } from '../../features/FeatureFlagContext';
 
 interface SchemaTreeProps {
   tree: SchemaEntity[];
@@ -34,10 +38,18 @@ function TreeNode({
 }) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
+  const flags = useFeatureFlags();
+  const { getSessionByContextId } = useInlineChat();
+  const { getRefsForContextId } = useChatReferencesContext();
   const [expanded, setExpanded] = useState(depth < 1); // Auto-expand first level
   const hasChildren = entity.children && entity.children.length > 0;
   const isSelected = selectedId === entity.id;
   const Icon = entityIcons[entity.type];
+  const hasChat = !!getSessionByContextId(entity.id);
+  const chatRefs = flags.chatReferencesEnabled && flags.chatReferencesSidebarIndicator
+    ? getRefsForContextId(entity.id)
+    : [];
+  const hasRelatedChats = chatRefs.length > 0;
 
   const handleClick = () => {
     onSelect(entity);
@@ -49,14 +61,40 @@ function TreeNode({
   return (
     <Box>
       <NavLink
-        label={entity.name}
-        leftSection={<Icon size={16} />}
+        label={
+          <Box style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Text size="sm" fw={isSelected ? 500 : 400} lineClamp={1}>{entity.name}</Text>
+            {hasChat && (
+              <HiOutlineChatBubbleLeftRight
+                size={10}
+                color={isDark ? 'var(--mantine-color-cyan-4)' : 'var(--mantine-color-teal-6)'}
+              />
+            )}
+            {hasRelatedChats && (
+              <Badge
+                size="xs"
+                variant="light"
+                color="violet"
+                circle
+                style={{
+                  minWidth: 14,
+                  height: 14,
+                  padding: 0,
+                  fontSize: '9px',
+                }}
+              >
+                {chatRefs.length}
+              </Badge>
+            )}
+          </Box>
+        }
+        leftSection={<Icon size={14} />}
         rightSection={
           hasChildren ? (
             expanded ? (
-              <HiChevronDown size={14} />
+              <HiChevronDown size={12} />
             ) : (
-              <HiChevronRight size={14} />
+              <HiChevronRight size={12} />
             )
           ) : null
         }
@@ -65,19 +103,16 @@ function TreeNode({
         variant="light"
         color={isDark ? 'cyan' : 'teal'}
         style={{
-          paddingLeft: depth * 16 + 8,
           borderRadius: 6,
         }}
         styles={{
           root: {
-            '&[data-active]': {
+            padding: `4px 8px 4px ${depth * 16 + 8}px`,
+            ...(isSelected && {
               backgroundColor: isDark
                 ? 'var(--mantine-color-cyan-9)'
                 : 'var(--mantine-color-teal-1)',
-            },
-          },
-          label: {
-            fontWeight: isSelected ? 500 : 400,
+            }),
           },
         }}
       />
@@ -109,9 +144,9 @@ export function SchemaTree({ tree, selectedId, onSelect }: SchemaTreeProps) {
       <Box py="xl" ta="center">
         <HiOutlineCircleStack
           size={32}
-          color={isDark ? 'var(--mantine-color-slate-5)' : 'var(--mantine-color-slate-4)'}
+          color={isDark ? 'var(--mantine-color-gray-5)' : 'var(--mantine-color-gray-4)'}
         />
-        <Text size="sm" c={isDark ? 'slate.4' : 'slate.5'} mt="sm">
+        <Text size="sm" c={isDark ? 'gray.4' : 'gray.5'} mt="sm">
           No schemas available
         </Text>
       </Box>

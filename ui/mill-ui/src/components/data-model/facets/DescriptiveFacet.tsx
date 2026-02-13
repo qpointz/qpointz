@@ -27,7 +27,7 @@ export function DescriptiveFacet({ facet }: DescriptiveFacetProps) {
           <Text size="xs" c="dimmed" tt="uppercase" fw={600} mb={4}>
             Description
           </Text>
-          <Text size="sm" c={isDark ? 'slate.2' : 'slate.7'}>
+          <Text size="sm" c={isDark ? 'gray.2' : 'gray.7'}>
             {facet.description}
           </Text>
         </Box>
@@ -38,7 +38,7 @@ export function DescriptiveFacet({ facet }: DescriptiveFacetProps) {
           <Text size="xs" c="dimmed" tt="uppercase" fw={600} mb={4}>
             Business Meaning
           </Text>
-          <Text size="sm" c={isDark ? 'slate.2' : 'slate.7'}>
+          <Text size="sm" c={isDark ? 'gray.2' : 'gray.7'}>
             {facet.businessMeaning}
           </Text>
         </Box>

@@ -1,33 +1,20 @@
-import type { ChatService } from '../types/chat';
-import { mockChatService } from './mockApi';
+/**
+ * Centralized service barrel.
+ *
+ * Every data access in the application flows through this module.
+ * Each service is implemented in its own file and can be independently
+ * swapped from mock to real backend by changing the re-export source.
+ */
 
-// Export the mock service for now
-// When you have a real backend, create a new implementation of ChatService
-// and swap it here
-export const chatService: ChatService = mockChatService;
+export { schemaService } from './schemaService';
+export { conceptService } from './conceptService';
+export { queryService } from './queryService';
+export { statsService } from './statsService';
+export { chatService } from './chatService';
+export { chatReferencesService } from './chatReferencesService';
+export { relatedContentService } from './relatedContentService';
+export { featureService } from './featureService';
+export { searchService } from './searchService';
 
-// Example of how to create a real API service:
-/*
-import axios from 'axios';
-
-const API_BASE_URL = 'https://your-api.com';
-
-export const realChatService: ChatService = {
-  async *sendMessage(conversationId: string, message: string) {
-    const response = await fetch(`${API_BASE_URL}/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ conversationId, message }),
-    });
-    
-    const reader = response.body?.getReader();
-    const decoder = new TextDecoder();
-    
-    while (reader) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      yield decoder.decode(value);
-    }
-  },
-};
-*/
+// Re-export the FeatureFlagService interface for consumers that need it
+export type { FeatureFlagService } from './featureService';

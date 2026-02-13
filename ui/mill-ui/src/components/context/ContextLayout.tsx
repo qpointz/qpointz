@@ -1,10 +1,12 @@
 import { Box, Text, useMantineColorScheme } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { HiOutlineLightBulb } from 'react-icons/hi2';
+import { HiOutlineLightBulb, HiOutlineAcademicCap } from 'react-icons/hi2';
 import { ContextSidebar } from './ContextSidebar';
 import { ConceptDetails } from './ConceptDetails';
-import { getConceptById, filterConcepts } from '../../data/mockConcepts';
+import { CollapsibleSidebar } from '../common/CollapsibleSidebar';
+import { conceptService } from '../../services/api';
+import { useChatReferencesContext } from '../../context/ChatReferencesContext';
 import type { Concept, ConceptFilter } from '../../types/context';
 
 export function ContextLayout() {
@@ -12,15 +14,42 @@ export function ContextLayout() {
   const isDark = colorScheme === 'dark';
   const navigate = useNavigate();
   const params = useParams<{ conceptId?: string }>();
+  const { prefetchRefs } = useChatReferencesContext();
 
   const [selectedConcept, setSelectedConcept] = useState<Concept | null>(null);
   const [filter, setFilter] = useState<ConceptFilter>({ type: null, value: null });
+  const [concepts, setConcepts] = useState<Concept[]>([]);
+  const [categories, setCategories] = useState<{ name: string; count: number }[]>([]);
+  const [tags, setTags] = useState<{ name: string; count: number }[]>([]);
+
+  // Load categories, tags, and initial concepts on mount
+  useEffect(() => {
+    conceptService.getCategories().then(setCategories).catch(() => setCategories([]));
+    conceptService.getTags().then(setTags).catch(() => setTags([]));
+
+    // Prefetch chat references for all concepts
+    conceptService.getConcepts().then((allConcepts) => {
+      const allIds = allConcepts.map((c) => c.id);
+      prefetchRefs('knowledge', allIds);
+    }).catch(() => {
+      // Silently ignore
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- load once on mount
+  }, []);
+
+  // Load concepts when filter changes
+  useEffect(() => {
+    conceptService.getConcepts(filter).then(setConcepts).catch(() => setConcepts([]));
+  }, [filter]);
 
   // Sync URL params to selected concept
   useEffect(() => {
     if (params.conceptId) {
-      const concept = getConceptById(params.conceptId);
-      setSelectedConcept(concept || null);
+      conceptService.getConceptById(params.conceptId).then((concept) => {
+        setSelectedConcept(concept);
+      }).catch(() => {
+        setSelectedConcept(null);
+      });
     } else {
       setSelectedConcept(null);
     }
@@ -28,14 +57,12 @@ export function ContextLayout() {
 
   const handleSelectConcept = (concept: Concept) => {
     setSelectedConcept(concept);
-    navigate(`/context/${concept.id}`);
+    navigate(`/knowledge/${concept.id}`);
   };
 
   const handleFilterChange = (newFilter: ConceptFilter) => {
     setFilter(newFilter);
   };
-
-  const filteredConcepts = filterConcepts(filter.type, filter.value);
 
   return (
     <Box
@@ -46,19 +73,23 @@ export function ContextLayout() {
       }}
     >
       {/* Sidebar */}
-      <ContextSidebar
-        concepts={filteredConcepts}
-        selectedId={selectedConcept?.id || null}
-        filter={filter}
-        onSelectConcept={handleSelectConcept}
-        onFilterChange={handleFilterChange}
-      />
+      <CollapsibleSidebar icon={HiOutlineAcademicCap} title="Knowledge">
+        <ContextSidebar
+          concepts={concepts}
+          categories={categories}
+          tags={tags}
+          selectedId={selectedConcept?.id || null}
+          filter={filter}
+          onSelectConcept={handleSelectConcept}
+          onFilterChange={handleFilterChange}
+        />
+      </CollapsibleSidebar>
 
       {/* Main Content */}
       <Box
         style={{
           flex: 1,
-          backgroundColor: isDark ? 'var(--mantine-color-slate-8)' : 'white',
+          backgroundColor: 'var(--mantine-color-body)',
           overflow: 'hidden',
         }}
       >
@@ -91,7 +122,7 @@ export function ContextLayout() {
                 color={isDark ? 'var(--mantine-color-cyan-4)' : 'var(--mantine-color-teal-6)'}
               />
             </Box>
-            <Text size="xl" fw={600} c={isDark ? 'slate.1' : 'slate.8'} mb="xs">
+            <Text size="xl" fw={600} c={isDark ? 'gray.1' : 'gray.8'} mb="xs">
               Context Explorer
             </Text>
             <Text size="sm" c="dimmed" ta="center" maw={400}>

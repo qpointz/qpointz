@@ -147,7 +147,7 @@ tools-build-all: tools-build-sem-release tools-build-minica tools-build-deploy-t
 
 git-clean-branches:
 	@git fetch origin --prune
-	@for branch in $$(git for-each-ref --format='%(refname:short)' refs/heads/feat/ refs/heads/poc/ refs/heads/fix/); do \
+	@for branch in $$(git for-each-ref --format='%(refname:short)' refs/heads/build refs/heads/feat/ refs/heads/poc/ refs/heads/fix/); do \
 		if ! git show-ref --quiet refs/remotes/origin/$$branch; then \
 			echo "Deleting $$branch (no remote on origin)"; \
 			git branch -D $$branch; \

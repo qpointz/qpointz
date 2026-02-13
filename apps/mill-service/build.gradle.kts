@@ -76,12 +76,13 @@ tasks.register("assembleSamples") {
 dependencies {
     implementation(project(":services:mill-well-known-service"))
     implementation(project(":services:mill-metadata-service"))
-
     implementation(project(":data:mill-data-backends"))
     implementation(project(":data:mill-data-grpc-service"))
     implementation(project(":data:mill-data-http-service"))
 
-    implementation(project(":ai:mill-ai-nlsql-chat-service"))
+    implementation(project(":ai:mill-ai-v1-nlsql-chat-service"))
+
+    implementation(project(":ui:mill-grinder-service"))
 
     implementation(project(":ui:mill-grinder-service"))
 

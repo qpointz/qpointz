@@ -42,8 +42,8 @@ export function RelationFacet({ relations }: RelationFacetProps) {
           padding="sm"
           radius="md"
           style={{
-            borderColor: isDark ? 'var(--mantine-color-slate-7)' : 'var(--mantine-color-gray-3)',
-            backgroundColor: isDark ? 'var(--mantine-color-slate-8)' : 'var(--mantine-color-gray-0)',
+            borderColor: 'var(--mantine-color-default-border)',
+            backgroundColor: isDark ? 'var(--mantine-color-dark-6)' : 'var(--mantine-color-gray-0)',
           }}
         >
           <Stack gap="xs">
@@ -72,14 +72,14 @@ export function RelationFacet({ relations }: RelationFacetProps) {
 
             {/* Source -> Target */}
             <Group gap="xs" wrap="nowrap">
-              <Text size="xs" ff="monospace" c={isDark ? 'slate.3' : 'slate.6'}>
+              <Text size="xs" ff="monospace" c={isDark ? 'gray.3' : 'gray.6'}>
                 {relation.sourceEntity}
               </Text>
               <HiArrowLongRight
                 size={16}
-                color={isDark ? 'var(--mantine-color-slate-5)' : 'var(--mantine-color-gray-5)'}
+                color={isDark ? 'var(--mantine-color-gray-5)' : 'var(--mantine-color-gray-5)'}
               />
-              <Text size="xs" ff="monospace" c={isDark ? 'slate.3' : 'slate.6'}>
+              <Text size="xs" ff="monospace" c={isDark ? 'gray.3' : 'gray.6'}>
                 {relation.targetEntity}
               </Text>
             </Group>

@@ -29,9 +29,11 @@ include (":services:mill-metadata-service")
 include (":ui:mill-grinder-service")
 
 include (":ai")
-include (":ai:mill-ai-core")
-include (":ai:mill-ai-core-ext")
-include (":ai:mill-ai-nlsql-chat-service")
+include (":ai:mill-ai-v1-core")
+include (":ai:mill-ai-v1-nlsql-chat-service")
+
+include (":ai:mill-ai-v2")
+include (":ai:mill-ai-v2-test")
 
 include (":clients:mill-jdbc-driver")
 include (":clients:mill-jdbc-shell")
@@ -61,7 +63,7 @@ pluginManagement {
     }
 
     plugins {
-        kotlin("jvm") version "2.3.0"
+        kotlin("jvm") version "2.3.10"
     }
 }
 

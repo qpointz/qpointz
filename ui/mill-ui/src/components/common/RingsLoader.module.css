@@ -1,0 +1,69 @@
+.loader {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.loader circle {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.ring1 {
+  stroke: var(--mantine-color-primary-3);
+  stroke-dasharray: 80;
+  stroke-dashoffset: 60;
+  animation: rotate1 1.4s ease-in-out infinite, color1 2.8s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.ring2 {
+  stroke: var(--mantine-color-primary-5);
+  stroke-dasharray: 55;
+  stroke-dashoffset: 40;
+  animation: rotate2 1.4s ease-in-out infinite, color2 2.8s ease-in-out infinite;
+  animation-delay: 0.15s;
+  transform-origin: center;
+}
+
+.ring3 {
+  stroke: var(--mantine-color-primary-7);
+  stroke-dasharray: 30;
+  stroke-dashoffset: 20;
+  animation: rotate3 1.4s ease-in-out infinite, color3 2.8s ease-in-out infinite;
+  animation-delay: 0.3s;
+  transform-origin: center;
+}
+
+@keyframes rotate1 {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(180deg); }
+}
+
+@keyframes rotate2 {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-180deg); }
+}
+
+@keyframes rotate3 {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(180deg); }
+}
+
+@keyframes color1 {
+  0%, 100% { stroke: var(--mantine-color-primary-3); }
+  33% { stroke: var(--mantine-color-primary-5); }
+  66% { stroke: var(--mantine-color-primary-7); }
+}
+
+@keyframes color2 {
+  0%, 100% { stroke: var(--mantine-color-primary-5); }
+  33% { stroke: var(--mantine-color-primary-7); }
+  66% { stroke: var(--mantine-color-primary-3); }
+}
+
+@keyframes color3 {
+  0%, 100% { stroke: var(--mantine-color-primary-7); }
+  33% { stroke: var(--mantine-color-primary-3); }
+  66% { stroke: var(--mantine-color-primary-5); }
+}

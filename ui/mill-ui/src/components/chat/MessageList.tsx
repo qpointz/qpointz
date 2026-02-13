@@ -1,9 +1,15 @@
-import { Box, ScrollArea, Text, Stack, useMantineColorScheme } from '@mantine/core';
-import { useEffect, useRef } from 'react';
-import { HiOutlineSparkles } from 'react-icons/hi2';
+import { ActionIcon, Box, ScrollArea, Stack, Transition, useMantineColorScheme } from '@mantine/core';
+import { HiArrowDown } from 'react-icons/hi2';
 import type { Message } from '../../types/chat';
 import { MessageBubble } from './MessageBubble';
 import { TypingIndicator } from './TypingIndicator';
+import { ChatEmptyState } from '../common/ChatEmptyState';
+import { useAutoScroll } from '../../hooks/useAutoScroll';
+
+/** Height reserved for the pinned top toolbar overlay */
+const TOP_PADDING = 52;
+/** Height reserved for the floating bottom input overlay */
+const BOTTOM_PADDING = 120;
 
 interface MessageListProps {
   messages: Message[];
@@ -13,84 +19,74 @@ interface MessageListProps {
 export function MessageList({ messages, isLoading }: MessageListProps) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
-  const viewportRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    if (viewportRef.current) {
-      viewportRef.current.scrollTo({
-        top: viewportRef.current.scrollHeight,
-        behavior: 'smooth',
-      });
-    }
-  }, [messages, isLoading]);
+  const { viewportRef, showScrollBottom, scrollToBottom, handleScroll } = useAutoScroll({
+    deps: [messages, isLoading],
+  });
 
   if (messages.length === 0) {
     return (
-      <Box
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '48px',
-        }}
-      >
-        <Box
-          style={{
-            width: '80px',
-            height: '80px',
-            borderRadius: '50%',
-            backgroundColor: isDark ? 'var(--mantine-color-cyan-9)' : 'var(--mantine-color-teal-1)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: '24px',
-          }}
-        >
-          <HiOutlineSparkles
-            size={36}
-            color={isDark ? 'var(--mantine-color-cyan-4)' : 'var(--mantine-color-teal-6)'}
-          />
-        </Box>
-        <Text
-          size="xl"
-          fw={600}
-          mb="xs"
-          c={isDark ? 'slate.1' : 'slate.8'}
-        >
-          How can I help you today?
-        </Text>
-        <Text
-          size="sm"
-          c={isDark ? 'slate.4' : 'slate.5'}
-          ta="center"
-          maw={400}
-        >
-          Start a conversation by typing a message below. I can help with coding, answer questions, and assist with various tasks.
-        </Text>
-      </Box>
+      <ChatEmptyState
+        title="How can I help you today?"
+        description="Start a conversation by typing a message below. I can help with coding, answer questions, and assist with various tasks."
+      />
     );
   }
 
   return (
-    <ScrollArea
-      style={{ flex: 1 }}
-      viewportRef={viewportRef}
-      type="scroll"
-      scrollbarSize={8}
-    >
-      <Stack gap={0} p="md">
-        {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
-        ))}
-        {isLoading && messages[messages.length - 1]?.content === '' && (
-          <Box style={{ display: 'flex', justifyContent: 'flex-start' }}>
-            <TypingIndicator />
-          </Box>
+    <Box style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+      <ScrollArea
+        style={{ height: '100%' }}
+        viewportRef={viewportRef}
+        type="scroll"
+        scrollbarSize={8}
+        onScrollPositionChange={handleScroll}
+      >
+        <Stack
+          gap={0}
+          px="md"
+          style={{
+            paddingTop: `${TOP_PADDING}px`,
+            paddingBottom: `${BOTTOM_PADDING}px`,
+            maxWidth: '900px',
+            margin: '0 auto',
+            width: '100%',
+          }}
+        >
+          {messages.map((message) => (
+            <MessageBubble key={message.id} message={message} />
+          ))}
+          {isLoading && messages[messages.length - 1]?.content === '' && (
+            <Box style={{ display: 'flex', justifyContent: 'flex-start' }}>
+              <TypingIndicator />
+            </Box>
+          )}
+        </Stack>
+      </ScrollArea>
+
+      {/* Scroll-to-bottom affix button */}
+      <Transition mounted={showScrollBottom} transition="slide-up" duration={200}>
+        {(styles) => (
+          <ActionIcon
+            variant="filled"
+            color={isDark ? 'cyan' : 'teal'}
+            size="lg"
+            radius="xl"
+            onClick={scrollToBottom}
+            style={{
+              ...styles,
+              position: 'absolute',
+              bottom: `${BOTTOM_PADDING + 12}px`,
+              right: '24px',
+              zIndex: 20,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+            }}
+            aria-label="Scroll to bottom"
+          >
+            <HiArrowDown size={18} />
+          </ActionIcon>
         )}
-      </Stack>
-    </ScrollArea>
+      </Transition>
+    </Box>
   );
 }
