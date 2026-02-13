@@ -51,6 +51,8 @@ abstract class ConversationScenarioBaseTest {
         step.system?.let { prompt.system(it) }
         step.user?.let { prompt.user(it) }
 
+        (step.expect ?: DefaultExpectations()).assert(prompt)
+
 //        if (step.expect?.json !=null) {
 //            val resps = prompt.stream()
 //                .content()

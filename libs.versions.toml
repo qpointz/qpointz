@@ -153,6 +153,8 @@ springdoc-openapi-starter-webflux-api = { module = "org.springdoc:springdoc-open
 micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer" }
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version = "3.2.3" }
 
+json-path = { module = "com.jayway.jsonpath:json-path", version = "2.10.0" }
+
 [bundles]
 logging = ["slf4j-api", "logback-core", "logback-classic", "fusesource-jansi"]
 jdbc-pack = [

@@ -1,0 +1,36 @@
+name: simple
+measures:
+  - time
+  - tokens
+persist: true
+expect:
+  format: json-list
+  asserts:
+    - assert: not-empty
+    - assert: json-path
+      exp: "event"
+      match: all
+conversation:
+  - user: are you pinguine
+    system: guess your animal
+    expect:
+      format: json-list
+      asserts:
+      - assert: json-path
+        exp: "event"
+        match: one
+  - user: are you?
+    expect:
+      format: json
+      asserts:
+        - assert: not-empty
+        - assert: json-path
+          exp: evt
+
+#  - user: who are you
+#  - system: ignore my question
+#    user: lala
+#    expect:
+#      format: json
+#      assert:
+#        - of: uuu

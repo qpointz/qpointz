@@ -1,13 +1,14 @@
 package io.qpointz.mill.plugins
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.internal.cc.base.logger
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import java.nio.file.Files
 import java.nio.file.Paths
+import kotlin.jvm.java
 
 
 open class MillExtension {
@@ -50,11 +51,17 @@ class MillPlugin: Plugin<Project> {
         project.pluginManager.apply("jvm-test-suite")
 
         project.extensions.configure(org.gradle.api.plugins.JavaPluginExtension::class.java) {
-            sourceCompatibility = JavaVersion.VERSION_25
             toolchain {
-                languageVersion.set(JavaLanguageVersion.of(25))
+                languageVersion.set(JavaLanguageVersion.of(21))
             }
         }
+
+        project.plugins.withId("org.jetbrains.kotlin.jvm") {
+            project.extensions.configure(KotlinJvmProjectExtension::class.java) {
+                jvmToolchain(21)
+            }
+        }
+
 
         val lombok = project.rootProject
             .extensions

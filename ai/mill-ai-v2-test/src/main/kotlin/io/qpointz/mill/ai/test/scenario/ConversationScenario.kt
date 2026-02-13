@@ -4,8 +4,8 @@ import io.qpointz.mill.utils.YamlUtils
 import java.io.InputStream
 
 data class ConversationScenario(val name: String,
-                                val measures: List<String>?,
-                                val conversation: List<Step>,
+                                val measures: List<String> = emptyList(),
+                                val conversation: List<Step> = emptyList(),
                                 val persist: Boolean = true,
                                 val expect: Expectations = DefaultExpectations()
 ) {

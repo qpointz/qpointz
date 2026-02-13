@@ -1,11 +1,12 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
-    alias (libs.plugins.kotlin)
+    kotlin("jvm") version libs.versions.kotlin
     alias (libs.plugins.kotlin.spring)
     alias(libs.plugins.spring.dependency.management)
     id("io.qpointz.plugins.mill")
 }
+
 
 mill {
     description = "Natural language to sql (NL2SQL) core library"
@@ -26,6 +27,7 @@ dependencies {
     compileOnly(libs.bundles.logging)
     runtimeOnly(libs.apache.httpclient5)
     runtimeOnly(libs.apache.httpcore5)
+    implementation(kotlin("stdlib-jdk8"))
 }
 
 tasks.named<Javadoc>("javadoc") { //temporary
@@ -62,4 +64,7 @@ tasks.named<Test>("testIT") {
         events("passed", "failed", "skipped")
         exceptionFormat = TestExceptionFormat.SHORT
     }
+}
+repositories {
+    mavenCentral()
 }
