@@ -13,6 +13,7 @@ type ChatAction =
   | { type: 'ADD_MESSAGE'; payload: { conversationId: string; message: Message } }
   | { type: 'UPDATE_MESSAGE'; payload: { conversationId: string; messageId: string; content: string } }
   | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_THINKING'; payload: string | null }
   | { type: 'CLEAR_ALL' };
 
 function chatReducer(state: ChatState, action: ChatAction): ChatState {
@@ -75,8 +76,10 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     }
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
+    case 'SET_THINKING':
+      return { ...state, thinkingMessage: action.payload };
     case 'CLEAR_ALL':
-      return { conversations: [], activeConversationId: null, isLoading: false };
+      return { conversations: [], activeConversationId: null, isLoading: false, thinkingMessage: null };
     default:
       return state;
   }
@@ -86,6 +89,7 @@ const initialState: ChatState = {
   conversations: [],
   activeConversationId: null,
   isLoading: false,
+  thinkingMessage: null,
 };
 
 function makeConversation(id: string, title = 'New Chat'): Conversation {
@@ -118,7 +122,7 @@ describe('chatReducer', () => {
       const newConv = makeConversation('c2');
       const state = chatReducer(existing, { type: 'CREATE_CONVERSATION', payload: newConv });
       expect(state.conversations).toHaveLength(2);
-      expect(state.conversations[0].id).toBe('c2');
+      expect(state.conversations[0]!.id).toBe('c2');
       expect(state.activeConversationId).toBe('c2');
     });
   });
@@ -129,10 +133,11 @@ describe('chatReducer', () => {
         conversations: [makeConversation('c1'), makeConversation('c2')],
         activeConversationId: 'c1',
         isLoading: false,
+        thinkingMessage: null,
       };
       const state = chatReducer(existing, { type: 'DELETE_CONVERSATION', payload: 'c1' });
       expect(state.conversations).toHaveLength(1);
-      expect(state.conversations[0].id).toBe('c2');
+      expect(state.conversations[0]!.id).toBe('c2');
     });
 
     it('should switch active to first remaining when active is deleted', () => {
@@ -140,6 +145,7 @@ describe('chatReducer', () => {
         conversations: [makeConversation('c1'), makeConversation('c2')],
         activeConversationId: 'c1',
         isLoading: false,
+        thinkingMessage: null,
       };
       const state = chatReducer(existing, { type: 'DELETE_CONVERSATION', payload: 'c1' });
       expect(state.activeConversationId).toBe('c2');
@@ -150,6 +156,7 @@ describe('chatReducer', () => {
         conversations: [makeConversation('c1')],
         activeConversationId: 'c1',
         isLoading: false,
+        thinkingMessage: null,
       };
       const state = chatReducer(existing, { type: 'DELETE_CONVERSATION', payload: 'c1' });
       expect(state.activeConversationId).toBeNull();
@@ -160,6 +167,7 @@ describe('chatReducer', () => {
         conversations: [makeConversation('c1'), makeConversation('c2')],
         activeConversationId: 'c1',
         isLoading: false,
+        thinkingMessage: null,
       };
       const state = chatReducer(existing, { type: 'DELETE_CONVERSATION', payload: 'c2' });
       expect(state.activeConversationId).toBe('c1');
@@ -179,11 +187,12 @@ describe('chatReducer', () => {
         conversations: [makeConversation('c1')],
         activeConversationId: 'c1',
         isLoading: false,
+        thinkingMessage: null,
       };
       const msg = makeMessage('m1', 'c1', 'user', 'Hello');
       const state = chatReducer(existing, { type: 'ADD_MESSAGE', payload: { conversationId: 'c1', message: msg } });
-      expect(state.conversations[0].messages).toHaveLength(1);
-      expect(state.conversations[0].messages[0].content).toBe('Hello');
+      expect(state.conversations[0]!.messages).toHaveLength(1);
+      expect(state.conversations[0]!.messages[0]!.content).toBe('Hello');
     });
 
     it('should auto-update title from first user message when title is "New Chat"', () => {
@@ -191,10 +200,11 @@ describe('chatReducer', () => {
         conversations: [makeConversation('c1', 'New Chat')],
         activeConversationId: 'c1',
         isLoading: false,
+        thinkingMessage: null,
       };
       const msg = makeMessage('m1', 'c1', 'user', 'How do I use SQL?');
       const state = chatReducer(existing, { type: 'ADD_MESSAGE', payload: { conversationId: 'c1', message: msg } });
-      expect(state.conversations[0].title).toBe('How do I use SQL?');
+      expect(state.conversations[0]!.title).toBe('How do I use SQL?');
     });
 
     it('should truncate long titles with ellipsis', () => {
@@ -202,11 +212,12 @@ describe('chatReducer', () => {
         conversations: [makeConversation('c1', 'New Chat')],
         activeConversationId: 'c1',
         isLoading: false,
+        thinkingMessage: null,
       };
       const longMsg = 'A'.repeat(50);
       const msg = makeMessage('m1', 'c1', 'user', longMsg);
       const state = chatReducer(existing, { type: 'ADD_MESSAGE', payload: { conversationId: 'c1', message: msg } });
-      expect(state.conversations[0].title).toBe('A'.repeat(30) + '...');
+      expect(state.conversations[0]!.title).toBe('A'.repeat(30) + '...');
     });
 
     it('should not change title on assistant message', () => {
@@ -214,10 +225,11 @@ describe('chatReducer', () => {
         conversations: [makeConversation('c1', 'New Chat')],
         activeConversationId: 'c1',
         isLoading: false,
+        thinkingMessage: null,
       };
       const msg = makeMessage('m1', 'c1', 'assistant', 'Hi there!');
       const state = chatReducer(existing, { type: 'ADD_MESSAGE', payload: { conversationId: 'c1', message: msg } });
-      expect(state.conversations[0].title).toBe('New Chat');
+      expect(state.conversations[0]!.title).toBe('New Chat');
     });
   });
 
@@ -229,12 +241,13 @@ describe('chatReducer', () => {
         conversations: [conv],
         activeConversationId: 'c1',
         isLoading: false,
+        thinkingMessage: null,
       };
       const state = chatReducer(existing, {
         type: 'UPDATE_MESSAGE',
         payload: { conversationId: 'c1', messageId: 'm1', content: 'partial response complete' },
       });
-      expect(state.conversations[0].messages[0].content).toBe('partial response complete');
+      expect(state.conversations[0]!.messages[0]!.content).toBe('partial response complete');
     });
   });
 
@@ -254,6 +267,7 @@ describe('chatReducer', () => {
         conversations: [makeConversation('c1'), makeConversation('c2')],
         activeConversationId: 'c1',
         isLoading: true,
+        thinkingMessage: null,
       };
       const state = chatReducer(existing, { type: 'CLEAR_ALL' });
       expect(state.conversations).toHaveLength(0);

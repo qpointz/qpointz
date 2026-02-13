@@ -1,5 +1,5 @@
 {
-  "name": "lala2",
+  "name": "mill-ui",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
+    "test:ci": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {

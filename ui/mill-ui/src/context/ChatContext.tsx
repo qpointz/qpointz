@@ -263,6 +263,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       conversationId = tempId;
     }
 
+    // At this point conversationId is guaranteed to be non-null
+    // (either it was already set, or we just created a temp conversation above)
+    if (!conversationId) return;
+
     // Add user message immediately (optimistic)
     const userMessage: Message = {
       id: generateId(),

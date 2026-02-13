@@ -6,6 +6,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
@@ -19,6 +21,18 @@ import java.util.regex.Pattern;
 @Order(1)
 @ConditionalOnService("grinder")
 public class GrinderUIFilter implements Filter {
+
+    private static final String DEFAULT_UI_VERSION = "v1";
+
+    private final String uiVersion;
+
+    public GrinderUIFilter(@Autowired @Value("${mill.ui.version:" + DEFAULT_UI_VERSION +  "}") String version) {
+        this.uiVersion = version;
+    }
+
+    public static GrinderUIFilter withDefaultUIVersion() {
+        return new GrinderUIFilter(DEFAULT_UI_VERSION);
+    }
 
     private static final Predicate<String> ROOT_REQUEST_PATTERN;
 
@@ -71,9 +85,12 @@ public class GrinderUIFilter implements Filter {
             return;
         }
 
-        //for any other forward to /app/index
+        val dispatchTo = "/app/" + this.uiVersion + "/index.html";
+        log.debug("Dispatching SPA to {}", dispatchTo);
+
+        //for any other forward to /app/v1/index
         val requestDispatcher = servletRequest
-                .getRequestDispatcher("/app/index.html");
+                .getRequestDispatcher(dispatchTo);
 
         requestDispatcher
                 .forward(req, res);

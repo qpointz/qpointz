@@ -32,7 +32,7 @@ function wrapper({ children }: { children: ReactNode }) {
 
 /** Helper component to seed conversations before rendering Sidebar */
 function SidebarWithConversations({ count = 0 }: { count?: number }) {
-  const { createConversation, state } = useChat();
+  const { createConversation } = useChat();
   const initialized = useRef(false);
 
   useEffect(() => {

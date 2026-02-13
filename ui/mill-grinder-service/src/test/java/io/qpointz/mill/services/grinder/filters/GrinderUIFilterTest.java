@@ -2,13 +2,17 @@ package io.qpointz.mill.services.grinder.filters;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.val;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+
+import java.io.IOException;
 
 import static org.mockito.Mockito.*;
 
@@ -22,12 +26,11 @@ class GrinderUIFilterTest {
 
     @BeforeEach
     void setUp() {
-        filter = new GrinderUIFilter();
+        filter = GrinderUIFilter.withDefaultUIVersion();
         request = mock(HttpServletRequest.class);
         response = mock(HttpServletResponse.class);
         chain = mock(FilterChain.class);
     }
-
 
     @ParameterizedTest
     @ValueSource(strings = {
@@ -69,7 +72,7 @@ class GrinderUIFilterTest {
         when(request.getMethod()).thenReturn("GET");
 
         val dispatcher = mock(RequestDispatcher.class);
-        when(request.getRequestDispatcher("/app/index.html")).thenReturn(dispatcher);
+        when(request.getRequestDispatcher("/app/v1/index.html")).thenReturn(dispatcher);
         filter.doFilter(request, response, chain);
         verify(dispatcher).forward(request, response);
         verifyNoInteractions(chain);
@@ -105,6 +108,37 @@ class GrinderUIFilterTest {
 
         verify(chain).doFilter(request, response);
         verify(response, never()).sendRedirect(anyString());
+    }
+
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "v1",
+            "v2",
+    })
+    void versionRouting(String version) throws ServletException, IOException {
+        val filterWithVersions = new GrinderUIFilter(version);
+        when(request.getRequestURI()).thenReturn("/app/foo-bar");
+        when(request.getMethod()).thenReturn("GET");
+        val dispatcher = mock(RequestDispatcher.class);
+        when(request.getRequestDispatcher("/app/" + version + "/index.html")).thenReturn(dispatcher);
+
+        filterWithVersions.doFilter(request, response, chain);
+        verify(dispatcher).forward(request, response);
+        verifyNoInteractions(chain);
+    }
+
+    @Test
+    void defaultRoutesToV1() throws ServletException, IOException {
+        val filterWithVersions = GrinderUIFilter.withDefaultUIVersion(); //default version filter
+        when(request.getRequestURI()).thenReturn("/app/foo-bar");
+        when(request.getMethod()).thenReturn("GET");
+        val dispatcher = mock(RequestDispatcher.class);
+        when(request.getRequestDispatcher("/app/v1/index.html")).thenReturn(dispatcher);
+
+        filterWithVersions.doFilter(request, response, chain);
+        verify(dispatcher).forward(request, response);
+        verifyNoInteractions(chain);
     }
 
 

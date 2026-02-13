@@ -79,7 +79,7 @@ describe('InlineChatContext', () => {
 
       // Default flags have inlineChatGreeting: true
       expect(result.current.activeSession!.messages.length).toBeGreaterThanOrEqual(1);
-      const greeting = result.current.activeSession!.messages[0];
+      const greeting = result.current.activeSession!.messages[0]!;
       expect(greeting.role).toBe('assistant');
       expect(greeting.content).toContain('customers');
     });
@@ -154,7 +154,7 @@ describe('InlineChatContext', () => {
       act(() => {
         result.current.startSession('model', 'sales.customers', 'customers');
       });
-      const firstId = result.current.state.sessions[0].id;
+      const firstId = result.current.state.sessions[0]!.id;
 
       act(() => {
         result.current.startSession('knowledge', 'clv', 'CLV');
@@ -177,7 +177,7 @@ describe('InlineChatContext', () => {
       act(() => {
         result.current.startSession('model', 'ctx1', 'Entity 1');
       });
-      const firstId = result.current.state.sessions[0].id;
+      const firstId = result.current.state.sessions[0]!.id;
 
       act(() => {
         result.current.startSession('knowledge', 'ctx2', 'Concept 1');
@@ -212,11 +212,11 @@ describe('InlineChatContext', () => {
       // Should have added user + assistant messages
       expect(session.messages.length).toBe(initialMsgCount + 2);
 
-      const userMsg = session.messages[initialMsgCount];
+      const userMsg = session.messages[initialMsgCount]!;
       expect(userMsg.role).toBe('user');
       expect(userMsg.content).toBe('Tell me about this table');
 
-      const aiMsg = session.messages[initialMsgCount + 1];
+      const aiMsg = session.messages[initialMsgCount + 1]!;
       expect(aiMsg.role).toBe('assistant');
       expect(aiMsg.content).toBe('Inline mock response');
     });

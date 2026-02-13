@@ -68,6 +68,6 @@ describe('FeatureFlagContext', () => {
     });
 
     // Unknown flag should not break anything — it'll be in the object but unused
-    expect((result.current as Record<string, unknown>)['unknownFlag']).toBe(true);
+    expect((result.current as unknown as Record<string, unknown>)['unknownFlag']).toBe(true);
   });
 });

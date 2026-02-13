@@ -109,7 +109,7 @@ export function RelatedContentButton({
   const grouped: Record<string, RelatedContentRef[]> = {};
   for (const ref of refs) {
     if (!grouped[ref.type]) grouped[ref.type] = [];
-    grouped[ref.type].push(ref);
+    grouped[ref.type]!.push(ref);
   }
   const nonModelRefs = refs.filter((r) => r.type !== 'model');
 

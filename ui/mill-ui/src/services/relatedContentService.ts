@@ -13,17 +13,6 @@ function simpleHash(str: string): number {
   return Math.abs(hash);
 }
 
-// Pool of possible related model refs (full hierarchy: schema → table → column)
-const modelRefPool: RelatedContentRef[] = [
-  { id: 'sales', title: 'sales', type: 'model', entityType: 'SCHEMA' },
-  { id: 'sales.customers', title: 'customers', type: 'model', entityType: 'TABLE' },
-  { id: 'sales.customers.customer_id', title: 'customer_id', type: 'model', entityType: 'ATTRIBUTE' },
-  { id: 'sales.customers.segment', title: 'segment', type: 'model', entityType: 'ATTRIBUTE' },
-  { id: 'sales.orders', title: 'orders', type: 'model', entityType: 'TABLE' },
-  { id: 'sales.orders.total_amount', title: 'total_amount', type: 'model', entityType: 'ATTRIBUTE' },
-  { id: 'sales.orders.order_date', title: 'order_date', type: 'model', entityType: 'ATTRIBUTE' },
-];
-
 // Pool of possible related concept refs
 const conceptRefPool: RelatedContentRef[] = [
   { id: 'customer-lifetime-value', title: 'Customer Lifetime Value', type: 'concept' },

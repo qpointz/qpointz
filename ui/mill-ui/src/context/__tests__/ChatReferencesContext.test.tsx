@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { MantineProvider } from '@mantine/core';
-import { ChatReferencesProvider, useChatReferencesContext, useChatReferences } from '../ChatReferencesContext';
+import { ChatReferencesProvider, useChatReferencesContext } from '../ChatReferencesContext';
 import { FeatureFlagProvider } from '../../features/FeatureFlagContext';
 import type { ConversationRef } from '../../types/chatReferences';
 

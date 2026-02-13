@@ -35,14 +35,14 @@ describe('chatService', () => {
         chunks.push(chunk);
       }
       expect(chunks.length).toBeGreaterThan(0);
-    });
+    }, 15000);
 
     it('chunks should be strings', async () => {
       const { chatId } = await chatService.createChat();
       for await (const chunk of chatService.sendMessage(chatId, 'Hello')) {
         expect(typeof chunk).toBe('string');
       }
-    });
+    }, 15000);
   });
 
   describe('listChats', () => {

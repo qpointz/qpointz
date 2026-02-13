@@ -1,4 +1,4 @@
-ui:grinder-ui:build:
+ui:grinder-ui-v1:build:
  image: node:24-alpine
  stage: build
  script:
@@ -9,15 +9,29 @@ ui:grinder-ui:build:
  artifacts:
    expire_in: "5 days"
    paths:
-     - ${CI_PROJECT_DIR}/ui/mill-grinder-service/src/main/resources/static/app
+     - ${CI_PROJECT_DIR}/ui/mill-grinder-service/src/main/resources/static/app/v1
+
+ui:grinder-ui-v2:build:
+  image: node:24-alpine
+  stage: build
+  script:
+    - cd ${CI_PROJECT_DIR}/ui/mill-ui
+    - npm install
+    - npm run test:ci
+    - npm run build
+  artifacts:
+    expire_in: "5 days"
+    paths:
+      - ${CI_PROJECT_DIR}/ui/mill-grinder-service/src/main/resources/static/app/v2
 
 ui:build:
   stage: build
   extends: .gradle-job
   needs:
-    - job: ui:grinder-ui:build
+    - job: ui:grinder-ui-v1:build
+      artifacts: true
+    - job: ui:grinder-ui-v2:build
       artifacts: true
   script:
     - echo $HOME    
     - ./gradlew --no-daemon --console plain :ui:test :ui:compileTestIT
-    

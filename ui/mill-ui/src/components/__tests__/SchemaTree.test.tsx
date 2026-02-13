@@ -119,7 +119,7 @@ describe('SchemaTree', () => {
       const onSelect = vi.fn();
       renderTree({ onSelect });
       fireEvent.click(screen.getByText('customers'));
-      expect(onSelect).toHaveBeenCalledWith(mockTree[0].children![0]);
+      expect(onSelect).toHaveBeenCalledWith(mockTree[0]!.children![0]);
     });
   });
 

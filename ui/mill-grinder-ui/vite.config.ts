@@ -16,7 +16,7 @@ export default defineConfig({
     ],
     base: '/app/',
     build: {
-        outDir: '../mill-grinder-service/src/main/resources/static/app',
+        outDir: '../mill-grinder-service/src/main/resources/static/app/v1',
         emptyOutDir: true,
         sourcemap: false,
     },

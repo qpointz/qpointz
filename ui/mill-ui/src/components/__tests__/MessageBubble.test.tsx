@@ -8,8 +8,7 @@ function renderBubble(msg: Partial<Message> & { role: Message['role'] }) {
   const message: Message = {
     id: 'msg-1',
     conversationId: 'conv-1',
-    content: msg.content ?? '',
-    role: msg.role,
+    content: '',
     timestamp: Date.now(),
     ...msg,
   };

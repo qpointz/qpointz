@@ -56,7 +56,7 @@ describe('ChatContext', () => {
 
       expect(result.current.state.conversations).toHaveLength(1);
       expect(result.current.state.activeConversationId).toBe(
-        result.current.state.conversations[0].id,
+        result.current.state.conversations[0]!.id,
       );
       expect(result.current.activeConversation).not.toBeNull();
       expect(result.current.activeConversation!.title).toBe('New Chat');
@@ -69,7 +69,7 @@ describe('ChatContext', () => {
       await act(async () => {
         await result.current.createConversation();
       });
-      const firstId = result.current.state.conversations[0].id;
+      const firstId = result.current.state.conversations[0]!.id;
 
       await act(async () => {
         await result.current.createConversation();
@@ -88,7 +88,7 @@ describe('ChatContext', () => {
       await act(async () => {
         await result.current.createConversation();
       });
-      const id = result.current.state.conversations[0].id;
+      const id = result.current.state.conversations[0]!.id;
 
       act(() => {
         result.current.deleteConversation(id);
@@ -130,7 +130,7 @@ describe('ChatContext', () => {
         await result.current.createConversation();
       });
 
-      const firstId = result.current.state.conversations[1].id; // oldest is at index 1
+      const firstId = result.current.state.conversations[1]!.id; // oldest is at index 1
       act(() => {
         result.current.setActiveConversation(firstId);
       });
@@ -146,7 +146,7 @@ describe('ChatContext', () => {
       await act(async () => {
         await result.current.createConversation();
       });
-      const id = result.current.state.conversations[0].id;
+      const id = result.current.state.conversations[0]!.id;
 
       act(() => {
         result.current.renameConversation(id, 'My Custom Title');
@@ -172,12 +172,12 @@ describe('ChatContext', () => {
       expect(conv.messages.length).toBeGreaterThanOrEqual(2);
 
       // First message is user
-      expect(conv.messages[0].role).toBe('user');
-      expect(conv.messages[0].content).toBe('Hello, AI!');
+      expect(conv.messages[0]!.role).toBe('user');
+      expect(conv.messages[0]!.content).toBe('Hello, AI!');
 
       // Second message is assistant with mocked response
-      expect(conv.messages[1].role).toBe('assistant');
-      expect(conv.messages[1].content).toBe('Mock AI response');
+      expect(conv.messages[1]!.role).toBe('assistant');
+      expect(conv.messages[1]!.content).toBe('Mock AI response');
     });
 
     it('should update conversation title from first user message', async () => {
@@ -221,7 +221,7 @@ describe('ChatContext', () => {
 
       // The user message + assistant response should be in the new conversation
       expect(conv.messages.length).toBeGreaterThanOrEqual(2);
-      expect(conv.messages[0].content).toBe('Hello');
+      expect(conv.messages[0]!.content).toBe('Hello');
     });
 
     it('should create a new conversation when newConversation option is set, even if one is active', async () => {

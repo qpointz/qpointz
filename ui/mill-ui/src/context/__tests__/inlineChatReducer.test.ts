@@ -84,6 +84,7 @@ const initialState: InlineChatState = {
 function makeSession(id: string, contextId: string): InlineChatSession {
   return {
     id,
+    chatId: null,
     contextType: 'model',
     contextId,
     contextLabel: `Session ${id}`,
@@ -156,8 +157,8 @@ describe('inlineChatReducer', () => {
       let state = inlineChatReducer(initialState, { type: 'START_SESSION', payload: makeSession('s1', 'ctx1') });
       const msg = makeMessage('m1', 's1', 'user', 'Hello');
       state = inlineChatReducer(state, { type: 'ADD_MESSAGE', payload: { sessionId: 's1', message: msg } });
-      expect(state.sessions[0].messages).toHaveLength(1);
-      expect(state.sessions[0].messages[0].content).toBe('Hello');
+      expect(state.sessions[0]!.messages).toHaveLength(1);
+      expect(state.sessions[0]!.messages[0]!.content).toBe('Hello');
     });
   });
 
@@ -170,7 +171,7 @@ describe('inlineChatReducer', () => {
         type: 'UPDATE_MESSAGE',
         payload: { sessionId: 's1', messageId: 'm1', content: 'partial complete' },
       });
-      expect(state.sessions[0].messages[0].content).toBe('partial complete');
+      expect(state.sessions[0]!.messages[0]!.content).toBe('partial complete');
     });
   });
 
@@ -178,7 +179,7 @@ describe('inlineChatReducer', () => {
     it('should set loading for a specific session', () => {
       let state = inlineChatReducer(initialState, { type: 'START_SESSION', payload: makeSession('s1', 'ctx1') });
       state = inlineChatReducer(state, { type: 'SET_LOADING', payload: { sessionId: 's1', isLoading: true } });
-      expect(state.sessions[0].isLoading).toBe(true);
+      expect(state.sessions[0]!.isLoading).toBe(true);
     });
   });
 

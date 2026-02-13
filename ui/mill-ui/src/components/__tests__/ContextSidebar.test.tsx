@@ -110,7 +110,7 @@ describe('ContextSidebar', () => {
       const onFilterChange = vi.fn();
       renderSidebar({ onFilterChange });
       // Click the first "Analytics" match which is in the categories section
-      fireEvent.click(screen.getAllByText('Analytics')[0]);
+      fireEvent.click(screen.getAllByText('Analytics')[0]!);
       expect(onFilterChange).toHaveBeenCalledWith({ type: 'category', value: 'Analytics' });
     });
 
@@ -120,7 +120,7 @@ describe('ContextSidebar', () => {
         onFilterChange,
         filter: { type: 'category', value: 'Analytics' },
       });
-      fireEvent.click(screen.getAllByText('Analytics')[0]);
+      fireEvent.click(screen.getAllByText('Analytics')[0]!);
       expect(onFilterChange).toHaveBeenCalledWith({ type: null, value: null });
     });
   });

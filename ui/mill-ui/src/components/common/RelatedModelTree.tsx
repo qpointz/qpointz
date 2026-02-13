@@ -38,7 +38,7 @@ export function buildModelTree(refs: RelatedContentRef[]): ModelTreeNode[] {
       const seg = segments[i]!;
       const fullId = segments.slice(0, i + 1).join('.');
 
-      let node = parentNode
+      let node: ModelTreeNode | undefined = parentNode
         ? parentNode.children.find((c) => c.segment === seg)
         : currentMap.get(seg);
 
@@ -101,8 +101,6 @@ function TreeNodeRow({ node, isDark, iconColor, onNavigate, compact }: TreeNodeR
   const hasChildren = node.children.length > 0;
   const isSchema = node.depth === 0;
   const isTable = node.depth === 1;
-  const isColumn = node.depth >= 2;
-
   // Schema: always expanded, Table: expanded when ≤ threshold, Column: leaf
   const defaultExpanded = isSchema
     ? true
@@ -123,7 +121,7 @@ function TreeNodeRow({ node, isDark, iconColor, onNavigate, compact }: TreeNodeR
   const step = compact ? 5 : 6;
   const indent = basePx + node.depth * step;
   const isRef = !!node.ref;
-  
+
   const handleRowClick = () => {
     if (showChevron) {
       setExpanded((e) => !e);
@@ -150,7 +148,7 @@ function TreeNodeRow({ node, isDark, iconColor, onNavigate, compact }: TreeNodeR
         onMouseEnter={(e) => {
           if (isRef || showChevron) {
             e.currentTarget.style.backgroundColor = isDark
-              ? 'var(--mantine-color-dark-6)'
+              ? 'var(--mantine-color-slate-7)'
               : 'var(--mantine-color-gray-1)';
           }
         }}
@@ -165,8 +163,8 @@ function TreeNodeRow({ node, isDark, iconColor, onNavigate, compact }: TreeNodeR
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: compact ? 10 : 12, padding: 0, flexShrink: 0 }}
           >
             {expanded
-              ? <HiChevronDown size={compact ? 10 : 12} color={isDark ? 'var(--mantine-color-gray-4)' : 'var(--mantine-color-gray-5)'} />
-              : <HiChevronRight size={compact ? 10 : 12} color={isDark ? 'var(--mantine-color-gray-4)' : 'var(--mantine-color-gray-5)'} />
+              ? <HiChevronDown size={compact ? 10 : 12} color={isDark ? 'var(--mantine-color-slate-4)' : 'var(--mantine-color-slate-5)'} />
+              : <HiChevronRight size={compact ? 10 : 12} color={isDark ? 'var(--mantine-color-slate-4)' : 'var(--mantine-color-slate-5)'} />
             }
           </UnstyledButton>
         ) : !isSchema ? (
@@ -178,7 +176,7 @@ function TreeNodeRow({ node, isDark, iconColor, onNavigate, compact }: TreeNodeR
         <Text
           size="xs"
           fw={isRef ? 500 : 400}
-          c={isRef ? (isDark ? 'gray.1' : 'gray.8') : (isDark ? 'gray.3' : 'gray.5')}
+          c={isRef ? (isDark ? 'slate.1' : 'slate.8') : (isDark ? 'slate.3' : 'slate.5')}
           truncate
           style={{ flex: 1, fontSize }}
         >
@@ -193,7 +191,7 @@ function TreeNodeRow({ node, isDark, iconColor, onNavigate, compact }: TreeNodeR
           >
             <HiOutlineArrowTopRightOnSquare
               size={compact ? 10 : 12}
-              color={isDark ? 'var(--mantine-color-gray-5)' : 'var(--mantine-color-gray-4)'}
+              color={isDark ? 'var(--mantine-color-slate-5)' : 'var(--mantine-color-slate-4)'}
             />
           </UnstyledButton>
         )}
