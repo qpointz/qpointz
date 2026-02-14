@@ -305,8 +305,8 @@ Additional storage types (S3, Azure, etc.) can be added via SPI `StorageFactory`
 | `tsv` | `mill-source-format-text` | Tab-separated values (escape-based, Univocity parser) |
 | `fwf` | `mill-source-format-text` | Fixed-width format (Univocity parser) |
 | `excel` | `mill-source-format-excel` | Excel workbooks (Apache POI) |
-| `avro` | `mill-source-format-avro-parquet` | Avro files |
-| `parquet` | `mill-source-format-avro-parquet` | Parquet files (columnar) |
+| `avro` | `mill-source-format-avro` | Avro files |
+| `parquet` | `mill-source-format-parquet` | Parquet files (row-oriented via parquet-avro) |
 
 ### Conflict resolution
 

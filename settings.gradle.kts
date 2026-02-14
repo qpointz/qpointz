@@ -45,7 +45,8 @@ include (":source")
 include (":source:mill-source-core")
 include (":source:formats:mill-source-format-text")
 include (":source:formats:mill-source-format-excel")
-include (":source:formats:mill-source-format-avro-parquet")
+include (":source:formats:mill-source-format-avro")
+include (":source:formats:mill-source-format-parquet")
 include (":source:mill-source-calcite")
 
 

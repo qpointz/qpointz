@@ -86,18 +86,22 @@ dependencies {
 
     implementation(project(":ui:mill-grinder-service"))
 
+    implementation(project(":source:mill-source-core"))
+    implementation(project(":source:mill-source-calcite"))
+    implementation(project(":source:formats:mill-source-format-text"))
+    implementation(project(":source:formats:mill-source-format-excel"))
+    implementation(project(":source:formats:mill-source-format-avro"))
+    implementation(project(":source:formats:mill-source-format-parquet"))
+
     implementation(libs.springdoc.openapi.starter.webmvc.ui)
     implementation(libs.springdoc.openapi.starter.webflux.api)
     implementation(libs.micrometer.registry.prometheus)
-
     implementation(libs.boot.starter.security)
     implementation(libs.boot.starter.security.oauth2.client)
     implementation(libs.boot.starter.security.oauth2.resource.server)
-
     implementation(libs.spring.ai.starter.model.openai)
     implementation(libs.spring.ai.starter.model.azureopenai)
     implementation(libs.spring.ai.starter.model.ollama)
-
     implementation(libs.boot.starter.actuator)
     implementation(libs.boot.starter)
     implementation(libs.bundles.logging)

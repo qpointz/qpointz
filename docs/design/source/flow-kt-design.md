@@ -4,7 +4,7 @@
 
 Kotlin library providing file-based data (CSV, FWF, Excel, Avro, Parquet) as a data provider in the mill ecosystem.
 
-Storage abstraction (BlobSource/BlobPath) for local/cloud backends. Three-level model aligned with mill's Schema/Table hierarchy: Source (= schema), SourceTable (= logical table, multi-file), RecordSource (= single file reader). Dual-mode: row-oriented or columnar. Mill-core type system. Calcite adapter in separate module.
+Storage abstraction (BlobSource/BlobSink/BlobPath) for local/cloud backends. Three-level model aligned with mill's Schema/Table hierarchy: Source (= schema), SourceTable (= logical table, multi-file), RecordSource (= single file reader). Dual-mode: row-oriented or columnar. Mill-core type system. Calcite adapter in separate module.
 
 ## Key Design: Source = Schema, Table Mapper = Tables
 
@@ -17,7 +17,8 @@ In mill, a **schema** is a collection of tables. This module aligns with that:
 ```mermaid
 flowchart LR
     subgraph blobDiscovery [Storage Abstraction]
-        BlobSrc["BlobSource: local / S3 / Azure / ..."]
+        BlobSrc["BlobSource: read from local / S3 / Azure / ..."]
+        BlobSnk["BlobSink: write to local / S3 / Azure / ..."]
         Mapper["BlobToTableMapper: regex / directory / ..."]
     end
 
@@ -54,8 +55,8 @@ flowchart TB
     subgraph formats [formats — provide RecordSource per file]
         CSV["mill-source-format-text: CsvRecordSource"]
         Excel["mill-source-format-excel: SheetRecordSource"]
-        Avro["mill-source-format-avro-parquet: AvroRecordSource"]
-        Parquet["mill-source-format-avro-parquet: ParquetVectorSource"]
+        Avro["mill-source-format-avro: AvroRecordSource"]
+        Parquet["mill-source-format-parquet: ParquetRecordSource"]
     end
 
     subgraph core [mill-source-core]
@@ -69,7 +70,8 @@ flowchart TB
             BridgeRV["Bridges: record <-> vector"]
         end
         subgraph storageAbstraction [Storage Abstraction]
-            BlobSrc2["BlobSource: any storage"]
+            BlobSrc2["BlobSource: read from any storage"]
+            BlobSnk2["BlobSink: write to any storage"]
             BlobPath2["BlobPath: file-alike"]
             TableMapper["BlobToTableMapper: strategy"]
         end
@@ -99,59 +101,39 @@ flowchart TB
 ## Project Structure
 
 ```
-source/                                         (root Gradle project)
-  settings.gradle.kts
+source/                                         (included from root settings.gradle.kts)
   build.gradle.kts
-  gradle/wrapper/...
-  mill-source-core/                            (source:mill-source-core)
-      -- Storage abstraction, source model (Source/SourceTable/RecordSource), dual-mode, mill bridges
+  mill-source-core/                            (:source:mill-source-core)
+      -- Storage abstraction (BlobSource, BlobSink), source model, dual-mode, mill bridges
   formats/
-    mill-source-format-text/                   (source:formats:mill-source-format-text)
-        -- CSV + FWF (row-oriented RecordSource per file)
-    mill-source-format-excel/                  (source:formats:mill-source-format-excel)
+    mill-source-format-text/                   (:source:formats:mill-source-format-text)
+        -- CSV, FWF, TSV (row-oriented RecordSource per file)
+    mill-source-format-excel/                  (:source:formats:mill-source-format-excel)
         -- Excel (row-oriented RecordSource per sheet)
-    mill-source-format-avro-parquet/           (source:formats:mill-source-format-avro-parquet)
-        -- Avro (row RecordSource) + Parquet (columnar VectorSource)
-  mill-source-calcite/                         (source:mill-source-calcite)
+    mill-source-format-avro/                   (:source:formats:mill-source-format-avro)
+        -- Avro (row-oriented RecordSource per file, no Hadoop dependency)
+    mill-source-format-parquet/                (:source:formats:mill-source-format-parquet)
+        -- Parquet (row-oriented RecordSource per file, minimal Hadoop, BlobInputFile/BlobOutputFile)
+  mill-source-calcite/                         (:source:mill-source-calcite)
       -- Calcite adapter (Source -> Calcite Schema, SourceTable -> ScannableTable)
 ```
 
 ## Build Setup
 
-`source/settings.gradle.kts`:
+Source modules are included from the **root** `settings.gradle.kts` (there is no `source/settings.gradle.kts`):
 
 ```kotlin
-rootProject.name = "source"
-
-include("mill-source-core")
-include("formats:mill-source-format-text")
-include("formats:mill-source-format-excel")
-include("formats:mill-source-format-avro-parquet")
-include("mill-source-calcite")
-
-includeBuild("../build-logic")
-includeBuild("../core") {
-    dependencySubstitution {
-        substitute(module("io.qpointz.mill:mill-core")).using(project(":mill-core"))
-    }
-}
-dependencyResolutionManagement {
-    versionCatalogs { create("libs") { from(files("../libs.versions.toml")) } }
-}
-pluginManagement { includeBuild("../build-logic") }
+// in repo root settings.gradle.kts
+include (":source")
+include (":source:mill-source-core")
+include (":source:formats:mill-source-format-text")
+include (":source:formats:mill-source-format-excel")
+include (":source:formats:mill-source-format-avro")
+include (":source:formats:mill-source-format-parquet")
+include (":source:mill-source-calcite")
 ```
 
-**Already in libs.versions.toml** (no changes needed): `jackson-core`, `jackson-databind`, `jackson-dataformat-yaml`, `jackson-module-kotlin`, `calcite-core`, `guava`, `apache-poi`, `apache-poi-ooxml`, `junit-jupiter-api`, `mockito-core`, `slf4j-api`, `logback-*`.
-
-**Add to libs.versions.toml** (new entries):
-
-```toml
-univocity-parsers = { module = "com.univocity:univocity-parsers", version = "2.9.1" }
-apache-avro = { module = "org.apache.avro:avro", version = "1.12.0" }
-apache-parquet-avro = { module = "org.apache.parquet:parquet-avro", version = "1.15.0" }
-apache-hadoop-common = { module = "org.apache.hadoop:hadoop-common", version = "3.4.1" }
-apache-hadoop-client = { module = "org.apache.hadoop:hadoop-client", version = "3.4.1" }
-```
+**All entries are present in `libs.versions.toml`:** `jackson-core`, `jackson-databind`, `jackson-dataformat-yaml`, `jackson-module-kotlin`, `jackson-datatype-jsr310`, `jackson-datatype-jdk8`, `calcite-core`, `apache-poi`, `apache-poi-ooxml`, `univocity-parsers`, `apache-avro`, `apache-parquet-avro`, `apache-hadoop-common`, `apache-hadoop-client`, `hadoop-bare-naked-local-fs-lib`, `caffeine`, `junit-jupiter-api`, `mockito-core`, `slf4j-api`, `logback-*`.
 
 ### Per-module build.gradle.kts
 
@@ -159,7 +141,7 @@ apache-hadoop-client = { module = "org.apache.hadoop:hadoop-client", version = "
 
 ```kotlin
 plugins {
-    kotlin("jvm") version libs.versions.kotlin
+    kotlin("jvm")
     id("io.qpointz.plugins.mill")
 }
 
@@ -169,12 +151,13 @@ mill {
 }
 
 dependencies {
-    implementation(project(":core:mill-core"))   // VectorBlock, DatabaseType, RecordReaders
+    api(project(":core:mill-core"))
     implementation(libs.jackson.databind)
     implementation(libs.jackson.dataformat.yaml)
     implementation(libs.jackson.module.kotlin)
+    implementation(libs.jackson.datatype.jsr310)
+    implementation(libs.jackson.datatype.jdk8)
     compileOnly(libs.bundles.logging)
-    implementation(kotlin("stdlib-jdk8"))
 }
 ```
 
@@ -182,7 +165,7 @@ dependencies {
 
 ```kotlin
 plugins {
-    kotlin("jvm") version libs.versions.kotlin
+    kotlin("jvm")
     id("io.qpointz.plugins.mill")
 }
 
@@ -192,10 +175,9 @@ mill {
 }
 
 dependencies {
-    implementation(project(":mill-source-core"))
+    api(project(":source:mill-source-core"))
     implementation(libs.univocity.parsers)
     compileOnly(libs.bundles.logging)
-    implementation(kotlin("stdlib-jdk8"))
 }
 ```
 
@@ -203,7 +185,7 @@ dependencies {
 
 ```kotlin
 plugins {
-    kotlin("jvm") version libs.versions.kotlin
+    kotlin("jvm")
     id("io.qpointz.plugins.mill")
 }
 
@@ -213,35 +195,48 @@ mill {
 }
 
 dependencies {
-    implementation(project(":mill-source-core"))
+    api(project(":source:mill-source-core"))
     implementation(libs.apache.poi)
     implementation(libs.apache.poi.ooxml)
     compileOnly(libs.bundles.logging)
-    implementation(kotlin("stdlib-jdk8"))
 }
 ```
 
-**mill-source-format-avro-parquet:**
+**mill-source-format-avro:**
 
 ```kotlin
-plugins {
-    kotlin("jvm") version libs.versions.kotlin
-    id("io.qpointz.plugins.mill")
-}
-
-mill {
-    description = "Mill source format — Avro, Parquet"
-    publishArtifacts = true
-}
-
 dependencies {
-    implementation(project(":mill-source-core"))
+    api(project(":source:mill-source-core"))
     implementation(libs.apache.avro)
-    implementation(libs.apache.parquet.avro)
-    implementation(libs.apache.hadoop.common)
-    implementation(libs.apache.hadoop.client)
     compileOnly(libs.bundles.logging)
-    implementation(kotlin("stdlib-jdk8"))
+}
+```
+
+**mill-source-format-parquet:**
+
+```kotlin
+dependencies {
+    api(project(":source:mill-source-core"))
+    implementation(project(":source:formats:mill-source-format-avro"))
+    implementation(libs.apache.parquet.avro)
+    // Minimal hadoop-common (~4.5MB) with aggressive exclusions.
+    // Only core Hadoop classes (Configuration, Configurable, codecs)
+    // are needed internally by parquet-hadoop.
+    implementation(libs.apache.hadoop.common) {
+        exclude(group = "org.slf4j")
+        exclude(group = "org.eclipse.jetty")
+        exclude(group = "javax.servlet")
+        exclude(group = "org.apache.curator")
+        exclude(group = "org.apache.zookeeper")
+        exclude(group = "org.apache.kerby")
+        exclude(group = "org.apache.hadoop", module = "hadoop-auth")
+        // ... more exclusions to strip ~400MB of transitive bloat
+    }
+    implementation("org.apache.hadoop:hadoop-mapreduce-client-core:3.4.1") {
+        // ... similar exclusions
+    }
+    implementation(libs.apache.avro)
+    compileOnly(libs.bundles.logging)
 }
 ```
 
@@ -249,7 +244,7 @@ dependencies {
 
 ```kotlin
 plugins {
-    kotlin("jvm") version libs.versions.kotlin
+    kotlin("jvm")
     id("io.qpointz.plugins.mill")
 }
 
@@ -259,16 +254,34 @@ mill {
 }
 
 dependencies {
-    implementation(project(":mill-source-core"))
-    implementation(project(":core:mill-core"))
+    api(project(":source:mill-source-core"))
+    api(project(":core:mill-core"))
     implementation(libs.calcite.core)
-    implementation(libs.guava)
     compileOnly(libs.bundles.logging)
-    implementation(kotlin("stdlib-jdk8"))
 }
 ```
 
-The Mill plugin (`io.qpointz.plugins.mill`) auto-applies Java, Jacoco, Lombok, and sets JVM toolchain. Tests use JUnit 5 (`libs.junit.jupiter.api`) and Mockito (`libs.mockito.core`) — add via test suites as in the `ai/` modules.
+The Mill plugin (`io.qpointz.plugins.mill`) auto-applies Java, Jacoco, Lombok, and sets JVM toolchain. Kotlin plugin version is managed by `pluginManagement`. Tests use JUnit 5 and Mockito via `testing { suites { ... } }` blocks:
+
+```kotlin
+testing {
+    suites {
+        configureEach {
+            if (this is JvmTestSuite) {
+                useJUnitJupiter(libs.versions.junit.get())
+                dependencies {
+                    implementation(project())
+                    implementation(libs.mockito.core)
+                    implementation(libs.mockito.junit.jupiter)
+                    implementation(libs.slf4j.api)
+                    implementation(libs.logback.core)
+                    implementation(libs.logback.classic)
+                }
+            }
+        }
+    }
+}
+```
 
 ---
 
@@ -289,7 +302,7 @@ These types come from `core/mill-core` and are used throughout the source module
 
 Package: `io.qpointz.mill.source`
 
-**Dependencies:** `io.qpointz.mill:mill-core`, `libs.jackson.databind`, `libs.jackson.dataformat.yaml`, `libs.jackson.module.kotlin`, `libs.slf4j.api`
+**Dependencies:** `io.qpointz.mill:mill-core`, `libs.jackson.databind`, `libs.jackson.dataformat.yaml`, `libs.jackson.module.kotlin`, `libs.jackson.datatype.jsr310`, `libs.jackson.datatype.jdk8`, `libs.slf4j.api`
 
 ### Record
 
@@ -298,6 +311,7 @@ data class Record(val values: Map<String, Any?>) {
     operator fun get(key: String): Any? = values[key]
     companion object {
         fun of(vararg pairs: Pair<String, Any?>) = Record(mapOf(*pairs))
+        fun empty() = Record(emptyMap())
     }
 }
 ```
@@ -305,10 +319,21 @@ data class Record(val values: Map<String, Any?>) {
 ### RecordSchema — using mill-core DatabaseType
 
 ```kotlin
-data class SchemaField(val name: String, val index: Int, val type: DatabaseType)
+data class SchemaField(val name: String, val index: Int, val type: DatabaseType) {
+    fun toProtoField(): Field   // converts to protobuf Field message
+}
 
 data class RecordSchema(val fields: List<SchemaField>) {
+    val size: Int get() = fields.size
+    val fieldNames: List<String> get() = fields.map { it.name }
+    fun field(name: String): SchemaField?       // lookup by name
+    fun field(index: Int): SchemaField?         // lookup by index
     fun toVectorBlockSchema(): VectorBlockSchema { ... }
+
+    companion object {
+        fun of(vararg fields: Pair<String, DatabaseType>): RecordSchema   // indexes assigned sequentially
+        fun empty(): RecordSchema = RecordSchema(emptyList())
+    }
 }
 ```
 
@@ -347,8 +372,10 @@ interface SourceTable {
     // Columnar access: union of all files as VectorBlocks
     fun vectorBlocks(batchSize: Int = 1024): VectorBlockIterator
 
-    // Mill integration
-    fun asMillRecordReader(batchSize: Int = 1024): io.qpointz.mill.sql.RecordReader
+    // Mill integration — default method, delegates to vectorBlocks()
+    fun asMillRecordReader(batchSize: Int = 1024): io.qpointz.mill.sql.RecordReader {
+        return RecordReaders.recordReader(vectorBlocks(batchSize))
+    }
 }
 ```
 
@@ -371,11 +398,12 @@ class MultiFileSourceTable(
         // For each source:
         //   FlowVectorSource -> iterate directly (no conversion!)
         //   FlowRecordSource -> bridge to VectorBlocks
-        // Concatenate all
+        // Concatenate all (ConcatenatingVectorBlockIterator)
     }
 
-    override fun asMillRecordReader(batchSize: Int): io.qpointz.mill.sql.RecordReader {
-        return RecordReaders.recordReader(vectorBlocks(batchSize))
+    companion object {
+        fun ofSingle(schema: RecordSchema, source: RecordSource): MultiFileSourceTable
+        fun empty(schema: RecordSchema): MultiFileSourceTable
     }
 }
 ```
@@ -408,13 +436,22 @@ interface BlobSource : Closeable {
 **Built-in implementation — local filesystem:**
 
 ```kotlin
-class LocalBlobSource(private val rootPath: Path) : BlobSource {
+class LocalBlobSource(val rootPath: Path) : BlobSource {
     override fun listBlobs(): Sequence<BlobPath> { /* walk directory tree recursively */ }
     override fun openInputStream(path: BlobPath): InputStream { ... }
     override fun openSeekableChannel(path: BlobPath): SeekableByteChannel { ... }
+    override fun close() { /* no-op for local */ }
 }
 
-data class LocalBlobPath(override val uri: URI, val relativePath: Path) : BlobPath
+data class LocalBlobPath(
+    override val uri: URI,
+    val relativePath: Path,
+    val absolutePath: Path
+) : BlobPath {
+    companion object {
+        fun of(rootPath: Path, absolutePath: Path): LocalBlobPath
+    }
+}
 ```
 
 **Future implementations** (not in this PR, but the interface is designed for them):
@@ -457,11 +494,11 @@ class DirectoryTableMapper : BlobToTableMapper { ... }
 ```kotlin
 interface FormatHandler {
     fun inferSchema(blob: BlobPath, blobSource: BlobSource): RecordSchema
-    fun createRecordSource(blob: BlobPath, blobSource: BlobSource): RecordSource
+    fun createRecordSource(blob: BlobPath, blobSource: BlobSource, schema: RecordSchema): RecordSource
 }
 ```
 
-Returns either `FlowRecordSource` or `FlowVectorSource` depending on the format.
+The `schema` parameter is typically the result of a prior `inferSchema()` call. Returns either `FlowRecordSource` or `FlowVectorSource` depending on the format.
 
 ### Source Descriptor — declarative source definition (multi-reader model)
 
@@ -476,19 +513,19 @@ data class SourceDescriptor(
     val table: TableDescriptor? = null,             // shared default
     val conflicts: ConflictResolution = ConflictResolution.DEFAULT,
     val readers: List<ReaderDescriptor>
-)
+) : Verifiable
 
 data class ReaderDescriptor(
     val type: String,               // format identifier (e.g. "csv", "parquet")
     val label: String? = null,      // optional suffix for table names
     val format: FormatDescriptor,   // format-specific options
     val table: TableDescriptor? = null  // override (replaces source-level entirely)
-)
+) : Verifiable
 
 data class TableDescriptor(
     val mapping: TableMappingDescriptor? = null,
     val attributes: List<TableAttributeDescriptor> = emptyList()
-)
+) : Verifiable
 
 enum class ConflictStrategy { REJECT, UNION }
 
@@ -528,7 +565,7 @@ readers:
 interface StorageDescriptor
 
 @JsonTypeName("local")
-data class LocalStorageDescriptor(val rootPath: String) : StorageDescriptor
+data class LocalStorageDescriptor(val rootPath: String) : StorageDescriptor, Verifiable
 
 // --- Format ---
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
@@ -542,10 +579,10 @@ interface TableMappingDescriptor
 @JsonTypeName("regex")
 data class RegexTableMappingDescriptor(
     val pattern: String, val tableNameGroup: String = "table"
-) : TableMappingDescriptor
+) : TableMappingDescriptor, Verifiable
 
 @JsonTypeName("directory")
-data class DirectoryTableMappingDescriptor(val depth: Int = 1) : TableMappingDescriptor
+data class DirectoryTableMappingDescriptor(val depth: Int = 1) : TableMappingDescriptor, Verifiable
 ```
 
 All descriptor interfaces live in **core** (`io.qpointz.mill.source.descriptor`). Built-in subtypes (local storage, regex/directory mapping) are in core. Format-specific subtypes live in their respective modules.
@@ -567,7 +604,7 @@ class DescriptorModule : SimpleModule("MillSourceDescriptorModule") {
 }
 
 object SourceObjectMapper {
-    val yaml: ObjectMapper  // YAMLFactory, KotlinModule, DescriptorModule, etc.
+    val yaml: ObjectMapper  // YAMLFactory, KotlinModule, JavaTimeModule, Jdk8Module, DescriptorModule
     val json: ObjectMapper  // Same modules, JSON format
 }
 ```
@@ -647,7 +684,7 @@ data class MaterializedSource(
     val blobSource: BlobSource,
     val readers: List<MaterializedReader>,
     val conflicts: ConflictResolution
-) : AutoCloseable
+) : AutoCloseable, Verifiable
 ```
 
 Core provides `SourceMaterializer` and built-in factories. Format modules register their own via SPI. Third-party modules only need a service file on the classpath.
@@ -700,7 +737,16 @@ data class VerificationReport(
     val tables: List<TableSummary> = emptyList()
 ) {
     val isValid: Boolean   // true if no ERROR-level issues
+    val errors: List<VerificationIssue>
+    val warnings: List<VerificationIssue>
+    val infos: List<VerificationIssue>
     operator fun plus(other: VerificationReport): VerificationReport
+
+    companion object {
+        val EMPTY = VerificationReport()
+        fun of(issue: VerificationIssue): VerificationReport
+        fun of(issues: List<VerificationIssue>): VerificationReport
+    }
 }
 
 data class VerificationIssue(
@@ -773,7 +819,6 @@ fun FlowVectorSource.asRecordSource(): FlowRecordSource
 interface FlowRecordWriter : AutoCloseable {
     fun open()
     fun write(record: Record)
-    override fun close()
 }
 ```
 
@@ -880,10 +925,15 @@ RecordSources are **single-file, row-oriented** (`FlowRecordSource`):
 
 - `CsvRecordSource(inputStream: InputStream, schema: RecordSchema, settings: CsvSettings)` — reads ONE CSV file
 - `FwfRecordSource(inputStream: InputStream, schema: RecordSchema, settings: FwfSettings)` — reads ONE FWF file
-- `CsvSettings`, `FwfSettings` — data classes with defaults
-- `CsvRecordWriter`, `FwfRecordWriter`
+- `TsvRecordSource(inputStream: InputStream, schema: RecordSchema, settings: TsvSettings)` — reads ONE TSV file
+- `CsvSettings`, `FwfSettings`, `TsvSettings` — data classes with defaults
+- `CsvRecordWriter`, `FwfRecordWriter`, `TsvRecordWriter`
 - `CsvFormatHandler : FormatHandler` — creates `CsvRecordSource` per blob
 - `FwfFormatHandler : FormatHandler` — creates `FwfRecordSource` per blob
+- `TsvFormatHandler : FormatHandler` — creates `TsvRecordSource` per blob
+- `CsvFormatDescriptor`, `FwfFormatDescriptor`, `TsvFormatDescriptor` — format-specific YAML descriptors
+- `CsvFormatHandlerFactory`, `FwfFormatHandlerFactory`, `TsvFormatHandlerFactory` — SPI factory implementations
+- `TextDescriptorSubtypeProvider` — registers all text format descriptor subtypes
 
 Usage: `SourceResolver` with `CsvFormatHandler` discovers `data/*.csv`, creates one `CsvRecordSource` per file, unions them into a `SourceTable`.
 
@@ -899,20 +949,22 @@ RecordSources are **single-sheet, row-oriented** (`FlowRecordSource`):
 
 - `SheetRecordSource(sheet: Sheet, settings: SheetSettings)` — reads ONE sheet
 - `SheetSettings` — column definitions, null/blank/error handling
+- `ExcelSchemaInferer` — infers `RecordSchema` from sheet content
 - Cell type mapping with mill-core types
 - `SheetCriteria` sealed interface: `AnySheet`, `SheetByName`, `SheetByIndex`, `SheetByPattern`
 - `SheetSelector` — include/exclude logic
 - `WorkbookRecordSource(workbook: Workbook, settings: WorkbookSettings)` — selects sheets, produces `FlowRecordSource` per sheet, can be treated as a SourceTable-like multi-source
 - Extension functions: `Workbook.sheets()`, `Sheet.index`, `Sheet.name`
 - `ExcelFormatHandler : FormatHandler`
+- `ExcelFormatDescriptor`, `ExcelFormatHandlerFactory`, `ExcelDescriptorSubtypeProvider` — SPI wiring
 
 ---
 
-## mill-source-format-avro-parquet
+## mill-source-format-avro
 
-Package: `io.qpointz.mill.source.format.avro`, `io.qpointz.mill.source.format.parquet`
+Package: `io.qpointz.mill.source.format.avro`
 
-**Dependencies:** `mill-source-core`, `apache-avro`, `apache-parquet-avro`, `apache-hadoop-common`, `apache-hadoop-client`
+**Dependencies:** `mill-source-core`, `apache-avro` (no Hadoop)
 
 ### Avro — single-file, row-oriented (`FlowRecordSource`)
 
@@ -920,14 +972,31 @@ Package: `io.qpointz.mill.source.format.avro`, `io.qpointz.mill.source.format.pa
 - `AvroRecordWriter(settings: AvroWriterSettings)`
 - `AvroSchemaSource` interface: `ConstantSchemaSource`, `JsonSchemaSource`
 - `AvroFormatHandler : FormatHandler` — creates `AvroRecordSource` per blob
+- `AvroDescriptorSubtypeProvider` — SPI, registers only `AvroFormatDescriptor`
 
-### Parquet — single-file, columnar (`FlowVectorSource`)
+---
 
-- `ParquetVectorSource(path: Path, seekableChannel: SeekableByteChannel)` — reads ONE `.parquet` file as `FlowVectorSource`, reads column chunks directly into `VectorBlock`s
-- `ParquetRecordWriter(settings: ParquetWriterSettings)`
-- `ParquetFormatHandler : FormatHandler` — creates `ParquetVectorSource` per blob
+## mill-source-format-parquet
 
-Usage: `SourceResolver` with `ParquetFormatHandler` discovers `data/*.parquet`, creates one `ParquetVectorSource` per file. `MultiFileSourceTable.vectorBlocks()` concatenates them natively — zero row-materialization overhead for the columnar path.
+Package: `io.qpointz.mill.source.format.parquet`
+
+**Dependencies:** `mill-source-core`, `mill-source-format-avro`, `apache-parquet-avro`, `apache-hadoop-common` (minimal, with aggressive exclusions), `hadoop-mapreduce-client-core` (minimal)
+
+### Parquet — single-file, row-oriented (`FlowRecordSource`)
+
+- `ParquetRecordSource(inputFile: InputFile, schema: RecordSchema)` — reads ONE `.parquet` file as `FlowRecordSource` via `parquet-avro` (`AvroParquetReader` -> `GenericRecord` -> `Record`)
+- `ParquetRecordWriter(settings: ParquetWriterSettings, outputFile: OutputFile)`
+- `ParquetFormatHandler : FormatHandler` — creates `ParquetRecordSource` per blob using `BlobInputFile`
+- `ParquetDescriptorSubtypeProvider` — SPI, registers only `ParquetFormatDescriptor`
+
+### Storage-agnostic Parquet I/O
+
+- `BlobInputFile(blobPath, blobSource) : InputFile` — bridges `BlobSource.openSeekableChannel()` to parquet-common's `InputFile`. Works with any storage backend (local, ADLS, S3).
+- `BlobOutputFile(blobPath, blobSink) : OutputFile` — bridges `BlobSink.openOutputStream()` to parquet-common's `OutputFile`. Works with any storage backend.
+- `ChannelSeekableInputStream` — bridges `SeekableByteChannel` to parquet's `SeekableInputStream`
+- `CountingPositionOutputStream` — wraps `OutputStream` with byte-position tracking for parquet's `PositionOutputStream`
+
+Usage: `SourceResolver` with `ParquetFormatHandler` discovers `data/*.parquet`, creates one `ParquetRecordSource` per file, unions them into a `SourceTable`.
 
 ### AvroSchemaConverter
 
@@ -963,7 +1032,7 @@ This section contains everything needed to pick up development from scratch (new
 ### Repository and module location
 
 - **Repo root:** `/home/vm/wip/ag/qpointz/qpointz` (Gradle multi-repo)
-- **Source modules root:** `source/` (has its own `settings.gradle.kts`, `build.gradle.kts`, `gradlew`)
+- **Source modules root:** `source/` (has `build.gradle.kts`; modules included from root `settings.gradle.kts`)
 - **Design docs:** `docs/design/source/` — `flow-kt-design.md` (this file), `mill-source-calcite.md`, `mill-type-system.md`
 - **User docs:** `docs/public/src/sources/`
 - **Test datasets:** `test/datasets/airlines/csv/` (cities.csv, flights.csv, passenger.csv, segments.csv)
@@ -984,7 +1053,7 @@ All commands run from the **repo root** (not `source/`):
 ./gradlew :source:formats:mill-source-format-text:test
 
 # Run all source tests
-./gradlew :source:mill-source-core:test :source:mill-source-calcite:test :source:formats:mill-source-format-text:test :source:formats:mill-source-format-excel:test :source:formats:mill-source-format-avro-parquet:test
+./gradlew :source:mill-source-core:test :source:mill-source-calcite:test :source:formats:mill-source-format-text:test :source:formats:mill-source-format-excel:test :source:formats:mill-source-format-avro:test :source:formats:mill-source-format-parquet:test
 
 # Coverage
 ./gradlew :source:mill-source-core:jacocoTestReport
@@ -1032,15 +1101,16 @@ All commands run from the **repo root** (not `source/`):
 
 | Module | Package | Key classes |
 |--------|---------|------------|
-| `mill-source-core` | `io.qpointz.mill.source` | `Record`, `RecordSchema`, `SchemaField`, `BlobPath`, `BlobSource`, `LocalBlobSource`, `BlobToTableMapper`, `RegexTableMapper`, `DirectoryTableMapper`, `FormatHandler`, `RecordSource`, `FlowRecordSource`, `FlowVectorSource`, `SourceTable`, `MultiFileSourceTable`, `InMemoryRecordSource`, `SourceResolver`, `ResolvedSource` |
+| `mill-source-core` | `io.qpointz.mill.source` | `Record`, `RecordSchema`, `SchemaField`, `BlobPath`, `BlobSource`, `LocalBlobSource`, `BlobSink`, `LocalBlobSink`, `BlobToTableMapper`, `RegexTableMapper`, `DirectoryTableMapper`, `FormatHandler`, `RecordSource`, `FlowRecordSource`, `FlowVectorSource`, `SourceTable`, `MultiFileSourceTable`, `InMemoryRecordSource`, `SourceResolver`, `ResolvedSource` |
 | `mill-source-core` | `io.qpointz.mill.source.descriptor` | `SourceDescriptor`, `ReaderDescriptor`, `StorageDescriptor`, `LocalStorageDescriptor`, `FormatDescriptor`, `TableMappingDescriptor`, `RegexTableMappingDescriptor`, `DirectoryTableMappingDescriptor`, `TableDescriptor`, `TableAttributeDescriptor`, `ConflictResolution`, `ConflictStrategy`, `SourceObjectMapper`, `DescriptorSubtypeProvider`, `DescriptorModule` |
 | `mill-source-core` | `io.qpointz.mill.source.factory` | `StorageFactory`, `FormatHandlerFactory`, `TableMapperFactory`, `SourceMaterializer`, `MaterializedSource`, `MaterializedReader` |
 | `mill-source-core` | `io.qpointz.mill.source.verify` | `Verifiable`, `VerificationReport`, `VerificationIssue`, `Severity`, `Phase`, `SourceVerifier`, `TableSummary` |
 | `mill-source-core` | `io.qpointz.mill.source.discovery` | `SourceDiscovery`, `DiscoveryResult`, `DiscoveredTable`, `DiscoveryOptions` |
 | `mill-source-calcite` | `io.qpointz.mill.source.calcite` | `CalciteTypeMapper`, `FlowTable`, `FlowSchema`, `FlowSchemaFactory`, `SourceSchemaManager` |
-| `mill-source-format-text` | `io.qpointz.mill.source.format.text` | `CsvRecordSource`, `CsvSettings`, `CsvFormatHandler`, `CsvFormatDescriptor`, `FwfRecordSource`, `FwfSettings`, `FwfFormatHandler`, `FwfFormatDescriptor`, `TsvFormatDescriptor` |
-| `mill-source-format-excel` | `io.qpointz.mill.source.format.excel` | `SheetRecordSource`, `SheetSettings`, `SheetCriteria`, `SheetSelector`, `WorkbookRecordSource`, `ExcelFormatHandler`, `ExcelFormatDescriptor` |
-| `mill-source-format-avro-parquet` | `io.qpointz.mill.source.format.avro` / `.parquet` | `AvroRecordSource`, `AvroFormatHandler`, `AvroSchemaConverter`, `ParquetVectorSource`, `ParquetFormatHandler`, `ParquetSchemaConverter` |
+| `mill-source-format-text` | `io.qpointz.mill.source.format.text` | `CsvRecordSource`, `CsvSettings`, `CsvFormatHandler`, `CsvFormatDescriptor`, `CsvFormatHandlerFactory`, `CsvRecordWriter`, `FwfRecordSource`, `FwfSettings`, `FwfFormatHandler`, `FwfFormatDescriptor`, `FwfFormatHandlerFactory`, `FwfRecordWriter`, `TsvRecordSource`, `TsvSettings`, `TsvFormatHandler`, `TsvFormatDescriptor`, `TsvFormatHandlerFactory`, `TsvRecordWriter`, `TextDescriptorSubtypeProvider` |
+| `mill-source-format-excel` | `io.qpointz.mill.source.format.excel` | `SheetRecordSource`, `SheetSettings`, `SheetCriteria`, `SheetSelector`, `WorkbookRecordSource`, `ExcelSchemaInferer`, `ExcelFormatHandler`, `ExcelFormatDescriptor`, `ExcelFormatHandlerFactory`, `ExcelDescriptorSubtypeProvider` |
+| `mill-source-format-avro` | `io.qpointz.mill.source.format.avro` | `AvroRecordSource`, `AvroFormatHandler`, `AvroSchemaConverter`, `AvroRecordWriter`, `AvroSchemaSource`, `AvroFormatDescriptor`, `AvroFormatHandlerFactory`, `AvroDescriptorSubtypeProvider` |
+| `mill-source-format-parquet` | `io.qpointz.mill.source.format.parquet` | `ParquetRecordSource`, `ParquetFormatHandler`, `ParquetSchemaConverter`, `ParquetRecordWriter`, `ParquetFormatDescriptor`, `ParquetFormatHandlerFactory`, `ParquetDescriptorSubtypeProvider`, `BlobInputFile`, `BlobOutputFile`, `ChannelSeekableInputStream`, `CountingPositionOutputStream` |
 
 ### Key design decisions (rationale)
 
@@ -1064,11 +1134,11 @@ All commands run from the **repo root** (not `source/`):
 
 | Branch | Status | Notes |
 |--------|--------|-------|
-| `origin/feature` | baseline | All completed phases merged here |
-| `feat/port-flow-calcite` | merged | Phase 3 — already in `origin/feature` |
-| `feat/port-flow-phase4` | pending merge | Phase 4 — pushed, awaiting user review |
+| `origin/feature` | baseline | All completed phases (1-4) squash-merged here |
+| `feat/port-flow-calcite` | merged | Phase 3 |
+| `feat/port-flow-phase4` | merged | Phase 4 (squash-merged as `82c4c06`) |
 
-For the next phase: always `git fetch origin && git checkout -b feat/port-flow-phase5 origin/feature` (after Phase 4 is merged).
+For the next phase: always `git fetch origin && git checkout -b feat/port-flow-phase5 origin/feature`.
 
 ### Test dataset layout
 
@@ -1100,7 +1170,7 @@ Phase 1: mill-source-core                          [DONE]
     |
     +---> Phase 2a: format-text                    [DONE]
     +---> Phase 2b: format-excel                   [DONE]
-    +---> Phase 2c: format-avro-parquet            [DONE]
+    +---> Phase 2c: format-avro-parquet            [DONE → split in Phase 7]
     |
 Phase 3: mill-source-calcite                       [DONE]
     |
@@ -1160,7 +1230,7 @@ Phase 6: persistence, CRUD API, builders           [pending]
 | 2b.5 | Update user documentation | done |
 | 2b.6 | Verify test coverage (83.4% instruction coverage) | done |
 
-### Phase 2c: mill-source-format-avro-parquet — DONE
+### Phase 2c: mill-source-format-avro-parquet — DONE (split in Phase 7)
 
 | # | Work Item | Status |
 |---|-----------|--------|
@@ -1203,8 +1273,8 @@ Package: `io.qpointz.mill.source.discovery` in `mill-source-core`.
 Classes:
 
 - `SourceDiscovery` — entry point
-  - `discover(descriptor: SourceDescriptor): DiscoveryResult`
-  - `discover(materialized: MaterializedSource): DiscoveryResult`
+  - `discover(descriptor: SourceDescriptor, options: DiscoveryOptions = DiscoveryOptions()): DiscoveryResult`
+  - `discover(source: MaterializedSource, options: DiscoveryOptions = DiscoveryOptions()): DiscoveryResult`
 - `DiscoveryResult` — top-level findings
   - `tables: List<DiscoveredTable>` — successfully discovered tables
   - `issues: List<VerificationIssue>` — reuses existing issue model
@@ -1213,7 +1283,9 @@ Classes:
 - `DiscoveredTable` — per-table findings
   - `name`, `schema: RecordSchema?`, `blobPaths: List<BlobPath>`
   - `readerType`, `readerLabel`
-  - `sampleRecords: List<Record>?` — optional preview rows
+  - `sampleRecords: List<Record>` — optional preview rows (empty if not requested)
+- `DiscoveryOptions` — configuration
+  - `maxSampleRecords: Int = 0` — max preview rows per table (0 = no samples)
 
 #### 4.5 SourceSchemaManager
 
@@ -1249,6 +1321,29 @@ Implementation approach: **decorator pattern** — `CachingBlobSource` wraps any
 | 6.2 | Source management API (CRUD endpoints — gRPC/HTTP) | - |
 | 6.3 | Programmatic builders for SourceDescriptor, ReaderDescriptor, FormatDescriptors, etc. | - |
 | 6.4 | Runtime wiring: persistence events -> SourceSchemaManager add/remove | - |
+
+### Phase 7: Split Avro/Parquet, Reduce Hadoop, BlobSink — DONE
+
+Split the monolithic `mill-source-format-avro-parquet` module into two independent modules to eliminate the 450MB boot JAR bloat caused by Hadoop transitive dependencies.
+
+**Branch:** `feat/phase7-split-avro-parquet`
+
+| # | Work Item | Status |
+|---|-----------|--------|
+| 7.1 | Add `BlobSink` interface and `LocalBlobSink` to `mill-source-core` (write counterpart to `BlobSource`) | done |
+| 7.2 | Create `mill-source-format-avro` module — pure Avro, zero Hadoop deps | done |
+| 7.3 | Create `mill-source-format-parquet` module — `BlobInputFile`/`BlobOutputFile` for storage-agnostic I/O, minimal `hadoop-common` (~4.5MB) with aggressive exclusions | done |
+| 7.4 | Implement `BlobInputFile` + `ChannelSeekableInputStream` (wraps `BlobSource`) and `BlobOutputFile` + `CountingPositionOutputStream` (wraps `BlobSink`) | done |
+| 7.5 | Migrate all existing tests (Avro: 5 test files, Parquet: 4 test files incl. SPI wiring) | done |
+| 7.6 | Update `settings.gradle.kts`, `mill-service/build.gradle.kts`, `libs.versions.toml` (remove `hadoop-client`, `hadoop-bare-naked-local-fs-lib`) | done |
+| 7.7 | Remove old `mill-source-format-avro-parquet` directory | done |
+| 7.8 | Update design docs (`flow-kt-design.md`, `mill-source-calcite.md`) | done |
+
+**Key outcomes:**
+- Avro module: zero Hadoop dependency
+- Parquet module: ~6MB Hadoop footprint (was ~450MB)
+- Storage-agnostic Parquet I/O via `BlobInputFile`/`BlobOutputFile` — works with any `BlobSource`/`BlobSink` (local, ADLS, S3)
+- `BlobSink` abstraction added to `mill-source-core` for storage-agnostic writes
 
 ### Known TODOs in code
 

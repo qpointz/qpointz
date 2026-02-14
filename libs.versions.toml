@@ -96,7 +96,6 @@ grpc-netty-shaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc"
 
 javax-annotation-api = { module = "javax.annotation:javax.annotation-api", version = "1.3.2" }
 
-hadoop-bare-naked-local-fs = { module = "com.globalmentor:hadoop-bare-naked-local-fs", version = "0.1.0" }
 h2-database = { module = "com.h2database:h2", version = "2.4.240" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
 
@@ -146,8 +145,6 @@ univocity-parsers = { module = "com.univocity:univocity-parsers", version = "2.9
 apache-avro = { module = "org.apache.avro:avro", version = "1.12.0" }
 apache-parquet-avro = { module = "org.apache.parquet:parquet-avro", version = "1.15.0" }
 apache-hadoop-common = { module = "org.apache.hadoop:hadoop-common", version = "3.4.1" }
-apache-hadoop-client = { module = "org.apache.hadoop:hadoop-client", version = "3.4.1" }
-hadoop-bare-naked-local-fs-lib = { module = "com.globalmentor:hadoop-bare-naked-local-fs", version = "0.1.0" }
 
 apache-poi-ooxml-lite = { module = "org.apache.poi:poi-ooxml-lite", version.ref = "apachePoi" }
 apache-poi-ooxml-full = { module = "org.apache.poi:poi-ooxml-full", version.ref = "apachePoi" }
@@ -166,13 +163,13 @@ json-path = { module = "com.jayway.jsonpath:json-path", version = "2.10.0" }
 logging = ["slf4j-api", "logback-core", "logback-classic", "fusesource-jansi"]
 jdbc-pack = [
     "h2-database",
-    "hsqldb",
+#    "hsqldb",
     "drivers-postgressql",
-    "drivers-sqllite",
+#    "drivers-sqllite",
     "drivers-mariadb",
-    "drivers-trino",
-    "drivers-duckdb",
-    "drivers-snowflake"
+#    "drivers-trino",
+#    "drivers-duckdb",
+#    "drivers-snowflake"
 ]
 
 [plugins]
