@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version libs.versions.kotlin
+    kotlin("jvm")
     id("io.qpointz.plugins.mill")
 }
 
@@ -12,7 +12,6 @@ dependencies {
     api(project(":source:mill-source-core"))
     api(project(":core:mill-core"))
     implementation(libs.calcite.core)
-    implementation(libs.guava)
     compileOnly(libs.bundles.logging)
 }
 

@@ -1,0 +1,40 @@
+# Design Documents
+
+This directory contains internal design documents, architecture notes, and implementation
+plans. Documents are grouped by topic area into subfolders.
+
+## Folder Structure
+
+| Folder | Scope | What goes here |
+|--------|-------|----------------|
+| `source/` | Data source framework | Source provider design, type system, format handlers, storage abstraction, Calcite adapter |
+| `ai/` | AI and NL-to-SQL | Reasoning architecture, step-back flows, capabilities, scenarios, AI UX specifications, regression testing |
+| `metadata/` | Metadata subsystem | Metadata service design, provider refactoring, value mappings, metadata UI, implementation roadmaps |
+| `ui/` | Frontend and UX | Grinder UI design, chat input, clarification flows, visual refresh, interaction patterns |
+| `platform/` | Infrastructure and cross-cutting | Configuration, build/CI, migration plans (Spring, WebFlux), codebase analysis, test inventory, protocols (MCP, gRPC export), tooling (Dokka), Calcite dialect work |
+
+## Classification Principles
+
+1. **Classify by primary domain, not by artifact type.** A document about "metadata UI" goes
+   in `metadata/` (its domain), not `ui/` — unless the document is purely about UI patterns
+   with no domain-specific content.
+
+2. **When a document spans two domains, place it in the domain it serves.** For example, a
+   type system reference that exists to support the source framework belongs in `source/`,
+   even though types are used elsewhere.
+
+3. **`platform/` is the catch-all for cross-cutting concerns.** Configuration, migrations,
+   build tooling, codebase audits, protocol specifications, and anything that doesn't belong
+   to a single product domain goes here.
+
+4. **Keep the hierarchy flat — one level of subfolders only.** Do not create nested subfolders
+   (e.g. `ai/step-back/`). If a topic area grows large, prefer filename prefixes
+   (e.g. `sb-reasoning.md`, `sb-ux-flow.md`) over deeper nesting.
+
+5. **Use descriptive filenames with lowercase-kebab-case.** The filename should hint at the
+   document's purpose without needing to open it. Avoid generic names like `design.md` or
+   `notes.md`.
+
+6. **New domain folders require justification.** Only create a new top-level folder if there
+   are at least 3 documents that don't fit any existing category. Prefer expanding an existing
+   folder's scope over fragmenting into many small folders.

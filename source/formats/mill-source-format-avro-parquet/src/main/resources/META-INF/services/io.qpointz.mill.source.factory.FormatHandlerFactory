@@ -1,0 +1,2 @@
+io.qpointz.mill.source.format.avro.AvroFormatHandlerFactory
+io.qpointz.mill.source.format.parquet.ParquetFormatHandlerFactory

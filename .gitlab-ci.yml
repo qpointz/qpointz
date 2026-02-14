@@ -101,6 +101,14 @@ include:
       - changes:
           - data/**/*
       - when: never
+  - local : ${CI_PROJECT_DIR}/source/.gitlab-ci.yml
+    rules:
+      - *if-mr
+      - *if-protected
+      - *build-changes
+      - changes:
+          - source/**/*
+      - when: never
   - local : ${CI_PROJECT_DIR}/clients/.gitlab-ci.yml
     rules:
       - *if-mr

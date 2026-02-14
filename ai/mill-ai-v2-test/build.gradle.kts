@@ -1,7 +1,7 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
-    kotlin("jvm") version libs.versions.kotlin
+    kotlin("jvm")
     alias (libs.plugins.kotlin.spring)
     alias(libs.plugins.spring.dependency.management)
     id("io.qpointz.plugins.mill")

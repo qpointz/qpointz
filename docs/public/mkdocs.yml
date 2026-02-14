@@ -63,6 +63,17 @@ nav:
     - quickstart.md
     - installation.md
     - grinder-ui.md
+    - Data Sources:
+      - sources/index.md
+      - sources/configuration.md
+      - sources/types.md
+      - Formats:
+        - sources/formats/csv.md
+        - sources/formats/tsv.md
+        - sources/formats/fwf.md
+        - sources/formats/excel.md
+        - sources/formats/avro.md
+        - sources/formats/parquet.md
 #    - Backends: 
 #      - backends/index.md
 #      - backends/jdbc.md

@@ -1,0 +1,15 @@
+source:build:
+  stage: build
+  extends: .gradle-job
+  script:
+    - echo $HOME    
+    - ./gradlew --no-daemon --console plain :source:test :source:jacocoTestReport :source:compileTestIT
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - source/**/build/reports/tests/test/
+      - source/**/build/reports/jacoco/test/
+    reports:
+      junit:
+        - source/**/build/test-results/test/TEST-*.xml

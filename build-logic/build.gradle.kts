@@ -20,5 +20,9 @@ gradlePlugin {
             id = "io.qpointz.plugins.mill"
             implementationClass = "io.qpointz.mill.plugins.MillPlugin"
         }
+        create("mill-aggregate") {
+            id = "io.qpointz.plugins.mill-aggregate"
+            implementationClass = "io.qpointz.mill.plugins.MillAggregatePlugin"
+        }
     }
 }
