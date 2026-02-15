@@ -75,7 +75,7 @@
     key: ${CI_COMMIT_REF_SLUG}     
     paths:
       - ${CI_PROJECT_DIR}/**/.gradle
-      - ${CI_PROJECT_DIR}/.gradle-home
+    #  - ${CI_PROJECT_DIR}/.gradle-home
     #policy: pull-push
 
 .docker-base:

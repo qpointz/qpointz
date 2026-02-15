@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.jsontype.NamedType
 /**
  * SPI interface for registering descriptor subtypes with Jackson.
  *
- * Each module (core, format-text, format-excel, format-avro-parquet, etc.)
+ * Each module (core, format-text, format-excel, format-avro, format-parquet, etc.)
  * provides one or more implementations of this interface in
  * `META-INF/services/io.qpointz.mill.source.descriptor.DescriptorSubtypeProvider`.
  *

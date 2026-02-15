@@ -24,7 +24,7 @@ workflow:
     key: $CI_COMMIT_REF_SLUG
     paths:
       - ${CI_PROJECT_DIR}/mill/.gradle
-      - ${CI_PROJECT_DIR}/mill/.gradle-home
+      #- ${CI_PROJECT_DIR}/mill/.gradle-home
 
 # ===================================================================================================================
 # BEGIN Mill CI/CD REFACTORED

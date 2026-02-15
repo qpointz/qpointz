@@ -410,9 +410,9 @@ class MultiFileSourceTable(
 
 Key: if all underlying sources are columnar (e.g., Parquet), the columnar path has zero overhead — no row materialization. If all are row-oriented (e.g., CSV), the record path has zero overhead. Mixed is also fine.
 
-### Storage Abstraction — BlobSource + BlobPath
+### Storage Abstraction — BlobSource + BlobSink + BlobPath
 
-**This is a core architectural abstraction.** `BlobSource` / `BlobPath` represent anything "file-alike" — local filesystem, S3, Azure Blob Storage, GCS, HDFS. All file discovery and I/O in flow-kt goes through this interface. Format modules and SourceTable never touch `java.io.File` or `java.nio.file.Path` directly.
+**This is a core architectural abstraction.** `BlobSource` / `BlobSink` / `BlobPath` represent anything "file-alike" — local filesystem, S3, Azure Blob Storage, GCS, HDFS. All file discovery and I/O in flow-kt goes through these interfaces. Format modules and SourceTable never touch `java.io.File` or `java.nio.file.Path` directly.
 
 Inspired by rapids [BlobSource](misc/rapids/rapids-core-legacy/src/main/java/io/qpointz/rapids/calcite/blob/BlobSource.java) and [LocalFilesystemBlobSource](misc/rapids/rapids-core-legacy/src/main/java/io/qpointz/rapids/providers/local/blob/LocalFilesystemBlobSource.java):
 
@@ -422,24 +422,31 @@ interface BlobPath {
     val uri: URI
 }
 
-// Storage-agnostic access to a collection of blobs
+// Storage-agnostic READ access to a collection of blobs
 interface BlobSource : Closeable {
-    // Discover all blobs in this source
     fun listBlobs(): Sequence<BlobPath>
-    // Read a blob as a stream
     fun openInputStream(path: BlobPath): InputStream
-    // Read a blob with random access (needed by Parquet)
     fun openSeekableChannel(path: BlobPath): SeekableByteChannel
+}
+
+// Storage-agnostic WRITE access (counterpart to BlobSource)
+interface BlobSink : Closeable {
+    fun openOutputStream(path: BlobPath): OutputStream
 }
 ```
 
-**Built-in implementation — local filesystem:**
+**Built-in implementations — local filesystem:**
 
 ```kotlin
 class LocalBlobSource(val rootPath: Path) : BlobSource {
     override fun listBlobs(): Sequence<BlobPath> { /* walk directory tree recursively */ }
     override fun openInputStream(path: BlobPath): InputStream { ... }
     override fun openSeekableChannel(path: BlobPath): SeekableByteChannel { ... }
+    override fun close() { /* no-op for local */ }
+}
+
+class LocalBlobSink(val rootPath: Path) : BlobSink {
+    override fun openOutputStream(path: BlobPath): OutputStream { /* create/overwrite file */ }
     override fun close() { /* no-op for local */ }
 }
 
@@ -1341,9 +1348,51 @@ Split the monolithic `mill-source-format-avro-parquet` module into two independe
 
 **Key outcomes:**
 - Avro module: zero Hadoop dependency
-- Parquet module: ~6MB Hadoop footprint (was ~450MB)
+- Parquet module: ~13MB Hadoop footprint (was ~450MB with `hadoop-client` aggregator)
 - Storage-agnostic Parquet I/O via `BlobInputFile`/`BlobOutputFile` — works with any `BlobSource`/`BlobSink` (local, ADLS, S3)
 - `BlobSink` abstraction added to `mill-source-core` for storage-agnostic writes
+- Boot JAR reduced from ~431MB to ~207MB (JDBC driver cleanup was separate)
+
+**Why Hadoop cannot be fully eliminated:**
+
+`parquet-hadoop` 1.15.0 has hard bytecode references to Hadoop classes in both read and write paths:
+
+| Code path | Hadoop class required | Used for |
+|---|---|---|
+| `ParquetReadOptions.Builder.<init>()` | `FileInputFormat` (hadoop-mapreduce) | Reader initialization |
+| `CodecFactory` | `Configurable` (hadoop-common) | Compression/decompression in both read and write |
+| `AvroWriteSupport.init()` | `Configuration` (hadoop-common) | Writer data model resolution |
+| `ParquetWriter.Builder.build()` | `HadoopParquetConfiguration` (parquet-hadoop) | Default config fallback |
+
+Mitigations applied: `PlainParquetConfiguration` + `withDataModel(GenericData.get())` bypass the `AvroWriteSupport` -> `ConfigurationUtil` path. Remaining Hadoop classes are loaded from the minimal `hadoop-common` (4.5MB) + `hadoop-mapreduce-client-core` (1.8MB) with aggressive exclusions.
+
+**Alternatives evaluated and rejected:**
+
+| Alternative | Issue |
+|---|---|
+| Apache Arrow Java JNI | Platform-specific native binaries (~30-50MB), glibc-only (no Alpine), no Java write API, off-heap memory model, adds deployment complexity |
+| Read-only Parquet (drop writer) | Does not help — reader path has same Hadoop dependencies |
+| Fully exclude Hadoop | Not possible — `NoClassDefFoundError` at runtime from parquet-hadoop internals |
+
+**Upgrade safety:** The aggressive Hadoop exclusions strip infrastructure services (Jetty, Curator, Zookeeper, Jersey, Kerby) that Parquet never uses. Any exclusion breakage from a `parquet-java` upgrade will manifest immediately as `NoClassDefFoundError` in existing tests (`ParquetFormatHandlerTest`, `ParquetRecordWriterTest`), which exercise all Hadoop-touching code paths end-to-end.
+
+**Boot JAR composition (207MB, 332 JARs):**
+
+| Category | Size | % |
+|---|---|---|
+| Other (zstd, substrait, h2, snappy, etc.) | 71 MB | 34.5% |
+| Spring (Boot, Security, Web, AI, Data) | 26 MB | 12.4% |
+| Hibernate/JPA | 13 MB | 6.2% |
+| Hadoop (hadoop-common + shaded-guava + mapreduce-core) | 13 MB | 6.1% |
+| gRPC (grpc-netty-shaded) | 12 MB | 6.0% |
+| Apache POI (Excel support) | 11 MB | 5.1% |
+| Calcite | 9 MB | 4.6% |
+| Parquet | 9 MB | 4.2% |
+| ByteBuddy | 9 MB | 4.1% |
+| BouncyCastle | 8 MB | 3.9% |
+| Netty | 6 MB | 3.0% |
+| Kotlin | 5 MB | 2.3% |
+| Remaining (Tomcat, Guava, Jackson, Prometheus, Protobuf, Avro, JDBC) | 15 MB | 7.3% |
 
 ### Known TODOs in code
 
