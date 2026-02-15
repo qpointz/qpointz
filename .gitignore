@@ -20,3 +20,4 @@ target/
 .cursor/
 .vscode/
 schemas/
+.obsidian

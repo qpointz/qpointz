@@ -1,0 +1,38 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry]
+name = "mill-py"
+version = "0.1.0"
+description = "Mill py client"
+authors = ["vm <vm@qpointz.io>"]
+packages = [{include = "millclient"}]
+#readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10,<4.0"
+protobuf = "^5.27.2"
+betterproto = "^2.0.0b6"
+grpcio = "^1.64.1"
+grpclib = "*"
+aiostream = "*"
+aiohttp = "*"
+pyarrow = "*"
+pandas = "*"
+urllib3 = "*"
+whenever = "*"
+logo = "*"
+
+[tool.poetry.group.dev.dependencies]
+betterproto = {version="^2.0.0b6", extras=["compiler"]}
+grpcio-tools = "*"
+tox = "*"
+
+[tool.poetry.group.test.dependencies]
+certifi = "*"
+coverage = "*"
+pytest = "*"
+pytest-mock = "*"
+devpi-process = "*"

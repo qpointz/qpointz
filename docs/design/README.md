@@ -7,6 +7,7 @@ plans. Documents are grouped by topic area into subfolders.
 
 | Folder | Scope | What goes here |
 |--------|-------|----------------|
+| `client/` | Client libraries | Python client (mill-py) implementation plans, cold-start references, API design |
 | `source/` | Data source framework | Source provider design, type system, format handlers, storage abstraction, Calcite adapter |
 | `ai/` | AI and NL-to-SQL | Reasoning architecture, step-back flows, capabilities, scenarios, AI UX specifications, regression testing |
 | `metadata/` | Metadata subsystem | Metadata service design, provider refactoring, value mappings, metadata UI, implementation roadmaps |

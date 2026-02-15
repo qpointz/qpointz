@@ -11,9 +11,8 @@
       echo "Test type: ${TEST_TYPE}"
     - |
       pip install poetry
-      poetry install --with dev,test
-    - poetry run coverage run -m pytest tests/${TEST_TYPE} --junitxml build/test-results/test-report-${TEST_TYPE}-${PY_VER}.xml
-    - poetry run coverage xml -o build/coverage-results/coverage-${TEST_TYPE}-${PY_VER}.xml
+      poetry install --all-extras
+      poetry run pytest --cov=mill --cov-report=xml:build/coverage-results/coverage.xml --junitxml=build/test-results/results.xml tests/unit/
   artifacts:
     expire_in: "5 days"
     reports:

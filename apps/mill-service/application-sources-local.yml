@@ -1,0 +1,25 @@
+logging.level:
+  root: INFO
+
+mill:
+  security:
+    enable: false
+  backend:
+    provider: jdbc
+    connection:
+      quoting: BACK_TICK
+      caseSensitive: true
+      unquotedCasing: UNCHANGED
+  services:
+    grinder:
+      enable: false
+    ai-nl2data:
+      enable: false
+    jet-http:
+      enable: true
+    grpc:
+      enable: true
+      port: 9090
+    jet-grpc:
+      enable: true
+      port: 9090

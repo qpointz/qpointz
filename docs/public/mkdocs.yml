@@ -74,6 +74,15 @@ nav:
         - sources/formats/excel.md
         - sources/formats/avro.md
         - sources/formats/parquet.md
+    - Connect:
+      - Python:
+        - connect/python/index.md
+        - connect/python/authentication.md
+        - connect/python/querying.md
+        - connect/python/dataframes.md
+        - connect/python/async.md
+        - connect/python/types.md
+        - connect/python/discovery.md
 #    - Backends: 
 #      - backends/index.md
 #      - backends/jdbc.md
