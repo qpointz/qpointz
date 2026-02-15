@@ -1,32 +1,4 @@
 plugins {
-}
-
-tasks.register("test") {
-    description = "Runs all test tasks in AI subprojects"
-    group = "verification"
-    dependsOn(
-        subprojects.mapNotNull { sub ->
-            sub.tasks.findByName("test")
-        }
-    )
-}
-
-tasks.register("compileTestIT") {
-    description = "Compiles all testIT sources in AI subprojects"
-    group = "verification"
-    dependsOn(
-        subprojects.mapNotNull { sub ->
-            sub.tasks.findByName("compileTestIT")
-        }
-    )
-}
-
-tasks.register("testIT") {
-    description = "Runs all testIT tasks in AI subprojects"
-    group = "verification"
-    dependsOn(
-        subprojects.mapNotNull { sub ->
-            sub.tasks.findByName("testIT")
-        }
-    )
+    base
+    id("io.qpointz.plugins.mill-aggregate")
 }

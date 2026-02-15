@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "test:ci": "vitest run",
+    "test:ci": "vitest run --reporter=junit --outputFile=.test/TEST.xml",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {

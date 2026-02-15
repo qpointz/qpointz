@@ -24,3 +24,4 @@ tsconfig.tsbuildinfo
 *.sln
 *.sw?
 .vite
+.test

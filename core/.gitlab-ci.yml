@@ -4,6 +4,15 @@ core:build:
   script:
     - echo $HOME    
     - ./gradlew --no-daemon --console plain :core:test :core:compileTestIT
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - core/**/build/reports/tests/test/
+      - core/**/build/reports/jacoco/test/
+    reports:
+      junit:
+        - core/**/build/test-results/test/TEST-*.xml
 
 core:integration:
   stage: integration

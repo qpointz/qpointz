@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run --reporter=junit --outputFile=.test/TEST.xml"
   },
   "dependencies": {
     "@lightenna/react-mermaid-diagram": "^1.0.21",

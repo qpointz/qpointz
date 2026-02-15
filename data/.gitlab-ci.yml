@@ -4,4 +4,13 @@ data:build:
   script:
     - echo $HOME    
     - ./gradlew --no-daemon --console plain :ui:test :ui:compileTestIT
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - data/**/build/reports/tests/test/
+      - data/**/build/reports/jacoco/test/
+    reports:
+      junit:
+        - data/**/build/test-results/test/TEST-*.xml
     
