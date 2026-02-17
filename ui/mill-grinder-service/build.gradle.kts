@@ -2,6 +2,7 @@ plugins {
     `java-library`
     alias(libs.plugins.spring.dependency.management)
     id("io.qpointz.plugins.mill")
+    id("org.jetbrains.dokka")
 }
 
 mill {
@@ -10,7 +11,7 @@ mill {
 }
 
 dependencies {
-    implementation(project(":core:mill-service-core"))
+    implementation(project(":core:mill-service-api"))
     implementation(libs.boot.starter)
     implementation(libs.boot.starter.web)
     compileOnly(libs.bundles.logging)

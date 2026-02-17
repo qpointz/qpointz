@@ -1,6 +1,8 @@
 SHELL := /bin/bash
 
 .PHONY: help build test clean ai-test svc-build \
+	maven-local-publish \
+	docs-build docs-serve \
 	tools-build-info tools-build-sem-release \
 	tools-build-minica tools-build-deploy-tools tools-build-all \
 	git-clean-branches check-tools
@@ -14,6 +16,13 @@ help:
 	@echo "  make clean           # Remove build outputs"
 	@echo "  make ai-test         # Run AI module tests"
 	@echo "  make svc-build       # Build mill-service distribution and image"
+	@echo ""
+	@echo "Publishing:"
+	@echo "  make maven-local-publish  # Build Maven artifacts locally (unsigned)"
+	@echo ""
+	@echo "Docs:"
+	@echo "  make docs-build           # Build full docs site (mkdocs + API docs)"
+	@echo "  make docs-serve           # Serve docs site locally for preview"
 	@echo ""
 	@echo "UI (see ui/Makefile for all targets):"
 	@echo "  make -C ui help      # Show all UI targets (V1 + V2)"
@@ -46,6 +55,17 @@ ai-test:
 svc-build:
 	cd apps && ./gradlew clean installBootDist && \
 		docker buildx build -f mill-service/src/main/docker/Dockerfile -t mill-service ./mill-service
+
+maven-local-publish:
+	./gradlew clean publish publishSonatypeBundle
+
+docs-build:
+	./gradlew dokkaGenerate
+	cd docs/public && python -m mkdocs build
+	cp -r build/dokka/html docs/public/site/api/kotlin
+
+docs-serve: docs-build
+	cd docs/public && python -m mkdocs serve
 
 BUILD_TOOLS_VERSION := $(shell grep "BUILD_TOOLS_VERSION:" .gitlab/vars.yml 2>/dev/null | awk '{print $$2}')
 BUILD_TOOLS_REGISTRY := $(shell grep "BUILD_TOOLS_REGISTRY:" .gitlab/vars.yml 2>/dev/null | awk '{print $$2}')

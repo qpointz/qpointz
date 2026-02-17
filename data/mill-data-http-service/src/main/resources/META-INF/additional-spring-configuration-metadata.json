@@ -4,5 +4,6 @@
       "name": "mill.services.jet-http.enable",
       "type": "java.lang.String",
       "description": "Enable the Mill Jet HTTP service. If set to 'true', the service will be active."
-  }
-] }
+    }
+  ]
+}

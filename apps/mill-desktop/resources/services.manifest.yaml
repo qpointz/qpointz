@@ -1,0 +1,50 @@
+services:
+  - id: mill-grinder-ui
+    name: Fake Grinder Service
+    description: Test double that emits infinite ping logs and serves a tiny health endpoint.
+    logoPath: services/assets/mill-ui.svg
+    serviceType: node
+    lifecycle:
+      start:
+        scriptPath: services/bin/fake-service.js
+        scriptArgs:
+          - --name
+          - fake-grinder
+          - --port
+          - "18080"
+          - --interval-ms
+          - "1000"
+        cwd: "."
+    cwd: "."
+    env:
+      FAKE_MODE: "true"
+    links:
+      - label: Health
+        url: http://localhost:18080/
+    gracefulShutdown:
+      signal: SIGTERM
+      timeoutMs: 8000
+
+  - id: mill-ai-service
+    name: Fake AI Service
+    description: Test double that emits infinite ping logs and serves a tiny health endpoint.
+    logoPath: services/assets/mill-ai.svg
+    serviceType: node
+    lifecycle:
+      start:
+        scriptPath: services/bin/fake-service.js
+        scriptArgs:
+          - --name
+          - fake-ai
+          - --port
+          - "18090"
+          - --interval-ms
+          - "1000"
+        cwd: "."
+    cwd: "."
+    links:
+      - label: Health
+        url: http://localhost:18090/
+    gracefulShutdown:
+      signal: SIGTERM
+      timeoutMs: 8000

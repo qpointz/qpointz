@@ -11,7 +11,7 @@ import java.util.Optional;
  * @param keyword The SQL keyword for this join type (e.g., "LEFT JOIN", "LEFT OUTER JOIN")
  * @param requireOn Whether an ON clause is required
  * @param nullSafe Whether null-safe joins are supported
- * @param notes Optional notes about this join type (can be String or List<String> in YAML)
+ * @param notes Optional notes about this join type
  */
 public record JoinSpec(
     @JsonProperty("enabled") Optional<Boolean> enabled,

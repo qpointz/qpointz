@@ -1,0 +1,6 @@
+metadata:build:
+  stage: build
+  extends: .gradle-job
+  script:
+    - echo $HOME    
+    - ./gradlew --no-daemon --console plain :metadata:mill-metadata-service:test :metadata:mill-metadata-autoconfigure:build :metadata:mill-metadata-provider:build

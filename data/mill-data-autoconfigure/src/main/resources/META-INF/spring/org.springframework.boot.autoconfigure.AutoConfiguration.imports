@@ -1,0 +1,3 @@
+io.qpointz.mill.data.autoconfigure.MillDataAutoConfiguration
+io.qpointz.mill.backend.autoconfigure.MillBackendAutoConfiguration
+io.qpointz.mill.backend.autoconfigure.MillCalciteBackendAutoConfiguration

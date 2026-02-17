@@ -1,0 +1,51 @@
+package io.qpointz.mill.security.authorization.policy;
+
+import io.qpointz.mill.services.dispatchers.SecurityDispatcher;
+import lombok.val;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static io.qpointz.mill.security.authorization.policy.ActionVerb.ALLOW;
+import static io.qpointz.mill.security.authorization.policy.ActionVerb.DENY;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+
+class GrantedAuthoritiesPolicySelectorTest {
+
+    @Test
+    void trivia() {
+        val dispatcher = mock(SecurityDispatcher.class);
+        val auths = List.of("a", "b", "c");
+        when(dispatcher.authorities()).thenAnswer(invocation -> auths);
+        val g = new GrantedAuthoritiesPolicySelector(dispatcher, Map.of());
+        val allow = g.selectPolicies(ALLOW, Set.of("a", "c", "z"));
+        assertEquals(Set.of("a","c"), allow);
+
+        val deny = g.selectPolicies(DENY, Set.of("z", "a"));
+        assertEquals(Set.of("z"), deny);
+    }
+
+    @Test
+    void failsOnUnknown() {
+        val dispatcher = mock(SecurityDispatcher.class);
+        val auths = List.of("a", "b", "c");
+        when(dispatcher.authorities()).thenAnswer(invocation -> auths);
+        val g = new GrantedAuthoritiesPolicySelector(dispatcher, Map.of());
+        assertThrows(IllegalArgumentException.class, ()-> g.selectPolicies(null, Set.of("a", "c", "z")));
+    }
+
+    @Test
+    void authRemap() {
+        val dispatcher = mock(SecurityDispatcher.class);
+        val auths = List.of("a1", "b", "c1");
+        when(dispatcher.authorities()).thenAnswer(invocation -> auths);
+        val g = new GrantedAuthoritiesPolicySelector(dispatcher, Map.of("a1", "a"));
+        val allow = g.selectPolicies(ALLOW, Set.of("a", "b"));
+        assertEquals(Set.of("a","b"), allow);
+    }
+
+}

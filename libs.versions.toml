@@ -160,6 +160,7 @@ caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version = "3.2.3
 json-path = { module = "com.jayway.jsonpath:json-path", version = "2.10.0" }
 
 [bundles]
+jackson = ["jackson-databind", "jackson-dataformat-yaml", "jackson-datatype-jsr310", "jackson-datatype-jdk8", "jackson-module-kotlin"]
 logging = ["slf4j-api", "logback-core", "logback-classic", "fusesource-jansi"]
 jdbc-pack = [
     "h2-database",
@@ -177,4 +178,5 @@ spring-dependency-management = { id = "io.spring.dependency-management", version
 spring-boot-plugin = { id = "org.springframework.boot", version.ref = "springBoot" }
 google-protobuf-plugin = { id = "com.google.protobuf", version.ref = "protobuf-plugin" }
 kotlin = {id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin"}
+kotlin-kapt = {id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin"}
 kotlin-spring = {id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin"}

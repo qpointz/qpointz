@@ -5,6 +5,8 @@ plugins {
     java
     `java-library-distribution`
     id("io.qpointz.plugins.mill")
+    id("org.jetbrains.dokka")
+    id("org.jetbrains.dokka-javadoc")
 }
 
 distributions {
@@ -38,6 +40,7 @@ testing {
                 dependencies {
                     implementation(project())
                     implementation(project(":data:mill-data-backends"))
+                    implementation(project(":data:mill-data-autoconfigure"))
                     implementation(project(":data:mill-data-grpc-service"))
                     implementation(libs.okhttp.mock.webserver)
                     implementation(libs.bootGRPC.client)

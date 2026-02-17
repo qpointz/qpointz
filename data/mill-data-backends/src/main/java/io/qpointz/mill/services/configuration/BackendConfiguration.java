@@ -32,21 +32,4 @@ public class BackendConfiguration {
     @Setter
     private Map<String, String> connection;
 
-    @Bean
-    public SimpleExtension.ExtensionCollection substraitExtensionCollection() throws IOException {
-        val defaultCollection =  SimpleExtension.loadDefaults();
-        //val overrides = load( "/extensions/functions.yml");
-        //val full = overrides.merge(defaultCollection);
-        return defaultCollection;
-    }
-
-    private SimpleExtension.ExtensionCollection load(String location) {
-        try(val in = BackendConfiguration.class.getResourceAsStream(location)) {
-            return SimpleExtension.load(location, in);
-        } catch (IOException io) {
-            throw new MillRuntimeDataException(io);
-        }
-
-    }
-
 }

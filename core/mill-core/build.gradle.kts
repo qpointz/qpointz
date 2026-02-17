@@ -3,6 +3,8 @@ plugins {
     libs.plugins.spring.dependency.management
     alias(libs.plugins.google.protobuf.plugin)
     id("io.qpointz.plugins.mill")
+    id("org.jetbrains.dokka")
+    id("org.jetbrains.dokka-javadoc")
 }
 
 mill {
@@ -27,11 +29,6 @@ sourceSets {
 
 dependencies {
     api(libs.substrait.core)
-    api(libs.jackson.databind)
-    api(libs.jackson.dataformat.yaml)
-    api(libs.jackson.datatype.jsr310)
-    api(libs.jackson.datatype.jdk8)
-    api(libs.jackson.module.kotlin)
     api(libs.grpc.netty.shaded)
     api(libs.grpc.protobuf)
     api(libs.protobuf.java)
@@ -39,7 +36,10 @@ dependencies {
     api(libs.grpc.inprocess)
     api(libs.javax.annotation.api)
 
+    implementation(libs.bundles.jackson)
     implementation(libs.bundles.logging)
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
 }
 
 protobuf {

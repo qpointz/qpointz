@@ -13,11 +13,26 @@ publish:semantic-release:
     - export GITLAB_TOKEN=${CI_PUSH_TOKEN}
     - npx semantic-release --ci --debug
 
+publish:dokka:
+  extends: .gradle-job
+  stage: publish
+  needs:
+    - job: init-version
+      artifacts: true
+  script:
+    - ./gradlew --no-daemon --console plain dokkaGenerate
+  artifacts:
+    expire_in: "1 day"
+    paths:
+      - ${CI_PROJECT_DIR}/build/dokka/html/
+
 publish:docs:
   stage: publish
   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:3.12-slim
   needs:
     - job: init-version
+      artifacts: true
+    - job: publish:dokka
       artifacts: true
   variables:
     GIT_STRATEGY: clone
@@ -39,7 +54,9 @@ publish:docs:
   script:
     - !reference [.global-vars, before_script]
     - echo "VERSION:${QP_VERSION}"
-    - cd ${CI_PROJECT_DIR}/docs/public    
+    - cd ${CI_PROJECT_DIR}/docs/public
+    - python -m mkdocs build
+    - cp -r ${CI_PROJECT_DIR}/build/dokka/html site/api/kotlin
     - export VERSION_ALIAS=""
     - |
       if [[ "main" == "${CI_COMMIT_REF_SLUG}" ]]

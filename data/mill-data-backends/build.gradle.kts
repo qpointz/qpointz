@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.spring.dependency.management)
     id("io.qpointz.plugins.mill")
+    id("org.jetbrains.dokka")
+    id("org.jetbrains.dokka-javadoc")
     `java-library`
 }
 
@@ -11,7 +13,7 @@ mill {
 
 
 dependencies {
-    api(project(":core:mill-service-core"))
+    api(project(":data:mill-data-service"))
     implementation(libs.calcite.core)
     implementation(libs.calcite.csv)
     implementation(libs.calcite.file)
@@ -39,6 +41,7 @@ testing {
 
                 dependencies {
                     implementation(project())
+                    implementation(project(":data:mill-data-autoconfigure"))
                     implementation(libs.calcite.core)
                     implementation(libs.protobuf.java.util)
                     implementation(libs.mockito.core)

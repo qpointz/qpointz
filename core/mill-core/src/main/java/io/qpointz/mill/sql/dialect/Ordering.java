@@ -8,7 +8,7 @@ import java.util.Optional;
  * Configuration for ORDER BY clause in SQL dialects.
  * 
  * @param orderByNulls NULLS FIRST/LAST support (e.g., "NULLS FIRST/LAST", "NULLS LAST", or null if unsupported)
- * @param notes Optional notes about ordering behavior (can be String or List<String> in YAML)
+ * @param notes Optional notes about ordering behavior)
  */
 public record Ordering(
     @JsonProperty("order-by-nulls") Optional<String> orderByNulls,

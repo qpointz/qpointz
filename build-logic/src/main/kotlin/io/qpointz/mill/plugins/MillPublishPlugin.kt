@@ -12,27 +12,37 @@ import org.gradle.internal.cc.base.logger
 class MillPublishPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
-        project.pluginManager.withPlugin("mill") {
-            project.afterEvaluate {applyPublishing(project)}
-        }
-    }
-
-    fun applyPublishing(project: Project) {
-        val millExt = project.extensions.findByName("mill") as? MillExtension
-
         project.pluginManager.apply("maven-publish")
         project.pluginManager.apply("signing")
 
-        val publishing = project.extensions.findByName("publishing") as? org.gradle.api.publish.PublishingExtension
-
         project.extensions.configure(org.gradle.api.plugins.JavaPluginExtension::class.java) {
-            withJavadocJar()
             withSourcesJar()
         }
 
+        val javadocJar = project.tasks.register("javadocJar", org.gradle.api.tasks.bundling.Jar::class.java) {
+            archiveClassifier.set("javadoc")
+        }
+
+        project.afterEvaluate {
+            javadocJar.configure {
+                val hasDokkaJavadoc = project.tasks.findByName("dokkaGeneratePublicationJavadoc") != null
+                if (hasDokkaJavadoc) {
+                    from(project.layout.buildDirectory.dir("dokka/javadoc"))
+                    dependsOn("dokkaGeneratePublicationJavadoc")
+                } else {
+                    val javadocTask = project.tasks.findByName("javadoc")
+                    if (javadocTask != null) {
+                        from(javadocTask)
+                        dependsOn(javadocTask)
+                    }
+                }
+            }
+        }
+
         project.extensions.configure(org.gradle.plugins.signing.SigningExtension::class.java) {
+            val publishing = project.extensions.findByName("publishing") as? PublishingExtension
             sign(publishing?.publications)
-            if (! project.hasProperty("signing.keyId")) {
+            if (!project.hasProperty("signing.keyId")) {
                 logger.log(LogLevel.DEBUG, "No signing key provided. Skipping signing task")
                 setRequired(false)
             }
@@ -42,11 +52,18 @@ class MillPublishPlugin : Plugin<Project> {
             repositories.maven {
                 url = project.uri(project.rootProject.layout.buildDirectory.dir("repo"))
             }
-            publications.create("mavenJava", MavenPublication::class.java, {
-                val comp = project.components.findByName("java")
-                from(comp)
-                createPom(millExt, comp!!.name)
-            })
+        }
+
+        project.afterEvaluate {
+            val millExt = project.extensions.findByName("mill") as? MillExtension
+            project.extensions.configure<PublishingExtension> {
+                publications.create("mavenJava", MavenPublication::class.java) {
+                    val comp = project.components.findByName("java")
+                    from(comp)
+                    artifact(javadocJar)
+                    createPom(millExt, comp!!.name)
+                }
+            }
         }
     }
 }

@@ -60,15 +60,14 @@ include:
         - build-logic/**/*
         - core/**/*
       - when: never
-  - local : ${CI_PROJECT_DIR}/services/.gitlab-ci.yml
+  - local: ${CI_PROJECT_DIR}/metadata/.gitlab-ci.yml
     rules:
       - *if-mr
       - *if-protected
-      - *build-changes    
+      - *build-changes
       - changes:
-        - services/**/*
-        - apps/**/*
-      - when: never        
+          - metadata/**/*
+      - when: never
   - local : ${CI_PROJECT_DIR}/apps/.gitlab-ci.yml
     rules:
       - *if-mr
@@ -100,14 +99,6 @@ include:
       - *build-changes
       - changes:
           - data/**/*
-      - when: never
-  - local : ${CI_PROJECT_DIR}/source/.gitlab-ci.yml
-    rules:
-      - *if-mr
-      - *if-protected
-      - *build-changes
-      - changes:
-          - source/**/*
       - when: never
   - local : ${CI_PROJECT_DIR}/clients/.gitlab-ci.yml
     rules:

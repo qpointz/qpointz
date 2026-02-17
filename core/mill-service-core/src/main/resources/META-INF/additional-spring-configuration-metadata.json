@@ -1,8 +1,0 @@
-{
-  "properties": [
-    {
-      "name": "mill.security.authorization.policy.selector.granted-authority.remap",
-      "type": "java.util.Map<java.lang.String,java.lang.String>",
-      "description": "Defines remapping of granted authorites to policy name for cases when granted authority name not matches policy name."
-  }
-] }

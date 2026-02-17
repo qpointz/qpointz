@@ -1,5 +1,11 @@
 plugins {
     id ("org.sonarqube") version "5.0.0.4638"
+    id("org.jetbrains.dokka")
+}
+
+dependencies {
+    dokka(project(":clients:mill-jdbc-driver"))
+    dokka(project(":clients:mill-jdbc-shell"))
 }
 
 sonar {

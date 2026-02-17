@@ -1,4 +1,9 @@
 plugins {
+    id("org.jetbrains.dokka")
+}
+
+dependencies {
+    dokka(project(":apps:mill-service"))
 }
 
 tasks.register("test") {

@@ -19,5 +19,5 @@ target/
 .kotlin/
 .cursor/
 .vscode/
+.obsidian/
 schemas/
-.obsidian

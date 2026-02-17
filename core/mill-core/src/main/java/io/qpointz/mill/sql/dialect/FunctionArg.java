@@ -18,7 +18,7 @@ import java.util.Optional;
  * @param enum_ Optional enum values (for ENUM type)
  * @param multi Whether multiple values are allowed
  * @param variadic Whether the argument is variadic (can accept multiple values)
- * @param notes Optional notes about the argument (can be String or List<String>)
+ * @param notes Optional notes about the argument
  */
 public record FunctionArg(
     @JsonProperty("name") String name,

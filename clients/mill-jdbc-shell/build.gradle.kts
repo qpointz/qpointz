@@ -1,6 +1,8 @@
 plugins {
     application
     id("io.qpointz.plugins.mill")
+    id("org.jetbrains.dokka")
+    id("org.jetbrains.dokka-javadoc")
 }
 
 mill {

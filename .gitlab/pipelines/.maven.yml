@@ -1,0 +1,38 @@
+maven-publication-create:
+  extends: .gradle-job
+  stage: publish
+  before_script:
+    - echo -n "${SIGN_PGP_RING}" | base64 --decode > ${CI_PROJECT_DIR}/.keyring.kbx
+  script:
+    - ./gradlew --no-daemon --console plain clean publish publishSonatypeBundle -Psigning.keyId=${SIGN_PGP_KEY_ID} -Psigning.password=${SIGN_PGP_PASS} -Psigning.secretKeyRingFile=${CI_PROJECT_DIR}/.keyring.kbx
+  needs:
+    - job: init-version
+      artifacts: true
+  artifacts:
+    expire_in: "5 days"
+    paths:
+      - ${CI_PROJECT_DIR}/build/sonatype-bundle/**/*
+      - ${CI_PROJECT_DIR}/build/sonatype-bundle/*
+
+maven-publish:
+  stage: publish
+  script:
+    - !reference [.global-vars, before_script]
+    - export SONATYPE_TOKEN=Authorization:\ Bearer\ $(echo -n $SONATYPE_USERNAME:$SONATYPE_PASSWORD | base64)
+    - export SONATYPE_PUBLISHING_TYPE="USER_MANAGED"
+    - |
+        if [[ "main" == "${CI_COMMIT_REF_SLUG}" ]]
+        then
+          export SONATYPE_PUBLISHING_TYPE="AUTOMATIC"
+        fi
+    - export SONATYPE_URL="https://central.sonatype.com/api/v1/publisher/upload?publishingType=${SONATYPE_PUBLISHING_TYPE}&name=mill-${QP_VERSION}-${CI_COMMIT_REF_SLUG}-$(date +%Y%m%d_%H%M%S)"
+    - echo $SONATYPE_URL
+    - curl -X POST -v --header "$SONATYPE_TOKEN" --form bundle=@${CI_PROJECT_DIR}/build/sonatype-bundle/sonatype-bundle.zip $SONATYPE_URL
+  needs:
+    - job: maven-publication-create
+      artifacts: true
+    - job: init-version
+      artifacts: true
+  rules:
+    - if: $CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_REF_SLUG != "dev"
+      when: always

@@ -2,6 +2,7 @@ plugins {
     application
     alias(libs.plugins.spring.boot.plugin)
     id("io.qpointz.plugins.mill")
+    id("org.jetbrains.dokka")
 }
 
 mill {
@@ -74,8 +75,10 @@ tasks.register("assembleSamples") {
 
 
 dependencies {
-    implementation(project(":services:mill-well-known-service"))
-    implementation(project(":services:mill-metadata-service"))
+    implementation(project(":metadata:mill-metadata-autoconfigure"))
+    implementation(project(":data:mill-data-autoconfigure"))
+    implementation(project(":core:mill-well-known-service"))
+    implementation(project(":metadata:mill-metadata-service"))
     implementation(project(":data:mill-data-backends"))
     implementation(project(":data:mill-data-grpc-service"))
     implementation(project(":data:mill-data-http-service"))
@@ -86,12 +89,12 @@ dependencies {
 
     implementation(project(":ui:mill-grinder-service"))
 
-    implementation(project(":source:mill-source-core"))
-    implementation(project(":source:mill-source-calcite"))
-    implementation(project(":source:formats:mill-source-format-text"))
-    implementation(project(":source:formats:mill-source-format-excel"))
-    implementation(project(":source:formats:mill-source-format-avro"))
-    implementation(project(":source:formats:mill-source-format-parquet"))
+    implementation(project(":data:mill-data-source-core"))
+    implementation(project(":data:mill-data-source-calcite"))
+    implementation(project(":data:formats:mill-source-format-text"))
+    implementation(project(":data:formats:mill-source-format-excel"))
+    implementation(project(":data:formats:mill-source-format-avro"))
+    implementation(project(":data:formats:mill-source-format-parquet"))
 
     implementation(libs.springdoc.openapi.starter.webmvc.ui)
     implementation(libs.springdoc.openapi.starter.webflux.api)
@@ -106,6 +109,8 @@ dependencies {
     implementation(libs.boot.starter)
     implementation(libs.bundles.logging)
     implementation(libs.bundles.jdbc.pack)
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
 }
 
 testing {

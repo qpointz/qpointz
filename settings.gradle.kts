@@ -12,19 +12,24 @@ rootProject.name = "mill"
 
 include (":core")
 include (":core:mill-core")
-include (":core:mill-metadata-core")
-include (":core:mill-security-core")
-include (":core:mill-service-core")
+include (":metadata:mill-metadata-core")
+include (":core:mill-security")
+include (":core:mill-security-autoconfigure")
+include (":core:mill-service-api")
+
+include (":metadata:mill-metadata-autoconfigure")
+include (":metadata:mill-metadata-provider")
 include (":core:mill-test-kit")
 
 include (":data")
+include (":data:mill-data-service")
 include (":data:mill-data-backends")
+include (":data:mill-data-autoconfigure")
 include (":data:mill-data-grpc-service")
 include (":data:mill-data-http-service")
 
-include (":services")
-include (":services:mill-well-known-service")
-include (":services:mill-metadata-service")
+include (":core:mill-well-known-service")
+include (":metadata:mill-metadata-service")
 
 include (":ui:mill-grinder-service")
 
@@ -41,13 +46,12 @@ include (":clients:mill-jdbc-shell")
 include (":apps")
 include (":apps:mill-service")
 
-include (":source")
-include (":source:mill-source-core")
-include (":source:formats:mill-source-format-text")
-include (":source:formats:mill-source-format-excel")
-include (":source:formats:mill-source-format-avro")
-include (":source:formats:mill-source-format-parquet")
-include (":source:mill-source-calcite")
+include (":data:mill-data-source-core")
+include (":data:formats:mill-source-format-text")
+include (":data:formats:mill-source-format-excel")
+include (":data:formats:mill-source-format-avro")
+include (":data:formats:mill-source-format-parquet")
+include (":data:mill-data-source-calcite")
 
 
 dependencyResolutionManagement {

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <rect width="48" height="48" rx="8" fill="#339933"/>
+  <g transform="translate(8,8)">
+    <path d="M16 2.5a2 2 0 0 0-2 0L3.5 8.8a2 2 0 0 0-1 1.7v12.6a2 2 0 0 0 1 1.7L14 31.1a2 2 0 0 0 2 0l10.5-6.3a2 2 0 0 0 1-1.7V10.5a2 2 0 0 0-1-1.7L16 2.5z" fill="#339933" stroke="#fff" stroke-width="1.5"/>
+    <text x="15" y="21" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="10" fill="#fff">JS</text>
+  </g>
+</svg>

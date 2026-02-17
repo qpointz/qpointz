@@ -83,6 +83,8 @@ nav:
         - connect/python/async.md
         - connect/python/types.md
         - connect/python/discovery.md
+    - Api:
+        - Kotlin: api/kotlin/index.html
 #    - Backends: 
 #      - backends/index.md
 #      - backends/jdbc.md

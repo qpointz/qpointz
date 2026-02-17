@@ -2,6 +2,7 @@ plugins {
     `java-library`
     alias(libs.plugins.spring.dependency.management)
     id("io.qpointz.plugins.mill")
+    id("org.jetbrains.dokka")
 }
 
 mill {
@@ -11,6 +12,7 @@ mill {
 
 dependencies {
     implementation(project(":data:mill-data-backends"))
+    implementation(project(":data:mill-data-autoconfigure"))
     implementation(libs.protobuf.java.util)
 
     compileOnly(libs.bundles.logging)

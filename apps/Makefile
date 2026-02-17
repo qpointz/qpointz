@@ -1,12 +1,21 @@
 SHELL := /bin/bash
 
-.PHONY: help build-docker
+DESKTOP_DIR := mill-desktop
+
+.PHONY: help build-docker \
+	desktop-install desktop-build desktop-launch desktop-clean
 
 help:
 	@echo "Available targets:"
 	@echo ""
-	@echo "make build-docker     # rebuild docker images"
-	@echo "make run-moneta     # runs moneta sample docker"
+	@echo "make build-docker      # rebuild docker images"
+	@echo "make run-moneta        # runs moneta sample docker"
+	@echo ""
+	@echo "Desktop — $(DESKTOP_DIR):"
+	@echo "  make desktop-install  # Install npm dependencies"
+	@echo "  make desktop-build    # Build mill-desktop"
+	@echo "  make desktop-launch   # Launch mill-desktop in dev mode"
+	@echo "  make desktop-clean    # Remove desktop build artifacts"
 
 rebuild:
 	cd ../services/mill-grinder-ui ; \
@@ -34,3 +43,21 @@ run-moneta : build-docker
 
 info:
 	@echo $(OPENAI_API_KEY)
+
+# ──────────────────────────────────────────────
+# Desktop — mill-desktop
+# ──────────────────────────────────────────────
+
+desktop-install:
+	cd $(DESKTOP_DIR) && npm install
+
+desktop-build:
+	cd $(DESKTOP_DIR) && npm run build
+
+desktop-launch:
+	cd $(DESKTOP_DIR) && npm run dev
+
+desktop-clean:
+	rm -rf $(DESKTOP_DIR)/dist
+	rm -rf $(DESKTOP_DIR)/dist-electron
+	rm -rf $(DESKTOP_DIR)/release

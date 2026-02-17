@@ -4,6 +4,8 @@ plugins {
     `java-library`
     alias(libs.plugins.spring.dependency.management)
     id("io.qpointz.plugins.mill")
+    id("org.jetbrains.dokka")
+    id("org.jetbrains.dokka-javadoc")
 }
 
 mill {
@@ -12,7 +14,7 @@ mill {
 }
 
 dependencies {
-    api(project(":core:mill-service-core"))
+    api(project(":data:mill-data-autoconfigure"))
     implementation(libs.pebble.templates)
     implementation(libs.boot.starter)
     implementation(libs.jackson.core)
@@ -45,8 +47,9 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation(project(":core:mill-security-core"))
+                    implementation(project(":core:mill-security-autoconfigure"))
                     implementation(project(":data:mill-data-backends"))
+                    implementation(project(":data:mill-data-autoconfigure"))
                     implementation(project(":core:mill-test-kit"))
                     implementation(libs.boot.starter.test)
                     implementation(libs.boot.starter.web)

@@ -2,7 +2,6 @@ package io.qpointz.mill.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.internal.cc.base.logger
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
@@ -62,29 +61,17 @@ class MillPlugin: Plugin<Project> {
             }
         }
 
-
-        val lombok = project.rootProject
-            .extensions
-            .getByType(VersionCatalogsExtension::class.java).named("libs").findLibrary("lombok").get();
-
-        project.dependencies.add("compileOnly",lombok)
-        project.dependencies.add("annotationProcessor",lombok)
-
         val jacocoTask = project.tasks.findByName("jacocoTestReport") as? org.gradle.testing.jacoco.tasks.JacocoReport
         jacocoTask?.reports?.xml?.required?.set(true)
-
-        val annotProcessors = project.configurations.findByName("annotationProcessor")
-        val compileOnly = project.configurations.findByName("compileOnly")
-        compileOnly!!.extendsFrom(annotProcessors!!)
 
         project.rootProject.dependencies.add("jacocoAggregation", project)
 
         project.tasks.findByName("clean")?.apply {
-            //delete vscode bin folders
             doLast {
                 project.file("bin").deleteRecursively()
             }
         }
 
+        project.pluginManager.apply(MillPublishPlugin::class.java)
     }
 }
