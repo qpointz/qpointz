@@ -7,12 +7,15 @@ plans. Documents are grouped by topic area into subfolders.
 
 | Folder | Scope | What goes here |
 |--------|-------|----------------|
-| `client/` | Client libraries | Python client (mill-py) implementation plans, cold-start references, API design |
-| `source/` | Data source framework | Source provider design, type system, format handlers, storage abstraction, Calcite adapter |
 | `ai/` | AI and NL-to-SQL | Reasoning architecture, step-back flows, capabilities, scenarios, AI UX specifications, regression testing |
+| `client/` | Client libraries | Python client (mill-py), JDBC driver, SQL dialect descriptors, client API design |
+| `data/` | Data layer | Type system, complex types, vector encoding, schema definitions, wire format design |
 | `metadata/` | Metadata subsystem | Metadata service design, provider refactoring, value mappings, metadata UI, implementation roadmaps |
+| `platform/` | Infrastructure and cross-cutting | Configuration, migration plans (Spring, WebFlux), codebase analysis, protocols (MCP, gRPC export), Calcite dialect work |
+| `publish/` | Build, release, and documentation | Maven publishing, artifact signing, documentation generation tooling (MkDocs, Dokka) |
+| `refactoring/` | Codebase refactoring | Refactoring iterations, file inventories, dependency graphs, configuration key audits, progress tracking |
+| `source/` | Data source framework | Source provider design, format handlers (CSV, Parquet, etc.), storage abstraction, Calcite adapter |
 | `ui/` | Frontend and UX | Grinder UI design, chat input, clarification flows, visual refresh, interaction patterns |
-| `platform/` | Infrastructure and cross-cutting | Configuration, build/CI, migration plans (Spring, WebFlux), codebase analysis, test inventory, protocols (MCP, gRPC export), tooling (Dokka), Calcite dialect work |
 
 ## Classification Principles
 
@@ -21,8 +24,8 @@ plans. Documents are grouped by topic area into subfolders.
    with no domain-specific content.
 
 2. **When a document spans two domains, place it in the domain it serves.** For example, a
-   type system reference that exists to support the source framework belongs in `source/`,
-   even though types are used elsewhere.
+   type system reference belongs in `data/` (its primary domain), even though types are
+   consumed by sources, clients, and backends.
 
 3. **`platform/` is the catch-all for cross-cutting concerns.** Configuration, migrations,
    build tooling, codebase audits, protocol specifications, and anything that doesn't belong
