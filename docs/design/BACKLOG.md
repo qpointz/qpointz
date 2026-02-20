@@ -133,6 +133,10 @@ milestone-selectable deliverables extracted from design documents in this folder
 | P-20 | Add rate limiting, audit logging, and policy testing framework | 💡 improvement | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md |
 | P-21 | Add architecture diagrams, user guides, and troubleshooting guide | 📝 docs | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md |
 | P-22 | Consider compression for vector blocks and serialization performance metrics | 💡 improvement | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md |
+| P-23 | Phase 1: SQL-direct execution path — QueryPlan record, cancelable QueryResult, ExecutionProvider/SqlProvider RelNode methods, SQL parameter support, route SQL in dispatcher | 🔧 refactoring | backlog | platform/substrait-to-relnode-migration.md |
+| P-24 | Phase 2: Substrait input via RelNode — route Substrait through PlanConverter to QueryPlan, remove old execute(Plan) | 🔧 refactoring | backlog | platform/substrait-to-relnode-migration.md |
+| P-25 | Phase 3: Port rewriters to Calcite — PlanRewriter/facets on RelNode/RexNode, TableFacetVisitor to RelShuttleImpl | 🔧 refactoring | backlog | platform/substrait-to-relnode-migration.md |
+| P-26 | Phase 4: Clean up dead Substrait code — remove PlanHelper, DataTypeToSubstrait, old SqlProvider methods, substrait-core from mill-core | 🔧 refactoring | backlog | platform/substrait-to-relnode-migration.md |
 
 ---
 
@@ -210,9 +214,9 @@ milestone-selectable deliverables extracted from design documents in this folder
 | ai          | 23      | 16        | 4              | 1      | 2              | 0       | 0       |
 | client      | 16      | 9         | 0              | 3      | 3              | 0       | 1       |
 | metadata    | 22      | 13        | 0              | 2      | 6              | 1       | 0       |
-| platform    | 22      | 6         | 7              | 4      | 4              | 1       | 0       |
+| platform    | 26      | 6         | 7              | 4      | 8              | 1       | 0       |
 | publish     | 4       | 1         | 2              | 0      | 0              | 0       | 1       |
 | refactoring | 14      | 0         | 1              | 6      | 4              | 2       | 1       |
 | source      | 10      | 4         | 3              | 1      | 1              | 0       | 0       |
 | ui          | 10      | 4         | 4              | 0      | 1              | 1       | 0       |
-| **Total**   | **129** | **59**    | **21**         | **18** | **21**         | **5**   | **4**   |
+| **Total**   | **133** | **59**    | **21**         | **18** | **25**         | **5**   | **4**   |
