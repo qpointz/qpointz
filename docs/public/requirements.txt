@@ -1,5 +1,5 @@
 # MkDocs core
-mkdocs>=1.6.0
+mkdocs>=1.6.0,<2.0.0
 
 # Material theme
 mkdocs-material>=9.4.4
