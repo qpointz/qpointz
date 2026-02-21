@@ -3,8 +3,6 @@ SHELL := /bin/bash
 .PHONY: help build test clean ai-test svc-build \
 	maven-local-publish \
 	docs-build docs-serve \
-	tools-build-info tools-build-sem-release \
-	tools-build-minica tools-build-deploy-tools tools-build-all \
 	git-clean-branches check-tools
 
 help:
@@ -33,12 +31,8 @@ help:
 	@echo "Git:"
 	@echo "  make git-clean-branches  # Delete local feat/ poc/ fix/ branches with no remote"
 	@echo ""
-	@echo "Tools (CI/CD build images):"
-	@echo "  make tools-build-info        # Display build tools version and registry"
-	@echo "  make tools-build-sem-release # Build and push semantic-release image"
-	@echo "  make tools-build-minica      # Build and push minica image"
-	@echo "  make tools-build-deploy-tools # Build and push deploy-tools image"
-	@echo "  make tools-build-all         # Build and push all tool images"
+	@echo "Tools (CI/CD build images — see .gitlab/Makefile):"
+	@echo "  make -C .gitlab help         # Show all CI/CD tool image targets"
 
 build:
 	./gradlew build
@@ -66,30 +60,6 @@ docs-build:
 
 docs-serve: docs-build
 	cd docs/public && python -m mkdocs serve
-
-BUILD_TOOLS_VERSION := $(shell grep "BUILD_TOOLS_VERSION:" .gitlab/vars.yml 2>/dev/null | awk '{print $$2}')
-BUILD_TOOLS_REGISTRY := $(shell grep "BUILD_TOOLS_REGISTRY:" .gitlab/vars.yml 2>/dev/null | awk '{print $$2}')
-
-tools-build-info:
-	@echo "Version: $(BUILD_TOOLS_VERSION)" 
-	@echo "Registry: $(BUILD_TOOLS_REGISTRY)"
-	
-tools-build-sem-release:
-	cd .gitlab/docker/semantic-release && \
-	docker build -t $(BUILD_TOOLS_REGISTRY)/semantic-release:$(BUILD_TOOLS_VERSION) . && \
-	docker push $(BUILD_TOOLS_REGISTRY)/semantic-release:$(BUILD_TOOLS_VERSION)
-
-tools-build-minica:
-	cd .gitlab/docker/minica && \
-	docker build -t $(BUILD_TOOLS_REGISTRY)/minica:$(BUILD_TOOLS_VERSION) . && \
-	docker push $(BUILD_TOOLS_REGISTRY)/minica:$(BUILD_TOOLS_VERSION)
-
-tools-build-deploy-tools:
-	cd .gitlab/docker/deploy-tools && \
-	docker build -t $(BUILD_TOOLS_REGISTRY)/deploy-tools:$(BUILD_TOOLS_VERSION) . && \
-	docker push $(BUILD_TOOLS_REGISTRY)/deploy-tools:$(BUILD_TOOLS_VERSION)
-
-tools-build-all: tools-build-sem-release tools-build-minica tools-build-deploy-tools
 
 git-clean-branches:
 	@git fetch origin --prune

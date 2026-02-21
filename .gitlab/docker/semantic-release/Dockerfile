@@ -1,4 +1,4 @@
- FROM node:24-alpine
+ FROM node:25-alpine
 
 RUN apk add git jq && \
     npm install -g semantic-release semantic-release-unsquash @semantic-release/exec \

@@ -1,0 +1,25 @@
+mill:
+  application:
+    name: my mill app
+  data:
+    services:
+      grpc:
+        enable: true
+      http:
+        enable: true
+    sql:
+      dialect: CALCITE
+    backend:
+      type: jdbc                      # renamed from "provider" — clearer
+      calcite:  
+        model: ./model.yaml           # only used when type=calcite
+      jdbc:
+        url: "jdbc:h2:mem:test"
+        driver: "org.h2.Driver"
+        username: "*"
+        password: "*"
+        schema:
+          target: ts                    # was target-schema
+          source: null                  # was schema
+          catalog: null
+          multi-schema: false

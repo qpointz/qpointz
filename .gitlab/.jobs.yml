@@ -30,11 +30,12 @@
   variables:
     GIT_STRATEGY: clone
     GL_TOKEN: ${CI_PUSH_TOKEN}
-    GL_URL: "https://gitlab.qpointz.io"
+    GL_URL: "https://gitlab.qpointz.io/${CI_PROJECT_PATH}.git"
     GIT_DEPTH: 0
   script:
     - |
       export BUILD_VERSION_SFX=""
+      git remote set-url origin https://gitlab.qpointz.io/${CI_PROJECT_PATH}.git
       if [[ "main" == "${CI_COMMIT_REF_SLUG}" || "rc" == "${CI_COMMIT_REF_SLUG}" ]]
       then 
         npx semantic-release --dry-run --no-ci --debug
