@@ -3,23 +3,7 @@ data:build:
   extends: .gradle-job
   script:
     - echo $HOME    
-    - ./gradlew --no-daemon --console plain :ui:test :ui:compileTestIT
-  artifacts:
-    when: always
-    expire_in: 7 days
-    paths:
-      - data/**/build/reports/tests/test/
-      - data/**/build/reports/jacoco/test/
-    reports:
-      junit:
-        - data/**/build/test-results/test/TEST-*.xml
-
-data-source:build:
-  stage: build
-  extends: .gradle-job
-  script:
-    - echo $HOME    
-    - ./gradlew --no-daemon --console plain :data:mill-data-source-core:test :data:mill-data-source-calcite:test :data:formats:mill-source-format-text:test :data:formats:mill-source-format-excel:test :data:formats:mill-source-format-avro:test :data:formats:mill-source-format-parquet:test
+    - ./gradlew --no-daemon --console plain :data:test :data:compileTestIT
   artifacts:
     when: always
     expire_in: 7 days

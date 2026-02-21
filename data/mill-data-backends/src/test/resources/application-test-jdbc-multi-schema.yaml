@@ -7,16 +7,19 @@ grpc:
       address: in-process:testservice-jdbc
 
 mill:
-  backend:
-    provider: jdbc
-    connection:
-      quoting: BACK_TICK
-      caseSensitive: true
-      unquotedCasing: UNCHANGED
-    jdbc:
-      url: "jdbc:h2:mem:multi;INIT=RUNSCRIPT FROM './config/test/multi-schema.sql'"
-      driver: "org.h2.Driver"
-      output-schema: "ts"
-      multi-schema: true
   security:
     enable: false
+  data:
+    sql:
+      dialect: h2
+      conventions:
+        quoting: BACK_TICK
+        caseSensitive: true
+        unquotedCasing: UNCHANGED
+    backend:
+      type: jdbc
+      jdbc:
+        url: "jdbc:h2:mem:multi;INIT=RUNSCRIPT FROM './config/test/multi-schema.sql'"
+        driver: "org.h2.Driver"
+        output-schema: "ts"
+        multi-schema: true

@@ -23,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @WebAppConfiguration
 @SpringBootTest(classes = {ServiceController.class, })
-@EnableAutoConfiguration
 @ComponentScan("io.qpointz.mill")
 @Slf4j
 abstract class BaseSecurityTest {

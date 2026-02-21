@@ -1,9 +1,11 @@
 package io.qpointz.mill.services;
 
+import io.qpointz.mill.autoconfigure.data.SqlAutoConfiguration;
+import io.qpointz.mill.autoconfigure.data.backend.BackendAutoConfiguration;
+import io.qpointz.mill.autoconfigure.data.backend.jdbc.JdbcBackendAutoConfiguration;
 import io.qpointz.mill.proto.ParseSqlRequest;
 import io.qpointz.mill.proto.QueryRequest;
 import io.qpointz.mill.proto.SQLStatement;
-import io.qpointz.mill.services.configuration.BackendConfiguration;
 import io.qpointz.mill.services.configuration.DefaultServiceConfiguration;
 import io.qpointz.mill.services.configuration.ServiceBaseTestConfiguration;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +13,8 @@ import lombok.val;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import io.qpointz.mill.autoconfigure.data.backend.calcite.CalciteBackendAutoConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -21,7 +25,11 @@ import static org.mockito.Mockito.reset;
 @Slf4j
 @SpringBootTest()
 @ActiveProfiles("test")
-@ContextConfiguration(classes = {ServiceBaseTestConfiguration.class, BackendConfiguration.class, DefaultServiceConfiguration.class})
+@EnableAutoConfiguration(exclude = CalciteBackendAutoConfiguration.class)
+@ContextConfiguration(classes = {
+        /*ServiceBaseTestConfiguration.class,
+        SqlAutoConfiguration.class,
+        BackendAutoConfiguration.class, JdbcBackendAutoConfiguration.class,*/ DefaultServiceConfiguration.class})
 public abstract class ServiceBaseTest {
 
 

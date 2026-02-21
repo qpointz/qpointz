@@ -1,10 +1,10 @@
 package io.qpointz.mill.services.jdbc.providers;
 
+import io.qpointz.mill.autoconfigure.data.backend.jdbc.JdbcBackendAutoConfiguration;
 import io.qpointz.mill.proto.QueryExecutionConfig;
 import io.qpointz.mill.services.calcite.providers.PlanConverter;
-import io.qpointz.mill.services.configuration.BackendConfiguration;
 import io.qpointz.mill.services.jdbc.BaseTest;
-import io.qpointz.mill.services.jdbc.configuration.JdbcCalciteConfiguration;
+import io.qpointz.mill.services.jdbc.JdbcCalciteConfiguration;
 import io.substrait.plan.ImmutablePlan;
 import io.substrait.plan.Plan;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -27,11 +28,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @SpringBootTest
-@ContextConfiguration(classes = {
-        BackendConfiguration.class,
-        JdbcCalciteConfiguration.class
-}
-)
+@EnableAutoConfiguration
 @ActiveProfiles("test-jdbc")
 @Slf4j
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

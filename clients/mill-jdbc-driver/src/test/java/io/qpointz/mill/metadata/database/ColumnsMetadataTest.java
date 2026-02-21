@@ -1,9 +1,8 @@
 package io.qpointz.mill.metadata.database;
 
 import io.qpointz.mill.InProcessTest;
+import io.qpointz.mill.autoconfigure.data.backend.calcite.CalciteBackendAutoConfiguration;
 import io.qpointz.mill.services.MillGrpcService;
-import io.qpointz.mill.services.calcite.configuration.CalciteServiceConfiguration;
-import io.qpointz.mill.services.configuration.BackendConfiguration;
 import io.qpointz.mill.services.configuration.DefaultServiceConfiguration;
 import lombok.val;
 import net.devh.boot.grpc.server.autoconfigure.GrpcAdviceAutoConfiguration;
@@ -20,10 +19,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("in-proc-test")
 @ContextConfiguration(classes = {
-        CalciteServiceConfiguration.class,
+        CalciteBackendAutoConfiguration.class,
         MillGrpcService.class,
         GrpcAdviceAutoConfiguration.class,
-        BackendConfiguration.class,
         DefaultServiceConfiguration.class
 }
 )

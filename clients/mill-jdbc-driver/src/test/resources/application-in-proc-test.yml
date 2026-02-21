@@ -8,13 +8,17 @@ grpc:
     port: -1
 
 mill:
-  backend:
-    provider: calcite
-    connection:
-      quoting: BACK_TICK
-      caseSensitive: true
-      unquotedCasing: UNCHANGED
-      model: ./etc/config/test/model.yaml
+  data:
+    sql:
+      dialect: calcite
+      conventions:
+        quoting: BACK_TICK
+        caseSensitive: true
+        unquotedCasing: UNCHANGED
+    backend:
+      type: calcite
+      calcite:
+        model: ./etc/config/test/model.yaml
   security:
     enable: false
   services:

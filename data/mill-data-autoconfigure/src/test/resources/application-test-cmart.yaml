@@ -7,16 +7,20 @@ grpc:
       address: in-process:testservice-jdbc
 
 mill:
-  backend:
-    provider: jdbc
-    connection:
-      quoting: BACK_TICK
-      caseSensitive: true
-      unquotedCasing: UNCHANGED
-    jdbc:
-      url: "jdbc:h2:mem:cmart;INIT=RUNSCRIPT FROM '../../test/datasets/cmart/sql/cmart.sql'"
-      driver: "org.h2.Driver"
-      target-schema: "cmart"
+  data:
+    sql:
+      dialect: H2
+      conventions:
+        caseSensitive: true
+        quoting: BACK_TICK
+        unquotedCasing: UNCHANGED
+    backend:
+      type: jdbc
+      jdbc:
+        url: "jdbc:h2:mem:cmart;INIT=RUNSCRIPT FROM '../../test/datasets/cmart/sql/cmart.sql'"
+        driver: "org.h2.Driver"
+        target-schema: "cmart"
+
 
   security:
     enable: true

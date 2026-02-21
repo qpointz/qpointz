@@ -1,13 +1,9 @@
 package io.qpointz.mill.services.jdbc;
 
+import io.qpointz.mill.autoconfigure.data.backend.jdbc.JdbcBackendAutoConfiguration;
 import io.qpointz.mill.proto.QueryExecutionConfig;
-import io.qpointz.mill.services.ExecutionProvider;
-import io.qpointz.mill.services.SchemaProvider;
-import io.qpointz.mill.services.SqlProvider;
 import io.qpointz.mill.services.calcite.providers.PlanConverter;
-import io.qpointz.mill.services.configuration.BackendConfiguration;
 import io.qpointz.mill.services.configuration.DefaultServiceConfiguration;
-import io.qpointz.mill.services.jdbc.configuration.JdbcCalciteConfiguration;
 import io.qpointz.mill.services.jdbc.providers.JdbcCalciteContextFactory;
 import io.qpointz.mill.services.jdbc.providers.JdbcConnectionProvider;
 import io.qpointz.mill.services.jdbc.providers.JdbcContextFactory;
@@ -41,8 +37,7 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ContextConfiguration(classes = {
-        BackendConfiguration.class,
-        JdbcCalciteConfiguration.class,
+        JdbcBackendAutoConfiguration.class,
         DefaultServiceConfiguration.class,
         JdbcConnectionProviderTestIT.TestConfig.class
 })
@@ -67,9 +62,6 @@ class JdbcConnectionProviderTestIT {
 
     @Autowired
     private JdbcConnectionProvider jdbcConnectionProvider;
-
-    @Autowired
-    private BackendConfiguration backendConfiguration;
 
     @Autowired
     private JdbcCalciteConfiguration calciteConfiguration;
@@ -152,9 +144,9 @@ class JdbcConnectionProviderTestIT {
         
         // Act - Trigger schema creation
         val props = new Properties();
-        props.putAll(backendConfiguration.getConnection());
-        val calciteContext = new JdbcCalciteContextFactory(props, calciteConfiguration,
-                                Optional.of("ts"), jdbcConnectionProvider);
+        //NO IDEA what is going on here
+        //props.putAll(backendConfiguration.getConnection());
+        val calciteContext = new JdbcCalciteContextFactory(props, calciteConfiguration, jdbcConnectionProvider);
         val subSchemas = calciteContext
                 .createContext()
                 .getCalciteRootSchema()

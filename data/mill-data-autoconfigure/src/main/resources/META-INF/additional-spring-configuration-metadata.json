@@ -1,0 +1,35 @@
+{
+  "groups": [
+    {
+      "name": "mill.data.sql",
+      "description": "SQL settings for data query parsing and execution. Configures sql dialect and sql conventions for parser. Conventions will be applied for client sql"
+    },
+    {
+      "name": "mill.data.backend",
+      "description": "Data backend selection and backend settings."
+    },
+    {
+      "name": "mill.data.backend.calcite",
+      "description": "Apache Calcite backend-specific settings."
+    }
+  ],
+  "properties": [],
+  "hints": [
+    {
+      "name": "mill.data.sql.dialect",
+      "values": [
+        { "value": "calcite", "description": "Apache Calcite SQL dialect (default)." },
+        { "value": "postgres", "description": "PostgreSQL dialect." },
+        { "value": "mysql", "description": "MySQL dialect." },
+        { "value": "h2", "description": "H2 dialect." }
+      ]
+    },
+    {
+      "name": "mill.data.backend.type",
+      "values": [
+        { "value": "calcite", "description": "Backend type used by mill application. Only one backend can be active at a time." },
+        { "value": "jdbc", "description": "Backend type used by mill application. Only one backend can be active at a time." }
+      ]
+    }
+  ]
+}

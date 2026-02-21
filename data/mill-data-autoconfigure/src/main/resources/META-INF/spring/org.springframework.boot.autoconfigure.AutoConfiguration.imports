@@ -1,3 +1,4 @@
-io.qpointz.mill.data.autoconfigure.MillDataAutoConfiguration
-io.qpointz.mill.backend.autoconfigure.MillBackendAutoConfiguration
-io.qpointz.mill.backend.autoconfigure.MillCalciteBackendAutoConfiguration
+io.qpointz.mill.autoconfigure.data.SqlAutoConfiguration
+io.qpointz.mill.autoconfigure.data.backend.BackendAutoConfiguration
+io.qpointz.mill.autoconfigure.data.backend.calcite.CalciteBackendAutoConfiguration
+io.qpointz.mill.autoconfigure.data.backend.jdbc.JdbcBackendAutoConfiguration

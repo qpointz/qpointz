@@ -3,11 +3,13 @@ package io.qpointz.mill.services.configuration.security;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ActiveProfiles("test-jdbc")
+@EnableAutoConfiguration
 @Slf4j
 public class HttpServiceNoSecurityTest extends BaseSecurityTest {
 

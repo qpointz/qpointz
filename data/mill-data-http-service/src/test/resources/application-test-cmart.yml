@@ -7,16 +7,20 @@ logging:
     com.fasterxml.jackson.databind: DEBUG
 
 mill:
-  backend:
-    provider: jdbc
-    connection:
-      quoting: BACK_TICK
-      caseSensitive: true
-      unquotedCasing: UNCHANGED
-    jdbc:
-      url: "jdbc:h2:mem:test2;INIT=RUNSCRIPT FROM '../../test/datasets/cmart/sql/cmart.sql'"
-      driver: "org.h2.Driver"
-      output-schema: "ts"
+  data:
+    sql:
+      dialect: h2
+      conventions:
+        quoting: BACK_TICK
+        caseSensitive: true
+        unquotedCasing: UNCHANGED
+    backend:
+      type: jdbc
+      jdbc:
+        url: "jdbc:h2:mem:test2;INIT=RUNSCRIPT FROM '../../test/datasets/cmart/sql/cmart.sql'"
+        driver: "org.h2.Driver"
+        target-schema: "ts"
+
   security:
     enable: false
 

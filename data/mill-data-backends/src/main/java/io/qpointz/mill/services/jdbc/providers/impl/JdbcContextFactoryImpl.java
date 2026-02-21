@@ -1,6 +1,6 @@
 package io.qpointz.mill.services.jdbc.providers.impl;
 
-import io.qpointz.mill.services.jdbc.configuration.JdbcCalciteConfiguration;
+import io.qpointz.mill.services.jdbc.JdbcCalciteConfiguration;
 import io.qpointz.mill.services.jdbc.providers.JdbcConnectionProvider;
 import io.qpointz.mill.services.jdbc.providers.JdbcContext;
 import io.qpointz.mill.services.jdbc.providers.JdbcContextFactory;

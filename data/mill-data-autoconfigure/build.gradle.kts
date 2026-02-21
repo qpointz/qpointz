@@ -19,6 +19,7 @@ dependencies {
     api(project(":metadata:mill-metadata-provider"))
     api(libs.jakarta.servlet.api)
     api(libs.javax.annotation.api)
+    implementation(libs.calcite.core)
     implementation(libs.boot.starter)
     implementation(libs.boot.starter.security)
     implementation(libs.bundles.jackson)

@@ -1,24 +1,39 @@
 package io.qpointz.mill.services;
 
 import io.qpointz.mill.proto.*;
+import io.qpointz.mill.services.configuration.DefaultServiceConfiguration;
+import io.qpointz.mill.services.configuration.ServiceBaseTestConfiguration;
 import io.qpointz.mill.vectors.VectorBlockIterator;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.Iterator;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+@ContextConfiguration(classes = {ServiceBaseTestConfiguration.class, DefaultServiceConfiguration.class})
 class ServiceHandlerTest extends ServiceBaseTest {
 
+    @MockitoBean
+    ExecutionProvider executionProvider;
+
+    @BeforeEach
+    void setUp() {
+        reset(executionProvider);
+    }
+
     @Test
-    void submitQuery(@Autowired ExecutionProvider executionProvider,
-                     @Autowired ServiceHandler serviceHandler) {
+    void submitQuery(@Autowired ServiceHandler serviceHandler) {
         VectorBlockIterator mockIterator = mockVectorBlockIterator();
         when(executionProvider.execute(any(),any())).thenReturn(mockIterator);
+
         var resp = serviceHandler.data().submitQuery(QueryRequest.getDefaultInstance());
         assertTrue(resp.hasPagingId());
         assertTrue(resp.hasVector());

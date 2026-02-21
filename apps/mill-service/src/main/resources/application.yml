@@ -136,7 +136,7 @@ mill:
       oauth2-resource-server:
         enable: true
         jwt:
-          jwk-set-uri: http://localhost:8989/default/jwks
+          jwk-set-uri: http://localhost:12121/default/jwks
 
 ---
 spring:

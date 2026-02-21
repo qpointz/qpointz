@@ -23,18 +23,21 @@ mill:
         path: file:../../test/datasets/moneta/moneta-meta.yaml
   security:
     enable: false
-  backend:
-    provider: jdbc
-    connection:
-      quoting: BACK_TICK
-      caseSensitive: false
-      unquotedCasing: UNCHANGED
-    jdbc:
-      url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '../../test/datasets/moneta/moneta-slim.sql'"
-      driver: "org.h2.Driver"
-      username: "*"
-      password: "*"
-      target-schema: "MONETA"
+  data:
+    sql:
+      dialect: H2
+      conventions:
+        quoting: BACK_TICK
+        caseSensitive: false
+        unquotedCasing: UNCHANGED
+    backend:
+      type: jdbc
+      jdbc:
+        url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '../../test/datasets/moneta/moneta-slim.sql'"
+        driver: "org.h2.Driver"
+        username: "*"
+        password: "*"
+        target-schema: "MONETA"
   services:
     ai-nl2data:
       enable: true

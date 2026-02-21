@@ -15,13 +15,22 @@ spring:
     web-application-type: servlet
       
 mill:
-  backend:
-    connection:
-      quoting: BACK_TICK
-      caseSensitive: true
-      unquotedCasing: UNCHANGED
-      model: ./config/test/model.yaml
-    provider: calcite
+  data:
+    sql:
+      dialect: calcite
+    backend:
+      type: calcite
+      calcite:
+        model: ./config/test/model.yaml
+
+
+#  backend:
+#    connection:
+#      quoting: BACK_TICK
+#      caseSensitive: true
+#      unquotedCasing: UNCHANGED
+#      model: ./config/test/model.yaml
+#    provider: calcite
   security:
     enable: false
   services:

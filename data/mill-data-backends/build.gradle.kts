@@ -17,22 +17,15 @@ dependencies {
     implementation(libs.calcite.core)
     implementation(libs.calcite.csv)
     implementation(libs.calcite.file)
-    implementation(libs.boot.starter)
     implementation(libs.substrait.isthmus)
     compileOnly(libs.lombok)
     runtimeOnly(libs.bundles.logging)
-    runtimeOnly(libs.h2.database)
     annotationProcessor(libs.lombok)
-    annotationProcessor(libs.boot.configuration.processor)
-    testImplementation(libs.boot.starter.test)
 }
 
 testing {
     suites {
         register<JvmTestSuite>("testIT") {
-            dependencies {
-                implementation(libs.boot.starter.test)
-            }
         }
 
         configureEach {
@@ -42,6 +35,9 @@ testing {
                 dependencies {
                     implementation(project())
                     implementation(project(":data:mill-data-autoconfigure"))
+                    implementation(libs.boot.starter)
+                    //annotationProcessor(libs.boot.configuration.processor)
+                    implementation(libs.boot.starter.test)
                     implementation(libs.calcite.core)
                     implementation(libs.protobuf.java.util)
                     implementation(libs.mockito.core)

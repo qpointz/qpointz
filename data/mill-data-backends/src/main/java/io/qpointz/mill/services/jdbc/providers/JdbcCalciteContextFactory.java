@@ -3,7 +3,7 @@ package io.qpointz.mill.services.jdbc.providers;
 import io.qpointz.mill.services.calcite.CalciteConnectionContextBase;
 import io.qpointz.mill.services.calcite.CalciteContext;
 import io.qpointz.mill.services.calcite.CalciteContextFactory;
-import io.qpointz.mill.services.jdbc.configuration.JdbcCalciteConfiguration;
+import io.qpointz.mill.services.jdbc.JdbcCalciteConfiguration;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.adapter.jdbc.JdbcSchema;
@@ -30,9 +30,9 @@ public class JdbcCalciteContextFactory implements CalciteContextFactory {
     @Setter
     private JdbcCalciteConfiguration jdbcConnection;
 
-    @Getter
-    @Setter
-    public Optional<String> targetSchema ;
+//    @Getter
+//    @Setter
+//    public Optional<String> targetSchema ;
 
     @Getter
     @Setter
@@ -128,7 +128,7 @@ public class JdbcCalciteContextFactory implements CalciteContextFactory {
 
     private void addSingleSchema(SchemaPlus rootSchema) {
         val op = this.getJdbcConnection();
-        createJdbcSchema(rootSchema, this.targetSchema.orElse("jdbc"), op.getCatalog(), op.getSchema());
+        createJdbcSchema(rootSchema, this.jdbcConnection.getTargetSchema().orElse("jdbc"), op.getCatalog(), op.getSchema());
     }
 
     private void createJdbcSchema(SchemaPlus rootSchema,

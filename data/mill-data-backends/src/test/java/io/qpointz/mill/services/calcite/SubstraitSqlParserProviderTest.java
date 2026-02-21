@@ -4,6 +4,7 @@ import io.qpointz.mill.services.SqlProvider;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;

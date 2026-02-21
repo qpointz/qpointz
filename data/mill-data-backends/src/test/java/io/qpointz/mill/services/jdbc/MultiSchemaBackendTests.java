@@ -1,12 +1,10 @@
 package io.qpointz.mill.services.jdbc;
 
+import io.qpointz.mill.autoconfigure.data.backend.jdbc.JdbcBackendAutoConfiguration;
 import io.qpointz.mill.proto.QueryExecutionConfig;
-import io.qpointz.mill.services.ExecutionProvider;
 import io.qpointz.mill.services.SchemaProvider;
 import io.qpointz.mill.services.calcite.providers.PlanConverter;
-import io.qpointz.mill.services.configuration.BackendConfiguration;
 import io.qpointz.mill.services.configuration.DefaultServiceConfiguration;
-import io.qpointz.mill.services.jdbc.configuration.JdbcCalciteConfiguration;
 import io.qpointz.mill.services.jdbc.providers.JdbcContextFactory;
 import io.qpointz.mill.services.jdbc.providers.JdbcExecutionProvider;
 import io.substrait.plan.ImmutablePlan;
@@ -20,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -37,16 +36,13 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @ContextConfiguration(classes = {
-        BackendConfiguration.class,
-        JdbcCalciteConfiguration.class,
         DefaultServiceConfiguration.class,
-        BackendConfiguration.class
-}
-)
+})
 @ActiveProfiles("test-jdbc-multi-schema")
 @Slf4j
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ExtendWith(MockitoExtension.class)
+@EnableAutoConfiguration
 public class MultiSchemaBackendTests {
 
     @Autowired

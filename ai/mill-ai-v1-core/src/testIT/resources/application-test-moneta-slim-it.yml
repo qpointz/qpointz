@@ -43,18 +43,6 @@ mill:
 
   security:
     enable: false
-  backend:
-    provider: jdbc
-    connection:
-      quoting: DOUBLE_QUOTE
-      caseSensitive: false
-      unquotedCasing: UNCHANGED
-    jdbc:
-      url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '../../test/datasets/moneta/moneta-slim.sql'"
-      driver: "org.h2.Driver"
-      username: "*"
-      password: "*"
-      target-schema: "MONETA"
   services:
     grpc:
       enable: false
@@ -64,3 +52,19 @@ mill:
       enable: true
       prompt-file: file:../test/datasets/moneta/moneta.prompt
       model-name: gpt-4.1
+  data:
+    sql:
+      dialect: h2
+      conventions:
+        quoting: DOUBLE_QUOTE
+        caseSensitive: false
+        unquotedCasing: UNCHANGED
+    backend:
+      type: jdbc
+      jdbc:
+        url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '../../test/datasets/moneta/moneta-slim.sql'"
+        driver: "org.h2.Driver"
+        user: "*"
+        password: "*"
+        target-schema: "MONETA"
+

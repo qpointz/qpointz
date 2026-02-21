@@ -19,12 +19,14 @@ import lombok.val;
 import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
+@EnableAutoConfiguration
 public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
 
 

@@ -3,7 +3,6 @@ package io.qpointz.mill.services.descriptors;
 import io.qpointz.mill.security.annotations.ConditionalOnSecurity;
 import io.qpointz.mill.security.authentication.AuthenticationMethodDescriptor;
 import io.qpointz.mill.security.authentication.AuthenticationMethods;
-import io.qpointz.mill.security.authentication.AuthenticationType;
 import io.qpointz.mill.services.SchemaProvider;
 import lombok.Data;
 import lombok.Getter;

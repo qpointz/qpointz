@@ -1,12 +1,11 @@
 package io.qpointz.mill.services.jdbc;
 
+import io.qpointz.mill.autoconfigure.data.backend.jdbc.JdbcBackendAutoConfiguration;
 import io.qpointz.mill.proto.QueryExecutionConfig;
 import io.qpointz.mill.services.ExecutionProvider;
 import io.qpointz.mill.services.SchemaProvider;
 import io.qpointz.mill.services.calcite.providers.PlanConverter;
-import io.qpointz.mill.services.configuration.BackendConfiguration;
 import io.qpointz.mill.services.configuration.DefaultServiceConfiguration;
-import io.qpointz.mill.services.jdbc.configuration.JdbcCalciteConfiguration;
 import io.qpointz.mill.services.jdbc.providers.JdbcContextFactory;
 import io.qpointz.mill.services.jdbc.providers.JdbcExecutionProvider;
 import io.substrait.plan.ImmutablePlan;
@@ -37,8 +36,7 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @ContextConfiguration(classes = {
-        BackendConfiguration.class,
-        JdbcCalciteConfiguration.class,
+        JdbcBackendAutoConfiguration.class,
         DefaultServiceConfiguration.class
 }
 )
