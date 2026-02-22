@@ -6,8 +6,8 @@ import io.qpointz.mill.ai.nlsql.components.DefaultValueMapper;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.ai.nlsql.reasoners.DefaultReasoner;
-import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.services.metadata.MetadataProvider;
+import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
+import io.qpointz.mill.data.backend.metadata.MetadataProvider;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -20,7 +20,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -36,3 +36,4 @@ in the refactoring series. New documents should continue the numbering sequence.
 | `04-dependency-graph.md` | Module dependency graph with PURE/SPRING classification and Mermaid diagram |
 | `05-configuration-keys.md` | Configuration key inventory: all mill.* keys, conditional annotations, metadata JSON |
 | `06-test-module-inventory.md` | Post-refactoring test analysis: tests in wrong modules or broken after refactoring |
+| `07-backend-context-runner.md` | BackendContextRunner test rig: design, extensibility guide, test migration inventory |

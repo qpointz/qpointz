@@ -4,18 +4,14 @@ import io.qpointz.mill.security.AuthenticationBaseTest;
 import io.qpointz.mill.test.services.TestController;
 import lombok.val;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
 
 @ActiveProfiles({"test-trivial", "local-jdbc"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@EnableAutoConfiguration
 public class EntraIdAuthenticationTest extends AuthenticationBaseTest {
 
     @Test

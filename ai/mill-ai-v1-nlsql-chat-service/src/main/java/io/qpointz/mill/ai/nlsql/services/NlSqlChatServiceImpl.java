@@ -12,7 +12,7 @@ import io.qpointz.mill.ai.nlsql.model.pojo.Chat;
 import io.qpointz.mill.ai.nlsql.model.pojo.ChatMessage;
 import io.qpointz.mill.ai.nlsql.repositories.UserChatMessageRepository;
 import io.qpointz.mill.ai.nlsql.repositories.UserChatRepository;
-import io.qpointz.mill.services.annotations.ConditionalOnService;
+import io.qpointz.mill.data.backend.annotations.ConditionalOnService;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.memory.ChatMemory;

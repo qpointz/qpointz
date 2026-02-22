@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
@@ -31,7 +30,6 @@ class OnSecurityEnabledConditionTest {
 
     @Nested
     @SpringBootTest(classes = io.qpointz.mill.security.annotations.AnnotationsTestConfiguration.class)
-    @EnableAutoConfiguration
     @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
     @TestPropertySource(properties = {"mill.security.enable=false"})
     class ExplicitDisableTest {

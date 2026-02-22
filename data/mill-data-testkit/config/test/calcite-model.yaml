@@ -1,0 +1,7 @@
+version: 1.0
+defaultSchema: testdb
+schemas:
+  - name: testdb
+    type: jdbc
+    jdbcDriver: "org.h2.Driver"
+    jdbcUrl: "jdbc:h2:mem:calcite-testkit;INIT=RUNSCRIPT FROM './config/test/calcite-testdata.sql'"

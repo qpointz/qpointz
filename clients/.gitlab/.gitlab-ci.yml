@@ -129,7 +129,7 @@ mill:jdbc-driver:test:
   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/azul/zulu-openjdk:17-latest
   script:
     - cd ${CI_PROJECT_DIR}/mill/clients
-    - ../gradlew --no-daemon --console plain clean testIT
+    - ../gradlew --no-daemon --continue --console plain clean testIT
   artifacts:
     when: always
     expire_in: "15 days"
@@ -150,7 +150,7 @@ mill-clients:install-dist:
       artifacts: true    
   script:
     - cd ${CI_PROJECT_DIR}/mill/clients
-    - ../gradlew --no-daemon --console plain clean installDist #distTar distZip
+    - ../gradlew --no-daemon --continue --console plain clean installDist #distTar distZip
   artifacts:
     expire_in: "5 days"
     paths:

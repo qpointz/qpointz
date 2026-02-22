@@ -3,8 +3,9 @@ package io.qpointz.mill.ai.nlsql.messages.specs;
 import io.qpointz.mill.ai.chat.messages.MessageSpec;
 import io.qpointz.mill.ai.chat.messages.MessageTemplate;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
-import io.qpointz.mill.services.metadata.MetadataProvider;
-import io.qpointz.mill.services.metadata.model.Attribute;
+import io.qpointz.mill.data.backend.metadata.model.Relation;
+import io.qpointz.mill.data.backend.metadata.MetadataProvider;
+import io.qpointz.mill.data.backend.metadata.model.Attribute;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -144,7 +145,7 @@ public class SchemaMessageSpec extends MessageSpec  {
                 .toList();
     }
 
-    private String cardinlatyToString(io.qpointz.mill.services.metadata.model.Relation.Cardinality cardinality) {
+    private String cardinlatyToString(Relation.Cardinality cardinality) {
         return switch (cardinality) {
             case ONE_TO_ONE -> "1:1";
             case ONE_TO_MANY -> "1:N";

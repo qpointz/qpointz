@@ -1,19 +1,13 @@
 package io.qpointz.mill.ai.nlsql;
 
-import io.qpointz.mill.ai.BaseIntegrationTestIT;
 import io.qpointz.mill.ai.chat.ChatUserRequests;
-import io.qpointz.mill.ai.chat.messages.MessageSelectors;
-import io.qpointz.mill.ai.nlsql.components.DefaultValueMapper;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.models.SqlDialect;
-import io.qpointz.mill.ai.nlsql.reasoners.DefaultReasoner;
-import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.services.metadata.MetadataProvider;
+import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
+import io.qpointz.mill.data.backend.metadata.MetadataProvider;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.junit.jupiter.api.Test;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,8 +15,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 

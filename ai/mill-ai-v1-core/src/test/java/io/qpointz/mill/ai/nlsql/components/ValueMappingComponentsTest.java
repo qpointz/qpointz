@@ -2,15 +2,14 @@ package io.qpointz.mill.ai.nlsql.components;
 
 import io.qpointz.mill.ai.nlsql.ValueRepository;
 import io.qpointz.mill.proto.*;
-import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.services.metadata.MetadataProvider;
-import io.qpointz.mill.services.metadata.impl.file.FileRepository;
+import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
+import io.qpointz.mill.data.backend.metadata.MetadataProvider;
+import io.qpointz.mill.data.backend.metadata.impl.file.FileRepository;
 import io.qpointz.mill.vectors.VectorBlockIterator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;

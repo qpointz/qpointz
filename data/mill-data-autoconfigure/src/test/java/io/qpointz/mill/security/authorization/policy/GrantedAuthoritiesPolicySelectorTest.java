@@ -1,6 +1,6 @@
 package io.qpointz.mill.security.authorization.policy;
 
-import io.qpointz.mill.services.dispatchers.SecurityDispatcher;
+import io.qpointz.mill.data.backend.dispatchers.SecurityDispatcher;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 

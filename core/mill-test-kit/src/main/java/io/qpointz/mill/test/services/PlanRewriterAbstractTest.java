@@ -3,7 +3,7 @@ package io.qpointz.mill.test.services;
 
 import io.qpointz.mill.proto.QueryExecutionConfig;
 import io.qpointz.mill.proto.VectorBlock;
-import io.qpointz.mill.services.ExecutionProvider;
+import io.qpointz.mill.data.backend.ExecutionProvider;
 import io.qpointz.mill.sql.VectorBlockRecordIterator;
 import io.qpointz.mill.vectors.VectorBlockIterator;
 import io.substrait.plan.Plan;

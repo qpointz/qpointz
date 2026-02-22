@@ -2,8 +2,8 @@ package io.qpointz.mill.metadata.database;
 
 import io.qpointz.mill.InProcessTest;
 import io.qpointz.mill.autoconfigure.data.backend.calcite.CalciteBackendAutoConfiguration;
-import io.qpointz.mill.services.MillGrpcService;
-import io.qpointz.mill.services.configuration.DefaultServiceConfiguration;
+import io.qpointz.mill.data.backend.MillGrpcService;
+import io.qpointz.mill.data.backend.configuration.DefaultServiceConfiguration;
 import lombok.val;
 import net.devh.boot.grpc.server.autoconfigure.GrpcAdviceAutoConfiguration;
 import org.junit.jupiter.api.Test;

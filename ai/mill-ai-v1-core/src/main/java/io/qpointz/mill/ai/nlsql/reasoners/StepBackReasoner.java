@@ -8,7 +8,7 @@ import io.qpointz.mill.ai.chat.messages.MessageSelector;
 import io.qpointz.mill.ai.nlsql.*;
 import io.qpointz.mill.ai.nlsql.models.stepback.StepBackResponse;
 import io.qpointz.mill.ai.nlsql.stepback.StepBackCall;
-import io.qpointz.mill.services.metadata.MetadataProvider;
+import io.qpointz.mill.data.backend.metadata.MetadataProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -16,7 +16,6 @@ import lombok.val;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Reasoner that runs the Step-Back prompt pipeline before any intent selection.

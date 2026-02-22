@@ -2,7 +2,7 @@ package io.qpointz.mill.ai.nlsql;
 
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.processors.*;
-import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
+import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
 
 public class PostProcessors {
 

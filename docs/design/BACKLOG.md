@@ -169,6 +169,9 @@ milestone-selectable deliverables extracted from design documents in this folder
 | R-12 | Fix JDBC driver integration test infrastructure (re-enable disabled testIT classes) | 🧪 test | backlog | refactoring/06-test-module-inventory.md |
 | R-13 | Reduce technical debt: review 119 files with TODOs/FIXMEs | 🔧 refactoring | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md |
 | R-14 | Refactor data module Spring configuration: review and implement in mill-data-autoconfigure | 🔧 refactoring | backlog | refactoring/05-configuration-keys.md |
+| R-15 | Implement BackendContextRunner test rig (abstract class + JdbcBackendContextRunner + CalciteBackendContextRunner) | 🔧 refactoring | in-progress | refactoring/07-backend-context-runner.md |
+| R-16 | Migrate mill-data-backends unit tests from @SpringBootTest to BackendContextRunner (10 test files) | 🧪 test | backlog | refactoring/07-backend-context-runner.md |
+| R-17 | Delete obsolete test YAML configs after unit test migration (3 files in mill-data-backends/src/test/resources/) | 🔧 refactoring | backlog | refactoring/07-backend-context-runner.md |
 
 ---
 
@@ -216,7 +219,7 @@ milestone-selectable deliverables extracted from design documents in this folder
 | metadata    | 22      | 13        | 0              | 2      | 6              | 1       | 0       |
 | platform    | 26      | 6         | 7              | 4      | 8              | 1       | 0       |
 | publish     | 4       | 1         | 2              | 0      | 0              | 0       | 1       |
-| refactoring | 14      | 0         | 1              | 6      | 4              | 2       | 1       |
+| refactoring | 17      | 0         | 1              | 6      | 6              | 3       | 1       |
 | source      | 10      | 4         | 3              | 1      | 1              | 0       | 0       |
 | ui          | 10      | 4         | 4              | 0      | 1              | 1       | 0       |
-| **Total**   | **133** | **59**    | **21**         | **18** | **25**         | **5**   | **4**   |
+| **Total**   | **136** | **59**    | **21**         | **18** | **27**         | **6**   | **4**   |

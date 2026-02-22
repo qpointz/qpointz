@@ -5,7 +5,7 @@ import io.qpointz.mill.ai.nlsql.model.pojo.ChatMessage;
 import io.qpointz.mill.ai.nlsql.services.NlSqlChatService;
 import io.qpointz.mill.excepions.statuses.MIllNotFoundStatusException;
 import io.qpointz.mill.excepions.statuses.MillStatuses;
-import io.qpointz.mill.services.annotations.ConditionalOnService;
+import io.qpointz.mill.data.backend.annotations.ConditionalOnService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

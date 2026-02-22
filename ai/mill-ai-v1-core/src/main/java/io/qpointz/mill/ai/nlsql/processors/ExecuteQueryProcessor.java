@@ -6,7 +6,7 @@ import io.qpointz.mill.proto.Field;
 import io.qpointz.mill.proto.QueryExecutionConfig;
 import io.qpointz.mill.proto.QueryRequest;
 import io.qpointz.mill.proto.SQLStatement;
-import io.qpointz.mill.services.dispatchers.DataOperationDispatcher;
+import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.sql.VectorBlockRecordIterator;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

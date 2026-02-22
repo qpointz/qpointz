@@ -4,7 +4,7 @@ maven-publication-create:
   before_script:
     - echo -n "${SIGN_PGP_RING}" | base64 --decode > ${CI_PROJECT_DIR}/.keyring.kbx
   script:
-    - ./gradlew --no-daemon --console plain clean publish publishSonatypeBundle -Psigning.keyId=${SIGN_PGP_KEY_ID} -Psigning.password=${SIGN_PGP_PASS} -Psigning.secretKeyRingFile=${CI_PROJECT_DIR}/.keyring.kbx
+    - ./gradlew --no-daemon --continue  --console plain clean publish publishSonatypeBundle -Psigning.keyId=${SIGN_PGP_KEY_ID} -Psigning.password=${SIGN_PGP_PASS} -Psigning.secretKeyRingFile=${CI_PROJECT_DIR}/.keyring.kbx
   needs:
     - job: init-version
       artifacts: true
