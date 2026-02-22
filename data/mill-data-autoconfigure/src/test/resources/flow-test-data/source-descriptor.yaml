@@ -1,0 +1,13 @@
+name: testdata
+storage:
+  type: local
+  rootPath: "${rootPath}"
+table:
+  mapping:
+    type: directory
+    depth: 1
+readers:
+  - type: csv
+    format:
+      delimiter: ","
+      hasHeader: true

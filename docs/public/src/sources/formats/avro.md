@@ -71,3 +71,21 @@ readers:
         type: directory
         depth: 1
 ```
+
+### Avro files with glob table mapping
+
+```yaml
+name: stream-archive
+storage:
+  type: local
+  rootPath: /data/streams
+readers:
+  - type: avro
+    table:
+      mapping:
+        type: glob
+        pattern: "**/*.avro"
+        table: stream_events
+```
+
+All `.avro` files under `/data/streams` are combined into the `stream_events` table.

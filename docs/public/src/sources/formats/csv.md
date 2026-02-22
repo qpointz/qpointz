@@ -165,3 +165,45 @@ readers:
 ```
 
 Each record now includes `file_date` (parsed date) and `source_tag` (`"daily-import"`) alongside the original CSV columns.
+
+### Glob — bulk ingest all CSVs into one table
+
+```yaml
+name: raw-lake
+storage:
+  type: local
+  rootPath: /data/lake
+readers:
+  - type: csv
+    format:
+      delimiter: ","
+      hasHeader: true
+    table:
+      mapping:
+        type: glob
+        pattern: "**/*.csv"
+        table: all_records
+```
+
+Every `.csv` file under `/data/lake`, regardless of directory depth, is combined into the `all_records` table.
+
+### Glob — selective path matching
+
+```yaml
+name: sales-pipeline
+storage:
+  type: local
+  rootPath: /data/pipeline
+readers:
+  - type: csv
+    format:
+      delimiter: ","
+      hasHeader: true
+    table:
+      mapping:
+        type: glob
+        pattern: "**/sales/**/*.csv"
+        table: sales
+```
+
+Only CSV files under any `sales/` subdirectory are included in the `sales` table.

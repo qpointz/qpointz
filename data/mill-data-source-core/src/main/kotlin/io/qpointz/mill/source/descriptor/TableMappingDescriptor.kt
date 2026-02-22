@@ -3,6 +3,7 @@ package io.qpointz.mill.source.descriptor
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
 import io.qpointz.mill.source.verify.*
+import java.nio.file.FileSystems
 
 /**
  * Describes a strategy for mapping blobs to logical table names.
@@ -20,6 +21,7 @@ import io.qpointz.mill.source.verify.*
  *
  * @see RegexTableMappingDescriptor
  * @see DirectoryTableMappingDescriptor
+ * @see GlobTableMappingDescriptor
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 interface TableMappingDescriptor
@@ -99,6 +101,56 @@ data class DirectoryTableMappingDescriptor(
                 phase = Phase.TABLE_MAPPING,
                 message = "Directory table mapping 'depth' must be >= 1, got $depth",
                 context = mapOf("depth" to depth.toString())
+            )
+        }
+
+        return VerificationReport(issues = issues)
+    }
+}
+
+/**
+ * Maps blobs to a fixed table name when their path matches a glob pattern.
+ *
+ * Unlike [RegexTableMappingDescriptor], the table name is not extracted from
+ * the path — it is specified explicitly. The glob pattern only decides which
+ * blobs belong to the table.
+ *
+ * @property pattern glob expression applied to the blob URI path (e.g. `**&#47;*.csv`)
+ * @property table   fixed logical table name assigned to every matching blob
+ */
+@JsonTypeName("glob")
+data class GlobTableMappingDescriptor(
+    val pattern: String,
+    val table: String
+) : TableMappingDescriptor, Verifiable {
+
+    override fun verify(): VerificationReport {
+        val issues = mutableListOf<VerificationIssue>()
+
+        if (pattern.isBlank()) {
+            issues += VerificationIssue(
+                severity = Severity.ERROR,
+                phase = Phase.TABLE_MAPPING,
+                message = "Glob table mapping 'pattern' must not be blank"
+            )
+        } else {
+            try {
+                FileSystems.getDefault().getPathMatcher("glob:$pattern")
+            } catch (e: Exception) {
+                issues += VerificationIssue(
+                    severity = Severity.ERROR,
+                    phase = Phase.TABLE_MAPPING,
+                    message = "Invalid glob pattern: ${e.message}",
+                    context = mapOf("pattern" to pattern)
+                )
+            }
+        }
+
+        if (table.isBlank()) {
+            issues += VerificationIssue(
+                severity = Severity.ERROR,
+                phase = Phase.TABLE_MAPPING,
+                message = "Glob table mapping 'table' must not be blank"
             )
         }
 

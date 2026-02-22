@@ -170,3 +170,23 @@ readers:
 ```
 
 Selects all sheets except those named "Summary" or "Metadata".
+
+### Glob — all Excel files as one table
+
+```yaml
+name: report-archive
+storage:
+  type: local
+  rootPath: /data/reports
+readers:
+  - type: excel
+    format:
+      hasHeader: true
+    table:
+      mapping:
+        type: glob
+        pattern: "**/*.{xlsx,xls}"
+        table: all_reports
+```
+
+All Excel files (both `.xlsx` and `.xls`) under `/data/reports` are combined into the `all_reports` table.

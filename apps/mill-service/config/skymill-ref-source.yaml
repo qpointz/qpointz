@@ -1,0 +1,12 @@
+name: skymill_ref
+storage:
+  type: local
+  rootPath: "./config/skymill-ref"
+table:
+  mapping:
+    type: regex
+    pattern: "(?<table>[^/]+)\\.tsv"
+readers:
+  - type: tsv
+    format:
+      hasHeader: true

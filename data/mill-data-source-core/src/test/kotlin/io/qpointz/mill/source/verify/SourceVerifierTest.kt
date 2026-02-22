@@ -185,6 +185,60 @@ class SourceVerifierTest {
             assertFalse(report.isValid)
             assertTrue(report.errors.any { it.message.contains("depth") })
         }
+
+        @Test
+        fun shouldPassValidGlobTableMapping() {
+            val desc = GlobTableMappingDescriptor(pattern = "**/*.csv", table = "orders")
+            val report = desc.verify()
+            assertTrue(report.isValid, "Errors: ${report.errors.map { it.message }}")
+        }
+
+        @Test
+        fun shouldReportBlankGlobPattern() {
+            val desc = GlobTableMappingDescriptor(pattern = "", table = "orders")
+            val report = desc.verify()
+            assertFalse(report.isValid)
+            assertTrue(report.errors.any { it.message.contains("pattern") })
+        }
+
+        @Test
+        fun shouldReportBlankGlobTable() {
+            val desc = GlobTableMappingDescriptor(pattern = "**/*.csv", table = "")
+            val report = desc.verify()
+            assertFalse(report.isValid)
+            assertTrue(report.errors.any { it.message.contains("table") })
+        }
+
+        @Test
+        fun shouldReportBothBlankGlobFields() {
+            val desc = GlobTableMappingDescriptor(pattern = "  ", table = "  ")
+            val report = desc.verify()
+            assertFalse(report.isValid)
+            assertTrue(report.errors.size >= 2)
+        }
+
+        @Test
+        fun shouldReportInvalidGlobSyntax() {
+            val desc = GlobTableMappingDescriptor(pattern = "**/*.csv[", table = "data")
+            val report = desc.verify()
+            assertFalse(report.isValid)
+            assertTrue(report.errors.any { it.message.contains("Invalid glob") },
+                "Should report invalid glob: ${report.errors.map { it.message }}")
+        }
+
+        @Test
+        fun shouldPassGlobWithBraces() {
+            val desc = GlobTableMappingDescriptor(pattern = "**/*.{csv,tsv}", table = "text_files")
+            val report = desc.verify()
+            assertTrue(report.isValid, "Brace alternatives should be valid: ${report.errors.map { it.message }}")
+        }
+
+        @Test
+        fun shouldPassGlobWithQuestionMark() {
+            val desc = GlobTableMappingDescriptor(pattern = "/data/file?.csv", table = "files")
+            val report = desc.verify()
+            assertTrue(report.isValid)
+        }
     }
 
     // ------------------------------------------------------------------

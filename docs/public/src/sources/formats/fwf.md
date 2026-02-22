@@ -158,3 +158,30 @@ readers:
         type: regex
         pattern: ".*(?<table>[^/]+)\\.txt$"
 ```
+
+### Glob — all fixed-width files as one table
+
+```yaml
+name: mainframe-bulk
+storage:
+  type: local
+  rootPath: /data/mainframe/output
+readers:
+  - type: fwf
+    format:
+      hasHeader: false
+      columns:
+        - name: account_id
+          start: 0
+          end: 10
+        - name: txn_amount
+          start: 10
+          end: 25
+    table:
+      mapping:
+        type: glob
+        pattern: "**/*.dat"
+        table: transactions
+```
+
+All `.dat` files under `/data/mainframe/output` are combined into the `transactions` table.

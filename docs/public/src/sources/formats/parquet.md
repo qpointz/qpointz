@@ -73,3 +73,21 @@ readers:
         type: regex
         pattern: ".*(?<table>[^/]+)\\.parquet$"
 ```
+
+### Parquet files with glob table mapping
+
+```yaml
+name: data-lake
+storage:
+  type: local
+  rootPath: /data/lake
+readers:
+  - type: parquet
+    table:
+      mapping:
+        type: glob
+        pattern: "**/events/**/*.parquet"
+        table: events
+```
+
+All Parquet files under any `events/` subdirectory are combined into the `events` table.

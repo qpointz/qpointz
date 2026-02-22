@@ -21,6 +21,9 @@ class SourceDiscoveryTest {
     private fun directoryTable(depth: Int = 1) =
         TableDescriptor(mapping = DirectoryTableMappingDescriptor(depth = depth))
 
+    private fun globTable(pattern: String, table: String) =
+        TableDescriptor(mapping = GlobTableMappingDescriptor(pattern = pattern, table = table))
+
     // ------------------------------------------------------------------
     // Happy path
     // ------------------------------------------------------------------
@@ -138,6 +141,100 @@ class SourceDiscoveryTest {
                 assertEquals("raw", table.readerLabel)
                 assertTrue(table.name.endsWith("_raw"), "Label should be appended: ${table.name}")
             }
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Glob table mapping
+    // ------------------------------------------------------------------
+
+    @Nested
+    inner class GlobTableMappingTests {
+
+        @Test
+        fun shouldDiscoverAllCsvFilesAsOneTable() {
+            val desc = SourceDescriptor(
+                name = "airlines",
+                storage = LocalStorageDescriptor(rootPath = csvRoot.toString()),
+                readers = listOf(
+                    ReaderDescriptor(type = "stub", format = StubFormatDescriptor(),
+                        table = globTable("**/*.csv", "all_data"))
+                )
+            )
+            val result = SourceDiscovery.discover(desc, materializer = materializer)
+
+            assertTrue(result.isSuccessful, "Errors: ${result.errors.map { it.message }}")
+            assertEquals(1, result.tables.size, "Glob maps all CSVs to one table")
+            assertEquals("all_data", result.tables[0].name)
+            assertEquals(4, result.tables[0].blobPaths.size, "All 4 CSV blobs should be in one table")
+        }
+
+        @Test
+        fun shouldMatchSubsetWithSpecificGlob() {
+            val desc = SourceDescriptor(
+                name = "airlines",
+                storage = LocalStorageDescriptor(rootPath = csvRoot.toString()),
+                readers = listOf(
+                    ReaderDescriptor(type = "stub", format = StubFormatDescriptor(),
+                        table = globTable("**/cities.csv", "cities"))
+                )
+            )
+            val result = SourceDiscovery.discover(desc, materializer = materializer)
+
+            assertTrue(result.isSuccessful)
+            assertEquals(1, result.tables.size)
+            assertEquals("cities", result.tables[0].name)
+            assertEquals(1, result.tables[0].blobPaths.size)
+        }
+
+        @Test
+        fun shouldReportUnmappedBlobs_whenGlobIsSelective() {
+            val desc = SourceDescriptor(
+                name = "airlines",
+                storage = LocalStorageDescriptor(rootPath = csvRoot.toString()),
+                readers = listOf(
+                    ReaderDescriptor(type = "stub", format = StubFormatDescriptor(),
+                        table = globTable("**/cities.csv", "cities"))
+                )
+            )
+            val result = SourceDiscovery.discover(desc, materializer = materializer)
+
+            assertTrue(result.isSuccessful)
+            assertTrue(result.unmappedBlobCount > 0, "Other CSVs should be unmapped")
+        }
+
+        @Test
+        fun shouldWorkWithSourceLevelGlobMapping() {
+            val desc = SourceDescriptor(
+                name = "airlines",
+                storage = LocalStorageDescriptor(rootPath = csvRoot.toString()),
+                table = globTable("**/*.csv", "bulk"),
+                readers = listOf(
+                    ReaderDescriptor(type = "stub", format = StubFormatDescriptor())
+                )
+            )
+            val result = SourceDiscovery.discover(desc, materializer = materializer)
+
+            assertTrue(result.isSuccessful, "Errors: ${result.errors.map { it.message }}")
+            assertEquals(1, result.tables.size)
+            assertEquals("bulk", result.tables[0].name)
+        }
+
+        @Test
+        fun shouldMatchNoBlobs_whenGlobPatternMatchesNothing() {
+            val desc = SourceDescriptor(
+                name = "airlines",
+                storage = LocalStorageDescriptor(rootPath = csvRoot.toString()),
+                readers = listOf(
+                    ReaderDescriptor(type = "stub", format = StubFormatDescriptor(),
+                        table = globTable("**/*.parquet", "missing"))
+                )
+            )
+            val result = SourceDiscovery.discover(desc, materializer = materializer)
+
+            assertTrue(result.isSuccessful)
+            assertTrue(result.tables.isEmpty(), "No blobs match .parquet in a csv-only root")
+            assertEquals(4, result.unmappedBlobCount)
         }
     }
 

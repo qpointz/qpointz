@@ -103,6 +103,35 @@ readers:
 
 This adds two extra columns to every record: `file_date` (extracted from the filename) and `source_tag` (a constant).
 
+### Glob Pattern Matching
+
+```yaml
+name: order-archive
+storage:
+  type: local
+  rootPath: /data/archive
+readers:
+  - type: parquet
+    table:
+      mapping:
+        type: glob
+        pattern: "**/orders/**/*.parquet"
+        table: orders
+  - type: parquet
+    table:
+      mapping:
+        type: glob
+        pattern: "**/returns/**/*.parquet"
+        table: returns
+```
+
+This configuration:
+
+- Scans `/data/archive` recursively
+- Matches Parquet files under any `orders/` subdirectory and maps them all to the `orders` table
+- Matches Parquet files under any `returns/` subdirectory and maps them to the `returns` table
+- Unlike `regex`, glob does not extract the table name from the path — you provide it explicitly
+
 ---
 
 ## Supported Storage Backends
@@ -134,6 +163,7 @@ See individual format pages for configuration options, type mappings, and exampl
 |-------------|--------------------------------------------------|
 | `regex`     | Extract table name from file path using regex     |
 | `directory` | Use parent directory name as table name           |
+| `glob`      | Match files with a wildcard pattern and assign a fixed table name |
 
 See [Configuration Reference](configuration.md#table-mapping) for details and examples.
 
@@ -154,6 +184,25 @@ Per-table overrides are supported. See [Configuration Reference](configuration.m
 
 ---
 
+## Using Sources with the Flow Backend
+
+Source descriptors are consumed by the [Flow backend](../backends/flow.md). To query file-based data through Mill, configure the Flow backend and point it at your source descriptor files:
+
+```yaml
+mill:
+  data:
+    backend:
+      type: flow
+      flow:
+        sources:
+          - ./config/my-source.yaml
+```
+
+Each source descriptor becomes a schema in Mill. You can list multiple descriptors to expose multiple schemas. See [Flow Backend](../backends/flow.md) for the full configuration reference.
+
+---
+
 ## Next Steps
 
 - [Configuration Reference](configuration.md) — full YAML specification with all options and examples
+- [Flow Backend](../backends/flow.md) — how to run Mill with file-based data sources

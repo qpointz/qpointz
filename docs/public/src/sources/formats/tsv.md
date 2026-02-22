@@ -112,3 +112,23 @@ readers:
         type: regex
         pattern: ".*(?<table>[^/]+)\\.tsv$"
 ```
+
+### Glob — all TSV files as one table
+
+```yaml
+name: bulk-logs
+storage:
+  type: local
+  rootPath: /data/logs
+readers:
+  - type: tsv
+    format:
+      hasHeader: true
+    table:
+      mapping:
+        type: glob
+        pattern: "**/*.tsv"
+        table: log_entries
+```
+
+All `.tsv` files under `/data/logs` are combined into the `log_entries` table.

@@ -14,6 +14,7 @@ mill {
 dependencies {
     implementation(project(":data:mill-data-backend-core"))
     implementation(project(":data:mill-data-backends"))
+    implementation(project(":data:mill-data-source-calcite"))
     implementation(libs.calcite.core)
 
 //    implementation(libs.calcite.core)
@@ -37,6 +38,7 @@ testing {
                 dependencies {
                     implementation(project())
                     implementation(project(":data:mill-data-autoconfigure"))
+                    implementation(project(":data:formats:mill-source-format-text"))
                     implementation(libs.boot.starter)
                     //annotationProcessor(libs.boot.configuration.processor)
                     implementation(libs.boot.starter.test)

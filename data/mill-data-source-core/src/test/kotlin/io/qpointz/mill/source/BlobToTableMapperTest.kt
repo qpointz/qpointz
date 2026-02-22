@@ -119,4 +119,91 @@ class BlobToTableMapperTest {
         assertEquals("01", mapper.mapToTable(blobPath("/data/2023/01/items.parquet"))!!.tableName)
         assertEquals("02", mapper.mapToTable(blobPath("/data/2023/02/items.parquet"))!!.tableName)
     }
+
+    // --- GlobTableMapper ---
+
+    @Test
+    fun shouldMatchSimpleGlob() {
+        val mapper = GlobTableMapper(pattern = "**/*.csv", tableName = "orders")
+        val mapping = mapper.mapToTable(blobPath("/data/warehouse/orders.csv"))
+        assertNotNull(mapping)
+        assertEquals("orders", mapping!!.tableName)
+    }
+
+    @Test
+    fun shouldReturnNull_whenGlobDoesNotMatch() {
+        val mapper = GlobTableMapper(pattern = "**/*.parquet", tableName = "orders")
+        val mapping = mapper.mapToTable(blobPath("/data/warehouse/orders.csv"))
+        assertNull(mapping)
+    }
+
+    @Test
+    fun shouldMatchRecursiveGlob() {
+        val mapper = GlobTableMapper(pattern = "/data/**/book*.csv", tableName = "books")
+        assertNotNull(mapper.mapToTable(blobPath("/data/books/book-001.csv")))
+        assertNotNull(mapper.mapToTable(blobPath("/data/archive/2023/book-old.csv")))
+        assertNull(mapper.mapToTable(blobPath("/data/archive/2023/orders.csv")))
+    }
+
+    @Test
+    fun shouldReturnFixedTableName() {
+        val mapper = GlobTableMapper(pattern = "**/*.csv", tableName = "my_table")
+        assertEquals("my_table", mapper.mapToTable(blobPath("/a.csv"))!!.tableName)
+        assertEquals("my_table", mapper.mapToTable(blobPath("/x/y/z.csv"))!!.tableName)
+    }
+
+    @Test
+    fun shouldMatchSingleDirectoryWildcard() {
+        val mapper = GlobTableMapper(pattern = "/data/*/items.csv", tableName = "items")
+        assertNotNull(mapper.mapToTable(blobPath("/data/raw/items.csv")))
+        assertNull(mapper.mapToTable(blobPath("/data/raw/nested/items.csv")))
+    }
+
+    @Test
+    fun shouldMatchQuestionMarkWildcard() {
+        val mapper = GlobTableMapper(pattern = "/data/file?.csv", tableName = "files")
+        assertNotNull(mapper.mapToTable(blobPath("/data/fileA.csv")))
+        assertNotNull(mapper.mapToTable(blobPath("/data/file1.csv")))
+        assertNull(mapper.mapToTable(blobPath("/data/file12.csv")))
+    }
+
+    @Test
+    fun shouldMatchBraceAlternatives() {
+        val mapper = GlobTableMapper(pattern = "**/*.{csv,tsv}", tableName = "text_data")
+        assertNotNull(mapper.mapToTable(blobPath("/data/orders.csv")))
+        assertNotNull(mapper.mapToTable(blobPath("/data/orders.tsv")))
+        assertNull(mapper.mapToTable(blobPath("/data/orders.parquet")))
+    }
+
+    @Test
+    fun shouldNotMatchDifferentExtension() {
+        val mapper = GlobTableMapper(pattern = "**/*.csv", tableName = "csv_only")
+        assertNull(mapper.mapToTable(blobPath("/data/file.tsv")))
+        assertNull(mapper.mapToTable(blobPath("/data/file.parquet")))
+        assertNull(mapper.mapToTable(blobPath("/data/file.csv.bak")))
+    }
+
+    @Test
+    fun shouldMatchDeepNestedPaths() {
+        val mapper = GlobTableMapper(pattern = "/warehouse/**/sales/**/*.parquet", tableName = "sales")
+        assertNotNull(mapper.mapToTable(blobPath("/warehouse/2024/sales/q1/data.parquet")))
+        assertNotNull(mapper.mapToTable(blobPath("/warehouse/region/us/sales/monthly/jan.parquet")))
+        assertNull(mapper.mapToTable(blobPath("/warehouse/2024/returns/q1/data.parquet")))
+    }
+
+    @Test
+    fun shouldMatchExactFilename() {
+        val mapper = GlobTableMapper(pattern = "**/config.yaml", tableName = "config")
+        assertNotNull(mapper.mapToTable(blobPath("/app/config.yaml")))
+        assertNotNull(mapper.mapToTable(blobPath("/a/b/c/config.yaml")))
+        assertNull(mapper.mapToTable(blobPath("/app/config.yml")))
+    }
+
+    @Test
+    fun shouldReturnEmptyPartitionValues() {
+        val mapper = GlobTableMapper(pattern = "**/*.csv", tableName = "t")
+        val mapping = mapper.mapToTable(blobPath("/data/file.csv"))
+        assertNotNull(mapping)
+        assertTrue(mapping!!.partitionValues.isEmpty())
+    }
 }

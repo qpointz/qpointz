@@ -14,6 +14,7 @@ mill {
 
 dependencies {
     api(project(":data:mill-data-backend-core"))
+    api(project(":data:mill-data-source-calcite"))
     implementation(libs.calcite.core)
     implementation(libs.calcite.csv)
     implementation(libs.calcite.file)
@@ -40,6 +41,7 @@ testing {
                 dependencies {
                     implementation(project())
                     implementation(project(":data:mill-data-testkit"))
+                    implementation(project(":data:formats:mill-source-format-text"))
                     implementation(libs.calcite.core)
                     implementation(libs.protobuf.java.util)
                     implementation(libs.mockito.core)

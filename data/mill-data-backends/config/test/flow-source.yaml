@@ -1,0 +1,13 @@
+name: flowtest
+storage:
+  type: local
+  rootPath: "./config/test/flow-data"
+table:
+  mapping:
+    type: directory
+    depth: 1
+readers:
+  - type: csv
+    format:
+      delimiter: ","
+      hasHeader: true

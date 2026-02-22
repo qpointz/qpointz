@@ -135,6 +135,41 @@ With `depth: 2`, the grandparent directory is used:
 /data/flights/2024/part-001.csv  -> table: flights
 ```
 
+#### `glob` — Wildcard Pattern
+
+Matches files using a glob expression and assigns a fixed table name. Unlike `regex`, the table name is not extracted from the path — it is specified explicitly. The glob pattern only decides which files belong to the table.
+
+```yaml
+table:
+  mapping:
+    type: glob
+    pattern: "**/books/book*.csv"
+    table: books
+```
+
+| Property  | Required | Default | Description                                                         |
+|-----------|----------|---------|---------------------------------------------------------------------|
+| `pattern` | yes      | —       | Glob expression matched against the file path. Supports `*` (single directory wildcard), `**` (recursive), and `?` (single character). |
+| `table`   | yes      | —       | Fixed table name assigned to every matching file.                   |
+
+Glob patterns follow the `java.nio.file.PathMatcher` syntax:
+
+- `*` matches any sequence of characters within a single path segment
+- `**` matches zero or more path segments (recursive)
+- `?` matches exactly one character
+- `{csv,tsv}` matches any of the comma-separated alternatives
+
+Examples:
+
+```
+pattern: "**/*.csv"                -> all CSV files anywhere
+pattern: "/data/sales/*.parquet"   -> Parquet files directly in /data/sales/
+pattern: "**/archive/**/*.csv"     -> CSV files under any 'archive' directory
+pattern: "**/*.{csv,tsv}"         -> both CSV and TSV files
+```
+
+All matching files are grouped into a single table with the specified name. To map different file groups to different tables, use multiple readers with separate glob mappings.
+
 ### Table Attributes
 
 Table attributes let you inject extra columns into every record. Values can be **extracted from the file path** using a regex, or set to a **constant**.
@@ -301,6 +336,81 @@ readers:
 
 Here, `orders` and `events` are merged across readers, while all other table name collisions are rejected.
 
+### Glob — Bulk Ingest into Fixed Tables
+
+All CSV files in a directory tree map to a single table:
+
+```yaml
+name: data-lake
+storage:
+  type: local
+  rootPath: /data/lake
+readers:
+  - type: csv
+    format:
+      delimiter: ","
+      hasHeader: true
+    table:
+      mapping:
+        type: glob
+        pattern: "**/*.csv"
+        table: raw_events
+```
+
+Result: every `.csv` file under `/data/lake`, regardless of depth, is combined into the `raw_events` table.
+
+### Glob — Multiple Tables by Path Convention
+
+Separate files into tables based on directory structure using targeted glob patterns:
+
+```yaml
+name: pipeline-output
+storage:
+  type: local
+  rootPath: /data/pipeline
+readers:
+  - type: parquet
+    label: sales
+    table:
+      mapping:
+        type: glob
+        pattern: "**/sales/**/*.parquet"
+        table: sales
+  - type: parquet
+    label: inventory
+    table:
+      mapping:
+        type: glob
+        pattern: "**/inventory/**/*.parquet"
+        table: inventory
+conflicts: union
+```
+
+Result: Parquet files under any `sales/` subtree become the `sales` table; files under any `inventory/` subtree become the `inventory` table. Because `conflicts: union` is set, overlapping file matches are merged.
+
+### Glob — Multi-Format with Brace Alternatives
+
+Match multiple file extensions in a single pattern:
+
+```yaml
+name: text-imports
+storage:
+  type: local
+  rootPath: /data/imports
+readers:
+  - type: csv
+    format:
+      delimiter: ","
+      hasHeader: true
+    table:
+      mapping:
+        type: glob
+        pattern: "**/*.{csv,txt}"
+        table: text_data
+```
+
+Result: both `.csv` and `.txt` files are matched and loaded into the `text_data` table.
+
 ---
 
 ## Source Verification
@@ -313,7 +423,7 @@ Mill can verify a source configuration before using it. Verification checks for 
 |-------|--------|
 | **Descriptor** | Name not blank, readers defined, no duplicate labels, table mapping coverage, attribute validity |
 | **Storage** | Storage accessible, blobs discoverable, empty storage warning |
-| **Table mapping** | Valid regex patterns, named groups exist, depth values valid |
+| **Table mapping** | Valid regex patterns, named groups exist, depth values valid, glob patterns compile, table name not blank |
 | **Schema** | Schema inference succeeds on a sample file per table |
 | **Attributes** | Regex patterns compile, named groups exist, date formats valid, attribute extraction succeeds on sample blobs |
 | **Conflict** | Cross-reader table name collisions, unused conflict rules |

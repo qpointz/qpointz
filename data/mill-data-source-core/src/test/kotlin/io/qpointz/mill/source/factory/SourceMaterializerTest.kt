@@ -63,6 +63,16 @@ class SourceMaterializerTest {
         }
 
         @Test
+        fun shouldCreateGlobTableMapper() {
+            val descriptor = GlobTableMappingDescriptor(pattern = "**/*.csv", table = "orders")
+            val mapper = materializer.createTableMapper(descriptor)
+            assertInstanceOf(GlobTableMapper::class.java, mapper)
+            val glob = mapper as GlobTableMapper
+            assertEquals("**/*.csv", glob.pattern)
+            assertEquals("orders", glob.tableName)
+        }
+
+        @Test
         fun shouldThrowForUnknownTableMappingDescriptor() {
             val unknown = object : TableMappingDescriptor {}
             val ex = assertThrows<IllegalArgumentException> {

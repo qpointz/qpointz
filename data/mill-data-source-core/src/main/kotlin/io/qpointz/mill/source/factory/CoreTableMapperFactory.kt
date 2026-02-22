@@ -2,8 +2,10 @@ package io.qpointz.mill.source.factory
 
 import io.qpointz.mill.source.BlobToTableMapper
 import io.qpointz.mill.source.DirectoryTableMapper
+import io.qpointz.mill.source.GlobTableMapper
 import io.qpointz.mill.source.RegexTableMapper
 import io.qpointz.mill.source.descriptor.DirectoryTableMappingDescriptor
+import io.qpointz.mill.source.descriptor.GlobTableMappingDescriptor
 import io.qpointz.mill.source.descriptor.RegexTableMappingDescriptor
 import io.qpointz.mill.source.descriptor.TableMappingDescriptor
 
@@ -39,5 +41,21 @@ class DirectoryTableMapperFactory : TableMapperFactory {
             "Expected DirectoryTableMappingDescriptor, got ${descriptor::class.java.name}"
         }
         return DirectoryTableMapper(depth = descriptor.depth)
+    }
+}
+
+/**
+ * Built-in [TableMapperFactory] for [GlobTableMappingDescriptor].
+ */
+class GlobTableMapperFactory : TableMapperFactory {
+
+    override val descriptorType: Class<out TableMappingDescriptor>
+        get() = GlobTableMappingDescriptor::class.java
+
+    override fun create(descriptor: TableMappingDescriptor): BlobToTableMapper {
+        require(descriptor is GlobTableMappingDescriptor) {
+            "Expected GlobTableMappingDescriptor, got ${descriptor::class.java.name}"
+        }
+        return GlobTableMapper(pattern = descriptor.pattern, tableName = descriptor.table)
     }
 }

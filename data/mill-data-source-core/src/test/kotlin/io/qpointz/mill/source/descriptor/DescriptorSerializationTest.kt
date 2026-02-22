@@ -97,6 +97,40 @@ class DescriptorSerializationTest {
             assertInstanceOf(DirectoryTableMappingDescriptor::class.java, desc)
             assertEquals(1, (desc as DirectoryTableMappingDescriptor).depth)
         }
+
+        @Test
+        fun shouldDeserializeGlobTableMappingFromYaml() {
+            val yaml = """
+                type: glob
+                pattern: "**/*.csv"
+                table: orders
+            """.trimIndent()
+            val desc = yamlMapper.readValue(yaml, TableMappingDescriptor::class.java)
+            assertInstanceOf(GlobTableMappingDescriptor::class.java, desc)
+            val glob = desc as GlobTableMappingDescriptor
+            assertEquals("**/*.csv", glob.pattern)
+            assertEquals("orders", glob.table)
+        }
+
+        @Test
+        fun shouldSerializeGlobTableMappingToYaml() {
+            val desc: TableMappingDescriptor = GlobTableMappingDescriptor(
+                pattern = "**/books/book*.csv",
+                table = "books"
+            )
+            val yaml = yamlMapper.writerFor(TableMappingDescriptor::class.java).writeValueAsString(desc)
+            assertTrue(yaml.contains("type: \"glob\"") || yaml.contains("type: glob"), "Should contain type discriminator, got: $yaml")
+            assertTrue(yaml.contains("pattern"))
+            assertTrue(yaml.contains("table"))
+        }
+
+        @Test
+        fun shouldRoundTripGlobTableMappingJson() {
+            val original = GlobTableMappingDescriptor(pattern = "/data/**/*.parquet", table = "warehouse")
+            val json = jsonMapper.writerFor(TableMappingDescriptor::class.java).writeValueAsString(original)
+            val restored = jsonMapper.readValue(json, TableMappingDescriptor::class.java)
+            assertEquals(original, restored)
+        }
     }
 
     // ------------------------------------------------------------------
@@ -183,6 +217,29 @@ class DescriptorSerializationTest {
             assertEquals("|", (reader.format as StubFormatDescriptor).delimiter)
             assertNotNull(reader.table)
             assertInstanceOf(RegexTableMappingDescriptor::class.java, reader.table!!.mapping)
+        }
+
+        @Test
+        fun shouldDeserializeReaderWithGlobTableMapping() {
+            val yaml = """
+                type: stub
+                label: bulk
+                format:
+                  delimiter: ","
+                table:
+                  mapping:
+                    type: glob
+                    pattern: "**/*.csv"
+                    table: all_csv
+            """.trimIndent()
+            val reader = yamlMapper.readValue(yaml, ReaderDescriptor::class.java)
+            assertEquals("stub", reader.type)
+            assertEquals("bulk", reader.label)
+            assertNotNull(reader.table)
+            assertInstanceOf(GlobTableMappingDescriptor::class.java, reader.table!!.mapping)
+            val glob = reader.table!!.mapping as GlobTableMappingDescriptor
+            assertEquals("**/*.csv", glob.pattern)
+            assertEquals("all_csv", glob.table)
         }
 
         @Test
@@ -351,6 +408,59 @@ class DescriptorSerializationTest {
         }
 
         @Test
+        fun shouldDeserializeSourceWithGlobMapping() {
+            val yaml = """
+                name: logs
+                storage:
+                  type: local
+                  rootPath: /data/logs
+                table:
+                  mapping:
+                    type: glob
+                    pattern: "**/*.log"
+                    table: app_logs
+                readers:
+                  - type: stub
+            """.trimIndent()
+            val desc = yamlMapper.readValue(yaml, SourceDescriptor::class.java)
+            assertEquals("logs", desc.name)
+            assertNotNull(desc.table)
+            assertInstanceOf(GlobTableMappingDescriptor::class.java, desc.table!!.mapping)
+            val glob = desc.table!!.mapping as GlobTableMappingDescriptor
+            assertEquals("**/*.log", glob.pattern)
+            assertEquals("app_logs", glob.table)
+        }
+
+        @Test
+        fun shouldDeserializeSourceWithMixedGlobAndRegexReaders() {
+            val yaml = """
+                name: mixed
+                storage:
+                  type: local
+                  rootPath: /data
+                conflicts: union
+                readers:
+                  - type: stub
+                    label: csv
+                    table:
+                      mapping:
+                        type: glob
+                        pattern: "**/*.csv"
+                        table: csv_data
+                  - type: stub
+                    label: tsv
+                    table:
+                      mapping:
+                        type: regex
+                        pattern: ".*(?<table>[^/]+)\\.tsv$"
+            """.trimIndent()
+            val desc = yamlMapper.readValue(yaml, SourceDescriptor::class.java)
+            assertEquals(2, desc.readers.size)
+            assertInstanceOf(GlobTableMappingDescriptor::class.java, desc.readers[0].table!!.mapping)
+            assertInstanceOf(RegexTableMappingDescriptor::class.java, desc.readers[1].table!!.mapping)
+        }
+
+        @Test
         fun shouldDefaultConflictsToReject() {
             val yaml = """
                 name: noconflict
@@ -439,6 +549,8 @@ class DescriptorSerializationTest {
             assertTrue(allSubtypes.any { it.type == LocalStorageDescriptor::class.java })
             assertTrue(allSubtypes.any { it.type == RegexTableMappingDescriptor::class.java })
             assertTrue(allSubtypes.any { it.type == DirectoryTableMappingDescriptor::class.java })
+            assertTrue(allSubtypes.any { it.type == GlobTableMappingDescriptor::class.java },
+                "Should discover GlobTableMappingDescriptor via SPI")
         }
 
         @Test

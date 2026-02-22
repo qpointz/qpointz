@@ -26,3 +26,4 @@ A document belongs here if its **primary subject** is one of:
 |------|-------------|
 | `flow-kt-design.md` | Kotlin design for file-based data as a Mill provider with storage abstraction |
 | `mill-source-calcite.md` | How mill-source-calcite exposes Mill file-based sources as Calcite schemas/tables |
+| `flow-backend.md` | Flow backend: source-descriptor-driven Calcite backend with repository abstraction |

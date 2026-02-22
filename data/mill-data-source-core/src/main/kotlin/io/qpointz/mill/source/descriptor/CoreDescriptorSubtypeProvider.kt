@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.jsontype.NamedType
  * - [LocalStorageDescriptor] (`"local"`)
  * - [RegexTableMappingDescriptor] (`"regex"`)
  * - [DirectoryTableMappingDescriptor] (`"directory"`)
+ * - [GlobTableMappingDescriptor] (`"glob"`)
  *
  * Format-specific descriptors (CSV, Parquet, Excel) are contributed
  * by their own modules through separate [DescriptorSubtypeProvider]
@@ -22,5 +23,6 @@ class CoreDescriptorSubtypeProvider : DescriptorSubtypeProvider {
         // TableMappingDescriptor subtypes
         NamedType(RegexTableMappingDescriptor::class.java, "regex"),
         NamedType(DirectoryTableMappingDescriptor::class.java, "directory"),
+        NamedType(GlobTableMappingDescriptor::class.java, "glob"),
     )
 }

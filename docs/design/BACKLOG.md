@@ -169,9 +169,13 @@ milestone-selectable deliverables extracted from design documents in this folder
 | R-12 | Fix JDBC driver integration test infrastructure (re-enable disabled testIT classes) | 🧪 test | backlog | refactoring/06-test-module-inventory.md |
 | R-13 | Reduce technical debt: review 119 files with TODOs/FIXMEs | 🔧 refactoring | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md |
 | R-14 | Refactor data module Spring configuration: review and implement in mill-data-autoconfigure | 🔧 refactoring | backlog | refactoring/05-configuration-keys.md |
-| R-15 | Implement BackendContextRunner test rig (abstract class + JdbcBackendContextRunner + CalciteBackendContextRunner) | 🔧 refactoring | in-progress | refactoring/07-backend-context-runner.md |
-| R-16 | Migrate mill-data-backends unit tests from @SpringBootTest to BackendContextRunner (10 test files) | 🧪 test | backlog | refactoring/07-backend-context-runner.md |
-| R-17 | Delete obsolete test YAML configs after unit test migration (3 files in mill-data-backends/src/test/resources/) | 🔧 refactoring | backlog | refactoring/07-backend-context-runner.md |
+| R-15 | Implement BackendContextRunner test rig (abstract class + JdbcBackendContextRunner + CalciteBackendContextRunner) | 🔧 refactoring | done | refactoring/07-backend-context-runner.md |
+| R-16 | Migrate mill-data-backends unit tests from @SpringBootTest to BackendContextRunner (10 test files) | 🧪 test | done | refactoring/07-backend-context-runner.md |
+| R-17 | Delete obsolete test YAML configs after unit test migration (3 files in mill-data-backends/src/test/resources/) | 🔧 refactoring | done | refactoring/07-backend-context-runner.md |
+| R-18 | Rename mill-data-service to mill-data-backend-core and update all Gradle references | 🔧 refactoring | done | refactoring/07-backend-context-runner.md |
+| R-19 | Move mill-data-grpc-service and mill-data-http-service under data/services/ subfolder | 🔧 refactoring | done | refactoring/07-backend-context-runner.md |
+| R-20 | Move non-autoconfigure tests from mill-data-autoconfigure to backend-core and metadata modules | 🧪 test | done | refactoring/07-backend-context-runner.md |
+| R-21 | Delete orphaned application-*.yml Spring config files across modules | 🔧 refactoring | done | refactoring/07-backend-context-runner.md |
 
 ---
 
@@ -189,6 +193,11 @@ milestone-selectable deliverables extracted from design documents in this folder
 | S-8 | Implement source persistence, CRUD API, programmatic builders (Phase 6) | ✨ feature | backlog | source/flow-kt-design.md |
 | S-9 | Implement S3BlobSource, AzureBlobSource, HdfsBlobSource storage backends | ✨ feature | backlog | source/flow-kt-design.md |
 | S-10 | Implement HivePartitionTableMapper and GlobTableMapper | ✨ feature | backlog | source/flow-kt-design.md |
+| S-11 | Implement flow backend with SourceDefinitionRepository abstraction | ✨ feature | planned | source/flow-backend.md |
+| S-12 | Implement SingleFileSourceRepository and MultiFileSourceRepository | ✨ feature | planned | source/flow-backend.md |
+| S-13 | Implement FlowContextFactory (CalciteContextFactory for source descriptors) | ✨ feature | planned | source/flow-backend.md |
+| S-14 | Implement FlowBackendContextRunner in testkit | 🧪 test | planned | source/flow-backend.md |
+| S-15 | Implement FlowBackendAutoConfiguration (Spring auto-configuration for flow backend) | ✨ feature | planned | source/flow-backend.md |
 
 ---
 
@@ -219,7 +228,7 @@ milestone-selectable deliverables extracted from design documents in this folder
 | metadata    | 22      | 13        | 0              | 2      | 6              | 1       | 0       |
 | platform    | 26      | 6         | 7              | 4      | 8              | 1       | 0       |
 | publish     | 4       | 1         | 2              | 0      | 0              | 0       | 1       |
-| refactoring | 17      | 0         | 1              | 6      | 6              | 3       | 1       |
-| source      | 10      | 4         | 3              | 1      | 1              | 0       | 0       |
+| refactoring | 21      | 0         | 1              | 6      | 9              | 4       | 1       |
+| source      | 15      | 8         | 3              | 1      | 1              | 1       | 0       |
 | ui          | 10      | 4         | 4              | 0      | 1              | 1       | 0       |
-| **Total**   | **136** | **59**    | **21**         | **18** | **27**         | **6**   | **4**   |
+| **Total**   | **145** | **63**    | **21**         | **18** | **30**         | **8**   | **4**   |

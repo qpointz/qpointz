@@ -1,5 +1,8 @@
 package io.qpointz.mill.source
 
+import java.nio.file.FileSystems
+import java.nio.file.Paths
+
 /**
  * Maps a [BlobPath] to a logical table name and optional partition values.
  *
@@ -17,6 +20,7 @@ data class TableMapping(
  * Different storage layouts need different mappers:
  * - [RegexTableMapper] extracts table names from blob paths via named capture groups
  * - [DirectoryTableMapper] uses parent directory names as table names
+ * - [GlobTableMapper] matches blobs with a glob pattern and assigns a fixed table name
  *
  * @see TableMapping
  */
@@ -91,5 +95,31 @@ class DirectoryTableMapper(
         val dirIndex = segments.size - 1 - depth
         if (dirIndex < 0) return null
         return TableMapping(segments[dirIndex])
+    }
+}
+
+/**
+ * Maps blobs to a fixed table name when their path matches a glob pattern.
+ *
+ * The glob is compiled via [java.nio.file.FileSystem.getPathMatcher] and
+ * matched against the blob's URI path.
+ *
+ * @property pattern   glob expression (e.g. `&#42;&#42;/&#42;.csv`)
+ * @property tableName fixed logical table name assigned to every matching blob
+ */
+class GlobTableMapper(
+    val pattern: String,
+    val tableName: String
+) : BlobToTableMapper {
+
+    private val matcher = FileSystems.getDefault().getPathMatcher("glob:$pattern")
+
+    override fun mapToTable(path: BlobPath): TableMapping? {
+        val uriPath = path.uri.path ?: return null
+        return if (matcher.matches(Paths.get(uriPath))) {
+            TableMapping(tableName)
+        } else {
+            null
+        }
     }
 }
