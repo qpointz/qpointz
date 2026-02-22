@@ -1,8 +1,0 @@
-mill:
-  name: test-distro
-  description: Demo instance to demonstrate data annotation
-  schemas:
-    - name: MONETA
-      tables:
-        - name: ACCOUNT
-          desccription: Account table

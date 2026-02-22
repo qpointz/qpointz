@@ -13,7 +13,7 @@ mill {
 
 
 dependencies {
-    api(project(":data:mill-data-service"))
+    api(project(":data:mill-data-backend-core"))
     implementation(libs.calcite.core)
     implementation(libs.calcite.csv)
     implementation(libs.calcite.file)

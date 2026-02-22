@@ -80,8 +80,8 @@ dependencies {
     implementation(project(":core:mill-well-known-service"))
     implementation(project(":metadata:mill-metadata-service"))
     implementation(project(":data:mill-data-backends"))
-    implementation(project(":data:mill-data-grpc-service"))
-    implementation(project(":data:mill-data-http-service"))
+    implementation(project(":data:services:mill-data-grpc-service"))
+    implementation(project(":data:services:mill-data-http-service"))
 
     implementation(project(":ai:mill-ai-v1-nlsql-chat-service"))
 

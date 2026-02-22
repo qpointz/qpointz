@@ -3,11 +3,11 @@ plugins {
 }
 
 dependencies {
-    dokka(project(":data:mill-data-service"))
+    dokka(project(":data:mill-data-backend-core"))
     dokka(project(":data:mill-data-backends"))
     dokka(project(":data:mill-data-autoconfigure"))
-    dokka(project(":data:mill-data-grpc-service"))
-    dokka(project(":data:mill-data-http-service"))
+    dokka(project(":data:services:mill-data-grpc-service"))
+    dokka(project(":data:services:mill-data-http-service"))
     dokka(project(":data:mill-data-source-core"))
     dokka(project(":data:mill-data-source-calcite"))
     dokka(project(":data:formats:mill-source-format-text"))

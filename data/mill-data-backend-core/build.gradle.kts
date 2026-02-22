@@ -1,29 +1,21 @@
 plugins {
     `java-library`
-    alias(libs.plugins.spring.dependency.management)
     id("io.qpointz.plugins.mill")
     id("org.jetbrains.dokka")
     id("org.jetbrains.dokka-javadoc")
 }
 
 mill {
-    description = "Mill essential starter services"
+    description = "Mill data backend core — dispatchers, rewriters, service contracts"
     publishArtifacts = true
 }
 
 dependencies {
-    api(project(":core:mill-service-api"))
-    api(project(":core:mill-security-autoconfigure"))
-    api(project(":data:mill-data-backend-core"))
-
-    api(libs.boot.starter)
-    api(libs.boot.starter.web)
-    api(libs.boot.starter.security)
-    api(libs.jackson.dataformat.yaml)
-    api(libs.jackson.datatype.jsr310)
-
+    api(project(":core:mill-core"))
+    api(project(":core:mill-security"))
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
+    implementation(libs.bundles.logging)
 }
 
 testing {
@@ -34,11 +26,9 @@ testing {
 
                 dependencies {
                     implementation(project())
+                    implementation(project(":data:mill-data-testkit"))
                     implementation(project(":data:mill-data-backends"))
-                    implementation(project(":data:mill-data-autoconfigure"))
-                    implementation(libs.spring.security.test)
-                    implementation(libs.boot.starter.test)
-                    implementation(libs.boot.starter.web)
+                    implementation(libs.protobuf.java.util)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.h2.database)

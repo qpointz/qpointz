@@ -96,6 +96,7 @@ class JdbcBackendContextRunner(
     companion object {
 
         @JvmStatic
+        @JvmOverloads
         fun jdbcBackendContext(
             dialect: SqlDialectSpec,
             url: String,
@@ -144,6 +145,7 @@ class JdbcBackendContextRunner(
         }
 
         @JvmStatic
+        @JvmOverloads
         fun jdbcH2Context(
             url: String,
             targetSchema: String,

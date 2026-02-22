@@ -1,0 +1,29 @@
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.springframework.web.servlet.mvc.method.annotation: DEBUG
+    org.springframework.web.bind: DEBUG
+    org.springframework.http.converter.json: DEBUG
+    com.fasterxml.jackson.databind: DEBUG
+
+mill:
+  data:
+    sql:
+      dialect: h2
+      conventions:
+        quoting: BACK_TICK
+        caseSensitive: true
+        unquotedCasing: UNCHANGED
+    backend:
+      type: jdbc
+      jdbc:
+        url: "jdbc:h2:mem:test2;INIT=RUNSCRIPT FROM '../../../test/datasets/cmart/sql/cmart.sql'"
+        driver: "org.h2.Driver"
+        target-schema: "ts"
+
+  security:
+    enable: false
+
+  services:
+    jet-http:
+      enable: true

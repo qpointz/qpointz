@@ -12,7 +12,7 @@ mill {
 dependencies {
     api(project(":core:mill-core"))
     api(project(":metadata:mill-metadata-core"))
-    api(project(":data:mill-data-service"))
+    api(project(":data:mill-data-backend-core"))
     implementation(libs.bundles.jackson)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
@@ -27,8 +27,11 @@ testing {
 
                 dependencies {
                     implementation(project())
+                    implementation(project(":data:mill-data-testkit"))
+                    implementation(project(":data:mill-data-backends"))
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
+                    implementation(libs.h2.database)
                     implementation(libs.lombok)
                     annotationProcessor(libs.lombok)
                 }

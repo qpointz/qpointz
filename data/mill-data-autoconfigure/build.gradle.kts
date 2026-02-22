@@ -14,7 +14,7 @@ mill {
 dependencies {
     api(project(":core:mill-service-api"))
     api(project(":core:mill-security-autoconfigure"))
-    api(project(":data:mill-data-service"))
+    api(project(":data:mill-data-backend-core"))
     api(project(":data:mill-data-backends"))
     api(project(":metadata:mill-metadata-provider"))
     api(libs.jakarta.servlet.api)

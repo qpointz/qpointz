@@ -41,7 +41,7 @@ testing {
                     implementation(project())
                     implementation(project(":data:mill-data-backends"))
                     implementation(project(":data:mill-data-autoconfigure"))
-                    implementation(project(":data:mill-data-grpc-service"))
+                    implementation(project(":data:services:mill-data-grpc-service"))
                     implementation(libs.okhttp.mock.webserver)
                     implementation(libs.bootGRPC.client)
                     implementation(libs.bootGRPC.server)
