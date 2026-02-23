@@ -16,3 +16,9 @@ These rules apply to **every** work item implementation.
 - Keep the number of commits to the bare minimum — ideally **one commit per work item**.
 - **Never** add `Co-Authored-By` or similar trailers to commit messages.
 - Follow the existing bracketed prefix style: `[feat]`, `[fix]`, `[change]`, `[refactor]`, `[docs]`, `[wip]`.
+
+## Completion
+
+- When a work item is implemented, **delete its file** from `docs/workitems/`.
+- Update `MILESTONE.md` to reflect the completed item in the **Completed** section.
+- Update `BACKLOG.md` to mark any related backlog entries as `done`.
