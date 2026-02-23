@@ -161,6 +161,7 @@ micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-p
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version = "3.2.3" }
 
 json-path = { module = "com.jayway.jsonpath:json-path", version = "2.10.0" }
+json-schema-validator = { module = "com.networknt:json-schema-validator", version = "1.5.7" }
 
 [bundles]
 jackson = ["jackson-databind", "jackson-dataformat-yaml", "jackson-datatype-jsr310", "jackson-datatype-jdk8", "jackson-module-kotlin"]

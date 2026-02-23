@@ -3,8 +3,10 @@ package io.qpointz.mill.metadata.configuration;
 import io.qpointz.mill.metadata.repository.MetadataRepository;
 import io.qpointz.mill.metadata.repository.file.FileMetadataRepository;
 import io.qpointz.mill.metadata.repository.file.SpringResourceResolver;
+import io.qpointz.mill.metadata.service.FacetCatalog;
 import io.qpointz.mill.metadata.service.MetadataService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -50,8 +52,9 @@ public class MetadataRepositoryAutoConfiguration {
 
     @Bean
     @ConditionalOnBean(MetadataRepository.class)
-    public MetadataService metadataService(MetadataRepository repository) {
-        return new MetadataService(repository);
+    public MetadataService metadataService(MetadataRepository repository,
+                                            @Autowired(required = false) FacetCatalog facetCatalog) {
+        return new MetadataService(repository, facetCatalog);
     }
 }
 

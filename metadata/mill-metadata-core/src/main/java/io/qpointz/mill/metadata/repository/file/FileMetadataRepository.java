@@ -125,6 +125,8 @@ public class FileMetadataRepository implements MetadataRepository {
                 String normalizedId = normalizeId(incomingEntity.getId());
                 incomingEntity.setId(normalizedId);
                 
+                injectTypeMarkers(incomingEntity);
+
                 MetadataEntity existingEntity = entities.get(normalizedId);
                 if (existingEntity != null) {
                     mergeEntityFacets(existingEntity, incomingEntity);
@@ -185,12 +187,31 @@ public class FileMetadataRepository implements MetadataRepository {
     }
     
     @Override
+    @SuppressWarnings("unchecked")
     public void save(MetadataEntity entity) {
         entity.setUpdatedAt(Instant.now());
         String normalizedId = normalizeId(entity.getId());
         entity.setId(normalizedId);
+        injectTypeMarkers(entity);
         entities.put(normalizedId, entity);
         log.debug("Saved entity: {}", normalizedId);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void injectTypeMarkers(MetadataEntity entity) {
+        Map<String, Map<String, Object>> facets = entity.getFacets();
+        if (facets == null) return;
+        for (Map.Entry<String, Map<String, Object>> facetEntry : facets.entrySet()) {
+            String typeKey = facetEntry.getKey();
+            Map<String, Object> scopedFacets = facetEntry.getValue();
+            if (scopedFacets == null) continue;
+            for (Map.Entry<String, Object> scopeEntry : scopedFacets.entrySet()) {
+                Object data = scopeEntry.getValue();
+                if (data instanceof Map) {
+                    ((Map<String, Object>) data).putIfAbsent("_type", typeKey);
+                }
+            }
+        }
     }
     
     @Override

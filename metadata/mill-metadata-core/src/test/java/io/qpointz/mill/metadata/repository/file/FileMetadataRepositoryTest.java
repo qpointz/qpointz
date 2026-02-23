@@ -217,6 +217,40 @@ class FileMetadataRepositoryTest {
     }
     
     @Test
+    @SuppressWarnings("unchecked")
+    void shouldInjectTypeMarker_onLoad() {
+        Optional<MetadataEntity> entity = repository.findById("moneta.customers");
+        assertTrue(entity.isPresent());
+        
+        Map<String, Map<String, Object>> facets = entity.get().getFacets();
+        Map<String, Object> structuralScopes = facets.get("structural");
+        assertNotNull(structuralScopes);
+        
+        Map<String, Object> globalData = (Map<String, Object>) structuralScopes.get("global");
+        assertNotNull(globalData);
+        assertEquals("structural", globalData.get("_type"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void shouldInjectTypeMarker_onSave() {
+        MetadataEntity entity = new MetadataEntity();
+        entity.setId("test.type-inject");
+        entity.setType(MetadataType.TABLE);
+        entity.setSchemaName("test");
+        entity.setTableName("type-inject");
+        entity.setFacet("descriptive", "global", new HashMap<>(Map.of("displayName", "Test")));
+
+        repository.save(entity);
+
+        Optional<MetadataEntity> found = repository.findById("test.type-inject");
+        assertTrue(found.isPresent());
+
+        Map<String, Object> descriptiveGlobal = (Map<String, Object>) found.get().getFacets().get("descriptive").get("global");
+        assertEquals("descriptive", descriptiveGlobal.get("_type"));
+    }
+
+    @Test
     void shouldPreserveFacetsFromBase_whenNotInOverride() {
         FileMetadataRepository repo = new FileMetadataRepository(
             Arrays.asList(

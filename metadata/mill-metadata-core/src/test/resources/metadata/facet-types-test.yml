@@ -1,0 +1,36 @@
+facet-types:
+  - typeKey: descriptive
+    mandatory: true
+    enabled: true
+    displayName: Descriptive
+    description: Human-readable metadata
+    applicableTo:
+      - SCHEMA
+      - TABLE
+      - ATTRIBUTE
+    version: "1.0"
+
+  - typeKey: custom-audit
+    mandatory: false
+    enabled: true
+    displayName: Custom Audit Trail
+    description: Tracks compliance audit status per entity
+    applicableTo:
+      - TABLE
+    version: "1.0"
+    contentSchema:
+      type: object
+      properties:
+        lastAuditDate:
+          type: string
+        auditor:
+          type: string
+        status:
+          type: string
+          enum:
+            - passed
+            - failed
+            - pending
+      required:
+        - lastAuditDate
+        - status

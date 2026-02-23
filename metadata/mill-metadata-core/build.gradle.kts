@@ -12,6 +12,7 @@ mill {
 dependencies {
     api(project(":core:mill-core"))
     api(libs.bundles.jackson)
+    implementation(libs.json.schema.validator)
     implementation(libs.bundles.logging)
 
     compileOnly(libs.lombok)

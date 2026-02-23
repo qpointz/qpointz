@@ -2,12 +2,12 @@ package io.qpointz.mill.metadata.service;
 
 import io.qpointz.mill.metadata.domain.MetadataEntity;
 import io.qpointz.mill.metadata.domain.MetadataType;
+import io.qpointz.mill.metadata.domain.ValidationResult;
 import io.qpointz.mill.metadata.domain.core.ConceptFacet;
 import io.qpointz.mill.metadata.domain.core.ConceptTarget;
 import io.qpointz.mill.metadata.domain.core.EntityReference;
 import io.qpointz.mill.metadata.domain.core.RelationFacet;
 import io.qpointz.mill.metadata.repository.MetadataRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
@@ -20,10 +20,23 @@ import java.util.stream.Stream;
  * Provides scope-aware facet access and entity management.
  */
 @Slf4j
-@RequiredArgsConstructor
 public class MetadataService {
     
     private final MetadataRepository repository;
+    private final FacetCatalog facetCatalog;
+
+    public MetadataService(MetadataRepository repository) {
+        this(repository, null);
+    }
+
+    public MetadataService(MetadataRepository repository, FacetCatalog facetCatalog) {
+        this.repository = repository;
+        this.facetCatalog = facetCatalog;
+    }
+
+    public Optional<FacetCatalog> getFacetCatalog() {
+        return Optional.ofNullable(facetCatalog);
+    }
     
     /**
      * Get entity by ID.
@@ -71,11 +84,19 @@ public class MetadataService {
     }
     
     /**
-     * Save entity.
+     * Save entity with optional facet validation.
      *
      * @param entity entity to save
+     * @throws IllegalArgumentException if facet validation fails
      */
     public void save(MetadataEntity entity) {
+        if (facetCatalog != null) {
+            ValidationResult result = facetCatalog.validateEntityFacets(entity);
+            if (!result.valid()) {
+                throw new IllegalArgumentException(
+                        "Facet validation failed: " + String.join("; ", result.errors()));
+            }
+        }
         if (entity.getCreatedAt() == null) {
             entity.setCreatedAt(Instant.now());
         }
