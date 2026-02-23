@@ -20,6 +20,15 @@ Items delivered since `origin/main` on the current development branch.
 | R-20 | Move non-autoconfigure tests from mill-data-autoconfigure to backend-core and metadata modules | test | done |
 | R-21 | Delete orphaned application-*.yml Spring config files across modules | refactoring | done |
 
+#### Work Items
+
+| # | Item | Type | Status |
+|---|------|------|--------|
+| WI-001 | Fix package rename leakage outside data backend modules | refactoring | done |
+| WI-002 | Split security into service authentication and data authorization | refactoring | done |
+| WI-004 | Public documentation tone and formatting cleanup | docs | done |
+| WI-003 | Data policy format redesign | refactoring / feature | done |
+
 ### Planned
 
 Items targeted for delivery in this milestone.

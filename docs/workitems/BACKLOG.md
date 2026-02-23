@@ -129,7 +129,7 @@ milestone-selectable deliverables extracted from design documents in this folder
 | P-12 | Use combined Calcite operator table (STANDARD + POSTGRESQL) | 💡 improvement | backlog | platform/calcite-dialect-comparison.md |
 | P-13 | Add custom Calcite operators for AGE(timestamp,timestamp) and ILIKE | ✨ feature | backlog | platform/calcite-dialect-comparison.md |
 | P-14 | Fix postgres.yml type mappings (COUNT->BIGINT, EXTRACT->NUMERIC, polymorphic) | 🐛 fix | backlog | platform/calcite-dialect-comparison.md |
-| P-15 | Resolve duplicate mill.security.authorization.policy prefix across modules | 🐛 fix | backlog | platform/CONFIGURATION_INVENTORY.md |
+| P-15 | Resolve duplicate mill.security.authorization.policy prefix across modules | 🐛 fix | done | platform/CONFIGURATION_INVENTORY.md, **WI-002** |
 | P-16 | Replace @Qualifier("LOJOKOJ") placeholder with meaningful qualifier | 🐛 fix | backlog | platform/CONFIGURATION_INVENTORY.md |
 | P-17 | Complete RAG implementation: vector store value mapper, integration tests | ✨ feature | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md |
 | P-18 | Add custom metrics, distributed tracing (OpenTelemetry), and structured logging | 💡 improvement | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md |
