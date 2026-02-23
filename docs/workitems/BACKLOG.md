@@ -180,6 +180,14 @@ milestone-selectable deliverables extracted from design documents in this folder
 | R-19 | Move mill-data-grpc-service and mill-data-http-service under data/services/ subfolder | 🔧 refactoring | done | refactoring/07-backend-context-runner.md |
 | R-20 | Move non-autoconfigure tests from mill-data-autoconfigure to backend-core and metadata modules | 🧪 test | done | refactoring/07-backend-context-runner.md |
 | R-21 | Delete orphaned application-*.yml Spring config files across modules | 🔧 refactoring | done | refactoring/07-backend-context-runner.md |
+| R-22 | Narrow broad @ComponentScan and unfiltered @EnableAutoConfiguration in tests across all modules | 🔧 refactoring | planned | **WI-009** |
+| R-23 | Delete dead MainLala.java test scaffolding from mill-test-kit | 🔧 refactoring | planned | **WI-009** |
+| R-24 | Move SecurityProvider interface from data/mill-data-backend-core to core/mill-security | 🔧 refactoring | planned | **WI-010** |
+| R-25 | Remove unused metadata dependencies from data/mill-data-autoconfigure | 🔧 refactoring | planned | **WI-010** |
+| R-26 | Remove spring-dependency-management plugin from pure modules (mill-core, mill-data-backends) | 🔧 refactoring | planned | **WI-010** |
+| R-27 | Remove boot.starter.test from core/mill-core test dependencies | 🔧 refactoring | planned | **WI-010** |
+| R-28 | ~~Extract Spring Boot @Configuration classes from mill-ai-v1-core~~ (skipped — v1 being replaced by v2) | 🔧 refactoring | cancelled | **WI-010** |
+| R-29 | Move @SpringBootApplication entry point out of mill-ai-v2 core library | 🔧 refactoring | planned | **WI-010** |
 
 ---
 
@@ -232,7 +240,7 @@ milestone-selectable deliverables extracted from design documents in this folder
 | metadata    | 22      | 13        | 0              | 2      | 6              | 1       | 0       |
 | platform    | 26      | 6         | 7              | 4      | 8              | 1       | 0       |
 | publish     | 4       | 1         | 2              | 0      | 0              | 0       | 1       |
-| refactoring | 21      | 0         | 1              | 6      | 9              | 4       | 1       |
+| refactoring | 29      | 0         | 1              | 6      | 17             | 4       | 1       |
 | source      | 15      | 8         | 3              | 1      | 1              | 1       | 0       |
 | ui          | 10      | 4         | 4              | 0      | 1              | 1       | 0       |
-| **Total**   | **145** | **63**    | **21**         | **18** | **30**         | **8**   | **4**   |
+| **Total**   | **153** | **63**    | **21**         | **18** | **38**         | **8**   | **4**   |

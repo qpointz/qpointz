@@ -13,9 +13,14 @@ import org.springframework.context.annotation.Import;
 
 @SpringBootTest(classes = {AuthenticationBaseTest.class},
                 webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ComponentScan(basePackages = {"io.qpointz"})
+@ComponentScan(basePackages = {
+        "io.qpointz.mill.security",
+        "io.qpointz.mill.test.services"
+})
 @Import({TestController.class})
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = {
+        org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration.class
+})
 public abstract class AuthenticationBaseTest {
 
     @Autowired
