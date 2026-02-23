@@ -79,6 +79,7 @@ fusesource-jansi = { module = "org.fusesource.jansi:jansi", version = "2.4.2" }
 
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
+mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version = "5.4.0" }
 
 assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 

@@ -4,6 +4,7 @@ import io.qpointz.mill.security.authorization.policy.ActionVerb;
 import io.qpointz.mill.security.authorization.policy.expression.CallNode;
 import io.qpointz.mill.security.authorization.policy.expression.FieldRefNode;
 import io.qpointz.mill.security.authorization.policy.expression.LiteralNode;
+import io.qpointz.mill.security.authorization.policy.model.ActionType;
 import io.qpointz.mill.security.authorization.policy.model.*;
 import org.junit.jupiter.api.Test;
 
@@ -233,5 +234,82 @@ class PolicyImportExportTest {
         assertEquals(ActionType.TABLE_ACCESS, imported.get(0).getActions().get(0).getType());
         assertEquals(ActionType.ROW_FILTER, imported.get(0).getActions().get(1).getType());
         assertEquals(ActionType.COLUMN_ACCESS, imported.get(0).getActions().get(2).getType());
+    }
+
+    @Test
+    void yamlImport_structuredExpression_usesRefPrefixAndLiterals() throws IOException {
+        var yaml = """
+                policies:
+                  - name: analysts
+                    actions:
+                      - verb: ALLOW
+                        type: row-filter
+                        table: [SALES, TRANSACTIONS]
+                        expression:
+                          and:
+                            - eq: ["#ref.department", "analytics"]
+                            - gt: ["#ref.amount", 1000]
+                """;
+
+        var importer = new YamlPolicyImporter();
+        var imported = List.copyOf(importer.importPolicies(new ByteArrayInputStream(yaml.getBytes())));
+        var action = imported.get(0).getActions().get(0);
+        assertNotNull(action.getExpression());
+        assertNull(action.getRawExpression());
+        assertInstanceOf(CallNode.class, action.getExpression());
+        var andNode = (CallNode) action.getExpression();
+        assertEquals("and", andNode.getOperator());
+        var eqNode = (CallNode) andNode.getOperands().get(0);
+        assertEquals("eq", eqNode.getOperator());
+        assertInstanceOf(FieldRefNode.class, eqNode.getOperands().get(0));
+        assertEquals("department", ((FieldRefNode) eqNode.getOperands().get(0)).getFieldName());
+        assertInstanceOf(LiteralNode.class, eqNode.getOperands().get(1));
+        assertEquals("analytics", ((LiteralNode) eqNode.getOperands().get(1)).getValue());
+    }
+
+    @Test
+    void yamlImport_expressionString_mapsToRawExpression() throws IOException {
+        var yaml = """
+                policies:
+                  - name: analysts
+                    actions:
+                      - verb: ALLOW
+                        type: row-filter
+                        table: [SALES, TRANSACTIONS]
+                        expression: "department = 'analytics'"
+                """;
+
+        var importer = new YamlPolicyImporter();
+        var imported = List.copyOf(importer.importPolicies(new ByteArrayInputStream(yaml.getBytes())));
+        var action = imported.get(0).getActions().get(0);
+        assertNull(action.getExpression());
+        assertEquals("department = 'analytics'", action.getRawExpression());
+    }
+
+    @Test
+    void yamlImport_structuredExpression_supportsRefAndConstObjects() throws IOException {
+        var yaml = """
+                policies:
+                  - name: analysts
+                    actions:
+                      - verb: ALLOW
+                        type: row-filter
+                        table: [SALES, TRANSACTIONS]
+                        expression:
+                          eq:
+                            - ref: department
+                            - const: analytics
+                """;
+
+        var importer = new YamlPolicyImporter();
+        var imported = List.copyOf(importer.importPolicies(new ByteArrayInputStream(yaml.getBytes())));
+        var action = imported.get(0).getActions().get(0);
+        assertInstanceOf(CallNode.class, action.getExpression());
+        var eqNode = (CallNode) action.getExpression();
+        assertEquals("eq", eqNode.getOperator());
+        assertInstanceOf(FieldRefNode.class, eqNode.getOperands().get(0));
+        assertEquals("department", ((FieldRefNode) eqNode.getOperands().get(0)).getFieldName());
+        assertInstanceOf(LiteralNode.class, eqNode.getOperands().get(1));
+        assertEquals("analytics", ((LiteralNode) eqNode.getOperands().get(1)).getValue());
     }
 }

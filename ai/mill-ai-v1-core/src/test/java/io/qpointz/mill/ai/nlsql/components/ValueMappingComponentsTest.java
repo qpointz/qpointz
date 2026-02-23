@@ -105,7 +105,7 @@ class ValueMappingComponentsTest {
         facet.setSources(List.of(
             new ValueMappingFacet.ValueMappingSource("sql", "country_source",
                 "SELECT 'US' AS ID, 'US' AS VALUE, 'United States' AS TEXT",
-                "Test source", true, null, null)
+                "Test source", true, null, 3600)
         ));
 
         MetadataEntity entity = createAttributeEntity("TEST_SCHEMA", "TEST_TABLE", "COUNTRY", facet);

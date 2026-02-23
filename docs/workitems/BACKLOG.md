@@ -1,12 +1,12 @@
-# Design Backlog
+# Backlog
 
-Consolidated tracking list of planned work across all design categories. Items are
-milestone-selectable deliverables extracted from design documents in this folder.
+Consolidated tracking list of planned work across all categories. Items are
+milestone-selectable deliverables extracted from design documents and work items.
 
 **Legend:**
 - **Status**: `backlog` | `planned` | `in-progress` | `done` | `cancelled`
 - **Type**: ✨ feature | 💡 improvement | 🐛 fix | 🔧 refactoring | 🧪 test | 📝 docs
-- **Source**: design document the item originates from (relative to `docs/design/`)
+- **Source**: design document (relative to `docs/design/`) or work item (`docs/workitems/`)
 
 ---
 
@@ -105,9 +105,9 @@ milestone-selectable deliverables extracted from design documents in this folder
 | M-21 | Fix MessageHelper parse error messages (generic HandshakeResponse) | 🐛 fix | backlog | metadata/metadata-service-design.md |
 | M-22 | Remove ProtobufUtils dead code and register HTTP ServiceDescriptor | 🐛 fix | backlog | metadata/metadata-service-design.md |
 | M-23 | Facet Type Library: persistent FacetTypeDescriptor, FacetCatalog, per-deployment config, optional validation | ✨ feature | done | **WI-006** |
-| M-24 | Relocate SchemaExplorerController from metadata module to data layer | 🔧 refactoring | planned | **WI-007** |
+| M-24 | Relocate SchemaExplorerController from metadata module to data layer | 🔧 refactoring | done | **WI-007** |
 | M-25 | MetadataEntity persistence preparation: extract ObjectMapper, add Serializable, import/export | 🔧 refactoring | done | **WI-005** |
-| M-26 | Migrate metadata modules (core, autoconfigure, service) from Java + Lombok to Kotlin | 🔧 refactoring | planned | **WI-008** |
+| M-26 | Migrate metadata modules (core, autoconfigure, service) from Java + Lombok to Kotlin | 🔧 refactoring | done | **WI-008** |
 
 ---
 
@@ -159,9 +159,9 @@ milestone-selectable deliverables extracted from design documents in this folder
 
 | # | Item | Type | Status | Source |
 |---|------|------|--------|--------|
-| R-1 | Move services/mill-metadata-service to metadata/mill-metadata-service (iteration 15) | 🔧 refactoring | backlog | refactoring/01-iterations.md |
-| R-2 | Remove Spring contamination from mill-metadata-core | 🔧 refactoring | backlog | refactoring/04-dependency-graph.md |
-| R-3 | Remove Spring contamination from mill-data-backends | 🔧 refactoring | backlog | refactoring/04-dependency-graph.md |
+| R-1 | Move services/mill-metadata-service to metadata/mill-metadata-service (iteration 15) | 🔧 refactoring | done | refactoring/01-iterations.md |
+| R-2 | Remove Spring contamination from mill-metadata-core | 🔧 refactoring | done | refactoring/04-dependency-graph.md |
+| R-3 | Remove Spring contamination from mill-data-backends | 🔧 refactoring | done | refactoring/04-dependency-graph.md |
 | R-4 | Fix mill.backend.jdbc.multi-shema typo to multi-schema | 🐛 fix | backlog | refactoring/05-configuration-keys.md |
 | R-5 | Resolve output-schema vs target-schema inconsistency in YAML and Java binding | 🐛 fix | backlog | refactoring/05-configuration-keys.md |
 | R-6 | Fix mill.security.enabled vs mill.security.enable inconsistency in test configs | 🐛 fix | backlog | refactoring/05-configuration-keys.md |
@@ -205,11 +205,11 @@ milestone-selectable deliverables extracted from design documents in this folder
 | S-8 | Implement source persistence, CRUD API, programmatic builders (Phase 6) | ✨ feature | backlog | source/flow-kt-design.md |
 | S-9 | Implement S3BlobSource, AzureBlobSource, HdfsBlobSource storage backends | ✨ feature | backlog | source/flow-kt-design.md |
 | S-10 | Implement HivePartitionTableMapper and GlobTableMapper | ✨ feature | backlog | source/flow-kt-design.md |
-| S-11 | Implement flow backend with SourceDefinitionRepository abstraction | ✨ feature | planned | source/flow-backend.md |
-| S-12 | Implement SingleFileSourceRepository and MultiFileSourceRepository | ✨ feature | planned | source/flow-backend.md |
-| S-13 | Implement FlowContextFactory (CalciteContextFactory for source descriptors) | ✨ feature | planned | source/flow-backend.md |
-| S-14 | Implement FlowBackendContextRunner in testkit | 🧪 test | planned | source/flow-backend.md |
-| S-15 | Implement FlowBackendAutoConfiguration (Spring auto-configuration for flow backend) | ✨ feature | planned | source/flow-backend.md |
+| S-11 | Implement flow backend with SourceDefinitionRepository abstraction | ✨ feature | done | source/flow-backend.md |
+| S-12 | Implement SingleFileSourceRepository and MultiFileSourceRepository | ✨ feature | done | source/flow-backend.md |
+| S-13 | Implement FlowContextFactory (CalciteContextFactory for source descriptors) | ✨ feature | done | source/flow-backend.md |
+| S-14 | Implement FlowBackendContextRunner in testkit | 🧪 test | done | source/flow-backend.md |
+| S-15 | Implement FlowBackendAutoConfiguration (Spring auto-configuration for flow backend) | ✨ feature | done | source/flow-backend.md |
 
 ---
 

@@ -91,9 +91,9 @@ policies:
         table: "SCHEMA.TABLE"
         expression:
           and:
-            - eq: ["department", "analytics"]
+            - eq: ["#ref.department", "analytics"]
             - not:
-                eq: ["status", "archived"]
+                eq: ["#ref.status", "archived"]
 
       - verb: ALLOW
         type: column-access
@@ -192,7 +192,7 @@ Simple equality:
 
 ```yaml
 expression:
-  eq: ["department", "analytics"]
+  eq: ["#ref.department", "analytics"]
 ```
 
 Compound:
@@ -200,10 +200,10 @@ Compound:
 ```yaml
 expression:
   and:
-    - eq: ["status", "ACTIVE"]
+    - eq: ["#ref.status", "ACTIVE"]
     - or:
-        - eq: ["region", "US"]
-        - eq: ["region", "EU"]
+        - eq: ["#ref.region", "US"]
+        - eq: ["#ref.region", "EU"]
 ```
 
 Function call:
@@ -221,7 +221,7 @@ Between:
 ```yaml
 expression:
   between:
-    field: "age"
+    field: "#ref.age"
     low: 18
     high: 65
 ```
@@ -236,11 +236,36 @@ expression: "department = 'analytics'"
 
 # Structured — already parsed, directly buildable via RexBuilder
 expression:
-  eq: ["department", "analytics"]
+  eq: ["#ref.department", "analytics"]
 ```
 
 String literals are stored as `RawExpressionNode` and parsed lazily. Structured
 expressions are deserialized into the AST immediately.
+
+### Reference vs Constant Disambiguation
+
+Structured expressions treat all scalar values as constants by default.
+Field references must be explicit.
+
+- `"#ref.<name>"` => field reference
+- Any other scalar (`"analytics"`, `1000`, `true`, `null`) => constant literal
+- Object forms are also supported:
+  - `{ref: "department"}`
+  - `{const: "analytics"}`
+
+Examples:
+
+```yaml
+expression:
+  eq: ["#ref.department", "analytics"]
+```
+
+```yaml
+expression:
+  eq:
+    - {ref: "department"}
+    - {const: "analytics"}
+```
 
 ---
 
@@ -436,11 +461,11 @@ policies:
         expression:
           and:
             - or:
-                - eq: ["region", "US"]
-                - eq: ["region", "CA"]
-            - gt: ["amount", 1000]
+                - eq: ["#ref.region", "US"]
+                - eq: ["#ref.region", "CA"]
+            - gt: ["#ref.amount", 1000]
             - not:
-                eq: ["status", "CANCELLED"]
+                eq: ["#ref.status", "CANCELLED"]
 ```
 
 Regional managers see US/CA orders over $1000 that are not cancelled.

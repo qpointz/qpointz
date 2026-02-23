@@ -1,6 +1,7 @@
 plugins {
-    `java-library`
+    alias(libs.plugins.kotlin)
     alias(libs.plugins.spring.dependency.management)
+    alias(libs.plugins.kotlin.spring)
     id("io.qpointz.plugins.mill")
     id("org.jetbrains.dokka")
 }
@@ -15,6 +16,4 @@ dependencies {
     implementation(libs.boot.starter)
     implementation(libs.json.schema.validator)
     annotationProcessor(libs.boot.configuration.processor)
-    compileOnly(libs.lombok)
-    annotationProcessor(libs.lombok)
 }

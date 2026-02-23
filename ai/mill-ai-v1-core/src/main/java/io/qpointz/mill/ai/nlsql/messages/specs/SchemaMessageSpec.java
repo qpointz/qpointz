@@ -158,26 +158,26 @@ public class SchemaMessageSpec extends MessageSpec {
             if (facetOpt.isEmpty()) continue;
 
             for (RelationFacet.Relation rel : facetOpt.get().getRelations()) {
-                if (rel.sourceTable() == null || rel.targetTable() == null) continue;
+                if (rel.getSourceTable() == null || rel.getTargetTable() == null) continue;
 
                 if (!includeFullSchema()) {
                     boolean hasSrc = this.requiredTables.stream()
-                            .anyMatch(z -> z.schema().equalsIgnoreCase(rel.sourceTable().schema()) &&
-                                    z.name().equalsIgnoreCase(rel.sourceTable().table()));
+                            .anyMatch(z -> z.schema().equalsIgnoreCase(rel.getSourceTable().getSchema()) &&
+                                    z.name().equalsIgnoreCase(rel.getSourceTable().getTable()));
                     boolean hasTrg = this.requiredTables.stream()
-                            .anyMatch(z -> z.schema().equalsIgnoreCase(rel.targetTable().schema()) &&
-                                    z.name().equalsIgnoreCase(rel.targetTable().table()));
+                            .anyMatch(z -> z.schema().equalsIgnoreCase(rel.getTargetTable().getSchema()) &&
+                                    z.name().equalsIgnoreCase(rel.getTargetTable().getTable()));
                     if (!(hasSrc && hasTrg)) continue;
                 }
 
-                String srcAttr = extractAttribute(rel.sourceAttributes());
-                String trgAttr = extractAttribute(rel.targetAttributes());
+                String srcAttr = extractAttribute(rel.getSourceAttributes());
+                String trgAttr = extractAttribute(rel.getTargetAttributes());
 
                 result.add(new SchemaMessageModel.Relation(
-                        rel.sourceTable().schema(), rel.sourceTable().table(), srcAttr,
-                        rel.targetTable().schema(), rel.targetTable().table(), trgAttr,
-                        cardinalityToString(rel.cardinality()),
-                        rel.description()));
+                        rel.getSourceTable().getSchema(), rel.getSourceTable().getTable(), srcAttr,
+                        rel.getTargetTable().getSchema(), rel.getTargetTable().getTable(), trgAttr,
+                        cardinalityToString(rel.getCardinality()),
+                        rel.getDescription()));
             }
         }
         return result;

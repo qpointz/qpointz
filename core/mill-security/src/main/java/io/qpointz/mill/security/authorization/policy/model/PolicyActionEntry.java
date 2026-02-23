@@ -1,7 +1,10 @@
 package io.qpointz.mill.security.authorization.policy.model;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.qpointz.mill.security.authorization.policy.ActionVerb;
 import io.qpointz.mill.security.authorization.policy.expression.ExpressionNode;
+import io.qpointz.mill.security.authorization.policy.expression.ExpressionNodeParser;
 import lombok.*;
 
 import java.io.Serializable;
@@ -41,5 +44,26 @@ public class PolicyActionEntry implements Serializable {
 
     public boolean hasColumns() {
         return columns != null && !columns.isEmpty();
+    }
+
+    /**
+     * Supports dual-mode policy expression import:
+     * - textual value -> rawExpression
+     * - structured node -> expression AST
+     */
+    @JsonSetter("expression")
+    public void setExpressionFromJson(JsonNode node) {
+        if (node == null || node.isNull()) {
+            this.expression = null;
+            this.rawExpression = null;
+            return;
+        }
+        if (node.isTextual()) {
+            this.rawExpression = node.asText();
+            this.expression = null;
+            return;
+        }
+        this.expression = ExpressionNodeParser.parse(node);
+        this.rawExpression = null;
     }
 }

@@ -8,3 +8,12 @@ dependencies {
 
     dokka(project(":metadata:mill-metadata-service"))
 }
+
+// Aggregate metadata module builds under a single stable CI target.
+tasks.named("build") {
+    dependsOn(
+        ":metadata:mill-metadata-core:build",
+        ":metadata:mill-metadata-autoconfigure:build",
+        ":metadata:mill-metadata-service:build",
+    )
+}

@@ -139,12 +139,12 @@ public class ValueMappingComponents {
                     attribute.getAttributeName(),
                     Optional.ofNullable(facet.getContext()),
                     Optional.ofNullable(facet.getSimilarityThreshold()),
-                    m.userTerm(),
-                    m.databaseValue(),
-                    Optional.ofNullable(m.displayValue()),
-                    Optional.ofNullable(m.description()),
-                    m.language() != null ? m.language() : "en",
-                    m.aliases() != null ? m.aliases() : List.of()
+                    m.getUserTerm(),
+                    m.getDatabaseValue(),
+                    Optional.ofNullable(m.getDisplayValue()),
+                    Optional.ofNullable(m.getDescription()),
+                    m.getLanguage() != null ? m.getLanguage() : "en",
+                    m.getAliases() != null ? m.getAliases() : List.of()
                 ));
             }
         }
@@ -166,16 +166,16 @@ public class ValueMappingComponents {
             if (facet.getSources() == null) continue;
 
             for (ValueMappingFacet.ValueMappingSource src : facet.getSources()) {
-                if (!src.isEnabled()) continue;
+                if (!src.getEnabled()) continue;
                 result.add(new ValueMappingSourceWithContext(
                     attribute.getSchemaName(),
                     attribute.getTableName(),
                     attribute.getAttributeName(),
                     Optional.ofNullable(facet.getContext()),
                     Optional.ofNullable(facet.getSimilarityThreshold()),
-                    src.name() != null ? src.name() : "unknown",
+                    src.getName() != null ? src.getName() : "unknown",
                     src.getSql() != null ? src.getSql() : "",
-                    src.description() != null ? src.description() : "",
+                    src.getDescription() != null ? src.getDescription() : "",
                     true,
                     src.getCacheTtl()
                 ));

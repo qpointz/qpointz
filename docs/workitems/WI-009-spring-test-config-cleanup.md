@@ -27,18 +27,18 @@ should be isolated (security, metadata, data, AI) bleed into each other.
 
 **Files using overly broad scans:**
 
-| File | Scan Scope | Module |
-|------|-----------|--------|
-| `BaseIntegrationTestIT.java` | `io.qpointz` | ai/mill-ai-v1-core |
-| `ChatAppScenarioBase.java` | `io.qpointz` | ai/mill-ai-v1-core |
-| `SchemaMessageSpecTest.java` | `io.qpointz` + `io.qpointz.mill` | ai/mill-ai-v1-core |
-| `NlSqlChatServiceImplTestIT.java` | `io.qpointz` | ai/mill-ai-v1-nlsql-chat-service |
-| `NlSqlChatControllerTestIT.java` | `io.qpointz` | ai/mill-ai-v1-nlsql-chat-service |
-| `AuthenticationBaseTest.java` | `io.qpointz.mill.security` (fixed) | core/mill-service-security |
-| `HttpServiceBasicSecurityTest.java` | `io.qpointz.mill` | core/mill-well-known-service |
-| `BaseSecurityTest.java` | `io.qpointz.mill` | core/mill-well-known-service |
-| `AccessServiceControllerTest.java` | `io.qpointz.mill` | data/mill-data-http-service |
-| `MainLala.java` | `io.qpointz` | core/mill-test-kit (main!) |
+| File                                | Scan Scope                         | Module                           |
+| ----------------------------------- | ---------------------------------- | -------------------------------- |
+| `BaseIntegrationTestIT.java`        | `io.qpointz`                       | ai/mill-ai-v1-core               |
+| `ChatAppScenarioBase.java`          | `io.qpointz`                       | ai/mill-ai-v1-core               |
+| `SchemaMessageSpecTest.java`        | `io.qpointz` + `io.qpointz.mill`   | ai/mill-ai-v1-core               |
+| `NlSqlChatServiceImplTestIT.java`   | `io.qpointz`                       | ai/mill-ai-v1-nlsql-chat-service |
+| `NlSqlChatControllerTestIT.java`    | `io.qpointz`                       | ai/mill-ai-v1-nlsql-chat-service |
+| `AuthenticationBaseTest.java`       | `io.qpointz.mill.security` (fixed) | core/mill-service-security       |
+| `HttpServiceBasicSecurityTest.java` | `io.qpointz.mill`                  | core/mill-well-known-service     |
+| `BaseSecurityTest.java`             | `io.qpointz.mill`                  | core/mill-well-known-service     |
+| `AccessServiceControllerTest.java`  | `io.qpointz.mill`                  | data/mill-data-http-service      |
+| `MainLala.java`                     | `io.qpointz`                       | core/mill-test-kit (main!)       |
 
 ### Unfiltered `@EnableAutoConfiguration`
 
@@ -51,17 +51,17 @@ when the test doesn't need them. This causes:
 
 **Files using unfiltered auto-configuration:**
 
-| File | Module |
-|------|--------|
-| `BaseIntegrationTestIT.java` | ai/mill-ai-v1-core |
-| `BaseIntentTestIT.java` | ai/mill-ai-v1-core |
-| `ChatAppScenarioBase.java` | ai/mill-ai-v1-core |
-| `SchemaMessageSpecTest.java` | ai/mill-ai-v1-core |
-| `NlSqlChatServiceImplTestIT.java` | ai/mill-ai-v1-nlsql-chat-service |
-| `NlSqlChatControllerTestIT.java` | ai/mill-ai-v1-nlsql-chat-service |
-| `HttpServiceBasicSecurityTest.java` | core/mill-well-known-service |
-| `HttpServiceNoSecurityTest.java` | core/mill-well-known-service |
-| `AccessServiceControllerTest.java` | data/mill-data-http-service |
+| File                                    | Module                              |
+| --------------------------------------- | ----------------------------------- |
+| `BaseIntegrationTestIT.java`            | ai/mill-ai-v1-core                  |
+| `BaseIntentTestIT.java`                 | ai/mill-ai-v1-core                  |
+| `ChatAppScenarioBase.java`              | ai/mill-ai-v1-core                  |
+| `SchemaMessageSpecTest.java`            | ai/mill-ai-v1-core                  |
+| `NlSqlChatServiceImplTestIT.java`       | ai/mill-ai-v1-nlsql-chat-service    |
+| `NlSqlChatControllerTestIT.java`        | ai/mill-ai-v1-nlsql-chat-service    |
+| `HttpServiceBasicSecurityTest.java`     | core/mill-well-known-service        |
+| `HttpServiceNoSecurityTest.java`        | core/mill-well-known-service        |
+| `AccessServiceControllerTest.java`      | data/mill-data-http-service         |
 | `GrpcServiceSecurityConfiguration.java` | data/mill-data-grpc-service (main!) |
 
 ### `MainLala.java`
