@@ -2,7 +2,7 @@ package io.qpointz.mill.ai.nlsql.messages.specs;
 
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.data.backend.configuration.DefaultServiceConfiguration;
-import io.qpointz.mill.metadata.MetadataProvider;
+import io.qpointz.mill.metadata.service.MetadataService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.junit.jupiter.api.Test;
@@ -32,11 +32,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SchemaMessageSpecTest {
 
     @Autowired
-    MetadataProvider metadataProvider;
+    MetadataService metadataService;
 
     @Test
     void trivia() throws IOException {
-        val sp = SchemaMessageSpec.builder(MessageType.USER, metadataProvider)
+        val sp = SchemaMessageSpec.builder(MessageType.USER, metadataService)
                 .includeRelations(true)
                 .includeAttributes(true)
                 .build();
@@ -49,7 +49,7 @@ class SchemaMessageSpecTest {
 
     @Test
     void filterTable() throws IOException {
-        val sp = SchemaMessageSpec.builder(MessageType.USER, metadataProvider)
+        val sp = SchemaMessageSpec.builder(MessageType.USER, metadataService)
                 .includeRelations(true)
                 .includeAttributes(true)
                 .requiredTables(List.of(
@@ -62,7 +62,4 @@ class SchemaMessageSpecTest {
         assertFalse(content.toUpperCase().contains("MONETA.LOANS"));
         assertFalse(content.toUpperCase().contains("MONETA.LOANS.LOAN_ID"));
     }
-
-
-
 }

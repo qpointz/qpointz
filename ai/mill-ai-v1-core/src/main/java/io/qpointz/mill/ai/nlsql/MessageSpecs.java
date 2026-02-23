@@ -9,7 +9,7 @@ import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.ai.nlsql.models.stepback.StepBackResponse;
 import io.qpointz.mill.ai.nlsql.models.stepback.ClarificationQuestion;
-import io.qpointz.mill.metadata.MetadataProvider;
+import io.qpointz.mill.metadata.service.MetadataService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.ai.chat.messages.MessageType;
@@ -24,7 +24,6 @@ import static io.qpointz.mill.ai.chat.messages.MessageTemplates.staticTemplate;
 public class MessageSpecs {
 
     private MessageSpecs() {
-        // Prevent instantiation
     }
 
     private static MessageSpec systemStatic(String location) {
@@ -49,16 +48,16 @@ public class MessageSpecs {
         return systemStatic("templates/nlsql/output.prompt");
     }
 
-    public static MessageSpec reasonSchema(MetadataProvider metadataProvider) {
-        return SchemaMessageSpec.builder(MessageType.USER, metadataProvider)
+    public static MessageSpec reasonSchema(MetadataService metadataService) {
+        return SchemaMessageSpec.builder(MessageType.USER, metadataService)
                 .includeAttributes(false)
                 .includeRelationExpressions(false)
                 .includeRelations(true)
                 .build();
     }
 
-    public static MessageSpec intentSchema(ReasoningResponse response, MetadataProvider metadataProvider) {
-        return SchemaMessageSpec.builder(MessageType.USER, metadataProvider)
+    public static MessageSpec intentSchema(ReasoningResponse response, MetadataService metadataService) {
+        return SchemaMessageSpec.builder(MessageType.USER, metadataService)
                 .requiredTables(response.requiredTables())
                 .includeAttributes(true)
                 .includeRelationExpressions(true)
@@ -102,10 +101,10 @@ public class MessageSpecs {
         return new TemplateMessageSpec(MessageType.USER, template, params);
     }
 
-    public static MessageList stepBack(String question, MetadataProvider metadataProvider) {
+    public static MessageList stepBack(String question, MetadataService metadataService) {
         return new MessageList(List.of(
                 stepBackSystem(),
-                SchemaMessageSpec.builder(MessageType.USER, metadataProvider)
+                SchemaMessageSpec.builder(MessageType.USER, metadataService)
                         .includeAttributes(true)
                         .includeRelationExpressions(true)
                         .includeRelations(true)
@@ -118,10 +117,10 @@ public class MessageSpecs {
     public static MessageList stepBackWithClarification(String originalQuestion,
                                                         String clarificationAnswer,
                                                         StepBackResponse previousResponse,
-                                                        MetadataProvider metadataProvider) {
+                                                        MetadataService metadataService) {
         return new MessageList(List.of(
                 stepBackSystem(),
-                SchemaMessageSpec.builder(MessageType.USER, metadataProvider)
+                SchemaMessageSpec.builder(MessageType.USER, metadataService)
                         .includeAttributes(true)
                         .includeRelationExpressions(true)
                         .includeRelations(true)
@@ -135,19 +134,19 @@ public class MessageSpecs {
     public static MessageList reasonWithClarification(String originalQuestion,
                                                       String clarificationAnswer,
                                                       List<ClarificationQuestion> previousQuestions,
-                                                      MetadataProvider metadataProvider) {
+                                                      MetadataService metadataService) {
         return new MessageList(List.of(
                 reasonSystem(),
-                reasonSchema(metadataProvider),
+                reasonSchema(metadataService),
                 outputRules(),
                 reasonClarification(originalQuestion, clarificationAnswer, previousQuestions)
         ));
     }
 
-    public static MessageList reason(String question, MetadataProvider metadataProvider) {
+    public static MessageList reason(String question, MetadataService metadataService) {
         return new MessageList(List.of(
            reasonSystem(),
-           reasonSchema(metadataProvider),
+           reasonSchema(metadataService),
            outputRules(),
            plainUserQuestion(question)
         ));
@@ -162,23 +161,22 @@ public class MessageSpecs {
         val locale = new Locale(reason.language());
         val params = Map.<String, Object>of(
             "userQuestion", reason.query(),
-            "languageName" ,locale.getDisplayLanguage(),
+            "languageName", locale.getDisplayLanguage(),
             "languageCode", locale.toLanguageTag()
         );
-        return  new TemplateMessageSpec(MessageType.USER, template, params);
+        return new TemplateMessageSpec(MessageType.USER, template, params);
     }
 
     public static MessageSpec getDataUser() {
         return userStatic("templates/nlsql/intent/get-data/user.prompt");
     }
 
-    public static MessageList getData(ReasoningResponse reason, MetadataProvider provider, SqlDialect dialect) {
+    public static MessageList getData(ReasoningResponse reason, MetadataService service, SqlDialect dialect) {
         return new MessageList(List.of(
             intentSystem(),
-            //dialect.getConventionsSpec(reason.sqlFeatures() != null ? reason.sqlFeatures() : SqlDialect.SqlFeatures.DEFAULT),
             dialect.getConventionsSpec(SqlDialect.SqlFeatures.DEFAULT),
             getDataUser(),
-            intentSchema(reason, provider),
+            intentSchema(reason, service),
             outputRules(),
             intentUserQuestion(reason)
         ));
@@ -188,13 +186,12 @@ public class MessageSpecs {
         return userStatic("templates/nlsql/intent/get-chart/user.prompt");
     }
 
-    public static MessageList getChart(ReasoningResponse reason, MetadataProvider provider, SqlDialect dialect) {
+    public static MessageList getChart(ReasoningResponse reason, MetadataService service, SqlDialect dialect) {
         return new MessageList(List.of(
                 intentSystem(),
-                //dialect.getConventionsSpec(reason.sqlFeatures() != null ? reason.sqlFeatures() : SqlDialect.SqlFeatures.DEFAULT),
                 dialect.getConventionsSpec(SqlDialect.SqlFeatures.DEFAULT),
                 getChartUser(),
-                intentSchema(reason, provider),
+                intentSchema(reason, service),
                 outputRules(),
                 intentUserQuestion(reason)
         ));
@@ -204,20 +201,20 @@ public class MessageSpecs {
         return userStatic("templates/nlsql/intent/explain/user.prompt");
     }
 
-    public static MessageSpec fullSchema(MetadataProvider metadataProvider) {
-        return SchemaMessageSpec.builder(MessageType.USER, metadataProvider)
+    public static MessageSpec fullSchema(MetadataService metadataService) {
+        return SchemaMessageSpec.builder(MessageType.USER, metadataService)
                 .includeAttributes(true)
                 .includeRelationExpressions(true)
                 .includeRelations(true)
                 .build();
     }
 
-    public static MessageList explain(ReasoningResponse reason, MetadataProvider provider, SqlDialect dialect) {
+    public static MessageList explain(ReasoningResponse reason, MetadataService service, SqlDialect dialect) {
         return new MessageList(List.of(
                 intentSystem(),
                 dialect.getConventionsSpec(reason.sqlFeatures() != null ? reason.sqlFeatures() : SqlDialect.SqlFeatures.DEFAULT),
                 getExplainUser(),
-                fullSchema(provider),
+                fullSchema(service),
                 outputRules(),
                 intentUserQuestion(reason)
         ));
@@ -227,12 +224,12 @@ public class MessageSpecs {
         return userStatic("templates/nlsql/intent/enrich-model/user.prompt");
     }
 
-    public static MessageList enrichModel(ReasoningResponse reason, MetadataProvider provider, SqlDialect dialect) {
+    public static MessageList enrichModel(ReasoningResponse reason, MetadataService service, SqlDialect dialect) {
         return new MessageList(List.of(
                 intentSystem(),
                 dialect.getConventionsSpec(reason.sqlFeatures() != null ? reason.sqlFeatures() : SqlDialect.SqlFeatures.DEFAULT),
                 getEnrichModelUser(),
-                fullSchema(provider),
+                fullSchema(service),
                 outputRules(),
                 intentUserQuestion(reason)
         ));
@@ -242,12 +239,12 @@ public class MessageSpecs {
         return userStatic("templates/nlsql/intent/refine/user.prompt");
     }
 
-    public static MessageList refineQuery(ReasoningResponse reason, MetadataProvider provider, SqlDialect dialect) {
+    public static MessageList refineQuery(ReasoningResponse reason, MetadataService service, SqlDialect dialect) {
         return new MessageList(List.of(
                 intentSystem(),
                 dialect.getConventionsSpec(reason.sqlFeatures() != null ? reason.sqlFeatures() : SqlDialect.SqlFeatures.DEFAULT),
                 getRefineUser(),
-                fullSchema(provider),
+                fullSchema(service),
                 outputRules(),
                 intentUserQuestion(reason)
         ));
@@ -257,7 +254,7 @@ public class MessageSpecs {
         return userStatic("templates/nlsql/intent/do-conversation/user.prompt");
     }
 
-    public static MessageList doConversation(ReasoningResponse reason, MetadataProvider provider, SqlDialect dialect) {
+    public static MessageList doConversation(ReasoningResponse reason, MetadataService service, SqlDialect dialect) {
         return new MessageList(List.of(
                 intentSystem(),
                 getDoConversationUser(),
@@ -265,5 +262,4 @@ public class MessageSpecs {
                 intentUserQuestion(reason)
         ));
     }
-
 }

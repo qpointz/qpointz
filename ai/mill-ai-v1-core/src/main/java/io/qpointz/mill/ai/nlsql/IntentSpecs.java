@@ -6,7 +6,7 @@ import io.qpointz.mill.ai.chat.messages.MessageSelector;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.metadata.MetadataProvider;
+import io.qpointz.mill.metadata.service.MetadataService;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -20,7 +20,7 @@ import static io.qpointz.mill.ai.nlsql.PostProcessors.*;
 public class IntentSpecs {
 
     @Getter
-    private final MetadataProvider metadataProvider;
+    private final MetadataService metadataService;
 
     @Getter
     private final CallSpecsChatClientBuilders chatBuilders;
@@ -43,21 +43,21 @@ public class IntentSpecs {
     @Getter
     private final ChatEventProducer eventProducer;
 
-    public IntentSpecs(MetadataProvider metadataProvider,
+    public IntentSpecs(MetadataService metadataService,
                        SqlDialect sqlDialect,
                        CallSpecsChatClientBuilders chatBuilders,
                        DataOperationDispatcher dispatcher,
                        MessageSelector messageSelector,
                        ValueMapper valueMapper,
                        ChatEventProducer eventProducer) {
-        this.metadataProvider = metadataProvider;
+        this.metadataService = metadataService;
         this.chatBuilders = chatBuilders;
         this.dispatcher = dispatcher;
         this.messageSelector = messageSelector;
         this.sqlDialect = sqlDialect;
         this.valueMapper = valueMapper;
         this.eventProducer = eventProducer;
-        this.intents  = List.of(
+        this.intents = List.of(
                 getDataIntent(),
                 getChartIntent(),
                 getExplainIntent(),
@@ -72,7 +72,7 @@ public class IntentSpecs {
     public IntentSpec getDataIntent() {
         return IntentSpec.builder(GET_DATA_INTENT_KEY)
                 .callFunc(reason -> new IntentCall(reason, this, this.chatBuilders.conversationChat(),
-                        getData(reason, metadataProvider, sqlDialect),
+                        getData(reason, metadataService, sqlDialect),
                         this.messageSelector))
                 .postProcessorFunc(reason -> List.of(
                         mapValueProcessor(this.valueMapper, this.eventProducer),
@@ -85,7 +85,7 @@ public class IntentSpecs {
     public IntentSpec getChartIntent() {
         return IntentSpec.builder(GET_CHART_INTENT_KEY)
                 .callFunc(reason -> new IntentCall(reason, this, this.chatBuilders.conversationChat(),
-                        getChart(reason, metadataProvider, sqlDialect),
+                        getChart(reason, metadataService, sqlDialect),
                         this.messageSelector))
                 .postProcessorFunc(reason -> List.of(
                         mapValueProcessor(this.valueMapper, this.eventProducer),
@@ -98,7 +98,7 @@ public class IntentSpecs {
     public IntentSpec getExplainIntent() {
         return IntentSpec.builder(EXPLAIN_INTENT_KEY)
                 .callFunc(reason -> new IntentCall(reason, this, this.chatBuilders.conversationChat(),
-                        explain(reason, metadataProvider, sqlDialect),
+                        explain(reason, metadataService, sqlDialect),
                         this.messageSelector))
                 .postProcessorFunc(reason -> List.of(
                         retainReasoning(reason)))
@@ -109,7 +109,7 @@ public class IntentSpecs {
     public IntentSpec getEnrichModelIntent() {
         return IntentSpec.builder(ENRICH_MODEL_INTENT_KEY)
                 .callFunc(reason -> new IntentCall(reason, this, this.chatBuilders.conversationChat(),
-                        enrichModel(reason, metadataProvider, sqlDialect),
+                        enrichModel(reason, metadataService, sqlDialect),
                         this.messageSelector))
                 .postProcessorFunc(reason -> List.of(
                         retainReasoning(reason)))
@@ -120,7 +120,7 @@ public class IntentSpecs {
     public IntentSpec getRefineIntent() {
         return IntentSpec.builder(REFINE_QUERY_INTENT_KEY)
                 .callFunc(reason -> new IntentCall(reason, this, this.chatBuilders.conversationChat(),
-                        refineQuery(reason, metadataProvider, sqlDialect),
+                        refineQuery(reason, metadataService, sqlDialect),
                         this.messageSelector))
                 .postProcessorFunc(reason -> List.of(
                         retainReasoning(reason),
@@ -132,7 +132,7 @@ public class IntentSpecs {
     public IntentSpec getDoConversationIntent() {
         return IntentSpec.builder(DO_CONVERSATION_INTENT_KEY)
                 .callFunc(reason -> new IntentCall(reason, this, this.chatBuilders.conversationChat(),
-                        doConversation(reason, metadataProvider, sqlDialect),
+                        doConversation(reason, metadataService, sqlDialect),
                         this.messageSelector))
                 .postProcessorFunc(reason -> List.of(
                         retainReasoning(reason)))
@@ -148,7 +148,7 @@ public class IntentSpecs {
 
     public IntentSpec getIntent(String intent) {
         return this.getIntents().stream()
-                .filter(k-> k.getKey().equals(intent))
+                .filter(k -> k.getKey().equals(intent))
                 .findFirst()
                 .orElseThrow(() -> new MillRuntimeException("Unknown intent: " + intent));
     }
@@ -163,5 +163,4 @@ public class IntentSpecs {
                 .getIntent(intent)
                 .getCall(reasoningResponse);
     }
-
 }

@@ -17,42 +17,32 @@ import io.qpointz.mill.ai.nlsql.reasoners.StepBackReasoner;
 import io.qpointz.mill.ai.nlsql.repositories.UserChatMessageRepository;
 import io.qpointz.mill.service.annotations.ConditionalOnService;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.metadata.MetadataProvider;
+import io.qpointz.mill.metadata.service.MetadataService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.stereotype.Service;
 
-/**
- * Orchestrates NL→SQL processing for user chat inputs and streams responses.
- */
 @Service
 @Slf4j
 @ConditionalOnService("ai-nl2data")
 public class ChatProcessor {
 
-    /**
-     * Coordinates NL→SQL chat processing: runs the pipeline, persists assistant output, and emits SSE updates.
-     * Critical dependencies: shared chat memory, value mapping, and dispatcher wiring; altering these impacts grounding and execution.
-     */
     private final UserChatMessageRepository userChatMessageRepository;
-    private final MetadataProvider metadataProvider;
+    private final MetadataService metadataService;
     private final DataOperationDispatcher dataOperationDispatcher;
     private final SqlDialect sqlDialect;
     private final ValueMapper valueMapper;
     private final ValueMappingConfiguration configuration;
 
-    /**
-     * Constructs the processor with all dependencies required to execute the NL→SQL pipeline.
-     */
-    public ChatProcessor(MetadataProvider metadataProvider,
+    public ChatProcessor(MetadataService metadataService,
                          SqlDialect dialect,
                          DataOperationDispatcher dataOperationDispatcher,
                          UserChatMessageRepository userChatMessageRepository,
                          ValueMapper valueMapper,
                          ValueMappingConfiguration configuration) {
         this.userChatMessageRepository = userChatMessageRepository;
-        this.metadataProvider = metadataProvider;
+        this.metadataService = metadataService;
         this.sqlDialect = dialect;
         this.dataOperationDispatcher = dataOperationDispatcher;
         this.valueMapper = valueMapper;
@@ -69,15 +59,6 @@ public class ChatProcessor {
         }
     }
 
-    /**
-     * Processes a user chat request by invoking the NL→SQL application pipeline,
-     * persisting the model response, and streaming it back to the client session.
-     * Critical path: uses shared chat memory via CallSpecsChatClientBuilders; changes to memory size
-     * or builder wiring affect prompt grounding and clarification continuity.
-     *
-     * @param request incoming chat message (text plus optional content map)
-     * @param chat session wrapper with conversation-scoped builders and SSE sink
-     */
     public void processRequest(Chat.SendChatMessageRequest request, ChatSession chat) {
         chat.sendEvent(request);
 
@@ -88,7 +69,7 @@ public class ChatProcessor {
         val eventProducer = new ChatSessionEventProducer(chat);
 
         val application = new ChatApplication(chat.getChatBuilders(),
-                                metadataProvider,
+                                metadataService,
                                 sqlDialect,
                                 dataOperationDispatcher,
                                 MessageSelectors.SIMPLE,
@@ -120,23 +101,14 @@ public class ChatProcessor {
         chat.sendEvent(um.toPojo());
     }
 
-    /**
-     * Creates the appropriate reasoner based on configuration.
-     * Defaults to DefaultReasoner if not specified or if "default" is specified.
-     * Uses StepBackReasoner if "stepback" is specified.
-     *
-     * @param chatBuilders chat client builders for reasoning calls
-     * @return configured reasoner instance
-     */
     private Reasoner createReasoner(CallSpecsChatClientBuilders chatBuilders) {
         val reasonerType = configuration.getReasoner();
         if (reasonerType != null && reasonerType.equalsIgnoreCase("stepback")) {
             log.info("Using StepBackReasoner for NL2SQL processing");
-            return new StepBackReasoner(chatBuilders, metadataProvider, MessageSelectors.SIMPLE);
+            return new StepBackReasoner(chatBuilders, metadataService, MessageSelectors.SIMPLE);
         } else {
             log.info("Using DefaultReasoner for NL2SQL processing");
-            return new DefaultReasoner(chatBuilders, metadataProvider, MessageSelectors.SIMPLE);
+            return new DefaultReasoner(chatBuilders, metadataService, MessageSelectors.SIMPLE);
         }
     }
-
 }

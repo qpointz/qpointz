@@ -4,7 +4,7 @@ import io.qpointz.mill.ai.chat.ChatUserRequests;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.metadata.MetadataProvider;
+import io.qpointz.mill.metadata.service.MetadataService;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -30,10 +30,10 @@ import static org.junit.jupiter.api.Assertions.*;
 public class RefineIntentTestIt extends BaseIntentTestIT {
 
     protected RefineIntentTestIt(@Autowired ChatModel chatModel,
-                                 @Autowired MetadataProvider metadataProvider,
+                                 @Autowired MetadataService metadataService,
                                  @Autowired SqlDialect sqlDialect,
                                  @Autowired DataOperationDispatcher dispatcher) {
-        super(chatModel, metadataProvider, sqlDialect, dispatcher);
+        super(chatModel, metadataService, sqlDialect, dispatcher);
     }
 
     private static ChatClient.Builder createChatBuilder(ChatModel model) {

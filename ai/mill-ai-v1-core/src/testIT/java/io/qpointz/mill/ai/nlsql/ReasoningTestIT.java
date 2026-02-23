@@ -4,7 +4,7 @@ import io.qpointz.mill.ai.chat.ChatUserRequests;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.metadata.MetadataProvider;
+import io.qpointz.mill.metadata.service.MetadataService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.junit.jupiter.api.Test;
@@ -25,10 +25,10 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ReasoningTestIT extends BaseIntentTestIT {
 
     protected ReasoningTestIT(@Autowired ChatModel model,
-                              @Autowired MetadataProvider metadataProvider,
+                              @Autowired MetadataService metadataService,
                               @Autowired SqlDialect sqlDialect,
                               @Autowired DataOperationDispatcher dispatcher) {
-        super(model, metadataProvider, sqlDialect, dispatcher);
+        super(model, metadataService, sqlDialect, dispatcher);
     }
 
 

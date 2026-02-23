@@ -6,7 +6,7 @@ import io.qpointz.mill.test.scenario.Scenario;
 import io.qpointz.mill.test.scenario.ScenarioRunner;
 import io.qpointz.mill.test.scenario.ScenarioTestBase;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.metadata.MetadataProvider;
+import io.qpointz.mill.metadata.service.MetadataService;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,7 +35,7 @@ public abstract class ChatAppScenarioBase extends ScenarioTestBase<ChatAppScenar
     @Autowired
     @Getter(AccessLevel.PROTECTED)
     @Setter(AccessLevel.PROTECTED)
-    private MetadataProvider metadataProvider;
+    private MetadataService metadataService;
 
     @Autowired
     @Getter(AccessLevel.PROTECTED)
@@ -64,7 +64,7 @@ public abstract class ChatAppScenarioBase extends ScenarioTestBase<ChatAppScenar
 
     @Override
     protected ChatAppScenarioContext createContext(Scenario scenario) {
-        return new ChatAppScenarioContext(scenario, this.chatModel, this.metadataProvider, this.sqlDialect, this.dispatcher, this.embeddingModel);
+        return new ChatAppScenarioContext(scenario, this.chatModel, this.metadataService, this.sqlDialect, this.dispatcher, this.embeddingModel);
     }
 
     protected abstract InputStream getScenarioStream(ClassLoader classLoader);

@@ -9,7 +9,7 @@ import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.ai.nlsql.reasoners.DefaultReasoner;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.metadata.MetadataProvider;
+import io.qpointz.mill.metadata.service.MetadataService;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -27,15 +27,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
 @EnableAutoConfiguration
-public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
-
+public abstract class BaseIntentTestIT extends BaseIntegrationTestIT {
 
     @Getter(AccessLevel.PROTECTED)
     @Accessors(fluent = true)
     private final IntentSpecs intentSpecs;
 
     @Getter(AccessLevel.PROTECTED)
-    private final MetadataProvider metadataProvider;
+    private final MetadataService metadataService;
 
     @Getter(AccessLevel.PROTECTED)
     private final DataOperationDispatcher dispatcher;
@@ -56,7 +55,7 @@ public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
     private final MessageSelector messageSelector;
 
     protected BaseIntentTestIT(ChatModel model,
-                               MetadataProvider metadataProvider,
+                               MetadataService metadataService,
                                SqlDialect sqlDialect,
                                DataOperationDispatcher dispatcher) {
 
@@ -65,15 +64,15 @@ public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
                 .maxMessages(10)
                 .build();
 
-        this.metadataProvider = metadataProvider;
+        this.metadataService = metadataService;
         this.dispatcher = dispatcher;
         this.chatModel = model;
         this.callSpecBuilders = new CallSpecsChatClientBuilders(
                 model, this.chatMemory, UUID.randomUUID().toString(), null);
         this.sqlDialect = sqlDialect;
         this.messageSelector = MessageSelectors.SIMPLE;
-        this.intentSpecs = new IntentSpecs(metadataProvider, sqlDialect, this.callSpecBuilders, dispatcher, this.messageSelector, new DefaultValueMapper(), ChatEventProducer.DEFAULT);
-        this.reasoner = new DefaultReasoner(this.callSpecBuilders, metadataProvider, MessageSelectors.SIMPLE);
+        this.intentSpecs = new IntentSpecs(metadataService, sqlDialect, this.callSpecBuilders, dispatcher, this.messageSelector, new DefaultValueMapper(), ChatEventProducer.DEFAULT);
+        this.reasoner = new DefaultReasoner(this.callSpecBuilders, metadataService, MessageSelectors.SIMPLE);
     }
 
     protected void intentAppTest(String query, String expectedIntent) {
@@ -82,7 +81,7 @@ public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
                         this.chatMemory,
                         UUID.randomUUID().toString(),
                         null),
-                this.metadataProvider,
+                this.metadataService,
                 this.sqlDialect,
                 this.dispatcher,
                 MessageSelectors.SIMPLE,
@@ -99,8 +98,6 @@ public abstract class BaseIntentTestIT  extends BaseIntegrationTestIT {
         val callReason = JsonUtils.defaultJsonMapper()
                 .convertValue(call.get("reasoning"), ReasoningResponse.class);
 
-
         assertEquals(expectedIntent, callReason.intent(), "Call intent missmatch");
     }
-
 }

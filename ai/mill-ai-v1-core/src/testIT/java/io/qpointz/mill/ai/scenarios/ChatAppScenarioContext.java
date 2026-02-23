@@ -14,7 +14,7 @@ import io.qpointz.mill.test.scenario.ActionResult;
 import io.qpointz.mill.test.scenario.Scenario;
 import io.qpointz.mill.test.scenario.ScenarioContext;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.metadata.MetadataProvider;
+import io.qpointz.mill.metadata.service.MetadataService;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +44,7 @@ public class ChatAppScenarioContext extends ScenarioContext<ChatAppScenarioConte
 
     public ChatAppScenarioContext(Scenario scenario,
                                   ChatModel chatModel,
-                                  MetadataProvider metadataProvider,
+                                  MetadataService metadataService,
                                   SqlDialect sqlDialect,
                                   DataOperationDispatcher dispatcher,
                                   EmbeddingModel embeddingModel) {
@@ -65,13 +65,13 @@ public class ChatAppScenarioContext extends ScenarioContext<ChatAppScenarioConte
                 null);
 
         val reasoner = createReasoner(scenario, callSpecBuilders,
-                metadataProvider, MessageSelectors.SIMPLE);
+                metadataService, MessageSelectors.SIMPLE);
 
         val valueMapper = createValueMapper(scenario, embeddingModel);
 
         this.chatApplication = new ChatApplication(
                 callSpecBuilders,
-                metadataProvider,
+                metadataService,
                 sqlDialect,
                 dispatcher,
                 MessageSelectors.SIMPLE,
@@ -80,15 +80,15 @@ public class ChatAppScenarioContext extends ScenarioContext<ChatAppScenarioConte
                 ChatEventProducer.DEFAULT);
     }
 
-    private Reasoner createReasoner(Scenario scenario, CallSpecsChatClientBuilders callSpecBuilders, MetadataProvider metadataProvider, MessageSelector messageSelector) {
+    private Reasoner createReasoner(Scenario scenario, CallSpecsChatClientBuilders callSpecBuilders, MetadataService metadataService, MessageSelector messageSelector) {
         val reasonerName = scenario.parameters()
                 .getOrDefault("reasoner","default")
                 .toString()
                 .toLowerCase();
 
         return switch (reasonerName) {
-            case "default" -> new DefaultReasoner(callSpecBuilders, metadataProvider, messageSelector);
-            case "step-back" -> new StepBackReasoner(callSpecBuilders,metadataProvider, messageSelector);
+            case "default" -> new DefaultReasoner(callSpecBuilders, metadataService, messageSelector);
+            case "step-back" -> new StepBackReasoner(callSpecBuilders, metadataService, messageSelector);
             default -> throw new RuntimeException("Unknown reasoner:"+reasonerName);
         };
     }

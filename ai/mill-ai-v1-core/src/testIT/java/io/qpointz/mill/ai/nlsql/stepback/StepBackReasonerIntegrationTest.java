@@ -8,7 +8,7 @@ import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.ai.nlsql.models.stepback.StepBackResponse;
 import io.qpointz.mill.ai.nlsql.reasoners.StepBackReasoner;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.metadata.MetadataProvider;
+import io.qpointz.mill.metadata.service.MetadataService;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -37,14 +37,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class StepBackReasonerIntegrationTest extends BaseIntentTestIT {
 
     public StepBackReasonerIntegrationTest(@Autowired ChatModel chatModel,
-                                      @Autowired MetadataProvider metadataProvider,
+                                      @Autowired MetadataService metadataService,
                                       @Autowired SqlDialect sqlDialect,
                                       @Autowired DataOperationDispatcher dispatcher) {
-        super(chatModel, metadataProvider, sqlDialect, dispatcher);
+        super(chatModel, metadataService, sqlDialect, dispatcher);
     }
 
     private Map<String, Object> stepBack(String query) {
-        val reasoner = new StepBackReasoner(this.getCallSpecBuilders(), this.getMetadataProvider(), this.getMessageSelector());
+        val reasoner = new StepBackReasoner(this.getCallSpecBuilders(), this.getMetadataService(), this.getMessageSelector());
         return reasoner
                 .reason(ChatUserRequests.query(query))
                 .reply()
@@ -75,7 +75,7 @@ class StepBackReasonerIntegrationTest extends BaseIntentTestIT {
     @Test
     void clarificationFlowResolvesPremiumDefinition() {
         String query = "Count premium clients";
-        val reasoner = new StepBackReasoner(this.getCallSpecBuilders(), this.getMetadataProvider(), this.getMessageSelector());
+        val reasoner = new StepBackReasoner(this.getCallSpecBuilders(), this.getMetadataService(), this.getMessageSelector());
 
         val reply1 = reasoner.reason(ChatUserRequests.query(query));
         val resp1 = reply1

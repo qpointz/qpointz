@@ -18,7 +18,7 @@ include (":core:mill-service-security")
 include (":core:mill-service-api")
 
 include (":metadata:mill-metadata-autoconfigure")
-include (":metadata:mill-metadata-provider")
+
 include (":core:mill-test-kit")
 
 include (":data")

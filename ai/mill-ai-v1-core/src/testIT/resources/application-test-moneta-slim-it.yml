@@ -35,11 +35,9 @@ mill:
       enable: true
       dialect: H2
   metadata:
-    relations: file
-    annotations: file
-    file:
-      repository:
-        path: file:../../test/datasets/moneta/moneta-meta.yaml
+    v2:
+      file:
+        path: file:../../test/datasets/moneta/moneta-meta-repository.yaml
 
   security:
     enable: false
