@@ -94,8 +94,8 @@ milestone-selectable deliverables extracted from design documents in this folder
 | M-10 | Implement EnrichmentFacet, EnrichmentService, and approval workflow | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-11 | Implement JPA repository (document-style, JSONB) and CompositeMetadataRepository | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-12 | Implement MetadataSyncService for file<->JPA synchronization | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
-| M-13 | Remove legacy adapter layer: migrate all usages to MetadataService directly | 🔧 refactoring | backlog | metadata/metadata-provider-refactoring-plan.md |
-| M-14 | Migrate SchemaMessageSpec to MetadataEntity; remove legacy model classes | 🔧 refactoring | backlog | metadata/metadata-provider-refactoring-plan.md |
+| M-13 | Remove legacy adapter layer: migrate all usages to MetadataService directly | 🔧 refactoring | planned | metadata/metadata-provider-refactoring-plan.md, **WI-005** |
+| M-14 | Migrate SchemaMessageSpec to MetadataEntity; remove legacy model classes | 🔧 refactoring | planned | metadata/metadata-provider-refactoring-plan.md, **WI-005** |
 | M-15 | Implement full-text and facet-aware search (Postgres/Elastic/Lucene) | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-16 | Implement DataQualityFacet and rule execution engine | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-17 | Implement SemanticFacet with vector store integration | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
@@ -104,6 +104,10 @@ milestone-selectable deliverables extracted from design documents in this folder
 | M-20 | Add UI editing for metadata facets (DescriptiveFacet, RelationFacet, ConceptFacet, etc.) | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-21 | Fix MessageHelper parse error messages (generic HandshakeResponse) | 🐛 fix | backlog | metadata/metadata-service-design.md |
 | M-22 | Remove ProtobufUtils dead code and register HTTP ServiceDescriptor | 🐛 fix | backlog | metadata/metadata-service-design.md |
+| M-23 | Facet Type Library: persistent FacetTypeDescriptor, FacetCatalog, per-deployment config, optional validation | ✨ feature | planned | **WI-006** |
+| M-24 | Relocate SchemaExplorerController from metadata module to data layer | 🔧 refactoring | planned | **WI-007** |
+| M-25 | MetadataEntity persistence preparation: extract ObjectMapper, add Serializable, import/export | 🔧 refactoring | planned | **WI-005** |
+| M-26 | Migrate metadata modules (core, autoconfigure, service) from Java + Lombok to Kotlin | 🔧 refactoring | planned | **WI-008** |
 
 ---
 
