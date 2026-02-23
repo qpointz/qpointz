@@ -4,7 +4,7 @@ import io.qpointz.mill.ai.chat.ChatCall;
 import io.qpointz.mill.ai.chat.ChatUserRequest;
 import io.qpointz.mill.ai.chat.messages.MessageSelector;
 import io.qpointz.mill.ai.nlsql.*;
-import io.qpointz.mill.data.backend.metadata.MetadataProvider;
+import io.qpointz.mill.metadata.MetadataProvider;
 
 public class DefaultReasoner implements Reasoner {
 

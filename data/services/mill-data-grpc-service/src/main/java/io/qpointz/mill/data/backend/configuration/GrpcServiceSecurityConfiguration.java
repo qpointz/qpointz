@@ -4,7 +4,7 @@ import io.qpointz.mill.proto.DataConnectServiceGrpc;
 import io.qpointz.mill.security.annotations.ConditionalOnSecurity;
 import io.qpointz.mill.security.authentication.AuthenticationMethods;
 import io.qpointz.mill.security.authentication.AuthenticationType;
-import io.qpointz.mill.data.backend.annotations.ConditionalOnService;
+import io.qpointz.mill.service.annotations.ConditionalOnService;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.security.authentication.BasicGrpcAuthenticationReader;

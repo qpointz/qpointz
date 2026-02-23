@@ -13,7 +13,7 @@ This is the default backend when no `mill.data.backend.type` is specified.
 3. Queries are parsed, planned, and executed entirely within Calcite's in-process engine.
 4. Results are streamed back as columnar vector blocks.
 
-The Calcite backend is the most flexible option — anything Calcite can connect to, Mill can query. The model file is a standard Calcite artifact, so existing Calcite configurations work without modification.
+The model file is a standard Calcite artifact, so existing Calcite configurations work without modification.
 
 ---
 

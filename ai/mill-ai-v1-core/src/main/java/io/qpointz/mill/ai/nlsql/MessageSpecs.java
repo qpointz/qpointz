@@ -9,7 +9,7 @@ import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.ai.nlsql.models.stepback.StepBackResponse;
 import io.qpointz.mill.ai.nlsql.models.stepback.ClarificationQuestion;
-import io.qpointz.mill.data.backend.metadata.MetadataProvider;
+import io.qpointz.mill.metadata.MetadataProvider;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.ai.chat.messages.MessageType;

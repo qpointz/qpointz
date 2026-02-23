@@ -11,7 +11,7 @@ mill {
 }
 
 springBoot {
-    mainClass = "io.qpointz.mill.services.MillService"
+    mainClass = "io.qpointz.mill.app.MillService"
     application {
         applicationName = "mill-service"
     }

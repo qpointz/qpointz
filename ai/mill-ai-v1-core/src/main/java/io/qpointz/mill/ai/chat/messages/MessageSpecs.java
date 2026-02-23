@@ -3,7 +3,7 @@ package io.qpointz.mill.ai.chat.messages;
 import io.qpointz.mill.ai.chat.messages.specs.TemplateMessageSpec;
 import io.qpointz.mill.ai.nlsql.messages.specs.SchemaMessageSpec;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
-import io.qpointz.mill.data.backend.metadata.MetadataProvider;
+import io.qpointz.mill.metadata.MetadataProvider;
 import org.springframework.ai.chat.messages.MessageType;
 
 import java.util.List;

@@ -6,7 +6,7 @@ plugins {
 dependencies {
     dokka(project(":core:mill-core"))
     dokka(project(":core:mill-security"))
-    dokka(project(":core:mill-security-autoconfigure"))
+    dokka(project(":core:mill-service-security"))
     dokka(project(":core:mill-service-api"))
     dokka(project(":core:mill-test-kit"))
     dokka(project(":core:mill-well-known-service"))

@@ -2,7 +2,7 @@ package io.qpointz.mill.ai.nlsql.messages.specs;
 
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.data.backend.configuration.DefaultServiceConfiguration;
-import io.qpointz.mill.data.backend.metadata.MetadataProvider;
+import io.qpointz.mill.metadata.MetadataProvider;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.junit.jupiter.api.Test;

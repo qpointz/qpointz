@@ -1,6 +1,5 @@
 package io.qpointz.mill.source
 
-import java.nio.file.FileSystems
 import java.nio.file.Paths
 
 /**
@@ -101,8 +100,8 @@ class DirectoryTableMapper(
 /**
  * Maps blobs to a fixed table name when their path matches a glob pattern.
  *
- * The glob is compiled via [java.nio.file.FileSystem.getPathMatcher] and
- * matched against the blob's URI path.
+ * Glob matching is performed against the blob's URI path (which always uses
+ * forward slashes), making it platform-independent.
  *
  * @property pattern   glob expression (e.g. `&#42;&#42;/&#42;.csv`)
  * @property tableName fixed logical table name assigned to every matching blob
@@ -112,14 +111,87 @@ class GlobTableMapper(
     val tableName: String
 ) : BlobToTableMapper {
 
-    private val matcher = FileSystems.getDefault().getPathMatcher("glob:$pattern")
+    private val regex: Regex = globToRegex(pattern)
 
     override fun mapToTable(path: BlobPath): TableMapping? {
         val uriPath = path.uri.path ?: return null
-        return if (matcher.matches(Paths.get(uriPath))) {
+        return if (regex.containsMatchIn(uriPath)) {
             TableMapping(tableName)
         } else {
             null
+        }
+    }
+
+    companion object {
+        /**
+         * Converts a glob pattern to a [Regex] that matches against URI paths
+         * (forward-slash separated). This avoids [java.nio.file.FileSystem.getPathMatcher],
+         * which uses platform-specific separators and breaks on Windows.
+         *
+         * Supported glob syntax:
+         * - `**&#47;`  — zero or more directories
+         * - `**`   — any characters across separators
+         * - `*`    — any characters within a single path segment
+         * - `?`    — single character within a segment
+         * - `{a,b}` — brace alternatives
+         * - `[abc]` — character class (passed through to regex)
+         *
+         * The resulting regex is anchored to match at a path boundary (`/`) or
+         * at the start of the string, and at the end of the string.
+         */
+        internal fun globToRegex(glob: String): Regex {
+            val sb = StringBuilder()
+            var i = 0
+            while (i < glob.length) {
+                val c = glob[i]
+                when {
+                    // "**/" — match zero or more directory segments (greedy, optional)
+                    // e.g. "**/foo.csv" matches both "/foo.csv" and "/a/b/foo.csv"
+                    c == '*' && i + 1 < glob.length && glob[i + 1] == '*' -> {
+                        if (i + 2 < glob.length && glob[i + 2] == '/') {
+                            sb.append("(?:.*/)?")
+                            i += 3
+                        } else {
+                            // standalone "**" — match anything including separators
+                            sb.append(".*")
+                            i += 2
+                        }
+                    }
+                    // "*" — match any characters except "/" (single segment only)
+                    c == '*' -> { sb.append("[^/]*"); i++ }
+                    // "?" — match exactly one character except "/"
+                    c == '?' -> { sb.append("[^/]"); i++ }
+                    // "{a,b,c}" — brace alternatives, each alternative is regex-escaped
+                    c == '{' -> {
+                        val close = glob.indexOf('}', i)
+                        if (close > i) {
+                            val alternatives = glob.substring(i + 1, close)
+                                .split(',')
+                                .joinToString("|") { Regex.escape(it) }
+                            sb.append("(?:$alternatives)")
+                            i = close + 1
+                        } else {
+                            sb.append("\\{"); i++
+                        }
+                    }
+                    // "[abc]" — character class, passed through verbatim to regex
+                    c == '[' -> {
+                        val close = glob.indexOf(']', i)
+                        if (close > i) {
+                            sb.append(glob.substring(i, close + 1))
+                            i = close + 1
+                        } else {
+                            sb.append("\\["); i++
+                        }
+                    }
+                    // escape regex metacharacters so they match literally
+                    c in "\\^$.|+()".toSet() -> { sb.append("\\$c"); i++ }
+                    // all other characters pass through as-is
+                    else -> { sb.append(c); i++ }
+                }
+            }
+            // anchor: match at a "/" boundary (or start of string) through end of string
+            return Regex("(?:^|/)${sb}$")
         }
     }
 }

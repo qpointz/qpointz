@@ -6,7 +6,7 @@ import io.qpointz.mill.ai.nlsql.ValueRepository;
 import io.qpointz.mill.ai.nlsql.components.DefaultValueMapper;
 import io.qpointz.mill.ai.nlsql.components.DefaultValueRepository;
 import io.qpointz.mill.ai.nlsql.components.VectorStoreValueMapper;
-import io.qpointz.mill.data.backend.annotations.ConditionalOnService;
+import io.qpointz.mill.service.annotations.ConditionalOnService;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;

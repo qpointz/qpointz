@@ -7,6 +7,7 @@ import io.qpointz.mill.security.annotations.ConditionalOnSecurity;
 import io.qpointz.mill.security.authorization.policy.*;
 import io.qpointz.mill.security.authorization.policy.repositories.PolicyActionDescriptorRepository;
 import io.qpointz.mill.security.configuration.PolicyActionsConfiguration;
+import io.qpointz.mill.security.configuration.PolicyConfiguration;
 import io.qpointz.mill.data.backend.SchemaProvider;
 import io.qpointz.mill.data.backend.PlanRewriter;
 import io.qpointz.mill.data.backend.SqlProvider;

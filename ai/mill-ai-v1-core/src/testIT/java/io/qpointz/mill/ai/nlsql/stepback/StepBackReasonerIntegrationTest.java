@@ -8,7 +8,7 @@ import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.ai.nlsql.models.stepback.StepBackResponse;
 import io.qpointz.mill.ai.nlsql.reasoners.StepBackReasoner;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.data.backend.metadata.MetadataProvider;
+import io.qpointz.mill.metadata.MetadataProvider;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;

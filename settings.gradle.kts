@@ -14,7 +14,7 @@ include (":core")
 include (":core:mill-core")
 include (":metadata:mill-metadata-core")
 include (":core:mill-security")
-include (":core:mill-security-autoconfigure")
+include (":core:mill-service-security")
 include (":core:mill-service-api")
 
 include (":metadata:mill-metadata-autoconfigure")

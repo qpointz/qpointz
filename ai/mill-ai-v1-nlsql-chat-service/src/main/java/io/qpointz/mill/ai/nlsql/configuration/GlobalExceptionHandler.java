@@ -1,7 +1,7 @@
 package io.qpointz.mill.ai.nlsql.configuration;
 
 import io.qpointz.mill.excepions.statuses.MIllNotFoundStatusException;
-import io.qpointz.mill.data.backend.annotations.ConditionalOnService;
+import io.qpointz.mill.service.annotations.ConditionalOnService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;

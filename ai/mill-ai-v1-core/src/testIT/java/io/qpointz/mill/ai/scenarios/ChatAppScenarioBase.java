@@ -6,7 +6,7 @@ import io.qpointz.mill.test.scenario.Scenario;
 import io.qpointz.mill.test.scenario.ScenarioRunner;
 import io.qpointz.mill.test.scenario.ScenarioTestBase;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.data.backend.metadata.MetadataProvider;
+import io.qpointz.mill.metadata.MetadataProvider;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;

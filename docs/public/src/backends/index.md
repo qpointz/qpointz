@@ -1,6 +1,6 @@
 # Backends
 
-A backend is the execution engine that Mill uses to process SQL queries, discover schemas, and return results. You choose a backend by setting `mill.data.backend.type` in your application configuration. Each backend has its own strengths — pick the one that fits your data.
+A backend is the execution engine that Mill uses to process SQL queries, discover schemas, and return results. You choose a backend by setting `mill.data.backend.type` in your application configuration.
 
 ---
 

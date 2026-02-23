@@ -47,7 +47,7 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation(project(":core:mill-security-autoconfigure"))
+                    implementation(project(":core:mill-service-security"))
                     implementation(project(":data:mill-data-backends"))
                     implementation(project(":data:mill-data-autoconfigure"))
                     implementation(project(":core:mill-test-kit"))

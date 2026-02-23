@@ -9,7 +9,7 @@ public interface SchemaMessageModel {
 
 
     record Schema(String name, String description, List<Table> tables) {
-        public static Schema of(io.qpointz.mill.data.backend.metadata.model.Schema schema, Collection<io.qpointz.mill.data.backend.metadata.model.Table> tables) {
+        public static Schema of(io.qpointz.mill.metadata.model.Schema schema, Collection<io.qpointz.mill.metadata.model.Table> tables) {
             val renderTables = tables != null
                     ? tables.stream().map(Table::of).toList()
                     : List.<Table>of();
@@ -19,7 +19,7 @@ public interface SchemaMessageModel {
     }
 
     record Table(String schema, String name, String description, List<Attribute> attributes) {
-        public static Table of(io.qpointz.mill.data.backend.metadata.model.Table table) {
+        public static Table of(io.qpointz.mill.metadata.model.Table table) {
             val attributes = table.attributes().stream()
                     .map(Attribute::of)
                     .toList();
@@ -35,7 +35,7 @@ public interface SchemaMessageModel {
 
     record Attribute(String schemaName, String tableName, String name, String description, String typeName, Boolean nullable) {
 
-        public static Attribute of(io.qpointz.mill.data.backend.metadata.model.Attribute attribute) {
+        public static Attribute of(io.qpointz.mill.metadata.model.Attribute attribute) {
             return new Attribute(attribute.schemaName(), attribute.tableName(), attribute.name(),
                     attribute.description().orElse(null),
                     attribute.typeName(), attribute.nullable()

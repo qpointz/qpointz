@@ -2,7 +2,7 @@ package io.qpointz.mill.data.backend.access.http.controllers;
 
 import io.qpointz.mill.proto.*;
 import io.qpointz.mill.data.backend.access.http.components.MessageHelper;
-import io.qpointz.mill.data.backend.annotations.ConditionalOnService;
+import io.qpointz.mill.service.annotations.ConditionalOnService;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;

@@ -1,7 +1,7 @@
 package io.qpointz.mill.data.backend.configuration;
 
-import io.qpointz.mill.data.backend.annotations.ConditionalOnService;
-import io.qpointz.mill.data.backend.descriptors.ServiceDescriptor;
+import io.qpointz.mill.service.annotations.ConditionalOnService;
+import io.qpointz.mill.service.descriptors.ServiceDescriptor;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 

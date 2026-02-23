@@ -13,7 +13,7 @@ mill {
 
 dependencies {
     api(project(":core:mill-service-api"))
-    api(project(":core:mill-security-autoconfigure"))
+    api(project(":core:mill-service-security"))
     api(project(":data:mill-data-backend-core"))
 
     api(libs.boot.starter)

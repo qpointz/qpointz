@@ -2,6 +2,7 @@ package io.qpointz.mill.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.cc.base.logger
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
@@ -59,6 +60,10 @@ class MillPlugin: Plugin<Project> {
             project.extensions.configure(KotlinJvmProjectExtension::class.java) {
                 jvmToolchain(21)
             }
+        }
+
+        project.tasks.withType(Test::class.java).configureEach {
+            workingDir = project.projectDir
         }
 
         val jacocoTask = project.tasks.findByName("jacocoTestReport") as? org.gradle.testing.jacoco.tasks.JacocoReport

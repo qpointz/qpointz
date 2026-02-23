@@ -3,7 +3,7 @@ package io.qpointz.mill.data.backend;
 import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
-import io.qpointz.mill.data.backend.annotations.ConditionalOnService;
+import io.qpointz.mill.service.annotations.ConditionalOnService;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.advice.GrpcAdvice;
 import net.devh.boot.grpc.server.advice.GrpcExceptionHandler;

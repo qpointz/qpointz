@@ -1,6 +1,6 @@
 # JDBC Backend
 
-The JDBC backend connects Mill to an existing relational database through a standard JDBC driver. Queries are parsed and planned inside Mill using Apache Calcite, then executed against the target database. This is the natural choice when your data already lives in PostgreSQL, MySQL, SQL Server, Oracle, H2, or any other JDBC-compatible database.
+The JDBC backend connects Mill to an existing relational database through a standard JDBC driver. Queries are parsed and planned inside Mill using Apache Calcite, then executed against the target database. Use this backend when your data is stored in PostgreSQL, MySQL, SQL Server, Oracle, H2, or any other JDBC-compatible database.
 
 ---
 

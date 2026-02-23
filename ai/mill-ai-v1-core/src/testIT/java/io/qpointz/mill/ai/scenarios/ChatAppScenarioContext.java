@@ -14,7 +14,7 @@ import io.qpointz.mill.test.scenario.ActionResult;
 import io.qpointz.mill.test.scenario.Scenario;
 import io.qpointz.mill.test.scenario.ScenarioContext;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.data.backend.metadata.MetadataProvider;
+import io.qpointz.mill.metadata.MetadataProvider;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

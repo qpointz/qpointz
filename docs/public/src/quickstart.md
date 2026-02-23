@@ -4,21 +4,9 @@ Get started with Mill in minutes. Choose the option that works best for you.
 
 ---
 
-## 🚀 Moneta: Ready-to-Use Example
+## Moneta: Ready-to-Use Example
 
-**The fastest way to experience Mill** — Moneta is a complete, pre-configured example that includes sample data and a chat interface. Perfect for exploring Mill's capabilities without any setup.
-
-### What is Moneta?
-
-Moneta is a ready-to-use Mill deployment that demonstrates natural language to SQL (NL2SQL) capabilities using a lightweight, chat-based assistant.
-
-Our AI-powered data chat assistant enables business users, analysts, and domain experts to ask questions about their data using plain language — and instantly receive structured, reliable answers in the form of SQL queries, charts, or clear explanations.
-
-It intelligently understands user intent (e.g., "get data," "visualize trends," "explain a query"), identifies the necessary tables and relationships, and determines the optimal way to inject schema context — ensuring both performance and precision.
-
-Designed for flexibility, it supports both reasoning and retrieval-augmented (RAG) workflows, allowing teams to scale from small schemas to complex data models. Users can also enrich the system with domain knowledge and generate consistent, filesystem-safe query names for exports and reproducibility.
-
-Whether you're exploring KPIs, validating assumptions, or preparing reports — this assistant turns your data into actionable answers without needing technical expertise.
+Moneta is a pre-configured Mill deployment that demonstrates natural language to SQL capabilities using a chat-based interface. It includes sample data and requires only Docker to run.
 
 ### Sample Data
 
@@ -159,7 +147,3 @@ Coming soon: Additional sandbox environments for exploring different use cases:
 - **Calcite Sandbox** — Query flat files and federated data sources
 - **JDBC Sandbox** — Connect to various databases with included drivers
 - **SQL Line Shell** — Command-line interface for direct SQL execution
-
----
-
-**Ready to explore?** Start with Moneta to see Mill in action, then customize it for your own data sources.

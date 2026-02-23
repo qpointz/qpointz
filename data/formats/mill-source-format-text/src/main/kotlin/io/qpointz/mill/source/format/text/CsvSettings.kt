@@ -126,6 +126,9 @@ data class CsvSettings(
         applyFormat(s.format)
         applyParserCommon(s)
         s.isHeaderExtractionEnabled = false
+        if (lineSeparatorDetectionEnabled == null) {
+            s.setLineSeparatorDetectionEnabled(true)
+        }
 
         emptyValue?.let { s.emptyValue = it }
         ignoreLeadingWhitespacesInQuotes?.let { s.setIgnoreLeadingWhitespacesInQuotes(it) }
