@@ -28,6 +28,8 @@ Items delivered since `origin/main` on the current development branch.
 | WI-002 | Split security into service authentication and data authorization | refactoring | done |
 | WI-004 | Public documentation tone and formatting cleanup | docs | done |
 | WI-003 | Data policy format redesign | refactoring / feature | done |
+| WI-005 | Eliminate legacy metadata provider module | refactoring | done |
+| WI-006 | Facet type catalog with validation and REST API | feature | done |
 
 ### Planned
 
