@@ -35,4 +35,5 @@ Documents related to Step-Back reasoning use the `sb-` prefix (e.g. `sb-reasonin
 | `sb-refactor-app-response.md` | Unify reasoner response types with ChatApplicationResponse |
 | `sb-scenarious.md` | Step-Back extended to multi-step scenarios (comparisons, trends, workflows) |
 | `sb-ux-flow.md` | AIMILL user interaction specification: flows, example messages, tone |
+| `rag-value-mapping-integration.md` | RAG ingestion of value mappings: embedding text format, document structure, semantic query flow |
 | `sb-ux-implementation-plan.md` | Implementation plan aligning backend/frontend with Step-Back UX flows |
