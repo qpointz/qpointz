@@ -15,6 +15,7 @@ mill {
 
 dependencies {
     api(project(":data:mill-data-autoconfigure"))
+    api(project(":metadata:mill-metadata-core"))
     implementation(libs.pebble.templates)
     implementation(libs.boot.starter)
     implementation(libs.jackson.core)
@@ -50,6 +51,7 @@ testing {
                     implementation(project(":core:mill-service-security"))
                     implementation(project(":data:mill-data-backends"))
                     implementation(project(":data:mill-data-autoconfigure"))
+                    implementation(project(":metadata:mill-metadata-autoconfigure"))
                     implementation(project(":core:mill-test-kit"))
                     implementation(libs.boot.starter.test)
                     implementation(libs.boot.starter.web)
