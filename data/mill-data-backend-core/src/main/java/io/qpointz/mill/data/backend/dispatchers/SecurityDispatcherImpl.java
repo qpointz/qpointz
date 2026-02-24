@@ -1,7 +1,7 @@
 package io.qpointz.mill.data.backend.dispatchers;
 
-import io.qpointz.mill.data.backend.NoneSecurityProvider;
-import io.qpointz.mill.data.backend.SecurityProvider;
+import io.qpointz.mill.security.NoneSecurityProvider;
+import io.qpointz.mill.security.SecurityProvider;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;

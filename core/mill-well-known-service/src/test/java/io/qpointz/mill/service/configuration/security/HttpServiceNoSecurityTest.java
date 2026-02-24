@@ -9,7 +9,14 @@ import org.springframework.test.context.ActiveProfiles;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ActiveProfiles("test-jdbc")
-@EnableAutoConfiguration
+@EnableAutoConfiguration(excludeName = {
+        "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration",
+        "io.qpointz.mill.autoconfigure.data.backend.BackendAutoConfiguration",
+        "io.qpointz.mill.autoconfigure.data.SqlAutoConfiguration",
+        "io.qpointz.mill.autoconfigure.data.backend.jdbc.JdbcBackendAutoConfiguration",
+        "io.qpointz.mill.autoconfigure.data.backend.calcite.CalciteBackendAutoConfiguration",
+        "io.qpointz.mill.autoconfigure.data.backend.flow.FlowBackendAutoConfiguration"
+})
 @Slf4j
 public class HttpServiceNoSecurityTest extends BaseSecurityTest {
 

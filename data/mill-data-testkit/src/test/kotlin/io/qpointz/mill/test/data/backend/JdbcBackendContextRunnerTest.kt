@@ -1,12 +1,12 @@
 package io.qpointz.mill.test.data.backend
 
 import io.qpointz.mill.data.backend.ExecutionProvider
-import io.qpointz.mill.data.backend.NoneSecurityProvider
 import io.qpointz.mill.data.backend.SchemaProvider
-import io.qpointz.mill.data.backend.SecurityProvider
 import io.qpointz.mill.data.backend.SqlProvider
 import io.qpointz.mill.data.backend.calcite.CalciteContextFactory
 import io.qpointz.mill.data.backend.calcite.providers.PlanConverter
+import io.qpointz.mill.security.NoneSecurityProvider
+import io.qpointz.mill.security.SecurityProvider
 import io.qpointz.mill.proto.QueryExecutionConfig
 import io.substrait.plan.ImmutablePlan
 import io.substrait.plan.Plan

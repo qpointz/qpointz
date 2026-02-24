@@ -1,7 +1,5 @@
 package io.qpointz.mill.security;
 
-import io.qpointz.mill.data.backend.SecurityProvider;
-
 import lombok.val;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;

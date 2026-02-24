@@ -2,7 +2,6 @@ package io.qpointz.mill.test.data.backend
 
 import io.qpointz.mill.data.backend.ExecutionProvider
 import io.qpointz.mill.data.backend.SchemaProvider
-import io.qpointz.mill.data.backend.SecurityProvider
 import io.qpointz.mill.data.backend.SqlProvider
 import io.qpointz.mill.data.backend.calcite.CalciteContextFactory
 import io.qpointz.mill.data.backend.calcite.CalciteSqlDialectConventions
@@ -20,6 +19,7 @@ import io.qpointz.mill.data.backend.jdbc.providers.impl.JdbcConnectionCustomizer
 import io.qpointz.mill.data.backend.jdbc.providers.impl.JdbcContextFactoryImpl
 import io.qpointz.mill.sql.dialect.SqlDialectSpec
 import io.qpointz.mill.sql.dialect.SqlDialectSpecs
+import io.qpointz.mill.security.SecurityProvider
 import io.substrait.extension.ExtensionCollector
 import io.substrait.extension.SimpleExtension
 import org.apache.calcite.sql.SqlDialect

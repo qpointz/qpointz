@@ -1,6 +1,5 @@
 plugins {
     `java-library`
-    libs.plugins.spring.dependency.management
     alias(libs.plugins.google.protobuf.plugin)
     id("io.qpointz.plugins.mill")
     id("org.jetbrains.dokka")
@@ -71,7 +70,6 @@ testing {
                 dependencies {
                     implementation(project())
                     implementation(libs.grpc.netty.shaded)
-                    implementation(libs.boot.starter.test)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.lombok)

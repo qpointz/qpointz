@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @WebAppConfiguration
 @SpringBootTest(classes = {ServiceController.class, })
-@ComponentScan("io.qpointz.mill")
+@ComponentScan(basePackages = {"io.qpointz.mill.service", "io.qpointz.mill.security"})
 @Slf4j
 abstract class BaseSecurityTest {
 

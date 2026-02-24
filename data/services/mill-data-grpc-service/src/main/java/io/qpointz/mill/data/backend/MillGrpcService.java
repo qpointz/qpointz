@@ -4,6 +4,7 @@ import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import io.qpointz.mill.proto.*;
 import io.qpointz.mill.security.SecurityContextSecurityProvider;
+import io.qpointz.mill.security.SecurityProvider;
 import io.qpointz.mill.service.annotations.ConditionalOnService;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.vectors.VectorBlockIterator;

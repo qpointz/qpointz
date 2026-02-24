@@ -46,13 +46,17 @@ Items delivered since `origin/main` on the current development branch.
 | S-14 | Implement FlowBackendContextRunner in testkit | test | done |
 | S-15 | Implement FlowBackendAutoConfiguration (Spring auto-configuration for flow backend) | feature | done |
 
-### Planned
+### In Progress
 
-Items targeted for delivery in this milestone.
+Items currently being implemented in this milestone.
 
 #### Refactoring — Spring Configuration Cleanup
 
 | # | Item | Type | Status | Source |
 |---|------|------|--------|--------|
-| WI-009 | Spring test configuration cleanup (narrow @ComponentScan, @EnableAutoConfiguration exclusions, delete MainLala) | refactoring | planned | [WI-009](WI-009-spring-test-config-cleanup.md) |
-| WI-010 | Clean Spring / pure module separation (SecurityProvider relocation, dependency cleanup, AI config extraction, module inventory) | refactoring | planned | [WI-010](WI-010-spring-pure-module-separation.md) |
+| WI-009 | Spring test configuration cleanup (narrow @ComponentScan, @EnableAutoConfiguration exclusions, delete MainLala) | refactoring | in-progress | [WI-009](WI-009-spring-test-config-cleanup.md) |
+| WI-010 | Clean Spring / pure module separation (SecurityProvider relocation, dependency cleanup, AI config extraction, module inventory) | refactoring | in-progress | [WI-010](WI-010-spring-pure-module-separation.md) |
+
+### Planned
+
+Items targeted next after in-progress work is completed.

@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest(classes = {AccessServiceController.class})
 @EnableAutoConfiguration
 @ActiveProfiles("test-cmart")
-@ComponentScan("io.qpointz.mill")
+@ComponentScan("io.qpointz.mill.data")
 @Slf4j
 class AccessServiceControllerTest {
 

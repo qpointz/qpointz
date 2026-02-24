@@ -5,12 +5,8 @@ import io.qpointz.mill.ai.ChatConversation
 import io.qpointz.mill.ai.streaming.Transformations.content
 import org.springframework.ai.chat.model.ChatModel
 import org.springframework.ai.chat.prompt.ChatOptions
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
-import javax.annotation.PostConstruct
 
-@Component
-class ChatService (@Autowired val chatModel: ChatModel) {
+class ChatService(private val chatModel: ChatModel) {
 
     val prmt = """
     You are a storytelling assistant that streams story text in chunks.
@@ -55,7 +51,7 @@ class ChatService (@Autowired val chatModel: ChatModel) {
 
     data class Event(val event: String, val content: String?)
 
-    fun tellStory(topic: String?) {
+    fun tellStory(topic: String) {
 
         val c = ContextDescriptor
             .fromResource("ai/capabilities/talk/talk.yml")
@@ -75,11 +71,6 @@ class ChatService (@Autowired val chatModel: ChatModel) {
             .content()
             .content()
             .subscribe { println(it)}
-    }
-
-    @PostConstruct
-    fun hallo() {
-        tellStory("Hello my friend")
     }
 
 }

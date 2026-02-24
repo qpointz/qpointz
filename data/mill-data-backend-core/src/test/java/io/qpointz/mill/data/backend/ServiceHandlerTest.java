@@ -2,6 +2,7 @@ package io.qpointz.mill.data.backend;
 
 import io.qpointz.mill.data.backend.dispatchers.*;
 import io.qpointz.mill.proto.*;
+import io.qpointz.mill.security.NoneSecurityProvider;
 import io.qpointz.mill.vectors.VectorBlockIterator;
 import io.substrait.extension.SimpleExtension;
 import lombok.val;

@@ -8,7 +8,6 @@ import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.web.WebAppConfiguration;
 
@@ -19,8 +18,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 @ActiveProfiles({"test-jdbc","auth-basic"})
 @WebAppConfiguration
-@EnableAutoConfiguration
-@ComponentScan("io.qpointz.mill")
+@EnableAutoConfiguration(excludeName = {
+        "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration",
+        "io.qpointz.mill.autoconfigure.data.backend.BackendAutoConfiguration",
+        "io.qpointz.mill.autoconfigure.data.SqlAutoConfiguration",
+        "io.qpointz.mill.autoconfigure.data.backend.jdbc.JdbcBackendAutoConfiguration",
+        "io.qpointz.mill.autoconfigure.data.backend.calcite.CalciteBackendAutoConfiguration",
+        "io.qpointz.mill.autoconfigure.data.backend.flow.FlowBackendAutoConfiguration"
+})
 @SpringBootTest(classes = {HttpServiceBasicSecurityTest.class, SecurityConfig.class, ServicesSecurityConfiguration.class})
 @Slf4j
 public class HttpServiceBasicSecurityTest extends BaseSecurityTest {

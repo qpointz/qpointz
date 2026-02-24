@@ -16,7 +16,6 @@ import net.devh.boot.grpc.server.security.check.AccessPredicateVoter;
 import net.devh.boot.grpc.server.security.check.GrpcSecurityMetadataSource;
 import net.devh.boot.grpc.server.security.check.ManualGrpcSecurityMetadataSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +31,6 @@ import java.util.*;
 @Setter
 @Getter
 @Configuration
-@EnableAutoConfiguration
 @EnableConfigurationProperties
 @EnableWebSecurity
 @ConditionalOnSecurity

@@ -2,6 +2,7 @@ package io.qpointz.mill.data.backend.configuration;
 
 import io.qpointz.mill.data.backend.*;
 import io.qpointz.mill.data.backend.dispatchers.*;
+import io.qpointz.mill.security.SecurityProvider;
 import io.substrait.extension.SimpleExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

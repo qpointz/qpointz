@@ -14,7 +14,6 @@ mill {
 dependencies {
     api(project(":core:mill-security"))
     api(project(":core:mill-service-api"))
-    api(project(":data:mill-data-backend-core"))
     api(libs.boot.starter.security)
 
     implementation(project(":core:mill-core"))

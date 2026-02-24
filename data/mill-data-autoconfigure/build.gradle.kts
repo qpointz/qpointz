@@ -16,8 +16,6 @@ dependencies {
     api(project(":core:mill-service-security"))
     api(project(":data:mill-data-backend-core"))
     api(project(":data:mill-data-backends"))
-    api(project(":metadata:mill-metadata-core"))
-    api(project(":metadata:mill-metadata-autoconfigure"))
     api(libs.jakarta.servlet.api)
     api(libs.javax.annotation.api)
     implementation(libs.calcite.core)
