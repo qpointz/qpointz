@@ -23,7 +23,7 @@ import java.util.function.Supplier;
 @Slf4j
 @GrpcService
 @SpringBootApplication
-@ConditionalOnService("grpc")
+@ConditionalOnService(value = "grpc", group = "data")
 public class MillGrpcService extends DataConnectServiceGrpc.DataConnectServiceImplBase {
 
     @Bean

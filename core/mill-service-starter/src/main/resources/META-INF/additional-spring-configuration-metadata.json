@@ -1,0 +1,19 @@
+{
+  "properties": [
+    {
+      "name": "mill.services.meta.enable",
+      "type": "java.lang.Boolean",
+      "description": "Enables meta (/.well-known/mill) service"
+    },
+    {
+      "name": "mill.services.public-base-url",
+      "type": "java.lang.String",
+      "description": "Public base URL used to generate external links in application descriptors"
+    },
+    {
+      "name": "mill.application.hosts.externals",
+      "type": "java.util.Map<java.lang.String,io.qpointz.mill.service.descriptors.ServiceAddressDescriptor>",
+      "description": "Named externally reachable service addresses (for example default-https/default-http/default-grpc)"
+    }
+  ]
+}

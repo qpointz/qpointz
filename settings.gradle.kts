@@ -30,7 +30,7 @@ include (":data:services")
 include (":data:services:mill-data-grpc-service")
 include (":data:services:mill-data-http-service")
 
-include (":core:mill-well-known-service")
+include (":core:mill-service-starter")
 include (":metadata:mill-metadata-service")
 
 include (":ui:mill-grinder-service")

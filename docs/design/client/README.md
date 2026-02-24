@@ -23,6 +23,8 @@ A document belongs here if its **primary subject** is one of:
 
 | File | Description |
 |------|-------------|
+| `adonet-provider-design.md` | Managed .NET provider (ADO.NET) design track with phased architecture and delivery plan |
+| `odbc-driver-design.md` | ODBC driver design track with native/bridge strategy options, risks, and conformance plan |
 | `py-cold-start.md` | mill-py cold-start guide: codebase analysis, server contracts, how to resume work |
 | `py-implementation-plan.md` | mill-py refactoring implementation plan: scope, architecture, phases, tracking |
 | `py-sql-dialect-plan.md` | Mill SQL dialect foundation design and tracking (Phase 9 of mill-py) |

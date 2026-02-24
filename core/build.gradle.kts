@@ -9,5 +9,5 @@ dependencies {
     dokka(project(":core:mill-service-security"))
     dokka(project(":core:mill-service-api"))
     dokka(project(":core:mill-test-kit"))
-    dokka(project(":core:mill-well-known-service"))
+    dokka(project(":core:mill-service-starter"))
 }

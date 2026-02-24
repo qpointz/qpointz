@@ -1,183 +1,37 @@
 grpc:
   server:
-    port: ${mill.services.grpc.port}
-    address: ${mill.services.grpc.address}
+    port: ${mill.data.services.grpc.port}
+    address: ${mill.data.services.grpc.address}
 
 spring:
-  datasource:
-    #url: jdbc:hsqldb:mem:testdb
-    url: jdbc:h2:mem:db;DB_CLOSE_DELAY=-1
-    username: sa
-    password: sa
+  application:
+    name: ${mill.application.name}
   main:
     web-application-type: servlet
-  ai:
-    chat:
-      memory:
-        repository:
-          jdbc:
-            schema: classpath:org/springframework/ai/chat/memory/repository/jdbc/schema-hsqldb.sql
-    model:
-      chat: none
-      audio:
-        speech: none
-        transcription: none
-      embedding: none
-      image: none
-      moderation: none
-    mcp:
-      server:
-        enabled: false
-        name: provide-agent-name
-        transport:
-          type: http
-          endpoint: mcp-endpoint
 
 mill:
-  metadata:
-    relations: none
-    annotations: none
-  services:
-    ai-nl2data:
-      enable: false
-    grinder:
-      enable: false
-    meta:
-      enable: true
-    jet-http:
-      enable: true
-    grpc:
-      port: 9099
-      enable: true
-      address: '*'
-    data-bot:
-      enable: false
-
-logging:
-  level:
-    root: info
-
-#spring:
-#  config:
-#    import: classpath:application-defaults.yml
-
----
-spring:
-  config:
-    activate:
-      on-profile: local-jdbc
-  main:
-    web-application-type: servlet
-  ai:
-    openai:
-      api-key: api_key
-      chat:
-        model: model_name
-      azure:
-        openai:
-          api-key: api_key
-          endpoint: endpoint
-          chat:
-            options:
-              deployment-name: deployment_name
-      mcp:
-        server:
-          enabled: true
-          name: agent-name
-          transport:
-            type: http
-            endpoint: mcp-endpoint
-
-mill:
-  backend:
-    provider: jdbc
-    connection:
-      quoting: BACK_TICK
-      caseSensitive: true
-      unquotedCasing: UNCHANGED
-    jdbc:
-      url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM './test/datasets/users/sql/users.sql'"
-      driver: "org.h2.Driver"
-      username: "*"
-      password: "*"
-      target-schema: "ts"
-  services:
-    data-bot:
-      enable: false
-
----
-spring:
-  config:
-    activate:
-      on-profile: local-calcite
-
-mill:
-  backend:
-    provider: calcite
-    connection:
-      model: ../etc/data/datasets/airlines/model-csv.yaml
-  services:
-    data-bot:
-      enable: false
-
----
-spring:
-  config:
-    activate:
-      on-profile: local-auth
-
-mill:
-  security:
-    enable: true
-    authentication:
-      basic:
+  application:
+    name: mill-service
+    hosts:
+      externals:
+        http:
+          scheme: http
+          host: localhost
+          port: 8080
+        grpc:
+          scheme: grpc
+          host: localhost
+          port: 9099
+  data:
+    services:
+      grpc:
         enable: true
-        file-store: file:./mill-service/config/sample/passwd.yaml
-      oauth2-resource-server:
+        host:
+          external: grpc
+        port: 9099
+      http:
         enable: true
-        jwt:
-          jwk-set-uri: http://localhost:12121/default/jwks
+        host:
+          external: http
+        port: 8080
 
----
-spring:
-  config:
-    activate:
-      on-profile: local-cmart
-
-mill:
-  backend:
-    provider: jdbc
-    connection:
-      quoting: BACK_TICK
-      caseSensitive: true
-      unquotedCasing: UNCHANGED
-    jdbc:
-      url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM './test/datasets/cmart/sql/cmart.sql'"
-      driver: "org.h2.Driver"
-      username: "*"
-      password: "*"
-      target-schema: "cmart"
-  security:
-    enable: true
-    authentication:
-      basic:
-        enable: true
-        file-store: file:./test/datasets/cmart/passwd.yaml
-    authorization:
-      policy:
-        enable: true
-        selector:
-          granted-authority:
-            remap:
-              xyz: zyx
-              abc: def
-        actions:
-          - policy: admin
-            verb: deny
-            action: rel-filter
-            params:
-              name: cmart.CLIENT
-              expression: "`IS_PEP` <> 'Y'"
-  services:
-    data-bot:
-      enable: false

@@ -16,7 +16,7 @@ Category legend:
 | `:core:mill-service-api` | Java | spring-service | Service-level annotations, descriptors, Spring helpers | `:core:mill-core`, `:core:mill-security` | Spring conditional/service APIs | `true` | JUnit 5 + Mockito + Boot test |
 | `:core:mill-service-security` | Java | spring-service | Spring Security authentication/wiring | `:core:mill-security`, `:core:mill-service-api` | Spring Security + Boot config | `true` | JUnit 5 + Boot test + Spring Security test |
 | `:core:mill-test-kit` | Java | spring-service | Shared Spring test infrastructure | `:core:mill-service-api`, `:core:mill-service-security` | Spring Boot test scaffolding | `true` | JUnit 5 + Boot test |
-| `:core:mill-well-known-service` | Java | spring-service | Well-known HTTP endpoints and starter service controllers | `:core:mill-service-api`, `:core:mill-service-security` | Spring MVC + Security | `true` | JUnit 5 + Boot test + Spring Security test |
+| `:core:mill-service-starter` | Java | spring-service | Shared service starter wiring and well-known HTTP endpoints | `:core:mill-service-api`, `:core:mill-service-security` | Spring MVC + Security | `true` | JUnit 5 + Boot test + Spring Security test |
 | `:metadata` | n/a (aggregate) | aggregate | Metadata aggregate + stable CI target (`:metadata:build`) | `:metadata:*` | none | n/a | aggregate build/test orchestration |
 | `:metadata:mill-metadata-core` | Kotlin | pure | Metadata domain, facets, repositories, validation contracts | none (foundation module) | none | `true` | JUnit 5 + Mockito |
 | `:metadata:mill-metadata-autoconfigure` | Kotlin | spring-service | Metadata Spring auto-configuration | `:metadata:mill-metadata-core`, `:core:mill-service-api` | Spring Boot autoconfiguration | `true` | JUnit 5 + Boot test |

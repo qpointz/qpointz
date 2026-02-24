@@ -63,7 +63,7 @@ docs-serve: docs-build
 
 git-clean-branches:
 	@git fetch origin --prune
-	@for branch in $$(git for-each-ref --format='%(refname:short)' refs/heads/build refs/heads/feat/ refs/heads/poc/ refs/heads/fix/); do \
+	@for branch in $$(git for-each-ref --format='%(refname:short)' refs/heads/build refs/heads/feat/ refs/heads/poc/ refs/heads/fix/ refs/heads/plan/ refs/heads/refactor/ refs/heades/spike/ refs/heads/doc ); do \
 		if ! git show-ref --quiet refs/remotes/origin/$$branch; then \
 			echo "Deleting $$branch (no remote on origin)"; \
 			git branch -D $$branch; \

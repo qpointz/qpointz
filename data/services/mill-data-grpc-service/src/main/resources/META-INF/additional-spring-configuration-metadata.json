@@ -14,5 +14,10 @@
       "name": "mill.services.grpc.address",
       "type": "java.lang.String",
       "description": "Grpc service bind address as specified in {@link net.devh.boot.grpc.server.config.GrpcServerProperties#address :documentation} ."
+    },
+    {
+      "name": "mill.services.grpc.host.external",
+      "type": "java.lang.String",
+      "description": "Reference key to mill.application.hosts.externals.<name> used for gRPC external host descriptor."
     }
   ] }

@@ -34,7 +34,7 @@ import java.util.*;
 @EnableConfigurationProperties
 @EnableWebSecurity
 @ConditionalOnSecurity
-@ConditionalOnService("grpc")
+@ConditionalOnService(value = "grpc", group = "data")
 public class GrpcServiceSecurityConfiguration {
 
     private final AuthenticationMethods authenticationMethods;

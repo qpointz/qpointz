@@ -70,7 +70,11 @@
 | `mill.services.grpc.port` | Integer | — (mapped to `grpc.server.port`) | data:mill-data-grpc-service | gRPC server config | **data-grpc-service** | |
 | `mill.services.grpc.address` | String | — (mapped to `grpc.server.address`) | data:mill-data-grpc-service | gRPC server config | **data-grpc-service** | |
 | `mill.services.jet-http.enable` | Boolean | — (checked by `OnServiceEnabledCondition`) | data:mill-data-autoconfigure | `@ConditionalOnService("jet-http")`: `AccessServiceController` | **data-http-service** | Type declared as String in JSON — should be Boolean |
-| `mill.services.meta.enable` | Boolean | — (checked by `OnServiceEnabledCondition`) | data:mill-data-autoconfigure | `@ConditionalOnService("meta")`: `ApplicationDescriptorController` | **well-known-service** | |
+| `mill.services.meta.enable` | Boolean | — (checked by `OnServiceEnabledCondition`) | data:mill-data-autoconfigure | `@ConditionalOnService("meta")`: `ApplicationDescriptorController` | **service-starter** | |
+| `mill.services.public-base-url` | String | `ApplicationDescriptorConfiguration` (`@Value` via `Environment`) | core:mill-service-starter | `ApplicationDescriptorConfiguration.schemaDescriptors()` | **service-starter** | External base URL for descriptor links (defaults to `server.address`/`server.port`) |
+| `mill.application.hosts.externals.<name>.scheme` | Enum | `ServiceAddressProperties` (`@ConfigurationProperties`) | core:mill-service-starter | `ApplicationDescriptorConfiguration` fallback URL resolution | **service-starter** | URL scheme (`http`, `https`, `grpc`) |
+| `mill.application.hosts.externals.<name>.host` | String | `ServiceAddressProperties` (`@ConfigurationProperties`) | core:mill-service-starter | `ApplicationDescriptorConfiguration` fallback URL resolution | **service-starter** | Externally reachable host |
+| `mill.application.hosts.externals.<name>.port` | Integer | `ServiceAddressProperties` (`@ConfigurationProperties`) | core:mill-service-starter | `ApplicationDescriptorConfiguration` fallback URL resolution | **service-starter** | Externally reachable port |
 | `mill.services.grinder.enable` | Boolean | — (checked by `OnServiceEnabledCondition`) | data:mill-data-autoconfigure | `@ConditionalOnService("grinder")`: `GrinderUIFilter` | none | |
 | `mill.services.ai-nl2data.enable` | Boolean | — (checked by `OnServiceEnabledCondition`) | data:mill-data-autoconfigure | `@ConditionalOnService("ai-nl2data")`: `AIConfiguration`, `JPAConfiguration`, `NlSqlChatServiceImpl`, `NlSqlChatController`, `GlobalExceptionHandler`, `ChatProcessor`, `ValueMappingComponents` | none | |
 | `mill.services.data-bot.enable` | Boolean | — (YAML only) | — | **no Java consumer** | none | Ghost key |
@@ -94,7 +98,7 @@ Four `additional-spring-configuration-metadata.json` files exist:
 | File | Module | Keys defined |
 |------|--------|-------------|
 | `core/mill-security-autoconfigure/src/main/resources/META-INF/additional-spring-configuration-metadata.json` | core:mill-security-autoconfigure | `mill.security.enable`, `mill.security.authentication.oauth2-resource-server.jwt`, `mill.security.authentication.entra-id-token.enable`, `mill.security.authorization.policy.enable`, `mill.security.authorization.policy.actions`, `mill.security.authorization.policy.actions.policy`, `mill.security.authorization.policy.actions.verb`, `mill.security.authorization.policy.actions[0].action`, `mill.security.authorization.policy.actions[0].params` |
-| `core/mill-well-known-service/src/main/resources/META-INF/additional-spring-configuration-metadata.json` | core:mill-well-known-service | `mill.services.meta.enable` |
+| `core/mill-service-starter/src/main/resources/META-INF/additional-spring-configuration-metadata.json` | core:mill-service-starter | `mill.services.meta.enable`, `mill.services.public-base-url` |
 | `data/mill-data-grpc-service/src/main/resources/META-INF/additional-spring-configuration-metadata.json` | data:mill-data-grpc-service | `mill.services.grpc.enable`, `mill.services.grpc.port`, `mill.services.grpc.address` |
 | `data/mill-data-http-service/src/main/resources/META-INF/additional-spring-configuration-metadata.json` | data:mill-data-http-service | `mill.services.jet-http.enable` |
 
@@ -132,7 +136,7 @@ These are annotations implemented **in this codebase** (not from Spring Boot) th
 |-------------|-------------------|--------|
 | `"grpc"` | `MillGrpcService`, `GrpcServiceDescriptor`, `GrpcServiceSecurityConfiguration`, `MillGrpcServiceExceptionAdvice` | data:mill-data-grpc-service |
 | `"jet-http"` | `AccessServiceController` | data:mill-data-http-service |
-| `"meta"` | `ApplicationDescriptorController` | core:mill-well-known-service |
+| `"meta"` | `ApplicationDescriptorController` | core:mill-service-starter |
 | `"grinder"` | `GrinderUIFilter` | ui:mill-grinder-service |
 | `"ai-nl2data"` | `AIConfiguration`, `JPAConfiguration`, `GlobalExceptionHandler`, `NlSqlChatServiceImpl`, `NlSqlChatController`, `ChatProcessor` | ai:mill-ai-v1-nlsql-chat-service |
 | `"ai-nl2data"` | `ValueMappingComponents` | ai:mill-ai-v1-core |
@@ -156,7 +160,7 @@ Every module using `@ConditionalOnService` must depend (directly or transitively
 
 | Annotation | Providing module | Dependent modules |
 |------------|-----------------|-------------------|
-| `@ConditionalOnService` | data:mill-data-autoconfigure | data-grpc-service, data-http-service, well-known-service, grinder-service, ai-v1-core, ai-v1-nlsql-chat-service |
+| `@ConditionalOnService` | data:mill-data-autoconfigure | data-grpc-service, data-http-service, service-starter, grinder-service, ai-v1-core, ai-v1-nlsql-chat-service |
 | `@ConditionalOnSecurity` | core:mill-security-autoconfigure | data-autoconfigure, data-grpc-service, test-kit |
 
 **Note**: `@ConditionalOnService` lives in `data:mill-data-autoconfigure` but is consumed across all lanes (core, ui, ai). This cross-cutting annotation may belong in a more neutral shared module.

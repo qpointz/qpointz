@@ -11,7 +11,7 @@ import net.devh.boot.grpc.server.advice.GrpcExceptionHandler;
 
 @Slf4j
 @GrpcAdvice
-@ConditionalOnService("grpc")
+@ConditionalOnService(value = "grpc", group = "data")
 public class MillGrpcServiceExceptionAdvice {
 
     public MillGrpcServiceExceptionAdvice() {

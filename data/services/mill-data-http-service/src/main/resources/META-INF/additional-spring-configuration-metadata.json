@@ -2,8 +2,13 @@
   "properties": [
     {
       "name": "mill.services.jet-http.enable",
-      "type": "java.lang.String",
+      "type": "java.lang.Boolean",
       "description": "Enable the Mill Jet HTTP service. If set to 'true', the service will be active."
+    },
+    {
+      "name": "mill.services.jet-http.host.external",
+      "type": "java.lang.String",
+      "description": "Reference key to mill.application.hosts.externals.<name> used for HTTP external host descriptor."
     }
   ]
 }

@@ -27,9 +27,16 @@ public class OnServiceEnabledCondition implements Condition {
                 .map(k-> k.getString("value"))
                 .orElse("no-such-service");
 
+        val mayBeGroupName = mayBeAnnotation
+                .map(k -> k.getString("group"))
+                .orElse("");
 
-        val serviceConfigGroup = String.format("mill.services.%s", serviceName);
-        val serviceEnableKey = String.format("mill.services.%s.enable", serviceName);
+        val groupName = mayBeGroupName != null && !mayBeGroupName.isEmpty()
+                ? mayBeGroupName + ".services"
+                : "services";
+
+        val serviceConfigGroup = String.format("mill.%s.%s", groupName, serviceName);
+        val serviceEnableKey = String.format("%s.enable", serviceConfigGroup);
 
         Environment environment = context.getEnvironment();
 
@@ -42,7 +49,6 @@ public class OnServiceEnabledCondition implements Condition {
         if (!hasProperty) {
             return expected;
         }
-        val isMatching = expected == Boolean.TRUE.equals(environment.getProperty(serviceEnableKey, boolean.class));
-        return isMatching;
+        return expected == Boolean.TRUE.equals(environment.getProperty(serviceEnableKey, boolean.class));
     }
 }

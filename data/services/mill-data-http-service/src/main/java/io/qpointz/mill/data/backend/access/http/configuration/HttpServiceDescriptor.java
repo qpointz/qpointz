@@ -1,4 +1,4 @@
-package io.qpointz.mill.data.backend.configuration;
+package io.qpointz.mill.data.backend.access.http.configuration;
 
 import io.qpointz.mill.service.annotations.ConditionalOnService;
 import io.qpointz.mill.service.descriptors.ServiceDescriptor;
@@ -8,15 +8,15 @@ import org.springframework.stereotype.Component;
 
 @Data
 @Component
-@ConditionalOnService(value = "grpc", group = "data")
-public class GrpcServiceDescriptor implements ServiceDescriptor {
+@ConditionalOnService("jet-http")
+public class HttpServiceDescriptor implements ServiceDescriptor {
 
     public record HostDescriptor(String external) {}
 
     private final HostDescriptor host;
 
-    public GrpcServiceDescriptor(
-            @Value("${mill.data.services.grpc.host.external:}") String externalHostReference
+    public HttpServiceDescriptor(
+            @Value("${mill.services.jet-http.host.external:}") String externalHostReference
     ) {
         this.host = externalHostReference == null || externalHostReference.isBlank()
                 ? null
@@ -25,7 +25,6 @@ public class GrpcServiceDescriptor implements ServiceDescriptor {
 
     @Override
     public String getStereotype() {
-        return "grpc";
+        return "jet-http";
     }
-
 }

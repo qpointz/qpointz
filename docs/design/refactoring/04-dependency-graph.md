@@ -25,7 +25,7 @@ graph TD
         mill-security[mill-security<br/>PURE]:::pure
         mill-security-ac[mill-security-autoconfigure<br/>SPRING]:::spring
         mill-test-kit[mill-test-kit<br/>SPRING]:::spring
-        mill-well-known[mill-well-known-service<br/>SPRING]:::spring
+        mill-service-starter[mill-service-starter<br/>SPRING]:::spring
     end
 
     subgraph METADATA
@@ -110,7 +110,7 @@ graph TD
 
     %% High-level consumers
     mill-test-kit -->|api| data-ac
-    mill-well-known -->|api| data-ac
+    mill-service-starter -->|api| data-ac
     ai-v1-core -->|api| data-ac
     ai-v1-chat -->|api| ai-v1-core
     ai-v2 -->|impl| mill-core
@@ -123,7 +123,7 @@ graph TD
     %% APP assembly
     mill-app -->|impl| data-ac
     mill-app -->|impl| meta-ac
-    mill-app -->|impl| mill-well-known
+    mill-app -->|impl| mill-service-starter
     mill-app -->|impl| meta-service
     mill-app -->|impl| data-backends
     mill-app -->|impl| data-grpc
@@ -146,7 +146,7 @@ graph TD
 | 2 | `core:mill-security` | core | **PURE** | — | — |
 | 3 | `core:mill-security-autoconfigure` | core | SPRING | boot-starter-security, OAuth2 | `mill-security` (api), `mill-core` (impl) |
 | 4 | `core:mill-test-kit` | core | SPRING | boot-starter, boot-starter-web, boot-starter-test | `data-autoconfigure` (api) |
-| 5 | `core:mill-well-known-service` | core | SPRING | boot-starter, boot-starter-web, boot-starter-security | `data-autoconfigure` (api) |
+| 5 | `core:mill-service-starter` | core | SPRING | boot-starter, boot-starter-web, boot-starter-security | `data-autoconfigure` (api) |
 | 6 | `metadata:mill-metadata-core` | metadata | **SPRING ⚠** | **boot-starter (api)** | `mill-core` (api) |
 | 7 | `metadata:mill-metadata-autoconfigure` | metadata | SPRING | boot-starter | `metadata-core` (api) |
 | 8 | `metadata:mill-metadata-provider` | metadata | **PURE** | — | `mill-core` (api), `metadata-core` (api), `data-service` (api) |

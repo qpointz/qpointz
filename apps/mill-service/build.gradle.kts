@@ -77,7 +77,7 @@ tasks.register("assembleSamples") {
 dependencies {
     implementation(project(":metadata:mill-metadata-autoconfigure"))
     implementation(project(":data:mill-data-autoconfigure"))
-    implementation(project(":core:mill-well-known-service"))
+    implementation(project(":core:mill-service-starter"))
     implementation(project(":metadata:mill-metadata-service"))
     implementation(project(":data:mill-data-backends"))
     implementation(project(":data:services:mill-data-grpc-service"))

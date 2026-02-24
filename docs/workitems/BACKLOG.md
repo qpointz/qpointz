@@ -60,7 +60,7 @@ milestone-selectable deliverables extracted from design documents and work items
 | # | Item | Type | Status | Source |
 |---|------|------|--------|--------|
 | C-1 | Implement mill/sql package with MillDialectDescriptor model and CALCITE_DEFAULT (Phase 9A) | ✨ feature | backlog | client/py-sql-dialect-plan.md |
-| C-2 | Add quote_identifier(), qualify() helpers and type mappings (to_sa_type, to_ibis_dtype) | ✨ feature | backlog | client/py-sql-dialect-plan.md |
+| C-2 | Add quote_identifier(), qualify() helpers and type mappings (to_sa_type, to_ibis_dtype); complex type mappings depend on D-2/D-3/D-4 | ✨ feature | backlog | client/py-sql-dialect-plan.md |
 | C-3 | Implement DialectTester with ~80 SQL queries and DialectReport (Phase 9B) | ✨ feature | backlog | client/py-sql-dialect-plan.md |
 | C-4 | Populate full function catalog (scalar, aggregate, window) from tester output | ✨ feature | backlog | client/py-sql-dialect-plan.md |
 | C-5 | Auto-generate py-sql-dialect-report.md with feature matrix | 📝 docs | backlog | client/py-sql-dialect-plan.md |
@@ -71,10 +71,13 @@ milestone-selectable deliverables extracted from design documents and work items
 | C-10 | Implement ibis BaseBackend wrapping MillClient (Phase 10) | ✨ feature | backlog | client/py-implementation-plan.md |
 | C-11 | Map ibis expressions to Calcite-compatible SQL via sqlglot | ✨ feature | backlog | client/py-implementation-plan.md |
 | C-12 | Implement PEP 249 DBAPI 2.0 shim (Phase 11) | ✨ feature | backlog | client/py-implementation-plan.md |
-| C-13 | Implement SQLAlchemy MillDialect and MillSQLCompiler with schema introspection | ✨ feature | backlog | client/py-implementation-plan.md |
+| C-13 | Implement SQLAlchemy MillDialect and MillSQLCompiler with schema introspection; complex type support depends on D-2/D-3/D-4 | ✨ feature | backlog | client/py-implementation-plan.md |
 | C-14 | Register SQLAlchemy entry points for mill+grpc and mill+http | ✨ feature | backlog | client/py-implementation-plan.md |
 | C-15 | Fix MillServerError: call super().__init__(message) | 🐛 fix | backlog | client/py-cold-start.md |
 | C-16 | Fix Python type mappings: BOOL->BOOLEAN, identifier quoting from dialect YAML | 🐛 fix | backlog | client/py-sql-dialect-plan.md |
+| C-17 | Implement managed ADO.NET provider for Mill (separate .NET track; OLE DB as optional follow-up) | ✨ feature | backlog | client/adonet-provider-design.md |
+| C-18 | Implement ODBC driver for Mill with native compatibility and BI-tool conformance | ✨ feature | backlog | client/odbc-driver-design.md |
+| C-19 | Update clients (Python/JDBC and related SDK surfaces) for complex types and timezone semantics in schemas/contracts | ✨ feature | backlog | **TBD (new WI)** |
 
 ---
 
@@ -108,6 +111,7 @@ milestone-selectable deliverables extracted from design documents and work items
 | M-24 | Relocate SchemaExplorerController from metadata module to data layer | 🔧 refactoring | done | **WI-007** |
 | M-25 | MetadataEntity persistence preparation: extract ObjectMapper, add Serializable, import/export | 🔧 refactoring | done | **WI-005** |
 | M-26 | Migrate metadata modules (core, autoconfigure, service) from Java + Lombok to Kotlin | 🔧 refactoring | done | **WI-008** |
+| M-27 | Extend metadata StructuralFacet/API/UI contracts for complex types (LIST/MAP/OBJECT + nested shape rendering); depends on D-2/D-3/D-4 | ✨ feature | backlog | **TBD (new WI)** |
 
 ---
 
@@ -141,6 +145,10 @@ milestone-selectable deliverables extracted from design documents and work items
 | P-24 | Phase 2: Substrait input via RelNode — route Substrait through PlanConverter to QueryPlan, remove old execute(Plan) | 🔧 refactoring | backlog | platform/substrait-to-relnode-migration.md |
 | P-25 | Phase 3: Port rewriters to Calcite — PlanRewriter/facets on RelNode/RexNode, TableFacetVisitor to RelShuttleImpl | 🔧 refactoring | backlog | platform/substrait-to-relnode-migration.md |
 | P-26 | Phase 4: Clean up dead Substrait code — remove PlanHelper, DataTypeToSubstrait, old SqlProvider methods, substrait-core from mill-core | 🔧 refactoring | backlog | platform/substrait-to-relnode-migration.md |
+| P-27 | Implement Arrow Flight server for Mill query transport with canonical Mill->Arrow type mapping and per-column timestamp timezone semantics; complex type coverage depends on D-2/D-3/D-4 | ✨ feature | backlog | platform/arrow-flight-server-design.md |
+| P-28 | Implement Arrow Flight SQL server for Mill with SQL metadata compatibility and per-column timezone semantics; complex type coverage depends on D-2/D-3/D-4 | ✨ feature | backlog | platform/arrow-flight-sql-server-design.md |
+| P-29 | Introduce proto/schema timezone extension (field-level TZ metadata) and propagate across source, backend, service, and client mappings | ✨ feature | backlog | **WI-011** |
+| P-30 | Implement end-to-end timezone support (frontend to backend): preserve, expose, and validate field-level timezone metadata across contracts and UI flows | ✨ feature | backlog | **TBD (new WI)** |
 
 ---
 
@@ -210,6 +218,22 @@ milestone-selectable deliverables extracted from design documents and work items
 | S-13 | Implement FlowContextFactory (CalciteContextFactory for source descriptors) | ✨ feature | done | source/flow-backend.md |
 | S-14 | Implement FlowBackendContextRunner in testkit | 🧪 test | done | source/flow-backend.md |
 | S-15 | Implement FlowBackendAutoConfiguration (Spring auto-configuration for flow backend) | ✨ feature | done | source/flow-backend.md |
+| S-16 | Add Arrow format module in data/formats as phase 1 before Flight/Flight SQL (schema + type mapping + source integration) | ✨ feature | backlog | source/arrow-format-design.md |
+| S-17 | Standardize format read/write naming: evaluate RecordSource vs RecordReader and align concrete format classes for consistency | 🔧 refactoring | backlog | **WI-011** |
+| S-18 | Add ORC format support in data/formats (reader/writer + schema mapping); nested/complex types depend on D-2/D-3/D-4 | ✨ feature | backlog | **TBD (new WI)** |
+| S-19 | Add Parquet complex type support (LIST/MAP/OBJECT) aligned with source type mapping; depends on D-2/D-3/D-4 | ✨ feature | backlog | data/complex-type-support.md |
+| S-20 | Add JSONL/NDJSON format support in data/formats (schema inference + reader/writer); nested/complex types depend on D-2/D-3/D-4 | ✨ feature | backlog | **TBD (new WI)** |
+| S-21 | Extend Arrow format support for complex types and timezone semantics after proto/client updates; depends on D-2/D-3/D-4 and P-29/P-30 | ✨ feature | backlog | source/arrow-format-design.md |
+
+**Recommended WI sequence (dependency-driven):**
+1. WI: Complex type support (`D-1`..`D-5` baseline)
+2. WI: Timezone semantics (row + schema/proto) — align to `P-29` (proto/schema TZ extension) and `P-30` (end-to-end TZ support), combine proto-impacting TZ work in one item
+3. WI: Client updates for complex types + TZ semantics (`C-19`, dependent on `P-29`/`P-30`)
+4. WI: Metadata adaptation for complex types (`M-27`, depends on `D-2`/`D-3`/`D-4`)
+5. WI: Extend Arrow support (`S-21`, depends on complex types + TZ work)
+6. WI: Implement JSONL (`S-20`, depends on complex types)
+7. WI: Implement ORC (`S-18`, depends on complex types)
+8. WI: Extend Parquet with complex types (`S-19`)
 
 ---
 
@@ -236,11 +260,11 @@ milestone-selectable deliverables extracted from design documents and work items
 | ----------- | ------- | --------- | -------------- | ------ | -------------- | ------- | ------- |
 | data        | 8       | 6         | 0              | 1      | 0              | 0       | 1       |
 | ai          | 23      | 16        | 4              | 1      | 2              | 0       | 0       |
-| client      | 16      | 9         | 0              | 3      | 3              | 0       | 1       |
-| metadata    | 22      | 13        | 0              | 2      | 6              | 1       | 0       |
-| platform    | 26      | 6         | 7              | 4      | 8              | 1       | 0       |
+| client      | 17      | 10        | 0              | 3      | 3              | 0       | 1       |
+| metadata    | 23      | 14        | 0              | 2      | 6              | 1       | 0       |
+| platform    | 30      | 10        | 7              | 4      | 8              | 1       | 0       |
 | publish     | 4       | 1         | 2              | 0      | 0              | 0       | 1       |
 | refactoring | 29      | 0         | 1              | 6      | 17             | 4       | 1       |
-| source      | 15      | 8         | 3              | 1      | 1              | 1       | 0       |
+| source      | 21      | 13        | 3              | 1      | 2              | 1       | 0       |
 | ui          | 10      | 4         | 4              | 0      | 1              | 1       | 0       |
-| **Total**   | **153** | **63**    | **21**         | **18** | **38**         | **8**   | **4**   |
+| **Total**   | **165** | **74**    | **21**         | **18** | **39**         | **8**   | **4**   |

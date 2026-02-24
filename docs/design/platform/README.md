@@ -27,6 +27,8 @@ A document belongs here if its **primary subject** is one of:
 | File | Description |
 |------|-------------|
 | `calcite-dialect-comparison.md` | Calcite dialect functions comparison: PostgreSQL vs SqlLibraryOperators |
+| `arrow-flight-server-design.md` | Arrow Flight server design for Mill query transport and type mapping |
+| `arrow-flight-sql-server-design.md` | Arrow Flight SQL server design for SQL metadata and command compatibility |
 | `CODEBASE_ANALYSIS_CURRENT.md` | High-level codebase analysis: metrics, structure, tech stack, status |
 | `CONFIGURATION_INVENTORY.md` | Spring configuration inventory: config files, @ConfigurationProperties, consumers |
 | `data-export-service.md` | gRPC data provider interface: contract decoupling query engine from data sources |

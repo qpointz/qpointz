@@ -12,6 +12,8 @@ public @interface ConditionalOnService {
 
     String value();
 
+    String group() default "";
+
     boolean enabled() default true;
 
 }
