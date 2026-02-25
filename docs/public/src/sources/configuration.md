@@ -281,12 +281,13 @@ The `type` field on each reader selects the format. Format-specific options go u
 | [Excel](formats/excel.md) | Microsoft Excel (.xlsx, .xls) files |
 | [Avro](formats/avro.md) | Apache Avro binary data files |
 | [Parquet](formats/parquet.md) | Apache Parquet columnar files |
+| [Arrow](formats/arrow.md) | Apache Arrow IPC stream/file payloads |
 
 ---
 
 ## Complete Examples
 
-For single-reader examples specific to each format, see the individual format pages: [CSV](formats/csv.md), [TSV](formats/tsv.md), [FWF](formats/fwf.md), [Excel](formats/excel.md), [Avro](formats/avro.md), [Parquet](formats/parquet.md).
+For single-reader examples specific to each format, see the individual format pages: [CSV](formats/csv.md), [TSV](formats/tsv.md), [FWF](formats/fwf.md), [Excel](formats/excel.md), [Avro](formats/avro.md), [Parquet](formats/parquet.md), [Arrow](formats/arrow.md).
 
 ### Multi-Reader — Mixed Formats
 

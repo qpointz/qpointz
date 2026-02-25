@@ -40,7 +40,7 @@ testing {
                 dependencies {
                     implementation(project())
                     implementation(project(":data:mill-data-testkit"))
-                    implementation(project(":data:formats:mill-source-format-text"))
+                    implementation(project(":data:formats:mill-data-format-text"))
                     implementation(libs.calcite.core)
                     implementation(libs.protobuf.java.util)
                     implementation(libs.mockito.core)

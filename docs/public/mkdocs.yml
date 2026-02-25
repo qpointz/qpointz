@@ -74,6 +74,7 @@ nav:
         - sources/formats/excel.md
         - sources/formats/avro.md
         - sources/formats/parquet.md
+        - sources/formats/arrow.md
     - Connect:
       - Python:
         - connect/python/index.md

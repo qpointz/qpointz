@@ -12,6 +12,13 @@ variables:
     options:
       - "true"
       - "false"
+  GRADLE_CONTINUE:
+    value: "false"
+    description: "Set to true to continue Gradle build after failure"
+    options:
+      - "true"
+      - "false"
+
 
   
 

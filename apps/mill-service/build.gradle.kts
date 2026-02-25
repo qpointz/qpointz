@@ -91,10 +91,11 @@ dependencies {
 
     implementation(project(":data:mill-data-source-core"))
     implementation(project(":data:mill-data-source-calcite"))
-    implementation(project(":data:formats:mill-source-format-text"))
-    implementation(project(":data:formats:mill-source-format-excel"))
-    implementation(project(":data:formats:mill-source-format-avro"))
-    implementation(project(":data:formats:mill-source-format-parquet"))
+    implementation(project(":data:formats:mill-data-format-text"))
+    implementation(project(":data:formats:mill-data-format-excel"))
+    implementation(project(":data:formats:mill-data-format-avro"))
+    implementation(project(":data:formats:mill-data-format-parquet"))
+    implementation(project(":data:formats:mill-data-format-arrow"))
 
     implementation(libs.springdoc.openapi.starter.webmvc.ui)
     implementation(libs.springdoc.openapi.starter.webflux.api)

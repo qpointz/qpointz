@@ -16,6 +16,7 @@ protobuf = "4.33.5"
 grpc = "1.79.0"
 apacheCommons = "3.14.0"
 apachePoi = "5.4.1"
+apacheArrow = "17.0.0"
 substrait = "0.60.0"
 bootGRPC = "3.1.0.RELEASE"
 jakartaServletApi = "6.1.0"
@@ -149,6 +150,8 @@ univocity-parsers = { module = "com.univocity:univocity-parsers", version = "2.9
 apache-avro = { module = "org.apache.avro:avro", version = "1.12.0" }
 apache-parquet-avro = { module = "org.apache.parquet:parquet-avro", version = "1.15.0" }
 apache-hadoop-common = { module = "org.apache.hadoop:hadoop-common", version = "3.4.1" }
+apache-arrow-vector = { module = "org.apache.arrow:arrow-vector", version.ref = "apacheArrow" }
+apache-arrow-memory-netty = { module = "org.apache.arrow:arrow-memory-netty", version.ref = "apacheArrow" }
 
 apache-poi-ooxml-lite = { module = "org.apache.poi:poi-ooxml-lite", version.ref = "apachePoi" }
 apache-poi-ooxml-full = { module = "org.apache.poi:poi-ooxml-full", version.ref = "apachePoi" }

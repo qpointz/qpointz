@@ -188,14 +188,14 @@ milestone-selectable deliverables extracted from design documents and work items
 | R-19 | Move mill-data-grpc-service and mill-data-http-service under data/services/ subfolder | 🔧 refactoring | done | refactoring/07-backend-context-runner.md |
 | R-20 | Move non-autoconfigure tests from mill-data-autoconfigure to backend-core and metadata modules | 🧪 test | done | refactoring/07-backend-context-runner.md |
 | R-21 | Delete orphaned application-*.yml Spring config files across modules | 🔧 refactoring | done | refactoring/07-backend-context-runner.md |
-| R-22 | Narrow broad @ComponentScan and unfiltered @EnableAutoConfiguration in tests across all modules | 🔧 refactoring | in-progress | **WI-009** |
-| R-23 | Delete dead MainLala.java test scaffolding from mill-test-kit | 🔧 refactoring | in-progress | **WI-009** |
-| R-24 | Move SecurityProvider interface from data/mill-data-backend-core to core/mill-security | 🔧 refactoring | in-progress | **WI-010** |
-| R-25 | Remove unused metadata dependencies from data/mill-data-autoconfigure | 🔧 refactoring | in-progress | **WI-010** |
-| R-26 | Remove spring-dependency-management plugin from pure modules (mill-core, mill-data-backends) | 🔧 refactoring | in-progress | **WI-010** |
-| R-27 | Remove boot.starter.test from core/mill-core test dependencies | 🔧 refactoring | in-progress | **WI-010** |
+| R-22 | Narrow broad @ComponentScan and unfiltered @EnableAutoConfiguration in tests across all modules | 🔧 refactoring | done | **WI-009** |
+| R-23 | Delete dead MainLala.java test scaffolding from mill-test-kit | 🔧 refactoring | done | **WI-009** |
+| R-24 | Move SecurityProvider interface from data/mill-data-backend-core to core/mill-security | 🔧 refactoring | done | **WI-010** |
+| R-25 | Remove unused metadata dependencies from data/mill-data-autoconfigure | 🔧 refactoring | done | **WI-010** |
+| R-26 | Remove spring-dependency-management plugin from pure modules (mill-core, mill-data-backends) | 🔧 refactoring | done | **WI-010** |
+| R-27 | Remove boot.starter.test from core/mill-core test dependencies | 🔧 refactoring | done | **WI-010** |
 | R-28 | ~~Extract Spring Boot @Configuration classes from mill-ai-v1-core~~ (skipped — v1 being replaced by v2) | 🔧 refactoring | cancelled | **WI-010** |
-| R-29 | Move @SpringBootApplication entry point out of mill-ai-v2 core library | 🔧 refactoring | in-progress | **WI-010** |
+| R-29 | Move @SpringBootApplication entry point out of mill-ai-v2 core library | 🔧 refactoring | done | **WI-010** |
 
 ---
 
@@ -218,7 +218,7 @@ milestone-selectable deliverables extracted from design documents and work items
 | S-13 | Implement FlowContextFactory (CalciteContextFactory for source descriptors) | ✨ feature | done | source/flow-backend.md |
 | S-14 | Implement FlowBackendContextRunner in testkit | 🧪 test | done | source/flow-backend.md |
 | S-15 | Implement FlowBackendAutoConfiguration (Spring auto-configuration for flow backend) | ✨ feature | done | source/flow-backend.md |
-| S-16 | Add Arrow format module in data/formats as phase 1 before Flight/Flight SQL (schema + type mapping + source integration) | ✨ feature | backlog | source/arrow-format-design.md |
+| S-16 | Add Arrow format module in data/formats as phase 1 before Flight/Flight SQL (schema + type mapping + source integration) | ✨ feature | done | **WI-011** |
 | S-17 | Standardize format read/write naming: evaluate RecordSource vs RecordReader and align concrete format classes for consistency | 🔧 refactoring | backlog | **WI-011** |
 | S-18 | Add ORC format support in data/formats (reader/writer + schema mapping); nested/complex types depend on D-2/D-3/D-4 | ✨ feature | backlog | **TBD (new WI)** |
 | S-19 | Add Parquet complex type support (LIST/MAP/OBJECT) aligned with source type mapping; depends on D-2/D-3/D-4 | ✨ feature | backlog | data/complex-type-support.md |

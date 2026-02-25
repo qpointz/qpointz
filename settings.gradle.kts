@@ -49,10 +49,11 @@ include (":apps")
 include (":apps:mill-service")
 
 include (":data:mill-data-source-core")
-include (":data:formats:mill-source-format-text")
-include (":data:formats:mill-source-format-excel")
-include (":data:formats:mill-source-format-avro")
-include (":data:formats:mill-source-format-parquet")
+include (":data:formats:mill-data-format-text")
+include (":data:formats:mill-data-format-excel")
+include (":data:formats:mill-data-format-avro")
+include (":data:formats:mill-data-format-parquet")
+include (":data:formats:mill-data-format-arrow")
 include (":data:mill-data-source-calcite")
 
 

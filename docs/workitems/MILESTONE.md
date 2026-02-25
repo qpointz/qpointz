@@ -35,6 +35,9 @@ Items delivered since `origin/main` on the current development branch.
 | WI-006 | Facet type catalog with validation and REST API | feature | done |
 | WI-007 | Relocate SchemaExplorerController to data HTTP service | refactoring | done |
 | WI-008 | Migrate metadata modules from Java/Lombok to Kotlin | refactoring | done |
+| WI-009 | Spring test configuration cleanup (narrow @ComponentScan, @EnableAutoConfiguration exclusions, delete MainLala) | refactoring | done |
+| WI-010 | Clean Spring / pure module separation (SecurityProvider relocation, dependency cleanup, AI config extraction, module inventory) | refactoring | done |
+| WI-011 | Arrow format support (module naming alignment, Arrow IPC reader/writer, docs) | feature | done |
 
 #### Source — Data Source Framework
 
@@ -45,17 +48,13 @@ Items delivered since `origin/main` on the current development branch.
 | S-13 | Implement FlowContextFactory (CalciteContextFactory for source descriptors) | feature | done |
 | S-14 | Implement FlowBackendContextRunner in testkit | test | done |
 | S-15 | Implement FlowBackendAutoConfiguration (Spring auto-configuration for flow backend) | feature | done |
+| S-16 | Add Arrow format module in data/formats as phase 1 before Flight/Flight SQL (schema + type mapping + source integration) | feature | done |
 
 ### In Progress
 
 Items currently being implemented in this milestone.
 
-#### Refactoring — Spring Configuration Cleanup
-
-| # | Item | Type | Status | Source |
-|---|------|------|--------|--------|
-| WI-009 | Spring test configuration cleanup (narrow @ComponentScan, @EnableAutoConfiguration exclusions, delete MainLala) | refactoring | in-progress | [WI-009](WI-009-spring-test-config-cleanup.md) |
-| WI-010 | Clean Spring / pure module separation (SecurityProvider relocation, dependency cleanup, AI config extraction, module inventory) | refactoring | in-progress | [WI-010](WI-010-spring-pure-module-separation.md) |
+No active in-progress items currently.
 
 ### Planned
 

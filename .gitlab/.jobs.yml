@@ -71,7 +71,17 @@
   image:
     name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/azul/zulu-openjdk:21-latest
   variables:
-    GRADLE_USER_HOME: ${CI_PROJECT_DIR}/.gradle-home      
+    GRADLE_USER_HOME: ${CI_PROJECT_DIR}/.gradle-home
+  before_script:
+    - |
+      if [ "$GRADLE_CONTINUE" = "true" ]; then
+        echo "Gradle : continue mode"
+        export GRADLE_CONTINUE_PARAM=" --continue "        
+      else
+        echo "Gradle : fail on error mode"
+        export GRADLE_CONTINUE_PARAM=" "
+      fi
+
   cache: &global_cache
     key: ${CI_COMMIT_REF_SLUG}     
     paths:

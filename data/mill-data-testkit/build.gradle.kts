@@ -38,7 +38,7 @@ testing {
                 dependencies {
                     implementation(project())
                     implementation(project(":data:mill-data-autoconfigure"))
-                    implementation(project(":data:formats:mill-source-format-text"))
+                    implementation(project(":data:formats:mill-data-format-text"))
                     implementation(libs.boot.starter)
                     //annotationProcessor(libs.boot.configuration.processor)
                     implementation(libs.boot.starter.test)

@@ -152,6 +152,7 @@ See [Configuration Reference](configuration.md#storage) for details.
 | [`excel`](formats/excel.md)   | Microsoft Excel (.xlsx, .xls) files  |
 | [`avro`](formats/avro.md)    | Apache Avro binary data files        |
 | [`parquet`](formats/parquet.md) | Apache Parquet columnar files        |
+| [`arrow`](formats/arrow.md) | Apache Arrow IPC stream/file payloads |
 
 See individual format pages for configuration options, type mappings, and examples.
 

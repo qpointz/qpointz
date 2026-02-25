@@ -10,10 +10,11 @@ dependencies {
     dokka(project(":data:services:mill-data-http-service"))
     dokka(project(":data:mill-data-source-core"))
     dokka(project(":data:mill-data-source-calcite"))
-    dokka(project(":data:formats:mill-source-format-text"))
-    dokka(project(":data:formats:mill-source-format-excel"))
-    dokka(project(":data:formats:mill-source-format-avro"))
-    dokka(project(":data:formats:mill-source-format-parquet"))
+    dokka(project(":data:formats:mill-data-format-text"))
+    dokka(project(":data:formats:mill-data-format-excel"))
+    dokka(project(":data:formats:mill-data-format-avro"))
+    dokka(project(":data:formats:mill-data-format-parquet"))
+    dokka(project(":data:formats:mill-data-format-arrow"))
 }
 
 tasks.register("test") {

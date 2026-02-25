@@ -6,7 +6,7 @@ apps:package-dist:
       artifacts: true
       optional: true
   script:    
-    - ./gradlew --no-daemon --continue --console plain clean :apps:mill-service:installBootDist :apps:mill-service:assembleSamples
+    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain clean :apps:mill-service:installBootDist :apps:mill-service:assembleSamples
   artifacts:
     expire_in: "5 days"
     paths:

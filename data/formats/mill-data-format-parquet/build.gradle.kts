@@ -12,7 +12,7 @@ mill {
 
 dependencies {
     api(project(":data:mill-data-source-core"))
-    implementation(project(":data:formats:mill-source-format-avro"))
+    implementation(project(":data:formats:mill-data-format-avro"))
     implementation(libs.apache.parquet.avro)
     // parquet-hadoop requires hadoop-common (provided scope in parquet pom).
     // We include it with aggressive exclusions to strip ~400MB of transitive bloat
