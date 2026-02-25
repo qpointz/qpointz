@@ -16,7 +16,7 @@ mill:
       driver: "org.h2.Driver"
       username: "*"
       password: "*"
-      output-schema: "ts"
+      target-schema: "ts"
 
 logging:
   level:

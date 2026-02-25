@@ -30,7 +30,7 @@ public class JdbcUtils {
             case INT -> Types.INTEGER;
             case BIG_INT -> Types.BIGINT;
             case BINARY -> Types.BINARY;
-            case BOOL -> Types.BLOB;
+            case BOOL -> Types.BOOLEAN;
             case DATE -> Types.DATE;
             case FLOAT -> Types.FLOAT;
             case DOUBLE -> Types.DOUBLE;

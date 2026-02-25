@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -52,6 +54,24 @@ class HttpMillClientTest {
 
             val req = srv.takeRequest();
             assertEquals(srv.url("/api/Handshake"), req.getRequestUrl());
+        }
+    }
+
+    @SneakyThrows
+    @Test
+    void handshakeAsyncShouldPropagateFailure() throws IOException {
+        try (val srv = new MockWebServer()) {
+            srv.enqueue(new MockResponse().setResponseCode(500).setBody("boom"));
+            srv.start();
+
+            val client = HttpMillClient.builder()
+                    .url(srv.url("/api").toString())
+                    .build();
+
+            val thrown = assertThrows(ExecutionException.class, () ->
+                    client.handshakeAsync(HandshakeRequest.getDefaultInstance()).get(5, TimeUnit.SECONDS));
+            assertNotNull(thrown.getCause());
+            assertTrue(thrown.getCause().getMessage().contains("status code: 500"));
         }
     }
 

@@ -17,16 +17,6 @@ dependencies {
     implementation(libs.bundles.logging)
 }
 
-// During Java->Kotlin migration, CI caches can contain stale Java class outputs
-// for types that now exist only in Kotlin sources. Exclude duplicates at jar time
-// and purge stale java output folder to keep packaging deterministic.
-tasks.named<Jar>("jar") {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    doFirst {
-        delete(layout.buildDirectory.dir("classes/java/main"))
-    }
-}
-
 testing {
     suites {
         register<JvmTestSuite>("testIT") {

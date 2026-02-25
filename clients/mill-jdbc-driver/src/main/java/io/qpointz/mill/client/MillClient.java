@@ -6,6 +6,10 @@ import lombok.extern.java.Log;
 import lombok.val;
 
 import java.util.Iterator;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
 
 import static io.qpointz.mill.client.MillClientConfiguration.*;
 
@@ -36,4 +40,48 @@ public abstract class MillClient implements AutoCloseable {
     public abstract GetSchemaResponse getSchema(GetSchemaRequest request) throws MillCodeException;
 
     public abstract Iterator<QueryResultResponse> execQuery(QueryRequest request) throws MillCodeException;
+
+    protected Executor asyncExecutor() {
+        return ForkJoinPool.commonPool();
+    }
+
+    public CompletableFuture<HandshakeResponse> handshakeAsync(HandshakeRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return handshake(request);
+            } catch (MillCodeException e) {
+                throw new CompletionException(e);
+            }
+        }, asyncExecutor());
+    }
+
+    public CompletableFuture<ListSchemasResponse> listSchemasAsync(ListSchemasRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return listSchemas(request);
+            } catch (MillCodeException e) {
+                throw new CompletionException(e);
+            }
+        }, asyncExecutor());
+    }
+
+    public CompletableFuture<GetSchemaResponse> getSchemaAsync(GetSchemaRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return getSchema(request);
+            } catch (MillCodeException e) {
+                throw new CompletionException(e);
+            }
+        }, asyncExecutor());
+    }
+
+    public CompletableFuture<Iterator<QueryResultResponse>> execQueryAsync(QueryRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return execQuery(request);
+            } catch (MillCodeException e) {
+                throw new CompletionException(e);
+            }
+        }, asyncExecutor());
+    }
 }
