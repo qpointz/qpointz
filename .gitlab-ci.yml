@@ -18,6 +18,12 @@ variables:
     options:
       - "true"
       - "false"
+  GRADLE_FORCE_CLEAN:
+    value: "false"
+    description: "Set to true to force Gradle clean"
+    options:
+      - "true"
+      - "false"
 
 
   
@@ -27,7 +33,7 @@ workflow:
     - if: '$CI_COMMIT_REF_PROTECTED == "true"'
       variables:
         RUN_INTEGRATION: "true"
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ($CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "rc" || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main")'
       variables:
         RUN_INTEGRATION: "true"
     - if: $CI_COMMIT_TAG
@@ -38,8 +44,8 @@ workflow:
 .if-protected: &if-protected
   if: '$CI_COMMIT_REF_PROTECTED == "true"'
 
-.if-mr: &if-mr
-  if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+.if-mr-full: &if-mr-full
+  if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ($CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "rc" || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main")'
 
 .if-run-integration: &if-run-integration
   if: '$RUN_INTEGRATION == "true"'
@@ -59,7 +65,7 @@ include:
       - when: never
   - local : ${CI_PROJECT_DIR}/core/.gitlab-ci.yml
     rules:
-      - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      - *if-mr-full
       - if: '$CI_COMMIT_REF_PROTECTED == "true"'
       - changes:
         - .gitlab-ci.yml
@@ -69,7 +75,7 @@ include:
       - when: never
   - local: ${CI_PROJECT_DIR}/metadata/.gitlab-ci.yml
     rules:
-      - *if-mr
+      - *if-mr-full
       - *if-protected
       - *build-changes
       - changes:
@@ -77,7 +83,7 @@ include:
       - when: never
   - local : ${CI_PROJECT_DIR}/apps/.gitlab-ci.yml
     rules:
-      - *if-mr
+      - *if-mr-full
       - *if-protected
       - *build-changes    
       - changes:
@@ -85,7 +91,7 @@ include:
       - when: never
   - local : ${CI_PROJECT_DIR}/ai/.gitlab-ci.yml
     rules:
-      - *if-mr
+      - *if-mr-full
       - *if-protected
       - *build-changes    
       - changes:
@@ -93,7 +99,7 @@ include:
       - when: never
   - local: ${CI_PROJECT_DIR}/ui/.gitlab-ci.yml
     rules:
-      - *if-mr
+      - *if-mr-full
       - *if-protected
       - *build-changes
       - changes:
@@ -101,7 +107,7 @@ include:
       - when: never
   - local: ${CI_PROJECT_DIR}/data/.gitlab-ci.yml
     rules:
-      - *if-mr
+      - *if-mr-full
       - *if-protected
       - *build-changes
       - changes:
@@ -109,7 +115,7 @@ include:
       - when: never
   - local : ${CI_PROJECT_DIR}/clients/.gitlab-ci.yml
     rules:
-      - *if-mr
+      - *if-mr-full
       - *if-protected
       - *build-changes    
       - changes:
@@ -124,7 +130,7 @@ init-version:
   stage: init
   extends: .get-build-version
   rules:
-      - *if-mr
+      - *if-mr-full
       - *if-protected
       - *build-changes
       - when: never

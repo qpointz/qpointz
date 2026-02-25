@@ -3,7 +3,7 @@ core:build:
   extends: .gradle-job
   script:
     - echo $HOME    
-    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain clean :core:test :core:compileTestIT
+    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :core:test :core:compileTestIT
   artifacts:
     when: always
     expire_in: 7 days
@@ -20,4 +20,4 @@ core:integration:
     - .gradle-job
     - .integration-job
   script:
-    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain clean :core:testIT
+    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :core:testIT

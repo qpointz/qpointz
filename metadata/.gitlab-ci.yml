@@ -3,4 +3,4 @@ metadata:build:
   extends: .gradle-job
   script:
     - echo $HOME    
-    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain clean :metadata:build
+    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :metadata:build

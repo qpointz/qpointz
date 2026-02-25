@@ -3,7 +3,7 @@ data:build:
   extends: .gradle-job
   script:
     - echo $HOME    
-    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain clean :data:test :data:compileTestIT
+    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :data:test :data:compileTestIT
   artifacts:
     when: always
     expire_in: 7 days
