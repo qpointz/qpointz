@@ -1,29 +1,41 @@
 package io.qpointz.mill.sql;
 
-import io.qpointz.mill.proto.DataType;
 import io.qpointz.mill.proto.LogicalDataType;
 import io.qpointz.mill.sql.readers.vector.ColumnMetadata;
 import lombok.val;
 
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RecordReaderMetaData implements ResultSetMetaData {
 
-    private final RecordReader reader;
+    private final List<ColumnMetadata> columns;
 
     public RecordReaderMetaData(RecordReader reader) {
-        this.reader = reader;
+        this(captureColumns(reader));
+    }
+
+    public RecordReaderMetaData(List<ColumnMetadata> columns) {
+        this.columns = List.copyOf(columns);
+    }
+
+    private static List<ColumnMetadata> captureColumns(RecordReader reader) {
+        val captured = new ArrayList<ColumnMetadata>();
+        for (int i = 0; i < reader.getColumnCount(); i++) {
+            captured.add(reader.getColumnMetadata(i));
+        }
+        return captured;
     }
 
     @Override
     public int getColumnCount() throws SQLException {
-        return this.reader.getColumnCount();
+        return this.columns.size();
     }
 
     private ColumnMetadata getColumnMetaData(int column) {
-        return this.reader.getColumnMetadata(column-1);
+        return this.columns.get(column - 1);
     }
 
     @Override

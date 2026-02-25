@@ -4,7 +4,6 @@ import io.qpointz.mill.MillCodeException;
 import io.qpointz.mill.proto.*;
 import org.junit.jupiter.api.Test;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -15,29 +14,51 @@ class MillClientAsyncTest {
 
     @Test
     void handshakeAsyncShouldReturnResponse() throws Exception {
-        var client = new FakeMillClient(false);
-        var response = client.handshakeAsync(HandshakeRequest.getDefaultInstance())
-                .get(5, TimeUnit.SECONDS);
-        assertNotNull(response);
+        try (var client = new FakeMillClient(false)) {
+            var response = client.handshakeAsync(HandshakeRequest.getDefaultInstance())
+                    .get(5, TimeUnit.SECONDS);
+            assertNotNull(response);
+        }
     }
 
     @Test
     void handshakeAsyncShouldPropagateFailure() {
-        var client = new FakeMillClient(true);
-        var thrown = assertThrows(ExecutionException.class, () ->
-                client.handshakeAsync(HandshakeRequest.getDefaultInstance()).get(5, TimeUnit.SECONDS));
-        assertNotNull(thrown.getCause());
-        assertTrue(thrown.getCause() instanceof MillCodeException);
-        assertEquals("expected", thrown.getCause().getMessage());
+        try (var client = new FakeMillClient(true)) {
+            var thrown = assertThrows(ExecutionException.class, () ->
+                    client.handshakeAsync(HandshakeRequest.getDefaultInstance()).get(5, TimeUnit.SECONDS));
+            assertNotNull(thrown.getCause());
+            assertTrue(thrown.getCause() instanceof MillCodeException);
+            assertEquals("expected", thrown.getCause().getMessage());
+        }
     }
 
     @Test
     void execQueryAsyncShouldReturnIterator() throws Exception {
-        var client = new FakeMillClient(false);
-        var iterator = client.execQueryAsync(QueryRequest.getDefaultInstance())
-                .get(5, TimeUnit.SECONDS);
-        assertTrue(iterator.hasNext());
-        assertNotNull(iterator.next());
+        try (var client = new FakeMillClient(false)) {
+            var result = client.execQueryAsync(QueryRequest.getDefaultInstance())
+                    .get(5, TimeUnit.SECONDS);
+            var iterator = result.getVectorBlocks();
+            assertTrue(iterator.hasNext());
+            assertNotNull(iterator.next());
+        }
+    }
+
+    @Test
+    void listSchemasAsyncShouldReturnResponse() throws Exception {
+        try (var client = new FakeMillClient(false)) {
+            var response = client.listSchemasAsync(ListSchemasRequest.getDefaultInstance())
+                    .get(5, TimeUnit.SECONDS);
+            assertNotNull(response);
+        }
+    }
+
+    @Test
+    void getSchemaAsyncShouldReturnResponse() throws Exception {
+        try (var client = new FakeMillClient(false)) {
+            var response = client.getSchemaAsync(GetSchemaRequest.getDefaultInstance())
+                    .get(5, TimeUnit.SECONDS);
+            assertNotNull(response);
+        }
     }
 
     private static class FakeMillClient extends MillClient {
@@ -71,8 +92,11 @@ class MillClientAsyncTest {
         }
 
         @Override
-        public Iterator<QueryResultResponse> execQuery(QueryRequest request) {
-            return List.of(QueryResultResponse.getDefaultInstance()).iterator();
+        public MillQueryResult execQuery(QueryRequest request) {
+            var response = QueryResultResponse.newBuilder()
+                    .setVector(VectorBlock.getDefaultInstance())
+                    .build();
+            return MillQueryResult.fromResponses(List.of(response).iterator());
         }
 
         @Override

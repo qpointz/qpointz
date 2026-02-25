@@ -65,7 +65,7 @@ class TestAsyncQuery:
     ) -> None:
         """``async for row in rs`` yields dicts."""
         rs = await async_mill_client.query(
-            f'SELECT "ID", "CITY" FROM "{schema_name}"."CITIES"',
+            f"SELECT `id`, `city` FROM `{schema_name}`.`cities`",
         )
         assert isinstance(rs, AsyncResultSet)
         rows: list[dict] = []
@@ -79,13 +79,13 @@ class TestAsyncQuery:
     ) -> None:
         """``await rs.fetchall()`` returns a list of dicts."""
         rs = await async_mill_client.query(
-            f'SELECT "ID", "CITY", "STATE" FROM "{schema_name}"."CITIES"',
+            f"SELECT `id`, `city`, `state` FROM `{schema_name}`.`cities`",
         )
         rows = await rs.fetchall()
         assert isinstance(rows, list)
         assert len(rows) > 0
         first = rows[0]
-        for key in ("ID", "CITY", "STATE"):
+        for key in ("id", "city", "state"):
             assert key in first
 
     async def test_async_re_iteration(
@@ -93,7 +93,7 @@ class TestAsyncQuery:
     ) -> None:
         """Re-iterating an AsyncResultSet replays cached data."""
         rs = await async_mill_client.query(
-            f'SELECT "ID" FROM "{schema_name}"."CITIES"',
+            f"SELECT `id` FROM `{schema_name}`.`cities`",
         )
         first_pass = await rs.fetchall()
         second_pass = await rs.fetchall()
@@ -103,21 +103,21 @@ class TestAsyncQuery:
         self, async_mill_client: AsyncMillClient, schema_name: str,
     ) -> None:
         rs = await async_mill_client.query(
-            f'SELECT "ID", "NAME" FROM "{schema_name}"."AIRCRAFT_TYPES" '
-            f"WHERE \"NAME\" = 'narrow'",
+            f"SELECT `id`, `name` FROM `{schema_name}`.`aircraft_types` "
+            f"WHERE `name` = 'narrow'",
         )
         rows = await rs.fetchall()
         assert len(rows) >= 1
         for row in rows:
-            assert row["NAME"] == "narrow"
+            assert row["name"] == "narrow"
 
     async def test_async_large_result_paging(
         self, async_mill_client: AsyncMillClient, schema_name: str,
     ) -> None:
         """Streaming / paging works for large result sets."""
         rs = await async_mill_client.query(
-            f'SELECT "ID", "WEIGHT_KG", "REVENUE" '
-            f'FROM "{schema_name}"."CARGO_SHIPMENTS"',
+            f"SELECT `id`, `weight_kg`, `revenue` "
+            f"FROM `{schema_name}`.`cargo_shipments`",
             fetch_size=100,
         )
         rows = await rs.fetchall()
@@ -135,12 +135,12 @@ class TestAsyncDataFrameConversion:
         import pyarrow as pa
 
         rs = await async_mill_client.query(
-            f'SELECT "ID", "CITY", "POPULATION" FROM "{schema_name}"."CITIES"',
+            f"SELECT `id`, `city`, `population` FROM `{schema_name}`.`cities`",
         )
         table = await rs.to_arrow()
         assert isinstance(table, pa.Table)
         assert table.num_rows > 0
-        assert "ID" in table.column_names
+        assert "id" in table.column_names
 
     async def test_async_to_pandas(
         self, async_mill_client: AsyncMillClient, schema_name: str,
@@ -148,12 +148,12 @@ class TestAsyncDataFrameConversion:
         import pandas as pd
 
         rs = await async_mill_client.query(
-            f'SELECT "ID", "CITY", "STATE" FROM "{schema_name}"."CITIES"',
+            f"SELECT `id`, `city`, `state` FROM `{schema_name}`.`cities`",
         )
         df = await rs.to_pandas()
         assert isinstance(df, pd.DataFrame)
         assert len(df) > 0
-        assert list(df.columns) == ["ID", "CITY", "STATE"]
+        assert list(df.columns) == ["id", "city", "state"]
 
     async def test_async_to_polars(
         self, async_mill_client: AsyncMillClient, schema_name: str,
@@ -161,9 +161,9 @@ class TestAsyncDataFrameConversion:
         import polars as pl
 
         rs = await async_mill_client.query(
-            f'SELECT "ID", "CITY", "POPULATION" FROM "{schema_name}"."CITIES"',
+            f"SELECT `id`, `city`, `population` FROM `{schema_name}`.`cities`",
         )
         df = await rs.to_polars()
         assert isinstance(df, pl.DataFrame)
         assert len(df) > 0
-        assert df.columns == ["ID", "CITY", "POPULATION"]
+        assert df.columns == ["id", "city", "population"]

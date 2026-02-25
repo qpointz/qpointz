@@ -13,7 +13,7 @@ This works when the server has security disabled.
 ```python
 from mill import connect
 
-client = connect("grpc://localhost:9099")
+client = connect("grpc://localhost:9090")
 
 # Verify identity
 resp = client.handshake()
@@ -32,7 +32,7 @@ from mill import connect
 from mill.auth import BasicAuth
 
 client = connect(
-    "grpc://localhost:9099",
+    "grpc://localhost:9090",
     auth=BasicAuth("reader", "secret"),
 )
 
@@ -53,7 +53,7 @@ from mill import connect
 from mill.auth import BearerToken
 
 client = connect(
-    "grpc://localhost:9099",
+    "grpc://localhost:9090",
     auth=BearerToken("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."),
 )
 ```
@@ -138,7 +138,7 @@ from mill import connect, MillAuthError
 from mill.auth import BasicAuth
 
 try:
-    client = connect("grpc://localhost:9099", auth=BasicAuth("bad", "creds"))
+    client = connect("grpc://localhost:9090", auth=BasicAuth("bad", "creds"))
     client.handshake()
 except MillAuthError as e:
     print(f"Auth failed: {e}")

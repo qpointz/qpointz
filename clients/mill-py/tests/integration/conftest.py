@@ -1,14 +1,14 @@
 """Integration test conftest — configuration, fixtures, and skip logic.
 
 All configuration is driven by environment variables prefixed with ``MILL_IT_``.
-When no variables are set the suite defaults to **gRPC on localhost:9099,
+When no variables are set the suite defaults to **gRPC on localhost:9090,
 no TLS, no auth** so that a bare ``pytest -m integration`` works against a
 local dev server out of the box.
 
 Environment variables
 ---------------------
 MILL_IT_HOST        Server hostname (default: localhost)
-MILL_IT_PORT        Server port (default: protocol-dependent — 9099 for gRPC, 8501 for HTTP)
+MILL_IT_PORT        Server port (default: protocol-dependent — 9090 for gRPC, 8501 for HTTP)
 MILL_IT_PROTOCOL    One of: grpc, http-json, http-protobuf (default: grpc)
 MILL_IT_BASE_PATH   HTTP base path prefix (default: /services/jet; ignored for gRPC)
 MILL_IT_TLS         true / false (default: false)
@@ -30,6 +30,7 @@ import pytest
 
 import mill
 from mill.auth import BasicAuth, BearerToken, Credential
+from mill.exceptions import MillError, MillQueryError
 
 
 # ---------------------------------------------------------------------------
@@ -84,7 +85,7 @@ class IntegrationConfig:
 def _default_port(protocol: str, tls: bool) -> int:
     """Return the default port for the given protocol."""
     if protocol == "grpc":
-        return 443 if tls else 9099
+        return 443 if tls else 9090
     return 443 if tls else 8501
 
 
@@ -97,7 +98,7 @@ def _env_path(var: str) -> str | None:
 def _read_config() -> IntegrationConfig:
     """Read configuration from environment.
 
-    Defaults to ``grpc://localhost:9099``, no TLS, no auth when nothing is set.
+    Defaults to ``grpc://localhost:9090``, no TLS, no auth when nothing is set.
     """
     protocol = os.environ.get("MILL_IT_PROTOCOL", "grpc").strip().lower()
     tls = os.environ.get("MILL_IT_TLS", "false").strip().lower() == "true"
@@ -133,6 +134,75 @@ def _read_config() -> IntegrationConfig:
     )
 
 
+def _mask_secret(value: str) -> str:
+    return "<set>" if value else "<empty>"
+
+
+def _log_config(config: IntegrationConfig) -> None:
+    """Print resolved integration parameters for easier CI diagnostics."""
+    http_path = config.base_path if config.protocol != "grpc" else "<n/a>"
+    print(
+        "[mill-py integration] "
+        f"url={config.url} "
+        f"protocol={config.protocol} "
+        f"host={config.host} "
+        f"port={config.port} "
+        f"base_path={http_path} "
+        f"auth={config.auth_mode} "
+        f"tls={config.tls} "
+        f"schema={config.schema_name} "
+        f"tls_ca={_mask_secret(config.tls_ca or '')} "
+        f"tls_cert={_mask_secret(config.tls_cert or '')} "
+        f"tls_key={_mask_secret(config.tls_key or '')} "
+        f"token={_mask_secret(config.token)}"
+    )
+
+
+def _log_mill_error(err: MillError) -> None:
+    """Print detailed Mill error diagnostics for failed tests."""
+    print("[mill-py integration][error] type=" + err.__class__.__name__)
+    print("[mill-py integration][error] message=" + str(err))
+    if getattr(err, "details", None):
+        print(f"[mill-py integration][error] details={err.details}")
+
+    if isinstance(err, MillQueryError):
+        if err.request_method:
+            print(f"[mill-py integration][error] request_method={err.request_method}")
+        if err.request_url:
+            print(f"[mill-py integration][error] request_url={err.request_url}")
+        if err.request_headers:
+            print(f"[mill-py integration][error] request_headers={err.request_headers}")
+        if err.response_headers:
+            print(f"[mill-py integration][error] response_headers={err.response_headers}")
+        if err.status_code is not None:
+            print(f"[mill-py integration][error] status_code={err.status_code}")
+        if err.error:
+            print(f"[mill-py integration][error] error={err.error}")
+        if err.path:
+            print(f"[mill-py integration][error] path={err.path}")
+        if err.timestamp:
+            print(f"[mill-py integration][error] timestamp={err.timestamp}")
+        if err.raw_body:
+            print(f"[mill-py integration][error] raw_body={err.raw_body}")
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[object]) -> object:
+    """Emit rich diagnostics when a test fails with a Mill error."""
+    outcome = yield
+    report = outcome.get_result()
+    if report.when != "call" or report.passed:
+        return
+
+    excinfo = call.excinfo
+    if excinfo is None:
+        return
+
+    value = excinfo.value
+    if isinstance(value, MillError):
+        _log_mill_error(value)
+
+
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -141,9 +211,11 @@ def _read_config() -> IntegrationConfig:
 def mill_config() -> IntegrationConfig:
     """Session-scoped configuration parsed from MILL_IT_* env vars.
 
-    Defaults to ``grpc://localhost:9099``, no TLS, no auth.
+    Defaults to ``grpc://localhost:9090``, no TLS, no auth.
     """
-    return _read_config()
+    config = _read_config()
+    _log_config(config)
+    return config
 
 
 @pytest.fixture(scope="session")

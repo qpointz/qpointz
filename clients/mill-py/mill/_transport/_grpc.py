@@ -55,7 +55,7 @@ class GrpcTransport(Transport):
 
     Example::
 
-        >>> t = GrpcTransport("localhost", 9099)
+        >>> t = GrpcTransport("localhost", 9090)
         >>> resp = t.handshake()
         >>> t.close()
     """

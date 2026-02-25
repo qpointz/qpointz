@@ -12,7 +12,7 @@ from __future__ import annotations
 # Configuration — adjust to your environment
 # ---------------------------------------------------------------------------
 GRPC_HOST = "localhost"
-GRPC_PORT = 9099
+GRPC_PORT = 9090
 HTTP_HOST = "localhost"
 HTTP_PORT = 8080
 HTTP_BASE_PATH = "/services/jet"
@@ -193,7 +193,7 @@ def example_error_handling():
 
     # Unreachable server
     try:
-        with connect("grpc://nonexistent.host:9099") as client:
+        with connect("grpc://nonexistent.host:9090") as client:
             client.handshake()
     except MillConnectionError as e:
         print(f"Connection error (expected): {e}")

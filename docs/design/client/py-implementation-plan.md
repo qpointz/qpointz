@@ -106,7 +106,7 @@ from mill import connect
 # --- Three transport modes ---
 
 # 1. gRPC (binary protobuf over HTTP/2, server-streaming for queries)
-client = connect("grpc://localhost:9099")
+client = connect("grpc://localhost:9090")
 
 # 2. HTTP with JSON encoding (human-readable, good for debugging)
 client = connect("http://localhost:8080/services/jet")                    # default: json
@@ -116,25 +116,25 @@ client = connect("http://localhost:8080/services/jet", encoding="json")   # expl
 client = connect("http://localhost:8080/services/jet", encoding="protobuf")
 
 # Secure variants
-client = connect("grpcs://localhost:9099")                                # gRPC + TLS
+client = connect("grpcs://localhost:9090")                                # gRPC + TLS
 client = connect("https://localhost:8443/services/jet")                   # HTTP + TLS
 
 # --- Authentication ---
 
 # Anonymous (default — no auth header sent)
-client = connect("grpc://localhost:9099")
+client = connect("grpc://localhost:9090")
 
 # Basic auth (username + password, base64-encoded)
 from mill.auth import BasicAuth, BearerToken
-client = connect("grpc://localhost:9099", auth=BasicAuth("user", "pass"))
+client = connect("grpc://localhost:9090", auth=BasicAuth("user", "pass"))
 client = connect("http://localhost:8080/services/jet", auth=BasicAuth("user", "pass"))
 
 # Bearer token (OAuth2 / JWT)
-client = connect("grpc://localhost:9099", auth=BearerToken("eyJhbG..."))
+client = connect("grpc://localhost:9090", auth=BearerToken("eyJhbG..."))
 client = connect("http://localhost:8080/services/jet", auth=BearerToken("eyJhbG..."))
 
 # --- Context manager ---
-with connect("grpc://localhost:9099") as client:
+with connect("grpc://localhost:9090") as client:
     ...
 
 # --- Schema operations ---
@@ -181,7 +181,7 @@ client = connect("myhost.example.com")
 # Currently raises NotImplementedError("Service discovery not implemented yet")
 
 # Explicit URL always works (no discovery)
-client = connect("grpc://myhost.example.com:9099")
+client = connect("grpc://myhost.example.com:9090")
 ```
 
 The server exposes `GET /.well-known/mill` (unauthenticated, permitted by
@@ -227,7 +227,7 @@ the response, and raises `NotImplementedError("Service discovery not implemented
 ```python
 from mill.aio import connect as aconnect
 
-async with aconnect("grpc://localhost:9099") as client:
+async with aconnect("grpc://localhost:9090") as client:
     schemas = await client.list_schemas()
     result = await client.query("SELECT ...")
     async for row in result:
@@ -523,12 +523,12 @@ under `docs/design/client/`. A new agent should:
 DataFrame extras. This ensures the core client (transport, types, ResultSet) works correctly
 with real gRPC and HTTP services.
 
-**Configuration** — all via environment variables (defaults to `grpc://localhost:9099`, no TLS, no auth):
+**Configuration** — all via environment variables (defaults to `grpc://localhost:9090`, no TLS, no auth):
 
 | Variable | Description | Default |
 |---|---|---|
 | `MILL_IT_HOST` | Server hostname | `localhost` |
-| `MILL_IT_PORT` | Server port (protocol-dependent) | `9099` (gRPC), `8501` (HTTP) |
+| `MILL_IT_PORT` | Server port (protocol-dependent) | `9090` (gRPC), `8501` (HTTP) |
 | `MILL_IT_PROTOCOL` | Protocol: `grpc`, `http-json`, `http-protobuf` | `grpc` |
 | `MILL_IT_BASE_PATH` | HTTP base path prefix (ignored for gRPC) | `/services/jet` |
 | `MILL_IT_TLS` | Enable TLS: `true` / `false` | `false` |
@@ -544,7 +544,7 @@ with real gRPC and HTTP services.
 **Example invocations**:
 
 ```bash
-# Default — gRPC, localhost:9099, no auth, no TLS
+# Default — gRPC, localhost:9090, no auth, no TLS
 poetry run pytest -m integration
 
 # gRPC on custom host/port
@@ -717,7 +717,7 @@ The ibis backend API:
 import mill.ibis as mill_ibis
 
 # Connect to Mill as an ibis backend
-con = mill_ibis.connect("grpc://localhost:9099")
+con = mill_ibis.connect("grpc://localhost:9090")
 
 # List available schemas/tables (from Mill's get_schema)
 con.list_tables(schema="MONETA")
@@ -782,7 +782,7 @@ SQLAlchemy ORM / Core expressions
 ```python
 import mill.dbapi
 
-conn = mill.dbapi.connect("grpc://localhost:9099")
+conn = mill.dbapi.connect("grpc://localhost:9090")
 cursor = conn.cursor()
 cursor.execute('SELECT "ID", "CITY" FROM "skymill"."CITIES"')
 print(cursor.description)  # ((name, type_code, ...), ...)
@@ -802,7 +802,7 @@ df = pd.read_sql('SELECT "ID", "CITY" FROM "skymill"."CITIES"', conn)
 from sqlalchemy import create_engine, text, MetaData, Table, select
 
 # Connect via mill:// URL scheme
-engine = create_engine("mill+grpc://localhost:9099/skymill")
+engine = create_engine("mill+grpc://localhost:9090/skymill")
 # HTTP variant:
 engine = create_engine("mill+http://localhost:8080/skymill?base_path=/services/jet")
 
@@ -1072,7 +1072,7 @@ poetry run pytest --cov=mill --cov-report=xml:coverage.xml --junitxml=results.xm
 ### Run integration tests
 
 Integration tests require a running Mill service with the **skymill** dataset.
-All configuration is via environment variables. Defaults to `grpc://localhost:9099`.
+All configuration is via environment variables. Defaults to `grpc://localhost:9090`.
 
 ```bash
 cd clients/mill-py
@@ -1080,7 +1080,7 @@ cd clients/mill-py
 # Install dependencies (first time / CI setup)
 poetry install --all-extras
 
-# Default — gRPC on localhost:9099, no auth, no TLS
+# Default — gRPC on localhost:9090, no auth, no TLS
 poetry run pytest -m integration -v
 
 # HTTP JSON
@@ -1116,7 +1116,7 @@ MILL_IT_PROTOCOL=http-json MILL_IT_HOST=localhost MILL_IT_PORT=8080 \
 | Variable | Description | Default |
 |---|---|---|
 | `MILL_IT_HOST` | Server hostname | `localhost` |
-| `MILL_IT_PORT` | Server port | `9099` (gRPC) / `8501` (HTTP) |
+| `MILL_IT_PORT` | Server port | `9090` (gRPC) / `8501` (HTTP) |
 | `MILL_IT_PROTOCOL` | `grpc`, `http-json`, `http-protobuf` | `grpc` |
 | `MILL_IT_BASE_PATH` | HTTP base path prefix (ignored for gRPC) | `/services/jet` |
 | `MILL_IT_TLS` | `true` / `false` | `false` |

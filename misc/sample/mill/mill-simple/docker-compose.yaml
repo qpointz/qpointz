@@ -3,7 +3,7 @@ services:
   mill-backend:
     image: qpointz/mill-calcite-backend:v0.2.1-dev
     ports:
-      - "9099:9099"
+      - "9090:9090"
     environment:
       - QP_MILL_BACKEND_SECURITY_ENABLED=false
   

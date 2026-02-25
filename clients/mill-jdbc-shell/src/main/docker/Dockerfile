@@ -39,7 +39,7 @@ RUN mkdir -p /app/config && \
 
 USER 1000
 
-EXPOSE 9099
+EXPOSE 9090
 EXPOSE 8080
 
 COPY --chown=1000:1000 ./build/install/mill-jdbc-shell/ /app/

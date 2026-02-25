@@ -24,7 +24,7 @@ pip install mill-py[all]         # everything
 from mill import connect
 
 # Connect via gRPC
-client = connect("grpc://localhost:9099")
+client = connect("grpc://localhost:9090")
 
 # List schemas
 for name in client.list_schemas():
@@ -49,7 +49,7 @@ client = connect("http://localhost:8080/services/jet", encoding="protobuf")
 ### Context Manager
 
 ```python
-with connect("grpc://localhost:9099") as client:
+with connect("grpc://localhost:9090") as client:
     result = client.query("SELECT 1")
     print(result.fetchall())
 ```
@@ -61,13 +61,13 @@ from mill import connect
 from mill.auth import BasicAuth, BearerToken
 
 # Basic auth (username + password)
-client = connect("grpc://localhost:9099", auth=BasicAuth("user", "pass"))
+client = connect("grpc://localhost:9090", auth=BasicAuth("user", "pass"))
 
 # Bearer token (OAuth2 / JWT)
-client = connect("grpc://localhost:9099", auth=BearerToken("eyJhbG..."))
+client = connect("grpc://localhost:9090", auth=BearerToken("eyJhbG..."))
 
 # Anonymous (default — no auth header)
-client = connect("grpc://localhost:9099")
+client = connect("grpc://localhost:9090")
 ```
 
 ## TLS / Mutual-TLS
@@ -110,7 +110,7 @@ The `mill.aio` module mirrors the synchronous API with `async`/`await`.
 from mill.aio import connect as aconnect
 from mill.auth import BasicAuth
 
-async with await aconnect("grpc://localhost:9099") as client:
+async with await aconnect("grpc://localhost:9090") as client:
     schemas = await client.list_schemas()
 
     result = await client.query('SELECT * FROM "skymill"."CITIES"')
@@ -124,7 +124,7 @@ async with await aconnect("grpc://localhost:9099") as client:
 ## Schema Introspection
 
 ```python
-client = connect("grpc://localhost:9099")
+client = connect("grpc://localhost:9090")
 
 # List schema names
 schemas = client.list_schemas()
@@ -167,7 +167,7 @@ native types:
 from mill import connect, MillConnectionError, MillAuthError, MillQueryError
 
 try:
-    client = connect("grpc://localhost:9099")
+    client = connect("grpc://localhost:9090")
     result = client.query("SELECT bad syntax")
 except MillConnectionError:
     print("Cannot reach the server")

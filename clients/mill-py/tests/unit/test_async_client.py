@@ -110,9 +110,9 @@ class TestAsyncConnect:
     async def test_grpc_url(self, _stub: MagicMock, mock_chan: MagicMock) -> None:
         # Make the channel mock's close() awaitable
         mock_chan.return_value.close = AsyncMock()
-        c = await connect("grpc://myhost:9099")
+        c = await connect("grpc://myhost:9090")
         assert isinstance(c, AsyncMillClient)
-        mock_chan.assert_called_once_with("myhost:9099")
+        mock_chan.assert_called_once_with("myhost:9090")
         await c.close()
 
     @patch("mill.aio._transport._grpc.grpc.aio.secure_channel")
@@ -163,7 +163,7 @@ class TestAsyncConnect:
     async def test_grpc_default_port(self, _stub: MagicMock, mock_chan: MagicMock) -> None:
         mock_chan.return_value.close = AsyncMock()
         c = await connect("grpc://host")
-        mock_chan.assert_called_once_with("host:9099")
+        mock_chan.assert_called_once_with("host:9090")
         await c.close()
 
     async def test_http_default_port(self) -> None:
@@ -176,7 +176,7 @@ class TestAsyncConnect:
     async def test_auth_passed_to_grpc(self, _stub: MagicMock, _chan: MagicMock) -> None:
         _chan.return_value.close = AsyncMock()
         from mill.auth import BasicAuth
-        c = await connect("grpc://host:9099", auth=BasicAuth("u", "p"))
+        c = await connect("grpc://host:9090", auth=BasicAuth("u", "p"))
         meta = c._transport._meta()  # type: ignore[union-attr]
         assert meta is not None
         await c.close()

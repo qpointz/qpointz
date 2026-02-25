@@ -5,7 +5,6 @@ import io.qpointz.mill.proto.*;
 import lombok.extern.java.Log;
 import lombok.val;
 
-import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
@@ -39,7 +38,7 @@ public abstract class MillClient implements AutoCloseable {
 
     public abstract GetSchemaResponse getSchema(GetSchemaRequest request) throws MillCodeException;
 
-    public abstract Iterator<QueryResultResponse> execQuery(QueryRequest request) throws MillCodeException;
+    public abstract MillQueryResult execQuery(QueryRequest request) throws MillCodeException;
 
     protected Executor asyncExecutor() {
         return ForkJoinPool.commonPool();
@@ -75,7 +74,7 @@ public abstract class MillClient implements AutoCloseable {
         }, asyncExecutor());
     }
 
-    public CompletableFuture<Iterator<QueryResultResponse>> execQueryAsync(QueryRequest request) {
+    public CompletableFuture<MillQueryResult> execQueryAsync(QueryRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 return execQuery(request);

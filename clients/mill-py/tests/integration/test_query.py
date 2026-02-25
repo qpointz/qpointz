@@ -15,7 +15,7 @@ class TestSimpleSelect:
         self, mill_client: MillClient, schema_name: str,
     ) -> None:
         rs = mill_client.query(
-            f'SELECT "ID", "CITY" FROM "{schema_name}"."CITIES"',
+            f"SELECT `id`, `city` FROM `{schema_name}`.`cities`",
         )
         rows = rs.fetchall()
         assert len(rows) > 0, "Expected at least one city row"
@@ -24,12 +24,12 @@ class TestSimpleSelect:
         self, mill_client: MillClient, schema_name: str,
     ) -> None:
         rs = mill_client.query(
-            f'SELECT "ID", "CITY", "STATE" FROM "{schema_name}"."CITIES"',
+            f"SELECT `id`, `city`, `state` FROM `{schema_name}`.`cities`",
         )
         rows = rs.fetchall()
         assert len(rows) > 0
         first = rows[0]
-        for key in ("ID", "CITY", "STATE"):
+        for key in ("id", "city", "state"):
             assert key in first, f"Key {key!r} missing from row: {first.keys()}"
 
 
@@ -41,27 +41,27 @@ class TestWhereClause:
         self, mill_client: MillClient, schema_name: str,
     ) -> None:
         rs = mill_client.query(
-            f'SELECT "ID", "NAME" FROM "{schema_name}"."AIRCRAFT_TYPES" '
-            f"WHERE \"NAME\" = 'narrow'",
+            f"SELECT `id`, `name` FROM `{schema_name}`.`aircraft_types` "
+            f"WHERE `name` = 'narrow'",
         )
         rows = rs.fetchall()
         assert len(rows) >= 1
         for row in rows:
-            assert row["NAME"] == "narrow"
+            assert row["name"] == "narrow"
 
     def test_impossible_where_returns_empty_with_fields(
         self, mill_client: MillClient, schema_name: str,
     ) -> None:
         rs = mill_client.query(
-            f'SELECT "ID", "CITY" FROM "{schema_name}"."CITIES" WHERE "ID" < -999999',
+            f"SELECT `id`, `city` FROM `{schema_name}`.`cities` WHERE `id` < -999999",
         )
         rows = rs.fetchall()
         assert len(rows) == 0
         # Fields should still be populated from schema
         assert rs.fields is not None
         field_names = [f.name for f in rs.fields]
-        assert "ID" in field_names
-        assert "CITY" in field_names
+        assert "id" in field_names
+        assert "city" in field_names
 
 
 @pytest.mark.integration
@@ -72,15 +72,15 @@ class TestJoinQuery:
         self, mill_client: MillClient, schema_name: str,
     ) -> None:
         sql = (
-            f'SELECT "s"."ID", "s"."DISTANCE", "c"."CITY" AS "ORIGIN_CITY" '
-            f'FROM "{schema_name}"."SEGMENTS" AS "s" '
-            f'JOIN "{schema_name}"."CITIES" AS "c" ON "s"."ORIGIN" = "c"."ID"'
+            f"SELECT `s`.`id`, `s`.`distance`, `c`.`city` AS `origin_city` "
+            f"FROM `{schema_name}`.`segments` AS `s` "
+            f"JOIN `{schema_name}`.`cities` AS `c` ON `s`.`origin` = `c`.`id`"
         )
         rs = mill_client.query(sql)
         rows = rs.fetchall()
         assert len(rows) > 0
         first = rows[0]
-        assert "ORIGIN_CITY" in first
+        assert "origin_city" in first
 
 
 @pytest.mark.integration
@@ -91,7 +91,7 @@ class TestFetchallAndIteration:
         self, mill_client: MillClient, schema_name: str,
     ) -> None:
         rs = mill_client.query(
-            f'SELECT "ID" FROM "{schema_name}"."CITIES"',
+            f"SELECT `id` FROM `{schema_name}`.`cities`",
         )
         result = rs.fetchall()
         assert isinstance(result, list)
@@ -100,7 +100,7 @@ class TestFetchallAndIteration:
         self, mill_client: MillClient, schema_name: str,
     ) -> None:
         rs = mill_client.query(
-            f'SELECT "ID", "CITY" FROM "{schema_name}"."CITIES"',
+            f"SELECT `id`, `city` FROM `{schema_name}`.`cities`",
         )
         count = 0
         for row in rs:
@@ -112,7 +112,7 @@ class TestFetchallAndIteration:
         self, mill_client: MillClient, schema_name: str,
     ) -> None:
         rs = mill_client.query(
-            f'SELECT "ID", "CITY" FROM "{schema_name}"."CITIES"',
+            f"SELECT `id`, `city` FROM `{schema_name}`.`cities`",
         )
         first_pass = list(rs)
         second_pass = list(rs)
@@ -127,8 +127,8 @@ class TestLargeQuery:
         self, mill_client: MillClient, schema_name: str,
     ) -> None:
         rs = mill_client.query(
-            f'SELECT "ID", "WEIGHT_KG", "REVENUE" '
-            f'FROM "{schema_name}"."CARGO_SHIPMENTS"',
+            f"SELECT `id`, `weight_kg`, `revenue` "
+            f"FROM `{schema_name}`.`cargo_shipments`",
             fetch_size=100,
         )
         rows = rs.fetchall()
@@ -141,8 +141,8 @@ class TestLargeQuery:
         self, mill_client: MillClient, schema_name: str,
     ) -> None:
         rs = mill_client.query(
-            f'SELECT "ID", "PASSENGER_ID", "SEAT_NUMBER" '
-            f'FROM "{schema_name}"."BOOKINGS"',
+            f"SELECT `id`, `passenger_id`, `seat_number` "
+            f"FROM `{schema_name}`.`bookings`",
             fetch_size=50,
         )
         rows = rs.fetchall()
@@ -161,14 +161,14 @@ class TestDataFrameConversion:
         import pyarrow as pa
 
         rs = mill_client.query(
-            f'SELECT "ID", "CITY", "POPULATION" FROM "{schema_name}"."CITIES"',
+            f"SELECT `id`, `city`, `population` FROM `{schema_name}`.`cities`",
         )
         table = rs.to_arrow()
         assert isinstance(table, pa.Table)
         assert table.num_rows > 0
-        assert "ID" in table.column_names
-        assert "CITY" in table.column_names
-        assert "POPULATION" in table.column_names
+        assert "id" in table.column_names
+        assert "city" in table.column_names
+        assert "population" in table.column_names
 
     def test_to_pandas(
         self, mill_client: MillClient, schema_name: str,
@@ -176,12 +176,12 @@ class TestDataFrameConversion:
         import pandas as pd
 
         rs = mill_client.query(
-            f'SELECT "ID", "CITY", "STATE" FROM "{schema_name}"."CITIES"',
+            f"SELECT `id`, `city`, `state` FROM `{schema_name}`.`cities`",
         )
         df = rs.to_pandas()
         assert isinstance(df, pd.DataFrame)
         assert len(df) > 0
-        assert list(df.columns) == ["ID", "CITY", "STATE"]
+        assert list(df.columns) == ["id", "city", "state"]
 
     def test_to_polars(
         self, mill_client: MillClient, schema_name: str,
@@ -189,12 +189,12 @@ class TestDataFrameConversion:
         import polars as pl
 
         rs = mill_client.query(
-            f'SELECT "ID", "CITY", "POPULATION" FROM "{schema_name}"."CITIES"',
+            f"SELECT `id`, `city`, `population` FROM `{schema_name}`.`cities`",
         )
         df = rs.to_polars()
         assert isinstance(df, pl.DataFrame)
         assert len(df) > 0
-        assert df.columns == ["ID", "CITY", "POPULATION"]
+        assert df.columns == ["id", "city", "population"]
 
     def test_arrow_large_result(
         self, mill_client: MillClient, schema_name: str,
@@ -202,8 +202,8 @@ class TestDataFrameConversion:
         import pyarrow as pa
 
         rs = mill_client.query(
-            f'SELECT "ID", "WEIGHT_KG", "REVENUE" '
-            f'FROM "{schema_name}"."CARGO_SHIPMENTS"',
+            f"SELECT `id`, `weight_kg`, `revenue` "
+            f"FROM `{schema_name}`.`cargo_shipments`",
             fetch_size=100,
         )
         table = rs.to_arrow()
@@ -216,8 +216,8 @@ class TestDataFrameConversion:
         import pandas as pd
 
         rs = mill_client.query(
-            f'SELECT "ID", "NAME", "DESCRIPTION" '
-            f'FROM "{schema_name}"."AIRCRAFT_TYPES"',
+            f"SELECT `id`, `name`, `description` "
+            f"FROM `{schema_name}`.`aircraft_types`",
         )
         df = rs.to_pandas()
         assert isinstance(df, pd.DataFrame)

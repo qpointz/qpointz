@@ -3,7 +3,7 @@ services:
     image: registry.qpointz.io/qpointz/qpointz/clients-test-backend-server:feat-jdbc-driver 
     pull_policy: always
     ports:
-      - "9099:9099"
+      - "9090:9090"
     volumes:
       - ./config/ssl/_.local/cert-full.pem:/app/config/ssl/server.crt
       - ./config/ssl/_.local/key.pem:/app/config/ssl/server.key
@@ -11,7 +11,7 @@ services:
     image: registry.qpointz.io/qpointz/qpointz/clients-test-backend-server:feat-jdbc-driver 
     pull_policy: always
     ports:
-      - "9098:9099"
+      - "9098:9090"
     environment:
       SPRING_PROFILES_ACTIVE: "auth,tls"
     volumes:
@@ -21,7 +21,7 @@ services:
     image: registry.qpointz.io/qpointz/qpointz/clients-test-backend-server:feat-jdbc-driver 
     pull_policy: always
     ports:
-      - "9097:9099"
+      - "9097:9090"
     environment:
       SPRING_PROFILES_ACTIVE: "auth"
     volumes:
@@ -31,7 +31,7 @@ services:
     image: registry.qpointz.io/qpointz/qpointz/clients-test-backend-server:feat-jdbc-driver 
     pull_policy: always
     ports:
-      - "9096:9099"
+      - "9096:9090"
     environment:
       SPRING_PROFILES_ACTIVE: "tls"
     volumes:

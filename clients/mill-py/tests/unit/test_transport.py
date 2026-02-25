@@ -45,8 +45,8 @@ class TestGrpcTransportConstruction:
     @patch("mill._transport._grpc.grpc.insecure_channel")
     @patch("mill._transport._grpc._grpc_stub.DataConnectServiceStub")
     def test_insecure_channel(self, mock_stub: MagicMock, mock_channel: MagicMock) -> None:
-        t = GrpcTransport("localhost", 9099)
-        mock_channel.assert_called_once_with("localhost:9099")
+        t = GrpcTransport("localhost", 9090)
+        mock_channel.assert_called_once_with("localhost:9090")
         mock_stub.assert_called_once()
         t.close()
 
@@ -64,7 +64,7 @@ class TestGrpcTransportConstruction:
     @patch("mill._transport._grpc.grpc.insecure_channel")
     @patch("mill._transport._grpc._grpc_stub.DataConnectServiceStub")
     def test_metadata_from_basic_auth(self, _stub: MagicMock, _chan: MagicMock) -> None:
-        t = GrpcTransport("host", 9099, auth=BasicAuth("u", "p"))
+        t = GrpcTransport("host", 9090, auth=BasicAuth("u", "p"))
         meta = t._meta()
         assert meta is not None
         assert any(k == "authorization" and v.startswith("Basic ") for k, v in meta)
@@ -73,7 +73,7 @@ class TestGrpcTransportConstruction:
     @patch("mill._transport._grpc.grpc.insecure_channel")
     @patch("mill._transport._grpc._grpc_stub.DataConnectServiceStub")
     def test_metadata_anonymous(self, _stub: MagicMock, _chan: MagicMock) -> None:
-        t = GrpcTransport("host", 9099)
+        t = GrpcTransport("host", 9090)
         assert t._meta() is None
         t.close()
 

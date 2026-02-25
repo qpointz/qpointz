@@ -23,7 +23,7 @@ service:
   httpPort: 8080
   
   # -- gRPC port (Mill protocol)
-  grpcPort: 9099
+  grpcPort: 9090
 
 # =================================
 # Destination Targeting
@@ -75,14 +75,14 @@ gateway:
     # - "mill.example.com"
     # - "api.example.com"
   
-  # -- Gateway ports (HTTP only by default; gRPC omitted - Calico often uses 9099)
+  # -- Gateway ports (HTTP only by default; gRPC omitted by default)
   ports:
     - name: http
       number: 80
       protocol: HTTP
-    # gRPC (uncomment if 9099 is free; Calico Typha may use it):
+    # gRPC (uncomment if 9090 is free in your environment):
     # - name: grpc
-    #   number: 9099
+    #   number: 9090
     #   protocol: TCP
     # HTTPS example (uncomment and set credentialName when you have TLS certs):
     # - name: https
@@ -137,13 +137,13 @@ virtualService:
   # Note: TCP routes do not support timeout (HTTP-only feature)
   tcp:
     - match:
-        - port: 9099
+        - port: 9090
       route:
         - destination:
             host: mill-service  # Service name (will be overridden by service.name)
             # subset: ""  # Optional: route to specific subset
             port:
-              number: 9099
+              number: 9090
 
 # =================================
 # DestinationRule Configuration

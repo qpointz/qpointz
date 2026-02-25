@@ -1,5 +1,5 @@
-stages:  
-  - init 
+stages:
+  - init
   - build
   - package
   - integration
@@ -7,7 +7,7 @@ stages:
 
 variables:
   RUN_INTEGRATION: 
-    value: "false" 
+    value: "false"
     description: "Set to true to run integration tests"
     options:
       - "true"

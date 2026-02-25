@@ -47,8 +47,8 @@ class TestAsyncGrpcTransportConstruction:
     @patch("mill.aio._transport._grpc.grpc.aio.insecure_channel")
     @patch("mill.aio._transport._grpc._grpc_stub.DataConnectServiceStub")
     def test_insecure_channel(self, mock_stub: MagicMock, mock_channel: MagicMock) -> None:
-        t = AsyncGrpcTransport("localhost", 9099)
-        mock_channel.assert_called_once_with("localhost:9099")
+        t = AsyncGrpcTransport("localhost", 9090)
+        mock_channel.assert_called_once_with("localhost:9090")
         mock_stub.assert_called_once()
 
     @patch("mill.aio._transport._grpc.grpc.aio.secure_channel")
@@ -64,7 +64,7 @@ class TestAsyncGrpcTransportConstruction:
     @patch("mill.aio._transport._grpc.grpc.aio.insecure_channel")
     @patch("mill.aio._transport._grpc._grpc_stub.DataConnectServiceStub")
     def test_metadata_from_basic_auth(self, _stub: MagicMock, _chan: MagicMock) -> None:
-        t = AsyncGrpcTransport("host", 9099, auth=BasicAuth("u", "p"))
+        t = AsyncGrpcTransport("host", 9090, auth=BasicAuth("u", "p"))
         meta = t._meta()
         assert meta is not None
         assert any(k == "authorization" and v.startswith("Basic ") for k, v in meta)
@@ -72,7 +72,7 @@ class TestAsyncGrpcTransportConstruction:
     @patch("mill.aio._transport._grpc.grpc.aio.insecure_channel")
     @patch("mill.aio._transport._grpc._grpc_stub.DataConnectServiceStub")
     def test_metadata_from_bearer_token(self, _stub: MagicMock, _chan: MagicMock) -> None:
-        t = AsyncGrpcTransport("host", 9099, auth=BearerToken("tok"))
+        t = AsyncGrpcTransport("host", 9090, auth=BearerToken("tok"))
         meta = t._meta()
         assert meta is not None
         assert any(k == "authorization" and v == "Bearer tok" for k, v in meta)
@@ -80,7 +80,7 @@ class TestAsyncGrpcTransportConstruction:
     @patch("mill.aio._transport._grpc.grpc.aio.insecure_channel")
     @patch("mill.aio._transport._grpc._grpc_stub.DataConnectServiceStub")
     def test_metadata_anonymous(self, _stub: MagicMock, _chan: MagicMock) -> None:
-        t = AsyncGrpcTransport("host", 9099)
+        t = AsyncGrpcTransport("host", 9090)
         assert t._meta() is None
 
 

@@ -34,7 +34,7 @@ class AsyncGrpcTransport(AsyncTransport):
 
     Example::
 
-        >>> t = AsyncGrpcTransport("localhost", 9099)
+        >>> t = AsyncGrpcTransport("localhost", 9090)
         >>> resp = await t.handshake()
         >>> await t.close()
     """

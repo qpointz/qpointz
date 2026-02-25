@@ -115,6 +115,16 @@ class HttpTransport(Transport):
 
     # -- request helper --
 
+    @staticmethod
+    def _sanitize_headers(headers: dict[str, str]) -> dict[str, str]:
+        redacted: dict[str, str] = {}
+        for key, value in headers.items():
+            if key.lower() == "authorization":
+                redacted[key] = "<redacted>"
+            else:
+                redacted[key] = value
+        return redacted
+
     def _post(
         self,
         path: str,
@@ -135,20 +145,38 @@ class HttpTransport(Transport):
             MillError: On HTTP error status.
             MillConnectionError: On transport failure.
         """
+        # Ensure endpoint stays relative so httpx base_url path is preserved.
+        rel_path = path.lstrip("/")
         body = self._serialize(request_msg)
         content_kwarg: dict[str, Any]
         if isinstance(body, bytes):
             content_kwarg = {"content": body}
         else:
             content_kwarg = {"content": body.encode("utf-8")}
+        request_method = "POST"
+        request_url = f"{self._base_url}/{rel_path}"
+        request_headers = self._sanitize_headers(dict(self._client.headers))
 
         try:
-            resp = self._client.post(path, **content_kwarg)
+            resp = self._client.post(rel_path, **content_kwarg)
         except httpx.TransportError as e:
-            raise MillConnectionError(str(e)) from e
+            raise MillConnectionError(
+                str(e),
+                details=(
+                    f"HTTP {request_method} {request_url} "
+                    f"headers={request_headers}"
+                ),
+            ) from e
 
         if resp.status_code >= 400:
-            raise _from_http_status(resp.status_code, resp.text)
+            raise _from_http_status(
+                resp.status_code,
+                resp.text,
+                request_method=request_method,
+                request_url=str(resp.request.url),
+                request_headers=request_headers,
+                response_headers=dict(resp.headers),
+            )
 
         return self._deserialize(resp.content, response_type)
 

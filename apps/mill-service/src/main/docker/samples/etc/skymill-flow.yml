@@ -1,0 +1,10 @@
+name: skymill
+storage:
+  type: local
+  rootPath: "/data/skymill/"
+table:
+  mapping:
+    type: regex
+    pattern: "(?<table>[^/]+)\\.parquet"
+readers:
+  - type: parquet

@@ -1,7 +1,7 @@
 grpc:
   server:
     port: ${mill.data.services.grpc.port}
-    address: ${mill.data.services.grpc.address}
+#    address: ${mill.data.services.grpc.address}
 
 spring:
   application:
@@ -21,17 +21,26 @@ mill:
         grpc:
           scheme: grpc
           host: localhost
-          port: 9099
+          port: 9090
   data:
     services:
       grpc:
         enable: true
         host:
           external: grpc
-        port: 9099
+        port: 9090
       http:
         enable: true
         host:
           external: http
         port: 8080
+## LEGACY subject to review
+  security:
+    enable: false
+  metadata:
+    relations: none
+    annotations: none
+  services:
+    ai-nl2data:
+      enable: false
 

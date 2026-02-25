@@ -20,10 +20,10 @@ mill:
         url: "jdbc:h2:mem:test2;INIT=RUNSCRIPT FROM '../../../test/datasets/cmart/sql/cmart.sql'"
         driver: "org.h2.Driver"
         target-schema: "ts"
-
+    services:
+      http:
+        enable: true
   security:
     enable: false
 
-  services:
-    jet-http:
-      enable: true
+

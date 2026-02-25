@@ -50,13 +50,12 @@ mill-clients:init-version:
     - job: mill-clients:init-version
       artifacts: true
   variables:
-    TEST_PROFILES: ${CI_PROJECT_DIR}/.test-profiles
     TLS_CERT_CHAIN: "${CI_PROJECT_DIR}/.certs/client/client.pem"
     TLS_CERT_PK: "${CI_PROJECT_DIR}/.certs/client/client.key"
     TLS_ROOT_CA: "${CI_PROJECT_DIR}/etc/certs/ca.pem"
 #    MILL_TEST_PROFILE: "all"
 #    MILL_HOST: backend.local
-#    MILL_PORT: "9099"
+#    MILL_PORT: "9090"
 #    MILL_AUTH_TLS_HOST: backend-auth-tls.local
 #    MILL_AZ_FUNC_API_URL: "http://func.local:7071/api/"
     CI_DEBUG_SERVICES: "true"
@@ -66,11 +65,6 @@ mill-clients:init-version:
     - openssl req -x509 -out ${TLS_CERT_CHAIN} -keyout ${TLS_CERT_PK} -newkey rsa:2048 -nodes -sha256 -subj '/CN=TESTUSER'
     - export MILL_JWT_TOKEN="$(cat ${CI_PROJECT_DIR}/etc/.test_az_token)"
     - find  ${CI_PROJECT_DIR}/etc/certs/
-    - |-
-      cat << PRF >  ${CI_PROJECT_DIR}/.test-profiles
-      backend.local,8080,http,N,N
-      backend.local,9099,grpc,N,N      
-      PRF
 
 .mill-client:mill-py:test:
   script:    

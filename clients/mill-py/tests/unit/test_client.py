@@ -96,9 +96,9 @@ class TestConnect:
     @patch("mill._transport._grpc.grpc.insecure_channel")
     @patch("mill._transport._grpc._grpc_stub.DataConnectServiceStub")
     def test_grpc_url(self, _stub: MagicMock, mock_chan: MagicMock) -> None:
-        c = connect("grpc://myhost:9099")
+        c = connect("grpc://myhost:9090")
         assert isinstance(c, MillClient)
-        mock_chan.assert_called_once_with("myhost:9099")
+        mock_chan.assert_called_once_with("myhost:9090")
         c.close()
 
     @patch("mill._transport._grpc.grpc.secure_channel")
@@ -150,7 +150,7 @@ class TestConnect:
     @patch("mill._transport._grpc._grpc_stub.DataConnectServiceStub")
     def test_grpc_default_port(self, _stub: MagicMock, mock_chan: MagicMock) -> None:
         c = connect("grpc://host")
-        mock_chan.assert_called_once_with("host:9099")
+        mock_chan.assert_called_once_with("host:9090")
         c.close()
 
     def test_http_default_port(self) -> None:
@@ -162,7 +162,7 @@ class TestConnect:
     @patch("mill._transport._grpc._grpc_stub.DataConnectServiceStub")
     def test_auth_passed_to_grpc(self, _stub: MagicMock, _chan: MagicMock) -> None:
         from mill.auth import BasicAuth
-        c = connect("grpc://host:9099", auth=BasicAuth("u", "p"))
+        c = connect("grpc://host:9090", auth=BasicAuth("u", "p"))
         meta = c._transport._meta()  # type: ignore[union-attr]
         assert meta is not None
         c.close()

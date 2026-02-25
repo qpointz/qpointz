@@ -1,0 +1,41 @@
+services:
+  mill-it:
+    image: ${MILL_SERVICE_IMAGE:-registry.qpointz.io/qpointz/qpointz/mill-service-samples:fix-integration}
+    pull_policy: always
+    entrypoint: ["./bin/mill-service"]
+    command: [""]
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-skymill}
+    ports:
+      - "${HOST_HTTP_PORT:-8080}:8080"
+      - "${HOST_GRPC_PORT:-9090}:9090"
+    networks:
+      default:
+        aliases:
+          - mill-it
+
+  toolbox:
+    image: ubuntu:24.04
+    depends_on:
+      - mill-it
+    working_dir: /workspace/clients/mill-py
+    volumes:
+      - ../../../:/workspace
+    environment:
+      MILL_IT_HOST: ${MILL_IT_HOST:-mill-it}
+      MILL_IT_PORT: ${MILL_IT_PORT:-8080}
+      MILL_IT_PROTOCOL: ${MILL_IT_PROTOCOL:-http-json}
+      MILL_IT_BASE_PATH: ${MILL_IT_BASE_PATH:-/services/jet}
+      MILL_IT_AUTH: ${MILL_IT_AUTH:-none}
+      MILL_IT_TLS: ${MILL_IT_TLS:-false}
+      MILL_IT_SCHEMA: ${MILL_IT_SCHEMA:-skymill}
+    command:
+      - /bin/bash
+      - -lc
+      - >
+        apt-get update &&
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends
+        ca-certificates curl git python3 python3-pip python3-venv &&
+        sleep infinity
+    stdin_open: true
+    tty: true

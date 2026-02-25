@@ -9,7 +9,7 @@ Execute SQL queries against Mill and consume results row-by-row or in bulk.
 ```python
 from mill import connect
 
-with connect("grpc://localhost:9099") as client:
+with connect("grpc://localhost:9090") as client:
     result = client.query('SELECT "id", "city" FROM "skymill"."cities" LIMIT 10')
     for row in result:
         print(row)
@@ -145,7 +145,7 @@ Connection errors raise `MillConnectionError`:
 from mill import connect, MillConnectionError
 
 try:
-    client = connect("grpc://unreachable:9099")
+    client = connect("grpc://unreachable:9090")
     client.handshake()
 except MillConnectionError as e:
     print(f"Cannot reach server: {e}")

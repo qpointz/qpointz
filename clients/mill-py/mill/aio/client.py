@@ -29,7 +29,7 @@ class AsyncMillClient:
     Example::
 
         >>> from mill.aio import connect
-        >>> async with await connect("grpc://localhost:9099") as client:
+        >>> async with await connect("grpc://localhost:9090") as client:
         ...     for name in await client.list_schemas():
         ...         print(name)
     """

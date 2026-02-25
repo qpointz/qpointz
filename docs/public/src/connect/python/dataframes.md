@@ -23,7 +23,7 @@ pip install mill-py[all]         # everything
 ```python
 from mill import connect
 
-with connect("grpc://localhost:9099") as client:
+with connect("grpc://localhost:9090") as client:
     result = client.query('SELECT "id", "city" FROM "skymill"."cities"')
     table = result.to_arrow()
 

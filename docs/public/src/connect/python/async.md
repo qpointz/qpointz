@@ -23,10 +23,10 @@ For notebooks and scripts, the synchronous API is usually simpler.
 from mill.aio import connect
 
 # Await the connect() coroutine
-client = await connect("grpc://localhost:9099")
+client = await connect("grpc://localhost:9090")
 
 # Or use as an async context manager
-async with await connect("grpc://localhost:9099") as client:
+async with await connect("grpc://localhost:9090") as client:
     schemas = await client.list_schemas()
 ```
 
@@ -104,7 +104,7 @@ Run multiple queries in parallel:
 import asyncio
 from mill.aio import connect
 
-async with await connect("grpc://localhost:9099") as client:
+async with await connect("grpc://localhost:9090") as client:
     # Launch queries concurrently
     results = await asyncio.gather(
         client.query('SELECT COUNT(*) AS "n" FROM "skymill"."cities"'),
@@ -126,7 +126,7 @@ from mill.aio import connect
 from mill.auth import BasicAuth
 
 async def main():
-    async with await connect("grpc://localhost:9099") as client:
+    async with await connect("grpc://localhost:9090") as client:
         # Introspection
         schemas = await client.list_schemas()
         print(f"Schemas: {schemas}")

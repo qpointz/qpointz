@@ -429,7 +429,7 @@ implementation(project(":data:mill-data-grpc-service-v2"))  // new
 | New only (target) | `mill.services.grpc-v2.enable=true` | Only pure grpc-java module activates |
 | Both (comparison) | Both enabled, different ports | Run both simultaneously for side-by-side testing |
 
-During comparison testing the new module can bind to a separate port (e.g. `mill.services.grpc-v2.port=9098`) while the old module keeps `9099`.
+During comparison testing the new module can bind to a separate port (e.g. `mill.services.grpc-v2.port=9098`) while the old module keeps `9090`.
 
 #### Cutover steps
 
@@ -456,7 +456,7 @@ public class GrpcServerConfiguration {
     public Server grpcServer(
             MillGrpcService service,
             List<ServerInterceptor> interceptors,
-            @Value("${mill.services.grpc.port:9099}") int port,
+            @Value("${mill.services.grpc.port:9090}") int port,
             @Value("${mill.services.grpc.address:*}") String address) {
 
         var builder = NettyServerBuilder

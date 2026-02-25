@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Data
 @Component
-@ConditionalOnService("jet-http")
+@ConditionalOnService(value = "http", group = "data")
 public class HttpServiceDescriptor implements ServiceDescriptor {
 
     public record HostDescriptor(String external) {}

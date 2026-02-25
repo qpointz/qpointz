@@ -1,4 +1,4 @@
-FROM azul/zulu-openjdk:17-latest AS openjdk
+FROM azul/zulu-openjdk:21-latest AS openjdk
 
 RUN apt update && \
     apt install binutils -y && \
@@ -32,15 +32,20 @@ RUN mkdir -p /app/config && \
 
 USER 1000
 
-EXPOSE 9099
+EXPOSE 9090
 EXPOSE 8080
 
 COPY --chown=1000:1000 ./build/install/mill-service-boot/ /app/
 
 RUN ln -s /config /app/config
 
+ENV LOADER_PATH=/extras
+
 VOLUME /config
+
 VOLUME /data
+
+VOLUME /extras
 
 WORKDIR /app
 

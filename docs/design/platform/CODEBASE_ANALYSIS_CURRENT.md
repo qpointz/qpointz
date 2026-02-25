@@ -356,7 +356,7 @@ jdbc:mill://hostname:port/schema?param=value
 ```python
 from millclient.client import MillClient
 
-client = MillClient(host="localhost", port=9099)
+client = MillClient(host="localhost", port=9090)
 result = client.execute("SELECT * FROM customers")
 df = result.to_dataframe()
 ```
@@ -373,7 +373,7 @@ df = result.to_dataframe()
 val df = spark.read
   .format("io.qpointz.mill.spark")
   .option("host", "localhost")
-  .option("port", "9099")
+  .option("port", "9090")
   .load()
 ```
 

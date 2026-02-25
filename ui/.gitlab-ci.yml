@@ -34,11 +34,6 @@ ui:grinder-ui-v2:build:
 ui:build:
   stage: build
   extends: .gradle-job
-  needs:
-    - job: ui:grinder-ui-v1:build
-      artifacts: true
-    - job: ui:grinder-ui-v2:build
-      artifacts: true
   script:
     - echo $HOME    
     - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :ui:test :ui:compileTestIT

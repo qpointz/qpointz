@@ -31,7 +31,7 @@ build-docker: rebuild
 						./mill-service
 
 run-moneta : build-docker
-	docker run -ti -p "8080:8080" -p "9099:9099" \
+	docker run -ti -p "8080:8080" -p "9090:9090" \
 		mill-service-samples - \
 		--logging.level.root=INFO \
 		--spring.profiles.active=moneta \

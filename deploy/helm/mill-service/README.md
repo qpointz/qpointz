@@ -22,7 +22,7 @@ Helm chart for deploying Mill Service - a data access and NL-to-SQL platform.
 
 Mill Service provides:
 - **REST API** on port 8080 for HTTP access and web UI
-- **gRPC API** on port 9099 for Mill protocol
+- **gRPC API** on port 9090 for Mill protocol
 - **NL-to-SQL** capabilities with AI integration
 - **Metadata management** for data relations and annotations
 - **Multiple backend providers** (JDBC, etc.)
@@ -352,15 +352,15 @@ kubectl port-forward svc/mill-service 8080:8080 -n default
 
 **gRPC:**
 ```bash
-kubectl port-forward svc/mill-service 9099:9099 -n default
-# Connect to localhost:9099
+kubectl port-forward svc/mill-service 9090:9090 -n default
+# Connect to localhost:9090
 ```
 
 ### Service Endpoints
 
 The service exposes:
 - **HTTP**: Port 8080 (REST API, Web UI, Actuator endpoints)
-- **gRPC**: Port 9099 (Mill protocol)
+- **gRPC**: Port 9090 (Mill protocol)
 
 ### Health Endpoints
 
@@ -571,7 +571,7 @@ Key configuration options:
 | `image.tag` | Image tag | `v0.6.0-dev` |
 | `image.name` | Full image name (overrides repository:tag) | `""` |
 | `service.httpPort` | HTTP port | `8080` |
-| `service.grpcPort` | gRPC port | `9099` |
+| `service.grpcPort` | gRPC port | `9090` |
 | `config.enabled` | Enable ConfigMap-based config | `true` |
 | `secrets.create` | Create Kubernetes Secret | `true` |
 | `secrets.data` | Secret key-value pairs | `{}` |

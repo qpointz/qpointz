@@ -42,7 +42,7 @@ public class MillClientConfiguration {
 
     @Getter
     @Builder.Default
-    private int port = 9099;
+    private int port = 9090;
 
     @Getter
     @Builder.Default
@@ -115,7 +115,7 @@ public class MillClientConfiguration {
             return this
                     .stringProp(properties, HOST_PROP, null, this::host)
                     .stringProp(properties, API_PATH_PROP, DEFAULT_API_PATH, this::path)
-                    .anyProp(properties, PORT_PROP, 9099, Integer::parseInt, this::port)
+                    .anyProp(properties, PORT_PROP, 9090, Integer::parseInt, this::port)
                     .stringProp(properties, USERNAME_PROP, null, this::username)
                     .stringProp(properties, PASSWORD_PROP, null, this::password)
                     .stringProp(properties, BEARER_TOKEN_PROP, null, this::bearerToken)

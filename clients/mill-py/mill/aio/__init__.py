@@ -7,7 +7,7 @@ Quick start::
     from mill.aio import connect
     from mill.auth import BasicAuth
 
-    async with await connect("grpc://localhost:9099", auth=BasicAuth("user", "pass")) as client:
+    async with await connect("grpc://localhost:9090", auth=BasicAuth("user", "pass")) as client:
         for name in await client.list_schemas():
             print(name)
 
@@ -71,7 +71,7 @@ async def connect(
         An open :class:`AsyncMillClient`.  Use as an async context manager
         to ensure cleanup::
 
-            async with await connect("grpc://localhost:9099") as c:
+            async with await connect("grpc://localhost:9090") as c:
                 ...
 
     Raises:
@@ -88,7 +88,7 @@ async def connect(
         from mill.aio._transport._grpc import AsyncGrpcTransport
 
         ssl = scheme == "grpcs"
-        port = port or (443 if ssl else 9099)
+        port = port or (443 if ssl else 9090)
         transport = AsyncGrpcTransport(
             host, port, ssl=ssl, auth=auth,
             tls_ca=tls_ca, tls_cert=tls_cert, tls_key=tls_key,

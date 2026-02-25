@@ -6,29 +6,29 @@ import pytest
 from mill import MillClient, MillSchema
 from mill.exceptions import MillQueryError
 
-# Expected tables in the skymill schema (UPPERCASE as returned by the server)
+# Expected tables in the skymill schema.
 EXPECTED_TABLES = {
-    "CITIES",
-    "SEGMENTS",
-    "AIRCRAFT",
-    "AIRCRAFT_TYPES",
-    "PASSENGER",
-    "FLIGHT_INSTANCES",
-    "CARGO_FLIGHTS",
-    "BOOKINGS",
-    "LOYALTY_EARNINGS",
-    "DELAYS",
-    "CANCELLATIONS",
-    "TICKET_PRICES",
-    "RATINGS",
-    "COUNTRIES",
-    "CARGO_CLIENTS",
-    "CARGO_TYPES",
-    "CARGO_SHIPMENTS",
+    "cities",
+    "segments",
+    "aircraft",
+    "aircraft_types",
+    "passenger",
+    "flight_instances",
+    "cargo_flights",
+    "bookings",
+    "loyalty_earnings",
+    "delays",
+    "cancellations",
+    "ticket_prices",
+    "ratings",
+    "countries",
+    "cargo_clients",
+    "cargo_types",
+    "cargo_shipments",
 }
 
-# Expected fields for the CITIES table (UPPERCASE as returned by the server)
-CITIES_FIELDS = ["ID", "STATE", "CITY", "POPULATION", "AIRPORT", "AIRPORT_IATA"]
+# Expected fields for the cities table.
+CITIES_FIELDS = ["id", "state", "city", "population", "airport", "airport_iata"]
 
 
 @pytest.mark.integration
@@ -71,9 +71,9 @@ class TestGetSchema:
     ) -> None:
         schema = mill_client.get_schema(schema_name)
         cities = next(
-            (t for t in schema.tables if t.name == "CITIES"), None,
+            (t for t in schema.tables if t.name == "cities"), None,
         )
-        assert cities is not None, "CITIES table not found"
+        assert cities is not None, "cities table not found"
         assert len(cities.fields) == len(CITIES_FIELDS), (
             f"Expected {len(CITIES_FIELDS)} fields, got {len(cities.fields)}: "
             f"{[f.name for f in cities.fields]}"
@@ -84,13 +84,13 @@ class TestGetSchema:
     ) -> None:
         schema = mill_client.get_schema(schema_name)
         cities = next(
-            (t for t in schema.tables if t.name == "CITIES"), None,
+            (t for t in schema.tables if t.name == "cities"), None,
         )
         assert cities is not None
         actual_names = [f.name for f in cities.fields]
         for expected in CITIES_FIELDS:
             assert expected in actual_names, (
-                f"Field {expected!r} not found in CITIES — got {actual_names}"
+                f"Field {expected!r} not found in cities — got {actual_names}"
             )
 
     def test_nonexistent_schema_raises(self, mill_client: MillClient) -> None:

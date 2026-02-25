@@ -13,11 +13,12 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 @AllArgsConstructor
 @Builder
-public class HttpMillClient extends MillClient implements AutoCloseable {
+public class HttpMillClient extends MillClient {
 
     @Getter
     private final String protocol;
@@ -161,6 +162,51 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
         }
     }
 
+    private <T extends Message> CompletableFuture<T> postAsync(String path, Message message, Function<byte[], T> produce) {
+        final String jsonMessage;
+        try {
+            jsonMessage = JsonFormat.printer().print(message);
+        } catch (InvalidProtocolBufferException e) {
+            return CompletableFuture.failedFuture(new MillCodeException(e));
+        }
+
+        val builder = new Request.Builder()
+                .url(this.requestUrl(path))
+                .post(RequestBody.create(jsonMessage.getBytes()))
+                .addHeader("Content-Type", JSON.toString())
+                .addHeader("Accept", PROTOBUF.toString());
+        if (authenticationHeaderValue != null) {
+            builder.addHeader("Authorization", this.getAuthenticationHeaderValue());
+        }
+        val req = builder.build();
+        val call = this.getHttpClient().newCall(req);
+        val result = new CompletableFuture<T>();
+
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                result.completeExceptionally(new MillCodeException("Failed to execute HTTP request", e));
+            }
+
+            @Override
+            public void onResponse(Call call, Response resp) {
+                try (resp) {
+                    if (!resp.isSuccessful()) {
+                        result.completeExceptionally(new MillCodeException(
+                                "HTTP request failed with status code: " + resp.code() + " and message: " + resp.message()));
+                        return;
+                    }
+
+                    result.complete(produce.apply(resp.body().bytes()));
+                } catch (Exception e) {
+                    result.completeExceptionally(new MillCodeException("Failed to read response body", e));
+                }
+            }
+        });
+
+        return result;
+    }
+
     @Override
     public String getClientUrl() {
         return this.buildUrl();
@@ -205,8 +251,19 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
     }
 
     @Override
-    public Iterator<QueryResultResponse> execQuery(QueryRequest request) {
-        return new QueryResultResponseIterator(request);
+    public MillQueryResult execQuery(QueryRequest request) {
+        return MillQueryResult.fromResponses(new QueryResultResponseIterator(request));
+    }
+
+    @Override
+    public CompletableFuture<MillQueryResult> execQueryAsync(QueryRequest request) {
+        return postAsync("SubmitQuery", request, b -> {
+            try {
+                return QueryResultResponse.parseFrom(b);
+            } catch (InvalidProtocolBufferException e) {
+                throw new RuntimeException(e);
+            }
+        }).thenApply(initial -> MillQueryResult.fromResponses(new QueryResultResponseIterator(request.getConfig().getFetchSize(), initial)));
     }
 
     private class QueryResultResponseIterator implements Iterator<QueryResultResponse> {
@@ -216,16 +273,22 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
         private QueryResultResponse response;
         private boolean didNext;
         private boolean hasNext;
+        private boolean hasMorePages;
 
         public QueryResultResponseIterator(QueryRequest initialRequest) {
             this.fetchSize = initialRequest.getConfig().getFetchSize();
-            this.doInitial(initialRequest);
+            setNext(doInitial(initialRequest));
         }
 
-        private void doInitial(QueryRequest initialRequest) {
+        private QueryResultResponseIterator(int fetchSize, QueryResultResponse initial) {
+            this.fetchSize = fetchSize;
+            setNext(initial);
+        }
+
+        private QueryResultResponse doInitial(QueryRequest initialRequest) {
             QueryResultResponse initial = null;
             try {
-                initial = post("SubmitQuery", initialRequest, b -> {
+                initial = HttpMillClient.this.post("SubmitQuery", initialRequest, b -> {
                     try {
                         return QueryResultResponse.parseFrom(b);
                     } catch (InvalidProtocolBufferException e) {
@@ -235,18 +298,19 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
             } catch (MillCodeException e) {
                 throw new MillRuntimeException(e);
             }
-            setNext(initial);
+            return initial;
         }
 
         private void setNext(QueryResultResponse response) {
             this.didNext = true;
             this.response = response;
             this.pagingId = response!=null ? response.getPagingId() : null;
-            this.hasNext = this.pagingId !=null && ! this.pagingId.isEmpty();
+            this.hasNext = response != null;
+            this.hasMorePages = this.pagingId !=null && !this.pagingId.isEmpty();
         }
 
         private void doNext() {
-            if (!this.hasNext) {
+            if (!this.hasMorePages) {
                 setNext(null);
                 return;
             }
@@ -283,7 +347,7 @@ public class HttpMillClient extends MillClient implements AutoCloseable {
             if (!this.didNext) {
                 doNext();
             }
-            if (this.response == null || !this.hasNext) {
+            if (this.response == null) {
                 throw new NoSuchElementException("No results available");
             }
             this.didNext = false;

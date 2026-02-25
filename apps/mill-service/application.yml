@@ -1,0 +1,36 @@
+spring:
+  config:
+    activate:
+      on-profile: skymill
+
+mill:
+  data:
+    sql:
+      dialect: calcite
+      conventions:
+        quoting: BACK_TICK
+        caseSensitive: "false"
+        unquotedCasing: UNCHANGED
+    backend:
+      type: flow
+      flow:
+        sources:
+          - ./config/skymill/skymill-flow.yml
+---
+spring:
+  config:
+    activate:
+      on-profile: moneta
+
+mill:
+  data:
+    sql:
+      dialect: h2
+    backend:
+      type: jdbc
+      jdbc:
+        url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '../../test/datasets/moneta/moneta.sql'"
+        driver: "org.h2.Driver"
+        username: "*"
+        password: "*"
+        target-schema: "MONETA"

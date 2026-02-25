@@ -42,6 +42,18 @@ class TestHierarchy:
         err = MillError("boom")
         assert err.details is None
 
+    def test_query_error_extended_fields_default(self) -> None:
+        err = MillQueryError("boom")
+        assert err.status_code is None
+        assert err.error is None
+        assert err.path is None
+        assert err.timestamp is None
+        assert err.raw_body is None
+        assert err.request_method is None
+        assert err.request_url is None
+        assert err.request_headers is None
+        assert err.response_headers is None
+
 
 # ---------------------------------------------------------------------------
 # gRPC error mapping
@@ -111,3 +123,42 @@ class TestFromHttpStatus:
         result = _from_http_status(418)  # I'm a teapot
         assert isinstance(result, MillError)
         assert not isinstance(result, (MillAuthError, MillQueryError))
+
+    def test_query_error_parses_json_details(self) -> None:
+        body = (
+            '{"timestamp":"2026-02-25T21:29:07.963+00:00",'
+            '"status":404,'
+            '"error":"Not Found",'
+            '"message":"No static resource",'
+            '"path":"/services/jet/Handshake"}'
+        )
+        result = _from_http_status(
+            404,
+            body,
+            request_method="POST",
+            request_url="http://mill-it:8080/services/jet/Handshake",
+            request_headers={"Accept": "application/json"},
+            response_headers={"content-type": "application/json"},
+        )
+        assert isinstance(result, MillQueryError)
+        assert result.status_code == 404
+        assert result.error == "Not Found"
+        assert result.path == "/services/jet/Handshake"
+        assert result.timestamp == "2026-02-25T21:29:07.963+00:00"
+        assert result.raw_body == body
+        assert result.request_method == "POST"
+        assert result.request_url == "http://mill-it:8080/services/jet/Handshake"
+        assert result.request_headers == {"Accept": "application/json"}
+        assert result.response_headers == {"content-type": "application/json"}
+        assert result.details == "HTTP 404"
+        assert "No static resource" in str(result)
+
+    def test_query_error_keeps_raw_text_body(self) -> None:
+        body = "plain server error"
+        result = _from_http_status(500, body)
+        assert isinstance(result, MillQueryError)
+        assert result.status_code == 500
+        assert result.error is None
+        assert result.path is None
+        assert result.timestamp is None
+        assert result.raw_body == body

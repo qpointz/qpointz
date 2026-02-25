@@ -89,6 +89,9 @@ nav:
       - backends/jdbc.md
       - backends/calcite.md
       - backends/flow.md
+    - Appendix:
+      - reference/skymill-schema.md
+      - reference/skymill-kpi-cookbook.md
     - Api:
         - Kotlin: api/kotlin/index.html
 #    - Security:

@@ -41,15 +41,15 @@ helm-istio:
 # Port-forward via Istio ingress gateway (HTTP only; gRPC via port-forward-direct)
 port-forward:
 	@echo "Port-forwarding Istio ingress: http://localhost:8080 (HTTP)"
-	@echo "For gRPC use: make port-forward-direct (Calico uses 9099)"
+	@echo "For gRPC use: make port-forward-direct"
 	@echo "Press Ctrl+C to stop"
 	$(KUBECTL) port-forward svc/istio-ingressgateway 8080:80 -n istio-system
 
 # Port-forward direct to mill-service (bypass Istio, works without helm-istio)
 port-forward-direct:
-	@echo "Port-forwarding mill-service: http://localhost:8080 (HTTP), localhost:9099 (gRPC)"
+	@echo "Port-forwarding mill-service: http://localhost:8080 (HTTP), localhost:9090 (gRPC)"
 	@echo "Press Ctrl+C to stop"
-	$(KUBECTL) port-forward svc/mill-samples-moneta-mill-service 8080:8080 9099:9099 -n $(KUBE_NS_SAMPLES)
+	$(KUBECTL) port-forward svc/mill-samples-moneta-mill-service 8080:8080 9090:9090 -n $(KUBE_NS_SAMPLES)
 
 k8s-samples-delete:
 	@echo "Deleting namespace $(KUBE_NS_SAMPLES):"

@@ -2,6 +2,7 @@ package io.qpointz.mill.client;
 
 import io.grpc.*;
 import io.grpc.inprocess.InProcessChannelBuilder;
+import io.grpc.stub.StreamObserver;
 import io.qpointz.mill.proto.*;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -14,14 +15,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.CompletableFuture;
 
 import static io.qpointz.mill.client.MillClientConfiguration.CLIENT_PROTOCOL_GRPC_VALUE;
 import static io.qpointz.mill.client.MillClientConfiguration.CLIENT_PROTOCOL_IN_PROC_VALUE;
 
 @Log
-public class GrpcMillClient extends MillClient implements AutoCloseable {
+public class GrpcMillClient extends MillClient {
 
 
     @Getter
@@ -55,9 +59,19 @@ public class GrpcMillClient extends MillClient implements AutoCloseable {
     }
 
     @Override
-    public Iterator<QueryResultResponse> execQuery(QueryRequest request) {
-        return this.blockingStub()
-                .execQuery(request);
+    public MillQueryResult execQuery(QueryRequest request) {
+        return MillQueryResult.fromResponses(this.blockingStub().execQuery(request));
+    }
+
+    @Override
+    public CompletableFuture<MillQueryResult> execQueryAsync(QueryRequest request) {
+        try {
+            val responseIterator = new AsyncQueryResponseIterator();
+            this.asyncStub().execQuery(request, responseIterator);
+            return CompletableFuture.completedFuture(MillQueryResult.fromResponses(responseIterator));
+        } catch (Exception ex) {
+            return CompletableFuture.failedFuture(ex);
+        }
     }
 
     @Override
@@ -68,6 +82,11 @@ public class GrpcMillClient extends MillClient implements AutoCloseable {
     private DataConnectServiceGrpc.DataConnectServiceBlockingStub blockingStub() {
         val channel = this.createChannel();
         return DataConnectServiceGrpc.newBlockingStub(channel);
+    }
+
+    private DataConnectServiceGrpc.DataConnectServiceStub asyncStub() {
+        val channel = this.createChannel();
+        return DataConnectServiceGrpc.newStub(channel);
     }
 
     private static final ConcurrentMap<MillClientConfiguration, ManagedChannel> channels = new ConcurrentHashMap<>();
@@ -186,6 +205,68 @@ public class GrpcMillClient extends MillClient implements AutoCloseable {
         }
 
         return builder.build();
+    }
+
+    private static final class AsyncQueryResponseIterator implements Iterator<QueryResultResponse>, StreamObserver<QueryResultResponse> {
+        private static final Object END = new Object();
+
+        private final LinkedBlockingQueue<Object> queue = new LinkedBlockingQueue<>();
+        private QueryResultResponse next;
+        private RuntimeException terminalError;
+
+        @Override
+        public synchronized boolean hasNext() {
+            if (this.next != null) {
+                return true;
+            }
+            if (this.terminalError != null) {
+                throw this.terminalError;
+            }
+
+            Object item;
+            try {
+                item = this.queue.take();
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Interrupted while waiting for query response", ex);
+            }
+
+            if (item == END) {
+                return false;
+            }
+            if (item instanceof RuntimeException rte) {
+                this.terminalError = rte;
+                throw rte;
+            }
+
+            this.next = (QueryResultResponse) item;
+            return true;
+        }
+
+        @Override
+        public synchronized QueryResultResponse next() {
+            if (!this.hasNext()) {
+                throw new NoSuchElementException("No more query responses");
+            }
+            val current = this.next;
+            this.next = null;
+            return current;
+        }
+
+        @Override
+        public void onNext(QueryResultResponse value) {
+            this.queue.offer(value);
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            this.queue.offer(new RuntimeException("gRPC query stream failed", t));
+        }
+
+        @Override
+        public void onCompleted() {
+            this.queue.offer(END);
+        }
     }
 
 }

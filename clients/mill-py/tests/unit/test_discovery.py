@@ -22,7 +22,7 @@ class TestParseDescriptor:
     def test_services(self) -> None:
         data = {
             "services": [
-                {"stereotype": "grpc", "url": "grpc://host:9099"},
+                {"stereotype": "grpc", "url": "grpc://host:9090"},
                 {"stereotype": "http-json", "url": "http://host:8501/services/jet"},
             ],
         }
@@ -55,7 +55,7 @@ class TestParseDescriptor:
 
     def test_full_document(self) -> None:
         data = {
-            "services": [{"stereotype": "grpc", "url": "grpc://h:9099"}],
+            "services": [{"stereotype": "grpc", "url": "grpc://h:9090"}],
             "security": {"enabled": True, "authMethods": ["BASIC"]},
             "schemas": {"S": {"name": "S", "link": "/s"}},
         }
@@ -67,7 +67,7 @@ class TestParseDescriptor:
 
 class TestDataclasses:
     def test_endpoint_frozen(self) -> None:
-        ep = MillServiceEndpoint(stereotype="grpc", url="grpc://h:9099")
+        ep = MillServiceEndpoint(stereotype="grpc", url="grpc://h:9090")
         with pytest.raises(AttributeError):
             ep.stereotype = "http"  # type: ignore[misc]
 

@@ -88,35 +88,15 @@ public class MillSqlQuery {
               .setStatement(this.statement());
     }
 
-    public Iterator<QueryResultResponse> executeResponses() throws MillCodeException {
+    public MillQueryResult executeResult() throws MillCodeException {
         val client = this.connection.getClient();
         val request = this.request()
                 .build();
         return client.execQuery(request);
     }
 
-    public class VectorBlockIterator implements Iterator<VectorBlock> {
-        private final Iterator<QueryResultResponse> responses;
-
-        VectorBlockIterator(Iterator<QueryResultResponse> responses) {
-            this.responses = responses;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return this.responses.hasNext();
-        }
-
-        @Override
-        public VectorBlock next() {
-            return this.responses
-                    .next()
-                    .getVector();
-        }
-    }
-
     public Iterator<VectorBlock> executeVectorBlocks() throws MillCodeException {
-        return new VectorBlockIterator(this.executeResponses());
+        return this.executeResult().getVectorBlocks();
     }
 
     private class RecordIterator extends VectorBlockRecordIterator {

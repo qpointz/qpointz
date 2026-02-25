@@ -28,7 +28,7 @@ class MillClient:
     Example::
 
         >>> from mill import connect
-        >>> with connect("grpc://localhost:9099") as client:
+        >>> with connect("grpc://localhost:9090") as client:
         ...     for name in client.list_schemas():
         ...         print(name)
     """

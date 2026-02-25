@@ -15,6 +15,7 @@ import java.util.Map;
 public abstract class RecordReaderResultSetBase implements ResultSet {
 
     private final RecordReader reader;
+    private ResultSetMetaData cachedMetaData;
 
     protected RecordReaderResultSetBase(RecordReader reader) {
         this.reader = reader;
@@ -24,6 +25,9 @@ public abstract class RecordReaderResultSetBase implements ResultSet {
 
     @Override
     public boolean next() throws SQLException {
+        if (this.cachedMetaData == null && this.reader.hasNext()) {
+            this.cachedMetaData = new RecordReaderMetaData(this.reader);
+        }
         return this.reader.next();
     }
 
@@ -236,8 +240,12 @@ public abstract class RecordReaderResultSetBase implements ResultSet {
 
     @Override
     public ResultSetMetaData getMetaData() throws SQLException {
+        if (this.cachedMetaData != null) {
+            return this.cachedMetaData;
+        }
         if (this.reader.hasNext()) {
-            return new RecordReaderMetaData(this.reader);
+            this.cachedMetaData = new RecordReaderMetaData(this.reader);
+            return this.cachedMetaData;
         }
         throw new SQLException("No data available");
     }

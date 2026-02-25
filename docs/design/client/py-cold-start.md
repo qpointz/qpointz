@@ -670,6 +670,7 @@ using the inverse:
 | 7 | `test_create_client.py` | Entire file commented out | Low |
 | 8 | `test_connect.py` | Entire file commented out | Low |
 | 9 | `__init__.py:1-2` | Unused `import base64` and `from abc import abstractmethod` | Low |
+| 10 | `client.py` HTTP path (`MillHttpSession.post` / `MillHttpClient`) | HTTP transport is effectively hardwired to protobuf response parsing (`res.parse(cnt)`) while protocol naming and mode selection imply JSON should be valid too; this is a content negotiation/decoder mismatch. Integration tests should be reviewed: current profile segregation (`http-json`, `http-protobuf`) implies distinct response serialization modes, but implementation appears incomplete/inconsistent. Track as backlog `C-21`. | High |
 
 ### 9.2 HTTP Server Bugs (for reference)
 
@@ -940,7 +941,7 @@ Environment variable `TEST_PROFILES` overrides the file path.
 Current profiles:
 ```
 localhost,8080,http,N,N
-localhost,9099,grpc,N,N
+localhost,9090,grpc,N,N
 ```
 
 ### 14.2 Current Test Schema
@@ -996,7 +997,7 @@ The new client must support three distinct transport modes:
 | HTTP-Protobuf | `http://`, `https://` | `encoding="protobuf"` | binary protobuf request + response |
 
 ```python
-client = connect("grpc://localhost:9099")                                    # gRPC
+client = connect("grpc://localhost:9090")                                    # gRPC
 client = connect("http://localhost:8080/services/jet")                       # HTTP-JSON (default)
 client = connect("http://localhost:8080/services/jet", encoding="protobuf")  # HTTP-Protobuf
 ```
@@ -1142,6 +1143,7 @@ Python Phase 11):
    supports features like GROUP BY, ORDER BY expressions, LIKE, subqueries, outer joins, etc.
 4. `supportsGroupBy()` returns `false` — incorrect for Calcite
 5. `supportsColumnAliasing()` returns `false` — incorrect for Calcite
+6. HTTP client response handling has a content negotiation/decoder mismatch risk: request path may advertise JSON mode, but response decode path is protobuf-oriented. Integration tests should be reviewed: current profile segregation (`http-json`, `http-protobuf`) indicates expected response serialization separation, but implementation appears incomplete/inconsistent. Track as backlog `C-20`.
 
 **mill-jdbc-shell** (`clients/mill-jdbc-shell/`): Thin wrapper — `mainClass = sqlline.SqlLine`
 with `mill-jdbc-driver` as a dependency. Provides an interactive CLI SQL shell. No custom
@@ -1162,7 +1164,7 @@ SQL dialect rules.
 
 ```python
 import mill.ibis as mill_ibis
-con = mill_ibis.connect("grpc://localhost:9099")
+con = mill_ibis.connect("grpc://localhost:9090")
 t = con.table("CLIENTS", schema="MONETA")
 expr = t.filter(t.CLIENT_ID > 100).select("FIRST_NAME", "LAST_NAME")
 result = expr.execute()  # pandas.DataFrame

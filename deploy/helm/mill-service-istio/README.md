@@ -66,7 +66,7 @@ service:
   name: mill-service      # Name of the Kubernetes Service
   namespace: default      # Namespace where service is deployed
   httpPort: 8080          # HTTP port
-  grpcPort: 9099          # gRPC port
+  grpcPort: 9090          # gRPC port
 ```
 
 ### Target Specific Deployments/Pods
@@ -132,13 +132,13 @@ virtualService:
         perTryTimeout: 10s
   tcp:
     - match:
-        - port: 9099
+        - port: 9090
       route:
         - destination:
             host: mill-service
             subset: v1  # Route to specific subset
             port:
-              number: 9099
+              number: 9090
 ```
 
 ### DestinationRule Configuration

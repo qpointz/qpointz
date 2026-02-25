@@ -9,7 +9,7 @@
 #
 #     def mill_host_params(self):
 #         host = os.environ.get("MILL_AUTH_TLS_HOST", "backend.local")
-#         port = int(os.environ.get("MILL_PORT", "9099"))
+#         port = int(os.environ.get("MILL_PORT", "9090"))
 #         ca_file = os.environ.get("TLS_ROOT_CA", '../../../etc/ssl/ca.pem')
 #         ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=ca_file)
 #         ctx.set_alpn_protocols(['h2'])

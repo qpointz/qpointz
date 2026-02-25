@@ -27,8 +27,8 @@ pip install mill-py[all]         # everything
 ```python
 from mill import connect
 
-# Connect via gRPC (default port 9099)
-client = connect("grpc://localhost:9099")
+# Connect via gRPC (default port 9090)
+client = connect("grpc://localhost:9090")
 
 # List available schemas
 for name in client.list_schemas():
@@ -49,7 +49,7 @@ The `connect()` factory creates a client for any supported protocol.
 ### gRPC
 
 ```python
-client = connect("grpc://localhost:9099")         # insecure
+client = connect("grpc://localhost:9090")         # insecure
 client = connect("grpcs://secure.host:443")       # TLS
 ```
 
@@ -71,7 +71,7 @@ client = connect("https://secure.host/services/jet")
 Override specific URL components via keyword arguments:
 
 ```python
-client = connect("grpc://host:9099", host="other-host", port=9100)
+client = connect("grpc://host:9090", host="other-host", port=9100)
 client = connect("http://host:8080/path", base_path="/services/custom")
 ```
 
@@ -80,7 +80,7 @@ client = connect("http://host:8080/path", base_path="/services/custom")
 Always close clients when done. The recommended approach is a context manager:
 
 ```python
-with connect("grpc://localhost:9099") as client:
+with connect("grpc://localhost:9090") as client:
     result = client.query("SELECT 1")
     print(result.fetchall())
 # client is closed automatically
@@ -89,7 +89,7 @@ with connect("grpc://localhost:9099") as client:
 Or close manually:
 
 ```python
-client = connect("grpc://localhost:9099")
+client = connect("grpc://localhost:9090")
 try:
     result = client.query("SELECT 1")
 finally:

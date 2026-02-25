@@ -6,6 +6,9 @@ subclass so callers can catch specific failure modes.
 """
 from __future__ import annotations
 
+import json
+from typing import Any
+
 
 class MillError(Exception):
     """Base exception for all Mill client errors.
@@ -44,6 +47,48 @@ class MillQueryError(MillError):
     and HTTP 400 / 500.
     """
 
+    def __init__(
+        self,
+        message: str,
+        *,
+        details: str | None = None,
+        status_code: int | None = None,
+        error: str | None = None,
+        path: str | None = None,
+        timestamp: str | None = None,
+        raw_body: str | None = None,
+        request_method: str | None = None,
+        request_url: str | None = None,
+        request_headers: dict[str, str] | None = None,
+        response_headers: dict[str, str] | None = None,
+    ) -> None:
+        super().__init__(message, details=details)
+        self.status_code = status_code
+        self.error = error
+        self.path = path
+        self.timestamp = timestamp
+        self.raw_body = raw_body
+        self.request_method = request_method
+        self.request_url = request_url
+        self.request_headers = request_headers
+        self.response_headers = response_headers
+
+    def as_dict(self) -> dict[str, Any]:
+        """Return structured diagnostics for logging/telemetry."""
+        return {
+            "message": str(self),
+            "details": self.details,
+            "status_code": self.status_code,
+            "error": self.error,
+            "path": self.path,
+            "timestamp": self.timestamp,
+            "raw_body": self.raw_body,
+            "request_method": self.request_method,
+            "request_url": self.request_url,
+            "request_headers": self.request_headers,
+            "response_headers": self.response_headers,
+        }
+
 
 # ---------------------------------------------------------------------------
 # Error mapping helpers
@@ -73,7 +118,15 @@ def _from_grpc_error(rpc_error: Exception) -> MillError:
     return MillError(detail or str(rpc_error), details=str(code))
 
 
-def _from_http_status(status_code: int, body: str = "") -> MillError:
+def _from_http_status(
+    status_code: int,
+    body: str = "",
+    *,
+    request_method: str | None = None,
+    request_url: str | None = None,
+    request_headers: dict[str, str] | None = None,
+    response_headers: dict[str, str] | None = None,
+) -> MillError:
     """Convert an HTTP error status to the appropriate ``MillError`` subclass.
 
     Args:
@@ -83,11 +136,47 @@ def _from_http_status(status_code: int, body: str = "") -> MillError:
     Returns:
         A ``MillError`` (or subclass) instance.
     """
-    detail = body or f"HTTP {status_code}"
+    payload = _parse_http_body(body)
+    detail = payload.get("message") or body or f"HTTP {status_code}"
+
+    query_error = MillQueryError(
+        detail,
+        details=f"HTTP {status_code}",
+        status_code=status_code,
+        error=payload.get("error"),
+        path=payload.get("path"),
+        timestamp=payload.get("timestamp"),
+        raw_body=body or None,
+        request_method=request_method,
+        request_url=request_url,
+        request_headers=request_headers,
+        response_headers=response_headers,
+    )
+
     if status_code in (401, 403):
         return MillAuthError(detail, details=f"HTTP {status_code}")
     if status_code in (400, 404, 422):
-        return MillQueryError(detail, details=f"HTTP {status_code}")
+        return query_error
     if status_code >= 500:
-        return MillQueryError(detail, details=f"HTTP {status_code}")
+        return query_error
     return MillError(detail, details=f"HTTP {status_code}")
+
+
+def _parse_http_body(body: str) -> dict[str, str]:
+    """Best-effort parse for standard JSON error envelopes."""
+    if not body:
+        return {}
+    try:
+        parsed = json.loads(body)
+    except Exception:
+        return {}
+    if not isinstance(parsed, dict):
+        return {}
+    result: dict[str, str] = {}
+    for key in ("timestamp", "status", "error", "message", "path"):
+        value = parsed.get(key)
+        if isinstance(value, str):
+            result[key] = value
+        elif value is not None:
+            result[key] = str(value)
+    return result

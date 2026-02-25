@@ -4,7 +4,7 @@ Quick start::
 
     from mill import connect, BasicAuth
 
-    with connect("grpc://localhost:9099", auth=BasicAuth("user", "pass")) as client:
+    with connect("grpc://localhost:9090", auth=BasicAuth("user", "pass")) as client:
         for name in client.list_schemas():
             print(name)
 
@@ -96,7 +96,7 @@ def connect(
         An open :class:`MillClient`.  Use as a context manager to ensure
         cleanup::
 
-            with connect("grpc://localhost:9099") as c:
+            with connect("grpc://localhost:9090") as c:
                 ...
 
     Raises:
@@ -114,7 +114,7 @@ def connect(
         from mill._transport._grpc import GrpcTransport
 
         ssl = scheme == "grpcs"
-        port = port or (443 if ssl else 9099)
+        port = port or (443 if ssl else 9090)
         transport = GrpcTransport(
             host, port, ssl=ssl, auth=auth,
             tls_ca=tls_ca, tls_cert=tls_cert, tls_key=tls_key,

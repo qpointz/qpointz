@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@ConditionalOnService("jet-http")
+@ConditionalOnService(value = "http", group = "data")
 @RequestMapping(value = AccessServiceController.CONTEXT_PATH,
         produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_PROTOBUF_VALUE },
         consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_PROTOBUF_VALUE })
