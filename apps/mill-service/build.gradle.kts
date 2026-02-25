@@ -17,58 +17,30 @@ springBoot {
     }
 }
 
-tasks.register("assembleSamples") {
+tasks.register<Sync>("assembleSamples") {
     group = "distribution"
     description = "Installs sample data "
-    doLast {
-        val outDir = project.layout.buildDirectory.dir("install/samples").get()
-        val datasetsDir = rootProject.layout.projectDirectory.dir("test/datasets/")
-        logger.warn(datasetsDir.toString())
 
-        //moneta sample
-        copy {
-            from(datasetsDir.file("moneta/moneta-slim.sql"))
-            into(outDir.file("data/moneta"))
-        }
+    val datasetsDir = rootProject.layout.projectDirectory.dir("test/datasets")
+    val samplesDir = layout.projectDirectory.dir("src/main/docker/samples")
 
-        copy {
-            from(datasetsDir.file("moneta/moneta.sql"))
-            into(outDir.file("data/moneta"))
-        }
+    into(layout.buildDirectory.dir("install/samples"))
 
-        copy {
-            from(datasetsDir.file("moneta/moneta-meta.yaml"))
-            from(datasetsDir.file("moneta/moneta-meta-repository.yaml"))
-            into(outDir.file("etc"))
-        }
+    // moneta sample
+    from(datasetsDir.file("moneta/moneta-slim.sql")) { into("data/moneta") }
+    from(datasetsDir.file("moneta/moneta.sql")) { into("data/moneta") }
+    from(datasetsDir.files("moneta/moneta-meta.yaml", "moneta/moneta-meta-repository.yaml")) { into("etc") }
 
-        //skymill sample
-        copy {
-            from(datasetsDir.file("skymill/skymill.sql"))
-            into(outDir.file("data/skymill"))
-        }
+    // skymill sample
+    from(datasetsDir.file("skymill/skymill.sql")) { into("data/skymill") }
+    from(datasetsDir.file("skymill/skymill.sql")) {
+        into("data/skymill")
+        rename { "skymill-slim.sql" }
+    }
+    from(datasetsDir.files("skymill/skymill-meta.yaml", "skymill/skymill-meta-repository.yaml")) { into("etc") }
 
-        copy {
-            from(datasetsDir.file("skymill/skymill.sql"))
-            into(outDir.file("data/skymill"))
-            rename { it -> "skymill-slim.sql" }
-        }
-
-        copy {
-            from(datasetsDir.file("skymill/skymill-meta.yaml"))
-            from(datasetsDir.file("skymill/skymill-meta-repository.yaml"))
-            into(outDir.file("etc"))
-        }
-
-        val monetaSample = project.layout.projectDirectory.dir("src/main/docker/samples")
-        copy {
-            from(monetaSample.file("application-moneta.yml"))
-            from(monetaSample.file("application-moneta-slim.yml"))
-            from(monetaSample.file("application-skymill.yml"))
-            from(monetaSample.file("application-skymill-slim.yml"))
-            into(outDir.file("config"))
-        }
-
+    from(samplesDir.files("application-moneta.yml", "application-moneta-slim.yml", "application-skymill.yml", "application-skymill-slim.yml")) {
+        into("config")
     }
 }
 
