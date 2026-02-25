@@ -12,16 +12,16 @@ milestone-selectable deliverables extracted from design documents and work items
 
 ## data — Data Layer
 
-| # | Item | Type | Status | Source |
-|---|------|------|--------|--------|
-| D-1 | Add JSON logical type (Phase A): proto, Java core, backends, clients | ✨ feature | backlog | data/complex-type-support.md |
-| D-2 | Add LIST native vector type (Phase B): proto, ListVector, producers, readers | ✨ feature | backlog | data/complex-type-support.md |
-| D-3 | Add MAP native vector type (Phase B): proto, MapVector, single-segment PathSegment | ✨ feature | backlog | data/complex-type-support.md |
+| #   | Item                                                                                    | Type      | Status  | Source                       |
+| --- | --------------------------------------------------------------------------------------- | --------- | ------- | ---------------------------- |
+| D-1 | Add JSON logical type (Phase A): proto, Java core, backends, clients                    | ✨ feature | backlog | data/complex-type-support.md |
+| D-2 | Add LIST native vector type (Phase B): proto, ListVector, producers, readers            | ✨ feature | backlog | data/complex-type-support.md |
+| D-3 | Add MAP native vector type (Phase B): proto, MapVector, single-segment PathSegment      | ✨ feature | backlog | data/complex-type-support.md |
 | D-4 | Add OBJECT native vector type (Phase B): MapVector with multi-segment PathSegment paths | ✨ feature | backlog | data/complex-type-support.md |
-| D-5 | Implement PathSegment reconstruction and flattening algorithms (Java + Python) | ✨ feature | backlog | data/complex-type-support.md |
-| D-6 | Add JSON/LIST/MAP/OBJECT to all type mapping tables in mill-type-system reference | 📝 docs | backlog | data/mill-type-system.md |
-| D-7 | Fix JDBC type mapping: BOOL should map to Types.BOOLEAN not BLOB | 🐛 fix | backlog | data/mill-type-system.md |
-| D-8 | Implement server GetDialect RPC and handshake supports_dialect flag | ✨ feature | backlog | data/mill-type-system.md |
+| D-5 | Implement PathSegment reconstruction and flattening algorithms (Java + Python)          | ✨ feature | backlog | data/complex-type-support.md |
+| D-6 | Add JSON/LIST/MAP/OBJECT to all type mapping tables in mill-type-system reference       | 📝 docs   | backlog | data/mill-type-system.md     |
+| D-7 | Fix JDBC type mapping: BOOL should map to Types.BOOLEAN not BLOB                        | 🐛 fix    | done    | data/mill-type-system.md, **WI-012** |
+| D-8 | Implement server GetDialect RPC and handshake supports_dialect flag                     | ✨ feature | backlog | data/mill-type-system.md     |
 
 ---
 
@@ -117,38 +117,38 @@ milestone-selectable deliverables extracted from design documents and work items
 
 ## platform — Infrastructure and Cross-Cutting
 
-| # | Item | Type | Status | Source |
-|---|------|------|--------|--------|
-| P-1 | Migrate controllers to WebFlux: reactive repositories, services, Mono/Flux returns | 🔧 refactoring | backlog | platform/webflux-migration-plan.md |
-| P-2 | Rewrite GrinderUIFilter as WebFlux WebFilter | 🔧 refactoring | backlog | platform/webflux-migration-plan.md |
-| P-3 | Create ReactiveMessageHelper for protobuf/JSON conversion in WebFlux | ✨ feature | backlog | platform/webflux-migration-plan.md |
-| P-4 | Replace MockMvc with WebTestClient across all affected test suites | 🧪 test | backlog | platform/webflux-migration-plan.md |
-| P-5 | Spring Boot 4.0 pre-migration cleanup: hardcoded versions, javax->jakarta, spring.factories | 🐛 fix | backlog | platform/spring4-migration-plan.md |
-| P-6 | Remove net.devh gRPC starter; reimplement gRPC server with raw grpc-java | 🔧 refactoring | backlog | platform/spring4-migration-plan.md |
-| P-7 | Migrate Jackson 2.x to Jackson 3.0 (ObjectMapper->JsonMapper, package changes) | 🔧 refactoring | backlog | platform/spring4-migration-plan.md |
-| P-8 | Upgrade Spring AI to 2.0.x and SpringDoc OpenAPI to 3.x | 💡 improvement | backlog | platform/spring4-migration-plan.md |
-| P-9 | Review and fix Spring Security 7.0 breaking changes | 🔧 refactoring | backlog | platform/spring4-migration-plan.md |
-| P-10 | Implement MCP Data Provider per specification (resources, tools, prompts) | ✨ feature | backlog | platform/mcp.md |
-| P-11 | Create proto data_export_svc.proto and implement Data Export Service | ✨ feature | backlog | platform/data-export-service.md |
-| P-12 | Use combined Calcite operator table (STANDARD + POSTGRESQL) | 💡 improvement | backlog | platform/calcite-dialect-comparison.md |
-| P-13 | Add custom Calcite operators for AGE(timestamp,timestamp) and ILIKE | ✨ feature | backlog | platform/calcite-dialect-comparison.md |
-| P-14 | Fix postgres.yml type mappings (COUNT->BIGINT, EXTRACT->NUMERIC, polymorphic) | 🐛 fix | backlog | platform/calcite-dialect-comparison.md |
-| P-15 | Resolve duplicate mill.security.authorization.policy prefix across modules | 🐛 fix | done | platform/CONFIGURATION_INVENTORY.md, **WI-002** |
-| P-16 | Replace @Qualifier("LOJOKOJ") placeholder with meaningful qualifier | 🐛 fix | backlog | platform/CONFIGURATION_INVENTORY.md |
-| P-17 | Complete RAG implementation: vector store value mapper, integration tests | ✨ feature | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md |
-| P-18 | Add custom metrics, distributed tracing (OpenTelemetry), and structured logging | 💡 improvement | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md |
-| P-19 | Implement query result caching, metadata caching, optimize connection pooling | 💡 improvement | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md |
-| P-20 | Add rate limiting, audit logging, and policy testing framework | 💡 improvement | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md |
-| P-21 | Add architecture diagrams, user guides, and troubleshooting guide | 📝 docs | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md |
-| P-22 | Consider compression for vector blocks and serialization performance metrics | 💡 improvement | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md |
-| P-23 | Phase 1: SQL-direct execution path — QueryPlan record, cancelable QueryResult, ExecutionProvider/SqlProvider RelNode methods, SQL parameter support, route SQL in dispatcher | 🔧 refactoring | backlog | platform/substrait-to-relnode-migration.md |
-| P-24 | Phase 2: Substrait input via RelNode — route Substrait through PlanConverter to QueryPlan, remove old execute(Plan) | 🔧 refactoring | backlog | platform/substrait-to-relnode-migration.md |
-| P-25 | Phase 3: Port rewriters to Calcite — PlanRewriter/facets on RelNode/RexNode, TableFacetVisitor to RelShuttleImpl | 🔧 refactoring | backlog | platform/substrait-to-relnode-migration.md |
-| P-26 | Phase 4: Clean up dead Substrait code — remove PlanHelper, DataTypeToSubstrait, old SqlProvider methods, substrait-core from mill-core | 🔧 refactoring | backlog | platform/substrait-to-relnode-migration.md |
-| P-27 | Implement Arrow Flight server for Mill query transport with canonical Mill->Arrow type mapping and per-column timestamp timezone semantics; complex type coverage depends on D-2/D-3/D-4 | ✨ feature | backlog | platform/arrow-flight-server-design.md |
-| P-28 | Implement Arrow Flight SQL server for Mill with SQL metadata compatibility and per-column timezone semantics; complex type coverage depends on D-2/D-3/D-4 | ✨ feature | backlog | platform/arrow-flight-sql-server-design.md |
-| P-29 | Introduce proto/schema timezone extension (field-level TZ metadata) and propagate across source, backend, service, and client mappings | ✨ feature | backlog | **WI-011** |
-| P-30 | Implement end-to-end timezone support (frontend to backend): preserve, expose, and validate field-level timezone metadata across contracts and UI flows | ✨ feature | backlog | **TBD (new WI)** |
+| #    | Item                                                                                                                                                                                     | Type           | Status  | Source                                          |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ------- | ----------------------------------------------- |
+| P-1  | Migrate controllers to WebFlux: reactive repositories, services, Mono/Flux returns                                                                                                       | 🔧 refactoring | backlog | platform/webflux-migration-plan.md              |
+| P-2  | Rewrite GrinderUIFilter as WebFlux WebFilter                                                                                                                                             | 🔧 refactoring | backlog | platform/webflux-migration-plan.md              |
+| P-3  | Create ReactiveMessageHelper for protobuf/JSON conversion in WebFlux                                                                                                                     | ✨ feature      | backlog | platform/webflux-migration-plan.md              |
+| P-4  | Replace MockMvc with WebTestClient across all affected test suites                                                                                                                       | 🧪 test        | backlog | platform/webflux-migration-plan.md              |
+| P-5  | Spring Boot 4.0 pre-migration cleanup: hardcoded versions, javax->jakarta, spring.factories                                                                                              | 🐛 fix         | backlog | platform/spring4-migration-plan.md              |
+| P-6  | Remove net.devh gRPC starter; reimplement gRPC server with raw grpc-java                                                                                                                 | 🔧 refactoring | backlog | platform/spring4-migration-plan.md              |
+| P-7  | Migrate Jackson 2.x to Jackson 3.0 (ObjectMapper->JsonMapper, package changes)                                                                                                           | 🔧 refactoring | backlog | platform/spring4-migration-plan.md              |
+| P-8  | Upgrade Spring AI to 2.0.x and SpringDoc OpenAPI to 3.x                                                                                                                                  | 💡 improvement | backlog | platform/spring4-migration-plan.md              |
+| P-9  | Review and fix Spring Security 7.0 breaking changes                                                                                                                                      | 🔧 refactoring | backlog | platform/spring4-migration-plan.md              |
+| P-10 | Implement MCP Data Provider per specification (resources, tools, prompts)                                                                                                                | ✨ feature      | backlog | platform/mcp.md                                 |
+| P-11 | Create proto data_export_svc.proto and implement Data Export Service                                                                                                                     | ✨ feature      | backlog | platform/data-export-service.md                 |
+| P-12 | Use combined Calcite operator table (STANDARD + POSTGRESQL)                                                                                                                              | 💡 improvement | backlog | platform/calcite-dialect-comparison.md          |
+| P-13 | Add custom Calcite operators for AGE(timestamp,timestamp) and ILIKE                                                                                                                      | ✨ feature      | backlog | platform/calcite-dialect-comparison.md          |
+| P-14 | Fix postgres.yml type mappings (COUNT->BIGINT, EXTRACT->NUMERIC, polymorphic)                                                                                                            | 🐛 fix         | backlog | platform/calcite-dialect-comparison.md          |
+| P-15 | Resolve duplicate mill.security.authorization.policy prefix across modules                                                                                                               | 🐛 fix         | done    | platform/CONFIGURATION_INVENTORY.md, **WI-002** |
+| P-16 | Replace @Qualifier("LOJOKOJ") placeholder with meaningful qualifier                                                                                                                      | 🐛 fix         | backlog | platform/CONFIGURATION_INVENTORY.md             |
+| P-17 | Complete RAG implementation: vector store value mapper, integration tests                                                                                                                | ✨ feature      | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md           |
+| P-18 | Add custom metrics, distributed tracing (OpenTelemetry), and structured logging                                                                                                          | 💡 improvement | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md           |
+| P-19 | Implement query result caching, metadata caching, optimize connection pooling                                                                                                            | 💡 improvement | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md           |
+| P-20 | Add rate limiting, audit logging, and policy testing framework                                                                                                                           | 💡 improvement | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md           |
+| P-21 | Add architecture diagrams, user guides, and troubleshooting guide                                                                                                                        | 📝 docs        | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md           |
+| P-22 | Consider compression for vector blocks and serialization performance metrics                                                                                                             | 💡 improvement | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md           |
+| P-23 | Phase 1: SQL-direct execution path — QueryPlan record, cancelable QueryResult, ExecutionProvider/SqlProvider RelNode methods, SQL parameter support, route SQL in dispatcher             | 🔧 refactoring | backlog | platform/substrait-to-relnode-migration.md      |
+| P-24 | Phase 2: Substrait input via RelNode — route Substrait through PlanConverter to QueryPlan, remove old execute(Plan)                                                                      | 🔧 refactoring | backlog | platform/substrait-to-relnode-migration.md      |
+| P-25 | Phase 3: Port rewriters to Calcite — PlanRewriter/facets on RelNode/RexNode, TableFacetVisitor to RelShuttleImpl                                                                         | 🔧 refactoring | backlog | platform/substrait-to-relnode-migration.md      |
+| P-26 | Phase 4: Clean up dead Substrait code — remove PlanHelper, DataTypeToSubstrait, old SqlProvider methods, substrait-core from mill-core                                                   | 🔧 refactoring | backlog | platform/substrait-to-relnode-migration.md      |
+| P-27 | Implement Arrow Flight server for Mill query transport with canonical Mill->Arrow type mapping and per-column timestamp timezone semantics; complex type coverage depends on D-2/D-3/D-4 | ✨ feature      | backlog | platform/arrow-flight-server-design.md          |
+| P-28 | Implement Arrow Flight SQL server for Mill with SQL metadata compatibility and per-column timezone semantics; complex type coverage depends on D-2/D-3/D-4                               | ✨ feature      | backlog | platform/arrow-flight-sql-server-design.md      |
+| P-29 | Introduce proto/schema timezone extension (field-level TZ metadata) and propagate across source, backend, service, and client mappings                                                   | ✨ feature      | backlog | **WI-011**                                      |
+| P-30 | Implement end-to-end timezone support (frontend to backend): preserve, expose, and validate field-level timezone metadata across contracts and UI flows                                  | ✨ feature      | backlog | **TBD (new WI)**                                |
 
 ---
 
@@ -165,37 +165,37 @@ milestone-selectable deliverables extracted from design documents and work items
 
 ## refactoring — Codebase Refactoring
 
-| # | Item | Type | Status | Source |
-|---|------|------|--------|--------|
-| R-1 | Move services/mill-metadata-service to metadata/mill-metadata-service (iteration 15) | 🔧 refactoring | done | refactoring/01-iterations.md |
-| R-2 | Remove Spring contamination from mill-metadata-core | 🔧 refactoring | done | refactoring/04-dependency-graph.md |
-| R-3 | Remove Spring contamination from mill-data-backends | 🔧 refactoring | done | refactoring/04-dependency-graph.md |
-| R-4 | Fix mill.backend.jdbc.multi-shema typo to multi-schema | 🐛 fix | backlog | refactoring/05-configuration-keys.md |
-| R-5 | Resolve output-schema vs target-schema inconsistency in YAML and Java binding | 🐛 fix | backlog | refactoring/05-configuration-keys.md |
-| R-6 | Fix mill.security.enabled vs mill.security.enable inconsistency in test configs | 🐛 fix | backlog | refactoring/05-configuration-keys.md |
-| R-7 | Remove ghost keys (data-bot.*, jet-grpc.*) or implement their Java consumers | 🐛 fix | backlog | refactoring/05-configuration-keys.md |
-| R-8 | Add missing additional-spring-configuration-metadata.json for 28+ mill.* keys | 💡 improvement | backlog | refactoring/05-configuration-keys.md |
-| R-9 | Remove or use @ConditionalOnTestKit (dead annotation) | 🐛 fix | backlog | refactoring/05-configuration-keys.md |
-| R-10 | Fix mill.services.jet-http.enable type in metadata JSON (String to Boolean) | 🐛 fix | backlog | refactoring/05-configuration-keys.md |
-| R-11 | Review commented-out tests in AI and JDBC driver: delete, move, or re-enable | 🧪 test | backlog | refactoring/06-test-module-inventory.md |
-| R-12 | Fix JDBC driver integration test infrastructure (re-enable disabled testIT classes) | 🧪 test | backlog | refactoring/06-test-module-inventory.md |
-| R-13 | Reduce technical debt: review 119 files with TODOs/FIXMEs | 🔧 refactoring | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md |
-| R-14 | Refactor data module Spring configuration: review and implement in mill-data-autoconfigure | 🔧 refactoring | backlog | refactoring/05-configuration-keys.md |
-| R-15 | Implement BackendContextRunner test rig (abstract class + JdbcBackendContextRunner + CalciteBackendContextRunner) | 🔧 refactoring | done | refactoring/07-backend-context-runner.md |
-| R-16 | Migrate mill-data-backends unit tests from @SpringBootTest to BackendContextRunner (10 test files) | 🧪 test | done | refactoring/07-backend-context-runner.md |
-| R-17 | Delete obsolete test YAML configs after unit test migration (3 files in mill-data-backends/src/test/resources/) | 🔧 refactoring | done | refactoring/07-backend-context-runner.md |
-| R-18 | Rename mill-data-service to mill-data-backend-core and update all Gradle references | 🔧 refactoring | done | refactoring/07-backend-context-runner.md |
-| R-19 | Move mill-data-grpc-service and mill-data-http-service under data/services/ subfolder | 🔧 refactoring | done | refactoring/07-backend-context-runner.md |
-| R-20 | Move non-autoconfigure tests from mill-data-autoconfigure to backend-core and metadata modules | 🧪 test | done | refactoring/07-backend-context-runner.md |
-| R-21 | Delete orphaned application-*.yml Spring config files across modules | 🔧 refactoring | done | refactoring/07-backend-context-runner.md |
-| R-22 | Narrow broad @ComponentScan and unfiltered @EnableAutoConfiguration in tests across all modules | 🔧 refactoring | done | **WI-009** |
-| R-23 | Delete dead MainLala.java test scaffolding from mill-test-kit | 🔧 refactoring | done | **WI-009** |
-| R-24 | Move SecurityProvider interface from data/mill-data-backend-core to core/mill-security | 🔧 refactoring | done | **WI-010** |
-| R-25 | Remove unused metadata dependencies from data/mill-data-autoconfigure | 🔧 refactoring | done | **WI-010** |
-| R-26 | Remove spring-dependency-management plugin from pure modules (mill-core, mill-data-backends) | 🔧 refactoring | done | **WI-010** |
-| R-27 | Remove boot.starter.test from core/mill-core test dependencies | 🔧 refactoring | done | **WI-010** |
-| R-28 | ~~Extract Spring Boot @Configuration classes from mill-ai-v1-core~~ (skipped — v1 being replaced by v2) | 🔧 refactoring | cancelled | **WI-010** |
-| R-29 | Move @SpringBootApplication entry point out of mill-ai-v2 core library | 🔧 refactoring | done | **WI-010** |
+| #    | Item                                                                                                              | Type           | Status    | Source                                   |
+| ---- | ----------------------------------------------------------------------------------------------------------------- | -------------- | --------- | ---------------------------------------- |
+| R-1  | Move services/mill-metadata-service to metadata/mill-metadata-service (iteration 15)                              | 🔧 refactoring | done      | refactoring/01-iterations.md             |
+| R-2  | Remove Spring contamination from mill-metadata-core                                                               | 🔧 refactoring | done      | refactoring/04-dependency-graph.md       |
+| R-3  | Remove Spring contamination from mill-data-backends                                                               | 🔧 refactoring | done      | refactoring/04-dependency-graph.md       |
+| R-4  | Fix mill.backend.jdbc.multi-shema typo to multi-schema                                                            | 🐛 fix         | done      | refactoring/05-configuration-keys.md     |
+| R-5  | Resolve output-schema vs target-schema inconsistency in YAML and Java binding                                     | 🐛 fix         | done      | refactoring/05-configuration-keys.md, **WI-012** |
+| R-6  | Fix mill.security.enabled vs mill.security.enable inconsistency in test configs                                   | 🐛 fix         | backlog   | refactoring/05-configuration-keys.md     |
+| R-7  | Remove ghost keys (data-bot.*, jet-grpc.*) or implement their Java consumers                                      | 🐛 fix         | backlog   | refactoring/05-configuration-keys.md     |
+| R-8  | Add missing additional-spring-configuration-metadata.json for 28+ mill.* keys                                     | 💡 improvement | backlog   | refactoring/05-configuration-keys.md     |
+| R-9  | Remove or use @ConditionalOnTestKit (dead annotation)                                                             | 🐛 fix         | backlog   | refactoring/05-configuration-keys.md     |
+| R-10 | Fix mill.services.jet-http.enable type in metadata JSON (String to Boolean)                                       | 🐛 fix         | backlog   | refactoring/05-configuration-keys.md     |
+| R-11 | Review commented-out tests in AI and JDBC driver: delete, move, or re-enable                                      | 🧪 test        | backlog   | refactoring/06-test-module-inventory.md  |
+| R-12 | Fix JDBC driver integration test infrastructure (re-enable disabled testIT classes)                               | 🧪 test        | backlog   | refactoring/06-test-module-inventory.md  |
+| R-13 | Reduce technical debt: review 119 files with TODOs/FIXMEs                                                         | 🔧 refactoring | backlog   | platform/CODEBASE_ANALYSIS_CURRENT.md    |
+| R-14 | Refactor data module Spring configuration: review and implement in mill-data-autoconfigure                        | 🔧 refactoring | backlog   | refactoring/05-configuration-keys.md     |
+| R-15 | Implement BackendContextRunner test rig (abstract class + JdbcBackendContextRunner + CalciteBackendContextRunner) | 🔧 refactoring | done      | refactoring/07-backend-context-runner.md |
+| R-16 | Migrate mill-data-backends unit tests from @SpringBootTest to BackendContextRunner (10 test files)                | 🧪 test        | done      | refactoring/07-backend-context-runner.md |
+| R-17 | Delete obsolete test YAML configs after unit test migration (3 files in mill-data-backends/src/test/resources/)   | 🔧 refactoring | done      | refactoring/07-backend-context-runner.md |
+| R-18 | Rename mill-data-service to mill-data-backend-core and update all Gradle references                               | 🔧 refactoring | done      | refactoring/07-backend-context-runner.md |
+| R-19 | Move mill-data-grpc-service and mill-data-http-service under data/services/ subfolder                             | 🔧 refactoring | done      | refactoring/07-backend-context-runner.md |
+| R-20 | Move non-autoconfigure tests from mill-data-autoconfigure to backend-core and metadata modules                    | 🧪 test        | done      | refactoring/07-backend-context-runner.md |
+| R-21 | Delete orphaned application-*.yml Spring config files across modules                                              | 🔧 refactoring | done      | refactoring/07-backend-context-runner.md |
+| R-22 | Narrow broad @ComponentScan and unfiltered @EnableAutoConfiguration in tests across all modules                   | 🔧 refactoring | done      | **WI-009**                               |
+| R-23 | Delete dead MainLala.java test scaffolding from mill-test-kit                                                     | 🔧 refactoring | done      | **WI-009**                               |
+| R-24 | Move SecurityProvider interface from data/mill-data-backend-core to core/mill-security                            | 🔧 refactoring | done      | **WI-010**                               |
+| R-25 | Remove unused metadata dependencies from data/mill-data-autoconfigure                                             | 🔧 refactoring | done      | **WI-010**                               |
+| R-26 | Remove spring-dependency-management plugin from pure modules (mill-core, mill-data-backends)                      | 🔧 refactoring | done      | **WI-010**                               |
+| R-27 | Remove boot.starter.test from core/mill-core test dependencies                                                    | 🔧 refactoring | done      | **WI-010**                               |
+| R-28 | ~~Extract Spring Boot @Configuration classes from mill-ai-v1-core~~ (skipped — v1 being replaced by v2)           | 🔧 refactoring | cancelled | **WI-010**                               |
+| R-29 | Move @SpringBootApplication entry point out of mill-ai-v2 core library                                            | 🔧 refactoring | done      | **WI-010**                               |
 
 ---
 

@@ -38,6 +38,7 @@ Items delivered since `origin/main` on the current development branch.
 | WI-009 | Spring test configuration cleanup (narrow @ComponentScan, @EnableAutoConfiguration exclusions, delete MainLala) | refactoring | done |
 | WI-010 | Clean Spring / pure module separation (SecurityProvider relocation, dependency cleanup, AI config extraction, module inventory) | refactoring | done |
 | WI-011 | Arrow format support (module naming alignment, Arrow IPC reader/writer, docs) | feature | done |
+| WI-012 | JDBC async API + D-7 BOOL mapping + R-5 target-schema key alignment | feature / fix | done |
 
 #### Source — Data Source Framework
 
