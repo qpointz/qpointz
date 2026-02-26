@@ -17,7 +17,7 @@ and configurations.
 ### Core (gRPC + HTTP)
 
 ```bash
-pip install mill-py
+pip install qpointz-mill-py
 ```
 
 This installs the core client with gRPC and HTTP transport support. You can
@@ -27,10 +27,10 @@ needed.
 ### With DataFrame Extras
 
 ```bash
-pip install mill-py[arrow]       # + PyArrow
-pip install mill-py[pandas]      # + pandas (includes Arrow)
-pip install mill-py[polars]      # + polars (includes Arrow)
-pip install mill-py[all]         # all extras
+pip install qpointz-mill-py[arrow]       # + PyArrow
+pip install qpointz-mill-py[pandas]      # + pandas (includes Arrow)
+pip install qpointz-mill-py[polars]      # + polars (includes Arrow)
+pip install qpointz-mill-py[all]         # all extras
 ```
 
 | Extra | Adds | Use Case |
@@ -53,7 +53,7 @@ source .venv/bin/activate        # Linux / macOS
 # .venv\Scripts\activate         # Windows
 
 # Install
-pip install mill-py[all]
+pip install qpointz-mill-py[all]
 
 # Verify
 python -c "from mill import connect; print('OK')"
@@ -151,7 +151,7 @@ print("Async OK")
 ## Uninstall
 
 ```bash
-pip uninstall mill-py
+pip uninstall qpointz-mill-py
 
 # Or using the Makefile
 cd clients && make uninstall
@@ -171,7 +171,7 @@ build errors:
 sudo apt-get install python3-dev build-essential
 
 # Or use a pre-built wheel
-pip install --only-binary=grpcio mill-py
+pip install --only-binary=grpcio qpointz-mill-py
 ```
 
 ### Import errors after install
@@ -181,7 +181,7 @@ If `import mill` fails, verify you're using the correct Python environment:
 ```bash
 which python
 python -c "import sys; print(sys.executable)"
-pip show mill-py
+pip show qpointz-mill-py
 ```
 
 ### Version conflicts
@@ -191,5 +191,5 @@ If you have dependency conflicts, use a clean virtual environment:
 ```bash
 python -m venv fresh-env
 source fresh-env/bin/activate
-pip install mill-py[all]
+pip install qpointz-mill-py[all]
 ```

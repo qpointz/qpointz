@@ -4,7 +4,7 @@ Thin wrapper on top of the Arrow conversion.  Uses
 ``pyarrow.Table.to_pandas()`` so that Arrow-backed columns are available
 with ``types_mapper=pd.ArrowDtype`` on pandas 2.x.
 
-Requires the ``pandas`` extra: ``pip install mill-py[pandas]``.
+Requires the ``pandas`` extra: ``pip install qpointz-mill-py[pandas]``.
 """
 from __future__ import annotations
 

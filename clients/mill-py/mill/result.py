@@ -129,7 +129,7 @@ class ResultSet:
     def to_arrow(self) -> Any:
         """Convert the result set to a PyArrow ``Table``.
 
-        Requires the ``arrow`` extra: ``pip install mill-py[arrow]``.
+        Requires the ``arrow`` extra: ``pip install qpointz-mill-py[arrow]``.
 
         Returns:
             A ``pyarrow.Table``.
@@ -142,14 +142,14 @@ class ResultSet:
         except ImportError:
             raise ImportError(
                 "PyArrow is required for to_arrow(). "
-                "Install it with: pip install mill-py[arrow]"
+                "Install it with: pip install qpointz-mill-py[arrow]"
             ) from None
         return result_to_arrow(self)
 
     def to_pandas(self) -> Any:
         """Convert the result set to a pandas ``DataFrame``.
 
-        Requires the ``pandas`` extra: ``pip install mill-py[pandas]``.
+        Requires the ``pandas`` extra: ``pip install qpointz-mill-py[pandas]``.
 
         Returns:
             A ``pandas.DataFrame``.
@@ -162,14 +162,14 @@ class ResultSet:
         except ImportError:
             raise ImportError(
                 "pandas is required for to_pandas(). "
-                "Install it with: pip install mill-py[pandas]"
+                "Install it with: pip install qpointz-mill-py[pandas]"
             ) from None
         return result_to_pandas(self)
 
     def to_polars(self) -> Any:
         """Convert the result set to a polars ``DataFrame``.
 
-        Requires the ``polars`` extra: ``pip install mill-py[polars]``.
+        Requires the ``polars`` extra: ``pip install qpointz-mill-py[polars]``.
 
         Returns:
             A ``polars.DataFrame``.
@@ -182,7 +182,7 @@ class ResultSet:
         except ImportError:
             raise ImportError(
                 "polars is required for to_polars(). "
-                "Install it with: pip install mill-py[polars]"
+                "Install it with: pip install qpointz-mill-py[polars]"
             ) from None
         return result_to_polars(self)
 

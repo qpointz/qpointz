@@ -15,7 +15,7 @@ async-only internals) into a production-quality, PyPI-published library:
 
 | Attribute | Current | Target |
 |-----------|---------|--------|
-| pip install name | `mill-py` | `mill-py` (unchanged) |
+| pip install name | `mill-py` | `qpointz-mill-py` |
 | import name | `millclient` | `mill` |
 | Proto stubs | `betterproto` 2.0.0b6 (beta) | `grpcio` + `protobuf` (stable) |
 | gRPC transport | `grpclib` (async-only) | `grpcio` (sync native, `grpc.aio` for async) |
@@ -156,9 +156,9 @@ for row in result:
 rows: list[dict[str, Any]] = result.fetchall()
 
 # With extras (all build on PyArrow as foundational layer)
-table = result.to_arrow()     # requires mill-py[arrow]   -> pyarrow.Table
-df = result.to_pandas()       # requires mill-py[pandas]  -> pandas.DataFrame
-df = result.to_polars()       # requires mill-py[polars]  -> polars.DataFrame
+table = result.to_arrow()     # requires qpointz-mill-py[arrow]   -> pyarrow.Table
+df = result.to_pandas()       # requires qpointz-mill-py[pandas]  -> pandas.DataFrame
+df = result.to_polars()       # requires qpointz-mill-py[polars]  -> polars.DataFrame
 ```
 
 **Encoding parameter** (`encoding`):
@@ -459,7 +459,7 @@ under `docs/design/client/`. A new agent should:
 **Goal**: Rename package, switch build tooling, generate new proto stubs.
 
 - [x] **1.1** Rename `millclient/` to `mill/` — Move directory, update all internal imports.
-- [x] **1.2** Update `pyproject.toml` — New name (`mill-py`), packages `[{include = "mill"}]`, swap dependencies (drop betterproto/grpclib/aiohttp/whenever/logo, add grpcio/protobuf/httpx), add extras sections, add PyPI metadata (description, authors, urls, classifiers, readme).
+- [x] **1.2** Update `pyproject.toml` — New name (`qpointz-mill-py`), packages `[{include = "mill"}]`, swap dependencies (drop betterproto/grpclib/aiohttp/whenever/logo, add grpcio/protobuf/httpx), add extras sections, add PyPI metadata (description, authors, urls, classifiers, readme).
 - [x] **1.3** Update `codegen.py` — Switch from `--python_betterproto_out` to `--python_out` + `--grpc_python_out` + `--pyi_out` targeting `mill/_proto/`. Handle substrait imports. Generate `__init__.py` files.
 - [x] **1.4** Generate new stubs — Run `codegen.py`, verify stubs compile. Proto sources: `proto/common.proto`, `proto/vector.proto`, `proto/statement.proto`, `proto/data_connect_svc.proto` + substrait protos.
 - [x] **1.5** Create package skeleton — Empty `mill/__init__.py`, `mill/types.py`, `mill/vectors.py`, `mill/client.py`, `mill/result.py`, `mill/auth.py`, `mill/exceptions.py`, `mill/_transport/__init__.py`, `mill/aio/__init__.py`, `mill/extras/__init__.py`.
@@ -637,18 +637,18 @@ This means Arrow conversion logic is written **once**, and pandas/polars are thi
 **Goal**: Make the package publishable and well-documented, add `clients/Makefile` for
 developer workflows, and document the full PyPI publishing pipeline.
 
-- [ ] **8.1** `README.md` — Sections: Overview, Installation (`pip install mill-py`, extras), Quickstart (connect, query, iterate, DataFrame), Authentication, Async Usage, Type Reference table, Contributing.
+- [ ] **8.1** `README.md` — Sections: Overview, Installation (`pip install qpointz-mill-py`, extras), Quickstart (connect, query, iterate, DataFrame), Authentication, Async Usage, Type Reference table, Contributing.
 - [ ] **8.2** Docstrings — audit & polish — Developer-facing functions must already have docstrings (written during each WI). This WI is an **audit pass**: verify completeness, consistency, add missing usage examples, ensure all `Args`/`Returns`/`Raises` sections are present.
 - [ ] **8.3** `LICENSE` — Add Apache-2.0 license file.
 - [ ] **8.4** `pyproject.toml` polish — Verify: `readme = "README.md"`, `license = "Apache-2.0"`, `homepage`, `repository`, `keywords`, `classifiers` (Framework, License, Python versions, Topic).
-- [ ] **8.5** Build verification — `poetry build` produces valid sdist + wheel. `poetry publish --dry-run` succeeds. Verify `pip install dist/mill_py-*.whl` in clean venv. Test `import mill; mill.connect(...)`.
+- [ ] **8.5** Build verification — `poetry build` produces valid sdist + wheel. `poetry publish --dry-run` succeeds. Verify `pip install dist/qpointz_mill_py-*.whl` in clean venv. Test `import mill; mill.connect(...)`.
 - [ ] **8.6** Clean up old files — Remove old `sample.ipynb`, `sample_func.ipynb`, `base64.ipynb` (or move to `examples/`). Remove `.build/` directory.
 - [ ] **8.7** `clients/Makefile` — Developer workflow targets:
   - `make codegen` — regenerate proto stubs (calls `codegen.py` inside `mill-py/`).
   - `make test` — run unit tests with coverage (`poetry run pytest --cov ...`).
   - `make test-integration` — run integration tests (`poetry run pytest -m integration -v`).
-  - `make install` — install `mill-py` into the local Python environment (`pip install -e clients/mill-py[all]`).
-  - `make uninstall` — remove `mill-py` from the local environment (`pip uninstall mill-py`).
+  - `make install` — install `qpointz-mill-py` into the local Python environment (`pip install -e clients/mill-py[all]`).
+  - `make uninstall` — remove `qpointz-mill-py` from the local environment (`pip uninstall qpointz-mill-py`).
   - `make build` — `poetry build` (produces sdist + wheel in `clients/mill-py/dist/`).
   - `make publish-test` — publish to PyPI Test (TestPyPI staging).
   - `make publish` — publish to PyPI production (release).
@@ -1162,7 +1162,7 @@ python -c "import mill; print(mill.__all__)"
 
 # Uninstall
 cd clients && make uninstall
-# Or: pip uninstall mill-py
+# Or: pip uninstall qpointz-mill-py
 ```
 
 **Tips**:
@@ -1194,7 +1194,7 @@ poetry config pypi-token.testpypi pypi-XXXXXXXXXXXX
 poetry publish --repository testpypi
 
 # 6. Verify installation from TestPyPI
-pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ mill-py
+pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ qpointz-mill-py
 python -c "from mill import connect; print('OK')"
 ```
 
@@ -1227,7 +1227,7 @@ poetry config pypi-token.pypi pypi-XXXXXXXXXXXX
 poetry publish
 
 # 6. Verify
-pip install mill-py && python -c "from mill import connect; print('OK')"
+pip install qpointz-mill-py && python -c "from mill import connect; print('OK')"
 ```
 
 **Via Makefile** (steps 3 + 5):
@@ -1250,8 +1250,8 @@ directly. Follow semantic versioning. Tag the release commit with `v<version>`.
 | `make codegen` | Regenerate proto stubs via `codegen.py` |
 | `make test` | Run unit tests with coverage |
 | `make test-integration` | Run integration tests (requires running Mill service) |
-| `make install` | Install mill-py in editable mode (`pip install -e`) |
-| `make uninstall` | Uninstall mill-py from current environment |
+| `make install` | Install qpointz-mill-py in editable mode (`pip install -e`) |
+| `make uninstall` | Uninstall qpointz-mill-py from current environment |
 | `make build` | Build sdist + wheel (`poetry build`) |
 | `make publish-test` | Publish to TestPyPI (staging) |
 | `make publish` | Publish to PyPI (production) |
@@ -1267,8 +1267,8 @@ directly. Follow semantic versioning. Tag the release commit with `v<version>`.
 | 2 | Integration test schema / data model | TBD — user will provide |
 | 3 | Should proto stubs be committed or .gitignored? | Committed (required for PyPI sdist) |
 | 4 | Calcite SQL dialect compatibility (shared by ibis + SQLAlchemy) | Gap analysis complete (Phase 9 §9A). Type mapping fully covered via `CalciteTypeMapper`. Main gaps: window functions, statistical aggregates, extended math functions, CTE/set-op flags. Server-driven `GetDialect` RPC planned. |
-| 5 | ibis backend — ship as `mill-py[ibis]` extra or separate package? | Phase 10 POC findings |
-| 6 | SQLAlchemy — ship as `mill-py[sqlalchemy]` extra or separate package? | Phase 11 POC findings |
+| 5 | ibis backend — ship as `qpointz-mill-py[ibis]` extra or separate package? | Phase 10 POC findings |
+| 6 | SQLAlchemy — ship as `qpointz-mill-py[sqlalchemy]` extra or separate package? | Phase 11 POC findings |
 | 7 | DBAPI paramstyle — Mill has no bind params; inline-only security implications? | Phase 11 POC will document. `paramstyle = "qmark"` planned but params must be inlined. |
 | 8 | gRPC reflection / health check support? | Out of scope for this round |
 | 9 | Service discovery — full implementation? | Stub only (Phase 4); future work after server-side matures |

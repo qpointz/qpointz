@@ -77,11 +77,6 @@ include:
   - local: ${CI_PROJECT_DIR}/.gitlab/components/ui.yml
   - local: ${CI_PROJECT_DIR}/.gitlab/components/data.yml
   - local: ${CI_PROJECT_DIR}/.gitlab/components/clients.yml
-  - local: ${CI_PROJECT_DIR}/.gitlab/pipelines/publish.yml
-    rules:
-      - if: '$RUN_PUBLISH == "true"'
-      - if: '$RUN_PUBLISH != "false" && $CI_COMMIT_REF_PROTECTED == "true"'
-      - when: never
 
 init-version:
   stage: init
@@ -131,4 +126,24 @@ integration:downstream:
     RUN_INTEGRATION: "true"
   rules:
     - *if-run-integration
+    - when: never
+
+publish:downstream:
+  stage: package
+  needs:
+    - job: init-version
+      artifacts: true
+      optional: true
+  trigger:
+    include:
+      - local: .gitlab/pipelines/publish.yml
+    strategy: depend
+    forward:
+      pipeline_variables: true
+  variables:
+    QP_VERSION: $BUILD_VERSION
+    QP_VERSION_PEP440: $BUILD_VERSION_PEP440
+  rules:
+    - if: '$RUN_PUBLISH == "true"'
+    - if: '$RUN_PUBLISH != "false" && $CI_COMMIT_REF_PROTECTED == "true"'
     - when: never

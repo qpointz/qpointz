@@ -8,7 +8,7 @@ Foundation for all DataFrame conversions.  The conversion chain is::
 
 Type mapping follows Section 4.2 of the implementation plan.
 
-Requires the ``arrow`` extra: ``pip install mill-py[arrow]``.
+Requires the ``arrow`` extra: ``pip install qpointz-mill-py[arrow]``.
 """
 from __future__ import annotations
 

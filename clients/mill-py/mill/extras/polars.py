@@ -3,7 +3,7 @@
 Thin wrapper on top of the Arrow conversion.  Uses
 ``polars.from_arrow()`` for near-zero-copy conversion from Arrow.
 
-Requires the ``polars`` extra: ``pip install mill-py[polars]``.
+Requires the ``polars`` extra: ``pip install qpointz-mill-py[polars]``.
 """
 from __future__ import annotations
 

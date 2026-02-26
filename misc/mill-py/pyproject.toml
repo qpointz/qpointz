@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 
 [tool.poetry]
-name = "mill-py"
+name = "qpointz-mill-py"
 version = "0.1.0"
 description = "Mill py client"
 authors = ["vm <vm@qpointz.io>"]

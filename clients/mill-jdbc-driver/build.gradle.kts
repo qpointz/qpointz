@@ -9,6 +9,11 @@ plugins {
     id("org.jetbrains.dokka-javadoc")
 }
 
+mill {
+    description = "Mill JDBC Driver and Mill Client."
+    publishArtifacts = true
+}
+
 distributions {
     main {
     }

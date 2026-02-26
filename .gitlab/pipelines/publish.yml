@@ -1,3 +1,65 @@
+include:
+  - local: /.gitlab/common/common.yml
+
+workflow:
+  rules:
+    - when: always
+
+stages:
+  - init
+  - publish
+
+publish:require-version:
+  stage: init
+  script:
+    - |
+      if [ -z "${QP_VERSION}" ]; then
+        echo "ERROR: QP_VERSION is required for downstream packaging."
+        echo "Ensure parent pipeline passes BUILD_VERSION from init-version."
+        exit 1
+      fi
+      VERSION_NO_PREFIX="${QP_VERSION#v}"
+      BASE_VERSION="${VERSION_NO_PREFIX%%-*}"
+
+      if [ "main" = "${CI_COMMIT_REF_SLUG}" ]; then
+        QP_VERSION_PEP440="${BASE_VERSION}"
+      elif [ "rc" = "${CI_COMMIT_REF_SLUG}" ]; then
+        RC_NUMBER=""
+        BASE_VERSION="$(printf '%s' "${VERSION_NO_PREFIX}" | sed -nE 's/^([0-9]+\.[0-9]+\.[0-9]+)-rc\.?([0-9]+)$/\1/p')"
+        RC_NUMBER="$(printf '%s' "${VERSION_NO_PREFIX}" | sed -nE 's/^([0-9]+\.[0-9]+\.[0-9]+)-rc\.?([0-9]+)$/\2/p')"
+        if [ -z "${RC_NUMBER}" ]; then
+          BASE_VERSION="$(printf '%s' "${VERSION_NO_PREFIX}" | sed -nE 's/^([0-9]+\.[0-9]+\.[0-9]+)rc([0-9]+)$/\1/p')"
+          RC_NUMBER="$(printf '%s' "${VERSION_NO_PREFIX}" | sed -nE 's/^([0-9]+\.[0-9]+\.[0-9]+)rc([0-9]+)$/\2/p')"
+        fi
+        if [ -z "${RC_NUMBER}" ] || [ -z "${BASE_VERSION}" ]; then
+          echo "ERROR: Cannot parse rc counter from QP_VERSION=${QP_VERSION}"
+          echo "Expected semantic-release prerelease like 1.2.1-rc.3"
+          exit 1
+        fi
+        QP_VERSION_PEP440="${BASE_VERSION}rc${RC_NUMBER}"
+      else
+        START_EPOCH="$(date -u -d '2026-01-01 00:00:00' +%s)"
+        NOW_EPOCH="$(date -u +%s)"
+        MINUTES_SINCE_2026="$(( (NOW_EPOCH - START_EPOCH) / 60 ))"
+        if [ "${MINUTES_SINCE_2026}" -lt 0 ]; then
+          MINUTES_SINCE_2026=0
+        fi
+
+        if [ "dev" = "${CI_COMMIT_REF_SLUG}" ]; then
+          QP_VERSION_PEP440="${BASE_VERSION}.dev${MINUTES_SINCE_2026}"
+        else
+          QP_VERSION_PEP440="${BASE_VERSION}a${MINUTES_SINCE_2026}"
+        fi
+      fi
+
+      echo "Using QP_VERSION=${QP_VERSION}"
+      echo "Using QP_VERSION_PEP440=${QP_VERSION_PEP440}"
+      echo "QP_VERSION_PEP440=${QP_VERSION_PEP440}" > publish-version.env
+  artifacts:
+    reports:
+      dotenv: publish-version.env
+
+
 publish:semantic-release:
   extends: .semantic-release-job
   stage: publish
@@ -8,6 +70,67 @@ publish:semantic-release:
   script:
     - export GITLAB_TOKEN=${CI_PUSH_TOKEN}
     - npx semantic-release --ci
+
+maven-publication-create:
+  extends: .gradle-job
+  stage: publish
+  before_script:
+    - echo -n "${SIGN_PGP_RING}" | base64 --decode > ${CI_PROJECT_DIR}/.keyring.kbx
+  script:
+    - ./gradlew --no-daemon --continue  --console plain -no-configuration-cache clean publish publishSonatypeBundle -PprojectVersion=${QP_VERSION} -Psigning.keyId=${SIGN_PGP_KEY_ID} -Psigning.password=${SIGN_PGP_PASS} -Psigning.secretKeyRingFile=${CI_PROJECT_DIR}/.keyring.kbx
+  needs:
+    - job: publish:require-version
+      artifacts: false
+  artifacts:
+    expire_in: "5 days"
+    paths:
+      - ${CI_PROJECT_DIR}/build/repo/**/*
+      - ${CI_PROJECT_DIR}/build/sonatype-bundle/**/*
+      - ${CI_PROJECT_DIR}/build/sonatype-bundle/*
+
+maven-publish:
+  stage: publish
+  script:
+    - export SONATYPE_TOKEN=Authorization:\ Bearer\ $(echo -n $SONATYPE_USERNAME:$SONATYPE_PASSWORD | base64)
+    - export SONATYPE_PUBLISHING_TYPE="USER_MANAGED"
+    - |
+      if [ "main" = "${CI_COMMIT_REF_SLUG}" ]
+      then
+        export SONATYPE_PUBLISHING_TYPE="AUTOMATIC"
+      fi
+    - export SONATYPE_URL="https://central.sonatype.com/api/v1/publisher/upload?publishingType=${SONATYPE_PUBLISHING_TYPE}&name=mill-${QP_VERSION}-${CI_COMMIT_REF_SLUG}-$(date +%Y%m%d_%H%M%S)"
+    - echo $SONATYPE_URL
+    - curl --fail --show-error --silent -X POST --header "$SONATYPE_TOKEN" --form bundle=@${CI_PROJECT_DIR}/build/sonatype-bundle/sonatype-bundle.zip $SONATYPE_URL
+  needs:
+    - job: maven-publication-create
+      artifacts: true
+  rules:
+    - when: manual
+
+publish:pypi-test:
+  stage: publish
+  variables:
+    TEST_TYPE: "unit"
+    PY_VER: "3.10"
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:${PY_VER}-slim
+  needs:
+    - job: publish:require-version
+      artifacts: true
+  script:
+    - cd ${CI_PROJECT_DIR}/clients/mill-py
+    - |
+      pip install poetry
+      poetry install --all-extras
+    - poetry version "${QP_VERSION_PEP440}"
+    - poetry build
+    - poetry config repositories.testpypi https://test.pypi.org/legacy/
+    - poetry config pypi-token.testpypi $PYPI_API_TOKEN_TEST
+    - poetry publish --repository testpypi
+    - |
+      pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ qpointz-mill-py
+      python -c "from mill import connect; print('OK')"
+  rules:
+    - when: manual
 
 #publish:dokka:
 #  extends: .gradle-job
@@ -27,8 +150,8 @@ publish:docs:
   stage: publish
   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:3.12-slim
   needs:
-    - job: init-version
-      artifacts: true
+    - job: publish:require-version
+      artifacts: false
 #    - job: publish:dokka
 #      artifacts: true
   variables:
@@ -54,7 +177,7 @@ publish:docs:
 #    - cp -r ${CI_PROJECT_DIR}/build/dokka/html site/api/kotlin
     - export VERSION_ALIAS=""
     - |
-      if [[ "main" == "${CI_COMMIT_REF_SLUG}" ]]
+      if [ "main" = "${CI_COMMIT_REF_SLUG}" ]
       then
         export VERSION_ALIAS="latest"
       fi

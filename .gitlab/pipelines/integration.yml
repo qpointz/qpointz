@@ -69,7 +69,6 @@ ai:integration:
 #    paths:
 #      - ${CI_PROJECT_DIR}/ai/mill-ai-v1-core/build/reports/scenarios/pack-*.tar.gz
 
-
 .mill-py-integration-template:
   stage: integration
   extends:

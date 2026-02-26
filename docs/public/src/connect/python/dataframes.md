@@ -10,10 +10,10 @@ DataFrames. All conversions use PyArrow as the foundation.
 DataFrame support requires optional extras:
 
 ```bash
-pip install mill-py[arrow]       # PyArrow only
-pip install mill-py[pandas]      # pandas (includes Arrow)
-pip install mill-py[polars]      # polars (includes Arrow)
-pip install mill-py[all]         # everything
+pip install qpointz-mill-py[arrow]       # PyArrow only
+pip install qpointz-mill-py[pandas]      # pandas (includes Arrow)
+pip install qpointz-mill-py[polars]      # polars (includes Arrow)
+pip install qpointz-mill-py[all]         # everything
 ```
 
 ---
@@ -101,7 +101,7 @@ a clear `ImportError` is raised:
 result = client.query("SELECT 1")
 result.to_pandas()
 # ImportError: pandas is required for to_pandas().
-# Install it with: pip install mill-py[pandas]
+# Install it with: pip install qpointz-mill-py[pandas]
 ```
 
 ---

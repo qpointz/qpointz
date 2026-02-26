@@ -1,4 +1,4 @@
-# mill-py
+# mill-py (PyPI: qpointz-mill-py)
 
 Python client for [Mill](https://github.com/qpointz/qpointz) data services.
 
@@ -9,11 +9,11 @@ polars DataFrames.
 ## Installation
 
 ```bash
-pip install mill-py              # core (gRPC + HTTP)
-pip install mill-py[arrow]       # + PyArrow support
-pip install mill-py[pandas]      # + pandas (includes Arrow)
-pip install mill-py[polars]      # + polars (includes Arrow)
-pip install mill-py[all]         # everything
+pip install qpointz-mill-py              # core (gRPC + HTTP)
+pip install qpointz-mill-py[arrow]       # + PyArrow support
+pip install qpointz-mill-py[pandas]      # + pandas (includes Arrow)
+pip install qpointz-mill-py[polars]      # + polars (includes Arrow)
+pip install qpointz-mill-py[all]         # everything
 ```
 
 **Requirements**: Python 3.10 – 3.13.
@@ -93,13 +93,13 @@ All DataFrame conversions use PyArrow as the foundation.
 result = client.query('SELECT * FROM "skymill"."CITIES"')
 
 # PyArrow Table
-table = result.to_arrow()       # requires mill-py[arrow]
+table = result.to_arrow()       # requires qpointz-mill-py[arrow]
 
 # pandas DataFrame
-df = result.to_pandas()          # requires mill-py[pandas]
+df = result.to_pandas()          # requires qpointz-mill-py[pandas]
 
 # polars DataFrame
-df = result.to_polars()          # requires mill-py[polars]
+df = result.to_polars()          # requires qpointz-mill-py[polars]
 ```
 
 ## Async API

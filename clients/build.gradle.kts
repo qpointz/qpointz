@@ -1,6 +1,7 @@
 plugins {
     id ("org.sonarqube") version "5.0.0.4638"
     id("org.jetbrains.dokka")
+    id("io.qpointz.plugins.mill-aggregate")
 }
 
 dependencies {
@@ -19,34 +20,4 @@ sonar {
             listOf(project.layout.projectDirectory.dir("mill-py/tests"))
         )
     }
-}
-
-tasks.register("test") {
-    description = "Runs all test tasks in Clients subprojects"
-    group = "verification"
-    dependsOn(
-        subprojects.mapNotNull { sub ->
-            sub.tasks.findByName("test")
-        }
-    )
-}
-
-tasks.register("compileTestIT") {
-    description = "Compiles all testIT sources in Clients subprojects"
-    group = "verification"
-    dependsOn(
-        subprojects.mapNotNull { sub ->
-            sub.tasks.findByName("compileTestIT")
-        }
-    )
-}
-
-tasks.register("testIT") {
-    description = "Runs all testIT tasks in Clients subprojects"
-    group = "verification"
-    dependsOn(
-        subprojects.mapNotNull { sub ->
-            sub.tasks.findByName("testIT")
-        }
-    )
 }

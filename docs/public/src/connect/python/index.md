@@ -11,11 +11,11 @@ DataFrames.
 Install from PyPI:
 
 ```bash
-pip install mill-py              # core (gRPC + HTTP)
-pip install mill-py[arrow]       # + PyArrow support
-pip install mill-py[pandas]      # + pandas (includes Arrow)
-pip install mill-py[polars]      # + polars (includes Arrow)
-pip install mill-py[all]         # everything
+pip install qpointz-mill-py              # core (gRPC + HTTP)
+pip install qpointz-mill-py[arrow]       # + PyArrow support
+pip install qpointz-mill-py[pandas]      # + pandas (includes Arrow)
+pip install qpointz-mill-py[polars]      # + polars (includes Arrow)
+pip install qpointz-mill-py[all]         # everything
 ```
 
 **Requires** Python 3.10 or later (3.10, 3.11, 3.12, 3.13).

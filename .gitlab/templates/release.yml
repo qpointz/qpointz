@@ -8,7 +8,7 @@
         - export QP_UPDATE_LATEST_CONTAINER=false
         - |
            export QP_CONTAINER_TAG="${CI_COMMIT_REF_SLUG}"
-           if [[ "dev" == "${CI_COMMIT_REF_SLUG}" ]]
+           if [ "dev" = "${CI_COMMIT_REF_SLUG}" ]
            then
               export QP_CONTAINER_TAG="${QP_VERSION}-develop"
               export QP_UPDATE_LATEST_CONTAINER=false
@@ -16,7 +16,7 @@
 
            export QP_VERSION="$(cat ${CI_PROJECT_DIR}/VERSION)"
 
-           if [[ "main" == "${CI_COMMIT_REF_SLUG}" ]]
+           if [ "main" = "${CI_COMMIT_REF_SLUG}" ]
            then
               export QP_CONTAINER_TAG="${QP_VERSION}"
               export QP_UPDATE_LATEST_CONTAINER=true
@@ -40,7 +40,7 @@
     - |
       export BUILD_VERSION_SFX=""
       git remote set-url origin https://gitlab.qpointz.io/${CI_PROJECT_PATH}.git
-      if [[ "main" == "${CI_COMMIT_REF_SLUG}" || "rc" == "${CI_COMMIT_REF_SLUG}" ]]
+      if [ "main" = "${CI_COMMIT_REF_SLUG}" ] || [ "rc" = "${CI_COMMIT_REF_SLUG}" ]
       then
         npx semantic-release --dry-run --no-ci
       else
@@ -54,8 +54,37 @@
     - |
       if [ -f "${CI_PROJECT_DIR}/VERSION" ]; then
         export BUILD_VERSION=$(cat ${CI_PROJECT_DIR}/VERSION)
+        export BUILD_VERSION_BASE="${BUILD_VERSION%%-*}"
+        export BUILD_MINUTES_SINCE_2026=$(node -e 'const start = Date.UTC(2026,0,1,0,0,0); const now = Date.now(); const minutes = Math.floor((now - start) / 60000); console.log(minutes > 0 ? minutes : 0);')
+
+        if [ "main" = "${CI_COMMIT_REF_SLUG}" ]; then
+          export BUILD_VERSION_PEP440="${BUILD_VERSION_BASE}"
+        elif [ "rc" = "${CI_COMMIT_REF_SLUG}" ]; then
+          # Derive rc sequence from semantic-release output (tag-driven).
+          export RC_VERSION_NO_PREFIX="${BUILD_VERSION#v}"
+          export RC_NUMBER=""
+          export BUILD_VERSION_BASE="$(printf '%s' "${RC_VERSION_NO_PREFIX}" | sed -nE 's/^([0-9]+\.[0-9]+\.[0-9]+)-rc\.?([0-9]+)$/\1/p')"
+          export RC_NUMBER="$(printf '%s' "${RC_VERSION_NO_PREFIX}" | sed -nE 's/^([0-9]+\.[0-9]+\.[0-9]+)-rc\.?([0-9]+)$/\2/p')"
+          if [ -z "${RC_NUMBER}" ]; then
+            export BUILD_VERSION_BASE="$(printf '%s' "${RC_VERSION_NO_PREFIX}" | sed -nE 's/^([0-9]+\.[0-9]+\.[0-9]+)rc([0-9]+)$/\1/p')"
+            export RC_NUMBER="$(printf '%s' "${RC_VERSION_NO_PREFIX}" | sed -nE 's/^([0-9]+\.[0-9]+\.[0-9]+)rc([0-9]+)$/\2/p')"
+          fi
+          if [ -z "${RC_NUMBER}" ] || [ -z "${BUILD_VERSION_BASE}" ]; then
+            echo "ERROR: Cannot parse rc counter from BUILD_VERSION=${BUILD_VERSION}"
+            echo "Expected semantic-release prerelease form like 1.2.1-rc.3"
+            exit 1
+          fi
+          export BUILD_VERSION_PEP440="${BUILD_VERSION_BASE}rc${RC_NUMBER}"
+        elif [ "dev" = "${CI_COMMIT_REF_SLUG}" ]; then
+          export BUILD_VERSION_PEP440="${BUILD_VERSION_BASE}.dev${BUILD_MINUTES_SINCE_2026}"
+        else
+          export BUILD_VERSION_PEP440="${BUILD_VERSION_BASE}a${BUILD_MINUTES_SINCE_2026}"
+        fi
+
         echo "BUILD_VERSION=${BUILD_VERSION}" >> version.env
+        echo "BUILD_VERSION_PEP440=${BUILD_VERSION_PEP440}" >> version.env
         echo "Exported BUILD_VERSION=${BUILD_VERSION} to dotenv"
+        echo "Exported BUILD_VERSION_PEP440=${BUILD_VERSION_PEP440} to dotenv"
       else
         echo "ERROR: VERSION file not found"
         exit 1

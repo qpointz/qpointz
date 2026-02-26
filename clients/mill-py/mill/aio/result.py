@@ -125,7 +125,7 @@ class AsyncResultSet:
         Ensures all blocks are consumed first, then builds the table
         from cached blocks via :func:`mill.extras.arrow.vector_block_to_record_batch`.
 
-        Requires the ``arrow`` extra: ``pip install mill-py[arrow]``.
+        Requires the ``arrow`` extra: ``pip install qpointz-mill-py[arrow]``.
 
         Returns:
             A ``pyarrow.Table``.
@@ -137,7 +137,7 @@ class AsyncResultSet:
         except ImportError:
             raise ImportError(
                 "PyArrow is required for to_arrow(). "
-                "Install it with: pip install mill-py[arrow]"
+                "Install it with: pip install qpointz-mill-py[arrow]"
             ) from None
 
         if not self._cache:
@@ -158,7 +158,7 @@ class AsyncResultSet:
     async def to_pandas(self) -> Any:
         """Convert the result set to a pandas ``DataFrame``.
 
-        Requires the ``pandas`` extra: ``pip install mill-py[pandas]``.
+        Requires the ``pandas`` extra: ``pip install qpointz-mill-py[pandas]``.
 
         Returns:
             A ``pandas.DataFrame``.
@@ -168,7 +168,7 @@ class AsyncResultSet:
         except ImportError:
             raise ImportError(
                 "pandas is required for to_pandas(). "
-                "Install it with: pip install mill-py[pandas]"
+                "Install it with: pip install qpointz-mill-py[pandas]"
             ) from None
         table = await self.to_arrow()
         return table.to_pandas(types_mapper=pd.ArrowDtype)
@@ -176,7 +176,7 @@ class AsyncResultSet:
     async def to_polars(self) -> Any:
         """Convert the result set to a polars ``DataFrame``.
 
-        Requires the ``polars`` extra: ``pip install mill-py[polars]``.
+        Requires the ``polars`` extra: ``pip install qpointz-mill-py[polars]``.
 
         Returns:
             A ``polars.DataFrame``.
@@ -186,7 +186,7 @@ class AsyncResultSet:
         except ImportError:
             raise ImportError(
                 "polars is required for to_polars(). "
-                "Install it with: pip install mill-py[polars]"
+                "Install it with: pip install qpointz-mill-py[polars]"
             ) from None
         table = await self.to_arrow()
         return pl.from_arrow(table)

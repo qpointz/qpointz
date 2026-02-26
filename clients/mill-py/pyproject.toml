@@ -3,7 +3,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "mill-py"
+name = "qpointz-mill-py"
 version = "0.1.0"
 description = "Python client for Mill data services — connect via gRPC or HTTP, query, and consume results as native Python, Arrow, pandas, or polars."
 authors = ["qpointz <dev@qpointz.io>"]
