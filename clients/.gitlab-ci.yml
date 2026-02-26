@@ -1,4 +1,5 @@
 .mill-py-test: &mill-py-test
+  extends: .python-job
   stage: build
   variables:
     TEST_TYPE: "unit"

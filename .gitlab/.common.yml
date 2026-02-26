@@ -1,5 +1,0 @@
-include:  
-  - local : /.gitlab/.jobs.yml
-  - local : /.gitlab/.vars.yml
-
-    

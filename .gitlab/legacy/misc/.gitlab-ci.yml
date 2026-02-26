@@ -1,0 +1,117 @@
+include:
+  - local : /.gitlab/vars.yml
+  - local : /.gitlab/jobs.yml
+
+stages:
+  - init
+  - build
+  - finalize
+
+ci-init:
+  stage: init
+  trigger:
+    include:
+      - local: .gitlab/pipelines/ci-init.yml
+    strategy: depend
+  rules:
+    - changes:
+        - .gitlab-ci.yml
+        - .gitlab/**/*
+        - etc/docker/**/*
+        - etc/toolchain/**/*
+    - if: $CI_COMMIT_REF_PROTECTED == "true"
+      when: always
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      when: always
+
+finalize:release:
+  image: ${CI_IMAGE_SEM_RELEASE}
+  stage: finalize
+  variables:
+    GIT_STRATEGY: clone
+    GL_TOKEN: ${CI_PUSH_TOKEN}
+    GL_URL: "https://gitlab.qpointz.io"
+    GIT_DEPTH: 0
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "main" || $CI_COMMIT_REF_NAME == "rc"'
+      when: manual
+    - when: never
+  script:
+    - export GITLAB_TOKEN=${CI_PUSH_TOKEN}
+    - npx semantic-release --ci
+
+# flow:build:
+#   stage: build
+#   inherit:
+#     variables: false
+#   trigger:
+#     include:
+#       - local: flow/.gitlab-ci.yml
+#     strategy: depend
+#   rules:
+#     - changes:
+#         - .gitlab-ci.yml
+#         - .gitlab/**/*
+#         - etc/docker/**/*
+#         - flow/**/*
+
+mill:build:
+  stage: build
+  inherit:
+    variables: false
+  trigger:
+    include:
+      - local: mill/.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - if: $CI_COMMIT_REF_PROTECTED == "true"
+      when: always
+    - changes:
+        - .gitlab-ci.yml
+        - .gitlab/**/*
+        - etc/docker/**/*
+        - mill/[!clients]*/**/*
+        - mill/[!clients]*/*
+        - mill/*.yml
+        - mill/*.kts
+        - mill/*.properties
+      when: always
+
+# mill-clients:build:
+#   stage: build
+#   inherit:
+#     variables: false
+#   needs:
+#     - job: mill:build
+#       optional: true
+#   trigger:
+#     include:
+#       - local: mill/clients/.gitlab-ci.yml
+#     strategy: depend
+#   rules:
+#     - if: $CI_COMMIT_REF_PROTECTED != "true"
+#       changes:
+#         - .gitlab-ci.yml
+#         - .gitlab/**/*
+#         - etc/docker/**/*
+#         - mill/**/*
+#     - if: $CI_COMMIT_REF_PROTECTED == "true"
+#       when: always
+
+# docs:build:
+#   stage: build
+#   inherit:
+#     variables: false
+#   trigger:
+#     include:
+#       - local: docs/.gitlab-ci.yml
+#     strategy: depend
+#   rules:
+#     - if: $CI_COMMIT_REF_PROTECTED != "true"
+#       changes:
+#         - .gitlab-ci.yml
+#         - .gitlab/**/*
+#         - etc/docker/**/*
+#         - docs/**/*
+#     - if: $CI_COMMIT_REF_PROTECTED == "true"
+#       when: always

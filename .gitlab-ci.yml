@@ -12,6 +12,19 @@ variables:
     options:
       - "true"
       - "false"
+  RUN_PUBLISH:
+    value: "auto"
+    description: "Publish include control: auto (protected only), true (force), false (disable)"
+    options:
+      - "auto"
+      - "true"
+      - "false"
+  RUN_PACKAGING:
+    value: "false"
+    description: "Set to true to run packaging without full integration"
+    options:
+      - "true"
+      - "false"
   GRADLE_CONTINUE:
     value: "false"
     description: "Set to true to continue Gradle build after failure"
@@ -57,73 +70,17 @@ workflow:
     - build-logic/**/*
 
 include:
-  - local: ${CI_PROJECT_DIR}/.gitlab/.vars.yml
-  - local: ${CI_PROJECT_DIR}/.gitlab/.common.yml
-  - local: ${CI_PROJECT_DIR}/.gitlab/pipelines/integration.yml
-    rules:    
-      - *if-run-integration
-      - when: never
-  - local : ${CI_PROJECT_DIR}/core/.gitlab-ci.yml
-    rules:
-      - *if-mr-full
-      - if: '$CI_COMMIT_REF_PROTECTED == "true"'
-      - changes:
-        - .gitlab-ci.yml
-        - .gitlab/**/*    
-        - build-logic/**/*
-        - core/**/*
-      - when: never
-  - local: ${CI_PROJECT_DIR}/metadata/.gitlab-ci.yml
-    rules:
-      - *if-mr-full
-      - *if-protected
-      - *build-changes
-      - changes:
-          - metadata/**/*
-      - when: never
-  - local : ${CI_PROJECT_DIR}/apps/.gitlab-ci.yml
-    rules:
-      - *if-mr-full
-      - *if-protected
-      - *build-changes    
-      - changes:
-        - apps/**/*
-      - when: never
-  - local : ${CI_PROJECT_DIR}/ai/.gitlab-ci.yml
-    rules:
-      - *if-mr-full
-      - *if-protected
-      - *build-changes    
-      - changes:
-        - ai/**/*
-      - when: never
-  - local: ${CI_PROJECT_DIR}/ui/.gitlab-ci.yml
-    rules:
-      - *if-mr-full
-      - *if-protected
-      - *build-changes
-      - changes:
-          - ui/**/*
-      - when: never
-  - local: ${CI_PROJECT_DIR}/data/.gitlab-ci.yml
-    rules:
-      - *if-mr-full
-      - *if-protected
-      - *build-changes
-      - changes:
-          - data/**/*
-      - when: never
-  - local : ${CI_PROJECT_DIR}/clients/.gitlab-ci.yml
-    rules:
-      - *if-mr-full
-      - *if-protected
-      - *build-changes    
-      - changes:
-        - clients/**/*
-      - when: never          
+  - local: ${CI_PROJECT_DIR}/.gitlab/common/common.yml
+  - local: ${CI_PROJECT_DIR}/.gitlab/components/core.yml
+  - local: ${CI_PROJECT_DIR}/.gitlab/components/metadata.yml
+  - local: ${CI_PROJECT_DIR}/.gitlab/components/ai.yml
+  - local: ${CI_PROJECT_DIR}/.gitlab/components/ui.yml
+  - local: ${CI_PROJECT_DIR}/.gitlab/components/data.yml
+  - local: ${CI_PROJECT_DIR}/.gitlab/components/clients.yml
   - local: ${CI_PROJECT_DIR}/.gitlab/pipelines/publish.yml
     rules:
-      - *if-protected
+      - if: '$RUN_PUBLISH == "true"'
+      - if: '$RUN_PUBLISH != "false" && $CI_COMMIT_REF_PROTECTED == "true"'
       - when: never
 
 init-version:
@@ -133,5 +90,45 @@ init-version:
       - *if-mr-full
       - *if-protected
       - *build-changes
+      - changes:
+        - apps/**/*
+        - ui/**/*
       - when: never
-      
+
+packaging:downstream:
+  stage: package
+  needs:
+    - job: init-version
+      artifacts: true
+      optional: true
+  trigger:
+    include:
+      - local: .gitlab/pipelines/packaging.yml
+    strategy: depend
+    forward:
+      pipeline_variables: true
+  variables:
+    QP_VERSION: $BUILD_VERSION
+  rules:
+    - if: '$RUN_PACKAGING == "true"'
+    - if: '$RUN_INTEGRATION == "true"'
+    - when: never
+
+integration:downstream:
+  stage: integration
+  needs:
+    - job: init-version
+      artifacts: true
+      optional: true
+  trigger:
+    include:
+      - local: .gitlab/pipelines/integration.yml
+    strategy: depend
+    forward:
+      pipeline_variables: true
+  variables:
+    QP_VERSION: $BUILD_VERSION
+    RUN_INTEGRATION: "true"
+  rules:
+    - *if-run-integration
+    - when: never

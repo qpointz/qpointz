@@ -1,5 +1,5 @@
 ui:grinder-ui-v1:build:
-  image: node:24-alpine
+  extends: .node-job
   stage: build
   script:
     - cd ${CI_PROJECT_DIR}/ui/mill-grinder-ui
@@ -16,7 +16,7 @@ ui:grinder-ui-v1:build:
 
 
 ui:grinder-ui-v2:build:
-  image: node:24-alpine
+  extends: .node-job
   stage: build
   script:
     - cd ${CI_PROJECT_DIR}/ui/mill-ui

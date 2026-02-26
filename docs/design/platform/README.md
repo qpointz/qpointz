@@ -16,7 +16,8 @@ A document belongs here if its **primary subject** is one of:
 
 ## Does NOT Belong Here
 
-- Build, release, Maven publishing, documentation generation → `publish/`
+- Build architecture and CI maintenance runbooks → `build-system/`
+- Release flows, Maven publishing, documentation generation → `publish/`
 - Codebase refactoring iterations, file inventories, progress tracking → `refactoring/`
 - Type system and vector encoding → `data/`
 - Test inventories created as refactoring artifacts → `refactoring/`

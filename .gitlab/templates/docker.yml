@@ -1,0 +1,54 @@
+.docker-base:
+    image:
+        name: docker:27-cli
+        entrypoint: [""]
+    variables:
+      DOCKER_BUILDKIT: "1"
+      DOCKER_DRIVER: overlay2
+    before_script:
+      - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+      - |
+        if [ -n "${DOCKER_HUB_USER}" ] && [ -n "${DOCKER_HUB_PASSWORD}" ]; then
+          docker login -u "${DOCKER_HUB_USER}" -p "${DOCKER_HUB_PASSWORD}" docker.io
+        fi
+      - |
+        if [ -n "${AZ_CR_USERNAME}" ] && [ -n "${AZ_CR_PASSWORD}" ]; then
+          docker login -u "${AZ_CR_USERNAME}" -p "${AZ_CR_PASSWORD}" qpointzcr.azurecr.io
+        fi
+
+.docker-build-job:
+    extends: .docker-base
+    script:
+      - !reference [.global-vars, before_script]
+      - echo "VERSION:${QP_VERSION}"
+      - export DOCKER_BUILD_TAG="v${QP_VERSION}"
+      - |
+        export DOCKER_TAG_ARGS="--tag ${CI_REGISTRY_IMAGE}/${DOCKER_BUILD_CONTAINER_NAME}:${DOCKER_BUILD_TAG} "
+        export DOCKER_TAG_ARGS="${DOCKER_TAG_ARGS} --tag ${CI_REGISTRY_IMAGE}/${DOCKER_BUILD_CONTAINER_NAME}:${CI_COMMIT_REF_SLUG} "
+        if [ "$DOCKER_LOCAL_ONLY" != "true" ]
+        then
+          echo "NON LOCAL PUBLISHING"
+          if [ "${CI_COMMIT_REF_PROTECTED}" = "true" ]
+          then
+              export DOCKER_TAG_ARGS="${DOCKER_TAG_ARGS} --tag qpointz/${DOCKER_BUILD_CONTAINER_NAME}:${DOCKER_BUILD_TAG} "
+          fi
+        else
+          echo "LOCAL ONLY"
+        fi
+      - echo "${DOCKER_TAG_ARGS}"
+      - export DOCKER_BUILD_ARGS=" ${DOCKER_BUILD_ARGS} "
+      - export DOCKER_CACHE_REF="${CI_REGISTRY_IMAGE}/cache/${DOCKER_BUILD_CONTAINER_NAME}:${CI_COMMIT_REF_SLUG}"
+      - export DOCKER_BUILDER_NAME="ci-builder-${CI_JOB_ID}"
+      - docker buildx create --name "${DOCKER_BUILDER_NAME}" --driver docker-container --use
+      - docker buildx inspect --bootstrap
+      - >
+        docker buildx build
+        --file "${DOCKER_BUILD_FILE}"
+        --cache-from "type=registry,ref=${DOCKER_CACHE_REF}"
+        --cache-to "type=registry,ref=${DOCKER_CACHE_REF},mode=max"
+        ${DOCKER_TAG_ARGS}
+        ${DOCKER_BUILD_ARGS}
+        --push
+        "${DOCKER_BUILD_CTX}"
+    after_script:
+      - docker buildx rm "ci-builder-${CI_JOB_ID}" || true

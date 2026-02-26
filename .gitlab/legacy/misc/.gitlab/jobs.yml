@@ -11,9 +11,9 @@
            fi
 
            export QP_VERSION="$(cat ${CI_PROJECT_DIR}/VERSION)"
-           
+
            if [[ "main" == "${CI_COMMIT_REF_SLUG}" ]]
-           then              
+           then
               export QP_CONTAINER_TAG="${QP_VERSION}"
               export QP_UPDATE_LATEST_CONTAINER=true
            fi
@@ -25,64 +25,81 @@
 
 
 .docker-base:
-    image: 
-        name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    image:
+        name: docker:27-cli
         entrypoint: [""]
+    variables:
+      DOCKER_BUILDKIT: "1"
+      DOCKER_DRIVER: overlay2
     before_script:
-      - mkdir -p /kaniko/.docker
-      - >
-          echo "{ \"auths\": {
-          \"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n' )\"}
-          ,\"gitlab.qpointz.io\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n' )\"}
-          ,\"https://index.docker.io/v1/\":{\"auth\":\"$(printf "%s:%s" "${DOCKER_HUB_USER}" "${DOCKER_HUB_PASSWORD}" | base64 | tr -d '\n')\"} 
-          ,\"qpointzcr.azurecr.io\":{\"auth\":\"$(printf "%s:%s" "${AZ_CR_USERNAME}" "${AZ_CR_PASSWORD}" | base64 | tr -d '\n')\"}            
-          }}" > /kaniko/.docker/config.json
+      - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+      - |
+        if [ -n "${DOCKER_HUB_USER}" ] && [ -n "${DOCKER_HUB_PASSWORD}" ]; then
+          docker login -u "${DOCKER_HUB_USER}" -p "${DOCKER_HUB_PASSWORD}" docker.io
+        fi
+      - |
+        if [ -n "${AZ_CR_USERNAME}" ] && [ -n "${AZ_CR_PASSWORD}" ]; then
+          docker login -u "${AZ_CR_USERNAME}" -p "${AZ_CR_PASSWORD}" qpointzcr.azurecr.io
+        fi
 
 .toolchain-docker-build:
     extends: .docker-base
     script:
       - export TOOLCHAIN_TAG="${CI_TOOLCHAIN_ROLL}"
       - echo "TOOLCHAIN=${TOOLCHAIN_TAG}"
+      - export DOCKER_BUILDER_NAME="ci-builder-${CI_JOB_ID}"
+      - docker buildx create --name "${DOCKER_BUILDER_NAME}" --driver docker-container --use
+      - docker buildx inspect --bootstrap
       - >
-        /kaniko/executor
-        --context ${CI_PROJECT_DIR}/etc/toolchain/${TOOLCHAIN_NAME}
-        --dockerfile ${CI_PROJECT_DIR}/etc/toolchain/${TOOLCHAIN_NAME}/Dockerfile
-        --destination ${CI_REGISTRY_IMAGE}/${TOOLCHAIN_NAME}:${TOOLCHAIN_TAG}
-        --cache-dir ${CI_KANIKO_CACHE_DIR}/${TOOLCHAIN_NAME}
-        --cache=true
+        docker buildx build
+        --file "${CI_PROJECT_DIR}/etc/toolchain/${TOOLCHAIN_NAME}/Dockerfile"
+        --cache-from "type=registry,ref=${CI_REGISTRY_IMAGE}/cache/${TOOLCHAIN_NAME}:${CI_COMMIT_REF_SLUG}"
+        --cache-to "type=registry,ref=${CI_REGISTRY_IMAGE}/cache/${TOOLCHAIN_NAME}:${CI_COMMIT_REF_SLUG},mode=max"
+        --tag "${CI_REGISTRY_IMAGE}/${TOOLCHAIN_NAME}:${TOOLCHAIN_TAG}"
+        --push
+        "${CI_PROJECT_DIR}/etc/toolchain/${TOOLCHAIN_NAME}"
+    after_script:
+      - docker buildx rm "ci-builder-${CI_JOB_ID}" || true
 
 .docker-build-job:
-    extends: .docker-base    
+    extends: .docker-base
     script:
       - !reference [.global-vars, before_script]
       - echo "VERSION:${QP_VERSION}"
       - export DOCKER_BUILD_TAG="v${QP_VERSION}"
       - |
-        export DOCKER_DEST="--destination ${CI_REGISTRY_IMAGE}/${DOCKER_BUILD_CONTAINER_NAME}:${DOCKER_BUILD_TAG} "
-        export DOCKER_DEST="${DOCKER_DEST} --destination ${CI_REGISTRY_IMAGE}/${DOCKER_BUILD_CONTAINER_NAME}:${CI_COMMIT_REF_SLUG} "
+        export DOCKER_TAG_ARGS="--tag ${CI_REGISTRY_IMAGE}/${DOCKER_BUILD_CONTAINER_NAME}:${DOCKER_BUILD_TAG} "
+        export DOCKER_TAG_ARGS="${DOCKER_TAG_ARGS} --tag ${CI_REGISTRY_IMAGE}/${DOCKER_BUILD_CONTAINER_NAME}:${CI_COMMIT_REF_SLUG} "
         if [ "$DOCKER_LOCAL_ONLY" != "true" ]
-        then 
-          echo "NON LOCAL PUBLISHING TO ${DOCKER_DEST}"
-          if [ $CI_COMMIT_REF_PROTECTED == true ]
-          then 
-              export DOCKER_DEST="${DOCKER_DEST} --destination qpointz/${DOCKER_BUILD_CONTAINER_NAME}:${DOCKER_BUILD_TAG} "                
+        then
+          echo "NON LOCAL PUBLISHING"
+          if [ "${CI_COMMIT_REF_PROTECTED}" = "true" ]
+          then
+              export DOCKER_TAG_ARGS="${DOCKER_TAG_ARGS} --tag qpointz/${DOCKER_BUILD_CONTAINER_NAME}:${DOCKER_BUILD_TAG} "
           fi
-        else 
+        else
           echo "LOCAL ONLY"
         fi
-      - echo ${DOCKER_DEST}
+      - echo "${DOCKER_TAG_ARGS}"
       - export DOCKER_BUILD_ARGS=" ${DOCKER_BUILD_ARGS} "
+      - export DOCKER_CACHE_REF="${CI_REGISTRY_IMAGE}/cache/${DOCKER_BUILD_CONTAINER_NAME}:${CI_COMMIT_REF_SLUG}"
+      - export DOCKER_BUILDER_NAME="ci-builder-${CI_JOB_ID}"
+      - docker buildx create --name "${DOCKER_BUILDER_NAME}" --driver docker-container --use
+      - docker buildx inspect --bootstrap
       - >
-        /kaniko/executor
-        --context "${DOCKER_BUILD_CTX}"
-        --dockerfile "${DOCKER_BUILD_FILE}"
-        --cache-dir "${CI_KANIKO_CACHE_DIR}/${DOCKER_BUILD_CONTAINER_NAME}" 
-        $DOCKER_DEST
-        $DOCKER_BUILD_ARGS
-        --cache=true  
-        
+        docker buildx build
+        --file "${DOCKER_BUILD_FILE}"
+        --cache-from "type=registry,ref=${DOCKER_CACHE_REF}"
+        --cache-to "type=registry,ref=${DOCKER_CACHE_REF},mode=max"
+        ${DOCKER_TAG_ARGS}
+        ${DOCKER_BUILD_ARGS}
+        --push
+        "${DOCKER_BUILD_CTX}"
+    after_script:
+      - docker buildx rm "ci-builder-${CI_JOB_ID}" || true
+
 .init-next-version:
-  image: ${CI_IMAGE_SEM_RELEASE}  
+  image: ${CI_IMAGE_SEM_RELEASE}
   variables:
     GIT_STRATEGY: clone
     GL_TOKEN: ${CI_PUSH_TOKEN}
@@ -92,17 +109,17 @@
     - job: ci-init
       artifacts: false
       optional: true
-  script:    
+  script:
     - |
         if [[ "main" == "${CI_COMMIT_REF_SLUG}" || "rc" == "${CI_COMMIT_REF_SLUG}" ]]
-        then 
-          npx semantic-release --dry-run --no-ci --debug
-        else         
+        then
+          npx semantic-release --dry-run --no-ci
+        else
           export QP_VERSION_SFX="-${CI_COMMIT_REF_SLUG}"
           export REL_BRANCHES="--branches main,rc,$CI_COMMIT_REF_NAME"
-          npx semantic-release -b ${REL_BRANCHES} --dry-run --no-ci --debug
-          echo "VERSION_SFX:${QP_VERSION_SFX}"    
-        fi    
+          npx semantic-release -b ${REL_BRANCHES} --dry-run --no-ci
+          echo "VERSION_SFX:${QP_VERSION_SFX}"
+        fi
     - echo $(cat ${CI_PROJECT_DIR}/VERSION)${QP_VERSION_SFX} > ${CI_PROJECT_DIR}/VERSION
     - echo "BUILD VERSION:$(cat ${CI_PROJECT_DIR}/VERSION)"
   artifacts:
@@ -113,9 +130,9 @@
 .init-dev-certs:
   stage: init
   image: "${CI_IMAGE_MINICA}"
-  script:         
+  script:
     - cp -R /certs ${CI_PROJECT_DIR}/etc
-  artifacts:    
+  artifacts:
     when: always
     expire_in: "1 days"
     paths:
@@ -138,6 +155,6 @@
     - |
       export TF_SLUG="${CI_COMMIT_REF_SLUG}"
       if [[ "true" == "${CI_COMMIT_REF_PROTECTED}" ]]
-      then              
-         export TF_SLUG="${CI_COMMIT_BRANCH}"         
-      fi      
+      then
+         export TF_SLUG="${CI_COMMIT_BRANCH}"
+      fi

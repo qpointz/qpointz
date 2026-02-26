@@ -1,0 +1,48 @@
+include:
+  - local : /.gitlab/vars.yml
+  - local : /.gitlab/jobs.yml
+
+workflow:
+  rules:
+      - when : always
+
+stages:
+  - init
+
+
+init:build-semantic-release-image:
+  stage: init
+  extends: .docker-build-job
+  script:
+      - export DOCKER_BUILDER_NAME="ci-builder-${CI_JOB_ID}"
+      - docker buildx create --name "${DOCKER_BUILDER_NAME}" --driver docker-container --use
+      - docker buildx inspect --bootstrap
+      - >
+        docker buildx build
+        --file "${CI_PROJECT_DIR}/etc/docker/sem-release-ci/Dockerfile"
+        --cache-from "type=registry,ref=${CI_REGISTRY_IMAGE}/cache/semantic-release-qp:${CI_COMMIT_REF_SLUG}"
+        --cache-to "type=registry,ref=${CI_REGISTRY_IMAGE}/cache/semantic-release-qp:${CI_COMMIT_REF_SLUG},mode=max"
+        --tag "${CI_IMAGE_SEM_RELEASE}"
+        --build-arg "BASE_IMAGE=${CI_IMAGE_NPM}"
+        --push
+        "${CI_PROJECT_DIR}/etc/docker/sem-release-ci"
+  after_script:
+      - docker buildx rm "ci-builder-${CI_JOB_ID}" || true
+
+init:build-minica-image:
+  stage: init
+  extends: .docker-build-job
+  script:
+      - export DOCKER_BUILDER_NAME="ci-builder-${CI_JOB_ID}"
+      - docker buildx create --name "${DOCKER_BUILDER_NAME}" --driver docker-container --use
+      - docker buildx inspect --bootstrap
+      - >
+        docker buildx build
+        --file "${CI_PROJECT_DIR}/etc/docker/minica/Dockerfile"
+        --cache-from "type=registry,ref=${CI_REGISTRY_IMAGE}/cache/minica-ci:${CI_COMMIT_REF_SLUG}"
+        --cache-to "type=registry,ref=${CI_REGISTRY_IMAGE}/cache/minica-ci:${CI_COMMIT_REF_SLUG},mode=max"
+        --tag "${CI_IMAGE_MINICA}"
+        --push
+        "${CI_PROJECT_DIR}/etc/docker/minica"
+  after_script:
+      - docker buildx rm "ci-builder-${CI_JOB_ID}" || true

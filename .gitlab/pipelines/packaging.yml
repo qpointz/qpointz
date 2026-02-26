@@ -1,0 +1,105 @@
+include:
+  - local: /.gitlab/common/common.yml
+
+workflow:
+  rules:
+    - when: always
+
+stages:
+  - init
+  - build
+  - package
+
+packaging:require-version:
+  stage: init
+  script:
+    - |
+      if [ -z "${QP_VERSION}" ]; then
+        echo "ERROR: QP_VERSION is required for downstream packaging."
+        echo "Ensure parent pipeline passes BUILD_VERSION from init-version."
+        exit 1
+      fi
+      echo "Using QP_VERSION=${QP_VERSION}"
+
+ui:grinder-ui-v1:build:
+  extends: .node-job
+  stage: build
+  needs:
+    - job: packaging:require-version
+  script:
+    - cd ${CI_PROJECT_DIR}/ui/mill-grinder-ui
+    - npm install
+    - npm run test:run
+    - npm run build
+  artifacts:
+    expire_in: "5 days"
+    paths:
+      - ${CI_PROJECT_DIR}/ui/mill-grinder-service/src/main/resources/static/app/v1
+    reports:
+      junit:
+        - ui/**/.test/*.xml
+
+ui:grinder-ui-v2:build:
+  extends: .node-job
+  stage: build
+  needs:
+    - job: packaging:require-version
+  script:
+    - cd ${CI_PROJECT_DIR}/ui/mill-ui
+    - npm install
+    - npm run test:ci
+    - npm run build
+  artifacts:
+    expire_in: "5 days"
+    paths:
+      - ${CI_PROJECT_DIR}/ui/mill-grinder-service/src/main/resources/static/app/v2
+    reports:
+      junit:
+        - ui/**/.test/*.xml
+
+apps:package-dist:
+  extends: .gradle-job
+  stage: package
+  needs:
+    - job: ui:grinder-ui-v1:build
+      artifacts: true
+    - job: ui:grinder-ui-v2:build
+      artifacts: true
+  script:
+    - |
+      if [ -n "${QP_VERSION}" ]; then
+        echo "${QP_VERSION}" > ${CI_PROJECT_DIR}/VERSION
+      fi
+    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :apps:mill-service:installBootDist :apps:mill-service:assembleSamples
+  artifacts:
+    expire_in: "5 days"
+    paths:
+      - ${CI_PROJECT_DIR}/apps/mill-service/build/install/**/*
+      - ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/samples/data/**/*
+
+apps:mill-service-base-docker:
+  stage: package
+  extends: .docker-build-job
+  needs:
+    - job: apps:package-dist
+      artifacts: true
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/base/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : mill-service
+    DOCKER_LOCAL_ONLY: $PACKAGE_LOCAL_ONLY
+
+apps:mill-service-samples-docker:
+  stage: package
+  extends: .docker-build-job
+  needs:
+    - job: apps:mill-service-base-docker
+      artifacts: false
+    - job: apps:package-dist
+      artifacts: true
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/samples/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : mill-service-samples
+    DOCKER_LOCAL_ONLY: $PACKAGE_LOCAL_ONLY
+    DOCKER_BUILD_ARGS: --build-arg BASE_IMAGE=${CI_REGISTRY_IMAGE}/mill-service:${CI_COMMIT_REF_SLUG}

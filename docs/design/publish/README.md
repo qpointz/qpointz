@@ -13,8 +13,8 @@ A document belongs here if its **primary subject** is one of:
 
 ## Does NOT Belong Here
 
-- CI/CD pipeline configuration that isn't about publishing → `platform/`
-- General build tooling or Gradle conventions → `platform/`
+- CI/CD pipeline configuration that isn't about publishing → `build-system/`
+- General build tooling or Gradle conventions → `build-system/`
 - User-facing documentation content (types, APIs) → respective domain folder
 
 ## Documents

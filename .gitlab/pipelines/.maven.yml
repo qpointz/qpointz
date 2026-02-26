@@ -27,7 +27,7 @@ maven-publish:
         fi
     - export SONATYPE_URL="https://central.sonatype.com/api/v1/publisher/upload?publishingType=${SONATYPE_PUBLISHING_TYPE}&name=mill-${QP_VERSION}-${CI_COMMIT_REF_SLUG}-$(date +%Y%m%d_%H%M%S)"
     - echo $SONATYPE_URL
-    - curl -X POST -v --header "$SONATYPE_TOKEN" --form bundle=@${CI_PROJECT_DIR}/build/sonatype-bundle/sonatype-bundle.zip $SONATYPE_URL
+    - curl --fail --show-error --silent -X POST --header "$SONATYPE_TOKEN" --form bundle=@${CI_PROJECT_DIR}/build/sonatype-bundle/sonatype-bundle.zip $SONATYPE_URL
   needs:
     - job: maven-publication-create
       artifacts: true

@@ -1,17 +1,13 @@
 publish:semantic-release:
-  image: ${IMAGE_SEM_RELEASE}
+  extends: .semantic-release-job
   stage: publish
-  variables:
-    GIT_STRATEGY: clone      
-    GL_TOKEN: ${CI_PUSH_TOKEN}
-    GL_URL: "https://gitlab.qpointz.io"
-    GIT_DEPTH: 0
-  only:
-    - main 
-    - rc
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "main" || $CI_COMMIT_REF_NAME == "rc"'
+      when: manual
+    - when: never
   script:
     - export GITLAB_TOKEN=${CI_PUSH_TOKEN}
-    - npx semantic-release --ci --debug
+    - npx semantic-release --ci
 
 #publish:dokka:
 #  extends: .gradle-job
@@ -27,6 +23,7 @@ publish:semantic-release:
 #      - ${CI_PROJECT_DIR}/build/dokka/html/
 
 publish:docs:
+  extends: .python-job
   stage: publish
   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:3.12-slim
   needs:
@@ -48,9 +45,7 @@ publish:docs:
     - apt-get install -y git && 
     - apt-get clean && 
     - rm -rf /var/lib/apt/lists/*
-    - echo $CI_PUSH_TOKEN
     - git remote add push_origin https://oauth2:${CI_PUSH_TOKEN}@gitlab.qpointz.io/${CI_PROJECT_PATH}.git
-    - git remote get-url push_origin
   script:
     - !reference [.global-vars, before_script]
     - echo "VERSION:${QP_VERSION}"

@@ -1,0 +1,22 @@
+.rule-protected:
+  rules:
+    - if: '$CI_COMMIT_REF_PROTECTED == "true"'
+
+.rule-mr-full:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ($CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "rc" || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main")'
+
+.rule-run-integration:
+  rules:
+    - if: '$RUN_INTEGRATION == "true"'
+
+.rule-run-packaging:
+  rules:
+    - if: '$RUN_PACKAGING == "true"'
+
+.rule-build-changes:
+  rules:
+    - changes:
+        - .gitlab-ci.yml
+        - .gitlab/**/*
+        - build-logic/**/*

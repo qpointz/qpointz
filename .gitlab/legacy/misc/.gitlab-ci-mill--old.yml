@@ -1,0 +1,5 @@
+# Archived legacy CI file.
+#
+# The original `misc/.gitlab-ci-mill--old.yml` contained historical commented
+# pipeline snippets and is intentionally retired from active use.
+# Preserve history via git instead of maintaining duplicate legacy content.

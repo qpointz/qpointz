@@ -1,12 +1,10 @@
 include:
   - local : /etc/toolchain/toolchain.yml
 
-variables:        
+variables:
     CI_IMAGE_BASE: ${CI_REGISTRY_IMAGE}/base-ci:${CI_TOOLCHAIN_ROLL}
     CI_IMAGE_SBT: ${CI_REGISTRY_IMAGE}/sbt-ci:${CI_TOOLCHAIN_ROLL}
     CI_IMAGE_SPHINX: ${CI_REGISTRY_IMAGE}/sphinx-ci:${CI_TOOLCHAIN_ROLL}
     CI_IMAGE_SEM_RELEASE: ${CI_REGISTRY_IMAGE}/semantic-release-qp:${CI_TOOLCHAIN_ROLL}
     CI_IMAGE_MINICA: ${CI_REGISTRY_IMAGE}/minica-ci:${CI_TOOLCHAIN_ROLL}
     CI_DEPLOY_TOOLS_IMAGE: ${CI_REGISTRY_IMAGE}/deploy-tools:${CI_TOOLCHAIN_ROLL}
-    
-    

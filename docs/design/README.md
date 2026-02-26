@@ -8,6 +8,7 @@ plans. Documents are grouped by topic area into subfolders.
 | Folder | Scope | What goes here |
 |--------|-------|----------------|
 | `ai/` | AI and NL-to-SQL | Reasoning architecture, step-back flows, capabilities, scenarios, AI UX specifications, regression testing |
+| `build-system/` | Build and CI maintenance | Gradle architecture, CI inventory, maintainer runbooks, downstream pipeline operations |
 | `client/` | Client libraries | Python client (mill-py), JDBC driver, SQL dialect descriptors, client API design |
 | `data/` | Data layer | Type system, complex types, vector encoding, schema definitions, wire format design |
 | `metadata/` | Metadata subsystem | Metadata service design, provider refactoring, value mappings, metadata UI, implementation roadmaps |

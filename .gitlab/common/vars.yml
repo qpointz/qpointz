@@ -4,12 +4,8 @@ variables:
   IMAGE_SEM_RELEASE: ${BUILD_TOOLS_REGISTRY}/semantic-release:${BUILD_TOOLS_VERSION}
   IMAGE_MINICA: ${BUILD_TOOLS_REGISTRY}/minica:${BUILD_TOOLS_VERSION}
   IMAGE_DEPLOY_TOOLS: ${BUILD_TOOLS_REGISTRY}/deploy-tools:${BUILD_TOOLS_VERSION}
-  GIT_CLEAN_FLAGS: >-
-      -ffdx
-      -e .gradle-home/
-      -e **/.gradle/  
-  GIT_STRATEGY: fetch        
-  GIT_DEPTH: "1"             
-  GIT_CLEAN_FLAGS: none      
-  GIT_SUBMODULE_STRATEGY: none  
+  GIT_STRATEGY: fetch
+  GIT_DEPTH: "1"
+  GIT_CLEAN_FLAGS: none
+  GIT_SUBMODULE_STRATEGY: none
   GIT_LFS_SKIP_SMUDGE: "1"

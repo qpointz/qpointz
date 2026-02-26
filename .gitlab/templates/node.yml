@@ -1,0 +1,4 @@
+.node-job:
+  image: node:24-alpine
+  variables:
+    npm_config_loglevel: warn

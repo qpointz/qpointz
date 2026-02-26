@@ -1,0 +1,62 @@
+.integration-job:
+  rules:
+      - if: '$RUN_INTEGRATION == "true"'
+
+.gradle-job:
+  image:
+    name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/azul/zulu-openjdk:21-latest
+  variables:
+    GRADLE_USER_HOME: ${CI_PROJECT_DIR}/.gradle-home
+    GRADLE_DO_CLEAN: "false"
+    CACHE_POLICY: "pull"
+    CACHE_PREFIX: "gradle-dev"
+    CACHE_FALLBACK_KEY: "gradle-dev"
+  before_script:
+    - |
+      if [ "$GRADLE_CONTINUE" = "true" ]; then
+        echo "Gradle : continue mode"
+        export GRADLE_CONTINUE_PARAM=" --continue "
+      else
+        echo "Gradle : fail on error mode"
+        export GRADLE_CONTINUE_PARAM=" "
+      fi
+    - |
+      if [ "$GRADLE_FORCE_CLEAN" = "true" ]; then
+        echo "Gradle : force cleaning"
+        export GRADLE_DO_CLEAN="true"
+      fi
+      if [ "$GRADLE_DO_CLEAN" = "true" ]; then
+        echo "Gradle : cleaning"
+        ./gradlew --no-daemon --console plain clean
+      fi
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "main" || $CI_COMMIT_REF_NAME == "rc"'
+      variables:
+        GRADLE_DO_CLEAN: "true"
+        CACHE_POLICY: "pull"
+        CACHE_PREFIX: "gradle-release-${CI_COMMIT_REF_NAME}-${CI_PIPELINE_ID}"
+        CACHE_FALLBACK_KEY: "gradle-release-none"
+    - if: '$CI_COMMIT_REF_NAME == "dev"'
+      variables:
+        GRADLE_DO_CLEAN: "false"
+        CACHE_POLICY: "pull-push"
+        CACHE_PREFIX: "gradle-dev"
+        CACHE_FALLBACK_KEY: "gradle-dev"
+    - when: on_success
+      variables:
+        GRADLE_DO_CLEAN: "false"
+        CACHE_POLICY: "pull"
+        CACHE_PREFIX: "gradle-dev"
+        CACHE_FALLBACK_KEY: "gradle-dev"
+  cache:
+    key:
+      prefix: $CACHE_PREFIX
+      files:
+        - gradle/wrapper/gradle-wrapper.properties
+    fallback_keys:
+      - $CACHE_FALLBACK_KEY
+    policy: $CACHE_POLICY
+    paths:
+      - .gradle-home/wrapper/
+      - .gradle-home/caches/modules-2/
+      - .gradle-home/caches/jars-9/

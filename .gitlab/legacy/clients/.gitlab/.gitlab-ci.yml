@@ -1,5 +1,5 @@
 include:
-  - local : /.gitlab/.common.yml
+  - local : /.gitlab/common/common.yml
 
 image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/azul/zulu-openjdk:17-latest
 
@@ -16,7 +16,7 @@ workflow:
 
 mill-clients:init-version:
   stage: init
-  extends: .init-next-version  
+  extends: .init-next-version
 
 
 
@@ -58,7 +58,7 @@ mill-clients:init-version:
 #    MILL_PORT: "9090"
 #    MILL_AUTH_TLS_HOST: backend-auth-tls.local
 #    MILL_AZ_FUNC_API_URL: "http://func.local:7071/api/"
-    CI_DEBUG_SERVICES: "true"
+    CI_DEBUG_SERVICES: "false"
   before_script:
     - !reference [.global-vars, before_script]
     - mkdir -p ${CI_PROJECT_DIR}/.certs/client
@@ -67,7 +67,7 @@ mill-clients:init-version:
     - find  ${CI_PROJECT_DIR}/etc/certs/
 
 .mill-client:mill-py:test:
-  script:    
+  script:
     - cd ${CI_PROJECT_DIR}/mill/clients/mill-py
     - pip install poetry
     - poetry install --with dev,test
@@ -80,7 +80,7 @@ mill-clients:init-version:
       coverage_report:
         coverage_format: cobertura
         path: ${CI_PROJECT_DIR}/mill/clients/mill-py/build/coverage-results/*.xml
-    paths:      
+    paths:
       - ${CI_PROJECT_DIR}/mill/clients/mill-py/build/test-results/*.xml
       - ${CI_PROJECT_DIR}/mill/clients/mill-py/build/coverage-results/*.xml
 
@@ -103,7 +103,7 @@ mill-client:mill-py:test-3.11:
     - .mill-client:mill-py:test
   variables:
     PY_VER: "3.11"
-  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:3.11-slim   
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:3.11-slim
 
 ##python 3.12
 mill-client:mill-py:test-3.12:
@@ -141,7 +141,7 @@ mill-clients:install-dist:
   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/azul/zulu-openjdk:17-latest
   needs:
     - job: mill-clients:init-version
-      artifacts: true    
+      artifacts: true
   script:
     - cd ${CI_PROJECT_DIR}/mill/clients
     - ../gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain installDist #distTar distZip

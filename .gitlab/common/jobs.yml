@@ -1,0 +1,7 @@
+include:
+  - local: /.gitlab/templates/rules.yml
+  - local: /.gitlab/templates/release.yml
+  - local: /.gitlab/templates/gradle.yml
+  - local: /.gitlab/templates/python.yml
+  - local: /.gitlab/templates/node.yml
+  - local: /.gitlab/templates/docker.yml

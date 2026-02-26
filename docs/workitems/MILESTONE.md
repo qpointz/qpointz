@@ -60,3 +60,5 @@ No active in-progress items currently.
 ### Planned
 
 Items targeted next after in-progress work is completed.
+
+No planned items currently.

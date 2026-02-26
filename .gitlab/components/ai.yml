@@ -1,0 +1,12 @@
+include:
+  - local: ${CI_PROJECT_DIR}/ai/.gitlab-ci.yml
+    rules:
+      - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ($CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "rc" || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main")'
+      - if: '$CI_COMMIT_REF_PROTECTED == "true"'
+      - changes:
+          - .gitlab-ci.yml
+          - .gitlab/**/*
+          - build-logic/**/*
+      - changes:
+          - ai/**/*
+      - when: never
