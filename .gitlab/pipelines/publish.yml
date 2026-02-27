@@ -77,7 +77,7 @@ maven-publication-create:
   before_script:
     - echo -n "${SIGN_PGP_RING}" | base64 --decode > ${CI_PROJECT_DIR}/.keyring.kbx
   script:
-    - ./gradlew --no-daemon --continue  --console plain -no-configuration-cache clean publish publishSonatypeBundle -PprojectVersion=${QP_VERSION} -Psigning.keyId=${SIGN_PGP_KEY_ID} -Psigning.password=${SIGN_PGP_PASS} -Psigning.secretKeyRingFile=${CI_PROJECT_DIR}/.keyring.kbx
+    - ./gradlew --no-daemon --continue  --console plain -no-configuration-cache clean publish publishSonatypeBundle -PprojectVersion=${QP_VERSION_PEP440} -Psigning.keyId=${SIGN_PGP_KEY_ID} -Psigning.password=${SIGN_PGP_PASS} -Psigning.secretKeyRingFile=${CI_PROJECT_DIR}/.keyring.kbx
   needs:
     - job: publish:require-version
       artifacts: false
@@ -98,7 +98,7 @@ maven-publish:
       then
         export SONATYPE_PUBLISHING_TYPE="AUTOMATIC"
       fi
-    - export SONATYPE_URL="https://central.sonatype.com/api/v1/publisher/upload?publishingType=${SONATYPE_PUBLISHING_TYPE}&name=mill-${QP_VERSION}-${CI_COMMIT_REF_SLUG}-$(date +%Y%m%d_%H%M%S)"
+    - export SONATYPE_URL="https://central.sonatype.com/api/v1/publisher/upload?publishingType=${SONATYPE_PUBLISHING_TYPE}&name=mill-${QP_VERSION_PEP440}-$(date +%Y%m%d_%H%M%S)"
     - echo $SONATYPE_URL
     - curl --fail --show-error --silent -X POST --header "$SONATYPE_TOKEN" --form bundle=@${CI_PROJECT_DIR}/build/sonatype-bundle/sonatype-bundle.zip $SONATYPE_URL
   needs:
@@ -128,6 +128,30 @@ publish:pypi-test:
     - poetry publish --repository testpypi
     - |
       pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ qpointz-mill-py
+      python -c "from mill import connect; print('OK')"
+  rules:
+    - when: manual
+
+publish:pypi-prod:
+  stage: publish
+  variables:
+    TEST_TYPE: "unit"
+    PY_VER: "3.10"
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:${PY_VER}-slim
+  needs:
+    - job: publish:require-version
+      artifacts: true
+  script:
+    - cd ${CI_PROJECT_DIR}/clients/mill-py
+    - |
+      pip install poetry
+      poetry install --all-extras
+    - poetry version "${QP_VERSION_PEP440}"
+    - poetry build
+    - poetry config pypi-token.pypi $PYPI_API_TOKEN
+    - poetry publish
+    - |
+      pip install qpointz-mill-py 
       python -c "from mill import connect; print('OK')"
   rules:
     - when: manual
