@@ -51,7 +51,7 @@ svc-build:
 		docker buildx build -f mill-service/src/main/docker/Dockerfile -t mill-service ./mill-service
 
 maven-local-publish:
-	./gradlew --no-configuration-cache clean publish publishSonatypeBundle
+	./gradlew clean publish publishSonatypeBundle
 
 docs-build:
 	./gradlew dokkaGenerate
