@@ -20,7 +20,6 @@ milestone-selectable deliverables extracted from design documents and work items
 | D-4 | Add OBJECT native vector type (Phase B): MapVector with multi-segment PathSegment paths | ✨ feature | backlog | data/complex-type-support.md |
 | D-5 | Implement PathSegment reconstruction and flattening algorithms (Java + Python)          | ✨ feature | backlog | data/complex-type-support.md |
 | D-6 | Add JSON/LIST/MAP/OBJECT to all type mapping tables in mill-type-system reference       | 📝 docs   | backlog | data/mill-type-system.md     |
-| D-7 | Fix JDBC type mapping: BOOL should map to Types.BOOLEAN not BLOB                        | 🐛 fix    | done    | data/mill-type-system.md, **WI-012** |
 | D-8 | Implement server GetDialect RPC and handshake supports_dialect flag                     | ✨ feature | backlog | data/mill-type-system.md     |
 
 ---
@@ -99,8 +98,6 @@ milestone-selectable deliverables extracted from design documents and work items
 | M-10 | Implement EnrichmentFacet, EnrichmentService, and approval workflow | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-11 | Implement JPA repository (document-style, JSONB) and CompositeMetadataRepository | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-12 | Implement MetadataSyncService for file<->JPA synchronization | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
-| M-13 | Remove legacy adapter layer: migrate all usages to MetadataService directly | 🔧 refactoring | done | metadata/metadata-provider-refactoring-plan.md, **WI-005** |
-| M-14 | Migrate SchemaMessageSpec to MetadataEntity; remove legacy model classes | 🔧 refactoring | done | metadata/metadata-provider-refactoring-plan.md, **WI-005** |
 | M-15 | Implement full-text and facet-aware search (Postgres/Elastic/Lucene) | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-16 | Implement DataQualityFacet and rule execution engine | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-17 | Implement SemanticFacet with vector store integration | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
@@ -109,10 +106,6 @@ milestone-selectable deliverables extracted from design documents and work items
 | M-20 | Add UI editing for metadata facets (DescriptiveFacet, RelationFacet, ConceptFacet, etc.) | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-21 | Fix MessageHelper parse error messages (generic HandshakeResponse) | 🐛 fix | backlog | metadata/metadata-service-design.md |
 | M-22 | Remove ProtobufUtils dead code and register HTTP ServiceDescriptor | 🐛 fix | backlog | metadata/metadata-service-design.md |
-| M-23 | Facet Type Library: persistent FacetTypeDescriptor, FacetCatalog, per-deployment config, optional validation | ✨ feature | done | **WI-006** |
-| M-24 | Relocate SchemaExplorerController from metadata module to data layer | 🔧 refactoring | done | **WI-007** |
-| M-25 | MetadataEntity persistence preparation: extract ObjectMapper, add Serializable, import/export | 🔧 refactoring | done | **WI-005** |
-| M-26 | Migrate metadata modules (core, autoconfigure, service) from Java + Lombok to Kotlin | 🔧 refactoring | done | **WI-008** |
 | M-27 | Extend metadata StructuralFacet/API/UI contracts for complex types (LIST/MAP/OBJECT + nested shape rendering); depends on D-2/D-3/D-4 | ✨ feature | backlog | **TBD (new WI)** |
 
 ---
@@ -135,7 +128,6 @@ milestone-selectable deliverables extracted from design documents and work items
 | P-12 | Use combined Calcite operator table (STANDARD + POSTGRESQL)                                                                                                                              | 💡 improvement | backlog | platform/calcite-dialect-comparison.md          |
 | P-13 | Add custom Calcite operators for AGE(timestamp,timestamp) and ILIKE                                                                                                                      | ✨ feature      | backlog | platform/calcite-dialect-comparison.md          |
 | P-14 | Fix postgres.yml type mappings (COUNT->BIGINT, EXTRACT->NUMERIC, polymorphic)                                                                                                            | 🐛 fix         | backlog | platform/calcite-dialect-comparison.md          |
-| P-15 | Resolve duplicate mill.security.authorization.policy prefix across modules                                                                                                               | 🐛 fix         | done    | platform/CONFIGURATION_INVENTORY.md, **WI-002** |
 | P-16 | Replace @Qualifier("LOJOKOJ") placeholder with meaningful qualifier                                                                                                                      | 🐛 fix         | backlog | platform/CONFIGURATION_INVENTORY.md             |
 | P-17 | Complete RAG implementation: vector store value mapper, integration tests                                                                                                                | ✨ feature      | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md           |
 | P-18 | Add custom metrics, distributed tracing (OpenTelemetry), and structured logging                                                                                                          | 💡 improvement | backlog | platform/CODEBASE_ANALYSIS_CURRENT.md           |
@@ -169,11 +161,6 @@ milestone-selectable deliverables extracted from design documents and work items
 
 | #    | Item                                                                                                              | Type           | Status    | Source                                   |
 | ---- | ----------------------------------------------------------------------------------------------------------------- | -------------- | --------- | ---------------------------------------- |
-| R-1  | Move services/mill-metadata-service to metadata/mill-metadata-service (iteration 15)                              | 🔧 refactoring | done      | refactoring/01-iterations.md             |
-| R-2  | Remove Spring contamination from mill-metadata-core                                                               | 🔧 refactoring | done      | refactoring/04-dependency-graph.md       |
-| R-3  | Remove Spring contamination from mill-data-backends                                                               | 🔧 refactoring | done      | refactoring/04-dependency-graph.md       |
-| R-4  | Fix mill.backend.jdbc.multi-shema typo to multi-schema                                                            | 🐛 fix         | done      | refactoring/05-configuration-keys.md     |
-| R-5  | Resolve output-schema vs target-schema inconsistency in YAML and Java binding                                     | 🐛 fix         | done      | refactoring/05-configuration-keys.md, **WI-012** |
 | R-6  | Fix mill.security.enabled vs mill.security.enable inconsistency in test configs                                   | 🐛 fix         | backlog   | refactoring/05-configuration-keys.md     |
 | R-7  | Remove ghost keys (data-bot.*, jet-grpc.*) or implement their Java consumers                                      | 🐛 fix         | backlog   | refactoring/05-configuration-keys.md     |
 | R-8  | Add missing additional-spring-configuration-metadata.json for 28+ mill.* keys                                     | 💡 improvement | backlog   | refactoring/05-configuration-keys.md     |
@@ -183,21 +170,7 @@ milestone-selectable deliverables extracted from design documents and work items
 | R-12 | Fix JDBC driver integration test infrastructure (re-enable disabled testIT classes)                               | 🧪 test        | backlog   | refactoring/06-test-module-inventory.md  |
 | R-13 | Reduce technical debt: review 119 files with TODOs/FIXMEs                                                         | 🔧 refactoring | backlog   | platform/CODEBASE_ANALYSIS_CURRENT.md    |
 | R-14 | Refactor data module Spring configuration: review and implement in mill-data-autoconfigure                        | 🔧 refactoring | backlog   | refactoring/05-configuration-keys.md     |
-| R-15 | Implement BackendContextRunner test rig (abstract class + JdbcBackendContextRunner + CalciteBackendContextRunner) | 🔧 refactoring | done      | refactoring/07-backend-context-runner.md |
-| R-16 | Migrate mill-data-backends unit tests from @SpringBootTest to BackendContextRunner (10 test files)                | 🧪 test        | done      | refactoring/07-backend-context-runner.md |
-| R-17 | Delete obsolete test YAML configs after unit test migration (3 files in mill-data-backends/src/test/resources/)   | 🔧 refactoring | done      | refactoring/07-backend-context-runner.md |
-| R-18 | Rename mill-data-service to mill-data-backend-core and update all Gradle references                               | 🔧 refactoring | done      | refactoring/07-backend-context-runner.md |
-| R-19 | Move mill-data-grpc-service and mill-data-http-service under data/services/ subfolder                             | 🔧 refactoring | done      | refactoring/07-backend-context-runner.md |
-| R-20 | Move non-autoconfigure tests from mill-data-autoconfigure to backend-core and metadata modules                    | 🧪 test        | done      | refactoring/07-backend-context-runner.md |
-| R-21 | Delete orphaned application-*.yml Spring config files across modules                                              | 🔧 refactoring | done      | refactoring/07-backend-context-runner.md |
-| R-22 | Narrow broad @ComponentScan and unfiltered @EnableAutoConfiguration in tests across all modules                   | 🔧 refactoring | done      | **WI-009**                               |
-| R-23 | Delete dead MainLala.java test scaffolding from mill-test-kit                                                     | 🔧 refactoring | done      | **WI-009**                               |
-| R-24 | Move SecurityProvider interface from data/mill-data-backend-core to core/mill-security                            | 🔧 refactoring | done      | **WI-010**                               |
-| R-25 | Remove unused metadata dependencies from data/mill-data-autoconfigure                                             | 🔧 refactoring | done      | **WI-010**                               |
-| R-26 | Remove spring-dependency-management plugin from pure modules (mill-core, mill-data-backends)                      | 🔧 refactoring | done      | **WI-010**                               |
-| R-27 | Remove boot.starter.test from core/mill-core test dependencies                                                    | 🔧 refactoring | done      | **WI-010**                               |
 | R-28 | ~~Extract Spring Boot @Configuration classes from mill-ai-v1-core~~ (skipped — v1 being replaced by v2)           | 🔧 refactoring | cancelled | **WI-010**                               |
-| R-29 | Move @SpringBootApplication entry point out of mill-ai-v2 core library                                            | 🔧 refactoring | done      | **WI-010**                               |
 
 ---
 
@@ -215,12 +188,6 @@ milestone-selectable deliverables extracted from design documents and work items
 | S-8 | Implement source persistence, CRUD API, programmatic builders (Phase 6) | ✨ feature | backlog | source/flow-kt-design.md |
 | S-9 | Implement S3BlobSource, AzureBlobSource, HdfsBlobSource storage backends | ✨ feature | backlog | source/flow-kt-design.md |
 | S-10 | Implement HivePartitionTableMapper and GlobTableMapper | ✨ feature | backlog | source/flow-kt-design.md |
-| S-11 | Implement flow backend with SourceDefinitionRepository abstraction | ✨ feature | done | source/flow-backend.md |
-| S-12 | Implement SingleFileSourceRepository and MultiFileSourceRepository | ✨ feature | done | source/flow-backend.md |
-| S-13 | Implement FlowContextFactory (CalciteContextFactory for source descriptors) | ✨ feature | done | source/flow-backend.md |
-| S-14 | Implement FlowBackendContextRunner in testkit | 🧪 test | done | source/flow-backend.md |
-| S-15 | Implement FlowBackendAutoConfiguration (Spring auto-configuration for flow backend) | ✨ feature | done | source/flow-backend.md |
-| S-16 | Add Arrow format module in data/formats as phase 1 before Flight/Flight SQL (schema + type mapping + source integration) | ✨ feature | done | **WI-011** |
 | S-17 | Standardize format read/write naming: evaluate RecordSource vs RecordReader and align concrete format classes for consistency | 🔧 refactoring | backlog | **WI-011** |
 | S-18 | Add ORC format support in data/formats (reader/writer + schema mapping); nested/complex types depend on D-2/D-3/D-4 | ✨ feature | backlog | **TBD (new WI)** |
 | S-19 | Add Parquet complex type support (LIST/MAP/OBJECT) aligned with source type mapping; depends on D-2/D-3/D-4 | ✨ feature | backlog | data/complex-type-support.md |
@@ -260,13 +227,13 @@ milestone-selectable deliverables extracted from design documents and work items
 
 | Category    | Total   | ✨ feature | 💡 improvement | 🐛 fix | 🔧 refactoring | 🧪 test | 📝 docs |
 | ----------- | ------- | --------- | -------------- | ------ | -------------- | ------- | ------- |
-| data        | 8       | 6         | 0              | 1      | 0              | 0       | 1       |
+| data        | 7       | 6         | 0              | 0      | 0              | 0       | 1       |
 | ai          | 23      | 16        | 4              | 1      | 2              | 0       | 0       |
 | client      | 19      | 10        | 0              | 5      | 3              | 0       | 1       |
-| metadata    | 23      | 14        | 0              | 2      | 6              | 1       | 0       |
-| platform    | 30      | 10        | 7              | 4      | 8              | 1       | 0       |
+| metadata    | 17      | 13        | 0              | 2      | 1              | 1       | 0       |
+| platform    | 29      | 10        | 7              | 3      | 8              | 1       | 0       |
 | publish     | 4       | 1         | 2              | 0      | 0              | 0       | 1       |
-| refactoring | 29      | 0         | 1              | 6      | 17             | 4       | 1       |
-| source      | 21      | 13        | 3              | 1      | 2              | 1       | 0       |
+| refactoring | 10      | 0         | 1              | 4      | 2              | 2       | 1       |
+| source      | 15      | 8         | 4              | 1      | 2              | 0       | 0       |
 | ui          | 10      | 4         | 4              | 0      | 1              | 1       | 0       |
-| **Total**   | **167** | **74**    | **21**         | **20** | **39**         | **8**   | **4**   |
+| **Total**   | **134** | **68**    | **22**         | **16** | **19**         | **5**   | **4**   |
