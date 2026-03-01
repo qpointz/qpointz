@@ -1,10 +1,16 @@
-import org.gradle.internal.declarativedsl.schemaBuilder.isPublic
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import groovy.util.Node
+import org.gradle.api.component.AdhocComponentWithVariants
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.maven.MavenPublication
 
 plugins {
     `java-library`
     java
     `java-library-distribution`
     id("io.qpointz.plugins.mill")
+    `maven-publish`
+    id("com.gradleup.shadow") version "8.3.6"
     id("org.jetbrains.dokka")
     id("org.jetbrains.dokka-javadoc")
 }
@@ -30,6 +36,45 @@ dependencies {
 
 tasks.withType<ProcessResources>() {
     from(rootProject.layout.projectDirectory.dir("../").file("VERSION"))
+}
+
+tasks.named<ShadowJar>("shadowJar") {
+    archiveBaseName.set("mill-jdbc-driver")
+    archiveClassifier.set("all")
+    mergeServiceFiles {
+        include("META-INF/services/java.sql.Driver")
+    }
+}
+
+components.named("java", AdhocComponentWithVariants::class.java) {
+    listOf("shadowRuntimeElements", "shadowApiElements")
+        .mapNotNull { configurations.findByName(it) }
+        .forEach { shadowConfiguration ->
+            withVariantsFromConfiguration(shadowConfiguration) {
+                skip()
+            }
+        }
+}
+
+extensions.configure<PublishingExtension>("publishing") {
+    publications.withType(MavenPublication::class.java).configureEach {
+        if (name == "mavenJava") {
+            artifactId = "mill-jdbc-driver"
+        }
+    }
+
+    publications.create("mavenJavaAll", MavenPublication::class.java) {
+        artifactId = "mill-jdbc-driver-all"
+        artifact(tasks.named<ShadowJar>("shadowJar"))
+        pom.withXml {
+            val root = asNode()
+            root.children()
+                .filterIsInstance<Node>()
+                .filter { it.name().toString() == "dependencies" }
+                .toList()
+                .forEach { root.remove(it) }
+        }
+    }
 }
 
 
