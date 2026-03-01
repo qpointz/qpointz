@@ -1,7 +1,7 @@
 include:
   - local : /.gitlab/common/common.yml
 
-image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/azul/zulu-openjdk:17-latest
+image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/azul/zulu-openjdk:21-latest
 
 stages:
   - init
@@ -120,7 +120,7 @@ mill-client:mill-py:test-3.12:
 mill:jdbc-driver:test:
   extends: .mill:grpc-services
   stage: integration-test
-  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/azul/zulu-openjdk:17-latest
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/azul/zulu-openjdk:21-latest
   script:
     - cd ${CI_PROJECT_DIR}/mill/clients
     - ../gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain testIT
@@ -138,7 +138,7 @@ mill:jdbc-driver:test:
 
 mill-clients:install-dist:
   stage: build
-  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/azul/zulu-openjdk:17-latest
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/azul/zulu-openjdk:21-latest
   needs:
     - job: mill-clients:init-version
       artifacts: true

@@ -79,7 +79,7 @@ ai:integration:
   variables:
     CI_DEBUG_SERVICES: "false"
     # Runtime
-    PY_VER: "3.10"
+    PY_VER: "3.12"
     PIP_DISABLE_PIP_VERSION_CHECK: "1"
     PIP_ROOT_USER_ACTION: "ignore"
     # Integration connection configuration consumed by tests/integration/conftest.py
@@ -146,33 +146,6 @@ ai:integration:
       - ${CI_PROJECT_DIR}/clients/mill-py/build/test-results/*.xml
 
 
-clients:mill-py:integration:grpc-noauth:3.10:
-  extends:
-    - .mill-py-integration-template
-  variables:
-    PY_VER: "3.10"
-    MILL_IT_HOST: "mill-it"
-    MILL_IT_PORT: "9090"
-    MILL_IT_PROTOCOL: "grpc"
-    MILL_IT_BASE_PATH: "/services/jet"
-    MILL_IT_TLS: "false"
-    MILL_IT_AUTH: "none"
-    MILL_IT_SCHEMA: "skymill"
-
-
-clients:mill-py:integration:grpc-noauth:3.11:
-  extends:
-    - .mill-py-integration-template
-  variables:
-    PY_VER: "3.11"
-    MILL_IT_HOST: "mill-it"
-    MILL_IT_PORT: "9090"
-    MILL_IT_PROTOCOL: "grpc"
-    MILL_IT_BASE_PATH: "/services/jet"
-    MILL_IT_TLS: "false"
-    MILL_IT_AUTH: "none"
-    MILL_IT_SCHEMA: "skymill"
-
 clients:mill-py:integration:grpc-noauth:3.12:
   extends:
     - .mill-py-integration-template
@@ -187,32 +160,32 @@ clients:mill-py:integration:grpc-noauth:3.12:
     MILL_IT_SCHEMA: "skymill"
 
 
-clients:mill-py:integration:http-json-noauth:3.10:
+clients:mill-py:integration:grpc-noauth:3.13:
   extends:
     - .mill-py-integration-template
   variables:
-    PY_VER: "3.10"
+    PY_VER: "3.13"
     MILL_IT_HOST: "mill-it"
-    MILL_IT_PORT: "8080"
-    MILL_IT_PROTOCOL: "http-json"
+    MILL_IT_PORT: "9090"
+    MILL_IT_PROTOCOL: "grpc"
     MILL_IT_BASE_PATH: "/services/jet"
     MILL_IT_TLS: "false"
     MILL_IT_AUTH: "none"
     MILL_IT_SCHEMA: "skymill"
 
-
-clients:mill-py:integration:http-json-noauth:3.11:
+clients:mill-py:integration:grpc-noauth:3.14:
   extends:
     - .mill-py-integration-template
   variables:
-    PY_VER: "3.11"
+    PY_VER: "3.14"
     MILL_IT_HOST: "mill-it"
-    MILL_IT_PORT: "8080"
-    MILL_IT_PROTOCOL: "http-json"
+    MILL_IT_PORT: "9090"
+    MILL_IT_PROTOCOL: "grpc"
     MILL_IT_BASE_PATH: "/services/jet"
     MILL_IT_TLS: "false"
     MILL_IT_AUTH: "none"
     MILL_IT_SCHEMA: "skymill"
+
 
 clients:mill-py:integration:http-json-noauth:3.12:
   extends:
@@ -227,28 +200,28 @@ clients:mill-py:integration:http-json-noauth:3.12:
     MILL_IT_AUTH: "none"
     MILL_IT_SCHEMA: "skymill"
 
-clients:mill-py:integration:http-protobuf-noauth:3.10:
+
+clients:mill-py:integration:http-json-noauth:3.13:
   extends:
     - .mill-py-integration-template
   variables:
-    PY_VER: "3.10"
+    PY_VER: "3.13"
     MILL_IT_HOST: "mill-it"
     MILL_IT_PORT: "8080"
-    MILL_IT_PROTOCOL: "http-protobuf"
+    MILL_IT_PROTOCOL: "http-json"
     MILL_IT_BASE_PATH: "/services/jet"
     MILL_IT_TLS: "false"
     MILL_IT_AUTH: "none"
     MILL_IT_SCHEMA: "skymill"
 
-
-clients:mill-py:integration:http-protobuf-noauth:3.11:
+clients:mill-py:integration:http-json-noauth:3.14:
   extends:
     - .mill-py-integration-template
   variables:
-    PY_VER: "3.11"
+    PY_VER: "3.14"
     MILL_IT_HOST: "mill-it"
     MILL_IT_PORT: "8080"
-    MILL_IT_PROTOCOL: "http-protobuf"
+    MILL_IT_PROTOCOL: "http-json"
     MILL_IT_BASE_PATH: "/services/jet"
     MILL_IT_TLS: "false"
     MILL_IT_AUTH: "none"
@@ -259,6 +232,33 @@ clients:mill-py:integration:http-protobuf-noauth:3.12:
     - .mill-py-integration-template
   variables:
     PY_VER: "3.12"
+    MILL_IT_HOST: "mill-it"
+    MILL_IT_PORT: "8080"
+    MILL_IT_PROTOCOL: "http-protobuf"
+    MILL_IT_BASE_PATH: "/services/jet"
+    MILL_IT_TLS: "false"
+    MILL_IT_AUTH: "none"
+    MILL_IT_SCHEMA: "skymill"
+
+
+clients:mill-py:integration:http-protobuf-noauth:3.13:
+  extends:
+    - .mill-py-integration-template
+  variables:
+    PY_VER: "3.13"
+    MILL_IT_HOST: "mill-it"
+    MILL_IT_PORT: "8080"
+    MILL_IT_PROTOCOL: "http-protobuf"
+    MILL_IT_BASE_PATH: "/services/jet"
+    MILL_IT_TLS: "false"
+    MILL_IT_AUTH: "none"
+    MILL_IT_SCHEMA: "skymill"
+
+clients:mill-py:integration:http-protobuf-noauth:3.14:
+  extends:
+    - .mill-py-integration-template
+  variables:
+    PY_VER: "3.14"
     MILL_IT_HOST: "mill-it"
     MILL_IT_PORT: "8080"
     MILL_IT_PROTOCOL: "http-protobuf"

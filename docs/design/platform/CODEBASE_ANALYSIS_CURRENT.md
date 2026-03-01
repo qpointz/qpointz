@@ -691,6 +691,11 @@ val df = spark.read
    - Implement distributed tracing
    - Enhance logging
 
+4. **Standardize error transparency across HTTP/gRPC clients (WI-013)**
+   - Add centralized HTTP exception mapping in the data HTTP service
+   - Propagate structured error fields (`status`, `type/code`, `title`, `detail`, `traceId`) to Python and JDBC clients
+   - Align gRPC and HTTP client-facing error detail behavior
+
 ### Short-term (Medium Priority)
 
 1. **Performance Optimization**

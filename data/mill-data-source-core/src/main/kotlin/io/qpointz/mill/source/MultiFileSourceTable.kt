@@ -26,15 +26,7 @@ class MultiFileSourceTable(
 ) : SourceTable {
 
     override fun records(): Iterable<Record> {
-        return Iterable {
-            sources.asSequence().flatMap { source ->
-                when (source) {
-                    is FlowRecordSource -> source.asSequence()
-                    is FlowVectorSource -> vectorSourceToRecords(source)
-                    else -> emptySequence()
-                }
-            }.iterator()
-        }
+        return Iterable { ConcatenatingRecordIterator(sources) }
     }
 
     override fun vectorBlocks(batchSize: Int): VectorBlockIterator {
@@ -55,6 +47,52 @@ class MultiFileSourceTable(
          */
         fun empty(schema: RecordSchema): MultiFileSourceTable =
             MultiFileSourceTable(schema, emptyList())
+    }
+}
+
+internal class ConcatenatingRecordIterator(
+    sources: List<RecordSource>
+) : CloseableRecordIterator {
+    private val sourceIterator = sources.iterator()
+    private var currentIterator: Iterator<Record>? = null
+    private var closed = false
+
+    override fun hasNext(): Boolean {
+        if (closed) return false
+        while (true) {
+            val current = currentIterator
+            if (current != null && current.hasNext()) return true
+            closeCurrentIterator()
+            if (!sourceIterator.hasNext()) return false
+            currentIterator = nextRecordIterator(sourceIterator.next())
+        }
+    }
+
+    override fun next(): Record {
+        if (!hasNext()) throw NoSuchElementException()
+        return currentIterator!!.next()
+    }
+
+    override fun close() {
+        if (closed) return
+        closed = true
+        closeCurrentIterator()
+    }
+
+    private fun nextRecordIterator(source: RecordSource): Iterator<Record> {
+        return when (source) {
+            is FlowRecordSource -> source.iterator()
+            is FlowVectorSource -> vectorSourceToRecords(source).iterator()
+            else -> emptySequence<Record>().iterator()
+        }
+    }
+
+    private fun closeCurrentIterator() {
+        val iterator = currentIterator
+        currentIterator = null
+        if (iterator is AutoCloseable) {
+            iterator.close()
+        }
     }
 }
 

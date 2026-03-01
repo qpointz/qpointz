@@ -143,6 +143,7 @@ milestone-selectable deliverables extracted from design documents and work items
 | P-28 | Implement Arrow Flight SQL server for Mill with SQL metadata compatibility and per-column timezone semantics; complex type coverage depends on D-2/D-3/D-4                               | ✨ feature      | backlog | platform/arrow-flight-sql-server-design.md      |
 | P-29 | Introduce proto/schema timezone extension (field-level TZ metadata) and propagate across source, backend, service, and client mappings                                                   | ✨ feature      | backlog | **WI-011**                                      |
 | P-30 | Implement end-to-end timezone support (frontend to backend): preserve, expose, and validate field-level timezone metadata across contracts and UI flows                                  | ✨ feature      | backlog | **TBD (new WI)**                                |
+| P-31 | Improve HTTP/gRPC error transparency: return structured Problem Details and propagate detail/code/traceId in Python and JDBC clients                                                     | 🐛 fix         | backlog | **WI-013**                                      |
 
 ---
 
@@ -231,9 +232,9 @@ milestone-selectable deliverables extracted from design documents and work items
 | ai          | 23      | 16        | 4              | 1      | 2              | 0       | 0       |
 | client      | 19      | 10        | 0              | 5      | 3              | 0       | 1       |
 | metadata    | 17      | 13        | 0              | 2      | 1              | 1       | 0       |
-| platform    | 29      | 10        | 7              | 3      | 8              | 1       | 0       |
+| platform    | 30      | 10        | 7              | 4      | 8              | 1       | 0       |
 | publish     | 4       | 1         | 2              | 0      | 0              | 0       | 1       |
 | refactoring | 10      | 0         | 1              | 4      | 2              | 2       | 1       |
 | source      | 15      | 8         | 4              | 1      | 2              | 0       | 0       |
 | ui          | 10      | 4         | 4              | 0      | 1              | 1       | 0       |
-| **Total**   | **134** | **68**    | **22**         | **16** | **19**         | **5**   | **4**   |
+| **Total**   | **135** | **68**    | **22**         | **17** | **19**         | **5**   | **4**   |

@@ -37,11 +37,16 @@ class FlowTable(
 
                 return object : Enumerator<Array<Any?>> {
                     private var current: Array<Any?> = emptyArray()
+                    private var closed = false
 
                     override fun current(): Array<Any?> = current
 
                     override fun moveNext(): Boolean {
-                        if (!records.hasNext()) return false
+                        if (closed) return false
+                        if (!records.hasNext()) {
+                            close()
+                            return false
+                        }
                         val record = records.next()
                         current = Array(fieldNames.size) { i -> record[fieldNames[i]] }
                         return true
@@ -52,7 +57,11 @@ class FlowTable(
                     }
 
                     override fun close() {
-                        // no-op — record iterator is not closeable
+                        if (closed) return
+                        closed = true
+                        if (records is AutoCloseable) {
+                            records.close()
+                        }
                     }
                 }
             }

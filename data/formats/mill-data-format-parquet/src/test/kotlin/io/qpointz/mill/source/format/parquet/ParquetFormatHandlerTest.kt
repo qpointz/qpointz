@@ -89,4 +89,21 @@ class ParquetFormatHandlerTest {
         val source = handler.createRecordSource(blobs[0], blobSource, schema) as FlowRecordSource
         assertTrue(source.toList().isEmpty())
     }
+
+    @Test
+    fun shouldSupportSecondIterationOnSameSource() {
+        val records = ParquetTestUtils.createTestRecords()
+        ParquetTestUtils.writeParquetFile(tempDir, "test.parquet", records)
+
+        val handler = ParquetFormatHandler()
+        val blobSource = LocalBlobSource(tempDir)
+        val blob = parquetBlobs(blobSource).first()
+        val schema = handler.inferSchema(blob, blobSource)
+        val source = handler.createRecordSource(blob, blobSource, schema) as FlowRecordSource
+
+        val firstPass = source.toList()
+        val secondPass = source.toList()
+
+        assertEquals(firstPass, secondPass)
+    }
 }

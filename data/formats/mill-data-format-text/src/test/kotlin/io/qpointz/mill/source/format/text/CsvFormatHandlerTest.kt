@@ -96,4 +96,20 @@ class CsvFormatHandlerTest {
         assertEquals(3, result.size)
         assertEquals("Alice", result[0]["name"])
     }
+
+    @Test
+    fun shouldSupportSecondIterationOnSameSource() {
+        CsvTestUtils.writeCsvFile(tempDir, "test.csv", CsvTestUtils.SIMPLE_CSV)
+
+        val handler = CsvFormatHandler()
+        val blobSource = LocalBlobSource(tempDir)
+        val blob = blobSource.listBlobs().first()
+        val schema = handler.inferSchema(blob, blobSource)
+        val source = handler.createRecordSource(blob, blobSource, schema) as FlowRecordSource
+
+        val firstPass = source.toList()
+        val secondPass = source.toList()
+
+        assertEquals(firstPass, secondPass)
+    }
 }

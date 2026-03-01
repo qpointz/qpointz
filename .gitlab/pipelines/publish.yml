@@ -111,7 +111,7 @@ publish:pypi-test:
   stage: publish
   variables:
     TEST_TYPE: "unit"
-    PY_VER: "3.10"
+    PY_VER: "3.13"
   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:${PY_VER}-slim
   needs:
     - job: publish:require-version
@@ -136,7 +136,7 @@ publish:pypi-prod:
   stage: publish
   variables:
     TEST_TYPE: "unit"
-    PY_VER: "3.10"
+    PY_VER: "3.13"
   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:${PY_VER}-slim
   needs:
     - job: publish:require-version

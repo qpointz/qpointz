@@ -165,4 +165,22 @@ class ExcelFormatHandlerTest {
         val schema = handler.inferSchema(blobs[0], blobSource)
         assertTrue(schema.fields.isEmpty())
     }
+
+    @Test
+    fun shouldSupportSecondIterationOnSameSource() {
+        val workbook = ExcelTestUtils.createTestWorkbook()
+        ExcelTestUtils.writeWorkbook(tempDir, "test.xlsx", workbook)
+        workbook.close()
+
+        val handler = ExcelFormatHandler()
+        val blobSource = LocalBlobSource(tempDir)
+        val blob = blobSource.listBlobs().first()
+        val schema = handler.inferSchema(blob, blobSource)
+        val source = handler.createRecordSource(blob, blobSource, schema) as FlowRecordSource
+
+        val firstPass = source.toList()
+        val secondPass = source.toList()
+
+        assertEquals(firstPass, secondPass)
+    }
 }

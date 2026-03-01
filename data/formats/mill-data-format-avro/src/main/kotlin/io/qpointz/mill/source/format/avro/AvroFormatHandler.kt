@@ -36,7 +36,9 @@ class AvroFormatHandler : FormatHandler {
      * The returned source reads Avro records row-by-row.
      */
     override fun createRecordSource(blob: BlobPath, blobSource: BlobSource, schema: RecordSchema): RecordSource {
-        val inputStream = blobSource.openInputStream(blob)
-        return AvroRecordSource(inputStream, schema)
+        return AvroRecordSource(
+            inputStreamSupplier = { blobSource.openInputStream(blob) },
+            schema = schema
+        )
     }
 }

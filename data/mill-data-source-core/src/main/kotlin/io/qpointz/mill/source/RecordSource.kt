@@ -24,6 +24,15 @@ interface RecordSource {
 interface FlowRecordSource : RecordSource, Iterable<Record>
 
 /**
+ * Closeable iterator for row-oriented sources.
+ *
+ * Some backends (CSV/TSV/FWF/Avro) hold IO resources while iterating.
+ * Call [close] when iteration is terminated early (e.g. LIMIT queries)
+ * to release resources promptly.
+ */
+interface CloseableRecordIterator : Iterator<Record>, AutoCloseable
+
+/**
  * Columnar record source — produces data as [VectorBlockIterator].
  *
  * This is the natural access mode for columnar formats like Parquet,

@@ -33,7 +33,10 @@ class FwfFormatHandler(
      * Creates a [FwfRecordSource] for the given blob.
      */
     override fun createRecordSource(blob: BlobPath, blobSource: BlobSource, schema: RecordSchema): RecordSource {
-        val inputStream = blobSource.openInputStream(blob)
-        return FwfRecordSource(inputStream, schema, settings)
+        return FwfRecordSource(
+            inputStreamSupplier = { blobSource.openInputStream(blob) },
+            schema = schema,
+            settings = settings
+        )
     }
 }

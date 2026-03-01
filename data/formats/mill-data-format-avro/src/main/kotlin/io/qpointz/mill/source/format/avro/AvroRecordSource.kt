@@ -3,6 +3,7 @@ package io.qpointz.mill.source.format.avro
 import io.qpointz.mill.source.FlowRecordSource
 import io.qpointz.mill.source.Record
 import io.qpointz.mill.source.RecordSchema
+import io.qpointz.mill.source.CloseableRecordIterator
 import org.apache.avro.file.DataFileStream
 import org.apache.avro.generic.GenericDatumReader
 import org.apache.avro.generic.GenericRecord
@@ -21,32 +22,19 @@ import java.io.InputStream
  * @property schema      the Mill schema describing the expected fields
  */
 class AvroRecordSource(
-    private val inputStream: InputStream,
+    private val inputStreamSupplier: () -> InputStream,
     override val schema: RecordSchema
 ) : FlowRecordSource {
 
+    constructor(
+        inputStream: InputStream,
+        schema: RecordSchema
+    ) : this({ inputStream }, schema)
+
     override fun iterator(): Iterator<Record> {
         val reader = GenericDatumReader<GenericRecord>()
-        val dataFileStream = DataFileStream(inputStream, reader)
-
-        return object : Iterator<Record> {
-            override fun hasNext(): Boolean {
-                val has = dataFileStream.hasNext()
-                if (!has) {
-                    dataFileStream.close()
-                }
-                return has
-            }
-
-            override fun next(): Record {
-                if (!dataFileStream.hasNext()) {
-                    dataFileStream.close()
-                    throw NoSuchElementException()
-                }
-                val avroRecord = dataFileStream.next()
-                return toRecord(avroRecord)
-            }
-        }
+        val dataFileStream = DataFileStream(inputStreamSupplier(), reader)
+        return AvroRecordIterator(dataFileStream, ::toRecord)
     }
 
     private fun toRecord(avroRecord: GenericRecord): Record {
@@ -81,5 +69,34 @@ class AvroRecordSource(
                 else -> value.toString()
             }
         }
+    }
+}
+
+private class AvroRecordIterator(
+    private val dataFileStream: DataFileStream<GenericRecord>,
+    private val mapper: (GenericRecord) -> Record
+) : CloseableRecordIterator {
+    private var closed = false
+
+    override fun hasNext(): Boolean {
+        val has = dataFileStream.hasNext()
+        if (!has) {
+            close()
+        }
+        return has
+    }
+
+    override fun next(): Record {
+        if (!dataFileStream.hasNext()) {
+            close()
+            throw NoSuchElementException()
+        }
+        return mapper(dataFileStream.next())
+    }
+
+    override fun close() {
+        if (closed) return
+        closed = true
+        dataFileStream.close()
     }
 }

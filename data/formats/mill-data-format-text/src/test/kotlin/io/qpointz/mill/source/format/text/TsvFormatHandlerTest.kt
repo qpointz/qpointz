@@ -79,4 +79,20 @@ class TsvFormatHandlerTest {
         val source = handler.createRecordSource(blobs[0], blobSource, schema) as FlowRecordSource
         assertTrue(source.toList().isEmpty())
     }
+
+    @Test
+    fun shouldSupportSecondIterationOnSameSource() {
+        CsvTestUtils.writeCsvFile(tempDir, "test.tsv", tsvContent)
+
+        val handler = TsvFormatHandler()
+        val blobSource = LocalBlobSource(tempDir)
+        val blob = blobSource.listBlobs().first()
+        val schema = handler.inferSchema(blob, blobSource)
+        val source = handler.createRecordSource(blob, blobSource, schema) as FlowRecordSource
+
+        val firstPass = source.toList()
+        val secondPass = source.toList()
+
+        assertEquals(firstPass, secondPass)
+    }
 }

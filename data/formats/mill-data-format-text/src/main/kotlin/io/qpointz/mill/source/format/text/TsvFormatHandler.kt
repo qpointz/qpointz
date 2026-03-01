@@ -56,7 +56,10 @@ class TsvFormatHandler(
      * Creates a [TsvRecordSource] for the given blob.
      */
     override fun createRecordSource(blob: BlobPath, blobSource: BlobSource, schema: RecordSchema): RecordSource {
-        val inputStream = blobSource.openInputStream(blob)
-        return TsvRecordSource(inputStream, schema, settings)
+        return TsvRecordSource(
+            inputStreamSupplier = { blobSource.openInputStream(blob) },
+            schema = schema,
+            settings = settings
+        )
     }
 }

@@ -46,4 +46,21 @@ class ArrowFormatHandlerTest {
         assertEquals(2, records.size)
         assertEquals(1, records[0]["id"])
     }
+
+    @Test
+    fun shouldSupportSecondIterationOnSameSource() {
+        val file = tempDir.resolve("events.arrow")
+        ArrowTestUtils.writeArrowStream(file)
+
+        val handler = ArrowFormatHandler()
+        val blobSource = LocalBlobSource(tempDir)
+        val blob = blobSource.listBlobs().first()
+        val schema = handler.inferSchema(blob, blobSource)
+        val source = handler.createRecordSource(blob, blobSource, schema) as FlowRecordSource
+
+        val firstPass = source.toList()
+        val secondPass = source.toList()
+
+        assertEquals(firstPass, secondPass)
+    }
 }

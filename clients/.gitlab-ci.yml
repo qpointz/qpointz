@@ -26,23 +26,23 @@
       - ${CI_PROJECT_DIR}/clients/mill-py/build/coverage-results/*.xml
 
 
-##python 3.10
-clients:mill-py:test-3.10:  
-  extends: .mill-py-test    
-  variables:
-    TEST_TYPE: "unit"
-    PY_VER: "3.10"
-  
-##python 3.11
-clients:mill-py:test-3.11:  
-  extends: .mill-py-test    
-  variables:
-    TEST_TYPE: "unit"
-    PY_VER: "3.11"  
-
 ##python 3.12
-clients:mill-py:test-3.12:
+clients:mill-py:test-3.12:  
   extends: .mill-py-test    
   variables:
     TEST_TYPE: "unit"
-    PY_VER: "3.12"  
+    PY_VER: "3.12"
+  
+##python 3.13
+clients:mill-py:test-3.13:  
+  extends: .mill-py-test    
+  variables:
+    TEST_TYPE: "unit"
+    PY_VER: "3.13"  
+
+##python 3.14
+clients:mill-py:test-3.14:
+  extends: .mill-py-test    
+  variables:
+    TEST_TYPE: "unit"
+    PY_VER: "3.14"  

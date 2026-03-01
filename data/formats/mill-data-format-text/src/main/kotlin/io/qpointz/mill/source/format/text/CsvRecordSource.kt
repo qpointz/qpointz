@@ -1,6 +1,7 @@
 package io.qpointz.mill.source.format.text
 
 import com.univocity.parsers.csv.CsvParser
+import io.qpointz.mill.source.CloseableRecordIterator
 import io.qpointz.mill.source.FlowRecordSource
 import io.qpointz.mill.source.Record
 import io.qpointz.mill.source.RecordSchema
@@ -20,15 +21,21 @@ import java.io.InputStreamReader
  * @property settings    CSV parsing configuration
  */
 class CsvRecordSource(
-    private val inputStream: InputStream,
+    private val inputStreamSupplier: () -> InputStream,
     override val schema: RecordSchema,
     private val settings: CsvSettings = CsvSettings()
 ) : FlowRecordSource {
 
+    constructor(
+        inputStream: InputStream,
+        schema: RecordSchema,
+        settings: CsvSettings = CsvSettings()
+    ) : this({ inputStream }, schema, settings)
+
     override fun iterator(): Iterator<Record> {
         val parserSettings = settings.toParserSettings()
         val parser = CsvParser(parserSettings)
-        val reader = InputStreamReader(inputStream, Charsets.UTF_8)
+        val reader = InputStreamReader(inputStreamSupplier(), Charsets.UTF_8)
         parser.beginParsing(reader)
 
         // Skip header row if present — schema is already known
@@ -46,25 +53,32 @@ class CsvRecordSource(
 internal class CsvRecordIterator(
     private val parser: CsvParser,
     private val schema: RecordSchema
-) : Iterator<Record> {
+) : CloseableRecordIterator {
 
     private var nextRow: Array<String?>? = parser.parseNext()
+    private var closed = false
 
     override fun hasNext(): Boolean {
         if (nextRow == null) {
-            parser.stopParsing()
+            close()
         }
         return nextRow != null
     }
 
     override fun next(): Record {
         val row = nextRow ?: run {
-            parser.stopParsing()
+            close()
             throw NoSuchElementException()
         }
         val record = toRecord(row, schema)
         nextRow = parser.parseNext()
         return record
+    }
+
+    override fun close() {
+        if (closed) return
+        closed = true
+        parser.stopParsing()
     }
 }
 

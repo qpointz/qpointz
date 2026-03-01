@@ -57,7 +57,10 @@ class CsvFormatHandler(
      * Creates a [CsvRecordSource] for the given blob.
      */
     override fun createRecordSource(blob: BlobPath, blobSource: BlobSource, schema: RecordSchema): RecordSource {
-        val inputStream = blobSource.openInputStream(blob)
-        return CsvRecordSource(inputStream, schema, settings)
+        return CsvRecordSource(
+            inputStreamSupplier = { blobSource.openInputStream(blob) },
+            schema = schema,
+            settings = settings
+        )
     }
 }

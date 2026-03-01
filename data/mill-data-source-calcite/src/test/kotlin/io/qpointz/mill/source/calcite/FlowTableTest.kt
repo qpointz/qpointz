@@ -3,6 +3,7 @@ package io.qpointz.mill.source.calcite
 import io.qpointz.mill.source.Record
 import io.qpointz.mill.source.RecordSchema
 import io.qpointz.mill.source.SourceTable
+import io.qpointz.mill.source.CloseableRecordIterator
 import io.qpointz.mill.types.sql.DatabaseType
 import io.qpointz.mill.vectors.VectorBlockIterator
 import org.apache.calcite.DataContext
@@ -114,5 +115,37 @@ class FlowTableTest {
 
         assertFalse(enumerator.moveNext())
         enumerator.close()
+    }
+
+    @Test
+    fun shouldCloseUnderlyingIterator_whenEnumeratorClosedEarly() {
+        var iteratorClosed = false
+
+        val table = FlowTable(object : SourceTable {
+            override val schema: RecordSchema = this@FlowTableTest.schema
+
+            override fun records(): Iterable<Record> = Iterable {
+                object : CloseableRecordIterator {
+                    private val delegate = records.iterator()
+                    override fun hasNext(): Boolean = delegate.hasNext()
+                    override fun next(): Record = delegate.next()
+                    override fun close() {
+                        iteratorClosed = true
+                    }
+                }
+            }
+
+            override fun vectorBlocks(batchSize: Int): VectorBlockIterator {
+                throw UnsupportedOperationException("not used in scan tests")
+            }
+        })
+
+        val enumerable = table.scan(mockDataContext)
+        val enumerator = enumerable.enumerator()
+
+        assertTrue(enumerator.moveNext())
+        enumerator.close()
+
+        assertTrue(iteratorClosed)
     }
 }

@@ -671,6 +671,7 @@ using the inverse:
 | 8 | `test_connect.py` | Entire file commented out | Low |
 | 9 | `__init__.py:1-2` | Unused `import base64` and `from abc import abstractmethod` | Low |
 | 10 | `client.py` HTTP path (`MillHttpSession.post` / `MillHttpClient`) | HTTP transport is effectively hardwired to protobuf response parsing (`res.parse(cnt)`) while protocol naming and mode selection imply JSON should be valid too; this is a content negotiation/decoder mismatch. Integration tests should be reviewed: current profile segregation (`http-json`, `http-protobuf`) implies distinct response serialization modes, but implementation appears incomplete/inconsistent. Track as backlog `C-21`. | High |
+| 11 | `mill/exceptions.py` + HTTP/gRPC transport mapping paths | Error surfaces can degrade to generic `HTTP 500` / `INTERNAL` messages without stable machine-readable detail (`type/code`) and correlation (`traceId`) propagation. Planned cross-client remediation in `docs/workitems/WI-013.md` (backlog `P-31`). | High |
 
 ### 9.2 HTTP Server Bugs (for reference)
 
@@ -1144,6 +1145,7 @@ Python Phase 11):
 4. `supportsGroupBy()` returns `false` — incorrect for Calcite
 5. `supportsColumnAliasing()` returns `false` — incorrect for Calcite
 6. HTTP client response handling has a content negotiation/decoder mismatch risk: request path may advertise JSON mode, but response decode path is protobuf-oriented. Integration tests should be reviewed: current profile segregation (`http-json`, `http-protobuf`) indicates expected response serialization separation, but implementation appears incomplete/inconsistent. Track as backlog `C-20`.
+7. HTTP/gRPC error detail propagation is inconsistent at client surface level (generic `500/INTERNAL` frequently exposed). Align to Problem Details-style diagnostics and parity across Python/JDBC via `docs/workitems/WI-013.md` (backlog `P-31`).
 
 **mill-jdbc-shell** (`clients/mill-jdbc-shell/`): Thin wrapper — `mainClass = sqlline.SqlLine`
 with `mill-jdbc-driver` as a dependency. Provides an interactive CLI SQL shell. No custom

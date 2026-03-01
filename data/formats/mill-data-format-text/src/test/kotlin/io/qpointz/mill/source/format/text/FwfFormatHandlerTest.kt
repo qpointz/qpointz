@@ -59,4 +59,20 @@ class FwfFormatHandlerTest {
         assertEquals("Alice", result[0]["name"])
         assertEquals("95.5", result[0]["score"])
     }
+
+    @Test
+    fun shouldSupportSecondIterationOnSameSource() {
+        Files.writeString(tempDir.resolve("test.fwf"), fwfContent)
+
+        val handler = FwfFormatHandler(settings)
+        val blobSource = LocalBlobSource(tempDir)
+        val blob = blobSource.listBlobs().first()
+        val schema = handler.inferSchema(blob, blobSource)
+        val source = handler.createRecordSource(blob, blobSource, schema) as FlowRecordSource
+
+        val firstPass = source.toList()
+        val secondPass = source.toList()
+
+        assertEquals(firstPass, secondPass)
+    }
 }
