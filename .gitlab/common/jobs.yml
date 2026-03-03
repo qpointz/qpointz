@@ -4,3 +4,4 @@ include:
   - local: /.gitlab/templates/python.yml
   - local: /.gitlab/templates/node.yml
   - local: /.gitlab/templates/docker.yml
+  - local: /.gitlab/templates/minica.yml

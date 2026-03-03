@@ -13,3 +13,5 @@ data:build:
     reports:
       junit:
         - data/**/build/test-results/test/TEST-*.xml
+
+        #bump

@@ -13,11 +13,3 @@ core:build:
     reports:
       junit:
         - core/**/build/test-results/test/TEST-*.xml
-
-core:integration:
-  stage: integration
-  extends:
-    - .gradle-job
-    - .integration-job
-  script:
-    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :core:testIT

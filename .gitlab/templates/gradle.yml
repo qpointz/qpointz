@@ -1,7 +1,3 @@
-.integration-job:
-  rules:
-      - if: '$RUN_INTEGRATION == "true"'
-
 .gradle-job:
   image:
     name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/azul/zulu-openjdk:21-latest

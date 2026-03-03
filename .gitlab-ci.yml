@@ -1,8 +1,8 @@
 stages:  
   - build
-  - package
   - integration
   - publish
+  - release
 
 variables:
   RUN_INTEGRATION: 
@@ -45,6 +45,8 @@ variables:
       - "false"
 
 
+  
+
 workflow:
   rules:
     - if: '$CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"'
@@ -73,7 +75,7 @@ include:
   - local: ${CI_PROJECT_DIR}/.gitlab/common/common.yml
   - local: ${CI_PROJECT_DIR}/core/.gitlab-ci.yml
     rules:
-      - if: '$RUN_FULL_TEST != "true" && $CI_COMMIT_REF_PROTECTED == "false" && $CI_PIPELINE_SOURCE != "merge_request_event"'
+      - if: '$CI_COMMIT_REF_PROTECTED != "true" && $CI_PIPELINE_SOURCE != "merge_request_event" && $RUN_INTEGRATION != "true" && $RUN_FULL_TEST != "true"'
         changes:
           - core/**/*
         when: always 
@@ -81,7 +83,7 @@ include:
       
   - local: ${CI_PROJECT_DIR}/metadata/.gitlab-ci.yml
     rules:
-      - if: '$RUN_FULL_TEST != "true" && $CI_COMMIT_REF_PROTECTED == "false" && $CI_PIPELINE_SOURCE != "merge_request_event"'
+      - if: '$CI_COMMIT_REF_PROTECTED != "true" && $CI_PIPELINE_SOURCE != "merge_request_event" && $RUN_INTEGRATION != "true" && $RUN_FULL_TEST != "true"'
         changes:
           - metadata/**/*
         when: always 
@@ -89,7 +91,7 @@ include:
 
   - local: ${CI_PROJECT_DIR}/ai/.gitlab-ci.yml
     rules:
-      - if: '$RUN_FULL_TEST != "true" && $CI_COMMIT_REF_PROTECTED == "false" && $CI_PIPELINE_SOURCE != "merge_request_event"'
+      - if: '$CI_COMMIT_REF_PROTECTED != "true" && $CI_PIPELINE_SOURCE != "merge_request_event" && $RUN_INTEGRATION != "true" && $RUN_FULL_TEST != "true"'
         changes:
           - ai/**/*
         when: always 
@@ -97,7 +99,7 @@ include:
 
   - local: ${CI_PROJECT_DIR}/ui/.gitlab-ci.yml
     rules:
-      - if: '$RUN_FULL_TEST != "true" && $CI_COMMIT_REF_PROTECTED == "false" && $CI_PIPELINE_SOURCE != "merge_request_event"'
+      - if: '$CI_COMMIT_REF_PROTECTED != "true" && $CI_PIPELINE_SOURCE != "merge_request_event" && $RUN_INTEGRATION != "true" && $RUN_FULL_TEST != "true"'
         changes:
           - ui/**/*
         when: always 
@@ -105,7 +107,7 @@ include:
 
   - local: ${CI_PROJECT_DIR}/data/.gitlab-ci.yml
     rules:
-      - if: '$RUN_FULL_TEST != "true" && $CI_COMMIT_REF_PROTECTED == "false" && $CI_PIPELINE_SOURCE != "merge_request_event"'
+      - if: '$CI_COMMIT_REF_PROTECTED != "true" && $CI_PIPELINE_SOURCE != "merge_request_event" && $RUN_INTEGRATION != "true" && $RUN_FULL_TEST != "true"'
         changes:
           - data/**/*
         when: always 
@@ -113,7 +115,7 @@ include:
 
   - local: ${CI_PROJECT_DIR}/clients/.gitlab-ci.yml
     rules:
-      - if: '$RUN_FULL_TEST != "true" && $CI_COMMIT_REF_PROTECTED == "false" && $CI_PIPELINE_SOURCE != "merge_request_event"'
+      - if: '$CI_COMMIT_REF_PROTECTED != "true" && $CI_PIPELINE_SOURCE != "merge_request_event" && $RUN_INTEGRATION != "true" && $RUN_FULL_TEST != "true"'
         changes:
           - clients/**/*
         when: always 
@@ -135,16 +137,16 @@ test:downstream:
       when: always       
     - if: '$CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"'
       when: never
-    - if: '$RUN_FULL_TEST == "true" || ($CI_PIPELINE_SOURCE == "merge_request_event") || ($CI_COMMIT_REF_PROTECTED == "true" && ($CI_COMMIT_REF_NAME == "main" || $CI_COMMIT_REF_NAME == "rc"))'
+    - if: '$RUN_FULL_TEST == "true" || ($CI_PIPELINE_SOURCE == "merge_request_event") || ($CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_BRANCH)'
       when: always            
     - when: never
 
 integration:downstream:
   stage: integration
-  needs:    
-    - job: test:downstream
-      artifacts: false
-      optional: true
+  # needs:    
+  #   - job: test:downstream
+  #     artifacts: false
+  #     optional: true
   trigger:
     include:
       - local: .gitlab/pipelines/integration.yml
@@ -162,7 +164,7 @@ publish:semantic-release:
   extends: .semantic-release-job
   stage: publish
   rules:
-    - if: '$CI_COMMIT_REF_PROTECTED == "true" && ($CI_COMMIT_REF_NAME == "main" || $CI_COMMIT_REF_NAME == "rc")'
+    - if: '$CI_COMMIT_REF_NAME == "main" || $CI_COMMIT_REF_NAME == "rc"'
       when: manual
     - when: never
   script:
@@ -170,11 +172,7 @@ publish:semantic-release:
     - npx semantic-release --ci
 
 release:downstream:
-  stage: package
-  needs:
-    - job: test:downstream
-      artifacts: true
-      optional: true
+  stage: release
   trigger:
     include:
       - local: .gitlab/pipelines/release.yml
@@ -185,7 +183,5 @@ release:downstream:
     QP_VERSION: $CI_COMMIT_TAG
   rules:
     - if: '$CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"'
+      when: always
     - when: never
-
-
-
