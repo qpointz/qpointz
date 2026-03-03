@@ -7,6 +7,7 @@ import io.qpointz.mill.data.backend.configuration.DefaultServiceConfiguration;
 import lombok.val;
 import net.devh.boot.grpc.server.autoconfigure.GrpcAdviceAutoConfiguration;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -19,13 +20,11 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("in-proc-test")
 @ContextConfiguration(classes = {
-        CalciteBackendAutoConfiguration.class,
         MillGrpcService.class,
         GrpcAdviceAutoConfiguration.class,
-        DefaultServiceConfiguration.class
-}
-)
+})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@EnableAutoConfiguration
 class ColumnsMetadataTest extends InProcessTest {
 
     private Stream<ColumnsMetadata.ColumnRecord> collect(String catalogPattern, String schemaPattern, String tableNamePattern, String columnNamePattern) {

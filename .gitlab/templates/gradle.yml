@@ -33,9 +33,9 @@
     - if: '$CI_COMMIT_REF_NAME == "main" || $CI_COMMIT_REF_NAME == "rc"'
       variables:
         GRADLE_DO_CLEAN: "true"
-        CACHE_POLICY: "pull"
-        CACHE_PREFIX: "gradle-release-${CI_COMMIT_REF_NAME}-${CI_PIPELINE_ID}"
-        CACHE_FALLBACK_KEY: "gradle-release-none"
+        CACHE_POLICY: "pull-push"
+        CACHE_PREFIX: "gradle-release-${CI_COMMIT_REF_NAME}"
+        CACHE_FALLBACK_KEY: "gradle-dev"
     - if: '$CI_COMMIT_REF_NAME == "dev"'
       variables:
         GRADLE_DO_CLEAN: "false"

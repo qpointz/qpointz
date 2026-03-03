@@ -1,15 +1,3 @@
-include:
-  - local: /.gitlab/common/common.yml
-
-workflow:
-  rules:
-    - when: always
-
-stages:
-  - init
-  - build
-  - package
-
 packaging:require-version:
   stage: init
   script:

@@ -1,32 +1,16 @@
 package io.qpointz.mill;
 
-import io.qpointz.mill.autoconfigure.data.backend.calcite.CalciteBackendAutoConfiguration;
 import io.qpointz.mill.client.MillClient;
 import io.qpointz.mill.client.MillClientConfiguration;
 import io.qpointz.mill.proto.GetSchemaRequest;
 import io.qpointz.mill.proto.HandshakeRequest;
-import io.qpointz.mill.data.backend.MillGrpcService;
-import io.qpointz.mill.data.backend.configuration.DefaultServiceConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import net.devh.boot.grpc.server.autoconfigure.GrpcAdviceAutoConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@ContextConfiguration(classes = {
-        CalciteBackendAutoConfiguration.class,
-        MillGrpcService.class,
-        GrpcAdviceAutoConfiguration.class,
-        DefaultServiceConfiguration.class
-}
-)
-@ActiveProfiles("in-proc-test")
 @Slf4j
 public abstract class InProcessTest {
 

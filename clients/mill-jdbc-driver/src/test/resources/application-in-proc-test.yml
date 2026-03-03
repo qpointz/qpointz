@@ -19,6 +19,9 @@ mill:
       type: calcite
       calcite:
         model: ./etc/config/test/model.yaml
+    services:
+      grpc:
+        enable: true
   security:
     enable: false
   services:
