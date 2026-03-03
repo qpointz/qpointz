@@ -65,7 +65,7 @@ maven-publication-create:
     - ./gradlew --no-daemon --continue  --console plain clean publish publishSonatypeBundle -PprojectVersion=${QP_VERSION_PEP440} -Psigning.keyId=${SIGN_PGP_KEY_ID} -Psigning.password=${SIGN_PGP_PASS} -Psigning.secretKeyRingFile=${CI_PROJECT_DIR}/.keyring.kbx
   needs:
     - job: publish:require-version
-      artifacts: false
+      artifacts: true
   artifacts:
     expire_in: "5 days"
     paths:
@@ -78,10 +78,10 @@ ui:ui-v1:build:
   stage: build
   needs:
     - job: publish:require-version
-      artifacts: false
+      artifacts: true
   script:
     - cd ${CI_PROJECT_DIR}/ui/mill-grinder-ui
-    - npm install    
+    - npm ci    
     - npm run build
   artifacts:
     expire_in: "2 days"
@@ -93,10 +93,10 @@ ui:ui-v2:build:
   stage: build
   needs:
     - job: publish:require-version
-      artifacts: false
+      artifacts: true
   script:
     - cd ${CI_PROJECT_DIR}/ui/mill-ui
-    - npm install    
+    - npm ci    
     - npm run build
   artifacts:
     expire_in: "2 days"
@@ -107,6 +107,8 @@ apps:package-dist:
   extends: .gradle-job
   stage: build
   needs:
+    - job: publish:require-version
+      artifacts: true
     - job: ui:ui-v1:build
       artifacts: true
     - job: ui:ui-v2:build
@@ -116,7 +118,7 @@ apps:package-dist:
       if [ -n "${QP_VERSION}" ]; then
         echo "${QP_VERSION}" > ${CI_PROJECT_DIR}/VERSION
       fi
-    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :apps:mill-service:installBootDist :apps:mill-service:assembleSamples
+    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :apps:mill-service:installBootDist :apps:mill-service:assembleSamples -PprojectVersion=${QP_VERSION_PEP440}
   artifacts:
     expire_in: "5 days"
     paths:
@@ -127,6 +129,8 @@ apps:mill-service-base-docker:
   stage: package
   extends: .docker-build-job
   needs:
+    - job: publish:require-version
+      artifacts: true
     - job: apps:package-dist
       artifacts: true
   variables:
@@ -139,6 +143,8 @@ apps:mill-service-samples-docker:
   stage: package
   extends: .docker-build-job
   needs:
+    - job: publish:require-version
+      artifacts: true
     - job: apps:mill-service-base-docker
       artifacts: false
     - job: apps:package-dist
@@ -225,7 +231,7 @@ publish:docs:
   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:3.12-slim
   needs:
     - job: publish:require-version
-      artifacts: false
+      artifacts: true
   variables:
     GIT_STRATEGY: clone
     GL_TOKEN: ${CI_PUSH_TOKEN}

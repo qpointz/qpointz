@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 
-BUILD_TOOLS_VERSION := $(shell grep "BUILD_TOOLS_VERSION:" $(CURDIR)/.vars.yml 2>/dev/null | awk '{print $$2}')
-BUILD_TOOLS_REGISTRY := $(shell grep "BUILD_TOOLS_REGISTRY:" $(CURDIR)/.vars.yml 2>/dev/null | awk '{print $$2}')
+BUILD_TOOLS_VERSION := $(shell grep "BUILD_TOOLS_VERSION:" $(CURDIR)/common/vars.yml 2>/dev/null | awk '{print $$2}')
+BUILD_TOOLS_REGISTRY := $(shell grep "BUILD_TOOLS_REGISTRY:" $(CURDIR)/common/vars.yml 2>/dev/null | awk '{print $$2}')
 
 .PHONY: help build-info build-sem-release build-minica build-deploy-tools build-all
 
