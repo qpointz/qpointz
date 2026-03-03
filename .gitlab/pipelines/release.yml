@@ -227,37 +227,43 @@ publish:pypi-prod:
     - when: manual
 
 publish:docs:
-  extends: .python-job
+  extends: .node-job
   stage: publish
-  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:3.12-slim
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/node:24-alpine
   needs:
     - job: publish:require-version
       artifacts: true
   variables:
     GIT_STRATEGY: clone
-    GL_TOKEN: ${CI_PUSH_TOKEN}
-    GL_URL: "https://gitlab.qpointz.io"
-    GIT_DEPTH: 0
+    SITE_DOCS_REPO: "https://gitlab.qpointz.io/qpointz/site-documentation.git"
+    SITE_DOCS_BRANCH: "main"
+    DOCS_SOURCE_DIR: "${CI_PROJECT_DIR}/docs/public/src"
+    SITE_DOCS_WORKDIR: "/tmp/site-documentation"
     GIT_COMMITTER_NAME: docs-bot
     GIT_COMMITTER_EMAIL: docs-bot@qpointz.io
-  before_script:
-    - cd ${CI_PROJECT_DIR}/docs/public
-    - pip install -r requirements.txt    
-    - apt-get update && 
-    - apt-get install -y git && 
-    - apt-get clean && 
-    - rm -rf /var/lib/apt/lists/*
-    - git remote add push_origin https://oauth2:${CI_PUSH_TOKEN}@gitlab.qpointz.io/${CI_PROJECT_PATH}.git
   script:
-    - !reference [.global-vars, before_script]
-    - echo "VERSION:${QP_VERSION}"
-    - cd ${CI_PROJECT_DIR}/docs/public
-    - python -m mkdocs build
-    - export VERSION_ALIAS=""
     - |
-      if [ "main" = "${CI_COMMIT_REF_SLUG}" ]
-      then
-        export VERSION_ALIAS="latest"
+      apk add --no-cache git rsync
+      test -n "${CI_PUSH_TOKEN}" || (echo "CI_PUSH_TOKEN is required" && exit 1)
+      test -d "${DOCS_SOURCE_DIR}" || (echo "Missing docs source: ${DOCS_SOURCE_DIR}" && exit 1)
+      export DOCS_VERSION="${CI_COMMIT_TAG#v}"
+      echo "Publishing docs version ${DOCS_VERSION} to site-documentation"
+      rm -rf "${SITE_DOCS_WORKDIR}"
+      git clone --depth 1 --branch "${SITE_DOCS_BRANCH}" "https://oauth2:${CI_PUSH_TOKEN}@${SITE_DOCS_REPO#https://}" "${SITE_DOCS_WORKDIR}"
+      rm -rf "${SITE_DOCS_WORKDIR}/docs"
+      mkdir -p "${SITE_DOCS_WORKDIR}/docs"
+      rsync -a --delete "${DOCS_SOURCE_DIR}/" "${SITE_DOCS_WORKDIR}/docs/"
+      printf '%s\n' "${DOCS_VERSION}" > "${SITE_DOCS_WORKDIR}/DOCS_VERSION"
+      cd "${SITE_DOCS_WORKDIR}"
+      git config user.name "${GIT_COMMITTER_NAME}"
+      git config user.email "${GIT_COMMITTER_EMAIL}"
+      git add docs DOCS_VERSION
+    - |
+      if git diff --cached --quiet; then
+        echo "No site-documentation changes detected."
+      else
+        git commit -m "docs: release ${DOCS_VERSION} from ${CI_PROJECT_PATH}@${CI_COMMIT_TAG}"
+        git push origin "${SITE_DOCS_BRANCH}"
       fi
-      mike deploy --update-aliases ${QP_VERSION} ${VERSION_ALIAS}        
-    - git push push_origin gh-pages:gh-pages
+  rules:
+    - when: manual

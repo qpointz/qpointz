@@ -25,7 +25,9 @@ tasks.register<Sync>("assembleSamples") {
     val samplesDir = layout.projectDirectory.dir("src/main/docker/samples")
 
     //into(layout.buildDirectory.dir("install/samples"))
-    into(project.layout.projectDirectory.dir("src/main/docker/samples"))
+    into(project.layout.buildDirectory.dir("install/samples"))
+
+    from(rootProject.layout.projectDirectory.dir(".certs")) { into("certs") }
 
     // moneta sample
     from(datasetsDir.file("moneta/moneta-slim.sql")) { into("data/moneta") }

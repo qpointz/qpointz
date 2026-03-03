@@ -18,9 +18,10 @@ help:
 	@echo "  make desktop-clean    # Remove desktop build artifacts"
 
 rebuild:
-	cd ../services/mill-grinder-ui ; \
+	cd ../ui/mill-grinder-ui ; \
 	npm install ; \
 	npm run build
+	cd ../ ; \
 	./gradlew clean installBootDist assembleSamples
 
 build-docker: rebuild
