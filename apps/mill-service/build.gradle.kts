@@ -27,12 +27,10 @@ tasks.register<Sync>("assembleSamples") {
     //into(layout.buildDirectory.dir("install/samples"))
     into(project.layout.projectDirectory.dir("src/main/docker/samples"))
 
-
     // moneta sample
     from(datasetsDir.file("moneta/moneta-slim.sql")) { into("data/moneta") }
     from(datasetsDir.file("moneta/moneta.sql")) { into("data/moneta") }
     //from(datasetsDir.files("moneta/moneta-meta.yaml", "moneta/moneta-meta-repository.yaml")) { into("etc") }
-
     // skymill sample
     from(datasetsDir.dir("skymill/parquet")) { into("data/skymill") }
     //from(datasetsDir.file("skymill/skymill.sql")) {

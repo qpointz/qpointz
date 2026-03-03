@@ -1,21 +1,21 @@
-FROM debian:bookworm-slim 
+FROM debian:bookworm-slim
 
-RUN apt-get update && \
-    apt-get install -y gnupg software-properties-common wget apt-transport-https ca-certificates curl gnupg lsb-release jq && \
-    wget -O- https://apt.releases.hashicorp.com/gpg | \
-            gpg --dearmor | \
-            tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null && \
-    gpg --no-default-keyring --keyring /usr/share/keyrings/hashicorp-archive-keyring.gpg --fingerprint && \
-    echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
-            https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
-            tee /etc/apt/sources.list.d/hashicorp.list && \ 
-    curl -sL https://aka.ms/InstallAzureCLIDeb | bash && \
-    apt install -y terraform && \ 
-    curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 && \
-    chmod 700 get_helm.sh && \
-    ./get_helm.sh && \
-    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
-    install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
-    apt-get clean autoclean && \
-    apt-get autoremove --yes && \
-    rm -rf /var/lib/{apt,dpkg,cache,log}
+ARG TERRAFORM_VERSION=1.13.2
+ARG HELM_VERSION=v3.19.0
+
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends ca-certificates curl jq unzip gnupg; \
+    curl -sL https://aka.ms/InstallAzureCLIDeb | bash; \
+    curl -fsSL -o /tmp/terraform.zip "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"; \
+    unzip /tmp/terraform.zip -d /usr/local/bin; \
+    chmod 0755 /usr/local/bin/terraform; \
+    rm -f /tmp/terraform.zip; \
+    curl -fsSL -o /tmp/helm.tar.gz "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz"; \
+    tar -xzf /tmp/helm.tar.gz -C /tmp; \
+    install -m 0755 /tmp/linux-amd64/helm /usr/local/bin/helm; \
+    rm -rf /tmp/helm.tar.gz /tmp/linux-amd64; \
+    curl -fsSL -o /usr/local/bin/kubectl "https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"; \
+    chmod 0755 /usr/local/bin/kubectl; \
+    apt-get purge -y --auto-remove gnupg; \
+    rm -rf /var/lib/apt/lists/*

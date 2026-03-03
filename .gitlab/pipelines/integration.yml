@@ -9,9 +9,16 @@ stages:
   - package
   - integration
 
+package:dev-certs:
+  stage: package
+  extends: .init-dev-certs
+
 apps:package-dist:
   extends: .gradle-job
   stage: package
+  needs:
+    - job: package:dev-certs
+      artifacts: true
   script:
     - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :apps:mill-service:installBootDist :apps:mill-service:assembleSamples
   artifacts:
@@ -46,10 +53,6 @@ apps:mill-service-samples-docker:
     DOCKER_BUILD_CONTAINER_NAME : mill-service-samples
     DOCKER_LOCAL_ONLY: "true"
     DOCKER_BUILD_ARGS: --build-arg BASE_IMAGE=${CI_REGISTRY_IMAGE}/mill-service:${CI_COMMIT_REF_SLUG}
-
-package:dev-certs:
-  stage: package
-  extends: .init-dev-certs
 
 core:integration:
   stage: integration

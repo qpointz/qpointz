@@ -2,8 +2,10 @@ SHELL := /bin/bash
 
 BUILD_TOOLS_VERSION := $(shell grep "BUILD_TOOLS_VERSION:" $(CURDIR)/common/vars.yml 2>/dev/null | awk '{print $$2}')
 BUILD_TOOLS_REGISTRY := $(shell grep "BUILD_TOOLS_REGISTRY:" $(CURDIR)/common/vars.yml 2>/dev/null | awk '{print $$2}')
+ROOT_DIR := $(abspath $(CURDIR)/..)
+MINICA_IMAGE := $(BUILD_TOOLS_REGISTRY)/minica:$(BUILD_TOOLS_VERSION)
 
-.PHONY: help build-info build-sem-release build-minica build-deploy-tools build-all
+.PHONY: help build-info build-sem-release build-minica build-deploy-tools pull-minica-certs build-all
 
 help:
 	@echo "Tools (CI/CD build images):"
@@ -11,6 +13,7 @@ help:
 	@echo "  make build-sem-release  # Build and push semantic-release image"
 	@echo "  make build-minica       # Build and push minica image"
 	@echo "  make build-deploy-tools # Build and push deploy-tools image"
+	@echo "  make pull-minica-certs  # Pull minica image and copy certs to /.certs"
 	@echo "  make build-all          # Build and push all tool images"
 
 build-info:
@@ -31,5 +34,13 @@ build-deploy-tools:
 	cd docker/deploy-tools && \
 	docker build -t $(BUILD_TOOLS_REGISTRY)/deploy-tools:$(BUILD_TOOLS_VERSION) . && \
 	docker push $(BUILD_TOOLS_REGISTRY)/deploy-tools:$(BUILD_TOOLS_VERSION)
+
+pull-minica-certs:
+	mkdir -p "$(ROOT_DIR)/.certs"
+	docker pull "$(MINICA_IMAGE)"
+	docker run --rm -v "$(ROOT_DIR)/.certs:/out" "$(MINICA_IMAGE)" /bin/sh -c 'cp -R /certs/. /out/'
+	sudo chown -R "$$(id -u):$$(id -g)" "$(ROOT_DIR)/.certs"
+	ls -lart "$(ROOT_DIR)/.certs"
+	@echo "Copied certificates to $(ROOT_DIR)/.certs"
 
 build-all: build-sem-release build-minica build-deploy-tools
