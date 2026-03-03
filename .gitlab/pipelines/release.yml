@@ -59,7 +59,7 @@ publish:require-version:
 
 maven-publication-create:
   extends: .gradle-job
-  stage: publish
+  stage: build
   before_script:
     - echo -n "${SIGN_PGP_RING}" | base64 --decode > ${CI_PROJECT_DIR}/.keyring.kbx
   script:
@@ -74,106 +74,184 @@ maven-publication-create:
       - ${CI_PROJECT_DIR}/build/sonatype-bundle/**/*
       - ${CI_PROJECT_DIR}/build/sonatype-bundle/*
 
-maven-publish:
-  stage: publish
-  script:
-    - export SONATYPE_TOKEN=Authorization:\ Bearer\ $(echo -n $SONATYPE_USERNAME:$SONATYPE_PASSWORD | base64)
-    - export SONATYPE_PUBLISHING_TYPE="USER_MANAGED"
-    - |
-      if [ "main" = "${CI_COMMIT_REF_SLUG}" ]
-      then
-        export SONATYPE_PUBLISHING_TYPE="AUTOMATIC"
-      fi
-    - export SONATYPE_URL="https://central.sonatype.com/api/v1/publisher/upload?publishingType=${SONATYPE_PUBLISHING_TYPE}&name=mill-${QP_VERSION_PEP440}-$(date +%Y%m%d_%H%M%S)"
-    - echo $SONATYPE_URL
-    - curl --fail --show-error --silent -X POST --header "$SONATYPE_TOKEN" --form bundle=@${CI_PROJECT_DIR}/build/sonatype-bundle/sonatype-bundle.zip $SONATYPE_URL
-  needs:
-    - job: maven-publication-create
-      artifacts: true
-  rules:
-    - when: manual
-
-publish:pypi-test:
-  stage: publish
-  variables:
-    TEST_TYPE: "unit"
-    PY_VER: "3.13"
-  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:${PY_VER}-slim
-  needs:
-    - job: publish:require-version
-      artifacts: true
-  script:
-    - cd ${CI_PROJECT_DIR}/clients/mill-py
-    - |
-      pip install poetry
-      poetry install --all-extras
-    - poetry version "${QP_VERSION_PEP440}"
-    - poetry build
-    - poetry config repositories.testpypi https://test.pypi.org/legacy/
-    - poetry config pypi-token.testpypi $PYPI_API_TOKEN_TEST
-    - poetry publish --repository testpypi
-    - |
-      pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ qpointz-mill-py
-      python -c "from mill import connect; print('OK')"
-  rules:
-    - when: manual
-
-publish:pypi-prod:
-  stage: publish
-  variables:
-    TEST_TYPE: "unit"
-    PY_VER: "3.13"
-  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:${PY_VER}-slim
-  needs:
-    - job: publish:require-version
-      artifacts: true
-  script:
-    - cd ${CI_PROJECT_DIR}/clients/mill-py
-    - |
-      pip install poetry
-      poetry install --all-extras
-    - poetry version "${QP_VERSION_PEP440}"
-    - poetry build
-    - poetry config pypi-token.pypi $PYPI_API_TOKEN
-    - poetry publish
-    - |
-      pip install qpointz-mill-py 
-      python -c "from mill import connect; print('OK')"
-  rules:
-    - when: manual
-
-publish:docs:
-  extends: .python-job
-  stage: publish
-  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:3.12-slim
+ui:ui-v1:build:
+  extends: .node-job
+  stage: build
   needs:
     - job: publish:require-version
       artifacts: false
-  variables:
-    GIT_STRATEGY: clone
-    GL_TOKEN: ${CI_PUSH_TOKEN}
-    GL_URL: "https://gitlab.qpointz.io"
-    GIT_DEPTH: 0
-    GIT_COMMITTER_NAME: docs-bot
-    GIT_COMMITTER_EMAIL: docs-bot@qpointz.io
-  before_script:
-    - cd ${CI_PROJECT_DIR}/docs/public
-    - pip install -r requirements.txt    
-    - apt-get update && 
-    - apt-get install -y git && 
-    - apt-get clean && 
-    - rm -rf /var/lib/apt/lists/*
-    - git remote add push_origin https://oauth2:${CI_PUSH_TOKEN}@gitlab.qpointz.io/${CI_PROJECT_PATH}.git
   script:
-    - !reference [.global-vars, before_script]
-    - echo "VERSION:${QP_VERSION}"
-    - cd ${CI_PROJECT_DIR}/docs/public
-    - python -m mkdocs build
-    - export VERSION_ALIAS=""
+    - cd ${CI_PROJECT_DIR}/ui/mill-grinder-ui
+    - npm install    
+    - npm run build
+  artifacts:
+    expire_in: "2 days"
+    paths:
+      - ${CI_PROJECT_DIR}/ui/mill-grinder-service/src/main/resources/static/app/v1
+
+ui:ui-v2:build:
+  extends: .node-job
+  stage: build
+  needs:
+    - job: publish:require-version
+      artifacts: false
+  script:
+    - cd ${CI_PROJECT_DIR}/ui/mill-ui
+    - npm install    
+    - npm run build
+  artifacts:
+    expire_in: "2 days"
+    paths:
+      - ${CI_PROJECT_DIR}/ui/mill-grinder-service/src/main/resources/static/app/v2
+
+apps:package-dist:
+  extends: .gradle-job
+  stage: build
+  needs:
+    - job: ui:ui-v1:build
+      artifacts: true
+    - job: ui:ui-v2:build
+      artifacts: true
+  script:
     - |
-      if [ "main" = "${CI_COMMIT_REF_SLUG}" ]
-      then
-        export VERSION_ALIAS="latest"
+      if [ -n "${QP_VERSION}" ]; then
+        echo "${QP_VERSION}" > ${CI_PROJECT_DIR}/VERSION
       fi
-      mike deploy --update-aliases ${QP_VERSION} ${VERSION_ALIAS}        
-    - git push push_origin gh-pages:gh-pages --force
+    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :apps:mill-service:installBootDist :apps:mill-service:assembleSamples
+  artifacts:
+    expire_in: "5 days"
+    paths:
+      - ${CI_PROJECT_DIR}/apps/mill-service/build/install/**/*
+      - ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/samples/data/**/*      
+
+apps:mill-service-base-docker:
+  stage: package
+  extends: .docker-build-job
+  needs:
+    - job: apps:package-dist
+      artifacts: true
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/base/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : mill-service
+    DOCKER_LOCAL_ONLY: $PACKAGE_LOCAL_ONLY
+
+apps:mill-service-samples-docker:
+  stage: package
+  extends: .docker-build-job
+  needs:
+    - job: apps:mill-service-base-docker
+      artifacts: false
+    - job: apps:package-dist
+      artifacts: true
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/samples/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME : mill-service-samples
+    DOCKER_LOCAL_ONLY: $PACKAGE_LOCAL_ONLY
+    DOCKER_BUILD_ARGS: --build-arg BASE_IMAGE=${CI_REGISTRY_IMAGE}/mill-service:${CI_COMMIT_REF_SLUG}
+
+
+# maven-publish:
+#   stage: publish
+#   script:
+#     - export SONATYPE_TOKEN=Authorization:\ Bearer\ $(echo -n $SONATYPE_USERNAME:$SONATYPE_PASSWORD | base64)
+#     - export SONATYPE_PUBLISHING_TYPE="USER_MANAGED"
+#     - |
+#       if [ "main" = "${CI_COMMIT_REF_SLUG}" ]
+#       then
+#         export SONATYPE_PUBLISHING_TYPE="AUTOMATIC"
+#       fi
+#     - export SONATYPE_URL="https://central.sonatype.com/api/v1/publisher/upload?publishingType=${SONATYPE_PUBLISHING_TYPE}&name=mill-${QP_VERSION_PEP440}-$(date +%Y%m%d_%H%M%S)"
+#     - echo $SONATYPE_URL
+#     - curl --fail --show-error --silent -X POST --header "$SONATYPE_TOKEN" --form bundle=@${CI_PROJECT_DIR}/build/sonatype-bundle/sonatype-bundle.zip $SONATYPE_URL
+#   needs:
+#     - job: maven-publication-create
+#       artifacts: true
+#   rules:
+#     - when: manual
+
+# publish:pypi-test:
+#   stage: publish
+#   variables:
+#     TEST_TYPE: "unit"
+#     PY_VER: "3.13"
+#   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:${PY_VER}-slim
+#   needs:
+#     - job: publish:require-version
+#       artifacts: true
+#   script:
+#     - cd ${CI_PROJECT_DIR}/clients/mill-py
+#     - |
+#       pip install poetry
+#       poetry install --all-extras
+#     - poetry version "${QP_VERSION_PEP440}"
+#     - poetry build
+#     - poetry config repositories.testpypi https://test.pypi.org/legacy/
+#     - poetry config pypi-token.testpypi $PYPI_API_TOKEN_TEST
+#     - poetry publish --repository testpypi
+#     - |
+#       pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ qpointz-mill-py
+#       python -c "from mill import connect; print('OK')"
+#   rules:
+#     - when: manual
+
+# publish:pypi-prod:
+#   stage: publish
+#   variables:
+#     TEST_TYPE: "unit"
+#     PY_VER: "3.13"
+#   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:${PY_VER}-slim
+#   needs:
+#     - job: publish:require-version
+#       artifacts: true
+#   script:
+#     - cd ${CI_PROJECT_DIR}/clients/mill-py
+#     - |
+#       pip install poetry
+#       poetry install --all-extras
+#     - poetry version "${QP_VERSION_PEP440}"
+#     - poetry build
+#     - poetry config pypi-token.pypi $PYPI_API_TOKEN
+#     - poetry publish
+#     - |
+#       pip install qpointz-mill-py 
+#       python -c "from mill import connect; print('OK')"
+#   rules:
+#     - when: manual
+
+# publish:docs:
+#   extends: .python-job
+#   stage: publish
+#   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:3.12-slim
+#   needs:
+#     - job: publish:require-version
+#       artifacts: false
+#   variables:
+#     GIT_STRATEGY: clone
+#     GL_TOKEN: ${CI_PUSH_TOKEN}
+#     GL_URL: "https://gitlab.qpointz.io"
+#     GIT_DEPTH: 0
+#     GIT_COMMITTER_NAME: docs-bot
+#     GIT_COMMITTER_EMAIL: docs-bot@qpointz.io
+#   before_script:
+#     - cd ${CI_PROJECT_DIR}/docs/public
+#     - pip install -r requirements.txt    
+#     - apt-get update && 
+#     - apt-get install -y git && 
+#     - apt-get clean && 
+#     - rm -rf /var/lib/apt/lists/*
+#     - git remote add push_origin https://oauth2:${CI_PUSH_TOKEN}@gitlab.qpointz.io/${CI_PROJECT_PATH}.git
+#   script:
+#     - !reference [.global-vars, before_script]
+#     - echo "VERSION:${QP_VERSION}"
+#     - cd ${CI_PROJECT_DIR}/docs/public
+#     - python -m mkdocs build
+#     - export VERSION_ALIAS=""
+#     - |
+#       if [ "main" = "${CI_COMMIT_REF_SLUG}" ]
+#       then
+#         export VERSION_ALIAS="latest"
+#       fi
+#       mike deploy --update-aliases ${QP_VERSION} ${VERSION_ALIAS}        
+#     - git push push_origin gh-pages:gh-pages --force
