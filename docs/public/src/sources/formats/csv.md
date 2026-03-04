@@ -4,8 +4,9 @@ Reads delimited text files — CSV, pipe-separated, and other single-character d
 
 CSV parsing is powered by [Univocity Parsers](https://github.com/uniVocity/univocity-parsers). Mill infers column names from the header row (when present) and treats every value as a `STRING`. No type coercion is applied during reading; use table attributes or downstream queries to cast values to other types.
 
-!!! note "TSV files"
-    For tab-separated files, consider using the dedicated [`tsv`](tsv.md) format which handles TSV escape sequences natively. Alternatively, set `delimiter: "\t"` on a `csv` reader.
+:::note[TSV files]
+For tab-separated files, consider using the dedicated [`tsv`](tsv.md) format which handles TSV escape sequences natively. Alternatively, set `delimiter: "\t"` on a `csv` reader.
+:::
 
 ---
 

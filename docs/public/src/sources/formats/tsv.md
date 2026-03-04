@@ -6,8 +6,9 @@ TSV parsing is powered by [Univocity Parsers](https://github.com/uniVocity/univo
 
 Mill infers column names from the header row (when present) and treats every value as a `STRING`. No type coercion is applied during reading.
 
-!!! note "TSV vs CSV with tab delimiter"
-    If your files use quoting (e.g. `"value with\ttab"`), use the [`csv`](csv.md) format with `delimiter: "\t"` instead. The `tsv` format handles escape sequences natively and does not support quoting.
+:::note[TSV vs CSV with tab delimiter]
+If your files use quoting (e.g. `"value with\ttab"`), use the [`csv`](csv.md) format with `delimiter: "\t"` instead. The `tsv` format handles escape sequences natively and does not support quoting.
+:::
 
 ---
 

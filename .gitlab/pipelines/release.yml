@@ -50,8 +50,8 @@ publish:require-version:
 
       echo "Using QP_VERSION=${QP_VERSION}"
       echo "Using QP_VERSION_PEP440=${QP_VERSION_PEP440}"
-      echo "QP_VERSION=${QP_VERSION}" >> publish-version.env
-      echo "QP_VERSION_PEP440=${QP_VERSION_PEP440}" > publish-version.env
+      echo "QP_VERSION=${QP_VERSION}" > publish-version.env
+      echo "QP_VERSION_PEP440=${QP_VERSION_PEP440}" >> publish-version.env
       cat publish-version.env
   artifacts:
     reports:

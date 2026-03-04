@@ -1,5 +1,8 @@
 # Quickstart
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 Get started with Mill in minutes. Choose the option that works best for you.
 
 ---
@@ -55,23 +58,28 @@ For the full list of available models and pricing, see [OpenAI's model overview]
 
 Run the following command, replacing the placeholders with your actual OpenAI values:
 
-/// tab | bash (Linux, macOS)
+<Tabs groupId="openai-shell">
+  <TabItem value="bash" label="bash (Linux, macOS)">
+
 ```bash
-docker run -ti -p "8080:8080" qpointz/mill-service-moneta:**{{ version }}** \
+docker run -ti -p "8080:8080" qpointz/mill-service-moneta:latest \
   --spring.ai.model.chat=openai \
   --spring.ai.openai.api-key=<your-openai-api-key> \
   --spring.ai.openai.chat.options.model=<chat-model>
 ```
-///
 
-/// tab | PowerShell (Windows)
-```powershell
-docker run -ti -p "8080:8080" qpointz/mill-service-moneta:**{{ version }}** `
+  </TabItem>
+  <TabItem value="powershell" label="PowerShell (Windows)">
+
+```powershell title="PowerShell"
+docker run -ti -p "8080:8080" qpointz/mill-service-moneta:latest `
   --spring.ai.model.chat=openai `
-  --spring.ai.openai.api-key=<your-openai-api-key>` 
+  --spring.ai.openai.api-key=<your-openai-api-key> `
   --spring.ai.openai.chat.options.model=<chat-model>
 ```
-///
+
+  </TabItem>
+</Tabs>
 
 Once running, open [http://localhost:8080](http://localhost:8080) in your browser to begin querying your data using OpenAI's LLMs.
 
@@ -97,25 +105,30 @@ To connect Moneta with Azure OpenAI:
 
 Run the following command, replacing the placeholders with your actual Azure OpenAI values:
 
-/// tab | bash (Linux, macOS)
+<Tabs groupId="azure-shell">
+  <TabItem value="bash" label="bash (Linux, macOS)">
+
 ```bash
-docker run -ti -p "8080:8080" qpointz/mill-service-moneta:**{{ version }}** \
+docker run -ti -p "8080:8080" qpointz/mill-service-moneta:latest \
   --spring.ai.model.chat=azure-openai \
   --spring.ai.azure.openai.api-key=<your-azure-open-ai-key> \
   --spring.ai.azure.openai.endpoint=<your-azure-open-ai-endpoint> \
   --spring.ai.azure.openai.chat.options.deployment-name=<your-azure-open-ai-deployment-name>
 ```
-///
 
-/// tab | PowerShell (Windows)
+  </TabItem>
+  <TabItem value="powershell" label="PowerShell (Windows)">
+
 ```powershell
-docker run -ti -p "8080:8080" qpointz/mill-service-moneta:**{{ version }}** `
+docker run -ti -p "8080:8080" qpointz/mill-service-moneta:latest `
   --spring.ai.model.chat=azure-openai `
   --spring.ai.azure.openai.api-key="<your-azure-open-ai-key>" `
   --spring.ai.azure.openai.endpoint="<your-azure-open-ai-endpoint>" `
   --spring.ai.azure.openai.chat.options.deployment-name="<your-azure-open-ai-deployment-name>"
 ```
-///
+
+  </TabItem>
+</Tabs>
 
 Once started, open your browser and visit: [http://localhost:8080](http://localhost:8080)
 
