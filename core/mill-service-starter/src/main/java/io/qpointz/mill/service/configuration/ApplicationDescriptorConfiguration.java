@@ -4,11 +4,7 @@ import io.qpointz.mill.data.backend.SchemaProvider;
 import io.qpointz.mill.security.annotations.ConditionalOnSecurity;
 import io.qpointz.mill.security.authentication.AuthenticationMethodDescriptor;
 import io.qpointz.mill.security.authentication.AuthenticationMethods;
-import io.qpointz.mill.service.descriptors.ApplicationDescriptor;
-import io.qpointz.mill.service.descriptors.SecurityDescriptor;
-import io.qpointz.mill.service.descriptors.ServiceAddressDescriptor;
-import io.qpointz.mill.service.descriptors.ServiceAddressScheme;
-import io.qpointz.mill.service.descriptors.ServiceDescriptor;
+import io.qpointz.mill.service.descriptors.*;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -49,7 +45,7 @@ public class ApplicationDescriptorConfiguration {
     }
 
     @Bean
-    public Map<String, ApplicationDescriptor.SchemaDescriptor> schemaDescriptors(
+    public Map<String, SchemaDescriptor> schemaDescriptors(
             @Autowired(required = false) SchemaProvider provider,
             @Autowired Environment environment,
             @Autowired ServiceAddressProperties serviceAddressProperties
@@ -60,18 +56,18 @@ public class ApplicationDescriptorConfiguration {
 
         val baseUrl = resolvePublicBaseUrl(environment, serviceAddressProperties);
         return StreamSupport.stream(provider.getSchemaNames().spliterator(), false)
-                .map(name -> new ApplicationDescriptor.SchemaDescriptor(
+                .map(name -> new SchemaDescriptor(
                         name,
                         URI.create(baseUrl + "/.well-known/mill/schemas/" + name)
                 ))
-                .collect(Collectors.toMap(ApplicationDescriptor.SchemaDescriptor::name, z -> z));
+                .collect(Collectors.toMap(SchemaDescriptor::name, z -> z));
     }
 
     @Bean
     public ApplicationDescriptor applicationDescriptor(
             @Autowired(required = false) Optional<Collection<ServiceDescriptor>> serviceDescriptors,
             @Autowired(required = false) SecurityDescriptor securityDescriptor,
-            @Autowired(required = false) Map<String, ApplicationDescriptor.SchemaDescriptor> schemas
+            @Autowired(required = false) Map<String, SchemaDescriptor> schemas
     ) {
         return new ApplicationDescriptor(
                 serviceDescriptors.orElse(List.of()),

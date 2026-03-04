@@ -144,6 +144,8 @@ milestone-selectable deliverables extracted from design documents and work items
 | P-29 | Introduce proto/schema timezone extension (field-level TZ metadata) and propagate across source, backend, service, and client mappings                                                   | ✨ feature      | backlog | **WI-011**                                      |
 | P-30 | Implement end-to-end timezone support (frontend to backend): preserve, expose, and validate field-level timezone metadata across contracts and UI flows                                  | ✨ feature      | backlog | **TBD (new WI)**                                |
 | P-31 | Improve HTTP/gRPC error transparency: return structured Problem Details and propagate detail/code/traceId in Python and JDBC clients                                                     | 🐛 fix         | backlog | **WI-013**                                      |
+| P-32 | Add reusable build-logic plugin for controlled multi-edition Spring Boot `bootDist`/`installBootDist` outputs in `apps/mill-service` (single app module, edition-specific install dirs) | ✨ feature      | backlog | **WI-014**                                      |
+| P-33 | Explore Docker Buildx Bake to reduce Docker image build time across services and pipelines                                                                                                 | 💡 improvement | backlog | **TBD (new WI)**                                |
 
 ---
 
@@ -232,9 +234,9 @@ milestone-selectable deliverables extracted from design documents and work items
 | ai          | 23      | 16        | 4              | 1      | 2              | 0       | 0       |
 | client      | 19      | 10        | 0              | 5      | 3              | 0       | 1       |
 | metadata    | 17      | 13        | 0              | 2      | 1              | 1       | 0       |
-| platform    | 30      | 10        | 7              | 4      | 8              | 1       | 0       |
+| platform    | 32      | 11        | 8              | 4      | 8              | 1       | 0       |
 | publish     | 4       | 1         | 2              | 0      | 0              | 0       | 1       |
 | refactoring | 10      | 0         | 1              | 4      | 2              | 2       | 1       |
 | source      | 15      | 8         | 4              | 1      | 2              | 0       | 0       |
 | ui          | 10      | 4         | 4              | 0      | 1              | 1       | 0       |
-| **Total**   | **135** | **68**    | **22**         | **17** | **19**         | **5**   | **4**   |
+| **Total**   | **137** | **69**    | **23**         | **17** | **19**         | **5**   | **4**   |

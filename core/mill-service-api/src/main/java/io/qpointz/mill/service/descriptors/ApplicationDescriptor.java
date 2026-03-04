@@ -7,7 +7,6 @@ import java.util.Map;
 
 public class ApplicationDescriptor {
 
-    public record SchemaDescriptor(String name, URI link) {}
 
     private final Collection<ServiceDescriptor> services;
     private final SecurityDescriptor security;

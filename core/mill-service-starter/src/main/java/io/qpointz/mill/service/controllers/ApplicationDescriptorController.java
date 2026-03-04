@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/.well-known")
-@ConditionalOnService("meta")
 public class ApplicationDescriptorController {
 
     private final ApplicationDescriptor applicationDescriptor;

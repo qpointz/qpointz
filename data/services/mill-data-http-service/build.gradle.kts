@@ -13,6 +13,7 @@ mill {
 dependencies {
     implementation(project(":data:mill-data-backends"))
     implementation(project(":data:mill-data-autoconfigure"))
+    implementation(project(":core:mill-service-starter"))
     implementation(project(":metadata:mill-metadata-core"))
     implementation(project(":metadata:mill-metadata-autoconfigure"))
     implementation(libs.protobuf.java.util)

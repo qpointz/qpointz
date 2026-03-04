@@ -26,13 +26,11 @@ mill:
     services:
       grpc:
         enable: true
-        host:
-          external: grpc
+        external-host: grpc
         port: 9090
       http:
         enable: true
-        host:
-          external: http
+        external-host: http
         port: 8080
 ## LEGACY subject to review
   security:

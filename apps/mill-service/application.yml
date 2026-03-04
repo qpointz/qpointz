@@ -11,6 +11,10 @@ mill:
         quoting: BACK_TICK
         caseSensitive: "false"
         unquotedCasing: UNCHANGED
+    services:
+      http:
+        enable: true
+        external-host: http
     backend:
       type: flow
       flow:
