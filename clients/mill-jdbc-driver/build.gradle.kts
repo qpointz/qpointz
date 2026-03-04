@@ -1,5 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import groovy.util.Node
+import io.qpointz.mill.plugins.MillExtension
+import io.qpointz.mill.plugins.applyMillPomMetadata
 import org.gradle.api.component.AdhocComponentWithVariants
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
@@ -57,7 +59,10 @@ components.named("java", AdhocComponentWithVariants::class.java) {
 }
 
 extensions.configure<PublishingExtension>("publishing") {
+    val millExt = extensions.findByName("mill") as? MillExtension
+
     publications.withType(MavenPublication::class.java).configureEach {
+        applyMillPomMetadata(millExt, "java")
         if (name == "mavenJava") {
             artifactId = "mill-jdbc-driver"
         }

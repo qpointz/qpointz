@@ -61,38 +61,38 @@ class MillPublishPlugin : Plugin<Project> {
                     val comp = project.components.findByName("java")
                     from(comp)
                     artifact(javadocJar)
-                    createPom(millExt, comp!!.name)
+                    applyMillPomMetadata(millExt, comp!!.name)
                 }
             }
         }
     }
 }
 
-    private fun MavenPublication.createPom(
-        millExt: MillExtension?,
-        pomName: String
-    ) {
-        pom {
-            name.set(pomName)
-            description.set(millExt?.description)
-            url.set("https://github.com/qpointz/qpointz")
-            licenses {
-                license {
-                    name.set("The Apache License, Version 2.0")
-                    url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                }
-            }
-            developers {
-                developer {
-                    id.set("qpointz")
-                    name.set("vm")
-                    email.set("vm@qpointz.io")
-                }
-            }
-            scm {
-                connection.set("scm:git:https://github.com/qpointz/qpointz.git")
-                developerConnection.set("scm:git:https://github.com/qpointz/qpointz.git")
-                url.set("https://github.com/qpointz/qpointz")
+fun MavenPublication.applyMillPomMetadata(
+    millExt: MillExtension?,
+    pomName: String
+) {
+    pom {
+        name.set(pomName)
+        description.set(millExt?.description)
+        url.set("https://github.com/qpointz/qpointz")
+        licenses {
+            license {
+                name.set("The Apache License, Version 2.0")
+                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
             }
         }
+        developers {
+            developer {
+                id.set("qpointz")
+                name.set("vm")
+                email.set("vm@qpointz.io")
+            }
+        }
+        scm {
+            connection.set("scm:git:https://github.com/qpointz/qpointz.git")
+            developerConnection.set("scm:git:https://github.com/qpointz/qpointz.git")
+            url.set("https://github.com/qpointz/qpointz")
+        }
     }
+}

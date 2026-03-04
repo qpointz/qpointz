@@ -21,7 +21,7 @@
     script:
       - !reference [.global-vars, before_script]
       - echo "VERSION:${QP_VERSION}"
-      - export DOCKER_BUILD_TAG="v${QP_VERSION}"
+      - export DOCKER_BUILD_TAG="${QP_VERSION}"
       - |
         export DOCKER_TAG_ARGS="--tag ${CI_REGISTRY_IMAGE}/${DOCKER_BUILD_CONTAINER_NAME}:${DOCKER_BUILD_TAG} "
         export DOCKER_TAG_ARGS="${DOCKER_TAG_ARGS} --tag ${CI_REGISTRY_IMAGE}/${DOCKER_BUILD_CONTAINER_NAME}:${CI_COMMIT_REF_SLUG} "
