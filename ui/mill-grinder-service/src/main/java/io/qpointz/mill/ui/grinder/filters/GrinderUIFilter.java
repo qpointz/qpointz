@@ -1,6 +1,6 @@
 package io.qpointz.mill.ui.grinder.filters;
 
-import io.qpointz.mill.service.annotations.ConditionalOnService;
+import io.qpointz.mill.annotations.service.ConditionalOnService;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

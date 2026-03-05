@@ -1,7 +1,7 @@
 package io.qpointz.mill.test.services;
 
 import io.qpointz.mill.MillRuntimeException;
-import io.qpointz.mill.security.annotations.ConditionalOnSecurity;
+import io.qpointz.mill.annotations.security.ConditionalOnSecurity;
 import io.qpointz.mill.security.authentication.AuthenticationMethods;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;

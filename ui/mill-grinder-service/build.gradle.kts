@@ -11,7 +11,8 @@ mill {
 }
 
 dependencies {
-    implementation(project(":core:mill-service-api"))
+    implementation(project(":core:mill-spring-support"))
+    implementation(project(":services:mill-service-api"))
     implementation(libs.boot.starter)
     implementation(libs.boot.starter.web)
     compileOnly(libs.bundles.logging)

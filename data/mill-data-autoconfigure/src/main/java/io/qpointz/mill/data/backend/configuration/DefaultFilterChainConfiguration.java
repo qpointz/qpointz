@@ -1,9 +1,9 @@
 package io.qpointz.mill.data.backend.configuration;
 
+import io.qpointz.mill.annotations.security.ConditionalOnSecurity;
 import io.qpointz.mill.data.backend.rewriters.TableFacetFactory;
 import io.qpointz.mill.data.backend.rewriters.TableFacetFactoryImpl;
 import io.qpointz.mill.data.backend.rewriters.TableFacetPlanRewriter;
-import io.qpointz.mill.security.annotations.ConditionalOnSecurity;
 import io.qpointz.mill.security.authorization.policy.*;
 import io.qpointz.mill.security.authorization.policy.repositories.PolicyActionDescriptorRepository;
 import io.qpointz.mill.security.configuration.PolicyActionsConfiguration;

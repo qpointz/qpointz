@@ -1,4 +1,6 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.kotlin.dsl.implementation
+import org.gradle.kotlin.dsl.project
 
 plugins {
     `java-library`
@@ -16,6 +18,7 @@ mill {
 dependencies {
     api(project(":data:mill-data-autoconfigure"))
     api(project(":metadata:mill-metadata-core"))
+    implementation(project(":core:mill-spring-support"))
     implementation(libs.pebble.templates)
     implementation(libs.boot.starter)
     implementation(libs.jackson.core)
@@ -48,7 +51,7 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation(project(":core:mill-service-security"))
+                    implementation(project(":services:mill-service-security"))
                     implementation(project(":data:mill-data-backends"))
                     implementation(project(":data:mill-data-autoconfigure"))
                     implementation(project(":metadata:mill-metadata-autoconfigure"))

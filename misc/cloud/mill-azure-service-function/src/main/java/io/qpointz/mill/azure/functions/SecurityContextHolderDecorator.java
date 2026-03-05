@@ -1,7 +1,6 @@
 package io.qpointz.mill.azure.functions;
 
 import com.microsoft.azure.functions.HttpRequestMessage;
-import io.qpointz.mill.security.annotations.ConditionalOnSecurity;
 import io.qpointz.mill.security.authentication.AuthenticationMethods;
 import io.qpointz.mill.security.authentication.AuthenticationReader;
 import io.qpointz.mill.security.authentication.AuthenticationType;

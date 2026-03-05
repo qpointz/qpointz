@@ -6,8 +6,6 @@ dependencies {
     dokka(project(":data:mill-data-backend-core"))
     dokka(project(":data:mill-data-backends"))
     dokka(project(":data:mill-data-autoconfigure"))
-    dokka(project(":data:services:mill-data-grpc-service"))
-    dokka(project(":data:services:mill-data-http-service"))
     dokka(project(":data:mill-data-source-core"))
     dokka(project(":data:mill-data-source-calcite"))
     dokka(project(":data:formats:mill-data-format-text"))

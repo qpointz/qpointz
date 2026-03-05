@@ -13,6 +13,7 @@ mill {
 
 dependencies {
     api(project(":ai:mill-ai-v1-core"))
+    implementation(project(":core:mill-spring-support"))
     implementation(libs.boot.starter.data.jpa)
     implementation(libs.boot.starter)
     implementation(libs.boot.starter.security)
@@ -42,7 +43,7 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation(project(":core:mill-service-security"))
+                    implementation(project(":services:mill-service-security"))
                     implementation(project(":data:mill-data-backends"))
                     implementation(libs.boot.starter.test)
                     implementation(libs.boot.starter.webflux)

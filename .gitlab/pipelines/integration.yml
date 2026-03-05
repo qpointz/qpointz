@@ -36,7 +36,7 @@ apps:mill-service-base-docker:
   variables:
     DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
     DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/base/Dockerfile
-    DOCKER_BUILD_CONTAINER_NAME : mill-service
+    DOCKER_BUILD_CONTAINER_NAME: mill-service
     DOCKER_LOCAL_ONLY: "true"
 
 apps:mill-service-samples-docker:
@@ -50,7 +50,7 @@ apps:mill-service-samples-docker:
   variables:
     DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
     DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/samples/Dockerfile
-    DOCKER_BUILD_CONTAINER_NAME : mill-service-samples
+    DOCKER_BUILD_CONTAINER_NAME: mill-service-samples
     DOCKER_LOCAL_ONLY: "true"
     DOCKER_BUILD_ARGS: --build-arg BASE_IMAGE=${CI_REGISTRY_IMAGE}/mill-service:${CI_COMMIT_REF_SLUG}
 

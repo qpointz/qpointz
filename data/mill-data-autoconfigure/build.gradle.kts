@@ -12,12 +12,13 @@ mill {
 }
 
 dependencies {
-    api(project(":core:mill-service-api"))
-    api(project(":core:mill-service-security"))
+    api(project(":services:mill-service-api"))
+    api(project(":services:mill-service-security"))
     api(project(":data:mill-data-backend-core"))
     api(project(":data:mill-data-backends"))
     api(libs.jakarta.servlet.api)
     api(libs.javax.annotation.api)
+    implementation(project(":core:mill-spring-support"))
     implementation(libs.calcite.core)
     implementation(libs.boot.starter)
     implementation(libs.boot.starter.security)

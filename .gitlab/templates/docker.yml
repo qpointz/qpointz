@@ -21,7 +21,14 @@
     script:
       - !reference [.global-vars, before_script]
       - echo "VERSION:${QP_VERSION}"
-      - export DOCKER_BUILD_TAG="${QP_VERSION}"
+      - |
+        if [ -n "${QP_VERSION}" ]; then
+          export DOCKER_BUILD_TAG="${QP_VERSION}"
+        else
+          export DOCKER_BUILD_TAG="${CI_COMMIT_REF_SLUG}"
+          echo "QP_VERSION is empty, fallback tag: ${DOCKER_BUILD_TAG}"
+        fi
+      - echo "DOCKER_BUILD_TAG:${DOCKER_BUILD_TAG}"
       - |
         export DOCKER_TAG_ARGS="--tag ${CI_REGISTRY_IMAGE}/${DOCKER_BUILD_CONTAINER_NAME}:${DOCKER_BUILD_TAG} "
         export DOCKER_TAG_ARGS="${DOCKER_TAG_ARGS} --tag ${CI_REGISTRY_IMAGE}/${DOCKER_BUILD_CONTAINER_NAME}:${CI_COMMIT_REF_SLUG} "

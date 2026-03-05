@@ -15,7 +15,7 @@ import io.qpointz.mill.ai.nlsql.configuration.ValueMappingConfiguration;
 import io.qpointz.mill.ai.nlsql.reasoners.DefaultReasoner;
 import io.qpointz.mill.ai.nlsql.reasoners.StepBackReasoner;
 import io.qpointz.mill.ai.nlsql.repositories.UserChatMessageRepository;
-import io.qpointz.mill.service.annotations.ConditionalOnService;
+import io.qpointz.mill.annotations.service.ConditionalOnService;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.metadata.service.MetadataService;
 import lombok.AllArgsConstructor;

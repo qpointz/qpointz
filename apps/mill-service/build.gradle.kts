@@ -49,12 +49,12 @@ tasks.register<Sync>("assembleSamples") {
 
 
 dependencies {
-    implementation(project(":core:mill-service-starter"))
+    implementation(project(":services:mill-well-known-service"))
 
     implementation(project(":data:mill-data-autoconfigure"))
     implementation(project(":data:mill-data-backends"))
-    implementation(project(":data:services:mill-data-grpc-service"))
-    implementation(project(":data:services:mill-data-http-service"))
+    implementation(project(":services:mill-data-grpc-service"))
+    implementation(project(":services:mill-data-http-service"))
     implementation(project(":data:mill-data-source-core"))
     implementation(project(":data:mill-data-source-calcite"))
     implementation(project(":data:formats:mill-data-format-text"))

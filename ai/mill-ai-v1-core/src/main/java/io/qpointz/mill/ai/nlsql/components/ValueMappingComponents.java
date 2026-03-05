@@ -1,6 +1,7 @@
 package io.qpointz.mill.ai.nlsql.components;
 
 import io.qpointz.mill.ai.nlsql.ValueRepository;
+import io.qpointz.mill.annotations.service.ConditionalOnService;
 import io.qpointz.mill.metadata.domain.MetadataEntity;
 import io.qpointz.mill.metadata.domain.MetadataType;
 import io.qpointz.mill.metadata.domain.core.ValueMappingFacet;
@@ -8,7 +9,6 @@ import io.qpointz.mill.metadata.service.MetadataService;
 import io.qpointz.mill.proto.QueryExecutionConfig;
 import io.qpointz.mill.proto.QueryRequest;
 import io.qpointz.mill.proto.SQLStatement;
-import io.qpointz.mill.service.annotations.ConditionalOnService;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.sql.RecordReaders;
 import lombok.extern.slf4j.Slf4j;

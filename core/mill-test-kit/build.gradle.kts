@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.invoke
+
 plugins {
     `java-library`
     alias(libs.plugins.spring.dependency.management)
@@ -29,6 +31,8 @@ dependencies {
     // JUnit Jupiter for ScenarioTestBase (testing library)
     api("org.junit.jupiter:junit-jupiter-api:${libs.versions.junit.get()}")
     api("org.junit.jupiter:junit-jupiter-params:${libs.versions.junit.get()}")
+
+    implementation(project(":core:mill-spring-support"))
     compileOnly(libs.bundles.logging)
     compileOnly(libs.lombok)
 
