@@ -87,9 +87,6 @@ val installSampleCerts = tasks.register<Copy>("installSampleCerts") {
 
 tasks.named("installBootDist") {
     finalizedBy(installSampleData, installSampleCerts)
-    onlyIf("sample-data enabled") {
-        mill.editions.isActive("sample-data").get()
-    }
 }
 
 
