@@ -15,6 +15,7 @@ This section covers:
 | File | Description |
 |------|-------------|
 | `gradle-architecture.md` | Root Gradle structure, version management, convention plugins, and module layout |
+| `gradle-editions.md` | Edition DSL for `mill` plugin, feature activation model, and inspection tasks |
 | `gitlab-ci-inventory.md` | Active CI topology, file ownership, and downstream pipeline model |
 | `maintainer-recipes.md` | Day-2 operations: adding modules, changing pipelines, validating CI behavior |
 

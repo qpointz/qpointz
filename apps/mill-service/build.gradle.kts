@@ -8,6 +8,30 @@ plugins {
 mill {
     description = "calcite service desc"
     publishArtifacts = false
+
+    editions {
+        defaultEdition = "basic"
+
+        // Feature flags can be pure build toggles with no dependency changes.
+        // feature("metadata") {
+        //     description = "Core metadata capabilities"
+        // }
+
+
+        // feature("aiv1") {
+        //     description = "AI v1 NL-SQL chat support"
+        //     module(":ai:mill-ai-v1-nlsql-chat-service")
+        // }
+
+        edition("basic") {
+            description = "Base metadata-only edition"
+           // feature("metadata")
+        }
+        // edition("edition2") {
+        //     description = "Metadata + AI v1 edition"
+        //     features("metadata", "aiv1")
+        // }
+    }
 }
 
 springBoot {

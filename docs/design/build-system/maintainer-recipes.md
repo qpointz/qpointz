@@ -171,3 +171,85 @@ rg "echo .*TOKEN|printenv|env\\b" .gitlab .gitlab-ci.yml
 ```
 
 Expected result for active files: no direct token-value printing.
+
+## 12) Editions Recipes (`mill { editions { ... } }`)
+
+### Define a feature with multiple modules
+
+```kotlin
+mill {
+    editions {
+        feature("aiv1") {
+            description = "AI v1 NL-SQL chat support"
+            modules(
+                ":ai:mill-ai-v1-nlsql-chat-service",
+                ":ai:mill-ai-v1-core"
+            )
+        }
+    }
+}
+```
+
+Active-feature modules are added automatically to `implementation` for the selected edition.
+
+### Define a feature without dependencies
+
+```kotlin
+mill {
+    editions {
+        feature("metadata") {
+            description = "Feature flag only; no module wiring"
+        }
+    }
+}
+```
+
+This is useful when a feature controls task/config behavior only.
+
+### Add feature-conditional task logic
+
+```kotlin
+tasks.register<Copy>("copyAiAssets") {
+    group = "distribution"
+    description = "Copies AI assets only for aiv1 editions"
+
+    from(layout.projectDirectory.dir("src/main/ai-assets"))
+    into(layout.buildDirectory.dir("generated/ai-assets"))
+
+    onlyIf("aiv1 feature is enabled") {
+        mill.editions.isActive("aiv1").get()
+    }
+
+    inputs.property("edition", mill.editions.selectedEdition)
+}
+```
+
+### Resolve current edition-aware install folder
+
+Prefer reading from task output instead of rebuilding the path string:
+
+```kotlin
+val editionInstallDir = tasks.named<Sync>("installBootDist").map { it.destinationDir }
+```
+
+Fallback direct expression (if needed):
+
+```kotlin
+val editionInstallDir = mill.editions.selectedEdition.map { edition ->
+    layout.buildDirectory.dir("install/${project.name}-$edition").get().asFile
+}
+```
+
+### Inspect edition-specific dependencies
+
+```bash
+./gradlew :apps:mill-service:dependencies --configuration runtimeClasspath -Pedition=edition1
+./gradlew :apps:mill-service:dependencies --configuration runtimeClasspath -Pedition=edition2
+./gradlew :apps:mill-service:dependencyInsight --configuration runtimeClasspath --dependency <name> -Pedition=edition2
+```
+
+### `implementation` vs `runtimeOnly` (quick guidance)
+
+- Use `implementation` when code compiles against the dependency.
+- Use `runtimeOnly` when dependency is needed only at runtime.
+- SPI pattern: keep service API as `implementation`, provider implementation often as `runtimeOnly`.

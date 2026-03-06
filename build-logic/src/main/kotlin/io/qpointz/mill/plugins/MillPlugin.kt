@@ -10,17 +10,6 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import kotlin.jvm.java
 
-
-open class MillExtension {
-    var description: String = ""
-    var publishArtifacts: Boolean = true
-    var publishArtefact: Boolean
-        get() = publishArtifacts
-        set(value) {
-            publishArtifacts = value
-        }
-}
-
 class MillPlugin: Plugin<Project> {
 
     fun getVersion(project: Project): String {
@@ -46,7 +35,8 @@ class MillPlugin: Plugin<Project> {
 
     override fun apply(project: Project) {
         val millExtension = project.extensions.findByType(MillExtension::class.java)
-            ?: project.extensions.create("mill", MillExtension::class.java)
+            ?: project.extensions.create("mill", MillExtension::class.java, project)
+        registerEditionInfoTasks(project, millExtension.editions)
 
         val version = getVersion(project)
         project.version = version
@@ -84,6 +74,10 @@ class MillPlugin: Plugin<Project> {
         }
 
         project.afterEvaluate {
+            if (millExtension.editions.isConfigured()) {
+                configureEditionPackaging(project, millExtension.editions)
+            }
+
             if (millExtension.publishArtifacts) {
                 project.pluginManager.apply(MillPublishPlugin::class.java)
             }

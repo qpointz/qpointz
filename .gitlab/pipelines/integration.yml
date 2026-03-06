@@ -1,5 +1,6 @@
 include:
   - local: /.gitlab/common/common.yml
+  - local: /.gitlab/templates/apps-package-dist.yml
 
 workflow:
   rules:
@@ -13,39 +14,35 @@ package:dev-certs:
   stage: package
   extends: .init-dev-certs
 
-apps:package-dist:
-  extends: .gradle-job
-  stage: package
+apps:basic-edition-package:
+  extends: .apps-package-dist-template
+  variables:
+    MILL_EDITION: "basic"
   needs:
     - job: package:dev-certs
       artifacts: true
-  script:
-    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :apps:mill-service:installBootDist :apps:mill-service:assembleSamples
-  artifacts:
-    expire_in: "1 days"
-    paths:
-      - ${CI_PROJECT_DIR}/apps/mill-service/build/install/**/*
-      - ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/samples/data/**/*
 
-apps:mill-service-base-docker:
+apps:basic-edition-docker:
   stage: package
   extends: .docker-build-job
   needs:
-    - job: apps:package-dist
+    - job: apps:basic-edition-package
       artifacts: true
   variables:
+    APP_EDITION: "basic"
     DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
     DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/base/Dockerfile
-    DOCKER_BUILD_CONTAINER_NAME: mill-service
+    DOCKER_BUILD_CONTAINER_NAME: mill-service-${APP_EDITION}
     DOCKER_LOCAL_ONLY: "true"
+    DOCKER_BUILD_ARGS: --build-arg APP_EDITION=${APP_EDITION}
 
 apps:mill-service-samples-docker:
   stage: package
   extends: .docker-build-job
   needs:
-    - job: apps:mill-service-base-docker
+    - job: apps:basic-edition-docker
       artifacts: false
-    - job: apps:package-dist
+    - job: apps:basic-edition-package
       artifacts: true
   variables:
     DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service

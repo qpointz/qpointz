@@ -1,0 +1,48 @@
+.apps-package-dist-template:
+  extends: .gradle-job
+  stage: package
+  variables:
+    MILL_EDITION: "basic"
+  script:
+    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :apps:mill-service:installBootDist :apps:mill-service:assembleSamples -Pedition=${MILL_EDITION}
+    - |
+      set -euo pipefail
+      INSTALL_DIR="${CI_PROJECT_DIR}/apps/mill-service/build/install/mill-service-boot-${MILL_EDITION}"
+      MODULES_DIR="${CI_PROJECT_DIR}/apps/mill-service/build/jlink-modules/${MILL_EDITION}"
+      JDEPS_DIR="${CI_PROJECT_DIR}/apps/mill-service/build/jdeps/${MILL_EDITION}"
+
+      mkdir -p "${MODULES_DIR}" "${JDEPS_DIR}"
+
+      FAT_JAR=""
+      for candidate in "${INSTALL_DIR}"/lib/mill-service-*.jar; do
+        if [ -f "${candidate}" ] && [ "${candidate#*-plain.jar}" = "${candidate}" ]; then
+          FAT_JAR="${candidate}"
+          break
+        fi
+      done
+
+      if [ -z "${FAT_JAR}" ]; then
+        echo "Could not locate fat jar in ${INSTALL_DIR}/lib"
+        exit 1
+      fi
+
+      cd "${JDEPS_DIR}"
+      jar xf "${FAT_JAR}" BOOT-INF/classes BOOT-INF/lib
+
+      "$JAVA_HOME/bin/jdeps" \
+        --multi-release 21 \
+        --ignore-missing-deps \
+        --recursive \
+        --print-module-deps \
+        --class-path "${JDEPS_DIR}/BOOT-INF/lib/*" \
+        "${JDEPS_DIR}/BOOT-INF/classes" > "${MODULES_DIR}/jdeps-modules.csv"
+
+      tr ',' '\n' < "${MODULES_DIR}/jdeps-modules.csv" | sed '/^$/d' | sort -u > "${MODULES_DIR}/jdeps-modules.txt"
+      "$JAVA_HOME/bin/java" --list-modules | cut -d@ -f1 | sort -u > "${MODULES_DIR}/jdk-modules.txt"
+      comm -12 "${MODULES_DIR}/jdeps-modules.txt" "${MODULES_DIR}/jdk-modules.txt" | paste -sd, - > "${MODULES_DIR}/jlink-modules.txt"
+  artifacts:
+    expire_in: "1 days"
+    paths:
+      - ${CI_PROJECT_DIR}/apps/mill-service/build/install/**/*
+      - ${CI_PROJECT_DIR}/apps/mill-service/build/jlink-modules/${MILL_EDITION}/*
+      - ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/samples/data/**/*
