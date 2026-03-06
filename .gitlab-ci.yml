@@ -18,12 +18,6 @@ variables:
       - "auto"
       - "true"
       - "false"
-  RUN_PACKAGING:
-    value: "false"
-    description: "Set to true to run packaging without full integration"
-    options:
-      - "true"
-      - "false"
   RUN_FULL_TEST:
     value: "false"
     description: "Full non-integration test pipeline control: auto (MR/protected branch), true (force), false (disable)"

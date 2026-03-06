@@ -1,5 +1,6 @@
 include:
   - local: /.gitlab/common/common.yml
+  - local: /.gitlab/templates/apps-package-dist.yml
 
 workflow:
   rules:
@@ -20,20 +21,20 @@ publish:require-version:
         exit 1
       fi
 
-      export QP_VERSION="${CI_COMMIT_TAG#v}"      
-      BASE_VERSION="$(printf '%s' "${QP_VERSION}" | sed -nE 's/^([0-9]+\.[0-9]+\.[0-9]+)(-.+)?$/\1/p')"
+      export RAW_RELEASE_VERSION="${CI_COMMIT_TAG#v}"
+      BASE_VERSION="$(printf '%s' "${RAW_RELEASE_VERSION}" | sed -nE 's/^([0-9]+\.[0-9]+\.[0-9]+)(-.+)?$/\1/p')"
       if [ -z "${BASE_VERSION}" ]; then
-        echo "ERROR: Unsupported release tag format: ${QP_VERSION}"
+        echo "ERROR: Unsupported release tag format: ${RAW_RELEASE_VERSION}"
         echo "Expected: vX.Y.Z, vX.Y.Z-rc, vX.Y.Z-rc.N, or vX.Y.Z-dev.N"
         exit 1
       fi
 
-      if printf '%s' "${QP_VERSION}" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+      if printf '%s' "${RAW_RELEASE_VERSION}" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
         QP_VERSION_PEP440="${BASE_VERSION}"
       else
-        RC_NUMBER="$(printf '%s' "${QP_VERSION}" | sed -nE 's/^[0-9]+\.[0-9]+\.[0-9]+-rc\.?([0-9]+)$/\1/p')"
-        RC_NO_NUMBER="$(printf '%s' "${QP_VERSION}" | sed -nE 's/^[0-9]+\.[0-9]+\.[0-9]+-rc$/rc/p')"
-        DEV_NUMBER="$(printf '%s' "${QP_VERSION}" | sed -nE 's/^[0-9]+\.[0-9]+\.[0-9]+-dev\.([0-9]+)$/\1/p')"
+        RC_NUMBER="$(printf '%s' "${RAW_RELEASE_VERSION}" | sed -nE 's/^[0-9]+\.[0-9]+\.[0-9]+-rc\.?([0-9]+)$/\1/p')"
+        RC_NO_NUMBER="$(printf '%s' "${RAW_RELEASE_VERSION}" | sed -nE 's/^[0-9]+\.[0-9]+\.[0-9]+-rc$/rc/p')"
+        DEV_NUMBER="$(printf '%s' "${RAW_RELEASE_VERSION}" | sed -nE 's/^[0-9]+\.[0-9]+\.[0-9]+-dev\.([0-9]+)$/\1/p')"
 
         if [ -n "${RC_NUMBER}" ]; then
           QP_VERSION_PEP440="${BASE_VERSION}rc${RC_NUMBER}"
@@ -42,16 +43,14 @@ publish:require-version:
         elif [ -n "${DEV_NUMBER}" ]; then
           QP_VERSION_PEP440="${BASE_VERSION}.dev${DEV_NUMBER}"
         else
-          echo "ERROR: Unsupported release tag suffix: ${QP_VERSION}"
+          echo "ERROR: Unsupported release tag suffix: ${RAW_RELEASE_VERSION}"
           echo "Expected: vX.Y.Z, vX.Y.Z-rc, vX.Y.Z-rc.N, or vX.Y.Z-dev.N"
           exit 1
         fi
       fi
 
-      echo "Using QP_VERSION=${QP_VERSION}"
       echo "Using QP_VERSION_PEP440=${QP_VERSION_PEP440}"
-      echo "QP_VERSION=${QP_VERSION}" > publish-version.env
-      echo "QP_VERSION_PEP440=${QP_VERSION_PEP440}" >> publish-version.env
+      echo "QP_VERSION_PEP440=${QP_VERSION_PEP440}" > publish-version.env
       cat publish-version.env
   artifacts:
     reports:
@@ -74,88 +73,104 @@ maven-publication-create:
       - ${CI_PROJECT_DIR}/build/sonatype-bundle/**/*
       - ${CI_PROJECT_DIR}/build/sonatype-bundle/*
 
-ui:ui-v1:build:
-  extends: .node-job
-  stage: build
-  needs:
-    - job: publish:require-version
-      artifacts: true
-  script:
-    - cd ${CI_PROJECT_DIR}/ui/mill-grinder-ui
-    - npm ci    
-    - npm run build
-  artifacts:
-    expire_in: "2 days"
-    paths:
-      - ${CI_PROJECT_DIR}/ui/mill-grinder-service/src/main/resources/static/app/v1
+# ui:ui-v1:build:
+#   extends: .node-job
+#   stage: build
+#   needs:
+#     - job: publish:require-version
+#       artifacts: true
+#   script:
+#     - cd ${CI_PROJECT_DIR}/ui/mill-grinder-ui
+#     - npm ci    
+#     - npm run build
+#   artifacts:
+#     expire_in: "2 days"
+#     paths:
+#       - ${CI_PROJECT_DIR}/ui/mill-grinder-service/src/main/resources/static/app/v1
 
-ui:ui-v2:build:
-  extends: .node-job
-  stage: build
-  needs:
-    - job: publish:require-version
-      artifacts: true
-  script:
-    - cd ${CI_PROJECT_DIR}/ui/mill-ui
-    - npm ci    
-    - npm run build
-  artifacts:
-    expire_in: "2 days"
-    paths:
-      - ${CI_PROJECT_DIR}/ui/mill-grinder-service/src/main/resources/static/app/v2
+# ui:ui-v2:build:
+#   extends: .node-job
+#   stage: build
+#   needs:
+#     - job: publish:require-version
+#       artifacts: true
+#   script:
+#     - cd ${CI_PROJECT_DIR}/ui/mill-ui
+#     - npm ci    
+#     - npm run build
+#   artifacts:
+#     expire_in: "2 days"
+#     paths:
+#       - ${CI_PROJECT_DIR}/ui/mill-grinder-service/src/main/resources/static/app/v2
 
-apps:package-dist:
-  extends: .gradle-job
+apps:minimal-edition-dist:
+  extends: .apps-package-dist-template
   stage: build
-  needs:
-    - job: publish:require-version
-      artifacts: true
-    - job: ui:ui-v1:build
-      artifacts: true
-    - job: ui:ui-v2:build
-      artifacts: true
-  script:
-    - |
-      if [ -n "${QP_VERSION}" ]; then
-        echo "${QP_VERSION}" > ${CI_PROJECT_DIR}/VERSION
-      fi
-    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :apps:mill-service:installBootDist -PprojectVersion=${QP_VERSION_PEP440}
+  # needs:
+  #   - job: publish:require-version
+  #     artifacts: true
+  #   - job: ui:ui-v1:build
+  #     artifacts: true
+  #   - job: ui:ui-v2:build
+  #     artifacts: true
+  variables:
+    APPS_PROJECT_VERSION: ${QP_VERSION_PEP440}
+    APP_EDITION: "minimal"
   artifacts:
-    expire_in: "5 days"
+    expire_in: "1 days"
     paths:
       - ${CI_PROJECT_DIR}/apps/mill-service/build/install/**/*
       - ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/samples/data/**/*      
 
-apps:mill-service-base-docker:
+apps:minimal-edition-docker:
   stage: package
-  extends: .docker-build-job
+  extends: .docker-build-job-release
   needs:
     - job: publish:require-version
       artifacts: true
-    - job: apps:package-dist
+    - job: apps:minimal-edition-dist:
       artifacts: true
   variables:
+    APP_EDITION: "minimal"
     DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
     DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/base/Dockerfile
-    DOCKER_BUILD_CONTAINER_NAME : mill-service
-    DOCKER_LOCAL_ONLY: "false"
+    DOCKER_BUILD_CONTAINER_NAME: mill-service-${APP_EDITION}
+    DOCKER_BUILD_ARGS: --build-arg APP_EDITION=${APP_EDITION}
 
-apps:mill-service-samples-docker:
+
+apps:samples-edition-dist:
+  extends: .apps-package-dist-template
+  stage: build
+  # needs:
+  #   - job: publish:require-version
+  #     artifacts: true
+  #   - job: ui:ui-v1:build
+  #     artifacts: true
+  #   - job: ui:ui-v2:build
+  #     artifacts: true
+  variables:
+    APPS_PROJECT_VERSION: ${QP_VERSION_PEP440}
+    APP_EDITION: "samples"
+  artifacts:
+    expire_in: "1 days"
+    paths:
+      - ${CI_PROJECT_DIR}/apps/mill-service/build/install/**/*
+      - ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/samples/data/**/*      
+
+apps:samples-edition-docker:
   stage: package
-  extends: .docker-build-job
+  extends: .docker-build-job-release
   needs:
     - job: publish:require-version
       artifacts: true
-    - job: apps:mill-service-base-docker
-      artifacts: false
-    - job: apps:package-dist
+    - job: apps:samples-edition-dist:
       artifacts: true
   variables:
+    APP_EDITION: "samples"
     DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
-    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/samples/Dockerfile
-    DOCKER_BUILD_CONTAINER_NAME : mill-service-samples
-    DOCKER_LOCAL_ONLY: "false"
-    DOCKER_BUILD_ARGS: --build-arg BASE_IMAGE=${CI_REGISTRY_IMAGE}/mill-service:${CI_COMMIT_REF_SLUG}
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/base/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME: mill-service-${APP_EDITION}
+    DOCKER_BUILD_ARGS: --build-arg APP_EDITION=${APP_EDITION}
 
 
 maven-publish:

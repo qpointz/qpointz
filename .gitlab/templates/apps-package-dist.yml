@@ -2,14 +2,20 @@
   extends: .gradle-job
   stage: package
   variables:
-    MILL_EDITION: "basic"
+    APP_EDITION: "basic"
+    APPS_PROJECT_VERSION: ""
   script:
-    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :apps:mill-service:installBootDist -Pedition=${MILL_EDITION}
+    - |
+      APPS_PROJECT_VERSION_ARG=""
+      if [ -n "${APPS_PROJECT_VERSION}" ]; then
+        APPS_PROJECT_VERSION_ARG=" -PprojectVersion=${APPS_PROJECT_VERSION}"
+      fi
+      ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :apps:mill-service:installBootDist -Pedition=${APP_EDITION}${APPS_PROJECT_VERSION_ARG}
     - |
       set -euo pipefail
-      INSTALL_DIR="${CI_PROJECT_DIR}/apps/mill-service/build/install/mill-service-boot-${MILL_EDITION}"
-      MODULES_DIR="${CI_PROJECT_DIR}/apps/mill-service/build/jlink-modules/${MILL_EDITION}"
-      JDEPS_DIR="${CI_PROJECT_DIR}/apps/mill-service/build/jdeps/${MILL_EDITION}"
+      INSTALL_DIR="${CI_PROJECT_DIR}/apps/mill-service/build/install/mill-service-boot-${APP_EDITION}"
+      MODULES_DIR="${CI_PROJECT_DIR}/apps/mill-service/build/jlink-modules/${APP_EDITION}"
+      JDEPS_DIR="${CI_PROJECT_DIR}/apps/mill-service/build/jdeps/${APP_EDITION}"
 
       mkdir -p "${MODULES_DIR}" "${JDEPS_DIR}"
 
@@ -44,5 +50,5 @@
     expire_in: "1 days"
     paths:
       - ${CI_PROJECT_DIR}/apps/mill-service/build/install/**/*
-      - ${CI_PROJECT_DIR}/apps/mill-service/build/jlink-modules/${MILL_EDITION}/*
+      - ${CI_PROJECT_DIR}/apps/mill-service/build/jlink-modules/${APP_EDITION}/*
       - ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/samples/data/**/*

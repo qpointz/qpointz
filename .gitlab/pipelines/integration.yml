@@ -17,7 +17,7 @@ package:dev-certs:
 apps:integration-edition-package:
   extends: .apps-package-dist-template
   variables:
-    MILL_EDITION: "integration"
+    APP_EDITION: "integration"
   needs:
     - job: package:dev-certs
       artifacts: true
@@ -33,7 +33,6 @@ apps:integration-edition-docker:
     DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
     DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/base/Dockerfile
     DOCKER_BUILD_CONTAINER_NAME: mill-service-${APP_EDITION}
-    DOCKER_LOCAL_ONLY: "true"
     DOCKER_BUILD_ARGS: --build-arg APP_EDITION=${APP_EDITION}
 
 core:integration:
@@ -50,8 +49,7 @@ ai:integration:
     - .gradle-job    
   allow_failure: true
   script:
-    - !reference [ .global-vars, before_script ]
-    - export REGRESSION_VERSION_TAG=${QP_VERSION}
+    - export REGRESSION_VERSION_TAG=${QP_VERSION_PEP440:-$CI_COMMIT_REF_SLUG}
     - echo "REGRESSION_VERSION_TAG=${REGRESSION_VERSION_TAG}"
     - ./gradlew --no-daemon --continue --console plain :ai:testIT
   artifacts:

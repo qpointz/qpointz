@@ -9,6 +9,13 @@
     CACHE_FALLBACK_KEY: "gradle-dev"
   before_script:
     - |
+      cat <<EOF
+      BUILD_TAG_INPUTS:
+        CI_COMMIT_REF_SLUG=${CI_COMMIT_REF_SLUG}
+        QP_VERSION=${QP_VERSION}
+        QP_VERSION_PEP440=${QP_VERSION_PEP440}
+      EOF
+    - |
       if [ "$GRADLE_CONTINUE" = "true" ]; then
         echo "Gradle : continue mode"
         export GRADLE_CONTINUE_PARAM=" --continue "

@@ -30,6 +30,14 @@ mill {
             feature("sample-data")
             feature("sample-certs")
         }
+
+        edition("samples") {
+            description = "Mill service with sample data"
+            from("minimal")
+            feature("sample-data")
+
+        }
+
     }
 }
 
