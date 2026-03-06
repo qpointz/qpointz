@@ -128,7 +128,7 @@ apps:minimal-edition-docker:
   needs:
     - job: publish:require-version
       artifacts: true
-    - job: apps:minimal-edition-dist:
+    - job: apps:minimal-edition-dist
       artifacts: true
   variables:
     APP_EDITION: "minimal"
@@ -163,7 +163,7 @@ apps:samples-edition-docker:
   needs:
     - job: publish:require-version
       artifacts: true
-    - job: apps:samples-edition-dist:
+    - job: apps:samples-edition-dist
       artifacts: true
   variables:
     APP_EDITION: "samples"
