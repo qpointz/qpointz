@@ -1,4 +1,8 @@
 spring:
+  profiles:
+    active: skymill
+---
+spring:
   config:
     activate:
       on-profile: skymill
@@ -15,7 +19,7 @@ mill:
       type: flow
       flow:
         sources:
-          - /config/skymill-flow.yml
+          - ./config/skymill-flow.yml
 ---
 spring:
   config:
@@ -29,7 +33,7 @@ mill:
     backend:
       type: jdbc
       jdbc:
-        url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '/data/moneta/moneta.sql'"
+        url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM './etc/data/moneta/moneta.sql'"
         driver: "org.h2.Driver"
         username: "*"
         password: "*"

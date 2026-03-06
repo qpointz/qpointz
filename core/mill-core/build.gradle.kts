@@ -8,7 +8,7 @@ plugins {
 
 mill {
     publishArtifacts = true
-    description = "Library provides common mill's classes"
+    description = "Mill core classes and interfaces."
 }
 
 buildscript {

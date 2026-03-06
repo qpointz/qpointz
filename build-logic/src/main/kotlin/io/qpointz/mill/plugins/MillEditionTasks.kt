@@ -45,13 +45,50 @@ internal fun registerEditionInfoTasks(project: Project, editions: MillEditionsEx
                     } else {
                         edition.features.joinToString(", ")
                     }
+                    val effectiveFeatureNames = runCatching {
+                        editions.editionFeatureMatrix()[edition.name].orEmpty()
+                    }.getOrElse { emptySet() }
+                    val effective = if (effectiveFeatureNames.isEmpty()) {
+                        "<no features>"
+                    } else {
+                        effectiveFeatureNames.joinToString(", ")
+                    }
+                    val inherited = if (edition.inheritsFrom.isEmpty()) {
+                        "<none>"
+                    } else {
+                        edition.inheritsFrom.joinToString(", ")
+                    }
                     project.logger.lifecycle("    - ${edition.name}$descriptionSuffix")
-                    project.logger.lifecycle("      features: $featureNames")
+                    project.logger.lifecycle("      inherits: $inherited")
+                    project.logger.lifecycle("      features(local): $featureNames")
+                    project.logger.lifecycle("      features(effective): $effective")
                 }
             }
 
             resolvedSelection.exceptionOrNull()?.let { error ->
                 project.logger.warn("mill edition selection is not currently resolvable: ${error.message}")
+            }
+        }
+    }
+
+    project.tasks.register("millEditionMatrix") {
+        group = "help"
+        description = "Prints edition matrix (edition -> effective features)."
+        doLast {
+            val matrix = editions.editionFeatureMatrix()
+            if (matrix.isEmpty()) {
+                project.logger.lifecycle("mill edition matrix for ${project.path}: <none>")
+                return@doLast
+            }
+
+            project.logger.lifecycle("mill edition matrix for ${project.path}")
+            matrix.toSortedMap().forEach { (editionName, features) ->
+                val featureList = if (features.isEmpty()) {
+                    "<no features>"
+                } else {
+                    features.joinToString(", ")
+                }
+                project.logger.lifecycle("  - $editionName -> $featureList")
             }
         }
     }

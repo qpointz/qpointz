@@ -1,7 +1,7 @@
 name: skymill
 storage:
   type: local
-  rootPath: "/data/skymill/"
+  rootPath: "./etc/data/skymill/"
 table:
   mapping:
     type: regex

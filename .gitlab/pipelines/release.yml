@@ -119,7 +119,7 @@ apps:package-dist:
       if [ -n "${QP_VERSION}" ]; then
         echo "${QP_VERSION}" > ${CI_PROJECT_DIR}/VERSION
       fi
-    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :apps:mill-service:installBootDist :apps:mill-service:assembleSamples -PprojectVersion=${QP_VERSION_PEP440}
+    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :apps:mill-service:installBootDist -PprojectVersion=${QP_VERSION_PEP440}
   artifacts:
     expire_in: "5 days"
     paths:

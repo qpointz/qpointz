@@ -6,7 +6,7 @@ plugins {
 }
 
 mill {
-    description = "Mill library providing Spring Boot supporting (annotations etc.)"
+    description = "Mill library providing Mill specific Spring Boot support (annotations etc.)"
     publishArtifacts = true
 }
 

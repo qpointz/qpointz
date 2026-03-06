@@ -4,7 +4,7 @@
   variables:
     MILL_EDITION: "basic"
   script:
-    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :apps:mill-service:installBootDist :apps:mill-service:assembleSamples -Pedition=${MILL_EDITION}
+    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :apps:mill-service:installBootDist -Pedition=${MILL_EDITION}
     - |
       set -euo pipefail
       INSTALL_DIR="${CI_PROJECT_DIR}/apps/mill-service/build/install/mill-service-boot-${MILL_EDITION}"

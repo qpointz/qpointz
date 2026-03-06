@@ -6,31 +6,30 @@ plugins {
 }
 
 mill {
-    description = "calcite service desc"
+    description = "Mill service application. Assembly point for all editions."
     publishArtifacts = false
 
     editions {
-        defaultEdition = "basic"
+        defaultEdition = "minimal"
 
-        // Feature flags can be pure build toggles with no dependency changes.
-        // feature("metadata") {
-        //     description = "Core metadata capabilities"
-        // }
-
-
-        // feature("aiv1") {
-        //     description = "AI v1 NL-SQL chat support"
-        //     module(":ai:mill-ai-v1-nlsql-chat-service")
-        // }
-
-        edition("basic") {
-            description = "Base metadata-only edition"
-           // feature("metadata")
+        feature("sample-data") {
+            description = "Provides Sample datasets"
         }
-        // edition("edition2") {
-        //     description = "Metadata + AI v1 edition"
-        //     features("metadata", "aiv1")
-        // }
+
+        feature("sample-certs") {
+            description = "Provide sample self-signed certificates"
+        }
+        
+        edition("minimal") {
+            description = "Base metadata-only edition"
+        }
+
+        edition("integration") {
+            description = "Integration edition used for internal integration testing"
+            from("minimal")
+            feature("sample-data")
+            feature("sample-certs")
+        }
     }
 }
 
@@ -41,35 +40,49 @@ springBoot {
     }
 }
 
-tasks.register<Sync>("assembleSamples") {
+val installSampleData = tasks.register<Copy>("installSampleData") {
     group = "distribution"
     description = "Installs sample data "
 
+    onlyIf("sample-data enabled") {
+        mill.editions.isActive("sample-data").get()
+    }
+
     val datasetsDir = rootProject.layout.projectDirectory.dir("test/datasets")
-    val samplesDir = layout.projectDirectory.dir("src/main/docker/samples")
+    val editionInstallDir = tasks.named<Sync>("installBootDist").map { it.destinationDir }
 
-    //into(layout.buildDirectory.dir("install/samples"))
-    into(project.layout.buildDirectory.dir("install/samples"))
-
-    from(rootProject.layout.projectDirectory.dir(".certs")) { into("certs") }
+    into(editionInstallDir)
 
     // moneta sample
-    from(datasetsDir.file("moneta/moneta-slim.sql")) { into("data/moneta") }
-    from(datasetsDir.file("moneta/moneta.sql")) { into("data/moneta") }
-    //from(datasetsDir.files("moneta/moneta-meta.yaml", "moneta/moneta-meta-repository.yaml")) { into("etc") }
-    // skymill sample
-    from(datasetsDir.dir("skymill/parquet")) { into("data/skymill") }
-    //from(datasetsDir.file("skymill/skymill.sql")) {
-    //    into("data/skymill")
-    //    rename { "skymill-slim.sql" }
-    //}
-    //from(datasetsDir.files("skymill/skymill-meta.yaml", "skymill/skymill-meta-repository.yaml")) { into("etc") }
+    from(datasetsDir.file("moneta/moneta-slim.sql")) { into("etc/data/moneta") }
+    from(datasetsDir.file("moneta/moneta.sql")) { into("etc/data/moneta") }
 
-    //from(samplesDir.files("application-moneta.yml", "application-moneta-slim.yml", "application-skymill.yml", "application-skymill-slim.yml")) {
-    //    into("config")
-    //}
+    //skymill
+    from(datasetsDir.dir("skymill/parquet")) { into("etc/data/skymill") }
 }
 
+val installSampleCerts = tasks.register<Copy>("installSampleCerts") {
+    group = "distribution"
+    description = "Installs sample certs"
+
+    onlyIf("sample-certs enabled") {
+        mill.editions.isActive("sample-certs").get()
+    }
+
+    val editionInstallDir = tasks.named<Sync>("installBootDist").map { it.destinationDir }
+
+    into(editionInstallDir)
+    from(rootProject.layout.projectDirectory.dir(".certs")) { into("etc/certs") }
+
+
+}
+
+tasks.named("installBootDist") {
+    finalizedBy(installSampleData, installSampleCerts)
+    onlyIf("sample-data enabled") {
+        mill.editions.isActive("sample-data").get()
+    }
+}
 
 
 dependencies {

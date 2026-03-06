@@ -7,7 +7,7 @@ plugins {
 }
 
 mill {
-    description = "Mill data lane auto-configuration"
+    description = "Mill data auto-configuration for Spring Boot"
     publishArtifacts = true
 }
 

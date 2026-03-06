@@ -11,7 +11,7 @@ plugins {
 }
 
 mill {
-    description = "Natural language to sql (NL2SQL) core library"
+    description = "Natural language to sql (NL2SQL) core library V1 implementation"
     publishArtifacts = false
 }
 

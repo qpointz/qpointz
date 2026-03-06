@@ -6,7 +6,7 @@ plugins {
 }
 
 mill {
-    description = "Library provides base Mill Service implementation"
+    description = "Library provides base Mill Service testing support for data and backend libraries"
     publishArtifacts = true
 }
 

@@ -1,6 +1,8 @@
 # Maintainer Recipes
 
-## 1) Run Core Build Locally
+High-signal operational commands for Gradle and CI maintainers.
+
+## Core Gradle Commands
 
 From repository root:
 
@@ -8,88 +10,64 @@ From repository root:
 ./gradlew clean test compileTestIT
 ```
 
-Useful focused commands:
+Useful focused runs:
 
 ```bash
 ./gradlew :core:mill-core:test
 ./gradlew :clients:mill-jdbc-driver:testIT
-./gradlew :apps:mill-service:installBootDist :apps:mill-service:assembleSamples
+./gradlew :apps:mill-service:installBootDist -Pedition=integration
 ```
 
-## 2) Validate Pipeline Routing Variables
+## Editions Quick Ops
 
-Root pipeline control variables:
+Inspect edition configuration:
 
-- `RUN_INTEGRATION`
-- `RUN_PACKAGING`
-- `RUN_PUBLISH`
+```bash
+./gradlew :apps:mill-service:millListEditions -Pedition=integration
+./gradlew :apps:mill-service:millEditionMatrix
+```
 
-Typical combinations:
+Inspect edition-specific dependencies:
 
-- Integration path: `RUN_INTEGRATION=true`
-- Packaging-only path: `RUN_PACKAGING=true`
-- Force publish include: `RUN_PUBLISH=true`
-- Disable publish include: `RUN_PUBLISH=false`
+```bash
+./gradlew :apps:mill-service:dependencies --configuration runtimeClasspath -Pedition=minimal
+./gradlew :apps:mill-service:dependencies --configuration runtimeClasspath -Pedition=integration
+```
 
-## 3) Downstream Version Propagation
+Verify edition content merge behavior:
 
-Parent computes version in `init-version` and passes it downstream as `QP_VERSION`.
+```bash
+./gradlew :apps:mill-service:installBootDist -Pedition=integration --console plain
+```
 
-Current downstream bridges in `.gitlab-ci.yml`:
+Expected log pattern:
 
-- `packaging:downstream` passes `QP_VERSION: $BUILD_VERSION`
-- `integration:downstream` passes `QP_VERSION: $BUILD_VERSION`
+- lineage printed in inheritance order (base -> selected)
+- missing edition directories reported as skipped
+- selected edition synced last (override-friendly)
 
-Downstream jobs rely on this variable to rehydrate `VERSION` when needed.
+## Add a New Java Module
 
-## 4) Add a New Java Module
+1. Add include in `settings.gradle.kts`.
+2. Create module build file and apply required convention plugin(s).
+3. Use dependency catalog aliases from `libs.versions.toml`.
+4. Add/verify `test` and optional `testIT`.
+5. Update aggregate tasks if module belongs to an aggregator project.
 
-Checklist:
+## CI Change Checklist
 
-1. Register module in `settings.gradle.kts`.
-2. Add module build file and apply required convention plugin(s).
-3. Use catalog dependencies from `libs.versions.toml`.
-4. Add/verify test suites (`test`, optional `testIT`).
-5. Update root or parent aggregate tasks if required.
+- Keep root `.gitlab-ci.yml` orchestration-only.
+- Prefer extending downstream pipelines:
+  - `.gitlab/pipelines/packaging.yml`
+  - `.gitlab/pipelines/integration.yml`
+- Keep downstream trigger contract stable (`QP_VERSION`, `strategy: depend`) unless intentionally changed.
+- Avoid secret/token output in scripts.
 
-## 5) Add a New CI Component Wrapper
+For full CI topology and ownership map, see `gitlab-ci-inventory.md`.
 
-For a new top-level module area:
+## CI Validation Commands
 
-1. Create wrapper in `.gitlab/components/<module>.yml`.
-2. Add include + rules (`if` and `changes`).
-3. Add wrapper include in `.gitlab-ci.yml`.
-4. Keep job logic in module `.gitlab-ci.yml` or downstream pipeline file, not in root.
-
-## 6) Add a New Packaging/Integration Matrix Axis
-
-Prefer extending downstream pipelines, not root:
-
-- Packaging changes in `.gitlab/pipelines/packaging.yml`
-- Integration matrix changes in `.gitlab/pipelines/integration.yml`
-
-Keep parent bridge contract stable (`QP_VERSION`, `strategy: depend`).
-
-## 7) Migrating Docker Build Jobs
-
-Current active template uses Docker Buildx in `.gitlab/common/jobs.yml`.
-
-When changing build behavior:
-
-1. Update shared template first.
-2. Validate packaging downstream jobs.
-3. Verify integration still pulls expected image tags (`mill-service-samples:${CI_COMMIT_REF_SLUG}`).
-
-## 8) CI Safety Checklist Before Merge
-
-- Root `.gitlab-ci.yml` remains orchestration-only.
-- No secret/token logging in scripts.
-- No reintroduction of deprecated Kaniko paths in active CI templates.
-- Downstream triggers retain `strategy: depend` unless deliberately relaxed.
-
-## 9) CI Lint and Structure Validation
-
-Use this local syntax/structure check for root and active CI fragments:
+Syntax and structure validation:
 
 ```bash
 python3 - <<'PY'
@@ -122,134 +100,8 @@ for p in targets:
 PY
 ```
 
-## 10) Check Duplicate YAML Keys (Variables and Beyond)
-
-Use a duplicate-key aware loader:
-
-```bash
-python3 - <<'PY'
-from pathlib import Path
-import yaml
-
-class DupCheckLoader(yaml.SafeLoader):
-    pass
-
-def construct_mapping(loader, node, deep=False):
-    mapping = {}
-    for key_node, value_node in node.value:
-        key = loader.construct_object(key_node, deep=deep)
-        if key in mapping:
-            raise ValueError(f"Duplicate key '{key}' at line {key_node.start_mark.line+1}")
-        mapping[key] = loader.construct_object(value_node, deep=deep)
-    return mapping
-
-def anytag(loader, tag_suffix, node):
-    if isinstance(node, yaml.SequenceNode):
-        return loader.construct_sequence(node)
-    if isinstance(node, yaml.MappingNode):
-        return construct_mapping(loader, node)
-    return loader.construct_scalar(node)
-
-DupCheckLoader.add_constructor(
-    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, construct_mapping
-)
-DupCheckLoader.add_multi_constructor('!', anytag)
-
-targets = [Path(".gitlab-ci.yml")] + sorted(Path(".gitlab").rglob("*.yml"))
-for p in targets:
-    yaml.load(p.read_text(), Loader=DupCheckLoader)
-print(f"No duplicate keys across {len(targets)} CI YAML files")
-PY
-```
-
-## 11) Token Exposure Spot Check
-
-Quick scan for obvious token echo/print patterns in active CI files:
+Token exposure spot check:
 
 ```bash
 rg "echo .*TOKEN|printenv|env\\b" .gitlab .gitlab-ci.yml
 ```
-
-Expected result for active files: no direct token-value printing.
-
-## 12) Editions Recipes (`mill { editions { ... } }`)
-
-### Define a feature with multiple modules
-
-```kotlin
-mill {
-    editions {
-        feature("aiv1") {
-            description = "AI v1 NL-SQL chat support"
-            modules(
-                ":ai:mill-ai-v1-nlsql-chat-service",
-                ":ai:mill-ai-v1-core"
-            )
-        }
-    }
-}
-```
-
-Active-feature modules are added automatically to `implementation` for the selected edition.
-
-### Define a feature without dependencies
-
-```kotlin
-mill {
-    editions {
-        feature("metadata") {
-            description = "Feature flag only; no module wiring"
-        }
-    }
-}
-```
-
-This is useful when a feature controls task/config behavior only.
-
-### Add feature-conditional task logic
-
-```kotlin
-tasks.register<Copy>("copyAiAssets") {
-    group = "distribution"
-    description = "Copies AI assets only for aiv1 editions"
-
-    from(layout.projectDirectory.dir("src/main/ai-assets"))
-    into(layout.buildDirectory.dir("generated/ai-assets"))
-
-    onlyIf("aiv1 feature is enabled") {
-        mill.editions.isActive("aiv1").get()
-    }
-
-    inputs.property("edition", mill.editions.selectedEdition)
-}
-```
-
-### Resolve current edition-aware install folder
-
-Prefer reading from task output instead of rebuilding the path string:
-
-```kotlin
-val editionInstallDir = tasks.named<Sync>("installBootDist").map { it.destinationDir }
-```
-
-Fallback direct expression (if needed):
-
-```kotlin
-val editionInstallDir = mill.editions.selectedEdition.map { edition ->
-    layout.buildDirectory.dir("install/${project.name}-$edition").get().asFile
-}
-```
-
-### Inspect edition-specific dependencies
-
-```bash
-./gradlew :apps:mill-service:dependencies --configuration runtimeClasspath -Pedition=edition1
-./gradlew :apps:mill-service:dependencies --configuration runtimeClasspath -Pedition=edition2
-./gradlew :apps:mill-service:dependencyInsight --configuration runtimeClasspath --dependency <name> -Pedition=edition2
-```
-
-### `implementation` vs `runtimeOnly` (quick guidance)
-
-- Use `implementation` when code compiles against the dependency.
-- Use `runtimeOnly` when dependency is needed only at runtime.
-- SPI pattern: keep service API as `implementation`, provider implementation often as `runtimeOnly`.

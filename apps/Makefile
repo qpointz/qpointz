@@ -22,7 +22,7 @@ rebuild:
 	npm install ; \
 	npm run build
 	cd ../ ; \
-	./gradlew clean installBootDist assembleSamples
+	./gradlew clean installBootDist
 
 build-docker: rebuild
 	docker buildx build --tag mill-service --progress plain --file mill-service/src/main/docker/base/Dockerfile ./mill-service

@@ -2,12 +2,12 @@
 
 ## Overview
 
-The repository uses a single root Gradle build with many included projects. Core module inclusion and plugin wiring are defined in:
+The repository uses one root Gradle build with many included modules. Build structure is primarily defined in:
 
 - `settings.gradle.kts`
 - `build.gradle.kts`
 - `libs.versions.toml`
-- `build-logic/src/main/kotlin/io/qpointz/mill/plugins/`
+- `build-logic/`
 
 ## Multi-Module Topology
 
@@ -27,17 +27,11 @@ This provides one dependency graph and one task namespace at repository root.
 
 `pluginManagement { includeBuild("build-logic") }` in `settings.gradle.kts` registers local convention plugins:
 
-- `MillPlugin`
-  - Sets group/version defaults.
-  - Enforces Java toolchain 21.
-  - Applies `java`, `jacoco`, `jvm-test-suite`.
-  - Adds project to root jacoco aggregation.
-- `MillAggregatePlugin`
-  - Adds aggregate lifecycle tasks (`test`, `compileTestIT`, `testIT`, jacoco tasks) over subprojects.
-- `MillPublishPlugin`
-  - Configures `maven-publish` + `signing`.
-  - Produces sources/javadoc artifacts.
-  - Publishes to root `build/repo`.
+- `io.qpointz.plugins.mill`
+- `io.qpointz.plugins.mill-aggregate`
+- `io.qpointz.plugins.mill-publish`
+
+Detailed plugin behavior, extension model, and edition internals are documented in `gradle-plugins.md`.
 
 ## Versioning and Dependency Management
 
@@ -56,8 +50,11 @@ This provides one dependency graph and one task namespace at repository root.
 
 It also configures Dokka aggregation over top-level module groups.
 
-## Maintainer Notes
+## Practical Rules
 
 - Use repository-root `./gradlew` for cross-module operations.
-- Keep module-specific CI commands rooted at repository root paths to avoid task path drift.
-- When adding/removing module groups, update both `settings.gradle.kts` includes and root aggregate task lists in `build.gradle.kts`.
+- Keep version definitions in `libs.versions.toml`.
+- Prefer convention plugins over per-module copy/paste Gradle logic.
+- Update both `settings.gradle.kts` and root aggregate tasks when module groups change.
+
+For day-to-day command recipes, see `maintainer-recipes.md`.

@@ -10,6 +10,7 @@ mill {
 }
 
 application {
+    description = "Mill CLI Shell based on SqlLine to connect to Mill service"
     mainClass = "sqlline.SqlLine"
 }
 

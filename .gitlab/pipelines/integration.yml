@@ -14,42 +14,27 @@ package:dev-certs:
   stage: package
   extends: .init-dev-certs
 
-apps:basic-edition-package:
+apps:integration-edition-package:
   extends: .apps-package-dist-template
   variables:
-    MILL_EDITION: "basic"
+    MILL_EDITION: "integration"
   needs:
     - job: package:dev-certs
       artifacts: true
 
-apps:basic-edition-docker:
+apps:integration-edition-docker:
   stage: package
   extends: .docker-build-job
   needs:
-    - job: apps:basic-edition-package
+    - job: apps:integration-edition-package
       artifacts: true
   variables:
-    APP_EDITION: "basic"
+    APP_EDITION: "integration"
     DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
     DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/base/Dockerfile
     DOCKER_BUILD_CONTAINER_NAME: mill-service-${APP_EDITION}
     DOCKER_LOCAL_ONLY: "true"
     DOCKER_BUILD_ARGS: --build-arg APP_EDITION=${APP_EDITION}
-
-apps:mill-service-samples-docker:
-  stage: package
-  extends: .docker-build-job
-  needs:
-    - job: apps:basic-edition-docker
-      artifacts: false
-    - job: apps:basic-edition-package
-      artifacts: true
-  variables:
-    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
-    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/samples/Dockerfile
-    DOCKER_BUILD_CONTAINER_NAME: mill-service-samples
-    DOCKER_LOCAL_ONLY: "true"
-    DOCKER_BUILD_ARGS: --build-arg BASE_IMAGE=${CI_REGISTRY_IMAGE}/mill-service:${CI_COMMIT_REF_SLUG}
 
 core:integration:
   stage: integration
@@ -127,7 +112,7 @@ ai:integration:
     # Optional custom pytest selector
     MILL_IT_PYTEST_PATH: "tests/integration/"
   services:
-    - name: ${CI_REGISTRY_IMAGE}/mill-service-samples:${CI_COMMIT_REF_SLUG}
+    - name: ${CI_REGISTRY_IMAGE}/mill-service-integration:${CI_COMMIT_REF_SLUG}
       alias: mill-it
       command: [""]
       entrypoint: ["./bin/mill-service"]
@@ -337,7 +322,7 @@ mill-py:http-protobuf-noauth:3.14:
     MILL_IT_TOKEN: ""
     MILL_IT_SCHEMA: "skymill"
   services:
-    - name: ${CI_REGISTRY_IMAGE}/mill-service-samples:${CI_COMMIT_REF_SLUG}
+    - name: ${CI_REGISTRY_IMAGE}/mill-service-integration:${CI_COMMIT_REF_SLUG}
       alias: mill
       pull_policy: [always]
       command: [""]

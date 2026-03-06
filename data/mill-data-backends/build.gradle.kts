@@ -6,7 +6,7 @@ plugins {
 }
 
 mill {
-    description = "Library provides base Mill Service implementation"
+    description = "Mill data backends implementation (calcite, jdbc, flow) and adapters"
     publishArtifacts = true
 }
 
