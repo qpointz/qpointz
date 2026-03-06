@@ -1,0 +1,45 @@
+.clients-jdbc-shell-package-dist-template:
+  extends: .gradle-job
+  stage: package
+  variables:
+    CLIENTS_PROJECT_VERSION: ""
+  script:
+    - |
+      CLIENTS_PROJECT_VERSION_ARG=""
+      if [ -n "${CLIENTS_PROJECT_VERSION}" ]; then
+        CLIENTS_PROJECT_VERSION_ARG=" -PprojectVersion=${CLIENTS_PROJECT_VERSION}"
+      fi
+      ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :clients:mill-jdbc-shell:installDist${CLIENTS_PROJECT_VERSION_ARG}
+    - |
+      set -euo pipefail
+      INSTALL_DIR="${CI_PROJECT_DIR}/clients/mill-jdbc-shell/build/install/mill-jdbc-shell"
+      MODULES_DIR="${CI_PROJECT_DIR}/clients/mill-jdbc-shell/build/jlink-modules"
+
+      mkdir -p "${MODULES_DIR}"
+
+      if ! ls "${INSTALL_DIR}/lib/mill-jdbc-shell-"*.jar >/dev/null 2>&1; then
+        echo "Could not locate mill-jdbc-shell jar in ${INSTALL_DIR}/lib"
+        exit 1
+      fi
+      if ! ls "${INSTALL_DIR}/lib/mill-jdbc-driver-"*.jar >/dev/null 2>&1; then
+        echo "Could not locate mill-jdbc-driver jar in ${INSTALL_DIR}/lib"
+        exit 1
+      fi
+
+      "$JAVA_HOME/bin/jdeps" \
+        --multi-release 21 \
+        --ignore-missing-deps \
+        --recursive \
+        --print-module-deps \
+        --class-path "${INSTALL_DIR}/lib/*" \
+        "${INSTALL_DIR}/lib/mill-jdbc-shell-"*.jar \
+        "${INSTALL_DIR}/lib/mill-jdbc-driver-"*.jar > "${MODULES_DIR}/jdeps-modules.csv"
+
+      tr ',' '\n' < "${MODULES_DIR}/jdeps-modules.csv" | sed '/^$/d' | sort -u > "${MODULES_DIR}/jdeps-modules.txt"
+      "$JAVA_HOME/bin/java" --list-modules | cut -d@ -f1 | sort -u > "${MODULES_DIR}/jdk-modules.txt"
+      comm -12 "${MODULES_DIR}/jdeps-modules.txt" "${MODULES_DIR}/jdk-modules.txt" | paste -sd, - > "${MODULES_DIR}/jlink-modules.txt"
+  artifacts:
+    expire_in: "1 days"
+    paths:
+      - ${CI_PROJECT_DIR}/clients/mill-jdbc-shell/build/install/**/*
+      - ${CI_PROJECT_DIR}/clients/mill-jdbc-shell/build/jlink-modules/*

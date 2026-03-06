@@ -1,6 +1,7 @@
 include:
   - local: /.gitlab/common/common.yml
   - local: /.gitlab/templates/apps-package-dist.yml
+  - local: /.gitlab/templates/clients-jdbc-shell-package-dist.yml
 
 workflow:
   rules:
@@ -171,6 +172,25 @@ apps:samples-edition-docker:
     DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/base/Dockerfile
     DOCKER_BUILD_CONTAINER_NAME: mill-service-${APP_EDITION}
     DOCKER_BUILD_ARGS: --build-arg APP_EDITION=${APP_EDITION}
+
+clients:jdbc-shell-dist:
+  extends: .clients-jdbc-shell-package-dist-template
+  stage: build
+  variables:
+    CLIENTS_PROJECT_VERSION: ${QP_VERSION_PEP440}
+
+clients:jdbc-shell-docker:
+  stage: package
+  extends: .docker-build-job-release
+  needs:
+    - job: publish:require-version
+      artifacts: true
+    - job: clients:jdbc-shell-dist
+      artifacts: true
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/clients/mill-jdbc-shell
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/clients/mill-jdbc-shell/src/main/docker/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME: jdbc-shell
 
 
 maven-publish:

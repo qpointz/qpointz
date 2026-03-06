@@ -1,35 +1,38 @@
-FROM debian:11-slim as graalvm-jdk
+FROM azul/zulu-openjdk:21-latest AS openjdk
 
-ENV GRAAL_CE_VERSION="21.0.1"
-ENV JAVA_HOME="/usr/lib/jvm/graalvm"
-ENV PATH="/usr/lib/jvm/graalvm/bin:${PATH}"
+RUN apt update && \
+    apt install binutils -y
 
-RUN \
-  apt-get update && \
-  apt-get install -y binutils wget openssl && \
-  wget https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-${GRAAL_CE_VERSION}/graalvm-community-jdk-${GRAAL_CE_VERSION}_linux-x64_bin.tar.gz -O graalvm.tar.gz && \
-  mkdir -p ${JAVA_HOME} && \
-  tar -C ${JAVA_HOME} -xvzf graalvm.tar.gz --strip-components=1 && \
-  $JAVA_HOME/bin/jlink \
-         --verbose \
-         --add-modules ALL-MODULE-PATH \
-         --strip-debug \
-         --no-man-pages \
-         --no-header-files \
-         --compress=2 \
-         --output /customjre
+RUN --mount=target=/mnt \
+    set -eux; \
+    modules_file=/mnt/build/jlink-modules/jlink-modules.txt; \
+    modules="ALL-MODULE-PATH"; \
+    if [ -f "${modules_file}" ]; then \
+      echo "modules file exists"; \
+      modules="$(cat "${modules_file}")"; \
+    else \
+      echo "modules missing. fall back to ALL-MODULE-PATH"; \
+    fi; \
+    echo "Selected modules ${modules}"; \
+    "$JAVA_HOME"/bin/jlink \
+      --add-modules "${modules}" \
+      --strip-debug \
+      --no-man-pages \
+      --no-header-files \
+      --compress=2 \
+      --output /customjre
 
-FROM debian:11-slim
+FROM debian:trixie-slim
 ENV JAVA_HOME=/jre
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # copy JRE from the base image
-COPY --from=graalvm-jdk --chown=1000:1000  /customjre $JAVA_HOME
+COPY --from=openjdk --chown=1000:1000  /customjre $JAVA_HOME
 
 #end of base image
 
 ARG APPLICATION_USER=appuser
-RUN adduser --no-create-home --uid 1000 $APPLICATION_USER
+RUN useradd -u 1000 -M -s /usr/sbin/nologin $APPLICATION_USER
 
 # Configure working directory
 RUN mkdir -p /app/config && \
