@@ -1,6 +1,6 @@
 # WI-022 — Fully Document SQL Dialect Schema (Design Docs)
 
-Status: `planned`  
+Status: `completed`  
 Type: `📝 docs`  
 Area: `core`, `client`, `ai`, `platform`  
 Backlog refs: `C-6`, `C-7`, `D-8` (documentation support)

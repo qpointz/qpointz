@@ -1,4 +1,4 @@
-package io.qpointz.mill.sql.dialect
+package io.qpointz.mill.sql.v2.dialect
 
 object DialectValidator {
     private val requiredFunctionCategories = setOf(

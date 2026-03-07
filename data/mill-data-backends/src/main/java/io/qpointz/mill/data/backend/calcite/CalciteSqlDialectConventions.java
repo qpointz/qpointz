@@ -1,7 +1,6 @@
 package io.qpointz.mill.data.backend.calcite;
 
-import io.qpointz.mill.sql.dialect.IdentifierCase;
-import io.qpointz.mill.sql.dialect.SqlDialectSpec;
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.calcite.avatica.util.Casing;
@@ -15,7 +14,7 @@ import java.util.Properties;
 import static org.apache.calcite.avatica.util.Quoting.BACK_TICK;
 
 /**
- * Bridges a {@link SqlDialectSpec} to Apache Calcite parser conventions
+ * Bridges a v2 {@link SqlDialectSpec} to Apache Calcite parser conventions
  * ({@link Quoting}, {@link Casing}).
  *
  * <p>Use {@link #asProperties()} or {@link #asMap(Map)} to obtain settings
@@ -33,27 +32,28 @@ public record CalciteSqlDialectConventions(SqlDialectSpec dialectSpec) {
      * @throws IllegalArgumentException if the dialect uses an unsupported quote character
      */
     public Quoting quoting() {
-        val pair = dialectSpec.identifiers().quote();
-        return switch (pair.start()) {
+        val pair = dialectSpec.getIdentifiers().getQuote();
+        return switch (pair.getStart()) {
             case "\"" -> Quoting.DOUBLE_QUOTE;
             case "`" -> BACK_TICK;
             case "'" -> Quoting.SINGLE_QUOTE;
             case "[" -> Quoting.BRACKET;
-            default -> throw new IllegalArgumentException("Unknown quoting: " + pair.start());
+            default -> throw new IllegalArgumentException("Unknown quoting: " + pair.getStart());
         };
     }
 
     /**
-     * Maps the dialect's {@link IdentifierCase} to the corresponding Calcite {@link Casing} enum.
+     * Maps v2 unquoted storage convention to Calcite {@link Casing}.
      *
      * @return the Calcite casing convention for unquoted identifiers
      */
     public Casing unquotedCasing() {
-        val identifierCase = dialectSpec.identifiers().case_();
-        return switch (identifierCase) {
-            case IdentifierCase.UPPER -> Casing.TO_UPPER;
-            case IdentifierCase.LOWER -> Casing.TO_LOWER;
-            case IdentifierCase.AS_IS -> Casing.UNCHANGED;
+        val storage = dialectSpec.getIdentifiers().getUnquotedStorage();
+        return switch (storage) {
+            case "UPPER" -> Casing.TO_UPPER;
+            case "LOWER" -> Casing.TO_LOWER;
+            case "AS_IS" -> Casing.UNCHANGED;
+            default -> throw new IllegalArgumentException("Unknown unquoted storage: " + storage);
         };
     }
 
@@ -91,10 +91,10 @@ public record CalciteSqlDialectConventions(SqlDialectSpec dialectSpec) {
     }
 
     public SqlDialect sqlDialect() {
-        val calciteDatabaseProduct = SqlDialect.DatabaseProduct.valueOf(this.dialectSpec.id().toUpperCase());
+        val calciteDatabaseProduct = SqlDialect.DatabaseProduct.valueOf(this.dialectSpec.getId().toUpperCase());
         if (calciteDatabaseProduct == SqlDialect.DatabaseProduct.UNKNOWN) {
-            log.error("Unknown or unsupported SQL dialect: {}", this.dialectSpec.id());
-            throw new IllegalArgumentException("Unknown or unsupported SQL dialect: " + this.dialectSpec.id());
+            log.error("Unknown or unsupported SQL dialect: {}", this.dialectSpec.getId());
+            throw new IllegalArgumentException("Unknown or unsupported SQL dialect: " + this.dialectSpec.getId());
         }
         return calciteDatabaseProduct.getDialect();
     }

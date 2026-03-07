@@ -1,12 +1,12 @@
 package io.qpointz.mill.ai.scenarios;
 
-import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.test.scenario.ActionResult;
 import io.qpointz.mill.test.scenario.Scenario;
 import io.qpointz.mill.test.scenario.ScenarioRunner;
 import io.qpointz.mill.test.scenario.ScenarioTestBase;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -55,7 +55,7 @@ public abstract class ChatAppScenarioBase extends ScenarioTestBase<ChatAppScenar
     @Autowired
     @Getter(AccessLevel.PROTECTED)
     @Setter(AccessLevel.PROTECTED)
-    private SqlDialect sqlDialect;
+    private SqlDialectSpec sqlDialect;
 
     @Override
     protected ScenarioRunner<ChatAppScenarioContext, ActionResult> createRunner(ChatAppScenarioContext context) {

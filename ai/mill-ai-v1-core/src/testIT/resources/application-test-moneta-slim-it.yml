@@ -33,7 +33,6 @@ mill:
       memory: in-memory
     nl2sql:
       enable: true
-      dialect: H2
   metadata:
     v2:
       file:

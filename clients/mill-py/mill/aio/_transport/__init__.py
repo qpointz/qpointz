@@ -9,6 +9,7 @@ import abc
 from typing import AsyncIterator
 
 from mill._proto import data_connect_svc_pb2 as _svc
+from mill._proto import dialect_pb2 as _dialect
 
 
 class AsyncTransport(abc.ABC):
@@ -32,6 +33,10 @@ class AsyncTransport(abc.ABC):
     @abc.abstractmethod
     async def parse_sql(self, sql: str) -> _svc.ParseSqlResponse:
         """Parse a SQL statement into a Substrait plan."""
+
+    @abc.abstractmethod
+    async def get_dialect(self, dialect_id: str | None = None) -> _dialect.GetDialectResponse:
+        """Retrieve dialect metadata from the server."""
 
     @abc.abstractmethod
     def exec_query(self, request: _svc.QueryRequest) -> AsyncIterator[_svc.QueryResultResponse]:

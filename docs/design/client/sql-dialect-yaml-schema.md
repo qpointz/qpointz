@@ -14,7 +14,7 @@ four downstream consumers: SQLAlchemy, JDBC, ibis, and AI NL-to-SQL.
 
 ### Current state
 
-The existing YAML files (`core/mill-core/src/main/resources/sql/dialects/{dialect}/{dialect}.yml`)
+The existing YAML files (`core/mill-sql/src/main/resources/sql/dialects/{dialect}/{dialect}.yml`)
 were designed primarily for the AI NL-to-SQL prompt pipeline. They capture enough to tell an
 LLM "here's how to write SQL" but cover only ~25% of what the full `MillDialectDescriptor`
 requires.
@@ -28,17 +28,17 @@ requires.
 | 3 | **ibis backend** (Phase 10) | Function catalog (window, stats, math), feature flags (CTE, set ops), type mapping |
 | 4 | **AI NL-to-SQL** | Identifier rules, function catalog, feature flags — rendered into LLM system prompts |
 
-### Java deserialization
+### Kotlin deserialization
 
-The YAML is deserialized into Java records via Jackson (`SqlDialectSpec.java` in
-`core/mill-core/.../sql/dialect/`). All new sections use `Optional<>` wrappers so existing
-YAML files that lack them will deserialize cleanly during incremental migration.
+The YAML is deserialized into Kotlin data classes via Jackson (`SqlDialectSpec.kt` in
+`core/mill-sql/.../sql/v2/dialect/`). The v2 model is strict (`ignoreUnknown=false`) and validated
+at load time by `DialectValidator`.
 
 ### Design decisions
 
 1. **Kebab-case keys** — consistent with existing YAML convention; mapped via `@JsonProperty`
-2. **`Optional<>` for all new fields** — backward-compatible incremental adoption
-3. **`feature-flags` is `Map<String, Boolean>`** — extensible without Java code changes
+2. **Strict typed sections with explicit nullability only where meaningful** — predictable runtime contracts
+3. **`feature-flags` is `Map<String, Boolean?>`** — extensible without code changes, with nullable tri-state support
 4. **`type-info` is a list** — because different SQL types can share JDBC codes
 5. **`operators` and `functions` remain `Map<String, List<...>>`** — new categories added as map keys
 6. **Flags are authoritative, function lists are informational** — flags answer "can I use this?" while function lists answer "how do I use it?"
@@ -261,8 +261,72 @@ feature-flags:
   generated-key-always-returned: true
 ```
 
-Stored as `Map<String, Boolean>`. `null` means "unknown, needs empirical testing."
+Stored as `Map<String, Boolean?>`. `null` means "unknown, needs empirical testing."
 Consumers should treat absent keys as `false` (conservative default).
+
+### 2.8.1 Feature flag catalog (complete, current schema)
+
+The list below is the full catalog currently used by the four reference dialects.
+
+| Flag | Meaning when `true` |
+|---|---|
+| `supports-column-aliasing` | Column aliases are supported in `SELECT` lists. |
+| `supports-expressions-in-order-by` | `ORDER BY` can reference expressions, not only projected columns. |
+| `supports-order-by-unrelated` | `ORDER BY` can reference columns/expressions not present in `SELECT`. |
+| `supports-group-by` | `GROUP BY` is supported. |
+| `supports-group-by-unrelated` | `GROUP BY` can reference columns not projected in `SELECT`. |
+| `supports-group-by-beyond-select` | Grouping can include extra expressions beyond the projection list. |
+| `supports-like-escape-clause` | `LIKE ... ESCAPE ...` syntax is supported. |
+| `supports-non-nullable-columns` | `NOT NULL` column constraints are supported. |
+| `supports-table-correlation-names` | Table aliases/correlation names are supported in `FROM`. |
+| `supports-different-table-correlation-names` | Table aliases can differ from base table names where required. |
+| `null-plus-non-null-is-null` | `NULL + X` evaluates to `NULL`. |
+| `supports-convert` | Conversion operator/function (for example `CONVERT`) is supported. |
+| `supports-outer-joins` | Outer joins are supported. |
+| `supports-full-outer-joins` | `FULL OUTER JOIN` is supported. |
+| `supports-limited-outer-joins` | Outer joins are supported with documented limitations. |
+| `supports-semi-anti-join` | SEMI/ANTI join semantics are supported. |
+| `supports-lateral` | LATERAL joins/subqueries are supported. |
+| `supports-subqueries-in-comparisons` | Subqueries are supported in comparison predicates. |
+| `supports-subqueries-in-exists` | Subqueries are supported in `EXISTS` predicates. |
+| `supports-subqueries-in-ins` | Subqueries are supported in `IN (...)` predicates. |
+| `supports-subqueries-in-quantifieds` | Subqueries are supported in quantified predicates (`ANY/ALL/SOME`). |
+| `supports-correlated-subqueries` | Correlated subqueries are supported. |
+| `supports-union` | `UNION` is supported. |
+| `supports-union-all` | `UNION ALL` is supported. |
+| `supports-intersect` | `INTERSECT` is supported. |
+| `supports-except` | `EXCEPT` (or equivalent minus set op) is supported. |
+| `supports-cte` | Common table expressions (`WITH`) are supported. |
+| `supports-window-functions` | Window/analytic functions are supported. |
+| `supports-qualify` | `QUALIFY` clause is supported. |
+| `supports-is-distinct-from` | Null-safe distinct comparison (`IS [NOT] DISTINCT FROM`) is supported. |
+| `supports-ilike` | Case-insensitive `ILIKE` operator is supported. |
+| `supports-try-cast` | Safe cast form (`TRY_CAST`) is supported. |
+| `supports-native-boolean` | Dialect has a native boolean type/semantics. |
+| `div-is-floordiv` | Integer division semantics are floor/truncating division (`null` = unknown). |
+| `supports-alter-table-add-column` | `ALTER TABLE ... ADD COLUMN` is supported. |
+| `supports-alter-table-drop-column` | `ALTER TABLE ... DROP COLUMN` is supported. |
+| `supports-select-for-update` | `SELECT ... FOR UPDATE` row locking is supported. |
+| `supports-stored-procedures` | Stored procedures are supported. |
+| `supports-batch-updates` | Batched DML execution is supported by the driver/engine. |
+| `supports-savepoints` | Transaction savepoints are supported. |
+| `supports-named-parameters` | Named statement parameters are supported. |
+| `supports-multiple-result-sets` | Multiple result sets can be returned from one execution. |
+| `supports-multiple-open-results` | Multiple open result sets can coexist. |
+| `supports-get-generated-keys` | Generated keys retrieval is supported. |
+| `supports-statement-pooling` | Statement pooling is supported. |
+| `supports-stored-functions-using-call-syntax` | Stored functions can be invoked via JDBC call syntax. |
+| `supports-positioned-delete` | Positioned deletes via cursors are supported. |
+| `supports-positioned-update` | Positioned updates via cursors are supported. |
+| `supports-minimum-sql-grammar` | Minimum SQL grammar profile is supported. |
+| `supports-core-sql-grammar` | Core SQL grammar profile is supported. |
+| `supports-extended-sql-grammar` | Extended SQL grammar profile is supported. |
+| `supports-ansi92-entry-level` | ANSI-92 entry-level grammar is supported. |
+| `supports-ansi92-intermediate` | ANSI-92 intermediate grammar is supported. |
+| `supports-ansi92-full` | ANSI-92 full grammar is supported. |
+| `supports-integrity-enhancement` | SQL integrity enhancement facility is supported. |
+| `auto-commit-failure-closes-all-result-sets` | Auto-commit failure closes all open result sets. |
+| `generated-key-always-returned` | Insert/update generated keys are always returned. |
 
 ### 2.9 String & keyword properties
 
@@ -323,8 +387,7 @@ paging:
 ```
 
 The `styles` list replaces the old `limit`/`top` fields. Styles are ordered by preference.
-The old `limit` and `top` fields are kept as `Optional` in Java for backward compatibility
-during migration.
+Legacy `limit` and `top` keys are not part of the v2 schema and should not be authored.
 
 ### 2.13 Operators
 
@@ -402,30 +465,30 @@ One entry per SQL type supported by the dialect. Maps to JDBC `getTypeInfo()` Re
 
 ---
 
-## 3. Java Record Structure
+## 3. Kotlin Data Class Structure
 
-```java
-public record SqlDialectSpec(
-    @JsonProperty("id")                String id,
-    @JsonProperty("name")              String name,
-    @JsonProperty("read-only")         Optional<Boolean> readOnly,
-    @JsonProperty("paramstyle")        Optional<String> paramstyle,
-    @JsonProperty("notes")             Optional<List<String>> notes,
-    @JsonProperty("identifiers")       Identifiers identifiers,
-    @JsonProperty("catalog-schema")    Optional<CatalogSchema> catalogSchema,
-    @JsonProperty("transactions")      Optional<Transactions> transactions,
-    @JsonProperty("limits")            Optional<Limits> limits,
-    @JsonProperty("null-sorting")      Optional<NullSorting> nullSorting,
-    @JsonProperty("result-set")        Optional<ResultSetCaps> resultSet,
-    @JsonProperty("feature-flags")     Optional<Map<String, Boolean>> featureFlags,
-    @JsonProperty("string-properties") Optional<StringProperties> stringProperties,
-    @JsonProperty("literals")          Literals literals,
-    @JsonProperty("joins")             Joins joins,
-    @JsonProperty("paging")            Paging paging,
-    @JsonProperty("operators")         Map<String, List<OperatorEntry>> operators,
-    @JsonProperty("functions")         Map<String, List<FunctionEntry>> functions,
-    @JsonProperty("type-info")         Optional<List<TypeInfo>> typeInfo
-) {}
+```kotlin
+data class SqlDialectSpec(
+    val id: String,
+    val name: String,
+    @JsonProperty("read-only") val readOnly: Boolean,
+    val paramstyle: String,
+    val notes: List<String> = emptyList(),
+    val identifiers: Identifiers,
+    @JsonProperty("catalog-schema") val catalogSchema: CatalogSchema,
+    val transactions: Transactions,
+    val limits: Limits,
+    @JsonProperty("null-sorting") val nullSorting: NullSorting,
+    @JsonProperty("result-set") val resultSet: ResultSetCaps,
+    @JsonProperty("feature-flags") val featureFlags: Map<String, Boolean?> = emptyMap(),
+    @JsonProperty("string-properties") val stringProperties: StringProperties,
+    val literals: Literals,
+    val joins: Joins,
+    val paging: Paging,
+    val operators: Map<String, List<OperatorEntry>> = emptyMap(),
+    val functions: Map<String, List<FunctionEntry>> = emptyMap(),
+    @JsonProperty("type-info") val typeInfo: List<TypeInfo> = emptyList()
+)
 ```
 
 ### Sub-records (new)
@@ -455,10 +518,10 @@ public record SqlDialectSpec(
 
 ## 4. Migration Strategy
 
-### Phase 1 — Update Java records (non-breaking)
+### Phase 1 — Update Kotlin model + validation (non-breaking)
 
-Add all new records and `Optional<>` fields to `SqlDialectSpec`. Existing YAML files
-continue to deserialize because all new fields are optional.
+Add all new fields to `SqlDialectSpec` and associated data classes. Existing YAML files
+continue to deserialize during migration where defaults are defined.
 
 ### Phase 2 — Update one reference dialect (H2 or Calcite)
 
@@ -803,3 +866,196 @@ When schema changes:
 - Every section 3 requirement remains mapped.
 - Every section 4 gap id remains mapped.
 - Reference example files remain present and parseable.
+
+---
+
+## 16. Complete YAML Element Dictionary (normative)
+
+This section describes every YAML element currently supported by the strict Kotlin model in
+`core/mill-sql`.
+
+### 16.1 Top-level elements
+
+| YAML path | Type | Required | Description |
+|---|---|---|---|
+| `id` | string | yes | Stable dialect id (`H2`, `POSTGRES`, `CALCITE`, `MYSQL`). |
+| `name` | string | yes | Human-friendly dialect name. |
+| `read-only` | boolean | yes | Indicates whether dialect should be treated as read-only. |
+| `paramstyle` | string | yes | Parameter style (`qmark`, `numeric`, `named`, `format`, `pyformat`). |
+| `notes` | list<string> | no | Free-form authoring notes and caveats. |
+| `identifiers` | object | yes | Identifier quoting/casing/name rules. |
+| `catalog-schema` | object | yes | Catalog/schema topology and naming terms. |
+| `transactions` | object | yes | Transaction support and DDL transactional behavior. |
+| `limits` | object | yes | Metadata max-values (`DatabaseMetaData.getMax*`). |
+| `null-sorting` | object | yes | Null ordering defaults and explicit clause support. |
+| `result-set` | object | yes | ResultSet type/concurrency capability flags. |
+| `feature-flags` | map<string, boolean|null> | yes, non-empty | Capability booleans and tri-state experimental flags. |
+| `string-properties` | object | yes | Search escape and keyword/function string lists. |
+| `literals` | object | yes | Literal syntax for string, boolean, null, date/time, interval. |
+| `joins` | object | yes | Join keywords and join-clause behavior. |
+| `paging` | object | yes | Limit/offset syntax styles and no-limit sentinel. |
+| `operators` | map<string, list<object>> | yes, non-empty | Operator catalog grouped by category. |
+| `functions` | map<string, list<object>> | yes, non-empty | Function catalog grouped by category. |
+| `type-info` | list<object> | yes (empty allowed) | JDBC-like per-type metadata rows. |
+
+### 16.2 `identifiers` elements
+
+| YAML path | Type | Required | Description |
+|---|---|---|---|
+| `identifiers.quote.start` | string | yes | Opening identifier quote token. |
+| `identifiers.quote.end` | string | yes | Closing identifier quote token. |
+| `identifiers.alias-quote.start` | string | yes | Opening quote token for aliases. |
+| `identifiers.alias-quote.end` | string | yes | Closing quote token for aliases. |
+| `identifiers.escape-quote` | string | yes | Escape sequence for embedded quote characters. |
+| `identifiers.unquoted-storage` | string | yes | Storage casing for unquoted identifiers (`UPPER/LOWER/AS_IS`). |
+| `identifiers.quoted-storage` | string | yes | Storage casing for quoted identifiers (`UPPER/LOWER/AS_IS`). |
+| `identifiers.supports-mixed-case` | boolean | yes | Mixed-case preservation/support for unquoted identifiers. |
+| `identifiers.supports-mixed-case-quoted` | boolean | yes | Mixed-case preservation/support for quoted identifiers. |
+| `identifiers.max-length` | int | yes | Maximum identifier length. |
+| `identifiers.extra-name-characters` | string | yes | Additional valid identifier characters. |
+| `identifiers.use-fully-qualified-names` | boolean | yes | Preference for fully-qualified references. |
+
+### 16.3 `catalog-schema` elements
+
+| YAML path | Type | Required | Description |
+|---|---|---|---|
+| `catalog-schema.supports-schemas` | boolean | yes | Schema concept exists. |
+| `catalog-schema.supports-catalogs` | boolean | yes | Catalog/database concept exists. |
+| `catalog-schema.catalog-separator` | string | yes | Token between catalog/schema/object components. |
+| `catalog-schema.catalog-at-start` | boolean | yes | Catalog appears first in qualified names. |
+| `catalog-schema.schema-term` | string | yes | Product-specific name for schema concept. |
+| `catalog-schema.catalog-term` | string | yes | Product-specific name for catalog concept. |
+| `catalog-schema.procedure-term` | string | yes | Product-specific name for procedure concept. |
+| `catalog-schema.schemas-in-dml` | boolean | yes | Schema qualification in DML. |
+| `catalog-schema.schemas-in-procedure-calls` | boolean | yes | Schema qualification in procedure calls. |
+| `catalog-schema.schemas-in-table-definitions` | boolean | yes | Schema qualification in DDL table defs. |
+| `catalog-schema.schemas-in-index-definitions` | boolean | yes | Schema qualification in index defs. |
+| `catalog-schema.schemas-in-privilege-definitions` | boolean | yes | Schema qualification in privilege defs. |
+| `catalog-schema.catalogs-in-dml` | boolean | yes | Catalog qualification in DML. |
+| `catalog-schema.catalogs-in-procedure-calls` | boolean | yes | Catalog qualification in procedure calls. |
+| `catalog-schema.catalogs-in-table-definitions` | boolean | yes | Catalog qualification in table defs. |
+| `catalog-schema.catalogs-in-index-definitions` | boolean | yes | Catalog qualification in index defs. |
+| `catalog-schema.catalogs-in-privilege-definitions` | boolean | yes | Catalog qualification in privilege defs. |
+
+### 16.4 `transactions`, `limits`, `null-sorting`, `result-set`
+
+| YAML path prefix | Required | Description |
+|---|---|---|
+| `transactions.*` | yes | `supported`, `default-isolation`, multi-transaction support, and DDL-in-transaction behavior fields. |
+| `limits.*` | yes | 18 numeric/boolean max-limit fields (all currently modeled fields are required). |
+| `null-sorting.*` | yes | Four default null-order booleans + `supports-nulls-first/last`. |
+| `result-set.*` | yes | Five ResultSet capability flags (`forward-only`, scroll modes, concurrency modes). |
+
+### 16.5 `string-properties` elements
+
+| YAML path | Type | Required | Description |
+|---|---|---|---|
+| `string-properties.search-string-escape` | string | yes | Escape token for pattern search text. |
+| `string-properties.sql-keywords` | string | yes | Comma-separated non-standard SQL keywords. |
+| `string-properties.system-functions` | string | yes | Comma-separated built-in system function names. |
+
+### 16.6 `literals` elements
+
+| YAML path | Type | Required | Description |
+|---|---|---|---|
+| `literals.strings.quote` | string | yes | String literal delimiter. |
+| `literals.strings.concat` | string | yes | String concatenation operator/function token. |
+| `literals.strings.escape` | string | yes | Escape strategy identifier (`STANDARD`, `BACKSLASH`, `DOUBLING`). |
+| `literals.strings.note` | string | no | Free-form note about string literal behavior. |
+| `literals.booleans` | list<string> | yes | Canonical boolean literal tokens. |
+| `literals.null` | string | yes | Null literal token. |
+| `literals.dates-times.date.syntax` | string | yes | DATE literal syntax template. |
+| `literals.dates-times.date.quote` | string | yes | Date literal quote token. |
+| `literals.dates-times.date.pattern` | string | yes | Date value pattern hint. |
+| `literals.dates-times.date.notes` | list<string> | no | Date literal notes. |
+| `literals.dates-times.time.syntax` | string | yes | TIME literal syntax template. |
+| `literals.dates-times.time.quote` | string | yes | Time literal quote token. |
+| `literals.dates-times.time.pattern` | string | yes | Time value pattern hint. |
+| `literals.dates-times.time.notes` | list<string> | no | Time literal notes. |
+| `literals.dates-times.timestamp.syntax` | string | yes | TIMESTAMP literal syntax template. |
+| `literals.dates-times.timestamp.quote` | string | yes | Timestamp literal quote token. |
+| `literals.dates-times.timestamp.pattern` | string | yes | Timestamp value pattern hint. |
+| `literals.dates-times.timestamp.notes` | list<string> | no | Timestamp literal notes. |
+| `literals.dates-times.interval.supported` | boolean | yes | Interval literal support flag. |
+| `literals.dates-times.interval.style` | string | yes | Interval syntax/style family. |
+| `literals.dates-times.interval.notes` | list<string> | no | Interval literal notes. |
+
+### 16.7 `joins` elements
+
+| YAML path | Type | Required | Description |
+|---|---|---|---|
+| `joins.style` | string | yes | Join style family (for example `explicit`). |
+| `joins.cross-join.enabled` | boolean | no | Explicit enablement for CROSS JOIN. |
+| `joins.cross-join.keyword` | string | no | Join keyword token/string. |
+| `joins.cross-join.require-on` | boolean | no | Whether `ON` is required for this join kind. |
+| `joins.cross-join.null-safe` | boolean | no | Whether join kind is null-safe by semantics. |
+| `joins.cross-join.notes` | string | no | Free-form note. |
+| `joins.inner-join.*` | mixed | no/yes | Same shape as `cross-join`; values depend on dialect authoring. |
+| `joins.left-join.*` | mixed | no/yes | Same shape as `cross-join`; values depend on dialect authoring. |
+| `joins.right-join.*` | mixed | no/yes | Same shape as `cross-join`; values depend on dialect authoring. |
+| `joins.full-join.*` | mixed | no/yes | Same shape as `cross-join`; values depend on dialect authoring. |
+| `joins.on-clause.keyword` | string | yes | `ON` clause keyword token. |
+| `joins.on-clause.require-condition` | boolean | yes | Whether an ON predicate is mandatory. |
+
+### 16.8 `paging` elements
+
+| YAML path | Type | Required | Description |
+|---|---|---|---|
+| `paging.styles` | list<object> | yes, non-empty | Ordered preferred paging syntaxes. |
+| `paging.styles[].syntax` | string | yes | Syntax template using placeholders (`{n}`, `{m}`). |
+| `paging.styles[].type` | string | yes | Style type (`standard` or `compat`). |
+| `paging.styles[].deprecated` | boolean | no | Marks style as deprecated for new generation. |
+| `paging.offset` | string | yes | Offset syntax template. |
+| `paging.no-limit-value` | string | no | Sentinel for "no explicit limit" when required by dialect. |
+
+### 16.9 `operators` category + entry elements
+
+| YAML path | Type | Required | Description |
+|---|---|---|---|
+| `operators.<category>` | list<object> | yes | Operator list for category (`equality`, `comparison`, etc.). |
+| `operators.<category>[].symbol` | string | yes | Canonical operator symbol/token. |
+| `operators.<category>[].syntax` | string | no | Syntax template form. |
+| `operators.<category>[].description` | string | no | Human-readable semantics. |
+| `operators.<category>[].supported` | boolean | no | Optional per-entry support override. |
+| `operators.<category>[].deprecated` | boolean | no | Marks operator form as deprecated. |
+
+### 16.10 `functions` category + entry elements
+
+| YAML path | Type | Required | Description |
+|---|---|---|---|
+| `functions.<category>` | list<object> | yes | Function list for required category. |
+| `functions.<category>[].name` | string | yes | Canonical function name. |
+| `functions.<category>[].synonyms` | list<string> | no | Alternate names accepted by dialect. |
+| `functions.<category>[].return.type` | string | yes | Return type token (`ANY` allowed for polymorphic). |
+| `functions.<category>[].return.nullable` | boolean | yes | Return nullability. |
+| `functions.<category>[].syntax` | string | yes | Syntax template with argument placeholders. |
+| `functions.<category>[].args` | list<object> | no | Function argument definitions. |
+| `functions.<category>[].args[].name` | string | yes | Argument name. |
+| `functions.<category>[].args[].type` | string | yes | Argument type token. |
+| `functions.<category>[].args[].required` | boolean | yes | Mandatory argument indicator. |
+| `functions.<category>[].args[].variadic` | boolean | no | Variadic argument indicator. |
+| `functions.<category>[].args[].multi` | boolean | no | Multi-valued argument semantics. |
+| `functions.<category>[].args[].min` | int | no | Lower cardinality bound for variadic args. |
+| `functions.<category>[].args[].max` | int | no | Upper cardinality bound for variadic args. |
+| `functions.<category>[].args[].enum` | list<string> | no | Allowed value set for argument. |
+| `functions.<category>[].args[].default` | string | no | Default value literal/expression. |
+| `functions.<category>[].args[].notes` | string | no | Per-argument note. |
+| `functions.<category>[].notes` | list<string> | no | Per-function notes/caveats. |
+
+### 16.11 `type-info` entry elements
+
+| YAML path | Type | Required | Description |
+|---|---|---|---|
+| `type-info[].sql-name` | string | yes | SQL type name. |
+| `type-info[].jdbc-type-code` | int | yes | JDBC type code integer. |
+| `type-info[].precision` | int | no | Numeric/char precision. |
+| `type-info[].literal-prefix` | string | no | Literal prefix for this type. |
+| `type-info[].literal-suffix` | string | no | Literal suffix for this type. |
+| `type-info[].case-sensitive` | boolean | no | Case-sensitive comparison/storage. |
+| `type-info[].searchable` | int | no | Searchability level (JDBC conventions). |
+| `type-info[].unsigned` | boolean | no | Unsigned numeric semantics. |
+| `type-info[].fixed-prec-scale` | boolean | no | Fixed precision/scale indicator. |
+| `type-info[].auto-increment` | boolean | no | Auto-increment support indicator. |
+| `type-info[].minimum-scale` | int | no | Minimum supported scale. |
+| `type-info[].maximum-scale` | int | no | Maximum supported scale. |
+| `type-info[].num-prec-radix` | int | no | Numeric precision radix (usually 2 or 10). |

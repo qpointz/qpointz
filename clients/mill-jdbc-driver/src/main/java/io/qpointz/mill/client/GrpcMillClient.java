@@ -59,6 +59,12 @@ public class GrpcMillClient extends MillClient {
     }
 
     @Override
+    public GetDialectResponse getDialect(GetDialectRequest request) {
+        return this.blockingStub()
+                .getDialect(request);
+    }
+
+    @Override
     public MillQueryResult execQuery(QueryRequest request) {
         return MillQueryResult.fromResponses(this.blockingStub().execQuery(request));
     }

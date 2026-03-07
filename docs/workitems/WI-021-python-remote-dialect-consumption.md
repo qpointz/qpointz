@@ -1,6 +1,6 @@
 # WI-021 — Python Remote Dialect Consumption (gRPC/HTTP)
 
-Status: `planned`  
+Status: `completed`  
 Type: `✨ feature`  
 Area: `client`, `data`  
 Backlog refs: `C-1`, `C-2`, `C-3`, `C-4`, `C-5`, `D-8`

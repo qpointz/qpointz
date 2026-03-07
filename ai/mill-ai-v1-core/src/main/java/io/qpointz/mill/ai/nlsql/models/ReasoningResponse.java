@@ -19,7 +19,7 @@ public record ReasoningResponse(
         @JsonProperty(value = "hints", required = false) List<String> hints,
         @JsonProperty(value = "hintMessage", required = false) String hintMessage,
         @JsonProperty(value = "suggestedIntents", required = false) List<SuggestedIntent> suggestedIntents,
-        @JsonProperty(value = "sqlFeatures", required = false, defaultValue = "") SqlDialect.SqlFeatures sqlFeatures
+        @JsonProperty(value = "sqlFeatures", required = false, defaultValue = "") SqlFeatures sqlFeatures
 
 ) {
     public record IntentTable(

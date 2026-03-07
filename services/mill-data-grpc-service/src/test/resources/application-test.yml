@@ -8,6 +8,8 @@ grpc:
 
 mill:
   data:
+    sql:
+      dialect: h2
     services:
       grpc:
         enable: true

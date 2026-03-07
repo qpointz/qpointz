@@ -2,9 +2,9 @@ package io.qpointz.mill.ai.nlsql;
 
 import io.qpointz.mill.ai.chat.ChatUserRequest;
 import io.qpointz.mill.ai.chat.messages.MessageSelector;
-import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -21,7 +21,7 @@ public class ChatApplication {
 
     public ChatApplication(CallSpecsChatClientBuilders chatBuilders,
                            MetadataService metadataService,
-                           SqlDialect dialect,
+                           SqlDialectSpec dialect,
                            DataOperationDispatcher dispatcher,
                            MessageSelector messageSelector,
                            ValueMapper valueMapper,

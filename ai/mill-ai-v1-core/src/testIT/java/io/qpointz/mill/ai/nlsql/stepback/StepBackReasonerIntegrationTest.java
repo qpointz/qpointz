@@ -4,11 +4,11 @@ import io.qpointz.mill.ai.BaseIntegrationTestIT;
 import io.qpointz.mill.ai.chat.ChatUserRequests;
 import io.qpointz.mill.ai.nlsql.BaseIntentTestIT;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
-import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.ai.nlsql.models.stepback.StepBackResponse;
 import io.qpointz.mill.ai.nlsql.reasoners.StepBackReasoner;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -38,7 +38,7 @@ class StepBackReasonerIntegrationTest extends BaseIntentTestIT {
 
     public StepBackReasonerIntegrationTest(@Autowired ChatModel chatModel,
                                       @Autowired MetadataService metadataService,
-                                      @Autowired SqlDialect sqlDialect,
+                                      @Autowired SqlDialectSpec sqlDialect,
                                       @Autowired DataOperationDispatcher dispatcher) {
         super(chatModel, metadataService, sqlDialect, dispatcher);
     }

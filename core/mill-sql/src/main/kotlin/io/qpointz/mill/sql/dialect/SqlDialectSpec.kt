@@ -1,4 +1,4 @@
-package io.qpointz.mill.sql.dialect
+package io.qpointz.mill.sql.v2.dialect
 
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties

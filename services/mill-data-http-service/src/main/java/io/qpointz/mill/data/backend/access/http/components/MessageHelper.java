@@ -109,6 +109,14 @@ public class MessageHelper {
         }
     }
 
+    public static GetDialectRequest getDialectRequest(byte[] payload) {
+        try {
+            return GetDialectRequest.parseFrom(payload);
+        } catch (IOException e) {
+            throw new MillRuntimeException("Failed to parse HandshakeResponse from JSON", e);
+        }
+    }
+
     public static ParseSqlRequest parseSqlRequest(byte[] payload) {
         try {
             return ParseSqlRequest.parseFrom(payload);

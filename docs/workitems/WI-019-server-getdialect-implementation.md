@@ -1,6 +1,6 @@
 # WI-019 — Server `GetDialect` Implementation (gRPC + HTTP)
 
-Status: `planned`  
+Status: `completed`  
 Type: `✨ feature`  
 Area: `data`, `platform`, `core`  
 Backlog refs: `D-8`

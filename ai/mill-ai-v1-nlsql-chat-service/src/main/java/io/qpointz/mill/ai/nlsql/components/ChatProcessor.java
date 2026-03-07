@@ -9,7 +9,6 @@ import io.qpointz.mill.ai.nlsql.ValueMapper;
 import io.qpointz.mill.ai.nlsql.model.MessageRole;
 import io.qpointz.mill.ai.nlsql.model.UserChatMessage;
 import io.qpointz.mill.ai.nlsql.model.pojo.Chat;
-import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.ai.nlsql.Reasoner;
 import io.qpointz.mill.ai.nlsql.configuration.ValueMappingConfiguration;
 import io.qpointz.mill.ai.nlsql.reasoners.DefaultReasoner;
@@ -18,6 +17,7 @@ import io.qpointz.mill.ai.nlsql.repositories.UserChatMessageRepository;
 import io.qpointz.mill.annotations.service.ConditionalOnService;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -31,12 +31,12 @@ public class ChatProcessor {
     private final UserChatMessageRepository userChatMessageRepository;
     private final MetadataService metadataService;
     private final DataOperationDispatcher dataOperationDispatcher;
-    private final SqlDialect sqlDialect;
+    private final SqlDialectSpec sqlDialect;
     private final ValueMapper valueMapper;
     private final ValueMappingConfiguration configuration;
 
     public ChatProcessor(MetadataService metadataService,
-                         SqlDialect dialect,
+                         SqlDialectSpec dialect,
                          DataOperationDispatcher dataOperationDispatcher,
                          UserChatMessageRepository userChatMessageRepository,
                          ValueMapper valueMapper,

@@ -38,6 +38,8 @@ public abstract class MillClient implements AutoCloseable {
 
     public abstract GetSchemaResponse getSchema(GetSchemaRequest request) throws MillCodeException;
 
+    public abstract GetDialectResponse getDialect(GetDialectRequest request) throws MillCodeException;
+
     public abstract MillQueryResult execQuery(QueryRequest request) throws MillCodeException;
 
     protected Executor asyncExecutor() {
@@ -68,6 +70,16 @@ public abstract class MillClient implements AutoCloseable {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 return getSchema(request);
+            } catch (MillCodeException e) {
+                throw new CompletionException(e);
+            }
+        }, asyncExecutor());
+    }
+
+    public CompletableFuture<GetDialectResponse> getDialectAsync(GetDialectRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return getDialect(request);
             } catch (MillCodeException e) {
                 throw new CompletionException(e);
             }

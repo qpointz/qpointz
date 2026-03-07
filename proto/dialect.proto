@@ -1,0 +1,262 @@
+syntax = "proto3";
+
+package io.qpointz.mill;
+
+option java_multiple_files = true;
+option java_package = "io.qpointz.mill.proto";
+
+message GetDialectRequest {
+  // Dialect id (for example: CALCITE, POSTGRES, H2, MYSQL).
+  // If omitted, server returns its default dialect.
+  optional string dialectId = 1;
+}
+
+message GetDialectResponse {
+  DialectDescriptor dialect = 1;
+  // Schema/spec version for contract evolution.
+  string schemaVersion = 2;
+  // Content hash for cache/coherency checks.
+  string contentHash = 3;
+}
+
+message DialectDescriptor {
+  message QuotePair {
+    string start = 1;
+    string end = 2;
+  }
+
+  message Identifiers {
+    QuotePair quote = 1;
+    QuotePair aliasQuote = 2;
+    string escapeQuote = 3;
+    string unquotedStorage = 4;
+    string quotedStorage = 5;
+    bool supportsMixedCase = 6;
+    bool supportsMixedCaseQuoted = 7;
+    int32 maxLength = 8;
+    string extraNameCharacters = 9;
+    bool useFullyQualifiedNames = 10;
+  }
+
+  message CatalogSchema {
+    bool supportsSchemas = 1;
+    bool supportsCatalogs = 2;
+    string catalogSeparator = 3;
+    bool catalogAtStart = 4;
+    string schemaTerm = 5;
+    string catalogTerm = 6;
+    string procedureTerm = 7;
+    bool schemasInDml = 8;
+    bool schemasInProcedureCalls = 9;
+    bool schemasInTableDefinitions = 10;
+    bool schemasInIndexDefinitions = 11;
+    bool schemasInPrivilegeDefinitions = 12;
+    bool catalogsInDml = 13;
+    bool catalogsInProcedureCalls = 14;
+    bool catalogsInTableDefinitions = 15;
+    bool catalogsInIndexDefinitions = 16;
+    bool catalogsInPrivilegeDefinitions = 17;
+  }
+
+  message Transactions {
+    bool supported = 1;
+    string defaultIsolation = 2;
+    bool supportsMultiple = 3;
+    bool supportsDdlAndDml = 4;
+    bool supportsDmlOnly = 5;
+    bool ddlCausesCommit = 6;
+    bool ddlIgnoredInTransactions = 7;
+  }
+
+  message Limits {
+    int32 maxBinaryLiteralLength = 1;
+    int32 maxCharLiteralLength = 2;
+    int32 maxColumnNameLength = 3;
+    int32 maxColumnsInGroupBy = 4;
+    int32 maxColumnsInIndex = 5;
+    int32 maxColumnsInOrderBy = 6;
+    int32 maxColumnsInSelect = 7;
+    int32 maxColumnsInTable = 8;
+    int32 maxConnections = 9;
+    int32 maxIndexLength = 10;
+    int32 maxSchemaNameLength = 11;
+    int32 maxCatalogNameLength = 12;
+    int32 maxRowSize = 13;
+    bool maxRowSizeIncludesBlobs = 14;
+    int32 maxStatementLength = 15;
+    int32 maxStatements = 16;
+    int32 maxTableNameLength = 17;
+    int32 maxTablesInSelect = 18;
+  }
+
+  message NullSorting {
+    bool nullsSortedHigh = 1;
+    bool nullsSortedLow = 2;
+    bool nullsSortedAtStart = 3;
+    bool nullsSortedAtEnd = 4;
+    bool supportsNullsFirst = 5;
+    bool supportsNullsLast = 6;
+  }
+
+  message ResultSetCaps {
+    bool forwardOnly = 1;
+    bool scrollInsensitive = 2;
+    bool scrollSensitive = 3;
+    bool concurrencyReadOnly = 4;
+    bool concurrencyUpdatable = 5;
+  }
+
+  message StringProperties {
+    string searchStringEscape = 1;
+    string sqlKeywords = 2;
+    string systemFunctions = 3;
+  }
+
+  message StringLiterals {
+    string quote = 1;
+    string concat = 2;
+    string escape = 3;
+    string note = 4;
+  }
+
+  message DateTimeLiteral {
+    string syntax = 1;
+    string quote = 2;
+    string pattern = 3;
+    repeated string notes = 4;
+  }
+
+  message IntervalLiteral {
+    bool supported = 1;
+    string style = 2;
+    repeated string notes = 3;
+  }
+
+  message DatesTimesLiterals {
+    DateTimeLiteral date = 1;
+    DateTimeLiteral time = 2;
+    DateTimeLiteral timestamp = 3;
+    IntervalLiteral interval = 4;
+  }
+
+  message Literals {
+    StringLiterals strings = 1;
+    repeated string booleans = 2;
+    string nullLiteral = 3;
+    DatesTimesLiterals datesTimes = 4;
+  }
+
+  message JoinType {
+    bool enabled = 1;
+    string keyword = 2;
+    bool requireOn = 3;
+    bool nullSafe = 4;
+    string notes = 5;
+  }
+
+  message OnClause {
+    string keyword = 1;
+    bool requireCondition = 2;
+  }
+
+  message Joins {
+    string style = 1;
+    JoinType crossJoin = 2;
+    JoinType innerJoin = 3;
+    JoinType leftJoin = 4;
+    JoinType rightJoin = 5;
+    JoinType fullJoin = 6;
+    OnClause onClause = 7;
+  }
+
+  message PagingStyle {
+    string syntax = 1;
+    string type = 2;
+    bool deprecated = 3;
+  }
+
+  message Paging {
+    repeated PagingStyle styles = 1;
+    string offset = 2;
+    optional string noLimitValue = 3;
+  }
+
+  message OperatorEntry {
+    string symbol = 1;
+    optional string syntax = 2;
+    optional string description = 3;
+    optional bool supported = 4;
+    optional bool deprecated = 5;
+  }
+
+  message ReturnType {
+    string type = 1;
+    bool nullable = 2;
+  }
+
+  message FunctionArg {
+    string name = 1;
+    string type = 2;
+    bool required = 3;
+    optional bool variadic = 4;
+    optional bool multi = 5;
+    optional int32 min = 6;
+    optional int32 max = 7;
+    repeated string enumValues = 8;
+    optional string defaultValue = 9;
+    optional string notes = 10;
+  }
+
+  message FunctionEntry {
+    string name = 1;
+    repeated string synonyms = 2;
+    ReturnType returnType = 3;
+    string syntax = 4;
+    repeated FunctionArg args = 5;
+    repeated string notes = 6;
+  }
+
+  message TypeInfo {
+    string sqlName = 1;
+    int32 jdbcTypeCode = 2;
+    optional int32 precision = 3;
+    optional string literalPrefix = 4;
+    optional string literalSuffix = 5;
+    optional bool caseSensitive = 6;
+    optional int32 searchable = 7;
+    optional bool unsigned = 8;
+    optional bool fixedPrecScale = 9;
+    optional bool autoIncrement = 10;
+    optional int32 minimumScale = 11;
+    optional int32 maximumScale = 12;
+    optional int32 numPrecRadix = 13;
+  }
+
+  message OperatorCategory {
+    repeated OperatorEntry entries = 1;
+  }
+
+  message FunctionCategory {
+    repeated FunctionEntry entries = 1;
+  }
+
+  string id = 1;
+  string name = 2;
+  bool readOnly = 3;
+  string paramstyle = 4;
+  repeated string notes = 5;
+  Identifiers identifiers = 6;
+  CatalogSchema catalogSchema = 7;
+  Transactions transactions = 8;
+  Limits limits = 9;
+  NullSorting nullSorting = 10;
+  ResultSetCaps resultSet = 11;
+  map<string, bool> featureFlags = 12;
+  StringProperties stringProperties = 13;
+  Literals literals = 14;
+  Joins joins = 15;
+  Paging paging = 16;
+  map<string, OperatorCategory> operators = 17;
+  map<string, FunctionCategory> functions = 18;
+  repeated TypeInfo typeInfo = 19;
+}

@@ -4,10 +4,10 @@ import io.qpointz.mill.ai.chat.ChatUserRequests;
 import io.qpointz.mill.ai.chat.messages.MessageSelectors;
 import io.qpointz.mill.ai.nlsql.components.DefaultValueMapper;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
-import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.ai.nlsql.reasoners.DefaultReasoner;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -31,7 +31,7 @@ public class EnrichModelIntentTestIT extends BaseIntentTestIT {
 
     public EnrichModelIntentTestIT(@Autowired ChatModel chatModel,
                                    @Autowired MetadataService metadataService,
-                                   @Autowired SqlDialect sqlDialect,
+                                   @Autowired SqlDialectSpec sqlDialect,
                                    @Autowired DataOperationDispatcher dispatcher) {
         super(chatModel, metadataService, sqlDialect, dispatcher);
     }

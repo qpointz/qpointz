@@ -9,6 +9,7 @@ import abc
 from typing import Iterator
 
 from mill._proto import data_connect_svc_pb2 as _svc
+from mill._proto import dialect_pb2 as _dialect
 
 
 class Transport(abc.ABC):
@@ -54,6 +55,18 @@ class Transport(abc.ABC):
 
         Returns:
             A ``ParseSqlResponse`` proto message.
+        """
+
+    @abc.abstractmethod
+    def get_dialect(self, dialect_id: str | None = None) -> _dialect.GetDialectResponse:
+        """Retrieve dialect metadata from the server.
+
+        Args:
+            dialect_id: Optional dialect identifier. If omitted, the server
+                returns its configured default dialect.
+
+        Returns:
+            A ``GetDialectResponse`` proto message.
         """
 
     @abc.abstractmethod

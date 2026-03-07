@@ -1,4 +1,4 @@
-package io.qpointz.mill.sql.dialect
+package io.qpointz.mill.sql.v2.dialect
 
 import java.util.Locale
 
@@ -6,8 +6,10 @@ class DialectRegistry(
     dialects: Map<String, SqlDialectSpec>
 ) {
     companion object {
+        @JvmField
         val DEFAULT_RESOURCE_DIALECTS: Set<String> = setOf("calcite", "h2", "mysql", "postgres")
 
+        @JvmStatic
         fun fromClasspathDefaults(): DialectRegistry {
             val loader = DialectLoader()
             val loaded = DEFAULT_RESOURCE_DIALECTS

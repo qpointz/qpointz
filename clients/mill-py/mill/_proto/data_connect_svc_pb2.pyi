@@ -1,5 +1,6 @@
 from substrait import plan_pb2 as _plan_pb2
 import common_pb2 as _common_pb2
+import dialect_pb2 as _dialect_pb2
 import statement_pb2 as _statement_pb2
 import vector_pb2 as _vector_pb2
 from google.protobuf.internal import containers as _containers
@@ -24,12 +25,14 @@ class HandshakeRequest(_message.Message):
 class HandshakeResponse(_message.Message):
     __slots__ = ("version", "capabilities", "authentication", "metas")
     class Capabilities(_message.Message):
-        __slots__ = ("supportSql", "supportResultPaging")
+        __slots__ = ("supportSql", "supportResultPaging", "supportDialect")
         SUPPORTSQL_FIELD_NUMBER: _ClassVar[int]
         SUPPORTRESULTPAGING_FIELD_NUMBER: _ClassVar[int]
+        SUPPORTDIALECT_FIELD_NUMBER: _ClassVar[int]
         supportSql: bool
         supportResultPaging: bool
-        def __init__(self, supportSql: bool = ..., supportResultPaging: bool = ...) -> None: ...
+        supportDialect: bool
+        def __init__(self, supportSql: bool = ..., supportResultPaging: bool = ..., supportDialect: bool = ...) -> None: ...
     class AuthenticationContext(_message.Message):
         __slots__ = ("name",)
         NAME_FIELD_NUMBER: _ClassVar[int]

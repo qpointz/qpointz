@@ -12,9 +12,9 @@ import io.qpointz.mill.data.backend.calcite.providers.CalciteSchemaProvider
 import io.qpointz.mill.data.backend.calcite.providers.CalciteSqlProvider
 import io.qpointz.mill.data.backend.calcite.providers.PlanConverter
 import io.qpointz.mill.data.backend.dispatchers.SubstraitDispatcher
-import io.qpointz.mill.sql.dialect.SqlDialectSpec
-import io.qpointz.mill.sql.dialect.SqlDialectSpecs
 import io.qpointz.mill.security.SecurityProvider
+import io.qpointz.mill.sql.v2.dialect.DialectRegistry
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec
 import io.substrait.extension.ExtensionCollector
 import io.substrait.extension.SimpleExtension
 import java.util.*
@@ -92,7 +92,7 @@ class CalciteBackendContextRunner(
         @JvmStatic
         fun calciteContext(
             modelPath: String,
-            dialect: SqlDialectSpec = SqlDialectSpecs.CALCITE,
+            dialect: SqlDialectSpec = DialectRegistry.fromClasspathDefaults().requireDialect("CALCITE"),
             conventionOverrides: Map<String, Any?> = emptyMap(),
             extensionCollection: SimpleExtension.ExtensionCollection? = SimpleExtension.loadDefaults()
         ): CalciteBackendContextRunner {

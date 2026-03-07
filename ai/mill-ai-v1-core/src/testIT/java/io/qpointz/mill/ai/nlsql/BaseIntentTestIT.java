@@ -6,10 +6,10 @@ import io.qpointz.mill.ai.chat.messages.MessageSelector;
 import io.qpointz.mill.ai.chat.messages.MessageSelectors;
 import io.qpointz.mill.ai.nlsql.components.DefaultValueMapper;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
-import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.ai.nlsql.reasoners.DefaultReasoner;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -46,7 +46,7 @@ public abstract class BaseIntentTestIT extends BaseIntegrationTestIT {
     private final MessageWindowChatMemory chatMemory;
 
     @Getter(AccessLevel.PROTECTED)
-    private final SqlDialect sqlDialect;
+    private final SqlDialectSpec sqlDialect;
 
     @Getter(AccessLevel.PROTECTED)
     private final DefaultReasoner reasoner;
@@ -56,7 +56,7 @@ public abstract class BaseIntentTestIT extends BaseIntegrationTestIT {
 
     protected BaseIntentTestIT(ChatModel model,
                                MetadataService metadataService,
-                               SqlDialect sqlDialect,
+                               SqlDialectSpec sqlDialect,
                                DataOperationDispatcher dispatcher) {
 
         this.chatMemory = MessageWindowChatMemory.builder()

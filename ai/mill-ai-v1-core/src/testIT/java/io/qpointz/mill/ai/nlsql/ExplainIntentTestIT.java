@@ -2,9 +2,9 @@ package io.qpointz.mill.ai.nlsql;
 
 import io.qpointz.mill.ai.chat.ChatUserRequests;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
-import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -28,7 +28,7 @@ public class ExplainIntentTestIT extends BaseIntentTestIT {
 
     public ExplainIntentTestIT(@Autowired ChatModel chatModel,
                                @Autowired MetadataService metadataService,
-                               @Autowired SqlDialect sqlDialect,
+                               @Autowired SqlDialectSpec sqlDialect,
                                @Autowired DataOperationDispatcher dispatcher) {
         super(chatModel, metadataService, sqlDialect, dispatcher);
     }

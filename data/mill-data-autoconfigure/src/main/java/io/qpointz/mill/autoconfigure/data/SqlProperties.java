@@ -20,11 +20,11 @@ public class SqlProperties {
 
     /**
      * SQL dialect identifier used to resolve a
-     * {@link io.qpointz.mill.sql.dialect.SqlDialectSpec} via
-     * {@link io.qpointz.mill.sql.dialect.SqlDialectSpecs#byId(String)}.
-     * Supported values: CALCITE, POSTGRES, MYSQL, MSSQL, ORACLE, H2, TRINO, DATABRICKS, DB2, DUCKDB.
+     * {@link io.qpointz.mill.sql.v2.dialect.SqlDialectSpec} via
+     * {@link io.qpointz.mill.sql.v2.dialect.DialectRegistry}.
+     * Supported values in v2 baseline: CALCITE, POSTGRES, MYSQL, H2.
      */
-    private String dialect = MILL_DATA_DEFAULT_DIALECT.id();
+    private String dialect = MILL_DATA_DEFAULT_DIALECT;
 
     private Map<String, Object> conventions = new HashMap<>();
 

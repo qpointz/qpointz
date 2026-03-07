@@ -1,6 +1,6 @@
 # WI-017 — Kotlin Typed Dialect Model + YAML Loader
 
-Status: `planned`  
+Status: `completed`  
 Type: `✨ feature`  
 Area: `core`  
 Backlog refs: `D-8` (foundation)

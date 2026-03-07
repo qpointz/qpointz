@@ -8,7 +8,9 @@ import pytest
 from mill import connect, MillClient
 from mill._proto import common_pb2 as cpb
 from mill._proto import data_connect_svc_pb2 as svc
+from mill._proto import dialect_pb2 as dpb
 from mill._transport import Transport
+from mill.exceptions import MillQueryError
 
 
 # ---------------------------------------------------------------------------
@@ -61,6 +63,68 @@ class TestMillClient:
         c = MillClient(t)
         resp = c.parse_sql("SELECT 1")
         t.parse_sql.assert_called_once_with("SELECT 1")
+
+    def test_get_dialect_remote(self) -> None:
+        t = _mock_transport()
+        t.handshake.return_value = svc.HandshakeResponse(
+            version=1,
+            capabilities=svc.HandshakeResponse.Capabilities(
+                supportSql=True,
+                supportResultPaging=True,
+                supportDialect=True,
+            ),
+        )
+        t.get_dialect.return_value = dpb.GetDialectResponse(
+            dialect=dpb.DialectDescriptor(
+                id="H2",
+                name="H2 Database",
+                readOnly=False,
+                paramstyle="qmark",
+                featureFlags={"supports-cte": True},
+            ),
+            schemaVersion="v2",
+            contentHash="abc123",
+        )
+        c = MillClient(t)
+
+        descriptor = c.get_dialect()
+
+        assert descriptor.id == "H2"
+        assert descriptor.supports("supports-cte")
+        t.get_dialect.assert_called_once_with(None)
+
+    def test_get_dialect_fallback_for_legacy_server(self) -> None:
+        t = _mock_transport()
+        t.handshake.return_value = svc.HandshakeResponse(
+            version=1,
+            capabilities=svc.HandshakeResponse.Capabilities(
+                supportSql=True,
+                supportResultPaging=True,
+                supportDialect=False,
+            ),
+        )
+        c = MillClient(t)
+
+        descriptor = c.get_dialect()
+
+        assert descriptor.id == "CALCITE"
+        assert descriptor.source == "fallback"
+        t.get_dialect.assert_not_called()
+
+    def test_get_dialect_without_fallback_raises(self) -> None:
+        t = _mock_transport()
+        t.handshake.return_value = svc.HandshakeResponse(
+            version=1,
+            capabilities=svc.HandshakeResponse.Capabilities(
+                supportSql=True,
+                supportResultPaging=True,
+                supportDialect=False,
+            ),
+        )
+        c = MillClient(t)
+
+        with pytest.raises(MillQueryError, match="does not support dialect introspection"):
+            c.get_dialect(fallback_to_default=False)
 
     def test_query_returns_result_set(self) -> None:
         t = _mock_transport()

@@ -4,9 +4,9 @@ import io.qpointz.mill.MillRuntimeException;
 import io.qpointz.mill.ai.chat.ChatCall;
 import io.qpointz.mill.ai.chat.messages.MessageSelector;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
-import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -35,7 +35,7 @@ public class IntentSpecs {
     private final MessageSelector messageSelector;
 
     @Getter
-    private final SqlDialect sqlDialect;
+    private final SqlDialectSpec sqlDialect;
 
     @Getter
     private final ValueMapper valueMapper;
@@ -44,7 +44,7 @@ public class IntentSpecs {
     private final ChatEventProducer eventProducer;
 
     public IntentSpecs(MetadataService metadataService,
-                       SqlDialect sqlDialect,
+                       SqlDialectSpec sqlDialect,
                        CallSpecsChatClientBuilders chatBuilders,
                        DataOperationDispatcher dispatcher,
                        MessageSelector messageSelector,

@@ -246,6 +246,17 @@ public class HttpMillClient extends MillClient {
     }
 
     @Override
+    public GetDialectResponse getDialect(GetDialectRequest request) throws MillCodeException {
+        return post("GetDialect", request, b -> {
+            try {
+                return GetDialectResponse.parseFrom(b);
+            } catch (InvalidProtocolBufferException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    @Override
     public void close() throws Exception {
         //no closable resources associated with client
     }

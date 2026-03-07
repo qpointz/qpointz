@@ -1,4 +1,4 @@
-package io.qpointz.mill.sql.dialect
+package io.qpointz.mill.sql.v2.dialect
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -39,7 +39,7 @@ class DialectLoader {
 
     fun loadFromClasspath(dialectResourceId: String): SqlDialectSpec {
         val normalized = dialectResourceId.lowercase(Locale.ROOT)
-        val resource = "sql/dialects/$normalized/$normalized.yml"
+        val resource = "sql/v2/dialects/$normalized/$normalized.yml"
         val stream = Thread.currentThread().contextClassLoader.getResourceAsStream(resource)
             ?: throw DialectValidationException(
                 message = "Dialect resource not found: $resource",

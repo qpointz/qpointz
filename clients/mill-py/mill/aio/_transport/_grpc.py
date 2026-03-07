@@ -12,6 +12,7 @@ import grpc.aio
 
 from mill._proto import data_connect_svc_pb2 as _svc
 from mill._proto import data_connect_svc_pb2_grpc as _grpc_stub
+from mill._proto import dialect_pb2 as _dialect
 from mill._proto import statement_pb2 as _stmt
 from mill._transport._grpc import _read_pem
 from mill.aio._transport import AsyncTransport
@@ -102,6 +103,13 @@ class AsyncGrpcTransport(AsyncTransport):
             statement=_stmt.SQLStatement(sql=sql),
         )
         return await self._call("ParseSql", req)  # type: ignore[return-value]
+
+    async def get_dialect(self, dialect_id: str | None = None) -> _dialect.GetDialectResponse:
+        """Retrieve dialect metadata via async gRPC."""
+        req = _dialect.GetDialectRequest()
+        if dialect_id is not None:
+            req.dialectId = dialect_id
+        return await self._call("GetDialect", req)  # type: ignore[return-value]
 
     async def exec_query(self, request: _svc.QueryRequest) -> AsyncIterator[_svc.QueryResultResponse]:
         """Execute via server-streaming ``ExecQuery`` RPC.

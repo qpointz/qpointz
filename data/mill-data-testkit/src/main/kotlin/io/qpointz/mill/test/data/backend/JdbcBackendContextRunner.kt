@@ -17,9 +17,9 @@ import io.qpointz.mill.data.backend.jdbc.providers.JdbcContextFactory
 import io.qpointz.mill.data.backend.jdbc.providers.JdbcExecutionProvider
 import io.qpointz.mill.data.backend.jdbc.providers.impl.JdbcConnectionCustomizerImpl
 import io.qpointz.mill.data.backend.jdbc.providers.impl.JdbcContextFactoryImpl
-import io.qpointz.mill.sql.dialect.SqlDialectSpec
-import io.qpointz.mill.sql.dialect.SqlDialectSpecs
 import io.qpointz.mill.security.SecurityProvider
+import io.qpointz.mill.sql.v2.dialect.DialectRegistry
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec
 import io.substrait.extension.ExtensionCollector
 import io.substrait.extension.SimpleExtension
 import org.apache.calcite.sql.SqlDialect
@@ -159,7 +159,7 @@ class JdbcBackendContextRunner(
                 "unquotedCasing" to "UNCHANGED"
             )
             return jdbcBackendContext(
-                dialect = SqlDialectSpecs.H2,
+                dialect = DialectRegistry.fromClasspathDefaults().requireDialect("H2"),
                 url = url,
                 driver = "org.h2.Driver",
                 sqlConventions = sqlConventions,

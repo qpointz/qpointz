@@ -1,14 +1,19 @@
 package io.qpointz.mill.data.backend.access.http.controllers;
 
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.qpointz.mill.annotations.service.ConditionalOnService;
 import io.qpointz.mill.proto.*;
 import io.qpointz.mill.data.backend.access.http.components.MessageHelper;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -77,6 +82,19 @@ public class AccessServiceController {
                 acceptsHeader);
     }
 
+    @PostMapping("/GetDialect")
+    public ResponseEntity<?> getDialect(@RequestBody(required = false) byte[] payload,
+                                        @RequestHeader(value = "Accept", defaultValue= MediaType.APPLICATION_JSON_VALUE) String acceptsHeader,
+                                        @RequestHeader(value = "Content-Type", defaultValue= MediaType.APPLICATION_JSON_VALUE) String contentTypeHeader) {
+        return MessageHelper.apply(
+                this.ensurePayload(payload),
+                MessageHelper::getDialectRequest,
+                dispatcher::getDialect,
+                GetDialectRequest.newBuilder(),
+                contentTypeHeader,
+                acceptsHeader);
+    }
+
     @PostMapping("/ParseSql")
     public ResponseEntity<?> parseSql(@RequestBody byte[] payload,
                                       @RequestHeader(value = "Accept", defaultValue= MediaType.APPLICATION_JSON_VALUE) String acceptsHeader,
@@ -114,6 +132,28 @@ public class AccessServiceController {
                 QueryResultRequest.newBuilder(),
                 contentTypeHeader,
                 acceptsHeader);
+    }
+
+    @ExceptionHandler(StatusRuntimeException.class)
+    public ResponseEntity<?> handleStatusRuntimeException(StatusRuntimeException ex) {
+        val grpcStatus = ex.getStatus();
+        val httpStatus = toHttpStatus(grpcStatus.getCode());
+        return ResponseEntity
+                .status(httpStatus)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of(
+                        "code", grpcStatus.getCode().name(),
+                        "message", grpcStatus.getDescription() == null ? "Request failed" : grpcStatus.getDescription()
+                ));
+    }
+
+    private HttpStatus toHttpStatus(Status.Code code) {
+        return switch (code) {
+            case INVALID_ARGUMENT -> HttpStatus.BAD_REQUEST;
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case UNIMPLEMENTED -> HttpStatus.NOT_IMPLEMENTED;
+            default -> HttpStatus.INTERNAL_SERVER_ERROR;
+        };
     }
 
 }

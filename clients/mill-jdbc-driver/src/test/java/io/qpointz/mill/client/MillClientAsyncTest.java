@@ -92,6 +92,11 @@ class MillClientAsyncTest {
         }
 
         @Override
+        public GetDialectResponse getDialect(GetDialectRequest request) {
+            return GetDialectResponse.getDefaultInstance();
+        }
+
+        @Override
         public MillQueryResult execQuery(QueryRequest request) {
             var response = QueryResultResponse.newBuilder()
                     .setVector(VectorBlock.getDefaultInstance())

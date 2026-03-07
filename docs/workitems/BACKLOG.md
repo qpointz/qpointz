@@ -67,11 +67,11 @@ milestone-selectable deliverables extracted from design documents and work items
 | C-7 | Rewrite AI consumer: replace SpecSqlDialect with typed prompt builder | 🔧 refactoring | backlog | client/sql-dialect-yaml-schema.md |
 | C-8 | Fix H2 dialect YAML: case, missing/wrong functions, paging, parameter signatures | 🐛 fix | backlog | client/sql-dialect-yaml-schema.md |
 | C-9 | Remove deprecated YAML fields (identifiers.case, paging.limit/top, ordering) | 🔧 refactoring | backlog | client/sql-dialect-yaml-schema.md |
-| C-10 | Implement ibis BaseBackend wrapping MillClient (Phase 10) | ✨ feature | backlog | client/py-implementation-plan.md |
-| C-11 | Map ibis expressions to Calcite-compatible SQL via sqlglot | ✨ feature | backlog | client/py-implementation-plan.md |
-| C-12 | Implement PEP 249 DBAPI 2.0 shim (Phase 11) | ✨ feature | backlog | client/py-implementation-plan.md |
-| C-13 | Implement SQLAlchemy MillDialect and MillSQLCompiler with schema introspection; complex type support depends on D-2/D-3/D-4 | ✨ feature | backlog | client/py-implementation-plan.md |
-| C-14 | Register SQLAlchemy entry points for mill+grpc and mill+http | ✨ feature | backlog | client/py-implementation-plan.md |
+| C-10 | Implement ibis BaseBackend wrapping MillClient (Phase 10) | ✨ feature | backlog | **WI-025** |
+| C-11 | Map ibis expressions to Calcite-compatible SQL via sqlglot | ✨ feature | backlog | **WI-025** |
+| C-12 | Implement PEP 249 DBAPI 2.0 shim (Phase 11) | ✨ feature | backlog | **WI-024** |
+| C-13 | Implement SQLAlchemy MillDialect and MillSQLCompiler with schema introspection; complex type support depends on D-2/D-3/D-4 | ✨ feature | backlog | **WI-024** |
+| C-14 | Register SQLAlchemy entry points for mill+grpc and mill+http | ✨ feature | backlog | **WI-024** |
 | C-15 | Fix MillServerError: call super().__init__(message) | 🐛 fix | backlog | client/py-cold-start.md |
 | C-16 | Fix Python type mappings: BOOL->BOOLEAN, identifier quoting from dialect YAML | 🐛 fix | backlog | client/py-sql-dialect-plan.md |
 | C-17 | Implement managed ADO.NET provider for Mill (separate .NET track; OLE DB as optional follow-up) | ✨ feature | backlog | client/adonet-provider-design.md |
@@ -79,6 +79,8 @@ milestone-selectable deliverables extracted from design documents and work items
 | C-19 | Update clients (Python/JDBC and related SDK surfaces) for complex types and timezone semantics in schemas/contracts | ✨ feature | backlog | **TBD (new WI)** |
 | C-20 | Fix JDBC HTTP content negotiation/decoding mismatch (http-json path still assumes protobuf response decode) | 🐛 fix | backlog | **TBD (new WI)** |
 | C-21 | Fix Python HTTP client content negotiation/decoding mismatch parity with JDBC (protobuf-vs-json response handling) | 🐛 fix | backlog | **TBD (new WI)** |
+| C-22 | Add ibis dialect correctness validation and certification gate (DialectTester + report + CI drift detection) | 🧪 test | backlog | **WI-023** |
+| C-23 | Implement full JDBC `DatabaseMetaData` surface backed by dialect descriptor (limits, type-info, feature/capability methods) | ✨ feature | done | **WI-026** |
 
 ---
 
@@ -232,11 +234,11 @@ milestone-selectable deliverables extracted from design documents and work items
 | ----------- | ------- | --------- | -------------- | ------ | -------------- | ------- | ------- |
 | data        | 7       | 6         | 0              | 0      | 0              | 0       | 1       |
 | ai          | 23      | 16        | 4              | 1      | 2              | 0       | 0       |
-| client      | 19      | 10        | 0              | 5      | 3              | 0       | 1       |
+| client      | 21      | 11        | 0              | 5      | 3              | 1       | 1       |
 | metadata    | 17      | 13        | 0              | 2      | 1              | 1       | 0       |
 | platform    | 32      | 11        | 8              | 4      | 8              | 1       | 0       |
 | publish     | 4       | 1         | 2              | 0      | 0              | 0       | 1       |
 | refactoring | 10      | 0         | 1              | 4      | 2              | 2       | 1       |
 | source      | 15      | 8         | 4              | 1      | 2              | 0       | 0       |
 | ui          | 10      | 4         | 4              | 0      | 1              | 1       | 0       |
-| **Total**   | **137** | **69**    | **23**         | **17** | **19**         | **5**   | **4**   |
+| **Total**   | **139** | **70**    | **23**         | **17** | **19**         | **6**   | **4**   |

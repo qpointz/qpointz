@@ -26,6 +26,7 @@ from mill.exceptions import (
     MillQueryError,
 )
 from mill.result import ResultSet
+from mill.sql import CALCITE_DEFAULT, MillDialectDescriptor
 from mill.types import MillField, MillSchema, MillTable, MillType
 
 __all__ = [
@@ -40,6 +41,8 @@ __all__ = [
     "MillField",
     "MillTable",
     "MillSchema",
+    "MillDialectDescriptor",
+    "CALCITE_DEFAULT",
     # Auth
     "BasicAuth",
     "BearerToken",

@@ -72,6 +72,12 @@ public class MillGrpcService extends DataConnectServiceGrpc.DataConnectServiceIm
     }
 
     @Override
+    public void getDialect(GetDialectRequest request, StreamObserver<GetDialectResponse> responseObserver) {
+        traceRequest("getDialect", request::toString);
+        replyOne(request, responseObserver, r -> this.dataOpDispatcher.getDialect(request));
+    }
+
+    @Override
     public void parseSql(ParseSqlRequest request, StreamObserver<ParseSqlResponse> responseObserver) {
         traceRequest("parseSql", request::toString);
         replyOne(request, responseObserver, r-> this.dataOpDispatcher.parseSql(request));

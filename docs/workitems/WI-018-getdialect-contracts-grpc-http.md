@@ -1,6 +1,6 @@
 # WI-018 — `GetDialect` Contracts (gRPC + HTTP + Handshake)
 
-Status: `planned`  
+Status: `completed`  
 Type: `✨ feature`  
 Area: `data`, `platform`, `core`  
 Backlog refs: `D-8`

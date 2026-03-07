@@ -12,6 +12,7 @@ import httpx
 from google.protobuf import json_format, message as _pb_message
 
 from mill._proto import data_connect_svc_pb2 as _svc
+from mill._proto import dialect_pb2 as _dialect
 from mill._proto import statement_pb2 as _stmt
 from mill.aio._transport import AsyncTransport
 from mill.auth import Credential, _auth_headers
@@ -200,6 +201,13 @@ class AsyncHttpTransport(AsyncTransport):
             statement=_stmt.SQLStatement(sql=sql),
         )
         return await self._post("/ParseSql", req, _svc.ParseSqlResponse)
+
+    async def get_dialect(self, dialect_id: str | None = None) -> _dialect.GetDialectResponse:
+        """Retrieve dialect metadata via async HTTP."""
+        req = _dialect.GetDialectRequest()
+        if dialect_id is not None:
+            req.dialectId = dialect_id
+        return await self._post("/GetDialect", req, _dialect.GetDialectResponse)
 
     async def exec_query(self, request: _svc.QueryRequest) -> AsyncIterator[_svc.QueryResultResponse]:
         """Execute via paging: ``SubmitQuery`` then ``FetchQueryResult`` loop.

@@ -22,6 +22,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 
 @WebAppConfiguration
@@ -106,6 +107,31 @@ class AccessServiceControllerTest {
                 } catch (InvalidProtocolBufferException e) {
                     throw new RuntimeException(e);
                 }});
+    }
+
+    @Test
+    void getDialectRoundTrip() throws Exception {
+        roundTrip("/services/jet/GetDialect",
+                GetDialectRequest::newBuilder,
+                k -> {
+                    try {
+                        return GetDialectResponse.parseFrom(k);
+                    } catch (InvalidProtocolBufferException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+    }
+
+    @Test
+    void getDialectUnknownReturnsNotFound() throws Exception {
+        val request = GetDialectRequest.newBuilder().setDialectId("UNKNOWN_DIALECT").build();
+        val result = mockMvc.perform(post("/services/jet/GetDialect")
+                .contentType(MediaType.APPLICATION_PROTOBUF)
+                .content(request.toByteArray())
+                .accept(MediaType.APPLICATION_JSON)
+        ).andReturn();
+        assertEquals(404, result.getResponse().getStatus());
+        assertTrue(result.getResponse().getContentAsString().contains("NOT_FOUND"));
     }
 
     @Test

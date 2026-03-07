@@ -43,7 +43,7 @@ item), the client will prefer the server-provided descriptor over the built-in d
 │  MillDialectDescriptor  (shared dialect contract)                │
 │  Python: mill/sql/dialect.py + types.py                          │
 │  Proto:  GetDialect RPC (future)                                 │
-│  YAML:   core/mill-core/.../sql/dialects/*.yml  (source of truth)│
+│  YAML:   core/mill-sql/.../sql/dialects/*.yml   (source of truth)│
 └──┬───────────────────────────────────┬───────────────────────────┘
    │                                   │
    │  9A (P0+P1: structural)           │  9B (P2+P3: dialect tester)
@@ -65,7 +65,7 @@ item), the client will prefer the server-provided descriptor over the built-in d
 
 Before defining the dialect descriptor shape, we analysed the minimum information SQLAlchemy,
 ibis, JDBC, and AI need from a dialect. Cross-referencing against the existing server-side
-YAML dialect files (`core/mill-core/src/main/resources/sql/dialects/calcite/calcite.yml`)
+YAML dialect files (`core/mill-sql/src/main/resources/sql/dialects/calcite/calcite.yml`)
 yielded the following coverage map.
 
 ### 3.1 Aspect-by-aspect breakdown

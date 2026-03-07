@@ -4,8 +4,9 @@ import grpc
 import warnings
 
 from . import data_connect_svc_pb2 as data__connect__svc__pb2
+from . import dialect_pb2 as dialect__pb2
 
-GRPC_GENERATED_VERSION = '1.66.1'
+GRPC_GENERATED_VERSION = '1.71.2'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -49,6 +50,11 @@ class DataConnectServiceStub(object):
                 request_serializer=data__connect__svc__pb2.GetSchemaRequest.SerializeToString,
                 response_deserializer=data__connect__svc__pb2.GetSchemaResponse.FromString,
                 _registered_method=True)
+        self.GetDialect = channel.unary_unary(
+                '/io.qpointz.mill.DataConnectService/GetDialect',
+                request_serializer=dialect__pb2.GetDialectRequest.SerializeToString,
+                response_deserializer=dialect__pb2.GetDialectResponse.FromString,
+                _registered_method=True)
         self.ParseSql = channel.unary_unary(
                 '/io.qpointz.mill.DataConnectService/ParseSql',
                 request_serializer=data__connect__svc__pb2.ParseSqlRequest.SerializeToString,
@@ -87,6 +93,12 @@ class DataConnectServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def GetSchema(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetDialect(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -133,6 +145,11 @@ def add_DataConnectServiceServicer_to_server(servicer, server):
                     servicer.GetSchema,
                     request_deserializer=data__connect__svc__pb2.GetSchemaRequest.FromString,
                     response_serializer=data__connect__svc__pb2.GetSchemaResponse.SerializeToString,
+            ),
+            'GetDialect': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetDialect,
+                    request_deserializer=dialect__pb2.GetDialectRequest.FromString,
+                    response_serializer=dialect__pb2.GetDialectResponse.SerializeToString,
             ),
             'ParseSql': grpc.unary_unary_rpc_method_handler(
                     servicer.ParseSql,
@@ -236,6 +253,33 @@ class DataConnectService(object):
             '/io.qpointz.mill.DataConnectService/GetSchema',
             data__connect__svc__pb2.GetSchemaRequest.SerializeToString,
             data__connect__svc__pb2.GetSchemaResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetDialect(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/io.qpointz.mill.DataConnectService/GetDialect',
+            dialect__pb2.GetDialectRequest.SerializeToString,
+            dialect__pb2.GetDialectResponse.FromString,
             options,
             channel_credentials,
             insecure,

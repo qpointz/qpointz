@@ -21,6 +21,7 @@ class MillGrpcServiceMetadataTest extends MillGrpcServiceBaseTest {
     void handshakeTest(@Autowired DataConnectServiceGrpc.DataConnectServiceBlockingStub stub) {
         val on = stub.handshake(HandshakeRequest.getDefaultInstance());
         assertFalse(on.getCapabilities().getSupportSql());
+        assertTrue(on.getCapabilities().getSupportDialect());
         assertEquals(ProtocolVersion.V1_0, on.getVersion());
     }
 
@@ -56,5 +57,21 @@ class MillGrpcServiceMetadataTest extends MillGrpcServiceBaseTest {
         when(schemaProvider.getSchema("schemaName")).thenReturn(schema);
         val resp = stub.getSchema(request);
         assertEquals(schema, resp.getSchema());
+    }
+
+    @Test
+    void getDialectDefault(@Autowired DataConnectServiceGrpc.DataConnectServiceBlockingStub stub) {
+        val response = stub.getDialect(GetDialectRequest.getDefaultInstance());
+        assertEquals("H2", response.getDialect().getId());
+        assertFalse(response.getSchemaVersion().isBlank());
+        assertFalse(response.getContentHash().isBlank());
+    }
+
+    @Test
+    void getDialectUnknown(@Autowired DataConnectServiceGrpc.DataConnectServiceBlockingStub stub) {
+        val request = GetDialectRequest.newBuilder().setDialectId("UNKNOWN_DIALECT").build();
+        val e = assertThrows(StatusRuntimeException.class,
+                () -> stub.getDialect(request));
+        assertEquals(Status.Code.NOT_FOUND, e.getStatus().getCode());
     }
 }

@@ -1,6 +1,6 @@
 # WI-015 — Core `mill-sql` Bootstrap + Feature-Complete YAML Schema
 
-Status: `planned`  
+Status: `completed`  
 Type: `✨ feature`  
 Area: `core`, `client`, `ai`  
 Backlog refs: `C-6`, `C-8`, `C-9` (foundation), `D-8` (downstream)

@@ -30,7 +30,6 @@ mill:
   ai:
     nl2sql:
       enable: true
-      dialect: H2
       valuemapping:
         - type: sql
           cron: once

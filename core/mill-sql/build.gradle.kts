@@ -6,20 +6,27 @@ plugins {
     id("org.jetbrains.dokka-javadoc")
 }
 
+sourceSets {
+    main {
+        resources {
+            setSrcDirs(listOf("src/main/no-resources"))
+        }
+    }
+}
+
 mill {
     description = "Mill SQL dialect schema resources and typed model foundation."
     publishArtifacts = true
 }
 
 dependencies {
+    api(project(":core:mill-core"))
     api(kotlin("stdlib"))
     api(libs.jackson.dataformat.yaml)
     api(libs.jackson.databind)
     api(libs.jackson.datatype.jdk8)
     api(libs.jackson.datatype.jsr310)
     api(libs.jackson.module.kotlin)
-    compileOnly(libs.lombok)
-    annotationProcessor(libs.lombok)
 }
 
 testing {
@@ -32,10 +39,14 @@ testing {
                     implementation(project())
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
-                    implementation(libs.lombok)
-                    annotationProcessor(libs.lombok)
                 }
             }
         }
+    }
+}
+
+tasks.processResources {
+    from("src/main/resources/sql/dialects") {
+        into("sql/v2/dialects")
     }
 }

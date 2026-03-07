@@ -15,9 +15,9 @@ import io.qpointz.mill.data.backend.flow.FlowContextFactory
 import io.qpointz.mill.data.backend.flow.MultiFileSourceRepository
 import io.qpointz.mill.data.backend.flow.SingleFileSourceRepository
 import io.qpointz.mill.data.backend.flow.SourceDefinitionRepository
-import io.qpointz.mill.sql.dialect.SqlDialectSpec
-import io.qpointz.mill.sql.dialect.SqlDialectSpecs
 import io.qpointz.mill.security.SecurityProvider
+import io.qpointz.mill.sql.v2.dialect.DialectRegistry
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec
 import io.substrait.extension.ExtensionCollector
 import io.substrait.extension.SimpleExtension
 import java.nio.file.Path
@@ -99,7 +99,7 @@ class FlowBackendContextRunner(
         @JvmOverloads
         fun flowContext(
             repository: SourceDefinitionRepository,
-            dialect: SqlDialectSpec = SqlDialectSpecs.CALCITE,
+            dialect: SqlDialectSpec = DialectRegistry.fromClasspathDefaults().requireDialect("CALCITE"),
             conventionOverrides: Map<String, Any?> = emptyMap(),
             extensionCollection: SimpleExtension.ExtensionCollection? = SimpleExtension.loadDefaults()
         ): FlowBackendContextRunner {

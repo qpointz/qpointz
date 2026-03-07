@@ -2,7 +2,7 @@ package io.qpointz.mill.autoconfigure.data.backend;
 
 import io.qpointz.mill.autoconfigure.data.SqlAutoConfiguration;
 import io.qpointz.mill.data.backend.calcite.CalciteSqlDialectConventions;
-import io.qpointz.mill.sql.dialect.SqlDialectSpec;
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import io.substrait.extension.SimpleExtension;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

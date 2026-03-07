@@ -12,6 +12,8 @@ from typing import TYPE_CHECKING, Any
 from mill._proto import data_connect_svc_pb2 as _svc
 from mill._proto import statement_pb2 as _stmt
 from mill.aio._transport import AsyncTransport
+from mill.exceptions import MillQueryError
+from mill.sql import MillDialectDescriptor, fallback_descriptor
 from mill.types import MillSchema
 
 if TYPE_CHECKING:
@@ -82,6 +84,32 @@ class AsyncMillClient:
             The ``ParseSqlResponse`` proto.
         """
         return await self._transport.parse_sql(sql)
+
+    async def supports_dialect(self) -> bool:
+        """Return whether the server advertises dialect introspection support."""
+        response = await self.handshake()
+        return response.HasField("capabilities") and response.capabilities.supportDialect
+
+    async def get_dialect(
+        self,
+        dialect_id: str | None = None,
+        *,
+        fallback_to_default: bool = True,
+    ) -> MillDialectDescriptor:
+        """Fetch dialect metadata, with optional fallback for legacy servers."""
+        if await self.supports_dialect():
+            response = await self._transport.get_dialect(dialect_id)
+            return MillDialectDescriptor.from_proto(response)
+
+        if fallback_to_default:
+            try:
+                return fallback_descriptor(dialect_id)
+            except ValueError as exc:
+                raise MillQueryError(str(exc)) from exc
+
+        raise MillQueryError(
+            "Server does not support dialect introspection (Handshake.capabilities.supportDialect=false)"
+        )
 
     # -- query execution --
 

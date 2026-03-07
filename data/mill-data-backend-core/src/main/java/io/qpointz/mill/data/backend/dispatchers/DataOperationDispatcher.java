@@ -10,6 +10,8 @@ public interface DataOperationDispatcher {
 
     GetSchemaResponse getSchema(GetSchemaRequest getSchemaRequest);
 
+    GetDialectResponse getDialect(GetDialectRequest getDialectRequest);
+
     ParseSqlResponse parseSql(ParseSqlRequest parseSqlRequest);
 
     QueryResultResponse submitQuery(QueryRequest queryRequest);

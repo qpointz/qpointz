@@ -20,3 +20,4 @@ class TestHandshake:
     def test_capabilities_populated(self, mill_client: MillClient) -> None:
         resp = mill_client.handshake()
         assert resp.HasField("capabilities"), "Handshake response missing capabilities"
+        assert hasattr(resp.capabilities, "supportDialect")

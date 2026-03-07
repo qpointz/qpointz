@@ -1,6 +1,6 @@
 # WI-016 — Migrate Core Dialects to New YAML Schema
 
-Status: `planned`  
+Status: `completed`  
 Type: `🔧 refactoring`  
 Area: `core`, `client`, `ai`  
 Backlog refs: `C-6`, `C-8`, `C-9`

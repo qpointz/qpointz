@@ -1,7 +1,6 @@
 package io.qpointz.mill.autoconfigure.data;
 
-import io.qpointz.mill.sql.dialect.SqlDialectSpec;
-import io.qpointz.mill.sql.dialect.SqlDialectSpecs;
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -23,7 +22,7 @@ class DataAutoConfigurationTest extends BaseDataAutoconfigurationTest {
             assertThat(context)
                     .hasSingleBean(SqlDialectSpec.class)
                     .getBean(SqlDialectSpec.class)
-                    .satisfies(spec -> assertThat(spec.id()).isEqualTo(MILL_DATA_DEFAULT_DIALECT.id()));
+                    .satisfies(spec -> assertThat(spec.getId()).isEqualTo(MILL_DATA_DEFAULT_DIALECT));
         });
     }
 
@@ -34,7 +33,7 @@ class DataAutoConfigurationTest extends BaseDataAutoconfigurationTest {
                 .run(context -> {
                     assertThat(context)
                             .getBean(SqlDialectSpec.class)
-                            .satisfies(spec -> assertThat(spec.id()).isEqualTo(SqlDialectSpecs.H2.id()));
+                            .satisfies(spec -> assertThat(spec.getId()).isEqualTo("H2"));
                 });
     }
 

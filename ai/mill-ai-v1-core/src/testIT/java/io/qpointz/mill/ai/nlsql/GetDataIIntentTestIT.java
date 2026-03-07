@@ -2,9 +2,10 @@ package io.qpointz.mill.ai.nlsql;
 
 import io.qpointz.mill.ai.chat.ChatUserRequests;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
-import io.qpointz.mill.ai.nlsql.models.SqlDialect;
+import io.qpointz.mill.ai.nlsql.models.SqlFeatures;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -27,7 +28,7 @@ public class GetDataIIntentTestIT extends BaseIntentTestIT {
 
     public GetDataIIntentTestIT(@Autowired ChatModel chatModel,
                                 @Autowired MetadataService metadataService,
-                                @Autowired SqlDialect sqlDialect,
+                                @Autowired SqlDialectSpec sqlDialect,
                                 @Autowired DataOperationDispatcher dispatcher) {
         super(chatModel, metadataService, sqlDialect, dispatcher);
     }
@@ -68,7 +69,7 @@ public class GetDataIIntentTestIT extends BaseIntentTestIT {
         val reason = new ReasoningResponse(query, "get-data", null, List.of(
                 new ReasoningResponse.IntentTable("MONETA", "CLIENTS", false)),
             SchemaScope.PARTIAL, SchemaStrategy.PARTIAL_RUNTIME_INJECTION, "en", List.of(), "", List.of(),
-                SqlDialect.SqlFeatures.DEFAULT);
+                SqlFeatures.DEFAULT);
         val gd = this.intentSpecs()
                 .getDataIntent().getCall(reason);
 

@@ -1,4 +1,4 @@
-package io.qpointz.mill.sql.dialect
+package io.qpointz.mill.sql.v2.dialect
 
 class DialectValidationException(
     message: String,

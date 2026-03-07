@@ -1,6 +1,6 @@
 # WI-020 — Migrate AI Dialect Consumer to New Typed Runtime
 
-Status: `planned`  
+Status: `completed`  
 Type: `🔧 refactoring`  
 Area: `ai`, `core`  
 Backlog refs: `C-7`

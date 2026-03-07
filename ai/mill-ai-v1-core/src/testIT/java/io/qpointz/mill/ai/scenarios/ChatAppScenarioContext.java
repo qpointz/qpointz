@@ -7,7 +7,6 @@ import io.qpointz.mill.ai.nlsql.*;
 import io.qpointz.mill.ai.nlsql.components.DefaultValueMapper;
 import io.qpointz.mill.ai.nlsql.components.DefaultValueRepository;
 import io.qpointz.mill.ai.nlsql.components.VectorStoreValueMapper;
-import io.qpointz.mill.ai.nlsql.models.SqlDialect;
 import io.qpointz.mill.ai.nlsql.reasoners.DefaultReasoner;
 import io.qpointz.mill.ai.nlsql.reasoners.StepBackReasoner;
 import io.qpointz.mill.test.scenario.ActionResult;
@@ -15,6 +14,7 @@ import io.qpointz.mill.test.scenario.Scenario;
 import io.qpointz.mill.test.scenario.ScenarioContext;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +45,7 @@ public class ChatAppScenarioContext extends ScenarioContext<ChatAppScenarioConte
     public ChatAppScenarioContext(Scenario scenario,
                                   ChatModel chatModel,
                                   MetadataService metadataService,
-                                  SqlDialect sqlDialect,
+                                  SqlDialectSpec sqlDialect,
                                   DataOperationDispatcher dispatcher,
                                   EmbeddingModel embeddingModel) {
 

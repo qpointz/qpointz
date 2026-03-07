@@ -18,6 +18,7 @@ mill {
 dependencies {
     api(project(":data:mill-data-autoconfigure"))
     api(project(":metadata:mill-metadata-core"))
+    api(project(":core:mill-sql"))
     implementation(project(":core:mill-spring-support"))
     implementation(libs.pebble.templates)
     implementation(libs.boot.starter)

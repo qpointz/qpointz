@@ -2,6 +2,8 @@ package io.qpointz.mill.data.backend;
 
 import io.qpointz.mill.data.backend.dispatchers.*;
 import io.qpointz.mill.proto.*;
+import io.qpointz.mill.sql.v2.dialect.DialectRegistry;
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import io.qpointz.mill.security.NoneSecurityProvider;
 import io.qpointz.mill.vectors.VectorBlockIterator;
 import io.substrait.extension.SimpleExtension;
@@ -30,9 +32,13 @@ class ServiceHandlerTest {
         val securityDispatcher = new SecurityDispatcherImpl(new NoneSecurityProvider());
         val resultAllocator = new ResultAllocatorImpl();
         val substraitDispatcher = new SubstraitDispatcher(extensionCollection);
+        val dialectRegistry = mock(DialectRegistry.class);
+        when(dialectRegistry.size()).thenReturn(1);
+        when(dialectRegistry.getDialect("CALCITE")).thenReturn(mock(SqlDialectSpec.class));
         val dataDispatcher = new DataOperationDispatcherImpl(
                 schemaProvider, executionProvider, sqlProvider,
-                securityDispatcher, null, substraitDispatcher, resultAllocator);
+                securityDispatcher, null, substraitDispatcher, resultAllocator,
+                dialectRegistry, "CALCITE");
         serviceHandler = new ServiceHandler(dataDispatcher, securityDispatcher, resultAllocator, substraitDispatcher);
     }
 

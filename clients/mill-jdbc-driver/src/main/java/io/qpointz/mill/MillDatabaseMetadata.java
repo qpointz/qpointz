@@ -1,6 +1,9 @@
 package io.qpointz.mill;
 
 import io.qpointz.mill.metadata.database.*;
+import io.qpointz.mill.proto.DialectDescriptor;
+import io.qpointz.mill.proto.GetDialectRequest;
+import io.qpointz.mill.proto.GetDialectResponse;
 import io.qpointz.mill.proto.HandshakeRequest;
 import io.qpointz.mill.proto.HandshakeResponse;
 import io.qpointz.mill.proto.MetaInfoKey;
@@ -9,9 +12,13 @@ import lombok.Getter;
 import lombok.val;
 
 import java.sql.*;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 /**
  * MillDatabaseMetadata is an implementation of the {@link DatabaseMetaData} interface.
@@ -61,6 +68,9 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
     @Getter(lazy = true)
     private final HandshakeResponse handshake = callHandshake();
 
+    @Getter(lazy = true)
+    private final Optional<GetDialectResponse> dialectResponse = callGetDialect();
+
     protected Map<Integer, MetaInfoValue> getMeta() {
         val hs = getHandshake();
         return hs.getMetasMap();
@@ -84,6 +94,98 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
         } catch (MillCodeException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private Optional<GetDialectResponse> callGetDialect() {
+        try {
+            if (!getHandshake().hasCapabilities() || !getHandshake().getCapabilities().getSupportDialect()) {
+                return Optional.empty();
+            }
+            val response = connection.getClient().getDialect(GetDialectRequest.getDefaultInstance());
+            if (response == null || !response.hasDialect()) {
+                return Optional.empty();
+            }
+            return Optional.of(response);
+        } catch (Exception ignored) {
+            return Optional.empty();
+        }
+    }
+
+    private Optional<DialectDescriptor> dialect() {
+        return getDialectResponse().map(GetDialectResponse::getDialect);
+    }
+
+    private boolean hasDialect() {
+        return dialect().isPresent();
+    }
+
+    private String dialectIdOrDefault() {
+        return dialect().map(DialectDescriptor::getId).filter(k -> !k.isBlank()).orElse("CALCITE");
+    }
+
+    private String dialectNameOrDefault() {
+        return dialect().map(DialectDescriptor::getName).filter(k -> !k.isBlank()).orElse("Apache Calcite");
+    }
+
+    private boolean featureFlag(String key, boolean defaultValue) {
+        val d = dialect().orElse(null);
+        if (d == null) {
+            return defaultValue;
+        }
+        val flags = d.getFeatureFlagsMap();
+        if (!flags.containsKey(key)) {
+            return defaultValue;
+        }
+        return flags.get(key);
+    }
+
+    private int isolationLevelFromDialect() {
+        val value = dialect()
+                .map(DialectDescriptor::getTransactions)
+                .map(DialectDescriptor.Transactions::getDefaultIsolation)
+                .orElse("NONE");
+        return switch (value.toUpperCase(Locale.ROOT)) {
+            case "READ_UNCOMMITTED" -> Connection.TRANSACTION_READ_UNCOMMITTED;
+            case "READ_COMMITTED" -> Connection.TRANSACTION_READ_COMMITTED;
+            case "REPEATABLE_READ" -> Connection.TRANSACTION_REPEATABLE_READ;
+            case "SERIALIZABLE" -> Connection.TRANSACTION_SERIALIZABLE;
+            case "NONE" -> Connection.TRANSACTION_NONE;
+            default -> Connection.TRANSACTION_NONE;
+        };
+    }
+
+    private String csvFunctionNames(String category) {
+        val d = dialect().orElse(null);
+        if (d == null) {
+            return "";
+        }
+        val entries = d.getFunctionsMap()
+                .getOrDefault(category, DialectDescriptor.FunctionCategory.getDefaultInstance())
+                .getEntriesList();
+        return entries.stream()
+                .map(DialectDescriptor.FunctionEntry::getName)
+                .filter(k -> k != null && !k.isBlank())
+                .distinct()
+                .reduce((a, b) -> a + "," + b)
+                .orElse("");
+    }
+
+    private int parseVersionPart(int idx) {
+        final String source;
+        try {
+            source = getDatabaseProductVersion();
+        } catch (SQLException e) {
+            return 0;
+        }
+        val matcher = Pattern.compile("(\\d+)").matcher(source);
+        int current = 0;
+        while (matcher.find()) {
+            if (current == idx) {
+                return Integer.parseInt(matcher.group(1));
+            }
+            current++;
+        }
+        return 0;
     }
 
     /**
@@ -134,37 +236,40 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     @Override
     public boolean isReadOnly() throws SQLException {
-        return true;
+        return dialect().map(DialectDescriptor::getReadOnly).orElse(true);
     }
 
     @Override
     public boolean nullsAreSortedHigh() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getNullSorting).map(DialectDescriptor.NullSorting::getNullsSortedHigh).orElse(false);
     }
 
     @Override
     public boolean nullsAreSortedLow() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getNullSorting).map(DialectDescriptor.NullSorting::getNullsSortedLow).orElse(true);
     }
 
     @Override
     public boolean nullsAreSortedAtStart() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getNullSorting).map(DialectDescriptor.NullSorting::getNullsSortedAtStart).orElse(false);
     }
 
     @Override
     public boolean nullsAreSortedAtEnd() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getNullSorting).map(DialectDescriptor.NullSorting::getNullsSortedAtEnd).orElse(false);
     }
 
     @Override
     public String getDatabaseProductName() throws SQLException {
-        return "";
+        return dialectNameOrDefault();
     }
 
     @Override
     public String getDatabaseProductVersion() throws SQLException {
-        return "";
+        return getDialectResponse()
+                .map(GetDialectResponse::getSchemaVersion)
+                .filter(k -> !k.isBlank())
+                .orElse(getHandshake().getVersion().name());
     }
 
 
@@ -202,347 +307,357 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     @Override
     public boolean supportsMixedCaseIdentifiers() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getIdentifiers).map(DialectDescriptor.Identifiers::getSupportsMixedCase).orElse(false);
     }
 
     @Override
     public boolean storesUpperCaseIdentifiers() throws SQLException {
-        return true;
+        return dialect().map(DialectDescriptor::getIdentifiers).map(DialectDescriptor.Identifiers::getUnquotedStorage)
+                .map(k -> "UPPER".equalsIgnoreCase(k)).orElse(true);
     }
 
     @Override
     public boolean storesLowerCaseIdentifiers() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getIdentifiers).map(DialectDescriptor.Identifiers::getUnquotedStorage)
+                .map(k -> "LOWER".equalsIgnoreCase(k)).orElse(false);
     }
 
     @Override
     public boolean storesMixedCaseIdentifiers() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getIdentifiers).map(DialectDescriptor.Identifiers::getUnquotedStorage)
+                .map(k -> "AS_IS".equalsIgnoreCase(k)).orElse(false);
     }
 
     @Override
     public boolean supportsMixedCaseQuotedIdentifiers() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getIdentifiers).map(DialectDescriptor.Identifiers::getSupportsMixedCaseQuoted).orElse(true);
     }
 
     @Override
     public boolean storesUpperCaseQuotedIdentifiers() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getIdentifiers).map(DialectDescriptor.Identifiers::getQuotedStorage)
+                .map(k -> "UPPER".equalsIgnoreCase(k)).orElse(false);
     }
 
     @Override
     public boolean storesLowerCaseQuotedIdentifiers() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getIdentifiers).map(DialectDescriptor.Identifiers::getQuotedStorage)
+                .map(k -> "LOWER".equalsIgnoreCase(k)).orElse(false);
     }
 
     @Override
     public boolean storesMixedCaseQuotedIdentifiers() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getIdentifiers).map(DialectDescriptor.Identifiers::getQuotedStorage)
+                .map(k -> "AS_IS".equalsIgnoreCase(k)).orElse(true);
     }
 
     @Override
     public String getIdentifierQuoteString() throws SQLException {
-        return "`";
+        return dialect().map(DialectDescriptor::getIdentifiers)
+                .map(DialectDescriptor.Identifiers::getQuote)
+                .map(DialectDescriptor.QuotePair::getStart)
+                .filter(k -> !k.isBlank())
+                .orElse(" ");
     }
 
     @Override
     public String getSQLKeywords() throws SQLException {
-        return "";
+        return dialect().map(DialectDescriptor::getStringProperties).map(DialectDescriptor.StringProperties::getSqlKeywords).orElse("");
     }
 
     @Override
     public String getNumericFunctions() throws SQLException {
-        return "";
+        return csvFunctionNames("numerics");
     }
 
     @Override
     public String getStringFunctions() throws SQLException {
-        return "";
+        return csvFunctionNames("strings");
     }
 
     @Override
     public String getSystemFunctions() throws SQLException {
-        return "";
+        return dialect().map(DialectDescriptor::getStringProperties).map(DialectDescriptor.StringProperties::getSystemFunctions).orElse("");
     }
 
     @Override
     public String getTimeDateFunctions() throws SQLException {
-        return "";
+        return csvFunctionNames("dates-times");
     }
 
     @Override
     public String getSearchStringEscape() throws SQLException {
-        return "";
+        return dialect().map(DialectDescriptor::getStringProperties).map(DialectDescriptor.StringProperties::getSearchStringEscape).orElse("");
     }
 
     @Override
     public String getExtraNameCharacters() throws SQLException {
-        return "";
+        return dialect().map(DialectDescriptor::getIdentifiers).map(DialectDescriptor.Identifiers::getExtraNameCharacters).orElse("");
     }
 
     @Override
     public boolean supportsAlterTableWithAddColumn() throws SQLException {
-        return false;
+        return featureFlag("supports-alter-table-add-column", false);
     }
 
     @Override
     public boolean supportsAlterTableWithDropColumn() throws SQLException {
-        return false;
+        return featureFlag("supports-alter-table-drop-column", false);
     }
 
     @Override
     public boolean supportsColumnAliasing() throws SQLException {
-        return false;
+        return featureFlag("supports-column-aliasing", true);
     }
 
     @Override
     public boolean nullPlusNonNullIsNull() throws SQLException {
-        return false;
+        return featureFlag("null-plus-non-null-is-null", true);
     }
 
     @Override
     public boolean supportsConvert() throws SQLException {
-        return false;
+        return featureFlag("supports-convert", true);
     }
 
     @Override
     public boolean supportsConvert(int fromType, int toType) throws SQLException {
-        return false;
+        return this.supportsConvert();
     }
 
     @Override
     public boolean supportsTableCorrelationNames() throws SQLException {
-        return false;
+        return featureFlag("supports-table-correlation-names", true);
     }
 
     @Override
     public boolean supportsDifferentTableCorrelationNames() throws SQLException {
-        return false;
+        return featureFlag("supports-different-table-correlation-names", false);
     }
 
     @Override
     public boolean supportsExpressionsInOrderBy() throws SQLException {
-        return false;
+        return featureFlag("supports-expressions-in-order-by", true);
     }
 
     @Override
     public boolean supportsOrderByUnrelated() throws SQLException {
-        return false;
+        return featureFlag("supports-order-by-unrelated", false);
     }
 
     @Override
     public boolean supportsGroupBy() throws SQLException {
-        return false;
+        return featureFlag("supports-group-by", true);
     }
 
     @Override
     public boolean supportsGroupByUnrelated() throws SQLException {
-        return false;
+        return featureFlag("supports-group-by-unrelated", false);
     }
 
     @Override
     public boolean supportsGroupByBeyondSelect() throws SQLException {
-        return false;
+        return featureFlag("supports-group-by-beyond-select", false);
     }
 
     @Override
     public boolean supportsLikeEscapeClause() throws SQLException {
-        return false;
+        return featureFlag("supports-like-escape-clause", true);
     }
 
     @Override
     public boolean supportsMultipleResultSets() throws SQLException {
-        return false;
+        return featureFlag("supports-multiple-result-sets", false);
     }
 
     @Override
     public boolean supportsMultipleTransactions() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getTransactions).map(DialectDescriptor.Transactions::getSupportsMultiple).orElse(false);
     }
 
     @Override
     public boolean supportsNonNullableColumns() throws SQLException {
-        return false;
+        return featureFlag("supports-non-nullable-columns", false);
     }
 
     @Override
     public boolean supportsMinimumSQLGrammar() throws SQLException {
-        return false;
+        return featureFlag("supports-minimum-sql-grammar", true);
     }
 
     @Override
     public boolean supportsCoreSQLGrammar() throws SQLException {
-        return false;
+        return featureFlag("supports-core-sql-grammar", true);
     }
 
     @Override
     public boolean supportsExtendedSQLGrammar() throws SQLException {
-        return false;
+        return featureFlag("supports-extended-sql-grammar", false);
     }
 
     @Override
     public boolean supportsANSI92EntryLevelSQL() throws SQLException {
-        return false;
+        return featureFlag("supports-ansi92-entry-level", true);
     }
 
     @Override
     public boolean supportsANSI92IntermediateSQL() throws SQLException {
-        return false;
+        return featureFlag("supports-ansi92-intermediate", false);
     }
 
     @Override
     public boolean supportsANSI92FullSQL() throws SQLException {
-        return false;
+        return featureFlag("supports-ansi92-full", false);
     }
 
     @Override
     public boolean supportsIntegrityEnhancementFacility() throws SQLException {
-        return false;
+        return featureFlag("supports-integrity-enhancement", false);
     }
 
     @Override
     public boolean supportsOuterJoins() throws SQLException {
-        return false;
+        return featureFlag("supports-outer-joins", true);
     }
 
     @Override
     public boolean supportsFullOuterJoins() throws SQLException {
-        return false;
+        return featureFlag("supports-full-outer-joins", true);
     }
 
     @Override
     public boolean supportsLimitedOuterJoins() throws SQLException {
-        return false;
+        return featureFlag("supports-limited-outer-joins", true);
     }
 
     @Override
     public String getSchemaTerm() throws SQLException {
-        return "";
+        return dialect().map(DialectDescriptor::getCatalogSchema).map(DialectDescriptor.CatalogSchema::getSchemaTerm).orElse("schema");
     }
 
     @Override
     public String getProcedureTerm() throws SQLException {
-        return "";
+        return dialect().map(DialectDescriptor::getCatalogSchema).map(DialectDescriptor.CatalogSchema::getProcedureTerm).orElse("procedure");
     }
 
     @Override
     public String getCatalogTerm() throws SQLException {
-        return "";
+        return dialect().map(DialectDescriptor::getCatalogSchema).map(DialectDescriptor.CatalogSchema::getCatalogTerm).orElse("catalog");
     }
 
     @Override
     public boolean isCatalogAtStart() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getCatalogSchema).map(DialectDescriptor.CatalogSchema::getCatalogAtStart).orElse(true);
     }
 
     @Override
     public String getCatalogSeparator() throws SQLException {
-        return "";
+        return dialect().map(DialectDescriptor::getCatalogSchema).map(DialectDescriptor.CatalogSchema::getCatalogSeparator).orElse(".");
     }
 
     @Override
     public boolean supportsSchemasInDataManipulation() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getCatalogSchema).map(DialectDescriptor.CatalogSchema::getSchemasInDml).orElse(true);
     }
 
     @Override
     public boolean supportsSchemasInProcedureCalls() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getCatalogSchema).map(DialectDescriptor.CatalogSchema::getSchemasInProcedureCalls).orElse(false);
     }
 
     @Override
     public boolean supportsSchemasInTableDefinitions() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getCatalogSchema).map(DialectDescriptor.CatalogSchema::getSchemasInTableDefinitions).orElse(false);
     }
 
     @Override
     public boolean supportsSchemasInIndexDefinitions() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getCatalogSchema).map(DialectDescriptor.CatalogSchema::getSchemasInIndexDefinitions).orElse(false);
     }
 
     @Override
     public boolean supportsSchemasInPrivilegeDefinitions() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getCatalogSchema).map(DialectDescriptor.CatalogSchema::getSchemasInPrivilegeDefinitions).orElse(false);
     }
 
     @Override
     public boolean supportsCatalogsInDataManipulation() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getCatalogSchema).map(DialectDescriptor.CatalogSchema::getCatalogsInDml).orElse(false);
     }
 
     @Override
     public boolean supportsCatalogsInProcedureCalls() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getCatalogSchema).map(DialectDescriptor.CatalogSchema::getCatalogsInProcedureCalls).orElse(false);
     }
 
     @Override
     public boolean supportsCatalogsInTableDefinitions() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getCatalogSchema).map(DialectDescriptor.CatalogSchema::getCatalogsInTableDefinitions).orElse(false);
     }
 
     @Override
     public boolean supportsCatalogsInIndexDefinitions() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getCatalogSchema).map(DialectDescriptor.CatalogSchema::getCatalogsInIndexDefinitions).orElse(false);
     }
 
     @Override
     public boolean supportsCatalogsInPrivilegeDefinitions() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getCatalogSchema).map(DialectDescriptor.CatalogSchema::getCatalogsInPrivilegeDefinitions).orElse(false);
     }
 
     @Override
     public boolean supportsPositionedDelete() throws SQLException {
-        return false;
+        return featureFlag("supports-positioned-delete", false);
     }
 
     @Override
     public boolean supportsPositionedUpdate() throws SQLException {
-        return false;
+        return featureFlag("supports-positioned-update", false);
     }
 
     @Override
     public boolean supportsSelectForUpdate() throws SQLException {
-        return false;
+        return featureFlag("supports-select-for-update", false);
     }
 
     @Override
     public boolean supportsStoredProcedures() throws SQLException {
-        return false;
+        return featureFlag("supports-stored-procedures", false);
     }
 
     @Override
     public boolean supportsSubqueriesInComparisons() throws SQLException {
-        return false;
+        return featureFlag("supports-subqueries-in-comparisons", true);
     }
 
     @Override
     public boolean supportsSubqueriesInExists() throws SQLException {
-        return false;
+        return featureFlag("supports-subqueries-in-exists", true);
     }
 
     @Override
     public boolean supportsSubqueriesInIns() throws SQLException {
-        return false;
+        return featureFlag("supports-subqueries-in-ins", true);
     }
 
     @Override
     public boolean supportsSubqueriesInQuantifieds() throws SQLException {
-        return false;
+        return featureFlag("supports-subqueries-in-quantifieds", true);
     }
 
     @Override
     public boolean supportsCorrelatedSubqueries() throws SQLException {
-        return false;
+        return featureFlag("supports-correlated-subqueries", true);
     }
 
     @Override
     public boolean supportsUnion() throws SQLException {
-        return false;
+        return featureFlag("supports-union", true);
     }
 
     @Override
     public boolean supportsUnionAll() throws SQLException {
-        return false;
+        return featureFlag("supports-union-all", true);
     }
 
     @Override
@@ -567,47 +682,47 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     @Override
     public int getMaxBinaryLiteralLength() throws SQLException {
-        return 0;
+        return dialect().map(DialectDescriptor::getLimits).map(DialectDescriptor.Limits::getMaxBinaryLiteralLength).orElse(0);
     }
 
     @Override
     public int getMaxCharLiteralLength() throws SQLException {
-        return 0;
+        return dialect().map(DialectDescriptor::getLimits).map(DialectDescriptor.Limits::getMaxCharLiteralLength).orElse(0);
     }
 
     @Override
     public int getMaxColumnNameLength() throws SQLException {
-        return 0;
+        return dialect().map(DialectDescriptor::getLimits).map(DialectDescriptor.Limits::getMaxColumnNameLength).orElse(0);
     }
 
     @Override
     public int getMaxColumnsInGroupBy() throws SQLException {
-        return 0;
+        return dialect().map(DialectDescriptor::getLimits).map(DialectDescriptor.Limits::getMaxColumnsInGroupBy).orElse(0);
     }
 
     @Override
     public int getMaxColumnsInIndex() throws SQLException {
-        return 0;
+        return dialect().map(DialectDescriptor::getLimits).map(DialectDescriptor.Limits::getMaxColumnsInIndex).orElse(0);
     }
 
     @Override
     public int getMaxColumnsInOrderBy() throws SQLException {
-        return 0;
+        return dialect().map(DialectDescriptor::getLimits).map(DialectDescriptor.Limits::getMaxColumnsInOrderBy).orElse(0);
     }
 
     @Override
     public int getMaxColumnsInSelect() throws SQLException {
-        return 0;
+        return dialect().map(DialectDescriptor::getLimits).map(DialectDescriptor.Limits::getMaxColumnsInSelect).orElse(0);
     }
 
     @Override
     public int getMaxColumnsInTable() throws SQLException {
-        return 0;
+        return dialect().map(DialectDescriptor::getLimits).map(DialectDescriptor.Limits::getMaxColumnsInTable).orElse(0);
     }
 
     @Override
     public int getMaxConnections() throws SQLException {
-        return 0;
+        return dialect().map(DialectDescriptor::getLimits).map(DialectDescriptor.Limits::getMaxConnections).orElse(0);
     }
 
     @Override
@@ -617,12 +732,12 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     @Override
     public int getMaxIndexLength() throws SQLException {
-        return 0;
+        return dialect().map(DialectDescriptor::getLimits).map(DialectDescriptor.Limits::getMaxIndexLength).orElse(0);
     }
 
     @Override
     public int getMaxSchemaNameLength() throws SQLException {
-        return 0;
+        return dialect().map(DialectDescriptor::getLimits).map(DialectDescriptor.Limits::getMaxSchemaNameLength).orElse(0);
     }
 
     @Override
@@ -632,37 +747,37 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     @Override
     public int getMaxCatalogNameLength() throws SQLException {
-        return 0;
+        return dialect().map(DialectDescriptor::getLimits).map(DialectDescriptor.Limits::getMaxCatalogNameLength).orElse(0);
     }
 
     @Override
     public int getMaxRowSize() throws SQLException {
-        return 0;
+        return dialect().map(DialectDescriptor::getLimits).map(DialectDescriptor.Limits::getMaxRowSize).orElse(0);
     }
 
     @Override
     public boolean doesMaxRowSizeIncludeBlobs() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getLimits).map(DialectDescriptor.Limits::getMaxRowSizeIncludesBlobs).orElse(false);
     }
 
     @Override
     public int getMaxStatementLength() throws SQLException {
-        return 0;
+        return dialect().map(DialectDescriptor::getLimits).map(DialectDescriptor.Limits::getMaxStatementLength).orElse(0);
     }
 
     @Override
     public int getMaxStatements() throws SQLException {
-        return 0;
+        return dialect().map(DialectDescriptor::getLimits).map(DialectDescriptor.Limits::getMaxStatements).orElse(0);
     }
 
     @Override
     public int getMaxTableNameLength() throws SQLException {
-        return 0;
+        return dialect().map(DialectDescriptor::getLimits).map(DialectDescriptor.Limits::getMaxTableNameLength).orElse(0);
     }
 
     @Override
     public int getMaxTablesInSelect() throws SQLException {
-        return 0;
+        return dialect().map(DialectDescriptor::getLimits).map(DialectDescriptor.Limits::getMaxTablesInSelect).orElse(0);
     }
 
     @Override
@@ -672,37 +787,37 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     @Override
     public int getDefaultTransactionIsolation() throws SQLException {
-        return 0;
+        return isolationLevelFromDialect();
     }
 
     @Override
     public boolean supportsTransactions() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getTransactions).map(DialectDescriptor.Transactions::getSupported).orElse(false);
     }
 
     @Override
     public boolean supportsTransactionIsolationLevel(int level) throws SQLException {
-        return false;
+        return supportsTransactions() && level == getDefaultTransactionIsolation();
     }
 
     @Override
     public boolean supportsDataDefinitionAndDataManipulationTransactions() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getTransactions).map(DialectDescriptor.Transactions::getSupportsDdlAndDml).orElse(false);
     }
 
     @Override
     public boolean supportsDataManipulationTransactionsOnly() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getTransactions).map(DialectDescriptor.Transactions::getSupportsDmlOnly).orElse(false);
     }
 
     @Override
     public boolean dataDefinitionCausesTransactionCommit() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getTransactions).map(DialectDescriptor.Transactions::getDdlCausesCommit).orElse(false);
     }
 
     @Override
     public boolean dataDefinitionIgnoredInTransactions() throws SQLException {
-        return false;
+        return dialect().map(DialectDescriptor::getTransactions).map(DialectDescriptor.Transactions::getDdlIgnoredInTransactions).orElse(false);
     }
 
     @Override
@@ -785,7 +900,7 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     @Override
     public ResultSet getTypeInfo() throws SQLException {
-        return null;
+        return new TypeInfoMetadata(dialect().map(DialectDescriptor::getTypeInfoList).orElse(List.of())).asResultSet();
     }
 
     @Override
@@ -795,11 +910,30 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     @Override
     public boolean supportsResultSetType(int type) throws SQLException {
-        return false;
+        val resultSet = dialect().map(DialectDescriptor::getResultSet).orElse(null);
+        if (resultSet == null) {
+            return type == ResultSet.TYPE_FORWARD_ONLY;
+        }
+        return switch (type) {
+            case ResultSet.TYPE_FORWARD_ONLY -> resultSet.getForwardOnly();
+            case ResultSet.TYPE_SCROLL_INSENSITIVE -> resultSet.getScrollInsensitive();
+            case ResultSet.TYPE_SCROLL_SENSITIVE -> resultSet.getScrollSensitive();
+            default -> false;
+        };
     }
 
     @Override
     public boolean supportsResultSetConcurrency(int type, int concurrency) throws SQLException {
+        val resultSet = dialect().map(DialectDescriptor::getResultSet).orElse(null);
+        if (resultSet == null) {
+            return type == ResultSet.TYPE_FORWARD_ONLY && concurrency == ResultSet.CONCUR_READ_ONLY;
+        }
+        if (concurrency == ResultSet.CONCUR_READ_ONLY) {
+            return resultSet.getConcurrencyReadOnly() && supportsResultSetType(type);
+        }
+        if (concurrency == ResultSet.CONCUR_UPDATABLE) {
+            return resultSet.getConcurrencyUpdatable() && supportsResultSetType(type);
+        }
         return false;
     }
 
@@ -850,7 +984,7 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     @Override
     public boolean supportsBatchUpdates() throws SQLException {
-        return false;
+        return featureFlag("supports-batch-updates", false);
     }
 
     @Override
@@ -860,27 +994,27 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     @Override
     public Connection getConnection() throws SQLException {
-        return null;
+        return this.connection;
     }
 
     @Override
     public boolean supportsSavepoints() throws SQLException {
-        return false;
+        return featureFlag("supports-savepoints", false);
     }
 
     @Override
     public boolean supportsNamedParameters() throws SQLException {
-        return false;
+        return featureFlag("supports-named-parameters", false);
     }
 
     @Override
     public boolean supportsMultipleOpenResults() throws SQLException {
-        return false;
+        return featureFlag("supports-multiple-open-results", false);
     }
 
     @Override
     public boolean supportsGetGeneratedKeys() throws SQLException {
-        return false;
+        return featureFlag("supports-get-generated-keys", false);
     }
 
     @Override
@@ -900,37 +1034,37 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     @Override
     public boolean supportsResultSetHoldability(int holdability) throws SQLException {
-        return false;
+        return holdability == ResultSet.HOLD_CURSORS_OVER_COMMIT;
     }
 
     @Override
     public int getResultSetHoldability() throws SQLException {
-        return 0;
+        return ResultSet.HOLD_CURSORS_OVER_COMMIT;
     }
 
     @Override
     public int getDatabaseMajorVersion() throws SQLException {
-        return 0;
+        return parseVersionPart(0);
     }
 
     @Override
     public int getDatabaseMinorVersion() throws SQLException {
-        return 0;
+        return parseVersionPart(1);
     }
 
     @Override
     public int getJDBCMajorVersion() throws SQLException {
-        return 0;
+        return 4;
     }
 
     @Override
     public int getJDBCMinorVersion() throws SQLException {
-        return 0;
+        return 2;
     }
 
     @Override
     public int getSQLStateType() throws SQLException {
-        return 0;
+        return DatabaseMetaData.sqlStateSQL;
     }
 
     @Override
@@ -940,27 +1074,28 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     @Override
     public boolean supportsStatementPooling() throws SQLException {
-        return false;
+        return featureFlag("supports-statement-pooling", false);
     }
 
     @Override
     public RowIdLifetime getRowIdLifetime() throws SQLException {
-        return null;
+        return RowIdLifetime.ROWID_UNSUPPORTED;
     }
 
     @Override
     public ResultSet getSchemas(String catalog, String schemaPattern) throws SQLException {
-        return null;
+        return new SchemasMetadata(this.connection)
+                .asResultSet();
     }
 
     @Override
     public boolean supportsStoredFunctionsUsingCallSyntax() throws SQLException {
-        return false;
+        return featureFlag("supports-stored-functions-using-call-syntax", false);
     }
 
     @Override
     public boolean autoCommitFailureClosesAllResultSets() throws SQLException {
-        return false;
+        return featureFlag("auto-commit-failure-closes-all-result-sets", false);
     }
 
     @Override
@@ -985,16 +1120,16 @@ public class MillDatabaseMetadata implements DatabaseMetaData {
 
     @Override
     public boolean generatedKeyAlwaysReturned() throws SQLException {
-        return false;
+        return featureFlag("generated-key-always-returned", false);
     }
 
     @Override
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        return null;
+        return iface.cast(this);
     }
 
     @Override
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
-        return false;
+        return iface.isAssignableFrom(MillDatabaseMetadata.class);
     }
 }
