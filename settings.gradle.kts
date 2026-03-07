@@ -14,6 +14,7 @@ rootProject.name = "mill"
 
 include (":core")
 include (":core:mill-core")
+include (":core:mill-sql")
 include (":core:mill-security")
 include (":core:mill-test-kit")
 include (":core:mill-spring-support")

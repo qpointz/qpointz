@@ -1,0 +1,660 @@
+id: H2
+name: H2 Database
+read-only: false
+paramstyle: qmark
+notes:
+- When using regular expressions use Java regex syntax.
+identifiers:
+  quote:
+    start: '"'
+    end: '"'
+  alias-quote:
+    start: '"'
+    end: '"'
+  use-fully-qualified-names: true
+  escape-quote: '"'
+  unquoted-storage: AS_IS
+  quoted-storage: AS_IS
+  supports-mixed-case: true
+  supports-mixed-case-quoted: true
+  max-length: 256
+  extra-name-characters: ''
+catalog-schema:
+  supports-schemas: true
+  supports-catalogs: false
+  catalog-separator: .
+  catalog-at-start: true
+  schema-term: schema
+  catalog-term: catalog
+  procedure-term: procedure
+  schemas-in-dml: true
+  schemas-in-procedure-calls: false
+  schemas-in-table-definitions: false
+  schemas-in-index-definitions: false
+  schemas-in-privilege-definitions: false
+  catalogs-in-dml: false
+  catalogs-in-procedure-calls: false
+  catalogs-in-table-definitions: false
+  catalogs-in-index-definitions: false
+  catalogs-in-privilege-definitions: false
+transactions:
+  supported: false
+  default-isolation: NONE
+  supports-multiple: false
+  supports-ddl-and-dml: false
+  supports-dml-only: false
+  ddl-causes-commit: false
+  ddl-ignored-in-transactions: false
+limits:
+  max-binary-literal-length: 0
+  max-char-literal-length: 0
+  max-column-name-length: 256
+  max-columns-in-group-by: 0
+  max-columns-in-index: 0
+  max-columns-in-order-by: 0
+  max-columns-in-select: 0
+  max-columns-in-table: 0
+  max-connections: 0
+  max-index-length: 0
+  max-schema-name-length: 256
+  max-catalog-name-length: 256
+  max-row-size: 0
+  max-row-size-includes-blobs: false
+  max-statement-length: 0
+  max-statements: 0
+  max-table-name-length: 256
+  max-tables-in-select: 0
+null-sorting:
+  nulls-sorted-high: false
+  nulls-sorted-low: true
+  nulls-sorted-at-start: false
+  nulls-sorted-at-end: false
+  supports-nulls-first: true
+  supports-nulls-last: true
+result-set:
+  forward-only: true
+  scroll-insensitive: false
+  scroll-sensitive: false
+  concurrency-read-only: true
+  concurrency-updatable: false
+feature-flags:
+  supports-column-aliasing: true
+  supports-expressions-in-order-by: true
+  supports-order-by-unrelated: false
+  supports-group-by: true
+  supports-group-by-unrelated: false
+  supports-group-by-beyond-select: false
+  supports-like-escape-clause: true
+  supports-non-nullable-columns: false
+  supports-table-correlation-names: true
+  supports-different-table-correlation-names: false
+  null-plus-non-null-is-null: true
+  supports-convert: true
+  supports-outer-joins: true
+  supports-full-outer-joins: true
+  supports-limited-outer-joins: true
+  supports-semi-anti-join: false
+  supports-lateral: false
+  supports-subqueries-in-comparisons: true
+  supports-subqueries-in-exists: true
+  supports-subqueries-in-ins: true
+  supports-subqueries-in-quantifieds: true
+  supports-correlated-subqueries: true
+  supports-union: true
+  supports-union-all: true
+  supports-intersect: true
+  supports-except: true
+  supports-cte: true
+  supports-window-functions: false
+  supports-qualify: false
+  supports-is-distinct-from: true
+  supports-ilike: true
+  supports-try-cast: false
+  supports-native-boolean: true
+  div-is-floordiv: null
+  supports-alter-table-add-column: false
+  supports-alter-table-drop-column: false
+  supports-select-for-update: false
+  supports-stored-procedures: false
+  supports-batch-updates: false
+  supports-savepoints: false
+  supports-named-parameters: false
+  supports-multiple-result-sets: false
+  supports-multiple-open-results: false
+  supports-get-generated-keys: false
+  supports-statement-pooling: false
+  supports-stored-functions-using-call-syntax: false
+  supports-positioned-delete: false
+  supports-positioned-update: false
+  supports-minimum-sql-grammar: true
+  supports-core-sql-grammar: true
+  supports-extended-sql-grammar: false
+  supports-ansi92-entry-level: true
+  supports-ansi92-intermediate: false
+  supports-ansi92-full: false
+  supports-integrity-enhancement: false
+  auto-commit-failure-closes-all-result-sets: false
+  generated-key-always-returned: false
+string-properties:
+  search-string-escape: \\
+  sql-keywords: ''
+  system-functions: ''
+literals:
+  strings:
+    quote: ''''
+    concat: '||'
+    escape: STANDARD
+    note: Standard SQL string literal syntax with single quotes
+  booleans:
+  - 'TRUE'
+  - 'FALSE'
+  null: 'NULL'
+  dates-times:
+    date:
+      syntax: DATE 'YYYY-MM-DD'
+      quote: ''''
+      pattern: YYYY-MM-DD
+      notes:
+      - ANSI DATE literal
+    time:
+      syntax: TIME 'HH:MI:SS'
+      quote: ''''
+      pattern: HH:MI:SS
+      notes:
+      - ANSI TIME literal
+    timestamp:
+      syntax: TIMESTAMP 'YYYY-MM-DD HH:MI:SS'
+      quote: ''''
+      pattern: YYYY-MM-DD HH:MI:SS
+      notes:
+      - ANSI TIMESTAMP literal
+    interval:
+      supported: true
+      style: ANSI
+      notes:
+      - INTERVAL syntax supported in H2
+joins:
+  style: explicit
+  cross-join:
+    enabled: true
+    keyword: CROSS JOIN
+  inner-join:
+    keyword: INNER JOIN
+    require-on: true
+    null-safe: false
+  left-join:
+    enabled: true
+    keyword: LEFT JOIN
+    null-safe: false
+    require-on: true
+  right-join:
+    keyword: RIGHT JOIN
+    enabled: true
+    null-safe: false
+    require-on: true
+  full-join:
+    keyword: FULL JOIN
+    enabled: true
+    null-safe: false
+    require-on: true
+  on-clause:
+    keyword: 'ON'
+    require-condition: true
+paging:
+  styles:
+  - syntax: LIMIT {n}
+    type: standard
+  - syntax: TOP {n}
+    type: compat
+    deprecated: true
+  offset: OFFSET {m}
+  no-limit-value: null
+operators:
+  equality:
+  - symbol: '='
+    description: Equality comparison
+  inequality:
+  - symbol: <>
+    description: Not equal
+  - symbol: '!='
+    description: Not equal (alternative)
+  comparison:
+  - symbol: '>'
+    description: Greater than
+  - symbol: '>='
+    description: Greater than or equal
+  - symbol: <
+    description: Less than
+  - symbol: <=
+    description: Less than or equal
+  set:
+  - symbol: IN
+    description: Membership test
+  - symbol: NOT IN
+    description: Negated membership test
+  null-safe:
+  - symbol: IS NOT DISTINCT FROM
+    description: Null-safe equality (same as PostgreSQL)
+  logical:
+  - symbol: NOT
+    description: Logical NOT
+  - symbol: AND
+    description: Logical AND
+  - symbol: OR
+    description: Logical OR
+  like:
+  - symbol: LIKE
+    description: Pattern match with wildcards
+  - symbol: ILIKE
+    description: Case-insensitive pattern match (H2 extension)
+  between:
+  - symbol: BETWEEN
+    description: Inclusive range comparison
+  casting:
+  - symbol: CAST
+    syntax: CAST({expr} AS {type})
+    description: Explicit type cast
+    supported: true
+  - symbol: CONVERT
+    syntax: CONVERT({expr}, {type})
+    description: Alternative cast syntax
+    supported: true
+  regex:
+  - symbol: REGEXP
+    description: Regex match operator (case-sensitive)
+  arithmetic:
+  - symbol: +
+    description: Addition
+  - symbol: '-'
+    description: Subtraction
+  - symbol: '*'
+    description: Multiplication
+  - symbol: /
+    description: Division
+  - symbol: '%'
+    description: Modulo
+  null-checks:
+  - symbol: IS NULL
+    description: Check for null
+  - symbol: IS NOT NULL
+    description: Check for not null
+functions:
+  strings:
+  - name: LENGTH
+    return:
+      type: INTEGER
+      nullable: false
+    syntax: LENGTH(text)
+    args:
+    - name: text
+      type: STRING
+      required: true
+      notes: Input string length
+  - name: UPPER
+    return:
+      type: STRING
+      nullable: true
+    syntax: UPPER(text)
+    args:
+    - name: text
+      type: STRING
+      required: true
+  - name: LOWER
+    return:
+      type: STRING
+      nullable: true
+    syntax: LOWER(text)
+    args:
+    - name: text
+      type: STRING
+      required: true
+  - name: CONCAT
+    return:
+      type: STRING
+      nullable: true
+    syntax: CONCAT(a, b, ...)
+    args:
+    - name: a
+      type: STRING
+      required: true
+    - name: b
+      type: STRING
+      required: true
+      variadic: true
+  - name: POSITION
+    return:
+      type: INTEGER
+      nullable: true
+    syntax: POSITION(substr IN str)
+    args:
+    - name: substr
+      type: STRING
+      required: true
+    - name: str
+      type: STRING
+      required: true
+  - name: TRIM
+    return:
+      type: STRING
+      nullable: true
+    syntax: TRIM(str)
+    args:
+    - name: str
+      type: STRING
+      required: true
+  regex:
+  - name: REGEXP_LIKE
+    return:
+      type: BOOLEAN
+      nullable: false
+    syntax: REGEXP_LIKE(input, pattern[, flags])
+    args:
+    - name: input
+      type: STRING
+      required: true
+      notes: String to test
+    - name: pattern
+      type: PATTERN
+      required: true
+      notes: Java regex (java.util.regex)
+    - name: flags
+      type: ENUM
+      required: false
+      multi: true
+      enum:
+      - i
+      - c
+      - m
+      - n
+      - u
+      - s
+      - x
+      notes: Oracle-style flags; mapped to Java regex options
+  - name: REGEXP_REPLACE
+    return:
+      type: STRING
+      nullable: true
+    syntax: REGEXP_REPLACE(input, pattern, replacement[, flags])
+    args:
+    - name: input
+      type: STRING
+      required: true
+    - name: pattern
+      type: PATTERN
+      required: true
+    - name: replacement
+      type: STRING
+      required: true
+    - name: flags
+      type: ENUM
+      required: false
+      multi: true
+      enum:
+      - i
+      - c
+      - m
+      - n
+      - u
+      - s
+      - x
+  - name: REGEXP_SUBSTR
+    return:
+      type: STRING
+      nullable: true
+    syntax: REGEXP_SUBSTR(input, pattern[, occurrence[, flags]])
+    args:
+    - name: input
+      type: STRING
+      required: true
+    - name: pattern
+      type: PATTERN
+      required: true
+    - name: occurrence
+      type: INTEGER
+      required: false
+      min: 1
+      notes: Nth match to return (default 1)
+    - name: flags
+      type: ENUM
+      required: false
+      multi: true
+      enum:
+      - i
+      - c
+      - m
+      - n
+      - u
+      - s
+      - x
+  - name: REGEXP_INSTR
+    return:
+      type: INTEGER
+      nullable: true
+    syntax: REGEXP_INSTR(input, pattern[, start[, occurrence[, flags]]])
+    args:
+    - name: input
+      type: STRING
+      required: true
+    - name: pattern
+      type: PATTERN
+      required: true
+    - name: start
+      type: INTEGER
+      required: false
+      min: 1
+      notes: Start position (default 1)
+    - name: occurrence
+      type: INTEGER
+      required: false
+      min: 1
+    - name: flags
+      type: ENUM
+      required: false
+      multi: true
+      enum:
+      - i
+      - c
+      - m
+      - n
+      - u
+      - s
+      - x
+  numerics:
+  - name: ABS
+    return:
+      type: DECIMAL
+      nullable: true
+    syntax: ABS(num)
+    args:
+    - name: num
+      type: DECIMAL
+      required: true
+  - name: ROUND
+    return:
+      type: DECIMAL
+      nullable: true
+    syntax: ROUND(num[, scale])
+    args:
+    - name: num
+      type: DECIMAL
+      required: true
+    - name: scale
+      type: INTEGER
+      required: false
+  - name: CEIL
+    synonyms:
+    - CEILING
+    return:
+      type: DECIMAL
+      nullable: true
+    syntax: CEIL(num)
+    args:
+    - name: num
+      type: DECIMAL
+      required: true
+  - name: FLOOR
+    return:
+      type: DECIMAL
+      nullable: true
+    syntax: FLOOR(num)
+    args:
+    - name: num
+      type: DECIMAL
+      required: true
+  - name: MOD
+    return:
+      type: INTEGER
+      nullable: true
+    syntax: MOD(a, b)
+    args:
+    - name: a
+      type: INTEGER
+      required: true
+    - name: b
+      type: INTEGER
+      required: true
+  - name: POWER
+    return:
+      type: DECIMAL
+      nullable: true
+    syntax: POWER(a, b)
+    args:
+    - name: a
+      type: DECIMAL
+      required: true
+    - name: b
+      type: DECIMAL
+      required: true
+  aggregates:
+  - name: COUNT
+    return:
+      type: INTEGER
+      nullable: false
+    syntax: COUNT(expr)
+    args:
+    - name: expr
+      type: COLUMN_REF
+      required: false
+      default: '*'
+      notes: COUNT(*) allowed
+  - name: SUM
+    return:
+      type: DECIMAL
+      nullable: true
+    syntax: SUM(expr)
+    args:
+    - name: expr
+      type: DECIMAL
+      required: true
+  - name: AVG
+    return:
+      type: DECIMAL
+      nullable: true
+    syntax: AVG(expr)
+    args:
+    - name: expr
+      type: DECIMAL
+      required: true
+  - name: MIN
+    return:
+      type: DECIMAL
+      nullable: true
+    syntax: MIN(expr)
+    args:
+    - name: expr
+      type: DECIMAL
+      required: true
+  - name: MAX
+    return:
+      type: DECIMAL
+      nullable: true
+    syntax: MAX(expr)
+    args:
+    - name: expr
+      type: DECIMAL
+      required: true
+  conditionals:
+  - name: COALESCE
+    return:
+      type: STRING
+      nullable: true
+    syntax: COALESCE(a, b, ...)
+    args:
+    - name: a
+      type: STRING
+      required: true
+      variadic: true
+  - name: NULLIF
+    return:
+      type: STRING
+      nullable: true
+    syntax: NULLIF(a, b)
+    args:
+    - name: a
+      type: STRING
+      required: true
+    - name: b
+      type: STRING
+      required: true
+  - name: CASE
+    return:
+      type: STRING
+      nullable: true
+    syntax: CASE WHEN cond THEN val [ELSE val] END
+    args:
+    - name: cond
+      type: BOOLEAN
+      required: true
+    - name: val
+      type: STRING
+      required: true
+      variadic: true
+  dates-times:
+  - name: CURRENT_DATE
+    return:
+      type: DATE
+      nullable: false
+    syntax: CURRENT_DATE
+    args: []
+  - name: CURRENT_TIME
+    return:
+      type: TIME
+      nullable: false
+    syntax: CURRENT_TIME
+    args: []
+  - name: CURRENT_TIMESTAMP
+    return:
+      type: TIMESTAMP
+      nullable: false
+    syntax: CURRENT_TIMESTAMP
+    args: []
+  - name: NOW
+    return:
+      type: TIMESTAMP
+      nullable: false
+    syntax: NOW()
+    args: []
+  - name: EXTRACT
+    return:
+      type: INTEGER
+      nullable: true
+    syntax: EXTRACT(field FROM ts)
+    args:
+    - name: field
+      type: ENUM
+      required: true
+      enum:
+      - YEAR
+      - MONTH
+      - DAY
+      - HOUR
+      - MINUTE
+      - SECOND
+      notes: Extract unit
+    - name: ts
+      type: TIMESTAMP
+      required: true
+  math: []
+  statistics: []
+  window: []
+type-info: []

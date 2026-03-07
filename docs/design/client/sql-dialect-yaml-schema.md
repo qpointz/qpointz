@@ -465,10 +465,13 @@ continue to deserialize because all new fields are optional.
 Populate the full schema for one dialect as a reference. Validate deserialization with
 existing unit tests + new tests for the expanded sections.
 
-### Phase 3 — Populate all 10 dialects
+### Phase 3 — Populate initial core dialects (4)
 
-Apply the expanded schema to all dialect YAMLs. Content comes from vendor documentation
+Apply the expanded schema to the initial `core/mill-sql` dialect set:
+`CALCITE`, `POSTGRES`, `H2`, `MYSQL`. Content comes from vendor documentation
 (~75% coverable) and empirical testing via the Slice 9B `DialectTester` (~25%).
+
+Further dialects can be added in later migration waves once the core set is stable.
 
 ### Phase 4 — Rewrite AI consumer
 
@@ -544,3 +547,259 @@ like `div-is-floordiv`, driver-level capabilities) requires empirical testing.
 | `regex` | Regex matching | `REGEXP`, `~`, `~*` (dialect-specific) |
 | `bitwise` | Bitwise operations | `BITAND`, `BITOR`, `BITXOR`, `BITNOT`, `LSHIFT`, `RSHIFT` |
 | `casting` | Type casting | `CAST`, `::`, `CONVERT`, `TRY_CAST` |
+
+---
+
+## 8. Representability Matrix (Section 3)
+
+This matrix tracks whether the YAML schema can *represent* each requirement class from
+`py-sql-dialect-plan.md` section 3. It is representability-first: values may be unknown or
+conservative, but the shape must exist.
+
+| Section 3 aspect | Represented by YAML sections | Status |
+|---|---|---|
+| Identifier quote/case/storage/length | `identifiers` | representable |
+| Schema/catalog topology | `catalog-schema` | representable |
+| String quoting/concat/escape | `literals.strings` | representable |
+| Boolean/date/time/interval literals | `literals` | representable |
+| Join capability + join syntax | `joins`, `feature-flags` | representable |
+| Null ordering and nulls-first/last support | `null-sorting` | representable |
+| Paging forms and no-limit sentinel | `paging` | representable |
+| Feature toggles (CTE, set ops, lateral, qualify, etc.) | `feature-flags` | representable |
+| Predicate/operator families (like, between, regex, bitwise, casting) | `operators`, `feature-flags` | representable |
+| Function coverage (scalar/aggregate/window/statistics/math) | `functions` | representable |
+| Read-only behavior | top-level `read-only` | representable |
+| Division semantics (`div-is-floordiv`) | `feature-flags.div-is-floordiv` | representable |
+| Parameter binding style | top-level `paramstyle` | representable |
+| Type-system and JDBC type metadata | `type-info` | representable |
+| Result set capabilities | `result-set` | representable |
+| Transaction semantics | `transactions` | representable |
+| Limits (`max_*`) | `limits` | representable |
+| SQL keywords/system functions/search escape | `string-properties` | representable |
+
+---
+
+## 9. Gap-to-Schema Matrix (Section 4)
+
+This matrix maps section 4 gaps from `py-sql-dialect-plan.md` to schema fields.
+
+| Gap id | Gap summary | YAML fields | Status |
+|---|---|---|---|
+| B1 | Identifier quoted/unquoted storage rules | `identifiers.unquoted-storage`, `identifiers.quoted-storage`, mixed-case flags, quotes | representable |
+| B2 | Schema/catalog topology | `catalog-schema.*` | representable |
+| B3 | SQL capability flags | `feature-flags.*` | representable |
+| B4 | Limits metadata | `limits.*` | representable |
+| B5 | Transaction semantics | `transactions.*` | representable |
+| B6 | String/keyword properties | `string-properties.*`, `literals.strings.*` | representable |
+| B7 | Type info enrichment | `type-info[*]` | representable |
+| B8 | ResultSet capability flags | `result-set.*` | representable |
+| 11 | SEMI/ANTI join capability | `feature-flags.supports-semi-anti-join` | representable |
+| 12 | LATERAL join capability | `feature-flags.supports-lateral` | representable |
+| 16 | `no_limit_value` support | `paging.no-limit-value` | representable |
+| 24 | Bitwise operators | `operators.bitwise`, relevant `feature-flags` | representable |
+| 27 | Extended math functions | `functions.math` | representable |
+| 29 | Statistical aggregates | `functions.statistics` | representable |
+| 30 | Window functions | `functions.window`, `feature-flags.supports-window-functions` | representable |
+| 33 | CTE support | `feature-flags.supports-cte` | representable |
+| 34 | QUALIFY support | `feature-flags.supports-qualify` | representable |
+| 35 | UNION/INTERSECT/EXCEPT | `feature-flags.supports-union*`, `supports-intersect`, `supports-except` | representable |
+| 36 | Read-only flag | top-level `read-only` | representable |
+| 37 | `div_is_floordiv` | `feature-flags.div-is-floordiv` | representable |
+| 38 | Paramstyle | top-level `paramstyle` | representable |
+
+---
+
+## 10. Representability Rules
+
+- Unknown or unverified values are allowed where appropriate (for example nullable booleans or
+  conservative defaults), but missing *shape* is not allowed for required capability areas.
+- Every requirement from section 3 and every gap id from section 4 must map to at least one YAML
+  field in this schema.
+- Accuracy validation is a separate phase; representability is the required baseline.
+
+---
+
+## 11. Normative Field Rules
+
+This section defines what is required versus optional for schema authoring in `core/mill-sql`.
+
+### 11.1 Required top-level sections
+
+The following top-level fields are required for every dialect file:
+
+- `id`
+- `name`
+- `read-only`
+- `paramstyle`
+- `identifiers`
+- `catalog-schema`
+- `transactions`
+- `limits`
+- `null-sorting`
+- `result-set`
+- `feature-flags`
+- `string-properties`
+- `literals`
+- `joins`
+- `paging`
+- `operators`
+- `functions`
+- `type-info` (can be empty list)
+
+### 11.2 Optional top-level sections
+
+- `notes`
+
+### 11.3 Required function categories
+
+`functions` must contain all categories below (empty lists are allowed when unknown or unsupported):
+
+- `strings`
+- `regex`
+- `numerics`
+- `math`
+- `aggregates`
+- `statistics`
+- `window`
+- `dates-times`
+- `conditionals`
+
+### 11.4 Required operator categories
+
+`operators` should provide all categories used by consumer mappings. Categories can be empty lists
+if unknown or unsupported:
+
+- `equality`
+- `inequality`
+- `comparison`
+- `arithmetic`
+- `logical`
+- `null-checks`
+- `null-safe`
+- `set`
+- `like`
+- `between`
+- `regex`
+- `bitwise`
+- `casting`
+
+### 11.5 Defaulting policy
+
+- Booleans in `feature-flags`: default to conservative `false` when value is unknown.
+- Tristate capability (`div-is-floordiv`): nullable (`true`/`false`/`null`).
+- Integer limits: `0` means unknown or unlimited unless explicitly documented otherwise.
+- `type-info`: empty list is valid in bootstrap/migration phase.
+
+---
+
+## 12. Authoring Rules
+
+### 12.1 Naming and key conventions
+
+- Use kebab-case YAML keys.
+- Dialect ids are uppercase logical identifiers (`CALCITE`, `POSTGRES`, `H2`, `MYSQL`).
+- Function and operator names should follow engine-native names and syntax.
+
+### 12.2 Allowed enum/value sets
+
+- `paramstyle`: `qmark`, `numeric`, `named`, `format`, `pyformat`
+- `identifiers.unquoted-storage`: `UPPER`, `LOWER`, `AS_IS`
+- `identifiers.quoted-storage`: `UPPER`, `LOWER`, `AS_IS`
+- `paging.styles[*].type`: `standard`, `compat`
+- `literals.strings.escape`: `STANDARD`, `BACKSLASH`, `DOUBLING`
+
+### 12.3 Unknown/unverified values
+
+- Prefer representable placeholders over omitted shape.
+- Use conservative values in `feature-flags`.
+- Use `null` only where nullability is semantically meaningful (for example `div-is-floordiv`).
+- Document uncertainty in `notes` or field-level notes.
+
+### 12.4 Deprecation policy (legacy schema)
+
+Legacy fields are not part of the target schema and should not be used in new files:
+
+- `identifiers.case`
+- `paging.limit`
+- `paging.top`
+- `ordering`
+- `operators.arithmetic_operators`
+- `operators.null_checks`
+- `functions.dates_times`
+
+When migrating legacy files, map to target fields:
+
+- `identifiers.case` -> `unquoted-storage` + `quoted-storage`
+- `paging.limit/top` -> `paging.styles`
+- `operators.arithmetic_operators` -> `operators.arithmetic`
+- `operators.null_checks` -> `operators.null-checks`
+- `functions.dates_times` -> `functions.dates-times`
+
+---
+
+## 13. Complete Reference Examples (Current Scope)
+
+The canonical complete examples for WI-015/WI-016 scope are the full YAML files below:
+
+- `core/mill-sql/src/main/resources/sql/dialects/calcite/calcite.yml`
+- `core/mill-sql/src/main/resources/sql/dialects/postgres/postgres.yml`
+- `core/mill-sql/src/main/resources/sql/dialects/h2/h2.yml`
+- `core/mill-sql/src/main/resources/sql/dialects/mysql/mysql.yml`
+
+These files are the source of truth for full-shape examples and are expected to remain schema-valid
+as migration continues. Documentation snippets in this file are illustrative; the files above are
+authoritative examples.
+
+---
+
+## 14. Consumer Mapping Notes
+
+### 14.1 Kotlin typed runtime model (`core/mill-sql`)
+
+- YAML is deserialized into strict typed Kotlin data classes.
+- Loader validation enforces required sections and category presence.
+- Registry exposes dialect descriptors by id for server/runtime consumers.
+
+### 14.2 gRPC/HTTP dialect contracts
+
+- Contract shape mirrors the typed runtime model.
+- Handshake capability (`supports_dialect`) gates dialect retrieval.
+- Transport responses should preserve semantic parity (same capabilities and categories).
+
+### 14.3 AI dialect consumer
+
+- AI prompt generation reads dialect metadata from typed runtime model.
+- `feature-flags`, `functions`, and `identifiers` are primary prompt-shaping inputs.
+
+### 14.4 Python consumer
+
+- Python fetches dialect metadata remotely over gRPC/HTTP.
+- Local behavior should prefer server-provided dialect metadata with fallback only when capability
+  is unavailable.
+
+---
+
+## 15. Change Management and Review Checklist
+
+### 15.1 Versioning approach
+
+- Treat schema changes as versioned contract changes.
+- Backward-compatible additions: new optional fields/categories.
+- Breaking changes: key renames/removals, required-field additions.
+
+### 15.2 Required updates in a schema change PR
+
+When schema changes:
+
+1. Update this document (normative rules and examples).
+2. Update typed Kotlin model and validator in `core/mill-sql`.
+3. Update migrated reference dialect YAMLs if impacted.
+4. Update transport contract mappings if impacted.
+5. Update AI/Python consumer mappings if impacted.
+6. Add/adjust tests for parser and validation behavior.
+
+### 15.3 Documentation quality gate
+
+- Every section 3 requirement remains mapped.
+- Every section 4 gap id remains mapped.
+- Reference example files remain present and parseable.
