@@ -654,7 +654,194 @@ functions:
     - name: ts
       type: TIMESTAMP
       required: true
-  math: []
-  statistics: []
-  window: []
-type-info: []
+  math:
+  - name: SQRT
+    return:
+      type: DECIMAL
+      nullable: true
+    syntax: SQRT(num)
+    args:
+    - name: num
+      type: DECIMAL
+      required: true
+  - name: LN
+    return:
+      type: DECIMAL
+      nullable: true
+    syntax: LN(num)
+    args:
+    - name: num
+      type: DECIMAL
+      required: true
+  - name: EXP
+    return:
+      type: DECIMAL
+      nullable: true
+    syntax: EXP(num)
+    args:
+    - name: num
+      type: DECIMAL
+      required: true
+  statistics:
+  - name: STDDEV_POP
+    return:
+      type: DECIMAL
+      nullable: true
+    syntax: STDDEV_POP(expr)
+    args:
+    - name: expr
+      type: DECIMAL
+      required: true
+  - name: STDDEV_SAMP
+    return:
+      type: DECIMAL
+      nullable: true
+    syntax: STDDEV_SAMP(expr)
+    args:
+    - name: expr
+      type: DECIMAL
+      required: true
+  - name: VAR_POP
+    return:
+      type: DECIMAL
+      nullable: true
+    syntax: VAR_POP(expr)
+    args:
+    - name: expr
+      type: DECIMAL
+      required: true
+  - name: VAR_SAMP
+    return:
+      type: DECIMAL
+      nullable: true
+    syntax: VAR_SAMP(expr)
+    args:
+    - name: expr
+      type: DECIMAL
+      required: true
+  window:
+  - name: ROW_NUMBER
+    return:
+      type: BIGINT
+      nullable: false
+    syntax: ROW_NUMBER() OVER (...)
+    args: []
+  - name: RANK
+    return:
+      type: BIGINT
+      nullable: false
+    syntax: RANK() OVER (...)
+    args: []
+  - name: DENSE_RANK
+    return:
+      type: BIGINT
+      nullable: false
+    syntax: DENSE_RANK() OVER (...)
+    args: []
+  - name: LAG
+    return:
+      type: ANY
+      nullable: true
+    syntax: LAG(value[, offset[, default]]) OVER (...)
+    args: []
+  - name: LEAD
+    return:
+      type: ANY
+      nullable: true
+    syntax: LEAD(value[, offset[, default]]) OVER (...)
+    args: []
+type-info:
+- sql-name: BOOLEAN
+  jdbc-type-code: 16
+  precision: 1
+  case-sensitive: false
+  searchable: 3
+  unsigned: false
+  fixed-prec-scale: false
+  auto-increment: false
+  minimum-scale: 0
+  maximum-scale: 0
+  num-prec-radix: 10
+- sql-name: INTEGER
+  jdbc-type-code: 4
+  precision: 32
+  case-sensitive: false
+  searchable: 3
+  unsigned: false
+  fixed-prec-scale: false
+  auto-increment: true
+  minimum-scale: 0
+  maximum-scale: 0
+  num-prec-radix: 2
+- sql-name: BIGINT
+  jdbc-type-code: -5
+  precision: 64
+  case-sensitive: false
+  searchable: 3
+  unsigned: false
+  fixed-prec-scale: false
+  auto-increment: true
+  minimum-scale: 0
+  maximum-scale: 0
+  num-prec-radix: 2
+- sql-name: DOUBLE
+  jdbc-type-code: 8
+  precision: 53
+  case-sensitive: false
+  searchable: 3
+  unsigned: false
+  fixed-prec-scale: false
+  auto-increment: false
+  minimum-scale: 0
+  maximum-scale: 17
+  num-prec-radix: 2
+- sql-name: VARCHAR
+  jdbc-type-code: 12
+  precision: 1048576
+  literal-prefix: ''''
+  literal-suffix: ''''
+  case-sensitive: true
+  searchable: 3
+  unsigned: false
+  fixed-prec-scale: false
+  auto-increment: false
+  minimum-scale: 0
+  maximum-scale: 0
+  num-prec-radix: 10
+- sql-name: DATE
+  jdbc-type-code: 91
+  precision: 10
+  literal-prefix: DATE '''
+  literal-suffix: ''''
+  case-sensitive: false
+  searchable: 3
+  unsigned: false
+  fixed-prec-scale: false
+  auto-increment: false
+  minimum-scale: 0
+  maximum-scale: 0
+  num-prec-radix: 10
+- sql-name: TIMESTAMP
+  jdbc-type-code: 93
+  precision: 29
+  literal-prefix: TIMESTAMP '''
+  literal-suffix: ''''
+  case-sensitive: false
+  searchable: 3
+  unsigned: false
+  fixed-prec-scale: false
+  auto-increment: false
+  minimum-scale: 0
+  maximum-scale: 9
+  num-prec-radix: 10
+- sql-name: VARBINARY
+  jdbc-type-code: -3
+  precision: 1048576
+  case-sensitive: true
+  searchable: 2
+  unsigned: false
+  fixed-prec-scale: false
+  auto-increment: false
+  minimum-scale: 0
+  maximum-scale: 0
+  num-prec-radix: 10
