@@ -81,6 +81,8 @@ nav:
         - connect/python/authentication.md
         - connect/python/querying.md
         - connect/python/dataframes.md
+        - connect/python/sqlalchemy.md
+        - connect/python/ibis.md
         - connect/python/async.md
         - connect/python/types.md
         - connect/python/discovery.md

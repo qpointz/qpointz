@@ -41,6 +41,8 @@ pyarrow = { version = "^23.0.0", optional = true }
 pandas = { version = "^2.0.0", optional = true }
 polars = { version = "^1.20.0", optional = true }
 sqlalchemy = { version = "^2.0.0", optional = true }
+ibis-framework = { version = "^9.5.0", optional = true }
+sqlglot = { version = "^25.20.2", optional = true }
 
 # --------------------------------------------------------------------------
 # Optional extras — DataFrame backends (all build on PyArrow)
@@ -50,11 +52,15 @@ arrow = ["pyarrow"]
 pandas = ["pyarrow", "pandas"]
 polars = ["pyarrow", "polars"]
 sqlalchemy = ["sqlalchemy"]
-all = ["pyarrow", "pandas", "polars", "sqlalchemy"]
+ibis = ["ibis-framework", "sqlglot"]
+all = ["pyarrow", "pandas", "polars", "sqlalchemy", "ibis-framework", "sqlglot"]
 
 [tool.poetry.plugins."sqlalchemy.dialects"]
 "mill.grpc" = "mill.sqlalchemy.dialect:MillGrpcDialect"
 "mill.http" = "mill.sqlalchemy.dialect:MillHttpDialect"
+
+[tool.poetry.plugins."ibis.backends"]
+mill = "mill.ibis:Backend"
 
 # --------------------------------------------------------------------------
 # Dev / test dependencies
@@ -70,6 +76,9 @@ pyarrow = "^23.0.0"
 pandas = "*"
 polars = "*"
 sqlalchemy = "*"
+ibis-framework = "^9.5.0"
+sqlglot = "^25.20.2"
+pyarrow-hotfix = "*"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

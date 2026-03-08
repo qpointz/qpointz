@@ -30,6 +30,8 @@ needed.
 pip install qpointz-mill-py[arrow]       # + PyArrow
 pip install qpointz-mill-py[pandas]      # + pandas (includes Arrow)
 pip install qpointz-mill-py[polars]      # + polars (includes Arrow)
+pip install qpointz-mill-py[sqlalchemy]  # + SQLAlchemy
+pip install qpointz-mill-py[ibis]        # + ibis
 pip install qpointz-mill-py[all]         # all extras
 ```
 
@@ -38,6 +40,8 @@ pip install qpointz-mill-py[all]         # all extras
 | `arrow` | `pyarrow` | Columnar data, `result.to_arrow()` |
 | `pandas` | `pyarrow`, `pandas` | DataFrames, `result.to_pandas()` |
 | `polars` | `pyarrow`, `polars` | Fast DataFrames, `result.to_polars()` |
+| `sqlalchemy` | `sqlalchemy` | SQLAlchemy Core dialect (`mill+grpc`, `mill+http`) |
+| `ibis` | `ibis-framework`, `sqlglot` | ibis backend (`mill.ibis.connect(...)`) |
 | `all` | All of the above | Everything |
 
 ---
@@ -145,6 +149,9 @@ print("Async OK")
 | `pyarrow` | `arrow`, `pandas`, `polars`, `all` |
 | `pandas` | `pandas`, `all` |
 | `polars` | `polars`, `all` |
+| `sqlalchemy` | `sqlalchemy`, `all` |
+| `ibis-framework` | `ibis`, `all` |
+| `sqlglot` | `ibis`, `all` |
 
 ---
 

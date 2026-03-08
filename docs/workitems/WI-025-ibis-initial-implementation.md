@@ -1,6 +1,6 @@
 # WI-025 — Python ibis Initial Implementation (BaseBackend + SQL Compilation)
 
-Status: `planned`  
+Status: `completed`  
 Type: `✨ feature`  
 Area: `client`  
 Backlog refs: `C-10`, `C-11`, `C-22`
@@ -88,3 +88,28 @@ executes against Mill transports, with explicit feature gating driven by dialect
 - This work item definition (`docs/workitems/WI-025-ibis-initial-implementation.md`).
 - Initial ibis backend implementation and compiler mapping.
 - Integration tests and support matrix documentation.
+
+## Implementation Notes (Delivered)
+
+- Added `mill.ibis` package with a concrete `ibis.backends.sql.SQLBackend`
+  implementation (`mill/ibis/backend.py`) and `connect(...)` helper.
+- Added explicit capability checks for `WITH`, `INTERSECT`, `EXCEPT`, and
+  `LATERAL` SQL constructs based on dialect feature flags
+  (`mill/ibis/compiler.py`).
+- Added Mill-to-ibis type mapping utilities (`mill/ibis/types.py`) used by
+  schema introspection and query-shape inference.
+- Added unit tests for type mapping, capability gating, and baseline compile
+  path (`tests/unit/test_ibis.py`).
+- Added integration tests for expression execution and raw SQL path, with an
+  explicit `xfail` for set-op certification until WI-023 is completed
+  (`tests/integration/test_ibis.py`).
+- Added documentation for ibis and SQLAlchemy usage under design docs and
+  public docs.
+
+## Known Gaps Carried to WI-023
+
+- No certified, dialect-by-dialect function/operator correctness matrix yet.
+- SQL compilation uses broad SQL backend defaults plus capability checks; final
+  dialect-specific rewrite/certification is deferred.
+- Set-operation certification (`INTERSECT`/`EXCEPT`) is intentionally left as
+  a tracked integration gap.

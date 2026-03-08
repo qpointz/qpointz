@@ -1,7 +1,13 @@
 # SQLAlchemy + Mill Example
 
-This example shows the intended WI-024 usage surface for SQLAlchemy Core with both
-Mill transports.
+This document describes the delivered WI-024 SQLAlchemy integration surface in
+`clients/mill-py/mill/sqlalchemy`.
+
+## 0. Installation
+
+```bash
+pip install "qpointz-mill-py[sqlalchemy]"
+```
 
 ## 1. Engine Creation
 

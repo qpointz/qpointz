@@ -15,6 +15,8 @@ pip install qpointz-mill-py              # core (gRPC + HTTP)
 pip install qpointz-mill-py[arrow]       # + PyArrow support
 pip install qpointz-mill-py[pandas]      # + pandas (includes Arrow)
 pip install qpointz-mill-py[polars]      # + polars (includes Arrow)
+pip install qpointz-mill-py[sqlalchemy]  # + SQLAlchemy dialect
+pip install qpointz-mill-py[ibis]        # + ibis backend
 pip install qpointz-mill-py[all]         # everything
 ```
 
@@ -124,6 +126,8 @@ for table in schema.tables:
 | [Authentication](authentication.md) | Basic auth, bearer tokens, TLS certificates |
 | [Querying](querying.md) | SQL queries, ResultSet iteration, paging |
 | [DataFrames](dataframes.md) | Arrow, pandas, polars conversions |
+| [SQLAlchemy](sqlalchemy.md) | SQLAlchemy Core connection, queries, reflection |
+| [ibis Backend](ibis.md) | ibis backend connect/query usage and current limits |
 | [Async API](async.md) | Async/await with `mill.aio` |
 | [Type System](types.md) | Mill's 16 logical types and Python mappings |
 | [Discovery](discovery.md) | Service discovery (`.well-known/mill`) |

@@ -18,6 +18,7 @@ Items delivered in this milestone.
 - WI-026 — JDBC full metadata implementation (`DatabaseMetaData` surface)
 - WI-021 — Python remote dialect consumption over gRPC/HTTP
 - WI-024 — Python SQLAlchemy implementation (MillDialect + compiler + entry points)
+- WI-025 — Python ibis initial implementation (BaseBackend + SQL compilation, slice 1)
 
 Completed WI markdown files are intentionally removed after delivery; this milestone list is the
 retained canonical record of completed items.
@@ -34,5 +35,3 @@ Items targeted next after in-progress work is completed.
 
 - WI-023 — ibis dialect correctness validation and certification
   (`docs/workitems/WI-023-ibis-dialect-correctness-validation.md`)
-- WI-025 — Python ibis initial implementation (BaseBackend + SQL compilation)
-  (`docs/workitems/WI-025-ibis-initial-implementation.md`)
