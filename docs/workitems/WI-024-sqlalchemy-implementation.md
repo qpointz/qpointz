@@ -1,6 +1,6 @@
 # WI-024 — Python SQLAlchemy Implementation (MillDialect + Compiler + Entry Points)
 
-Status: `planned`  
+Status: `completed`  
 Type: `✨ feature`  
 Area: `client`  
 Backlog refs: `C-12`, `C-13`, `C-14`

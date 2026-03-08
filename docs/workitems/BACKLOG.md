@@ -20,7 +20,7 @@ milestone-selectable deliverables extracted from design documents and work items
 | D-4 | Add OBJECT native vector type (Phase B): MapVector with multi-segment PathSegment paths | ✨ feature | backlog | data/complex-type-support.md |
 | D-5 | Implement PathSegment reconstruction and flattening algorithms (Java + Python)          | ✨ feature | backlog | data/complex-type-support.md |
 | D-6 | Add JSON/LIST/MAP/OBJECT to all type mapping tables in mill-type-system reference       | 📝 docs   | backlog | data/mill-type-system.md     |
-| D-8 | Implement server GetDialect RPC and handshake supports_dialect flag                     | ✨ feature | backlog | data/mill-type-system.md     |
+| D-8 | Implement server GetDialect RPC and handshake supports_dialect flag                     | ✨ feature | done    | `MILESTONE.md` (WI-018/WI-019 completed) |
 
 ---
 
@@ -58,20 +58,26 @@ milestone-selectable deliverables extracted from design documents and work items
 
 | # | Item | Type | Status | Source |
 |---|------|------|--------|--------|
-| C-1 | Implement mill/sql package with MillDialectDescriptor model and CALCITE_DEFAULT (Phase 9A) | ✨ feature | backlog | client/py-sql-dialect-plan.md |
+| C-1 | Implement mill/sql package with MillDialectDescriptor model and CALCITE_DEFAULT (Phase 9A) | ✨ feature | done | `MILESTONE.md` (WI-021 completed) |
 | C-2 | Add quote_identifier(), qualify() helpers and type mappings (to_sa_type, to_ibis_dtype); complex type mappings depend on D-2/D-3/D-4 | ✨ feature | backlog | client/py-sql-dialect-plan.md |
 | C-3 | Implement DialectTester with ~80 SQL queries and DialectReport (Phase 9B) | ✨ feature | backlog | client/py-sql-dialect-plan.md |
 | C-4 | Populate full function catalog (scalar, aggregate, window) from tester output | ✨ feature | backlog | client/py-sql-dialect-plan.md |
 | C-5 | Auto-generate py-sql-dialect-report.md with feature matrix | 📝 docs | backlog | client/py-sql-dialect-plan.md |
 | C-6 | Update all 10 dialect YAMLs with expanded schema (Phase 3 of YAML schema) | 🔧 refactoring | backlog | client/sql-dialect-yaml-schema.md |
-| C-7 | Rewrite AI consumer: replace SpecSqlDialect with typed prompt builder | 🔧 refactoring | backlog | client/sql-dialect-yaml-schema.md |
+| C-7 | Rewrite AI consumer: replace SpecSqlDialect with typed prompt builder | 🔧 refactoring | done | `MILESTONE.md` (WI-020 completed) |
 | C-8 | Fix H2 dialect YAML: case, missing/wrong functions, paging, parameter signatures | 🐛 fix | backlog | client/sql-dialect-yaml-schema.md |
 | C-9 | Remove deprecated YAML fields (identifiers.case, paging.limit/top, ordering) | 🔧 refactoring | backlog | client/sql-dialect-yaml-schema.md |
 | C-10 | Implement ibis BaseBackend wrapping MillClient (Phase 10) | ✨ feature | backlog | **WI-025** |
 | C-11 | Map ibis expressions to Calcite-compatible SQL via sqlglot | ✨ feature | backlog | **WI-025** |
-| C-12 | Implement PEP 249 DBAPI 2.0 shim (Phase 11) | ✨ feature | backlog | **WI-024** |
-| C-13 | Implement SQLAlchemy MillDialect and MillSQLCompiler with schema introspection; complex type support depends on D-2/D-3/D-4 | ✨ feature | backlog | **WI-024** |
-| C-14 | Register SQLAlchemy entry points for mill+grpc and mill+http | ✨ feature | backlog | **WI-024** |
+<<<<<<< HEAD
+| C-12 | Implement PEP 249 DBAPI 2.0 shim (Phase 11) | ✨ feature | done | **WI-024** |
+| C-13 | Implement SQLAlchemy MillDialect and MillSQLCompiler with schema introspection; complex type support depends on D-2/D-3/D-4 | ✨ feature | done | **WI-024** |
+| C-14 | Register SQLAlchemy entry points for mill+grpc and mill+http | ✨ feature | done | **WI-024** |
+=======
+| C-12 | Implement PEP 249 DBAPI 2.0 shim (Phase 11) | ✨ feature | done | **WI-024** |
+| C-13 | Implement SQLAlchemy MillDialect and MillSQLCompiler with schema introspection; complex type support depends on D-2/D-3/D-4 | ✨ feature | done | **WI-024** |
+| C-14 | Register SQLAlchemy entry points for mill+grpc and mill+http | ✨ feature | done | **WI-024** |
+>>>>>>> e983ef0464fbcf516b9ccfb0d58b4334c78b800e
 | C-15 | Fix MillServerError: call super().__init__(message) | 🐛 fix | backlog | client/py-cold-start.md |
 | C-16 | Fix Python type mappings: BOOL->BOOLEAN, identifier quoting from dialect YAML | 🐛 fix | backlog | client/py-sql-dialect-plan.md |
 | C-17 | Implement managed ADO.NET provider for Mill (separate .NET track; OLE DB as optional follow-up) | ✨ feature | backlog | client/adonet-provider-design.md |
@@ -80,7 +86,11 @@ milestone-selectable deliverables extracted from design documents and work items
 | C-20 | Fix JDBC HTTP content negotiation/decoding mismatch (http-json path still assumes protobuf response decode) | 🐛 fix | backlog | **TBD (new WI)** |
 | C-21 | Fix Python HTTP client content negotiation/decoding mismatch parity with JDBC (protobuf-vs-json response handling) | 🐛 fix | backlog | **TBD (new WI)** |
 | C-22 | Add ibis dialect correctness validation and certification gate (DialectTester + report + CI drift detection) | 🧪 test | backlog | **WI-023** |
-| C-23 | Implement full JDBC `DatabaseMetaData` surface backed by dialect descriptor (limits, type-info, feature/capability methods) | ✨ feature | done | **WI-026** |
+<<<<<<< HEAD
+| C-23 | Implement full JDBC `DatabaseMetaData` surface backed by dialect descriptor (limits, type-info, feature/capability methods) | ✨ feature | done | `MILESTONE.md` (WI-026 completed) |
+=======
+| C-23 | Implement full JDBC `DatabaseMetaData` surface backed by dialect descriptor (limits, type-info, feature/capability methods) | ✨ feature | done | `MILESTONE.md` (WI-026 completed) |
+>>>>>>> e983ef0464fbcf516b9ccfb0d58b4334c78b800e
 
 ---
 

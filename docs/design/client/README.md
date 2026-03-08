@@ -28,4 +28,6 @@ A document belongs here if its **primary subject** is one of:
 | `py-cold-start.md` | mill-py cold-start guide: codebase analysis, server contracts, how to resume work |
 | `py-implementation-plan.md` | mill-py refactoring implementation plan: scope, architecture, phases, tracking |
 | `py-sql-dialect-plan.md` | Mill SQL dialect foundation design and tracking (Phase 9 of mill-py) |
+| `sqlalchemy-mill-example.md` | SQLAlchemy Core engine/query/introspection examples for Mill grpc/http dialects |
+| `sql-dialect-maintainer-guide.md` | Maintainer technical runbook for adding new dialects end-to-end |
 | `sql-dialect-yaml-schema.md` | Target YAML schema for SQL dialect descriptors across all consumers |

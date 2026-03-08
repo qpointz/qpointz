@@ -7,6 +7,7 @@ four downstream consumers: SQLAlchemy, JDBC, ibis, and AI NL-to-SQL.
 **Related documents:**
 - `py-sql-dialect-plan.md` — Phase 9 plan (gap analysis, work items)
 - `py-implementation-plan.md` — Parent plan (Phases 0–11)
+- `sql-dialect-maintainer-guide.md` — Maintainer process for onboarding new dialects
 
 ---
 
