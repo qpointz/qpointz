@@ -88,27 +88,27 @@ milestone-selectable deliverables extracted from design documents and work items
 
 | # | Item | Type | Status | Source |
 |---|------|------|--------|--------|
-| M-1 | Create ValueMappingFacet in mill-ai-core and register via AiMetadataConfiguration | ✨ feature | backlog | metadata/metadata-ui-implementation-plan.md |
-| M-2 | Create MetadataAdapterService implementing MetadataProvider over MetadataService | 🔧 refactoring | backlog | metadata/metadata-ui-implementation-plan.md |
-| M-3 | Update MetadataConfiguration: replace deprecated beans, wire adapter service | 🔧 refactoring | backlog | metadata/metadata-ui-implementation-plan.md |
-| M-4 | Migrate value mapping data from legacy YAML to facet format | ✨ feature | backlog | metadata/metadata-ui-implementation-plan.md |
-| M-5 | Update AI components and tests to work via MetadataAdapterService | 🔧 refactoring | backlog | metadata/metadata-ui-implementation-plan.md |
-| M-6 | Add value mapping REST API endpoints (GET/POST mappings, resolve term) | ✨ feature | backlog | metadata/metadata-ui-implementation-plan.md |
-| M-7 | Display value mappings in metadata browser UI | ✨ feature | backlog | metadata/metadata-ui-implementation-plan.md |
-| M-8 | Introduce ValueResolver abstraction with feature flag (legacy/faceted/hybrid) | 🔧 refactoring | backlog | metadata/metadata-implementation-roadmap.md |
-| M-9 | Add parity tests: legacy vs facet value resolution | 🧪 test | backlog | metadata/metadata-implementation-roadmap.md |
-| M-10 | Implement EnrichmentFacet, EnrichmentService, and approval workflow | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
-| M-11 | Implement JPA repository (document-style, JSONB) and CompositeMetadataRepository | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
-| M-12 | Implement MetadataSyncService for file<->JPA synchronization | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
+| M-1 | Create ValueMappingFacet in mill-ai-core and register via AiMetadataConfiguration | ✨ feature | planned | `WI-027-metadata-value-mapping-bridge.md` |
+| M-2 | Create MetadataAdapterService implementing MetadataProvider over MetadataService | 🔧 refactoring | planned | `WI-027-metadata-value-mapping-bridge.md` |
+| M-3 | Update MetadataConfiguration: replace deprecated beans, wire adapter service | 🔧 refactoring | planned | `WI-027-metadata-value-mapping-bridge.md` |
+| M-4 | Migrate value mapping data from legacy YAML to facet format | ✨ feature | planned | `WI-027-metadata-value-mapping-bridge.md` |
+| M-5 | Update AI components and tests to work via MetadataAdapterService | 🔧 refactoring | planned | `WI-027-metadata-value-mapping-bridge.md` |
+| M-6 | Add value mapping REST API endpoints (GET/POST mappings, resolve term) | ✨ feature | planned | `WI-028-metadata-value-mapping-api-and-ui.md` |
+| M-7 | Display value mappings in metadata browser UI | ✨ feature | planned | `WI-028-metadata-value-mapping-api-and-ui.md` |
+| M-8 | Introduce ValueResolver abstraction with feature flag (legacy/faceted/hybrid) | 🔧 refactoring | planned | `WI-027-metadata-value-mapping-bridge.md` |
+| M-9 | Add parity tests: legacy vs facet value resolution | 🧪 test | planned | `WI-027-metadata-value-mapping-bridge.md` |
+| M-10 | Implement EnrichmentFacet, EnrichmentService, and approval workflow | ✨ feature | planned | `WI-030-metadata-user-editing.md` |
+| M-11 | Implement JPA repository (document-style, JSONB) and CompositeMetadataRepository | ✨ feature | planned | `WI-029-metadata-relational-persistence.md` |
+| M-12 | Implement MetadataSyncService for file<->JPA synchronization | ✨ feature | planned | `WI-029-metadata-relational-persistence.md` |
 | M-15 | Implement full-text and facet-aware search (Postgres/Elastic/Lucene) | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-16 | Implement DataQualityFacet and rule execution engine | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-17 | Implement SemanticFacet with vector store integration | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-18 | Implement LineageFacet and lineage graph API | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
-| M-19 | Implement scope resolution (user > team > role > global) with security context | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
-| M-20 | Add UI editing for metadata facets (DescriptiveFacet, RelationFacet, ConceptFacet, etc.) | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
-| M-21 | Fix MessageHelper parse error messages (generic HandshakeResponse) | 🐛 fix | backlog | metadata/metadata-service-design.md |
-| M-22 | Remove ProtobufUtils dead code and register HTTP ServiceDescriptor | 🐛 fix | backlog | metadata/metadata-service-design.md |
-| M-27 | Extend metadata StructuralFacet/API/UI contracts for complex types (LIST/MAP/OBJECT + nested shape rendering); depends on D-2/D-3/D-4 | ✨ feature | backlog | **TBD (new WI)** |
+| M-19 | Implement scope resolution (user > team > role > global) with security context | ✨ feature | planned | `WI-031-metadata-scopes-and-contexts.md` |
+| M-20 | Add UI editing for metadata facets (DescriptiveFacet, RelationFacet, ConceptFacet, etc.) | ✨ feature | planned | `WI-030-metadata-user-editing.md`, `WI-032-metadata-promotion-workflow.md` |
+| M-21 | Fix MessageHelper parse error messages (generic HandshakeResponse) | 🐛 fix | planned | `WI-033-metadata-service-cleanup.md` |
+| M-22 | Remove ProtobufUtils dead code and register HTTP ServiceDescriptor | 🐛 fix | planned | `WI-033-metadata-service-cleanup.md` |
+| M-27 | Extend metadata StructuralFacet/API/UI contracts for complex types (LIST/MAP/OBJECT + nested shape rendering); depends on D-2/D-3/D-4 | ✨ feature | planned | `WI-034-metadata-complex-type-support.md` |
 
 ---
 
