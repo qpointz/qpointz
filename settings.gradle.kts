@@ -51,6 +51,11 @@ include (":ai:mill-ai-v1-core")
 include (":ai:mill-ai-v1-nlsql-chat-service")
 include (":ai:mill-ai-v2")
 include (":ai:mill-ai-v2-test")
+include (":ai:mill-ai-v3-core")
+include (":ai:mill-ai-v3-capabilities")
+include (":ai:mill-ai-v3-langchain4j")
+include (":ai:mill-ai-v3-test")
+include (":ai:mill-ai-v3-cli")
 
 include (":clients:mill-jdbc-driver")
 include (":clients:mill-jdbc-shell")
@@ -88,4 +93,3 @@ pluginManagement {
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
-

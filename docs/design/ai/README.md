@@ -18,6 +18,7 @@ A document belongs here if its **primary subject** is one of:
 - General UI/UX patterns with no AI-specific content → `ui/`
 - Metadata or data-model browsing that happens to appear in an AI chat → `metadata/`
 - Client-side SQL dialect descriptors consumed by AI → `client/`
+- AI v3 agentic runtime architecture and design contracts → `../agentic/`
 
 ## Naming Convention
 

@@ -7,7 +7,8 @@ plans. Documents are grouped by topic area into subfolders.
 
 | Folder | Scope | What goes here |
 |--------|-------|----------------|
-| `ai/` | AI and NL-to-SQL | Reasoning architecture, step-back flows, capabilities, scenarios, AI UX specifications, regression testing |
+| `agentic/` | AI v3 agentic runtime | Architecture decisions, design contracts, and tooling for the `ai/v3` agentic platform (capabilities, profiles, event model, CLI) |
+| `ai/` | AI v1/v2 NL-to-SQL | Reasoning architecture, step-back flows, capabilities, scenarios, AI UX specifications, regression testing |
 | `build-system/` | Build and CI maintenance | Gradle architecture, CI inventory, maintainer runbooks, downstream pipeline operations |
 | `client/` | Client libraries | Python client (mill-py), JDBC driver, SQL dialect descriptors, client API design |
 | `data/` | Data layer | Type system, complex types, vector encoding, schema definitions, wire format design |

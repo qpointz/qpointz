@@ -10,4 +10,9 @@ dependencies {
     dokka(project(":ai:mill-ai-v1-nlsql-chat-service"))
     dokka(project(":ai:mill-ai-v2"))
     dokka(project(":ai:mill-ai-v2-test"))
+    dokka(project(":ai:mill-ai-v3-core"))
+    dokka(project(":ai:mill-ai-v3-capabilities"))
+    dokka(project(":ai:mill-ai-v3-langchain4j"))
+    dokka(project(":ai:mill-ai-v3-test"))
+    dokka(project(":ai:mill-ai-v3-cli"))
 }

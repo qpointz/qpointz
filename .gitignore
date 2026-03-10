@@ -20,5 +20,6 @@ target/
 .cursor/
 .vscode/
 .obsidian/
+.claude/
 schemas/
 /.certs/
