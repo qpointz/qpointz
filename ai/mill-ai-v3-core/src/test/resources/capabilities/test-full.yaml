@@ -1,0 +1,149 @@
+name: test-full
+description: Comprehensive test capability covering all schema types.
+
+prompts:
+  test.system:
+    description: System prompt for testing.
+    content: Test system prompt content.
+
+  test.secondary:
+    description: Secondary prompt.
+    content: |
+      Multi-line
+      prompt content.
+
+tools:
+  no_input:
+    description: Tool with no input declared.
+    output:
+      type: object
+      description: Simple output.
+      properties:
+        result:
+          type: string
+          description: The result value.
+
+  all_scalars:
+    description: Tool covering all four scalar input types.
+    input:
+      type: object
+      description: Scalar inputs.
+      properties:
+        str_field:
+          type: string
+          description: A string field.
+        int_field:
+          type: integer
+          description: An integer field.
+        num_field:
+          type: number
+          description: A number field.
+        bool_field:
+          type: boolean
+          description: A boolean field.
+    output:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          description: Success flag.
+
+  enum_field:
+    description: Tool with an enum-constrained string field.
+    input:
+      type: object
+      properties:
+        direction:
+          type: string
+          description: The direction to move.
+          enum:
+            - NORTH
+            - SOUTH
+            - EAST
+            - WEST
+    output:
+      type: object
+      properties:
+        chosen:
+          type: string
+          description: Chosen direction.
+
+  required_and_optional:
+    description: Tool with a mix of required and optional fields.
+    input:
+      type: object
+      required:
+        - must_provide
+      properties:
+        must_provide:
+          type: string
+          description: Required — must be supplied.
+        may_provide:
+          type: string
+          description: Optional — may be omitted.
+    output:
+      type: object
+      properties:
+        result:
+          type: string
+          description: Result value.
+
+  array_of_strings:
+    description: Tool whose output is a flat array of strings.
+    output:
+      type: array
+      description: List of string values.
+      items:
+        type: string
+        description: A single string element.
+
+  array_of_objects:
+    description: Tool whose output is an array of structured objects.
+    output:
+      type: array
+      description: List of named items.
+      items:
+        type: object
+        description: A single named item.
+        properties:
+          name:
+            type: string
+            description: Item name.
+          count:
+            type: integer
+            description: Item count.
+
+  nested_object:
+    description: Tool with a nested object inside the input.
+    input:
+      type: object
+      description: Outer input.
+      properties:
+        outer:
+          type: string
+          description: Outer string field.
+        inner:
+          type: object
+          description: Nested inner object.
+          properties:
+            value:
+              type: integer
+              description: Inner integer value.
+    output:
+      type: object
+      properties:
+        result:
+          type: string
+          description: Result.
+
+  array_of_arrays:
+    description: Tool with an array of arrays (nested arrays).
+    output:
+      type: array
+      description: Outer array.
+      items:
+        type: array
+        description: Inner array.
+        items:
+          type: string
+          description: A string element.

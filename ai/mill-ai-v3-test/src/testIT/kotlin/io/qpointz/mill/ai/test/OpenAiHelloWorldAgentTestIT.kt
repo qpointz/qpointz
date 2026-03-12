@@ -4,7 +4,6 @@ import io.qpointz.mill.ai.AgentContext
 import io.qpointz.mill.ai.AgentEvent
 import io.qpointz.mill.ai.CapabilityRegistry
 import io.qpointz.mill.ai.HelloWorldAgentProfile
-import io.qpointz.mill.ai.HelloWorldCapabilitySet
 import io.qpointz.mill.ai.langchain4j.OpenAiHelloWorldAgent
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -30,7 +29,7 @@ class OpenAiHelloWorldAgentTestIT {
         )
 
         assertThat(response).isNotBlank()
-        assertThat(capabilities.map { it.descriptor.id }).containsExactlyInAnyOrderElementsOf(HelloWorldCapabilitySet.requiredCapabilityIds)
+        assertThat(capabilities.map { it.descriptor.id }).containsExactlyInAnyOrderElementsOf(HelloWorldAgentProfile.profile.capabilityIds)
         assertThat(events.map { it.type }).contains("run.started", "plan.created", "observation.made", "message.delta", "answer.completed")
         assertThat(events.map { it.type }).doesNotContain("tool.call")
         assertThat(events.filterIsInstance<AgentEvent.MessageDelta>()).isNotEmpty
@@ -68,8 +67,7 @@ class OpenAiHelloWorldAgentTestIT {
     }
 
     private fun helloWorldCapabilities() = CapabilityRegistry.load(javaClass.classLoader)
-        .capabilitiesFor(AgentContext(contextType = "general"))
-        .filter { it.descriptor.id in HelloWorldCapabilitySet.requiredCapabilityIds }
+        .capabilitiesFor(HelloWorldAgentProfile.profile, AgentContext(contextType = "general"))
 
     private fun protocolEventTypes(capabilities: List<io.qpointz.mill.ai.Capability>): Set<String> =
         capabilities.flatMap { capability -> capability.protocols.flatMap { it.eventTypes } }.toSet()

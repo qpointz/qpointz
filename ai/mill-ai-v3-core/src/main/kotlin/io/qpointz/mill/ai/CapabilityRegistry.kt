@@ -29,10 +29,44 @@ class CapabilityRegistry private constructor(
     /** Materialize capability instances for a concrete run context. */
     fun capabilitiesFor(context: AgentContext): List<Capability> =
         providersFor(context.contextType)
-            .map { it.create(context) }
+            .map { provider ->
+                val descriptor = provider.descriptor()
+                val dependencies = context.capabilityDependencies.forCapability(descriptor.id)
+                validateDependencies(descriptor, dependencies)
+                provider.create(context, dependencies)
+            }
+
+    /** Materialize the exact capability set declared by a profile for a concrete run context. */
+    fun capabilitiesFor(profile: AgentProfile, context: AgentContext): List<Capability> {
+        val providersById = providersFor(context.contextType).associateBy { it.descriptor().id }
+        val missing = profile.capabilityIds.filter { it !in providersById }
+        require(missing.isEmpty()) {
+            "Missing providers for profile `${profile.id}`: $missing"
+        }
+
+        return profile.capabilityIds
+            .sorted()
+            .map { capabilityId ->
+                val provider = providersById.getValue(capabilityId)
+                val descriptor = provider.descriptor()
+                val dependencies = context.capabilityDependencies.forCapability(capabilityId)
+                validateDependencies(descriptor, dependencies)
+                provider.create(context, dependencies)
+            }
+    }
 
     /** Lookup a provider by capability id. */
     fun provider(id: String): CapabilityProvider? = providers[id]
+
+    private fun validateDependencies(
+        descriptor: CapabilityDescriptor,
+        dependencies: CapabilityDependencies,
+    ) {
+        val missing = descriptor.requiredDependencies.filterNot(dependencies::contains)
+        require(missing.isEmpty()) {
+            "Missing dependencies for capability `${descriptor.id}`: ${missing.map(Class<*>::getName)}"
+        }
+    }
 
     companion object {
         /** Build a registry from an explicit provider list, mainly for tests or adapters. */

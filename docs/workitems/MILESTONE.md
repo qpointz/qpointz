@@ -44,7 +44,9 @@ Items targeted next after in-progress work is completed.
 
 Items delivered in this milestone.
 
-No completed items currently recorded.
+- WI-062 — Schema data aggregation boundary: `SchemaFacetService`, `*WithFacets` domain model,
+  `SchemaFacets` (map-backed, typed facet holder), `SchemaFacetResult` with unbound metadata,
+  `SchemaFacetAutoConfiguration`; unit + skymill integration tests in `data/mill-data-schema-core`
 
 ### In Progress
 

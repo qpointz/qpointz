@@ -21,6 +21,49 @@ contexts:
 The first implementation will be developed as a new `ai/v3` stack, side by side with
 existing `v1` and `v2` modules.
 
+### 1.1 Strategic end state
+
+The long-term target is a runtime that matches the context structure already emerging in
+`ui/mill-ui`.
+
+The primary context families are:
+
+- `model`
+- `knowledge`
+- `analysis`
+
+`v3` should support one or more bounded agent profiles inside each of these families rather than
+forcing all conversational behavior through one generic chat agent.
+
+Examples of likely family-aligned agents:
+
+- model/schema exploration and explanation agents
+- knowledge/concept explanation agents
+- analysis/NL2SQL and query-refinement agents
+
+In addition, `v3` should support cross-cutting enrichment/authoring behavior that can be composed
+into more than one context family, including:
+
+- amending descriptions
+- proposing or revising relations
+- introducing concepts inferred from conversation
+- producing structured metadata-enrichment proposals for approval or promotion
+
+This means the strategic target is:
+
+- one runtime
+- multiple context-bound agent families
+- reusable capabilities
+- shared executor/state/event infrastructure
+- durable conversations and persisted run state/artifact records
+- planner/observer contracts that are generic at the runtime level but family-specific in policy
+
+Conversation durability is a strategic requirement, not an optional integration detail.
+
+`v3` should treat user conversations, clarification pauses, enrichment proposals, and important
+run artifacts as durable records that can survive process restarts, later inspection, and
+cross-session continuation.
+
 ---
 
 ## 2. Primary Architectural Decisions
@@ -363,6 +406,10 @@ Examples:
 - analysis-context agent
 - future reconciliation/comparison agents
 
+The important strategic boundary is that these are not merely different prompts for one universal
+chatbot. They are different agent families with different evidence models, tool surfaces, and
+workflow semantics.
+
 ### 4.2 Agents are assembled from capabilities
 
 An agent should be defined as a **profile** composed from capabilities for a given context.
@@ -375,6 +422,17 @@ This means:
 - context-aware composition
 
 This is preferred over building many unrelated agent implementations.
+
+The expected shape is:
+
+- base context capabilities and profiles for `model`, `knowledge`, and `analysis`
+- optional cross-cutting capability families, especially enrichment/authoring
+- compositional profiles such as `model + enrichment` or `knowledge + enrichment`
+
+This allows the platform to support both:
+
+- read/explain agents that primarily answer and navigate context
+- authoring agents that propose or apply metadata changes with explicit review boundaries
 
 ### 4.3 Capability reuse should work both inside and outside Mill
 

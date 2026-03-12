@@ -10,4 +10,5 @@ data class AgentContext(
     val contextType: String,
     val focusEntityType: String? = null,
     val focusEntityId: String? = null,
+    val capabilityDependencies: CapabilityDependencyContainer = CapabilityDependencyContainer.empty(),
 )

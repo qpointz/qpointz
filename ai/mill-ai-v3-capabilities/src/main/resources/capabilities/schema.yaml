@@ -1,0 +1,162 @@
+name: schema
+description: Schema exploration capability
+
+prompts:
+  schema.system:
+    description: Guidance for schema exploration tools.
+    content: |
+      Use schema exploration tools to discover and describe the data platform structure.
+      Always call list_schemas first when you do not yet know which schemas exist.
+      Use the returned names exactly as provided in subsequent tool calls.
+
+tools:
+  list_schemas:
+    description: |
+      Return all schemas available in the data platform.
+      Call this first when you do not yet know which schemas exist.
+      Use the returned schemaName values as input to list_tables.
+      An empty description means no business metadata has been provided for that schema.
+    output:
+      type: array
+      description: All available schemas.
+      items:
+        type: object
+        description: A single schema entry.
+        properties:
+          schemaName:
+            type: string
+            description: Exact schema name to use in subsequent tool calls.
+          description:
+            type: string
+            description: Business description of the schema, or empty if no metadata is available.
+
+  list_tables:
+    description: |
+      Return all tables within a given schema.
+      Call list_schemas first if you do not know the schema name.
+      Use the returned tableName values as input to list_columns or list_relations.
+      An empty description means no business metadata has been provided for that table.
+    input:
+      type: object
+      description: Identifies the schema to list tables for.
+      properties:
+        schemaName:
+          type: string
+          description: Exact schema name as returned by list_schemas.
+    output:
+      type: array
+      description: All tables within the requested schema.
+      items:
+        type: object
+        description: A single table entry.
+        properties:
+          schemaName:
+            type: string
+            description: Schema this table belongs to.
+          tableName:
+            type: string
+            description: Exact table name to use in subsequent tool calls.
+          description:
+            type: string
+            description: Business description of the table, or empty if no metadata is available.
+
+  list_columns:
+    description: |
+      Return all columns for a given table within a schema.
+      Call list_tables first if you do not know the table name.
+      Use schemaName and tableName exactly as returned by those tools.
+      An empty description means no business metadata has been provided for that column.
+    input:
+      type: object
+      description: Identifies the table to list columns for.
+      properties:
+        schemaName:
+          type: string
+          description: Exact schema name as returned by list_schemas.
+        tableName:
+          type: string
+          description: Exact table name as returned by list_tables.
+    output:
+      type: array
+      description: All columns within the requested table.
+      items:
+        type: object
+        description: A single column entry.
+        properties:
+          schemaName:
+            type: string
+            description: Schema this column belongs to.
+          tableName:
+            type: string
+            description: Table this column belongs to.
+          columnName:
+            type: string
+            description: Exact column name.
+          description:
+            type: string
+            description: Business description of the column, or empty if no metadata is available.
+          nullable:
+            type: string
+            description: Nullability of the column (NULLABLE, NOT_NULL, or NOT_SPECIFIED_NULL).
+          type:
+            type: string
+            description: Logical data type identifier (e.g. INTEGER, VARCHAR, TIMESTAMP).
+
+  list_relations:
+    description: |
+      Return relations (foreign key / join paths) associated with a given table.
+      Use direction to filter: OUTBOUND (this table is the source), INBOUND (this table is the target), BOTH (all relations).
+      Call list_tables first if you do not know the table name.
+    input:
+      type: object
+      description: Identifies the table and direction of relations to list.
+      properties:
+        schemaName:
+          type: string
+          description: Exact schema name as returned by list_schemas.
+        tableName:
+          type: string
+          description: Exact table name as returned by list_tables.
+        direction:
+          type: string
+          description: "Filter direction: OUTBOUND (this table is source), INBOUND (this table is target), BOTH (all)."
+    output:
+      type: array
+      description: Relations associated with the requested table.
+      items:
+        type: object
+        description: A single relation entry.
+        properties:
+          sourceSchema:
+            type: string
+            description: Schema of the source table.
+          sourceTable:
+            type: string
+            description: Name of the source table.
+          sourceAttributes:
+            type: array
+            description: Source join column names.
+            items:
+              type: string
+              description: Column name.
+          targetSchema:
+            type: string
+            description: Schema of the target table.
+          targetTable:
+            type: string
+            description: Name of the target table.
+          targetAttributes:
+            type: array
+            description: Target join column names.
+            items:
+              type: string
+              description: Column name.
+          name:
+            type: string
+            description: Relation name.
+          description:
+            type: string
+            description: Business description of the relation.
+          cardinality:
+            type: string
+            description: Relation cardinality (e.g. ONE_TO_MANY, MANY_TO_ONE, ONE_TO_ONE).

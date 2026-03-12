@@ -9,4 +9,5 @@ data class CapabilityDescriptor(
     val description: String,
     val supportedContexts: Set<String> = emptySet(),
     val tags: Set<String> = emptySet(),
+    val requiredDependencies: Set<Class<out CapabilityDependency>> = emptySet(),
 )

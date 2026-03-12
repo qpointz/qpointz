@@ -8,6 +8,7 @@ dependencies {
     dokka(project(":data:mill-data-autoconfigure"))
     dokka(project(":data:mill-data-source-core"))
     dokka(project(":data:mill-data-source-calcite"))
+    dokka(project(":data:mill-data-schema-core"))
     dokka(project(":data:formats:mill-data-format-text"))
     dokka(project(":data:formats:mill-data-format-excel"))
     dokka(project(":data:formats:mill-data-format-avro"))

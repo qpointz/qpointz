@@ -51,38 +51,40 @@ milestone-selectable deliverables extracted from design documents and work items
 | A-21 | Implement Capability Protocol (streaming events: begin/continuation/end) | ✨ feature | backlog | ai/capabilities_design.md |
 | A-22 | Implement Orchestrator, Chat Profiles, and task-class-to-Intent mapping | ✨ feature | backlog | ai/capabilities_design.md |
 | A-23 | Implement Reasoner Descriptions per Capability and dynamic prompt construction | ✨ feature | backlog | ai/capabilities_design.md |
-| A-24 | Create `ai/v3` module skeleton for side-by-side Kotlin runtime/capabilities/LangChain4j/test layout | ✨ feature | planned | `WI-035-ai-v3-module-skeleton.md` |
-| A-25 | Define Hello World / platform-validation milestone for `ai/v3` | 📝 docs | planned | `WI-036-ai-v3-hello-world-milestone-definition.md` |
-| A-26 | Define `ai/v3` core domain vocabulary (capability, profile, protocol, run state, artifact, planner step) | 📝 docs | planned | `WI-037-ai-v3-core-domain-vocabulary.md` |
+| A-24 | Create `ai/v3` module skeleton for side-by-side Kotlin runtime/capabilities/LangChain4j/test layout | ✨ feature | done | `design/agentic/v3-foundation-decisions.md` |
+| A-25 | Define Hello World / platform-validation milestone for `ai/v3` | 📝 docs | done | `design/agentic/v3-foundation-decisions.md` |
+| A-26 | Define `ai/v3` core domain vocabulary (capability, profile, protocol, run state, artifact, planner step) | 📝 docs | done | `design/agentic/v3-runtime-roles.md` |
 | A-27 | Define `ai/v3` capability model and descriptor format | ✨ feature | planned | `WI-038-ai-v3-capability-model-and-descriptor-format.md` |
-| A-28 | Implement framework-free dynamic capability discovery for `ai/v3` | ✨ feature | planned | `WI-039-ai-v3-capability-discovery.md` |
-| A-29 | Define MCP-aligned exposure plan for `ai/v3` capabilities | 📝 docs | planned | `WI-040-ai-v3-mcp-capability-exposure-plan.md` |
-| A-30 | Identify first-class externalizable capability resources (tools, prompts, protocols, descriptors, examples) | 📝 docs | planned | `WI-041-ai-v3-externalizable-capability-resources.md` |
+| A-28 | Implement framework-free dynamic capability discovery for `ai/v3` | ✨ feature | done | `design/agentic/v3-foundation-decisions.md` |
+| A-29 | Define MCP-aligned exposure plan for `ai/v3` capabilities | 📝 docs | done | `design/agentic/v3-foundation-decisions.md` |
+| A-30 | Identify first-class externalizable capability resources (tools, prompts, protocols, descriptors, examples) | 📝 docs | done | `design/agentic/v3-foundation-decisions.md` |
 | A-31 | Define descriptor model for externally exposed capability assets/resources | ✨ feature | planned | `WI-042-ai-v3-external-capability-asset-descriptors.md` |
 | A-32 | Define `ai/v3` protocol model and shared streaming event envelope | ✨ feature | planned | `WI-043-ai-v3-protocol-and-streaming-event-model.md` |
 | A-33 | Define `ai/v3` agent profile model and context-based profile resolution | ✨ feature | planned | `WI-044-ai-v3-agent-profile-and-resolution.md` |
-| A-34 | Define `ai/v3` planner and execution-loop contracts | ✨ feature | planned | `WI-045-ai-v3-planner-and-execution-loop-contracts.md` |
-| A-35 | Define `ai/v3` tool contract and tool-execution boundary | ✨ feature | planned | `WI-046-ai-v3-tool-contract-and-execution-boundary.md` |
-| A-36 | Define `ai/v3` run-state model with ephemeral vs durable workflow state | ✨ feature | planned | `WI-047-ai-v3-run-state-model.md` |
-| A-37 | Add dedicated LangChain4j adapter layer to `ai/v3` | ✨ feature | planned | `WI-048-ai-v3-langchain4j-adapter-layer.md` |
-| A-38 | Define `ai/v3` validation approach with scenario and `testIT` coverage | 🧪 test | planned | `WI-049-ai-v3-validation-approach-and-testit.md` |
-| A-39 | Define minimal validation capability set for Hello World agent | ✨ feature | planned | `WI-050-ai-v3-minimal-validation-capability-set.md` |
-| A-40 | Define Hello World / platform-validation agent profile | ✨ feature | planned | `WI-051-ai-v3-hello-world-agent-profile.md` |
-| A-41 | Define bounded Hello World workflow using trivial/no-op tools | ✨ feature | planned | `WI-052-ai-v3-hello-world-bounded-workflow.md` |
-| A-42 | Define Hello World streaming sequence with protocol-defined payloads | ✨ feature | planned | `WI-053-ai-v3-hello-world-streaming-sequence.md` |
-| A-43 | Add real-LLM-backed `testIT` coverage for Hello World agent | 🧪 test | planned | `WI-054-ai-v3-hello-world-real-llm-testit.md` |
+| A-34 | Define `ai/v3` planner and execution-loop contracts | ✨ feature | done | `design/agentic/v3-runtime-roles.md` |
+| A-35 | Define `ai/v3` tool contract and tool-execution boundary | ✨ feature | done | `design/agentic/v3-capability-manifest.md` |
+| A-36 | Define `ai/v3` run-state model with ephemeral vs durable workflow state | ✨ feature | done | `design/agentic/v3-runtime-roles.md` |
+| A-37 | Add dedicated LangChain4j adapter layer to `ai/v3` | ✨ feature | done | `design/agentic/v3-runtime-roles.md` |
+| A-38 | Define `ai/v3` validation approach with scenario and `testIT` coverage | 🧪 test | done | `design/agentic/v3-validation-harness.md` |
+| A-39 | Define minimal validation capability set for Hello World agent | ✨ feature | done | `design/agentic/v3-foundation-decisions.md` |
+| A-40 | Define Hello World / platform-validation agent profile | ✨ feature | done | `design/agentic/v3-runtime-roles.md` |
+| A-41 | Define bounded Hello World workflow using trivial/no-op tools | ✨ feature | done | `design/agentic/v3-runtime-roles.md` |
+| A-42 | Define Hello World streaming sequence with protocol-defined payloads | ✨ feature | done | `design/agentic/v3-runtime-roles.md` |
+| A-43 | Add real-LLM-backed `testIT` coverage for Hello World agent | 🧪 test | done | `design/agentic/v3-validation-harness.md` |
 | A-44 | Define Schema Exploration POC agent scope | 📝 docs | planned | `WI-055-ai-v3-schema-exploration-scope.md` |
 | A-45 | Define planner responsibilities for Schema Exploration workflow | ✨ feature | planned | `WI-056-ai-v3-schema-exploration-planner-responsibilities.md` |
 | A-46 | Define observer responsibilities for Schema Exploration workflow | ✨ feature | planned | `WI-057-ai-v3-schema-exploration-observer-responsibilities.md` |
-| A-47 | Define minimal Schema Exploration tool set | ✨ feature | planned | `WI-058-ai-v3-schema-exploration-tool-set.md` |
+| A-47 | Define minimal Schema Exploration tool set | ✨ feature | done | `workitems/PLAN-ai-v3-schema-exploration-agent.md` |
 | A-48 | Add end-to-end scenarios for Schema Exploration workflow | 🧪 test | planned | `WI-059-ai-v3-schema-exploration-scenarios.md` |
-| A-49 | Define `ai/v3` Schema capability as unified physical-schema plus schema-bound metadata surface | ✨ feature | planned | `WI-060-ai-v3-schema-capability.md` |
-| A-50 | Define initial Schema tool set for explain/inspection workflows | ✨ feature | planned | `WI-061-ai-v3-schema-tool-set.md` |
-| A-51 | Define schema data aggregation boundary that hides internal subsystem separation | 🔧 refactoring | planned | `WI-062-ai-v3-schema-data-aggregation-boundary.md` |
-| A-52 | Define Schema Exploration agent profile | ✨ feature | planned | `WI-063-ai-v3-schema-exploration-agent-profile.md` |
-| A-53 | Define Schema Exploration workflow | ✨ feature | planned | `WI-064-ai-v3-schema-exploration-workflow.md` |
-| A-54 | Define Schema Exploration streaming UX/event sequence | ✨ feature | planned | `WI-065-ai-v3-schema-exploration-streaming-ux.md` |
+| A-49 | Define `ai/v3` Schema capability as unified physical-schema plus schema-bound metadata surface | ✨ feature | done | `workitems/PLAN-ai-v3-schema-exploration-agent.md` |
+| A-50 | Define initial Schema tool set for explain/inspection workflows | ✨ feature | done | `workitems/PLAN-ai-v3-schema-exploration-agent.md` |
+| A-51 | Implement schema data aggregation boundary (`SchemaFacetService`, `*WithFacets`, `SchemaFacets`) | 🔧 refactoring | done | `MILESTONE.md` (WI-062 completed) |
+| A-52 | Define Schema Exploration agent profile | ✨ feature | done | `workitems/PLAN-ai-v3-schema-exploration-agent.md` |
+| A-53 | Define Schema Exploration workflow | ✨ feature | done | `workitems/PLAN-ai-v3-schema-exploration-agent.md` |
+| A-54 | Define Schema Exploration streaming UX/event sequence | ✨ feature | done | `workitems/PLAN-ai-v3-schema-exploration-agent.md` |
 | A-55 | Add end-to-end scenarios for Schema Exploration agent | 🧪 test | planned | `WI-066-ai-v3-schema-exploration-scenarios.md` |
+| A-56 | Implement `ai/v3` MCP server POC exposing discovered capabilities, tools, prompts, and protocol resources | ✨ feature | backlog | `design/agentic/v3-foundation-decisions.md` |
+| A-57 | Implement multi-mode protocol execution in `ai/v3` supporting `TEXT`, `STRUCTURED_FINAL`, and `STRUCTURED_STREAM` | ✨ feature | planned | `WI-067-ai-v3-multi-mode-protocol-execution.md` |
 
 ---
 

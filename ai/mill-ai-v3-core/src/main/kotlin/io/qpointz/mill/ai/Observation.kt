@@ -1,18 +1,21 @@
 package io.qpointz.mill.ai
 
 /**
- * Minimal observer result for the hello-world milestone.
+ * Observer result after a runtime step completes.
  *
- * The observer remains application-owned even when the model is used for planning and answer
- * generation.
+ * The observer evaluates what happened and decides how the run should proceed next.
  */
 data class Observation(
     val decision: ObservationDecision,
     val reason: String,
+    val nextGoal: String? = null,
+    val shouldPersist: Boolean = false,
 )
 
 enum class ObservationDecision {
     CONTINUE,
-    FINISH,
+    ANSWER,
+    CLARIFY,
+    STOP_BUDGET,
     FAIL,
 }

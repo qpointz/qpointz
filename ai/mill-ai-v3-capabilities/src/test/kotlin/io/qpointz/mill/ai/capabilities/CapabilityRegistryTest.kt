@@ -2,6 +2,7 @@ package io.qpointz.mill.ai.capabilities
 
 import io.qpointz.mill.ai.AgentContext
 import io.qpointz.mill.ai.CapabilityRegistry
+import io.qpointz.mill.ai.HelloWorldAgentProfile
 import io.qpointz.mill.ai.HelloWorldCapabilitySet
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -17,13 +18,16 @@ class CapabilityRegistryTest {
 
         val descriptors = registry.allDescriptors()
 
-        assertEquals(HelloWorldCapabilitySet.requiredCapabilityIds, descriptors.map { it.id }.toSet())
+        assertTrue(descriptors.map { it.id }.toSet().containsAll(HelloWorldCapabilitySet.requiredCapabilityIds))
     }
 
     @Test
     fun `should expose minimal capability assets for hello world`() {
         val registry = CapabilityRegistry.load(javaClass.classLoader)
-        val capabilities = registry.capabilitiesFor(AgentContext(contextType = "general"))
+        val capabilities = registry.capabilitiesFor(
+            HelloWorldAgentProfile.profile,
+            AgentContext(contextType = "general"),
+        )
             .associateBy { it.descriptor.id }
 
         val conversation = requireNotNull(capabilities["conversation"])

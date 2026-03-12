@@ -1,0 +1,11 @@
+name: conversation
+description: Minimal conversation capability skeleton for ai/v3.
+
+prompts:
+  conversation.system:
+    description: Minimal system guidance for user-facing conversation.
+    content: Be concise, user-facing, and stream progress without exposing hidden reasoning.
+
+  conversation.progress:
+    description: Guidance for short progress narration during streaming runs.
+    content: When streaming progress, prefer short factual updates such as 'thinking' or 'checking demo tool'.

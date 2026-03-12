@@ -12,7 +12,8 @@ mill {
 
 dependencies {
     api(project(":ai:mill-ai-v3-core"))
-    implementation(kotlin("stdlib-jdk8"))
+    implementation(project(":data:mill-data-schema-core"))
+    implementation(kotlin("stdlib"))
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)
@@ -26,6 +27,9 @@ testing {
 
                 dependencies {
                     implementation(project())
+                    implementation(libs.mockito.core)
+                    implementation(libs.mockito.junit.jupiter)
+                    implementation(libs.mockito.kotlin)
                 }
             }
         }

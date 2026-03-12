@@ -8,5 +8,8 @@ package io.qpointz.mill.ai
  */
 interface CapabilityProvider {
     fun descriptor(): CapabilityDescriptor
-    fun create(context: AgentContext): Capability
+    fun create(
+        context: AgentContext,
+        dependencies: CapabilityDependencies = CapabilityDependencies.empty(),
+    ): Capability
 }

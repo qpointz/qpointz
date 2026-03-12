@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.qpointz.mill.ai.AgentEvent
 import io.qpointz.mill.ai.langchain4j.OpenAiHelloWorldAgent
+import io.qpointz.mill.ai.langchain4j.SchemaExplorationAgent
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
@@ -59,17 +60,39 @@ fun main() {
     println(dim("Type your message and press Enter. Commands: /help  /exit"))
     println()
 
-    val agent = OpenAiHelloWorldAgent.fromEnv()
-    if (agent == null) {
-        println(red("Error: OPENAI_API_KEY environment variable is not set."))
-        println(dim("  Optional: OPENAI_MODEL (default: gpt-4o-mini), OPENAI_BASE_URL"))
-        return
-    }
-
+    val agentName = System.getenv("AGENT") ?: "hello"
     val model = System.getenv("OPENAI_MODEL") ?: "gpt-4o-mini"
-    println(dim("  model : $model"))
-    println(dim("  agent : hello-world"))
-    println()
+
+    val runTurnFn: (String, (AgentEvent) -> Unit) -> Unit = when (agentName) {
+        "schema" -> {
+            val schemaService = SchemaFacetServiceFactory.create()
+            val agent = SchemaExplorationAgent.fromEnv(schemaService)
+            if (agent == null) {
+                println(red("Error: OPENAI_API_KEY environment variable is not set."))
+                println(dim("  Optional: OPENAI_MODEL (default: gpt-4o-mini), OPENAI_BASE_URL, SCHEMA_SOURCE (default: demo)"))
+                return
+            }
+            println(dim("  model  : $model"))
+            println(dim("  agent  : schema-exploration"))
+            println(dim("  schema : ${System.getenv("SCHEMA_SOURCE") ?: "demo"}"))
+            println()
+            val fn1: (String, (AgentEvent) -> Unit) -> Unit = { input, listener -> agent.run(input, listener) }
+            fn1
+        }
+        else -> {
+            val agent = OpenAiHelloWorldAgent.fromEnv()
+            if (agent == null) {
+                println(red("Error: OPENAI_API_KEY environment variable is not set."))
+                println(dim("  Optional: OPENAI_MODEL (default: gpt-4o-mini), OPENAI_BASE_URL"))
+                return
+            }
+            println(dim("  model : $model"))
+            println(dim("  agent : hello-world"))
+            println()
+            val fn2: (String, (AgentEvent) -> Unit) -> Unit = { input, listener -> agent.run(input, listener) }
+            fn2
+        }
+    }
 
     val reader = BufferedReader(InputStreamReader(System.`in`))
 
@@ -92,14 +115,14 @@ fun main() {
         }
 
         println()
-        runTurn(agent, input)
+        runTurn(runTurnFn, input)
         println()
     }
 }
 
 // ── Turn ─────────────────────────────────────────────────────────────────────
 
-private fun runTurn(agent: OpenAiHelloWorldAgent, input: String) {
+private fun runTurn(agentFn: (String, (AgentEvent) -> Unit) -> Unit, input: String) {
     var inMessage   = false
     var inReasoning = false
 
@@ -114,7 +137,7 @@ private fun runTurn(agent: OpenAiHelloWorldAgent, input: String) {
     }
     fun endBlocks() { endMessage(); endReasoning() }
 
-    agent.run(input) { event ->
+    agentFn(input) { event ->
         when (event) {
             // ── streaming blocks — kept inline for UX ────────────────────────
             is AgentEvent.MessageDelta -> {
@@ -146,10 +169,21 @@ private fun printHelp() {
     println("  /help   — show this message")
     println("  /exit   — quit  (also: exit, quit, /quit)")
     println()
-    println(bold("Hints:"))
+    println(bold("Environment:"))
+    println("  AGENT=hello  (default) — hello-world demo agent")
+    println("  AGENT=schema           — schema exploration agent")
+    println("  SCHEMA_SOURCE=demo     — in-memory demo retail schema (default)")
+    println()
+    println(bold("Hello-world hints:"))
     println("  • \"say hello to Alice\"")
     println("  • \"echo back: hello world\"")
     println("  • \"what can you do?\"")
     println("  • \"run a noop\"")
+    println()
+    println(bold("Schema hints:"))
+    println("  • \"what schemas are available?\"")
+    println("  • \"list the tables in retail\"")
+    println("  • \"what columns does the orders table have?\"")
+    println("  • \"how are orders and customers related?\"")
     println()
 }

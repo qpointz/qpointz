@@ -33,6 +33,7 @@ include (":data:mill-data-testkit")
 include (":data:mill-data-autoconfigure")
 include (":data:mill-data-source-core")
 include (":data:mill-data-source-calcite")
+include (":data:mill-data-schema-core")
 
 include (":data:formats:mill-data-format-text")
 include (":data:formats:mill-data-format-excel")

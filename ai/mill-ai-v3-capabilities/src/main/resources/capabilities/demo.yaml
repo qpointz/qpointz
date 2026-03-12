@@ -1,0 +1,63 @@
+name: demo
+description: Minimal demo capability skeleton for ai/v3.
+
+prompts:
+  demo.system:
+    description: Guidance for choosing between direct response and trivial demo tools.
+    content: Use direct responses for simple acknowledgements, and use demo tools when the user asks for a demonstrable action or capability listing.
+
+tools:
+  say_hello:
+    description: Return a friendly greeting for a provided name.
+    input:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name to greet.
+    output:
+      type: object
+      description: Greeting payload containing the rendered greeting text.
+      properties:
+        greeting:
+          type: string
+          description: Rendered greeting text.
+
+  echo_text:
+    description: Echo back user-provided text.
+    input:
+      type: object
+      properties:
+        text:
+          type: string
+          description: Text to echo back.
+    output:
+      type: object
+      description: Echo payload containing the provided text.
+      properties:
+        echo:
+          type: string
+          description: Echoed text.
+
+  noop:
+    description: Perform a no-op action that returns a deterministic marker.
+    output:
+      type: object
+      description: No-op payload indicating the action completed.
+      properties:
+        status:
+          type: string
+          description: Completion marker.
+
+  list_demo_capabilities:
+    description: List the capabilities exposed by the demo hello-world setup.
+    output:
+      type: object
+      description: List of capability ids available in the hello-world setup.
+      properties:
+        capabilities:
+          type: array
+          description: Capability ids available in the hello-world setup.
+          items:
+            type: string
+            description: Capability id.

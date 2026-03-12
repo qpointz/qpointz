@@ -4,14 +4,26 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.qpointz.mill.ai.AgentContext
 import io.qpointz.mill.ai.AgentEvent
+import io.qpointz.mill.ai.AgentExecutionInput
+import io.qpointz.mill.ai.AgentExecutor
+import io.qpointz.mill.ai.AnswerSynthesizer
 import io.qpointz.mill.ai.Capability
 import io.qpointz.mill.ai.CapabilityRegistry
+import io.qpointz.mill.ai.ExecutedToolCall
 import io.qpointz.mill.ai.HelloWorldAgentProfile
-import io.qpointz.mill.ai.HelloWorldCapabilitySet
 import io.qpointz.mill.ai.Observation
+import io.qpointz.mill.ai.ObservationInput
 import io.qpointz.mill.ai.ObservationDecision
+import io.qpointz.mill.ai.Observer
+import io.qpointz.mill.ai.Planner
 import io.qpointz.mill.ai.PlannerDecision
+import io.qpointz.mill.ai.RunState
 import io.qpointz.mill.ai.ToolDefinition
+import io.qpointz.mill.ai.ToolCallExecutor
+import io.qpointz.mill.ai.ToolExecutionContext
+import io.qpointz.mill.ai.ToolRequest
+import io.qpointz.mill.ai.ToolSchema
+import io.qpointz.mill.ai.ToolSchemaType
 import dev.langchain4j.agent.tool.ToolSpecification
 import dev.langchain4j.data.message.ChatMessage
 import dev.langchain4j.data.message.SystemMessage
@@ -38,6 +50,31 @@ class OpenAiHelloWorldAgent(
     private val registry: CapabilityRegistry = CapabilityRegistry.load(),
     private val objectMapper: ObjectMapper = ObjectMapper(),
 ) {
+    private val planner: Planner = Planner { input ->
+        planWithModel(input.userInput, input.availableTools)
+    }
+
+    private val observer: Observer = Observer { input ->
+        val failure = input.failure
+        when {
+            failure != null -> Observation(
+                decision = ObservationDecision.FAIL,
+                reason = "Step failed: ${failure.message ?: failure.javaClass.simpleName}",
+            )
+            input.lastPlannerDecision?.action == PlannerDecision.Action.DIRECT_RESPONSE -> Observation(
+                decision = ObservationDecision.ANSWER,
+                reason = "Planner selected direct response path.",
+            )
+            input.lastPlannerDecision?.action == PlannerDecision.Action.CALL_TOOL -> Observation(
+                decision = ObservationDecision.CONTINUE,
+                reason = "Tool result is available and should be synthesized into the final answer.",
+            )
+            else -> Observation(
+                decision = ObservationDecision.FAIL,
+                reason = "Observer received unsupported planner action.",
+            )
+        }
+    }
 
     /** Runtime model configuration loaded from environment or tests. */
     data class Config(
@@ -57,71 +94,64 @@ class OpenAiHelloWorldAgent(
             SystemMessage.from(systemPrompt(capabilities)),
             UserMessage.from(input),
         )
-
-        listener(AgentEvent.RunStarted(profileId = HelloWorldAgentProfile.profile.id))
-        listener(AgentEvent.ThinkingDelta(message = "Planning response..."))
-
-        val decision = plan(baseMessages, tools)
-        listener(AgentEvent.PlanCreated(mode = decision.mode.name, toolName = decision.toolName))
-
-        return when (decision.mode) {
-            PlannerDecision.Mode.DIRECT_RESPONSE -> {
-                val observation = Observation(
-                    decision = ObservationDecision.FINISH,
-                    reason = "Planner selected direct response path.",
-                )
-                listener(AgentEvent.ObservationMade(observation.decision.name, observation.reason))
-                val response = stream(baseMessages, emptyList(), listener)
-                val text = response.aiMessage().text() ?: ""
-                listener(AgentEvent.AnswerCompleted(text = text))
-                text
-            }
-
-            PlannerDecision.Mode.CALL_TOOL -> {
-                val tool = requireNotNull(tools.find { it.name == decision.toolName }) {
-                    "Planner selected unknown tool: ${decision.toolName}"
+        val executor = AgentExecutor(
+            planner = Planner { plannerInput ->
+                listener(AgentEvent.ThinkingDelta(message = "Planning response..."))
+                planWithModel(plannerInput.userInput, plannerInput.availableTools)
+            },
+            observer = observer,
+            toolExecutor = ToolCallExecutor { execution ->
+                val tool = requireNotNull(tools.find { it.name == execution.toolCall.name }) {
+                    "Planner selected unknown tool: ${execution.toolCall.name}"
                 }
-                val rawArguments = objectMapper.writeValueAsString(decision.toolArguments)
-                listener(
-                    AgentEvent.ToolCall(
-                        name = tool.name,
-                        arguments = rawArguments,
-                        iteration = 0,
+                val rawArguments = objectMapper.writeValueAsString(execution.toolCall.arguments)
+                val resultText = executeTool(tool, context, rawArguments)
+                ExecutedToolCall(
+                    name = execution.toolCall.name,
+                    arguments = execution.toolCall.arguments,
+                    resultText = resultText,
+                )
+            },
+            answerSynthesizer = AnswerSynthesizer { synthesis ->
+                val toolStep = synthesis.runState.steps.lastOrNull { it.kind == io.qpointz.mill.ai.RunStepKind.TOOL_CALL }
+                val response = if (toolStep?.toolName != null) {
+                    stream(
+                        baseMessages + UserMessage.from(
+                            "The planner executed tool `${toolStep.toolName}` and received this JSON result: ${toolStep.toolResult}. " +
+                                "Use the gathered tool evidence to answer the user concisely."
+                        ),
+                        emptyList(),
+                        synthesis.listener,
                     )
-                )
-                val resultText = executeTool(tool, rawArguments)
-                listener(AgentEvent.ToolResult(name = tool.name, result = resultText))
+                } else {
+                    stream(baseMessages, emptyList(), synthesis.listener)
+                }
+                response.aiMessage().text() ?: ""
+            },
+        )
 
-                val observation = Observation(
-                    decision = ObservationDecision.CONTINUE,
-                    reason = "Tool result is available and should be synthesized into the final answer.",
-                )
-                listener(AgentEvent.ObservationMade(observation.decision.name, observation.reason))
-                listener(AgentEvent.ThinkingDelta(message = "Synthesizing tool result..."))
-
-                val response = stream(
-                    baseMessages + UserMessage.from(
-                        "The planner executed tool `${tool.name}` and received this JSON result: $resultText. " +
-                            "Use it to answer the user concisely."
-                    ),
-                    emptyList(),
-                    listener,
-                )
-                val text = response.aiMessage().text() ?: ""
-                listener(AgentEvent.AnswerCompleted(text = text))
-                text
-            }
-        }
+        return executor.run(
+            AgentExecutionInput(
+                initialState = RunState(
+                    profile = HelloWorldAgentProfile.profile,
+                    context = context,
+                ),
+                userInput = input,
+                capabilities = capabilities,
+                availableTools = tools,
+                objectMapper = objectMapper,
+            ),
+            listener,
+        )
     }
 
     /** Resolve and validate the fixed capability set required by the hello-world profile. */
     private fun helloWorldCapabilities(context: AgentContext): List<Capability> {
-        val capabilities = registry.capabilitiesFor(context)
-            .filter { it.descriptor.id in HelloWorldCapabilitySet.requiredCapabilityIds }
+        val capabilities = registry.capabilitiesFor(HelloWorldAgentProfile.profile, context)
 
         val actualIds = capabilities.map { it.descriptor.id }.toSet()
-        require(actualIds == HelloWorldCapabilitySet.requiredCapabilityIds) {
-            "Hello-world capability set mismatch. expected=${HelloWorldCapabilitySet.requiredCapabilityIds} actual=$actualIds"
+        require(actualIds == HelloWorldAgentProfile.profile.capabilityIds) {
+            "Hello-world capability set mismatch. expected=${HelloWorldAgentProfile.profile.capabilityIds} actual=$actualIds"
         }
         return capabilities
     }
@@ -143,7 +173,7 @@ class OpenAiHelloWorldAgent(
     }
 
     /** Ask the model for a structured planning decision before executing the turn. */
-    private fun plan(messages: List<ChatMessage>, tools: List<ToolDefinition>): PlannerDecision {
+    private fun planWithModel(userInput: String, tools: List<ToolDefinition>): PlannerDecision {
         val planningMessages = listOf(
             SystemMessage.from(
                 buildString {
@@ -158,7 +188,7 @@ class OpenAiHelloWorldAgent(
                     appendLine("Return strict JSON matching the provided schema.")
                 }
             )
-        ) + messages.filterIsInstance<UserMessage>()
+        ) + listOf(UserMessage.from(userInput))
 
         val response = complete(
             ChatRequest.builder()
@@ -166,67 +196,108 @@ class OpenAiHelloWorldAgent(
                 .responseFormat(
                     ResponseFormat.builder()
                         .type(ResponseFormatType.JSON)
-                        .jsonSchema(plannerDecisionSchema())
+                        .jsonSchema(plannerSelectionSchema())
                         .build()
                 )
                 .build()
         )
         val payload = response.aiMessage().text().orEmpty()
         val node = objectMapper.readTree(payload)
-        val toolArguments = node.path("toolArguments")
-            .fields()
-            .asSequence()
-            .associate { (key, value) -> key to value.asText() }
+        val action = PlannerDecision.Action.valueOf(node.path("mode").asText())
+        val toolName = node.path("toolName").takeUnless { it.isMissingNode || it.isNull }?.asText()
+        val rationale = node.path("rationale").takeUnless { it.isMissingNode || it.isNull }?.asText()
+
+        if (action == PlannerDecision.Action.DIRECT_RESPONSE || toolName == null) {
+            return PlannerDecision.directResponse(rationale = rationale)
+        }
+
+        val tool = requireNotNull(tools.find { it.name == toolName }) {
+            "Planner selected unknown tool during argument planning: $toolName"
+        }
+        val toolArguments = planToolArguments(planningMessages, tool)
 
         return PlannerDecision(
-            mode = PlannerDecision.Mode.valueOf(node.path("mode").asText()),
-            toolName = node.path("toolName").takeUnless { it.isMissingNode || it.isNull }?.asText(),
+            action = action,
+            toolName = toolName,
             toolArguments = toolArguments,
-            rationale = node.path("rationale").takeUnless { it.isMissingNode || it.isNull }?.asText(),
+            rationale = rationale,
         )
     }
 
-    /** Minimal JSON schema for the structured hello-world planning decision. */
-    private fun plannerDecisionSchema(): JsonSchema {
+    /** Minimal JSON schema for the planner's tool-selection decision. */
+    private fun plannerSelectionSchema(): JsonSchema {
         val root = JsonObjectSchema.builder()
-            .description("Planning decision for the hello-world validation agent.")
-            .addEnumProperty("mode", PlannerDecision.Mode.entries.map { it.name }, "Whether to answer directly or call one tool.")
-            .addStringProperty("toolName", "Tool to execute when mode is CALL_TOOL.")
-            .addProperty(
-                "toolArguments",
-                JsonObjectSchema.builder()
-                    .description("String arguments passed to the selected tool.")
-                    .additionalProperties(true)
-                    .build()
+            .description("Tool-selection decision for the hello-world validation agent.")
+            .addEnumProperty(
+                "mode",
+                listOf(
+                    PlannerDecision.Action.DIRECT_RESPONSE.name,
+                    PlannerDecision.Action.CALL_TOOL.name,
+                ),
+                "Whether to answer directly or call one tool."
             )
+            .addStringProperty("toolName", "Tool to execute when mode is CALL_TOOL.")
             .addStringProperty("rationale", "Short rationale for the chosen mode.")
             .required("mode")
             .additionalProperties(false)
             .build()
 
         return JsonSchema.builder()
-            .name("helloWorldPlannerDecision")
+            .name("helloWorldPlannerSelection")
             .rootElement(root)
             .build()
     }
 
-    /** Convert the runtime tool model into LangChain4j tool specifications. */
-    private fun toToolSpecification(tool: ToolDefinition): ToolSpecification {
-        val parameters = JsonObjectSchema.builder()
-        tool.inputFields.forEach { field ->
-            parameters.addStringProperty(field.name, field.description)
-        }
-        val requiredFields = tool.inputFields.filter { it.required }.map { it.name }
-        if (requiredFields.isNotEmpty()) {
-            parameters.required(requiredFields)
+    /** Ask the model for typed arguments matching the selected tool's declared schema. */
+    private fun planToolArguments(
+        messages: List<ChatMessage>,
+        tool: ToolDefinition,
+    ): Map<String, Any?> {
+        if (tool.inputSchema.properties.isEmpty()) {
+            return emptyMap()
         }
 
-        return ToolSpecification.builder()
-            .name(tool.name)
-            .description(tool.description)
-            .parameters(parameters.build())
-            .build()
+        val argumentMessages = listOf(
+            SystemMessage.from(
+                buildString {
+                    appendLine("You are generating typed arguments for the selected tool.")
+                    appendLine("Selected tool: ${tool.name}")
+                    appendLine("Tool description: ${tool.description}")
+                    appendLine("Return strict JSON matching the provided schema exactly.")
+                }
+            )
+        ) + messages.filterIsInstance<UserMessage>()
+
+        val response = complete(
+            ChatRequest.builder()
+                .messages(argumentMessages)
+                .responseFormat(
+                    ResponseFormat.builder()
+                        .type(ResponseFormatType.JSON)
+                        .jsonSchema(
+                            JsonSchema.builder()
+                                .name("${tool.name}Arguments")
+                                .rootElement(toJsonObjectSchema(tool.inputSchema))
+                                .build()
+                        )
+                        .build()
+                )
+                .build()
+        )
+
+        val payload = response.aiMessage().text().orEmpty()
+        return objectMapper.readValue(payload, object : TypeReference<Map<String, Any?>>() {})
     }
+
+    /** Convert the runtime tool model into LangChain4j tool specifications. */
+    private fun toToolSpecification(tool: ToolDefinition): ToolSpecification =
+        ToolSchemaConverter.toToolSpecification(tool)
+
+    private fun toJsonObjectSchema(schema: ToolSchema): JsonObjectSchema =
+        ToolSchemaConverter.toJsonObjectSchema(schema)
+
+    private fun toJsonSchemaElement(schema: ToolSchema): dev.langchain4j.model.chat.request.json.JsonSchemaElement =
+        ToolSchemaConverter.toJsonSchemaElement(schema)
 
     /**
      * Execute a trivial demo tool and serialize the structured tool result back to JSON.
@@ -234,14 +305,17 @@ class OpenAiHelloWorldAgent(
      * Returning JSON here keeps the tool bridge close to what later structured agent workflows
      * will need when tool results feed back into the model.
      */
-    private fun executeTool(tool: ToolDefinition, rawArguments: String): String {
+    private fun executeTool(tool: ToolDefinition, agentContext: AgentContext, rawArguments: String): String {
         val parsed = if (rawArguments.isBlank()) {
             emptyMap()
         } else {
             objectMapper.readValue(rawArguments, object : TypeReference<Map<String, Any?>>() {})
-                .mapValues { (_, value) -> value?.toString().orEmpty() }
         }
-        return objectMapper.writeValueAsString(tool.handler.invoke(io.qpointz.mill.ai.ToolRequest(parsed)).content)
+        val request = ToolRequest(
+            arguments = parsed,
+            context = ToolExecutionContext(agentContext = agentContext),
+        )
+        return objectMapper.writeValueAsString(tool.handler.invoke(request).content)
     }
 
     /** Execute a non-streaming request used for structured planning decisions. */

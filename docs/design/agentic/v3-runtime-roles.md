@@ -20,6 +20,19 @@ This document explains the current intended roles of:
 It uses the current Hello World implementation as the concrete example so the design stays
 anchored to real code rather than abstract future architecture.
 
+This document describes runtime roles generically, but the strategic target is a family of
+context-bound agents aligned to `ui/mill-ui`, especially:
+
+- `model`
+- `knowledge`
+- `analysis`
+
+It should also support cross-cutting enrichment/authoring flows that can be composed into those
+contexts rather than treated as a separate unrelated runtime.
+
+These agents should operate over durable conversations rather than ephemeral in-memory turns only.
+Persisted conversation/run records are part of the intended runtime shape.
+
 ---
 
 ## 2. High-Level Runtime Shape
@@ -44,6 +57,14 @@ For the Hello World milestone, this is intentionally small:
 - final streamed answer
 
 This is sufficient to validate the runtime roles before moving to richer multi-step agents.
+
+For the strategic end state, the runtime should be shared across multiple agent families whose
+policies differ by context. The runtime shape should remain stable even when:
+
+- planner policy differs between `model`, `knowledge`, and `analysis`
+- observer policy differs between explain flows and enrichment/authoring flows
+- a profile composes both contextual read capabilities and cross-cutting enrichment capabilities
+- the same conversation must be resumed, inspected, or continued after persistence boundaries
 
 ---
 
@@ -89,6 +110,16 @@ A profile is not a running agent. It is a composition definition that says:
 - which capability ids belong to the profile
 - what runtime identity the agent should have
 
+Strategically, profiles should represent bounded user-facing contexts and workflows, not just
+different prompt presets.
+
+Examples of likely future profile families:
+
+- model exploration / model explanation
+- knowledge concept explanation
+- analysis query assistance
+- context-specific enrichment/authoring
+
 Current profile model:
 
 ```kotlin
@@ -122,6 +153,9 @@ See:
 - define a stable agent identity
 - define the expected capability composition
 - act as the bridge between capability discovery and concrete agent behavior
+
+Strategically, a profile should also be stable enough to anchor durable conversations over time.
+Persisted conversations should be able to record which profile/family owned the run.
 
 ### 4.2 Agent profile non-responsibilities
 
@@ -168,6 +202,10 @@ See:
 - stay independent from a specific agent workflow
 - support composition into different future agents
 
+This composition requirement is especially important for enrichment. Enrichment should be modeled
+as a reusable capability family that can be composed into `model`, `knowledge`, or `analysis`
+profiles rather than embedded ad hoc into each context agent.
+
 ### 5.2 Capability non-responsibilities
 
 - choosing the next step
@@ -208,6 +246,18 @@ between:
 
 - direct response
 - call one tool
+
+Strategically, the runtime should expect multiple planner families rather than one universal
+planner implementation. The reusable part is the planner contract; the family-specific part is the
+decision policy.
+
+Likely planner families include:
+
+- context-reading planners for `model`, `knowledge`, and `analysis`
+- enrichment/authoring planners for proposing metadata or concept changes
+
+This is preferable to one oversized planner that tries to encode every context's workflow in a
+single decision taxonomy.
 
 Current planner decision model:
 

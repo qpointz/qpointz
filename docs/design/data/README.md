@@ -12,6 +12,7 @@ A document belongs here if its **primary subject** is one of:
 - Schema representation (DataType, Field, VectorBlockSchema)
 - Data encoding and serialization algorithms (flattening, reconstruction, PathSegment)
 - Type mapping tables (proto ↔ Java ↔ JDBC ↔ Python ↔ Arrow)
+- Schema aggregation boundaries that merge physical schema with schema-bound metadata
 - Future data formats or encoding strategies
 
 ## Does NOT Belong Here
@@ -27,3 +28,4 @@ A document belongs here if its **primary subject** is one of:
 |------|-------------|
 | `complex-type-support.md` | Design plan for JSON, LIST, MAP, OBJECT types: proto, wire format, algorithms |
 | `mill-type-system.md` | Mill schema and type system reference: protobuf, Java, vector, JDBC/Python mappings |
+| `schema-facet-service.md` | `SchemaFacetService` aggregation boundary: domain model, matching logic, module placement |

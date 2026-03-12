@@ -15,6 +15,7 @@ dependencies {
     api(project(":services:mill-service-api"))
     api(project(":services:mill-service-security"))
     api(project(":data:mill-data-backend-core"))
+    api(project(":data:mill-data-schema-core"))
     api(project(":data:mill-data-backends"))
     implementation(project(":core:mill-sql"))
     api(libs.jakarta.servlet.api)
