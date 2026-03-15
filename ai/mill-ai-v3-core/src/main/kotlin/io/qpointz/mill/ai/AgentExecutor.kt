@@ -11,6 +11,7 @@ class AgentExecutor(
     private val observer: Observer,
     private val toolExecutor: ToolCallExecutor,
     private val answerSynthesizer: AnswerSynthesizer,
+    private val protocolExecutor: ProtocolExecutor? = null,
     private val clarificationResponder: ClarificationResponder = ClarificationResponder {
         it.question
     },
@@ -40,6 +41,7 @@ class AgentExecutor(
                     kind = RunStepKind.PLAN,
                     plannerDecision = decision,
                     summary = decision.rationale,
+                    selectedProtocolId = decision.protocolId,
                 )
             )
             listener(AgentEvent.PlanCreated(mode = decision.action.name, toolName = decision.toolName))
@@ -56,7 +58,7 @@ class AgentExecutor(
                     listener(AgentEvent.ObservationMade(observation.decision.name, observation.reason))
                     return when (observation.decision) {
                         ObservationDecision.ANSWER,
-                        ObservationDecision.CONTINUE -> synthesize(runState, listener)
+                        ObservationDecision.CONTINUE -> synthesize(runState, decision, input, listener)
                         ObservationDecision.CLARIFY -> respondWithClarification(
                             runState = runState,
                             question = decision.clarificationQuestion ?: observation.reason,
@@ -120,7 +122,7 @@ class AgentExecutor(
 
                     when (observation.decision) {
                         ObservationDecision.CONTINUE -> Unit
-                        ObservationDecision.ANSWER -> return synthesize(runState, listener)
+                        ObservationDecision.ANSWER -> return synthesize(runState, decision, input, listener)
                         ObservationDecision.CLARIFY -> {
                             val question = decision.clarificationQuestion
                                 ?: observation.nextGoal
@@ -174,13 +176,36 @@ class AgentExecutor(
         }
     }
 
-    private fun synthesize(runState: RunState, listener: (AgentEvent) -> Unit): String {
-        val text = answerSynthesizer.synthesize(
-            AnswerSynthesisInput(
-                runState = runState,
-                listener = listener,
+    private fun synthesize(
+        runState: RunState,
+        decision: PlannerDecision?,
+        input: AgentExecutionInput,
+        listener: (AgentEvent) -> Unit,
+    ): String {
+        val protocolId = decision?.protocolId
+        val executor = protocolExecutor
+        val text = if (protocolId != null && executor != null) {
+            val allProtocols = input.capabilities.flatMap { it.protocols }
+            val protocol = requireNotNull(allProtocols.find { it.id == protocolId }) {
+                "ProtocolExecutor selected protocol '$protocolId' but it is not declared by any capability."
+            }
+            val result = executor.execute(
+                ProtocolExecutionInput(
+                    protocol = protocol,
+                    runState = runState,
+                    messages = input.messages,
+                    listener = listener,
+                )
             )
-        )
+            result.text
+        } else {
+            answerSynthesizer.synthesize(
+                AnswerSynthesisInput(
+                    runState = runState,
+                    listener = listener,
+                )
+            )
+        }
         listener(AgentEvent.AnswerCompleted(text = text))
         return text
     }
@@ -239,6 +264,7 @@ data class AgentExecutionInput(
     val userInput: String,
     val capabilities: List<Capability>,
     val availableTools: List<ToolDefinition>,
+    val messages: List<Any> = emptyList(),
     val objectMapper: com.fasterxml.jackson.databind.ObjectMapper = com.fasterxml.jackson.databind.ObjectMapper(),
 )
 

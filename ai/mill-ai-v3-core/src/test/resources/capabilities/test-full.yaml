@@ -147,3 +147,29 @@ tools:
         items:
           type: string
           description: A string element.
+
+  explicit_query_tool:
+    description: Tool explicitly declared as kind query.
+    kind: query
+    output:
+      type: object
+      properties:
+        result:
+          type: string
+          description: Result value.
+
+  capture_tool:
+    description: Tool declared as kind capture — produces a terminal artifact.
+    kind: capture
+    input:
+      type: object
+      properties:
+        entityId:
+          type: string
+          description: Target entity id.
+    output:
+      type: object
+      properties:
+        captureType:
+          type: string
+          description: The type of capture produced.

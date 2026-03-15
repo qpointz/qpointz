@@ -35,6 +35,8 @@ data class RunStep(
     val toolName: String? = null,
     val toolResult: String? = null,
     val summary: String? = null,
+    val selectedProtocolId: String? = null,
+    val protocolPayload: String? = null,
 )
 
 enum class RunStepKind {

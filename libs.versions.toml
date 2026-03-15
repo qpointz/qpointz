@@ -25,6 +25,7 @@ jackson = "2.21.0"
 guava = "33.3.1-jre"
 okhttp = "5.3.2"
 sqlline = "1.12.0"
+picocli = "4.7.7"
 
 micrometer = "1.16.0"
 
@@ -135,6 +136,7 @@ opencensus-impl = { module = "io.opencensus:opencensus-impl", version = "0.31.1"
 pebble-templates = { module = "io.pebbletemplates:pebble", version = "4.1.1" }
 
 sqlline = { module = "sqlline:sqlline", version.ref = "sqlline" }
+picocli = { module = "info.picocli:picocli", version.ref = "picocli" }
 
 drivers-postgressql = { module = "org.postgresql:postgresql", version = "42.7.9" }
 drivers-sqllite = { module = "org.xerial:sqlite-jdbc", version = "3.51.1.0" }

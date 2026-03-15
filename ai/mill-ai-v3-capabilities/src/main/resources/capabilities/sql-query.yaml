@@ -1,0 +1,202 @@
+name: sql-query
+description: |
+  SQL query capability for ai/v3.
+  Provides SQL validation and execution tools plus structured SQL artifact protocols.
+  SQL generation itself remains a structured model action, not a tool.
+
+prompts:
+  sql-query.system:
+    description: Guidance for SQL generation and correction loops.
+    content: |
+      When producing SQL:
+      - first ground schema and dialect context using the active capabilities
+      - generate SQL as a structured artifact
+      - call validate_sql before any execute_sql call
+      - if validation fails, use the free-text validator message to revise the SQL
+      - do not expose query result rows in model-visible outputs
+      - treat execute_sql as returning only result metadata and an optional result id
+
+tools:
+  validate_sql:
+    description: |
+      Validate a SQL statement before execution.
+      Returns a structured wrapper with pass/fail and a free-text validator message.
+    input:
+      type: object
+      required:
+        - sql
+        - attempt
+      properties:
+        sql:
+          type: string
+          description: SQL statement to validate.
+        attempt:
+          type: integer
+          description: Validation attempt number in the bounded correction loop.
+    output:
+      type: object
+      description: Structured SQL validation result artifact.
+      properties:
+        artifactType:
+          type: string
+          description: Always "sql-validation".
+        passed:
+          type: boolean
+          description: Whether validation passed.
+        attempt:
+          type: integer
+          description: Validation attempt number.
+        message:
+          type: string
+          description: Free-text validator message, usually null on success.
+        normalizedSql:
+          type: string
+          description: Optional normalized SQL returned by the validator.
+
+  execute_sql:
+    description: |
+      Execute a validated SQL statement through the query/result service boundary.
+      Returns only a result reference artifact and lightweight metadata, never query rows.
+    input:
+      type: object
+      required:
+        - statementId
+        - sql
+      properties:
+        statementId:
+          type: string
+          description: Stable id of the SQL statement artifact being executed.
+        sql:
+          type: string
+          description: SQL statement to execute.
+    output:
+      type: object
+      description: Structured SQL result reference artifact.
+      properties:
+        artifactType:
+          type: string
+          description: Always "sql-result".
+        statementId:
+          type: string
+          description: Stable id of the executed SQL statement artifact.
+        resultId:
+          type: string
+          description: Optional result id for later fetch; may be absent for non-durable results.
+        rowCount:
+          type: integer
+          description: Optional row count returned by execution.
+        columns:
+          type: array
+          description: Optional column metadata.
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Column name.
+              type:
+                type: string
+                description: Column type.
+        truncated:
+          type: boolean
+          description: Optional indication whether stored preview/result was truncated.
+        notes:
+          type: array
+          description: Optional execution notes.
+          items:
+            type: string
+            description: A single note.
+
+protocols:
+  sql-query.generated-sql:
+    description: Structured final protocol for generated SQL artifacts.
+    mode: structured_final
+    finalSchema:
+      type: object
+      description: Generated SQL artifact.
+      properties:
+        artifactType:
+          type: string
+          description: Always "generated-sql".
+        sql:
+          type: string
+          description: Canonical SQL statement.
+        dialectId:
+          type: string
+          description: Active dialect id.
+        statementKind:
+          type: string
+          description: Statement kind, e.g. select.
+        source:
+          type: string
+          description: Source of the SQL artifact, typically "generated".
+        validationWarnings:
+          type: array
+          description: Optional warnings attached to the statement.
+          items:
+            type: string
+            description: A single validation warning.
+
+  sql-query.validation:
+    description: Structured final protocol for SQL validation result artifacts.
+    mode: structured_final
+    finalSchema:
+      type: object
+      description: SQL validation result artifact.
+      properties:
+        artifactType:
+          type: string
+          description: Always "sql-validation".
+        passed:
+          type: boolean
+          description: Whether validation passed.
+        attempt:
+          type: integer
+          description: Validation attempt number.
+        message:
+          type: string
+          description: Free-text validator message.
+        normalizedSql:
+          type: string
+          description: Optional normalized SQL returned by the validator.
+
+  sql-query.result-ref:
+    description: Structured final protocol for SQL result reference artifacts.
+    mode: structured_final
+    finalSchema:
+      type: object
+      description: SQL result reference artifact.
+      properties:
+        artifactType:
+          type: string
+          description: Always "sql-result".
+        statementId:
+          type: string
+          description: Stable id of the executed SQL statement.
+        resultId:
+          type: string
+          description: Optional result id for later fetch or requery.
+        rowCount:
+          type: integer
+          description: Optional result row count.
+        columns:
+          type: array
+          description: Optional column metadata.
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Column name.
+              type:
+                type: string
+                description: Column type.
+        truncated:
+          type: boolean
+          description: Optional truncation flag.
+        notes:
+          type: array
+          description: Optional execution notes.
+          items:
+            type: string
+            description: A single note.

@@ -75,4 +75,29 @@ sealed interface AgentEvent {
     ) : AgentEvent {
         override val type: String = "reasoning.delta"
     }
+
+    /** Partial text token streamed via a TEXT-mode protocol. */
+    data class ProtocolTextDelta(
+        val protocolId: String,
+        val text: String,
+    ) : AgentEvent {
+        override val type: String = "protocol.text.delta"
+    }
+
+    /** Final validated payload emitted by a STRUCTURED_FINAL-mode protocol. */
+    data class ProtocolFinal(
+        val protocolId: String,
+        val payload: String,
+    ) : AgentEvent {
+        override val type: String = "protocol.final"
+    }
+
+    /** Single validated event emitted by a STRUCTURED_STREAM-mode protocol. */
+    data class ProtocolStreamEvent(
+        val protocolId: String,
+        val eventType: String,
+        val payload: String,
+    ) : AgentEvent {
+        override val type: String = "protocol.stream.event"
+    }
 }

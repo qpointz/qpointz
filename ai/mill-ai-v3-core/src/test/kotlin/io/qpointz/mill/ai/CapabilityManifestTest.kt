@@ -227,6 +227,32 @@ class CapabilityManifestTest {
         assertEquals(ToolSchemaType.STRING, tool.outputSchema.items!!.items!!.type)
     }
 
+    // ── Tool kind ─────────────────────────────────────────────────────────────
+
+    @Test
+    fun `should default tool kind to QUERY when kind not declared`() {
+        val tool = manifest.tool("no_input") { ToolResult(null) }
+        assertEquals(ToolKind.QUERY, tool.kind)
+    }
+
+    @Test
+    fun `should resolve explicit kind query to QUERY`() {
+        val tool = manifest.tool("explicit_query_tool") { ToolResult(null) }
+        assertEquals(ToolKind.QUERY, tool.kind)
+    }
+
+    @Test
+    fun `should resolve kind capture to CAPTURE`() {
+        val tool = manifest.tool("capture_tool") { ToolResult(null) }
+        assertEquals(ToolKind.CAPTURE, tool.kind)
+    }
+
+    @Test
+    fun `should resolve kind case-insensitively`() {
+        val tool = manifest.tool("capture_tool") { ToolResult(null) }
+        assertEquals(ToolKind.CAPTURE, tool.kind)
+    }
+
     // ── ToolSchema init guards ────────────────────────────────────────────────
 
     @Test

@@ -1,4 +1,4 @@
-# Backlog
+M# Backlog
 
 Consolidated tracking list of planned work across all categories. Items are
 milestone-selectable deliverables extracted from design documents and work items.
@@ -54,13 +54,13 @@ milestone-selectable deliverables extracted from design documents and work items
 | A-24 | Create `ai/v3` module skeleton for side-by-side Kotlin runtime/capabilities/LangChain4j/test layout | ✨ feature | done | `design/agentic/v3-foundation-decisions.md` |
 | A-25 | Define Hello World / platform-validation milestone for `ai/v3` | 📝 docs | done | `design/agentic/v3-foundation-decisions.md` |
 | A-26 | Define `ai/v3` core domain vocabulary (capability, profile, protocol, run state, artifact, planner step) | 📝 docs | done | `design/agentic/v3-runtime-roles.md` |
-| A-27 | Define `ai/v3` capability model and descriptor format | ✨ feature | planned | `WI-038-ai-v3-capability-model-and-descriptor-format.md` |
+| A-27 | Define `ai/v3` capability model and descriptor format | ✨ feature | done | `WI-038-ai-v3-capability-model-and-descriptor-format.md` |
 | A-28 | Implement framework-free dynamic capability discovery for `ai/v3` | ✨ feature | done | `design/agentic/v3-foundation-decisions.md` |
 | A-29 | Define MCP-aligned exposure plan for `ai/v3` capabilities | 📝 docs | done | `design/agentic/v3-foundation-decisions.md` |
 | A-30 | Identify first-class externalizable capability resources (tools, prompts, protocols, descriptors, examples) | 📝 docs | done | `design/agentic/v3-foundation-decisions.md` |
 | A-31 | Define descriptor model for externally exposed capability assets/resources | ✨ feature | planned | `WI-042-ai-v3-external-capability-asset-descriptors.md` |
-| A-32 | Define `ai/v3` protocol model and shared streaming event envelope | ✨ feature | planned | `WI-043-ai-v3-protocol-and-streaming-event-model.md` |
-| A-33 | Define `ai/v3` agent profile model and context-based profile resolution | ✨ feature | planned | `WI-044-ai-v3-agent-profile-and-resolution.md` |
+| A-32 | Define `ai/v3` protocol model and shared streaming event envelope | ✨ feature | done | `design/agentic/v3-capability-manifest.md`, `design/agentic/v3-runtime-roles.md` |
+| A-33 | Define `ai/v3` agent profile model and context-based profile resolution | ✨ feature | done | `design/agentic/v3-runtime-roles.md` |
 | A-34 | Define `ai/v3` planner and execution-loop contracts | ✨ feature | done | `design/agentic/v3-runtime-roles.md` |
 | A-35 | Define `ai/v3` tool contract and tool-execution boundary | ✨ feature | done | `design/agentic/v3-capability-manifest.md` |
 | A-36 | Define `ai/v3` run-state model with ephemeral vs durable workflow state | ✨ feature | done | `design/agentic/v3-runtime-roles.md` |
@@ -71,9 +71,9 @@ milestone-selectable deliverables extracted from design documents and work items
 | A-41 | Define bounded Hello World workflow using trivial/no-op tools | ✨ feature | done | `design/agentic/v3-runtime-roles.md` |
 | A-42 | Define Hello World streaming sequence with protocol-defined payloads | ✨ feature | done | `design/agentic/v3-runtime-roles.md` |
 | A-43 | Add real-LLM-backed `testIT` coverage for Hello World agent | 🧪 test | done | `design/agentic/v3-validation-harness.md` |
-| A-44 | Define Schema Exploration POC agent scope | 📝 docs | planned | `WI-055-ai-v3-schema-exploration-scope.md` |
-| A-45 | Define planner responsibilities for Schema Exploration workflow | ✨ feature | planned | `WI-056-ai-v3-schema-exploration-planner-responsibilities.md` |
-| A-46 | Define observer responsibilities for Schema Exploration workflow | ✨ feature | planned | `WI-057-ai-v3-schema-exploration-observer-responsibilities.md` |
+| A-44 | Define Schema Exploration POC agent scope | 📝 docs | done | `workitems/PLAN-ai-v3-schema-exploration-agent.md` |
+| A-45 | Define planner responsibilities for Schema Exploration workflow | ✨ feature | done | `workitems/PLAN-ai-v3-schema-exploration-agent.md`, `ai/mill-ai-v3-langchain4j/src/main/kotlin/io/qpointz/mill/ai/langchain4j/SchemaExplorationAgent.kt` |
+| A-46 | Define observer responsibilities for Schema Exploration workflow | ✨ feature | done | `workitems/PLAN-ai-v3-schema-exploration-agent.md`, `ai/mill-ai-v3-langchain4j/src/main/kotlin/io/qpointz/mill/ai/langchain4j/SchemaExplorationAgent.kt` |
 | A-47 | Define minimal Schema Exploration tool set | ✨ feature | done | `workitems/PLAN-ai-v3-schema-exploration-agent.md` |
 | A-48 | Add end-to-end scenarios for Schema Exploration workflow | 🧪 test | planned | `WI-059-ai-v3-schema-exploration-scenarios.md` |
 | A-49 | Define `ai/v3` Schema capability as unified physical-schema plus schema-bound metadata surface | ✨ feature | done | `workitems/PLAN-ai-v3-schema-exploration-agent.md` |
@@ -84,7 +84,11 @@ milestone-selectable deliverables extracted from design documents and work items
 | A-54 | Define Schema Exploration streaming UX/event sequence | ✨ feature | done | `workitems/PLAN-ai-v3-schema-exploration-agent.md` |
 | A-55 | Add end-to-end scenarios for Schema Exploration agent | 🧪 test | planned | `WI-066-ai-v3-schema-exploration-scenarios.md` |
 | A-56 | Implement `ai/v3` MCP server POC exposing discovered capabilities, tools, prompts, and protocol resources | ✨ feature | backlog | `design/agentic/v3-foundation-decisions.md` |
-| A-57 | Implement multi-mode protocol execution in `ai/v3` supporting `TEXT`, `STRUCTURED_FINAL`, and `STRUCTURED_STREAM` | ✨ feature | planned | `WI-067-ai-v3-multi-mode-protocol-execution.md` |
+| A-57 | Implement multi-mode protocol execution in `ai/v3` supporting `TEXT`, `STRUCTURED_FINAL`, and `STRUCTURED_STREAM` | ✨ feature | done | `design/agentic/v3-foundation-decisions.md` |
+| A-58 | Extend schema agent with metadata-authoring intent detection and structured capture for descriptions and relations | ✨ feature | done | `MILESTONE.md` (WI-068 completed) |
+| A-59 | Implement `ai/v3` `sql-dialect` capability backed by `SqlDialectSpec` with focused conventions, paging, join, and function tools | ✨ feature | done | `MILESTONE.md` (WI-069 completed) |
+| A-60 | Implement three-layer authoring protocol: explicit planner-intent and authored-request structured boundaries before capture; `AgentEvent.AuthoredRequest`; `targetHints` on `PlannerDecision` | ✨ feature | backlog | `design/agentic/v3-authoring-protocol.md` |
+| A-61 | Implement `ai/v3` `sql-query` capability for SQL generation, validation, execution, durable generated-SQL artifacts, and non-durable result references | ✨ feature | planned | `WI-070-ai-v3-sql-query-capability.md` |
 
 ---
 
@@ -267,7 +271,7 @@ milestone-selectable deliverables extracted from design documents and work items
 | Category    | Total   | ✨ feature | 💡 improvement | 🐛 fix | 🔧 refactoring | 🧪 test | 📝 docs |
 | ----------- | ------- | --------- | -------------- | ------ | -------------- | ------- | ------- |
 | data        | 7       | 6         | 0              | 0      | 0              | 0       | 1       |
-| ai          | 23      | 16        | 4              | 1      | 2              | 0       | 0       |
+| ai          | 24      | 17        | 4              | 1      | 2              | 0       | 0       |
 | client      | 21      | 11        | 0              | 5      | 3              | 1       | 1       |
 | metadata    | 17      | 13        | 0              | 2      | 1              | 1       | 0       |
 | platform    | 32      | 11        | 8              | 4      | 8              | 1       | 0       |
@@ -275,4 +279,4 @@ milestone-selectable deliverables extracted from design documents and work items
 | refactoring | 10      | 0         | 1              | 4      | 2              | 2       | 1       |
 | source      | 15      | 8         | 4              | 1      | 2              | 0       | 0       |
 | ui          | 10      | 4         | 4              | 0      | 1              | 1       | 0       |
-| **Total**   | **139** | **70**    | **23**         | **17** | **19**         | **6**   | **4**   |
+| **Total**   | **140** | **71**    | **23**         | **17** | **19**         | **6**   | **4**   |

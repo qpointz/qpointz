@@ -239,11 +239,11 @@ Implementation order:
 
 Reference/scope support:
 
-- `WI-055-ai-v3-schema-exploration-scope.md`
-- `WI-056-ai-v3-schema-exploration-planner-responsibilities.md`
-- `WI-057-ai-v3-schema-exploration-observer-responsibilities.md`
 - `WI-058-ai-v3-schema-exploration-tool-set.md`
 - `WI-059-ai-v3-schema-exploration-scenarios.md`
+
+The earlier scope/planner/observer stub work items (`WI-055`, `WI-056`, `WI-057`) were later
+folded into this plan and the implemented schema exploration/runtime docs.
 
 ## Supervisor Protocol
 

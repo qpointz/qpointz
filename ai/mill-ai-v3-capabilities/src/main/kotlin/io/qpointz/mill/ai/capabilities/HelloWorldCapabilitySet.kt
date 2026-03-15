@@ -1,4 +1,4 @@
-package io.qpointz.mill.ai
+package io.qpointz.mill.ai.capabilities
 
 /**
  * Canonical capability set expected by the hello-world milestone.

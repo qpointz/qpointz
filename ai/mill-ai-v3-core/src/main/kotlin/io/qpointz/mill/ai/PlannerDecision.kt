@@ -5,6 +5,11 @@ package io.qpointz.mill.ai
  *
  * The decision model is generic at the runtime layer. Individual agent families are expected to
  * use only the subset of actions that make sense for their workflow.
+ *
+ * [task] and [subtype] are open-string fields that capability-specific planners populate to
+ * communicate intent classification without coupling the core runtime to a fixed taxonomy.
+ * Examples: `task = "AUTHOR_METADATA"`, `subtype = "description"`. The runtime does not
+ * validate or interpret these — capabilities and observers read them directly.
  */
 data class PlannerDecision(
     val action: Action,
@@ -14,6 +19,9 @@ data class PlannerDecision(
     val rationale: String? = null,
     val clarificationQuestion: String? = null,
     val target: String? = null,
+    val protocolId: String? = null,
+    val task: String? = null,
+    val subtype: String? = null,
 ) {
     init {
         require(action == Action.CALL_TOOL || toolName == null) {
@@ -78,6 +86,41 @@ data class PlannerDecision(
             PlannerDecision(
                 action = Action.ASK_CLARIFICATION,
                 clarificationQuestion = question,
+                rationale = rationale,
+            )
+
+        fun synthesizeAnswer(
+            protocolId: String,
+            rationale: String? = null,
+        ): PlannerDecision =
+            PlannerDecision(
+                action = Action.SYNTHESIZE_ANSWER,
+                protocolId = protocolId,
+                rationale = rationale,
+            )
+
+        /**
+         * Convenience factory for metadata-authoring decisions.
+         *
+         * Sets [task] = `"AUTHOR_METADATA"` and the given [subtype] (e.g. `"description"`,
+         * `"relation"`). The [protocolId] should point to the STRUCTURED_FINAL capture protocol
+         * declared by the active authoring capability.
+         */
+        fun authorMetadata(
+            subtype: String,
+            protocolId: String,
+            toolName: String,
+            toolArguments: Map<String, Any?> = emptyMap(),
+            rationale: String? = null,
+        ): PlannerDecision =
+            PlannerDecision(
+                action = Action.CALL_TOOL,
+                toolName = toolName,
+                toolArguments = toolArguments,
+                toolCalls = listOf(PlannedToolCall(name = toolName, arguments = toolArguments)),
+                protocolId = protocolId,
+                task = "AUTHOR_METADATA",
+                subtype = subtype,
                 rationale = rationale,
             )
     }

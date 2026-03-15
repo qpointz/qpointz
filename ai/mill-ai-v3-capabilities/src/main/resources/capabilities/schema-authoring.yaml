@@ -1,0 +1,276 @@
+name: schema-authoring
+description: |
+  Schema metadata authoring capability for ai/v3.
+  Detects metadata-authoring intent and produces structured captures for
+  DescriptiveFacet (descriptions) and RelationFacet (relations).
+  Capture is terminal — no repository writes occur at this stage.
+
+# ── Prompts ──────────────────────────────────────────────────────────────────
+# Two prompts drive the two-phase authoring flow:
+#   1. schema-authoring.intent  — intent classification (injected into the planner system prompt)
+#   2. schema-authoring.request — structured request extraction (injected before the capture call)
+prompts:
+  schema-authoring.intent:
+    description: Guides the planner to classify schema-oriented user intent.
+    content: |
+      You are classifying the user's intent for a schema-focused agent.
+
+      Choose exactly one task from the following catalog:
+
+      EXPLORE_SCHEMA
+        Use when the user wants to inspect, list, explain, or understand schema entities.
+        Examples: "what tables are in retail?", "describe the orders table", "how are orders and customers related?"
+
+      AUTHOR_METADATA
+        Use when the user is defining or refining metadata — adding descriptions, linking tables, naming relations.
+        Examples: "add a description for orders", "link orders.customer_id to customers.id", "this column means the lifecycle state"
+        When you choose AUTHOR_METADATA, also choose a subtype:
+          description — the user is providing or improving a description for a table or column
+          relation    — the user is defining or declaring a join/foreign-key relationship between tables
+
+      ASK_CLARIFICATION
+        Use when the target entity or intended change is ambiguous and cannot be resolved from context.
+
+      Rules:
+      - Action verbs (add, define, update, improve, document, describe, relate, link, connect) strongly suggest AUTHOR_METADATA.
+      - Normative phrases (should be, means, is actually, call this, treat as) strongly suggest AUTHOR_METADATA.
+      - Exploration questions (what is, list, show, how are ... related) suggest EXPLORE_SCHEMA.
+      - "describe the X table" is ambiguous — prefer EXPLORE_SCHEMA unless the user provides new content to add.
+      - Return structured JSON only. Do not add prose.
+
+  schema-authoring.batch:
+    description: Guides the model to extract all authoring intents from rich input and emit them as parallel capture tool calls.
+    content: |
+      You are processing rich text input (e.g. an email, document, or multi-entity description)
+      that contains metadata authoring intent for multiple schema entities at once.
+
+      Your job is to extract ALL authoring intents from the input and act on each of them.
+
+      Rules for batch authoring:
+      - Do not stop after the first entity — scan the entire input and identify every table, column, or relation that needs metadata.
+      - Once schema grounding is complete, emit ALL capture tool calls in a single response (parallel calls).
+      - For each table or column with a description: call capture_description once per entity.
+      - For each declared or implied join relationship: call capture_relation once per relation.
+      - If an entity id cannot be grounded from schema tools, skip it and note it in the rationale.
+      - Do not call the same capture tool twice for the same entity.
+
+      Grounding order:
+      1. Call list_schemas to identify available schemas.
+      2. Call list_tables for each relevant schema.
+      3. Call list_columns for tables where column-level captures are needed.
+      4. When all required entity ids are resolved, emit all capture calls in one parallel batch.
+
+  schema-authoring.request:
+    description: Guides the model to produce a structured authored metadata request before calling a capture tool.
+    content: |
+      You are extracting a structured metadata authoring request from the conversation.
+
+      Use the schema grounding results already available in the conversation to fill canonical entity ids.
+      Entity ids are fully qualified: schema.table (e.g. retail.orders) or schema.table.column (e.g. retail.orders.customer_id).
+
+      For a description capture, produce:
+        subtype: description
+        target.entityType: TABLE or COLUMN
+        target.entityId: fully qualified entity id
+        payload.description: the description text the user provided or implied
+        payload.displayName: optional human-readable label
+        rationale: why this description was inferred
+
+      For a relation capture, produce:
+        subtype: relation
+        target.sourceTableId: fully qualified source table id
+        target.targetTableId: fully qualified target table id
+        payload.name: relation name (infer from table names if not stated)
+        payload.sourceColumnIds: list of fully qualified source column ids, if known
+        payload.targetColumnIds: list of fully qualified target column ids, if known
+        payload.description: optional description of the relation
+        rationale: why this relation was inferred
+
+      If required fields cannot be resolved, do not guess — set needsClarification: true instead.
+      Return structured JSON only.
+
+# ── Tools ────────────────────────────────────────────────────────────────────
+# capture tools are kind: capture — the observer terminates the agentic loop when
+# any capture tool completes and routes synthesis to the schema-authoring.capture protocol.
+# request_clarification is kind: query — the planner intercepts it and converts it to
+# PlannerDecision.askClarification before the tool executor runs.
+# No schema grounding tools are declared here; SchemaCapability supplies those.
+tools:
+  request_clarification:
+    description: |
+      Call this tool when the authoring target cannot be resolved unambiguously from the
+      conversation context and the schema grounding results. Do not guess — if the entity
+      id, table name, or relation endpoints are unclear, call this tool with a focused
+      clarification question for the user.
+      Clarify for descriptions when:
+        - the target table or column name matches multiple entities across schemas
+        - the user referred to "this table" or "it" without a clear prior reference
+      Clarify for relations when:
+        - source or target table is ambiguous
+        - the join column cannot be determined and matters for correctness
+    kind: query
+    input:
+      type: object
+      required:
+        - question
+      properties:
+        question:
+          type: string
+          description: The focused clarification question to ask the user. Be specific about what is ambiguous.
+    output:
+      type: object
+      properties:
+        acknowledged:
+          type: boolean
+          description: Always true. The runtime surfaces the question to the user.
+
+  capture_description:
+    description: |
+      Serialize a description capture for a target schema entity (table or column).
+      The capture is application-owned and facet-aligned (DescriptiveFacet).
+      No metadata storage is written — this tool only produces the structured capture artifact.
+    kind: capture
+    input:
+      type: object
+      required:
+        - targetEntityId
+        - targetEntityType
+        - description
+      properties:
+        targetEntityId:
+          type: string
+          description: "Canonical fully qualified entity id. Format: schema.table or schema.table.column."
+        targetEntityType:
+          type: string
+          description: "Entity type. One of: TABLE, COLUMN."
+          enum:
+            - TABLE
+            - COLUMN
+        description:
+          type: string
+          description: Description text to capture.
+        displayName:
+          type: string
+          description: Optional human-readable display name for the entity.
+        rationale:
+          type: string
+          description: Optional rationale explaining why this description was inferred.
+    output:
+      type: object
+      description: Canonical description capture result.
+      properties:
+        captureType:
+          type: string
+          description: Always "description".
+        targetEntityId:
+          type: string
+          description: Entity id the capture applies to.
+        targetEntityType:
+          type: string
+          description: Entity type (TABLE or COLUMN).
+        serializedPayload:
+          type: object
+          description: Facet-aligned capture payload ready for later persistence.
+        validationWarnings:
+          type: array
+          description: Warnings produced during serialization. Empty if none.
+          items:
+            type: string
+            description: A single validation warning.
+
+  capture_relation:
+    description: |
+      Serialize a relation capture between two schema tables.
+      The capture is application-owned and facet-aligned (RelationFacet).
+      No metadata storage is written — this tool only produces the structured capture artifact.
+    kind: capture
+    input:
+      type: object
+      required:
+        - relationName
+        - sourceTableId
+        - targetTableId
+      properties:
+        relationName:
+          type: string
+          description: Name for the relation (e.g. orders_to_customers).
+        sourceTableId:
+          type: string
+          description: "Canonical fully qualified source table id. Format: schema.table."
+        targetTableId:
+          type: string
+          description: "Canonical fully qualified target table id. Format: schema.table."
+        sourceColumnIds:
+          type: array
+          description: Optional fully qualified source column ids participating in the join.
+          items:
+            type: string
+            description: "Fully qualified column id. Format: schema.table.column."
+        targetColumnIds:
+          type: array
+          description: Optional fully qualified target column ids participating in the join.
+          items:
+            type: string
+            description: "Fully qualified column id. Format: schema.table.column."
+        description:
+          type: string
+          description: Optional description of the relation.
+        rationale:
+          type: string
+          description: Optional rationale explaining why this relation was inferred.
+    output:
+      type: object
+      description: Canonical relation capture result.
+      properties:
+        captureType:
+          type: string
+          description: Always "relation".
+        targetEntityId:
+          type: string
+          description: Source table id (RelationFacet is stored on the source-side entity).
+        targetEntityType:
+          type: string
+          description: Always "TABLE".
+        serializedPayload:
+          type: object
+          description: Facet-aligned capture payload ready for later persistence.
+        validationWarnings:
+          type: array
+          description: Warnings produced during serialization. Empty if none.
+          items:
+            type: string
+            description: A single validation warning.
+
+# ── Protocols ────────────────────────────────────────────────────────────────
+# structured_final: the LLM re-validates the capture tool output against finalSchema
+# and emits a single ProtocolFinal event. The caller (agent entry point or Spring layer)
+# receives this event and persists the payload to the metadata store.
+protocols:
+  schema-authoring.capture:
+    description: |
+      Structured final protocol for metadata capture results.
+      Emits a single ProtocolFinal event containing the canonical capture artifact
+      (captureType, targetEntityId, targetEntityType, serializedPayload, validationWarnings).
+    mode: structured_final
+    finalSchema:
+      type: object
+      description: Canonical metadata capture result artifact.
+      properties:
+        captureType:
+          type: string
+          description: "Capture subtype. One of: description, relation."
+        targetEntityId:
+          type: string
+          description: Canonical entity id the capture applies to.
+        targetEntityType:
+          type: string
+          description: "Entity type. One of: TABLE, COLUMN."
+        serializedPayload:
+          type: object
+          description: Facet-aligned payload ready for persistence in a later stage.
+        validationWarnings:
+          type: array
+          description: Validation warnings produced during capture serialization.
+          items:
+            type: string
+            description: A single warning message.

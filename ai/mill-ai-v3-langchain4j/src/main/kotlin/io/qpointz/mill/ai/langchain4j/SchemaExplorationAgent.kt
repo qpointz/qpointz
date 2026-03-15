@@ -13,20 +13,27 @@ import dev.langchain4j.model.chat.response.StreamingChatResponseHandler
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel
 import io.qpointz.mill.ai.*
 import io.qpointz.mill.ai.capabilities.schema.SchemaCapabilityDependency
+import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityDependency
+import io.qpointz.mill.ai.capabilities.sqldialect.SqlDialectCapabilityDependency
 import io.qpointz.mill.data.schema.SchemaFacetService
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec
 import java.util.concurrent.CompletableFuture
 
 /**
- * Schema exploration agent — iterative ReAct-style tool loop.
+ * Schema agent — iterative ReAct-style tool loop covering both exploration and authoring.
  *
- * The agent calls schema tools (list_schemas, list_tables, list_columns, list_relations) in
- * successive rounds until the model decides it has enough information to answer the user.
- * The final synthesis step is streamed so the CLI renders a live response.
+ * Uses [SchemaAuthoringAgentProfile] which composes the current schema-facing capability set:
+ * - `conversation` — base system prompt.
+ * - `schema` — grounding tools: list_schemas, list_tables, list_columns, list_relations.
+ * - `schema-authoring` — capture tools: capture_description, capture_relation.
+ * - `sql-dialect` — SQL dialect conventions and function discovery.
+ * - `sql-query` — SQL validation and execution result references.
  *
  * ## Tool loop
- * 1. `complete()` — non-streaming; model returns tool calls or a final answer
- * 2. If tool calls: execute, append results, loop
- * 3. If no tool calls: `stream()` the synthesis using the full message history
+ * 1. `complete()` — non-streaming; model returns tool calls or a final answer.
+ * 2. If tool calls: execute, append results, loop.
+ * 3. If a CAPTURE tool ran: observer terminates with ANSWER; synthesis renders the capture artifact.
+ * 4. If no tool calls: `stream()` the synthesis using the full message history.
  *
  * ## Factory seam
  * [fromEnv] wires in a [SchemaFacetService] selected by [SchemaFacetServiceFactory] (Option A: demo).
@@ -35,10 +42,12 @@ import java.util.concurrent.CompletableFuture
 class SchemaExplorationAgent(
     private val model: StreamingChatModel,
     private val schemaService: SchemaFacetService,
+    private val dialectSpec: SqlDialectSpec,
+    private val sqlQueryDependency: SqlQueryCapabilityDependency,
     private val registry: CapabilityRegistry = CapabilityRegistry.load(),
     private val objectMapper: ObjectMapper = ObjectMapper(),
 ) {
-    private val maxToolCallsPerRun = 8
+    private val maxToolCallsPerRun = 50
 
     data class Config(
         val apiKey: String,
@@ -76,24 +85,51 @@ class SchemaExplorationAgent(
                         rationale = "Model is ready to synthesize a user-facing answer.",
                     )
                 } else {
-                    messages.add(aiMessage)
-                    PlannerDecision.callTools(
-                        toolCalls = aiMessage.toolExecutionRequests().map { req ->
-                            PlannedToolCall(
-                                requestId = req.id(),
-                                name = req.name(),
-                                arguments = parseToolArguments(req.arguments().orEmpty()),
+                    val clarificationRequest = aiMessage.toolExecutionRequests()
+                        .firstOrNull { it.name() == "request_clarification" }
+                    if (clarificationRequest != null) {
+                        val args = parseToolArguments(clarificationRequest.arguments().orEmpty())
+                        val question = args["question"] as? String
+                        if (question != null) {
+                            PlannerDecision.askClarification(
+                                question = question,
+                                rationale = "Entity ambiguous — model requested clarification before capture.",
                             )
-                        },
-                        rationale = "Model requested schema tools before answering.",
-                    )
+                        } else {
+                            PlannerDecision(
+                                action = PlannerDecision.Action.FAIL,
+                                rationale = "request_clarification called without a question field.",
+                            )
+                        }
+                    } else {
+                        messages.add(aiMessage)
+                        PlannerDecision.callTools(
+                            toolCalls = aiMessage.toolExecutionRequests().map { req ->
+                                PlannedToolCall(
+                                    requestId = req.id(),
+                                    name = req.name(),
+                                    arguments = parseToolArguments(req.arguments().orEmpty()),
+                                )
+                            },
+                            rationale = "Model requested schema tools before answering.",
+                        )
+                    }
                 }
             },
             observer = Observer { observationInput ->
+                @Suppress("UNCHECKED_CAST")
+                val executedCalls = observationInput.toolResult as? List<ExecutedToolCall>
+                val captureToolRan = executedCalls?.any { call ->
+                    tools.find { it.name == call.name }?.kind == ToolKind.CAPTURE
+                } == true
                 when {
                     observationInput.runState.toolCallCount >= maxToolCallsPerRun -> Observation(
                         decision = ObservationDecision.STOP_BUDGET,
-                        reason = "Schema exploration reached the current tool-call budget.",
+                        reason = "Schema agent reached the current tool-call budget.",
+                    )
+                    captureToolRan -> Observation(
+                        decision = ObservationDecision.ANSWER,
+                        reason = "Capture tool completed — artifact is ready for synthesis.",
                     )
                     observationInput.toolResult != null -> Observation(
                         decision = ObservationDecision.CONTINUE,
@@ -135,7 +171,7 @@ class SchemaExplorationAgent(
         return executor.run(
             AgentExecutionInput(
                 initialState = RunState(
-                    profile = SchemaExplorationAgentProfile.profile,
+                    profile = SchemaAuthoringAgentProfile.profile,
                     context = context,
                 ),
                 userInput = input,
@@ -152,15 +188,17 @@ class SchemaExplorationAgent(
     private fun buildContext(): AgentContext = AgentContext(
         contextType = "general",
         capabilityDependencies = CapabilityDependencyContainer.of(
-            "schema" to CapabilityDependencies.of(SchemaCapabilityDependency(schemaService))
+            "schema" to CapabilityDependencies.of(SchemaCapabilityDependency(schemaService)),
+            "sql-dialect" to CapabilityDependencies.of(SqlDialectCapabilityDependency(dialectSpec)),
+            "sql-query" to CapabilityDependencies.of(sqlQueryDependency),
         ),
     )
 
     private fun schemaCapabilities(context: AgentContext): List<Capability> {
-        val capabilities = registry.capabilitiesFor(SchemaExplorationAgentProfile.profile, context)
+        val capabilities = registry.capabilitiesFor(SchemaAuthoringAgentProfile.profile, context)
         val actualIds = capabilities.map { it.descriptor.id }.toSet()
-        require(actualIds == SchemaExplorationAgentProfile.profile.capabilityIds) {
-            "Schema-exploration capability mismatch. expected=${SchemaExplorationAgentProfile.profile.capabilityIds} actual=$actualIds"
+        require(actualIds == SchemaAuthoringAgentProfile.profile.capabilityIds) {
+            "Schema-agent capability mismatch. expected=${SchemaAuthoringAgentProfile.profile.capabilityIds} actual=$actualIds"
         }
         return capabilities
     }
@@ -172,9 +210,17 @@ class SchemaExplorationAgent(
             cap.prompts.map { p -> "## ${p.id}\n${p.content}" }
         }
         return buildString {
-            appendLine("You are the Mill Schema Exploration agent.")
-            appendLine("Help the user understand the data schema by calling schema tools to gather information.")
-            appendLine("Call tools iteratively until you have enough information to give a complete answer.")
+            appendLine("You are the Mill Schema agent.")
+            appendLine("You can both explore the data schema and author metadata (descriptions and relations).")
+            appendLine("For exploration: call schema tools iteratively until you have enough information to answer.")
+            appendLine("For authoring:")
+            appendLine("  - Ground entity ids via schema tools first (list_schemas, list_tables, list_columns).")
+            appendLine("  - If the target entity is ambiguous (multiple matches, vague pronoun, incomplete endpoints),")
+            appendLine("    call request_clarification with a focused question — do NOT guess.")
+            appendLine("  - Once entities are resolved, call capture_description or capture_relation for each entity.")
+            appendLine("  - When the input describes multiple entities at once (e.g. an email or document),")
+            appendLine("    extract ALL authoring intents and emit ALL capture tool calls in a single parallel batch.")
+            appendLine("  - Do not stop after the first capture — cover every entity mentioned in the input.")
             appendLine("Be concise and focus on what the user asked.")
             appendLine()
             if (promptTexts.isNotEmpty()) appendLine(promptTexts.joinToString("\n\n"))
@@ -242,6 +288,8 @@ class SchemaExplorationAgent(
     companion object {
         fun fromEnv(
             schemaService: SchemaFacetService,
+            dialectSpec: SqlDialectSpec,
+            sqlQueryDependency: SqlQueryCapabilityDependency,
             registry: CapabilityRegistry = CapabilityRegistry.load(),
         ): SchemaExplorationAgent? {
             val apiKey = System.getenv("OPENAI_API_KEY") ?: return null
@@ -250,12 +298,14 @@ class SchemaExplorationAgent(
                 modelName = System.getenv("OPENAI_MODEL") ?: "gpt-4o-mini",
                 baseUrl = System.getenv("OPENAI_BASE_URL"),
             )
-            return fromConfig(config, schemaService, registry)
+            return fromConfig(config, schemaService, dialectSpec, sqlQueryDependency, registry)
         }
 
         fun fromConfig(
             config: Config,
             schemaService: SchemaFacetService,
+            dialectSpec: SqlDialectSpec,
+            sqlQueryDependency: SqlQueryCapabilityDependency,
             registry: CapabilityRegistry = CapabilityRegistry.load(),
         ): SchemaExplorationAgent {
             val builder = OpenAiStreamingChatModel.builder()
@@ -265,6 +315,8 @@ class SchemaExplorationAgent(
             return SchemaExplorationAgent(
                 model = builder.build(),
                 schemaService = schemaService,
+                dialectSpec = dialectSpec,
+                sqlQueryDependency = sqlQueryDependency,
                 registry = registry,
             )
         }

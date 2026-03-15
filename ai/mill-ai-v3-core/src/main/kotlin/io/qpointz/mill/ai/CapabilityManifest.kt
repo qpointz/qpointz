@@ -43,6 +43,7 @@ private data class ToolSchemaYaml(
 
 private data class ToolEntryYaml(
     val description: String,
+    val kind: String? = null,
     val input: ToolSchemaYaml? = null,
     val output: ToolSchemaYaml? = null,
 )
@@ -52,11 +53,40 @@ private data class PromptEntryYaml(
     val content: String,
 )
 
+private data class ProtocolEventEntryYaml(
+    val description: String,
+    val payloadSchema: ToolSchemaYaml = ToolSchemaYaml(type = "object"),
+)
+
+private data class ProtocolEntryYaml(
+    val description: String,
+    val mode: String,
+    val fallbackMode: String? = null,
+    val finalSchema: ToolSchemaYaml? = null,
+    val events: Map<String, ProtocolEventEntryYaml> = emptyMap(),
+) {
+    fun toProtocolDefinition(id: String): ProtocolDefinition = ProtocolDefinition(
+        id = id,
+        description = description,
+        mode = ProtocolMode.valueOf(mode.uppercase()),
+        fallbackMode = fallbackMode?.let { ProtocolMode.valueOf(it.uppercase()) },
+        finalSchema = finalSchema?.toToolSchema(),
+        events = events.map { (type, entry) ->
+            ProtocolEventDefinition(
+                type = type,
+                description = entry.description,
+                payloadSchema = entry.payloadSchema.toToolSchema(),
+            )
+        },
+    )
+}
+
 private data class CapabilityManifestYaml(
     val name: String,
     val description: String,
     val prompts: Map<String, PromptEntryYaml> = emptyMap(),
     val tools: Map<String, ToolEntryYaml> = emptyMap(),
+    val protocols: Map<String, ProtocolEntryYaml> = emptyMap(),
 )
 
 // ---------------------------------------------------------------------------
@@ -122,6 +152,7 @@ class CapabilityManifest private constructor(
     val description: String,
     private val promptEntries: Map<String, PromptEntryYaml>,
     private val toolEntries: Map<String, ToolEntryYaml>,
+    private val protocolEntries: Map<String, ProtocolEntryYaml>,
 ) {
     /**
      * Build a [ToolDefinition] for the named tool using the supplied handler.
@@ -136,8 +167,15 @@ class CapabilityManifest private constructor(
             inputSchema = entry.input?.toToolSchema() ?: ToolSchema.obj(),
             outputSchema = entry.output?.toToolSchema() ?: ToolSchema.obj(),
             handler = handler,
+            kind = entry.kind?.let { ToolKind.valueOf(it.uppercase()) } ?: ToolKind.QUERY,
         )
     }
+
+    /**
+     * Return all protocols declared in this manifest as [ProtocolDefinition] instances.
+     */
+    val allProtocols: List<ProtocolDefinition>
+        get() = protocolEntries.map { (id, entry) -> entry.toProtocolDefinition(id) }
 
     /**
      * Return all prompts declared in this manifest as [PromptAsset] instances.
@@ -172,6 +210,7 @@ class CapabilityManifest private constructor(
                 description = yaml.description,
                 promptEntries = yaml.prompts,
                 toolEntries = yaml.tools,
+                protocolEntries = yaml.protocols,
             )
         }
     }

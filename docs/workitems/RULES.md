@@ -20,5 +20,7 @@ These rules apply to **every** work item implementation.
 ## Completion
 
 - When a work item is implemented, **delete its file** from `docs/workitems/`.
-- Update `MILESTONE.md` to reflect the completed item in the **Completed** section.
+- Update `MILESTONE.md` to reflect the item only if it is planned for the **next release**.
+- `MILESTONE.md` is a **pre-release planning file** for the next version, not a full historical ledger of everything ever completed.
+- Once a release is cut, milestone contents may be rewritten or pruned to track the next target release.
 - Update `BACKLOG.md` to mark any related backlog entries as `done`.

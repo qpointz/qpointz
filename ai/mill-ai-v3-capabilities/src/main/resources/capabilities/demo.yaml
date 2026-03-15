@@ -61,3 +61,8 @@ tools:
           items:
             type: string
             description: Capability id.
+
+protocols:
+  demo.tool-events:
+    description: Demo tool event protocol.
+    mode: text

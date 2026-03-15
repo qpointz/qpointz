@@ -19,6 +19,13 @@ Items delivered in this milestone.
 - WI-021 — Python remote dialect consumption over gRPC/HTTP
 - WI-024 — Python SQLAlchemy implementation (MillDialect + compiler + entry points)
 - WI-025 — Python ibis initial implementation (BaseBackend + SQL compilation, slice 1)
+- WI-067 — `ai/v3` multi-mode protocol execution: `ProtocolDefinition` with `TEXT`,
+  `STRUCTURED_FINAL`, `STRUCTURED_STREAM` modes; `ProtocolExecutor` interface;
+  `LangChain4jProtocolExecutor` (token streaming, JSON schema response, NDJSON line buffer);
+  `PlannerDecision.protocolId`; `AgentEvent` protocol variants (`ProtocolTextDelta`,
+  `ProtocolFinal`, `ProtocolStreamEvent`); protocol declarations moved to capability YAML
+  manifests (`manifest.allProtocols`); `LangChain4jAgent` (renamed from `OpenAiHelloWorldAgent`,
+  profile as constructor param); unit tests for all three modes via fake `StreamingChatModel`
 
 Completed WI markdown files are intentionally removed after delivery; this milestone list is the
 retained canonical record of completed items.
@@ -47,6 +54,28 @@ Items delivered in this milestone.
 - WI-062 — Schema data aggregation boundary: `SchemaFacetService`, `*WithFacets` domain model,
   `SchemaFacets` (map-backed, typed facet holder), `SchemaFacetResult` with unbound metadata,
   `SchemaFacetAutoConfiguration`; unit + skymill integration tests in `data/mill-data-schema-core`
+- WI-068 — `ai/v3` schema metadata authoring (stage 1): `schema-authoring` capability with
+  `capture_description` and `capture_relation` CAPTURE-kind tools; `request_clarification`
+  QUERY tool (planner-intercepted, language-safe); `SchemaAuthoringCapabilityProvider` and
+  `SchemaAuthoringAgentProfile` composing `conversation + schema + schema-authoring`;
+  `ToolKind.CAPTURE` enum on `ToolDefinition`; `buildObserver(tools)` routing to ANSWER on
+  capture completion; `PlannerDecision.task` / `.subtype` / `authorMetadata()` factory;
+  `schema-authoring.yaml` manifest (prompts: intent/request/batch, tools, `STRUCTURED_FINAL`
+  protocol); `serializedPayload` facet-aligned (`facetType: "descriptive"` / `"relation"` with
+  `relations: [...]` array); `SchemaExplorationAgent` updated to `SchemaAuthoringAgentProfile`
+  with multi-CAPTURE batch support; `conversation.language` prompt for automatic language
+  mirroring; `v3-authoring-protocol.md` design doc capturing deferred three-layer protocol gap
+- WI-069 — `ai/v3` `sql-dialect` capability: `SqlDialectCapabilityProvider`,
+  `SqlDialectCapabilityDependency(dialectSpec)`, `SqlDialectCapability` (manifest-wired),
+  `SqlDialectToolHandlers` (pure, no framework coupling); five read-only tools —
+  `get_sql_dialect_conventions` (overview + identifier + literal rules + function categories),
+  `get_sql_paging_rules`, `get_sql_join_rules`, `get_sql_functions(category)`,
+  `get_sql_function_info(name)`; `sql-dialect.yaml` manifest with directive system prompt
+  requiring identifier quoting and literal rules to be applied in generated SQL;
+  `SqlDialectCapabilityProvider` registered via `ServiceLoader`; `SchemaAuthoringAgentProfile`
+  extended to include `sql-dialect`; `SchemaExplorationAgent` accepts `dialectSpec: SqlDialectSpec`
+  and injects it as capability dependency; CLI wires Calcite dialect via
+  `DialectRegistry.fromClasspathDefaults().requireDialect("calcite")`
 
 ### In Progress
 

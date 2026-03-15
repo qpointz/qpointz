@@ -8,8 +8,22 @@ import io.qpointz.mill.ai.capabilities.schema.SchemaToolHandlers.listSchemas
 import io.qpointz.mill.ai.capabilities.schema.SchemaToolHandlers.listTables
 import io.qpointz.mill.data.schema.SchemaFacetService
 
+/**
+ * Dependency carrying the [SchemaFacetService] instance into [SchemaCapability].
+ *
+ * [SchemaFacetService] is injected rather than looked up directly because the schema
+ * capability is instantiated per-run by the [CapabilityRegistry]. The registry delegates
+ * dependency resolution to the caller (typically the agent entry point), keeping the
+ * capability itself free from Spring and service-locator coupling.
+ */
 data class SchemaCapabilityDependency(val schemaFacetService: SchemaFacetService) : CapabilityDependency
 
+/**
+ * Provider for the read-only schema exploration capability.
+ *
+ * Declares [SchemaCapabilityDependency] as a required dependency so the registry rejects
+ * profile configurations that forget to supply a [SchemaFacetService].
+ */
 class SchemaCapabilityProvider : CapabilityProvider {
     override fun descriptor(): CapabilityDescriptor = CapabilityDescriptor(
         id = "schema",
@@ -17,7 +31,7 @@ class SchemaCapabilityProvider : CapabilityProvider {
         description = "Providing schema and metadata capabilities",
         supportedContexts = setOf("general"),
         tags = setOf("schema"),
-        requiredDependencies = setOf(SchemaCapabilityDependency::class.java)
+        requiredDependencies = setOf(SchemaCapabilityDependency::class.java),
     )
 
     override fun create(
@@ -29,13 +43,35 @@ class SchemaCapabilityProvider : CapabilityProvider {
     )
 }
 
+/**
+ * Read-only schema exploration capability.
+ *
+ * Contributes four grounding tools and one system prompt. No protocols are declared because
+ * the schema capability is a pure grounding supplier — the protocol for the final answer is
+ * owned by whichever profile composes this capability (typically `conversation.stream` from
+ * the conversation capability, or `schema-authoring.capture` from the authoring capability).
+ *
+ * Tool grounding chain: `list_schemas` → `list_tables` → `list_columns` | `list_relations`.
+ * The planner should always call `list_schemas` first when schema names are not yet known.
+ */
 private data class SchemaCapability(
     override val descriptor: CapabilityDescriptor,
     private val svc: SchemaFacetService,
 ) : Capability {
 
+    /** Typed argument class for [listTables] — schema scoping. */
     private data class ListTablesArgs(val schemaName: String)
+
+    /** Typed argument class for [listColumns] — table scoping within a schema. */
     private data class ListColumnsArgs(val schemaName: String, val tableName: String)
+
+    /**
+     * Typed argument class for [listRelations].
+     *
+     * [direction] defaults to [RelationDirection.BOTH] so the planner can omit it for a
+     * full relation scan. The enum is declared in the YAML manifest so the LLM receives a
+     * closed set of valid values.
+     */
     private data class ListRelationsArgs(
         val schemaName: String,
         val tableName: String,
@@ -46,6 +82,10 @@ private data class SchemaCapability(
 
     override val prompts: List<PromptAsset> = manifest.allPrompts
 
+    /**
+     * No protocols declared. The schema capability is grounding-only — it does not own
+     * any synthesis or output contract. The composing profile supplies the active protocol.
+     */
     override val protocols: List<ProtocolDefinition> = emptyList()
 
     override val tools: List<ToolDefinition> = listOf(

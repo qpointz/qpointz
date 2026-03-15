@@ -2,8 +2,6 @@ package io.qpointz.mill.ai.capabilities
 
 import io.qpointz.mill.ai.AgentContext
 import io.qpointz.mill.ai.CapabilityRegistry
-import io.qpointz.mill.ai.HelloWorldAgentProfile
-import io.qpointz.mill.ai.HelloWorldCapabilitySet
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test

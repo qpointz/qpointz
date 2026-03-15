@@ -7,7 +7,7 @@ import com.fasterxml.jackson.module.kotlin.kotlinModule
 /**
  * Simulates the JSON-in / JSON-out tool invocation path that the LLM runtime takes.
  *
- * Replicates exactly what [OpenAiHelloWorldAgent.executeTool] does, without requiring a
+ * Replicates exactly what the LangChain4j agent's tool invocation path does, without requiring a
  * running agent or any LangChain4j dependency:
  *
  * 1. Parse raw JSON argument string → `Map<String, Any?>`

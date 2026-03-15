@@ -1,3 +1,6 @@
 io.qpointz.mill.ai.capabilities.ConversationCapabilityProvider
 io.qpointz.mill.ai.capabilities.DemoCapabilityProvider
 io.qpointz.mill.ai.capabilities.schema.SchemaCapabilityProvider
+io.qpointz.mill.ai.capabilities.schema.SchemaAuthoringCapabilityProvider
+io.qpointz.mill.ai.capabilities.sqldialect.SqlDialectCapabilityProvider
+io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityProvider

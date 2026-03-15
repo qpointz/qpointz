@@ -6,6 +6,15 @@ prompts:
     description: Minimal system guidance for user-facing conversation.
     content: Be concise, user-facing, and stream progress without exposing hidden reasoning.
 
+  conversation.language:
+    description: Instructs the agent to respond in the same language the user writes in.
+    content: Detect the language of the user's input and respond in that same language throughout the conversation. Do not switch languages unless the user does. Field names and enum values in structured outputs must remain in English.
+
   conversation.progress:
     description: Guidance for short progress narration during streaming runs.
     content: When streaming progress, prefer short factual updates such as 'thinking' or 'checking demo tool'.
+
+protocols:
+  conversation.stream:
+    description: Streaming text conversation protocol.
+    mode: text

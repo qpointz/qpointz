@@ -3,10 +3,15 @@ package io.qpointz.mill.ai.cli
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.qpointz.mill.ai.AgentEvent
-import io.qpointz.mill.ai.langchain4j.OpenAiHelloWorldAgent
+import io.qpointz.mill.ai.capabilities.HelloWorldAgentProfile
+import io.qpointz.mill.ai.langchain4j.LangChain4jAgent
 import io.qpointz.mill.ai.langchain4j.SchemaExplorationAgent
+import io.qpointz.mill.sql.v2.dialect.DialectRegistry
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import picocli.CommandLine.Command
+import picocli.CommandLine.Option
+import picocli.CommandLine.Parameters
 
 // ANSI colour helpers
 private const val RESET   = "\u001B[0m"
@@ -30,6 +35,12 @@ private fun red(s: String)   = "$RED$s$RESET"
 // Single shared mapper — all events serialised the same way
 private val mapper = jacksonObjectMapper()
 
+private fun protocolLabel(protocolId: String): String = protocolId.substringAfterLast('.')
+
+private fun compactJson(raw: String): String =
+    runCatching { mapper.writeValueAsString(mapper.readTree(raw)) }
+        .getOrDefault(raw)
+
 /**
  * Generic event printer.
  *
@@ -44,6 +55,7 @@ private fun printEvent(event: AgentEvent) {
 
     val typeColour = when {
         type.startsWith("tool.")      -> MAGENTA
+        type.startsWith("protocol.")  -> GREEN
         type.startsWith("reasoning")  -> BLUE
         type.startsWith("answer.")    -> GREEN
         else                          -> CYAN
@@ -52,21 +64,64 @@ private fun printEvent(event: AgentEvent) {
     println("  $DIM[$RESET$typeColour$type$RESET$DIM]$RESET  $DIM$payload$RESET")
 }
 
+@Command(
+    name = "mill-ai-v3-cli",
+    description = ["Mill AI v3 interactive CLI for manual agent testing"],
+    mixinStandardHelpOptions = true
+)
+private class CliOptions {
+
+    // Positional agent keeps startup friction low for manual testing.
+    @Parameters(
+        index = "0",
+        arity = "0..1",
+        description = ["Agent to run. Supported: \${COMPLETION-CANDIDATES}"],
+        paramLabel = "agent"
+    )
+    var agent: String? = null
+
+    @Option(
+        names = ["-a", "--agent"],
+        description = ["Agent to run. Overrides positional agent if both are provided."]
+    )
+    var agentOption: String? = null
+
+    fun resolvedAgent(): String = agentOption ?: agent ?: System.getenv("AGENT") ?: "hello"
+
+    fun supportedAgents(): List<String> = listOf("hello", "schema")
+}
+
 // ── Main ─────────────────────────────────────────────────────────────────────
 
-fun main() {
+fun main(args: Array<String>) {
+    val options = CliOptions()
+    val commandLine = picocli.CommandLine(options)
+    commandLine.registerConverter(String::class.java) { it.trim() }
+    commandLine.setCaseInsensitiveEnumValuesAllowed(true)
+
+    val parseResult = commandLine.parseArgs(*args)
+    if (picocli.CommandLine.printHelpIfRequested(parseResult)) {
+        return
+    }
+
     println()
     println(bold("Mill AI v3 — Interactive CLI"))
     println(dim("Type your message and press Enter. Commands: /help  /exit"))
     println()
 
-    val agentName = System.getenv("AGENT") ?: "hello"
+    val agentName = options.resolvedAgent()
+    if (agentName !in options.supportedAgents()) {
+        println(red("Error: unknown agent '$agentName'. Supported: ${options.supportedAgents().joinToString(", ")}"))
+        println(dim("  You can pass the agent as a positional argument, --agent, or AGENT env var."))
+        return
+    }
     val model = System.getenv("OPENAI_MODEL") ?: "gpt-4o-mini"
 
     val runTurnFn: (String, (AgentEvent) -> Unit) -> Unit = when (agentName) {
         "schema" -> {
             val schemaService = SchemaFacetServiceFactory.create()
-            val agent = SchemaExplorationAgent.fromEnv(schemaService)
+            val dialectSpec = DialectRegistry.fromClasspathDefaults().requireDialect("calcite")
+            val agent = SchemaExplorationAgent.fromEnv(schemaService, dialectSpec)
             if (agent == null) {
                 println(red("Error: OPENAI_API_KEY environment variable is not set."))
                 println(dim("  Optional: OPENAI_MODEL (default: gpt-4o-mini), OPENAI_BASE_URL, SCHEMA_SOURCE (default: demo)"))
@@ -80,7 +135,7 @@ fun main() {
             fn1
         }
         else -> {
-            val agent = OpenAiHelloWorldAgent.fromEnv()
+            val agent = LangChain4jAgent.fromEnv(HelloWorldAgentProfile.profile)
             if (agent == null) {
                 println(red("Error: OPENAI_API_KEY environment variable is not set."))
                 println(dim("  Optional: OPENAI_MODEL (default: gpt-4o-mini), OPENAI_BASE_URL"))
@@ -145,6 +200,14 @@ private fun runTurn(agentFn: (String, (AgentEvent) -> Unit) -> Unit, input: Stri
                 if (!inMessage) { print(green(bold("agent")) + " > "); inMessage = true }
                 print(event.text); System.out.flush()
             }
+            is AgentEvent.ProtocolTextDelta -> {
+                endReasoning()
+                if (!inMessage) {
+                    print(green(bold(protocolLabel(event.protocolId))) + " > ")
+                    inMessage = true
+                }
+                print(event.text); System.out.flush()
+            }
             is AgentEvent.ReasoningDelta -> {
                 endMessage()
                 if (!inReasoning) {
@@ -154,6 +217,19 @@ private fun runTurn(agentFn: (String, (AgentEvent) -> Unit) -> Unit, input: Stri
                 }
                 print(event.text.replace("\n", "\n  $BLUE│$RESET $DIM$ITALIC"))
                 System.out.flush()
+            }
+            is AgentEvent.ProtocolFinal -> {
+                endBlocks()
+                println("  ${green("[protocol.final]")}  ${bold(event.protocolId)}")
+                println("  ${dim(compactJson(event.payload))}")
+            }
+            is AgentEvent.ProtocolStreamEvent -> {
+                endBlocks()
+                println(
+                    "  ${green("[protocol.stream]")}  ${bold(event.protocolId)}" +
+                        " ${dim(event.eventType)}"
+                )
+                println("  ${dim(compactJson(event.payload))}")
             }
             // ── every other event — generic JSON ─────────────────────────────
             else -> { endBlocks(); printEvent(event) }
@@ -169,9 +245,15 @@ private fun printHelp() {
     println("  /help   — show this message")
     println("  /exit   — quit  (also: exit, quit, /quit)")
     println()
+    println(bold("Agent selection:"))
+    println("  mill-ai-v3-cli hello       — run hello-world demo agent")
+    println("  mill-ai-v3-cli schema      — run schema exploration agent")
+    println("  mill-ai-v3-cli --agent schema")
+    println("  AGENT=schema mill-ai-v3-cli")
+    println()
     println(bold("Environment:"))
-    println("  AGENT=hello  (default) — hello-world demo agent")
-    println("  AGENT=schema           — schema exploration agent")
+    println("  AGENT=hello  (default fallback) — hello-world demo agent")
+    println("  AGENT=schema                    — schema exploration agent")
     println("  SCHEMA_SOURCE=demo     — in-memory demo retail schema (default)")
     println()
     println(bold("Hello-world hints:"))

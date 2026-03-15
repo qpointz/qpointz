@@ -37,4 +37,50 @@ class PlannerDecisionTest {
             )
         }
     }
+
+    @Test
+    fun `should default task and subtype to null`() {
+        val decision = PlannerDecision.directResponse()
+        assertEquals(null, decision.task)
+        assertEquals(null, decision.subtype)
+    }
+
+    @Test
+    fun `should carry task and subtype on arbitrary decision`() {
+        val decision = PlannerDecision.callTool("noop").copy(
+            task = "EXPLORE_SCHEMA",
+            subtype = null,
+        )
+        assertEquals("EXPLORE_SCHEMA", decision.task)
+        assertEquals(null, decision.subtype)
+    }
+
+    @Test
+    fun `should create authorMetadata decision with correct fields`() {
+        val decision = PlannerDecision.authorMetadata(
+            subtype = "description",
+            protocolId = "schema-authoring.capture",
+            toolName = "capture_description",
+            toolArguments = mapOf("targetEntityId" to "retail.orders"),
+            rationale = "User requested description.",
+        )
+        assertEquals(PlannerDecision.Action.CALL_TOOL, decision.action)
+        assertEquals("AUTHOR_METADATA", decision.task)
+        assertEquals("description", decision.subtype)
+        assertEquals("schema-authoring.capture", decision.protocolId)
+        assertEquals("capture_description", decision.toolName)
+        assertEquals("retail.orders", decision.toolArguments["targetEntityId"])
+    }
+
+    @Test
+    fun `should set task and subtype independently for relation authoring`() {
+        val decision = PlannerDecision.authorMetadata(
+            subtype = "relation",
+            protocolId = "schema-authoring.capture",
+            toolName = "capture_relation",
+        )
+        assertEquals("AUTHOR_METADATA", decision.task)
+        assertEquals("relation", decision.subtype)
+        assertEquals("capture_relation", decision.toolName)
+    }
 }

@@ -14,6 +14,7 @@ It is loaded from one YAML resource file per capability and provides:
 
 - all tool names, descriptions, and schemas
 - all prompt assets (id, description, content)
+- all protocol declarations (id, mode, schema contract)
 - the Kotlin API to bind handlers to declared tools
 
 Handlers are the **only** imperative part supplied in code. Everything textual lives in the YAML.
@@ -73,11 +74,44 @@ prompts:                 # Optional. Map of prompt assets.
 tools:                   # Optional. Map of tool declarations.
   <tool-name>:
     description: <string>
+    kind: <query|capture> # Optional. Defaults to query. See section 3.2.
     input: <ToolSchema>  # Optional. Omit for tools with no input.
     output: <ToolSchema> # Optional. Omit for tools with no output (defaults to empty object).
+
+protocols:               # Optional. Map of protocol declarations.
+  <protocol-id>:
+    description: <string>
+    mode: <text|structured_final|structured_stream>
+    fallbackMode: <text|structured_final|structured_stream>  # Optional.
+    finalSchema: <ToolSchema>    # Required for structured_final. Omit otherwise.
+    events:                      # Required for structured_stream. Omit otherwise.
+      <event-type>:
+        description: <string>
+        payloadSchema: <ToolSchema>  # Optional. Defaults to empty object.
 ```
 
-### 3.2 ToolSchema
+### 3.2 Tool kind
+
+The `kind` field classifies a tool by its runtime role. The observer uses it to decide how to
+proceed after a tool call — without coupling to specific tool names.
+
+```yaml
+kind: query    # Default. Read-only. Result informs the next planning step.
+kind: capture  # Side-effecting. Produces a terminal artifact. Observer routes to synthesis.
+```
+
+| Kind | Behaviour |
+|------|-----------|
+| `query` | Observer returns `CONTINUE` — planner loops again with the tool result in context |
+| `capture` | Observer returns `ANSWER` — runtime routes to synthesis with the declared `protocolId` |
+
+`kind` is case-insensitive in the YAML. Omitting it is equivalent to `kind: query`.
+
+A capability should declare `kind: capture` on exactly the tools that produce a final structured
+artifact (e.g. `capture_description`, `capture_relation`). All grounding/inspection tools remain
+`kind: query`.
+
+### 3.4 ToolSchema
 
 A `ToolSchema` block is recursive. Every node has:
 
@@ -152,7 +186,7 @@ adapter will surface it as an enumeration constraint in the tool contract sent t
 > **Note:** `enum` support in `ToolSchema` is planned. Until it is implemented, use a
 > `description` to communicate valid values.
 
-### 3.4 Prompt entry
+### 3.5 Prompt entry
 
 ```yaml
 prompts:
@@ -164,6 +198,37 @@ prompts:
 The `<prompt-id>` should be namespaced by capability, e.g. `schema.system`,
 `conversation.progress`. This avoids collisions when multiple capability prompts are
 assembled into an agent profile.
+
+### 3.6 Protocol entry
+
+```yaml
+protocols:
+  <protocol-id>:
+    description: <string>   # Required. Human-readable description of the protocol.
+    mode: <string>          # Required. One of: text, structured_final, structured_stream (case-insensitive).
+    fallbackMode: <string>  # Optional. Used when the primary mode is unsupported.
+    finalSchema: <ToolSchema>  # Required for structured_final. Describes the single JSON output payload.
+    events:                 # Required for structured_stream. Omit for text and structured_final.
+      <event-type>:
+        description: <string>
+        payloadSchema: <ToolSchema>  # Optional. Defaults to empty object schema.
+```
+
+**Mode semantics:**
+
+| Mode | Description |
+|------|-------------|
+| `text` | LLM response is streamed token-by-token. Each token is emitted as a `ProtocolTextDelta` event. |
+| `structured_final` | LLM produces one JSON payload matching `finalSchema`. Emitted as a single `ProtocolFinal` event after the response completes. |
+| `structured_stream` | LLM produces NDJSON (newline-delimited JSON). Each line is parsed as `{"event": "<type>", "content": {...}}` and emitted as a `ProtocolStreamEvent`. |
+
+**Rules enforced at load time:**
+- `text` mode: `finalSchema` and `events` must be absent.
+- `structured_final` mode: `finalSchema` is required; `events` must be absent.
+- `structured_stream` mode: `events` is required; `finalSchema` must be absent.
+
+The `<protocol-id>` should be namespaced by capability, e.g. `conversation.stream`,
+`schema.structured-output`. The planner references this id in `PlannerDecision.protocolId`.
 
 ---
 
@@ -335,7 +400,7 @@ tools:
 
 ---
 
-## 5. Minimal Example — Prompts Only (no tools)
+## 5. Minimal Example — Prompts and Protocol (no tools)
 
 ```yaml
 name: conversation
@@ -349,6 +414,11 @@ prompts:
   conversation.progress:
     description: Guidance for short progress narration during streaming runs.
     content: When streaming progress, prefer short factual updates such as 'thinking'.
+
+protocols:
+  conversation.stream:
+    description: Streaming text conversation protocol.
+    mode: text
 ```
 
 ---
@@ -399,7 +469,18 @@ declaration order.
 
 `manifest.promptAsset(id)` returns one prompt by id. Throws if not declared.
 
-### 6.4 Type-safe argument extraction
+### 6.4 Accessing protocols
+
+```kotlin
+// All protocols as ProtocolDefinition list — use for Capability.protocols
+override val protocols: List<ProtocolDefinition> = manifest.allProtocols
+```
+
+`manifest.allProtocols` returns all declared protocols as `ProtocolDefinition` instances.
+Protocol mode, schema, and event declarations are fully resolved from YAML at load time —
+no Kotlin code is needed to configure the mode or schema.
+
+### 6.5 Type-safe argument extraction
 
 Use `request.argumentsAs<T>()` (from `ToolRequestExtensions.kt`) to deserialize tool
 arguments into a typed data class:
@@ -619,7 +700,156 @@ absent, all fields default to required.
           description: An item in the group.
 ```
 
-### 8.10 Prompts-only capability (no tools)
+### 8.10 Text protocol (streaming tokens)
+
+The simplest protocol declaration. The executor streams each token as a `ProtocolTextDelta` event.
+
+```yaml
+protocols:
+  conversation.stream:
+    description: Streaming text conversation protocol.
+    mode: text
+```
+
+```kotlin
+override val protocols: List<ProtocolDefinition> = manifest.allProtocols
+```
+
+### 8.11 Structured-final protocol (single JSON output)
+
+Use when the LLM must produce one complete JSON object. The executor collects the full
+response, validates the payload, then emits a single `ProtocolFinal` event.
+
+```yaml
+protocols:
+  analysis.result:
+    description: Structured analysis result protocol.
+    mode: structured_final
+    finalSchema:
+      type: object
+      properties:
+        summary:
+          type: string
+          description: Short natural-language summary of findings.
+        confidence:
+          type: number
+          description: Confidence score between 0 and 1.
+```
+
+```kotlin
+override val protocols: List<ProtocolDefinition> = manifest.allProtocols
+```
+
+### 8.12 Structured-stream protocol (NDJSON event stream)
+
+Use when the LLM should emit a series of typed events as NDJSON. Each line must be
+`{"event": "<type>", "content": {...}}`. The executor emits one `ProtocolStreamEvent`
+per line.
+
+```yaml
+protocols:
+  pipeline.events:
+    description: Pipeline progress event stream.
+    mode: structured_stream
+    events:
+      step.start:
+        description: A pipeline step has started.
+        payloadSchema:
+          type: object
+          properties:
+            stepName:
+              type: string
+              description: Name of the starting step.
+      step.complete:
+        description: A pipeline step has completed.
+        payloadSchema:
+          type: object
+          properties:
+            stepName:
+              type: string
+              description: Name of the completed step.
+            durationMs:
+              type: integer
+              description: Step duration in milliseconds.
+```
+
+```kotlin
+override val protocols: List<ProtocolDefinition> = manifest.allProtocols
+```
+
+### 8.13 Protocol with fallback mode
+
+Declare `fallbackMode` when the primary mode may be unsupported by a given model.
+The planner or executor selects the fallback when the primary cannot be honoured.
+
+```yaml
+protocols:
+  schema.output:
+    description: Structured schema output, falls back to text.
+    mode: structured_final
+    fallbackMode: text
+    finalSchema:
+      type: object
+      properties:
+        schemaName:
+          type: string
+          description: Discovered schema name.
+```
+
+### 8.14 Capture tool (side-effecting, terminal)
+
+Use `kind: capture` on tools that produce a final structured artifact. The observer routes
+directly to synthesis after a capture tool completes — no further planner loop.
+
+```yaml
+tools:
+  capture_description:
+    description: Serialize a description capture for the target entity.
+    kind: capture
+    input:
+      type: object
+      properties:
+        targetEntityId:
+          type: string
+          description: Canonical entity id (e.g. retail.orders).
+        targetEntityType:
+          type: string
+          description: "Entity type: TABLE or COLUMN."
+        description:
+          type: string
+          description: Description text to capture.
+    output:
+      type: object
+      properties:
+        captureType:
+          type: string
+          description: Always "description".
+        targetEntityId:
+          type: string
+          description: Entity id the capture applies to.
+        serializedPayload:
+          type: object
+          description: Facet-aligned capture payload.
+        validationWarnings:
+          type: array
+          description: Any warnings produced during serialization.
+          items:
+            type: string
+            description: A single warning message.
+```
+
+```kotlin
+manifest.tool("capture_description") { request ->
+    val args = request.argumentsAs<CaptureDescriptionArgs>()
+    ToolResult(CaptureResult.forDescription(args))
+}
+```
+
+The corresponding `protocols:` block should declare `mode: structured_final` with a
+`finalSchema` matching the capture output. The observer detects `kind: capture` and
+routes to `ANSWER`; the protocol executor wraps the result in a `ProtocolFinal` event.
+
+### 8.16 Prompts-only capability (no tools)
 
 Omit the `tools:` block entirely. `manifest.allPrompts` still works.
 
@@ -653,3 +883,13 @@ override val tools: List<ToolDefinition> = emptyList()
 - Sharing a tool definition between capabilities — share the capability instead
 - Fetching dependencies from `request.context` inside handlers — inject at construction time
   and close over them in the lambda
+- Hardcoding `ProtocolDefinition` in Kotlin when the same data belongs in the YAML manifest
+  (use `manifest.allProtocols` for `Capability.protocols`)
+- Declaring `finalSchema` on a `text` protocol or `events` on a `structured_final` protocol
+  — the `ProtocolDefinition` init block will throw at load time
+- Using a `protocolId` in the planner that is not declared in any loaded manifest — the
+  `ProtocolExecutor` will fail to resolve the definition at runtime
+- Declaring `kind: capture` on grounding/inspection tools — the observer will prematurely
+  route to synthesis before all grounding steps are complete
+- Omitting `kind: capture` on actual capture tools — the observer will return `CONTINUE`
+  and the planner will loop unnecessarily after the terminal artifact is already produced

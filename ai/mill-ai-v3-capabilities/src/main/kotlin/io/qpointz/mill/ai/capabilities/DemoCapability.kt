@@ -45,11 +45,5 @@ private data class DemoCapability(
         },
     )
 
-    override val protocols: List<ProtocolDefinition> = listOf(
-        ProtocolDefinition(
-            id = "demo.tool-events",
-            description = "Minimal protocol for hello-world tool execution events.",
-            eventTypes = listOf("tool.call", "tool.result"),
-        )
-    )
+    override val protocols: List<ProtocolDefinition> = manifest.allProtocols
 }

@@ -120,6 +120,15 @@ fun interface ToolHandler {
 }
 
 /**
+ * Classifies a tool by its runtime role.
+ *
+ * - [QUERY]   — read-only; the result informs the next planning step (default).
+ * - [CAPTURE] — side-effecting; the tool produces a terminal artifact. The observer
+ *               should treat a completed CAPTURE call as ready for synthesis.
+ */
+enum class ToolKind { QUERY, CAPTURE }
+
+/**
  * Adapter-agnostic tool definition with explicit JSON-schema-friendly request and response models.
  */
 data class ToolDefinition(
@@ -128,6 +137,7 @@ data class ToolDefinition(
     val inputSchema: ToolSchema = ToolSchema.obj(),
     val outputSchema: ToolSchema,
     val handler: ToolHandler,
+    val kind: ToolKind = ToolKind.QUERY,
 ) {
     companion object
 }

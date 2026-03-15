@@ -1,4 +1,6 @@
-package io.qpointz.mill.ai
+package io.qpointz.mill.ai.capabilities
+
+import io.qpointz.mill.ai.AgentProfile
 
 /**
  * Fixed profile used by the hello-world validation agent.

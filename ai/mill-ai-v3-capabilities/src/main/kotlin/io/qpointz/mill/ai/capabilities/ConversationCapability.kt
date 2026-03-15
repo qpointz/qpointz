@@ -33,19 +33,5 @@ private data class SimpleCapability(
 
     override val tools: List<ToolDefinition> = emptyList()
 
-    override val protocols: List<ProtocolDefinition> = listOf(
-        ProtocolDefinition(
-            id = "conversation.stream",
-            description = "Minimal text/progress streaming protocol for hello-world validation.",
-            eventTypes = listOf(
-                "run.started",
-                "thinking.delta",
-                "plan.created",
-                "reasoning.delta",
-                "message.delta",
-                "observation.made",
-                "answer.completed",
-            ),
-        )
-    )
+    override val protocols: List<ProtocolDefinition> = manifest.allProtocols
 }

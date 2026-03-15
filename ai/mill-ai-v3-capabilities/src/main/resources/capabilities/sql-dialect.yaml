@@ -1,0 +1,293 @@
+name: sql-dialect
+description: SQL dialect conventions and function catalogue
+
+prompts:
+  sql-dialect.system:
+    description: Guidance for SQL dialect tools.
+    content: |
+      ## SQL dialect rules
+
+      Before generating any SQL, call get_sql_dialect_conventions to retrieve the active dialect rules.
+      You MUST apply those rules literally in every SQL statement you produce:
+
+      - **Identifier quoting**: wrap every schema name, table name, column name, and alias using
+        the quoteStart and quoteEnd characters from the identifiers field.
+        Example: if quoteStart is "`", write `retail`.`customers` not retail.customers.
+      - **String literals**: use the stringQuote character for all string values.
+      - **NULL**: use the nullLiteral value, never a bare null keyword.
+      - **Fully qualified names**: if useFullyQualifiedNames is true, always prefix table names
+        with their schema name.
+
+      Also call get_sql_paging_rules when the query needs LIMIT/OFFSET, and get_sql_join_rules
+      when the query uses JOINs. Use get_sql_functions(category) + get_sql_function_info(name) to
+      verify function syntax before using any SQL function.
+
+tools:
+  get_sql_dialect_conventions:
+    description: |
+      Return the most common SQL-writing conventions in one compact payload.
+      Includes dialect overview, identifier quoting rules, literal rules, and available function categories.
+      Call this first when you need to understand how to write syntactically correct SQL for this dialect.
+      After calling this tool, apply the returned rules literally:
+        - quote every identifier (schema, table, column, alias) using identifiers.quoteStart and identifiers.quoteEnd
+        - use literals.stringQuote for string values
+        - use literals.nullLiteral for NULL
+        - prefix table names with their schema if identifiers.useFullyQualifiedNames is true
+      The functionCategories field lists valid inputs for get_sql_functions.
+    output:
+      type: object
+      description: Dialect conventions summary.
+      properties:
+        dialectId:
+          type: string
+          description: Dialect identifier.
+        dialectName:
+          type: string
+          description: Human-readable dialect name.
+        notes:
+          type: array
+          description: General notes about this dialect.
+          items:
+            type: string
+        identifiers:
+          type: object
+          description: Identifier quoting and casing rules.
+          properties:
+            quoteStart:
+              type: string
+              description: Opening quote character for identifiers.
+            quoteEnd:
+              type: string
+              description: Closing quote character for identifiers.
+            escapeQuote:
+              type: string
+              description: How to escape a quote character inside a quoted identifier.
+            unquotedStorage:
+              type: string
+              description: How unquoted identifiers are stored (e.g. UPPER_CASE, lower_case).
+            quotedStorage:
+              type: string
+              description: How quoted identifiers are stored.
+            supportsMixedCase:
+              type: boolean
+            supportsMixedCaseQuoted:
+              type: boolean
+            maxLength:
+              type: integer
+              description: Maximum identifier length in characters.
+            useFullyQualifiedNames:
+              type: boolean
+              description: Whether fully qualified names (schema.table) are required.
+        literals:
+          type: object
+          description: Literal syntax rules.
+          properties:
+            stringQuote:
+              type: string
+              description: Quote character for string literals.
+            stringConcat:
+              type: string
+              description: String concatenation operator.
+            stringEscape:
+              type: string
+              description: Escape character for strings.
+            nullLiteral:
+              type: string
+              description: NULL literal syntax.
+            booleanLiterals:
+              type: array
+              description: Boolean literal values (e.g. TRUE, FALSE).
+              items:
+                type: string
+        functionCategories:
+          type: array
+          description: Available function categories. Pass one of these to get_sql_functions.
+          items:
+            type: string
+
+  get_sql_paging_rules:
+    description: |
+      Return dialect-specific paging and limit/offset conventions.
+      Use this when generating SELECT statements that need to page or limit results.
+    output:
+      type: object
+      description: Paging rules for this dialect.
+      properties:
+        styles:
+          type: array
+          description: Available paging syntax styles.
+          items:
+            type: object
+            properties:
+              syntax:
+                type: string
+                description: Paging syntax template.
+              type:
+                type: string
+                description: Style type identifier.
+              deprecated:
+                type: boolean
+                description: Whether this style is deprecated.
+        offset:
+          type: string
+          description: Keyword or syntax used for row offset.
+        noLimitValue:
+          type: string
+          description: Value to use when no row limit is desired (null if not applicable).
+
+  get_sql_join_rules:
+    description: |
+      Return join conventions and supported join types for this dialect.
+      Use this when generating queries with JOIN clauses.
+    output:
+      type: object
+      description: Join rules for this dialect.
+      properties:
+        style:
+          type: string
+          description: General join style for this dialect.
+        onClauseKeyword:
+          type: string
+          description: Keyword used for the ON clause.
+        onClauseRequireCondition:
+          type: boolean
+          description: Whether the ON clause must include a condition.
+        joinTypes:
+          type: array
+          description: Supported join types.
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: "Join type: CROSS, INNER, LEFT, RIGHT, FULL."
+              enabled:
+                type: boolean
+                description: Whether this join type is supported.
+              keyword:
+                type: string
+                description: SQL keyword(s) for this join type.
+              requireOn:
+                type: boolean
+                description: Whether an ON clause is required for this join type.
+              nullSafe:
+                type: boolean
+                description: Whether this join is null-safe.
+              notes:
+                type: string
+                description: Additional notes about this join type.
+
+  get_sql_functions:
+    description: |
+      List all SQL functions available in a given category.
+      Call get_sql_dialect_conventions first to discover the available function categories.
+      Returns an error with available categories if the category name is unknown.
+    input:
+      type: object
+      description: Identifies the function category to list.
+      properties:
+        category:
+          type: string
+          description: Function category as returned by get_sql_dialect_conventions.
+    output:
+      type: object
+      description: Functions in the requested category, or an error if the category is unknown.
+      properties:
+        category:
+          type: string
+          description: The requested category (present on success).
+        functions:
+          type: array
+          description: Functions in this category (present on success).
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Function name to use in get_sql_function_info.
+              description:
+                type: string
+                description: Brief description if available.
+              synonyms:
+                type: array
+                description: Alternative names for this function.
+                items:
+                  type: string
+        error:
+          type: string
+          description: Error message if category is unknown (present on error).
+        availableCategories:
+          type: array
+          description: Available categories (present on error).
+          items:
+            type: string
+
+  get_sql_function_info:
+    description: |
+      Return full overload and signature information for a specific SQL function.
+      Use get_sql_functions(category) first to discover candidate function names.
+      Returns an error if the function name is not found in any category.
+    input:
+      type: object
+      description: Identifies the function to look up.
+      properties:
+        name:
+          type: string
+          description: Exact function name as returned by get_sql_functions.
+    output:
+      type: object
+      description: Full function detail, or an error if the function is not found.
+      properties:
+        name:
+          type: string
+          description: Function name (present on success).
+        category:
+          type: string
+          description: Category this function belongs to (present on success).
+        synonyms:
+          type: array
+          description: Alternative names.
+          items:
+            type: string
+        syntax:
+          type: string
+          description: Full call syntax template.
+        returnType:
+          type: string
+          description: Return type name.
+        returnNullable:
+          type: boolean
+          description: Whether the return value can be null.
+        args:
+          type: array
+          description: Argument definitions.
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              type:
+                type: string
+              required:
+                type: boolean
+              variadic:
+                type: boolean
+              multi:
+                type: boolean
+              enum:
+                type: array
+                description: Allowed enum values for this argument.
+                items:
+                  type: string
+              defaultValue:
+                type: string
+              notes:
+                type: string
+        notes:
+          type: array
+          description: Usage notes for this function.
+          items:
+            type: string
+        error:
+          type: string
+          description: Error message if function is unknown (present on error).
