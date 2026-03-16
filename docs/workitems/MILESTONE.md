@@ -92,6 +92,15 @@ Items delivered in this milestone.
   `QSynthYamlSchemaProvider` compile error (`NULLABILITY_UNSPECIFIED` →
   `NOT_SPECIFIED_NULL`); handler and capability wiring unit tests
 
+- WI-072 — `ai/v3` in-memory conversation continuity: `ConversationSession`,
+  `ConversationMessage`, `MessageRole` in `mill-ai-v3-core` (framework-free);
+  `SchemaExplorationAgent.run()` extended to accept `ConversationSession` — replays prior
+  `USER`/`ASSISTANT` pairs into LangChain4j messages list each turn, appends completed turn
+  back to session; CLI creates one session per REPL lifetime and passes it across turns;
+  `/clear` command resets session history; `v3-conversation-persistence.md` design doc
+  capturing two-track persistence model (LLM chat memory vs UX conversation record) and
+  recommended future work item split
+
 ### In Progress
 
 Items currently being implemented in this milestone.

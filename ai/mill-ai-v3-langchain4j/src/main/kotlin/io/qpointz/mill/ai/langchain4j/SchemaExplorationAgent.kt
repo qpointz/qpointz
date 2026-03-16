@@ -60,15 +60,21 @@ class SchemaExplorationAgent(
      *
      * Returns the final synthesized answer text.
      */
-    fun run(input: String, listener: (AgentEvent) -> Unit = {}): String {
+    fun run(session: ConversationSession, input: String, listener: (AgentEvent) -> Unit = {}): String {
         val context = buildContext()
         val capabilities = schemaCapabilities(context)
         val tools = capabilities.flatMap(Capability::tools)
         val toolSpecs = tools.map { ToolSchemaConverter.toToolSpecification(it) }
-        val messages = mutableListOf<ChatMessage>(
-            SystemMessage.from(systemPrompt(capabilities)),
-            UserMessage.from(input),
-        )
+        val messages = mutableListOf<ChatMessage>()
+        messages.add(SystemMessage.from(systemPrompt(capabilities)))
+        session.messages.forEach { msg ->
+            when (msg.role) {
+                MessageRole.USER -> messages.add(UserMessage.from(msg.content))
+                MessageRole.ASSISTANT -> messages.add(dev.langchain4j.data.message.AiMessage.from(msg.content))
+                else -> {}
+            }
+        }
+        messages.add(UserMessage.from(input))
         val executor = AgentExecutor(
             planner = Planner {
                 val response = complete(
@@ -168,7 +174,7 @@ class SchemaExplorationAgent(
             },
         )
 
-        return executor.run(
+        val answer = executor.run(
             AgentExecutionInput(
                 initialState = RunState(
                     profile = SchemaAuthoringAgentProfile.profile,
@@ -181,6 +187,9 @@ class SchemaExplorationAgent(
             ),
             listener,
         )
+        session.appendUserMessage(input)
+        session.appendAssistantMessage(answer)
+        return answer
     }
 
     // ── Context ───────────────────────────────────────────────────────────────

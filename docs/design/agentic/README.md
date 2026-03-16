@@ -51,3 +51,4 @@ This implies:
 | `v3-capability-manifest.md` | `CapabilityManifest` YAML schema reference — one file per capability, tool and prompt declaration format |
 | `v3-v2-learnings.md` | Gap analysis between `ai/v2` and `ai/v3` — what is worth porting, what is not, and recommended implementation order |
 | `v3-authoring-protocol.md` | Deferred three-layer protocol design for schema metadata authoring (WI-068 §5.1 gap) — planner intent, authored-request, and capture result as explicit structured boundaries |
+| `v3-conversation-persistence.md` | Two-track persistence model — LLM chat memory vs UX conversation record, why they must be separate, target architecture, and recommended work item split |

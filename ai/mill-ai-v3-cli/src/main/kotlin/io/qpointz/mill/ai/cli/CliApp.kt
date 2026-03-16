@@ -3,6 +3,7 @@ package io.qpointz.mill.ai.cli
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.qpointz.mill.ai.AgentEvent
+import io.qpointz.mill.ai.ConversationSession
 import io.qpointz.mill.ai.capabilities.HelloWorldAgentProfile
 import io.qpointz.mill.ai.capabilities.sqlquery.MockSqlExecutionService
 import io.qpointz.mill.ai.capabilities.sqlquery.MockSqlValidationService
@@ -114,7 +115,7 @@ fun main(args: Array<String>) {
 
     println()
     println(bold("Mill AI v3 — Interactive CLI"))
-    println(dim("Type your message and press Enter. Commands: /help  /exit"))
+    println(dim("Type your message and press Enter. Commands: /help  /exit  /clear"))
     println()
 
     val agentName = options.resolvedAgent()
@@ -124,6 +125,8 @@ fun main(args: Array<String>) {
         return
     }
     val model = System.getenv("OPENAI_MODEL") ?: "gpt-4o-mini"
+
+    var activeSession: ConversationSession? = null
 
     val runTurnFn: (String, (AgentEvent) -> Unit) -> Unit = when (agentName) {
         "schema" -> {
@@ -143,7 +146,9 @@ fun main(args: Array<String>) {
             println(dim("  agent  : schema-exploration"))
             println(dim("  schema : ${System.getenv("SCHEMA_SOURCE") ?: "demo"}"))
             println()
-            val fn1: (String, (AgentEvent) -> Unit) -> Unit = { input, listener -> agent.run(input, listener) }
+            val session = ConversationSession(profileId = "schema")
+            activeSession = session
+            val fn1: (String, (AgentEvent) -> Unit) -> Unit = { input, listener -> agent.run(session, input, listener) }
             fn1
         }
         else -> {
@@ -176,6 +181,11 @@ fun main(args: Array<String>) {
                 println(dim("Bye.")); break
             }
             input == "/help" -> { printHelp(); continue }
+            input == "/clear" -> {
+                activeSession?.clear()
+                println(dim("  Conversation cleared."))
+                continue
+            }
             input.startsWith("/") -> {
                 println(yellow("Unknown command: $input  (try /help)")); continue
             }
@@ -257,6 +267,7 @@ private fun printHelp() {
     println(bold("Commands:"))
     println("  /help   — show this message")
     println("  /exit   — quit  (also: exit, quit, /quit)")
+    println("  /clear  — clear conversation history (schema agent only)")
     println()
     println(bold("Agent selection:"))
     println("  mill-ai-v3-cli hello       — run hello-world demo agent")
