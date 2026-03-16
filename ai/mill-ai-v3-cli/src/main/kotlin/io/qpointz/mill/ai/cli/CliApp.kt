@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.qpointz.mill.ai.AgentEvent
 import io.qpointz.mill.ai.capabilities.HelloWorldAgentProfile
+import io.qpointz.mill.ai.capabilities.sqlquery.MockSqlExecutionService
+import io.qpointz.mill.ai.capabilities.sqlquery.MockSqlValidationService
+import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityDependency
 import io.qpointz.mill.ai.langchain4j.LangChain4jAgent
 import io.qpointz.mill.ai.langchain4j.SchemaExplorationAgent
 import io.qpointz.mill.sql.v2.dialect.DialectRegistry
@@ -41,6 +44,11 @@ private fun compactJson(raw: String): String =
     runCatching { mapper.writeValueAsString(mapper.readTree(raw)) }
         .getOrDefault(raw)
 
+private fun elapsedSec(turnStart: Long): String {
+    val secs = (System.currentTimeMillis() - turnStart) / 1000L
+    return dim("+${secs}s")
+}
+
 /**
  * Generic event printer.
  *
@@ -48,7 +56,7 @@ private fun compactJson(raw: String): String =
  * compact JSON.  Works for any current or future AgentEvent subtype without
  * additional when-branches.
  */
-private fun printEvent(event: AgentEvent) {
+private fun printEvent(event: AgentEvent, turnStart: Long) {
     val node   = mapper.valueToTree<ObjectNode>(event)
     val type   = node.remove("type").asText()
     val payload = mapper.writeValueAsString(node)   // compact single-line JSON
@@ -61,7 +69,7 @@ private fun printEvent(event: AgentEvent) {
         else                          -> CYAN
     }
 
-    println("  $DIM[$RESET$typeColour$type$RESET$DIM]$RESET  $DIM$payload$RESET")
+    println("  ${elapsedSec(turnStart)} $DIM[$RESET$typeColour$type$RESET$DIM]$RESET  $DIM$payload$RESET")
 }
 
 @Command(
@@ -121,7 +129,11 @@ fun main(args: Array<String>) {
         "schema" -> {
             val schemaService = SchemaFacetServiceFactory.create()
             val dialectSpec = DialectRegistry.fromClasspathDefaults().requireDialect("calcite")
-            val agent = SchemaExplorationAgent.fromEnv(schemaService, dialectSpec)
+            val sqlQueryDep = SqlQueryCapabilityDependency(
+                validator = MockSqlValidationService(),
+                executor = MockSqlExecutionService(),
+            )
+            val agent = SchemaExplorationAgent.fromEnv(schemaService, dialectSpec, sqlQueryDep)
             if (agent == null) {
                 println(red("Error: OPENAI_API_KEY environment variable is not set."))
                 println(dim("  Optional: OPENAI_MODEL (default: gpt-4o-mini), OPENAI_BASE_URL, SCHEMA_SOURCE (default: demo)"))
@@ -178,6 +190,7 @@ fun main(args: Array<String>) {
 // ── Turn ─────────────────────────────────────────────────────────────────────
 
 private fun runTurn(agentFn: (String, (AgentEvent) -> Unit) -> Unit, input: String) {
+    val turnStart   = System.currentTimeMillis()
     var inMessage   = false
     var inReasoning = false
 
@@ -197,13 +210,13 @@ private fun runTurn(agentFn: (String, (AgentEvent) -> Unit) -> Unit, input: Stri
             // ── streaming blocks — kept inline for UX ────────────────────────
             is AgentEvent.MessageDelta -> {
                 endReasoning()
-                if (!inMessage) { print(green(bold("agent")) + " > "); inMessage = true }
+                if (!inMessage) { print("  ${elapsedSec(turnStart)} " + green(bold("agent")) + " > "); inMessage = true }
                 print(event.text); System.out.flush()
             }
             is AgentEvent.ProtocolTextDelta -> {
                 endReasoning()
                 if (!inMessage) {
-                    print(green(bold(protocolLabel(event.protocolId))) + " > ")
+                    print("  ${elapsedSec(turnStart)} " + green(bold(protocolLabel(event.protocolId))) + " > ")
                     inMessage = true
                 }
                 print(event.text); System.out.flush()
@@ -220,19 +233,19 @@ private fun runTurn(agentFn: (String, (AgentEvent) -> Unit) -> Unit, input: Stri
             }
             is AgentEvent.ProtocolFinal -> {
                 endBlocks()
-                println("  ${green("[protocol.final]")}  ${bold(event.protocolId)}")
+                println("  ${elapsedSec(turnStart)} ${green("[protocol.final]")}  ${bold(event.protocolId)}")
                 println("  ${dim(compactJson(event.payload))}")
             }
             is AgentEvent.ProtocolStreamEvent -> {
                 endBlocks()
                 println(
-                    "  ${green("[protocol.stream]")}  ${bold(event.protocolId)}" +
+                    "  ${elapsedSec(turnStart)} ${green("[protocol.stream]")}  ${bold(event.protocolId)}" +
                         " ${dim(event.eventType)}"
                 )
                 println("  ${dim(compactJson(event.payload))}")
             }
             // ── every other event — generic JSON ─────────────────────────────
-            else -> { endBlocks(); printEvent(event) }
+            else -> { endBlocks(); printEvent(event, turnStart) }
         }
     }
 }

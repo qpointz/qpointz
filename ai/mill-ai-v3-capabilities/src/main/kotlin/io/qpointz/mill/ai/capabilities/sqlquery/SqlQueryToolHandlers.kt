@@ -44,7 +44,7 @@ object SqlQueryToolHandlers {
     /**
      * Minimal validator boundary expected by the capability.
      */
-    interface SqlValidationService {
+    fun interface SqlValidationService {
         fun validate(sql: String): ValidationResult
     }
 
@@ -60,7 +60,7 @@ object SqlQueryToolHandlers {
      * Implementations may delegate to a result service that persists query results and returns
      * a short-lived result id, but that persistence layer is outside this capability.
      */
-    interface SqlExecutionService {
+    fun interface SqlExecutionService {
         fun execute(statementId: String, sql: String): ExecutionResult
     }
 

@@ -88,7 +88,9 @@ milestone-selectable deliverables extracted from design documents and work items
 | A-58 | Extend schema agent with metadata-authoring intent detection and structured capture for descriptions and relations | ✨ feature | done | `MILESTONE.md` (WI-068 completed) |
 | A-59 | Implement `ai/v3` `sql-dialect` capability backed by `SqlDialectSpec` with focused conventions, paging, join, and function tools | ✨ feature | done | `MILESTONE.md` (WI-069 completed) |
 | A-60 | Implement three-layer authoring protocol: explicit planner-intent and authored-request structured boundaries before capture; `AgentEvent.AuthoredRequest`; `targetHints` on `PlannerDecision` | ✨ feature | backlog | `design/agentic/v3-authoring-protocol.md` |
-| A-61 | Implement `ai/v3` `sql-query` capability for SQL generation, validation, execution, durable generated-SQL artifacts, and non-durable result references | ✨ feature | planned | `WI-070-ai-v3-sql-query-capability.md` |
+| A-61 | Implement `ai/v3` `sql-query` capability for SQL generation, validation, execution, durable generated-SQL artifacts, and non-durable result references | ✨ feature | done | `MILESTONE.md` (WI-070 completed) |
+| A-62 | Implement `ai/v3` `value-mapping` capability for resolving business phrases into structured stored-value mappings for SQL/chart/refine flows | ✨ feature | planned | `WI-071-ai-v3-value-mapping-capability.md` |
+| A-63 | Add in-memory conversation continuity to `ai/v3` CLI and agent boundaries so multi-turn refine-style follow-ups retain prior context | ✨ feature | planned | `WI-072-ai-v3-cli-conversation-continuity-and-refine.md` |
 
 ---
 

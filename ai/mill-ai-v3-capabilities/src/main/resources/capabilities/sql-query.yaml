@@ -8,13 +8,16 @@ prompts:
   sql-query.system:
     description: Guidance for SQL generation and correction loops.
     content: |
-      When producing SQL:
-      - first ground schema and dialect context using the active capabilities
-      - generate SQL as a structured artifact
-      - call validate_sql before any execute_sql call
-      - if validation fails, use the free-text validator message to revise the SQL
-      - do not expose query result rows in model-visible outputs
-      - treat execute_sql as returning only result metadata and an optional result id
+      When the user asks for data, a query, or any SQL result, you MUST follow this exact sequence:
+      1. Ground schema and dialect using the available tools (already done if you have schema context).
+      2. Compose the SQL statement mentally.
+      3. Call validate_sql as a tool, passing the SQL and attempt=1. Do NOT produce a final answer yet.
+      4. If validate_sql returns passed=true, call execute_sql with the same SQL and a statementId.
+      5. Only after execute_sql returns may you synthesize a final answer. Include the SQL and the result reference in your response.
+      6. If validate_sql returns passed=false, revise the SQL using the validator message and repeat from step 3 (increment attempt each time, up to 3 attempts).
+      7. If all 3 attempts fail, report the failure with the last validator message.
+
+      CRITICAL: never skip validate_sql. Never write SQL directly in your answer without first calling validate_sql.
 
 tools:
   validate_sql:

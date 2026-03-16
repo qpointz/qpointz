@@ -73,6 +73,6 @@ class QSynthYamlSchemaProvider(
     private fun field(name: String, idx: Int): Field = Field.newBuilder()
         .setName(name)
         .setFieldIdx(idx)
-        .setType(DataType.newBuilder().setNullability(DataType.Nullability.NULLABILITY_UNSPECIFIED).build())
+        .setType(DataType.newBuilder().setNullability(DataType.Nullability.NOT_SPECIFIED_NULL).build())
         .build()
 }

@@ -76,6 +76,21 @@ Items delivered in this milestone.
   extended to include `sql-dialect`; `SchemaExplorationAgent` accepts `dialectSpec: SqlDialectSpec`
   and injects it as capability dependency; CLI wires Calcite dialect via
   `DialectRegistry.fromClasspathDefaults().requireDialect("calcite")`
+- WI-070 — `ai/v3` `sql-query` capability: `SqlQueryCapabilityProvider`,
+  `SqlQueryCapabilityDependency(validator, executor)`, `SqlQueryCapability` (manifest-wired),
+  `SqlQueryToolHandlers` (pure stateless); two tools — `validate_sql` (structured pass/fail +
+  free-text validator message wrapped in `SqlValidationArtifact`) and `execute_sql` (result
+  metadata only, no row payloads, wrapped in `SqlResultReferenceArtifact`);
+  `SqlValidationService` / `SqlExecutionService` `fun interface` boundaries;
+  `MockSqlValidationService` and `MockSqlExecutionService` for local testing;
+  `sql-query.yaml` manifest with three `STRUCTURED_FINAL` protocols
+  (`sql-query.generated-sql`, `sql-query.validation`, `sql-query.result-ref`);
+  `SqlQueryCapabilityProvider` registered via `ServiceLoader`;
+  `SchemaAuthoringAgentProfile` already included `sql-query`; `SchemaExplorationAgent`
+  accepts and injects `SqlQueryCapabilityDependency`; CLI wires mock services via
+  `MockSqlValidationService` / `MockSqlExecutionService`; fixed pre-existing
+  `QSynthYamlSchemaProvider` compile error (`NULLABILITY_UNSPECIFIED` →
+  `NOT_SPECIFIED_NULL`); handler and capability wiring unit tests
 
 ### In Progress
 
