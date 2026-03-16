@@ -35,6 +35,8 @@ prompts:
       - Action verbs (add, define, update, improve, document, describe, relate, link, connect) strongly suggest AUTHOR_METADATA.
       - Normative phrases (should be, means, is actually, call this, treat as) strongly suggest AUTHOR_METADATA.
       - Exploration questions (what is, list, show, how are ... related) suggest EXPLORE_SCHEMA.
+      - If the user is clearly asking for data retrieval or SQL/query refinement rather than metadata authoring, do NOT choose AUTHOR_METADATA just because the utterance contains verbs like "add" or "include".
+      - Follow-up requests such as "last query should also include X", "same query but exclude Y", or "add Germany too" refer to query refinement, not schema metadata authoring.
       - "describe the X table" is ambiguous — prefer EXPLORE_SCHEMA unless the user provides new content to add.
       - Return structured JSON only. Do not add prose.
 

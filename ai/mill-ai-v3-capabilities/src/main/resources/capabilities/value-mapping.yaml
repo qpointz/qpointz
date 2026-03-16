@@ -1,0 +1,140 @@
+name: value-mapping
+description: Value-mapping grounding capability — resolves user terms to canonical database values.
+
+prompts:
+  value-mapping.system:
+    description: Guidance for value-mapping tools.
+    content: |
+      ## Value mapping rules
+
+      After schema or query planning has identified a table, you MUST check for value mappings
+      before writing any user-provided constant into a SQL WHERE clause or expression:
+
+      1. Call get_value_mapping_attributes for the target table to discover which attributes
+         have value mappings registered.
+      2. For every attribute marked mapped: true that appears in a user-provided filter or
+         comparison, call get_value_mapping with the attribute name and the raw user terms
+         before constructing the SQL predicate.
+      3. Use the returned mappedValue in the SQL literal. NEVER write the user-supplied term
+         directly as a stored literal for a mapped attribute without first resolving it.
+      4. If get_value_mapping returns mappedValue: null for a term, do NOT guess or substitute
+         a similar value. Instead, surface the uncertainty to the user and ask for clarification
+         or offer the known mapped values as alternatives.
+      5. If the table is unknown or has no mapped attributes, proceed with SQL generation normally.
+
+tools:
+  get_value_mapping_attributes:
+    description: |
+      Return all attributes for a given table together with a flag indicating whether
+      each attribute has value mappings registered.
+      Call this tool whenever the query contains user-provided constants that will be used
+      as SQL predicates, to find out which attributes require value resolution before SQL
+      generation.
+      Use the returned attribute names exactly as provided in subsequent get_value_mapping calls.
+    input:
+      type: object
+      required:
+        - table
+      properties:
+        table:
+          type: string
+          description: Fully qualified table id (e.g. MONETA.CLIENTS).
+    output:
+      type: object
+      description: Mapped-attribute listing for the requested table.
+      properties:
+        table:
+          type: string
+          description: The fully qualified table id that was queried.
+        attributes:
+          type: array
+          description: All attributes for the table with their mapping flags.
+          items:
+            type: object
+            description: A single attribute entry.
+            properties:
+              attribute:
+                type: string
+                description: Exact attribute (column) name.
+              mapped:
+                type: boolean
+                description: Whether this attribute has value mappings registered.
+
+  get_value_mapping:
+    description: |
+      Resolve one or more user-provided terms to their canonical database values for a
+      specific attribute of a table.
+      Only call this for attributes marked mapped: true by get_value_mapping_attributes.
+      A mappedValue of null means the term could not be matched — do not guess a substitute.
+    input:
+      type: object
+      required:
+        - table
+        - attribute
+        - values
+      properties:
+        table:
+          type: string
+          description: Fully qualified table id (e.g. MONETA.CLIENTS).
+        attribute:
+          type: string
+          description: Attribute (column) name as returned by get_value_mapping_attributes.
+        values:
+          type: array
+          description: User-provided terms to resolve.
+          items:
+            type: string
+            description: A single user-provided term.
+    output:
+      type: object
+      description: Value resolution result for the requested attribute and terms.
+      properties:
+        table:
+          type: string
+          description: The fully qualified table id that was queried.
+        attribute:
+          type: string
+          description: The attribute name whose values were resolved.
+        results:
+          type: array
+          description: One resolution entry per requested value.
+          items:
+            type: object
+            description: A single value resolution entry.
+            properties:
+              requestedValue:
+                type: string
+                description: The user-provided term that was looked up.
+              mappedValue:
+                type: string
+                description: The canonical database value, or null if no match was found.
+
+protocols:
+  value-mapping.result:
+    description: Structured final protocol for value-mapping resolution artifacts.
+    mode: structured_final
+    finalSchema:
+      type: object
+      description: Value-mapping resolution artifact.
+      properties:
+        artifactType:
+          type: string
+          description: Always "value-mapping".
+        phrase:
+          type: string
+          description: The original user phrase that triggered the mapping lookup.
+        entityId:
+          type: string
+          description: Fully qualified table id the mapping applies to.
+        columnId:
+          type: string
+          description: Attribute (column) name the mapping applies to.
+        storedValue:
+          type: string
+          description: Canonical database value resolved from the user phrase.
+        displayValue:
+          type: string
+          description: Human-readable display value corresponding to the stored value.
+        confidence:
+          type: number
+          description: Optional confidence score for the resolution (0.0–1.0).

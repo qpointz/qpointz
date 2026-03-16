@@ -8,9 +8,20 @@ prompts:
   sql-query.system:
     description: Guidance for SQL generation and correction loops.
     content: |
+      Query follow-up rule:
+      - If the user refers to a previous query or result using phrases such as "last query",
+        "same query but", "also include", "exclude", "add ... to the result", or "keep everything
+        else the same", treat the request as a refinement of the most recent query artifact, not as
+        a brand-new unrelated request.
+      - In a refinement, preserve the previous query structure unless the user explicitly asks to
+        change tables, selected columns, grouping, ordering, or aggregation.
+      - Reuse the exact previously grounded schema/table/column identifiers when available. Do not
+        replace a known fully qualified table with a vaguer inferred name.
+      - After refining the SQL, you MUST still validate_sql and execute_sql again before answering.
+
       When the user asks for data, a query, or any SQL result, you MUST follow this exact sequence:
       1. Ground schema and dialect using the available tools (already done if you have schema context).
-      2. Compose the SQL statement mentally.
+      2. Compose the SQL statement mentally, or revise the most recent query artifact if this is a refinement.
       3. Call validate_sql as a tool, passing the SQL and attempt=1. Do NOT produce a final answer yet.
       4. If validate_sql returns passed=true, call execute_sql with the same SQL and a statementId.
       5. Only after execute_sql returns may you synthesize a final answer. Include the SQL and the result reference in your response.
@@ -18,6 +29,7 @@ prompts:
       7. If all 3 attempts fail, report the failure with the last validator message.
 
       CRITICAL: never skip validate_sql. Never write SQL directly in your answer without first calling validate_sql.
+      CRITICAL: never claim that a query returned zero rows or specific rows unless execute_sql explicitly returned that information.
 
 tools:
   validate_sql:

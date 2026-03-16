@@ -92,6 +92,20 @@ Items delivered in this milestone.
   `QSynthYamlSchemaProvider` compile error (`NULLABILITY_UNSPECIFIED` →
   `NOT_SPECIFIED_NULL`); handler and capability wiring unit tests
 
+- WI-071 — `ai/v3` `value-mapping` capability: `ValueMappingResolver` interface,
+  `MappedAttribute` and `ValueResolution` data classes, `ValueMappingCapabilityDependency`,
+  `ValueMappingCapabilityProvider`, `ValueMappingCapability` (manifest-wired),
+  `ValueMappingToolHandlers` (pure stateless); two tools — `get_value_mapping_attributes(table)`
+  (returns all attributes with `mapped` flag for a chosen table) and
+  `get_value_mapping(table, attribute, values[])` (resolves user-facing phrases to canonical
+  database values, `mappedValue: null` for unresolved terms); `value-mapping.yaml` manifest with
+  planner system prompt enforcing lookup-before-literal rule and `value-mapping.result`
+  `STRUCTURED_FINAL` protocol; `MockValueMappingResolver` for local wiring;
+  `ValueMappingCapabilityProvider` registered via `ServiceLoader`;
+  `SchemaAuthoringAgentProfile` extended to include `value-mapping`;
+  `SchemaExplorationAgent` accepts and injects `ValueMappingResolver` dependency;
+  CLI wires `MockValueMappingResolver`; handler and capability registry unit tests
+
 - WI-072 — `ai/v3` in-memory conversation continuity: `ConversationSession`,
   `ConversationMessage`, `MessageRole` in `mill-ai-v3-core` (framework-free);
   `SchemaExplorationAgent.run()` extended to accept `ConversationSession` — replays prior

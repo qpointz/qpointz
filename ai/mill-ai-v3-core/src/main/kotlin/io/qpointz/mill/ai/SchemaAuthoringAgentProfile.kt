@@ -10,6 +10,7 @@ package io.qpointz.mill.ai
  *   STRUCTURED_FINAL [schema-authoring.capture] protocol for terminal capture synthesis.
  * - `sql-dialect` — read-only SQL dialect conventions for SQL-writing agents.
  * - `sql-query` — SQL validation/execution tools and structured SQL/result-reference protocols.
+ * - `value-mapping` — resolves user-facing terms to canonical database values before SQL generation.
  *
  * The planner grounds intent via the schema tools before calling a capture tool.
  * Once a capture tool completes the observer routes to synthesis via `schema-authoring.capture`.
@@ -17,6 +18,6 @@ package io.qpointz.mill.ai
 object SchemaAuthoringAgentProfile {
     val profile = AgentProfile(
         id = "schema-authoring",
-        capabilityIds = setOf("conversation", "schema", "schema-authoring", "sql-dialect", "sql-query"),
+        capabilityIds = setOf("conversation", "schema", "schema-authoring", "sql-dialect", "sql-query", "value-mapping"),
     )
 }

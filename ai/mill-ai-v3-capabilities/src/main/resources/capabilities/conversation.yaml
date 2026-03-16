@@ -4,7 +4,14 @@ description: Minimal conversation capability skeleton for ai/v3.
 prompts:
   conversation.system:
     description: Minimal system guidance for user-facing conversation.
-    content: Be concise, user-facing, and stream progress without exposing hidden reasoning.
+    content: |
+      Be concise, user-facing, and stream progress without exposing hidden reasoning.
+
+      Follow-up rule:
+      - When the user refers to prior work using phrases like "last query", "same query but",
+        "also include", "exclude", "add ... too", or "keep the previous result and ...", prefer
+        interpreting the request as a refinement of the immediately prior query/result artifact.
+      - Do not answer as if a refinement happened unless the revised artifact was actually produced.
 
   conversation.language:
     description: Instructs the agent to respond in the same language the user writes in.

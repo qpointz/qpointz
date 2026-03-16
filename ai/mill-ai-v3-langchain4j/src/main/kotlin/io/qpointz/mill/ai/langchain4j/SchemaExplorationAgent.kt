@@ -15,6 +15,8 @@ import io.qpointz.mill.ai.*
 import io.qpointz.mill.ai.capabilities.schema.SchemaCapabilityDependency
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityDependency
 import io.qpointz.mill.ai.capabilities.sqldialect.SqlDialectCapabilityDependency
+import io.qpointz.mill.ai.capabilities.valuemapping.ValueMappingCapabilityDependency
+import io.qpointz.mill.ai.capabilities.valuemapping.ValueMappingResolver
 import io.qpointz.mill.data.schema.SchemaFacetService
 import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec
 import java.util.concurrent.CompletableFuture
@@ -44,6 +46,7 @@ class SchemaExplorationAgent(
     private val schemaService: SchemaFacetService,
     private val dialectSpec: SqlDialectSpec,
     private val sqlQueryDependency: SqlQueryCapabilityDependency,
+    private val valueMappingResolver: ValueMappingResolver,
     private val registry: CapabilityRegistry = CapabilityRegistry.load(),
     private val objectMapper: ObjectMapper = ObjectMapper(),
 ) {
@@ -200,6 +203,7 @@ class SchemaExplorationAgent(
             "schema" to CapabilityDependencies.of(SchemaCapabilityDependency(schemaService)),
             "sql-dialect" to CapabilityDependencies.of(SqlDialectCapabilityDependency(dialectSpec)),
             "sql-query" to CapabilityDependencies.of(sqlQueryDependency),
+            "value-mapping" to CapabilityDependencies.of(ValueMappingCapabilityDependency(valueMappingResolver)),
         ),
     )
 
@@ -307,6 +311,7 @@ class SchemaExplorationAgent(
             schemaService: SchemaFacetService,
             dialectSpec: SqlDialectSpec,
             sqlQueryDependency: SqlQueryCapabilityDependency,
+            valueMappingResolver: ValueMappingResolver,
             registry: CapabilityRegistry = CapabilityRegistry.load(),
         ): SchemaExplorationAgent? {
             val apiKey = System.getenv("OPENAI_API_KEY") ?: return null
@@ -315,7 +320,7 @@ class SchemaExplorationAgent(
                 modelName = System.getenv("OPENAI_MODEL") ?: "gpt-4o-mini",
                 baseUrl = System.getenv("OPENAI_BASE_URL"),
             )
-            return fromConfig(config, schemaService, dialectSpec, sqlQueryDependency, registry)
+            return fromConfig(config, schemaService, dialectSpec, sqlQueryDependency, valueMappingResolver, registry)
         }
 
         fun fromConfig(
@@ -323,6 +328,7 @@ class SchemaExplorationAgent(
             schemaService: SchemaFacetService,
             dialectSpec: SqlDialectSpec,
             sqlQueryDependency: SqlQueryCapabilityDependency,
+            valueMappingResolver: ValueMappingResolver,
             registry: CapabilityRegistry = CapabilityRegistry.load(),
         ): SchemaExplorationAgent {
             val builder = OpenAiStreamingChatModel.builder()
@@ -334,6 +340,7 @@ class SchemaExplorationAgent(
                 schemaService = schemaService,
                 dialectSpec = dialectSpec,
                 sqlQueryDependency = sqlQueryDependency,
+                valueMappingResolver = valueMappingResolver,
                 registry = registry,
             )
         }

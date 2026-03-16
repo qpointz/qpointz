@@ -50,5 +50,7 @@ This implies:
 | `v3-validation-harness.md` | Deterministic validation strategy for scenarios, event traces, and `testIT` layering |
 | `v3-capability-manifest.md` | `CapabilityManifest` YAML schema reference — one file per capability, tool and prompt declaration format |
 | `v3-v2-learnings.md` | Gap analysis between `ai/v2` and `ai/v3` — what is worth porting, what is not, and recommended implementation order |
+| `v3-v1-rationale-and-guardrails.md` | Why `ai/v3` remains the correct base despite `v1` chat workflow parity — prompt degradation, testability, Spring coupling, and guardrails against over-abstraction |
+| `v3-v1-prompt-budget-comparison.md` | Prompt/context size comparison between `ai/v1` and `ai/v3`, estimated token budgets, and profile-scope recommendations |
 | `v3-authoring-protocol.md` | Deferred three-layer protocol design for schema metadata authoring (WI-068 §5.1 gap) — planner intent, authored-request, and capture result as explicit structured boundaries |
 | `v3-conversation-persistence.md` | Two-track persistence model — LLM chat memory vs UX conversation record, why they must be separate, target architecture, and recommended work item split |

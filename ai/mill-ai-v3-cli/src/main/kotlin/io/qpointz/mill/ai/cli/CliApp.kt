@@ -8,6 +8,7 @@ import io.qpointz.mill.ai.capabilities.HelloWorldAgentProfile
 import io.qpointz.mill.ai.capabilities.sqlquery.MockSqlExecutionService
 import io.qpointz.mill.ai.capabilities.sqlquery.MockSqlValidationService
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityDependency
+import io.qpointz.mill.ai.capabilities.valuemapping.MockValueMappingResolver
 import io.qpointz.mill.ai.langchain4j.LangChain4jAgent
 import io.qpointz.mill.ai.langchain4j.SchemaExplorationAgent
 import io.qpointz.mill.sql.v2.dialect.DialectRegistry
@@ -136,7 +137,7 @@ fun main(args: Array<String>) {
                 validator = MockSqlValidationService(),
                 executor = MockSqlExecutionService(),
             )
-            val agent = SchemaExplorationAgent.fromEnv(schemaService, dialectSpec, sqlQueryDep)
+            val agent = SchemaExplorationAgent.fromEnv(schemaService, dialectSpec, sqlQueryDep, MockValueMappingResolver())
             if (agent == null) {
                 println(red("Error: OPENAI_API_KEY environment variable is not set."))
                 println(dim("  Optional: OPENAI_MODEL (default: gpt-4o-mini), OPENAI_BASE_URL, SCHEMA_SOURCE (default: demo)"))
