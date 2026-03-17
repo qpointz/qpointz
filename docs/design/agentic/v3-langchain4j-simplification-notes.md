@@ -416,3 +416,57 @@ still appear worth keeping.
 What appears least justified in the current generic path is the custom two-pass
 planner-plus-argument LLM flow built on top of a framework that already knows how to drive
 tool selection and tool arguments in one conversation.
+
+---
+
+## 10. Chat Memory: Use LangChain4j Directly
+
+**Decision (March 2026):** Do not define a custom `ChatMemoryStore` port in `mill-ai-v3-core`.
+Use LangChain4j's built-in memory types directly in `mill-ai-v3-langchain4j`.
+
+### 10.1 What LangChain4j already provides
+
+LangChain4j 1.11.0 ships:
+
+- `dev.langchain4j.store.memory.chat.ChatMemoryStore` — load, update, delete by id
+- `dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore` — ready-made in-memory impl
+- `dev.langchain4j.memory.chat.MessageWindowChatMemory` — bounded window strategy over a store
+
+These cover the immediate need: inject a store into the agent, bound the LLM context window,
+persist memory across turns within a process.
+
+### 10.2 Why a custom port is not justified here
+
+WI-073 proposed a custom `ChatMemoryStore` interface in `v3-core` modeled closely on
+LangChain4j's own interface. The motivation was framework agnosticism — the core runtime
+should not depend on LangChain4j types.
+
+That goal is sound for event contracts and capability semantics, which cross module boundaries
+and are owned by Mill. It is not sound for chat memory, because:
+
+- `v3` is already committed to LangChain4j as its model adapter
+- `mill-ai-v3-langchain4j` is the designated adapter boundary — LangChain4j types belong there
+- A custom `ChatMemoryStore` port would duplicate LangChain4j's interface without adding
+  Mill-domain semantics
+- A custom `LlmMemoryStrategy` port would duplicate `MessageWindowChatMemory` behavior
+  LangChain4j already implements
+
+This is exactly the pattern the design guardrail warns against.
+
+### 10.3 Boundary rule
+
+- `mill-ai-v3-core` retains `ConversationSession` — this is Mill runtime state (session
+  identity, `conversationId`, `profileId`, accumulated message history). It is not persistence.
+- `mill-ai-v3-langchain4j` owns LangChain4j memory wiring: `ChatMemoryStore`,
+  `MessageWindowChatMemory`, injection into agents.
+- No custom memory port or strategy interface is introduced in core.
+
+### 10.4 Implication for WI-073
+
+WI-073 should be revised to:
+
+- remove the custom `ChatMemoryStore` port from scope
+- remove the custom `LlmMemoryStrategy` abstraction from scope
+- focus instead on wiring `InMemoryChatMemoryStore` + `MessageWindowChatMemory` into
+  `LangChain4jAgent` and `SchemaExplorationAgent` as injected constructor dependencies
+- validate multi-turn continuity through the LangChain4j memory, not through a custom port

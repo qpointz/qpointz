@@ -162,7 +162,9 @@ fun main(args: Array<String>) {
             println(dim("  model : $model"))
             println(dim("  agent : hello-world"))
             println()
-            val fn2: (String, (AgentEvent) -> Unit) -> Unit = { input, listener -> agent.run(input, listener) }
+            val helloSession = ConversationSession(profileId = "hello-world")
+            activeSession = helloSession
+            val fn2: (String, (AgentEvent) -> Unit) -> Unit = { input, listener -> agent.run(input, helloSession, listener) }
             fn2
         }
     }

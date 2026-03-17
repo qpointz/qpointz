@@ -96,6 +96,7 @@ milestone-selectable deliverables extracted from design documents and work items
 | A-64 | → see **PS-2** (reclassified to persistence) | ✨ feature | planned | `WI-073-ai-v3-chat-memory-persistence.md` |
 | A-65 | → see **PS-3** (reclassified to persistence) | ✨ feature | planned | `WI-074-ai-v3-routed-events-conversation-and-artifact-persistence.md` |
 | A-66 | → see **PS-4** (reclassified to persistence) | ✨ feature | planned | `WI-075-ai-v3-artifact-observers-and-relation-indexing.md` |
+| A-67 | Consolidate mill-ai-v3-core/langchain4j/capabilities into mill-ai-v3; simplify to native LangChain4j tool loop; remove custom planner | 🔧 refactoring | done | `WI-076-ai-v3-langchain4j-agent-simplification.md` |
 
 ---
 

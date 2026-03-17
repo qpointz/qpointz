@@ -115,6 +115,17 @@ Items delivered in this milestone.
   capturing two-track persistence model (LLM chat memory vs UX conversation record) and
   recommended future work item split
 
+- WI-076 — `ai/v3` module consolidation and agent simplification: merged
+  `mill-ai-v3-core`, `mill-ai-v3-langchain4j`, and `mill-ai-v3-capabilities` into a single
+  `mill-ai-v3` module; replaced `ToolDefinition`/`ToolSchema`/`ToolSchemaType`/`ToolSchemaField`
+  with LangChain4j `ToolSpecification` and JSON schema builder types; removed custom two-pass
+  planner (`planWithModel`, `planToolArguments`, `AgentExecutor`, `Planner`, `Observer`,
+  `PlannerDecision`, `Observation`); agent now uses native LangChain4j tool loop with
+  `ToolExecutionResultMessage`; `CapabilityManifest.tool()` now produces `ToolBinding`
+  (wrapping `ToolSpecification` + `ToolHandler` + `ToolKind`) directly; `ProtocolDefinition`
+  and `ProtocolEventDefinition` updated to use `JsonObjectSchema` directly;
+  `mill-ai-v3-cli` and `mill-ai-v3-test` updated to depend on merged module
+
 ### In Progress
 
 Items currently being implemented in this milestone.

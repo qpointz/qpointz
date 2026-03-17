@@ -14,9 +14,7 @@ application {
 }
 
 dependencies {
-    implementation(project(":ai:mill-ai-v3-core"))
-    implementation(project(":ai:mill-ai-v3-capabilities"))
-    implementation(project(":ai:mill-ai-v3-langchain4j"))
+    implementation(project(":ai:mill-ai-v3"))
     implementation(project(":data:mill-data-schema-core"))
     implementation(project(":core:mill-sql"))
     implementation(kotlin("stdlib-jdk8"))
