@@ -13,4 +13,6 @@ data class ToolBinding(
     val spec: ToolSpecification,
     val handler: ToolHandler,
     val kind: ToolKind = ToolKind.QUERY,
+    /** Protocol id to invoke when this capture tool fires. Null means terminate without synthesis. */
+    val protocolId: String? = null,
 )

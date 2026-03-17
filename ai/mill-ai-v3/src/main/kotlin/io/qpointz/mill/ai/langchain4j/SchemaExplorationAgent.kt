@@ -22,7 +22,6 @@ import io.qpointz.mill.ai.CapabilityRegistry
 import io.qpointz.mill.ai.ConversationSession
 import io.qpointz.mill.ai.MessageRole
 import io.qpointz.mill.ai.ProtocolExecutionInput
-import io.qpointz.mill.ai.ProtocolMode
 import io.qpointz.mill.ai.RunState
 import io.qpointz.mill.ai.SchemaAuthoringAgentProfile
 import io.qpointz.mill.ai.ToolBinding
@@ -105,6 +104,7 @@ class SchemaExplorationAgent(
                     .toolSpecifications(toolSpecs)
                     .build()
             )
+            emitTokenStats(response, listener)
             val aiMsg = response.aiMessage()
 
             if (!aiMsg.hasToolExecutionRequests()) {
@@ -152,10 +152,10 @@ class SchemaExplorationAgent(
             }
 
             if (captureBinding != null) {
-                // Synthesize via STRUCTURED_FINAL protocol
-                val captureProtocol = capabilities
-                    .flatMap { it.protocols }
-                    .firstOrNull { it.mode == ProtocolMode.STRUCTURED_FINAL }
+                // Synthesize via the protocol declared on the capture tool (if any)
+                val captureProtocol = captureBinding.protocolId?.let { pid ->
+                    capabilities.flatMap { it.protocols }.firstOrNull { it.id == pid }
+                }
                 if (captureProtocol != null) {
                     val protocolExecutor = LangChain4jProtocolExecutor(model, objectMapper)
                     val runState = RunState(
@@ -217,11 +217,13 @@ class SchemaExplorationAgent(
             appendLine("1. DATA RETRIEVAL — user wants query results (e.g. 'count orders by customer', 'show top products', 'how many …').")
             appendLine("   - Use schema tools to ground the relevant tables and columns.")
             appendLine("   - Use sql-dialect tools to learn identifier quoting and available functions.")
-            appendLine("   - Then follow the sql-query.system instructions exactly: call validate_sql, then execute_sql, then answer.")
+            appendLine("   - Then follow the sql-query.system instructions exactly: call validate_sql, then execute_sql.")
             appendLine("   - NEVER write SQL directly in your answer without first calling validate_sql.")
+            appendLine("   - After execute_sql completes successfully, stop. Do NOT produce a conversational summary — the query result is the answer.")
             appendLine()
             appendLine("2. SCHEMA EXPLORATION — user wants to understand the data model (e.g. 'what tables exist', 'what columns does X have').")
             appendLine("   - Call schema tools iteratively until you have enough information, then answer.")
+            appendLine("   - Answer in plain conversational prose. Do NOT output raw JSON.")
             appendLine()
             appendLine("3. METADATA AUTHORING — user wants to record descriptions or relations.")
             appendLine("   - Ground entity ids via schema tools first.")
@@ -231,6 +233,7 @@ class SchemaExplorationAgent(
             appendLine("   - Do not stop after the first capture — cover every entity mentioned.")
             appendLine()
             appendLine("Identify which kind of request the user is making before acting. Be concise and focus on what was asked.")
+            appendLine("Always answer in plain conversational prose unless the user explicitly asks for a structured format.")
             appendLine()
             if (promptTexts.isNotEmpty()) appendLine(promptTexts.joinToString("\n\n"))
         }
@@ -254,6 +257,16 @@ class SchemaExplorationAgent(
         return future.join()
     }
 
+    private fun emitTokenStats(response: dev.langchain4j.model.chat.response.ChatResponse, listener: (AgentEvent) -> Unit) {
+        response.tokenUsage()?.let { usage ->
+            listener(AgentEvent.LlmCallCompleted(
+                inputTokens  = usage.inputTokenCount()  ?: 0,
+                outputTokens = usage.outputTokenCount() ?: 0,
+                totalTokens  = usage.totalTokenCount()  ?: 0,
+            ))
+        }
+    }
+
     private fun stream(
         messages: List<ChatMessage>,
         listener: (AgentEvent) -> Unit,
@@ -268,6 +281,7 @@ class SchemaExplorationAgent(
                 listener(AgentEvent.ReasoningDelta(text = partialThinking.text()))
             }
             override fun onCompleteResponse(completeResponse: dev.langchain4j.model.chat.response.ChatResponse) {
+                emitTokenStats(completeResponse, listener)
                 future.complete(completeResponse)
             }
             override fun onError(error: Throwable) { future.completeExceptionally(error) }

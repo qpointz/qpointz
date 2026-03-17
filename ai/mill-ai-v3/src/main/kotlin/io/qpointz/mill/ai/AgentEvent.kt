@@ -100,4 +100,13 @@ sealed interface AgentEvent {
     ) : AgentEvent {
         override val type: String = "protocol.stream.event"
     }
+
+    /** Token usage reported by the model after each LLM call. */
+    data class LlmCallCompleted(
+        val inputTokens: Int,
+        val outputTokens: Int,
+        val totalTokens: Int,
+    ) : AgentEvent {
+        override val type: String = "llm.call.completed"
+    }
 }

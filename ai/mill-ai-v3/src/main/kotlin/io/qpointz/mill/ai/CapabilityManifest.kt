@@ -72,6 +72,7 @@ private data class ToolSchemaYaml(
 private data class ToolEntryYaml(
     val description: String,
     val kind: String? = null,
+    val protocol: String? = null,
     val input: ToolSchemaYaml? = null,
     val output: ToolSchemaYaml? = null,
 )
@@ -191,7 +192,7 @@ class CapabilityManifest private constructor(
             .description(entry.description.trim())
             .parameters(entry.input?.toJsonObjectSchema() ?: JsonObjectSchema.builder().build())
             .build()
-        return ToolBinding(spec = spec, handler = handler, kind = resolvedKind)
+        return ToolBinding(spec = spec, handler = handler, kind = resolvedKind, protocolId = entry.protocol)
     }
 
     /**

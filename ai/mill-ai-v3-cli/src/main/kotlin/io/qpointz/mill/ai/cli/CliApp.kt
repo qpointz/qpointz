@@ -257,6 +257,19 @@ private fun runTurn(agentFn: (String, (AgentEvent) -> Unit) -> Unit, input: Stri
                 )
                 println("  ${dim(compactJson(event.payload))}")
             }
+            is AgentEvent.LlmCallCompleted -> {
+                endBlocks()
+                println(
+                    "  ${elapsedSec(turnStart)} $DIM[$RESET${CYAN}llm$RESET$DIM]$RESET" +
+                    "  in=${event.inputTokens}  out=${event.outputTokens}  $BOLD▸${event.totalTokens}$RESET"
+                )
+            }
+            is AgentEvent.AnswerCompleted -> {
+                endBlocks()
+                if (event.text.isNotBlank()) {
+                    println("  ${elapsedSec(turnStart)} " + green(bold("agent")) + " > " + event.text)
+                }
+            }
             // ── every other event — generic JSON ─────────────────────────────
             else -> { endBlocks(); printEvent(event, turnStart) }
         }

@@ -69,6 +69,7 @@ tools:
           description: Optional normalized SQL returned by the validator.
 
   execute_sql:
+    kind: capture
     description: |
       Execute a validated SQL statement through the query/result service boundary.
       Returns only a result reference artifact and lightweight metadata, never query rows.

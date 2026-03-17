@@ -132,6 +132,7 @@ tools:
       The capture is application-owned and facet-aligned (DescriptiveFacet).
       No metadata storage is written — this tool only produces the structured capture artifact.
     kind: capture
+    protocol: schema-authoring.capture
     input:
       type: object
       required:
@@ -186,6 +187,7 @@ tools:
       The capture is application-owned and facet-aligned (RelationFacet).
       No metadata storage is written — this tool only produces the structured capture artifact.
     kind: capture
+    protocol: schema-authoring.capture
     input:
       type: object
       required:

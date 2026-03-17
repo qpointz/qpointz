@@ -21,7 +21,6 @@ import io.qpointz.mill.ai.CapabilityRegistry
 import io.qpointz.mill.ai.ConversationSession
 import io.qpointz.mill.ai.MessageRole
 import io.qpointz.mill.ai.ProtocolExecutionInput
-import io.qpointz.mill.ai.ProtocolMode
 import io.qpointz.mill.ai.RunState
 import io.qpointz.mill.ai.ToolBinding
 import io.qpointz.mill.ai.ToolExecutionContext
@@ -117,6 +116,7 @@ class LangChain4jAgent(
                     .toolSpecifications(toolSpecs)
                     .build()
             )
+            emitTokenStats(response, listener)
             val aiMsg = response.aiMessage()
             messages.add(aiMsg)
 
@@ -144,10 +144,10 @@ class LangChain4jAgent(
             }
 
             if (captureBinding != null) {
-                // Synthesize via STRUCTURED_FINAL protocol
-                val captureProtocol = capabilities
-                    .flatMap { it.protocols }
-                    .firstOrNull { it.mode == ProtocolMode.STRUCTURED_FINAL }
+                // Synthesize via the protocol declared on the capture tool (if any)
+                val captureProtocol = captureBinding.protocolId?.let { pid ->
+                    capabilities.flatMap { it.protocols }.firstOrNull { it.id == pid }
+                }
                 if (captureProtocol != null) {
                     val protocolExecutor = LangChain4jProtocolExecutor(model, objectMapper)
                     val runState = RunState(profile = profile, context = context)
@@ -201,6 +201,16 @@ class LangChain4jAgent(
         if (json.isBlank()) emptyMap()
         else objectMapper.readValue(json, object : TypeReference<Map<String, Any?>>() {})
 
+    private fun emitTokenStats(response: dev.langchain4j.model.chat.response.ChatResponse, listener: (AgentEvent) -> Unit) {
+        response.tokenUsage()?.let { usage ->
+            listener(AgentEvent.LlmCallCompleted(
+                inputTokens  = usage.inputTokenCount()  ?: 0,
+                outputTokens = usage.outputTokenCount() ?: 0,
+                totalTokens  = usage.totalTokenCount()  ?: 0,
+            ))
+        }
+    }
+
     private fun complete(request: ChatRequest): dev.langchain4j.model.chat.response.ChatResponse {
         val future = CompletableFuture<dev.langchain4j.model.chat.response.ChatResponse>()
         model.chat(request, object : StreamingChatResponseHandler {
@@ -229,6 +239,7 @@ class LangChain4jAgent(
                 listener(AgentEvent.ReasoningDelta(text = partialThinking.text()))
             }
             override fun onCompleteResponse(completeResponse: dev.langchain4j.model.chat.response.ChatResponse) {
+                emitTokenStats(completeResponse, listener)
                 future.complete(completeResponse)
             }
             override fun onError(error: Throwable) {
