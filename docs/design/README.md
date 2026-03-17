@@ -13,6 +13,7 @@ plans. Documents are grouped by topic area into subfolders.
 | `client/` | Client libraries | Python client (mill-py), JDBC driver, SQL dialect descriptors, client API design |
 | `data/` | Data layer | Type system, complex types, vector encoding, schema definitions, wire format design |
 | `metadata/` | Metadata subsystem | Metadata service design, provider refactoring, value mappings, metadata UI, implementation roadmaps |
+| `persistence/` | Persistence layer | Cross-domain persistence landscape (AI v3, metadata, source); AI v3 lane architecture; module structure, Flyway conventions, H2 PostgreSQL mode, ports-and-adapters dependency rules |
 | `platform/` | Infrastructure and cross-cutting | Configuration, migration plans (Spring, WebFlux), codebase analysis, protocols (MCP, gRPC export), Calcite dialect work |
 | `publish/` | Build, release, and documentation | Maven publishing, artifact signing, documentation generation tooling (MkDocs, Dokka) |
 | `refactoring/` | Codebase refactoring | Refactoring iterations, file inventories, dependency graphs, configuration key audits, progress tracking |

@@ -54,3 +54,5 @@ This implies:
 | `v3-v1-prompt-budget-comparison.md` | Prompt/context size comparison between `ai/v1` and `ai/v3`, estimated token budgets, and profile-scope recommendations |
 | `v3-authoring-protocol.md` | Deferred three-layer protocol design for schema metadata authoring (WI-068 §5.1 gap) — planner intent, authored-request, and capture result as explicit structured boundaries |
 | `v3-conversation-persistence.md` | Two-track persistence model — LLM chat memory vs UX conversation record, why they must be separate, target architecture, and recommended work item split |
+| `v3-persistence-lanes.md` | Detailed implementation-oriented persistence lanes for `ai/v3`: chat memory, routed events/conversation/artifacts, and artifact observers/relations |
+| `v3-langchain4j-simplification-notes.md` | Simplification map for `LangChain4jAgent` and adjacent runtime seams — what can be collapsed, what should remain framework-agnostic, and a recommended refactor order |

@@ -80,7 +80,15 @@ include:
       - if: '$CI_COMMIT_REF_PROTECTED != "true" && $CI_PIPELINE_SOURCE != "merge_request_event" && $RUN_INTEGRATION != "true" && $RUN_FULL_TEST != "true"'
         changes:
           - metadata/**/*
-        when: always 
+        when: always
+      - when: never
+
+  - local: ${CI_PROJECT_DIR}/persistence/.gitlab-ci.yml
+    rules:
+      - if: '$CI_COMMIT_REF_PROTECTED != "true" && $CI_PIPELINE_SOURCE != "merge_request_event" && $RUN_INTEGRATION != "true" && $RUN_FULL_TEST != "true"'
+        changes:
+          - persistence/**/*
+        when: always
       - when: never
 
   - local: ${CI_PROJECT_DIR}/ai/.gitlab-ci.yml

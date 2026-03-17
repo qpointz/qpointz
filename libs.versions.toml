@@ -32,6 +32,7 @@ micrometer = "1.16.0"
 kotlin = "2.3.10"
 logback = "1.5.28"
 langchain4j = "1.11.0"
+flyway = "10.21.0"
 [libraries]
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 
@@ -105,6 +106,7 @@ javax-annotation-api = { module = "javax.annotation:javax.annotation-api", versi
 
 h2-database = { module = "com.h2database:h2", version = "2.4.240" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
+flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 
 apache-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "apacheCommons" }
 apache-commons-codec = { module = "commons-codec:commons-codec", version = "1.21.0" }
@@ -193,3 +195,4 @@ google-protobuf-plugin = { id = "com.google.protobuf", version.ref = "protobuf-p
 kotlin = {id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin"}
 kotlin-kapt = {id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin"}
 kotlin-spring = {id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin"}
+kotlin-jpa = {id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin"}

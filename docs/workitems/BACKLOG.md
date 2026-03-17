@@ -91,6 +91,11 @@ milestone-selectable deliverables extracted from design documents and work items
 | A-61 | Implement `ai/v3` `sql-query` capability for SQL generation, validation, execution, durable generated-SQL artifacts, and non-durable result references | ✨ feature | done | `MILESTONE.md` (WI-070 completed) |
 | A-62 | Implement `ai/v3` `value-mapping` capability for resolving business phrases into structured stored-value mappings for SQL/chart/refine flows | ✨ feature | done | `MILESTONE.md` (WI-071 completed) |
 | A-63 | Add in-memory conversation continuity to `ai/v3` CLI and agent boundaries so multi-turn refine-style follow-ups retain prior context | ✨ feature | done | `WI-072-ai-v3-cli-conversation-continuity-and-refine.md` |
+| A-63 | Add in-memory conversation continuity to `ai/v3` CLI and agent boundaries so multi-turn refine-style follow-ups retain prior context | ✨ feature | done | `WI-072-ai-v3-cli-conversation-continuity-and-refine.md` |
+| A-64a | → see **PS-1** (reclassified to persistence) | ✨ feature | planned | `WI-073a-central-persistence-module-bootstrap.md` |
+| A-64 | → see **PS-2** (reclassified to persistence) | ✨ feature | planned | `WI-073-ai-v3-chat-memory-persistence.md` |
+| A-65 | → see **PS-3** (reclassified to persistence) | ✨ feature | planned | `WI-074-ai-v3-routed-events-conversation-and-artifact-persistence.md` |
+| A-66 | → see **PS-4** (reclassified to persistence) | ✨ feature | planned | `WI-075-ai-v3-artifact-observers-and-relation-indexing.md` |
 
 ---
 
@@ -138,8 +143,8 @@ milestone-selectable deliverables extracted from design documents and work items
 | M-8 | Introduce ValueResolver abstraction with feature flag (legacy/faceted/hybrid) | 🔧 refactoring | planned | `WI-027-metadata-value-mapping-bridge.md` |
 | M-9 | Add parity tests: legacy vs facet value resolution | 🧪 test | planned | `WI-027-metadata-value-mapping-bridge.md` |
 | M-10 | Implement EnrichmentFacet, EnrichmentService, and approval workflow | ✨ feature | planned | `WI-030-metadata-user-editing.md` |
-| M-11 | Implement JPA repository (document-style, JSONB) and CompositeMetadataRepository | ✨ feature | planned | `WI-029-metadata-relational-persistence.md` |
-| M-12 | Implement MetadataSyncService for file<->JPA synchronization | ✨ feature | planned | `WI-029-metadata-relational-persistence.md` |
+| M-11 | → see **PS-6** (reclassified to persistence) | ✨ feature | planned | `WI-029-metadata-relational-persistence.md` |
+| M-12 | → see **PS-7** (reclassified to persistence) | ✨ feature | planned | `WI-029-metadata-relational-persistence.md` |
 | M-15 | Implement full-text and facet-aware search (Postgres/Elastic/Lucene) | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-16 | Implement DataQualityFacet and rule execution engine | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-17 | Implement SemanticFacet with vector store integration | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
@@ -230,7 +235,7 @@ milestone-selectable deliverables extracted from design documents and work items
 | S-5 | Fix interval types round-trip through Calcite adapters | 🐛 fix | backlog | source/mill-source-calcite.md |
 | S-6 | Implement ModifiableTable for write path (FlowTable currently read-only) | ✨ feature | backlog | source/mill-source-calcite.md |
 | S-7 | Consolidate CalciteTypeMapper and RelToDatabaseTypeConverter into shared module | 🔧 refactoring | backlog | source/mill-source-calcite.md |
-| S-8 | Implement source persistence, CRUD API, programmatic builders (Phase 6) | ✨ feature | backlog | source/flow-kt-design.md |
+| S-8 | → see **PS-8** (reclassified to persistence) | ✨ feature | backlog | source/flow-kt-design.md |
 | S-9 | Implement S3BlobSource, AzureBlobSource, HdfsBlobSource storage backends | ✨ feature | backlog | source/flow-kt-design.md |
 | S-10 | Implement HivePartitionTableMapper and GlobTableMapper | ✨ feature | backlog | source/flow-kt-design.md |
 | S-17 | Standardize format read/write naming: evaluate RecordSource vs RecordReader and align concrete format classes for consistency | 🔧 refactoring | backlog | **WI-011** |
@@ -268,17 +273,37 @@ milestone-selectable deliverables extracted from design documents and work items
 
 ---
 
+## persistence — Persistence Layer
+
+Design reference: [`docs/design/persistence/persistence-overview.md`](../design/persistence/persistence-overview.md)
+
+Delivery order: PS-1 → PS-3 → PS-2 → PS-4 → PS-5 → PS-6/PS-7 → PS-8
+
+| # | Item | Type | Status | Source | Domain |
+|---|------|------|--------|--------|--------|
+| PS-1 | Create central `persistence/` module group (`mill-persistence`, `mill-persistence-autoconfigure`) with Flyway baseline, H2 PostgreSQL mode, autoconfiguration wiring, and adapter/testing conventions | ✨ feature | planned | `WI-073a-central-persistence-module-bootstrap.md` | platform |
+| PS-2 | Implement `ai/v3` Lane 3 — durable chat-memory persistence: `ChatMemoryStore` + `LlmMemoryStrategy` ports in `v3-core`, `InMemoryChatMemoryStore`, injected into agent/runtime | ✨ feature | planned | `WI-073-ai-v3-chat-memory-persistence.md` | ai/v3 |
+| PS-3 | Implement `ai/v3` Lanes 1,2 — routed event propagation (`EventRoutingPolicy`, `RoutedAgentEvent`, publisher/listener), `ConversationStore`, `RunEventStore`, `ArtifactStore`, `ActiveArtifactPointerStore`; in-memory first; SSE-ready envelope | ✨ feature | planned | `WI-074-ai-v3-routed-events-conversation-and-artifact-persistence.md` | ai/v3 |
+| PS-4 | Implement `ai/v3` Lane 4 — artifact observers and relation indexing: `ArtifactObserver`, `ArtifactRelationIndexer`, `RelationStore`; async/best-effort; first derived relation types (conversation→table, artifact→column) | ✨ feature | planned | `WI-075-ai-v3-artifact-observers-and-relation-indexing.md` | ai/v3 |
+| PS-5 | Add Spring/JPA durable adapters for `ai/v3` stores (all four lanes) in `mill-persistence`; Flyway migration V2–V4; wire via `PersistenceAutoConfiguration` | ✨ feature | backlog | `design/persistence/persistence-overview.md` | ai/v3 |
+| PS-6 | Implement metadata relational persistence: JPA entity + facet schema (JSONB), `MetadataJpaRepository`, optimistic concurrency, `CompositeMetadataRepository` blending file + JPA | ✨ feature | planned | `WI-029-metadata-relational-persistence.md` | metadata |
+| PS-7 | Implement `MetadataSyncService` for deterministic file→DB bootstrap and scheduled sync; `composite` / `jpa` repository mode switch; Flyway migration V5 | ✨ feature | planned | `WI-029-metadata-relational-persistence.md` | metadata |
+| PS-8 | Implement source definition persistence: CRUD API and programmatic builders for connection specs, format configs, blob source roots; Flyway migration; adapter in `mill-persistence` | ✨ feature | backlog | `source/flow-kt-design.md` | source |
+
+---
+
 ## Summary
 
-| Category    | Total   | ✨ feature | 💡 improvement | 🐛 fix | 🔧 refactoring | 🧪 test | 📝 docs |
-| ----------- | ------- | --------- | -------------- | ------ | -------------- | ------- | ------- |
-| data        | 7       | 6         | 0              | 0      | 0              | 0       | 1       |
-| ai          | 24      | 17        | 4              | 1      | 2              | 0       | 0       |
-| client      | 21      | 11        | 0              | 5      | 3              | 1       | 1       |
-| metadata    | 17      | 13        | 0              | 2      | 1              | 1       | 0       |
-| platform    | 32      | 11        | 8              | 4      | 8              | 1       | 0       |
-| publish     | 4       | 1         | 2              | 0      | 0              | 0       | 1       |
-| refactoring | 10      | 0         | 1              | 4      | 2              | 2       | 1       |
-| source      | 15      | 8         | 4              | 1      | 2              | 0       | 0       |
-| ui          | 10      | 4         | 4              | 0      | 1              | 1       | 0       |
-| **Total**   | **140** | **71**    | **23**         | **17** | **19**         | **6**   | **4**   |
+| Category        | Total   | ✨ feature | 💡 improvement | 🐛 fix | 🔧 refactoring | 🧪 test | 📝 docs |
+| --------------- | ------- | --------- | -------------- | ------ | -------------- | ------- | ------- |
+| data            | 7       | 6         | 0              | 0      | 0              | 0       | 1       |
+| ai              | 20      | 13        | 4              | 1      | 2              | 0       | 0       |
+| client          | 21      | 11        | 0              | 5      | 3              | 1       | 1       |
+| metadata        | 15      | 11        | 0              | 2      | 1              | 1       | 0       |
+| persistence     | 8       | 8         | 0              | 0      | 0              | 0       | 0       |
+| platform        | 32      | 11        | 8              | 4      | 8              | 1       | 0       |
+| publish         | 4       | 1         | 2              | 0      | 0              | 0       | 1       |
+| refactoring     | 10      | 0         | 1              | 4      | 2              | 2       | 1       |
+| source          | 14      | 7         | 4              | 1      | 2              | 0       | 0       |
+| ui              | 10      | 4         | 4              | 0      | 1              | 1       | 0       |
+| **Total**       | **141** | **72**    | **23**         | **17** | **19**         | **6**   | **4**   |

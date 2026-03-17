@@ -1,0 +1,6 @@
+persistence:build:
+  stage: build
+  extends: .gradle-job
+  script:
+    - echo $HOME
+    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :persistence:build
