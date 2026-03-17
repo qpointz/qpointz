@@ -305,6 +305,7 @@ class SchemaExplorationAgent(
             val builder = OpenAiStreamingChatModel.builder()
                 .apiKey(config.apiKey)
                 .modelName(config.modelName)
+                .parallelToolCalls(true)
             config.baseUrl?.let(builder::baseUrl)
             return SchemaExplorationAgent(
                 model = builder.build(),

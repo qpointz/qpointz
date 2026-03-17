@@ -66,6 +66,7 @@ class LangChain4jAgent(
             val builder = OpenAiStreamingChatModel.builder()
                 .apiKey(config.apiKey)
                 .modelName(config.modelName)
+                .parallelToolCalls(true)
             config.baseUrl?.let(builder::baseUrl)
             return LangChain4jAgent(
                 model = builder.build(),
