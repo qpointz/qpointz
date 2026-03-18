@@ -24,6 +24,9 @@ A document belongs here if its **primary subject** is one of:
 | File | Description |
 |------|-------------|
 | `adonet-provider-design.md` | Managed .NET provider (ADO.NET) design track with phased architecture and delivery plan |
+| `01-adonet-provider-start-here.md` | Entry-point onboarding packet for the ADO.NET provider implementation track; read this first |
+| `02-adonet-provider-data-lane.md` | High-level explanation of Mill's server data lane, SQL engine, transports, and result flow for client implementers |
+| `03-adonet-provider-wi-draft.md` | Draft delivery guide for C-17: scope, integration testing approach, and quick-start checklist |
 | `odbc-driver-design.md` | ODBC driver design track with native/bridge strategy options, risks, and conformance plan |
 | `py-cold-start.md` | mill-py cold-start guide: codebase analysis, server contracts, how to resume work |
 | `py-implementation-plan.md` | mill-py refactoring implementation plan: scope, architecture, phases, tracking |

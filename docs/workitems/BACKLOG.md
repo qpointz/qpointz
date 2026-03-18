@@ -120,7 +120,7 @@ milestone-selectable deliverables extracted from design documents and work items
 | C-14 | Register SQLAlchemy entry points for mill+grpc and mill+http | ✨ feature | done | **WI-024** |
 | C-15 | Fix MillServerError: call super().__init__(message) | 🐛 fix | backlog | client/py-cold-start.md |
 | C-16 | Fix Python type mappings: BOOL->BOOLEAN, identifier quoting from dialect YAML | 🐛 fix | backlog | client/py-sql-dialect-plan.md |
-| C-17 | Implement managed ADO.NET provider for Mill (separate .NET track; OLE DB as optional follow-up) | ✨ feature | backlog | client/adonet-provider-design.md |
+| C-17 | Implement managed ADO.NET provider for Mill (separate .NET track; OLE DB as optional follow-up) | ✨ feature | backlog | `WI-077-adonet-provider.md` |
 | C-18 | Implement ODBC driver for Mill with native compatibility and BI-tool conformance | ✨ feature | backlog | client/odbc-driver-design.md |
 | C-19 | Update clients (Python/JDBC and related SDK surfaces) for complex types and timezone semantics in schemas/contracts | ✨ feature | backlog | **TBD (new WI)** |
 | C-20 | Fix JDBC HTTP content negotiation/decoding mismatch (http-json path still assumes protobuf response decode) | 🐛 fix | backlog | **TBD (new WI)** |
