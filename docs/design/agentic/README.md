@@ -2,14 +2,18 @@
 
 ## Purpose
 
-This directory captures the design decisions for the planned `ai/v3` agentic runtime.
+This directory captures the design decisions for the `ai/v3` agentic runtime.
 
-The immediate goal is to define a clean, Kotlin-first, LangChain4j-based platform for
-building a family of context-bound agents in Mill without coupling the core runtime to
-Spring.
+Some documents still describe strategic direction, while others now document the implemented
+baseline in the current proof-of-concept runtime.
 
-This directory primarily captures design decisions for the planned `ai/v3` agentic runtime,
-with some documents now also describing the current proof-of-concept implementation shape.
+The long-term target remains:
+
+- a Kotlin-first, Spring-free core runtime
+- multiple agent profiles built from reusable capabilities
+- a shared routed-event and persistence model
+- durable chat transcript and artifact records
+- downstream observer and indexing lanes
 
 ## Strategic Goal
 
@@ -22,37 +26,27 @@ in `ui/mill-ui`, especially:
 - `knowledge`
 - `analysis`
 
-These context families should be able to compose reusable capabilities while remaining bounded to
-their own workflow semantics.
-
-`v3` should also support cross-cutting enrichment/authoring behavior across those contexts, such as:
-
-- amending descriptions and relations
-- proposing metadata enrichments
-- introducing or refining concepts inferred from conversation
-- surfacing structured proposals for review/promotion instead of only returning answers
-
-This implies:
-
-- one shared runtime and event model
-- durable, persisted conversations and run records
-- multiple agent profiles and likely multiple planner/observer families
-- reusable capabilities that can be composed differently by context
-- explicit separation between read/explain flows and enrichment/authoring flows
+These context families should compose reusable capabilities while remaining bounded to their own
+workflow semantics.
 
 ## Current Documents
 
 | File | Purpose |
 |------|---------|
-| `v3-foundation-decisions.md` | Summary of current architecture and POC decisions for `ai/v3` |
-| `v3-runtime-roles.md` | Runtime role split for capabilities, planner, observer, and Hello World example |
-| `v3-interactive-cli.md` | Design and usage of the `mill-ai-v3-cli` interactive testing tool |
+| `v3-foundation-decisions.md` | Strategic architecture decisions and long-range design direction for `ai/v3` |
+| `v3-runtime-roles.md` | Runtime role split for capabilities, planner, observer, and workflow ownership |
+| `v3-interactive-cli.md` | Current behavior of the `mill-ai-v3-cli` manual inspection tool, including raw event rendering and artifact-observer prints |
 | `v3-validation-harness.md` | Deterministic validation strategy for scenarios, event traces, and `testIT` layering |
-| `v3-capability-manifest.md` | `CapabilityManifest` YAML schema reference — one file per capability, tool and prompt declaration format |
-| `v3-v2-learnings.md` | Gap analysis between `ai/v2` and `ai/v3` — what is worth porting, what is not, and recommended implementation order |
-| `v3-v1-rationale-and-guardrails.md` | Why `ai/v3` remains the correct base despite `v1` chat workflow parity — prompt degradation, testability, Spring coupling, and guardrails against over-abstraction |
-| `v3-v1-prompt-budget-comparison.md` | Prompt/context size comparison between `ai/v1` and `ai/v3`, estimated token budgets, and profile-scope recommendations |
-| `v3-authoring-protocol.md` | Deferred three-layer protocol design for schema metadata authoring (WI-068 §5.1 gap) — planner intent, authored-request, and capture result as explicit structured boundaries |
-| `v3-conversation-persistence.md` | Two-track persistence model — LLM chat memory vs UX conversation record, why they must be separate, target architecture, and recommended work item split |
-| `v3-persistence-lanes.md` | Detailed implementation-oriented persistence lanes for `ai/v3`: chat memory, routed events/conversation/artifacts, and artifact observers/relations |
-| `v3-langchain4j-simplification-notes.md` | Simplification map for `LangChain4jAgent` and adjacent runtime seams — what can be collapsed, what should remain framework-agnostic, and a recommended refactor order |
+| `v3-capability-manifest.md` | `CapabilityManifest` YAML schema reference for prompts, tools, and protocols |
+| `developer-manual/v3-developer-manual.md` | Entry point for the ai/v3 developer manual, treating `ai/v3` as a framework for building chat and agent runtimes |
+| `developer-manual/v3-developer-capabilities-profiles-and-dependencies.md` | How to build capabilities, providers, manifests, dependencies, and agent profiles |
+| `developer-manual/v3-developer-runtime-events-persistence.md` | How runtime execution, routed events, transcript, artifacts, telemetry, and observers work together |
+| `developer-manual/v3-developer-recipes.md` | Practical implementation recipes for adding tools, capabilities, profiles, artifact types, and observers |
+| `developer-manual/v3-developer-testing-and-debugging.md` | Testing strategy and debugging playbook for ai/v3 framework development |
+| `v3-v2-learnings.md` | Gap analysis between `ai/v2` and `ai/v3` |
+| `v3-v1-rationale-and-guardrails.md` | Why `ai/v3` remains the correct base despite `v1` workflow parity pressure |
+| `v3-v1-prompt-budget-comparison.md` | Prompt/context size comparison between `ai/v1` and `ai/v3` |
+| `v3-authoring-protocol.md` | Protocol design for schema metadata authoring |
+| `v3-conversation-persistence.md` | Implemented baseline split between chat transcript, model memory, and artifact persistence in `ai/v3` |
+| `v3-persistence-lanes.md` | Implemented persistence-lane architecture for `ai/v3`: model memory, routed events, transcript, artifacts, telemetry, and artifact observers |
+| `v3-langchain4j-simplification-notes.md` | Simplification map for `LangChain4jAgent` and adjacent runtime seams |

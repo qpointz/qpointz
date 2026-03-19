@@ -54,7 +54,7 @@ milestone-selectable deliverables extracted from design documents and work items
 | A-24 | Create `ai/v3` module skeleton for side-by-side Kotlin runtime/capabilities/LangChain4j/test layout | ✨ feature | done | `design/agentic/v3-foundation-decisions.md` |
 | A-25 | Define Hello World / platform-validation milestone for `ai/v3` | 📝 docs | done | `design/agentic/v3-foundation-decisions.md` |
 | A-26 | Define `ai/v3` core domain vocabulary (capability, profile, protocol, run state, artifact, planner step) | 📝 docs | done | `design/agentic/v3-runtime-roles.md` |
-| A-27 | Define `ai/v3` capability model and descriptor format | ✨ feature | done | `WI-038-ai-v3-capability-model-and-descriptor-format.md` |
+| A-27 | Define `ai/v3` capability model and descriptor format | ✨ feature | done | `MILESTONE.md` (WI-038 completed) |
 | A-28 | Implement framework-free dynamic capability discovery for `ai/v3` | ✨ feature | done | `design/agentic/v3-foundation-decisions.md` |
 | A-29 | Define MCP-aligned exposure plan for `ai/v3` capabilities | 📝 docs | done | `design/agentic/v3-foundation-decisions.md` |
 | A-30 | Identify first-class externalizable capability resources (tools, prompts, protocols, descriptors, examples) | 📝 docs | done | `design/agentic/v3-foundation-decisions.md` |
@@ -92,10 +92,12 @@ milestone-selectable deliverables extracted from design documents and work items
 | A-62 | Implement `ai/v3` `value-mapping` capability for resolving business phrases into structured stored-value mappings for SQL/chart/refine flows | ✨ feature | done | `MILESTONE.md` (WI-071 completed) |
 | A-63 | Add in-memory conversation continuity to `ai/v3` CLI and agent boundaries so multi-turn refine-style follow-ups retain prior context | ✨ feature | done | `WI-072-ai-v3-cli-conversation-continuity-and-refine.md` |
 | A-63 | Add in-memory conversation continuity to `ai/v3` CLI and agent boundaries so multi-turn refine-style follow-ups retain prior context | ✨ feature | done | `WI-072-ai-v3-cli-conversation-continuity-and-refine.md` |
-| A-64a | → see **PS-1** (reclassified to persistence) | ✨ feature | planned | `WI-073a-central-persistence-module-bootstrap.md` |
-| A-64 | → see **PS-2** (reclassified to persistence) | ✨ feature | planned | `WI-073-ai-v3-chat-memory-persistence.md` |
-| A-65 | → see **PS-3** (reclassified to persistence) | ✨ feature | planned | `WI-074-ai-v3-routed-events-conversation-and-artifact-persistence.md` |
-| A-66 | → see **PS-4** (reclassified to persistence) | ✨ feature | planned | `WI-075-ai-v3-artifact-observers-and-relation-indexing.md` |
+| A-64a | → see **PS-1** (reclassified to persistence) | ✨ feature | done | `MILESTONE.md` (WI-073a completed) |
+| A-64 | → see **PS-2** (reclassified to persistence) | ✨ feature | done | `MILESTONE.md` (WI-073 completed) |
+| A-65 | → see **PS-3** (reclassified to persistence) | ✨ feature | done | `MILESTONE.md` (WI-074 completed) |
+| A-66 | → see **PS-4** (reclassified to persistence) | ✨ feature | done | `MILESTONE.md` (WI-075 phase-1 observer seam completed) |
+| A-68 | → see **PS-4a** / **PS-4d** (artifact relation indexer follow-up) | ✨ feature | backlog | `design/agentic/v3-persistence-lanes.md` |
+| A-69 | → see **PS-4b** / **PS-4c** / **PS-4e** / **PS-4f** (relation projection persistence follow-up) | ✨ feature | backlog | `design/agentic/v3-persistence-lanes.md` |
 | A-67 | Consolidate mill-ai-v3-core/langchain4j/capabilities into mill-ai-v3; simplify to native LangChain4j tool loop; remove custom planner | 🔧 refactoring | done | `WI-076-ai-v3-langchain4j-agent-simplification.md` |
 
 ---
@@ -282,10 +284,16 @@ Delivery order: PS-1 → PS-3 → PS-2 → PS-4 → PS-5 → PS-6/PS-7 → PS-8
 
 | # | Item | Type | Status | Source | Domain |
 |---|------|------|--------|--------|--------|
-| PS-1 | Create central `persistence/` module group (`mill-persistence`, `mill-persistence-autoconfigure`) with Flyway baseline, H2 PostgreSQL mode, autoconfiguration wiring, and adapter/testing conventions | ✨ feature | planned | `WI-073a-central-persistence-module-bootstrap.md` | platform |
-| PS-2 | Implement `ai/v3` Lane 3 — durable chat-memory persistence: `ChatMemoryStore` + `LlmMemoryStrategy` ports in `v3-core`, `InMemoryChatMemoryStore`, injected into agent/runtime | ✨ feature | planned | `WI-073-ai-v3-chat-memory-persistence.md` | ai/v3 |
-| PS-3 | Implement `ai/v3` Lanes 1,2 — routed event propagation (`EventRoutingPolicy`, `RoutedAgentEvent`, publisher/listener), `ConversationStore`, `RunEventStore`, `ArtifactStore`, `ActiveArtifactPointerStore`; in-memory first; SSE-ready envelope | ✨ feature | planned | `WI-074-ai-v3-routed-events-conversation-and-artifact-persistence.md` | ai/v3 |
-| PS-4 | Implement `ai/v3` Lane 4 — artifact observers and relation indexing: `ArtifactObserver`, `ArtifactRelationIndexer`, `RelationStore`; async/best-effort; first derived relation types (conversation→table, artifact→column) | ✨ feature | planned | `WI-075-ai-v3-artifact-observers-and-relation-indexing.md` | ai/v3 |
+| PS-1 | Create central `persistence/` module group (`mill-persistence`, `mill-persistence-autoconfigure`) with Flyway baseline, H2 PostgreSQL mode, autoconfiguration wiring, and adapter/testing conventions | ✨ feature | done | `MILESTONE.md` (WI-073a completed) | platform |
+| PS-2 | Implement `ai/v3` Lane 3 — durable chat-memory persistence: `ChatMemoryStore` + `LlmMemoryStrategy` ports in `v3-core`, `InMemoryChatMemoryStore`, injected into agent/runtime | ✨ feature | done | `MILESTONE.md` (WI-073 completed) | ai/v3 |
+| PS-3 | Implement `ai/v3` Lanes 1,2 — routed event propagation (`EventRoutingPolicy`, `RoutedAgentEvent`, publisher/listener), `ConversationStore`, `RunEventStore`, `ArtifactStore`, `ActiveArtifactPointerStore`; in-memory first; SSE-ready envelope | ✨ feature | done | `MILESTONE.md` (WI-074 completed) | ai/v3 |
+| PS-4 | Implement `ai/v3` Lane 4 phase 1 — artifact observers and indexing seam: `ArtifactObserver`, `ArtifactIndexingRequest`, `NoOpArtifactObserver`, post-persist wiring, async/best-effort observer invocation | ✨ feature | done | `MILESTONE.md` (WI-075 phase-1 observer seam completed) | ai/v3 |
+| PS-4a | Implement real `ArtifactRelationIndexer` contract and first concrete indexer | ✨ feature | backlog | `design/agentic/v3-persistence-lanes.md` | ai/v3 |
+| PS-4b | Implement `RelationStore` plus in-memory adapter for derived relation projections | ✨ feature | backlog | `design/agentic/v3-persistence-lanes.md` | ai/v3 |
+| PS-4c | Define derived relation model for `conversation -> object`, `artifact -> object`, and `run -> object` edges | ✨ feature | backlog | `design/agentic/v3-persistence-lanes.md` | ai/v3 |
+| PS-4d | Implement artifact-type-specific extraction logic for SQL, metadata-capture, and value-mapping artifacts | ✨ feature | backlog | `design/agentic/v3-persistence-lanes.md` | ai/v3 |
+| PS-4e | Implement rebuild/indexing flow from artifact history into derived relation projections | ✨ feature | backlog | `design/agentic/v3-persistence-lanes.md` | ai/v3 |
+| PS-4f | Add tests for relation derivation, persistence, rebuild, and observer/indexer integration | 🧪 test | backlog | `design/agentic/v3-persistence-lanes.md` | ai/v3 |
 | PS-5 | Add Spring/JPA durable adapters for `ai/v3` stores (all four lanes) in `mill-persistence`; Flyway migration V2–V4; wire via `PersistenceAutoConfiguration` | ✨ feature | backlog | `design/persistence/persistence-overview.md` | ai/v3 |
 | PS-6 | Implement metadata relational persistence: JPA entity + facet schema (JSONB), `MetadataJpaRepository`, optimistic concurrency, `CompositeMetadataRepository` blending file + JPA | ✨ feature | planned | `WI-029-metadata-relational-persistence.md` | metadata |
 | PS-7 | Implement `MetadataSyncService` for deterministic file→DB bootstrap and scheduled sync; `composite` / `jpa` repository mode switch; Flyway migration V5 | ✨ feature | planned | `WI-029-metadata-relational-persistence.md` | metadata |

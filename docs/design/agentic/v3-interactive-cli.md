@@ -1,179 +1,139 @@
-# Agentic Runtime v3 — Interactive CLI
+# Agentic Runtime v3 - Interactive CLI
 
-**Status:** Implemented
-**Date:** March 2026
-**Scope:** `ai/mill-ai-v3-cli` — manual interactive testing tool for `v3` agents
-
----
+**Status:** Implemented  
+**Date:** March 2026  
+**Scope:** `ai/mill-ai-v3-cli` as the manual inspection surface for the current `v3` runtime
 
 ## 1. Purpose
 
-The interactive CLI is a **manual testing and exploration tool** for the `v3` agentic runtime.
+The CLI is a manual runtime inspection tool.
 
-It is not a production UI.  Its purpose is to:
+It is used to:
 
-- run `v3` agents interactively against a real LLM
-- observe the full event stream during a live conversation
-- support testing of different agent types and capability sets as they are added
-- complement `testIT` automated coverage with a human-in-the-loop path
+- run `v3` agents interactively against a real model
+- inspect the raw `AgentEvent` stream
+- exercise multi-turn chat memory and transcript behavior
+- observe protocol outputs and downstream artifact-observer prints during development
 
----
+It is not the production Chat API surface.
 
-## 2. Design Decisions
+## 2. Current Behavior
 
-### 2.1 All events are displayed
+### Agent support
 
-The CLI displays every `AgentEvent` emitted by the agent, not just the final answer.
+The CLI currently supports:
 
-This is intentional.  Manual testing is most useful when the full event trace is visible,
-including run lifecycle, thinking progress, tool calls, tool results, and model reasoning.
+- `hello`
+- `schema`
 
-### 2.2 Generic event display via JSON serialization
+The selected agent runs with a persistent `ConversationSession` for the life of the CLI process.
 
-All events except streaming token events are displayed through a single generic
-`printEvent()` function:
+The `schema` surface is currently backed by the combined schema authoring runtime rather than a
+read-only exploration-only profile. In other words, the CLI selector remains `schema`, but the
+effective runtime identity is `schema-authoring`.
 
-- the event is serialized to JSON using Jackson
-- the `type` field is extracted and displayed as a colored label
-- the remaining fields are displayed as a compact inline JSON payload
+### Event display model
 
-```
-  [run.started]      {"profileId":"hello-world"}
-  [thinking.delta]   {"message":"Planning response..."}
-  [tool.call]        {"name":"say_hello","arguments":"{\"name\":\"Alice\"}","iteration":0}
-  [tool.result]      {"name":"say_hello","result":"{\"greeting\":\"Hello, Alice!\"}"}
-  [answer.completed] {"text":"Done."}
-```
+The CLI renders raw `AgentEvent` values, not routed events.
 
-This approach is **polymorphic by construction**.  When a new `AgentEvent` subtype is
-added to the core module, the CLI displays it automatically without any code change.
-No `when`-branch is needed.
+Current rendering split:
 
-### 2.3 Streaming token events are handled explicitly
+- `MessageDelta`
+  - streamed inline as agent text
+- `ProtocolTextDelta`
+  - streamed inline as protocol text
+- `ReasoningDelta`
+  - streamed in a bordered reasoning block
+- `ProtocolFinal`
+  - printed as structured JSON payload
+- `ProtocolStreamEvent`
+  - printed as structured JSON payload
+- `LlmCallCompleted`
+  - printed as token counts
+- all other events
+  - rendered by generic JSON serialization
 
-Two event types are intentionally excluded from the generic path:
+### Structured payloads
 
-- **`MessageDelta`** — model answer tokens, streamed inline after `agent >` prefix
-- **`ReasoningDelta`** — model extended-thinking tokens, streamed inside a bordered block
+The CLI docs used to show stringified tool/protocol payloads. That is no longer accurate.
 
-These require incremental print behavior that cannot be expressed as a complete JSON
-object, because each event represents a partial token rather than a discrete fact.
+The current event model carries structured payloads for:
 
-```
-  ┌─ reasoning
-  │  <streaming reasoning text...>
-  └─ end of reasoning
-agent > <streaming answer text...>
-```
+- `ToolCall.arguments`
+- `ToolResult.result`
+- `ProtocolFinal.payload`
+- `ProtocolStreamEvent.payload`
 
-All other event types — including any future additions — go through `printEvent()`.
+So CLI output now shows structured JSON rather than nested JSON strings where the runtime
+already normalized the payload.
 
-### 2.4 Event type colour coding
+## 3. Persistence and Observer Visibility
 
-The label colour of each event reflects its category:
+The CLI is still driven by raw `AgentEvent`, but the runtime beneath it now also wires:
 
-| Colour  | Event category               |
-|---------|------------------------------|
-| Magenta | `tool.*` events              |
-| Blue    | `reasoning.*` events         |
-| Green   | `answer.*` events            |
-| Cyan    | all other events (default)   |
+- transcript persistence
+- artifact persistence
+- run-event persistence
+- telemetry accumulation
+- a default `NoOpArtifactObserver`
 
-Payload JSON is always displayed in dim white to reduce visual noise.
+The no-op artifact observer currently prints normalized indexing requests after artifact
+persistence succeeds.
 
-### 2.5 Extended thinking support
+This means CLI runs may now show two kinds of output:
 
-The CLI supports LangChain4j's `onPartialThinking` callback, which carries
-reasoning/extended-thinking tokens from models that support them (for example
-OpenAI o1/o3 or Claude with extended thinking enabled).
+- formatted `AgentEvent` output handled by `CliApp.kt`
+- direct artifact-indexer print lines emitted by the default no-op observer
 
-When a model emits reasoning tokens, they are displayed in a bordered `reasoning` block
-before the answer.  When the model does not emit reasoning tokens, no block appears.
+Those observer prints are currently a development aid, not a formal CLI rendering surface.
 
-The corresponding `AgentEvent.ReasoningDelta` event type is defined in
-`mill-ai-v3-core` so that any future agent or adapter layer can emit it independently
-of the LangChain4j adapter.
+## 4. Commands
 
----
+Current commands:
 
-## 3. Module
+- `/help`
+- `/exit`, `/quit`, `exit`, `quit`
+- `/clear`
 
-```
-ai/mill-ai-v3-cli/
-└── src/main/kotlin/io/qpointz/mill/ai/cli/
-    └── CliApp.kt        entry point and all rendering logic
-```
+`/clear` resets the live `ConversationSession` and clears `ChatMemoryStore`.
 
-**Gradle coordinates:** `:ai:mill-ai-v3-cli`
-**Main class:** `io.qpointz.mill.ai.cli.CliAppKt`
+It does not currently reset the separate in-memory persistence stores created inside a distinct
+`AgentPersistenceContext` unless the caller wires a shared context and clears it explicitly.
 
-**Runtime dependencies:**
+## 5. Environment
 
-| Dependency              | Role                                  |
-|-------------------------|---------------------------------------|
-| `mill-ai-v3-core`       | `AgentEvent` types                    |
-| `mill-ai-v3-capabilities` | capability discovery via ServiceLoader |
-| `mill-ai-v3-langchain4j` | `OpenAiHelloWorldAgent`              |
-| `jackson-module-kotlin` | generic event JSON serialization      |
-| `bundles.logging`       | runtime-only SLF4j/Logback            |
+Current relevant environment variables:
 
----
+- `OPENAI_API_KEY`
+- `OPENAI_MODEL`
+- `OPENAI_BASE_URL`
+- `AGENT`
+- `SCHEMA_SOURCE`
 
-## 4. Running the CLI
+## 6. Current Role in Development
 
-```bash
-OPENAI_API_KEY=sk-...  ./gradlew :ai:mill-ai-v3-cli:run --console=plain
-```
+The CLI is the easiest way to inspect:
 
-Optional environment variables:
+- chat-stream behavior
+- protocol output behavior
+- token accounting events
+- artifact creation
+- no-op artifact indexing requests
 
-| Variable         | Default      | Purpose                        |
-|------------------|--------------|--------------------------------|
-| `OPENAI_API_KEY` | *(required)* | OpenAI API key                 |
-| `OPENAI_MODEL`   | `gpt-4o-mini`| Model name                     |
-| `OPENAI_BASE_URL`| *(not set)*  | Custom base URL for compatible endpoints |
+It complements automated tests, especially for:
 
----
+- manual inspection of event ordering
+- real-model behavior
+- schema/authoring experimentation
 
-## 5. CLI Commands
+## 7. Current Limitations
 
-| Input          | Behaviour                  |
-|----------------|----------------------------|
-| `<text>`       | Send to agent, display event stream |
-| `/help`        | Show help and hint inputs  |
-| `/exit`, `exit`, `quit`, `/quit` | Exit the CLI |
+The CLI does not yet:
 
----
+- render routed events directly
+- render persisted transcript state directly
+- show telemetry accumulator totals as a separate view
+- format artifact-observer prints as first-class CLI events
+- expose relation indexing output beyond the current no-op observer print
 
-## 6. Relation to testIT
-
-The CLI and `testIT` serve complementary roles:
-
-| Concern                          | CLI | testIT |
-|----------------------------------|-----|--------|
-| Free-form conversation           | ✓   |        |
-| Observing live event stream      | ✓   |        |
-| Deterministic assertion          |     | ✓      |
-| Regression guard                 |     | ✓      |
-| CI execution                     |     | ✓      |
-| Exploring new agent behaviour    | ✓   |        |
-
-The CLI is preferred for exploratory work and manual validation of new capabilities or
-agent profiles.  `testIT` is preferred for regression coverage of specific scenarios.
-
----
-
-## 7. Extending for New Agents
-
-When a new agent type is added:
-
-1. Add any new `AgentEvent` subtypes to `mill-ai-v3-core`.  The CLI will display them
-   automatically through `printEvent()` — no CLI changes needed.
-
-2. If the new agent requires a different entry point or factory, update `CliApp.kt`
-   to select between agents (for example via an `AGENT` environment variable or a
-   `/agent` CLI command).
-
-3. If the new agent emits new streaming token events (incremental partial tokens),
-   add an explicit branch for them alongside `MessageDelta` and `ReasoningDelta`.
-   All other event types should remain on the generic JSON path.
+Those are future ergonomics improvements, not missing core runtime functionality.

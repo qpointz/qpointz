@@ -51,6 +51,10 @@ Items targeted next after in-progress work is completed.
 
 Items delivered in this milestone.
 
+- WI-038 — `ai/v3` capability model and descriptor format: `CapabilityDescriptor`,
+  `Capability`, `CapabilityProvider`, `CapabilityRegistry`, `CapabilityManifest`, and
+  manifest-driven prompts/tools/protocol declaration as the core composition surface for
+  `ai/v3`
 - WI-062 — Schema data aggregation boundary: `SchemaFacetService`, `*WithFacets` domain model,
   `SchemaFacets` (map-backed, typed facet holder), `SchemaFacetResult` with unbound metadata,
   `SchemaFacetAutoConfiguration`; unit + skymill integration tests in `data/mill-data-schema-core`
@@ -114,6 +118,34 @@ Items delivered in this milestone.
   `/clear` command resets session history; `v3-conversation-persistence.md` design doc
   capturing two-track persistence model (LLM chat memory vs UX conversation record) and
   recommended future work item split
+
+- WI-073a — central persistence module bootstrap: `persistence/` project group with
+  `mill-persistence` and `mill-persistence-autoconfigure`; baseline Flyway migration
+  `V1__baseline.sql`; Spring Boot autoconfiguration import and `MillPersistenceProperties`;
+  JPA entity/repository proof-of-shape adapter via `SchemaInfoEntity` and
+  `SchemaInfoRepository`; persistence-layer test application and repository test proving the
+  shared module wiring
+
+- WI-073 — `ai/v3` Lane 3 chat-memory persistence: `ConversationMemory`,
+  `MemoryProjectionInput`, `ChatMemoryStore`, and `LlmMemoryStrategy` contracts in
+  `mill-ai-v3`; `InMemoryChatMemoryStore` and bounded memory projection wired into
+  `LangChain4jAgent` and `SchemaExplorationAgent`; memory persisted by `conversationId`
+  independently from durable transcript state
+
+- WI-074 — `ai/v3` routed-event, transcript, artifact, and telemetry persistence:
+  `AgentEventRouter`, `RoutedAgentEvent`, `EventRoutingPolicy`, `DefaultEventRoutingPolicy`,
+  `AgentEventPublisher`, `ConversationStore`, `ArtifactStore`, `RunEventStore`,
+  `ActiveArtifactPointerStore`, `RunTelemetryAccumulator`, and `AgentPersistenceContext`;
+  in-memory persistence adapters; transcript/artifact linking for multi-artifact assistant
+  turns; canonical artifact-bearing `tool.result` promotion for SQL artifacts; profile-owned
+  artifact pointer overrides; CLI/runtime wiring through `LangChain4jAgent` and
+  `SchemaExplorationAgent`
+
+- WI-075 — `ai/v3` artifact observer seam (phase 1): `ArtifactObserver`,
+  `ArtifactIndexingRequest`, `NoOpArtifactObserver`, post-persist observer invocation from
+  `StandardPersistenceProjector`, default observer wiring in `AgentPersistenceContext`, and
+  printed/logged indexing requests for persisted artifacts. Real relation indexing was split
+  into follow-up backlog items `PS-4a` through `PS-4f`.
 
 - WI-076 — `ai/v3` module consolidation and agent simplification: merged
   `mill-ai-v3-core`, `mill-ai-v3-langchain4j`, and `mill-ai-v3-capabilities` into a single
