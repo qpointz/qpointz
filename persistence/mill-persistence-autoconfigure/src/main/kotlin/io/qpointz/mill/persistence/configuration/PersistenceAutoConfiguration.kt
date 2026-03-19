@@ -1,6 +1,5 @@
 package io.qpointz.mill.persistence.configuration
 
-import io.qpointz.mill.persistence.SchemaInfoRepository
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
@@ -17,6 +16,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
     ]
 )
 @EnableConfigurationProperties(MillPersistenceProperties::class)
-@EnableJpaRepositories(basePackageClasses = [SchemaInfoRepository::class])
+@EnableJpaRepositories(basePackages = ["io.qpointz.mill.persistence"])
 @EntityScan(basePackages = ["io.qpointz.mill.persistence"])
 class PersistenceAutoConfiguration

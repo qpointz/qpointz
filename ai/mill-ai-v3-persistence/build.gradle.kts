@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.kotlin)
+    kotlin("jvm")
     alias(libs.plugins.spring.dependency.management)
     alias(libs.plugins.kotlin.spring)
     alias(libs.plugins.kotlin.jpa)
@@ -8,14 +8,14 @@ plugins {
 }
 
 mill {
-    description = "Mill persistence — JPA entities, Flyway migrations, and store adapters."
-    publishArtifacts = true
+    description = "Mill AI v3 — JPA persistence adapters for ai/v3 port contracts"
+    publishArtifacts = false
 }
 
 dependencies {
-    api(project(":core:mill-core"))
-    api(libs.boot.starter.data.jpa)
-    api(libs.flyway.core)
+    api(project(":ai:mill-ai-v3"))
+    api(project(":persistence:mill-persistence"))
+    implementation(libs.boot.starter.data.jpa)
     implementation(kotlin("reflect"))
     runtimeOnly(libs.h2.database)
 }
@@ -27,6 +27,7 @@ testing {
                 implementation(project())
                 implementation(libs.boot.starter.test)
                 implementation(libs.assertj.core)
+                runtimeOnly(libs.h2.database)
             }
         }
 
@@ -47,4 +48,8 @@ tasks.named<Test>("testIT") {
     testLogging {
         events("passed", "failed", "skipped")
     }
+}
+
+repositories {
+    mavenCentral()
 }

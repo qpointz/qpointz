@@ -57,6 +57,8 @@ include (":ai:mill-ai-v1-nlsql-chat-service")
 include (":ai:mill-ai-v3")
 include (":ai:mill-ai-v3-test")
 include (":ai:mill-ai-v3-cli")
+include (":ai:mill-ai-v3-persistence")
+include (":ai:mill-ai-v3-autoconfigure")
 
 include (":clients:mill-jdbc-driver")
 include (":clients:mill-jdbc-shell")
