@@ -170,3 +170,4 @@ internal class DemoSchemaFacetService : SchemaFacetService {
             .setType(LogicalDataType.newBuilder().setTypeId(id))
             .build()
 }
+

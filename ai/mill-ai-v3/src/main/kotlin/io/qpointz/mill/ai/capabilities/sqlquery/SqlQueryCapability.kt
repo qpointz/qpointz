@@ -1,17 +1,16 @@
 package io.qpointz.mill.ai.capabilities.sqlquery
 
-import io.qpointz.mill.ai.AgentContext
-import io.qpointz.mill.ai.Capability
-import io.qpointz.mill.ai.CapabilityDependencies
-import io.qpointz.mill.ai.CapabilityDependency
-import io.qpointz.mill.ai.CapabilityDescriptor
-import io.qpointz.mill.ai.CapabilityManifest
-import io.qpointz.mill.ai.CapabilityProvider
-import io.qpointz.mill.ai.PromptAsset
-import io.qpointz.mill.ai.ProtocolDefinition
-import io.qpointz.mill.ai.ToolBinding
-import io.qpointz.mill.ai.ToolResult
-import io.qpointz.mill.ai.argumentsAs
+import io.qpointz.mill.ai.core.capability.*
+import io.qpointz.mill.ai.core.prompt.*
+import io.qpointz.mill.ai.core.protocol.*
+import io.qpointz.mill.ai.core.tool.*
+import io.qpointz.mill.ai.memory.*
+import io.qpointz.mill.ai.persistence.*
+import io.qpointz.mill.ai.profile.*
+import io.qpointz.mill.ai.runtime.*
+import io.qpointz.mill.ai.runtime.events.*
+import io.qpointz.mill.ai.runtime.events.routing.*
+
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryToolHandlers.executeSql
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryToolHandlers.validateSql
 
@@ -82,3 +81,7 @@ private data class SqlQueryCapability(
         },
     )
 }
+
+
+
+

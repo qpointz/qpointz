@@ -1,0 +1,9 @@
+name: json list expectations
+steps:
+  - user: "list all schemas"
+    expect:
+      format: json-list
+      asserts:
+        - assert: not-empty
+        - assert: json-path
+          exp: "$[?(@.name)]"

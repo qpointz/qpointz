@@ -13,6 +13,7 @@ dependencies {
     api(libs.langchain4j.core)
     implementation(libs.langchain4j.open.ai)
     implementation(libs.bundles.jackson)
+    implementation(libs.caffeine)
     implementation(libs.slf4j.api)
     implementation(project(":data:mill-data-schema-core"))
     implementation(project(":core:mill-sql"))

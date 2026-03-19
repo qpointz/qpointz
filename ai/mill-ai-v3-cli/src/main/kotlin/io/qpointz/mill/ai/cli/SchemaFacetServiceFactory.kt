@@ -37,3 +37,4 @@ object SchemaFacetServiceFactory {
     /** In-memory demo retail schema — no external dependencies. */
     fun demo(): SchemaFacetService = DemoSchemaFacetService()
 }
+

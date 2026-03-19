@@ -2,15 +2,17 @@ package io.qpointz.mill.ai.cli
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.qpointz.mill.ai.AgentEvent
-import io.qpointz.mill.ai.ConversationSession
-import io.qpointz.mill.ai.capabilities.HelloWorldAgentProfile
+import io.qpointz.mill.ai.runtime.events.AgentEvent
+import io.qpointz.mill.ai.memory.ChatMemoryStore
+import io.qpointz.mill.ai.runtime.ConversationSession
+import io.qpointz.mill.ai.memory.InMemoryChatMemoryStore
+import io.qpointz.mill.ai.profile.HelloWorldAgentProfile
 import io.qpointz.mill.ai.capabilities.sqlquery.MockSqlExecutionService
 import io.qpointz.mill.ai.capabilities.sqlquery.MockSqlValidationService
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityDependency
 import io.qpointz.mill.ai.capabilities.valuemapping.MockValueMappingResolver
-import io.qpointz.mill.ai.langchain4j.LangChain4jAgent
-import io.qpointz.mill.ai.langchain4j.SchemaExplorationAgent
+import io.qpointz.mill.ai.runtime.langchain4j.LangChain4jAgent
+import io.qpointz.mill.ai.runtime.langchain4j.SchemaExplorationAgent
 import io.qpointz.mill.sql.v2.dialect.DialectRegistry
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -128,6 +130,7 @@ fun main(args: Array<String>) {
     val model = System.getenv("OPENAI_MODEL") ?: "gpt-4o-mini"
 
     var activeSession: ConversationSession? = null
+    var activeChatMemoryStore: ChatMemoryStore? = null
 
     val runTurnFn: (String, (AgentEvent) -> Unit) -> Unit = when (agentName) {
         "schema" -> {
@@ -137,23 +140,26 @@ fun main(args: Array<String>) {
                 validator = MockSqlValidationService(),
                 executor = MockSqlExecutionService(),
             )
-            val agent = SchemaExplorationAgent.fromEnv(schemaService, dialectSpec, sqlQueryDep, MockValueMappingResolver())
+            val store = InMemoryChatMemoryStore()
+            val agent = SchemaExplorationAgent.fromEnv(schemaService, dialectSpec, sqlQueryDep, MockValueMappingResolver(), chatMemoryStore = store)
             if (agent == null) {
                 println(red("Error: OPENAI_API_KEY environment variable is not set."))
                 println(dim("  Optional: OPENAI_MODEL (default: gpt-4o-mini), OPENAI_BASE_URL, SCHEMA_SOURCE (default: demo)"))
                 return
             }
             println(dim("  model  : $model"))
-            println(dim("  agent  : schema-exploration"))
+            println(dim("  agent  : schema-authoring"))
             println(dim("  schema : ${System.getenv("SCHEMA_SOURCE") ?: "demo"}"))
             println()
             val session = ConversationSession(profileId = "schema")
             activeSession = session
+            activeChatMemoryStore = store
             val fn1: (String, (AgentEvent) -> Unit) -> Unit = { input, listener -> agent.run(session, input, listener) }
             fn1
         }
         else -> {
-            val agent = LangChain4jAgent.fromEnv(HelloWorldAgentProfile.profile)
+            val store = InMemoryChatMemoryStore()
+            val agent = LangChain4jAgent.fromEnv(HelloWorldAgentProfile.profile, chatMemoryStore = store)
             if (agent == null) {
                 println(red("Error: OPENAI_API_KEY environment variable is not set."))
                 println(dim("  Optional: OPENAI_MODEL (default: gpt-4o-mini), OPENAI_BASE_URL"))
@@ -164,6 +170,7 @@ fun main(args: Array<String>) {
             println()
             val helloSession = ConversationSession(profileId = "hello-world")
             activeSession = helloSession
+            activeChatMemoryStore = store
             val fn2: (String, (AgentEvent) -> Unit) -> Unit = { input, listener -> agent.run(input, helloSession, listener) }
             fn2
         }
@@ -185,7 +192,9 @@ fun main(args: Array<String>) {
             }
             input == "/help" -> { printHelp(); continue }
             input == "/clear" -> {
+                val id = activeSession?.conversationId ?: ""
                 activeSession?.clear()
+                if (id.isNotEmpty()) activeChatMemoryStore?.clear(id)
                 println(dim("  Conversation cleared."))
                 continue
             }
@@ -247,7 +256,7 @@ private fun runTurn(agentFn: (String, (AgentEvent) -> Unit) -> Unit, input: Stri
             is AgentEvent.ProtocolFinal -> {
                 endBlocks()
                 println("  ${elapsedSec(turnStart)} ${green("[protocol.final]")}  ${bold(event.protocolId)}")
-                println("  ${dim(compactJson(event.payload))}")
+                println("  ${dim(mapper.writeValueAsString(event.payload))}")
             }
             is AgentEvent.ProtocolStreamEvent -> {
                 endBlocks()
@@ -255,7 +264,7 @@ private fun runTurn(agentFn: (String, (AgentEvent) -> Unit) -> Unit, input: Stri
                     "  ${elapsedSec(turnStart)} ${green("[protocol.stream]")}  ${bold(event.protocolId)}" +
                         " ${dim(event.eventType)}"
                 )
-                println("  ${dim(compactJson(event.payload))}")
+                println("  ${dim(mapper.writeValueAsString(event.payload))}")
             }
             is AgentEvent.LlmCallCompleted -> {
                 endBlocks()
@@ -287,13 +296,13 @@ private fun printHelp() {
     println()
     println(bold("Agent selection:"))
     println("  mill-ai-v3-cli hello       — run hello-world demo agent")
-    println("  mill-ai-v3-cli schema      — run schema exploration agent")
+    println("  mill-ai-v3-cli schema      — run schema authoring agent")
     println("  mill-ai-v3-cli --agent schema")
     println("  AGENT=schema mill-ai-v3-cli")
     println()
     println(bold("Environment:"))
     println("  AGENT=hello  (default fallback) — hello-world demo agent")
-    println("  AGENT=schema                    — schema exploration agent")
+    println("  AGENT=schema                    — schema authoring agent")
     println("  SCHEMA_SOURCE=demo     — in-memory demo retail schema (default)")
     println()
     println(bold("Hello-world hints:"))
@@ -309,3 +318,5 @@ private fun printHelp() {
     println("  • \"how are orders and customers related?\"")
     println()
 }
+
+

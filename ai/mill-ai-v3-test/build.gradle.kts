@@ -19,6 +19,8 @@ dependencies {
     implementation(libs.mockito.junit.jupiter)
     implementation(kotlin("stdlib-jdk8"))
     implementation(libs.assertj.core)
+    implementation(libs.bundles.jackson)
+    implementation(libs.json.path)
 }
 
 testing {

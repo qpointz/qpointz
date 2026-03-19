@@ -76,3 +76,4 @@ class QSynthYamlSchemaProvider(
         .setType(DataType.newBuilder().setNullability(DataType.Nullability.NOT_SPECIFIED_NULL).build())
         .build()
 }
+
