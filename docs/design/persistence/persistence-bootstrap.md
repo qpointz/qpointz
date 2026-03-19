@@ -2,67 +2,128 @@
 
 ## Purpose
 
-This document describes the central persistence module structure introduced in `WI-073a`. It is
-the reference for all subsequent persistence work (chat memory, events, artifacts, relation
-indexing, etc.) and should be updated as the persistence layer grows.
+This document defines the shared persistence principles for Mill.
+
+It is not limited to ai-v3. It describes:
+
+- centralized schema ownership
+- module boundaries
+- adapter ownership rules
+- shared relation primitives
+- URN/global identity rules
+- Flyway and test conventions
+
+Domain-specific work items such as `WI-078` should follow these principles
+rather than redefining them locally.
 
 ---
 
 ## Module Structure
 
-```
+```text
 persistence/
-├── mill-persistence              # JPA entities, Flyway migrations, store adapters
-└── mill-persistence-autoconfigure  # Spring Boot @AutoConfiguration wiring only
+  mill-persistence                 # centralized schema migrations and shared persistence primitives
+  mill-persistence-autoconfigure   # generic datasource/JPA/Flyway bootstrap
+
+<domain>/
+  <domain>-core                    # functional contracts, no Spring/JPA
+  <domain>-persistence             # domain-specific JPA entities, repositories, adapters
+  <domain>-autoconfigure           # domain-specific bean wiring
 ```
+
+Example for ai-v3:
+
+```text
+ai/
+  mill-ai-v3
+  mill-ai-v3-persistence
+  mill-ai-v3-autoconfigure
+```
+
+---
+
+## Ownership Rules
 
 ### `mill-persistence`
 
-The implementation module. Contains:
+Owns:
 
-- JPA entity classes
-- Spring Data JPA repositories
-- Flyway migration scripts (`src/main/resources/db/migration/`)
+- centralized Flyway migration history for the whole platform
+- shared persistence primitives reused across domains
+- generic entities/repositories not owned by a single domain
 
-**Key constraint:** JPA and Spring types are used internally but must not leak into the
-public API (ports/interfaces) consumed by functional modules such as `ai/v3`.
+Examples:
+
+- common relation persistence records
+- shared relation-participant contract such as `EntityRef`
+
+Does not own:
+
+- domain-specific business adapters
+- domain-specific runtime semantics
+- application-layer bean wiring
+
+### `<domain>-persistence`
+
+Owns:
+
+- domain-specific JPA entities
+- Spring Data repositories for those entities
+- adapter implementations for that domain’s persistence ports
+- persistence-only serialization concerns
+- domain-specific relation semantics built on shared primitives
 
 ### `mill-persistence-autoconfigure`
 
-The Spring Boot wiring module. Contains:
+Owns only generic persistence bootstrap:
 
-- `@AutoConfiguration` class (`PersistenceAutoConfiguration`)
-- `@ConfigurationProperties` class (`MillPersistenceProperties`)
-- `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`
+- datasource/JPA/Flyway startup
+- shared entity/repository scanning as needed
+- configuration properties
 
-Depends on `mill-persistence`. Does **not** own any entities or repositories.
+Does not own domain store bean registration.
+
+### `<domain>-autoconfigure`
+
+Owns domain bean wiring:
+
+- in-memory defaults
+- conditional durable adapters
+- `@ConditionalOnMissingBean` behavior
 
 ---
 
 ## Dependency Direction
 
-```
-functional module (ai/v3-core, metadata, ...)
-    defines port interface (e.g. ChatMemoryStore)
-        ↓
+```text
+functional module
+  defines port interface
+    ->
+domain-persistence module
+  implements the port with JPA adapter/entity/repository
+    ->
 mill-persistence
-    implements port interface with JPA adapter
-        ↓
-mill-persistence-autoconfigure
-    wires adapter into Spring context
+  provides centralized schema and shared persistence primitives
+    ->
+domain-autoconfigure
+  wires the adapter into the Spring context
 ```
 
-Functional modules **never** depend on `mill-persistence`. They depend only on their own
-port interfaces. The persistence module depends on functional modules to implement their
-ports; the autoconfigure module pulls everything together at application startup.
+Rules:
+
+- functional runtime modules never depend directly on JPA entities or repositories
+- domain persistence modules may depend on:
+  - their functional module
+  - `mill-persistence`
+- schema ownership stays centralized in `mill-persistence` even when entities and adapters live elsewhere
 
 ---
 
 ## Database Setup
 
-### Development / Test — H2 in PostgreSQL Mode
+### Development / Test
 
-All tests and local development use H2 with PostgreSQL compatibility mode:
+Use `H2` in PostgreSQL compatibility mode by default:
 
 ```yaml
 spring:
@@ -79,126 +140,153 @@ spring:
     locations: classpath:db/migration
 ```
 
-`DATABASE_TO_LOWER=TRUE` ensures unquoted identifiers are lower-cased, matching
-PostgreSQL behaviour. `DEFAULT_NULL_ORDERING=HIGH` matches PostgreSQL's default `NULLS LAST`
-in ascending sorts.
-
 ### Production
 
-PostgreSQL. Hibernate dialect and datasource are provided by the application's own
-`application.yml` / environment config. The same Flyway migration scripts run against
-PostgreSQL without modification because the scripts are written in PostgreSQL-compatible SQL.
+Primary target is `Postgres`.
+
+Principle:
+
+- write Flyway migrations so the same logical schema remains valid for both `H2` and `Postgres`
+- prefer portable SQL first
+- keep vendor-specific optimizations isolated and explicit
 
 ---
 
 ## Flyway Conventions
 
-- Migration scripts live in `mill-persistence/src/main/resources/db/migration/`.
-- Filename pattern: `V{n}__{description}.sql` (standard Flyway versioned migration).
-- Each persistence lane adds its own version step. Example lane sequence:
+- migration scripts live in `mill-persistence/src/main/resources/db/migration/`
+- filename pattern: `V{n}__{description}.sql`
+- schema history is centralized in `mill-persistence`
+- domain modules do not own separate Flyway histories
 
-| Version | Owner | Description |
-|---------|-------|-------------|
-| `V1` | bootstrap | `mill_schema_info` baseline table |
-| `V2` | chat-memory | `conversation_memory` and `chat_message` tables |
-| `V3` | events | `agent_event` table |
-| … | … | … |
+Portable SQL rules:
 
-- Write migrations in PostgreSQL-compatible SQL. H2 PostgreSQL mode will accept the same DDL.
-- Use `GENERATED BY DEFAULT AS IDENTITY` for surrogate primary keys (compatible with both
-  H2 PostgreSQL mode and real PostgreSQL).
-- Always specify `NOT NULL` explicitly; never rely on implicit nullability.
+- prefer:
+  - `VARCHAR`
+  - `TEXT`
+  - `TIMESTAMP`
+  - `GENERATED BY DEFAULT AS IDENTITY`
+- explicitly specify `NOT NULL`
+- avoid product-specific features in the first pass unless necessary
+
+---
+
+## Shared Relation Model
+
+Mill needs a generalized cross-model relation mechanism instead of bespoke join
+tables for every domain pair.
+
+Examples:
+
+- chat turn -> artifact
+- model -> chat
+- concept -> model
+
+### `EntityRef`
+
+Shared relation participants should implement a common persistence-level
+contract, tentatively named `EntityRef`.
+
+First-pass shape:
+
+- `id: String`
+- `type: String`
+- `urn: String`
+
+Rules:
+
+- `type` is a plain canonical string in the current contract
+- do not introduce a richer hierarchical type object at this level yet
+- only entities implementing `EntityRef` participate in generic relations
+- generic relation repositories should operate only on `EntityRef` participants
+
+### URN
+
+URN is the persistence-level global identifier for relation-capable entities.
+
+First-pass format:
+
+- `urn:<type-path>:<id>`
+
+Where:
+
+- `<type-path>` is slash-delimited
+- `<id>` is the stable entity identifier
+
+Examples:
+
+- `urn:agent/conversation-turn:<turnId>`
+- `urn:agent/artifact/sql-query:<artifactId>`
+- `urn:model/concept:<conceptId>`
+
+Rules:
+
+- URN is required for relation-capable entities
+- entity tables should store their own URN
+- relation records should also store source and target URNs
+- URN construction rules for a domain belong to that domain’s persistence module
+
+### Generic Relation Record
+
+The shared relation primitive in `mill-persistence` should support at least:
+
+- `relationId`
+- `relationKind`
+- `sourceId`
+- `sourceType`
+- `sourceUrn`
+- `targetId`
+- `targetType`
+- `targetUrn`
+- `metadataJson`
+- `createdAt`
+
+The shared layer owns only the generic shape. Domain-specific meaning belongs in
+domain persistence modules.
+
+---
+
+## Serialization Principles
+
+Serialization used for JPA persistence is an internal persistence concern.
+
+Rules:
+
+- business/runtime code must not handle persistence serialization directly
+- JSON conversion stays inside the owning domain persistence module
+- `AttributeConverter` is the preferred JPA mechanism for encoded fields
+- external API contracts should use DTOs, not persistence JSON blobs
+
+Shared helpers such as `JsonUtils.defaultJsonMapper()` may be reused, but
+serialization policy must remain encapsulated inside persistence modules.
 
 ---
 
 ## Testing Conventions
 
-### Unit tests (Spring slice)
+Repository and migration tests should prove:
 
-Use `@SpringBootTest` + `@AutoConfigureTestDatabase(replace = NONE)` with a minimal
-`@SpringBootApplication` test application class in the test source set. This ensures
-Flyway runs and the schema is validated against the JPA entity mapping.
+- Flyway applies cleanly on `H2`
+- JPA mappings validate against the schema
+- round-trip save/load behavior works
+- product-compatible SQL stays valid for future `Postgres` execution
 
-```kotlin
-@SpringBootTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Transactional
-class MyRepositoryTest {
-    @Autowired lateinit var repository: MyRepository
+Optional developer-inspection profiles may use file-backed `H2` in PostgreSQL
+mode, but the authoritative automated baseline remains the regular H2
+integration suite.
 
-    @Test
-    fun `should round-trip entity`() { ... }
-}
-```
-
-A shared `TestPersistenceApplication` class (annotated `@SpringBootApplication`) lives in
-`mill-persistence/src/test/kotlin/io/qpointz/mill/persistence/`. All repository tests reuse
-the same Spring application context via context caching.
-
-### What to test
-
-- Round-trip save/load for every entity.
-- Any custom JPQL or native queries.
-- The Flyway migration itself — a failing migration surfaces as a context load failure.
-
-### What not to test here
-
-- Business logic that uses the repository — that belongs in the functional module's own tests
-  with a mock or in-memory store.
-- Port interface contracts — those are tested in the functional module.
-
----
-
-## Package Conventions
-
-| Package | Contents |
-|---------|----------|
-| `io.qpointz.mill.persistence` | JPA entities and Spring Data repositories |
-| `io.qpointz.mill.persistence.configuration` | `@AutoConfiguration` and `@ConfigurationProperties` classes |
-
-Lane-specific sub-packages (e.g. `io.qpointz.mill.persistence.memory`) are added as each
-lane is implemented. Keep entity classes flat inside the lane sub-package rather than nesting
-further.
+Business logic tests remain in functional modules, not persistence modules.
 
 ---
 
 ## Adding a New Persistence Lane
 
-1. **Define the port interface** in the functional module (e.g. `ai/v3-core`). No Spring or
-   JPA imports.
-2. **Add a Flyway migration** in `mill-persistence/src/main/resources/db/migration/` with the
-   next version number.
-3. **Add JPA entity + repository** in `mill-persistence` under a lane sub-package.
-4. **Implement the port interface** in `mill-persistence` (adapter class). The adapter injects
-   the Spring Data repository.
-5. **Register a `@Bean`** for the adapter in `PersistenceAutoConfiguration` (or a dedicated
-   `@Configuration` inner class) so the functional module can receive it via injection.
-6. **Add repository tests** in `mill-persistence` proving round-trip persistence and schema
-   validation.
-
----
-
-## Configuration Properties
-
-Prefix: `mill.persistence`
-
-| Property | Default | Description |
-|----------|---------|-------------|
-| `mill.persistence.datasource.mode` | `h2-postgres` | Hint for datasource mode. Currently informational; used for documentation and future dialect selection. |
-
----
-
-## CI
-
-The persistence group has its own GitLab CI job:
-
-```yaml
-# persistence/.gitlab-ci.yml
-persistence:build:
-  stage: build
-  extends: .gradle-job
-  script:
-    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :persistence:build
-```
-
-Triggered from the root pipeline on changes to `persistence/**/*`.
+1. Define the persistence port in the functional module.
+2. Add the next Flyway migration in `mill-persistence`.
+3. Decide ownership:
+   - shared primitive -> `mill-persistence`
+   - domain-specific adapter/entity/repository -> domain persistence module
+4. Add entities/repositories in the owning persistence module.
+5. Implement the adapter in the owning persistence module.
+6. Register beans in the owning domain autoconfigure module.
+7. Add migration and repository tests.

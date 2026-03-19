@@ -1,6 +1,6 @@
 package io.qpointz.mill.ai.test.scenario
 
-import io.qpointz.mill.ai.ConversationSession
+import io.qpointz.mill.ai.runtime.ConversationSession
 import io.qpointz.mill.ai.test.AgentScenarioResult
 import io.qpointz.mill.ai.test.ScenarioRunner
 import org.junit.jupiter.api.DynamicContainer

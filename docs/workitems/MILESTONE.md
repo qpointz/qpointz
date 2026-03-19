@@ -26,6 +26,12 @@ Items delivered in this milestone.
   `ProtocolFinal`, `ProtocolStreamEvent`); protocol declarations moved to capability YAML
   manifests (`manifest.allProtocols`); `LangChain4jAgent` (renamed from `OpenAiHelloWorldAgent`,
   profile as constructor param); unit tests for all three modes via fake `StreamingChatModel`
+- WI-078 — `ai/v3` JPA persistence adapters and autoconfiguration: new
+  `ai/mill-ai-v3-persistence` and `ai/mill-ai-v3-autoconfigure` modules;
+  centralized Flyway reset in `mill-persistence`; shared `EntityRef` and
+  generic `relation_record`; H2 PostgreSQL-mode repository/integration coverage;
+  file-backed H2 inspection profile; JPA-backed ai/v3 store activation
+  validated through autoconfigure integration tests
 
 Completed WI markdown files are intentionally removed after delivery; this milestone list is the
 retained canonical record of completed items.
@@ -33,8 +39,6 @@ retained canonical record of completed items.
 ### In Progress
 
 Items currently being implemented in this milestone.
-
-No active in-progress items currently.
 
 ### Planned
 

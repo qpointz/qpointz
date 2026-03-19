@@ -1,6 +1,6 @@
 package io.qpointz.mill.ai.test
 
-import io.qpointz.mill.ai.AgentEvent
+import io.qpointz.mill.ai.runtime.events.AgentEvent
 
 data class AgentScenarioResult(
     val response: String,

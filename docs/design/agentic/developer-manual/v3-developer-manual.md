@@ -389,7 +389,8 @@ should understand:
   reset the in-memory persistence context
 - `SchemaExplorationAgent` is exposed as the `schema-authoring` runtime surface
 - some strategic docs still describe future layers not yet implemented
-- durable JPA adapters are planned separately from the in-memory baseline
+- durable JPA adapters and Spring autoconfiguration now exist through
+  `mill-ai-v3-persistence` and `mill-ai-v3-autoconfigure`
 
 These are not blockers for framework development, but they matter when writing service or UX
 integrations.

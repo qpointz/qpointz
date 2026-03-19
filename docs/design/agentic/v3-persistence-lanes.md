@@ -270,12 +270,14 @@ delivery for downstream observers and JPA-backed adapters.
 
 Not part of the current baseline:
 
-- JPA adapters for the stores
 - durable relation indexing
 - asynchronous observer scheduling
 - SSE publication
 - artifact-derived analytics
 - transcript pagination or query APIs
 
-Those are follow-on concerns from `WI-078` and the split `PS-4a` to `PS-4f`
-follow-up work after `WI-075` phase 1.
+The durable JPA-backed store adapters and Spring autoconfiguration are now in
+place through `mill-ai-v3-persistence` and `mill-ai-v3-autoconfigure`.
+
+Remaining follow-on concerns are mainly the split `PS-4a` to `PS-4f` relation
+indexing work after `WI-075` phase 1.
