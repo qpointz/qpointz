@@ -99,6 +99,19 @@ milestone-selectable deliverables extracted from design documents and work items
 | A-68 | → see **PS-4a** / **PS-4d** (artifact relation indexer follow-up) | ✨ feature | backlog | `design/agentic/v3-persistence-lanes.md` |
 | A-69 | → see **PS-4b** / **PS-4c** / **PS-4e** / **PS-4f** (relation projection persistence follow-up) | ✨ feature | backlog | `design/agentic/v3-persistence-lanes.md` |
 | A-67 | Consolidate mill-ai-v3-core/langchain4j/capabilities into mill-ai-v3; simplify to native LangChain4j tool loop; remove custom planner | 🔧 refactoring | done | `WI-076-ai-v3-langchain4j-agent-simplification.md` |
+| A-70 | Persist `ai/v3` chat metadata as a first-class resource (`ChatMetadata`, `ChatUpdate`, `ChatRegistry`, JPA + in-memory adapters, centralized migration) | ✨ feature | done | `design/agentic/v3-chat-service.md`, `MILESTONE.md` |
+| A-71 | Rehydrate `ai/v3` chat runtime from persisted `profileId` and durable context binding | ✨ feature | done | `design/agentic/v3-chat-service.md`, `MILESTONE.md` |
+| A-72 | Implement presentation-level SSE chat stream contract (`item.created`, `item.part.updated`, `item.completed`, `item.failed`) | ✨ feature | done | `design/agentic/v3-chat-service.md`, `MILESTONE.md` |
+| A-73 | Add `ai/mill-ai-v3-service` unified chat API and `ChatService` orchestration boundary | ✨ feature | done | `design/agentic/v3-chat-service.md`, `MILESTONE.md` |
+| A-74 | Replace compile-time `DefaultProfileRegistry` with a dynamic or Spring-managed runtime profile registry | ✨ feature | backlog | `design/agentic/v3-chat-service.md` |
+| A-75 | Enforce ownership checks on `getChat`/`updateChat`/`deleteChat`/`sendMessage` by asserting `metadata.userId == resolvedUserId` before returning data or mutating state | 🐛 fix | backlog | `design/agentic/v3-implementation-findings.md` |
+| A-76 | Implement `JpaConversationStore.delete(conversationId)` to remove transcript turns on chat hard-delete; add integration test asserting full removal | 🐛 fix | backlog | `design/agentic/v3-implementation-findings.md` |
+| A-77 | Define and implement explicit delete policy for artifacts and run-events on chat hard-delete: schema FK or guaranteed async cleanup with observability | ✨ feature | backlog | `design/agentic/v3-implementation-findings.md` |
+| A-78 | Validate profile ID against `ProfileRegistry` during `createChat`; return 4xx on unknown profile instead of deferred runtime failure | 🐛 fix | backlog | `design/agentic/v3-implementation-findings.md` |
+| A-79 | Add explicit capability admission and per-tool authorization seam before tool invocation in `LangChain4jAgent`; emit denial events | ✨ feature | backlog | `design/agentic/v3-implementation-findings.md` |
+| A-80 | Route `LangChain4jAgent` final synthesis through streaming path or isolate and document non-streaming mode explicitly | 💡 improvement | backlog | `design/agentic/v3-implementation-findings.md` |
+| A-81 | Add targeted test coverage: ownership/auth on chatId ops, JPA delete contract, artifact/run-event cleanup on delete, `ChatRuntimeEventToSseMapper` edge cases, real streaming assertion in testIT | 🧪 test | backlog | `design/agentic/v3-implementation-findings.md` |
+| A-82 | Document the final AI v3 chat service end-to-end (modules, REST API, persistence model, SSE contract, frontend guidance, maintenance notes) | 📝 docs | planned | `WI-084-ai-v3-chat-service-documentation.md` |
 
 ---
 
@@ -196,6 +209,8 @@ milestone-selectable deliverables extracted from design documents and work items
 | P-31 | Improve HTTP/gRPC error transparency: return structured Problem Details and propagate detail/code/traceId in Python and JDBC clients                                                     | 🐛 fix         | backlog | **WI-013**                                      |
 | P-32 | Add reusable build-logic plugin for controlled multi-edition Spring Boot `bootDist`/`installBootDist` outputs in `apps/mill-service` (single app module, edition-specific install dirs) | ✨ feature      | backlog | **WI-014**                                      |
 | P-33 | Explore Docker Buildx Bake to reduce Docker image build time across services and pipelines                                                                                                 | 💡 improvement | backlog | **TBD (new WI)**                                |
+| P-34 | Define repository-wide REST exception/status-handling pattern for thin controllers, semantic status exceptions, and uniform error payloads                                                 | 📝 docs        | done    | `platform/rest-exception-handling-pattern.md`, `MILESTONE.md` |
+| P-35 | Extract a shared Spring web module for reusable REST advice and standard error payload mapping across services                                                                             | ✨ feature      | backlog | `platform/rest-exception-handling-pattern.md`   |
 
 ---
 
@@ -273,6 +288,7 @@ milestone-selectable deliverables extracted from design documents and work items
 | U-8 | Support multi-select for @ mention entities | ✨ feature | backlog | ui/chat-input-enhancements.md |
 | U-9 | Support command parameters (e.g. /get-data limit=10) | ✨ feature | backlog | ui/chat-input-enhancements.md |
 | U-10 | Add tests for command palette, @ mentions, keyboard nav, and error scenarios | 🧪 test | backlog | ui/chat-input-enhancements.md |
+| U-11 | Migrate `mill-ui` general chat from legacy `/api/nl2sql/chats/*` to `/api/v1/ai/chats/*` and adopt `item.*` SSE handling | ✨ feature | planned | `WI-082-mill-ui-unified-ai-chat-integration.md` |
 
 ---
 
@@ -301,18 +317,32 @@ Delivery order: PS-1 → PS-3 → PS-2 → PS-4 → PS-5 → PS-6/PS-7 → PS-8
 
 ---
 
+## security — Authentication, Identity, and Access
+
+Design reference: [`docs/design/security/auth-profile-pat-architecture.md`](../design/security/auth-profile-pat-architecture.md)
+
+| #     | Item | Type | Status | Source |
+|-------|------|------|--------|--------|
+| SEC-1 | Implement persistent user identity model: `users`, `user_credentials`, `user_identities`, `groups`, `group_memberships`, `user_profiles` tables; domain model and Flyway migration | ✨ feature | backlog | `design/security/auth-profile-pat-architecture.md` |
+| SEC-2 | Implement PAT (Personal Access Token) issuance endpoint, secure hashed-token storage, and bearer token validation provider wired into `SecurityFilterChain` | ✨ feature | backlog | `design/security/auth-profile-pat-architecture.md` |
+| SEC-3 | Replace mock `mill-ui` login/profile UX with real forms-auth APIs backed by the persistent user identity model; keep `mill.security.enable=false` path working | ✨ feature | backlog | `design/security/auth-profile-pat-architecture.md` |
+
+---
+
 ## Summary
 
 | Category        | Total   | ✨ feature | 💡 improvement | 🐛 fix | 🔧 refactoring | 🧪 test | 📝 docs |
 | --------------- | ------- | --------- | -------------- | ------ | -------------- | ------- | ------- |
 | data            | 7       | 6         | 0              | 0      | 0              | 0       | 1       |
-| ai              | 20      | 13        | 4              | 1      | 2              | 0       | 0       |
+| ai              | 29      | 16        | 5              | 4      | 2              | 1       | 1       |
 | client          | 21      | 11        | 0              | 5      | 3              | 1       | 1       |
 | metadata        | 15      | 11        | 0              | 2      | 1              | 1       | 0       |
 | persistence     | 8       | 8         | 0              | 0      | 0              | 0       | 0       |
 | platform        | 32      | 11        | 8              | 4      | 8              | 1       | 0       |
 | publish         | 4       | 1         | 2              | 0      | 0              | 0       | 1       |
 | refactoring     | 10      | 0         | 1              | 4      | 2              | 2       | 1       |
+| security        | 3       | 3         | 0              | 0      | 0              | 0       | 0       |
 | source          | 14      | 7         | 4              | 1      | 2              | 0       | 0       |
 | ui              | 10      | 4         | 4              | 0      | 1              | 1       | 0       |
-| **Total**       | **141** | **72**    | **23**         | **17** | **19**         | **6**   | **4**   |
+| **Total**       | **153** | **78**    | **24**         | **20** | **19**         | **7**   | **5**   |
+

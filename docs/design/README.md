@@ -19,6 +19,7 @@ plans. Documents are grouped by topic area into subfolders.
 | `publish/` | Build, release, and documentation | Maven publishing, artifact signing, documentation generation tooling (MkDocs, Dokka) |
 | `refactoring/` | Codebase refactoring | Refactoring iterations, file inventories, dependency graphs, configuration key audits, progress tracking |
 | `source/` | Data source framework | Source provider design, format handlers (CSV, Parquet, etc.), storage abstraction, Calcite adapter |
+| `security/` | Authentication and authorization | Identity model, login/session/token architecture, policy integration, and secure/disabled runtime mode design |
 | `ui/` | Frontend and UX | Grinder UI design, chat input, clarification flows, visual refresh, interaction patterns |
 
 ## Classification Principles

@@ -77,6 +77,7 @@ The full `EntityRef` and URN rules are defined in
 
 AI v3 currently distinguishes these persistence concerns:
 
+- chat metadata
 - chat memory
 - canonical transcript
 - run events
@@ -98,6 +99,7 @@ Ownership direction:
 
 Detailed ai-v3 design lives in:
 
+- [agentic/v3-chat-service.md](../agentic/v3-chat-service.md)
 - [agentic/v3-persistence-lanes.md](../agentic/v3-persistence-lanes.md)
 - [agentic/v3-conversation-persistence.md](../agentic/v3-conversation-persistence.md)
 

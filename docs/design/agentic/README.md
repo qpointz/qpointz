@@ -48,5 +48,6 @@ workflow semantics.
 | `v3-v1-prompt-budget-comparison.md` | Prompt/context size comparison between `ai/v1` and `ai/v3` |
 | `v3-authoring-protocol.md` | Protocol design for schema metadata authoring |
 | `v3-conversation-persistence.md` | Implemented baseline split between chat transcript, model memory, and artifact persistence in `ai/v3` |
+| `v3-chat-service.md` | Implemented unified chat metadata, runtime rehydration, SSE stream contract, and HTTP service facade for `ai/v3` |
 | `v3-persistence-lanes.md` | Implemented persistence-lane architecture for `ai/v3`: model memory, routed events, transcript, artifacts, telemetry, and artifact observers |
 | `v3-langchain4j-simplification-notes.md` | Simplification map for `LangChain4jAgent` and adjacent runtime seams |

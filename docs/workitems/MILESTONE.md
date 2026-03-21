@@ -26,13 +26,6 @@ Items delivered in this milestone.
   `ProtocolFinal`, `ProtocolStreamEvent`); protocol declarations moved to capability YAML
   manifests (`manifest.allProtocols`); `LangChain4jAgent` (renamed from `OpenAiHelloWorldAgent`,
   profile as constructor param); unit tests for all three modes via fake `StreamingChatModel`
-- WI-078 — `ai/v3` JPA persistence adapters and autoconfiguration: new
-  `ai/mill-ai-v3-persistence` and `ai/mill-ai-v3-autoconfigure` modules;
-  centralized Flyway reset in `mill-persistence`; shared `EntityRef` and
-  generic `relation_record`; H2 PostgreSQL-mode repository/integration coverage;
-  file-backed H2 inspection profile; JPA-backed ai/v3 store activation
-  validated through autoconfigure integration tests
-
 Completed WI markdown files are intentionally removed after delivery; this milestone list is the
 retained canonical record of completed items.
 
@@ -162,6 +155,34 @@ Items delivered in this milestone.
   and `ProtocolEventDefinition` updated to use `JsonObjectSchema` directly;
   `mill-ai-v3-cli` and `mill-ai-v3-test` updated to depend on merged module
 
+- WI-078 — `ai/v3` chat metadata persistence foundation: first-class `ChatMetadata` and
+  `ChatUpdate` model; `ChatRegistry` port separated from transcript persistence; in-memory and
+  JPA-backed chat metadata adapters in `ai/mill-ai-v3-persistence`; centralized Flyway
+  migration for `ai_chat_metadata` in `mill-persistence`; contextual uniqueness and favourite /
+  rename support for persisted chats
+
+- WI-081 — `ai/v3` chat runtime rehydration and context binding: persisted `profileId` made
+  authoritative for chat reopen/resume; durable context binding reused on reload; runtime
+  rehydration helper and profile registry introduced; contextual chat singleton semantics aligned
+  to `(userId, contextType, contextId)`; compile-time default registry accepted as the initial
+  baseline with a deferred dynamic-registry follow-up
+
+- WI-080 — `ai/v3` presentation-level chat SSE model: `ChatSseEvent` envelope with stable
+  `eventId`, `chatId`, `itemId`, `sequence`, `type`, and `timestamp`; public stream types
+  `item.created`, `item.part.updated`, `item.completed`, and `item.failed`; explicit
+  `code`/`reason` error payloads and nullable `item.completed.content` to avoid double-rendering
+  after deltas
+
+- WI-079 — unified `ai/v3` chat service module and API: new `ai/mill-ai-v3-service` module;
+  thin `AiChatController` with OpenAPI annotations and `ai-chat` tag; `ChatService`
+  orchestration boundary with `UnifiedChatService` implementation; unified `/api/v1/ai/chats`
+  lifecycle and SSE endpoints for general and contextual chats; controller tests with mocked
+  service and service-boundary tests for chat orchestration
+
+- WI-083 — repository-wide REST exception/status-handling pattern: platform design baseline for
+  thin controllers, semantic `MillStatusException` usage, centralized HTTP advice, and standard
+  REST error payload direction; adopted as the reference pattern for `mill-ai-v3-service`
+
 ### In Progress
 
 Items currently being implemented in this milestone.
@@ -188,3 +209,8 @@ Items targeted next after 0.7.0 closure and backlog triage.
   (`docs/workitems/WI-033-metadata-service-cleanup.md`)
 - WI-034 — Metadata complex type support in structural facets and UI
   (`docs/workitems/WI-034-metadata-complex-type-support.md`)
+- WI-082 — `mill-ui` migration to the unified `ai/v3` chat API and `item.*` SSE protocol
+  (`docs/workitems/WI-082-mill-ui-unified-ai-chat-integration.md`)
+- WI-084 — AI v3 chat service documentation: module responsibilities, REST API, persistence model,
+  SSE stream contract, runtime rehydration, and `mill-ui` integration guidance
+  (`docs/workitems/WI-084-ai-v3-chat-service-documentation.md`)

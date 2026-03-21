@@ -3,7 +3,7 @@ SHELL := /bin/bash
 .PHONY: help build test clean ai-test svc-build \
 	maven-local-publish \
 	docs-build docs-serve \
-	git-clean-branches check-tools
+	git-clean-branches git-clean-branches-all check-tools
 
 help:
 	@echo "Available targets:"
@@ -29,7 +29,8 @@ help:
 	@echo "  make check-tools         # Verify required/optional dev tools are installed"
 	@echo ""
 	@echo "Git:"
-	@echo "  make git-clean-branches  # Delete local feat/ poc/ fix/ branches with no remote"
+	@echo "  make git-clean-branches      # Delete local feat/ poc/ fix/ branches with no remote"
+	@echo "  make git-clean-branches-all  # Delete ALL local branches with no remote (skips current + protected)"
 	@echo ""
 	@echo "Tools (CI/CD build images — see .gitlab/Makefile):"
 	@echo "  make -C .gitlab help         # Show all CI/CD tool image targets"
@@ -69,6 +70,23 @@ git-clean-branches:
 			git branch -D $$branch; \
 		else \
 			echo "Keeping $$branch (remote exists)"; \
+		fi; \
+	done
+
+git-clean-branches-all:
+	@git fetch origin --prune
+	@current=$$(git rev-parse --abbrev-ref HEAD); \
+	git for-each-ref --format='%(refname:short) %(upstream)' refs/heads/ | \
+	while read branch upstream; do \
+		if [ "$$branch" = "$$current" ]; then \
+			echo "Skipping $$branch (current branch)"; \
+		elif [ "$$branch" = "main" ] || [ "$$branch" = "master" ] || [ "$$branch" = "dev" ]; then \
+			echo "Keeping $$branch (protected)"; \
+		elif [ -z "$$upstream" ]; then \
+			echo "Deleting $$branch (no remote)"; \
+			git branch -D $$branch; \
+		else \
+			echo "Keeping $$branch (has remote: $$upstream)"; \
 		fi; \
 	done
 

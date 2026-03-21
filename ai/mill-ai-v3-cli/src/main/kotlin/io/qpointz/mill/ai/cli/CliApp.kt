@@ -171,7 +171,7 @@ fun main(args: Array<String>) {
             val helloSession = ConversationSession(profileId = "hello-world")
             activeSession = helloSession
             activeChatMemoryStore = store
-            val fn2: (String, (AgentEvent) -> Unit) -> Unit = { input, listener -> agent.run(input, helloSession, listener) }
+            val fn2: (String, (AgentEvent) -> Unit) -> Unit = { input, listener -> agent.run(input, helloSession, listener = listener) }
             fn2
         }
     }
