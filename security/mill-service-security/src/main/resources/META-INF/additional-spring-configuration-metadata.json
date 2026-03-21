@@ -6,6 +6,11 @@
       "description": "Enables mill security."
     },
     {
+      "name": "mill.security.allow-registration",
+      "type": "java.lang.Boolean",
+      "description": "Enables self-service user registration via POST /auth/public/register. Defaults to false. Requires mill.security.enable=true and the mill-security-persistence module."
+    },
+    {
       "name": "mill.security.authentication.oauth2-resource-server.jwt",
       "type": "org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties$Jwt",
       "description": "OAuth2 resource server Jwt configuration."

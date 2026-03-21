@@ -1,5 +1,7 @@
 # Story: User Authentication and Profile Management
 
+Status: `done`
+
 ## Summary
 
 Enable real user authentication in Mill. Currently all security is mock — `mill-ui` starts with
@@ -32,11 +34,11 @@ mill-security (contracts)
 | `security/mill-security-persistence` | JPA adapter: entities, repositories, `JpaUserRepo`, `JpaUserIdentityResolutionService`, `PasswordEncoder` bean | Yes | Yes |
 | `security/mill-security-auth-service` | Auth REST endpoints | Yes | No |
 
-> **Pre-requisite refactoring — ✅ done:**
+> **Pre-requisite refactoring — ✅ all done:**
 > 1. ~~`git mv core/mill-security security/mill-security`~~ — done
 > 2. ~~`git mv services/mill-service-security security/mill-service-security`~~ — done
-> 3. `security/mill-security-autoconfigure` — not extracted yet; `SecurityFilterChain` configs
->    remain in `mill-service-security` for now (deferred — no blocking dependency).
+> 3. `security/mill-security-autoconfigure` — not extracted; `SecurityFilterChain` configs remain
+>    in `mill-service-security` (deferred — no blocking dependency). Tracked as future cleanup.
 > 4. ~~Add `UserRepo` and `UserIdentityResolutionService` interfaces to `mill-security`~~ — done
 > 5. ~~Update `settings.gradle.kts` references~~ — done
 
@@ -47,7 +49,7 @@ mill-security (contracts)
 - [x] 3. [WI-087](WI-087-mill-security-auth-service.md) — mill-security-auth-service Backend (`security`)
 - [x] 4. [WI-090](WI-090-mill-ui-login-integration.md) — mill-ui Login Integration (`ui`)
 - [x] 5. [WI-088](WI-088-mill-ui-user-profile.md) — mill-ui User Profile UI (`security`, `ui`)
-- [ ] 6. [WI-089](WI-089-user-registration.md) — User Registration (`security`, `ui`)
+- [x] 6. [WI-089](WI-089-user-registration.md) — User Registration (`security`, `ui`)
 
 > WI-088 and WI-089 are independent of each other and can be parallelized once WI-090 is complete.
 

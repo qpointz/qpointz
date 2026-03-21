@@ -83,6 +83,38 @@ export async function getMe(): Promise<AuthMeResponse | null> {
 }
 
 /**
+ * Registers a new local user account and opens a session.
+ *
+ * On `201`: returns the newly created user's [AuthMeResponse].
+ * On `409`: throws `Error('ALREADY_REGISTERED')` — email is already in use.
+ * On `403`: throws `Error('REGISTRATION_DISABLED')` — feature is disabled server-side.
+ *
+ * @param email - The email address to register; used as the local-auth subject.
+ * @param password - The plaintext password to store (hashed on the server).
+ * @param displayName - Optional human-readable name; omit to let the server default to email.
+ * @returns The [AuthMeResponse] for the newly registered user.
+ * @throws Error with message 'ALREADY_REGISTERED' on 409
+ * @throws Error with message 'REGISTRATION_DISABLED' on 403
+ * @throws Error with message 'REGISTRATION_FAILED' on any other failure
+ */
+export async function register(
+  email: string,
+  password: string,
+  displayName?: string,
+): Promise<AuthMeResponse> {
+  const res = await fetch('/auth/public/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ email, password, displayName }),
+  });
+  if (res.status === 409) throw new Error('ALREADY_REGISTERED');
+  if (res.status === 403) throw new Error('REGISTRATION_DISABLED');
+  if (!res.ok) throw new Error('REGISTRATION_FAILED');
+  return res.json() as Promise<AuthMeResponse>;
+}
+
+/**
  * Applies a partial update to the authenticated user's profile.
  * Only non-null/undefined fields in patch are persisted; other fields are left unchanged.
  * @param patch - Fields to update; omit a field to leave it unchanged on the server.

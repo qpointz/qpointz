@@ -1,6 +1,6 @@
 # WI-089 - User Registration
 
-Status: `planned`
+Status: `done`
 Type: `feature`
 Area: `security`, `ui`
 Backlog refs: `SEC-3a` (extension)

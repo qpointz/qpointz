@@ -20,6 +20,7 @@ import { ProfileLayout } from './components/profile/ProfileLayout';
 import { ConnectLayout } from './components/connect/ConnectLayout';
 import { InlineChatDrawer } from './components/inline-chat/InlineChatDrawer';
 import { LoginPage } from './components/auth/LoginPage';
+import { RegisterPage } from './components/auth/RegisterPage';
 import { NotFoundPage } from './components/common/NotFoundPage';
 import * as authService from './services/authService';
 import type { AuthMeResponse, UserProfilePatch } from './services/authService';
@@ -35,6 +36,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (patch: UserProfilePatch) => Promise<void>;
+  register: (email: string, password: string, displayName?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -45,6 +47,7 @@ const AuthContext = createContext<AuthContextValue>({
   login: async () => {},
   logout: async () => {},
   updateProfile: async () => {},
+  register: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -98,7 +101,7 @@ function ChatView() {
 function ThemedApp() {
   const { lightTheme, darkTheme } = useColorTheme();
   const flags = useFeatureFlags();
-  const { isAuthenticated, loading, login } = useAuth();
+  const { isAuthenticated, loading, login, register } = useAuth();
   const location = useLocation();
 
   const { theme: mantineTheme, resolver: cssVariablesResolver } = useMemo(
@@ -146,6 +149,14 @@ function ThemedApp() {
                     isAuthenticated
                       ? <Navigate to={defaultRoute} replace />
                       : <LoginPage onLogin={login} />
+                  }
+                />
+                <Route
+                  path="/register"
+                  element={
+                    isAuthenticated
+                      ? <Navigate to={defaultRoute} replace />
+                      : <RegisterPage onRegister={register} />
                   }
                 />
                 <Route
@@ -216,6 +227,11 @@ function App() {
     setUser(null);
   }, []);
 
+  const register = useCallback(async (email: string, password: string, displayName?: string) => {
+    const me = await authService.register(email, password, displayName);
+    setUser(me);
+  }, []);
+
   const updateProfile = useCallback(async (patch: UserProfilePatch) => {
     const updatedProfile = await authService.updateProfile(patch);
     setUser((prev) => {
@@ -229,8 +245,8 @@ function App() {
   const isAuthenticated = user !== null;
 
   const authValue = useMemo<AuthContextValue>(
-    () => ({ user, loading, isAuthenticated, securityEnabled, login, logout, updateProfile }),
-    [user, loading, isAuthenticated, securityEnabled, login, logout, updateProfile],
+    () => ({ user, loading, isAuthenticated, securityEnabled, login, logout, updateProfile, register }),
+    [user, loading, isAuthenticated, securityEnabled, login, logout, updateProfile, register],
   );
 
   // appName in state so APP_NAME module-level var is kept in sync

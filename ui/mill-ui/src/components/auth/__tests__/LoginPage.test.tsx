@@ -3,15 +3,16 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { MantineProvider } from '@mantine/core';
 import { LoginPage } from '../LoginPage';
-import { FeatureFlagProvider } from '../../../features/FeatureFlagContext';
+import { FeatureFlagContext } from '../../../features/FeatureFlagContext';
+import { defaultFeatureFlags } from '../../../features/defaults';
 
-function renderLoginPage(onLogin = vi.fn()) {
+function renderLoginPage(onLogin = vi.fn(), loginRegistration = false) {
   return render(
     <MemoryRouter>
       <MantineProvider>
-        <FeatureFlagProvider>
+        <FeatureFlagContext.Provider value={{ ...defaultFeatureFlags, loginRegistration }}>
           <LoginPage onLogin={onLogin} />
-        </FeatureFlagProvider>
+        </FeatureFlagContext.Provider>
       </MantineProvider>
     </MemoryRouter>
   );
@@ -28,9 +29,13 @@ describe('LoginPage', () => {
     expect(screen.getByTestId('login-error')).toHaveTextContent('Invalid email or password');
   });
 
-  it('sign up link navigates to /register', () => {
-    renderLoginPage();
-    const signUp = screen.getByTestId('signup-link');
-    expect(signUp).toBeInTheDocument();
+  it('sign up link hidden by default (loginRegistration=false)', () => {
+    renderLoginPage(vi.fn(), false);
+    expect(screen.queryByTestId('signup-link')).not.toBeInTheDocument();
+  });
+
+  it('sign up link visible when loginRegistration=true', () => {
+    renderLoginPage(vi.fn(), true);
+    expect(screen.getByTestId('signup-link')).toBeInTheDocument();
   });
 });

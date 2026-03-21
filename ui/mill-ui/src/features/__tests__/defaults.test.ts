@@ -11,11 +11,16 @@ describe('defaultFeatureFlags', () => {
     }
   });
 
-  it('should have all flags default to true', () => {
+  it('should have most flags default to true (except opt-in flags)', () => {
+    // Flags that intentionally default to false (opt-in features requiring explicit enablement)
+    const optInFlags: (keyof FeatureFlags)[] = ['loginRegistration'];
+
     for (const [key, value] of Object.entries(defaultFeatureFlags)) {
-      expect(value).toBe(true);
-      // unused var suppression
-      void key;
+      if (optInFlags.includes(key as keyof FeatureFlags)) {
+        expect(value, `${key} should default to false (opt-in)`).toBe(false);
+      } else {
+        expect(value, `${key} should default to true`).toBe(true);
+      }
     }
   });
 
@@ -60,6 +65,7 @@ describe('defaultFeatureFlags', () => {
       'loginAws',
       'loginAzure',
       'loginPassword',
+      'loginRegistration',
     ];
     for (const flag of loginFlags) {
       expect(flag in defaultFeatureFlags).toBe(true);

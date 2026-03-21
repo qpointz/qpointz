@@ -80,6 +80,9 @@ export interface FeatureFlags {
   loginAzure: boolean;
   loginPassword: boolean;
 
+  // Registration
+  loginRegistration: boolean;
+
   // Related Content (cross-object relationships)
   relatedContentEnabled: boolean;
   relatedContentModelContext: boolean;
@@ -171,6 +174,8 @@ export const defaultFeatureFlags: FeatureFlags = {
   loginAws: true,
   loginAzure: true,
   loginPassword: true,
+
+  loginRegistration: false,
 
   relatedContentEnabled: true,
   relatedContentModelContext: true,

@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from '
 import { defaultFeatureFlags, type FeatureFlags } from './defaults';
 import { featureService } from '../services/api';
 
-const FeatureFlagContext = createContext<FeatureFlags>(defaultFeatureFlags);
+export const FeatureFlagContext = createContext<FeatureFlags>(defaultFeatureFlags);
 
 export function FeatureFlagProvider({ children }: { children: ReactNode }) {
   const [flags, setFlags] = useState<FeatureFlags>(defaultFeatureFlags);

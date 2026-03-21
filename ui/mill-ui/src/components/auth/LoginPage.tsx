@@ -254,7 +254,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           </form>
         )}
 
-        {showPassword && (
+        {showPassword && flags.loginRegistration && (
           <Text size="xs" c="dimmed" ta="center" mt="lg">
             Don&apos;t have an account?{' '}
             <Text

@@ -4,10 +4,12 @@ import io.qpointz.mill.security.authentication.AuthenticationMethod
 import io.qpointz.mill.security.authentication.AuthenticationMethods
 import io.qpointz.mill.security.authentication.basic.BasicAuthenticationMethod
 import io.qpointz.mill.persistence.security.jpa.auth.JpaUserRepo
+import io.qpointz.mill.persistence.security.jpa.hasher.NoOpPasswordHasher
 import io.qpointz.mill.persistence.security.jpa.repositories.GroupMembershipRepository
 import io.qpointz.mill.persistence.security.jpa.repositories.UserCredentialRepository
 import io.qpointz.mill.persistence.security.jpa.repositories.UserIdentityRepository
 import io.qpointz.mill.persistence.security.jpa.repositories.UserRepository
+import io.qpointz.mill.security.domain.PasswordHasher
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.context.annotation.Bean
@@ -72,5 +74,15 @@ class TestAuthServiceApplication {
             val providers = authenticationMethods.providers.map { it.authenticationProvider }
             return ProviderManager(providers)
         }
+
+        /**
+         * Provides a [PasswordHasher] bean for the registration endpoint in integration tests.
+         *
+         * Uses [NoOpPasswordHasher] which is acceptable in the test environment. In production,
+         * [io.qpointz.mill.persistence.security.jpa.configuration.JpaPasswordAuthenticationConfiguration]
+         * provides this bean via its `@ConditionalOnMissingBean`-guarded factory.
+         */
+        @Bean
+        open fun testPasswordHasher(): PasswordHasher = NoOpPasswordHasher()
     }
 }
