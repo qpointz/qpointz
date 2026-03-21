@@ -50,6 +50,7 @@ include (":data:formats:mill-data-format-parquet")
 include (":data:formats:mill-data-format-arrow")
 
 include(":security:mill-service-security")
+include(":security:mill-security-autoconfigure")
 include(":services:mill-service-api")
 include(":services:mill-well-known-service")
 include (":services:mill-data-grpc-service")

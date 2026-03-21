@@ -92,6 +92,7 @@ tasks.named("installBootDist") {
 
 dependencies {
     implementation(project(":services:mill-well-known-service"))
+    implementation(project(":security:mill-security-autoconfigure"))
     implementation(project(":security:mill-security-auth-service"))
     implementation(project(":security:mill-security-persistence"))
 

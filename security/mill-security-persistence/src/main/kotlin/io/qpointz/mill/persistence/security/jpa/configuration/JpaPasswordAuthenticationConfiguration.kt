@@ -11,7 +11,7 @@ import io.qpointz.mill.security.authentication.AuthenticationMethod
 import io.qpointz.mill.security.authentication.basic.BasicAuthenticationMethod
 import io.qpointz.mill.security.authentication.basic.providers.UserRepoAuthenticationProvider
 import io.qpointz.mill.security.domain.PasswordHasher
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -22,7 +22,12 @@ import org.springframework.security.crypto.password.PasswordEncoder
  * Spring configuration that wires JPA-backed basic authentication into the security chain.
  *
  * This configuration is active only when security is enabled ([ConditionalOnSecurity]) and
- * the JPA identity infrastructure is present ([ConditionalOnBean] on [UserIdentityRepository]).
+ * the JPA identity infrastructure is present on the classpath ([ConditionalOnClass] on
+ * [UserIdentityRepository] — classpath presence is guaranteed when this module is a dependency;
+ * [ConditionalOnBean] is intentionally avoided here because JPA repository beans are registered
+ * lazily after [org.springframework.data.jpa.repository.config.EnableJpaRepositories] processing,
+ * which occurs after [@Import][org.springframework.context.annotation.Import] evaluation and would
+ * cause the condition to silently fail with an empty provider list).
  * It provides:
  *
  * - A [PasswordEncoder] using [PasswordEncoderFactories.createDelegatingPasswordEncoder] for
@@ -36,7 +41,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
  */
 @Configuration
 @ConditionalOnSecurity
-@ConditionalOnBean(UserIdentityRepository::class)
+@ConditionalOnClass(UserIdentityRepository::class)
 open class JpaPasswordAuthenticationConfiguration {
 
     /**
