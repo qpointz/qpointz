@@ -8,16 +8,20 @@ import {
   Group,
   Divider,
   Stack,
+  Alert,
   useMantineColorScheme,
 } from '@mantine/core';
+import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import {
   HiOutlineEnvelope,
   HiOutlineLockClosed,
+  HiOutlineExclamationTriangle,
 } from 'react-icons/hi2';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
 
 interface LoginPageProps {
-  onLogin: () => void;
+  onLogin: (email: string, password: string) => Promise<void>;
 }
 
 /* ── Inline SVG icons for social / cloud providers ─────────────── */
@@ -96,10 +100,32 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const flags = useFeatureFlags();
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const visibleProviders = socialProviders.filter((p) => flags[p.flagKey]);
   const showPassword = flags.loginPassword;
   const showDivider = visibleProviders.length > 0 && showPassword;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    try {
+      await onLogin(email, password);
+    } catch (err) {
+      const msg = err instanceof Error && err.message === 'INVALID_CREDENTIALS'
+        ? 'Invalid email or password.'
+        : 'Sign in failed. Please try again.';
+      setError(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <Box
@@ -128,10 +154,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           <img
             src={`${import.meta.env.BASE_URL}mill.svg`}
             alt="Mill logo"
-            style={{
-              width: 48,
-              height: 48,
-            }}
+            style={{ width: 48, height: 48 }}
           />
           <Text fw={700} size="xl" c={isDark ? 'gray.1' : 'gray.8'}>
             DataChat
@@ -140,6 +163,17 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             Sign in to your workspace
           </Text>
         </Stack>
+
+        {error && (
+          <Alert
+            icon={<HiOutlineExclamationTriangle size={16} />}
+            color="red"
+            mb="md"
+            data-testid="login-error"
+          >
+            {error}
+          </Alert>
+        )}
 
         {/* Social / SSO login buttons */}
         {visibleProviders.length > 0 && (
@@ -152,7 +186,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                   variant="default"
                   leftSection={<Icon size={16} />}
                   fullWidth
-                  onClick={onLogin}
                   styles={{
                     root: {
                       borderColor: isDark ? 'var(--mantine-color-gray-6)' : 'var(--mantine-color-gray-3)',
@@ -177,24 +210,25 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
         {/* Email / Password form */}
         {showPassword && (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              onLogin();
-            }}
-          >
+          <form onSubmit={handleSubmit}>
             <Stack gap="sm">
               <TextInput
                 label="Email"
                 placeholder="you@example.com"
                 leftSection={<HiOutlineEnvelope size={16} />}
                 size="md"
+                value={email}
+                onChange={(e) => setEmail(e.currentTarget.value)}
+                data-testid="email-input"
               />
               <PasswordInput
                 label="Password"
                 placeholder="Your password"
                 leftSection={<HiOutlineLockClosed size={16} />}
                 size="md"
+                value={password}
+                onChange={(e) => setPassword(e.currentTarget.value)}
+                data-testid="password-input"
               />
               <Group justify="space-between" mt={4}>
                 <Text
@@ -211,6 +245,8 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 size="md"
                 mt="xs"
                 color={isDark ? 'cyan' : 'teal'}
+                loading={submitting}
+                data-testid="signin-button"
               >
                 Sign in
               </Button>
@@ -227,6 +263,8 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               c={isDark ? 'cyan.4' : 'teal.6'}
               fw={500}
               style={{ cursor: 'pointer' }}
+              onClick={() => navigate('/register')}
+              data-testid="signup-link"
             >
               Sign up
             </Text>

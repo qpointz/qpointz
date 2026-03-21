@@ -45,7 +45,7 @@ mill-security (contracts)
 - [x] 1. [WI-085](WI-085-security-jpa-user-identity-persistence.md) — JPA User Identity Schema and Repositories (`security`, `persistence`)
 - [x] 2. [WI-086](WI-086-security-jpa-basic-auth-provider.md) — JPA-backed BasicAuth Provider (`security`)
 - [x] 3. [WI-087](WI-087-mill-security-auth-service.md) — mill-security-auth-service Backend (`security`)
-- [ ] 4. [WI-090](WI-090-mill-ui-login-integration.md) — mill-ui Login Integration (`ui`)
+- [x] 4. [WI-090](WI-090-mill-ui-login-integration.md) — mill-ui Login Integration (`ui`)
 - [ ] 5. [WI-088](WI-088-mill-ui-user-profile.md) — mill-ui User Profile UI (`security`, `ui`)
 - [ ] 6. [WI-089](WI-089-user-registration.md) — User Registration (`security`, `ui`)
 

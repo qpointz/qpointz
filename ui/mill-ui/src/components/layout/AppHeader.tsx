@@ -18,10 +18,25 @@ import { useColorTheme } from '../../theme/ThemeContext';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
 import { useAuth, APP_NAME } from '../../App';
 import type { FeatureFlags } from '../../features/defaults';
+import type { AuthMeResponse } from '../../services/authService';
 import { GlobalSearch } from './GlobalSearch';
 
 /** Must match SIDEBAR_WIDTH in CollapsibleSidebar.tsx */
 const SIDEBAR_WIDTH = 280;
+
+/** Derives display initials from a user object. */
+function getInitials(user: AuthMeResponse | null): string {
+  if (!user) return 'U';
+  if (user.displayName) {
+    return user.displayName
+      .split(' ')
+      .filter(Boolean)
+      .map((w) => w[0].toUpperCase())
+      .slice(0, 2)
+      .join('');
+  }
+  return (user.userId ?? 'U').slice(0, 2).toUpperCase();
+}
 
 const mainNavItems = [
   { path: '/model', label: 'Model', icon: HiOutlineSquare3Stack3D, flag: 'viewModel' as keyof FeatureFlags },
@@ -41,7 +56,7 @@ export function AppHeader() {
   const location = useLocation();
   const navigate = useNavigate();
   const flags = useFeatureFlags();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const {
     lightThemeId,
     darkThemeId,
@@ -185,14 +200,14 @@ export function AppHeader() {
               <Box px="sm" py="xs">
                 <Group gap="sm" wrap="nowrap">
                   <Avatar size={36} radius="xl" color={isDark ? 'cyan' : 'teal'}>
-                    DC
+                    {getInitials(user)}
                   </Avatar>
                   <Box style={{ flex: 1, minWidth: 0 }}>
                     <Text size="sm" fw={500} lineClamp={1} c={isDark ? 'gray.1' : 'gray.8'}>
-                      Demo User
+                      {user?.displayName ?? user?.userId ?? ''}
                     </Text>
                     <Text size="xs" c="dimmed" lineClamp={1}>
-                      demo@datachat.io
+                      {user?.email ?? ''}
                     </Text>
                   </Box>
                 </Group>
@@ -257,16 +272,15 @@ export function AppHeader() {
 
               <Menu.Divider />
 
-              <Menu.Item
-                leftSection={<HiOutlineArrowRightOnRectangle size={14} />}
-                color="red"
-                onClick={() => {
-                  logout();
-                  navigate('/');
-                }}
-              >
-                Log out
-              </Menu.Item>
+              {user?.securityEnabled !== false && (
+                <Menu.Item
+                  leftSection={<HiOutlineArrowRightOnRectangle size={14} />}
+                  color="red"
+                  onClick={() => { void logout(); navigate('/'); }}
+                >
+                  Log out
+                </Menu.Item>
+              )}
             </Menu.Dropdown>
           </Menu>
         )}

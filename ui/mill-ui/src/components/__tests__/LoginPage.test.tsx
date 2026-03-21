@@ -1,16 +1,19 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MantineProvider } from '@mantine/core';
+import { MemoryRouter } from 'react-router';
 import { LoginPage } from '../auth/LoginPage';
 import { FeatureFlagProvider } from '../../features/FeatureFlagContext';
 
 function renderWithProviders(ui: React.ReactElement) {
   return render(
-    <MantineProvider>
-      <FeatureFlagProvider>
-        {ui}
-      </FeatureFlagProvider>
-    </MantineProvider>,
+    <MemoryRouter>
+      <MantineProvider>
+        <FeatureFlagProvider>
+          {ui}
+        </FeatureFlagProvider>
+      </MantineProvider>
+    </MemoryRouter>,
   );
 }
 
@@ -45,11 +48,9 @@ describe('LoginPage', () => {
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
   });
 
-  it('should call onLogin when a social button is clicked', () => {
-    const onLogin = vi.fn();
-    renderWithProviders(<LoginPage onLogin={onLogin} />);
-    fireEvent.click(screen.getByText('Continue with GitHub'));
-    expect(onLogin).toHaveBeenCalledTimes(1);
+  it('should render social login buttons as non-functional placeholders', () => {
+    renderWithProviders(<LoginPage onLogin={() => {}} />);
+    expect(screen.getByText('Continue with GitHub')).toBeInTheDocument();
   });
 
   it('should call onLogin when form is submitted', () => {

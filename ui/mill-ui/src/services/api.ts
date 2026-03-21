@@ -18,3 +18,6 @@ export { searchService } from './searchService';
 
 // Re-export the FeatureFlagService interface for consumers that need it
 export type { FeatureFlagService } from './featureService';
+
+export { login, logout, getMe } from './authService';
+export type { AuthMeResponse } from './authService';

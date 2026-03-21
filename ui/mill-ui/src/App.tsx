@@ -1,4 +1,4 @@
-import { MantineProvider, ColorSchemeScript, Box } from '@mantine/core';
+import { MantineProvider, ColorSchemeScript, Box, Loader, Center } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { Routes, Route, Navigate, useLocation } from 'react-router';
 import { useEffect, useMemo, useState, useCallback, createContext, useContext } from 'react';
@@ -21,34 +21,57 @@ import { ConnectLayout } from './components/connect/ConnectLayout';
 import { InlineChatDrawer } from './components/inline-chat/InlineChatDrawer';
 import { LoginPage } from './components/auth/LoginPage';
 import { NotFoundPage } from './components/common/NotFoundPage';
+import * as authService from './services/authService';
+import type { AuthMeResponse } from './services/authService';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 
-/* ── Lightweight auth context (mock) ─────────────────────────────── */
+/* ── Auth context ─────────────────────────────────────────────────── */
 interface AuthContextValue {
+  user: AuthMeResponse | null;
+  loading: boolean;
   isAuthenticated: boolean;
-  login: () => void;
-  logout: () => void;
+  securityEnabled: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
+
 const AuthContext = createContext<AuthContextValue>({
+  user: null,
+  loading: true,
   isAuthenticated: false,
-  login: () => {},
-  logout: () => {},
+  securityEnabled: true,
+  login: async () => {},
+  logout: async () => {},
 });
+
 export const useAuth = () => useContext(AuthContext);
 
-function ChatView() {
-  return (
-    <ChatProvider>
-      <AppShell />
-    </ChatProvider>
-  );
+/* ── RequireAuth ──────────────────────────────────────────────────── */
+function RequireAuth({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, loading } = useAuth();
+  const location = useLocation();
+  if (loading) return null;
+  if (!isAuthenticated) return <Navigate to="/login" state={{ from: location }} replace />;
+  return <>{children}</>;
 }
 
-/** TODO: will come from the backend */
-export const APP_NAME = 'MILL UI';
+/* ── APP_NAME ─────────────────────────────────────────────────────── */
+/** Resolved from GET /.well-known/mill on startup; falls back to 'Mill'. */
+export let APP_NAME = 'Mill';
 
-/** Maps route prefixes to page labels for document.title */
+async function fetchAppName(): Promise<string> {
+  try {
+    const res = await fetch('/.well-known/mill');
+    if (!res.ok) return 'Mill';
+    const data = await res.json() as { name?: string };
+    return data.name ?? 'Mill';
+  } catch {
+    return 'Mill';
+  }
+}
+
+/* ── Route title map ──────────────────────────────────────────────── */
 const routeTitles: [string, string][] = [
   ['/home', 'Home'],
   ['/model', 'Model'],
@@ -58,13 +81,22 @@ const routeTitles: [string, string][] = [
   ['/connect', 'Connect'],
   ['/admin', 'Admin'],
   ['/profile', 'Profile'],
+  ['/login', 'Sign in'],
 ];
 
-/** Inner shell that reads the selected color theme and builds the Mantine theme */
+function ChatView() {
+  return (
+    <ChatProvider>
+      <AppShell />
+    </ChatProvider>
+  );
+}
+
+/* ── ThemedApp ────────────────────────────────────────────────────── */
 function ThemedApp() {
   const { lightTheme, darkTheme } = useColorTheme();
   const flags = useFeatureFlags();
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, loading, login } = useAuth();
   const location = useLocation();
 
   const { theme: mantineTheme, resolver: cssVariablesResolver } = useMemo(
@@ -72,14 +104,12 @@ function ThemedApp() {
     [lightTheme, darkTheme],
   );
 
-  // Update browser tab title on route change
   useEffect(() => {
     const match = routeTitles.find(([prefix]) => location.pathname.startsWith(prefix));
     const pageLabel = match ? match[1] : null;
     document.title = pageLabel ? `${pageLabel} — ${APP_NAME}` : APP_NAME;
   }, [location.pathname]);
 
-  // Determine the default route (first enabled view)
   const defaultRoute = flags.viewHome ? '/home'
     : flags.viewModel ? '/model'
     : flags.viewKnowledge ? '/knowledge'
@@ -87,53 +117,114 @@ function ThemedApp() {
     : flags.viewChat ? '/chat'
     : '/home';
 
+  if (loading) {
+    return (
+      <MantineProvider theme={mantineTheme} cssVariablesResolver={cssVariablesResolver} defaultColorScheme="auto">
+        <Center style={{ height: '100vh' }}>
+          <Loader size="xl" />
+        </Center>
+      </MantineProvider>
+    );
+  }
+
   return (
     <MantineProvider theme={mantineTheme} cssVariablesResolver={cssVariablesResolver} defaultColorScheme="auto">
-      {!isAuthenticated ? (
-        /* Full-screen login — no header, no navigation */
-        <LoginPage onLogin={login} />
-      ) : (
-        <InlineChatProvider>
-        <ChatReferencesProvider>
-        <RelatedContentProvider>
-          <Notifications position="top-right" />
-          <Box style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-            <AppHeader />
-            <Box style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
-              <Box style={{ flex: 1, overflow: 'hidden' }}>
-                <Routes>
-                  {flags.viewHome && <Route path="/home" element={<OverviewDashboard />} />}
-                  {flags.viewModel && <Route path="/model/:schema?/:table?/:attribute?" element={<DataModelLayout />} />}
-                  {flags.viewKnowledge && <Route path="/knowledge/:conceptId?" element={<ContextLayout />} />}
-                  {flags.viewAnalysis && <Route path="/analysis/:queryId?" element={<QueryPlayground />} />}
-                  {flags.viewChat && <Route path="/chat/*" element={<ChatView />} />}
-                  {flags.viewConnect && <Route path="/connect/:section?" element={<ConnectLayout />} />}
-                  {flags.viewAdmin && <Route path="/admin/:section?" element={<AdminLayout />} />}
-                  {flags.viewProfile && <Route path="/profile/:section?" element={<ProfileLayout />} />}
-                  <Route index element={<Navigate to={defaultRoute} replace />} />
-                  <Route path="*" element={<NotFoundPage />} />
-                </Routes>
-              </Box>
-              {flags.inlineChatEnabled && <InlineChatDrawer />}
+      <InlineChatProvider>
+      <ChatReferencesProvider>
+      <RelatedContentProvider>
+        <Notifications position="top-right" />
+        <Box style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+          {isAuthenticated && <AppHeader />}
+          <Box style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
+            <Box style={{ flex: 1, overflow: 'hidden' }}>
+              <Routes>
+                <Route
+                  path="/login"
+                  element={
+                    isAuthenticated
+                      ? <Navigate to={defaultRoute} replace />
+                      : <LoginPage onLogin={login} />
+                  }
+                />
+                <Route
+                  path="/*"
+                  element={
+                    <RequireAuth>
+                      <Routes>
+                        {flags.viewHome && <Route path="/home" element={<OverviewDashboard />} />}
+                        {flags.viewModel && <Route path="/model/:schema?/:table?/:attribute?" element={<DataModelLayout />} />}
+                        {flags.viewKnowledge && <Route path="/knowledge/:conceptId?" element={<ContextLayout />} />}
+                        {flags.viewAnalysis && <Route path="/analysis/:queryId?" element={<QueryPlayground />} />}
+                        {flags.viewChat && <Route path="/chat/*" element={<ChatView />} />}
+                        {flags.viewConnect && <Route path="/connect/:section?" element={<ConnectLayout />} />}
+                        {flags.viewAdmin && <Route path="/admin/:section?" element={<AdminLayout />} />}
+                        {flags.viewProfile && <Route path="/profile/:section?" element={<ProfileLayout />} />}
+                        <Route index element={<Navigate to={defaultRoute} replace />} />
+                        <Route path="*" element={<NotFoundPage />} />
+                      </Routes>
+                    </RequireAuth>
+                  }
+                />
+              </Routes>
             </Box>
+            {isAuthenticated && flags.inlineChatEnabled && <InlineChatDrawer />}
           </Box>
-        </RelatedContentProvider>
-        </ChatReferencesProvider>
-        </InlineChatProvider>
-      )}
+        </Box>
+      </RelatedContentProvider>
+      </ChatReferencesProvider>
+      </InlineChatProvider>
     </MantineProvider>
   );
 }
 
+/* ── App ──────────────────────────────────────────────────────────── */
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const login = useCallback(() => setIsAuthenticated(true), []);
-  const logout = useCallback(() => setIsAuthenticated(false), []);
+  const [user, setUser] = useState<AuthMeResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [appName, setAppName] = useState('Mill');
 
-  const authValue = useMemo(
-    () => ({ isAuthenticated, login, logout }),
-    [isAuthenticated, login, logout],
+  useEffect(() => {
+    // Load app name and session user in parallel
+    Promise.all([
+      fetchAppName(),
+      authService.getMe(),
+    ]).then(([name, me]) => {
+      APP_NAME = name;
+      setAppName(name);
+      if (me && !me.securityEnabled) {
+        // Security off — treat as anonymous authenticated user
+        setUser({ userId: 'anonymous', email: null, displayName: null, groups: [], securityEnabled: false });
+      } else {
+        setUser(me);
+      }
+    }).catch(() => {
+      setUser(null);
+    }).finally(() => {
+      setLoading(false);
+    });
+  }, []);
+
+  const login = useCallback(async (email: string, password: string) => {
+    const me = await authService.login(email, password);
+    setUser(me);
+  }, []);
+
+  const logout = useCallback(async () => {
+    await authService.logout();
+    setUser(null);
+  }, []);
+
+  // Derive securityEnabled from user or default true
+  const securityEnabled = user?.securityEnabled ?? true;
+  const isAuthenticated = user !== null;
+
+  const authValue = useMemo<AuthContextValue>(
+    () => ({ user, loading, isAuthenticated, securityEnabled, login, logout }),
+    [user, loading, isAuthenticated, securityEnabled, login, logout],
   );
+
+  // appName in state so APP_NAME module-level var is kept in sync
+  void appName;
 
   return (
     <>

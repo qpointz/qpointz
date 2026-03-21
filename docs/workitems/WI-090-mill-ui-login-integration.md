@@ -1,6 +1,6 @@
 # WI-090 - mill-ui Login Integration
 
-Status: `planned`
+Status: `done`
 Type: `feature`
 Area: `ui`
 Backlog refs: `SEC-3a`
