@@ -132,6 +132,16 @@ That means:
 
 ---
 
+## Contract Purity Rule
+
+**Interface signatures in functional/contract modules must use pure domain types only — never
+persistence entity classes (`@Entity`, `@Document`, etc.).**
+
+This rule applies to all persistence backends (JPA, MongoDB, in-memory). Details and examples
+are in [persistence-bootstrap.md § Contract Purity Rule](./persistence-bootstrap.md#contract-purity-rule).
+
+---
+
 ## Related Documents
 
 | Document | Description |

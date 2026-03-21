@@ -12,7 +12,7 @@ mill {
 }
 
 dependencies {
-    api(project(":core:mill-security"))
+    api(project(":security:mill-security"))
 
     api(project(":services:mill-service-api"))
     api(libs.boot.starter.security)

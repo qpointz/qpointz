@@ -56,5 +56,9 @@ It also configures Dokka aggregation over top-level module groups.
 - Keep version definitions in `libs.versions.toml`.
 - Prefer convention plugins over per-module copy/paste Gradle logic.
 - Update both `settings.gradle.kts` and root aggregate tasks when module groups change.
+- **`@ConfigurationProperties` in autoconfigure modules**: add
+  `annotationProcessor(libs.spring.boot.configuration.processor)` (Java) or provide
+  `META-INF/additional-spring-configuration-metadata.json` (Kotlin) so IDE metadata is generated.
+  See `docs/design/platform/mill-configuration.md` for the full rule.
 
 For day-to-day command recipes, see `maintainer-recipes.md`.

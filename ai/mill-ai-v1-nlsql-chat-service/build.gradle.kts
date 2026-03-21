@@ -43,7 +43,7 @@ testing {
 
                 dependencies {
                     implementation(project())
-                    implementation(project(":services:mill-service-security"))
+                    implementation(project(":security:mill-service-security"))
                     implementation(project(":data:mill-data-backends"))
                     implementation(libs.boot.starter.test)
                     implementation(libs.boot.starter.webflux)

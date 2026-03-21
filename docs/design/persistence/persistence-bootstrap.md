@@ -117,6 +117,35 @@ Rules:
   - `mill-persistence`
 - schema ownership stays centralized in `mill-persistence` even when entities and adapters live elsewhere
 
+### Contract Purity Rule
+
+**Interface signatures in functional/contract modules must use pure domain types only — never
+persistence entity classes (`@Entity`, `@Document`, etc.).**
+
+- Domain types are plain Kotlin data classes or Java records with no persistence framework
+  annotations. They live in the functional/contract module.
+- Persistence entity classes are implementation details of the persistence module.
+- Persistence adapters map entity/document types to domain types before returning them to callers.
+- This rule ensures any persistence backend (JPA, MongoDB, in-memory) can implement the same
+  interface without imposing its internal types on the rest of the system.
+
+Example:
+
+```
+// CORRECT — contract module returns domain type
+interface UserIdentityResolutionService {
+    fun resolve(provider: String, subject: String): ResolvedUser?  // pure data class
+}
+
+// WRONG — contract module leaks persistence entity
+interface UserIdentityResolutionService {
+    fun resolve(provider: String, subject: String): UserRecord?    // @Entity class
+}
+```
+
+The same rule applies to `@Transactional`: it belongs on the implementation class only, not on
+the interface method.
+
 ---
 
 ## Database Setup

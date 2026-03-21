@@ -1,5 +1,7 @@
 plugins {
     `java-library`
+    kotlin("jvm")
+    alias(libs.plugins.kotlin.spring)
     id("io.qpointz.plugins.mill")
     id("org.jetbrains.dokka")
     id("org.jetbrains.dokka-javadoc")
@@ -14,6 +16,7 @@ dependencies {
     api(libs.bundles.jackson)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
+    implementation(kotlin("reflect"))
 }
 
 testing {

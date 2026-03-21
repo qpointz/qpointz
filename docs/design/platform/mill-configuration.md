@@ -174,3 +174,18 @@ The following keys appear exclusively in sample or test configurations but are d
    - The module/file where it is introduced.
 
 Keeping this schema accurate ensures all teams (services, AI, clients) understand the available toggles and environment expectations.
+
+---
+
+## `@ConfigurationProperties` Metadata Rule
+
+Any autoconfigure module that introduces `@ConfigurationProperties`-bound classes **must** ensure
+Spring configuration metadata is generated so IDE autocomplete and property validation work:
+
+| Implementation language | Required action |
+|-------------------------|-----------------|
+| **Java** | Add `spring-boot-configuration-processor` to `annotationProcessor` — metadata generated automatically into `META-INF/spring-configuration-metadata.json` |
+| **Kotlin** | Author `src/main/resources/META-INF/additional-spring-configuration-metadata.json` manually — maintained alongside the properties class |
+
+Kotlin without explicit metadata silently produces no IDE support for `mill.*` properties in that
+module. When in doubt, prefer Java for `@ConfigurationProperties` classes in autoconfigure modules.

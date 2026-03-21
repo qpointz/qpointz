@@ -15,9 +15,13 @@ rootProject.name = "mill"
 include (":core")
 include (":core:mill-core")
 include (":core:mill-sql")
-include (":core:mill-security")
+include (":security:mill-security")
 include (":core:mill-test-kit")
 include (":core:mill-spring-support")
+
+include (":security")
+include (":security:mill-security-persistence")
+include(":security:mill-security-auth-service")
 
 
 include (":metadata")
@@ -45,7 +49,7 @@ include (":data:formats:mill-data-format-avro")
 include (":data:formats:mill-data-format-parquet")
 include (":data:formats:mill-data-format-arrow")
 
-include(":services:mill-service-security")
+include(":security:mill-service-security")
 include(":services:mill-service-api")
 include(":services:mill-well-known-service")
 include (":services:mill-data-grpc-service")

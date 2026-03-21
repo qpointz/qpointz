@@ -118,6 +118,63 @@ OPENAI_API_KEY=sk-...  ./gradlew :ai:mill-ai-v3-cli:run --console=plain
 - Spring config classes belong in `io.qpointz.mill.services.configuration`
 - Test doubles live alongside tests in `src/test/java`
 - Keep secrets out of the repo; use environment variables consumed by Spring config (`mill.security.*`)
+- **Persistence contract purity**: interfaces and domain types in contract modules (e.g.
+  `mill-security`, future `mill-*-api` modules) must be free of any persistence-framework
+  annotations (`@Entity`, `@Document`, `@Column`, etc.). Persistence implementations (JPA, MongoDB,
+  etc.) map their internal entity/document types to the shared domain types before returning them.
+  This rule enables swapping the persistence backend without touching the contract layer or any
+  module that depends on it. **Contract interfaces must never return or accept persistence entity
+  classes directly — only pure domain types.**
+- **Documentation**: all production code must carry JavaDoc (Java) or KDoc (Kotlin) down to method
+  and parameter level. This includes entities, repositories, services, configuration classes,
+  controllers, and DTOs. Test classes and test methods are exempt; public test-utility helpers
+  should be documented. Generated code (protobuf stubs, OpenAPI clients) is exempt.
+- **`@ConfigurationProperties` metadata**: any autoconfigure module that defines
+  `@ConfigurationProperties`-bound classes must ensure IDE and tooling metadata is generated.
+  Two compliant approaches:
+  - Implement the properties class in **Java** — the `spring-boot-configuration-processor`
+    annotation processor generates `META-INF/spring-configuration-metadata.json` automatically.
+  - Implement in **Kotlin** — but provide
+    `META-INF/additional-spring-configuration-metadata.json` manually alongside the class.
+  Kotlin without explicit metadata silently breaks IDE autocomplete and property validation for
+  all `mill.*` properties in that module.
+
+## Testing Structure
+
+Every new Gradle module must configure both unit and integration test suites following the
+`mill-ai-v3-persistence` pattern in `build.gradle.kts`:
+
+```kotlin
+testing {
+    suites {
+        register<JvmTestSuite>("testIT") {
+            dependencies {
+                implementation(project())
+                implementation(libs.boot.starter.test)
+                implementation(libs.assertj.core)
+                runtimeOnly(libs.h2.database)
+            }
+        }
+        configureEach {
+            if (this is JvmTestSuite) {
+                useJUnitJupiter(libs.versions.junit.get())
+                dependencies {
+                    implementation(project())
+                    implementation(libs.boot.starter.test)
+                    implementation(libs.assertj.core)
+                }
+            }
+        }
+    }
+}
+tasks.named<Test>("testIT") {
+    testLogging { events("passed", "failed", "skipped") }
+}
+```
+
+- Unit tests (`src/test/`): pure logic, no Spring context, no DB — fast
+- Integration tests (`src/testIT/`): Spring Boot test slice or full context, H2 in-memory DB
+- Run: `./gradlew :module:test` (unit) and `./gradlew :module:testIT` (integration)
 
 ## Branching & Commits
 

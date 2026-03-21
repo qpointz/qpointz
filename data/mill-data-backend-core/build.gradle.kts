@@ -12,7 +12,7 @@ mill {
 
 dependencies {
     api(project(":core:mill-core"))
-    api(project(":core:mill-security"))
+    api(project(":security:mill-security"))
     implementation(project(":core:mill-sql"))
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)

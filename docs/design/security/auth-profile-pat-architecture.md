@@ -41,6 +41,12 @@ This document is design-only and does not include implementation details.
 3. **Security off mode must remain first-class** and deterministic.
 4. **Token secrets are never stored in plaintext**; only one-time return on creation.
 5. **Authorization remains policy/authority based** to preserve current policy engine integration.
+6. **Contract purity** — interfaces in contract modules (`mill-security`) must return pure domain
+   types only (`ResolvedUser`, `UserProfile`, etc.), never persistence entity classes (`@Entity`,
+   `@Document`, etc.). Persistence implementations map internally before returning results to
+   callers. This ensures any backend (JPA, MongoDB, in-memory) can implement the same interface.
+   `@Transactional` belongs on implementation classes only, not on interface methods.
+   See also: [persistence-bootstrap.md § Contract Purity Rule](../persistence/persistence-bootstrap.md#contract-purity-rule).
 
 ## 4. Target Identity Architecture
 

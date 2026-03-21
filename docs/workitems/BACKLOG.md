@@ -321,11 +321,15 @@ Delivery order: PS-1 → PS-3 → PS-2 → PS-4 → PS-5 → PS-6/PS-7 → PS-8
 
 Design reference: [`docs/design/security/auth-profile-pat-architecture.md`](../design/security/auth-profile-pat-architecture.md)
 
-| #     | Item | Type | Status | Source |
-|-------|------|------|--------|--------|
-| SEC-1 | Implement persistent user identity model: `users`, `user_credentials`, `user_identities`, `groups`, `group_memberships`, `user_profiles` tables; domain model and Flyway migration | ✨ feature | backlog | `design/security/auth-profile-pat-architecture.md` |
-| SEC-2 | Implement PAT (Personal Access Token) issuance endpoint, secure hashed-token storage, and bearer token validation provider wired into `SecurityFilterChain` | ✨ feature | backlog | `design/security/auth-profile-pat-architecture.md` |
-| SEC-3 | Replace mock `mill-ui` login/profile UX with real forms-auth APIs backed by the persistent user identity model; keep `mill.security.enable=false` path working | ✨ feature | backlog | `design/security/auth-profile-pat-architecture.md` |
+| #      | Item | Type | Status | Source |
+|--------|------|------|--------|--------|
+| SEC-1  | Implement persistent user identity model: `users`, `user_credentials`, `user_identities`, `groups`, `group_memberships`, `user_profiles` tables; domain model and Flyway migration; new module `security/mill-security-persistence` | ✨ feature | planned | `WI-085-security-jpa-user-identity-persistence.md` |
+| SEC-1a | Add `JpaUserRepo` + `JpaPasswordAuthenticationConfiguration` + `PasswordEncoder` bean to `security/mill-security-persistence` (merged with WI-085 module); compatibility integration tests | ✨ feature | planned | `WI-086-security-jpa-basic-auth-provider.md` |
+| SEC-2  | Implement PAT (Personal Access Token) issuance endpoint, secure hashed-token storage, and bearer token validation provider wired into `SecurityFilterChain` | ✨ feature | backlog | `design/security/auth-profile-pat-architecture.md` |
+| SEC-3a | New module `services/mill-security-auth-service`; `POST /auth/public/login`, `POST /auth/logout`, `GET /auth/me`; `AuthPublicSecurityConfiguration @Order(-6)` + `AuthSecuredSecurityConfiguration @Order(-5)` dual-bean; `ApplicationDescriptor.name` extension | ✨ feature | planned | `WI-087-mill-security-auth-service.md` |
+| SEC-3b | `UserProfileService` + `PATCH /auth/profile` in `mill-security-auth-service`; wire real user data into `ProfileLayout` and `AppHeader` in `mill-ui` | ✨ feature | planned | `WI-088-mill-ui-user-profile.md` |
+| SEC-3c | `POST /auth/public/register` in `AuthPublicController`; `mill.security.allow-registration` config gate; `RegisterPage` at `/register`; `loginRegistration` feature flag | ✨ feature | planned | `WI-089-user-registration.md` |
+| SEC-3d | Wire `mill-ui` to real auth backend: `authService.ts`, replace mock `AuthContext`, `RequireAuth` wrapper, `LoginPage` error display, `APP_NAME` from backend, security-off behaviour | ✨ feature | planned | `WI-090-mill-ui-login-integration.md` |
 
 ---
 
@@ -341,8 +345,8 @@ Design reference: [`docs/design/security/auth-profile-pat-architecture.md`](../d
 | platform        | 32      | 11        | 8              | 4      | 8              | 1       | 0       |
 | publish         | 4       | 1         | 2              | 0      | 0              | 0       | 1       |
 | refactoring     | 10      | 0         | 1              | 4      | 2              | 2       | 1       |
-| security        | 3       | 3         | 0              | 0      | 0              | 0       | 0       |
+| security        | 6       | 6         | 0              | 0      | 0              | 0       | 0       |
 | source          | 14      | 7         | 4              | 1      | 2              | 0       | 0       |
 | ui              | 10      | 4         | 4              | 0      | 1              | 1       | 0       |
-| **Total**       | **153** | **78**    | **24**         | **20** | **19**         | **7**   | **5**   |
+| **Total**       | **156** | **81**    | **24**         | **20** | **19**         | **7**   | **5**   |
 

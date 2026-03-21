@@ -12,4 +12,5 @@ This folder contains security architecture and implementation design notes for:
 | File | Purpose |
 |------|---------|
 | `auth-profile-pat-architecture.md` | Proposed architecture for forms login, persistent user profiles, PAT issuance/validation, and OAuth-ready identity persistence with support for disabling security |
+| `user-profile-extensibility.md` | How to extend the user profile beyond the WI-088 baseline — new columns vs domain extension tables, decision guide |
 

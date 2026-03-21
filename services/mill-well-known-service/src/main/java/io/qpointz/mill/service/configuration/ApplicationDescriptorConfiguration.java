@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 
 import java.net.URI;
@@ -72,9 +73,11 @@ public class ApplicationDescriptorConfiguration {
     public ApplicationDescriptor applicationDescriptor(
             @Autowired(required = false) Optional<Collection<ServiceDescriptor>> serviceDescriptors,
             @Autowired(required = false) SecurityDescriptor securityDescriptor,
-            @Autowired(required = false) Map<String, SchemaDescriptor> schemas
+            @Autowired(required = false) Map<String, SchemaDescriptor> schemas,
+            @Value("${spring.application.name:Mill}") String applicationName
     ) {
         return new ApplicationDescriptor(
+                applicationName,
                 serviceDescriptors.orElse(List.of()),
                 schemas == null ? Map.of() : schemas
         );
