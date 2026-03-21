@@ -46,7 +46,7 @@ mill-security (contracts)
 - [x] 2. [WI-086](WI-086-security-jpa-basic-auth-provider.md) — JPA-backed BasicAuth Provider (`security`)
 - [x] 3. [WI-087](WI-087-mill-security-auth-service.md) — mill-security-auth-service Backend (`security`)
 - [x] 4. [WI-090](WI-090-mill-ui-login-integration.md) — mill-ui Login Integration (`ui`)
-- [ ] 5. [WI-088](WI-088-mill-ui-user-profile.md) — mill-ui User Profile UI (`security`, `ui`)
+- [x] 5. [WI-088](WI-088-mill-ui-user-profile.md) — mill-ui User Profile UI (`security`, `ui`)
 - [ ] 6. [WI-089](WI-089-user-registration.md) — User Registration (`security`, `ui`)
 
 > WI-088 and WI-089 are independent of each other and can be parallelized once WI-090 is complete.

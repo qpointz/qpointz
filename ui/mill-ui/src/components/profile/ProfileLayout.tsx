@@ -1,5 +1,7 @@
-import { Box, Text, NavLink, Avatar, Group, useMantineColorScheme } from '@mantine/core';
+import { Box, Text, NavLink, Avatar, Group, useMantineColorScheme, TextInput, Button, Select, Stack } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import { useParams, useNavigate } from 'react-router';
+import { useState } from 'react';
 import {
   HiOutlineUserCircle,
   HiOutlineCog6Tooth,
@@ -8,6 +10,8 @@ import {
 } from 'react-icons/hi2';
 import { CollapsibleSidebar } from '../common/CollapsibleSidebar';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
+import { useAuth } from '../../App';
+import type { UserProfileResponse } from '../../services/authService';
 
 type ProfileSection = 'general' | 'settings' | 'access';
 
@@ -24,46 +28,133 @@ const profileNavItems: ProfileNavItem[] = [
   { id: 'access', label: 'Access', icon: HiOutlineLockClosed, flagKey: 'profileAccess' },
 ];
 
-function ProfilePanel({ section }: { section: ProfileSection }) {
-  const { colorScheme } = useMantineColorScheme();
-  const isDark = colorScheme === 'dark';
+const LOCALE_OPTIONS = [
+  { value: 'en', label: 'English' },
+  { value: 'fr', label: 'French' },
+  { value: 'de', label: 'German' },
+  { value: 'es', label: 'Spanish' },
+  { value: 'ja', label: 'Japanese' },
+];
 
-  const meta = profileNavItems.find((i) => i.id === section);
-  const Icon = meta?.icon ?? HiOutlineUserCircle;
-  const label = meta?.label ?? section;
+/** General section — editable display name and email. */
+function GeneralSection({ profile }: { profile: UserProfileResponse }) {
+  const { updateProfile } = useAuth();
+  const [displayName, setDisplayName] = useState(profile.displayName ?? '');
+  const [email, setEmail] = useState(profile.email ?? '');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await updateProfile({
+        displayName: displayName || undefined,
+        email: email || undefined,
+      });
+      notifications.show({
+        title: 'Profile saved',
+        message: 'Your general profile has been updated.',
+        color: 'teal',
+      });
+    } catch {
+      notifications.show({
+        title: 'Save failed',
+        message: 'Could not update your profile. Please try again.',
+        color: 'red',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
-    <Box
-      style={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <Box
-        style={{
-          width: 80,
-          height: 80,
-          borderRadius: '50%',
-          backgroundColor: isDark ? 'var(--mantine-color-cyan-9)' : 'var(--mantine-color-teal-1)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: 24,
-        }}
-      >
-        <Icon size={36} />
-      </Box>
-      <Text size="xl" fw={600} c={isDark ? 'gray.1' : 'gray.8'} mb="xs">
-        {label}
-      </Text>
-      <Text size="sm" c="dimmed" ta="center" maw={400}>
-        Manage your {label.toLowerCase()} preferences. This section is under construction.
-      </Text>
-    </Box>
+    <Stack gap="md" maw={480} p="xl">
+      <Text size="lg" fw={600}>General</Text>
+      <TextInput
+        label="Display name"
+        placeholder="Your display name"
+        value={displayName}
+        onChange={(e) => setDisplayName(e.currentTarget.value)}
+      />
+      <TextInput
+        label="Email"
+        placeholder="you@example.com"
+        value={email}
+        onChange={(e) => setEmail(e.currentTarget.value)}
+      />
+      <Button onClick={handleSave} loading={saving} color="teal" data-testid="general-save-btn">
+        Save
+      </Button>
+    </Stack>
   );
+}
+
+/** Settings section — locale selection. */
+function SettingsSection({ profile }: { profile: UserProfileResponse }) {
+  const { updateProfile } = useAuth();
+  const [locale, setLocale] = useState<string | null>(profile.locale ?? null);
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await updateProfile({ locale: locale ?? undefined });
+      notifications.show({
+        title: 'Settings saved',
+        message: 'Your locale preference has been updated.',
+        color: 'teal',
+      });
+    } catch {
+      notifications.show({
+        title: 'Save failed',
+        message: 'Could not update your settings. Please try again.',
+        color: 'red',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Stack gap="md" maw={480} p="xl">
+      <Text size="lg" fw={600}>Settings</Text>
+      <Select
+        label="Locale"
+        placeholder="Select a locale"
+        data={LOCALE_OPTIONS}
+        value={locale}
+        onChange={setLocale}
+        data-testid="locale-select"
+      />
+      <Button onClick={handleSave} loading={saving} color="teal" data-testid="settings-save-btn">
+        Save
+      </Button>
+    </Stack>
+  );
+}
+
+/** Access section — placeholder for personal access tokens. */
+function AccessSection() {
+  return (
+    <Stack gap="md" maw={480} p="xl">
+      <Text size="lg" fw={600}>Access</Text>
+      <Text size="sm" c="dimmed" data-testid="access-placeholder">
+        Personal access tokens — coming soon.
+      </Text>
+    </Stack>
+  );
+}
+
+function ProfilePanel({ section, profile }: { section: ProfileSection; profile: UserProfileResponse | null }) {
+  if (section === 'general') {
+    return profile ? <GeneralSection profile={profile} /> : null;
+  }
+  if (section === 'settings') {
+    return profile ? <SettingsSection profile={profile} /> : null;
+  }
+  if (section === 'access') {
+    return <AccessSection />;
+  }
+  return null;
 }
 
 export function ProfileLayout() {
@@ -72,6 +163,15 @@ export function ProfileLayout() {
   const flags = useFeatureFlags();
   const navigate = useNavigate();
   const params = useParams<{ section?: string }>();
+  const { user } = useAuth();
+
+  const profile = user?.profile ?? null;
+
+  const displayName = profile?.displayName ?? user?.displayName ?? null;
+  const email = profile?.email ?? user?.email ?? null;
+  const initials = displayName
+    ? displayName.split(' ').map((w) => w[0]).join('').substring(0, 2).toUpperCase()
+    : 'U';
 
   const visibleItems = profileNavItems.filter((item) => flags[item.flagKey]);
 
@@ -101,14 +201,14 @@ export function ProfileLayout() {
         >
           <Group gap="sm" wrap="nowrap">
             <Avatar size={40} radius="xl" color={isDark ? 'cyan' : 'teal'}>
-              DC
+              {initials}
             </Avatar>
             <Box style={{ flex: 1, minWidth: 0 }}>
               <Text size="sm" fw={600} lineClamp={1} c={isDark ? 'gray.1' : 'gray.8'}>
-                Demo User
+                {displayName ?? 'Anonymous'}
               </Text>
               <Text size="xs" c="dimmed" lineClamp={1}>
-                demo@datachat.io
+                {email ?? ''}
               </Text>
             </Box>
           </Group>
@@ -151,7 +251,7 @@ export function ProfileLayout() {
         }}
       >
         {activeSection && visibleItems.some((i) => i.id === activeSection) ? (
-          <ProfilePanel section={activeSection} />
+          <ProfilePanel section={activeSection} profile={profile} />
         ) : (
           <Box
             style={{

@@ -1,6 +1,6 @@
 # WI-088 - mill-ui User Profile UI
 
-Status: `planned`
+Status: `done`
 Type: `feature`
 Area: `security`, `ui`
 Backlog refs: `SEC-3b`

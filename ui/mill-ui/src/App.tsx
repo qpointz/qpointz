@@ -22,7 +22,7 @@ import { InlineChatDrawer } from './components/inline-chat/InlineChatDrawer';
 import { LoginPage } from './components/auth/LoginPage';
 import { NotFoundPage } from './components/common/NotFoundPage';
 import * as authService from './services/authService';
-import type { AuthMeResponse } from './services/authService';
+import type { AuthMeResponse, UserProfilePatch } from './services/authService';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 
@@ -34,6 +34,7 @@ interface AuthContextValue {
   securityEnabled: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateProfile: (patch: UserProfilePatch) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -43,6 +44,7 @@ const AuthContext = createContext<AuthContextValue>({
   securityEnabled: true,
   login: async () => {},
   logout: async () => {},
+  updateProfile: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -214,13 +216,21 @@ function App() {
     setUser(null);
   }, []);
 
+  const updateProfile = useCallback(async (patch: UserProfilePatch) => {
+    const updatedProfile = await authService.updateProfile(patch);
+    setUser((prev) => {
+      if (prev === null) return prev;
+      return { ...prev, profile: updatedProfile };
+    });
+  }, []);
+
   // Derive securityEnabled from user or default true
   const securityEnabled = user?.securityEnabled ?? true;
   const isAuthenticated = user !== null;
 
   const authValue = useMemo<AuthContextValue>(
-    () => ({ user, loading, isAuthenticated, securityEnabled, login, logout }),
-    [user, loading, isAuthenticated, securityEnabled, login, logout],
+    () => ({ user, loading, isAuthenticated, securityEnabled, login, logout, updateProfile }),
+    [user, loading, isAuthenticated, securityEnabled, login, logout, updateProfile],
   );
 
   // appName in state so APP_NAME module-level var is kept in sync

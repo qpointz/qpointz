@@ -15,6 +15,7 @@ dependencies {
     api(project(":security:mill-security"))
     implementation(project(":core:mill-spring-support"))
     implementation(project(":security:mill-service-security"))
+    implementation(project(":security:mill-security-persistence"))
     implementation(kotlin("reflect"))
     implementation(libs.boot.starter.web)
     implementation(libs.boot.starter.security)
