@@ -14,6 +14,8 @@ mill {
 dependencies {
     api(project(":ai:mill-ai-v3"))
     implementation(libs.boot.starter)
+    implementation(libs.boot.starter.webflux)
+    implementation(libs.langchain4j.open.ai)
     annotationProcessor(libs.boot.configuration.processor)
     compileOnly(project(":ai:mill-ai-v3-persistence"))
     compileOnly(project(":persistence:mill-persistence"))

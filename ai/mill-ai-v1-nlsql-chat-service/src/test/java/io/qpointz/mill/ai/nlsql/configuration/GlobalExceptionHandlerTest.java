@@ -1,14 +1,14 @@
 package io.qpointz.mill.ai.nlsql.configuration;
 
-import io.qpointz.mill.excepions.statuses.MIllNotFoundStatusException;
+import io.qpointz.mill.excepions.statuses.MillStatuses;
+import io.qpointz.mill.excepions.statuses.MillStatusException;
+import io.qpointz.mill.excepions.statuses.MillStatusRuntimeException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.ErrorResponse;
+import org.springframework.http.ResponseEntity;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("GlobalExceptionHandler Unit Tests")
@@ -22,100 +22,43 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    @DisplayName("handleNotFoundException() - Should return ErrorResponse with correct status and message")
-    void testHandleNotFoundException() {
-        // Given
-        String errorMessage = "Chat not found";
-        MIllNotFoundStatusException exception = new MIllNotFoundStatusException(errorMessage);
-
-        // When
-        ErrorResponse response = exceptionHandler.handleNotFoundException(exception);
-
-        // Then
-        assertNotNull(response);
+    @DisplayName("handleStatusException() - NOT_FOUND maps to 404")
+    void shouldMapNotFoundTo404() throws MillStatusException {
+        var ex = MillStatuses.notFound("Chat not found");
+        ResponseEntity<Void> response = exceptionHandler.handleStatusException(ex);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
-    @DisplayName("handleNotFoundException() - Should handle exception with null message")
-    void testHandleNotFoundExceptionWithNullMessage() {
-        // Given
-        MIllNotFoundStatusException exception = new MIllNotFoundStatusException();
+    @DisplayName("handleStatusException() - BAD_REQUEST maps to 400")
+    void shouldMapBadRequestTo400() throws MillStatusException {
+        var ex = MillStatuses.badRequest("Invalid input");
+        ResponseEntity<Void> response = exceptionHandler.handleStatusException(ex);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
 
-        // When
-        ErrorResponse response = exceptionHandler.handleNotFoundException(exception);
-
-        // Then
-        assertNotNull(response);
+    @Test
+    @DisplayName("handleStatusException() - no-message overload uses enum name as message")
+    void shouldFallbackToEnumName() throws MillStatusException {
+        var ex = MillStatuses.notFound();
+        assertEquals("NOT_FOUND", ex.getMessage());
+        ResponseEntity<Void> response = exceptionHandler.handleStatusException(ex);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals(HttpStatus.NOT_FOUND.value(), response.getBody().getStatus());
     }
 
     @Test
-    @DisplayName("handleNotFoundException() - Should handle exception with custom message")
-    void testHandleNotFoundExceptionWithCustomMessage() {
-        // Given
-        String customMessage = "User not found in database";
-        MIllNotFoundStatusException exception = new MIllNotFoundStatusException(customMessage);
-
-        // When
-        ErrorResponse response = exceptionHandler.handleNotFoundException(exception);
-
-        // Then
-        assertNotNull(response);
+    @DisplayName("handleStatusRuntimeException() - NOT_FOUND maps to 404")
+    void shouldMapRuntimeNotFoundTo404() {
+        var ex = MillStatuses.notFoundRuntime("Chat not found");
+        ResponseEntity<Void> response = exceptionHandler.handleStatusRuntimeException(ex);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals(404, response.getBody().getStatus());
     }
 
     @Test
-    @DisplayName("handleNotFoundException() - Should handle exception with cause")
-    void testHandleNotFoundExceptionWithCause() {
-        // Given
-        String errorMessage = "Database connection failed";
-        RuntimeException cause = new RuntimeException("Connection timeout");
-        MIllNotFoundStatusException exception = new MIllNotFoundStatusException(errorMessage, cause);
-
-        // When
-        ErrorResponse response = exceptionHandler.handleNotFoundException(exception);
-
-        // Then
-        assertNotNull(response);
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals(404, response.getBody().getStatus());
-    }
-
-    @Test
-    @DisplayName("handleNotFoundException() - Should return ErrorResponse with correct structure")
-    void testHandleNotFoundExceptionResponseStructure() {
-        // Given
-        String errorMessage = "Resource not found";
-        MIllNotFoundStatusException exception = new MIllNotFoundStatusException(errorMessage);
-
-        // When
-        ErrorResponse response = exceptionHandler.handleNotFoundException(exception);
-
-        // Then
-        assertNotNull(response);
-        assertNotNull(response.getBody());
-        
-        // Verify ErrorResponse structure
-        assertThat(response.getBody().getStatus(), is(404));
-    }
-
-    @Test
-    @DisplayName("handleNotFoundException() - Should handle multiple exceptions independently")
-    void testHandleMultipleExceptions() {
-        // Given
-        MIllNotFoundStatusException exception1 = new MIllNotFoundStatusException("First error");
-        MIllNotFoundStatusException exception2 = new MIllNotFoundStatusException("Second error");
-
-        // When
-        ErrorResponse response1 = exceptionHandler.handleNotFoundException(exception1);
-        ErrorResponse response2 = exceptionHandler.handleNotFoundException(exception2);
-
-        // Then
-        assertNotNull(response1);
-        assertNotNull(response2);
-        assertNotSame(response1, response2);
+    @DisplayName("handleStatusRuntimeException() - INTERNAL_ERROR maps to 500")
+    void shouldMapInternalErrorTo500() {
+        var ex = MillStatuses.internalErrorRuntime();
+        ResponseEntity<Void> response = exceptionHandler.handleStatusRuntimeException(ex);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 }

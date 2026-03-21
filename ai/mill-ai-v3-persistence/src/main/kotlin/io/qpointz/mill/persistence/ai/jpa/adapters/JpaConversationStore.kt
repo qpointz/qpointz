@@ -51,16 +51,11 @@ open class JpaConversationStore(
                 createdAt = turn.createdAt,
             )
         )
-        // Update conversation updatedAt
+        // Update conversation updatedAt by mutating the managed entity so Hibernate does not
+        // treat existing turns as orphans (creating a new entity with an empty turns list
+        // and CascadeType.ALL + orphanRemoval=true would delete all persisted turns).
         conversationRepo.findById(conversationId).ifPresent { conv ->
-            conversationRepo.save(
-                ConversationEntity(
-                    conversationId = conv.conversationId,
-                    profileId = conv.profileId,
-                    createdAt = conv.createdAt,
-                    updatedAt = Instant.now(),
-                )
-            )
+            conv.updatedAt = Instant.now()
         }
     }
 

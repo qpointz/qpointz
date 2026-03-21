@@ -52,6 +52,13 @@ interface ConversationStore {
     fun attachArtifacts(conversationId: String, turnId: String, artifactIds: List<String>)
     fun load(conversationId: String): ConversationRecord?
     fun ensureExists(conversationId: String, profileId: String)
+    /**
+     * Hard-deletes the conversation record and all its turns.
+     *
+     * Default is a no-op so existing implementations remain source-compatible.
+     * Persistent adapters (JPA, etc.) must override to perform actual deletion.
+     */
+    fun delete(conversationId: String): Unit = Unit
 }
 
 

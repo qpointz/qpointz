@@ -4,7 +4,7 @@ import io.qpointz.mill.ai.nlsql.model.pojo.Chat;
 import io.qpointz.mill.ai.nlsql.model.pojo.ChatMessage;
 import io.qpointz.mill.ai.nlsql.services.NlSqlChatService;
 import io.qpointz.mill.annotations.service.ConditionalOnService;
-import io.qpointz.mill.excepions.statuses.MIllNotFoundStatusException;
+import io.qpointz.mill.excepions.statuses.MillStatusException;
 import io.qpointz.mill.excepions.statuses.MillStatuses;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
@@ -56,7 +56,7 @@ public class NlSqlChatController {
      * Retrieves chat metadata by id.
      */
     @GetMapping(value = "/chats/{chatId}", consumes = MediaType.ALL_VALUE)
-    public Chat getChat(@PathVariable("chatId") UUID chatId) throws MIllNotFoundStatusException {
+    public Chat getChat(@PathVariable("chatId") UUID chatId) throws MillStatusException {
         log.debug("Fetching chat {}", chatId);
         return chatService.getChat(chatId)
                 .orElseThrow(()-> MillStatuses.notFound("Chat not found"));
@@ -67,7 +67,7 @@ public class NlSqlChatController {
      */
     @PatchMapping(value = "/chats/{chatId}")
     @Operation(summary = "Updates chat")
-    public Chat updateChat(@RequestBody Chat.UpdateChatRequest request, @PathVariable("chatId") UUID chatId) throws MIllNotFoundStatusException {
+    public Chat updateChat(@RequestBody Chat.UpdateChatRequest request, @PathVariable("chatId") UUID chatId) throws MillStatusException {
         log.info("Updating chat {}", chatId);
         return chatService.updateChat(chatId, request)
                 .orElseThrow(()-> MillStatuses.notFound("Chat not found"));
@@ -79,7 +79,7 @@ public class NlSqlChatController {
     @DeleteMapping(value = "/chats/{chatId}", consumes = MediaType.ALL_VALUE, produces = MediaType.ALL_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Deletes chat chat")
-    public void deleteChat(@PathVariable("chatId") UUID chatId) throws MIllNotFoundStatusException {
+    public void deleteChat(@PathVariable("chatId") UUID chatId) throws MillStatusException {
         log.info("Deleting chat {}", chatId);
         if (!chatService.deleteChat(chatId)) {
             throw MillStatuses.notFound("Chat not found");
@@ -90,7 +90,7 @@ public class NlSqlChatController {
      * Lists messages for the given chat.
      */
     @GetMapping(value = "/chats/{chatId}/messages", consumes = MediaType.ALL_VALUE)
-    public List<ChatMessage> listChatMessages(@PathVariable("chatId") UUID chatId) throws MIllNotFoundStatusException {
+    public List<ChatMessage> listChatMessages(@PathVariable("chatId") UUID chatId) throws MillStatusException {
         log.debug("Listing messages for chat {}", chatId);
         return chatService.listChatMessages(chatId)
                 .orElseThrow(()-> MillStatuses.notFound("Chat not found"));
@@ -100,7 +100,7 @@ public class NlSqlChatController {
      * Posts a user message and triggers async processing.
      */
     @PostMapping(value = "/chats/{chatId}/messages")
-    public ChatMessage postChatMessages(@PathVariable("chatId") UUID chatId, @RequestBody Chat.SendChatMessageRequest request) throws MIllNotFoundStatusException {
+    public ChatMessage postChatMessages(@PathVariable("chatId") UUID chatId, @RequestBody Chat.SendChatMessageRequest request) throws MillStatusException {
         log.info("Posting message to chat {}", chatId);
         return chatService.postChatMessage(chatId, request)
                 .orElseThrow(()-> MillStatuses.notFound("Chat not found"));
@@ -110,7 +110,7 @@ public class NlSqlChatController {
      * Opens an SSE stream to deliver chat events.
      */
     @GetMapping (value = "/chats/{chatId}/stream", consumes = MediaType.ALL_VALUE, produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ServerSentEvent<?>> chatStream(@PathVariable("chatId") UUID chatId) throws MIllNotFoundStatusException {
+    public Flux<ServerSentEvent<?>> chatStream(@PathVariable("chatId") UUID chatId) throws MillStatusException {
         log.debug("Opening chat stream for {}", chatId);
         return chatService.chatStrtream(chatId)
                 .orElseThrow(() -> MillStatuses.notFound("Chat not found"));

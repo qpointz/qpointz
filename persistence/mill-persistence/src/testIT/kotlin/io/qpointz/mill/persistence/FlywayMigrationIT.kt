@@ -25,6 +25,7 @@ class FlywayMigrationIT {
             "ai_artifact",
             "relation_record",
             "ai_active_artifact_pointer",
+            "ai_chat_metadata",
         )
         tables.forEach { table ->
             val count = jdbc.queryForObject("SELECT COUNT(*) FROM $table", Int::class.java)

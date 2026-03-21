@@ -60,6 +60,10 @@ class InMemoryConversationStore : ConversationStore {
     }
 
     override fun load(conversationId: String): ConversationRecord? = records[conversationId]
+
+    override fun delete(conversationId: String) {
+        records.remove(conversationId)
+    }
 }
 
 

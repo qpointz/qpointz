@@ -13,4 +13,5 @@ dependencies {
     dokka(project(":ai:mill-ai-v3-cli"))
     dokka(project(":ai:mill-ai-v3-persistence"))
     dokka(project(":ai:mill-ai-v3-autoconfigure"))
+    dokka(project(":ai:mill-ai-v3-service"))
 }

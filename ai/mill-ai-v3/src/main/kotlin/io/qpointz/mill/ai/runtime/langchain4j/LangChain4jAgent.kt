@@ -98,6 +98,7 @@ class LangChain4jAgent(
     fun run(
         input: String,
         session: ConversationSession = ConversationSession(),
+        context: AgentContext = AgentContext(contextType = "general"),
         listener: (AgentEvent) -> Unit = {},
     ): String {
         val runId = UUID.randomUUID().toString()
@@ -131,7 +132,6 @@ class LangChain4jAgent(
 
         routedListener(AgentEvent.RunStarted(profile.id))
 
-        val context = AgentContext(contextType = "general")
         val capabilities = resolveCapabilities(context)
         val bindings = capabilities.flatMap { it.tools }
         val handlerMap = bindings.associateBy { it.spec.name() }

@@ -59,6 +59,7 @@ include (":ai:mill-ai-v3-test")
 include (":ai:mill-ai-v3-cli")
 include (":ai:mill-ai-v3-persistence")
 include (":ai:mill-ai-v3-autoconfigure")
+include (":ai:mill-ai-v3-service")
 
 include (":clients:mill-jdbc-driver")
 include (":clients:mill-jdbc-shell")

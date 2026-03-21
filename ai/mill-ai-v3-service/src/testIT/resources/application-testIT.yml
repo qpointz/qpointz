@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:ait_chat;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  main:
+    banner-mode: off
+
+logging:
+  level:
+    root: warn
+    io.qpointz.mill: info
+
+mill:
+  ai:
+    model:
+      api-key: "${OPENAI_API_KEY:test-key-not-used-by-stub}"
+      model-name: gpt-4o-mini
+    chat:
+      default-user-id: it-test-user
+      default-profile: hello-world
+      max-title-length: 30
