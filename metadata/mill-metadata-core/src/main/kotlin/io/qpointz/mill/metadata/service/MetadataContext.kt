@@ -15,13 +15,27 @@ import io.qpointz.mill.metadata.domain.MetadataUrns
  */
 data class MetadataContext(val scopes: List<String>) {
 
+    init {
+        require(scopes.isNotEmpty()) { "MetadataContext must contain at least one scope" }
+    }
+
     companion object {
+
+        /**
+         * Returns a single-scope [MetadataContext] for the given scope URN key.
+         * No merging is performed when the context has only one scope.
+         *
+         * @param scopeKey the full scope URN key, e.g. `"urn:mill/metadata/scope:global"`
+         * @return [MetadataContext] with [scopeKey] as the single scope
+         */
+        fun of(scopeKey: String): MetadataContext = MetadataContext(listOf(scopeKey))
 
         /**
          * Parses a comma-separated `context` query parameter into a [MetadataContext].
          *
          * Each comma-separated segment is normalised to a full scope URN via
          * [MetadataUrns.normaliseScopePath]. Blank segments are ignored.
+         * Returns [global] when [contextParam] is null or blank.
          *
          * @param contextParam comma-separated scope slugs or URNs, e.g. `"global,user:alice"`
          * @return [MetadataContext] with normalised scope URNs in order

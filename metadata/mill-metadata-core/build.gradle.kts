@@ -38,6 +38,7 @@ testing {
                     implementation(project())
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
+                    implementation(libs.mockito.kotlin)
                     implementation(libs.h2.database)
                 }
             }

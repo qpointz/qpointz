@@ -1,6 +1,6 @@
 # WI-089 — Metadata Scopes and Context Composition
 
-Status: `planned`
+Status: `done`
 Type: `✨ feature`
 Area: `metadata`
 

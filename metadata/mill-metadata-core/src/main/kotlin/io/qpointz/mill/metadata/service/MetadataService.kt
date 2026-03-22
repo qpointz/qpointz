@@ -47,10 +47,10 @@ open class MetadataService @JvmOverloads constructor(
 
     fun <T : Any> getMergedFacet(
         entityId: String, facetType: String,
-        userId: String, userTeams: List<String>?, userRoles: List<String>?,
+        context: MetadataContext,
         facetClass: Class<T>
     ): Optional<T> = repository.findById(entityId).flatMap {
-        it.getMergedFacet(facetType, userId, userTeams ?: emptyList(), userRoles ?: emptyList(), facetClass)
+        it.getMergedFacet(facetType, context, facetClass)
     }
 
     fun setFacet(entityId: String, facetType: String, scope: String, facetData: Any?) {

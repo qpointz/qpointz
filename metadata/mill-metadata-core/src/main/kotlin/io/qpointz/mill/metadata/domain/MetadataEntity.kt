@@ -2,6 +2,7 @@ package io.qpointz.mill.metadata.domain
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
+import io.qpointz.mill.metadata.service.MetadataContext
 import java.io.Serializable
 import java.time.Instant
 import java.util.Optional
@@ -91,43 +92,28 @@ open class MetadataEntity(
     }
 
     /**
-     * Resolves facet value using scope precedence: global first, then roles, then teams,
-     * then user-specific (last scope wins).
+     * Resolves the effective facet value for [facetType] by merging across the scopes
+     * in [context] in order. Later scopes override earlier ones (last wins).
      *
-     * Scope keys use Mill URN notation via [MetadataUrns]:
-     * - global: [MetadataUrns.SCOPE_GLOBAL]
-     * - role:   [MetadataUrns.scopeRole]
-     * - team:   [MetadataUrns.scopeTeam]
-     * - user:   [MetadataUrns.scopeUser]
+     * Scopes in the context that have no entry for [facetType] are silently skipped.
+     * Returns the last non-null payload found, converted to [facetClass].
      *
      * @param facetType  the facet type URN key
-     * @param userId     the requesting user's identifier
-     * @param userTeams  the requesting user's team memberships
-     * @param userRoles  the requesting user's assigned roles
+     * @param context    the ordered scope context; last scope wins when multiple have data
      * @param facetClass the target class for conversion
      * @return an [Optional] containing the merged facet value, or empty if no scope matched
      */
     fun <T : Any> getMergedFacet(
         facetType: String,
-        userId: String,
-        userTeams: List<String>,
-        userRoles: List<String>,
+        context: MetadataContext,
         facetClass: Class<T>
     ): Optional<T> {
         val scopedFacets = facets[facetType] ?: return Optional.empty<T>()
-        val facetDataList = mutableListOf<Any?>()
-
-        scopedFacets[MetadataUrns.SCOPE_GLOBAL]?.let { facetDataList.add(it) }
-        for (role in userRoles) {
-            scopedFacets[MetadataUrns.scopeRole(role)]?.let { facetDataList.add(it) }
-        }
-        for (team in userTeams) {
-            scopedFacets[MetadataUrns.scopeTeam(team)]?.let { facetDataList.add(it) }
-        }
-        scopedFacets[MetadataUrns.scopeUser(userId)]?.let { facetDataList.add(it) }
-
-        if (facetDataList.isEmpty()) return Optional.empty<T>()
-        return converter().convert(facetDataList.last(), facetClass)
+        val winner = context.scopes
+            .mapNotNull { scopedFacets[it] }
+            .lastOrNull()
+            ?: return Optional.empty<T>()
+        return converter().convert(winner, facetClass)
     }
 
     companion object {

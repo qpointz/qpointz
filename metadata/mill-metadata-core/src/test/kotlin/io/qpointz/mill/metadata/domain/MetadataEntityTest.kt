@@ -1,5 +1,6 @@
 package io.qpointz.mill.metadata.domain
 
+import io.qpointz.mill.metadata.service.MetadataContext
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -31,7 +32,9 @@ class MetadataEntityTest {
         entity.setFacet(MetadataUrns.FACET_TYPE_DESCRIPTIVE, MetadataUrns.scopeUser("alice@company.com"),
             mapOf("description" to "User-specific description"))
         val merged = entity.getMergedFacet(
-            MetadataUrns.FACET_TYPE_DESCRIPTIVE, "alice@company.com", emptyList(), emptyList(), Map::class.java)
+            MetadataUrns.FACET_TYPE_DESCRIPTIVE,
+            MetadataContext(listOf(MetadataUrns.SCOPE_GLOBAL, MetadataUrns.scopeUser("alice@company.com"))),
+            Map::class.java)
         assertTrue(merged.isPresent)
         assertEquals("User-specific description", (merged.get() as Map<*, *>)["description"])
     }

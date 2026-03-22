@@ -3,9 +3,11 @@ package io.qpointz.mill.metadata.configuration
 import io.qpointz.mill.metadata.domain.MetadataChangeObserverDelegate
 import io.qpointz.mill.metadata.repository.FacetTypeRepository
 import io.qpointz.mill.metadata.repository.MetadataRepository
+import io.qpointz.mill.metadata.repository.MetadataScopeRepository
 import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaFacetTypeRepository
 import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaMetadataChangeObserver
 import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaMetadataRepository
+import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaMetadataScopeRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataEntityJpaRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetScopeJpaRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetTypeJpaRepository
@@ -26,9 +28,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
  * - `io.qpointz.mill.persistence.metadata.jpa.entities.MetadataEntityRecord` is on the classpath
  * - `mill.metadata.storage.type=jpa` is set in application properties
  *
- * Registers three beans:
+ * Registers four beans:
  * - [JpaMetadataRepository] as the [MetadataRepository] implementation
  * - [JpaFacetTypeRepository] as the [FacetTypeRepository] implementation
+ * - [JpaMetadataScopeRepository] as the [MetadataScopeRepository] implementation
  * - [JpaMetadataChangeObserver] as a [MetadataChangeObserverDelegate] for audit persistence
  *
  * Entity scanning and JPA repository enablement are scoped to the
@@ -69,6 +72,18 @@ class MetadataJpaPersistenceAutoConfiguration {
     fun jpaFacetTypeRepository(
         jpaRepo: MetadataFacetTypeJpaRepository
     ): FacetTypeRepository = JpaFacetTypeRepository(jpaRepo)
+
+    /**
+     * Creates a [JpaMetadataScopeRepository] when no other [MetadataScopeRepository] bean is present.
+     *
+     * @param jpaRepo Spring Data repository for `metadata_scope`
+     * @return the JPA-backed [MetadataScopeRepository] implementation
+     */
+    @Bean
+    @ConditionalOnMissingBean(MetadataScopeRepository::class)
+    fun jpaMetadataScopeRepository(
+        jpaRepo: MetadataScopeJpaRepository
+    ): MetadataScopeRepository = JpaMetadataScopeRepository(jpaRepo)
 
     /**
      * Creates a [JpaMetadataChangeObserver] that persists audit entries to `metadata_operation_audit`.
