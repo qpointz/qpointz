@@ -93,7 +93,7 @@ class AuthControllerTest {
         val controller = AuthController(identityService, securityEnabled = true)
         whenever(request.getSession(false)).thenReturn(session)
 
-        val response = controller.logout(request)
+        val response = controller.logout(request, null)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         org.mockito.kotlin.verify(session).invalidate()
@@ -104,7 +104,7 @@ class AuthControllerTest {
         val controller = AuthController(identityService, securityEnabled = true)
         whenever(request.getSession(false)).thenReturn(null)
 
-        val response = controller.logout(request)
+        val response = controller.logout(request, null)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
     }

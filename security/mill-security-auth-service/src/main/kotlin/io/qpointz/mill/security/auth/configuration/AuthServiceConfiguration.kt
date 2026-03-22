@@ -3,6 +3,7 @@ package io.qpointz.mill.security.auth.configuration
 import io.qpointz.mill.persistence.security.jpa.repositories.UserCredentialRepository
 import io.qpointz.mill.persistence.security.jpa.repositories.UserIdentityRepository
 import io.qpointz.mill.persistence.security.jpa.repositories.UserProfileRepository
+import io.qpointz.mill.security.audit.AuthAuditService
 import io.qpointz.mill.security.auth.controllers.AuthController
 import io.qpointz.mill.security.auth.controllers.AuthPublicController
 import io.qpointz.mill.security.auth.service.UserProfileService
@@ -63,6 +64,7 @@ open class AuthServiceConfiguration {
      * @param userIdentityRepository optional — absent without `mill-security-persistence`
      * @param userCredentialRepository optional — absent without `mill-security-persistence`
      * @param passwordHasher optional — absent without `mill-security-persistence`
+     * @param authAuditService optional — absent without `mill-security-persistence`
      * @return configured [AuthPublicController]
      */
     @Bean
@@ -74,6 +76,7 @@ open class AuthServiceConfiguration {
         @Autowired(required = false) userIdentityRepository: UserIdentityRepository?,
         @Autowired(required = false) userCredentialRepository: UserCredentialRepository?,
         @Autowired(required = false) passwordHasher: PasswordHasher?,
+        @Autowired(required = false) authAuditService: AuthAuditService?,
     ): AuthPublicController = AuthPublicController(
         authenticationManager,
         identityResolutionService,
@@ -82,6 +85,7 @@ open class AuthServiceConfiguration {
         userIdentityRepository,
         userCredentialRepository,
         passwordHasher,
+        authAuditService,
     )
 
     /**
@@ -90,6 +94,7 @@ open class AuthServiceConfiguration {
      * @param identityResolutionService optional — absent when security is disabled
      * @param securityEnabled whether `mill.security.enable` is true; defaults to `false`
      * @param userProfileService optional — absent when persistence module is not present
+     * @param authAuditService optional — absent without `mill-security-persistence`
      * @return configured [AuthController]
      */
     @Bean
@@ -97,5 +102,6 @@ open class AuthServiceConfiguration {
         @Autowired(required = false) identityResolutionService: UserIdentityResolutionService?,
         @Value("\${mill.security.enable:false}") securityEnabled: Boolean,
         @Autowired(required = false) userProfileService: UserProfileService?,
-    ): AuthController = AuthController(identityResolutionService, securityEnabled, userProfileService)
+        @Autowired(required = false) authAuditService: AuthAuditService?,
+    ): AuthController = AuthController(identityResolutionService, securityEnabled, userProfileService, authAuditService)
 }

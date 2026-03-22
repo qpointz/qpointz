@@ -108,6 +108,7 @@ dependencies {
     implementation(project(":data:formats:mill-data-format-parquet"))
     implementation(project(":data:formats:mill-data-format-arrow"))
 
+    implementation(project(":security:mill-security-autoconfigure"))
 
     //implementation(project(":ai:mill-ai-v1-nlsql-chat-service"))
     //implementation(project(":ui:mill-grinder-service"))

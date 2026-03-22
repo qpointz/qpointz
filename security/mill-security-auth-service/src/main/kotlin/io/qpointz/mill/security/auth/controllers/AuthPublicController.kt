@@ -3,6 +3,8 @@ package io.qpointz.mill.security.auth.controllers
 import io.qpointz.mill.persistence.security.jpa.entities.UserCredentialRecord
 import io.qpointz.mill.persistence.security.jpa.repositories.UserCredentialRepository
 import io.qpointz.mill.persistence.security.jpa.repositories.UserIdentityRepository
+import io.qpointz.mill.security.audit.AuthAuditService
+import io.qpointz.mill.security.audit.AuthEventType
 import io.qpointz.mill.security.auth.dto.AuthMeResponse
 import io.qpointz.mill.security.auth.dto.ErrorResponse
 import io.qpointz.mill.security.auth.dto.LoginRequest
@@ -10,6 +12,7 @@ import io.qpointz.mill.security.auth.dto.RegisterRequest
 import io.qpointz.mill.security.domain.PasswordHasher
 import io.qpointz.mill.security.domain.UserIdentityResolutionService
 import jakarta.servlet.http.HttpServletRequest
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.AuthenticationManager
@@ -41,6 +44,9 @@ import java.util.UUID
  * returns an anonymous [AuthMeResponse] without touching the [AuthenticationManager].
  * Registration always returns `403` when security is disabled.
  *
+ * All security-relevant operations are written to the application log and, when
+ * [authAuditService] is present, to the persistent `auth_events` table.
+ *
  * @property authenticationManager optional — may be absent if no auth provider beans are configured
  * @property identityResolutionService optional — may be absent if only the API module is on classpath
  * @property securityEnabled whether `mill.security.enable` is `true`; when `false` all requests
@@ -53,6 +59,7 @@ import java.util.UUID
  *   the `mill-security-persistence` module
  * @property passwordHasher optional — required for the register endpoint; absent without
  *   the `mill-security-persistence` module
+ * @property authAuditService optional — when present each auth event is persisted to `auth_events`
  */
 @RestController
 @RequestMapping("/auth/public")
@@ -64,7 +71,10 @@ class AuthPublicController(
     private val userIdentityRepository: UserIdentityRepository? = null,
     private val userCredentialRepository: UserCredentialRepository? = null,
     private val passwordHasher: PasswordHasher? = null,
+    private val authAuditService: AuthAuditService? = null,
 ) {
+
+    private val log = LoggerFactory.getLogger(AuthPublicController::class.java)
 
     /**
      * Authenticates a user and creates an HTTP session.
@@ -79,7 +89,7 @@ class AuthPublicController(
      * When security is disabled:
      * - Returns `200 AuthMeResponse(userId="anonymous", securityEnabled=false)` immediately.
      *
-     * @param request the incoming HTTP request (used to create the session)
+     * @param request the incoming HTTP request (used to create the session and extract IP/UA)
      * @param loginRequest JSON body containing `username` and `password`
      * @return `200 AuthMeResponse` on success, `401 ErrorResponse` on failure
      */
@@ -89,11 +99,14 @@ class AuthPublicController(
         @RequestBody loginRequest: LoginRequest,
     ): ResponseEntity<Any> {
         if (!securityEnabled) {
+            log.debug("Login skipped: security disabled, returning anonymous response")
             return ResponseEntity.ok(anonymousResponse())
         }
 
         val manager = authenticationManager
             ?: return ResponseEntity.ok(anonymousResponse())
+
+        log.info("Login attempt: subject={} ip={}", loginRequest.username, ipAddress(request))
 
         return try {
             val token = UsernamePasswordAuthenticationToken(loginRequest.username, loginRequest.password)
@@ -107,12 +120,38 @@ class AuthPublicController(
             SecurityContextHolder.setContext(context)
 
             val response = buildAuthMeResponse(authentication.name, authentication.authorities.map { it.authority })
+            log.info("Login success: subject={} userId={} ip={}", loginRequest.username, response.userId, ipAddress(request))
+            authAuditService?.record(
+                type = AuthEventType.LOGIN_SUCCESS,
+                subject = loginRequest.username,
+                userId = response.userId,
+                ipAddress = ipAddress(request),
+                userAgent = userAgent(request),
+            )
             ResponseEntity.ok(response)
         } catch (ex: BadCredentialsException) {
+            log.warn("Login failure: subject={} reason=BAD_CREDENTIALS ip={}", loginRequest.username, ipAddress(request))
+            authAuditService?.record(
+                type = AuthEventType.LOGIN_FAILURE,
+                subject = loginRequest.username,
+                userId = null,
+                ipAddress = ipAddress(request),
+                userAgent = userAgent(request),
+                failureReason = "BAD_CREDENTIALS",
+            )
             ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                 ErrorResponse(401, "Unauthorized", "Invalid username or password")
             )
         } catch (ex: Exception) {
+            log.warn("Login failure: subject={} reason=AUTH_ERROR ip={} error={}", loginRequest.username, ipAddress(request), ex.message)
+            authAuditService?.record(
+                type = AuthEventType.LOGIN_FAILURE,
+                subject = loginRequest.username,
+                userId = null,
+                ipAddress = ipAddress(request),
+                userAgent = userAgent(request),
+                failureReason = "AUTH_ERROR",
+            )
             ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                 ErrorResponse(401, "Unauthorized", "Authentication failed")
             )
@@ -136,7 +175,7 @@ class AuthPublicController(
      *   [org.springframework.security.core.context.SecurityContext] (same flow as login).
      * - Returns `201 AuthMeResponse`.
      *
-     * @param request the incoming HTTP request (used to create the session)
+     * @param request the incoming HTTP request (used to create the session and extract IP/UA)
      * @param registerRequest JSON body containing `email`, `password`, and optional `displayName`
      * @return `201 AuthMeResponse` on success; `403`, `409`, or `422 ErrorResponse` on failure
      */
@@ -146,6 +185,15 @@ class AuthPublicController(
         @RequestBody registerRequest: RegisterRequest,
     ): ResponseEntity<Any> {
         if (!allowRegistration) {
+            log.warn("Registration rejected: registration disabled ip={}", ipAddress(request))
+            authAuditService?.record(
+                type = AuthEventType.REGISTER_FAILURE,
+                subject = registerRequest.email,
+                userId = null,
+                ipAddress = ipAddress(request),
+                userAgent = userAgent(request),
+                failureReason = "REGISTRATION_DISABLED",
+            )
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
                 ErrorResponse(403, "Forbidden", "Registration is disabled")
             )
@@ -153,12 +201,30 @@ class AuthPublicController(
 
         val email = registerRequest.email.trim()
         if (!isValidEmail(email)) {
+            log.warn("Registration rejected: invalid email subject={} ip={}", email, ipAddress(request))
+            authAuditService?.record(
+                type = AuthEventType.REGISTER_FAILURE,
+                subject = email,
+                userId = null,
+                ipAddress = ipAddress(request),
+                userAgent = userAgent(request),
+                failureReason = "VALIDATION_ERROR",
+            )
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(
                 ErrorResponse(422, "Unprocessable Entity", "Invalid email address")
             )
         }
 
         if (registerRequest.password.isBlank()) {
+            log.warn("Registration rejected: blank password subject={} ip={}", email, ipAddress(request))
+            authAuditService?.record(
+                type = AuthEventType.REGISTER_FAILURE,
+                subject = email,
+                userId = null,
+                ipAddress = ipAddress(request),
+                userAgent = userAgent(request),
+                failureReason = "VALIDATION_ERROR",
+            )
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(
                 ErrorResponse(422, "Unprocessable Entity", "Password must not be blank")
             )
@@ -179,8 +245,19 @@ class AuthPublicController(
                 ErrorResponse(500, "Internal Server Error", "Registration infrastructure unavailable")
             )
 
+        log.info("Registration attempt: subject={} ip={}", email, ipAddress(request))
+
         val existing = identityRepo.findByProviderAndSubject("local", email)
         if (existing != null) {
+            log.warn("Registration conflict: subject={} ip={}", email, ipAddress(request))
+            authAuditService?.record(
+                type = AuthEventType.REGISTER_FAILURE,
+                subject = email,
+                userId = null,
+                ipAddress = ipAddress(request),
+                userAgent = userAgent(request),
+                failureReason = "DUPLICATE_EMAIL",
+            )
             return ResponseEntity.status(HttpStatus.CONFLICT).body(
                 ErrorResponse(409, "Conflict", "An account with this email already exists")
             )
@@ -222,6 +299,15 @@ class AuthPublicController(
             }
         }
 
+        log.info("Registration success: subject={} userId={} ip={}", email, resolved.userId, ipAddress(request))
+        authAuditService?.record(
+            type = AuthEventType.REGISTER_SUCCESS,
+            subject = email,
+            userId = resolved.userId,
+            ipAddress = ipAddress(request),
+            userAgent = userAgent(request),
+        )
+
         val response = AuthMeResponse(
             userId = resolved.userId,
             email = resolved.primaryEmail,
@@ -251,6 +337,28 @@ class AuthPublicController(
         groups = emptyList(),
         securityEnabled = false,
     )
+
+    /**
+     * Extracts the originating IP address from the request.
+     *
+     * Checks the `X-Forwarded-For` header first (set by reverse proxies); falls back to
+     * [HttpServletRequest.remoteAddr] when the header is absent.
+     *
+     * @param request the incoming HTTP request
+     * @return the client IP address string, or `null` if unavailable
+     */
+    private fun ipAddress(request: HttpServletRequest): String? =
+        request.getHeader("X-Forwarded-For")?.substringBefore(',')?.trim()
+            ?: request.remoteAddr
+
+    /**
+     * Extracts the `User-Agent` header value from the request.
+     *
+     * @param request the incoming HTTP request
+     * @return the User-Agent string, or `null` if the header is absent
+     */
+    private fun userAgent(request: HttpServletRequest): String? =
+        request.getHeader("User-Agent")
 
     /**
      * Simple email format check using a standard pattern.

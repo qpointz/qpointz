@@ -1,10 +1,13 @@
 package io.qpointz.mill.persistence.security.jpa.configuration
 
+import io.qpointz.mill.persistence.security.jpa.audit.JpaAuthAuditService
+import io.qpointz.mill.persistence.security.jpa.repositories.AuthEventRepository
 import io.qpointz.mill.persistence.security.jpa.repositories.GroupMembershipRepository
 import io.qpointz.mill.persistence.security.jpa.repositories.UserIdentityRepository
 import io.qpointz.mill.persistence.security.jpa.repositories.UserProfileRepository
 import io.qpointz.mill.persistence.security.jpa.repositories.UserRepository
 import io.qpointz.mill.persistence.security.jpa.service.JpaUserIdentityResolutionService
+import io.qpointz.mill.security.audit.AuthAuditService
 import io.qpointz.mill.security.domain.UserIdentityResolutionService
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
@@ -34,10 +37,17 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 class SecurityJpaConfiguration {
 
     /**
-     * Exposes [JpaUserIdentityResolutionService] as the [UserIdentityResolutionService] bean.
+     * Exposes [JpaAuthAuditService] as the [AuthAuditService] bean.
      *
-     * Typed to the interface so callers depend only on the contract, enabling alternative
-     * persistence backends without changes to dependent modules.
+     * @param repo repository for persisting [io.qpointz.mill.persistence.security.jpa.entities.AuthEventRecord] rows
+     * @return [AuthAuditService] backed by JPA
+     */
+    @Bean
+    fun authAuditService(repo: AuthEventRepository): AuthAuditService =
+        JpaAuthAuditService(repo)
+
+    /**
+     * Exposes [JpaUserIdentityResolutionService] as the [UserIdentityResolutionService] bean.
      *
      * @param userRepo repository for canonical user records
      * @param identityRepo repository for provider/subject → userId mappings

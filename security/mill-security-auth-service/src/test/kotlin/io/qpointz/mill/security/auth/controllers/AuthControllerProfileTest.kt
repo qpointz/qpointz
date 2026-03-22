@@ -8,6 +8,7 @@ import io.qpointz.mill.security.auth.service.UserProfileService
 import io.qpointz.mill.security.domain.ResolvedUser
 import io.qpointz.mill.security.domain.UserIdentityResolutionService
 import io.qpointz.mill.security.domain.UserStatus
+import jakarta.servlet.http.HttpServletRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -25,6 +26,7 @@ class AuthControllerProfileTest {
 
     private val identityService: UserIdentityResolutionService = mock()
     private val userProfileService: UserProfileService = mock()
+    private val request: HttpServletRequest = mock()
 
     private fun resolvedAlice() = ResolvedUser("user-uuid-1", "Alice", "alice@example.com", UserStatus.ACTIVE)
 
@@ -86,7 +88,7 @@ class AuthControllerProfileTest {
         whenever(userProfileService.update(any<String>(), any<UserProfilePatch>())).thenReturn(updatedRecord)
 
         val patch = UserProfilePatch(displayName = "Updated Alice", email = "updated@example.com", locale = "fr")
-        val response = controller.updateProfile(aliceAuth(), patch)
+        val response = controller.updateProfile(request, aliceAuth(), patch)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         val body = response.body as UserProfileResponse
@@ -100,7 +102,7 @@ class AuthControllerProfileTest {
     fun `updateProfile_whenUnauthenticated_returns401`() {
         val controller = AuthController(identityService, securityEnabled = true, userProfileService = userProfileService)
 
-        val response = controller.updateProfile(null, UserProfilePatch(null, null, null))
+        val response = controller.updateProfile(request, null, UserProfilePatch(null, null, null))
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
     }
@@ -109,7 +111,7 @@ class AuthControllerProfileTest {
     fun `updateProfile_whenSecurityOff_returns401`() {
         val controller = AuthController(identityService, securityEnabled = false, userProfileService = userProfileService)
 
-        val response = controller.updateProfile(aliceAuth(), UserProfilePatch(displayName = "X", null, null))
+        val response = controller.updateProfile(request, aliceAuth(), UserProfilePatch(displayName = "X", null, null))
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
     }
