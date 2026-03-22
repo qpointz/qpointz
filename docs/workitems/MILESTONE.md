@@ -183,6 +183,19 @@ Items delivered in this milestone.
   thin controllers, semantic `MillStatusException` usage, centralized HTTP advice, and standard
   REST error payload direction; adopted as the reference pattern for `mill-ai-v3-service`
 
+- SEC-1/1a/3a/3b/3c/3d/3e — User authentication and profile management (STORY-USER-AUTH):
+  persistent JPA identity model (`users`, `user_credentials`, `user_identities`, `groups`,
+  `group_memberships`, `user_profiles`, `auth_events`); `validated`/`locked` account login
+  gates with `lockDate`/`lockReason`; `JpaUserIdentityResolutionService` and `JpaUserRepo`
+  (provider/subject → canonical userId for all auth methods); `JpaAuthAuditService` writing
+  to `auth_events` on every login/logout/register/profile-update; `mill-security-auth-service`
+  REST endpoints (`POST /auth/public/login`, `POST /auth/public/register`, `POST /auth/logout`,
+  `GET /auth/me`, `PATCH /auth/profile`); `mill-security-autoconfigure` module extracted from
+  `mill-service-security`; `mill-ui` fully wired: real `AuthContext`, `authService.ts`,
+  `RequireAuth`, `LoginPage`/`RegisterPage`, profile editing, feature flag defaults
+  (registration on, social providers off); `secure` dev profile (H2 + Flyway + default
+  admin/admin seed); design: `docs/design/security/user-identity-jpa-implementation.md`
+
 ### In Progress
 
 Items currently being implemented in this milestone.

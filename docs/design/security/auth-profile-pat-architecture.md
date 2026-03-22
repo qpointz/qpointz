@@ -1,7 +1,7 @@
 # Mill Security Design - Forms Login, User Profiles, and PAT
 
-**Status:** Proposed  
-**Date:** March 21, 2026  
+**Status:** Phases 1 and 2 implemented — see `user-identity-jpa-implementation.md` for the detailed implementation design
+**Date:** March 21, 2026
 **Scope:** HTTP auth UX + user identity persistence + personal access tokens (PAT) with future OAuth compatibility
 
 ## 1. Goal

@@ -31,19 +31,21 @@ function renderWithFlags(ui: React.ReactElement, flags = defaultFeatureFlags) {
   );
 }
 
+const noopLogin = async (_email: string, _password: string) => {};
+
 describe('LoginPage', () => {
   it('should render the brand name', () => {
-    renderWithProviders(<LoginPage onLogin={() => {}} />);
+    renderWithProviders(<LoginPage onLogin={noopLogin} />);
     expect(screen.getByText('DataChat')).toBeInTheDocument();
   });
 
   it('should render "Sign in to your workspace" subtitle', () => {
-    renderWithProviders(<LoginPage onLogin={() => {}} />);
+    renderWithProviders(<LoginPage onLogin={noopLogin} />);
     expect(screen.getByText('Sign in to your workspace')).toBeInTheDocument();
   });
 
   it('should render social login buttons', () => {
-    renderWithFlags(<LoginPage onLogin={() => {}} />, {
+    renderWithFlags(<LoginPage onLogin={noopLogin} />, {
       ...defaultFeatureFlags,
       loginGithub: true,
       loginGoogle: true,
@@ -59,18 +61,18 @@ describe('LoginPage', () => {
   });
 
   it('should render email and password fields', () => {
-    renderWithProviders(<LoginPage onLogin={() => {}} />);
+    renderWithProviders(<LoginPage onLogin={noopLogin} />);
     expect(screen.getByPlaceholderText('you@example.com')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Your password')).toBeInTheDocument();
   });
 
   it('should render Sign in button', () => {
-    renderWithProviders(<LoginPage onLogin={() => {}} />);
+    renderWithProviders(<LoginPage onLogin={noopLogin} />);
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
   });
 
   it('should render social login buttons as non-functional placeholders', () => {
-    renderWithFlags(<LoginPage onLogin={() => {}} />, {
+    renderWithFlags(<LoginPage onLogin={noopLogin} />, {
       ...defaultFeatureFlags,
       loginGithub: true,
     });
@@ -78,19 +80,19 @@ describe('LoginPage', () => {
   });
 
   it('should call onLogin when form is submitted', () => {
-    const onLogin = vi.fn();
+    const onLogin = vi.fn(async () => {});
     renderWithProviders(<LoginPage onLogin={onLogin} />);
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
     expect(onLogin).toHaveBeenCalledTimes(1);
   });
 
   it('should render forgot password link', () => {
-    renderWithProviders(<LoginPage onLogin={() => {}} />);
+    renderWithProviders(<LoginPage onLogin={noopLogin} />);
     expect(screen.getByText('Forgot password?')).toBeInTheDocument();
   });
 
   it('should NOT render sign up link when loginRegistration is false', () => {
-    renderWithFlags(<LoginPage onLogin={() => {}} />, {
+    renderWithFlags(<LoginPage onLogin={noopLogin} />, {
       ...defaultFeatureFlags,
       loginRegistration: false,
     });
@@ -98,7 +100,7 @@ describe('LoginPage', () => {
   });
 
   it('should render sign up link when loginRegistration is true', () => {
-    renderWithFlags(<LoginPage onLogin={() => {}} />, {
+    renderWithFlags(<LoginPage onLogin={noopLogin} />, {
       ...defaultFeatureFlags,
       loginRegistration: true,
     });

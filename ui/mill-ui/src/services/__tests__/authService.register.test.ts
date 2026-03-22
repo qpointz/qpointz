@@ -51,8 +51,8 @@ describe('authService.register', () => {
   it('sends displayName in request body when provided', async () => {
     mockFetch.mockReturnValue(mockResponse(201, meResponse));
     await register('alice@example.com', 'secret', 'Alice');
-    const callArgs = mockFetch.mock.calls[0];
-    const body = JSON.parse(callArgs[1].body as string);
+    const [, init] = mockFetch.mock.calls[0]!;
+    const body = JSON.parse((init as RequestInit).body as string);
     expect(body.displayName).toBe('Alice');
     expect(body.email).toBe('alice@example.com');
     expect(body.password).toBe('secret');
@@ -61,8 +61,8 @@ describe('authService.register', () => {
   it('omits displayName from body when not provided', async () => {
     mockFetch.mockReturnValue(mockResponse(201, meResponse));
     await register('alice@example.com', 'secret');
-    const callArgs = mockFetch.mock.calls[0];
-    const body = JSON.parse(callArgs[1].body as string);
+    const [, init] = mockFetch.mock.calls[0]!;
+    const body = JSON.parse((init as RequestInit).body as string);
     expect(body.displayName).toBeUndefined();
   });
 });
