@@ -168,14 +168,14 @@ export const defaultFeatureFlags: FeatureFlags = {
   profileSettings: true,
   profileAccess: true,
 
-  loginGithub: true,
-  loginGoogle: true,
-  loginMicrosoft: true,
-  loginAws: true,
-  loginAzure: true,
+  loginGithub: false,
+  loginGoogle: false,
+  loginMicrosoft: false,
+  loginAws: false,
+  loginAzure: false,
   loginPassword: true,
 
-  loginRegistration: false,
+  loginRegistration: true,
 
   relatedContentEnabled: true,
   relatedContentModelContext: true,

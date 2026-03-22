@@ -43,7 +43,14 @@ describe('LoginPage', () => {
   });
 
   it('should render social login buttons', () => {
-    renderWithProviders(<LoginPage onLogin={() => {}} />);
+    renderWithFlags(<LoginPage onLogin={() => {}} />, {
+      ...defaultFeatureFlags,
+      loginGithub: true,
+      loginGoogle: true,
+      loginMicrosoft: true,
+      loginAws: true,
+      loginAzure: true,
+    });
     expect(screen.getByText('Continue with GitHub')).toBeInTheDocument();
     expect(screen.getByText('Continue with Google')).toBeInTheDocument();
     expect(screen.getByText('Continue with Microsoft')).toBeInTheDocument();
@@ -63,7 +70,10 @@ describe('LoginPage', () => {
   });
 
   it('should render social login buttons as non-functional placeholders', () => {
-    renderWithProviders(<LoginPage onLogin={() => {}} />);
+    renderWithFlags(<LoginPage onLogin={() => {}} />, {
+      ...defaultFeatureFlags,
+      loginGithub: true,
+    });
     expect(screen.getByText('Continue with GitHub')).toBeInTheDocument();
   });
 

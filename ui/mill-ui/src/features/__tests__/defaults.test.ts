@@ -13,7 +13,13 @@ describe('defaultFeatureFlags', () => {
 
   it('should have most flags default to true (except opt-in flags)', () => {
     // Flags that intentionally default to false (opt-in features requiring explicit enablement)
-    const optInFlags: (keyof FeatureFlags)[] = ['loginRegistration'];
+    const optInFlags: (keyof FeatureFlags)[] = [
+      'loginGithub',
+      'loginGoogle',
+      'loginMicrosoft',
+      'loginAws',
+      'loginAzure',
+    ];
 
     for (const [key, value] of Object.entries(defaultFeatureFlags)) {
       if (optInFlags.includes(key as keyof FeatureFlags)) {
