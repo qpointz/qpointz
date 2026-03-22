@@ -2,8 +2,8 @@ package io.qpointz.mill.metadata.service
 
 import io.qpointz.mill.metadata.domain.FacetTypeDescriptor
 import io.qpointz.mill.metadata.domain.MetadataEntity
-import io.qpointz.mill.metadata.domain.MetadataTargetType
 import io.qpointz.mill.metadata.domain.MetadataType
+import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.repository.InMemoryFacetTypeRepository
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -21,7 +21,9 @@ class FacetCatalogContentValidationTest {
         catalog = DefaultFacetCatalog(repository, JsonSchemaFacetContentValidator())
         repository.save(FacetTypeDescriptor(
             typeKey = "audit", mandatory = false, enabled = true,
-            displayName = "Audit", applicableTo = setOf(MetadataTargetType.TABLE), version = "1.0",
+            displayName = "Audit",
+            applicableTo = setOf(MetadataUrns.ENTITY_TYPE_TABLE),
+            version = "1.0",
             contentSchema = mapOf(
                 "type" to "object",
                 "properties" to mapOf(
@@ -51,13 +53,13 @@ class FacetCatalogContentValidationTest {
 
     @Test fun shouldValidateEntityFacets_withContentSchema() {
         val entity = MetadataEntity(id = "test", type = MetadataType.TABLE)
-        entity.setFacet("audit", "global", mapOf("status" to "invalid-value"))
+        entity.setFacet("audit", MetadataUrns.SCOPE_GLOBAL, mapOf("status" to "invalid-value"))
         assertFalse(catalog.validateEntityFacets(entity).valid)
     }
 
     @Test fun shouldPass_entityFacets_withValidContent() {
         val entity = MetadataEntity(id = "test", type = MetadataType.TABLE)
-        entity.setFacet("audit", "global", mapOf("status" to "passed", "auditor" to "bob"))
+        entity.setFacet("audit", MetadataUrns.SCOPE_GLOBAL, mapOf("status" to "passed", "auditor" to "bob"))
         assertTrue(catalog.validateEntityFacets(entity).valid)
     }
 }

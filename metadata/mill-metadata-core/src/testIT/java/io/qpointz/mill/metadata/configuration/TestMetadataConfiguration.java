@@ -14,6 +14,7 @@ public class TestMetadataConfiguration {
     
     @Bean
     @ConditionalOnBean(MetadataRepository.class)
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean(MetadataService.class)
     public MetadataService metadataService(MetadataRepository repository) {
         return new MetadataService(repository);
     }

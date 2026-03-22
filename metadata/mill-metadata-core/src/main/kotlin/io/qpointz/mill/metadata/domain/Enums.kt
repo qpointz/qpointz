@@ -5,11 +5,6 @@ enum class MetadataType {
     CATALOG, SCHEMA, TABLE, ATTRIBUTE, CONCEPT
 }
 
-/** Supported target kinds for facet applicability rules. */
-enum class MetadataTargetType {
-    CATALOG, SCHEMA, TABLE, ATTRIBUTE, CONCEPT, ANY
-}
-
 /** Cardinality options used by relation facets. */
 enum class RelationCardinality {
     ONE_TO_ONE, ONE_TO_MANY, MANY_TO_ONE, MANY_TO_MANY

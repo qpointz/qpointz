@@ -2,14 +2,20 @@ package io.qpointz.mill.metadata.service
 
 import io.qpointz.mill.metadata.domain.FacetTypeDescriptor
 import io.qpointz.mill.metadata.domain.MetadataEntity
-import io.qpointz.mill.metadata.domain.MetadataTargetType
 import io.qpointz.mill.metadata.domain.MetadataType
+import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.domain.ValidationResult
 import io.qpointz.mill.metadata.repository.FacetTypeRepository
 import org.slf4j.LoggerFactory
 import java.util.Optional
 
-/** Default catalog implementation backed by [FacetTypeRepository]. */
+/**
+ * Default [FacetCatalog] implementation backed by [FacetTypeRepository].
+ *
+ * @param repository       the underlying persistence store for facet type descriptors
+ * @param contentValidator optional JSON-schema validator for facet payloads;
+ *                         when absent, content validation is skipped
+ */
 class DefaultFacetCatalog(
     private val repository: FacetTypeRepository,
     private val contentValidator: FacetContentValidator? = null
@@ -53,7 +59,7 @@ class DefaultFacetCatalog(
     override fun getMandatory(): Collection<FacetTypeDescriptor> =
         repository.findAll().filter { it.mandatory }
 
-    override fun getForTargetType(targetType: MetadataTargetType): Collection<FacetTypeDescriptor> =
+    override fun getForTargetType(targetType: String): Collection<FacetTypeDescriptor> =
         repository.findAll().filter { it.isApplicableTo(targetType) }
 
     override fun isAllowed(typeKey: String): Boolean =
@@ -62,7 +68,7 @@ class DefaultFacetCatalog(
     override fun isMandatory(typeKey: String): Boolean =
         repository.findByTypeKey(typeKey).map { it.mandatory }.orElse(false)
 
-    override fun isApplicableTo(typeKey: String, targetType: MetadataTargetType): Boolean =
+    override fun isApplicableTo(typeKey: String, targetType: String): Boolean =
         repository.findByTypeKey(typeKey).map { it.isApplicableTo(targetType) }.orElse(true)
 
     override fun validateFacetContent(typeKey: String, facetData: Any?): ValidationResult {
@@ -80,7 +86,7 @@ class DefaultFacetCatalog(
     @Suppress("UNCHECKED_CAST")
     override fun validateEntityFacets(entity: MetadataEntity): ValidationResult {
         val results = mutableListOf<ValidationResult>()
-        val entityTargetType = toTargetType(entity.type)
+        val entityTargetType = toEntityTypeUrn(entity.type)
 
         val facets = entity.facets
         if (facets.isEmpty()) return ValidationResult.ok()
@@ -112,13 +118,18 @@ class DefaultFacetCatalog(
         return if (results.isEmpty()) ValidationResult.ok() else ValidationResult.merge(results)
     }
 
-    private fun toTargetType(type: MetadataType?): MetadataTargetType = when (type) {
-        MetadataType.CATALOG -> MetadataTargetType.CATALOG
-        MetadataType.SCHEMA -> MetadataTargetType.SCHEMA
-        MetadataType.TABLE -> MetadataTargetType.TABLE
-        MetadataType.ATTRIBUTE -> MetadataTargetType.ATTRIBUTE
-        MetadataType.CONCEPT -> MetadataTargetType.CONCEPT
-        null -> MetadataTargetType.ANY
+    /**
+     * Maps a [MetadataType] to the corresponding entity-type URN string.
+     *
+     * @param type the metadata entity type, or `null`
+     * @return entity-type URN string from [MetadataUrns], or empty string for null
+     */
+    private fun toEntityTypeUrn(type: MetadataType?): String = when (type) {
+        MetadataType.SCHEMA    -> MetadataUrns.ENTITY_TYPE_SCHEMA
+        MetadataType.TABLE     -> MetadataUrns.ENTITY_TYPE_TABLE
+        MetadataType.ATTRIBUTE -> MetadataUrns.ENTITY_TYPE_ATTRIBUTE
+        MetadataType.CONCEPT   -> MetadataUrns.ENTITY_TYPE_CONCEPT
+        else                   -> ""
     }
 
     companion object {

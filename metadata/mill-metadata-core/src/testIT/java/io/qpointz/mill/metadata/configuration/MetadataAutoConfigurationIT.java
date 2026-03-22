@@ -22,8 +22,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 })
 @ComponentScan(basePackages = "io.qpointz.mill.metadata")
 @TestPropertySource(properties = {
-    "mill.metadata.v2.storage.type=file",
-    "mill.metadata.v2.file.path=classpath:metadata/moneta-test.yml"
+    "mill.metadata.storage.type=file",
+    "mill.metadata.file.path=classpath:metadata/moneta-test.yml"
 })
 class MetadataAutoConfigurationIT {
 

@@ -9,30 +9,26 @@ class FacetTypeDescriptorTest {
     @Test
     fun shouldBeApplicableToAny_whenApplicableToIsNull() {
         val descriptor = FacetTypeDescriptor(typeKey = "test", applicableTo = null)
-        assertTrue(descriptor.isApplicableTo(MetadataTargetType.TABLE))
-        assertTrue(descriptor.isApplicableTo(MetadataTargetType.CONCEPT))
+        assertTrue(descriptor.isApplicableTo(MetadataUrns.ENTITY_TYPE_TABLE))
+        assertTrue(descriptor.isApplicableTo(MetadataUrns.ENTITY_TYPE_CONCEPT))
     }
 
     @Test
     fun shouldBeApplicableToAny_whenApplicableToIsEmpty() {
         val descriptor = FacetTypeDescriptor(typeKey = "test", applicableTo = emptySet())
-        assertTrue(descriptor.isApplicableTo(MetadataTargetType.TABLE))
-    }
-
-    @Test
-    fun shouldBeApplicableToAny_whenContainsANY() {
-        val descriptor = FacetTypeDescriptor(typeKey = "test", applicableTo = setOf(MetadataTargetType.ANY))
-        assertTrue(descriptor.isApplicableTo(MetadataTargetType.TABLE))
-        assertTrue(descriptor.isApplicableTo(MetadataTargetType.CONCEPT))
+        assertTrue(descriptor.isApplicableTo(MetadataUrns.ENTITY_TYPE_TABLE))
     }
 
     @Test
     fun shouldRestrict_whenApplicableToIsSpecific() {
-        val descriptor = FacetTypeDescriptor(typeKey = "structural", applicableTo = setOf(MetadataTargetType.TABLE, MetadataTargetType.ATTRIBUTE))
-        assertTrue(descriptor.isApplicableTo(MetadataTargetType.TABLE))
-        assertTrue(descriptor.isApplicableTo(MetadataTargetType.ATTRIBUTE))
-        assertFalse(descriptor.isApplicableTo(MetadataTargetType.CONCEPT))
-        assertFalse(descriptor.isApplicableTo(MetadataTargetType.SCHEMA))
+        val descriptor = FacetTypeDescriptor(
+            typeKey = "structural",
+            applicableTo = setOf(MetadataUrns.ENTITY_TYPE_TABLE, MetadataUrns.ENTITY_TYPE_ATTRIBUTE)
+        )
+        assertTrue(descriptor.isApplicableTo(MetadataUrns.ENTITY_TYPE_TABLE))
+        assertTrue(descriptor.isApplicableTo(MetadataUrns.ENTITY_TYPE_ATTRIBUTE))
+        assertFalse(descriptor.isApplicableTo(MetadataUrns.ENTITY_TYPE_CONCEPT))
+        assertFalse(descriptor.isApplicableTo(MetadataUrns.ENTITY_TYPE_SCHEMA))
     }
 
     @Test

@@ -1,3 +1,5 @@
 io.qpointz.mill.metadata.configuration.MetadataCoreConfiguration
 io.qpointz.mill.metadata.configuration.MetadataRepositoryAutoConfiguration
+io.qpointz.mill.metadata.configuration.MetadataEntityServiceAutoConfiguration
+io.qpointz.mill.metadata.configuration.MetadataImportExportAutoConfiguration
 

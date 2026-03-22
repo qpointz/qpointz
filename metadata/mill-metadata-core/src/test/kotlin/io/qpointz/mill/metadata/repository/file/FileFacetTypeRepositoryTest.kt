@@ -1,7 +1,7 @@
 package io.qpointz.mill.metadata.repository.file
 
 import io.qpointz.mill.metadata.domain.FacetTypeDescriptor
-import io.qpointz.mill.metadata.domain.MetadataTargetType
+import io.qpointz.mill.metadata.domain.MetadataUrns
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -18,18 +18,19 @@ class FileFacetTypeRepositoryTest {
     }
 
     @Test fun shouldFindByTypeKey() {
-        val descriptive = createRepository().findByTypeKey("descriptive")
+        val descriptive = createRepository().findByTypeKey(MetadataUrns.FACET_TYPE_DESCRIPTIVE)
         assertTrue(descriptive.isPresent)
         assertEquals("Descriptive", descriptive.get().displayName)
         assertTrue(descriptive.get().mandatory)
     }
 
     @Test fun shouldLoadApplicableTo() {
-        val targets = createRepository().findByTypeKey("descriptive").orElseThrow().applicableTo
+        val targets = createRepository().findByTypeKey(MetadataUrns.FACET_TYPE_DESCRIPTIVE)
+            .orElseThrow().applicableTo
         assertNotNull(targets)
-        assertTrue(MetadataTargetType.TABLE in targets!!)
-        assertTrue(MetadataTargetType.SCHEMA in targets)
-        assertTrue(MetadataTargetType.ATTRIBUTE in targets)
+        assertTrue(MetadataUrns.ENTITY_TYPE_TABLE in targets!!)
+        assertTrue(MetadataUrns.ENTITY_TYPE_SCHEMA in targets)
+        assertTrue(MetadataUrns.ENTITY_TYPE_ATTRIBUTE in targets)
     }
 
     @Test fun shouldLoadContentSchema() {
@@ -47,9 +48,9 @@ class FileFacetTypeRepositoryTest {
 
     @Test fun shouldDeleteType() {
         val repo = createRepository()
-        assertTrue(repo.existsByTypeKey("descriptive"))
-        repo.deleteByTypeKey("descriptive")
-        assertFalse(repo.existsByTypeKey("descriptive"))
+        assertTrue(repo.existsByTypeKey(MetadataUrns.FACET_TYPE_DESCRIPTIVE))
+        repo.deleteByTypeKey(MetadataUrns.FACET_TYPE_DESCRIPTIVE)
+        assertFalse(repo.existsByTypeKey(MetadataUrns.FACET_TYPE_DESCRIPTIVE))
     }
 
     @Test fun shouldReturnEmpty_forUnknownType() {

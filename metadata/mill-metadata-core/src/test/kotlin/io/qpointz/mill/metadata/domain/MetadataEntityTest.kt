@@ -16,8 +16,9 @@ class MetadataEntityTest {
     @Test
     fun shouldSetAndGetFacet_withScope() {
         val entity = MetadataEntity(id = "test.entity")
-        entity.setFacet("descriptive", "global", mapOf("displayName" to "Test Table", "description" to "Test description"))
-        val facet = entity.getFacet("descriptive", "global", Map::class.java)
+        entity.setFacet(MetadataUrns.FACET_TYPE_DESCRIPTIVE, MetadataUrns.SCOPE_GLOBAL,
+            mapOf("displayName" to "Test Table", "description" to "Test description"))
+        val facet = entity.getFacet(MetadataUrns.FACET_TYPE_DESCRIPTIVE, MetadataUrns.SCOPE_GLOBAL, Map::class.java)
         assertTrue(facet.isPresent)
         assertEquals("Test Table", (facet.get() as Map<*, *>)["displayName"])
     }
@@ -25,9 +26,12 @@ class MetadataEntityTest {
     @Test
     fun shouldGetMergedFacet_withUserScope() {
         val entity = MetadataEntity(id = "test.entity")
-        entity.setFacet("descriptive", "global", mapOf("description" to "Global description"))
-        entity.setFacet("descriptive", "user:alice@company.com", mapOf("description" to "User-specific description"))
-        val merged = entity.getMergedFacet("descriptive", "alice@company.com", emptyList(), emptyList(), Map::class.java)
+        entity.setFacet(MetadataUrns.FACET_TYPE_DESCRIPTIVE, MetadataUrns.SCOPE_GLOBAL,
+            mapOf("description" to "Global description"))
+        entity.setFacet(MetadataUrns.FACET_TYPE_DESCRIPTIVE, MetadataUrns.scopeUser("alice@company.com"),
+            mapOf("description" to "User-specific description"))
+        val merged = entity.getMergedFacet(
+            MetadataUrns.FACET_TYPE_DESCRIPTIVE, "alice@company.com", emptyList(), emptyList(), Map::class.java)
         assertTrue(merged.isPresent)
         assertEquals("User-specific description", (merged.get() as Map<*, *>)["description"])
     }
@@ -35,13 +39,13 @@ class MetadataEntityTest {
     @Test
     fun shouldGetFacetScopes() {
         val entity = MetadataEntity(id = "test.entity")
-        entity.setFacet("descriptive", "global", emptyMap<String, Any>())
-        entity.setFacet("descriptive", "user:alice@company.com", emptyMap<String, Any>())
-        entity.setFacet("descriptive", "team:engineering", emptyMap<String, Any>())
-        val scopes = entity.getFacetScopes("descriptive")
+        entity.setFacet(MetadataUrns.FACET_TYPE_DESCRIPTIVE, MetadataUrns.SCOPE_GLOBAL, emptyMap<String, Any>())
+        entity.setFacet(MetadataUrns.FACET_TYPE_DESCRIPTIVE, MetadataUrns.scopeUser("alice@company.com"), emptyMap<String, Any>())
+        entity.setFacet(MetadataUrns.FACET_TYPE_DESCRIPTIVE, MetadataUrns.scopeTeam("engineering"), emptyMap<String, Any>())
+        val scopes = entity.getFacetScopes(MetadataUrns.FACET_TYPE_DESCRIPTIVE)
         assertEquals(3, scopes.size)
-        assertTrue(scopes.contains("global"))
-        assertTrue(scopes.contains("user:alice@company.com"))
-        assertTrue(scopes.contains("team:engineering"))
+        assertTrue(scopes.contains(MetadataUrns.SCOPE_GLOBAL))
+        assertTrue(scopes.contains(MetadataUrns.scopeUser("alice@company.com")))
+        assertTrue(scopes.contains(MetadataUrns.scopeTeam("engineering")))
     }
 }

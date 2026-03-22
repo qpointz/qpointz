@@ -20,7 +20,7 @@ import org.springframework.core.io.ResourceLoader
 @EnableConfigurationProperties(MetadataProperties::class)
 @ConditionalOnMissingBean(MetadataRepository::class)
 @ConditionalOnProperty(
-    prefix = "mill.metadata.v2.storage",
+    prefix = "mill.metadata.storage",
     name = ["type"],
     havingValue = "file",
     matchIfMissing = true

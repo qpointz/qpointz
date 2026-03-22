@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
     MetadataRepositoryAutoConfiguration.class
 })
 @TestPropertySource(properties = {
-    "mill.metadata.v2.storage.type=none"
+    "mill.metadata.storage.type=none"
 })
 class MetadataAutoConfigurationDisabledIT {
 

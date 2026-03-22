@@ -16,13 +16,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest(classes = {
     MetadataCoreConfiguration.class,
-    MetadataRepositoryAutoConfiguration.class,
-    MetadataService.class
+    MetadataRepositoryAutoConfiguration.class
 })
-@ComponentScan(basePackages = "io.qpointz.mill.metadata")
 @TestPropertySource(properties = {
-    "mill.metadata.v2.file.path=classpath:metadata/moneta-test.yml",
-    "mill.metadata.v2.storage.type=file"
+    "mill.metadata.file.path=classpath:metadata/moneta-test.yml",
+    "mill.metadata.storage.type=file"
     // Note: storage.type is not specified, should default to "file"
 })
 class MetadataAutoConfigurationDefaultIT {

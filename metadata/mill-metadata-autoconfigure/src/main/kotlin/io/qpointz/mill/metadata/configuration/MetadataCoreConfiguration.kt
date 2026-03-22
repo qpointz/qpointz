@@ -3,7 +3,7 @@ package io.qpointz.mill.metadata.configuration
 import io.qpointz.mill.metadata.domain.DefaultFacetClassResolver
 import io.qpointz.mill.metadata.domain.FacetClassResolver
 import io.qpointz.mill.metadata.domain.FacetTypeDescriptor
-import io.qpointz.mill.metadata.domain.MetadataTargetType
+import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.domain.core.ConceptFacet
 import io.qpointz.mill.metadata.domain.core.DescriptiveFacet
 import io.qpointz.mill.metadata.domain.core.RelationFacet
@@ -24,19 +24,29 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 open class MetadataCoreConfiguration {
 
+    /**
+     * Creates the default [FacetClassResolver] with all five platform facet classes registered.
+     *
+     * @return default resolver mapping URN type keys to their facet POJO classes
+     */
     @Bean
     @ConditionalOnMissingBean
     open fun facetClassResolver(): FacetClassResolver {
         val resolver = DefaultFacetClassResolver()
-        resolver.register("structural", StructuralFacet::class.java)
-        resolver.register("descriptive", DescriptiveFacet::class.java)
-        resolver.register("relation", RelationFacet::class.java)
-        resolver.register("concept", ConceptFacet::class.java)
-        resolver.register("value-mapping", ValueMappingFacet::class.java)
+        resolver.register(MetadataUrns.FACET_TYPE_STRUCTURAL, StructuralFacet::class.java)
+        resolver.register(MetadataUrns.FACET_TYPE_DESCRIPTIVE, DescriptiveFacet::class.java)
+        resolver.register(MetadataUrns.FACET_TYPE_RELATION, RelationFacet::class.java)
+        resolver.register(MetadataUrns.FACET_TYPE_CONCEPT, ConceptFacet::class.java)
+        resolver.register(MetadataUrns.FACET_TYPE_VALUE_MAPPING, ValueMappingFacet::class.java)
         log.info("Registered platform facet class resolver with 5 mappings")
         return resolver
     }
 
+    /**
+     * Creates an in-memory [FacetTypeRepository] pre-loaded with all five platform facet types.
+     *
+     * @return repository containing platform facet type descriptors
+     */
     @Bean
     @ConditionalOnMissingBean
     open fun facetTypeRepository(): FacetTypeRepository {
@@ -45,6 +55,13 @@ open class MetadataCoreConfiguration {
         return repo
     }
 
+    /**
+     * Creates the default [FacetCatalog] backed by [facetTypeRepository].
+     *
+     * @param facetTypeRepository  the underlying facet type store
+     * @param contentValidator     optional content validator; omit to skip schema validation
+     * @return configured catalog instance
+     */
     @Bean
     @ConditionalOnMissingBean
     open fun facetCatalog(
@@ -58,29 +75,29 @@ open class MetadataCoreConfiguration {
 
     private fun registerPlatformFacetTypes(repo: FacetTypeRepository) {
         repo.save(FacetTypeDescriptor(
-            typeKey = "structural", mandatory = true, enabled = true,
+            typeKey = MetadataUrns.FACET_TYPE_STRUCTURAL, mandatory = true, enabled = true,
             displayName = "Structural", description = "Physical schema binding",
-            applicableTo = setOf(MetadataTargetType.TABLE, MetadataTargetType.ATTRIBUTE),
+            applicableTo = setOf(MetadataUrns.ENTITY_TYPE_TABLE, MetadataUrns.ENTITY_TYPE_ATTRIBUTE),
             version = "1.0"))
         repo.save(FacetTypeDescriptor(
-            typeKey = "descriptive", mandatory = true, enabled = true,
+            typeKey = MetadataUrns.FACET_TYPE_DESCRIPTIVE, mandatory = true, enabled = true,
             displayName = "Descriptive", description = "Human-readable metadata",
-            applicableTo = setOf(MetadataTargetType.SCHEMA, MetadataTargetType.TABLE, MetadataTargetType.ATTRIBUTE),
+            applicableTo = setOf(MetadataUrns.ENTITY_TYPE_SCHEMA, MetadataUrns.ENTITY_TYPE_TABLE, MetadataUrns.ENTITY_TYPE_ATTRIBUTE),
             version = "1.0"))
         repo.save(FacetTypeDescriptor(
-            typeKey = "relation", mandatory = true, enabled = true,
+            typeKey = MetadataUrns.FACET_TYPE_RELATION, mandatory = true, enabled = true,
             displayName = "Relation", description = "Cross-entity relationships",
-            applicableTo = setOf(MetadataTargetType.TABLE),
+            applicableTo = setOf(MetadataUrns.ENTITY_TYPE_TABLE),
             version = "1.0"))
         repo.save(FacetTypeDescriptor(
-            typeKey = "concept", mandatory = false, enabled = true,
+            typeKey = MetadataUrns.FACET_TYPE_CONCEPT, mandatory = false, enabled = true,
             displayName = "Concept", description = "Business concept definitions",
-            applicableTo = setOf(MetadataTargetType.CONCEPT),
+            applicableTo = setOf(MetadataUrns.ENTITY_TYPE_CONCEPT),
             version = "1.0"))
         repo.save(FacetTypeDescriptor(
-            typeKey = "value-mapping", mandatory = false, enabled = true,
+            typeKey = MetadataUrns.FACET_TYPE_VALUE_MAPPING, mandatory = false, enabled = true,
             displayName = "Value Mapping", description = "Attribute value mappings for NL2SQL",
-            applicableTo = setOf(MetadataTargetType.ATTRIBUTE),
+            applicableTo = setOf(MetadataUrns.ENTITY_TYPE_ATTRIBUTE),
             version = "1.0"))
         log.info("Registered 5 platform facet type descriptors (3 mandatory, 2 optional)")
     }

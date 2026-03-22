@@ -31,8 +31,8 @@ class SchemaFacetServiceSkyMillIT {
         fun skymillProperties(registry: DynamicPropertyRegistry) {
             val dir = System.getProperty("skymill.datasets.dir")
                 ?: error("System property 'skymill.datasets.dir' not set")
-            registry.add("mill.metadata.v2.file.path") { "file:$dir/skymill-meta-repository.yaml" }
-            registry.add("mill.metadata.v2.storage.type") { "file" }
+            registry.add("mill.metadata.file.path") { "file:$dir/skymill-meta-repository.yaml" }
+            registry.add("mill.metadata.storage.type") { "file" }
         }
     }
 

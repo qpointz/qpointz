@@ -1,13 +1,13 @@
 facet-types:
-  - typeKey: descriptive
+  - typeKey: urn:mill/metadata/facet-type:descriptive
     mandatory: true
     enabled: true
     displayName: Descriptive
     description: Human-readable metadata
     applicableTo:
-      - SCHEMA
-      - TABLE
-      - ATTRIBUTE
+      - urn:mill/metadata/entity-type:schema
+      - urn:mill/metadata/entity-type:table
+      - urn:mill/metadata/entity-type:attribute
     version: "1.0"
 
   - typeKey: custom-audit
@@ -16,7 +16,7 @@ facet-types:
     displayName: Custom Audit Trail
     description: Tracks compliance audit status per entity
     applicableTo:
-      - TABLE
+      - urn:mill/metadata/entity-type:table
     version: "1.0"
     contentSchema:
       type: object

@@ -158,6 +158,11 @@ class FileMetadataRepository : MetadataRepository {
     override fun existsById(id: String): Boolean =
         entities.containsKey(normalizeId(id))
 
+    override fun deleteAll() {
+        entities.clear()
+        log.debug("Cleared all metadata entities from FileMetadataRepository")
+    }
+
     private fun normalizeId(id: String?): String =
         id?.lowercase() ?: ""
 

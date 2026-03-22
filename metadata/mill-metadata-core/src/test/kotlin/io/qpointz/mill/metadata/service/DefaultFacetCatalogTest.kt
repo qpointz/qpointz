@@ -2,8 +2,8 @@ package io.qpointz.mill.metadata.service
 
 import io.qpointz.mill.metadata.domain.FacetTypeDescriptor
 import io.qpointz.mill.metadata.domain.MetadataEntity
-import io.qpointz.mill.metadata.domain.MetadataTargetType
 import io.qpointz.mill.metadata.domain.MetadataType
+import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.repository.InMemoryFacetTypeRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -23,11 +23,11 @@ class DefaultFacetCatalogTest {
         catalog = DefaultFacetCatalog(repository)
     }
 
-    private fun mandatoryDescriptor(typeKey: String, vararg targets: MetadataTargetType) =
+    private fun mandatoryDescriptor(typeKey: String, vararg targets: String) =
         FacetTypeDescriptor(typeKey = typeKey, mandatory = true, enabled = true, displayName = typeKey,
             applicableTo = targets.toSet(), version = "1.0")
 
-    private fun optionalDescriptor(typeKey: String, vararg targets: MetadataTargetType) =
+    private fun optionalDescriptor(typeKey: String, vararg targets: String) =
         FacetTypeDescriptor(typeKey = typeKey, mandatory = false, enabled = true, displayName = typeKey,
             applicableTo = if (targets.isNotEmpty()) targets.toSet() else null, version = "1.0")
 
@@ -52,9 +52,9 @@ class DefaultFacetCatalogTest {
     }
 
     @Test fun shouldReject_disablingMandatoryType() {
-        catalog.register(mandatoryDescriptor("structural", MetadataTargetType.TABLE))
+        catalog.register(mandatoryDescriptor(MetadataUrns.FACET_TYPE_STRUCTURAL, MetadataUrns.ENTITY_TYPE_TABLE))
         assertThrows(IllegalArgumentException::class.java) {
-            catalog.update(mandatoryDescriptor("structural", MetadataTargetType.TABLE).copy(enabled = false))
+            catalog.update(mandatoryDescriptor(MetadataUrns.FACET_TYPE_STRUCTURAL, MetadataUrns.ENTITY_TYPE_TABLE).copy(enabled = false))
         }
     }
 
@@ -65,8 +65,8 @@ class DefaultFacetCatalogTest {
     }
 
     @Test fun shouldReject_deletionOfMandatoryType() {
-        catalog.register(mandatoryDescriptor("structural", MetadataTargetType.TABLE))
-        assertThrows(IllegalArgumentException::class.java) { catalog.delete("structural") }
+        catalog.register(mandatoryDescriptor(MetadataUrns.FACET_TYPE_STRUCTURAL, MetadataUrns.ENTITY_TYPE_TABLE))
+        assertThrows(IllegalArgumentException::class.java) { catalog.delete(MetadataUrns.FACET_TYPE_STRUCTURAL) }
     }
 
     @Test fun shouldReturnAll_enabledTypes() {
@@ -76,17 +76,18 @@ class DefaultFacetCatalogTest {
     }
 
     @Test fun shouldReturnAll_mandatoryTypes() {
-        catalog.register(mandatoryDescriptor("m1", MetadataTargetType.TABLE))
+        catalog.register(mandatoryDescriptor("m1", MetadataUrns.ENTITY_TYPE_TABLE))
         catalog.register(optionalDescriptor("o1"))
         assertEquals(1, catalog.getMandatory().size)
     }
 
     @Test fun shouldFilter_byTargetType() {
-        catalog.register(mandatoryDescriptor("structural", MetadataTargetType.TABLE, MetadataTargetType.ATTRIBUTE))
-        catalog.register(mandatoryDescriptor("relation", MetadataTargetType.TABLE))
-        catalog.register(optionalDescriptor("concept", MetadataTargetType.CONCEPT))
-        assertEquals(2, catalog.getForTargetType(MetadataTargetType.TABLE).size)
-        assertEquals(1, catalog.getForTargetType(MetadataTargetType.CONCEPT).size)
+        catalog.register(mandatoryDescriptor(MetadataUrns.FACET_TYPE_STRUCTURAL,
+            MetadataUrns.ENTITY_TYPE_TABLE, MetadataUrns.ENTITY_TYPE_ATTRIBUTE))
+        catalog.register(mandatoryDescriptor(MetadataUrns.FACET_TYPE_RELATION, MetadataUrns.ENTITY_TYPE_TABLE))
+        catalog.register(optionalDescriptor(MetadataUrns.FACET_TYPE_CONCEPT, MetadataUrns.ENTITY_TYPE_CONCEPT))
+        assertEquals(2, catalog.getForTargetType(MetadataUrns.ENTITY_TYPE_TABLE).size)
+        assertEquals(1, catalog.getForTargetType(MetadataUrns.ENTITY_TYPE_CONCEPT).size)
     }
 
     @Test fun shouldAllowUnknownTypeKeys() {
@@ -94,38 +95,42 @@ class DefaultFacetCatalogTest {
     }
 
     @Test fun shouldCheckApplicability() {
-        catalog.register(mandatoryDescriptor("structural", MetadataTargetType.TABLE, MetadataTargetType.ATTRIBUTE))
-        assertTrue(catalog.isApplicableTo("structural", MetadataTargetType.TABLE))
-        assertFalse(catalog.isApplicableTo("structural", MetadataTargetType.CONCEPT))
-        assertTrue(catalog.isApplicableTo("unknown", MetadataTargetType.TABLE))
+        catalog.register(mandatoryDescriptor(MetadataUrns.FACET_TYPE_STRUCTURAL,
+            MetadataUrns.ENTITY_TYPE_TABLE, MetadataUrns.ENTITY_TYPE_ATTRIBUTE))
+        assertTrue(catalog.isApplicableTo(MetadataUrns.FACET_TYPE_STRUCTURAL, MetadataUrns.ENTITY_TYPE_TABLE))
+        assertFalse(catalog.isApplicableTo(MetadataUrns.FACET_TYPE_STRUCTURAL, MetadataUrns.ENTITY_TYPE_CONCEPT))
+        assertTrue(catalog.isApplicableTo("unknown", MetadataUrns.ENTITY_TYPE_TABLE))
     }
 
     @Test fun shouldValidateEntityFacets_targetTypeMismatch() {
-        catalog.register(mandatoryDescriptor("structural", MetadataTargetType.TABLE, MetadataTargetType.ATTRIBUTE))
+        catalog.register(mandatoryDescriptor(MetadataUrns.FACET_TYPE_STRUCTURAL,
+            MetadataUrns.ENTITY_TYPE_TABLE, MetadataUrns.ENTITY_TYPE_ATTRIBUTE))
         val entity = MetadataEntity(id = "test", type = MetadataType.CONCEPT)
-        entity.setFacet("structural", "global", mapOf("physicalName" to "TEST"))
+        entity.setFacet(MetadataUrns.FACET_TYPE_STRUCTURAL, MetadataUrns.SCOPE_GLOBAL,
+            mapOf("physicalName" to "TEST"))
         val result = catalog.validateEntityFacets(entity)
         assertFalse(result.valid)
         assertTrue(result.errors[0].contains("not applicable"))
     }
 
     @Test fun shouldPass_validEntityFacets() {
-        catalog.register(mandatoryDescriptor("structural", MetadataTargetType.TABLE))
+        catalog.register(mandatoryDescriptor(MetadataUrns.FACET_TYPE_STRUCTURAL, MetadataUrns.ENTITY_TYPE_TABLE))
         val entity = MetadataEntity(id = "test", type = MetadataType.TABLE)
-        entity.setFacet("structural", "global", mapOf("physicalName" to "TEST"))
+        entity.setFacet(MetadataUrns.FACET_TYPE_STRUCTURAL, MetadataUrns.SCOPE_GLOBAL,
+            mapOf("physicalName" to "TEST"))
         assertTrue(catalog.validateEntityFacets(entity).valid)
     }
 
     @Test fun shouldSkipValidation_forUnknownFacetTypes() {
         val entity = MetadataEntity(id = "test", type = MetadataType.TABLE)
-        entity.setFacet("custom-unknown", "global", mapOf("key" to "value"))
+        entity.setFacet("custom-unknown", MetadataUrns.SCOPE_GLOBAL, mapOf("key" to "value"))
         assertTrue(catalog.validateEntityFacets(entity).valid)
     }
 
     @Test fun shouldReject_disabledFacetType() {
         catalog.register(optionalDescriptor("disabled-facet").copy(enabled = false))
         val entity = MetadataEntity(id = "test", type = MetadataType.TABLE)
-        entity.setFacet("disabled-facet", "global", mapOf("key" to "value"))
+        entity.setFacet("disabled-facet", MetadataUrns.SCOPE_GLOBAL, mapOf("key" to "value"))
         val result = catalog.validateEntityFacets(entity)
         assertFalse(result.valid)
         assertTrue(result.errors[0].contains("disabled"))
