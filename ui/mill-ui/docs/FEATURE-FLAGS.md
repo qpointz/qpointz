@@ -1,6 +1,6 @@
 # Feature Flags Inventory
 
-Complete inventory of all feature flags in the application. All flags are boolean, default to `true`, and are defined in `src/features/defaults.ts`.
+Complete inventory of all feature flags in the application. All flags are boolean and are defined in `src/features/defaults.ts`. Most flags default to `true`; see the Default column for exceptions.
 
 ---
 
@@ -10,7 +10,7 @@ Complete inventory of all feature flags in the application. All flags are boolea
 - **Provider**: `src/features/FeatureFlagContext.tsx` — `FeatureFlagProvider` wraps the app
 - **Hook**: `useFeatureFlags()` — returns the resolved `FeatureFlags` object
 - **Backend**: `GET /api/v1/features` — returns `Partial<FeatureFlags>`. Omitted keys default to `true`. If the request fails, all flags default to `true`.
-- **Total flags**: 70 across 14 categories
+- **Total flags**: 71 across 14 categories
 
 ---
 
@@ -46,7 +46,7 @@ Control the context-aware inline chat drawer that appears on detail pages.
 
 | Flag | Default | What it controls | Consumer(s) |
 |------|---------|-----------------|-------------|
-| `inlineChatEnabled` | `true` | Master toggle — hides the entire InlineChatDrawer | `App.tsx`, `InlineChatButton.tsx`, `InlineChatContext.tsx` |
+| `inlineChatEnabled` | `false` | Master toggle — hides the entire InlineChatDrawer | `App.tsx`, `InlineChatButton.tsx`, `InlineChatContext.tsx` |
 | `inlineChatModelContext` | `true` | Allow inline chat on Data Model entities | `InlineChatButton.tsx`, `InlineChatContext.tsx` |
 | `inlineChatModelSchema` | `true` | Allow inline chat on SCHEMA-level entities | `InlineChatButton.tsx`, `InlineChatContext.tsx` |
 | `inlineChatModelTable` | `true` | Allow inline chat on TABLE-level entities | `InlineChatButton.tsx`, `InlineChatContext.tsx` |
@@ -139,18 +139,19 @@ Control the Profile view and its sub-sections.
 | `profileSettings` | `true` | Settings section | `ProfileLayout.tsx` |
 | `profileAccess` | `true` | Access / API keys section | `ProfileLayout.tsx` |
 
-### 11. Login Providers (6 flags)
+### 11. Login Providers (7 flags)
 
-Control which OAuth/SSO buttons appear on the login page.
+Control which authentication methods and OAuth/SSO buttons appear on the login page.
 
 | Flag | Default | What it controls | Consumer(s) |
 |------|---------|-----------------|-------------|
-| `loginGithub` | `true` | "Continue with GitHub" button | `LoginPage.tsx` |
-| `loginGoogle` | `true` | "Continue with Google" button | `LoginPage.tsx` |
-| `loginMicrosoft` | `true` | "Continue with Microsoft" button | `LoginPage.tsx` |
-| `loginAws` | `true` | "Continue with AWS" button | `LoginPage.tsx` |
-| `loginAzure` | `true` | "Continue with Azure AD" button | `LoginPage.tsx` |
+| `loginGithub` | `false` | "Continue with GitHub" button | `LoginPage.tsx` |
+| `loginGoogle` | `false` | "Continue with Google" button | `LoginPage.tsx` |
+| `loginMicrosoft` | `false` | "Continue with Microsoft" button | `LoginPage.tsx` |
+| `loginAws` | `false` | "Continue with AWS" button | `LoginPage.tsx` |
+| `loginAzure` | `false` | "Continue with Azure AD" button | `LoginPage.tsx` |
 | `loginPassword` | `true` | Email/password form on login page | `LoginPage.tsx` |
+| `loginRegistration` | `true` | Self-service registration link on login page | `LoginPage.tsx` |
 
 ### 12. Related Content (8 flags)
 
@@ -232,7 +233,7 @@ GET /api/v1/features
 
 ### Response
 
-The backend returns `Partial<FeatureFlags>` — only flags it wants to override. Omitted flags default to `true`.
+The backend returns `Partial<FeatureFlags>` — only flags it wants to override. Omitted flags fall back to `defaultFeatureFlags` values.
 
 ### Example: disable chat and admin
 
@@ -248,7 +249,7 @@ This disables the Chat route, Admin route, and all inline chat features. All oth
 
 ### Error behavior
 
-If `GET /api/v1/features` fails (network error, 401, 500), all flags default to `true`. The application starts with all features enabled.
+If `GET /api/v1/features` fails (network error, 401, 500), all flags fall back to `defaultFeatureFlags`. The application starts with the built-in defaults.
 
 ### Test coverage
 
@@ -257,4 +258,4 @@ If `GET /api/v1/features` fails (network error, 401, 500), all flags default to 
 
 ---
 
-*Last updated: February 12, 2026*
+*Last updated: March 22, 2026*

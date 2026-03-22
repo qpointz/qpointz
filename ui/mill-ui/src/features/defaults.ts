@@ -117,7 +117,7 @@ export const defaultFeatureFlags: FeatureFlags = {
   chatReferencesAnalysisContext: true,
   chatReferencesSidebarIndicator: true,
 
-  inlineChatEnabled: true,
+  inlineChatEnabled: false,
   inlineChatModelContext: true,
   inlineChatModelSchema: true,
   inlineChatModelTable: true,

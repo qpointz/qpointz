@@ -1,5 +1,7 @@
 # WI-092 — `mill-ui` Model View: Real Backend Binding and Inline Chat Disable
 
+Status: `done`
+
 ## Objective
 
 Wire the `mill-ui` model view to real backend endpoints (replacing mock services), disable the

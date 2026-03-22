@@ -19,6 +19,7 @@ describe('defaultFeatureFlags', () => {
       'loginMicrosoft',
       'loginAws',
       'loginAzure',
+      'inlineChatEnabled',
     ];
 
     for (const [key, value] of Object.entries(defaultFeatureFlags)) {
