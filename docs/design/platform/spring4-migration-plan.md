@@ -297,7 +297,7 @@ These changes can be done now, independently of the upgrade:
 | `data/mill-data-grpc-service` | **Critical** | gRPC starter replacement, security rewrite |
 | `data/mill-data-http-service` | Low | Test dependencies only |
 | `data/mill-data-backends` | Low | Starter + config processor |
-| `services/mill-well-known-service` | Medium | Security, web starter rename |
+| `services/mill-service-common` | Medium | Security, web starter rename |
 | `services/mill-metadata-service` | Medium | Hardcoded springdoc, web starter rename |
 | `ai/mill-ai-core` | **Critical** | Spring AI 2.0 migration |
 | `ai/mill-ai-core-ext` | **Critical** | Spring AI 2.0, `javax.annotation.PostConstruct` fix |

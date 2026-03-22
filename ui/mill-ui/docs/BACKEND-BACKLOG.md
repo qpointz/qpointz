@@ -174,7 +174,7 @@ Full FeatureFlags interface has 70 boolean flags across 14 categories (views, ch
 | `/SubmitQuery` | POST | `QueryRequest` -> `QueryResultResponse` (Protobuf) |
 | `/FetchQueryResult` | POST | `QueryResultRequest` -> `QueryResultResponse` (Protobuf) |
 
-### mill-well-known-service (`/.well-known`)
+### mill-service-common (`/.well-known`)
 
 | Endpoint | Method | Response Type |
 |---|---|---|

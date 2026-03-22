@@ -205,7 +205,7 @@ Both outcomes are weaker than a dedicated status-exception layer.
 1. Treat this as the standard pattern for new REST APIs.
 2. Expand `MillStatuses` from the current minimal surface.
 3. Introduce a dedicated shared Spring web module for HTTP advice and error payload reuse.
-4. Apply it in `mill-ai-v3-service`, `mill-well-known-service`, and
+4. Apply it in `mill-ai-v3-service`, `mill-service-common`, and
    `mill-metadata-service`.
 5. Migrate older services opportunistically rather than as a mandatory big-bang refactor.
 
@@ -215,7 +215,7 @@ The shared web-layer extraction is justified because the pattern is already expe
 by at least these REST modules:
 
 - `ai/mill-ai-v3-service`
-- `services/mill-well-known-service`
+- `services/mill-service-common`
 - `metadata/mill-metadata-service`
 
 That is enough reuse pressure to prefer one shared Spring web module over repeated local advice

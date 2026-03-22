@@ -13,7 +13,7 @@ mill-core
         ├── mill-data-backends   (depends on mill-service-core)
         │     ├── mill-data-grpc-service (depends on mill-data-backends)
         │     └── mill-data-http-service (depends on mill-data-backends)
-        ├── mill-well-known-service (depends on mill-service-core, mill-security-core)
+        ├── mill-service-common (depends on mill-service-core, mill-security-core)
         ├── mill-grinder-service   (depends on mill-service-core)
         ├── mill-test-kit          (depends on mill-service-core, mill-security-core)
         ├── mill-ai-v1-core        (depends on mill-service-core)
@@ -457,7 +457,7 @@ io/qpointz/mill/services/descriptors/ApplicationDescriptor.java
 
 ### Iteration 13 — Update remaining consumers
 
-- [ ] Update `services/mill-well-known-service` — replace old module references
+- [ ] Update `services/mill-service-common` — replace old module references
 - [ ] Update `ui/mill-grinder-service` — replace old module references
 - [ ] Update `core/mill-test-kit` — replace old module references
 - [ ] Test: `./gradlew build`

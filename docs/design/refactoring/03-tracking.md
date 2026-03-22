@@ -94,7 +94,7 @@
 ### Iterations 8-13 — Rewire Consumers
 - [x] `mill-data-grpc-service` — depends on `mill-data-autoconfigure`
 - [x] `mill-data-http-service` — depends on `mill-data-autoconfigure`
-- [x] `mill-well-known-service` — depends on `mill-security-autoconfigure` + `mill-data-autoconfigure`
+- [x] `mill-service-common` — depends on `mill-security-autoconfigure` + `mill-data-autoconfigure`
 - [x] `mill-ai-v1-core` — depends on `mill-security-autoconfigure` + `mill-data-autoconfigure`
 - [x] `mill-ai-v1-nlsql-chat-service` — depends on `mill-security-autoconfigure`
 - [x] `mill-test-kit` — depends on `mill-security-autoconfigure`

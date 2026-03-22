@@ -754,7 +754,7 @@ descriptor of available services, security configuration, and schemas. This endp
 
 ### 11.1 Server-Side Implementation
 
-**Controller**: `services/mill-well-known-service/src/main/java/io/qpointz/mill/services/controllers/ApplicationDescriptorController.java`
+**Controller**: `services/mill-service-common/src/main/java/io/qpointz/mill/services/controllers/ApplicationDescriptorController.java`
 
 ```java
 @RestController

@@ -27,5 +27,14 @@ Follow the existing bracketed prefix style: `[feat]`, `[fix]`, `[change]`, `[doc
 Keep secrets out of the repo; rely on environment variables consumed by Spring configuration (`mill.security.*`). When altering authorization facets, update policies in `core/mill-service-core/src/main/resources` and mention migrations in the PR description. Clean up temporary datasets under `dumper.py` outputs before pushing.
 
 ## Module Notes
-- `services/mill-grinder-ui`: React + TypeScript + Vite single-page app that uses Mantine’s `AppShell` and React Router to expose chat, data-model explorer, and concepts flows (see `src/App.tsx`). Generated Mill REST clients live under `src/api/mill/` (OpenAPI artifacts are committed), so avoid manual edits there. The README is still the stock Vite template—remember to document Mill-specific scripts if you touch the module.
+- `ui/mill-ui`: **Current** Mill frontend — React 19 + TypeScript + Vite SPA using Mantine AppShell.
+  Exposes chat (`/chat`), data-model explorer (`/model`), knowledge context (`/context`), query
+  playground (`/analysis`), and admin views. Services layer lives in `src/services/` (one file per
+  service, all exported via `src/services/api.ts`); swap mock ↔ real by editing the `export const`
+  at the bottom of each service file. Feature flags live in `src/features/defaults.ts` and are
+  served/merged via `featureService`. No generated OpenAPI artifacts — all HTTP calls use plain
+  `fetch()` with relative URLs (Vite proxy in dev, same origin in prod).
+  Run: `cd ui/mill-ui && npm install && npm run dev` (dev server) | `npm run test` (Vitest) | `npm run build`.
+- `services/mill-grinder-ui`: **Legacy / retired** — do not add new features here. Historical
+  design documents in `docs/design/ui/` may reference this module. All new UI work targets `ui/mill-ui/`.
 - `ai/`: Stand-alone Gradle build (`ai/gradlew`) that aggregates `mill-ai-core` (NL-to-SQL chat core) and `mill-ai-nlsql-chat-service` (Spring Boot service wrapping the core). Root tasks `test`/`testIT` just depend on subproject tasks. `mill-ai-core` exposes chat abstractions plus template utilities and wires Spring AI/OpenAI dependencies into a dedicated `testIT` suite. `mill-ai-nlsql-chat-service` layers persistence (JPA/H2), WebFlux controllers, and Spring AI chat memory repositories; its integration tests spin up the entire stack. CI jobs in `ai/.gitlab-ci.yml` call `./gradlew --no-daemon --console plain test compileTestIT` (build) and `./gradlew --no-daemon --console plain testIT` (integration), so keep those tasks healthy when modifying AI code.

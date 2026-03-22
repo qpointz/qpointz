@@ -1,6 +1,9 @@
 # Frontend and UX
 
-Design documents for the Mill Grinder UI and general user experience patterns.
+Design documents for Mill UI and general user experience patterns.
+
+> **Active UI module:** `ui/mill-ui/` (React 19 + TypeScript + Vite + Mantine).
+> `services/mill-grinder-ui` is retired. Documents below may reference it historically.
 
 ## Classification Criteria
 

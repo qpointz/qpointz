@@ -176,10 +176,47 @@ tasks.named<Test>("testIT") {
 - Integration tests (`src/testIT/`): Spring Boot test slice or full context, H2 in-memory DB
 - Run: `./gradlew :module:test` (unit) and `./gradlew :module:testIT` (integration)
 
-## Branching & Commits
+## Stories, Work Items & Branching
 
-- Branch from `origin/dev`; rebase against `origin/dev` before pushing
-- Never commit directly to `dev` or `main`; each work item gets a fresh branch
-- Commit message prefix style: `[feat]`, `[fix]`, `[change]`, `[docs]`, `[wip]`; imperative, under 72 chars
-- **Never** add `Co-Authored-By` trailers to commit messages
-- Do not force-push to protected branches
+Work is organised into **stories**. A story is a coherent delivery unit that maps to one Git branch
+merged into `dev` by the user.
+
+### Story folder layout (`docs/workitems/<story-slug>/`)
+
+```
+docs/workitems/
+  <story-slug>/          # e.g. metadata-persistence
+    STORY.md             # objectives + ordered WI checklist (live progress tracker)
+    WI-NNN-<title>.md    # individual work item files — all under the story folder
+```
+
+- Folder name: lowercase hyphen-separated slug of the story topic.
+- `STORY.md` must contain a short goal description and an ordered checkbox list of all WIs.
+  Update each box to `[x]` as each WI is completed.
+- WI files live inside the story folder — **not** at the top level of `docs/workitems/`.
+
+### Story closure (before branch is merge-ready)
+
+1. Update `docs/workitems/MILESTONE.md` — add completed WIs to the appropriate milestone.
+2. Update `docs/workitems/BACKLOG.md` — mark related entries `done`.
+3. Update / create design docs under the relevant `docs/design/<component>/` section
+   (e.g. `agentic/`, `metadata/`, `platform/`). Design docs are filed by logical component,
+   not by story.
+4. Update / create user docs under `docs/public/src/`.
+5. **Delete the story folder** (`docs/workitems/<story-slug>/`) — WI files are ephemeral;
+   the above artefacts are the durable record.
+
+Full rules: `docs/workitems/RULES.md`.
+
+### Branching & Commits
+
+- Branch from `origin/dev`; rebase against `origin/dev` before pushing.
+- All WIs within a story share the **same branch**; no sub-branches per WI unless there is an
+  explicit dependency on unmerged prior work.
+- Never commit directly to `dev` or `main`.
+- One logical commit per WI (squash at WI completion).
+- **At story closure**: squash and regroup all commits since branching into a minimal set of
+  logical commits before the branch is merge-ready. Use `git rebase -i origin/dev`.
+- Commit prefix style: `[feat]`, `[fix]`, `[change]`, `[docs]`, `[wip]`; imperative, under 72 chars.
+- **Never** add `Co-Authored-By` trailers to commit messages.
+- Do not force-push to protected branches.

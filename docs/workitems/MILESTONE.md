@@ -38,7 +38,7 @@ Items currently being implemented in this milestone.
 Items targeted next after in-progress work is completed.
 
 - WI-023 — ibis dialect correctness validation and certification
-  (`docs/workitems/WI-023-ibis-dialect-correctness-validation.md`)
+  (`docs/workitems/ibis-dialect-validation/WI-023-ibis-dialect-correctness-validation.md`)
 
 ## 0.8.0
 
@@ -207,23 +207,25 @@ No active in-progress items currently.
 Items targeted next after 0.7.0 closure and backlog triage.
 
 - WI-027 — Metadata value mapping bridge and parity
-  (`docs/workitems/WI-027-metadata-value-mapping-bridge.md`)
+  (`docs/workitems/metadata-value-mapping/WI-027-metadata-value-mapping-bridge.md`)
 - WI-028 — Metadata value mapping API and UI surface
-  (`docs/workitems/WI-028-metadata-value-mapping-api-and-ui.md`)
-- WI-029 — Metadata relational persistence and repository transition
-  (`docs/workitems/WI-029-metadata-relational-persistence.md`)
-- WI-030 — Metadata user editing and authoring workflow
-  (`docs/workitems/WI-030-metadata-user-editing.md`)
-- WI-031 — Metadata scopes and context composition
-  (`docs/workitems/WI-031-metadata-scopes-and-contexts.md`)
-- WI-032 — Metadata context promotion workflow
-  (`docs/workitems/WI-032-metadata-promotion-workflow.md`)
-- WI-033 — Metadata service API cleanup and error handling
-  (`docs/workitems/WI-033-metadata-service-cleanup.md`)
+  (`docs/workitems/metadata-value-mapping/WI-028-metadata-value-mapping-api-and-ui.md`)
+- WI-085 — Metadata service API cleanup and error handling
+  (`docs/workitems/metadata-persistence-and-editing/WI-085-metadata-service-cleanup.md`)
+- WI-086 — Metadata REST controller redesign
+  (`docs/workitems/metadata-persistence-and-editing/WI-086-metadata-rest-controller-redesign.md`)
+- WI-087 — Metadata relational persistence and repository transition
+  (`docs/workitems/metadata-persistence-and-editing/WI-087-metadata-relational-persistence.md`)
+- WI-089 — Metadata scopes and context composition
+  (`docs/workitems/metadata-persistence-and-editing/WI-089-metadata-scopes-and-contexts.md`)
+- WI-092 — `mill-ui` model view: real backend binding and inline chat disable
+  (`docs/workitems/metadata-persistence-and-editing/WI-092-mill-ui-model-view-backend-binding.md`)
+- WI-090 — Metadata user editing (deferred — follow-up story)
+- WI-091 — Metadata context promotion workflow (deferred — follow-up story)
 - WI-034 — Metadata complex type support in structural facets and UI
-  (`docs/workitems/WI-034-metadata-complex-type-support.md`)
+  (`docs/workitems/metadata-complex-types/WI-034-metadata-complex-type-support.md`)
 - WI-082 — `mill-ui` migration to the unified `ai/v3` chat API and `item.*` SSE protocol
-  (`docs/workitems/WI-082-mill-ui-unified-ai-chat-integration.md`)
+  (`docs/workitems/ai-v3/WI-082-mill-ui-unified-ai-chat-integration.md`)
 - WI-084 — AI v3 chat service documentation: module responsibilities, REST API, persistence model,
   SSE stream contract, runtime rehydration, and `mill-ui` integration guidance
-  (`docs/workitems/WI-084-ai-v3-chat-service-documentation.md`)
+  (`docs/workitems/ai-v3/WI-084-ai-v3-chat-service-documentation.md`)
