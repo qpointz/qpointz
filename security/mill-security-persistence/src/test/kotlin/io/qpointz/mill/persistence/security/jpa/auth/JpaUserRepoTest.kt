@@ -3,6 +3,7 @@ package io.qpointz.mill.persistence.security.jpa.auth
 import io.qpointz.mill.persistence.security.jpa.entities.GroupRecord
 import io.qpointz.mill.persistence.security.jpa.entities.UserCredentialRecord
 import io.qpointz.mill.persistence.security.jpa.entities.UserIdentityRecord
+import io.qpointz.mill.persistence.security.jpa.entities.UserRecord
 import io.qpointz.mill.persistence.security.jpa.repositories.GroupMembershipRepository
 import io.qpointz.mill.persistence.security.jpa.repositories.UserCredentialRepository
 import io.qpointz.mill.persistence.security.jpa.repositories.UserIdentityRepository
@@ -14,6 +15,7 @@ import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.whenever
 import java.time.Instant
+import java.util.Optional
 
 @ExtendWith(MockitoExtension::class)
 class JpaUserRepoTest {
@@ -43,11 +45,23 @@ class JpaUserRepoTest {
         updatedAt = Instant.now(),
     )
 
+    private fun activeUser(validated: Boolean = true, locked: Boolean = false) = UserRecord(
+        userId = "user-1",
+        status = "ACTIVE",
+        displayName = "Alice",
+        primaryEmail = "alice@example.com",
+        createdAt = Instant.now(),
+        updatedAt = Instant.now(),
+        validated = validated,
+        locked = locked,
+    )
+
     private fun jpaUserRepo() = JpaUserRepo(identityRepo, credentialRepo, membershipRepo, userRepo)
 
     @Test
     fun `getUsers returns user with correct name and password hash`() {
         whenever(identityRepo.findByProvider("local")).thenReturn(listOf(identity))
+        whenever(userRepo.findById("user-1")).thenReturn(Optional.of(activeUser()))
         whenever(credentialRepo.findByUserIdAndEnabledTrue("user-1")).thenReturn(credential)
         whenever(membershipRepo.findGroupsByUserId("user-1")).thenReturn(emptyList())
 
@@ -62,6 +76,7 @@ class JpaUserRepoTest {
     fun `getUsers includes groups`() {
         val group = GroupRecord(groupId = "g-1", groupName = "admins", description = null)
         whenever(identityRepo.findByProvider("local")).thenReturn(listOf(identity))
+        whenever(userRepo.findById("user-1")).thenReturn(Optional.of(activeUser()))
         whenever(credentialRepo.findByUserIdAndEnabledTrue("user-1")).thenReturn(credential)
         whenever(membershipRepo.findGroupsByUserId("user-1")).thenReturn(listOf(group))
 
@@ -73,7 +88,38 @@ class JpaUserRepoTest {
     @Test
     fun `getUsers excludes user with no enabled credential`() {
         whenever(identityRepo.findByProvider("local")).thenReturn(listOf(identity))
+        whenever(userRepo.findById("user-1")).thenReturn(Optional.of(activeUser()))
         whenever(credentialRepo.findByUserIdAndEnabledTrue("user-1")).thenReturn(null)
+
+        val users = jpaUserRepo().getUsers()
+
+        assertThat(users).isEmpty()
+    }
+
+    @Test
+    fun `getUsers excludes user with missing UserRecord`() {
+        whenever(identityRepo.findByProvider("local")).thenReturn(listOf(identity))
+        whenever(userRepo.findById("user-1")).thenReturn(Optional.empty())
+
+        val users = jpaUserRepo().getUsers()
+
+        assertThat(users).isEmpty()
+    }
+
+    @Test
+    fun `getUsers excludes user when validated is false`() {
+        whenever(identityRepo.findByProvider("local")).thenReturn(listOf(identity))
+        whenever(userRepo.findById("user-1")).thenReturn(Optional.of(activeUser(validated = false)))
+
+        val users = jpaUserRepo().getUsers()
+
+        assertThat(users).isEmpty()
+    }
+
+    @Test
+    fun `getUsers excludes user when locked is true`() {
+        whenever(identityRepo.findByProvider("local")).thenReturn(listOf(identity))
+        whenever(userRepo.findById("user-1")).thenReturn(Optional.of(activeUser(locked = true)))
 
         val users = jpaUserRepo().getUsers()
 

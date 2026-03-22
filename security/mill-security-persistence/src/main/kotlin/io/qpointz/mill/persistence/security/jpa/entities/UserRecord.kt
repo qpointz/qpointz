@@ -11,12 +11,20 @@ import java.time.Instant
  * [UserIdentityRecord]. The [userId] is a stable UUID assigned on first provisioning
  * and never changes, even when the user changes their email or username.
  *
+ * Login is permitted only when [validated] is `true` **and** [locked] is `false`.
+ *
  * @property userId stable UUID primary key — never changes after creation
  * @property status lifecycle status of the account (ACTIVE / DISABLED / LOCKED)
  * @property displayName optional human-readable display name
  * @property primaryEmail optional primary email address; may differ from profile email
  * @property createdAt timestamp when this record was first created
  * @property updatedAt timestamp of the most recent update to this record
+ * @property validated `true` once the user's email has been confirmed; newly created users
+ *   default to `true` until email-verification is introduced. Login is rejected when `false`.
+ * @property locked `true` when an administrator has locked the account; defaults to `false`.
+ *   Login is rejected when `true`, regardless of [validated].
+ * @property lockDate timestamp when [locked] was set to `true`; `null` when not locked
+ * @property lockReason optional free-text description of why the account was locked
  */
 @Entity
 @Table(
@@ -44,4 +52,16 @@ class UserRecord(
 
     @Column(name = "updated_at", nullable = false)
     var updatedAt: Instant,
+
+    @Column(name = "validated", nullable = false)
+    var validated: Boolean = true,
+
+    @Column(name = "locked", nullable = false)
+    var locked: Boolean = false,
+
+    @Column(name = "lock_date")
+    var lockDate: Instant? = null,
+
+    @Column(name = "lock_reason", length = 1024)
+    var lockReason: String? = null,
 )

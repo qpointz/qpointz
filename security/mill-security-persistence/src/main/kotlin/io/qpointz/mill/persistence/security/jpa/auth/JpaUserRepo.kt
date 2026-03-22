@@ -33,20 +33,30 @@ open class JpaUserRepo(
 ) : UserRepo() {
 
     /**
-     * Returns all local users that have an enabled password credential.
+     * Returns all local users that may authenticate with a password.
      *
      * Queries `user_identities` for all rows with `provider = "local"`, then for each
      * identity loads the corresponding
      * [io.qpointz.mill.persistence.security.jpa.entities.UserRecord],
      * the enabled [io.qpointz.mill.persistence.security.jpa.entities.UserCredentialRecord],
-     * and the group names from `group_memberships`. Users without an enabled credential
-     * record are excluded.
+     * and the group names from `group_memberships`.
+     *
+     * A user is excluded (returns `null` and is silently skipped) if any of the following
+     * conditions are true:
+     * - No enabled credential record exists (`user_credentials.enabled = false` or missing).
+     * - The canonical [io.qpointz.mill.persistence.security.jpa.entities.UserRecord] is missing.
+     * - [io.qpointz.mill.persistence.security.jpa.entities.UserRecord.validated] is `false`
+     *   (email not yet confirmed).
+     * - [io.qpointz.mill.persistence.security.jpa.entities.UserRecord.locked] is `true`
+     *   (account administratively locked).
      *
      * @return list of [User] objects ready for password verification by
      *   [io.qpointz.mill.security.authentication.basic.providers.UserRepoAuthenticationProvider]
      */
     override fun getUsers(): List<User> =
         identityRepo.findByProvider("local").mapNotNull { identity ->
+            val user = userRepo.findById(identity.userId).orElse(null) ?: return@mapNotNull null
+            if (!user.validated || user.locked) return@mapNotNull null
             val credential = credentialRepo.findByUserIdAndEnabledTrue(identity.userId)
                 ?: return@mapNotNull null
             val groups = membershipRepo.findGroupsByUserId(identity.userId).map { it.groupName }
