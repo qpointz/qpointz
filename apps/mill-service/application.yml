@@ -2,6 +2,18 @@ spring:
   config:
     activate:
       on-profile: skymill
+  datasource:
+    url: "jdbc:h2:mem:mill-skymill;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH"
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
 
 mill:
   data:
@@ -20,11 +32,27 @@ mill:
       flow:
         sources:
           - ./config/skymill/skymill-flow.yml
+  metadata:
+    storage:
+      type: jpa
+    import-on-startup: "file:../../test/datasets/skymill/skymill-meta-repository.yaml"
 ---
 spring:
   config:
     activate:
       on-profile: moneta
+  datasource:
+    url: "jdbc:h2:mem:mill-moneta;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH"
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
 
 mill:
   data:
@@ -38,6 +66,10 @@ mill:
         username: "*"
         password: "*"
         target-schema: "MONETA"
+  metadata:
+    storage:
+      type: jpa
+    import-on-startup: "file:../../test/datasets/moneta/moneta-meta-repository.yaml"
 ---
 spring:
   config:

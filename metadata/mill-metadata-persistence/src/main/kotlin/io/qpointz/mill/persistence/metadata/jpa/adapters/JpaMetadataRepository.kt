@@ -14,7 +14,7 @@ import io.qpointz.mill.persistence.metadata.jpa.entities.MetadataScopeEntity
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataEntityJpaRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetScopeJpaRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataScopeJpaRepository
-import jakarta.transaction.Transactional
+import org.springframework.transaction.annotation.Transactional
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.Optional
@@ -34,6 +34,7 @@ import java.util.Optional
  * @param facetScopeRepo the facet scope table JPA repository
  * @param scopeRepo      the scope table JPA repository, used to resolve or create scope rows
  */
+@Transactional
 class JpaMetadataRepository(
     private val entityRepo: MetadataEntityJpaRepository,
     private val facetScopeRepo: MetadataFacetScopeJpaRepository,

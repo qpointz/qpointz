@@ -1,71 +1,54 @@
 package io.qpointz.mill.metadata.configuration
 
-import io.qpointz.mill.metadata.api.MetadataEntityController
-import io.qpointz.mill.metadata.api.MetadataFacetController
-import io.qpointz.mill.metadata.api.MetadataScopeController
+import io.qpointz.mill.metadata.repository.MetadataRepository
 import io.qpointz.mill.metadata.repository.MetadataScopeRepository
 import io.qpointz.mill.metadata.service.FacetCatalog
 import io.qpointz.mill.metadata.service.MetadataScopeService
 import io.qpointz.mill.metadata.service.MetadataService
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.AutoConfiguration
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.boot.autoconfigure.AutoConfigureAfter
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 
 /**
- * Auto-configures the read-only metadata REST controllers and scope service.
+ * Auto-configures the metadata service layer: [MetadataService] and [MetadataScopeService].
  *
- * Registers [MetadataEntityController] when a [MetadataService] bean is present,
- * [MetadataFacetController] when a [FacetCatalog] bean is present, and
- * [MetadataScopeController] when a [MetadataScopeService] bean is present.
- *
- * The [MetadataScopeService] is registered when a [MetadataScopeRepository] bean is present.
- * Controllers are registered as explicit beans (not via component-scan) so that dependent
- * modules control when they appear.
+ * Controllers are registered via component scan ([@RestController][org.springframework.web.bind.annotation.RestController])
+ * and resolve their service dependencies at instantiation time, matching the pattern used
+ * by other Mill service modules.
  */
 @AutoConfiguration
+@AutoConfigureAfter(MetadataJpaPersistenceAutoConfiguration::class, MetadataRepositoryAutoConfiguration::class)
 class MetadataEntityServiceAutoConfiguration {
 
     /**
-     * Creates the [MetadataEntityController] bean.
+     * Creates the [MetadataService] bean.
      *
-     * @param svc the [MetadataService] to delegate entity lookups to
-     * @return a configured [MetadataEntityController] instance
+     * [MetadataRepository] is always present (JPA, file, or NoOp fallback), so no
+     * [org.springframework.boot.autoconfigure.condition.ConditionalOnBean] guard is needed.
+     *
+     * @param repository   the active [MetadataRepository] implementation
+     * @param facetCatalog optional [FacetCatalog]; may be absent in minimal configurations
+     * @return a configured [MetadataService] instance
      */
     @Bean
-    @ConditionalOnBean(MetadataService::class)
-    fun metadataEntityController(svc: MetadataService): MetadataEntityController =
-        MetadataEntityController(svc)
+    @ConditionalOnMissingBean(MetadataService::class)
+    fun metadataService(
+        repository: MetadataRepository,
+        @Autowired(required = false) facetCatalog: FacetCatalog?
+    ): MetadataService = MetadataService(repository, facetCatalog)
 
     /**
-     * Creates the [MetadataFacetController] bean.
+     * Creates the [MetadataScopeService] bean.
      *
-     * @param catalog the [FacetCatalog] to delegate facet type management to
-     * @return a configured [MetadataFacetController] instance
-     */
-    @Bean
-    @ConditionalOnBean(FacetCatalog::class)
-    fun metadataFacetController(catalog: FacetCatalog): MetadataFacetController =
-        MetadataFacetController(catalog)
-
-    /**
-     * Creates the [MetadataScopeService] bean when a [MetadataScopeRepository] is available.
+     * [MetadataScopeRepository] is always present (JPA or NoOp fallback).
      *
      * @param repo the [MetadataScopeRepository] to delegate to
      * @return a configured [MetadataScopeService] instance
      */
     @Bean
-    @ConditionalOnBean(MetadataScopeRepository::class)
+    @ConditionalOnMissingBean(MetadataScopeService::class)
     fun metadataScopeService(repo: MetadataScopeRepository): MetadataScopeService =
         MetadataScopeService(repo)
-
-    /**
-     * Creates the [MetadataScopeController] bean when a [MetadataScopeService] is available.
-     *
-     * @param svc the [MetadataScopeService] to delegate scope management to
-     * @return a configured [MetadataScopeController] instance
-     */
-    @Bean
-    @ConditionalOnBean(MetadataScopeService::class)
-    fun metadataScopeController(svc: MetadataScopeService): MetadataScopeController =
-        MetadataScopeController(svc)
 }

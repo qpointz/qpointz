@@ -1,6 +1,5 @@
 package io.qpointz.mill.metadata.configuration
 
-import io.qpointz.mill.metadata.api.MetadataImportExportController
 import io.qpointz.mill.metadata.domain.ImportMode
 import io.qpointz.mill.metadata.domain.MetadataChangeObserver
 import io.qpointz.mill.metadata.domain.MetadataChangeObserverChain
@@ -12,12 +11,12 @@ import io.qpointz.mill.metadata.service.DefaultMetadataImportService
 import io.qpointz.mill.metadata.service.MetadataImportService
 import org.springframework.boot.ApplicationRunner
 import org.springframework.boot.autoconfigure.AutoConfiguration
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.boot.autoconfigure.AutoConfigureAfter
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
-import org.springframework.core.io.ClassPathResource
+import org.springframework.core.io.ResourceLoader
 
 /**
  * Auto-configures import/export infrastructure: the observer chain, the
@@ -30,6 +29,7 @@ import org.springframework.core.io.ClassPathResource
  * the chain itself.
  */
 @AutoConfiguration
+@AutoConfigureAfter(MetadataJpaPersistenceAutoConfiguration::class, MetadataRepositoryAutoConfiguration::class)
 @EnableConfigurationProperties(MetadataProperties::class)
 class MetadataImportExportAutoConfiguration {
 
@@ -60,7 +60,7 @@ class MetadataImportExportAutoConfiguration {
      * @return a [DefaultMetadataImportService] instance
      */
     @Bean
-    @ConditionalOnBean(MetadataRepository::class)
+    @ConditionalOnMissingBean(MetadataImportService::class)
     fun metadataImportService(
         repo: MetadataRepository,
         facetTypeRepo: FacetTypeRepository,
@@ -68,36 +68,30 @@ class MetadataImportExportAutoConfiguration {
     ): MetadataImportService = DefaultMetadataImportService(repo, facetTypeRepo, observer)
 
     /**
-     * Creates the [MetadataImportExportController] when a [MetadataImportService] bean is
-     * available.
-     *
-     * @param svc the import/export service to delegate to
-     * @return a configured [MetadataImportExportController] instance
-     */
-    @Bean
-    @ConditionalOnBean(MetadataImportService::class)
-    fun metadataImportExportController(svc: MetadataImportService): MetadataImportExportController =
-        MetadataImportExportController(svc)
-
-    /**
      * Registers a startup [ApplicationRunner] that imports metadata from the configured
-     * classpath resource immediately after the application context is fully initialised.
+     * resource immediately after the application context is fully initialised.
      *
      * Only active when `mill.metadata.import-on-startup` is set to a non-empty value.
      * Import runs in [ImportMode.MERGE] mode with `actorId = "system"`.
      *
-     * @param svc   the import service to invoke
-     * @param props the bound properties containing the resource path
+     * Supports any Spring resource URL understood by [ResourceLoader]:
+     * - `classpath:metadata/seed.yaml` — resource on the application classpath
+     * - `file:../../test/datasets/skymill/skymill-meta-repository.yaml` — filesystem path
+     *
+     * @param svc            the import service to invoke
+     * @param props          the bound properties containing the resource path
+     * @param resourceLoader Spring resource loader for resolving classpath and file URLs
      * @return an [ApplicationRunner] that performs the startup import
      */
     @Bean
     @ConditionalOnProperty(prefix = "mill.metadata", name = ["import-on-startup"])
     fun metadataStartupImportRunner(
         svc: MetadataImportService,
-        props: MetadataProperties
+        props: MetadataProperties,
+        resourceLoader: ResourceLoader
     ): ApplicationRunner = ApplicationRunner {
         val path = props.importOnStartup ?: return@ApplicationRunner
-        val inputStream = ClassPathResource(path).inputStream
+        val inputStream = resourceLoader.getResource(path).inputStream
         svc.import(inputStream, ImportMode.MERGE, actorId = "system")
     }
 }
