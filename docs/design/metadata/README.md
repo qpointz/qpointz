@@ -23,6 +23,7 @@ A document belongs here if its **primary subject** is one of:
 
 | File | Description |
 |------|-------------|
+| `dynamic-facet-types-schema-and-validation.md` | Open design: typed vs dynamic facet types; structure, validation, serialization; alignment with ai/v3 `ToolSchemaYaml` / capability manifests |
 | `metadata-documentation.md` | User-facing docs: concepts, browser, facets, configuration, practices |
 | `metadata-implementation-roadmap.md` | Roadmap for faceted metadata system, multi-file repo, ValueMappingFacet |
 | `metadata-provider-refactoring-plan.md` | Plan to replace legacy MetadataProvider with facet-based system |

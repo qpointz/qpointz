@@ -24,3 +24,4 @@ A document belongs here if its primary subject is one of:
 | File | Description |
 |------|-------------|
 | `portal-federated-metadata-landscape.md` | Initial product and architecture note for a federated collaborative metadata portal |
+| `portal-facet-types-vs-local-metadata.md` | Split of concerns: facet **type** definitions sourced from central portal (registry) vs **metadata state** local to each Mill instance |

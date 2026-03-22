@@ -43,6 +43,10 @@ Metadata exposed by individual Mill instances for their local assets.
 The central registry of recognized facet types, their schemas, semantics,
 validation rules, and default rendering conventions.
 
+**Refinement:** facet **type definitions** are **portal-sourced (central)**; **metadata values**
+remain **local to each Mill instance**. See
+`docs/design/portal/portal-facet-types-vs-local-metadata.md`.
+
 3. Collaborative knowledge
 
 Questions, feedback, proposals, comments, review outcomes, and other
@@ -200,6 +204,7 @@ metadata subsystem design.
 
 Relevant foundations already exist or are planned in:
 
+- `docs/design/portal/portal-facet-types-vs-local-metadata.md` — central facet **types** vs local **metadata**
 - `docs/design/metadata/metadata-service-design.md`
 - `docs/design/metadata/collaborative-metadata-requirements.md`
 - `docs/design/metadata/metadata-implementation-roadmap.md`
