@@ -1,6 +1,6 @@
 # WI-087 — Metadata Relational Persistence
 
-Status: `planned`
+Status: `done`
 Type: `feature`
 Area: `metadata`
 Backlog refs: `M-11`, `M-12`

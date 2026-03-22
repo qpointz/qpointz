@@ -28,6 +28,7 @@ include (":metadata")
 include (":metadata:mill-metadata-core")
 include (":metadata:mill-metadata-autoconfigure")
 include (":metadata:mill-metadata-service")
+include (":metadata:mill-metadata-persistence")
 
 include (":persistence")
 include (":persistence:mill-persistence")

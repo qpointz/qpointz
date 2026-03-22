@@ -14,6 +14,7 @@ mill {
 dependencies {
     api(project(":metadata:mill-metadata-core"))
     api(project(":metadata:mill-metadata-service"))
+    compileOnly(project(":metadata:mill-metadata-persistence"))
     implementation(libs.boot.starter)
     implementation(libs.boot.starter.web)
     implementation(libs.json.schema.validator)

@@ -116,6 +116,7 @@ dependencies {
 
     //implementation(project(":metadata:mill-metadata-autoconfigure"))
     //implementation(project(":metadata:mill-metadata-service"))
+    //runtimeOnly(project(":metadata:mill-metadata-persistence"))
 
 
     implementation(libs.springdoc.openapi.starter.webmvc.ui)

@@ -13,9 +13,9 @@ It will live in a new `data/mill-data-schema-service` module delivered in a foll
 
 ## Work Items
 
-- [ ] WI-085 — Metadata Service API Cleanup (`WI-085-metadata-service-cleanup.md`)
-- [ ] WI-086 — Metadata REST Controller Redesign (`WI-086-metadata-rest-controller-redesign.md`)
-- [ ] WI-087 — Metadata Relational Persistence (`WI-087-metadata-relational-persistence.md`)
+- [x] WI-085 — Metadata Service API Cleanup (`WI-085-metadata-service-cleanup.md`)
+- [x] WI-086 — Metadata REST Controller Redesign (`WI-086-metadata-rest-controller-redesign.md`)
+- [x] WI-087 — Metadata Relational Persistence (`WI-087-metadata-relational-persistence.md`)
 - [ ] WI-089 — Metadata Scopes and Context Composition (`WI-089-metadata-scopes-and-contexts.md`)
 - [ ] WI-092 — `mill-ui` Model View: Real Backend Binding and Inline Chat Disable (`WI-092-mill-ui-model-view-backend-binding.md`)
 
