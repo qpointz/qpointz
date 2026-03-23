@@ -9,7 +9,43 @@ Deferred editing/promotion work (WI-090, WI-091) remains tracked as follow-up st
 ## Work Items
 
 - [ ] WI-093a — Schema Explorer REST Service (`WI-093a-schema-explorer-rest-service.md`)
+  - Status: **implemented, under runtime stabilization/validation**
 - [ ] WI-093b — Schema Explorer UI Wiring (`WI-093b-schema-explorer-ui-wiring.md`)
+  - Status: **implemented, under runtime stabilization/validation**
+
+---
+
+## Current Status Snapshot (2026-03-23)
+
+### Delivered so far
+- Schema core alignment completed (`attribute*` -> `column*` in schema-core read models).
+- Context-aware schema facet resolution implemented (metadata-context parsing + malformed-context `400`).
+- New schema REST service module implemented (`data/mill-data-schema-service`) with OpenAPI docs,
+  exception handler, unit tests, and integration tests.
+- Autoconfiguration split completed:
+  - metadata-owned schema facet auto-config moved to `metadata/mill-metadata-autoconfigure`
+  - data autoconfigure wiring reduced accordingly.
+- UI wiring updated to new schema contract (`/api/v1/schema/**`, context bootstrapping endpoint,
+  discriminated union types, loader states, table/column lazy-loading behavior).
+
+### Known runtime issues observed during integration
+- UI instability and delayed rendering were observed when pointing to a live backend.
+- Backend endpoint `GET /api/v1/schema/schemas?context=global` was measured as slow in runtime
+  (multi-second response under local testing), which amplified UI delay and race behavior.
+- Related indicators/facets had temporary gaps during rollout (top indicator visibility and relation
+  payload shape parsing); UI-side fixes were applied in working code.
+
+### Stabilization work in progress
+- Added backend tree endpoint design (`GET /api/v1/schema/tree`) to reduce UI fan-out.
+- UI switched to single tree-load call path + race guards + explicit loading states.
+- Final runtime validation depends on backend restart/deploy of latest code and re-test against live
+  `http://localhost:8080`.
+
+### Story completion criteria for closure
+- Live backend serves latest schema-service endpoints (including `/api/v1/schema/tree`).
+- End-to-end UI flow is stable under repeated navigation (no flicker, no stale selection overwrite).
+- Model load and entity switching latency are acceptable under local runtime conditions.
+- WI-093a/WI-093b checkboxes can be marked complete only after the above runtime validation passes.
 
 ---
 
