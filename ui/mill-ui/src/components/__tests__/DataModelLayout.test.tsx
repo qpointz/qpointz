@@ -25,6 +25,10 @@ const { testTree } = vi.hoisted(() => ({
 
 vi.mock('../../services/api', () => ({
   schemaService: {
+    getContext: vi.fn(() => Promise.resolve({
+      selectedContext: 'global',
+      availableScopes: [{ id: 'global', slug: 'global', displayName: 'Global' }],
+    })),
     getTree: vi.fn(() => Promise.resolve(testTree)),
     getEntityById: vi.fn(() => Promise.resolve(null)),
     getEntityFacets: vi.fn(() => Promise.resolve({})),
@@ -82,6 +86,15 @@ describe('DataModelLayout', () => {
     await renderLayout();
     await waitFor(() => {
       expect(screen.getByText('sales')).toBeInTheDocument();
+    });
+  });
+
+  it('should resolve context before loading tree', async () => {
+    const { schemaService } = await import('../../services/api');
+    await renderLayout();
+    await waitFor(() => {
+      expect(schemaService.getContext).toHaveBeenCalled();
+      expect(schemaService.getTree).toHaveBeenCalledWith('global');
     });
   });
 

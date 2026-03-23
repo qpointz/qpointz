@@ -1,24 +1,27 @@
-import { Box, ScrollArea, Text, useMantineColorScheme } from '@mantine/core';
-import { useState, useEffect } from 'react';
+import { Box, Loader, ScrollArea, Text, useMantineColorScheme } from '@mantine/core';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { HiOutlineCircleStack } from 'react-icons/hi2';
 import { SchemaTree } from './SchemaTree';
 import { EntityDetails } from './EntityDetails';
 import { CollapsibleSidebar } from '../common/CollapsibleSidebar';
 import { schemaService } from '../../services/api';
-import { useChatReferencesContext } from '../../context/ChatReferencesContext';
-import type { SchemaEntity, EntityFacets } from '../../types/schema';
+import type { SchemaNode, SchemaEntity, EntityFacets } from '../../types/schema';
 
-/** Recursively collect all entity IDs from the schema tree */
-function collectEntityIds(entities: SchemaEntity[]): string[] {
-  const ids: string[] = [];
-  for (const entity of entities) {
-    ids.push(entity.id);
-    if (entity.children) {
-      ids.push(...collectEntityIds(entity.children));
+function enrichNodeChildren(
+  nodes: SchemaNode[],
+  targetId: string,
+  children: SchemaNode[]
+): SchemaNode[] {
+  return nodes.map((node) => {
+    if (node.id === targetId) {
+      return { ...node, children };
     }
-  }
-  return ids;
+    if (!node.children || node.children.length === 0) {
+      return node;
+    }
+    return { ...node, children: enrichNodeChildren(node.children, targetId, children) };
+  });
 }
 
 export function DataModelLayout() {
@@ -26,23 +29,36 @@ export function DataModelLayout() {
   const isDark = colorScheme === 'dark';
   const navigate = useNavigate();
   const params = useParams<{ schema?: string; table?: string; attribute?: string }>();
-  const { prefetchRefs } = useChatReferencesContext();
 
-  const [tree, setTree] = useState<SchemaEntity[] | null>(null);
+  const [tree, setTree] = useState<SchemaNode[] | null>(null);
   const [selectedEntity, setSelectedEntity] = useState<SchemaEntity | null>(null);
   const [facets, setFacets] = useState<EntityFacets>({});
+  const [selectedContext, setSelectedContext] = useState<string>('global');
+  const [treeLoading, setTreeLoading] = useState<boolean>(true);
+  const [entityLoading, setEntityLoading] = useState<boolean>(false);
+  const treeRequestIdRef = useRef(0);
+  const entityRequestIdRef = useRef(0);
 
   // Load schema tree on mount
   useEffect(() => {
     let cancelled = false;
-    schemaService.getTree().then((loadedTree) => {
-      if (cancelled) return;
-      setTree(loadedTree);
-      // Prefetch chat references for all schema entities
-      const allIds = collectEntityIds(loadedTree);
-      prefetchRefs('model', allIds);
+    const currentRequestId = ++treeRequestIdRef.current;
+    setTreeLoading(true);
+    schemaService.getContext().then((contextInfo) => {
+      if (cancelled || currentRequestId !== treeRequestIdRef.current) return;
+      const ctx = contextInfo.selectedContext || 'global';
+      setSelectedContext(ctx);
+      return schemaService.getTree(ctx).then((loadedTree) => {
+        if (cancelled || currentRequestId !== treeRequestIdRef.current) return;
+        setTree(loadedTree);
+        setTreeLoading(false);
+      });
     }).catch(() => {
-      if (!cancelled) setTree([]);
+      if (!cancelled && currentRequestId === treeRequestIdRef.current) {
+        setSelectedContext('global');
+        setTree([]);
+        setTreeLoading(false);
+      }
     });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- load once on mount
@@ -62,25 +78,56 @@ export function DataModelLayout() {
     }
 
     if (entityId) {
-      schemaService.getEntityById(entityId).then((entity) => {
+      const currentRequestId = ++entityRequestIdRef.current;
+      setEntityLoading(true);
+      schemaService.getEntityById(entityId, selectedContext).then((entity) => {
+        if (currentRequestId !== entityRequestIdRef.current) return;
         setSelectedEntity(entity);
         if (entity) {
-          schemaService.getEntityFacets(entity.id).then(setFacets).catch(() => setFacets({}));
+          schemaService.getEntityFacets(entity.id, selectedContext).then(setFacets).catch(() => setFacets({}));
         } else {
           setFacets({});
         }
+        setEntityLoading(false);
       }).catch(() => {
         setSelectedEntity(null);
         setFacets({});
+        setEntityLoading(false);
       });
+    } else {
+      setEntityLoading(false);
     }
-  }, [params]);
+  }, [params, selectedContext]);
 
-  const handleSelect = (entity: SchemaEntity) => {
-    setSelectedEntity(entity);
-    schemaService.getEntityFacets(entity.id).then(setFacets).catch(() => setFacets({}));
+  const handleSelect = (node: SchemaNode) => {
+    const currentRequestId = ++entityRequestIdRef.current;
+    setEntityLoading(true);
+    schemaService.getEntityById(node.id, selectedContext).then((entity) => {
+      if (currentRequestId !== entityRequestIdRef.current) return;
+      setSelectedEntity(entity);
+      if (!entity) {
+        setFacets({});
+        setEntityLoading(false);
+        return;
+      }
+      schemaService.getEntityFacets(entity.id, selectedContext).then(setFacets).catch(() => setFacets({}));
+      // Lazy-load table columns into the tree only when table is selected.
+      if (entity.entityType === 'TABLE') {
+        const columnNodes: SchemaNode[] = entity.columns.map((column) => ({
+          id: column.id,
+          type: 'COLUMN',
+          name: column.columnName,
+        }));
+        setTree((prev) => (prev ? enrichNodeChildren(prev, node.id, columnNodes) : prev));
+      }
+      setEntityLoading(false);
+    }).catch(() => {
+      setSelectedEntity(null);
+      setFacets({});
+      setEntityLoading(false);
+    });
     // Update URL based on entity type
-    const parts = entity.id.split('.');
+    const parts = node.id.split('.');
     if (parts.length === 1) {
       navigate(`/model/${parts[0]}`);
     } else if (parts.length === 2) {
@@ -100,7 +147,12 @@ export function DataModelLayout() {
     >
       {/* Sidebar - Schema Tree */}
       <CollapsibleSidebar icon={HiOutlineCircleStack} title="Schema Browser">
-        {tree !== null && (
+        {treeLoading ? (
+          <Box p="md" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <Loader size="sm" />
+            <Text size="xs" c="dimmed">Loading model...</Text>
+          </Box>
+        ) : tree !== null && (
           <ScrollArea style={{ flex: 1 }} p="xs">
             <SchemaTree
               tree={tree}
@@ -120,7 +172,14 @@ export function DataModelLayout() {
         }}
       >
         {selectedEntity ? (
-          <EntityDetails entity={selectedEntity} facets={facets} />
+          entityLoading ? (
+            <Box p="md" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+              <Loader size="sm" />
+              <Text size="xs" c="dimmed">Loading details...</Text>
+            </Box>
+          ) : (
+            <EntityDetails entity={selectedEntity} facets={facets} />
+          )
         ) : (
           <Box
             style={{

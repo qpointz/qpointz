@@ -116,10 +116,10 @@ object SchemaToolHandlers {
             .filter { schemaName == it.schemaName }
             .flatMap { it.tables }
             .filter { tableName == it.tableName }
-            .flatMap { it.attributes }
+            .flatMap { it.columns }
             .map {
                 ListColumnsItem(
-                    it.schemaName, it.tableName, it.attributeName,
+                    it.schemaName, it.tableName, it.columnName,
                     description = description(it),
                     nullable = it.dataType.nullability,
                     type = it.dataType.type.typeId,

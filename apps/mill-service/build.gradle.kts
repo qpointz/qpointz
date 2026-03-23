@@ -102,6 +102,7 @@ dependencies {
     implementation(project(":services:mill-data-http-service"))
     implementation(project(":data:mill-data-source-core"))
     implementation(project(":data:mill-data-source-calcite"))
+    implementation(project(":data:mill-data-schema-service"))
     implementation(project(":data:formats:mill-data-format-text"))
     implementation(project(":data:formats:mill-data-format-excel"))
     implementation(project(":data:formats:mill-data-format-avro"))

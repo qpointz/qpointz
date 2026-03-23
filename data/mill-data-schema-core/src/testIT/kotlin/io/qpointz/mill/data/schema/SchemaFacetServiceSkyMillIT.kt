@@ -88,21 +88,21 @@ class SchemaFacetServiceSkyMillIT {
     }
 
     @Test
-    fun `all cities attributes are present after merge`() {
+    fun `all cities columns are present after merge`() {
         val cities = service.getSchemas().schemas
             .single { it.schemaName == SCHEMA_NAME }
             .tables.single { it.tableName == "cities" }
 
-        val attrNames = cities.attributes.map { it.attributeName }.toSet()
-        assertTrue(attrNames.containsAll(setOf("id", "city", "state", "airport_iata")))
+        val columnNames = cities.columns.map { it.columnName }.toSet()
+        assertTrue(columnNames.containsAll(setOf("id", "city", "state", "airport_iata")))
     }
 
     @Test
-    fun `cities attribute with metadata carries descriptive facet`() {
+    fun `cities column with metadata carries descriptive facet`() {
         val cityAttr = service.getSchemas().schemas
             .single { it.schemaName == SCHEMA_NAME }
             .tables.single { it.tableName == "cities" }
-            .attributes.single { it.attributeName == "city" }
+            .columns.single { it.columnName == "city" }
 
         assertNotNull(cityAttr.facets.descriptive)
     }
@@ -119,13 +119,13 @@ class SchemaFacetServiceSkyMillIT {
     }
 
     @Test
-    fun `segments table is present and preserves all physical attributes`() {
+    fun `segments table is present and preserves all physical columns`() {
         val segments = service.getSchemas().schemas
             .single { it.schemaName == SCHEMA_NAME }
             .tables.single { it.tableName == "segments" }
 
-        val attrNames = segments.attributes.map { it.attributeName }.toSet()
-        assertTrue(attrNames.containsAll(setOf("id", "origin", "destination", "distance")))
+        val columnNames = segments.columns.map { it.columnName }.toSet()
+        assertTrue(columnNames.containsAll(setOf("id", "origin", "destination", "distance")))
     }
 
     @Test
@@ -140,7 +140,7 @@ class SchemaFacetServiceSkyMillIT {
                         s.tables.none { t ->
                             t.tableName == entity.tableName &&
                                     (entity.attributeName == null ||
-                                            t.attributes.any { a -> a.attributeName == entity.attributeName })
+                                            t.columns.any { c -> c.columnName == entity.attributeName })
                         }
             }
             assertTrue(schemaMatch, "Entity ${entity.id} should be unbound but matched a physical entity")

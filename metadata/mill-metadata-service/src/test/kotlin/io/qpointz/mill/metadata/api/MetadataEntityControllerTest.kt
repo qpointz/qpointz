@@ -177,4 +177,14 @@ class MetadataEntityControllerTest {
             jsonPath("$.payload") { isNotEmpty() }
         }
     }
+
+    @Test
+    fun shouldReturnBadRequest_whenContextParamIsMalformed() {
+        mockMvc.get("/api/v1/metadata/entities/myschema/facets/descriptive") {
+            param("context", ",")
+        }.andExpect {
+            status { isBadRequest() }
+            jsonPath("$.status") { value("BAD_REQUEST") }
+        }
+    }
 }

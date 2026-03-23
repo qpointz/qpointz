@@ -60,20 +60,20 @@ function getMockRelatedContent(_contextType: string, contextId: string): Related
       { id: 'sales', title: 'sales', type: 'model', entityType: 'SCHEMA' },
       { id: 'sales.customers', title: 'customers', type: 'model', entityType: 'TABLE' },
       { id: 'sales.orders', title: 'orders', type: 'model', entityType: 'TABLE' },
-      { id: 'sales.orders.total_amount', title: 'total_amount', type: 'model', entityType: 'ATTRIBUTE' },
+      { id: 'sales.orders.total_amount', title: 'total_amount', type: 'model', entityType: 'COLUMN' },
       { id: 'customer-segmentation', title: 'Customer Segmentation', type: 'concept' },
       { id: 'churn-rate', title: 'Churn Rate', type: 'concept' },
     ],
     'customer-segmentation': [
       { id: 'sales', title: 'sales', type: 'model', entityType: 'SCHEMA' },
       { id: 'sales.customers', title: 'customers', type: 'model', entityType: 'TABLE' },
-      { id: 'sales.customers.segment', title: 'segment', type: 'model', entityType: 'ATTRIBUTE' },
+      { id: 'sales.customers.segment', title: 'segment', type: 'model', entityType: 'COLUMN' },
       { id: 'customer-lifetime-value', title: 'Customer Lifetime Value', type: 'concept' },
     ],
     'average-order-value': [
       { id: 'sales', title: 'sales', type: 'model', entityType: 'SCHEMA' },
       { id: 'sales.orders', title: 'orders', type: 'model', entityType: 'TABLE' },
-      { id: 'sales.orders.total_amount', title: 'total_amount', type: 'model', entityType: 'ATTRIBUTE' },
+      { id: 'sales.orders.total_amount', title: 'total_amount', type: 'model', entityType: 'COLUMN' },
       { id: 'revenue-by-segment', title: 'Revenue by Segment', type: 'analysis' },
     ],
   };
@@ -103,13 +103,13 @@ function getMockRelatedContent(_contextType: string, contextId: string): Related
         refs.push(
           { id: 'sales', title: 'sales', type: 'model', entityType: 'SCHEMA' },
           { id: 'sales.customers', title: 'customers', type: 'model', entityType: 'TABLE' },
-          { id: 'sales.customers.customer_id', title: 'customer_id', type: 'model', entityType: 'ATTRIBUTE' },
+          { id: 'sales.customers.customer_id', title: 'customer_id', type: 'model', entityType: 'COLUMN' },
         );
       } else {
         refs.push(
           { id: 'sales', title: 'sales', type: 'model', entityType: 'SCHEMA' },
           { id: 'sales.orders', title: 'orders', type: 'model', entityType: 'TABLE' },
-          { id: 'sales.orders.total_amount', title: 'total_amount', type: 'model', entityType: 'ATTRIBUTE' },
+          { id: 'sales.orders.total_amount', title: 'total_amount', type: 'model', entityType: 'COLUMN' },
         );
       }
     }

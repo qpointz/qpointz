@@ -1,16 +1,39 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { SchemaEntity, EntityFacets } from '../../types/schema';
+import type { EntityFacets } from '../../types/schema';
 
 // ---------------------------------------------------------------------------
 // Fixture data
 // ---------------------------------------------------------------------------
 
-const emailAttr: SchemaEntity       = { id: 'sales.customers.email',       type: 'ATTRIBUTE', name: 'email' };
-const customerIdAttr: SchemaEntity  = { id: 'sales.customers.customer_id', type: 'ATTRIBUTE', name: 'customer_id' };
-const customersTable: SchemaEntity  = { id: 'sales.customers', type: 'TABLE',  name: 'customers',  children: [emailAttr, customerIdAttr] };
-const salesSchema: SchemaEntity     = { id: 'sales',           type: 'SCHEMA', name: 'sales',      children: [customersTable] };
+const mockSchemaList = [
+  { id: 'sales', entityType: 'SCHEMA', schemaName: 'sales' },
+];
 
-const mockTree: SchemaEntity[] = [salesSchema];
+const mockSchemaDetail = {
+  id: 'sales',
+  entityType: 'SCHEMA',
+  schemaName: 'sales',
+  tables: [{ id: 'sales.customers', entityType: 'TABLE', schemaName: 'sales', tableName: 'customers' }],
+};
+
+const mockTableDetail = {
+  id: 'sales.customers',
+  entityType: 'TABLE',
+  schemaName: 'sales',
+  tableName: 'customers',
+  tableType: 'TABLE',
+  columns: [
+    {
+      id: 'sales.customers.customer_id',
+      entityType: 'COLUMN',
+      schemaName: 'sales',
+      tableName: 'customers',
+      columnName: 'customer_id',
+      fieldIndex: 0,
+      type: { type: 'BIG_INT', nullable: false },
+    },
+  ],
+};
 
 const mockFacetsCustomers: Record<string, { facetType: string; payload: unknown }> = {
   'urn:mill/metadata/facet-type:descriptive': {
@@ -24,6 +47,16 @@ const mockFacetsCustomerId: Record<string, { facetType: string; payload: unknown
     facetType: 'urn:mill/metadata/facet-type:structural',
     payload: { physicalName: 'customer_id', physicalType: 'INTEGER', isPrimaryKey: true, nullable: false },
   },
+};
+
+const mockSchemaWithDescriptiveFacet = {
+  ...mockSchemaDetail,
+  facets: mockFacetsCustomers,
+};
+
+const mockColumnWithStructuralFacet = {
+  ...mockTableDetail.columns[0],
+  facets: mockFacetsCustomerId,
 };
 
 // ---------------------------------------------------------------------------
@@ -54,113 +87,102 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 
 describe('schemaService', () => {
-  describe('getTree', () => {
-    it('should return a non-empty array of schema entities', async () => {
-      fetchMock.mockResolvedValueOnce(makeOkResponse(mockTree));
-      const { schemaService } = await import('../schemaService');
-      const tree = await schemaService.getTree();
-      expect(Array.isArray(tree)).toBe(true);
-      expect(tree.length).toBeGreaterThan(0);
-    });
-
-    it('every root entity should be of type SCHEMA', async () => {
-      fetchMock.mockResolvedValueOnce(makeOkResponse(mockTree));
-      const { schemaService } = await import('../schemaService');
-      const tree = await schemaService.getTree();
-      for (const entity of tree) {
-        expect(entity.type).toBe('SCHEMA');
-      }
-    });
-
-    it('each schema entity should have id, type, and name', async () => {
-      fetchMock.mockResolvedValueOnce(makeOkResponse(mockTree));
-      const { schemaService } = await import('../schemaService');
-      const tree = await schemaService.getTree();
-      for (const entity of tree) {
-        expect(entity.id).toBeDefined();
-        expect(entity.name).toBeDefined();
-        expect(entity.type).toBeDefined();
-      }
-    });
-
-    it('schemas should contain children (tables)', async () => {
-      fetchMock.mockResolvedValueOnce(makeOkResponse(mockTree));
-      const { schemaService } = await import('../schemaService');
-      const tree = await schemaService.getTree();
-      const withChildren = tree.filter((e) => e.children && e.children.length > 0);
-      expect(withChildren.length).toBeGreaterThan(0);
-    });
-
-    it('should return empty array when backend is not ok', async () => {
+  describe('getContext', () => {
+    it('falls back to global when context endpoint fails', async () => {
       fetchMock.mockResolvedValueOnce(makeErrorResponse(503));
       const { schemaService } = await import('../schemaService');
-      const tree = await schemaService.getTree();
-      expect(tree).toEqual([]);
+      const context = await schemaService.getContext();
+      expect(context.selectedContext).toBe('global');
+      expect(context.availableScopes[0]?.slug).toBe('global');
+    });
+  });
+
+  describe('listSchemas', () => {
+    it('requests list with context query parameter', async () => {
+      fetchMock.mockResolvedValueOnce(makeOkResponse(mockSchemaList));
+      const { schemaService } = await import('../schemaService');
+      const schemas = await schemaService.listSchemas('global');
+      expect(schemas.length).toBe(1);
+      expect(fetchMock).toHaveBeenCalledWith('/api/v1/schema?context=global&facetMode=direct', { credentials: 'include' });
+    });
+  });
+
+  describe('getTree', () => {
+    it('loads tree via hierarchy endpoints without tree endpoint', async () => {
+      fetchMock
+        .mockResolvedValueOnce(makeOkResponse(mockSchemaList))
+        .mockResolvedValueOnce(makeOkResponse(mockSchemaDetail));
+      const { schemaService } = await import('../schemaService');
+      const tree = await schemaService.getTree('global');
+      expect(tree.length).toBe(1);
+      expect(tree[0]?.type).toBe('SCHEMA');
+      expect(fetchMock).toHaveBeenCalledWith('/api/v1/schema?context=global&facetMode=none', { credentials: 'include' });
+      expect(fetchMock).toHaveBeenCalledWith('/api/v1/schema/sales?context=global&facetMode=none', { credentials: 'include' });
     });
   });
 
   describe('getEntityById', () => {
-    it('should return the entity for a valid id', async () => {
-      fetchMock.mockResolvedValueOnce(makeOkResponse(salesSchema));
+    it('returns schema for one-part id', async () => {
+      fetchMock.mockResolvedValueOnce(makeOkResponse(mockSchemaDetail));
       const { schemaService } = await import('../schemaService');
-      const result = await schemaService.getEntityById('sales');
+      const result = await schemaService.getEntityById('sales', 'global');
       expect(result).not.toBeNull();
       expect(result?.id).toBe('sales');
-      expect(result?.type).toBe('SCHEMA');
+      expect(result?.entityType).toBe('SCHEMA');
     });
 
-    it('should find nested entities (tables)', async () => {
-      fetchMock.mockResolvedValueOnce(makeOkResponse(customersTable));
+    it('returns table for two-part id', async () => {
+      fetchMock.mockResolvedValueOnce(makeOkResponse(mockTableDetail));
       const { schemaService } = await import('../schemaService');
-      const result = await schemaService.getEntityById('sales.customers');
+      const result = await schemaService.getEntityById('sales.customers', 'global');
       expect(result).not.toBeNull();
-      expect(result?.type).toBe('TABLE');
+      expect(result?.entityType).toBe('TABLE');
     });
 
-    it('should find deeply nested entities (attributes)', async () => {
-      fetchMock.mockResolvedValueOnce(makeOkResponse(emailAttr));
+    it('returns column for three-part id', async () => {
+      fetchMock.mockResolvedValueOnce(makeOkResponse(mockTableDetail.columns[0]));
       const { schemaService } = await import('../schemaService');
-      const result = await schemaService.getEntityById('sales.customers.email');
+      const result = await schemaService.getEntityById('sales.customers.customer_id', 'global');
       expect(result).not.toBeNull();
-      expect(result?.type).toBe('ATTRIBUTE');
+      expect(result?.entityType).toBe('COLUMN');
     });
 
     it('should return null for a non-existent id', async () => {
       fetchMock.mockResolvedValueOnce(makeErrorResponse(404));
       const { schemaService } = await import('../schemaService');
-      const result = await schemaService.getEntityById('nonexistent.table');
+      const result = await schemaService.getEntityById('nonexistent.table', 'global');
       expect(result).toBeNull();
     });
   });
 
   describe('getEntityFacets', () => {
     it('should return facets for a known entity', async () => {
-      fetchMock.mockResolvedValueOnce(makeOkResponse(mockFacetsCustomers));
+      fetchMock.mockResolvedValueOnce(makeOkResponse(mockSchemaWithDescriptiveFacet));
       const { schemaService } = await import('../schemaService');
-      const facets: EntityFacets = await schemaService.getEntityFacets('sales.customers');
+      const facets: EntityFacets = await schemaService.getEntityFacets('sales.customers', 'global');
       expect(facets).toBeDefined();
       expect(facets.descriptive).toBeDefined();
     });
 
     it('should return descriptive facet with displayName', async () => {
-      fetchMock.mockResolvedValueOnce(makeOkResponse(mockFacetsCustomers));
+      fetchMock.mockResolvedValueOnce(makeOkResponse(mockSchemaWithDescriptiveFacet));
       const { schemaService } = await import('../schemaService');
-      const facets = await schemaService.getEntityFacets('sales.customers');
+      const facets = await schemaService.getEntityFacets('sales.customers', 'global');
       expect(facets.descriptive?.displayName).toBe('Customers');
     });
 
     it('should return empty object for unknown entity', async () => {
       fetchMock.mockResolvedValueOnce(makeErrorResponse(404));
       const { schemaService } = await import('../schemaService');
-      const facets = await schemaService.getEntityFacets('nonexistent');
+      const facets = await schemaService.getEntityFacets('nonexistent', 'global');
       expect(facets).toBeDefined();
       expect(Object.keys(facets).length).toBe(0);
     });
 
     it('should include structural facets for attributes with metadata', async () => {
-      fetchMock.mockResolvedValueOnce(makeOkResponse(mockFacetsCustomerId));
+      fetchMock.mockResolvedValueOnce(makeOkResponse(mockColumnWithStructuralFacet));
       const { schemaService } = await import('../schemaService');
-      const facets = await schemaService.getEntityFacets('sales.customers.customer_id');
+      const facets = await schemaService.getEntityFacets('sales.customers.customer_id', 'global');
       expect(facets.structural).toBeDefined();
       expect(facets.structural?.isPrimaryKey).toBe(true);
     });

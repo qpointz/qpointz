@@ -7,7 +7,7 @@ import { InlineChatProvider } from '../../context/InlineChatContext';
 import { ChatReferencesProvider } from '../../context/ChatReferencesContext';
 import { FeatureFlagProvider } from '../../features/FeatureFlagContext';
 import { defaultFeatureFlags } from '../../features/defaults';
-import type { SchemaEntity } from '../../types/schema';
+import type { SchemaNode } from '../../types/schema';
 
 vi.mock('../../services/api', () => ({
   chatService: {
@@ -30,7 +30,7 @@ function wrapper({ children }: { children: ReactNode }) {
   );
 }
 
-const mockTree: SchemaEntity[] = [
+const mockTree: SchemaNode[] = [
   {
     id: 'sales',
     type: 'SCHEMA',
@@ -41,8 +41,8 @@ const mockTree: SchemaEntity[] = [
         type: 'TABLE',
         name: 'customers',
         children: [
-          { id: 'sales.customers.customer_id', type: 'ATTRIBUTE', name: 'customer_id' },
-          { id: 'sales.customers.name', type: 'ATTRIBUTE', name: 'name' },
+          { id: 'sales.customers.customer_id', type: 'COLUMN', name: 'customer_id' },
+          { id: 'sales.customers.name', type: 'COLUMN', name: 'name' },
         ],
       },
       {
@@ -50,7 +50,7 @@ const mockTree: SchemaEntity[] = [
         type: 'TABLE',
         name: 'orders',
         children: [
-          { id: 'sales.orders.order_id', type: 'ATTRIBUTE', name: 'order_id' },
+          { id: 'sales.orders.order_id', type: 'COLUMN', name: 'order_id' },
         ],
       },
     ],
@@ -58,9 +58,9 @@ const mockTree: SchemaEntity[] = [
 ];
 
 interface RenderProps {
-  tree?: SchemaEntity[];
+  tree?: SchemaNode[];
   selectedId?: string | null;
-  onSelect?: (entity: SchemaEntity) => void;
+  onSelect?: (entity: SchemaNode) => void;
 }
 
 function renderTree(props: RenderProps = {}) {

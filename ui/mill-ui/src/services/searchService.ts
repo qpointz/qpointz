@@ -2,7 +2,7 @@ import type { SearchService, SearchResult } from '../types/search';
 import { mockSchemaTree, mockFacets } from '../data/mockSchema';
 import { mockConcepts } from '../data/mockConcepts';
 import { mockSavedQueries } from '../data/mockQueries';
-import type { SchemaEntity } from '../types/schema';
+import type { SchemaNode } from '../types/schema';
 
 // ---------------------------------------------------------------------------
 // Static view definitions (pages reachable via navigation)
@@ -41,7 +41,7 @@ function entityBreadcrumb(id: string): string {
 
 /** Recursively collect schema entities matching a query */
 function searchEntities(
-  tree: SchemaEntity[],
+  tree: SchemaNode[],
   query: string,
   results: SearchResult[],
 ): void {

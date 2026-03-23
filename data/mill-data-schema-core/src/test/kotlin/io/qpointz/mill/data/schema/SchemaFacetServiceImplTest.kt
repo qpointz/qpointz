@@ -2,6 +2,7 @@ package io.qpointz.mill.data.schema
 
 import io.qpointz.mill.data.backend.SchemaProvider
 import io.qpointz.mill.metadata.domain.MetadataEntity
+import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.domain.core.RelationFacet
 import io.qpointz.mill.metadata.repository.MetadataRepository
 import io.qpointz.mill.proto.DataType
@@ -68,7 +69,7 @@ class SchemaFacetServiceImplTest {
     }
 
     @Test
-    fun `all physical attributes are preserved when no metadata exists`() {
+    fun `all physical columns are preserved when no metadata exists`() {
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(
             schema("s", table("s", "t", field("col_a"), field("col_b"), field("col_c")))
@@ -77,9 +78,9 @@ class SchemaFacetServiceImplTest {
 
         val result = service.getSchemas()
 
-        val attrs = result.schemas.single().tables.single().attributes
-        assertEquals(3, attrs.size)
-        assertEquals(setOf("col_a", "col_b", "col_c"), attrs.map { it.attributeName }.toSet())
+        val columns = result.schemas.single().tables.single().columns
+        assertEquals(3, columns.size)
+        assertEquals(setOf("col_a", "col_b", "col_c"), columns.map { it.columnName }.toSet())
     }
 
     @Test
@@ -95,9 +96,9 @@ class SchemaFacetServiceImplTest {
         whenever(metadataRepository.findAll()).thenReturn(emptyList())
 
         val result = service.getSchemas()
-        val attr = result.schemas.single().tables.single().attributes.single()
+        val attr = result.schemas.single().tables.single().columns.single()
 
-        assertEquals("name_col", attr.attributeName)
+        assertEquals("name_col", attr.columnName)
         assertEquals(2, attr.fieldIndex)
         assertEquals(DataType.Nullability.NOT_NULL, attr.dataType.nullability)
     }
@@ -134,7 +135,7 @@ class SchemaFacetServiceImplTest {
     }
 
     @Test
-    fun `attribute-level metadata is matched by schema, table, and attribute name`() {
+    fun `column-level metadata is matched by schema, table, and column name`() {
         val entity = metadataEntity("s", "t", "col", "s.t.col")
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t", field("col"))))
@@ -142,7 +143,7 @@ class SchemaFacetServiceImplTest {
 
         val result = service.getSchemas()
 
-        val attr = result.schemas.single().tables.single().attributes.single()
+        val attr = result.schemas.single().tables.single().columns.single()
         assertNotNull(attr.metadata)
         assertEquals("s.t.col", attr.metadata!!.id)
     }
@@ -173,13 +174,13 @@ class SchemaFacetServiceImplTest {
     }
 
     @Test
-    fun `attribute metadata does not match table entity`() {
+    fun `column metadata does not match table entity`() {
         val tableEntity = metadataEntity("s", "t", null, "s.t")
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t", field("col"))))
         whenever(metadataRepository.findAll()).thenReturn(listOf(tableEntity))
 
-        val attr = service.getSchemas().schemas.single().tables.single().attributes.single()
+        val attr = service.getSchemas().schemas.single().tables.single().columns.single()
 
         assertNull(attr.metadata)
     }
@@ -213,7 +214,7 @@ class SchemaFacetServiceImplTest {
     }
 
     @Test
-    fun `metadata entity referencing missing attribute goes to unboundMetadata`() {
+    fun `metadata entity referencing missing column goes to unboundMetadata`() {
         val stale = metadataEntity("s", "t", "ghost_col", "s.t.ghost_col")
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t", field("real_col"))))
@@ -258,7 +259,7 @@ class SchemaFacetServiceImplTest {
     @Test
     fun `descriptive facet is attached from matched table entity`() {
         val entity = metadataEntity("s", "t", null, "s.t").apply {
-            setFacet("descriptive", "global", mapOf(
+            setFacet("descriptive", MetadataUrns.SCOPE_GLOBAL, mapOf(
                 "displayName" to "My Table",
                 "description" to "A test table"
             ))
@@ -277,7 +278,7 @@ class SchemaFacetServiceImplTest {
     @Test
     fun `facetByType returns correct facet for known type`() {
         val entity = metadataEntity("s", "t", null, "s.t").apply {
-            setFacet("relation", "global", mapOf("relations" to emptyList<Any>()))
+            setFacet("relation", MetadataUrns.SCOPE_GLOBAL, mapOf("relations" to emptyList<Any>()))
         }
 
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
@@ -329,16 +330,16 @@ class SchemaFacetServiceImplTest {
     }
 
     @Test
-    fun `SchemaAttributeWithFacets carries schema, table, and attribute name for traceability`() {
+    fun `SchemaColumnWithFacets carries schema, table, and column name for traceability`() {
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t", field("trace_col"))))
         whenever(metadataRepository.findAll()).thenReturn(emptyList())
 
-        val attr = service.getSchemas().schemas.single().tables.single().attributes.single()
+        val attr = service.getSchemas().schemas.single().tables.single().columns.single()
 
         assertEquals("s", attr.schemaName)
         assertEquals("t", attr.tableName)
-        assertEquals("trace_col", attr.attributeName)
+        assertEquals("trace_col", attr.columnName)
     }
 
     @Test
@@ -348,7 +349,7 @@ class SchemaFacetServiceImplTest {
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t", field("col"))))
         whenever(metadataRepository.findAll()).thenReturn(listOf(entity))
 
-        val attr = service.getSchemas().schemas.single().tables.single().attributes.single()
+        val attr = service.getSchemas().schemas.single().tables.single().columns.single()
 
         assertNotNull(attr.metadata)
         assertEquals("s.t.col", attr.metadata!!.id)

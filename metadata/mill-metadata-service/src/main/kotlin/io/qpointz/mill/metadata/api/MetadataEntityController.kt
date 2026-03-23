@@ -2,6 +2,7 @@ package io.qpointz.mill.metadata.api
 
 import io.qpointz.mill.metadata.api.dto.FacetResponseDto
 import io.qpointz.mill.metadata.api.dto.MetadataEntityDto
+import io.qpointz.mill.excepions.statuses.MillStatuses
 import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.service.MetadataContext
 import io.qpointz.mill.metadata.service.MetadataService
@@ -58,7 +59,7 @@ class MetadataEntityController(private val metadataService: MetadataService) {
         @Parameter(description = "Comma-separated scope slugs, e.g. global,user:alice")
         @RequestParam(required = false) context: String?
     ): ResponseEntity<List<MetadataEntityDto>> {
-        val ctx = MetadataContext.parse(context)
+        val ctx = parseContext(context)
         var entities = metadataService.findAll()
         if (schema != null) entities = entities.filter { it.schemaName == schema }
         if (table != null) entities = entities.filter { it.tableName == table }
@@ -89,7 +90,7 @@ class MetadataEntityController(private val metadataService: MetadataService) {
         @Parameter(description = "Comma-separated scope slugs")
         @RequestParam(required = false) context: String?
     ): ResponseEntity<MetadataEntityDto> {
-        val ctx = MetadataContext.parse(context)
+        val ctx = parseContext(context)
         return metadataService.findById(id)
             .map { ResponseEntity.ok(toDto(it, ctx)) }
             .orElse(ResponseEntity.notFound().build())
@@ -121,7 +122,7 @@ class MetadataEntityController(private val metadataService: MetadataService) {
         @Parameter(description = "Comma-separated scope slugs")
         @RequestParam(required = false) context: String?
     ): ResponseEntity<Map<String, FacetResponseDto>> {
-        val ctx = MetadataContext.parse(context)
+        val ctx = parseContext(context)
         val entityOpt = metadataService.findById(id)
         if (entityOpt.isEmpty) return ResponseEntity.notFound().build()
         val entity = entityOpt.get()
@@ -161,7 +162,7 @@ class MetadataEntityController(private val metadataService: MetadataService) {
         @Parameter(description = "Comma-separated scope slugs")
         @RequestParam(required = false) context: String?
     ): ResponseEntity<FacetResponseDto> {
-        val ctx = MetadataContext.parse(context)
+        val ctx = parseContext(context)
         val normType = MetadataUrns.normaliseFacetTypePath(typeKey)
         val entityOpt = metadataService.findById(id)
         if (entityOpt.isEmpty) return ResponseEntity.notFound().build()
@@ -207,5 +208,18 @@ class MetadataEntityController(private val metadataService: MetadataService) {
             scopeMap[scope]?.let { result = it }
         }
         return result
+    }
+
+    /**
+     * Parses raw `context` query parameter using metadata-core rules and converts malformed input
+     * to a BAD_REQUEST status exception for consistent HTTP 400 mapping.
+     *
+     * @param context raw comma-separated context query parameter
+     * @return parsed [MetadataContext] with normalized scope URNs
+     */
+    private fun parseContext(context: String?): MetadataContext = try {
+        MetadataContext.parse(context)
+    } catch (ex: IllegalArgumentException) {
+        throw MillStatuses.badRequestRuntime("Malformed context parameter: ${context ?: "<blank>"}")
     }
 }

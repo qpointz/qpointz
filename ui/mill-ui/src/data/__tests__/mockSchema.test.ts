@@ -21,7 +21,7 @@ describe('mockSchemaTree', () => {
     expect(sales!.children!.length).toBeGreaterThan(0);
   });
 
-  it('should have proper entity hierarchy (SCHEMA > TABLE > ATTRIBUTE)', () => {
+  it('should have proper entity hierarchy (SCHEMA > TABLE > COLUMN)', () => {
     const sales = mockSchemaTree.find((s) => s.id === 'sales')!;
     expect(sales.type).toBe('SCHEMA');
 
@@ -31,7 +31,7 @@ describe('mockSchemaTree', () => {
 
     if (customers!.children && customers!.children.length > 0) {
       for (const col of customers!.children) {
-        expect(col.type).toBe('ATTRIBUTE');
+        expect(col.type).toBe('COLUMN');
       }
     }
   });
@@ -52,10 +52,10 @@ describe('findEntityById', () => {
     expect(entity!.name).toBe('customers');
   });
 
-  it('should find an attribute by ID', () => {
+  it('should find a column by ID', () => {
     const entity = findEntityById('sales.customers.customer_id');
     expect(entity).toBeDefined();
-    expect(entity!.type).toBe('ATTRIBUTE');
+    expect(entity!.type).toBe('COLUMN');
     expect(entity!.name).toBe('customer_id');
   });
 

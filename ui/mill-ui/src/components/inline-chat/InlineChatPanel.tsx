@@ -22,7 +22,7 @@ interface InlineChatPanelProps {
 const entityTypeIcons: Record<string, React.ComponentType<{ size: number; color?: string }>> = {
   SCHEMA: HiOutlineCircleStack,
   TABLE: HiOutlineTableCells,
-  ATTRIBUTE: HiOutlineViewColumns,
+  COLUMN: HiOutlineViewColumns,
 };
 
 function getContextIcon(session: InlineChatSession) {

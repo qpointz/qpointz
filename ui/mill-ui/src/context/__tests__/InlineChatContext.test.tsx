@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { InlineChatProvider, useInlineChat } from '../InlineChatContext';
-import { FeatureFlagProvider } from '../../features/FeatureFlagContext';
+import { FeatureFlagContext } from '../../features/FeatureFlagContext';
 import { defaultFeatureFlags } from '../../features/defaults';
 
 // Mock the unified chat service (inline chat now uses chatService)
@@ -17,17 +17,18 @@ vi.mock('../../services/api', () => ({
   },
   featureService: {
     async getFlags() {
-      // Return defaults so the FeatureFlagProvider resolves quickly
-      return { ...defaultFeatureFlags };
+      // Explicitly enable inline-chat for this test suite so behavior tests
+      // run under the intended feature state, independent of global defaults.
+      return { ...defaultFeatureFlags, inlineChatEnabled: true };
     },
   },
 }));
 
 function wrapper({ children }: { children: ReactNode }) {
   return (
-    <FeatureFlagProvider>
+    <FeatureFlagContext.Provider value={{ ...defaultFeatureFlags, inlineChatEnabled: true }}>
       <InlineChatProvider>{children}</InlineChatProvider>
-    </FeatureFlagProvider>
+    </FeatureFlagContext.Provider>
   );
 }
 

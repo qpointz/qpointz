@@ -1,6 +1,6 @@
-import type { SchemaEntity, EntityFacets } from '../types/schema';
+import type { SchemaNode, EntityFacets } from '../types/schema';
 
-export const mockSchemaTree: SchemaEntity[] = [
+export const mockSchemaTree: SchemaNode[] = [
   {
     id: 'sales',
     type: 'SCHEMA',
@@ -11,11 +11,11 @@ export const mockSchemaTree: SchemaEntity[] = [
         type: 'TABLE',
         name: 'customers',
         children: [
-          { id: 'sales.customers.customer_id', type: 'ATTRIBUTE', name: 'customer_id' },
-          { id: 'sales.customers.name', type: 'ATTRIBUTE', name: 'name' },
-          { id: 'sales.customers.email', type: 'ATTRIBUTE', name: 'email' },
-          { id: 'sales.customers.created_at', type: 'ATTRIBUTE', name: 'created_at' },
-          { id: 'sales.customers.segment', type: 'ATTRIBUTE', name: 'segment' },
+          { id: 'sales.customers.customer_id', type: 'COLUMN', name: 'customer_id' },
+          { id: 'sales.customers.name', type: 'COLUMN', name: 'name' },
+          { id: 'sales.customers.email', type: 'COLUMN', name: 'email' },
+          { id: 'sales.customers.created_at', type: 'COLUMN', name: 'created_at' },
+          { id: 'sales.customers.segment', type: 'COLUMN', name: 'segment' },
         ],
       },
       {
@@ -23,11 +23,11 @@ export const mockSchemaTree: SchemaEntity[] = [
         type: 'TABLE',
         name: 'orders',
         children: [
-          { id: 'sales.orders.order_id', type: 'ATTRIBUTE', name: 'order_id' },
-          { id: 'sales.orders.customer_id', type: 'ATTRIBUTE', name: 'customer_id' },
-          { id: 'sales.orders.order_date', type: 'ATTRIBUTE', name: 'order_date' },
-          { id: 'sales.orders.total_amount', type: 'ATTRIBUTE', name: 'total_amount' },
-          { id: 'sales.orders.status', type: 'ATTRIBUTE', name: 'status' },
+          { id: 'sales.orders.order_id', type: 'COLUMN', name: 'order_id' },
+          { id: 'sales.orders.customer_id', type: 'COLUMN', name: 'customer_id' },
+          { id: 'sales.orders.order_date', type: 'COLUMN', name: 'order_date' },
+          { id: 'sales.orders.total_amount', type: 'COLUMN', name: 'total_amount' },
+          { id: 'sales.orders.status', type: 'COLUMN', name: 'status' },
         ],
       },
       {
@@ -35,11 +35,11 @@ export const mockSchemaTree: SchemaEntity[] = [
         type: 'TABLE',
         name: 'order_items',
         children: [
-          { id: 'sales.order_items.item_id', type: 'ATTRIBUTE', name: 'item_id' },
-          { id: 'sales.order_items.order_id', type: 'ATTRIBUTE', name: 'order_id' },
-          { id: 'sales.order_items.product_id', type: 'ATTRIBUTE', name: 'product_id' },
-          { id: 'sales.order_items.quantity', type: 'ATTRIBUTE', name: 'quantity' },
-          { id: 'sales.order_items.unit_price', type: 'ATTRIBUTE', name: 'unit_price' },
+          { id: 'sales.order_items.item_id', type: 'COLUMN', name: 'item_id' },
+          { id: 'sales.order_items.order_id', type: 'COLUMN', name: 'order_id' },
+          { id: 'sales.order_items.product_id', type: 'COLUMN', name: 'product_id' },
+          { id: 'sales.order_items.quantity', type: 'COLUMN', name: 'quantity' },
+          { id: 'sales.order_items.unit_price', type: 'COLUMN', name: 'unit_price' },
         ],
       },
     ],
@@ -54,11 +54,11 @@ export const mockSchemaTree: SchemaEntity[] = [
         type: 'TABLE',
         name: 'products',
         children: [
-          { id: 'inventory.products.product_id', type: 'ATTRIBUTE', name: 'product_id' },
-          { id: 'inventory.products.name', type: 'ATTRIBUTE', name: 'name' },
-          { id: 'inventory.products.category', type: 'ATTRIBUTE', name: 'category' },
-          { id: 'inventory.products.price', type: 'ATTRIBUTE', name: 'price' },
-          { id: 'inventory.products.stock_quantity', type: 'ATTRIBUTE', name: 'stock_quantity' },
+          { id: 'inventory.products.product_id', type: 'COLUMN', name: 'product_id' },
+          { id: 'inventory.products.name', type: 'COLUMN', name: 'name' },
+          { id: 'inventory.products.category', type: 'COLUMN', name: 'category' },
+          { id: 'inventory.products.price', type: 'COLUMN', name: 'price' },
+          { id: 'inventory.products.stock_quantity', type: 'COLUMN', name: 'stock_quantity' },
         ],
       },
       {
@@ -66,10 +66,10 @@ export const mockSchemaTree: SchemaEntity[] = [
         type: 'TABLE',
         name: 'suppliers',
         children: [
-          { id: 'inventory.suppliers.supplier_id', type: 'ATTRIBUTE', name: 'supplier_id' },
-          { id: 'inventory.suppliers.name', type: 'ATTRIBUTE', name: 'name' },
-          { id: 'inventory.suppliers.contact_email', type: 'ATTRIBUTE', name: 'contact_email' },
-          { id: 'inventory.suppliers.country', type: 'ATTRIBUTE', name: 'country' },
+          { id: 'inventory.suppliers.supplier_id', type: 'COLUMN', name: 'supplier_id' },
+          { id: 'inventory.suppliers.name', type: 'COLUMN', name: 'name' },
+          { id: 'inventory.suppliers.contact_email', type: 'COLUMN', name: 'contact_email' },
+          { id: 'inventory.suppliers.country', type: 'COLUMN', name: 'country' },
         ],
       },
     ],
@@ -84,10 +84,10 @@ export const mockSchemaTree: SchemaEntity[] = [
         type: 'TABLE',
         name: 'daily_sales',
         children: [
-          { id: 'analytics.daily_sales.date', type: 'ATTRIBUTE', name: 'date' },
-          { id: 'analytics.daily_sales.total_orders', type: 'ATTRIBUTE', name: 'total_orders' },
-          { id: 'analytics.daily_sales.total_revenue', type: 'ATTRIBUTE', name: 'total_revenue' },
-          { id: 'analytics.daily_sales.avg_order_value', type: 'ATTRIBUTE', name: 'avg_order_value' },
+          { id: 'analytics.daily_sales.date', type: 'COLUMN', name: 'date' },
+          { id: 'analytics.daily_sales.total_orders', type: 'COLUMN', name: 'total_orders' },
+          { id: 'analytics.daily_sales.total_revenue', type: 'COLUMN', name: 'total_revenue' },
+          { id: 'analytics.daily_sales.avg_order_value', type: 'COLUMN', name: 'avg_order_value' },
         ],
       },
       {
@@ -95,10 +95,10 @@ export const mockSchemaTree: SchemaEntity[] = [
         type: 'TABLE',
         name: 'customer_metrics',
         children: [
-          { id: 'analytics.customer_metrics.customer_id', type: 'ATTRIBUTE', name: 'customer_id' },
-          { id: 'analytics.customer_metrics.lifetime_value', type: 'ATTRIBUTE', name: 'lifetime_value' },
-          { id: 'analytics.customer_metrics.total_orders', type: 'ATTRIBUTE', name: 'total_orders' },
-          { id: 'analytics.customer_metrics.last_order_date', type: 'ATTRIBUTE', name: 'last_order_date' },
+          { id: 'analytics.customer_metrics.customer_id', type: 'COLUMN', name: 'customer_id' },
+          { id: 'analytics.customer_metrics.lifetime_value', type: 'COLUMN', name: 'lifetime_value' },
+          { id: 'analytics.customer_metrics.total_orders', type: 'COLUMN', name: 'total_orders' },
+          { id: 'analytics.customer_metrics.last_order_date', type: 'COLUMN', name: 'last_order_date' },
         ],
       },
     ],
@@ -340,7 +340,7 @@ export function getEntityFacets(entityId: string): EntityFacets {
   return mockFacets[entityId] || {};
 }
 
-export function findEntityById(id: string, tree: SchemaEntity[] = mockSchemaTree): SchemaEntity | null {
+export function findEntityById(id: string, tree: SchemaNode[] = mockSchemaTree): SchemaNode | null {
   for (const entity of tree) {
     if (entity.id === id) return entity;
     if (entity.children) {

@@ -41,14 +41,21 @@ function wrapper({ children }: { children: ReactNode }) {
 
 const tableEntity: SchemaEntity = {
   id: 'sales.customers',
-  type: 'TABLE',
-  name: 'customers',
+  entityType: 'TABLE',
+  schemaName: 'sales',
+  tableName: 'customers',
+  tableType: 'TABLE',
+  columns: [],
 };
 
 const columnEntity: SchemaEntity = {
   id: 'sales.customers.customer_id',
-  type: 'ATTRIBUTE',
-  name: 'customer_id',
+  entityType: 'COLUMN',
+  schemaName: 'sales',
+  tableName: 'customers',
+  columnName: 'customer_id',
+  fieldIndex: 0,
+  type: { type: 'INTEGER', nullable: false },
 };
 
 const fullFacets: EntityFacets = {
@@ -63,7 +70,7 @@ const fullFacets: EntityFacets = {
   },
   structural: {
     physicalName: 'customers',
-    physicalType: 'TABLE',
+    type: 'TABLE',
     isPrimaryKey: false,
     isForeignKey: false,
     isUnique: false,
@@ -89,7 +96,7 @@ const columnFacets: EntityFacets = {
   },
   structural: {
     physicalName: 'customer_id',
-    physicalType: 'INTEGER',
+    type: 'INTEGER',
     isPrimaryKey: true,
     nullable: false,
     isUnique: true,
@@ -119,7 +126,7 @@ describe('EntityDetails', () => {
       expect(screen.getByText('Table')).toBeInTheDocument();
     });
 
-    it('should show Column badge for ATTRIBUTE type', () => {
+    it('should show Column badge for COLUMN type', () => {
       renderDetails(columnEntity, columnFacets);
       expect(screen.getByText('Column')).toBeInTheDocument();
     });
@@ -178,7 +185,7 @@ describe('EntityDetails', () => {
 
     it('should show "No detailed information" when there are no facets', () => {
       renderDetails(tableEntity, {});
-      expect(screen.getByText('No detailed information available for this entity.')).toBeInTheDocument();
+      expect(screen.getByText('No metadata facets available for this entity yet.')).toBeInTheDocument();
     });
   });
 

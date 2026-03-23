@@ -44,7 +44,7 @@ const DRAWER_WIDTH = 380;
 const entityTypeIcons: Record<string, React.ComponentType<{ size: number; color?: string }>> = {
   SCHEMA: HiOutlineCircleStack,
   TABLE: HiOutlineTableCells,
-  ATTRIBUTE: HiOutlineViewColumns,
+  COLUMN: HiOutlineViewColumns,
 };
 
 function getSessionIcon(session: InlineChatSession) {
@@ -219,7 +219,7 @@ function RelContentRefIcon({ type, entityType, size, color }: {
   color: string;
 }) {
   if (type === 'model') {
-    if (entityType === 'ATTRIBUTE') return <HiOutlineViewColumns size={size} color={color} style={{ flexShrink: 0 }} />;
+    if (entityType === 'COLUMN') return <HiOutlineViewColumns size={size} color={color} style={{ flexShrink: 0 }} />;
     return <HiOutlineTableCells size={size} color={color} style={{ flexShrink: 0 }} />;
   }
   if (type === 'concept') return <HiOutlineLightBulb size={size} color={color} style={{ flexShrink: 0 }} />;

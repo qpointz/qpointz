@@ -16,7 +16,7 @@ dependencies {
     implementation(project(":data:mill-data-autoconfigure"))
     implementation(libs.boot.starter)
     implementation(libs.boot.starter.web)
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
+    implementation(libs.springdoc.openapi.starter.webmvc.ui)
     implementation(libs.bundles.logging)
 }
 

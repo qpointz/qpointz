@@ -39,7 +39,7 @@ function RefIcon({ type, entityType, size, color }: {
   color: string;
 }) {
   if (type === 'model') {
-    if (entityType === 'ATTRIBUTE') return <HiOutlineViewColumns size={size} color={color} style={{ flexShrink: 0 }} />;
+    if (entityType === 'COLUMN') return <HiOutlineViewColumns size={size} color={color} style={{ flexShrink: 0 }} />;
     return <HiOutlineTableCells size={size} color={color} style={{ flexShrink: 0 }} />;
   }
   if (type === 'concept') return <HiOutlineLightBulb size={size} color={color} style={{ flexShrink: 0 }} />;
@@ -96,7 +96,7 @@ export function RelatedContentButton({
     if (!flags.relatedContentModelContext) return null;
     if (contextEntityType === 'SCHEMA' && !flags.relatedContentModelSchema) return null;
     if (contextEntityType === 'TABLE' && !flags.relatedContentModelTable) return null;
-    if (contextEntityType === 'ATTRIBUTE' && !flags.relatedContentModelColumn) return null;
+    if (contextEntityType === 'COLUMN' && !flags.relatedContentModelColumn) return null;
   }
   if (contextType === 'knowledge' && !flags.relatedContentKnowledgeContext) return null;
   if (contextType === 'analysis' && !flags.relatedContentAnalysisContext) return null;

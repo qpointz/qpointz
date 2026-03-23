@@ -1,10 +1,74 @@
-export type EntityType = 'SCHEMA' | 'TABLE' | 'ATTRIBUTE';
+export type EntityType = 'SCHEMA' | 'TABLE' | 'COLUMN';
 
-export interface SchemaEntity {
+export interface ScopeOption {
+  id: string;
+  slug: string;
+  displayName: string;
+}
+
+export interface SchemaContext {
+  selectedContext: string;
+  availableScopes: ScopeOption[];
+}
+
+export interface SchemaListItem {
+  id: string;
+  entityType: 'SCHEMA';
+  schemaName: string;
+  metadataEntityId?: string;
+}
+
+export interface DataTypeDescriptor {
+  type: string;
+  nullable: boolean;
+  precision?: number;
+  scale?: number;
+}
+
+export interface SchemaDetail {
+  id: string;
+  entityType: 'SCHEMA';
+  schemaName: string;
+  metadataEntityId?: string;
+  tables: TableSummary[];
+}
+
+export interface TableSummary {
+  id: string;
+  entityType: 'TABLE';
+  schemaName: string;
+  tableName: string;
+  metadataEntityId?: string;
+}
+
+export interface TableDetail {
+  id: string;
+  entityType: 'TABLE';
+  schemaName: string;
+  tableName: string;
+  tableType: string;
+  metadataEntityId?: string;
+  columns: ColumnDetail[];
+}
+
+export interface ColumnDetail {
+  id: string;
+  entityType: 'COLUMN';
+  schemaName: string;
+  tableName: string;
+  columnName: string;
+  fieldIndex: number;
+  type: DataTypeDescriptor;
+  metadataEntityId?: string;
+}
+
+export type SchemaEntity = SchemaDetail | TableDetail | ColumnDetail;
+
+export interface SchemaNode {
   id: string;
   type: EntityType;
   name: string;
-  children?: SchemaEntity[];
+  children?: SchemaNode[];
 }
 
 export interface DescriptiveFacet {
@@ -20,6 +84,7 @@ export interface DescriptiveFacet {
 export interface StructuralFacet {
   physicalName?: string;
   physicalType?: string;
+  type?: string;
   precision?: number;
   scale?: number;
   isPrimaryKey?: boolean;
@@ -51,7 +116,23 @@ export interface EntityWithFacets {
 }
 
 export interface SchemaService {
-  getTree(): Promise<SchemaEntity[]>;
-  getEntityById(id: string): Promise<SchemaEntity | null>;
-  getEntityFacets(id: string): Promise<EntityFacets>;
+  getContext(): Promise<SchemaContext>;
+  listSchemas(context: string, facetMode?: 'none' | 'direct' | 'hierarchy'): Promise<SchemaListItem[]>;
+  getSchema(schemaName: string, context: string, facetMode?: 'none' | 'direct' | 'hierarchy'): Promise<SchemaDetail | null>;
+  getTable(
+    schemaName: string,
+    tableName: string,
+    context: string,
+    facetMode?: 'none' | 'direct' | 'hierarchy'
+  ): Promise<TableDetail | null>;
+  getColumn(
+    schemaName: string,
+    tableName: string,
+    columnName: string,
+    context: string,
+    facetMode?: 'none' | 'direct' | 'hierarchy'
+  ): Promise<ColumnDetail | null>;
+  getTree(context: string): Promise<SchemaNode[]>;
+  getEntityById(id: string, context: string): Promise<SchemaEntity | null>;
+  getEntityFacets(id: string, context: string): Promise<EntityFacets>;
 }

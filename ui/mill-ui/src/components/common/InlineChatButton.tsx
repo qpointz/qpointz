@@ -54,7 +54,7 @@ export function InlineChatButton({
     if (!flags.inlineChatModelContext) return null;
     if (contextEntityType === 'SCHEMA' && !flags.inlineChatModelSchema) return null;
     if (contextEntityType === 'TABLE' && !flags.inlineChatModelTable) return null;
-    if (contextEntityType === 'ATTRIBUTE' && !flags.inlineChatModelColumn) return null;
+    if (contextEntityType === 'COLUMN' && !flags.inlineChatModelColumn) return null;
   }
   if (contextType === 'knowledge' && !flags.inlineChatKnowledgeContext) return null;
   if (contextType === 'analysis' && !flags.inlineChatAnalysisContext) return null;

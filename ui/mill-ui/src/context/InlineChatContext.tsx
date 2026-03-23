@@ -212,7 +212,7 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
         // Check entity-type sub-flags
         if (contextEntityType === 'SCHEMA' && !flags.inlineChatModelSchema) return;
         if (contextEntityType === 'TABLE' && !flags.inlineChatModelTable) return;
-        if (contextEntityType === 'ATTRIBUTE' && !flags.inlineChatModelColumn) return;
+        if (contextEntityType === 'COLUMN' && !flags.inlineChatModelColumn) return;
       }
       if (contextType === 'knowledge' && !flags.inlineChatKnowledgeContext) return;
       if (contextType === 'analysis' && !flags.inlineChatAnalysisContext) return;

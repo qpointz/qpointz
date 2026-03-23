@@ -7,6 +7,7 @@ import io.qpointz.mill.metadata.domain.RelationType
 import io.qpointz.mill.metadata.domain.core.DescriptiveFacet
 import io.qpointz.mill.metadata.domain.core.EntityReference
 import io.qpointz.mill.metadata.domain.core.RelationFacet
+import io.qpointz.mill.metadata.service.MetadataContext
 import io.qpointz.mill.proto.DataType
 import io.qpointz.mill.proto.LogicalDataType
 import io.qpointz.mill.proto.Table
@@ -23,8 +24,26 @@ import io.qpointz.mill.proto.Table
  */
 internal class DemoSchemaFacetService : SchemaFacetService {
 
-    override fun getSchemas(): SchemaFacetResult =
+    override fun getSchemas(context: MetadataContext): SchemaFacetResult =
         SchemaFacetResult(schemas = listOf(retailSchema()), unboundMetadata = emptyList())
+
+    override fun getSchema(schemaName: String, context: MetadataContext): SchemaWithFacets? =
+        retailSchema().takeIf { it.schemaName == schemaName }
+
+    override fun getTable(
+        schemaName: String,
+        tableName: String,
+        context: MetadataContext
+    ): SchemaTableWithFacets? =
+        getSchema(schemaName, context)?.tables?.firstOrNull { it.tableName == tableName }
+
+    override fun getColumn(
+        schemaName: String,
+        tableName: String,
+        columnName: String,
+        context: MetadataContext
+    ): SchemaColumnWithFacets? =
+        getTable(schemaName, tableName, context)?.columns?.firstOrNull { it.columnName == columnName }
 
     // ── Schema ────────────────────────────────────────────────────────────────
 
@@ -59,7 +78,7 @@ internal class DemoSchemaFacetService : SchemaFacetService {
 
     private fun customersTable(relations: List<RelationFacet.Relation>) = table(
         schema = "retail", name = "customers", description = "Registered customers", relations = relations,
-        attrs = listOf(
+        columns = listOf(
             attr("retail", "customers", "id",      0, bigInt(true),  "Surrogate primary key"),
             attr("retail", "customers", "email",   1, string(true),  "Customer e-mail address (unique)"),
             attr("retail", "customers", "name",    2, string(true),  "Full display name"),
@@ -69,7 +88,7 @@ internal class DemoSchemaFacetService : SchemaFacetService {
 
     private fun productsTable(relations: List<RelationFacet.Relation>) = table(
         schema = "retail", name = "products", description = "Product catalogue", relations = relations,
-        attrs = listOf(
+        columns = listOf(
             attr("retail", "products", "id",       0, bigInt(true),  "Surrogate primary key"),
             attr("retail", "products", "name",     1, string(true),  "Product display name"),
             attr("retail", "products", "category", 2, string(false), "Top-level product category"),
@@ -79,7 +98,7 @@ internal class DemoSchemaFacetService : SchemaFacetService {
 
     private fun ordersTable(relations: List<RelationFacet.Relation>) = table(
         schema = "retail", name = "orders", description = "Customer purchase orders", relations = relations,
-        attrs = listOf(
+        columns = listOf(
             attr("retail", "orders", "id",           0, bigInt(true),     "Surrogate primary key"),
             attr("retail", "orders", "customer_id",  1, bigInt(true),     "FK → customers.id"),
             attr("retail", "orders", "created_at",   2, timestamp(true),  "Order placement timestamp (UTC)"),
@@ -89,7 +108,7 @@ internal class DemoSchemaFacetService : SchemaFacetService {
 
     private fun orderItemsTable(relations: List<RelationFacet.Relation>) = table(
         schema = "retail", name = "order_items", description = "Individual line items within an order", relations = relations,
-        attrs = listOf(
+        columns = listOf(
             attr("retail", "order_items", "id",         0, bigInt(true),  "Surrogate primary key"),
             attr("retail", "order_items", "order_id",   1, bigInt(true),  "FK → orders.id"),
             attr("retail", "order_items", "product_id", 2, bigInt(true),  "FK → products.id"),
@@ -101,7 +120,7 @@ internal class DemoSchemaFacetService : SchemaFacetService {
     /** No description — tests the missing-metadata case. */
     private fun rawEventsTable() = table(
         schema = "retail", name = "raw_events", description = null, relations = emptyList(),
-        attrs = listOf(
+        columns = listOf(
             attr("retail", "raw_events", "event_id",    0, string(true),    null),
             attr("retail", "raw_events", "event_type",  1, string(true),    null),
             attr("retail", "raw_events", "payload",     2, string(false),   null),
@@ -114,7 +133,7 @@ internal class DemoSchemaFacetService : SchemaFacetService {
     private fun table(
         schema: String, name: String, description: String?,
         relations: List<RelationFacet.Relation>,
-        attrs: List<SchemaAttributeWithFacets>,
+        columns: List<SchemaColumnWithFacets>,
     ): SchemaTableWithFacets {
         val facetSet = mutableSetOf<MetadataFacet>()
         description?.let { facetSet.add(DescriptiveFacet(description = it)) }
@@ -122,7 +141,7 @@ internal class DemoSchemaFacetService : SchemaFacetService {
         return SchemaTableWithFacets(
             schemaName = schema, tableName = name,
             tableType = Table.TableTypeId.TABLE,
-            attributes = attrs, metadata = null,
+            columns = columns, metadata = null,
             facets = SchemaFacets(facetSet),
         )
     }
@@ -130,11 +149,11 @@ internal class DemoSchemaFacetService : SchemaFacetService {
     private fun attr(
         schema: String, table: String, name: String, index: Int,
         dataType: DataType, description: String?,
-    ): SchemaAttributeWithFacets {
+    ): SchemaColumnWithFacets {
         val facetSet = mutableSetOf<MetadataFacet>()
         description?.let { facetSet.add(DescriptiveFacet(description = it)) }
-        return SchemaAttributeWithFacets(
-            schemaName = schema, tableName = table, attributeName = name,
+        return SchemaColumnWithFacets(
+            schemaName = schema, tableName = table, columnName = name,
             fieldIndex = index, dataType = dataType, metadata = null,
             facets = SchemaFacets(facetSet),
         )

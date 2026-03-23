@@ -14,7 +14,7 @@ data class SchemaTableWithFacets(
     val schemaName: String,
     val tableName: String,
     val tableType: Table.TableTypeId,
-    val attributes: List<SchemaAttributeWithFacets>,
+    val columns: List<SchemaColumnWithFacets>,
     override val metadata: MetadataEntity?,
     override val facets: SchemaFacets
 ) : WithFacets

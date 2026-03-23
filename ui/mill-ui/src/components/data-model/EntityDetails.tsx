@@ -14,6 +14,7 @@ import { RelationFacet } from './facets/RelationFacet';
 import { InlineChatButton } from '../common/InlineChatButton';
 import { RelatedContentButton } from '../common/RelatedContentButton';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
+import { useChatReferences } from '../../context/ChatReferencesContext';
 
 interface EntityDetailsProps {
   entity: SchemaEntity;
@@ -23,20 +24,27 @@ interface EntityDetailsProps {
 const entityIcons = {
   SCHEMA: HiOutlineCircleStack,
   TABLE: HiOutlineTableCells,
-  ATTRIBUTE: HiOutlineViewColumns,
+  COLUMN: HiOutlineViewColumns,
 };
 
 const entityLabels = {
   SCHEMA: 'Schema',
   TABLE: 'Table',
-  ATTRIBUTE: 'Column',
+  COLUMN: 'Column',
 };
 
 export function EntityDetails({ entity, facets }: EntityDetailsProps) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const flags = useFeatureFlags();
-  const Icon = entityIcons[entity.type];
+  const Icon = entityIcons[entity.entityType];
+  const entityName = entity.entityType === 'SCHEMA'
+    ? entity.schemaName
+    : entity.entityType === 'TABLE'
+      ? entity.tableName
+      : entity.columnName;
+  const { refs: chatRefs } = useChatReferences('model', entity.id);
+  const relationCount = facets.relations?.length ?? 0;
 
   const hasDescriptive = flags.modelDescriptiveFacet && facets.descriptive && Object.keys(facets.descriptive).length > 0;
   const hasStructural = flags.modelStructuralFacet && facets.structural && Object.keys(facets.structural).length > 0;
@@ -44,6 +52,7 @@ export function EntityDetails({ entity, facets }: EntityDetailsProps) {
 
   // Determine which tabs to show
   const showTabs = hasDescriptive || hasStructural || hasRelations;
+  const baseTypeLabel = entity.entityType === 'COLUMN' ? entity.type.type : undefined;
 
   return (
     <Box h="100%">
@@ -76,10 +85,10 @@ export function EntityDetails({ entity, facets }: EntityDetailsProps) {
             <Box style={{ minWidth: 0 }}>
               <Group gap="xs">
                 <Text size="lg" fw={600} c={isDark ? 'gray.1' : 'gray.8'} truncate>
-                  {facets.descriptive?.displayName || entity.name}
+                  {facets.descriptive?.displayName || entityName}
                 </Text>
                 <Badge variant="light" color={isDark ? 'cyan' : 'teal'} size="sm">
-                  {entityLabels[entity.type]}
+                  {entityLabels[entity.entityType]}
                 </Badge>
               </Group>
               <Text size="sm" c="dimmed" ff="monospace" truncate>
@@ -88,17 +97,27 @@ export function EntityDetails({ entity, facets }: EntityDetailsProps) {
             </Box>
           </Group>
           <Group gap={4} wrap="nowrap">
+            {relationCount > 0 && (
+              <Badge variant="light" color="indigo" size="xs">
+                Related {relationCount}
+              </Badge>
+            )}
+            {chatRefs.length > 0 && (
+              <Badge variant="light" color="violet" size="xs">
+                Chats {chatRefs.length}
+              </Badge>
+            )}
             <RelatedContentButton
               contextType="model"
               contextId={entity.id}
-              contextLabel={entity.name}
-              contextEntityType={entity.type}
+              contextLabel={entityName}
+              contextEntityType={entity.entityType}
             />
             <InlineChatButton
               contextType="model"
               contextId={entity.id}
-              contextLabel={entity.name}
-              contextEntityType={entity.type}
+              contextLabel={entityName}
+              contextEntityType={entity.entityType}
             />
           </Group>
         </Group>
@@ -126,9 +145,9 @@ export function EntityDetails({ entity, facets }: EntityDetailsProps) {
                 Not Null
               </Badge>
             )}
-            {flags.modelPhysicalType && facets.structural.physicalType && (
+            {flags.modelPhysicalType && (facets.structural.physicalType || facets.structural.type) && (
               <Badge variant="outline" color="gray" size="sm">
-                {facets.structural.physicalType}
+                {facets.structural.type || facets.structural.physicalType}
               </Badge>
             )}
           </Group>
@@ -137,9 +156,45 @@ export function EntityDetails({ entity, facets }: EntityDetailsProps) {
 
       {/* Content */}
       <Box p="md" style={{ overflow: 'auto', height: 'calc(100% - 120px)' }}>
+        <Box
+          mb="md"
+          p="sm"
+          style={{
+            border: '1px solid var(--mantine-color-default-border)',
+            borderRadius: 8,
+            backgroundColor: isDark ? 'var(--mantine-color-dark-7)' : 'var(--mantine-color-gray-0)',
+          }}
+        >
+          <Group gap="xs" mb="xs">
+            <Badge variant="outline" color="gray" size="sm">
+              ID {entity.id}
+            </Badge>
+            {baseTypeLabel && (
+              <Badge variant="light" color={isDark ? 'cyan' : 'teal'} size="sm">
+                {baseTypeLabel}
+              </Badge>
+            )}
+          </Group>
+          {entity.entityType === 'SCHEMA' && (
+            <Text size="sm" c="dimmed">
+              Tables: {entity.tables.length}
+            </Text>
+          )}
+          {entity.entityType === 'TABLE' && (
+            <Text size="sm" c="dimmed">
+              Table type: {entity.tableType} · Columns: {entity.columns.length}
+            </Text>
+          )}
+          {entity.entityType === 'COLUMN' && (
+            <Text size="sm" c="dimmed">
+              Column: {entity.columnName} · Position: {entity.fieldIndex}
+            </Text>
+          )}
+        </Box>
+
         {!showTabs ? (
           <Box py="xl" ta="center">
-            <Text c="dimmed">No detailed information available for this entity.</Text>
+            <Text c="dimmed">No metadata facets available for this entity yet.</Text>
           </Box>
         ) : (
           <Tabs defaultValue={hasDescriptive ? 'descriptive' : hasStructural ? 'structural' : 'relations'}>

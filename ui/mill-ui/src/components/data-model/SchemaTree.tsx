@@ -8,21 +8,21 @@ import {
   HiChevronDown,
   HiOutlineChatBubbleLeftRight,
 } from 'react-icons/hi2';
-import type { SchemaEntity } from '../../types/schema';
+import type { SchemaNode } from '../../types/schema';
 import { useInlineChat } from '../../context/InlineChatContext';
 import { useChatReferencesContext } from '../../context/ChatReferencesContext';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
 
 interface SchemaTreeProps {
-  tree: SchemaEntity[];
+  tree: SchemaNode[];
   selectedId: string | null;
-  onSelect: (entity: SchemaEntity) => void;
+  onSelect: (entity: SchemaNode) => void;
 }
 
 const entityIcons = {
   SCHEMA: HiOutlineCircleStack,
   TABLE: HiOutlineTableCells,
-  ATTRIBUTE: HiOutlineViewColumns,
+  COLUMN: HiOutlineViewColumns,
 };
 
 function TreeNode({
@@ -31,9 +31,9 @@ function TreeNode({
   onSelect,
   depth = 0,
 }: {
-  entity: SchemaEntity;
+  entity: SchemaNode;
   selectedId: string | null;
-  onSelect: (entity: SchemaEntity) => void;
+  onSelect: (entity: SchemaNode) => void;
   depth?: number;
 }) {
   const { colorScheme } = useMantineColorScheme();
