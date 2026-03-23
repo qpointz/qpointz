@@ -1,9 +1,27 @@
 # Metadata Service Design - Faceted Architecture
 
-**Status:** Design Approved, Implementation In Progress  
-**Date:** November 5, 2025  
-**Last Updated:** December 2024  
+**Status:** Design Approved, Implementation In Progress
+**Date:** November 5, 2025
+**Last Updated:** March 2026
 **Author:** Architecture Team
+
+---
+
+## Implementation Notes (March 2026)
+
+**Delivered in story `metadata-persistence-and-editing` (branch `feat/metadata-persistence`):**
+
+- ✅ WI-085 — Service layer cleanup: NoOp repositories, `@AutoConfigureAfter` ordering, component-scan alignment, all four metadata controllers visible in `/v3/api-docs`.
+- ✅ WI-086 — REST layer redesign: four controllers (`MetadataEntityController`, `MetadataFacetController`, `MetadataScopeController`, `MetadataImportExportController`) at `/api/v1/metadata/**`; `MetadataExceptionHandler` (`@RestControllerAdvice`); `MetadataUrns` URN helpers.
+- ✅ WI-087 — Relational persistence: new `mill-metadata-persistence` module; Flyway V4 migration (`metadata_entity`, `metadata_facet_scope`, `metadata_facet_type`, `metadata_scope`, `metadata_promotion`); JPA entities + Spring Data repos; `JpaMetadataRepository` / `JpaFacetTypeRepository` adapters; `MetadataJpaPersistenceAutoConfiguration`.
+- ✅ WI-089 — Scope model: `MetadataScope`, `MetadataScopeRepository`, `MetadataScopeService`, `MetadataContext`; `JpaMetadataScopeRepository`; `NoOpMetadataScopeRepository` fallback.
+- ✅ WI-092 — `mill-ui` model view wired to real backend (read-only); inline chat disabled pending redesign.
+
+**Upcoming in story `metadata-edit-and-explorer`:**
+
+- 🔲 WI-090 — User editing write API (`MetadataEditService`, write endpoints)
+- 🔲 WI-091 — Promotion workflow (`MetadataPromotionService`, review API)
+- 🔲 WI-093 — Physical schema explorer (`/api/v1/schema/**` from Calcite `SchemaPlus`)
 
 ---
 
@@ -13,7 +31,7 @@
 
 1. **Simplified Hierarchy**: The `catalogName` field was removed from the domain model. The hierarchy is now `schema → table → attribute` instead of `catalog → schema → table → attribute`. Entity IDs follow the format `schema.table` or `schema.table.attribute`.
 
-2. **Phase 1 & 2 Completed**: 
+2. **Phase 1 & 2 Completed**:
    - ✅ Core foundation (M1) - domain model, facets, file-based repository
    - ✅ REST API service (M2) - read-only endpoints with Swagger documentation
    - ✅ Metadata browser UI - collapsible sidebar, entity details, URL routing

@@ -1,10 +1,13 @@
 # WI-090 — Metadata User Editing
 
-Status: `deferred`
+Status: `planned`
 Type: `✨ feature`
 Area: `metadata`, `ui`
 Backlog refs: `M-10`, `M-20`
 
+> **Story scope note:** This WI is out of scope for the current schema-alignment story
+> (`WI-093a`/`WI-093b`) and remains deferred to a dedicated follow-up story.
+>
 > **Deferred — reason:** Facet types are dynamic (deployment-configurable, not a fixed enum).
 > A generic editing UI cannot be built against a static field list — it requires a schema-driven
 > form renderer (read `FacetTypeDescriptor.contentSchemaJson` → generate input controls) or a
@@ -73,6 +76,8 @@ implementation begins.
 2. How are nested/complex facet payloads rendered? (recursive form? YAML editor fallback?)
 3. What validation feedback does the API return for schema violations? (`422` + field errors?)
 4. Can a user delete another user's personal-scope facet? (no — but who enforces: service or DB?)
+5. Scope/context authorization policy: which context scopes may a caller request or write against
+   (e.g. `user:alice` using `user:bob`, custom/chat scopes), and where is it enforced?
 
 ---
 

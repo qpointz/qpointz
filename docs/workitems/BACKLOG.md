@@ -158,17 +158,17 @@ milestone-selectable deliverables extracted from design documents and work items
 | M-7 | Display value mappings in metadata browser UI | ✨ feature | planned | `WI-028-metadata-value-mapping-api-and-ui.md` |
 | M-8 | Introduce ValueResolver abstraction with feature flag (legacy/faceted/hybrid) | 🔧 refactoring | planned | `WI-027-metadata-value-mapping-bridge.md` |
 | M-9 | Add parity tests: legacy vs facet value resolution | 🧪 test | planned | `WI-027-metadata-value-mapping-bridge.md` |
-| M-10 | Implement EnrichmentFacet, EnrichmentService, and approval workflow | ✨ feature | planned | `WI-090-metadata-user-editing.md` |
-| M-11 | → see **PS-6** (reclassified to persistence) | ✨ feature | planned | `WI-087-metadata-relational-persistence.md` |
-| M-12 | → see **PS-7** (reclassified to persistence) | ✨ feature | planned | `WI-087-metadata-relational-persistence.md` |
+| M-10 | Implement EnrichmentFacet, EnrichmentService, and approval workflow | ✨ feature | planned | `metadata-edit-and-explorer/WI-090-metadata-user-editing.md` |
+| M-11 | → see **PS-6** (reclassified to persistence) | ✨ feature | done | `MILESTONE.md` (WI-087 completed) |
+| M-12 | → see **PS-7** (reclassified to persistence) | ✨ feature | done | `MILESTONE.md` (WI-087 completed) |
 | M-15 | Implement full-text and facet-aware search (Postgres/Elastic/Lucene) | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-16 | Implement DataQualityFacet and rule execution engine | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-17 | Implement SemanticFacet with vector store integration | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-18 | Implement LineageFacet and lineage graph API | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
-| M-19 | Implement scope resolution (user > team > role > global) with security context | ✨ feature | planned | `WI-089-metadata-scopes-and-contexts.md` |
-| M-20 | Add UI editing for metadata facets (DescriptiveFacet, RelationFacet, ConceptFacet, etc.) | ✨ feature | planned | `WI-090-metadata-user-editing.md`, `WI-091-metadata-promotion-workflow.md` |
-| M-21 | Fix MessageHelper parse error messages (generic HandshakeResponse) | 🐛 fix | planned | `WI-085-metadata-service-cleanup.md` |
-| M-22 | Remove ProtobufUtils dead code and register HTTP ServiceDescriptor | 🐛 fix | planned | `WI-085-metadata-service-cleanup.md` |
+| M-19 | Implement scope resolution (user > team > role > global) with security context | ✨ feature | done | `MILESTONE.md` (WI-089 completed) |
+| M-20 | Add UI editing for metadata facets (DescriptiveFacet, RelationFacet, ConceptFacet, etc.) | ✨ feature | planned | `metadata-edit-and-explorer/WI-090-metadata-user-editing.md`, `metadata-edit-and-explorer/WI-091-metadata-promotion-workflow.md` |
+| M-21 | Fix MessageHelper parse error messages (generic HandshakeResponse) | 🐛 fix | done | `MILESTONE.md` (WI-085 completed) |
+| M-22 | Remove ProtobufUtils dead code and register HTTP ServiceDescriptor | 🐛 fix | done | `MILESTONE.md` (WI-085 completed) |
 | M-27 | Extend metadata StructuralFacet/API/UI contracts for complex types (LIST/MAP/OBJECT + nested shape rendering); depends on D-2/D-3/D-4 | ✨ feature | planned | `WI-034-metadata-complex-type-support.md` |
 
 ---
@@ -311,8 +311,8 @@ Delivery order: PS-1 → PS-3 → PS-2 → PS-4 → PS-5 → PS-6/PS-7 → PS-8
 | PS-4e | Implement rebuild/indexing flow from artifact history into derived relation projections | ✨ feature | backlog | `design/agentic/v3-persistence-lanes.md` | ai/v3 |
 | PS-4f | Add tests for relation derivation, persistence, rebuild, and observer/indexer integration | 🧪 test | backlog | `design/agentic/v3-persistence-lanes.md` | ai/v3 |
 | PS-5 | Add Spring/JPA durable adapters for `ai/v3` stores using `ai/mill-ai-v3-persistence`, centralized Flyway in `mill-persistence`, shared `EntityRef`/relation persistence, and `mill-ai-v3-autoconfigure` bean wiring | ✨ feature | done | `MILESTONE.md` (WI-078 completed) | ai/v3 |
-| PS-6 | Implement metadata relational persistence: JPA entity + facet schema (JSONB), `MetadataJpaRepository`, optimistic concurrency, `CompositeMetadataRepository` blending file + JPA | ✨ feature | planned | `WI-087-metadata-relational-persistence.md` | metadata |
-| PS-7 | Implement `MetadataSyncService` for deterministic file→DB bootstrap and scheduled sync; `composite` / `jpa` repository mode switch; Flyway migration V5 | ✨ feature | planned | `WI-087-metadata-relational-persistence.md` | metadata |
+| PS-6 | Implement metadata relational persistence: JPA entity + facet schema (JSONB), `MetadataJpaRepository`, optimistic concurrency, `CompositeMetadataRepository` blending file + JPA | ✨ feature | done | `MILESTONE.md` (WI-087 completed) | metadata |
+| PS-7 | Implement `MetadataSyncService` for deterministic file→DB bootstrap and scheduled sync; `composite` / `jpa` repository mode switch; Flyway migration V5 | ✨ feature | done | `MILESTONE.md` (WI-087 completed) | metadata |
 | PS-8 | Implement source definition persistence: CRUD API and programmatic builders for connection specs, format configs, blob source roots; Flyway migration; adapter in `mill-persistence` | ✨ feature | backlog | `source/flow-kt-design.md` | source |
 
 ---

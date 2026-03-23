@@ -1,10 +1,13 @@
 # WI-091 — Metadata Promotion Workflow
 
-Status: `deferred`
+Status: `planned`
 Type: `✨ feature`
 Area: `metadata`, `ui`
 Backlog refs: `M-20`
 
+> **Story scope note:** This WI is out of scope for the current schema-alignment story
+> (`WI-093a`/`WI-093b`) and remains deferred to a dedicated follow-up story.
+>
 > **Deferred — reason:** Promotion is a multi-party workflow (request → review → approve/reject)
 > with open design questions: which roles can promote to which scopes, whether promotions are
 > instant or queued, how conflicts are resolved when the target scope already has a facet, and how
@@ -72,6 +75,8 @@ GET    /api/v1/metadata/entities/{id}/facets/{type}/promotions → history
 3. Should `executePromotion` delete the source scope facet, or keep both? (current plan: keep source)
 4. Auto-approve path: should promotions to non-global scopes from an admin skip review?
 5. Review UI: separate page? notification-driven? inline in entity detail panel?
+6. Scope/context authorization policy: which scopes a caller may request/review/approve for
+   cross-user contexts, and how violations are surfaced/audited.
 
 ---
 

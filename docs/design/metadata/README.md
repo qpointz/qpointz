@@ -23,10 +23,12 @@ A document belongs here if its **primary subject** is one of:
 
 | File | Description |
 |------|-------------|
+| `collaborative-metadata-requirements.md` | Collaborative editing requirements: scopes, permissions, audit |
 | `dynamic-facet-types-schema-and-validation.md` | Open design: typed vs dynamic facet types; structure, validation, serialization; alignment with ai/v3 `ToolSchemaYaml` / capability manifests |
 | `metadata-documentation.md` | User-facing docs: concepts, browser, facets, configuration, practices |
 | `metadata-implementation-roadmap.md` | Roadmap for faceted metadata system, multi-file repo, ValueMappingFacet |
 | `metadata-provider-refactoring-plan.md` | Plan to replace legacy MetadataProvider with facet-based system |
-| `metadata-service-design.md` | Faceted metadata service design: hierarchy, phases, tree API, URL routing |
+| `metadata-service-design.md` | Faceted metadata service design: hierarchy, phases, tree API, URL routing; updated March 2026 with persistence/scope delivery status |
 | `metadata-ui-implementation-plan.md` | Metadata UI phases: core, REST, browser, editing |
 | `value-mapping-tactical-solution.md` | Tactical YAML-based value-mapping config (FileRepository) |
+| `value-mapping-via-metadata-provider.md` | Value mapping via MetadataProvider (facet-based approach) |

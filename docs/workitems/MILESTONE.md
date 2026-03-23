@@ -26,6 +26,47 @@ Items delivered in this milestone.
   `ProtocolFinal`, `ProtocolStreamEvent`); protocol declarations moved to capability YAML
   manifests (`manifest.allProtocols`); `LangChain4jAgent` (renamed from `OpenAiHelloWorldAgent`,
   profile as constructor param); unit tests for all three modes via fake `StreamingChatModel`
+
+- WI-085 — Metadata service API cleanup: service layer refactored into `mill-metadata-service`
+  and `mill-metadata-autoconfigure`; `MetadataService` and `MetadataScopeService` registered as
+  autoconfiguration `@Bean`s; `MetadataChangeObserver` chain with `MetadataChangeObserverDelegate`
+  marker interface eliminating circular injection; `NoOpMetadataRepository` and
+  `NoOpMetadataScopeRepository` Kotlin object singletons as no-config fallbacks; component-scan
+  pattern aligned with `mill-data-http-service` (controllers via `@RestController`, services via
+  autoconfiguration); `@AutoConfigureAfter` ordering on `MetadataEntityServiceAutoConfiguration`
+  and `MetadataImportExportAutoConfiguration`; `mill-metadata-persistence` added as `runtimeOnly`
+  to `mill-service`
+
+- WI-086 — Metadata REST controller redesign: four controllers under `/api/v1/metadata/**` —
+  `MetadataEntityController` (read-only entity + facet endpoints), `MetadataFacetController`
+  (facet type catalog CRUD), `MetadataScopeController` (scope lifecycle), and
+  `MetadataImportExportController` (YAML bulk import/export); `MetadataUrns` utility with URN
+  constants and `normaliseFacetTypePath`/`normaliseScopePath` helpers; full URN keys in storage,
+  prefixed slugs in URL path variables; `MetadataExceptionHandler` `@RestControllerAdvice`;
+  startup import runner (`mill.metadata.import-on-startup`) supporting `classpath:` and `file:`
+  resource URLs; all production code carries OpenAPI and KDoc annotations
+
+- WI-087 — Metadata relational JPA persistence: new `metadata/mill-metadata-persistence` module;
+  Flyway migration `V4__metadata.sql` with six tables (`metadata_scope`, `metadata_entity`,
+  `metadata_facet_scope`, `metadata_facet_type`, `metadata_promotion`, `metadata_operation_audit`);
+  six JPA entities and Spring Data repositories; three adapters — `JpaMetadataRepository`,
+  `JpaFacetTypeRepository`, `JpaMetadataScopeRepository`; `JpaMetadataChangeObserver` for async
+  audit persistence; `MetadataJpaPersistenceAutoConfiguration` activated by
+  `mill.metadata.storage.type=jpa`; H2 integration test suite with skymill dataset; JPA
+  persistence wired into `skymill` and `moneta` application profiles
+
+- WI-089 — Metadata scopes and context composition: `MetadataScope` domain type;
+  `MetadataScopeRepository` interface with `NoOpMetadataScopeRepository` fallback; full JPA adapter
+  `JpaMetadataScopeRepository`; `MetadataScopeService` with global-scope protection on delete;
+  `MetadataContext.parse()` accepting comma-separated scope slugs; facet resolution by ordered
+  scope list (last-wins merge); `MetadataScopeController` REST endpoints (`GET/POST/DELETE
+  /api/v1/metadata/scopes`); `MetadataScopeDto` and OpenAPI annotations
+
+- WI-092 — `mill-ui` model view: real backend binding: `MetadataProvider` wired to live
+  `MetadataApi` and `SchemaExplorerApi` clients; inline chat disabled (`inlineChatEnabled: false`);
+  tree loading with 10 s timeout; entity loading by ID and by schema/table/attribute location;
+  concepts loaded from backend; graceful empty-state when schema explorer backend is absent
+
 Completed WI markdown files are intentionally removed after delivery; this milestone list is the
 retained canonical record of completed items.
 
