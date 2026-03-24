@@ -269,4 +269,6 @@ Items targeted next after 0.7.0 closure and backlog triage.
   (`docs/workitems/ai-v3/WI-082-mill-ui-unified-ai-chat-integration.md`)
 - WI-084 — AI v3 chat service documentation: module responsibilities, REST API, persistence model,
   SSE stream contract, runtime rehydration, and `mill-ui` integration guidance
-  (`docs/workitems/ai-v3/WI-084-ai-v3-chat-service-documentation.md`)
+  (`docs/workitems/WI-084-ai-v3-chat-service-documentation.md`)
+- WI-085 — gRPC v2 module (raw grpc-java) and Gradle editions for v1/v2 selection in `mill-service`
+  and CI (`docs/workitems/WI-085-grpc-v2-and-editions.md`; backlog **P-6**)
