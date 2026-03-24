@@ -19,9 +19,16 @@ mill {
         feature("sample-certs") {
             description = "Provide sample self-signed certificates"
         }
-        
+
+        feature("data-services") {
+            description = "Provides Data services"
+            module(":services:mill-data-grpc-service")
+            module(":services:mill-data-http-service")
+        }
+
         edition("minimal") {
             description = "Base metadata-only edition"
+            feature("data-services")
         }
 
         edition("integration") {
@@ -37,7 +44,6 @@ mill {
             feature("sample-data")
 
         }
-
     }
 }
 
@@ -98,8 +104,6 @@ dependencies {
 
     implementation(project(":data:mill-data-autoconfigure"))
     implementation(project(":data:mill-data-backends"))
-    implementation(project(":services:mill-data-grpc-service"))
-    implementation(project(":services:mill-data-http-service"))
     implementation(project(":data:mill-data-source-core"))
     implementation(project(":data:mill-data-source-calcite"))
     implementation(project(":data:mill-data-schema-service"))
@@ -112,10 +116,6 @@ dependencies {
     implementation(project(":metadata:mill-metadata-autoconfigure"))
     implementation(project(":metadata:mill-metadata-service"))
     runtimeOnly(project(":metadata:mill-metadata-persistence"))
-
-    //implementation(project(":ai:mill-ai-v1-nlsql-chat-service"))
-    //implementation(project(":ui:mill-grinder-service"))
-
 
     implementation(libs.springdoc.openapi.starter.webmvc.ui)
     implementation(libs.springdoc.openapi.starter.webflux.api)

@@ -79,6 +79,24 @@ class MillEditionsExtensionTest {
     }
 
     @Test
+    fun shouldFail_whenGrpcV1AndGrpcV2BothEnabled() {
+        val project = ProjectBuilder.builder().withName("app").build()
+        val editions = MillEditionsExtension(project)
+
+        editions.feature("grpc-v1")
+        editions.feature("grpc-v2")
+        editions.edition("bad") {
+            features("grpc-v1", "grpc-v2")
+        }
+        editions.defaultEdition = "bad"
+
+        val ex = assertThrows<IllegalStateException> {
+            editions.resolveEditionSelection()
+        }
+        assertTrue(ex.message!!.contains("cannot enable both grpc-v1 and grpc-v2"))
+    }
+
+    @Test
     fun shouldResolveEditionLineageInInheritanceOrder() {
         val project = ProjectBuilder.builder().withName("app").build()
         val editions = MillEditionsExtension(project)

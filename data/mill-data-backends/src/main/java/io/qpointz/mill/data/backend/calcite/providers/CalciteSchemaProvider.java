@@ -40,9 +40,20 @@ public class CalciteSchemaProvider implements SchemaProvider {
         }
     }
 
+    /**
+     * Resolves existence via {@link Schema#getSubSchema(String)} in a fresh context so this matches
+     * {@link #getSchema(String)} (name lists alone can diverge from sub-schema resolution).
+     */
     @Override
     public boolean isSchemaExists(String schemaName) {
-        return isRootSchema(schemaName) || this.getSchemaNames().contains(schemaName);
+        if (isRootSchema(schemaName)) {
+            return true;
+        }
+        try (val ctx = this.ctxFactory.createContext()) {
+            return ctx.getRootSchema().getSubSchema(schemaName) != null;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private boolean isRootSchema(String schemaName) {

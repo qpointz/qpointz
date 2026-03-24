@@ -2,11 +2,6 @@ logging:
   level:
     root: debug
 
-grpc:
-  server:
-    in-process-name: jdbc-test-service
-    port: -1
-
 mill:
   data:
     sql:
@@ -22,6 +17,7 @@ mill:
     services:
       grpc:
         enable: true
+        in-process-name: jdbc-test-service
   security:
     enable: false
   services:

@@ -1,11 +1,12 @@
 package io.qpointz.mill.metadata.database;
 
 import io.qpointz.mill.InProcessTest;
-import io.qpointz.mill.autoconfigure.data.backend.calcite.CalciteBackendAutoConfiguration;
-import io.qpointz.mill.data.backend.MillGrpcService;
 import io.qpointz.mill.data.backend.configuration.DefaultServiceConfiguration;
+import io.qpointz.mill.data.backend.grpc.GrpcExceptionInterceptor;
+import io.qpointz.mill.data.backend.grpc.GrpcServiceDescriptor;
+import io.qpointz.mill.data.backend.grpc.MillGrpcService;
+import io.qpointz.mill.data.backend.grpc.config.MillGrpcConfiguration;
 import lombok.val;
-import net.devh.boot.grpc.server.autoconfigure.GrpcAdviceAutoConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,8 +21,11 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("in-proc-test")
 @ContextConfiguration(classes = {
+        MillGrpcConfiguration.class,
         MillGrpcService.class,
-        GrpcAdviceAutoConfiguration.class,
+        GrpcExceptionInterceptor.class,
+        GrpcServiceDescriptor.class,
+        DefaultServiceConfiguration.class,
 })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @EnableAutoConfiguration

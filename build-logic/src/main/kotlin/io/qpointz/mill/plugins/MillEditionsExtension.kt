@@ -147,6 +147,13 @@ open class MillEditionsExtension(private val project: Project) {
 
         val features = resolveFeaturesForEdition(selectedEditionName)
 
+        if (features.contains("grpc-v1") && features.contains("grpc-v2")) {
+            error(
+                "Edition '$selectedEditionName' cannot enable both grpc-v1 and grpc-v2. " +
+                    "Use only one gRPC transport feature per edition."
+            )
+        }
+
         val missingFeatures = features.filterNot { featureModules.containsKey(it) }
         if (missingFeatures.isNotEmpty()) {
             error(

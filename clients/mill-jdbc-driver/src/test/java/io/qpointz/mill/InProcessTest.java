@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Slf4j
 public abstract class InProcessTest {
 
-    @Value("${grpc.server.in-process-name}")
+    @Value("${mill.data.services.grpc.in-process-name}")
     private String serverName;
 
     protected String connectionUrl() {

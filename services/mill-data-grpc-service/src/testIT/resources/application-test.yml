@@ -1,0 +1,11 @@
+mill:
+  data:
+    sql:
+      dialect: h2
+    services:
+      grpc:
+        enable: true
+        port: 0
+        host: "127.0.0.1"
+  security:
+    enable: false

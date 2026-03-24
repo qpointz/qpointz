@@ -98,8 +98,6 @@ testing {
                     implementation(project(":data:mill-data-autoconfigure"))
                     implementation(project(":services:mill-data-grpc-service"))
                     implementation(libs.okhttp.mock.webserver)
-                    implementation(libs.bootGRPC.client)
-                    implementation(libs.bootGRPC.server)
                     implementation(libs.boot.starter.test)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
