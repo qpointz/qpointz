@@ -2,17 +2,13 @@
 
 Complete inventory of all feature flags in the application. All flags are boolean and are defined in `src/features/defaults.ts`. Most flags default to `true`; see the Default column for exceptions.
 
----
-
 ## Architecture
 
 - **Definition**: `src/features/defaults.ts` — `FeatureFlags` interface + `defaultFeatureFlags` object
 - **Provider**: `src/features/FeatureFlagContext.tsx` — `FeatureFlagProvider` wraps the app
 - **Hook**: `useFeatureFlags()` — returns the resolved `FeatureFlags` object
 - **Backend**: `GET /api/v1/features` — returns `Partial<FeatureFlags>`. Omitted keys default to `true`. If the request fails, all flags default to `true`.
-- **Total flags**: 71 across 14 categories
-
----
+- **Total flags**: 75 across 15 categories (includes reserved WI-095 admin model/facet-type flags)
 
 ## Flag Inventory
 
@@ -116,7 +112,7 @@ Control the Connect view and its sub-sections.
 | `connectPython` | `true` | Python connection guide section | `ConnectLayout.tsx` |
 | `connectJava` | `true` | Java connection guide section | `ConnectLayout.tsx` |
 
-### 9. Admin View (5 flags)
+### 9. Admin View (9 flags)
 
 Control the Admin panel and its sub-sections.
 
@@ -127,6 +123,10 @@ Control the Admin panel and its sub-sections.
 | `adminPolicies` | `true` | Policies management section | `AdminLayout.tsx` |
 | `adminServices` | `true` | Services management section | `AdminLayout.tsx` |
 | `adminSettings` | `true` | Settings management section | `AdminLayout.tsx` |
+| `adminModelNavEnabled` | `true` | Show `Model` group in Admin left sidebar | `AdminLayout.tsx` (planned WI-095) |
+| `adminFacetTypesEnabled` | `true` | Show `Facet Types` subitem and route in Admin Model group | `AdminLayout.tsx`, facet type management page (planned WI-095) |
+| `facetTypesReadOnly` | `false` | Force read-only facet type UI (hide/disable create/edit/delete actions) | facet type management page (planned WI-095) |
+| `facetTypesServerFlagsEnabled` | `false` | Reserved: source UI flags from server-provided descriptors (`.well-known`) | feature/flag resolution layer (future) |
 
 ### 10. Profile View (4 flags)
 
@@ -186,6 +186,15 @@ Control elements in the application header bar.
 | `headerGlobalSearch` | `true` | Search icon + floating search overlay in header nav | `AppHeader.tsx` |
 | `headerThemeSwitcher` | `true` | Color theme and dark/light mode switcher in user menu | `AppHeader.tsx` |
 | `headerUserProfile` | `true` | User avatar and dropdown menu in header | `AppHeader.tsx` |
+
+### 15. Facet Type Management (reserved/planned) (0 additional runtime flags)
+
+These controls are already listed under **Admin View** and are duplicated here for discoverability because they belong to the WI-095 facet type management rollout.
+
+- `adminModelNavEnabled` (default `true`)
+- `adminFacetTypesEnabled` (default `true`)
+- `facetTypesReadOnly` (default `false`)
+- `facetTypesServerFlagsEnabled` (default `false`, reserved for future `.well-known` descriptor sourcing)
 
 ---
 

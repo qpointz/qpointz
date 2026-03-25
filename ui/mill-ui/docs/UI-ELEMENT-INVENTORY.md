@@ -280,6 +280,11 @@ Hierarchy:
 | Policies section | Admin subsection | static placeholder | `adminPolicies` | `true` | n/a |
 | Services section | Admin subsection | static placeholder | `adminServices` | `true` | n/a |
 | Settings section | Admin subsection | static placeholder | `adminSettings` | `true` | n/a |
+| Model sidebar group (planned) | Admin left-nav group for model governance tools | admin navigation config | `adminModelNavEnabled` | `true` | n/a |
+| Facet Types nav item (planned) | Subitem under Model group linking to facet type management | admin navigation config + router | `adminFacetTypesEnabled` | `true` | n/a |
+| Facet Types page shell (planned) | Management page for descriptor list/create/edit/delete | facet type REST endpoints (`/api/v1/metadata/facets*`) | `adminFacetTypesEnabled` | `true` | real |
+| Facet Types create/edit actions (planned) | Authoring controls for descriptor metadata and fields | local form state + facet type REST write endpoints | `facetTypesReadOnly` | `false` | real |
+| Facet Types read-only banner (planned) | Explains that facet types are read-only in current registry mode (e.g. portal) | feature flag state today; later server descriptor flags (`.well-known`) | `facetTypesReadOnly` | `false` | mixed |
 
 ---
 
@@ -328,6 +333,7 @@ This section explicitly inventories pills/badges/indicators currently used in UI
 2. Model relation indicators now derive from real relation facets in `schemaService`.
 3. Chat-reference and related-content indicators are still mock-backed (conversation refs and cross-object refs are deterministic mock payloads).
 4. If/when services are swapped to real backends, backend-state column should be updated first in Section 0 and Section 14.
+5. Planned WI-095 admin model/facet type elements are documented as planned UI elements to keep inventory aligned with feature-flag rollout.
 
 ---
 
