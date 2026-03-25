@@ -24,9 +24,10 @@ spring:
 
 mill:
   metadata:
-    v2:
-      file:
-        path: file:../../test/datasets/moneta/moneta-meta-repository.yaml
+    storage:
+      type: file
+    file:
+      path: file:../../test/datasets/moneta/moneta-meta-repository.yaml
   ai:
     nl2sql:
       enable: true

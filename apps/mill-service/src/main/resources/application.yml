@@ -36,8 +36,8 @@ mill:
   security:
     enable: false
   metadata:
-    relations: none
-    annotations: none
+    storage:
+      type: none
   services:
     ai-nl2data:
       enable: false
