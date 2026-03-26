@@ -67,6 +67,11 @@ Items delivered in this milestone.
   tree loading with 10 s timeout; entity loading by ID and by schema/table/attribute location;
   concepts loaded from backend; graceful empty-state when schema explorer backend is absent
 
+- WI-085 — gRPC server reimplementation and Skymill parity tests: raw grpc-java server as the only
+  active gRPC transport (`services/mill-data-grpc-service/`); shared Skymill SQL query-case set;
+  server `testIT` executing the shared query set against Skymill; JDBC driver `testIT` reusing the
+  same query set for result/label parity; legacy net.devh server retained under `misc/` for reference
+
 Completed WI markdown files are intentionally removed after delivery; this milestone list is the
 retained canonical record of completed items.
 
@@ -270,5 +275,3 @@ Items targeted next after 0.7.0 closure and backlog triage.
 - WI-084 — AI v3 chat service documentation: module responsibilities, REST API, persistence model,
   SSE stream contract, runtime rehydration, and `mill-ui` integration guidance
   (`docs/workitems/WI-084-ai-v3-chat-service-documentation.md`)
-- WI-085 — gRPC v2 module (raw grpc-java) and Gradle editions for v1/v2 selection in `mill-service`
-  and CI (`docs/workitems/WI-085-grpc-v2-and-editions.md`; backlog **P-6**)

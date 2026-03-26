@@ -1,0 +1,61 @@
+[
+  {
+    "id": "select_cities_basic",
+    "description": "Basic select from cities; validates non-empty result and column presence.",
+    "sql": "SELECT `id`, `city`, `state` FROM `{schema}`.`cities`",
+    "minRows": 1,
+    "requiredColumns": ["id", "city", "state"]
+  },
+  {
+    "id": "where_aircraft_types_narrow",
+    "description": "WHERE filter should return only narrow aircraft types.",
+    "sql": "SELECT `id`, `name` FROM `{schema}`.`aircraft_types` WHERE `name` = 'narrow'",
+    "minRows": 1,
+    "requiredColumns": ["id", "name"],
+    "allRowsColumnEquals": { "column": "name", "value": "narrow" }
+  },
+  {
+    "id": "join_segments_cities",
+    "description": "JOIN segments to cities; validates join output column is present.",
+    "sql": "SELECT `s`.`id`, `s`.`distance`, `c`.`city` AS `origin_city` FROM `{schema}`.`segments` AS `s` JOIN `{schema}`.`cities` AS `c` ON `s`.`origin` = `c`.`id`",
+    "minRows": 1,
+    "requiredColumns": ["id", "distance", "origin_city"]
+  },
+  {
+    "id": "large_cargo_shipments_streaming",
+    "description": "Large result set; validates streaming/paging by requiring many rows.",
+    "sql": "SELECT `id`, `weight_kg`, `revenue` FROM `{schema}`.`cargo_shipments`",
+    "minRows": 101,
+    "requiredColumns": ["id", "weight_kg", "revenue"]
+  },
+  {
+    "id": "impossible_where_empty_but_schema",
+    "description": "Empty result should still return schema-bearing vectors.",
+    "sql": "SELECT `id`, `city` FROM `{schema}`.`cities` WHERE `id` < -999999",
+    "minRows": 0,
+    "maxRows": 0,
+    "requiredColumns": ["id", "city"]
+  },
+  {
+    "id": "bookings_paging",
+    "description": "Another large table; validates row count exceeds small fetch sizes.",
+    "sql": "SELECT `id`, `passenger_id`, `seat_number` FROM `{schema}`.`bookings`",
+    "minRows": 51,
+    "requiredColumns": ["id", "passenger_id", "seat_number"]
+  },
+  {
+    "id": "aggregate_cities_by_state",
+    "description": "Aggregate + GROUP BY; validates aggregate columns and non-empty grouped output.",
+    "sql": "SELECT `state`, COUNT(*) AS `city_count`, AVG(`population`) AS `avg_population` FROM `{schema}`.`cities` GROUP BY `state`",
+    "minRows": 1,
+    "requiredColumns": ["state", "city_count", "avg_population"]
+  },
+  {
+    "id": "attribute_synonyms_via_alias",
+    "description": "Attribute synonyms via SELECT aliases; validates clients preserve column labels.",
+    "sql": "SELECT `city` AS `name`, `population` AS `pop` FROM `{schema}`.`cities`",
+    "minRows": 1,
+    "requiredColumns": ["name", "pop"]
+  }
+]
+

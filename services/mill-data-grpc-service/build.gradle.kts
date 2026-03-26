@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":core:mill-spring-support"))
     implementation(project(":data:mill-data-backends"))
     implementation(project(":data:mill-data-autoconfigure"))
+    implementation(project(":data:formats:mill-data-format-text"))
     implementation(kotlin("reflect"))
     api(libs.grpc.netty.shaded)
     api(libs.grpc.stub)
