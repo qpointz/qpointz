@@ -1,6 +1,6 @@
-# Grinder UI
+# Mill UI
 
-The Grinder UI is a web-based interface for querying data with natural language, browsing the data model, and managing business context. It is served by Mill at the application root path.
+The Mill UI (served as the single-page application at the application root) is the web interface for querying data with natural language, browsing the data model, and managing business context. Documentation may refer to the historical name “Grinder UI” for the same surface.
 
 ---
 
@@ -174,11 +174,15 @@ Search results show the entity type, location, and description.
 
 ### URL Sharing
 
-The URL updates as you navigate (e.g., `/data-model/schema/table/attribute`), allowing you to:
+The URL updates as you navigate (for example, `/model/schema/table/attribute`), allowing you to:
 
 - **Bookmark** specific entities
 - **Share links** with team members
 - **Use browser navigation** (back/forward)
+
+### Editing metadata
+
+When metadata editing is enabled and you are signed in, you can add, change, or remove **facet** payloads for the selected schema, table, or column. Facet types are defined on the server (including whether a type allows a **single** value or **multiple** instances per scope). Types with multiple instances show one row per instance; deleting or updating a specific row may require that instance’s identifier when more than one exists. Changes are persisted through Mill’s metadata HTTP API (`/api/v1/metadata/entities/...`). Administrators can manage facet-type descriptors under **Admin → Model → Facet types** when those routes are enabled.
 
 ---
 

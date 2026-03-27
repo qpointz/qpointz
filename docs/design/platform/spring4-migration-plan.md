@@ -303,7 +303,7 @@ These changes can be done now, independently of the upgrade:
 | `ai/mill-ai-core-ext` | **Critical** | Spring AI 2.0, `javax.annotation.PostConstruct` fix |
 | `ai/mill-ai-nlsql-chat-service` | **Critical** | Spring AI 2.0, JPA/Data 2025.1, Security 7.0 |
 | `apps/mill-service` | **Critical** | All of the above converge here |
-| `ui/mill-grinder-service` | Low | Web starter rename |
+| `services/mill-ui-service` | Low | Web starter rename |
 | `clients/mill-jdbc-driver` | Medium | gRPC client starter replacement (tests) |
 | `misc/cloud/mill-azure-service-function` | N/A (not in distro) | Spring Cloud Function, thin-launcher -- out of migration scope |
 | `misc/rapids/*` | Medium | javax imports, broken version catalog |

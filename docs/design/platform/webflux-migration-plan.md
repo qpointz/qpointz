@@ -16,7 +16,7 @@ Migrate the following controllers to reactive WebFlux with full reactive stack:
 | `mill-jet-http-service` | AccessServiceController | 6 | Blocking MVC |
 | `mill-ai-nlsql-chat-service` | NlSqlChatController | 8 | Partial WebFlux (1 reactive endpoint) |
 | `mill-starter-service` | ApplicationDescriptorController | 1 | Blocking MVC |
-| `mill-grinder-service` | GrinderUIFilter | N/A (filter) | Servlet Filter |
+| `mill-ui-service` | MillUiSpaRoutingFilter | N/A (filter) | Servlet Filter |
 
 ---
 
@@ -92,7 +92,7 @@ api(libs.boot.starter.web)
 api(libs.boot.starter.webflux)
 ```
 
-### 1.4 Update [services/mill-grinder-service/build.gradle.kts](services/mill-grinder-service/build.gradle.kts)
+### 1.4 Update [services/mill-ui-service/build.gradle.kts](services/mill-ui-service/build.gradle.kts)
 
 ```kotlin
 // Replace:
@@ -317,7 +317,7 @@ public Mono<ApplicationDescriptor> getInfo() {
 }
 ```
 
-### 4.7 GrinderUIFilter -> GrinderUIWebFilter ([services/mill-grinder-service/.../GrinderUIFilter.java](services/mill-grinder-service/src/main/java/io/qpointz/mill/services/grinder/filters/GrinderUIFilter.java))
+### 4.7 MillUiSpaRoutingFilter -> MillUiWebFilter ([services/mill-ui-service/.../MillUiSpaRoutingFilter.java](services/mill-ui-service/src/main/java/io/qpointz/mill/ui/MillUiSpaRoutingFilter.java))
 
 Rewrite the servlet `Filter` as a WebFlux `WebFilter`:
 
@@ -329,7 +329,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Component
-public class GrinderUIFilter implements Filter {
+public class MillUiSpaRoutingFilter implements Filter {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) {
         val req = (HttpServletRequest)servletRequest;
@@ -355,8 +355,8 @@ import reactor.core.publisher.Mono;
 
 @Component
 @Order(1)
-@ConditionalOnService("grinder")
-public class GrinderUIWebFilter implements WebFilter {
+@ConditionalOnProperty(name = "mill.ui.enabled", havingValue = "true", matchIfMissing = true)
+public class MillUiWebFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
@@ -478,7 +478,7 @@ public Flux<MetadataEntityDto> getEntities() { ... }
 
 1. **Core modules first** (Phase 0) - `mill-security-core`, `mill-service-core`, `mill-test-kit`
 2. `mill-starter-service` (1 simple endpoint, validates infrastructure)
-3. `mill-grinder-service` (filter rewrite, no reactive service layer)
+3. `mill-ui-service` (filter rewrite, no reactive service layer)
 4. `mill-metadata-service` (3 controllers, establishes patterns for repository/service)
 5. `mill-ai-nlsql-chat-service` (complete partial migration)
 6. `mill-jet-http-service` (protobuf handling complexity)
@@ -492,7 +492,7 @@ public Flux<MetadataEntityDto> getEntities() { ... }
 - `ReactiveMetadataService.java`
 - `ReactiveDataOperationDispatcher.java`
 - `ReactiveMessageHelper.java`
-- `GrinderUIWebFilter.java` (replaces GrinderUIFilter)
+- `MillUiWebFilter.java` (replaces MillUiSpaRoutingFilter)
 
 ## Files to Modify
 
@@ -506,7 +506,7 @@ public Flux<MetadataEntityDto> getEntities() { ... }
 
 - `services/mill-metadata-service/build.gradle.kts`
 - `services/mill-jet-http-service/build.gradle.kts`
-- `services/mill-grinder-service/build.gradle.kts`
+- `services/mill-ui-service/build.gradle.kts`
 - `core/mill-starter-service/build.gradle.kts`
 
 **Controllers (6 files):**
@@ -520,7 +520,7 @@ public Flux<MetadataEntityDto> getEntities() { ... }
 
 **Filters (1 file - delete and replace):**
 
-- `GrinderUIFilter.java` -> `GrinderUIWebFilter.java`
+- `MillUiSpaRoutingFilter.java` -> `MillUiWebFilter.java`
 
 **Service Implementations:**
 
@@ -531,7 +531,7 @@ public Flux<MetadataEntityDto> getEntities() { ... }
 
 - `MetadataControllerTest.java`
 - `AccessServiceControllerTest.java`
-- `GrinderUIFilterTest.java`
+- `MillUiSpaRoutingFilterTest.java`
 - `HttpServiceBasicSecurityTest.java`
 - `BaseSecurityTest.java`
 - `NlSqlChatControllerTestIT.java`
@@ -552,8 +552,8 @@ mill-jet-http-service
   └── mill-starter-service (has boot-starter-web)
         └── mill-security-core (has boot-starter-web)
 
-mill-grinder-service
-  └── mill-service-core (has jakarta.servlet.api)
+mill-ui-service
+  └── spring-boot-starter-web (servlet stack until WebFlux migration)
 
 mill-ai-nlsql-chat-service
   └── (already has boot-starter-webflux)
@@ -566,9 +566,9 @@ All paths lead back to `mill-security-core` and `mill-service-core` - these must
 ## Tasks
 
 - [ ] **Phase 0**: Update core module dependencies: mill-security-core, mill-service-core, mill-test-kit - replace boot-starter-web and jakarta.servlet.api with webflux equivalents
-- [ ] **Phase 1**: Update service build.gradle.kts files: replace boot-starter-web with boot-starter-webflux in metadata-service, jet-http-service, starter-service, and grinder-service
+- [ ] **Phase 1**: Update service build.gradle.kts files: replace boot-starter-web with boot-starter-webflux in metadata-service, jet-http-service, starter-service, and mill-ui-service
 - [ ] **Phase 2**: Create ReactiveMetadataRepository interface and ReactiveFileMetadataRepository wrapper implementation
 - [ ] **Phase 3**: Create ReactiveMetadataService, update NlSqlChatService interface, create ReactiveDataOperationDispatcher
 - [ ] **Phase 4a**: Migrate all 7 controllers to return Mono/Flux: ApplicationDescriptorController, MetadataController, FacetController, SchemaExplorerController, NlSqlChatController, AccessServiceController
-- [ ] **Phase 4b**: Rewrite GrinderUIFilter as WebFilter for WebFlux compatibility
+- [ ] **Phase 4b**: Rewrite MillUiSpaRoutingFilter as WebFilter for WebFlux compatibility
 - [ ] **Phase 5**: Update all test suites: replace MockMvc with WebTestClient, update test dependencies

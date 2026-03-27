@@ -67,6 +67,13 @@ Items delivered in this milestone.
   tree loading with 10 s timeout; entity loading by ID and by schema/table/attribute location;
   concepts loaded from backend; graceful empty-state when schema explorer backend is absent
 
+- WI-093a — Physical schema explorer service: `mill-data-schema-service` with `/api/v1/schema/**`
+  (context bootstrap, schema list, table/column detail, tree-oriented loading for the Model view)
+
+- WI-093b — Metadata autoconfigure split and Model view integration: lazy per-table column loading,
+  `context` query parameter for facet resolution, wiring to split `mill-metadata-autoconfigure` vs
+  persistence modules
+
 - WI-085 — gRPC server reimplementation and Skymill parity tests: raw grpc-java server as the only
   active gRPC transport (`services/mill-data-grpc-service/`); shared Skymill SQL query-case set;
   server `testIT` executing the shared query set against Skymill; JDBC driver `testIT` reusing the
@@ -74,6 +81,23 @@ Items delivered in this milestone.
 
 Completed WI markdown files are intentionally removed after delivery; this milestone list is the
 retained canonical record of completed items.
+
+**Metadata — Schema Explorer (`metadata-edit-and-explorer`, closed March 2026):** Delivered the
+physical schema explorer REST surface (`data/mill-data-schema-service`, `/api/v1/schema/**` including
+context bootstrapping and tree-oriented loading), metadata autoconfigure split, and `mill-ui` Data
+Model wiring (lazy columns, context query param, facet resolution). Deferred to backlog: interactive
+scope picker beyond `global`, strict scope authorization rules for writes, and runtime performance
+hardening of schema list/tree endpoints (see `BACKLOG.md`).
+
+**Metadata — Edit, Facet Registry, and UI Service (`metadata-edit-and-promotion-follow-up`, closed
+March 2026):** Delivered WI-094–WI-099 and WI-090/WI-098 — facet type manifests and registry
+(`inMemory` / `local`), admin facet-type management UI, platform descriptor migration, JPA
+row-per-facet storage (`metadata_facet`, Flyway V8+), surrogate keys (V9), stable **`facet_uid`** per
+row (V10) exposed on `GET .../entities/{id}/facets`, **MULTIPLE** delete requiring `uid` when more
+than one instance exists, `DELETE .../facet-instances/{facetUid}`, `mill-ui` facet editor (schema-driven
+forms, expert JSON), and **`services/mill-ui-service`** with `mill.ui.*` configuration. **JPA save**
+replaces all facet rows for an entity from the domain snapshot so removals persist (fixes stale facets
+after delete). **WI-091** (metadata promotion workflow) remains **deferred** — see `BACKLOG.md`.
 
 ### In Progress
 
@@ -266,8 +290,6 @@ Items targeted next after 0.7.0 closure and backlog triage.
   (`docs/workitems/metadata-persistence-and-editing/WI-089-metadata-scopes-and-contexts.md`)
 - WI-092 — `mill-ui` model view: real backend binding and inline chat disable
   (`docs/workitems/metadata-persistence-and-editing/WI-092-mill-ui-model-view-backend-binding.md`)
-- WI-090 — Metadata user editing (deferred — follow-up story)
-- WI-091 — Metadata context promotion workflow (deferred — follow-up story)
 - WI-034 — Metadata complex type support in structural facets and UI
   (`docs/workitems/metadata-complex-types/WI-034-metadata-complex-type-support.md`)
 - WI-082 — `mill-ui` migration to the unified `ai/v3` chat API and `item.*` SSE protocol

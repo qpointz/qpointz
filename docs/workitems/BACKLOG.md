@@ -158,7 +158,7 @@ milestone-selectable deliverables extracted from design documents and work items
 | M-7 | Display value mappings in metadata browser UI | ✨ feature | planned | `WI-028-metadata-value-mapping-api-and-ui.md` |
 | M-8 | Introduce ValueResolver abstraction with feature flag (legacy/faceted/hybrid) | 🔧 refactoring | planned | `WI-027-metadata-value-mapping-bridge.md` |
 | M-9 | Add parity tests: legacy vs facet value resolution | 🧪 test | planned | `WI-027-metadata-value-mapping-bridge.md` |
-| M-10 | Implement EnrichmentFacet, EnrichmentService, and approval workflow | ✨ feature | planned | `metadata-edit-and-explorer/WI-090-metadata-user-editing.md` |
+| M-10 | Implement EnrichmentFacet, EnrichmentService, and approval workflow | ✨ feature | planned | `docs/design/metadata/metadata-implementation-roadmap.md` |
 | M-11 | → see **PS-6** (reclassified to persistence) | ✨ feature | done | `MILESTONE.md` (WI-087 completed) |
 | M-12 | → see **PS-7** (reclassified to persistence) | ✨ feature | done | `MILESTONE.md` (WI-087 completed) |
 | M-15 | Implement full-text and facet-aware search (Postgres/Elastic/Lucene) | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
@@ -166,9 +166,12 @@ milestone-selectable deliverables extracted from design documents and work items
 | M-17 | Implement SemanticFacet with vector store integration | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-18 | Implement LineageFacet and lineage graph API | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-19 | Implement scope resolution (user > team > role > global) with security context | ✨ feature | done | `MILESTONE.md` (WI-089 completed) |
-| M-20 | Add UI editing for metadata facets (DescriptiveFacet, RelationFacet, ConceptFacet, etc.) | ✨ feature | planned | `metadata-edit-and-explorer/WI-090-metadata-user-editing.md`, `metadata-edit-and-explorer/WI-091-metadata-promotion-workflow.md` |
+| M-20 | Add UI editing for metadata facets (DescriptiveFacet, RelationFacet, ConceptFacet, etc.) | ✨ feature | done | `MILESTONE.md` (WI-090 / metadata stories closed March 2026) |
 | M-21 | Fix MessageHelper parse error messages (generic HandshakeResponse) | 🐛 fix | done | `MILESTONE.md` (WI-085 completed) |
 | M-22 | Remove ProtobufUtils dead code and register HTTP ServiceDescriptor | 🐛 fix | done | `MILESTONE.md` (WI-085 completed) |
+| M-23 | Metadata promotion workflow (request, review, approve/reject) and REST surface | ✨ feature | backlog | `MILESTONE.md` (WI-091 deferred) |
+| M-24 | Interactive metadata scope picker in Data Model (beyond implicit/global) + strict scope authorization for metadata writes | ✨ feature | backlog | `MILESTONE.md` (deferred from schema explorer closure) |
+| M-25 | Schema list/tree REST performance hardening under large catalogs | 💡 improvement | backlog | `MILESTONE.md` (deferred from schema explorer closure) |
 | M-27 | Extend metadata StructuralFacet/API/UI contracts for complex types (LIST/MAP/OBJECT + nested shape rendering); depends on D-2/D-3/D-4 | ✨ feature | planned | `WI-034-metadata-complex-type-support.md` |
 
 ---
@@ -178,7 +181,7 @@ milestone-selectable deliverables extracted from design documents and work items
 | #    | Item                                                                                                                                                                                     | Type           | Status  | Source                                          |
 | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ------- | ----------------------------------------------- |
 | P-1  | Migrate controllers to WebFlux: reactive repositories, services, Mono/Flux returns                                                                                                       | 🔧 refactoring | backlog | platform/webflux-migration-plan.md              |
-| P-2  | Rewrite GrinderUIFilter as WebFlux WebFilter                                                                                                                                             | 🔧 refactoring | backlog | platform/webflux-migration-plan.md              |
+| P-2  | Rewrite MillUiSpaRoutingFilter as WebFlux WebFilter                                                                                                                                         | 🔧 refactoring | backlog | platform/webflux-migration-plan.md              |
 | P-3  | Create ReactiveMessageHelper for protobuf/JSON conversion in WebFlux                                                                                                                     | ✨ feature      | backlog | platform/webflux-migration-plan.md              |
 | P-4  | Replace MockMvc with WebTestClient across all affected test suites                                                                                                                       | 🧪 test        | backlog | platform/webflux-migration-plan.md              |
 | P-5  | Spring Boot 4.0 pre-migration cleanup: hardcoded versions, javax->jakarta, spring.factories                                                                                              | 🐛 fix         | backlog | platform/spring4-migration-plan.md, **story `spring4-pre-migration-cleanup/`** (WI-097–WI-104) |
@@ -289,6 +292,7 @@ milestone-selectable deliverables extracted from design documents and work items
 | U-9 | Support command parameters (e.g. /get-data limit=10) | ✨ feature | backlog | ui/chat-input-enhancements.md |
 | U-10 | Add tests for command palette, @ mentions, keyboard nav, and error scenarios | 🧪 test | backlog | ui/chat-input-enhancements.md |
 | U-11 | Migrate `mill-ui` general chat from legacy `/api/nl2sql/chats/*` to `/api/v1/ai/chats/*` and adopt `item.*` SSE handling | ✨ feature | planned | `WI-082-mill-ui-unified-ai-chat-integration.md` |
+| U-12 | Redesign optional per-facet-type **view** and **edit** component registration (replacing removed bespoke facet presenters); descriptor-driven fallback remains default | ✨ feature | backlog | `design/ui/facet-view-customization.md` |
 
 ---
 
@@ -355,6 +359,6 @@ Implementation: [`docs/design/security/user-identity-jpa-implementation.md`](../
 | refactoring     | 10      | 0         | 1              | 4      | 2              | 2       | 1       |
 | security        | 14      | 14        | 0              | 0      | 0              | 0       | 0       |
 | source          | 14      | 7         | 4              | 1      | 2              | 0       | 0       |
-| ui              | 10      | 4         | 4              | 0      | 1              | 1       | 0       |
-| **Total**       | **164** | **89**    | **24**         | **20** | **19**         | **7**   | **5**   |
+| ui              | 11      | 5         | 4              | 0      | 1              | 1       | 0       |
+| **Total**       | **165** | **90**    | **24**         | **20** | **19**         | **7**   | **5**   |
 

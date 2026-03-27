@@ -1,7 +1,7 @@
 # Portal — central facet types vs local instance metadata
 
 **Status:** Directional (aligns with federated portal vision)  
-**Last updated:** 2026-03-22  
+**Last updated:** 2026-03-26  
 **Related:** `portal-federated-metadata-landscape.md`, `docs/design/metadata/dynamic-facet-types-schema-and-validation.md`
 
 ---
@@ -24,6 +24,12 @@ The platform distinguishes two layers that must not be conflated:
 - **Central registry** — New facet types, schema changes, and deprecations are introduced **through the portal pipeline** (or the git repo the portal treats as canonical), not by ad-hoc edits on every instance.
 - **Consumption** — Instances **subscribe** to released **facet type bundles** (versioned): e.g. sync at deploy, periodic pull, or admin-triggered import into local `FacetCatalog` / `metadata_facet_type` seeds.
 - **Benefits** — One shared semantic vocabulary across instances; consistent **JSON Schema generation per entity type** (see metadata design note); LLM and UI contracts stay aligned org-wide.
+
+Current implementation boundary (WI-096):
+
+- `mill.metadata.facet-type-registry.type=inMemory` — fallback seeded manifests
+- `mill.metadata.facet-type-registry.type=local` — local persistence-backed registry
+- `mill.metadata.facet-type-registry.type=portal` — declared but not implemented (fails fast)
 
 Implementation details (transport, signing, rollback) are TBD; the **contract** is: **definitions are not owned independently per instance**.
 

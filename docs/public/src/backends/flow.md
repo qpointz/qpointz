@@ -99,6 +99,24 @@ All properties are under the `mill.data.backend.flow` prefix.
 | Property | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `sources` | yes | `[]` | List of paths to source descriptor YAML files. Relative paths are resolved from the working directory. |
+| `cache.schema.enabled` | no | `false` | Reuse resolved Flow schemas across requests. |
+| `cache.schema.ttl` | no | unset | Optional cache TTL (for example `1m`, `30s`). When unset, cache does not auto-expire. |
+
+Cache example:
+
+```yaml
+mill:
+  data:
+    backend:
+      type: flow
+      flow:
+        cache:
+          schema:
+            enabled: true
+            ttl: 1m
+        sources:
+          - ./config/skymill-source.yaml
+```
 
 ---
 

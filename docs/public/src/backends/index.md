@@ -27,7 +27,7 @@ The backend determines *where* data comes from and *how* it is accessed. The JDB
 ```
 ┌─────────────────────────┐
 │    Mill Service Layer    │
-│  (gRPC, HTTP, Grinder)  │
+│   (gRPC, HTTP, Mill UI)  │
 └───────────┬─────────────┘
             │
 ┌───────────▼─────────────┐

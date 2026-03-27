@@ -65,7 +65,7 @@ graph TD
     end
 
     subgraph UI
-        grinder[mill-grinder-service<br/>SPRING]:::spring
+        millUi[mill-ui-service<br/>SPRING]:::spring
     end
 
     subgraph APPS
@@ -116,7 +116,6 @@ graph TD
     ai-v2 -->|impl| mill-core
     ai-v2-test -->|impl| ai-v2
     ai-v2-test -->|impl| mill-core
-    grinder -->|impl| data-ac
     jdbc-driver -->|impl| mill-core
     jdbc-shell -->|impl| jdbc-driver
 
@@ -129,7 +128,7 @@ graph TD
     mill-app -->|impl| data-grpc
     mill-app -->|impl| data-http
     mill-app -->|impl| ai-v1-chat
-    mill-app -->|impl| grinder
+    mill-app -->|impl| millUi
     mill-app -->|impl| source-core
     mill-app -->|impl| source-calcite
     mill-app -->|impl| fmt-text
@@ -168,7 +167,7 @@ graph TD
 | 24 | `ai:mill-ai-v2-test` | ai | SPRING | Spring AI, JUnit | `ai-v2` (impl), `mill-core` (impl) |
 | 25 | `clients:mill-jdbc-driver` | clients | **PURE** | — | `mill-core` (impl) |
 | 26 | `clients:mill-jdbc-shell` | clients | **PURE** | — | `jdbc-driver` (impl) |
-| 27 | `ui:mill-grinder-service` | ui | SPRING | boot-starter, boot-starter-web | `data-autoconfigure` (impl) |
+| 27 | `services:mill-ui-service` | services | SPRING | boot-starter, boot-starter-web | — |
 | 28 | `apps:mill-service` | apps | SPRING (assembly) | everything | (all modules) |
 
 ## Scorecard

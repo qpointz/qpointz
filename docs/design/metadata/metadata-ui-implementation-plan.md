@@ -1,5 +1,41 @@
 # Metadata UI Implementation Plan
 
+## Implementation Notes (March 2026 — Admin Facet Type Management)
+
+**Status:** Delivered MVP for WI-095/WI-096 integration.
+
+### Delivered
+
+- ✅ Admin routing moved to wildcard form and supports two-level navigation:
+  - `/admin/:group/:section/...`
+- ✅ Admin sidebar now includes grouped navigation with `System` and `Model`.
+- ✅ Feature flags implemented in code (not only docs):
+  - `adminModelNavEnabled`
+  - `adminFacetTypesEnabled`
+  - `facetTypesReadOnly`
+- ✅ New facet type management UI in `ui/mill-ui`:
+  - list page: `/admin/model/facet-types`
+  - create page: `/admin/model/facet-types/new`
+  - edit page: `/admin/model/facet-types/:typeKey/edit`
+- ✅ List supports:
+  - quick search (`typeKey`, `title`, `description`)
+  - two view modes (list/cards)
+  - create/edit/delete actions
+- ✅ Edit supports:
+  - descriptor metadata editing
+  - split payload schema editor (left tree / right node editor)
+  - nested objects/arrays and enum editing via pills
+  - expert JSON mode for full-manifest editing
+- ✅ Read-only mode keeps actions visible but disabled with tooltip guidance.
+
+### Current constraints / follow-up
+
+- Schema validation strategy for metadata payload values is deferred to follow-up WIs.
+- Advanced schema composition (`oneOf`/`anyOf`/`allOf`) is still out of scope.
+- Drag-and-drop schema field ordering is not implemented yet (order is preserved as entered).
+
+---
+
 **Status:** Planning  
 **Date:** January 2025  
 **Branch:** `feat/metadata-ui`  

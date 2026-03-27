@@ -17,11 +17,50 @@
 - ✅ WI-089 — Scope model: `MetadataScope`, `MetadataScopeRepository`, `MetadataScopeService`, `MetadataContext`; `JpaMetadataScopeRepository`; `NoOpMetadataScopeRepository` fallback.
 - ✅ WI-092 — `mill-ui` model view wired to real backend (read-only); inline chat disabled pending redesign.
 
-**Upcoming in story `metadata-edit-and-explorer`:**
+**Delivered in stories `metadata-edit-and-explorer` and follow-ups (closed March 2026, see
+`docs/workitems/MILESTONE.md`):**
 
-- 🔲 WI-090 — User editing write API (`MetadataEditService`, write endpoints)
-- 🔲 WI-091 — Promotion workflow (`MetadataPromotionService`, review API)
-- 🔲 WI-093 — Physical schema explorer (`/api/v1/schema/**` from Calcite `SchemaPlus`)
+- ✅ WI-090 — User editing write API (`MetadataEditService`, write endpoints under `/api/v1/metadata/entities/**`)
+- ✅ WI-093 — Physical schema explorer (`mill-data-schema-service`, `/api/v1/schema/**` from Calcite `SchemaPlus`)
+
+**Deferred (backlog):**
+
+- 🔲 WI-091 — Promotion workflow (`MetadataPromotionService`, review API) — see `docs/workitems/BACKLOG.md` (**M-23**)
+
+## Implementation Notes (March 2026 — Facet Type Descriptor & Registry)
+
+**Delivered (facet registry, JPA facet rows, mill-ui facet editor, `mill-ui-service`):**
+
+- ✅ Facet type contract migrated to strict **manifest JSON** (`FacetTypeManifest` + `FacetPayloadSchema`).
+- ✅ Descriptor-level `targetCardinality` added (`SINGLE | MULTIPLE`) and enforced during entity facet validation.
+- ✅ `STRING.format` is first-class in descriptor schema and strictly validated (`date`, `date-time`, `email`, `uri` only).
+- ✅ `metadata_facet_type` now stores canonical descriptor in `manifest_json` (Flyway `V5__metadata_facet_type_manifest.sql`).
+- ✅ Platform descriptor manifests updated with cardinality defaults/backfill (Flyway `V6__metadata_facet_target_cardinality.sql`).
+- ✅ `GET/POST/PUT/DELETE /api/v1/metadata/facets` now read/write manifests (JSON).
+- ✅ Delete semantics are explicit:
+  - `204` deleted
+  - `404` facet type not found
+  - `409` protected/in-use constraints
+- ✅ Safe delete guard enforced via facet usage count in `metadata_facet_scope`.
+- ✅ Import/export now supports descriptor manifests in `facet-types` sections.
+- ✅ Startup import behavior:
+  - canonical envelope supports both `facet-types` and `entities`
+  - if `facet-types` are omitted, known platform facet types are ensured
+
+**Registry strategy contract (WI-096):**
+
+- Config key: `mill.metadata.facet-type-registry.type`
+- Supported values:
+  - `inMemory` — default fallback; seeded platform descriptors in-process
+  - `local` — local persistence-backed source (JPA)
+  - `portal` — reserved, currently fail-fast (not implemented)
+- Validation boundary remains local to the Mill instance; descriptor source and validation execution are decoupled.
+
+**Operational guidance:**
+
+- For local testing and admin UI descriptor management, set:
+  - `mill.metadata.storage.type=jpa`
+  - `mill.metadata.facet-type-registry.type=local`
 
 ---
 

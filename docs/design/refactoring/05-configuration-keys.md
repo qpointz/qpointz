@@ -48,7 +48,7 @@
 | `mill.metadata.relations` | String | `MetadataConfiguration` (`@ConditionalOnProperty`) | data:mill-data-autoconfigure | Bean selection: `FileRelationsProvider`, `NoneRelationsProvider` | none | Values: `file`, `none`, `v2` |
 | `mill.metadata.file.repository.path` | Resource | `MetadataConfiguration` (`@Value` + `@ConditionalOnProperty`) | data:mill-data-autoconfigure | `FileRepository.from()` | none | **Legacy** — see v2 below |
 | `mill.metadata.v2.storage.type` | String | `MetadataProperties` (`@ConfigurationProperties`) | metadata:mill-metadata-autoconfigure | `MetadataRepositoryAutoConfiguration` (`@ConditionalOnProperty`) | none | Values: `file`, `jpa`, `composite`, `external`. Default: `file` |
-| `mill.metadata.v2.file.path` | String | `MetadataProperties` (`@ConfigurationProperties`) | metadata:mill-metadata-autoconfigure | `MetadataRepositoryAutoConfiguration` → `FileMetadataRepository` | none | Comma-separated paths. Default: `classpath:metadata/example.yml` |
+| `mill.metadata.v2.file.path` | String | `MetadataProperties` (`@ConfigurationProperties`) | metadata:mill-metadata-autoconfigure | `MetadataRepositoryAutoConfiguration` → `FileMetadataRepository` | none | Comma-separated paths. **No default**. Required when `mill.metadata.storage.type=file` (fail-fast if missing/blank). |
 | `mill.metadata.v2.file.watch` | Boolean | `MetadataProperties` (`@ConfigurationProperties`) | metadata:mill-metadata-autoconfigure | — | none | Default: `false` |
 
 ### mill.ai
@@ -75,7 +75,6 @@
 | `mill.application.hosts.externals.<name>.scheme` | Enum | `ServiceAddressProperties` (`@ConfigurationProperties`) | core:mill-service-starter | `ApplicationDescriptorConfiguration` fallback URL resolution | **service-starter** | URL scheme (`http`, `https`, `grpc`) |
 | `mill.application.hosts.externals.<name>.host` | String | `ServiceAddressProperties` (`@ConfigurationProperties`) | core:mill-service-starter | `ApplicationDescriptorConfiguration` fallback URL resolution | **service-starter** | Externally reachable host |
 | `mill.application.hosts.externals.<name>.port` | Integer | `ServiceAddressProperties` (`@ConfigurationProperties`) | core:mill-service-starter | `ApplicationDescriptorConfiguration` fallback URL resolution | **service-starter** | Externally reachable port |
-| `mill.services.grinder.enable` | Boolean | — (checked by `OnServiceEnabledCondition`) | data:mill-data-autoconfigure | `@ConditionalOnService("grinder")`: `GrinderUIFilter` | none | |
 | `mill.services.ai-nl2data.enable` | Boolean | — (checked by `OnServiceEnabledCondition`) | data:mill-data-autoconfigure | `@ConditionalOnService("ai-nl2data")`: `AIConfiguration`, `JPAConfiguration`, `NlSqlChatServiceImpl`, `NlSqlChatController`, `GlobalExceptionHandler`, `ChatProcessor`, `ValueMappingComponents` | none | |
 | `mill.services.data-bot.enable` | Boolean | — (YAML only) | — | **no Java consumer** | none | Ghost key |
 | `mill.services.data-bot.prompt-file` | String | — (YAML only) | — | **no Java consumer** | none | Ghost key |
@@ -85,15 +84,20 @@
 
 ### mill.ui
 
+Embedded Mill UI (static assets + SPA filter) is gated by `mill.ui.enabled` (`@ConditionalOnProperty`), not `mill.services.*`.
+
 | Key | Type | Declared in | Module | Consumed by | Metadata JSON | Notes |
 |-----|------|-------------|--------|-------------|---------------|-------|
-| `mill.ui.version` | String | `GrinderUIWebConfig` (`@Value`) | ui:mill-grinder-service | `GrinderUIWebConfig.addResourceHandlers()` | none | Default: `v1` |
+| `mill.ui.enabled` | Boolean | `MillUiProperties` | services:mill-ui-service | `MillUiSpaRoutingFilter`, `MillUiWebConfig` | **mill-ui-service** (processor) | Default: `true` |
+| `mill.ui.version` | String | `MillUiProperties` | services:mill-ui-service | `MillUiWebConfig.addResourceHandlers()` | **mill-ui-service** | Default: `v2` |
+| `mill.ui.app-base-path` | String | `MillUiProperties` | services:mill-ui-service | `MillUiSpaRoutingFilter`, `MillUiWebConfig` | **mill-ui-service** | Default: `/app` |
+| `mill.ui.spa-index-path` | String | `MillUiProperties` | services:mill-ui-service | `MillUiSpaRoutingFilter` | **mill-ui-service** | Default: `/app/index.html` |
 
 ---
 
 ## 2. Metadata JSON Coverage
 
-Four `additional-spring-configuration-metadata.json` files exist:
+Processor-generated `spring-configuration-metadata.json` also exists for `MillUiProperties` under `services/mill-ui-service`. Four `additional-spring-configuration-metadata.json` files exist elsewhere:
 
 | File | Module | Keys defined |
 |------|--------|-------------|
@@ -111,8 +115,7 @@ Four `additional-spring-configuration-metadata.json` files exist:
 - `mill.security.authorization.policy.selector.granted-authority.remap`
 - All `mill.metadata.*` keys (6 keys)
 - All `mill.ai.*` keys (6 keys)
-- `mill.services.grinder.enable`, `mill.services.ai-nl2data.enable`
-- `mill.ui.version`
+- `mill.services.ai-nl2data.enable`
 
 ---
 
@@ -137,7 +140,6 @@ These are annotations implemented **in this codebase** (not from Spring Boot) th
 | `"grpc"` | `MillGrpcService`, `GrpcServiceDescriptor`, `GrpcServiceSecurityConfiguration`, `MillGrpcServiceExceptionAdvice` | data:mill-data-grpc-service |
 | `"jet-http"` | `AccessServiceController` | data:mill-data-http-service |
 | `"meta"` | `ApplicationDescriptorController` | core:mill-service-starter |
-| `"grinder"` | `GrinderUIFilter` | ui:mill-grinder-service |
 | `"ai-nl2data"` | `AIConfiguration`, `JPAConfiguration`, `GlobalExceptionHandler`, `NlSqlChatServiceImpl`, `NlSqlChatController`, `ChatProcessor` | ai:mill-ai-v1-nlsql-chat-service |
 | `"ai-nl2data"` | `ValueMappingComponents` | ai:mill-ai-v1-core |
 
@@ -160,10 +162,10 @@ Every module using `@ConditionalOnService` must depend (directly or transitively
 
 | Annotation | Providing module | Dependent modules |
 |------------|-----------------|-------------------|
-| `@ConditionalOnService` | data:mill-data-autoconfigure | data-grpc-service, data-http-service, service-starter, grinder-service, ai-v1-core, ai-v1-nlsql-chat-service |
+| `@ConditionalOnService` | data:mill-data-autoconfigure | data-grpc-service, data-http-service, service-starter, ai-v1-core, ai-v1-nlsql-chat-service |
 | `@ConditionalOnSecurity` | core:mill-security-autoconfigure | data-autoconfigure, data-grpc-service, test-kit |
 
-**Note**: `@ConditionalOnService` lives in `data:mill-data-autoconfigure` but is consumed across all lanes (core, ui, ai). This cross-cutting annotation may belong in a more neutral shared module.
+**Note**: `@ConditionalOnService` lives in `data:mill-data-autoconfigure` but is consumed across several lanes (core, ai, service assembly). Embedded Mill UI (`services:mill-ui-service`) uses `@ConditionalOnProperty("mill.ui.enabled")` instead. This cross-cutting annotation may belong in a more neutral shared module.
 
 ---
 

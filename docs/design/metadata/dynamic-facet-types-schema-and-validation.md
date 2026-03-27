@@ -1,7 +1,7 @@
 # Dynamic facet types — schema, validation, and serialization (open design)
 
-**Status:** Open — decisions pending  
-**Last updated:** 2026-03-22  
+**Status:** Active design with WI-094/WI-096 baseline in place  
+**Last updated:** 2026-03-26  
 **Related:** `metadata-service-design.md`, `docs/design/agentic/v3-capability-manifest.md`, `ai/mill-ai-v3/.../CapabilityManifest.kt` (`ToolSchemaYaml`), work item story `docs/workitems/metadata-persistence-and-editing/`, deferred WI-090 (user editing)
 
 ---
@@ -63,6 +63,20 @@ The same **structured payload schema** per facet type makes it possible to **ass
 - **Validation** — validate a **bundle** of facet writes for an entity in one pass (optional; per-facet validation remains the minimal path).
 
 **Note:** If a facet type’s payload shape **varies** by entity type beyond what `applicableTo` expresses, the descriptor needs either **per–entity-type payload variants** (e.g. map entity-type URN → `FacetPayloadSchema`) or separate facet type URNs. The common case — **one payload schema per facet type**, filtered by `applicableTo` — fits the composition above.
+
+### Registry strategy contract (WI-096 baseline)
+
+Facet type sourcing now has an explicit configuration boundary:
+
+- `mill.metadata.facet-type-registry.type=inMemory` (default fallback)
+  - in-process seeded standard facet manifests
+- `mill.metadata.facet-type-registry.type=local`
+  - source facet type manifests from local persistence (JPA-backed repository)
+- `mill.metadata.facet-type-registry.type=portal`
+  - reserved for future remote descriptor sourcing; current implementation fails fast
+
+This boundary is intentionally explicit so introducing a new source does not change API/domain
+contracts for consumers of `FacetCatalog`.
 
 ### Portal (central) vs instance (local)
 
@@ -131,13 +145,13 @@ Deliverable: **validation pipeline** diagram: deserialize JSON → validate agai
 
 **Goal:** One **canonical serialized form** for persistence and REST; optional **typed views** at module boundaries.
 
-**Principles:**
+**Principles (updated for WI-094):**
 
 | Layer | Representation |
 |-------|------------------|
 | **Persistence** | `payload_json` / YAML facet values as **JSON** (string in DB). No Java class names in storage. |
 | **Domain (`MetadataEntity.facets`)** | `Map<facetTypeUrn, Map<scopeUrn, payload>>` with `payload` typically **`Map<String, Any?>`** or a **Jackson `JsonNode`** — **not** a sealed hierarchy of Java facet classes per type. |
-| **API** | Request/response bodies use **JSON**; facet type identified by **URN** (and path slug where applicable). |
+| **API** | Request/response bodies use strict **JSON** facet type manifests; identifiers are URN-normalized (slugs accepted only at boundaries). |
 | **Clients (UI, AI)** | May define **TypeScript interfaces** or Kotlin data classes for **known** URNs only; for unknown URNs, use **generic JSON** or a form renderer driven by `contentSchemaJson` (deferred UI). |
 
 **Open design work:**

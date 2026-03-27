@@ -55,7 +55,7 @@ mill/
 ├── services/           # Runtime services (3 modules)
 │   ├── mill-jet-grpc-service  # gRPC service implementation
 │   ├── mill-jet-http-service  # HTTP/REST API wrapper
-│   └── mill-grinder-service   # Web UI backend
+│   └── mill-ui-service        # Embedded Mill UI static assets + SPA routing
 │
 ├── ai/                 # AI/LLM integration (3 modules)
 │   ├── mill-ai-core              # NL2SQL core logic

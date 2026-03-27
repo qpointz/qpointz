@@ -299,17 +299,22 @@ The metadata system is configured via `application.yml`:
 ```yaml
 mill:
   metadata:
-    v2:
-      file:
-        # Single file
-        path: "classpath:metadata/example.yml"
+    storage:
+      type: file
+    file:
+      # Single file (required when storage.type=file)
+      path: "file:/opt/mill/metadata/base.yml"
         
-        # Multiple files (comma-separated)
-        path: "classpath:metadata/base.yml,classpath:metadata/overrides.yml"
+      # Multiple files (comma-separated)
+      path: "file:/opt/mill/metadata/base.yml,file:/opt/mill/metadata/overrides.yml"
         
-        # File patterns (glob)
-        path: "classpath:metadata/base.yml,classpath:metadata/overrides/*.yml"
+      # File patterns (glob)
+      path: "file:/opt/mill/metadata/base.yml,file:/opt/mill/metadata/overrides/*.yml"
 ```
+
+Notes:
+- `mill.metadata.file.path` has no implicit default.
+- If `mill.metadata.storage.type=file` and `mill.metadata.file.path` is missing or blank, startup fails fast.
 
 ### Multi-file Configuration
 

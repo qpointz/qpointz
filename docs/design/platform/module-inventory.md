@@ -37,7 +37,7 @@ Category legend:
 | `:data:formats:mill-source-format-avro` | Kotlin | pure | Avro source format support | `:data:mill-data-source-core` | none | `true` | JUnit 5 |
 | `:data:formats:mill-source-format-parquet` | Kotlin | pure | Parquet source format support | `:data:mill-data-source-core` | none | `true` | JUnit 5 |
 | `:ui` | n/a (aggregate) | aggregate | UI aggregate | `:ui:*` | none | n/a | aggregate docs/tasks |
-| `:ui:mill-grinder-service` | Kotlin | spring-service | UI-facing service bridge | `:core:mill-service-api`, `:data:mill-data-autoconfigure` | Spring Boot service | `false` | JUnit 5 + Boot test |
+| `:services:mill-ui-service` | Java | library | Embedded Mill UI static assets + SPA routing | `boot-starter`, `boot-starter-web` | Spring MVC filter + resource handler | `false` | JUnit 5 + Boot test |
 | `:ai` | n/a (aggregate) | aggregate | AI aggregate and reports | `:ai:*` | none | n/a | aggregate `test` / `testIT` |
 | `:ai:mill-ai-v1-core` | Java | spring-ai | NL2SQL v1 core (legacy; being replaced) | `:core:mill-core`, `:data:*` | Spring AI + **Spring Boot wiring present in core** | `false` | JUnit 5 + Boot test + IT |
 | `:ai:mill-ai-v1-nlsql-chat-service` | Java | spring-service | NL2SQL v1 chat service wrapper | `:ai:mill-ai-v1-core` | Spring Boot service + persistence/web | `false` | JUnit 5 + Boot test + IT |

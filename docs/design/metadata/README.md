@@ -25,10 +25,12 @@ A document belongs here if its **primary subject** is one of:
 |------|-------------|
 | `collaborative-metadata-requirements.md` | Collaborative editing requirements: scopes, permissions, audit |
 | `dynamic-facet-types-schema-and-validation.md` | Open design: typed vs dynamic facet types; structure, validation, serialization; alignment with ai/v3 `ToolSchemaYaml` / capability manifests |
+| `facet-type-descriptor-formats.md` | Canonical facet type descriptor format: strict JSON contract, YAML equivalent examples, URN normalization and ordering rules |
 | `metadata-documentation.md` | User-facing docs: concepts, browser, facets, configuration, practices |
 | `metadata-implementation-roadmap.md` | Roadmap for faceted metadata system, multi-file repo, ValueMappingFacet |
 | `metadata-provider-refactoring-plan.md` | Plan to replace legacy MetadataProvider with facet-based system |
-| `metadata-service-design.md` | Faceted metadata service design: hierarchy, phases, tree API, URL routing; updated March 2026 with persistence/scope delivery status |
-| `metadata-ui-implementation-plan.md` | Metadata UI phases: core, REST, browser, editing |
+| `metadata-service-design.md` | Service architecture + implementation notes, including manifest-based facet type API, registry strategy contract, and startup import behavior |
+| `metadata-ui-implementation-plan.md` | UI planning + implementation notes for admin facet type management (routes, flags, split editor, expert JSON mode) |
+| `model-view-facet-boxes.md` | Data Model explorer (`/model`): standard vs custom facet boxes, MULTIPLE-instance layout, extension points |
 | `value-mapping-tactical-solution.md` | Tactical YAML-based value-mapping config (FileRepository) |
 | `value-mapping-via-metadata-provider.md` | Value mapping via MetadataProvider (facet-based approach) |

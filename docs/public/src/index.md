@@ -11,7 +11,7 @@ Mill exposes data through a service layer (gRPC, HTTP, and a web UI) backed by p
 ```
 ┌─────────────────────────┐
 │    Mill Service Layer    │
-│  (gRPC, HTTP, Grinder)  │
+│   (gRPC, HTTP, Mill UI)  │
 └───────────┬─────────────┘
             │
 ┌───────────▼─────────────┐
@@ -36,7 +36,7 @@ Mill exposes data through a service layer (gRPC, HTTP, and a web UI) backed by p
 | **Unified SQL access** | Query PostgreSQL, MySQL, SQL Server, Oracle, H2, Snowflake, and file formats (CSV, Parquet, Avro, Excel) through a single SQL interface. |
 | **Metadata management** | Add descriptions, value mappings, business concepts, and relationships to tables and columns. Metadata improves AI query accuracy and serves as a data catalog. |
 | **Access control** | Role-based table access, row-level filtering, and column-level restrictions. Supports OAuth2, JWT, Microsoft Entra ID, and basic authentication. |
-| **Web UI (Grinder)** | Browser-based interface with a chat view, data model explorer, and context manager. Supports light and dark themes. |
+| **Web UI (Mill UI)** | Browser-based interface with a chat view, data model explorer, and context manager. Supports light and dark themes. |
 | **Client libraries** | REST API, gRPC API, JDBC driver, and Python client for integration with applications, BI tools, and notebooks. |
 | **Deployment** | Docker, Docker Compose, and Kubernetes. |
 
@@ -48,5 +48,5 @@ Mill exposes data through a service layer (gRPC, HTTP, and a web UI) backed by p
 - [Installation](installation.md) — deployment and configuration
 - [Backends](backends/index.md) — JDBC, Calcite, and Flow backend configuration
 - [Sources](sources/index.md) — file-based data source configuration
-- [Grinder UI](grinder-ui.md) — web interface reference
+- [Mill UI](grinder-ui.md) — web interface reference
 - [Python Client](connect/python/index.md) — Python client library
