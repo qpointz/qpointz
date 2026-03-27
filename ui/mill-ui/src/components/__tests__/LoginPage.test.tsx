@@ -6,6 +6,7 @@ import { LoginPage } from '../auth/LoginPage';
 import { FeatureFlagProvider } from '../../features/FeatureFlagContext';
 import { defaultFeatureFlags } from '../../features/defaults';
 import { FeatureFlagContext } from '../../features/FeatureFlagContext';
+import { BRAND_DISPLAY_NAME } from '../../branding';
 
 function renderWithProviders(ui: React.ReactElement) {
   return render(
@@ -36,7 +37,7 @@ const noopLogin = async (_email: string, _password: string) => {};
 describe('LoginPage', () => {
   it('should render the brand name', () => {
     renderWithProviders(<LoginPage onLogin={noopLogin} />);
-    expect(screen.getByText('DataChat')).toBeInTheDocument();
+    expect(screen.getByText(BRAND_DISPLAY_NAME)).toBeInTheDocument();
   });
 
   it('should render "Sign in to your workspace" subtitle', () => {

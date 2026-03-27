@@ -17,7 +17,7 @@ import {
   HiOutlineUser,
   HiOutlineExclamationTriangle,
 } from 'react-icons/hi2';
-import { BRAND_LOGO_SRC } from '../../branding';
+import { BRAND_DISPLAY_NAME, BRAND_LOGO_SRC } from '../../branding';
 
 /**
  * Props for the [RegisterPage] component.
@@ -105,7 +105,7 @@ export function RegisterPage({ onRegister }: RegisterPageProps) {
             style={{ width: 48, height: 48 }}
           />
           <Text fw={700} size="xl" c={isDark ? 'gray.1' : 'gray.8'}>
-            DataChat
+            {BRAND_DISPLAY_NAME}
           </Text>
           <Text size="sm" c="dimmed">
             Create your account

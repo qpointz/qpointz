@@ -19,7 +19,7 @@ import {
   HiOutlineExclamationTriangle,
 } from 'react-icons/hi2';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
-import { BRAND_LOGO_SRC } from '../../branding';
+import { BRAND_DISPLAY_NAME, BRAND_LOGO_SRC } from '../../branding';
 
 interface LoginPageProps {
   onLogin: (email: string, password: string) => Promise<void>;
@@ -158,7 +158,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             style={{ width: 48, height: 48 }}
           />
           <Text fw={700} size="xl" c={isDark ? 'gray.1' : 'gray.8'}>
-            Mill
+            {BRAND_DISPLAY_NAME}
           </Text>
           <Text size="sm" c="dimmed">
             Sign in to your workspace
