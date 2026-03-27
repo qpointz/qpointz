@@ -49,11 +49,14 @@ public class FlowBackendAutoConfiguration {
     public CalciteContextFactory flowCalciteContextFactory(
             SourceDefinitionRepository repository,
             CalciteSqlDialectConventions sqlDialectConventions,
-            SqlProperties sqlProperties) {
+            SqlProperties sqlProperties,
+            FlowBackendProperties flowProperties) {
         var conventionProps = sqlDialectConventions.asMap(sqlProperties.getConventions());
         var props = new Properties();
         props.putAll(conventionProps);
-        return new FlowContextFactory(repository, props);
+        var schemaCache = flowProperties.getCache().getSchema();
+        var cacheEnabled = schemaCache.isEnabled() || flowProperties.isCacheSchemas();
+        return new FlowContextFactory(repository, props, cacheEnabled, schemaCache.getTtl());
     }
 
     @Bean

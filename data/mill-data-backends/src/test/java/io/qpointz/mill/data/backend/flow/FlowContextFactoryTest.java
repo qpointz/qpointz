@@ -4,8 +4,10 @@ import lombok.val;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,6 +19,14 @@ class FlowContextFactoryTest {
 
     private FlowContextFactory createFactory(SourceDefinitionRepository repo) {
         return new FlowContextFactory(repo, new Properties());
+    }
+
+    private FlowContextFactory createFactory(SourceDefinitionRepository repo, boolean cacheSchemas) {
+        return new FlowContextFactory(repo, new Properties(), cacheSchemas);
+    }
+
+    private FlowContextFactory createFactory(SourceDefinitionRepository repo, boolean cacheSchemas, Duration ttl) {
+        return new FlowContextFactory(repo, new Properties(), cacheSchemas, ttl);
     }
 
     @Test
@@ -99,5 +109,66 @@ class FlowContextFactoryTest {
             assertTrue(tables.contains("passenger"));
             assertTrue(tables.contains("segments"));
         }
+    }
+
+    @Test
+    void shouldReuseCachedSchemasAcrossContextsWhenEnabled() throws Exception {
+        val repo = new SingleFileSourceRepository(SKYMILL);
+        val factory = createFactory(repo, true);
+        assertTrue(factory.isCacheSchemasEnabled());
+
+        try (val ctx1 = factory.createContext()) {
+            val schema = ctx1.getRootSchema().getSubSchema("skymill");
+            assertNotNull(schema);
+            assertTrue(schema.getTableNames().contains("cities"));
+        }
+
+        try (val ctx2 = factory.createContext()) {
+            val schema = ctx2.getRootSchema().getSubSchema("skymill");
+            assertNotNull(schema);
+            assertTrue(schema.getTableNames().contains("aircraft"));
+        }
+
+        factory.close();
+    }
+
+    @Test
+    void shouldNotReloadDefinitionsWhenCacheEnabledWithoutTtl() throws Exception {
+        val count = new AtomicInteger(0);
+        SourceDefinitionRepository repo = () -> {
+            count.incrementAndGet();
+            return new SingleFileSourceRepository(SKYMILL).getSourceDefinitions();
+        };
+        val factory = createFactory(repo, true, null);
+
+        try (val ignored = factory.createContext()) {
+            // First context triggers initial load
+        }
+        try (val ignored = factory.createContext()) {
+            // Should reuse cached schema manager
+        }
+
+        assertEquals(1, count.get());
+        factory.close();
+    }
+
+    @Test
+    void shouldReloadDefinitionsWhenCacheTtlIsZero() throws Exception {
+        val count = new AtomicInteger(0);
+        SourceDefinitionRepository repo = () -> {
+            count.incrementAndGet();
+            return new SingleFileSourceRepository(SKYMILL).getSourceDefinitions();
+        };
+        val factory = createFactory(repo, true, Duration.ZERO);
+
+        try (val ignored = factory.createContext()) {
+            // Initial load
+        }
+        try (val ignored = factory.createContext()) {
+            // TTL zero forces refresh
+        }
+
+        assertTrue(count.get() >= 2);
+        factory.close();
     }
 }
