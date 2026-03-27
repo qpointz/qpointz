@@ -106,6 +106,7 @@ javax-annotation-api = { module = "javax.annotation:javax.annotation-api", versi
 h2-database = { module = "com.h2database:h2", version = "2.4.240" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 
 apache-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "apacheCommons" }
 apache-commons-codec = { module = "commons-codec:commons-codec", version = "1.21.0" }

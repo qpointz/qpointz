@@ -18,6 +18,10 @@ mill:
     backend:
       type: flow
       flow:
+        cache:
+          schema:
+            enabled: true
+            ttl: 1m
         sources:
           - ./config/skymill-flow.yml
 ---

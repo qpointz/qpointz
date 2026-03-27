@@ -6,17 +6,16 @@ plugins {
 }
 
 mill {
-    description = "Mill grinder UI service"
+    description = "Mill UI static assets and SPA routing"
     publishArtifacts = false
 }
 
 dependencies {
-    implementation(project(":core:mill-spring-support"))
-    implementation(project(":services:mill-service-api"))
     implementation(libs.boot.starter)
     implementation(libs.boot.starter.web)
     compileOnly(libs.bundles.logging)
     compileOnly(libs.lombok)
+    annotationProcessor(libs.boot.configuration.processor)
     annotationProcessor(libs.lombok)
 }
 

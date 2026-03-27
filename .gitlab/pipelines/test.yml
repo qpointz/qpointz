@@ -34,7 +34,7 @@ ui:v1:test:
   artifacts:
     expire_in: "5 days"
     paths:
-      - ${CI_PROJECT_DIR}/ui/mill-grinder-service/src/main/resources/static/app/v1
+      - ${CI_PROJECT_DIR}/services/mill-ui-service/src/main/resources/static/app/v1
     reports:
       junit:
         - ui/**/.test/*.xml
@@ -50,7 +50,7 @@ ui:v2:test:
   artifacts:
     expire_in: "5 days"
     paths:
-      - ${CI_PROJECT_DIR}/ui/mill-grinder-service/src/main/resources/static/app/v2
+      - ${CI_PROJECT_DIR}/services/mill-ui-service/src/main/resources/static/app/v2
     reports:
       junit:
         - ui/**/.test/*.xml

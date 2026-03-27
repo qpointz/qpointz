@@ -1,6 +1,6 @@
 logging.level:
   root: INFO
-  io.qpointz.mill.services.grinder.filters.GrinderUIFilter: TRACE
+  io.qpointz.mill.ui.MillUiSpaRoutingFilter: TRACE
 
 management:
   endpoints:

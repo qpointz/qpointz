@@ -18,7 +18,7 @@ spring:
 mill:
   data:
     sql:
-      dialect: calcite
+      dialect: CALCITE
       conventions:
         quoting: BACK_TICK
         caseSensitive: "false"
@@ -30,11 +30,17 @@ mill:
     backend:
       type: flow
       flow:
+        cache:
+          schema:
+            enabled: true
+            ttl: 2m
         sources:
           - ./config/skymill/skymill-flow.yml
   metadata:
     storage:
       type: jpa
+    facet-type-registry:
+      type: local
     import-on-startup: "file:../../test/datasets/skymill/skymill-meta-repository.yaml"
 ---
 spring:
@@ -69,6 +75,8 @@ mill:
   metadata:
     storage:
       type: jpa
+    facet-type-registry:
+      type: local
     import-on-startup: "file:../../test/datasets/moneta/moneta-meta-repository.yaml"
 ---
 spring:
@@ -93,3 +101,21 @@ mill:
   security:
     enable: true
     allow-registration: true
+---
+spring:
+  config:
+    activate:
+      on-profile: postgres
+  datasource:
+    url: ${MILL_DB_URL:jdbc:postgresql://localhost:5432/mill}
+    driver-class-name: org.postgresql.Driver
+    username: ${MILL_DB_USERNAME:postgres}
+    password: ${MILL_DB_PASSWORD:postgres}
+    hikari:
+      maximum-pool-size: ${MILL_DB_POOL_MAX:20}
+      minimum-idle: ${MILL_DB_POOL_MIN_IDLE:2}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true

@@ -58,6 +58,7 @@ include(":services:mill-service-api")
 include(":services:mill-service-common")
 include (":services:mill-data-grpc-service")
 include (":services:mill-data-http-service")
+include (":services:mill-ui-service")
 
 include (":ai")
 include (":ai:mill-ai-v1-core")
@@ -75,9 +76,7 @@ include (":clients:mill-jdbc-shell")
 include (":apps")
 include (":apps:mill-service")
 
-
-include (":ui:mill-grinder-service")
-
+include(":ui")
 
 dependencyResolutionManagement {
     repositories {

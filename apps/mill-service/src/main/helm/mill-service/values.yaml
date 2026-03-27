@@ -195,9 +195,10 @@ applicationConfig: |
         username: "*"
         password: "*"
         target-schema: "MONETA"
+    ui:
+      enabled: true
+      version: v2
     services:
-      grinder:
-        enable: true
       ai-nl2data:
         enable: true
       jet-http:

@@ -1,4 +1,4 @@
-package io.qpointz.mill.ui.grinder.filters;
+package io.qpointz.mill.ui;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.RequestDispatcher;
@@ -9,20 +9,24 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-
 import static org.mockito.Mockito.*;
 
-class GrinderUIFilterTest {
+/**
+ * Unit tests for {@link MillUiSpaRoutingFilter} with default {@link MillUiProperties}.
+ */
+class MillUiSpaRoutingFilterTest {
 
-    private GrinderUIFilter filter;
+    private MillUiSpaRoutingFilter filter;
 
     private HttpServletRequest request;
+
     private HttpServletResponse response;
+
     private FilterChain chain;
 
     @BeforeEach
     void setUp() {
-        filter = new GrinderUIFilter();
+        filter = new MillUiSpaRoutingFilter(new MillUiProperties());
         request = mock(HttpServletRequest.class);
         response = mock(HttpServletResponse.class);
         chain = mock(FilterChain.class);
@@ -105,5 +109,4 @@ class GrinderUIFilterTest {
         verify(chain).doFilter(request, response);
         verify(response, never()).sendRedirect(anyString());
     }
-
 }

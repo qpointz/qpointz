@@ -87,7 +87,7 @@ maven-publication-create:
 #   artifacts:
 #     expire_in: "2 days"
 #     paths:
-#       - ${CI_PROJECT_DIR}/ui/mill-grinder-service/src/main/resources/static/app/v1
+#       - ${CI_PROJECT_DIR}/services/mill-ui-service/src/main/resources/static/app/v1
 
 # ui:ui-v2:build:
 #   extends: .node-job
@@ -102,7 +102,7 @@ maven-publication-create:
 #   artifacts:
 #     expire_in: "2 days"
 #     paths:
-#       - ${CI_PROJECT_DIR}/ui/mill-grinder-service/src/main/resources/static/app/v2
+#       - ${CI_PROJECT_DIR}/services/mill-ui-service/src/main/resources/static/app/v2
 
 apps:minimal-edition-dist:
   extends: .apps-package-dist-template

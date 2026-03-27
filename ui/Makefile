@@ -96,7 +96,7 @@ v1-clean:
 	rm -rf $(V1_DIR)/dist
 	rm -rf $(V1_DIR)/.vite-inspect
 	rm -rf $(V1_DIR)/node_modules/.tmp
-	rm -rf mill-grinder-service/src/main/resources/static/app
+	rm -rf ../services/mill-ui-service/src/main/resources/static/app
 
 v1-test:
 	cd $(V1_DIR) && npm test
@@ -135,7 +135,7 @@ v1-api-clean:
 
 v1-deploy: v1-clean v1-install v1-build
 	@echo "V1 production build complete!"
-	@echo "Files are in mill-grinder-service/src/main/resources/static/app"
+	@echo "Files are in services/mill-ui-service/src/main/resources/static/app"
 
 # ──────────────────────────────────────────────
 # V2 — mill-ui
@@ -162,7 +162,7 @@ v2-lint-fix:
 v2-clean:
 	rm -rf $(V2_DIR)/dist
 	rm -rf $(V2_DIR)/node_modules/.tmp
-	rm -rf mill-grinder-service/src/main/resources/static/app/v2
+	rm -rf ../services/mill-ui-service/src/main/resources/static/app/v2
 
 v2-test:
 	cd $(V2_DIR) && npm test

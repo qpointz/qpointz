@@ -5,5 +5,5 @@ plugins {
 }
 
 dependencies {
-    dokka(project(":ui:mill-grinder-service"))
+    dokka(project(":services:mill-ui-service"))
 }
