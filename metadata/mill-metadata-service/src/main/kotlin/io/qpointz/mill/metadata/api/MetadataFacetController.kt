@@ -1,10 +1,9 @@
 package io.qpointz.mill.metadata.api
 
 import io.qpointz.mill.UrnSlug
-import io.qpointz.mill.metadata.api.dto.FacetTypeDescriptorDto
-import io.qpointz.mill.metadata.domain.FacetTypeDescriptor
 import io.qpointz.mill.metadata.domain.MetadataUrns
-import io.qpointz.mill.metadata.service.FacetCatalog
+import io.qpointz.mill.metadata.domain.facet.FacetTypeManifest
+import io.qpointz.mill.metadata.service.FacetTypeManagementService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.headers.Header
@@ -14,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -21,12 +21,12 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
-import java.time.Instant
 
 /**
  * REST controller for facet type catalog management.
@@ -41,7 +41,7 @@ import java.time.Instant
 @Tag(name = "metadata-facets", description = "Facet type catalog management endpoints")
 @RestController
 @RequestMapping("/api/v1/metadata/facets")
-class MetadataFacetController(private val facetCatalog: FacetCatalog) {
+class MetadataFacetController(private val service: FacetTypeManagementService) {
 
     /**
      * Lists all registered facet type descriptors, with optional filtering.
@@ -58,7 +58,7 @@ class MetadataFacetController(private val facetCatalog: FacetCatalog) {
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "Facet types returned",
-            content = [Content(array = ArraySchema(schema = Schema(implementation = FacetTypeDescriptorDto::class)))])
+            content = [Content(array = ArraySchema(schema = Schema(implementation = FacetTypeManifest::class)))])
     )
     @GetMapping
     fun listFacetTypes(
@@ -66,17 +66,9 @@ class MetadataFacetController(private val facetCatalog: FacetCatalog) {
         @RequestParam(required = false) targetType: String?,
         @Parameter(description = "If true, return only enabled facet types")
         @RequestParam(required = false, defaultValue = "false") enabledOnly: Boolean
-    ): ResponseEntity<List<FacetTypeDescriptorDto>> {
-        val all: Collection<FacetTypeDescriptor> = if (targetType != null) {
-            val normType = UrnSlug.normalise(targetType, MetadataUrns.ENTITY_TYPE_PREFIX)
-            facetCatalog.getForTargetType(normType)
-        } else if (enabledOnly) {
-            facetCatalog.getEnabled()
-        } else {
-            facetCatalog.getAll()
-        }
-        val filtered = if (enabledOnly && targetType != null) all.filter { it.enabled } else all
-        return ResponseEntity.ok(filtered.map { toDto(it) })
+    ): ResponseEntity<List<FacetTypeManifest>> {
+        val normType = targetType?.let { UrnSlug.normalise(it, MetadataUrns.ENTITY_TYPE_PREFIX) }
+        return ResponseEntity.ok(service.list(normType, enabledOnly))
     }
 
     /**
@@ -93,18 +85,16 @@ class MetadataFacetController(private val facetCatalog: FacetCatalog) {
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "Facet type found",
-            content = [Content(schema = Schema(implementation = FacetTypeDescriptorDto::class))]),
+            content = [Content(schema = Schema(implementation = FacetTypeManifest::class))]),
         ApiResponse(responseCode = "404", description = "Facet type not found")
     )
     @GetMapping("/{typeKey}")
     fun getFacetTypeByKey(
         @Parameter(description = "Facet type slug or URN, e.g. descriptive")
         @PathVariable typeKey: String
-    ): ResponseEntity<FacetTypeDescriptorDto> {
+    ): ResponseEntity<FacetTypeManifest> {
         val normKey = MetadataUrns.normaliseFacetTypePath(typeKey)
-        return facetCatalog.get(normKey)
-            .map { ResponseEntity.ok(toDto(it)) }
-            .orElse(ResponseEntity.notFound().build())
+        return ResponseEntity.ok(service.get(normKey))
     }
 
     /**
@@ -128,21 +118,17 @@ class MetadataFacetController(private val facetCatalog: FacetCatalog) {
         ApiResponse(responseCode = "400", description = "Invalid descriptor"),
         ApiResponse(responseCode = "409", description = "Facet type key already registered")
     )
-    @PostMapping
+    @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun registerFacetType(
-        @RequestBody dto: FacetTypeDescriptorDto
-    ): ResponseEntity<FacetTypeDescriptorDto> {
-        val descriptor = fromDto(dto)
-        descriptor.typeKey = MetadataUrns.normaliseFacetTypePath(descriptor.typeKey)
-        val now = Instant.now()
-        if (descriptor.createdAt == null) descriptor.createdAt = now
-        descriptor.updatedAt = now
-        facetCatalog.register(descriptor)
+        @RequestBody body: String,
+        @RequestHeader(value = "Content-Type", required = false) contentType: String?
+    ): ResponseEntity<FacetTypeManifest> {
+        val manifest = service.create(service.parseJson(body, contentType?.let { MediaType.valueOf(it) }))
         val location = ServletUriComponentsBuilder.fromCurrentRequest()
             .path("/{typeKey}")
-            .buildAndExpand(descriptor.typeKey)
+            .buildAndExpand(manifest.typeKey)
             .toUri()
-        return ResponseEntity.created(location).body(toDto(descriptor))
+        return ResponseEntity.created(location).body(manifest)
     }
 
     /**
@@ -159,22 +145,20 @@ class MetadataFacetController(private val facetCatalog: FacetCatalog) {
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "Facet type updated",
-            content = [Content(schema = Schema(implementation = FacetTypeDescriptorDto::class))]),
+            content = [Content(schema = Schema(implementation = FacetTypeManifest::class))]),
         ApiResponse(responseCode = "400", description = "Invalid descriptor"),
         ApiResponse(responseCode = "404", description = "Facet type not found")
     )
-    @PutMapping("/{typeKey}")
+    @PutMapping(path = ["/{typeKey}"], consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun updateFacetType(
         @Parameter(description = "Facet type slug or URN to update")
         @PathVariable typeKey: String,
-        @RequestBody dto: FacetTypeDescriptorDto
-    ): ResponseEntity<FacetTypeDescriptorDto> {
+        @RequestBody body: String,
+        @RequestHeader(value = "Content-Type", required = false) contentType: String?
+    ): ResponseEntity<FacetTypeManifest> {
         val normKey = MetadataUrns.normaliseFacetTypePath(typeKey)
-        val descriptor = fromDto(dto)
-        descriptor.typeKey = normKey
-        descriptor.updatedAt = Instant.now()
-        facetCatalog.update(descriptor)
-        return ResponseEntity.ok(toDto(descriptor))
+        val manifest = service.update(normKey, service.parseJson(body, contentType?.let { MediaType.valueOf(it) }))
+        return ResponseEntity.ok(manifest)
     }
 
     /**
@@ -190,7 +174,7 @@ class MetadataFacetController(private val facetCatalog: FacetCatalog) {
     @ApiResponses(
         ApiResponse(responseCode = "204", description = "Facet type deleted"),
         ApiResponse(responseCode = "404", description = "Facet type not found"),
-        ApiResponse(responseCode = "409", description = "Facet type is mandatory and cannot be deleted")
+        ApiResponse(responseCode = "409", description = "Facet type cannot be deleted due to constraints")
     )
     @DeleteMapping("/{typeKey}")
     fun deleteFacetType(
@@ -198,51 +182,7 @@ class MetadataFacetController(private val facetCatalog: FacetCatalog) {
         @PathVariable typeKey: String
     ): ResponseEntity<Void> {
         val normKey = MetadataUrns.normaliseFacetTypePath(typeKey)
-        facetCatalog.delete(normKey)
+        service.delete(normKey)
         return ResponseEntity.noContent().build()
     }
-
-    /**
-     * Converts a [FacetTypeDescriptor] domain object to its REST DTO.
-     *
-     * @param descriptor the domain descriptor
-     * @return [FacetTypeDescriptorDto] with all fields mapped
-     */
-    private fun toDto(descriptor: FacetTypeDescriptor): FacetTypeDescriptorDto =
-        FacetTypeDescriptorDto(
-            typeKey = descriptor.typeKey,
-            mandatory = descriptor.mandatory,
-            enabled = descriptor.enabled,
-            displayName = descriptor.displayName,
-            description = descriptor.description,
-            applicableTo = descriptor.applicableTo,
-            version = descriptor.version,
-            contentSchema = descriptor.contentSchema,
-            createdAt = descriptor.createdAt,
-            updatedAt = descriptor.updatedAt,
-            createdBy = descriptor.createdBy,
-            updatedBy = descriptor.updatedBy
-        )
-
-    /**
-     * Converts a [FacetTypeDescriptorDto] request body to a domain [FacetTypeDescriptor].
-     *
-     * @param dto the incoming DTO
-     * @return [FacetTypeDescriptor] populated from the DTO fields
-     */
-    private fun fromDto(dto: FacetTypeDescriptorDto): FacetTypeDescriptor =
-        FacetTypeDescriptor(
-            typeKey = dto.typeKey,
-            mandatory = dto.mandatory,
-            enabled = dto.enabled,
-            displayName = dto.displayName,
-            description = dto.description,
-            applicableTo = dto.applicableTo,
-            version = dto.version,
-            contentSchema = dto.contentSchema,
-            createdAt = dto.createdAt,
-            updatedAt = dto.updatedAt,
-            createdBy = dto.createdBy,
-            updatedBy = dto.updatedBy
-        )
 }

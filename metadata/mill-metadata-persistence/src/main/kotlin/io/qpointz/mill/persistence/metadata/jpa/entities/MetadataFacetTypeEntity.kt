@@ -2,40 +2,44 @@ package io.qpointz.mill.persistence.metadata.jpa.entities
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.Instant
 
 /**
- * JPA entity representing a facet type descriptor row in `metadata_facet_type`.
+ * JPA entity representing a facet type descriptor row in `metadata_facet_type_def`.
  *
- * All five platform facet types are seeded by Flyway V4. Custom types are inserted by the
- * import service or by `POST /api/v1/metadata/facets`.
+ * Platform facet types are seeded by Flyway. Custom types are inserted by the import service
+ * or by `POST /api/v1/metadata/facets`.
  *
- * The [applicableToJson] and [contentSchemaJson] columns store JSON arrays/objects.
- * The adapters in [io.qpointz.mill.persistence.metadata.jpa.adapters.JpaFacetTypeRepository]
- * handle de/serialisation using Jackson.
- *
- * @property typeKey           full Mill facet-type URN; primary key
- * @property mandatory         whether the type is required on applicable entities
- * @property enabled           whether the type is active and visible
- * @property displayName       human-readable label
- * @property description       optional longer description
+ * @property facetTypeDefId Surrogate primary key.
+ * @property typeRes        Full Mill facet-type URN (former `type_key`).
+ * @property mandatory      Whether the type is required on applicable entities
+ * @property enabled        Whether the type is active and visible
+ * @property displayName    Human-readable label
+ * @property description   Optional longer description
  * @property applicableToJson  JSON array of entity-type URN strings; `[]` means all types
- * @property version           optional schema version string
- * @property contentSchemaJson optional JSON object defining validation rules for facet payloads
- * @property createdAt         creation timestamp
- * @property updatedAt         last-modified timestamp
- * @property createdBy         actor who created this descriptor
- * @property updatedBy         actor who last modified this descriptor
+ * @property version       Optional schema version string
+ * @property contentSchemaJson Optional JSON object defining validation rules for facet payloads
+ * @property manifestJson  Canonical facet type manifest JSON (stored verbatim)
+ * @property createdAt     Creation timestamp
+ * @property updatedAt     Last-modified timestamp
+ * @property createdBy     Actor who created this descriptor
+ * @property updatedBy     Actor who last modified this descriptor
  */
 @Entity
-@Table(name = "metadata_facet_type")
+@Table(name = "metadata_facet_type_def")
 class MetadataFacetTypeEntity(
 
     @Id
-    @Column(name = "type_key", nullable = false, length = 255)
-    val typeKey: String,
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "facet_type_def_id", nullable = false)
+    val facetTypeDefId: Long = 0,
+
+    @Column(name = "type_res", nullable = false, length = 255)
+    var typeRes: String,
 
     @Column(name = "mandatory", nullable = false)
     var mandatory: Boolean = false,
@@ -57,6 +61,9 @@ class MetadataFacetTypeEntity(
 
     @Column(name = "content_schema_json", columnDefinition = "TEXT")
     var contentSchemaJson: String?,
+
+    @Column(name = "manifest_json", nullable = false, columnDefinition = "TEXT")
+    var manifestJson: String = "{}",
 
     @Column(name = "created_at", nullable = false)
     val createdAt: Instant,

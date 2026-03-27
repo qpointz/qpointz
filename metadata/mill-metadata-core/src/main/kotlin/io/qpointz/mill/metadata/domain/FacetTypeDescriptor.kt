@@ -1,5 +1,6 @@
 package io.qpointz.mill.metadata.domain
 
+import io.qpointz.mill.metadata.domain.facet.FacetTargetCardinality
 import java.io.Serializable
 import java.time.Instant
 
@@ -16,6 +17,8 @@ import java.time.Instant
  *                        `null` or empty means applicable to all entity types.
  * @property version      optional schema version string.
  * @property contentSchema optional JSON-schema-like validation rules for facet payloads.
+ * @property manifestJson canonical facet type manifest JSON (stored verbatim); may be `null`
+ *                        for legacy rows or transitional states.
  * @property createdAt    creation timestamp.
  * @property updatedAt    last-modified timestamp.
  * @property createdBy    actor who created the descriptor.
@@ -24,12 +27,14 @@ import java.time.Instant
 data class FacetTypeDescriptor(
     var typeKey: String = "",
     var mandatory: Boolean = false,
+    var targetCardinality: FacetTargetCardinality = FacetTargetCardinality.SINGLE,
     var enabled: Boolean = true,
     var displayName: String? = null,
     var description: String? = null,
     var applicableTo: Set<String>? = null,
     var version: String? = null,
     var contentSchema: Map<String, Any?>? = null,
+    var manifestJson: String? = null,
     var createdAt: Instant? = null,
     var updatedAt: Instant? = null,
     var createdBy: String? = null,
@@ -68,12 +73,14 @@ data class FacetTypeDescriptor(
     class Builder {
         private var typeKey: String = ""
         private var mandatory: Boolean = false
+        private var targetCardinality: FacetTargetCardinality = FacetTargetCardinality.SINGLE
         private var enabled: Boolean = true
         private var displayName: String? = null
         private var description: String? = null
         private var applicableTo: Set<String>? = null
         private var version: String? = null
         private var contentSchema: Map<String, Any?>? = null
+        private var manifestJson: String? = null
         private var createdAt: Instant? = null
         private var updatedAt: Instant? = null
         private var createdBy: String? = null
@@ -84,6 +91,9 @@ data class FacetTypeDescriptor(
 
         /** Sets the [FacetTypeDescriptor.mandatory] flag. */
         fun mandatory(v: Boolean) = apply { mandatory = v }
+
+        /** Sets the [FacetTypeDescriptor.targetCardinality] mode. */
+        fun targetCardinality(v: FacetTargetCardinality) = apply { targetCardinality = v }
 
         /** Sets the [FacetTypeDescriptor.enabled] flag. */
         fun enabled(v: Boolean) = apply { enabled = v }
@@ -107,6 +117,9 @@ data class FacetTypeDescriptor(
         /** Sets the [FacetTypeDescriptor.contentSchema]. */
         fun contentSchema(v: Map<String, Any?>?) = apply { contentSchema = v }
 
+        /** Sets the [FacetTypeDescriptor.manifestJson]. */
+        fun manifestJson(v: String?) = apply { manifestJson = v }
+
         /** Sets the [FacetTypeDescriptor.createdAt] timestamp. */
         fun createdAt(v: Instant?) = apply { createdAt = v }
 
@@ -121,8 +134,8 @@ data class FacetTypeDescriptor(
 
         /** Builds and returns the [FacetTypeDescriptor]. */
         fun build() = FacetTypeDescriptor(
-            typeKey, mandatory, enabled, displayName, description,
-            applicableTo, version, contentSchema, createdAt, updatedAt, createdBy, updatedBy
+            typeKey, mandatory, targetCardinality, enabled, displayName, description,
+            applicableTo, version, contentSchema, manifestJson, createdAt, updatedAt, createdBy, updatedBy
         )
     }
 }

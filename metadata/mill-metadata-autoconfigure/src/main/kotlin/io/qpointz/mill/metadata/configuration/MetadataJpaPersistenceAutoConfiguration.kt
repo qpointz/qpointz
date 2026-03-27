@@ -2,15 +2,18 @@ package io.qpointz.mill.metadata.configuration
 
 import io.qpointz.mill.metadata.domain.MetadataChangeObserverDelegate
 import io.qpointz.mill.metadata.repository.FacetTypeRepository
+import io.qpointz.mill.metadata.repository.MetadataOperationAuditRepository
 import io.qpointz.mill.metadata.repository.MetadataRepository
 import io.qpointz.mill.metadata.repository.MetadataScopeRepository
 import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaFacetTypeRepository
 import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaMetadataChangeObserver
+import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaMetadataOperationAuditRepository
 import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaMetadataRepository
 import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaMetadataScopeRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataEntityJpaRepository
-import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetScopeJpaRepository
+import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetJpaRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetTypeJpaRepository
+import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetTypeInstJpaRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataOperationAuditJpaRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataScopeJpaRepository
 import org.springframework.boot.autoconfigure.AutoConfiguration
@@ -49,7 +52,7 @@ class MetadataJpaPersistenceAutoConfiguration {
      * Creates a [JpaMetadataRepository] when no other [MetadataRepository] bean is present.
      *
      * @param entityRepo     Spring Data repository for `metadata_entity`
-     * @param facetScopeRepo Spring Data repository for `metadata_facet_scope`
+     * @param facetRepo      Spring Data repository for `metadata_facet`
      * @param scopeRepo      Spring Data repository for `metadata_scope`
      * @return the JPA-backed [MetadataRepository] implementation
      */
@@ -57,9 +60,11 @@ class MetadataJpaPersistenceAutoConfiguration {
     @ConditionalOnMissingBean(MetadataRepository::class)
     fun jpaMetadataRepository(
         entityRepo: MetadataEntityJpaRepository,
-        facetScopeRepo: MetadataFacetScopeJpaRepository,
+        facetRepo: MetadataFacetJpaRepository,
+        facetTypeInstRepo: MetadataFacetTypeInstJpaRepository,
+        facetTypeDefRepo: MetadataFacetTypeJpaRepository,
         scopeRepo: MetadataScopeJpaRepository
-    ): MetadataRepository = JpaMetadataRepository(entityRepo, facetScopeRepo, scopeRepo)
+    ): MetadataRepository = JpaMetadataRepository(entityRepo, facetRepo, facetTypeInstRepo, facetTypeDefRepo, scopeRepo)
 
     /**
      * Creates a [JpaFacetTypeRepository] when no other [FacetTypeRepository] bean is present.
@@ -70,8 +75,9 @@ class MetadataJpaPersistenceAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(FacetTypeRepository::class)
     fun jpaFacetTypeRepository(
-        jpaRepo: MetadataFacetTypeJpaRepository
-    ): FacetTypeRepository = JpaFacetTypeRepository(jpaRepo)
+        jpaRepo: MetadataFacetTypeJpaRepository,
+        facetRepo: MetadataFacetJpaRepository
+    ): FacetTypeRepository = JpaFacetTypeRepository(jpaRepo, facetRepo)
 
     /**
      * Creates a [JpaMetadataScopeRepository] when no other [MetadataScopeRepository] bean is present.
@@ -84,6 +90,12 @@ class MetadataJpaPersistenceAutoConfiguration {
     fun jpaMetadataScopeRepository(
         jpaRepo: MetadataScopeJpaRepository
     ): MetadataScopeRepository = JpaMetadataScopeRepository(jpaRepo)
+
+    @Bean
+    @ConditionalOnMissingBean(MetadataOperationAuditRepository::class)
+    fun jpaMetadataOperationAuditRepository(
+        auditRepo: MetadataOperationAuditJpaRepository
+    ): MetadataOperationAuditRepository = JpaMetadataOperationAuditRepository(auditRepo)
 
     /**
      * Creates a [JpaMetadataChangeObserver] that persists audit entries to `metadata_operation_audit`.

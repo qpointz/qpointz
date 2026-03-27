@@ -14,11 +14,11 @@ interface MetadataPromotionJpaRepository : JpaRepository<MetadataPromotionEntity
     /**
      * Finds all promotion requests for a specific entity and facet type.
      *
-     * @param entityId  the entity identifier
-     * @param facetType full Mill facet-type URN
+     * @param entityRes     domain entity FQDN (`entity_res`)
+     * @param facetTypeRes full Mill facet-type URN
      * @return all matching promotion request rows
      */
-    fun findByEntityIdAndFacetType(entityId: String, facetType: String): List<MetadataPromotionEntity>
+    fun findByEntityResAndFacetTypeRes(entityRes: String, facetTypeRes: String): List<MetadataPromotionEntity>
 
     /**
      * Finds all promotion requests with the given workflow status.

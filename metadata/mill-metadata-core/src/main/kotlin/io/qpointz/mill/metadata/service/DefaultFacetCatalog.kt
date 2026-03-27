@@ -5,6 +5,7 @@ import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataType
 import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.domain.ValidationResult
+import io.qpointz.mill.metadata.domain.facet.FacetTargetCardinality
 import io.qpointz.mill.metadata.repository.FacetTypeRepository
 import org.slf4j.LoggerFactory
 import java.util.Optional
@@ -43,6 +44,8 @@ class DefaultFacetCatalog(
         val existing = repository.findByTypeKey(typeKey)
         if (existing.isEmpty) return
         if (existing.get().mandatory) throw IllegalArgumentException("Cannot delete mandatory facet type: $typeKey")
+        val inUse = repository.usageCount(typeKey)
+        if (inUse > 0) throw IllegalArgumentException("Cannot delete facet type in use ($inUse references): $typeKey")
         repository.deleteByTypeKey(typeKey)
         log.info("Deleted facet type: {}", typeKey)
     }
@@ -104,7 +107,15 @@ class DefaultFacetCatalog(
                 results.add(ValidationResult.fail("Facet type '$typeKey' is not applicable to $entityTargetType"))
                 continue
             }
-            if (descriptor.hasContentSchema() && contentValidator != null && scopedFacets != null) {
+            if (descriptor.targetCardinality == FacetTargetCardinality.SINGLE && scopedFacets.size > 1) {
+                results.add(
+                    ValidationResult.fail(
+                        "Facet type '$typeKey' allows a single value per entity but has ${scopedFacets.size} scoped values"
+                    )
+                )
+                continue
+            }
+            if (descriptor.hasContentSchema() && contentValidator != null) {
                 for ((scope, data) in scopedFacets) {
                     val scopeResult = contentValidator.validate(descriptor.contentSchema!!, data)
                     if (!scopeResult.valid) {

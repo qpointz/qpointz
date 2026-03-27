@@ -1,8 +1,10 @@
 package io.qpointz.mill.metadata.configuration
 
 import io.qpointz.mill.metadata.repository.MetadataRepository
+import io.qpointz.mill.metadata.repository.MetadataOperationAuditRepository
 import io.qpointz.mill.metadata.repository.MetadataScopeRepository
 import io.qpointz.mill.metadata.repository.NoOpMetadataRepository
+import io.qpointz.mill.metadata.repository.NoOpMetadataOperationAuditRepository
 import io.qpointz.mill.metadata.repository.NoOpMetadataScopeRepository
 import io.qpointz.mill.metadata.repository.file.FileMetadataRepository
 import io.qpointz.mill.metadata.repository.file.SpringResourceResolver
@@ -40,9 +42,20 @@ class MetadataRepositoryAutoConfiguration {
         resourceLoader: ResourceLoader,
         properties: MetadataProperties
     ): MetadataRepository {
-        val locations = properties.file.path.split(",")
+        val configuredPath = properties.file.path?.trim().orEmpty()
+        if (configuredPath.isEmpty()) {
+            throw IllegalStateException(
+                "mill.metadata.storage.type=file requires non-empty mill.metadata.file.path"
+            )
+        }
+        val locations = configuredPath.split(",")
             .map { it.trim() }
             .filter { it.isNotEmpty() }
+        if (locations.isEmpty()) {
+            throw IllegalStateException(
+                "mill.metadata.file.path resolved to zero locations; provide at least one resource path"
+            )
+        }
         log.info("Creating FileMetadataRepository with {} location(s): {}", locations.size, locations)
         return FileMetadataRepository(locations, SpringResourceResolver(resourceLoader))
     }
@@ -71,6 +84,13 @@ class MetadataRepositoryAutoConfiguration {
     fun noOpMetadataScopeRepository(): MetadataScopeRepository {
         log.info("No scope storage configured — using NoOpMetadataScopeRepository (empty results)")
         return NoOpMetadataScopeRepository
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(MetadataOperationAuditRepository::class)
+    fun noOpMetadataOperationAuditRepository(): MetadataOperationAuditRepository {
+        log.info("No audit storage configured — using NoOpMetadataOperationAuditRepository (empty results)")
+        return NoOpMetadataOperationAuditRepository
     }
 
     companion object {

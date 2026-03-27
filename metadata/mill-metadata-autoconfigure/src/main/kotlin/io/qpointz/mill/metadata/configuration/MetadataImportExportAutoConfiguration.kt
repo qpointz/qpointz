@@ -72,7 +72,8 @@ class MetadataImportExportAutoConfiguration {
      * resource immediately after the application context is fully initialised.
      *
      * Only active when `mill.metadata.import-on-startup` is set to a non-empty value.
-     * Import runs in [ImportMode.MERGE] mode with `actorId = "system"`.
+     * Import runs in [ImportMode.REPLACE] mode with `actorId = "system"` to ensure
+     * deterministic, idempotent startup bootstrap content.
      *
      * Supports any Spring resource URL understood by [ResourceLoader]:
      * - `classpath:metadata/seed.yaml` — resource on the application classpath
@@ -92,6 +93,6 @@ class MetadataImportExportAutoConfiguration {
     ): ApplicationRunner = ApplicationRunner {
         val path = props.importOnStartup ?: return@ApplicationRunner
         val inputStream = resourceLoader.getResource(path).inputStream
-        svc.import(inputStream, ImportMode.MERGE, actorId = "system")
+        svc.import(inputStream, ImportMode.REPLACE, actorId = "system")
     }
 }

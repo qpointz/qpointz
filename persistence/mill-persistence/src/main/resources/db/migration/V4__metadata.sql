@@ -110,8 +110,8 @@ CREATE TABLE metadata_operation_audit (
     scope_key       VARCHAR(512),
     actor_id        VARCHAR(255) NOT NULL,
     occurred_at     TIMESTAMP    NOT NULL,
-    payload_before  CLOB,
-    payload_after   CLOB,
+    payload_before  TEXT,
+    payload_after   TEXT,
     change_summary  VARCHAR(1024)
 );
 CREATE INDEX idx_moa_entity    ON metadata_operation_audit (entity_id);

@@ -1,0 +1,33 @@
+-- V5: Facet type manifest JSON storage.
+-- Adds a canonical manifest JSON column to metadata_facet_type.
+
+ALTER TABLE metadata_facet_type
+    ADD COLUMN manifest_json TEXT NOT NULL DEFAULT '{}';
+
+-- Seed platform facet types with initial manifest JSON.
+-- Note: this is a minimal manifest sufficient for WI-094 wiring; content validation is deferred.
+UPDATE metadata_facet_type
+SET manifest_json =
+    '{"typeKey":"urn:mill/metadata/facet-type:structural","title":"Structural","description":"Physical schema binding","enabled":true,"mandatory":true,"applicableTo":["urn:mill/metadata/entity-type:table","urn:mill/metadata/entity-type:attribute"],"schemaVersion":"1.0","payload":{"type":"object","title":"Structural payload","description":"Structural facet payload schema.","fields":[],"required":[]}}'
+WHERE type_key = 'urn:mill/metadata/facet-type:structural';
+
+UPDATE metadata_facet_type
+SET manifest_json =
+    '{"typeKey":"urn:mill/metadata/facet-type:descriptive","title":"Descriptive","description":"Human-readable metadata","enabled":true,"mandatory":true,"applicableTo":["urn:mill/metadata/entity-type:schema","urn:mill/metadata/entity-type:table","urn:mill/metadata/entity-type:attribute"],"schemaVersion":"1.0","payload":{"type":"object","title":"Descriptive payload","description":"Descriptive facet payload schema.","fields":[],"required":[]}}'
+WHERE type_key = 'urn:mill/metadata/facet-type:descriptive';
+
+UPDATE metadata_facet_type
+SET manifest_json =
+    '{"typeKey":"urn:mill/metadata/facet-type:relation","title":"Relation","description":"Cross-entity relationships","enabled":true,"mandatory":true,"applicableTo":["urn:mill/metadata/entity-type:table"],"schemaVersion":"1.0","payload":{"type":"object","title":"Relation payload","description":"Relation facet payload schema.","fields":[],"required":[]}}'
+WHERE type_key = 'urn:mill/metadata/facet-type:relation';
+
+UPDATE metadata_facet_type
+SET manifest_json =
+    '{"typeKey":"urn:mill/metadata/facet-type:concept","title":"Concept","description":"Business concept definitions","enabled":true,"mandatory":false,"applicableTo":["urn:mill/metadata/entity-type:concept"],"schemaVersion":"1.0","payload":{"type":"object","title":"Concept payload","description":"Concept facet payload schema.","fields":[],"required":[]}}'
+WHERE type_key = 'urn:mill/metadata/facet-type:concept';
+
+UPDATE metadata_facet_type
+SET manifest_json =
+    '{"typeKey":"urn:mill/metadata/facet-type:value-mapping","title":"Value Mapping","description":"Attribute value mappings for NL-to-SQL","enabled":true,"mandatory":false,"applicableTo":["urn:mill/metadata/entity-type:attribute"],"schemaVersion":"1.0","payload":{"type":"object","title":"Value mapping payload","description":"Value mapping facet payload schema.","fields":[],"required":[]}}'
+WHERE type_key = 'urn:mill/metadata/facet-type:value-mapping';
+

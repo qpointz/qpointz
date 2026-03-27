@@ -1,11 +1,13 @@
 package io.qpointz.mill.metadata.api
 
-import io.qpointz.mill.metadata.domain.FacetTypeDescriptor
 import io.qpointz.mill.metadata.domain.MetadataUrns
-import io.qpointz.mill.metadata.service.FacetCatalog
+import io.qpointz.mill.metadata.domain.facet.FacetPayloadSchema
+import io.qpointz.mill.metadata.domain.facet.FacetSchemaType
+import io.qpointz.mill.metadata.domain.facet.FacetTypeManifest
+import io.qpointz.mill.metadata.service.FacetTypeManagementService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
-import org.mockito.kotlin.doThrow
+import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -17,7 +19,6 @@ import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.put
-import java.util.Optional
 
 @WebMvcTest(controllers = [MetadataFacetController::class])
 @AutoConfigureMockMvc(addFilters = false)
@@ -27,30 +28,49 @@ class MetadataFacetControllerTest {
     private lateinit var mockMvc: MockMvc
 
     @MockitoBean
-    private lateinit var facetCatalog: FacetCatalog
+    private lateinit var service: FacetTypeManagementService
 
-    private val descriptiveDescriptor = FacetTypeDescriptor(
+    private val descriptiveManifest = FacetTypeManifest(
         typeKey = MetadataUrns.FACET_TYPE_DESCRIPTIVE,
-        mandatory = true,
         enabled = true,
-        displayName = "Descriptive",
+        mandatory = true,
+        title = "Descriptive",
+        description = "Human-readable metadata",
         applicableTo = setOf(
             MetadataUrns.ENTITY_TYPE_SCHEMA,
             MetadataUrns.ENTITY_TYPE_TABLE,
             MetadataUrns.ENTITY_TYPE_ATTRIBUTE
+        ).toList(),
+        schemaVersion = "1.0",
+        payload = FacetPayloadSchema(
+            type = FacetSchemaType.OBJECT,
+            title = "Descriptive payload",
+            description = "Descriptive facet payload schema.",
+            fields = emptyList(),
+            required = emptyList()
         )
     )
 
-    private val customDescriptor = FacetTypeDescriptor(
+    private val customManifest = FacetTypeManifest(
         typeKey = "urn:mill/metadata/facet-type:governance",
-        mandatory = false,
         enabled = true,
-        displayName = "Governance"
+        mandatory = false,
+        title = "Governance",
+        description = "Governance metadata attached to entities.",
+        applicableTo = null,
+        schemaVersion = "1.0",
+        payload = FacetPayloadSchema(
+            type = FacetSchemaType.OBJECT,
+            title = "Governance payload",
+            description = "Governance facet payload schema.",
+            fields = emptyList(),
+            required = emptyList()
+        )
     )
 
     @Test
     fun shouldListFacetTypes_whenGetFacets() {
-        whenever(facetCatalog.getAll()).thenReturn(listOf(descriptiveDescriptor, customDescriptor))
+        whenever(service.list(null, false)).thenReturn(listOf(descriptiveManifest, customManifest))
 
         mockMvc.get("/api/v1/metadata/facets")
             .andExpect {
@@ -63,7 +83,7 @@ class MetadataFacetControllerTest {
 
     @Test
     fun shouldFilterByEnabledOnly_whenEnabledOnlyParamTrue() {
-        whenever(facetCatalog.getEnabled()).thenReturn(listOf(descriptiveDescriptor))
+        whenever(service.list(null, true)).thenReturn(listOf(descriptiveManifest))
 
         mockMvc.get("/api/v1/metadata/facets") {
             param("enabledOnly", "true")
@@ -76,8 +96,8 @@ class MetadataFacetControllerTest {
 
     @Test
     fun shouldFilterByTargetType_whenTargetTypeParamProvided() {
-        whenever(facetCatalog.getForTargetType(MetadataUrns.ENTITY_TYPE_TABLE))
-            .thenReturn(listOf(descriptiveDescriptor))
+        whenever(service.list(MetadataUrns.ENTITY_TYPE_TABLE, false))
+            .thenReturn(listOf(descriptiveManifest))
 
         mockMvc.get("/api/v1/metadata/facets") {
             param("targetType", "table")
@@ -89,8 +109,7 @@ class MetadataFacetControllerTest {
 
     @Test
     fun shouldGetFacetByShortKey_whenDescriptiveShortKeyProvided() {
-        whenever(facetCatalog.get(MetadataUrns.FACET_TYPE_DESCRIPTIVE))
-            .thenReturn(Optional.of(descriptiveDescriptor))
+        whenever(service.get(MetadataUrns.FACET_TYPE_DESCRIPTIVE)).thenReturn(descriptiveManifest)
 
         mockMvc.get("/api/v1/metadata/facets/descriptive")
             .andExpect {
@@ -102,7 +121,9 @@ class MetadataFacetControllerTest {
 
     @Test
     fun shouldReturn404ForFacetByKey_whenNotFound() {
-        whenever(facetCatalog.get(any())).thenReturn(Optional.empty())
+        whenever(service.get(any())).thenThrow(
+            io.qpointz.mill.excepions.statuses.MillStatuses.notFoundRuntime("not found")
+        )
 
         mockMvc.get("/api/v1/metadata/facets/nonexistent")
             .andExpect {
@@ -115,11 +136,23 @@ class MetadataFacetControllerTest {
         val requestBody = """
             {
                 "typeKey": "governance",
+                "title": "Governance",
+                "description": "Governance metadata attached to entities.",
                 "mandatory": false,
                 "enabled": true,
-                "displayName": "Governance"
+                "schemaVersion": "1.0",
+                "payload": {
+                  "type": "OBJECT",
+                  "title": "Governance payload",
+                  "description": "Governance facet payload schema.",
+                  "fields": [],
+                  "required": []
+                }
             }
         """.trimIndent()
+
+        whenever(service.parseJson(any(), any())).thenReturn(customManifest.copy(typeKey = "governance"))
+        whenever(service.create(any())).thenReturn(customManifest)
 
         mockMvc.post("/api/v1/metadata/facets") {
             contentType = MediaType.APPLICATION_JSON
@@ -135,11 +168,23 @@ class MetadataFacetControllerTest {
         val requestBody = """
             {
                 "typeKey": "governance",
+                "title": "Governance (disabled)",
+                "description": "Governance metadata attached to entities.",
                 "mandatory": false,
                 "enabled": false,
-                "displayName": "Governance (disabled)"
+                "schemaVersion": "1.0",
+                "payload": {
+                  "type": "OBJECT",
+                  "title": "Governance payload",
+                  "description": "Governance facet payload schema.",
+                  "fields": [],
+                  "required": []
+                }
             }
         """.trimIndent()
+
+        whenever(service.parseJson(any(), any())).thenReturn(customManifest.copy(typeKey = "governance", enabled = false, title = "Governance (disabled)"))
+        whenever(service.update(any(), any())).thenReturn(customManifest.copy(enabled = false, title = "Governance (disabled)"))
 
         mockMvc.put("/api/v1/metadata/facets/governance") {
             contentType = MediaType.APPLICATION_JSON
@@ -152,6 +197,7 @@ class MetadataFacetControllerTest {
 
     @Test
     fun shouldDeleteFacetType_whenTypeIsNotMandatory() {
+        doNothing().whenever(service).delete(any())
         mockMvc.delete("/api/v1/metadata/facets/governance")
             .andExpect {
                 status { isNoContent() }
@@ -160,8 +206,9 @@ class MetadataFacetControllerTest {
 
     @Test
     fun shouldReturn409_whenDeletingMandatoryFacetType() {
-        doThrow(IllegalArgumentException("Facet type is mandatory and cannot be deleted"))
-            .whenever(facetCatalog).delete(MetadataUrns.FACET_TYPE_DESCRIPTIVE)
+        whenever(service.delete(MetadataUrns.FACET_TYPE_DESCRIPTIVE)).thenThrow(
+            io.qpointz.mill.excepions.statuses.MillStatuses.conflictRuntime("mandatory")
+        )
 
         mockMvc.delete("/api/v1/metadata/facets/descriptive")
             .andExpect {

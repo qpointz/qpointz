@@ -2,6 +2,7 @@ package io.qpointz.mill.persistence.metadata.jpa.adapters
 
 import io.qpointz.mill.metadata.domain.FacetTypeDescriptor
 import io.qpointz.mill.persistence.metadata.jpa.entities.MetadataFacetTypeEntity
+import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetJpaRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetTypeJpaRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -21,14 +22,15 @@ class JpaFacetTypeRepositoryTest {
     @Mock
     private lateinit var jpaRepo: MetadataFacetTypeJpaRepository
 
+    @Mock
+    private lateinit var facetRepo: MetadataFacetJpaRepository
+
     private lateinit var repository: JpaFacetTypeRepository
 
     @BeforeEach
     fun setUp() {
-        repository = JpaFacetTypeRepository(jpaRepo)
+        repository = JpaFacetTypeRepository(jpaRepo, facetRepo)
     }
-
-    // --- toDomain ---
 
     @Test
     fun `shouldMapToDomain_whenApplicableToJsonIsEmpty`() {
@@ -76,7 +78,7 @@ class JpaFacetTypeRepositoryTest {
     fun `shouldMapToDomain_whenScalarFieldsArePreserved`() {
         val now = Instant.now()
         val entity = buildEntity(
-            typeKey = "urn:mill/metadata/facet-type:descriptive",
+            typeRes = "urn:mill/metadata/facet-type:descriptive",
             mandatory = true,
             enabled = false,
             displayName = "Descriptive",
@@ -99,8 +101,6 @@ class JpaFacetTypeRepositoryTest {
         assertThat(descriptor.createdBy).isEqualTo("alice")
         assertThat(descriptor.updatedBy).isEqualTo("bob")
     }
-
-    // --- toEntity ---
 
     @Test
     fun `shouldMapToEntity_whenApplicableToIsNull`() {
@@ -138,8 +138,6 @@ class JpaFacetTypeRepositoryTest {
         assertThat(entity.contentSchemaJson).contains("\"string\"")
     }
 
-    // --- round-trip ---
-
     @Test
     fun `shouldRoundTrip_whenApplicableToHasMultipleValues`() {
         val original = buildDescriptor(
@@ -162,28 +160,26 @@ class JpaFacetTypeRepositoryTest {
         assertThat(restored.contentSchema!!["type"]).isEqualTo("object")
     }
 
-    // --- save/findByTypeKey/findAll/deleteByTypeKey ---
-
     @Test
     fun `shouldSave_whenDescriptorIsValid`() {
         val descriptor = buildDescriptor()
-        val entity = repository.toEntity(descriptor)
-        whenever(jpaRepo.save(any<MetadataFacetTypeEntity>())).thenReturn(entity)
+        whenever(jpaRepo.findByTypeRes(descriptor.typeKey)).thenReturn(Optional.empty())
+        whenever(jpaRepo.save(any<MetadataFacetTypeEntity>())).thenAnswer { it.arguments[0] as MetadataFacetTypeEntity }
         repository.save(descriptor)
         verify(jpaRepo).save(any<MetadataFacetTypeEntity>())
     }
 
     @Test
     fun `shouldReturnEmpty_whenTypeKeyNotFound`() {
-        whenever(jpaRepo.findById("missing")).thenReturn(Optional.empty())
+        whenever(jpaRepo.findByTypeRes("missing")).thenReturn(Optional.empty())
         val result = repository.findByTypeKey("missing")
         assertThat(result).isEmpty
     }
 
     @Test
     fun `shouldReturnDescriptor_whenTypeKeyFound`() {
-        val entity = buildEntity(typeKey = "urn:mill/metadata/facet-type:descriptive")
-        whenever(jpaRepo.findById("urn:mill/metadata/facet-type:descriptive")).thenReturn(Optional.of(entity))
+        val entity = buildEntity(typeRes = "urn:mill/metadata/facet-type:descriptive")
+        whenever(jpaRepo.findByTypeRes("urn:mill/metadata/facet-type:descriptive")).thenReturn(Optional.of(entity))
         val result = repository.findByTypeKey("urn:mill/metadata/facet-type:descriptive")
         assertThat(result).isPresent
         assertThat(result.get().typeKey).isEqualTo("urn:mill/metadata/facet-type:descriptive")
@@ -192,8 +188,8 @@ class JpaFacetTypeRepositoryTest {
     @Test
     fun `shouldReturnAll_whenRepositoryHasEntries`() {
         val entities = listOf(
-            buildEntity(typeKey = "urn:mill/metadata/facet-type:descriptive"),
-            buildEntity(typeKey = "urn:mill/metadata/facet-type:governance")
+            buildEntity(typeRes = "urn:mill/metadata/facet-type:descriptive"),
+            buildEntity(typeRes = "urn:mill/metadata/facet-type:governance")
         )
         whenever(jpaRepo.findAll()).thenReturn(entities)
         val result = repository.findAll()
@@ -202,26 +198,26 @@ class JpaFacetTypeRepositoryTest {
 
     @Test
     fun `shouldReturnTrue_whenTypeKeyExists`() {
-        whenever(jpaRepo.existsById("urn:mill/metadata/facet-type:descriptive")).thenReturn(true)
+        whenever(jpaRepo.existsByTypeRes("urn:mill/metadata/facet-type:descriptive")).thenReturn(true)
         assertThat(repository.existsByTypeKey("urn:mill/metadata/facet-type:descriptive")).isTrue()
     }
 
     @Test
     fun `shouldReturnFalse_whenTypeKeyAbsent`() {
-        whenever(jpaRepo.existsById("missing")).thenReturn(false)
+        whenever(jpaRepo.existsByTypeRes("missing")).thenReturn(false)
         assertThat(repository.existsByTypeKey("missing")).isFalse()
     }
 
     @Test
     fun `shouldDeleteByTypeKey_whenCalled`() {
+        val entity = buildEntity(typeRes = "urn:mill/metadata/facet-type:descriptive")
+        whenever(jpaRepo.findByTypeRes("urn:mill/metadata/facet-type:descriptive")).thenReturn(Optional.of(entity))
         repository.deleteByTypeKey("urn:mill/metadata/facet-type:descriptive")
-        verify(jpaRepo).deleteById("urn:mill/metadata/facet-type:descriptive")
+        verify(jpaRepo).delete(entity)
     }
 
-    // --- helpers ---
-
     private fun buildEntity(
-        typeKey: String = "urn:mill/metadata/facet-type:descriptive",
+        typeRes: String = "urn:mill/metadata/facet-type:descriptive",
         mandatory: Boolean = false,
         enabled: Boolean = true,
         displayName: String? = "Descriptive",
@@ -229,12 +225,14 @@ class JpaFacetTypeRepositoryTest {
         applicableToJson: String = "[]",
         version: String? = null,
         contentSchemaJson: String? = null,
+        manifestJson: String = "{}",
         createdAt: Instant = Instant.now(),
         updatedAt: Instant = Instant.now(),
         createdBy: String? = null,
         updatedBy: String? = null
     ) = MetadataFacetTypeEntity(
-        typeKey = typeKey,
+        facetTypeDefId = 1L,
+        typeRes = typeRes,
         mandatory = mandatory,
         enabled = enabled,
         displayName = displayName,
@@ -242,6 +240,7 @@ class JpaFacetTypeRepositoryTest {
         applicableToJson = applicableToJson,
         version = version,
         contentSchemaJson = contentSchemaJson,
+        manifestJson = manifestJson,
         createdAt = createdAt,
         updatedAt = updatedAt,
         createdBy = createdBy,
@@ -256,7 +255,8 @@ class JpaFacetTypeRepositoryTest {
         description: String? = null,
         applicableTo: Set<String>? = null,
         version: String? = null,
-        contentSchema: Map<String, Any?>? = null
+        contentSchema: Map<String, Any?>? = null,
+        manifestJson: String? = null
     ) = FacetTypeDescriptor(
         typeKey = typeKey,
         mandatory = mandatory,
@@ -265,6 +265,7 @@ class JpaFacetTypeRepositoryTest {
         description = description,
         applicableTo = applicableTo,
         version = version,
-        contentSchema = contentSchema
+        contentSchema = contentSchema,
+        manifestJson = manifestJson
     )
 }

@@ -2,8 +2,9 @@ package io.qpointz.mill.persistence.metadata.jpa.entities
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.Index
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import java.time.Instant
@@ -15,16 +16,14 @@ import java.time.Instant
  * global scope (`urn:mill/metadata/scope:global`). User, team, and role scopes are created
  * on demand during import or facet write operations.
  *
- * Scope identity is encoded in [scopeId] as a full Mill URN, e.g.
- * `"urn:mill/metadata/scope:user:alice"`.
- *
- * @property scopeId     full Mill scope URN; primary key
- * @property scopeType   coarse category: `GLOBAL`, `USER`, `TEAM`, `ROLE`
- * @property referenceId the local part of the scope URN; `null` for the global scope
- * @property displayName optional human-readable label for the scope
- * @property ownerId     optional identifier of the user who owns this scope
- * @property visibility  visibility hint; default `PUBLIC`
- * @property createdAt   timestamp when this scope row was first created
+ * @property scopeId     Surrogate primary key.
+ * @property scopeRes    Full Mill scope URN (former `scope_id` string), e.g. `"urn:mill/metadata/scope:user:alice"`.
+ * @property scopeType   Coarse category: `GLOBAL`, `USER`, `TEAM`, `ROLE`
+ * @property referenceId The local part of the scope URN; `null` for the global scope
+ * @property displayName Optional human-readable label for the scope
+ * @property ownerId     Optional identifier of the user who owns this scope
+ * @property visibility  Visibility hint; default `PUBLIC`
+ * @property createdAt   Timestamp when this scope row was first created
  */
 @Entity
 @Table(
@@ -36,8 +35,12 @@ import java.time.Instant
 class MetadataScopeEntity(
 
     @Id
-    @Column(name = "scope_id", nullable = false, length = 255)
-    val scopeId: String,
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "scope_id", nullable = false)
+    val scopeId: Long = 0,
+
+    @Column(name = "scope_res", nullable = false, length = 255)
+    var scopeRes: String,
 
     @Column(name = "scope_type", nullable = false, length = 32)
     var scopeType: String,

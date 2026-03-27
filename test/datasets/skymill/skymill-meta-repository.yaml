@@ -331,8 +331,8 @@ entities:
             table: aircraft
           targetAttributes:
           - aircraft_type_id
-          cardinality: ONE_TO_MANY
           type: FOREIGN_KEY
+          cardinality: ONE_TO_MANY
           joinSql: aircraft_types.id = aircraft.aircraft_type_id
 - id: skymill.aircraft_types.id
   type: ATTRIBUTE

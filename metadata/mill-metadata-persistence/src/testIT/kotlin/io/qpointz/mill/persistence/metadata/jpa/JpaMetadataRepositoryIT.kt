@@ -5,7 +5,9 @@ import io.qpointz.mill.metadata.domain.MetadataType
 import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaMetadataRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataEntityJpaRepository
-import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetScopeJpaRepository
+import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetJpaRepository
+import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetTypeInstJpaRepository
+import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetTypeJpaRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataScopeJpaRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -22,11 +24,13 @@ import java.util.UUID
 class JpaMetadataRepositoryIT {
 
     @Autowired private lateinit var entityRepo: MetadataEntityJpaRepository
-    @Autowired private lateinit var facetScopeRepo: MetadataFacetScopeJpaRepository
+    @Autowired private lateinit var facetRepo: MetadataFacetJpaRepository
+    @Autowired private lateinit var facetTypeInstRepo: MetadataFacetTypeInstJpaRepository
+    @Autowired private lateinit var facetTypeDefRepo: MetadataFacetTypeJpaRepository
     @Autowired private lateinit var scopeRepo: MetadataScopeJpaRepository
 
     private val repository by lazy {
-        JpaMetadataRepository(entityRepo, facetScopeRepo, scopeRepo)
+        JpaMetadataRepository(entityRepo, facetRepo, facetTypeInstRepo, facetTypeDefRepo, scopeRepo)
     }
 
     private val now = Instant.now()

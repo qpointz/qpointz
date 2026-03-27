@@ -16,6 +16,7 @@ dependencies {
     api(project(":core:mill-core"))
     api(libs.boot.starter.data.jpa)
     api(libs.flyway.core)
+    runtimeOnly(libs.flyway.database.postgresql)
     implementation(kotlin("reflect"))
     runtimeOnly(libs.h2.database)
 }

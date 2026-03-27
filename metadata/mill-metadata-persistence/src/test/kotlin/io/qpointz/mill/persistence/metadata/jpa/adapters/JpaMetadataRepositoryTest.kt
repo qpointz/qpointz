@@ -4,10 +4,13 @@ import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataType
 import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.persistence.metadata.jpa.entities.MetadataEntityRecord
-import io.qpointz.mill.persistence.metadata.jpa.entities.MetadataFacetScopeEntity
+import io.qpointz.mill.persistence.metadata.jpa.entities.MetadataFacetEntity
+import io.qpointz.mill.persistence.metadata.jpa.entities.MetadataFacetTypeInstEntity
 import io.qpointz.mill.persistence.metadata.jpa.entities.MetadataScopeEntity
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataEntityJpaRepository
-import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetScopeJpaRepository
+import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetJpaRepository
+import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetTypeInstJpaRepository
+import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetTypeJpaRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataScopeJpaRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -21,6 +24,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.time.Instant
 import java.util.Optional
+import java.util.UUID
 
 @ExtendWith(MockitoExtension::class)
 class JpaMetadataRepositoryTest {
@@ -29,7 +33,13 @@ class JpaMetadataRepositoryTest {
     private lateinit var entityRepo: MetadataEntityJpaRepository
 
     @Mock
-    private lateinit var facetScopeRepo: MetadataFacetScopeJpaRepository
+    private lateinit var facetRepo: MetadataFacetJpaRepository
+
+    @Mock
+    private lateinit var facetTypeInstRepo: MetadataFacetTypeInstJpaRepository
+
+    @Mock
+    private lateinit var facetTypeDefRepo: MetadataFacetTypeJpaRepository
 
     @Mock
     private lateinit var scopeRepo: MetadataScopeJpaRepository
@@ -39,7 +49,8 @@ class JpaMetadataRepositoryTest {
     private val now = Instant.now()
 
     private val globalScope = MetadataScopeEntity(
-        scopeId = MetadataUrns.SCOPE_GLOBAL,
+        scopeId = 1L,
+        scopeRes = MetadataUrns.SCOPE_GLOBAL,
         scopeType = "GLOBAL",
         referenceId = null,
         displayName = "Global",
@@ -50,15 +61,13 @@ class JpaMetadataRepositoryTest {
 
     @BeforeEach
     fun setUp() {
-        repository = JpaMetadataRepository(entityRepo, facetScopeRepo, scopeRepo)
+        repository = JpaMetadataRepository(entityRepo, facetRepo, facetTypeInstRepo, facetTypeDefRepo, scopeRepo)
     }
-
-    // --- toDomain ---
 
     @Test
     fun `shouldToDomain_whenNoFacetRows`() {
         val record = buildEntityRecord("schema.table")
-        val domain = repository.toDomain(record, emptyList(), emptyMap())
+        val domain = repository.toDomain(record, emptyList())
 
         assertThat(domain.id).isEqualTo("schema.table")
         assertThat(domain.type).isEqualTo(MetadataType.TABLE)
@@ -70,20 +79,21 @@ class JpaMetadataRepositoryTest {
     @Test
     fun `shouldToDomain_whenFacetRowsPresent`() {
         val record = buildEntityRecord("schema.table")
-        val scopeEntity = globalScope
-        val facetRow = MetadataFacetScopeEntity(
-            entityId = "schema.table",
-            facetType = MetadataUrns.FACET_TYPE_DESCRIPTIVE,
-            scope = scopeEntity,
+        val facetType = instFacet(MetadataUrns.FACET_TYPE_DESCRIPTIVE)
+        val facetRow = MetadataFacetEntity(
+            facetId = 1L,
+            entity = record,
+            scope = globalScope,
+            facetType = facetType,
             payloadJson = """{"title":"My Table"}""",
+            facetUid = UUID.randomUUID().toString(),
             createdAt = now,
             updatedAt = now,
             createdBy = null,
             updatedBy = null
         )
-        val scopes = mapOf(MetadataUrns.SCOPE_GLOBAL to scopeEntity)
 
-        val domain = repository.toDomain(record, listOf(facetRow), scopes)
+        val domain = repository.toDomain(record, listOf(facetRow))
 
         assertThat(domain.facets).containsKey(MetadataUrns.FACET_TYPE_DESCRIPTIVE)
         val scopedFacets = domain.facets[MetadataUrns.FACET_TYPE_DESCRIPTIVE]!!
@@ -96,18 +106,20 @@ class JpaMetadataRepositoryTest {
     @Test
     fun `shouldToDomain_whenPayloadJsonIsNull`() {
         val record = buildEntityRecord("schema.table")
-        val facetRow = MetadataFacetScopeEntity(
-            entityId = "schema.table",
-            facetType = MetadataUrns.FACET_TYPE_DESCRIPTIVE,
+        val facetRow = MetadataFacetEntity(
+            facetId = 1L,
+            entity = record,
             scope = globalScope,
+            facetType = instFacet(MetadataUrns.FACET_TYPE_DESCRIPTIVE),
             payloadJson = "null",
+            facetUid = UUID.randomUUID().toString(),
             createdAt = now,
             updatedAt = now,
             createdBy = null,
             updatedBy = null
         )
 
-        val domain = repository.toDomain(record, listOf(facetRow), emptyMap())
+        val domain = repository.toDomain(record, listOf(facetRow))
         val scopedFacets = domain.facets[MetadataUrns.FACET_TYPE_DESCRIPTIVE]!!
         assertThat(scopedFacets[MetadataUrns.SCOPE_GLOBAL]).isNull()
     }
@@ -115,31 +127,29 @@ class JpaMetadataRepositoryTest {
     @Test
     fun `shouldToDomain_whenEntityTypeIsUnknown`() {
         val record = buildEntityRecord("entity-id", entityType = "UNKNOWN_TYPE")
-        val domain = repository.toDomain(record, emptyList(), emptyMap())
+        val domain = repository.toDomain(record, emptyList())
         assertThat(domain.type).isNull()
     }
 
-    // --- resolveOrCreateScope ---
-
     @Test
     fun `shouldResolveScope_whenScopeAlreadyExists`() {
-        whenever(scopeRepo.findById(MetadataUrns.SCOPE_GLOBAL)).thenReturn(Optional.of(globalScope))
+        whenever(scopeRepo.findByScopeRes(MetadataUrns.SCOPE_GLOBAL)).thenReturn(Optional.of(globalScope))
 
         val result = repository.resolveOrCreateScope(MetadataUrns.SCOPE_GLOBAL)
 
-        assertThat(result.scopeId).isEqualTo(MetadataUrns.SCOPE_GLOBAL)
+        assertThat(result.scopeRes).isEqualTo(MetadataUrns.SCOPE_GLOBAL)
         verify(scopeRepo, never()).save(any<MetadataScopeEntity>())
     }
 
     @Test
     fun `shouldCreateScope_whenScopeAbsent`() {
         val userScopeKey = MetadataUrns.scopeUser("alice")
-        whenever(scopeRepo.findById(userScopeKey)).thenReturn(Optional.empty())
+        whenever(scopeRepo.findByScopeRes(userScopeKey)).thenReturn(Optional.empty())
         whenever(scopeRepo.save(any<MetadataScopeEntity>())).thenAnswer { it.arguments[0] as MetadataScopeEntity }
 
         val result = repository.resolveOrCreateScope(userScopeKey)
 
-        assertThat(result.scopeId).isEqualTo(userScopeKey)
+        assertThat(result.scopeRes).isEqualTo(userScopeKey)
         assertThat(result.scopeType).isEqualTo("USER")
         assertThat(result.referenceId).isEqualTo("alice")
         verify(scopeRepo).save(any<MetadataScopeEntity>())
@@ -148,7 +158,7 @@ class JpaMetadataRepositoryTest {
     @Test
     fun `shouldCreateTeamScope_whenTeamScopeAbsent`() {
         val teamScope = MetadataUrns.scopeTeam("analysts")
-        whenever(scopeRepo.findById(teamScope)).thenReturn(Optional.empty())
+        whenever(scopeRepo.findByScopeRes(teamScope)).thenReturn(Optional.empty())
         whenever(scopeRepo.save(any<MetadataScopeEntity>())).thenAnswer { it.arguments[0] as MetadataScopeEntity }
 
         val result = repository.resolveOrCreateScope(teamScope)
@@ -160,7 +170,7 @@ class JpaMetadataRepositoryTest {
     @Test
     fun `shouldCreateRoleScope_whenRoleScopeAbsent`() {
         val roleScope = MetadataUrns.scopeRole("admin")
-        whenever(scopeRepo.findById(roleScope)).thenReturn(Optional.empty())
+        whenever(scopeRepo.findByScopeRes(roleScope)).thenReturn(Optional.empty())
         whenever(scopeRepo.save(any<MetadataScopeEntity>())).thenAnswer { it.arguments[0] as MetadataScopeEntity }
 
         val result = repository.resolveOrCreateScope(roleScope)
@@ -172,7 +182,7 @@ class JpaMetadataRepositoryTest {
     @Test
     fun `shouldCreateCustomScope_whenUnrecognisedPrefix`() {
         val customScope = "${MetadataUrns.SCOPE_PREFIX}custom:myns"
-        whenever(scopeRepo.findById(customScope)).thenReturn(Optional.empty())
+        whenever(scopeRepo.findByScopeRes(customScope)).thenReturn(Optional.empty())
         whenever(scopeRepo.save(any<MetadataScopeEntity>())).thenAnswer { it.arguments[0] as MetadataScopeEntity }
 
         val result = repository.resolveOrCreateScope(customScope)
@@ -180,11 +190,9 @@ class JpaMetadataRepositoryTest {
         assertThat(result.scopeType).isEqualTo("CUSTOM")
     }
 
-    // --- findById ---
-
     @Test
     fun `shouldReturnEmpty_whenEntityNotFound`() {
-        whenever(entityRepo.findById("missing")).thenReturn(Optional.empty())
+        whenever(entityRepo.findByEntityRes("missing")).thenReturn(Optional.empty())
         val result = repository.findById("missing")
         assertThat(result).isEmpty
     }
@@ -192,9 +200,8 @@ class JpaMetadataRepositoryTest {
     @Test
     fun `shouldReturnEntity_whenEntityFound`() {
         val record = buildEntityRecord("schema.table")
-        whenever(entityRepo.findById("schema.table")).thenReturn(Optional.of(record))
-        whenever(facetScopeRepo.findByEntityId("schema.table")).thenReturn(emptyList())
-        whenever(scopeRepo.findAll()).thenReturn(emptyList())
+        whenever(entityRepo.findByEntityRes("schema.table")).thenReturn(Optional.of(record))
+        whenever(facetRepo.findByEntityEntityRes("schema.table")).thenReturn(emptyList())
 
         val result = repository.findById("schema.table")
 
@@ -202,27 +209,38 @@ class JpaMetadataRepositoryTest {
         assertThat(result.get().id).isEqualTo("schema.table")
     }
 
-    // --- existsById ---
-
     @Test
     fun `shouldReturnTrue_whenEntityExists`() {
-        whenever(entityRepo.existsById("schema.table")).thenReturn(true)
+        whenever(entityRepo.existsByEntityRes("schema.table")).thenReturn(true)
         assertThat(repository.existsById("schema.table")).isTrue()
     }
 
     @Test
     fun `shouldReturnFalse_whenEntityAbsent`() {
-        whenever(entityRepo.existsById("missing")).thenReturn(false)
+        whenever(entityRepo.existsByEntityRes("missing")).thenReturn(false)
         assertThat(repository.existsById("missing")).isFalse()
     }
-
-    // --- save (new entity) ---
 
     @Test
     fun `shouldInsertNewEntity_whenEntityDoesNotExist`() {
         val entity = buildDomainEntity("new.entity")
-        whenever(entityRepo.existsById("new.entity")).thenReturn(false)
-        whenever(entityRepo.save(any<MetadataEntityRecord>())).thenAnswer { it.arguments[0] as MetadataEntityRecord }
+        val saved = buildEntityRecord("new.entity").let { r ->
+            MetadataEntityRecord(
+                entityId = 42L,
+                entityRes = r.entityRes,
+                entityType = r.entityType,
+                schemaName = r.schemaName,
+                tableName = r.tableName,
+                attributeName = r.attributeName,
+                createdAt = r.createdAt,
+                updatedAt = r.updatedAt,
+                createdBy = r.createdBy,
+                updatedBy = r.updatedBy
+            )
+        }
+        whenever(entityRepo.existsByEntityRes("new.entity")).thenReturn(false)
+        whenever(entityRepo.save(any<MetadataEntityRecord>())).thenReturn(saved)
+        whenever(entityRepo.findById(42L)).thenReturn(Optional.of(saved))
 
         repository.save(entity)
 
@@ -233,24 +251,21 @@ class JpaMetadataRepositoryTest {
     fun `shouldUpdateExistingEntity_whenEntityAlreadyExists`() {
         val entity = buildDomainEntity("schema.table")
         val record = buildEntityRecord("schema.table")
-        whenever(entityRepo.existsById("schema.table")).thenReturn(true)
-        whenever(entityRepo.findById("schema.table")).thenReturn(Optional.of(record))
+        whenever(entityRepo.existsByEntityRes("schema.table")).thenReturn(true)
+        whenever(entityRepo.findByEntityRes("schema.table")).thenReturn(Optional.of(record))
         whenever(entityRepo.save(any<MetadataEntityRecord>())).thenReturn(record)
+        whenever(entityRepo.findById(record.entityId)).thenReturn(Optional.of(record))
 
         repository.save(entity)
 
         verify(entityRepo).save(record)
     }
 
-    // --- deleteById ---
-
     @Test
     fun `shouldDeleteById_whenCalled`() {
         repository.deleteById("schema.table")
-        verify(entityRepo).deleteById("schema.table")
+        verify(entityRepo).deleteByEntityRes("schema.table")
     }
-
-    // --- deleteAll ---
 
     @Test
     fun `shouldDeleteAll_whenCalled`() {
@@ -258,13 +273,26 @@ class JpaMetadataRepositoryTest {
         verify(entityRepo).deleteAll()
     }
 
-    // --- helpers ---
+    private fun instFacet(typeRes: String) = MetadataFacetTypeInstEntity(
+        facetTypeId = 99L,
+        typeRes = typeRes,
+        slug = typeRes.substringAfterLast(':'),
+        displayName = null,
+        description = null,
+        source = "DEFINED",
+        facetTypeDef = null,
+        createdAt = now,
+        updatedAt = now,
+        createdBy = null,
+        updatedBy = null
+    )
 
     private fun buildEntityRecord(
-        entityId: String,
+        entityRes: String,
         entityType: String = "TABLE"
     ) = MetadataEntityRecord(
-        entityId = entityId,
+        entityId = 1L,
+        entityRes = entityRes,
         entityType = entityType,
         schemaName = "mySchema",
         tableName = "myTable",

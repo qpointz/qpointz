@@ -2,7 +2,9 @@ package io.qpointz.mill.persistence.metadata.jpa
 
 import io.qpointz.mill.metadata.domain.FacetTypeDescriptor
 import io.qpointz.mill.metadata.domain.MetadataUrns
+import io.qpointz.mill.metadata.domain.facet.PlatformFacetTypeDefinitions
 import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaFacetTypeRepository
+import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetJpaRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetTypeJpaRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -19,19 +21,17 @@ class JpaFacetTypeRepositoryIT {
     @Autowired
     private lateinit var jpaRepo: MetadataFacetTypeJpaRepository
 
-    private val repository by lazy { JpaFacetTypeRepository(jpaRepo) }
+    @Autowired
+    private lateinit var facetRepo: MetadataFacetJpaRepository
+
+    private val repository by lazy { JpaFacetTypeRepository(jpaRepo, facetRepo) }
 
     @Test
     fun `shouldFindPlatformFacetTypes_whenV4MigrationRan`() {
         val all = repository.findAll()
         val keys = all.map { it.typeKey }.toSet()
-        assertThat(keys).contains(
-            MetadataUrns.FACET_TYPE_DESCRIPTIVE,
-            MetadataUrns.FACET_TYPE_STRUCTURAL,
-            MetadataUrns.FACET_TYPE_RELATION,
-            MetadataUrns.FACET_TYPE_CONCEPT,
-            MetadataUrns.FACET_TYPE_VALUE_MAPPING
-        )
+        val expected = PlatformFacetTypeDefinitions.typeKeys().toSet()
+        assertThat(keys).containsAll(expected)
     }
 
     @Test
@@ -43,7 +43,8 @@ class JpaFacetTypeRepositoryIT {
             displayName = "Governance",
             description = "Data governance annotations",
             applicableTo = setOf(MetadataUrns.ENTITY_TYPE_TABLE, MetadataUrns.ENTITY_TYPE_SCHEMA),
-            version = "1.0"
+            version = "1.0",
+            manifestJson = "{}"
         )
         repository.save(descriptor)
 
@@ -64,7 +65,8 @@ class JpaFacetTypeRepositoryIT {
         )
         val descriptor = FacetTypeDescriptor(
             typeKey = "urn:mill/metadata/facet-type:schema-test",
-            contentSchema = schema
+            contentSchema = schema,
+            manifestJson = "{}"
         )
         repository.save(descriptor)
 
@@ -110,7 +112,8 @@ class JpaFacetTypeRepositoryIT {
         )
         val descriptor = FacetTypeDescriptor(
             typeKey = "urn:mill/metadata/facet-type:roundtrip-test",
-            applicableTo = applicableTo
+            applicableTo = applicableTo,
+            manifestJson = "{}"
         )
         repository.save(descriptor)
         val loaded = repository.findByTypeKey("urn:mill/metadata/facet-type:roundtrip-test")

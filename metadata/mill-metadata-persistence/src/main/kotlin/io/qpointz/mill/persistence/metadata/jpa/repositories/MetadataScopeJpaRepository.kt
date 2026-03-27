@@ -10,13 +10,18 @@ import java.util.Optional
  * Provides CRUD operations on `metadata_scope`. The global scope is seeded by Flyway V4.
  * Other scopes are created on demand during import or facet write operations.
  */
-interface MetadataScopeJpaRepository : JpaRepository<MetadataScopeEntity, String> {
+interface MetadataScopeJpaRepository : JpaRepository<MetadataScopeEntity, Long> {
+
+    /**
+     * Finds a scope by its full Mill URN (`scope_res`).
+     *
+     * @param scopeRes full scope URN
+     * @return the matching scope entity, or empty if not found
+     */
+    fun findByScopeRes(scopeRes: String): Optional<MetadataScopeEntity>
 
     /**
      * Finds a scope by its type and reference identifier.
-     *
-     * Used by [io.qpointz.mill.persistence.metadata.jpa.adapters.JpaMetadataRepository] to
-     * look up or create scopes without knowing their primary key (full URN) in advance.
      *
      * @param scopeType   coarse scope category (`USER`, `TEAM`, `ROLE`, `GLOBAL`)
      * @param referenceId the local reference identifier (user ID, team name, etc.)

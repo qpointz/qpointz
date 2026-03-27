@@ -21,6 +21,9 @@ public class MetadataProperties {
     /** File-storage configuration; defaults to {@code new File()}. */
     private File file = new File();
 
+    /** Facet type registry source strategy; defaults to {@code new FacetTypeRegistry()}. */
+    private FacetTypeRegistry facetTypeRegistry = new FacetTypeRegistry();
+
     /**
      * Optional classpath resource path for startup import.
      *
@@ -65,6 +68,24 @@ public class MetadataProperties {
      */
     public void setFile(File file) {
         this.file = file;
+    }
+
+    /**
+     * Returns facet type registry strategy configuration.
+     *
+     * @return current {@link FacetTypeRegistry} settings
+     */
+    public FacetTypeRegistry getFacetTypeRegistry() {
+        return facetTypeRegistry;
+    }
+
+    /**
+     * Sets facet type registry strategy configuration.
+     *
+     * @param facetTypeRegistry replacement {@link FacetTypeRegistry} instance
+     */
+    public void setFacetTypeRegistry(FacetTypeRegistry facetTypeRegistry) {
+        this.facetTypeRegistry = facetTypeRegistry;
     }
 
     /**
@@ -131,9 +152,9 @@ public class MetadataProperties {
          *
          * <p>Supports classpath ({@code classpath:}) and filesystem ({@code file:}) prefixes,
          * as well as Ant-style glob patterns.
-         * Defaults to {@code classpath:metadata/example.yml}.
+         * No default is applied; when {@code mill.metadata.storage.type=file}, this must be set.
          */
-        private String path = "classpath:metadata/example.yml";
+        private String path;
 
         /**
          * Whether to watch the backing files for changes and reload automatically.
@@ -176,6 +197,42 @@ public class MetadataProperties {
          */
         public void setWatch(boolean watch) {
             this.watch = watch;
+        }
+    }
+
+    /**
+     * Facet type registry source selector ({@code mill.metadata.facet-type-registry}).
+     */
+    public static class FacetTypeRegistry {
+
+        /**
+         * Registry source strategy identifier.
+         *
+         * <p>Supported values:
+         * <ul>
+         *   <li>{@code inMemory} — in-process seeded facet type manifests (default fallback)</li>
+         *   <li>{@code local}    — local persistence-backed repository (typically JPA)</li>
+         *   <li>{@code portal}   — reserved for future remote descriptor source (not implemented)</li>
+         * </ul>
+         */
+        private String type = "inMemory";
+
+        /**
+         * Returns the registry source strategy identifier.
+         *
+         * @return registry strategy type
+         */
+        public String getType() {
+            return type;
+        }
+
+        /**
+         * Sets the registry source strategy identifier.
+         *
+         * @param type registry strategy type
+         */
+        public void setType(String type) {
+            this.type = type;
         }
     }
 }

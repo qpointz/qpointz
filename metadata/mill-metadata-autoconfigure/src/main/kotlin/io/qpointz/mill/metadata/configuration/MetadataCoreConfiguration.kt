@@ -1,5 +1,6 @@
 package io.qpointz.mill.metadata.configuration
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.qpointz.mill.metadata.domain.DefaultFacetClassResolver
 import io.qpointz.mill.metadata.domain.FacetClassResolver
 import io.qpointz.mill.metadata.domain.FacetTypeDescriptor
@@ -9,19 +10,24 @@ import io.qpointz.mill.metadata.domain.core.DescriptiveFacet
 import io.qpointz.mill.metadata.domain.core.RelationFacet
 import io.qpointz.mill.metadata.domain.core.StructuralFacet
 import io.qpointz.mill.metadata.domain.core.ValueMappingFacet
+import io.qpointz.mill.metadata.domain.facet.PlatformFacetTypeDefinitions
 import io.qpointz.mill.metadata.repository.FacetTypeRepository
 import io.qpointz.mill.metadata.repository.InMemoryFacetTypeRepository
 import io.qpointz.mill.metadata.service.DefaultFacetCatalog
 import io.qpointz.mill.metadata.service.FacetCatalog
 import io.qpointz.mill.metadata.service.FacetContentValidator
+import org.springframework.boot.ApplicationRunner
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 /** Core metadata beans: facet resolver, facet type repository, and facet catalog. */
 @Configuration
+@EnableConfigurationProperties(MetadataProperties::class)
 open class MetadataCoreConfiguration {
 
     /**
@@ -49,9 +55,15 @@ open class MetadataCoreConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    open fun facetTypeRepository(): FacetTypeRepository {
+    @ConditionalOnProperty(
+        prefix = "mill.metadata.facet-type-registry",
+        name = ["type"],
+        havingValue = "inMemory",
+        matchIfMissing = true
+    )
+    open fun facetTypeRepository(objectMapper: ObjectMapper): FacetTypeRepository {
         val repo = InMemoryFacetTypeRepository()
-        registerPlatformFacetTypes(repo)
+        registerPlatformFacetTypes(repo, objectMapper)
         return repo
     }
 
@@ -73,33 +85,59 @@ open class MetadataCoreConfiguration {
         return DefaultFacetCatalog(facetTypeRepository, contentValidator)
     }
 
-    private fun registerPlatformFacetTypes(repo: FacetTypeRepository) {
-        repo.save(FacetTypeDescriptor(
-            typeKey = MetadataUrns.FACET_TYPE_STRUCTURAL, mandatory = true, enabled = true,
-            displayName = "Structural", description = "Physical schema binding",
-            applicableTo = setOf(MetadataUrns.ENTITY_TYPE_TABLE, MetadataUrns.ENTITY_TYPE_ATTRIBUTE),
-            version = "1.0"))
-        repo.save(FacetTypeDescriptor(
-            typeKey = MetadataUrns.FACET_TYPE_DESCRIPTIVE, mandatory = true, enabled = true,
-            displayName = "Descriptive", description = "Human-readable metadata",
-            applicableTo = setOf(MetadataUrns.ENTITY_TYPE_SCHEMA, MetadataUrns.ENTITY_TYPE_TABLE, MetadataUrns.ENTITY_TYPE_ATTRIBUTE),
-            version = "1.0"))
-        repo.save(FacetTypeDescriptor(
-            typeKey = MetadataUrns.FACET_TYPE_RELATION, mandatory = true, enabled = true,
-            displayName = "Relation", description = "Cross-entity relationships",
-            applicableTo = setOf(MetadataUrns.ENTITY_TYPE_TABLE),
-            version = "1.0"))
-        repo.save(FacetTypeDescriptor(
-            typeKey = MetadataUrns.FACET_TYPE_CONCEPT, mandatory = false, enabled = true,
-            displayName = "Concept", description = "Business concept definitions",
-            applicableTo = setOf(MetadataUrns.ENTITY_TYPE_CONCEPT),
-            version = "1.0"))
-        repo.save(FacetTypeDescriptor(
-            typeKey = MetadataUrns.FACET_TYPE_VALUE_MAPPING, mandatory = false, enabled = true,
-            displayName = "Value Mapping", description = "Attribute value mappings for NL2SQL",
-            applicableTo = setOf(MetadataUrns.ENTITY_TYPE_ATTRIBUTE),
-            version = "1.0"))
-        log.info("Registered 5 platform facet type descriptors (3 mandatory, 2 optional)")
+    /**
+     * Validates facet type registry strategy selection at startup.
+     *
+     * `portal` is declared as a contract for future work and intentionally fails fast.
+     * `local` expects local persistence-backed descriptor sourcing (typically JPA).
+     */
+    @Bean
+    open fun facetTypeRegistryStrategyGuard(
+        properties: MetadataProperties
+    ): ApplicationRunner = ApplicationRunner {
+        val strategy = properties.facetTypeRegistry.type
+        when (strategy) {
+            "portal" -> throw IllegalStateException(
+                "mill.metadata.facet-type-registry.type=portal is not implemented yet"
+            )
+            "local" -> {
+                if (properties.storage.type != "jpa") {
+                    throw IllegalStateException(
+                        "mill.metadata.facet-type-registry.type=local requires mill.metadata.storage.type=jpa"
+                    )
+                }
+            }
+            "inMemory" -> {
+                // default fallback strategy
+            }
+            else -> throw IllegalStateException(
+                "Unsupported mill.metadata.facet-type-registry.type='$strategy'. Supported: inMemory, local, portal"
+            )
+        }
+    }
+
+    private fun registerPlatformFacetTypes(repo: FacetTypeRepository, objectMapper: ObjectMapper) {
+        val manifests = PlatformFacetTypeDefinitions.manifests()
+        manifests.forEach { manifest ->
+            repo.save(
+                FacetTypeDescriptor(
+                    typeKey = manifest.typeKey,
+                    mandatory = manifest.mandatory,
+                    targetCardinality = manifest.targetCardinality,
+                    enabled = manifest.enabled,
+                    displayName = manifest.title,
+                    description = manifest.description,
+                    applicableTo = manifest.applicableTo?.toSet(),
+                    version = manifest.schemaVersion,
+                    contentSchema = null,
+                    manifestJson = objectMapper.writeValueAsString(manifest)
+                )
+            )
+        }
+        log.info(
+            "Registered {} platform facet type descriptors (source: PlatformFacetTypeDefinitions)",
+            manifests.size
+        )
     }
 
     companion object {

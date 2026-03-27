@@ -9,7 +9,30 @@ import java.util.Optional
  *
  * Provides CRUD operations on `metadata_entity` plus location-based lookup finders.
  */
-interface MetadataEntityJpaRepository : JpaRepository<MetadataEntityRecord, String> {
+interface MetadataEntityJpaRepository : JpaRepository<MetadataEntityRecord, Long> {
+
+    /**
+     * Finds a metadata entity by its business id / FQDN (`entity_res`).
+     *
+     * @param entityRes domain id string
+     * @return the matching entity record, or empty if not found
+     */
+    fun findByEntityRes(entityRes: String): Optional<MetadataEntityRecord>
+
+    /**
+     * Returns whether a row exists for the given `entity_res`.
+     *
+     * @param entityRes domain id string
+     * @return `true` if present
+     */
+    fun existsByEntityRes(entityRes: String): Boolean
+
+    /**
+     * Deletes the entity with the given business id.
+     *
+     * @param entityRes domain id string
+     */
+    fun deleteByEntityRes(entityRes: String)
 
     /**
      * Finds a metadata entity by its three-part location coordinates.

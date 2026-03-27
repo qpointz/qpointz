@@ -4,6 +4,7 @@ import io.qpointz.mill.metadata.domain.FacetTypeDescriptor
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataType
 import io.qpointz.mill.metadata.domain.MetadataUrns
+import io.qpointz.mill.metadata.domain.facet.FacetTargetCardinality
 import io.qpointz.mill.metadata.repository.InMemoryFacetTypeRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -30,6 +31,17 @@ class DefaultFacetCatalogTest {
     private fun optionalDescriptor(typeKey: String, vararg targets: String) =
         FacetTypeDescriptor(typeKey = typeKey, mandatory = false, enabled = true, displayName = typeKey,
             applicableTo = if (targets.isNotEmpty()) targets.toSet() else null, version = "1.0")
+
+    private fun optionalMultipleDescriptor(typeKey: String, vararg targets: String) =
+        FacetTypeDescriptor(
+            typeKey = typeKey,
+            mandatory = false,
+            targetCardinality = FacetTargetCardinality.MULTIPLE,
+            enabled = true,
+            displayName = typeKey,
+            applicableTo = if (targets.isNotEmpty()) targets.toSet() else null,
+            version = "1.0"
+        )
 
     @Test fun shouldRegister_newFacetType() {
         catalog.register(optionalDescriptor("custom"))
@@ -134,5 +146,24 @@ class DefaultFacetCatalogTest {
         val result = catalog.validateEntityFacets(entity)
         assertFalse(result.valid)
         assertTrue(result.errors[0].contains("disabled"))
+    }
+
+    @Test fun shouldReject_multipleScopedValues_whenSingleCardinality() {
+        catalog.register(optionalDescriptor("single-facet", MetadataUrns.ENTITY_TYPE_TABLE))
+        val entity = MetadataEntity(id = "test", type = MetadataType.TABLE)
+        entity.setFacet("single-facet", MetadataUrns.SCOPE_GLOBAL, mapOf("k" to "v1"))
+        entity.setFacet("single-facet", MetadataUrns.scopeUser("alice"), mapOf("k" to "v2"))
+        val result = catalog.validateEntityFacets(entity)
+        assertFalse(result.valid)
+        assertTrue(result.errors[0].contains("single value per entity"))
+    }
+
+    @Test fun shouldAllow_multipleScopedValues_whenMultipleCardinality() {
+        catalog.register(optionalMultipleDescriptor("multi-facet", MetadataUrns.ENTITY_TYPE_TABLE))
+        val entity = MetadataEntity(id = "test", type = MetadataType.TABLE)
+        entity.setFacet("multi-facet", MetadataUrns.SCOPE_GLOBAL, mapOf("k" to "v1"))
+        entity.setFacet("multi-facet", MetadataUrns.scopeUser("alice"), mapOf("k" to "v2"))
+        val result = catalog.validateEntityFacets(entity)
+        assertTrue(result.valid)
     }
 }

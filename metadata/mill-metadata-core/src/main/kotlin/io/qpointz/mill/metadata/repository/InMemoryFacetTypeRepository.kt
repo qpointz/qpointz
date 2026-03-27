@@ -25,4 +25,6 @@ class InMemoryFacetTypeRepository : FacetTypeRepository {
 
     override fun existsByTypeKey(typeKey: String): Boolean =
         store.containsKey(typeKey)
+
+    override fun usageCount(typeKey: String): Long = 0L
 }

@@ -1,8 +1,11 @@
 package io.qpointz.mill.metadata.configuration
 
 import io.qpointz.mill.metadata.repository.MetadataRepository
+import io.qpointz.mill.metadata.repository.MetadataOperationAuditRepository
 import io.qpointz.mill.metadata.repository.MetadataScopeRepository
+import io.qpointz.mill.metadata.domain.MetadataChangeObserver
 import io.qpointz.mill.metadata.service.FacetCatalog
+import io.qpointz.mill.metadata.service.MetadataEditService
 import io.qpointz.mill.metadata.service.MetadataScopeService
 import io.qpointz.mill.metadata.service.MetadataService
 import org.springframework.beans.factory.annotation.Autowired
@@ -51,4 +54,13 @@ class MetadataEntityServiceAutoConfiguration {
     @ConditionalOnMissingBean(MetadataScopeService::class)
     fun metadataScopeService(repo: MetadataScopeRepository): MetadataScopeService =
         MetadataScopeService(repo)
+
+    @Bean
+    @ConditionalOnMissingBean(MetadataEditService::class)
+    fun metadataEditService(
+        repository: MetadataRepository,
+        metadataService: MetadataService,
+        observer: MetadataChangeObserver,
+        auditRepository: MetadataOperationAuditRepository
+    ): MetadataEditService = MetadataEditService(repository, metadataService, observer, auditRepository)
 }

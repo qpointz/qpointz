@@ -13,12 +13,12 @@ import org.springframework.data.jpa.repository.JpaRepository
 interface MetadataOperationAuditJpaRepository : JpaRepository<MetadataOperationAuditEntity, String> {
 
     /**
-     * Finds all audit entries for a specific entity.
+     * Finds all audit entries for a specific entity business id (`entity_res`).
      *
-     * @param entityId the entity identifier
+     * @param entityRes the domain entity FQDN
      * @return all audit entries referencing the entity
      */
-    fun findByEntityId(entityId: String): List<MetadataOperationAuditEntity>
+    fun findByEntityRes(entityRes: String): List<MetadataOperationAuditEntity>
 
     /**
      * Finds all audit entries recorded by a specific actor.
@@ -31,9 +31,9 @@ interface MetadataOperationAuditJpaRepository : JpaRepository<MetadataOperationA
     /**
      * Finds all audit entries for a specific entity and facet type combination.
      *
-     * @param entityId  the entity identifier
-     * @param facetType full Mill facet-type URN
+     * @param entityRes     the domain entity FQDN
+     * @param facetTypeRes full Mill facet-type URN
      * @return all audit entries matching both entity and facet type
      */
-    fun findByEntityIdAndFacetType(entityId: String, facetType: String): List<MetadataOperationAuditEntity>
+    fun findByEntityResAndFacetTypeRes(entityRes: String, facetTypeRes: String): List<MetadataOperationAuditEntity>
 }

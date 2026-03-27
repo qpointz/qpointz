@@ -2,6 +2,7 @@ package io.qpointz.mill.metadata.repository
 
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataType
+import io.qpointz.mill.metadata.domain.facet.FacetTargetCardinality
 import java.util.Optional
 
 /** Persistence abstraction for [MetadataEntity] documents. */
@@ -34,4 +35,30 @@ interface MetadataRepository {
      * [io.qpointz.mill.metadata.service.ImportMode.REPLACE] mode.
      */
     fun deleteAll()
+
+    /**
+     * All facet instance rows for an entity (JPA). File-backed repositories return an empty list.
+     */
+    fun listFacetInstanceRows(entityRes: String): List<MetadataFacetInstanceRow> = emptyList()
+
+    /**
+     * Looks up a facet row by [facetUid], verifying it belongs to [entityRes].
+     */
+    fun findFacetInstanceRow(entityRes: String, facetUid: String): MetadataFacetInstanceRow? = null
+
+    /**
+     * Deletes the facet row with the given [facetUid] for [entityRes]. Returns whether a row was removed.
+     */
+    fun deleteFacetRowByUid(entityRes: String, facetUid: String): Boolean = false
+
+    /**
+     * Number of persisted facet rows for the entity / facet type / scope triple.
+     */
+    fun countFacetInstancesAtScope(entityRes: String, facetTypeUrn: String, scopeUrn: String): Int = 0
+
+    /**
+     * Declared target cardinality for a facet type (defaults to [FacetTargetCardinality.SINGLE]).
+     */
+    fun resolveFacetTargetCardinality(facetTypeUrn: String): FacetTargetCardinality =
+        FacetTargetCardinality.SINGLE
 }

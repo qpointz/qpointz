@@ -66,6 +66,8 @@ class FileFacetTypeRepository(
     override fun existsByTypeKey(typeKey: String): Boolean =
         store.containsKey(typeKey)
 
+    override fun usageCount(typeKey: String): Long = 0L
+
     /** YAML wrapper object for `facet-types` array. */
     class FacetTypeFileFormat {
         @JsonProperty("facet-types")

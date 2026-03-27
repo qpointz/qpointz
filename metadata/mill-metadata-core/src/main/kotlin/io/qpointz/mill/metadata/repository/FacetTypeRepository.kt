@@ -10,4 +10,11 @@ interface FacetTypeRepository {
     fun findAll(): Collection<FacetTypeDescriptor>
     fun deleteByTypeKey(typeKey: String)
     fun existsByTypeKey(typeKey: String): Boolean
+
+    /**
+     * Returns how many persisted facet payload rows reference the given facet type.
+     *
+     * Implementations that do not have access to entity facet storage may return `0`.
+     */
+    fun usageCount(typeKey: String): Long
 }
