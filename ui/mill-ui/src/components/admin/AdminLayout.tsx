@@ -1,36 +1,41 @@
 import { Box, Text, NavLink, useMantineColorScheme } from '@mantine/core';
-import { useParams, useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import {
   HiOutlineCog6Tooth,
   HiOutlineCircleStack,
   HiOutlineShieldCheck,
   HiOutlineServerStack,
+  HiOutlineSquares2X2,
+  HiOutlineRectangleStack,
   HiOutlineWrenchScrewdriver,
 } from 'react-icons/hi2';
 import { CollapsibleSidebar } from '../common/CollapsibleSidebar';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
+import { FacetTypesListPage } from './model/FacetTypesListPage';
+import { FacetTypeEditPage } from './model/FacetTypeEditPage';
 
-type AdminSection = 'data-sources' | 'policies' | 'services' | 'settings';
+type AdminGroup = 'system' | 'model';
+type SystemSection = 'data-sources' | 'policies' | 'services' | 'settings';
 
 interface AdminNavItem {
-  id: AdminSection;
+  id: string;
   label: string;
   icon: React.ComponentType<{ size: number }>;
-  flagKey: 'adminDataSources' | 'adminPolicies' | 'adminServices' | 'adminSettings';
+  path: string;
+  visible: boolean;
 }
 
-const adminNavItems: AdminNavItem[] = [
-  { id: 'data-sources', label: 'Data Sources', icon: HiOutlineCircleStack, flagKey: 'adminDataSources' },
-  { id: 'policies', label: 'Policies', icon: HiOutlineShieldCheck, flagKey: 'adminPolicies' },
-  { id: 'services', label: 'Services', icon: HiOutlineServerStack, flagKey: 'adminServices' },
-  { id: 'settings', label: 'Settings', icon: HiOutlineCog6Tooth, flagKey: 'adminSettings' },
-];
-
-function AdminPanel({ section }: { section: AdminSection }) {
+function SystemPanel({ section }: { section: SystemSection }) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
+  const items = [
+    { id: 'data-sources', label: 'Data Sources', icon: HiOutlineCircleStack },
+    { id: 'policies', label: 'Policies', icon: HiOutlineShieldCheck },
+    { id: 'services', label: 'Services', icon: HiOutlineServerStack },
+    { id: 'settings', label: 'Settings', icon: HiOutlineCog6Tooth },
+  ];
 
-  const meta = adminNavItems.find((i) => i.id === section);
+  const meta = items.find((i) => i.id === section);
   const Icon = meta?.icon ?? HiOutlineCog6Tooth;
   const label = meta?.label ?? section;
 
@@ -73,15 +78,23 @@ export function AdminLayout() {
   const isDark = colorScheme === 'dark';
   const flags = useFeatureFlags();
   const navigate = useNavigate();
-  const params = useParams<{ section?: string }>();
+  const location = useLocation();
+  const segments = location.pathname.replace(/^\/admin\/?/, '').split('/').filter(Boolean);
 
-  const visibleItems = adminNavItems.filter((item) => flags[item.flagKey]);
+  const group = (segments[0] as AdminGroup | undefined) ?? 'system';
+  const section = segments[1] ?? null;
+  const extra = segments.slice(2);
 
-  const activeSection = (params.section as AdminSection) || null;
+  const systemItems: AdminNavItem[] = [
+    { id: 'data-sources', label: 'Data Sources', icon: HiOutlineCircleStack, path: '/admin/system/data-sources', visible: flags.adminDataSources },
+    { id: 'policies', label: 'Policies', icon: HiOutlineShieldCheck, path: '/admin/system/policies', visible: flags.adminPolicies },
+    { id: 'services', label: 'Services', icon: HiOutlineServerStack, path: '/admin/system/services', visible: flags.adminServices },
+    { id: 'settings', label: 'Settings', icon: HiOutlineCog6Tooth, path: '/admin/system/settings', visible: flags.adminSettings },
+  ].filter((i) => i.visible);
 
-  const handleSelect = (item: AdminNavItem) => {
-    navigate(`/admin/${item.id}`);
-  };
+  const modelItems: AdminNavItem[] = [
+    { id: 'facet-types', label: 'Facet Types', icon: HiOutlineRectangleStack, path: '/admin/model/facet-types', visible: flags.adminModelNavEnabled && flags.adminFacetTypesEnabled },
+  ].filter((i) => i.visible);
 
   return (
     <Box
@@ -100,19 +113,51 @@ export function AdminLayout() {
             padding: 'var(--mantine-spacing-xs)',
           }}
         >
-          {visibleItems.map((item) => (
+          <NavLink
+            label="System"
+            leftSection={<HiOutlineSquares2X2 size={16} />}
+            defaultOpened
+            active={group === 'system'}
+            childrenOffset={18}
+          >
+            {systemItems.map((item) => (
+              <NavLink
+                key={item.id}
+                label={item.label}
+                leftSection={<item.icon size={16} />}
+                active={location.pathname.startsWith(item.path)}
+                onClick={() => navigate(item.path)}
+                variant="light"
+                color={isDark ? 'cyan' : 'teal'}
+                style={{ borderRadius: 'var(--mantine-radius-sm)' }}
+              />
+            ))}
+          </NavLink>
+
+          {flags.adminModelNavEnabled && (
             <NavLink
-              key={item.id}
-              label={item.label}
-              leftSection={<item.icon size={16} />}
-              active={activeSection === item.id}
-              onClick={() => handleSelect(item)}
-              variant="light"
-              color={isDark ? 'cyan' : 'teal'}
-              style={{ borderRadius: 'var(--mantine-radius-sm)' }}
-            />
-          ))}
-          {visibleItems.length === 0 && (
+              label="Model"
+              leftSection={<HiOutlineRectangleStack size={16} />}
+              defaultOpened
+              active={group === 'model'}
+              childrenOffset={18}
+            >
+              {modelItems.map((item) => (
+                <NavLink
+                  key={item.id}
+                  label={item.label}
+                  leftSection={<item.icon size={16} />}
+                  active={location.pathname.startsWith(item.path)}
+                  onClick={() => navigate(item.path)}
+                  variant="light"
+                  color={isDark ? 'cyan' : 'teal'}
+                  style={{ borderRadius: 'var(--mantine-radius-sm)' }}
+                />
+              ))}
+            </NavLink>
+          )}
+
+          {systemItems.length === 0 && modelItems.length === 0 && (
             <Text size="xs" c="dimmed" ta="center" py="md">
               No admin sections enabled.
             </Text>
@@ -125,12 +170,32 @@ export function AdminLayout() {
         style={{
           flex: 1,
           backgroundColor: 'var(--mantine-color-body)',
-          overflow: 'hidden',
+          overflowY: 'auto',
+          overflowX: 'hidden',
         }}
       >
-        {activeSection && visibleItems.some((i) => i.id === activeSection) ? (
-          <AdminPanel section={activeSection} />
-        ) : (
+        {group === 'model' && section === 'facet-types' && extra.length === 0 && (
+          <FacetTypesListPage readOnly={flags.facetTypesReadOnly} />
+        )}
+        {group === 'model' && section === 'facet-types' && extra.length === 1 && extra[0] === 'new' && (
+          <FacetTypeEditPage mode="create" readOnly={flags.facetTypesReadOnly} />
+        )}
+        {group === 'model' && section === 'facet-types' && extra.length === 2 && extra[1] === 'edit' && (
+          <FacetTypeEditPage
+            mode="edit"
+            typeKey={decodeURIComponent(extra[0] ?? '')}
+            readOnly={flags.facetTypesReadOnly}
+          />
+        )}
+
+        {group === 'system' && section && systemItems.some((i) => i.id === section) && (
+          <SystemPanel section={section as SystemSection} />
+        )}
+
+        {!(
+          (group === 'model' && section === 'facet-types') ||
+          (group === 'system' && section && systemItems.some((i) => i.id === section))
+        ) && (
           <Box
             style={{
               height: '100%',
@@ -161,7 +226,7 @@ export function AdminLayout() {
               Admin Area
             </Text>
             <Text size="sm" c="dimmed" ta="center" maw={400}>
-              Select a section from the sidebar to manage data sources, policies, and services.
+              Select a section from the sidebar to manage system and model administration.
             </Text>
           </Box>
         )}

@@ -1,5 +1,5 @@
-import { Box, NavLink, Collapse, Text, Badge, useMantineColorScheme } from '@mantine/core';
-import { useState } from 'react';
+import { Box, NavLink, Collapse, Text, Badge, ActionIcon, useMantineColorScheme } from '@mantine/core';
+import { useState, type MouseEvent } from 'react';
 import {
   HiOutlineCircleStack,
   HiOutlineTableCells,
@@ -53,8 +53,19 @@ function TreeNode({
 
   const handleClick = () => {
     onSelect(entity);
+  };
+
+  const handleToggleExpand = (event: MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
     if (hasChildren) {
-      setExpanded(!expanded);
+      setExpanded((prev) => !prev);
+      return;
+    }
+    // Lazy-load table columns on first expand attempt.
+    if (entity.type === 'TABLE') {
+      onSelect(entity);
+      setExpanded(true);
     }
   };
 
@@ -90,12 +101,15 @@ function TreeNode({
         }
         leftSection={<Icon size={14} />}
         rightSection={
-          hasChildren ? (
-            expanded ? (
-              <HiChevronDown size={12} />
-            ) : (
-              <HiChevronRight size={12} />
-            )
+          (hasChildren || entity.type === 'TABLE') ? (
+            <ActionIcon
+              size="sm"
+              variant="subtle"
+              onClick={handleToggleExpand}
+              aria-label={expanded ? 'Collapse' : 'Expand'}
+            >
+              {expanded ? <HiChevronDown size={12} /> : <HiChevronRight size={12} />}
+            </ActionIcon>
           ) : null
         }
         active={isSelected}

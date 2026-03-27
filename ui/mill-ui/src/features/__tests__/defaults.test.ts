@@ -19,7 +19,7 @@ describe('defaultFeatureFlags', () => {
       'loginMicrosoft',
       'loginAws',
       'loginAzure',
-      'inlineChatEnabled',
+      'facetTypesReadOnly',
     ];
 
     for (const [key, value] of Object.entries(defaultFeatureFlags)) {
@@ -85,6 +85,9 @@ describe('defaultFeatureFlags', () => {
       'adminPolicies',
       'adminServices',
       'adminSettings',
+      'adminModelNavEnabled',
+      'adminFacetTypesEnabled',
+      'facetTypesReadOnly',
     ];
     for (const flag of adminFlags) {
       expect(flag in defaultFeatureFlags).toBe(true);

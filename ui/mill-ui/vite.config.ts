@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   base: '/app/',
   build: {
-    outDir: '../mill-grinder-service/src/main/resources/static/app/v2',
+    outDir: '../../services/mill-ui-service/src/main/resources/static/app/v2',
     emptyOutDir: true,
     sourcemap: false,
     target: 'esnext',

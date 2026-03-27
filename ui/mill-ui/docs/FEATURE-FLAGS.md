@@ -8,7 +8,7 @@ Complete inventory of all feature flags in the application. All flags are boolea
 - **Provider**: `src/features/FeatureFlagContext.tsx` — `FeatureFlagProvider` wraps the app
 - **Hook**: `useFeatureFlags()` — returns the resolved `FeatureFlags` object
 - **Backend**: `GET /api/v1/features` — returns `Partial<FeatureFlags>`. Omitted keys default to `true`. If the request fails, all flags default to `true`.
-- **Total flags**: 75 across 15 categories (includes reserved WI-095 admin model/facet-type flags)
+- **Total flags**: 76 across 14 categories
 
 ## Flag Inventory
 
@@ -42,7 +42,7 @@ Control the context-aware inline chat drawer that appears on detail pages.
 
 | Flag | Default | What it controls | Consumer(s) |
 |------|---------|-----------------|-------------|
-| `inlineChatEnabled` | `false` | Master toggle — hides the entire InlineChatDrawer | `App.tsx`, `InlineChatButton.tsx`, `InlineChatContext.tsx` |
+| `inlineChatEnabled` | `true` | Master toggle — hides the entire InlineChatDrawer when `false` | `App.tsx`, `InlineChatButton.tsx`, `InlineChatContext.tsx` |
 | `inlineChatModelContext` | `true` | Allow inline chat on Data Model entities | `InlineChatButton.tsx`, `InlineChatContext.tsx` |
 | `inlineChatModelSchema` | `true` | Allow inline chat on SCHEMA-level entities | `InlineChatButton.tsx`, `InlineChatContext.tsx` |
 | `inlineChatModelTable` | `true` | Allow inline chat on TABLE-level entities | `InlineChatButton.tsx`, `InlineChatContext.tsx` |
@@ -53,15 +53,13 @@ Control the context-aware inline chat drawer that appears on detail pages.
 | `inlineChatSessionGrouping` | `true` | Group inline sessions by route context type in the drawer tab bar | `InlineChatDrawer.tsx` |
 | `inlineChatGreeting` | `true` | Show welcome/greeting message when a new inline chat session starts | `InlineChatContext.tsx` |
 
-### 4. Model View Details (5 flags)
+### 4. Model View Details (3 flags)
 
-Control which facet tabs and UI elements appear on the Entity Details panel.
+Control structural read UI and header badges on the Entity Details panel. Descriptive, relation, and other non-structural facets use the **descriptor-driven** renderer in `EntityDetails.tsx` (no separate flags).
 
 | Flag | Default | What it controls | Consumer(s) |
 |------|---------|-----------------|-------------|
-| `modelDescriptiveFacet` | `true` | Descriptive facet tab (display name, description, business meaning, tags, synonyms) | `EntityDetails.tsx` |
-| `modelStructuralFacet` | `true` | Structural facet tab (physical type, precision, PK/FK/unique/nullable) | `EntityDetails.tsx` |
-| `modelRelationsFacet` | `true` | Relations facet tab (foreign keys, logical relationships) | `EntityDetails.tsx` |
+| `modelStructuralFacet` | `true` | When structural data exists, use the tailored `StructuralFacet` read view for the structural facet; edit still uses the manifest/schema path | `EntityDetails.tsx` |
 | `modelQuickBadges` | `true` | Quick info badges below entity header (PK, FK, nullable, unique) | `EntityDetails.tsx` |
 | `modelPhysicalType` | `true` | Physical type badge on attribute detail | `EntityDetails.tsx` |
 
@@ -112,7 +110,7 @@ Control the Connect view and its sub-sections.
 | `connectPython` | `true` | Python connection guide section | `ConnectLayout.tsx` |
 | `connectJava` | `true` | Java connection guide section | `ConnectLayout.tsx` |
 
-### 9. Admin View (9 flags)
+### 9. Admin View (8 flags)
 
 Control the Admin panel and its sub-sections.
 
@@ -123,10 +121,9 @@ Control the Admin panel and its sub-sections.
 | `adminPolicies` | `true` | Policies management section | `AdminLayout.tsx` |
 | `adminServices` | `true` | Services management section | `AdminLayout.tsx` |
 | `adminSettings` | `true` | Settings management section | `AdminLayout.tsx` |
-| `adminModelNavEnabled` | `true` | Show `Model` group in Admin left sidebar | `AdminLayout.tsx` (planned WI-095) |
-| `adminFacetTypesEnabled` | `true` | Show `Facet Types` subitem and route in Admin Model group | `AdminLayout.tsx`, facet type management page (planned WI-095) |
-| `facetTypesReadOnly` | `false` | Force read-only facet type UI (hide/disable create/edit/delete actions) | facet type management page (planned WI-095) |
-| `facetTypesServerFlagsEnabled` | `false` | Reserved: source UI flags from server-provided descriptors (`.well-known`) | feature/flag resolution layer (future) |
+| `adminModelNavEnabled` | `true` | Show `Model` group in Admin left sidebar | `AdminLayout.tsx` |
+| `adminFacetTypesEnabled` | `true` | Show `Facet Types` subitem and route in Admin Model group | `AdminLayout.tsx`, `FacetTypesListPage.tsx`, `FacetTypeEditPage.tsx` |
+| `facetTypesReadOnly` | `false` | Force read-only facet type UI (disable create/edit/delete actions with tooltips) | `FacetTypesListPage.tsx`, `FacetTypeEditPage.tsx` |
 
 ### 10. Profile View (4 flags)
 
@@ -186,15 +183,6 @@ Control elements in the application header bar.
 | `headerGlobalSearch` | `true` | Search icon + floating search overlay in header nav | `AppHeader.tsx` |
 | `headerThemeSwitcher` | `true` | Color theme and dark/light mode switcher in user menu | `AppHeader.tsx` |
 | `headerUserProfile` | `true` | User avatar and dropdown menu in header | `AppHeader.tsx` |
-
-### 15. Facet Type Management (reserved/planned) (0 additional runtime flags)
-
-These controls are already listed under **Admin View** and are duplicated here for discoverability because they belong to the WI-095 facet type management rollout.
-
-- `adminModelNavEnabled` (default `true`)
-- `adminFacetTypesEnabled` (default `true`)
-- `facetTypesReadOnly` (default `false`)
-- `facetTypesServerFlagsEnabled` (default `false`, reserved for future `.well-known` descriptor sourcing)
 
 ---
 
@@ -267,4 +255,4 @@ If `GET /api/v1/features` fails (network error, 401, 500), all flags fall back t
 
 ---
 
-*Last updated: March 22, 2026*
+*Last updated: March 27, 2026*

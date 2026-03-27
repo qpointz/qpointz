@@ -20,6 +20,7 @@ import { useAuth, APP_NAME } from '../../App';
 import type { FeatureFlags } from '../../features/defaults';
 import type { AuthMeResponse } from '../../services/authService';
 import { GlobalSearch } from './GlobalSearch';
+import { BRAND_LOGO_SRC } from '../../branding';
 
 /** Must match SIDEBAR_WIDTH in CollapsibleSidebar.tsx */
 const SIDEBAR_WIDTH = 280;
@@ -106,7 +107,7 @@ export function AppHeader() {
         onClick={() => navigate('/home')}
       >
         <img
-          src={`${import.meta.env.BASE_URL}mill.svg`}
+          src={BRAND_LOGO_SRC}
           alt="Mill logo"
           style={{
             width: 32,

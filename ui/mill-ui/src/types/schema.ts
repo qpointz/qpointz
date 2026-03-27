@@ -108,6 +108,9 @@ export interface EntityFacets {
   descriptive?: DescriptiveFacet;
   structural?: StructuralFacet;
   relations?: RelationFacet[];
+  byType?: Record<string, unknown>;
+  /** Parallel to aggregated MULTIPLE payloads: API `uid` per instance when present (JPA), same order as instances in `byType`. */
+  instanceUidsByType?: Record<string, (string | undefined)[]>;
 }
 
 export interface EntityWithFacets {
@@ -118,21 +121,30 @@ export interface EntityWithFacets {
 export interface SchemaService {
   getContext(): Promise<SchemaContext>;
   listSchemas(context: string, facetMode?: 'none' | 'direct' | 'hierarchy'): Promise<SchemaListItem[]>;
-  getSchema(schemaName: string, context: string, facetMode?: 'none' | 'direct' | 'hierarchy'): Promise<SchemaDetail | null>;
+  getSchema(
+    schemaName: string,
+    context: string,
+    facetMode?: 'none' | 'direct' | 'hierarchy',
+    signal?: AbortSignal
+  ): Promise<SchemaDetail | null>;
   getTable(
     schemaName: string,
     tableName: string,
     context: string,
-    facetMode?: 'none' | 'direct' | 'hierarchy'
+    facetMode?: 'none' | 'direct' | 'hierarchy',
+    signal?: AbortSignal
   ): Promise<TableDetail | null>;
   getColumn(
     schemaName: string,
     tableName: string,
     columnName: string,
     context: string,
-    facetMode?: 'none' | 'direct' | 'hierarchy'
+    facetMode?: 'none' | 'direct' | 'hierarchy',
+    signal?: AbortSignal
   ): Promise<ColumnDetail | null>;
   getTree(context: string): Promise<SchemaNode[]>;
-  getEntityById(id: string, context: string): Promise<SchemaEntity | null>;
-  getEntityFacets(id: string, context: string): Promise<EntityFacets>;
+  getEntityById(id: string, context: string, signal?: AbortSignal): Promise<SchemaEntity | null>;
+  getEntityFacets(id: string, context: string, signal?: AbortSignal): Promise<EntityFacets>;
+  setEntityFacet(id: string, facetType: string, context: string, payload: unknown): Promise<void>;
+  deleteEntityFacet(id: string, facetType: string, context: string, instanceUid?: string): Promise<void>;
 }

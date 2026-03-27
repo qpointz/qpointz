@@ -121,10 +121,11 @@ src/
 │   │   ├── DataModelLayout.tsx    # Main layout with sidebar + content
 │   │   ├── SchemaTree.tsx         # Expandable tree with chat indicators
 │   │   ├── EntityDetails.tsx      # Selected entity with tabs + RelatedContentButton + InlineChatButton
-│   │   └── facets/                # Facet viewer components
-│   │       ├── DescriptiveFacet.tsx   # Name, description, tags, synonyms
-│   │       ├── StructuralFacet.tsx    # Type, constraints, defaults
-│   │       └── RelationFacet.tsx      # FK relationships with cardinality
+│   │   └── facets/                # Facet viewer components (Model view uses standard descriptor UI;
+│   │       │                        # DescriptiveFacet / RelationFacet are legacy and unused there)
+│   │       ├── DescriptiveFacet.tsx   # Legacy presentational component (tests only)
+│   │       ├── StructuralFacet.tsx    # Structural read view in EntityDetails
+│   │       └── RelationFacet.tsx      # Legacy presentational component (tests only)
 │   │
 │   ├── context/                   # Context (Knowledge) Explorer view
 │   │   ├── ContextLayout.tsx      # Main layout with sidebar + content

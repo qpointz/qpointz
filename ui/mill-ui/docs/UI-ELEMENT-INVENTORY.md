@@ -45,7 +45,7 @@ For each element:
 |---|---|---|---|---|---|
 | App loading screen (`Loader`) | Full-page loader while auth/app-name resolve | local loading state | n/a | n/a | n/a |
 | Notifications container | Global toast host | local + feature behavior | n/a | n/a | n/a |
-| Inline chat drawer mount | Right drawer host for inline chat sessions | inline chat context state containing per-context message threads and active session id | `inlineChatEnabled` | `false` | mock |
+| Inline chat drawer mount | Right drawer host for inline chat sessions | inline chat context state containing per-context message threads and active session id | `inlineChatEnabled` | `true` | mock |
 | Route switch | Main route composition and auth gating | router + auth state | view flags (per route) | see below | mixed |
 
 ### 1.2 Top-level route visibility flags
@@ -136,7 +136,7 @@ Hierarchy:
 |---|---|---|---|---|---|
 | Schema/Table/Column nodes | Hierarchical object navigation | `schemaService.getTree(context)` for schema+table graph, then `getEntityById` for lazy table column hydration | `viewModel` | `true` | real |
 | Expand/collapse chevrons | Tree open/close controls | local component state | n/a | n/a | n/a |
-| Active session chat icon (small bubble) | Marks nodes with active inline session | inline chat context (`session.contextId === node.id`) | `inlineChatEnabled` (+ per-context flags) | `false` | mock |
+| Active session chat icon (small bubble) | Marks nodes with active inline session | inline chat context (`session.contextId === node.id`) | `inlineChatEnabled` (+ per-context flags) | `true` | mock |
 | Violet chat-reference count pill in tree | Count of related general-chat refs | `chatReferencesService` via context cache; payload is related chat list (`id`, `title`) | `chatReferencesEnabled`, `chatReferencesSidebarIndicator` | `true`, `true` | mock |
 
 ### 5.3 EntityDetails header (right panel)
@@ -145,10 +145,10 @@ Hierarchy:
 |---|---|---|---|---|---|
 | Entity icon + title + type badge | Selected entity identity | `schemaService.getEntityById()` + descriptive facet fallback | n/a | n/a | real |
 | Entity ID line | Fully qualified id display | selected entity object | n/a | n/a | real |
-| **Related N** badge | Relation count derived from relation facet | `facets.relations` from schema relation payload (table/column relationship entries with cardinality/type) | `modelRelationsFacet` (indirect visibility) | `true` | real |
+| **Related N** badge | Relation count derived from relation facet | `facets.relations` from schema relation payload (table/column relationship entries with cardinality/type) | n/a | n/a | real |
 | **Chats N** badge | Related general-chat conversation count | `chatReferencesService` via context; count of related conversation refs for selected entity | `chatReferencesEnabled` | `true` | mock |
 | RelatedContent button | Cross-object related content popover | `relatedContentService`; can include model tree nodes plus concept/query refs in one payload | `relatedContentEnabled` (+ model-level flags) | `true` | mock |
-| InlineChat button | Start/open inline contextual chat | inline chat context + `chatService` context-aware response pool; can coexist with related chats and related content | `inlineChatEnabled` (+ model-level flags) | `false` | mock |
+| InlineChat button | Start/open inline contextual chat | inline chat context + `chatService` context-aware response pool; can coexist with related chats and related content | `inlineChatEnabled` (+ model-level flags) | `true` | mock |
 
 ### 5.4 EntityDetails quick badges + base panel
 
@@ -160,11 +160,11 @@ Hierarchy:
 
 ### 5.5 Facet tabs (EntityDetails content)
 
+Facet tabs are grouped by **manifest category** (from `facetTypeService` / facet type list). Each facet type renders with the **descriptor-driven** read/edit path (`EntityDetails`), except the structural facet read branch which can use the tailored `StructuralFacet` component when `modelStructuralFacet` is on and structural data exists.
+
 | Element | Description | Content source | Feature flag | Default | Backend state |
 |---|---|---|---|---|---|
-| Descriptive tab + renderer | Business metadata | descriptive facet payload (`displayName`, `description`, tags/synonyms/domain fields) | `modelDescriptiveFacet` | `true` | real |
-| Structural tab + renderer | Schema constraints/typing metadata | structural facet payload (`physicalName/type`, PK/FK/nullable/precision/scale) | `modelStructuralFacet` | `true` | real |
-| Relations tab + renderer | Table/column relationships with cardinality/type | relation facet payload normalized to UI relation model (`sourceEntity`, `targetEntity`, `cardinality`, `relationType`) | `modelRelationsFacet` | `true` | real |
+| Category tabs + facet cards | One or more cards per facet type; `MULTIPLE` cardinality uses one card per stored instance | `GET .../facets` array + facet type manifests; payloads edited via PUT/DELETE facet APIs | `modelStructuralFacet` (structural read view only); other facets ungated by flags | `true` | real |
 | No-facets empty message | Displayed when no tab has content | local conditional rendering | n/a | n/a | n/a |
 
 ---
@@ -315,15 +315,15 @@ This section explicitly inventories pills/badges/indicators currently used in UI
 | Indicator | Location | Meaning | Source | Flag | Default | Backend state |
 |---|---|---|---|---|---|---|
 | Violet count pill (tree) | `SchemaTree` | related general chats count | `chatReferencesService` payload (`ConversationRef[]`: conversation titles/ids for that node) | `chatReferencesEnabled` + `chatReferencesSidebarIndicator` | `true` + `true` | mock |
-| Chat bubble icon (tree) | `SchemaTree` | active inline chat session exists | inline chat context | `inlineChatEnabled` | `false` | mock |
-| Related badge (details header) | `EntityDetails` | count of relation facet entries | `facets.relations` | `modelRelationsFacet` | `true` | real |
+| Chat bubble icon (tree) | `SchemaTree` | active inline chat session exists | inline chat context | `inlineChatEnabled` | `true` | mock |
+| Related badge (details header) | `EntityDetails` | count of relation facet entries | `facets.relations` | n/a | n/a | real |
 | Chats badge (details header) | `EntityDetails` | count of related general chats | `chatReferencesService` | `chatReferencesEnabled` | `true` | mock |
 | PK/FK/Unique/Not Null badges | `EntityDetails` | structural constraints | structural facet payload | `modelQuickBadges` | `true` | real |
 | Type badge (details quick row) | `EntityDetails` | data type marker | structural facet payload | `modelPhysicalType` | `true` | real |
-| Cardinality badge | `RelationFacet` | relation cardinality (`1:1`, `1:N`, etc.) | relation facet payload | `modelRelationsFacet` | `true` | real |
-| Relation type badge | `RelationFacet` | relation type (`FOREIGN_KEY`, etc.) | relation facet payload | `modelRelationsFacet` | `true` | real |
+| Cardinality badge | Relation facet cards (`EntityDetails`) | relation cardinality (`1:1`, `1:N`, etc.) | relation facet payload (descriptor-driven MULTIPLE cards) | n/a | n/a | real |
+| Relation type badge | Relation facet cards (`EntityDetails`) | relation type (`FOREIGN_KEY`, etc.) | relation facet payload | n/a | n/a | real |
 | Related content count badge | `RelatedContentButton` | cross-object related content count | `relatedContentService` payload may include concept refs, analysis refs, and model hierarchy refs together | `relatedContentEnabled` | `true` | mock |
-| Inline chat active dot/badge | `InlineChatButton` | inline session and/or related chat presence | inline chat session state + `chatReferencesService` related-conversation refs | `inlineChatEnabled`, `chatReferencesEnabled` | `false`, `true` | mock |
+| Inline chat active dot/badge | `InlineChatButton` | inline session and/or related chat presence | inline chat session state + `chatReferencesService` related-conversation refs | `inlineChatEnabled`, `chatReferencesEnabled` | `true`, `true` | mock |
 
 ---
 
@@ -333,9 +333,9 @@ This section explicitly inventories pills/badges/indicators currently used in UI
 2. Model relation indicators now derive from real relation facets in `schemaService`.
 3. Chat-reference and related-content indicators are still mock-backed (conversation refs and cross-object refs are deterministic mock payloads).
 4. If/when services are swapped to real backends, backend-state column should be updated first in Section 0 and Section 14.
-5. Planned WI-095 admin model/facet type elements are documented as planned UI elements to keep inventory aligned with feature-flag rollout.
+5. Admin facet type management (list/create/edit) is live behind `adminModelNavEnabled`, `adminFacetTypesEnabled`, and `facetTypesReadOnly`.
 
 ---
 
-*Last updated: 2026-03-23*
+*Last updated: 2026-03-27*
 

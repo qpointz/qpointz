@@ -35,29 +35,20 @@ const mockTableDetail = {
   ],
 };
 
-const mockFacetsCustomers: Record<string, { facetType: string; payload: unknown }> = {
-  'urn:mill/metadata/facet-type:descriptive': {
+/** Matches `GET .../metadata/entities/{id}/facets` — JSON array of `{ facetType, payload }`. */
+const mockFacetsCustomers = [
+  {
     facetType: 'urn:mill/metadata/facet-type:descriptive',
     payload: { displayName: 'Customers', description: 'Core customer records' },
   },
-};
+];
 
-const mockFacetsCustomerId: Record<string, { facetType: string; payload: unknown }> = {
-  'urn:mill/metadata/facet-type:structural': {
+const mockFacetsCustomerId = [
+  {
     facetType: 'urn:mill/metadata/facet-type:structural',
     payload: { physicalName: 'customer_id', physicalType: 'INTEGER', isPrimaryKey: true, nullable: false },
   },
-};
-
-const mockSchemaWithDescriptiveFacet = {
-  ...mockSchemaDetail,
-  facets: mockFacetsCustomers,
-};
-
-const mockColumnWithStructuralFacet = {
-  ...mockTableDetail.columns[0],
-  facets: mockFacetsCustomerId,
-};
+];
 
 // ---------------------------------------------------------------------------
 // fetch mock
@@ -157,7 +148,7 @@ describe('schemaService', () => {
 
   describe('getEntityFacets', () => {
     it('should return facets for a known entity', async () => {
-      fetchMock.mockResolvedValueOnce(makeOkResponse(mockSchemaWithDescriptiveFacet));
+      fetchMock.mockResolvedValueOnce(makeOkResponse(mockFacetsCustomers));
       const { schemaService } = await import('../schemaService');
       const facets: EntityFacets = await schemaService.getEntityFacets('sales.customers', 'global');
       expect(facets).toBeDefined();
@@ -165,7 +156,7 @@ describe('schemaService', () => {
     });
 
     it('should return descriptive facet with displayName', async () => {
-      fetchMock.mockResolvedValueOnce(makeOkResponse(mockSchemaWithDescriptiveFacet));
+      fetchMock.mockResolvedValueOnce(makeOkResponse(mockFacetsCustomers));
       const { schemaService } = await import('../schemaService');
       const facets = await schemaService.getEntityFacets('sales.customers', 'global');
       expect(facets.descriptive?.displayName).toBe('Customers');
@@ -180,11 +171,24 @@ describe('schemaService', () => {
     });
 
     it('should include structural facets for attributes with metadata', async () => {
-      fetchMock.mockResolvedValueOnce(makeOkResponse(mockColumnWithStructuralFacet));
+      fetchMock.mockResolvedValueOnce(makeOkResponse(mockFacetsCustomerId));
       const { schemaService } = await import('../schemaService');
       const facets = await schemaService.getEntityFacets('sales.customers.customer_id', 'global');
       expect(facets.structural).toBeDefined();
       expect(facets.structural?.isPrimaryKey).toBe(true);
+    });
+
+    it('should accept legacy map-shaped facet response', async () => {
+      const legacyMap = {
+        'urn:mill/metadata/facet-type:descriptive': {
+          facetType: 'urn:mill/metadata/facet-type:descriptive',
+          payload: { displayName: 'Legacy', description: '' },
+        },
+      };
+      fetchMock.mockResolvedValueOnce(makeOkResponse(legacyMap));
+      const { schemaService } = await import('../schemaService');
+      const facets = await schemaService.getEntityFacets('sales.customers', 'global');
+      expect(facets.descriptive?.displayName).toBe('Legacy');
     });
   });
 });

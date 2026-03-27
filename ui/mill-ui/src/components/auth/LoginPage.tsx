@@ -19,6 +19,7 @@ import {
   HiOutlineExclamationTriangle,
 } from 'react-icons/hi2';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
+import { BRAND_LOGO_SRC } from '../../branding';
 
 interface LoginPageProps {
   onLogin: (email: string, password: string) => Promise<void>;
@@ -152,12 +153,12 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         {/* Brand */}
         <Stack align="center" gap="xs" mb="xl">
           <img
-            src={`${import.meta.env.BASE_URL}mill.svg`}
+            src={BRAND_LOGO_SRC}
             alt="Mill logo"
             style={{ width: 48, height: 48 }}
           />
           <Text fw={700} size="xl" c={isDark ? 'gray.1' : 'gray.8'}>
-            DataChat
+            Mill
           </Text>
           <Text size="sm" c="dimmed">
             Sign in to your workspace

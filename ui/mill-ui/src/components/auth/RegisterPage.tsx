@@ -17,6 +17,7 @@ import {
   HiOutlineUser,
   HiOutlineExclamationTriangle,
 } from 'react-icons/hi2';
+import { BRAND_LOGO_SRC } from '../../branding';
 
 /**
  * Props for the [RegisterPage] component.
@@ -99,7 +100,7 @@ export function RegisterPage({ onRegister }: RegisterPageProps) {
         {/* Brand */}
         <Stack align="center" gap="xs" mb="xl">
           <img
-            src={`${import.meta.env.BASE_URL}mill.svg`}
+            src={BRAND_LOGO_SRC}
             alt="Mill logo"
             style={{ width: 48, height: 48 }}
           />

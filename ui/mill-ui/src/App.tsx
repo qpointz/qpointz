@@ -65,12 +65,19 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
 /** Resolved from GET /.well-known/mill on startup; falls back to 'Mill'. */
 export let APP_NAME = 'Mill';
 
+/** Maps legacy descriptor ids to the product label shown in chrome (header, title). */
+function normalizeAppDisplayName(name: string): string {
+  if (name.toLowerCase() === 'mill-service') return 'Mill';
+  return name;
+}
+
 async function fetchAppName(): Promise<string> {
   try {
     const res = await fetch('/.well-known/mill');
     if (!res.ok) return 'Mill';
     const data = await res.json() as { name?: string };
-    return data.name ?? 'Mill';
+    const raw = data.name ?? 'Mill';
+    return normalizeAppDisplayName(raw);
   } catch {
     return 'Mill';
   }
@@ -170,7 +177,7 @@ function ThemedApp() {
                         {flags.viewAnalysis && <Route path="/analysis/:queryId?" element={<QueryPlayground />} />}
                         {flags.viewChat && <Route path="/chat/*" element={<ChatView />} />}
                         {flags.viewConnect && <Route path="/connect/:section?" element={<ConnectLayout />} />}
-                        {flags.viewAdmin && <Route path="/admin/:section?" element={<AdminLayout />} />}
+                        {flags.viewAdmin && <Route path="/admin/*" element={<AdminLayout />} />}
                         {flags.viewProfile && <Route path="/profile/:section?" element={<ProfileLayout />} />}
                         <Route index element={<Navigate to={defaultRoute} replace />} />
                         <Route path="*" element={<NotFoundPage />} />

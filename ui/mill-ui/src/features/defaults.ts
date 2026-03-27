@@ -26,9 +26,7 @@ export interface FeatureFlags {
   inlineChatGreeting: boolean;
 
   // Model View Details
-  modelDescriptiveFacet: boolean;
   modelStructuralFacet: boolean;
-  modelRelationsFacet: boolean;
   modelQuickBadges: boolean;
   modelPhysicalType: boolean;
 
@@ -65,6 +63,9 @@ export interface FeatureFlags {
   adminPolicies: boolean;
   adminServices: boolean;
   adminSettings: boolean;
+  adminModelNavEnabled: boolean;
+  adminFacetTypesEnabled: boolean;
+  facetTypesReadOnly: boolean;
 
   // Profile View
   viewProfile: boolean;
@@ -117,7 +118,7 @@ export const defaultFeatureFlags: FeatureFlags = {
   chatReferencesAnalysisContext: true,
   chatReferencesSidebarIndicator: true,
 
-  inlineChatEnabled: false,
+  inlineChatEnabled: true,
   inlineChatModelContext: true,
   inlineChatModelSchema: true,
   inlineChatModelTable: true,
@@ -128,9 +129,7 @@ export const defaultFeatureFlags: FeatureFlags = {
   inlineChatSessionGrouping: true,
   inlineChatGreeting: true,
 
-  modelDescriptiveFacet: true,
   modelStructuralFacet: true,
-  modelRelationsFacet: true,
   modelQuickBadges: true,
   modelPhysicalType: true,
 
@@ -162,6 +161,9 @@ export const defaultFeatureFlags: FeatureFlags = {
   adminPolicies: true,
   adminServices: true,
   adminSettings: true,
+  adminModelNavEnabled: true,
+  adminFacetTypesEnabled: true,
+  facetTypesReadOnly: false,
 
   viewProfile: true,
   profileGeneral: true,

@@ -6,7 +6,7 @@ import { SchemaTree } from './SchemaTree';
 import { EntityDetails } from './EntityDetails';
 import { CollapsibleSidebar } from '../common/CollapsibleSidebar';
 import { schemaService } from '../../services/api';
-import type { SchemaNode, SchemaEntity, EntityFacets } from '../../types/schema';
+import type { SchemaNode, SchemaEntity, EntityFacets, TableDetail } from '../../types/schema';
 
 function enrichNodeChildren(
   nodes: SchemaNode[],
@@ -22,6 +22,14 @@ function enrichNodeChildren(
     }
     return { ...node, children: enrichNodeChildren(node.children, targetId, children) };
   });
+}
+
+function tableColumnNodes(entity: TableDetail): SchemaNode[] {
+  return entity.columns.map((column) => ({
+    id: column.id,
+    type: 'COLUMN' as const,
+    name: column.columnName,
+  }));
 }
 
 export function DataModelLayout() {
@@ -64,7 +72,7 @@ export function DataModelLayout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- load once on mount
   }, []);
 
-  // Sync URL params to selected entity
+  // Sync URL params to selected entity (AbortController cancels stale fetches — dev StrictMode + fast param changes)
   useEffect(() => {
     let entityId = '';
     if (params.schema) {
@@ -77,26 +85,58 @@ export function DataModelLayout() {
       }
     }
 
-    if (entityId) {
-      const currentRequestId = ++entityRequestIdRef.current;
-      setEntityLoading(true);
-      schemaService.getEntityById(entityId, selectedContext).then((entity) => {
-        if (currentRequestId !== entityRequestIdRef.current) return;
-        setSelectedEntity(entity);
-        if (entity) {
-          schemaService.getEntityFacets(entity.id, selectedContext).then(setFacets).catch(() => setFacets({}));
-        } else {
-          setFacets({});
-        }
-        setEntityLoading(false);
-      }).catch(() => {
-        setSelectedEntity(null);
-        setFacets({});
-        setEntityLoading(false);
-      });
-    } else {
+    if (!entityId) {
       setEntityLoading(false);
+      return;
     }
+
+    const ac = new AbortController();
+    const { signal } = ac;
+    const currentRequestId = ++entityRequestIdRef.current;
+    setEntityLoading(true);
+    schemaService.getEntityById(entityId, selectedContext, signal).then((entity) => {
+      if (signal.aborted || currentRequestId !== entityRequestIdRef.current) return;
+      setSelectedEntity(entity);
+      if (entity) {
+        schemaService
+          .getEntityFacets(entity.id, selectedContext, signal)
+          .then((nextFacets) => {
+            if (signal.aborted || currentRequestId !== entityRequestIdRef.current) return;
+            setFacets(nextFacets);
+          })
+          .catch((e) => {
+            if (e instanceof DOMException && e.name === 'AbortError') return;
+            if (signal.aborted) return;
+            setFacets({});
+          });
+        if (entity.entityType === 'TABLE') {
+          const columnNodes = tableColumnNodes(entity);
+          setTree((prev) => (prev ? enrichNodeChildren(prev, entity.id, columnNodes) : prev));
+        } else if (entity.entityType === 'COLUMN') {
+          const tableId = `${entity.schemaName}.${entity.tableName}`;
+          void schemaService
+            .getTable(entity.schemaName, entity.tableName, selectedContext, 'none', signal)
+            .then((table) => {
+              if (signal.aborted || currentRequestId !== entityRequestIdRef.current || !table) return;
+              const columnNodes = tableColumnNodes(table);
+              setTree((prev) => (prev ? enrichNodeChildren(prev, tableId, columnNodes) : prev));
+            });
+        }
+      } else {
+        setFacets({});
+      }
+      setEntityLoading(false);
+    }).catch((e) => {
+      if (e instanceof DOMException && e.name === 'AbortError') return;
+      if (currentRequestId !== entityRequestIdRef.current) return;
+      setSelectedEntity(null);
+      setFacets({});
+      setEntityLoading(false);
+    });
+
+    return () => {
+      ac.abort();
+    };
   }, [params, selectedContext]);
 
   const handleSelect = (node: SchemaNode) => {
@@ -178,7 +218,15 @@ export function DataModelLayout() {
               <Text size="xs" c="dimmed">Loading details...</Text>
             </Box>
           ) : (
-            <EntityDetails entity={selectedEntity} facets={facets} />
+            <EntityDetails
+              entity={selectedEntity}
+              facets={facets}
+              selectedContext={selectedContext}
+              onFacetsChanged={async () => {
+                const next = await schemaService.getEntityFacets(selectedEntity.id, selectedContext);
+                setFacets(next);
+              }}
+            />
           )
         ) : (
           <Box

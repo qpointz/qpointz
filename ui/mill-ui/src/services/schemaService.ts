@@ -66,19 +66,71 @@ function mapRelationPayload(payload: unknown): RelationFacet[] {
     .filter((item): item is RelationFacet => item !== null);
 }
 
-function extractFacets(raw?: Record<string, { facetType: string; payload: unknown }>): EntityFacets {
-  if (!raw) return {};
+/**
+ * Normalizes `GET /api/v1/metadata/entities/{id}/facets` JSON to a list of `{ facetType, payload, uid? }`.
+ * Supports the current **array** shape and legacy **map** shape for transitional callers.
+ */
+function normalizeFacetEntries(raw: unknown): { facetType: string; payload: unknown; uid?: string }[] {
+  if (raw == null) return [];
+  if (Array.isArray(raw)) {
+    return raw
+      .filter((e): e is { facetType: string; payload?: unknown; uid?: unknown } =>
+        e != null && typeof e === 'object' && 'facetType' in e
+      )
+      .map((e) => ({
+        facetType: String(e.facetType),
+        payload: e.payload,
+        uid: typeof e.uid === 'string' && e.uid.length > 0 ? e.uid : undefined,
+      }));
+  }
+  if (typeof raw === 'object') {
+    return Object.entries(raw as Record<string, { facetType?: string; payload?: unknown; uid?: unknown }>).map(
+      ([k, v]) => ({
+        facetType: v?.facetType ?? k,
+        payload: v?.payload,
+        uid: typeof v?.uid === 'string' && v.uid.length > 0 ? v.uid : undefined,
+      })
+    );
+  }
+  return [];
+}
+
+function extractFacets(raw?: unknown): EntityFacets {
+  const entries = normalizeFacetEntries(raw);
+  if (entries.length === 0) return {};
   const result: EntityFacets = {};
-  if (raw[FACET_DESCRIPTIVE]) result.descriptive = raw[FACET_DESCRIPTIVE].payload as DescriptiveFacet;
-  if (raw[FACET_STRUCTURAL]) result.structural = raw[FACET_STRUCTURAL].payload as StructuralFacet;
-  if (raw[FACET_RELATION]) {
-    result.relations = mapRelationPayload(raw[FACET_RELATION].payload);
+  result.byType = {};
+  const instanceUidsByType: Record<string, (string | undefined)[]> = {};
+  for (const { facetType, payload, uid } of entries) {
+    if (!facetType) continue;
+    if (result.byType[facetType] === undefined) {
+      result.byType[facetType] = payload;
+      instanceUidsByType[facetType] = [uid];
+      continue;
+    }
+    const existing = result.byType[facetType];
+    if (!Array.isArray(existing)) {
+      result.byType[facetType] = [existing, payload];
+      instanceUidsByType[facetType] = [instanceUidsByType[facetType]![0], uid];
+    } else {
+      (existing as unknown[]).push(payload);
+      instanceUidsByType[facetType]!.push(uid);
+    }
+  }
+  if (Object.keys(instanceUidsByType).length > 0) {
+    result.instanceUidsByType = instanceUidsByType;
+  }
+  const byType = result.byType;
+  if (byType[FACET_DESCRIPTIVE]) result.descriptive = byType[FACET_DESCRIPTIVE] as DescriptiveFacet;
+  if (byType[FACET_STRUCTURAL]) result.structural = byType[FACET_STRUCTURAL] as StructuralFacet;
+  if (byType[FACET_RELATION]) {
+    result.relations = mapRelationPayload(byType[FACET_RELATION]);
   }
   return result;
 }
 
-async function fetchJsonOrNull<T>(url: string): Promise<T | null> {
-  const res = await fetch(url, { credentials: 'include' });
+async function fetchJsonOrNull<T>(url: string, signal?: AbortSignal): Promise<T | null> {
+  const res = await fetch(url, { credentials: 'include', signal });
   if (res.status === 404) return null;
   if (!res.ok) return null;
   return res.json() as Promise<T>;
@@ -104,19 +156,29 @@ const realSchemaService: SchemaService = {
     if (!res.ok) return [];
     return res.json() as Promise<SchemaListItem[]>;
   },
-  async getSchema(schemaName: string, context: string, facetMode = DEFAULT_FACET_MODE) {
+  async getSchema(schemaName: string, context: string, facetMode = DEFAULT_FACET_MODE, signal?: AbortSignal) {
     return fetchJsonOrNull<SchemaDetail>(
-      `/api/v1/schema/${encodeURIComponent(schemaName)}?context=${encodeURIComponent(context)}&facetMode=${encodeURIComponent(facetMode)}`
+      `/api/v1/schema/${encodeURIComponent(schemaName)}?context=${encodeURIComponent(context)}&facetMode=${encodeURIComponent(facetMode)}`,
+      signal
     );
   },
-  async getTable(schemaName: string, tableName: string, context: string, facetMode = DEFAULT_FACET_MODE) {
+  async getTable(schemaName: string, tableName: string, context: string, facetMode = DEFAULT_FACET_MODE, signal?: AbortSignal) {
     return fetchJsonOrNull<TableDetail>(
-      `/api/v1/schema/${encodeURIComponent(schemaName)}/tables/${encodeURIComponent(tableName)}?context=${encodeURIComponent(context)}&facetMode=${encodeURIComponent(facetMode)}`
+      `/api/v1/schema/${encodeURIComponent(schemaName)}/tables/${encodeURIComponent(tableName)}?context=${encodeURIComponent(context)}&facetMode=${encodeURIComponent(facetMode)}`,
+      signal
     );
   },
-  async getColumn(schemaName: string, tableName: string, columnName: string, context: string, facetMode = DEFAULT_FACET_MODE) {
+  async getColumn(
+    schemaName: string,
+    tableName: string,
+    columnName: string,
+    context: string,
+    facetMode = DEFAULT_FACET_MODE,
+    signal?: AbortSignal
+  ) {
     return fetchJsonOrNull<ColumnDetail>(
-      `/api/v1/schema/${encodeURIComponent(schemaName)}/tables/${encodeURIComponent(tableName)}/columns/${encodeURIComponent(columnName)}?context=${encodeURIComponent(context)}&facetMode=${encodeURIComponent(facetMode)}`
+      `/api/v1/schema/${encodeURIComponent(schemaName)}/tables/${encodeURIComponent(tableName)}/columns/${encodeURIComponent(columnName)}?context=${encodeURIComponent(context)}&facetMode=${encodeURIComponent(facetMode)}`,
+      signal
     );
   },
   async getTree(context: string) {
@@ -138,28 +200,62 @@ const realSchemaService: SchemaService = {
         })),
       })) as SchemaNode[];
   },
-  async getEntityById(id: string, context: string) {
+  async getEntityById(id: string, context: string, signal?: AbortSignal) {
     const parts = id.split('.');
     if (parts.length === 1) {
-      return realSchemaService.getSchema(parts[0]!, context, 'none');
+      return realSchemaService.getSchema(parts[0]!, context, 'none', signal);
     }
     if (parts.length === 2) {
-      return realSchemaService.getTable(parts[0]!, parts[1]!, context, 'none');
+      return realSchemaService.getTable(parts[0]!, parts[1]!, context, 'none', signal);
     }
-    return realSchemaService.getColumn(parts[0]!, parts[1]!, parts.slice(2).join('.'), context, 'none');
+    return realSchemaService.getColumn(parts[0]!, parts[1]!, parts.slice(2).join('.'), context, 'none', signal);
   },
-  async getEntityFacets(id: string, context: string) {
-    const parts = id.split('.');
-    if (parts.length === 1) {
-      const schema = await realSchemaService.getSchema(parts[0]!, context, 'direct');
-      return extractFacets((schema as SchemaDetail & { facets?: Record<string, { facetType: string; payload: unknown }> })?.facets);
+  async getEntityFacets(id: string, context: string, signal?: AbortSignal) {
+    try {
+      const res = await fetch(
+        `/api/v1/metadata/entities/${encodeURIComponent(id)}/facets?context=${encodeURIComponent(context)}`,
+        { credentials: 'include', signal }
+      );
+      if (res.status === 404 || !res.ok) return {};
+      const raw = await res.json();
+      return extractFacets(raw);
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError') return {};
+      throw e;
     }
-    if (parts.length === 2) {
-      const table = await realSchemaService.getTable(parts[0]!, parts[1]!, context, 'direct');
-      return extractFacets((table as TableDetail & { facets?: Record<string, { facetType: string; payload: unknown }> })?.facets);
+  },
+  async setEntityFacet(id: string, facetType: string, context: string, payload: unknown) {
+    const facetPrefix = 'urn:mill/metadata/facet-type:';
+    const pathType = facetType.startsWith(facetPrefix) ? facetType.slice(facetPrefix.length) : facetType;
+    const res = await fetch(
+      `/api/v1/metadata/entities/${encodeURIComponent(id)}/facets/${encodeURIComponent(pathType)}?context=${encodeURIComponent(context)}`,
+      {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }
+    );
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(body || `${res.status} ${res.statusText}`);
     }
-    const column = await realSchemaService.getColumn(parts[0]!, parts[1]!, parts.slice(2).join('.'), context, 'direct');
-    return extractFacets((column as ColumnDetail & { facets?: Record<string, { facetType: string; payload: unknown }> })?.facets);
+  },
+  async deleteEntityFacet(id: string, facetType: string, context: string, instanceUid?: string) {
+    const facetPrefix = 'urn:mill/metadata/facet-type:';
+    const pathType = facetType.startsWith(facetPrefix) ? facetType.slice(facetPrefix.length) : facetType;
+    const uidPart =
+      instanceUid != null && instanceUid !== ''
+        ? `&uid=${encodeURIComponent(instanceUid)}`
+        : '';
+    const res = await fetch(
+      `/api/v1/metadata/entities/${encodeURIComponent(id)}/facets/${encodeURIComponent(pathType)}?context=${encodeURIComponent(context)}${uidPart}`,
+      { method: 'DELETE', credentials: 'include' }
+    );
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(body || `${res.status} ${res.statusText}`);
+    }
   },
 };
 

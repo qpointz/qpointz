@@ -15,6 +15,7 @@ export { chatReferencesService } from './chatReferencesService';
 export { relatedContentService } from './relatedContentService';
 export { featureService } from './featureService';
 export { searchService } from './searchService';
+export { facetTypeService } from './facetTypeService';
 
 // Re-export the FeatureFlagService interface for consumers that need it
 export type { FeatureFlagService } from './featureService';
