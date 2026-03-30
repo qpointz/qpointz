@@ -1,0 +1,1939 @@
+metadataFormat: CANONICAL
+formatVersion: 1
+entities:
+- id: urn:mill/metadata/entity:skymill
+  type: SCHEMA
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Skymill
+        description: Skymill Airlines flight and cargo schema
+- id: urn:mill/metadata/entity:skymill.cities
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: CITIES
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Cities
+        description: Airport cities served by the airline. Suitable for queries about destinations, routes, passenger residence,
+          or city coverage.
+    urn:mill/metadata/facet-type:relation:
+      urn:mill/metadata/scope:global:
+        relations:
+        - name: cities_segments_origin
+          description: Origin city for segments
+          sourceTable:
+            schema: skymill
+            table: cities
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: segments
+          targetAttributes:
+          - origin
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: cities.id = segments.origin
+        - name: cities_segments_destination
+          description: Destination city for segments
+          sourceTable:
+            schema: skymill
+            table: cities
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: segments
+          targetAttributes:
+          - destination
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: cities.id = segments.destination
+        - name: cities_passenger
+          description: City of residence for passengers
+          sourceTable:
+            schema: skymill
+            table: cities
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: passenger
+          targetAttributes:
+          - domicile_city_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: cities.id = passenger.domicile_city_id
+- id: urn:mill/metadata/entity:skymill.cities.id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: ID
+        description: City code used to link routes and passenger locations.
+- id: urn:mill/metadata/entity:skymill.cities.state
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: STATE
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: State
+        description: State where the city is located.
+- id: urn:mill/metadata/entity:skymill.cities.city
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: CITY
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: City
+        description: Name of the city.
+- id: urn:mill/metadata/entity:skymill.cities.population
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: POPULATION
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Population
+        description: Total population of the city.
+- id: urn:mill/metadata/entity:skymill.cities.airport
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: AIRPORT
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Airport
+        description: Full name of the airport in the city.
+- id: urn:mill/metadata/entity:skymill.cities.airport_iata
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: AIRPORT_IATA
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Airport IATA
+        description: IATA code for the city's airport.
+- id: urn:mill/metadata/entity:skymill.segments
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: SEGMENTS
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Segments
+        description: Flight routes between cities. Each row represents a direct route. Suitable for queries about route lists,
+          flights between cities, or route distance.
+    urn:mill/metadata/facet-type:relation:
+      urn:mill/metadata/scope:global:
+        relations:
+        - name: segments_flight_instances
+          description: Route for flight instances
+          sourceTable:
+            schema: skymill
+            table: segments
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: flight_instances
+          targetAttributes:
+          - segment_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: segments.id = flight_instances.segment_id
+        - name: segments_cargo_flights
+          description: Route for cargo flights
+          sourceTable:
+            schema: skymill
+            table: segments
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: cargo_flights
+          targetAttributes:
+          - segment_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: segments.id = cargo_flights.segment_id
+- id: urn:mill/metadata/entity:skymill.segments.id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: ID
+        description: Route code used to link flights to origin and destination.
+- id: urn:mill/metadata/entity:skymill.segments.origin
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ORIGIN
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Origin
+        description: Flight origin. References cities.
+- id: urn:mill/metadata/entity:skymill.segments.destination
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: DESTINATION
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Destination
+        description: Flight destination. References cities.
+- id: urn:mill/metadata/entity:skymill.segments.distance
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: DISTANCE
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Distance
+        description: Distance between origin and destination in kilometers.
+- id: urn:mill/metadata/entity:skymill.aircraft_types
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: AIRCRAFT_TYPES
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Aircraft Types
+        description: 'Aircraft types in the fleet: narrow-body (small), wide-body (large), regional (short-haul). Suitable
+          for queries about fleet mix or capacity by type.'
+    urn:mill/metadata/facet-type:relation:
+      urn:mill/metadata/scope:global:
+        relations:
+        - name: aircraft_types_aircraft
+          description: Aircraft type for aircraft
+          sourceTable:
+            schema: skymill
+            table: aircraft_types
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: aircraft
+          targetAttributes:
+          - aircraft_type_id
+          type: FOREIGN_KEY
+          cardinality: ONE_TO_MANY
+          joinSql: aircraft_types.id = aircraft.aircraft_type_id
+- id: urn:mill/metadata/entity:skymill.aircraft_types.id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: ID
+        description: Unique identifier for the aircraft type.
+- id: urn:mill/metadata/entity:skymill.aircraft_types.name
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: NAME
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Name
+        description: Aircraft type name (narrow, wide, regional).
+- id: urn:mill/metadata/entity:skymill.aircraft_types.description
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: DESCRIPTION
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Description
+        description: Description of the aircraft type.
+- id: urn:mill/metadata/entity:skymill.aircraft
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: AIRCRAFT
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Aircraft
+        description: Aircraft fleet.
+    urn:mill/metadata/facet-type:relation:
+      urn:mill/metadata/scope:global:
+        relations:
+        - name: aircraft_flight_instances
+          description: Aircraft operating flight instances
+          sourceTable:
+            schema: skymill
+            table: aircraft
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: flight_instances
+          targetAttributes:
+          - aircraft_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: aircraft.id = flight_instances.aircraft_id
+        - name: aircraft_cargo_flights
+          description: Aircraft for cargo flights
+          sourceTable:
+            schema: skymill
+            table: aircraft
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: cargo_flights
+          targetAttributes:
+          - aircraft_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: aircraft.id = cargo_flights.aircraft_id
+- id: urn:mill/metadata/entity:skymill.aircraft.id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: ID
+        description: Unique identifier for the aircraft.
+- id: urn:mill/metadata/entity:skymill.aircraft.aircraft_code
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: AIRCRAFT_CODE
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Aircraft Code
+        description: Aircraft registration code (e.g. SKY123).
+- id: urn:mill/metadata/entity:skymill.aircraft.aircraft_type_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: AIRCRAFT_TYPE_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Aircraft Type ID
+        description: Aircraft type (foreign key to aircraft_types).
+- id: urn:mill/metadata/entity:skymill.aircraft.capacity
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: CAPACITY
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Capacity
+        description: Passenger capacity.
+- id: urn:mill/metadata/entity:skymill.passenger
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: PASSENGER
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Passenger
+        description: Passengers with travel history. Includes loyalty program members. Suitable for queries about passenger
+          counts, demographics, or loyalty status.
+    urn:mill/metadata/facet-type:relation:
+      urn:mill/metadata/scope:global:
+        relations:
+        - name: passenger_bookings
+          description: Passenger bookings
+          sourceTable:
+            schema: skymill
+            table: passenger
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: bookings
+          targetAttributes:
+          - passenger_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: passenger.id = bookings.passenger_id
+        - name: passenger_loyalty_earnings
+          description: Passenger loyalty earnings
+          sourceTable:
+            schema: skymill
+            table: passenger
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: loyalty_earnings
+          targetAttributes:
+          - passenger_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: passenger.id = loyalty_earnings.passenger_id
+        - name: passenger_ratings
+          description: Passenger ratings
+          sourceTable:
+            schema: skymill
+            table: passenger
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: ratings
+          targetAttributes:
+          - passenger_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: passenger.id = ratings.passenger_id
+- id: urn:mill/metadata/entity:skymill.passenger.id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: ID
+        description: Passenger identifier used to link bookings and loyalty earnings.
+- id: urn:mill/metadata/entity:skymill.passenger.first_name
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: FIRST_NAME
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: First Name
+        description: Passenger's first name.
+- id: urn:mill/metadata/entity:skymill.passenger.last_name
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: LAST_NAME
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Last Name
+        description: Passenger's last name.
+- id: urn:mill/metadata/entity:skymill.passenger.domicile_address
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: DOMICILE_ADDRESS
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Domicile Address
+        description: Passenger's home street address.
+- id: urn:mill/metadata/entity:skymill.passenger.domicile_city_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: DOMICILE_CITY_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Domicile City ID
+        description: Passenger residence city. References cities.
+- id: urn:mill/metadata/entity:skymill.passenger.age
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: AGE
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Age
+        description: Age of the passenger.
+- id: urn:mill/metadata/entity:skymill.passenger.loyalty_program_member
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: LOYALTY_PROGRAM_MEMBER
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Loyalty Program Member
+        description: Indicates enrollment in the loyalty program.
+- id: urn:mill/metadata/entity:skymill.passenger.loyalty_tier
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: LOYALTY_TIER
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Loyalty Tier
+        description: Loyalty tier (basic, silver, gold, platinum). Higher tiers receive additional benefits.
+- id: urn:mill/metadata/entity:skymill.flight_instances
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: FLIGHT_INSTANCES
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Flight Instances
+        description: Passenger flight occurrences. Each row represents a specific aircraft on a route for given dates. Suitable
+          for queries about flight counts, delays, cancellations, or flight dates.
+    urn:mill/metadata/facet-type:relation:
+      urn:mill/metadata/scope:global:
+        relations:
+        - name: flight_instances_bookings
+          description: Flight instance bookings
+          sourceTable:
+            schema: skymill
+            table: flight_instances
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: bookings
+          targetAttributes:
+          - flight_instance_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: flight_instances.id = bookings.flight_instance_id
+        - name: flight_instances_delays
+          description: Flight instance delays
+          sourceTable:
+            schema: skymill
+            table: flight_instances
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: delays
+          targetAttributes:
+          - flight_instance_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: flight_instances.id = delays.flight_instance_id
+        - name: flight_instances_cancellations
+          description: Flight instance cancellations
+          sourceTable:
+            schema: skymill
+            table: flight_instances
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: cancellations
+          targetAttributes:
+          - flight_instance_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: flight_instances.id = cancellations.flight_instance_id
+        - name: flight_instances_ratings
+          description: Flight instance ratings
+          sourceTable:
+            schema: skymill
+            table: flight_instances
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: ratings
+          targetAttributes:
+          - flight_instance_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: flight_instances.id = ratings.flight_instance_id
+- id: urn:mill/metadata/entity:skymill.flight_instances.id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: ID
+        description: Flight identifier used to link bookings, delays, and ratings.
+- id: urn:mill/metadata/entity:skymill.flight_instances.aircraft_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: AIRCRAFT_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Aircraft ID
+        description: Aircraft that operated the flight. References aircraft.
+- id: urn:mill/metadata/entity:skymill.flight_instances.segment_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: SEGMENT_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Segment ID
+        description: Route flown. References segments.
+- id: urn:mill/metadata/entity:skymill.flight_instances.departure_date
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: DEPARTURE_DATE
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Departure Date
+        description: Departure date.
+- id: urn:mill/metadata/entity:skymill.flight_instances.arrival_date
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ARRIVAL_DATE
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Arrival Date
+        description: Arrival date.
+- id: urn:mill/metadata/entity:skymill.cargo_flights
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: CARGO_FLIGHTS
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Cargo Flights
+        description: Cargo flight occurrences. Same structure as passenger flights for freight operations. Suitable for queries
+          about cargo volume, revenue by route, or freight flight counts.
+    urn:mill/metadata/facet-type:relation:
+      urn:mill/metadata/scope:global:
+        relations:
+        - name: cargo_flights_cargo_shipments
+          description: Cargo flight shipments
+          sourceTable:
+            schema: skymill
+            table: cargo_flights
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: cargo_shipments
+          targetAttributes:
+          - cargo_flight_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: cargo_flights.id = cargo_shipments.cargo_flight_id
+- id: urn:mill/metadata/entity:skymill.cargo_flights.id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: ID
+        description: Cargo flight identifier used to link shipments.
+- id: urn:mill/metadata/entity:skymill.cargo_flights.aircraft_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: AIRCRAFT_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Aircraft ID
+        description: Aircraft used for the cargo. References aircraft.
+- id: urn:mill/metadata/entity:skymill.cargo_flights.segment_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: SEGMENT_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Segment ID
+        description: Route of the cargo flight. References segments.
+- id: urn:mill/metadata/entity:skymill.cargo_flights.departure_date
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: DEPARTURE_DATE
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Departure Date
+        description: Departure date.
+- id: urn:mill/metadata/entity:skymill.cargo_flights.arrival_date
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ARRIVAL_DATE
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Arrival Date
+        description: Arrival date.
+- id: urn:mill/metadata/entity:skymill.bookings
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: BOOKINGS
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Bookings
+        description: Ticket purchases. Each row represents a passenger seat reservation on a flight. Suitable for queries
+          about booking counts, revenue, or passenger itineraries.
+    urn:mill/metadata/facet-type:relation:
+      urn:mill/metadata/scope:global:
+        relations:
+        - name: bookings_loyalty_earnings
+          description: Booking loyalty earnings
+          sourceTable:
+            schema: skymill
+            table: bookings
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: loyalty_earnings
+          targetAttributes:
+          - booking_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: bookings.id = loyalty_earnings.booking_id
+        - name: bookings_ticket_prices
+          description: Booking ticket prices
+          sourceTable:
+            schema: skymill
+            table: bookings
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: ticket_prices
+          targetAttributes:
+          - booking_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: bookings.id = ticket_prices.booking_id
+- id: urn:mill/metadata/entity:skymill.bookings.id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: ID
+        description: Booking reference used to link ticket prices and loyalty earnings.
+- id: urn:mill/metadata/entity:skymill.bookings.passenger_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: PASSENGER_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Passenger ID
+        description: Passenger who made the booking. References passenger.
+- id: urn:mill/metadata/entity:skymill.bookings.flight_instance_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: FLIGHT_INSTANCE_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Flight Instance ID
+        description: Booked flight. References flight_instances.
+- id: urn:mill/metadata/entity:skymill.bookings.seat_number
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: SEAT_NUMBER
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Seat Number
+        description: Seat number assigned (e.g. 12A).
+- id: urn:mill/metadata/entity:skymill.loyalty_earnings
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: LOYALTY_EARNINGS
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Loyalty Earnings
+        description: Miles earned per flight. Suitable for queries about loyalty program activity, miles by tier, or total
+          miles earned.
+- id: urn:mill/metadata/entity:skymill.loyalty_earnings.id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: ID
+        description: Mileage record ID used to link points to the passenger and booking.
+- id: urn:mill/metadata/entity:skymill.loyalty_earnings.booking_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: BOOKING_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Booking ID
+        description: Booking that earned the miles. References bookings.
+- id: urn:mill/metadata/entity:skymill.loyalty_earnings.passenger_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: PASSENGER_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Passenger ID
+        description: Passenger who earned the miles.
+- id: urn:mill/metadata/entity:skymill.loyalty_earnings.miles_earned
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: MILES_EARNED
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Miles Earned
+        description: Number of miles earned for the booking.
+- id: urn:mill/metadata/entity:skymill.loyalty_earnings.earning_date
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: EARNING_DATE
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Earning Date
+        description: Date when the miles were credited.
+- id: urn:mill/metadata/entity:skymill.delays
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: DELAYS
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Delays
+        description: Delayed flights. Suitable for queries about delays, on-time performance, or delay causes.
+- id: urn:mill/metadata/entity:skymill.delays.id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: ID
+        description: ID for this delay entry.
+- id: urn:mill/metadata/entity:skymill.delays.flight_instance_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: FLIGHT_INSTANCE_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Flight Instance ID
+        description: Flight instance affected by the delay.
+- id: urn:mill/metadata/entity:skymill.delays.delay_minutes
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: DELAY_MINUTES
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Delay Minutes
+        description: Total duration of the delay in minutes.
+- id: urn:mill/metadata/entity:skymill.delays.reason
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: REASON
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Reason
+        description: Delay cause (weather, technical, crew, other).
+- id: urn:mill/metadata/entity:skymill.cancellations
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: CANCELLATIONS
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Cancellations
+        description: Cancelled flights. Suitable for queries about cancellations, cancellation rates, or cancellation reasons.
+- id: urn:mill/metadata/entity:skymill.cancellations.id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: ID
+        description: ID for this cancellation entry.
+- id: urn:mill/metadata/entity:skymill.cancellations.flight_instance_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: FLIGHT_INSTANCE_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Flight Instance ID
+        description: Flight instance that was cancelled.
+- id: urn:mill/metadata/entity:skymill.cancellations.cancellation_reason
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: CANCELLATION_REASON
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Cancellation Reason
+        description: Cancellation reason (weather, technical, operational, low demand).
+- id: urn:mill/metadata/entity:skymill.cancellations.cancellation_time
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: CANCELLATION_TIME
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Cancellation Time
+        description: Cancellation timestamp.
+- id: urn:mill/metadata/entity:skymill.ticket_prices
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: TICKET_PRICES
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Ticket Prices
+        description: Ticket prices paid by passengers. Suitable for queries about revenue, average ticket price, pricing by
+          class, or fare breakdown.
+- id: urn:mill/metadata/entity:skymill.ticket_prices.booking_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: BOOKING_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Booking ID
+        description: Booking to which this price applies. References bookings.
+- id: urn:mill/metadata/entity:skymill.ticket_prices.base_price
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: BASE_PRICE
+        type: DECIMAL
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Base Price
+        description: Ticket price before taxes and fees.
+- id: urn:mill/metadata/entity:skymill.ticket_prices.taxes
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: TAXES
+        type: DECIMAL
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Taxes
+        description: Taxes and fees added to the ticket.
+- id: urn:mill/metadata/entity:skymill.ticket_prices.total_price
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: TOTAL_PRICE
+        type: DECIMAL
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Total Price
+        description: Final price paid (base plus taxes).
+- id: urn:mill/metadata/entity:skymill.ticket_prices.travel_class
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: TRAVEL_CLASS
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Travel Class
+        description: Cabin class (economy, business, first). Suitable for revenue or counts by class.
+- id: urn:mill/metadata/entity:skymill.ticket_prices.currency
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: CURRENCY
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Currency
+        description: Currency of the price (USD, EUR, CHF).
+- id: urn:mill/metadata/entity:skymill.ratings
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: RATINGS
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Ratings
+        description: Customer satisfaction scores (1–5) and post-flight comments. Suitable for queries about ratings, feedback,
+          or service quality.
+- id: urn:mill/metadata/entity:skymill.ratings.id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: ID
+        description: Rating record ID used to identify each feedback entry.
+- id: urn:mill/metadata/entity:skymill.ratings.passenger_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: PASSENGER_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Passenger ID
+        description: Passenger who provided the rating.
+- id: urn:mill/metadata/entity:skymill.ratings.flight_instance_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: FLIGHT_INSTANCE_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Flight Instance ID
+        description: Rated flight. References flight_instances.
+- id: urn:mill/metadata/entity:skymill.ratings.rating
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: RATING
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Rating
+        description: Numeric satisfaction rating between 1 (poor) and 5 (excellent).
+- id: urn:mill/metadata/entity:skymill.ratings.rating_comment
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: RATING_COMMENT
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Rating Comment
+        description: Free-text feedback or comment from the passenger.
+- id: urn:mill/metadata/entity:skymill.ratings.rated_at
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: RATED_AT
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Rated At
+        description: Rating submission timestamp.
+- id: urn:mill/metadata/entity:skymill.countries
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: COUNTRIES
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Countries
+        description: Country reference list. Suitable for queries about geographic coverage, breakdowns by country, or country
+          grouping.
+    urn:mill/metadata/facet-type:relation:
+      urn:mill/metadata/scope:global:
+        relations:
+        - name: countries_cargo_clients
+          description: Country for cargo clients
+          sourceTable:
+            schema: skymill
+            table: countries
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: cargo_clients
+          targetAttributes:
+          - country_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: countries.id = cargo_clients.country_id
+- id: urn:mill/metadata/entity:skymill.countries.id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: ID
+        description: Country identifier. Referenced by cargo_clients.
+- id: urn:mill/metadata/entity:skymill.countries.iso_code
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ISO_CODE
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: ISO Code
+        description: ISO 2-letter country code (e.g. US, DE).
+- id: urn:mill/metadata/entity:skymill.countries.name
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: NAME
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Name
+        description: Full country name.
+- id: urn:mill/metadata/entity:skymill.cargo_clients
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: CARGO_CLIENTS
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Cargo Clients
+        description: Freight-shipping clients. Suitable for queries about top shippers, revenue by client, or client locations.
+    urn:mill/metadata/facet-type:relation:
+      urn:mill/metadata/scope:global:
+        relations:
+        - name: cargo_clients_cargo_shipments
+          description: Cargo client shipments
+          sourceTable:
+            schema: skymill
+            table: cargo_clients
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: cargo_shipments
+          targetAttributes:
+          - client_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: cargo_clients.id = cargo_shipments.client_id
+- id: urn:mill/metadata/entity:skymill.cargo_clients.id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: ID
+        description: Client ID used to link shipments to the shipper.
+- id: urn:mill/metadata/entity:skymill.cargo_clients.client_name
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: CLIENT_NAME
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Client Name
+        description: Name of the company shipping freight.
+- id: urn:mill/metadata/entity:skymill.cargo_clients.address
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ADDRESS
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Address
+        description: Street address of the shipping company.
+- id: urn:mill/metadata/entity:skymill.cargo_clients.city
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: CITY
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: City
+        description: City where the client is located.
+- id: urn:mill/metadata/entity:skymill.cargo_clients.country_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: COUNTRY_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Country ID
+        description: Client country. References countries.
+- id: urn:mill/metadata/entity:skymill.cargo_clients.postal_code
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: POSTAL_CODE
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Postal Code
+        description: Postal or ZIP code of the client.
+- id: urn:mill/metadata/entity:skymill.cargo_clients.region
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: REGION
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Region
+        description: Client business region (EMEA, APAC, AM).
+- id: urn:mill/metadata/entity:skymill.cargo_types
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: CARGO_TYPES
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Cargo Types
+        description: 'Freight types carried: containers, bulk, refrigerated, vehicles. Suitable for queries about cargo mix,
+          volumes by product type, or shipment breakdown.'
+    urn:mill/metadata/facet-type:relation:
+      urn:mill/metadata/scope:global:
+        relations:
+        - name: cargo_types_cargo_shipments
+          description: Cargo type for shipments
+          sourceTable:
+            schema: skymill
+            table: cargo_types
+          sourceAttributes:
+          - id
+          targetTable:
+            schema: skymill
+            table: cargo_shipments
+          targetAttributes:
+          - cargo_type_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: cargo_types.id = cargo_shipments.cargo_type_id
+- id: urn:mill/metadata/entity:skymill.cargo_types.id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: ID
+        description: Unique identifier for the cargo type.
+- id: urn:mill/metadata/entity:skymill.cargo_types.name
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: NAME
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Name
+        description: Cargo type name (containers, bulk, refrigerated, vehicles).
+- id: urn:mill/metadata/entity:skymill.cargo_types.description
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: DESCRIPTION
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Description
+        description: Description of the cargo type.
+- id: urn:mill/metadata/entity:skymill.cargo_shipments
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: CARGO_SHIPMENTS
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Cargo Shipments
+        description: Individual freight shipments on cargo flights. Suitable for queries about cargo volume, freight revenue,
+          weight by route, or shipment counts.
+- id: urn:mill/metadata/entity:skymill.cargo_shipments.id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: ID
+        description: Shipment ID used to identify each freight shipment.
+- id: urn:mill/metadata/entity:skymill.cargo_shipments.cargo_flight_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: CARGO_FLIGHT_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Cargo Flight ID
+        description: Cargo flight for this shipment. References cargo_flights.
+- id: urn:mill/metadata/entity:skymill.cargo_shipments.cargo_type_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: CARGO_TYPE_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Cargo Type ID
+        description: Freight type (containers, bulk, refrigerated, vehicles). References cargo_types.
+- id: urn:mill/metadata/entity:skymill.cargo_shipments.weight_kg
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: WEIGHT_KG
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Weight Kg
+        description: Weight of the shipment in kilograms.
+- id: urn:mill/metadata/entity:skymill.cargo_shipments.client_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: CLIENT_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Client ID
+        description: Shipper. References cargo_clients.
+- id: urn:mill/metadata/entity:skymill.cargo_shipments.revenue
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: REVENUE
+        type: DECIMAL
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Revenue
+        description: Revenue from the shipment.

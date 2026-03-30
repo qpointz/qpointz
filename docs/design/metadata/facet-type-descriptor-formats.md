@@ -1,8 +1,8 @@
 # Facet Type Descriptor Formats (JSON/YAML)
 
 **Status:** Baseline contract (WI-094/WI-096)  
-**Last updated:** 2026-03-26  
-**Related:** `dynamic-facet-types-schema-and-validation.md`, `portal-facet-types-vs-local-metadata.md`
+**Last updated:** 2026-03-30  
+**Related:** `dynamic-facet-types-schema-and-validation.md`, `portal-facet-types-vs-local-metadata.md`, `mill-ui-facet-stereotypes.md` (UI-known tags)
 
 ---
 
@@ -47,6 +47,8 @@ Object field entry:
 
 - `name` (required): field key
 - `schema` (required): nested schema node
+- `required` (optional): boolean; whether this property is required in facet payloads (`true` default when omitted)
+- `stereotype` (optional): UI-only presentation hints — ordered list of **tags** (e.g. `tags`, `hyperlink`, `email`). The metadata service **does not** validate or interpret stereotypes; Mill UI uses them to pick controls and light validation (e.g. email format on save). Same stereotypes apply to **`STRING`** fields and **`ARRAY` whose `items` are `STRING`**. **Wire JSON:** comma-separated string when the field’s value `schema.type` is not `ARRAY`; JSON array of strings when the value schema is `ARRAY` (see `FacetPayloadField` / `FacetPayloadFieldJsonSerde` in `mill-metadata-core`).
 
 Enum value entry:
 
@@ -194,7 +196,9 @@ payload:
 
 ---
 
-## Startup Import Bundle Format (`import-on-startup`)
+## Startup seed / import bundle format (`mill.metadata.seed.resources`)
+
+Ordered resources listed under **`mill.metadata.seed.resources`** are imported at startup (MERGE mode, actor `system`). The same **canonical YAML** envelope applies to manual import/export via the metadata API.
 
 Recommended canonical YAML envelope for mixed facet-type + metadata import:
 

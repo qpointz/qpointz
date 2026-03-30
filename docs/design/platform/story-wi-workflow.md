@@ -9,7 +9,7 @@ It is the authoritative reference for agents and contributors.
 |------|-----------|
 | **Story** | A coherent delivery unit: one branch, one topic, merged into `dev` by the user. |
 | **Work Item (WI)** | A discrete implementation task within a story. |
-| **Story folder** | `docs/workitems/<story-slug>/` — ephemeral, deleted at story closure. |
+| **Story folder** | `docs/workitems/<story-slug>/` while active; **archived** to `docs/workitems/completed/YYYYMMDD-<story-slug>/` at closure (not deleted). |
 | **Story slug** | Lowercase, hyphen-separated topic label (e.g. `metadata-persistence`). |
 
 ## Folder layout
@@ -67,8 +67,12 @@ Before signalling that the branch is ready to merge, the agent must:
    subsystem.
 4. **`docs/public/src/`** — update or create user-facing documentation for any new or changed
    features.
-5. **Delete `docs/workitems/<story-slug>/`** — the folder and all WI files are ephemeral; the
-   artefacts above are the durable record.
+5. **Archive `docs/workitems/<story-slug>/`** — move the entire folder to
+   `docs/workitems/completed/YYYYMMDD-<story-slug>/` (`YYYYMMDD` = closure date; `<story-slug>`
+   = original folder name). Do **not** delete the story folder. Add a line to
+   `docs/workitems/completed/README.md` if you maintain the newest-first index. **Most recent first**
+   in listings: sort archived directories by name **descending** (reverse alphabetical), since
+   ascending order lists older closure dates first.
 
 Merging into `dev` is performed manually by the user after review.
 

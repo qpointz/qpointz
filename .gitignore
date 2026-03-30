@@ -24,3 +24,7 @@ target/
 schemas/
 /.certs/
 /.codex-worktrees/
+
+# Python (dataset tooling under test/datasets)
+**/__pycache__/
+*.py[cod]

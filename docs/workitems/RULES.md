@@ -13,11 +13,16 @@ Every story lives in its own subfolder under `docs/workitems/`:
 
 ```
 docs/workitems/
-  <story-slug>/          # slugified topic, e.g. metadata-persistence
+  <story-slug>/          # active story; slugified topic, e.g. metadata-persistence
     STORY.md             # high-level objectives + ordered WI checklist (see below)
     WI-NNN-<title>.md    # individual work item files for this story
     WI-NNN-<title>.md
     ...
+  completed/             # closed stories (moved here, not deleted)
+    YYYYMMDD-<story-slug>/
+      STORY.md
+      WI-NNN-<title>.md
+      ...
 ```
 
 - **Folder name**: lowercase, hyphen-separated slug of the story topic.
@@ -46,8 +51,20 @@ When all WIs in a story are complete and the branch is ready to merge:
    are organised by logical component, not by story.
 4. **Update or create user documentation** under `docs/public/src/` — ensure the public-facing
    docs reflect any new features or changed behaviour.
-5. **Delete the story folder** (`docs/workitems/<story-slug>/`) — the story's WI files and
-   `STORY.md` are ephemeral; the above artefacts are the durable record.
+5. **Archive the story folder** — do **not** delete it. Move the entire folder to:
+   `docs/workitems/completed/YYYYMMDD-<story-slug>/`, where:
+   - **`YYYYMMDD`** is the **story closure date** (UTC unless the team agrees otherwise —
+     the calendar day the work is accepted as merge-ready or merged).
+   - **`<story-slug>`** is the original active folder name (lowercase hyphen-separated slug).
+   - Example: `docs/workitems/completed/20260330-metadata-persistence/`
+
+   The archived folder preserves `STORY.md`, all WI files, and any other story-local artefacts
+   as the historical record. Durable summaries remain in **MILESTONE**, **BACKLOG**, and
+   **design / public docs** as today.
+
+   **Ordering:** With a `YYYYMMDD-` prefix, **ascending** name sort lists **oldest** closures first.
+   To see **most recent closures first**, sort folder names **descending** (reverse alphabetical)
+   in your file browser, or maintain the index in `docs/workitems/completed/README.md`.
 
 Merging into `dev` is done manually by the user; the agent prepares everything above first.
 
@@ -70,10 +87,20 @@ Merging into `dev` is done manually by the user; the agent prepares everything a
 - **Never** add `Co-Authored-By` or similar trailers to commit messages.
 - Follow the bracketed prefix style: `[feat]`, `[fix]`, `[change]`, `[refactor]`, `[docs]`, `[wip]`.
 
+### Complete working copy per WI (story branches)
+
+On a **story branch**, when a WI is **complete** (implementation + tests/docs as required by that WI):
+
+1. **Commit every file** that is part of that WI’s delivery — source, tests, story docs (`STORY.md` checkbox, WI file updates if any), and any other intentional edits. Do not stop with a **partial** commit while leaving related changes unstaged for the same WI.
+2. **Leave a clean working tree** for that slice of work: after the commit, `git status` should show no remaining modified/untracked files **for completed work** (aside from deliberate local-only files such as IDE noise, if those are gitignored).
+3. **Same commit** should normally include marking the WI as done in **`STORY.md`** (`[x]`) so the branch always reflects completed WIs.
+
+This keeps each WI a **reviewable, reproducible checkpoint** on the story branch. Do not accumulate multiple finished WIs worth of changes without committing. Do not commit build outputs, secrets, or unrelated work from outside the story.
+
 ## Completion (WI level)
 
-- Mark the WI checkbox in `STORY.md` as `[x]` when the WI is implemented.
-- Do **not** delete the WI file until story closure (it is needed for the story record).
+- Mark the WI checkbox in `STORY.md` as `[x]` when the WI is implemented (typically **in the same commit** as the WI’s code/docs — see **Complete working copy per WI** above).
+- Do **not** remove or relocate WI files until **story closure** — they stay with the story folder through its move to `docs/workitems/completed/`.
 
 ## UI Module Reference
 
@@ -95,4 +122,4 @@ Before signalling the branch is merge-ready:
    logical commits. Each commit should represent one coherent change (typically one WI).
    Use `git rebase -i origin/dev` to squash interactively.
 2. Follow the **Story closure** documentation steps above (MILESTONE, BACKLOG, design docs,
-   public docs, delete story folder).
+   public docs, archive story folder under `docs/workitems/completed/YYYYMMDD-<story-slug>/`).

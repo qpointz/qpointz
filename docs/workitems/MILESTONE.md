@@ -43,7 +43,7 @@ Items delivered in this milestone.
   `MetadataImportExportController` (YAML bulk import/export); `MetadataUrns` utility with URN
   constants and `normaliseFacetTypePath`/`normaliseScopePath` helpers; full URN keys in storage,
   prefixed slugs in URL path variables; `MetadataExceptionHandler` `@RestControllerAdvice`;
-  startup import runner (`mill.metadata.import-on-startup`) supporting `classpath:` and `file:`
+  startup import runner (historically `mill.metadata.import-on-startup`; **current** keys: **`mill.metadata.seed.resources`**) supporting `classpath:` and `file:`
   resource URLs; all production code carries OpenAPI and KDoc annotations
 
 - WI-087 — Metadata relational JPA persistence: new `metadata/mill-metadata-persistence` module;
@@ -52,8 +52,8 @@ Items delivered in this milestone.
   six JPA entities and Spring Data repositories; three adapters — `JpaMetadataRepository`,
   `JpaFacetTypeRepository`, `JpaMetadataScopeRepository`; `JpaMetadataChangeObserver` for async
   audit persistence; `MetadataJpaPersistenceAutoConfiguration` activated by
-  `mill.metadata.storage.type=jpa`; H2 integration test suite with skymill dataset; JPA
-  persistence wired into `skymill` and `moneta` application profiles
+  **`mill.metadata.repository.type=jpa`** (historical text below used `mill.metadata.storage.type=jpa`); H2 integration test suite with skymill dataset; JPA
+  persistence wired into `skymill` and `moneta` application profiles. **Note (metadata rework):** greenfield DDL and table names evolved per **SPEC §8** (`metadata_audit`, `metadata_seed`, no promotion table); see [`docs/design/metadata/mill-metadata-domain-model.md`](../design/metadata/mill-metadata-domain-model.md).
 
 - WI-089 — Metadata scopes and context composition: `MetadataScope` domain type;
   `MetadataScopeRepository` interface with `NoOpMetadataScopeRepository` fallback; full JPA adapter
@@ -97,7 +97,13 @@ row (V10) exposed on `GET .../entities/{id}/facets`, **MULTIPLE** delete requiri
 than one instance exists, `DELETE .../facet-instances/{facetUid}`, `mill-ui` facet editor (schema-driven
 forms, expert JSON), and **`services/mill-ui-service`** with `mill.ui.*` configuration. **JPA save**
 replaces all facet rows for an entity from the domain snapshot so removals persist (fixes stale facets
-after delete). **WI-091** (metadata promotion workflow) remains **deferred** — see `BACKLOG.md`.
+  after delete). **WI-091** (metadata promotion workflow) remains **deferred** — see `BACKLOG.md`.
+
+**Mill UI (`mill-ui-fixes`, closed March 2026):** **WI-105** — ESLint 9 flat config for `ui/mill-ui` (`npm run lint` clean; `react-refresh` relaxed for context modules; `_`-prefixed unused bindings). **WI-106** — Vitest `afterEach` `act` + timer flush in `src/test/setup.ts` to reduce async provider noise. **WI-108** — design pack under `docs/design/ui/mill-ui/` with stub `ui/mill-ui/docs/README.md` pointing to the canonical location. **WI-107** — shared explorer toolbar row (`layoutChrome`, `ExplorerSplitLayout`, `ViewPaneHeader`) on Model / Knowledge / Analysis; metadata scope `Select` wired to schema context and metadata scope APIs. **WI-109** — MULTIPLE-cardinality facet rendering in `EntityDetails` (per-instance cards, `{ relations: [...] }` envelope, sole `{}` counts as one instance). **WI-110** — pure **`facetPayloadUtils.ts`** extracted from `EntityDetails` with focused unit tests.
+
+**Metadata — Greenfield rework (`metadata-rework`, closed March 2026):** **WI-119–WI-128** — URN-based **entity** identity (`urn:mill/...`, opaque to `mill-metadata-core`); **`FacetInstance`** row model with **`merge_action`** on **`metadata_entity_facet`**; effective-view merge in core (**`MetadataReader`** / **`MetadataView`**), not in JPA adapters alone; squashed Flyway **`V4__metadata_greenfield.sql`** (legacy metadata migrations V4–V10 removed per story); **`metadata_audit`**, **`metadata_seed`** ledger, ordered **`mill.metadata.seed.*`** startup seeds; **`mill.metadata.repository.*`** replaces removed **`mill.metadata.storage.*`**; REST/OpenAPI, canonical YAML import/export, and **`mill-ui`** URN paths; **WI-127** design sync ([`mill-metadata-domain-model.md`](../design/metadata/mill-metadata-domain-model.md), configuration inventories); **WI-128** public MkDocs metadata section. Normative spec and WI checklist (archived): [`completed/20260330-metadata-rework/STORY.md`](completed/20260330-metadata-rework/STORY.md), [`completed/20260330-metadata-rework/SPEC.md`](completed/20260330-metadata-rework/SPEC.md).
+
+**Mill UI — facet types & Model view (branch `feat/metadata-rework-final`, merged toward dev after March 2026):** Facet **MULTIPLE** payload coercion + per-instance cards; **known stereotypes** documentation ([`mill-ui-facet-stereotypes.md`](../design/metadata/mill-ui-facet-stereotypes.md), public [`facet-stereotypes.md`](../public/src/metadata/facet-stereotypes.md)); **Facet types** admin list — category / applicable-to (**empty `applicableTo` = any** included when filtering) / enabled-only row, equal-width filters, **delete confirmation** modal; expert JSON/YAML editor **save** parses current buffer (YAML safe); hyperlink object **Title** + **URL** read layout; single-instance MULTIPLE caption hygiene. **BACKLOG** **M-30** marks stereotype docs done.
 
 ### In Progress
 

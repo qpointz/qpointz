@@ -5,7 +5,8 @@ This document describes how the **Data Model** explorer (`ui/mill-ui`, route `/m
 ## Goals
 
 - **Single standard path** for most facets: read-only and edit UIs derive from the facet type’s `FacetTypeManifest.payload` ([descriptor contract](./facet-type-descriptor-formats.md)), via `renderReadOnlyField` / `renderField` in `EntityDetails.tsx`.
-- **MULTIPLE cardinality**: one **outer** facet box per facet type (shared title, Edit, Delete). Under read mode, each stored instance is a **nested card** using the **same** standard field renderer with the **item** schema (the manifest’s object payload).
+- **MULTIPLE cardinality**: one **outer** facet box per facet type (shared title, Edit, Delete). Under read mode, each stored instance is a **nested card** using the **same** standard field renderer with the **item** schema (the manifest’s object payload). Card titles use a `name` field when present; generic “Entry *i* of *n*” captions apply only when there are **multiple** instances without a name (a single instance does not show “Entry 1 of 1”).
+- **Field stereotypes** (hyperlink, email, tags): see [**mill-ui-facet-stereotypes.md**](mill-ui-facet-stereotypes.md).
 - **Structural** facet: still uses a dedicated `StructuralFacet` component when the legacy convenience flags/data path applies (see below).
 
 ## Current behavior (`EntityDetails.tsx`)
@@ -13,7 +14,7 @@ This document describes how the **Data Model** explorer (`ui/mill-ui`, route `/m
 | Case | Read presentation | Edit |
 |------|-------------------|------|
 | Facet type with `targetCardinality` **SINGLE** (default) | Standard: descriptor-driven fields, or read-only JSON if no descriptor | Whole facet payload; form + expert JSON |
-| Facet type with `targetCardinality` **MULTIPLE** | One inner card per item in the normalized payload list; caption uses `name` when present, else `Entry i of n` | Same as SINGLE: entire array (or legacy `{ "relations": [...] }`) is edited as one value |
+| Facet type with `targetCardinality` **MULTIPLE** | One inner card per item in the normalized payload list; caption uses `name` when present, else `Entry i of n` when *n* &gt; 1 | Per-instance edit in the nested card (form + expert JSON where supported); see `EntityDetails` |
 | URN ends with `:structural` **and** `facets.structural` is populated **and** `modelStructuralFacet` | `StructuralFacet` tailored UI | Standard path when user opens Edit (still the full facet type payload) |
 | No `payload` schema on manifest | Read-only pretty-printed JSON | Expert JSON only if no `effectivePayloadSchema` |
 
@@ -42,7 +43,7 @@ Payload normalization for MULTIPLE instances (`multipleFacetItemValues`):
 
 5. **Location of logic**  
    Facet box layout and standard renderers live in `ui/mill-ui/src/components/data-model/EntityDetails.tsx`.  
-   The only remaining facet-specific presenter in that folder is `facets/StructuralFacet.tsx` (structural read view). Optional per-type **view/edit** component registration is future work; see [`docs/design/ui/facet-view-customization.md`](../ui/facet-view-customization.md).
+   Pure MULTIPLE payload normalisation (`multipleFacetItemValues` and related helpers) lives in **`facetPayloadUtils.ts`** next to `EntityDetails.tsx` (see WI-110). The only remaining facet-specific presenter in that folder is `facets/StructuralFacet.tsx` (structural read view). Optional per-type **view/edit** component registration is future work; see [`docs/design/ui/facet-view-customization.md`](../ui/facet-view-customization.md).
 
 ## API: `GET /api/v1/metadata/entities/{id}/facets`
 

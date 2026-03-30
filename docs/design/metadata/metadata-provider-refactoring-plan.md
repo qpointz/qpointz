@@ -130,7 +130,7 @@ This plan outlines the migration from the legacy `MetadataProvider` interface an
 
 2. **Check application properties**
    - Remove `mill.metadata.file.repository.path` if no longer needed
-   - Ensure `mill.metadata.v2.*` properties are configured for new system
+   - Ensure **`mill.metadata.repository.*`** and **`mill.metadata.seed.resources`** (include platform bootstrap YAML for scopes/facet types) are configured for the greenfield metadata service — not **`mill.metadata.v2.*`** / **`mill.metadata.storage.*`** (removed).
 
 ---
 
@@ -205,8 +205,8 @@ These are used by `SchemaMessageSpec` - must migrate first:
    - Keep only `MetadataAdapterService` bean (or remove if all usages migrated to `MetadataService`)
 
 2. **Verify application properties**
-   - Remove legacy `mill.metadata.*` properties
-   - Ensure `mill.metadata.v2.*` properties are documented
+   - Remove legacy `mill.metadata.*` properties where obsolete
+   - Document **`mill.metadata.repository.*`** and **`mill.metadata.seed.*`** (see [`mill-metadata-domain-model.md`](mill-metadata-domain-model.md))
 
 ---
 

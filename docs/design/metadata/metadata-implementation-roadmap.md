@@ -151,7 +151,7 @@ Details below are intentionally implementation-oriented so they can be turned in
     - ✅ `FacetController` - scope-aware facet access
     - ⏳ `AIMetadataController` - AI-specific endpoints (pending Phase 3)
   - ✅ DTOs for API responses (`MetadataEntityDto`, `FacetDto`, `TreeNodeDto`, `SearchResultDto`)
-  - ✅ Spring Boot auto-configuration with `mill.metadata.v2.*` properties
+  - ✅ Spring Boot auto-configuration with **`mill.metadata.repository.*`** (historical roadmap text referenced `mill.metadata.v2.*`; current keys — see [`mill-metadata-domain-model.md`](mill-metadata-domain-model.md))
   - ✅ Swagger/OpenAPI documentation with proper parameter documentation
   - ✅ **Read-only API** - PUT/DELETE endpoints removed for initial release
 

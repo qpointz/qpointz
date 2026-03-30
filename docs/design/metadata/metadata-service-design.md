@@ -13,7 +13,7 @@
 
 - ✅ WI-085 — Service layer cleanup: NoOp repositories, `@AutoConfigureAfter` ordering, component-scan alignment, all four metadata controllers visible in `/v3/api-docs`.
 - ✅ WI-086 — REST layer redesign: four controllers (`MetadataEntityController`, `MetadataFacetController`, `MetadataScopeController`, `MetadataImportExportController`) at `/api/v1/metadata/**`; `MetadataExceptionHandler` (`@RestControllerAdvice`); `MetadataUrns` URN helpers.
-- ✅ WI-087 — Relational persistence: new `mill-metadata-persistence` module; Flyway V4 migration (`metadata_entity`, `metadata_facet_scope`, `metadata_facet_type`, `metadata_scope`, `metadata_promotion`); JPA entities + Spring Data repos; `JpaMetadataRepository` / `JpaFacetTypeRepository` adapters; `MetadataJpaPersistenceAutoConfiguration`.
+- ✅ WI-087 — Relational persistence: new `mill-metadata-persistence` module; early Flyway iterations introduced tables since renamed or superseded by the greenfield squashed schema (**SPEC §8**). Current as-built DDL uses **`metadata_audit`** (append-only operation log), **`metadata_seed`** ledger, and **no** `metadata_promotion` table; JPA adapters and `MetadataJpaPersistenceAutoConfiguration` align to **`mill.metadata.repository.type=jpa`**.
 - ✅ WI-089 — Scope model: `MetadataScope`, `MetadataScopeRepository`, `MetadataScopeService`, `MetadataContext`; `JpaMetadataScopeRepository`; `NoOpMetadataScopeRepository` fallback.
 - ✅ WI-092 — `mill-ui` model view wired to real backend (read-only); inline chat disabled pending redesign.
 
@@ -44,14 +44,14 @@
 - ✅ Safe delete guard enforced via facet usage count in `metadata_facet_scope`.
 - ✅ Import/export now supports descriptor manifests in `facet-types` sections.
 - ✅ Startup import behavior:
-  - canonical envelope supports both `facet-types` and `entities`
-  - if `facet-types` are omitted, known platform facet types are ensured
+  - canonical / multi-document YAML supports `facet-types`, `entities`, `MetadataScope`, and `FacetTypeDefinition` shapes per serializer
+  - **`mill.metadata.seed.resources`** applies ordered seeds at startup (MERGE); the importer **does not** auto-create platform facet types when a document omits them — use **`classpath:metadata/platform-bootstrap.yaml`** (or equivalent) in the seed list
 
 **Registry strategy contract (WI-096):**
 
 - Config key: `mill.metadata.facet-type-registry.type`
 - Supported values:
-  - `inMemory` — default fallback; seeded platform descriptors in-process
+  - `inMemory` — default fallback; descriptors come from whatever the repositories contain (typically empty until seeds or API writes)
   - `local` — local persistence-backed source (JPA)
   - `portal` — reserved, currently fail-fast (not implemented)
 - Validation boundary remains local to the Mill instance; descriptor source and validation execution are decoupled.
@@ -59,8 +59,9 @@
 **Operational guidance:**
 
 - For local testing and admin UI descriptor management, set:
-  - `mill.metadata.storage.type=jpa`
+  - `mill.metadata.repository.type=jpa`
   - `mill.metadata.facet-type-registry.type=local`
+  - `mill.metadata.seed.resources` including `classpath:metadata/platform-bootstrap.yaml` before dataset-specific files
 
 ---
 
@@ -482,6 +483,8 @@ GET /api/metadata/v1/concepts?referencedTable={catalog}.{schema}.{table}
 ---
 
 ## Domain Model
+
+**Greenfield reference:** [`mill-metadata-domain-model.md`](mill-metadata-domain-model.md) (entities, `FacetInstance`, scopes, `merge_action`, persistence tables). The subsections below retain historical diagrams and examples; where they mention legacy coordinates or nested facets on entities, prefer the domain model doc and SPEC.
 
 ### Enums
 

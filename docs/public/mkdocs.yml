@@ -63,6 +63,14 @@ nav:
     - quickstart.md
     - installation.md
     - grinder-ui.md
+    - mill-ui.md
+    - Metadata:
+      - metadata/index.md
+      - metadata/system.md
+      - metadata/concepts.md
+      - metadata/facet-stereotypes.md
+      - metadata/operators.md
+      - metadata/mill-ui.md
     - Data Sources:
       - sources/index.md
       - sources/configuration.md

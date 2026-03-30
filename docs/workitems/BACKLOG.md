@@ -173,6 +173,11 @@ milestone-selectable deliverables extracted from design documents and work items
 | M-24 | Interactive metadata scope picker in Data Model (beyond implicit/global) + strict scope authorization for metadata writes | ✨ feature | backlog | `MILESTONE.md` (deferred from schema explorer closure) |
 | M-25 | Schema list/tree REST performance hardening under large catalogs | 💡 improvement | backlog | `MILESTONE.md` (deferred from schema explorer closure) |
 | M-27 | Extend metadata StructuralFacet/API/UI contracts for complex types (LIST/MAP/OBJECT + nested shape rendering); depends on D-2/D-3/D-4 | ✨ feature | planned | `WI-034-metadata-complex-type-support.md` |
+| M-28 | Case-insensitive metadata entity identity (coordinate model + merge migration) | 🐛 fix | superseded | Superseded by **M-29** / `docs/workitems/metadata-case-insensitivity/STORY.md` (greenfield URN); **WI-111** not executed on URN branch |
+| M-29 | Metadata URN platform: metadata modules deps = metadata+core only; SQL seeds from `platform-facet-types.json` in `mill-persistence`; PG primary + H2 PG mode; Java `@ConfigurationProperties`; squashed Flyway; facet audit listeners; canonical YAML file repo (`mill.metadata.repository.type=file`); `RelationFacet` / URN codec in `mill-data-schema-core`; **no backward compat**; KDoc/JavaDoc (UI function-level) | ✨ feature | done | `MILESTONE.md` (**WI-119–WI-128**); archived story `workitems/completed/20260330-metadata-rework/`; parallel WI plan in `metadata-case-insensitivity/STORY.md` (WI-111–WI-118) |
+| M-30 | Document Mill UI **known facet field stereotypes** (`hyperlink`, `email`, `tags`, precedence, OBJECT/array-of-OBJECT hyperlink) — design + public MkDocs | 📝 docs | done | `design/metadata/mill-ui-facet-stereotypes.md`, `public/src/metadata/facet-stereotypes.md` |
+| M-31 | Layered metadata: readonly **`MetadataSource`** (repository read adapter + runtime/system sources), merge into **`SchemaFacetService`** / `mill-data-schema-core`; **ephemeral** facets (e.g. physical/structural, **authorization**/policy) not metadata-persistent; read API with **per-facet provenance** and **`editable`**; Mill UI **full constellation visible**, **captured-only** edit | ✨ feature | backlog | `metadata/metadata-layered-sources-and-ephemeral-facets.md` |
+| M-32 | **Facet type catalog (metadata capture follow-up):** list endpoint + Mill UI **facet type** admin show **`FacetTypeSource.DEFINED` and `OBSERVED`** (union/dedup); **OBSERVED** types visible when assignments created unknown keys; label source in UI; optional read-only / promote-to-defined for OBSERVED | ✨ feature | backlog | `metadata/metadata-facet-type-catalog-defined-and-observed.md` |
 
 ---
 
@@ -352,7 +357,7 @@ Implementation: [`docs/design/security/user-identity-jpa-implementation.md`](../
 | data            | 7       | 6         | 0              | 0      | 0              | 0       | 1       |
 | ai              | 29      | 16        | 5              | 4      | 2              | 1       | 1       |
 | client          | 21      | 11        | 0              | 5      | 3              | 1       | 1       |
-| metadata        | 15      | 11        | 0              | 2      | 1              | 1       | 0       |
+| metadata        | 16      | 11        | 0              | 2      | 1              | 1       | 1       |
 | persistence     | 8       | 8         | 0              | 0      | 0              | 0       | 0       |
 | platform        | 32      | 11        | 8              | 4      | 8              | 1       | 0       |
 | publish         | 4       | 1         | 2              | 0      | 0              | 0       | 1       |
@@ -360,5 +365,5 @@ Implementation: [`docs/design/security/user-identity-jpa-implementation.md`](../
 | security        | 14      | 14        | 0              | 0      | 0              | 0       | 0       |
 | source          | 14      | 7         | 4              | 1      | 2              | 0       | 0       |
 | ui              | 11      | 5         | 4              | 0      | 1              | 1       | 0       |
-| **Total**       | **165** | **90**    | **24**         | **20** | **19**         | **7**   | **5**   |
+| **Total**       | **166** | **90**    | **24**         | **20** | **19**         | **7**   | **6**   |
 

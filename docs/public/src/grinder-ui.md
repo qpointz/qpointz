@@ -182,7 +182,7 @@ The URL updates as you navigate (for example, `/model/schema/table/attribute`), 
 
 ### Editing metadata
 
-When metadata editing is enabled and you are signed in, you can add, change, or remove **facet** payloads for the selected schema, table, or column. Facet types are defined on the server (including whether a type allows a **single** value or **multiple** instances per scope). Types with multiple instances show one row per instance; deleting or updating a specific row may require that instance’s identifier when more than one exists. Changes are persisted through Mill’s metadata HTTP API (`/api/v1/metadata/entities/...`). Administrators can manage facet-type descriptors under **Admin → Model → Facet types** when those routes are enabled.
+When metadata editing is enabled and you are signed in, you can add, change, or remove **facet** payloads for the selected schema, table, or column. Facet types are defined on the server (including whether a type allows a **single** value or **multiple** instances per scope). Types with multiple instances show one row per instance; deleting or updating a specific row may require that instance’s identifier when more than one exists. Changes are persisted through Mill’s metadata HTTP API (`/api/v1/metadata/entities/...`). Administrators can manage facet-type descriptors under **Admin → Model → Facet types** when those routes are enabled. User-oriented background and operator configuration: **[Metadata](metadata/index.md)** in this docs site.
 
 ---
 

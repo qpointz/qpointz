@@ -46,10 +46,16 @@
 |-----|------|-------------|--------|-------------|---------------|-------|
 | `mill.metadata.annotations` | String | `MetadataConfiguration` (`@ConditionalOnProperty`) | data:mill-data-autoconfigure | Bean selection: `FileAnnotationsRepository`, `NoneAnnotationsRepository` | none | Values: `file`, `none`, `v2` |
 | `mill.metadata.relations` | String | `MetadataConfiguration` (`@ConditionalOnProperty`) | data:mill-data-autoconfigure | Bean selection: `FileRelationsProvider`, `NoneRelationsProvider` | none | Values: `file`, `none`, `v2` |
-| `mill.metadata.file.repository.path` | Resource | `MetadataConfiguration` (`@Value` + `@ConditionalOnProperty`) | data:mill-data-autoconfigure | `FileRepository.from()` | none | **Legacy** — see v2 below |
-| `mill.metadata.v2.storage.type` | String | `MetadataProperties` (`@ConfigurationProperties`) | metadata:mill-metadata-autoconfigure | `MetadataRepositoryAutoConfiguration` (`@ConditionalOnProperty`) | none | Values: `file`, `jpa`, `composite`, `external`. Default: `file` |
-| `mill.metadata.v2.file.path` | String | `MetadataProperties` (`@ConfigurationProperties`) | metadata:mill-metadata-autoconfigure | `MetadataRepositoryAutoConfiguration` → `FileMetadataRepository` | none | Comma-separated paths. **No default**. Required when `mill.metadata.storage.type=file` (fail-fast if missing/blank). |
-| `mill.metadata.v2.file.watch` | Boolean | `MetadataProperties` (`@ConfigurationProperties`) | metadata:mill-metadata-autoconfigure | — | none | Default: `false` |
+| `mill.metadata.file.repository.path` | Resource | `MetadataConfiguration` (`@Value` + `@ConditionalOnProperty`) | data:mill-data-autoconfigure | `FileRepository.from()` | none | **Legacy** — separate from greenfield metadata service |
+| `mill.metadata.repository.type` | String | `MetadataProperties` (`@ConfigurationProperties`) | metadata:mill-metadata-autoconfigure | File / JPA / NoOp repository autoconfiguration | processor on Java class | Values: `file`, `jpa`, `noop`. Default: `file` |
+| `mill.metadata.repository.file.path` | String | `MetadataProperties.Repository.File` | metadata:mill-metadata-autoconfigure | `MetadataFileRepositoryAutoConfiguration` | — | Comma-separated Spring resource paths. When `type=file`, **either** non-blank `path` **or** non-empty **`mill.metadata.seed.resources`** is required (fail-fast if both empty). |
+| `mill.metadata.repository.file.writable` | Boolean | `MetadataProperties.Repository.File` | metadata:mill-metadata-autoconfigure | Reserved | — | Default: `false` |
+| `mill.metadata.repository.file.watch` | Boolean | `MetadataProperties.Repository.File` | metadata:mill-metadata-autoconfigure | Reserved | — | Default: `false` |
+| `mill.metadata.facet-type-registry.type` | String | `MetadataProperties.FacetTypeRegistry` | metadata:mill-metadata-autoconfigure | `MetadataCoreConfiguration` | — | Values: `inMemory`, `local`, `portal` (reserved) |
+| `mill.metadata.seed.resources` | List\<String\> | `MetadataSeedProperties` | metadata:mill-metadata-autoconfigure | `MetadataSeedStartup` | — | Ordered seed YAML locations; sole startup path for platform scope/facet types (`classpath:metadata/platform-bootstrap.yaml` first in prod). Empty skips runner |
+| `mill.metadata.seed.on-failure` | String | `MetadataSeedProperties` | metadata:mill-metadata-autoconfigure | `MetadataSeedStartup` | — | `fail-fast` (default) or `continue` |
+
+**Removed (breaking):** `mill.metadata.storage.*`, `mill.metadata.v2.*` — use **`mill.metadata.repository.*`** and **`mill.metadata.seed.*`** only. See [`mill-metadata-domain-model.md`](../metadata/mill-metadata-domain-model.md).
 
 ### mill.ai
 
@@ -113,7 +119,7 @@ Processor-generated `spring-configuration-metadata.json` also exists for `MillUi
 - All `mill.backend.*` keys (10 keys)
 - `mill.security.authentication.basic.enable`, `mill.security.authentication.basic.file-store`
 - `mill.security.authorization.policy.selector.granted-authority.remap`
-- All `mill.metadata.*` keys (6 keys)
+- Legacy `mill.metadata.annotations`, `mill.metadata.relations`, `mill.metadata.file.repository.path` (no processor entry in table above). Greenfield **`mill.metadata.repository.*`** / **`mill.metadata.seed.*`** are declared on **`MetadataProperties`** / **`MetadataSeedProperties`** in **mill-metadata-autoconfigure** (Java `@ConfigurationProperties` → check generated `spring-configuration-metadata.json` in that module after build).
 - All `mill.ai.*` keys (6 keys)
 - `mill.services.ai-nl2data.enable`
 
@@ -179,7 +185,7 @@ Every module using `@ConditionalOnService` must depend (directly or transitively
 
 4. **Duplicate prefix**: `mill.security.authorization.policy` is bound by both `PolicyConfiguration` (data-autoconfigure) and `PolicyActionsConfiguration` (security-autoconfigure) — two `@ConfigurationProperties` classes sharing one prefix across two modules.
 
-5. **Legacy vs v2**: `mill.metadata.file.repository.path` (legacy, in data-autoconfigure) vs `mill.metadata.v2.file.path` (v2, in metadata-autoconfigure). Both systems are active simultaneously.
+5. **Legacy vs greenfield metadata**: `mill.metadata.file.repository.path` (legacy, in data-autoconfigure) supplies the old `MetadataProvider` file repo. The metadata **service** uses **`mill.metadata.repository.*`** and **`mill.metadata.seed.*`** (`mill-metadata-autoconfigure`). The obsolete **`mill.metadata.v2.*`** / **`mill.metadata.storage.*`** prefixes are removed.
 
 6. **Ghost keys**: `mill.services.data-bot.*` (enable, prompt-file, model-name) and `mill.services.jet-grpc.*` (enable, port) appear in YAML configs but have **no Java consumer** in the codebase. Either dead config or not yet implemented.
 

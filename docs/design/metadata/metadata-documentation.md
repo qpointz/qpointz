@@ -2,7 +2,8 @@
 
 **Version:** 1.0  
 **Last Updated:** December 2024  
-**Audience:** Users, Administrators, Developers
+**Audience:** Users, Administrators, Developers  
+**As-built domain reference:** [`mill-metadata-domain-model.md`](mill-metadata-domain-model.md) (entities, facets, merge, persistence). **Normative contract:** [`SPEC.md`](../../workitems/completed/20260330-metadata-rework/SPEC.md).
 
 ---
 
@@ -294,27 +295,34 @@ concept:
 
 ### Basic Configuration
 
-The metadata system is configured via `application.yml`:
+The metadata system is configured via `application.yml`. The **repository** backend and **file paths** use **`mill.metadata.repository.*`** (the obsolete **`mill.metadata.storage.*`** prefix was removed in the metadata rework).
 
 ```yaml
 mill:
   metadata:
-    storage:
-      type: file
-    file:
-      # Single file (required when storage.type=file)
-      path: "file:/opt/mill/metadata/base.yml"
-        
-      # Multiple files (comma-separated)
-      path: "file:/opt/mill/metadata/base.yml,file:/opt/mill/metadata/overrides.yml"
-        
-      # File patterns (glob)
-      path: "file:/opt/mill/metadata/base.yml,file:/opt/mill/metadata/overrides/*.yml"
+    repository:
+      type: file   # file | jpa | noop
+      file:
+        # When type=file: set path and/or rely on seed.resources (at least one required).
+        path: "file:/opt/mill/metadata/base.yml"
+        # Multiple files (comma-separated)
+        # path: "file:/opt/mill/metadata/base.yml,file:/opt/mill/metadata/overrides.yml"
+        # File patterns (glob) where supported by Spring resource resolution
+        # path: "file:/opt/mill/metadata/base.yml,file:/opt/mill/metadata/overrides/*.yml"
+    facet-type-registry:
+      type: inMemory   # inMemory | local | portal (reserved)
+    seed:
+      # Platform global scope + standard facet types — list first in production
+      resources:
+        - classpath:metadata/platform-bootstrap.yaml
+      on-failure: fail-fast   # fail-fast | continue
 ```
 
 Notes:
-- `mill.metadata.file.path` has no implicit default.
-- If `mill.metadata.storage.type=file` and `mill.metadata.file.path` is missing or blank, startup fails fast.
+
+- When **`repository.type=file`**, startup requires **either** a non-blank **`mill.metadata.repository.file.path`** **or** a non-empty **`mill.metadata.seed.resources`** list.
+- For relational deployments, set **`mill.metadata.repository.type=jpa`**, run Flyway (**DDL only** for greenfield metadata — no data inserts for scopes/facet types), and list **`mill.metadata.seed.resources`** (include **`classpath:metadata/platform-bootstrap.yaml`** unless you replace it with an equivalent seed).
+- Ordered startup imports use **`mill.metadata.seed.resources`** only — there is no separate metadata file-bootstrap auto-configuration (see SPEC §14.1 and [`mill-metadata-domain-model.md`](mill-metadata-domain-model.md)).
 
 ### Multi-file Configuration
 

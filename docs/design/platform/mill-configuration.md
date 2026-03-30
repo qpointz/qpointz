@@ -65,9 +65,10 @@ Legend for the “Sources” column:
 | `mill.backend.jdbc.url` / `driver` / `username` / `password` | JDBC connection info for the execution engine. | `apps/mill-service`, `clients/etc/test-backend-server`, `core` tests, `services/mill-jet-http-service` |
 | `mill.backend.jdbc.target-schema` | Destination schema when generating SQL. | `apps/mill-service`, AI integration tests |
 | `mill.backend.jdbc.output-schema` | Optional schema for storing outputs (used in JDBC sample configs). | `apps/mill-service/config/default/application-jdbc-sample.yml`, `clients/etc/test-backend-server` |
-| `mill.metadata.relations` / `mill.metadata.annotations` | Metadata source (e.g., `none`, `v2`). | `apps/mill-service`, AI tests |
-| `mill.metadata.v2.storage.type` & `.file.path` | File-based metadata repository settings. | `apps/mill-service/application-moneta-local.yml` & docker samples |
-| `mill.metadata.file.repository.path` | Legacy file metadata location (AI tests). | `ai/mill-ai-core/src/test*` |
+| `mill.metadata.relations` / `mill.metadata.annotations` | Legacy data-layer metadata source (e.g., `none`, `v2`). | `apps/mill-service`, AI tests |
+| `mill.metadata.repository.type` & `mill.metadata.repository.file.path` | Greenfield metadata **service** repository (`file`, `jpa`, `noop`) and optional YAML resource paths for the file backend. With `type=file`, **either** `path` **or** `mill.metadata.seed.resources` must be set. | `apps/mill-service`, docker samples, metadata tests |
+| `mill.metadata.seed.resources` | **Only** startup seed pipeline: ordered canonical YAML (typically `classpath:metadata/platform-bootstrap.yaml` first, then env-specific files). Flyway does not insert metadata rows. | `apps/mill-service`, metadata testIT |
+| `mill.metadata.file.repository.path` | Legacy file metadata location (AI tests / old provider). | `ai/mill-ai-core/src/test*` |
 
 ## Mill Services Toggles (`mill.services.*`)
 

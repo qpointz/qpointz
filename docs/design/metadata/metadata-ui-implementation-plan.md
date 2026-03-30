@@ -171,7 +171,7 @@ Migrate NL2SQL value resolution from legacy `MetadataProvider`/`ValueMapper` to 
 
 **Configuration Properties:**
 - Check `application.yml` for legacy `mill.metadata.file.repository.path`
-- Ensure `mill.metadata.v2.*` properties are configured
+- **Current (metadata rework):** ensure **`mill.metadata.repository.*`** and **`mill.metadata.seed.resources`** (platform bootstrap for built-in facet types) are configured — not `mill.metadata.v2.*` / `mill.metadata.storage.*` (removed).
 
 **Acceptance Criteria:**
 - ✅ `MetadataAdapterService` bean created and available

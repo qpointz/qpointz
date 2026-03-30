@@ -1,0 +1,1200 @@
+metadataFormat: CANONICAL
+formatVersion: 1
+entities:
+- id: urn:mill/metadata/entity:moneta
+  type: SCHEMA
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Moneta
+        description: Client moneta schema
+- id: urn:mill/metadata/entity:moneta.clients
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: CLIENTS
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Clients
+        description: Contains client personal and contact information.
+    urn:mill/metadata/facet-type:relation:
+      urn:mill/metadata/scope:global:
+        relations:
+        - name: clients_accounts
+          description: client accounts
+          sourceTable:
+            schema: moneta
+            table: clients
+          sourceAttributes:
+          - client_id
+          targetTable:
+            schema: moneta
+            table: accounts
+          targetAttributes:
+          - client_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: clients.client_id = accounts.client_id
+        - name: clients_loans
+          description: Client to loans relationship
+          sourceTable:
+            schema: moneta
+            table: clients
+          sourceAttributes:
+          - client_id
+          targetTable:
+            schema: moneta
+            table: loans
+          targetAttributes:
+          - client_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: clients.client_id = loans.client_id
+        - name: clients_stock_portfolios
+          description: Client to stock portfolios relationship
+          sourceTable:
+            schema: moneta
+            table: clients
+          sourceAttributes:
+          - client_id
+          targetTable:
+            schema: moneta
+            table: stock_portfolios
+          targetAttributes:
+          - client_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: clients.client_id = stock_portfolios.client_id
+- id: urn:mill/metadata/entity:moneta.clients.client_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: CLIENT_ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Client ID
+        description: Unique identifier of the client.
+- id: urn:mill/metadata/entity:moneta.clients.first_name
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: FIRST_NAME
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: First Name
+        description: Client's first name.
+- id: urn:mill/metadata/entity:moneta.clients.last_name
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: LAST_NAME
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Last Name
+        description: Client's last name.
+- id: urn:mill/metadata/entity:moneta.clients.email
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: EMAIL
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Email
+        description: Client email address.
+- id: urn:mill/metadata/entity:moneta.clients.phone
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: PHONE
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Phone
+        description: Client contact phone number.
+- id: urn:mill/metadata/entity:moneta.clients.created_at
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: CREATED_AT
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Created At
+        description: Date when the client was registered.
+- id: urn:mill/metadata/entity:moneta.clients.country
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: COUNTRY
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Country
+        description: Country of residence.
+    urn:mill/metadata/facet-type:value-mapping:
+      urn:mill/metadata/scope:global:
+        context: Country name
+        similarity-threshold: 0.4
+        sources:
+        - type: SQL_QUERY
+          name: country_values
+          definition: "SELECT DISTINCT \"COUNTRY\" AS \"ID\", \n                \"COUNTRY\" AS \"VALUE\", \n             \
+            \   \"COUNTRY\" AS \"TEXT\" \nFROM \"MONETA\".\"CLIENTS\"  WHERE \"COUNTRY\" IS NOT NULL"
+          description: Discover all country values
+          enabled: true
+          cronExpression: 0 0 * * * *
+- id: urn:mill/metadata/entity:moneta.clients.city
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: CITY
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: City
+        description: City of residence.
+- id: urn:mill/metadata/entity:moneta.clients.address
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ADDRESS
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Address
+        description: Street address of the client.
+- id: urn:mill/metadata/entity:moneta.clients.segment
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: SEGMENT
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Segment
+        description: Client service segment classification.
+    urn:mill/metadata/facet-type:value-mapping:
+      urn:mill/metadata/scope:global:
+        context: Client segment
+        similarity-threshold: 0.5
+        sources:
+        - type: SQL_QUERY
+          name: segment_values
+          definition: "SELECT DISTINCT \"SEGMENT\" AS \"ID\", \n                \"SEGMENT\" AS \"VALUE\", \n             \
+            \   \"SEGMENT\" AS \"TEXT\" \nFROM \"MONETA\".\"CLIENTS\"  WHERE \"SEGMENT\" IS NOT NULL"
+          description: Discover all segment values
+          enabled: true
+          cronExpression: 0 0 * * * *
+- id: urn:mill/metadata/entity:moneta.accounts
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: ACCOUNTS
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Accounts
+        description: Represents client bank accounts and balances.
+    urn:mill/metadata/facet-type:relation:
+      urn:mill/metadata/scope:global:
+        relations:
+        - name: accounts_transactions
+          description: Account to transactions relationship
+          sourceTable:
+            schema: moneta
+            table: accounts
+          sourceAttributes:
+          - account_id
+          targetTable:
+            schema: moneta
+            table: transactions
+          targetAttributes:
+          - account_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: accounts.account_id = transactions.account_id
+- id: urn:mill/metadata/entity:moneta.accounts.account_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ACCOUNT_ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Account ID
+        description: ID of the associated bank account.
+- id: urn:mill/metadata/entity:moneta.accounts.client_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: CLIENT_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Client ID
+        description: Unique identifier of the client.
+- id: urn:mill/metadata/entity:moneta.accounts.account_type
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ACCOUNT_TYPE
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Account Type
+        description: Type of bank account (e.g., checking, savings).
+- id: urn:mill/metadata/entity:moneta.accounts.balance
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: BALANCE
+        type: DECIMAL
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Balance
+        description: Current balance of the account.
+- id: urn:mill/metadata/entity:moneta.accounts.opened_at
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: OPENED_AT
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Opened At
+        description: Date when the account was opened.
+- id: urn:mill/metadata/entity:moneta.transactions
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: TRANSACTIONS
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Transactions
+        description: Bank account transactions including deposits and withdrawals.
+- id: urn:mill/metadata/entity:moneta.transactions.transaction_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: TRANSACTION_ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Transaction ID
+        description: Unique ID of the transaction.
+- id: urn:mill/metadata/entity:moneta.transactions.account_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ACCOUNT_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Account ID
+        description: ID of the associated bank account.
+- id: urn:mill/metadata/entity:moneta.transactions.transaction_type
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: TRANSACTION_TYPE
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Transaction Type
+        description: Type of transaction (deposit, withdrawal, transfer).
+- id: urn:mill/metadata/entity:moneta.transactions.amount
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: AMOUNT
+        type: DECIMAL
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Amount
+        description: Total loan amount.
+- id: urn:mill/metadata/entity:moneta.transactions.transaction_date
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: TRANSACTION_DATE
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Transaction Date
+        description: Date of the transaction.
+- id: urn:mill/metadata/entity:moneta.transactions.description
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: DESCRIPTION
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Description
+        description: Text description of the transaction.
+- id: urn:mill/metadata/entity:moneta.loans
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: LOANS
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Loans
+        description: Loan contracts issued to clients with interest and duration.
+    urn:mill/metadata/facet-type:relation:
+      urn:mill/metadata/scope:global:
+        relations:
+        - name: loans_loan_payments
+          description: Loan to loan payments relationship
+          sourceTable:
+            schema: moneta
+            table: loans
+          sourceAttributes:
+          - loan_id
+          targetTable:
+            schema: moneta
+            table: loan_payments
+          targetAttributes:
+          - loan_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: loans.loan_id = loan_payments.loan_id
+- id: urn:mill/metadata/entity:moneta.loans.loan_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: LOAN_ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Loan ID
+        description: Unique ID of the loan.
+- id: urn:mill/metadata/entity:moneta.loans.client_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: CLIENT_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Client ID
+        description: Unique identifier of the client.
+- id: urn:mill/metadata/entity:moneta.loans.amount
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: AMOUNT
+        type: DECIMAL
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Amount
+        description: Total loan amount.
+- id: urn:mill/metadata/entity:moneta.loans.interest_rate
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: INTEREST_RATE
+        type: DECIMAL
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Interest Rate
+        description: Annual interest rate of the loan.
+- id: urn:mill/metadata/entity:moneta.loans.start_date
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: START_DATE
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Start Date
+        description: Loan start date.
+- id: urn:mill/metadata/entity:moneta.loans.end_date
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: END_DATE
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: End Date
+        description: Loan end date.
+- id: urn:mill/metadata/entity:moneta.loans.status
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: STATUS
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Status
+        description: Order status (pending, executed, cancelled).
+- id: urn:mill/metadata/entity:moneta.loan_payments
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: LOAN_PAYMENTS
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Loan Payments
+        description: Records payments made toward outstanding loans.
+- id: urn:mill/metadata/entity:moneta.loan_payments.payment_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: PAYMENT_ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Payment ID
+        description: Unique ID of the loan payment.
+- id: urn:mill/metadata/entity:moneta.loan_payments.loan_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: LOAN_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Loan ID
+        description: Unique ID of the loan.
+- id: urn:mill/metadata/entity:moneta.loan_payments.payment_date
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: PAYMENT_DATE
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Payment Date
+        description: Date of the payment.
+- id: urn:mill/metadata/entity:moneta.loan_payments.amount
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: AMOUNT
+        type: DECIMAL
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Amount
+        description: Total loan amount.
+- id: urn:mill/metadata/entity:moneta.stock_portfolios
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: STOCK_PORTFOLIOS
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Stock Portfolios
+        description: Client investment portfolios containing financial assets.
+    urn:mill/metadata/facet-type:relation:
+      urn:mill/metadata/scope:global:
+        relations:
+        - name: stock_portfolios_stock_holdings
+          description: Portfolio to stock holdings relationship
+          sourceTable:
+            schema: moneta
+            table: stock_portfolios
+          sourceAttributes:
+          - portfolio_id
+          targetTable:
+            schema: moneta
+            table: stock_holdings
+          targetAttributes:
+          - portfolio_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: stock_portfolios.portfolio_id = stock_holdings.portfolio_id
+        - name: stock_portfolios_trade_orders
+          description: Portfolio to trade orders relationship
+          sourceTable:
+            schema: moneta
+            table: stock_portfolios
+          sourceAttributes:
+          - portfolio_id
+          targetTable:
+            schema: moneta
+            table: trade_orders
+          targetAttributes:
+          - portfolio_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: stock_portfolios.portfolio_id = trade_orders.portfolio_id
+- id: urn:mill/metadata/entity:moneta.stock_portfolios.portfolio_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: PORTFOLIO_ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Portfolio ID
+        description: Unique identifier of the portfolio.
+- id: urn:mill/metadata/entity:moneta.stock_portfolios.client_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: CLIENT_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Client ID
+        description: Unique identifier of the client.
+- id: urn:mill/metadata/entity:moneta.stock_portfolios.portfolio_name
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: PORTFOLIO_NAME
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Portfolio Name
+        description: Human-readable name of the portfolio.
+- id: urn:mill/metadata/entity:moneta.stock_portfolios.created_at
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: CREATED_AT
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Created At
+        description: Date when the client was registered.
+- id: urn:mill/metadata/entity:moneta.stocks
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: STOCKS
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Stocks
+        description: Stock market instruments with tickers and sectors.
+    urn:mill/metadata/facet-type:relation:
+      urn:mill/metadata/scope:global:
+        relations:
+        - name: stocks_stock_holdings
+          description: Stock to stock holdings relationship
+          sourceTable:
+            schema: moneta
+            table: stocks
+          sourceAttributes:
+          - stock_id
+          targetTable:
+            schema: moneta
+            table: stock_holdings
+          targetAttributes:
+          - stock_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: stocks.stock_id = stock_holdings.stock_id
+        - name: stocks_trade_orders
+          description: Stock to trade orders relationship
+          sourceTable:
+            schema: moneta
+            table: stocks
+          sourceAttributes:
+          - stock_id
+          targetTable:
+            schema: moneta
+            table: trade_orders
+          targetAttributes:
+          - stock_id
+          cardinality: ONE_TO_MANY
+          type: FOREIGN_KEY
+          joinSql: stocks.stock_id = trade_orders.stock_id
+- id: urn:mill/metadata/entity:moneta.stocks.stock_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: STOCK_ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Stock ID
+        description: Unique ID of the stock.
+- id: urn:mill/metadata/entity:moneta.stocks.ticker
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: TICKER
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Ticker
+        description: Stock market ticker symbol.
+- id: urn:mill/metadata/entity:moneta.stocks.company_name
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: COMPANY_NAME
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Company Name
+        description: Name of the company issuing the stock.
+- id: urn:mill/metadata/entity:moneta.stocks.sector
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: SECTOR
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Sector
+        description: Industry sector of the stock.
+- id: urn:mill/metadata/entity:moneta.stocks.exchange
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: EXCHANGE
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Exchange
+        description: Stock exchange where the stock is traded.
+- id: urn:mill/metadata/entity:moneta.stock_holdings
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: STOCK_HOLDINGS
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Stock Holdings
+        description: Detailed records of stocks held in each portfolio.
+- id: urn:mill/metadata/entity:moneta.stock_holdings.holding_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: HOLDING_ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Holding ID
+        description: Unique ID of the holding entry.
+- id: urn:mill/metadata/entity:moneta.stock_holdings.portfolio_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: PORTFOLIO_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Portfolio ID
+        description: Unique identifier of the portfolio.
+- id: urn:mill/metadata/entity:moneta.stock_holdings.stock_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: STOCK_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Stock ID
+        description: Unique ID of the stock.
+- id: urn:mill/metadata/entity:moneta.stock_holdings.shares
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: SHARES
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Shares
+        description: Number of shares held.
+- id: urn:mill/metadata/entity:moneta.stock_holdings.average_price
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: AVERAGE_PRICE
+        type: DECIMAL
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Average Price
+        description: Average price per share held.
+- id: urn:mill/metadata/entity:moneta.trade_orders
+  type: TABLE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-table:
+      urn:mill/metadata/scope:global:
+        sourceType: JDBC
+        package: ''
+        name: TRADE_ORDERS
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Trade Orders
+        description: Buy and sell orders placed for stocks within portfolios.
+- id: urn:mill/metadata/entity:moneta.trade_orders.order_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ORDER_ID
+        type: INTEGER
+        nullable: false
+        isPK: true
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Order ID
+        description: Unique ID of the trade order.
+- id: urn:mill/metadata/entity:moneta.trade_orders.portfolio_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: PORTFOLIO_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Portfolio ID
+        description: Unique identifier of the portfolio.
+- id: urn:mill/metadata/entity:moneta.trade_orders.stock_id
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: STOCK_ID
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: true
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Stock ID
+        description: Unique ID of the stock.
+- id: urn:mill/metadata/entity:moneta.trade_orders.order_type
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ORDER_TYPE
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Order Type
+        description: Type of order (buy or sell).
+- id: urn:mill/metadata/entity:moneta.trade_orders.order_date
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: ORDER_DATE
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Order Date
+        description: Date when the order was placed.
+- id: urn:mill/metadata/entity:moneta.trade_orders.shares
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: SHARES
+        type: INTEGER
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Shares
+        description: Number of shares held.
+- id: urn:mill/metadata/entity:moneta.trade_orders.limit_price
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: LIMIT_PRICE
+        type: DECIMAL
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Limit Price
+        description: Limit price for the trade order.
+- id: urn:mill/metadata/entity:moneta.trade_orders.status
+  type: ATTRIBUTE
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:source-column:
+      urn:mill/metadata/scope:global:
+        name: STATUS
+        type: VARCHAR
+        nullable: false
+        isPK: false
+        isFK: false
+    urn:mill/metadata/facet-type:descriptive:
+      urn:mill/metadata/scope:global:
+        displayName: Status
+        description: Order status (pending, executed, cancelled).
+- id: urn:mill/metadata/entity:concept_premium_customers
+  type: CONCEPT
+  createdAt: '2025-11-05T10:00:00Z'
+  updatedAt: '2025-11-05T10:00:00Z'
+  facets:
+    urn:mill/metadata/facet-type:concept:
+      urn:mill/metadata/scope:global:
+        concepts:
+        - name: Premium Customers
+          description: High-value customer segment
+          sql: segment = 'PREMIUM' AND balance > 100000
+          targets:
+          - schema: moneta
+            table: customers
+          - schema: moneta
+            table: accounts
+            attributes:
+            - segment
+            - balance
+          tags:
+          - segmentation
+          - marketing
+          category: segmentation
+          source: MANUAL

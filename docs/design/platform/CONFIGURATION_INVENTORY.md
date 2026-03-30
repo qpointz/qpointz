@@ -15,8 +15,9 @@
 | `mill.security.authorization.policy` | `PolicyConfiguration` | mill-service-core | Policy selector, granted-authority remap |
 | `mill.security.authorization.policy` | `PolicyActionsConfiguration` | mill-security-core | Policy actions array |
 | `mill.security.authentication.oauth2-resource-server` | `OAuth2AuthenticationConfiguration` | mill-security-core | JWT JWK URI |
-| `mill.metadata.v2` | `MetadataProperties` | mill-metadata-core | Metadata storage type, file path |
-| `mill.metadata.file.repository` | `MetadataConfiguration` (bean) | mill-service-core | Legacy file repository path |
+| `mill.metadata` | `MetadataProperties` | mill-metadata-autoconfigure | Repository backend (`repository.type`, `repository.file.*`), facet-type registry |
+| `mill.metadata.seed` | `MetadataSeedProperties` | mill-metadata-autoconfigure | Ordered startup seed resources, `on-failure` policy |
+| `mill.metadata.file.repository` | `MetadataConfiguration` (bean) | mill-service-core | Legacy file repository path (data autoconfigure; not the greenfield metadata service) |
 | `mill.ai.nl2sql` | `ValueMappingConfiguration` | mill-ai-core | NL2SQL enable, dialect, reasoner, value-mapping |
 | `mill.services.*` | `OnServiceEnabledCondition` | mill-service-core | Service toggles (grpc, jet-http, meta, grinder, ai-nl2data, data-bot) |
 
@@ -63,9 +64,13 @@
 
 | Class | Module | Condition | Key Beans |
 |-------|--------|-----------|-----------|
-| `MetadataCoreConfiguration` | mill-metadata-core | — | Registers facets in `FacetRegistry` |
-| `MetadataProperties` | mill-metadata-core | — | Properties only |
-| `MetadataRepositoryAutoConfiguration` | mill-metadata-core | `mill.metadata.v2.storage.type=file` (default) | `MetadataRepository` (FileMetadataRepository) |
+| `MetadataCoreConfiguration` | mill-metadata-autoconfigure | — | Facet type registry beans, `FacetCatalog` |
+| `MetadataProperties` | mill-metadata-autoconfigure | `@EnableConfigurationProperties` | `mill.metadata.repository.*`, `mill.metadata.facet-type-registry.*` |
+| `MetadataSeedProperties` | mill-metadata-autoconfigure | — | `mill.metadata.seed.*` |
+| `MetadataJpaPersistenceAutoConfiguration` | mill-metadata-autoconfigure | `mill.metadata.repository.type=jpa` | JPA repositories and entities (via `mill-metadata-persistence`) |
+| `MetadataFileRepositoryAutoConfiguration` | mill-metadata-autoconfigure | `mill.metadata.repository.type=file` | In-memory repository adapters + path/seed validation |
+| `MetadataSeedAutoConfiguration` | mill-metadata-autoconfigure | — | `MetadataSeedStartup` + `ApplicationRunner` — loads `mill.metadata.seed.resources` (no-op when list empty) |
+| `MetadataRepositoryAutoConfiguration` | mill-metadata-autoconfigure | `@AutoConfigureAfter` JPA | NoOp repository fallbacks when real beans missing |
 | `MetadataConfiguration` | mill-service-core | — | `MetadataProvider`, `FileRepository` (legacy `mill.metadata.file.repository.path`) |
 
 **Consumers:**
@@ -165,15 +170,22 @@
 - `enable`, `selector.granted-authority.remap`, `actions[]`
 
 ### mill.metadata
-- `relations` — none | file | v2
+- `relations` — none | file | v2 (data autoconfigure — annotations/relations providers)
 - `annotations` — none | file | v2
 
 ### mill.metadata.file.repository (legacy)
-- `path` — Resource path
+- `path` — Resource path (legacy `MetadataProvider` file repo, not greenfield metadata service)
 
-### mill.metadata.v2
-- `storage.type` — file | jpa | composite | external
-- `file.path`, `file.watch`
+### mill.metadata.repository (greenfield metadata service)
+- `type` — file | jpa | noop
+- `file.path`, `file.writable`, `file.watch`
+
+### mill.metadata.facet-type-registry
+- `type` — inMemory | local | portal (reserved)
+
+### mill.metadata.seed
+- `resources` — list of resource URIs (ordered); **sole** mechanism for platform/global scope and standard facet types at startup (`classpath:metadata/platform-bootstrap.yaml`)
+- `on-failure` — fail-fast | continue
 
 ### mill.ai.nl2sql
 - `enable`, `dialect`, `reasoner`, `value-mapping[]`
@@ -195,7 +207,7 @@
 
 1. **Duplicate prefix** — `mill.security.authorization.policy` used by both `PolicyConfiguration` and `PolicyActionsConfiguration`; consider merging or splitting namespaces.
 2. **Typo** — `mill.backend.jdbc.multi-shema` should be `multi-schema`.
-3. **Legacy vs v2** — `mill.metadata.file.repository.path` (legacy) vs `mill.metadata.v2.file.path`; consolidate or document migration path.
+3. **Legacy vs greenfield** — `mill.metadata.file.repository.path` (legacy data-layer repo) vs **`mill.metadata.repository.*`** (metadata service); document migration in operator docs.
 4. **ConditionalOnService** — Services enabled via `mill.services.<name>.enable`; `OnServiceEnabledCondition` checks for presence of `mill.services.<name>` group.
 5. **ConditionalOnSecurity** — Custom annotation; security beans gated by `mill.security.enable`.
 6. **functionContextFlag** — Hack to detect Azure Function context; multiple security configs use `@ConditionalOnMissingBean(name = "functionContextFlag")`.
