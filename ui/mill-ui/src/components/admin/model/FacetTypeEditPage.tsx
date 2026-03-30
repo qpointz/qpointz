@@ -1,10 +1,18 @@
-import { useEffect, useMemo, useState } from 'react';
+import {
+  type Dispatch,
+  type SetStateAction,
+  memo,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActionIcon,
-  Chip,
   Box,
+  Chip,
   Button,
-  Divider,
   Group,
   Paper,
   ScrollArea,
@@ -12,6 +20,7 @@ import {
   Stack,
   Switch,
   Text,
+  Textarea,
   TextInput,
   Tooltip,
 } from '@mantine/core';
@@ -21,14 +30,22 @@ import { useNavigate } from 'react-router';
 import { facetTypeService } from '../../../services/api';
 import type { FacetEnumValue, FacetPayloadSchema, FacetSchemaType, FacetTypeManifest } from '../../../types/facetTypes';
 import { ApplicableToPills } from './ApplicableToPills';
+import { StereotypeTagsPills } from './StereotypeTagsPills';
+import { stereotypeTagsFromWire, stereotypeWireFromTags } from './stereotypeTags';
 import { normalizeTargetValue } from './knownTargets';
-import { JsonYamlEditor } from '../../common/JsonYamlEditor';
+import { JsonYamlEditor, type JsonYamlEditorHandle } from '../../common/JsonYamlEditor';
+import { normalizeFacetTypeKeyForApi, slugifyFacetTypeTitle } from '../../../utils/urnSlug';
+import { facetTypeManifestFromWire, facetTypeManifestToWire } from '../../../services/facetTypeWire';
+import { facetTypeContentSchemaRequiresExpertMode } from '../../../utils/facetPayloadFormSupport';
 
 interface FacetTypeEditPageProps {
   mode: 'create' | 'edit';
   typeKey?: string;
   readOnly: boolean;
 }
+
+/** Manifest fields excluding payload; kept separate so typing metadata does not re-render the payload tree. */
+type FacetTypeManifestMeta = Omit<FacetTypeManifest, 'payload'>;
 
 const schemaTypeOptions: FacetSchemaType[] = ['OBJECT', 'ARRAY', 'STRING', 'NUMBER', 'BOOLEAN', 'ENUM'];
 const stringFormatOptions = [
@@ -85,23 +102,14 @@ function pathKey(path: NodePath): string {
   return path.join('.');
 }
 
-function toSlug(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-}
-
 function getNodeAtPath(root: FacetPayloadSchema, path: NodePath): FacetPayloadSchema | null {
   let node: FacetPayloadSchema = root;
   for (const idx of path) {
     const fields = node.fields ?? [];
     if (idx < 0 || idx >= fields.length) return null;
-    node = fields[idx]?.schema ?? null as unknown as FacetPayloadSchema;
-    if (!node) return null;
+    const child = fields[idx]?.schema;
+    if (child == null) return null;
+    node = child;
   }
   return node;
 }
@@ -197,6 +205,37 @@ function setFieldRequiredAtPath(root: FacetPayloadSchema, path: NodePath, requir
   });
 }
 
+function getFieldStereotypeTagsAtPath(root: FacetPayloadSchema, path: NodePath): string[] {
+  if (path.length === 0) return [];
+  const parentPath = path.slice(0, -1);
+  const fieldIndex = path[path.length - 1] ?? -1;
+  if (fieldIndex < 0) return [];
+  const parent = parentPath.length === 0 ? root : getNodeAtPath(root, parentPath);
+  if (!parent || parent.type !== 'OBJECT') return [];
+  const raw = parent.fields?.[fieldIndex]?.stereotype;
+  return stereotypeTagsFromWire(raw);
+}
+
+function setFieldStereotypeTagsAtPath(root: FacetPayloadSchema, path: NodePath, tags: string[]): FacetPayloadSchema {
+  if (path.length === 0) return root;
+  const parentPath = path.slice(0, -1);
+  const fieldIndex = path[path.length - 1] ?? -1;
+  const nodeAtPath = getNodeAtPath(root, path);
+  const valueSchemaType = nodeAtPath?.type ?? 'STRING';
+  const wire = stereotypeWireFromTags(tags, valueSchemaType);
+  return updateNodeAtPath(root, parentPath, (node) => {
+    const objectNode = ensureObjectShape(node);
+    const fields = [...(objectNode.fields ?? [])];
+    const existing = fields[fieldIndex];
+    if (!existing) return objectNode;
+    fields[fieldIndex] = {
+      ...existing,
+      stereotype: wire,
+    };
+    return { ...objectNode, fields };
+  });
+}
+
 interface TreeNodeItemProps {
   root: FacetPayloadSchema;
   path: NodePath;
@@ -209,7 +248,17 @@ interface TreeNodeItemProps {
   onMoveDown: (path: NodePath) => void;
 }
 
-function TreeNodeItem({ root, path, label, selectedPath, onSelect, onAddChild, onDelete, onMoveUp, onMoveDown }: TreeNodeItemProps) {
+const TreeNodeItem = memo(function TreeNodeItem({
+  root,
+  path,
+  label,
+  selectedPath,
+  onSelect,
+  onAddChild,
+  onDelete,
+  onMoveUp,
+  onMoveDown,
+}: TreeNodeItemProps) {
   const node = getNodeAtPath(root, path);
   if (!node) return null;
   const isSelected = pathKey(path) === pathKey(selectedPath);
@@ -276,11 +325,359 @@ function TreeNodeItem({ root, path, label, selectedPath, onSelect, onAddChild, o
       ))}
     </Stack>
   );
+});
+
+interface FacetTypePayloadSectionProps {
+  payload: FacetPayloadSchema;
+  setPayload: Dispatch<SetStateAction<FacetPayloadSchema>>;
 }
+
+const FacetTypePayloadSection = memo(function FacetTypePayloadSection({
+  payload,
+  setPayload,
+}: FacetTypePayloadSectionProps) {
+  const [selectedPath, setSelectedPath] = useState<NodePath>([]);
+  const [enumValueDraft, setEnumValueDraft] = useState('');
+  const [enumDescriptionDraft, setEnumDescriptionDraft] = useState('');
+  const [stereotypeDraft, setStereotypeDraft] = useState('');
+
+  const selectedNode = useMemo(
+    () => (selectedPath.length > 0 ? getNodeAtPath(payload, selectedPath) : null),
+    [payload, selectedPath]
+  );
+  const selectedFieldName = useMemo(
+    () => getFieldNameAtPath(payload, selectedPath) ?? '',
+    [payload, selectedPath]
+  );
+  const selectedFieldRequired = useMemo(
+    () => (selectedPath.length > 0 ? getFieldRequiredAtPath(payload, selectedPath) : true),
+    [payload, selectedPath]
+  );
+  const selectedFieldStereotypeTags = useMemo(
+    () => (selectedPath.length > 0 ? getFieldStereotypeTagsAtPath(payload, selectedPath) : []),
+    [payload, selectedPath]
+  );
+
+  /** Reset inline drafts when the selected tree node changes (stereotype input, enum rows). */
+  useEffect(() => {
+    setStereotypeDraft('');
+    setEnumValueDraft('');
+    setEnumDescriptionDraft('');
+  }, [selectedPath]);
+
+  const addEnumValue = () => {
+    if (!selectedNode || selectedNode.type !== 'ENUM') return;
+    const value = enumValueDraft.trim();
+    const description = enumDescriptionDraft.trim();
+    if (!value || !description) return;
+    const current = selectedNode.values ?? [];
+    if (current.some((v) => v.value === value)) return;
+    const values: FacetEnumValue[] = [...current, { value, description }];
+    setPayload((p) => updateNodeAtPath(p, selectedPath, (node) => ({ ...node, values })));
+    setEnumValueDraft('');
+    setEnumDescriptionDraft('');
+  };
+
+  return (
+    <Group align="stretch" grow wrap="nowrap" style={{ minHeight: 520 }}>
+      <Paper withBorder p="sm" style={{ flex: '1 1 25%', minWidth: 220 }}>
+        <Group justify="space-between" mb="xs">
+          <Text fw={600} size="sm">
+            Content Schema
+          </Text>
+          <Tooltip label="Add field">
+            <ActionIcon
+              size="sm"
+              variant="subtle"
+              onClick={() => {
+                const current = payload.fields ?? [];
+                setPayload((p) => addFieldToObjectPath(p, []));
+                setSelectedPath([current.length]);
+              }}
+              disabled={payload.type !== 'OBJECT'}
+              aria-label="Add content schema field"
+            >
+              <HiOutlinePlus size={14} />
+            </ActionIcon>
+          </Tooltip>
+        </Group>
+        <ScrollArea h={470}>
+          {(payload.fields ?? []).map((field, idx) => (
+            <TreeNodeItem
+              key={`root.${idx}`}
+              root={payload}
+              path={[idx]}
+              label={field.name}
+              selectedPath={selectedPath}
+              onSelect={setSelectedPath}
+              onAddChild={(path) => {
+                setPayload((p) => addFieldToObjectPath(p, path));
+              }}
+              onDelete={(path) => {
+                const parent = path.slice(0, -1);
+                const deleteIdx = path[path.length - 1] ?? -1;
+                setPayload((p) => removeFieldAtParentPath(p, parent, deleteIdx));
+                setSelectedPath(parent);
+              }}
+              onMoveUp={(path) => {
+                const parent = path.slice(0, -1);
+                const moveIdx = path[path.length - 1] ?? -1;
+                setPayload((p) => moveFieldAtParentPath(p, parent, moveIdx, -1));
+                if (moveIdx > 0) setSelectedPath([...parent, moveIdx - 1]);
+              }}
+              onMoveDown={(path) => {
+                const parent = path.slice(0, -1);
+                const moveIdx = path[path.length - 1] ?? -1;
+                setPayload((p) => moveFieldAtParentPath(p, parent, moveIdx, 1));
+                setSelectedPath([...parent, moveIdx + 1]);
+              }}
+            />
+          ))}
+        </ScrollArea>
+      </Paper>
+      <Paper withBorder p="sm" style={{ flex: '3 1 75%', minWidth: 0, width: '100%' }}>
+        <Text fw={600} size="sm" mb="xs">
+          Field Editor
+        </Text>
+        <ScrollArea h={470}>
+          <Stack gap="xs">
+            {selectedPath.length > 0 && selectedNode && (
+              <Group grow align="flex-start">
+                <TextInput
+                  label="Field key"
+                  value={selectedFieldName}
+                  onChange={(e) => {
+                    const v = e.currentTarget.value;
+                    setPayload((p) => renameFieldAtPath(p, selectedPath, v));
+                  }}
+                />
+                <Switch
+                  label="Field required"
+                  checked={selectedFieldRequired}
+                  onChange={(e) => {
+                    const checked = e.currentTarget.checked;
+                    setPayload((p) => setFieldRequiredAtPath(p, selectedPath, checked));
+                  }}
+                />
+              </Group>
+            )}
+            {selectedPath.length > 0 && selectedNode && (
+              <Stack gap={6}>
+                <Text size="sm" fw={500}>
+                  Stereotype
+                </Text>
+                <StereotypeTagsPills
+                  tags={selectedFieldStereotypeTags}
+                  editable
+                  draftValue={stereotypeDraft}
+                  onDraftChange={setStereotypeDraft}
+                  onAdd={(tag) => {
+                    setPayload((p) => {
+                      const cur = getFieldStereotypeTagsAtPath(p, selectedPath);
+                      if (cur.includes(tag)) return p;
+                      return setFieldStereotypeTagsAtPath(p, selectedPath, [...cur, tag]);
+                    });
+                  }}
+                  onRemove={(tag) => {
+                    setPayload((p) => {
+                      const cur = getFieldStereotypeTagsAtPath(p, selectedPath);
+                      return setFieldStereotypeTagsAtPath(
+                        p,
+                        selectedPath,
+                        cur.filter((t) => t !== tag)
+                      );
+                    });
+                  }}
+                />
+              </Stack>
+            )}
+            {!selectedNode && (
+              <Text size="sm" c="dimmed">
+                Select a field in Content Schema to edit schema details.
+              </Text>
+            )}
+            {selectedNode && (
+              <>
+                <Group grow>
+                  <Select
+                    label="Type"
+                    data={schemaTypeOptions}
+                    value={selectedNode.type}
+                    onChange={(value) => {
+                      const next = (value as FacetSchemaType) || 'STRING';
+                      setPayload((p) => {
+                        let u = updateNodeAtPath(p, selectedPath, (node) => normalizeSchemaByType(node, next));
+                        const tags = getFieldStereotypeTagsAtPath(u, selectedPath);
+                        u = setFieldStereotypeTagsAtPath(u, selectedPath, tags);
+                        return u;
+                      });
+                    }}
+                  />
+                  <TextInput
+                    label="Title"
+                    value={selectedNode.title}
+                    onChange={(e) => {
+                      const v = e.currentTarget.value;
+                      setPayload((p) =>
+                        updateNodeAtPath(p, selectedPath, (node) => ({ ...node, title: v }))
+                      );
+                    }}
+                  />
+                </Group>
+                <Textarea
+                  label="Description"
+                  value={selectedNode.description}
+                  onChange={(e) => {
+                    const v = e.currentTarget.value;
+                    setPayload((p) =>
+                      updateNodeAtPath(p, selectedPath, (node) => ({ ...node, description: v }))
+                    );
+                  }}
+                  minRows={2}
+                  autosize
+                  maxRows={20}
+                />
+                {selectedNode.type === 'STRING' && (
+                  <Select
+                    label="Format"
+                    data={stringFormatOptions}
+                    value={selectedNode.format ?? ''}
+                    onChange={(value) => {
+                      const normalized = (value ?? '').trim();
+                      setPayload((p) =>
+                        updateNodeAtPath(p, selectedPath, (node) => ({
+                          ...node,
+                          format: normalized || undefined,
+                        }))
+                      );
+                    }}
+                    allowDeselect={false}
+                  />
+                )}
+                {selectedNode.type === 'ENUM' && (
+                  <Stack gap="xs">
+                    <Text size="sm" fw={500}>
+                      Enum values
+                    </Text>
+                    {(selectedNode.values ?? []).map((entry, idx) => {
+                      if (entry == null || typeof entry !== 'object') return null;
+                      const row = entry as FacetEnumValue;
+                      return (
+                      <Group key={`${row.value ?? 'enum'}-${idx}`} align="flex-start" wrap="nowrap">
+                        <TextInput
+                          label={idx === 0 ? 'Value' : undefined}
+                          value={row.value ?? ''}
+                          onChange={(e) => {
+                            const v = e.currentTarget.value;
+                            setPayload((p) =>
+                              updateNodeAtPath(p, selectedPath, (node) => {
+                                if (node.type !== 'ENUM') return node;
+                                const current = [...(node.values ?? [])];
+                                const prev = current[idx];
+                                if (!prev || typeof prev !== 'object') return node;
+                                current[idx] = { ...(prev as FacetEnumValue), value: v };
+                                return { ...node, values: current };
+                              })
+                            );
+                          }}
+                          style={{ flex: 1 }}
+                        />
+                        <Textarea
+                          label={idx === 0 ? 'Description' : undefined}
+                          value={row.description ?? ''}
+                          onChange={(e) => {
+                            const d = e.currentTarget.value;
+                            setPayload((p) =>
+                              updateNodeAtPath(p, selectedPath, (node) => {
+                                if (node.type !== 'ENUM') return node;
+                                const current = [...(node.values ?? [])];
+                                const prev = current[idx];
+                                if (!prev || typeof prev !== 'object') return node;
+                                current[idx] = { ...(prev as FacetEnumValue), description: d };
+                                return { ...node, values: current };
+                              })
+                            );
+                          }}
+                          minRows={2}
+                          autosize
+                          maxRows={12}
+                          style={{ flex: 2 }}
+                        />
+                        <ActionIcon
+                          color="red"
+                          variant="light"
+                          onClick={() => {
+                            setPayload((p) =>
+                              updateNodeAtPath(p, selectedPath, (node) => {
+                                if (node.type !== 'ENUM') return node;
+                                const values = (node.values ?? []).filter((_, i) => i !== idx);
+                                return { ...node, values };
+                              })
+                            );
+                          }}
+                          aria-label="Remove enum value"
+                          mt={idx === 0 ? 28 : 4}
+                        >
+                          <HiOutlineTrash size={14} />
+                        </ActionIcon>
+                      </Group>
+                      );
+                    })}
+                    <Group align="flex-start" wrap="nowrap">
+                      <TextInput
+                        label="New value"
+                        value={enumValueDraft}
+                        onChange={(e) => setEnumValueDraft(e.currentTarget.value)}
+                        style={{ flex: 1 }}
+                      />
+                      <Textarea
+                        label="New description"
+                        value={enumDescriptionDraft}
+                        onChange={(e) => setEnumDescriptionDraft(e.currentTarget.value)}
+                        minRows={2}
+                        autosize
+                        maxRows={12}
+                        style={{ flex: 2 }}
+                      />
+                      <Button
+                        mt={24}
+                        variant="light"
+                        leftSection={<HiOutlinePlus size={14} />}
+                        onClick={addEnumValue}
+                        disabled={!enumValueDraft.trim() || !enumDescriptionDraft.trim()}
+                      >
+                        Add
+                      </Button>
+                    </Group>
+                  </Stack>
+                )}
+                {selectedNode.type === 'OBJECT' && (
+                  <TextInput
+                    label="Required field keys (comma separated)"
+                    value={(selectedNode.required ?? []).join(',')}
+                    onChange={(e) => {
+                      const required = e.currentTarget.value.split(',').map((v) => v.trim()).filter(Boolean);
+                      setPayload((p) =>
+                        updateNodeAtPath(p, selectedPath, (node) => ({
+                          ...ensureObjectShape(node),
+                          required,
+                        }))
+                      );
+                    }}
+                  />
+                )}
+              </>
+            )}
+          </Stack>
+        </ScrollArea>
+      </Paper>
+    </Group>
+  );
+});
 
 export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPageProps) {
   const navigate = useNavigate();
-  const [manifest, setManifest] = useState<FacetTypeManifest>({
+  const [meta, setMeta] = useState<FacetTypeManifestMeta>(() => ({
     typeKey: '',
     title: '',
     description: '',
@@ -290,21 +687,33 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
     targetCardinality: 'SINGLE',
     applicableTo: [],
     schemaVersion: '1.0',
-    payload: defaultSchema('OBJECT'),
-  });
+  }));
+  const [payload, setPayload] = useState<FacetPayloadSchema>(() => defaultSchema('OBJECT'));
+  const wireManifest = useMemo(() => ({ ...meta, payload }), [meta, payload]);
+  const payloadRequiresExpert = useMemo(
+    () => facetTypeContentSchemaRequiresExpertMode(payload),
+    [payload]
+  );
+
   const [expertMode, setExpertMode] = useState(false);
   const [expertDraft, setExpertDraft] = useState<{ valid: boolean; value?: unknown; error?: string } | null>(null);
+  const expertEditorRef = useRef<JsonYamlEditorHandle>(null);
   const [applicableDraft, setApplicableDraft] = useState('');
-  const [enumValueDraft, setEnumValueDraft] = useState('');
-  const [enumDescriptionDraft, setEnumDescriptionDraft] = useState('');
-  const [selectedPath, setSelectedPath] = useState<NodePath>([]);
   const [showTypeKeyCopy, setShowTypeKeyCopy] = useState(false);
+  /** In create mode, title auto-fills typeKey until the user edits the key field (or clears it). */
+  const typeKeyUserEditedRef = useRef(false);
+  /** Tracks prior `expertMode` to seed `expertDraft` once when expert mode turns on. */
+  const expertModePrevRef = useRef(false);
+
+  const applyLoadedManifest = (data: FacetTypeManifest) => {
+    const { payload: pl, ...rest } = data;
+    setMeta(rest);
+    setPayload(pl);
+  };
 
   useEffect(() => {
     if (mode !== 'edit' || !typeKey) return;
-    void facetTypeService.get(typeKey).then((data) => {
-      setManifest(data);
-    }).catch((e) => {
+    void facetTypeService.get(typeKey).then(applyLoadedManifest).catch((e) => {
       notifications.show({
         color: 'red',
         title: 'Failed to load facet type',
@@ -312,6 +721,23 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
       });
     });
   }, [mode, typeKey]);
+
+  useLayoutEffect(() => {
+    if (payloadRequiresExpert) {
+      setExpertMode(true);
+    }
+  }, [payloadRequiresExpert]);
+
+  useEffect(() => {
+    if (expertMode) {
+      if (!expertModePrevRef.current) {
+        setExpertDraft({ valid: true, value: facetTypeManifestToWire(wireManifest) });
+      }
+      expertModePrevRef.current = true;
+    } else {
+      expertModePrevRef.current = false;
+    }
+  }, [expertMode, wireManifest]);
 
   const validate = (target: FacetTypeManifest): string[] => {
     const errors: string[] = [];
@@ -339,20 +765,54 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
     return errors;
   };
 
+  /** Prefer synchronous parse from the expert editor (YAML-safe); fall back to debounced draft if ref unset. */
+  const resolveExpertWireFromEditor = (): { ok: true; value: unknown } | { ok: false; error: string } => {
+    const sync = expertEditorRef.current?.getParsedForSubmit();
+    if (sync) return sync;
+    if (!expertDraft?.valid || expertDraft.value === undefined) {
+      return { ok: false, error: expertDraft?.error ?? 'Fix JSON/YAML before saving.' };
+    }
+    return { ok: true, value: expertDraft.value };
+  };
+
   const save = async () => {
-    let manifestToSave = manifest;
+    let manifestToSave: FacetTypeManifest = wireManifest;
     if (expertMode) {
-      if (!expertDraft?.valid || !expertDraft.value) {
+      const resolved = resolveExpertWireFromEditor();
+      if (!resolved.ok) {
         notifications.show({
           color: 'red',
           title: 'Invalid expert document',
-          message: expertDraft?.error ?? 'Fix JSON/YAML content before saving.',
+          message: resolved.error,
         });
         return;
       }
-      manifestToSave = expertDraft.value as FacetTypeManifest;
-      setManifest(manifestToSave);
+      try {
+        manifestToSave = facetTypeManifestFromWire(resolved.value);
+      } catch (e) {
+        notifications.show({
+          color: 'red',
+          title: 'Invalid expert document',
+          message: e instanceof Error ? e.message : 'Manifest must include facetTypeUrn/typeKey, title, and contentSchema/payload.',
+        });
+        return;
+      }
     }
+    const titleSlug = slugifyFacetTypeTitle(manifestToSave.title);
+    const fallbackKey = titleSlug.length > 0 ? titleSlug : 'facet-type';
+    const rawKey = manifestToSave.typeKey.trim() || fallbackKey;
+    let resolvedTypeKey: string;
+    try {
+      resolvedTypeKey = normalizeFacetTypeKeyForApi(rawKey);
+    } catch {
+      notifications.show({
+        color: 'red',
+        title: 'Invalid type key',
+        message: 'typeKey is empty after trimming. Set a title or enter a local key / URN.',
+      });
+      return;
+    }
+    manifestToSave = { ...manifestToSave, typeKey: resolvedTypeKey };
     const errors = validate(manifestToSave);
     if (errors.length > 0) {
       notifications.show({ color: 'red', title: 'Validation failed', message: errors.join('; ') });
@@ -375,53 +835,27 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
     }
   };
 
-  const selectedNode = useMemo(
-    () => (selectedPath.length > 0 ? getNodeAtPath(manifest.payload, selectedPath) : null),
-    [manifest.payload, selectedPath]
-  );
-
-  const selectedFieldName = useMemo(
-    () => getFieldNameAtPath(manifest.payload, selectedPath) ?? '',
-    [manifest.payload, selectedPath]
-  );
-  const selectedFieldRequired = useMemo(
-    () => (selectedPath.length > 0 ? getFieldRequiredAtPath(manifest.payload, selectedPath) : true),
-    [manifest.payload, selectedPath]
-  );
-
   const addApplicable = (raw: string) => {
     const value = normalizeTargetValue(raw);
     if (!value) return;
-    const current = manifest.applicableTo ?? [];
-    if (current.includes(value)) return;
-    setManifest({ ...manifest, applicableTo: [...current, value] });
+    setMeta((m) => {
+      const current = m.applicableTo ?? [];
+      if (current.includes(value)) return m;
+      return { ...m, applicableTo: [...current, value] };
+    });
   };
 
   const removeApplicable = (value: string) => {
-    const current = manifest.applicableTo ?? [];
-    setManifest({ ...manifest, applicableTo: current.filter((v) => v !== value) });
-  };
-
-  const addEnumValue = () => {
-    if (!selectedNode || selectedNode.type !== 'ENUM') return;
-    const value = enumValueDraft.trim();
-    const description = enumDescriptionDraft.trim();
-    if (!value || !description) return;
-    const current = selectedNode.values ?? [];
-    if (current.some((v) => v.value === value)) return;
-    const values: FacetEnumValue[] = [...current, { value, description }];
-    setManifest({
-      ...manifest,
-      payload: updateNodeAtPath(manifest.payload, selectedPath, (node) => ({ ...node, values })),
-    });
-    setEnumValueDraft('');
-    setEnumDescriptionDraft('');
+    setMeta((m) => ({
+      ...m,
+      applicableTo: (m.applicableTo ?? []).filter((v) => v !== value),
+    }));
   };
 
   const copyTypeKey = async () => {
     try {
-      await navigator.clipboard.writeText(manifest.typeKey);
-      notifications.show({ color: 'green', title: 'Copied', message: 'typeKey copied to clipboard' });
+      await navigator.clipboard.writeText(meta.typeKey);
+      notifications.show({ color: 'green', title: 'Copied', message: 'Facet type URN copied to clipboard.' });
     } catch (e) {
       notifications.show({
         color: 'red',
@@ -440,17 +874,40 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
             checked={expertMode}
             onChange={(next) => {
               if (!next) {
-                if (!expertDraft?.valid || !expertDraft.value) {
+                const resolved = resolveExpertWireFromEditor();
+                if (!resolved.ok) {
                   notifications.show({
                     color: 'red',
                     title: 'Invalid expert document',
-                    message: expertDraft?.error ?? 'Fix JSON/YAML content before leaving expert mode.',
+                    message: resolved.error,
                   });
                   return;
                 }
-                setManifest(expertDraft.value as FacetTypeManifest);
+                let loaded: FacetTypeManifest;
+                try {
+                  loaded = facetTypeManifestFromWire(resolved.value);
+                } catch (e) {
+                  notifications.show({
+                    color: 'red',
+                    title: 'Invalid manifest',
+                    message: e instanceof Error ? e.message : 'Could not map expert JSON to a facet type.',
+                  });
+                  return;
+                }
+                if (facetTypeContentSchemaRequiresExpertMode(loaded.payload)) {
+                  notifications.show({
+                    color: 'yellow',
+                    title: 'Expert mode required',
+                    message:
+                      'Content schema uses an array of objects or nested arrays that the form tree cannot edit. Simplify the schema or stay in expert JSON/YAML.',
+                  });
+                  return;
+                }
+                applyLoadedManifest(loaded);
+                setExpertMode(false);
+                return;
               }
-              setExpertMode(next);
+              setExpertMode(true);
             }}
             size="sm"
             variant="light"
@@ -463,95 +920,130 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
           </Tooltip>
         </Group>
       </Group>
+      {payloadRequiresExpert && (
+        <Text size="xs" c="dimmed">
+          Expert JSON/YAML stays on for this type: the form tree cannot edit array-of-object or nested-array item
+          schemas (use expert mode to avoid losing structure).
+        </Text>
+      )}
 
       {expertMode ? (
         <JsonYamlEditor
-          value={manifest}
+          ref={expertEditorRef}
+          value={facetTypeManifestToWire(wireManifest)}
           onApply={(next) => {
-            setManifest(next as FacetTypeManifest);
+            try {
+              applyLoadedManifest(facetTypeManifestFromWire(next));
+            } catch (e) {
+              notifications.show({
+                color: 'red',
+                title: 'Invalid manifest',
+                message: e instanceof Error ? e.message : 'Expected facet type keys (facetTypeUrn, title, contentSchema).',
+              });
+              return;
+            }
             notifications.show({ color: 'green', title: 'Applied', message: 'Manifest updated from expert mode.' });
           }}
           onDraftParsed={setExpertDraft}
           minHeight={360}
         />
       ) : (
-        <>
-          <Group grow>
+        <Stack gap="md">
+          <Stack gap="xs">
             <TextInput
-              label="title"
-              value={manifest.title}
+              label="Title"
+              value={meta.title}
               onChange={(e) => {
                 const title = e.currentTarget.value;
-                const next = { ...manifest, title };
-                if (mode === 'create' && !manifest.typeKey.trim()) {
-                  next.typeKey = toSlug(title);
-                }
-                setManifest(next);
+                setMeta((m) => {
+                  const next = { ...m, title };
+                  if (mode === 'create' && !typeKeyUserEditedRef.current) {
+                    next.typeKey = slugifyFacetTypeTitle(title);
+                  }
+                  return next;
+                });
               }}
             />
+          </Stack>
+
+          <Group align="flex-end" wrap="wrap" gap="md">
             <TextInput
-              label="description"
-              value={manifest.description}
-              onChange={(e) => setManifest({ ...manifest, description: e.currentTarget.value })}
-            />
-          </Group>
-          <Group align="end" wrap="nowrap">
-            <TextInput
-              label="category"
-              value={manifest.category ?? 'general'}
-              onChange={(e) => setManifest({ ...manifest, category: e.currentTarget.value || 'general' })}
-              style={{ width: 160 }}
+              label="Category"
+              value={meta.category ?? 'general'}
+              onChange={(e) => setMeta({ ...meta, category: e.currentTarget.value || 'general' })}
+              style={{ flex: '1 1 140px', minWidth: 120, maxWidth: 220 }}
             />
             <Select
-              label="schemaVersion"
-              data={[{ value: '1.0', label: '1.0' }]}
-              value={manifest.schemaVersion ?? '1.0'}
-              onChange={(value) => setManifest({ ...manifest, schemaVersion: value ?? '1.0' })}
-              allowDeselect={false}
-              style={{ width: 140 }}
-            />
-            <Switch
-              label="enabled"
-              checked={manifest.enabled}
-              onChange={(e) => setManifest({ ...manifest, enabled: e.currentTarget.checked })}
-            />
-            <Switch
-              label="mandatory"
-              checked={manifest.mandatory}
-              onChange={(e) => setManifest({ ...manifest, mandatory: e.currentTarget.checked })}
-            />
-            <Select
-              label="targetCardinality"
+              label="Target cardinality"
               data={[
                 { value: 'SINGLE', label: 'single' },
                 { value: 'MULTIPLE', label: 'multiple' },
               ]}
-              value={manifest.targetCardinality ?? 'SINGLE'}
-              onChange={(value) => setManifest({ ...manifest, targetCardinality: (value as 'SINGLE' | 'MULTIPLE' | null) ?? 'SINGLE' })}
+              value={meta.targetCardinality ?? 'SINGLE'}
+              onChange={(value) =>
+                setMeta({
+                  ...meta,
+                  targetCardinality: (value as 'SINGLE' | 'MULTIPLE' | null) ?? 'SINGLE',
+                })
+              }
               allowDeselect={false}
               style={{ width: 180 }}
             />
+            <Switch
+              label="Enabled"
+              checked={meta.enabled}
+              onChange={(e) => setMeta({ ...meta, enabled: e.currentTarget.checked })}
+            />
+            <Switch
+              label="Mandatory"
+              checked={meta.mandatory}
+              onChange={(e) => setMeta({ ...meta, mandatory: e.currentTarget.checked })}
+            />
+            <Select
+              label="Schema version"
+              data={[{ value: '1.0', label: '1.0' }]}
+              value={meta.schemaVersion ?? '1.0'}
+              onChange={(value) => setMeta({ ...meta, schemaVersion: value ?? '1.0' })}
+              allowDeselect={false}
+              style={{ width: 140 }}
+            />
           </Group>
-          <Stack gap={4}>
-            <Text size="sm">typeKey</Text>
+
+          <Textarea
+            label="Description"
+            placeholder="Human-readable summary of this facet type"
+            value={meta.description}
+            onChange={(e) => setMeta({ ...meta, description: e.currentTarget.value })}
+            minRows={2}
+            autosize
+            maxRows={24}
+          />
+
+          <Stack gap={6}>
+            <Text size="sm" fw={500}>
+              URN
+            </Text>
             {(readOnly || mode === 'edit') ? (
               <Group
                 gap={4}
                 align="center"
                 px={2}
                 py={4}
-                style={{ borderRadius: 6, width: 'fit-content' }}
+                wrap="nowrap"
+                style={{ borderRadius: 6, maxWidth: '100%' }}
                 onMouseEnter={() => setShowTypeKeyCopy(true)}
                 onMouseLeave={() => setShowTypeKeyCopy(false)}
               >
-                <Text ff="monospace" size="sm">{manifest.typeKey || '-'}</Text>
-                <Tooltip label="Copy to clipboard" withArrow disabled={!showTypeKeyCopy}>
+                <Text ff="monospace" size="sm" style={{ wordBreak: 'break-all' }}>
+                  {meta.typeKey || '—'}
+                </Text>
+                <Tooltip label="Copy URN" withArrow disabled={!showTypeKeyCopy}>
                   <ActionIcon
                     variant="subtle"
                     size="sm"
                     onClick={() => void copyTypeKey()}
-                    aria-label="Copy type key to clipboard"
-                    style={{ opacity: showTypeKeyCopy ? 1 : 0, transition: 'opacity 120ms ease' }}
+                    aria-label="Copy facet type URN"
+                    style={{ opacity: showTypeKeyCopy ? 1 : 0, transition: 'opacity 120ms ease', flexShrink: 0 }}
                   >
                     <HiOutlineClipboardDocument size={14} />
                   </ActionIcon>
@@ -559,16 +1051,25 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
               </Group>
             ) : (
               <TextInput
-                value={manifest.typeKey}
-                onChange={(e) => setManifest({ ...manifest, typeKey: e.currentTarget.value })}
-                placeholder="urn or slug"
+                label="Local id or full URN"
+                value={meta.typeKey}
+                onChange={(e) => {
+                  const v = e.currentTarget.value;
+                  typeKeyUserEditedRef.current = v.trim().length > 0;
+                  setMeta({ ...meta, typeKey: v });
+                }}
+                description="Bare ids are normalized to urn:mill/metadata/facet-type:… on save."
+                placeholder="e.g. my-facet or full URN"
               />
             )}
           </Stack>
+
           <Stack gap={4}>
-            <Text size="sm">Applicable to (URNs/slugs, empty = any)</Text>
+            <Text size="sm" fw={500}>
+              Applicable to (URNs / slugs, empty = any)
+            </Text>
             <ApplicableToPills
-              values={manifest.applicableTo ?? []}
+              values={meta.applicableTo ?? []}
               editable
               draftValue={applicableDraft}
               onDraftChange={setApplicableDraft}
@@ -577,247 +1078,8 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
             />
           </Stack>
 
-          <Divider label="Payload Schema" />
-        <Group align="stretch" grow wrap="nowrap" style={{ minHeight: 520 }}>
-          <Paper withBorder p="sm" style={{ flex: '1 1 25%', minWidth: 220 }}>
-            <Group justify="space-between" mb="xs">
-              <Text fw={600} size="sm">Payload</Text>
-              <Tooltip label="Add field">
-                <ActionIcon
-                  size="sm"
-                  variant="subtle"
-                  onClick={() => {
-                    const current = manifest.payload.fields ?? [];
-                    setManifest({ ...manifest, payload: addFieldToObjectPath(manifest.payload, []) });
-                    setSelectedPath([current.length]);
-                  }}
-                  disabled={manifest.payload.type !== 'OBJECT'}
-                  aria-label="Add payload field"
-                >
-                  <HiOutlinePlus size={14} />
-                </ActionIcon>
-              </Tooltip>
-            </Group>
-            <ScrollArea h={470}>
-              {(manifest.payload.fields ?? []).map((field, idx) => (
-                <TreeNodeItem
-                  key={`root.${idx}`}
-                  root={manifest.payload}
-                  path={[idx]}
-                  label={field.name}
-                  selectedPath={selectedPath}
-                  onSelect={setSelectedPath}
-                  onAddChild={(path) => {
-                    setManifest({ ...manifest, payload: addFieldToObjectPath(manifest.payload, path) });
-                  }}
-                  onDelete={(path) => {
-                    const parent = path.slice(0, -1);
-                    const deleteIdx = path[path.length - 1] ?? -1;
-                    setManifest({ ...manifest, payload: removeFieldAtParentPath(manifest.payload, parent, deleteIdx) });
-                    setSelectedPath(parent);
-                  }}
-                  onMoveUp={(path) => {
-                    const parent = path.slice(0, -1);
-                    const moveIdx = path[path.length - 1] ?? -1;
-                    setManifest({ ...manifest, payload: moveFieldAtParentPath(manifest.payload, parent, moveIdx, -1) });
-                    if (moveIdx > 0) setSelectedPath([...parent, moveIdx - 1]);
-                  }}
-                  onMoveDown={(path) => {
-                    const parent = path.slice(0, -1);
-                    const moveIdx = path[path.length - 1] ?? -1;
-                    setManifest({ ...manifest, payload: moveFieldAtParentPath(manifest.payload, parent, moveIdx, 1) });
-                    setSelectedPath([...parent, moveIdx + 1]);
-                  }}
-                />
-              ))}
-            </ScrollArea>
-          </Paper>
-          <Paper withBorder p="sm" style={{ flex: '3 1 75%', minWidth: 0, width: '100%' }}>
-            <Text fw={600} size="sm" mb="xs">Node Editor</Text>
-            <ScrollArea h={470}>
-              <Stack gap="xs">
-                {selectedPath.length > 0 && selectedNode && (
-                  <Group grow align="flex-start">
-                    <TextInput
-                      label="Field key"
-                      value={selectedFieldName}
-                      onChange={(e) => {
-                        setManifest({
-                          ...manifest,
-                          payload: renameFieldAtPath(manifest.payload, selectedPath, e.currentTarget.value),
-                        });
-                      }}
-                    />
-                    <Switch
-                      label="Field required"
-                      checked={selectedFieldRequired}
-                      onChange={(e) => {
-                        setManifest({
-                          ...manifest,
-                          payload: setFieldRequiredAtPath(manifest.payload, selectedPath, e.currentTarget.checked),
-                        });
-                      }}
-                    />
-                  </Group>
-                )}
-                {!selectedNode && (
-                  <Text size="sm" c="dimmed">Select a field in Payload to edit schema details.</Text>
-                )}
-                {selectedNode && (
-                  <>
-                <Group grow>
-                  <Select
-                    label="Type"
-                    data={schemaTypeOptions}
-                    value={selectedNode.type}
-                    onChange={(value) => {
-                      const next = (value as FacetSchemaType) || 'STRING';
-                      setManifest({
-                        ...manifest,
-                        payload: updateNodeAtPath(
-                          manifest.payload,
-                          selectedPath,
-                          (node) => normalizeSchemaByType(node, next)
-                        ),
-                      });
-                    }}
-                  />
-                  <TextInput
-                    label="Title"
-                    value={selectedNode.title}
-                    onChange={(e) => {
-                      setManifest({
-                        ...manifest,
-                        payload: updateNodeAtPath(manifest.payload, selectedPath, (node) => ({ ...node, title: e.currentTarget.value })),
-                      });
-                    }}
-                  />
-                </Group>
-                <TextInput
-                  label="Description"
-                  value={selectedNode.description}
-                  onChange={(e) => {
-                    setManifest({
-                      ...manifest,
-                      payload: updateNodeAtPath(manifest.payload, selectedPath, (node) => ({ ...node, description: e.currentTarget.value })),
-                    });
-                  }}
-                />
-                {selectedNode.type === 'STRING' && (
-                  <Select
-                    label="Format"
-                    data={stringFormatOptions}
-                    value={selectedNode.format ?? ''}
-                    onChange={(value) => {
-                      const normalized = (value ?? '').trim();
-                      setManifest({
-                        ...manifest,
-                        payload: updateNodeAtPath(
-                          manifest.payload,
-                          selectedPath,
-                          (node) => ({ ...node, format: normalized || undefined })
-                        ),
-                      });
-                    }}
-                    allowDeselect={false}
-                  />
-                )}
-                {selectedNode.type === 'ENUM' && (
-                  <Stack gap="xs">
-                    <Text size="sm" fw={500}>Enum values</Text>
-                    {(selectedNode.values ?? []).map((entry, idx) => (
-                      <Group key={`${entry.value}-${idx}`} align="end" wrap="nowrap">
-                        <TextInput
-                          label={idx === 0 ? 'Value' : undefined}
-                          value={entry.value}
-                          onChange={(e) => {
-                            const value = e.currentTarget.value;
-                            const current = [...(selectedNode.values ?? [])];
-                            if (!current[idx]) return;
-                            current[idx] = { ...current[idx], value };
-                            setManifest({
-                              ...manifest,
-                              payload: updateNodeAtPath(manifest.payload, selectedPath, (node) => ({ ...node, values: current })),
-                            });
-                          }}
-                          style={{ flex: 1 }}
-                        />
-                        <TextInput
-                          label={idx === 0 ? 'Description' : undefined}
-                          value={entry.description}
-                          onChange={(e) => {
-                            const description = e.currentTarget.value;
-                            const current = [...(selectedNode.values ?? [])];
-                            if (!current[idx]) return;
-                            current[idx] = { ...current[idx], description };
-                            setManifest({
-                              ...manifest,
-                              payload: updateNodeAtPath(manifest.payload, selectedPath, (node) => ({ ...node, values: current })),
-                            });
-                          }}
-                          style={{ flex: 2 }}
-                        />
-                        <ActionIcon
-                          color="red"
-                          variant="light"
-                          onClick={() => {
-                            const values = (selectedNode.values ?? []).filter((_, i) => i !== idx);
-                            setManifest({
-                              ...manifest,
-                              payload: updateNodeAtPath(manifest.payload, selectedPath, (node) => ({ ...node, values })),
-                            });
-                          }}
-                          aria-label="Remove enum value"
-                          mb={idx === 0 ? 2 : 0}
-                        >
-                          <HiOutlineTrash size={14} />
-                        </ActionIcon>
-                      </Group>
-                    ))}
-                    <Group align="end" wrap="nowrap">
-                      <TextInput
-                        label="New value"
-                        value={enumValueDraft}
-                        onChange={(e) => setEnumValueDraft(e.currentTarget.value)}
-                        style={{ flex: 1 }}
-                      />
-                      <TextInput
-                        label="New description"
-                        value={enumDescriptionDraft}
-                        onChange={(e) => setEnumDescriptionDraft(e.currentTarget.value)}
-                        style={{ flex: 2 }}
-                      />
-                      <Button
-                        variant="light"
-                        leftSection={<HiOutlinePlus size={14} />}
-                        onClick={addEnumValue}
-                        disabled={!enumValueDraft.trim() || !enumDescriptionDraft.trim()}
-                      >
-                        Add
-                      </Button>
-                    </Group>
-                  </Stack>
-                )}
-                {selectedNode.type === 'OBJECT' && (
-                  <TextInput
-                    label="Required field keys (comma separated)"
-                    value={(selectedNode.required ?? []).join(',')}
-                    onChange={(e) => {
-                      const required = e.currentTarget.value.split(',').map((v) => v.trim()).filter(Boolean);
-                      setManifest({
-                        ...manifest,
-                        payload: updateNodeAtPath(manifest.payload, selectedPath, (node) => ({ ...ensureObjectShape(node), required })),
-                      });
-                    }}
-                  />
-                )}
-                  </>
-                )}
-              </Stack>
-            </ScrollArea>
-          </Paper>
-        </Group>
-        </>
+          <FacetTypePayloadSection payload={payload} setPayload={setPayload} />
+        </Stack>
       )}
     </Stack>
   );

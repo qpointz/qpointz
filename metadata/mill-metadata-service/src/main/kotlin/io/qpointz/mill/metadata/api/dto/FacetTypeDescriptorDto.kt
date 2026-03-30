@@ -1,5 +1,7 @@
 package io.qpointz.mill.metadata.api.dto
 
+import com.fasterxml.jackson.annotation.JsonAlias
+import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.Instant
 
 /**
@@ -8,7 +10,7 @@ import java.time.Instant
  * Used for all facet type catalog endpoints. All `applicableTo` values are full URN strings
  * (e.g. `urn:mill/metadata/entity-type:table`).
  *
- * @property typeKey       unique URN key for this facet type
+ * @property facetTypeUrn  unique URN key for this facet type (JSON name; legacy `typeKey` accepted)
  * @property mandatory     whether the facet type is required on applicable entities
  * @property enabled       whether this facet type is active
  * @property displayName   human-readable label
@@ -23,7 +25,9 @@ import java.time.Instant
  * @property updatedBy     actor who last modified the descriptor
  */
 data class FacetTypeDescriptorDto(
-    var typeKey: String = "",
+    @param:JsonProperty("facetTypeUrn")
+    @param:JsonAlias("typeKey")
+    var facetTypeUrn: String = "",
     var mandatory: Boolean = false,
     var enabled: Boolean = true,
     var displayName: String? = null,

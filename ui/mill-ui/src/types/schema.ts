@@ -144,7 +144,12 @@ export interface SchemaService {
   ): Promise<ColumnDetail | null>;
   getTree(context: string): Promise<SchemaNode[]>;
   getEntityById(id: string, context: string, signal?: AbortSignal): Promise<SchemaEntity | null>;
+  /** @param id full metadata entity URN (`urn:mill/metadata/entity:…`) */
   getEntityFacets(id: string, context: string, signal?: AbortSignal): Promise<EntityFacets>;
+  /** @param id full metadata entity URN; @param context scope slug or URN passed as `scope` on POST */
   setEntityFacet(id: string, facetType: string, context: string, payload: unknown): Promise<void>;
+  /** Replaces payload for one MULTIPLE facet row (PATCH). Body must be a JSON object (map). */
+  patchEntityFacetPayload(id: string, facetType: string, facetUid: string, payload: unknown): Promise<void>;
+  /** @param id full metadata entity URN; without `instanceUid`, deletes all assignments at `scope` */
   deleteEntityFacet(id: string, facetType: string, context: string, instanceUid?: string): Promise<void>;
 }

@@ -16,10 +16,14 @@ spring:
 
 mill:
   metadata:
-    storage:
+    repository:
       type: file
-    file:
-      path: file:../../test/datasets/moneta/moneta-meta-repository.yaml
+      file:
+        # `:ai:mill-ai-v1-core:test` uses `workingDir = rootProject`; paths are repo-root-relative.
+        path: file:test/datasets/moneta/moneta-canonical.yaml
+    seed:
+      resources:
+        - file:test/datasets/moneta/moneta-canonical.yaml
   security:
     enable: false
   data:
@@ -32,7 +36,7 @@ mill:
     backend:
       type: jdbc
       jdbc:
-        url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM '../../test/datasets/moneta/moneta-slim.sql'"
+        url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM 'test/datasets/moneta/moneta-slim.sql'"
         driver: "org.h2.Driver"
         username: "*"
         password: "*"
@@ -42,5 +46,5 @@ mill:
       enable: true
     data-bot:
       enable: true
-      prompt-file: file:../test/datasets/moneta/moneta.prompt
+      prompt-file: file:test/datasets/moneta/moneta.prompt
       model-name: gpt-4.1

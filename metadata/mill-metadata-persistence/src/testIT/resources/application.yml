@@ -1,4 +1,17 @@
+mill:
+  metadata:
+    repository:
+      type: jpa
+    facet-type-registry:
+      type: local
+    seed:
+      resources:
+        - classpath:metadata/platform-bootstrap.yaml
+
 spring:
+  autoconfigure:
+    exclude:
+      - io.qpointz.mill.metadata.configuration.MetadataRepositoryAutoConfiguration
   datasource:
     url: "jdbc:h2:mem:mill-metadata;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH"
     driver-class-name: org.h2.Driver

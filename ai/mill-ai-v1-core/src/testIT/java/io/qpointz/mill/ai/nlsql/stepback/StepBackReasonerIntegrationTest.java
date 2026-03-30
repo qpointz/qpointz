@@ -7,7 +7,9 @@ import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.models.stepback.StepBackResponse;
 import io.qpointz.mill.ai.nlsql.reasoners.StepBackReasoner;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.data.schema.MetadataEntityUrnCodec;
+import io.qpointz.mill.metadata.repository.FacetRepository;
+import io.qpointz.mill.metadata.service.MetadataEntityService;
 import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -37,14 +39,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class StepBackReasonerIntegrationTest extends BaseIntentTestIT {
 
     public StepBackReasonerIntegrationTest(@Autowired ChatModel chatModel,
-                                      @Autowired MetadataService metadataService,
+                                      @Autowired MetadataEntityService metadataEntityService,
+                                      @Autowired FacetRepository facetRepository,
+                                      @Autowired MetadataEntityUrnCodec urnCodec,
                                       @Autowired SqlDialectSpec sqlDialect,
                                       @Autowired DataOperationDispatcher dispatcher) {
-        super(chatModel, metadataService, sqlDialect, dispatcher);
+        super(chatModel, metadataEntityService, facetRepository, urnCodec, sqlDialect, dispatcher);
     }
 
     private Map<String, Object> stepBack(String query) {
-        val reasoner = new StepBackReasoner(this.getCallSpecBuilders(), this.getMetadataService(), this.getMessageSelector());
+        val reasoner = new StepBackReasoner(this.getCallSpecBuilders(), this.getSchemaPorts(), this.getMessageSelector());
         return reasoner
                 .reason(ChatUserRequests.query(query))
                 .reply()
@@ -75,7 +79,7 @@ class StepBackReasonerIntegrationTest extends BaseIntentTestIT {
     @Test
     void clarificationFlowResolvesPremiumDefinition() {
         String query = "Count premium clients";
-        val reasoner = new StepBackReasoner(this.getCallSpecBuilders(), this.getMetadataService(), this.getMessageSelector());
+        val reasoner = new StepBackReasoner(this.getCallSpecBuilders(), this.getSchemaPorts(), this.getMessageSelector());
 
         val reply1 = reasoner.reason(ChatUserRequests.query(query));
         val resp1 = reply1

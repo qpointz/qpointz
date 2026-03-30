@@ -22,6 +22,11 @@ experiments:
   write_meta:
     type: meta
     path: "./datasets/{model-name}/{model-name}-meta.yaml"
+  write_mill_canonical:
+    type: mill-canonical
+    path: "./datasets/{model-name}/{model-name}-canonical.yaml"
+    params:
+      source_type: JDBC
   write_model_prompt:
     type: llm-prompt
     path: "./datasets/{model-name}/{model-name}.prompt"

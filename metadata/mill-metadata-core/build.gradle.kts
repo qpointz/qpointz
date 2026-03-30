@@ -11,31 +11,19 @@ mill {
 
 dependencies {
     api(project(":core:mill-core"))
-    api(libs.bundles.jackson)
-    api(libs.jackson.module.kotlin)
-    implementation(libs.json.schema.validator)
     implementation(libs.bundles.logging)
 }
 
 testing {
     suites {
-        register<JvmTestSuite>("testIT") {
-            useJUnitJupiter(libs.versions.junit.get())
-
-            dependencies {
-                implementation(project())
-                implementation(project(":metadata:mill-metadata-autoconfigure"))
-                implementation(libs.boot.starter.test)
-                implementation(libs.boot.starter.web)
-            }
-        }
-
         configureEach {
-            if (this is JvmTestSuite && this.name != "testIT") {
+            if (this is JvmTestSuite) {
                 useJUnitJupiter(libs.versions.junit.get())
 
                 dependencies {
                     implementation(project())
+                    implementation(project(":data:mill-data-schema-core"))
+                    implementation(libs.assertj.core)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.mockito.kotlin)

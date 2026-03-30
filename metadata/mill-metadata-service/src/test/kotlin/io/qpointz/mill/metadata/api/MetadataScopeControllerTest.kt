@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import java.time.Instant
+import java.util.UUID
 
 @WebMvcTest(controllers = [MetadataScopeController::class, MetadataExceptionHandler::class])
 @AutoConfigureMockMvc(addFilters = false)
@@ -30,19 +31,38 @@ class MetadataScopeControllerTest {
 
     private val now = Instant.parse("2026-01-01T00:00:00Z")
 
+    private fun testScope(
+        res: String,
+        displayName: String?,
+        ownerId: String?,
+        scopeType: String = "CUSTOM"
+    ): MetadataScope = MetadataScope(
+        res = res,
+        scopeType = scopeType,
+        referenceId = null,
+        displayName = displayName,
+        ownerId = ownerId,
+        visibility = "PUBLIC",
+        uuid = UUID.randomUUID().toString(),
+        createdAt = now,
+        createdBy = null,
+        lastModifiedAt = now,
+        lastModifiedBy = null
+    )
+
     @Test
     fun `shouldReturnScopeList_whenGetScopes`() {
         whenever(scopeService.findAll()).thenReturn(listOf(
-            MetadataScope(scopeId = MetadataUrns.SCOPE_GLOBAL, displayName = "Global", ownerId = null, createdAt = now),
-            MetadataScope(scopeId = MetadataUrns.scopeUser("alice"), displayName = null, ownerId = "alice", createdAt = now)
+            testScope(MetadataUrns.SCOPE_GLOBAL, "Global", null, scopeType = "GLOBAL"),
+            testScope(MetadataUrns.scopeUser("alice"), null, "alice")
         ))
 
         mvc.get("/api/v1/metadata/scopes")
             .andExpect {
                 status { isOk() }
                 jsonPath("$.length()") { value(2) }
-                jsonPath("$[0].scopeId") { value(MetadataUrns.SCOPE_GLOBAL) }
-                jsonPath("$[1].scopeId") { value(MetadataUrns.scopeUser("alice")) }
+                jsonPath("$[0].scopeUrn") { value(MetadataUrns.SCOPE_GLOBAL) }
+                jsonPath("$[1].scopeUrn") { value(MetadataUrns.scopeUser("alice")) }
             }
     }
 
@@ -50,14 +70,14 @@ class MetadataScopeControllerTest {
     fun `shouldReturnCreated_whenPostScope`() {
         val userScope = MetadataUrns.scopeUser("newuser")
         whenever(scopeService.create(userScope, "New User Scope", null))
-            .thenReturn(MetadataScope(scopeId = userScope, displayName = "New User Scope", ownerId = null, createdAt = now))
+            .thenReturn(testScope(userScope, "New User Scope", null))
 
         mvc.post("/api/v1/metadata/scopes") {
             contentType = MediaType.APPLICATION_JSON
-            content = """{"scopeId":"$userScope","displayName":"New User Scope"}"""
+            content = """{"scopeUrn":"$userScope","displayName":"New User Scope"}"""
         }.andExpect {
             status { isCreated() }
-            jsonPath("$.scopeId") { value(userScope) }
+            jsonPath("$.scopeUrn") { value(userScope) }
             header { exists("Location") }
         }
     }
@@ -68,7 +88,7 @@ class MetadataScopeControllerTest {
 
         mvc.post("/api/v1/metadata/scopes") {
             contentType = MediaType.APPLICATION_JSON
-            content = """{"scopeId":"${MetadataUrns.SCOPE_GLOBAL}"}"""
+            content = """{"scopeUrn":"${MetadataUrns.SCOPE_GLOBAL}"}"""
         }.andExpect {
             status { isConflict() }
         }

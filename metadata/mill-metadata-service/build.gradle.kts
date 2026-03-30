@@ -13,6 +13,7 @@ mill {
 
 dependencies {
     api(project(":metadata:mill-metadata-core"))
+    implementation(project(":data:mill-data-schema-core"))
     implementation(project(":data:mill-data-autoconfigure"))
     implementation(libs.boot.starter)
     implementation(libs.boot.starter.web)

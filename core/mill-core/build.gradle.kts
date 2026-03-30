@@ -35,7 +35,7 @@ dependencies {
     api(libs.grpc.inprocess)
     api(libs.javax.annotation.api)
 
-    implementation(libs.bundles.jackson)
+    api(libs.bundles.jackson)
     implementation(libs.bundles.logging)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)

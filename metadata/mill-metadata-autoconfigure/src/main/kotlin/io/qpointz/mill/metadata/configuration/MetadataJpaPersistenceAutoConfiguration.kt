@@ -1,114 +1,27 @@
 package io.qpointz.mill.metadata.configuration
 
-import io.qpointz.mill.metadata.domain.MetadataChangeObserverDelegate
-import io.qpointz.mill.metadata.repository.FacetTypeRepository
-import io.qpointz.mill.metadata.repository.MetadataOperationAuditRepository
-import io.qpointz.mill.metadata.repository.MetadataRepository
-import io.qpointz.mill.metadata.repository.MetadataScopeRepository
-import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaFacetTypeRepository
-import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaMetadataChangeObserver
-import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaMetadataOperationAuditRepository
-import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaMetadataRepository
-import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaMetadataScopeRepository
-import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataEntityJpaRepository
-import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetJpaRepository
-import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetTypeJpaRepository
-import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetTypeInstJpaRepository
-import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataOperationAuditJpaRepository
-import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataScopeJpaRepository
+import io.qpointz.mill.persistence.metadata.jpa.config.MetadataAuditBridgeRegistrar
+import io.qpointz.mill.persistence.metadata.jpa.config.MetadataJpaBeansConfiguration
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.autoconfigure.domain.EntityScan
-import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 
 /**
- * Auto-configures the JPA-backed metadata persistence layer.
+ * Enables JPA persistence for greenfield metadata tables when `mill.metadata.repository.type=jpa`.
  *
- * Activated when:
- * - `io.qpointz.mill.persistence.metadata.jpa.entities.MetadataEntityRecord` is on the classpath
- * - `mill.metadata.storage.type=jpa` is set in application properties
- *
- * Registers four beans:
- * - [JpaMetadataRepository] as the [MetadataRepository] implementation
- * - [JpaFacetTypeRepository] as the [FacetTypeRepository] implementation
- * - [JpaMetadataScopeRepository] as the [MetadataScopeRepository] implementation
- * - [JpaMetadataChangeObserver] as a [MetadataChangeObserverDelegate] for audit persistence
- *
- * Entity scanning and JPA repository enablement are scoped to the
- * `io.qpointz.mill.persistence.metadata.jpa` sub-packages so they do not interfere with
- * other persistence contexts in the application.
+ * Imports [MetadataJpaBeansConfiguration] (entity, facet, scope, facet-type, audit, seed adapters)
+ * and [MetadataAuditBridgeRegistrar] so entity listeners can append to `metadata_audit`.
  */
 @AutoConfiguration
 @ConditionalOnClass(name = ["io.qpointz.mill.persistence.metadata.jpa.entities.MetadataEntityRecord"])
-@ConditionalOnProperty(prefix = "mill.metadata.storage", name = ["type"], havingValue = "jpa")
+@ConditionalOnProperty(prefix = "mill.metadata.repository", name = ["type"], havingValue = "jpa")
 @EntityScan(basePackages = ["io.qpointz.mill.persistence.metadata.jpa.entities"])
 @EnableJpaRepositories(basePackages = ["io.qpointz.mill.persistence.metadata.jpa.repositories"])
-class MetadataJpaPersistenceAutoConfiguration {
-
-    /**
-     * Creates a [JpaMetadataRepository] when no other [MetadataRepository] bean is present.
-     *
-     * @param entityRepo     Spring Data repository for `metadata_entity`
-     * @param facetRepo      Spring Data repository for `metadata_facet`
-     * @param scopeRepo      Spring Data repository for `metadata_scope`
-     * @return the JPA-backed [MetadataRepository] implementation
-     */
-    @Bean
-    @ConditionalOnMissingBean(MetadataRepository::class)
-    fun jpaMetadataRepository(
-        entityRepo: MetadataEntityJpaRepository,
-        facetRepo: MetadataFacetJpaRepository,
-        facetTypeInstRepo: MetadataFacetTypeInstJpaRepository,
-        facetTypeDefRepo: MetadataFacetTypeJpaRepository,
-        scopeRepo: MetadataScopeJpaRepository
-    ): MetadataRepository = JpaMetadataRepository(entityRepo, facetRepo, facetTypeInstRepo, facetTypeDefRepo, scopeRepo)
-
-    /**
-     * Creates a [JpaFacetTypeRepository] when no other [FacetTypeRepository] bean is present.
-     *
-     * @param jpaRepo Spring Data repository for `metadata_facet_type`
-     * @return the JPA-backed [FacetTypeRepository] implementation
-     */
-    @Bean
-    @ConditionalOnMissingBean(FacetTypeRepository::class)
-    fun jpaFacetTypeRepository(
-        jpaRepo: MetadataFacetTypeJpaRepository,
-        facetRepo: MetadataFacetJpaRepository
-    ): FacetTypeRepository = JpaFacetTypeRepository(jpaRepo, facetRepo)
-
-    /**
-     * Creates a [JpaMetadataScopeRepository] when no other [MetadataScopeRepository] bean is present.
-     *
-     * @param jpaRepo Spring Data repository for `metadata_scope`
-     * @return the JPA-backed [MetadataScopeRepository] implementation
-     */
-    @Bean
-    @ConditionalOnMissingBean(MetadataScopeRepository::class)
-    fun jpaMetadataScopeRepository(
-        jpaRepo: MetadataScopeJpaRepository
-    ): MetadataScopeRepository = JpaMetadataScopeRepository(jpaRepo)
-
-    @Bean
-    @ConditionalOnMissingBean(MetadataOperationAuditRepository::class)
-    fun jpaMetadataOperationAuditRepository(
-        auditRepo: MetadataOperationAuditJpaRepository
-    ): MetadataOperationAuditRepository = JpaMetadataOperationAuditRepository(auditRepo)
-
-    /**
-     * Creates a [JpaMetadataChangeObserver] that persists audit entries to `metadata_operation_audit`.
-     *
-     * The bean implements [MetadataChangeObserverDelegate] (not [io.qpointz.mill.metadata.domain.MetadataChangeObserver])
-     * so it is collected into the observer chain by [MetadataImportExportAutoConfiguration] without
-     * creating a circular dependency.
-     *
-     * @param auditRepo Spring Data repository for `metadata_operation_audit`
-     * @return the audit-persisting observer delegate
-     */
-    @Bean
-    fun jpaMetadataChangeObserver(
-        auditRepo: MetadataOperationAuditJpaRepository
-    ): MetadataChangeObserverDelegate = JpaMetadataChangeObserver(auditRepo)
-}
+@Import(
+    MetadataJpaBeansConfiguration::class,
+    MetadataAuditBridgeRegistrar::class
+)
+class MetadataJpaPersistenceAutoConfiguration

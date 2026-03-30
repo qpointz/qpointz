@@ -11,6 +11,7 @@ import { RelatedContentProvider } from '../../context/RelatedContentContext';
 import { defaultFeatureFlags } from '../../features/defaults';
 import type { SchemaEntity, EntityFacets, RelationFacet } from '../../types/schema';
 import type { FacetTypeManifest } from '../../types/facetTypes';
+import { facetTypeService } from '../../services/api';
 
 const { modelViewFacetManifests } = vi.hoisted(() => {
   const str = (name: string, title: string) => ({
@@ -251,9 +252,10 @@ describe('EntityDetails', () => {
       expect(screen.getByText('Column')).toBeInTheDocument();
     });
 
-    it('should display the entity ID in monospace', () => {
+    it('should display the metadata facet target id in monospace', () => {
       renderDetails();
-      const matches = screen.getAllByText('sales.customers');
+      const urn = 'urn:mill/metadata/entity:sales.customers';
+      const matches = screen.getAllByText(urn);
       expect(matches.length).toBeGreaterThanOrEqual(1);
     });
   });
@@ -362,6 +364,92 @@ describe('EntityDetails', () => {
           screen.queryAllByRole('textbox').some((el) => (el as HTMLTextAreaElement).value.includes('sales.orders'));
         expect(ordersMatch).toBeTruthy();
       }, { timeout: 5000 });
+    });
+  });
+
+  describe('MULTIPLE cardinality (WI-109)', () => {
+    it('should show Add entry for empty MULTIPLE relation facet, not a single generic JSON card', async () => {
+      const emptyRelationFacets: EntityFacets = {
+        byType: {
+          'urn:mill/metadata/facet-type:relation': [],
+        },
+      };
+      renderDetails(tableEntity, emptyRelationFacets);
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /add entry/i })).toBeInTheDocument();
+        expect(screen.getByText(/no entries for this facet yet/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should show Add entry when envelope has empty relations array (zero instances)', async () => {
+      const emptyEnvelope: EntityFacets = {
+        byType: {
+          'urn:mill/metadata/facet-type:relation': { relations: [] },
+        },
+      };
+      renderDetails(tableEntity, emptyEnvelope);
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /add entry/i })).toBeInTheDocument();
+        expect(screen.getByText(/no entries for this facet yet/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should render MULTIPLE rows when manifest has no payload schema (JSON read-only per row)', async () => {
+      const manifestsNoPayload: FacetTypeManifest[] = modelViewFacetManifests.map((m) => {
+        if (m.typeKey !== 'urn:mill/metadata/facet-type:relation') return m;
+        return {
+          typeKey: m.typeKey,
+          title: m.title,
+          description: m.description,
+          enabled: m.enabled,
+          mandatory: m.mandatory,
+          targetCardinality: 'MULTIPLE',
+          category: m.category,
+        } as unknown as FacetTypeManifest;
+      });
+      vi.mocked(facetTypeService.list).mockResolvedValueOnce(manifestsNoPayload);
+
+      const rawRelationFacets: EntityFacets = {
+        byType: {
+          'urn:mill/metadata/facet-type:relation': [
+            { name: 'rel-a', sourceEntity: 's.t1', targetEntity: 's.t2' },
+          ],
+        },
+      };
+      renderDetails(tableEntity, rawRelationFacets);
+      await waitFor(() => {
+        expect(screen.getByText(/rel-a/)).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /add entry/i })).not.toBeInTheDocument();
+      });
+    });
+
+    it('should render two MULTIPLE instance cards when byType holds an array of two payloads', async () => {
+      const twoRelations: EntityFacets = {
+        byType: {
+          'urn:mill/metadata/facet-type:relation': [
+            { name: 'first', sourceEntity: 'a', targetEntity: 'b' },
+            { name: 'second', sourceEntity: 'c', targetEntity: 'd' },
+          ],
+        },
+      };
+      renderDetails(tableEntity, twoRelations);
+      await waitFor(() => {
+        expect(screen.getByText(/first/)).toBeInTheDocument();
+        expect(screen.getByText(/second/)).toBeInTheDocument();
+      });
+    });
+
+    it('should treat sole {} relation payload as one instance (one JPA row / one FacetInstanceDto)', async () => {
+      const soleEmptyObject: EntityFacets = {
+        byType: {
+          'urn:mill/metadata/facet-type:relation': {},
+        },
+      };
+      renderDetails(tableEntity, soleEmptyObject);
+      await waitFor(() => {
+        expect(screen.queryByText(/entry 1 of 1/i)).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /add entry/i })).not.toBeInTheDocument();
+      });
     });
   });
 });

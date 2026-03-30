@@ -1,10 +1,16 @@
 package io.qpointz.mill.ai.nlsql.components;
 
 import io.qpointz.mill.ai.nlsql.ValueRepository;
+import io.qpointz.mill.data.schema.DefaultMetadataEntityUrnCodec;
+import io.qpointz.mill.data.schema.MetadataEntityUrnCodec;
+import io.qpointz.mill.data.schema.SchemaEntityKinds;
 import io.qpointz.mill.metadata.domain.MetadataEntity;
-import io.qpointz.mill.metadata.domain.MetadataType;
-import io.qpointz.mill.metadata.domain.core.ValueMappingFacet;
-import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.metadata.domain.MetadataEntityUrn;
+import io.qpointz.mill.metadata.domain.MetadataUrns;
+import io.qpointz.mill.metadata.domain.facet.FacetInstance;
+import io.qpointz.mill.metadata.domain.facet.MergeAction;
+import io.qpointz.mill.metadata.repository.FacetRepository;
+import io.qpointz.mill.metadata.service.MetadataEntityService;
 import io.qpointz.mill.proto.DataType;
 import io.qpointz.mill.proto.Field;
 import io.qpointz.mill.proto.LogicalDataType;
@@ -18,57 +24,115 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.util.*;
+import java.time.Instant;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.*;
 
 class ValueMappingComponentsTest {
 
     private ValueRepository mockRepository;
     private DataOperationDispatcher mockDispatcher;
-    private MetadataService mockMetadataService;
+    private MetadataEntityService mockMetadataEntityService;
+    private FacetRepository mockFacetRepository;
+    private MetadataEntityUrnCodec urnCodec;
     private ValueMappingComponents components;
 
     @BeforeEach
     void setUp() {
         mockRepository = mock(ValueRepository.class);
         mockDispatcher = mock(DataOperationDispatcher.class);
-        mockMetadataService = mock(MetadataService.class);
+        mockMetadataEntityService = mock(MetadataEntityService.class);
+        mockFacetRepository = mock(FacetRepository.class);
+        urnCodec = new DefaultMetadataEntityUrnCodec();
 
         components = new ValueMappingComponents(
             mockRepository,
             mockDispatcher,
-            mockMetadataService
+            mockMetadataEntityService,
+            mockFacetRepository,
+            urnCodec
         );
     }
 
-    private MetadataEntity createAttributeEntity(String schema, String table, String attribute,
-                                                  ValueMappingFacet valueMappingFacet) {
-        MetadataEntity entity = new MetadataEntity();
-        entity.setId(schema + "." + table + "." + attribute);
-        entity.setType(MetadataType.ATTRIBUTE);
-        entity.setSchemaName(schema);
-        entity.setTableName(table);
-        entity.setAttributeName(attribute);
-        entity.setFacet("value-mapping", "global", valueMappingFacet);
-        return entity;
+    private MetadataEntity attributeEntity(String schema, String table, String attribute) {
+        String id = urnCodec.forAttribute(schema, table, attribute);
+        Instant t = Instant.EPOCH;
+        return new MetadataEntity(id, SchemaEntityKinds.ATTRIBUTE, null, t, null, t, null);
+    }
+
+    private static Map<String, Object> staticValueMappingPayload() {
+        Map<String, Object> entry = new LinkedHashMap<>();
+        entry.put("user-term", "premium");
+        entry.put("database-value", "PREMIUM");
+        entry.put("display-value", "Premium");
+        entry.put("description", "High value");
+        entry.put("language", "en");
+        entry.put("aliases", List.of("gold", "vip"));
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("context", "Customer segment");
+        payload.put("similarity-threshold", 0.6);
+        payload.put("mappings", List.of(entry));
+        payload.put("sources", List.of());
+        return payload;
+    }
+
+    private static Map<String, Object> dynamicValueMappingPayload() {
+        Map<String, Object> src = new LinkedHashMap<>();
+        src.put("type", "sql");
+        src.put("name", "country_source");
+        src.put("definition", "SELECT 'US' AS ID, 'US' AS VALUE, 'United States' AS TEXT");
+        src.put("description", "Test source");
+        src.put("enabled", true);
+        src.put("cronExpression", null);
+        src.put("cache-ttl-seconds", 3600);
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("context", "Country name");
+        payload.put("similarity-threshold", 0.55);
+        payload.put("mappings", List.of());
+        payload.put("sources", List.of(src));
+        return payload;
+    }
+
+    private void stubValueMappingPayload(MetadataEntity entity, Map<String, Object> payload) {
+        String eid = MetadataEntityUrn.canonicalize(entity.getId());
+        String tid = MetadataEntityUrn.canonicalize(MetadataUrns.normaliseFacetTypePath("value-mapping"));
+        String global = MetadataEntityUrn.canonicalize(MetadataUrns.SCOPE_GLOBAL);
+        FacetInstance row = new FacetInstance(
+            "uid-vm-test",
+            eid,
+            tid,
+            global,
+            MergeAction.SET,
+            payload,
+            Instant.EPOCH,
+            null,
+            Instant.EPOCH,
+            null
+        );
+        when(mockFacetRepository.findByEntityAndType(anyString(), anyString())).thenReturn(List.of(row));
     }
 
     @Test
     void testOnApplicationReady_IngestsStaticMappings() {
-        ValueMappingFacet facet = new ValueMappingFacet();
-        facet.setContext("Customer segment");
-        facet.setSimilarityThreshold(0.6);
-        facet.setMappings(List.of(
-            new ValueMappingFacet.ValueMapping("premium", "PREMIUM", "Premium",
-                "High value", "en", List.of("gold", "vip"))
-        ));
-
-        MetadataEntity entity = createAttributeEntity("TEST_SCHEMA", "TEST_TABLE", "SEGMENT", facet);
-        when(mockMetadataService.findByType(MetadataType.ATTRIBUTE)).thenReturn(List.of(entity));
+        MetadataEntity entity = attributeEntity("TEST_SCHEMA", "TEST_TABLE", "SEGMENT");
+        stubValueMappingPayload(entity, staticValueMappingPayload());
+        when(mockMetadataEntityService.findByKind(SchemaEntityKinds.ATTRIBUTE)).thenReturn(List.of(entity));
 
         components.onApplicationReady();
 
@@ -93,23 +157,15 @@ class ValueMappingComponentsTest {
         assertTrue(premiumDoc.text().contains("gold"));
         assertTrue(premiumDoc.text().contains("vip"));
         assertTrue(premiumDoc.text().contains("Customer segment: premium"));
-        assertEquals(Optional.of("Customer segment"), premiumDoc.context());
-        assertEquals(Optional.of(0.6), premiumDoc.similarityThreshold());
+        assertEquals(java.util.Optional.of("Customer segment"), premiumDoc.context());
+        assertEquals(java.util.Optional.of(0.6), premiumDoc.similarityThreshold());
     }
 
     @Test
     void testOnApplicationReady_IngestsDynamicMappings() {
-        ValueMappingFacet facet = new ValueMappingFacet();
-        facet.setContext("Country name");
-        facet.setSimilarityThreshold(0.55);
-        facet.setSources(List.of(
-            new ValueMappingFacet.ValueMappingSource("sql", "country_source",
-                "SELECT 'US' AS ID, 'US' AS VALUE, 'United States' AS TEXT",
-                "Test source", true, null, 3600)
-        ));
-
-        MetadataEntity entity = createAttributeEntity("TEST_SCHEMA", "TEST_TABLE", "COUNTRY", facet);
-        when(mockMetadataService.findByType(MetadataType.ATTRIBUTE)).thenReturn(List.of(entity));
+        MetadataEntity entity = attributeEntity("TEST_SCHEMA", "TEST_TABLE", "COUNTRY");
+        stubValueMappingPayload(entity, dynamicValueMappingPayload());
+        when(mockMetadataEntityService.findByKind(SchemaEntityKinds.ATTRIBUTE)).thenReturn(List.of(entity));
 
         var mockResult = createMockVectorIterator(List.<String[]>of(
             new String[]{"US", "US", "United States"},
@@ -138,20 +194,20 @@ class ValueMappingComponentsTest {
 
         assertEquals("Country name: United States", usDoc.text());
         assertEquals(List.of("TEST_SCHEMA", "TEST_TABLE", "COUNTRY"), usDoc.target());
-        assertEquals(Optional.of("Country name"), usDoc.context());
-        assertEquals(Optional.of(0.55), usDoc.similarityThreshold());
+        assertEquals(java.util.Optional.of("Country name"), usDoc.context());
+        assertEquals(java.util.Optional.of(0.55), usDoc.similarityThreshold());
     }
 
     @Test
     void testOnApplicationReady_HandlesEmptyMappings() {
-        when(mockMetadataService.findByType(MetadataType.ATTRIBUTE)).thenReturn(List.of());
+        when(mockMetadataEntityService.findByKind(SchemaEntityKinds.ATTRIBUTE)).thenReturn(List.of());
         components.onApplicationReady();
         verify(mockRepository, never()).ingest(anyList());
     }
 
     @Test
     void testOnApplicationReady_HandlesException() {
-        when(mockMetadataService.findByType(MetadataType.ATTRIBUTE))
+        when(mockMetadataEntityService.findByKind(SchemaEntityKinds.ATTRIBUTE))
             .thenThrow(new RuntimeException("Test exception"));
         assertDoesNotThrow(() -> components.onApplicationReady());
     }

@@ -1,14 +1,16 @@
 package io.qpointz.mill.metadata.api
 
-import io.qpointz.mill.excepions.statuses.MillStatuses
+import io.qpointz.mill.UrnSlug
+import io.qpointz.mill.data.schema.CatalogPath
+import io.qpointz.mill.data.schema.MetadataEntityUrnCodec
 import io.qpointz.mill.metadata.domain.MetadataEntity
-import io.qpointz.mill.metadata.domain.MetadataOperationAuditRecord
-import io.qpointz.mill.metadata.domain.MetadataType
 import io.qpointz.mill.metadata.domain.MetadataUrns
-import io.qpointz.mill.metadata.domain.facet.FacetTargetCardinality
-import io.qpointz.mill.metadata.repository.MetadataFacetInstanceRow
-import io.qpointz.mill.metadata.repository.MetadataRepository
+import io.qpointz.mill.metadata.domain.facet.FacetInstance
+import io.qpointz.mill.metadata.domain.facet.MergeAction
+import io.qpointz.mill.metadata.repository.FacetRepository
+import io.qpointz.mill.metadata.service.FacetService
 import io.qpointz.mill.metadata.service.MetadataEditService
+import io.qpointz.mill.metadata.service.MetadataReader
 import io.qpointz.mill.metadata.service.MetadataService
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -16,7 +18,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.eq
-import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,9 +30,16 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.get
-import org.springframework.test.web.servlet.patch
 import org.springframework.test.web.servlet.post
-import org.springframework.test.web.servlet.put
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete as servletDelete
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get as servletGet
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post as servletPost
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put as servletPut
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.web.util.UriUtils
+import java.net.URI
+import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.util.Optional
 
@@ -49,26 +57,72 @@ class MetadataEntityControllerTest {
     private lateinit var metadataEditService: MetadataEditService
 
     @MockitoBean
-    private lateinit var metadataRepository: MetadataRepository
+    private lateinit var facetRepository: FacetRepository
+
+    @MockitoBean
+    private lateinit var facetService: FacetService
+
+    @MockitoBean
+    private lateinit var metadataReader: MetadataReader
+
+    @MockitoBean
+    private lateinit var urnCodec: MetadataEntityUrnCodec
+
+    private val schemaUrn = "urn:mill/metadata/entity:myschema"
+
+    /**
+     * Builds a request URI with the entity id as **one** encoded path segment (URNs contain `/`).
+     * Uses [URI.create] so MockMvc does not re-encode `%` (avoids `%252F` double encoding on plain string URLs).
+     */
+    private fun entityUri(entityId: String, suffix: String = ""): URI {
+        val path = "/api/v1/metadata/entities/" +
+            UriUtils.encodePathSegment(entityId, StandardCharsets.UTF_8) +
+            suffix
+        return URI.create("http://localhost$path")
+    }
+
+    /** Slug segment (no `/`) — matches UI + [UrnSlug.encode]. */
+    private fun entitySlugUri(entityId: String, suffix: String = ""): URI {
+        val slug = UrnSlug.encode(entityId)
+        val path = "/api/v1/metadata/entities/" +
+            UriUtils.encodePathSegment(slug, StandardCharsets.UTF_8) +
+            suffix
+        return URI.create("http://localhost$path")
+    }
 
     private val baseEntity = MetadataEntity(
-        id = "myschema",
-        type = MetadataType.SCHEMA,
-        schemaName = "myschema",
+        id = schemaUrn,
+        kind = "schema",
+        uuid = "550e8400-e29b-41d4-a716-446655440000",
         createdAt = Instant.parse("2025-01-01T00:00:00Z"),
-        updatedAt = Instant.parse("2025-01-01T00:00:00Z"),
-        facets = mutableMapOf(
-            MetadataUrns.FACET_TYPE_DESCRIPTIVE to mutableMapOf(
-                MetadataUrns.SCOPE_GLOBAL to mapOf("displayName" to "My Schema")
-            )
-        )
+        createdBy = "system",
+        lastModifiedAt = Instant.parse("2025-01-01T00:00:00Z"),
+        lastModifiedBy = "system"
+    )
+
+    private val descriptiveInstance = FacetInstance(
+        uid = "facet-uid-1",
+        entityId = schemaUrn,
+        facetTypeKey = MetadataUrns.FACET_TYPE_DESCRIPTIVE,
+        scopeKey = MetadataUrns.SCOPE_GLOBAL,
+        mergeAction = MergeAction.SET,
+        payload = mapOf("displayName" to "My Schema"),
+        createdAt = Instant.EPOCH,
+        createdBy = "u",
+        lastModifiedAt = Instant.EPOCH,
+        lastModifiedBy = "u"
     )
 
     @BeforeEach
-    fun authenticateWriter() {
+    fun setupStubs() {
         val auth = UsernamePasswordAuthenticationToken("test-user", null, emptyList())
         SecurityContextHolder.getContext().authentication = auth
-        whenever(metadataRepository.listFacetInstanceRows(any())).thenReturn(emptyList())
+        whenever(urnCodec.decode(schemaUrn)).thenReturn(CatalogPath("myschema", null, null))
+        whenever(facetRepository.findByEntity(schemaUrn)).thenReturn(listOf(descriptiveInstance))
+        whenever(facetRepository.findByEntityAndType(eq(schemaUrn), any())).thenReturn(listOf(descriptiveInstance))
+        whenever(facetService.resolve(eq(schemaUrn), any())).thenReturn(listOf(descriptiveInstance))
+        whenever(facetService.resolveByType(eq(schemaUrn), any(), any())).thenReturn(listOf(descriptiveInstance))
+        whenever(metadataReader.resolveEffective(any(), any())).thenReturn(listOf(descriptiveInstance))
     }
 
     @AfterEach
@@ -83,146 +137,127 @@ class MetadataEntityControllerTest {
         mockMvc.get("/api/v1/metadata/entities")
             .andExpect {
                 status { isOk() }
-                content { contentTypeCompatibleWith(MediaType.APPLICATION_JSON) }
-                jsonPath("$[0].id") { value("myschema") }
-                jsonPath("$[0].type") { value("SCHEMA") }
+                jsonPath("$[0].entityUrn") { value(schemaUrn) }
+                jsonPath("$[0].kind") { value("schema") }
             }
     }
 
     @Test
-    fun shouldFilterBySchema_whenSchemaParamProvided() {
-        whenever(metadataService.findAll()).thenReturn(listOf(baseEntity))
-
+    fun shouldReturnBadRequest_whenListWithSchemaQueryParam() {
         mockMvc.get("/api/v1/metadata/entities") {
             param("schema", "myschema")
         }.andExpect {
-            status { isOk() }
-            jsonPath("$[0].schemaName") { value("myschema") }
+            status { isBadRequest() }
         }
     }
 
     @Test
-    fun shouldReturnEmptyList_whenSchemaParamDoesNotMatch() {
-        whenever(metadataService.findAll()).thenReturn(listOf(baseEntity))
+    fun shouldListByKind_whenKindParamProvided() {
+        whenever(metadataService.findByKind("table")).thenReturn(emptyList())
 
         mockMvc.get("/api/v1/metadata/entities") {
-            param("schema", "nonexistent")
+            param("kind", "table")
         }.andExpect {
             status { isOk() }
-            jsonPath("$.length()") { value(0) }
         }
     }
 
     @Test
     fun shouldGetEntityById_whenEntityExists() {
-        whenever(metadataService.findById("myschema")).thenReturn(Optional.of(baseEntity))
+        whenever(metadataService.findById(schemaUrn)).thenReturn(Optional.of(baseEntity))
 
+        mockMvc.perform(servletGet(entityUri(schemaUrn)))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.entityUrn").value(schemaUrn))
+            .andExpect(jsonPath("$.kind").value("schema"))
+    }
+
+    @Test
+    fun shouldReturn400_whenEntityPathIsDotKey() {
         mockMvc.get("/api/v1/metadata/entities/myschema")
             .andExpect {
-                status { isOk() }
-                jsonPath("$.id") { value("myschema") }
-                jsonPath("$.schemaName") { value("myschema") }
+                status { isBadRequest() }
             }
     }
 
     @Test
     fun shouldReturn404_whenEntityNotFound() {
-        whenever(metadataService.findById(any())).thenReturn(Optional.empty())
+        val missing = "urn:mill/metadata/entity:missing"
+        whenever(metadataService.findById(missing)).thenReturn(Optional.empty())
 
-        mockMvc.get("/api/v1/metadata/entities/unknown")
-            .andExpect {
-                status { isNotFound() }
-            }
+        mockMvc.perform(servletGet(entityUri(missing)))
+            .andExpect(status().isNotFound)
     }
 
     @Test
     fun shouldGetEntityFacets_whenEntityExists() {
-        whenever(metadataService.findById("myschema")).thenReturn(Optional.of(baseEntity))
+        whenever(metadataService.findById(schemaUrn)).thenReturn(Optional.of(baseEntity))
 
-        mockMvc.get("/api/v1/metadata/entities/myschema/facets")
-            .andExpect {
-                status { isOk() }
-                jsonPath("$[0].facetType") {
-                    value(MetadataUrns.FACET_TYPE_DESCRIPTIVE)
-                }
-            }
+        mockMvc.perform(servletGet(entityUri(schemaUrn, "/facets")))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].facetTypeUrn").value(MetadataUrns.FACET_TYPE_DESCRIPTIVE))
+            .andExpect(jsonPath("$[0].uid").value("facet-uid-1"))
     }
 
     @Test
-    fun shouldReturn404ForFacets_whenEntityNotFound() {
-        whenever(metadataService.findById(any())).thenReturn(Optional.empty())
+    fun shouldGetEntityFacets_whenEntityIdIsUrnSlugPathSegment() {
+        whenever(metadataService.findById(schemaUrn)).thenReturn(Optional.of(baseEntity))
 
-        mockMvc.get("/api/v1/metadata/entities/unknown/facets")
-            .andExpect {
-                status { isNotFound() }
-            }
+        mockMvc.perform(servletGet(entitySlugUri(schemaUrn, "/facets")))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].facetTypeUrn").value(MetadataUrns.FACET_TYPE_DESCRIPTIVE))
+            .andExpect(jsonPath("$[0].uid").value("facet-uid-1"))
+    }
+
+    @Test
+    fun shouldReturnEmptyFacets_whenNoMetadataEntityRow() {
+        val missing = "urn:mill/metadata/entity:nope"
+        whenever(metadataService.findById(missing)).thenReturn(Optional.empty())
+        whenever(facetService.resolve(eq(missing), any())).thenReturn(emptyList())
+
+        mockMvc.perform(servletGet(entityUri(missing, "/facets")))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(0))
+    }
+
+    @Test
+    fun shouldGetEntityFacets_whenPathIdIsPrefixedLocalPartOnly() {
+        val local = "myschema.mytable"
+        val fullUrn = "urn:mill/metadata/entity:$local"
+        whenever(facetService.resolve(eq(fullUrn), any())).thenReturn(listOf(descriptiveInstance))
+
+        mockMvc.perform(servletGet(URI.create("http://localhost/api/v1/metadata/entities/$local/facets")))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].uid").value("facet-uid-1"))
     }
 
     @Test
     fun shouldGetFacetByType_whenEntityAndFacetExist() {
-        whenever(metadataService.findById("myschema")).thenReturn(Optional.of(baseEntity))
+        whenever(metadataService.findById(schemaUrn)).thenReturn(Optional.of(baseEntity))
 
-        mockMvc.get("/api/v1/metadata/entities/myschema/facets/descriptive")
-            .andExpect {
-                status { isOk() }
-                jsonPath("$.facetType") { value(MetadataUrns.FACET_TYPE_DESCRIPTIVE) }
-            }
+        mockMvc.perform(servletGet(entityUri(schemaUrn, "/facets/descriptive")))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].facetTypeUrn").value(MetadataUrns.FACET_TYPE_DESCRIPTIVE))
     }
 
     @Test
-    fun shouldReturn404ForFacetByType_whenFacetTypeAbsent() {
-        whenever(metadataService.findById("myschema")).thenReturn(Optional.of(baseEntity))
+    fun shouldReturnEmptyArrayForFacetByType_whenFacetTypeAbsent() {
+        whenever(facetService.resolveByType(eq(schemaUrn), any(), any())).thenReturn(emptyList())
 
-        mockMvc.get("/api/v1/metadata/entities/myschema/facets/structural")
-            .andExpect {
-                status { isNotFound() }
-            }
-    }
-
-    @Test
-    fun shouldReturn404ForFacetByType_whenEntityNotFound() {
-        whenever(metadataService.findById(any())).thenReturn(Optional.empty())
-
-        mockMvc.get("/api/v1/metadata/entities/unknown/facets/descriptive")
-            .andExpect {
-                status { isNotFound() }
-            }
-    }
-
-    @Test
-    fun shouldDefaultToGlobalContext_whenContextParamOmitted() {
-        whenever(metadataService.findById("myschema")).thenReturn(Optional.of(baseEntity))
-
-        mockMvc.get("/api/v1/metadata/entities/myschema/facets/descriptive")
-            .andExpect {
-                status { isOk() }
-                jsonPath("$.payload") { isNotEmpty() }
-            }
-    }
-
-    @Test
-    fun shouldApplyContext_whenContextParamProvided() {
-        whenever(metadataService.findById("myschema")).thenReturn(Optional.of(baseEntity))
-
-        mockMvc.get("/api/v1/metadata/entities/myschema/facets/descriptive") {
-            param("context", "global")
-        }.andExpect {
-            status { isOk() }
-            jsonPath("$.payload") { isNotEmpty() }
-        }
+        mockMvc.perform(servletGet(entityUri(schemaUrn, "/facets/structural")))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(0))
     }
 
     @Test
     fun shouldReturnBadRequest_whenContextParamIsMalformed() {
-        mockMvc.get("/api/v1/metadata/entities/myschema/facets/descriptive") {
-            param("context", ",")
-        }.andExpect {
-            status { isBadRequest() }
-            jsonPath("$.status") { value("BAD_REQUEST") }
-        }
+        mockMvc.perform(
+            servletGet(entityUri(schemaUrn, "/facets/descriptive"))
+                .param("context", ",")
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
     }
-
-    // --- Write / history paths (WI-098) ---
 
     @Test
     fun shouldReturn401_whenCreateEntityWithoutAuthentication() {
@@ -230,354 +265,90 @@ class MetadataEntityControllerTest {
         try {
             mockMvc.post("/api/v1/metadata/entities") {
                 contentType = MediaType.APPLICATION_JSON
-                content = """{"id":"x","type":"SCHEMA","schemaName":"x","facets":{}}"""
+                content = """{"entityUrn":"urn:mill/metadata/entity:x","kind":"schema"}"""
             }.andExpect {
                 status { isUnauthorized() }
-                jsonPath("$.status") { value("UNAUTHORIZED") }
-                jsonPath("$.message") { exists() }
             }
         } finally {
-            authenticateWriter()
+            val auth = UsernamePasswordAuthenticationToken("test-user", null, emptyList())
+            SecurityContextHolder.getContext().authentication = auth
         }
     }
 
     @Test
     fun shouldCreateEntity_whenPost() {
-        whenever(metadataEditService.createEntity(any(), any())).thenAnswer { inv ->
-            inv.getArgument(0) as MetadataEntity
-        }
+        val newUrn = "urn:mill/metadata/entity:new-entity"
+        whenever(urnCodec.decode(newUrn)).thenReturn(CatalogPath("new-entity", null, null))
+        val created = MetadataEntity(
+            id = newUrn,
+            kind = "schema",
+            uuid = "u1",
+            createdAt = Instant.now(),
+            createdBy = "test-user",
+            lastModifiedAt = Instant.now(),
+            lastModifiedBy = "test-user"
+        )
+        whenever(metadataEditService.createEntity(any(), eq("test-user"))).thenReturn(created)
+        whenever(metadataService.findById(newUrn)).thenReturn(Optional.of(created))
+        whenever(facetRepository.findByEntity(newUrn)).thenReturn(emptyList())
 
         mockMvc.post("/api/v1/metadata/entities") {
             contentType = MediaType.APPLICATION_JSON
-            content = """{"id":"new-entity","type":"SCHEMA","schemaName":"new-entity","facets":{}}"""
+            content = """{"entityUrn":"$newUrn","kind":"schema"}"""
         }.andExpect {
             status { isCreated() }
-            header { exists("Location") }
-            jsonPath("$.id") { value("new-entity") }
+            jsonPath("$.entityUrn") { value(newUrn) }
         }
     }
 
     @Test
     fun shouldOverwriteEntity_whenPut() {
-        val updated = MetadataEntity(
-            id = "myschema",
-            type = MetadataType.SCHEMA,
-            schemaName = "myschema",
-            createdAt = Instant.parse("2025-01-01T00:00:00Z"),
-            updatedAt = Instant.parse("2025-06-01T00:00:00Z"),
-            facets = mutableMapOf()
+        whenever(metadataEditService.overwriteEntity(any(), any(), any())).thenReturn(baseEntity)
+        whenever(metadataService.findById(schemaUrn)).thenReturn(Optional.of(baseEntity))
+        whenever(facetRepository.findByEntity(schemaUrn)).thenReturn(emptyList())
+
+        mockMvc.perform(
+            servletPut(entityUri(schemaUrn))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""{"kind":"schema"}""")
         )
-        whenever(metadataEditService.overwriteEntity(any(), any(), any())).thenReturn(updated)
-
-        mockMvc.put("/api/v1/metadata/entities/myschema") {
-            contentType = MediaType.APPLICATION_JSON
-            content = """{"id":"myschema","type":"SCHEMA","schemaName":"myschema","facets":{}}"""
-        }.andExpect {
-            status { isOk() }
-            jsonPath("$.id") { value("myschema") }
-        }
-    }
-
-    @Test
-    fun shouldOverwriteEntity_whenPatch() {
-        val updated = MetadataEntity(
-            id = "myschema",
-            type = MetadataType.SCHEMA,
-            schemaName = "myschema",
-            createdAt = Instant.parse("2025-01-01T00:00:00Z"),
-            updatedAt = Instant.parse("2025-06-01T00:00:00Z"),
-            facets = mutableMapOf()
-        )
-        whenever(metadataEditService.overwriteEntity(any(), any(), any())).thenReturn(updated)
-
-        mockMvc.patch("/api/v1/metadata/entities/myschema") {
-            contentType = MediaType.APPLICATION_JSON
-            content = """{"id":"myschema","type":"SCHEMA","schemaName":"myschema","facets":{}}"""
-        }.andExpect {
-            status { isOk() }
-            jsonPath("$.id") { value("myschema") }
-        }
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.entityUrn").value(schemaUrn))
     }
 
     @Test
     fun shouldDeleteEntity_whenDelete() {
         doNothing().whenever(metadataEditService).deleteEntity(any(), any())
 
-        mockMvc.delete("/api/v1/metadata/entities/myschema")
-            .andExpect {
-                status { isNoContent() }
-            }
+        mockMvc.perform(servletDelete(entityUri(schemaUrn)))
+            .andExpect(status().isNoContent)
     }
 
     @Test
-    fun shouldSetFacet_whenPutFacet() {
-        whenever(metadataService.findById("myschema")).thenReturn(Optional.of(baseEntity))
-        val updated = MetadataEntity(
-            id = "myschema",
-            type = MetadataType.SCHEMA,
-            schemaName = "myschema",
-            createdAt = baseEntity.createdAt,
-            updatedAt = Instant.parse("2025-06-01T00:00:00Z"),
-            facets = mutableMapOf(
-                MetadataUrns.FACET_TYPE_DESCRIPTIVE to mutableMapOf(
-                    MetadataUrns.SCOPE_GLOBAL to mapOf("displayName" to "Edited")
-                )
-            )
+    fun shouldAssignFacet_whenPostFacet() {
+        whenever(metadataService.findById(schemaUrn)).thenReturn(Optional.of(baseEntity))
+        whenever(metadataEditService.setFacet(any(), any(), any(), any(), any())).thenReturn(descriptiveInstance)
+
+        mockMvc.perform(
+            servletPost(entityUri(schemaUrn, "/facets/descriptive"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""{"displayName":"X"}""")
         )
-        whenever(metadataEditService.setFacet(any(), any(), any(), any(), any())).thenReturn(updated)
-
-        mockMvc.put("/api/v1/metadata/entities/myschema/facets/descriptive") {
-            contentType = MediaType.APPLICATION_JSON
-            content = """{"displayName":"Edited"}"""
-            param("context", "global")
-        }.andExpect {
-            status { isOk() }
-            jsonPath("$.facetType") { value(MetadataUrns.FACET_TYPE_DESCRIPTIVE) }
-            jsonPath("$.payload.displayName") { value("Edited") }
-        }
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.facetTypeUrn").value(MetadataUrns.FACET_TYPE_DESCRIPTIVE))
     }
 
     @Test
-    fun shouldDeleteFacet_whenDeleteFacet() {
-        whenever(metadataService.findById("myschema")).thenReturn(Optional.of(baseEntity))
+    fun shouldDeleteFacetAtScope_whenDeleteWithScopeQuery() {
+        whenever(metadataService.findById(schemaUrn)).thenReturn(Optional.of(baseEntity))
+        whenever(facetRepository.findByEntity(schemaUrn)).thenReturn(listOf(descriptiveInstance))
         doNothing().whenever(metadataEditService).deleteFacet(any(), any(), any(), any())
 
-        mockMvc.delete("/api/v1/metadata/entities/myschema/facets/descriptive") {
-            param("context", "global")
-        }.andExpect {
-            status { isNoContent() }
-        }
-
-        verify(metadataEditService).deleteFacet(
-            eq("myschema"),
-            eq("descriptive"),
-            eq(MetadataUrns.SCOPE_GLOBAL),
-            eq("test-user")
+        mockMvc.perform(
+            servletDelete(entityUri(schemaUrn, "/facets/descriptive"))
+                .param("scope", "global")
         )
-    }
-
-    @Test
-    fun shouldDeleteFacetFromEffectiveScope_whenLastContextScopeHasNoPayload() {
-        val entity = MetadataEntity(
-            id = "myschema",
-            type = MetadataType.SCHEMA,
-            schemaName = "myschema",
-            createdAt = Instant.parse("2025-01-01T00:00:00Z"),
-            updatedAt = Instant.parse("2025-01-01T00:00:00Z"),
-            facets = mutableMapOf(
-                MetadataUrns.FACET_TYPE_DESCRIPTIVE to mutableMapOf(
-                    MetadataUrns.SCOPE_GLOBAL to mapOf("displayName" to "Only global")
-                )
-            )
-        )
-        whenever(metadataService.findById("myschema")).thenReturn(Optional.of(entity))
-        doNothing().whenever(metadataEditService).deleteFacet(any(), any(), any(), any())
-
-        mockMvc.delete("/api/v1/metadata/entities/myschema/facets/descriptive") {
-            param("context", "global,user:alice")
-        }.andExpect {
-            status { isNoContent() }
-        }
-
-        verify(metadataEditService).deleteFacet(
-            eq("myschema"),
-            eq("descriptive"),
-            eq(MetadataUrns.SCOPE_GLOBAL),
-            eq("test-user")
-        )
-    }
-
-    @Test
-    fun shouldGetEntityFacetsFromInstanceRows_whenJpaStorage() {
-        whenever(metadataService.findById("myschema")).thenReturn(Optional.of(baseEntity))
-        val uid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
-        whenever(metadataRepository.listFacetInstanceRows("myschema")).thenReturn(
-            listOf(
-                MetadataFacetInstanceRow(
-                    facetTypeKey = MetadataUrns.FACET_TYPE_DESCRIPTIVE,
-                    scopeKey = MetadataUrns.SCOPE_GLOBAL,
-                    facetUid = uid,
-                    sortKey = 1L,
-                    payload = mapOf("displayName" to "My Schema")
-                )
-            )
-        )
-
-        mockMvc.get("/api/v1/metadata/entities/myschema/facets")
-            .andExpect {
-                status { isOk() }
-                jsonPath("$[0].uid") { value(uid) }
-                jsonPath("$[0].facetType") { value(MetadataUrns.FACET_TYPE_DESCRIPTIVE) }
-            }
-    }
-
-    @Test
-    fun shouldReturn400_whenDeleteMultipleFacetWithoutUid() {
-        whenever(metadataService.findById("myschema")).thenReturn(Optional.of(baseEntity))
-        whenever(metadataRepository.listFacetInstanceRows("myschema")).thenReturn(
-            listOf(
-                MetadataFacetInstanceRow(
-                    facetTypeKey = MetadataUrns.FACET_TYPE_DESCRIPTIVE,
-                    scopeKey = MetadataUrns.SCOPE_GLOBAL,
-                    facetUid = "u1",
-                    sortKey = 1L,
-                    payload = mapOf("a" to 1)
-                ),
-                MetadataFacetInstanceRow(
-                    facetTypeKey = MetadataUrns.FACET_TYPE_DESCRIPTIVE,
-                    scopeKey = MetadataUrns.SCOPE_GLOBAL,
-                    facetUid = "u2",
-                    sortKey = 2L,
-                    payload = mapOf("b" to 2)
-                )
-            )
-        )
-        whenever(metadataRepository.resolveFacetTargetCardinality(MetadataUrns.FACET_TYPE_DESCRIPTIVE))
-            .thenReturn(FacetTargetCardinality.MULTIPLE)
-        whenever(
-            metadataRepository.countFacetInstancesAtScope(
-                eq("myschema"),
-                eq(MetadataUrns.FACET_TYPE_DESCRIPTIVE),
-                eq(MetadataUrns.SCOPE_GLOBAL)
-            )
-        ).thenReturn(2)
-
-        mockMvc.delete("/api/v1/metadata/entities/myschema/facets/descriptive") {
-            param("context", "global")
-        }.andExpect {
-            status { isBadRequest() }
-        }
-        verify(metadataEditService, never()).deleteFacet(any(), any(), any(), any())
-        verify(metadataEditService, never()).deleteFacetInstanceByUid(any(), any(), any())
-    }
-
-    @Test
-    fun shouldDeleteFacetInstance_whenUidQueryParam() {
-        whenever(metadataService.findById("myschema")).thenReturn(Optional.of(baseEntity))
-        whenever(metadataRepository.listFacetInstanceRows("myschema")).thenReturn(
-            listOf(
-                MetadataFacetInstanceRow(
-                    facetTypeKey = MetadataUrns.FACET_TYPE_DESCRIPTIVE,
-                    scopeKey = MetadataUrns.SCOPE_GLOBAL,
-                    facetUid = "u1",
-                    sortKey = 1L,
-                    payload = emptyMap<String, Any>()
-                ),
-                MetadataFacetInstanceRow(
-                    facetTypeKey = MetadataUrns.FACET_TYPE_DESCRIPTIVE,
-                    scopeKey = MetadataUrns.SCOPE_GLOBAL,
-                    facetUid = "u2",
-                    sortKey = 2L,
-                    payload = emptyMap<String, Any>()
-                )
-            )
-        )
-        whenever(metadataRepository.resolveFacetTargetCardinality(any())).thenReturn(FacetTargetCardinality.MULTIPLE)
-        whenever(metadataRepository.countFacetInstancesAtScope(any(), any(), any())).thenReturn(2)
-        whenever(metadataRepository.findFacetInstanceRow(eq("myschema"), eq("u1"))).thenReturn(
-            MetadataFacetInstanceRow(
-                facetTypeKey = MetadataUrns.FACET_TYPE_DESCRIPTIVE,
-                scopeKey = MetadataUrns.SCOPE_GLOBAL,
-                facetUid = "u1",
-                sortKey = 1L,
-                payload = emptyMap<String, Any>()
-            )
-        )
-        whenever(metadataEditService.deleteFacetInstanceByUid(any(), any(), any())).thenReturn(baseEntity)
-
-        mockMvc.delete("/api/v1/metadata/entities/myschema/facets/descriptive") {
-            param("context", "global")
-            param("uid", "u1")
-        }.andExpect {
-            status { isNoContent() }
-        }
-
-        verify(metadataEditService).deleteFacetInstanceByUid(eq("myschema"), eq("u1"), eq("test-user"))
-    }
-
-    @Test
-    fun shouldDeleteFacetInstance_whenPathSegment() {
-        whenever(metadataRepository.findFacetInstanceRow(eq("myschema"), eq("facet-uid-1"))).thenReturn(
-            MetadataFacetInstanceRow(
-                facetTypeKey = MetadataUrns.FACET_TYPE_DESCRIPTIVE,
-                scopeKey = MetadataUrns.SCOPE_GLOBAL,
-                facetUid = "facet-uid-1",
-                sortKey = 1L,
-                payload = emptyMap<String, Any>()
-            )
-        )
-        whenever(metadataEditService.deleteFacetInstanceByUid(any(), any(), any())).thenReturn(baseEntity)
-
-        mockMvc.delete("/api/v1/metadata/entities/myschema/facet-instances/facet-uid-1")
-            .andExpect {
-                status { isNoContent() }
-            }
-
-        verify(metadataEditService).deleteFacetInstanceByUid(eq("myschema"), eq("facet-uid-1"), eq("test-user"))
-    }
-
-    @Test
-    fun shouldReturnHistory_whenGetHistory() {
-        val occurred = Instant.parse("2025-01-15T12:00:00Z")
-        val row = MetadataOperationAuditRecord(
-            auditId = "audit-1",
-            operationType = "ENTITY_UPDATED",
-            entityId = "myschema",
-            facetType = null,
-            scopeKey = null,
-            actorId = "test-user",
-            occurredAt = occurred,
-            payloadBefore = null,
-            payloadAfter = null,
-            changeSummary = null
-        )
-        whenever(metadataEditService.history("myschema")).thenReturn(listOf(row))
-
-        mockMvc.get("/api/v1/metadata/entities/myschema/history")
-            .andExpect {
-                status { isOk() }
-                jsonPath("$.length()") { value(1) }
-                jsonPath("$[0].auditId") { value("audit-1") }
-                jsonPath("$[0].operationType") { value("ENTITY_UPDATED") }
-                jsonPath("$[0].entityId") { value("myschema") }
-            }
-    }
-
-    @Test
-    fun shouldReturn404WithMillStatusBody_whenOverwriteEntityNotFound() {
-        whenever(metadataEditService.overwriteEntity(any(), any(), any())).thenThrow(
-            MillStatuses.notFoundRuntime("Entity not found: myschema")
-        )
-
-        mockMvc.put("/api/v1/metadata/entities/myschema") {
-            contentType = MediaType.APPLICATION_JSON
-            content = """{"id":"myschema","type":"SCHEMA","schemaName":"myschema","facets":{}}"""
-        }.andExpect {
-            status { isNotFound() }
-            jsonPath("$.status") { value("NOT_FOUND") }
-            jsonPath("$.message") { exists() }
-        }
-    }
-
-    @Test
-    fun shouldReturn422WithMillStatusBody_whenFacetPayloadMissingAfterWrite() {
-        whenever(metadataService.findById("myschema")).thenReturn(Optional.of(baseEntity))
-        val missingPayloadFacet = MetadataEntity(
-            id = "myschema",
-            type = MetadataType.SCHEMA,
-            schemaName = "myschema",
-            facets = mutableMapOf()
-        )
-        whenever(metadataEditService.setFacet(any(), any(), any(), any(), any())).thenReturn(missingPayloadFacet)
-
-        mockMvc.put("/api/v1/metadata/entities/myschema/facets/descriptive") {
-            contentType = MediaType.APPLICATION_JSON
-            content = "{}"
-            param("context", "global")
-        }.andExpect {
-            status { isUnprocessableEntity() }
-            jsonPath("$.status") { value("UNPROCESSABLE") }
-            jsonPath("$.message") { exists() }
-        }
+            .andExpect(status().isNoContent)
+        verify(metadataEditService).deleteFacet(any(), any(), any(), eq("test-user"))
     }
 }

@@ -7,6 +7,7 @@ import {
   HiOutlineServerStack,
   HiOutlineSquares2X2,
   HiOutlineRectangleStack,
+  HiOutlineTag,
   HiOutlineWrenchScrewdriver,
 } from 'react-icons/hi2';
 import { CollapsibleSidebar } from '../common/CollapsibleSidebar';
@@ -113,6 +114,29 @@ export function AdminLayout() {
             padding: 'var(--mantine-spacing-xs)',
           }}
         >
+          {flags.adminModelNavEnabled && (
+            <NavLink
+              label="Metadata"
+              leftSection={<HiOutlineTag size={16} />}
+              defaultOpened
+              active={group === 'model'}
+              childrenOffset={18}
+            >
+              {modelItems.map((item) => (
+                <NavLink
+                  key={item.id}
+                  label={item.label}
+                  leftSection={<item.icon size={16} />}
+                  active={location.pathname.startsWith(item.path)}
+                  onClick={() => navigate(item.path)}
+                  variant="light"
+                  color={isDark ? 'cyan' : 'teal'}
+                  style={{ borderRadius: 'var(--mantine-radius-sm)' }}
+                />
+              ))}
+            </NavLink>
+          )}
+
           <NavLink
             label="System"
             leftSection={<HiOutlineSquares2X2 size={16} />}
@@ -133,29 +157,6 @@ export function AdminLayout() {
               />
             ))}
           </NavLink>
-
-          {flags.adminModelNavEnabled && (
-            <NavLink
-              label="Model"
-              leftSection={<HiOutlineRectangleStack size={16} />}
-              defaultOpened
-              active={group === 'model'}
-              childrenOffset={18}
-            >
-              {modelItems.map((item) => (
-                <NavLink
-                  key={item.id}
-                  label={item.label}
-                  leftSection={<item.icon size={16} />}
-                  active={location.pathname.startsWith(item.path)}
-                  onClick={() => navigate(item.path)}
-                  variant="light"
-                  color={isDark ? 'cyan' : 'teal'}
-                  style={{ borderRadius: 'var(--mantine-radius-sm)' }}
-                />
-              ))}
-            </NavLink>
-          )}
 
           {systemItems.length === 0 && modelItems.length === 0 && (
             <Text size="xs" c="dimmed" ta="center" py="md">
@@ -226,7 +227,7 @@ export function AdminLayout() {
               Admin Area
             </Text>
             <Text size="sm" c="dimmed" ta="center" maw={400}>
-              Select a section from the sidebar to manage system and model administration.
+              Select a section from the sidebar to manage system and metadata administration.
             </Text>
           </Box>
         )}

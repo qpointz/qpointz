@@ -4,19 +4,19 @@ import io.qpointz.mill.ai.chat.ChatCall;
 import io.qpointz.mill.ai.chat.ChatUserRequest;
 import io.qpointz.mill.ai.chat.messages.MessageSelector;
 import io.qpointz.mill.ai.nlsql.*;
-import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.ai.nlsql.metadata.SchemaMessageMetadataPorts;
 
 public class DefaultReasoner implements Reasoner {
 
     private CallSpecsChatClientBuilders chatBuilders;
-    private MetadataService metadataService;
+    private SchemaMessageMetadataPorts schemaPorts;
     private MessageSelector messageSelector;
 
     public DefaultReasoner(CallSpecsChatClientBuilders chatBuilders,
-                                MetadataService metadataService,
+                                SchemaMessageMetadataPorts schemaPorts,
                                 MessageSelector messageSelector) {
         this.chatBuilders = chatBuilders;
-        this.metadataService = metadataService;
+        this.schemaPorts = schemaPorts;
         this.messageSelector = messageSelector;
     }
 
@@ -30,7 +30,7 @@ public class DefaultReasoner implements Reasoner {
         return new ReasonCall(
                 query,
                 this.chatBuilders.reasoningChat(),
-                MessageSpecs.reason(query, this.metadataService),
+                MessageSpecs.reason(query, this.schemaPorts),
                 this.messageSelector);
     }
 }

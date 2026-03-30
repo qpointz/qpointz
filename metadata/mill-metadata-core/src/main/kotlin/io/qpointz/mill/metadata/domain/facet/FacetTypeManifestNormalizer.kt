@@ -27,14 +27,42 @@ object FacetTypeManifestNormalizer {
             ?.map { UrnSlug.normalise(it, MetadataUrns.ENTITY_TYPE_PREFIX) }
             ?.distinct()
 
-        validateSchemaNode(path = "\$.payload", node = input.payload)
+        val payloadNorm = normalizePayloadStereotypes(input.payload)
+        validateSchemaNode(path = "\$.payload", node = payloadNorm)
 
+        val categoryNorm = (input.category?.trim() ?: "").ifBlank { "general" }
         return input.copy(
             typeKey = normTypeKey,
-            category = input.category.trim().ifBlank { "general" },
-            applicableTo = normApplicableTo
+            category = categoryNorm,
+            applicableTo = normApplicableTo,
+            payload = payloadNorm
         )
     }
+
+    /**
+     * Trims each [FacetPayloadField.stereotype] tag on every object field; empty lists become null.
+     */
+    private fun normalizePayloadStereotypes(node: FacetPayloadSchema): FacetPayloadSchema =
+        when (node.type) {
+            FacetSchemaType.OBJECT -> {
+                val fields = node.fields?.map { field ->
+                    val st = field.stereotype
+                        ?.map { it.trim() }
+                        ?.filter { it.isNotEmpty() }
+                        ?.takeIf { it.isNotEmpty() }
+                    field.copy(
+                        stereotype = st,
+                        schema = normalizePayloadStereotypes(field.schema)
+                    )
+                }
+                node.copy(fields = fields)
+            }
+            FacetSchemaType.ARRAY -> {
+                val items = node.items?.let { normalizePayloadStereotypes(it) }
+                node.copy(items = items)
+            }
+            else -> node
+        }
 
     private fun validateSchemaNode(path: String, node: FacetPayloadSchema) {
         if (node.title.isBlank()) throw FacetTypeManifestInvalidException("$path.title must not be blank")

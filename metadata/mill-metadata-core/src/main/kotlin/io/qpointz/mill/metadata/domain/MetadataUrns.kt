@@ -1,6 +1,7 @@
 package io.qpointz.mill.metadata.domain
 
 import io.qpointz.mill.UrnSlug
+import kotlin.jvm.JvmStatic
 
 /**
  * Central registry of Mill metadata URN constants and normalisation helpers.
@@ -8,7 +9,7 @@ import io.qpointz.mill.UrnSlug
  * All Mill object identifiers follow: `urn:mill/<domain>/<type>:<local-id>`.
  * This object provides:
  * - Prefix constants used by [UrnSlug] for prefixed-slug encoding on path variables.
- * - Per-type constants for platform facet types, entity types, and the global scope.
+ * - Per-type constants for platform facet types and the global scope (entity-type URNs live in the data schema module).
  * - Conversion functions to normalise legacy short keys and path variables to full URNs.
  *
  * @see UrnSlug
@@ -23,7 +24,14 @@ object MetadataUrns {
     /** URN prefix for scope identifiers, e.g. `urn:mill/metadata/scope:global`. */
     const val SCOPE_PREFIX = "urn:mill/metadata/scope:"
 
-    /** URN prefix for entity-type identifiers, e.g. `urn:mill/metadata/entity-type:schema`. */
+    /** URN prefix for persisted metadata entity ids, e.g. `urn:mill/metadata/entity:schema.table.col`. */
+    const val ENTITY_PREFIX = "urn:mill/metadata/entity:"
+
+    /**
+     * URN prefix for entity-type identifiers in facet manifests (`applicableTo`). Full vocabulary
+     * URNs are platform strings (see `platform-facet-types.json`); named constants live in
+     * `mill-data-schema-core` as [io.qpointz.mill.data.schema.SchemaEntityTypeUrns].
+     */
     const val ENTITY_TYPE_PREFIX = "urn:mill/metadata/entity-type:"
 
     // ── Platform facet-type URNs ──────────────────────────────────────
@@ -42,20 +50,6 @@ object MetadataUrns {
 
     /** Full URN for the `value-mapping` platform facet type. */
     const val FACET_TYPE_VALUE_MAPPING = "urn:mill/metadata/facet-type:value-mapping"
-
-    // ── Entity-type URNs ──────────────────────────────────────────────
-
-    /** Full URN for the `schema` entity type. */
-    const val ENTITY_TYPE_SCHEMA = "urn:mill/metadata/entity-type:schema"
-
-    /** Full URN for the `table` entity type. */
-    const val ENTITY_TYPE_TABLE = "urn:mill/metadata/entity-type:table"
-
-    /** Full URN for the `attribute` entity type. */
-    const val ENTITY_TYPE_ATTRIBUTE = "urn:mill/metadata/entity-type:attribute"
-
-    /** Full URN for the `concept` entity type. */
-    const val ENTITY_TYPE_CONCEPT = "urn:mill/metadata/entity-type:concept"
 
     // ── Scope URNs ────────────────────────────────────────────────────
 
@@ -163,6 +157,7 @@ object MetadataUrns {
      * @param value the raw path variable value
      * @return normalised full URN in the facet-type namespace
      */
+    @JvmStatic
     fun normaliseFacetTypePath(value: String): String =
         UrnSlug.normalise(value, FACET_TYPE_PREFIX, ::normaliseFacetTypeKey)
 

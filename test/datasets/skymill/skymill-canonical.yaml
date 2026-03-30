@@ -1,0 +1,3258 @@
+kind: MetadataScope
+scopeUrn: urn:mill/metadata/scope:global
+scopeType: GLOBAL
+referenceId: null
+displayName: Global
+visibility: PUBLIC
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill
+entityKind: schema
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Skymill
+    description: Qsynth model schema skymill
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-model
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    qsynth_model_name: skymill
+    config_schema: skymill
+    provenance_tool: QSYNTH
+    locales: en-US
+    rows_multiply: 0.7
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-run
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    run_id: qsynth-skymill-40755931-01ff-4dbf-8fcf-ef61ab6c8b15
+    experiment_names: write_mill_canonical
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cities
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: JDBC
+    package: ''
+    name: CITIES
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Cities
+    description: Airport cities served by the airline. Suitable for queries about
+      destinations, routes, passenger residence, or city coverage.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: cities
+    rows_spec: '20'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: segments
+      columns:
+      - origin
+    cardinality: ONE_TO_MANY
+    joinSql: cities.id = segments.origin
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: segments
+      columns:
+      - destination
+    cardinality: ONE_TO_MANY
+    joinSql: cities.id = segments.destination
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: passenger
+      columns:
+      - domicile_city_id
+    cardinality: ONE_TO_MANY
+    joinSql: cities.id = passenger.domicile_city_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cities.id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ID
+    type: INT
+    nullable: false
+    isPK: true
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Id
+    description: City code used to link routes and passenger locations.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 500000, "min": 100000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cities.state
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: STATE
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: State
+    description: State or region where the city is located.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: state
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cities.city
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: CITY
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: City
+    description: City name.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: city
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cities.population
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: POPULATION
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Population
+    description: Number of people living in the city.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 5000000, "min": 10000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cities.airport
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: AIRPORT
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Airport
+    description: Full airport name.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: airport_name
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cities.airport_iata
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: AIRPORT_IATA
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Airport Iata
+    description: IATA 3-letter airport code (e.g. JFK, LAX).
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: airport_iata
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.segments
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: JDBC
+    package: ''
+    name: SEGMENTS
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Segments
+    description: Flight routes between cities. Each row represents a direct route.
+      Suitable for queries about route lists, flights between cities, or route distance.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: segments
+    rows_spec: '80'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: flight_instances
+      columns:
+      - segment_id
+    cardinality: ONE_TO_MANY
+    joinSql: segments.id = flight_instances.segment_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: cargo_flights
+      columns:
+      - segment_id
+    cardinality: ONE_TO_MANY
+    joinSql: segments.id = cargo_flights.segment_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: cities
+      columns:
+      - id
+    targetColumns:
+    - origin
+    joinSql: cities.id = segments.origin
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: cities
+      columns:
+      - id
+    targetColumns:
+    - destination
+    joinSql: cities.id = segments.destination
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.segments.id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ID
+    type: INT
+    nullable: false
+    isPK: true
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Id
+    description: Route code used to link flights to origin and destination.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 500000, "min": 100000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.segments.origin
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ORIGIN
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Origin
+    description: Flight origin. References cities.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "cities"}'
+    ref_dataset: cities
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.segments.destination
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: DESTINATION
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Destination
+    description: Flight destination. References cities.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "cities"}'
+    ref_dataset: cities
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.segments.distance
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: DISTANCE
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Distance
+    description: Flight distance in kilometers.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 2500, "min": 200}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.aircraft_types
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: JDBC
+    package: ''
+    name: AIRCRAFT_TYPES
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Aircraft Types
+    description: 'Aircraft types in the fleet: narrow-body (small), wide-body (large),
+      regional (short-haul). Suitable for queries about fleet mix or capacity by type.'
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: STATIC
+    qsynth_dataset_name: aircraft_types
+    static_row_count: 3
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: aircraft
+      columns:
+      - aircraft_type_id
+    cardinality: ONE_TO_MANY
+    joinSql: aircraft_types.id = aircraft.aircraft_type_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.aircraft_types.id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ID
+    type: INT
+    nullable: false
+    isPK: true
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Id
+    description: ''
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: inferred
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.aircraft_types.name
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: NAME
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Name
+    description: ''
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: inferred
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.aircraft_types.description
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: DESCRIPTION
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Description
+    description: ''
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: inferred
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.aircraft
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: JDBC
+    package: ''
+    name: AIRCRAFT
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Aircraft
+    description: Aircraft fleet. Suitable for queries about fleet size, capacity,
+      or aircraft-route assignments.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: aircraft
+    rows_spec: '40'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: flight_instances
+      columns:
+      - aircraft_id
+    cardinality: ONE_TO_MANY
+    joinSql: aircraft.id = flight_instances.aircraft_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: cargo_flights
+      columns:
+      - aircraft_id
+    cardinality: ONE_TO_MANY
+    joinSql: aircraft.id = cargo_flights.aircraft_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: aircraft_types
+      columns:
+      - id
+    targetColumns:
+    - aircraft_type_id
+    joinSql: aircraft_types.id = aircraft.aircraft_type_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.aircraft.id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ID
+    type: INT
+    nullable: false
+    isPK: true
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Id
+    description: Plane identifier used to link flights to the aircraft.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 99999, "min": 10000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.aircraft.aircraft_code
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: AIRCRAFT_CODE
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Aircraft Code
+    description: Aircraft registration code (e.g. SKY123).
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: bothify
+    is_reference: false
+    generator_params_json: '{"letters": "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "text": "SKY###"}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.aircraft.aircraft_type_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: AIRCRAFT_TYPE_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Aircraft Type Id
+    description: Type of plane (narrow, wide, or regional). Links to aircraft_types.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "aircraft_types"}'
+    ref_dataset: aircraft_types
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.aircraft.capacity
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: CAPACITY
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Capacity
+    description: Passenger capacity.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 400, "min": 80}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.passenger
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: JDBC
+    package: ''
+    name: PASSENGER
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Passenger
+    description: Passengers with travel history. Includes loyalty program members.
+      Suitable for queries about passenger counts, demographics, or loyalty status.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: passenger
+    rows_spec: '300'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: bookings
+      columns:
+      - passenger_id
+    cardinality: ONE_TO_MANY
+    joinSql: passenger.id = bookings.passenger_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: loyalty_earnings
+      columns:
+      - passenger_id
+    cardinality: ONE_TO_MANY
+    joinSql: passenger.id = loyalty_earnings.passenger_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: ratings
+      columns:
+      - passenger_id
+    cardinality: ONE_TO_MANY
+    joinSql: passenger.id = ratings.passenger_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: cities
+      columns:
+      - id
+    targetColumns:
+    - domicile_city_id
+    joinSql: cities.id = passenger.domicile_city_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.passenger.id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ID
+    type: INT
+    nullable: false
+    isPK: true
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Id
+    description: Passenger identifier used to link bookings and loyalty earnings.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 9999999, "min": 1000000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.passenger.first_name
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: FIRST_NAME
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: First Name
+    description: Passenger's first name.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: first_name
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.passenger.last_name
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: LAST_NAME
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Last Name
+    description: Passenger's last name.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: last_name
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.passenger.domicile_address
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: DOMICILE_ADDRESS
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Domicile Address
+    description: Passenger's home address.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: address
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.passenger.domicile_city_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: DOMICILE_CITY_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Domicile City Id
+    description: Passenger residence city. References cities.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "cities"}'
+    ref_dataset: cities
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.passenger.age
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: AGE
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Age
+    description: Passenger's age.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 90, "min": 12}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.passenger.loyalty_program_member
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: LOYALTY_PROGRAM_MEMBER
+    type: BOOLEAN
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Loyalty Program Member
+    description: Indicates enrollment in the loyalty program.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: boolean
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.passenger.loyalty_tier
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: LOYALTY_TIER
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Loyalty Tier
+    description: Loyalty tier (basic, silver, gold, platinum). Higher tiers receive
+      additional benefits.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_element
+    is_reference: false
+    generator_params_json: '{"elements": ["basic", "silver", "gold", "platinum"]}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.flight_instances
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: JDBC
+    package: ''
+    name: FLIGHT_INSTANCES
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Flight Instances
+    description: Passenger flight occurrences. Each row represents a specific aircraft
+      on a route for given dates. Suitable for queries about flight counts, delays,
+      cancellations, or flight dates.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: flight_instances
+    rows_spec: '600'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: bookings
+      columns:
+      - flight_instance_id
+    cardinality: ONE_TO_MANY
+    joinSql: flight_instances.id = bookings.flight_instance_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: delays
+      columns:
+      - flight_instance_id
+    cardinality: ONE_TO_MANY
+    joinSql: flight_instances.id = delays.flight_instance_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: cancellations
+      columns:
+      - flight_instance_id
+    cardinality: ONE_TO_MANY
+    joinSql: flight_instances.id = cancellations.flight_instance_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: ratings
+      columns:
+      - flight_instance_id
+    cardinality: ONE_TO_MANY
+    joinSql: flight_instances.id = ratings.flight_instance_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: aircraft
+      columns:
+      - id
+    targetColumns:
+    - aircraft_id
+    joinSql: aircraft.id = flight_instances.aircraft_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: segments
+      columns:
+      - id
+    targetColumns:
+    - segment_id
+    joinSql: segments.id = flight_instances.segment_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.flight_instances.id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ID
+    type: INT
+    nullable: false
+    isPK: true
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Id
+    description: Flight identifier used to link bookings, delays, and ratings.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 9999999, "min": 1000000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.flight_instances.aircraft_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: AIRCRAFT_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Aircraft Id
+    description: Aircraft that operated the flight. References aircraft.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "aircraft"}'
+    ref_dataset: aircraft
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.flight_instances.segment_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: SEGMENT_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Segment Id
+    description: Route flown. References segments.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "segments"}'
+    ref_dataset: segments
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.flight_instances.departure_date
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: DEPARTURE_DATE
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Departure Date
+    description: Departure date.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: date_this_year
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.flight_instances.arrival_date
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ARRIVAL_DATE
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Arrival Date
+    description: Arrival date.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: date_this_year
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_flights
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: JDBC
+    package: ''
+    name: CARGO_FLIGHTS
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Cargo Flights
+    description: Cargo flight occurrences. Same structure as passenger flights for
+      freight operations. Suitable for queries about cargo volume, revenue by route,
+      or freight flight counts.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: cargo_flights
+    rows_spec: '400'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: cargo_shipments
+      columns:
+      - cargo_flight_id
+    cardinality: ONE_TO_MANY
+    joinSql: cargo_flights.id = cargo_shipments.cargo_flight_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: aircraft
+      columns:
+      - id
+    targetColumns:
+    - aircraft_id
+    joinSql: aircraft.id = cargo_flights.aircraft_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: segments
+      columns:
+      - id
+    targetColumns:
+    - segment_id
+    joinSql: segments.id = cargo_flights.segment_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_flights.id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ID
+    type: INT
+    nullable: false
+    isPK: true
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Id
+    description: Cargo flight identifier used to link shipments.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 999999, "min": 100000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_flights.aircraft_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: AIRCRAFT_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Aircraft Id
+    description: Aircraft used for the cargo. References aircraft.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "aircraft"}'
+    ref_dataset: aircraft
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_flights.segment_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: SEGMENT_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Segment Id
+    description: Route of the cargo flight. References segments.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "segments"}'
+    ref_dataset: segments
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_flights.departure_date
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: DEPARTURE_DATE
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Departure Date
+    description: Cargo flight departure date.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: date_this_year
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_flights.arrival_date
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ARRIVAL_DATE
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Arrival Date
+    description: Cargo flight arrival date.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: date_this_year
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.bookings
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: JDBC
+    package: ''
+    name: BOOKINGS
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Bookings
+    description: Ticket purchases. Each row represents a passenger seat reservation
+      on a flight. Suitable for queries about booking counts, revenue, or passenger
+      itineraries.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: bookings
+    rows_spec: '1500'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: loyalty_earnings
+      columns:
+      - booking_id
+    cardinality: ONE_TO_MANY
+    joinSql: bookings.id = loyalty_earnings.booking_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: ticket_prices
+      columns:
+      - booking_id
+    cardinality: ONE_TO_MANY
+    joinSql: bookings.id = ticket_prices.booking_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: passenger
+      columns:
+      - id
+    targetColumns:
+    - passenger_id
+    joinSql: passenger.id = bookings.passenger_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: flight_instances
+      columns:
+      - id
+    targetColumns:
+    - flight_instance_id
+    joinSql: flight_instances.id = bookings.flight_instance_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.bookings.id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ID
+    type: INT
+    nullable: false
+    isPK: true
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Id
+    description: Booking reference used to link ticket prices and loyalty earnings.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 9999999, "min": 1000000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.bookings.passenger_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: PASSENGER_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Passenger Id
+    description: Passenger who made the booking. References passenger.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "passenger"}'
+    ref_dataset: passenger
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.bookings.flight_instance_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: FLIGHT_INSTANCE_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Flight Instance Id
+    description: Booked flight. References flight_instances.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "flight_instances"}'
+    ref_dataset: flight_instances
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.bookings.seat_number
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: SEAT_NUMBER
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Seat Number
+    description: Assigned seat (e.g. 12A).
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: bothify
+    is_reference: false
+    generator_params_json: '{"letters": "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "text": "??#"}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.loyalty_earnings
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: JDBC
+    package: ''
+    name: LOYALTY_EARNINGS
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Loyalty Earnings
+    description: Miles earned per flight. Suitable for queries about loyalty program
+      activity, miles by tier, or total miles earned.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: loyalty_earnings
+    rows_spec: '1000'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: bookings
+      columns:
+      - id
+    targetColumns:
+    - booking_id
+    joinSql: bookings.id = loyalty_earnings.booking_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: passenger
+      columns:
+      - id
+    targetColumns:
+    - passenger_id
+    joinSql: passenger.id = loyalty_earnings.passenger_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.loyalty_earnings.id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Id
+    description: Mileage record ID used to link points to the passenger and booking.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 9999999, "min": 1000000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.loyalty_earnings.booking_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: BOOKING_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Booking Id
+    description: Booking that earned the miles. References bookings.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "bookings"}'
+    ref_dataset: bookings
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.loyalty_earnings.passenger_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: PASSENGER_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Passenger Id
+    description: Passenger who earned the miles. References passenger.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "passenger"}'
+    ref_dataset: passenger
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.loyalty_earnings.miles_earned
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: MILES_EARNED
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Miles Earned
+    description: Miles credited for this flight.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 5000, "min": 500}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.loyalty_earnings.earning_date
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: EARNING_DATE
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Earning Date
+    description: Date miles were credited.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: date_this_year
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.delays
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: JDBC
+    package: ''
+    name: DELAYS
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Delays
+    description: Delayed flights. Suitable for queries about delays, on-time performance,
+      or delay causes.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: delays
+    rows_spec: '400'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: flight_instances
+      columns:
+      - id
+    targetColumns:
+    - flight_instance_id
+    joinSql: flight_instances.id = delays.flight_instance_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.delays.id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Id
+    description: ID for this delay entry.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 9999999, "min": 1000000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.delays.flight_instance_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: FLIGHT_INSTANCE_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Flight Instance Id
+    description: Delayed flight. References flight_instances.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "flight_instances"}'
+    ref_dataset: flight_instances
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.delays.delay_minutes
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: DELAY_MINUTES
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Delay Minutes
+    description: Delay duration in minutes.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 180, "min": 5}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.delays.reason
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: REASON
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Reason
+    description: Delay cause (weather, technical, crew, other).
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_element
+    is_reference: false
+    generator_params_json: '{"elements": ["weather", "technical", "crew", "other"]}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cancellations
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: JDBC
+    package: ''
+    name: CANCELLATIONS
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Cancellations
+    description: Cancelled flights. Suitable for queries about cancellations, cancellation
+      rates, or cancellation reasons.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: cancellations
+    rows_spec: '100'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: flight_instances
+      columns:
+      - id
+    targetColumns:
+    - flight_instance_id
+    joinSql: flight_instances.id = cancellations.flight_instance_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cancellations.id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Id
+    description: ID for this cancellation entry.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 9999999, "min": 1000000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cancellations.flight_instance_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: FLIGHT_INSTANCE_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Flight Instance Id
+    description: Cancelled flight. References flight_instances.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "flight_instances"}'
+    ref_dataset: flight_instances
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cancellations.cancellation_reason
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: CANCELLATION_REASON
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Cancellation Reason
+    description: Cancellation reason (weather, technical, operational, low demand).
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_element
+    is_reference: false
+    generator_params_json: '{"elements": ["weather", "technical", "operational", "low_demand"]}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cancellations.cancellation_time
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: CANCELLATION_TIME
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Cancellation Time
+    description: Cancellation timestamp.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: date_this_year
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.ticket_prices
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: JDBC
+    package: ''
+    name: TICKET_PRICES
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Ticket Prices
+    description: Ticket prices paid by passengers. Suitable for queries about revenue,
+      average ticket price, pricing by class, or fare breakdown.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: ticket_prices
+    rows_spec: '1500'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: bookings
+      columns:
+      - id
+    targetColumns:
+    - booking_id
+    joinSql: bookings.id = ticket_prices.booking_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.ticket_prices.booking_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: BOOKING_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Booking Id
+    description: Booking to which this price applies. References bookings.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "bookings"}'
+    ref_dataset: bookings
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.ticket_prices.base_price
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: BASE_PRICE
+    type: DECIMAL(15,4)
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Base Price
+    description: Ticket price before taxes and fees.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_double
+    is_reference: false
+    generator_params_json: '{"max": 1500, "min": 50}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.ticket_prices.taxes
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: TAXES
+    type: DECIMAL(15,4)
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Taxes
+    description: Taxes and fees added to the ticket.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_double
+    is_reference: false
+    generator_params_json: '{"max": 300, "min": 10}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.ticket_prices.total_price
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: TOTAL_PRICE
+    type: DECIMAL(15,4)
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Total Price
+    description: Final price paid (base plus taxes).
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_double
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.ticket_prices.travel_class
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: TRAVEL_CLASS
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Travel Class
+    description: Cabin class (economy, business, first). Suitable for revenue or counts
+      by class.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_element
+    is_reference: false
+    generator_params_json: '{"elements": ["economy", "business", "first"]}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.ticket_prices.currency
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: CURRENCY
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Currency
+    description: Currency of the price (USD, EUR, CHF).
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_element
+    is_reference: false
+    generator_params_json: '{"elements": ["USD", "EUR", "CHF"]}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.ratings
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: JDBC
+    package: ''
+    name: RATINGS
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Ratings
+    description: Customer satisfaction scores (1–5) and post-flight comments. Suitable
+      for queries about ratings, feedback, or service quality.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: ratings
+    rows_spec: '800'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: passenger
+      columns:
+      - id
+    targetColumns:
+    - passenger_id
+    joinSql: passenger.id = ratings.passenger_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: flight_instances
+      columns:
+      - id
+    targetColumns:
+    - flight_instance_id
+    joinSql: flight_instances.id = ratings.flight_instance_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.ratings.id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Id
+    description: Rating record ID used to identify each feedback entry.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 9999999, "min": 1000000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.ratings.passenger_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: PASSENGER_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Passenger Id
+    description: Passenger who provided the rating. References passenger.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "passenger"}'
+    ref_dataset: passenger
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.ratings.flight_instance_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: FLIGHT_INSTANCE_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Flight Instance Id
+    description: Rated flight. References flight_instances.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "flight_instances"}'
+    ref_dataset: flight_instances
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.ratings.rating
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: RATING
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Rating
+    description: Numeric satisfaction rating between 1 (poor) and 5 (excellent).
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 5, "min": 1}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.ratings.rating_comment
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: RATING_COMMENT
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Rating Comment
+    description: Free-text feedback or comment from the passenger.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: text
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.ratings.rated_at
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: RATED_AT
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Rated At
+    description: Rating submission timestamp.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: date_this_year
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.countries
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: JDBC
+    package: ''
+    name: COUNTRIES
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Countries
+    description: Country reference list. Suitable for queries about geographic coverage,
+      breakdowns by country, or country grouping.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: countries
+    rows_spec: '50'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: cargo_clients
+      columns:
+      - country_id
+    cardinality: ONE_TO_MANY
+    joinSql: countries.id = cargo_clients.country_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.countries.id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ID
+    type: INT
+    nullable: false
+    isPK: true
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Id
+    description: Country identifier. Referenced by cargo_clients.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 500, "min": 1}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.countries.iso_code
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ISO_CODE
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Iso Code
+    description: ISO 2-letter country code (e.g. US, DE).
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: country_code
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.countries.name
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: NAME
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Name
+    description: Full country name.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: country
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_clients
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: JDBC
+    package: ''
+    name: CARGO_CLIENTS
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Cargo Clients
+    description: Freight-shipping clients. Suitable for queries about top shippers,
+      revenue by client, or client locations.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: cargo_clients
+    rows_spec: '200'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: cargo_shipments
+      columns:
+      - client_id
+    cardinality: ONE_TO_MANY
+    joinSql: cargo_clients.id = cargo_shipments.client_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: countries
+      columns:
+      - id
+    targetColumns:
+    - country_id
+    joinSql: countries.id = cargo_clients.country_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_clients.id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ID
+    type: INT
+    nullable: false
+    isPK: true
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Id
+    description: Client ID used to link shipments to the shipper.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 99999, "min": 10000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_clients.client_name
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: CLIENT_NAME
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Client Name
+    description: Name of the company shipping freight.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: company
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_clients.address
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ADDRESS
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Address
+    description: Street address of the shipping company.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: street_address
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_clients.city
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: CITY
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: City
+    description: City where the client is located.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: city
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_clients.country_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: COUNTRY_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Country Id
+    description: Client country. References countries.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "countries"}'
+    ref_dataset: countries
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_clients.postal_code
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: POSTAL_CODE
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Postal Code
+    description: Postal or ZIP code of the client.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: postalcode
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_clients.region
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: REGION
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Region
+    description: Client business region (EMEA, APAC, AM).
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_element
+    is_reference: false
+    generator_params_json: '{"elements": ["EMEA", "APAC", "AM"]}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_types
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: JDBC
+    package: ''
+    name: CARGO_TYPES
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Cargo Types
+    description: 'Freight types carried: containers, bulk, refrigerated, vehicles.
+      Suitable for queries about cargo mix, volumes by product type, or shipment breakdown.'
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: STATIC
+    qsynth_dataset_name: cargo_types
+    static_row_count: 4
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - id
+    target:
+      schema: skymill
+      table: cargo_shipments
+      columns:
+      - cargo_type_id
+    cardinality: ONE_TO_MANY
+    joinSql: cargo_types.id = cargo_shipments.cargo_type_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_types.id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ID
+    type: INT
+    nullable: false
+    isPK: true
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Id
+    description: ''
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: inferred
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_types.name
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: NAME
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Name
+    description: ''
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: inferred
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_types.description
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: DESCRIPTION
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Description
+    description: ''
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: inferred
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_shipments
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: JDBC
+    package: ''
+    name: CARGO_SHIPMENTS
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Cargo Shipments
+    description: Individual freight shipments on cargo flights. Suitable for queries
+      about cargo volume, freight revenue, weight by route, or shipment counts.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: cargo_shipments
+    rows_spec: '2000'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: cargo_flights
+      columns:
+      - id
+    targetColumns:
+    - cargo_flight_id
+    joinSql: cargo_flights.id = cargo_shipments.cargo_flight_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: cargo_types
+      columns:
+      - id
+    targetColumns:
+    - cargo_type_id
+    joinSql: cargo_types.id = cargo_shipments.cargo_type_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: cargo_clients
+      columns:
+      - id
+    targetColumns:
+    - client_id
+    joinSql: cargo_clients.id = cargo_shipments.client_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_shipments.id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Id
+    description: Shipment ID used to identify each freight shipment.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 9999999, "min": 1000000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_shipments.cargo_flight_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: CARGO_FLIGHT_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Cargo Flight Id
+    description: Cargo flight for this shipment. References cargo_flights.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "cargo_flights"}'
+    ref_dataset: cargo_flights
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_shipments.cargo_type_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: CARGO_TYPE_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Cargo Type Id
+    description: Freight type (containers, bulk, refrigerated, vehicles). References
+      cargo_types.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "cargo_types"}'
+    ref_dataset: cargo_types
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_shipments.weight_kg
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: WEIGHT_KG
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Weight Kg
+    description: Weight of the shipment in kilograms.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 50000, "min": 1000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_shipments.client_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: CLIENT_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Client Id
+    description: Shipper. References cargo_clients.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "id", "dataset": "cargo_clients"}'
+    ref_dataset: cargo_clients
+    ref_attribute: id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cargo_shipments.revenue
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: REVENUE
+    type: DECIMAL(15,4)
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Revenue
+    description: Revenue generated by the shipment.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_double
+    is_reference: false

@@ -3,7 +3,8 @@ package io.qpointz.mill.metadata.configuration
 import io.qpointz.mill.data.backend.SchemaProvider
 import io.qpointz.mill.data.schema.SchemaFacetService
 import io.qpointz.mill.data.schema.SchemaFacetServiceImpl
-import io.qpointz.mill.metadata.repository.MetadataRepository
+import io.qpointz.mill.metadata.repository.FacetRepository
+import io.qpointz.mill.metadata.repository.MetadataEntityRepository
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.AutoConfigureAfter
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
@@ -12,33 +13,32 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 
 /**
- * Auto-configures [SchemaFacetService] using whichever [MetadataRepository] implementation is
- * active in the metadata layer.
+ * Auto-configures [SchemaFacetService] once physical [SchemaProvider] and greenfield metadata
+ * repositories ([MetadataEntityRepository], [FacetRepository]) are available.
  *
- * This wiring belongs in metadata autoconfigure because metadata persistence selection (JPA/file/
- * NoOp) is resolved here, while the schema service remains backend-agnostic and consumes only
- * [SchemaProvider] and [MetadataRepository].
+ * Facet type definitions are loaded **only** via `mill.metadata.seed.resources` (not this module).
  */
 @AutoConfiguration
 @AutoConfigureAfter(
     MetadataRepositoryAutoConfiguration::class,
-    MetadataJpaPersistenceAutoConfiguration::class
+    MetadataJpaPersistenceAutoConfiguration::class,
+    MetadataCoreConfiguration::class
 )
 @ConditionalOnClass(SchemaFacetService::class)
 class SchemaFacetAutoConfiguration {
 
     /**
-     * Creates [SchemaFacetService] when schema provider and metadata repository beans are present.
-     *
-     * @param schemaProvider active schema provider for physical model discovery
-     * @param metadataRepository active metadata repository implementation
-     * @return schema facet service implementation
+     * @param schemaProvider physical schema source
+     * @param entityRepository `metadata_entity` rows
+     * @param facetRepository `metadata_entity_facet` rows
+     * @return schema / metadata merge service
      */
     @Bean
     @ConditionalOnMissingBean(SchemaFacetService::class)
-    @ConditionalOnBean(SchemaProvider::class, MetadataRepository::class)
+    @ConditionalOnBean(SchemaProvider::class, MetadataEntityRepository::class, FacetRepository::class)
     fun schemaFacetService(
         schemaProvider: SchemaProvider,
-        metadataRepository: MetadataRepository
-    ): SchemaFacetService = SchemaFacetServiceImpl(schemaProvider, metadataRepository)
+        entityRepository: MetadataEntityRepository,
+        facetRepository: FacetRepository
+    ): SchemaFacetService = SchemaFacetServiceImpl(schemaProvider, entityRepository, facetRepository)
 }

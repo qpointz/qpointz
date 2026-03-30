@@ -1,0 +1,682 @@
+# Platform metadata loaded only via mill.metadata.seed.resources (global scope + standard facet types).
+# Edit this file to change titles, payload schemas, or applicability — do not duplicate in Flyway SQL.
+# Authoritative set: descriptive, concept, structural, relation, value-mapping (SPEC §11.0).
+---
+kind: MetadataScope
+scopeUrn: urn:mill/metadata/scope:global
+scopeType: GLOBAL
+referenceId: ~
+displayName: Global
+ownerId: ~
+visibility: PUBLIC
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+title: Description
+description: "Provides the display name, narrative description, and tags for an entity."
+enabled: true
+category: general
+mandatory: true
+targetCardinality: SINGLE
+contentSchema:
+  type: OBJECT
+  title: Description
+  description: "Fields that hold the display name, narrative description, and tags."
+  fields:
+    - name: title
+      schema:
+        type: STRING
+        title: Title
+        description: "Short human-readable name shown for the entity."
+      required: false
+    - name: description
+      schema:
+        type: STRING
+        title: Description
+        description: "Full narrative text that describes the entity."
+      required: true
+    - name: tags
+      schema:
+        type: ARRAY
+        title: Tags
+        description: "List of tags attached to the entity."
+        items:
+          type: STRING
+          title: Tag
+          description: "One tag value."
+      required: false
+      stereotype: tags
+  required: []
+applicableTo: []
+schemaVersion: "1.0"
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:schema
+title: Schema
+description: "Provides the schema name for a schema entity."
+enabled: true
+category: general
+mandatory: false
+targetCardinality: SINGLE
+contentSchema:
+  type: OBJECT
+  title: Schema payload
+  description: "Field that holds the schema name."
+  fields:
+    - name: schema
+      schema:
+        type: STRING
+        title: Schema
+        description: "Schema name."
+      required: true
+  required: []
+applicableTo:
+  - urn:mill/metadata/entity-type:schema
+schemaVersion: "1.0"
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:table
+title: Table
+description: "Provides the schema and table names for a table entity."
+enabled: true
+category: general
+mandatory: false
+targetCardinality: SINGLE
+contentSchema:
+  type: OBJECT
+  title: Table payload
+  description: "Fields that hold the schema and table names."
+  fields:
+    - name: schema
+      schema:
+        type: STRING
+        title: Schema
+        description: "Schema name that contains the table."
+      required: true
+    - name: table
+      schema:
+        type: STRING
+        title: Table
+        description: "Table name."
+      required: true
+  required: []
+applicableTo:
+  - urn:mill/metadata/entity-type:table
+schemaVersion: "1.0"
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:relation
+title: Relation
+description: "Provides a relation definition with both source and target, independent of either participating table."
+enabled: true
+category: relation
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: Relation payload
+  description: "Fields that identify the source table, the target table, and the cardinality of the relation."
+  fields:
+    - name: source
+      schema:
+        type: OBJECT
+        title: Source
+        description: "Source table and source columns for the relation."
+        fields:
+          - name: schema
+            schema:
+              type: STRING
+              title: Schema
+              description: "Schema name of the source table."
+            required: true
+          - name: table
+            schema:
+              type: STRING
+              title: Table
+              description: "Table name of the source table."
+            required: true
+          - name: columns
+            schema:
+              type: ARRAY
+              title: Source Columns
+              description: "List of columns on the source table that participate in the relation."
+              items:
+                type: STRING
+                title: Source Column
+                description: "One source column name."
+            required: true
+        required: []
+      required: true
+    - name: target
+      schema:
+        type: OBJECT
+        title: Target
+        description: "Target table and target columns for the relation."
+        fields:
+          - name: schema
+            schema:
+              type: STRING
+              title: Schema
+              description: "Schema name of the target table."
+            required: true
+          - name: table
+            schema:
+              type: STRING
+              title: Table
+              description: "Table name of the target table."
+            required: true
+          - name: columns
+            schema:
+              type: ARRAY
+              title: Target Columns
+              description: "List of columns on the target table that participate in the relation."
+              items:
+                type: STRING
+                title: Target Column
+                description: "One target column name."
+            required: true
+        required: []
+      required: true
+    - name: cardinality
+      schema:
+        type: ENUM
+        title: Cardinality
+        description: "Cardinality of the relation from the source table to the target table."
+        values:
+          - value: ONE_TO_ONE
+            description: "Each row in the source table relates to at most one row in the target table, and each target row relates to at most one row in the source table."
+          - value: ONE_TO_MANY
+            description: "One row in the source table can relate to multiple rows in the target table."
+          - value: MANY_TO_MANY
+            description: "Rows in the source table can relate to multiple rows in the target table, and target rows can relate to multiple rows in the source table."
+          - value: UNKNOWN
+            description: "The relation exists, but its cardinality is not specified."
+      required: true
+    - name: joinSql
+      schema:
+        type: STRING
+        title: Join SQL
+        description: "Indicative SQL-like expression that hints how records from the source table join to records in the target table."
+      required: true
+  required: []
+applicableTo: []
+schemaVersion: "1.0"
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+title: RelationTarget
+description: "Provides the relation where the table that carries this facet is the target table."
+enabled: true
+category: relation
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: Relation target payload
+  description: "Fields that identify the source table and source columns that join to this table."
+  fields:
+    - name: source
+      schema:
+        type: OBJECT
+        title: Source
+        description: "Source table and source columns for the relation."
+        fields:
+          - name: schema
+            schema:
+              type: STRING
+              title: Schema
+              description: "Schema name of the source table."
+            required: true
+          - name: table
+            schema:
+              type: STRING
+              title: Table
+              description: "Table name of the source table."
+            required: true
+          - name: columns
+            schema:
+              type: ARRAY
+              title: Source Columns
+              description: "List of columns on the source table that participate in the relation."
+              items:
+                type: STRING
+                title: Source Column
+                description: "One source column name."
+            required: true
+        required: []
+      required: true
+    - name: targetColumns
+      schema:
+        type: ARRAY
+        title: Target Columns
+        description: "List of columns on this table that participate in the relation."
+        items:
+          type: STRING
+          title: Target Column
+          description: "One target column name."
+      required: true
+    - name: joinSql
+      schema:
+        type: STRING
+        title: Join SQL
+        description: "Indicative SQL-like expression that hints how records from the source table join to records in this table."
+      required: true
+  required: []
+applicableTo:
+  - urn:mill/metadata/entity-type:table
+schemaVersion: "1.0"
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:column
+title: Column
+description: "Provides the schema, table, and column names for an attribute, with optional type details."
+enabled: true
+category: general
+mandatory: false
+targetCardinality: SINGLE
+contentSchema:
+  type: OBJECT
+  title: Column payload
+  description: "Fields that hold the schema, table, column, and optional type details."
+  fields:
+    - name: schema
+      schema:
+        type: STRING
+        title: Schema
+        description: "Schema name that contains the table."
+      required: true
+    - name: table
+      schema:
+        type: STRING
+        title: Table
+        description: "Table name that contains the column."
+      required: true
+    - name: column
+      schema:
+        type: STRING
+        title: Column
+        description: "Column name."
+      required: true
+    - name: type
+      schema:
+        type: OBJECT
+        title: Type
+        description: "Type details for the column."
+        fields:
+          - name: name
+            schema:
+              type: STRING
+              title: Type
+              description: "Type name."
+            required: true
+          - name: nullable
+            schema:
+              type: BOOLEAN
+              title: Nullable
+              description: "Whether the column allows null values."
+            required: false
+          - name: precision
+            schema:
+              type: NUMBER
+              title: Precision
+              description: "Maximum number of significant digits."
+            required: false
+          - name: scale
+            schema:
+              type: NUMBER
+              title: Scale
+              description: "Number of digits to the right of the decimal point."
+            required: false
+          - name: length
+            schema:
+              type: NUMBER
+              title: Length
+              description: "Maximum length for string or binary values."
+            required: true
+        required: []
+      required: false
+  required: []
+applicableTo:
+  - urn:mill/metadata/entity-type:attribute
+schemaVersion: "1.0"
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+title: RelationSource
+description: "Provides the relation from the table where this facet is applied to a target table."
+enabled: true
+category: relation
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: Relation source payload
+  description: "Fields that identify the source columns on this table and the target table they join to."
+  fields:
+    - name: sourceColumns
+      schema:
+        type: ARRAY
+        title: Source Columns
+        description: "List of columns on this table that participate in the relation."
+        items:
+          type: STRING
+          title: Source Column
+          description: "One source column name."
+      required: true
+    - name: target
+      schema:
+        type: OBJECT
+        title: Target
+        description: "Target table and target columns for the relation."
+        fields:
+          - name: schema
+            schema:
+              type: STRING
+              title: Schema
+              description: "Schema name of the target table."
+            required: true
+          - name: table
+            schema:
+              type: STRING
+              title: Table
+              description: "Table name of the target table."
+            required: true
+          - name: columns
+            schema:
+              type: ARRAY
+              title: Target Columns
+              description: "List of columns on the target table that participate in the relation."
+              items:
+                type: STRING
+                title: Target Column
+                description: "One target column name."
+            required: true
+        required: []
+      required: true
+    - name: cardinality
+      schema:
+        type: ENUM
+        title: Cardinality
+        description: "Cardinality of the relation from this table to the target table."
+        values:
+          - value: ONE_TO_ONE
+            description: "Each row in this table relates to at most one row in the target table, and each target row relates to at most one row in this table."
+          - value: ONE_TO_MANY
+            description: "One row in this table can relate to multiple rows in the target table."
+          - value: MANY_TO_MANY
+            description: "Rows in this table can relate to multiple rows in the target table, and target rows can relate to multiple rows in this table."
+          - value: UNKNOWN
+            description: "The relation exists, but its cardinality is not specified."
+      required: true
+    - name: joinSql
+      schema:
+        type: STRING
+        title: Join SQL
+        description: "Indicative SQL-like expression that hints how records from this table join to records in the target table."
+      required: false
+  required: []
+applicableTo:
+  - urn:mill/metadata/entity-type:table
+schemaVersion: "1.0"
+
+---
+# Qsynth custom facet types (FacetTypeDefinition) — review / optional Mill seed.
+#
+# Shape follows:
+#   metadata/mill-metadata-core/src/main/resources/metadata/platform-bootstrap.yaml
+#
+# Usage: not loaded automatically. To register in Mill, add this file (or a copy) to
+#   mill.metadata.seed.resources after platform-bootstrap.yaml so global scope and
+#   platform facet types exist first.
+#
+# URNs: urn:mill/metadata/facet-type:qsynth.*
+# Category: data (synthetic / generator metadata tab)
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:qsynth-model
+title: Qsynth model
+description: "Provides the qsynth model settings attached to a schema entity."
+enabled: true
+category: data
+mandatory: false
+targetCardinality: SINGLE
+contentSchema:
+  type: OBJECT
+  title: Qsynth model payload
+  description: "Fields that hold the qsynth model name, schema key, locales, row multiplier, and provenance tool."
+  fields:
+    - name: qsynth_model_name
+      schema:
+        type: STRING
+        title: Qsynth model name
+        description: "Model name from the qsynth YAML."
+      required: true
+    - name: config_schema
+      schema:
+        type: STRING
+        title: Config schema key
+        description: "Schema key used for the model."
+      required: true
+    - name: locales
+      schema:
+        type: STRING
+        title: Faker locales
+        description: "Locale value or locale list used by qsynth."
+      required: false
+    - name: rows_multiply
+      schema:
+        type: NUMBER
+        title: Rows multiply
+        description: "Row multiplier applied to generated row counts."
+      required: false
+    - name: provenance_tool
+      schema:
+        type: ENUM
+        title: Provenance tool
+        description: "Tool name recorded for the model metadata."
+        values:
+          - value: QSYNTH
+            description: "Metadata provided from a qsynth model."
+      required: true
+  required: []
+applicableTo:
+  - urn:mill/metadata/entity-type:schema
+schemaVersion: "1.0"
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+title: Qsynth table
+description: "Provides the qsynth dataset settings attached to a table entity."
+enabled: true
+category: data
+mandatory: false
+targetCardinality: SINGLE
+contentSchema:
+  type: OBJECT
+  title: Qsynth table payload
+  description: "Fields that hold the qsynth dataset mode, row settings, static source, rules, and dataset name."
+  fields:
+    - name: data_mode
+      schema:
+        type: ENUM
+        title: Data mode
+        description: "How rows for the dataset are provided."
+        values:
+          - value: GENERATED
+            description: "Rows are generated from the dataset attributes."
+          - value: STATIC
+            description: "Rows are provided as fixed static data."
+      required: true
+    - name: rows_spec
+      schema:
+        type: STRING
+        title: Rows specification
+        description: "Row count specification for generated data."
+      required: false
+    - name: static_source
+      schema:
+        type: STRING
+        title: Static source path
+        description: "Path to the static data source."
+      required: false
+    - name: static_row_count
+      schema:
+        type: NUMBER
+        title: Static row count
+        description: "Number of static rows when known."
+      required: false
+    - name: record_rules
+      schema:
+        type: STRING
+        title: Record rules
+        description: "Record rule expressions for the dataset."
+      required: false
+    - name: qsynth_dataset_name
+      schema:
+        type: STRING
+        title: Qsynth dataset name
+        description: "Dataset name from the qsynth YAML."
+      required: true
+  required: []
+applicableTo:
+  - urn:mill/metadata/entity-type:table
+schemaVersion: "1.0"
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+title: Qsynth column
+description: "Provides the qsynth attribute settings attached to a column entity."
+enabled: true
+category: data
+mandatory: false
+targetCardinality: SINGLE
+contentSchema:
+  type: OBJECT
+  title: Qsynth column payload
+  description: "Fields that hold the qsynth generator type, generator parameters, and reference settings."
+  fields:
+    - name: generator_type
+      schema:
+        type: STRING
+        title: Generator type
+        description: "Generator type from the qsynth attribute."
+      required: true
+    - name: generator_params_json
+      schema:
+        type: STRING
+        title: Generator parameters JSON
+        description: "JSON string with generator parameters."
+      required: false
+    - name: is_reference
+      schema:
+        type: BOOLEAN
+        title: Is reference
+        description: "Whether the attribute uses a reference generator."
+      required: true
+    - name: ref_dataset
+      schema:
+        type: STRING
+        title: Reference dataset
+        description: "Referenced dataset name."
+      required: false
+    - name: ref_attribute
+      schema:
+        type: STRING
+        title: Reference attribute
+        description: "Referenced attribute name."
+      required: false
+    - name: ref_cardinality
+      schema:
+        type: STRING
+        title: Reference cardinality
+        description: "Reference cardinality value."
+      required: false
+  required: []
+applicableTo:
+  - urn:mill/metadata/entity-type:attribute
+schemaVersion: "1.0"
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:qsynth-run
+title: Qsynth run
+description: "Provides run information for one qsynth generation attached to a schema entity."
+enabled: true
+category: data
+mandatory: false
+targetCardinality: SINGLE
+contentSchema:
+  type: OBJECT
+  title: Qsynth run payload
+  description: "Fields that hold the run identifier, generation time, and experiment names."
+  fields:
+    - name: run_id
+      schema:
+        type: STRING
+        title: Run id
+        description: "Run identifier."
+      required: true
+    - name: generated_at
+      schema:
+        type: STRING
+        title: Generated at
+        description: "Timestamp when the run generated the metadata."
+      required: false
+    - name: experiment_names
+      schema:
+        type: STRING
+        title: Experiment names
+        description: "Experiment names included in the run."
+      required: false
+  required: []
+applicableTo:
+  - urn:mill/metadata/entity-type:schema
+schemaVersion: "1.0"
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:links
+title: Links
+description: "Provides one or more hyperlinks for an entity (optional title per link; href required)."
+enabled: true
+category: general
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: Links
+  description: "Each facet instance is one object with a links array; the UI renders items as hyperlink rows."
+  fields:
+    - name: title
+      schema:
+        type: STRING
+        title: Title
+        required: true
+        description: "Name of list of links."
+    - name: links
+      schema:
+        type: ARRAY
+        title: Links
+        description: "Ordered list of { title?, href } objects."
+        items:
+          type: OBJECT
+          title: Link
+          description: "Single hyperlink; omit or leave title empty to use href as the visible label."
+          fields:
+            - name: title
+              schema:
+                type: STRING
+                title: Title
+                description: "Visible label; optional — if empty, href is shown as the link text."
+              required: false
+            - name: href
+              schema:
+                type: STRING
+                title: URL
+                description: "Target URL (UI may prepend https when no scheme is present)."
+                format: uri
+              required: true
+          required: []
+      required: false
+      stereotype:
+        - hyperlink
+  required: []
+applicableTo: []
+schemaVersion: "1.0"

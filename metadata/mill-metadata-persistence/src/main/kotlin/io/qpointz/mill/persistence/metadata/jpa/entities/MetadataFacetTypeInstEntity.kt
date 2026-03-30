@@ -1,8 +1,10 @@
 package io.qpointz.mill.persistence.metadata.jpa.entities
 
+import io.qpointz.mill.persistence.metadata.jpa.listeners.MetadataFacetTypeInstAuditListener
 import jakarta.persistence.Column
 import jakarta.persistence.ConstraintMode
 import jakarta.persistence.Entity
+import jakarta.persistence.EntityListeners
 import jakarta.persistence.ForeignKey
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
@@ -10,32 +12,34 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import jakarta.persistence.UniqueConstraint
 import java.time.Instant
 
 /**
- * Runtime/observed facet type row in `metadata_facet_type`.
- *
- * @property facetTypeId   Surrogate primary key.
- * @property typeRes       URN key (former `type_key`), unique per type instance.
- * @property slug         Optional slug for ad-hoc queries
- * @property displayName  Optional display name
- * @property description  Optional text
- * @property source       `DEFINED` or `OBSERVED`
- * @property facetTypeDef Optional link to canonical definition row
+ * JPA row for runtime `metadata_facet_type`.
  */
 @Entity
-@Table(name = "metadata_facet_type")
+@Table(
+    name = "metadata_facet_type",
+    uniqueConstraints = [
+        UniqueConstraint(name = "uq_metadata_facet_type_res", columnNames = ["type_res"]),
+        UniqueConstraint(name = "uq_metadata_facet_type_uuid", columnNames = ["uuid"])
+    ]
+)
+@EntityListeners(MetadataFacetTypeInstAuditListener::class)
 class MetadataFacetTypeInstEntity(
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "facet_type_id", nullable = false)
     val facetTypeId: Long = 0,
 
-    @Column(name = "type_res", nullable = false, length = 255)
+    @Column(name = "uuid", nullable = false, length = 36)
+    var uuid: String,
+
+    @Column(name = "type_res", nullable = false, length = 512)
     var typeRes: String,
 
-    @Column(name = "slug", length = 255)
+    @Column(name = "slug", length = 512)
     var slug: String?,
 
     @Column(name = "display_name", length = 512)
@@ -49,21 +53,21 @@ class MetadataFacetTypeInstEntity(
 
     @ManyToOne(optional = true)
     @JoinColumn(
-        name = "facet_type_def_id",
-        referencedColumnName = "facet_type_def_id",
+        name = "def_id",
+        referencedColumnName = "def_id",
         foreignKey = ForeignKey(ConstraintMode.CONSTRAINT)
     )
-    var facetTypeDef: MetadataFacetTypeEntity?,
+    var facetTypeDef: MetadataFacetTypeDefEntity?,
 
     @Column(name = "created_at", nullable = false)
     val createdAt: Instant,
 
-    @Column(name = "updated_at", nullable = false)
-    var updatedAt: Instant,
-
     @Column(name = "created_by", length = 255)
     var createdBy: String?,
 
-    @Column(name = "updated_by", length = 255)
-    var updatedBy: String?
+    @Column(name = "last_modified_at", nullable = false)
+    var lastModifiedAt: Instant,
+
+    @Column(name = "last_modified_by", length = 255)
+    var lastModifiedBy: String?
 )

@@ -1,6 +1,7 @@
 package io.qpointz.mill.metadata.api
 
 import io.qpointz.mill.UrnSlug
+import io.qpointz.mill.data.schema.SchemaEntityTypeUrns
 import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.domain.facet.FacetTypeManifest
 import io.qpointz.mill.metadata.service.FacetTypeManagementService
@@ -49,7 +50,7 @@ class MetadataFacetController(private val service: FacetTypeManagementService) {
      * @param targetType  optional entity-type URN or slug to filter applicable types;
      *                    e.g. `table` or `urn:mill/metadata/entity-type:table`
      * @param enabledOnly if `true`, only enabled facet types are returned; defaults to `false`
-     * @return list of matching [FacetTypeDescriptorDto] instances
+     * @return list of matching [FacetTypeManifest] instances
      */
     @Operation(
         summary = "List facet type descriptors",
@@ -67,7 +68,7 @@ class MetadataFacetController(private val service: FacetTypeManagementService) {
         @Parameter(description = "If true, return only enabled facet types")
         @RequestParam(required = false, defaultValue = "false") enabledOnly: Boolean
     ): ResponseEntity<List<FacetTypeManifest>> {
-        val normType = targetType?.let { UrnSlug.normalise(it, MetadataUrns.ENTITY_TYPE_PREFIX) }
+        val normType = targetType?.let { UrnSlug.normalise(it, SchemaEntityTypeUrns.PREFIX) }
         return ResponseEntity.ok(service.list(normType, enabledOnly))
     }
 

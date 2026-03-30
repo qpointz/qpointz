@@ -2,6 +2,8 @@ package io.qpointz.mill.metadata.domain.facet
 
 import io.qpointz.mill.metadata.domain.facet.exceptions.FacetTypeManifestInvalidException
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 
@@ -81,6 +83,44 @@ class FacetTypeManifestNormalizerTest {
             )
         )
         assertDoesNotThrow { FacetTypeManifestNormalizer.normalizeStrict(manifest) }
+    }
+
+    @Test
+    fun shouldTrimFieldStereotypeAndNormalizeBlankToNull() {
+        val manifest = baseManifest(
+            payload = FacetPayloadSchema(
+                type = FacetSchemaType.OBJECT,
+                title = "Root",
+                description = "Root object",
+                fields = listOf(
+                    FacetPayloadField(
+                        name = "ref",
+                        schema = FacetPayloadSchema(
+                            type = FacetSchemaType.STRING,
+                            title = "Ref",
+                            description = "Reference"
+                        ),
+                        required = false,
+                        stereotype = listOf("  table  ")
+                    ),
+                    FacetPayloadField(
+                        name = "plain",
+                        schema = FacetPayloadSchema(
+                            type = FacetSchemaType.STRING,
+                            title = "Plain",
+                            description = "Plain text"
+                        ),
+                        required = true,
+                        stereotype = listOf("   ")
+                    )
+                ),
+                required = emptyList()
+            )
+        )
+        val norm = FacetTypeManifestNormalizer.normalizeStrict(manifest)
+        val fields = norm.payload.fields!!
+        assertEquals(listOf("table"), fields[0].stereotype)
+        assertNull(fields[1].stereotype)
     }
 
     private fun baseManifest(payload: FacetPayloadSchema): FacetTypeManifest =

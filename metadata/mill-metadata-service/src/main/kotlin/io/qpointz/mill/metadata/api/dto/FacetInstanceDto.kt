@@ -1,0 +1,61 @@
+package io.qpointz.mill.metadata.api.dto
+
+import com.fasterxml.jackson.annotation.JsonAlias
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonProperty
+import io.swagger.v3.oas.annotations.media.Schema
+import java.time.Instant
+
+/**
+ * One persisted facet assignment row as exposed on the public metadata API (SPEC §10.2).
+ *
+ * Merge semantics ([io.qpointz.mill.metadata.domain.facet.MergeAction]) are **not** included here;
+ * use [FacetMergeTraceResponseDto] / `GET …/facets/merge-trace` for diagnostics.
+ *
+ * JSON keys align with canonical YAML facet rows: [facetTypeUrn], [scopeUrn]. Legacy `facetType` and
+ * `scope` are accepted on deserialize.
+ *
+ * @property uid stable assignment UUID (DB `uuid` / `{facetUid}` in paths)
+ * @property facetTypeUrn full facet-type URN
+ * @property scopeUrn full scope URN for this row
+ * @property payload facet JSON object
+ * @property createdAt row creation time
+ * @property lastModifiedAt last mutation time
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(
+    name = "FacetInstance",
+    description = "Facet assignment row: type, scope, payload, and stable uid. No mergeAction — use merge-trace for overlay diagnostics."
+)
+data class FacetInstanceDto(
+    @field:Schema(
+        description = "Stable facet assignment UUID",
+        requiredMode = Schema.RequiredMode.REQUIRED,
+        example = "550e8400-e29b-41d4-a716-446655440000"
+    )
+    val uid: String,
+    @param:JsonProperty("facetTypeUrn")
+    @param:JsonAlias("facetType")
+    @field:Schema(
+        description = "Facet type URN",
+        name = "facetTypeUrn",
+        example = "urn:mill/metadata/facet-type:descriptive",
+        requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    val facetTypeUrn: String,
+    @param:JsonProperty("scopeUrn")
+    @param:JsonAlias("scope")
+    @field:Schema(
+        description = "Scope URN",
+        name = "scopeUrn",
+        example = "urn:mill/metadata/scope:global",
+        requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    val scopeUrn: String,
+    @field:Schema(description = "Facet payload", requiredMode = Schema.RequiredMode.REQUIRED)
+    val payload: Map<String, Any?>,
+    @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    val createdAt: Instant,
+    @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    val lastModifiedAt: Instant
+)

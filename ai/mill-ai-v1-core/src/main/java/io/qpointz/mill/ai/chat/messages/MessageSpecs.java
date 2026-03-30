@@ -2,8 +2,8 @@ package io.qpointz.mill.ai.chat.messages;
 
 import io.qpointz.mill.ai.chat.messages.specs.TemplateMessageSpec;
 import io.qpointz.mill.ai.nlsql.messages.specs.SchemaMessageSpec;
+import io.qpointz.mill.ai.nlsql.metadata.SchemaMessageMetadataPorts;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
-import io.qpointz.mill.metadata.service.MetadataService;
 import org.springframework.ai.chat.messages.MessageType;
 
 import java.util.List;
@@ -18,22 +18,20 @@ public class MessageSpecs {
                                         MessageSpecs.class));
     }
 
-    public MessageSpec schemaShort(MetadataService metadataService) {
-        return SchemaMessageSpec.builder(MessageType.USER,
-                                        metadataService)
+    public MessageSpec schemaShort(SchemaMessageMetadataPorts schemaPorts) {
+        return SchemaMessageSpec.forMetadata(MessageType.USER, schemaPorts)
                 .includeRelations(true)
                 .includeRelationExpressions(false)
                 .includeAttributes(false)
                 .build();
     }
 
-    public MessageSpec schema(MetadataService metadataService) {
-        return schema(metadataService, List.of());
+    public MessageSpec schema(SchemaMessageMetadataPorts schemaPorts) {
+        return schema(schemaPorts, List.of());
     }
 
-    public MessageSpec schema(MetadataService metadataService, List<ReasoningResponse.IntentTable> requieredTables) {
-        return SchemaMessageSpec.builder(MessageType.USER,
-                        metadataService)
+    public MessageSpec schema(SchemaMessageMetadataPorts schemaPorts, List<ReasoningResponse.IntentTable> requieredTables) {
+        return SchemaMessageSpec.forMetadata(MessageType.USER, schemaPorts)
                 .includeRelations(true)
                 .includeRelationExpressions(true)
                 .includeAttributes(true)

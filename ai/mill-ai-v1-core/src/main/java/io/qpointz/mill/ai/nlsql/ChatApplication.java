@@ -3,7 +3,7 @@ package io.qpointz.mill.ai.nlsql;
 import io.qpointz.mill.ai.chat.ChatUserRequest;
 import io.qpointz.mill.ai.chat.messages.MessageSelector;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.ai.nlsql.metadata.SchemaMessageMetadataPorts;
 import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,7 @@ public class ChatApplication {
     private final ChatEventProducer eventProducer;
 
     public ChatApplication(CallSpecsChatClientBuilders chatBuilders,
-                           MetadataService metadataService,
+                           SchemaMessageMetadataPorts schemaPorts,
                            SqlDialectSpec dialect,
                            DataOperationDispatcher dispatcher,
                            MessageSelector messageSelector,
@@ -28,7 +28,7 @@ public class ChatApplication {
                            Reasoner reasoner,
                            ChatEventProducer eventProducer) {
         this.eventProducer = eventProducer;
-        this.intentSpecs = new IntentSpecs(metadataService, dialect, chatBuilders, dispatcher, messageSelector, valueMapper, eventProducer);
+        this.intentSpecs = new IntentSpecs(schemaPorts, dialect, chatBuilders, dispatcher, messageSelector, valueMapper, eventProducer);
         this.reasoner = reasoner;
     }
 

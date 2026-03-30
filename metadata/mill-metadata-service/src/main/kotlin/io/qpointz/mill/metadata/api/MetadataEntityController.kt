@@ -1,17 +1,25 @@
 package io.qpointz.mill.metadata.api
 
+import io.qpointz.mill.UrnSlug
+import io.qpointz.mill.data.schema.MetadataEntityUrnCodec
+import io.qpointz.mill.data.schema.SchemaEntityKinds
 import io.qpointz.mill.data.backend.SchemaProvider
-import io.qpointz.mill.metadata.api.dto.FacetResponseDto
+import io.qpointz.mill.metadata.api.dto.FacetInstanceDto
+import io.qpointz.mill.metadata.api.dto.FacetMergeTraceEntryDto
+import io.qpointz.mill.metadata.api.dto.FacetMergeTraceResponseDto
 import io.qpointz.mill.metadata.api.dto.MetadataAuditRecordDto
 import io.qpointz.mill.metadata.api.dto.MetadataEntityDto
 import io.qpointz.mill.excepions.statuses.MillStatuses
+import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.MetadataUrns
-import io.qpointz.mill.metadata.domain.MetadataType
-import io.qpointz.mill.metadata.domain.facet.FacetTargetCardinality
-import io.qpointz.mill.metadata.repository.MetadataFacetInstanceRow
-import io.qpointz.mill.metadata.repository.MetadataRepository
+import io.qpointz.mill.metadata.domain.facet.FacetInstance
+import io.qpointz.mill.metadata.repository.FacetRepository
+import io.qpointz.mill.metadata.service.FacetPayloadCoercion
+import io.qpointz.mill.metadata.service.FacetService
 import io.qpointz.mill.metadata.service.MetadataContext
 import io.qpointz.mill.metadata.service.MetadataEditService
+import io.qpointz.mill.metadata.service.MetadataEntityIdResolver
+import io.qpointz.mill.metadata.service.MetadataReader
 import io.qpointz.mill.metadata.service.MetadataService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -22,194 +30,216 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.util.UriUtils
 import java.net.URI
+import java.nio.charset.StandardCharsets
+import java.time.Instant
+import io.qpointz.mill.metadata.domain.MetadataEntity as DomainMetadataEntity
 
 /**
- * Read-only REST controller for metadata entity discovery and facet resolution.
+ * REST controller for metadata entity discovery, facet resolution, and writes (SPEC §10).
  *
- * Facet type keys in path variables are normalised via [MetadataUrns.normaliseFacetTypePath],
- * accepting prefixed slugs (e.g. `descriptive`), legacy short keys, or full URNs.
+ * Path `{id}` is a **full** `urn:mill/…` entity URN (percent-encoded, `%2F` for `/`), a
+ * [UrnSlug.encode] **full** segment (e.g. `mill-metadata-entity:schema.table.column` — hyphens encode `/`),
+ * **or** a **prefixed** local id (namespace `urn:mill/metadata/entity:`) when it contains `.` or `:`
+ * (e.g. `skymill.cargo_shipments.revenue`); bare single segments stay invalid.
+ * Dot-path catalog keys alone are rejected with **400**.
  *
- * The `context` query parameter is a comma-separated list of scope prefixed slugs
- * (e.g. `global`, `global,user:alice`). Omitting `context` defaults to the global scope.
+ * Facet type keys in path variables are normalised via [MetadataUrns.normaliseFacetTypePath].
+ * Read endpoints use `?context=` (comma-separated scope URNs, last wins). Write endpoints use `?scope=` for the
+ * target scope (default: global).
+ *
+ * **Unassign (DELETE facet):** physical row removal applies only to `merge_action == SET` in the **global** scope;
+ * overlay scopes persist a **TOMBSTONE** row instead ([io.qpointz.mill.metadata.service.DefaultFacetService.unassign]).
  */
-@Tag(name = "metadata-entities", description = "Read-only metadata entity and facet resolution endpoints")
+@Tag(name = "metadata-entities", description = "Metadata entity and facet resolution endpoints")
 @RestController
 @RequestMapping("/api/v1/metadata/entities")
 class MetadataEntityController(
     private val metadataService: MetadataService,
     private val metadataEditService: MetadataEditService,
-    private val metadataRepository: MetadataRepository,
+    private val facetRepository: FacetRepository,
+    private val facetService: FacetService,
+    private val metadataReader: MetadataReader,
+    private val urnCodec: MetadataEntityUrnCodec,
     private val schemaProvider: SchemaProvider? = null
 ) {
 
-    /**
-     * Lists metadata entities with optional filtering by schema and/or table coordinates.
-     *
-     * @param schema  optional schema name filter
-     * @param table   optional table name filter (requires [schema])
-     * @param context comma-separated scope slugs for facet resolution; defaults to global
-     * @return list of matching entities with scope-resolved facets
-     */
     @Operation(
         summary = "List metadata entities",
-        description = "Returns all entities, optionally filtered by schema and table. " +
-            "Facets are included as stored; use the /facets endpoint for scope-merged views."
-    )
-    @ApiResponses(
-        ApiResponse(responseCode = "200", description = "Entities returned",
-            content = [Content(array = ArraySchema(schema = Schema(implementation = MetadataEntityDto::class)))])
-    )
-    @GetMapping
-    fun listEntities(
-        @Parameter(description = "Filter by schema name") @RequestParam(required = false) schema: String?,
-        @Parameter(description = "Filter by table name") @RequestParam(required = false) table: String?,
-        @Parameter(description = "Comma-separated scope slugs, e.g. global,user:alice")
-        @RequestParam(required = false) context: String?
-    ): ResponseEntity<List<MetadataEntityDto>> {
-        val ctx = parseContext(context)
-        var entities = metadataService.findAll()
-        if (schema != null) entities = entities.filter { it.schemaName == schema }
-        if (table != null) entities = entities.filter { it.tableName == table }
-        val dtos = entities.map { toDto(it, ctx) }
-        return ResponseEntity.ok(dtos)
-    }
-
-    /**
-     * Returns a single entity by its identifier.
-     *
-     * @param id      entity identifier string
-     * @param context comma-separated scope slugs; defaults to global
-     * @return 200 with the entity DTO, or 404 if not found
-     */
-    @Operation(
-        summary = "Get entity by id",
-        description = "Returns the entity with the given identifier. " +
-            "The context parameter controls which scopes are included in the response."
-    )
-    @ApiResponses(
-        ApiResponse(responseCode = "200", description = "Entity found",
-            content = [Content(schema = Schema(implementation = MetadataEntityDto::class))]),
-        ApiResponse(responseCode = "404", description = "Entity not found")
-    )
-    @GetMapping("/{id}")
-    fun getEntityById(
-        @Parameter(description = "Entity identifier") @PathVariable id: String,
-        @Parameter(description = "Comma-separated scope slugs")
-        @RequestParam(required = false) context: String?
-    ): ResponseEntity<MetadataEntityDto> {
-        val ctx = parseContext(context)
-        return metadataService.findById(id)
-            .map { ResponseEntity.ok(toDto(it, ctx)) }
-            .orElse(ResponseEntity.notFound().build())
-    }
-
-    /**
-     * Returns all facets of an entity merged across the requested context.
-     *
-     * For each facet type present on the entity, the last matching scope in the context
-     * wins. Facet types with no data under any scope in the context are omitted from the result.
-     *
-     * The response is a **JSON array** of [FacetResponseDto] (not a map) so clients can preserve
-     * order and, in future, surface multiple entries with the same [FacetResponseDto.facetType]
-     * when the domain supports several facet instances per type.
-     *
-     * @param id      entity identifier string
-     * @param context comma-separated scope slugs; defaults to global
-     * @return ordered list of facet envelopes, or 404 if entity not found
-     */
-    @Operation(
-        summary = "Get all merged facets for an entity",
-        description = "Returns one list element per facet type that has data under any scope in the " +
-            "requested context. Entries are sorted by facet type URN. " +
-            "The last matching scope in the context wins for each facet type."
+        description = "Returns entity identities only (no facets). Optional `kind` filters by persisted kind. " +
+            "`schema` / `table` query parameters are not supported — use the schema explorer API."
     )
     @ApiResponses(
         ApiResponse(
             responseCode = "200",
-            description = "JSON array of facet envelopes, sorted by facetType URN. " +
-                "Not a map: duplicate facetType values are allowed for future multi-instance facets.",
-            content = [Content(array = ArraySchema(schema = Schema(implementation = FacetResponseDto::class)))]
+            description = "Entities returned",
+            content = [Content(array = ArraySchema(schema = Schema(implementation = MetadataEntityDto::class)))]
         ),
+        ApiResponse(responseCode = "400", description = "Legacy schema/table query parameters are not accepted")
+    )
+    @GetMapping
+    fun listEntities(
+        @Parameter(description = "Filter by persisted entity kind (opaque string, equality match)")
+        @RequestParam(required = false) kind: String?,
+        @Parameter(description = "Rejected — returns 400 if present", deprecated = true)
+        @RequestParam(required = false) schema: String?,
+        @Parameter(description = "Rejected — returns 400 if present", deprecated = true)
+        @RequestParam(required = false) table: String?
+    ): ResponseEntity<List<MetadataEntityDto>> {
+        rejectLegacyCoordinateParams(schema, table)
+        val entities = if (kind.isNullOrBlank()) {
+            metadataService.findAll()
+        } else {
+            metadataService.findByKind(kind.trim())
+        }
+        return ResponseEntity.ok(entities.map { toDto(it) })
+    }
+
+    @Operation(
+        summary = "Get entity by id",
+        description = "`{id}` must be a full percent-encoded Mill entity URN (`urn:mill/…`). " +
+            "Legacy dot-path keys are rejected with 400."
+    )
+    @ApiResponses(
+        ApiResponse(
+            responseCode = "200",
+            description = "Entity found",
+            content = [Content(schema = Schema(implementation = MetadataEntityDto::class))]
+        ),
+        ApiResponse(responseCode = "400", description = "Path id is not a Mill URN"),
         ApiResponse(responseCode = "404", description = "Entity not found")
+    )
+    @GetMapping("/{id}")
+    fun getEntityById(
+        @Parameter(
+            description = "Full entity URN (encode `/` as %2F) or UrnSlug path segment (no `/`; see io.qpointz.mill.UrnSlug)"
+        )
+        @PathVariable id: String
+    ): ResponseEntity<MetadataEntityDto> {
+        val eid = requireMillMetadataEntityPathId(id)
+        return metadataService.findById(eid)
+            .map { ResponseEntity.ok(toDto(it)) }
+            .orElse(ResponseEntity.notFound().build())
+    }
+
+    @Operation(
+        summary = "Facet merge trace",
+        description = "Returns every persisted facet row for the entity with merge_action and whether it contributes " +
+            "to the effective merged view for the given context order (SPEC §10.5)."
+    )
+    @ApiResponses(
+        ApiResponse(
+            responseCode = "200",
+            description = "All persisted facet rows for this entity id (may be empty if no metadata row or no assignments)",
+            content = [Content(schema = Schema(implementation = FacetMergeTraceResponseDto::class))]
+        )
+    )
+    @GetMapping("/{id}/facets/merge-trace")
+    fun getFacetMergeTrace(
+        @Parameter(description = "Full entity URN (path segment)") @PathVariable id: String,
+        @Parameter(description = "Comma-separated scope URNs / slugs, evaluation order")
+        @RequestParam(required = false) context: String?
+    ): ResponseEntity<FacetMergeTraceResponseDto> {
+        val eid = requireMillMetadataEntityPathId(id)
+        val ctx = parseContext(context)
+        val canonicalEntity = MetadataEntityUrn.canonicalize(eid)
+        val all = facetRepository.findByEntity(canonicalEntity)
+        val effective = metadataReader.resolveEffective(all, ctx)
+        val effectiveKeys = effective.map { it.uid }.toSet()
+        val entries = all.map { row ->
+            FacetMergeTraceEntryDto(
+                uid = row.uid,
+                facetTypeUrn = MetadataEntityUrn.canonicalize(row.facetTypeKey),
+                scopeUrn = MetadataEntityUrn.canonicalize(row.scopeKey),
+                mergeAction = row.mergeAction.name,
+                payload = row.payload,
+                contributesToEffectiveView = row.uid in effectiveKeys
+            )
+        }
+        return ResponseEntity.ok(
+            FacetMergeTraceResponseDto(
+                context = ctx.scopes.map { MetadataEntityUrn.canonicalize(it) },
+                entries = entries
+            )
+        )
+    }
+
+    @Operation(
+        summary = "Get merged facets for an entity",
+        description = "Returns effective facet rows after scope merge (SPEC §10.2). `?context=` orders scopes (last wins)."
+    )
+    @ApiResponses(
+        ApiResponse(
+            responseCode = "200",
+            description = "Merged facet instances (empty array if no entity row or no assignments)",
+            content = [Content(array = ArraySchema(schema = Schema(implementation = FacetInstanceDto::class)))]
+        )
     )
     @GetMapping("/{id}/facets")
     fun getEntityFacets(
-        @Parameter(description = "Entity identifier") @PathVariable id: String,
-        @Parameter(description = "Comma-separated scope slugs")
+        @Parameter(description = "Full entity URN (path segment)") @PathVariable id: String,
+        @Parameter(description = "Comma-separated scope URNs / slugs")
         @RequestParam(required = false) context: String?
-    ): ResponseEntity<List<FacetResponseDto>> {
+    ): ResponseEntity<List<FacetInstanceDto>> {
+        val eid = requireMillMetadataEntityPathId(id)
         val ctx = parseContext(context)
-        val entityOpt = metadataService.findById(id)
-        if (entityOpt.isEmpty) return ResponseEntity.notFound().build()
-        val instanceRows = metadataRepository.listFacetInstanceRows(id)
-        if (instanceRows.isNotEmpty()) {
-            return ResponseEntity.ok(buildFacetResponsesFromInstanceRows(instanceRows, ctx))
-        }
-        val entity = entityOpt.get()
-        val result = mutableListOf<FacetResponseDto>()
-        for (facetType in entity.facets.keys.sorted()) {
-            val payload = resolveForContext(entity.facets[facetType] ?: continue, ctx)
-            if (payload != null) {
-                result.add(FacetResponseDto(facetType = facetType, uid = null, payload = payload))
-            }
-        }
-        return ResponseEntity.ok(result)
+        val canonicalEntity = MetadataEntityUrn.canonicalize(eid)
+        val merged = facetService.resolve(canonicalEntity, ctx)
+        return ResponseEntity.ok(merged.map { toFacetInstanceDto(it) }.sortedBy { it.facetTypeUrn })
     }
 
-    /**
-     * Returns a single facet type's merged payload for an entity.
-     *
-     * @param id      entity identifier string
-     * @param typeKey facet type as a prefixed slug (e.g. `descriptive`) or full URN
-     * @param context comma-separated scope slugs; defaults to global
-     * @return [FacetResponseDto] with the merged payload, or 404 if entity or facet not found
-     */
     @Operation(
-        summary = "Get merged facet by type for an entity",
-        description = "Returns the merged payload for the specified facet type using the " +
-            "given context. typeKey may be a prefixed slug (e.g. descriptive) or a full URN."
+        summary = "Get merged facets by type",
+        description = "Returns effective [FacetInstanceDto] rows for one facet type after context merge."
     )
     @ApiResponses(
-        ApiResponse(responseCode = "200", description = "Facet returned",
-            content = [Content(schema = Schema(implementation = FacetResponseDto::class))]),
-        ApiResponse(responseCode = "404", description = "Entity or facet type not found")
+        ApiResponse(
+            responseCode = "200",
+            description = "Assignments for this facet type after merge (empty if none)",
+            content = [Content(array = ArraySchema(schema = Schema(implementation = FacetInstanceDto::class)))]
+        )
     )
     @GetMapping("/{id}/facets/{typeKey}")
     fun getEntityFacetByType(
-        @Parameter(description = "Entity identifier") @PathVariable id: String,
-        @Parameter(description = "Facet type slug or URN, e.g. descriptive")
-        @PathVariable typeKey: String,
-        @Parameter(description = "Comma-separated scope slugs")
-        @RequestParam(required = false) context: String?
-    ): ResponseEntity<FacetResponseDto> {
+        @Parameter(description = "Full entity URN (path segment)") @PathVariable id: String,
+        @Parameter(description = "Facet type slug or URN, e.g. descriptive") @PathVariable typeKey: String,
+        @Parameter(description = "Comma-separated scope URNs / slugs") @RequestParam(required = false) context: String?
+    ): ResponseEntity<List<FacetInstanceDto>> {
+        val eid = requireMillMetadataEntityPathId(id)
         val ctx = parseContext(context)
-        val normType = MetadataUrns.normaliseFacetTypePath(typeKey)
-        val entityOpt = metadataService.findById(id)
-        if (entityOpt.isEmpty) return ResponseEntity.notFound().build()
-        val entity = entityOpt.get()
-        val scopeMap = entity.facets[normType] ?: return ResponseEntity.notFound().build()
-        val payload = resolveForContext(scopeMap, ctx) ?: return ResponseEntity.notFound().build()
-        return ResponseEntity.ok(FacetResponseDto(facetType = normType, uid = null, payload = payload))
+        val normType = MetadataEntityUrn.canonicalize(MetadataUrns.normaliseFacetTypePath(typeKey))
+        val canonicalEntity = MetadataEntityUrn.canonicalize(eid)
+        val list = facetService.resolveByType(canonicalEntity, normType, ctx)
+        return ResponseEntity.ok(list.map { toFacetInstanceDto(it) })
     }
 
+    @Operation(summary = "Create metadata entity", description = "Body: URN `id` (required) and optional `kind`.")
+    @ApiResponses(
+        ApiResponse(responseCode = "201", description = "Created"),
+        ApiResponse(responseCode = "400", description = "Invalid id or body")
+    )
     @PostMapping
     fun createEntity(@RequestBody dto: MetadataEntityDto): ResponseEntity<MetadataEntityDto> {
         val actor = requireAuthenticatedActor()
-        val created = metadataEditService.createEntity(toDomain(dto), actor)
-        return ResponseEntity.created(URI.create("/api/v1/metadata/entities/${created.id}")).body(toDto(created, MetadataContext.global()))
+        val domain = toDomainEntity(dto, actor)
+        val created = metadataEditService.createEntity(domain, actor)
+        val canonical = MetadataEntityUrn.canonicalize(created.id)
+        val segment = UriUtils.encodePathSegment(UrnSlug.encode(canonical), StandardCharsets.UTF_8)
+        return ResponseEntity
+            .created(URI.create("/api/v1/metadata/entities/$segment"))
+            .body(toDto(metadataService.findById(canonical).orElse(created)))
     }
 
     @PutMapping("/{id}")
@@ -218,8 +248,10 @@ class MetadataEntityController(
         @RequestBody dto: MetadataEntityDto
     ): ResponseEntity<MetadataEntityDto> {
         val actor = requireAuthenticatedActor()
-        val updated = metadataEditService.overwriteEntity(id, toDomain(dto), actor)
-        return ResponseEntity.ok(toDto(updated, MetadataContext.global()))
+        val pathId = requireMillMetadataEntityPathId(id)
+        val domain = toDomainEntityForOverwrite(pathId, dto, actor)
+        val updated = metadataEditService.overwriteEntity(pathId, domain, actor)
+        return ResponseEntity.ok(toDto(updated))
     }
 
     @PatchMapping("/{id}")
@@ -231,110 +263,127 @@ class MetadataEntityController(
     @DeleteMapping("/{id}")
     fun deleteEntity(@PathVariable id: String): ResponseEntity<Void> {
         val actor = requireAuthenticatedActor()
-        metadataEditService.deleteEntity(id, actor)
+        metadataEditService.deleteEntity(requireMillMetadataEntityPathId(id), actor)
         return ResponseEntity.noContent().build()
     }
 
-    @PutMapping("/{id}/facets/{typeKey}")
-    fun overwriteFacet(
+    @Operation(
+        summary = "Assign or upsert facet",
+        description = "POST payload to assign a facet at `?scope=` (default global). SINGLE cardinality updates in place when a row exists."
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Assignment result"),
+        ApiResponse(responseCode = "404", description = "Entity not found")
+    )
+    @PostMapping("/{id}/facets/{typeKey}")
+    fun assignFacet(
         @PathVariable id: String,
         @PathVariable typeKey: String,
-        @RequestParam(required = false, name = "context") context: String?,
+        @Parameter(description = "Target scope URN or slug; defaults to global")
+        @RequestParam(required = false) scope: String?,
         @RequestBody payload: Any?
-    ): ResponseEntity<FacetResponseDto> {
+    ): ResponseEntity<FacetInstanceDto> {
         val actor = requireAuthenticatedActor()
-        ensureMetadataEntityExistsForFacetWrite(id, actor)
-        val scope = parseContext(context).scopes.last()
-        requireScopeWriteAllowed(scope, actor)
-        val updated = metadataEditService.setFacet(id, typeKey, scope, payload, actor)
-        val normalizedType = MetadataUrns.normaliseFacetTypePath(typeKey)
-        val normalizedScope = MetadataUrns.normaliseScopePath(scope)
-        val scoped = updated.facets[normalizedType] ?: emptyMap()
-        val facetPayload = scoped[normalizedScope]
-            ?: throw MillStatuses.unprocessableRuntime("Facet payload validation failed")
-        return ResponseEntity.ok(FacetResponseDto(facetType = normalizedType, uid = null, payload = facetPayload))
+        val entityPath = requireMillMetadataEntityPathId(id)
+        ensureMetadataEntityExistsForFacetWrite(entityPath, actor)
+        val scopeKey = if (scope.isNullOrBlank()) {
+            MetadataUrns.SCOPE_GLOBAL
+        } else {
+            MetadataUrns.normaliseScopePath(scope)
+        }
+        requireScopeWriteAllowed(scopeKey, actor)
+        val updated = metadataEditService.setFacet(entityPath, typeKey, scopeKey, payload, actor)
+        return ResponseEntity.ok(toFacetInstanceDto(updated))
     }
 
-    @DeleteMapping("/{id}/facets/{typeKey}")
-    fun deleteFacet(
+    @Operation(summary = "Replace facet assignment payload", description = "PATCH replaces payload for the row identified by `{facetUid}`.")
+    @PatchMapping("/{id}/facets/{typeKey}/{facetUid}")
+    fun patchFacetPayload(
         @PathVariable id: String,
         @PathVariable typeKey: String,
-        @RequestParam(required = false, name = "context") context: String?,
-        @Parameter(description = "Facet instance row UUID; required when deleting one of several MULTIPLE instances")
-        @RequestParam(required = false, name = "uid") uid: String?
-    ): ResponseEntity<Void> {
+        @PathVariable facetUid: String,
+        @RequestBody payload: Any?
+    ): ResponseEntity<FacetInstanceDto> {
         val actor = requireAuthenticatedActor()
-        val ctx = parseContext(context)
-        val normType = MetadataUrns.normaliseFacetTypePath(typeKey)
-        val entity = metadataService.findById(id).orElseThrow {
-            MillStatuses.notFoundRuntime("Entity not found: $id")
+        val entityPath = requireMillMetadataEntityPathId(id)
+        if (metadataService.findById(entityPath).isEmpty) {
+            return ResponseEntity.notFound().build()
         }
-        val scopeMap = entity.facets[normType] ?: throw MillStatuses.notFoundRuntime(
-            "Facet type not found on entity: $normType"
-        )
-        val scope = winningScopeForContext(scopeMap, ctx) ?: throw MillStatuses.notFoundRuntime(
-            "Facet not found in the requested context"
-        )
-        requireScopeWriteAllowed(scope, actor)
-        val jpaRows = metadataRepository.listFacetInstanceRows(id).isNotEmpty()
-        if (jpaRows) {
-            when (metadataRepository.resolveFacetTargetCardinality(normType)) {
-                FacetTargetCardinality.SINGLE -> metadataEditService.deleteFacet(id, typeKey, scope, actor)
-                FacetTargetCardinality.MULTIPLE -> {
-                    val count = metadataRepository.countFacetInstancesAtScope(id, normType, scope)
-                    when {
-                        count > 1 && uid.isNullOrBlank() -> throw MillStatuses.badRequestRuntime(
-                            "Query parameter uid is required when multiple facet instances exist"
-                        )
-                        count >= 1 && !uid.isNullOrBlank() -> {
-                            val row = metadataRepository.findFacetInstanceRow(id, uid.trim())
-                                ?: throw MillStatuses.notFoundRuntime("Facet instance not found: ${uid.trim()}")
-                            if (row.facetTypeKey != normType || row.scopeKey != scope) {
-                                throw MillStatuses.notFoundRuntime(
-                                    "Facet instance does not match this facet type and context"
-                                )
-                            }
-                            metadataEditService.deleteFacetInstanceByUid(id, uid.trim(), actor)
-                        }
-                        else -> metadataEditService.deleteFacet(id, typeKey, scope, actor)
-                    }
-                }
-            }
-        } else {
-            metadataEditService.deleteFacet(id, typeKey, scope, actor)
+        val normType = MetadataEntityUrn.canonicalize(MetadataUrns.normaliseFacetTypePath(typeKey))
+        val canonicalEntity = MetadataEntityUrn.canonicalize(entityPath)
+        val inst = findFacetInstance(canonicalEntity, facetUid)
+            ?: throw MillStatuses.notFoundRuntime("Facet instance not found: $facetUid")
+        if (MetadataEntityUrn.canonicalize(inst.facetTypeKey) != normType) {
+            throw MillStatuses.notFoundRuntime("Facet instance does not match facet type: $normType")
         }
-        return ResponseEntity.noContent().build()
+        requireScopeWriteAllowed(inst.scopeKey, actor)
+        val map = FacetPayloadCoercion.toPayloadMap(payload)
+        val updated = facetService.update(facetUid.trim(), map, actor)
+        return ResponseEntity.ok(toFacetInstanceDto(updated))
     }
 
-    /**
-     * Deletes a single facet instance by stable row UUID (same as `DELETE .../facets/{typeKey}?uid=`).
-     *
-     * @param id       entity identifier
-     * @param facetUid facet row UUID from [FacetResponseDto.uid]
-     */
-    @DeleteMapping("/{id}/facet-instances/{facetUid}")
-    fun deleteFacetInstanceByUid(
+    @Operation(
+        summary = "Delete facet assignment",
+        description = "Deletes one assignment by uid. Global SET rows are removed; overlay SET rows become TOMBSTONE (SPEC §10.2)."
+    )
+    @DeleteMapping("/{id}/facets/{typeKey}/{facetUid}")
+    fun deleteFacetByUid(
         @PathVariable id: String,
+        @PathVariable typeKey: String,
         @PathVariable facetUid: String
     ): ResponseEntity<Void> {
         val actor = requireAuthenticatedActor()
-        val row = metadataRepository.findFacetInstanceRow(id, facetUid)
+        val entityPath = requireMillMetadataEntityPathId(id)
+        if (metadataService.findById(entityPath).isEmpty) {
+            throw MillStatuses.notFoundRuntime("Entity not found: $entityPath")
+        }
+        val normType = MetadataEntityUrn.canonicalize(MetadataUrns.normaliseFacetTypePath(typeKey))
+        val canonicalEntity = MetadataEntityUrn.canonicalize(entityPath)
+        val inst = findFacetInstance(canonicalEntity, facetUid)
             ?: throw MillStatuses.notFoundRuntime("Facet instance not found: $facetUid")
-        requireScopeWriteAllowed(row.scopeKey, actor)
-        metadataEditService.deleteFacetInstanceByUid(id, facetUid, actor)
+        if (MetadataEntityUrn.canonicalize(inst.facetTypeKey) != normType) {
+            throw MillStatuses.notFoundRuntime("Facet instance does not match facet type: $normType")
+        }
+        requireScopeWriteAllowed(inst.scopeKey, actor)
+        metadataEditService.deleteFacetInstanceByUid(entityPath, facetUid.trim(), actor)
+        return ResponseEntity.noContent().build()
+    }
+
+    @Operation(
+        summary = "Delete all facet assignments of a type at a scope",
+        description = "`scope` query parameter is required. Applies per-row unassign rules (SET+global → delete; overlay → tombstone)."
+    )
+    @DeleteMapping("/{id}/facets/{typeKey}")
+    fun deleteFacetsAtScope(
+        @PathVariable id: String,
+        @PathVariable typeKey: String,
+        @Parameter(description = "Required scope URN or slug", required = true)
+        @RequestParam(required = true) scope: String
+    ): ResponseEntity<Void> {
+        val actor = requireAuthenticatedActor()
+        val entityPath = requireMillMetadataEntityPathId(id)
+        if (metadataService.findById(entityPath).isEmpty) {
+            throw MillStatuses.notFoundRuntime("Entity not found: $entityPath")
+        }
+        val scopeKey = scope.trim().takeIf { it.isNotEmpty() }
+            ?: throw MillStatuses.badRequestRuntime("Query parameter scope is required and must not be blank")
+        val normScope = MetadataUrns.normaliseScopePath(scopeKey)
+        requireScopeWriteAllowed(normScope, actor)
+        metadataEditService.deleteFacet(entityPath, typeKey, normScope, actor)
         return ResponseEntity.noContent().build()
     }
 
     @GetMapping("/{id}/history")
     fun getEntityHistory(@PathVariable id: String): ResponseEntity<List<MetadataAuditRecordDto>> {
         requireAuthenticatedActor()
-        val rows = metadataEditService.history(id).map {
+        val eid = requireMillMetadataEntityPathId(id)
+        val rows = metadataEditService.history(eid).map {
             MetadataAuditRecordDto(
                 auditId = it.auditId,
                 operationType = it.operationType,
-                entityId = it.entityId,
-                facetType = it.facetType,
-                scopeKey = it.scopeKey,
+                entityUrn = it.entityId,
+                facetTypeUrn = it.facetType,
+                scopeUrn = it.scopeKey,
                 actorId = it.actorId,
                 occurredAt = it.occurredAt,
                 payloadBefore = it.payloadBefore,
@@ -345,108 +394,135 @@ class MetadataEntityController(
         return ResponseEntity.ok(rows)
     }
 
-    /**
-     * Converts a domain entity to its REST DTO representation.
-     *
-     * @param entity the domain entity to convert
-     * @param ctx    the scope context; unused in this read-only view (full facets are returned)
-     * @return [MetadataEntityDto] with all facets
-     */
-    private fun toDto(
-        entity: io.qpointz.mill.metadata.domain.MetadataEntity,
-        @Suppress("UNUSED_PARAMETER") ctx: MetadataContext
-    ): MetadataEntityDto = MetadataEntityDto(
-        id = entity.id,
-        type = entity.type,
-        schemaName = entity.schemaName,
-        tableName = entity.tableName,
-        attributeName = entity.attributeName,
-        createdAt = entity.createdAt,
-        updatedAt = entity.updatedAt,
-        createdBy = entity.createdBy,
-        updatedBy = entity.updatedBy,
-        facets = entity.facets.mapValues { (_, v) -> v as Any? }
-    )
-
-    /**
-     * Resolves a scope map using the context's ordered scope list (last wins).
-     *
-     * @param scopeMap the map of scope URN → payload for a single facet type
-     * @param ctx      the scope context to apply
-     * @return the resolved payload, or `null` if no scope in the context has data
-     */
-    private fun resolveForContext(scopeMap: Map<String, Any?>, ctx: MetadataContext): Any? {
-        var result: Any? = null
-        for (scope in ctx.scopes) {
-            scopeMap[scope]?.let { result = it }
+    private fun rejectLegacyCoordinateParams(schema: String?, table: String?) {
+        if (!schema.isNullOrBlank() || !table.isNullOrBlank()) {
+            throw MillStatuses.badRequestRuntime(
+                "Query parameters 'schema' and 'table' are not supported on this endpoint; use the schema explorer API."
+            )
         }
-        return result
     }
 
     /**
-     * Returns the scope key whose payload [resolveForContext] would choose for the same inputs.
-     *
-     * Used for facet deletion so the removed row matches what merged GET endpoints surface.
+     * @param raw path variable (may be URL-decoded once by Spring)
+     * @return canonical entity URN
      */
-    private fun winningScopeForContext(scopeMap: Map<String, Any?>, ctx: MetadataContext): String? {
-        var winningScope: String? = null
-        for (scope in ctx.scopes) {
-            scopeMap[scope]?.let { winningScope = scope }
+    private fun requireMillMetadataEntityPathId(raw: String): String {
+        val t = raw.trim()
+        if (t.startsWith("urn:mill/", ignoreCase = true)) {
+            return MetadataEntityUrn.canonicalize(t)
         }
-        return winningScope
-    }
-
-    private fun buildFacetResponsesFromInstanceRows(
-        rows: List<MetadataFacetInstanceRow>,
-        ctx: MetadataContext
-    ): List<FacetResponseDto> {
-        val byFacetType = rows.groupBy { it.facetTypeKey }
-        val out = mutableListOf<FacetResponseDto>()
-        for (facetType in byFacetType.keys.sorted()) {
-            val rowsForType = byFacetType[facetType] ?: continue
-            val byScope = rowsForType.groupBy { it.scopeKey }
-            val winning = winningFacetRowsForContext(byScope, ctx) ?: continue
-            for (r in winning.sortedBy { it.sortKey }) {
-                out.add(FacetResponseDto(facetType = facetType, uid = r.facetUid, payload = r.payload))
+        if (t.startsWith("urn:", ignoreCase = true)) {
+            throw MillStatuses.badRequestRuntime(
+                "Entity path id must start with urn:mill/ or be a path segment (UrnSlug). Received: $t"
+            )
+        }
+        val urn = try {
+            when {
+                t.startsWith("mill-metadata-entity:", ignoreCase = true) || t.contains("--") ->
+                    UrnSlug.decode(t)
+                t.contains('.') || t.contains(':') ->
+                    UrnSlug.decode(t, MetadataUrns.ENTITY_PREFIX)
+                else ->
+                    UrnSlug.decode(t)
             }
+        } catch (ex: IllegalArgumentException) {
+            throw MillStatuses.badRequestRuntime(
+                "Entity path id must be a full Mill URN (urn:mill/…), a UrnSlug full segment " +
+                    "(mill-metadata-entity:…), or a dotted/colon local id under ${MetadataUrns.ENTITY_PREFIX} " +
+                    "(e.g. skymill.cargo_shipments.revenue). ${ex.message}"
+            )
         }
-        return out
+        val canonical = try {
+            MetadataEntityUrn.canonicalize(urn)
+        } catch (ex: IllegalArgumentException) {
+            throw MillStatuses.badRequestRuntime(
+                "Entity path id must resolve to a Mill URN under ${MetadataUrns.ENTITY_PREFIX}. ${ex.message}"
+            )
+        }
+        if (!canonical.startsWith(MetadataUrns.ENTITY_PREFIX)) {
+            throw MillStatuses.badRequestRuntime(
+                "Entity path id must resolve to ${MetadataUrns.ENTITY_PREFIX}…; got: $canonical"
+            )
+        }
+        return canonical
     }
 
-    private fun winningFacetRowsForContext(
-        rowsByScope: Map<String, List<MetadataFacetInstanceRow>>,
-        ctx: MetadataContext
-    ): List<MetadataFacetInstanceRow>? {
-        var winner: List<MetadataFacetInstanceRow>? = null
-        for (scope in ctx.scopes) {
-            rowsByScope[scope]?.takeIf { it.isNotEmpty() }?.let { winner = it }
-        }
-        return winner
-    }
+    private fun toDto(entity: DomainMetadataEntity): MetadataEntityDto =
+        MetadataEntityDto(
+            entityUrn = entity.id,
+            kind = entity.kind,
+            createdAt = entity.createdAt,
+            lastModifiedAt = entity.lastModifiedAt,
+            createdBy = entity.createdBy,
+            lastModifiedBy = entity.lastModifiedBy
+        )
 
-    /**
-     * Parses raw `context` query parameter using metadata-core rules and converts malformed input
-     * to a BAD_REQUEST status exception for consistent HTTP 400 mapping.
-     *
-     * @param context raw comma-separated context query parameter
-     * @return parsed [MetadataContext] with normalized scope URNs
-     */
+    private fun toFacetInstanceDto(i: FacetInstance): FacetInstanceDto =
+        FacetInstanceDto(
+            uid = i.uid,
+            facetTypeUrn = MetadataEntityUrn.canonicalize(i.facetTypeKey),
+            scopeUrn = MetadataEntityUrn.canonicalize(i.scopeKey),
+            payload = i.payload,
+            createdAt = i.createdAt,
+            lastModifiedAt = i.lastModifiedAt
+        )
+
     private fun parseContext(context: String?): MetadataContext = try {
         MetadataContext.parse(context)
     } catch (ex: IllegalArgumentException) {
         throw MillStatuses.badRequestRuntime("Malformed context parameter: ${context ?: "<blank>"}")
     }
 
-    private fun toDomain(dto: MetadataEntityDto): io.qpointz.mill.metadata.domain.MetadataEntity =
-        io.qpointz.mill.metadata.domain.MetadataEntity(
-            id = dto.id,
-            type = dto.type,
-            schemaName = dto.schemaName,
-            tableName = dto.tableName,
-            attributeName = dto.attributeName,
-            facets = (dto.facets as? Map<String, Map<String, Any?>>)?.mapValues { it.value.toMutableMap() }?.toMutableMap()
-                ?: mutableMapOf()
+    private fun toDomainEntity(dto: MetadataEntityDto, actorForNew: String): DomainMetadataEntity {
+        val urn = resolveMillUrnForCreateBody(dto)
+        val kind = dto.kind?.trim()?.takeIf { it.isNotEmpty() }
+        val now = Instant.EPOCH
+        return DomainMetadataEntity(
+            id = urn,
+            kind = kind,
+            uuid = null,
+            createdAt = now,
+            createdBy = actorForNew,
+            lastModifiedAt = now,
+            lastModifiedBy = actorForNew
         )
+    }
+
+    private fun toDomainEntityForOverwrite(pathId: String, dto: MetadataEntityDto, actor: String): DomainMetadataEntity {
+        val existing = metadataService.findById(pathId).orElseThrow {
+            MillStatuses.notFoundRuntime("Entity not found: $pathId")
+        }
+        val urn = MetadataEntityUrn.canonicalize(existing.id)
+        val kind = dto.kind?.trim()?.takeIf { it.isNotEmpty() } ?: existing.kind
+        return DomainMetadataEntity(
+            id = urn,
+            kind = kind,
+            uuid = existing.uuid,
+            createdAt = existing.createdAt,
+            createdBy = existing.createdBy,
+            lastModifiedAt = existing.lastModifiedAt,
+            lastModifiedBy = actor
+        )
+    }
+
+    /**
+     * @param dto incoming create body; [MetadataEntityDto.entityUrn] must be a full `urn:mill/` string
+     * @return canonical entity URN
+     */
+    private fun resolveMillUrnForCreateBody(dto: MetadataEntityDto): String {
+        val rawId = dto.entityUrn?.trim().orEmpty()
+        if (rawId.isEmpty()) {
+            throw MillStatuses.badRequestRuntime(
+                "entityUrn is required: full entity URN (`urn:mill/metadata/entity:…`)"
+            )
+        }
+        if (!rawId.startsWith("urn:mill/", ignoreCase = true)) {
+            throw MillStatuses.badRequestRuntime(
+                "Entity id must start with urn:mill/ (case-insensitive). Received: $rawId"
+            )
+        }
+        return MetadataEntityUrn.canonicalize(rawId)
+    }
 
     private fun requireAuthenticatedActor(): String {
         val auth = SecurityContextHolder.getContext().authentication
@@ -458,54 +534,84 @@ class MetadataEntityController(
     }
 
     private fun requireScopeWriteAllowed(scopeKey: String, actor: String) {
-        // WI-090 permissive authorization stub:
-        // defer strict scope/role checks to the dedicated authorization story.
-        // Keep scope normalization for consistent key shape at write boundaries.
         @Suppress("UNUSED_VARIABLE")
         val normalizedScope = MetadataUrns.normaliseScopePath(scopeKey)
         @Suppress("UNUSED_VARIABLE")
         val currentActor = actor
     }
 
+    /**
+     * Ensures a metadata entity row exists before facet writes, optionally seeding from the physical schema when
+     * the URN maps to an existing catalog object (SPEC §10 — facet writes against physical objects).
+     *
+     * @param entityId full canonical entity URN from the path
+     * @param actor authenticated actor for seeded rows
+     */
     private fun ensureMetadataEntityExistsForFacetWrite(entityId: String, actor: String) {
-        if (metadataService.findById(entityId).isPresent) return
-        if (!existsInPhysicalSchema(entityId)) {
+        if (metadataService.findById(entityId).isPresent) {
+            return
+        }
+        val canonicalKey = MetadataEntityIdResolver.canonicalizeEntityId(entityId)
+        if (!existsInPhysicalSchema(canonicalKey)) {
             throw MillStatuses.notFoundRuntime("Entity not found in metadata or physical schema: $entityId")
         }
-        val seed = toPhysicalMetadataEntity(entityId, actor)
+        val seed = toPhysicalMetadataEntity(canonicalKey, actor)
         metadataEditService.createEntity(seed, actor)
     }
 
     private fun existsInPhysicalSchema(entityId: String): Boolean {
         val provider = schemaProvider ?: return false
-        val parts = entityId.split('.')
-        val schemaName = parts.firstOrNull() ?: return false
-        if (!provider.isSchemaExists(schemaName)) return false
-        if (parts.size == 1) return true
-        val schema = provider.getSchema(schemaName)
-        val tableName = parts[1]
-        val table = schema.tablesList.firstOrNull { it.name == tableName } ?: return false
-        if (parts.size == 2) return true
+        val canonical = MetadataEntityIdResolver.canonicalizeEntityId(entityId)
+        val parts = canonical.split('.')
+        val schemaSegment = parts.firstOrNull() ?: return false
+        val schemaActual = provider.getSchemaNames().firstOrNull { it.equals(schemaSegment, ignoreCase = true) }
+            ?: return false
+        if (!provider.isSchemaExists(schemaActual)) {
+            return false
+        }
+        if (parts.size == 1) {
+            return true
+        }
+        val schema = provider.getSchema(schemaActual)
+        val tableSegment = parts[1]
+        val table = schema.tablesList.firstOrNull { it.name.equals(tableSegment, ignoreCase = true) } ?: return false
+        if (parts.size == 2) {
+            return true
+        }
         val columnName = parts.drop(2).joinToString(".")
-        return table.fieldsList.any { it.name == columnName }
+        return table.fieldsList.any { it.name.equals(columnName, ignoreCase = true) }
     }
 
-    private fun toPhysicalMetadataEntity(entityId: String, actor: String): io.qpointz.mill.metadata.domain.MetadataEntity {
-        val parts = entityId.split('.')
-        val type = when (parts.size) {
-            1 -> MetadataType.SCHEMA
-            2 -> MetadataType.TABLE
-            else -> MetadataType.ATTRIBUTE
+    private fun toPhysicalMetadataEntity(entityId: String, actor: String): DomainMetadataEntity {
+        val canonical = MetadataEntityIdResolver.canonicalizeEntityId(entityId)
+        val parts = canonical.split('.')
+        val urn = when (parts.size) {
+            1 -> urnCodec.forSchema(parts[0])
+            2 -> urnCodec.forTable(parts[0], parts[1])
+            else -> urnCodec.forAttribute(parts[0], parts[1], parts.drop(2).joinToString("."))
         }
-        return io.qpointz.mill.metadata.domain.MetadataEntity(
-            id = entityId,
-            type = type,
-            schemaName = parts.getOrNull(0),
-            tableName = parts.getOrNull(1),
-            attributeName = parts.drop(2).joinToString(".").ifBlank { null },
-            facets = mutableMapOf(),
+        val kind = when (parts.size) {
+            1 -> SchemaEntityKinds.SCHEMA
+            2 -> SchemaEntityKinds.TABLE
+            else -> SchemaEntityKinds.ATTRIBUTE
+        }
+        val now = Instant.EPOCH
+        return DomainMetadataEntity(
+            id = urn,
+            kind = kind,
+            uuid = null,
+            createdAt = now,
             createdBy = actor,
-            updatedBy = actor
+            lastModifiedAt = now,
+            lastModifiedBy = actor
         )
+    }
+
+    private fun findFacetInstance(entityId: String, uid: String): FacetInstance? {
+        val row = facetRepository.findByUid(uid) ?: return null
+        if (MetadataEntityUrn.canonicalize(row.entityId) != MetadataEntityUrn.canonicalize(entityId)) {
+            return null
+        }
+        return row
     }
 }

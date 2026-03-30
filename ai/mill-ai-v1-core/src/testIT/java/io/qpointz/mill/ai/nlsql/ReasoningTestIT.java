@@ -3,7 +3,9 @@ package io.qpointz.mill.ai.nlsql;
 import io.qpointz.mill.ai.chat.ChatUserRequests;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.data.schema.MetadataEntityUrnCodec;
+import io.qpointz.mill.metadata.repository.FacetRepository;
+import io.qpointz.mill.metadata.service.MetadataEntityService;
 import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -25,10 +27,12 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ReasoningTestIT extends BaseIntentTestIT {
 
     protected ReasoningTestIT(@Autowired ChatModel model,
-                              @Autowired MetadataService metadataService,
+                              @Autowired MetadataEntityService metadataEntityService,
+                              @Autowired FacetRepository facetRepository,
+                              @Autowired MetadataEntityUrnCodec urnCodec,
                               @Autowired SqlDialectSpec sqlDialect,
                               @Autowired DataOperationDispatcher dispatcher) {
-        super(model, metadataService, sqlDialect, dispatcher);
+        super(model, metadataEntityService, facetRepository, urnCodec, sqlDialect, dispatcher);
     }
 
 

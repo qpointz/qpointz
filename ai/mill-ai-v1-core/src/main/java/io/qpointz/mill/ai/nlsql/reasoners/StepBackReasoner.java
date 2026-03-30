@@ -8,7 +8,7 @@ import io.qpointz.mill.ai.chat.messages.MessageSelector;
 import io.qpointz.mill.ai.nlsql.*;
 import io.qpointz.mill.ai.nlsql.models.stepback.StepBackResponse;
 import io.qpointz.mill.ai.nlsql.stepback.StepBackCall;
-import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.ai.nlsql.metadata.SchemaMessageMetadataPorts;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -22,7 +22,7 @@ import java.util.Optional;
 public class StepBackReasoner implements Reasoner {
 
     private final CallSpecsChatClientBuilders chatBuilders;
-    private final MetadataService metadataService;
+    private final SchemaMessageMetadataPorts schemaPorts;
     private final MessageSelector messageSelector;
 
     @Override
@@ -41,12 +41,12 @@ public class StepBackReasoner implements Reasoner {
     private ReasoningReply initialReasoning(ChatUserRequest request) {
         val query = request.query();
         val stepBackCall = new StepBackCall(query, this.chatBuilders.reasoningChat(),
-                MessageSpecs.stepBack(query, metadataService), this.messageSelector);
+                MessageSpecs.stepBack(query, schemaPorts), this.messageSelector);
 
         if (!needClarification(stepBackCall)) {
             val reasonCall = new ReasonCall(query,
                     this.chatBuilders.reasoningChat(),
-                    MessageSpecs.reason(query, metadataService),
+                    MessageSpecs.reason(query, schemaPorts),
                     this.messageSelector);
             return ReasoningReply
                     .reasoned(ChatReply.reply(reasonCall));
@@ -80,13 +80,13 @@ public class StepBackReasoner implements Reasoner {
 
         String baseQuery = resolveBaseQuery(lastResponse, request);
         val stepBackCall = new StepBackCall(baseQuery, this.chatBuilders.reasoningChat(),
-                MessageSpecs.stepBackWithClarification(baseQuery, request.query(), lastResponse, metadataService),
+                MessageSpecs.stepBackWithClarification(baseQuery, request.query(), lastResponse, schemaPorts),
                 this.messageSelector);
 
         if (!needClarification(stepBackCall)) {
             val reasonCall = new ReasonCall(baseQuery,
                     this.chatBuilders.reasoningChat(),
-                    MessageSpecs.reason(baseQuery, metadataService),
+                    MessageSpecs.reason(baseQuery, schemaPorts),
                     this.messageSelector);
             return ReasoningReply
                     .reasoned(ChatReply.reply(reasonCall));

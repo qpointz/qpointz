@@ -3,8 +3,8 @@ package io.qpointz.mill.data.schema
 import io.qpointz.mill.metadata.domain.MetadataFacet
 import io.qpointz.mill.metadata.domain.core.ConceptFacet
 import io.qpointz.mill.metadata.domain.core.DescriptiveFacet
-import io.qpointz.mill.metadata.domain.core.RelationFacet
-import io.qpointz.mill.metadata.domain.core.StructuralFacet
+import io.qpointz.mill.data.schema.facet.RelationFacet
+import io.qpointz.mill.data.schema.facet.StructuralFacet
 import io.qpointz.mill.metadata.domain.core.ValueMappingFacet
 
 /**

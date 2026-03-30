@@ -1,9 +1,13 @@
 package io.qpointz.mill.ai.nlsql.messages.specs;
 
-import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
+import io.qpointz.mill.ai.nlsql.metadata.SchemaMessageMetadataPorts;
 import io.qpointz.mill.data.backend.configuration.DefaultServiceConfiguration;
-import io.qpointz.mill.metadata.domain.MetadataType;
-import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.data.schema.CatalogPath;
+import io.qpointz.mill.data.schema.MetadataEntityUrnCodec;
+import io.qpointz.mill.data.schema.SchemaEntityKinds;
+import io.qpointz.mill.metadata.domain.MetadataEntity;
+import io.qpointz.mill.metadata.repository.FacetRepository;
+import io.qpointz.mill.metadata.service.MetadataEntityService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.junit.jupiter.api.Test;
@@ -12,61 +16,79 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.io.IOException;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
-@SpringBootTest(classes = {SchemaMessageSpecTest.class, DefaultServiceConfiguration.class})
-@ComponentScan("io.qpointz")
+@SpringBootTest(
+    classes = { SchemaMessageSpecTest.class, DefaultServiceConfiguration.class },
+    webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+    properties = {
+        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration"
+    }
+)
+@ComponentScan(
+    basePackages = "io.qpointz.mill",
+    excludeFilters = @ComponentScan.Filter(
+        type = FilterType.REGEX,
+        pattern = "io\\.qpointz\\.mill\\.metadata\\.api\\..*"
+    )
+)
 @ActiveProfiles("test-moneta-slim")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@WebAppConfiguration
-@ComponentScan("io.qpointz.mill")
 @EnableAutoConfiguration
 class SchemaMessageSpecTest {
 
     @Autowired
-    MetadataService metadataService;
+    MetadataEntityService metadataEntityService;
+
+    @Autowired
+    FacetRepository facetRepository;
+
+    @Autowired
+    MetadataEntityUrnCodec urnCodec;
 
     @Test
     void trivia() throws IOException {
-        val schemas = metadataService.findByType(MetadataType.SCHEMA);
+        val schemas = metadataEntityService.findByKind(SchemaEntityKinds.SCHEMA);
         assertFalse(schemas.isEmpty(), "Expected at least one schema in metadata service");
-        val attributes = metadataService.findByType(MetadataType.ATTRIBUTE);
+        val attributes = metadataEntityService.findByKind(SchemaEntityKinds.ATTRIBUTE);
         assertFalse(attributes.isEmpty(), "Expected at least one attribute in metadata service");
         val sampleAttr = attributes.get(0);
-        assertNotNull(sampleAttr.getSchemaName());
-        assertNotNull(sampleAttr.getTableName());
-        assertNotNull(sampleAttr.getAttributeName());
+        CatalogPath path = urnCodec.decode(sampleAttr.getId());
+        assertNotNull(path.getSchema());
+        assertNotNull(path.getTable());
+        assertNotNull(path.getColumn());
 
-        val sp = SchemaMessageSpec.builder(MessageType.USER, metadataService)
+        val ports = new SchemaMessageMetadataPorts(metadataEntityService, facetRepository, urnCodec);
+        val sp = SchemaMessageSpec.forMetadata(MessageType.USER, ports)
                 .includeRelations(true)
                 .includeAttributes(true)
                 .build();
         val content = sp.getText();
         System.out.println(content);
         val upper = content.toUpperCase();
-        assertTrue(upper.contains(sampleAttr.getSchemaName().toUpperCase()));
-        assertTrue(upper.contains(sampleAttr.getTableName().toUpperCase()));
-        assertTrue(upper.contains(sampleAttr.getAttributeName().toUpperCase()));
+        assertTrue(upper.contains(path.getSchema().toUpperCase()));
+        assertTrue(upper.contains(path.getTable().toUpperCase()));
+        assertTrue(upper.contains(path.getColumn().toUpperCase()));
     }
 
     @Test
     void filterTable() throws IOException {
-        val sp = SchemaMessageSpec.builder(MessageType.USER, metadataService)
+        val ports = new SchemaMessageMetadataPorts(metadataEntityService, facetRepository, urnCodec);
+        val sp = SchemaMessageSpec.forMetadata(MessageType.USER, ports)
                 .includeRelations(true)
                 .includeAttributes(true)
-                .requiredTables(List.of(
-                        new ReasoningResponse.IntentTable("MONETA", "CLIENTS", false),
-                        new ReasoningResponse.IntentTable("MONETA", "ACCOUNTS", false)
+                .requiredTables(java.util.List.of(
+                        new io.qpointz.mill.ai.nlsql.models.ReasoningResponse.IntentTable("MONETA", "CLIENTS", false),
+                        new io.qpointz.mill.ai.nlsql.models.ReasoningResponse.IntentTable("MONETA", "ACCOUNTS", false)
                 ))
                 .build();
         val content = sp.getText();

@@ -1,5 +1,8 @@
 package io.qpointz.mill.metadata.domain.facet
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import java.io.Serializable
 
 /**
@@ -9,7 +12,10 @@ import java.io.Serializable
  * Object properties are represented as an ordered [fields] list to guarantee UI order.
  *
  * All schema nodes used for UI rendering must provide [title] and [description].
+ *
+ * Null-valued optional properties are omitted from JSON so API payloads match sparse YAML.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class FacetPayloadSchema(
     val type: FacetSchemaType,
     val title: String,
@@ -35,14 +41,25 @@ data class FacetEnumValue(
     }
 }
 
-/** Ordered object field entry. */
+/**
+ * Ordered object field entry.
+ *
+ * @param stereotype Optional UI-only presentation hints as ordered tags (e.g. `table`, `hyperlink`).
+ *   Serialized as a comma‑separated string when [schema] is not [FacetSchemaType.ARRAY], and as a JSON
+ *   string array when the value schema is [FacetSchemaType.ARRAY]. Ignored by validation; clients interpret tags.
+ *   Null or empty after normalization means no hint.
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonSerialize(using = FacetPayloadFieldSerializer::class)
+@JsonDeserialize(using = FacetPayloadFieldDeserializer::class)
 data class FacetPayloadField(
     val name: String,
     val schema: FacetPayloadSchema,
-    val required: Boolean = true
+    val required: Boolean = true,
+    val stereotype: List<String>? = null
 ) : Serializable {
     companion object {
-        private const val serialVersionUID: Long = 1L
+        private const val serialVersionUID: Long = 3L
     }
 }
 

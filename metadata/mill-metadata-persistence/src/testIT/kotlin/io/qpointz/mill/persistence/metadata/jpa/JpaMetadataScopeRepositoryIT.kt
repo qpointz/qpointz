@@ -2,8 +2,7 @@ package io.qpointz.mill.persistence.metadata.jpa
 
 import io.qpointz.mill.metadata.domain.MetadataScope
 import io.qpointz.mill.metadata.domain.MetadataUrns
-import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaMetadataScopeRepository
-import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataScopeJpaRepository
+import io.qpointz.mill.metadata.repository.MetadataScopeRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,7 +10,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
-import java.util.UUID
 
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -19,73 +17,79 @@ import java.util.UUID
 class JpaMetadataScopeRepositoryIT {
 
     @Autowired
-    private lateinit var jpaRepo: MetadataScopeJpaRepository
+    private lateinit var repository: MetadataScopeRepository
 
-    private val repository by lazy { JpaMetadataScopeRepository(jpaRepo) }
+    private fun now() = Instant.now()
 
     @Test
-    fun `shouldFindGlobalScope_whenV4MigrationRan`() {
-        val found = repository.findById(MetadataUrns.SCOPE_GLOBAL)
-        assertThat(found).isPresent
-        assertThat(found.get().scopeId).isEqualTo(MetadataUrns.SCOPE_GLOBAL)
-        assertThat(found.get().displayName).isEqualTo("Global")
+    fun `should find global scope when V4 migration ran`() {
+        val found = repository.findByRes(MetadataUrns.SCOPE_GLOBAL)
+        assertThat(found).isNotNull
+        assertThat(found!!.res).isEqualTo(MetadataUrns.SCOPE_GLOBAL)
+        assertThat(found.displayName).isEqualTo("Global")
     }
 
     @Test
-    fun `shouldReturnTrue_whenGlobalScopeExists`() {
-        assertThat(repository.existsById(MetadataUrns.SCOPE_GLOBAL)).isTrue()
+    fun `should return true when global scope exists`() {
+        assertThat(repository.exists(MetadataUrns.SCOPE_GLOBAL)).isTrue()
     }
 
     @Test
-    fun `shouldReturnFalse_whenScopeAbsent`() {
-        assertThat(repository.existsById("urn:mill/metadata/scope:user:nonexistent-${UUID.randomUUID()}")).isFalse()
+    fun `should return false when scope absent`() {
+        assertThat(
+            repository.exists("urn:mill/metadata/scope:user:nonexistent-${java.util.UUID.randomUUID()}")
+        ).isFalse()
     }
 
     @Test
-    fun `shouldPersistAndFindUserScope_whenSaved`() {
-        val scopeId = MetadataUrns.scopeUser("testuser-${UUID.randomUUID().toString().take(8)}")
-        val scope = MetadataScope(scopeId = scopeId, displayName = "Test User", ownerId = "testuser", createdAt = Instant.now())
+    fun `should persist and find user scope when saved`() {
+        val res = MetadataUrns.scopeUser("testuser-${java.util.UUID.randomUUID().toString().take(8)}")
+        val t = now()
+        repository.save(
+            MetadataScope(
+                res = res,
+                scopeType = "USER",
+                referenceId = res.removePrefix(MetadataUrns.SCOPE_PREFIX).removePrefix("user:"),
+                displayName = "Test User",
+                ownerId = "testuser",
+                visibility = "PUBLIC",
+                uuid = null,
+                createdAt = t,
+                createdBy = null,
+                lastModifiedAt = t,
+                lastModifiedBy = null
+            )
+        )
 
-        repository.save(scope)
-
-        val found = repository.findById(scopeId)
-        assertThat(found).isPresent
-        assertThat(found.get().displayName).isEqualTo("Test User")
-        assertThat(found.get().ownerId).isEqualTo("testuser")
+        val found = repository.findByRes(res)
+        assertThat(found).isNotNull
+        assertThat(found!!.displayName).isEqualTo("Test User")
+        assertThat(found.ownerId).isEqualTo("testuser")
     }
 
     @Test
-    fun `shouldPersistAndFindTeamScope_whenSaved`() {
-        val scopeId = MetadataUrns.scopeTeam("team-${UUID.randomUUID().toString().take(8)}")
-        val scope = MetadataScope(scopeId = scopeId, displayName = "Engineering", ownerId = null, createdAt = Instant.now())
+    fun `should delete when scope exists`() {
+        val res = MetadataUrns.scopeUser("del-${java.util.UUID.randomUUID().toString().take(8)}")
+        val t = now()
+        repository.save(
+            MetadataScope(
+                res = res,
+                scopeType = "USER",
+                referenceId = "del",
+                displayName = null,
+                ownerId = null,
+                visibility = "PUBLIC",
+                uuid = null,
+                createdAt = t,
+                createdBy = null,
+                lastModifiedAt = t,
+                lastModifiedBy = null
+            )
+        )
+        assertThat(repository.exists(res)).isTrue()
 
-        repository.save(scope)
+        repository.delete(res)
 
-        val found = repository.findById(scopeId)
-        assertThat(found).isPresent
-        assertThat(found.get().scopeId).isEqualTo(scopeId)
-    }
-
-    @Test
-    fun `shouldFindAll_whenMultipleScopesExist`() {
-        val id1 = MetadataUrns.scopeUser("user-${UUID.randomUUID().toString().take(8)}")
-        val id2 = MetadataUrns.scopeTeam("team-${UUID.randomUUID().toString().take(8)}")
-        repository.save(MetadataScope(id1, null, null, Instant.now()))
-        repository.save(MetadataScope(id2, null, null, Instant.now()))
-
-        val all = repository.findAll()
-        val ids = all.map { it.scopeId }
-        assertThat(ids).contains(MetadataUrns.SCOPE_GLOBAL, id1, id2)
-    }
-
-    @Test
-    fun `shouldDelete_whenScopeExists`() {
-        val scopeId = MetadataUrns.scopeUser("del-${UUID.randomUUID().toString().take(8)}")
-        repository.save(MetadataScope(scopeId, null, null, Instant.now()))
-        assertThat(repository.existsById(scopeId)).isTrue()
-
-        repository.deleteById(scopeId)
-
-        assertThat(repository.existsById(scopeId)).isFalse()
+        assertThat(repository.exists(res)).isFalse()
     }
 }

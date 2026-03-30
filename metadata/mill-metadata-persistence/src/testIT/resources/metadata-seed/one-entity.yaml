@@ -1,0 +1,5 @@
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:seed.startup.one
+entityKind: table
+facets: []

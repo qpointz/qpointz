@@ -20,6 +20,9 @@ Tests rely on JUnit 5 and Mockito. Name test classes `<Subject>Test` and methods
 ## Branching Strategy
 For every work item (or phase), create a **new dedicated branch**. Preferred: branch from `origin/dev` via `git fetch origin && git checkout -b <branch-name> origin/dev`. Allowed: branch from the last work item's branch if it depends on prior work. Before pushing, the branch **must be rebased** against `origin/dev`: `git fetch origin && git rebase origin/dev`. Never commit directly to `dev`. Never reuse a previous work-item branch—each item starts fresh. Name branches descriptively (e.g. `feat/port-flow-<wi>`). Push the branch to origin when complete; the user reviews and merges into `dev`. Do not merge or push to `dev` yourself.
 
+## Stories & Work Items
+Stories live under `docs/workitems/<story-slug>/` (STORY.md + WI files). **Story closure** (merge-ready checklist): update `MILESTONE.md`, `BACKLOG.md`, design docs under `docs/design/<component>/`, and public docs under `docs/public/src/` as required. **Do not delete** the story folder — **move** it to `docs/workitems/completed/YYYYMMDD-<story-slug>/` (closure date, original slug). Use **descending** sort on folder names or `docs/workitems/completed/README.md` to list **most recent** closures first. Full detail: `docs/workitems/RULES.md` and `docs/design/platform/story-wi-workflow.md`.
+
 ## Commit & Pull Request Guidelines
 Follow the existing bracketed prefix style: `[feat]`, `[fix]`, `[change]`, `[docs]`, `[wip]`. Summaries should be imperative and under 72 characters. **Never** add `Co-Authored-By` or similar trailers to commit messages. PRs must describe scope, testing evidence (`./gradlew test` output), and link to Jira or GitHub issues. Include screenshots or curl snippets for API-visible changes. Rebase onto the latest main branch before requesting review.
 

@@ -38,6 +38,10 @@ tasks.named<Javadoc>("javadoc") { //temporary
     isFailOnError = false
 }
 
+tasks.named<Test>("test") {
+    workingDir = rootProject.layout.projectDirectory.asFile
+}
+
 testing {
     suites {
         register<JvmTestSuite>("testIT") {

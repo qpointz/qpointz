@@ -37,11 +37,14 @@ mill:
         sources:
           - ./config/skymill/skymill-flow.yml
   metadata:
-    storage:
+    repository:
       type: jpa
     facet-type-registry:
       type: local
-    import-on-startup: "file:../../test/datasets/skymill/skymill-meta-repository.yaml"
+    seed:
+      resources:
+        - "classpath:metadata/platform-bootstrap.yaml"
+        - "file:../../test/datasets/skymill/skymill-canonical.yaml"
 ---
 spring:
   config:
@@ -73,11 +76,14 @@ mill:
         password: "*"
         target-schema: "MONETA"
   metadata:
-    storage:
+    repository:
       type: jpa
     facet-type-registry:
       type: local
-    import-on-startup: "file:../../test/datasets/moneta/moneta-meta-repository.yaml"
+    seed:
+      resources:
+        - "classpath:metadata/platform-bootstrap.yaml"
+        - "file:../../test/datasets/moneta/moneta-canonical.yaml"
 ---
 spring:
   config:
@@ -119,3 +125,10 @@ spring:
       ddl-auto: validate
   flyway:
     enabled: true
+
+mill:
+  metadata:
+    repository:
+      type: jpa
+    facet-type-registry:
+      type: local

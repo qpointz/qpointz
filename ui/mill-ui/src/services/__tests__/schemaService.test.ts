@@ -35,7 +35,10 @@ const mockTableDetail = {
   ],
 };
 
-/** Matches `GET .../metadata/entities/{id}/facets` — JSON array of `{ facetType, payload }`. */
+const salesCustomersUrn = 'urn:mill/metadata/entity:sales.customers';
+const salesCustomerColUrn = 'urn:mill/metadata/entity:sales.customers.customer_id';
+
+/** Matches `GET .../metadata/entities/{id}/facets` — JSON array of facet instances (`facetType`, `payload`, …). */
 const mockFacetsCustomers = [
   {
     facetType: 'urn:mill/metadata/facet-type:descriptive',
@@ -78,6 +81,14 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 
 describe('schemaService', () => {
+  describe('buildEntityUrn', () => {
+    it('should build lowercase dot-separated entity URNs', async () => {
+      const { buildEntityUrn } = await import('../schemaService');
+      expect(buildEntityUrn('Sales', 'Customers')).toBe('urn:mill/metadata/entity:sales.customers');
+      expect(buildEntityUrn('P', 'T', 'C')).toBe('urn:mill/metadata/entity:p.t.c');
+    });
+  });
+
   describe('getContext', () => {
     it('falls back to global when context endpoint fails', async () => {
       fetchMock.mockResolvedValueOnce(makeErrorResponse(503));
@@ -150,7 +161,7 @@ describe('schemaService', () => {
     it('should return facets for a known entity', async () => {
       fetchMock.mockResolvedValueOnce(makeOkResponse(mockFacetsCustomers));
       const { schemaService } = await import('../schemaService');
-      const facets: EntityFacets = await schemaService.getEntityFacets('sales.customers', 'global');
+      const facets: EntityFacets = await schemaService.getEntityFacets(salesCustomersUrn, 'global');
       expect(facets).toBeDefined();
       expect(facets.descriptive).toBeDefined();
     });
@@ -158,14 +169,14 @@ describe('schemaService', () => {
     it('should return descriptive facet with displayName', async () => {
       fetchMock.mockResolvedValueOnce(makeOkResponse(mockFacetsCustomers));
       const { schemaService } = await import('../schemaService');
-      const facets = await schemaService.getEntityFacets('sales.customers', 'global');
+      const facets = await schemaService.getEntityFacets(salesCustomersUrn, 'global');
       expect(facets.descriptive?.displayName).toBe('Customers');
     });
 
     it('should return empty object for unknown entity', async () => {
       fetchMock.mockResolvedValueOnce(makeErrorResponse(404));
       const { schemaService } = await import('../schemaService');
-      const facets = await schemaService.getEntityFacets('nonexistent', 'global');
+      const facets = await schemaService.getEntityFacets('urn:mill/metadata/entity:nonexistent', 'global');
       expect(facets).toBeDefined();
       expect(Object.keys(facets).length).toBe(0);
     });
@@ -173,7 +184,7 @@ describe('schemaService', () => {
     it('should include structural facets for attributes with metadata', async () => {
       fetchMock.mockResolvedValueOnce(makeOkResponse(mockFacetsCustomerId));
       const { schemaService } = await import('../schemaService');
-      const facets = await schemaService.getEntityFacets('sales.customers.customer_id', 'global');
+      const facets = await schemaService.getEntityFacets(salesCustomerColUrn, 'global');
       expect(facets.structural).toBeDefined();
       expect(facets.structural?.isPrimaryKey).toBe(true);
     });
@@ -187,7 +198,7 @@ describe('schemaService', () => {
       };
       fetchMock.mockResolvedValueOnce(makeOkResponse(legacyMap));
       const { schemaService } = await import('../schemaService');
-      const facets = await schemaService.getEntityFacets('sales.customers', 'global');
+      const facets = await schemaService.getEntityFacets(salesCustomersUrn, 'global');
       expect(facets.descriptive?.displayName).toBe('Legacy');
     });
   });

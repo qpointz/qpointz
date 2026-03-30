@@ -203,8 +203,11 @@ docs/workitems/
    (e.g. `agentic/`, `metadata/`, `platform/`). Design docs are filed by logical component,
    not by story.
 4. Update / create user docs under `docs/public/src/`.
-5. **Delete the story folder** (`docs/workitems/<story-slug>/`) — WI files are ephemeral;
-   the above artefacts are the durable record.
+5. **Archive the story folder** — move (do not delete) to
+   `docs/workitems/completed/YYYYMMDD-<story-slug>/` (closure date + original slug). Preserves
+   STORY and WI history; MILESTONE, BACKLOG, and design/public docs remain the summary record.
+   **Most recent first:** sort archived folder names **descending**, or use
+   `docs/workitems/completed/README.md`.
 
 Full rules: `docs/workitems/RULES.md`.
 
@@ -215,8 +218,14 @@ Full rules: `docs/workitems/RULES.md`.
   explicit dependency on unmerged prior work.
 - Never commit directly to `dev` or `main`.
 - One logical commit per WI (squash at WI completion).
+- **After each WI is complete:** commit the **full working copy** for that WI — every intentional
+  file touched (code, tests, `docs/workitems/<story>/STORY.md` checkbox, WI markdown updates, etc.)
+  in **one** commit, so the tree is **clean** before starting the next WI. Do not leave part of a
+  finished WI uncommitted. Exclude build artifacts, secrets, and unrelated changes outside the story.
 - **At story closure**: squash and regroup all commits since branching into a minimal set of
   logical commits before the branch is merge-ready. Use `git rebase -i origin/dev`.
 - Commit prefix style: `[feat]`, `[fix]`, `[change]`, `[docs]`, `[wip]`; imperative, under 72 chars.
 - **Never** add `Co-Authored-By` trailers to commit messages.
 - Do not force-push to protected branches.
+
+Full detail: `docs/workitems/RULES.md` (Commits → **Complete working copy per WI**).

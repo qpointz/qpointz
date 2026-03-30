@@ -5,7 +5,7 @@ import { HiOutlineCircleStack } from 'react-icons/hi2';
 import { SchemaTree } from './SchemaTree';
 import { EntityDetails } from './EntityDetails';
 import { CollapsibleSidebar } from '../common/CollapsibleSidebar';
-import { schemaService } from '../../services/api';
+import { metadataEntityUrnForFacetApi, schemaService } from '../../services/api';
 import type { SchemaNode, SchemaEntity, EntityFacets, TableDetail } from '../../types/schema';
 
 function enrichNodeChildren(
@@ -98,17 +98,22 @@ export function DataModelLayout() {
       if (signal.aborted || currentRequestId !== entityRequestIdRef.current) return;
       setSelectedEntity(entity);
       if (entity) {
-        schemaService
-          .getEntityFacets(entity.id, selectedContext, signal)
-          .then((nextFacets) => {
-            if (signal.aborted || currentRequestId !== entityRequestIdRef.current) return;
-            setFacets(nextFacets);
-          })
-          .catch((e) => {
-            if (e instanceof DOMException && e.name === 'AbortError') return;
-            if (signal.aborted) return;
-            setFacets({});
-          });
+        const metaUrn = metadataEntityUrnForFacetApi(entity);
+        if (metaUrn) {
+          schemaService
+            .getEntityFacets(metaUrn, selectedContext, signal)
+            .then((nextFacets) => {
+              if (signal.aborted || currentRequestId !== entityRequestIdRef.current) return;
+              setFacets(nextFacets);
+            })
+            .catch((e) => {
+              if (e instanceof DOMException && e.name === 'AbortError') return;
+              if (signal.aborted) return;
+              setFacets({});
+            });
+        } else {
+          setFacets({});
+        }
         if (entity.entityType === 'TABLE') {
           const columnNodes = tableColumnNodes(entity);
           setTree((prev) => (prev ? enrichNodeChildren(prev, entity.id, columnNodes) : prev));
@@ -150,7 +155,12 @@ export function DataModelLayout() {
         setEntityLoading(false);
         return;
       }
-      schemaService.getEntityFacets(entity.id, selectedContext).then(setFacets).catch(() => setFacets({}));
+      const metaUrn = metadataEntityUrnForFacetApi(entity);
+      if (metaUrn) {
+        schemaService.getEntityFacets(metaUrn, selectedContext).then(setFacets).catch(() => setFacets({}));
+      } else {
+        setFacets({});
+      }
       // Lazy-load table columns into the tree only when table is selected.
       if (entity.entityType === 'TABLE') {
         const columnNodes: SchemaNode[] = entity.columns.map((column) => ({
@@ -223,7 +233,12 @@ export function DataModelLayout() {
               facets={facets}
               selectedContext={selectedContext}
               onFacetsChanged={async () => {
-                const next = await schemaService.getEntityFacets(selectedEntity.id, selectedContext);
+                const urn = metadataEntityUrnForFacetApi(selectedEntity);
+                if (!urn) {
+                  setFacets({});
+                  return;
+                }
+                const next = await schemaService.getEntityFacets(urn, selectedContext);
                 setFacets(next);
               }}
             />

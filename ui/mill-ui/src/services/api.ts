@@ -6,7 +6,7 @@
  * swapped from mock to real backend by changing the re-export source.
  */
 
-export { schemaService } from './schemaService';
+export { schemaService, buildEntityUrn, metadataEntityUrnForFacetApi } from './schemaService';
 export { conceptService } from './conceptService';
 export { queryService } from './queryService';
 export { statsService } from './statsService';

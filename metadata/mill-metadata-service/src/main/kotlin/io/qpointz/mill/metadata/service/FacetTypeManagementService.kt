@@ -4,10 +4,15 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.qpointz.mill.excepions.statuses.MillStatuses
-import io.qpointz.mill.metadata.domain.FacetTypeDescriptor
+import io.qpointz.mill.metadata.domain.FacetTypeDefinition
+import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.MetadataUrns
+import io.qpointz.mill.metadata.domain.facet.FacetPayloadSchema
+import io.qpointz.mill.metadata.domain.facet.FacetSchemaType
 import io.qpointz.mill.metadata.domain.facet.FacetTypeManifest
 import io.qpointz.mill.metadata.domain.facet.FacetTypeManifestNormalizer
+import io.qpointz.mill.metadata.repository.FacetRepository
+import io.qpointz.mill.metadata.repository.FacetTypeDefinitionRepository
 import io.qpointz.mill.metadata.repository.FacetTypeRepository
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -16,14 +21,15 @@ import java.time.Instant
 /**
  * Facet type management orchestration for the metadata REST API.
  *
- * Keeps controllers transport-thin by:
- * - enforcing strict manifest normalization/validation
- * - mapping domain/catalog constraints to Mill status exceptions
+ * Uses [FacetCatalog] and [FacetTypeDefinitionRepository] for persistence-shaped definitions,
+ * [FacetRepository] for usage counts, and strict JSON parsing for request bodies.
  */
 @Service
 class FacetTypeManagementService(
     private val facetCatalog: FacetCatalog,
+    private val definitionRepository: FacetTypeDefinitionRepository,
     private val facetTypeRepository: FacetTypeRepository,
+    private val facetRepository: FacetRepository,
     private val objectMapper: ObjectMapper
 ) {
 
@@ -33,39 +39,48 @@ class FacetTypeManagementService(
     }
 
     fun list(targetType: String?, enabledOnly: Boolean): List<FacetTypeManifest> {
-        val descriptors = if (targetType != null) {
-            facetCatalog.getForTargetType(targetType)
-        } else if (enabledOnly) {
-            facetCatalog.getEnabled()
-        } else {
-            facetCatalog.getAll()
+        var defs = facetCatalog.listDefinitions()
+        if (enabledOnly) {
+            defs = defs.filter { it.enabled }
         }
-        val filtered = if (enabledOnly && targetType != null) descriptors.filter { it.enabled } else descriptors
-        return filtered.map { descriptorToManifest(it) }
+        if (targetType != null) {
+            defs = defs.filter { d ->
+                val app = d.applicableTo
+                app.isNullOrEmpty() || app.any { a -> a.equals(targetType, ignoreCase = true) }
+            }
+        }
+        return defs.map { definitionToManifest(it) }
     }
 
-    fun get(typeKeyUrn: String): FacetTypeManifest =
-        facetCatalog.get(typeKeyUrn)
-            .map { descriptorToManifest(it) }
-            .orElseThrow { MillStatuses.notFoundRuntime("Facet type not found: $typeKeyUrn") }
+    fun get(typeKeyUrn: String): FacetTypeManifest {
+        val key = MetadataEntityUrn.canonicalize(MetadataUrns.normaliseFacetTypePath(typeKeyUrn))
+        val def = facetCatalog.findDefinition(key)
+            ?: throw MillStatuses.notFoundRuntime("Facet type not found: $typeKeyUrn")
+        return definitionToManifest(def)
+    }
 
     fun create(rawManifest: FacetTypeManifest): FacetTypeManifest {
         val normalizedTypeKey = MetadataUrns.normaliseFacetTypePath(rawManifest.typeKey)
-        val aliases = linkedSetOf(normalizedTypeKey, rawManifest.typeKey.trim())
+        val canonical = MetadataEntityUrn.canonicalize(normalizedTypeKey)
+        val aliases = linkedSetOf(canonical, normalizedTypeKey, rawManifest.typeKey.trim())
         if (normalizedTypeKey.startsWith(MetadataUrns.FACET_TYPE_PREFIX)) {
             aliases.add(normalizedTypeKey.removePrefix(MetadataUrns.FACET_TYPE_PREFIX))
         }
-        val conflictingAlias = aliases.firstOrNull { it.isNotBlank() && facetTypeRepository.existsByTypeKey(it) }
+        val conflictingAlias = aliases.firstOrNull { a ->
+            if (a.isBlank()) return@firstOrNull false
+            val lookupKey = MetadataEntityUrn.canonicalize(MetadataUrns.normaliseFacetTypePath(a))
+            definitionRepository.findByKey(lookupKey) != null || facetTypeRepository.findByKey(lookupKey) != null
+        }
         if (conflictingAlias != null) {
             throw MillStatuses.conflictRuntime(
-                "Facet type key already exists (alias: $conflictingAlias, normalized: $normalizedTypeKey)"
+                "Facet type key already exists (alias: $conflictingAlias, normalized: $canonical)"
             )
         }
-
         val manifest = FacetTypeManifestNormalizer.normalizeStrict(rawManifest.copy(typeKey = normalizedTypeKey))
-        val descriptor = manifestToDescriptor(manifest, Instant.now(), null)
+        val now = Instant.now()
+        val def = manifestToDefinition(manifest, now, "api")
         try {
-            facetCatalog.register(descriptor)
+            facetCatalog.registerDefinition(def)
         } catch (e: IllegalArgumentException) {
             throw MillStatuses.conflictRuntime(e.message ?: "Facet type conflict")
         }
@@ -73,28 +88,38 @@ class FacetTypeManagementService(
     }
 
     fun update(typeKeyUrn: String, rawManifest: FacetTypeManifest): FacetTypeManifest {
-        val existing = facetCatalog.get(typeKeyUrn).orElseThrow {
-            MillStatuses.notFoundRuntime("Facet type not found: $typeKeyUrn")
-        }
-        val normalized = FacetTypeManifestNormalizer.normalizeStrict(rawManifest.copy(typeKey = typeKeyUrn))
-        val descriptor = manifestToDescriptor(normalized, Instant.now(), existing.createdAt)
+        val key = MetadataEntityUrn.canonicalize(MetadataUrns.normaliseFacetTypePath(typeKeyUrn))
+        val existing = facetCatalog.findDefinition(key)
+            ?: throw MillStatuses.notFoundRuntime("Facet type not found: $typeKeyUrn")
+        val normalized = FacetTypeManifestNormalizer.normalizeStrict(rawManifest.copy(typeKey = key))
+        val now = Instant.now()
+        val def = manifestToDefinition(normalized, now, "api").copy(
+            createdAt = existing.createdAt,
+            createdBy = existing.createdBy,
+            lastModifiedAt = now,
+            lastModifiedBy = "api"
+        )
         try {
-            facetCatalog.update(descriptor)
+            facetCatalog.registerDefinition(def)
         } catch (e: IllegalArgumentException) {
-            // catalog currently uses IllegalArgumentException for constraints
             throw MillStatuses.badRequestRuntime(e.message ?: "Invalid facet type update")
         }
         return normalized
     }
 
     fun delete(typeKeyUrn: String) {
-        val existing = facetCatalog.get(typeKeyUrn).orElseThrow {
-            MillStatuses.notFoundRuntime("Facet type not found: $typeKeyUrn")
+        val key = MetadataEntityUrn.canonicalize(MetadataUrns.normaliseFacetTypePath(typeKeyUrn))
+        val existing = facetCatalog.findDefinition(key)
+            ?: throw MillStatuses.notFoundRuntime("Facet type not found: $typeKeyUrn")
+        if (existing.mandatory) {
+            throw MillStatuses.conflictRuntime("Facet type is mandatory and cannot be deleted: $typeKeyUrn")
         }
-        if (existing.mandatory) throw MillStatuses.conflictRuntime("Facet type is mandatory and cannot be deleted: $typeKeyUrn")
-        val inUse = facetTypeRepository.usageCount(typeKeyUrn)
-        if (inUse > 0) throw MillStatuses.conflictRuntime("Facet type is in use ($inUse references): $typeKeyUrn")
-        facetCatalog.delete(typeKeyUrn)
+        val inUse = facetRepository.countByFacetType(key)
+        if (inUse > 0) {
+            throw MillStatuses.conflictRuntime("Facet type is in use ($inUse references): $typeKeyUrn")
+        }
+        definitionRepository.delete(key)
+        facetTypeRepository.delete(key)
     }
 
     fun parseJson(body: String, contentType: MediaType?): FacetTypeManifest {
@@ -108,35 +133,55 @@ class FacetTypeManagementService(
         }
     }
 
-    private fun descriptorToManifest(descriptor: FacetTypeDescriptor): FacetTypeManifest {
-        val json = descriptor.manifestJson ?: throw MillStatuses.internalErrorRuntime(
-            "Facet type manifestJson is missing for ${descriptor.typeKey}"
-        )
-        return try {
-            strictMapper.readValue(json, FacetTypeManifest::class.java)
-        } catch (e: Exception) {
-            throw MillStatuses.internalErrorRuntime(
-                "Facet type manifestJson is invalid for ${descriptor.typeKey}: ${e.message}"
-            )
+    private fun definitionToManifest(def: FacetTypeDefinition): FacetTypeManifest {
+        val payload: FacetPayloadSchema = if (def.contentSchema != null) {
+            try {
+                objectMapper.convertValue(def.contentSchema, FacetPayloadSchema::class.java)
+            } catch (_: Exception) {
+                emptyPayloadSchema(def)
+            }
+        } else {
+            emptyPayloadSchema(def)
         }
+        return FacetTypeManifest(
+            typeKey = def.typeKey,
+            title = def.displayName ?: def.typeKey,
+            description = def.description ?: "",
+            category = def.category,
+            enabled = def.enabled,
+            mandatory = def.mandatory,
+            targetCardinality = def.targetCardinality,
+            applicableTo = def.applicableTo,
+            schemaVersion = def.schemaVersion,
+            payload = payload
+        )
     }
 
-    private fun manifestToDescriptor(manifest: FacetTypeManifest, now: Instant, createdAt: Instant?): FacetTypeDescriptor {
-        val manifestJson = strictMapper.writeValueAsString(manifest)
-        return FacetTypeDescriptor(
-            typeKey = MetadataUrns.normaliseFacetTypePath(manifest.typeKey),
-            mandatory = manifest.mandatory,
-            targetCardinality = manifest.targetCardinality,
-            enabled = manifest.enabled,
+    private fun emptyPayloadSchema(def: FacetTypeDefinition): FacetPayloadSchema = FacetPayloadSchema(
+        type = FacetSchemaType.OBJECT,
+        title = def.displayName ?: def.typeKey,
+        description = def.description ?: ""
+    )
+
+    private fun manifestToDefinition(manifest: FacetTypeManifest, now: Instant, actor: String): FacetTypeDefinition {
+        val key = MetadataEntityUrn.canonicalize(MetadataUrns.normaliseFacetTypePath(manifest.typeKey))
+        @Suppress("UNCHECKED_CAST")
+        val contentSchema = objectMapper.convertValue(manifest.payload, Map::class.java) as Map<String, Any?>
+        return FacetTypeDefinition(
+            typeKey = key,
             displayName = manifest.title,
             description = manifest.description,
-            applicableTo = manifest.applicableTo?.toSet(),
-            version = manifest.schemaVersion,
-            contentSchema = null,
-            manifestJson = manifestJson,
-            createdAt = createdAt ?: now,
-            updatedAt = now
+            category = manifest.category,
+            mandatory = manifest.mandatory,
+            enabled = manifest.enabled,
+            targetCardinality = manifest.targetCardinality,
+            applicableTo = manifest.applicableTo,
+            contentSchema = contentSchema,
+            schemaVersion = manifest.schemaVersion,
+            createdAt = now,
+            createdBy = actor,
+            lastModifiedAt = now,
+            lastModifiedBy = actor
         )
     }
 }
-

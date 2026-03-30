@@ -1,20 +1,18 @@
 package io.qpointz.mill.metadata.repository
 
-import io.qpointz.mill.metadata.domain.FacetTypeDescriptor
-import java.util.Optional
+import io.qpointz.mill.metadata.domain.FacetType
 
-/** Persistence abstraction for facet type descriptors (catalog metadata). */
+/** Runtime facet type rows (`metadata_facet_type`) — SPEC §6.3. */
 interface FacetTypeRepository {
-    fun save(descriptor: FacetTypeDescriptor)
-    fun findByTypeKey(typeKey: String): Optional<FacetTypeDescriptor>
-    fun findAll(): Collection<FacetTypeDescriptor>
-    fun deleteByTypeKey(typeKey: String)
-    fun existsByTypeKey(typeKey: String): Boolean
+    fun findByKey(typeKey: String): FacetType?
 
-    /**
-     * Returns how many persisted facet payload rows reference the given facet type.
-     *
-     * Implementations that do not have access to entity facet storage may return `0`.
-     */
-    fun usageCount(typeKey: String): Long
+    fun findAll(): List<FacetType>
+
+    fun findDefined(): List<FacetType>
+
+    fun findObserved(): List<FacetType>
+
+    fun save(facetType: FacetType): FacetType
+
+    fun delete(typeKey: String)
 }

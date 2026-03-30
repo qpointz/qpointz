@@ -5,8 +5,8 @@ import io.qpointz.mill.metadata.domain.MetadataFacet
 import io.qpointz.mill.metadata.domain.RelationCardinality
 import io.qpointz.mill.metadata.domain.RelationType
 import io.qpointz.mill.metadata.domain.core.DescriptiveFacet
-import io.qpointz.mill.metadata.domain.core.EntityReference
-import io.qpointz.mill.metadata.domain.core.RelationFacet
+import io.qpointz.mill.metadata.domain.core.TableLocator
+import io.qpointz.mill.data.schema.facet.RelationFacet
 import io.qpointz.mill.metadata.service.MetadataContext
 import io.qpointz.mill.proto.DataType
 import io.qpointz.mill.proto.LogicalDataType
@@ -48,10 +48,10 @@ internal class DemoSchemaFacetService : SchemaFacetService {
     // ── Schema ────────────────────────────────────────────────────────────────
 
     private fun retailSchema(): SchemaWithFacets {
-        val custRef  = EntityReference(schema = "retail", table = "customers")
-        val ordRef   = EntityReference(schema = "retail", table = "orders")
-        val itemRef  = EntityReference(schema = "retail", table = "order_items")
-        val prodRef  = EntityReference(schema = "retail", table = "products")
+        val custRef  = TableLocator(schema = "retail", table = "customers")
+        val ordRef   = TableLocator(schema = "retail", table = "orders")
+        val itemRef  = TableLocator(schema = "retail", table = "order_items")
+        val prodRef  = TableLocator(schema = "retail", table = "products")
 
         val custToOrders  = rel("customers_orders",  "A customer can have many orders",       custRef, listOf("id"),          ordRef,  listOf("customer_id"), RelationCardinality.ONE_TO_MANY,  RelationType.LOGICAL,      "Each customer places zero or more orders")
         val ordToCustomer = rel("orders_customer",   "Each order belongs to a customer",      ordRef,  listOf("customer_id"), custRef, listOf("id"),          RelationCardinality.MANY_TO_ONE, RelationType.FOREIGN_KEY,  "The customer who placed this order")
@@ -162,8 +162,8 @@ internal class DemoSchemaFacetService : SchemaFacetService {
     @Suppress("LongParameterList")
     private fun rel(
         name: String, description: String,
-        source: EntityReference, sourceAttrs: List<String>,
-        target: EntityReference, targetAttrs: List<String>,
+        source: TableLocator, sourceAttrs: List<String>,
+        target: TableLocator, targetAttrs: List<String>,
         cardinality: RelationCardinality, type: RelationType, businessMeaning: String,
     ) = RelationFacet.Relation(
         name = name, description = description,

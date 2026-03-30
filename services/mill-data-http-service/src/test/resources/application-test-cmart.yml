@@ -7,6 +7,10 @@ logging:
     com.fasterxml.jackson.databind: DEBUG
 
 mill:
+  metadata:
+    # HTTP controller tests do not need a seeded file repo; `file` (default) requires path or seed.resources.
+    repository:
+      type: noop
   data:
     sql:
       dialect: h2

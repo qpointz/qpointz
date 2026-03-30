@@ -5,7 +5,9 @@ import io.qpointz.mill.test.scenario.Scenario;
 import io.qpointz.mill.test.scenario.ScenarioRunner;
 import io.qpointz.mill.test.scenario.ScenarioTestBase;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.data.schema.MetadataEntityUrnCodec;
+import io.qpointz.mill.metadata.repository.FacetRepository;
+import io.qpointz.mill.metadata.service.MetadataEntityService;
 import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -35,7 +37,7 @@ public abstract class ChatAppScenarioBase extends ScenarioTestBase<ChatAppScenar
     @Autowired
     @Getter(AccessLevel.PROTECTED)
     @Setter(AccessLevel.PROTECTED)
-    private MetadataService metadataService;
+    private MetadataEntityService metadataEntityService;
 
     @Autowired
     @Getter(AccessLevel.PROTECTED)
@@ -57,6 +59,16 @@ public abstract class ChatAppScenarioBase extends ScenarioTestBase<ChatAppScenar
     @Setter(AccessLevel.PROTECTED)
     private SqlDialectSpec sqlDialect;
 
+    @Autowired
+    @Getter(AccessLevel.PROTECTED)
+    @Setter(AccessLevel.PROTECTED)
+    private FacetRepository facetRepository;
+
+    @Autowired
+    @Getter(AccessLevel.PROTECTED)
+    @Setter(AccessLevel.PROTECTED)
+    private MetadataEntityUrnCodec metadataEntityUrnCodec;
+
     @Override
     protected ScenarioRunner<ChatAppScenarioContext, ActionResult> createRunner(ChatAppScenarioContext context) {
         return new ChatAppScenarioRunner(context);
@@ -64,7 +76,7 @@ public abstract class ChatAppScenarioBase extends ScenarioTestBase<ChatAppScenar
 
     @Override
     protected ChatAppScenarioContext createContext(Scenario scenario) {
-        return new ChatAppScenarioContext(scenario, this.chatModel, this.metadataService, this.sqlDialect, this.dispatcher, this.embeddingModel);
+        return new ChatAppScenarioContext(scenario, this.chatModel, this.metadataEntityService, this.facetRepository, this.metadataEntityUrnCodec, this.sqlDialect, this.dispatcher, this.embeddingModel);
     }
 
     protected abstract InputStream getScenarioStream(ClassLoader classLoader);

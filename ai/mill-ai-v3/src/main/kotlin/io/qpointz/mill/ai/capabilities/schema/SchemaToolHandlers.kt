@@ -14,7 +14,7 @@ import io.qpointz.mill.ai.runtime.events.routing.*
 import io.qpointz.mill.data.schema.SchemaFacetService
 import io.qpointz.mill.data.schema.WithFacets
 import io.qpointz.mill.metadata.domain.RelationCardinality
-import io.qpointz.mill.metadata.domain.core.RelationFacet
+import io.qpointz.mill.data.schema.facet.RelationFacet
 import io.qpointz.mill.proto.DataType
 import io.qpointz.mill.proto.LogicalDataType
 

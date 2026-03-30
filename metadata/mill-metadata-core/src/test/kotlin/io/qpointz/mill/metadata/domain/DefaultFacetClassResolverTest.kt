@@ -1,7 +1,7 @@
 package io.qpointz.mill.metadata.domain
 
 import io.qpointz.mill.metadata.domain.core.DescriptiveFacet
-import io.qpointz.mill.metadata.domain.core.StructuralFacet
+import io.qpointz.mill.data.schema.facet.StructuralFacet
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach

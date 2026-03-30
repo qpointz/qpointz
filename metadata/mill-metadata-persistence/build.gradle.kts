@@ -27,6 +27,10 @@ testing {
         register<JvmTestSuite>("testIT") {
             dependencies {
                 implementation(project())
+                implementation(project(":metadata:mill-metadata-autoconfigure"))
+                implementation(project(":metadata:mill-metadata-service")) {
+                    exclude(module = "mill-data-autoconfigure")
+                }
                 implementation(libs.boot.starter.test)
                 implementation(libs.assertj.core)
                 runtimeOnly(libs.h2.database)

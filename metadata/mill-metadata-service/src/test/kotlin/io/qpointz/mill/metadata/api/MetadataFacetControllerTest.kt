@@ -1,5 +1,6 @@
 package io.qpointz.mill.metadata.api
 
+import io.qpointz.mill.data.schema.SchemaEntityTypeUrns
 import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.domain.facet.FacetPayloadSchema
 import io.qpointz.mill.metadata.domain.facet.FacetSchemaType
@@ -37,9 +38,9 @@ class MetadataFacetControllerTest {
         title = "Descriptive",
         description = "Human-readable metadata",
         applicableTo = setOf(
-            MetadataUrns.ENTITY_TYPE_SCHEMA,
-            MetadataUrns.ENTITY_TYPE_TABLE,
-            MetadataUrns.ENTITY_TYPE_ATTRIBUTE
+            SchemaEntityTypeUrns.SCHEMA,
+            SchemaEntityTypeUrns.TABLE,
+            SchemaEntityTypeUrns.ATTRIBUTE
         ).toList(),
         schemaVersion = "1.0",
         payload = FacetPayloadSchema(
@@ -77,7 +78,7 @@ class MetadataFacetControllerTest {
                 status { isOk() }
                 content { contentTypeCompatibleWith(MediaType.APPLICATION_JSON) }
                 jsonPath("$.length()") { value(2) }
-                jsonPath("$[0].typeKey") { value(MetadataUrns.FACET_TYPE_DESCRIPTIVE) }
+                jsonPath("$[0].facetTypeUrn") { value(MetadataUrns.FACET_TYPE_DESCRIPTIVE) }
             }
     }
 
@@ -90,20 +91,20 @@ class MetadataFacetControllerTest {
         }.andExpect {
             status { isOk() }
             jsonPath("$.length()") { value(1) }
-            jsonPath("$[0].typeKey") { value(MetadataUrns.FACET_TYPE_DESCRIPTIVE) }
+            jsonPath("$[0].facetTypeUrn") { value(MetadataUrns.FACET_TYPE_DESCRIPTIVE) }
         }
     }
 
     @Test
     fun shouldFilterByTargetType_whenTargetTypeParamProvided() {
-        whenever(service.list(MetadataUrns.ENTITY_TYPE_TABLE, false))
+        whenever(service.list(SchemaEntityTypeUrns.TABLE, false))
             .thenReturn(listOf(descriptiveManifest))
 
         mockMvc.get("/api/v1/metadata/facets") {
             param("targetType", "table")
         }.andExpect {
             status { isOk() }
-            jsonPath("$[0].typeKey") { value(MetadataUrns.FACET_TYPE_DESCRIPTIVE) }
+            jsonPath("$[0].facetTypeUrn") { value(MetadataUrns.FACET_TYPE_DESCRIPTIVE) }
         }
     }
 
@@ -114,7 +115,7 @@ class MetadataFacetControllerTest {
         mockMvc.get("/api/v1/metadata/facets/descriptive")
             .andExpect {
                 status { isOk() }
-                jsonPath("$.typeKey") { value(MetadataUrns.FACET_TYPE_DESCRIPTIVE) }
+                jsonPath("$.facetTypeUrn") { value(MetadataUrns.FACET_TYPE_DESCRIPTIVE) }
                 jsonPath("$.mandatory") { value(true) }
             }
     }
@@ -159,7 +160,7 @@ class MetadataFacetControllerTest {
             content = requestBody
         }.andExpect {
             status { isCreated() }
-            jsonPath("$.typeKey") { value("urn:mill/metadata/facet-type:governance") }
+            jsonPath("$.facetTypeUrn") { value("urn:mill/metadata/facet-type:governance") }
         }
     }
 
@@ -191,7 +192,7 @@ class MetadataFacetControllerTest {
             content = requestBody
         }.andExpect {
             status { isOk() }
-            jsonPath("$.typeKey") { value("urn:mill/metadata/facet-type:governance") }
+            jsonPath("$.facetTypeUrn") { value("urn:mill/metadata/facet-type:governance") }
         }
     }
 

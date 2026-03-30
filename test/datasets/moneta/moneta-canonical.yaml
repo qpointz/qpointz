@@ -1,0 +1,1935 @@
+kind: MetadataScope
+scopeUrn: urn:mill/metadata/scope:global
+scopeType: GLOBAL
+referenceId: null
+displayName: Global
+visibility: PUBLIC
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta
+entityKind: schema
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Moneta
+    description: Qsynth model schema moneta
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-model
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    qsynth_model_name: moneta
+    config_schema: moneta
+    provenance_tool: QSYNTH
+    locales: en-US
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-run
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    run_id: qsynth-moneta-63eb2e5b-b92f-4da1-8c89-5964b5f7745a
+    experiment_names: write_mill_canonical
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.clients
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: FLOW
+    package: ''
+    name: CLIENTS
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Clients
+    description: Contains client personal and contact information.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: clients
+    rows_spec: '5000'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - client_id
+    target:
+      schema: moneta
+      table: accounts
+      columns:
+      - client_id
+    cardinality: ONE_TO_MANY
+    joinSql: clients.client_id = accounts.client_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - client_id
+    target:
+      schema: moneta
+      table: loans
+      columns:
+      - client_id
+    cardinality: ONE_TO_MANY
+    joinSql: clients.client_id = loans.client_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - client_id
+    target:
+      schema: moneta
+      table: stock_portfolios
+      columns:
+      - client_id
+    cardinality: ONE_TO_MANY
+    joinSql: clients.client_id = stock_portfolios.client_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.clients.client_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: CLIENT_ID
+    type: INT
+    nullable: false
+    isPK: true
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Client Id
+    description: Unique identifier of the client.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 9999999, "min": 1000000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.clients.first_name
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: FIRST_NAME
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: First Name
+    description: Client's first name.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: first_name
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.clients.last_name
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: LAST_NAME
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Last Name
+    description: Client's last name.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: last_name
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.clients.email
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: EMAIL
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Email
+    description: Client email address.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: email
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.clients.phone
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: PHONE
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Phone
+    description: Client contact phone number.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: phone_number
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.clients.created_at
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: CREATED_AT
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Created At
+    description: Date when the client was registered.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: date_this_decade
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.clients.country
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: COUNTRY
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Country
+    description: Country of residence.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: country
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.clients.city
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: CITY
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: City
+    description: City of residence.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: city
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.clients.address
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ADDRESS
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Address
+    description: Street address of the client.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: street_address
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.clients.segment
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: SEGMENT
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Segment
+    description: Client service segment classification.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_element
+    is_reference: false
+    generator_params_json: '{"elements": ["REGULAR", "WEALTH", "ULTRA"]}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.accounts
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: FLOW
+    package: ''
+    name: ACCOUNTS
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Accounts
+    description: Represents client bank accounts and balances.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: accounts
+    rows_spec: '8000'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - account_id
+    target:
+      schema: moneta
+      table: transactions
+      columns:
+      - account_id
+    cardinality: ONE_TO_MANY
+    joinSql: accounts.account_id = transactions.account_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: moneta
+      table: clients
+      columns:
+      - client_id
+    targetColumns:
+    - client_id
+    joinSql: clients.client_id = accounts.client_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.accounts.account_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ACCOUNT_ID
+    type: INT
+    nullable: false
+    isPK: true
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Account Id
+    description: ID of the associated bank account.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 9999999, "min": 1000000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.accounts.client_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: CLIENT_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Client Id
+    description: Unique identifier of the client.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "client_id", "cord": "1-*", "dataset": "clients"}'
+    ref_dataset: clients
+    ref_attribute: client_id
+    ref_cardinality: 1-*
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.accounts.account_type
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ACCOUNT_TYPE
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Account Type
+    description: Type of bank account (e.g., checking, savings).
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_element
+    is_reference: false
+    generator_params_json: '{"elements": ["checking", "savings"]}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.accounts.balance
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: BALANCE
+    type: DECIMAL(15,4)
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Balance
+    description: Current balance of the account.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_double
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.accounts.opened_at
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: OPENED_AT
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Opened At
+    description: Date when the account was opened.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: date_this_decade
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.transactions
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: FLOW
+    package: ''
+    name: TRANSACTIONS
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Transactions
+    description: Bank account transactions including deposits and withdrawals.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: transactions
+    rows_spec: '50000'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: moneta
+      table: accounts
+      columns:
+      - account_id
+    targetColumns:
+    - account_id
+    joinSql: accounts.account_id = transactions.account_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.transactions.transaction_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: TRANSACTION_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Transaction Id
+    description: Unique ID of the transaction.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 9999999, "min": 1000000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.transactions.account_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ACCOUNT_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Account Id
+    description: ID of the associated bank account.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "account_id", "dataset": "accounts"}'
+    ref_dataset: accounts
+    ref_attribute: account_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.transactions.transaction_type
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: TRANSACTION_TYPE
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Transaction Type
+    description: Type of transaction (deposit, withdrawal, transfer).
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_element
+    is_reference: false
+    generator_params_json: '{"elements": ["deposit", "withdrawal", "transfer"]}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.transactions.amount
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: AMOUNT
+    type: DECIMAL(15,4)
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Amount
+    description: Total loan amount.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_double
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.transactions.transaction_date
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: TRANSACTION_DATE
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Transaction Date
+    description: Date of the transaction.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: date_this_year
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.transactions.description
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: DESCRIPTION
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Description
+    description: Text description of the transaction.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: sentence
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.loans
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: FLOW
+    package: ''
+    name: LOANS
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Loans
+    description: Loan contracts issued to clients with interest and duration.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: loans
+    rows_spec: '12000'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - loan_id
+    target:
+      schema: moneta
+      table: loan_payments
+      columns:
+      - loan_id
+    cardinality: ONE_TO_MANY
+    joinSql: loans.loan_id = loan_payments.loan_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: moneta
+      table: clients
+      columns:
+      - client_id
+    targetColumns:
+    - client_id
+    joinSql: clients.client_id = loans.client_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.loans.loan_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: LOAN_ID
+    type: INT
+    nullable: false
+    isPK: true
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Loan Id
+    description: Unique ID of the loan.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 999999, "min": 100000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.loans.client_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: CLIENT_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Client Id
+    description: Unique identifier of the client.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "client_id", "dataset": "clients"}'
+    ref_dataset: clients
+    ref_attribute: client_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.loans.amount
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: AMOUNT
+    type: DECIMAL(15,4)
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Amount
+    description: Total loan amount.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_double
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.loans.interest_rate
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: INTEREST_RATE
+    type: DECIMAL(15,4)
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Interest Rate
+    description: Annual interest rate of the loan.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_double
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.loans.start_date
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: START_DATE
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Start Date
+    description: Loan start date.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: date_this_decade
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.loans.end_date
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: END_DATE
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: End Date
+    description: Loan end date.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: date_this_decade
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.loans.status
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: STATUS
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Status
+    description: Order status (pending, executed, cancelled).
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_element
+    is_reference: false
+    generator_params_json: '{"elements": ["active", "closed", "defaulted"]}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.loan_payments
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: FLOW
+    package: ''
+    name: LOAN_PAYMENTS
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Loan Payments
+    description: Records payments made toward outstanding loans.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: loan_payments
+    rows_spec: '36000'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: moneta
+      table: loans
+      columns:
+      - loan_id
+    targetColumns:
+    - loan_id
+    joinSql: loans.loan_id = loan_payments.loan_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.loan_payments.payment_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: PAYMENT_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Payment Id
+    description: Unique ID of the loan payment.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 999999, "min": 100000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.loan_payments.loan_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: LOAN_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Loan Id
+    description: Unique ID of the loan.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "loan_id", "dataset": "loans"}'
+    ref_dataset: loans
+    ref_attribute: loan_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.loan_payments.payment_date
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: PAYMENT_DATE
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Payment Date
+    description: Date of the payment.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: date_this_year
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.loan_payments.amount
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: AMOUNT
+    type: DECIMAL(15,4)
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Amount
+    description: Total loan amount.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_double
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.stock_portfolios
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: FLOW
+    package: ''
+    name: STOCK_PORTFOLIOS
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Stock Portfolios
+    description: Client investment portfolios containing financial assets.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: stock_portfolios
+    rows_spec: '7000'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - portfolio_id
+    target:
+      schema: moneta
+      table: stock_holdings
+      columns:
+      - portfolio_id
+    cardinality: ONE_TO_MANY
+    joinSql: stock_portfolios.portfolio_id = stock_holdings.portfolio_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - portfolio_id
+    target:
+      schema: moneta
+      table: trade_orders
+      columns:
+      - portfolio_id
+    cardinality: ONE_TO_MANY
+    joinSql: stock_portfolios.portfolio_id = trade_orders.portfolio_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: moneta
+      table: clients
+      columns:
+      - client_id
+    targetColumns:
+    - client_id
+    joinSql: clients.client_id = stock_portfolios.client_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.stock_portfolios.portfolio_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: PORTFOLIO_ID
+    type: INT
+    nullable: false
+    isPK: true
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Portfolio Id
+    description: Unique identifier of the portfolio.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 9999999, "min": 1000000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.stock_portfolios.client_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: CLIENT_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Client Id
+    description: Unique identifier of the client.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "client_id", "cord": "1-*", "dataset": "clients"}'
+    ref_dataset: clients
+    ref_attribute: client_id
+    ref_cardinality: 1-*
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.stock_portfolios.portfolio_name
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: PORTFOLIO_NAME
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Portfolio Name
+    description: Human-readable name of the portfolio.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: lexify
+    is_reference: false
+    generator_params_json: '{"letters": "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "text": "PORTF-?????"}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.stock_portfolios.created_at
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: CREATED_AT
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Created At
+    description: Date when the client was registered.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: date_this_decade
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.stocks
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: FLOW
+    package: ''
+    name: STOCKS
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Stocks
+    description: Stock market instruments with tickers and sectors.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: stocks
+    rows_spec: '300'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - stock_id
+    target:
+      schema: moneta
+      table: stock_holdings
+      columns:
+      - stock_id
+    cardinality: ONE_TO_MANY
+    joinSql: stocks.stock_id = stock_holdings.stock_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceColumns:
+    - stock_id
+    target:
+      schema: moneta
+      table: trade_orders
+      columns:
+      - stock_id
+    cardinality: ONE_TO_MANY
+    joinSql: stocks.stock_id = trade_orders.stock_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.stocks.stock_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: STOCK_ID
+    type: INT
+    nullable: false
+    isPK: true
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Stock Id
+    description: Unique ID of the stock.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 9999, "min": 1000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.stocks.ticker
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: TICKER
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Ticker
+    description: Stock market ticker symbol.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ticker
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.stocks.company_name
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: COMPANY_NAME
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Company Name
+    description: Name of the company issuing the stock.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: company
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.stocks.sector
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: SECTOR
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Sector
+    description: Industry sector of the stock.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_element
+    is_reference: false
+    generator_params_json: '{"elements": ["Technology", "Finance", "Healthcare", "Energy",
+      "Retail"]}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.stocks.exchange
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: EXCHANGE
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Exchange
+    description: Stock exchange where the stock is traded.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_element
+    is_reference: false
+    generator_params_json: '{"elements": ["NYSE", "NASDAQ", "LSE", "HKEX"]}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.stock_holdings
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: FLOW
+    package: ''
+    name: STOCK_HOLDINGS
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Stock Holdings
+    description: Detailed records of stocks held in each portfolio.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: stock_holdings
+    rows_spec: '12000'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: moneta
+      table: stock_portfolios
+      columns:
+      - portfolio_id
+    targetColumns:
+    - portfolio_id
+    joinSql: stock_portfolios.portfolio_id = stock_holdings.portfolio_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: moneta
+      table: stocks
+      columns:
+      - stock_id
+    targetColumns:
+    - stock_id
+    joinSql: stocks.stock_id = stock_holdings.stock_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.stock_holdings.holding_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: HOLDING_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Holding Id
+    description: Unique ID of the holding entry.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 999999, "min": 100000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.stock_holdings.portfolio_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: PORTFOLIO_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Portfolio Id
+    description: Unique identifier of the portfolio.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "portfolio_id", "dataset": "stock_portfolios"}'
+    ref_dataset: stock_portfolios
+    ref_attribute: portfolio_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.stock_holdings.stock_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: STOCK_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Stock Id
+    description: Unique ID of the stock.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "stock_id", "dataset": "stocks"}'
+    ref_dataset: stocks
+    ref_attribute: stock_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.stock_holdings.shares
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: SHARES
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Shares
+    description: Number of shares held.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 1000, "min": 10}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.stock_holdings.average_price
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: AVERAGE_PRICE
+    type: DECIMAL(15,4)
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Average Price
+    description: Average price per share held.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_double
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.trade_orders
+entityKind: table
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    sourceType: FLOW
+    package: ''
+    name: TRADE_ORDERS
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Trade Orders
+    description: Buy and sell orders placed for stocks within portfolios.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    data_mode: GENERATED
+    qsynth_dataset_name: trade_orders
+    rows_spec: '30000'
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: moneta
+      table: stock_portfolios
+      columns:
+      - portfolio_id
+    targetColumns:
+    - portfolio_id
+    joinSql: stock_portfolios.portfolio_id = trade_orders.portfolio_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: moneta
+      table: stocks
+      columns:
+      - stock_id
+    targetColumns:
+    - stock_id
+    joinSql: stocks.stock_id = trade_orders.stock_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.trade_orders.order_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ORDER_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Order Id
+    description: Unique ID of the trade order.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 9999999, "min": 1000000}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.trade_orders.portfolio_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: PORTFOLIO_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Portfolio Id
+    description: Unique identifier of the portfolio.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "portfolio_id", "dataset": "stock_portfolios"}'
+    ref_dataset: stock_portfolios
+    ref_attribute: portfolio_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.trade_orders.stock_id
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: STOCK_ID
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: true
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Stock Id
+    description: Unique ID of the stock.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: ${ref}
+    is_reference: true
+    generator_params_json: '{"attribute": "stock_id", "dataset": "stocks"}'
+    ref_dataset: stocks
+    ref_attribute: stock_id
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.trade_orders.order_type
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ORDER_TYPE
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Order Type
+    description: Type of order (buy or sell).
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_element
+    is_reference: false
+    generator_params_json: '{"elements": ["buy", "sell"]}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.trade_orders.order_date
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: ORDER_DATE
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Order Date
+    description: Date when the order was placed.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: date_this_year
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.trade_orders.shares
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: SHARES
+    type: INT
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Shares
+    description: Number of shares held.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_int
+    is_reference: false
+    generator_params_json: '{"max": 1000, "min": 10}'
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.trade_orders.limit_price
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: LIMIT_PRICE
+    type: DECIMAL(15,4)
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Limit Price
+    description: Limit price for the trade order.
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_double
+    is_reference: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:moneta.trade_orders.status
+entityKind: attribute
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:source-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    name: STATUS
+    type: VARCHAR
+    nullable: true
+    isPK: false
+    isFK: false
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Status
+    description: Order status (pending, executed, cancelled).
+- facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    generator_type: random_element
+    is_reference: false
+    generator_params_json: '{"elements": ["pending", "executed", "cancelled"]}'

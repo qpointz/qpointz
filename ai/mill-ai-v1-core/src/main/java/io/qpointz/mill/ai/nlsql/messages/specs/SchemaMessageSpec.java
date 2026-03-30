@@ -2,14 +2,18 @@ package io.qpointz.mill.ai.nlsql.messages.specs;
 
 import io.qpointz.mill.ai.chat.messages.MessageSpec;
 import io.qpointz.mill.ai.chat.messages.MessageTemplate;
+import io.qpointz.mill.ai.nlsql.metadata.NlsqlMetadataFacets;
+import io.qpointz.mill.ai.nlsql.metadata.SchemaMessageMetadataPorts;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
+import io.qpointz.mill.data.schema.CatalogPath;
+import io.qpointz.mill.data.schema.SchemaEntityKinds;
 import io.qpointz.mill.metadata.domain.MetadataEntity;
-import io.qpointz.mill.metadata.domain.MetadataType;
 import io.qpointz.mill.metadata.domain.RelationCardinality;
 import io.qpointz.mill.metadata.domain.core.DescriptiveFacet;
-import io.qpointz.mill.metadata.domain.core.RelationFacet;
-import io.qpointz.mill.metadata.domain.core.StructuralFacet;
-import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.data.schema.facet.RelationFacet;
+import io.qpointz.mill.data.schema.facet.StructuralFacet;
+import io.qpointz.mill.metadata.repository.FacetRepository;
+import io.qpointz.mill.metadata.service.MetadataEntityService;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,7 +30,13 @@ import static io.qpointz.mill.ai.chat.messages.MessageTemplates.pebbleTemplate;
 public class SchemaMessageSpec extends MessageSpec {
 
     @Getter
-    private final MetadataService metadataService;
+    private final MetadataEntityService metadataEntityService;
+
+    @Getter
+    private final FacetRepository facetRepository;
+
+    @Getter
+    private final io.qpointz.mill.data.schema.MetadataEntityUrnCodec urnCodec;
 
     @Getter
     private final MessageType messageType;
@@ -50,11 +60,15 @@ public class SchemaMessageSpec extends MessageSpec {
     @Builder.Default
     private final boolean includeRelationExpressions = true;
 
-    public static SchemaMessageSpecBuilder builder(MessageType messageType, MetadataService metadataService) {
-        val builder = new SchemaMessageSpecBuilder();
-        return builder
+    /**
+     * Builds a spec with facet and URN codec wiring required for schema prompts.
+     */
+    public static SchemaMessageSpecBuilder forMetadata(MessageType messageType, SchemaMessageMetadataPorts ports) {
+        return SchemaMessageSpec.builder()
                 .messageType(messageType)
-                .metadataService(metadataService)
+                .metadataEntityService(ports.metadataEntityService())
+                .facetRepository(ports.facetRepository())
+                .urnCodec(ports.urnCodec())
                 .template(createTemplate());
     }
 
@@ -76,24 +90,41 @@ public class SchemaMessageSpec extends MessageSpec {
         return this.requiredTables == null || this.requiredTables.isEmpty();
     }
 
+    private CatalogPath path(MetadataEntity e) {
+        return urnCodec.decode(e.getId());
+    }
+
+    private String schemaName(MetadataEntity e) {
+        return path(e).getSchema();
+    }
+
+    private String tableName(MetadataEntity e) {
+        return path(e).getTable();
+    }
+
+    private String attributeName(MetadataEntity e) {
+        return path(e).getColumn();
+    }
+
     private List<SchemaMessageModel.Schema> getSchemas() {
         final Set<String> requiredSchemaNames = this.requiredTables.stream()
                 .map(z -> z.schema().toUpperCase())
                 .collect(Collectors.toSet());
 
-        List<MetadataEntity> schemaEntities = this.metadataService.findByType(MetadataType.SCHEMA);
+        List<MetadataEntity> schemaEntities = this.metadataEntityService.findByKind(SchemaEntityKinds.SCHEMA);
 
         return schemaEntities.stream()
                 .filter(s -> requiredSchemaNames.isEmpty() || requiredSchemaNames.contains(
-                        s.getSchemaName() != null ? s.getSchemaName().toUpperCase() : ""))
+                        schemaName(s) != null ? schemaName(s).toUpperCase() : ""))
                 .map(schemaEntity -> {
-                    String schemaName = schemaEntity.getSchemaName();
-                    String description = schemaEntity.getFacet("descriptive", "global", DescriptiveFacet.class)
+                    String schemaNm = schemaName(schemaEntity);
+                    String description = NlsqlMetadataFacets.readGlobalFacet(
+                                    facetRepository, schemaEntity.getId(), "descriptive", DescriptiveFacet.class)
                             .map(DescriptiveFacet::getDescription)
                             .orElse(null);
 
-                    List<MetadataEntity> tableEntities = this.metadataService.findByType(MetadataType.TABLE).stream()
-                            .filter(t -> schemaName != null && schemaName.equalsIgnoreCase(t.getSchemaName()))
+                    List<MetadataEntity> tableEntities = this.metadataEntityService.findByKind(SchemaEntityKinds.TABLE).stream()
+                            .filter(t -> schemaNm != null && schemaNm.equalsIgnoreCase(schemaName(t)))
                             .toList();
 
                     List<SchemaMessageModel.Table> tables;
@@ -101,60 +132,65 @@ public class SchemaMessageSpec extends MessageSpec {
                         tables = tableEntities.stream().map(this::toTable).toList();
                     } else {
                         val schemaTableNames = this.requiredTables.stream()
-                                .filter(z -> z.schema().equalsIgnoreCase(schemaName))
+                                .filter(z -> z.schema().equalsIgnoreCase(schemaNm))
                                 .map(z -> z.name().toUpperCase())
                                 .collect(Collectors.toSet());
                         tables = tableEntities.stream()
                                 .filter(t -> schemaTableNames.contains(
-                                        t.getTableName() != null ? t.getTableName().toUpperCase() : ""))
+                                        tableName(t) != null ? tableName(t).toUpperCase() : ""))
                                 .map(this::toTable)
                                 .toList();
                     }
 
-                    return new SchemaMessageModel.Schema(schemaName, description, tables);
+                    return new SchemaMessageModel.Schema(schemaNm, description, tables);
                 })
                 .toList();
     }
 
     private SchemaMessageModel.Table toTable(MetadataEntity tableEntity) {
-        String description = tableEntity.getFacet("descriptive", "global", DescriptiveFacet.class)
+        String description = NlsqlMetadataFacets.readGlobalFacet(
+                        facetRepository, tableEntity.getId(), "descriptive", DescriptiveFacet.class)
                 .map(DescriptiveFacet::getDescription)
                 .orElse(null);
 
         List<SchemaMessageModel.Attribute> attributes = List.of();
         if (includeAttributes) {
-            attributes = this.metadataService.findByType(MetadataType.ATTRIBUTE).stream()
-                    .filter(a -> Objects.equals(a.getSchemaName(), tableEntity.getSchemaName())
-                            && Objects.equals(a.getTableName(), tableEntity.getTableName()))
+            attributes = this.metadataEntityService.findByKind(SchemaEntityKinds.ATTRIBUTE).stream()
+                    .filter(a -> Objects.equals(schemaName(a), schemaName(tableEntity))
+                            && Objects.equals(tableName(a), tableName(tableEntity)))
                     .map(this::toAttribute)
                     .toList();
         }
 
-        return new SchemaMessageModel.Table(tableEntity.getSchemaName(), tableEntity.getTableName(),
+        return new SchemaMessageModel.Table(schemaName(tableEntity), tableName(tableEntity),
                 description, attributes);
     }
 
     private SchemaMessageModel.Attribute toAttribute(MetadataEntity attrEntity) {
-        String description = attrEntity.getFacet("descriptive", "global", DescriptiveFacet.class)
+        String description = NlsqlMetadataFacets.readGlobalFacet(
+                        facetRepository, attrEntity.getId(), "descriptive", DescriptiveFacet.class)
                 .map(DescriptiveFacet::getDescription)
                 .orElse(null);
-        String typeName = attrEntity.getFacet("structural", "global", StructuralFacet.class)
+        String typeName = NlsqlMetadataFacets.readGlobalFacet(
+                        facetRepository, attrEntity.getId(), "structural", StructuralFacet.class)
                 .map(StructuralFacet::getPhysicalType)
                 .orElse(null);
-        Boolean nullable = attrEntity.getFacet("structural", "global", StructuralFacet.class)
+        Boolean nullable = NlsqlMetadataFacets.readGlobalFacet(
+                        facetRepository, attrEntity.getId(), "structural", StructuralFacet.class)
                 .map(StructuralFacet::getNullable)
                 .orElse(null);
 
         return new SchemaMessageModel.Attribute(
-                attrEntity.getSchemaName(), attrEntity.getTableName(),
-                attrEntity.getAttributeName(), description, typeName, nullable);
+                schemaName(attrEntity), tableName(attrEntity),
+                attributeName(attrEntity), description, typeName, nullable);
     }
 
     private List<SchemaMessageModel.Relation> getRelations() {
         List<SchemaMessageModel.Relation> result = new ArrayList<>();
 
-        for (MetadataEntity entity : this.metadataService.findAll()) {
-            Optional<RelationFacet> facetOpt = entity.getFacet("relation", "global", RelationFacet.class);
+        for (MetadataEntity entity : this.metadataEntityService.findAll()) {
+            Optional<RelationFacet> facetOpt = NlsqlMetadataFacets.readGlobalFacet(
+                    facetRepository, entity.getId(), "relation", RelationFacet.class);
             if (facetOpt.isEmpty()) continue;
 
             for (RelationFacet.Relation rel : facetOpt.get().getRelations()) {

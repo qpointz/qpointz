@@ -2,9 +2,9 @@ package io.qpointz.mill.data.schema
 
 import io.qpointz.mill.data.schema.SkyMillSchemaProvider.Companion.SCHEMA_NAME
 import io.qpointz.mill.data.schema.SkyMillSchemaProvider.Companion.TABLE_NO_METADATA
-import io.qpointz.mill.metadata.configuration.MetadataCoreConfiguration
-import io.qpointz.mill.metadata.configuration.MetadataRepositoryAutoConfiguration
-import io.qpointz.mill.metadata.repository.MetadataRepository
+import io.qpointz.mill.data.schema.MetadataEntityUrnCodec
+import io.qpointz.mill.metadata.repository.FacetRepository
+import io.qpointz.mill.metadata.repository.MetadataEntityRepository
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -19,10 +19,7 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
-@SpringBootTest(classes = [
-    MetadataCoreConfiguration::class,
-    MetadataRepositoryAutoConfiguration::class
-])
+@SpringBootTest(classes = [SkyMillMetadataTestApplication::class])
 class SchemaFacetServiceSkyMillIT {
 
     companion object {
@@ -31,19 +28,26 @@ class SchemaFacetServiceSkyMillIT {
         fun skymillProperties(registry: DynamicPropertyRegistry) {
             val dir = System.getProperty("skymill.datasets.dir")
                 ?: error("System property 'skymill.datasets.dir' not set")
-            registry.add("mill.metadata.file.path") { "file:$dir/skymill-meta-repository.yaml" }
-            registry.add("mill.metadata.storage.type") { "file" }
+            registry.add("mill.metadata.repository.type") { "file" }
+            registry.add("mill.metadata.seed.resources[0]") { "classpath:metadata/platform-bootstrap.yaml" }
+            registry.add("mill.metadata.seed.resources[1]") { "file:$dir/skymill-meta-repository.yaml" }
         }
     }
 
     @Autowired
-    private lateinit var metadataRepository: MetadataRepository
+    private lateinit var metadataEntityRepository: MetadataEntityRepository
+
+    @Autowired
+    private lateinit var facetRepository: FacetRepository
+
+    @Autowired
+    private lateinit var urnCodec: MetadataEntityUrnCodec
 
     private lateinit var service: SchemaFacetServiceImpl
 
     @BeforeEach
     fun setUp() {
-        service = SchemaFacetServiceImpl(SkyMillSchemaProvider(), metadataRepository)
+        service = SchemaFacetServiceImpl(SkyMillSchemaProvider(), metadataEntityRepository, facetRepository)
     }
 
     @Test
@@ -134,15 +138,16 @@ class SchemaFacetServiceSkyMillIT {
 
         // All unbound entries should reference coordinates absent from the physical schema
         for (entity in result.unboundMetadata) {
-            val schemaMatch = result.schemas.none { it.schemaName == entity.schemaName }
-                    || result.schemas.any { s ->
-                s.schemaName == entity.schemaName && entity.tableName != null &&
+            val path = urnCodec.decode(entity.id)
+            val schemaMatch = result.schemas.none { it.schemaName == path.schema }
+                || result.schemas.any { s ->
+                    s.schemaName == path.schema && path.table != null &&
                         s.tables.none { t ->
-                            t.tableName == entity.tableName &&
-                                    (entity.attributeName == null ||
-                                            t.columns.any { c -> c.columnName == entity.attributeName })
+                            t.tableName == path.table &&
+                                (path.column == null ||
+                                    t.columns.any { c -> c.columnName == path.column })
                         }
-            }
+                }
             assertTrue(schemaMatch, "Entity ${entity.id} should be unbound but matched a physical entity")
         }
     }

@@ -2,9 +2,13 @@ package io.qpointz.mill.data.schema
 
 import io.qpointz.mill.data.backend.SchemaProvider
 import io.qpointz.mill.metadata.domain.MetadataEntity
+import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.MetadataUrns
-import io.qpointz.mill.metadata.domain.core.RelationFacet
-import io.qpointz.mill.metadata.repository.MetadataRepository
+import io.qpointz.mill.data.schema.facet.RelationFacet
+import io.qpointz.mill.metadata.domain.facet.FacetInstance
+import io.qpointz.mill.metadata.domain.facet.MergeAction
+import io.qpointz.mill.metadata.repository.FacetRepository
+import io.qpointz.mill.metadata.repository.MetadataEntityRepository
 import io.qpointz.mill.proto.DataType
 import io.qpointz.mill.proto.Field
 import io.qpointz.mill.proto.LogicalDataType
@@ -21,6 +25,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.whenever
+import java.time.Instant
+import java.util.UUID
 
 @ExtendWith(MockitoExtension::class)
 class SchemaFacetServiceImplTest {
@@ -29,13 +35,81 @@ class SchemaFacetServiceImplTest {
     private lateinit var schemaProvider: SchemaProvider
 
     @Mock
-    private lateinit var metadataRepository: MetadataRepository
+    private lateinit var entityRepository: MetadataEntityRepository
+
+    @Mock
+    private lateinit var facetRepository: FacetRepository
+
+    private val codec = DefaultMetadataEntityUrnCodec()
 
     private lateinit var service: SchemaFacetServiceImpl
 
     @BeforeEach
     fun setUp() {
-        service = SchemaFacetServiceImpl(schemaProvider, metadataRepository)
+        service = SchemaFacetServiceImpl(schemaProvider, entityRepository, facetRepository, codec)
+    }
+
+    private fun now() = Instant.now()
+
+    private fun stubEntities(vararg entities: MetadataEntity) {
+        whenever(entityRepository.findAll()).thenReturn(entities.toList())
+        entities.forEach { e ->
+            whenever(facetRepository.findByEntity(e.id)).thenReturn(emptyList())
+        }
+    }
+
+    private fun stubFacets(entity: MetadataEntity, facets: List<FacetInstance>) {
+        whenever(facetRepository.findByEntity(entity.id)).thenReturn(facets)
+    }
+
+    private fun metadataEntity(
+        schemaName: String?,
+        tableName: String?,
+        attributeName: String?,
+        legacyLocalId: String? = null
+    ): MetadataEntity {
+        val id = when {
+            legacyLocalId != null ->
+                MetadataEntityUrn.canonicalize("urn:mill/metadata/entity:$legacyLocalId")
+            tableName == null && attributeName == null -> codec.forSchema(schemaName!!)
+            attributeName == null -> codec.forTable(schemaName!!, tableName!!)
+            else -> codec.forAttribute(schemaName!!, tableName!!, attributeName)
+        }
+        val t = now()
+        return MetadataEntity(
+            id = id,
+            kind = when {
+                attributeName != null -> SchemaEntityKinds.ATTRIBUTE
+                tableName != null -> SchemaEntityKinds.TABLE
+                else -> SchemaEntityKinds.SCHEMA
+            },
+            uuid = null,
+            createdAt = t,
+            createdBy = null,
+            lastModifiedAt = t,
+            lastModifiedBy = null
+        )
+    }
+
+    private fun facetRow(
+        entity: MetadataEntity,
+        facetTypeUrn: String,
+        scopeUrn: String,
+        payload: Map<String, Any?>
+    ): FacetInstance {
+        val t = now()
+        return FacetInstance(
+            uid = UUID.randomUUID().toString(),
+            entityId = entity.id,
+            facetTypeKey = facetTypeUrn,
+            scopeKey = scopeUrn,
+            mergeAction = MergeAction.SET,
+            payload = payload,
+            createdAt = t,
+            createdBy = null,
+            lastModifiedAt = t,
+            lastModifiedBy = null
+        )
     }
 
     // ---- physical schema preservation ----
@@ -45,7 +119,7 @@ class SchemaFacetServiceImplTest {
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("schema_a", "schema_b"))
         whenever(schemaProvider.getSchema("schema_a")).thenReturn(emptySchema())
         whenever(schemaProvider.getSchema("schema_b")).thenReturn(emptySchema())
-        whenever(metadataRepository.findAll()).thenReturn(emptyList())
+        stubEntities()
 
         val result = service.getSchemas()
 
@@ -59,7 +133,7 @@ class SchemaFacetServiceImplTest {
         whenever(schemaProvider.getSchema("myschema")).thenReturn(
             schema("myschema", table("myschema", "table_a"), table("myschema", "table_b"))
         )
-        whenever(metadataRepository.findAll()).thenReturn(emptyList())
+        stubEntities()
 
         val result = service.getSchemas()
 
@@ -74,7 +148,7 @@ class SchemaFacetServiceImplTest {
         whenever(schemaProvider.getSchema("s")).thenReturn(
             schema("s", table("s", "t", field("col_a"), field("col_b"), field("col_c")))
         )
-        whenever(metadataRepository.findAll()).thenReturn(emptyList())
+        stubEntities()
 
         val result = service.getSchemas()
 
@@ -93,7 +167,7 @@ class SchemaFacetServiceImplTest {
 
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t", f)))
-        whenever(metadataRepository.findAll()).thenReturn(emptyList())
+        stubEntities()
 
         val result = service.getSchemas()
         val attr = result.schemas.single().tables.single().columns.single()
@@ -110,13 +184,13 @@ class SchemaFacetServiceImplTest {
         val entity = metadataEntity("schema_a", null, null, "schema_a")
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("schema_a"))
         whenever(schemaProvider.getSchema("schema_a")).thenReturn(emptySchema())
-        whenever(metadataRepository.findAll()).thenReturn(listOf(entity))
+        stubEntities(entity)
 
         val result = service.getSchemas()
 
         val schema = result.schemas.single()
         assertNotNull(schema.metadata)
-        assertEquals("schema_a", schema.metadata!!.id)
+        assertEquals(codec.forSchema("schema_a"), schema.metadata!!.id)
         assertTrue(schema.hasMetadata)
     }
 
@@ -125,13 +199,13 @@ class SchemaFacetServiceImplTest {
         val entity = metadataEntity("s", "t", null, "s.t")
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t")))
-        whenever(metadataRepository.findAll()).thenReturn(listOf(entity))
+        stubEntities(entity)
 
         val result = service.getSchemas()
 
         val tbl = result.schemas.single().tables.single()
         assertNotNull(tbl.metadata)
-        assertEquals("s.t", tbl.metadata!!.id)
+        assertEquals(codec.forTable("s", "t"), tbl.metadata!!.id)
     }
 
     @Test
@@ -139,20 +213,20 @@ class SchemaFacetServiceImplTest {
         val entity = metadataEntity("s", "t", "col", "s.t.col")
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t", field("col"))))
-        whenever(metadataRepository.findAll()).thenReturn(listOf(entity))
+        stubEntities(entity)
 
         val result = service.getSchemas()
 
         val attr = result.schemas.single().tables.single().columns.single()
         assertNotNull(attr.metadata)
-        assertEquals("s.t.col", attr.metadata!!.id)
+        assertEquals(codec.forAttribute("s", "t", "col"), attr.metadata!!.id)
     }
 
     @Test
     fun `schema with no metadata has null metadata and empty facets`() {
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(emptySchema())
-        whenever(metadataRepository.findAll()).thenReturn(emptyList())
+        stubEntities()
 
         val schema = service.getSchemas().schemas.single()
 
@@ -166,7 +240,7 @@ class SchemaFacetServiceImplTest {
         val schemaOnlyEntity = metadataEntity("s", null, null, "s")
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t")))
-        whenever(metadataRepository.findAll()).thenReturn(listOf(schemaOnlyEntity))
+        stubEntities(schemaOnlyEntity)
 
         val tbl = service.getSchemas().schemas.single().tables.single()
 
@@ -178,7 +252,7 @@ class SchemaFacetServiceImplTest {
         val tableEntity = metadataEntity("s", "t", null, "s.t")
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t", field("col"))))
-        whenever(metadataRepository.findAll()).thenReturn(listOf(tableEntity))
+        stubEntities(tableEntity)
 
         val attr = service.getSchemas().schemas.single().tables.single().columns.single()
 
@@ -192,12 +266,12 @@ class SchemaFacetServiceImplTest {
         val stale = metadataEntity("ghost_schema", null, null, "ghost_schema")
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("real_schema"))
         whenever(schemaProvider.getSchema("real_schema")).thenReturn(emptySchema())
-        whenever(metadataRepository.findAll()).thenReturn(listOf(stale))
+        stubEntities(stale)
 
         val result = service.getSchemas()
 
         assertEquals(1, result.unboundMetadata.size)
-        assertEquals("ghost_schema", result.unboundMetadata.single().id)
+        assertEquals(codec.forSchema("ghost_schema"), result.unboundMetadata.single().id)
     }
 
     @Test
@@ -205,12 +279,12 @@ class SchemaFacetServiceImplTest {
         val stale = metadataEntity("s", "ghost_table", null, "s.ghost_table")
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "real_table")))
-        whenever(metadataRepository.findAll()).thenReturn(listOf(stale))
+        stubEntities(stale)
 
         val result = service.getSchemas()
 
         assertEquals(1, result.unboundMetadata.size)
-        assertEquals("s.ghost_table", result.unboundMetadata.single().id)
+        assertEquals(codec.forTable("s", "ghost_table"), result.unboundMetadata.single().id)
     }
 
     @Test
@@ -218,12 +292,12 @@ class SchemaFacetServiceImplTest {
         val stale = metadataEntity("s", "t", "ghost_col", "s.t.ghost_col")
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t", field("real_col"))))
-        whenever(metadataRepository.findAll()).thenReturn(listOf(stale))
+        stubEntities(stale)
 
         val result = service.getSchemas()
 
         assertEquals(1, result.unboundMetadata.size)
-        assertEquals("s.t.ghost_col", result.unboundMetadata.single().id)
+        assertEquals(codec.forAttribute("s", "t", "ghost_col"), result.unboundMetadata.single().id)
     }
 
     @Test
@@ -232,42 +306,55 @@ class SchemaFacetServiceImplTest {
         val unmatched = metadataEntity("s", "ghost", null, "s.ghost")
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t")))
-        whenever(metadataRepository.findAll()).thenReturn(listOf(matched, unmatched))
+        stubEntities(matched, unmatched)
 
         val result = service.getSchemas()
 
         assertEquals(1, result.unboundMetadata.size)
-        assertEquals("s.ghost", result.unboundMetadata.single().id)
+        assertEquals(codec.forTable("s", "ghost"), result.unboundMetadata.single().id)
     }
 
     @Test
-    fun `entity with null id is excluded from unbound tracking`() {
-        val noId = MetadataEntity().apply {
-            schemaName = "ghost"; tableName = null; attributeName = null; id = null
-        }
+    fun `non relational entity urn is never bound and appears in unboundMetadata`() {
+        val t = now()
+        val orphan = MetadataEntity(
+            id = MetadataEntityUrn.canonicalize("urn:mill/metadata/entity:concept:orphan"),
+            kind = SchemaEntityKinds.CONCEPT,
+            uuid = null,
+            createdAt = t,
+            createdBy = null,
+            lastModifiedAt = t,
+            lastModifiedBy = null
+        )
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(emptySchema())
-        whenever(metadataRepository.findAll()).thenReturn(listOf(noId))
+        stubEntities(orphan)
 
         val result = service.getSchemas()
 
-        assertTrue(result.unboundMetadata.isEmpty())
+        assertEquals(1, result.unboundMetadata.size)
+        assertEquals(orphan.id, result.unboundMetadata.single().id)
     }
 
     // ---- facet attachment ----
 
     @Test
     fun `descriptive facet is attached from matched table entity`() {
-        val entity = metadataEntity("s", "t", null, "s.t").apply {
-            setFacet("descriptive", MetadataUrns.SCOPE_GLOBAL, mapOf(
-                "displayName" to "My Table",
-                "description" to "A test table"
-            ))
-        }
-
+        val entity = metadataEntity("s", "t", null, "s.t")
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t")))
-        whenever(metadataRepository.findAll()).thenReturn(listOf(entity))
+        stubEntities(entity)
+        stubFacets(
+            entity,
+            listOf(
+                facetRow(
+                    entity,
+                    MetadataUrns.FACET_TYPE_DESCRIPTIVE,
+                    MetadataUrns.SCOPE_GLOBAL,
+                    mapOf("displayName" to "My Table", "description" to "A test table")
+                )
+            )
+        )
 
         val tbl = service.getSchemas().schemas.single().tables.single()
 
@@ -277,13 +364,21 @@ class SchemaFacetServiceImplTest {
 
     @Test
     fun `facetByType returns correct facet for known type`() {
-        val entity = metadataEntity("s", "t", null, "s.t").apply {
-            setFacet("relation", MetadataUrns.SCOPE_GLOBAL, mapOf("relations" to emptyList<Any>()))
-        }
-
+        val entity = metadataEntity("s", "t", null, "s.t")
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t")))
-        whenever(metadataRepository.findAll()).thenReturn(listOf(entity))
+        stubEntities(entity)
+        stubFacets(
+            entity,
+            listOf(
+                facetRow(
+                    entity,
+                    MetadataUrns.FACET_TYPE_RELATION,
+                    MetadataUrns.SCOPE_GLOBAL,
+                    mapOf("relations" to emptyList<Any>())
+                )
+            )
+        )
 
         val tbl = service.getSchemas().schemas.single().tables.single()
 
@@ -295,7 +390,7 @@ class SchemaFacetServiceImplTest {
         val entity = metadataEntity("s", "t", null, "s.t")
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t")))
-        whenever(metadataRepository.findAll()).thenReturn(listOf(entity))
+        stubEntities(entity)
 
         val tbl = service.getSchemas().schemas.single().tables.single()
 
@@ -310,7 +405,7 @@ class SchemaFacetServiceImplTest {
     fun `SchemaWithFacets carries schema name for traceability`() {
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("tracing_schema"))
         whenever(schemaProvider.getSchema("tracing_schema")).thenReturn(emptySchema())
-        whenever(metadataRepository.findAll()).thenReturn(emptyList())
+        stubEntities()
 
         val schema = service.getSchemas().schemas.single()
 
@@ -321,7 +416,7 @@ class SchemaFacetServiceImplTest {
     fun `SchemaTableWithFacets carries schema and table name for traceability`() {
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "trace_table")))
-        whenever(metadataRepository.findAll()).thenReturn(emptyList())
+        stubEntities()
 
         val tbl = service.getSchemas().schemas.single().tables.single()
 
@@ -333,7 +428,7 @@ class SchemaFacetServiceImplTest {
     fun `SchemaColumnWithFacets carries schema, table, and column name for traceability`() {
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t", field("trace_col"))))
-        whenever(metadataRepository.findAll()).thenReturn(emptyList())
+        stubEntities()
 
         val attr = service.getSchemas().schemas.single().tables.single().columns.single()
 
@@ -347,12 +442,12 @@ class SchemaFacetServiceImplTest {
         val entity = metadataEntity("s", "t", "col", "s.t.col")
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t", field("col"))))
-        whenever(metadataRepository.findAll()).thenReturn(listOf(entity))
+        stubEntities(entity)
 
         val attr = service.getSchemas().schemas.single().tables.single().columns.single()
 
         assertNotNull(attr.metadata)
-        assertEquals("s.t.col", attr.metadata!!.id)
+        assertEquals(codec.forAttribute("s", "t", "col"), attr.metadata!!.id)
     }
 
     // ---- helpers ----
@@ -376,17 +471,4 @@ class SchemaFacetServiceImplTest {
             .setFieldIdx(idx)
             .setType(DataType.newBuilder().setNullability(DataType.Nullability.NOT_NULL).build())
             .build()
-
-    private fun metadataEntity(
-        schemaName: String?,
-        tableName: String?,
-        attributeName: String?,
-        id: String
-    ): MetadataEntity = MetadataEntity().apply {
-        this.id = id
-        this.schemaName = schemaName
-        this.tableName = tableName
-        this.attributeName = attributeName
-        // No facets set — getFacet will naturally return Optional.empty()
-    }
 }

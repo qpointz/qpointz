@@ -1,39 +1,40 @@
 package io.qpointz.mill.metadata.domain.facet
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
+import io.qpointz.mill.utils.JsonUtils
 
 /**
- * Single source of truth for built-in platform facet type manifests.
+ * Reference JSON for **descriptive** and **concept** facet manifests (fixtures, codegen, docs).
  *
- * All default seeding flows should consume these manifests:
- * - in-memory repository bootstrap
- * - import fallback bootstrap (`ensurePlatformFacetTypesPresent`)
- * - SQL/JPA alignment migrations when platform defaults evolve
+ * **Runtime seeding** uses `metadata/platform-bootstrap.yaml` via `mill.metadata.seed.resources` only.
+ * Keep this JSON aligned when editing the YAML (or regenerate fixtures from the YAML).
+ *
+ * JDBC/schema-owned types (**structural**, **relation**, **value-mapping**) are described in the same
+ * bootstrap YAML; [io.qpointz.mill.data.schema.DataOwnedFacetTypeManifests] remains for Kotlin tests
+ * and tooling that build manifests in code.
  */
 object PlatformFacetTypeDefinitions {
-    private const val RESOURCE_PATH = "metadata/platform-facet-types.json"
-    private val mapper = jacksonObjectMapper()
+    /** Classpath resource for [manifests]. */
+    const val RESOURCE_PATH: String = "metadata/platform-facet-types.json"
+    private val mapper = JsonUtils.defaultJsonMapper()
     private val cachedManifests: List<FacetTypeManifest> by lazy {
         val stream = PlatformFacetTypeDefinitions::class.java.classLoader
             .getResourceAsStream(RESOURCE_PATH)
             ?: throw IllegalStateException("Missing resource: $RESOURCE_PATH")
         stream.use {
-            val loaded: List<FacetTypeManifest> = mapper.readValue(it)
+            val javaType = mapper.typeFactory.constructCollectionType(List::class.java, FacetTypeManifest::class.java)
+            @Suppress("UNCHECKED_CAST")
+            val loaded = mapper.readValue(it, javaType) as List<FacetTypeManifest>
             loaded.map { FacetTypeManifestNormalizer.normalizeStrict(it) }
         }
     }
 
     /**
-     * Canonical platform facet type manifests.
-     *
-     * Keep ordering stable for readability and deterministic bootstrap logs.
+     * Reference manifests (metadata-owned types only).
      */
     @JvmStatic
     fun manifests(): List<FacetTypeManifest> = cachedManifests
 
-    /** Platform facet type URN keys derived from [manifests]. */
+    /** Facet type URN keys derived from [manifests]. */
     @JvmStatic
     fun typeKeys(): Set<String> = manifests().map { it.typeKey }.toSet()
 }
-

@@ -1,31 +1,34 @@
 package io.qpointz.mill.metadata.configuration
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import io.qpointz.mill.data.schema.facet.RelationFacet
+import io.qpointz.mill.data.schema.facet.StructuralFacet
 import io.qpointz.mill.metadata.domain.DefaultFacetClassResolver
 import io.qpointz.mill.metadata.domain.FacetClassResolver
-import io.qpointz.mill.metadata.domain.FacetTypeDescriptor
 import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.domain.core.ConceptFacet
 import io.qpointz.mill.metadata.domain.core.DescriptiveFacet
-import io.qpointz.mill.metadata.domain.core.RelationFacet
-import io.qpointz.mill.metadata.domain.core.StructuralFacet
 import io.qpointz.mill.metadata.domain.core.ValueMappingFacet
-import io.qpointz.mill.metadata.domain.facet.PlatformFacetTypeDefinitions
+import io.qpointz.mill.metadata.repository.FacetTypeDefinitionRepository
 import io.qpointz.mill.metadata.repository.FacetTypeRepository
+import io.qpointz.mill.metadata.repository.InMemoryFacetTypeDefinitionRepository
 import io.qpointz.mill.metadata.repository.InMemoryFacetTypeRepository
 import io.qpointz.mill.metadata.service.DefaultFacetCatalog
 import io.qpointz.mill.metadata.service.FacetCatalog
-import io.qpointz.mill.metadata.service.FacetContentValidator
-import org.springframework.boot.ApplicationRunner
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.ApplicationRunner
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
-/** Core metadata beans: facet resolver, facet type repository, and facet catalog. */
+/**
+ * Core metadata beans: facet resolver and facet catalog.
+ *
+ * **Seeding:** platform scopes, facet types, and entities are applied **only** through
+ * `mill.metadata.seed.resources` ([MetadataSeedStartup]); there are no Flyway data inserts or
+ * autoconfigure `ApplicationRunner` seeders for facet definitions.
+ */
 @Configuration
 @EnableConfigurationProperties(MetadataProperties::class)
 open class MetadataCoreConfiguration {
@@ -49,40 +52,46 @@ open class MetadataCoreConfiguration {
     }
 
     /**
-     * Creates an in-memory [FacetTypeRepository] pre-loaded with all five platform facet types.
+     * In-memory facet type definitions when JPA metadata storage is not active.
      *
-     * @return repository containing platform facet type descriptors
+     * <p>Skipped when {@code mill.metadata.repository.type=jpa} (JPA adapters) or {@code file}
+     * ([MetadataFileRepositoryAutoConfiguration] supplies in-memory file-backed repos).
      */
     @Bean
-    @ConditionalOnMissingBean
-    @ConditionalOnProperty(
-        prefix = "mill.metadata.facet-type-registry",
-        name = ["type"],
-        havingValue = "inMemory",
-        matchIfMissing = true
+    @ConditionalOnMissingBean(FacetTypeDefinitionRepository::class)
+    @ConditionalOnExpression(
+        "'\${mill.metadata.repository.type:file}' != 'jpa' && '\${mill.metadata.repository.type:file}' != 'file' " +
+            "&& '\${mill.metadata.facet-type-registry.type:inMemory}' == 'inMemory'"
     )
-    open fun facetTypeRepository(objectMapper: ObjectMapper): FacetTypeRepository {
-        val repo = InMemoryFacetTypeRepository()
-        registerPlatformFacetTypes(repo, objectMapper)
-        return repo
-    }
+    open fun inMemoryFacetTypeDefinitionRepository(): FacetTypeDefinitionRepository =
+        InMemoryFacetTypeDefinitionRepository()
 
     /**
-     * Creates the default [FacetCatalog] backed by [facetTypeRepository].
+     * In-memory runtime facet type rows paired with [inMemoryFacetTypeDefinitionRepository].
+     */
+    @Bean
+    @ConditionalOnMissingBean(FacetTypeRepository::class)
+    @ConditionalOnExpression(
+        "'\${mill.metadata.repository.type:file}' != 'jpa' && '\${mill.metadata.repository.type:file}' != 'file' " +
+            "&& '\${mill.metadata.facet-type-registry.type:inMemory}' == 'inMemory'"
+    )
+    open fun inMemoryFacetTypeRepository(): FacetTypeRepository = InMemoryFacetTypeRepository()
+
+    /**
+     * Creates the default [FacetCatalog] backed by definition and runtime type repositories.
      *
-     * @param facetTypeRepository  the underlying facet type store
-     * @param contentValidator     optional content validator; omit to skip schema validation
+     * @param definitionRepository persisted or in-memory facet type definitions
+     * @param facetTypeRepository runtime facet type rows
      * @return configured catalog instance
      */
     @Bean
-    @ConditionalOnMissingBean
+    @ConditionalOnMissingBean(FacetCatalog::class)
     open fun facetCatalog(
-        facetTypeRepository: FacetTypeRepository,
-        @Autowired(required = false) contentValidator: FacetContentValidator?
+        definitionRepository: FacetTypeDefinitionRepository,
+        facetTypeRepository: FacetTypeRepository
     ): FacetCatalog {
-        log.info("Creating DefaultFacetCatalog (content validator: {})",
-            if (contentValidator != null) "enabled" else "disabled")
-        return DefaultFacetCatalog(facetTypeRepository, contentValidator)
+        log.info("Creating DefaultFacetCatalog")
+        return DefaultFacetCatalog(definitionRepository, facetTypeRepository)
     }
 
     /**
@@ -101,9 +110,9 @@ open class MetadataCoreConfiguration {
                 "mill.metadata.facet-type-registry.type=portal is not implemented yet"
             )
             "local" -> {
-                if (properties.storage.type != "jpa") {
+                if (properties.repository.type != "jpa") {
                     throw IllegalStateException(
-                        "mill.metadata.facet-type-registry.type=local requires mill.metadata.storage.type=jpa"
+                        "mill.metadata.facet-type-registry.type=local requires mill.metadata.repository.type=jpa"
                     )
                 }
             }
@@ -114,30 +123,6 @@ open class MetadataCoreConfiguration {
                 "Unsupported mill.metadata.facet-type-registry.type='$strategy'. Supported: inMemory, local, portal"
             )
         }
-    }
-
-    private fun registerPlatformFacetTypes(repo: FacetTypeRepository, objectMapper: ObjectMapper) {
-        val manifests = PlatformFacetTypeDefinitions.manifests()
-        manifests.forEach { manifest ->
-            repo.save(
-                FacetTypeDescriptor(
-                    typeKey = manifest.typeKey,
-                    mandatory = manifest.mandatory,
-                    targetCardinality = manifest.targetCardinality,
-                    enabled = manifest.enabled,
-                    displayName = manifest.title,
-                    description = manifest.description,
-                    applicableTo = manifest.applicableTo?.toSet(),
-                    version = manifest.schemaVersion,
-                    contentSchema = null,
-                    manifestJson = objectMapper.writeValueAsString(manifest)
-                )
-            )
-        }
-        log.info(
-            "Registered {} platform facet type descriptors (source: PlatformFacetTypeDefinitions)",
-            manifests.size
-        )
     }
 
     companion object {

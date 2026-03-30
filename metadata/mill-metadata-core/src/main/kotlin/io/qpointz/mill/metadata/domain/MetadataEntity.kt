@@ -1,122 +1,24 @@
 package io.qpointz.mill.metadata.domain
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonProperty
-import io.qpointz.mill.metadata.service.MetadataContext
-import java.io.Serializable
 import java.time.Instant
-import java.util.Optional
 
 /**
- * Document-style metadata entity with scoped facet payloads.
+ * Metadata entity identity (SPEC §5.3). Coordinates live in the data layer / facet payloads only.
  *
- * Facets are stored in a two-level map: `facets[facetTypeUrn][scopeUrn] = payload`.
- * Scope keys and facet type keys must use Mill URN notation (see [MetadataUrns]).
- *
- * @property id            unique identifier, typically `schemaName.tableName` or similar.
- * @property type          entity type discriminator.
- * @property schemaName    logical schema name (non-null for schema, table, attribute entities).
- * @property tableName     table name (non-null for table and attribute entities).
- * @property attributeName column/attribute name (non-null for attribute entities).
- * @property facets        two-level map: `facetTypeUrn → (scopeUrn → payload)`.
- * @property createdAt     creation timestamp.
- * @property updatedAt     last-modified timestamp.
- * @property createdBy     actor who created the entity.
- * @property updatedBy     actor who last modified the entity.
+ * @property id full entity URN (`entity_res`)
+ * @property kind opaque label (e.g. table, attribute); null if untyped
+ * @property uuid stable external id from persistence; null before first save
+ * @property createdAt creation time
+ * @property createdBy actor id or null
+ * @property lastModifiedAt last mutation time
+ * @property lastModifiedBy last actor id or null
  */
-open class MetadataEntity(
-    var id: String? = null,
-    var type: MetadataType? = null,
-    var schemaName: String? = null,
-    var tableName: String? = null,
-    var attributeName: String? = null,
-    @JsonProperty("facets")
-    var facets: MutableMap<String, MutableMap<String, Any?>> = mutableMapOf(),
-    var createdAt: Instant? = null,
-    var updatedAt: Instant? = null,
-    var createdBy: String? = null,
-    var updatedBy: String? = null
-) : Serializable {
-
-    /** Optional converter override (useful for tests or custom object mappers). */
-    @JsonIgnore
-    @Transient
-    var facetConverter: FacetConverter? = null
-
-    private fun converter(): FacetConverter = facetConverter ?: FacetConverter.defaultConverter()
-
-    /**
-     * Returns a facet for a specific type and scope converted to [facetClass].
-     *
-     * @param facetType  the facet type URN key
-     * @param scope      the scope URN key
-     * @param facetClass the target class for conversion
-     * @return an [Optional] containing the converted facet, or empty if not found
-     */
-    fun <T : Any> getFacet(facetType: String, scope: String, facetClass: Class<T>): Optional<T> {
-        val scopedFacets = facets[facetType] ?: return Optional.empty<T>()
-        val facetData = scopedFacets[scope] ?: return Optional.empty<T>()
-        return converter().convert(facetData, facetClass)
-    }
-
-    /**
-     * Returns raw facet payload without conversion.
-     *
-     * @param facetType  the facet type URN key
-     * @param scope      the scope URN key
-     * @return raw payload, or `null` if absent
-     */
-    fun getRawFacet(facetType: String, scope: String): Any? {
-        return facets[facetType]?.get(scope)
-    }
-
-    /**
-     * Lists all scope URN keys available for a given facet type.
-     *
-     * @param facetType the facet type URN key
-     * @return set of scope URN keys, or empty if the facet type is absent
-     */
-    fun getFacetScopes(facetType: String): Set<String> {
-        return facets[facetType]?.keys ?: emptySet()
-    }
-
-    /**
-     * Stores or replaces a scoped facet payload.
-     *
-     * @param facetType the facet type URN key
-     * @param scope     the scope URN key
-     * @param facetData the payload to store
-     */
-    fun setFacet(facetType: String, scope: String, facetData: Any?) {
-        facets.getOrPut(facetType) { mutableMapOf() }[scope] = facetData
-    }
-
-    /**
-     * Resolves the effective facet value for [facetType] by merging across the scopes
-     * in [context] in order. Later scopes override earlier ones (last wins).
-     *
-     * Scopes in the context that have no entry for [facetType] are silently skipped.
-     * Returns the last non-null payload found, converted to [facetClass].
-     *
-     * @param facetType  the facet type URN key
-     * @param context    the ordered scope context; last scope wins when multiple have data
-     * @param facetClass the target class for conversion
-     * @return an [Optional] containing the merged facet value, or empty if no scope matched
-     */
-    fun <T : Any> getMergedFacet(
-        facetType: String,
-        context: MetadataContext,
-        facetClass: Class<T>
-    ): Optional<T> {
-        val scopedFacets = facets[facetType] ?: return Optional.empty<T>()
-        val winner = context.scopes
-            .mapNotNull { scopedFacets[it] }
-            .lastOrNull()
-            ?: return Optional.empty<T>()
-        return converter().convert(winner, facetClass)
-    }
-
-    companion object {
-        private const val serialVersionUID: Long = 1L
-    }
-}
+data class MetadataEntity(
+    val id: String,
+    val kind: String?,
+    val uuid: String?,
+    val createdAt: Instant,
+    val createdBy: String?,
+    val lastModifiedAt: Instant,
+    val lastModifiedBy: String?
+)

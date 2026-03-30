@@ -40,11 +40,11 @@ class MetadataScopeController(private val scopeService: MetadataScopeService) {
     /**
      * Lists all registered metadata scopes.
      *
-     * @return list of all scopes with full URN [MetadataScopeDto.scopeId] values
+     * @return list of all scopes with full URN [MetadataScopeDto.scopeUrn] values
      */
     @Operation(
         summary = "List all metadata scopes",
-        description = "Returns all registered scopes. The scopeId field in each entry is a full Mill scope URN."
+        description = "Returns all registered scopes. The scopeUrn field in each entry is a full Mill scope URN."
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "Scopes returned",
@@ -57,7 +57,7 @@ class MetadataScopeController(private val scopeService: MetadataScopeService) {
     /**
      * Creates a new metadata scope.
      *
-     * The [MetadataScopeDto.scopeId] in the request body must be a full Mill scope URN
+     * The [MetadataScopeDto.scopeUrn] in the request body must be a full Mill scope URN
      * (e.g. `urn:mill/metadata/scope:team:eng`). The `Location` header in the 201 response
      * contains the slug path for the new scope.
      *
@@ -75,8 +75,8 @@ class MetadataScopeController(private val scopeService: MetadataScopeService) {
     )
     @PostMapping
     fun createScope(@RequestBody dto: MetadataScopeDto): ResponseEntity<MetadataScopeDto> {
-        val created = scopeService.create(dto.scopeId, dto.displayName, dto.ownerId)
-        val slug = created.scopeId.removePrefix(MetadataUrns.SCOPE_PREFIX)
+        val created = scopeService.create(dto.scopeUrn, dto.displayName, dto.ownerId)
+        val slug = created.res.removePrefix(MetadataUrns.SCOPE_PREFIX)
         val location = URI.create("/api/v1/metadata/scopes/$slug")
         return ResponseEntity.created(location).body(toDto(created))
     }
@@ -118,7 +118,7 @@ class MetadataScopeController(private val scopeService: MetadataScopeService) {
      */
     private fun toDto(scope: MetadataScope): MetadataScopeDto =
         MetadataScopeDto(
-            scopeId = scope.scopeId,
+            scopeUrn = scope.res,
             displayName = scope.displayName,
             ownerId = scope.ownerId,
             createdAt = scope.createdAt

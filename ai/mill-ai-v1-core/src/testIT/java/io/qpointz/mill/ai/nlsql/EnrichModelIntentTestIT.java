@@ -6,7 +6,9 @@ import io.qpointz.mill.ai.nlsql.components.DefaultValueMapper;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.reasoners.DefaultReasoner;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.data.schema.MetadataEntityUrnCodec;
+import io.qpointz.mill.metadata.repository.FacetRepository;
+import io.qpointz.mill.metadata.service.MetadataEntityService;
 import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -30,10 +32,12 @@ import static org.junit.jupiter.api.Assertions.*;
 public class EnrichModelIntentTestIT extends BaseIntentTestIT {
 
     public EnrichModelIntentTestIT(@Autowired ChatModel chatModel,
-                                   @Autowired MetadataService metadataService,
+                                   @Autowired MetadataEntityService metadataEntityService,
+                                   @Autowired FacetRepository facetRepository,
+                                   @Autowired MetadataEntityUrnCodec urnCodec,
                                    @Autowired SqlDialectSpec sqlDialect,
                                    @Autowired DataOperationDispatcher dispatcher) {
-        super(chatModel, metadataService, sqlDialect, dispatcher);
+        super(chatModel, metadataEntityService, facetRepository, urnCodec, sqlDialect, dispatcher);
     }
 
     Map<String, Object> enrichModel(String query) {
@@ -86,9 +90,9 @@ public class EnrichModelIntentTestIT extends BaseIntentTestIT {
 
     //@Test
     void noWay() {
-        val reasoner = new DefaultReasoner(this.getCallSpecBuilders(), this.getMetadataService(), MessageSelectors.SIMPLE);
+        val reasoner = new DefaultReasoner(this.getCallSpecBuilders(), this.getSchemaPorts(), MessageSelectors.SIMPLE);
         val app = new ChatApplication(this.getCallSpecBuilders(),
-                this.getMetadataService(),
+                this.getSchemaPorts(),
                 this.getSqlDialect(),
                 this.getDispatcher(),
                 MessageSelectors.SIMPLE,

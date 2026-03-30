@@ -1,6 +1,6 @@
 [
   {
-    "typeKey": "urn:mill/metadata/facet-type:descriptive",
+    "facetTypeUrn": "urn:mill/metadata/facet-type:descriptive",
     "title": "Description",
     "description": "Capture a human-friendly title and narrative context for an entity.",
     "category": "general",
@@ -9,7 +9,7 @@
     "targetCardinality": "SINGLE",
     "applicableTo": [],
     "schemaVersion": "1.0",
-    "payload": {
+    "contentSchema": {
       "type": "OBJECT",
       "title": "Description payload",
       "description": "Define descriptive fields shown in UI and used by AI prompts.",
@@ -37,298 +37,20 @@
     }
   },
   {
-    "typeKey": "urn:mill/metadata/facet-type:source-table",
-    "title": "Source Table",
-    "description": "Describe the physical source table behind a logical table entity.",
-    "category": "source",
-    "enabled": true,
-    "mandatory": false,
-    "targetCardinality": "SINGLE",
-    "applicableTo": [
-      "urn:mill/metadata/entity-type:table"
-    ],
-    "schemaVersion": "1.0",
-    "payload": {
-      "type": "OBJECT",
-      "title": "Source table payload",
-      "description": "Store source-system details used to identify the originating table.",
-      "fields": [
-        {
-          "name": "sourceType",
-          "schema": {
-            "type": "ENUM",
-            "title": "Source Type",
-            "description": "System type that provides this source table.",
-            "values": [
-              {
-                "value": "JDBC",
-                "description": "Table from a JDBC-accessible database."
-              },
-              {
-                "value": "FLOW",
-                "description": "Table exposed by a Mill Flow source."
-              },
-              {
-                "value": "CALCITE",
-                "description": "Table provided through a Calcite schema."
-              },
-              {
-                "value": "UNKNOWN",
-                "description": "Source system is not identified."
-              }
-            ]
-          },
-          "required": true
-        },
-        {
-          "name": "package",
-          "schema": {
-            "type": "STRING",
-            "title": "Package",
-            "description": "Source namespace, for example `catalog.schema`."
-          },
-          "required": false
-        },
-        {
-          "name": "name",
-          "schema": {
-            "type": "STRING",
-            "title": "Name",
-            "description": "Physical source table name."
-          },
-          "required": true
-        }
-      ],
-      "required": []
-    }
-  },
-  {
-    "typeKey": "urn:mill/metadata/facet-type:source-column",
-    "title": "Source Column",
-    "description": "Describe the physical source column behind a logical attribute.",
-    "category": "source",
-    "enabled": true,
-    "mandatory": false,
-    "targetCardinality": "SINGLE",
-    "applicableTo": [
-      "urn:mill/metadata/entity-type:attribute"
-    ],
-    "schemaVersion": "1.0",
-    "payload": {
-      "type": "OBJECT",
-      "title": "Source column payload",
-      "description": "Store source-system metadata for the underlying column.",
-      "fields": [
-        {
-          "name": "name",
-          "schema": {
-            "type": "STRING",
-            "title": "Name",
-            "description": "Physical source column name."
-          },
-          "required": true
-        },
-        {
-          "name": "type",
-          "schema": {
-            "type": "STRING",
-            "title": "Type",
-            "description": "Source-system data type of the column."
-          },
-          "required": true
-        },
-        {
-          "name": "nullable",
-          "schema": {
-            "type": "BOOLEAN",
-            "title": "Nullable",
-            "description": "Whether the source column accepts null values."
-          },
-          "required": true
-        },
-        {
-          "name": "isPK",
-          "schema": {
-            "type": "BOOLEAN",
-            "title": "Primary Key",
-            "description": "Whether the column participates in the primary key."
-          },
-          "required": true
-        },
-        {
-          "name": "isFK",
-          "schema": {
-            "type": "BOOLEAN",
-            "title": "Foreign Key",
-            "description": "Whether the column participates in a foreign key."
-          },
-          "required": true
-        }
-      ],
-      "required": []
-    }
-  },
-  {
-    "typeKey": "urn:mill/metadata/facet-type:relation",
-    "title": "Relation",
-    "description": "Describes entity relationship",
+    "facetTypeUrn": "urn:mill/metadata/facet-type:concept",
+    "title": "Concept",
+    "description": "Business concept definitions and optional mappings to physical model elements.",
     "category": "general",
     "enabled": true,
     "mandatory": false,
-    "targetCardinality": "MULTIPLE",
-    "applicableTo": [
-      "urn:mill/metadata/entity-type:schema",
-      "urn:mill/metadata/entity-type:table"
-    ],
+    "targetCardinality": "SINGLE",
+    "applicableTo": [],
     "schemaVersion": "1.0",
-    "payload": {
+    "contentSchema": {
       "type": "OBJECT",
-      "title": "Relation payload",
-      "description": "Relation facet payload schema.",
-      "fields": [
-        {
-          "name": "name",
-          "schema": {
-            "type": "STRING",
-            "title": "Name",
-            "description": "Relation name"
-          },
-          "required": false
-        },
-        {
-          "name": "description",
-          "schema": {
-            "type": "STRING",
-            "title": "Description",
-            "description": "Relation description "
-          },
-          "required": false
-        },
-        {
-          "name": "cardinality",
-          "schema": {
-            "type": "ENUM",
-            "title": "Cardinality",
-            "description": "Relation cardinality",
-            "values": [
-              {
-                "value": "ONE_TO_ONE",
-                "description": "One to one relation cardinality"
-              },
-              {
-                "value": "ONE_TO_MANY",
-                "description": "One to many relation cardinality"
-              },
-              {
-                "value": "MANY_TO_MANY",
-                "description": "Many to many relation cardinality"
-              },
-              {
-                "value": "UNKNOWN",
-                "description": "Unknown relation cardinality"
-              }
-            ]
-          },
-          "required": true
-        },
-        {
-          "name": "source",
-          "schema": {
-            "type": "OBJECT",
-            "title": "Source",
-            "description": "Source table",
-            "fields": [
-              {
-                "name": "schema",
-                "schema": {
-                  "type": "STRING",
-                  "title": "Schema",
-                  "description": "Source schema name"
-                },
-                "required": true
-              },
-              {
-                "name": "table",
-                "schema": {
-                  "type": "STRING",
-                  "title": "Table",
-                  "description": "Source table name"
-                },
-                "required": true
-              },
-              {
-                "name": "columns",
-                "schema": {
-                  "type": "ARRAY",
-                  "title": "Columns",
-                  "description": "List of source attributes",
-                  "items": {
-                    "type": "STRING",
-                    "title": "STRING field",
-                    "description": "STRING description"
-                  }
-                },
-                "required": true
-              }
-            ],
-            "required": []
-          },
-          "required": true
-        },
-        {
-          "name": "target",
-          "schema": {
-            "type": "OBJECT",
-            "title": "Target",
-            "description": "Target table",
-            "fields": [
-              {
-                "name": "schema",
-                "schema": {
-                  "type": "STRING",
-                  "title": "Schema",
-                  "description": "Target schema name"
-                },
-                "required": true
-              },
-              {
-                "name": "table",
-                "schema": {
-                  "type": "STRING",
-                  "title": "Table",
-                  "description": "Target table name"
-                },
-                "required": true
-              },
-              {
-                "name": "columns",
-                "schema": {
-                  "type": "ARRAY",
-                  "title": "Columns",
-                  "description": "List of target attributes",
-                  "items": {
-                    "type": "STRING",
-                    "title": "STRING field",
-                    "description": "STRING description"
-                  }
-                },
-                "required": true
-              }
-            ],
-            "required": []
-          },
-          "required": true
-        },
-        {
-          "name": "expression",
-          "schema": {
-            "type": "STRING",
-            "title": "Expression",
-            "description": "Descriptive SQL-like expression describing relation "
-          },
-          "required": true
-        }
-      ],
+      "title": "Concept payload",
+      "description": "JSON object for named concepts and target references consumed by AI and explorers.",
+      "fields": [],
       "required": []
     }
   }

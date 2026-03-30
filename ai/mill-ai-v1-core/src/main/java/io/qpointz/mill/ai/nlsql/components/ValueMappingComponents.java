@@ -2,10 +2,13 @@ package io.qpointz.mill.ai.nlsql.components;
 
 import io.qpointz.mill.ai.nlsql.ValueRepository;
 import io.qpointz.mill.annotations.service.ConditionalOnService;
+import io.qpointz.mill.ai.nlsql.metadata.NlsqlMetadataFacets;
+import io.qpointz.mill.data.schema.MetadataEntityUrnCodec;
+import io.qpointz.mill.data.schema.SchemaEntityKinds;
 import io.qpointz.mill.metadata.domain.MetadataEntity;
-import io.qpointz.mill.metadata.domain.MetadataType;
 import io.qpointz.mill.metadata.domain.core.ValueMappingFacet;
-import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.metadata.repository.FacetRepository;
+import io.qpointz.mill.metadata.service.MetadataEntityService;
 import io.qpointz.mill.proto.QueryExecutionConfig;
 import io.qpointz.mill.proto.QueryRequest;
 import io.qpointz.mill.proto.SQLStatement;
@@ -32,14 +35,20 @@ public class ValueMappingComponents {
 
     private final ValueRepository repository;
     private final DataOperationDispatcher dataDispatcher;
-    private final MetadataService metadataService;
+    private final MetadataEntityService metadataEntityService;
+    private final FacetRepository facetRepository;
+    private final MetadataEntityUrnCodec urnCodec;
 
     public ValueMappingComponents(@Autowired(required = false) ValueRepository repository,
                                   @Autowired(required = false) DataOperationDispatcher dataOperation,
-                                  @Autowired(required = false) MetadataService metadataService) {
+                                  @Autowired(required = false) MetadataEntityService metadataEntityService,
+                                  @Autowired(required = false) FacetRepository facetRepository,
+                                  @Autowired(required = false) MetadataEntityUrnCodec urnCodec) {
         this.repository = repository;
         this.dataDispatcher = dataOperation;
-        this.metadataService = metadataService;
+        this.metadataEntityService = metadataEntityService;
+        this.facetRepository = facetRepository;
+        this.urnCodec = urnCodec;
     }
 
     public record ValueMappingWithContext(
@@ -108,7 +117,8 @@ public class ValueMappingComponents {
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
         log.info("Value Mapping RAG component initialized.");
-        if (repository == null || this.dataDispatcher == null || this.metadataService == null) {
+        if (repository == null || this.dataDispatcher == null || this.metadataEntityService == null
+                || this.facetRepository == null || this.urnCodec == null) {
             log.info("Value mapping not set up");
             return;
         }
@@ -124,9 +134,14 @@ public class ValueMappingComponents {
     List<ValueMappingWithContext> getAllValueMappings() {
         List<ValueMappingWithContext> result = new ArrayList<>();
 
-        List<MetadataEntity> attributes = metadataService.findByType(MetadataType.ATTRIBUTE);
+        List<MetadataEntity> attributes = metadataEntityService.findByKind(SchemaEntityKinds.ATTRIBUTE);
         for (MetadataEntity attribute : attributes) {
-            Optional<ValueMappingFacet> facetOpt = attribute.getFacet("value-mapping", "global", ValueMappingFacet.class);
+            var path = urnCodec.decode(attribute.getId());
+            if (path.getSchema() == null || path.getTable() == null || path.getColumn() == null) {
+                continue;
+            }
+            Optional<ValueMappingFacet> facetOpt = NlsqlMetadataFacets.readGlobalFacet(
+                    facetRepository, attribute.getId(), "value-mapping", ValueMappingFacet.class);
             if (facetOpt.isEmpty()) continue;
             ValueMappingFacet facet = facetOpt.get();
 
@@ -134,9 +149,9 @@ public class ValueMappingComponents {
 
             for (ValueMappingFacet.ValueMapping m : facet.getMappings()) {
                 result.add(new ValueMappingWithContext(
-                    attribute.getSchemaName(),
-                    attribute.getTableName(),
-                    attribute.getAttributeName(),
+                    path.getSchema(),
+                    path.getTable(),
+                    path.getColumn(),
                     Optional.ofNullable(facet.getContext()),
                     Optional.ofNullable(facet.getSimilarityThreshold()),
                     m.getUserTerm(),
@@ -157,9 +172,14 @@ public class ValueMappingComponents {
     List<ValueMappingSourceWithContext> getAllValueMappingSources() {
         List<ValueMappingSourceWithContext> result = new ArrayList<>();
 
-        List<MetadataEntity> attributes = metadataService.findByType(MetadataType.ATTRIBUTE);
+        List<MetadataEntity> attributes = metadataEntityService.findByKind(SchemaEntityKinds.ATTRIBUTE);
         for (MetadataEntity attribute : attributes) {
-            Optional<ValueMappingFacet> facetOpt = attribute.getFacet("value-mapping", "global", ValueMappingFacet.class);
+            var path = urnCodec.decode(attribute.getId());
+            if (path.getSchema() == null || path.getTable() == null || path.getColumn() == null) {
+                continue;
+            }
+            Optional<ValueMappingFacet> facetOpt = NlsqlMetadataFacets.readGlobalFacet(
+                    facetRepository, attribute.getId(), "value-mapping", ValueMappingFacet.class);
             if (facetOpt.isEmpty()) continue;
             ValueMappingFacet facet = facetOpt.get();
 
@@ -168,9 +188,9 @@ public class ValueMappingComponents {
             for (ValueMappingFacet.ValueMappingSource src : facet.getSources()) {
                 if (!src.getEnabled()) continue;
                 result.add(new ValueMappingSourceWithContext(
-                    attribute.getSchemaName(),
-                    attribute.getTableName(),
-                    attribute.getAttributeName(),
+                    path.getSchema(),
+                    path.getTable(),
+                    path.getColumn(),
                     Optional.ofNullable(facet.getContext()),
                     Optional.ofNullable(facet.getSimilarityThreshold()),
                     src.getName() != null ? src.getName() : "unknown",

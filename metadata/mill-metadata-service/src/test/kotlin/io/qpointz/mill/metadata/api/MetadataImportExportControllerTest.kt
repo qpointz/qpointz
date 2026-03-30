@@ -28,14 +28,17 @@ class MetadataImportExportControllerTest {
     private lateinit var importService: MetadataImportService
 
     private val monetaYaml = """
-        entities:
-          - id: moneta
-            type: SCHEMA
-            schemaName: moneta
-            facets:
-              descriptive:
-                global:
-                  displayName: Moneta
+        ---
+        kind: MetadataEntity
+        entityUrn: urn:mill/metadata/entity:moneta
+        entityKind: schema
+        facets:
+          - uid: facet-uid-1
+            facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+            scopeUrn: urn:mill/metadata/scope:global
+            mergeAction: SET
+            payload:
+              displayName: Moneta
     """.trimIndent()
 
     @Test

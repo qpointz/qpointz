@@ -12,8 +12,11 @@ import io.qpointz.mill.ai.nlsql.reasoners.StepBackReasoner;
 import io.qpointz.mill.test.scenario.ActionResult;
 import io.qpointz.mill.test.scenario.Scenario;
 import io.qpointz.mill.test.scenario.ScenarioContext;
+import io.qpointz.mill.ai.nlsql.metadata.SchemaMessageMetadataPorts;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.data.schema.MetadataEntityUrnCodec;
+import io.qpointz.mill.metadata.repository.FacetRepository;
+import io.qpointz.mill.metadata.service.MetadataEntityService;
 import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.Getter;
@@ -44,7 +47,9 @@ public class ChatAppScenarioContext extends ScenarioContext<ChatAppScenarioConte
 
     public ChatAppScenarioContext(Scenario scenario,
                                   ChatModel chatModel,
-                                  MetadataService metadataService,
+                                  MetadataEntityService metadataEntityService,
+                                  FacetRepository facetRepository,
+                                  MetadataEntityUrnCodec urnCodec,
                                   SqlDialectSpec sqlDialect,
                                   DataOperationDispatcher dispatcher,
                                   EmbeddingModel embeddingModel) {
@@ -64,14 +69,14 @@ public class ChatAppScenarioContext extends ScenarioContext<ChatAppScenarioConte
                 UUID.randomUUID().toString(),
                 null);
 
-        val reasoner = createReasoner(scenario, callSpecBuilders,
-                metadataService, MessageSelectors.SIMPLE);
+        val schemaPorts = new SchemaMessageMetadataPorts(metadataEntityService, facetRepository, urnCodec);
+        val reasoner = createReasoner(scenario, callSpecBuilders, schemaPorts, MessageSelectors.SIMPLE);
 
         val valueMapper = createValueMapper(scenario, embeddingModel);
 
         this.chatApplication = new ChatApplication(
                 callSpecBuilders,
-                metadataService,
+                schemaPorts,
                 sqlDialect,
                 dispatcher,
                 MessageSelectors.SIMPLE,
@@ -80,15 +85,15 @@ public class ChatAppScenarioContext extends ScenarioContext<ChatAppScenarioConte
                 ChatEventProducer.DEFAULT);
     }
 
-    private Reasoner createReasoner(Scenario scenario, CallSpecsChatClientBuilders callSpecBuilders, MetadataService metadataService, MessageSelector messageSelector) {
+    private Reasoner createReasoner(Scenario scenario, CallSpecsChatClientBuilders callSpecBuilders, SchemaMessageMetadataPorts schemaPorts, MessageSelector messageSelector) {
         val reasonerName = scenario.parameters()
                 .getOrDefault("reasoner","default")
                 .toString()
                 .toLowerCase();
 
         return switch (reasonerName) {
-            case "default" -> new DefaultReasoner(callSpecBuilders, metadataService, messageSelector);
-            case "step-back" -> new StepBackReasoner(callSpecBuilders, metadataService, messageSelector);
+            case "default" -> new DefaultReasoner(callSpecBuilders, schemaPorts, messageSelector);
+            case "step-back" -> new StepBackReasoner(callSpecBuilders, schemaPorts, messageSelector);
             default -> throw new RuntimeException("Unknown reasoner:"+reasonerName);
         };
     }

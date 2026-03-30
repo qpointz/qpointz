@@ -5,12 +5,14 @@ import type {
   RelationFacet,
   SchemaContext,
   SchemaDetail,
+  SchemaEntity,
   SchemaListItem,
   SchemaNode,
   SchemaService,
   StructuralFacet,
   TableDetail,
 } from '../types/schema';
+import { facetTypePathSegment, metadataEntityPathSegment } from '../utils/urnSlug';
 
 const FACET_DESCRIPTIVE = 'urn:mill/metadata/facet-type:descriptive';
 const FACET_STRUCTURAL  = 'urn:mill/metadata/facet-type:structural';
@@ -67,30 +69,77 @@ function mapRelationPayload(payload: unknown): RelationFacet[] {
 }
 
 /**
+ * Builds the canonical metadata entity URN from relational coordinates (SPEC §13).
+ *
+ * @param schema catalog schema name
+ * @param table optional table name
+ * @param column optional column name
+ * @returns `urn:mill/metadata/entity:…` with lowercase dot-separated local part
+ */
+export function buildEntityUrn(schema: string, table?: string, column?: string): string {
+  const parts = [schema, table, column].filter(Boolean).map((s) => s!.toLowerCase());
+  return `urn:mill/metadata/entity:${parts.join('.')}`;
+}
+
+/**
+ * URN to pass to metadata facet REST calls: uses `metadataEntityId` from the schema API when set, otherwise derives from entity coordinates.
+ *
+ * @param entity loaded schema explorer entity
+ * @returns full `urn:mill/…` id, or `null` if coordinates are insufficient
+ */
+export function metadataEntityUrnForFacetApi(entity: SchemaEntity): string | null {
+  const fromApi = entity.metadataEntityId?.trim();
+  if (fromApi) return fromApi;
+  if (entity.entityType === 'SCHEMA' && entity.schemaName) {
+    return buildEntityUrn(entity.schemaName);
+  }
+  if (entity.entityType === 'TABLE' && entity.schemaName && entity.tableName) {
+    return buildEntityUrn(entity.schemaName, entity.tableName);
+  }
+  if (entity.entityType === 'COLUMN' && entity.schemaName && entity.tableName && entity.columnName) {
+    return buildEntityUrn(entity.schemaName, entity.tableName, entity.columnName);
+  }
+  return null;
+}
+
+function facetTypeKeyFromEntry(e: Record<string, unknown>): string | undefined {
+  const urn = e.facetTypeUrn;
+  const legacy = e.facetType;
+  if (typeof urn === 'string' && urn.length > 0) return urn;
+  if (typeof legacy === 'string' && legacy.length > 0) return legacy;
+  return undefined;
+}
+
+/**
  * Normalizes `GET /api/v1/metadata/entities/{id}/facets` JSON to a list of `{ facetType, payload, uid? }`.
- * Supports the current **array** shape and legacy **map** shape for transitional callers.
+ * Supports `facetTypeUrn` (current) and legacy `facetType`, plus the **map** shape for transitional callers.
  */
 function normalizeFacetEntries(raw: unknown): { facetType: string; payload: unknown; uid?: string }[] {
   if (raw == null) return [];
   if (Array.isArray(raw)) {
-    return raw
-      .filter((e): e is { facetType: string; payload?: unknown; uid?: unknown } =>
-        e != null && typeof e === 'object' && 'facetType' in e
-      )
-      .map((e) => ({
-        facetType: String(e.facetType),
-        payload: e.payload,
-        uid: typeof e.uid === 'string' && e.uid.length > 0 ? e.uid : undefined,
-      }));
+    const out: { facetType: string; payload: unknown; uid?: string }[] = [];
+    for (const e of raw) {
+      if (e == null || typeof e !== 'object') continue;
+      const rec = e as Record<string, unknown>;
+      const ft = facetTypeKeyFromEntry(rec);
+      if (ft == null) continue;
+      out.push({
+        facetType: ft,
+        payload: rec.payload,
+        uid: typeof rec.uid === 'string' && rec.uid.length > 0 ? rec.uid : undefined,
+      });
+    }
+    return out;
   }
   if (typeof raw === 'object') {
-    return Object.entries(raw as Record<string, { facetType?: string; payload?: unknown; uid?: unknown }>).map(
-      ([k, v]) => ({
-        facetType: v?.facetType ?? k,
+    return Object.entries(raw as Record<string, Record<string, unknown>>).map(([k, v]) => {
+      const ft = v && typeof v === 'object' ? facetTypeKeyFromEntry(v) : undefined;
+      return {
+        facetType: ft ?? k,
         payload: v?.payload,
         uid: typeof v?.uid === 'string' && v.uid.length > 0 ? v.uid : undefined,
-      })
-    );
+      };
+    });
   }
   return [];
 }
@@ -213,7 +262,7 @@ const realSchemaService: SchemaService = {
   async getEntityFacets(id: string, context: string, signal?: AbortSignal) {
     try {
       const res = await fetch(
-        `/api/v1/metadata/entities/${encodeURIComponent(id)}/facets?context=${encodeURIComponent(context)}`,
+        `/api/v1/metadata/entities/${metadataEntityPathSegment(id)}/facets?context=${encodeURIComponent(context)}`,
         { credentials: 'include', signal }
       );
       if (res.status === 404 || !res.ok) return {};
@@ -225,12 +274,25 @@ const realSchemaService: SchemaService = {
     }
   },
   async setEntityFacet(id: string, facetType: string, context: string, payload: unknown) {
-    const facetPrefix = 'urn:mill/metadata/facet-type:';
-    const pathType = facetType.startsWith(facetPrefix) ? facetType.slice(facetPrefix.length) : facetType;
     const res = await fetch(
-      `/api/v1/metadata/entities/${encodeURIComponent(id)}/facets/${encodeURIComponent(pathType)}?context=${encodeURIComponent(context)}`,
+      `/api/v1/metadata/entities/${metadataEntityPathSegment(id)}/facets/${facetTypePathSegment(facetType)}?scope=${encodeURIComponent(context)}`,
       {
-        method: 'PUT',
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }
+    );
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(body || `${res.status} ${res.statusText}`);
+    }
+  },
+  async patchEntityFacetPayload(id: string, facetType: string, facetUid: string, payload: unknown) {
+    const res = await fetch(
+      `/api/v1/metadata/entities/${metadataEntityPathSegment(id)}/facets/${facetTypePathSegment(facetType)}/${encodeURIComponent(facetUid)}`,
+      {
+        method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -242,16 +304,12 @@ const realSchemaService: SchemaService = {
     }
   },
   async deleteEntityFacet(id: string, facetType: string, context: string, instanceUid?: string) {
-    const facetPrefix = 'urn:mill/metadata/facet-type:';
-    const pathType = facetType.startsWith(facetPrefix) ? facetType.slice(facetPrefix.length) : facetType;
-    const uidPart =
+    const base = `/api/v1/metadata/entities/${metadataEntityPathSegment(id)}/facets/${facetTypePathSegment(facetType)}`;
+    const url =
       instanceUid != null && instanceUid !== ''
-        ? `&uid=${encodeURIComponent(instanceUid)}`
-        : '';
-    const res = await fetch(
-      `/api/v1/metadata/entities/${encodeURIComponent(id)}/facets/${encodeURIComponent(pathType)}?context=${encodeURIComponent(context)}${uidPart}`,
-      { method: 'DELETE', credentials: 'include' }
-    );
+        ? `${base}/${encodeURIComponent(instanceUid)}`
+        : `${base}?scope=${encodeURIComponent(context)}`;
+    const res = await fetch(url, { method: 'DELETE', credentials: 'include' });
     if (!res.ok) {
       const body = await res.text();
       throw new Error(body || `${res.status} ${res.statusText}`);

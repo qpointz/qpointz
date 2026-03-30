@@ -1,5 +1,29 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Text, Badge, Group, useMantineColorScheme, Button, Card, Stack, Textarea, Switch, TextInput, NumberInput, Chip, Menu, ActionIcon, Select, Tooltip, Divider, Tabs, Modal, TagsInput } from '@mantine/core';
+import {
+  Anchor,
+  Box,
+  Text,
+  Badge,
+  Group,
+  useMantineColorScheme,
+  Button,
+  Card,
+  Stack,
+  Textarea,
+  Switch,
+  TextInput,
+  NumberInput,
+  Chip,
+  Menu,
+  ActionIcon,
+  Select,
+  Tooltip,
+  Divider,
+  Tabs,
+  Modal,
+  TagsInput,
+  Alert,
+} from '@mantine/core';
 import {
   HiOutlineCircleStack,
   HiOutlineTableCells,
@@ -13,17 +37,38 @@ import {
   HiOutlineChevronDown,
   HiOutlineChevronRight,
   HiOutlineInformationCircle,
+  HiOutlineArrowTopRightOnSquare,
+  HiOutlineEnvelope,
 } from 'react-icons/hi2';
 import type { EntityFacets, SchemaEntity } from '../../types/schema';
 import { StructuralFacet } from './facets/StructuralFacet';
 import { InlineChatButton } from '../common/InlineChatButton';
 import { RelatedContentButton } from '../common/RelatedContentButton';
+import { JsonYamlEditor } from '../common/JsonYamlEditor';
 import { SyntaxCodeEditor } from '../common/SyntaxCodeEditor';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
 import { notifications } from '@mantine/notifications';
-import { schemaService, facetTypeService } from '../../services/api';
+import { facetTypeService, metadataEntityUrnForFacetApi, schemaService } from '../../services/api';
 import type { FacetTypeManifest } from '../../types/facetTypes';
 import type { FacetPayloadSchema } from '../../types/facetTypes';
+import {
+  facetEmailLooksValid,
+  facetHyperlinkHref,
+  facetMailtoHref,
+  facetStringStereotype,
+  facetTagsPresentationActive,
+  facetHyperlinkPresentationActive,
+  type FacetStringStereotypeKind,
+} from '../../utils/facetStereotype';
+import {
+  type FacetRenderUnit,
+  multipleFacetItemValues,
+  multipleInstanceCaption,
+} from './facetPayloadUtils';
+import {
+  effectiveFacetPayloadSchemaForEdit,
+  facetPayloadSchemaFormSupported,
+} from '../../utils/facetPayloadFormSupport';
 
 interface EntityDetailsProps {
   entity: SchemaEntity;
@@ -44,70 +89,6 @@ const entityLabels = {
   COLUMN: 'Column',
 };
 
-/**
- * Normalizes a MULTIPLE-cardinality facet payload to a list of values for per-instance boxes.
- * Supports raw arrays and legacy relation envelopes `{ "relations": [...] }`.
- *
- * @param payload raw facet payload from {@link EntityFacets.byType}
- * @returns list of item payloads (may be empty)
- */
-function multipleFacetItemValues(payload: unknown): unknown[] {
-  if (payload == null) return [];
-  if (Array.isArray(payload)) return payload;
-  if (typeof payload === 'object' && !Array.isArray(payload)) {
-    const rec = payload as Record<string, unknown>;
-    const rel = rec.relations;
-    if (Array.isArray(rel)) return rel;
-    if (Object.keys(rec).length === 0) return [];
-  }
-  return [payload];
-}
-
-function multipleInstanceCaption(item: unknown, index: number, total: number): string {
-  if (item && typeof item === 'object' && 'name' in item) {
-    const nameRaw = (item as { name: unknown }).name;
-    const name = nameRaw == null ? '' : String(nameRaw).trim();
-    if (name.length > 0) return name;
-  }
-  return `Entry ${index + 1} of ${total}`;
-}
-
-function isRelationsEnvelope(raw: unknown): raw is { relations: unknown[] } {
-  return (
-    raw != null &&
-    typeof raw === 'object' &&
-    !Array.isArray(raw) &&
-    Array.isArray((raw as { relations?: unknown }).relations)
-  );
-}
-
-/** Writes one instance back into a MULTIPLE payload, preserving `{ relations: [...] }` when present. */
-function replaceMultipleItemAt(raw: unknown, index: number, newItem: unknown): unknown {
-  const items = multipleFacetItemValues(raw);
-  if (index < 0 || index >= items.length) return raw;
-  const next = [...items];
-  next[index] = newItem;
-  if (isRelationsEnvelope(raw)) {
-    return { ...(raw as object), relations: next };
-  }
-  return next;
-}
-
-/** Appends an empty object instance for MULTIPLE facets. */
-function appendEmptyMultipleItem(raw: unknown): unknown {
-  const items = multipleFacetItemValues(raw);
-  const next = [...items, {}];
-  if (raw != null && isRelationsEnvelope(raw)) {
-    return { ...(raw as object), relations: next };
-  }
-  return next;
-}
-
-type FacetRenderUnit =
-  | { kind: 'single'; facetType: string }
-  | { kind: 'multipleRow'; facetType: string; index: number; total: number }
-  | { kind: 'multipleEmpty'; facetType: string };
-
 /** Title for a facet card header when registry metadata is still loading or missing for this type key. */
 function facetBoxBaseTitle(
   facetType: string,
@@ -121,6 +102,234 @@ function facetBoxBaseTitle(
   const slug = facetType.replace('urn:mill/metadata/facet-type:', '');
   if (!slug) return facetType;
   return slug.charAt(0).toUpperCase() + slug.slice(1).toLowerCase();
+}
+
+/**
+ * Read-only display for hyperlink stereotype: plain string = URL text + href; object = `title` (optional) + `href`
+ * (required). Opens in a new tab with an external-link icon.
+ */
+function FacetHyperlinkReadOnly({ value }: { value: unknown }) {
+  const linkRow = (href: string, linkText: string) => (
+    <Group gap={6} wrap="nowrap" align="flex-start">
+      <Anchor
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        size="sm"
+        style={{ wordBreak: 'break-all', lineHeight: 1.35 }}
+      >
+        {linkText}
+      </Anchor>
+      <HiOutlineArrowTopRightOnSquare size={14} aria-hidden style={{ flexShrink: 0, marginTop: 2, opacity: 0.7 }} />
+    </Group>
+  );
+
+  if (value != null && typeof value === 'object' && !Array.isArray(value)) {
+    const o = value as Record<string, unknown>;
+    const hrefRaw = o.href;
+    const titleRaw = o.title;
+    const hrefStr =
+      hrefRaw == null ? '' : typeof hrefRaw === 'string' ? hrefRaw.trim() : String(hrefRaw).trim();
+    if (!hrefStr) {
+      return (
+        <Alert color="red" variant="light" py={4} px="sm" fz="xs" role="alert">
+          wrong link
+        </Alert>
+      );
+    }
+    const href = facetHyperlinkHref(hrefStr);
+    const titleStr =
+      titleRaw == null
+        ? ''
+        : typeof titleRaw === 'string'
+          ? titleRaw.trim()
+          : String(titleRaw).trim();
+    /** Show Title + URL explicitly so optional label is visible in model view (not only anchor text). */
+    return (
+      <Stack gap={6}>
+        <Group gap="sm" wrap="nowrap" align="flex-start">
+          <Text size="xs" c="dimmed" w={44} style={{ flexShrink: 0 }}>
+            Title
+          </Text>
+          <Text size="sm" style={{ flex: 1, wordBreak: 'break-word', lineHeight: 1.35 }}>
+            {titleStr.length > 0 ? titleStr : '—'}
+          </Text>
+        </Group>
+        <Group gap="sm" wrap="nowrap" align="flex-start">
+          <Text size="xs" c="dimmed" w={44} style={{ flexShrink: 0 }}>
+            URL
+          </Text>
+          <Box style={{ flex: 1, minWidth: 0 }}>{linkRow(href, hrefStr)}</Box>
+        </Group>
+      </Stack>
+    );
+  }
+
+  const s = typeof value === 'string' ? value.trim() : '';
+  if (!s) {
+    return (
+      <Text size="sm" c="dimmed">
+        —
+      </Text>
+    );
+  }
+  const href = facetHyperlinkHref(s);
+  return linkRow(href, s);
+}
+
+/** Read-only display for STRING fields with `email` stereotype: mailto link plus envelope glyph. */
+function FacetEmailReadOnly({ value }: { value: unknown }) {
+  const s = typeof value === 'string' ? value.trim() : '';
+  if (!s) {
+    return (
+      <Text size="sm" c="dimmed">
+        —
+      </Text>
+    );
+  }
+  const href = facetMailtoHref(s);
+  return (
+    <Group gap={6} wrap="nowrap" align="flex-start">
+      <Anchor href={href} size="sm" style={{ wordBreak: 'break-all', lineHeight: 1.35 }}>
+        {s}
+      </Anchor>
+      <HiOutlineEnvelope size={14} aria-hidden style={{ flexShrink: 0, marginTop: 2, opacity: 0.7 }} />
+    </Group>
+  );
+}
+
+/** Appends errors for non-empty values that fail email format when stereotype is `email` (STRING or STRING[]). */
+function appendEmailStereotypeValidationErrors(
+  schema: FacetPayloadSchema,
+  value: unknown,
+  errors: string[],
+  path: string
+): void {
+  if (schema.type !== 'OBJECT') return;
+  const obj = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
+  (schema.fields ?? []).forEach((field) => {
+    const nextPath = path ? `${path}.${field.name}` : field.name;
+    const fv = obj[field.name];
+    if (facetStringStereotype(field.schema, field.stereotype) === 'email') {
+      if (field.schema.type === 'STRING') {
+        const trimmed = String(fv ?? '').trim();
+        if (trimmed.length > 0 && !facetEmailLooksValid(trimmed)) {
+          errors.push(`${nextPath} must be a valid email address`);
+        }
+      } else if (field.schema.type === 'ARRAY' && field.schema.items?.type === 'STRING') {
+        const arr = Array.isArray(fv) ? fv : [];
+        arr.forEach((item, i) => {
+          const trimmed = String(item ?? '').trim();
+          if (trimmed.length > 0 && !facetEmailLooksValid(trimmed)) {
+            errors.push(`${nextPath}[${i}] must be a valid email address`);
+          }
+        });
+      }
+    }
+    if (field.schema.type === 'OBJECT' && fv != null && typeof fv === 'object' && !Array.isArray(fv)) {
+      appendEmailStereotypeValidationErrors(field.schema, fv, errors, nextPath);
+    }
+    if (field.schema.type === 'ARRAY' && Array.isArray(fv) && field.schema.items?.type === 'OBJECT') {
+      fv.forEach((el, i) => {
+        if (el != null && typeof el === 'object') {
+          appendEmailStereotypeValidationErrors(field.schema.items!, el, errors, `${nextPath}[${i}]`);
+        }
+      });
+    }
+  });
+}
+
+function facetHyperlinkObjectHrefMissing(value: unknown): boolean {
+  if (value == null || typeof value !== 'object' || Array.isArray(value)) return true;
+  const href = (value as Record<string, unknown>).href;
+  const s = href == null ? '' : typeof href === 'string' ? href.trim() : String(href).trim();
+  return s.length === 0;
+}
+
+/** Appends errors for missing `href` on OBJECT / ARRAY-of-OBJECT values with hyperlink stereotype. */
+function appendHyperlinkStereotypeValidationErrors(
+  schema: FacetPayloadSchema,
+  value: unknown,
+  errors: string[],
+  path: string
+): void {
+  if (schema.type !== 'OBJECT') return;
+  const obj = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
+  (schema.fields ?? []).forEach((field) => {
+    const nextPath = path ? `${path}.${field.name}` : field.name;
+    const fv = obj[field.name];
+    if (facetHyperlinkPresentationActive(field.schema, field.stereotype)) {
+      if (field.schema.type === 'OBJECT') {
+        if (facetHyperlinkObjectHrefMissing(fv)) {
+          errors.push(`${nextPath}: wrong link`);
+        }
+      } else if (field.schema.type === 'ARRAY' && field.schema.items?.type === 'OBJECT') {
+        const arr = Array.isArray(fv) ? fv : [];
+        arr.forEach((item, i) => {
+          if (facetHyperlinkObjectHrefMissing(item)) {
+            errors.push(`${nextPath}[${i}]: wrong link`);
+          }
+        });
+      }
+    }
+    if (field.schema.type === 'OBJECT' && fv != null && typeof fv === 'object' && !Array.isArray(fv)) {
+      appendHyperlinkStereotypeValidationErrors(field.schema, fv, errors, nextPath);
+    }
+    if (field.schema.type === 'ARRAY' && Array.isArray(fv) && field.schema.items?.type === 'OBJECT') {
+      fv.forEach((el, i) => {
+        if (el != null && typeof el === 'object') {
+          appendHyperlinkStereotypeValidationErrors(field.schema.items!, el, errors, `${nextPath}[${i}]`);
+        }
+      });
+    }
+  });
+}
+
+/** Required-field validation for facet payloads: walks OBJECT trees and ARRAY-of-OBJECT elements. */
+function appendFacetPayloadRequiredErrors(
+  schema: FacetPayloadSchema,
+  value: unknown,
+  errors: string[]
+): void {
+  const isBlank = (s: FacetPayloadSchema, v: unknown): boolean => {
+    if (v == null) return true;
+    if (s.type === 'STRING' || s.type === 'ENUM') {
+      return String(v).trim().length === 0;
+    }
+    if (s.type === 'ARRAY') {
+      return !Array.isArray(v) || v.length === 0;
+    }
+    if (s.type === 'NUMBER') {
+      return typeof v !== 'number' || Number.isNaN(v);
+    }
+    return false;
+  };
+  const walkObject = (s: FacetPayloadSchema, v: unknown, path: string): void => {
+    if (s.type !== 'OBJECT') return;
+    const obj = (v && typeof v === 'object' && !Array.isArray(v) ? v : {}) as Record<string, unknown>;
+    (s.fields ?? []).forEach((field) => {
+      const required = field.required ?? true;
+      const nextPath = path ? `${path}.${field.name}` : field.name;
+      const fieldValue = obj[field.name];
+      if (required && isBlank(field.schema, fieldValue)) {
+        errors.push(`${nextPath} is required`);
+      }
+      if (field.schema.type === 'OBJECT' && fieldValue != null && typeof fieldValue === 'object' && !Array.isArray(fieldValue)) {
+        walkObject(field.schema, fieldValue, nextPath);
+      }
+      if (field.schema.type === 'ARRAY' && field.schema.items?.type === 'OBJECT' && Array.isArray(fieldValue)) {
+        fieldValue.forEach((el, i) => {
+          const row = `${nextPath}[${i}]`;
+          if (el != null && typeof el === 'object' && !Array.isArray(el)) {
+            walkObject(field.schema.items!, el, row);
+          } else if (required) {
+            errors.push(`${row} must be an object`);
+          }
+        });
+      }
+    });
+  };
+  walkObject(schema, value, '');
 }
 
 export function EntityDetails({
@@ -138,6 +347,8 @@ export function EntityDetails({
     : entity.entityType === 'TABLE'
       ? entity.tableName
       : entity.columnName;
+  const metadataFacetTargetId = metadataEntityUrnForFacetApi(entity);
+  const canMutateMetadataFacets = metadataFacetTargetId !== null;
   const hasStructural = flags.modelStructuralFacet && facets.structural && Object.keys(facets.structural).length > 0;
 
   const baseTypeLabel = entity.entityType === 'COLUMN' ? entity.type.type : undefined;
@@ -146,6 +357,12 @@ export function EntityDetails({
   const [editInstanceIndex, setEditInstanceIndex] = useState<number | null>(null);
   const [editMode, setEditMode] = useState<'form' | 'json'>('form');
   const [editJson, setEditJson] = useState('');
+  /** Latest parse of the expert JSON/YAML editor (debounced inside [JsonYamlEditor]). */
+  const [jsonExpertDraft, setJsonExpertDraft] = useState<{
+    valid: boolean;
+    value?: unknown;
+    error?: string;
+  } | null>(null);
   const [editSnapshot, setEditSnapshot] = useState('');
   const [editFormValue, setEditFormValue] = useState<unknown>({});
   const editFormValueRef = useRef(editFormValue);
@@ -153,31 +370,15 @@ export function EntityDetails({
   editFormValueRef.current = editFormValue;
   editJsonRef.current = editJson;
 
-  /** Sync JSON snapshot only when switching modes — avoids JSON.stringify on every keystroke in form mode. */
-  const handleFacetEditModeChange = useCallback((v: string | null) => {
-    const next = (v as 'form' | 'json') ?? 'form';
-    setEditMode((prev) => {
-      if (next === 'json' && prev === 'form') {
-        setEditJson(JSON.stringify(editFormValueRef.current, null, 2));
-      } else if (next === 'form' && prev === 'json') {
-        try {
-          setEditFormValue(JSON.parse(editJsonRef.current));
-        } catch {
-          /* invalid JSON — keep previous form state */
-        }
-      }
-      return next;
-    });
-  }, []);
-
   const [facetTypes, setFacetTypes] = useState<FacetTypeManifest[]>([]);
   const [activeCategoryTab, setActiveCategoryTab] = useState<string | null>(null);
   const [facetToDelete, setFacetToDelete] = useState<{ facetType: string; instanceIndex: number | null } | null>(null);
 
   const allByType = facets.byType ?? {};
-  const relationCount =
-    facets.relations?.length
-    ?? multipleFacetItemValues(allByType['urn:mill/metadata/facet-type:relation']).length;
+  const relationFacetKey = 'urn:mill/metadata/facet-type:relation';
+  const relationCount = allByType[relationFacetKey] !== undefined
+    ? multipleFacetItemValues(allByType[relationFacetKey]).length
+    : (facets.relations?.length ?? 0);
 
   const orderedFacetTypes = useMemo(() => {
     const keys = Object.keys(allByType);
@@ -223,10 +424,8 @@ export function EntityDetails({
       }
 
       const isMultiple = (descriptor?.targetCardinality ?? 'SINGLE') === 'MULTIPLE';
-      const splitValues =
-        isMultiple && descriptor?.payload
-          ? multipleFacetItemValues(allByType[typeKey])
-          : null;
+      /** MULTIPLE facets use per-instance cards; do not gate on `descriptor.payload` (schema may load late or be absent). */
+      const splitValues = isMultiple ? multipleFacetItemValues(allByType[typeKey]) : null;
 
       if (splitValues !== null) {
         if (splitValues.length === 0) {
@@ -336,20 +535,27 @@ export function EntityDetails({
   }, [facetTypes, allByType]);
 
   const addFacetByType = async (facetType: string) => {
+    if (!metadataFacetTargetId) {
+      notifications.show({
+        color: 'yellow',
+        title: 'No metadata binding',
+        message: 'This object has no metadata entity URN; facets cannot be edited until it is bound.',
+      });
+      return;
+    }
     try {
       const descriptor = facetTypes.find((f) => f.typeKey === facetType);
       const isMultiple = (descriptor?.targetCardinality ?? 'SINGLE') === 'MULTIPLE';
       const existing = allByType[facetType];
-      const payload: unknown = isMultiple
-        ? (existing === undefined ? [{}] : appendEmptyMultipleItem(existing))
-        : {};
-      await schemaService.setEntityFacet(entity.id, facetType, selectedContext, payload);
+      /** MULTIPLE: POST one `{}` per new facet row; updates use PATCH with the row uid from GET facets. */
+      const nextIndex =
+        isMultiple && existing !== undefined ? multipleFacetItemValues(existing).length : 0;
+      await schemaService.setEntityFacet(metadataFacetTargetId, facetType, selectedContext, {});
       await onFacetsChanged();
       const d = facetTypes.find((f) => f.typeKey === facetType);
       setActiveCategoryTab(normalizeCategory(d?.category));
       if (isMultiple) {
-        const count = multipleFacetItemValues(payload).length;
-        openEdit(facetType, count - 1);
+        openEdit(facetType, nextIndex, {});
       } else {
         openEdit(facetType);
       }
@@ -359,80 +565,101 @@ export function EntityDetails({
   };
 
   const addAnotherMultipleInstance = async (facetType: string) => {
+    if (!metadataFacetTargetId) return;
     try {
-      const payload = appendEmptyMultipleItem(allByType[facetType]);
-      await schemaService.setEntityFacet(entity.id, facetType, selectedContext, payload);
+      const nextIndex = multipleFacetItemValues(allByType[facetType]).length;
+      await schemaService.setEntityFacet(metadataFacetTargetId, facetType, selectedContext, {});
       await onFacetsChanged();
-      const idx = multipleFacetItemValues(payload).length - 1;
-      openEdit(facetType, idx);
+      openEdit(facetType, nextIndex, {});
     } catch (e) {
       notifications.show({ color: 'red', title: 'Add entry failed', message: e instanceof Error ? e.message : 'Unknown error' });
     }
   };
 
-  const openEdit = (facetType: string, instanceIndex?: number) => {
+  /**
+   * @param itemHint optional value for this instance when `allByType` may not have refreshed yet after an async save
+   */
+  const openEdit = (facetType: string, instanceIndex?: number, itemHint?: unknown) => {
     const descriptor = facetTypes.find((f) => f.typeKey === facetType);
     const isMultiple = (descriptor?.targetCardinality ?? 'SINGLE') === 'MULTIPLE';
     if (isMultiple && typeof instanceIndex === 'number') {
       const items = multipleFacetItemValues(allByType[facetType]);
-      const item = items[instanceIndex] ?? {};
+      const item = itemHint !== undefined ? itemHint : (items[instanceIndex] ?? {});
       const text = JSON.stringify(item, null, 2);
+      const eff = effectiveFacetPayloadSchemaForEdit(descriptor, instanceIndex);
+      const useForm = eff != null && facetPayloadSchemaFormSupported(eff);
       setEditFacetType(facetType);
       setEditInstanceIndex(instanceIndex);
-      setEditMode('form');
+      setEditMode(useForm ? 'form' : 'json');
       setEditJson(text);
       setEditSnapshot(text);
       setEditFormValue(item);
+      setJsonExpertDraft({ valid: true, value: item });
       return;
     }
     const payload = allByType[facetType] ?? (isMultiple ? [] : {});
     const text = JSON.stringify(payload, null, 2);
+    const eff = effectiveFacetPayloadSchemaForEdit(descriptor, null);
+    const useForm = eff != null && facetPayloadSchemaFormSupported(eff);
     setEditFacetType(facetType);
     setEditInstanceIndex(null);
-    setEditMode('form');
+    setEditMode(useForm ? 'form' : 'json');
     setEditJson(text);
     setEditSnapshot(text);
     setEditFormValue(payload);
+    setJsonExpertDraft({ valid: true, value: payload });
   };
+
+  /** Restore form and expert editor payload to the snapshot from when Edit was opened. */
+  const resetFacetEditToSnapshot = useCallback(() => {
+    setEditJson(editSnapshot);
+    try {
+      const v = JSON.parse(editSnapshot);
+      setEditFormValue(v);
+      setJsonExpertDraft({ valid: true, value: v });
+    } catch {
+      setEditFormValue({});
+      setJsonExpertDraft({ valid: false, error: 'Invalid snapshot JSON' });
+    }
+  }, [editSnapshot]);
 
   const saveEdit = async () => {
     if (!editFacetType) return;
+    if (!metadataFacetTargetId) {
+      notifications.show({
+        color: 'yellow',
+        title: 'No metadata binding',
+        message: 'Cannot save facets without a metadata entity URN.',
+      });
+      return;
+    }
     try {
-      const parsed = editMode === 'json' ? JSON.parse(editJson) : editFormValue;
-      const manifest = facetTypes.find((f) => f.typeKey === editFacetType);
+      let parsed: unknown;
+      const manifest = facetTypes.find((f) => f.typeKey === editFacetType) ?? null;
+      const editSchema = effectiveFacetPayloadSchemaForEdit(manifest, editInstanceIndex);
+      const expertOnly =
+        editSchema == null || !facetPayloadSchemaFormSupported(editSchema);
+      if (expertOnly || editMode === 'json') {
+        if (jsonExpertDraft?.valid && jsonExpertDraft.value !== undefined) {
+          parsed = jsonExpertDraft.value;
+        } else {
+          notifications.show({
+            color: 'red',
+            title: 'Invalid document',
+            message: jsonExpertDraft?.error ?? 'Fix JSON or YAML in expert mode before saving.',
+          });
+          return;
+        }
+      } else {
+        parsed = editFormValue;
+      }
       const isMultiple = (manifest?.targetCardinality ?? 'SINGLE') === 'MULTIPLE';
-      if (editInstanceIndex !== null && isMultiple && manifest?.payload) {
-        if (editMode === 'form' && manifest.payload) {
+      if (editInstanceIndex !== null && isMultiple) {
+        if (!expertOnly && editMode === 'form' && manifest?.payload) {
           const errors: string[] = [];
-          const isBlank = (schema: FacetPayloadSchema, value: unknown): boolean => {
-            if (value == null) return true;
-            if (schema.type === 'STRING' || schema.type === 'ENUM') {
-              return String(value).trim().length === 0;
-            }
-            if (schema.type === 'ARRAY') {
-              return !Array.isArray(value) || value.length === 0;
-            }
-            if (schema.type === 'NUMBER') {
-              return typeof value !== 'number' || Number.isNaN(value);
-            }
-            return false;
-          };
-          const validateRequired = (schema: FacetPayloadSchema, value: unknown, path: string) => {
-            if (schema.type !== 'OBJECT') return;
-            const obj = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
-            (schema.fields ?? []).forEach((field) => {
-              const required = field.required ?? true;
-              const nextPath = path ? `${path}.${field.name}` : field.name;
-              const fieldValue = obj[field.name];
-              if (required && isBlank(field.schema, fieldValue)) {
-                errors.push(`${nextPath} is required`);
-              }
-              if (fieldValue != null && field.schema.type === 'OBJECT') {
-                validateRequired(field.schema, fieldValue, nextPath);
-              }
-            });
-          };
-          validateRequired(manifest.payload, parsed, '');
+          appendFacetPayloadRequiredErrors(manifest.payload, parsed, errors);
+          appendEmailStereotypeValidationErrors(manifest.payload, parsed, errors, '');
+          appendHyperlinkStereotypeValidationErrors(manifest.payload, parsed, errors, '');
           if (errors.length > 0) {
             notifications.show({
               color: 'red',
@@ -442,46 +669,48 @@ export function EntityDetails({
             return;
           }
         }
-        const raw = allByType[editFacetType];
-        const merged = replaceMultipleItemAt(raw, editInstanceIndex, parsed);
-        await schemaService.setEntityFacet(entity.id, editFacetType, selectedContext, merged);
+        let instancePayload: unknown = parsed;
+        if (Array.isArray(instancePayload)) {
+          instancePayload =
+            editInstanceIndex != null && editInstanceIndex >= 0
+              ? instancePayload[editInstanceIndex]
+              : instancePayload[0];
+        }
+        if (instancePayload == null || typeof instancePayload !== 'object' || Array.isArray(instancePayload)) {
+          notifications.show({
+            color: 'red',
+            title: 'Invalid payload',
+            message: 'MULTIPLE facet rows must save as a single JSON object (one instance).',
+          });
+          return;
+        }
+        const rowUid = facets.instanceUidsByType?.[editFacetType]?.[editInstanceIndex ?? -1];
+        if (typeof rowUid === 'string' && rowUid.length > 0) {
+          await schemaService.patchEntityFacetPayload(
+            metadataFacetTargetId,
+            editFacetType,
+            rowUid,
+            instancePayload
+          );
+        } else {
+          await schemaService.setEntityFacet(
+            metadataFacetTargetId,
+            editFacetType,
+            selectedContext,
+            instancePayload
+          );
+        }
         await onFacetsChanged();
         notifications.show({ color: 'green', title: 'Facet saved', message: editFacetType });
         setEditFacetType(null);
         setEditInstanceIndex(null);
         return;
       }
-      if (editMode === 'form' && activeManifest?.payload) {
+      if (!expertOnly && editMode === 'form' && manifest?.payload) {
         const errors: string[] = [];
-        const isBlank = (schema: FacetPayloadSchema, value: unknown): boolean => {
-          if (value == null) return true;
-          if (schema.type === 'STRING' || schema.type === 'ENUM') {
-            return String(value).trim().length === 0;
-          }
-          if (schema.type === 'ARRAY') {
-            return !Array.isArray(value) || value.length === 0;
-          }
-          if (schema.type === 'NUMBER') {
-            return typeof value !== 'number' || Number.isNaN(value);
-          }
-          return false;
-        };
-        const validateRequired = (schema: FacetPayloadSchema, value: unknown, path: string) => {
-          if (schema.type !== 'OBJECT') return;
-          const obj = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
-          (schema.fields ?? []).forEach((field) => {
-            const required = field.required ?? true;
-            const nextPath = path ? `${path}.${field.name}` : field.name;
-            const fieldValue = obj[field.name];
-            if (required && isBlank(field.schema, fieldValue)) {
-              errors.push(`${nextPath} is required`);
-            }
-            if (fieldValue != null && field.schema.type === 'OBJECT') {
-              validateRequired(field.schema, fieldValue, nextPath);
-            }
-          });
-        };
-        validateRequired(activeManifest.payload, parsed, '');
+        appendFacetPayloadRequiredErrors(manifest.payload, parsed, errors);
+        appendEmailStereotypeValidationErrors(manifest.payload, parsed, errors, '');
+        appendHyperlinkStereotypeValidationErrors(manifest.payload, parsed, errors, '');
         if (errors.length > 0) {
           notifications.show({
             color: 'red',
@@ -491,7 +720,7 @@ export function EntityDetails({
           return;
         }
       }
-      await schemaService.setEntityFacet(entity.id, editFacetType, selectedContext, parsed);
+      await schemaService.setEntityFacet(metadataFacetTargetId, editFacetType, selectedContext, parsed);
       await onFacetsChanged();
       notifications.show({ color: 'green', title: 'Facet saved', message: editFacetType });
       setEditFacetType(null);
@@ -505,27 +734,64 @@ export function EntityDetails({
     () => facetTypes.find((f) => f.typeKey === editFacetType) ?? null,
     [facetTypes, editFacetType]
   );
-  const effectivePayloadSchema = useMemo<FacetPayloadSchema | null>(() => {
-    if (!activeManifest?.payload) return null;
-    if (editInstanceIndex !== null) {
-      return activeManifest.payload;
-    }
-    if ((activeManifest.targetCardinality ?? 'SINGLE') === 'MULTIPLE') {
-      return {
-        type: 'ARRAY',
-        title: activeManifest.payload.title,
-        description: activeManifest.payload.description,
-        items: activeManifest.payload,
-      };
-    }
-    return activeManifest.payload;
-  }, [activeManifest, editInstanceIndex]);
+  const effectivePayloadSchema = useMemo<FacetPayloadSchema | null>(
+    () => effectiveFacetPayloadSchemaForEdit(activeManifest, editInstanceIndex),
+    [activeManifest, editInstanceIndex]
+  );
+
+  const facetFormSupported = useMemo(
+    () => effectivePayloadSchema != null && facetPayloadSchemaFormSupported(effectivePayloadSchema),
+    [effectivePayloadSchema]
+  );
+
+  /** Sync JSON snapshot only when switching modes — avoids JSON.stringify on every keystroke in form mode. */
+  const handleFacetEditModeChange = useCallback(
+    (v: string | null) => {
+      const next = (v as 'form' | 'json') ?? 'form';
+      if (next === 'form' && !facetFormSupported) {
+        notifications.show({
+          color: 'yellow',
+          title: 'Form not available',
+          message:
+            'This facet uses nested structures the form cannot edit (for example arrays of objects). Use Expert JSON/YAML.',
+        });
+        return;
+      }
+      setEditMode((prev) => {
+        if (next === 'json' && prev === 'form') {
+          const fv = editFormValueRef.current;
+          setEditJson(JSON.stringify(fv, null, 2));
+          setJsonExpertDraft({ valid: true, value: fv });
+        } else if (next === 'form' && prev === 'json') {
+          try {
+            setEditFormValue(JSON.parse(editJsonRef.current));
+          } catch {
+            /* invalid JSON — keep previous form state */
+          }
+        }
+        return next;
+      });
+    },
+    [facetFormSupported]
+  );
+
+  useEffect(() => {
+    if (!editFacetType || facetFormSupported) return;
+    setEditMode((prev) => {
+      if (prev === 'json') return prev;
+      const fv = editFormValueRef.current;
+      setEditJson(JSON.stringify(fv, null, 2));
+      setJsonExpertDraft({ valid: true, value: fv });
+      return 'json';
+    });
+  }, [editFacetType, facetFormSupported]);
 
   const renderField = (
     schema: FacetPayloadSchema,
     value: unknown,
     onChange: (next: unknown) => void,
-    keyPrefix: string
+    keyPrefix: string,
+    stringStere: FacetStringStereotypeKind = 'none'
   ): React.ReactNode => {
     if (schema.type === 'OBJECT') {
       const obj = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
@@ -554,7 +820,8 @@ export function EntityDetails({
                       field.schema,
                       obj[field.name],
                       (next) => onChange({ ...obj, [field.name]: next }),
-                      `${keyPrefix}.${field.name}`
+                      `${keyPrefix}.${field.name}`,
+                      facetStringStereotype(field.schema, field.stereotype)
                     )}
                   </Box>
                 </>
@@ -580,7 +847,8 @@ export function EntityDetails({
                       field.schema,
                       obj[field.name],
                       (next) => onChange({ ...obj, [field.name]: next }),
-                      `${keyPrefix}.${field.name}`
+                      `${keyPrefix}.${field.name}`,
+                      facetStringStereotype(field.schema, field.stereotype)
                     )}
                   </Box>
                 </Group>
@@ -591,12 +859,21 @@ export function EntityDetails({
       );
     }
     if (schema.type === 'STRING') {
+      const strVal = typeof value === 'string' ? value : '';
+      const emailInvalid =
+        stringStere === 'email' && strVal.trim().length > 0 && !facetEmailLooksValid(strVal);
+      const inputType = stringStere === 'email' ? 'email' : stringStere === 'hyperlink' ? 'url' : 'text';
+      const placeholder =
+        schema.description ??
+        (stringStere === 'hyperlink' ? 'https://…' : stringStere === 'email' ? 'name@example.com' : undefined);
       return (
         <TextInput
           size="xs"
-          value={typeof value === 'string' ? value : ''}
+          type={inputType}
+          value={strVal}
           onChange={(e) => onChange(e.currentTarget.value)}
-          placeholder={schema.description}
+          placeholder={placeholder}
+          error={emailInvalid ? 'Enter a valid email address' : undefined}
         />
       );
     }
@@ -634,18 +911,74 @@ export function EntityDetails({
     if (schema.type === 'ARRAY') {
       const itemsSchema = schema.items;
       const itemType = itemsSchema?.type;
+      if (itemsSchema?.type === 'OBJECT') {
+        const arr = Array.isArray(value) ? value : [];
+        const itemLabel = schema.title?.trim() || 'Item';
+        return (
+          <Stack gap="sm">
+            {arr.map((item, idx) => (
+              <Card key={`${keyPrefix}-ao-${idx}`} withBorder p="xs">
+                <Group justify="space-between" mb={6}>
+                  <Text size="xs" c="dimmed">
+                    {arr.length === 1 ? itemLabel : `${itemLabel} ${idx + 1}`}
+                  </Text>
+                  <Button
+                    size="compact-xs"
+                    variant="subtle"
+                    color="red"
+                    onClick={() => onChange(arr.filter((_, i) => i !== idx))}
+                  >
+                    Remove
+                  </Button>
+                </Group>
+                {renderField(
+                  itemsSchema,
+                  item,
+                  (next) => {
+                    const nextArr = [...arr];
+                    nextArr[idx] = next;
+                    onChange(nextArr);
+                  },
+                  `${keyPrefix}[${idx}]`,
+                  'none'
+                )}
+              </Card>
+            ))}
+            <Button
+              size="xs"
+              variant="light"
+              leftSection={<HiOutlinePlus size={14} />}
+              onClick={() => onChange([...arr, {}])}
+            >
+              Add item
+            </Button>
+          </Stack>
+        );
+      }
       if (itemsSchema && (itemType === 'STRING' || itemType === 'ENUM')) {
         const arr = Array.isArray(value) ? value : [];
         const tags = arr.map((x) => String(x ?? ''));
+        const emailInvalid =
+          itemType === 'STRING' &&
+          stringStere === 'email' &&
+          tags.some((t) => t.trim().length > 0 && !facetEmailLooksValid(t));
+        const placeholder =
+          schema.description ||
+          (itemType === 'STRING' && stringStere === 'hyperlink'
+            ? 'URLs — comma or Enter'
+            : itemType === 'STRING' && stringStere === 'email'
+              ? 'Emails — comma or Enter'
+              : 'Type values, comma or Enter');
         return (
           <TagsInput
             size="xs"
-            placeholder={schema.description || 'Type values, comma or Enter'}
+            placeholder={placeholder}
             value={tags}
             onChange={(next) => onChange(next)}
             data={itemType === 'ENUM' ? (itemsSchema.values ?? []).map((ev) => ev.value) : undefined}
             splitChars={[',', ';']}
             clearable
+            error={emailInvalid ? 'Each entry must be a valid email address' : undefined}
           />
         );
       }
@@ -696,7 +1029,10 @@ export function EntityDetails({
   const renderReadOnlyField = (
     schema: FacetPayloadSchema,
     value: unknown,
-    keyPrefix: string
+    keyPrefix: string,
+    stringStere: FacetStringStereotypeKind = 'none',
+    /** Field-level stereotype wire (for tags / empty-array behaviour). */
+    fieldStereotypeWire?: string | string[] | null
   ): React.ReactNode => {
     const labelWithInfo = (title: string, description?: string) => (
       <Group gap={4} wrap="nowrap" align="center">
@@ -730,7 +1066,16 @@ export function EntityDetails({
         <Stack gap={6}>
           {(schema.fields ?? []).map((field) => (
             <Box key={`${keyPrefix}.${field.name}`}>
-              {field.schema.type === 'OBJECT' || field.schema.type === 'ARRAY' ? (
+              {field.schema.type === 'OBJECT' && facetHyperlinkPresentationActive(field.schema, field.stereotype) ? (
+                <Group gap="sm" wrap="nowrap" align="center">
+                  <Box style={{ minWidth: 170 }}>
+                    {labelWithInfo(field.schema.title || field.name, field.schema.description)}
+                  </Box>
+                  <Box style={{ flex: 1 }}>
+                    <FacetHyperlinkReadOnly value={obj[field.name]} />
+                  </Box>
+                </Group>
+              ) : field.schema.type === 'OBJECT' || field.schema.type === 'ARRAY' ? (
                 <Stack gap={6}>
                   <Group gap={4}>
                     {field.schema.description && (
@@ -753,7 +1098,13 @@ export function EntityDetails({
                       borderLeft: '2px solid var(--mantine-color-default-border)',
                     }}
                   >
-                    {renderReadOnlyField(field.schema, obj[field.name], `${keyPrefix}.${field.name}`)}
+                    {renderReadOnlyField(
+                      field.schema,
+                      obj[field.name],
+                      `${keyPrefix}.${field.name}`,
+                      facetStringStereotype(field.schema, field.stereotype),
+                      field.stereotype
+                    )}
                   </Box>
                 </Stack>
               ) : (
@@ -762,7 +1113,15 @@ export function EntityDetails({
                     {labelWithInfo(field.schema.title || field.name, field.schema.description)}
                   </Box>
                   <Box style={{ flex: 1 }}>
-                    {primitiveValue(field.schema, obj[field.name])}
+                    {(() => {
+                      if (facetHyperlinkPresentationActive(field.schema, field.stereotype)) {
+                        return <FacetHyperlinkReadOnly value={obj[field.name]} />;
+                      }
+                      if (facetStringStereotype(field.schema, field.stereotype) === 'email') {
+                        return <FacetEmailReadOnly value={obj[field.name]} />;
+                      }
+                      return primitiveValue(field.schema, obj[field.name]);
+                    })()}
                   </Box>
                 </Group>
               )}
@@ -772,12 +1131,49 @@ export function EntityDetails({
       );
     }
     if (schema.type === 'ARRAY') {
-      if (!Array.isArray(value) || value.length === 0) return <Text size="xs" c="dimmed">-</Text>;
+      if (!Array.isArray(value) || value.length === 0) {
+        if (facetTagsPresentationActive(schema, fieldStereotypeWire)) {
+          return null;
+        }
+        return <Text size="xs" c="dimmed">-</Text>;
+      }
       const itemSchema = schema.items;
+      const listHyperlink = facetHyperlinkPresentationActive(schema, fieldStereotypeWire);
+      if (itemSchema?.type === 'OBJECT' && listHyperlink) {
+        return (
+          <Stack gap={6} pl={4}>
+            {value.map((item, idx) => (
+              <Group key={`${keyPrefix}-href-obj-${idx}`} gap={8} align="flex-start" wrap="nowrap">
+                <Text size="xs" c="dimmed" mt={3} style={{ flexShrink: 0 }}>
+                  •
+                </Text>
+                <Box style={{ flex: 1, minWidth: 0 }}>
+                  <FacetHyperlinkReadOnly value={item} />
+                </Box>
+              </Group>
+            ))}
+          </Stack>
+        );
+      }
       const primitiveItem =
         itemSchema &&
         (itemSchema.type === 'STRING' || itemSchema.type === 'NUMBER' || itemSchema.type === 'ENUM');
       if (primitiveItem && itemSchema) {
+        if (itemSchema.type === 'STRING' && (listHyperlink || stringStere === 'email')) {
+          return (
+            <Group gap="sm" wrap="wrap" align="flex-start">
+              {value.map((item, idx) => (
+                <Box key={`${keyPrefix}-p-${idx}`}>
+                  {listHyperlink ? (
+                    <FacetHyperlinkReadOnly value={item} />
+                  ) : (
+                    <FacetEmailReadOnly value={item} />
+                  )}
+                </Box>
+              ))}
+            </Group>
+          );
+        }
         return (
           <Group gap={6} wrap="wrap">
             {value.map((item, idx) => (
@@ -795,13 +1191,18 @@ export function EntityDetails({
         );
       }
       return (
-        <Stack gap={4}>
+        <Stack gap={6} pl={4}>
           {value.map((item, idx) => (
-            <Box key={`${keyPrefix}[${idx}]`}>
-              {schema.items ? renderReadOnlyField(schema.items, item, `${keyPrefix}[${idx}]`) : (
-                <Text size="xs">{String(item)}</Text>
-              )}
-            </Box>
+            <Group key={`${keyPrefix}[${idx}]`} gap={8} align="flex-start" wrap="nowrap">
+              <Text size="xs" c="dimmed" mt={3} style={{ flexShrink: 0 }}>
+                •
+              </Text>
+              <Box style={{ flex: 1, minWidth: 0 }}>
+                {schema.items ? renderReadOnlyField(schema.items, item, `${keyPrefix}[${idx}]`, 'none', undefined) : (
+                  <Text size="xs">{String(item)}</Text>
+                )}
+              </Box>
+            </Group>
           ))}
         </Stack>
       );
@@ -810,8 +1211,9 @@ export function EntityDetails({
   };
 
   const deleteFacet = async (facetType: string) => {
+    if (!metadataFacetTargetId) return;
     try {
-      await schemaService.deleteEntityFacet(entity.id, facetType, selectedContext);
+      await schemaService.deleteEntityFacet(metadataFacetTargetId, facetType, selectedContext);
       await onFacetsChanged();
       if (editFacetType === facetType) {
         setEditFacetType(null);
@@ -826,9 +1228,10 @@ export function EntityDetails({
   };
 
   const deleteFacetInstance = async (facetType: string, instanceIndex: number) => {
+    if (!metadataFacetTargetId) return;
     try {
       const uid = facets.instanceUidsByType?.[facetType]?.[instanceIndex];
-      await schemaService.deleteEntityFacet(entity.id, facetType, selectedContext, uid);
+      await schemaService.deleteEntityFacet(metadataFacetTargetId, facetType, selectedContext, uid);
       await onFacetsChanged();
       if (editFacetType === facetType && editInstanceIndex === instanceIndex) {
         setEditFacetType(null);
@@ -879,8 +1282,8 @@ export function EntityDetails({
                   {entityLabels[entity.entityType]}
                 </Badge>
               </Group>
-              <Text size="sm" c="dimmed" ff="monospace" truncate>
-                {entity.id}
+              <Text size="sm" c="dimmed" ff="monospace" truncate title={entity.id}>
+                {metadataFacetTargetId ?? entity.id}
               </Text>
             </Box>
           </Group>
@@ -894,7 +1297,7 @@ export function EntityDetails({
                     const key = addFacetMenu.defaultTypeKey;
                     if (key) void addFacetByType(key);
                   }}
-                  disabled={addFacetMenu.isEmpty}
+                  disabled={addFacetMenu.isEmpty || !canMutateMetadataFacets}
                   style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
                 >
                   Add Facet
@@ -904,7 +1307,7 @@ export function EntityDetails({
                     size={30}
                     variant="filled"
                     style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
-                    disabled={addFacetMenu.isEmpty}
+                    disabled={addFacetMenu.isEmpty || !canMutateMetadataFacets}
                   >
                     <HiOutlineChevronDown size={14} />
                   </ActionIcon>
@@ -1019,8 +1422,13 @@ export function EntityDetails({
         >
           <Group gap="xs" mb="xs">
             <Badge variant="outline" color="gray" size="sm">
-              ID {entity.id}
+              Explorer {entity.id}
             </Badge>
+            {metadataFacetTargetId && (
+              <Badge variant="outline" color="gray" size="sm">
+                Metadata URN
+              </Badge>
+            )}
             {baseTypeLabel && (
               <Badge variant="light" color={isDark ? 'cyan' : 'teal'} size="sm">
                 {baseTypeLabel}
@@ -1081,7 +1489,12 @@ export function EntityDetails({
                         <Card key={`${facetType}-empty`} withBorder p="xs">
                           <Group justify="space-between" mb={6}>
                             {facetHeaderIcons}
-                            <Button size="compact-xs" leftSection={<HiOutlinePlus size={12} />} onClick={() => void addAnotherMultipleInstance(facetType)}>
+                            <Button
+                              size="compact-xs"
+                              leftSection={<HiOutlinePlus size={12} />}
+                              disabled={!canMutateMetadataFacets}
+                              onClick={() => void addAnotherMultipleInstance(facetType)}
+                            >
                               Add entry
                             </Button>
                           </Group>
@@ -1095,11 +1508,11 @@ export function EntityDetails({
                     if (unit.kind === 'multipleRow') {
                       const items = multipleFacetItemValues(allByType[facetType]);
                       const item = items[unit.index];
-                      const itemSchema = descriptor!.payload;
+                      const itemSchema = descriptor?.payload;
                       const caption = multipleInstanceCaption(item, unit.index, unit.total);
-                      const cardTitle = `${baseTitle} · ${caption}`;
+                      const cardTitle = caption ? `${baseTitle} · ${caption}` : baseTitle;
                       const isEditing = editFacetType === facetType && editInstanceIndex === unit.index;
-                      const readOnlyBody = (
+                      const readOnlyBody = itemSchema ? (
                         <Box>
                           {renderReadOnlyField(
                             itemSchema,
@@ -1107,6 +1520,13 @@ export function EntityDetails({
                             `${facetType}[${unit.index}]`
                           )}
                         </Box>
+                      ) : (
+                        <SyntaxCodeEditor
+                          value={JSON.stringify(item ?? {}, null, 2)}
+                          language="json"
+                          minHeight={200}
+                          readOnly
+                        />
                       );
                       return (
                         <Card key={`${facetType}-${unit.index}`} withBorder p="xs">
@@ -1124,14 +1544,7 @@ export function EntityDetails({
                                 <Button
                                   size="compact-xs"
                                   variant="light"
-                                  onClick={() => {
-                                    setEditJson(editSnapshot);
-                                    try {
-                                      setEditFormValue(JSON.parse(editSnapshot));
-                                    } catch {
-                                      setEditFormValue({});
-                                    }
-                                  }}
+                                  onClick={() => resetFacetEditToSnapshot()}
                                 >
                                   Reset
                                 </Button>
@@ -1153,6 +1566,7 @@ export function EntityDetails({
                                   size="compact-xs"
                                   variant="light"
                                   leftSection={<HiOutlinePencilSquare size={12} />}
+                                  disabled={!canMutateMetadataFacets}
                                   onClick={() => openEdit(facetType, unit.index)}
                                 >
                                   Edit
@@ -1162,6 +1576,7 @@ export function EntityDetails({
                                   variant="light"
                                   color="red"
                                   leftSection={<HiOutlineTrash size={12} />}
+                                  disabled={!canMutateMetadataFacets}
                                   onClick={() => setFacetToDelete({ facetType, instanceIndex: unit.index })}
                                 >
                                   Delete
@@ -1171,29 +1586,68 @@ export function EntityDetails({
                           </Group>
                           {isEditing ? (
                             <Stack gap="xs">
-                              <Group justify="space-between">
-                                <Chip.Group
-                                  multiple={false}
-                                  value={editMode}
-                                  onChange={handleFacetEditModeChange}
-                                >
-                                  <Group gap="xs">
-                                    <Chip size="xs" value="form">Form</Chip>
-                                    <Chip size="xs" value="json">Expert JSON</Chip>
-                                  </Group>
-                                </Chip.Group>
-                              </Group>
-                              {editMode === 'json' ? (
-                                <SyntaxCodeEditor
-                                  value={editJson}
-                                  onChange={setEditJson}
-                                  language="json"
-                                  minHeight={360}
-                                />
-                              ) : effectivePayloadSchema ? (
-                                renderField(effectivePayloadSchema, editFormValue, setEditFormValue, `${facetType}-inst-${unit.index}`)
+                              {!facetFormSupported ? (
+                                <>
+                                  <Text size="xs" c="dimmed">
+                                    {(editFacetType === facetType && effectivePayloadSchema == null
+                                      ? 'Descriptor payload schema unavailable.'
+                                      : 'This facet payload includes structures the form cannot edit (for example arrays of objects).')}{' '}
+                                    Edit below as JSON or YAML.
+                                  </Text>
+                                  <JsonYamlEditor
+                                    key={`${facetType}-${unit.index}-expert`}
+                                    value={editFormValue}
+                                    onApply={(next) => {
+                                      setEditFormValue(next);
+                                      setEditJson(JSON.stringify(next, null, 2));
+                                      setJsonExpertDraft({ valid: true, value: next });
+                                      notifications.show({
+                                        color: 'green',
+                                        title: 'Applied',
+                                        message: 'Payload updated from expert editor.',
+                                      });
+                                    }}
+                                    onDraftParsed={setJsonExpertDraft}
+                                    minHeight={360}
+                                  />
+                                </>
                               ) : (
-                                <Text size="xs" c="dimmed">Descriptor payload schema unavailable; switch to Expert JSON mode.</Text>
+                                <>
+                                  <Group justify="space-between">
+                                    <Chip.Group
+                                      multiple={false}
+                                      value={editMode}
+                                      onChange={handleFacetEditModeChange}
+                                    >
+                                      <Group gap="xs">
+                                        <Chip size="xs" value="form">Form</Chip>
+                                        <Chip size="xs" value="json">Expert JSON/YAML</Chip>
+                                      </Group>
+                                    </Chip.Group>
+                                  </Group>
+                                  {editMode === 'json' ? (
+                                    <JsonYamlEditor
+                                      key={`${facetType}-${unit.index}-expert`}
+                                      value={editFormValue}
+                                      onApply={(next) => {
+                                        setEditFormValue(next);
+                                        setEditJson(JSON.stringify(next, null, 2));
+                                        setJsonExpertDraft({ valid: true, value: next });
+                                        notifications.show({
+                                          color: 'green',
+                                          title: 'Applied',
+                                          message: 'Payload updated from expert editor.',
+                                        });
+                                      }}
+                                      onDraftParsed={setJsonExpertDraft}
+                                      minHeight={360}
+                                    />
+                                  ) : effectivePayloadSchema ? (
+                                    renderField(effectivePayloadSchema, editFormValue, setEditFormValue, `${facetType}-inst-${unit.index}`)
+                                  ) : (
+                                    <Text size="xs" c="dimmed">Descriptor payload schema unavailable; switch to expert JSON/YAML mode.</Text>
+                                  )}
+                                </>
                               )}
                             </Stack>
                           ) : (
@@ -1231,10 +1685,7 @@ export function EntityDetails({
                           {facetHeaderIcons}
                           {isEditingSingle ? (
                             <Group gap="xs">
-                              <Button size="compact-xs" variant="light" onClick={() => {
-                                setEditJson(editSnapshot);
-                                try { setEditFormValue(JSON.parse(editSnapshot)); } catch { setEditFormValue({}); }
-                              }}>
+                              <Button size="compact-xs" variant="light" onClick={() => resetFacetEditToSnapshot()}>
                                 Reset
                               </Button>
                               <Button size="compact-xs" variant="light" onClick={() => {
@@ -1245,7 +1696,13 @@ export function EntityDetails({
                             </Group>
                           ) : (
                             <Group gap="xs">
-                              <Button size="compact-xs" variant="light" leftSection={<HiOutlinePencilSquare size={12} />} onClick={() => openEdit(facetType)}>
+                              <Button
+                                size="compact-xs"
+                                variant="light"
+                                leftSection={<HiOutlinePencilSquare size={12} />}
+                                disabled={!canMutateMetadataFacets}
+                                onClick={() => openEdit(facetType)}
+                              >
                                 Edit
                               </Button>
                               <Button
@@ -1253,6 +1710,7 @@ export function EntityDetails({
                                 variant="light"
                                 color="red"
                                 leftSection={<HiOutlineTrash size={12} />}
+                                disabled={!canMutateMetadataFacets}
                                 onClick={() => setFacetToDelete({ facetType, instanceIndex: null })}
                               >
                                 Delete
@@ -1262,29 +1720,68 @@ export function EntityDetails({
                         </Group>
                         {isEditingSingle ? (
                           <Stack gap="xs">
-                            <Group justify="space-between">
-                              <Chip.Group
-                                multiple={false}
-                                value={editMode}
-                                onChange={handleFacetEditModeChange}
-                              >
-                                <Group gap="xs">
-                                  <Chip size="xs" value="form">Form</Chip>
-                                  <Chip size="xs" value="json">Expert JSON</Chip>
-                                </Group>
-                              </Chip.Group>
-                            </Group>
-                            {editMode === 'json' ? (
-                              <SyntaxCodeEditor
-                                value={editJson}
-                                onChange={setEditJson}
-                                language="json"
-                                minHeight={360}
-                              />
-                            ) : effectivePayloadSchema ? (
-                              renderField(effectivePayloadSchema, editFormValue, setEditFormValue, facetType)
+                            {!facetFormSupported ? (
+                              <>
+                                <Text size="xs" c="dimmed">
+                                  {(editFacetType === facetType && effectivePayloadSchema == null
+                                    ? 'Descriptor payload schema unavailable.'
+                                    : 'This facet payload includes structures the form cannot edit (for example arrays of objects).')}{' '}
+                                  Edit below as JSON or YAML.
+                                </Text>
+                                <JsonYamlEditor
+                                  key={`${facetType}-expert`}
+                                  value={editFormValue}
+                                  onApply={(next) => {
+                                    setEditFormValue(next);
+                                    setEditJson(JSON.stringify(next, null, 2));
+                                    setJsonExpertDraft({ valid: true, value: next });
+                                    notifications.show({
+                                      color: 'green',
+                                      title: 'Applied',
+                                      message: 'Payload updated from expert editor.',
+                                    });
+                                  }}
+                                  onDraftParsed={setJsonExpertDraft}
+                                  minHeight={360}
+                                />
+                              </>
                             ) : (
-                              <Text size="xs" c="dimmed">Descriptor payload schema unavailable; switch to Expert JSON mode.</Text>
+                              <>
+                                <Group justify="space-between">
+                                  <Chip.Group
+                                    multiple={false}
+                                    value={editMode}
+                                    onChange={handleFacetEditModeChange}
+                                  >
+                                    <Group gap="xs">
+                                      <Chip size="xs" value="form">Form</Chip>
+                                      <Chip size="xs" value="json">Expert JSON/YAML</Chip>
+                                    </Group>
+                                  </Chip.Group>
+                                </Group>
+                                {editMode === 'json' ? (
+                                  <JsonYamlEditor
+                                    key={`${facetType}-expert`}
+                                    value={editFormValue}
+                                    onApply={(next) => {
+                                      setEditFormValue(next);
+                                      setEditJson(JSON.stringify(next, null, 2));
+                                      setJsonExpertDraft({ valid: true, value: next });
+                                      notifications.show({
+                                        color: 'green',
+                                        title: 'Applied',
+                                        message: 'Payload updated from expert editor.',
+                                      });
+                                    }}
+                                    onDraftParsed={setJsonExpertDraft}
+                                    minHeight={360}
+                                  />
+                                ) : effectivePayloadSchema ? (
+                                  renderField(effectivePayloadSchema, editFormValue, setEditFormValue, facetType)
+                                ) : (
+                                  <Text size="xs" c="dimmed">Descriptor payload schema unavailable; switch to expert JSON/YAML mode.</Text>
+                                )}
+                              </>
                             )}
                           </Stack>
                         ) : (

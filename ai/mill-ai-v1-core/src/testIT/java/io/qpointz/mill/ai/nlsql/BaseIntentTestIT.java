@@ -5,10 +5,13 @@ import io.qpointz.mill.ai.chat.ChatUserRequests;
 import io.qpointz.mill.ai.chat.messages.MessageSelector;
 import io.qpointz.mill.ai.chat.messages.MessageSelectors;
 import io.qpointz.mill.ai.nlsql.components.DefaultValueMapper;
+import io.qpointz.mill.ai.nlsql.metadata.SchemaMessageMetadataPorts;
 import io.qpointz.mill.ai.nlsql.models.ReasoningResponse;
 import io.qpointz.mill.ai.nlsql.reasoners.DefaultReasoner;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
-import io.qpointz.mill.metadata.service.MetadataService;
+import io.qpointz.mill.data.schema.MetadataEntityUrnCodec;
+import io.qpointz.mill.metadata.repository.FacetRepository;
+import io.qpointz.mill.metadata.service.MetadataEntityService;
 import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.AccessLevel;
@@ -34,7 +37,10 @@ public abstract class BaseIntentTestIT extends BaseIntegrationTestIT {
     private final IntentSpecs intentSpecs;
 
     @Getter(AccessLevel.PROTECTED)
-    private final MetadataService metadataService;
+    private final MetadataEntityService metadataEntityService;
+
+    @Getter(AccessLevel.PROTECTED)
+    private final SchemaMessageMetadataPorts schemaPorts;
 
     @Getter(AccessLevel.PROTECTED)
     private final DataOperationDispatcher dispatcher;
@@ -55,7 +61,9 @@ public abstract class BaseIntentTestIT extends BaseIntegrationTestIT {
     private final MessageSelector messageSelector;
 
     protected BaseIntentTestIT(ChatModel model,
-                               MetadataService metadataService,
+                               MetadataEntityService metadataEntityService,
+                               FacetRepository facetRepository,
+                               MetadataEntityUrnCodec urnCodec,
                                SqlDialectSpec sqlDialect,
                                DataOperationDispatcher dispatcher) {
 
@@ -64,15 +72,16 @@ public abstract class BaseIntentTestIT extends BaseIntegrationTestIT {
                 .maxMessages(10)
                 .build();
 
-        this.metadataService = metadataService;
+        this.metadataEntityService = metadataEntityService;
+        this.schemaPorts = new SchemaMessageMetadataPorts(metadataEntityService, facetRepository, urnCodec);
         this.dispatcher = dispatcher;
         this.chatModel = model;
         this.callSpecBuilders = new CallSpecsChatClientBuilders(
                 model, this.chatMemory, UUID.randomUUID().toString(), null);
         this.sqlDialect = sqlDialect;
         this.messageSelector = MessageSelectors.SIMPLE;
-        this.intentSpecs = new IntentSpecs(metadataService, sqlDialect, this.callSpecBuilders, dispatcher, this.messageSelector, new DefaultValueMapper(), ChatEventProducer.DEFAULT);
-        this.reasoner = new DefaultReasoner(this.callSpecBuilders, metadataService, MessageSelectors.SIMPLE);
+        this.intentSpecs = new IntentSpecs(schemaPorts, sqlDialect, this.callSpecBuilders, dispatcher, this.messageSelector, new DefaultValueMapper(), ChatEventProducer.DEFAULT);
+        this.reasoner = new DefaultReasoner(this.callSpecBuilders, schemaPorts, MessageSelectors.SIMPLE);
     }
 
     protected void intentAppTest(String query, String expectedIntent) {
@@ -81,7 +90,7 @@ public abstract class BaseIntentTestIT extends BaseIntegrationTestIT {
                         this.chatMemory,
                         UUID.randomUUID().toString(),
                         null),
-                this.metadataService,
+                this.schemaPorts,
                 this.sqlDialect,
                 this.dispatcher,
                 MessageSelectors.SIMPLE,

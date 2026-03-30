@@ -1,6 +1,8 @@
 package io.qpointz.mill.data.schema.api
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.qpointz.mill.data.schema.DefaultMetadataEntityUrnCodec
+import io.qpointz.mill.data.schema.MetadataEntityUrnCodec
 import io.qpointz.mill.data.schema.SchemaColumnWithFacets
 import io.qpointz.mill.data.schema.SchemaFacetService
 import io.qpointz.mill.data.schema.SchemaFacets
@@ -17,9 +19,13 @@ import io.qpointz.mill.data.schema.api.dto.ScopeOptionDto
 import io.qpointz.mill.data.schema.api.dto.TableDto
 import io.qpointz.mill.data.schema.api.dto.TableSummaryDto
 import io.qpointz.mill.excepions.statuses.MillStatuses
+import io.qpointz.mill.metadata.domain.FacetConverter
 import io.qpointz.mill.metadata.domain.MetadataEntity
+import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.MetadataUrns
-import io.qpointz.mill.metadata.repository.MetadataRepository
+import io.qpointz.mill.metadata.domain.core.DescriptiveFacet
+import io.qpointz.mill.metadata.repository.FacetRepository
+import io.qpointz.mill.metadata.repository.MetadataEntityRepository
 import io.qpointz.mill.metadata.service.MetadataContext
 import io.qpointz.mill.proto.DataType
 import org.slf4j.LoggerFactory
@@ -36,9 +42,12 @@ import io.qpointz.mill.data.backend.SchemaProvider
 class SchemaExplorerService(
     private val schemaFacetService: SchemaFacetService,
     private val schemaProvider: SchemaProvider,
-    private val metadataRepository: MetadataRepository,
-    private val objectMapper: ObjectMapper
+    private val metadataEntityRepository: MetadataEntityRepository,
+    private val facetRepository: FacetRepository,
+    private val objectMapper: ObjectMapper,
+    private val urnCodec: MetadataEntityUrnCodec = DefaultMetadataEntityUrnCodec()
 ) {
+    private val facetConverter = FacetConverter.defaultConverter()
     private enum class FacetMode {
         NONE,
         DIRECT,
@@ -66,11 +75,16 @@ class SchemaExplorerService(
         val facetMode = parseFacetMode(facetModeRaw)
         log.info("Listing schemas for context scopes={} facetMode={}", metadataContext.scopes, facetMode)
         val schemaNames = schemaProvider.getSchemaNames().toList()
-        val entitiesBySchema = metadataRepository.findAll()
-            .filter { it.tableName == null && it.attributeName == null && it.schemaName != null }
-            .associateBy { it.schemaName!! }
+        val entitiesBySchema = metadataEntityRepository.findAll()
+            .mapNotNull { e ->
+                val p = urnCodec.decode(e.id)
+                if (p.table != null || p.column != null) return@mapNotNull null
+                val schema = p.schema ?: return@mapNotNull null
+                schema to e
+            }
+            .associateBy({ it.first.lowercase() }, { it.second })
         return schemaNames.map { schemaName ->
-            val entity = entitiesBySchema[schemaName]
+            val entity = entitiesBySchema[schemaName.lowercase()]
             SchemaListItemDto(
                 id = schemaName,
                 entityType = SchemaEntityType.SCHEMA,
@@ -227,21 +241,51 @@ class SchemaExplorerService(
 
     private fun mapDescriptiveFacet(entity: MetadataEntity?, context: MetadataContext): Map<String, FacetEnvelopeDto>? {
         if (entity == null) return null
-        var payload: Any? = null
+        val instances = facetRepository.findByEntity(entity.id)
+        var resolved: DescriptiveFacet? = null
         context.scopes.forEach { scope ->
-            val candidates = if (scope.startsWith(MetadataUrns.SCOPE_PREFIX)) {
-                listOf(scope.removePrefix(MetadataUrns.SCOPE_PREFIX), scope)
-            } else {
-                listOf(scope)
-            }
-            candidates.forEach { candidate ->
-                entity.getFacet("descriptive", candidate, io.qpointz.mill.metadata.domain.core.DescriptiveFacet::class.java)
-                    .ifPresent { payload = objectMapper.convertValue(it, Any::class.java) }
+            facetTypeCandidates("descriptive").forEach { ft ->
+                scopeCandidates(scope).forEach { sc ->
+                    val match = instances.find { inst ->
+                        facetTypeKeyMatches(inst.facetTypeKey, ft) && scopeKeyMatches(inst.scopeKey, sc)
+                    }
+                    match?.let { m ->
+                        facetConverter.convert(m.payload, DescriptiveFacet::class.java)
+                            .ifPresent { resolved = it }
+                    }
+                }
             }
         }
-        if (payload == null) return null
+        val payload = resolved?.let { objectMapper.convertValue(it, Any::class.java) } ?: return null
         val facetTypeUrn = MetadataUrns.FACET_TYPE_DESCRIPTIVE
         return mapOf(facetTypeUrn to FacetEnvelopeDto(facetType = facetTypeUrn, payload = payload))
+    }
+
+    private fun facetTypeCandidates(facetType: String): List<String> {
+        if (facetType.startsWith(MetadataUrns.FACET_TYPE_PREFIX)) return listOf(facetType)
+        return listOf(facetType, MetadataUrns.normaliseFacetTypePath(facetType))
+    }
+
+    private fun scopeCandidates(scope: String): List<String> {
+        if (!scope.startsWith(MetadataUrns.SCOPE_PREFIX)) {
+            return listOf(scope, MetadataUrns.normaliseScopePath(scope))
+        }
+        val shortKey = scope.removePrefix(MetadataUrns.SCOPE_PREFIX)
+        return listOf(shortKey, scope)
+    }
+
+    private fun facetTypeKeyMatches(stored: String, candidate: String): Boolean {
+        val s = runCatching { MetadataEntityUrn.canonicalize(stored) }.getOrNull() ?: return false
+        val c = runCatching { MetadataEntityUrn.canonicalize(MetadataUrns.normaliseFacetTypePath(candidate)) }
+            .getOrNull() ?: return false
+        return s == c
+    }
+
+    private fun scopeKeyMatches(stored: String, candidate: String): Boolean {
+        val s = runCatching { MetadataEntityUrn.canonicalize(stored) }.getOrNull() ?: return false
+        val c = runCatching { MetadataEntityUrn.canonicalize(MetadataUrns.normaliseScopePath(candidate)) }
+            .getOrNull() ?: return false
+        return s == c
     }
 
     /**
