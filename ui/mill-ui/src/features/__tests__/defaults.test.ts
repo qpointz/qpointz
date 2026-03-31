@@ -14,12 +14,21 @@ describe('defaultFeatureFlags', () => {
   it('should have most flags default to true (except opt-in flags)', () => {
     // Flags that intentionally default to false (opt-in features requiring explicit enablement)
     const optInFlags: (keyof FeatureFlags)[] = [
+      // View routes disabled by default (opt-in per deployment)
+      'viewKnowledge',
+      'viewAnalysis',
+      'viewChat',
+      'viewConnect',
+      // Login providers disabled by default (opt-in SSO/OAuth)
       'loginGithub',
       'loginGoogle',
       'loginMicrosoft',
       'loginAws',
       'loginAzure',
+      // Admin controls
       'facetTypesReadOnly',
+      // Header features disabled by default
+      'headerGlobalSearch',
     ];
 
     for (const [key, value] of Object.entries(defaultFeatureFlags)) {

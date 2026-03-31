@@ -10,7 +10,7 @@ import {
   HiOutlineTag,
   HiOutlineWrenchScrewdriver,
 } from 'react-icons/hi2';
-import { CollapsibleSidebar } from '../common/CollapsibleSidebar';
+import { ExplorerSplitLayout } from '../layout/ExplorerSplitLayout';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
 import { FacetTypesListPage } from './model/FacetTypesListPage';
 import { FacetTypeEditPage } from './model/FacetTypeEditPage';
@@ -98,15 +98,10 @@ export function AdminLayout() {
   ].filter((i) => i.visible);
 
   return (
-    <Box
-      style={{
-        display: 'flex',
-        height: '100%',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Sidebar */}
-      <CollapsibleSidebar icon={HiOutlineCog6Tooth} title="Admin">
+    <ExplorerSplitLayout
+      icon={HiOutlineCog6Tooth}
+      title="Admin"
+      sidebarBody={
         <Box
           style={{
             flex: 1,
@@ -164,74 +159,67 @@ export function AdminLayout() {
             </Text>
           )}
         </Box>
-      </CollapsibleSidebar>
+      }
+      main={
+        <Box style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
+          {group === 'model' && section === 'facet-types' && extra.length === 0 && (
+            <FacetTypesListPage readOnly={flags.facetTypesReadOnly} />
+          )}
+          {group === 'model' && section === 'facet-types' && extra.length === 1 && extra[0] === 'new' && (
+            <FacetTypeEditPage mode="create" readOnly={flags.facetTypesReadOnly} />
+          )}
+          {group === 'model' && section === 'facet-types' && extra.length === 2 && extra[1] === 'edit' && (
+            <FacetTypeEditPage
+              mode="edit"
+              typeKey={decodeURIComponent(extra[0] ?? '')}
+              readOnly={flags.facetTypesReadOnly}
+            />
+          )}
 
-      {/* Main Content */}
-      <Box
-        style={{
-          flex: 1,
-          backgroundColor: 'var(--mantine-color-body)',
-          overflowY: 'auto',
-          overflowX: 'hidden',
-        }}
-      >
-        {group === 'model' && section === 'facet-types' && extra.length === 0 && (
-          <FacetTypesListPage readOnly={flags.facetTypesReadOnly} />
-        )}
-        {group === 'model' && section === 'facet-types' && extra.length === 1 && extra[0] === 'new' && (
-          <FacetTypeEditPage mode="create" readOnly={flags.facetTypesReadOnly} />
-        )}
-        {group === 'model' && section === 'facet-types' && extra.length === 2 && extra[1] === 'edit' && (
-          <FacetTypeEditPage
-            mode="edit"
-            typeKey={decodeURIComponent(extra[0] ?? '')}
-            readOnly={flags.facetTypesReadOnly}
-          />
-        )}
+          {group === 'system' && section && systemItems.some((i) => i.id === section) && (
+            <SystemPanel section={section as SystemSection} />
+          )}
 
-        {group === 'system' && section && systemItems.some((i) => i.id === section) && (
-          <SystemPanel section={section as SystemSection} />
-        )}
-
-        {!(
-          (group === 'model' && section === 'facet-types') ||
-          (group === 'system' && section && systemItems.some((i) => i.id === section))
-        ) && (
-          <Box
-            style={{
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+          {!(
+            (group === 'model' && section === 'facet-types') ||
+            (group === 'system' && section && systemItems.some((i) => i.id === section))
+          ) && (
             <Box
               style={{
-                width: 80,
-                height: 80,
-                borderRadius: '50%',
-                backgroundColor: isDark ? 'var(--mantine-color-cyan-9)' : 'var(--mantine-color-teal-1)',
+                height: '100%',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: 24,
               }}
             >
-              <HiOutlineWrenchScrewdriver
-                size={36}
-                color={isDark ? 'var(--mantine-color-cyan-4)' : 'var(--mantine-color-teal-6)'}
-              />
+              <Box
+                style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: '50%',
+                  backgroundColor: isDark ? 'var(--mantine-color-cyan-9)' : 'var(--mantine-color-teal-1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 24,
+                }}
+              >
+                <HiOutlineWrenchScrewdriver
+                  size={36}
+                  color={isDark ? 'var(--mantine-color-cyan-4)' : 'var(--mantine-color-teal-6)'}
+                />
+              </Box>
+              <Text size="xl" fw={600} c={isDark ? 'gray.1' : 'gray.8'} mb="xs">
+                Admin Area
+              </Text>
+              <Text size="sm" c="dimmed" ta="center" maw={400}>
+                Select a section from the sidebar to manage system and metadata administration.
+              </Text>
             </Box>
-            <Text size="xl" fw={600} c={isDark ? 'gray.1' : 'gray.8'} mb="xs">
-              Admin Area
-            </Text>
-            <Text size="sm" c="dimmed" ta="center" maw={400}>
-              Select a section from the sidebar to manage system and metadata administration.
-            </Text>
-          </Box>
-        )}
-      </Box>
-    </Box>
+          )}
+        </Box>
+      }
+    />
   );
 }

@@ -6,7 +6,7 @@ import { HiOutlineCommandLine, HiOutlineBeaker, HiOutlinePlus } from 'react-icon
 import { QuerySidebar } from './QuerySidebar';
 import { QueryEditor } from './QueryEditor';
 import { QueryResults } from './QueryResults';
-import { CollapsibleSidebar } from '../common/CollapsibleSidebar';
+import { ExplorerSplitLayout } from '../layout/ExplorerSplitLayout';
 import { queryService } from '../../services/api';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
 import { useInlineChatListener } from '../../context/InlineChatContext';
@@ -172,57 +172,39 @@ export function QueryPlayground() {
   const hasContent = sql.trim() || result || error || activeQueryId;
 
   return (
-    <Box
-      style={{
-        display: 'flex',
-        height: '100%',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Sidebar */}
-      <CollapsibleSidebar
-        icon={HiOutlineBeaker}
-        title="Sample Queries"
-        headerRight={
-          <>
-            {flags.sidebarAnalysisBadge && (
-              <Badge size="xs" variant="light" color={isDark ? 'cyan' : 'teal'}>
-                {allQueries.length}
-              </Badge>
-            )}
-            <Tooltip label="New query" withArrow>
-              <ActionIcon
-                size="sm"
-                variant="subtle"
-                color={isDark ? 'cyan' : 'teal'}
-                onClick={handleNewQuery}
-              >
-                <HiOutlinePlus size={14} />
-              </ActionIcon>
-            </Tooltip>
-          </>
-        }
-      >
+    <ExplorerSplitLayout
+      icon={HiOutlineBeaker}
+      title="Sample Queries"
+      sidebarHeaderRight={
+        <>
+          {flags.sidebarAnalysisBadge && (
+            <Badge size="xs" variant="light" color={isDark ? 'cyan' : 'teal'}>
+              {allQueries.length}
+            </Badge>
+          )}
+          <Tooltip label="New query" withArrow>
+            <ActionIcon
+              size="sm"
+              variant="subtle"
+              color={isDark ? 'cyan' : 'teal'}
+              onClick={handleNewQuery}
+            >
+              <HiOutlinePlus size={14} />
+            </ActionIcon>
+          </Tooltip>
+        </>
+      }
+      sidebarBody={
         <QuerySidebar
           queries={allQueries}
           activeQueryId={activeQueryId}
           onSelectQuery={handleSelectQuery}
           onDeleteQuery={handleDeleteQuery}
         />
-      </CollapsibleSidebar>
-
-      {/* Main Content */}
-      <Box
-        style={{
-          flex: 1,
-          backgroundColor: 'var(--mantine-color-body)',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        {hasContent ? (
-          <>
+      }
+      main={
+        hasContent ? (
+          <Box style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             {/* Editor panel (top) */}
             <Box
               style={{
@@ -261,7 +243,7 @@ export function QueryPlayground() {
                 />
               </Box>
             )}
-          </>
+          </Box>
         ) : (
           /* Empty state */
           <Box
@@ -297,8 +279,8 @@ export function QueryPlayground() {
               Select a sample query from the sidebar or start writing SQL to explore your data model.
             </Text>
           </Box>
-        )}
-      </Box>
-    </Box>
+        )
+      }
+    />
   );
 }

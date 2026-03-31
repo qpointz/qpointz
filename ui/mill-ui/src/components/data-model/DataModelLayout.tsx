@@ -1,12 +1,12 @@
-import { Box, Loader, ScrollArea, Text, useMantineColorScheme } from '@mantine/core';
-import { useState, useEffect, useRef } from 'react';
+import { Box, Loader, ScrollArea, Select, Text, useMantineColorScheme } from '@mantine/core';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { HiOutlineCircleStack } from 'react-icons/hi2';
 import { SchemaTree } from './SchemaTree';
 import { EntityDetails } from './EntityDetails';
-import { CollapsibleSidebar } from '../common/CollapsibleSidebar';
+import { ExplorerSplitLayout } from '../layout/ExplorerSplitLayout';
 import { metadataEntityUrnForFacetApi, schemaService } from '../../services/api';
-import type { SchemaNode, SchemaEntity, EntityFacets, TableDetail } from '../../types/schema';
+import type { SchemaNode, SchemaEntity, EntityFacets, ScopeOption, TableDetail } from '../../types/schema';
 
 function enrichNodeChildren(
   nodes: SchemaNode[],
@@ -42,12 +42,13 @@ export function DataModelLayout() {
   const [selectedEntity, setSelectedEntity] = useState<SchemaEntity | null>(null);
   const [facets, setFacets] = useState<EntityFacets>({});
   const [selectedContext, setSelectedContext] = useState<string>('global');
+  const [availableScopes, setAvailableScopes] = useState<ScopeOption[]>([]);
   const [treeLoading, setTreeLoading] = useState<boolean>(true);
   const [entityLoading, setEntityLoading] = useState<boolean>(false);
   const treeRequestIdRef = useRef(0);
   const entityRequestIdRef = useRef(0);
 
-  // Load schema tree on mount
+  // Load schema context and tree on mount
   useEffect(() => {
     let cancelled = false;
     const currentRequestId = ++treeRequestIdRef.current;
@@ -56,6 +57,7 @@ export function DataModelLayout() {
       if (cancelled || currentRequestId !== treeRequestIdRef.current) return;
       const ctx = contextInfo.selectedContext || 'global';
       setSelectedContext(ctx);
+      setAvailableScopes(contextInfo.availableScopes ?? []);
       return schemaService.getTree(ctx).then((loadedTree) => {
         if (cancelled || currentRequestId !== treeRequestIdRef.current) return;
         setTree(loadedTree);
@@ -144,6 +146,24 @@ export function DataModelLayout() {
     };
   }, [params, selectedContext]);
 
+  const handleScopeChange = useCallback((scope: string) => {
+    const currentRequestId = ++treeRequestIdRef.current;
+    setSelectedContext(scope);
+    setTree(null);
+    setSelectedEntity(null);
+    setFacets({});
+    setTreeLoading(true);
+    schemaService.getTree(scope).then((loadedTree) => {
+      if (currentRequestId !== treeRequestIdRef.current) return;
+      setTree(loadedTree);
+      setTreeLoading(false);
+    }).catch(() => {
+      if (currentRequestId !== treeRequestIdRef.current) return;
+      setTree([]);
+      setTreeLoading(false);
+    });
+  }, []);
+
   const handleSelect = (node: SchemaNode) => {
     const currentRequestId = ++entityRequestIdRef.current;
     setEntityLoading(true);
@@ -187,22 +207,28 @@ export function DataModelLayout() {
     }
   };
 
+  const scopeSelect = availableScopes.length > 1 ? (
+    <Select
+      size="xs"
+      value={selectedContext}
+      data={availableScopes.map((s) => ({ value: s.id, label: s.displayName }))}
+      onChange={(v) => { if (v) handleScopeChange(v); }}
+      style={{ minWidth: 140 }}
+    />
+  ) : null;
+
   return (
-    <Box
-      style={{
-        display: 'flex',
-        height: '100%',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Sidebar - Schema Tree */}
-      <CollapsibleSidebar icon={HiOutlineCircleStack} title="Schema Browser">
-        {treeLoading ? (
+    <ExplorerSplitLayout
+      icon={HiOutlineCircleStack}
+      title="Schema Browser"
+      viewPaneHeader={scopeSelect}
+      sidebarBody={
+        treeLoading ? (
           <Box p="md" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
             <Loader size="sm" />
             <Text size="xs" c="dimmed">Loading model...</Text>
           </Box>
-        ) : tree !== null && (
+        ) : tree !== null ? (
           <ScrollArea style={{ flex: 1 }} p="xs">
             <SchemaTree
               tree={tree}
@@ -210,18 +236,10 @@ export function DataModelLayout() {
               onSelect={handleSelect}
             />
           </ScrollArea>
-        )}
-      </CollapsibleSidebar>
-
-      {/* Main Content */}
-      <Box
-        style={{
-          flex: 1,
-          backgroundColor: 'var(--mantine-color-body)',
-          overflow: 'hidden',
-        }}
-      >
-        {selectedEntity ? (
+        ) : null
+      }
+      main={
+        selectedEntity ? (
           entityLoading ? (
             <Box p="md" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
               <Loader size="sm" />
@@ -277,8 +295,8 @@ export function DataModelLayout() {
               Select a schema, table, or column from the tree on the left to view its details and metadata.
             </Text>
           </Box>
-        )}
-      </Box>
-    </Box>
+        )
+      }
+    />
   );
 }

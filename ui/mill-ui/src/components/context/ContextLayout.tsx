@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router';
 import { HiOutlineLightBulb, HiOutlineAcademicCap } from 'react-icons/hi2';
 import { ContextSidebar } from './ContextSidebar';
 import { ConceptDetails } from './ConceptDetails';
-import { CollapsibleSidebar } from '../common/CollapsibleSidebar';
+import { ExplorerSplitLayout } from '../layout/ExplorerSplitLayout';
 import { conceptService } from '../../services/api';
 import { useChatReferencesContext } from '../../context/ChatReferencesContext';
 import type { Concept, ConceptFilter } from '../../types/context';
@@ -65,15 +65,10 @@ export function ContextLayout() {
   };
 
   return (
-    <Box
-      style={{
-        display: 'flex',
-        height: '100%',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Sidebar */}
-      <CollapsibleSidebar icon={HiOutlineAcademicCap} title="Knowledge">
+    <ExplorerSplitLayout
+      icon={HiOutlineAcademicCap}
+      title="Knowledge"
+      sidebarBody={
         <ContextSidebar
           concepts={concepts}
           categories={categories}
@@ -83,17 +78,9 @@ export function ContextLayout() {
           onSelectConcept={handleSelectConcept}
           onFilterChange={handleFilterChange}
         />
-      </CollapsibleSidebar>
-
-      {/* Main Content */}
-      <Box
-        style={{
-          flex: 1,
-          backgroundColor: 'var(--mantine-color-body)',
-          overflow: 'hidden',
-        }}
-      >
-        {selectedConcept ? (
+      }
+      main={
+        selectedConcept ? (
           <ConceptDetails concept={selectedConcept} />
         ) : (
           <Box
@@ -129,8 +116,8 @@ export function ContextLayout() {
               Browse business concepts by category or tag. Select a concept to view its definition, related entities, and SQL.
             </Text>
           </Box>
-        )}
-      </Box>
-    </Box>
+        )
+      }
+    />
   );
 }

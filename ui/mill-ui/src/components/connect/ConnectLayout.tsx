@@ -6,7 +6,7 @@ import {
   HiOutlineCodeBracket,
   HiOutlineLink,
 } from 'react-icons/hi2';
-import { CollapsibleSidebar } from '../common/CollapsibleSidebar';
+import { ExplorerSplitLayout } from '../layout/ExplorerSplitLayout';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
 
 type ConnectSection = 'services' | 'python' | 'java';
@@ -82,15 +82,10 @@ export function ConnectLayout() {
   };
 
   return (
-    <Box
-      style={{
-        display: 'flex',
-        height: '100%',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Sidebar */}
-      <CollapsibleSidebar icon={HiOutlineLink} title="Connect">
+    <ExplorerSplitLayout
+      icon={HiOutlineLink}
+      title="Connect"
+      sidebarBody={
         <Box
           style={{
             flex: 1,
@@ -116,17 +111,9 @@ export function ConnectLayout() {
             </Text>
           )}
         </Box>
-      </CollapsibleSidebar>
-
-      {/* Main Content */}
-      <Box
-        style={{
-          flex: 1,
-          backgroundColor: 'var(--mantine-color-body)',
-          overflow: 'hidden',
-        }}
-      >
-        {activeSection && visibleItems.some((i) => i.id === activeSection) ? (
+      }
+      main={
+        activeSection && visibleItems.some((i) => i.id === activeSection) ? (
           <ConnectPanel section={activeSection} />
         ) : (
           <Box
@@ -162,8 +149,8 @@ export function ConnectLayout() {
               Select a section from the sidebar to configure services, Python, and Java integrations.
             </Text>
           </Box>
-        )}
-      </Box>
-    </Box>
+        )
+      }
+    />
   );
 }
