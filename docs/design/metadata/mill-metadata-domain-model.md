@@ -51,11 +51,14 @@ Persistence and API details: SPEC §5.4, §8, §10.
 
 ---
 
-## 4. Scopes and `MetadataContext`
+## 4. Scopes and `MetadataReadContext`
 
 A **`MetadataScope`** is a first-class record (global, team, custom, etc.) with its own URN.
 
-**`MetadataContext`** is a **caller-ordered list of scope keys** used when resolving facets. Resolution applies scopes in order; **last wins** for overlapping contributions (SPEC §5 / service layer).
+**`MetadataReadContext`** is the read-resolution context used when resolving facets.
+It carries a caller-ordered list of active scope keys and optional active origins.
+Resolution applies scopes in order; **last wins** for overlapping contributions.
+Origins are used primarily to mute sources during read resolution.
 
 Examples:
 

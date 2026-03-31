@@ -14,7 +14,7 @@
 - ✅ WI-085 — Service layer cleanup: NoOp repositories, `@AutoConfigureAfter` ordering, component-scan alignment, all four metadata controllers visible in `/v3/api-docs`.
 - ✅ WI-086 — REST layer redesign: four controllers (`MetadataEntityController`, `MetadataFacetController`, `MetadataScopeController`, `MetadataImportExportController`) at `/api/v1/metadata/**`; `MetadataExceptionHandler` (`@RestControllerAdvice`); `MetadataUrns` URN helpers.
 - ✅ WI-087 — Relational persistence: new `mill-metadata-persistence` module; early Flyway iterations introduced tables since renamed or superseded by the greenfield squashed schema (**SPEC §8**). Current as-built DDL uses **`metadata_audit`** (append-only operation log), **`metadata_seed`** ledger, and **no** `metadata_promotion` table; JPA adapters and `MetadataJpaPersistenceAutoConfiguration` align to **`mill.metadata.repository.type=jpa`**.
-- ✅ WI-089 — Scope model: `MetadataScope`, `MetadataScopeRepository`, `MetadataScopeService`, `MetadataContext`; `JpaMetadataScopeRepository`; `NoOpMetadataScopeRepository` fallback.
+- ✅ WI-089 — Scope model: `MetadataScope`, `MetadataScopeRepository`, `MetadataScopeService`, `MetadataReadContext` (formerly `MetadataContext`); `JpaMetadataScopeRepository`; `NoOpMetadataScopeRepository` fallback.
 - ✅ WI-092 — `mill-ui` model view wired to real backend (read-only); inline chat disabled pending redesign.
 
 **Delivered in stories `metadata-edit-and-explorer` and follow-ups (closed March 2026, see

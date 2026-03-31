@@ -98,7 +98,7 @@ These live in `metadata/mill-metadata-core/src/main/kotlin/io/qpointz/mill/metad
 | `ai/mill-ai-v1-core` | `SchemaMessageSpec`, `ValueMappingComponents`, `NlsqlMetadataFacets` |
 | `ai/mill-ai-v1-nlsql-chat-service` | `ChatProcessor` |
 | `metadata/mill-metadata-autoconfigure` | `MetadataCoreConfiguration` |
-| `ui/mill-ui` | `schema.ts`, `schemaService.ts` (TypeScript equivalents) |
+| `ui/mill-ui` | `schema.ts`, `schemaService.ts` (TypeScript equivalents; resolved DTOs should project `origin`, `originId`, `editable`, and `assignmentUid` for the UI) |
 
 ## Target State
 

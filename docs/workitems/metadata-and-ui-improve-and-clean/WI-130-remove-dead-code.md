@@ -1,66 +1,67 @@
-# WI-130 — Remove dead code from metadata module
+# WI-130 — Remove dead code (final sweep)
 
-**Story:** metadata-and-ui-improve-and-clean
-**Status:** Pending
+**Story:** metadata-and-ui-improve-and-clean  
+**Status:** Pending  
+**Type:** change  
+**Area:** metadata
 
-## Objective
+## Summary
 
-Remove classes from the metadata module that have zero production consumers. This is a safe
-preparatory cleanup before the larger facet class demotion work.
+Remove metadata-module types with **no** production consumers **after** larger refactors landed, so newly orphaned code is visible. Inventory below was a **planning snapshot** — **re-verify** before deleting.
+
+Normative: [`SPEC.md`](SPEC.md) §0, §1.
 
 ## Scope
 
-### Tier 1 — Completely unused (zero code references outside defining file)
+### Tier 1 — unused (verify)
 
 | Class | Module / Path |
 |-------|---------------|
 | `FacetTypeConflictException` | `mill-metadata-core` / `domain/facet/exceptions/FacetTypeManifestExceptions.kt` |
-| `FacetTypeNotFoundException` | `mill-metadata-core` / `domain/facet/exceptions/FacetTypeManifestExceptions.kt` |
-| `FacetTypeDescriptorDto` | `mill-metadata-service` / `api/dto/FacetTypeDescriptorDto.kt` |
-| `FacetDto` | `mill-metadata-service` / `api/dto/FacetDto.kt` |
+| `FacetTypeNotFoundException` | same |
+| `FacetTypeDescriptorDto` | `mill-metadata-service` / `api/dto/` |
+| `FacetDto` | `mill-metadata-service` / `api/dto/` |
 
-### Tier 2 — Dead clusters (only reference each other, never consumed externally)
+### Excluded from dead-code removal (active façade)
 
-**Snapshot service cluster:**
+- **`MetadataView`** (`mill-metadata-core` / `service/MetadataView.kt`) — thin read helper calling **`facetService.resolve`**; **WI-133** migrates it to **`MetadataReadContext`**. **Do not delete** here unless **WI-133** replaces it first and all callers are updated.
 
-| Class | Module / Path |
-|-------|---------------|
-| `MetadataView` | `mill-metadata-core` / `service/MetadataView.kt` |
-| `MetadataSnapshotService` | `mill-metadata-core` / `service/MetadataSnapshotService.kt` |
-| `DefaultMetadataSnapshotService` | `mill-metadata-core` / `service/DefaultMetadataSnapshotService.kt` |
-
-**ResourceResolver cluster:**
+### Tier 2 — clusters (verify)
 
 | Class | Module / Path |
 |-------|---------------|
-| `ResourceResolver` | `mill-metadata-core` / `repository/file/ResourceResolver.kt` |
-| `SpringResourceResolver` | `mill-metadata-autoconfigure` / `repository/file/SpringResourceResolver.kt` |
-| `ClasspathResourceResolver` | `mill-metadata-core` / `test/.../ClasspathResourceResolver.kt` |
+| `MetadataSnapshotService`, `DefaultMetadataSnapshotService` | `mill-metadata-core` / `service/` |
+| `ResourceResolver`, `SpringResourceResolver`, `ClasspathResourceResolver` | core / autoconfigure / test |
 
-### Tier 3 — Orphan (no production consumers)
+### Tier 3–4 — orphan / legacy-ui-only
 
-| Class | Module / Path |
-|-------|---------------|
-| `PlatformFacetTypeDefinitions` | `mill-metadata-core` / `domain/facet/PlatformFacetTypeDefinitions.kt` |
+| Class | Notes |
+|-------|--------|
+| `PlatformFacetTypeDefinitions` | Verify usage |
+| `TreeNodeDto`, `SearchResultDto` | If only **retired** UI consumed them |
 
-### Tier 4 — Used only by retired legacy code (`mill-grinder-ui`)
+**Keep:** classes inside **`FacetPayloadFieldJsonSerde`** used by Jackson; **`FacetTypeManifestInvalidException`**.
 
-| Class | Module / Path |
-|-------|---------------|
-| `TreeNodeDto` | `mill-metadata-service` / `api/dto/TreeNodeDto.kt` |
-| `SearchResultDto` | `mill-metadata-service` / `api/dto/SearchResultDto.kt` |
+## Out of scope
 
-## Verification
+- Facet class demotion (**WI-140**) — separate deletes.
 
-- `./gradlew :metadata:mill-metadata-core:test`
-- `./gradlew :metadata:mill-metadata-service:test`
-- `./gradlew :metadata:mill-metadata-persistence:testIT`
-- Full `./gradlew build` to confirm no compile errors across dependent modules
+## Dependencies
 
-## Notes
+- **WI-140** complete (or document explicit exceptions if run earlier).
 
-- `FacetPayloadFieldJsonSerde.kt` contains `FacetPayloadFieldDeserializer` and
-  `FacetPayloadFieldSerializer` — these ARE used via Jackson annotations on `FacetPayloadSchema`.
-  Only the **file name** is misleading; the classes inside are live. Do not remove.
-- `FacetTypeManifestInvalidException` (same file as the two unused exceptions) IS used by
-  `FacetTypeManifestNormalizer`. Keep it; only remove the two unused siblings.
+## Acceptance criteria
+
+- **`./gradlew :metadata:mill-metadata-core:test`** and **`:metadata:mill-metadata-service:test`** pass; broader **`./gradlew build`** if scope crosses modules.
+- Inventory updated in this file or **SPEC §1** if items change.
+
+## Testing
+
+```bash
+./gradlew :metadata:mill-metadata-core:test :metadata:mill-metadata-service:test
+./gradlew build
+```
+
+## Commit
+
+One logical `[change]` commit; update [`STORY.md`](STORY.md); clean tree.
