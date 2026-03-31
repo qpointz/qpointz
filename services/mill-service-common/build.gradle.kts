@@ -23,6 +23,7 @@ dependencies {
     api(libs.jackson.datatype.jsr310)
 
     implementation(project(":core:mill-spring-support"))
+    implementation(libs.springdoc.openapi.starter.webmvc.ui)
 
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)

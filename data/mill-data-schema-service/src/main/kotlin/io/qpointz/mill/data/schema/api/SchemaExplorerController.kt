@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController
  */
 @RestController
 @RequestMapping("/api/v1/schema")
-@Tag(name = "Schema Explorer", description = "Browse physical schema and merged metadata facets")
+@Tag(name = "schema", description = "Browse physical schema and merged metadata facets")
 class SchemaExplorerController(
     private val schemaExplorerService: SchemaExplorerService
 ) {

@@ -37,5 +37,6 @@ A document belongs here if its **primary subject** is one of:
 | `metadata-service-design.md` | Service architecture + implementation notes, including manifest-based facet type API, registry strategy contract, and startup import behavior |
 | `metadata-ui-implementation-plan.md` | UI planning + implementation notes for admin facet type management (routes, flags, split editor, expert JSON mode) |
 | `model-view-facet-boxes.md` | Data Model explorer (`/model`): standard vs custom facet boxes, MULTIPLE-instance layout, extension points |
+| `facet-class-elimination.md` | **Proposed:** remove "blessed" concrete facet classes (`DescriptiveFacet`, `ConceptFacet`, `ValueMappingFacet`, etc.) that duplicate the generic `FacetInstance` + `FacetPayloadSchema` architecture; demote to plain data containers; dead-code inventory |
 | `value-mapping-tactical-solution.md` | Tactical YAML-based value-mapping config (FileRepository) |
 | `value-mapping-via-metadata-provider.md` | Value mapping via MetadataProvider (facet-based approach) |

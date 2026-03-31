@@ -3,6 +3,7 @@ grpc:
     port: ${mill.data.services.grpc.port}
 #    address: ${mill.data.services.grpc.address}
 
+
 spring:
   application:
     name: ${mill.application.name}
@@ -59,3 +60,6 @@ mill:
     ai-nl2data:
       enable: false
 
+springdoc:
+  swagger-ui:
+    tags-sorter: alpha
