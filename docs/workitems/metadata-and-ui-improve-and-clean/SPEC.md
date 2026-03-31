@@ -85,14 +85,9 @@ Full schema-bound metadata must be the **combination** of:
 
 ## 4. UI Improvements
 
-> **TODO:** Describe the UI work here.
->
-> Possible areas (fill in or strike):
-> - Facet viewer / editor improvements (`FacetViewer.tsx`, `EntityDetails.tsx`)
-> - Concepts UI (`ConceptsView.tsx`, `ConceptsSidebar.tsx`)
-> - Data-model layout polish (`MetadataLayout.tsx`, `MetadataSidebar.tsx`)
-> - BACKLOG U-12: per-facet-type view/edit component registration
-> - Other:
+**Completed:**
+- Explorer layout: all views migrated to `ExplorerSplitLayout` + `ViewPaneHeader` two-row shell (WI-131).
+- `platform-bootstrap.yaml`: `description` fields normalized — concise noun-phrase style, consistent cardinality enum text, MANY_TO_ONE corrected, missing `relation-source` MANY_TO_ONE added.
 
 ---
 

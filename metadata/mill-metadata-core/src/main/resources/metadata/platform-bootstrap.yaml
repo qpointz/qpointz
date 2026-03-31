@@ -13,7 +13,7 @@ visibility: PUBLIC
 kind: FacetTypeDefinition
 facetTypeUrn: urn:mill/metadata/facet-type:descriptive
 title: Description
-description: "Provides the display name, narrative description, and tags for an entity."
+description: "Display name, narrative description, and tags."
 enabled: true
 category: general
 mandatory: true
@@ -53,7 +53,7 @@ schemaVersion: "1.0"
 kind: FacetTypeDefinition
 facetTypeUrn: urn:mill/metadata/facet-type:schema
 title: Schema
-description: "Provides the schema name for a schema entity."
+description: "Schema name for a schema-type entity."
 enabled: true
 category: general
 mandatory: false
@@ -61,7 +61,7 @@ targetCardinality: SINGLE
 contentSchema:
   type: OBJECT
   title: Schema payload
-  description: "Field that holds the schema name."
+  description: "Fields that hold the schema name."
   fields:
     - name: schema
       schema:
@@ -77,7 +77,7 @@ schemaVersion: "1.0"
 kind: FacetTypeDefinition
 facetTypeUrn: urn:mill/metadata/facet-type:table
 title: Table
-description: "Provides the schema and table names for a table entity."
+description: "Schema and table names for a table-type entity."
 enabled: true
 category: general
 mandatory: false
@@ -107,7 +107,7 @@ schemaVersion: "1.0"
 kind: FacetTypeDefinition
 facetTypeUrn: urn:mill/metadata/facet-type:relation
 title: Relation
-description: "Provides a relation definition with both source and target, independent of either participating table."
+description: "Relation between a source table and a target table, independent of either entity."
 enabled: true
 category: relation
 mandatory: false
@@ -184,11 +184,13 @@ contentSchema:
         description: "Cardinality of the relation from the source table to the target table."
         values:
           - value: ONE_TO_ONE
-            description: "Each row in the source table relates to at most one row in the target table, and each target row relates to at most one row in the source table."
+            description: "Each source row relates to at most one target row, and vice versa."
           - value: ONE_TO_MANY
-            description: "One row in the source table can relate to multiple rows in the target table."
+            description: "One source row can relate to multiple target rows."
+          - value: MANY_TO_ONE
+            description: "Multiple source rows can relate to one target row."
           - value: MANY_TO_MANY
-            description: "Rows in the source table can relate to multiple rows in the target table, and target rows can relate to multiple rows in the source table."
+            description: "Source rows can relate to multiple target rows, and vice versa."
           - value: UNKNOWN
             description: "The relation exists, but its cardinality is not specified."
       required: true
@@ -205,7 +207,7 @@ schemaVersion: "1.0"
 kind: FacetTypeDefinition
 facetTypeUrn: urn:mill/metadata/facet-type:relation-target
 title: RelationTarget
-description: "Provides the relation where the table that carries this facet is the target table."
+description: "Inbound relation where this table is the target; records source, columns, and cardinality."
 enabled: true
 category: relation
 mandatory: false
@@ -255,6 +257,23 @@ contentSchema:
           title: Target Column
           description: "One target column name."
       required: true
+    - name: cardinality
+      schema:
+        type: ENUM
+        title: Cardinality
+        description: "Cardinality of the inbound relation from the source table to this table."
+        values:
+          - value: ONE_TO_ONE
+            description: "Each source row relates to at most one target row, and vice versa."
+          - value: ONE_TO_MANY
+            description: "One source row can relate to multiple target rows."
+          - value: MANY_TO_ONE
+            description: "Multiple source rows can relate to one target row."
+          - value: MANY_TO_MANY
+            description: "Source rows can relate to multiple target rows, and vice versa."
+          - value: UNKNOWN
+            description: "The relation exists, but its cardinality is not specified."
+      required: true
     - name: joinSql
       schema:
         type: STRING
@@ -269,7 +288,7 @@ schemaVersion: "1.0"
 kind: FacetTypeDefinition
 facetTypeUrn: urn:mill/metadata/facet-type:column
 title: Column
-description: "Provides the schema, table, and column names for an attribute, with optional type details."
+description: "Schema, table, and column names for an attribute, with optional type details."
 enabled: true
 category: general
 mandatory: false
@@ -343,7 +362,7 @@ schemaVersion: "1.0"
 kind: FacetTypeDefinition
 facetTypeUrn: urn:mill/metadata/facet-type:relation-source
 title: RelationSource
-description: "Provides the relation from the table where this facet is applied to a target table."
+description: "Outbound relation where this table is the source; records target, columns, and cardinality."
 enabled: true
 category: relation
 mandatory: false
@@ -400,11 +419,13 @@ contentSchema:
         description: "Cardinality of the relation from this table to the target table."
         values:
           - value: ONE_TO_ONE
-            description: "Each row in this table relates to at most one row in the target table, and each target row relates to at most one row in this table."
+            description: "Each source row relates to at most one target row, and vice versa."
           - value: ONE_TO_MANY
-            description: "One row in this table can relate to multiple rows in the target table."
+            description: "One source row can relate to multiple target rows."
+          - value: MANY_TO_ONE
+            description: "Multiple source rows can relate to one target row."
           - value: MANY_TO_MANY
-            description: "Rows in this table can relate to multiple rows in the target table, and target rows can relate to multiple rows in this table."
+            description: "Source rows can relate to multiple target rows, and vice versa."
           - value: UNKNOWN
             description: "The relation exists, but its cardinality is not specified."
       required: true
@@ -434,7 +455,7 @@ schemaVersion: "1.0"
 kind: FacetTypeDefinition
 facetTypeUrn: urn:mill/metadata/facet-type:qsynth-model
 title: Qsynth model
-description: "Provides the qsynth model settings attached to a schema entity."
+description: "Qsynth model settings for a schema entity."
 enabled: true
 category: data
 mandatory: false
@@ -485,7 +506,7 @@ schemaVersion: "1.0"
 kind: FacetTypeDefinition
 facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
 title: Qsynth table
-description: "Provides the qsynth dataset settings attached to a table entity."
+description: "Qsynth dataset settings for a table entity."
 enabled: true
 category: data
 mandatory: false
@@ -544,7 +565,7 @@ schemaVersion: "1.0"
 kind: FacetTypeDefinition
 facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
 title: Qsynth column
-description: "Provides the qsynth attribute settings attached to a column entity."
+description: "Qsynth attribute settings for a column entity."
 enabled: true
 category: data
 mandatory: false
@@ -598,7 +619,7 @@ schemaVersion: "1.0"
 kind: FacetTypeDefinition
 facetTypeUrn: urn:mill/metadata/facet-type:qsynth-run
 title: Qsynth run
-description: "Provides run information for one qsynth generation attached to a schema entity."
+description: "Qsynth generation run record for a schema entity."
 enabled: true
 category: data
 mandatory: false
@@ -634,7 +655,7 @@ schemaVersion: "1.0"
 kind: FacetTypeDefinition
 facetTypeUrn: urn:mill/metadata/facet-type:links
 title: Links
-description: "Provides one or more hyperlinks for an entity (optional title per link; href required)."
+description: "One or more named hyperlinks for an entity."
 enabled: true
 category: general
 mandatory: false
@@ -642,7 +663,7 @@ targetCardinality: MULTIPLE
 contentSchema:
   type: OBJECT
   title: Links
-  description: "Each facet instance is one object with a links array; the UI renders items as hyperlink rows."
+  description: "Fields that hold the link-group title and an ordered list of hyperlinks."
   fields:
     - name: title
       schema:
