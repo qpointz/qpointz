@@ -7,7 +7,7 @@ import io.qpointz.mill.data.schema.MetadataEntityUrnCodec;
 import io.qpointz.mill.data.metadata.SchemaEntityKinds;
 import io.qpointz.mill.metadata.domain.MetadataEntity;
 import io.qpointz.mill.metadata.domain.core.ValueMappingFacet;
-import io.qpointz.mill.metadata.repository.FacetRepository;
+import io.qpointz.mill.metadata.repository.FacetReadSide;
 import io.qpointz.mill.metadata.service.MetadataEntityService;
 import io.qpointz.mill.proto.QueryExecutionConfig;
 import io.qpointz.mill.proto.QueryRequest;
@@ -36,18 +36,18 @@ public class ValueMappingComponents {
     private final ValueRepository repository;
     private final DataOperationDispatcher dataDispatcher;
     private final MetadataEntityService metadataEntityService;
-    private final FacetRepository facetRepository;
+    private final FacetReadSide facetReadSide;
     private final MetadataEntityUrnCodec urnCodec;
 
     public ValueMappingComponents(@Autowired(required = false) ValueRepository repository,
                                   @Autowired(required = false) DataOperationDispatcher dataOperation,
                                   @Autowired(required = false) MetadataEntityService metadataEntityService,
-                                  @Autowired(required = false) FacetRepository facetRepository,
+                                  @Autowired(required = false) FacetReadSide facetReadSide,
                                   @Autowired(required = false) MetadataEntityUrnCodec urnCodec) {
         this.repository = repository;
         this.dataDispatcher = dataOperation;
         this.metadataEntityService = metadataEntityService;
-        this.facetRepository = facetRepository;
+        this.facetReadSide = facetReadSide;
         this.urnCodec = urnCodec;
     }
 
@@ -118,7 +118,7 @@ public class ValueMappingComponents {
     public void onApplicationReady() {
         log.info("Value Mapping RAG component initialized.");
         if (repository == null || this.dataDispatcher == null || this.metadataEntityService == null
-                || this.facetRepository == null || this.urnCodec == null) {
+                || this.facetReadSide == null || this.urnCodec == null) {
             log.info("Value mapping not set up");
             return;
         }
@@ -141,7 +141,7 @@ public class ValueMappingComponents {
                 continue;
             }
             Optional<ValueMappingFacet> facetOpt = NlsqlMetadataFacets.readGlobalFacet(
-                    facetRepository, attribute.getId(), "value-mapping", ValueMappingFacet.class);
+                    facetReadSide, attribute.getId(), "value-mapping", ValueMappingFacet.class);
             if (facetOpt.isEmpty()) continue;
             ValueMappingFacet facet = facetOpt.get();
 
@@ -179,7 +179,7 @@ public class ValueMappingComponents {
                 continue;
             }
             Optional<ValueMappingFacet> facetOpt = NlsqlMetadataFacets.readGlobalFacet(
-                    facetRepository, attribute.getId(), "value-mapping", ValueMappingFacet.class);
+                    facetReadSide, attribute.getId(), "value-mapping", ValueMappingFacet.class);
             if (facetOpt.isEmpty()) continue;
             ValueMappingFacet facet = facetOpt.get();
 

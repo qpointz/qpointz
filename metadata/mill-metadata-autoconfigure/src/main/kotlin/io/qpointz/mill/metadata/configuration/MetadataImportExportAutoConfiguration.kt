@@ -5,7 +5,7 @@ import io.qpointz.mill.metadata.domain.MetadataChangeObserverChain
 import io.qpointz.mill.metadata.domain.MetadataChangeObserverDelegate
 import io.qpointz.mill.metadata.domain.NoOpMetadataChangeObserver
 import io.qpointz.mill.metadata.repository.FacetRepository
-import io.qpointz.mill.metadata.repository.MetadataEntityRepository
+import io.qpointz.mill.metadata.repository.EntityRepository
 import io.qpointz.mill.metadata.repository.MetadataScopeRepository
 import io.qpointz.mill.metadata.service.DefaultMetadataImportService
 import io.qpointz.mill.metadata.service.FacetCatalog
@@ -44,7 +44,7 @@ class MetadataImportExportAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(MetadataImportService::class)
     fun metadataImportService(
-        entityRepository: MetadataEntityRepository,
+        entityRepository: EntityRepository,
         entityService: MetadataEntityService,
         facetRepository: FacetRepository,
         scopeRepository: MetadataScopeRepository,

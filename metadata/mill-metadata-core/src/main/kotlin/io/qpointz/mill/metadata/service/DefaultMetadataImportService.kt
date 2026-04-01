@@ -8,7 +8,7 @@ import io.qpointz.mill.metadata.domain.MetadataScope
 import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.io.MetadataYamlSerializer
 import io.qpointz.mill.metadata.repository.FacetRepository
-import io.qpointz.mill.metadata.repository.MetadataEntityRepository
+import io.qpointz.mill.metadata.repository.EntityRepository
 import io.qpointz.mill.metadata.repository.MetadataScopeRepository
 import java.io.InputStream
 import java.time.Instant
@@ -22,7 +22,7 @@ import java.util.UUID
  * @param facetCatalog registers facet type definitions (persists def + runtime `metadata_facet_type` rows)
  */
 class DefaultMetadataImportService(
-    private val entityRepository: MetadataEntityRepository,
+    private val entityRepository: EntityRepository,
     private val entityService: MetadataEntityService,
     private val facetRepository: FacetRepository,
     private val scopeRepository: MetadataScopeRepository,

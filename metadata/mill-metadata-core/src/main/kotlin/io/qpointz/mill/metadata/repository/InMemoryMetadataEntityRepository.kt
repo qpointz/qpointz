@@ -5,11 +5,11 @@ import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * In-memory [MetadataEntityRepository] for tests and local bootstraps without JPA.
+ * In-memory [EntityRepository] for tests and local bootstraps without JPA.
  *
  * Keys are canonical entity URNs ([MetadataEntityUrn.canonicalize]).
  */
-class InMemoryMetadataEntityRepository : MetadataEntityRepository {
+class InMemoryMetadataEntityRepository : EntityRepository {
 
     private val byId = ConcurrentHashMap<String, MetadataEntity>()
 

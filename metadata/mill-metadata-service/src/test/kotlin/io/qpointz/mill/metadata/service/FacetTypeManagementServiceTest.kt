@@ -8,7 +8,7 @@ import io.qpointz.mill.metadata.domain.facet.FacetPayloadSchema
 import io.qpointz.mill.metadata.domain.facet.FacetSchemaType
 import io.qpointz.mill.metadata.domain.facet.FacetTargetCardinality
 import io.qpointz.mill.metadata.domain.facet.FacetTypeManifest
-import io.qpointz.mill.metadata.repository.FacetRepository
+import io.qpointz.mill.metadata.repository.FacetReadSide
 import io.qpointz.mill.metadata.repository.FacetTypeDefinitionRepository
 import io.qpointz.mill.metadata.repository.FacetTypeRepository
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -28,12 +28,12 @@ class FacetTypeManagementServiceTest {
     private val facetCatalog: FacetCatalog = mock()
     private val definitionRepository: FacetTypeDefinitionRepository = mock()
     private val facetTypeRepository: FacetTypeRepository = mock()
-    private val facetRepository: FacetRepository = mock()
+    private val facetReadSide: FacetReadSide = mock()
     private val service = FacetTypeManagementService(
         facetCatalog,
         definitionRepository,
         facetTypeRepository,
-        facetRepository,
+        facetReadSide,
         ObjectMapper()
     )
 

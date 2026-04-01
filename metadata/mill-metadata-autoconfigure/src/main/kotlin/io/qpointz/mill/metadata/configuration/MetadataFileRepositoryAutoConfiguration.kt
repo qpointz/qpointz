@@ -8,7 +8,7 @@ import io.qpointz.mill.metadata.repository.InMemoryFacetTypeDefinitionRepository
 import io.qpointz.mill.metadata.repository.InMemoryFacetTypeRepository
 import io.qpointz.mill.metadata.repository.InMemoryMetadataEntityRepository
 import io.qpointz.mill.metadata.repository.InMemoryMetadataScopeRepository
-import io.qpointz.mill.metadata.repository.MetadataEntityRepository
+import io.qpointz.mill.metadata.repository.EntityRepository
 import io.qpointz.mill.metadata.repository.MetadataScopeRepository
 import jakarta.annotation.PostConstruct
 import org.springframework.boot.autoconfigure.AutoConfiguration
@@ -43,7 +43,7 @@ class MetadataFileRepositoryAutoConfiguration {
         MetadataFileRepositorySettingsValidator(properties, seedProperties)
 
     @Bean
-    fun fileBackedMetadataEntityRepository(): MetadataEntityRepository = InMemoryMetadataEntityRepository()
+    fun fileBackedMetadataEntityRepository(): EntityRepository = InMemoryMetadataEntityRepository()
 
     @Bean
     fun fileBackedFacetRepository(): FacetRepository = InMemoryFacetRepository()

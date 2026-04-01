@@ -1,7 +1,7 @@
 package io.qpointz.mill.persistence.metadata.jpa
 
 import io.qpointz.mill.metadata.configuration.MetadataSeedStartup
-import io.qpointz.mill.metadata.repository.MetadataEntityRepository
+import io.qpointz.mill.metadata.repository.EntityRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import io.qpointz.mill.persistence.metadata.jpa.it.MetadataSeedLedgerITApplication
@@ -25,7 +25,7 @@ import org.springframework.test.context.TestPropertySource
 class MetadataStartupSeedLedgerIT {
 
     @Autowired
-    private lateinit var entityRepository: MetadataEntityRepository
+    private lateinit var entityRepository: EntityRepository
 
     @Autowired
     private lateinit var metadataSeedStartup: MetadataSeedStartup

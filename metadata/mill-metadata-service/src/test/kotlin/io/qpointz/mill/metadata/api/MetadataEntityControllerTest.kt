@@ -10,7 +10,7 @@ import io.qpointz.mill.metadata.domain.facet.FacetInstance
 import io.qpointz.mill.metadata.domain.facet.FacetOrigin
 import io.qpointz.mill.metadata.domain.facet.MergeAction
 import io.qpointz.mill.metadata.domain.facet.toCapturedReadModel
-import io.qpointz.mill.metadata.repository.FacetRepository
+import io.qpointz.mill.metadata.repository.FacetReadSide
 import io.qpointz.mill.metadata.service.FacetService
 import io.qpointz.mill.metadata.service.MetadataEditService
 import io.qpointz.mill.metadata.service.MetadataReader
@@ -61,7 +61,7 @@ class MetadataEntityControllerTest {
     private lateinit var metadataEditService: MetadataEditService
 
     @MockitoBean
-    private lateinit var facetRepository: FacetRepository
+    private lateinit var facetReadSide: FacetReadSide
 
     @MockitoBean
     private lateinit var facetService: FacetService
@@ -124,8 +124,8 @@ class MetadataEntityControllerTest {
         val auth = UsernamePasswordAuthenticationToken("test-user", null, emptyList())
         SecurityContextHolder.getContext().authentication = auth
         whenever(urnCodec.decode(schemaUrn)).thenReturn(CatalogPath("myschema", null, null))
-        whenever(facetRepository.findByEntity(schemaUrn)).thenReturn(listOf(descriptiveAssignment))
-        whenever(facetRepository.findByEntityAndType(eq(schemaUrn), any())).thenReturn(listOf(descriptiveAssignment))
+        whenever(facetReadSide.findByEntity(schemaUrn)).thenReturn(listOf(descriptiveAssignment))
+        whenever(facetReadSide.findByEntityAndType(eq(schemaUrn), any())).thenReturn(listOf(descriptiveAssignment))
         whenever(facetService.resolve(eq(schemaUrn), any())).thenReturn(listOf(descriptiveRead))
         whenever(facetService.resolveByType(eq(schemaUrn), any(), any())).thenReturn(listOf(descriptiveRead))
         whenever(metadataReader.resolveEffective(any(), any())).thenReturn(listOf(descriptiveAssignment))
@@ -310,7 +310,7 @@ class MetadataEntityControllerTest {
         )
         whenever(metadataEditService.createEntity(any(), eq("test-user"))).thenReturn(created)
         whenever(metadataService.findById(newUrn)).thenReturn(Optional.of(created))
-        whenever(facetRepository.findByEntity(newUrn)).thenReturn(emptyList())
+        whenever(facetReadSide.findByEntity(newUrn)).thenReturn(emptyList())
 
         mockMvc.post("/api/v1/metadata/entities") {
             contentType = MediaType.APPLICATION_JSON
@@ -325,7 +325,7 @@ class MetadataEntityControllerTest {
     fun shouldOverwriteEntity_whenPut() {
         whenever(metadataEditService.overwriteEntity(any(), any(), any())).thenReturn(baseEntity)
         whenever(metadataService.findById(schemaUrn)).thenReturn(Optional.of(baseEntity))
-        whenever(facetRepository.findByEntity(schemaUrn)).thenReturn(emptyList())
+        whenever(facetReadSide.findByEntity(schemaUrn)).thenReturn(emptyList())
 
         mockMvc.perform(
             servletPut(entityUri(schemaUrn))
@@ -361,7 +361,7 @@ class MetadataEntityControllerTest {
     @Test
     fun shouldPatchFacet_whenPersistedRowExists() {
         whenever(metadataService.findById(schemaUrn)).thenReturn(Optional.of(baseEntity))
-        whenever(facetRepository.findByUid("facet-uid-1")).thenReturn(descriptiveAssignment)
+        whenever(facetReadSide.findByUid("facet-uid-1")).thenReturn(descriptiveAssignment)
         whenever(facetService.update(eq("facet-uid-1"), any(), eq("test-user"))).thenReturn(descriptiveRead)
 
         mockMvc.perform(
@@ -376,7 +376,7 @@ class MetadataEntityControllerTest {
     @Test
     fun shouldReturn422_whenPatchInferredFacetUid() {
         whenever(metadataService.findById(schemaUrn)).thenReturn(Optional.of(baseEntity))
-        whenever(facetRepository.findByUid("inf-1")).thenReturn(null)
+        whenever(facetReadSide.findByUid("inf-1")).thenReturn(null)
         val inferred = FacetInstance(
             assignmentUuid = "inf-1",
             entityId = schemaUrn,
@@ -405,7 +405,7 @@ class MetadataEntityControllerTest {
     @Test
     fun shouldReturn404_whenPatchUnknownFacetUid() {
         whenever(metadataService.findById(schemaUrn)).thenReturn(Optional.of(baseEntity))
-        whenever(facetRepository.findByUid("missing")).thenReturn(null)
+        whenever(facetReadSide.findByUid("missing")).thenReturn(null)
         whenever(facetService.resolve(eq(schemaUrn), any())).thenReturn(emptyList())
 
         mockMvc.perform(
@@ -419,7 +419,7 @@ class MetadataEntityControllerTest {
     @Test
     fun shouldDeleteFacetAtScope_whenDeleteWithScopeQuery() {
         whenever(metadataService.findById(schemaUrn)).thenReturn(Optional.of(baseEntity))
-        whenever(facetRepository.findByEntity(schemaUrn)).thenReturn(listOf(descriptiveAssignment))
+        whenever(facetReadSide.findByEntity(schemaUrn)).thenReturn(listOf(descriptiveAssignment))
         doNothing().whenever(metadataEditService).deleteFacet(any(), any(), any(), any())
 
         mockMvc.perform(

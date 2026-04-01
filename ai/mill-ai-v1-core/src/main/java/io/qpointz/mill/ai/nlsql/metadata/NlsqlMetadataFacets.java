@@ -4,7 +4,7 @@ import io.qpointz.mill.metadata.domain.FacetPayloadUtils;
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn;
 import io.qpointz.mill.metadata.domain.MetadataUrns;
 import io.qpointz.mill.metadata.domain.facet.FacetAssignment;
-import io.qpointz.mill.metadata.repository.FacetRepository;
+import io.qpointz.mill.metadata.repository.FacetReadSide;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,7 +22,7 @@ public final class NlsqlMetadataFacets {
      * @param facetTypeKeyShortOrUrn short key (e.g. {@code descriptive}) or full facet-type URN
      */
     public static <T> Optional<T> readGlobalFacet(
-            FacetRepository repo,
+            FacetReadSide repo,
             String entityId,
             String facetTypeKeyShortOrUrn,
             Class<T> clazz) {

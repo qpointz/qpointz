@@ -11,8 +11,8 @@ import io.qpointz.mill.data.schema.facet.RelationFacet
 import io.qpointz.mill.metadata.domain.facet.FacetAssignment
 import io.qpointz.mill.metadata.domain.facet.FacetTargetCardinality
 import io.qpointz.mill.metadata.domain.facet.MergeAction
+import io.qpointz.mill.metadata.repository.EntityReadSide
 import io.qpointz.mill.metadata.repository.FacetRepository
-import io.qpointz.mill.metadata.repository.MetadataEntityRepository
 import io.qpointz.mill.metadata.source.RepositoryMetadataSource
 import io.qpointz.mill.metadata.service.FacetCatalog
 import io.qpointz.mill.metadata.service.FacetInstanceReadMerge
@@ -47,7 +47,7 @@ class SchemaFacetServiceImplTest {
     private lateinit var schemaProvider: SchemaProvider
 
     @Mock
-    private lateinit var entityRepository: MetadataEntityRepository
+    private lateinit var entityRead: EntityReadSide
 
     @Mock
     private lateinit var facetRepository: FacetRepository
@@ -74,7 +74,7 @@ class SchemaFacetServiceImplTest {
         val metadataReader = MetadataReader(facetCatalog)
         val repoSource = RepositoryMetadataSource(facetRepository, metadataReader)
         readMerge = FacetInstanceReadMerge(listOf(repoSource), facetCatalog)
-        service = SchemaFacetServiceImpl(schemaProvider, entityRepository, readMerge, facetCatalog, codec)
+        service = SchemaFacetServiceImpl(schemaProvider, entityRead, readMerge, facetCatalog, codec)
     }
 
     private fun cardinalityForKey(typeKey: String): FacetTargetCardinality =
@@ -105,7 +105,7 @@ class SchemaFacetServiceImplTest {
     private fun now() = Instant.now()
 
     private fun stubEntities(vararg entities: MetadataEntity) {
-        whenever(entityRepository.findAll()).thenReturn(entities.toList())
+        whenever(entityRead.findAll()).thenReturn(entities.toList())
         entities.forEach { e ->
             whenever(facetRepository.findByEntity(e.id)).thenReturn(emptyList())
         }

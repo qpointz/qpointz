@@ -1,11 +1,12 @@
 package io.qpointz.mill.metadata.configuration
 
 import io.qpointz.mill.data.schema.MetadataEntityUrnCodec
+import io.qpointz.mill.metadata.repository.FacetReadSide
 import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.metadata.source.MetadataSource
 import io.qpointz.mill.metadata.source.RepositoryMetadataSource
 import io.qpointz.mill.metadata.repository.MetadataAuditRepository
-import io.qpointz.mill.metadata.repository.MetadataEntityRepository
+import io.qpointz.mill.metadata.repository.EntityRepository
 import io.qpointz.mill.metadata.service.FacetInstanceReadMerge
 import io.qpointz.mill.metadata.service.DefaultFacetService
 import io.qpointz.mill.metadata.service.DefaultMetadataEditService
@@ -35,7 +36,7 @@ class MetadataEntityServiceAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(MetadataEntityService::class)
     fun metadataEntityService(
-        entityRepository: MetadataEntityRepository,
+        entityRepository: EntityRepository,
         facetRepository: FacetRepository
     ): MetadataEntityService = DefaultMetadataEntityService(entityRepository, facetRepository)
 
@@ -46,15 +47,15 @@ class MetadataEntityServiceAutoConfiguration {
     /**
      * Read-only repository-backed [io.qpointz.mill.metadata.source.MetadataSource] for layered facet resolution.
      *
-     * @param facetRepository persisted facet assignments
+     * @param facetReadSide persisted facet assignment reads
      * @param metadataReader scope merge for effective rows
      */
     @Bean
     @ConditionalOnMissingBean(RepositoryMetadataSource::class)
     fun repositoryMetadataSource(
-        facetRepository: FacetRepository,
+        facetReadSide: FacetReadSide,
         metadataReader: MetadataReader
-    ): RepositoryMetadataSource = RepositoryMetadataSource(facetRepository, metadataReader)
+    ): RepositoryMetadataSource = RepositoryMetadataSource(facetReadSide, metadataReader)
 
     /**
      * Collects **every** Spring bean of type [MetadataSource] and merges them for read paths

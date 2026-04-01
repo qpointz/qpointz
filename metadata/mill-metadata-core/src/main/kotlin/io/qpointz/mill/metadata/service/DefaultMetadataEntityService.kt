@@ -3,7 +3,7 @@ package io.qpointz.mill.metadata.service
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.repository.FacetRepository
-import io.qpointz.mill.metadata.repository.MetadataEntityRepository
+import io.qpointz.mill.metadata.repository.EntityRepository
 import java.time.Instant
 import java.util.UUID
 
@@ -12,7 +12,7 @@ import java.util.UUID
  * @param facetRepository used to cascade-delete facet rows when an entity is removed
  */
 class DefaultMetadataEntityService(
-    private val entityRepository: MetadataEntityRepository,
+    private val entityRepository: EntityRepository,
     private val facetRepository: FacetRepository
 ) : MetadataEntityService {
 

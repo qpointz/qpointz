@@ -18,7 +18,7 @@ import io.qpointz.mill.annotations.service.ConditionalOnService;
 import io.qpointz.mill.ai.nlsql.metadata.SchemaMessageMetadataPorts;
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher;
 import io.qpointz.mill.data.schema.MetadataEntityUrnCodec;
-import io.qpointz.mill.metadata.repository.FacetRepository;
+import io.qpointz.mill.metadata.repository.FacetReadSide;
 import io.qpointz.mill.metadata.service.MetadataEntityService;
 import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec;
 import lombok.AllArgsConstructor;
@@ -33,7 +33,7 @@ public class ChatProcessor {
 
     private final UserChatMessageRepository userChatMessageRepository;
     private final MetadataEntityService metadataEntityService;
-    private final FacetRepository facetRepository;
+    private final FacetReadSide facetReadSide;
     private final MetadataEntityUrnCodec metadataEntityUrnCodec;
     private final DataOperationDispatcher dataOperationDispatcher;
     private final SqlDialectSpec sqlDialect;
@@ -41,7 +41,7 @@ public class ChatProcessor {
     private final ValueMappingConfiguration configuration;
 
     public ChatProcessor(MetadataEntityService metadataEntityService,
-                         FacetRepository facetRepository,
+                         FacetReadSide facetReadSide,
                          MetadataEntityUrnCodec metadataEntityUrnCodec,
                          SqlDialectSpec dialect,
                          DataOperationDispatcher dataOperationDispatcher,
@@ -50,7 +50,7 @@ public class ChatProcessor {
                          ValueMappingConfiguration configuration) {
         this.userChatMessageRepository = userChatMessageRepository;
         this.metadataEntityService = metadataEntityService;
-        this.facetRepository = facetRepository;
+        this.facetReadSide = facetReadSide;
         this.metadataEntityUrnCodec = metadataEntityUrnCodec;
         this.sqlDialect = dialect;
         this.dataOperationDispatcher = dataOperationDispatcher;
@@ -77,7 +77,7 @@ public class ChatProcessor {
 
         val eventProducer = new ChatSessionEventProducer(chat);
 
-        val schemaPorts = new SchemaMessageMetadataPorts(metadataEntityService, facetRepository, metadataEntityUrnCodec);
+        val schemaPorts = new SchemaMessageMetadataPorts(metadataEntityService, facetReadSide, metadataEntityUrnCodec);
         val application = new ChatApplication(chat.getChatBuilders(),
                                 schemaPorts,
                                 sqlDialect,
@@ -112,7 +112,7 @@ public class ChatProcessor {
     }
 
     private Reasoner createReasoner(CallSpecsChatClientBuilders chatBuilders) {
-        val schemaPorts = new SchemaMessageMetadataPorts(metadataEntityService, facetRepository, metadataEntityUrnCodec);
+        val schemaPorts = new SchemaMessageMetadataPorts(metadataEntityService, facetReadSide, metadataEntityUrnCodec);
         val reasonerType = configuration.getReasoner();
         if (reasonerType != null && reasonerType.equalsIgnoreCase("stepback")) {
             log.info("Using StepBackReasoner for NL2SQL processing");

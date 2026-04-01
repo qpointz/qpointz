@@ -5,7 +5,7 @@ import io.qpointz.mill.data.metadata.CatalogPath
 import io.qpointz.mill.data.metadata.SchemaModelRoot
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
-import io.qpointz.mill.metadata.repository.MetadataEntityRepository
+import io.qpointz.mill.metadata.repository.EntityReadSide
 import io.qpointz.mill.metadata.service.FacetCatalog
 import io.qpointz.mill.metadata.service.FacetInstanceReadMerge
 import io.qpointz.mill.metadata.service.MetadataContext
@@ -20,14 +20,14 @@ import io.qpointz.mill.proto.Table
  * over all registered [io.qpointz.mill.metadata.source.MetadataSource] beans (SPEC §3i).
  *
  * @param schemaProvider physical schema source
- * @param metadataEntityRepository persisted entity identities (`metadata_entity`)
+ * @param entityRead persisted entity identities (`metadata_entity`)
  * @param facetReadMerge multi-origin read merge (repository + future inferred sources)
  * @param facetCatalog facet type definitions for shaping merged rows into [SchemaFacets]
  * @param urnCodec decodes entity ids to [CatalogPath] coordinates
  */
 class SchemaFacetServiceImpl(
     private val schemaProvider: SchemaProvider,
-    private val metadataEntityRepository: MetadataEntityRepository,
+    private val entityRead: EntityReadSide,
     private val facetReadMerge: FacetInstanceReadMerge,
     private val facetCatalog: FacetCatalog,
     private val urnCodec: MetadataEntityUrnCodec = DefaultMetadataEntityUrnCodec()
@@ -35,13 +35,13 @@ class SchemaFacetServiceImpl(
 
     /** @see SchemaFacetService.getModelRoot */
     override fun getModelRoot(context: MetadataContext): ModelRootWithFacets {
-        val allEntities = metadataEntityRepository.findAll()
+        val allEntities = entityRead.findAll()
         return buildModelRoot(allEntities, context)
     }
 
     /** @see SchemaFacetService.getSchemas */
     override fun getSchemas(context: MetadataContext): SchemaFacetResult {
-        val allEntities = metadataEntityRepository.findAll()
+        val allEntities = entityRead.findAll()
         val entityIndex = catalogEntityIndex(allEntities)
         val usedEntityIds = mutableSetOf<String>()
         val modelRoot = buildModelRoot(allEntities, context)
@@ -80,7 +80,7 @@ class SchemaFacetServiceImpl(
         if (!schemaProvider.isSchemaExists(schemaName)) {
             return null
         }
-        val allEntities = metadataEntityRepository.findAll()
+        val allEntities = entityRead.findAll()
         val entityIndex = catalogEntityIndex(allEntities)
         val usedEntityIds = mutableSetOf<String>()
         return buildSchemaWithFacets(schemaName, entityIndex, usedEntityIds, context)
@@ -195,7 +195,7 @@ class SchemaFacetServiceImpl(
         table: Table,
         context: MetadataContext
     ): SchemaTableWithFacets {
-        val tableEntity = metadataEntityRepository.findById(urnCodec.forTable(schemaName, table.name))
+        val tableEntity = entityRead.findById(urnCodec.forTable(schemaName, table.name))
         val columns = table.fieldsList.map { field ->
             buildColumnWithFacetsNarrow(schemaName, table.name, field, context)
         }
@@ -223,7 +223,7 @@ class SchemaFacetServiceImpl(
         field: Field,
         context: MetadataContext
     ): SchemaColumnWithFacets {
-        val columnEntity = metadataEntityRepository.findById(
+        val columnEntity = entityRead.findById(
             urnCodec.forAttribute(schemaName, tableName, field.name)
         )
         return SchemaColumnWithFacets(

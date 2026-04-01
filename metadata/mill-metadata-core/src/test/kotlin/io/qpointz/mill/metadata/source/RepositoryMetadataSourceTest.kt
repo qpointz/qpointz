@@ -5,7 +5,7 @@ import io.qpointz.mill.metadata.domain.facet.FacetAssignment
 import io.qpointz.mill.metadata.domain.facet.FacetOrigin
 import io.qpointz.mill.metadata.domain.facet.FacetTargetCardinality
 import io.qpointz.mill.metadata.domain.facet.MergeAction
-import io.qpointz.mill.metadata.repository.FacetRepository
+import io.qpointz.mill.metadata.repository.FacetReadSide
 import io.qpointz.mill.metadata.service.MetadataReadContext
 import io.qpointz.mill.metadata.service.MetadataReader
 import io.qpointz.mill.metadata.service.FacetCatalog
@@ -38,7 +38,7 @@ class RepositoryMetadataSourceTest {
 
     @Test
     fun `fetchForEntity returns empty when repository origin is muted`() {
-        val facetRepo = mock<FacetRepository>()
+        val facetRepo = mock<FacetReadSide>()
         val catalog = mock<FacetCatalog>().apply {
             whenever(resolveCardinality(MetadataUrns.FACET_TYPE_DESCRIPTIVE)).thenReturn(FacetTargetCardinality.SINGLE)
         }
@@ -56,7 +56,7 @@ class RepositoryMetadataSourceTest {
 
     @Test
     fun `fetchForEntity maps merged assignments to CAPTURED read rows with repository originId`() {
-        val facetRepo = mock<FacetRepository>().apply {
+        val facetRepo = mock<FacetReadSide>().apply {
             whenever(findByEntity(entityId)).thenReturn(listOf(assignment))
         }
         val catalog = mock<FacetCatalog>().apply {

@@ -2,7 +2,7 @@ package io.qpointz.mill.persistence.metadata.jpa.adapters
 
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
-import io.qpointz.mill.metadata.repository.MetadataEntityRepository
+import io.qpointz.mill.metadata.repository.EntityRepository
 import io.qpointz.mill.persistence.metadata.jpa.entities.MetadataEntityRecord
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataEntityJpaRepository
 import org.springframework.transaction.annotation.Transactional
@@ -15,7 +15,7 @@ import java.util.UUID
 @Transactional
 class JpaMetadataEntityRepository(
     private val jpa: MetadataEntityJpaRepository
-) : MetadataEntityRepository {
+) : EntityRepository {
 
     override fun findById(id: String): MetadataEntity? {
         val res = MetadataEntityUrn.canonicalize(id)

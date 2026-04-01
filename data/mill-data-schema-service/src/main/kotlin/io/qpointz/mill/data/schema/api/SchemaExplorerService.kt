@@ -29,8 +29,8 @@ import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.domain.core.DescriptiveFacet
-import io.qpointz.mill.metadata.repository.FacetRepository
-import io.qpointz.mill.metadata.repository.MetadataEntityRepository
+import io.qpointz.mill.metadata.repository.EntityReadSide
+import io.qpointz.mill.metadata.repository.FacetReadSide
 import io.qpointz.mill.metadata.service.MetadataContext
 import io.qpointz.mill.proto.DataType
 import org.slf4j.LoggerFactory
@@ -48,8 +48,8 @@ import io.qpointz.mill.data.backend.SchemaProvider
 class SchemaExplorerService(
     private val schemaFacetService: SchemaFacetService,
     private val schemaProvider: SchemaProvider,
-    private val metadataEntityRepository: MetadataEntityRepository,
-    private val facetRepository: FacetRepository,
+    private val entityRead: EntityReadSide,
+    private val facetReadSide: FacetReadSide,
     private val objectMapper: ObjectMapper,
     private val urnCodec: MetadataEntityUrnCodec = DefaultMetadataEntityUrnCodec()
 ) {
@@ -82,7 +82,7 @@ class SchemaExplorerService(
         val facetMode = parseFacetMode(facetModeRaw)
         log.info("Listing schemas for scopes={} facetMode={}", metadataContext.scopes, facetMode)
         val schemaNames = schemaProvider.getSchemaNames().toList()
-        val allEntities = metadataEntityRepository.findAll()
+        val allEntities = entityRead.findAll()
         val modelEntity = findModelMetadataEntity(allEntities)
         val modelListItem = SchemaListItemDto(
             id = SchemaModelRoot.ENTITY_LOCAL_ID,
@@ -356,7 +356,7 @@ class SchemaExplorerService(
 
     private fun mapDescriptiveFacet(entity: MetadataEntity?, context: MetadataContext): Map<String, FacetEnvelopeDto>? {
         if (entity == null) return null
-        val instances = facetRepository.findByEntity(entity.id)
+        val instances = facetReadSide.findByEntity(entity.id)
         var resolved: DescriptiveFacet? = null
         context.scopes.forEach { scope ->
             facetTypeCandidates("descriptive").forEach { ft ->

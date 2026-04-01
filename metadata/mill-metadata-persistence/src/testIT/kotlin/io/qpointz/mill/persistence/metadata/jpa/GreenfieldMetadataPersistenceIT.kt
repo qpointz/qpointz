@@ -5,7 +5,7 @@ import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.domain.facet.FacetAssignment
 import io.qpointz.mill.metadata.domain.facet.MergeAction
 import io.qpointz.mill.metadata.repository.FacetRepository
-import io.qpointz.mill.metadata.repository.MetadataEntityRepository
+import io.qpointz.mill.metadata.repository.EntityRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataAuditJpaRepository
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
@@ -27,7 +27,7 @@ import java.util.UUID
 class GreenfieldMetadataPersistenceIT {
 
     @Autowired
-    private lateinit var metadataEntityRepository: MetadataEntityRepository
+    private lateinit var metadataEntityRepository: EntityRepository
 
     @Autowired
     private lateinit var facetRepository: FacetRepository

@@ -2,8 +2,8 @@ package io.qpointz.mill.metadata.repository
 
 import io.qpointz.mill.metadata.domain.MetadataEntity
 
-/** In-memory no-op / empty [MetadataEntityRepository] for tests and disabled metadata. */
-class NoOpMetadataEntityRepository : MetadataEntityRepository {
+/** In-memory no-op / empty [EntityRepository] for tests and disabled metadata. */
+class NoOpMetadataEntityRepository : EntityRepository {
     override fun findById(id: String): MetadataEntity? = null
     override fun findAll(): List<MetadataEntity> = emptyList()
     override fun findByKind(kind: String): List<MetadataEntity> = emptyList()

@@ -11,8 +11,8 @@ import io.qpointz.mill.data.schema.SchemaTableWithFacets
 import io.qpointz.mill.data.schema.SchemaWithFacets
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.MetadataEntity
-import io.qpointz.mill.metadata.repository.FacetRepository
-import io.qpointz.mill.metadata.repository.MetadataEntityRepository
+import io.qpointz.mill.metadata.repository.EntityReadSide
+import io.qpointz.mill.metadata.repository.FacetReadSide
 import io.qpointz.mill.proto.Table
 import java.time.Instant
 import org.junit.jupiter.api.Test
@@ -51,10 +51,10 @@ class SchemaExplorerControllerWebMvcIT {
     private lateinit var schemaProvider: SchemaProvider
 
     @MockitoBean
-    private lateinit var metadataEntityRepository: MetadataEntityRepository
+    private lateinit var entityRead: EntityReadSide
 
     @MockitoBean
-    private lateinit var facetRepository: FacetRepository
+    private lateinit var facetReadSide: FacetReadSide
 
     @Test
     fun `shouldReturnGlobalContext`() {
@@ -79,8 +79,8 @@ class SchemaExplorerControllerWebMvcIT {
             lastModifiedBy = null
         )
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("sales"))
-        whenever(metadataEntityRepository.findAll()).thenReturn(listOf(entity))
-        whenever(facetRepository.findByEntity(any())).thenReturn(emptyList())
+        whenever(entityRead.findAll()).thenReturn(listOf(entity))
+        whenever(facetReadSide.findByEntity(any())).thenReturn(emptyList())
 
         mockMvc.get("/api/v1/schema/schemas") {
             param("scope", "global")

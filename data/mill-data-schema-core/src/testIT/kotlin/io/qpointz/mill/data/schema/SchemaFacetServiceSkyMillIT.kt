@@ -3,7 +3,7 @@ package io.qpointz.mill.data.schema
 import io.qpointz.mill.data.schema.SkyMillSchemaProvider.Companion.SCHEMA_NAME
 import io.qpointz.mill.data.schema.SkyMillSchemaProvider.Companion.TABLE_NO_METADATA
 import io.qpointz.mill.data.schema.MetadataEntityUrnCodec
-import io.qpointz.mill.metadata.repository.MetadataEntityRepository
+import io.qpointz.mill.metadata.repository.EntityRepository
 import io.qpointz.mill.metadata.service.FacetCatalog
 import io.qpointz.mill.metadata.service.FacetInstanceReadMerge
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -36,7 +36,7 @@ class SchemaFacetServiceSkyMillIT {
     }
 
     @Autowired
-    private lateinit var metadataEntityRepository: MetadataEntityRepository
+    private lateinit var metadataEntityRepository: EntityRepository
 
     @Autowired
     private lateinit var facetReadMerge: FacetInstanceReadMerge

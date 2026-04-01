@@ -8,8 +8,8 @@ import io.qpointz.mill.data.metadata.SchemaModelRoot
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.excepions.statuses.MillStatusRuntimeException
 import io.qpointz.mill.metadata.domain.MetadataEntity
-import io.qpointz.mill.metadata.repository.FacetRepository
-import io.qpointz.mill.metadata.repository.MetadataEntityRepository
+import io.qpointz.mill.metadata.repository.EntityReadSide
+import io.qpointz.mill.metadata.repository.FacetReadSide
 import java.time.Instant
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -22,15 +22,15 @@ class SchemaExplorerServiceTest {
 
     private val schemaFacetService = mock<SchemaFacetService>()
     private val schemaProvider = mock<SchemaProvider>()
-    private val metadataEntityRepository = mock<MetadataEntityRepository>()
-    private val facetRepository = mock<FacetRepository>()
+    private val entityRead = mock<EntityReadSide>()
+    private val facetReadSide = mock<FacetReadSide>()
     private val objectMapper = ObjectMapper()
     private val urnCodec = DefaultMetadataEntityUrnCodec()
     private val service = SchemaExplorerService(
         schemaFacetService,
         schemaProvider,
-        metadataEntityRepository,
-        facetRepository,
+        entityRead,
+        facetReadSide,
         objectMapper,
         urnCodec
     )
@@ -50,8 +50,8 @@ class SchemaExplorerServiceTest {
             lastModifiedBy = null
         )
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("sales"))
-        whenever(metadataEntityRepository.findAll()).thenReturn(listOf(entity))
-        whenever(facetRepository.findByEntity(any())).thenReturn(emptyList())
+        whenever(entityRead.findAll()).thenReturn(listOf(entity))
+        whenever(facetReadSide.findByEntity(any())).thenReturn(emptyList())
 
         val result = service.listSchemas("global", null, null, "direct")
         assertEquals(2, result.size)

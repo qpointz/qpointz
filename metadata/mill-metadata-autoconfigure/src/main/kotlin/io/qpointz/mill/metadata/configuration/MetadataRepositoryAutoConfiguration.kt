@@ -4,7 +4,7 @@ import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.metadata.repository.FacetTypeDefinitionRepository
 import io.qpointz.mill.metadata.repository.FacetTypeRepository
 import io.qpointz.mill.metadata.repository.MetadataAuditRepository
-import io.qpointz.mill.metadata.repository.MetadataEntityRepository
+import io.qpointz.mill.metadata.repository.EntityRepository
 import io.qpointz.mill.metadata.repository.MetadataScopeRepository
 import io.qpointz.mill.metadata.repository.MetadataSeedLedgerRepository
 import io.qpointz.mill.metadata.repository.NoOpFacetRepository
@@ -35,9 +35,9 @@ import org.springframework.context.annotation.Bean
 class MetadataRepositoryAutoConfiguration {
 
     @Bean
-    @ConditionalOnMissingBean(MetadataEntityRepository::class)
-    fun noOpMetadataEntityRepository(): MetadataEntityRepository {
-        log.info("No MetadataEntityRepository bean — using NoOpMetadataEntityRepository")
+    @ConditionalOnMissingBean(EntityRepository::class)
+    fun noOpMetadataEntityRepository(): EntityRepository {
+        log.info("No EntityRepository bean — using NoOpMetadataEntityRepository")
         return NoOpMetadataEntityRepository()
     }
 

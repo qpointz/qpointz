@@ -12,7 +12,7 @@ import io.qpointz.mill.metadata.domain.RelationCardinality;
 import io.qpointz.mill.metadata.domain.core.DescriptiveFacet;
 import io.qpointz.mill.data.schema.facet.RelationFacet;
 import io.qpointz.mill.data.schema.facet.StructuralFacet;
-import io.qpointz.mill.metadata.repository.FacetRepository;
+import io.qpointz.mill.metadata.repository.FacetReadSide;
 import io.qpointz.mill.metadata.service.MetadataEntityService;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,7 +33,7 @@ public class SchemaMessageSpec extends MessageSpec {
     private final MetadataEntityService metadataEntityService;
 
     @Getter
-    private final FacetRepository facetRepository;
+    private final FacetReadSide facetReadSide;
 
     @Getter
     private final io.qpointz.mill.data.schema.MetadataEntityUrnCodec urnCodec;
@@ -67,7 +67,7 @@ public class SchemaMessageSpec extends MessageSpec {
         return SchemaMessageSpec.builder()
                 .messageType(messageType)
                 .metadataEntityService(ports.metadataEntityService())
-                .facetRepository(ports.facetRepository())
+                .facetReadSide(ports.facetReadSide())
                 .urnCodec(ports.urnCodec())
                 .template(createTemplate());
     }
@@ -119,7 +119,7 @@ public class SchemaMessageSpec extends MessageSpec {
                 .map(schemaEntity -> {
                     String schemaNm = schemaName(schemaEntity);
                     String description = NlsqlMetadataFacets.readGlobalFacet(
-                                    facetRepository, schemaEntity.getId(), "descriptive", DescriptiveFacet.class)
+                                    facetReadSide, schemaEntity.getId(), "descriptive", DescriptiveFacet.class)
                             .map(DescriptiveFacet::getDescription)
                             .orElse(null);
 
@@ -149,7 +149,7 @@ public class SchemaMessageSpec extends MessageSpec {
 
     private SchemaMessageModel.Table toTable(MetadataEntity tableEntity) {
         String description = NlsqlMetadataFacets.readGlobalFacet(
-                        facetRepository, tableEntity.getId(), "descriptive", DescriptiveFacet.class)
+                        facetReadSide, tableEntity.getId(), "descriptive", DescriptiveFacet.class)
                 .map(DescriptiveFacet::getDescription)
                 .orElse(null);
 
@@ -168,15 +168,15 @@ public class SchemaMessageSpec extends MessageSpec {
 
     private SchemaMessageModel.Attribute toAttribute(MetadataEntity attrEntity) {
         String description = NlsqlMetadataFacets.readGlobalFacet(
-                        facetRepository, attrEntity.getId(), "descriptive", DescriptiveFacet.class)
+                        facetReadSide, attrEntity.getId(), "descriptive", DescriptiveFacet.class)
                 .map(DescriptiveFacet::getDescription)
                 .orElse(null);
         String typeName = NlsqlMetadataFacets.readGlobalFacet(
-                        facetRepository, attrEntity.getId(), "structural", StructuralFacet.class)
+                        facetReadSide, attrEntity.getId(), "structural", StructuralFacet.class)
                 .map(StructuralFacet::getPhysicalType)
                 .orElse(null);
         Boolean nullable = NlsqlMetadataFacets.readGlobalFacet(
-                        facetRepository, attrEntity.getId(), "structural", StructuralFacet.class)
+                        facetReadSide, attrEntity.getId(), "structural", StructuralFacet.class)
                 .map(StructuralFacet::getNullable)
                 .orElse(null);
 
@@ -190,7 +190,7 @@ public class SchemaMessageSpec extends MessageSpec {
 
         for (MetadataEntity entity : this.metadataEntityService.findAll()) {
             Optional<RelationFacet> facetOpt = NlsqlMetadataFacets.readGlobalFacet(
-                    facetRepository, entity.getId(), "relation", RelationFacet.class);
+                    facetReadSide, entity.getId(), "relation", RelationFacet.class);
             if (facetOpt.isEmpty()) continue;
 
             for (RelationFacet.Relation rel : facetOpt.get().getRelations()) {

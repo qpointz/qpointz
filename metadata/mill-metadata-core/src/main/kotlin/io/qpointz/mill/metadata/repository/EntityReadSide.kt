@@ -2,8 +2,14 @@ package io.qpointz.mill.metadata.repository
 
 import io.qpointz.mill.metadata.domain.MetadataEntity
 
-/** Persistence for [MetadataEntity] rows (`metadata_entity`) — SPEC §6.1. */
-interface MetadataEntityRepository {
+/**
+ * Read-only projection of entity persistence (`metadata_entity`) — SPEC §6.1.
+ *
+ * Callers that only list or resolve entities should depend on this interface rather than
+ * [EntityRepository] to avoid accidental writes.
+ */
+interface EntityReadSide {
+
     /** @param id canonical entity URN */
     fun findById(id: String): MetadataEntity?
 
@@ -14,11 +20,4 @@ interface MetadataEntityRepository {
 
     /** @param id canonical entity URN */
     fun exists(id: String): Boolean
-
-    fun save(entity: MetadataEntity): MetadataEntity
-
-    /** @param id canonical entity URN */
-    fun delete(id: String)
-
-    fun deleteAll()
 }

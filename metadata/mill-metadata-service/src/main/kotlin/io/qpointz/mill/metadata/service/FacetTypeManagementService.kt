@@ -11,7 +11,7 @@ import io.qpointz.mill.metadata.domain.facet.FacetPayloadSchema
 import io.qpointz.mill.metadata.domain.facet.FacetSchemaType
 import io.qpointz.mill.metadata.domain.facet.FacetTypeManifest
 import io.qpointz.mill.metadata.domain.facet.FacetTypeManifestNormalizer
-import io.qpointz.mill.metadata.repository.FacetRepository
+import io.qpointz.mill.metadata.repository.FacetReadSide
 import io.qpointz.mill.metadata.repository.FacetTypeDefinitionRepository
 import io.qpointz.mill.metadata.repository.FacetTypeRepository
 import org.springframework.http.MediaType
@@ -22,14 +22,14 @@ import java.time.Instant
  * Facet type management orchestration for the metadata REST API.
  *
  * Uses [FacetCatalog] and [FacetTypeDefinitionRepository] for persistence-shaped definitions,
- * [FacetRepository] for usage counts, and strict JSON parsing for request bodies.
+ * [FacetReadSide] for usage counts, and strict JSON parsing for request bodies.
  */
 @Service
 class FacetTypeManagementService(
     private val facetCatalog: FacetCatalog,
     private val definitionRepository: FacetTypeDefinitionRepository,
     private val facetTypeRepository: FacetTypeRepository,
-    private val facetRepository: FacetRepository,
+    private val facetReadSide: FacetReadSide,
     private val objectMapper: ObjectMapper
 ) {
 
@@ -114,7 +114,7 @@ class FacetTypeManagementService(
         if (existing.mandatory) {
             throw MillStatuses.conflictRuntime("Facet type is mandatory and cannot be deleted: $typeKeyUrn")
         }
-        val inUse = facetRepository.countByFacetType(key)
+        val inUse = facetReadSide.countByFacetType(key)
         if (inUse > 0) {
             throw MillStatuses.conflictRuntime("Facet type is in use ($inUse references): $typeKeyUrn")
         }

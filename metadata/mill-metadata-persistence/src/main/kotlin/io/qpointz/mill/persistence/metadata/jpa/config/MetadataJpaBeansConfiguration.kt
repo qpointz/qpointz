@@ -4,7 +4,7 @@ import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.metadata.repository.FacetTypeDefinitionRepository
 import io.qpointz.mill.metadata.repository.FacetTypeRepository
 import io.qpointz.mill.metadata.repository.MetadataAuditRepository
-import io.qpointz.mill.metadata.repository.MetadataEntityRepository
+import io.qpointz.mill.metadata.repository.EntityRepository
 import io.qpointz.mill.metadata.repository.MetadataScopeRepository
 import io.qpointz.mill.metadata.repository.MetadataSeedLedgerRepository
 import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaFacetRepository
@@ -49,7 +49,7 @@ class MetadataJpaBeansConfiguration {
     @Bean
     fun metadataEntityRepository(
         jpa: MetadataEntityJpaRepository
-    ): MetadataEntityRepository = JpaMetadataEntityRepository(jpa)
+    ): EntityRepository = JpaMetadataEntityRepository(jpa)
 
     @Bean
     fun facetRepository(

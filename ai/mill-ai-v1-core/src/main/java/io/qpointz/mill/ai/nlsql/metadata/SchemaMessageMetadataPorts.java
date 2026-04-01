@@ -1,7 +1,7 @@
 package io.qpointz.mill.ai.nlsql.metadata;
 
 import io.qpointz.mill.data.schema.MetadataEntityUrnCodec;
-import io.qpointz.mill.metadata.repository.FacetRepository;
+import io.qpointz.mill.metadata.repository.FacetReadSide;
 import io.qpointz.mill.metadata.service.MetadataEntityService;
 
 /**
@@ -9,11 +9,11 @@ import io.qpointz.mill.metadata.service.MetadataEntityService;
  * relational coordinates from entity URNs, and global-scope facet payloads.
  *
  * @param metadataEntityService entity read API (core)
- * @param facetRepository facet assignment rows
+ * @param facetReadSide facet assignment reads
  * @param urnCodec        decodes relational entity ids to catalog coordinates
  */
 public record SchemaMessageMetadataPorts(
         MetadataEntityService metadataEntityService,
-        FacetRepository facetRepository,
+        FacetReadSide facetReadSide,
         MetadataEntityUrnCodec urnCodec) {
 }

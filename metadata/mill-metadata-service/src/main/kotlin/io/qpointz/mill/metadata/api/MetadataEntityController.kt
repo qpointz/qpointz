@@ -15,7 +15,7 @@ import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.domain.facet.FacetAssignment
 import io.qpointz.mill.metadata.domain.facet.FacetInstance
 import io.qpointz.mill.metadata.domain.facet.FacetOrigin
-import io.qpointz.mill.metadata.repository.FacetRepository
+import io.qpointz.mill.metadata.repository.FacetReadSide
 import io.qpointz.mill.metadata.service.FacetPayloadCoercion
 import io.qpointz.mill.metadata.service.FacetService
 import io.qpointz.mill.metadata.service.MetadataReadContext
@@ -72,7 +72,7 @@ import io.qpointz.mill.metadata.domain.MetadataEntity as DomainMetadataEntity
 class MetadataEntityController(
     private val metadataService: MetadataService,
     private val metadataEditService: MetadataEditService,
-    private val facetRepository: FacetRepository,
+    private val facetReadSide: FacetReadSide,
     private val facetService: FacetService,
     private val metadataReader: MetadataReader,
     private val urnCodec: MetadataEntityUrnCodec,
@@ -162,7 +162,7 @@ class MetadataEntityController(
         val eid = requireMillMetadataEntityPathId(id)
         val ctx = parseReadContext(scope, context, origin)
         val canonicalEntity = MetadataEntityUrn.canonicalize(eid)
-        val all = facetRepository.findByEntity(canonicalEntity)
+        val all = facetReadSide.findByEntity(canonicalEntity)
         val effective = metadataReader.resolveEffective(all, ctx)
         val effectiveKeys = effective.map { it.uid }.toSet()
         val entries = all.map { row ->
@@ -648,7 +648,7 @@ class MetadataEntityController(
     }
 
     private fun findFacetAssignment(entityId: String, uid: String): FacetAssignment? {
-        val row = facetRepository.findByUid(uid) ?: return null
+        val row = facetReadSide.findByUid(uid) ?: return null
         if (MetadataEntityUrn.canonicalize(row.entityId) != MetadataEntityUrn.canonicalize(entityId)) {
             return null
         }
