@@ -5,8 +5,30 @@ import { HiOutlineCircleStack } from 'react-icons/hi2';
 import { SchemaTree } from './SchemaTree';
 import { EntityDetails } from './EntityDetails';
 import { ExplorerSplitLayout } from '../layout/ExplorerSplitLayout';
-import { metadataEntityUrnForFacetApi, schemaService } from '../../services/api';
+import { buildEntityFacetsFromResolvedList, metadataEntityUrnForFacetApi, schemaService } from '../../services/api';
 import type { SchemaNode, SchemaEntity, EntityFacets, ScopeOption, TableDetail } from '../../types/schema';
+
+/**
+ * Prefers schema explorer `facetsResolved` on the entity when present (WI-134 full constellation);
+ * otherwise loads legacy `GET /metadata/entities/{id}/facets`.
+ *
+ * **TEMPORARY:** Metadata fallback exists for pre–WI-134 servers. Remove this branch once WI-134 is
+ * deployed to all target environments so absent `facetsResolved` surfaces as a contract gap instead
+ * of silently masking API drift.
+ */
+async function loadFacetsForEntity(
+  entity: SchemaEntity,
+  selectedContext: string,
+  signal?: AbortSignal
+): Promise<EntityFacets> {
+  const fr = entity.facetsResolved;
+  if (fr != null) {
+    return buildEntityFacetsFromResolvedList(fr);
+  }
+  const metaUrn = metadataEntityUrnForFacetApi(entity);
+  if (!metaUrn) return {};
+  return schemaService.getEntityFacets(metaUrn, selectedContext, signal);
+}
 
 function enrichNodeChildren(
   nodes: SchemaNode[],
@@ -32,6 +54,10 @@ function tableColumnNodes(entity: TableDetail): SchemaNode[] {
   }));
 }
 
+/**
+ * Data Model explorer route: scope selector, schema tree (including model root per SPEC §3f), and
+ * {@link EntityDetails} for the selected entity.
+ */
 export function DataModelLayout() {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
@@ -100,22 +126,16 @@ export function DataModelLayout() {
       if (signal.aborted || currentRequestId !== entityRequestIdRef.current) return;
       setSelectedEntity(entity);
       if (entity) {
-        const metaUrn = metadataEntityUrnForFacetApi(entity);
-        if (metaUrn) {
-          schemaService
-            .getEntityFacets(metaUrn, selectedContext, signal)
-            .then((nextFacets) => {
-              if (signal.aborted || currentRequestId !== entityRequestIdRef.current) return;
-              setFacets(nextFacets);
-            })
-            .catch((e) => {
-              if (e instanceof DOMException && e.name === 'AbortError') return;
-              if (signal.aborted) return;
-              setFacets({});
-            });
-        } else {
-          setFacets({});
-        }
+        void loadFacetsForEntity(entity, selectedContext, signal)
+          .then((nextFacets) => {
+            if (signal.aborted || currentRequestId !== entityRequestIdRef.current) return;
+            setFacets(nextFacets);
+          })
+          .catch((e) => {
+            if (e instanceof DOMException && e.name === 'AbortError') return;
+            if (signal.aborted) return;
+            setFacets({});
+          });
         if (entity.entityType === 'TABLE') {
           const columnNodes = tableColumnNodes(entity);
           setTree((prev) => (prev ? enrichNodeChildren(prev, entity.id, columnNodes) : prev));
@@ -175,12 +195,7 @@ export function DataModelLayout() {
         setEntityLoading(false);
         return;
       }
-      const metaUrn = metadataEntityUrnForFacetApi(entity);
-      if (metaUrn) {
-        schemaService.getEntityFacets(metaUrn, selectedContext).then(setFacets).catch(() => setFacets({}));
-      } else {
-        setFacets({});
-      }
+      void loadFacetsForEntity(entity, selectedContext).then(setFacets).catch(() => setFacets({}));
       // Lazy-load table columns into the tree only when table is selected.
       if (entity.entityType === 'TABLE') {
         const columnNodes: SchemaNode[] = entity.columns.map((column) => ({
@@ -251,13 +266,12 @@ export function DataModelLayout() {
               facets={facets}
               selectedContext={selectedContext}
               onFacetsChanged={async () => {
-                const urn = metadataEntityUrnForFacetApi(selectedEntity);
-                if (!urn) {
+                const reloaded = await schemaService.getEntityById(selectedEntity.id, selectedContext);
+                if (!reloaded) {
                   setFacets({});
                   return;
                 }
-                const next = await schemaService.getEntityFacets(urn, selectedContext);
-                setFacets(next);
+                setFacets(await loadFacetsForEntity(reloaded, selectedContext));
               }}
             />
           )

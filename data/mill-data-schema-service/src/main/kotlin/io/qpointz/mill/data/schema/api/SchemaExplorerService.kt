@@ -24,7 +24,7 @@ import io.qpointz.mill.data.schema.api.dto.ScopeOptionDto
 import io.qpointz.mill.data.schema.api.dto.TableDto
 import io.qpointz.mill.data.schema.api.dto.TableSummaryDto
 import io.qpointz.mill.excepions.statuses.MillStatuses
-import io.qpointz.mill.metadata.domain.FacetConverter
+import io.qpointz.mill.metadata.domain.FacetPayloadUtils
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.MetadataUrns
@@ -53,7 +53,6 @@ class SchemaExplorerService(
     private val objectMapper: ObjectMapper,
     private val urnCodec: MetadataEntityUrnCodec = DefaultMetadataEntityUrnCodec()
 ) {
-    private val facetConverter = FacetConverter.defaultConverter()
     private enum class FacetMode {
         NONE,
         DIRECT,
@@ -366,7 +365,7 @@ class SchemaExplorerService(
                         facetTypeKeyMatches(inst.facetTypeKey, ft) && scopeKeyMatches(inst.scopeKey, sc)
                     }
                     match?.let { m ->
-                        facetConverter.convert(m.payload, DescriptiveFacet::class.java)
+                        FacetPayloadUtils.convert(m.payload, DescriptiveFacet::class.java)
                             .ifPresent { resolved = it }
                     }
                 }

@@ -2,6 +2,7 @@ import type {
   ColumnDetail,
   DescriptiveFacet,
   EntityFacets,
+  FacetResolvedRow,
   RelationFacet,
   SchemaContext,
   SchemaDetail,
@@ -149,6 +150,124 @@ function normalizeFacetEntries(raw: unknown): { facetType: string; payload: unkn
   return [];
 }
 
+/**
+ * Parses `facetsResolved` arrays from schema explorer JSON (`FacetResolvedRowDto`).
+ *
+ * @param raw JSON value of `facetsResolved`
+ * @returns parsed rows, or `undefined` when the payload is not an array
+ */
+export function parseFacetResolvedRows(raw: unknown): FacetResolvedRow[] | undefined {
+  if (raw == null || !Array.isArray(raw)) return undefined;
+  const out: FacetResolvedRow[] = [];
+  for (const e of raw) {
+    if (e == null || typeof e !== 'object') continue;
+    const r = e as Record<string, unknown>;
+    const uid = typeof r.uid === 'string' && r.uid.length > 0 ? r.uid : String(r.uid ?? '');
+    const facetTypeUrn =
+      (typeof r.facetTypeUrn === 'string' && r.facetTypeUrn.length > 0
+        ? r.facetTypeUrn
+        : typeof r.facetType === 'string'
+          ? r.facetType
+          : '') || '';
+    if (!facetTypeUrn) continue;
+    const scopeUrn = typeof r.scopeUrn === 'string' ? r.scopeUrn : String(r.scopeUrn ?? '');
+    const origin: FacetResolvedRow['origin'] = r.origin === 'INFERRED' ? 'INFERRED' : 'CAPTURED';
+    const originId = typeof r.originId === 'string' ? r.originId : String(r.originId ?? '');
+    const payloadRaw = r.payload;
+    const payload: Record<string, unknown> =
+      payloadRaw != null && typeof payloadRaw === 'object' && !Array.isArray(payloadRaw)
+        ? (payloadRaw as Record<string, unknown>)
+        : {};
+    const assignmentUid =
+      r.assignmentUid === null || r.assignmentUid === undefined
+        ? null
+        : typeof r.assignmentUid === 'string'
+          ? r.assignmentUid
+          : String(r.assignmentUid);
+    const createdAt = typeof r.createdAt === 'string' ? r.createdAt : undefined;
+    const lastModifiedAt = typeof r.lastModifiedAt === 'string' ? r.lastModifiedAt : undefined;
+    out.push({
+      uid,
+      facetTypeUrn,
+      scopeUrn,
+      origin,
+      originId,
+      assignmentUid,
+      payload,
+      createdAt,
+      lastModifiedAt,
+    });
+  }
+  return out;
+}
+
+/**
+ * Attaches parsed {@link FacetResolvedRow} lists to schema explorer DTOs (recurses into `tables` / `columns`).
+ */
+function attachFacetsResolvedToExplorerDto<T extends Record<string, unknown>>(dto: T): T {
+  let next: Record<string, unknown> = { ...dto };
+  if ('facetsResolved' in next && next.facetsResolved != null) {
+    const parsed = parseFacetResolvedRows(next.facetsResolved);
+    if (parsed) next = { ...next, facetsResolved: parsed };
+  }
+  if (Array.isArray(next.tables)) {
+    next = {
+      ...next,
+      tables: (next.tables as unknown[]).map((t) =>
+        t && typeof t === 'object' ? attachFacetsResolvedToExplorerDto(t as Record<string, unknown>) : t
+      ),
+    };
+  }
+  if (Array.isArray(next.columns)) {
+    next = {
+      ...next,
+      columns: (next.columns as unknown[]).map((c) =>
+        c && typeof c === 'object' ? attachFacetsResolvedToExplorerDto(c as Record<string, unknown>) : c
+      ),
+    };
+  }
+  return next as T;
+}
+
+/**
+ * Builds {@link EntityFacets} from a resolved constellation list (captured + inferred).
+ * Edit/delete metadata calls use only {@link EntityFacets.byType} / `instanceUidsByType` from **captured** rows;
+ * header shortcuts merge inferred + captured (prefer captured when both exist for a well-known facet).
+ *
+ * @param rows merged `facetsResolved` rows for one entity
+ */
+export function buildEntityFacetsFromResolvedList(rows: FacetResolvedRow[]): EntityFacets {
+  const capturedEntries = rows
+    .filter((r) => r.origin === 'CAPTURED')
+    .map((r) => ({
+      facetType: r.facetTypeUrn,
+      payload: r.payload,
+      uid: r.assignmentUid && r.assignmentUid.length > 0 ? r.assignmentUid : r.uid,
+    }));
+  const base = extractFacets(capturedEntries);
+
+  const descriptiveRow =
+    rows.find((r) => r.facetTypeUrn === FACET_DESCRIPTIVE && r.origin === 'CAPTURED') ??
+    rows.find((r) => r.facetTypeUrn === FACET_DESCRIPTIVE);
+  const structuralRow =
+    rows.find((r) => r.facetTypeUrn === FACET_STRUCTURAL && r.origin === 'CAPTURED') ??
+    rows.find((r) => r.facetTypeUrn === FACET_STRUCTURAL);
+
+  const relationRows = rows.filter((r) => r.facetTypeUrn === FACET_RELATION);
+  let relations: RelationFacet[] = [];
+  for (const r of relationRows) {
+    relations = relations.concat(mapRelationPayload(r.payload));
+  }
+
+  return {
+    ...base,
+    descriptive: descriptiveRow?.payload as DescriptiveFacet | undefined,
+    structural: structuralRow?.payload as StructuralFacet | undefined,
+    relations: relations.length > 0 ? relations : undefined,
+    resolvedRows: rows,
+  };
+}
+
 function extractFacets(raw?: unknown): EntityFacets {
   const entries = normalizeFacetEntries(raw);
   if (entries.length === 0) return {};
@@ -190,6 +309,16 @@ async function fetchJsonOrNull<T>(url: string, signal?: AbortSignal): Promise<T 
   return res.json() as Promise<T>;
 }
 
+/** Fetches a schema explorer JSON document and normalizes `facetsResolved` when present. */
+async function fetchExplorerEntityJsonOrNull(
+  url: string,
+  signal?: AbortSignal
+): Promise<Record<string, unknown> | null> {
+  const raw = await fetchJsonOrNull<Record<string, unknown>>(url, signal);
+  if (!raw) return null;
+  return attachFacetsResolvedToExplorerDto(raw);
+}
+
 const realSchemaService: SchemaService = {
   async getContext() {
     const res = await fetch('/api/v1/schema/context', { credentials: 'include' });
@@ -211,16 +340,18 @@ const realSchemaService: SchemaService = {
     return res.json() as Promise<SchemaListItem[]>;
   },
   async getSchema(schemaName: string, context: string, facetMode = DEFAULT_FACET_MODE, signal?: AbortSignal) {
-    return fetchJsonOrNull<SchemaDetail>(
+    const raw = await fetchExplorerEntityJsonOrNull(
       `/api/v1/schema/${encodeURIComponent(schemaName)}?scope=${encodeURIComponent(context)}&facetMode=${encodeURIComponent(facetMode)}`,
       signal
     );
+    return raw as SchemaDetail | null;
   },
   async getTable(schemaName: string, tableName: string, context: string, facetMode = DEFAULT_FACET_MODE, signal?: AbortSignal) {
-    return fetchJsonOrNull<TableDetail>(
+    const raw = await fetchExplorerEntityJsonOrNull(
       `/api/v1/schema/${encodeURIComponent(schemaName)}/tables/${encodeURIComponent(tableName)}?scope=${encodeURIComponent(context)}&facetMode=${encodeURIComponent(facetMode)}`,
       signal
     );
+    return raw as TableDetail | null;
   },
   async getColumn(
     schemaName: string,
@@ -230,10 +361,11 @@ const realSchemaService: SchemaService = {
     facetMode = DEFAULT_FACET_MODE,
     signal?: AbortSignal
   ) {
-    return fetchJsonOrNull<ColumnDetail>(
+    const raw = await fetchExplorerEntityJsonOrNull(
       `/api/v1/schema/${encodeURIComponent(schemaName)}/tables/${encodeURIComponent(tableName)}/columns/${encodeURIComponent(columnName)}?scope=${encodeURIComponent(context)}&facetMode=${encodeURIComponent(facetMode)}`,
       signal
     );
+    return raw as ColumnDetail | null;
   },
   async getTree(context: string) {
     const res = await fetch(
@@ -271,18 +403,22 @@ const realSchemaService: SchemaService = {
   },
   async getEntityById(id: string, context: string, signal?: AbortSignal) {
     if (id === MODEL_ROOT_LOCAL_ID) {
-      const res = await fetch(
+      const raw = await fetchExplorerEntityJsonOrNull(
         `/api/v1/schema/model?scope=${encodeURIComponent(context)}&facetMode=none`,
-        { credentials: 'include', signal }
+        signal
       );
-      if (!res.ok) return null;
-      const m = (await res.json()) as { id: string; metadataEntityId: string; entityType: string };
-      return {
-        id: m.id,
+      if (!raw) return null;
+      const base = {
+        id: String(raw.id ?? MODEL_ROOT_LOCAL_ID),
         entityType: 'MODEL' as const,
         schemaName: '' as const,
-        metadataEntityId: m.metadataEntityId,
+        metadataEntityId: String(raw.metadataEntityId ?? ''),
       };
+      const fr = raw.facetsResolved;
+      if (fr != null && Array.isArray(fr)) {
+        return { ...base, facetsResolved: fr as FacetResolvedRow[] };
+      }
+      return base;
     }
     const parts = id.split('.');
     if (parts.length === 1) {

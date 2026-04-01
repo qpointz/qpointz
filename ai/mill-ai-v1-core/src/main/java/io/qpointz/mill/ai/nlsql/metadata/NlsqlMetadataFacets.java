@@ -1,6 +1,6 @@
 package io.qpointz.mill.ai.nlsql.metadata;
 
-import io.qpointz.mill.metadata.domain.FacetConverter;
+import io.qpointz.mill.metadata.domain.FacetPayloadUtils;
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn;
 import io.qpointz.mill.metadata.domain.MetadataUrns;
 import io.qpointz.mill.metadata.domain.facet.FacetAssignment;
@@ -15,8 +15,6 @@ import java.util.Optional;
  */
 public final class NlsqlMetadataFacets {
 
-    private static final FacetConverter DEFAULT_CONVERTER = FacetConverter.defaultConverter();
-
     private NlsqlMetadataFacets() {
     }
 
@@ -25,18 +23,6 @@ public final class NlsqlMetadataFacets {
      */
     public static <T> Optional<T> readGlobalFacet(
             FacetRepository repo,
-            String entityId,
-            String facetTypeKeyShortOrUrn,
-            Class<T> clazz) {
-        return readGlobalFacet(repo, DEFAULT_CONVERTER, entityId, facetTypeKeyShortOrUrn, clazz);
-    }
-
-    /**
-     * @param facetTypeKeyShortOrUrn short key (e.g. {@code descriptive}) or full facet-type URN
-     */
-    public static <T> Optional<T> readGlobalFacet(
-            FacetRepository repo,
-            FacetConverter converter,
             String entityId,
             String facetTypeKeyShortOrUrn,
             Class<T> clazz) {
@@ -50,6 +36,6 @@ public final class NlsqlMetadataFacets {
                 last = Optional.of(f);
             }
         }
-        return last.flatMap(f -> converter.convert(f.getPayload(), clazz));
+        return last.flatMap(f -> FacetPayloadUtils.convert(f.getPayload(), clazz));
     }
 }

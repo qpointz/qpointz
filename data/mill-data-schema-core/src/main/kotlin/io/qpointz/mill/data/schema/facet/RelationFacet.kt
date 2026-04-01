@@ -1,21 +1,22 @@
 package io.qpointz.mill.data.schema.facet
 
-import io.qpointz.mill.metadata.domain.AbstractFacet
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import io.qpointz.mill.metadata.domain.MetadataFacet
 import io.qpointz.mill.metadata.domain.RelationCardinality
 import io.qpointz.mill.metadata.domain.RelationType
-import io.qpointz.mill.metadata.domain.ValidationException
 import io.qpointz.mill.metadata.domain.core.TableLocator
 
 /**
  * JDBC- and schema-facing relationship facet: typed interpretation of stored relation payloads.
  *
- * Stored JSON remains grammar-validated in metadata; this class is the schema-layer binding for
+ * Stored JSON remains grammar-validated in metadata; this type is the schema-layer binding for
  * deserialization and UI/schema exploration.
  */
-open class RelationFacet(
-    var relations: MutableList<Relation> = mutableListOf()
-) : AbstractFacet() {
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class RelationFacet(
+    val relations: List<Relation> = emptyList(),
+    override val facetType: String = "relation",
+) : MetadataFacet {
 
     /** Immutable relation entry inside [RelationFacet]. */
     data class Relation(
@@ -28,30 +29,8 @@ open class RelationFacet(
         val cardinality: RelationCardinality? = null,
         val type: RelationType? = null,
         val joinSql: String? = null,
-        val businessMeaning: String? = null
+        val businessMeaning: String? = null,
     )
-
-    override val facetType: String get() = "relation"
-
-    override fun validate() {
-        for (r in relations) {
-            require(!r.name.isNullOrEmpty()) { throw ValidationException("RelationFacet: relation name is required") }
-            requireNotNull(r.sourceTable) { throw ValidationException("RelationFacet: sourceTable is required for relation: ${r.name}") }
-            requireNotNull(r.targetTable) { throw ValidationException("RelationFacet: targetTable is required for relation: ${r.name}") }
-        }
-    }
-
-    override fun merge(other: MetadataFacet): MetadataFacet {
-        if (other !is RelationFacet) return this
-        if (other.relations.isNotEmpty()) {
-            val merged = relations.toMutableList()
-            for (otherR in other.relations) {
-                if (merged.none { it.name == otherR.name }) merged.add(otherR)
-            }
-            relations = merged
-        }
-        return this
-    }
 
     /** Returns relations where source or target table matches given table. */
     fun getRelationsForEntity(schema: String, table: String): List<Relation> =
@@ -59,7 +38,4 @@ open class RelationFacet(
             it.sourceTable?.matches(schema, table, null) == true ||
                 it.targetTable?.matches(schema, table, null) == true
         }
-
-    override fun equals(other: Any?): Boolean = this === other || (other is RelationFacet && relations == other.relations)
-    override fun hashCode(): Int = relations.hashCode()
 }

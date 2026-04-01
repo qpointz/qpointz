@@ -32,6 +32,8 @@ export interface SchemaDetail {
   schemaName: string;
   metadataEntityId?: string;
   tables: TableSummary[];
+  /** Unified resolved facet rows from schema API when WI-134+ server returns them. */
+  facetsResolved?: FacetResolvedRow[];
 }
 
 export interface TableSummary {
@@ -50,6 +52,8 @@ export interface TableDetail {
   tableType: string;
   metadataEntityId?: string;
   columns: ColumnDetail[];
+  /** Unified resolved facet rows from schema API when WI-134+ server returns them. */
+  facetsResolved?: FacetResolvedRow[];
 }
 
 export interface ColumnDetail {
@@ -61,6 +65,24 @@ export interface ColumnDetail {
   fieldIndex: number;
   type: DataTypeDescriptor;
   metadataEntityId?: string;
+  /** Unified resolved facet rows from schema API when WI-134+ server returns them. */
+  facetsResolved?: FacetResolvedRow[];
+}
+
+/**
+ * One resolved facet instance from schema explorer APIs (`facetsResolved`), aligned with server
+ * `FacetResolvedRowDto` (SPEC §3c).
+ */
+export interface FacetResolvedRow {
+  uid: string;
+  facetTypeUrn: string;
+  scopeUrn: string;
+  origin: 'CAPTURED' | 'INFERRED';
+  originId: string;
+  assignmentUid?: string | null;
+  payload: Record<string, unknown>;
+  createdAt?: string;
+  lastModifiedAt?: string;
 }
 
 /** Logical model root from `GET /api/v1/schema/model` (SPEC §3f). */
@@ -70,6 +92,8 @@ export interface ModelDetail {
   /** Always empty — model is not a physical schema name. */
   schemaName: '';
   metadataEntityId: string;
+  /** Unified resolved facet rows from schema API when WI-134+ server returns them. */
+  facetsResolved?: FacetResolvedRow[];
 }
 
 export type SchemaEntity = SchemaDetail | TableDetail | ColumnDetail | ModelDetail;
@@ -121,6 +145,11 @@ export interface EntityFacets {
   byType?: Record<string, unknown>;
   /** Parallel to aggregated MULTIPLE payloads: API `uid` per instance when present (JPA), same order as instances in `byType`. */
   instanceUidsByType?: Record<string, (string | undefined)[]>;
+  /**
+   * When set (including `[]`), facet data came from schema explorer `facetsResolved` (WI-134).
+   * `undefined` means legacy metadata-only `GET …/facets` shape.
+   */
+  resolvedRows?: FacetResolvedRow[];
 }
 
 export interface EntityWithFacets {

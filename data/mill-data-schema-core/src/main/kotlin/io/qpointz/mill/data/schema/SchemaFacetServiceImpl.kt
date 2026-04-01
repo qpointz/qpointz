@@ -1,7 +1,6 @@
 package io.qpointz.mill.data.schema
 
 import io.qpointz.mill.data.backend.SchemaProvider
-import io.qpointz.mill.metadata.domain.FacetConverter
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.repository.MetadataEntityRepository
@@ -31,8 +30,6 @@ class SchemaFacetServiceImpl(
     private val facetCatalog: FacetCatalog,
     private val urnCodec: MetadataEntityUrnCodec = DefaultMetadataEntityUrnCodec()
 ) : SchemaFacetService {
-
-    private val facetConverter = FacetConverter.defaultConverter()
 
     /** @see SchemaFacetService.getModelRoot */
     override fun getModelRoot(context: MetadataContext): ModelRootWithFacets {
@@ -182,7 +179,7 @@ class SchemaFacetServiceImpl(
         if (entity == null) return SchemaFacets.EMPTY
         val eid = MetadataEntityUrn.canonicalize(entity.id)
         val resolved = facetReadMerge.merge(eid, context)
-        return SchemaFacets.fromResolved(resolved, facetConverter, facetCatalog)
+        return SchemaFacets.fromResolved(resolved, facetCatalog)
     }
 
     /**

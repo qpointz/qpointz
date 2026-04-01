@@ -1,7 +1,7 @@
 # WI-136 — UI full facet constellation view
 
 **Story:** metadata-and-ui-improve-and-clean  
-**Status:** Planned  
+**Status:** Done  
 **Type:** feat  
 **Area:** ui
 

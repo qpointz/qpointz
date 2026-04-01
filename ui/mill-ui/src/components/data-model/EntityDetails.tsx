@@ -40,7 +40,7 @@ import {
   HiOutlineArrowTopRightOnSquare,
   HiOutlineEnvelope,
 } from 'react-icons/hi2';
-import type { EntityFacets, SchemaEntity } from '../../types/schema';
+import type { EntityFacets, FacetResolvedRow, SchemaEntity, StructuralFacet as StructuralFacetData } from '../../types/schema';
 import { StructuralFacet } from './facets/StructuralFacet';
 import { InlineChatButton } from '../common/InlineChatButton';
 import { RelatedContentButton } from '../common/RelatedContentButton';
@@ -76,6 +76,13 @@ interface EntityDetailsProps {
   selectedContext?: string;
   onFacetsChanged?: () => Promise<void>;
 }
+
+/** One UI card unit when rendering {@link EntityFacets.resolvedRows} (constellation view). */
+type ResolvedFacetUnit =
+  | { kind: 'multipleEmpty'; facetType: string }
+  | { kind: 'inferred'; facetType: string; row: FacetResolvedRow }
+  | { kind: 'capturedSingle'; facetType: string; row: FacetResolvedRow }
+  | { kind: 'capturedMultiple'; facetType: string; row: FacetResolvedRow; capturedIndex: number };
 
 const entityIcons = {
   MODEL: HiOutlineCube,
@@ -334,6 +341,12 @@ function appendFacetPayloadRequiredErrors(
   walkObject(schema, value, '');
 }
 
+/**
+ * Renders the Data Model entity inspector: title, facet add/edit flows, and tabbed facet cards.
+ * Supports the full facet constellation when {@link EntityFacets.resolvedRows} is set (schema API
+ * `facetsResolved`): captured rows behave as before; inferred rows are read-only with `originId` pills
+ * (SPEC §3e).
+ */
 export function EntityDetails({
   entity,
   facets,
@@ -385,6 +398,17 @@ export function EntityDetails({
     : (facets.relations?.length ?? 0);
 
   const orderedFacetTypes = useMemo(() => {
+    if (facets.resolvedRows !== undefined) {
+      const seen = new Set<string>();
+      const out: string[] = [];
+      for (const r of facets.resolvedRows ?? []) {
+        if (!seen.has(r.facetTypeUrn)) {
+          seen.add(r.facetTypeUrn);
+          out.push(r.facetTypeUrn);
+        }
+      }
+      return out;
+    }
     const keys = Object.keys(allByType);
     const defaults = [
       'urn:mill/metadata/facet-type:descriptive',
@@ -394,7 +418,7 @@ export function EntityDetails({
     const priority = defaults.filter((k) => keys.includes(k));
     const rest = keys.filter((k) => !defaults.includes(k)).sort((a, b) => a.localeCompare(b));
     return [...priority, ...rest];
-  }, [allByType]);
+  }, [allByType, facets.resolvedRows]);
 
   const descriptorByType = useMemo(() => {
     const map: Record<string, FacetTypeManifest> = {};
@@ -413,10 +437,68 @@ export function EntityDetails({
   };
 
   /**
+   * When {@link EntityFacets.resolvedRows} is set, builds per-tab cards from the merged constellation
+   * (captured + inferred); inferred rows are read-only with an `originId` badge in the card header.
+   */
+  const resolvedFacetUnitsByCategory = useMemo(() => {
+    if (facets.resolvedRows === undefined) return null;
+    const rows = facets.resolvedRows;
+    const grouped: Record<string, ResolvedFacetUnit[]> = {};
+    const orderedTypes: string[] = [];
+    const seen = new Set<string>();
+    for (const r of rows) {
+      if (!seen.has(r.facetTypeUrn)) {
+        seen.add(r.facetTypeUrn);
+        orderedTypes.push(r.facetTypeUrn);
+      }
+    }
+    for (const typeKey of orderedTypes) {
+      const descriptor = descriptorByType[typeKey] ?? null;
+      const category = normalizeCategory(descriptor?.category);
+      const typeRows = rows.filter((r) => r.facetTypeUrn === typeKey);
+      const isMultiple = (descriptor?.targetCardinality ?? 'SINGLE') === 'MULTIPLE';
+      const newUnits: ResolvedFacetUnit[] = [];
+      if (isMultiple) {
+        const capturedCount = typeRows.filter((r) => r.origin === 'CAPTURED').length;
+        if (capturedCount === 0) {
+          newUnits.push({ kind: 'multipleEmpty', facetType: typeKey });
+        }
+        let capIdx = 0;
+        for (const r of typeRows) {
+          if (r.origin === 'INFERRED') {
+            newUnits.push({ kind: 'inferred', facetType: typeKey, row: r });
+          } else {
+            newUnits.push({ kind: 'capturedMultiple', facetType: typeKey, row: r, capturedIndex: capIdx });
+            capIdx += 1;
+          }
+        }
+      } else {
+        for (const r of typeRows) {
+          if (r.origin === 'INFERRED') {
+            newUnits.push({ kind: 'inferred', facetType: typeKey, row: r });
+          } else {
+            newUnits.push({ kind: 'capturedSingle', facetType: typeKey, row: r });
+          }
+        }
+      }
+      grouped[category] = [...(grouped[category] ?? []), ...newUnits];
+    }
+    const orderedCategories = Object.keys(grouped).sort((a, b) => {
+      if (a === 'general') return -1;
+      if (b === 'general') return 1;
+      return a.localeCompare(b);
+    });
+    return { grouped, orderedCategories };
+  }, [facets.resolvedRows, descriptorByType]);
+
+  /**
    * Per-category list of UI units: one card per SINGLE facet, one card per MULTIPLE instance,
    * or one "empty" card when a MULTIPLE facet has no rows yet.
    */
   const facetUnitsByCategory = useMemo(() => {
+    if (facets.resolvedRows !== undefined) {
+      return { grouped: {} as Record<string, FacetRenderUnit[]>, orderedCategories: [] as string[] };
+    }
     const grouped: Record<string, FacetRenderUnit[]> = {};
     for (const typeKey of orderedFacetTypes) {
       const descriptor = descriptorByType[typeKey];
@@ -456,8 +538,10 @@ export function EntityDetails({
     return { grouped, orderedCategories };
   }, [orderedFacetTypes, descriptorByType, allByType]);
 
+  const displayFacetUnits = resolvedFacetUnitsByCategory ?? facetUnitsByCategory;
+
   useEffect(() => {
-    const categories = facetUnitsByCategory.orderedCategories;
+    const categories = displayFacetUnits.orderedCategories;
     if (categories.length === 0) {
       setActiveCategoryTab(null);
       return;
@@ -465,7 +549,7 @@ export function EntityDetails({
     if (!activeCategoryTab || !categories.includes(activeCategoryTab)) {
       setActiveCategoryTab(categories[0] ?? null);
     }
-  }, [facetUnitsByCategory, activeCategoryTab]);
+  }, [displayFacetUnits, activeCategoryTab]);
 
   useEffect(() => {
     const ac = new AbortController();
@@ -1470,16 +1554,87 @@ export function EntityDetails({
         ) : (
           <Tabs value={activeCategoryTab} onChange={setActiveCategoryTab}>
             <Tabs.List mb="sm">
-              {facetUnitsByCategory.orderedCategories.map((category) => (
+              {displayFacetUnits.orderedCategories.map((category) => (
                 <Tabs.Tab key={category} value={category}>
                   {formatCategoryLabel(category)}
                 </Tabs.Tab>
               ))}
             </Tabs.List>
-            {facetUnitsByCategory.orderedCategories.map((category) => (
+            {displayFacetUnits.orderedCategories.map((category) => (
               <Tabs.Panel key={category} value={category}>
                 <Stack gap="md">
-                  {(facetUnitsByCategory.grouped[category] ?? []).map((unit) => {
+                  {(displayFacetUnits.grouped[category] ?? []).map((rawUnit) => {
+                    let unit: FacetRenderUnit;
+                    if (resolvedFacetUnitsByCategory) {
+                      const ru = rawUnit as ResolvedFacetUnit;
+                      if (ru.kind === 'inferred') {
+                        const facetTypeInf = ru.facetType;
+                        const row = ru.row;
+                        const descriptorInf = descriptorByType[facetTypeInf] ?? null;
+                        const baseTitleInf = facetBoxBaseTitle(facetTypeInf, facetTypeTitleByKey, descriptorInf);
+                        let readOnlyInferred: React.ReactNode;
+                        if (facetTypeInf.endsWith(':structural') && flags.modelStructuralFacet) {
+                          readOnlyInferred = <StructuralFacet facet={row.payload as StructuralFacetData} />;
+                        } else if (descriptorInf?.payload) {
+                          readOnlyInferred = (
+                            <Box>
+                              {renderReadOnlyField(
+                                descriptorInf.payload,
+                                row.payload,
+                                `${facetTypeInf}-inferred-${row.uid}`
+                              )}
+                            </Box>
+                          );
+                        } else {
+                          readOnlyInferred = (
+                            <SyntaxCodeEditor
+                              value={JSON.stringify(row.payload ?? {}, null, 2)}
+                              language="json"
+                              minHeight={200}
+                              readOnly
+                            />
+                          );
+                        }
+                        return (
+                          <Card key={`inferred-${row.uid}`} withBorder p="xs">
+                            <Group justify="space-between" mb={6} align="flex-start" wrap="nowrap">
+                              <Group gap="xs">
+                                {facetTypeInf.endsWith(':descriptive') && <HiOutlineDocumentText size={16} />}
+                                {facetTypeInf.endsWith(':structural') && <HiOutlineCube size={16} />}
+                                {facetTypeInf.endsWith(':relation') && <HiOutlineArrowsRightLeft size={16} />}
+                                <Text fw={600} size="sm">
+                                  {baseTitleInf}
+                                </Text>
+                              </Group>
+                              <Group gap={6} wrap="nowrap">
+                                <Badge size="xs" variant="light" color="grape">
+                                  Inferred
+                                </Badge>
+                                <Badge size="xs" variant="outline" color="gray" title="Metadata source id">
+                                  {row.originId}
+                                </Badge>
+                              </Group>
+                            </Group>
+                            {readOnlyInferred}
+                          </Card>
+                        );
+                      }
+                      unit =
+                        ru.kind === 'multipleEmpty'
+                          ? { kind: 'multipleEmpty', facetType: ru.facetType }
+                          : ru.kind === 'capturedSingle'
+                            ? { kind: 'single', facetType: ru.facetType }
+                            : {
+                                kind: 'multipleRow',
+                                facetType: ru.facetType,
+                                index: ru.capturedIndex,
+                                total: (facets.resolvedRows ?? []).filter(
+                                  (r) => r.facetTypeUrn === ru.facetType && r.origin === 'CAPTURED'
+                                ).length,
+                              };
+                    } else {
+                      unit = rawUnit as FacetRenderUnit;
+                    }
                     const facetType = unit.facetType;
                     const descriptor = descriptorByType[facetType] ?? null;
                     const baseTitle = facetBoxBaseTitle(facetType, facetTypeTitleByKey, descriptor);

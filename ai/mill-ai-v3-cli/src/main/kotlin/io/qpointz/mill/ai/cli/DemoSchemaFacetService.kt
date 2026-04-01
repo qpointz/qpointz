@@ -150,7 +150,7 @@ internal class DemoSchemaFacetService : SchemaFacetService {
     ): SchemaTableWithFacets {
         val facetSet = mutableSetOf<MetadataFacet>()
         description?.let { facetSet.add(DescriptiveFacet(description = it)) }
-        if (relations.isNotEmpty()) facetSet.add(RelationFacet(relations.toMutableList()))
+        if (relations.isNotEmpty()) facetSet.add(RelationFacet(relations))
         return SchemaTableWithFacets(
             schemaName = schema, tableName = name,
             tableType = Table.TableTypeId.TABLE,

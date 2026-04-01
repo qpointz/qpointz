@@ -1,6 +1,6 @@
 package io.qpointz.mill.data.schema
 
-import io.qpointz.mill.metadata.domain.FacetConverter
+import io.qpointz.mill.metadata.domain.FacetPayloadUtils
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.MetadataFacet
 import io.qpointz.mill.metadata.domain.MetadataUrns
@@ -19,7 +19,7 @@ import io.qpointz.mill.metadata.service.FacetCatalog
  * Typed convenience properties cover the standard platform facet types.
  * Unknown or custom facet types are accessible via [facetByType].
  *
- * @param facets legacy typed [MetadataFacet] POJOs for schema explorer / JDBC shaping
+ * @param facets typed facet payloads for schema explorer / JDBC shaping
  * @param facetsResolved unified read rows (captured + inferred) after multi-source merge (SPEC §3b)
  */
 class SchemaFacets(
@@ -65,12 +65,10 @@ class SchemaFacets(
          * Builds typed [MetadataFacet] accessors plus [facetsResolved] from merged read rows.
          *
          * @param resolved output of [io.qpointz.mill.metadata.service.FacetInstanceReadMerge.merge]
-         * @param converter Jackson bridge to facet POJOs
          * @param catalog facet type cardinality (MULTIPLE merges relation payloads)
          */
         fun fromResolved(
             resolved: List<FacetInstance>,
-            converter: FacetConverter,
             catalog: FacetCatalog
         ): SchemaFacets {
             if (resolved.isEmpty()) return EMPTY
@@ -80,11 +78,11 @@ class SchemaFacets(
                 val card = catalog.findDefinition(canonType)?.targetCardinality
                     ?: FacetTargetCardinality.SINGLE
                 when (shortKey(canonType)) {
-                    "descriptive" -> convertOne(rows, card, DescriptiveFacet::class.java, converter, facets)
-                    "structural" -> convertOne(rows, card, StructuralFacet::class.java, converter, facets)
-                    "relation" -> convertRelation(rows, card, converter, facets)
-                    "concept" -> convertOne(rows, card, ConceptFacet::class.java, converter, facets)
-                    "value-mapping" -> convertOne(rows, card, ValueMappingFacet::class.java, converter, facets)
+                    "descriptive" -> convertOne(rows, card, DescriptiveFacet::class.java, facets)
+                    "structural" -> convertOne(rows, card, StructuralFacet::class.java, facets)
+                    "relation" -> convertRelation(rows, card, facets)
+                    "concept" -> convertOne(rows, card, ConceptFacet::class.java, facets)
+                    "value-mapping" -> convertOne(rows, card, ValueMappingFacet::class.java, facets)
                     else -> Unit
                 }
             }
@@ -104,18 +102,16 @@ class SchemaFacets(
             rows: List<FacetInstance>,
             card: FacetTargetCardinality,
             clazz: Class<T>,
-            converter: FacetConverter,
             out: MutableSet<MetadataFacet>
         ) {
             if (rows.isEmpty()) return
             val row = if (card == FacetTargetCardinality.MULTIPLE) rows.first() else rows.first()
-            converter.convert(row.payload, clazz).ifPresent { out.add(it) }
+            FacetPayloadUtils.convert(row.payload, clazz).ifPresent { out.add(it) }
         }
 
         private fun convertRelation(
             rows: List<FacetInstance>,
             card: FacetTargetCardinality,
-            converter: FacetConverter,
             out: MutableSet<MetadataFacet>
         ) {
             if (rows.isEmpty()) return
@@ -126,12 +122,12 @@ class SchemaFacets(
                 }
                 if (allRelations.isNotEmpty()) {
                     merged["relations"] = allRelations
-                    converter.convert(merged, RelationFacet::class.java).ifPresent { out.add(it) }
+                    FacetPayloadUtils.convert(merged, RelationFacet::class.java).ifPresent { out.add(it) }
                 } else {
-                    converter.convert(rows.first().payload, RelationFacet::class.java).ifPresent { out.add(it) }
+                    FacetPayloadUtils.convert(rows.first().payload, RelationFacet::class.java).ifPresent { out.add(it) }
                 }
             } else {
-                converter.convert(rows.first().payload, RelationFacet::class.java).ifPresent { out.add(it) }
+                FacetPayloadUtils.convert(rows.first().payload, RelationFacet::class.java).ifPresent { out.add(it) }
             }
         }
     }

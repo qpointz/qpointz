@@ -1,7 +1,7 @@
 # WI-140 — Facet class demotion
 
 **Story:** metadata-and-ui-improve-and-clean  
-**Status:** Planned  
+**Status:** Done  
 **Type:** feat  
 **Area:** metadata, data, ai
 
@@ -24,8 +24,8 @@ Record the outcome here (1–3 sentences + optional link to PR). Implementer **m
 
 | Decision | Choice (FacetPayloadUtils shared helper vs inline Jackson / other) | Date / PR |
 |----------|---------------------------------------------------------------------|-----------|
-| **FacetPayloadUtils** vs inline conversion in **§2c** consumers | | |
-| **`mill-metadata-core`** vs new **`mill-metadata-types`** module | | |
+| **FacetPayloadUtils** vs inline conversion in **§2c** consumers | **`FacetPayloadUtils`** in **`mill-metadata-core`** (`object` + `@JvmStatic convert`), backed by `JsonUtils.defaultJsonMapper().convertValue`. **`SchemaFacets.fromResolved`** and **`NlsqlMetadataFacets`** use it; **`SchemaExplorerService`** calls it for descriptive facet hydration. | 2026-04-01 |
+| **`mill-metadata-core`** vs new **`mill-metadata-types`** module | **Keep** all demoted types and **`FacetPayloadUtils`** in **`mill-metadata-core`**; **`StructuralFacet`** / **`RelationFacet`** remain in **`mill-data-schema-core`**. | 2026-04-01 |
 
 ## Out of scope
 
@@ -48,6 +48,12 @@ Record the outcome here (1–3 sentences + optional link to PR). Implementer **m
 ./gradlew build
 cd ai && ./gradlew test
 ```
+
+**Note:** This repository’s **`ai/`** subtree has no standalone `gradlew`; AI modules are included in the **root** build. Verified with root **`.\gradlew.bat build`** and **`.\gradlew.bat :ai:mill-ai-v3:test :ai:mill-ai-v3-cli:test :ai:mill-ai-v1-core:test :ai:mill-ai-v1-nlsql-chat-service:test`**.
+
+## §2c — ChatProcessor
+
+No code changes: **`ChatProcessor`** does not reference **`FacetConverter`**; NL-SQL facet reads go through **`NlsqlMetadataFacets`** (updated).
 
 ## Commit
 

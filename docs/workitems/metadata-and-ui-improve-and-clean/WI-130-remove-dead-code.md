@@ -1,7 +1,7 @@
 # WI-130 — Remove dead code (final sweep)
 
 **Story:** metadata-and-ui-improve-and-clean  
-**Status:** Pending  
+**Status:** Done  
 **Type:** change  
 **Area:** metadata
 
@@ -36,7 +36,7 @@ Normative: [`SPEC.md`](SPEC.md) §0, §1.
 ### Tier 3–4 — orphan / legacy-ui-only
 
 | Class | Notes |
-|-------|--------|
+|-------|-------|
 | `PlatformFacetTypeDefinitions` | Verify usage |
 | `TreeNodeDto`, `SearchResultDto` | If only **retired** UI consumed them |
 
@@ -49,6 +49,19 @@ Normative: [`SPEC.md`](SPEC.md) §0, §1.
 ## Dependencies
 
 - **WI-140** complete (or document explicit exceptions if run earlier).
+
+## Verification (2026-04-01)
+
+Ripgrep across production Kotlin/Java (`*.kt`, `*.java`): **no** references outside defining files for Tier 1–2 candidates.
+
+| Item | Action |
+|------|--------|
+| `FacetTypeConflictException`, `FacetTypeNotFoundException` | **Removed** from `FacetTypeManifestExceptions.kt`; `FacetTypeManifestInvalidException` retained |
+| `FacetDto`, `FacetTypeDescriptorDto` | **Deleted** (orphan DTO files; OpenAPI uses `FacetInstanceDto` etc.) |
+| `MetadataSnapshotService`, `DefaultMetadataSnapshotService` | **Deleted** (unwired; no beans or call sites) |
+| `ResourceResolver` (+ `ResolvedResource`), `SpringResourceResolver`, `ClasspathResourceResolver` | **Deleted** (never injected or registered as beans; test helper unused) |
+
+Tier 3: `PlatformFacetTypeDefinitions` still has **no** non-self references — left in place (out of Tier 1–2 sweep). `TreeNodeDto` / `SearchResultDto` remain in use (service DTOs; legacy OpenAPI client types).
 
 ## Acceptance criteria
 

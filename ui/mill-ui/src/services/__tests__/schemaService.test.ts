@@ -229,4 +229,72 @@ describe('schemaService', () => {
       expect(facets.descriptive?.displayName).toBe('Legacy');
     });
   });
+
+  describe('facetsResolved (WI-134 / WI-136)', () => {
+    const iso = '2026-01-01T00:00:00Z';
+
+    it('parses facetsResolved on schema entity GET', async () => {
+      const withResolved = {
+        ...mockSchemaDetail,
+        facetsResolved: [
+          {
+            uid: 'u1',
+            facetTypeUrn: 'urn:mill/metadata/facet-type:descriptive',
+            scopeUrn: 'urn:mill:scope:global',
+            origin: 'CAPTURED',
+            originId: 'repository',
+            assignmentUid: 'as1',
+            payload: { displayName: 'Captured', description: '' },
+            createdAt: iso,
+            lastModifiedAt: iso,
+          },
+          {
+            uid: 'u2',
+            facetTypeUrn: 'urn:mill/metadata/facet-type:descriptive',
+            scopeUrn: 'urn:mill:scope:global',
+            origin: 'INFERRED',
+            originId: 'logical-layout',
+            assignmentUid: null,
+            payload: { displayName: 'Inferred title', description: 'from layout' },
+            createdAt: iso,
+            lastModifiedAt: iso,
+          },
+        ],
+      };
+      fetchMock.mockResolvedValueOnce(makeOkResponse(withResolved));
+      const { schemaService } = await import('../schemaService');
+      const result = await schemaService.getEntityById('sales', 'global');
+      expect(result?.facetsResolved?.length).toBe(2);
+      expect(result?.facetsResolved?.[1]?.origin).toBe('INFERRED');
+      expect(result?.facetsResolved?.[1]?.originId).toBe('logical-layout');
+    });
+
+    it('buildEntityFacetsFromResolvedList merges header from captured-first with inferred fallback', async () => {
+      const { buildEntityFacetsFromResolvedList } = await import('../schemaService');
+      const rows = [
+        {
+          uid: 'u2',
+          facetTypeUrn: 'urn:mill/metadata/facet-type:descriptive',
+          scopeUrn: 'urn:mill:scope:global',
+          origin: 'INFERRED' as const,
+          originId: 'logical-layout',
+          assignmentUid: null,
+          payload: { displayName: 'Only inferred', description: '' },
+        },
+        {
+          uid: 'u1',
+          facetTypeUrn: 'urn:mill/metadata/facet-type:descriptive',
+          scopeUrn: 'urn:mill:scope:global',
+          origin: 'CAPTURED' as const,
+          originId: 'repository',
+          assignmentUid: 'as1',
+          payload: { displayName: 'Captured wins', description: '' },
+        },
+      ];
+      const ef = buildEntityFacetsFromResolvedList(rows);
+      expect(ef.resolvedRows?.length).toBe(2);
+      expect(ef.descriptive?.displayName).toBe('Captured wins');
+      expect(ef.byType?.['urn:mill/metadata/facet-type:descriptive']).toEqual({ displayName: 'Captured wins', description: '' });
+    });
+  });
 });

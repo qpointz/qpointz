@@ -1,13 +1,5 @@
 package io.qpointz.mill.metadata.configuration
 
-import io.qpointz.mill.data.schema.facet.RelationFacet
-import io.qpointz.mill.data.schema.facet.StructuralFacet
-import io.qpointz.mill.metadata.domain.DefaultFacetClassResolver
-import io.qpointz.mill.metadata.domain.FacetClassResolver
-import io.qpointz.mill.metadata.domain.MetadataUrns
-import io.qpointz.mill.metadata.domain.core.ConceptFacet
-import io.qpointz.mill.metadata.domain.core.DescriptiveFacet
-import io.qpointz.mill.metadata.domain.core.ValueMappingFacet
 import io.qpointz.mill.metadata.repository.FacetTypeDefinitionRepository
 import io.qpointz.mill.metadata.repository.FacetTypeRepository
 import io.qpointz.mill.metadata.repository.InMemoryFacetTypeDefinitionRepository
@@ -23,7 +15,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 /**
- * Core metadata beans: facet resolver and facet catalog.
+ * Core metadata beans: facet catalog and registry guards.
  *
  * **Seeding:** platform scopes, facet types, and entities are applied **only** through
  * `mill.metadata.seed.resources` ([MetadataSeedStartup]); there are no Flyway data inserts or
@@ -32,24 +24,6 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @EnableConfigurationProperties(MetadataProperties::class)
 open class MetadataCoreConfiguration {
-
-    /**
-     * Creates the default [FacetClassResolver] with all five platform facet classes registered.
-     *
-     * @return default resolver mapping URN type keys to their facet POJO classes
-     */
-    @Bean
-    @ConditionalOnMissingBean
-    open fun facetClassResolver(): FacetClassResolver {
-        val resolver = DefaultFacetClassResolver()
-        resolver.register(MetadataUrns.FACET_TYPE_STRUCTURAL, StructuralFacet::class.java)
-        resolver.register(MetadataUrns.FACET_TYPE_DESCRIPTIVE, DescriptiveFacet::class.java)
-        resolver.register(MetadataUrns.FACET_TYPE_RELATION, RelationFacet::class.java)
-        resolver.register(MetadataUrns.FACET_TYPE_CONCEPT, ConceptFacet::class.java)
-        resolver.register(MetadataUrns.FACET_TYPE_VALUE_MAPPING, ValueMappingFacet::class.java)
-        log.info("Registered platform facet class resolver with 5 mappings")
-        return resolver
-    }
 
     /**
      * In-memory facet type definitions when JPA metadata storage is not active.
