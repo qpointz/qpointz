@@ -1,6 +1,5 @@
 package io.qpointz.mill.metadata.configuration
 
-import io.qpointz.mill.data.schema.DefaultMetadataEntityUrnCodec
 import io.qpointz.mill.data.schema.MetadataEntityUrnCodec
 import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.metadata.source.MetadataSource
@@ -34,10 +33,6 @@ import org.springframework.context.annotation.Bean
 class MetadataEntityServiceAutoConfiguration {
 
     @Bean
-    @ConditionalOnMissingBean(MetadataEntityUrnCodec::class)
-    fun metadataEntityUrnCodec(): MetadataEntityUrnCodec = DefaultMetadataEntityUrnCodec()
-
-    @Bean
     @ConditionalOnMissingBean(MetadataEntityService::class)
     fun metadataEntityService(
         entityRepository: MetadataEntityRepository,
@@ -62,9 +57,14 @@ class MetadataEntityServiceAutoConfiguration {
     ): RepositoryMetadataSource = RepositoryMetadataSource(facetRepository, metadataReader)
 
     /**
-     * Merges facet rows from all [MetadataSource] contributors for [io.qpointz.mill.metadata.service.FacetService.resolve].
+     * Collects **every** Spring bean of type [MetadataSource] and merges them for read paths
+     * ([io.qpointz.mill.metadata.service.FacetService.resolve], schema explorer, etc.).
      *
-     * @param metadataSources all beans implementing [MetadataSource] (order stabilized by [FacetInstanceReadMerge] via origin id)
+     * This module registers [RepositoryMetadataSource] only. Implementations that need the physical
+     * catalog (e.g. [io.qpointz.mill.data.metadata.source.LogicalLayoutMetadataSource]) are **instantiated**
+     * in `mill-data-autoconfigure` so metadata autoconfigure stays independent of the data stack.
+     *
+     * @param metadataSources all [MetadataSource] beans on the context (order stabilized in [FacetInstanceReadMerge] by origin id)
      * @param facetCatalog facet type cardinality lookup
      */
     @Bean

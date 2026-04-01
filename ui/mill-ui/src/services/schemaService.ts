@@ -20,7 +20,7 @@ const FACET_STRUCTURAL  = 'urn:mill/metadata/facet-type:structural';
 const FACET_RELATION    = 'urn:mill/metadata/facet-type:relation';
 const CONTEXT_GLOBAL    = 'global';
 const DEFAULT_FACET_MODE = 'direct';
-/** Path segment id for the catalog model root; matches [io.qpointz.mill.data.schema.SchemaModelRoot.ENTITY_LOCAL_ID]. */
+/** Path segment id for the catalog model root; matches [io.qpointz.mill.data.metadata.SchemaModelRoot.ENTITY_LOCAL_ID]. */
 const MODEL_ROOT_LOCAL_ID = 'model-entity';
 
 function mapCardinality(raw: unknown): RelationFacet['cardinality'] {

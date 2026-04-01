@@ -1,4 +1,4 @@
-package io.qpointz.mill.data.schema
+package io.qpointz.mill.data.metadata
 
 import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.domain.facet.FacetPayloadSchema
@@ -20,7 +20,7 @@ object DataOwnedFacetTypeManifests {
             title = title,
             description = description,
             fields = emptyList(),
-            required = emptyList()
+            required = emptyList(),
         )
 
     /**
@@ -39,8 +39,8 @@ object DataOwnedFacetTypeManifests {
                 applicableTo = tableAndAttribute,
                 payload = objectPayload(
                     "Structural payload",
-                    "Arbitrary JSON object for physical name, JDBC type, nullability, and related fields."
-                )
+                    "Arbitrary JSON object for physical name, JDBC type, nullability, and related fields.",
+                ),
             ),
             FacetTypeManifest(
                 typeKey = MetadataUrns.FACET_TYPE_RELATION,
@@ -50,8 +50,8 @@ object DataOwnedFacetTypeManifests {
                 applicableTo = tableAndAttribute,
                 payload = objectPayload(
                     "Relation payload",
-                    "JSON object describing named relations and source/target locators."
-                )
+                    "JSON object describing named relations and source/target locators.",
+                ),
             ),
             FacetTypeManifest(
                 typeKey = MetadataUrns.FACET_TYPE_VALUE_MAPPING,
@@ -61,9 +61,9 @@ object DataOwnedFacetTypeManifests {
                 applicableTo = attributeOnly,
                 payload = objectPayload(
                     "Value mapping payload",
-                    "JSON object for static mappings, dynamic SQL sources, and optional context."
-                )
-            )
+                    "JSON object for static mappings, dynamic SQL sources, and optional context.",
+                ),
+            ),
         )
     }
 }

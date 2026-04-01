@@ -2,7 +2,7 @@ package io.qpointz.mill.metadata.api
 
 import io.qpointz.mill.UrnSlug
 import io.qpointz.mill.data.schema.MetadataEntityUrnCodec
-import io.qpointz.mill.data.schema.SchemaEntityKinds
+import io.qpointz.mill.data.metadata.SchemaEntityKinds
 import io.qpointz.mill.data.backend.SchemaProvider
 import io.qpointz.mill.metadata.api.dto.FacetInstanceDto
 import io.qpointz.mill.metadata.api.dto.FacetMergeTraceEntryDto

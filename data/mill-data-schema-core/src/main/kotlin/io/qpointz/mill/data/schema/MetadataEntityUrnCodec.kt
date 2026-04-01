@@ -1,12 +1,14 @@
 package io.qpointz.mill.data.schema
 
+import io.qpointz.mill.data.metadata.CatalogPath
+import io.qpointz.mill.data.metadata.RelationalMetadataEntityUrns
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 
 /**
  * Schema-layer binding from physical catalog names to **canonical** metadata instance URNs
  * (`urn:mill/metadata/entity:…`) and back.
  *
- * Implementations live in `mill-data-schema-core`; metadata-core keeps only generic URN rules.
+ * Implementations live in `mill-data-schema-core`; catalog path rules live in `mill-data-metadata`.
  *
  * @see DefaultMetadataEntityUrnCodec
  */
@@ -73,7 +75,7 @@ class DefaultMetadataEntityUrnCodec : MetadataEntityUrnCodec {
         entityId: String,
         schemaName: String,
         tableName: String? = null,
-        columnName: String? = null
+        columnName: String? = null,
     ): Boolean {
         val expected = when {
             tableName.isNullOrEmpty() -> forSchema(schemaName)

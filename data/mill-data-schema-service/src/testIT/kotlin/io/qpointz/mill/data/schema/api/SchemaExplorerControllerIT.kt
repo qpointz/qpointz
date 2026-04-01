@@ -4,7 +4,7 @@ import io.qpointz.mill.data.backend.SchemaProvider
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.proto.DataType
 import io.qpointz.mill.proto.Field
-import io.qpointz.mill.data.schema.SchemaModelRoot
+import io.qpointz.mill.data.metadata.SchemaModelRoot
 import io.qpointz.mill.proto.LogicalDataType
 import io.qpointz.mill.proto.Schema as ProtoSchema
 import io.qpointz.mill.proto.Table

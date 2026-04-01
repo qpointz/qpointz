@@ -4,7 +4,7 @@ import io.qpointz.mill.ai.nlsql.ValueRepository;
 import io.qpointz.mill.annotations.service.ConditionalOnService;
 import io.qpointz.mill.ai.nlsql.metadata.NlsqlMetadataFacets;
 import io.qpointz.mill.data.schema.MetadataEntityUrnCodec;
-import io.qpointz.mill.data.schema.SchemaEntityKinds;
+import io.qpointz.mill.data.metadata.SchemaEntityKinds;
 import io.qpointz.mill.metadata.domain.MetadataEntity;
 import io.qpointz.mill.metadata.domain.core.ValueMappingFacet;
 import io.qpointz.mill.metadata.repository.FacetRepository;

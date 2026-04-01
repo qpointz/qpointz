@@ -9,7 +9,7 @@ import io.qpointz.mill.utils.JsonUtils
  * Keep this JSON aligned when editing the YAML (or regenerate fixtures from the YAML).
  *
  * JDBC/schema-owned types (**structural**, **relation**, **value-mapping**) are described in the same
- * bootstrap YAML; [io.qpointz.mill.data.schema.DataOwnedFacetTypeManifests] remains for Kotlin tests
+ * bootstrap YAML; [io.qpointz.mill.data.metadata.DataOwnedFacetTypeManifests] remains for Kotlin tests
  * and tooling that build manifests in code.
  */
 object PlatformFacetTypeDefinitions {

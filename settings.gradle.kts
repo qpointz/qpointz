@@ -42,6 +42,7 @@ include (":data:mill-data-testkit")
 include (":data:mill-data-autoconfigure")
 include (":data:mill-data-source-core")
 include (":data:mill-data-source-calcite")
+include (":data:mill-data-metadata")
 include (":data:mill-data-schema-core")
 include (":data:mill-data-schema-service")
 

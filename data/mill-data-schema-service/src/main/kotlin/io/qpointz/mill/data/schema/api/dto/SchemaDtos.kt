@@ -91,9 +91,9 @@ data class FacetResolvedRowDto(
 /**
  * Logical model root returned by [io.qpointz.mill.data.schema.api.SchemaExplorerService.getModelRoot] and tree payloads.
  *
- * @property id path-friendly id ([io.qpointz.mill.data.schema.SchemaModelRoot.ENTITY_LOCAL_ID])
+ * @property id path-friendly id ([io.qpointz.mill.data.metadata.SchemaModelRoot.ENTITY_LOCAL_ID])
  * @property entityType always [SchemaEntityType.MODEL]
- * @property metadataEntityId canonical metadata entity URN ([io.qpointz.mill.data.schema.SchemaModelRoot.ENTITY_ID])
+ * @property metadataEntityId canonical metadata entity URN ([io.qpointz.mill.data.metadata.SchemaModelRoot.ENTITY_ID])
  * @property facets optional facets map keyed by facet URN
  * @property facetsResolved unified resolved facet rows (captured + inferred) when available
  */
@@ -121,7 +121,7 @@ data class SchemaExplorerTreeDto(
 /**
  * Schema entry returned by schema list endpoint.
  *
- * @property id stable identifier (`schemaName`, or [io.qpointz.mill.data.schema.SchemaModelRoot.ENTITY_LOCAL_ID] for [SchemaEntityType.MODEL])
+ * @property id stable identifier (`schemaName`, or [io.qpointz.mill.data.metadata.SchemaModelRoot.ENTITY_LOCAL_ID] for [SchemaEntityType.MODEL])
  * @property entityType row kind
  * @property schemaName physical schema name; empty for [SchemaEntityType.MODEL]
  * @property metadataEntityId matched metadata entity ID when present; for model, stable URN even when no row exists

@@ -15,8 +15,8 @@ dependencies {
     api(project(":metadata:mill-metadata-core"))
     api(project(":metadata:mill-metadata-service"))
     compileOnly(project(":metadata:mill-metadata-persistence"))
-    implementation(project(":data:mill-data-schema-core"))
-    compileOnly(project(":data:mill-data-backend-core"))
+    /** Types only (e.g. [io.qpointz.mill.data.schema.MetadataEntityUrnCodec]); bean is [MetadataEntityUrnCodecAutoConfiguration] in mill-data-autoconfigure. */
+    compileOnly(project(":data:mill-data-schema-core"))
     implementation(libs.boot.starter)
     implementation(libs.boot.starter.web)
     implementation(libs.json.schema.validator)

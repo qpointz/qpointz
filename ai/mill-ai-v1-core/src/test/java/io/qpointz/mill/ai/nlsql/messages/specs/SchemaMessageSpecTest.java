@@ -2,9 +2,9 @@ package io.qpointz.mill.ai.nlsql.messages.specs;
 
 import io.qpointz.mill.ai.nlsql.metadata.SchemaMessageMetadataPorts;
 import io.qpointz.mill.data.backend.configuration.DefaultServiceConfiguration;
-import io.qpointz.mill.data.schema.CatalogPath;
+import io.qpointz.mill.data.metadata.CatalogPath;
 import io.qpointz.mill.data.schema.MetadataEntityUrnCodec;
-import io.qpointz.mill.data.schema.SchemaEntityKinds;
+import io.qpointz.mill.data.metadata.SchemaEntityKinds;
 import io.qpointz.mill.metadata.domain.MetadataEntity;
 import io.qpointz.mill.metadata.repository.FacetRepository;
 import io.qpointz.mill.metadata.service.MetadataEntityService;

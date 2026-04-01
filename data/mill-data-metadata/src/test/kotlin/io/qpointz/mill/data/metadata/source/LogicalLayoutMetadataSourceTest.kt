@@ -1,6 +1,9 @@
-package io.qpointz.mill.data.schema
+package io.qpointz.mill.data.metadata.source
 
 import io.qpointz.mill.data.backend.SchemaProvider
+import io.qpointz.mill.data.metadata.LayoutInferredFacetTypeKeys
+import io.qpointz.mill.data.metadata.RelationalMetadataEntityUrns
+import io.qpointz.mill.data.metadata.SchemaModelRoot
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.domain.facet.FacetOrigin
@@ -37,62 +40,60 @@ class LogicalLayoutMetadataSourceTest {
                                 .setType(
                                     DataType.newBuilder()
                                         .setNullability(DataType.Nullability.NOT_NULL)
-                                        .build()
+                                        .build(),
                                 )
-                                .build()
+                                .build(),
                         )
-                        .build()
+                        .build(),
                 )
-                .build()
+                .build(),
         )
         whenever(p.schemaNames).thenReturn(listOf("db"))
         return p
     }
 
     @Test
-    fun `model root yields inferred descriptive facet`() {
+    fun `model root yields no inferred layout facets`() {
         val src = LogicalLayoutMetadataSource(provider())
         val eid = MetadataEntityUrn.canonicalize(SchemaModelRoot.ENTITY_ID)
+        assertTrue(src.fetchForEntity(eid, ctx).isEmpty())
+    }
+
+    @Test
+    fun `schema entity yields inferred schema facet`() {
+        val src = LogicalLayoutMetadataSource(provider())
+        val eid = MetadataEntityUrn.canonicalize(RelationalMetadataEntityUrns.forSchema("db"))
         val rows = src.fetchForEntity(eid, ctx)
         assertEquals(1, rows.size)
         val row = rows.single()
         assertEquals(FacetOrigin.INFERRED, row.origin)
         assertEquals(MetadataOriginIds.LOGICAL_LAYOUT, row.originId)
-        assertEquals(MetadataUrns.FACET_TYPE_DESCRIPTIVE, row.facetTypeKey)
-        assertTrue(row.payload["description"].toString().contains("db"))
+        assertEquals(LayoutInferredFacetTypeKeys.SCHEMA, row.facetTypeKey)
+        assertEquals("db", row.payload["schema"])
     }
 
     @Test
-    fun `schema entity yields inferred structural facet`() {
-        val codec = DefaultMetadataEntityUrnCodec()
+    fun `table entity yields inferred table facet`() {
         val src = LogicalLayoutMetadataSource(provider())
-        val eid = MetadataEntityUrn.canonicalize(codec.forSchema("db"))
+        val eid = MetadataEntityUrn.canonicalize(RelationalMetadataEntityUrns.forTable("db", "orders"))
         val rows = src.fetchForEntity(eid, ctx)
         assertEquals(1, rows.size)
         val row = rows.single()
-        assertEquals(FacetOrigin.INFERRED, row.origin)
-        assertEquals(MetadataUrns.FACET_TYPE_STRUCTURAL, row.facetTypeKey)
-        assertEquals("db", row.payload["physicalName"])
+        assertEquals(LayoutInferredFacetTypeKeys.TABLE, row.facetTypeKey)
+        assertEquals("orders", row.payload["table"])
+        assertEquals("db", row.payload["schema"])
     }
 
     @Test
-    fun `table entity yields inferred structural facet`() {
-        val codec = DefaultMetadataEntityUrnCodec()
+    fun `column entity yields inferred column facet`() {
         val src = LogicalLayoutMetadataSource(provider())
-        val eid = MetadataEntityUrn.canonicalize(codec.forTable("db", "orders"))
+        val eid = MetadataEntityUrn.canonicalize(RelationalMetadataEntityUrns.forAttribute("db", "orders", "id"))
         val rows = src.fetchForEntity(eid, ctx)
         assertEquals(1, rows.size)
-        assertEquals("orders", rows.single().payload["physicalName"])
-    }
-
-    @Test
-    fun `column entity yields inferred structural facet`() {
-        val codec = DefaultMetadataEntityUrnCodec()
-        val src = LogicalLayoutMetadataSource(provider())
-        val eid = MetadataEntityUrn.canonicalize(codec.forAttribute("db", "orders", "id"))
-        val rows = src.fetchForEntity(eid, ctx)
-        assertEquals(1, rows.size)
-        assertEquals("id", rows.single().payload["physicalName"])
+        val row = rows.single()
+        assertEquals(LayoutInferredFacetTypeKeys.COLUMN, row.facetTypeKey)
+        assertEquals("id", row.payload["column"])
+        assertEquals("orders", row.payload["table"])
     }
 
     @Test
@@ -101,19 +102,17 @@ class LogicalLayoutMetadataSourceTest {
         whenever(p.isSchemaExists("missing")).thenReturn(false)
         whenever(p.schemaNames).thenReturn(emptyList())
         val src = LogicalLayoutMetadataSource(p)
-        val codec = DefaultMetadataEntityUrnCodec()
-        val eid = MetadataEntityUrn.canonicalize(codec.forSchema("missing"))
+        val eid = MetadataEntityUrn.canonicalize(RelationalMetadataEntityUrns.forSchema("missing"))
         assertTrue(src.fetchForEntity(eid, ctx).isEmpty())
     }
 
     @Test
     fun `muted origin returns empty`() {
         val src = LogicalLayoutMetadataSource(provider())
-        val codec = DefaultMetadataEntityUrnCodec()
-        val eid = MetadataEntityUrn.canonicalize(codec.forSchema("db"))
+        val eid = MetadataEntityUrn.canonicalize(RelationalMetadataEntityUrns.forSchema("db"))
         val muted = MetadataReadContext(
             scopes = listOf(MetadataUrns.SCOPE_GLOBAL),
-            origins = setOf("repository-local")
+            origins = setOf("repository-local"),
         )
         assertTrue(src.fetchForEntity(eid, muted).isEmpty())
     }

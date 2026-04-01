@@ -1,4 +1,4 @@
-package io.qpointz.mill.data.schema
+package io.qpointz.mill.data.metadata
 
 /**
  * Stable identity for the catalog-wide logical **model** root (SPEC §3f).

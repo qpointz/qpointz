@@ -1,4 +1,4 @@
-package io.qpointz.mill.data.schema
+package io.qpointz.mill.data.metadata
 
 /**
  * Opaque [io.qpointz.mill.metadata.domain.MetadataEntity.kind] values for relational catalog

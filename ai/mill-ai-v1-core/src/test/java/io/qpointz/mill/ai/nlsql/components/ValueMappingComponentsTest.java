@@ -3,7 +3,7 @@ package io.qpointz.mill.ai.nlsql.components;
 import io.qpointz.mill.ai.nlsql.ValueRepository;
 import io.qpointz.mill.data.schema.DefaultMetadataEntityUrnCodec;
 import io.qpointz.mill.data.schema.MetadataEntityUrnCodec;
-import io.qpointz.mill.data.schema.SchemaEntityKinds;
+import io.qpointz.mill.data.metadata.SchemaEntityKinds;
 import io.qpointz.mill.metadata.domain.MetadataEntity;
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn;
 import io.qpointz.mill.metadata.domain.MetadataUrns;

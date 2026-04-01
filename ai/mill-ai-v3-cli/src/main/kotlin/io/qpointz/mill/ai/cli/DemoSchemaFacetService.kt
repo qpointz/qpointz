@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.cli
 
+import io.qpointz.mill.data.metadata.SchemaModelRoot
 import io.qpointz.mill.data.schema.*
 import io.qpointz.mill.metadata.domain.MetadataFacet
 import io.qpointz.mill.metadata.domain.RelationCardinality

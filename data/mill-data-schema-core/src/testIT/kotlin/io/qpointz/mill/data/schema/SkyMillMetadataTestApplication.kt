@@ -9,6 +9,7 @@ import io.qpointz.mill.metadata.configuration.MetadataSeedAutoConfiguration
 import org.springframework.boot.SpringBootConfiguration
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 
 /**
@@ -22,6 +23,11 @@ import org.springframework.context.annotation.Import
     MetadataRepositoryAutoConfiguration::class,
     MetadataImportExportAutoConfiguration::class,
     MetadataEntityServiceAutoConfiguration::class,
-    MetadataSeedAutoConfiguration::class
+    MetadataSeedAutoConfiguration::class,
 )
-class SkyMillMetadataTestApplication
+// Spring configuration classes must be non-final for CGLIB proxying of @Bean methods.
+open class SkyMillMetadataTestApplication {
+
+    @Bean
+    open fun metadataEntityUrnCodec(): MetadataEntityUrnCodec = DefaultMetadataEntityUrnCodec()
+}

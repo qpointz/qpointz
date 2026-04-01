@@ -1,4 +1,4 @@
-package io.qpointz.mill.data.schema
+package io.qpointz.mill.data.metadata
 
 /**
  * Physical catalog coordinates decoded from a **relational** metadata entity URN
@@ -15,5 +15,5 @@ package io.qpointz.mill.data.schema
 data class CatalogPath(
     val schema: String?,
     val table: String?,
-    val column: String?
+    val column: String?,
 )

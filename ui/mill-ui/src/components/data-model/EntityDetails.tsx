@@ -84,6 +84,16 @@ type ResolvedFacetUnit =
   | { kind: 'capturedSingle'; facetType: string; row: FacetResolvedRow }
   | { kind: 'capturedMultiple'; facetType: string; row: FacetResolvedRow; capturedIndex: number };
 
+/**
+ * Constellation rows can emit several {@link FacetResolvedRow}s for the same facet type when the
+ * catalog still marks the type as SINGLE; cards must not key only by facet type.
+ */
+function isCapturedSingleResolvedUnit(
+  raw: ResolvedFacetUnit | FacetRenderUnit
+): raw is Extract<ResolvedFacetUnit, { kind: 'capturedSingle' }> {
+  return (raw as ResolvedFacetUnit).kind === 'capturedSingle';
+}
+
 const entityIcons = {
   MODEL: HiOutlineCube,
   SCHEMA: HiOutlineCircleStack,
@@ -1845,9 +1855,12 @@ export function EntityDetails({
                     }
 
                     const isEditingSingle = editFacetType === facetType && editInstanceIndex === null;
+                    const singleFacetCardKey = isCapturedSingleResolvedUnit(rawUnit)
+                      ? `${facetType}::${rawUnit.row.uid}`
+                      : `${facetType}-single`;
 
                     return (
-                      <Card key={facetType} withBorder p="xs">
+                      <Card key={singleFacetCardKey} withBorder p="xs">
                         <Group justify="space-between" mb={6}>
                           {facetHeaderIcons}
                           {isEditingSingle ? (
@@ -1896,7 +1909,7 @@ export function EntityDetails({
                                   Edit below as JSON or YAML.
                                 </Text>
                                 <JsonYamlEditor
-                                  key={`${facetType}-expert`}
+                                  key={`${singleFacetCardKey}-expert`}
                                   value={editFormValue}
                                   onApply={(next) => {
                                     setEditFormValue(next);
@@ -1928,7 +1941,7 @@ export function EntityDetails({
                                 </Group>
                                 {editMode === 'json' ? (
                                   <JsonYamlEditor
-                                    key={`${facetType}-expert`}
+                                    key={`${singleFacetCardKey}-expert`}
                                     value={editFormValue}
                                     onApply={(next) => {
                                       setEditFormValue(next);

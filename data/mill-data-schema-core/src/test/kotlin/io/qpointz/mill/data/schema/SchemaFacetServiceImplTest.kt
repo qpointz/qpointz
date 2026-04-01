@@ -1,6 +1,8 @@
 package io.qpointz.mill.data.schema
 
 import io.qpointz.mill.data.backend.SchemaProvider
+import io.qpointz.mill.data.metadata.SchemaEntityKinds
+import io.qpointz.mill.data.metadata.SchemaModelRoot
 import io.qpointz.mill.metadata.domain.FacetTypeDefinition
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn

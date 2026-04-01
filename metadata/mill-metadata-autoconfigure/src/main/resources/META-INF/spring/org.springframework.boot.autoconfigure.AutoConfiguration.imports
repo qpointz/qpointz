@@ -5,5 +5,3 @@ io.qpointz.mill.metadata.configuration.MetadataRepositoryAutoConfiguration
 io.qpointz.mill.metadata.configuration.MetadataImportExportAutoConfiguration
 io.qpointz.mill.metadata.configuration.MetadataEntityServiceAutoConfiguration
 io.qpointz.mill.metadata.configuration.MetadataSeedAutoConfiguration
-io.qpointz.mill.metadata.configuration.SchemaFacetAutoConfiguration
-

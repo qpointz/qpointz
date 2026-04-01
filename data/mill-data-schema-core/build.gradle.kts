@@ -11,8 +11,7 @@ mill {
 }
 
 dependencies {
-    api(project(":data:mill-data-backend-core"))
-    api(project(":metadata:mill-metadata-core"))
+    api(project(":data:mill-data-metadata"))
     implementation(libs.bundles.logging)
 }
 

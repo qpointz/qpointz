@@ -1,7 +1,7 @@
 package io.qpointz.mill.metadata.api
 
 import io.qpointz.mill.UrnSlug
-import io.qpointz.mill.data.schema.CatalogPath
+import io.qpointz.mill.data.metadata.CatalogPath
 import io.qpointz.mill.data.schema.MetadataEntityUrnCodec
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataUrns

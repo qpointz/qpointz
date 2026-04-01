@@ -1,5 +1,8 @@
 io.qpointz.mill.autoconfigure.data.SqlAutoConfiguration
+io.qpointz.mill.autoconfigure.data.schema.MetadataEntityUrnCodecAutoConfiguration
 io.qpointz.mill.autoconfigure.data.backend.BackendAutoConfiguration
 io.qpointz.mill.autoconfigure.data.backend.calcite.CalciteBackendAutoConfiguration
 io.qpointz.mill.autoconfigure.data.backend.jdbc.JdbcBackendAutoConfiguration
 io.qpointz.mill.autoconfigure.data.backend.flow.FlowBackendAutoConfiguration
+io.qpointz.mill.autoconfigure.data.schema.LogicalLayoutMetadataSourceAutoConfiguration
+io.qpointz.mill.autoconfigure.data.schema.SchemaFacetServiceAutoConfiguration

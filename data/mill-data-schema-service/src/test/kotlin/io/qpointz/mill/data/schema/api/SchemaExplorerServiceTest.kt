@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.qpointz.mill.data.backend.SchemaProvider
 import io.qpointz.mill.data.schema.DefaultMetadataEntityUrnCodec
 import io.qpointz.mill.data.schema.SchemaFacetService
-import io.qpointz.mill.data.schema.SchemaModelRoot
+import io.qpointz.mill.data.metadata.SchemaModelRoot
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.excepions.statuses.MillStatusRuntimeException
 import io.qpointz.mill.metadata.domain.MetadataEntity

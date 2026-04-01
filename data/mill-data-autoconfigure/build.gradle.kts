@@ -18,6 +18,7 @@ dependencies {
     api(project(":data:mill-data-backend-core"))
     api(project(":data:mill-data-schema-core"))
     api(project(":data:mill-data-backends"))
+    implementation(project(":metadata:mill-metadata-core"))
     implementation(project(":core:mill-sql"))
     api(libs.jakarta.servlet.api)
     api(libs.javax.annotation.api)

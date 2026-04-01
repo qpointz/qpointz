@@ -6,7 +6,7 @@ import io.qpointz.mill.data.schema.ModelRootWithFacets
 import io.qpointz.mill.data.schema.SchemaFacetResult
 import io.qpointz.mill.data.schema.SchemaFacetService
 import io.qpointz.mill.data.schema.SchemaFacets
-import io.qpointz.mill.data.schema.SchemaModelRoot
+import io.qpointz.mill.data.metadata.SchemaModelRoot
 import io.qpointz.mill.data.schema.SchemaTableWithFacets
 import io.qpointz.mill.data.schema.SchemaWithFacets
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
