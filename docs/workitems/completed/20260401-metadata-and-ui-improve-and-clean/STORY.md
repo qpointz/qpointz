@@ -12,8 +12,8 @@
 
 The codebase mixed a generic **`FacetInstance`** pipeline with Kotlin **facet classes** carrying `merge()` / `validate()` / `setOwner()`, which duplicated shapes and semantics.
 
-- Facet elimination narrative: [`docs/design/metadata/facet-class-elimination.md`](../../design/metadata/facet-class-elimination.md)
-- Layered sources / inferred facets: [`docs/design/metadata/metadata-layered-sources-and-ephemeral-facets.md`](../../design/metadata/metadata-layered-sources-and-ephemeral-facets.md)
+- Facet elimination narrative: [`docs/design/metadata/facet-class-elimination.md`](../../../design/metadata/facet-class-elimination.md)
+- Layered sources / inferred facets: [`docs/design/metadata/metadata-layered-sources-and-ephemeral-facets.md`](../../../design/metadata/metadata-layered-sources-and-ephemeral-facets.md)
 
 **Historical design checklist:** [`DESIGN-GAPS.md`](DESIGN-GAPS.md) — decisions are folded into **`SPEC.md`** (especially §3h, §3i). Use **SPEC** for planning.
 
@@ -23,7 +23,7 @@ The codebase mixed a generic **`FacetInstance`** pipeline with Kotlin **facet cl
 
 ## Work items — implement in SPEC §6 order
 
-Check boxes as each WI lands; **one commit per WI** with checklist update (see **SPEC §0**, [`RULES.md`](../RULES.md)).
+Check boxes as each WI lands; **one commit per WI** with checklist update (see **SPEC §0**, [`RULES.md`](../../RULES.md)).
 
 1. [x] [`WI-132`](WI-132-metadata-source-contract-and-repository-adapter.md) — Metadata contracts + `RepositoryMetadataSource`
 2. [x] [`WI-137`](WI-137-model-root-entity.md) — `model` root entity
@@ -34,7 +34,7 @@ Check boxes as each WI lands; **one commit per WI** with checklist update (see *
 7. [x] [`WI-136`](WI-136-ui-full-facet-constellation-view.md) — UI full constellation
 8. [x] [`WI-140`](WI-140-facet-class-demotion.md) — Facet class demotion (SPEC §2)
 9. [x] [`WI-130`](WI-130-remove-dead-code.md) — Dead code removal (final sweep)
-10. [ ] [`WI-141`](WI-141-story-documentation-closure.md) — `docs/design/` + `docs/public/` closure
+10. [x] [`WI-141`](WI-141-story-documentation-closure.md) — `docs/design/` + `docs/public/` closure
 
 **Deferred (follow-up story — intentionally no checkbox on this branch):**
 

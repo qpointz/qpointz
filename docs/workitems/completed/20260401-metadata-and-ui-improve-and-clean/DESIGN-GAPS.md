@@ -23,7 +23,7 @@ or during implementation.
 ### Aggregation (`MetadataSource` read merge — not a “repository”)
 
 **Code today:** There is **no** `AggregatingFacetRepository` / `AggregatingMetadataRepository`
-in the tree yet (only WI-133 draft). [`MetadataEntityController`](../../../metadata/mill-metadata-service/src/main/kotlin/io/qpointz/mill/metadata/api/MetadataEntityController.kt)
+in the tree yet (only WI-133 draft). [`MetadataEntityController`](../../../../metadata/mill-metadata-service/src/main/kotlin/io/qpointz/mill/metadata/api/MetadataEntityController.kt)
 uses **`facetRepository`** directly only for **merge-trace** (`findByEntity`) and
 **`findByUid`** (write-path guard). **Merged** facet **GET** responses use **`facetService.resolve`**, not an aggregating
 **`FacetRepository`**.
@@ -47,7 +47,7 @@ rules). That is **`MetadataSource`** shaped, **not** **`FacetRepository`** shape
     **merge inline** there — fine when call sites are few and merge rules stay
     covered by service-level tests. **No obligation** to introduce another public
     type if a service method already owns “resolved facets for entity.”
-  - **Normative wording:** see [`metadata-layered-sources-and-ephemeral-facets.md`](../../design/metadata/metadata-layered-sources-and-ephemeral-facets.md)
+  - **Normative wording:** see [`metadata-layered-sources-and-ephemeral-facets.md`](../../../design/metadata/metadata-layered-sources-and-ephemeral-facets.md)
     (**Full population** / implementation note).
 - **Writes:** stay on **`FacetWriteSide`** / **`FacetRepository`** (persistence bean)
   **without** pretending reads are “the repository.” A façade may **compose**
@@ -202,7 +202,7 @@ rules). That is **`MetadataSource`** shaped, **not** **`FacetRepository`** shape
 - [x] Define backend rollout scope.
   Notes:
   - **Closed:** First inferred-facet implementation targets the **Mill logical
-    model** from [`SchemaProvider`](../../../data/mill-data-backend-core/src/main/java/io/qpointz/mill/data/backend/SchemaProvider.java)
+    model** from [`SchemaProvider`](../../../../data/mill-data-backend-core/src/main/java/io/qpointz/mill/data/backend/SchemaProvider.java)
     (`proto` `Schema` / `Table` / `Field`). Any backend that exposes a
     `SchemaProvider` participates without a separate per-SKU rollout for that
     layer.

@@ -5,8 +5,8 @@
 
 **Design docs (narrative / diagrams):**
 
-- [`docs/design/metadata/facet-class-elimination.md`](../../design/metadata/facet-class-elimination.md)
-- [`docs/design/metadata/metadata-layered-sources-and-ephemeral-facets.md`](../../design/metadata/metadata-layered-sources-and-ephemeral-facets.md)
+- [`docs/design/metadata/facet-class-elimination.md`](../../../design/metadata/facet-class-elimination.md)
+- [`docs/design/metadata/metadata-layered-sources-and-ephemeral-facets.md`](../../../design/metadata/metadata-layered-sources-and-ephemeral-facets.md)
 
 **Historical checklist:** [`DESIGN-GAPS.md`](DESIGN-GAPS.md) — decisions are absorbed into this spec (§3h, §3i, and §3 generally). Prefer this file for execution.
 
@@ -19,7 +19,7 @@
 - **TypeScript / React (`.tsx`):** document **down to function level** for exported functions and non-trivial components or hooks; follow existing UI patterns.
 - **OpenAPI:** Any **materially changed or new** HTTP endpoint, query parameter, request body, or response body in scope for this story must be reflected in the **published OpenAPI** for that service (Springdoc / annotations / YAML — whichever the module uses), including **error responses** when behaviour changes. Reviews treat missing or stale OpenAPI as **incomplete** API work. (Hands-on application is concentrated in **WI-134** and any WI that adds controllers.)
 - **Legacy SPA `ui/mill-grinder-ui`:** **Abandoned** — not part of this story (no builds, no client regen, no fixes). Add **`ui/mill-grinder-ui/`** to **`.cursorignore`** at the **repository root** so Cursor excludes it from indexing. **Mill** UI work is **`ui/mill-ui`** only.
-- **Tracking and commits (per WI):** When a work item is complete, mark **`[x]`** in [`STORY.md`](STORY.md), update the **`WI-*.md`** status if used, update [`MILESTONE.md`](../MILESTONE.md) / [`BACKLOG.md`](../BACKLOG.md) when a listed item is satisfied, then **one full-tree commit** for that WI; clean working tree before the next WI. Prefix `[feat]` / `[fix]` / `[change]` / `[docs]` / `[wip]`; imperative summary; no `Co-Authored-By`. See [`RULES.md`](../RULES.md).
+- **Tracking and commits (per WI):** When a work item is complete, mark **`[x]`** in [`STORY.md`](STORY.md), update the **`WI-*.md`** status if used, update [`MILESTONE.md`](../../MILESTONE.md) / [`BACKLOG.md`](../../BACKLOG.md) when a listed item is satisfied, then **one full-tree commit** for that WI; clean working tree before the next WI. Prefix `[feat]` / `[fix]` / `[change]` / `[docs]` / `[wip]`; imperative summary; no `Co-Authored-By`. See [`RULES.md`](../../RULES.md).
 
 ---
 
@@ -33,7 +33,7 @@ Remove classes with **zero** (or documented retired) production consumers. Full 
 
 ## 2. Facet class demotion
 
-Eliminate the `MetadataFacet` / `AbstractFacet` lifecycle layer so facet payloads stay **schema-driven** and **generic** (`FacetInstance`), per [`facet-class-elimination.md`](../../design/metadata/facet-class-elimination.md).
+Eliminate the `MetadataFacet` / `AbstractFacet` lifecycle layer so facet payloads stay **schema-driven** and **generic** (`FacetInstance`), per [`facet-class-elimination.md`](../../../design/metadata/facet-class-elimination.md).
 
 ### 2a. Demote concrete facet classes
 
@@ -68,7 +68,7 @@ Remove `merge()`, `validate()`, `setOwner()` from:
 ## 3. Layered metadata sources and inferred facets
 
 **Backlog:** M-31  
-**Narrative:** [`metadata-layered-sources-and-ephemeral-facets.md`](../../design/metadata/metadata-layered-sources-and-ephemeral-facets.md)
+**Narrative:** [`metadata-layered-sources-and-ephemeral-facets.md`](../../../design/metadata/metadata-layered-sources-and-ephemeral-facets.md)
 
 Effective metadata is the **merge** of:
 
@@ -141,14 +141,14 @@ Detail: [`WI-137`](WI-137-model-root-entity.md).
 
 ### 3i. Read-side aggregation vs `FacetRepository`
 
-**As-built (before `MetadataSource` ships):** [`MetadataEntityController`](../../../metadata/mill-metadata-service/src/main/kotlin/io/qpointz/mill/metadata/api/MetadataEntityController.kt) uses **`facetRepository`** for merge-trace and write guards; **merged GETs** use **`facetService.resolve`** (`MetadataView` uses the same). There is **no** production **`AggregatingFacetRepository`**.
+**As-built (before `MetadataSource` ships):** [`MetadataEntityController`](../../../../metadata/mill-metadata-service/src/main/kotlin/io/qpointz/mill/metadata/api/MetadataEntityController.kt) uses **`facetRepository`** for merge-trace and write guards; **merged GETs** use **`facetService.resolve`** (`MetadataView` uses the same). There is **no** production **`AggregatingFacetRepository`**.
 
 **Target:** facet **aggregation** is **read-only** and **`MetadataSource`-shaped** — merge **`List<FacetInstance>`** from each registered source after **`MetadataReadContext`**, **not** by replacing **`FacetRepository`** reads globally.
 
 - **Default:** **composition** — inject **`List<MetadataSource>`** (or fixed collaborators) into **`FacetService`**, **`SchemaFacetServiceImpl`**, or thin adapters; merge inline until a **second** consumer needs the **same** algorithm. Then extract a small **`CompositeMetadataSource`** (or similar), still **read-only**.
 - **Discouraged default:** **`@Primary` `FacetRepository`** whose read methods synthesize captured + inferred for **every** injector — conflicts with callers needing **raw** persisted rows and spreads merge logic.
 - **Writes:** remain **`FacetWriteSide`** / persistence **`FacetRepository`** without pretending merged reads are “the repository.”
-- Narrative alignment: [`metadata-layered-sources-and-ephemeral-facets.md`](../../design/metadata/metadata-layered-sources-and-ephemeral-facets.md) (Full population / implementation note).
+- Narrative alignment: [`metadata-layered-sources-and-ephemeral-facets.md`](../../../design/metadata/metadata-layered-sources-and-ephemeral-facets.md) (Full population / implementation note).
 
 Detail: [`WI-133`](WI-133-read-path-facet-merge.md).
 
@@ -227,4 +227,4 @@ Execute **in this order** (dependencies):
 
 ## 8. Story closure (process)
 
-When the branch is merge-ready, also: archive story folder per [`RULES.md`](../RULES.md); update **MILESTONE** / **BACKLOG**; squash commits per team practice. Documentation deliverables for reviewers are centralized in **WI-141**.
+When the branch is merge-ready, also: archive story folder per [`RULES.md`](../../RULES.md); update **MILESTONE** / **BACKLOG**; squash commits per team practice. Documentation deliverables for reviewers are centralized in **WI-141**.

@@ -68,6 +68,7 @@ nav:
       - metadata/index.md
       - metadata/system.md
       - metadata/concepts.md
+      - metadata/multi-source-facets.md
       - metadata/facet-stereotypes.md
       - metadata/operators.md
       - metadata/mill-ui.md

@@ -1,125 +1,68 @@
-# Story: Layered metadata sources and inferred facets
+# Layered metadata sources and inferred facets
 
-**Status:** design / backlog  
-**Tracked:** `docs/workitems/BACKLOG.md` — **M-31**  
-**Related code (today):**  
-`SchemaFacetService` / `SchemaFacetServiceImpl` in `data/mill-data-schema-core`, `FacetRepository` / `MetadataReader` in `metadata/mill-metadata-core`, physical schema via `SchemaProvider` in `data/mill-data-backend-core`.
+**Status:** as-built (story `metadata-and-ui-improve-and-clean`, April 2026)  
+**Related backlog:** `docs/workitems/BACKLOG.md` — **M-31** (delivered); **M-32** (facet type catalog DEFINED/OBSERVED follow-up)
 
 ## Objective
 
-Full schema-bound metadata visible to users and APIs must be the **combination** of:
+Schema-bound metadata visible to users and APIs is the **combination** of:
 
-1. **Collected (captured) facets** — persisted as **`FacetAssignment`** rows (domain); JPA maps via **`JpaFacetInstance`**. Editable through metadata services and UI; merged read view uses **`FacetInstance`** with `origin = CAPTURED`.
-2. **Inferred facets** — represented at **read time** from other subsystems (physical schema, backends, **authorization/policy**, etc.). They are **not** stored as metadata assignments and **must not** be created, updated, or deleted through metadata mutation APIs.
+1. **Captured facets** — persisted as **`FacetAssignment`** rows; editable through metadata services and UI when permitted. The read model uses **`FacetInstance`** with **`FacetOrigin.CAPTURED`** and a stable **`assignmentUid`** / **`uid`** tied to storage.
+2. **Inferred facets** — produced at **read time** by **`MetadataSource`** implementations (for example logical layout from **`SchemaProvider`**). They are **not** stored as assignments and **must not** be created, updated, or deleted through metadata mutation APIs.
 
-The aggregation boundary remains **`mill-data-schema-core`** (alongside today’s `SchemaFacetService`), so every physical schema/table/column from `SchemaProvider` still appears in the merged result, now with facets from **all** sources.
+Aggregation for metadata REST is implemented in **`mill-metadata-core`** via **`FacetInstanceReadMerge`**, invoked from **`DefaultFacetService.resolve`**. Schema explorer integration continues to use **`SchemaFacetService`** in **`mill-data-schema-core`** for physical-schema trees; inferred structural facets from **`LogicalLayoutMetadataSource`** align entity coordinates with that catalog.
 
-## Core contract: `MetadataSource` (read-only)
+## Core contracts
 
-- **`MetadataSource`** is a **pure readonly** per-**origin** contract: **`fetchForEntity(entityId, MetadataReadContext) -> List<FacetInstance>`** (alias `contributeForEntity` ok). **`FacetInstance`** here is the **unified read model** (captured or inferred: `origin`, `originId`, `assignmentUid`, payload).
-- **No** save/update/delete on this interface.
-- **Not** the persisted **catalog-only** read bundle; that optional type is **`PersistenceCatalogReads` (`EntityReadSide` + `FacetReadSide`)** — see [`DESIGN-GAPS.md`](../../workitems/metadata-and-ui-improve-and-clean/DESIGN-GAPS.md).
-- The **repository** participates as a source via **`RepositoryMetadataSource`**, using **`FacetReadSide`** to load **`FacetAssignment`** rows and map them to **`FacetInstance`** (`CAPTURED`). **Writes** stay on **`FacetRepository`** ( **`FacetWriteSide`** ) / `FacetService` / REST — **orthogonal** to **`MetadataSource`**.
+### `MetadataSource` (read-only)
 
-## Full population
+- **`MetadataSource`** (`mill-metadata-core`, package `io.qpointz.mill.metadata.source`) is a **readonly** contract per contributing source: **`fetchForEntity(entityId, MetadataReadContext) -> List<FacetInstance>`**.
+- Each source exposes a stable **`originId`** string (see **`MetadataOriginIds`**) used for attribution, debugging, and optional **origin filtering** on reads.
+- **No** save/update/delete on this interface. Writes remain on **`FacetRepository`** / **`FacetService`** / REST.
 
-**Full metadata** for a schema-facing snapshot = **merge** contributions from **every** registered **`MetadataSource`** (repository read + runtime/backend readers + policy, etc.) into one effective view per node, subject to explicit **precedence rules** per facet type (see below).
+### `FacetOrigin` and `FacetInstance`
 
-**Implementation note — composition first, class when reuse appears:** Merge logic
-should live where the product already resolves “effective facets” (**e.g.**
-**`FacetService.resolve`** for metadata REST, **`SchemaFacetServiceImpl`** for the
-schema/model tree), as **inline composition** over injected **`List<MetadataSource>`**
-(or explicit collaborators). **Do not** introduce a public **`CompositeMetadataSource`**
-/ **`AggregatingMetadataSource`** type until **reuse is identified** (second call site
-or testable surface that must share the exact same merge + muting rules).
+- **`FacetOrigin.CAPTURED`** — row backed by **`FacetAssignment`** (repository source).
+- **`FacetOrigin.INFERRED`** — synthetic read-time row; **`assignmentUid`** is null; mutations must be rejected.
 
-**As-built (confirm):** **`MetadataSource`** is not in production Kotlin yet (WI-132).
-Captured-facet merge today is centralized in **`FacetService`** (`MetadataEntityController`,
-**`MetadataView`**); schema-bound aggregation is **`SchemaFacetService`**. There is
-**no** existing shared type that merges multiple origins — so a **dedicated merger class
-is optional / premature** until inferred sources land and **two** stacks need the same
-orchestration.
+**`FacetInstance`** is the **unified read DTO** (origin, **`originId`**, payload, scope, timestamps, etc.). The persisted store uses **`FacetAssignment`**; **`RepositoryMetadataSource`** maps assignments to **`FacetInstance`** with **`FacetOrigin.CAPTURED`**.
 
-When reuse appears, extract a **small** read-only helper or **`MetadataSource`**
-decorator and cover it with unit tests; still **do not** replace **`FacetRepository`**
-globally — see [`DESIGN-GAPS.md` §Aggregation](../../workitems/metadata-and-ui-improve-and-clean/DESIGN-GAPS.md).
+### `MetadataReadContext`
 
-```mermaid
-flowchart LR
-  subgraph sources [Readonly MetadataSource]
-    RepoSource[RepositoryMetadataSource]
-    RuntimeSource[RuntimeMetadataSource]
-    PolicySource[PolicyAuthorizationSource]
-  end
-  subgraph agg [mill-data-schema-core]
-    Merge[Facet snapshot merge]
-  end
-  RepoSource --> Merge
-  RuntimeSource --> Merge
-  PolicySource --> Merge
-  Merge --> Out[Merged schema + facet constellation]
-```
+- Carries an **ordered scope list** (last wins for duplicate facet types per merge rules) and optional **origin allow-list**.
+- **`MetadataReadContext.parse(scopeParam, originParam)`** parses HTTP query parameters: comma-separated **`scope`**, comma-separated **`origin`** (when present, only those **`MetadataSource.originId`** values contribute). Legacy **`context`** is accepted as an alias for **`scope`** when **`scope`** is absent.
 
-## Examples of inferred facets
+### Registered sources (typical deployment)
 
-| Kind | Owned by | Metadata CRUD |
-|------|----------|---------------|
-| Structural / physical signals from `Schema` proto | Backend / `SchemaProvider` | Read-only via metadata |
-| Data **authorization** (policy-bound, schema coordinates) | Security / policy (`TableFacetFactoryImpl`-class bridges today) | Read-only via metadata; changes via policy tooling |
+| Source | Module | `originId` (typical) | Role |
+|--------|--------|----------------------|------|
+| **`RepositoryMetadataSource`** | `mill-metadata-core` | `MetadataOriginIds.REPOSITORY_LOCAL` | Loads persisted **`FacetAssignment`** rows as captured facets. |
+| **`LogicalLayoutMetadataSource`** | `mill-data-schema-core` | `MetadataOriginIds.LOGICAL_LAYOUT` | Infers structural / descriptive facets from **logical** **`SchemaProvider`** catalog, including the **`model`** root entity summary (WI-137 / WI-138). |
 
-## Combining rule
+**`SchemaFacetAutoConfiguration`** registers **`LogicalLayoutMetadataSource`** when **`SchemaProvider`** is available.
 
-Keep combining logic intentionally simple:
+## Merge behaviour
 
-- inferred subsystems should emit their own facet types
-- combine contributions for one entity into a single list/set of facets
-- avoid field-level merge between inferred sources
-- if two inferred sources emit the same facet type for the same entity, treat
-  that as a misconfiguration or miswiring signal rather than a supported merge
-  case
+- **`FacetInstanceReadMerge`** composes all Spring **`MetadataSource`** beans, applies **`MetadataReadContext`** scope ordering and optional origin muting, and merges duplicate facet types (composition-first; captured contributions win over inferred when both exist for the same facet type — see unit tests **`FacetInstanceReadMergeTest`** and **SPEC** in the story folder).
+- No separate public **`CompositeMetadataSource`** type; merge is centralized in **`FacetInstanceReadMerge`** + **`DefaultFacetService`**.
 
-Captured vs inferred overlap may still be handled explicitly where product rules
-require it, but inferred-to-inferred duplicate merge is not a design goal.
+## REST API
 
-## Type modeling
+**`MetadataEntityController`** (OpenAPI tag **`metadata-entities`**):
 
-- **Persisted path (domain):** **`FacetAssignment`** in **`FacetRepository`** / **`FacetReadSide`** / **`FacetWriteSide`**; JPA **`JpaFacetInstance`** internal to persistence adapter.
-- **Read/merge path:** **`FacetInstance`** for **both** captured and inferred rows (single DTO); older docs used **`FacetContribution`** — retired in favor of **`FacetInstance`** for the unified read model.
-- Merge output feeds **`SchemaFacets`** / `*WithFacets` and any new **list-shaped** read API (see UI section).
-- Project `origin`, `originId`, `editable`, and `assignmentUid` so the UI can render and gate actions from explicit fields.
+- Read endpoints support **`?scope=`** (comma-separated scope URNs) and **`?origin=`** (optional filter by contributing source id). **`FacetInstanceDto`** (not legacy orphan DTO names) exposes **`origin`**, **`originId`**, **`editable`**, **`assignmentUid`**, and payload for clients.
+- Writes validate targets: updates/deletes against **inferred** uids are rejected (**422** / domain rules per **SPEC**).
 
-## UI: consolidated facet constellation
+## UI
 
-- **One** merged view in the Data Model / schema explorer: **all** effective facets (**captured + inferred**) are **visible**.  
-- **Edit / delete / create** only for **captured** rows (persisted assignments). Inferred rows are **read-only** in place.  
-- Prefer **facet-instance-level** fields in the read API so the UI does not infer editability from facet type alone, for example:
-  - `origin` (e.g. `CAPTURED`, `INFERRED`)
-  - `editable` (true only when captured and the principal may mutate metadata)
-  - `assignmentUid` when backed by `FacetInstance.uid`
-  - `originId` for source attribution/debugging such as `repository-local`, `flow`, or `policy`
-
-Today’s **`SchemaFacets`** maps one value per well-known facet type; exposing a **`facetsResolved`-style list** (name TBD) may be required when multiple contributions per type or mixed provenance must be shown. OpenAPI should carry this shape for generated clients.
+- **Mill UI** Data Model shows a **full constellation** of facets where the product surfaces them; **edit** actions apply only when the row is **captured** and the principal may mutate metadata (**`editable`** on DTO).
 
 ## Mutation guards
 
-- Inferred contributions must **never** be persisted via `FacetRepository`.  
-- `FacetService` / REST update & delete must **reject** targets that are not real persisted assignments (synthetic uids / origin checks).
+- Inferred contributions are **never** persisted via **`FacetRepository`**.
+- **`FacetService`** / REST reject operations that target inferred-only or synthetic uids.
 
-## Delivery checklist (high level)
+## Related documents
 
-- [ ] Define `MetadataSource` + **`FacetInstance`** (read) + **`FacetAssignment`** (domain store) + `FacetOrigin` + `MetadataReadContext` in **`mill-metadata-core`** (contracts); JPA types in persistence module — see [`DESIGN-GAPS.md`](../../workitems/metadata-and-ui-improve-and-clean/DESIGN-GAPS.md), **WI-132**.  
-- [ ] `RepositoryMetadataSource` (read-only; uses **`FacetReadSide`**).  
-- [ ] Runtime source from physical schema; optional policy/authorization source (bridge from existing policy surfaces).  
-- [ ] Merge in `SchemaFacetServiceImpl` (or dedicated merger) with the simple contribution-combining rule documented above.  
-- [ ] Read API + OpenAPI: list of resolved facets with instance-level `origin`, `originId`, `editable`, and `assignmentUid`.  
-- [ ] Mill UI: show full constellation; disable edit chrome for non-captured rows.  
-- [ ] Tests: merge rules; mutation rejection for inferred-only targets.
-
-## Open decisions
-
-- Inferred subsystems should own distinct facet types; duplicate inferred facet types for one coordinate should be treated as misconfiguration or miswiring.  
-- **Closed:** `MetadataSource` and repository splits — see [`DESIGN-GAPS.md`](../../workitems/metadata-and-ui-improve-and-clean/DESIGN-GAPS.md).
-
-## Related backlog
-
-- **M-32** — Facet **type** catalog visibility: admin facet-type view and list API should include **`FacetTypeSource.OBSERVED`** types alongside **DEFINED** descriptors (metadata capture often creates observed keys before full definitions exist). See [`metadata-facet-type-catalog-defined-and-observed.md`](metadata-facet-type-catalog-defined-and-observed.md).
+- [`facet-class-elimination.md`](facet-class-elimination.md) — demotion of Kotlin facet classes; **`FacetPayloadUtils`** for typed payload helpers.
+- [`mill-metadata-domain-model.md`](mill-metadata-domain-model.md) — URNs, entities, assignments.

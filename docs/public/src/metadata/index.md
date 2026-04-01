@@ -44,6 +44,7 @@ The explorer shows **tables and columns** from your backend. When Mill has store
 
 - **[Metadata in Mill](system.md)** — What metadata is in the product, APIs at a glance, link to design reference.
 - **[Concepts](concepts.md)** — Entities (independent of taxonomy), facet types vs assignments, scopes and overlay merge, identities (without implementation detail).
+- **[Multi-source facets](multi-source-facets.md)** — Captured vs inferred facets, read-only inferred rows, **`originId`**, and optional **`scope`** / **`origin`** filters on reads.
 - **[Facet field stereotypes](facet-stereotypes.md)** — Optional UI hints (`email`, `hyperlink`, `tags`) on facet payload fields.
 - **[Using metadata in Mill UI](mill-ui.md)** — Data Model, Context, editing, admin facet types; screenshot placeholders for future illustrations.
 - **[Operator guide](operators.md)** — **`mill.metadata.repository.*`**, **`mill.metadata.seed.*`**, YAML seeds, backups.

@@ -1,7 +1,7 @@
 # WI-141 — Story documentation closure
 
 **Story:** metadata-and-ui-improve-and-clean  
-**Status:** Planned  
+**Status:** Done  
 **Type:** docs  
 **Area:** docs
 
@@ -9,13 +9,13 @@
 
 After implementation WIs on this branch are done (**through WI-130** unless otherwise agreed), update **architecture** and **user** documentation: **`FacetOrigin`**, multi-source read behaviour, merge / muting concepts, and what changed structurally in metadata/schema/UI.
 
-Normative context: [`SPEC.md`](SPEC.md) §0, §3, **story closure** §8; [`RULES.md`](../RULES.md) (MILESTONE, BACKLOG, archive).
+Normative context: [`SPEC.md`](SPEC.md) §0, §3, **story closure** §8; [`RULES.md`](../../RULES.md) (MILESTONE, BACKLOG, archive).
 
 ## Scope
 
 ### `docs/design/`
 
-- Refresh or extend metadata design pages (e.g. [`metadata-layered-sources-and-ephemeral-facets.md`](../../design/metadata/metadata-layered-sources-and-ephemeral-facets.md), [`facet-class-elimination.md`](../../design/metadata/facet-class-elimination.md)) so they match **shipped** behaviour: **captured vs inferred**, **`MetadataSource`**, **`originId`**, **`model`** root, merge placement (composition-first), repository vs read-source split.
+- Refresh or extend metadata design pages (e.g. [`metadata-layered-sources-and-ephemeral-facets.md`](../../../design/metadata/metadata-layered-sources-and-ephemeral-facets.md), [`facet-class-elimination.md`](../../../design/metadata/facet-class-elimination.md)) so they match **shipped** behaviour: **captured vs inferred**, **`MetadataSource`**, **`originId`**, **`model`** root, merge placement (composition-first), repository vs read-source split.
 - Document **architectural changes** introduced by this story (high level; link to code modules where useful).
 
 ### `docs/public/`
@@ -47,4 +47,4 @@ make docs-build
 
 ## Commit
 
-One logical `[docs]` commit; update [`STORY.md`](STORY.md), [`MILESTONE.md`](../MILESTONE.md), [`BACKLOG.md`](../BACKLOG.md) per **RULES**; clean tree.
+One logical `[docs]` commit; update [`STORY.md`](STORY.md), [`MILESTONE.md`](../../MILESTONE.md), [`BACKLOG.md`](../../BACKLOG.md) per **RULES**; clean tree.

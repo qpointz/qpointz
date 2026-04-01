@@ -1,154 +1,61 @@
-# Facet Class Elimination — Removing "Blessed" Concrete Facet Types
+# Facet class elimination — removing "blessed" concrete facet types
 
-**Status:** Proposed
-**Date:** March 2026
-**Story:** `metadata-and-ui-improve-and-clean`
+**Status:** Shipped (story `metadata-and-ui-improve-and-clean`, WI-140; April 2026)  
+**Date:** March–April 2026
 
 ---
 
-## Problem Statement
+## Problem statement (historical)
 
-The metadata module maintains **two parallel representations** for facet types that contradict
-each other architecturally:
+The metadata module historically maintained **two parallel representations** for some facet types: a **generic** manifest-driven pipeline (`FacetPayloadSchema` + opaque `Map<String, Any?>` payloads) and a set of **Kotlin facet classes** with `merge()` / `validate()` / `setOwner()` on a **`MetadataFacet`** hierarchy. That split duplicated shapes, merge semantics, and validation.
 
-### System A — Generic / Schema-Driven (current as-built)
+## As-built model
 
-`FacetInstance` treats every facet type identically. Facet payloads are opaque
-`Map<String, Any?>` governed by `FacetTypeManifest` + `FacetPayloadSchema`.
+- **Persistence:** **`FacetAssignment`** rows in **`FacetRepository`**; the unified **read** projection is **`FacetInstance`** with **`FacetOrigin`**, **`originId`**, and payload map.
+- **Typed consumption:** callers that need Java/Kotlin types use **`FacetPayloadUtils.convert(payload, clazz)`** (`mill-metadata-core`) with standard Jackson mapping — **no** `FacetClassResolver` / **`FacetConverter`** registry.
+- **Data-oriented types:** **`DescriptiveFacet`**, **`ConceptFacet`**, **`ValueMappingFacet`**, **`TableLocator`**, **`TableType`**, **`ConceptTarget`** remain as **plain** `data class` / enum **without** a shared facet lifecycle base class (WI-140).
 
-```kotlin
-data class FacetInstance(
-    val uid: String,
-    val entityId: String,
-    val facetTypeKey: String,    // e.g. "urn:mill/metadata/facet-type:descriptive"
-    val scopeKey: String,
-    val mergeAction: MergeAction,
-    val payload: Map<String, Any?>,   // opaque JSON
-    ...
-)
-```
+---
 
-Repositories, persistence, services, REST API, import/export — all operate on `FacetInstance`.
-Adding a new facet type requires only a manifest JSON definition. No code changes.
+## Architectural issues addressed
 
-### System B — Concrete Kotlin Classes (legacy holdover)
+| # | Issue | Resolution |
+|---|-------|------------|
+| 1 | Dual shape definition (manifest vs Kotlin fields) | Manifest + schema remain authoritative; Kotlin types are optional helpers for known shapes. |
+| 2 | Dual merge semantics | Row-level merge via **`FacetInstanceReadMerge`** + **`MergeAction`** on assignments; no parallel class-level `merge()`. |
+| 3 | Dual validation | Structural validation via **`FacetTypeManifestNormalizer`** / manifests; consumers validate typed views locally if needed. |
+| 4 | Registry indirection | **`FacetPayloadUtils`** replaces resolver/converter bridge. |
 
-Six classes in `domain/core/` give special treatment to a subset of facet types:
+---
 
-| Class | `facetType` key | Role |
-|-------|-----------------|------|
-| `DescriptiveFacet` | `"descriptive"` | Labels, tags, business context |
-| `ConceptFacet` | `"concept"` | Business concepts with targets |
-| `ValueMappingFacet` | `"value-mapping"` | Term-to-value normalisation |
-| `TableLocator` | *(helper)* | Schema + table pair for relation payloads |
-| `TableType` | *(enum)* | Physical table category |
-| `ConceptTarget` | *(nested)* | Where a concept applies physically |
+## Removed or retired components
 
-These extend `AbstractFacet` / `MetadataFacet` which defines its own lifecycle:
+- **`FacetClassResolver`**, **`FacetConverter`** — removed; use **`FacetPayloadUtils`**.
+- **`MetadataFacet`**, **`AbstractFacet`** — removed; data classes do not implement a facet lifecycle interface.
 
-```kotlin
-interface MetadataFacet {
-    val facetType: String
-    fun setOwner(owner: MetadataEntity)
-    fun validate()
-    fun merge(other: MetadataFacet): MetadataFacet
-}
-```
+---
 
-The bridge between the two systems is `FacetClassResolver` (maps type-key strings to Kotlin
-classes) and `FacetConverter` (Jackson `convertValue` from `Map<String, Any?>` to typed class).
+## Follow-up cleanup (WI-130)
 
-## Architectural Violations
+The following types had **no** production consumers and were **deleted** in WI-130:
 
-| # | Issue | Detail |
-|---|-------|--------|
-| 1 | **Dual shape definition** | Facet structure defined in both `FacetPayloadSchema` (manifest) and Kotlin class fields. Changes to one can silently drift from the other. |
-| 2 | **Dual merge semantics** | `FacetInstance.mergeAction` (row-level UPSERT/DELETE) vs `DescriptiveFacet.merge(other)` (field-level Kotlin logic). Unclear which governs runtime behaviour. |
-| 3 | **Dual validation** | `FacetPayloadSchema` field types/required flags vs `ConceptFacet.validate()` / `ValueMappingFacet.validate()`. They can disagree. |
-| 4 | **Broken extensibility promise** | Adding a facet type via manifest is zero-code. But typed access requires a concrete class + `FacetClassResolver` registration — making some types "more equal than others". |
-| 5 | **Cross-module coupling** | `data/` and `ai/` import `DescriptiveFacet`, `ValueMappingFacet`, etc. from `mill-metadata-core`, coupling them to specific facet shapes at compile time. |
+| Removed | Notes |
+|---------|--------|
+| `FacetTypeConflictException`, `FacetTypeNotFoundException` | Never thrown; **`FacetTypeManifestInvalidException`** kept |
+| `FacetDto`, `FacetTypeDescriptorDto` | Orphan service DTOs; API uses **`FacetInstanceDto`** |
+| `MetadataSnapshotService`, `DefaultMetadataSnapshotService` | Unwired |
+| `ResourceResolver`, `SpringResourceResolver`, `ClasspathResourceResolver` | Unused wiring |
 
-## Affected Files (Concrete Facet Classes)
+**Still unused (not removed in WI-130):** **`PlatformFacetTypeDefinitions`** — no non-self references; candidate for a future sweep if product does not adopt it.
 
-### Classes to demote (remove lifecycle, keep as data containers)
+**Thin helper:** **`MetadataView`** (`mill-metadata-core`) — excluded from WI-130; migrate call sites to **`MetadataReadContext`** / **`FacetService`** as needed.
 
-These live in `metadata/mill-metadata-core/src/main/kotlin/io/qpointz/mill/metadata/domain/`:
+**Keep:** **`FacetPayloadFieldJsonSerde`** and related Jackson helpers where referenced; **`FacetTypeManifestInvalidException`**.
 
-- `MetadataFacet.kt` — interface + `AbstractFacet` base class
-- `domain/core/DescriptiveFacet.kt`
-- `domain/core/ConceptFacet.kt`
-- `domain/core/ValueMappingFacet.kt`
-- `domain/core/TableLocator.kt`
-- `domain/core/TableType.kt`
-- `domain/core/ConceptTarget.kt`
+---
 
-### Bridge infrastructure to remove
+## Related documents
 
-- `FacetClassResolver.kt` — `FacetClassResolver` interface + `DefaultFacetClassResolver`
-- `FacetConverter.kt` — Jackson `convertValue` bridge
-
-### Consumer call-sites (modules importing concrete classes)
-
-| Module | Files |
-|--------|-------|
-| `data/mill-data-schema-core` | `SchemaFacetServiceImpl`, `SchemaFacets` |
-| `data/mill-data-schema-service` | `SchemaExplorerService` |
-| `ai/mill-ai-v3` | `SchemaToolHandlers`, `SchemaAuthoringCapability` |
-| `ai/mill-ai-v3-cli` | `DemoSchemaFacetService` |
-| `ai/mill-ai-v1-core` | `SchemaMessageSpec`, `ValueMappingComponents`, `NlsqlMetadataFacets` |
-| `ai/mill-ai-v1-nlsql-chat-service` | `ChatProcessor` |
-| `metadata/mill-metadata-autoconfigure` | `MetadataCoreConfiguration` |
-| `ui/mill-ui` | `schema.ts`, `schemaService.ts` (TypeScript equivalents; resolved DTOs should project `origin`, `originId`, `editable`, and `assignmentUid` for the UI) |
-
-## Target State
-
-Concrete facet classes are **demoted to plain data containers** (DTOs / payload helpers):
-
-1. **Remove `MetadataFacet` interface and `AbstractFacet`** — no facet-specific lifecycle
-   (`merge`, `validate`, `setOwner`) in domain classes. All merge and validation is handled
-   by the generic `FacetInstance` + `FacetPayloadSchema` pipeline.
-
-2. **Keep data container classes** (`DescriptiveFacet`, `ConceptFacet`, `ValueMappingFacet`,
-   `TableLocator`, `TableType`, `ConceptTarget`) as plain `data class` / enum types with no
-   base class and no lifecycle methods. They simplify `Map<String, Any?>` payload handling for
-   consumers.
-
-3. **Relocate or keep in place** — the data containers may stay in `mill-metadata-core` for
-   shared access, or move to a lightweight `mill-metadata-types` module. Decision deferred to
-   implementation WI.
-
-4. **Remove `FacetClassResolver` and `FacetConverter`** — consumers deserialise payloads
-   themselves via standard Jackson if they need typed access. A shared utility function
-   (e.g. `FacetPayloadUtils.convert<T>(payload, clazz)`) can replace `FacetConverter` without
-   the registry indirection.
-
-5. **Update consumer call-sites** — `data/`, `ai/`, `autoconfigure` stop calling `merge()`,
-   `validate()`, `setOwner()` on concrete classes. They use `FacetInstance.payload` +
-   optional Jackson conversion to data containers.
-
-## Unused Classes (immediate cleanup)
-
-The inventory also identified dead code that can be removed outright:
-
-| Class | Location | Reason |
-|-------|----------|--------|
-| `FacetTypeConflictException` | `domain/facet/exceptions/` | Never thrown or caught |
-| `FacetTypeNotFoundException` | `domain/facet/exceptions/` | Never thrown or caught |
-| `FacetTypeDescriptorDto` | `service/api/dto/` | Zero references |
-| `FacetDto` | `service/api/dto/` | Zero references |
-| `MetadataView` | `core/service/` | Zero code consumers |
-| `MetadataSnapshotService` | `core/service/` | Only impl is also unused |
-| `DefaultMetadataSnapshotService` | `core/service/` | Never wired or instantiated |
-| `ResourceResolver` | `core/repository/file/` | Interface; never injected |
-| `SpringResourceResolver` | `autoconfigure/repository/file/` | Never wired as bean |
-| `PlatformFacetTypeDefinitions` | `domain/facet/` | Zero code consumers |
-| `TreeNodeDto` | `service/api/dto/` | Only legacy `mill-grinder-ui` (retired) |
-| `SearchResultDto` | `service/api/dto/` | Only legacy `mill-grinder-ui` (retired) |
-| `FacetPayloadFieldJsonSerde` | `domain/facet/` | Only its own unit test (classes inside used via Jackson annotations — verify before removing) |
-
-## Related Documents
-
-- [`mill-metadata-domain-model.md`](mill-metadata-domain-model.md) — canonical `FacetInstance` model
-- [`metadata-service-design.md`](metadata-service-design.md) — service architecture (historical facet class references)
-- [`dynamic-facet-types-schema-and-validation.md`](dynamic-facet-types-schema-and-validation.md) — typed vs dynamic facet design discussion
-- [`facet-type-descriptor-formats.md`](facet-type-descriptor-formats.md) — manifest JSON contract
+- [`mill-metadata-domain-model.md`](mill-metadata-domain-model.md)
+- [`metadata-layered-sources-and-ephemeral-facets.md`](metadata-layered-sources-and-ephemeral-facets.md)
+- [`dynamic-facet-types-schema-and-validation.md`](dynamic-facet-types-schema-and-validation.md)

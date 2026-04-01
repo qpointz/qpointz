@@ -267,10 +267,12 @@ Items delivered in this milestone.
   to `auth_events` on every login/logout/register/profile-update; `mill-security-auth-service`
   REST endpoints (`POST /auth/public/login`, `POST /auth/public/register`, `POST /auth/logout`,
   `GET /auth/me`, `PATCH /auth/profile`); `mill-security-autoconfigure` module extracted from
-  `mill-service-security`; `mill-ui` fully wired: real `AuthContext`, `authService.ts`,
+  `mill-service-security`;   `mill-ui` fully wired: real `AuthContext`, `authService.ts`,
   `RequireAuth`, `LoginPage`/`RegisterPage`, profile editing, feature flag defaults
   (registration on, social providers off); `secure` dev profile (H2 + Flyway + default
   admin/admin seed); design: `docs/design/security/user-identity-jpa-implementation.md`
+
+**Metadata — Multi-origin facets and UI cleanup (`metadata-and-ui-improve-and-clean`, closed April 2026):** **`MetadataSource`**, **`FacetOrigin`**, unified read **`FacetInstance`** with **`originId`**; **`RepositoryMetadataSource`** and **`LogicalLayoutMetadataSource`** (`LogicalLayoutMetadataSource` in `mill-data-schema-core`, **`MetadataOriginIds.LOGICAL_LAYOUT`**); **`FacetInstanceReadMerge`** + **`DefaultFacetService.resolve`**; REST **`?scope=`** / **`?origin=`** with **`FacetInstanceDto`**; mutation guards for inferred facets; **`model`** root entity (WI-137); facet class demotion and **`FacetPayloadUtils`** (WI-140); dead-code sweep — orphan DTOs, unused snapshot and resource-resolver types, unused manifest exceptions (WI-130); design + public docs (WI-141). Normative checklist and spec: [`completed/20260401-metadata-and-ui-improve-and-clean/STORY.md`](completed/20260401-metadata-and-ui-improve-and-clean/STORY.md). Backlog **M-31** done.
 
 ### In Progress
 
