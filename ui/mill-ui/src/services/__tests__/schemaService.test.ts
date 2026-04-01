@@ -325,8 +325,9 @@ describe('schemaService', () => {
       ];
       const ef = buildEntityFacetsFromResolvedList(rows);
       expect(ef.resolvedRows?.length).toBe(1);
-      expect(Array.isArray(ef.resolvedRows?.[0]?.payload)).toBe(true);
-      expect((ef.resolvedRows?.[0]?.payload as unknown[]).length).toBe(1);
+      const p0 = ef.resolvedRows?.[0]?.payload;
+      expect(Array.isArray(p0)).toBe(true);
+      expect(p0).toHaveLength(1);
     });
   });
 });

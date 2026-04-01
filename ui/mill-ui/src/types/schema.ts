@@ -80,7 +80,8 @@ export interface FacetResolvedRow {
   origin: 'CAPTURED' | 'INFERRED';
   originId: string;
   assignmentUid?: string | null;
-  payload: Record<string, unknown>;
+  /** Wire JSON value: object, array (e.g. relation edges), or other shapes per facet type. */
+  payload: unknown;
   createdAt?: string;
   lastModifiedAt?: string;
 }

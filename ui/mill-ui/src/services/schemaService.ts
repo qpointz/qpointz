@@ -236,10 +236,8 @@ export function parseFacetResolvedRows(raw: unknown): FacetResolvedRow[] | undef
     const origin: FacetResolvedRow['origin'] = r.origin === 'INFERRED' ? 'INFERRED' : 'CAPTURED';
     const originId = typeof r.originId === 'string' ? r.originId : String(r.originId ?? '');
     const payloadRaw = r.payload;
-    const payload: Record<string, unknown> =
-      payloadRaw != null && typeof payloadRaw === 'object' && !Array.isArray(payloadRaw)
-        ? (payloadRaw as Record<string, unknown>)
-        : {};
+    const payload: unknown =
+      payloadRaw === undefined || payloadRaw === null ? {} : payloadRaw;
     const assignmentUid =
       r.assignmentUid === null || r.assignmentUid === undefined
         ? null
