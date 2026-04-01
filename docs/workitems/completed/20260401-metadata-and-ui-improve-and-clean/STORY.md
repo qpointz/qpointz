@@ -1,5 +1,7 @@
 # Story: metadata-and-ui-improve-and-clean
 
+**Status:** Closed (2026-04-01) — branch merge-ready; this folder is the archived story record (`docs/workitems/completed/20260401-metadata-and-ui-improve-and-clean/`) per [`../../RULES.md`](../../RULES.md).
+
 **Branch:** `fix/metadata-and-ui-improve-and-clean`
 
 **Goal:** Clean up the metadata module: remove dead code, demote legacy facet classes to plain data, introduce **multi-origin** read facets (`MetadataSource`, **`FacetOrigin`**, merge, **`model`** root), expose resolved facets in APIs and UI, and close with design + public documentation.
@@ -15,7 +17,7 @@ The codebase mixed a generic **`FacetInstance`** pipeline with Kotlin **facet cl
 - Facet elimination narrative: [`docs/design/metadata/facet-class-elimination.md`](../../../design/metadata/facet-class-elimination.md)
 - Layered sources / inferred facets: [`docs/design/metadata/metadata-layered-sources-and-ephemeral-facets.md`](../../../design/metadata/metadata-layered-sources-and-ephemeral-facets.md)
 
-**Historical design checklist:** [`DESIGN-GAPS.md`](DESIGN-GAPS.md) — decisions are folded into **`SPEC.md`** (especially §3h, §3i). Use **SPEC** for planning.
+**Historical design checklist:** [`DESIGN-GAPS.md`](DESIGN-GAPS.md) — decisions are folded into **`SPEC.md`** (especially §3h, §3i). Use **SPEC** for planning; **DESIGN-GAPS** is historical notes only.
 
 ## Completed outside this checklist
 

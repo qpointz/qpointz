@@ -107,7 +107,7 @@ rules). That is **`MetadataSource`** shaped, **not** **`FacetRepository`** shape
   Notes:
   - **Closed.** There is **no** type named **`MetadataRepository`** in core.
     Persistence contracts:
-    - **`MetadataEntityRepository` → `EntityRepository`** = **`EntityReadSide`**
+    - **`EntityRepository`** = **`EntityReadSide`** + **`EntityWriteSide`** (replaces the deprecated `MetadataEntityRepository` name)
       + **`EntityWriteSide`** (find/exists vs save/delete).
     - **`FacetRepository`** = **`FacetReadSide`** + **`FacetWriteSide`** (today’s
       query vs mutation methods map 1:1 onto those sides).

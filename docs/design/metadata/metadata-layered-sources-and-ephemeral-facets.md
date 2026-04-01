@@ -10,7 +10,7 @@ Schema-bound metadata visible to users and APIs is the **combination** of:
 1. **Captured facets** — persisted as **`FacetAssignment`** rows; editable through metadata services and UI when permitted. The read model uses **`FacetInstance`** with **`FacetOrigin.CAPTURED`** and a stable **`assignmentUid`** / **`uid`** tied to storage.
 2. **Inferred facets** — produced at **read time** by **`MetadataSource`** implementations (for example logical layout from **`SchemaProvider`**). They are **not** stored as assignments and **must not** be created, updated, or deleted through metadata mutation APIs.
 
-Aggregation for metadata REST is implemented in **`mill-metadata-core`** via **`FacetInstanceReadMerge`**, invoked from **`DefaultFacetService.resolve`**. Schema explorer integration continues to use **`SchemaFacetService`** in **`mill-data-schema-core`** for physical-schema trees; inferred structural facets from **`LogicalLayoutMetadataSource`** align entity coordinates with that catalog.
+Aggregation for metadata REST is implemented in **`mill-metadata-core`** via **`FacetInstanceReadMerge`**, invoked from **`DefaultFacetService.resolve`**. Schema explorer integration continues to use **`SchemaFacetService`** in **`mill-data-schema-core`** for physical-schema trees; inferred structural facets from **`LogicalLayoutMetadataSource`** ( **`mill-data-metadata`**) align entity coordinates with that catalog.
 
 ## Core contracts
 
@@ -18,7 +18,7 @@ Aggregation for metadata REST is implemented in **`mill-metadata-core`** via **`
 
 - **`MetadataSource`** (`mill-metadata-core`, package `io.qpointz.mill.metadata.source`) is a **readonly** contract per contributing source: **`fetchForEntity(entityId, MetadataReadContext) -> List<FacetInstance>`**.
 - Each source exposes a stable **`originId`** string (see **`MetadataOriginIds`**) used for attribution, debugging, and optional **origin filtering** on reads.
-- **No** save/update/delete on this interface. Writes remain on **`FacetRepository`** / **`FacetService`** / REST.
+- **No** save/update/delete on this interface. Writes remain on **`FacetRepository`** (**`FacetReadSide`** + **`FacetWriteSide`**) / **`FacetService`** / REST.
 
 ### `FacetOrigin` and `FacetInstance`
 
@@ -36,10 +36,10 @@ Aggregation for metadata REST is implemented in **`mill-metadata-core`** via **`
 
 | Source | Module | `originId` (typical) | Role |
 |--------|--------|----------------------|------|
-| **`RepositoryMetadataSource`** | `mill-metadata-core` | `MetadataOriginIds.REPOSITORY_LOCAL` | Loads persisted **`FacetAssignment`** rows as captured facets. |
-| **`LogicalLayoutMetadataSource`** | `mill-data-schema-core` | `MetadataOriginIds.LOGICAL_LAYOUT` | Infers structural / descriptive facets from **logical** **`SchemaProvider`** catalog, including the **`model`** root entity summary (WI-137 / WI-138). |
+| **`RepositoryMetadataSource`** | `mill-metadata-core` | `MetadataOriginIds.REPOSITORY_LOCAL` | Loads persisted **`FacetAssignment`** rows as captured facets (backed by **`FacetReadSide`** in read paths). |
+| **`LogicalLayoutMetadataSource`** | `mill-data-metadata` | `MetadataOriginIds.LOGICAL_LAYOUT` | Infers structural / descriptive facets from **logical** **`SchemaProvider`** catalog, including the **`model`** root entity summary (WI-137 / WI-138). |
 
-**`SchemaFacetAutoConfiguration`** registers **`LogicalLayoutMetadataSource`** when **`SchemaProvider`** is available.
+**`LogicalLayoutMetadataSourceAutoConfiguration`** (in **`mill-data-autoconfigure`**) registers **`LogicalLayoutMetadataSource`** when **`SchemaProvider`** is available.
 
 ## Merge behaviour
 
