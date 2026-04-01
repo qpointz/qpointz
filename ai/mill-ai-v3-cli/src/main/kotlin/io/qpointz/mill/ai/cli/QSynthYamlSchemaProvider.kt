@@ -50,6 +50,18 @@ class QSynthYamlSchemaProvider(
         return builder.build()
     }
 
+    override fun getTable(schemaName: String, tableName: String): Table? {
+        val model = models[schemaName] ?: return null
+        val schemas = model.path("schemas")
+        for (i in 0 until schemas.size()) {
+            val node = schemas[i]
+            if (node.path("name").asText() == tableName) {
+                return toTable(schemaName, node)
+            }
+        }
+        return null
+    }
+
     private fun toTable(schemaName: String, node: JsonNode): Table {
         val builder = Table.newBuilder()
             .setSchemaName(schemaName)

@@ -44,15 +44,20 @@ class SchemaExplorerControllerIT {
             override fun getSchemaNames(): Iterable<String> = listOf("sales")
             override fun isSchemaExists(schemaName: String): Boolean = schemaName == "sales"
             override fun getSchema(schemaName: String): ProtoSchema = ProtoSchema.newBuilder()
-                .addTables(
-                    Table.newBuilder()
-                        .setSchemaName("sales")
-                        .setName("customers")
-                        .setTableType(Table.TableTypeId.TABLE)
-                        .addFields(field("customer_id", 0, LogicalDataType.LogicalDataTypeId.BIG_INT, false))
-                        .addFields(field("name", 1, LogicalDataType.LogicalDataTypeId.STRING, true))
-                        .build()
-                )
+                .addTables(customersTable())
+                .build()
+
+            override fun getTable(schemaName: String, tableName: String): Table? {
+                if (schemaName != "sales" || tableName != "customers") return null
+                return customersTable()
+            }
+
+            private fun customersTable(): Table = Table.newBuilder()
+                .setSchemaName("sales")
+                .setName("customers")
+                .setTableType(Table.TableTypeId.TABLE)
+                .addFields(field("customer_id", 0, LogicalDataType.LogicalDataTypeId.BIG_INT, false))
+                .addFields(field("name", 1, LogicalDataType.LogicalDataTypeId.STRING, true))
                 .build()
         }
 

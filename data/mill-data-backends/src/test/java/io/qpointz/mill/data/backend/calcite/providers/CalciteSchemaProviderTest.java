@@ -29,6 +29,22 @@ class CalciteSchemaProviderTest extends BaseTest {
     }
 
     @Test
+    void getTableMatchesSingleTableFromGetSchema() {
+        this.getContextRunner().run(ctx -> {
+            val provider = ctx.getSchemaProvider();
+            val full = provider.getSchema("airlines");
+            val passenger = full.getTablesList().stream()
+                    .filter(k -> k.getName().equals("passenger"))
+                    .findFirst()
+                    .orElseThrow();
+            val narrow = provider.getTable("airlines", "passenger");
+            assertNotNull(narrow);
+            assertEquals(passenger.getName(), narrow.getName());
+            assertEquals(passenger.getFieldsList(), narrow.getFieldsList());
+        });
+    }
+
+    @Test
     void mapsFieldsToDataType() {
         this.getContextRunner().run(ctx -> {
             val schema = ctx.getSchemaProvider().getSchema("airlines");

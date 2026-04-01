@@ -61,6 +61,7 @@ class SchemaFacetServiceImplTest {
 
     @BeforeEach
     fun setUp() {
+        whenever(facetRepository.findByEntity(any())).thenReturn(emptyList())
         whenever(facetCatalog.resolveCardinality(any())).thenAnswer { inv ->
             cardinalityForKey(inv.getArgument(0))
         }

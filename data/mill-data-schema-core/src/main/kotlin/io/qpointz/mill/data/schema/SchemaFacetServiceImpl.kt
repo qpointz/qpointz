@@ -40,12 +40,13 @@ class SchemaFacetServiceImpl(
     /** @see SchemaFacetService.getSchemas */
     override fun getSchemas(context: MetadataContext): SchemaFacetResult {
         val allEntities = metadataEntityRepository.findAll()
+        val entityIndex = catalogEntityIndex(allEntities)
         val usedEntityIds = mutableSetOf<String>()
         val modelRoot = buildModelRoot(allEntities, context)
         modelRoot.metadata?.id?.let { usedEntityIds.add(it) }
 
         val schemas = schemaProvider.getSchemaNames().map { schemaName ->
-            buildSchemaWithFacets(schemaName, allEntities, usedEntityIds, context)
+            buildSchemaWithFacets(schemaName, entityIndex, usedEntityIds, context)
         }
 
         val unboundMetadata = allEntities.filter { it.id !in usedEntityIds }
@@ -68,23 +69,28 @@ class SchemaFacetServiceImpl(
         return ModelRootWithFacets(
             metadataEntityId = canonicalModelId,
             metadata = modelEntity,
-            facets = buildFacets(modelEntity, context)
+            facets = buildFacets(modelEntity, SchemaModelRoot.ENTITY_ID, context)
         )
     }
 
     /** @see SchemaFacetService.getSchema */
     override fun getSchema(schemaName: String, context: MetadataContext): SchemaWithFacets? {
-        val schemaNames = schemaProvider.getSchemaNames()
-        if (!schemaNames.contains(schemaName)) return null
+        if (!schemaProvider.isSchemaExists(schemaName)) {
+            return null
+        }
         val allEntities = metadataEntityRepository.findAll()
+        val entityIndex = catalogEntityIndex(allEntities)
         val usedEntityIds = mutableSetOf<String>()
-        return buildSchemaWithFacets(schemaName, allEntities, usedEntityIds, context)
+        return buildSchemaWithFacets(schemaName, entityIndex, usedEntityIds, context)
     }
 
     /** @see SchemaFacetService.getTable */
     override fun getTable(schemaName: String, tableName: String, context: MetadataContext): SchemaTableWithFacets? {
-        val schema = getSchema(schemaName, context) ?: return null
-        return schema.tables.firstOrNull { it.tableName == tableName }
+        if (!schemaProvider.isSchemaExists(schemaName)) {
+            return null
+        }
+        val millTable = schemaProvider.getTable(schemaName, tableName) ?: return null
+        return buildTableWithFacetsNarrow(schemaName, millTable, context)
     }
 
     /** @see SchemaFacetService.getColumn */
@@ -94,48 +100,48 @@ class SchemaFacetServiceImpl(
         columnName: String,
         context: MetadataContext
     ): SchemaColumnWithFacets? {
-        val table = getTable(schemaName, tableName, context) ?: return null
-        return table.columns.firstOrNull { it.columnName == columnName }
+        if (!schemaProvider.isSchemaExists(schemaName)) {
+            return null
+        }
+        val millTable = schemaProvider.getTable(schemaName, tableName) ?: return null
+        val field = millTable.fieldsList.firstOrNull { coordinateEquals(it.name, columnName) } ?: return null
+        return buildColumnWithFacetsNarrow(schemaName, tableName, field, context)
     }
 
     private fun buildSchemaWithFacets(
         schemaName: String,
-        allEntities: List<MetadataEntity>,
+        entityIndex: Map<String, MetadataEntity>,
         usedEntityIds: MutableSet<String>,
         context: MetadataContext
     ): SchemaWithFacets {
         val physicalSchema = schemaProvider.getSchema(schemaName)
-        val schemaEntity = allEntities.find { e ->
-            catalogMatches(urnCodec.decode(e.id), schemaName, null, null)
-        }
+        val schemaEntity = entityIndex[catalogKey(schemaName, null, null)]
         schemaEntity?.id?.let { usedEntityIds.add(it) }
 
         val tables = physicalSchema.tablesList.map { table ->
-            buildTableWithFacets(schemaName, table, allEntities, usedEntityIds, context)
+            buildTableWithFacets(schemaName, table, entityIndex, usedEntityIds, context)
         }
 
         return SchemaWithFacets(
             schemaName = schemaName,
             tables = tables,
             metadata = schemaEntity,
-            facets = buildFacets(schemaEntity, context)
+            facets = buildFacets(schemaEntity, urnCodec.forSchema(schemaName), context)
         )
     }
 
     private fun buildTableWithFacets(
         schemaName: String,
         table: Table,
-        allEntities: List<MetadataEntity>,
+        entityIndex: Map<String, MetadataEntity>,
         usedEntityIds: MutableSet<String>,
         context: MetadataContext
     ): SchemaTableWithFacets {
-        val tableEntity = allEntities.find { e ->
-            catalogMatches(urnCodec.decode(e.id), schemaName, table.name, null)
-        }
+        val tableEntity = entityIndex[catalogKey(schemaName, table.name, null)]
         tableEntity?.id?.let { usedEntityIds.add(it) }
 
         val columns = table.fieldsList.map { field ->
-            buildColumnWithFacets(schemaName, table.name, field, allEntities, usedEntityIds, context)
+            buildColumnWithFacets(schemaName, table.name, field, entityIndex, usedEntityIds, context)
         }
 
         return SchemaTableWithFacets(
@@ -144,7 +150,7 @@ class SchemaFacetServiceImpl(
             tableType = table.tableType,
             columns = columns,
             metadata = tableEntity,
-            facets = buildFacets(tableEntity, context)
+            facets = buildFacets(tableEntity, urnCodec.forTable(schemaName, table.name), context)
         )
     }
 
@@ -152,13 +158,11 @@ class SchemaFacetServiceImpl(
         schemaName: String,
         tableName: String,
         field: Field,
-        allEntities: List<MetadataEntity>,
+        entityIndex: Map<String, MetadataEntity>,
         usedEntityIds: MutableSet<String>,
         context: MetadataContext
     ): SchemaColumnWithFacets {
-        val columnEntity = allEntities.find { e ->
-            catalogMatches(urnCodec.decode(e.id), schemaName, tableName, field.name)
-        }
+        val columnEntity = entityIndex[catalogKey(schemaName, tableName, field.name)]
         columnEntity?.id?.let { usedEntityIds.add(it) }
 
         return SchemaColumnWithFacets(
@@ -168,38 +172,120 @@ class SchemaFacetServiceImpl(
             fieldIndex = field.fieldIdx,
             dataType = field.type,
             metadata = columnEntity,
-            facets = buildFacets(columnEntity, context)
+            facets = buildFacets(
+                columnEntity,
+                urnCodec.forAttribute(schemaName, tableName, field.name),
+                context
+            )
         )
     }
 
+    /**
+     * Single-table path: one provider lookup, metadata [findById] per node touched, facets only for
+     * columns in this table.
+     *
+     * @param schemaName physical schema name
+     * @param table protobuf row with fields already populated
+     * @param context read context for facet merge
+     */
+    private fun buildTableWithFacetsNarrow(
+        schemaName: String,
+        table: Table,
+        context: MetadataContext
+    ): SchemaTableWithFacets {
+        val tableEntity = metadataEntityRepository.findById(urnCodec.forTable(schemaName, table.name))
+        val columns = table.fieldsList.map { field ->
+            buildColumnWithFacetsNarrow(schemaName, table.name, field, context)
+        }
+        return SchemaTableWithFacets(
+            schemaName = schemaName,
+            tableName = table.name,
+            tableType = table.tableType,
+            columns = columns,
+            metadata = tableEntity,
+            facets = buildFacets(tableEntity, urnCodec.forTable(schemaName, table.name), context)
+        )
+    }
+
+    /**
+     * Single-column path: no full-schema walk and no [findAll] on metadata entities.
+     *
+     * @param schemaName physical schema name
+     * @param tableName physical table name
+     * @param field single physical field from the narrow table snapshot
+     * @param context read context for facet merge
+     */
+    private fun buildColumnWithFacetsNarrow(
+        schemaName: String,
+        tableName: String,
+        field: Field,
+        context: MetadataContext
+    ): SchemaColumnWithFacets {
+        val columnEntity = metadataEntityRepository.findById(
+            urnCodec.forAttribute(schemaName, tableName, field.name)
+        )
+        return SchemaColumnWithFacets(
+            schemaName = schemaName,
+            tableName = tableName,
+            columnName = field.name,
+            fieldIndex = field.fieldIdx,
+            dataType = field.type,
+            metadata = columnEntity,
+            facets = buildFacets(
+                columnEntity,
+                urnCodec.forAttribute(schemaName, tableName, field.name),
+                context
+            )
+        )
+    }
+
+    /**
+     * @param metadata persisted [metadata_entity] row when matched; may be null for physical-only objects
+     * @param mergeEntityIdFallback canonical relational entity URN used when [metadata] is null so
+     * inferred sources (e.g. logical layout) still participate in [facetReadMerge]
+     * @param context active read scopes and origin allow-list
+     */
     private fun buildFacets(
-        entity: MetadataEntity?,
+        metadata: MetadataEntity?,
+        mergeEntityIdFallback: String,
         context: MetadataContext
     ): SchemaFacets {
-        if (entity == null) return SchemaFacets.EMPTY
-        val eid = MetadataEntityUrn.canonicalize(entity.id)
+        val eid = metadata?.let { MetadataEntityUrn.canonicalize(it.id) }
+            ?: MetadataEntityUrn.canonicalize(mergeEntityIdFallback)
         val resolved = facetReadMerge.merge(eid, context)
         return SchemaFacets.fromResolved(resolved, facetCatalog)
     }
 
     /**
-     * @param path decoded catalog coordinates from the entity URN
-     * @param schemaName physical schema name from the provider
-     * @param tableName physical table name, or null when matching schema-level entities
-     * @param columnName physical column name, or null when matching schema- or table-level entities
+     * Maps relational metadata entities by normalized catalog coordinates for O(1) binding during
+     * bulk schema builds.
+     *
+     * @param entities all persisted entities in the current repository snapshot
+     * @return map from [catalogKey] to entity (last duplicate key wins, which should not occur)
      */
-    private fun catalogMatches(
-        path: CatalogPath,
-        schemaName: String,
-        tableName: String?,
-        columnName: String?
-    ): Boolean {
-        if (path.schema == null) return false
-        if (!coordinateEquals(path.schema, schemaName)) return false
-        if (tableName == null) return path.table == null && path.column == null
-        if (!coordinateEquals(path.table, tableName)) return false
-        if (columnName == null) return path.column == null
-        return coordinateEquals(path.column, columnName)
+    private fun catalogEntityIndex(entities: List<MetadataEntity>): Map<String, MetadataEntity> {
+        val map = LinkedHashMap<String, MetadataEntity>()
+        for (e in entities) {
+            val path = urnCodec.decode(e.id)
+            val schema = path.schema ?: continue
+            val key = catalogKey(schema, path.table, path.column)
+            map[key] = e
+        }
+        return map
+    }
+
+    /**
+     * Stable key for catalog coordinates (segments lower-cased; null table/column encoded as empty).
+     *
+     * @param schemaName physical schema segment
+     * @param tableName physical table segment, or null for schema-level entities
+     * @param columnName physical column segment, or null for schema- or table-level entities
+     */
+    private fun catalogKey(schemaName: String, tableName: String?, columnName: String?): String {
+        val s = schemaName.lowercase()
+        val t = tableName?.lowercase().orEmpty()
+        val c = columnName?.lowercase().orEmpty()
+        return "$s\u0000$t\u0000$c"
     }
 
     private fun coordinateEquals(left: String?, right: String?): Boolean {

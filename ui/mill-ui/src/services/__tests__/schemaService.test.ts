@@ -296,5 +296,37 @@ describe('schemaService', () => {
       expect(ef.descriptive?.displayName).toBe('Captured wins');
       expect(ef.byType?.['urn:mill/metadata/facet-type:descriptive']).toEqual({ displayName: 'Captured wins', description: '' });
     });
+
+    it('buildEntityFacetsFromResolvedList dedupes identical captured relation rows', async () => {
+      const { buildEntityFacetsFromResolvedList } = await import('../schemaService');
+      const edge = {
+        sourceColumns: ['id'],
+        target: { schema: 'skymill', table: 'bookings', columns: ['flight_instance_id'] },
+      };
+      const rows = [
+        {
+          uid: 'a',
+          facetTypeUrn: 'urn:mill/metadata/facet-type:relation',
+          scopeUrn: 'urn:mill:scope:global',
+          origin: 'CAPTURED' as const,
+          originId: 'repository',
+          assignmentUid: 'x1',
+          payload: [edge, edge, edge],
+        },
+        {
+          uid: 'b',
+          facetTypeUrn: 'urn:mill/metadata/facet-type:relation',
+          scopeUrn: 'urn:mill:scope:global',
+          origin: 'CAPTURED' as const,
+          originId: 'repository',
+          assignmentUid: 'x2',
+          payload: [edge],
+        },
+      ];
+      const ef = buildEntityFacetsFromResolvedList(rows);
+      expect(ef.resolvedRows?.length).toBe(1);
+      expect(Array.isArray(ef.resolvedRows?.[0]?.payload)).toBe(true);
+      expect((ef.resolvedRows?.[0]?.payload as unknown[]).length).toBe(1);
+    });
   });
 });

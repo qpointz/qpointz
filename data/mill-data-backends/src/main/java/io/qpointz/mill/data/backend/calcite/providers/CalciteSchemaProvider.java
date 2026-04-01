@@ -73,6 +73,37 @@ public class CalciteSchemaProvider implements SchemaProvider {
         }
     }
 
+    /**
+     * Resolves one Calcite table and its row type without walking every other table in the schema.
+     *
+     * @param schemaName registered sub-schema name (not the synthetic root)
+     * @param tableName table name as returned by {@link org.apache.calcite.schema.Schema#getTableNames()}
+     * @return protobuf table snapshot, or {@code null} if either name does not resolve
+     */
+    @Override
+    public Table getTable(String schemaName, String tableName) {
+        if (tableName == null || isRootSchema(schemaName) || !isSchemaExists(schemaName)) {
+            return null;
+        }
+        try (val ctx = this.ctxFactory.createContext()) {
+            val schema = ctx.getRootSchema().getSubSchema(schemaName);
+            if (schema == null) {
+                return null;
+            }
+            val calciteTable = schema.getTable(tableName);
+            if (calciteTable == null) {
+                return null;
+            }
+            return Table.newBuilder()
+                    .setSchemaName(schemaName)
+                    .setName(tableName)
+                    .addAllFields(this.getFields(calciteTable))
+                    .build();
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
     protected io.qpointz.mill.proto.Schema calciteToMillSchema(Schema schema , String schemaName) {
         return io.qpointz.mill.proto.Schema.newBuilder()
                 .addAllTables(this.getTables(schemaName, schema))

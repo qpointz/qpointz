@@ -460,7 +460,8 @@ export function EntityDetails({
       const newUnits: ResolvedFacetUnit[] = [];
       if (isMultiple) {
         const capturedCount = typeRows.filter((r) => r.origin === 'CAPTURED').length;
-        if (capturedCount === 0) {
+        const inferredCount = typeRows.filter((r) => r.origin === 'INFERRED').length;
+        if (capturedCount === 0 && inferredCount === 0) {
           newUnits.push({ kind: 'multipleEmpty', facetType: typeKey });
         }
         let capIdx = 0;

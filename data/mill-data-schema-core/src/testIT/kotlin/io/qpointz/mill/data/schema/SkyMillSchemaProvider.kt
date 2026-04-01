@@ -33,6 +33,16 @@ class SkyMillSchemaProvider : SchemaProvider {
             .build()
     }
 
+    override fun getTable(schemaName: String, tableName: String): Table? {
+        if (schemaName != SCHEMA_NAME) return null
+        return when (tableName) {
+            "cities" -> citiesTable()
+            "segments" -> segmentsTable()
+            TABLE_NO_METADATA -> noMetaTable()
+            else -> null
+        }
+    }
+
     private fun citiesTable(): Table = Table.newBuilder()
         .setSchemaName(SCHEMA_NAME)
         .setName("cities")

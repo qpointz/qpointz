@@ -43,6 +43,68 @@ function mapCardinality(raw: unknown): RelationFacet['cardinality'] {
   }
 }
 
+function dedupeJsonArrayByDeepEquality(arr: unknown[]): unknown[] {
+  const seen = new Set<string>();
+  const out: unknown[] = [];
+  for (const el of arr) {
+    const k = JSON.stringify(el);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(el);
+  }
+  return out;
+}
+
+/**
+ * Collapses duplicate relation edges inside a single facet payload (import/seed noise) before
+ * constellation cards are built.
+ *
+ * @param payload facet payload (array of edges, or object with `relations` array)
+ */
+function normalizeRelationPayloadForDisplay(payload: unknown): unknown {
+  if (Array.isArray(payload)) {
+    return dedupeJsonArrayByDeepEquality(payload);
+  }
+  if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+    const o = payload as Record<string, unknown>;
+    const rel = o.relations;
+    if (Array.isArray(rel)) {
+      return { ...o, relations: dedupeJsonArrayByDeepEquality(rel) };
+    }
+  }
+  return payload;
+}
+
+/**
+ * Drops exact-duplicate resolved rows (same facet, origin, assignment uid) and duplicate relation
+ * rows that only differ by synthetic ids — removes repeated "Relation" cards in the model UI.
+ *
+ * @param rows merged `facetsResolved` from the schema explorer API
+ */
+function dedupeFacetResolvedRowsForDisplay(rows: FacetResolvedRow[]): FacetResolvedRow[] {
+  const seenUid = new Set<string>();
+  const seenRelationSignature = new Set<string>();
+  const out: FacetResolvedRow[] = [];
+  for (const r of rows) {
+    const idPart = (r.assignmentUid?.trim() || r.uid).trim();
+    const uidKey = `${r.facetTypeUrn}|${r.origin}|${idPart}`;
+    if (seenUid.has(uidKey)) continue;
+    seenUid.add(uidKey);
+    let payload = r.payload;
+    if (r.facetTypeUrn === FACET_RELATION) {
+      payload = normalizeRelationPayloadForDisplay(payload) as typeof payload;
+    }
+    const row = payload === r.payload ? r : { ...r, payload };
+    if (row.facetTypeUrn === FACET_RELATION) {
+      const sig = `${row.origin}|${JSON.stringify(row.payload)}`;
+      if (seenRelationSignature.has(sig)) continue;
+      seenRelationSignature.add(sig);
+    }
+    out.push(row);
+  }
+  return out;
+}
+
 function mapRelationPayload(payload: unknown): RelationFacet[] {
   const rows = Array.isArray(payload)
     ? payload
@@ -237,7 +299,8 @@ function attachFacetsResolvedToExplorerDto<T extends Record<string, unknown>>(dt
  * @param rows merged `facetsResolved` rows for one entity
  */
 export function buildEntityFacetsFromResolvedList(rows: FacetResolvedRow[]): EntityFacets {
-  const capturedEntries = rows
+  const rowsNorm = dedupeFacetResolvedRowsForDisplay(rows);
+  const capturedEntries = rowsNorm
     .filter((r) => r.origin === 'CAPTURED')
     .map((r) => ({
       facetType: r.facetTypeUrn,
@@ -247,13 +310,13 @@ export function buildEntityFacetsFromResolvedList(rows: FacetResolvedRow[]): Ent
   const base = extractFacets(capturedEntries);
 
   const descriptiveRow =
-    rows.find((r) => r.facetTypeUrn === FACET_DESCRIPTIVE && r.origin === 'CAPTURED') ??
-    rows.find((r) => r.facetTypeUrn === FACET_DESCRIPTIVE);
+    rowsNorm.find((r) => r.facetTypeUrn === FACET_DESCRIPTIVE && r.origin === 'CAPTURED') ??
+    rowsNorm.find((r) => r.facetTypeUrn === FACET_DESCRIPTIVE);
   const structuralRow =
-    rows.find((r) => r.facetTypeUrn === FACET_STRUCTURAL && r.origin === 'CAPTURED') ??
-    rows.find((r) => r.facetTypeUrn === FACET_STRUCTURAL);
+    rowsNorm.find((r) => r.facetTypeUrn === FACET_STRUCTURAL && r.origin === 'CAPTURED') ??
+    rowsNorm.find((r) => r.facetTypeUrn === FACET_STRUCTURAL);
 
-  const relationRows = rows.filter((r) => r.facetTypeUrn === FACET_RELATION);
+  const relationRows = rowsNorm.filter((r) => r.facetTypeUrn === FACET_RELATION);
   let relations: RelationFacet[] = [];
   for (const r of relationRows) {
     relations = relations.concat(mapRelationPayload(r.payload));
@@ -264,7 +327,7 @@ export function buildEntityFacetsFromResolvedList(rows: FacetResolvedRow[]): Ent
     descriptive: descriptiveRow?.payload as DescriptiveFacet | undefined,
     structural: structuralRow?.payload as StructuralFacet | undefined,
     relations: relations.length > 0 ? relations : undefined,
-    resolvedRows: rows,
+    resolvedRows: rowsNorm,
   };
 }
 
