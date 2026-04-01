@@ -7,7 +7,7 @@ import io.qpointz.mill.data.schema.SchemaEntityKinds;
 import io.qpointz.mill.metadata.domain.MetadataEntity;
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn;
 import io.qpointz.mill.metadata.domain.MetadataUrns;
-import io.qpointz.mill.metadata.domain.facet.FacetInstance;
+import io.qpointz.mill.metadata.domain.facet.FacetAssignment;
 import io.qpointz.mill.metadata.domain.facet.MergeAction;
 import io.qpointz.mill.metadata.repository.FacetRepository;
 import io.qpointz.mill.metadata.service.MetadataEntityService;
@@ -113,7 +113,7 @@ class ValueMappingComponentsTest {
         String eid = MetadataEntityUrn.canonicalize(entity.getId());
         String tid = MetadataEntityUrn.canonicalize(MetadataUrns.normaliseFacetTypePath("value-mapping"));
         String global = MetadataEntityUrn.canonicalize(MetadataUrns.SCOPE_GLOBAL);
-        FacetInstance row = new FacetInstance(
+        FacetAssignment row = new FacetAssignment(
             "uid-vm-test",
             eid,
             tid,

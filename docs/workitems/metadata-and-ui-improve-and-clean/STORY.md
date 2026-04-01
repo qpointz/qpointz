@@ -25,7 +25,7 @@ The codebase mixed a generic **`FacetInstance`** pipeline with Kotlin **facet cl
 
 Check boxes as each WI lands; **one commit per WI** with checklist update (see **SPEC §0**, [`RULES.md`](../RULES.md)).
 
-1. [ ] [`WI-132`](WI-132-metadata-source-contract-and-repository-adapter.md) — Metadata contracts + `RepositoryMetadataSource`
+1. [x] [`WI-132`](WI-132-metadata-source-contract-and-repository-adapter.md) — Metadata contracts + `RepositoryMetadataSource`
 2. [ ] [`WI-137`](WI-137-model-root-entity.md) — `model` root entity
 3. [ ] [`WI-133`](WI-133-read-path-facet-merge.md) — Read-path facet merge
 4. [ ] [`WI-138`](WI-138-backend-logical-layout-inferred-facets.md) — Logical-layout inferred `MetadataSource`

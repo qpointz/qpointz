@@ -12,6 +12,7 @@ import io.qpointz.mill.metadata.api.dto.MetadataEntityDto
 import io.qpointz.mill.excepions.statuses.MillStatuses
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.MetadataUrns
+import io.qpointz.mill.metadata.domain.facet.FacetAssignment
 import io.qpointz.mill.metadata.domain.facet.FacetInstance
 import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.metadata.service.FacetPayloadCoercion
@@ -311,7 +312,7 @@ class MetadataEntityController(
         }
         val normType = MetadataEntityUrn.canonicalize(MetadataUrns.normaliseFacetTypePath(typeKey))
         val canonicalEntity = MetadataEntityUrn.canonicalize(entityPath)
-        val inst = findFacetInstance(canonicalEntity, facetUid)
+        val inst = findFacetAssignment(canonicalEntity, facetUid)
             ?: throw MillStatuses.notFoundRuntime("Facet instance not found: $facetUid")
         if (MetadataEntityUrn.canonicalize(inst.facetTypeKey) != normType) {
             throw MillStatuses.notFoundRuntime("Facet instance does not match facet type: $normType")
@@ -339,7 +340,7 @@ class MetadataEntityController(
         }
         val normType = MetadataEntityUrn.canonicalize(MetadataUrns.normaliseFacetTypePath(typeKey))
         val canonicalEntity = MetadataEntityUrn.canonicalize(entityPath)
-        val inst = findFacetInstance(canonicalEntity, facetUid)
+        val inst = findFacetAssignment(canonicalEntity, facetUid)
             ?: throw MillStatuses.notFoundRuntime("Facet instance not found: $facetUid")
         if (MetadataEntityUrn.canonicalize(inst.facetTypeKey) != normType) {
             throw MillStatuses.notFoundRuntime("Facet instance does not match facet type: $normType")
@@ -607,7 +608,7 @@ class MetadataEntityController(
         )
     }
 
-    private fun findFacetInstance(entityId: String, uid: String): FacetInstance? {
+    private fun findFacetAssignment(entityId: String, uid: String): FacetAssignment? {
         val row = facetRepository.findByUid(uid) ?: return null
         if (MetadataEntityUrn.canonicalize(row.entityId) != MetadataEntityUrn.canonicalize(entityId)) {
             return null

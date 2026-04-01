@@ -1,7 +1,7 @@
 package io.qpointz.mill.metadata.repository
 
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
-import io.qpointz.mill.metadata.domain.facet.FacetInstance
+import io.qpointz.mill.metadata.domain.facet.FacetAssignment
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -9,14 +9,14 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class InMemoryFacetRepository : FacetRepository {
 
-    private val byUid = ConcurrentHashMap<String, FacetInstance>()
+    private val byUid = ConcurrentHashMap<String, FacetAssignment>()
 
-    override fun findByEntity(entityId: String): List<FacetInstance> {
+    override fun findByEntity(entityId: String): List<FacetAssignment> {
         val eid = MetadataEntityUrn.canonicalize(entityId)
         return byUid.values.filter { MetadataEntityUrn.canonicalize(it.entityId) == eid }
     }
 
-    override fun findByEntityAndType(entityId: String, facetTypeKey: String): List<FacetInstance> {
+    override fun findByEntityAndType(entityId: String, facetTypeKey: String): List<FacetAssignment> {
         val eid = MetadataEntityUrn.canonicalize(entityId)
         val tid = MetadataEntityUrn.canonicalize(facetTypeKey)
         return byUid.values.filter {
@@ -29,7 +29,7 @@ class InMemoryFacetRepository : FacetRepository {
         entityId: String,
         facetTypeKey: String,
         scopeKey: String
-    ): List<FacetInstance> {
+    ): List<FacetAssignment> {
         val eid = MetadataEntityUrn.canonicalize(entityId)
         val tid = MetadataEntityUrn.canonicalize(facetTypeKey)
         val sid = MetadataEntityUrn.canonicalize(scopeKey)
@@ -40,9 +40,9 @@ class InMemoryFacetRepository : FacetRepository {
         }
     }
 
-    override fun findByUid(uid: String): FacetInstance? = byUid[uid]
+    override fun findByUid(uid: String): FacetAssignment? = byUid[uid]
 
-    override fun save(facet: FacetInstance): FacetInstance {
+    override fun save(facet: FacetAssignment): FacetAssignment {
         byUid[facet.uid] = facet
         return facet
     }

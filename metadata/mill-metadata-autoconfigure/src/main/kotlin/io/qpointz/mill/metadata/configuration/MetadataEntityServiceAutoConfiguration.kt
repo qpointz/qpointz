@@ -3,6 +3,7 @@ package io.qpointz.mill.metadata.configuration
 import io.qpointz.mill.data.schema.DefaultMetadataEntityUrnCodec
 import io.qpointz.mill.data.schema.MetadataEntityUrnCodec
 import io.qpointz.mill.metadata.repository.FacetRepository
+import io.qpointz.mill.metadata.source.RepositoryMetadataSource
 import io.qpointz.mill.metadata.repository.MetadataAuditRepository
 import io.qpointz.mill.metadata.repository.MetadataEntityRepository
 import io.qpointz.mill.metadata.service.DefaultFacetService
@@ -44,6 +45,19 @@ class MetadataEntityServiceAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(MetadataReader::class)
     fun metadataReader(facetCatalog: FacetCatalog): MetadataReader = MetadataReader(facetCatalog)
+
+    /**
+     * Read-only repository-backed [io.qpointz.mill.metadata.source.MetadataSource] for layered facet resolution.
+     *
+     * @param facetRepository persisted facet assignments
+     * @param metadataReader scope merge for effective rows
+     */
+    @Bean
+    @ConditionalOnMissingBean(RepositoryMetadataSource::class)
+    fun repositoryMetadataSource(
+        facetRepository: FacetRepository,
+        metadataReader: MetadataReader
+    ): RepositoryMetadataSource = RepositoryMetadataSource(facetRepository, metadataReader)
 
     @Bean
     @ConditionalOnMissingBean(FacetService::class)

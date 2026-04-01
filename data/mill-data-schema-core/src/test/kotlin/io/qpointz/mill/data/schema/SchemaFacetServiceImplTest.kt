@@ -5,7 +5,7 @@ import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.data.schema.facet.RelationFacet
-import io.qpointz.mill.metadata.domain.facet.FacetInstance
+import io.qpointz.mill.metadata.domain.facet.FacetAssignment
 import io.qpointz.mill.metadata.domain.facet.MergeAction
 import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.metadata.repository.MetadataEntityRepository
@@ -58,7 +58,7 @@ class SchemaFacetServiceImplTest {
         }
     }
 
-    private fun stubFacets(entity: MetadataEntity, facets: List<FacetInstance>) {
+    private fun stubFacets(entity: MetadataEntity, facets: List<FacetAssignment>) {
         whenever(facetRepository.findByEntity(entity.id)).thenReturn(facets)
     }
 
@@ -96,9 +96,9 @@ class SchemaFacetServiceImplTest {
         facetTypeUrn: String,
         scopeUrn: String,
         payload: Map<String, Any?>
-    ): FacetInstance {
+    ): FacetAssignment {
         val t = now()
-        return FacetInstance(
+        return FacetAssignment(
             uid = UUID.randomUUID().toString(),
             entityId = entity.id,
             facetTypeKey = facetTypeUrn,

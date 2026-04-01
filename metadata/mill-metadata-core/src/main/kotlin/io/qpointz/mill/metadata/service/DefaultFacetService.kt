@@ -5,8 +5,10 @@ import io.qpointz.mill.metadata.domain.FacetTypeSource
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.domain.facet.FacetInstance
+import io.qpointz.mill.metadata.domain.facet.FacetAssignment
 import io.qpointz.mill.metadata.domain.facet.FacetTargetCardinality
 import io.qpointz.mill.metadata.domain.facet.MergeAction
+import io.qpointz.mill.metadata.domain.facet.toCapturedReadModel
 import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.metadata.repository.FacetTypeRepository
 import java.time.Instant
@@ -28,7 +30,8 @@ class DefaultFacetService(
     override fun resolve(entityId: String, context: MetadataContext): List<FacetInstance> {
         val eid = MetadataEntityUrn.canonicalize(entityId)
         val all = facetRepository.findByEntity(eid)
-        return metadataReader.resolveEffective(all, context)
+        val merged = metadataReader.resolveEffective(all, context)
+        return merged.map { it.toCapturedReadModel() }
     }
 
     override fun resolveByType(
@@ -62,11 +65,11 @@ class DefaultFacetService(
                     lastModifiedAt = now,
                     lastModifiedBy = actor
                 )
-                return facetRepository.save(updated)
+                return facetRepository.save(updated).toCapturedReadModel()
             }
         }
         val uid = UUID.randomUUID().toString()
-        val row = FacetInstance(
+        val row = FacetAssignment(
             uid = uid,
             entityId = eid,
             facetTypeKey = tid,
@@ -78,7 +81,7 @@ class DefaultFacetService(
             lastModifiedAt = now,
             lastModifiedBy = actor
         )
-        return facetRepository.save(row)
+        return facetRepository.save(row).toCapturedReadModel()
     }
 
     override fun update(uid: String, payload: Map<String, Any?>, actor: String): FacetInstance {
@@ -91,7 +94,7 @@ class DefaultFacetService(
                 lastModifiedAt = now,
                 lastModifiedBy = actor
             )
-        )
+        ).toCapturedReadModel()
     }
 
     override fun unassign(uid: String, actor: String): Boolean {

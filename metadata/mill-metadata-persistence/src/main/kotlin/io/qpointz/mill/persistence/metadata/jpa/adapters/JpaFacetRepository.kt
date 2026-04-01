@@ -2,7 +2,7 @@ package io.qpointz.mill.persistence.metadata.jpa.adapters
 
 import com.fasterxml.jackson.core.type.TypeReference
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
-import io.qpointz.mill.metadata.domain.facet.FacetInstance
+import io.qpointz.mill.metadata.domain.facet.FacetAssignment
 import io.qpointz.mill.metadata.domain.facet.MergeAction
 import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.persistence.metadata.jpa.entities.MetadataEntityFacetEntity
@@ -30,12 +30,12 @@ class JpaFacetRepository(
 
     private val mapper = JsonUtils.defaultJsonMapper()
 
-    override fun findByEntity(entityId: String): List<FacetInstance> {
+    override fun findByEntity(entityId: String): List<FacetAssignment> {
         val res = MetadataEntityUrn.canonicalize(entityId)
         return facetJpa.findByEntityEntityRes(res).map { toDomain(it) }
     }
 
-    override fun findByEntityAndType(entityId: String, facetTypeKey: String): List<FacetInstance> {
+    override fun findByEntityAndType(entityId: String, facetTypeKey: String): List<FacetAssignment> {
         val eid = MetadataEntityUrn.canonicalize(entityId)
         val tid = MetadataEntityUrn.canonicalize(facetTypeKey)
         return facetJpa.findByEntityEntityRes(eid).filter { it.facetType.typeRes == tid }.map { toDomain(it) }
@@ -45,17 +45,17 @@ class JpaFacetRepository(
         entityId: String,
         facetTypeKey: String,
         scopeKey: String
-    ): List<FacetInstance> {
+    ): List<FacetAssignment> {
         val eid = MetadataEntityUrn.canonicalize(entityId)
         val tid = MetadataEntityUrn.canonicalize(facetTypeKey)
         val sid = MetadataEntityUrn.canonicalize(scopeKey)
         return facetJpa.listByEntityResFacetTypeResScopeRes(eid, tid, sid).map { toDomain(it) }
     }
 
-    override fun findByUid(uid: String): FacetInstance? =
+    override fun findByUid(uid: String): FacetAssignment? =
         facetJpa.findByUuid(uid).map { toDomain(it) }.orElse(null)
 
-    override fun save(facet: FacetInstance): FacetInstance {
+    override fun save(facet: FacetAssignment): FacetAssignment {
         val eid = MetadataEntityUrn.canonicalize(facet.entityId)
         val tid = MetadataEntityUrn.canonicalize(facet.facetTypeKey)
         val sid = MetadataEntityUrn.canonicalize(facet.scopeKey)
@@ -111,12 +111,12 @@ class JpaFacetRepository(
     override fun countByFacetType(facetTypeKey: String): Int =
         facetJpa.countByFacetTypeTypeRes(MetadataEntityUrn.canonicalize(facetTypeKey)).toInt()
 
-    private fun toDomain(e: MetadataEntityFacetEntity): FacetInstance {
+    private fun toDomain(e: MetadataEntityFacetEntity): FacetAssignment {
         val payload: Map<String, Any?> = mapper.readValue(
             e.payloadJson,
             object : TypeReference<Map<String, Any?>>() {}
         )
-        return FacetInstance(
+        return FacetAssignment(
             uid = e.uuid,
             entityId = e.entity.entityRes,
             facetTypeKey = e.facetType.typeRes,

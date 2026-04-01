@@ -1,7 +1,7 @@
 # WI-132 — MetadataSource contract and RepositoryMetadataSource
 
 **Story:** metadata-and-ui-improve-and-clean  
-**Status:** Planned  
+**Status:** Done  
 **Type:** feat  
 **Area:** metadata
 
@@ -36,14 +36,21 @@ None (foundational).
 
 ## Acceptance criteria
 
-- Types compile in **`mill-metadata-core`**; **`RepositoryMetadataSource`** unit-tested with **`FacetReadSide`** fake (muted origin → empty; persisted rows → `CAPTURED` + `originId`).
-- **`./gradlew :metadata:mill-metadata-core:test`** succeeds.
+- **`RepositoryMetadataSource`** unit-tested in **`mill-metadata-core`** with **`FacetReadSide`** fake (muted origin → empty; persisted rows → `CAPTURED` + `originId`).
+- **Rename cascade compiles:** **`FacetInstance` → `FacetAssignment`** touches **`FacetRepository`** and adapters across **core**, **persistence**, **service**, and **autoconfigure**. A green **`mill-metadata-core:test` alone is insufficient** — missed call sites in **JPA**, **REST**, or **Spring wiring** must fail the WI before merge.
 
 ## Testing
 
+Run **unit tests in core** and **compile (or build) every metadata module** that references facet row types:
+
 ```bash
-./gradlew :metadata:mill-metadata-core:test
+./gradlew :metadata:mill-metadata-core:test \
+    :metadata:mill-metadata-persistence:build \
+    :metadata:mill-metadata-service:build \
+    :metadata:mill-metadata-autoconfigure:build
 ```
+
+Equivalent (broader, also acceptable per repo practice **CLAUDE.md**): **`./gradlew build`** from the repo root if your change set can affect dependents outside `metadata/` — but **at minimum** the four invocations above must pass for **WI-132**.
 
 ## Commit
 

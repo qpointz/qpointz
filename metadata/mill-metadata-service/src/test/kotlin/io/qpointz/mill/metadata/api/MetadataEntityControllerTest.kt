@@ -5,8 +5,9 @@ import io.qpointz.mill.data.schema.CatalogPath
 import io.qpointz.mill.data.schema.MetadataEntityUrnCodec
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataUrns
-import io.qpointz.mill.metadata.domain.facet.FacetInstance
+import io.qpointz.mill.metadata.domain.facet.FacetAssignment
 import io.qpointz.mill.metadata.domain.facet.MergeAction
+import io.qpointz.mill.metadata.domain.facet.toCapturedReadModel
 import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.metadata.service.FacetService
 import io.qpointz.mill.metadata.service.MetadataEditService
@@ -100,7 +101,7 @@ class MetadataEntityControllerTest {
         lastModifiedBy = "system"
     )
 
-    private val descriptiveInstance = FacetInstance(
+    private val descriptiveAssignment = FacetAssignment(
         uid = "facet-uid-1",
         entityId = schemaUrn,
         facetTypeKey = MetadataUrns.FACET_TYPE_DESCRIPTIVE,
@@ -113,16 +114,18 @@ class MetadataEntityControllerTest {
         lastModifiedBy = "u"
     )
 
+    private val descriptiveRead = descriptiveAssignment.toCapturedReadModel()
+
     @BeforeEach
     fun setupStubs() {
         val auth = UsernamePasswordAuthenticationToken("test-user", null, emptyList())
         SecurityContextHolder.getContext().authentication = auth
         whenever(urnCodec.decode(schemaUrn)).thenReturn(CatalogPath("myschema", null, null))
-        whenever(facetRepository.findByEntity(schemaUrn)).thenReturn(listOf(descriptiveInstance))
-        whenever(facetRepository.findByEntityAndType(eq(schemaUrn), any())).thenReturn(listOf(descriptiveInstance))
-        whenever(facetService.resolve(eq(schemaUrn), any())).thenReturn(listOf(descriptiveInstance))
-        whenever(facetService.resolveByType(eq(schemaUrn), any(), any())).thenReturn(listOf(descriptiveInstance))
-        whenever(metadataReader.resolveEffective(any(), any())).thenReturn(listOf(descriptiveInstance))
+        whenever(facetRepository.findByEntity(schemaUrn)).thenReturn(listOf(descriptiveAssignment))
+        whenever(facetRepository.findByEntityAndType(eq(schemaUrn), any())).thenReturn(listOf(descriptiveAssignment))
+        whenever(facetService.resolve(eq(schemaUrn), any())).thenReturn(listOf(descriptiveRead))
+        whenever(facetService.resolveByType(eq(schemaUrn), any(), any())).thenReturn(listOf(descriptiveRead))
+        whenever(metadataReader.resolveEffective(any(), any())).thenReturn(listOf(descriptiveAssignment))
     }
 
     @AfterEach
@@ -224,7 +227,7 @@ class MetadataEntityControllerTest {
     fun shouldGetEntityFacets_whenPathIdIsPrefixedLocalPartOnly() {
         val local = "myschema.mytable"
         val fullUrn = "urn:mill/metadata/entity:$local"
-        whenever(facetService.resolve(eq(fullUrn), any())).thenReturn(listOf(descriptiveInstance))
+        whenever(facetService.resolve(eq(fullUrn), any())).thenReturn(listOf(descriptiveRead))
 
         mockMvc.perform(servletGet(URI.create("http://localhost/api/v1/metadata/entities/$local/facets")))
             .andExpect(status().isOk)
@@ -327,7 +330,7 @@ class MetadataEntityControllerTest {
     @Test
     fun shouldAssignFacet_whenPostFacet() {
         whenever(metadataService.findById(schemaUrn)).thenReturn(Optional.of(baseEntity))
-        whenever(metadataEditService.setFacet(any(), any(), any(), any(), any())).thenReturn(descriptiveInstance)
+        whenever(metadataEditService.setFacet(any(), any(), any(), any(), any())).thenReturn(descriptiveRead)
 
         mockMvc.perform(
             servletPost(entityUri(schemaUrn, "/facets/descriptive"))
@@ -341,7 +344,7 @@ class MetadataEntityControllerTest {
     @Test
     fun shouldDeleteFacetAtScope_whenDeleteWithScopeQuery() {
         whenever(metadataService.findById(schemaUrn)).thenReturn(Optional.of(baseEntity))
-        whenever(facetRepository.findByEntity(schemaUrn)).thenReturn(listOf(descriptiveInstance))
+        whenever(facetRepository.findByEntity(schemaUrn)).thenReturn(listOf(descriptiveAssignment))
         doNothing().whenever(metadataEditService).deleteFacet(any(), any(), any(), any())
 
         mockMvc.perform(

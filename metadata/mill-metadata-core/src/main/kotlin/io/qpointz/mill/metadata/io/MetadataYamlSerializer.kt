@@ -4,7 +4,7 @@ import io.qpointz.mill.metadata.domain.FacetTypeDefinition
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.MetadataUrns
-import io.qpointz.mill.metadata.domain.facet.FacetInstance
+import io.qpointz.mill.metadata.domain.facet.FacetAssignment
 import io.qpointz.mill.metadata.domain.facet.FacetTargetCardinality
 import io.qpointz.mill.metadata.domain.facet.MergeAction
 import io.qpointz.mill.metadata.domain.MetadataScope
@@ -51,7 +51,7 @@ object MetadataYamlSerializer {
         scopes: List<MetadataScope> = emptyList(),
         definitions: List<FacetTypeDefinition> = emptyList(),
         entities: List<MetadataEntity> = emptyList(),
-        facetsByEntity: Map<String, List<FacetInstance>> = emptyMap()
+        facetsByEntity: Map<String, List<FacetAssignment>> = emptyMap()
     ): String {
         val chunks = mutableListOf<String>()
         for (s in scopes) {
@@ -84,7 +84,7 @@ object MetadataYamlSerializer {
         val scopes = mutableListOf<MetadataScope>()
         val definitions = mutableListOf<FacetTypeDefinition>()
         val entitiesById = linkedMapOf<String, MetadataEntity>()
-        val facetsByEntity = mutableMapOf<String, MutableList<FacetInstance>>()
+        val facetsByEntity = mutableMapOf<String, MutableList<FacetAssignment>>()
 
         val docStrings = trimmed.split(docSplit).map { it.trim() }.filter { it.isNotEmpty() }
         for (docStr in docStrings) {
@@ -114,7 +114,7 @@ object MetadataYamlSerializer {
     private fun ingestKindEntity(
         root: Map<*, *>,
         entitiesById: MutableMap<String, MetadataEntity>,
-        facetsByEntity: MutableMap<String, MutableList<FacetInstance>>
+        facetsByEntity: MutableMap<String, MutableList<FacetAssignment>>
     ) {
         val rawEntity = root["entityUrn"]?.toString()
             ?: error("MetadataEntity missing entityUrn")
@@ -151,7 +151,7 @@ object MetadataYamlSerializer {
             }
             val merge = parseMergeAction(m["mergeAction"]?.toString())
             val payload = deepStringKeyMap(m["payload"])
-            list += FacetInstance(
+            list += FacetAssignment(
                 uid = uid,
                 entityId = entityRes,
                 facetTypeKey = facetType,
@@ -242,7 +242,7 @@ object MetadataYamlSerializer {
         return m
     }
 
-    private fun entityToMap(e: MetadataEntity, facets: List<FacetInstance>): Map<String, Any?> {
+    private fun entityToMap(e: MetadataEntity, facets: List<FacetAssignment>): Map<String, Any?> {
         val facetList = facets.map { f ->
             linkedMapOf(
                 "uid" to f.uid,

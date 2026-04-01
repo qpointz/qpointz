@@ -11,7 +11,7 @@ import io.qpointz.mill.metadata.domain.core.DescriptiveFacet
 import io.qpointz.mill.data.schema.facet.RelationFacet
 import io.qpointz.mill.data.schema.facet.StructuralFacet
 import io.qpointz.mill.metadata.domain.core.ValueMappingFacet
-import io.qpointz.mill.metadata.domain.facet.FacetInstance
+import io.qpointz.mill.metadata.domain.facet.FacetAssignment
 import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.metadata.repository.MetadataEntityRepository
 import io.qpointz.mill.metadata.service.MetadataContext
@@ -81,7 +81,7 @@ class SchemaFacetServiceImpl(
         return table.columns.firstOrNull { it.columnName == columnName }
     }
 
-    private fun loadFacetIndex(entities: List<MetadataEntity>): Map<String, List<FacetInstance>> =
+    private fun loadFacetIndex(entities: List<MetadataEntity>): Map<String, List<FacetAssignment>> =
         entities.associate { e -> e.id to facetRepository.findByEntity(e.id) }
 
     private fun buildSchemaWithFacets(
@@ -89,7 +89,7 @@ class SchemaFacetServiceImpl(
         allEntities: List<MetadataEntity>,
         usedEntityIds: MutableSet<String>,
         context: MetadataContext,
-        facetIndex: Map<String, List<FacetInstance>>
+        facetIndex: Map<String, List<FacetAssignment>>
     ): SchemaWithFacets {
         val physicalSchema = schemaProvider.getSchema(schemaName)
         val schemaEntity = allEntities.find { e ->
@@ -115,7 +115,7 @@ class SchemaFacetServiceImpl(
         allEntities: List<MetadataEntity>,
         usedEntityIds: MutableSet<String>,
         context: MetadataContext,
-        facetIndex: Map<String, List<FacetInstance>>
+        facetIndex: Map<String, List<FacetAssignment>>
     ): SchemaTableWithFacets {
         val tableEntity = allEntities.find { e ->
             catalogMatches(urnCodec.decode(e.id), schemaName, table.name, null)
@@ -143,7 +143,7 @@ class SchemaFacetServiceImpl(
         allEntities: List<MetadataEntity>,
         usedEntityIds: MutableSet<String>,
         context: MetadataContext,
-        facetIndex: Map<String, List<FacetInstance>>
+        facetIndex: Map<String, List<FacetAssignment>>
     ): SchemaColumnWithFacets {
         val columnEntity = allEntities.find { e ->
             catalogMatches(urnCodec.decode(e.id), schemaName, tableName, field.name)
@@ -164,7 +164,7 @@ class SchemaFacetServiceImpl(
     private fun buildFacets(
         entity: MetadataEntity?,
         context: MetadataContext,
-        facetIndex: Map<String, List<FacetInstance>>
+        facetIndex: Map<String, List<FacetAssignment>>
     ): SchemaFacets {
         if (entity == null) return SchemaFacets.EMPTY
         val instances = facetIndex[entity.id].orEmpty()
@@ -189,7 +189,7 @@ class SchemaFacetServiceImpl(
      * @param facetClass target facet POJO class
      */
     private fun <T : MetadataFacet> resolveFacetFromInstances(
-        instances: List<FacetInstance>,
+        instances: List<FacetAssignment>,
         facetType: String,
         context: MetadataContext,
         facetClass: Class<T>

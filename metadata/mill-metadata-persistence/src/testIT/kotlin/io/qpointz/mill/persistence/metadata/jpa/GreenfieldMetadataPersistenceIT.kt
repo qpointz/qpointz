@@ -2,7 +2,7 @@ package io.qpointz.mill.persistence.metadata.jpa
 
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataUrns
-import io.qpointz.mill.metadata.domain.facet.FacetInstance
+import io.qpointz.mill.metadata.domain.facet.FacetAssignment
 import io.qpointz.mill.metadata.domain.facet.MergeAction
 import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.metadata.repository.MetadataEntityRepository
@@ -55,7 +55,7 @@ class GreenfieldMetadataPersistenceIT {
         )
 
         val facetUid = UUID.randomUUID().toString()
-        val facet = FacetInstance(
+        val facet = FacetAssignment(
             uid = facetUid,
             entityId = id,
             facetTypeKey = MetadataUrns.FACET_TYPE_DESCRIPTIVE,
@@ -97,7 +97,7 @@ class GreenfieldMetadataPersistenceIT {
         )
         val facetUid = UUID.randomUUID().toString()
         facetRepository.save(
-            FacetInstance(
+            FacetAssignment(
                 uid = facetUid,
                 entityId = id,
                 facetTypeKey = MetadataUrns.FACET_TYPE_DESCRIPTIVE,

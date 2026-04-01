@@ -3,7 +3,7 @@ package io.qpointz.mill.ai.nlsql.metadata;
 import io.qpointz.mill.metadata.domain.FacetConverter;
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn;
 import io.qpointz.mill.metadata.domain.MetadataUrns;
-import io.qpointz.mill.metadata.domain.facet.FacetInstance;
+import io.qpointz.mill.metadata.domain.facet.FacetAssignment;
 import io.qpointz.mill.metadata.repository.FacetRepository;
 
 import java.util.List;
@@ -43,9 +43,9 @@ public final class NlsqlMetadataFacets {
         String eid = MetadataEntityUrn.canonicalize(entityId);
         String tid = MetadataEntityUrn.canonicalize(MetadataUrns.normaliseFacetTypePath(facetTypeKeyShortOrUrn));
         String global = MetadataEntityUrn.canonicalize(MetadataUrns.SCOPE_GLOBAL);
-        List<FacetInstance> rows = repo.findByEntityAndType(eid, tid);
-        Optional<FacetInstance> last = Optional.empty();
-        for (FacetInstance f : rows) {
+        List<FacetAssignment> rows = repo.findByEntityAndType(eid, tid);
+        Optional<FacetAssignment> last = Optional.empty();
+        for (FacetAssignment f : rows) {
             if (MetadataEntityUrn.canonicalize(f.getScopeKey()).equals(global)) {
                 last = Optional.of(f);
             }
