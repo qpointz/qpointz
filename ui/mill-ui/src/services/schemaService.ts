@@ -19,6 +19,8 @@ const FACET_STRUCTURAL  = 'urn:mill/metadata/facet-type:structural';
 const FACET_RELATION    = 'urn:mill/metadata/facet-type:relation';
 const CONTEXT_GLOBAL    = 'global';
 const DEFAULT_FACET_MODE = 'direct';
+/** Path segment id for the catalog model root; matches [io.qpointz.mill.data.schema.SchemaModelRoot.ENTITY_LOCAL_ID]. */
+const MODEL_ROOT_LOCAL_ID = 'model-entity';
 
 function mapCardinality(raw: unknown): RelationFacet['cardinality'] {
   const value = String(raw ?? '').toUpperCase();
@@ -98,6 +100,9 @@ export function metadataEntityUrnForFacetApi(entity: SchemaEntity): string | nul
   }
   if (entity.entityType === 'COLUMN' && entity.schemaName && entity.tableName && entity.columnName) {
     return buildEntityUrn(entity.schemaName, entity.tableName, entity.columnName);
+  }
+  if (entity.entityType === 'MODEL' && entity.metadataEntityId) {
+    return entity.metadataEntityId;
   }
   return null;
 }
@@ -198,7 +203,7 @@ const realSchemaService: SchemaService = {
   },
   async listSchemas(context: string, facetMode = DEFAULT_FACET_MODE) {
     const res = await fetch(
-      `/api/v1/schema?context=${encodeURIComponent(context)}&facetMode=${encodeURIComponent(facetMode)}`,
+      `/api/v1/schema?scope=${encodeURIComponent(context)}&facetMode=${encodeURIComponent(facetMode)}`,
       {
       credentials: 'include',
     });
@@ -207,13 +212,13 @@ const realSchemaService: SchemaService = {
   },
   async getSchema(schemaName: string, context: string, facetMode = DEFAULT_FACET_MODE, signal?: AbortSignal) {
     return fetchJsonOrNull<SchemaDetail>(
-      `/api/v1/schema/${encodeURIComponent(schemaName)}?context=${encodeURIComponent(context)}&facetMode=${encodeURIComponent(facetMode)}`,
+      `/api/v1/schema/${encodeURIComponent(schemaName)}?scope=${encodeURIComponent(context)}&facetMode=${encodeURIComponent(facetMode)}`,
       signal
     );
   },
   async getTable(schemaName: string, tableName: string, context: string, facetMode = DEFAULT_FACET_MODE, signal?: AbortSignal) {
     return fetchJsonOrNull<TableDetail>(
-      `/api/v1/schema/${encodeURIComponent(schemaName)}/tables/${encodeURIComponent(tableName)}?context=${encodeURIComponent(context)}&facetMode=${encodeURIComponent(facetMode)}`,
+      `/api/v1/schema/${encodeURIComponent(schemaName)}/tables/${encodeURIComponent(tableName)}?scope=${encodeURIComponent(context)}&facetMode=${encodeURIComponent(facetMode)}`,
       signal
     );
   },
@@ -226,30 +231,59 @@ const realSchemaService: SchemaService = {
     signal?: AbortSignal
   ) {
     return fetchJsonOrNull<ColumnDetail>(
-      `/api/v1/schema/${encodeURIComponent(schemaName)}/tables/${encodeURIComponent(tableName)}/columns/${encodeURIComponent(columnName)}?context=${encodeURIComponent(context)}&facetMode=${encodeURIComponent(facetMode)}`,
+      `/api/v1/schema/${encodeURIComponent(schemaName)}/tables/${encodeURIComponent(tableName)}/columns/${encodeURIComponent(columnName)}?scope=${encodeURIComponent(context)}&facetMode=${encodeURIComponent(facetMode)}`,
       signal
     );
   },
   async getTree(context: string) {
-    const schemas = await realSchemaService.listSchemas(context, 'none');
-    const schemaDetails = await Promise.all(
-      schemas.map((schema) => realSchemaService.getSchema(schema.schemaName, context, 'none'))
+    const res = await fetch(
+      `/api/v1/schema/tree?scope=${encodeURIComponent(context)}&facetMode=none`,
+      { credentials: 'include' }
     );
-    return schemaDetails
-      .filter((schema): schema is SchemaDetail => schema !== null)
-      .map((schema) => ({
-        id: schema.id,
-        type: 'SCHEMA',
-        name: schema.schemaName,
-        children: schema.tables.map((table) => ({
-          id: table.id,
-          type: 'TABLE',
-          name: table.tableName,
-          children: [],
-        })),
-      })) as SchemaNode[];
+    if (!res.ok) return [];
+    const data = (await res.json()) as {
+      modelRoot: { id: string; metadataEntityId: string; entityType: string };
+      schemas: Array<{
+        id: string;
+        schemaName: string;
+        tables: Array<{ id: string; tableName: string }>;
+      }>;
+    };
+    const schemaNodes: SchemaNode[] = data.schemas.map((schema) => ({
+      id: schema.id,
+      type: 'SCHEMA',
+      name: schema.schemaName,
+      children: schema.tables.map((table) => ({
+        id: table.id,
+        type: 'TABLE',
+        name: table.tableName,
+        children: [],
+      })),
+    }));
+    return [
+      {
+        id: data.modelRoot.id,
+        type: 'MODEL',
+        name: 'Model',
+        children: schemaNodes,
+      },
+    ];
   },
   async getEntityById(id: string, context: string, signal?: AbortSignal) {
+    if (id === MODEL_ROOT_LOCAL_ID) {
+      const res = await fetch(
+        `/api/v1/schema/model?scope=${encodeURIComponent(context)}&facetMode=none`,
+        { credentials: 'include', signal }
+      );
+      if (!res.ok) return null;
+      const m = (await res.json()) as { id: string; metadataEntityId: string; entityType: string };
+      return {
+        id: m.id,
+        entityType: 'MODEL' as const,
+        schemaName: '' as const,
+        metadataEntityId: m.metadataEntityId,
+      };
+    }
     const parts = id.split('.');
     if (parts.length === 1) {
       return realSchemaService.getSchema(parts[0]!, context, 'none', signal);
@@ -262,7 +296,7 @@ const realSchemaService: SchemaService = {
   async getEntityFacets(id: string, context: string, signal?: AbortSignal) {
     try {
       const res = await fetch(
-        `/api/v1/metadata/entities/${metadataEntityPathSegment(id)}/facets?context=${encodeURIComponent(context)}`,
+        `/api/v1/metadata/entities/${metadataEntityPathSegment(id)}/facets?scope=${encodeURIComponent(context)}`,
         { credentials: 'include', signal }
       );
       if (res.status === 404 || !res.ok) return {};

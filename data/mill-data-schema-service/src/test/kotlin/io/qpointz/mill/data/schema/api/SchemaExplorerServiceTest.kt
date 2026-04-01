@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.qpointz.mill.data.backend.SchemaProvider
 import io.qpointz.mill.data.schema.DefaultMetadataEntityUrnCodec
 import io.qpointz.mill.data.schema.SchemaFacetService
+import io.qpointz.mill.data.schema.SchemaModelRoot
+import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.excepions.statuses.MillStatusRuntimeException
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.repository.FacetRepository
@@ -51,16 +53,18 @@ class SchemaExplorerServiceTest {
         whenever(metadataEntityRepository.findAll()).thenReturn(listOf(entity))
         whenever(facetRepository.findByEntity(any())).thenReturn(emptyList())
 
-        val result = service.listSchemas("global", "direct")
-        assertEquals(1, result.size)
-        assertEquals("sales", result[0].id)
-        assertEquals(schemaUrn, result[0].metadataEntityId)
+        val result = service.listSchemas("global", null, null, "direct")
+        assertEquals(2, result.size)
+        assertEquals(SchemaModelRoot.ENTITY_LOCAL_ID, result[0].id)
+        assertEquals(MetadataEntityUrn.canonicalize(SchemaModelRoot.ENTITY_ID), result[0].metadataEntityId)
+        assertEquals("sales", result[1].id)
+        assertEquals(schemaUrn, result[1].metadataEntityId)
     }
 
     @Test
-    fun `listSchemas throws bad request for malformed context`() {
+    fun `listSchemas throws bad request for malformed scope`() {
         assertThrows(MillStatusRuntimeException::class.java) {
-            service.listSchemas(",", "direct")
+            service.listSchemas(",", null, null, "direct")
         }
     }
 }

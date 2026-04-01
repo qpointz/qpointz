@@ -8,7 +8,7 @@ import io.qpointz.mill.proto.Table
 
 /**
  * Test-only SchemaProvider that returns a representative subset of the Skymill physical schema,
- * matching the entities defined in skymill-meta-repository.yaml.
+ * matching the entities seeded from skymill-meta-seed-canonical.yaml (test datasets).
  *
  * Also includes [TABLE_NO_METADATA] which has no corresponding entry in the metadata repository,
  * used to verify that missing metadata is represented as absence rather than missing structure.

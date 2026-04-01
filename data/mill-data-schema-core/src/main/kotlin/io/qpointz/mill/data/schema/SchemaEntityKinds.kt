@@ -8,6 +8,10 @@ package io.qpointz.mill.data.schema
  * Non-relational entities (for example concepts) use caller-defined kinds such as [CONCEPT].
  */
 object SchemaEntityKinds {
+    /**
+     * Logical catalog model root (SPEC §3f). Not a physical schema/table/column; not used in SQL resolution.
+     */
+    const val MODEL = "model"
     const val SCHEMA = "schema"
     const val TABLE = "table"
     const val ATTRIBUTE = "attribute"

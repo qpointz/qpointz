@@ -4,16 +4,9 @@ import io.qpointz.mill.data.backend.SchemaProvider
 import io.qpointz.mill.metadata.domain.FacetConverter
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
-import io.qpointz.mill.metadata.domain.MetadataFacet
-import io.qpointz.mill.metadata.domain.MetadataUrns
-import io.qpointz.mill.metadata.domain.core.ConceptFacet
-import io.qpointz.mill.metadata.domain.core.DescriptiveFacet
-import io.qpointz.mill.data.schema.facet.RelationFacet
-import io.qpointz.mill.data.schema.facet.StructuralFacet
-import io.qpointz.mill.metadata.domain.core.ValueMappingFacet
-import io.qpointz.mill.metadata.domain.facet.FacetAssignment
-import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.metadata.repository.MetadataEntityRepository
+import io.qpointz.mill.metadata.service.FacetCatalog
+import io.qpointz.mill.metadata.service.FacetInstanceReadMerge
 import io.qpointz.mill.metadata.service.MetadataContext
 import io.qpointz.mill.proto.Field
 import io.qpointz.mill.proto.Table
@@ -22,36 +15,64 @@ import io.qpointz.mill.proto.Table
  * Default implementation of [SchemaFacetService].
  *
  * Relational binding uses [MetadataEntityUrnCodec]: entity ids encode physical
- * `schema[.table[.column]]` coordinates. Facet payloads are loaded from [FacetRepository] and
- * merged using the same scope / facet-type candidate rules as the legacy aggregate entity model.
+ * `schema[.table[.column]]` coordinates. Effective facets are loaded via [FacetInstanceReadMerge]
+ * over all registered [io.qpointz.mill.metadata.source.MetadataSource] beans (SPEC §3i).
  *
  * @param schemaProvider physical schema source
  * @param metadataEntityRepository persisted entity identities (`metadata_entity`)
- * @param facetRepository facet assignment rows (`metadata_entity_facet`)
+ * @param facetReadMerge multi-origin read merge (repository + future inferred sources)
+ * @param facetCatalog facet type definitions for shaping merged rows into [SchemaFacets]
  * @param urnCodec decodes entity ids to [CatalogPath] coordinates
  */
 class SchemaFacetServiceImpl(
     private val schemaProvider: SchemaProvider,
     private val metadataEntityRepository: MetadataEntityRepository,
-    private val facetRepository: FacetRepository,
+    private val facetReadMerge: FacetInstanceReadMerge,
+    private val facetCatalog: FacetCatalog,
     private val urnCodec: MetadataEntityUrnCodec = DefaultMetadataEntityUrnCodec()
 ) : SchemaFacetService {
 
     private val facetConverter = FacetConverter.defaultConverter()
 
+    /** @see SchemaFacetService.getModelRoot */
+    override fun getModelRoot(context: MetadataContext): ModelRootWithFacets {
+        val allEntities = metadataEntityRepository.findAll()
+        return buildModelRoot(allEntities, context)
+    }
+
     /** @see SchemaFacetService.getSchemas */
     override fun getSchemas(context: MetadataContext): SchemaFacetResult {
         val allEntities = metadataEntityRepository.findAll()
-        val facetIndex = loadFacetIndex(allEntities)
         val usedEntityIds = mutableSetOf<String>()
+        val modelRoot = buildModelRoot(allEntities, context)
+        modelRoot.metadata?.id?.let { usedEntityIds.add(it) }
 
         val schemas = schemaProvider.getSchemaNames().map { schemaName ->
-            buildSchemaWithFacets(schemaName, allEntities, usedEntityIds, context, facetIndex)
+            buildSchemaWithFacets(schemaName, allEntities, usedEntityIds, context)
         }
 
         val unboundMetadata = allEntities.filter { it.id !in usedEntityIds }
 
-        return SchemaFacetResult(schemas = schemas, unboundMetadata = unboundMetadata)
+        return SchemaFacetResult(modelRoot = modelRoot, schemas = schemas, unboundMetadata = unboundMetadata)
+    }
+
+    /**
+     * Resolves the stable model root entity and its facets.
+     *
+     * @param allEntities all persisted metadata entities
+     * @param context scope stack for facet resolution
+     */
+    private fun buildModelRoot(
+        allEntities: List<MetadataEntity>,
+        context: MetadataContext
+    ): ModelRootWithFacets {
+        val canonicalModelId = MetadataEntityUrn.canonicalize(SchemaModelRoot.ENTITY_ID)
+        val modelEntity = allEntities.find { MetadataEntityUrn.canonicalize(it.id) == canonicalModelId }
+        return ModelRootWithFacets(
+            metadataEntityId = canonicalModelId,
+            metadata = modelEntity,
+            facets = buildFacets(modelEntity, context)
+        )
     }
 
     /** @see SchemaFacetService.getSchema */
@@ -59,9 +80,8 @@ class SchemaFacetServiceImpl(
         val schemaNames = schemaProvider.getSchemaNames()
         if (!schemaNames.contains(schemaName)) return null
         val allEntities = metadataEntityRepository.findAll()
-        val facetIndex = loadFacetIndex(allEntities)
         val usedEntityIds = mutableSetOf<String>()
-        return buildSchemaWithFacets(schemaName, allEntities, usedEntityIds, context, facetIndex)
+        return buildSchemaWithFacets(schemaName, allEntities, usedEntityIds, context)
     }
 
     /** @see SchemaFacetService.getTable */
@@ -81,15 +101,11 @@ class SchemaFacetServiceImpl(
         return table.columns.firstOrNull { it.columnName == columnName }
     }
 
-    private fun loadFacetIndex(entities: List<MetadataEntity>): Map<String, List<FacetAssignment>> =
-        entities.associate { e -> e.id to facetRepository.findByEntity(e.id) }
-
     private fun buildSchemaWithFacets(
         schemaName: String,
         allEntities: List<MetadataEntity>,
         usedEntityIds: MutableSet<String>,
-        context: MetadataContext,
-        facetIndex: Map<String, List<FacetAssignment>>
+        context: MetadataContext
     ): SchemaWithFacets {
         val physicalSchema = schemaProvider.getSchema(schemaName)
         val schemaEntity = allEntities.find { e ->
@@ -98,14 +114,14 @@ class SchemaFacetServiceImpl(
         schemaEntity?.id?.let { usedEntityIds.add(it) }
 
         val tables = physicalSchema.tablesList.map { table ->
-            buildTableWithFacets(schemaName, table, allEntities, usedEntityIds, context, facetIndex)
+            buildTableWithFacets(schemaName, table, allEntities, usedEntityIds, context)
         }
 
         return SchemaWithFacets(
             schemaName = schemaName,
             tables = tables,
             metadata = schemaEntity,
-            facets = buildFacets(schemaEntity, context, facetIndex)
+            facets = buildFacets(schemaEntity, context)
         )
     }
 
@@ -114,8 +130,7 @@ class SchemaFacetServiceImpl(
         table: Table,
         allEntities: List<MetadataEntity>,
         usedEntityIds: MutableSet<String>,
-        context: MetadataContext,
-        facetIndex: Map<String, List<FacetAssignment>>
+        context: MetadataContext
     ): SchemaTableWithFacets {
         val tableEntity = allEntities.find { e ->
             catalogMatches(urnCodec.decode(e.id), schemaName, table.name, null)
@@ -123,7 +138,7 @@ class SchemaFacetServiceImpl(
         tableEntity?.id?.let { usedEntityIds.add(it) }
 
         val columns = table.fieldsList.map { field ->
-            buildColumnWithFacets(schemaName, table.name, field, allEntities, usedEntityIds, context, facetIndex)
+            buildColumnWithFacets(schemaName, table.name, field, allEntities, usedEntityIds, context)
         }
 
         return SchemaTableWithFacets(
@@ -132,7 +147,7 @@ class SchemaFacetServiceImpl(
             tableType = table.tableType,
             columns = columns,
             metadata = tableEntity,
-            facets = buildFacets(tableEntity, context, facetIndex)
+            facets = buildFacets(tableEntity, context)
         )
     }
 
@@ -142,8 +157,7 @@ class SchemaFacetServiceImpl(
         field: Field,
         allEntities: List<MetadataEntity>,
         usedEntityIds: MutableSet<String>,
-        context: MetadataContext,
-        facetIndex: Map<String, List<FacetAssignment>>
+        context: MetadataContext
     ): SchemaColumnWithFacets {
         val columnEntity = allEntities.find { e ->
             catalogMatches(urnCodec.decode(e.id), schemaName, tableName, field.name)
@@ -157,72 +171,18 @@ class SchemaFacetServiceImpl(
             fieldIndex = field.fieldIdx,
             dataType = field.type,
             metadata = columnEntity,
-            facets = buildFacets(columnEntity, context, facetIndex)
+            facets = buildFacets(columnEntity, context)
         )
     }
 
     private fun buildFacets(
         entity: MetadataEntity?,
-        context: MetadataContext,
-        facetIndex: Map<String, List<FacetAssignment>>
+        context: MetadataContext
     ): SchemaFacets {
         if (entity == null) return SchemaFacets.EMPTY
-        val instances = facetIndex[entity.id].orEmpty()
-        val facets = mutableSetOf<MetadataFacet>()
-        resolveFacetFromInstances(instances, "descriptive", context, DescriptiveFacet::class.java)
-            ?.let { facets.add(it) }
-        resolveFacetFromInstances(instances, "structural", context, StructuralFacet::class.java)
-            ?.let { facets.add(it) }
-        resolveFacetFromInstances(instances, "relation", context, RelationFacet::class.java)
-            ?.let { facets.add(it) }
-        resolveFacetFromInstances(instances, "concept", context, ConceptFacet::class.java)
-            ?.let { facets.add(it) }
-        resolveFacetFromInstances(instances, "value-mapping", context, ValueMappingFacet::class.java)
-            ?.let { facets.add(it) }
-        return SchemaFacets(facets)
-    }
-
-    /**
-     * @param instances facet rows for the entity
-     * @param facetType short facet type key (for example `descriptive`)
-     * @param context ordered scope context; later scopes override earlier ones when multiple match
-     * @param facetClass target facet POJO class
-     */
-    private fun <T : MetadataFacet> resolveFacetFromInstances(
-        instances: List<FacetAssignment>,
-        facetType: String,
-        context: MetadataContext,
-        facetClass: Class<T>
-    ): T? {
-        var resolved: T? = null
-        context.scopes.forEach { scope ->
-            resolveFacetTypeCandidates(facetType).forEach { ftCandidate ->
-                resolveScopeCandidates(scope).forEach { scopeCandidate ->
-                    val match = instances.find { inst ->
-                        facetTypeKeyMatches(inst.facetTypeKey, ftCandidate) &&
-                            scopeKeyMatches(inst.scopeKey, scopeCandidate)
-                    }
-                    match?.let { m ->
-                        facetConverter.convert(m.payload, facetClass).ifPresent { resolved = it }
-                    }
-                }
-            }
-        }
-        return resolved
-    }
-
-    private fun facetTypeKeyMatches(stored: String, candidate: String): Boolean {
-        val s = runCatching { MetadataEntityUrn.canonicalize(stored) }.getOrNull() ?: return false
-        val c = runCatching { MetadataEntityUrn.canonicalize(MetadataUrns.normaliseFacetTypePath(candidate)) }
-            .getOrNull() ?: return false
-        return s == c
-    }
-
-    private fun scopeKeyMatches(stored: String, candidate: String): Boolean {
-        val s = runCatching { MetadataEntityUrn.canonicalize(stored) }.getOrNull() ?: return false
-        val c = runCatching { MetadataEntityUrn.canonicalize(MetadataUrns.normaliseScopePath(candidate)) }
-            .getOrNull() ?: return false
-        return s == c
+        val eid = MetadataEntityUrn.canonicalize(entity.id)
+        val resolved = facetReadMerge.merge(eid, context)
+        return SchemaFacets.fromResolved(resolved, facetConverter, facetCatalog)
     }
 
     /**
@@ -243,21 +203,6 @@ class SchemaFacetServiceImpl(
         if (!coordinateEquals(path.table, tableName)) return false
         if (columnName == null) return path.column == null
         return coordinateEquals(path.column, columnName)
-    }
-
-    private fun resolveScopeCandidates(scope: String): List<String> {
-        if (!scope.startsWith(MetadataUrns.SCOPE_PREFIX)) {
-            return listOf(scope, MetadataUrns.normaliseScopePath(scope))
-        }
-        val shortKey = scope.removePrefix(MetadataUrns.SCOPE_PREFIX)
-        return listOf(shortKey, scope)
-    }
-
-    private fun resolveFacetTypeCandidates(facetType: String): List<String> {
-        if (facetType.startsWith(MetadataUrns.FACET_TYPE_PREFIX)) {
-            return listOf(facetType)
-        }
-        return listOf(facetType, MetadataUrns.normaliseFacetTypePath(facetType))
     }
 
     private fun coordinateEquals(left: String?, right: String?): Boolean {

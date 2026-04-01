@@ -3,9 +3,11 @@ package io.qpointz.mill.metadata.configuration
 import io.qpointz.mill.data.schema.DefaultMetadataEntityUrnCodec
 import io.qpointz.mill.data.schema.MetadataEntityUrnCodec
 import io.qpointz.mill.metadata.repository.FacetRepository
+import io.qpointz.mill.metadata.source.MetadataSource
 import io.qpointz.mill.metadata.source.RepositoryMetadataSource
 import io.qpointz.mill.metadata.repository.MetadataAuditRepository
 import io.qpointz.mill.metadata.repository.MetadataEntityRepository
+import io.qpointz.mill.metadata.service.FacetInstanceReadMerge
 import io.qpointz.mill.metadata.service.DefaultFacetService
 import io.qpointz.mill.metadata.service.DefaultMetadataEditService
 import io.qpointz.mill.metadata.service.DefaultMetadataEntityService
@@ -59,14 +61,27 @@ class MetadataEntityServiceAutoConfiguration {
         metadataReader: MetadataReader
     ): RepositoryMetadataSource = RepositoryMetadataSource(facetRepository, metadataReader)
 
+    /**
+     * Merges facet rows from all [MetadataSource] contributors for [io.qpointz.mill.metadata.service.FacetService.resolve].
+     *
+     * @param metadataSources all beans implementing [MetadataSource] (order stabilized by [FacetInstanceReadMerge] via origin id)
+     * @param facetCatalog facet type cardinality lookup
+     */
+    @Bean
+    @ConditionalOnMissingBean(FacetInstanceReadMerge::class)
+    fun facetInstanceReadMerge(
+        metadataSources: List<MetadataSource>,
+        facetCatalog: FacetCatalog
+    ): FacetInstanceReadMerge = FacetInstanceReadMerge(metadataSources, facetCatalog)
+
     @Bean
     @ConditionalOnMissingBean(FacetService::class)
     fun facetService(
         facetRepository: FacetRepository,
         facetCatalog: FacetCatalog,
         facetTypeRepository: FacetTypeRepository,
-        metadataReader: MetadataReader
-    ): FacetService = DefaultFacetService(facetRepository, facetCatalog, facetTypeRepository, metadataReader)
+        readMerge: FacetInstanceReadMerge
+    ): FacetService = DefaultFacetService(facetRepository, facetCatalog, facetTypeRepository, readMerge)
 
     @Bean
     @ConditionalOnMissingBean(MetadataService::class)

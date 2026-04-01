@@ -1,8 +1,10 @@
 package io.qpointz.mill.data.schema.api
 
 import io.qpointz.mill.data.schema.api.dto.ColumnDto
+import io.qpointz.mill.data.schema.api.dto.ModelRootDto
 import io.qpointz.mill.data.schema.api.dto.SchemaContextDto
 import io.qpointz.mill.data.schema.api.dto.SchemaDto
+import io.qpointz.mill.data.schema.api.dto.SchemaExplorerTreeDto
 import io.qpointz.mill.data.schema.api.dto.SchemaListItemDto
 import io.qpointz.mill.data.schema.api.dto.TableDto
 import io.swagger.v3.oas.annotations.Operation
@@ -50,7 +52,8 @@ class SchemaExplorerController(
     /**
      * Lists schemas with descriptive facets.
      *
-     * @param context optional comma-separated scopes (`global,user:alice`)
+     * @param scope optional comma-separated scopes (`global,user:alice`)
+     * @param context deprecated alias for [scope] when [scope] is absent
      * @return schema list payload
      */
     @GetMapping("")
@@ -62,30 +65,37 @@ class SchemaExplorerController(
                 description = "Schema list",
                 content = [Content(array = ArraySchema(schema = Schema(implementation = SchemaListItemDto::class)))]
             ),
-            ApiResponse(responseCode = "400", description = "Malformed context parameter")
+            ApiResponse(responseCode = "400", description = "Malformed scope parameter")
         ]
     )
     fun listSchemas(
-        @Parameter(description = "Optional comma-separated context scopes")
+        @Parameter(description = "Optional comma-separated scope URNs / slugs (preferred)")
+        @RequestParam(required = false) scope: String?,
+        @Parameter(description = "Deprecated: use `scope` when absent", deprecated = true)
         @RequestParam(required = false) context: String?,
+        @Parameter(description = "Optional comma-separated origin ids")
+        @RequestParam(required = false) origin: String?,
         @Parameter(description = "Facet expansion policy: none | direct | hierarchy")
         @RequestParam(required = false, defaultValue = "direct") facetMode: String
-    ): List<SchemaListItemDto> = schemaExplorerService.listSchemas(context, facetMode)
+    ): List<SchemaListItemDto> = schemaExplorerService.listSchemas(scope, context, origin, facetMode)
 
     /**
      * Backward-compatible alias for legacy clients.
      */
     @GetMapping("/schemas")
     fun listSchemasLegacy(
+        @RequestParam(required = false) scope: String?,
         @RequestParam(required = false) context: String?,
+        @RequestParam(required = false) origin: String?,
         @RequestParam(required = false, defaultValue = "direct") facetMode: String
-    ): List<SchemaListItemDto> = schemaExplorerService.listSchemas(context, facetMode)
+    ): List<SchemaListItemDto> = schemaExplorerService.listSchemas(scope, context, origin, facetMode)
 
     /**
      * Returns schema tree payload for initial explorer loading.
      *
-     * @param context optional comma-separated scopes (`global,user:alice`)
-     * @return schema detail list containing table summaries
+     * @param scope optional comma-separated scopes (`global,user:alice`)
+     * @param context deprecated alias for [scope] when [scope] is absent
+     * @return model root plus schema detail list containing table summaries
      */
     @GetMapping("/tree")
     @Operation(summary = "Get schema tree payload")
@@ -93,24 +103,60 @@ class SchemaExplorerController(
         value = [
             ApiResponse(
                 responseCode = "200",
-                description = "Schema tree payload",
-                content = [Content(array = ArraySchema(schema = Schema(implementation = SchemaDto::class)))]
+                description = "Model root and physical schemas",
+                content = [Content(schema = Schema(implementation = SchemaExplorerTreeDto::class))]
             ),
-            ApiResponse(responseCode = "400", description = "Malformed context parameter")
+            ApiResponse(responseCode = "400", description = "Malformed scope parameter")
         ]
     )
     fun getTree(
-        @Parameter(description = "Optional comma-separated context scopes")
+        @Parameter(description = "Optional comma-separated scope URNs / slugs (preferred)")
+        @RequestParam(required = false) scope: String?,
+        @Parameter(description = "Deprecated: use `scope` when absent", deprecated = true)
         @RequestParam(required = false) context: String?,
+        @Parameter(description = "Optional comma-separated origin ids")
+        @RequestParam(required = false) origin: String?,
         @Parameter(description = "Facet expansion policy: none | direct | hierarchy")
         @RequestParam(required = false, defaultValue = "none") facetMode: String
-    ): List<SchemaDto> = schemaExplorerService.getTree(context, facetMode)
+    ): SchemaExplorerTreeDto = schemaExplorerService.getTree(scope, context, origin, facetMode)
+
+    /**
+     * Returns the logical catalog model root (SPEC §3f) with optional facet payloads.
+     *
+     * @param scope optional comma-separated scopes
+     * @param context deprecated alias for [scope] when [scope] is absent
+     * @param facetMode facet expansion policy
+     * @return model root DTO (stable metadata entity URN)
+     */
+    @GetMapping("/model")
+    @Operation(summary = "Get logical model root")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Model root",
+                content = [Content(schema = Schema(implementation = ModelRootDto::class))]
+            ),
+            ApiResponse(responseCode = "400", description = "Malformed scope parameter")
+        ]
+    )
+    fun getModelRoot(
+        @Parameter(description = "Optional comma-separated scope URNs / slugs (preferred)")
+        @RequestParam(required = false) scope: String?,
+        @Parameter(description = "Deprecated: use `scope` when absent", deprecated = true)
+        @RequestParam(required = false) context: String?,
+        @Parameter(description = "Optional comma-separated origin ids")
+        @RequestParam(required = false) origin: String?,
+        @Parameter(description = "Facet expansion policy: none | direct | hierarchy")
+        @RequestParam(required = false, defaultValue = "direct") facetMode: String
+    ): ModelRootDto = schemaExplorerService.getModelRoot(scope, context, origin, facetMode)
 
     /**
      * Returns one schema detail payload.
      *
      * @param schemaName schema name
-     * @param context optional comma-separated scopes (`global,user:alice`)
+     * @param scope optional comma-separated scopes (`global,user:alice`)
+     * @param context deprecated alias for [scope] when [scope] is absent
      * @return schema detail
      */
     @GetMapping("/{schemaName}")
@@ -123,17 +169,21 @@ class SchemaExplorerController(
                 content = [Content(schema = Schema(implementation = SchemaDto::class))
                 ]
             ),
-            ApiResponse(responseCode = "400", description = "Malformed context parameter"),
+            ApiResponse(responseCode = "400", description = "Malformed scope parameter"),
             ApiResponse(responseCode = "404", description = "Schema not found")
         ]
     )
     fun getSchema(
         @PathVariable schemaName: String,
-        @Parameter(description = "Optional comma-separated context scopes")
+        @Parameter(description = "Optional comma-separated scope URNs / slugs (preferred)")
+        @RequestParam(required = false) scope: String?,
+        @Parameter(description = "Deprecated: use `scope` when absent", deprecated = true)
         @RequestParam(required = false) context: String?,
+        @Parameter(description = "Optional comma-separated origin ids")
+        @RequestParam(required = false) origin: String?,
         @Parameter(description = "Facet expansion policy: none | direct | hierarchy")
         @RequestParam(required = false, defaultValue = "direct") facetMode: String
-    ): SchemaDto = schemaExplorerService.getSchema(schemaName, context, facetMode)
+    ): SchemaDto = schemaExplorerService.getSchema(schemaName, scope, context, origin, facetMode)
 
     /**
      * Backward-compatible alias for legacy clients.
@@ -141,16 +191,19 @@ class SchemaExplorerController(
     @GetMapping("/schemas/{schemaName}")
     fun getSchemaLegacy(
         @PathVariable schemaName: String,
+        @RequestParam(required = false) scope: String?,
         @RequestParam(required = false) context: String?,
+        @RequestParam(required = false) origin: String?,
         @RequestParam(required = false, defaultValue = "direct") facetMode: String
-    ): SchemaDto = schemaExplorerService.getSchema(schemaName, context, facetMode)
+    ): SchemaDto = schemaExplorerService.getSchema(schemaName, scope, context, origin, facetMode)
 
     /**
      * Returns one table detail payload.
      *
      * @param schemaName schema name
      * @param tableName table name
-     * @param context optional comma-separated scopes (`global,user:alice`)
+     * @param scope optional comma-separated scopes (`global,user:alice`)
+     * @param context deprecated alias for [scope] when [scope] is absent
      * @return table detail
      */
     @GetMapping("/{schemaName}/tables/{tableName}")
@@ -162,18 +215,22 @@ class SchemaExplorerController(
                 description = "Table detail payload",
                 content = [Content(schema = Schema(implementation = TableDto::class))]
             ),
-            ApiResponse(responseCode = "400", description = "Malformed context parameter"),
+            ApiResponse(responseCode = "400", description = "Malformed scope parameter"),
             ApiResponse(responseCode = "404", description = "Schema or table not found")
         ]
     )
     fun getTable(
         @PathVariable schemaName: String,
         @PathVariable tableName: String,
-        @Parameter(description = "Optional comma-separated context scopes")
+        @Parameter(description = "Optional comma-separated scope URNs / slugs (preferred)")
+        @RequestParam(required = false) scope: String?,
+        @Parameter(description = "Deprecated: use `scope` when absent", deprecated = true)
         @RequestParam(required = false) context: String?,
+        @Parameter(description = "Optional comma-separated origin ids")
+        @RequestParam(required = false) origin: String?,
         @Parameter(description = "Facet expansion policy: none | direct | hierarchy")
         @RequestParam(required = false, defaultValue = "direct") facetMode: String
-    ): TableDto = schemaExplorerService.getTable(schemaName, tableName, context, facetMode)
+    ): TableDto = schemaExplorerService.getTable(schemaName, tableName, scope, context, origin, facetMode)
 
     /**
      * Backward-compatible alias for legacy clients.
@@ -182,9 +239,11 @@ class SchemaExplorerController(
     fun getTableLegacy(
         @PathVariable schemaName: String,
         @PathVariable tableName: String,
+        @RequestParam(required = false) scope: String?,
         @RequestParam(required = false) context: String?,
+        @RequestParam(required = false) origin: String?,
         @RequestParam(required = false, defaultValue = "direct") facetMode: String
-    ): TableDto = schemaExplorerService.getTable(schemaName, tableName, context, facetMode)
+    ): TableDto = schemaExplorerService.getTable(schemaName, tableName, scope, context, origin, facetMode)
 
     /**
      * Returns one column detail payload.
@@ -192,7 +251,8 @@ class SchemaExplorerController(
      * @param schemaName schema name
      * @param tableName table name
      * @param columnName column name
-     * @param context optional comma-separated scopes (`global,user:alice`)
+     * @param scope optional comma-separated scopes (`global,user:alice`)
+     * @param context deprecated alias for [scope] when [scope] is absent
      * @return column detail
      */
     @GetMapping("/{schemaName}/tables/{tableName}/columns/{columnName}")
@@ -204,7 +264,7 @@ class SchemaExplorerController(
                 description = "Column detail payload",
                 content = [Content(schema = Schema(implementation = ColumnDto::class))]
             ),
-            ApiResponse(responseCode = "400", description = "Malformed context parameter"),
+            ApiResponse(responseCode = "400", description = "Malformed scope parameter"),
             ApiResponse(responseCode = "404", description = "Schema, table, or column not found")
         ]
     )
@@ -212,11 +272,15 @@ class SchemaExplorerController(
         @PathVariable schemaName: String,
         @PathVariable tableName: String,
         @PathVariable columnName: String,
-        @Parameter(description = "Optional comma-separated context scopes")
+        @Parameter(description = "Optional comma-separated scope URNs / slugs (preferred)")
+        @RequestParam(required = false) scope: String?,
+        @Parameter(description = "Deprecated: use `scope` when absent", deprecated = true)
         @RequestParam(required = false) context: String?,
+        @Parameter(description = "Optional comma-separated origin ids")
+        @RequestParam(required = false) origin: String?,
         @Parameter(description = "Facet expansion policy: none | direct | hierarchy")
         @RequestParam(required = false, defaultValue = "direct") facetMode: String
-    ): ColumnDto = schemaExplorerService.getColumn(schemaName, tableName, columnName, context, facetMode)
+    ): ColumnDto = schemaExplorerService.getColumn(schemaName, tableName, columnName, scope, context, origin, facetMode)
 
     /**
      * Backward-compatible alias for legacy clients.
@@ -226,7 +290,9 @@ class SchemaExplorerController(
         @PathVariable schemaName: String,
         @PathVariable tableName: String,
         @PathVariable columnName: String,
+        @RequestParam(required = false) scope: String?,
         @RequestParam(required = false) context: String?,
+        @RequestParam(required = false) origin: String?,
         @RequestParam(required = false, defaultValue = "direct") facetMode: String
-    ): ColumnDto = schemaExplorerService.getColumn(schemaName, tableName, columnName, context, facetMode)
+    ): ColumnDto = schemaExplorerService.getColumn(schemaName, tableName, columnName, scope, context, origin, facetMode)
 }

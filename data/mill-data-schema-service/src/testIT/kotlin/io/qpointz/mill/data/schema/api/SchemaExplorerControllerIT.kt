@@ -1,10 +1,12 @@
 package io.qpointz.mill.data.schema.api
 
 import io.qpointz.mill.data.backend.SchemaProvider
+import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.proto.DataType
 import io.qpointz.mill.proto.Field
+import io.qpointz.mill.data.schema.SchemaModelRoot
 import io.qpointz.mill.proto.LogicalDataType
-import io.qpointz.mill.proto.Schema
+import io.qpointz.mill.proto.Schema as ProtoSchema
 import io.qpointz.mill.proto.Table
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,7 +26,8 @@ import org.springframework.test.web.servlet.get
             "io.qpointz.mill.autoconfigure.data.backend.BackendAutoConfiguration," +
             "io.qpointz.mill.autoconfigure.data.backend.calcite.CalciteBackendAutoConfiguration," +
             "io.qpointz.mill.autoconfigure.data.backend.jdbc.JdbcBackendAutoConfiguration," +
-            "io.qpointz.mill.autoconfigure.data.backend.flow.FlowBackendAutoConfiguration"
+            "io.qpointz.mill.autoconfigure.data.backend.flow.FlowBackendAutoConfiguration," +
+            "io.qpointz.mill.metadata.configuration.MetadataFileRepositoryAutoConfiguration"
     ]
 )
 @AutoConfigureMockMvc(addFilters = false)
@@ -40,7 +43,7 @@ class SchemaExplorerControllerIT {
         fun schemaProvider(): SchemaProvider = object : SchemaProvider {
             override fun getSchemaNames(): Iterable<String> = listOf("sales")
             override fun isSchemaExists(schemaName: String): Boolean = schemaName == "sales"
-            override fun getSchema(schemaName: String): Schema = Schema.newBuilder()
+            override fun getSchema(schemaName: String): ProtoSchema = ProtoSchema.newBuilder()
                 .addTables(
                     Table.newBuilder()
                         .setSchemaName("sales")
@@ -78,18 +81,31 @@ class SchemaExplorerControllerIT {
     @Test
     fun `shouldListSchemasInFullContext`() {
         mockMvc.get("/api/v1/schema/schemas") {
+            param("scope", "global")
+        }.andExpect {
+            status { isOk() }
+            jsonPath("$[0].id") { value(SchemaModelRoot.ENTITY_LOCAL_ID) }
+            jsonPath("$[0].entityType") { value("MODEL") }
+            jsonPath("$[0].metadataEntityId") { value(MetadataEntityUrn.canonicalize(SchemaModelRoot.ENTITY_ID)) }
+            jsonPath("$[1].id") { value("sales") }
+            jsonPath("$[1].entityType") { value("SCHEMA") }
+        }
+    }
+
+    @Test
+    fun `shouldListSchemas_whenLegacyContextParamOnly`() {
+        mockMvc.get("/api/v1/schema/schemas") {
             param("context", "global")
         }.andExpect {
             status { isOk() }
-            jsonPath("$[0].id") { value("sales") }
-            jsonPath("$[0].entityType") { value("SCHEMA") }
+            jsonPath("$[1].id") { value("sales") }
         }
     }
 
     @Test
     fun `shouldReturnTableAndColumnDetails`() {
         mockMvc.get("/api/v1/schema/schemas/sales/tables/customers") {
-            param("context", "global")
+            param("scope", "global")
         }.andExpect {
             status { isOk() }
             jsonPath("$.id") { value("sales.customers") }
@@ -100,9 +116,9 @@ class SchemaExplorerControllerIT {
     }
 
     @Test
-    fun `shouldReturnBadRequest_whenContextMalformed`() {
+    fun `shouldReturnBadRequest_whenScopeMalformed`() {
         mockMvc.get("/api/v1/schema/schemas") {
-            param("context", ",")
+            param("scope", ",")
         }.andExpect {
             status { isBadRequest() }
             jsonPath("$.status") { value("BAD_REQUEST") }
@@ -115,7 +131,20 @@ class SchemaExplorerControllerIT {
             .andExpect {
                 status { isOk() }
                 content { string(org.hamcrest.Matchers.containsString("/api/v1/schema/schemas")) }
+                content { string(org.hamcrest.Matchers.containsString("/api/v1/schema/model")) }
                 content { string(org.hamcrest.Matchers.containsString("\"400\"")) }
             }
+    }
+
+    @Test
+    fun `shouldReturnModelRoot`() {
+        mockMvc.get("/api/v1/schema/model") {
+            param("scope", "global")
+        }.andExpect {
+            status { isOk() }
+            jsonPath("$.id") { value(SchemaModelRoot.ENTITY_LOCAL_ID) }
+            jsonPath("$.entityType") { value("MODEL") }
+            jsonPath("$.metadataEntityId") { value(MetadataEntityUrn.canonicalize(SchemaModelRoot.ENTITY_ID)) }
+        }
     }
 }

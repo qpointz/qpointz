@@ -23,6 +23,14 @@ interface SchemaFacetService {
     fun getSchemas(context: MetadataContext = MetadataContext.global()): SchemaFacetResult
 
     /**
+     * Returns the logical catalog model root merged with facets (SPEC §3f).
+     *
+     * @param context ordered scope context used for facet resolution
+     * @return model root with stable [ModelRootWithFacets.metadataEntityId]
+     */
+    fun getModelRoot(context: MetadataContext = MetadataContext.global()): ModelRootWithFacets
+
+    /**
      * Returns one physical schema merged with schema-bound metadata.
      *
      * @param schemaName physical schema name

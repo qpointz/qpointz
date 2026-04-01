@@ -29,6 +29,7 @@ testing {
             useJUnitJupiter(libs.versions.junit.get())
             dependencies {
                 implementation(project())
+                implementation(project(":data:mill-data-schema-core"))
                 implementation(project(":data:mill-data-backend-core"))
                 implementation(project(":metadata:mill-metadata-autoconfigure"))
                 implementation(libs.boot.starter.test)

@@ -9,16 +9,18 @@ import io.swagger.v3.oas.annotations.media.Schema
  * Response for `GET /api/v1/metadata/entities/{id}/facets/merge-trace` (SPEC §10.5).
  *
  * Lists every persisted assignment for the entity with [mergeAction] and whether the row
- * appears in the effective merged view for the requested [context] order.
+ * appears in the effective merged view for the requested scope order.
  *
- * @property context scope URNs in evaluation order (same as facet list `?context=`)
+ * @property scopes scope URNs in evaluation order (same as facet list `?scope=`)
  * @property entries one row per stored facet assignment
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Facet merge trace: raw assignments plus merge_action and effective-view flags.")
 data class FacetMergeTraceResponseDto(
+    @param:JsonProperty("scopes")
+    @param:JsonAlias("context")
     @field:Schema(description = "Ordered scope URNs used for merge", requiredMode = Schema.RequiredMode.REQUIRED)
-    val context: List<String>,
+    val scopes: List<String>,
     @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     val entries: List<FacetMergeTraceEntryDto>
 )
@@ -29,7 +31,7 @@ data class FacetMergeTraceResponseDto(
  * @property scopeUrn scope URN
  * @property mergeAction persisted merge contribution (`SET`, `TOMBSTONE`, `CLEAR`)
  * @property payload assignment payload
- * @property contributesToEffectiveView true if this row appears in the merged effective facet list for [FacetMergeTraceResponseDto.context]
+ * @property contributesToEffectiveView true if this row appears in the merged effective facet list for [FacetMergeTraceResponseDto.scopes]
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Single facet row in a merge-trace response.")

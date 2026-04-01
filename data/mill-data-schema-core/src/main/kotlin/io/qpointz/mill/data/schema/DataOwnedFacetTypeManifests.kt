@@ -27,6 +27,7 @@ object DataOwnedFacetTypeManifests {
      * @return manifests for structural, relation, and value-mapping facet types (URN keys)
      */
     fun manifests(): List<FacetTypeManifest> {
+        // Physical/table facets only; MODEL (SPEC §3f) is logical and not structural/relation/value-mapping here.
         val tableAndAttribute = listOf(SchemaEntityKinds.TABLE, SchemaEntityKinds.ATTRIBUTE)
         val attributeOnly = listOf(SchemaEntityKinds.ATTRIBUTE)
         return listOf(

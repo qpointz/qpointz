@@ -1,7 +1,7 @@
 # WI-134 — Resolved facets read API and OpenAPI
 
 **Story:** metadata-and-ui-improve-and-clean  
-**Status:** Planned  
+**Status:** Done  
 **Type:** feat  
 **Area:** data, metadata, ui
 

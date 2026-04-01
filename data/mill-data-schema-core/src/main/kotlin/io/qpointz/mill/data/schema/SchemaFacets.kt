@@ -1,19 +1,31 @@
 package io.qpointz.mill.data.schema
 
+import io.qpointz.mill.metadata.domain.FacetConverter
+import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.MetadataFacet
+import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.domain.core.ConceptFacet
 import io.qpointz.mill.metadata.domain.core.DescriptiveFacet
 import io.qpointz.mill.data.schema.facet.RelationFacet
 import io.qpointz.mill.data.schema.facet.StructuralFacet
 import io.qpointz.mill.metadata.domain.core.ValueMappingFacet
+import io.qpointz.mill.metadata.domain.facet.FacetInstance
+import io.qpointz.mill.metadata.domain.facet.FacetTargetCardinality
+import io.qpointz.mill.metadata.service.FacetCatalog
 
 /**
  * Facet holder backed by a map keyed on facet type.
  *
  * Typed convenience properties cover the standard platform facet types.
  * Unknown or custom facet types are accessible via [facetByType].
+ *
+ * @param facets legacy typed [MetadataFacet] POJOs for schema explorer / JDBC shaping
+ * @param facetsResolved unified read rows (captured + inferred) after multi-source merge (SPEC §3b)
  */
-class SchemaFacets(facets: Set<MetadataFacet>) {
+class SchemaFacets(
+    facets: Set<MetadataFacet>,
+    val facetsResolved: List<FacetInstance> = emptyList()
+) {
 
     private val facetMap: Map<String, MetadataFacet> = facets.associateBy { it.facetType }
 
@@ -35,8 +47,8 @@ class SchemaFacets(facets: Set<MetadataFacet>) {
     /** Set of facet type keys present in this holder. */
     val facetTypes: Set<String> get() = facetMap.keys
 
-    /** True when no facets are held; typically the case for physical objects with no matched metadata. */
-    val isEmpty: Boolean get() = facetMap.isEmpty()
+    /** True when no typed facets and no resolved read rows are held. */
+    val isEmpty: Boolean get() = facetMap.isEmpty() && facetsResolved.isEmpty()
 
     /**
      * Returns the facet for the given [type] key cast to [T], or null if absent or the cast fails.
@@ -47,6 +59,80 @@ class SchemaFacets(facets: Set<MetadataFacet>) {
 
     companion object {
         /** Shared empty instance returned for physical objects that have no matched metadata. */
-        val EMPTY = SchemaFacets(emptySet())
+        val EMPTY = SchemaFacets(emptySet(), emptyList())
+
+        /**
+         * Builds typed [MetadataFacet] accessors plus [facetsResolved] from merged read rows.
+         *
+         * @param resolved output of [io.qpointz.mill.metadata.service.FacetInstanceReadMerge.merge]
+         * @param converter Jackson bridge to facet POJOs
+         * @param catalog facet type cardinality (MULTIPLE merges relation payloads)
+         */
+        fun fromResolved(
+            resolved: List<FacetInstance>,
+            converter: FacetConverter,
+            catalog: FacetCatalog
+        ): SchemaFacets {
+            if (resolved.isEmpty()) return EMPTY
+            val facets = mutableSetOf<MetadataFacet>()
+            val byType = resolved.groupBy { MetadataEntityUrn.canonicalize(it.facetTypeKey) }
+            for ((canonType, rows) in byType.toSortedMap()) {
+                val card = catalog.findDefinition(canonType)?.targetCardinality
+                    ?: FacetTargetCardinality.SINGLE
+                when (shortKey(canonType)) {
+                    "descriptive" -> convertOne(rows, card, DescriptiveFacet::class.java, converter, facets)
+                    "structural" -> convertOne(rows, card, StructuralFacet::class.java, converter, facets)
+                    "relation" -> convertRelation(rows, card, converter, facets)
+                    "concept" -> convertOne(rows, card, ConceptFacet::class.java, converter, facets)
+                    "value-mapping" -> convertOne(rows, card, ValueMappingFacet::class.java, converter, facets)
+                    else -> Unit
+                }
+            }
+            return SchemaFacets(facets, resolved)
+        }
+
+        private fun shortKey(canonType: String): String = when (canonType) {
+            MetadataUrns.FACET_TYPE_DESCRIPTIVE -> "descriptive"
+            MetadataUrns.FACET_TYPE_STRUCTURAL -> "structural"
+            MetadataUrns.FACET_TYPE_RELATION -> "relation"
+            MetadataUrns.FACET_TYPE_CONCEPT -> "concept"
+            MetadataUrns.FACET_TYPE_VALUE_MAPPING -> "value-mapping"
+            else -> canonType.removePrefix(MetadataUrns.FACET_TYPE_PREFIX)
+        }
+
+        private fun <T : MetadataFacet> convertOne(
+            rows: List<FacetInstance>,
+            card: FacetTargetCardinality,
+            clazz: Class<T>,
+            converter: FacetConverter,
+            out: MutableSet<MetadataFacet>
+        ) {
+            if (rows.isEmpty()) return
+            val row = if (card == FacetTargetCardinality.MULTIPLE) rows.first() else rows.first()
+            converter.convert(row.payload, clazz).ifPresent { out.add(it) }
+        }
+
+        private fun convertRelation(
+            rows: List<FacetInstance>,
+            card: FacetTargetCardinality,
+            converter: FacetConverter,
+            out: MutableSet<MetadataFacet>
+        ) {
+            if (rows.isEmpty()) return
+            if (card == FacetTargetCardinality.MULTIPLE && rows.size > 1) {
+                val merged = LinkedHashMap<String, Any?>()
+                val allRelations = rows.flatMap { row ->
+                    (row.payload["relations"] as? Iterable<*>)?.toList().orEmpty()
+                }
+                if (allRelations.isNotEmpty()) {
+                    merged["relations"] = allRelations
+                    converter.convert(merged, RelationFacet::class.java).ifPresent { out.add(it) }
+                } else {
+                    converter.convert(rows.first().payload, RelationFacet::class.java).ifPresent { out.add(it) }
+                }
+            } else {
+                converter.convert(rows.first().payload, RelationFacet::class.java).ifPresent { out.add(it) }
+            }
+        }
     }
 }

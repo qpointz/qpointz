@@ -3,8 +3,9 @@ package io.qpointz.mill.data.schema
 import io.qpointz.mill.data.schema.SkyMillSchemaProvider.Companion.SCHEMA_NAME
 import io.qpointz.mill.data.schema.SkyMillSchemaProvider.Companion.TABLE_NO_METADATA
 import io.qpointz.mill.data.schema.MetadataEntityUrnCodec
-import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.metadata.repository.MetadataEntityRepository
+import io.qpointz.mill.metadata.service.FacetCatalog
+import io.qpointz.mill.metadata.service.FacetInstanceReadMerge
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -30,7 +31,7 @@ class SchemaFacetServiceSkyMillIT {
                 ?: error("System property 'skymill.datasets.dir' not set")
             registry.add("mill.metadata.repository.type") { "file" }
             registry.add("mill.metadata.seed.resources[0]") { "classpath:metadata/platform-bootstrap.yaml" }
-            registry.add("mill.metadata.seed.resources[1]") { "file:$dir/skymill-meta-repository.yaml" }
+            registry.add("mill.metadata.seed.resources[1]") { "file:$dir/skymill-meta-seed-canonical.yaml" }
         }
     }
 
@@ -38,7 +39,10 @@ class SchemaFacetServiceSkyMillIT {
     private lateinit var metadataEntityRepository: MetadataEntityRepository
 
     @Autowired
-    private lateinit var facetRepository: FacetRepository
+    private lateinit var facetReadMerge: FacetInstanceReadMerge
+
+    @Autowired
+    private lateinit var facetCatalog: FacetCatalog
 
     @Autowired
     private lateinit var urnCodec: MetadataEntityUrnCodec
@@ -47,7 +51,13 @@ class SchemaFacetServiceSkyMillIT {
 
     @BeforeEach
     fun setUp() {
-        service = SchemaFacetServiceImpl(SkyMillSchemaProvider(), metadataEntityRepository, facetRepository)
+        service = SchemaFacetServiceImpl(
+            SkyMillSchemaProvider(),
+            metadataEntityRepository,
+            facetReadMerge,
+            facetCatalog,
+            urnCodec
+        )
     }
 
     @Test

@@ -1,7 +1,7 @@
 # WI-135 — Mutation guards for inferred facets
 
 **Story:** metadata-and-ui-improve-and-clean  
-**Status:** Planned  
+**Status:** Done  
 **Type:** feat  
 **Area:** metadata
 

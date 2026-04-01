@@ -3,17 +3,22 @@ package io.qpointz.mill.data.schema.api
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.qpointz.mill.data.schema.DefaultMetadataEntityUrnCodec
 import io.qpointz.mill.data.schema.MetadataEntityUrnCodec
+import io.qpointz.mill.data.schema.ModelRootWithFacets
 import io.qpointz.mill.data.schema.SchemaColumnWithFacets
 import io.qpointz.mill.data.schema.SchemaFacetService
 import io.qpointz.mill.data.schema.SchemaFacets
+import io.qpointz.mill.data.schema.SchemaModelRoot
 import io.qpointz.mill.data.schema.SchemaTableWithFacets
 import io.qpointz.mill.data.schema.SchemaWithFacets
 import io.qpointz.mill.data.schema.api.dto.ColumnDto
 import io.qpointz.mill.data.schema.api.dto.DataTypeDescriptor
 import io.qpointz.mill.data.schema.api.dto.FacetEnvelopeDto
+import io.qpointz.mill.data.schema.api.dto.FacetResolvedRowDto
+import io.qpointz.mill.data.schema.api.dto.ModelRootDto
 import io.qpointz.mill.data.schema.api.dto.SchemaContextDto
 import io.qpointz.mill.data.schema.api.dto.SchemaDto
 import io.qpointz.mill.data.schema.api.dto.SchemaEntityType
+import io.qpointz.mill.data.schema.api.dto.SchemaExplorerTreeDto
 import io.qpointz.mill.data.schema.api.dto.SchemaListItemDto
 import io.qpointz.mill.data.schema.api.dto.ScopeOptionDto
 import io.qpointz.mill.data.schema.api.dto.TableDto
@@ -35,8 +40,9 @@ import io.qpointz.mill.data.backend.SchemaProvider
 /**
  * Application service for schema explorer REST API.
  *
- * Accepts raw context query values, parses them using metadata-core rules, and maps
- * schema-core domain objects to REST DTOs.
+ * Accepts raw `scope` / legacy `context` query values plus optional `origin`, parses them using
+ * [metadata-core][io.qpointz.mill.metadata.service.MetadataReadContext] rules, and maps schema-core domain
+ * objects to REST DTOs.
  */
 @Service
 class SchemaExplorerService(
@@ -67,15 +73,26 @@ class SchemaExplorerService(
     /**
      * Lists all schemas with descriptive facets only.
      *
-     * @param context raw context query value
+     * @param scope preferred comma-separated scope query value
+     * @param contextLegacy deprecated alias for [scope] when [scope] is absent
+     * @param origin optional comma-separated origin ids
      * @return schema list response
      */
-    fun listSchemas(context: String?, facetModeRaw: String?): List<SchemaListItemDto> {
-        val metadataContext = parseContext(context)
+    fun listSchemas(scope: String?, contextLegacy: String?, origin: String?, facetModeRaw: String?): List<SchemaListItemDto> {
+        val metadataContext = parseReadContext(scope, contextLegacy, origin)
         val facetMode = parseFacetMode(facetModeRaw)
-        log.info("Listing schemas for context scopes={} facetMode={}", metadataContext.scopes, facetMode)
+        log.info("Listing schemas for scopes={} facetMode={}", metadataContext.scopes, facetMode)
         val schemaNames = schemaProvider.getSchemaNames().toList()
-        val entitiesBySchema = metadataEntityRepository.findAll()
+        val allEntities = metadataEntityRepository.findAll()
+        val modelEntity = findModelMetadataEntity(allEntities)
+        val modelListItem = SchemaListItemDto(
+            id = SchemaModelRoot.ENTITY_LOCAL_ID,
+            entityType = SchemaEntityType.MODEL,
+            schemaName = "",
+            metadataEntityId = modelMetadataEntityIdForApi(modelEntity),
+            facets = if (facetMode == FacetMode.NONE) null else mapDescriptiveFacet(modelEntity, metadataContext)
+        )
+        val entitiesBySchema = allEntities
             .mapNotNull { e ->
                 val p = urnCodec.decode(e.id)
                 if (p.table != null || p.column != null) return@mapNotNull null
@@ -83,7 +100,7 @@ class SchemaExplorerService(
                 schema to e
             }
             .associateBy({ it.first.lowercase() }, { it.second })
-        return schemaNames.map { schemaName ->
+        val schemaItems = schemaNames.map { schemaName ->
             val entity = entitiesBySchema[schemaName.lowercase()]
             SchemaListItemDto(
                 id = schemaName,
@@ -93,31 +110,84 @@ class SchemaExplorerService(
                 facets = if (facetMode == FacetMode.NONE) null else mapDescriptiveFacet(entity, metadataContext)
             )
         }
+        return listOf(modelListItem) + schemaItems
     }
+
+    /**
+     * @param entities all persisted metadata entities from the repository
+     * @return entity row for the model root when present
+     */
+    private fun findModelMetadataEntity(entities: List<MetadataEntity>): MetadataEntity? {
+        val canonical = MetadataEntityUrn.canonicalize(SchemaModelRoot.ENTITY_ID)
+        return entities.find { MetadataEntityUrn.canonicalize(it.id) == canonical }
+    }
+
+    /**
+     * @param modelEntity persisted model row, or null when the catalog has no model entity yet
+     * @return canonical URN clients use for metadata facet APIs ([SchemaModelRoot.ENTITY_ID])
+     */
+    private fun modelMetadataEntityIdForApi(modelEntity: MetadataEntity?): String =
+        modelEntity?.let { MetadataEntityUrn.canonicalize(it.id) }
+            ?: MetadataEntityUrn.canonicalize(SchemaModelRoot.ENTITY_ID)
 
     /**
      * Returns tree payload in one call for model explorer initial load.
      *
-     * @param context raw context query value
+     * @param scope preferred comma-separated scope query value
+     * @param contextLegacy deprecated alias for [scope] when [scope] is absent
+     * @param origin optional comma-separated origin ids
      * @return schema details with table summaries
      */
-    fun getTree(context: String?, facetModeRaw: String?): List<SchemaDto> {
-        val metadataContext = parseContext(context)
+    fun getTree(scope: String?, contextLegacy: String?, origin: String?, facetModeRaw: String?): SchemaExplorerTreeDto {
+        val metadataContext = parseReadContext(scope, contextLegacy, origin)
         val facetMode = parseFacetMode(facetModeRaw)
-        log.info("Loading schema tree for context scopes={} facetMode={}", metadataContext.scopes, facetMode)
-        return schemaFacetService.getSchemas(metadataContext).schemas.map { schemaToDto(it, facetMode) }
+        log.info("Loading schema tree for scopes={} facetMode={}", metadataContext.scopes, facetMode)
+        val result = schemaFacetService.getSchemas(metadataContext)
+        return SchemaExplorerTreeDto(
+            modelRoot = modelRootToDto(result.modelRoot, facetMode),
+            schemas = result.schemas.map { schemaToDto(it, facetMode) }
+        )
     }
+
+    /**
+     * Returns the logical model root with optional facet expansion.
+     *
+     * @param scope preferred comma-separated scope query value
+     * @param contextLegacy deprecated alias for [scope] when [scope] is absent
+     * @param origin optional comma-separated origin ids
+     * @param facetModeRaw facet expansion policy (`none` \| `direct` \| `hierarchy`)
+     * @return model root DTO with stable [ModelRootDto.metadataEntityId]
+     */
+    fun getModelRoot(scope: String?, contextLegacy: String?, origin: String?, facetModeRaw: String?): ModelRootDto {
+        val metadataContext = parseReadContext(scope, contextLegacy, origin)
+        val facetMode = parseFacetMode(facetModeRaw)
+        return modelRootToDto(schemaFacetService.getModelRoot(metadataContext), facetMode)
+    }
+
+    /**
+     * @param root domain model root from [SchemaFacetService]
+     * @param facetMode facet payload expansion for the DTO
+     */
+    private fun modelRootToDto(root: ModelRootWithFacets, facetMode: FacetMode): ModelRootDto = ModelRootDto(
+        id = SchemaModelRoot.ENTITY_LOCAL_ID,
+        entityType = SchemaEntityType.MODEL,
+        metadataEntityId = root.metadataEntityId,
+        facets = if (facetMode == FacetMode.NONE) null else mapFacets(root.facets),
+        facetsResolved = mapFacetsResolved(root.facets)
+    )
 
     /**
      * Returns one schema detail by name.
      *
      * @param schemaName schema name
-     * @param context raw context query value
+     * @param scope preferred comma-separated scope query value
+     * @param contextLegacy deprecated alias for [scope] when [scope] is absent
+     * @param origin optional comma-separated origin ids
      * @return schema detail DTO
      */
-    fun getSchema(schemaName: String, context: String?, facetModeRaw: String?): SchemaDto {
+    fun getSchema(schemaName: String, scope: String?, contextLegacy: String?, origin: String?, facetModeRaw: String?): SchemaDto {
         val facetMode = parseFacetMode(facetModeRaw)
-        val schema = findSchema(schemaName, parseContext(context))
+        val schema = findSchema(schemaName, parseReadContext(scope, contextLegacy, origin))
         return schemaToDto(schema, facetMode)
     }
 
@@ -126,12 +196,21 @@ class SchemaExplorerService(
      *
      * @param schemaName schema name
      * @param tableName table name
-     * @param context raw context query value
+     * @param scope preferred comma-separated scope query value
+     * @param contextLegacy deprecated alias for [scope] when [scope] is absent
+     * @param origin optional comma-separated origin ids
      * @return table detail DTO
      */
-    fun getTable(schemaName: String, tableName: String, context: String?, facetModeRaw: String?): TableDto {
+    fun getTable(
+        schemaName: String,
+        tableName: String,
+        scope: String?,
+        contextLegacy: String?,
+        origin: String?,
+        facetModeRaw: String?
+    ): TableDto {
         val facetMode = parseFacetMode(facetModeRaw)
-        val table = findTable(schemaName, tableName, parseContext(context))
+        val table = findTable(schemaName, tableName, parseReadContext(scope, contextLegacy, origin))
         return tableToDto(table, facetMode)
     }
 
@@ -141,12 +220,22 @@ class SchemaExplorerService(
      * @param schemaName schema name
      * @param tableName table name
      * @param columnName column name
-     * @param context raw context query value
+     * @param scope preferred comma-separated scope query value
+     * @param contextLegacy deprecated alias for [scope] when [scope] is absent
+     * @param origin optional comma-separated origin ids
      * @return column detail DTO
      */
-    fun getColumn(schemaName: String, tableName: String, columnName: String, context: String?, facetModeRaw: String?): ColumnDto {
+    fun getColumn(
+        schemaName: String,
+        tableName: String,
+        columnName: String,
+        scope: String?,
+        contextLegacy: String?,
+        origin: String?,
+        facetModeRaw: String?
+    ): ColumnDto {
         val facetMode = parseFacetMode(facetModeRaw)
-        val column = findColumn(schemaName, tableName, columnName, parseContext(context))
+        val column = findColumn(schemaName, tableName, columnName, parseReadContext(scope, contextLegacy, origin))
         return columnToDto(column, facetMode)
     }
 
@@ -179,10 +268,12 @@ class SchemaExplorerService(
                 schemaName = table.schemaName,
                 tableName = table.tableName,
                 metadataEntityId = table.metadata?.id,
-                facets = if (facetMode == FacetMode.HIERARCHY) mapFacets(table.facets, descriptiveOnly = true) else null
+                facets = if (facetMode == FacetMode.HIERARCHY) mapFacets(table.facets, descriptiveOnly = true) else null,
+                facetsResolved = mapFacetsResolved(table.facets)
             )
         },
-        facets = if (facetMode != FacetMode.NONE) mapFacets(schema.facets) else null
+        facets = if (facetMode != FacetMode.NONE) mapFacets(schema.facets) else null,
+        facetsResolved = mapFacetsResolved(schema.facets)
     )
 
     private fun tableToDto(table: SchemaTableWithFacets, facetMode: FacetMode): TableDto = TableDto(
@@ -193,7 +284,8 @@ class SchemaExplorerService(
         tableType = table.tableType.name,
         metadataEntityId = table.metadata?.id,
         columns = table.columns.map { columnToDto(it, if (facetMode == FacetMode.HIERARCHY) FacetMode.HIERARCHY else FacetMode.NONE) },
-        facets = if (facetMode != FacetMode.NONE) mapFacets(table.facets) else null
+        facets = if (facetMode != FacetMode.NONE) mapFacets(table.facets) else null,
+        facetsResolved = mapFacetsResolved(table.facets)
     )
 
     private fun columnToDto(column: SchemaColumnWithFacets, facetMode: FacetMode): ColumnDto = ColumnDto(
@@ -205,7 +297,8 @@ class SchemaExplorerService(
         fieldIndex = column.fieldIndex,
         type = toTypeDescriptor(column.dataType),
         metadataEntityId = column.metadata?.id,
-        facets = if (facetMode != FacetMode.NONE) mapFacets(column.facets) else null
+        facets = if (facetMode != FacetMode.NONE) mapFacets(column.facets) else null,
+        facetsResolved = mapFacetsResolved(column.facets)
     )
 
     private fun toTypeDescriptor(dataType: DataType): DataTypeDescriptor {
@@ -237,6 +330,29 @@ class SchemaExplorerService(
                 )
             }
         return result.ifEmpty { null }
+    }
+
+    /**
+     * Maps merged [SchemaFacets.facetsResolved] rows to API DTOs.
+     *
+     * @param facets schema facet bundle from the schema facet service
+     * @return null when there are no resolved rows (omitted from JSON)
+     */
+    private fun mapFacetsResolved(facets: SchemaFacets): List<FacetResolvedRowDto>? {
+        if (facets.facetsResolved.isEmpty()) return null
+        return facets.facetsResolved.map { fi ->
+            FacetResolvedRowDto(
+                uid = fi.uid,
+                facetTypeUrn = MetadataEntityUrn.canonicalize(fi.facetTypeKey),
+                scopeUrn = MetadataEntityUrn.canonicalize(fi.scopeKey),
+                origin = fi.origin.name,
+                originId = fi.originId,
+                assignmentUid = fi.assignmentUid,
+                payload = fi.payload,
+                createdAt = fi.createdAt,
+                lastModifiedAt = fi.lastModifiedAt
+            )
+        }
     }
 
     private fun mapDescriptiveFacet(entity: MetadataEntity?, context: MetadataContext): Map<String, FacetEnvelopeDto>? {
@@ -289,15 +405,20 @@ class SchemaExplorerService(
     }
 
     /**
-     * Parses raw context input and maps malformed values to BAD_REQUEST status.
+     * Parses read query parameters: effective scope is [scope] when non-blank, else [contextLegacy] (migration).
      *
-     * @param rawContext raw context query parameter
-     * @return parsed metadata context
+     * @param scope preferred comma-separated scope segments
+     * @param contextLegacy deprecated alias when [scope] is null or blank
+     * @param origin optional comma-separated origin ids
+     * @return parsed metadata read context
      */
-    private fun parseContext(rawContext: String?): MetadataContext = try {
-        MetadataContext.parse(rawContext)
-    } catch (ex: IllegalArgumentException) {
-        throw MillStatuses.badRequestRuntime("Malformed context parameter: ${rawContext ?: "<blank>"}")
+    private fun parseReadContext(scope: String?, contextLegacy: String?, origin: String?): MetadataContext {
+        val effectiveScope = scope?.takeIf { it.isNotBlank() } ?: contextLegacy
+        return try {
+            MetadataContext.parse(effectiveScope, origin)
+        } catch (ex: IllegalArgumentException) {
+            throw MillStatuses.badRequestRuntime("Malformed scope parameter: ${effectiveScope ?: "<blank>"}")
+        }
     }
 
     private fun parseFacetMode(rawFacetMode: String?): FacetMode {

@@ -4,6 +4,7 @@ import {
   HiOutlineCircleStack,
   HiOutlineTableCells,
   HiOutlineViewColumns,
+  HiOutlineCube,
   HiChevronRight,
   HiChevronDown,
   HiOutlineChatBubbleLeftRight,
@@ -20,6 +21,7 @@ interface SchemaTreeProps {
 }
 
 const entityIcons = {
+  MODEL: HiOutlineCube,
   SCHEMA: HiOutlineCircleStack,
   TABLE: HiOutlineTableCells,
   COLUMN: HiOutlineViewColumns,

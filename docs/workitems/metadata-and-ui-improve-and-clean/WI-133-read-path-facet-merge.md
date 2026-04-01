@@ -1,7 +1,7 @@
 # WI-133 — Read-path facet merge
 
 **Story:** metadata-and-ui-improve-and-clean  
-**Status:** Planned  
+**Status:** Done  
 **Type:** feat  
 **Area:** metadata, data
 

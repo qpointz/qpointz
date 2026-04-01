@@ -8,16 +8,23 @@ import { defaultFeatureFlags } from '../../features/defaults';
 const { testTree } = vi.hoisted(() => ({
   testTree: [
     {
-      id: 'sales', type: 'SCHEMA', name: 'sales',
+      id: 'model-entity',
+      type: 'MODEL' as const,
+      name: 'Model',
       children: [
-        { id: 'sales.customers', type: 'TABLE', name: 'customers', children: [] },
-        { id: 'sales.orders', type: 'TABLE', name: 'orders', children: [] },
-      ],
-    },
-    {
-      id: 'inventory', type: 'SCHEMA', name: 'inventory',
-      children: [
-        { id: 'inventory.products', type: 'TABLE', name: 'products', children: [] },
+        {
+          id: 'sales', type: 'SCHEMA' as const, name: 'sales',
+          children: [
+            { id: 'sales.customers', type: 'TABLE' as const, name: 'customers', children: [] },
+            { id: 'sales.orders', type: 'TABLE' as const, name: 'orders', children: [] },
+          ],
+        },
+        {
+          id: 'inventory', type: 'SCHEMA' as const, name: 'inventory',
+          children: [
+            { id: 'inventory.products', type: 'TABLE' as const, name: 'products', children: [] },
+          ],
+        },
       ],
     },
   ],

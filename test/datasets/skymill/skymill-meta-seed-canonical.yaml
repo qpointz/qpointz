@@ -1,0 +1,64 @@
+# Canonical multi-document metadata seed for SchemaFacetServiceSkyMillIT (SPEC §15.2).
+# Relational entity URNs match RelationalMetadataEntityUrns / SkyMillSchemaProvider.
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill
+entityKind: schema
+facets:
+  - facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+    scopeUrn: urn:mill/metadata/scope:global
+    payload:
+      displayName: Skymill
+      description: Skymill Airlines flight and cargo schema
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cities
+entityKind: table
+facets:
+  - facetTypeUrn: urn:mill/metadata/facet-type:structural
+    scopeUrn: urn:mill/metadata/scope:global
+    payload:
+      physicalName: CITIES
+      tableType: TABLE
+      backendType: jdbc
+  - facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+    scopeUrn: urn:mill/metadata/scope:global
+    payload:
+      displayName: Cities
+      description: Airport cities served by the airline. Suitable for queries about destinations, routes, passenger residence, or city coverage.
+  - facetTypeUrn: urn:mill/metadata/facet-type:relation
+    scopeUrn: urn:mill/metadata/scope:global
+    payload:
+      relations:
+        - name: cities_segments_origin
+          description: Origin city for segments
+          sourceTable:
+            schema: skymill
+            table: cities
+          sourceAttributes:
+            - id
+          targetTable:
+            schema: skymill
+            table: segments
+          targetAttributes:
+            - origin
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.cities.city
+entityKind: attribute
+facets:
+  - facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+    scopeUrn: urn:mill/metadata/scope:global
+    payload:
+      displayName: City name
+      description: City label column
+---
+kind: MetadataEntity
+entityUrn: urn:mill/metadata/entity:skymill.ghost_table
+entityKind: table
+facets:
+  - facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+    scopeUrn: urn:mill/metadata/scope:global
+    payload:
+      displayName: Orphan
+      description: No matching physical table (unbound metadata IT)

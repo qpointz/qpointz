@@ -78,12 +78,14 @@ interface EntityDetailsProps {
 }
 
 const entityIcons = {
+  MODEL: HiOutlineCube,
   SCHEMA: HiOutlineCircleStack,
   TABLE: HiOutlineTableCells,
   COLUMN: HiOutlineViewColumns,
 };
 
 const entityLabels = {
+  MODEL: 'Model',
   SCHEMA: 'Schema',
   TABLE: 'Table',
   COLUMN: 'Column',
@@ -342,11 +344,13 @@ export function EntityDetails({
   const isDark = colorScheme === 'dark';
   const flags = useFeatureFlags();
   const Icon = entityIcons[entity.entityType];
-  const entityName = entity.entityType === 'SCHEMA'
-    ? entity.schemaName
-    : entity.entityType === 'TABLE'
-      ? entity.tableName
-      : entity.columnName;
+  const entityName = entity.entityType === 'MODEL'
+    ? 'Model'
+    : entity.entityType === 'SCHEMA'
+      ? entity.schemaName
+      : entity.entityType === 'TABLE'
+        ? entity.tableName
+        : entity.columnName;
   const metadataFacetTargetId = metadataEntityUrnForFacetApi(entity);
   const canMutateMetadataFacets = metadataFacetTargetId !== null;
   const hasStructural = flags.modelStructuralFacet && facets.structural && Object.keys(facets.structural).length > 0;
@@ -467,11 +471,13 @@ export function EntityDetails({
     const ac = new AbortController();
     const { signal } = ac;
     const targetType =
-      entity.entityType === 'SCHEMA'
-        ? 'schema'
-        : entity.entityType === 'TABLE'
-          ? 'table'
-          : 'attribute';
+      entity.entityType === 'MODEL'
+        ? 'model'
+        : entity.entityType === 'SCHEMA'
+          ? 'schema'
+          : entity.entityType === 'TABLE'
+            ? 'table'
+            : 'attribute';
     void facetTypeService
       .list({ targetType, enabledOnly: true }, signal)
       .then((rows) => {
@@ -1448,6 +1454,11 @@ export function EntityDetails({
           {entity.entityType === 'COLUMN' && (
             <Text size="sm" c="dimmed">
               Column: {entity.columnName} · Position: {entity.fieldIndex}
+            </Text>
+          )}
+          {entity.entityType === 'MODEL' && (
+            <Text size="sm" c="dimmed">
+              Catalog-wide logical model root (not a physical schema).
             </Text>
           )}
         </Box>

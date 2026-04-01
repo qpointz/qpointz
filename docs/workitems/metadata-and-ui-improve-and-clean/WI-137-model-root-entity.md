@@ -1,7 +1,7 @@
 # WI-137 — Model root entity
 
 **Story:** metadata-and-ui-improve-and-clean  
-**Status:** Planned  
+**Status:** Done  
 **Type:** feat  
 **Area:** data, metadata, ui
 

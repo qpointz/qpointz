@@ -5,15 +5,33 @@ import type { EntityFacets } from '../../types/schema';
 // Fixture data
 // ---------------------------------------------------------------------------
 
+const modelMetadataId = 'urn:mill/metadata/entity:model-entity';
+
 const mockSchemaList = [
+  { id: 'model-entity', entityType: 'MODEL', schemaName: '', metadataEntityId: modelMetadataId },
   { id: 'sales', entityType: 'SCHEMA', schemaName: 'sales' },
 ];
+
+const mockModelDetail = {
+  id: 'model-entity',
+  entityType: 'MODEL',
+  metadataEntityId: modelMetadataId,
+};
 
 const mockSchemaDetail = {
   id: 'sales',
   entityType: 'SCHEMA',
   schemaName: 'sales',
   tables: [{ id: 'sales.customers', entityType: 'TABLE', schemaName: 'sales', tableName: 'customers' }],
+};
+
+const mockTreePayload = {
+  modelRoot: {
+    id: 'model-entity',
+    entityType: 'MODEL',
+    metadataEntityId: modelMetadataId,
+  },
+  schemas: [mockSchemaDetail],
 };
 
 const mockTableDetail = {
@@ -100,30 +118,39 @@ describe('schemaService', () => {
   });
 
   describe('listSchemas', () => {
-    it('requests list with context query parameter', async () => {
+    it('requests list with scope query parameter', async () => {
       fetchMock.mockResolvedValueOnce(makeOkResponse(mockSchemaList));
       const { schemaService } = await import('../schemaService');
       const schemas = await schemaService.listSchemas('global');
-      expect(schemas.length).toBe(1);
-      expect(fetchMock).toHaveBeenCalledWith('/api/v1/schema?context=global&facetMode=direct', { credentials: 'include' });
+      expect(schemas.length).toBe(2);
+      expect(schemas[0]?.entityType).toBe('MODEL');
+      expect(fetchMock).toHaveBeenCalledWith('/api/v1/schema?scope=global&facetMode=direct', { credentials: 'include' });
     });
   });
 
   describe('getTree', () => {
-    it('loads tree via hierarchy endpoints without tree endpoint', async () => {
-      fetchMock
-        .mockResolvedValueOnce(makeOkResponse(mockSchemaList))
-        .mockResolvedValueOnce(makeOkResponse(mockSchemaDetail));
+    it('loads tree from schema tree endpoint with model root', async () => {
+      fetchMock.mockResolvedValueOnce(makeOkResponse(mockTreePayload));
       const { schemaService } = await import('../schemaService');
       const tree = await schemaService.getTree('global');
       expect(tree.length).toBe(1);
-      expect(tree[0]?.type).toBe('SCHEMA');
-      expect(fetchMock).toHaveBeenCalledWith('/api/v1/schema?context=global&facetMode=none', { credentials: 'include' });
-      expect(fetchMock).toHaveBeenCalledWith('/api/v1/schema/sales?context=global&facetMode=none', { credentials: 'include' });
+      expect(tree[0]?.type).toBe('MODEL');
+      expect(tree[0]?.children?.length).toBe(1);
+      expect(tree[0]?.children?.[0]?.type).toBe('SCHEMA');
+      expect(fetchMock).toHaveBeenCalledWith('/api/v1/schema/tree?scope=global&facetMode=none', { credentials: 'include' });
     });
   });
 
   describe('getEntityById', () => {
+    it('returns model root for model-entity id', async () => {
+      fetchMock.mockResolvedValueOnce(makeOkResponse(mockModelDetail));
+      const { schemaService } = await import('../schemaService');
+      const result = await schemaService.getEntityById('model-entity', 'global');
+      expect(result?.entityType).toBe('MODEL');
+      expect(result?.metadataEntityId).toBe(modelMetadataId);
+      expect(fetchMock).toHaveBeenCalledWith('/api/v1/schema/model?scope=global&facetMode=none', { credentials: 'include' });
+    });
+
     it('returns schema for one-part id', async () => {
       fetchMock.mockResolvedValueOnce(makeOkResponse(mockSchemaDetail));
       const { schemaService } = await import('../schemaService');

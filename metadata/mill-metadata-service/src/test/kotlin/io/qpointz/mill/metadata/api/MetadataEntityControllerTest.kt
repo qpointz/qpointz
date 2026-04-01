@@ -6,6 +6,8 @@ import io.qpointz.mill.data.schema.MetadataEntityUrnCodec
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.domain.facet.FacetAssignment
+import io.qpointz.mill.metadata.domain.facet.FacetInstance
+import io.qpointz.mill.metadata.domain.facet.FacetOrigin
 import io.qpointz.mill.metadata.domain.facet.MergeAction
 import io.qpointz.mill.metadata.domain.facet.toCapturedReadModel
 import io.qpointz.mill.metadata.repository.FacetRepository
@@ -35,6 +37,7 @@ import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete as servletDelete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get as servletGet
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post as servletPost
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch as servletPatch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put as servletPut
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -200,6 +203,8 @@ class MetadataEntityControllerTest {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$[0].facetTypeUrn").value(MetadataUrns.FACET_TYPE_DESCRIPTIVE))
             .andExpect(jsonPath("$[0].uid").value("facet-uid-1"))
+            .andExpect(jsonPath("$[0].origin").value(FacetOrigin.CAPTURED.name))
+            .andExpect(jsonPath("$[0].assignmentUid").value("facet-uid-1"))
     }
 
     @Test
@@ -253,13 +258,25 @@ class MetadataEntityControllerTest {
     }
 
     @Test
-    fun shouldReturnBadRequest_whenContextParamIsMalformed() {
+    fun shouldReturnBadRequest_whenScopeParamIsMalformed() {
         mockMvc.perform(
             servletGet(entityUri(schemaUrn, "/facets/descriptive"))
-                .param("context", ",")
+                .param("scope", ",")
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
+    }
+
+    @Test
+    fun shouldAcceptLegacyContext_whenScopeAbsent() {
+        whenever(metadataService.findById(schemaUrn)).thenReturn(Optional.of(baseEntity))
+
+        mockMvc.perform(
+            servletGet(entityUri(schemaUrn, "/facets/descriptive"))
+                .param("context", "global")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].uid").value("facet-uid-1"))
     }
 
     @Test
@@ -339,6 +356,64 @@ class MetadataEntityControllerTest {
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.facetTypeUrn").value(MetadataUrns.FACET_TYPE_DESCRIPTIVE))
+    }
+
+    @Test
+    fun shouldPatchFacet_whenPersistedRowExists() {
+        whenever(metadataService.findById(schemaUrn)).thenReturn(Optional.of(baseEntity))
+        whenever(facetRepository.findByUid("facet-uid-1")).thenReturn(descriptiveAssignment)
+        whenever(facetService.update(eq("facet-uid-1"), any(), eq("test-user"))).thenReturn(descriptiveRead)
+
+        mockMvc.perform(
+            servletPatch(entityUri(schemaUrn, "/facets/descriptive/facet-uid-1"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""{"displayName":"Y"}""")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.uid").value("facet-uid-1"))
+    }
+
+    @Test
+    fun shouldReturn422_whenPatchInferredFacetUid() {
+        whenever(metadataService.findById(schemaUrn)).thenReturn(Optional.of(baseEntity))
+        whenever(facetRepository.findByUid("inf-1")).thenReturn(null)
+        val inferred = FacetInstance(
+            assignmentUuid = "inf-1",
+            entityId = schemaUrn,
+            facetTypeKey = MetadataUrns.FACET_TYPE_DESCRIPTIVE,
+            scopeKey = MetadataUrns.SCOPE_GLOBAL,
+            mergeAction = MergeAction.SET,
+            payload = emptyMap(),
+            createdAt = Instant.EPOCH,
+            createdBy = null,
+            lastModifiedAt = Instant.EPOCH,
+            lastModifiedBy = null,
+            origin = FacetOrigin.INFERRED,
+            originId = "logical-layout",
+            assignmentUid = null
+        )
+        whenever(facetService.resolve(eq(schemaUrn), any())).thenReturn(listOf(inferred))
+
+        mockMvc.perform(
+            servletPatch(entityUri(schemaUrn, "/facets/descriptive/inf-1"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""{}""")
+        )
+            .andExpect(status().isUnprocessableEntity)
+    }
+
+    @Test
+    fun shouldReturn404_whenPatchUnknownFacetUid() {
+        whenever(metadataService.findById(schemaUrn)).thenReturn(Optional.of(baseEntity))
+        whenever(facetRepository.findByUid("missing")).thenReturn(null)
+        whenever(facetService.resolve(eq(schemaUrn), any())).thenReturn(emptyList())
+
+        mockMvc.perform(
+            servletPatch(entityUri(schemaUrn, "/facets/descriptive/missing"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""{}""")
+        )
+            .andExpect(status().isNotFound)
     }
 
     @Test

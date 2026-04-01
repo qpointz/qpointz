@@ -35,7 +35,9 @@ data class MetadataReadContext(
         fun of(scopeKey: String): MetadataReadContext = MetadataReadContext(listOf(scopeKey))
 
         /**
-         * Parses comma-separated scope segments from the HTTP `context` / `scope` parameter (legacy: `context`).
+         * Parses comma-separated scope segments from the HTTP **`scope`** query parameter (preferred).
+         * Legacy clients may still send **`context`** when `scope` is absent; controllers should use
+         * `effectiveScope = scope ?: context` before calling this method.
          *
          * @param scopeParam comma-separated scope slugs or URNs; blank → global only
          * @param originParam optional comma-separated origin ids; blank → all origins active

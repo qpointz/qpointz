@@ -12,4 +12,6 @@ object SchemaEntityTypeUrns {
     const val TABLE = "urn:mill/metadata/entity-type:table"
     const val ATTRIBUTE = "urn:mill/metadata/entity-type:attribute"
     const val CONCEPT = "urn:mill/metadata/entity-type:concept"
+    /** Logical model root entity (SPEC §3f). */
+    const val MODEL = "urn:mill/metadata/entity-type:model"
 }

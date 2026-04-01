@@ -15,23 +15,21 @@ import java.time.Instant
 import java.util.UUID
 
 /**
- * @param facetRepository assignment persistence
+ * @param facetRepository assignment persistence (writes and raw reads for assign/update)
  * @param facetCatalog cardinality and definition lookup
  * @param facetTypeRepository runtime type rows (OBSERVED auto-create)
- * @param metadataReader scope merge for [resolve] / [resolveByType]
+ * @param readMerge layered read merge over all [io.qpointz.mill.metadata.source.MetadataSource] beans
  */
 class DefaultFacetService(
     private val facetRepository: FacetRepository,
     private val facetCatalog: FacetCatalog,
     private val facetTypeRepository: FacetTypeRepository,
-    private val metadataReader: MetadataReader
+    private val readMerge: FacetInstanceReadMerge
 ) : FacetService {
 
     override fun resolve(entityId: String, context: MetadataContext): List<FacetInstance> {
         val eid = MetadataEntityUrn.canonicalize(entityId)
-        val all = facetRepository.findByEntity(eid)
-        val merged = metadataReader.resolveEffective(all, context)
-        return merged.map { it.toCapturedReadModel() }
+        return readMerge.merge(eid, context)
     }
 
     override fun resolveByType(
@@ -84,6 +82,10 @@ class DefaultFacetService(
         return facetRepository.save(row).toCapturedReadModel()
     }
 
+    /**
+     * @param uid persisted assignment uid only — inferred read ids are not stored and must be rejected by REST guards
+     * @throws IllegalArgumentException when no persisted row exists for [uid]
+     */
     override fun update(uid: String, payload: Map<String, Any?>, actor: String): FacetInstance {
         val row = facetRepository.findByUid(uid)
             ?: throw IllegalArgumentException("Unknown facet uid: $uid")

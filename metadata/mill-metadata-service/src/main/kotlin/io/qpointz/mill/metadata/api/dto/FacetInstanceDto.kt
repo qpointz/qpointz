@@ -3,6 +3,7 @@ package io.qpointz.mill.metadata.api.dto
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import io.qpointz.mill.metadata.domain.facet.FacetOrigin
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.Instant
 
@@ -18,6 +19,9 @@ import java.time.Instant
  * @property uid stable assignment UUID (DB `uuid` / `{facetUid}` in paths)
  * @property facetTypeUrn full facet-type URN
  * @property scopeUrn full scope URN for this row
+ * @property origin whether the row is persisted ([FacetOrigin.CAPTURED]) or read-time derived ([FacetOrigin.INFERRED])
+ * @property originId contributing source id (e.g. repository vs logical-layout source)
+ * @property assignmentUid persisted assignment uid when [origin] is captured; null for inferred-only rows
  * @property payload facet JSON object
  * @property createdAt row creation time
  * @property lastModifiedAt last mutation time
@@ -25,7 +29,7 @@ import java.time.Instant
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(
     name = "FacetInstance",
-    description = "Facet assignment row: type, scope, payload, and stable uid. No mergeAction — use merge-trace for overlay diagnostics."
+    description = "Facet row: type, scope, provenance (origin / originId / assignmentUid), payload, and stable uid. No mergeAction — use merge-trace for overlay diagnostics."
 )
 data class FacetInstanceDto(
     @field:Schema(
@@ -52,6 +56,20 @@ data class FacetInstanceDto(
         requiredMode = Schema.RequiredMode.REQUIRED
     )
     val scopeUrn: String,
+    @field:Schema(
+        description = "Facet provenance: CAPTURED (persisted assignment) or INFERRED (read-time)",
+        allowableValues = ["CAPTURED", "INFERRED"],
+        requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    val origin: FacetOrigin,
+    @field:Schema(
+        description = "Contributing metadata source id",
+        requiredMode = Schema.RequiredMode.REQUIRED,
+        example = "repository-local"
+    )
+    val originId: String,
+    @field:Schema(description = "Stable assignment uid when origin is CAPTURED; absent for pure INFERRED rows")
+    val assignmentUid: String?,
     @field:Schema(description = "Facet payload", requiredMode = Schema.RequiredMode.REQUIRED)
     val payload: Map<String, Any?>,
     @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED)

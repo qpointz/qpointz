@@ -5,6 +5,7 @@ import io.qpointz.mill.metadata.domain.MetadataFacet
 import io.qpointz.mill.metadata.domain.RelationCardinality
 import io.qpointz.mill.metadata.domain.RelationType
 import io.qpointz.mill.metadata.domain.core.DescriptiveFacet
+import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.core.TableLocator
 import io.qpointz.mill.data.schema.facet.RelationFacet
 import io.qpointz.mill.metadata.service.MetadataContext
@@ -24,8 +25,20 @@ import io.qpointz.mill.proto.Table
  */
 internal class DemoSchemaFacetService : SchemaFacetService {
 
+    private fun demoModelRoot(): ModelRootWithFacets = ModelRootWithFacets(
+        metadataEntityId = MetadataEntityUrn.canonicalize(SchemaModelRoot.ENTITY_ID),
+        metadata = null,
+        facets = SchemaFacets.EMPTY
+    )
+
+    override fun getModelRoot(context: MetadataContext): ModelRootWithFacets = demoModelRoot()
+
     override fun getSchemas(context: MetadataContext): SchemaFacetResult =
-        SchemaFacetResult(schemas = listOf(retailSchema()), unboundMetadata = emptyList())
+        SchemaFacetResult(
+            modelRoot = demoModelRoot(),
+            schemas = listOf(retailSchema()),
+            unboundMetadata = emptyList()
+        )
 
     override fun getSchema(schemaName: String, context: MetadataContext): SchemaWithFacets? =
         retailSchema().takeIf { it.schemaName == schemaName }

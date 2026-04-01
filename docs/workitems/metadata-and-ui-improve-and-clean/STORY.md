@@ -26,11 +26,11 @@ The codebase mixed a generic **`FacetInstance`** pipeline with Kotlin **facet cl
 Check boxes as each WI lands; **one commit per WI** with checklist update (see **SPEC §0**, [`RULES.md`](../RULES.md)).
 
 1. [x] [`WI-132`](WI-132-metadata-source-contract-and-repository-adapter.md) — Metadata contracts + `RepositoryMetadataSource`
-2. [ ] [`WI-137`](WI-137-model-root-entity.md) — `model` root entity
-3. [ ] [`WI-133`](WI-133-read-path-facet-merge.md) — Read-path facet merge
-4. [ ] [`WI-138`](WI-138-backend-logical-layout-inferred-facets.md) — Logical-layout inferred `MetadataSource`
-5. [ ] [`WI-134`](WI-134-resolved-facets-read-api-and-openapi.md) — Resolved read API + OpenAPI
-6. [ ] [`WI-135`](WI-135-mutation-guards-for-ephemeral-facets.md) — Mutation guards
+2. [x] [`WI-137`](WI-137-model-root-entity.md) — `model` root entity
+3. [x] [`WI-133`](WI-133-read-path-facet-merge.md) — Read-path facet merge
+4. [x] [`WI-138`](WI-138-backend-logical-layout-inferred-facets.md) — Logical-layout inferred `MetadataSource`
+5. [x] [`WI-134`](WI-134-resolved-facets-read-api-and-openapi.md) — Resolved read API + OpenAPI
+6. [x] [`WI-135`](WI-135-mutation-guards-for-ephemeral-facets.md) — Mutation guards
 7. [ ] [`WI-136`](WI-136-ui-full-facet-constellation-view.md) — UI full constellation
 8. [ ] [`WI-140`](WI-140-facet-class-demotion.md) — Facet class demotion (SPEC §2)
 9. [ ] [`WI-130`](WI-130-remove-dead-code.md) — Dead code removal (final sweep)

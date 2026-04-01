@@ -1,7 +1,7 @@
 # WI-138 — Backend logical-layout inferred facets
 
 **Story:** metadata-and-ui-improve-and-clean  
-**Status:** Planned  
+**Status:** Done  
 **Type:** feat  
 **Area:** data
 

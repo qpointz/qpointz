@@ -14,10 +14,11 @@ import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.domain.facet.FacetAssignment
 import io.qpointz.mill.metadata.domain.facet.FacetInstance
+import io.qpointz.mill.metadata.domain.facet.FacetOrigin
 import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.metadata.service.FacetPayloadCoercion
 import io.qpointz.mill.metadata.service.FacetService
-import io.qpointz.mill.metadata.service.MetadataContext
+import io.qpointz.mill.metadata.service.MetadataReadContext
 import io.qpointz.mill.metadata.service.MetadataEditService
 import io.qpointz.mill.metadata.service.MetadataEntityIdResolver
 import io.qpointz.mill.metadata.service.MetadataReader
@@ -58,8 +59,9 @@ import io.qpointz.mill.metadata.domain.MetadataEntity as DomainMetadataEntity
  * Dot-path catalog keys alone are rejected with **400**.
  *
  * Facet type keys in path variables are normalised via [MetadataUrns.normaliseFacetTypePath].
- * Read endpoints use `?context=` (comma-separated scope URNs, last wins). Write endpoints use `?scope=` for the
- * target scope (default: global).
+ * Read endpoints use `?scope=` (comma-separated scope URNs, last wins) and optional `?origin=`; the legacy
+ * `?context=` alias is accepted when `scope` is absent. Write endpoints use `?scope=` for the target scope
+ * (default: global).
  *
  * **Unassign (DELETE facet):** physical row removal applies only to `merge_action == SET` in the **global** scope;
  * overlay scopes persist a **TOMBSTONE** row instead ([io.qpointz.mill.metadata.service.DefaultFacetService.unassign]).
@@ -150,11 +152,15 @@ class MetadataEntityController(
     @GetMapping("/{id}/facets/merge-trace")
     fun getFacetMergeTrace(
         @Parameter(description = "Full entity URN (path segment)") @PathVariable id: String,
-        @Parameter(description = "Comma-separated scope URNs / slugs, evaluation order")
-        @RequestParam(required = false) context: String?
+        @Parameter(description = "Comma-separated scope URNs / slugs, evaluation order (preferred)")
+        @RequestParam(required = false) scope: String?,
+        @Parameter(description = "Deprecated: use `scope` when absent", deprecated = true)
+        @RequestParam(required = false) context: String?,
+        @Parameter(description = "Optional comma-separated origin ids for contribution filtering")
+        @RequestParam(required = false) origin: String?
     ): ResponseEntity<FacetMergeTraceResponseDto> {
         val eid = requireMillMetadataEntityPathId(id)
-        val ctx = parseContext(context)
+        val ctx = parseReadContext(scope, context, origin)
         val canonicalEntity = MetadataEntityUrn.canonicalize(eid)
         val all = facetRepository.findByEntity(canonicalEntity)
         val effective = metadataReader.resolveEffective(all, ctx)
@@ -171,7 +177,7 @@ class MetadataEntityController(
         }
         return ResponseEntity.ok(
             FacetMergeTraceResponseDto(
-                context = ctx.scopes.map { MetadataEntityUrn.canonicalize(it) },
+                scopes = ctx.scopes.map { MetadataEntityUrn.canonicalize(it) },
                 entries = entries
             )
         )
@@ -179,7 +185,7 @@ class MetadataEntityController(
 
     @Operation(
         summary = "Get merged facets for an entity",
-        description = "Returns effective facet rows after scope merge (SPEC §10.2). `?context=` orders scopes (last wins)."
+        description = "Returns effective facet rows after scope merge (SPEC §10.2). `?scope=` orders scopes (last wins)."
     )
     @ApiResponses(
         ApiResponse(
@@ -191,11 +197,15 @@ class MetadataEntityController(
     @GetMapping("/{id}/facets")
     fun getEntityFacets(
         @Parameter(description = "Full entity URN (path segment)") @PathVariable id: String,
-        @Parameter(description = "Comma-separated scope URNs / slugs")
-        @RequestParam(required = false) context: String?
+        @Parameter(description = "Comma-separated scope URNs / slugs (preferred)")
+        @RequestParam(required = false) scope: String?,
+        @Parameter(description = "Deprecated: use `scope` when absent", deprecated = true)
+        @RequestParam(required = false) context: String?,
+        @Parameter(description = "Optional comma-separated origin ids")
+        @RequestParam(required = false) origin: String?
     ): ResponseEntity<List<FacetInstanceDto>> {
         val eid = requireMillMetadataEntityPathId(id)
-        val ctx = parseContext(context)
+        val ctx = parseReadContext(scope, context, origin)
         val canonicalEntity = MetadataEntityUrn.canonicalize(eid)
         val merged = facetService.resolve(canonicalEntity, ctx)
         return ResponseEntity.ok(merged.map { toFacetInstanceDto(it) }.sortedBy { it.facetTypeUrn })
@@ -203,7 +213,7 @@ class MetadataEntityController(
 
     @Operation(
         summary = "Get merged facets by type",
-        description = "Returns effective [FacetInstanceDto] rows for one facet type after context merge."
+        description = "Returns effective [FacetInstanceDto] rows for one facet type after scope merge."
     )
     @ApiResponses(
         ApiResponse(
@@ -216,10 +226,15 @@ class MetadataEntityController(
     fun getEntityFacetByType(
         @Parameter(description = "Full entity URN (path segment)") @PathVariable id: String,
         @Parameter(description = "Facet type slug or URN, e.g. descriptive") @PathVariable typeKey: String,
-        @Parameter(description = "Comma-separated scope URNs / slugs") @RequestParam(required = false) context: String?
+        @Parameter(description = "Comma-separated scope URNs / slugs (preferred)")
+        @RequestParam(required = false) scope: String?,
+        @Parameter(description = "Deprecated: use `scope` when absent", deprecated = true)
+        @RequestParam(required = false) context: String?,
+        @Parameter(description = "Optional comma-separated origin ids")
+        @RequestParam(required = false) origin: String?
     ): ResponseEntity<List<FacetInstanceDto>> {
         val eid = requireMillMetadataEntityPathId(id)
-        val ctx = parseContext(context)
+        val ctx = parseReadContext(scope, context, origin)
         val normType = MetadataEntityUrn.canonicalize(MetadataUrns.normaliseFacetTypePath(typeKey))
         val canonicalEntity = MetadataEntityUrn.canonicalize(eid)
         val list = facetService.resolveByType(canonicalEntity, normType, ctx)
@@ -298,6 +313,11 @@ class MetadataEntityController(
     }
 
     @Operation(summary = "Replace facet assignment payload", description = "PATCH replaces payload for the row identified by `{facetUid}`.")
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Updated assignment"),
+        ApiResponse(responseCode = "404", description = "Entity or persisted facet row not found"),
+        ApiResponse(responseCode = "422", description = "Facet uid refers to a read-only inferred row (not persisted)")
+    )
     @PatchMapping("/{id}/facets/{typeKey}/{facetUid}")
     fun patchFacetPayload(
         @PathVariable id: String,
@@ -312,8 +332,7 @@ class MetadataEntityController(
         }
         val normType = MetadataEntityUrn.canonicalize(MetadataUrns.normaliseFacetTypePath(typeKey))
         val canonicalEntity = MetadataEntityUrn.canonicalize(entityPath)
-        val inst = findFacetAssignment(canonicalEntity, facetUid)
-            ?: throw MillStatuses.notFoundRuntime("Facet instance not found: $facetUid")
+        val inst = requirePersistedAssignmentForFacetMutation(canonicalEntity, facetUid.trim())
         if (MetadataEntityUrn.canonicalize(inst.facetTypeKey) != normType) {
             throw MillStatuses.notFoundRuntime("Facet instance does not match facet type: $normType")
         }
@@ -326,6 +345,11 @@ class MetadataEntityController(
     @Operation(
         summary = "Delete facet assignment",
         description = "Deletes one assignment by uid. Global SET rows are removed; overlay SET rows become TOMBSTONE (SPEC §10.2)."
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "204", description = "Deleted or tombstoned"),
+        ApiResponse(responseCode = "404", description = "Entity or persisted facet row not found"),
+        ApiResponse(responseCode = "422", description = "Facet uid refers to a read-only inferred row (not persisted)")
     )
     @DeleteMapping("/{id}/facets/{typeKey}/{facetUid}")
     fun deleteFacetByUid(
@@ -340,8 +364,7 @@ class MetadataEntityController(
         }
         val normType = MetadataEntityUrn.canonicalize(MetadataUrns.normaliseFacetTypePath(typeKey))
         val canonicalEntity = MetadataEntityUrn.canonicalize(entityPath)
-        val inst = findFacetAssignment(canonicalEntity, facetUid)
-            ?: throw MillStatuses.notFoundRuntime("Facet instance not found: $facetUid")
+        val inst = requirePersistedAssignmentForFacetMutation(canonicalEntity, facetUid.trim())
         if (MetadataEntityUrn.canonicalize(inst.facetTypeKey) != normType) {
             throw MillStatuses.notFoundRuntime("Facet instance does not match facet type: $normType")
         }
@@ -463,15 +486,31 @@ class MetadataEntityController(
             uid = i.uid,
             facetTypeUrn = MetadataEntityUrn.canonicalize(i.facetTypeKey),
             scopeUrn = MetadataEntityUrn.canonicalize(i.scopeKey),
+            origin = i.origin,
+            originId = i.originId,
+            assignmentUid = i.assignmentUid,
             payload = i.payload,
             createdAt = i.createdAt,
             lastModifiedAt = i.lastModifiedAt
         )
 
-    private fun parseContext(context: String?): MetadataContext = try {
-        MetadataContext.parse(context)
-    } catch (ex: IllegalArgumentException) {
-        throw MillStatuses.badRequestRuntime("Malformed context parameter: ${context ?: "<blank>"}")
+    /**
+     * Resolves read query parameters for facet GETs and merge-trace.
+     *
+     * Effective scope string is `scope` when non-blank; otherwise the legacy `context` parameter (migration).
+     * Parsed with [MetadataReadContext.parse] together with optional comma-separated `origin` ids.
+     *
+     * @param scope preferred comma-separated scope URNs or slugs
+     * @param contextLegacy deprecated alias for [scope] when [scope] is null or blank
+     * @param origin optional comma-separated origin ids
+     */
+    private fun parseReadContext(scope: String?, contextLegacy: String?, origin: String?): MetadataReadContext {
+        val effectiveScope = scope?.takeIf { it.isNotBlank() } ?: contextLegacy
+        return try {
+            MetadataReadContext.parse(effectiveScope, origin)
+        } catch (ex: IllegalArgumentException) {
+            throw MillStatuses.badRequestRuntime("Malformed scope parameter: ${effectiveScope ?: "<blank>"}")
+        }
     }
 
     private fun toDomainEntity(dto: MetadataEntityDto, actorForNew: String): DomainMetadataEntity {
@@ -614,5 +653,30 @@ class MetadataEntityController(
             return null
         }
         return row
+    }
+
+    /**
+     * Facet mutations apply only to persisted [FacetAssignment] rows. Merged read views may include
+     * [FacetOrigin.INFERRED] contributions without persistence — those uids must be rejected with **422**.
+     *
+     * @param canonicalEntity canonical entity URN
+     * @param facetUid assignment uid from the path
+     * @return persisted row for this entity and uid
+     */
+    private fun requirePersistedAssignmentForFacetMutation(
+        canonicalEntity: String,
+        facetUid: String
+    ): FacetAssignment {
+        findFacetAssignment(canonicalEntity, facetUid)?.let { return it }
+        val merged = facetService.resolve(canonicalEntity, MetadataReadContext.global())
+        val inferred = merged.any {
+            it.uid == facetUid && it.origin == FacetOrigin.INFERRED
+        }
+        if (inferred) {
+            throw MillStatuses.unprocessableRuntime(
+                "Cannot modify inferred facet row (read-only); uid=$facetUid"
+            )
+        }
+        throw MillStatuses.notFoundRuntime("Facet instance not found: $facetUid")
     }
 }

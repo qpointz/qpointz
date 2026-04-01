@@ -2,11 +2,14 @@ package io.qpointz.mill.data.schema.api
 
 import io.qpointz.mill.data.backend.SchemaProvider
 import io.qpointz.mill.data.schema.DefaultMetadataEntityUrnCodec
+import io.qpointz.mill.data.schema.ModelRootWithFacets
 import io.qpointz.mill.data.schema.SchemaFacetResult
 import io.qpointz.mill.data.schema.SchemaFacetService
 import io.qpointz.mill.data.schema.SchemaFacets
+import io.qpointz.mill.data.schema.SchemaModelRoot
 import io.qpointz.mill.data.schema.SchemaTableWithFacets
 import io.qpointz.mill.data.schema.SchemaWithFacets
+import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.metadata.repository.MetadataEntityRepository
@@ -80,12 +83,15 @@ class SchemaExplorerControllerWebMvcIT {
         whenever(facetRepository.findByEntity(any())).thenReturn(emptyList())
 
         mockMvc.get("/api/v1/schema/schemas") {
-            param("context", "global")
+            param("scope", "global")
         }.andExpect {
             status { isOk() }
-            jsonPath("$[0].id") { value("sales") }
-            jsonPath("$[0].entityType") { value("SCHEMA") }
-            jsonPath("$[0].metadataEntityId") { value(schemaUrn) }
+            jsonPath("$[0].id") { value(SchemaModelRoot.ENTITY_LOCAL_ID) }
+            jsonPath("$[0].entityType") { value("MODEL") }
+            jsonPath("$[0].metadataEntityId") { value(MetadataEntityUrn.canonicalize(SchemaModelRoot.ENTITY_ID)) }
+            jsonPath("$[1].id") { value("sales") }
+            jsonPath("$[1].entityType") { value("SCHEMA") }
+            jsonPath("$[1].metadataEntityId") { value(schemaUrn) }
         }
     }
 
@@ -103,6 +109,11 @@ class SchemaExplorerControllerWebMvcIT {
         )
         whenever(schemaFacetService.getSchemas(any())).thenReturn(
             SchemaFacetResult(
+                modelRoot = ModelRootWithFacets(
+                    metadataEntityId = MetadataEntityUrn.canonicalize(SchemaModelRoot.ENTITY_ID),
+                    metadata = null,
+                    facets = SchemaFacets.EMPTY
+                ),
                 schemas = listOf(
                     SchemaWithFacets(
                         schemaName = "sales",
@@ -125,18 +136,20 @@ class SchemaExplorerControllerWebMvcIT {
         )
 
         mockMvc.get("/api/v1/schema/tree") {
-            param("context", "global")
+            param("scope", "global")
         }.andExpect {
             status { isOk() }
-            jsonPath("$[0].id") { value("sales") }
-            jsonPath("$[0].tables[0].id") { value("sales.customers") }
+            jsonPath("$.modelRoot.id") { value(SchemaModelRoot.ENTITY_LOCAL_ID) }
+            jsonPath("$.modelRoot.entityType") { value("MODEL") }
+            jsonPath("$.schemas[0].id") { value("sales") }
+            jsonPath("$.schemas[0].tables[0].id") { value("sales.customers") }
         }
     }
 
     @Test
-    fun `shouldReturnBadRequest_whenContextIsMalformed`() {
+    fun `shouldReturnBadRequest_whenScopeIsMalformed`() {
         mockMvc.get("/api/v1/schema/schemas") {
-            param("context", ",")
+            param("scope", ",")
         }.andExpect {
             status { isBadRequest() }
             jsonPath("$.status") { value("BAD_REQUEST") }

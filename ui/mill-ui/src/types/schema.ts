@@ -1,4 +1,5 @@
-export type EntityType = 'SCHEMA' | 'TABLE' | 'COLUMN';
+/** Explorer entity discriminator; `MODEL` is the logical catalog root above schemas (SPEC §3f). */
+export type EntityType = 'MODEL' | 'SCHEMA' | 'TABLE' | 'COLUMN';
 
 export interface ScopeOption {
   id: string;
@@ -13,7 +14,7 @@ export interface SchemaContext {
 
 export interface SchemaListItem {
   id: string;
-  entityType: 'SCHEMA';
+  entityType: 'MODEL' | 'SCHEMA';
   schemaName: string;
   metadataEntityId?: string;
 }
@@ -62,7 +63,16 @@ export interface ColumnDetail {
   metadataEntityId?: string;
 }
 
-export type SchemaEntity = SchemaDetail | TableDetail | ColumnDetail;
+/** Logical model root from `GET /api/v1/schema/model` (SPEC §3f). */
+export interface ModelDetail {
+  id: string;
+  entityType: 'MODEL';
+  /** Always empty — model is not a physical schema name. */
+  schemaName: '';
+  metadataEntityId: string;
+}
+
+export type SchemaEntity = SchemaDetail | TableDetail | ColumnDetail | ModelDetail;
 
 export interface SchemaNode {
   id: string;

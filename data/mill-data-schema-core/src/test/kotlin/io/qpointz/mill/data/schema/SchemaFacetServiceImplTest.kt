@@ -1,14 +1,20 @@
 package io.qpointz.mill.data.schema
 
 import io.qpointz.mill.data.backend.SchemaProvider
+import io.qpointz.mill.metadata.domain.FacetTypeDefinition
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.data.schema.facet.RelationFacet
 import io.qpointz.mill.metadata.domain.facet.FacetAssignment
+import io.qpointz.mill.metadata.domain.facet.FacetTargetCardinality
 import io.qpointz.mill.metadata.domain.facet.MergeAction
 import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.metadata.repository.MetadataEntityRepository
+import io.qpointz.mill.metadata.source.RepositoryMetadataSource
+import io.qpointz.mill.metadata.service.FacetCatalog
+import io.qpointz.mill.metadata.service.FacetInstanceReadMerge
+import io.qpointz.mill.metadata.service.MetadataReader
 import io.qpointz.mill.proto.DataType
 import io.qpointz.mill.proto.Field
 import io.qpointz.mill.proto.LogicalDataType
@@ -24,11 +30,15 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.junit.jupiter.MockitoSettings
+import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
+import org.mockito.quality.Strictness
 import java.time.Instant
 import java.util.UUID
 
 @ExtendWith(MockitoExtension::class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class SchemaFacetServiceImplTest {
 
     @Mock
@@ -40,14 +50,54 @@ class SchemaFacetServiceImplTest {
     @Mock
     private lateinit var facetRepository: FacetRepository
 
+    @Mock
+    private lateinit var facetCatalog: FacetCatalog
+
     private val codec = DefaultMetadataEntityUrnCodec()
+
+    private lateinit var readMerge: FacetInstanceReadMerge
 
     private lateinit var service: SchemaFacetServiceImpl
 
     @BeforeEach
     fun setUp() {
-        service = SchemaFacetServiceImpl(schemaProvider, entityRepository, facetRepository, codec)
+        whenever(facetCatalog.resolveCardinality(any())).thenAnswer { inv ->
+            cardinalityForKey(inv.getArgument(0))
+        }
+        whenever(facetCatalog.findDefinition(any())).thenAnswer { inv ->
+            val key = inv.getArgument<String>(0)
+            mkDef(key, cardinalityForKey(key))
+        }
+        val metadataReader = MetadataReader(facetCatalog)
+        val repoSource = RepositoryMetadataSource(facetRepository, metadataReader)
+        readMerge = FacetInstanceReadMerge(listOf(repoSource), facetCatalog)
+        service = SchemaFacetServiceImpl(schemaProvider, entityRepository, readMerge, facetCatalog, codec)
     }
+
+    private fun cardinalityForKey(typeKey: String): FacetTargetCardinality =
+        if (MetadataEntityUrn.canonicalize(typeKey) ==
+            MetadataEntityUrn.canonicalize(MetadataUrns.FACET_TYPE_RELATION)
+        ) {
+            FacetTargetCardinality.MULTIPLE
+        } else {
+            FacetTargetCardinality.SINGLE
+        }
+
+    private fun mkDef(typeKey: String, card: FacetTargetCardinality) = FacetTypeDefinition(
+        typeKey = typeKey,
+        displayName = null,
+        description = null,
+        mandatory = false,
+        enabled = true,
+        targetCardinality = card,
+        applicableTo = null,
+        contentSchema = null,
+        schemaVersion = null,
+        createdAt = Instant.EPOCH,
+        createdBy = null,
+        lastModifiedAt = Instant.EPOCH,
+        lastModifiedBy = null
+    )
 
     private fun now() = Instant.now()
 
@@ -113,6 +163,59 @@ class SchemaFacetServiceImplTest {
     }
 
     // ---- physical schema preservation ----
+
+    @Test
+    fun `model root has stable metadata id and is excluded from unbound metadata`() {
+        val t = now()
+        val modelEntity = MetadataEntity(
+            id = SchemaModelRoot.ENTITY_ID,
+            kind = SchemaEntityKinds.MODEL,
+            uuid = null,
+            createdAt = t,
+            createdBy = null,
+            lastModifiedAt = t,
+            lastModifiedBy = null
+        )
+        whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
+        whenever(schemaProvider.getSchema("s")).thenReturn(emptySchema())
+        stubEntities(modelEntity)
+
+        val result = service.getSchemas()
+
+        assertEquals(MetadataEntityUrn.canonicalize(SchemaModelRoot.ENTITY_ID), result.modelRoot.metadataEntityId)
+        assertEquals(modelEntity.id, result.modelRoot.metadata?.id)
+        assertTrue(result.unboundMetadata.none { MetadataEntityUrn.canonicalize(it.id) == result.modelRoot.metadataEntityId })
+    }
+
+    @Test
+    fun `descriptive facet on model root resolves like schema entities`() {
+        val t = now()
+        val modelEntity = MetadataEntity(
+            id = SchemaModelRoot.ENTITY_ID,
+            kind = SchemaEntityKinds.MODEL,
+            uuid = null,
+            createdAt = t,
+            createdBy = null,
+            lastModifiedAt = t,
+            lastModifiedBy = null
+        )
+        stubEntities(modelEntity)
+        stubFacets(
+            modelEntity,
+            listOf(
+                facetRow(
+                    modelEntity,
+                    MetadataUrns.FACET_TYPE_DESCRIPTIVE,
+                    MetadataUrns.SCOPE_GLOBAL,
+                    mapOf("displayName" to "Platform model", "description" to "root")
+                )
+            )
+        )
+
+        val root = service.getModelRoot()
+        assertNotNull(root.facets.descriptive)
+        assertEquals("Platform model", root.facets.descriptive!!.displayName)
+    }
 
     @Test
     fun `all physical schemas are present in result when no metadata exists`() {
