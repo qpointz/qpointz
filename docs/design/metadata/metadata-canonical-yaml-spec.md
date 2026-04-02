@@ -103,9 +103,21 @@ Maps to `MetadataEntity`:
 
 ### 4.1 Entity instance URN grammar
 
-- **Form:** `urn:mill/metadata/entity:<local-id>`
-- **Local id:** dot-separated path; segments trimmed and lowercased on canonicalisation (see `MetadataEntityUrn.canonicalize`).
-- **Builders for relational seeds:** `forSchema`, `forTable`, `forAttribute` in `MetadataEntityUrn` (schema / `schema.table` / `schema.table.column`).
+Relational and logical-model entities use **typed** instance URNs under the `model` group (see [`metadata-urn-platform.md`](metadata-urn-platform.md)):
+
+- **Schema:** `urn:mill/model/schema:<schema>`
+- **Table:** `urn:mill/model/table:<schema>.<table>`
+- **Attribute / column:** `urn:mill/model/attribute:<schema>.<table>.<column>`
+- **Model root:** `urn:mill/model/model:model-entity`
+- **Concept:** `urn:mill/model/concept:<id>`
+
+Path segments after the final `:` are **dot-separated** physical names, trimmed and lowercased on canonicalisation (`MetadataEntityUrn.canonicalize`).
+
+**Builders (data layer):** `RelationalMetadataEntityUrns.forSchema` / `forTable` / `forAttribute` in `mill-data-metadata`; codec: `DefaultMetadataEntityUrnCodec` in `mill-data-schema-core`.
+
+The legacy flat form `urn:mill/metadata/entity:<local-id>` is **not** used for new seeds or exports.
+
+**Optional `kind` in YAML:** importers may still accept or emit a parallel `kind` / `entityKind` field on some paths; the **authoritative** entity class for relational rows is the **`model` URN class segment**. **WI-144** removes redundant `kind` from the domain and persistence.
 
 **Authoring rule (strict CANONICAL):** relational coordinates belong **inside facet payloads**, not as duplicate top-level fields on the entity row. Hand-authored YAML must not rely on non-standard top-level keys for coordinates; generators should emit full entity URNs and typed facets only.
 
@@ -193,7 +205,7 @@ The shared **`MetadataCanonicalYamlWriter`** (planned; today the logic lives in 
 ```yaml
 metadataFormat: CANONICAL
 entities:
-  - id: urn:mill/metadata/entity:moneta
+  - id: urn:mill/model/schema:moneta
     type: SCHEMA
     createdAt: "2025-11-05T10:00:00Z"
     updatedAt: "2025-11-05T10:00:00Z"
@@ -373,4 +385,4 @@ The subsections **11.2–11.5** describe historical / example **payload shapes**
 
 ---
 
-*Last updated: 2026-03-30 — aligns with `DefaultMetadataImportService`, `platform-bootstrap.yaml`, `FacetPayloadField` stereotypes, and **`mill.metadata.seed.resources`** startup seeding; when behaviour changes, update this file and reference tests under `metadata/mill-metadata-*/src/test/…`.*
+*Last updated: 2026-04-02 — entity instance URNs for the relational catalog use typed `urn:mill/model/…` forms (see `metadata-urn-platform.md`); legacy `urn:mill/metadata/entity:…` is retired for those entities.*

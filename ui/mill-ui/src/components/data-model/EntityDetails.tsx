@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Anchor,
   Box,
@@ -69,6 +69,8 @@ import {
   effectiveFacetPayloadSchemaForEdit,
   facetPayloadSchemaFormSupported,
 } from '../../utils/facetPayloadFormSupport';
+import { DEFAULT_FACET_TYPE_DISPLAY_PRIORITY, facetTypeArrivalOrderFromRegistry } from '../../config/facetTypeDisplayPriority';
+import { sortFacetTypesByDisplayPriority } from '../../utils/sortFacetTypesByDisplayPriority';
 
 interface EntityDetailsProps {
   entity: SchemaEntity;
@@ -402,33 +404,23 @@ export function EntityDetails({
   const [facetToDelete, setFacetToDelete] = useState<{ facetType: string; instanceIndex: number | null } | null>(null);
 
   const allByType = facets.byType ?? {};
-  const relationFacetKey = 'urn:mill/metadata/facet-type:relation';
-  const relationCount = allByType[relationFacetKey] !== undefined
-    ? multipleFacetItemValues(allByType[relationFacetKey]).length
-    : (facets.relations?.length ?? 0);
 
   const orderedFacetTypes = useMemo(() => {
     if (facets.resolvedRows !== undefined) {
       const seen = new Set<string>();
-      const out: string[] = [];
+      const arrival: string[] = [];
       for (const r of facets.resolvedRows ?? []) {
         if (!seen.has(r.facetTypeUrn)) {
           seen.add(r.facetTypeUrn);
-          out.push(r.facetTypeUrn);
+          arrival.push(r.facetTypeUrn);
         }
       }
-      return out;
+      return sortFacetTypesByDisplayPriority(arrival, DEFAULT_FACET_TYPE_DISPLAY_PRIORITY);
     }
     const keys = Object.keys(allByType);
-    const defaults = [
-      'urn:mill/metadata/facet-type:descriptive',
-      'urn:mill/metadata/facet-type:structural',
-      'urn:mill/metadata/facet-type:relation',
-    ];
-    const priority = defaults.filter((k) => keys.includes(k));
-    const rest = keys.filter((k) => !defaults.includes(k)).sort((a, b) => a.localeCompare(b));
-    return [...priority, ...rest];
-  }, [allByType, facets.resolvedRows]);
+    const arrival = facetTypeArrivalOrderFromRegistry(keys, facetTypes);
+    return sortFacetTypesByDisplayPriority(arrival, DEFAULT_FACET_TYPE_DISPLAY_PRIORITY);
+  }, [allByType, facets.resolvedRows, facetTypes]);
 
   const descriptorByType = useMemo(() => {
     const map: Record<string, FacetTypeManifest> = {};
@@ -454,15 +446,7 @@ export function EntityDetails({
     if (facets.resolvedRows === undefined) return null;
     const rows = facets.resolvedRows;
     const grouped: Record<string, ResolvedFacetUnit[]> = {};
-    const orderedTypes: string[] = [];
-    const seen = new Set<string>();
-    for (const r of rows) {
-      if (!seen.has(r.facetTypeUrn)) {
-        seen.add(r.facetTypeUrn);
-        orderedTypes.push(r.facetTypeUrn);
-      }
-    }
-    for (const typeKey of orderedTypes) {
+    for (const typeKey of orderedFacetTypes) {
       const descriptor = descriptorByType[typeKey] ?? null;
       const category = normalizeCategory(descriptor?.category);
       const typeRows = rows.filter((r) => r.facetTypeUrn === typeKey);
@@ -500,7 +484,7 @@ export function EntityDetails({
       return a.localeCompare(b);
     });
     return { grouped, orderedCategories };
-  }, [facets.resolvedRows, descriptorByType]);
+  }, [facets.resolvedRows, descriptorByType, orderedFacetTypes]);
 
   /**
    * Per-category list of UI units: one card per SINGLE facet, one card per MULTIPLE instance,
@@ -1458,11 +1442,6 @@ export function EntityDetails({
                 )}
               </Menu.Dropdown>
             </Menu>
-            {relationCount > 0 && (
-              <Badge variant="light" color="indigo" size="xs">
-                Related {relationCount}
-              </Badge>
-            )}
             <RelatedContentButton
               contextType="model"
               contextId={entity.id}

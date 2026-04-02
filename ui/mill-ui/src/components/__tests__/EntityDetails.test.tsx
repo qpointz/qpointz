@@ -4,7 +4,7 @@ import { MantineProvider } from '@mantine/core';
 import { MemoryRouter } from 'react-router';
 import type { ReactNode } from 'react';
 import { EntityDetails } from '../data-model/EntityDetails';
-import { FeatureFlagProvider } from '../../features/FeatureFlagContext';
+import { FeatureFlagContext } from '../../features/FeatureFlagContext';
 import { InlineChatProvider } from '../../context/InlineChatContext';
 import { ChatReferencesProvider } from '../../context/ChatReferencesContext';
 import { RelatedContentProvider } from '../../context/RelatedContentContext';
@@ -126,10 +126,13 @@ vi.mock('../../services/api', async (importOriginal) => {
   };
 });
 
+/** Synchronous flags — avoids async merge race where tests assert before `modelQuickBadges` applies */
+const entityDetailsFeatureFlags = { ...defaultFeatureFlags, modelQuickBadges: true };
+
 function wrapper({ children }: { children: ReactNode }) {
   return (
     <MantineProvider>
-      <FeatureFlagProvider>
+      <FeatureFlagContext.Provider value={entityDetailsFeatureFlags}>
         <InlineChatProvider>
           <ChatReferencesProvider>
             <RelatedContentProvider>
@@ -137,7 +140,7 @@ function wrapper({ children }: { children: ReactNode }) {
             </RelatedContentProvider>
           </ChatReferencesProvider>
         </InlineChatProvider>
-      </FeatureFlagProvider>
+      </FeatureFlagContext.Provider>
     </MantineProvider>
   );
 }
@@ -254,7 +257,7 @@ describe('EntityDetails', () => {
 
     it('should display the metadata facet target id in monospace', () => {
       renderDetails();
-      const urn = 'urn:mill/metadata/entity:sales.customers';
+      const urn = 'urn:mill/model/table:sales.customers';
       const matches = screen.getAllByText(urn);
       expect(matches.length).toBeGreaterThanOrEqual(1);
     });
@@ -300,11 +303,6 @@ describe('EntityDetails', () => {
         // "Relations"; payload fallback title is "Relation").
         expect(screen.getByText(/^(Relations|Relation) · customer_orders$/)).toBeInTheDocument();
       });
-    });
-
-    it('should render Related count badge when relations exist', () => {
-      renderDetails();
-      expect(screen.getByText('Related 1')).toBeInTheDocument();
     });
 
     it('should show empty state when there are no facets', () => {

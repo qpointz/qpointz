@@ -91,9 +91,12 @@ export function ContextSidebar({
         ) : (
           concepts.map((concept) => {
             const hasChat = !!getSessionByContextId(concept.id);
-            const chatRefs = flags.chatReferencesEnabled && flags.chatReferencesSidebarIndicator
-              ? getRefsForContextId(concept.id)
-              : [];
+            const chatRefs =
+              flags.chatReferencesEnabled &&
+              flags.chatReferencesSidebarIndicator &&
+              flags.chatReferencesKnowledgeContext
+                ? getRefsForContextId(concept.id)
+                : [];
             const hasRelatedChats = chatRefs.length > 0;
             return (
               <NavLink

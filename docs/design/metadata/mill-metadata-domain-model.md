@@ -13,10 +13,10 @@ This document describes how Mill models **metadata** in code and persistence: en
 
 An **entity** is a single row in the metadata store identified by a **full Mill URN** (`urn:mill/...`). The identifier is **opaque to `mill-metadata-core`**: the core module does not parse schema/table/column out of the id.
 
-- **Relational catalog binding** (typical): the data layer uses [`MetadataEntityUrnCodec`](metadata-urn-platform.md#metadataentityurncodec-mill-data-schema-core) in `mill-data-schema-core` to map physical names to canonical `urn:mill/metadata/entity:<local>` URNs (dot-separated, lowercase).
+- **Relational catalog binding** (typical): the data layer uses [`MetadataEntityUrnCodec`](metadata-urn-platform.md#metadataentityurncodec-mill-data-schema-core) in `mill-data-schema-core` (via `RelationalMetadataEntityUrns` in `mill-data-metadata`) to map physical names to canonical **typed** URNs: `urn:mill/model/schema:…`, `…/table:…`, `…/attribute:…` (lowercase path segments after the final `:`).
 - **Other bindings** may use other `urn:mill/...` groups/classes; metadata accepts any valid instance URN.
 
-Domain fields (see `metadata/mill-metadata-core`): `id`, optional `kind`, optional `uuid`, audit timestamps and actors. There is **no** nested `facets` map on the entity aggregate in the greenfield model — facets live as **separate assignment rows** (see below).
+Domain fields (see `metadata/mill-metadata-core`): `id`, optional `kind`, optional `uuid`, audit timestamps and actors. The **entity class** for relational and model-root instances is carried in the **`id`** path (`urn:mill/model/<class>:…`). Optional **`kind`** mirrors that label today; **WI-144** removes `kind` from the domain and persistence layer as redundant. There is **no** nested `facets` map on the entity aggregate in the greenfield model — facets live as **separate assignment rows** (see below).
 
 ---
 
@@ -87,7 +87,7 @@ Greenfield metadata uses a **single squashed migration** and tables prefixed `me
 
 | Table (concept) | Purpose |
 |-----------------|--------|
-| `metadata_entity` | Entities (`MetadataEntity`) |
+| `metadata_entity` | Entities (`MetadataEntity`): `entity_res` holds the full instance URN; optional `entity_kind` may duplicate the URN class until **WI-144** |
 | `metadata_entity_facet` | Facet assignments (`FacetInstance` + `merge_action`, `payload_json`, `uuid`) |
 | `metadata_facet_type` | Facet type runtime + manifest |
 | `metadata_scope` | Scopes |

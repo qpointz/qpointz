@@ -33,7 +33,7 @@ Bulk metadata is usually maintained as **multi-document YAML** following the **c
 
 **Practical rules for operators:**
 
-1. **Entity ids** in YAML must be valid **Mill metadata URNs** (see design docs); the importer **canonicalises** them.
+1. **Entity ids** in YAML must be valid **Mill metadata URNs** (see **`docs/design/metadata/metadata-urn-platform.md`** in the source tree). For schemas, tables, and columns, use the typed **`urn:mill/model/…`** forms (e.g. `urn:mill/model/schema:myschema`, `urn:mill/model/table:myschema.orders`, `urn:mill/model/attribute:myschema.orders.id`). The importer **canonicalises** inputs.
 2. **Import order** matters across documents in one stream and across **`mill.metadata.seed.resources`** entries; keep platform bootstrap **before** environment-specific seeds.
 3. **MERGE** imports combine with existing rows per service rules; plan backups before changing production seed lists or repository files.
 

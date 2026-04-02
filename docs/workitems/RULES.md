@@ -28,19 +28,24 @@ docs/workitems/
 - **Folder name**: lowercase, hyphen-separated slug of the story topic.
 - **`STORY.md`**: required at story creation. Must contain:
   - A short description of the story's goal.
-  - An ordered checklist of all WIs in the story (used as the live progress tracker):
+  - An ordered checklist of all WIs in the story — this is the **tracking list** (live progress
+    for the story branch):
     ```markdown
     ## Work Items
     - [ ] WI-NNN — Short title (`WI-NNN-<title>.md`)
     - [ ] WI-NNN — Short title (`WI-NNN-<title>.md`)
     ```
-  - Update each checkbox to `[x]` as each WI is completed.
+  - **As soon as a WI is finished:** update the tracking list (checkbox to `[x]` for that WI), update
+    the WI’s `WI-NNN-<title>.md` if the story expects it (notes, acceptance, status), then **commit**
+    that WI’s full working copy (see **Commits** below). Do not leave completed WIs unchecked or
+    uncommitted while starting the next WI.
 - **WI files**: all WI markdown files for the story live under the story folder, not at the top
   level of `docs/workitems/`.
 
 ### Story closure
 
-When all WIs in a story are complete and the branch is ready to merge:
+When all WIs in a story are complete **and** the branch is **MR-ready** (rewritten history per
+**Completion (Story level)** below — logical commit groups, reviewable for merge):
 
 1. **Update `MILESTONE.md`** — record the story's completed WIs in the appropriate milestone
    section (use the same compact bullet format as existing entries).
@@ -72,8 +77,11 @@ Merging into `dev` is done manually by the user; the agent prepares everything a
 
 ## Branching
 
-- Each story is implemented on a **dedicated branch** branched from `origin/dev`.
-- Preferred: `git fetch origin && git checkout -b <story-slug> origin/dev`.
+- Each story is implemented on a **dedicated branch**. **Usually** it is created from `origin/dev`;
+  it may legitimately branch from another integration point when a story depends on unmerged work —
+  at **closure**, use the branch’s **actual merge target** (normally `origin/dev`) when rebasing and
+  when deciding what to squash.
+- Preferred when starting from mainline: `git fetch origin && git checkout -b <story-slug> origin/dev`.
 - Individual WIs within a story share the same branch; they are **not** separated into sub-branches
   unless a WI explicitly depends on another that is not yet merged.
 - Before the branch is ready for review, **rebase** against `origin/dev`:
@@ -87,19 +95,33 @@ Merging into `dev` is done manually by the user; the agent prepares everything a
 - **Never** add `Co-Authored-By` or similar trailers to commit messages.
 - Follow the bracketed prefix style: `[feat]`, `[fix]`, `[change]`, `[refactor]`, `[docs]`, `[wip]`.
 
+### Per-WI cadence (story implementation)
+
+While implementing a story on its branch, treat each WI as a closed loop:
+
+1. **Finish the WI** — code, tests, and docs required by that WI.
+2. **Update tracking** — set the matching item to `[x]` in `STORY.md`; update `WI-NNN-<title>.md` when
+   the story or WI template calls for it.
+3. **Commit** — stage everything that belongs to that WI (including tracking/doc edits) and create one
+   commit so `git status` is clean before the next WI.
+
+If you complete a WI but skip updating `STORY.md` or skip the commit, the branch no longer matches
+the story’s tracking list and history is harder to review.
+
 ### Complete working copy per WI (story branches)
 
 On a **story branch**, when a WI is **complete** (implementation + tests/docs as required by that WI):
 
-1. **Commit every file** that is part of that WI’s delivery — source, tests, story docs (`STORY.md` checkbox, WI file updates if any), and any other intentional edits. Do not stop with a **partial** commit while leaving related changes unstaged for the same WI.
+1. **Commit every file** that is part of that WI’s delivery — source, tests, story docs (`STORY.md` tracking list / checkbox, WI file updates if any), and any other intentional edits. Do not stop with a **partial** commit while leaving related changes unstaged for the same WI.
 2. **Leave a clean working tree** for that slice of work: after the commit, `git status` should show no remaining modified/untracked files **for completed work** (aside from deliberate local-only files such as IDE noise, if those are gitignored).
-3. **Same commit** should normally include marking the WI as done in **`STORY.md`** (`[x]`) so the branch always reflects completed WIs.
+3. **Same commit** should normally include marking the WI as done in **`STORY.md`** (`[x]`) so the branch always reflects completed WIs and the tracking list stays accurate.
 
 This keeps each WI a **reviewable, reproducible checkpoint** on the story branch. Do not accumulate multiple finished WIs worth of changes without committing. Do not commit build outputs, secrets, or unrelated work from outside the story.
 
 ## Completion (WI level)
 
-- Mark the WI checkbox in `STORY.md` as `[x]` when the WI is implemented (typically **in the same commit** as the WI’s code/docs — see **Complete working copy per WI** above).
+- When the WI is implemented, update the **tracking list** in `STORY.md` (checkbox `[x]`) **in the same
+  commit** as the WI’s code/docs — see **Per-WI cadence** and **Complete working copy per WI** above.
 - Do **not** remove or relocate WI files until **story closure** — they stay with the story folder through its move to `docs/workitems/completed/`.
 
 ## UI Module Reference
@@ -115,11 +137,22 @@ context; for new work the active module is `ui/mill-ui/`.
 
 ## Completion (Story level)
 
-Before signalling the branch is merge-ready:
+Before opening a merge request (or declaring the branch merge-ready), **rewrite the story branch
+history** so reviewers can follow it. Per-WI commits are a convenience during implementation; **closure**
+is when those commits are **grouped logically by the substance of the change** (feature area, module,
+risk boundary, or a single WI when it stands alone), not necessarily one commit per WI on the final
+branch.
 
-1. **Squash and regroup commits** — review all commits on the branch since it diverged from
-   `origin/dev` (`git log origin/dev..HEAD`) and squash/reorder them into a minimal set of
-   logical commits. Each commit should represent one coherent change (typically one WI).
-   Use `git rebase -i origin/dev` to squash interactively.
-2. Follow the **Story closure** documentation steps above (MILESTONE, BACKLOG, design docs,
+1. **Choose the merge base** — normally `origin/dev`. If the story branched elsewhere, use the commit
+   your MR will target (e.g. `git merge-base HEAD origin/dev` or the agreed integration branch).
+2. **Squash and regroup interactively** — e.g. `git fetch origin && git rebase -i <merge-base>` (or
+   `git rebase -i origin/dev` when that is the target). Combine fixups, split unrelated hunks if
+   needed, and **order commits so each tells a coherent story** (readable `git log`, bisect-friendly
+   where practical).
+3. **MR-ready bar** — after rewrite, the branch should look like a deliberate sequence of changes:
+   clear messages (bracket prefix, imperative, under 72 chars), no stray WIP noise, suitable for
+   code review and CI. **Guideline:** aim for **at most about 10 commits** above the merge base; if
+   more are needed for clarity (large stories, risky refactors), that is acceptable — prefer reviewable
+   grouping over a hard number.
+4. Follow the **Story closure** documentation steps above (MILESTONE, BACKLOG, design docs,
    public docs, archive story folder under `docs/workitems/completed/YYYYMMDD-<story-slug>/`).

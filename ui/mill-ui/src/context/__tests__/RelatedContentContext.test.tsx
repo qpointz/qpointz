@@ -3,7 +3,8 @@ import { renderHook, waitFor, act } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { MantineProvider } from '@mantine/core';
 import { RelatedContentProvider, useRelatedContentContext } from '../RelatedContentContext';
-import { FeatureFlagProvider } from '../../features/FeatureFlagContext';
+import { FeatureFlagContext } from '../../features/FeatureFlagContext';
+import { defaultFeatureFlags } from '../../features/defaults';
 import type { RelatedContentRef } from '../../types/relatedContent';
 
 const mockGetRelatedContent = vi.fn<(ct: string, ci: string) => Promise<RelatedContentRef[]>>();
@@ -12,11 +13,6 @@ vi.mock('../../services/api', () => ({
   relatedContentService: {
     getRelatedContent: (...args: [string, string]) => mockGetRelatedContent(...args),
   },
-  featureService: {
-    async getFlags() {
-      return {}; // defaults — all flags enabled
-    },
-  },
 }));
 
 beforeEach(() => {
@@ -24,12 +20,18 @@ beforeEach(() => {
   mockGetRelatedContent.mockResolvedValue([]);
 });
 
+const relatedContentTestFlags = {
+  ...defaultFeatureFlags,
+  relatedContentEnabled: true,
+  relatedContentModelContext: true,
+};
+
 function wrapper({ children }: { children: ReactNode }) {
   return (
     <MantineProvider>
-      <FeatureFlagProvider>
+      <FeatureFlagContext.Provider value={relatedContentTestFlags}>
         <RelatedContentProvider>{children}</RelatedContentProvider>
-      </FeatureFlagProvider>
+      </FeatureFlagContext.Provider>
     </MantineProvider>
   );
 }

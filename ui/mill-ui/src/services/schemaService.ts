@@ -134,23 +134,32 @@ function mapRelationPayload(payload: unknown): RelationFacet[] {
 }
 
 /**
- * Builds the canonical metadata entity URN from relational coordinates (SPEC §13).
+ * Builds the canonical metadata entity URN from relational coordinates (typed model URNs).
  *
  * @param schema catalog schema name
  * @param table optional table name
  * @param column optional column name
- * @returns `urn:mill/metadata/entity:…` with lowercase dot-separated local part
+ * @returns `urn:mill/model/schema:…`, `…/table:…`, or `…/attribute:…` with lowercase local segments
  */
 export function buildEntityUrn(schema: string, table?: string, column?: string): string {
-  const parts = [schema, table, column].filter(Boolean).map((s) => s!.toLowerCase());
-  return `urn:mill/metadata/entity:${parts.join('.')}`;
+  const parts = [schema, table, column].filter((s): s is string => Boolean(s)).map((s) => s.toLowerCase());
+  if (parts.length === 0) {
+    throw new Error('buildEntityUrn requires a schema name');
+  }
+  if (parts.length === 1) {
+    return `urn:mill/model/schema:${parts[0]}`;
+  }
+  if (parts.length === 2) {
+    return `urn:mill/model/table:${parts[0]}.${parts[1]}`;
+  }
+  return `urn:mill/model/attribute:${parts[0]}.${parts[1]}.${parts[2]}`;
 }
 
 /**
  * URN to pass to metadata facet REST calls: uses `metadataEntityId` from the schema API when set, otherwise derives from entity coordinates.
  *
  * @param entity loaded schema explorer entity
- * @returns full `urn:mill/…` id, or `null` if coordinates are insufficient
+ * @returns full typed model entity URN (`urn:mill/model/…`), or `null` if coordinates are insufficient
  */
 export function metadataEntityUrnForFacetApi(entity: SchemaEntity): string | null {
   const fromApi = entity.metadataEntityId?.trim();

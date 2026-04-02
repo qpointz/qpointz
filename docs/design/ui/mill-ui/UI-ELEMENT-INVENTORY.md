@@ -32,7 +32,7 @@ For each element:
 | `chatService` | local mock response pools by context type (`general`, `model`, `knowledge`, `analysis`) | mock |
 | `chatReferencesService` | deterministic mock refs (`ConversationRef[]`: chat id/title list) | mock |
 | `relatedContentService` | deterministic mock cross-object refs (`RelatedContentRef[]`: model/concept/analysis links) | mock |
-| `featureService` | returns `defaultFeatureFlags` | mock |
+| `featureService` | mock returns full `defaultFeatureFlags`; real client should return `Partial<FeatureFlags>` from `GET /api/v1/features` for merge in `FeatureFlagProvider` | mock |
 | `searchService` | mock search over mock data | mock |
 
 ---
@@ -45,7 +45,7 @@ For each element:
 |---|---|---|---|---|---|
 | App loading screen (`Loader`) | Full-page loader while auth/app-name resolve | local loading state | n/a | n/a | n/a |
 | Notifications container | Global toast host | local + feature behavior | n/a | n/a | n/a |
-| Inline chat drawer mount | Right drawer host for inline chat sessions | inline chat context state containing per-context message threads and active session id | `inlineChatEnabled` | `true` | mock |
+| Inline chat drawer mount | Right drawer host for inline chat sessions | inline chat context state containing per-context message threads and active session id | `inlineChatEnabled` | `false` | mock |
 | Route switch | Main route composition and auth gating | router + auth state | view flags (per route) | see below | mixed |
 
 ### 1.2 Top-level route visibility flags
@@ -54,10 +54,10 @@ For each element:
 |---|---|---|
 | `/home` | `viewHome` | `true` |
 | `/model` | `viewModel` | `true` |
-| `/knowledge` | `viewKnowledge` | `true` |
-| `/analysis` | `viewAnalysis` | `true` |
-| `/chat` | `viewChat` | `true` |
-| `/connect` | `viewConnect` | `true` |
+| `/knowledge` | `viewKnowledge` | `false` |
+| `/analysis` | `viewAnalysis` | `false` |
+| `/chat` | `viewChat` | `false` |
+| `/connect` | `viewConnect` | `false` |
 | `/admin` | `viewAdmin` | `true` |
 | `/profile` | `viewProfile` | `true` |
 
@@ -70,9 +70,9 @@ For each element:
 | Element | Description | Content source | Feature flag | Default | Backend state |
 |---|---|---|---|---|---|
 | Brand logo + app name | Clickable identity; navigates to Home | app name from `/.well-known/mill` fallback to `Mill` | n/a | n/a | real |
-| Main nav buttons (Model/Knowledge/Analysis/Chat/Connect) | Primary navigation tabs | static config + routing | `viewModel`, `viewKnowledge`, `viewAnalysis`, `viewChat`, `viewConnect` | `true` | n/a |
+| Main nav buttons (Model/Knowledge/Analysis/Chat/Connect) | Primary navigation tabs | static config + routing | `viewModel`, `viewKnowledge`, `viewAnalysis`, `viewChat`, `viewConnect` | Model `true`; Knowledge/Analysis/Chat/Connect `false` | n/a |
 | Right nav button (Admin) | Admin navigation | static config + routing | `viewAdmin` | `true` | n/a |
-| Global search trigger | Opens global search | `searchService` over mixed index: views + mock schema/facets + mock concepts + mock queries | `headerGlobalSearch` | `true` | mock |
+| Global search trigger | Opens global search | `searchService` over mixed index: views + mock schema/facets + mock concepts + mock queries | `headerGlobalSearch` | `false` | mock |
 
 ### 2.2 User menu (right side)
 
@@ -109,7 +109,7 @@ For each element:
 | Element | Description | Content source | Feature flag | Default | Backend state |
 |---|---|---|---|---|---|
 | Stats cards (schemas/tables/concepts/queries) | Dashboard counters | `statsService` from `mockSchemaTree`, `mockConcepts`, `mockSavedQueries` | `viewHome` | `true` | mock |
-| Quick links | Navigate to major views | route config | view flags | `true` | n/a |
+| Quick links | Navigate to major views | route config | view flags | per §1.2 | n/a |
 
 ---
 
@@ -136,8 +136,8 @@ Hierarchy:
 |---|---|---|---|---|---|
 | Schema/Table/Column nodes | Hierarchical object navigation | `schemaService.getTree(context)` for schema+table graph, then `getEntityById` for lazy table column hydration | `viewModel` | `true` | real |
 | Expand/collapse chevrons | Tree open/close controls | local component state | n/a | n/a | n/a |
-| Active session chat icon (small bubble) | Marks nodes with active inline session | inline chat context (`session.contextId === node.id`) | `inlineChatEnabled` (+ per-context flags) | `true` | mock |
-| Violet chat-reference count pill in tree | Count of related general-chat refs | `chatReferencesService` via context cache; payload is related chat list (`id`, `title`) | `chatReferencesEnabled`, `chatReferencesSidebarIndicator` | `true`, `true` | mock |
+| Active session chat icon (small bubble) | Marks nodes with active inline session | inline chat context (`session.contextId === node.id`) | `inlineChatEnabled` (+ per-context flags) | `false` | mock |
+| Violet chat-reference count pill in tree | Count of related general-chat refs | `chatReferencesService` via context cache; payload is related chat list (`id`, `title`) | `chatReferencesEnabled`, `chatReferencesSidebarIndicator`, `chatReferencesModelContext` | `false`, `false`, `false` | mock |
 
 ### 5.3 EntityDetails header (right panel)
 
@@ -145,16 +145,14 @@ Hierarchy:
 |---|---|---|---|---|---|
 | Entity icon + title + type badge | Selected entity identity | `schemaService.getEntityById()` + descriptive facet fallback | n/a | n/a | real |
 | Entity ID line | Fully qualified id display | selected entity object | n/a | n/a | real |
-| **Related N** badge | Relation count derived from relation facet | `facets.relations` from schema relation payload (table/column relationship entries with cardinality/type) | n/a | n/a | real |
-| **Chats N** badge | Related general-chat conversation count | `chatReferencesService` via context; count of related conversation refs for selected entity | `chatReferencesEnabled` | `true` | mock |
-| RelatedContent button | Cross-object related content popover | `relatedContentService`; can include model tree nodes plus concept/query refs in one payload | `relatedContentEnabled` (+ model-level flags) | `true` | mock |
-| InlineChat button | Start/open inline contextual chat | inline chat context + `chatService` context-aware response pool; can coexist with related chats and related content | `inlineChatEnabled` (+ model-level flags) | `true` | mock |
+| RelatedContent button | Cross-object related content popover | `relatedContentService`; can include model tree nodes plus concept/query refs in one payload | `relatedContentEnabled` (+ model-level flags) | `false` | mock |
+| InlineChat button | Start/open inline contextual chat | inline chat context + `chatService` context-aware response pool; can coexist with related chats and related content | `inlineChatEnabled` (+ model-level flags) | `false` | mock |
 
 ### 5.4 EntityDetails quick badges + base panel
 
 | Element | Description | Content source | Feature flag | Default | Backend state |
 |---|---|---|---|---|---|
-| PK/FK/Unique/Not Null badges | Structural quick markers | structural facet payload | `modelQuickBadges` | `true` | real |
+| PK/FK/Unique/Not Null badges | Structural quick markers | structural facet payload | `modelQuickBadges` | `false` | real |
 | Type badge in quick row | Data type marker (`type`/`physicalType`) | structural facet payload | `modelPhysicalType` | `true` | real |
 | Base details card (ID/type/table count/column position) | Always-visible structural summary | selected entity fields | n/a | n/a | real |
 
@@ -175,10 +173,10 @@ Facet tabs are grouped by **manifest category** (from `facetTypeService` / facet
 
 | Element | Description | Content source | Feature flag | Default | Backend state |
 |---|---|---|---|---|---|
-| Concept list | Browsable concepts | `conceptService.getConcepts()` from `mockConcepts` (name/category/source/tags) | `viewKnowledge` | `true` | mock |
+| Concept list | Browsable concepts | `conceptService.getConcepts()` from `mockConcepts` (name/category/source/tags) | `viewKnowledge` | `false` | mock |
 | Category filter section | Filter concepts by category | `conceptService.getCategories()` | `sidebarKnowledgeCategories` | `true` | mock |
 | Tag filter section | Filter concepts by tags | `conceptService.getTags()` | `sidebarKnowledgeTags` | `true` | mock |
-| Chat-reference indicators in list | Related-chat count markers | `chatReferencesService` conversation-ref payload (`id`, `title`) | `chatReferencesEnabled` | `true` | mock |
+| Chat-reference indicators in list | Related-chat count markers | `chatReferencesService` conversation-ref payload (`id`, `title`) | `chatReferencesEnabled`, `chatReferencesSidebarIndicator`, `chatReferencesKnowledgeContext` | `false`, `false`, `false` | mock |
 
 ### 6.2 Concept details panel
 
@@ -191,8 +189,8 @@ Facet tabs are grouped by **manifest category** (from `facetTypeService` / facet
 | Related entities section | Linked model entities | concept payload | `knowledgeRelatedEntities` | `true` | mock |
 | Metadata section | Created/updated details | concept payload | `knowledgeMetadata` | `true` | mock |
 | Source badge | Origin marker (manual/inferred/etc.) | concept payload | `knowledgeSourceBadge` | `true` | mock |
-| RelatedContent button | Cross-object related content | `relatedContentService` payload can include related model entities, concepts, and analysis queries | relatedContent knowledge flags | `true` | mock |
-| InlineChat button | Contextual inline chat | inline chat context + `chatService` knowledge response pool and session state | inlineChat knowledge flags | `true` (global off) | mock |
+| RelatedContent button | Cross-object related content | `relatedContentService` payload can include related model entities, concepts, and analysis queries | relatedContent knowledge flags | `false` | mock |
+| InlineChat button | Contextual inline chat | inline chat context + `chatService` knowledge response pool and session state | inlineChat knowledge flags | `false` | mock |
 
 ---
 
@@ -202,7 +200,7 @@ Facet tabs are grouped by **manifest category** (from `facetTypeService` / facet
 
 | Element | Description | Content source | Feature flag | Default | Backend state |
 |---|---|---|---|---|---|
-| Saved query list | Query selection list | `queryService.getSavedQueries()` from `mockSavedQueries` (id/name/sql/description/tags) | `viewAnalysis` | `true` | mock |
+| Saved query list | Query selection list | `queryService.getSavedQueries()` from `mockSavedQueries` (id/name/sql/description/tags) | `viewAnalysis` | `false` | mock |
 | Query count badge | Shows list count | query list length | `sidebarAnalysisBadge` | `true` | mock |
 | New query action | Creates in-memory query | local state | n/a | n/a | n/a |
 | Delete query action | Removes query from in-memory list | local state | n/a | n/a | n/a |
@@ -216,7 +214,7 @@ Facet tabs are grouped by **manifest category** (from `facetTypeService` / facet
 | Copy SQL action | Copy current SQL | browser clipboard | `analysisCopySql` | `true` | n/a |
 | Clear SQL action | Clears editor | local state | `analysisClearSql` | `true` | n/a |
 | Execute action | Runs query | `queryService.executeQuery()` returns simulated columns/rows/executionTime metadata | `analysisExecuteQuery` | `true` | mock |
-| InlineChat button | Query-context inline assistant | inline chat context + `chatService` analysis response pool (query tuning/explanation style outputs) | inlineChat analysis flags | `true` (global off) | mock |
+| InlineChat button | Query-context inline assistant | inline chat context + `chatService` analysis response pool (query tuning/explanation style outputs) | inlineChat analysis flags | `false` | mock |
 
 ### 7.3 Query results panel
 
@@ -234,15 +232,15 @@ Facet tabs are grouped by **manifest category** (from `facetTypeService` / facet
 
 | Element | Description | Content source | Feature flag | Default | Backend state |
 |---|---|---|---|---|---|
-| Conversation sidebar list | Existing general chats | `chatService.listChats()` mock chat summaries (`chatId`, `chatName`, `updatedAt`) | `viewChat` | `true` | mock |
-| New chat button | Creates chat session | `chatService.createChat()` creates general or context chat records | `viewChat` | `true` | mock |
+| Conversation sidebar list | Existing general chats | `chatService.listChats()` mock chat summaries (`chatId`, `chatName`, `updatedAt`) | `viewChat` | `false` | mock |
+| New chat button | Creates chat session | `chatService.createChat()` creates general or context chat records | `viewChat` | `false` | mock |
 | Delete chat controls | Removes chat from context state | local/chat context state | n/a | n/a | mock |
 
 ### 8.2 Chat area
 
 | Element | Description | Content source | Feature flag | Default | Backend state |
 |---|---|---|---|---|---|
-| Message list | Conversation transcript | chat context + `chatService.sendMessage()` streaming chunks from mock response pools | `viewChat` | `true` | mock |
+| Message list | Conversation transcript | chat context + `chatService.sendMessage()` streaming chunks from mock response pools | `viewChat` | `false` | mock |
 | Typing indicator | Assistant response in-progress marker | local streaming state | n/a | n/a | mock |
 | Input box | Prompt input and send | local state | `chatAttachButton`, `chatDictateButton` | `true`, `true` | n/a |
 
@@ -253,10 +251,10 @@ Facet tabs are grouped by **manifest category** (from `facetTypeService` / facet
 | Element | Description | Content source | Feature flag | Default | Backend state |
 |---|---|---|---|---|---|
 | Drawer shell | Inline session container | inline chat context state | `inlineChatEnabled` | `false` | mock |
-| Session switcher/popover | Multi-session management | inline chat context state | `inlineChatMultiSession`, `inlineChatSessionGrouping` | `true`, `true` | mock |
+| Session switcher/popover | Multi-session management | inline chat context state | `inlineChatMultiSession`, `inlineChatSessionGrouping` | `false`, `false` | mock |
 | Inline message panel | Per-session transcript | `chatService.sendMessage()` with context-aware pool by `contextType` | `inlineChatEnabled` | `false` | mock |
-| Related content in drawer | Related object popover | `relatedContentService` (model/concept/analysis refs; model refs may include schema-table-column chain) | `relatedContentInDrawer` | `true` | mock |
-| Related chats in drawer | Related general-chat refs | `chatReferencesService` (`ConversationRef[]` shown as related conversations list) | `chatReferencesEnabled` | `true` | mock |
+| Related content in drawer | Related object popover | `relatedContentService` (model/concept/analysis refs; model refs may include schema-table-column chain) | `relatedContentInDrawer` | `false` | mock |
+| Related chats in drawer | Related general-chat refs | `chatReferencesService` (`ConversationRef[]` shown as related conversations list) | `chatReferencesEnabled` | `false` | mock |
 
 ---
 
@@ -264,7 +262,7 @@ Facet tabs are grouped by **manifest category** (from `facetTypeService` / facet
 
 | Element | Description | Content source | Feature flag | Default | Backend state |
 |---|---|---|---|---|---|
-| Connect root page | Integration/how-to shell | static docs-like content | `viewConnect` | `true` | n/a |
+| Connect root page | Integration/how-to shell | static docs-like content | `viewConnect` | `false` | n/a |
 | Services section | Service connection guide | static content | `connectServices` | `true` | n/a |
 | Python section | Python integration guide | static content | `connectPython` | `true` | n/a |
 | Java section | Java integration guide | static content | `connectJava` | `true` | n/a |
@@ -314,16 +312,14 @@ This section explicitly inventories pills/badges/indicators currently used in UI
 
 | Indicator | Location | Meaning | Source | Flag | Default | Backend state |
 |---|---|---|---|---|---|---|
-| Violet count pill (tree) | `SchemaTree` | related general chats count | `chatReferencesService` payload (`ConversationRef[]`: conversation titles/ids for that node) | `chatReferencesEnabled` + `chatReferencesSidebarIndicator` | `true` + `true` | mock |
-| Chat bubble icon (tree) | `SchemaTree` | active inline chat session exists | inline chat context | `inlineChatEnabled` | `true` | mock |
-| Related badge (details header) | `EntityDetails` | count of relation facet entries | `facets.relations` | n/a | n/a | real |
-| Chats badge (details header) | `EntityDetails` | count of related general chats | `chatReferencesService` | `chatReferencesEnabled` | `true` | mock |
-| PK/FK/Unique/Not Null badges | `EntityDetails` | structural constraints | structural facet payload | `modelQuickBadges` | `true` | real |
+| Violet count pill (tree) | `SchemaTree` | related general chats count | `chatReferencesService` payload (`ConversationRef[]`: conversation titles/ids for that node) | `chatReferencesEnabled` + `chatReferencesSidebarIndicator` + `chatReferencesModelContext` | `false` + `false` + `false` | mock |
+| Chat bubble icon (tree) | `SchemaTree` | active inline chat session exists | inline chat context | `inlineChatEnabled` | `false` | mock |
+| PK/FK/Unique/Not Null badges | `EntityDetails` | structural constraints | structural facet payload | `modelQuickBadges` | `false` | real |
 | Type badge (details quick row) | `EntityDetails` | data type marker | structural facet payload | `modelPhysicalType` | `true` | real |
 | Cardinality badge | Relation facet cards (`EntityDetails`) | relation cardinality (`1:1`, `1:N`, etc.) | relation facet payload (descriptor-driven MULTIPLE cards) | n/a | n/a | real |
 | Relation type badge | Relation facet cards (`EntityDetails`) | relation type (`FOREIGN_KEY`, etc.) | relation facet payload | n/a | n/a | real |
-| Related content count badge | `RelatedContentButton` | cross-object related content count | `relatedContentService` payload may include concept refs, analysis refs, and model hierarchy refs together | `relatedContentEnabled` | `true` | mock |
-| Inline chat active dot/badge | `InlineChatButton` | inline session and/or related chat presence | inline chat session state + `chatReferencesService` related-conversation refs | `inlineChatEnabled`, `chatReferencesEnabled` | `true`, `true` | mock |
+| Related content count badge | `RelatedContentButton` | cross-object related content count | `relatedContentService` payload may include concept refs, analysis refs, and model hierarchy refs together | `relatedContentEnabled` | `false` | mock |
+| Inline chat active dot/badge | `InlineChatButton` | inline session and/or related chat presence | inline chat session state + `chatReferencesService` related-conversation refs | `inlineChatEnabled`, `chatReferencesEnabled` | `false`, `false` | mock |
 
 ---
 
@@ -337,5 +333,5 @@ This section explicitly inventories pills/badges/indicators currently used in UI
 
 ---
 
-*Last updated: 2026-03-27*
+*Last updated: 2026-04-02*
 

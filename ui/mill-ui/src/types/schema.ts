@@ -184,7 +184,7 @@ export interface SchemaService {
   ): Promise<ColumnDetail | null>;
   getTree(context: string): Promise<SchemaNode[]>;
   getEntityById(id: string, context: string, signal?: AbortSignal): Promise<SchemaEntity | null>;
-  /** @param id full metadata entity URN (`urn:mill/metadata/entity:…`) */
+  /** @param id full metadata entity URN (`urn:mill/model/schema:…`, `…/table:…`, or `…/attribute:…`) */
   getEntityFacets(id: string, context: string, signal?: AbortSignal): Promise<EntityFacets>;
   /** @param id full metadata entity URN; @param context scope slug or URN passed as `scope` on POST */
   setEntityFacet(id: string, facetType: string, context: string, payload: unknown): Promise<void>;

@@ -17,16 +17,27 @@ vi.mock('../../services/api', () => ({
   },
   featureService: {
     async getFlags() {
-      // Explicitly enable inline-chat for this test suite so behavior tests
-      // run under the intended feature state, independent of global defaults.
-      return { ...defaultFeatureFlags, inlineChatEnabled: true };
+      return {};
     },
   },
 }));
 
+const inlineChatTestFlags = {
+  ...defaultFeatureFlags,
+  inlineChatEnabled: true,
+  inlineChatModelContext: true,
+  inlineChatModelSchema: true,
+  inlineChatModelTable: true,
+  inlineChatModelColumn: true,
+  inlineChatKnowledgeContext: true,
+  inlineChatAnalysisContext: true,
+  inlineChatMultiSession: true,
+  inlineChatGreeting: true,
+};
+
 function wrapper({ children }: { children: ReactNode }) {
   return (
-    <FeatureFlagContext.Provider value={{ ...defaultFeatureFlags, inlineChatEnabled: true }}>
+    <FeatureFlagContext.Provider value={inlineChatTestFlags}>
       <InlineChatProvider>{children}</InlineChatProvider>
     </FeatureFlagContext.Provider>
   );
@@ -78,7 +89,7 @@ describe('InlineChatContext', () => {
         result.current.startSession('model', 'sales.customers', 'customers');
       });
 
-      // Default flags have inlineChatGreeting: true
+      // Greeting message when inlineChatGreeting is on (see inlineChatTestFlags)
       expect(result.current.activeSession!.messages.length).toBeGreaterThanOrEqual(1);
       const greeting = result.current.activeSession!.messages[0]!;
       expect(greeting.role).toBe('assistant');

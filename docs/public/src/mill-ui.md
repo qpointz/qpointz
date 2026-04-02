@@ -51,7 +51,7 @@ The **Model** view loads the physical schema from the schema explorer API and, w
 
 - **Type** and **name** (schema, table, or column).
 - **Location** — Explorer-style path (e.g. `schema.table.column`).
-- When the backend binds metadata to that node, **`metadataEntityId`** is present and the UI can load/save facets via the metadata API. If it is missing, facet editing stays disabled.
+- When the backend binds metadata to that node, **`metadataEntityId`** is present and the UI can load/save facets via the metadata API. If it is missing, facet editing stays disabled. The value is a full **Mill URN**; for physical catalog objects it is typically typed as **`urn:mill/model/schema:…`**, **`urn:mill/model/table:…`**, or **`urn:mill/model/attribute:…`** (lowercase path segments). The logical model root uses **`urn:mill/model/model:model-entity`**.
 
 ### Facets
 

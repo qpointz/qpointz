@@ -34,7 +34,7 @@ Physical schema          Metadata
          Chat & tools use both
 ```
 
-The explorer shows **tables and columns** from your backend. When Mill has stored metadata for those objects, you also see **facet panels** (descriptions, relations, etc.) backed by a stable **metadata identity** the server assigns or imports.
+The explorer shows **tables and columns** from your backend. When Mill has stored metadata for those objects, you also see **facet panels** (descriptions, relations, etc.) backed by a stable **`metadataEntityId`** — a full Mill URN (typically `urn:mill/model/schema:…`, `…/table:…`, or `…/attribute:…` for catalog objects) the server assigns or imports.
 
 **Concepts** (user level): each bound object is an **entity** — a **standalone** metadata record, **not** a node in a Mill-managed term taxonomy. **Facet types** define *what* you can attach; **facet assignments** are the *values* on that entity, optionally layered by **scope** so global and team-specific contributions **merge** into what you see. Details: [Concepts](concepts.md).
 

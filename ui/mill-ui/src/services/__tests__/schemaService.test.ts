@@ -5,7 +5,7 @@ import type { EntityFacets } from '../../types/schema';
 // Fixture data
 // ---------------------------------------------------------------------------
 
-const modelMetadataId = 'urn:mill/metadata/entity:model-entity';
+const modelMetadataId = 'urn:mill/model/model:model-entity';
 
 const mockSchemaList = [
   { id: 'model-entity', entityType: 'MODEL', schemaName: '', metadataEntityId: modelMetadataId },
@@ -53,8 +53,8 @@ const mockTableDetail = {
   ],
 };
 
-const salesCustomersUrn = 'urn:mill/metadata/entity:sales.customers';
-const salesCustomerColUrn = 'urn:mill/metadata/entity:sales.customers.customer_id';
+const salesCustomersUrn = 'urn:mill/model/table:sales.customers';
+const salesCustomerColUrn = 'urn:mill/model/attribute:sales.customers.customer_id';
 
 /** Matches `GET .../metadata/entities/{id}/facets` — JSON array of facet instances (`facetType`, `payload`, …). */
 const mockFacetsCustomers = [
@@ -100,10 +100,11 @@ beforeEach(() => {
 
 describe('schemaService', () => {
   describe('buildEntityUrn', () => {
-    it('should build lowercase dot-separated entity URNs', async () => {
+    it('should build typed model entity URNs with lowercase local parts', async () => {
       const { buildEntityUrn } = await import('../schemaService');
-      expect(buildEntityUrn('Sales', 'Customers')).toBe('urn:mill/metadata/entity:sales.customers');
-      expect(buildEntityUrn('P', 'T', 'C')).toBe('urn:mill/metadata/entity:p.t.c');
+      expect(buildEntityUrn('Sales')).toBe('urn:mill/model/schema:sales');
+      expect(buildEntityUrn('Sales', 'Customers')).toBe('urn:mill/model/table:sales.customers');
+      expect(buildEntityUrn('P', 'T', 'C')).toBe('urn:mill/model/attribute:p.t.c');
     });
   });
 
@@ -203,7 +204,7 @@ describe('schemaService', () => {
     it('should return empty object for unknown entity', async () => {
       fetchMock.mockResolvedValueOnce(makeErrorResponse(404));
       const { schemaService } = await import('../schemaService');
-      const facets = await schemaService.getEntityFacets('urn:mill/metadata/entity:nonexistent', 'global');
+      const facets = await schemaService.getEntityFacets('urn:mill/model/table:nonexistent.__missing', 'global');
       expect(facets).toBeDefined();
       expect(Object.keys(facets).length).toBe(0);
     });

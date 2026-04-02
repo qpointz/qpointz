@@ -6,6 +6,353 @@ displayName: Global
 visibility: PUBLIC
 ---
 kind: MetadataEntity
+entityUrn: urn:mill/model/model:model-entity
+entityKind: model
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Skymill
+    description: Qsynth model root (skymill)
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: aircraft
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: cargo_flights
+      columns:
+      - aircraft_id
+    cardinality: ONE_TO_MANY
+    joinSql: aircraft.id = cargo_flights.aircraft_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: aircraft
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: flight_instances
+      columns:
+      - aircraft_id
+    cardinality: ONE_TO_MANY
+    joinSql: aircraft.id = flight_instances.aircraft_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: aircraft_types
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: aircraft
+      columns:
+      - aircraft_type_id
+    cardinality: ONE_TO_MANY
+    joinSql: aircraft_types.id = aircraft.aircraft_type_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: bookings
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: loyalty_earnings
+      columns:
+      - booking_id
+    cardinality: ONE_TO_MANY
+    joinSql: bookings.id = loyalty_earnings.booking_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: bookings
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: ticket_prices
+      columns:
+      - booking_id
+    cardinality: ONE_TO_MANY
+    joinSql: bookings.id = ticket_prices.booking_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: cargo_clients
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: cargo_shipments
+      columns:
+      - client_id
+    cardinality: ONE_TO_MANY
+    joinSql: cargo_clients.id = cargo_shipments.client_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: cargo_flights
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: cargo_shipments
+      columns:
+      - cargo_flight_id
+    cardinality: ONE_TO_MANY
+    joinSql: cargo_flights.id = cargo_shipments.cargo_flight_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: cargo_types
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: cargo_shipments
+      columns:
+      - cargo_type_id
+    cardinality: ONE_TO_MANY
+    joinSql: cargo_types.id = cargo_shipments.cargo_type_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: cities
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: passenger
+      columns:
+      - domicile_city_id
+    cardinality: ONE_TO_MANY
+    joinSql: cities.id = passenger.domicile_city_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: cities
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: segments
+      columns:
+      - destination
+    cardinality: ONE_TO_MANY
+    joinSql: cities.id = segments.destination
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: cities
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: segments
+      columns:
+      - origin
+    cardinality: ONE_TO_MANY
+    joinSql: cities.id = segments.origin
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: countries
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: cargo_clients
+      columns:
+      - country_id
+    cardinality: ONE_TO_MANY
+    joinSql: countries.id = cargo_clients.country_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: flight_instances
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: bookings
+      columns:
+      - flight_instance_id
+    cardinality: ONE_TO_MANY
+    joinSql: flight_instances.id = bookings.flight_instance_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: flight_instances
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: cancellations
+      columns:
+      - flight_instance_id
+    cardinality: ONE_TO_MANY
+    joinSql: flight_instances.id = cancellations.flight_instance_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: flight_instances
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: delays
+      columns:
+      - flight_instance_id
+    cardinality: ONE_TO_MANY
+    joinSql: flight_instances.id = delays.flight_instance_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: flight_instances
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: ratings
+      columns:
+      - flight_instance_id
+    cardinality: ONE_TO_MANY
+    joinSql: flight_instances.id = ratings.flight_instance_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: passenger
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: bookings
+      columns:
+      - passenger_id
+    cardinality: ONE_TO_MANY
+    joinSql: passenger.id = bookings.passenger_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: passenger
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: loyalty_earnings
+      columns:
+      - passenger_id
+    cardinality: ONE_TO_MANY
+    joinSql: passenger.id = loyalty_earnings.passenger_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: passenger
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: ratings
+      columns:
+      - passenger_id
+    cardinality: ONE_TO_MANY
+    joinSql: passenger.id = ratings.passenger_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: segments
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: cargo_flights
+      columns:
+      - segment_id
+    cardinality: ONE_TO_MANY
+    joinSql: segments.id = cargo_flights.segment_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: skymill
+      table: segments
+      columns:
+      - id
+    target:
+      schema: skymill
+      table: flight_instances
+      columns:
+      - segment_id
+    cardinality: ONE_TO_MANY
+    joinSql: segments.id = flight_instances.segment_id
+---
+kind: MetadataEntity
 entityUrn: urn:mill/model/schema:skymill
 entityKind: schema
 facets:
@@ -28,7 +375,7 @@ facets:
   scopeUrn: urn:mill/metadata/scope:global
   mergeAction: SET
   payload:
-    run_id: qsynth-skymill-40755931-01ff-4dbf-8fcf-ef61ab6c8b15
+    run_id: qsynth-skymill-d1c6c39a-b7b2-4420-97af-c76c32406d66
     experiment_names: write_mill_canonical
 ---
 kind: MetadataEntity
@@ -56,45 +403,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: cities
     rows_spec: '20'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: segments
-      columns:
-      - origin
-    cardinality: ONE_TO_MANY
-    joinSql: cities.id = segments.origin
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: segments
-      columns:
-      - destination
-    cardinality: ONE_TO_MANY
-    joinSql: cities.id = segments.destination
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: passenger
-      columns:
-      - domicile_city_id
-    cardinality: ONE_TO_MANY
-    joinSql: cities.id = passenger.domicile_city_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.cities.id
@@ -279,56 +587,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: segments
     rows_spec: '80'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: flight_instances
-      columns:
-      - segment_id
-    cardinality: ONE_TO_MANY
-    joinSql: segments.id = flight_instances.segment_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: cargo_flights
-      columns:
-      - segment_id
-    cardinality: ONE_TO_MANY
-    joinSql: segments.id = cargo_flights.segment_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: cities
-      columns:
-      - id
-    targetColumns:
-    - origin
-    joinSql: cities.id = segments.origin
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: cities
-      columns:
-      - id
-    targetColumns:
-    - destination
-    joinSql: cities.id = segments.destination
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.segments.id
@@ -467,19 +725,6 @@ facets:
     data_mode: STATIC
     qsynth_dataset_name: aircraft_types
     static_row_count: 3
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: aircraft
-      columns:
-      - aircraft_type_id
-    cardinality: ONE_TO_MANY
-    joinSql: aircraft_types.id = aircraft.aircraft_type_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.aircraft_types.id
@@ -584,44 +829,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: aircraft
     rows_spec: '40'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: flight_instances
-      columns:
-      - aircraft_id
-    cardinality: ONE_TO_MANY
-    joinSql: aircraft.id = flight_instances.aircraft_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: cargo_flights
-      columns:
-      - aircraft_id
-    cardinality: ONE_TO_MANY
-    joinSql: aircraft.id = cargo_flights.aircraft_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: aircraft_types
-      columns:
-      - id
-    targetColumns:
-    - aircraft_type_id
-    joinSql: aircraft_types.id = aircraft.aircraft_type_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.aircraft.id
@@ -758,57 +965,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: passenger
     rows_spec: '300'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: bookings
-      columns:
-      - passenger_id
-    cardinality: ONE_TO_MANY
-    joinSql: passenger.id = bookings.passenger_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: loyalty_earnings
-      columns:
-      - passenger_id
-    cardinality: ONE_TO_MANY
-    joinSql: passenger.id = loyalty_earnings.passenger_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: ratings
-      columns:
-      - passenger_id
-    cardinality: ONE_TO_MANY
-    joinSql: passenger.id = ratings.passenger_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: cities
-      columns:
-      - id
-    targetColumns:
-    - domicile_city_id
-    joinSql: cities.id = passenger.domicile_city_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.passenger.id
@@ -1051,82 +1207,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: flight_instances
     rows_spec: '600'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: bookings
-      columns:
-      - flight_instance_id
-    cardinality: ONE_TO_MANY
-    joinSql: flight_instances.id = bookings.flight_instance_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: delays
-      columns:
-      - flight_instance_id
-    cardinality: ONE_TO_MANY
-    joinSql: flight_instances.id = delays.flight_instance_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: cancellations
-      columns:
-      - flight_instance_id
-    cardinality: ONE_TO_MANY
-    joinSql: flight_instances.id = cancellations.flight_instance_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: ratings
-      columns:
-      - flight_instance_id
-    cardinality: ONE_TO_MANY
-    joinSql: flight_instances.id = ratings.flight_instance_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: aircraft
-      columns:
-      - id
-    targetColumns:
-    - aircraft_id
-    joinSql: aircraft.id = flight_instances.aircraft_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: segments
-      columns:
-      - id
-    targetColumns:
-    - segment_id
-    joinSql: segments.id = flight_instances.segment_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.flight_instances.id
@@ -1291,43 +1371,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: cargo_flights
     rows_spec: '400'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: cargo_shipments
-      columns:
-      - cargo_flight_id
-    cardinality: ONE_TO_MANY
-    joinSql: cargo_flights.id = cargo_shipments.cargo_flight_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: aircraft
-      columns:
-      - id
-    targetColumns:
-    - aircraft_id
-    joinSql: aircraft.id = cargo_flights.aircraft_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: segments
-      columns:
-      - id
-    targetColumns:
-    - segment_id
-    joinSql: segments.id = cargo_flights.segment_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.cargo_flights.id
@@ -1492,56 +1535,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: bookings
     rows_spec: '1500'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: loyalty_earnings
-      columns:
-      - booking_id
-    cardinality: ONE_TO_MANY
-    joinSql: bookings.id = loyalty_earnings.booking_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: ticket_prices
-      columns:
-      - booking_id
-    cardinality: ONE_TO_MANY
-    joinSql: bookings.id = ticket_prices.booking_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: passenger
-      columns:
-      - id
-    targetColumns:
-    - passenger_id
-    joinSql: passenger.id = bookings.passenger_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: flight_instances
-      columns:
-      - id
-    targetColumns:
-    - flight_instance_id
-    joinSql: flight_instances.id = bookings.flight_instance_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.bookings.id
@@ -1680,30 +1673,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: loyalty_earnings
     rows_spec: '1000'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: bookings
-      columns:
-      - id
-    targetColumns:
-    - booking_id
-    joinSql: bookings.id = loyalty_earnings.booking_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: passenger
-      columns:
-      - id
-    targetColumns:
-    - passenger_id
-    joinSql: passenger.id = loyalty_earnings.passenger_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.loyalty_earnings.id
@@ -1868,18 +1837,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: delays
     rows_spec: '400'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: flight_instances
-      columns:
-      - id
-    targetColumns:
-    - flight_instance_id
-    joinSql: flight_instances.id = delays.flight_instance_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.delays.id
@@ -2016,18 +1973,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: cancellations
     rows_spec: '100'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: flight_instances
-      columns:
-      - id
-    targetColumns:
-    - flight_instance_id
-    joinSql: flight_instances.id = cancellations.flight_instance_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.cancellations.id
@@ -2163,18 +2108,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: ticket_prices
     rows_spec: '1500'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: bookings
-      columns:
-      - id
-    targetColumns:
-    - booking_id
-    joinSql: bookings.id = ticket_prices.booking_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.ticket_prices.booking_id
@@ -2356,7 +2289,7 @@ facets:
   mergeAction: SET
   payload:
     displayName: Ratings
-    description: Customer satisfaction scores (1–5) and post-flight comments. Suitable
+    description: Customer satisfaction scores (1â€“5) and post-flight comments. Suitable
       for queries about ratings, feedback, or service quality.
 - facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
   scopeUrn: urn:mill/metadata/scope:global
@@ -2365,30 +2298,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: ratings
     rows_spec: '800'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: passenger
-      columns:
-      - id
-    targetColumns:
-    - passenger_id
-    joinSql: passenger.id = ratings.passenger_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: flight_instances
-      columns:
-      - id
-    targetColumns:
-    - flight_instance_id
-    joinSql: flight_instances.id = ratings.flight_instance_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.ratings.id
@@ -2579,19 +2488,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: countries
     rows_spec: '50'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: cargo_clients
-      columns:
-      - country_id
-    cardinality: ONE_TO_MANY
-    joinSql: countries.id = cargo_clients.country_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.countries.id
@@ -2697,31 +2593,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: cargo_clients
     rows_spec: '200'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: cargo_shipments
-      columns:
-      - client_id
-    cardinality: ONE_TO_MANY
-    joinSql: cargo_clients.id = cargo_shipments.client_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: countries
-      columns:
-      - id
-    targetColumns:
-    - country_id
-    joinSql: countries.id = cargo_clients.country_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.cargo_clients.id
@@ -2935,19 +2806,6 @@ facets:
     data_mode: STATIC
     qsynth_dataset_name: cargo_types
     static_row_count: 4
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - id
-    target:
-      schema: skymill
-      table: cargo_shipments
-      columns:
-      - cargo_type_id
-    cardinality: ONE_TO_MANY
-    joinSql: cargo_types.id = cargo_shipments.cargo_type_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.cargo_types.id
@@ -3052,42 +2910,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: cargo_shipments
     rows_spec: '2000'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: cargo_flights
-      columns:
-      - id
-    targetColumns:
-    - cargo_flight_id
-    joinSql: cargo_flights.id = cargo_shipments.cargo_flight_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: cargo_types
-      columns:
-      - id
-    targetColumns:
-    - cargo_type_id
-    joinSql: cargo_types.id = cargo_shipments.cargo_type_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: skymill
-      table: cargo_clients
-      columns:
-      - id
-    targetColumns:
-    - client_id
-    joinSql: cargo_clients.id = cargo_shipments.client_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.cargo_shipments.id

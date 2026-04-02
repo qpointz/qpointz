@@ -16,28 +16,42 @@ Universal Mill URN form:
 urn:mill/<group>/<class>:<id>
 ```
 
-**Case rule:** URNs are case-insensitive; canonical form is **lowercase**. At service boundaries, inputs MUST be normalised before persistence and equality checks. After **WI-120**, `MetadataEntityUrn.canonicalize` is the generic normaliser for any `urn:mill/…` entity id; until then, relational entity URNs use `urn:mill/metadata/entity:<local>` as today.
+**Case rule:** URNs are case-insensitive; canonical form is **lowercase**. At service boundaries, inputs MUST be normalised before persistence and equality checks. **`MetadataEntityUrn.canonicalize`** (WI-120+) is the generic normaliser for any `urn:mill/…` entity id.
 
 | URN | Group | Class | Owner module |
 |-----|-------|-------|----------------|
 | `urn:mill/metadata/facet-type:<name>` | `metadata` | `facet-type` | `mill-metadata-core` |
 | `urn:mill/metadata/scope:<name>` | `metadata` | `scope` | `mill-metadata-core` |
-| `urn:mill/model/schema:<id>` | `model` | `schema` | `mill-data-schema-*` |
+| `urn:mill/metadata/entity-type:<name>` | `metadata` | `entity-type` | `mill-metadata-core` (facet manifest **applicability**, not instance ids) |
+| `urn:mill/model/schema:<schema>` | `model` | `schema` | `mill-data-schema-*` |
 | `urn:mill/model/table:<schema>.<table>` | `model` | `table` | `mill-data-schema-*` |
 | `urn:mill/model/attribute:<schema>.<table>.<col>` | `model` | `attribute` | `mill-data-schema-*` |
+| `urn:mill/model/model:model-entity` | `model` | `model` | `mill-data-schema-*` (logical catalog root entity) |
+| `urn:mill/model/concept:<id>` | `model` | `concept` | taxonomy / concepts |
 
 **`metadata_entity.entity_res`:** stores **any** valid `urn:mill/…` instance URN the caller provides — not restricted to the `metadata` group.
 
-### Relational metadata entity URNs (current JDBC binding)
+### Relational & logical-model entity URNs (current JDBC / catalog binding)
 
-- **Form:** `urn:mill/metadata/entity:<path>`  
-- `<path>` is dot-separated normalised segments, e.g. `sales.customers` (table) or `sales` (schema).
+The **flat** legacy form `urn:mill/metadata/entity:<local>` is **retired** for relational and first-class model entities. The **authoritative** shapes are **typed** under the `model` group:
 
-**REST path variables:** URNs containing `/` cannot be raw path segments. Controllers accept the full `urn:…` when safe, the local part after `urn:mill/metadata/entity:` when it contains no `/`, or **UrnSlug** encoding (`io.qpointz.mill.UrnSlug` in `mill-core`).
+| Entity | Form | Example |
+|--------|------|---------|
+| Schema | `urn:mill/model/schema:<schema>` | `urn:mill/model/schema:sales` |
+| Table | `urn:mill/model/table:<schema>.<table>` | `urn:mill/model/table:sales.customers` |
+| Column / attribute | `urn:mill/model/attribute:<schema>.<table>.<col>` | `urn:mill/model/attribute:sales.customers.id` |
+| Model root | `urn:mill/model/model:model-entity` | (stable id for the logical model node) |
+| Concept | `urn:mill/model/concept:<id>` | (taxonomy concept instance) |
+
+`<schema>`, `<table>`, and `<col>` segments are **dot-separated path suffixes** after the final `:`; each segment is normalised to **lowercase** when building or canonicalising URNs.
+
+**Entity class vs `kind`:** the **class** (`schema`, `table`, `attribute`, `model`, `concept`) is part of the URN path. The optional domain field **`MetadataEntity.kind`** (and JPA **`entity_kind`**) duplicates that information for some deployments; work item **WI-144** removes that redundancy.
+
+**REST path variables:** URNs contain `/` in the namespace. They MUST NOT be passed as raw extra path segments. Clients encode the full instance id with **`UrnSlug`** (`io.qpointz.mill.UrnSlug` in `mill-core`); Mill UI uses the TypeScript twin for `/api/v1/metadata/entities/{id}/…`.
 
 ## `MetadataEntityUrnCodec` (`mill-data-schema-core`)
 
-Maps catalog-facing names from a physical schema provider snapshot to **canonical** `urn:mill/metadata/entity:…` URNs and decodes back to `CatalogPath`. Types: `io.qpointz.mill.data.schema.MetadataEntityUrnCodec`, `DefaultMetadataEntityUrnCodec`, `CatalogPath` in `mill-data-schema-core`.
+Maps catalog-facing names from a physical schema provider snapshot to **canonical typed** `urn:mill/model/…` instance URNs and decodes back to `CatalogPath`. Implementation uses **`RelationalMetadataEntityUrns`** in `mill-data-metadata`. Types: `io.qpointz.mill.data.schema.MetadataEntityUrnCodec`, `DefaultMetadataEntityUrnCodec`, `CatalogPath` in `mill-data-schema-core`.
 
 ## `FacetInstance` + `merge_action` (`mill-metadata-core`)
 

@@ -6,12 +6,13 @@ export interface FeatureFlags {
   viewAnalysis: boolean; // Analysis / Query Playground
   viewChat: boolean; // General Chat
 
-  // Chat References — badges/popovers linking context objects to existing conversations
+  // Chat References — links to existing General Chat conversations (badges, popovers).
+  // Independent from Inline Chat: you can hide the drawer but still show “related conversation” counts.
   chatReferencesEnabled: boolean; // Master toggle for all chat reference features
-  chatReferencesModelContext: boolean; // Chat references on Data Model entities
+  chatReferencesModelContext: boolean; // Load / show chat references for Data Model entities
   chatReferencesKnowledgeContext: boolean; // Chat references on Knowledge concepts
   chatReferencesAnalysisContext: boolean; // Chat references on Analysis queries
-  chatReferencesSidebarIndicator: boolean; // Reference count badges in sidebar tree items
+  chatReferencesSidebarIndicator: boolean; // Violet numeric badges beside tree items (Model + Knowledge sidebars)
 
   // Inline Chat — context-aware chat drawer on detail pages
   inlineChatEnabled: boolean; // Master toggle — hides the entire InlineChatDrawer
@@ -102,7 +103,7 @@ export interface FeatureFlags {
   headerUserProfile: boolean; // User avatar and dropdown menu in header
 }
 
-/** All features enabled by default */
+/** Default resolved flags before remote merge; many areas are opt-in (`false`). */
 export const defaultFeatureFlags: FeatureFlags = {
   viewHome: true,
   viewModel: true,
@@ -110,25 +111,25 @@ export const defaultFeatureFlags: FeatureFlags = {
   viewAnalysis: false,
   viewChat: false,
 
-  chatReferencesEnabled: true,
-  chatReferencesModelContext: true,
-  chatReferencesKnowledgeContext: true,
-  chatReferencesAnalysisContext: true,
-  chatReferencesSidebarIndicator: true,
+  chatReferencesEnabled: false,
+  chatReferencesModelContext: false,
+  chatReferencesKnowledgeContext: false,
+  chatReferencesAnalysisContext: false,
+  chatReferencesSidebarIndicator: false,
 
-  inlineChatEnabled: true,
-  inlineChatModelContext: true,
-  inlineChatModelSchema: true,
-  inlineChatModelTable: true,
-  inlineChatModelColumn: true,
-  inlineChatKnowledgeContext: true,
-  inlineChatAnalysisContext: true,
-  inlineChatMultiSession: true,
-  inlineChatSessionGrouping: true,
-  inlineChatGreeting: true,
+  inlineChatEnabled: false,
+  inlineChatModelContext: false,
+  inlineChatModelSchema: false,
+  inlineChatModelTable: false,
+  inlineChatModelColumn: false,
+  inlineChatKnowledgeContext: false,
+  inlineChatAnalysisContext: false,
+  inlineChatMultiSession: false,
+  inlineChatSessionGrouping: false,
+  inlineChatGreeting: false,
 
   modelStructuralFacet: true,
-  modelQuickBadges: true,
+  modelQuickBadges: false,
   modelPhysicalType: true,
 
   knowledgeDescription: true,
@@ -177,14 +178,14 @@ export const defaultFeatureFlags: FeatureFlags = {
 
   loginRegistration: true,
 
-  relatedContentEnabled: true,
-  relatedContentModelContext: true,
-  relatedContentModelSchema: true,
-  relatedContentModelTable: true,
-  relatedContentModelColumn: true,
-  relatedContentKnowledgeContext: true,
-  relatedContentAnalysisContext: true,
-  relatedContentInDrawer: true,
+  relatedContentEnabled: false,
+  relatedContentModelContext: false,
+  relatedContentModelSchema: false,
+  relatedContentModelTable: false,
+  relatedContentModelColumn: false,
+  relatedContentKnowledgeContext: false,
+  relatedContentAnalysisContext: false,
+  relatedContentInDrawer: false,
 
   chatAttachButton: true,
   chatDictateButton: true,
@@ -193,3 +194,4 @@ export const defaultFeatureFlags: FeatureFlags = {
   headerThemeSwitcher: true,
   headerUserProfile: true,
 };
+

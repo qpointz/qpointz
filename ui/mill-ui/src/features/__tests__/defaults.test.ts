@@ -19,6 +19,30 @@ describe('defaultFeatureFlags', () => {
       'viewAnalysis',
       'viewChat',
       'viewConnect',
+      // Chat references & inline chat (off until product enables General/inline chat UX)
+      'chatReferencesEnabled',
+      'chatReferencesModelContext',
+      'chatReferencesKnowledgeContext',
+      'chatReferencesAnalysisContext',
+      'chatReferencesSidebarIndicator',
+      'inlineChatEnabled',
+      'inlineChatModelContext',
+      'inlineChatModelSchema',
+      'inlineChatModelTable',
+      'inlineChatModelColumn',
+      'inlineChatKnowledgeContext',
+      'inlineChatAnalysisContext',
+      'inlineChatMultiSession',
+      'inlineChatSessionGrouping',
+      'inlineChatGreeting',
+      'relatedContentEnabled',
+      'relatedContentModelContext',
+      'relatedContentModelSchema',
+      'relatedContentModelTable',
+      'relatedContentModelColumn',
+      'relatedContentKnowledgeContext',
+      'relatedContentAnalysisContext',
+      'relatedContentInDrawer',
       // Login providers disabled by default (opt-in SSO/OAuth)
       'loginGithub',
       'loginGoogle',
@@ -29,6 +53,8 @@ describe('defaultFeatureFlags', () => {
       'facetTypesReadOnly',
       // Header features disabled by default
       'headerGlobalSearch',
+      // Model panel — optional chrome
+      'modelQuickBadges',
     ];
 
     for (const [key, value] of Object.entries(defaultFeatureFlags)) {

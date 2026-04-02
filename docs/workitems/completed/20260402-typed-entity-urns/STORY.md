@@ -13,9 +13,8 @@ urn:mill/model/model:model-entity
 urn:mill/model/concept:<id>
 ```
 
-The entity type is then fully derivable from the URN — no separate `entity.kind` field is
-needed for relational or first-class entities. The story also removes `entity.kind` from
-the domain and persistence layer.
+The entity type is then **fully derivable from the URN**. Removing redundant **`entity.kind`**
+from domain and persistence is **WI-144** — see follow-up story **`eliminate-entity-kind`**.
 
 ## Motivation
 
@@ -29,5 +28,9 @@ the domain and persistence layer.
 
 - [x] WI-142 — Typed URN codec (`WI-142-typed-urn-codec.md`)
 - [x] WI-143 — Dataset and persistence migration (`WI-143-dataset-persistence-migration.md`)
-- [ ] WI-144 — Eliminate `entity.kind` (`WI-144-eliminate-entity-kind.md`)
-- [ ] WI-145 — Design documentation update (`WI-145-design-doc-update.md`)
+- [x] WI-145 — Design & public docs for typed URNs (`WI-145-design-doc-update.md`)
+
+## Closure (2026-04-02)
+
+Story **closed** — all items above delivered. **WI-144** (remove `entity.kind`) →
+[`../../eliminate-entity-kind/STORY.md`](../../eliminate-entity-kind/STORY.md).

@@ -233,12 +233,12 @@ App
 │               └── InlineChatProvider (when authenticated)
 │                   ├── AppHeader
 │                   │   ├── Logo + Brand
-│                   │   ├── Tabs (left-aligned): Overview, Model, Knowledge, Analysis, Chat
+│                   │   ├── Brand → `/home`; main nav: Model, Knowledge, Analysis, Chat, Connect (all view-flag gated)
 │                   │   ├── Tabs (right-aligned): Admin
 │                   │   └── Actions: User Menu (Profile, Log out)
 │                   │
 │                   ├── Routes (flex: 1)
-│                   │   ├── /overview → OverviewDashboard
+│                   │   ├── /home → OverviewDashboard
 │                   │   │   ├── Stat cards (Schemas, Tables, Concepts, Queries)
 │                   │   │   └── Quick links (feature-flag gated)
 │                   │   │
@@ -315,11 +315,13 @@ Full-screen login dialog with:
 
 ## Feature Flags
 
+**Authoritative inventory:** [FEATURE-FLAGS.md](./FEATURE-FLAGS.md) (all flag names, defaults, and consumers).
+
 ### System Design
 
 **Files:** `src/features/defaults.ts`, `src/features/FeatureFlagContext.tsx`
 
-Feature flags control visibility of every major UI element. The system supports remote flag fetching with local defaults as fallback.
+Feature flags control visibility of every major UI element. On startup, `FeatureFlagProvider` seeds state from `defaultFeatureFlags`, then merges `featureService.getFlags()` (remote **`Partial<FeatureFlags>`**); omitted keys keep defaults. The mock `featureService` returns the full default object; production wiring targets `GET /api/v1/features`.
 
 ### Provider
 
@@ -335,30 +337,17 @@ export function FeatureFlagProvider({ children }) {
 }
 ```
 
-### Flag Categories
+### Flag Categories (summary)
 
-| Category | Flags | Controls |
-|----------|-------|----------|
-| **Views** | `viewOverview`, `viewModel`, `viewKnowledge`, `viewAnalysis`, `viewChat`, `viewAdmin`, `viewProfile` | Top-level route visibility |
-| **Chat References** | `chatReferencesEnabled`, `chatReferencesModelContext`, `chatReferencesKnowledgeContext`, `chatReferencesAnalysisContext`, `chatReferencesSidebarIndicator` | Related general-chat indicators |
-| **Inline Chat** | `inlineChatEnabled`, `inlineChatGreeting`, `inlineChatModelContext`, `inlineChatModelSchema`, `inlineChatModelTable`, `inlineChatModelColumn`, `inlineChatKnowledgeContext`, `inlineChatAnalysisContext` | Inline chat per context type |
-| **Related Content** | `relatedContentEnabled`, `relatedContentModelContext`, `relatedContentModelSchema`, `relatedContentModelTable`, `relatedContentModelColumn`, `relatedContentKnowledgeContext`, `relatedContentAnalysisContext`, `relatedContentInDrawer` | Cross-object relationship indicators |
-| **Model View** | `modelDescriptiveFacet`, `modelStructuralFacet`, `modelRelationsFacet`, `modelQuickBadges`, `modelPhysicalType` | Entity detail sections |
-| **Knowledge View** | `knowledgeDescription`, `knowledgeTags`, `knowledgeSqlDefinition`, `knowledgeRelatedEntities`, `knowledgeMetadata`, `knowledgeSourceBadge` | Concept detail sections |
-| **Analysis View** | `analysisSqlEditor`, `analysisResults`, `analysisFormatSql`, `analysisCopySql`, `analysisClearSql`, `analysisExport` | Editor toolbar actions |
-| **Sidebar** | `sidebarCollapsible`, `sidebarModelBadge`, `sidebarKnowledgeBadge`, `sidebarKnowledgeCategories`, `sidebarKnowledgeTags`, `sidebarAnalysisBadge` | Sidebar behavior |
-| **Admin** | `adminDataSources`, `adminPolicies`, `adminServices`, `adminSettings` | Admin subsections |
-| **Profile** | `profileGeneral`, `profileSettings`, `profileAccess` | Profile subsections |
-| **Login** | `loginGithub`, `loginGoogle`, `loginMicrosoft`, `loginAws`, `loginAzure`, `loginPassword` | Login provider buttons |
-| **Header** | `headerThemeSwitcher`, `headerUserProfile` | Header UI elements |
+See [FEATURE-FLAGS.md](./FEATURE-FLAGS.md) for the complete table. High-level groups: **Views** (`viewHome`, `viewModel`, `viewKnowledge`, `viewAnalysis`, `viewChat`, `viewConnect`, `viewAdmin`, `viewProfile`), **Chat references**, **Inline chat**, **Related content**, **Model / Knowledge / Analysis** detail toggles, **Sidebars**, **Connect**, **Admin** (including facet-type authoring), **Profile**, **Login providers**, **Chat input** extras, **Header** chrome.
 
-All flags default to `true` for development.
+**Defaults** in `defaultFeatureFlags` are **mixed**: Home and Model stay on; Knowledge, Analysis, Chat, Connect, global search, chat references, inline chat, related content, and quick structural badges default **off** unless the backend (or mock `featureService`) overrides.
 
 ---
 
 ## Views & Features
 
-### 1. Overview Dashboard (`/overview`)
+### 1. Home / Overview Dashboard (`/home`)
 
 **Purpose:** Landing page with statistics and quick navigation
 
@@ -400,9 +389,9 @@ interface ChatState {
 **URL Pattern:** `/model/:schema?/:table?/:attribute?`
 
 **Features:**
-- Expandable tree navigation (Schema → Table → Column) with chat indicators
-- Entity header with type badge, constraints, RelatedContentButton, and InlineChatButton
-- Tabbed facet display (Descriptive, Structural, Relations) — each flag-gated
+- Expandable tree navigation (Schema → Table → Column) with optional inline-chat and chat-reference indicators (flag-gated)
+- Entity header with type badge, optional structural quick badges when `modelQuickBadges`, RelatedContentButton, and InlineChatButton; relation counts live in **Relations** facet cards (not header pills)
+- Tabbed facet display (Descriptive, Structural, Relations) — structural read view gated by `modelStructuralFacet` where applicable
 - URL synchronization for deep linking
 - CollapsibleSidebar with "Schema Browser" title
 
@@ -566,11 +555,11 @@ When an inline chat session is active and related conversations exist, a collaps
 
 | Flag | Default | Controls |
 |------|---------|----------|
-| `chatReferencesEnabled` | `true` | Global kill-switch |
-| `chatReferencesModelContext` | `true` | Model view entities |
-| `chatReferencesKnowledgeContext` | `true` | Knowledge view concepts |
-| `chatReferencesAnalysisContext` | `true` | Analysis view queries |
-| `chatReferencesSidebarIndicator` | `true` | Sidebar count badges |
+| `chatReferencesEnabled` | `false` | Global kill-switch |
+| `chatReferencesModelContext` | `false` | Model view entities |
+| `chatReferencesKnowledgeContext` | `false` | Knowledge view concepts |
+| `chatReferencesAnalysisContext` | `false` | Analysis view queries |
+| `chatReferencesSidebarIndicator` | `false` | Sidebar count badges |
 
 ### Type
 
@@ -656,14 +645,14 @@ The drawer header shows a related content popover (indigo link icon + badge) **l
 
 | Flag | Default | Controls |
 |------|---------|----------|
-| `relatedContentEnabled` | `true` | Global kill-switch |
-| `relatedContentModelContext` | `true` | Model view entities |
-| `relatedContentModelSchema` | `true` | Schema-level entities |
-| `relatedContentModelTable` | `true` | Table-level entities |
-| `relatedContentModelColumn` | `true` | Column-level entities |
-| `relatedContentKnowledgeContext` | `true` | Knowledge view concepts |
-| `relatedContentAnalysisContext` | `true` | Analysis view queries |
-| `relatedContentInDrawer` | `true` | Related content popover in InlineChatDrawer |
+| `relatedContentEnabled` | `false` | Global kill-switch |
+| `relatedContentModelContext` | `false` | Model view entities |
+| `relatedContentModelSchema` | `false` | Schema-level entities |
+| `relatedContentModelTable` | `false` | Table-level entities |
+| `relatedContentModelColumn` | `false` | Column-level entities |
+| `relatedContentKnowledgeContext` | `false` | Knowledge view concepts |
+| `relatedContentAnalysisContext` | `false` | Analysis view queries |
+| `relatedContentInDrawer` | `false` | Related content popover in InlineChatDrawer |
 
 ### Types
 
@@ -862,9 +851,9 @@ type ChatAction =
 **Location:** `src/features/FeatureFlagContext.tsx`
 
 **Pattern:** useState + useEffect for remote fetch
-- Starts with `defaultFeatureFlags` (all `true`)
+- Starts with `defaultFeatureFlags` from `defaults.ts`
 - Fetches from `featureService.getFlags()` on mount
-- Merges remote into defaults (remote overrides)
+- Merges remote into defaults (remote **partial** overrides; omitted keys unchanged)
 
 ### Auth State
 
@@ -892,12 +881,13 @@ type ChatAction =
 
 ```typescript
 <Routes>
-  {flags.viewOverview  && <Route path="/overview" element={<OverviewDashboard />} />}
+  {flags.viewHome      && <Route path="/home" element={<OverviewDashboard />} />}
   {flags.viewModel     && <Route path="/model/:schema?/:table?/:attribute?" element={<DataModelLayout />} />}
   {flags.viewKnowledge && <Route path="/knowledge/:conceptId?" element={<ContextLayout />} />}
   {flags.viewAnalysis  && <Route path="/analysis/:queryId?" element={<QueryPlayground />} />}
   {flags.viewChat      && <Route path="/chat/*" element={<ChatView />} />}
-  {flags.viewAdmin     && <Route path="/admin/:section?" element={<AdminLayout />} />}
+  {flags.viewConnect   && <Route path="/connect/:section?" element={<ConnectLayout />} />}
+  {flags.viewAdmin     && <Route path="/admin/*" element={<AdminLayout />} />}
   {flags.viewProfile   && <Route path="/profile/:section?" element={<ProfileLayout />} />}
   <Route index element={<Navigate to={defaultRoute} replace />} />
   <Route path="*" element={<NotFoundPage />} />
@@ -908,15 +898,16 @@ type ChatAction =
 
 | View | Pattern | Example |
 |------|---------|---------|
-| Overview | `/overview` | `/overview` |
+| Home | `/home` | `/home` |
 | Chat | `/chat` | `/chat` |
 | Model | `/model/:schema?/:table?/:attribute?` | `/model/sales/customers/customer_id` |
 | Knowledge | `/knowledge/:conceptId?` | `/knowledge/customer-lifetime-value` |
 | Analysis | `/analysis/:queryId?` | `/analysis/top-customers` |
-| Admin | `/admin/:section?` | `/admin/data-sources` |
+| Connect | `/connect/:section?` | `/connect/services` |
+| Admin | `/admin/*` | `/admin/data-sources` |
 | Profile | `/profile/:section?` | `/profile/settings` |
 
-The default route dynamically resolves to the first enabled view (priority: overview → model → knowledge → analysis → chat).
+The default route resolves in `App.tsx` to the first enabled view in order: home → model → knowledge → analysis → chat (falls back to `/home` if none match).
 
 ---
 
@@ -1202,7 +1193,7 @@ npm run lint
 ## Notes for Continuation
 
 1. **Auth is mock** — `AuthContext` in `App.tsx` uses `useState`; replace with real auth provider
-2. **Feature flags default to `true`** — All UI is visible in development; toggle in `defaults.ts`
+2. **Feature flag defaults are mixed** — See [FEATURE-FLAGS.md](./FEATURE-FLAGS.md) and `defaults.ts`; enable opt-in areas via backend partial flags or local edits
 3. **Chat state is scoped** — `ChatProvider` wraps ChatView only; `InlineChatProvider` is app-wide
 4. **Data Model uses URL params** — Entity ID format is `schema.table.column`
 5. **Data layer is centralized** — All data access goes through `src/services/api.ts`. Never import `src/data/mock*.ts` from views, contexts, or hooks. See [Data Layer](#data-layer) section.

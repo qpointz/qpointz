@@ -3,7 +3,8 @@ import { renderHook, waitFor, act } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { MantineProvider } from '@mantine/core';
 import { ChatReferencesProvider, useChatReferencesContext } from '../ChatReferencesContext';
-import { FeatureFlagProvider } from '../../features/FeatureFlagContext';
+import { FeatureFlagContext } from '../../features/FeatureFlagContext';
+import { defaultFeatureFlags } from '../../features/defaults';
 import type { ConversationRef } from '../../types/chatReferences';
 
 const mockGetConversationsForContext = vi.fn<(ct: string, ci: string) => Promise<ConversationRef[]>>();
@@ -12,11 +13,6 @@ vi.mock('../../services/api', () => ({
   chatReferencesService: {
     getConversationsForContext: (...args: [string, string]) => mockGetConversationsForContext(...args),
   },
-  featureService: {
-    async getFlags() {
-      return {}; // defaults — all flags enabled
-    },
-  },
 }));
 
 beforeEach(() => {
@@ -24,12 +20,20 @@ beforeEach(() => {
   mockGetConversationsForContext.mockResolvedValue([]);
 });
 
+const chatRefsTestFlags = {
+  ...defaultFeatureFlags,
+  chatReferencesEnabled: true,
+  chatReferencesModelContext: true,
+  chatReferencesKnowledgeContext: true,
+  chatReferencesAnalysisContext: true,
+};
+
 function wrapper({ children }: { children: ReactNode }) {
   return (
     <MantineProvider>
-      <FeatureFlagProvider>
+      <FeatureFlagContext.Provider value={chatRefsTestFlags}>
         <ChatReferencesProvider>{children}</ChatReferencesProvider>
-      </FeatureFlagProvider>
+      </FeatureFlagContext.Provider>
     </MantineProvider>
   );
 }

@@ -44,6 +44,9 @@ export function ChatReferencesProvider({ children }: { children: ReactNode }) {
   const fetchSingle = useCallback(
     async (contextType: string, contextId: string) => {
       if (!flags.chatReferencesEnabled) return;
+      if (contextType === 'model' && !flags.chatReferencesModelContext) return;
+      if (contextType === 'knowledge' && !flags.chatReferencesKnowledgeContext) return;
+      if (contextType === 'analysis' && !flags.chatReferencesAnalysisContext) return;
 
       const key = `${contextType}:${contextId}`;
       if (cacheRef.current.has(key) || pendingRef.current.has(key)) return;
@@ -60,7 +63,12 @@ export function ChatReferencesProvider({ children }: { children: ReactNode }) {
         pendingRef.current.delete(key);
       }
     },
-    [flags.chatReferencesEnabled],
+    [
+      flags.chatReferencesEnabled,
+      flags.chatReferencesModelContext,
+      flags.chatReferencesKnowledgeContext,
+      flags.chatReferencesAnalysisContext,
+    ],
   );
 
   const getRefsForContextId = useCallback(

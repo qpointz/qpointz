@@ -63,7 +63,6 @@ must pass with the new typed form after the migration runs.
 ## Out of scope
 
 - `entity.kind` field removal (WI-144).
-- Design doc update (WI-145).
 
 ## Acceptance criteria
 

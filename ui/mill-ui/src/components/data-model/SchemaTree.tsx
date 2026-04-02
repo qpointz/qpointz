@@ -48,9 +48,12 @@ function TreeNode({
   const isSelected = selectedId === entity.id;
   const Icon = entityIcons[entity.type];
   const hasChat = !!getSessionByContextId(entity.id);
-  const chatRefs = flags.chatReferencesEnabled && flags.chatReferencesSidebarIndicator
-    ? getRefsForContextId(entity.id)
-    : [];
+  const chatRefs =
+    flags.chatReferencesEnabled &&
+    flags.chatReferencesSidebarIndicator &&
+    flags.chatReferencesModelContext
+      ? getRefsForContextId(entity.id)
+      : [];
   const hasRelatedChats = chatRefs.length > 0;
 
   const handleClick = () => {

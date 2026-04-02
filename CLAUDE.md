@@ -191,12 +191,20 @@ docs/workitems/
 ```
 
 - Folder name: lowercase hyphen-separated slug of the story topic.
-- `STORY.md` must contain a short goal description and an ordered checkbox list of all WIs.
-  Update each box to `[x]` as each WI is completed.
+- `STORY.md` must contain a short goal description and an ordered checkbox list of all WIs — this
+  checklist is the story **tracking list** for the branch. **After each WI is completed:** set its
+  box to `[x]`, update its `WI-*.md` when the story requires it, and **commit** (one commit per WI;
+  see **Branching & Commits**). Keep the tracking list and Git history in step; do not batch several
+  finished WIs without updating `STORY.md` or without committing.
 - WI files live inside the story folder — **not** at the top level of `docs/workitems/`.
 
 ### Story closure (before branch is merge-ready)
 
+0. **MR-ready history** — replay/squash all commits from the story branch **since its merge base**
+   (usually `origin/dev`, but match the branch you actually branched from / will target). **Group
+   commits logically by what changed** (not only by WI count); aim for a **small, readable** set of
+   commits (**~10 or fewer** is the usual target — flexible for large stories). Then open the MR. Full
+   detail: `docs/workitems/RULES.md` → **Completion (Story level)**.
 1. Update `docs/workitems/MILESTONE.md` — add completed WIs to the appropriate milestone.
 2. Update `docs/workitems/BACKLOG.md` — mark related entries `done`.
 3. Update / create design docs under the relevant `docs/design/<component>/` section
@@ -213,17 +221,23 @@ Full rules: `docs/workitems/RULES.md`.
 
 ### Branching & Commits
 
-- Branch from `origin/dev`; rebase against `origin/dev` before pushing.
+- Branch **usually** from `origin/dev`; rebase against that (or your MR target) before pushing. If the
+  story started from another integration branch, use that consistently at closure when squashing.
 - All WIs within a story share the **same branch**; no sub-branches per WI unless there is an
   explicit dependency on unmerged prior work.
 - Never commit directly to `dev` or `main`.
 - One logical commit per WI (squash at WI completion).
-- **After each WI is complete:** commit the **full working copy** for that WI — every intentional
-  file touched (code, tests, `docs/workitems/<story>/STORY.md` checkbox, WI markdown updates, etc.)
-  in **one** commit, so the tree is **clean** before starting the next WI. Do not leave part of a
-  finished WI uncommitted. Exclude build artifacts, secrets, and unrelated changes outside the story.
-- **At story closure**: squash and regroup all commits since branching into a minimal set of
-  logical commits before the branch is merge-ready. Use `git rebase -i origin/dev`.
+- **After each WI is complete (story implementation):** (1) **Update the tracking list** in
+  `docs/workitems/<story>/STORY.md` (mark that WI `[x]`). (2) Update the corresponding
+  `WI-NNN-*.md` if the WI or story template expects notes or status there. (3) **Commit** the
+  **full working copy** for that WI — every intentional file touched (code, tests, story tracking,
+  WI markdown, etc.) in **one** commit so the tree is **clean** before starting the next WI. Do not
+  leave a finished WI unchecked or uncommitted. Exclude build artifacts, secrets, and unrelated
+  changes outside the story.
+- **At story closure**: squash and **regroup by change content** (coherent themes, not necessarily
+  one commit per WI) so the branch is **MR-ready**; **~10 commits** above the merge base is a soft
+  maximum. Use interactive rebase against the real merge target (often `origin/dev`). See
+  `docs/workitems/RULES.md` → **Completion (Story level)**.
 - Commit prefix style: `[feat]`, `[fix]`, `[change]`, `[docs]`, `[wip]`; imperative, under 72 chars.
 - **Never** add `Co-Authored-By` trailers to commit messages.
 - Do not force-push to protected branches.

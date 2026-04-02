@@ -205,17 +205,19 @@ Same logical entities as §3, but:
 
 - **`id`**: full Mill **entity instance URN** for relational metadata.
 
-**Recommended for new writers** (matches `skymill-meta-canonical.yaml` and `urn:mill/metadata/entity:` platform binding):
+**Recommended for new writers** (matches current canonical datasets and the **typed** platform binding in `metadata-urn-platform.md`):
 
 ```text
-urn:mill/metadata/entity:{schema}
-urn:mill/metadata/entity:{schema}.{table}
-urn:mill/metadata/entity:{schema}.{table}.{column}
+urn:mill/model/schema:{schema}
+urn:mill/model/table:{schema}.{table}
+urn:mill/model/attribute:{schema}.{table}.{column}
+urn:mill/model/model:model-entity
+urn:mill/model/concept:{id}
 ```
 
 Use **lower case** path segments after the colon (canonicalisation rule).
 
-> **Note:** `test/datasets/build_multidoc_metadata_fixtures.py` currently emits `urn:mill/model/schema:…`, `urn:mill/model/table:…`, `urn:mill/model/attribute:…` for §15.2 multidoc fixtures. That is a **second naming convention** in-repo. Before mixing outputs, run import/IT tests: **prefer `urn:mill/metadata/entity:`** for relational seeds unless you explicitly target the model-namespace generator.
+Do **not** emit the retired flat form `urn:mill/metadata/entity:<local>` for relational or model-root entities. `test/datasets/build_multidoc_metadata_fixtures.py` and canonical YAML under `test/datasets/` should use the **`urn:mill/model/…`** shapes above.
 
 - **`type`**: `SCHEMA`, `TABLE`, `ATTRIBUTE` (uppercase, as in fixtures).
 
@@ -311,8 +313,8 @@ visibility: PUBLIC
 | Field | Meaning |
 |--------|---------|
 | `kind` | `MetadataEntity` |
-| `entityRes` | Full entity URN (see §5.2 note on `metadata/entity` vs `model/` namespaces). |
-| `entityKind` | lowercase: `schema`, `table`, `attribute`, `concept` |
+| `entityRes` | Full entity URN — use typed `urn:mill/model/…` per §5.2 (not `urn:mill/metadata/entity:…`). |
+| `entityKind` | lowercase: `schema`, `table`, `attribute`, `model`, `concept` — must agree with the class segment of `entityRes`; field slated for removal with **WI-144** |
 | `facets` | **list** of assignment objects (not nested map). |
 
 Each **facet assignment**:

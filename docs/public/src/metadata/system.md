@@ -13,7 +13,7 @@ Mill **metadata** is structured business context attached to **entities**: schem
 | Business **concepts** | **Knowledge** view and chat context |
 | Governed definitions | Depends on facet types your operator deployed |
 
-The UI loads facets through **`/api/v1/metadata/**`**. The tree and physical names come from **`/api/v1/schema/**`**. When both are configured, the explorer adds a **metadata entity id** to nodes that have a stored record so editing and chat tools can target the right row.
+The UI loads facets through **`/api/v1/metadata/**`**. The tree and physical names come from **`/api/v1/schema/**`**. When both are configured, the explorer adds a **`metadataEntityId`** (a full Mill URN, usually **`urn:mill/model/schema:…`**, **`…/table:…`**, or **`…/attribute:…`** for catalog objects) to nodes that have a stored record so editing and chat tools can target the right row.
 
 ---
 

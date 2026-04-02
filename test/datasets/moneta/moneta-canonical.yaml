@@ -6,6 +6,161 @@ displayName: Global
 visibility: PUBLIC
 ---
 kind: MetadataEntity
+entityUrn: urn:mill/model/model:model-entity
+entityKind: model
+facets:
+- facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    displayName: Moneta
+    description: Qsynth model root (moneta)
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: moneta
+      table: accounts
+      columns:
+      - account_id
+    target:
+      schema: moneta
+      table: transactions
+      columns:
+      - account_id
+    cardinality: ONE_TO_MANY
+    joinSql: accounts.account_id = transactions.account_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: moneta
+      table: clients
+      columns:
+      - client_id
+    target:
+      schema: moneta
+      table: accounts
+      columns:
+      - client_id
+    cardinality: ONE_TO_MANY
+    joinSql: clients.client_id = accounts.client_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: moneta
+      table: clients
+      columns:
+      - client_id
+    target:
+      schema: moneta
+      table: loans
+      columns:
+      - client_id
+    cardinality: ONE_TO_MANY
+    joinSql: clients.client_id = loans.client_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: moneta
+      table: clients
+      columns:
+      - client_id
+    target:
+      schema: moneta
+      table: stock_portfolios
+      columns:
+      - client_id
+    cardinality: ONE_TO_MANY
+    joinSql: clients.client_id = stock_portfolios.client_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: moneta
+      table: loans
+      columns:
+      - loan_id
+    target:
+      schema: moneta
+      table: loan_payments
+      columns:
+      - loan_id
+    cardinality: ONE_TO_MANY
+    joinSql: loans.loan_id = loan_payments.loan_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: moneta
+      table: stock_portfolios
+      columns:
+      - portfolio_id
+    target:
+      schema: moneta
+      table: stock_holdings
+      columns:
+      - portfolio_id
+    cardinality: ONE_TO_MANY
+    joinSql: stock_portfolios.portfolio_id = stock_holdings.portfolio_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: moneta
+      table: stock_portfolios
+      columns:
+      - portfolio_id
+    target:
+      schema: moneta
+      table: trade_orders
+      columns:
+      - portfolio_id
+    cardinality: ONE_TO_MANY
+    joinSql: stock_portfolios.portfolio_id = trade_orders.portfolio_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: moneta
+      table: stocks
+      columns:
+      - stock_id
+    target:
+      schema: moneta
+      table: stock_holdings
+      columns:
+      - stock_id
+    cardinality: ONE_TO_MANY
+    joinSql: stocks.stock_id = stock_holdings.stock_id
+- facetTypeUrn: urn:mill/metadata/facet-type:relation
+  scopeUrn: urn:mill/metadata/scope:global
+  mergeAction: SET
+  payload:
+    source:
+      schema: moneta
+      table: stocks
+      columns:
+      - stock_id
+    target:
+      schema: moneta
+      table: trade_orders
+      columns:
+      - stock_id
+    cardinality: ONE_TO_MANY
+    joinSql: stocks.stock_id = trade_orders.stock_id
+---
+kind: MetadataEntity
 entityUrn: urn:mill/model/schema:moneta
 entityKind: schema
 facets:
@@ -27,7 +182,7 @@ facets:
   scopeUrn: urn:mill/metadata/scope:global
   mergeAction: SET
   payload:
-    run_id: qsynth-moneta-63eb2e5b-b92f-4da1-8c89-5964b5f7745a
+    run_id: qsynth-moneta-de9a2ef8-d12d-47b5-b6d2-83b02fcc333f
     experiment_names: write_mill_canonical
 ---
 kind: MetadataEntity
@@ -54,45 +209,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: clients
     rows_spec: '5000'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - client_id
-    target:
-      schema: moneta
-      table: accounts
-      columns:
-      - client_id
-    cardinality: ONE_TO_MANY
-    joinSql: clients.client_id = accounts.client_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - client_id
-    target:
-      schema: moneta
-      table: loans
-      columns:
-      - client_id
-    cardinality: ONE_TO_MANY
-    joinSql: clients.client_id = loans.client_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - client_id
-    target:
-      schema: moneta
-      table: stock_portfolios
-      columns:
-      - client_id
-    cardinality: ONE_TO_MANY
-    joinSql: clients.client_id = stock_portfolios.client_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:moneta.clients.client_id
@@ -380,31 +496,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: accounts
     rows_spec: '8000'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - account_id
-    target:
-      schema: moneta
-      table: transactions
-      columns:
-      - account_id
-    cardinality: ONE_TO_MANY
-    joinSql: accounts.account_id = transactions.account_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: moneta
-      table: clients
-      columns:
-      - client_id
-    targetColumns:
-    - client_id
-    joinSql: clients.client_id = accounts.client_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:moneta.accounts.account_id
@@ -566,18 +657,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: transactions
     rows_spec: '50000'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: moneta
-      table: accounts
-      columns:
-      - account_id
-    targetColumns:
-    - account_id
-    joinSql: accounts.account_id = transactions.account_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:moneta.transactions.transaction_id
@@ -764,31 +843,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: loans
     rows_spec: '12000'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - loan_id
-    target:
-      schema: moneta
-      table: loan_payments
-      columns:
-      - loan_id
-    cardinality: ONE_TO_MANY
-    joinSql: loans.loan_id = loan_payments.loan_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: moneta
-      table: clients
-      columns:
-      - client_id
-    targetColumns:
-    - client_id
-    joinSql: clients.client_id = loans.client_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:moneta.loans.loan_id
@@ -1001,18 +1055,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: loan_payments
     rows_spec: '36000'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: moneta
-      table: loans
-      columns:
-      - loan_id
-    targetColumns:
-    - loan_id
-    joinSql: loans.loan_id = loan_payments.loan_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:moneta.loan_payments.payment_id
@@ -1146,44 +1188,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: stock_portfolios
     rows_spec: '7000'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - portfolio_id
-    target:
-      schema: moneta
-      table: stock_holdings
-      columns:
-      - portfolio_id
-    cardinality: ONE_TO_MANY
-    joinSql: stock_portfolios.portfolio_id = stock_holdings.portfolio_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - portfolio_id
-    target:
-      schema: moneta
-      table: trade_orders
-      columns:
-      - portfolio_id
-    cardinality: ONE_TO_MANY
-    joinSql: stock_portfolios.portfolio_id = trade_orders.portfolio_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: moneta
-      table: clients
-      columns:
-      - client_id
-    targetColumns:
-    - client_id
-    joinSql: clients.client_id = stock_portfolios.client_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:moneta.stock_portfolios.portfolio_id
@@ -1319,32 +1323,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: stocks
     rows_spec: '300'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - stock_id
-    target:
-      schema: moneta
-      table: stock_holdings
-      columns:
-      - stock_id
-    cardinality: ONE_TO_MANY
-    joinSql: stocks.stock_id = stock_holdings.stock_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-source
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    sourceColumns:
-    - stock_id
-    target:
-      schema: moneta
-      table: trade_orders
-      columns:
-      - stock_id
-    cardinality: ONE_TO_MANY
-    joinSql: stocks.stock_id = trade_orders.stock_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:moneta.stocks.stock_id
@@ -1504,30 +1482,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: stock_holdings
     rows_spec: '12000'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: moneta
-      table: stock_portfolios
-      columns:
-      - portfolio_id
-    targetColumns:
-    - portfolio_id
-    joinSql: stock_portfolios.portfolio_id = stock_holdings.portfolio_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: moneta
-      table: stocks
-      columns:
-      - stock_id
-    targetColumns:
-    - stock_id
-    joinSql: stocks.stock_id = stock_holdings.stock_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:moneta.stock_holdings.holding_id
@@ -1691,30 +1645,6 @@ facets:
     data_mode: GENERATED
     qsynth_dataset_name: trade_orders
     rows_spec: '30000'
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: moneta
-      table: stock_portfolios
-      columns:
-      - portfolio_id
-    targetColumns:
-    - portfolio_id
-    joinSql: stock_portfolios.portfolio_id = trade_orders.portfolio_id
-- facetTypeUrn: urn:mill/metadata/facet-type:relation-target
-  scopeUrn: urn:mill/metadata/scope:global
-  mergeAction: SET
-  payload:
-    source:
-      schema: moneta
-      table: stocks
-      columns:
-      - stock_id
-    targetColumns:
-    - stock_id
-    joinSql: stocks.stock_id = trade_orders.stock_id
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:moneta.trade_orders.order_id

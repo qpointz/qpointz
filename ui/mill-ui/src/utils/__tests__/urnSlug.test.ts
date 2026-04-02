@@ -12,14 +12,14 @@ import {
 
 describe('urnSlug (Java UrnSlug parity)', () => {
   it('round-trips entity URNs', () => {
-    const urn = 'urn:mill/metadata/entity:skymill.cargo_clients.country_id';
+    const urn = 'urn:mill/model/attribute:skymill.cargo_clients.country_id';
     const slug = encodeUrnSlug(urn);
     expect(slug).not.toContain('/');
     expect(decodeUrnSlug(slug)).toBe(urn);
   });
 
   it('metadataEntityPathSegment is percent-encoded and slash-free before encoding', () => {
-    const urn = 'urn:mill/metadata/entity:sales.customers';
+    const urn = 'urn:mill/model/table:sales.customers';
     const seg = metadataEntityPathSegment(urn);
     expect(decodeUrnSlug(decodeURIComponent(seg))).toBe(urn);
   });

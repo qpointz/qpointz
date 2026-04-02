@@ -23,6 +23,7 @@ import { useNavigate } from 'react-router';
 import { useInlineChat } from '../../context/InlineChatContext';
 import { useChatReferences } from '../../context/ChatReferencesContext';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
+import type { FeatureFlags } from '../../features/defaults';
 import type { InlineChatContextType } from '../../types/inlineChat';
 
 interface InlineChatButtonProps {
@@ -32,7 +33,37 @@ interface InlineChatButtonProps {
   contextEntityType?: string;
 }
 
-export function InlineChatButton({
+function inlineChatAllowedForContext(
+  flags: FeatureFlags,
+  contextType: InlineChatContextType,
+  contextEntityType: string | undefined,
+): boolean {
+  if (!flags.inlineChatEnabled) return false;
+  if (contextType === 'model') {
+    if (!flags.inlineChatModelContext) return false;
+    if (contextEntityType === 'SCHEMA' && !flags.inlineChatModelSchema) return false;
+    if (contextEntityType === 'TABLE' && !flags.inlineChatModelTable) return false;
+    if (contextEntityType === 'COLUMN' && !flags.inlineChatModelColumn) return false;
+  }
+  if (contextType === 'knowledge' && !flags.inlineChatKnowledgeContext) return false;
+  if (contextType === 'analysis' && !flags.inlineChatAnalysisContext) return false;
+  return true;
+}
+
+/**
+ * Opens the inline chat drawer for the current context. Only mounts reference-fetch hook when
+ * inline chat is allowed — otherwise visiting Model details would still prefetch “related
+ * conversations” and tree badges could light up from the mock service.
+ */
+export function InlineChatButton(props: InlineChatButtonProps) {
+  const flags = useFeatureFlags();
+  if (!inlineChatAllowedForContext(flags, props.contextType, props.contextEntityType)) {
+    return null;
+  }
+  return <InlineChatButtonActive {...props} />;
+}
+
+function InlineChatButtonActive({
   contextType,
   contextId,
   contextLabel,
@@ -40,24 +71,10 @@ export function InlineChatButton({
 }: InlineChatButtonProps) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
-  const flags = useFeatureFlags();
   const navigate = useNavigate();
   const { startSession, getSessionByContextId, openDrawer, setActiveSession } = useInlineChat();
   const { refs } = useChatReferences(contextType, contextId);
   const [popoverOpen, setPopoverOpen] = useState(false);
-
-  // Global kill-switch (inline chat)
-  if (!flags.inlineChatEnabled) return null;
-
-  // Context-type level flags
-  if (contextType === 'model') {
-    if (!flags.inlineChatModelContext) return null;
-    if (contextEntityType === 'SCHEMA' && !flags.inlineChatModelSchema) return null;
-    if (contextEntityType === 'TABLE' && !flags.inlineChatModelTable) return null;
-    if (contextEntityType === 'COLUMN' && !flags.inlineChatModelColumn) return null;
-  }
-  if (contextType === 'knowledge' && !flags.inlineChatKnowledgeContext) return null;
-  if (contextType === 'analysis' && !flags.inlineChatAnalysisContext) return null;
 
   const existingSession = getSessionByContextId(contextId);
   const hasActiveChat = !!existingSession;
@@ -65,14 +82,11 @@ export function InlineChatButton({
 
   const handleClick = () => {
     if (existingSession) {
-      // Has inline session → open drawer
       setActiveSession(existingSession.id);
       openDrawer();
     } else if (hasRelatedChats) {
-      // No inline session, but has related chats → show popover
       setPopoverOpen((o) => !o);
     } else {
-      // No inline session, no related chats → start new inline session
       startSession(contextType, contextId, contextLabel, contextEntityType);
     }
   };
@@ -85,7 +99,6 @@ export function InlineChatButton({
   const handleNavigateToChat = (conversationId: string) => {
     setPopoverOpen(false);
     navigate(`/chat`);
-    // Note: conversationId can be used when backend navigation is implemented
     void conversationId;
   };
 
@@ -124,7 +137,6 @@ export function InlineChatButton({
                 <HiOutlineChatBubbleLeftRight size={20} />
               </ActionIcon>
             </Indicator>
-            {/* Related chats count badge */}
             {hasRelatedChats && (
               <Badge
                 size="xs"
@@ -157,7 +169,6 @@ export function InlineChatButton({
           border: `1px solid ${isDark ? 'var(--mantine-color-gray-6)' : 'var(--mantine-color-gray-3)'}`,
         }}
       >
-        {/* Start inline chat action */}
         <Box p="xs">
           <Button
             variant="light"
@@ -176,7 +187,6 @@ export function InlineChatButton({
 
         <Divider color={isDark ? 'gray.7' : 'gray.3'} />
 
-        {/* Related conversations list */}
         <Box px="xs" pt={6} pb={4}>
           <Group gap={4} mb={6}>
             <HiOutlineChatBubbleOvalLeft

@@ -274,6 +274,15 @@ Items delivered in this milestone.
 
 **Metadata — Multi-origin facets and UI cleanup (`metadata-and-ui-improve-and-clean`, closed April 2026):** **`MetadataSource`**, **`FacetOrigin`**, unified read **`FacetInstance`** with **`originId`**; **`RepositoryMetadataSource`**; **`LogicalLayoutMetadataSource`** in **`mill-data-metadata`** (**`MetadataOriginIds.LOGICAL_LAYOUT`**); new **`mill-data-metadata`** module (**`CatalogPath`**, **`SchemaModelRoot`**, inferred sources) with autoconfigure in **`mill-data-autoconfigure`** (**`LogicalLayoutMetadataSourceAutoConfiguration`**, **`SchemaFacetServiceAutoConfiguration`**, **`MetadataEntityUrnCodecAutoConfiguration`**); **`FacetInstanceReadMerge`** + **`DefaultFacetService.resolve`**; REST **`?scope=`** / **`?origin=`** with **`FacetInstanceDto`**; mutation guards (WI-135); **`model`** root (WI-137); read-path merge (WI-133); resolved read API + OpenAPI (WI-134); UI full constellation (WI-136); contracts + **`RepositoryMetadataSource`** (WI-132); **`EntityRepository`** = **`EntityReadSide`** + **`EntityWriteSide`**, **`FacetRepository`** = **`FacetReadSide`** + **`FacetWriteSide`** for persistence seams; facet class demotion + **`FacetPayloadUtils`** (WI-140); dead-code sweep (WI-130); design + public docs incl. multi-source user guide (WI-141). **WI-139** (flow/physical inferred source) **deferred**. Normative checklist and spec: [`completed/20260401-metadata-and-ui-improve-and-clean/STORY.md`](completed/20260401-metadata-and-ui-improve-and-clean/STORY.md). Backlog **M-31** done.
 
+**Typed entity URNs (`typed-entity-urns`, closed 2026-04-02):** **WI-142** typed URN codec
+(`urn:mill/model/<class>:<id>` for schema, table, attribute, model root, concept); **WI-143**
+canonical datasets and persistence/read paths aligned to typed entity URNs; **WI-145** design +
+public doc updates (`metadata-urn-platform`, canonical YAML spec, synthetic writer handoff,
+`mill-metadata-domain-model`, `mill-ui` / operator docs). **WI-144** (drop redundant
+`MetadataEntity.kind` / `entity_kind`) **deferred** to active story
+[`eliminate-entity-kind/STORY.md`](eliminate-entity-kind/STORY.md). Archive:
+[`completed/20260402-typed-entity-urns/STORY.md`](completed/20260402-typed-entity-urns/STORY.md).
+
 ### In Progress
 
 Items currently being implemented in this milestone.

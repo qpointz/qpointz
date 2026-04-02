@@ -1,9 +1,12 @@
 # WI-144 — Eliminate `entity.kind`
 
-**Story:** typed-entity-urns  
+**Story:** eliminate-entity-kind  
 **Status:** Open  
 **Type:** refactoring  
 **Area:** data, metadata
+
+*Previously tracked under **typed-entity-urns**; moved here when that story closed (typed URNs +
+datasets + docs shipped first).*
 
 ## Summary
 
