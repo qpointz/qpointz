@@ -1,6 +1,7 @@
 package io.qpointz.mill.data.schema
 
 import io.qpointz.mill.data.backend.SchemaProvider
+import io.qpointz.mill.data.metadata.ModelEntityUrn
 import io.qpointz.mill.data.metadata.SchemaEntityKinds
 import io.qpointz.mill.data.metadata.SchemaModelRoot
 import io.qpointz.mill.metadata.domain.FacetTypeDefinition
@@ -119,11 +120,8 @@ class SchemaFacetServiceImplTest {
         schemaName: String?,
         tableName: String?,
         attributeName: String?,
-        legacyLocalId: String? = null
     ): MetadataEntity {
         val id = when {
-            legacyLocalId != null ->
-                MetadataEntityUrn.canonicalize("urn:mill/metadata/entity:$legacyLocalId")
             tableName == null && attributeName == null -> codec.forSchema(schemaName!!)
             attributeName == null -> codec.forTable(schemaName!!, tableName!!)
             else -> codec.forAttribute(schemaName!!, tableName!!, attributeName)
@@ -287,7 +285,7 @@ class SchemaFacetServiceImplTest {
 
     @Test
     fun `schema-level metadata is matched by schema name`() {
-        val entity = metadataEntity("schema_a", null, null, "schema_a")
+        val entity = metadataEntity("schema_a", null, null)
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("schema_a"))
         whenever(schemaProvider.getSchema("schema_a")).thenReturn(emptySchema())
         stubEntities(entity)
@@ -302,7 +300,7 @@ class SchemaFacetServiceImplTest {
 
     @Test
     fun `table-level metadata is matched by schema and table name`() {
-        val entity = metadataEntity("s", "t", null, "s.t")
+        val entity = metadataEntity("s", "t", null)
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t")))
         stubEntities(entity)
@@ -316,7 +314,7 @@ class SchemaFacetServiceImplTest {
 
     @Test
     fun `column-level metadata is matched by schema, table, and column name`() {
-        val entity = metadataEntity("s", "t", "col", "s.t.col")
+        val entity = metadataEntity("s", "t", "col")
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t", field("col"))))
         stubEntities(entity)
@@ -343,7 +341,7 @@ class SchemaFacetServiceImplTest {
 
     @Test
     fun `table metadata does not match schema-only entity`() {
-        val schemaOnlyEntity = metadataEntity("s", null, null, "s")
+        val schemaOnlyEntity = metadataEntity("s", null, null)
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t")))
         stubEntities(schemaOnlyEntity)
@@ -355,7 +353,7 @@ class SchemaFacetServiceImplTest {
 
     @Test
     fun `column metadata does not match table entity`() {
-        val tableEntity = metadataEntity("s", "t", null, "s.t")
+        val tableEntity = metadataEntity("s", "t", null)
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t", field("col"))))
         stubEntities(tableEntity)
@@ -369,7 +367,7 @@ class SchemaFacetServiceImplTest {
 
     @Test
     fun `metadata entity referencing missing schema goes to unboundMetadata`() {
-        val stale = metadataEntity("ghost_schema", null, null, "ghost_schema")
+        val stale = metadataEntity("ghost_schema", null, null)
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("real_schema"))
         whenever(schemaProvider.getSchema("real_schema")).thenReturn(emptySchema())
         stubEntities(stale)
@@ -382,7 +380,7 @@ class SchemaFacetServiceImplTest {
 
     @Test
     fun `metadata entity referencing missing table goes to unboundMetadata`() {
-        val stale = metadataEntity("s", "ghost_table", null, "s.ghost_table")
+        val stale = metadataEntity("s", "ghost_table", null)
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "real_table")))
         stubEntities(stale)
@@ -395,7 +393,7 @@ class SchemaFacetServiceImplTest {
 
     @Test
     fun `metadata entity referencing missing column goes to unboundMetadata`() {
-        val stale = metadataEntity("s", "t", "ghost_col", "s.t.ghost_col")
+        val stale = metadataEntity("s", "t", "ghost_col")
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t", field("real_col"))))
         stubEntities(stale)
@@ -408,8 +406,8 @@ class SchemaFacetServiceImplTest {
 
     @Test
     fun `matched metadata is not duplicated in unboundMetadata`() {
-        val matched = metadataEntity("s", "t", null, "s.t")
-        val unmatched = metadataEntity("s", "ghost", null, "s.ghost")
+        val matched = metadataEntity("s", "t", null)
+        val unmatched = metadataEntity("s", "ghost", null)
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t")))
         stubEntities(matched, unmatched)
@@ -424,7 +422,7 @@ class SchemaFacetServiceImplTest {
     fun `non relational entity urn is never bound and appears in unboundMetadata`() {
         val t = now()
         val orphan = MetadataEntity(
-            id = MetadataEntityUrn.canonicalize("urn:mill/metadata/entity:concept:orphan"),
+            id = ModelEntityUrn.forConcept("orphan"),
             kind = SchemaEntityKinds.CONCEPT,
             uuid = null,
             createdAt = t,
@@ -446,7 +444,7 @@ class SchemaFacetServiceImplTest {
 
     @Test
     fun `descriptive facet is attached from matched table entity`() {
-        val entity = metadataEntity("s", "t", null, "s.t")
+        val entity = metadataEntity("s", "t", null)
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t")))
         stubEntities(entity)
@@ -470,7 +468,7 @@ class SchemaFacetServiceImplTest {
 
     @Test
     fun `facetByType returns correct facet for known type`() {
-        val entity = metadataEntity("s", "t", null, "s.t")
+        val entity = metadataEntity("s", "t", null)
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t")))
         stubEntities(entity)
@@ -493,7 +491,7 @@ class SchemaFacetServiceImplTest {
 
     @Test
     fun `absent facets resolve to null on typed properties`() {
-        val entity = metadataEntity("s", "t", null, "s.t")
+        val entity = metadataEntity("s", "t", null)
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t")))
         stubEntities(entity)
@@ -545,7 +543,7 @@ class SchemaFacetServiceImplTest {
 
     @Test
     fun `matched metadata entity is accessible for traceability from WithFacets object`() {
-        val entity = metadataEntity("s", "t", "col", "s.t.col")
+        val entity = metadataEntity("s", "t", "col")
         whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
         whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t", field("col"))))
         stubEntities(entity)

@@ -9,7 +9,7 @@ package io.qpointz.mill.data.metadata
 object SchemaModelRoot {
 
     /** Canonical persisted metadata entity URN for the model root. */
-    const val ENTITY_ID: String = "urn:mill/metadata/entity:model-entity"
+    const val ENTITY_ID: String = ModelEntityUrn.MODEL_ENTITY_ID
 
     /**
      * Short slug suitable for explorer tree node ids and URL path segments (`/model/model-entity`).

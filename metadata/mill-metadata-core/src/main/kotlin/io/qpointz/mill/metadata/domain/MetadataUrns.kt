@@ -24,9 +24,6 @@ object MetadataUrns {
     /** URN prefix for scope identifiers, e.g. `urn:mill/metadata/scope:global`. */
     const val SCOPE_PREFIX = "urn:mill/metadata/scope:"
 
-    /** URN prefix for persisted metadata entity ids, e.g. `urn:mill/metadata/entity:schema.table.col`. */
-    const val ENTITY_PREFIX = "urn:mill/metadata/entity:"
-
     /**
      * URN prefix for entity-type identifiers in facet manifests (`applicableTo`). Full vocabulary
      * URNs are platform strings (see `platform-facet-types.json`); named constants live in

@@ -229,12 +229,11 @@ class MetadataEntityControllerTest {
     }
 
     @Test
-    fun shouldGetEntityFacets_whenPathIdIsPrefixedLocalPartOnly() {
-        val local = "myschema.mytable"
-        val fullUrn = "urn:mill/metadata/entity:$local"
-        whenever(facetService.resolve(eq(fullUrn), any())).thenReturn(listOf(descriptiveRead))
+    fun shouldGetEntityFacets_whenPathIdIsUrnSlug() {
+        val tableUrn = "urn:mill/model/table:myschema.mytable"
+        whenever(facetService.resolve(eq(tableUrn), any())).thenReturn(listOf(descriptiveRead))
 
-        mockMvc.perform(servletGet(URI.create("http://localhost/api/v1/metadata/entities/$local/facets")))
+        mockMvc.perform(servletGet(entitySlugUri(tableUrn, "/facets")))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$[0].uid").value("facet-uid-1"))
     }

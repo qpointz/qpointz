@@ -2,7 +2,7 @@ package io.qpointz.mill.data.metadata.source
 
 import io.qpointz.mill.data.backend.SchemaProvider
 import io.qpointz.mill.data.metadata.LayoutInferredFacetTypeKeys
-import io.qpointz.mill.data.metadata.RelationalMetadataEntityUrns
+import io.qpointz.mill.data.metadata.ModelEntityUrn
 import io.qpointz.mill.data.metadata.SchemaModelRoot
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.facet.FacetInstance
@@ -35,7 +35,7 @@ class LogicalLayoutMetadataSource(
         if (eid == modelId) {
             return emptyList()
         }
-        val path = RelationalMetadataEntityUrns.parseCatalogPath(eid)
+        val path = ModelEntityUrn.parseCatalogPath(eid)
         val schemaName = path.schema ?: return emptyList()
         if (!schemaProvider.isSchemaExists(schemaName)) {
             return emptyList()

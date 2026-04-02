@@ -441,31 +441,22 @@ class MetadataEntityController(
             )
         }
         val urn = try {
-            when {
-                t.startsWith("mill-metadata-entity:", ignoreCase = true) || t.contains("--") ->
-                    UrnSlug.decode(t)
-                t.contains('.') || t.contains(':') ->
-                    UrnSlug.decode(t, MetadataUrns.ENTITY_PREFIX)
-                else ->
-                    UrnSlug.decode(t)
-            }
+            UrnSlug.decode(t)
         } catch (ex: IllegalArgumentException) {
             throw MillStatuses.badRequestRuntime(
-                "Entity path id must be a full Mill URN (urn:mill/…), a UrnSlug full segment " +
-                    "(mill-metadata-entity:…), or a dotted/colon local id under ${MetadataUrns.ENTITY_PREFIX} " +
-                    "(e.g. skymill.cargo_shipments.revenue). ${ex.message}"
+                "Entity path id must be a full Mill URN (urn:mill/…) or a UrnSlug segment. ${ex.message}"
             )
         }
         val canonical = try {
             MetadataEntityUrn.canonicalize(urn)
         } catch (ex: IllegalArgumentException) {
             throw MillStatuses.badRequestRuntime(
-                "Entity path id must resolve to a Mill URN under ${MetadataUrns.ENTITY_PREFIX}. ${ex.message}"
+                "Entity path id must resolve to a Mill URN (urn:mill/…). ${ex.message}"
             )
         }
-        if (!canonical.startsWith(MetadataUrns.ENTITY_PREFIX)) {
+        if (!canonical.startsWith("urn:mill/")) {
             throw MillStatuses.badRequestRuntime(
-                "Entity path id must resolve to ${MetadataUrns.ENTITY_PREFIX}…; got: $canonical"
+                "Entity path id must resolve to a urn:mill/… URN; got: $canonical"
             )
         }
         return canonical

@@ -2,27 +2,32 @@ package io.qpointz.mill.metadata.service
 
 import io.qpointz.mill.data.schema.MetadataEntityUrnCodec
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
+import io.qpointz.mill.metadata.domain.MillUrn
 import java.util.Locale
 
 /**
  * Resolves REST and legacy catalog keys to canonical metadata entity instance URNs.
+ *
+ * Accepts three input forms:
+ * - Any typed Mill URN (`urn:mill/…`) — returned canonicalised as-is.
+ * - Legacy dot-separated catalog key (`schema[.table[.column]]`) — expanded via [codec].
  *
  * @see MetadataEntityUrnCodec
  */
 object MetadataEntityIdResolver {
 
     /**
-     * @param raw entity URN, legacy `schema[.table[.column]]` key, or case-variant thereof
-     * @param codec relational URN codec
-     * @return canonical `urn:mill/metadata/entity:…` string
+     * @param raw any Mill URN or legacy `schema[.table[.column]]` key
+     * @param codec relational URN codec used to expand legacy keys
+     * @return canonical URN string
      */
     fun resolve(raw: String, codec: MetadataEntityUrnCodec): String {
         val t = raw.trim()
         if (MetadataEntityUrn.isMillUrn(t)) {
             return MetadataEntityUrn.canonicalize(t)
         }
-        val local = extractLocalPart(t)
-        val parts = local.split('.').map { it.trim().lowercase(Locale.ROOT) }.filter { it.isNotEmpty() }
+        val parts = t.lowercase(Locale.ROOT)
+            .split('.').map { it.trim() }.filter { it.isNotEmpty() }
         require(parts.isNotEmpty()) { "Invalid metadata entity id: $raw" }
         return when (parts.size) {
             1 -> codec.forSchema(parts[0])
@@ -31,25 +36,20 @@ object MetadataEntityIdResolver {
         }
     }
 
-    private fun extractLocalPart(t: String): String {
-        val prefix = "urn:mill/metadata/entity:"
-        if (t.startsWith(prefix, ignoreCase = true)) {
-            return t.substring(prefix.length)
-        }
-        return t.lowercase(Locale.ROOT)
-    }
-
     /**
      * Normalises an entity id to a lowercase dot-separated catalog key for physical schema checks.
      *
-     * @param raw entity URN (`urn:mill/metadata/entity:…`) or legacy `schema[.table[.column]]` key
-     * @return local id segment in lowercase (without the `urn:mill/metadata/entity:` prefix when a URN)
+     * For typed Mill URNs the local `id` segment (after the final `:`) is returned.
+     * For legacy dot-separated keys the lowercased input is returned unchanged.
+     *
+     * @param raw any Mill URN or legacy `schema[.table[.column]]` key
+     * @return dot-separated local id in lowercase
      */
     fun canonicalizeEntityId(raw: String): String {
         val t = raw.trim()
-        val prefix = "urn:mill/metadata/entity:"
-        if (t.startsWith(prefix, ignoreCase = true)) {
-            return MetadataEntityUrn.canonicalize(t).substring(prefix.length)
+        val parsed = MillUrn.parse(t)
+        if (parsed != null) {
+            return parsed.id
         }
         return t.lowercase(Locale.ROOT)
     }
