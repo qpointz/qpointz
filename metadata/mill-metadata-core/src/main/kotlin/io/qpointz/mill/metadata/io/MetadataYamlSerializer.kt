@@ -36,9 +36,6 @@ object MetadataYamlSerializer {
             t.isNotEmpty() && !t.startsWith("#")
         }
 
-    /** Same local-part rules as [io.qpointz.mill.data.metadata.RelationalMetadataEntityUrns] (kept here to avoid a Gradle cycle). */
-    private const val RELATIONAL_ENTITY_PREFIX = "urn:mill/metadata/entity:"
-
     /**
      * Serialises scopes, definitions, entities, and facet assignments as multi-document YAML.
      *

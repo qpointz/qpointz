@@ -26,7 +26,7 @@ import java.time.Instant
 @Schema(
     name = "MetadataEntity",
     description = "Metadata entity identity. No schema/table/column coordinates and no facets map — use facet endpoints.",
-    example = """{"entityUrn":"urn:mill/metadata/entity:public.orders","kind":"table"}"""
+    example = """{"entityUrn":"urn:mill/model/table:public.orders","kind":"table"}"""
 )
 data class MetadataEntityDto(
     @param:JsonProperty("entityUrn")
@@ -34,7 +34,7 @@ data class MetadataEntityDto(
     @field:Schema(
         description = "Full entity URN",
         name = "entityUrn",
-        example = "urn:mill/metadata/entity:public.orders",
+        example = "urn:mill/model/table:public.orders",
         requiredMode = Schema.RequiredMode.NOT_REQUIRED
     )
     val entityUrn: String? = null,

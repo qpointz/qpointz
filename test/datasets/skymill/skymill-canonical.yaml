@@ -6,7 +6,7 @@ displayName: Global
 visibility: PUBLIC
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill
+entityUrn: urn:mill/model/schema:skymill
 entityKind: schema
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:descriptive
@@ -32,7 +32,7 @@ facets:
     experiment_names: write_mill_canonical
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cities
+entityUrn: urn:mill/model/table:skymill.cities
 entityKind: table
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-table
@@ -97,7 +97,7 @@ facets:
     joinSql: cities.id = passenger.domicile_city_id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cities.id
+entityUrn: urn:mill/model/attribute:skymill.cities.id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -124,7 +124,7 @@ facets:
     generator_params_json: '{"max": 500000, "min": 100000}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cities.state
+entityUrn: urn:mill/model/attribute:skymill.cities.state
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -150,7 +150,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cities.city
+entityUrn: urn:mill/model/attribute:skymill.cities.city
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -176,7 +176,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cities.population
+entityUrn: urn:mill/model/attribute:skymill.cities.population
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -203,7 +203,7 @@ facets:
     generator_params_json: '{"max": 5000000, "min": 10000}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cities.airport
+entityUrn: urn:mill/model/attribute:skymill.cities.airport
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -229,7 +229,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cities.airport_iata
+entityUrn: urn:mill/model/attribute:skymill.cities.airport_iata
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -255,7 +255,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.segments
+entityUrn: urn:mill/model/table:skymill.segments
 entityKind: table
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-table
@@ -331,7 +331,7 @@ facets:
     joinSql: cities.id = segments.destination
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.segments.id
+entityUrn: urn:mill/model/attribute:skymill.segments.id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -358,7 +358,7 @@ facets:
     generator_params_json: '{"max": 500000, "min": 100000}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.segments.origin
+entityUrn: urn:mill/model/attribute:skymill.segments.origin
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -387,7 +387,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.segments.destination
+entityUrn: urn:mill/model/attribute:skymill.segments.destination
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -416,7 +416,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.segments.distance
+entityUrn: urn:mill/model/attribute:skymill.segments.distance
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -443,7 +443,7 @@ facets:
     generator_params_json: '{"max": 2500, "min": 200}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.aircraft_types
+entityUrn: urn:mill/model/table:skymill.aircraft_types
 entityKind: table
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-table
@@ -482,7 +482,7 @@ facets:
     joinSql: aircraft_types.id = aircraft.aircraft_type_id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.aircraft_types.id
+entityUrn: urn:mill/model/attribute:skymill.aircraft_types.id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -508,7 +508,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.aircraft_types.name
+entityUrn: urn:mill/model/attribute:skymill.aircraft_types.name
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -534,7 +534,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.aircraft_types.description
+entityUrn: urn:mill/model/attribute:skymill.aircraft_types.description
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -560,7 +560,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.aircraft
+entityUrn: urn:mill/model/table:skymill.aircraft
 entityKind: table
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-table
@@ -624,7 +624,7 @@ facets:
     joinSql: aircraft_types.id = aircraft.aircraft_type_id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.aircraft.id
+entityUrn: urn:mill/model/attribute:skymill.aircraft.id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -651,7 +651,7 @@ facets:
     generator_params_json: '{"max": 99999, "min": 10000}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.aircraft.aircraft_code
+entityUrn: urn:mill/model/attribute:skymill.aircraft.aircraft_code
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -678,7 +678,7 @@ facets:
     generator_params_json: '{"letters": "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "text": "SKY###"}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.aircraft.aircraft_type_id
+entityUrn: urn:mill/model/attribute:skymill.aircraft.aircraft_type_id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -707,7 +707,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.aircraft.capacity
+entityUrn: urn:mill/model/attribute:skymill.aircraft.capacity
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -734,7 +734,7 @@ facets:
     generator_params_json: '{"max": 400, "min": 80}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.passenger
+entityUrn: urn:mill/model/table:skymill.passenger
 entityKind: table
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-table
@@ -811,7 +811,7 @@ facets:
     joinSql: cities.id = passenger.domicile_city_id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.passenger.id
+entityUrn: urn:mill/model/attribute:skymill.passenger.id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -838,7 +838,7 @@ facets:
     generator_params_json: '{"max": 9999999, "min": 1000000}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.passenger.first_name
+entityUrn: urn:mill/model/attribute:skymill.passenger.first_name
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -864,7 +864,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.passenger.last_name
+entityUrn: urn:mill/model/attribute:skymill.passenger.last_name
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -890,7 +890,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.passenger.domicile_address
+entityUrn: urn:mill/model/attribute:skymill.passenger.domicile_address
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -916,7 +916,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.passenger.domicile_city_id
+entityUrn: urn:mill/model/attribute:skymill.passenger.domicile_city_id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -945,7 +945,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.passenger.age
+entityUrn: urn:mill/model/attribute:skymill.passenger.age
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -972,7 +972,7 @@ facets:
     generator_params_json: '{"max": 90, "min": 12}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.passenger.loyalty_program_member
+entityUrn: urn:mill/model/attribute:skymill.passenger.loyalty_program_member
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -998,7 +998,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.passenger.loyalty_tier
+entityUrn: urn:mill/model/attribute:skymill.passenger.loyalty_tier
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1026,7 +1026,7 @@ facets:
     generator_params_json: '{"elements": ["basic", "silver", "gold", "platinum"]}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.flight_instances
+entityUrn: urn:mill/model/table:skymill.flight_instances
 entityKind: table
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-table
@@ -1129,7 +1129,7 @@ facets:
     joinSql: segments.id = flight_instances.segment_id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.flight_instances.id
+entityUrn: urn:mill/model/attribute:skymill.flight_instances.id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1156,7 +1156,7 @@ facets:
     generator_params_json: '{"max": 9999999, "min": 1000000}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.flight_instances.aircraft_id
+entityUrn: urn:mill/model/attribute:skymill.flight_instances.aircraft_id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1185,7 +1185,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.flight_instances.segment_id
+entityUrn: urn:mill/model/attribute:skymill.flight_instances.segment_id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1214,7 +1214,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.flight_instances.departure_date
+entityUrn: urn:mill/model/attribute:skymill.flight_instances.departure_date
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1240,7 +1240,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.flight_instances.arrival_date
+entityUrn: urn:mill/model/attribute:skymill.flight_instances.arrival_date
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1266,7 +1266,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_flights
+entityUrn: urn:mill/model/table:skymill.cargo_flights
 entityKind: table
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-table
@@ -1330,7 +1330,7 @@ facets:
     joinSql: segments.id = cargo_flights.segment_id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_flights.id
+entityUrn: urn:mill/model/attribute:skymill.cargo_flights.id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1357,7 +1357,7 @@ facets:
     generator_params_json: '{"max": 999999, "min": 100000}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_flights.aircraft_id
+entityUrn: urn:mill/model/attribute:skymill.cargo_flights.aircraft_id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1386,7 +1386,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_flights.segment_id
+entityUrn: urn:mill/model/attribute:skymill.cargo_flights.segment_id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1415,7 +1415,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_flights.departure_date
+entityUrn: urn:mill/model/attribute:skymill.cargo_flights.departure_date
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1441,7 +1441,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_flights.arrival_date
+entityUrn: urn:mill/model/attribute:skymill.cargo_flights.arrival_date
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1467,7 +1467,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.bookings
+entityUrn: urn:mill/model/table:skymill.bookings
 entityKind: table
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-table
@@ -1544,7 +1544,7 @@ facets:
     joinSql: flight_instances.id = bookings.flight_instance_id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.bookings.id
+entityUrn: urn:mill/model/attribute:skymill.bookings.id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1571,7 +1571,7 @@ facets:
     generator_params_json: '{"max": 9999999, "min": 1000000}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.bookings.passenger_id
+entityUrn: urn:mill/model/attribute:skymill.bookings.passenger_id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1600,7 +1600,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.bookings.flight_instance_id
+entityUrn: urn:mill/model/attribute:skymill.bookings.flight_instance_id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1629,7 +1629,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.bookings.seat_number
+entityUrn: urn:mill/model/attribute:skymill.bookings.seat_number
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1656,7 +1656,7 @@ facets:
     generator_params_json: '{"letters": "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "text": "??#"}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.loyalty_earnings
+entityUrn: urn:mill/model/table:skymill.loyalty_earnings
 entityKind: table
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-table
@@ -1706,7 +1706,7 @@ facets:
     joinSql: passenger.id = loyalty_earnings.passenger_id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.loyalty_earnings.id
+entityUrn: urn:mill/model/attribute:skymill.loyalty_earnings.id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1733,7 +1733,7 @@ facets:
     generator_params_json: '{"max": 9999999, "min": 1000000}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.loyalty_earnings.booking_id
+entityUrn: urn:mill/model/attribute:skymill.loyalty_earnings.booking_id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1762,7 +1762,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.loyalty_earnings.passenger_id
+entityUrn: urn:mill/model/attribute:skymill.loyalty_earnings.passenger_id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1791,7 +1791,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.loyalty_earnings.miles_earned
+entityUrn: urn:mill/model/attribute:skymill.loyalty_earnings.miles_earned
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1818,7 +1818,7 @@ facets:
     generator_params_json: '{"max": 5000, "min": 500}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.loyalty_earnings.earning_date
+entityUrn: urn:mill/model/attribute:skymill.loyalty_earnings.earning_date
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1844,7 +1844,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.delays
+entityUrn: urn:mill/model/table:skymill.delays
 entityKind: table
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-table
@@ -1882,7 +1882,7 @@ facets:
     joinSql: flight_instances.id = delays.flight_instance_id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.delays.id
+entityUrn: urn:mill/model/attribute:skymill.delays.id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1909,7 +1909,7 @@ facets:
     generator_params_json: '{"max": 9999999, "min": 1000000}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.delays.flight_instance_id
+entityUrn: urn:mill/model/attribute:skymill.delays.flight_instance_id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1938,7 +1938,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.delays.delay_minutes
+entityUrn: urn:mill/model/attribute:skymill.delays.delay_minutes
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1965,7 +1965,7 @@ facets:
     generator_params_json: '{"max": 180, "min": 5}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.delays.reason
+entityUrn: urn:mill/model/attribute:skymill.delays.reason
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -1992,7 +1992,7 @@ facets:
     generator_params_json: '{"elements": ["weather", "technical", "crew", "other"]}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cancellations
+entityUrn: urn:mill/model/table:skymill.cancellations
 entityKind: table
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-table
@@ -2030,7 +2030,7 @@ facets:
     joinSql: flight_instances.id = cancellations.flight_instance_id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cancellations.id
+entityUrn: urn:mill/model/attribute:skymill.cancellations.id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2057,7 +2057,7 @@ facets:
     generator_params_json: '{"max": 9999999, "min": 1000000}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cancellations.flight_instance_id
+entityUrn: urn:mill/model/attribute:skymill.cancellations.flight_instance_id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2086,7 +2086,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cancellations.cancellation_reason
+entityUrn: urn:mill/model/attribute:skymill.cancellations.cancellation_reason
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2113,7 +2113,7 @@ facets:
     generator_params_json: '{"elements": ["weather", "technical", "operational", "low_demand"]}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cancellations.cancellation_time
+entityUrn: urn:mill/model/attribute:skymill.cancellations.cancellation_time
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2139,7 +2139,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.ticket_prices
+entityUrn: urn:mill/model/table:skymill.ticket_prices
 entityKind: table
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-table
@@ -2177,7 +2177,7 @@ facets:
     joinSql: bookings.id = ticket_prices.booking_id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.ticket_prices.booking_id
+entityUrn: urn:mill/model/attribute:skymill.ticket_prices.booking_id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2206,7 +2206,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.ticket_prices.base_price
+entityUrn: urn:mill/model/attribute:skymill.ticket_prices.base_price
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2233,7 +2233,7 @@ facets:
     generator_params_json: '{"max": 1500, "min": 50}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.ticket_prices.taxes
+entityUrn: urn:mill/model/attribute:skymill.ticket_prices.taxes
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2260,7 +2260,7 @@ facets:
     generator_params_json: '{"max": 300, "min": 10}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.ticket_prices.total_price
+entityUrn: urn:mill/model/attribute:skymill.ticket_prices.total_price
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2286,7 +2286,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.ticket_prices.travel_class
+entityUrn: urn:mill/model/attribute:skymill.ticket_prices.travel_class
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2314,7 +2314,7 @@ facets:
     generator_params_json: '{"elements": ["economy", "business", "first"]}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.ticket_prices.currency
+entityUrn: urn:mill/model/attribute:skymill.ticket_prices.currency
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2341,7 +2341,7 @@ facets:
     generator_params_json: '{"elements": ["USD", "EUR", "CHF"]}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.ratings
+entityUrn: urn:mill/model/table:skymill.ratings
 entityKind: table
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-table
@@ -2391,7 +2391,7 @@ facets:
     joinSql: flight_instances.id = ratings.flight_instance_id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.ratings.id
+entityUrn: urn:mill/model/attribute:skymill.ratings.id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2418,7 +2418,7 @@ facets:
     generator_params_json: '{"max": 9999999, "min": 1000000}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.ratings.passenger_id
+entityUrn: urn:mill/model/attribute:skymill.ratings.passenger_id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2447,7 +2447,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.ratings.flight_instance_id
+entityUrn: urn:mill/model/attribute:skymill.ratings.flight_instance_id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2476,7 +2476,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.ratings.rating
+entityUrn: urn:mill/model/attribute:skymill.ratings.rating
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2503,7 +2503,7 @@ facets:
     generator_params_json: '{"max": 5, "min": 1}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.ratings.rating_comment
+entityUrn: urn:mill/model/attribute:skymill.ratings.rating_comment
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2529,7 +2529,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.ratings.rated_at
+entityUrn: urn:mill/model/attribute:skymill.ratings.rated_at
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2555,7 +2555,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.countries
+entityUrn: urn:mill/model/table:skymill.countries
 entityKind: table
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-table
@@ -2594,7 +2594,7 @@ facets:
     joinSql: countries.id = cargo_clients.country_id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.countries.id
+entityUrn: urn:mill/model/attribute:skymill.countries.id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2621,7 +2621,7 @@ facets:
     generator_params_json: '{"max": 500, "min": 1}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.countries.iso_code
+entityUrn: urn:mill/model/attribute:skymill.countries.iso_code
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2647,7 +2647,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.countries.name
+entityUrn: urn:mill/model/attribute:skymill.countries.name
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2673,7 +2673,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_clients
+entityUrn: urn:mill/model/table:skymill.cargo_clients
 entityKind: table
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-table
@@ -2724,7 +2724,7 @@ facets:
     joinSql: countries.id = cargo_clients.country_id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_clients.id
+entityUrn: urn:mill/model/attribute:skymill.cargo_clients.id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2751,7 +2751,7 @@ facets:
     generator_params_json: '{"max": 99999, "min": 10000}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_clients.client_name
+entityUrn: urn:mill/model/attribute:skymill.cargo_clients.client_name
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2777,7 +2777,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_clients.address
+entityUrn: urn:mill/model/attribute:skymill.cargo_clients.address
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2803,7 +2803,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_clients.city
+entityUrn: urn:mill/model/attribute:skymill.cargo_clients.city
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2829,7 +2829,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_clients.country_id
+entityUrn: urn:mill/model/attribute:skymill.cargo_clients.country_id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2858,7 +2858,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_clients.postal_code
+entityUrn: urn:mill/model/attribute:skymill.cargo_clients.postal_code
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2884,7 +2884,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_clients.region
+entityUrn: urn:mill/model/attribute:skymill.cargo_clients.region
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2911,7 +2911,7 @@ facets:
     generator_params_json: '{"elements": ["EMEA", "APAC", "AM"]}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_types
+entityUrn: urn:mill/model/table:skymill.cargo_types
 entityKind: table
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-table
@@ -2950,7 +2950,7 @@ facets:
     joinSql: cargo_types.id = cargo_shipments.cargo_type_id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_types.id
+entityUrn: urn:mill/model/attribute:skymill.cargo_types.id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -2976,7 +2976,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_types.name
+entityUrn: urn:mill/model/attribute:skymill.cargo_types.name
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -3002,7 +3002,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_types.description
+entityUrn: urn:mill/model/attribute:skymill.cargo_types.description
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -3028,7 +3028,7 @@ facets:
     is_reference: false
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_shipments
+entityUrn: urn:mill/model/table:skymill.cargo_shipments
 entityKind: table
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-table
@@ -3090,7 +3090,7 @@ facets:
     joinSql: cargo_clients.id = cargo_shipments.client_id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_shipments.id
+entityUrn: urn:mill/model/attribute:skymill.cargo_shipments.id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -3117,7 +3117,7 @@ facets:
     generator_params_json: '{"max": 9999999, "min": 1000000}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_shipments.cargo_flight_id
+entityUrn: urn:mill/model/attribute:skymill.cargo_shipments.cargo_flight_id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -3146,7 +3146,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_shipments.cargo_type_id
+entityUrn: urn:mill/model/attribute:skymill.cargo_shipments.cargo_type_id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -3176,7 +3176,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_shipments.weight_kg
+entityUrn: urn:mill/model/attribute:skymill.cargo_shipments.weight_kg
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -3203,7 +3203,7 @@ facets:
     generator_params_json: '{"max": 50000, "min": 1000}'
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_shipments.client_id
+entityUrn: urn:mill/model/attribute:skymill.cargo_shipments.client_id
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column
@@ -3232,7 +3232,7 @@ facets:
     ref_attribute: id
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cargo_shipments.revenue
+entityUrn: urn:mill/model/attribute:skymill.cargo_shipments.revenue
 entityKind: attribute
 facets:
 - facetTypeUrn: urn:mill/metadata/facet-type:source-column

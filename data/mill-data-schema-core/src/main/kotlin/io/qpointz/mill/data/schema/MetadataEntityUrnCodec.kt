@@ -6,7 +6,7 @@ import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 
 /**
  * Schema-layer binding from physical catalog names to **canonical** metadata instance URNs
- * (`urn:mill/metadata/entity:…`) and back.
+ * (`urn:mill/model/<kind>:…`) and back.
  *
  * Implementations live in `mill-data-schema-core`; catalog path rules live in `mill-data-metadata`.
  *

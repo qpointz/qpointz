@@ -21,7 +21,7 @@ import java.time.Instant
  */
 class RepositoryMetadataSourceTest {
 
-    private val entityId = "urn:mill/metadata/entity:test.schema"
+    private val entityId = "urn:mill/model/schema:test.schema"
 
     private val assignment = FacetAssignment(
         uid = "facet-assign-1",

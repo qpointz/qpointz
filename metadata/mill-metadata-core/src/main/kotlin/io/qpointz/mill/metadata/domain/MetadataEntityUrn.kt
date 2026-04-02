@@ -6,7 +6,7 @@ import kotlin.jvm.JvmStatic
 /**
  * Normalisation helpers for Mill URNs (`urn:mill/...`).
  *
- * Relational entity URNs (`urn:mill/metadata/entity:...`) are built in `mill-data-schema-core`
+ * Relational entity URNs (`urn:mill/model/<kind>:...`) are built in `mill-data-schema-core`
  * via [io.qpointz.mill.data.schema.MetadataEntityUrnCodec].
  */
 object MetadataEntityUrn {

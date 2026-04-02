@@ -19,7 +19,7 @@ import java.time.Instant
 
 class FacetInstanceReadMergeTest {
 
-    private val eid = "urn:mill/metadata/entity:demo.entity"
+    private val eid = "urn:mill/model/table:demo.entity"
 
     private fun catalog(): FacetCatalog = mock<FacetCatalog>().apply {
         whenever(resolveCardinality(any())).thenReturn(FacetTargetCardinality.SINGLE)

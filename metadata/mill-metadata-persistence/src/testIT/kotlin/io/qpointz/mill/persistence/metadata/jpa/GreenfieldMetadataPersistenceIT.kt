@@ -40,7 +40,7 @@ class GreenfieldMetadataPersistenceIT {
 
     @Test
     fun `should persist entity facet and write audit row on insert`() {
-        val id = "urn:mill/metadata/entity:test.${UUID.randomUUID()}"
+        val id = "urn:mill/model/table:test.${UUID.randomUUID()}"
         val now = Instant.now()
         metadataEntityRepository.save(
             MetadataEntity(
@@ -82,7 +82,7 @@ class GreenfieldMetadataPersistenceIT {
 
     @Test
     fun `should append metadata_audit rows on facet update and delete`() {
-        val id = "urn:mill/metadata/entity:test.${UUID.randomUUID()}"
+        val id = "urn:mill/model/table:test.${UUID.randomUUID()}"
         val now = Instant.now()
         metadataEntityRepository.save(
             MetadataEntity(

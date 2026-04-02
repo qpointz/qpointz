@@ -54,8 +54,7 @@ import io.qpointz.mill.metadata.domain.MetadataEntity as DomainMetadataEntity
  *
  * Path `{id}` is a **full** `urn:mill/…` entity URN (percent-encoded, `%2F` for `/`), a
  * [UrnSlug.encode] **full** segment (e.g. `mill-metadata-entity:schema.table.column` — hyphens encode `/`),
- * **or** a **prefixed** local id (namespace `urn:mill/metadata/entity:`) when it contains `.` or `:`
- * (e.g. `skymill.cargo_shipments.revenue`); bare single segments stay invalid.
+ * **or** a URN slug (e.g. `mill-model-table:skymill.cargo_shipments`); bare single segments stay invalid.
  * Dot-path catalog keys alone are rejected with **400**.
  *
  * Facet type keys in path variables are normalised via [MetadataUrns.normaliseFacetTypePath].
@@ -544,7 +543,7 @@ class MetadataEntityController(
         val rawId = dto.entityUrn?.trim().orEmpty()
         if (rawId.isEmpty()) {
             throw MillStatuses.badRequestRuntime(
-                "entityUrn is required: full entity URN (`urn:mill/metadata/entity:…`)"
+                "entityUrn is required: full typed entity URN (e.g. `urn:mill/model/table:schema.table`)"
             )
         }
         if (!rawId.startsWith("urn:mill/", ignoreCase = true)) {

@@ -28,6 +28,6 @@ the domain and persistence layer.
 ## Work Items
 
 - [x] WI-142 — Typed URN codec (`WI-142-typed-urn-codec.md`)
-- [ ] WI-143 — Dataset and persistence migration (`WI-143-dataset-persistence-migration.md`)
+- [x] WI-143 — Dataset and persistence migration (`WI-143-dataset-persistence-migration.md`)
 - [ ] WI-144 — Eliminate `entity.kind` (`WI-144-eliminate-entity-kind.md`)
 - [ ] WI-145 — Design documentation update (`WI-145-design-doc-update.md`)

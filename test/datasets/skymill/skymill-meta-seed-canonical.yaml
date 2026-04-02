@@ -2,7 +2,7 @@
 # Relational entity URNs match RelationalMetadataEntityUrns / SkyMillSchemaProvider.
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill
+entityUrn: urn:mill/model/schema:skymill
 entityKind: schema
 facets:
   - facetTypeUrn: urn:mill/metadata/facet-type:descriptive
@@ -12,7 +12,7 @@ facets:
       description: Skymill Airlines flight and cargo schema
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cities
+entityUrn: urn:mill/model/table:skymill.cities
 entityKind: table
 facets:
   - facetTypeUrn: urn:mill/metadata/facet-type:structural
@@ -44,7 +44,7 @@ facets:
             - origin
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.cities.city
+entityUrn: urn:mill/model/attribute:skymill.cities.city
 entityKind: attribute
 facets:
   - facetTypeUrn: urn:mill/metadata/facet-type:descriptive
@@ -54,7 +54,7 @@ facets:
       description: City label column
 ---
 kind: MetadataEntity
-entityUrn: urn:mill/metadata/entity:skymill.ghost_table
+entityUrn: urn:mill/model/table:skymill.ghost_table
 entityKind: table
 facets:
   - facetTypeUrn: urn:mill/metadata/facet-type:descriptive

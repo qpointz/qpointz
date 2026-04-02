@@ -30,7 +30,7 @@ class MetadataImportExportControllerTest {
     private val monetaYaml = """
         ---
         kind: MetadataEntity
-        entityUrn: urn:mill/metadata/entity:moneta
+        entityUrn: urn:mill/model/schema:moneta
         entityKind: schema
         facets:
           - uid: facet-uid-1

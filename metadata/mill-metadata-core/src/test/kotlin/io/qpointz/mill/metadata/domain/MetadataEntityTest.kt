@@ -11,7 +11,7 @@ class MetadataEntityTest {
     fun shouldHoldIdentityFields() {
         val t = Instant.EPOCH
         val entity = MetadataEntity(
-            id = "urn:mill/metadata/entity:app.s1.t1",
+            id = "urn:mill/model/table:app.s1.t1",
             kind = "table",
             uuid = "u1",
             createdAt = t,
@@ -19,7 +19,7 @@ class MetadataEntityTest {
             lastModifiedAt = t,
             lastModifiedBy = "b"
         )
-        assertEquals("urn:mill/metadata/entity:app.s1.t1", entity.id)
+        assertEquals("urn:mill/model/table:app.s1.t1", entity.id)
         assertEquals("table", entity.kind)
         assertEquals("u1", entity.uuid)
     }
@@ -28,7 +28,7 @@ class MetadataEntityTest {
     fun shouldAllowNullKind() {
         val t = Instant.EPOCH
         val entity = MetadataEntity(
-            id = "urn:mill/metadata/entity:concept:x",
+            id = "urn:mill/model/concept:x",
             kind = null,
             uuid = null,
             createdAt = t,

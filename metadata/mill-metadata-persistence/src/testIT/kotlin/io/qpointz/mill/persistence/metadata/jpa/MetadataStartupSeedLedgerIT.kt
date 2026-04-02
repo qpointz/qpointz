@@ -32,7 +32,7 @@ class MetadataStartupSeedLedgerIT {
 
     @Test
     fun `second seed run does not duplicate entities`() {
-        val id = "urn:mill/metadata/entity:seed.startup.one"
+        val id = "urn:mill/model/table:seed.startup.one"
         assertThat(entityRepository.exists(id)).isTrue
         val countAfterContextStart = entityRepository.findAll().size
         metadataSeedStartup.run()

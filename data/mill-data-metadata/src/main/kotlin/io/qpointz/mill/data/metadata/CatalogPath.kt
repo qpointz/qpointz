@@ -2,7 +2,7 @@ package io.qpointz.mill.data.metadata
 
 /**
  * Physical catalog coordinates decoded from a **relational** metadata entity URN
- * (`urn:mill/metadata/entity:<schema>[.<table>[.<column>]]`).
+ * (`urn:mill/model/<kind>:<schema>[.<table>[.<column>]]`).
  *
  * [schema] is always present for a valid relational path; [table] and [column] are null for
  * schema- or table-level entities. Non-relational locals (for example `concept:…`) decode to
