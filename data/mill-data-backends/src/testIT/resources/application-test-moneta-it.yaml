@@ -7,6 +7,15 @@ grpc:
       address: in-process:testservice-jdbc-moneta
 
 mill:
+  data:
+    backend:
+      type: jdbc
+      jdbc:
+        url: "jdbc:h2:mem:moneta-slim;INIT=RUNSCRIPT FROM '../../test/datasets/moneta/moneta-slim.sql'"
+        driver: "org.h2.Driver"
+        target-schema: "PUBLIC"
+    sql:
+      dialect: CALCITE
   backend:
     provider: jdbc
     connection:
@@ -14,10 +23,5 @@ mill:
       caseSensitive: true
       unquotedCasing: UNCHANGED
       lenientOperatorLookup: TRUE
-    jdbc:
-      url: "jdbc:h2:mem:moneta-slim;INIT=RUNSCRIPT FROM '../../test/datasets/moneta/moneta-slim.sql'"
-      driver: "org.h2.Driver"
-      target-schema: "PUBLIC"
   security:
     enable: false
-

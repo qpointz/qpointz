@@ -1,6 +1,6 @@
 # Flow facet projection — extensibility and multiple implementations
 
-**Status:** design proposal (normative facet shapes and story scope: `docs/workitems/flow-source-ui-facets/SPEC.md`)  
+**Status:** design proposal (normative facet shapes and story scope: `docs/workitems/completed/20260402-flow-source-ui-facets/SPEC.md`)  
 **Audience:** implementers extending storage types, reader formats, or alternate `SourceDefinitionRepository` implementations  
 **Related:** [`flow-backend.md`](../source/flow-backend.md), [`backend-provided-metadata.md`](../metadata/backend-provided-metadata.md), [`implementing-backend-metadata-source.md`](implementing-backend-metadata-source.md), [`metadata-layered-sources-and-ephemeral-facets.md`](../metadata/metadata-layered-sources-and-ephemeral-facets.md)
 
@@ -151,5 +151,5 @@ Document for each new repository: **normalisation** rules if the wire shape diff
 
 ## See also
 
-- Story **[`SPEC.md`](../../workitems/flow-source-ui-facets/SPEC.md)** — payload sketches, caching, autoconfigure.
+- Story **[`SPEC.md`](../../workitems/completed/20260402-flow-source-ui-facets/SPEC.md)** — payload sketches, caching, autoconfigure.
 - **[`backend-provided-metadata.md`](../metadata/backend-provided-metadata.md)** — why backend metadata exists in the merge stack.

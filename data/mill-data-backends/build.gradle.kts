@@ -1,4 +1,5 @@
 plugins {
+    alias(libs.plugins.kotlin)
     id("io.qpointz.plugins.mill")
     id("org.jetbrains.dokka")
     id("org.jetbrains.dokka-javadoc")
@@ -15,6 +16,8 @@ dependencies {
     api(project(":data:mill-data-backend-core"))
     api(project(":data:mill-data-source-calcite"))
     api(project(":core:mill-sql"))
+    implementation(project(":data:mill-data-metadata"))
+    implementation(libs.caffeine)
     implementation(libs.calcite.core)
     implementation(libs.calcite.csv)
     implementation(libs.calcite.file)
@@ -27,8 +30,20 @@ dependencies {
 testing {
     suites {
         register<JvmTestSuite>("testIT") {
+            useJUnitJupiter(libs.versions.junit.get())
+            targets {
+                all {
+                    testTask.configure {
+                        systemProperty(
+                            "flow.facet.it.root",
+                            rootProject.projectDir.absolutePath,
+                        )
+                    }
+                }
+            }
             dependencies {
                 implementation(project(":data:mill-data-autoconfigure"))
+                implementation(project(":metadata:mill-metadata-autoconfigure"))
                 implementation(libs.boot.starter)
                 implementation(libs.boot.starter.test)
             }

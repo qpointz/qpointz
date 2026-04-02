@@ -12,6 +12,9 @@ export const DEFAULT_FACET_TYPE_DISPLAY_PRIORITY: readonly string[] = [
   'urn:mill/metadata/facet-type:schema',
   'urn:mill/metadata/facet-type:table',
   'urn:mill/metadata/facet-type:column',
+  'urn:mill/metadata/facet-type:flow-schema',
+  'urn:mill/metadata/facet-type:flow-table',
+  'urn:mill/metadata/facet-type:flow-column',
   'urn:mill/metadata/facet-type:descriptive',
   'urn:mill/metadata/facet-type:links',
 ];

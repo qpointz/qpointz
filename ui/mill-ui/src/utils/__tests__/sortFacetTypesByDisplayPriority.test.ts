@@ -4,6 +4,36 @@ import type { FacetTypeManifest } from '../../types/facetTypes';
 import { sortFacetTypesByDisplayPriority } from '../sortFacetTypesByDisplayPriority';
 
 describe('sortFacetTypesByDisplayPriority', () => {
+  it('should order flow facets after layout schema-table-column and before descriptive', () => {
+    const priority = [
+      'urn:mill/metadata/facet-type:schema',
+      'urn:mill/metadata/facet-type:table',
+      'urn:mill/metadata/facet-type:column',
+      'urn:mill/metadata/facet-type:flow-schema',
+      'urn:mill/metadata/facet-type:flow-table',
+      'urn:mill/metadata/facet-type:flow-column',
+      'urn:mill/metadata/facet-type:descriptive',
+    ];
+    const arrival = [
+      'urn:mill/metadata/facet-type:descriptive',
+      'urn:mill/metadata/facet-type:flow-column',
+      'urn:mill/metadata/facet-type:schema',
+      'urn:mill/metadata/facet-type:flow-schema',
+      'urn:mill/metadata/facet-type:column',
+      'urn:mill/metadata/facet-type:flow-table',
+      'urn:mill/metadata/facet-type:table',
+    ];
+    expect(sortFacetTypesByDisplayPriority(arrival, priority)).toEqual([
+      'urn:mill/metadata/facet-type:schema',
+      'urn:mill/metadata/facet-type:table',
+      'urn:mill/metadata/facet-type:column',
+      'urn:mill/metadata/facet-type:flow-schema',
+      'urn:mill/metadata/facet-type:flow-table',
+      'urn:mill/metadata/facet-type:flow-column',
+      'urn:mill/metadata/facet-type:descriptive',
+    ]);
+  });
+
   it('should place priority keys first in list order, then preserve arrival for the rest', () => {
     const priority = ['c', 'a'];
     const arrival = ['z', 'a', 'b', 'c'];

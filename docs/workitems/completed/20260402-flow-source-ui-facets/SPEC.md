@@ -1,6 +1,6 @@
 # Spec: flow-source-ui-facets
 
-**Story folder:** `docs/workitems/flow-source-ui-facets/`  
+**Story folder (archived):** `docs/workitems/completed/20260402-flow-source-ui-facets/`  
 **Normative for this story** — work items (**`WI-146`–`WI-150`**) must stay consistent with this document.  
 **Related:** deferred sketch **WI-139** in `docs/workitems/completed/20260401-metadata-and-ui-improve-and-clean/`.  
 **Layered sources narrative:** `docs/design/metadata/metadata-layered-sources-and-ephemeral-facets.md` (repository normative for inferred vs captured).

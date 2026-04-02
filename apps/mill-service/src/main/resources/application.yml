@@ -56,6 +56,7 @@ mill:
     seed:
       resources:
         - "classpath:metadata/platform-bootstrap.yaml"
+        - "classpath:metadata/platform-flow-facet-types.yaml"
   services:
     ai-nl2data:
       enable: false

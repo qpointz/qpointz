@@ -1,5 +1,7 @@
 package io.qpointz.mill.data.backend.jdbc;
 
+import io.qpointz.mill.autoconfigure.data.SqlAutoConfiguration;
+import io.qpointz.mill.autoconfigure.data.backend.BackendAutoConfiguration;
 import io.qpointz.mill.autoconfigure.data.backend.jdbc.JdbcBackendAutoConfiguration;
 import io.qpointz.mill.proto.QueryExecutionConfig;
 import io.qpointz.mill.data.backend.calcite.providers.PlanConverter;
@@ -37,6 +39,8 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ContextConfiguration(classes = {
+        SqlAutoConfiguration.class,
+        BackendAutoConfiguration.class,
         JdbcBackendAutoConfiguration.class,
         DefaultServiceConfiguration.class,
         JdbcConnectionProviderTestIT.TestConfig.class

@@ -1,6 +1,7 @@
 package io.qpointz.mill.autoconfigure.data.schema;
 
 import io.qpointz.mill.autoconfigure.data.backend.BackendAutoConfiguration;
+import io.qpointz.mill.autoconfigure.data.backend.flow.FlowDescriptorMetadataSourceAutoConfiguration;
 import io.qpointz.mill.data.backend.SchemaProvider;
 import io.qpointz.mill.data.schema.MetadataEntityUrnCodec;
 import io.qpointz.mill.data.schema.SchemaFacetService;
@@ -21,7 +22,11 @@ import org.springframework.context.annotation.Bean;
  */
 @AutoConfiguration
 @AutoConfigureAfter(
-        value = {BackendAutoConfiguration.class, LogicalLayoutMetadataSourceAutoConfiguration.class},
+        value = {
+            BackendAutoConfiguration.class,
+            LogicalLayoutMetadataSourceAutoConfiguration.class,
+            FlowDescriptorMetadataSourceAutoConfiguration.class
+        },
         name = {
                 "io.qpointz.mill.metadata.configuration.MetadataRepositoryAutoConfiguration",
                 "io.qpointz.mill.metadata.configuration.MetadataJpaPersistenceAutoConfiguration",

@@ -2,7 +2,7 @@
 
 **Audience:** engineers adding **read-only inferred** metadata for a **data backend** (Flow today; JDBC, Calcite, or others later)  
 **Status:** design guidance (contract classes live in repo; this document is normative for **what to generalise vs specialise**)  
-**Related:** [`backend-provided-metadata.md`](../metadata/backend-provided-metadata.md), [`metadata-layered-sources-and-ephemeral-facets.md`](../metadata/metadata-layered-sources-and-ephemeral-facets.md), [`flow-facet-projection-extensibility.md`](flow-facet-projection-extensibility.md), story **[`SPEC.md`](../../workitems/flow-source-ui-facets/SPEC.md)** (flow facet shapes)
+**Related:** [`backend-provided-metadata.md`](../metadata/backend-provided-metadata.md), [`metadata-layered-sources-and-ephemeral-facets.md`](../metadata/metadata-layered-sources-and-ephemeral-facets.md), [`flow-facet-projection-extensibility.md`](flow-facet-projection-extensibility.md), story **[`SPEC.md`](../../workitems/completed/20260402-flow-source-ui-facets/SPEC.md)** (flow facet shapes)
 
 ---
 
@@ -120,7 +120,7 @@ Reuse **entity URNs** (`urn:mill/model/...`) from the shared catalog where possi
 
 ## 9. Flow reference implementation
 
-Implementers should read the flow story **[`SPEC.md`](../../workitems/flow-source-ui-facets/SPEC.md)** and **[`flow-facet-projection-extensibility.md`](flow-facet-projection-extensibility.md)** for a **concrete** contributor/orchestrator pattern. Other backends should copy **checklist §5**, not Flow’s payload keys.
+Implementers should read the flow story **[`SPEC.md`](../../workitems/completed/20260402-flow-source-ui-facets/SPEC.md)** and **[`flow-facet-projection-extensibility.md`](flow-facet-projection-extensibility.md)** for a **concrete** contributor/orchestrator pattern. Other backends should copy **checklist §5**, not Flow’s payload keys.
 
 ---
 

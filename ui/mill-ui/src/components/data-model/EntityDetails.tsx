@@ -1,4 +1,11 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import {
   Anchor,
   Box,
@@ -71,6 +78,7 @@ import {
 } from '../../utils/facetPayloadFormSupport';
 import { DEFAULT_FACET_TYPE_DISPLAY_PRIORITY, facetTypeArrivalOrderFromRegistry } from '../../config/facetTypeDisplayPriority';
 import { sortFacetTypesByDisplayPriority } from '../../utils/sortFacetTypesByDisplayPriority';
+import { renderGenericFacetObjectReadOnly } from './genericFacetObjectReadOnly';
 
 interface EntityDetailsProps {
   entity: SchemaEntity;
@@ -877,12 +885,30 @@ export function EntityDetails({
     onChange: (next: unknown) => void,
     keyPrefix: string,
     stringStere: FacetStringStereotypeKind = 'none'
-  ): React.ReactNode => {
+  ): ReactNode => {
     if (schema.type === 'OBJECT') {
-      const obj = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
+      const declared = schema.fields ?? [];
+      const obj = (value && typeof value === 'object' && !Array.isArray(value) ? value : {}) as Record<string, unknown>;
+      if (declared.length === 0) {
+        return (
+          <Textarea
+            size="xs"
+            minRows={3}
+            value={JSON.stringify(value ?? {}, null, 2)}
+            onChange={(e) => {
+              try {
+                onChange(JSON.parse(e.currentTarget.value));
+              } catch {
+                // keep editing until valid JSON
+              }
+            }}
+            styles={{ input: { fontFamily: 'monospace' } }}
+          />
+        );
+      }
       return (
         <Stack gap={6}>
-          {(schema.fields ?? []).map((field) => (
+          {declared.map((field) => (
             <Stack key={`${keyPrefix}.${field.name}`} gap={6}>
               {(field.schema.type === 'OBJECT' || field.schema.type === 'ARRAY') ? (
                 <>
@@ -1118,7 +1144,7 @@ export function EntityDetails({
     stringStere: FacetStringStereotypeKind = 'none',
     /** Field-level stereotype wire (for tags / empty-array behaviour). */
     fieldStereotypeWire?: string | string[] | null
-  ): React.ReactNode => {
+  ): ReactNode => {
     const labelWithInfo = (title: string, description?: string) => (
       <Group gap={4} wrap="nowrap" align="center">
         {description && (
@@ -1132,7 +1158,7 @@ export function EntityDetails({
       </Group>
     );
 
-    const primitiveValue = (s: FacetPayloadSchema, v: unknown): React.ReactNode => {
+    const primitiveValue = (s: FacetPayloadSchema, v: unknown): ReactNode => {
       if (s.type === 'BOOLEAN') {
         return <Badge size="xs" variant="light" color={v ? 'green' : 'gray'}>{String(Boolean(v))}</Badge>;
       }
@@ -1146,10 +1172,29 @@ export function EntityDetails({
     };
 
     if (schema.type === 'OBJECT') {
-      const obj = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
+      const raw = value;
+      const declared = schema.fields ?? [];
+      if (declared.length === 0) {
+        if (raw == null) {
+          return (
+            <Text size="xs" c="dimmed">
+              —
+            </Text>
+          );
+        }
+        if (typeof raw === 'object' && !Array.isArray(raw)) {
+          return renderGenericFacetObjectReadOnly(raw as Record<string, unknown>);
+        }
+        return (
+          <Text size="xs" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            {JSON.stringify(raw, null, 2)}
+          </Text>
+        );
+      }
+      const obj = (raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {}) as Record<string, unknown>;
       return (
         <Stack gap={6}>
-          {(schema.fields ?? []).map((field) => (
+          {declared.map((field) => (
             <Box key={`${keyPrefix}.${field.name}`}>
               {field.schema.type === 'OBJECT' && facetHyperlinkPresentationActive(field.schema, field.stereotype) ? (
                 <Group gap="sm" wrap="nowrap" align="center">
@@ -1562,7 +1607,7 @@ export function EntityDetails({
                         const row = ru.row;
                         const descriptorInf = descriptorByType[facetTypeInf] ?? null;
                         const baseTitleInf = facetBoxBaseTitle(facetTypeInf, facetTypeTitleByKey, descriptorInf);
-                        let readOnlyInferred: React.ReactNode;
+                        let readOnlyInferred: ReactNode;
                         if (facetTypeInf.endsWith(':structural') && flags.modelStructuralFacet) {
                           readOnlyInferred = <StructuralFacet facet={row.payload as StructuralFacetData} />;
                         } else if (descriptorInf?.payload) {
@@ -1813,7 +1858,7 @@ export function EntityDetails({
                       );
                     }
 
-                    let readOnlyBody: React.ReactNode;
+                    let readOnlyBody: ReactNode;
                     if (facetType.endsWith(':structural') && hasStructural) {
                       readOnlyBody = <StructuralFacet facet={facets.structural!} />;
                     } else if (descriptor?.payload) {

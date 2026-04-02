@@ -1,5 +1,7 @@
 # Flow source — inferred facets for Data Model UI
 
+**Status:** closed 2026-04-02 — archived under [`completed/20260402-flow-source-ui-facets/`](.).
+
 **Spec (normative for design details):** [`SPEC.md`](SPEC.md) — class/module sketch, autoconfigure plan, facet types, YAML mapping table.  
 **Metadata source inputs (implementer):** [`METADATA-SOURCE-INPUTS.md`](METADATA-SOURCE-INPUTS.md).  
 **Facet seed review copy:** [`review/platform-flow-facet-types.yaml`](review/platform-flow-facet-types.yaml).
@@ -24,11 +26,11 @@ tracker is this file. Deferred placeholder: **WI-139** in
 
 ## Work Items
 
-- [ ] WI-147 — Flow facet types in dedicated seed YAML (`WI-147-flow-facet-types-bootstrap.md`)
-- [ ] WI-146 — Source catalog contract + flow descriptor `MetadataSource` (`WI-146-flow-descriptor-metadata-source.md`)
-- [ ] WI-148 — Autoconfigure wiring + schema facet tests (`WI-148-flow-facets-autoconfigure-and-tests.md`)
-- [ ] WI-149 — UI facet ordering and validation (`WI-149-flow-facets-ui-validation.md`)
-- [ ] WI-150 — Pre-closure: design + public docs for backend-provided metadata (`WI-150-pre-closure-docs-backend-metadata.md`)
+- [x] WI-147 — Flow facet types in dedicated seed YAML (`WI-147-flow-facet-types-bootstrap.md`)
+- [x] WI-146 — Source catalog contract + flow descriptor `MetadataSource` (`WI-146-flow-descriptor-metadata-source.md`)
+- [x] WI-148 — Autoconfigure wiring + schema facet tests (`WI-148-flow-facets-autoconfigure-and-tests.md`)
+- [x] WI-149 — UI facet ordering and validation (`WI-149-flow-facets-ui-validation.md`)
+- [x] WI-150 — Pre-closure: design + public docs for backend-provided metadata (`WI-150-pre-closure-docs-backend-metadata.md`)
 
 ### Suggested execution order
 

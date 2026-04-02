@@ -283,6 +283,15 @@ public doc updates (`metadata-urn-platform`, canonical YAML spec, synthetic writ
 [`eliminate-entity-kind/STORY.md`](eliminate-entity-kind/STORY.md). Archive:
 [`completed/20260402-typed-entity-urns/STORY.md`](completed/20260402-typed-entity-urns/STORY.md).
 
+**Flow source — Data Model UI facets (`flow-source-ui-facets`, closed 2026-04-02):** **WI-147**
+`platform-flow-facet-types.yaml` + service seed; **WI-146** `SourceCatalogProvider` +
+`FlowDescriptorMetadataSource` (Caffeine snapshot cache); **WI-148**
+`FlowDescriptorMetadataSourceAutoConfiguration` + `mill-data-backends` `testIT`; **WI-149**
+mill-ui facet display order + generic **OBJECT** read-only presentation for schema-less maps
+(flow `effectiveMapping` / `params`); **WI-150** design/public pointers (backend-provided
+metadata). Delivers **`flow-*`** inferred facets with **`originId`** **`flow`** on flow backend.
+Archive: [`completed/20260402-flow-source-ui-facets/STORY.md`](completed/20260402-flow-source-ui-facets/STORY.md). Backlog **M-33** done.
+
 ### In Progress
 
 Items currently being implemented in this milestone.

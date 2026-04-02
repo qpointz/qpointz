@@ -1,7 +1,7 @@
 # Backend-provided metadata (inferred facets)
 
 **Audience:** implementers, operators, reviewers  
-**Status:** design reference (flow story: `docs/workitems/flow-source-ui-facets/`, normative facet payloads and modules in **`SPEC.md`**)  
+**Status:** design reference (flow story archived: `docs/workitems/completed/20260402-flow-source-ui-facets/`, normative facet payloads and modules in **`SPEC.md`**)  
 **Related:** [`metadata-layered-sources-and-ephemeral-facets.md`](metadata-layered-sources-and-ephemeral-facets.md), [`mill-metadata-domain-model.md`](mill-metadata-domain-model.md)
 
 ---
@@ -81,5 +81,5 @@ Flow facet **type definitions** are seeded separately from **`platform-bootstrap
 - [`metadata-layered-sources-and-ephemeral-facets.md`](metadata-layered-sources-and-ephemeral-facets.md) — merge and sources table.
 - [`../data/implementing-backend-metadata-source.md`](../data/implementing-backend-metadata-source.md) — **implementer guide:** shared foundation vs per-backend facet families (`originId`, `category`, payloads).
 - [`../data/flow-facet-projection-extensibility.md`](../data/flow-facet-projection-extensibility.md) — **extensible** flow facet projection (storage / reader contributors, contexts, multiple `SourceDefinitionRepository` implementations).
-- [`docs/workitems/flow-source-ui-facets/SPEC.md`](../../workitems/flow-source-ui-facets/SPEC.md) — facet payloads, modules, autoconfigure steps.
+- [`docs/workitems/completed/20260402-flow-source-ui-facets/SPEC.md`](../../workitems/completed/20260402-flow-source-ui-facets/SPEC.md) — facet payloads, modules, autoconfigure steps.
 - Public: [Backend metadata](../../public/src/metadata/backend-metadata.md) — operator-oriented summary.

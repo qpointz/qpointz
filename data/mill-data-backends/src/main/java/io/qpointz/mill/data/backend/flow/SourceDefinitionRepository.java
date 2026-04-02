@@ -1,5 +1,6 @@
 package io.qpointz.mill.data.backend.flow;
 
+import io.qpointz.mill.source.SourceCatalogProvider;
 import io.qpointz.mill.source.descriptor.SourceDescriptor;
 
 /**
@@ -8,7 +9,8 @@ import io.qpointz.mill.source.descriptor.SourceDescriptor;
  * <p>Implementations may read from YAML files, a database, a directory scan,
  * or any other storage. Each returned {@link SourceDescriptor} becomes a
  * Calcite schema whose name is the descriptor's {@code name} property.</p>
+ *
+ * @see SourceDescriptor
  */
-public interface SourceDefinitionRepository {
-    Iterable<SourceDescriptor> getSourceDefinitions();
+public interface SourceDefinitionRepository extends SourceCatalogProvider {
 }

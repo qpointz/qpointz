@@ -11,6 +11,7 @@ import io.qpointz.mill.data.backend.calcite.CalciteSqlDialectConventions;
 import io.qpointz.mill.data.backend.calcite.providers.PlanConverter;
 import io.qpointz.mill.data.backend.dispatchers.SubstraitDispatcher;
 import io.qpointz.mill.data.backend.flow.FlowContextFactory;
+import io.qpointz.mill.data.backend.flow.FlowDescriptorMetadataSource;
 import io.qpointz.mill.data.backend.flow.SourceDefinitionRepository;
 import io.substrait.extension.ExtensionCollector;
 import org.junit.jupiter.api.Test;
@@ -30,7 +31,8 @@ class FlowBackendAutoConfigurationTest extends BaseDataAutoconfigurationTest {
                 .withConfiguration(AutoConfigurations.of(
                         SqlAutoConfiguration.class,
                         BackendAutoConfiguration.class,
-                        FlowBackendAutoConfiguration.class
+                        FlowBackendAutoConfiguration.class,
+                        FlowDescriptorMetadataSourceAutoConfiguration.class
                 ))
                 .withBean(SubstraitDispatcher.class, () -> mock(SubstraitDispatcher.class))
                 .withPropertyValues(
@@ -173,6 +175,19 @@ class FlowBackendAutoConfigurationTest extends BaseDataAutoconfigurationTest {
     void shouldProvideSqlProvider() {
         contextRunner().run(context ->
                 assertThat(context).hasSingleBean(SqlProvider.class));
+    }
+
+    @Test
+    void shouldRegisterFlowDescriptorMetadataSourceWhenMetadataEnabled() {
+        contextRunner().run(context ->
+                assertThat(context).hasSingleBean(FlowDescriptorMetadataSource.class));
+    }
+
+    @Test
+    void shouldOmitFlowDescriptorMetadataSourceWhenMetadataDisabled() {
+        contextRunner()
+                .withPropertyValues("mill.data.backend.flow.metadata.enabled:false")
+                .run(context -> assertThat(context).doesNotHaveBean(FlowDescriptorMetadataSource.class));
     }
 
     // -- FlowContextFactory wiring --
