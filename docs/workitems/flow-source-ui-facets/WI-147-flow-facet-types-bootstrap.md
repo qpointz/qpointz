@@ -5,6 +5,8 @@
 **Type:** `feat`  
 **Area:** `metadata`
 
+**Precedes (for acceptance):** **WI-146** / **WI-148** tests that need real **`flow-*`** facet types in the registry or **`contentSchema`** validation should run only after this WI’s YAML is on the classpath (see **[`STORY.md`](STORY.md)** — suggested execution order). Review copy: **[`review/platform-flow-facet-types.yaml`](review/platform-flow-facet-types.yaml)**.
+
 ## Goal
 
 Add **`FacetTypeDefinition`** documents for the **flow** facet family (**`category: flow`**, binding

@@ -38,8 +38,11 @@ Aggregation for metadata REST is implemented in **`mill-metadata-core`** via **`
 |--------|--------|----------------------|------|
 | **`RepositoryMetadataSource`** | `mill-metadata-core` | `MetadataOriginIds.REPOSITORY_LOCAL` | Loads persisted **`FacetAssignment`** rows as captured facets (backed by **`FacetReadSide`** in read paths). |
 | **`LogicalLayoutMetadataSource`** | `mill-data-metadata` | `MetadataOriginIds.LOGICAL_LAYOUT` | Infers structural / descriptive facets from **logical** **`SchemaProvider`** catalog, including the **`model`** root entity summary (WI-137 / WI-138). |
+| **Flow descriptor `MetadataSource`** (planned) | `mill-data-backends` + **`FlowDescriptorMetadataSourceAutoConfiguration`** in **`mill-data-autoconfigure`** (`io.qpointz.mill.autoconfigure.data.backend.flow`) | `MetadataOriginIds.FLOW` (`flow`) | **Backend-specific** inferred facets from flow YAML descriptors (storage, table inputs, column binding hints). See [`backend-provided-metadata.md`](backend-provided-metadata.md) and story **`docs/workitems/flow-source-ui-facets/SPEC.md`**. |
 
-**`LogicalLayoutMetadataSourceAutoConfiguration`** (in **`mill-data-autoconfigure`**) registers **`LogicalLayoutMetadataSource`** when **`SchemaProvider`** is available.
+**`LogicalLayoutMetadataSourceAutoConfiguration`** (in **`mill-data-autoconfigure`**, package **`data.schema`**) registers **`LogicalLayoutMetadataSource`** when **`SchemaProvider`** is available.
+
+**Flow** metadata registration is **not** in that class: it uses **`mill.data.backend.type=flow`**, **`mill.data.backend.flow.metadata.enabled`**, and lives beside **`FlowBackendAutoConfiguration`** so wiring stays backend-specific.
 
 ## Merge behaviour
 
@@ -64,5 +67,6 @@ Aggregation for metadata REST is implemented in **`mill-metadata-core`** via **`
 
 ## Related documents
 
+- [`backend-provided-metadata.md`](backend-provided-metadata.md) — purpose of backend-specific inferred facets, flow configuration, Spring placement.
 - [`facet-class-elimination.md`](facet-class-elimination.md) — demotion of Kotlin facet classes; **`FacetPayloadUtils`** for typed payload helpers.
 - [`mill-metadata-domain-model.md`](mill-metadata-domain-model.md) — URNs, entities, assignments.

@@ -9,7 +9,9 @@ Mill can show **facet** information — descriptions, structural hints, relation
 | Kind | Meaning | Editing |
 |------|---------|---------|
 | **Captured** | Stored as a normal metadata assignment for an entity. | You can add, change, or remove it **when your role allows** metadata edits. |
-| **Inferred** | Derived when you view an entity — for example from the **logical catalog** (schemas, tables, columns). | **Read-only** in the metadata UI. You cannot treat it like a saved assignment. |
+| **Inferred** | Derived when you view an entity — for example from the **logical catalog** (schemas, tables, columns) **or** from **backend-specific configuration** (active query backend). | **Read-only** in the metadata UI. You cannot treat it like a saved assignment. |
+
+**Backend-specific inferred** facets expose **how the active backend is configured** (for example flow source descriptors): see [Backend metadata](backend-metadata.md).
 
 The UI may show **both** together in a single view (sometimes called a **constellation**): captured entries you can edit, plus inferred entries that explain structure or defaults without duplicating them in storage.
 
@@ -43,6 +45,7 @@ A legacy **`context`** query parameter may still appear in older notes; it behav
 
 ## See also
 
+- [Backend metadata](backend-metadata.md) — purpose and configuration for backend-provided facets (e.g. flow)
 - [Concepts](concepts.md) — entities, facet types, scopes
 - [Using metadata in Mill UI](mill-ui.md)
 - [Metadata in Mill](system.md)

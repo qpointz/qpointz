@@ -99,8 +99,17 @@ All properties are under the `mill.data.backend.flow` prefix.
 | Property | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `sources` | yes | `[]` | List of paths to source descriptor YAML files. Relative paths are resolved from the working directory. |
+| `metadata.enabled` | no | `true` | When `false`, the flow descriptor metadata source is not registered: no flow inferred facets (`originId` `flow`) in the Data Model. Does not disable the flow query backend. |
 | `cache.schema.enabled` | no | `false` | Reuse resolved Flow schemas across requests. |
 | `cache.schema.ttl` | no | unset | Optional cache TTL (for example `1m`, `30s`). When unset, cache does not auto-expire. |
+| `cache.facets.enabled` | no | `true` | When `false`, flow facet inference is always computed on demand (no snapshot cache). |
+| `cache.facets.ttl` | no | unset | Optional TTL for the facet inference cache (for example `5m`). When unset, cache does not auto-expire. |
+
+### Backend metadata (Data Model)
+
+With **`metadata.enabled: true`** (default), Mill can attach **read-only inferred** facet rows (**`originId` `flow`**) to catalog entities so operators see **flow-specific** details from source descriptors (storage, table inputs, column bindings — see the facet type catalog) alongside **captured** metadata and **logical layout**. Set **`metadata.enabled: false`** to disable only that contributor; SQL and schema discovery are unchanged.
+
+Concepts and tuning: [Backend metadata](../metadata/backend-metadata.md).
 
 Cache example:
 
@@ -110,10 +119,15 @@ mill:
     backend:
       type: flow
       flow:
+        metadata:
+          enabled: true
         cache:
           schema:
             enabled: true
             ttl: 1m
+          facets:
+            enabled: true
+            ttl: 5m
         sources:
           - ./config/skymill-source.yaml
 ```

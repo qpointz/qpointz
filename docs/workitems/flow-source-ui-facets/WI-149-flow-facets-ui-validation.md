@@ -12,12 +12,12 @@ type metadata (**`contentSchema`**, read-only inferred rows).
 
 ## In scope
 
-1. Update **`facetTypeDisplayPriority.ts`** (or equivalent) so new flow facet URNs appear in a
-   stable order near related structural / layout types.
-2. Manual or automated check: load a flow-backed catalog, open schema / table / column entities, confirm
-   cards render without console errors.
-3. If generic object rendering is insufficient for key payloads, add a thin presenter (prefer
-   schema-driven display first).
+1. **File:** **`ui/mill-ui/src/config/facetTypeDisplayPriority.ts`** — extend **`DEFAULT_FACET_TYPE_DISPLAY_PRIORITY`** (a **`readonly string[]`**: **earlier entries render first** among types that have data). Insert the three flow URNs **after** the built-in structural **`schema` / `table` / `column`** entries and **before** or adjacent to **`descriptive` / `links`** — exact order is a product choice; document the final order in the MR.
+   - URN strings: **`urn:mill/metadata/facet-type:flow-schema`**, **`:flow-table`**, **`:flow-column`**.
+   - **Mechanism:** **`EntityDetails.tsx`** uses **`facetTypeArrivalOrderFromRegistry`** with this list plus server registry order for any keys not listed (see [`facetTypeDisplayPriority.ts`](../../../ui/mill-ui/src/config/facetTypeDisplayPriority.ts)).
+2. **Required automated test:** extend **`ui/mill-ui/src/utils/__tests__/sortFacetTypesByDisplayPriority.test.ts`** (or add **`facetTypeDisplayPriority.test.ts`** next to config) so that **when** the arrival list contains the three **`flow-*`** URNs and layout URNs, **`sortFacetTypesByDisplayPriority`** / arrival ordering places **`flow-schema`**, **`flow-table`**, **`flow-column`** in the **expected** relative order (assert on sorted output).
+3. Manual check: load a flow-backed catalog, open schema / table / column entities, confirm cards render without console errors.
+4. If generic object rendering is insufficient for key payloads, add a thin presenter (prefer schema-driven display first).
 
 ## Out of scope
 
@@ -26,8 +26,9 @@ type metadata (**`contentSchema`**, read-only inferred rows).
 
 ## Acceptance criteria
 
-- **`npm run test`** (Vitest) updated if display-order helpers change.
-- Short verification note in MR (screenshots optional).
+- **`DEFAULT_FACET_TYPE_DISPLAY_PRIORITY`** updated in **`ui/mill-ui/src/config/facetTypeDisplayPriority.ts`** as above.
+- **Vitest:** new or extended test file proving **`flow-*`** order relative to layout types ( **`npm run test`** green).
+- Short MR note (screenshots optional).
 
 ## Story closure reminder
 

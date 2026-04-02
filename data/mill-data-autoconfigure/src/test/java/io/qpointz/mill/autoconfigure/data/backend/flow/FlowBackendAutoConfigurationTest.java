@@ -17,6 +17,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
+import java.time.Duration;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -88,7 +90,26 @@ class FlowBackendAutoConfigurationTest extends BaseDataAutoconfigurationTest {
             assertThat(context).hasSingleBean(FlowBackendProperties.class);
             var props = context.getBean(FlowBackendProperties.class);
             assertThat(props.getSources()).containsExactly("/tmp/nonexistent.yaml");
+            assertThat(props.getMetadata().isEnabled()).isTrue();
+            assertThat(props.getCache().getFacets().isEnabled()).isTrue();
+            assertThat(props.getCache().getFacets().getTtl()).isNull();
         });
+    }
+
+    @Test
+    void shouldBindMetadataAndFacetCacheProperties() {
+        contextRunner()
+                .withPropertyValues(
+                        "mill.data.backend.flow.metadata.enabled:false",
+                        "mill.data.backend.flow.cache.facets.enabled:false",
+                        "mill.data.backend.flow.cache.facets.ttl:2m"
+                )
+                .run(context -> {
+                    var props = context.getBean(FlowBackendProperties.class);
+                    assertThat(props.getMetadata().isEnabled()).isFalse();
+                    assertThat(props.getCache().getFacets().isEnabled()).isFalse();
+                    assertThat(props.getCache().getFacets().getTtl()).isEqualTo(Duration.ofMinutes(2));
+                });
     }
 
     // -- CalciteSqlDialectConventions bean --

@@ -1,0 +1,171 @@
+# REVIEW COPY — not on classpath until copied to mill-metadata-core and listed in mill.metadata.seed.resources
+# Canonical narrative: ../SPEC.md Appendix A. Example payloads: SPEC Appendix B.
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:flow-schema
+title: Flow schema binding
+description: "Binds a catalog schema entity to flow source name and storage (type + params)."
+enabled: true
+category: flow
+mandatory: false
+targetCardinality: SINGLE
+contentSchema:
+  type: OBJECT
+  title: Flow schema binding
+  description: "Operator-oriented: source name and storage only (type + params KV). Readers and table defaults are flow-table facets."
+  fields:
+    - name: sourceName
+      schema:
+        type: STRING
+        title: Source name
+        description: "Flow source name (descriptor name)."
+      required: true
+    - name: storage
+      schema:
+        type: OBJECT
+        title: Storage
+        description: "Discriminator type plus key-value params for all other storage properties."
+        fields:
+          - name: type
+            schema:
+              type: STRING
+              title: Storage type
+              description: "Storage kind (e.g. local) — same role as descriptor storage.type."
+            required: true
+          - name: params
+            schema:
+              type: OBJECT
+              title: Storage params
+              description: "Remaining storage fields as key-value pairs (e.g. rootPath)."
+            required: false
+      required: false
+  required: []
+applicableTo:
+  - urn:mill/metadata/entity-type:schema
+schemaVersion: "1.0"
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:flow-table
+title: Flow table binding
+description: "Binds a table entity to participating table inputs (per-reader effectiveMapping + format + params)."
+enabled: true
+category: flow
+mandatory: false
+targetCardinality: SINGLE
+contentSchema:
+  type: OBJECT
+  title: Flow table binding
+  description: "Operator-oriented: tableInputs only — each entry is format, format params (KV), and that reader’s effectiveMapping (KV)."
+  fields:
+    - name: schema
+      schema:
+        type: STRING
+        title: Schema
+        description: "Catalog schema name."
+      required: true
+    - name: table
+      schema:
+        type: STRING
+        title: Table
+        description: "Table name."
+      required: true
+    - name: tableInputs
+      schema:
+        type: ARRAY
+        title: Table inputs
+        description: "One row per contributing reader: mapping + format + params (all user-level KV where polymorphic)."
+        items:
+          type: OBJECT
+          title: Table input
+          description: "One contributing reader: effectiveMapping (KV) for this reader, plus format discriminator and format params (KV)."
+          fields:
+            - name: format
+              schema:
+                type: STRING
+                title: Format
+                description: "Reader format id (e.g. csv, parquet) — from reader type in descriptor."
+              required: true
+            - name: effectiveMapping
+              schema:
+                type: OBJECT
+                title: Effective mapping
+                description: "Merged table.mapping for this reader (KV: type, depth, pattern, table, …)."
+              required: false
+            - name: params
+              schema:
+                type: OBJECT
+                title: Format params
+                description: "Polymorphic format options as key-value pairs for operators."
+              required: false
+            - name: readerIndex
+              schema:
+                type: NUMBER
+                title: Reader index
+                description: "Index in descriptor readers[] when available."
+              required: false
+            - name: label
+              schema:
+                type: STRING
+                title: Reader label
+                description: "Optional reader label from descriptor."
+              required: false
+      required: false
+  required: []
+applicableTo:
+  - urn:mill/metadata/entity-type:table
+schemaVersion: "1.0"
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:flow-column
+title: Flow column binding
+description: "Binds a column to flow-derived provenance via binding.type and optional binding.params."
+enabled: true
+category: flow
+mandatory: false
+targetCardinality: SINGLE
+contentSchema:
+  type: OBJECT
+  title: Flow column binding
+  description: "User-level column provenance: binding type (attribute vs inferred) + optional params KV."
+  fields:
+    - name: schema
+      schema:
+        type: STRING
+        title: Schema
+        description: "Catalog schema name."
+      required: true
+    - name: table
+      schema:
+        type: STRING
+        title: Table
+        description: "Table name."
+      required: true
+    - name: column
+      schema:
+        type: STRING
+        title: Column
+        description: "Column name."
+      required: true
+    - name: binding
+      schema:
+        type: OBJECT
+        title: Binding
+        description: "Discriminator type plus optional key-value details."
+        fields:
+          - name: type
+            schema:
+              type: STRING
+              title: Binding type
+              description: "attribute | inferred"
+            required: true
+          - name: params
+            schema:
+              type: OBJECT
+              title: Binding params
+              description: "Optional KV — e.g. TableAttributeDescriptor fields (source, pattern, group, value, type, format)."
+            required: false
+      required: true
+  required: []
+applicableTo:
+  - urn:mill/metadata/entity-type:attribute
+schemaVersion: "1.0"

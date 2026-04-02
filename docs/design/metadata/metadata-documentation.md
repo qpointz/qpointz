@@ -324,6 +324,12 @@ Notes:
 - For relational deployments, set **`mill.metadata.repository.type=jpa`**, run Flyway (**DDL only** for greenfield metadata — no data inserts for scopes/facet types), and list **`mill.metadata.seed.resources`** (include **`classpath:metadata/platform-bootstrap.yaml`** unless you replace it with an equivalent seed).
 - Ordered startup imports use **`mill.metadata.seed.resources`** only — there is no separate metadata file-bootstrap auto-configuration (see SPEC §14.1 and [`mill-metadata-domain-model.md`](mill-metadata-domain-model.md)).
 
+### Backend-provided inferred metadata (data backends)
+
+The **active data backend** may register additional **`MetadataSource`** beans that contribute **inferred**, **backend-specific** facet rows (distinct from both **repository** captured assignments and **logical layout**). They use their own **`originId`** values (for example **`flow`** for the file-based flow backend) so clients can attribute and optionally filter readership (`?origin=`). Configuration lives under **`mill.data.backend.<backend>.*`** where applicable (see **`FlowBackendProperties`** for **`metadata.enabled`** and **`cache.facets`**).
+
+Design reference: [`backend-provided-metadata.md`](backend-provided-metadata.md). User-facing summary: [`../../public/src/metadata/backend-metadata.md`](../../public/src/metadata/backend-metadata.md).
+
 ### Multi-file Configuration
 
 You can organize metadata across multiple files:

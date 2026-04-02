@@ -30,6 +30,7 @@ A document belongs here if its **primary subject** is one of:
 | `mill-metadata-domain-model.md` | **Reference:** entities, facet types, assignments (`FacetInstance`), scopes, `MetadataReadContext`, merge / `merge_action` — aligns with workitem SPEC / greenfield implementation |
 | `mill-ui-facet-stereotypes.md` | **Reference:** known `stereotype` tags recognised by `mill-ui` (hyperlink, email, tags), precedence, wire shapes; implementation pointers |
 | `metadata-layered-sources-and-ephemeral-facets.md` | **Story / backlog M-31:** readonly `MetadataSource` aggregation (repository + inferred subsystem sources), inferred facets (e.g. authorization), merged schema snapshot, UI constellation with per-instance `origin` / `originId` and captured-only edit |
+| `backend-provided-metadata.md` | Backend-specific **inferred** facets (e.g. flow descriptors): purpose vs logical layout, `MetadataOriginIds.FLOW`, `mill.data.backend.flow.metadata` / `cache.facets`, flow-only autoconfigure placement |
 | `metadata-facet-type-catalog-defined-and-observed.md` | **Backlog M-32:** facet type admin lists **DEFINED** + **OBSERVED** runtime types (`FacetTypeSource`); API list merge + UI source badges/filters |
 | `metadata-implementation-roadmap.md` | Roadmap for faceted metadata system, multi-file repo, ValueMappingFacet |
 | `metadata-provider-refactoring-plan.md` | Plan to replace legacy MetadataProvider with facet-based system |
@@ -40,3 +41,5 @@ A document belongs here if its **primary subject** is one of:
 | `facet-class-elimination.md` | **Proposed:** remove "blessed" concrete facet classes (`DescriptiveFacet`, `ConceptFacet`, `ValueMappingFacet`, etc.) that duplicate the generic `FacetInstance` + `FacetPayloadSchema` architecture; demote to plain data containers; dead-code inventory |
 | `value-mapping-tactical-solution.md` | Tactical YAML-based value-mapping config (FileRepository) |
 | `value-mapping-via-metadata-provider.md` | Value mapping via MetadataProvider (facet-based approach) |
+
+**Implementing a backend `MetadataSource`:** [`../data/implementing-backend-metadata-source.md`](../data/implementing-backend-metadata-source.md) (shared foundation vs per-backend facet URNs, `category`, `originId`).

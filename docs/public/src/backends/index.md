@@ -61,6 +61,8 @@ mill:
 |----------|---------|-------------|
 | `mill.data.backend.type` | `calcite` | Backend identifier. Activates the corresponding auto-configuration. |
 
+Some backends expose additional **Data Model** facets from their own configuration (for example **flow** source descriptors). Those settings live under **`mill.data.backend.<backend>.*`** (not under **`mill.metadata.*`**). Overview: [Backend metadata](../metadata/backend-metadata.md).
+
 ### SQL dialect
 
 Controls how Mill parses and generates SQL. The dialect determines identifier quoting, casing rules, and function compatibility.

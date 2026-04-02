@@ -423,4 +423,10 @@ io.qpointz.mill.autoconfigure.data.backend.flow.FlowBackendAutoConfiguration
 
 ---
 
+## Data Model — flow inferred facets
+
+Read-only **backend metadata** for flow (storage, readers, column binding) is merged into the metadata stack with **`originId` `flow`**. **Facet type keys** stay stable (`flow-schema`, `flow-table`, `flow-column`); **new storage kinds** and **reader formats** extend **payload `params`**, not new URNs. **Pluggable projection** (contributor interfaces, facet contexts, same facets for file- vs future DB-backed descriptor repos): [`../data/flow-facet-projection-extensibility.md`](../data/flow-facet-projection-extensibility.md). **General pattern** for any backend’s `MetadataSource`: [`../data/implementing-backend-metadata-source.md`](../data/implementing-backend-metadata-source.md).
+
+---
+
 *Created: 2026-02-22*

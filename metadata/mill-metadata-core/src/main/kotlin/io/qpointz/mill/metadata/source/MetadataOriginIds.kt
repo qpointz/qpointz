@@ -9,4 +9,10 @@ object MetadataOriginIds {
 
     /** Inferred layout from [io.qpointz.mill.data.backend.SchemaProvider] (SPEC §3g). */
     const val LOGICAL_LAYOUT: String = "logical-layout"
+
+    /**
+     * Inferred flow-descriptor facets (`flow-schema`, `flow-table`, `flow-column`) from the Mill
+     * flow backend [MetadataSource] implementation.
+     */
+    const val FLOW: String = "flow"
 }
