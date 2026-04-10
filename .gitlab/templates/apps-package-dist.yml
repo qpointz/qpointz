@@ -1,6 +1,8 @@
 .apps-package-dist-template:
   extends: .gradle-job
   stage: package
+  # Overrides .gradle-job: do not restore or save Gradle dependency cache for this job.
+  cache: []
   variables:
     APP_EDITION: "basic"
     APPS_PROJECT_VERSION: ""
