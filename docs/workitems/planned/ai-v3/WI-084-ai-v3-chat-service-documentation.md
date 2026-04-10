@@ -79,5 +79,5 @@ are delivered.
 
 ## Deliverables
 
-- This work item definition (`docs/workitems/WI-084-ai-v3-chat-service-documentation.md`).
+- This work item definition (`docs/workitems/planned/ai-v3/WI-084-ai-v3-chat-service-documentation.md`).
 - Final consolidated AI v3 chat service documentation in `docs/design` and/or module docs.

@@ -1,3 +1,4 @@
+
 # Spring Boot 4 — pre-migration cleanup (Spring 3.5.x)
 
 Complete all **repository hygiene and alignment** work that does **not** require upgrading to Spring
@@ -5,7 +6,7 @@ Boot 4 / Spring Framework 7 / Jackson 3 / Spring AI 2. The goal is to shrink ris
 day the BOM moves to 4.0.x.
 
 This story implements backlog **P-5** (*Spring Boot 4.0 pre-migration cleanup*) in
-[`docs/workitems/BACKLOG.md`](../BACKLOG.md). It does **not** bump `springBoot` in `libs.versions.toml`.
+[`docs/workitems/BACKLOG.md`](../../BACKLOG.md). It does **not** bump `springBoot` in `libs.versions.toml`.
 
 **Explicitly out of scope here** (separate story / Boot 4 day):
 
@@ -17,7 +18,7 @@ This story implements backlog **P-5** (*Spring Boot 4.0 pre-migration cleanup*) 
   the current 3.5 BOM already exposes stable aliases and the change is zero-risk on 3.5
 - `net.devh` removal from production — tracked as **P-6** / **WI-085** (may already be done on your branch)
 
-**Reference design:** [`docs/design/platform/spring4-migration-plan.md`](../../design/platform/spring4-migration-plan.md)
+**Reference design:** [`docs/design/platform/spring4-migration-plan.md`](../../../design/platform/spring4-migration-plan.md)
 — Phase 1 checklist and §LOW/MODERATE issues that are safe on 3.5.x.
 
 ## Work Items

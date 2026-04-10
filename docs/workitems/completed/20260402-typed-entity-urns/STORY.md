@@ -33,4 +33,4 @@ from domain and persistence is **WI-144** — see follow-up story **`eliminate-e
 ## Closure (2026-04-02)
 
 Story **closed** — all items above delivered. **WI-144** (remove `entity.kind`) →
-[`../../eliminate-entity-kind/STORY.md`](../../eliminate-entity-kind/STORY.md).
+[`../../planned/eliminate-entity-kind/STORY.md`](../../planned/eliminate-entity-kind/STORY.md).

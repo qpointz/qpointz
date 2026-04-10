@@ -181,22 +181,41 @@ tasks.named<Test>("testIT") {
 Work is organised into **stories**. A story is a coherent delivery unit that maps to one Git branch
 merged into `dev` by the user.
 
-### Story folder layout (`docs/workitems/<story-slug>/`)
+### Story folder layout (`planned/` / `in-progress/` / `completed/`)
+
+Active stories live under **`docs/workitems/planned/<story-slug>/`** until at least one WI is checked
+off, then under **`docs/workitems/in-progress/<story-slug>/`**. Closed stories are archived under
+**`docs/workitems/completed/YYYYMMDD-<story-slug>/`**. The `docs/workitems/` root holds only
+`RULES.md`, `BACKLOG.md`, `MILESTONE.md`, and **`releases/`** — not loose story folders.
 
 ```
 docs/workitems/
-  <story-slug>/          # e.g. metadata-persistence
-    STORY.md             # objectives + ordered WI checklist (live progress tracker)
-    WI-NNN-<title>.md    # individual work item files — all under the story folder
+  RULES.md
+  BACKLOG.md
+  MILESTONE.md
+  releases/
+  planned/<story-slug>/
+    STORY.md
+    WI-NNN-<title>.md
+  in-progress/<story-slug>/
+    STORY.md
+    WI-NNN-<title>.md
+  completed/YYYYMMDD-<story-slug>/
+    STORY.md
+    WI-NNN-<title>.md
 ```
 
+- **Checkbox rule:** all WIs unchecked → **`planned/`**; any WI `[x]` → **`in-progress/`** (move the
+  whole folder when the first checkbox is marked). Full detail: **`docs/workitems/RULES.md`** →
+  **Placement rule (checkbox-based)**.
 - Folder name: lowercase hyphen-separated slug of the story topic.
 - `STORY.md` must contain a short goal description and an ordered checkbox list of all WIs — this
   checklist is the story **tracking list** for the branch. **After each WI is completed:** set its
   box to `[x]`, update its `WI-*.md` when the story requires it, and **commit** (one commit per WI;
   see **Branching & Commits**). Keep the tracking list and Git history in step; do not batch several
   finished WIs without updating `STORY.md` or without committing.
-- WI files live inside the story folder — **not** at the top level of `docs/workitems/`.
+- WI files live inside the story folder under **`planned/`** or **`in-progress/`** — **not** at the
+  top level of `docs/workitems/`.
 
 ### Story closure (before branch is merge-ready)
 
@@ -206,14 +225,18 @@ docs/workitems/
    commits (**~10 or fewer** is the usual target — flexible for large stories). Then open the MR. Full
    detail: `docs/workitems/RULES.md` → **Completion (Story level)**.
 1. Update `docs/workitems/MILESTONE.md` — add completed WIs to the appropriate milestone.
-2. Update `docs/workitems/BACKLOG.md` — mark related entries `done`.
+2. Update `docs/workitems/BACKLOG.md` — set related rows to **`done`**; add deferred follow-ups as
+   needed. **Row removal** happens at **release housekeeping**, not at story closure (`RULES.md` §
+   **Release (version) process**).
 3. Update / create design docs under the relevant `docs/design/<component>/` section
    (e.g. `agentic/`, `metadata/`, `platform/`). Design docs are filed by logical component,
    not by story.
 4. Update / create user docs under `docs/public/src/`.
-5. **Archive the story folder** — move (do not delete) to
+5. **Archive the story folder** — move (do not delete) from `planned/<story-slug>/` or
+   `in-progress/<story-slug>/` to
    `docs/workitems/completed/YYYYMMDD-<story-slug>/` (closure date + original slug). Preserves
-   STORY and WI history; MILESTONE, BACKLOG, and design/public docs remain the summary record.
+   STORY and WI history; MILESTONE, `releases/`, BACKLOG (`done` until next release), and design/public
+   docs remain the summary record.
    **Most recent first:** sort archived folder names **descending**, or use
    `docs/workitems/completed/README.md`.
 
@@ -228,7 +251,8 @@ Full rules: `docs/workitems/RULES.md`.
 - Never commit directly to `dev` or `main`.
 - One logical commit per WI (squash at WI completion).
 - **After each WI is complete (story implementation):** (1) **Update the tracking list** in
-  `docs/workitems/<story>/STORY.md` (mark that WI `[x]`). (2) Update the corresponding
+  `docs/workitems/planned/<story>/STORY.md` or `docs/workitems/in-progress/<story>/STORY.md` (mark
+  that WI `[x]`; **move** `planned/…` → `in-progress/…` on the first `[x]`). (2) Update the corresponding
   `WI-NNN-*.md` if the WI or story template expects notes or status there. (3) **Commit** the
   **full working copy** for that WI — every intentional file touched (code, tests, story tracking,
   WI markdown, etc.) in **one** commit so the tree is **clean** before starting the next WI. Do not

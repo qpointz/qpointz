@@ -9,23 +9,50 @@ Stories group related work items and are the primary unit of planning.
 
 ### Story folder layout
 
-Every story lives in its own subfolder under `docs/workitems/`:
+Stories live under **`planned/`**, **`in-progress/`**, or **`completed/`** (never as loose folders
+at the `docs/workitems/` root). The **root** of `docs/workitems/` is only for shared artefacts:
+`RULES.md`, `BACKLOG.md`, `MILESTONE.md`, and the **`releases/`** directory.
 
 ```
 docs/workitems/
-  <story-slug>/          # active story; slugified topic, e.g. metadata-persistence
-    STORY.md             # high-level objectives + ordered WI checklist (see below)
-    WI-NNN-<title>.md    # individual work item files for this story
-    WI-NNN-<title>.md
+  RULES.md
+  BACKLOG.md
+  MILESTONE.md
+  releases/
+    RELEASE-x.y.z.md
     ...
-  completed/             # closed stories (moved here, not deleted)
+  planned/
+    <story-slug>/
+      STORY.md
+      WI-NNN-<title>.md
+      ...
+  in-progress/
+    <story-slug>/
+      STORY.md
+      WI-NNN-<title>.md
+      ...
+  completed/
     YYYYMMDD-<story-slug>/
       STORY.md
       WI-NNN-<title>.md
       ...
 ```
 
-- **Folder name**: lowercase, hyphen-separated slug of the story topic.
+#### Placement rule (checkbox-based)
+
+- **`planned/<story-slug>/`** — No WI is done yet: **every** task item in `STORY.md` that tracks a
+  work item stays **`[ ]`** (unchecked). **Create new stories here.**
+- **`in-progress/<story-slug>/`** — At least one WI is done: **`STORY.md` has at least one `[x]`**
+  (checked) among those items. On the commit that marks the **first** WI complete, **move** the
+  whole folder from `planned/<story-slug>/` → `in-progress/<story-slug>/` (same commit or same PR).
+- **`completed/YYYYMMDD-<story-slug>/`** — Story closed per **Story closure** below; move from
+  `planned/` or `in-progress/` to here (do not add new work under `completed/` except by archiving).
+
+If `STORY.md` uses **numbered** checklist lines (`1. [ ]` / `1. [x]`), apply the same rule:
+all unchecked → `planned/`; any checked → `in-progress/`.
+
+- **Folder name**: lowercase, hyphen-separated slug of the story topic (same slug as you move
+  between `planned/`, `in-progress/`, and `completed/YYYYMMDD-...`).
 - **`STORY.md`**: required at story creation. Must contain:
   - A short description of the story's goal.
   - An ordered checklist of all WIs in the story — this is the **tracking list** (live progress
@@ -38,9 +65,11 @@ docs/workitems/
   - **As soon as a WI is finished:** update the tracking list (checkbox to `[x]` for that WI), update
     the WI’s `WI-NNN-<title>.md` if the story expects it (notes, acceptance, status), then **commit**
     that WI’s full working copy (see **Commits** below). Do not leave completed WIs unchecked or
-    uncommitted while starting the next WI.
-- **WI files**: all WI markdown files for the story live under the story folder, not at the top
-  level of `docs/workitems/`.
+    uncommitted while starting the next WI. If this is the **first** `[x]` for the story, **move**
+    the folder from `planned/<story-slug>/` to `in-progress/<story-slug>/` (same commit or PR).
+- **WI files**: all WI markdown files for the story live under that story’s folder under
+  `planned/` or `in-progress/` (and eventually under `completed/`), never at the top level of
+  `docs/workitems/`.
 
 ### Story closure
 
@@ -49,14 +78,18 @@ When all WIs in a story are complete **and** the branch is **MR-ready** (rewritt
 
 1. **Update `MILESTONE.md`** — record the story's completed WIs in the appropriate milestone
    section (use the same compact bullet format as existing entries).
-2. **Update `BACKLOG.md`** — mark any related backlog entries as `done`.
+2. **Update `BACKLOG.md`** — set any related rows to **`done`**, and add or adjust deferred follow-ups
+   as **`backlog`** / **`planned`** / **`in-progress`**. **Do not delete** completed rows here; they
+   stay until **Release housekeeping** (see **Release (version) process** below).
 3. **Update or create design docs** under the relevant `docs/design/<component>/` section
    (e.g. `agentic/`, `metadata/`, `platform/`, `security/`) — capture decisions, architecture
    notes, and anything a future agent or developer needs to understand the system. Design docs
    are organised by logical component, not by story.
 4. **Update or create user documentation** under `docs/public/src/` — ensure the public-facing
    docs reflect any new features or changed behaviour.
-5. **Archive the story folder** — do **not** delete it. Move the entire folder to:
+5. **Archive the story folder** — do **not** delete it. Move the entire folder from
+   **`docs/workitems/planned/<story-slug>/`** or **`docs/workitems/in-progress/<story-slug>/`**
+   to:
    `docs/workitems/completed/YYYYMMDD-<story-slug>/`, where:
    - **`YYYYMMDD`** is the **story closure date** (UTC unless the team agrees otherwise —
      the calendar day the work is accepted as merge-ready or merged).
@@ -64,14 +97,42 @@ When all WIs in a story are complete **and** the branch is **MR-ready** (rewritt
    - Example: `docs/workitems/completed/20260330-metadata-persistence/`
 
    The archived folder preserves `STORY.md`, all WI files, and any other story-local artefacts
-   as the historical record. Durable summaries remain in **MILESTONE**, **BACKLOG**, and
-   **design / public docs** as today.
+   as the historical record. Durable summaries remain in **MILESTONE**, **`releases/`**, and
+   **design / public docs**. **`BACKLOG.md`** may still list **`done`** rows until the next
+   **release** (see **Release (version) process**).
 
    **Ordering:** With a `YYYYMMDD-` prefix, **ascending** name sort lists **oldest** closures first.
    To see **most recent closures first**, sort folder names **descending** (reverse alphabetical)
    in your file browser, or maintain the index in `docs/workitems/completed/README.md`.
 
 Merging into `dev` is done manually by the user; the agent prepares everything above first.
+
+## Release (version) process
+
+**Between releases** — for example after **`0.7.0`** is recorded and development continues toward
+**`0.8.0`** on `dev`:
+
+- **`BACKLOG.md` may include `done` rows.** When a backlog item ships (or a story you track there
+  closes), set **Status** to **`done`** and tighten **Source** (e.g. pointer to `MILESTONE.md` / WI).
+- Those rows **remain** in the file until **release housekeeping** for the **next** version. They are
+  a convenient “since last tag / last release notes” ledger inside the repo.
+
+**Release housekeeping** — when you **cut** version **`x.y.z`** (documentation and tracker pass,
+typically same moment as or immediately after you treat the milestone as **released**):
+
+1. **`MILESTONE.md`** — set **Released** (or equivalent) for the closing milestone; list completed
+   scope; roll **Planned** / follow-on items into the next milestone block as today.
+2. **`releases/RELEASE-x.y.z.md`** — create or update release notes (compare link, highlights,
+   pointers to `MILESTONE.md` / WIs); follow the shape of existing **`RELEASE-*.md`** files.
+3. **`BACKLOG.md` — prune** — **delete every table row** whose **Status** is **`done`**. Shipped work
+   is now recorded only under **MILESTONE** / **releases**. In the same pass, you may remove
+   **`cancelled`** / **`superseded`** rows if you want a minimal open tracker.
+4. **`BACKLOG.md` — Summary** — if the file includes per-category totals, **recalculate** them over
+   **open** rows only (`backlog` \| `planned` \| `in-progress`).
+
+**Relation to story closure:** story closure **marks** backlog rows **`done`**; **release** **removes**
+those rows. One-off cleanups (e.g. bulk-delete historical `done` rows when adopting this policy) are
+allowed; thereafter follow the cycle above.
 
 ---
 
@@ -122,7 +183,8 @@ This keeps each WI a **reviewable, reproducible checkpoint** on the story branch
 
 - When the WI is implemented, update the **tracking list** in `STORY.md` (checkbox `[x]`) **in the same
   commit** as the WI’s code/docs — see **Per-WI cadence** and **Complete working copy per WI** above.
-- Do **not** remove or relocate WI files until **story closure** — they stay with the story folder through its move to `docs/workitems/completed/`.
+- Do **not** remove or relocate WI files until **story closure** — they stay with the story folder
+  through its move from `planned/` or `in-progress/` to `docs/workitems/completed/`.
 
 ## UI Module Reference
 
@@ -154,5 +216,7 @@ branch.
    code review and CI. **Guideline:** aim for **at most about 10 commits** above the merge base; if
    more are needed for clarity (large stories, risky refactors), that is acceptable — prefer reviewable
    grouping over a hard number.
-4. Follow the **Story closure** documentation steps above (MILESTONE, BACKLOG, design docs,
-   public docs, archive story folder under `docs/workitems/completed/YYYYMMDD-<story-slug>/`).
+4. Follow the **Story closure** documentation steps above (MILESTONE, BACKLOG `done`, design docs,
+   public docs, archive story folder from `planned/` or `in-progress/` to
+   `docs/workitems/completed/YYYYMMDD-<story-slug>/`). **BACKLOG row deletion** is **not** part of
+   story closure — it happens in **Release (version) process** above.

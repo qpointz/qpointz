@@ -11,7 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class MillService {
 
     public static void main(String[] args) {
-        SpringApplication.run(new Class[]{MillService.class} ,args);
+        SpringApplication.run(new Class[] {MillService.class}, args);
     }
 
 }

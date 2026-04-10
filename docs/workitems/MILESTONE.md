@@ -2,119 +2,25 @@
 
 ## 0.7.0
 
-**Target date:** TBD
+**Released:** 2026-04-10
 
 ### Completed
 
-Items delivered in this milestone.
+Narrative, per-WI detail, and story closures: **[`releases/RELEASE-0.7.0.md`](releases/RELEASE-0.7.0.md)**.
 
-- WI-015 — Core `mill-sql` bootstrap + feature-complete YAML schema
-- WI-016 — Migrate `POSTGRES`/`H2`/`CALCITE`/`MYSQL` to new schema
-- WI-017 — Kotlin typed dialect model + YAML loader (`core/mill-sql` only)
-- WI-018 — `GetDialect` contracts for gRPC/HTTP + handshake support flag
-- WI-019 — Server `GetDialect` implementation backed by migrated dialects
-- WI-020 — Migrate AI dialect consumer to new typed runtime model
-- WI-022 — Fully document SQL dialect schema in design docs
-- WI-026 — JDBC full metadata implementation (`DatabaseMetaData` surface)
-- WI-021 — Python remote dialect consumption over gRPC/HTTP
-- WI-024 — Python SQLAlchemy implementation (MillDialect + compiler + entry points)
-- WI-025 — Python ibis initial implementation (BaseBackend + SQL compilation, slice 1)
-- WI-067 — `ai/v3` multi-mode protocol execution: `ProtocolDefinition` with `TEXT`,
-  `STRUCTURED_FINAL`, `STRUCTURED_STREAM` modes; `ProtocolExecutor` interface;
-  `LangChain4jProtocolExecutor` (token streaming, JSON schema response, NDJSON line buffer);
-  `PlannerDecision.protocolId`; `AgentEvent` protocol variants (`ProtocolTextDelta`,
-  `ProtocolFinal`, `ProtocolStreamEvent`); protocol declarations moved to capability YAML
-  manifests (`manifest.allProtocols`); `LangChain4jAgent` (renamed from `OpenAiHelloWorldAgent`,
-  profile as constructor param); unit tests for all three modes via fake `StreamingChatModel`
-
-- WI-085 — Metadata service API cleanup: service layer refactored into `mill-metadata-service`
-  and `mill-metadata-autoconfigure`; `MetadataService` and `MetadataScopeService` registered as
-  autoconfiguration `@Bean`s; `MetadataChangeObserver` chain with `MetadataChangeObserverDelegate`
-  marker interface eliminating circular injection; `NoOpMetadataRepository` and
-  `NoOpMetadataScopeRepository` Kotlin object singletons as no-config fallbacks; component-scan
-  pattern aligned with `mill-data-http-service` (controllers via `@RestController`, services via
-  autoconfiguration); `@AutoConfigureAfter` ordering on `MetadataEntityServiceAutoConfiguration`
-  and `MetadataImportExportAutoConfiguration`; `mill-metadata-persistence` added as `runtimeOnly`
-  to `mill-service`
-
-- WI-086 — Metadata REST controller redesign: four controllers under `/api/v1/metadata/**` —
-  `MetadataEntityController` (read-only entity + facet endpoints), `MetadataFacetController`
-  (facet type catalog CRUD), `MetadataScopeController` (scope lifecycle), and
-  `MetadataImportExportController` (YAML bulk import/export); `MetadataUrns` utility with URN
-  constants and `normaliseFacetTypePath`/`normaliseScopePath` helpers; full URN keys in storage,
-  prefixed slugs in URL path variables; `MetadataExceptionHandler` `@RestControllerAdvice`;
-  startup import runner (historically `mill.metadata.import-on-startup`; **current** keys: **`mill.metadata.seed.resources`**) supporting `classpath:` and `file:`
-  resource URLs; all production code carries OpenAPI and KDoc annotations
-
-- WI-087 — Metadata relational JPA persistence: new `metadata/mill-metadata-persistence` module;
-  Flyway migration `V4__metadata.sql` with six tables (`metadata_scope`, `metadata_entity`,
-  `metadata_facet_scope`, `metadata_facet_type`, `metadata_promotion`, `metadata_operation_audit`);
-  six JPA entities and Spring Data repositories; three adapters — `JpaMetadataRepository`,
-  `JpaFacetTypeRepository`, `JpaMetadataScopeRepository`; `JpaMetadataChangeObserver` for async
-  audit persistence; `MetadataJpaPersistenceAutoConfiguration` activated by
-  **`mill.metadata.repository.type=jpa`** (historical text below used `mill.metadata.storage.type=jpa`); H2 integration test suite with skymill dataset; JPA
-  persistence wired into `skymill` and `moneta` application profiles. **Note (metadata rework):** greenfield DDL and table names evolved per **SPEC §8** (`metadata_audit`, `metadata_seed`, no promotion table); see [`docs/design/metadata/mill-metadata-domain-model.md`](../design/metadata/mill-metadata-domain-model.md).
-
-- WI-089 — Metadata scopes and context composition: `MetadataScope` domain type;
-  `MetadataScopeRepository` interface with `NoOpMetadataScopeRepository` fallback; full JPA adapter
-  `JpaMetadataScopeRepository`; `MetadataScopeService` with global-scope protection on delete;
-  `MetadataContext.parse()` accepting comma-separated scope slugs; facet resolution by ordered
-  scope list (last-wins merge); `MetadataScopeController` REST endpoints (`GET/POST/DELETE
-  /api/v1/metadata/scopes`); `MetadataScopeDto` and OpenAPI annotations
-
-- WI-092 — `mill-ui` model view: real backend binding: `MetadataProvider` wired to live
-  `MetadataApi` and `SchemaExplorerApi` clients; inline chat disabled (`inlineChatEnabled: false`);
-  tree loading with 10 s timeout; entity loading by ID and by schema/table/attribute location;
-  concepts loaded from backend; graceful empty-state when schema explorer backend is absent
-
-- WI-093a — Physical schema explorer service: `mill-data-schema-service` with `/api/v1/schema/**`
-  (context bootstrap, schema list, table/column detail, tree-oriented loading for the Model view)
-
-- WI-093b — Metadata autoconfigure split and Model view integration: lazy per-table column loading,
-  `context` query parameter for facet resolution, wiring to split `mill-metadata-autoconfigure` vs
-  persistence modules
-
-- WI-085 — gRPC server reimplementation and Skymill parity tests: raw grpc-java server as the only
-  active gRPC transport (`services/mill-data-grpc-service/`); shared Skymill SQL query-case set;
-  server `testIT` executing the shared query set against Skymill; JDBC driver `testIT` reusing the
-  same query set for result/label parity; legacy net.devh server retained under `misc/` for reference
-
-Completed WI markdown files are intentionally removed after delivery; this milestone list is the
-retained canonical record of completed items.
-
-**Metadata — Schema Explorer (`metadata-edit-and-explorer`, closed March 2026):** Delivered the
-physical schema explorer REST surface (`data/mill-data-schema-service`, `/api/v1/schema/**` including
-context bootstrapping and tree-oriented loading), metadata autoconfigure split, and `mill-ui` Data
-Model wiring (lazy columns, context query param, facet resolution). Deferred to backlog: interactive
-scope picker beyond `global`, strict scope authorization rules for writes, and runtime performance
-hardening of schema list/tree endpoints (see `BACKLOG.md`).
-
-**Metadata — Edit, Facet Registry, and UI Service (`metadata-edit-and-promotion-follow-up`, closed
-March 2026):** Delivered WI-094–WI-099 and WI-090/WI-098 — facet type manifests and registry
-(`inMemory` / `local`), admin facet-type management UI, platform descriptor migration, JPA
-row-per-facet storage (`metadata_facet`, Flyway V8+), surrogate keys (V9), stable **`facet_uid`** per
-row (V10) exposed on `GET .../entities/{id}/facets`, **MULTIPLE** delete requiring `uid` when more
-than one instance exists, `DELETE .../facet-instances/{facetUid}`, `mill-ui` facet editor (schema-driven
-forms, expert JSON), and **`services/mill-ui-service`** with `mill.ui.*` configuration. **JPA save**
-replaces all facet rows for an entity from the domain snapshot so removals persist (fixes stale facets
-  after delete). **WI-091** (metadata promotion workflow) remains **deferred** — see `BACKLOG.md`.
-
-**Mill UI (`mill-ui-fixes`, closed March 2026):** **WI-105** — ESLint 9 flat config for `ui/mill-ui` (`npm run lint` clean; `react-refresh` relaxed for context modules; `_`-prefixed unused bindings). **WI-106** — Vitest `afterEach` `act` + timer flush in `src/test/setup.ts` to reduce async provider noise. **WI-108** — design pack under `docs/design/ui/mill-ui/` with stub `ui/mill-ui/docs/README.md` pointing to the canonical location. **WI-107** — shared explorer toolbar row (`layoutChrome`, `ExplorerSplitLayout`, `ViewPaneHeader`) on Model / Knowledge / Analysis; metadata scope `Select` wired to schema context and metadata scope APIs. **WI-109** — MULTIPLE-cardinality facet rendering in `EntityDetails` (per-instance cards, `{ relations: [...] }` envelope, sole `{}` counts as one instance). **WI-110** — pure **`facetPayloadUtils.ts`** extracted from `EntityDetails` with focused unit tests.
-
-**Metadata — Greenfield rework (`metadata-rework`, closed March 2026):** **WI-119–WI-128** — URN-based **entity** identity (`urn:mill/...`, opaque to `mill-metadata-core`); **`FacetInstance`** row model with **`merge_action`** on **`metadata_entity_facet`**; effective-view merge in core (**`MetadataReader`** / **`MetadataView`**), not in JPA adapters alone; squashed Flyway **`V4__metadata_greenfield.sql`** (legacy metadata migrations V4–V10 removed per story); **`metadata_audit`**, **`metadata_seed`** ledger, ordered **`mill.metadata.seed.*`** startup seeds; **`mill.metadata.repository.*`** replaces removed **`mill.metadata.storage.*`**; REST/OpenAPI, canonical YAML import/export, and **`mill-ui`** URN paths; **WI-127** design sync ([`mill-metadata-domain-model.md`](../design/metadata/mill-metadata-domain-model.md), configuration inventories); **WI-128** public MkDocs metadata section. Normative spec and WI checklist (archived): [`completed/20260330-metadata-rework/STORY.md`](completed/20260330-metadata-rework/STORY.md), [`completed/20260330-metadata-rework/SPEC.md`](completed/20260330-metadata-rework/SPEC.md).
-
-**Mill UI — facet types & Model view (branch `feat/metadata-rework-final`, merged toward dev after March 2026):** Facet **MULTIPLE** payload coercion + per-instance cards; **known stereotypes** documentation ([`mill-ui-facet-stereotypes.md`](../design/metadata/mill-ui-facet-stereotypes.md), public [`facet-stereotypes.md`](../public/src/metadata/facet-stereotypes.md)); **Facet types** admin list — category / applicable-to (**empty `applicableTo` = any** included when filtering) / enabled-only row, equal-width filters, **delete confirmation** modal; expert JSON/YAML editor **save** parses current buffer (YAML safe); hyperlink object **Title** + **URL** read layout; single-instance MULTIPLE caption hygiene. **BACKLOG** **M-30** marks stereotype docs done.
+Summary index (Search / MR descriptions): **WI-015–WI-022**, **WI-026**, **WI-021**, **WI-024**,
+**WI-025**, **WI-067**, **WI-085**–**WI-087**, **WI-089**, **WI-092**, **WI-093a/b**, **WI-105–WI-110**,
+**WI-119–WI-128**, gRPC Skymill parity server/driver tests, **P-36** mill-service logging
+(see [`releases/RELEASE-0.7.0.md`](releases/RELEASE-0.7.0.md). **`BACKLOG.md`:** `done` rows may stay
+until the next release prune — see [`RULES.md`](RULES.md) § **Release (version) process**.)
 
 ### In Progress
 
-Items currently being implemented in this milestone.
+— *(none — release closed)*
 
 ### Planned
 
-Items targeted next after in-progress work is completed.
-
-- WI-023 — ibis dialect correctness validation and certification
-  (`docs/workitems/ibis-dialect-validation/WI-023-ibis-dialect-correctness-validation.md`)
+— *(none; next items under **0.8.0**)*
 
 ## 0.8.0
 
@@ -280,7 +186,7 @@ canonical datasets and persistence/read paths aligned to typed entity URNs; **WI
 public doc updates (`metadata-urn-platform`, canonical YAML spec, synthetic writer handoff,
 `mill-metadata-domain-model`, `mill-ui` / operator docs). **WI-144** (drop redundant
 `MetadataEntity.kind` / `entity_kind`) **deferred** to active story
-[`eliminate-entity-kind/STORY.md`](eliminate-entity-kind/STORY.md). Archive:
+[`planned/eliminate-entity-kind/STORY.md`](planned/eliminate-entity-kind/STORY.md). Archive:
 [`completed/20260402-typed-entity-urns/STORY.md`](completed/20260402-typed-entity-urns/STORY.md).
 
 **Flow source — Data Model UI facets (`flow-source-ui-facets`, closed 2026-04-02):** **WI-147**
@@ -300,26 +206,18 @@ No active in-progress items currently.
 
 ### Planned
 
-Items targeted next after 0.7.0 closure and backlog triage.
+Items targeted after **0.7.0** (not yet delivered under **0.8.0**).
 
 - WI-027 — Metadata value mapping bridge and parity
-  (`docs/workitems/metadata-value-mapping/WI-027-metadata-value-mapping-bridge.md`)
+  (`docs/workitems/planned/metadata-value-mapping/WI-027-metadata-value-mapping-bridge.md`)
 - WI-028 — Metadata value mapping API and UI surface
-  (`docs/workitems/metadata-value-mapping/WI-028-metadata-value-mapping-api-and-ui.md`)
-- WI-085 — Metadata service API cleanup and error handling
-  (`docs/workitems/metadata-persistence-and-editing/WI-085-metadata-service-cleanup.md`)
-- WI-086 — Metadata REST controller redesign
-  (`docs/workitems/metadata-persistence-and-editing/WI-086-metadata-rest-controller-redesign.md`)
-- WI-087 — Metadata relational persistence and repository transition
-  (`docs/workitems/metadata-persistence-and-editing/WI-087-metadata-relational-persistence.md`)
-- WI-089 — Metadata scopes and context composition
-  (`docs/workitems/metadata-persistence-and-editing/WI-089-metadata-scopes-and-contexts.md`)
-- WI-092 — `mill-ui` model view: real backend binding and inline chat disable
-  (`docs/workitems/metadata-persistence-and-editing/WI-092-mill-ui-model-view-backend-binding.md`)
+  (`docs/workitems/planned/metadata-value-mapping/WI-028-metadata-value-mapping-api-and-ui.md`)
 - WI-034 — Metadata complex type support in structural facets and UI
-  (`docs/workitems/metadata-complex-types/WI-034-metadata-complex-type-support.md`)
+  (`docs/workitems/planned/metadata-complex-types/WI-034-metadata-complex-type-support.md`)
 - WI-082 — `mill-ui` migration to the unified `ai/v3` chat API and `item.*` SSE protocol
-  (`docs/workitems/ai-v3/WI-082-mill-ui-unified-ai-chat-integration.md`)
+  (`docs/workitems/planned/ai-v3/WI-082-mill-ui-unified-ai-chat-integration.md`)
 - WI-084 — AI v3 chat service documentation: module responsibilities, REST API, persistence model,
   SSE stream contract, runtime rehydration, and `mill-ui` integration guidance
-  (`docs/workitems/WI-084-ai-v3-chat-service-documentation.md`)
+  (`docs/workitems/planned/ai-v3/WI-084-ai-v3-chat-service-documentation.md`)
+- WI-023 — ibis dialect correctness validation and certification
+  (`docs/workitems/planned/ibis-dialect-validation/WI-023-ibis-dialect-correctness-validation.md`)

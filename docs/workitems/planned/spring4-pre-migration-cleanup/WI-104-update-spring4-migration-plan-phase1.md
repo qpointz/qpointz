@@ -8,7 +8,7 @@ Depends on: **WI-097**–**WI-103** (content should reflect completed WIs)
 
 ## Problem Statement
 
-[`docs/design/platform/spring4-migration-plan.md`](../../design/platform/spring4-migration-plan.md) Phase 1
+[`docs/design/platform/spring4-migration-plan.md`](../../../design/platform/spring4-migration-plan.md) Phase 1
 checkboxes, module paths, and Appendix A still describe **older layout** (`data/mill-data-grpc-service`,
 side-by-side `mill-data-grpc-service-v2`, `mill.services.grpc.*` in places) and may mark items undone
 that the repo already finished (e.g. `spring.factories` removal).
@@ -36,4 +36,4 @@ that the repo already finished (e.g. `spring.factories` removal).
 
 ## References
 
-- [`docs/design/platform/spring4-migration-plan.md`](../../design/platform/spring4-migration-plan.md)
+- [`docs/design/platform/spring4-migration-plan.md`](../../../design/platform/spring4-migration-plan.md)

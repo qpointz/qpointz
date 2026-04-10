@@ -43,4 +43,4 @@ trees.
 
 ## References
 
-- [`docs/design/platform/spring4-migration-plan.md`](../../design/platform/spring4-migration-plan.md) — Critical #1, Appendix A, build table
+- [`docs/design/platform/spring4-migration-plan.md`](../../../design/platform/spring4-migration-plan.md) — Critical #1, Appendix A, build table

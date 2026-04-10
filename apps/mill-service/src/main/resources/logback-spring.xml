@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Spring Boot logback (springProperty, %wEx, Boot FILE). Console: Logback colors + ASCII |, not %clr. -->
+<configuration debug="${QP_LOGGING_DEBUG:-false}">
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
+
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <springProperty name="CONSOLE_LOG_PATTERN" source="logging.pattern.console"
+                    defaultValue="%gray(|) %cyan(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}) %gray(|) %yellow(%-15.15thread) %gray(|) %highlight(%-5level) %gray(|) %magenta(%-28.28logger{28}) %gray(|) %msg%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+    <springProperty name="FILE_LOG_PATTERN" source="logging.pattern.file"
+                    defaultValue="%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}} | %-15.15thread | ${LOG_LEVEL_PATTERN:-%-5level} | %-28.28logger{28} | %msg%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+
+    <springProperty name="LOG_FILE" source="logging.file.name" defaultValue="logs/mill-service.log"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- Match working plain logback.xml (COLOR without Jansi wrapping on your setup). -->
+        <withJansi>false</withJansi>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>${CONSOLE_LOG_THRESHOLD}</level>
+        </filter>
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>${CONSOLE_LOG_CHARSET}</charset>
+        </encoder>
+    </appender>
+
+    <include resource="org/springframework/boot/logging/logback/file-appender.xml"/>
+
+    <springProperty name="ROOT_LOG_LEVEL" source="logging.level.root" defaultValue="${QP_LOGGING_LEVEL:-INFO}"/>
+
+    <root level="${ROOT_LOG_LEVEL}">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>

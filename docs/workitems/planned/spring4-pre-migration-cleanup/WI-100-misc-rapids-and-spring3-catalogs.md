@@ -35,4 +35,4 @@ paths** and unclear ownership.
 
 ## References
 
-- [`docs/design/platform/spring4-migration-plan.md`](../../design/platform/spring4-migration-plan.md) — §11, module matrix `misc/rapids`
+- [`docs/design/platform/spring4-migration-plan.md`](../../../design/platform/spring4-migration-plan.md) — §11, module matrix `misc/rapids`

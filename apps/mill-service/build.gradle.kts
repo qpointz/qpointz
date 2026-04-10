@@ -99,7 +99,6 @@ tasks.named("installBootDist") {
     finalizedBy(installSampleData, installSampleCerts)
 }
 
-
 dependencies {
     implementation(project(":services:mill-ui-service"))
     implementation(project(":services:mill-service-common"))

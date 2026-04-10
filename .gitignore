@@ -1,9 +1,15 @@
+# Stray classpath/sync artifacts at repo root — never commit
+/org/
+
 # Ignore Gradle project-specific cache directory
 .gradle
 .gradle/
 .gradle-home/
 .kreya/
 .conda
+# Runtime log dirs (e.g. Spring logging.file.name under module cwd)
+**/logs/
+
 # Ignore Gradle build output directory
 build
 bin 

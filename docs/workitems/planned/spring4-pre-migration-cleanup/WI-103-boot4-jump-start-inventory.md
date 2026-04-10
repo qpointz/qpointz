@@ -39,4 +39,4 @@ listing:
 
 ## References
 
-- [`docs/design/platform/spring4-migration-plan.md`](../../design/platform/spring4-migration-plan.md) — Phase 3, §9–§12
+- [`docs/design/platform/spring4-migration-plan.md`](../../../design/platform/spring4-migration-plan.md) — Phase 3, §9–§12

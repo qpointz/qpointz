@@ -9,22 +9,37 @@ It is the authoritative reference for agents and contributors.
 |------|-----------|
 | **Story** | A coherent delivery unit: one branch, one topic, merged into `dev` by the user. |
 | **Work Item (WI)** | A discrete implementation task within a story. |
-| **Story folder** | `docs/workitems/<story-slug>/` while active; **archived** to `docs/workitems/completed/YYYYMMDD-<story-slug>/` at closure (not deleted). |
+| **Story folder** | **`planned/<story-slug>/`** while no WI is checked; **`in-progress/<story-slug>/`** once any WI is `[x]` in `STORY.md`; **archived** to `docs/workitems/completed/YYYYMMDD-<story-slug>/` at closure (not deleted). See **Placement rule** in `docs/workitems/RULES.md`. |
 | **Story slug** | Lowercase, hyphen-separated topic label (e.g. `metadata-persistence`). |
 
 ## Folder layout
 
 ```
 docs/workitems/
-  <story-slug>/
-    STORY.md             # Goal + ordered WI checklist
-    WI-NNN-<title>.md    # One file per work item
-    WI-NNN-<title>.md
-    ...
+  RULES.md
+  BACKLOG.md
+  MILESTONE.md
+  releases/
+  planned/
+    <story-slug>/
+      STORY.md
+      WI-NNN-<title>.md
+      ...
+  in-progress/
+    <story-slug>/
+      STORY.md
+      WI-NNN-<title>.md
+      ...
+  completed/
+    YYYYMMDD-<story-slug>/
+      STORY.md
+      WI-NNN-<title>.md
+      ...
 ```
 
-WI files live exclusively inside the story folder. Placing them at the top level of
-`docs/workitems/` is not permitted.
+**Placement (checkbox-based):** all WIs `[ ]` → `planned/`; any WI `[x]` → `in-progress/`. WI files
+live exclusively inside the story folder under `planned/` or `in-progress/`. Placing them at the top
+level of `docs/workitems/` is not permitted.
 
 ## STORY.md structure
 
@@ -60,14 +75,17 @@ Before signalling that the branch is ready to merge, the agent must:
    readable before merge.
 
 1. **`docs/workitems/MILESTONE.md`** — record completed WIs in the appropriate milestone section.
-2. **`docs/workitems/BACKLOG.md`** — mark related backlog items `done`.
+2. **`docs/workitems/BACKLOG.md`** — set related rows to **`done`**; add or adjust **deferred**
+   follow-ups. **Do not delete `done` rows here** — removal is part of **release housekeeping**
+   (`RULES.md` § **Release (version) process**).
 3. **`docs/design/<component>/`** — update or create design docs in the relevant logical
    component section (e.g. `agentic/`, `metadata/`, `platform/`, `security/`). Design docs
    are organised by component, not by story; use the section that best matches the changed
    subsystem.
 4. **`docs/public/src/`** — update or create user-facing documentation for any new or changed
    features.
-5. **Archive `docs/workitems/<story-slug>/`** — move the entire folder to
+5. **Archive the story folder** — move from `docs/workitems/planned/<story-slug>/` or
+   `docs/workitems/in-progress/<story-slug>/` to
    `docs/workitems/completed/YYYYMMDD-<story-slug>/` (`YYYYMMDD` = closure date; `<story-slug>`
    = original folder name). Do **not** delete the story folder. Add a line to
    `docs/workitems/completed/README.md` if you maintain the newest-first index. **Most recent first**
@@ -83,5 +101,6 @@ If work is identified during a story but deferred, document it in the relevant
 
 ## Reference
 
-- Detailed rules: `docs/workitems/RULES.md`
+- Detailed rules: `docs/workitems/RULES.md` (including **Release (version) process** — `BACKLOG.md`
+  **`done`** row removal at version cut).
 - Project conventions: `CLAUDE.md` (section "Stories, Work Items & Branching")

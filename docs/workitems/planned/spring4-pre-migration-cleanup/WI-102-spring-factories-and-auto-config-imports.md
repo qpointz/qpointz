@@ -34,4 +34,4 @@ files that still register `EnableAutoConfiguration` cause silent drift: works on
 
 ## References
 
-- [`docs/design/platform/spring4-migration-plan.md`](../../design/platform/spring4-migration-plan.md) — §8
+- [`docs/design/platform/spring4-migration-plan.md`](../../../design/platform/spring4-migration-plan.md) — §8

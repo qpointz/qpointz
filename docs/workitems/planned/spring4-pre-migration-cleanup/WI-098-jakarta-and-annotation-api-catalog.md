@@ -41,4 +41,4 @@ catalog entry add noise and complicate a future Boot 4 migration audit.
 
 ## References
 
-- [`docs/design/platform/spring4-migration-plan.md`](../../design/platform/spring4-migration-plan.md) — §7
+- [`docs/design/platform/spring4-migration-plan.md`](../../../design/platform/spring4-migration-plan.md) — §7

@@ -32,4 +32,4 @@ OpenAPI versions in module `build.gradle.kts` files.
 
 ## References
 
-- [`docs/design/platform/spring4-migration-plan.md`](../../design/platform/spring4-migration-plan.md) — §5, §11
+- [`docs/design/platform/spring4-migration-plan.md`](../../../design/platform/spring4-migration-plan.md) — §5, §11

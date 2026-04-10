@@ -33,4 +33,4 @@ replace the pin with `version.ref = "springBoot"`-aligned strategy documented in
 
 ## References
 
-- [`docs/design/platform/spring4-migration-plan.md`](../../design/platform/spring4-migration-plan.md) — §9
+- [`docs/design/platform/spring4-migration-plan.md`](../../../design/platform/spring4-migration-plan.md) — §9

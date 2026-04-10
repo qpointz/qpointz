@@ -1,7 +1,10 @@
 # Layered metadata sources and inferred facets
 
 **Status:** as-built (story `metadata-and-ui-improve-and-clean`, April 2026)  
-**Related backlog:** `docs/workitems/BACKLOG.md` — **M-31** (delivered); **M-32** (facet type catalog DEFINED/OBSERVED follow-up)
+**Tracking:** **M-31** was delivered; under normal process it would be **`done`** in
+[`docs/workitems/BACKLOG.md`](../../workitems/BACKLOG.md) until **release housekeeping**, then
+pruned (see [`RULES.md`](../../workitems/RULES.md) § **Release (version) process**). Follow-up **M-32**
+(facet type catalog DEFINED/OBSERVED) remains **open** there.
 
 ## Objective
 
