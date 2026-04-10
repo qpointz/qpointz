@@ -8,7 +8,9 @@ import java.util.List;
 /**
  * Configuration for ordered startup metadata seed resources (SPEC §14.1).
  *
- * <p>Bound to {@code mill.metadata.seed}. Each resource is imported via {@link io.qpointz.mill.metadata.service.MetadataImportService#import}
+ * <p>Bound to {@code mill.metadata.seed}. Each resource is imported via
+ * {@link io.qpointz.mill.metadata.service.MetadataImportService MetadataImportService}
+ * {@code import(java.io.InputStream, io.qpointz.mill.metadata.domain.ImportMode, String)}
  * in {@link io.qpointz.mill.metadata.domain.ImportMode#MERGE} mode with actor {@code system}.
  * Completion is recorded in {@code metadata_seed} when a {@link io.qpointz.mill.metadata.repository.MetadataSeedLedgerRepository} bean is present.
  * Ledger keys are derived from the resource location (canonical file URI when applicable), not from the list index, so reordering {@code resources} does not re-trigger completed seeds.
@@ -16,6 +18,12 @@ import java.util.List;
  */
 @ConfigurationProperties(prefix = "mill.metadata.seed")
 public class MetadataSeedProperties {
+
+    /**
+     * Creates seed properties with an empty resource list and {@code onFailure=fail-fast}.
+     */
+    public MetadataSeedProperties() {
+    }
 
     /**
      * Ordered Spring {@link org.springframework.core.io.Resource} locations (e.g. {@code classpath:metadata/01-base.yaml}).

@@ -12,6 +12,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "mill.metadata")
 public class MetadataProperties {
 
+    /**
+     * Creates a properties instance with nested defaults ({@link Repository}, {@link FacetTypeRegistry}).
+     */
+    public MetadataProperties() {
+    }
+
     /** Repository backend selector and nested file settings; defaults to {@code new Repository()}. */
     private Repository repository = new Repository();
 
@@ -58,6 +64,12 @@ public class MetadataProperties {
      * Metadata repository implementation selector ({@code mill.metadata.repository}).
      */
     public static class Repository {
+
+        /**
+         * Creates repository settings with {@code type=file} and a nested {@link File} section.
+         */
+        public Repository() {
+        }
 
         /**
          * Backend type identifier.
@@ -114,6 +126,12 @@ public class MetadataProperties {
          * File-repository specific configuration ({@code mill.metadata.repository.file}).
          */
         public static class File {
+
+            /**
+             * Creates file-repository settings with defaults (empty path, watch/write flags off).
+             */
+            public File() {
+            }
 
             /**
              * Comma-separated list of Spring resource paths for YAML metadata files.
@@ -198,6 +216,12 @@ public class MetadataProperties {
      * Facet type registry source selector ({@code mill.metadata.facet-type-registry}).
      */
     public static class FacetTypeRegistry {
+
+        /**
+         * Creates facet registry settings with {@code type=inMemory}.
+         */
+        public FacetTypeRegistry() {
+        }
 
         /**
          * Registry source strategy identifier.

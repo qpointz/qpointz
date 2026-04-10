@@ -17,7 +17,7 @@ import static org.apache.calcite.avatica.util.Quoting.BACK_TICK;
  * Bridges a v2 {@link SqlDialectSpec} to Apache Calcite parser conventions
  * ({@link Quoting}, {@link Casing}).
  *
- * <p>Use {@link #asProperties()} or {@link #asMap(Map)} to obtain settings
+ * <p>Use {@link #asProperties(Map)} or {@link #asMap(Map)} to obtain settings
  * suitable for passing to a Calcite connection or parser configuration.</p>
  *
  * @param dialectSpec the dialect specification to derive conventions from
