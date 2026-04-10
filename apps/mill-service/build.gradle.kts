@@ -70,9 +70,13 @@ val installSampleData = tasks.register<Copy>("installSampleData") {
     // moneta sample
     from(datasetsDir.file("moneta/moneta-slim.sql")) { into("etc/data/moneta") }
     from(datasetsDir.file("moneta/moneta.sql")) { into("etc/data/moneta") }
+    from(datasetsDir.file("moneta/moneta-canonical.yaml")) { into("config/metadata") }
 
     //skymill
     from(datasetsDir.dir("skymill/parquet")) { into("etc/data/skymill") }
+    from(datasetsDir.file("skymill/skymill-canonical.yaml")) { into("config/metadata") }
+
+
 }
 
 val installSampleCerts = tasks.register<Copy>("installSampleCerts") {

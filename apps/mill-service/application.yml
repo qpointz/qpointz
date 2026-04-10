@@ -2,18 +2,6 @@ spring:
   config:
     activate:
       on-profile: skymill
-  datasource:
-    url: "jdbc:h2:mem:mill-skymill;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH"
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: ""
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: false
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
 
 mill:
   data:
@@ -44,6 +32,7 @@ mill:
     seed:
       resources:
         - "classpath:metadata/platform-bootstrap.yaml"
+        - "classpath:metadata/platform-flow-facet-types.yaml"
         - "file:../../test/datasets/skymill/skymill-canonical.yaml"
 ---
 spring:

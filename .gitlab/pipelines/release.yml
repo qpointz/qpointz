@@ -156,7 +156,6 @@ apps:samples-edition-dist:
     expire_in: "1 days"
     paths:
       - ${CI_PROJECT_DIR}/apps/mill-service/build/install/**/*
-      - ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/samples/data/**/*      
 
 apps:samples-edition-docker:
   stage: package

@@ -1,0 +1,64 @@
+spring:
+  profiles:
+    active: skymill
+---
+spring:
+  config:
+    activate:
+      on-profile: skymill
+
+mill:
+  data:
+    sql:
+      dialect: calcite
+      conventions:
+        quoting: BACK_TICK
+        caseSensitive: "false"
+        unquotedCasing: UNCHANGED
+    backend:
+      type: flow
+      flow:
+        cache:
+          schema:
+            enabled: true
+            ttl: 2m
+        sources:
+          - ./config/skymill-flow.yml
+  metadata:
+    repository:
+      type: jpa
+    facet-type-registry:
+      type: local
+    seed:
+      resources:
+        - "classpath:metadata/platform-bootstrap.yaml"
+        - "classpath:metadata/platform-flow-facet-types.yaml"
+        - "file:./config/metadata/skymill-canonical.yaml"
+---
+spring:
+  config:
+    activate:
+      on-profile: moneta
+
+mill:
+  data:
+    sql:
+      dialect: h2
+    backend:
+      type: jdbc
+      jdbc:
+        url: "jdbc:h2:mem:test;INIT=RUNSCRIPT FROM './etc/data/moneta/moneta.sql'"
+        driver: "org.h2.Driver"
+        username: "*"
+        password: "*"
+        target-schema: "MONETA"
+  metadata:
+    repository:
+      type: jpa
+    facet-type-registry:
+      type: local
+    seed:
+      resources:
+        - "classpath:metadata/platform-bootstrap.yaml"
+        - "classpath:metadata/platform-flow-facet-types.yaml"
+        - "file:./config/metadata/moneta-canonical.yaml"

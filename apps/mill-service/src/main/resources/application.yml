@@ -10,7 +10,7 @@ spring:
   main:
     web-application-type: servlet
   datasource:
-    url: "jdbc:h2:mem:mill-moneta;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH"
+    url: "jdbc:h2:mem:mill-db;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH"
     driver-class-name: org.h2.Driver
     username: sa
     password: ""
@@ -36,6 +36,8 @@ mill:
           host: localhost
           port: 9090
   data:
+    sql:
+      dialect: calcite
     services:
       grpc:
         enable: true
