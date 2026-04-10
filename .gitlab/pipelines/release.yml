@@ -160,6 +160,9 @@ apps:samples-edition-dist:
 apps:samples-edition-docker:
   stage: package
   extends: .docker-build-job-release
+  before_script:
+    - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+    - ls -la "${CI_PROJECT_DIR}/apps/mill-service/build/install/mill-service-boot-samples/lib/"
   needs:
     - job: publish:require-version
       artifacts: true
