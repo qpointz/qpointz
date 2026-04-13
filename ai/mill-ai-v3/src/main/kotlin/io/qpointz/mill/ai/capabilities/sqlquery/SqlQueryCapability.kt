@@ -11,25 +11,28 @@ import io.qpointz.mill.ai.runtime.*
 import io.qpointz.mill.ai.runtime.events.*
 import io.qpointz.mill.ai.runtime.events.routing.*
 
-import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryToolHandlers.executeSql
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryToolHandlers.validateSql
 
 /**
- * Dependency carrying concrete validation/execution collaborators into [SqlQueryCapability].
+ * Dependency carrying the SQL **validator** into [SqlQueryCapability].
+ *
+ * **Host contract:** validated SQL and generated-SQL artifacts are emitted via the agent event stream
+ * and routed persistence (see `sql-query` protocols in `capabilities/sql-query.yaml`). A
+ * **postprocessor** in the chat service or UI consumes those artifacts and may call an
+ * application-side execution service — **not** inside this capability.
  */
 data class SqlQueryCapabilityDependency(
     val validator: SqlQueryToolHandlers.SqlValidationService,
-    val executor: SqlQueryToolHandlers.SqlExecutionService,
 ) : CapabilityDependency
 
 /**
- * Provider for the SQL query capability.
+ * Provider for the SQL query capability (**generate / validate** semantics for the agent).
  */
 class SqlQueryCapabilityProvider : CapabilityProvider {
     override fun descriptor(): CapabilityDescriptor = CapabilityDescriptor(
         id = "sql-query",
         name = "SQL Query",
-        description = "SQL validation and execution capability with structured query artifacts",
+        description = "SQL validation and generated-SQL artifacts for ai/v3 (execution is host-side)",
         supportedContexts = setOf("general"),
         tags = setOf("sql", "query"),
         requiredDependencies = setOf(SqlQueryCapabilityDependency::class.java),
@@ -43,7 +46,6 @@ class SqlQueryCapabilityProvider : CapabilityProvider {
         return SqlQueryCapability(
             descriptor = descriptor(),
             validator = dep.validator,
-            executor = dep.executor,
         )
     }
 }
@@ -51,17 +53,11 @@ class SqlQueryCapabilityProvider : CapabilityProvider {
 private data class SqlQueryCapability(
     override val descriptor: CapabilityDescriptor,
     private val validator: SqlQueryToolHandlers.SqlValidationService,
-    private val executor: SqlQueryToolHandlers.SqlExecutionService,
 ) : Capability {
 
     private data class ValidateSqlArgs(
         val sql: String,
         val attempt: Int = 1,
-    )
-
-    private data class ExecuteSqlArgs(
-        val statementId: String,
-        val sql: String,
     )
 
     private val manifest = CapabilityManifest.load("capabilities/sql-query.yaml")
@@ -75,13 +71,5 @@ private data class SqlQueryCapability(
             val args = request.argumentsAs<ValidateSqlArgs>()
             ToolResult(validateSql(validator, args.sql, args.attempt))
         },
-        manifest.tool("execute_sql") { request ->
-            val args = request.argumentsAs<ExecuteSqlArgs>()
-            ToolResult(executeSql(executor, args.statementId, args.sql))
-        },
     )
 }
-
-
-
-

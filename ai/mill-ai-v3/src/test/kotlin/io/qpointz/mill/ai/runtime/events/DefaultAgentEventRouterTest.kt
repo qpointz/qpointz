@@ -95,11 +95,12 @@ class DefaultAgentEventRouterTest {
         val result = DefaultAgentEventRouter.route(
             input(
                 AgentEvent.ToolResult(
-                    name = "execute_sql",
+                    name = "validate_sql",
                     result = mapOf(
-                        "artifactType" to "sql-result",
-                        "statementId" to "1",
-                        "resultId" to "mock-1",
+                        "artifactType" to "sql-validation",
+                        "passed" to true,
+                        "attempt" to 1,
+                        "normalizedSql" to "SELECT 1",
                     ),
                 )
             )
@@ -107,13 +108,13 @@ class DefaultAgentEventRouterTest {
 
         assertEquals(2, result.size)
         val telemetry = result.first { it.kind == "tool.result" }
-        val artifact = result.first { it.kind == "sql.result" }
+        val artifact = result.first { it.kind == "sql.validation" }
 
         assertEquals(RoutedEventCategory.TELEMETRY, telemetry.category)
         assertEquals(RoutedEventCategory.ARTIFACT, artifact.category)
         assertTrue(artifact.destinations.contains(RoutedEventDestination.ARTIFACT))
-        assertEquals("sql-result", artifact.content["artifactType"])
-        assertEquals("execute_sql", artifact.content["toolName"])
+        assertEquals("sql-validation", artifact.content["artifactType"])
+        assertEquals("validate_sql", artifact.content["toolName"])
     }
 
     @Test

@@ -7,7 +7,6 @@ import io.qpointz.mill.ai.memory.ChatMemoryStore
 import io.qpointz.mill.ai.runtime.ConversationSession
 import io.qpointz.mill.ai.memory.InMemoryChatMemoryStore
 import io.qpointz.mill.ai.profile.HelloWorldAgentProfile
-import io.qpointz.mill.ai.capabilities.sqlquery.MockSqlExecutionService
 import io.qpointz.mill.ai.capabilities.sqlquery.MockSqlValidationService
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityDependency
 import io.qpointz.mill.ai.capabilities.valuemapping.MockValueMappingResolver
@@ -138,7 +137,6 @@ fun main(args: Array<String>) {
             val dialectSpec = DialectRegistry.fromClasspathDefaults().requireDialect("calcite")
             val sqlQueryDep = SqlQueryCapabilityDependency(
                 validator = MockSqlValidationService(),
-                executor = MockSqlExecutionService(),
             )
             val store = InMemoryChatMemoryStore()
             val agent = SchemaExplorationAgent.fromEnv(schemaService, dialectSpec, sqlQueryDep, MockValueMappingResolver(), chatMemoryStore = store)
@@ -255,7 +253,13 @@ private fun runTurn(agentFn: (String, (AgentEvent) -> Unit) -> Unit, input: Stri
             }
             is AgentEvent.ProtocolFinal -> {
                 endBlocks()
-                println("  ${elapsedSec(turnStart)} ${green("[protocol.final]")}  ${bold(event.protocolId)}")
+                val label =
+                    if (event.protocolId.contains("generated-sql", ignoreCase = true)) {
+                        green(bold("[generated-sql]"))
+                    } else {
+                        green("[protocol.final]")
+                    }
+                println("  ${elapsedSec(turnStart)} $label  ${bold(event.protocolId)}")
                 println("  ${dim(mapper.writeValueAsString(event.payload))}")
             }
             is AgentEvent.ProtocolStreamEvent -> {

@@ -93,6 +93,7 @@ object DefaultAgentEventRouter : AgentEventRouter {
             persistAsArtifact = true,
             artifactPointerKeys = setOf("last-sql"),
         )
+        // Host-injected execution metadata (not produced by the sql-query capability tool loop).
         "sql-result" -> EventRoutingRule(
             eventType = "tool.result",
             kind = "sql.result",

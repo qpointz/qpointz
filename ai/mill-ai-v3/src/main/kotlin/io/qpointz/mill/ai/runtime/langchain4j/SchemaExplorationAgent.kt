@@ -43,7 +43,7 @@ import java.util.concurrent.CompletableFuture
  * - `schema` — grounding tools: list_schemas, list_tables, list_columns, list_relations.
  * - `schema-authoring` — capture tools: capture_description, capture_relation.
  * - `sql-dialect` — SQL dialect conventions and function discovery.
- * - `sql-query` — SQL validation and execution result references.
+ * - `sql-query` — SQL validation and generated-SQL artifacts (execution is host-side).
  *
  * ## Tool loop
  * 1. `complete()` — non-streaming; model returns tool calls or a final answer.
@@ -282,9 +282,9 @@ class SchemaExplorationAgent(
             appendLine("1. DATA RETRIEVAL — user wants query results (e.g. 'count orders by customer', 'show top products', 'how many …').")
             appendLine("   - Use schema tools to ground the relevant tables and columns.")
             appendLine("   - Use sql-dialect tools to learn identifier quoting and available functions.")
-            appendLine("   - Then follow the sql-query.system instructions exactly: call validate_sql, then execute_sql.")
+            appendLine("   - Then follow the sql-query.system instructions: call validate_sql, then emit generated SQL via the sql-query.generated-sql protocol.")
             appendLine("   - NEVER write SQL directly in your answer without first calling validate_sql.")
-            appendLine("   - After execute_sql completes successfully, stop. Do NOT produce a conversational summary — the query result is the answer.")
+            appendLine("   - Do not claim row-level query results — execution happens outside this agent; stop after emitting validated generated SQL.")
             appendLine()
             appendLine("2. SCHEMA EXPLORATION — user wants to understand the data model (e.g. 'what tables exist', 'what columns does X have').")
             appendLine("   - Call schema tools iteratively until you have enough information, then answer.")

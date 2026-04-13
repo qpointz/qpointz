@@ -101,7 +101,7 @@ OPENAI_API_KEY=sk-...  ./gradlew :ai:mill-ai-v3-cli:run --console=plain
 - Core types (`AgentEvent`, `Capability`, etc.) live in `mill-ai-v3-core` with no LangChain4j or Spring imports
 - LangChain4j is confined to `mill-ai-v3-langchain4j`; it must not define the core runtime architecture
 - New `AgentEvent` subtypes are added to `mill-ai-v3-core`; the CLI renders them automatically via JSON serialization — no CLI changes needed
-- Capability discovery uses Java `ServiceLoader` (`META-INF/services/io.qpointz.mill.ai.CapabilityProvider`)
+- Capability discovery uses Java `ServiceLoader` (`META-INF/services/io.qpointz.mill.ai.core.capability.CapabilityProvider`)
 - Design documents: `docs/design/agentic/`
 
 ## Testing Guidelines

@@ -23,6 +23,7 @@ Optionally, keep a **newest-first** bullet list below as a human-maintained inde
 
 ## Index (optional, newest first)
 
+- [2026-04-13 — ai-sql-generate-capability (`sql-query` generate-only, SqlValidator, CLI; WI-156–WI-159)](20260413-ai-sql-generate-capability/STORY.md)
 - [2026-04-02 — flow-source-ui-facets (flow inferred facets, mill-ui; WI-146–WI-150)](20260402-flow-source-ui-facets/STORY.md)
 - [2026-04-02 — typed-entity-urns (typed model URNs; WI-144 → eliminate-entity-kind)](20260402-typed-entity-urns/STORY.md)
 - [2026-04-01 — metadata-and-ui-improve-and-clean (multi-origin facets, UI cleanup)](20260401-metadata-and-ui-improve-and-clean/STORY.md)

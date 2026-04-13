@@ -125,7 +125,7 @@ This is the lifecycle a framework developer should keep in mind:
 
 1. Create or reuse capabilities
 2. Expose them through `CapabilityProvider`
-3. Register the provider in `META-INF/services/io.qpointz.mill.ai.CapabilityProvider`
+3. Register the provider in `META-INF/services/io.qpointz.mill.ai.core.capability.CapabilityProvider`
 4. Compose an `AgentProfile`
 5. Decide whether the default runtime is enough or a custom runtime is needed
 6. Define routing policy overrides if the profile needs artifact pointers or custom persistence behavior

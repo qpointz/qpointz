@@ -88,7 +88,7 @@ The current convention is:
 - YAML manifests:
   `ai/mill-ai-v3/src/main/resources/capabilities/...`
 - service registration:
-  `ai/mill-ai-v3/src/main/resources/META-INF/services/io.qpointz.mill.ai.CapabilityProvider`
+  `ai/mill-ai-v3/src/main/resources/META-INF/services/io.qpointz.mill.ai.core.capability.CapabilityProvider`
 
 Examples already present:
 
@@ -202,7 +202,7 @@ private data class MyCapability(
 
 Add the fully qualified class name to:
 
-`META-INF/services/io.qpointz.mill.ai.CapabilityProvider`
+`META-INF/services/io.qpointz.mill.ai.core.capability.CapabilityProvider`
 
 Current examples:
 
@@ -257,12 +257,11 @@ dependencies.require(SchemaCapabilityDependency::class.java).schemaFacetService
 
 ### 5.3 Example: SQL query capability
 
-The SQL query capability depends on separate validation and execution collaborators:
+The SQL query capability depends on a **validator** only. Validated SQL and generated-SQL artifacts are emitted through capability protocols; **execution stays in the host** (chat service, CLI harness, etc.), not in the tool loop.
 
 ```kotlin
 data class SqlQueryCapabilityDependency(
     val validator: SqlQueryToolHandlers.SqlValidationService,
-    val executor: SqlQueryToolHandlers.SqlExecutionService,
 ) : CapabilityDependency
 ```
 
@@ -318,7 +317,7 @@ Current real examples:
 
 - `schema.list_tables` -> `QUERY`
 - `schema-authoring.capture_description` -> `CAPTURE`
-- `sql-query.execute_sql` -> `CAPTURE`
+- `sql-query.validate_sql` -> `QUERY` (bounded correction loop; generated SQL is finalized via `sql-query.generated-sql` / `sql-query.validation` protocols, not an execute tool)
 
 ### 6.3 Binding from manifest
 
@@ -378,7 +377,7 @@ Current examples:
 - `conversation.stream`
 - `schema-authoring.capture`
 - `sql-query.generated-sql`
-- `sql-query.result-ref`
+- `sql-query.validation`
 
 Important rule:
 

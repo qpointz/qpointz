@@ -29,7 +29,7 @@ Documents related to Step-Back reasoning use the `sb-` prefix (e.g. `sb-reasonin
 
 | File | Description |
 |------|-------------|
-| `capabilities_design.md` | Modular LLM architecture v2: capabilities, advisors, orchestrators, reasoner |
+| `capabilities_design.md` | Modular LLM architecture v2: capabilities, advisors, orchestrators, reasoner; includes a Mill AI v3 note on SQL generation vs host execution |
 | `regression-snapshotting.md` | Full-conversation snapshot approach for regression testing |
 | `sb-interaction-model.md` | Step-Back interaction pattern: LLM calls, clarification flow, data model |
 | `sb-reasoning.md` | Step-Back reasoning concept: query understanding, gap detection, clarification |

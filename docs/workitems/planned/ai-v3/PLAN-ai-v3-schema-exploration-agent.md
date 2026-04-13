@@ -327,7 +327,7 @@ What remains before Step 4 is complete:
 - [ ] Create `list_relations.yaml` and wire `listRelations` in `SchemaCapability`
   (note: `RelationDirection` parameter needs to be accepted from tool input)
 - [ ] Register `SchemaCapabilityProvider` in
-  `META-INF/services/io.qpointz.mill.ai.CapabilityProvider`
+  `META-INF/services/io.qpointz.mill.ai.core.capability.CapabilityProvider`
 - [ ] Add unit tests for capability registration and tool loading
 
 Validation request:

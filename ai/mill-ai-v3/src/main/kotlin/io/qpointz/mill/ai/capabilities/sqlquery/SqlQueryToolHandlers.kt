@@ -66,10 +66,11 @@ object SqlQueryToolHandlers {
     )
 
     /**
-     * Execution boundary expected by the capability.
+     * Execution boundary for **host-side** query runners (outside the `sql-query` capability).
      *
-     * Implementations may delegate to a result service that persists query results and returns
-     * a short-lived result id, but that persistence layer is outside this capability.
+     * The **`sql-query`** capability no longer invokes execution from agent tools; hosts intercept
+     * generated SQL and call their own services. This interface remains for tests and adapters that
+     * exercise [executeSql] or simulate result metadata without embedding execution in the LLM tool loop.
      */
     fun interface SqlExecutionService {
         fun execute(statementId: String, sql: String): ExecutionResult

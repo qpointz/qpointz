@@ -1,12 +1,12 @@
 name: sql-query
 description: |
   SQL query capability for ai/v3.
-  Provides SQL validation and execution tools plus structured SQL artifact protocols.
+  Provides SQL validation and structured **generated SQL** artifacts for hosts to execute outside the agent.
   SQL generation itself remains a structured model action, not a tool.
 
 prompts:
   sql-query.system:
-    description: Guidance for SQL generation and correction loops.
+    description: Guidance for SQL generation and correction loops (generate-only; execution is host-side).
     content: |
       Query follow-up rule:
       - If the user refers to a previous query or result using phrases such as "last query",
@@ -17,24 +17,26 @@ prompts:
         change tables, selected columns, grouping, ordering, or aggregation.
       - Reuse the exact previously grounded schema/table/column identifiers when available. Do not
         replace a known fully qualified table with a vaguer inferred name.
-      - After refining the SQL, you MUST still validate_sql and execute_sql again before answering.
+      - After refining the SQL, you MUST still call validate_sql again before finalizing.
 
-      When the user asks for data, a query, or any SQL result, you MUST follow this exact sequence:
+      When the user asks for data, a query, or SQL to run, you MUST follow this sequence:
       1. Ground schema and dialect using the available tools (already done if you have schema context).
       2. Compose the SQL statement mentally, or revise the most recent query artifact if this is a refinement.
       3. Call validate_sql as a tool, passing the SQL and attempt=1. Do NOT produce a final answer yet.
-      4. If validate_sql returns passed=true, call execute_sql with the same SQL and a statementId.
-      5. Only after execute_sql returns may you synthesize a final answer. Include the SQL and the result reference in your response.
-      6. If validate_sql returns passed=false, revise the SQL using the validator message and repeat from step 3 (increment attempt each time, up to 3 attempts).
-      7. If all 3 attempts fail, report the failure with the last validator message.
+      4. If validate_sql returns passed=true, synthesize the final structured output using the
+         sql-query.generated-sql protocol (canonical SQL, dialect id, statement kind). Do NOT claim
+         that rows were returned — execution happens outside this agent.
+      5. If validate_sql returns passed=false, revise the SQL using the validator message and repeat from step 3
+         (increment attempt each time, up to 3 attempts).
+      6. If all 3 attempts fail, report the failure with the last validator message.
 
       CRITICAL: never skip validate_sql. Never write SQL directly in your answer without first calling validate_sql.
-      CRITICAL: never claim that a query returned zero rows or specific rows unless execute_sql explicitly returned that information.
+      CRITICAL: never claim row counts or result set contents from this agent — you only emit validated, generated SQL.
 
 tools:
   validate_sql:
     description: |
-      Validate a SQL statement before execution.
+      Validate a SQL statement before it is treated as generated SQL for downstream execution.
       Returns a structured wrapper with pass/fail and a free-text validator message.
     input:
       type: object
@@ -68,64 +70,9 @@ tools:
           type: string
           description: Optional normalized SQL returned by the validator.
 
-  execute_sql:
-    kind: capture
-    description: |
-      Execute a validated SQL statement through the query/result service boundary.
-      Returns only a result reference artifact and lightweight metadata, never query rows.
-    input:
-      type: object
-      required:
-        - statementId
-        - sql
-      properties:
-        statementId:
-          type: string
-          description: Stable id of the SQL statement artifact being executed.
-        sql:
-          type: string
-          description: SQL statement to execute.
-    output:
-      type: object
-      description: Structured SQL result reference artifact.
-      properties:
-        artifactType:
-          type: string
-          description: Always "sql-result".
-        statementId:
-          type: string
-          description: Stable id of the executed SQL statement artifact.
-        resultId:
-          type: string
-          description: Optional result id for later fetch; may be absent for non-durable results.
-        rowCount:
-          type: integer
-          description: Optional row count returned by execution.
-        columns:
-          type: array
-          description: Optional column metadata.
-          items:
-            type: object
-            properties:
-              name:
-                type: string
-                description: Column name.
-              type:
-                type: string
-                description: Column type.
-        truncated:
-          type: boolean
-          description: Optional indication whether stored preview/result was truncated.
-        notes:
-          type: array
-          description: Optional execution notes.
-          items:
-            type: string
-            description: A single note.
-
 protocols:
   sql-query.generated-sql:
-    description: Structured final protocol for generated SQL artifacts.
+    description: Structured final protocol for generated SQL artifacts (host executes this SQL).
     mode: structured_final
     finalSchema:
       type: object
@@ -175,44 +122,3 @@ protocols:
         normalizedSql:
           type: string
           description: Optional normalized SQL returned by the validator.
-
-  sql-query.result-ref:
-    description: Structured final protocol for SQL result reference artifacts.
-    mode: structured_final
-    finalSchema:
-      type: object
-      description: SQL result reference artifact.
-      properties:
-        artifactType:
-          type: string
-          description: Always "sql-result".
-        statementId:
-          type: string
-          description: Stable id of the executed SQL statement.
-        resultId:
-          type: string
-          description: Optional result id for later fetch or requery.
-        rowCount:
-          type: integer
-          description: Optional result row count.
-        columns:
-          type: array
-          description: Optional column metadata.
-          items:
-            type: object
-            properties:
-              name:
-                type: string
-                description: Column name.
-              type:
-                type: string
-                description: Column type.
-        truncated:
-          type: boolean
-          description: Optional truncation flag.
-        notes:
-          type: array
-          description: Optional execution notes.
-          items:
-            type: string
-            description: A single note.

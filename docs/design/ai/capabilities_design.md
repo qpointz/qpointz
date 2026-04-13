@@ -313,6 +313,12 @@ No execution planning appears during reasoning.
 
 ---
 
+## 15. Mill AI v3 note: SQL generation vs execution
+
+In the **Mill AI v3** stack, the **`sql-query`** capability is intentionally **passive** for execution: the agent exposes **`validate_sql`** and structured protocols for **generated SQL** and **validation results**. Running the statement against a database is a **host responsibility** (for example the unified chat service or an integration test harness), not an in-loop LLM tool inside `mill-ai-v3`. Normative contracts, manifests, and wiring live under [`../agentic/`](../agentic/README.md).
+
+---
+
 ## One-Sentence Summary
 
 The Reasoner classifies user intent within the space declared by active Capabilities; the system—not the LLM—decides how that intent is executed.

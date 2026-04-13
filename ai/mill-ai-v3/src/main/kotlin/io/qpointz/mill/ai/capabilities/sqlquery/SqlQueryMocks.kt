@@ -49,7 +49,15 @@ class MockSqlValidationService : SqlValidationService {
 }
 
 /**
- * Minimal mock execution service.
+ * Presents [MockSqlValidationService] as a [SqlValidator] for application or Spring wiring.
+ *
+ * @return a [SqlValidator] backed by the same heuristics as this mock
+ */
+fun MockSqlValidationService.asSqlValidator(): SqlValidator =
+    SqlValidator { validate(it).toSqlValidationOutcome() }
+
+/**
+ * Minimal mock execution service for **host-side** tests (not used by the `sql-query` capability).
  *
  * This simulates the result-service boundary by returning only execution metadata and an optional
  * short-lived result id. No query rows are exposed back into the agent runtime.

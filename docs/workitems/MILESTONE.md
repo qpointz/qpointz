@@ -75,6 +75,16 @@ Items delivered in this milestone.
   `QSynthYamlSchemaProvider` compile error (`NULLABILITY_UNSPECIFIED` →
   `NOT_SPECIFIED_NULL`); handler and capability wiring unit tests
 
+- **WI-156 / WI-158 / WI-159** — `sql-query` **generate-only** semantics (story
+  **`ai-sql-generate-capability`**, archived
+  [`completed/20260413-ai-sql-generate-capability/STORY.md`](completed/20260413-ai-sql-generate-capability/STORY.md)):
+  `SqlQueryCapabilityDependency(validator)` only (no in-agent `execute_sql`);
+  `SqlValidator` + `MillAiV3SqlValidatorAutoConfiguration`; `sql-query.yaml` protocols
+  **`sql-query.generated-sql`** and **`sql-query.validation`** only; CLI highlights generated SQL;
+  `CapabilityProvider` ServiceLoader descriptor
+  **`META-INF/services/io.qpointz.mill.ai.core.capability.CapabilityProvider`**
+  (execution remains host-side)
+
 - WI-071 — `ai/v3` `value-mapping` capability: `ValueMappingResolver` interface,
   `MappedAttribute` and `ValueResolution` data classes, `ValueMappingCapabilityDependency`,
   `ValueMappingCapabilityProvider`, `ValueMappingCapability` (manifest-wired),
