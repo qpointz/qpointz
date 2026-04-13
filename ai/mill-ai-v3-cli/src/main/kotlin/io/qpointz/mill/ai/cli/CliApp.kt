@@ -11,6 +11,7 @@ import io.qpointz.mill.ai.capabilities.sqlquery.MockSqlValidationService
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityDependency
 import io.qpointz.mill.ai.capabilities.valuemapping.MockValueMappingResolver
 import io.qpointz.mill.ai.runtime.langchain4j.LangChain4jAgent
+import io.qpointz.mill.ai.data.schema.asSchemaExplorationPort
 import io.qpointz.mill.ai.runtime.langchain4j.SchemaExplorationAgent
 import io.qpointz.mill.sql.v2.dialect.DialectRegistry
 import java.io.BufferedReader
@@ -133,13 +134,13 @@ fun main(args: Array<String>) {
 
     val runTurnFn: (String, (AgentEvent) -> Unit) -> Unit = when (agentName) {
         "schema" -> {
-            val schemaService = SchemaFacetServiceFactory.create()
+            val schemaExploration = SchemaFacetServiceFactory.create().asSchemaExplorationPort()
             val dialectSpec = DialectRegistry.fromClasspathDefaults().requireDialect("calcite")
             val sqlQueryDep = SqlQueryCapabilityDependency(
                 validator = MockSqlValidationService(),
             )
             val store = InMemoryChatMemoryStore()
-            val agent = SchemaExplorationAgent.fromEnv(schemaService, dialectSpec, sqlQueryDep, MockValueMappingResolver(), chatMemoryStore = store)
+            val agent = SchemaExplorationAgent.fromEnv(schemaExploration, dialectSpec, sqlQueryDep, MockValueMappingResolver(), chatMemoryStore = store)
             if (agent == null) {
                 println(red("Error: OPENAI_API_KEY environment variable is not set."))
                 println(dim("  Optional: OPENAI_MODEL (default: gpt-4o-mini), OPENAI_BASE_URL, SCHEMA_SOURCE (default: demo)"))

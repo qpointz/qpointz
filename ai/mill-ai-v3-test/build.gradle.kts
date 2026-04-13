@@ -17,7 +17,6 @@ dependencies {
     api(libs.junit.jupiter.api)
     implementation(libs.mockito.core)
     implementation(libs.mockito.junit.jupiter)
-    implementation(kotlin("stdlib-jdk8"))
     implementation(libs.assertj.core)
     implementation(libs.bundles.jackson)
     implementation(libs.json.path)
@@ -28,7 +27,6 @@ testing {
         register<JvmTestSuite>("testIT") {
             dependencies {
                 implementation(project())
-                implementation(project(":ai:mill-ai-v3"))
                 implementation(libs.assertj.core)
             }
         }

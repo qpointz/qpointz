@@ -13,6 +13,8 @@ mill {
 
 dependencies {
     api(project(":ai:mill-ai-v3"))
+    implementation(project(":ai:mill-ai-v3-data"))
+    compileOnly(project(":data:mill-data-schema-core"))
     implementation(libs.boot.starter)
     implementation(libs.boot.starter.webflux)
     implementation(libs.langchain4j.open.ai)

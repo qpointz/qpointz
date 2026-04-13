@@ -15,3 +15,5 @@ OPENAI_API_KEY=sk-... ./gradlew :mill-ai-v3-cli:run --console=plain
 Optional: `OPENAI_MODEL`, `OPENAI_BASE_URL`, `SCHEMA_SOURCE` (default `demo`).
 
 The `sql-query` capability is **generate-only**: validate SQL, emit generated-SQL artifacts; execution is **host-side**. For Spring-backed `SqlValidator` wiring see **`mill-ai-v3-autoconfigure`** (`MillAiV3SqlValidatorAutoConfiguration`).
+
+Schema tools use **`SchemaExplorationPort`** from **`mill-ai-v3`**. The CLI builds it with **`SchemaFacetServiceFactory.create().asSchemaExplorationPort()`** (`mill-ai-v3-data`). Production wiring lives in **`mill-ai-v3-autoconfigure`** (`MillAiV3DataAutoConfiguration`).

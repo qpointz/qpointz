@@ -17,6 +17,14 @@ This chapter explains how to build the top half of an `ai/v3` agent:
 
 If you are adding a new agent family, this is the first chapter to implement from.
 
+### 1.1 Data integration boundary (in progress)
+
+The **`schema`** and **`sql-query`** capabilities are being decoupled from **`mill-data-schema-core`** at the **`mill-ai-v3`** module edge: **ports** stay in **`mill-ai-v3`**, **Mill Data–backed implementations** move to **`mill-ai-v3-data`**, and **Spring** wiring is centralised in **`mill-ai-v3-autoconfigure`**. **Primary Boot consumer** of that wiring is **`mill-ai-v3-service`**; **`mill-ai-v3-cli`** remains a playground / test bench. Target milestone: **`0.8.0`**.
+
+**`SqlValidator` (WI-165):** **Unit tests** use mocks or fakes as usual. **Integration tests (`testIT`)** target **parse + schema-bound** validation (e.g. Skymill + flow fixture aligned with **`FlowDescriptorMetadataSourceIT`**). Optional **scaffold / red** steps on a feature branch must not leave **`main`/`dev`** CI red indefinitely — see **WI-165** and [`../v3-mill-ai-v3-data-boundary.md`](../v3-mill-ai-v3-data-boundary.md).
+
+See also the active story under **`docs/workitems/in-progress/ai-v3-schema-exploration-port/`**.
+
 ---
 
 ## 2. Core Concepts

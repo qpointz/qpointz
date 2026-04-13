@@ -69,6 +69,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | A-80 | Route `LangChain4jAgent` final synthesis through streaming path or isolate and document non-streaming mode explicitly | 💡 improvement | backlog | `design/agentic/v3-implementation-findings.md` |
 | A-81 | Add targeted test coverage: ownership/auth on chatId ops, JPA delete contract, artifact/run-event cleanup on delete, `ChatRuntimeEventToSseMapper` edge cases, real streaming assertion in testIT | 🧪 test | backlog | `design/agentic/v3-implementation-findings.md` |
 | A-82 | Document the final AI v3 chat service end-to-end (modules, REST API, persistence model, SSE contract, frontend guidance, maintenance notes) | 📝 docs | planned | `docs/workitems/planned/ai-v3/WI-084-ai-v3-chat-service-documentation.md` |
+| A-83 | Schema exploration port, `mill-ai-v3-data`, data-backed `SqlValidator` (**0.8.0**) | 🔧 refactoring | done | `docs/workitems/in-progress/ai-v3-schema-exploration-port/STORY.md` |
 
 ---
 

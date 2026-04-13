@@ -11,17 +11,10 @@ import io.qpointz.mill.ai.runtime.*
 import io.qpointz.mill.ai.runtime.events.*
 import io.qpointz.mill.ai.runtime.events.routing.*
 
-import io.qpointz.mill.ai.capabilities.schema.SchemaToolHandlers.RelationDirection
-import io.qpointz.mill.ai.capabilities.schema.SchemaToolHandlers.listColumns
-import io.qpointz.mill.ai.capabilities.schema.SchemaToolHandlers.listRelations
-import io.qpointz.mill.ai.capabilities.schema.SchemaToolHandlers.listSchemas
-import io.qpointz.mill.ai.capabilities.schema.SchemaToolHandlers.listTables
-import io.qpointz.mill.data.schema.SchemaFacetService
-
 /**
- * Dependency carrying the [SchemaFacetService] instance into [SchemaCapability].
+ * Dependency carrying the [SchemaExplorationPort] into [SchemaCapability].
  */
-data class SchemaCapabilityDependency(val schemaFacetService: SchemaFacetService) : CapabilityDependency
+data class SchemaCapabilityDependency(val exploration: SchemaExplorationPort) : CapabilityDependency
 
 /**
  * Provider for the read-only schema exploration capability.
@@ -41,7 +34,7 @@ class SchemaCapabilityProvider : CapabilityProvider {
         dependencies: CapabilityDependencies,
     ): Capability = SchemaCapability(
         descriptor(),
-        dependencies.require(SchemaCapabilityDependency::class.java).schemaFacetService,
+        dependencies.require(SchemaCapabilityDependency::class.java).exploration,
     )
 }
 
@@ -50,7 +43,7 @@ class SchemaCapabilityProvider : CapabilityProvider {
  */
 private data class SchemaCapability(
     override val descriptor: CapabilityDescriptor,
-    private val svc: SchemaFacetService,
+    private val port: SchemaExplorationPort,
 ) : Capability {
 
     private data class ListTablesArgs(val schemaName: String)
@@ -69,23 +62,19 @@ private data class SchemaCapability(
 
     override val tools: List<ToolBinding> = listOf(
         manifest.tool("list_schemas") {
-            ToolResult(listSchemas(svc))
+            ToolResult(port.listSchemas())
         },
         manifest.tool("list_tables") { request ->
             val args = request.argumentsAs<ListTablesArgs>()
-            ToolResult(listTables(svc, args.schemaName))
+            ToolResult(port.listTables(args.schemaName))
         },
         manifest.tool("list_columns") { request ->
             val args = request.argumentsAs<ListColumnsArgs>()
-            ToolResult(listColumns(svc, args.schemaName, args.tableName))
+            ToolResult(port.listColumns(args.schemaName, args.tableName))
         },
         manifest.tool("list_relations") { request ->
             val args = request.argumentsAs<ListRelationsArgs>()
-            ToolResult(listRelations(svc, args.schemaName, args.tableName, args.direction))
+            ToolResult(port.listRelations(args.schemaName, args.tableName, args.direction))
         },
     )
 }
-
-
-
-

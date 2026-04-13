@@ -15,9 +15,8 @@ dependencies {
     implementation(libs.bundles.jackson)
     implementation(libs.caffeine)
     implementation(libs.slf4j.api)
-    implementation(project(":data:mill-data-schema-core"))
+    implementation(project(":metadata:mill-metadata-core"))
     implementation(project(":core:mill-sql"))
-    implementation(kotlin("stdlib-jdk8"))
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)

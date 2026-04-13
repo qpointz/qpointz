@@ -13,6 +13,7 @@ mill {
 
 dependencies {
     api(project(":ai:mill-ai-v3-autoconfigure"))
+    implementation(project(":ai:mill-ai-v3-data"))
     implementation(project(":core:mill-core"))
     implementation(libs.boot.starter.webflux)
     implementation(libs.springdoc.openapi.starter.webflux.api)

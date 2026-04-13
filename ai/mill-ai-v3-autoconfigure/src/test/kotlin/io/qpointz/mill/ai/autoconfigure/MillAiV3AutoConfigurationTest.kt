@@ -26,6 +26,7 @@ class MillAiV3AutoConfigurationTest {
         .withConfiguration(
             AutoConfigurations.of(
                 MillAiV3AutoConfiguration::class.java,
+                MillAiV3DataAutoConfiguration::class.java,
                 MillAiV3SqlValidatorAutoConfiguration::class.java,
             ),
         )

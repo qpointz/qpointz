@@ -26,12 +26,12 @@ import dev.langchain4j.model.chat.response.StreamingChatResponseHandler
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel
 import java.time.Instant
 import java.util.UUID
+import io.qpointz.mill.ai.capabilities.schema.SchemaExplorationPort
 import io.qpointz.mill.ai.capabilities.schema.SchemaCapabilityDependency
 import io.qpointz.mill.ai.capabilities.sqldialect.SqlDialectCapabilityDependency
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityDependency
 import io.qpointz.mill.ai.capabilities.valuemapping.ValueMappingCapabilityDependency
 import io.qpointz.mill.ai.capabilities.valuemapping.ValueMappingResolver
-import io.qpointz.mill.data.schema.SchemaFacetService
 import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec
 import java.util.concurrent.CompletableFuture
 
@@ -53,7 +53,7 @@ import java.util.concurrent.CompletableFuture
  */
 class SchemaExplorationAgent(
     private val model: StreamingChatModel,
-    private val schemaService: SchemaFacetService,
+    private val schemaExploration: SchemaExplorationPort,
     private val dialectSpec: SqlDialectSpec,
     private val sqlQueryDependency: SqlQueryCapabilityDependency,
     private val valueMappingResolver: ValueMappingResolver,
@@ -253,7 +253,7 @@ class SchemaExplorationAgent(
     private fun buildContext(): AgentContext = AgentContext(
         contextType = "general",
         capabilityDependencies = CapabilityDependencyContainer.of(
-            "schema" to CapabilityDependencies.of(SchemaCapabilityDependency(schemaService)),
+            "schema" to CapabilityDependencies.of(SchemaCapabilityDependency(schemaExploration)),
             "sql-dialect" to CapabilityDependencies.of(SqlDialectCapabilityDependency(dialectSpec)),
             "sql-query" to CapabilityDependencies.of(sqlQueryDependency),
             "value-mapping" to CapabilityDependencies.of(ValueMappingCapabilityDependency(valueMappingResolver)),
@@ -358,7 +358,7 @@ class SchemaExplorationAgent(
 
     companion object {
         fun fromEnv(
-            schemaService: SchemaFacetService,
+            schemaExploration: SchemaExplorationPort,
             dialectSpec: SqlDialectSpec,
             sqlQueryDependency: SqlQueryCapabilityDependency,
             valueMappingResolver: ValueMappingResolver,
@@ -373,12 +373,12 @@ class SchemaExplorationAgent(
                 modelName = System.getenv("OPENAI_MODEL") ?: "gpt-4o-mini",
                 baseUrl = System.getenv("OPENAI_BASE_URL"),
             )
-            return fromConfig(config, schemaService, dialectSpec, sqlQueryDependency, valueMappingResolver, registry, chatMemoryStore, memoryStrategy, persistenceContext)
+            return fromConfig(config, schemaExploration, dialectSpec, sqlQueryDependency, valueMappingResolver, registry, chatMemoryStore, memoryStrategy, persistenceContext)
         }
 
         fun fromConfig(
             config: Config,
-            schemaService: SchemaFacetService,
+            schemaExploration: SchemaExplorationPort,
             dialectSpec: SqlDialectSpec,
             sqlQueryDependency: SqlQueryCapabilityDependency,
             valueMappingResolver: ValueMappingResolver,
@@ -394,7 +394,7 @@ class SchemaExplorationAgent(
             config.baseUrl?.let(builder::baseUrl)
             return SchemaExplorationAgent(
                 model = builder.build(),
-                schemaService = schemaService,
+                schemaExploration = schemaExploration,
                 dialectSpec = dialectSpec,
                 sqlQueryDependency = sqlQueryDependency,
                 valueMappingResolver = valueMappingResolver,

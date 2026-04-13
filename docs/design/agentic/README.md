@@ -51,4 +51,5 @@ workflow semantics.
 | `v3-chat-service.md` | Implemented unified chat metadata, runtime rehydration, SSE stream contract, and HTTP service facade for `ai/v3` |
 | `v3-persistence-lanes.md` | Implemented persistence-lane architecture for `ai/v3`: model memory, routed events, transcript, artifacts, telemetry, and artifact observers |
 | `v3-langchain4j-simplification-notes.md` | Simplification map for `LangChain4jAgent` and adjacent runtime seams |
+| `v3-mill-ai-v3-data-boundary.md` | **`0.8.0`**: **`mill-ai-v3`** ports vs **`mill-ai-v3-data`** adapters (schema + SQL validation); **`mill-ai-v3-autoconfigure`** canonical wiring; **`mill-ai-v3-service`** primary consumer |
 | `v3-agent-ui-and-portal-agents.md` | Direction: agent-builder UI and portal-defined agent bundles applied to local Mill instances |

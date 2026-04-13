@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Bean
  * Chat runtimes and CLIs can then build [io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityDependency]
  * from the handler bean or from [SqlValidator] directly.
  */
-@AutoConfiguration
+@AutoConfiguration(after = [MillAiV3DataAutoConfiguration::class])
 @ConditionalOnClass(SqlValidator::class)
 class MillAiV3SqlValidatorAutoConfiguration {
 

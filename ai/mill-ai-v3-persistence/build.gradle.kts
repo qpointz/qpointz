@@ -16,7 +16,6 @@ dependencies {
     api(project(":ai:mill-ai-v3"))
     api(project(":persistence:mill-persistence"))
     implementation(libs.boot.starter.data.jpa)
-    implementation(kotlin("reflect"))
     runtimeOnly(libs.h2.database)
 }
 
