@@ -7,7 +7,16 @@ package io.qpointz.mill.ai.profile
  * without re-inferring it from transcript or context rules.
  */
 interface ProfileRegistry {
+
+    /**
+     * Returns the profile for [profileId], or `null` if none is registered.
+     */
     fun resolve(profileId: String): AgentProfile?
+
+    /**
+     * All profiles known to this registry, sorted by [AgentProfile.id] for stable API output.
+     */
+    fun registeredProfiles(): List<AgentProfile>
 }
 
 /**
@@ -30,6 +39,9 @@ class MapProfileRegistry(profiles: Iterable<AgentProfile>) : ProfileRegistry {
 
     override fun resolve(profileId: String): AgentProfile? = profilesById[profileId]
 
+    override fun registeredProfiles(): List<AgentProfile> =
+        profilesById.values.sortedBy { it.id }
+
     val knownIds: Set<String> get() = profilesById.keys
 }
 
@@ -49,6 +61,9 @@ object DefaultProfileRegistry : ProfileRegistry {
     ).associateBy { it.id }
 
     override fun resolve(profileId: String): AgentProfile? = profiles[profileId]
+
+    override fun registeredProfiles(): List<AgentProfile> =
+        profiles.values.sortedBy { it.id }
 
     val knownIds: Set<String> get() = profiles.keys
 }

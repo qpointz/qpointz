@@ -145,6 +145,8 @@ Effective features:
 
 For the selected edition, all modules from active features are added to the module's `implementation` configuration.
 
+**Example:** `apps/mill-service` defines feature **`ai-chat-service`** (modules `:ai:mill-ai-v3-autoconfigure`, `:ai:mill-ai-v3-persistence`) and edition **`ai`**. See [`docs/design/platform/mill-service-editions-and-ai-chat.md`](../platform/mill-service-editions-and-ai-chat.md).
+
 Implications:
 
 - The modules are on compile and runtime classpaths.

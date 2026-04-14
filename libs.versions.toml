@@ -31,6 +31,7 @@ micrometer = "1.16.0"
 kotlin = "2.3.10"
 logback = "1.5.28"
 langchain4j = "1.11.0"
+reactor = "3.7.5"
 flyway = "10.21.0"
 [libraries]
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
@@ -170,6 +171,7 @@ json-path = { module = "com.jayway.jsonpath:json-path", version = "2.10.0" }
 json-schema-validator = { module = "com.networknt:json-schema-validator", version = "1.5.7" }
 langchain4j-core = { module = "dev.langchain4j:langchain4j", version.ref = "langchain4j" }
 langchain4j-open-ai = { module = "dev.langchain4j:langchain4j-open-ai", version.ref = "langchain4j" }
+reactor-core = { module = "io.projectreactor:reactor-core", version.ref = "reactor" }
 
 [bundles]
 jackson = ["jackson-databind", "jackson-dataformat-yaml", "jackson-datatype-jsr310", "jackson-datatype-jdk8", "jackson-module-kotlin"]

@@ -19,10 +19,15 @@ import org.springframework.context.annotation.Bean;
 /**
  * Registers {@link SchemaFacetService} (physical schema + merged facets) once {@link SchemaProvider}
  * and metadata read infrastructure exist.
+ *
+ * <p>Must run after {@link MetadataEntityUrnCodecAutoConfiguration}: {@code @ConditionalOnBean} for
+ * {@link MetadataEntityUrnCodec} is evaluated when this class is processed; if the codec auto-config
+ * sorts later, the facet bean is skipped and REST schema explorer beans stay inactive.
  */
 @AutoConfiguration
 @AutoConfigureAfter(
         value = {
+            MetadataEntityUrnCodecAutoConfiguration.class,
             BackendAutoConfiguration.class,
             LogicalLayoutMetadataSourceAutoConfiguration.class,
             FlowDescriptorMetadataSourceAutoConfiguration.class

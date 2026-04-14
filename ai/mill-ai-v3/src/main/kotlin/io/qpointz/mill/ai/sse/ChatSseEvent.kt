@@ -7,7 +7,8 @@ import java.time.Instant
  *
  * These events are public transport contract — not internal agent lifecycle events.
  * Consumers (mill-ui, CLI) reconstruct logical assistant items from the ordered sequence
- * of events sharing the same [itemId].
+ * of events sharing the same [itemId]. [ItemDiagnostic] events are for loading / step UX and
+ * share that [itemId] when they belong to the same assistant turn.
  *
  * V1 frozen values: [presentation] = "conversation", [partType] = "text".
  * Future iterations may introduce presentation = "structured" and partType = "sql" / "chart" / "data".
@@ -96,5 +97,58 @@ sealed interface ChatSseEvent {
         val reason: String,
     ) : ChatSseEvent {
         override val type: String = "item.failed"
+    }
+
+    /**
+     * A tool invocation was requested for the in-progress assistant [itemId].
+     *
+     * Consumers may render this as a collapsible “tool” row or log line; UIs that only handle
+     * [ItemPartUpdated] with [partType] `"text"` should ignore unknown event types safely.
+     */
+    data class ItemToolCall(
+        override val eventId: String,
+        override val chatId: String,
+        override val itemId: String,
+        override val sequence: Int,
+        override val timestamp: Instant,
+        val toolName: String,
+        val arguments: Map<String, Any?>,
+        val iteration: Int,
+    ) : ChatSseEvent {
+        override val type: String = "item.tool.call"
+    }
+
+    /**
+     * Structured result from a tool run, paired with [ItemToolCall] by [itemId] and order.
+     */
+    data class ItemToolResult(
+        override val eventId: String,
+        override val chatId: String,
+        override val itemId: String,
+        override val sequence: Int,
+        override val timestamp: Instant,
+        val toolName: String,
+        val result: Any?,
+    ) : ChatSseEvent {
+        override val type: String = "item.tool.result"
+    }
+
+    /**
+     * Non-answer progress for UX (spinner text, step list, reasoning hint) before [ItemCompleted].
+     *
+     * [code] is a stable machine-readable token (see [io.qpointz.mill.ai.chat.ChatDiagnosticCodes]);
+     * [message] is safe to show directly. [detail] is optional structured metadata for rich UI.
+     */
+    data class ItemDiagnostic(
+        override val eventId: String,
+        override val chatId: String,
+        override val itemId: String,
+        override val sequence: Int,
+        override val timestamp: Instant,
+        val code: String,
+        val message: String,
+        val detail: Map<String, Any?>?,
+    ) : ChatSseEvent {
+        override val type: String = "item.diagnostic"
     }
 }

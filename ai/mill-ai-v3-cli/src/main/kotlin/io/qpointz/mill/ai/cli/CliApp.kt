@@ -1,327 +1,245 @@
 package io.qpointz.mill.ai.cli
 
-import com.fasterxml.jackson.databind.node.ObjectNode
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.qpointz.mill.ai.runtime.events.AgentEvent
-import io.qpointz.mill.ai.memory.ChatMemoryStore
-import io.qpointz.mill.ai.runtime.ConversationSession
-import io.qpointz.mill.ai.memory.InMemoryChatMemoryStore
-import io.qpointz.mill.ai.profile.HelloWorldAgentProfile
-import io.qpointz.mill.ai.capabilities.sqlquery.MockSqlValidationService
-import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityDependency
-import io.qpointz.mill.ai.capabilities.valuemapping.MockValueMappingResolver
-import io.qpointz.mill.ai.runtime.langchain4j.LangChain4jAgent
-import io.qpointz.mill.ai.data.schema.asSchemaExplorationPort
-import io.qpointz.mill.ai.runtime.langchain4j.SchemaExplorationAgent
-import io.qpointz.mill.sql.v2.dialect.DialectRegistry
-import java.io.BufferedReader
-import java.io.InputStreamReader
+import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
-import picocli.CommandLine.Parameters
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.time.Duration
 
-// ANSI colour helpers
-private const val RESET   = "\u001B[0m"
-private const val BOLD    = "\u001B[1m"
-private const val DIM     = "\u001B[2m"
-private const val ITALIC  = "\u001B[3m"
-private const val CYAN    = "\u001B[36m"
-private const val YELLOW  = "\u001B[33m"
-private const val GREEN   = "\u001B[32m"
-private const val RED     = "\u001B[31m"
-private const val MAGENTA = "\u001B[35m"
-private const val BLUE    = "\u001B[34m"
-
-private fun bold(s: String)  = "$BOLD$s$RESET"
-private fun dim(s: String)   = "$DIM$s$RESET"
-private fun cyan(s: String)  = "$CYAN$s$RESET"
-private fun yellow(s: String)= "$YELLOW$s$RESET"
-private fun green(s: String) = "$GREEN$s$RESET"
-private fun red(s: String)   = "$RED$s$RESET"
-
-// Single shared mapper — all events serialised the same way
 private val mapper = jacksonObjectMapper()
 
-private fun protocolLabel(protocolId: String): String = protocolId.substringAfterLast('.')
-
-private fun compactJson(raw: String): String =
-    runCatching { mapper.writeValueAsString(mapper.readTree(raw)) }
-        .getOrDefault(raw)
-
-private fun elapsedSec(turnStart: Long): String {
-    val secs = (System.currentTimeMillis() - turnStart) / 1000L
-    return dim("+${secs}s")
-}
-
 /**
- * Generic event printer.
- *
- * Strips the `type` field (shown as label) and prints the remaining payload as
- * compact JSON.  Works for any current or future AgentEvent subtype without
- * additional when-branches.
+ * Entry point for the HTTP-only Mill AI v3 developer test bench (no in-process LangChain4j agent).
  */
-private fun printEvent(event: AgentEvent, turnStart: Long) {
-    val node   = mapper.valueToTree<ObjectNode>(event)
-    val type   = node.remove("type").asText()
-    val payload = mapper.writeValueAsString(node)   // compact single-line JSON
-
-    val typeColour = when {
-        type.startsWith("tool.")      -> MAGENTA
-        type.startsWith("protocol.")  -> GREEN
-        type.startsWith("reasoning")  -> BLUE
-        type.startsWith("answer.")    -> GREEN
-        else                          -> CYAN
-    }
-
-    println("  ${elapsedSec(turnStart)} $DIM[$RESET$typeColour$type$RESET$DIM]$RESET  $DIM$payload$RESET")
+fun main(args: Array<String>) {
+    val cmd = CommandLine(RootCommand())
+    cmd.executionStrategy = CommandLine.RunLast()
+    val exit = cmd.execute(*args)
+    kotlin.system.exitProcess(exit)
 }
 
 @Command(
     name = "mill-ai-v3-cli",
-    description = ["Mill AI v3 interactive CLI for manual agent testing"],
-    mixinStandardHelpOptions = true
+    description = ["HTTP test bench for mill-ai-v3-service (REST + SSE). No embedded agent."],
+    mixinStandardHelpOptions = true,
 )
-private class CliOptions {
-
-    // Positional agent keeps startup friction low for manual testing.
-    @Parameters(
-        index = "0",
-        arity = "0..1",
-        description = ["Agent to run. Supported: \${COMPLETION-CANDIDATES}"],
-        paramLabel = "agent"
-    )
-    var agent: String? = null
+private class RootCommand : Runnable {
 
     @Option(
-        names = ["-a", "--agent"],
-        description = ["Agent to run. Overrides positional agent if both are provided."]
+        names = ["--base-url"],
+        description = ["Base URL of mill-ai-v3-service (default: \${DEFAULT-VALUE})"],
+        defaultValue = "http://localhost:8080",
     )
-    var agentOption: String? = null
+    lateinit var baseUrl: String
 
-    fun resolvedAgent(): String = agentOption ?: agent ?: System.getenv("AGENT") ?: "hello"
+    @Option(
+        names = ["--profile-id"],
+        description = ["Agent profile id for new chats (default: env MILL_AI_PROFILE or hello-world)"],
+    )
+    var profileId: String? = null
 
-    fun supportedAgents(): List<String> = listOf("hello", "schema")
-}
+    @Option(
+        names = ["--list-profiles"],
+        description = ["Fetch GET /api/v1/ai/profiles and print JSON, then exit"],
+    )
+    var listProfiles: Boolean = false
 
-// ── Main ─────────────────────────────────────────────────────────────────────
+    @Option(names = ["--user-id"], description = ["Reserved for future authenticated requests"])
+    var userId: String? = null
 
-fun main(args: Array<String>) {
-    val options = CliOptions()
-    val commandLine = picocli.CommandLine(options)
-    commandLine.registerConverter(String::class.java) { it.trim() }
-    commandLine.setCaseInsensitiveEnumValuesAllowed(true)
+    @Option(names = ["--password"], description = ["Reserved for future authenticated requests"])
+    var password: String? = null
 
-    val parseResult = commandLine.parseArgs(*args)
-    if (picocli.CommandLine.printHelpIfRequested(parseResult)) {
-        return
-    }
+    @Option(
+        names = ["--verbose-sse"],
+        description = ["Log each SSE line and JSON event type (helps verify text/event-stream handling)"],
+    )
+    var verboseSse: Boolean = false
 
-    println()
-    println(bold("Mill AI v3 — Interactive CLI"))
-    println(dim("Type your message and press Enter. Commands: /help  /exit  /clear"))
-    println()
+    private val httpCustomizer: HttpRequestCustomizer =
+        NoOpHttpRequestCustomizer
 
-    val agentName = options.resolvedAgent()
-    if (agentName !in options.supportedAgents()) {
-        println(red("Error: unknown agent '$agentName'. Supported: ${options.supportedAgents().joinToString(", ")}"))
-        println(dim("  You can pass the agent as a positional argument, --agent, or AGENT env var."))
-        return
-    }
-    val model = System.getenv("OPENAI_MODEL") ?: "gpt-4o-mini"
+    override fun run() {
+        val root = baseUrl.trimEnd('/')
+        val client = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(20))
+            .build()
 
-    var activeSession: ConversationSession? = null
-    var activeChatMemoryStore: ChatMemoryStore? = null
-
-    val runTurnFn: (String, (AgentEvent) -> Unit) -> Unit = when (agentName) {
-        "schema" -> {
-            val schemaExploration = SchemaFacetServiceFactory.create().asSchemaExplorationPort()
-            val dialectSpec = DialectRegistry.fromClasspathDefaults().requireDialect("calcite")
-            val sqlQueryDep = SqlQueryCapabilityDependency(
-                validator = MockSqlValidationService(),
-            )
-            val store = InMemoryChatMemoryStore()
-            val agent = SchemaExplorationAgent.fromEnv(schemaExploration, dialectSpec, sqlQueryDep, MockValueMappingResolver(), chatMemoryStore = store)
-            if (agent == null) {
-                println(red("Error: OPENAI_API_KEY environment variable is not set."))
-                println(dim("  Optional: OPENAI_MODEL (default: gpt-4o-mini), OPENAI_BASE_URL, SCHEMA_SOURCE (default: demo)"))
-                return
-            }
-            println(dim("  model  : $model"))
-            println(dim("  agent  : schema-authoring"))
-            println(dim("  schema : ${System.getenv("SCHEMA_SOURCE") ?: "demo"}"))
-            println()
-            val session = ConversationSession(profileId = "schema")
-            activeSession = session
-            activeChatMemoryStore = store
-            val fn1: (String, (AgentEvent) -> Unit) -> Unit = { input, listener -> agent.run(session, input, listener) }
-            fn1
-        }
-        else -> {
-            val store = InMemoryChatMemoryStore()
-            val agent = LangChain4jAgent.fromEnv(HelloWorldAgentProfile.profile, chatMemoryStore = store)
-            if (agent == null) {
-                println(red("Error: OPENAI_API_KEY environment variable is not set."))
-                println(dim("  Optional: OPENAI_MODEL (default: gpt-4o-mini), OPENAI_BASE_URL"))
-                return
-            }
-            println(dim("  model : $model"))
-            println(dim("  agent : hello-world"))
-            println()
-            val helloSession = ConversationSession(profileId = "hello-world")
-            activeSession = helloSession
-            activeChatMemoryStore = store
-            val fn2: (String, (AgentEvent) -> Unit) -> Unit = { input, listener -> agent.run(input, helloSession, listener = listener) }
-            fn2
-        }
-    }
-
-    val reader = BufferedReader(InputStreamReader(System.`in`))
-
-    while (true) {
-        print(cyan("you") + " > ")
-        System.out.flush()
-
-        val line  = reader.readLine() ?: break
-        val input = line.trim()
-
-        when {
-            input.isBlank() -> continue
-            input == "/exit" || input == "/quit" || input == "exit" || input == "quit" -> {
-                println(dim("Bye.")); break
-            }
-            input == "/help" -> { printHelp(); continue }
-            input == "/clear" -> {
-                val id = activeSession?.conversationId ?: ""
-                activeSession?.clear()
-                if (id.isNotEmpty()) activeChatMemoryStore?.clear(id)
-                println(dim("  Conversation cleared."))
-                continue
-            }
-            input.startsWith("/") -> {
-                println(yellow("Unknown command: $input  (try /help)")); continue
-            }
+        if (listProfiles) {
+            listProfiles(client, root)
+            return
         }
 
+        val pid = profileId
+            ?: System.getenv("MILL_AI_PROFILE")
+            ?: "hello-world"
+
+        // ASCII-only banner so Windows consoles using legacy code pages do not mangle em dash / unicode
+        println("Mill AI v3 - HTTP test bench (SSE client; no in-process agent)")
+        println("  baseUrl   : $root")
+        println("  profileId : $pid")
+        println("  (Type /exit to quit, /profiles to list profiles; add --verbose-sse to trace SSE events)")
         println()
-        runTurn(runTurnFn, input)
+
+        val chatId = createChat(client, root, pid)
+        println("Chat: $chatId")
         println()
-    }
-}
 
-// ── Turn ─────────────────────────────────────────────────────────────────────
-
-private fun runTurn(agentFn: (String, (AgentEvent) -> Unit) -> Unit, input: String) {
-    val turnStart   = System.currentTimeMillis()
-    var inMessage   = false
-    var inReasoning = false
-
-    fun endMessage() {
-        if (inMessage) { println(); inMessage = false }
-    }
-    fun endReasoning() {
-        if (inReasoning) {
-            print(RESET); println(); println(dim("  └─ end of reasoning"))
-            inReasoning = false
+        val input = System.`in`.bufferedReader()
+        while (true) {
+            print("you > ")
+            System.out.flush()
+            val line = input.readLine() ?: break
+            val text = line.trim()
+            when {
+                text.isEmpty() -> continue
+                text == "/exit" || text == "exit" -> break
+                text == "/profiles" -> {
+                    listProfiles(client, root)
+                    println()
+                    continue
+                }
+            }
+            sendMessageStream(client, root, chatId, text, httpCustomizer, verboseSse)
+            println()
         }
+        println("Bye.")
     }
-    fun endBlocks() { endMessage(); endReasoning() }
 
-    agentFn(input) { event ->
-        when (event) {
-            // ── streaming blocks — kept inline for UX ────────────────────────
-            is AgentEvent.MessageDelta -> {
-                endReasoning()
-                if (!inMessage) { print("  ${elapsedSec(turnStart)} " + green(bold("agent")) + " > "); inMessage = true }
-                print(event.text); System.out.flush()
-            }
-            is AgentEvent.ProtocolTextDelta -> {
-                endReasoning()
-                if (!inMessage) {
-                    print("  ${elapsedSec(turnStart)} " + green(bold(protocolLabel(event.protocolId))) + " > ")
-                    inMessage = true
-                }
-                print(event.text); System.out.flush()
-            }
-            is AgentEvent.ReasoningDelta -> {
-                endMessage()
-                if (!inReasoning) {
-                    println(dim("  ┌─ reasoning"))
-                    print("  $BLUE│$RESET $DIM$ITALIC")
-                    inReasoning = true
-                }
-                print(event.text.replace("\n", "\n  $BLUE│$RESET $DIM$ITALIC"))
-                System.out.flush()
-            }
-            is AgentEvent.ProtocolFinal -> {
-                endBlocks()
-                val label =
-                    if (event.protocolId.contains("generated-sql", ignoreCase = true)) {
-                        green(bold("[generated-sql]"))
-                    } else {
-                        green("[protocol.final]")
+    private fun listProfiles(client: HttpClient, root: String) {
+        val uri = URI.create("$root/api/v1/ai/profiles")
+        val req = httpCustomizer.customize(
+            HttpRequest.newBuilder(uri)
+                .GET()
+                .timeout(Duration.ofSeconds(60))
+                .header("Accept", "application/json"),
+        ).build()
+        val body = client.send(req, HttpResponse.BodyHandlers.ofString()).body()
+        println(prettyJson(body))
+    }
+
+    private fun createChat(client: HttpClient, root: String, profileId: String): String {
+        val uri = URI.create("$root/api/v1/ai/chats")
+        val payload = mapper.writeValueAsString(mapOf("profileId" to profileId))
+        val req = httpCustomizer.customize(
+            HttpRequest.newBuilder(uri)
+                .POST(HttpRequest.BodyPublishers.ofString(payload))
+                .timeout(Duration.ofSeconds(60))
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json"),
+        ).build()
+        val res = client.send(req, HttpResponse.BodyHandlers.ofString())
+        if (res.statusCode() !in 200..299) {
+            error("Create chat failed: HTTP ${res.statusCode()} — ${res.body()}")
+        }
+        val tree = mapper.readTree(res.body())
+        return tree["chatId"].asText()
+    }
+
+    private fun sendMessageStream(
+        client: HttpClient,
+        root: String,
+        chatId: String,
+        message: String,
+        customizer: HttpRequestCustomizer,
+        verboseSse: Boolean,
+    ) {
+        val uri = URI.create("$root/api/v1/ai/chats/$chatId/messages")
+        val payload = mapper.writeValueAsString(mapOf("message" to message))
+        val req = customizer.customize(
+            HttpRequest.newBuilder(uri)
+                .POST(HttpRequest.BodyPublishers.ofString(payload))
+                .timeout(Duration.ofMinutes(5))
+                .header("Content-Type", "application/json")
+                .header("Accept", "text/event-stream"),
+        ).build()
+        val response = client.send(req, HttpResponse.BodyHandlers.ofInputStream())
+        if (response.statusCode() == 404) {
+            val err = response.body().readAllBytes().toString(Charsets.UTF_8)
+            println("HTTP 404 - $err")
+            return
+        }
+        if (response.statusCode() !in 200..299) {
+            val err = response.body().readAllBytes().toString(Charsets.UTF_8)
+            error("Send message failed: HTTP ${response.statusCode()} — $err")
+        }
+        response.body().bufferedReader().useLines { lines ->
+            lines.forEach { line ->
+                if (!line.startsWith("data:")) {
+                    if (verboseSse && line.isNotEmpty()) {
+                        println("[sse] $line")
                     }
-                println("  ${elapsedSec(turnStart)} $label  ${bold(event.protocolId)}")
-                println("  ${dim(mapper.writeValueAsString(event.payload))}")
-            }
-            is AgentEvent.ProtocolStreamEvent -> {
-                endBlocks()
-                println(
-                    "  ${elapsedSec(turnStart)} ${green("[protocol.stream]")}  ${bold(event.protocolId)}" +
-                        " ${dim(event.eventType)}"
-                )
-                println("  ${dim(mapper.writeValueAsString(event.payload))}")
-            }
-            is AgentEvent.LlmCallCompleted -> {
-                endBlocks()
-                println(
-                    "  ${elapsedSec(turnStart)} $DIM[$RESET${CYAN}llm$RESET$DIM]$RESET" +
-                    "  in=${event.inputTokens}  out=${event.outputTokens}  $BOLD▸${event.totalTokens}$RESET"
-                )
-            }
-            is AgentEvent.AnswerCompleted -> {
-                endBlocks()
-                if (event.text.isNotBlank()) {
-                    println("  ${elapsedSec(turnStart)} " + green(bold("agent")) + " > " + event.text)
+                    return@forEach
+                }
+                val jsonText = line.removePrefix("data:").trim()
+                if (jsonText.isEmpty()) return@forEach
+                val node: JsonNode = try {
+                    mapper.readTree(jsonText)
+                } catch (_: Exception) {
+                    return@forEach
+                }
+                val eventType = node.path("type").asText("")
+                if (verboseSse && eventType.isNotEmpty()) {
+                    println("[sse] type=$eventType")
+                }
+                when (eventType) {
+                    "item.diagnostic" -> {
+                        val code = node.path("code").asText("?")
+                        val msg = node.path("message").asText("")
+                        println("[diag] $code — $msg")
+                    }
+                    "item.tool.call" -> {
+                        val name = node.path("toolName").asText("?")
+                        val args = node.path("arguments").toString()
+                        println("[tool] $name $args")
+                    }
+                    "item.tool.result" -> {
+                        val name = node.path("toolName").asText("?")
+                        val res = node.path("result").toString()
+                        println("[tool result] $name -> $res")
+                    }
+                    "item.part.updated" -> {
+                        val partType = node.path("partType").asText("text")
+                        if (partType != "text") {
+                            if (verboseSse) {
+                                println("[sse] partType=$partType raw: ${jsonText.take(300)}")
+                            }
+                            return@forEach
+                        }
+                        val c = node.path("content").asText("")
+                        print(c)
+                        System.out.flush()
+                    }
+                    "item.completed" -> {
+                        val content = node.get("content")?.asText()
+                        if (!content.isNullOrEmpty()) {
+                            println(content)
+                        } else {
+                            println()
+                        }
+                    }
+                    "item.failed" -> {
+                        println()
+                        println("[error] ${node.path("code").asText()} - ${node.path("reason").asText()}")
+                    }
+                    else -> {
+                        if (verboseSse && eventType.isNotEmpty()) {
+                            println("[sse] (unhandled type; use --verbose-sse) raw: ${jsonText.take(200)}")
+                        }
+                    }
                 }
             }
-            // ── every other event — generic JSON ─────────────────────────────
-            else -> { endBlocks(); printEvent(event, turnStart) }
         }
     }
 }
 
-// ── Help ─────────────────────────────────────────────────────────────────────
-
-private fun printHelp() {
-    println()
-    println(bold("Commands:"))
-    println("  /help   — show this message")
-    println("  /exit   — quit  (also: exit, quit, /quit)")
-    println("  /clear  — clear conversation history (schema agent only)")
-    println()
-    println(bold("Agent selection:"))
-    println("  mill-ai-v3-cli hello       — run hello-world demo agent")
-    println("  mill-ai-v3-cli schema      — run schema authoring agent")
-    println("  mill-ai-v3-cli --agent schema")
-    println("  AGENT=schema mill-ai-v3-cli")
-    println()
-    println(bold("Environment:"))
-    println("  AGENT=hello  (default fallback) — hello-world demo agent")
-    println("  AGENT=schema                    — schema authoring agent")
-    println("  SCHEMA_SOURCE=demo     — in-memory demo retail schema (default)")
-    println()
-    println(bold("Hello-world hints:"))
-    println("  • \"say hello to Alice\"")
-    println("  • \"echo back: hello world\"")
-    println("  • \"what can you do?\"")
-    println("  • \"run a noop\"")
-    println()
-    println(bold("Schema hints:"))
-    println("  • \"what schemas are available?\"")
-    println("  • \"list the tables in retail\"")
-    println("  • \"what columns does the orders table have?\"")
-    println("  • \"how are orders and customers related?\"")
-    println()
-}
-
-
+private fun prettyJson(raw: String): String =
+    runCatching {
+        val tree: JsonNode = mapper.readTree(raw)
+        mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tree)
+    }.getOrDefault(raw)

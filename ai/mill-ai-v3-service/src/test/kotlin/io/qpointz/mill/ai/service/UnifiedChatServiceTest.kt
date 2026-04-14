@@ -1,8 +1,9 @@
 package io.qpointz.mill.ai.service
 
-import io.qpointz.mill.ai.autoconfigure.chat.AiV3ChatRuntime
-import io.qpointz.mill.ai.autoconfigure.chat.ChatRuntimeEvent
-import io.qpointz.mill.ai.autoconfigure.chat.MillAiV3ChatProperties
+import io.qpointz.mill.ai.chat.AiV3ChatRuntime
+import io.qpointz.mill.ai.chat.ChatRuntimeEvent
+import io.qpointz.mill.ai.chat.MillAiChatSettings
+import io.qpointz.mill.ai.chat.PropertiesUserIdResolver
 import io.qpointz.mill.ai.memory.InMemoryChatMemoryStore
 import io.qpointz.mill.ai.persistence.InMemoryChatRegistry
 import io.qpointz.mill.ai.persistence.InMemoryConversationStore
@@ -26,7 +27,8 @@ class UnifiedChatServiceTest {
         conversationStore = conversationStore,
         chatMemoryStore = chatMemoryStore,
         runtime = runtime,
-        properties = MillAiV3ChatProperties(),
+        properties = MillAiChatSettings(),
+        userIdResolver = PropertiesUserIdResolver("default"),
     )
 
     @Test

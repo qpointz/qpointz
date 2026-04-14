@@ -10,7 +10,7 @@ mill {
     publishArtifacts = false
 
     editions {
-        defaultEdition = "minimal"
+        defaultEdition = "ai"
 
         feature("sample-data") {
             description = "Provides Sample datasets"
@@ -24,6 +24,12 @@ mill {
             description = "Provides Data services"
             module(":services:mill-data-grpc-service")
             module(":services:mill-data-http-service")
+        }
+
+        feature("ai-chat-service") {
+            description = "AI v3 unified chat: REST + SSE (profiles, chats, messages) via mill-ai-v3-autoconfigure (transitively mill-ai-v3-service); JPA via mill-ai-v3-persistence when the host runs JPA"
+            module(":ai:mill-ai-v3-autoconfigure")
+            module(":ai:mill-ai-v3-persistence")
         }
 
         edition("minimal") {
@@ -43,6 +49,12 @@ mill {
             from("minimal")
             feature("sample-data")
 
+        }
+
+        edition("ai") {
+            description = "Minimal stack plus AI v3 chat HTTP/SSE API (requires LLM configuration; see platform doc)"
+            from("minimal")
+            feature("ai-chat-service")
         }
     }
 }
@@ -111,6 +123,7 @@ dependencies {
     implementation(project(":data:mill-data-source-core"))
     implementation(project(":data:mill-data-source-calcite"))
     implementation(project(":data:mill-data-schema-service"))
+    implementation(project(":data:mill-data-metadata"))
     implementation(project(":data:formats:mill-data-format-text"))
     implementation(project(":data:formats:mill-data-format-excel"))
     implementation(project(":data:formats:mill-data-format-avro"))

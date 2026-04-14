@@ -170,7 +170,9 @@ class AiChatController(private val chatService: ChatService) {
         summary = "Send a message and stream the response via SSE",
         description = "Returns a stream of server-sent events. " +
             "Each event `data` field carries a JSON-serialised ChatSseEvent. " +
-            "Event types: `item.created`, `item.part.updated`, `item.completed`, `item.failed`. " +
+            "Event types: `item.created`, `item.diagnostic`, `item.part.updated`, `item.tool.call`, " +
+            "`item.tool.result`, `item.completed`, `item.failed`. " +
+            "`item.diagnostic` carries UX status (code, message, optional detail) before the reply completes. " +
             "Streaming consumers should accumulate `item.part.updated` deltas; " +
             "`item.completed.content` is `null` when deltas were emitted — use the accumulated text. " +
             "`item.completed.content` is non-null only when no deltas preceded (non-streaming fallback path). " +

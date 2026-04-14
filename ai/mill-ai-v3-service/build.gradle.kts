@@ -12,7 +12,7 @@ mill {
 }
 
 dependencies {
-    api(project(":ai:mill-ai-v3-autoconfigure"))
+    api(project(":ai:mill-ai-v3"))
     implementation(project(":ai:mill-ai-v3-data"))
     implementation(project(":core:mill-core"))
     implementation(libs.boot.starter.webflux)
@@ -25,6 +25,7 @@ testing {
     suites {
         register<JvmTestSuite>("testIT") {
             dependencies {
+                implementation(project(":ai:mill-ai-v3-autoconfigure"))
                 implementation(libs.h2.database)
                 implementation(libs.boot.starter.data.jpa)
                 implementation(project(":persistence:mill-persistence"))

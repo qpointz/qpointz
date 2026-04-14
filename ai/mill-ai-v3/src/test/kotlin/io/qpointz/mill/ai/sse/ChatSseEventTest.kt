@@ -31,6 +31,50 @@ class ChatSseEventTypesTest {
     }
 
     @Test
+    fun shouldHaveCorrectType_itemToolCall() {
+        val e = ChatSseEvent.ItemToolCall(
+            "eid",
+            "cid",
+            "iid",
+            0,
+            java.time.Instant.now(),
+            toolName = "fn",
+            arguments = mapOf("a" to 1),
+            iteration = 0,
+        )
+        assertEquals("item.tool.call", e.type)
+    }
+
+    @Test
+    fun shouldHaveCorrectType_itemToolResult() {
+        val e = ChatSseEvent.ItemToolResult(
+            "eid",
+            "cid",
+            "iid",
+            1,
+            java.time.Instant.now(),
+            toolName = "fn",
+            result = "x",
+        )
+        assertEquals("item.tool.result", e.type)
+    }
+
+    @Test
+    fun shouldHaveCorrectType_itemDiagnostic() {
+        val e = ChatSseEvent.ItemDiagnostic(
+            "eid",
+            "cid",
+            "iid",
+            2,
+            java.time.Instant.now(),
+            code = "run.started",
+            message = "Run started",
+            detail = mapOf("profileId" to "p1"),
+        )
+        assertEquals("item.diagnostic", e.type)
+    }
+
+    @Test
     fun shouldHaveV1FrozenDefaults_itemPartUpdated() {
         val e = ChatSseEvent.ItemPartUpdated("eid", "cid", "iid", 0, java.time.Instant.now(), content = "x")
         assertEquals("conversation", e.presentation)

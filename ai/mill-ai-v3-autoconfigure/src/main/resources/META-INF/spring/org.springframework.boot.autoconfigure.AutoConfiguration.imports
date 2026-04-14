@@ -1,3 +1,4 @@
 io.qpointz.mill.ai.autoconfigure.MillAiV3AutoConfiguration
+io.qpointz.mill.ai.autoconfigure.MillAiV3ChatServiceAutoConfiguration
 io.qpointz.mill.ai.autoconfigure.MillAiV3DataAutoConfiguration
 io.qpointz.mill.ai.autoconfigure.MillAiV3SqlValidatorAutoConfiguration

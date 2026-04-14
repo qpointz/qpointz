@@ -18,11 +18,14 @@ import java.time.Instant
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -31,21 +34,38 @@ import org.springframework.test.web.servlet.get
 
 @WebMvcTest(controllers = [SchemaExplorerController::class])
 @ContextConfiguration(classes = [SchemaExplorerControllerWebMvcIT.TestApplication::class])
-@Import(SchemaExplorerService::class, SchemaExceptionHandler::class, JacksonAutoConfiguration::class)
+@Import(
+    SchemaExplorerControllerWebMvcIT.SchemaFacetServiceTestConfig::class,
+    SchemaExplorerService::class,
+    SchemaExceptionHandler::class,
+    JacksonAutoConfiguration::class
+)
 @AutoConfigureMockMvc(addFilters = false)
 class SchemaExplorerControllerWebMvcIT {
 
     @SpringBootApplication
     class TestApplication
 
+    /**
+     * Registers a [SchemaFacetService] bean before [SchemaExplorerService] is evaluated so
+     * `ConditionalOnBean(SchemaFacetService::class)` succeeds in slice tests (`MockitoBean` is
+     * registered too late for that condition).
+     */
+    @TestConfiguration
+    class SchemaFacetServiceTestConfig {
+        @Bean
+        fun schemaFacetService(): SchemaFacetService =
+            Mockito.mock(SchemaFacetService::class.java)
+    }
+
     @Autowired
     private lateinit var mockMvc: MockMvc
 
+    @Autowired
+    private lateinit var schemaFacetService: SchemaFacetService
+
     private val urnCodec = DefaultMetadataEntityUrnCodec()
     private val fixedInstant = Instant.parse("2020-01-01T00:00:00Z")
-
-    @MockitoBean
-    private lateinit var schemaFacetService: SchemaFacetService
 
     @MockitoBean
     private lateinit var schemaProvider: SchemaProvider

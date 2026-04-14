@@ -74,3 +74,23 @@ mill:
 springdoc:
   swagger-ui:
     tags-sorter: alpha
+
+---
+# AI v3 chat HTTP/SSE (`mill-ai-v3-service`). Build with Gradle edition `ai`; run with
+# `--spring.profiles.active=ai` so `mill.ai.*` binds. Set `OPENAI_API_KEY`.
+spring:
+  config:
+    activate:
+      on-profile: ai
+
+mill:
+  ai:
+    model:
+      provider: openai
+      api-key: ${OPENAI_API_KEY:}
+      model-name: ${OPENAI_MODEL:gpt-4o-mini}
+      base-url: ${OPENAI_BASE_URL:}
+    chat:
+      default-profile: hello-world
+      default-user-id: default
+      max-title-length: 30

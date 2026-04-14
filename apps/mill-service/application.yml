@@ -121,3 +121,22 @@ mill:
       type: jpa
     facet-type-registry:
       type: local
+---
+# AI v3 chat HTTP/SSE (`mill-ai-v3-service`). Use with Gradle edition `ai` (classpath) and
+# `--spring.profiles.active=ai` so `mill.ai.*` binds. Set `OPENAI_API_KEY` (or override in env-specific config).
+spring:
+  config:
+    activate:
+      on-profile: ai
+
+mill:
+  ai:
+    model:
+      provider: openai
+      api-key: ${OPENAI_API_KEY:}
+      model-name: ${OPENAI_MODEL:gpt-4o-mini}
+      base-url: ${OPENAI_BASE_URL:}
+    chat:
+      default-profile: hello-world
+      default-user-id: default
+      max-title-length: 30

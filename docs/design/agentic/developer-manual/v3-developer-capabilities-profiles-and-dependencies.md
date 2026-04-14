@@ -17,13 +17,15 @@ This chapter explains how to build the top half of an `ai/v3` agent:
 
 If you are adding a new agent family, this is the first chapter to implement from.
 
-### 1.1 Data integration boundary (in progress)
+### 1.1 Data integration boundary (delivered)
 
-The **`schema`** and **`sql-query`** capabilities are being decoupled from **`mill-data-schema-core`** at the **`mill-ai-v3`** module edge: **ports** stay in **`mill-ai-v3`**, **Mill Data–backed implementations** move to **`mill-ai-v3-data`**, and **Spring** wiring is centralised in **`mill-ai-v3-autoconfigure`**. **Primary Boot consumer** of that wiring is **`mill-ai-v3-service`**; **`mill-ai-v3-cli`** remains a playground / test bench. Target milestone: **`0.8.0`**.
+The **`schema`** and **`sql-query`** capabilities are decoupled from **`mill-data-schema-core`** at the **`mill-ai-v3`** module edge: **contracts** (`SchemaCatalogPort`, **`SqlValidator` / **`SqlValidationService`**, etc.) live in **`mill-ai-v3`**; **Mill Data–backed implementations** sit in **`mill-ai-v3-data`**; **Spring** wiring is centralised in **`mill-ai-v3-autoconfigure`**. **Primary Boot consumer** of that wiring is **`mill-ai-v3-service`**; **`mill-ai-v3-cli`** remains a playground / test bench. Delivered under milestone **`0.8.0`** (story closed 2026-04-14).
 
-**`SqlValidator` (WI-165):** **Unit tests** use mocks or fakes as usual. **Integration tests (`testIT`)** target **parse + schema-bound** validation (e.g. Skymill + flow fixture aligned with **`FlowDescriptorMetadataSourceIT`**). Optional **scaffold / red** steps on a feature branch must not leave **`main`/`dev`** CI red indefinitely — see **WI-165** and [`../v3-mill-ai-v3-data-boundary.md`](../v3-mill-ai-v3-data-boundary.md).
+**`SqlValidator` testing:** **Unit tests** use mocks or fakes as usual. **Integration tests (`testIT`)** target **parse + schema-bound** validation (e.g. Skymill + flow fixture aligned with **`FlowDescriptorMetadataSourceIT`**). See [`../v3-mill-ai-v3-data-boundary.md`](../v3-mill-ai-v3-data-boundary.md).
 
-See also the active story under **`docs/workitems/in-progress/ai-v3-schema-exploration-port/`**.
+See also the archived story **`docs/workitems/completed/20260414-ai-v3-schema-exploration-port/`** (closed 2026-04-14).
+
+**Capability dependencies over HTTP:** server-side **`CapabilityDependencyAssembler`**, profile list/inspect REST, integration/docs/OpenAPI acceptance, and HTTP-only CLI are delivered under **[`docs/workitems/completed/20260414-ai-v3-chat-capability-dependencies/`](../../../workitems/completed/20260414-ai-v3-chat-capability-dependencies/STORY.md)** (closed 2026-04-14; **WI-160**, **WI-167–WI-169**).
 
 ---
 

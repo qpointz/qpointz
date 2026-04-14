@@ -23,6 +23,8 @@ Optionally, keep a **newest-first** bullet list below as a human-maintained inde
 
 ## Index (optional, newest first)
 
+- [2026-04-14 — ai-v3-chat-capability-dependencies (`CapabilityDependencyAssembler`, profile HTTP, IT/docs, CLI HTTP bench; WI-160, WI-167–WI-169)](20260414-ai-v3-chat-capability-dependencies/STORY.md)
+- [2026-04-14 — ai-v3-schema-exploration-port (`SchemaCatalogPort`, `mill-ai-v3-data`, `SqlValidator`; WI-161–WI-166)](20260414-ai-v3-schema-exploration-port/STORY.md)
 - [2026-04-13 — ai-sql-generate-capability (`sql-query` generate-only, SqlValidator, CLI; WI-156–WI-159)](20260413-ai-sql-generate-capability/STORY.md)
 - [2026-04-02 — flow-source-ui-facets (flow inferred facets, mill-ui; WI-146–WI-150)](20260402-flow-source-ui-facets/STORY.md)
 - [2026-04-02 — typed-entity-urns (typed model URNs; WI-144 → eliminate-entity-kind)](20260402-typed-entity-urns/STORY.md)

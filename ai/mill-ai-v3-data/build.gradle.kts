@@ -13,7 +13,6 @@ dependencies {
     api(project(":ai:mill-ai-v3"))
     implementation(project(":data:mill-data-schema-core"))
     implementation(project(":data:mill-data-backend-core"))
-    implementation(libs.calcite.core)
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)

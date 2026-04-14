@@ -29,6 +29,12 @@ class MapProfileRegistryTest {
     }
 
     @Test
+    fun shouldListRegisteredProfilesSortedById() {
+        val ids = registry.registeredProfiles().map { it.id }
+        assertEquals(listOf("hello-world", "schema-authoring", "schema-exploration"), ids)
+    }
+
+    @Test
     fun shouldAcceptVarargConstructor() {
         val r = MapProfileRegistry(HelloWorldAgentProfile.profile)
         assertNotNull(r.resolve("hello-world"))
@@ -61,5 +67,11 @@ class DefaultProfileRegistryTest {
     fun shouldExposeAllKnownIds() {
         val ids = DefaultProfileRegistry.knownIds
         assertTrue(ids.containsAll(setOf("hello-world", "schema-exploration", "schema-authoring")))
+    }
+
+    @Test
+    fun shouldListRegisteredProfilesSortedById() {
+        val ids = DefaultProfileRegistry.registeredProfiles().map { it.id }
+        assertEquals(listOf("hello-world", "schema-authoring", "schema-exploration"), ids)
     }
 }

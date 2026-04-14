@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 /**
  * Translates [MillStatusException] and [MillStatusRuntimeException] to HTTP responses
- * for the AI chat API surface.
+ * for the AI v3 HTTP surface ([AiChatController], [AiProfileController]).
  *
  * HTTP status mapping follows the platform convention (WI-083):
  * - BAD_REQUEST → 400
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
  * - TOO_MANY_REQUESTS → 429
  * - INTERNAL_ERROR → 500
  */
-@RestControllerAdvice(assignableTypes = [AiChatController::class])
+@RestControllerAdvice(assignableTypes = [AiChatController::class, AiProfileController::class])
 class AiChatExceptionHandler {
 
     @ExceptionHandler(MillStatusException::class)

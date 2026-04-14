@@ -10,6 +10,7 @@ mill {
 }
 
 dependencies {
+    api(libs.reactor.core)
     api(libs.langchain4j.core)
     implementation(libs.langchain4j.open.ai)
     implementation(libs.bundles.jackson)
@@ -20,6 +21,7 @@ dependencies {
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)
+    testImplementation(libs.assertj.core)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.junit.jupiter)
     testImplementation(libs.mockito.kotlin)

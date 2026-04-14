@@ -27,6 +27,7 @@ A document belongs here if its **primary subject** is one of:
 
 | File | Description |
 |------|-------------|
+| `mill-service-editions-and-ai-chat.md` | `apps/mill-service` Gradle feature **`ai-chat-service`** and edition **`ai`** wiring **`mill-ai-v3-autoconfigure`** (starter; pulls **`mill-ai-v3-service`**) + persistence |
 | `calcite-dialect-comparison.md` | Calcite dialect functions comparison: PostgreSQL vs SqlLibraryOperators |
 | `mill-data-lane-onepager.md` | One-page visual architecture summary of Mill data flow: sources, backends, SQL engine, services, metadata, and clients |
 | `arrow-flight-server-design.md` | Arrow Flight server design for Mill query transport and type mapping |

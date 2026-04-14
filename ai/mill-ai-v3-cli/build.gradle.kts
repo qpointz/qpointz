@@ -14,10 +14,6 @@ application {
 }
 
 dependencies {
-    implementation(project(":ai:mill-ai-v3"))
-    implementation(project(":ai:mill-ai-v3-data"))
-    implementation(project(":data:mill-data-schema-core"))
-    implementation(project(":core:mill-sql"))
     implementation(libs.bundles.jackson)
     implementation(libs.picocli)
     runtimeOnly(libs.bundles.logging)

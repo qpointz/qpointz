@@ -49,7 +49,9 @@ workflow semantics.
 | `v3-authoring-protocol.md` | Protocol design for schema metadata authoring |
 | `v3-conversation-persistence.md` | Implemented baseline split between chat transcript, model memory, and artifact persistence in `ai/v3` |
 | `v3-chat-service.md` | Implemented unified chat metadata, runtime rehydration, SSE stream contract, and HTTP service facade for `ai/v3` |
+| [`../platform/mill-service-editions-and-ai-chat.md`](../platform/mill-service-editions-and-ai-chat.md) | **`apps/mill-service`** Gradle feature **`ai-chat-service`** / edition **`ai`** to ship **`mill-ai-v3-autoconfigure`** (starter; includes **`mill-ai-v3-service`**) in the runnable Mill app |
 | `v3-persistence-lanes.md` | Implemented persistence-lane architecture for `ai/v3`: model memory, routed events, transcript, artifacts, telemetry, and artifact observers |
 | `v3-langchain4j-simplification-notes.md` | Simplification map for `LangChain4jAgent` and adjacent runtime seams |
-| `v3-mill-ai-v3-data-boundary.md` | **`0.8.0`**: **`mill-ai-v3`** ports vs **`mill-ai-v3-data`** adapters (schema + SQL validation); **`mill-ai-v3-autoconfigure`** canonical wiring; **`mill-ai-v3-service`** primary consumer |
+| `v3-mill-ai-v3-data-boundary.md` | **`0.8.0`** (delivered): **`mill-ai-v3`** contracts vs **`mill-ai-v3-data`** adapters (schema catalog + SQL validation); **`mill-ai-v3-autoconfigure`** canonical wiring; **`mill-ai-v3-service`** primary consumer |
+| `v3-mill-ai-v3-cli-http-client.md` | **Implemented:** HTTP-only **`mill-ai-v3-cli`** test bench — default **`http://localhost:8080`**, optional auth **header hooks** (no-op default); archive [`docs/workitems/completed/20260414-ai-v3-chat-capability-dependencies/`](../../workitems/completed/20260414-ai-v3-chat-capability-dependencies/STORY.md) (**WI-169**) |
 | `v3-agent-ui-and-portal-agents.md` | Direction: agent-builder UI and portal-defined agent bundles applied to local Mill instances |

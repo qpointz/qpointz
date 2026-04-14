@@ -13,7 +13,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  *       provider: openai
  *       api-key: ${OPENAI_API_KEY}
  *       model-name: gpt-4o-mini
- *       base-url: https://api.openai.com/v1   # optional; override for local/compatible endpoints
+ *       base-url: https://api.openai.com/v1   # optional; omit or leave blank for the public OpenAI API
  * ```
  */
 @ConfigurationProperties("mill.ai.model")
@@ -24,7 +24,10 @@ data class MillAiModelProperties(
     val apiKey: String = "",
     /** Model name / deployment id. */
     val modelName: String = "gpt-4o-mini",
-    /** Optional base URL override — useful for OpenAI-compatible local endpoints. */
+    /**
+     * Base URL for the OpenAI-compatible HTTP API (typically ends with `/v1`).
+     * If null or blank (including after `${OPENAI_BASE_URL:}` with no env), the runtime uses the public OpenAI endpoint.
+     */
     val baseUrl: String? = null,
 ) {
     enum class Provider { OPENAI }

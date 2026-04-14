@@ -3,6 +3,8 @@ package io.qpointz.mill.ai.autoconfigure
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryToolHandlers
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlValidationOutcome
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlValidator
+import io.qpointz.mill.ai.capabilities.valuemapping.ValueMappingResolver
+import io.qpointz.mill.ai.dependencies.CapabilityDependencyAssembler
 import io.qpointz.mill.ai.memory.ChatMemoryStore
 import io.qpointz.mill.ai.memory.InMemoryChatMemoryStore
 import io.qpointz.mill.ai.memory.LlmMemoryStrategy
@@ -40,6 +42,8 @@ class MillAiV3AutoConfigurationTest {
             assertThat(ctx).hasSingleBean(ConversationStore::class.java)
             assertThat(ctx).hasSingleBean(ArtifactStore::class.java)
             assertThat(ctx).hasSingleBean(ActiveArtifactPointerStore::class.java)
+            assertThat(ctx).hasSingleBean(CapabilityDependencyAssembler::class.java)
+            assertThat(ctx).hasSingleBean(ValueMappingResolver::class.java)
         }
     }
 

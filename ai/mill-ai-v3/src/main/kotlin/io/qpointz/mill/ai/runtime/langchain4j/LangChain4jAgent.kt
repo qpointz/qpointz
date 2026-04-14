@@ -75,7 +75,7 @@ class LangChain4jAgent(
                 .apiKey(config.apiKey)
                 .modelName(config.modelName)
                 .parallelToolCalls(true)
-            config.baseUrl?.let(builder::baseUrl)
+                .baseUrl(resolvedOpenAiBaseUrl(config.baseUrl))
             return LangChain4jAgent(
                 model = builder.build(),
                 profile = profile,

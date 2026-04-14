@@ -1,7 +1,7 @@
 package io.qpointz.mill.ai.service
 
-import io.qpointz.mill.ai.autoconfigure.chat.AiV3ChatRuntime
-import io.qpointz.mill.ai.autoconfigure.chat.ChatRuntimeEvent
+import io.qpointz.mill.ai.chat.AiV3ChatRuntime
+import io.qpointz.mill.ai.chat.ChatRuntimeEvent
 import io.qpointz.mill.ai.persistence.ConversationStore
 import io.qpointz.mill.ai.persistence.ConversationTurn
 import org.assertj.core.api.Assertions.assertThat
@@ -44,7 +44,7 @@ class AiChatControllerIT {
     // ── Stub runtime ──────────────────────────────────────────────────────────
 
     /**
-     * Replaces [io.qpointz.mill.ai.autoconfigure.chat.LangChain4jChatRuntime].
+     * Replaces [io.qpointz.mill.ai.autoconfigure.chat.LangChain4jChatRuntime] from autoconfigure.
      * Echoes the user message, persists both turns to [ConversationStore], and
      * emits the three standard SSE event types without calling OpenAI.
      */
@@ -499,5 +499,39 @@ class AiChatControllerIT {
         client.get().uri("/api/v1/ai/chats/$chatId")
             .accept(MediaType.APPLICATION_JSON)
             .exchange().expectStatus().isNotFound
+    }
+
+    // ── Profiles (GET /api/v1/ai/profiles) ────────────────────────────────────
+
+    @Test
+    fun `should list registered profiles`() {
+        client.get().uri("/api/v1/ai/profiles")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.length()").isEqualTo(3)
+            .jsonPath("$[0].id").isEqualTo("hello-world")
+            .jsonPath("$[1].id").isEqualTo("schema-authoring")
+            .jsonPath("$[2].id").isEqualTo("schema-exploration")
+    }
+
+    @Test
+    fun `should get profile by id`() {
+        client.get().uri("/api/v1/ai/profiles/hello-world")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.id").isEqualTo("hello-world")
+            .jsonPath("$.capabilityIds").isArray
+    }
+
+    @Test
+    fun `should return 404 for unknown profile id`() {
+        client.get().uri("/api/v1/ai/profiles/unknown-profile-id")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isNotFound
     }
 }

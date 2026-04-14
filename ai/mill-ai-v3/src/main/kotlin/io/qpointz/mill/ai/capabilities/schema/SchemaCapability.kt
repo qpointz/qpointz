@@ -12,9 +12,9 @@ import io.qpointz.mill.ai.runtime.events.*
 import io.qpointz.mill.ai.runtime.events.routing.*
 
 /**
- * Dependency carrying the [SchemaExplorationPort] into [SchemaCapability].
+ * Dependency carrying the [SchemaCatalogPort] into [SchemaCapability].
  */
-data class SchemaCapabilityDependency(val exploration: SchemaExplorationPort) : CapabilityDependency
+data class SchemaCapabilityDependency(val catalog: SchemaCatalogPort) : CapabilityDependency
 
 /**
  * Provider for the read-only schema exploration capability.
@@ -34,7 +34,7 @@ class SchemaCapabilityProvider : CapabilityProvider {
         dependencies: CapabilityDependencies,
     ): Capability = SchemaCapability(
         descriptor(),
-        dependencies.require(SchemaCapabilityDependency::class.java).exploration,
+        dependencies.require(SchemaCapabilityDependency::class.java).catalog,
     )
 }
 
@@ -43,7 +43,7 @@ class SchemaCapabilityProvider : CapabilityProvider {
  */
 private data class SchemaCapability(
     override val descriptor: CapabilityDescriptor,
-    private val port: SchemaExplorationPort,
+    private val catalog: SchemaCatalogPort,
 ) : Capability {
 
     private data class ListTablesArgs(val schemaName: String)
@@ -62,19 +62,19 @@ private data class SchemaCapability(
 
     override val tools: List<ToolBinding> = listOf(
         manifest.tool("list_schemas") {
-            ToolResult(port.listSchemas())
+            ToolResult(catalog.listSchemas())
         },
         manifest.tool("list_tables") { request ->
             val args = request.argumentsAs<ListTablesArgs>()
-            ToolResult(port.listTables(args.schemaName))
+            ToolResult(catalog.listTables(args.schemaName))
         },
         manifest.tool("list_columns") { request ->
             val args = request.argumentsAs<ListColumnsArgs>()
-            ToolResult(port.listColumns(args.schemaName, args.tableName))
+            ToolResult(catalog.listColumns(args.schemaName, args.tableName))
         },
         manifest.tool("list_relations") { request ->
             val args = request.argumentsAs<ListRelationsArgs>()
-            ToolResult(port.listRelations(args.schemaName, args.tableName, args.direction))
+            ToolResult(catalog.listRelations(args.schemaName, args.tableName, args.direction))
         },
     )
 }

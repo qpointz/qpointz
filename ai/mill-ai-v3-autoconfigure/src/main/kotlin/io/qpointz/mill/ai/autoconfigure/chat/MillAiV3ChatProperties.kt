@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.autoconfigure.chat
 
+import io.qpointz.mill.ai.chat.MillAiChatSettings
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 /**
@@ -32,4 +33,13 @@ data class MillAiV3ChatProperties(
      * first user message. A trailing `…` is appended when the message is truncated.
      */
     val maxTitleLength: Int = 30,
-)
+) {
+    /**
+     * @return framework-neutral settings for the unified chat service (`mill-ai-v3-service`)
+     */
+    fun toSettings(): MillAiChatSettings = MillAiChatSettings(
+        defaultProfile = defaultProfile,
+        defaultUserId = defaultUserId,
+        maxTitleLength = maxTitleLength,
+    )
+}

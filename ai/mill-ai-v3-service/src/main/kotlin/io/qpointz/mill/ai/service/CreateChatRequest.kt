@@ -7,7 +7,7 @@ package io.qpointz.mill.ai.service
  * Populate the context fields to create or reuse a context-bound chat.
  */
 data class CreateChatRequest(
-    /** Profile id override. When null the service uses [io.qpointz.mill.ai.autoconfigure.chat.MillAiV3ChatProperties.defaultProfile]. */
+    /** Profile id override. When null the service uses [io.qpointz.mill.ai.chat.MillAiChatSettings.defaultProfile]. */
     val profileId: String? = null,
     /**
      * Domain context type (e.g. `"model"`, `"dashboard"`).

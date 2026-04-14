@@ -26,12 +26,10 @@ import dev.langchain4j.model.chat.response.StreamingChatResponseHandler
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel
 import java.time.Instant
 import java.util.UUID
-import io.qpointz.mill.ai.capabilities.schema.SchemaExplorationPort
-import io.qpointz.mill.ai.capabilities.schema.SchemaCapabilityDependency
-import io.qpointz.mill.ai.capabilities.sqldialect.SqlDialectCapabilityDependency
+import io.qpointz.mill.ai.capabilities.schema.SchemaCatalogPort
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityDependency
-import io.qpointz.mill.ai.capabilities.valuemapping.ValueMappingCapabilityDependency
 import io.qpointz.mill.ai.capabilities.valuemapping.ValueMappingResolver
+import io.qpointz.mill.ai.dependencies.SchemaFacingCapabilityDependencyFactory
 import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec
 import java.util.concurrent.CompletableFuture
 
@@ -53,7 +51,7 @@ import java.util.concurrent.CompletableFuture
  */
 class SchemaExplorationAgent(
     private val model: StreamingChatModel,
-    private val schemaExploration: SchemaExplorationPort,
+    private val schemaCatalog: SchemaCatalogPort,
     private val dialectSpec: SqlDialectSpec,
     private val sqlQueryDependency: SqlQueryCapabilityDependency,
     private val valueMappingResolver: ValueMappingResolver,
@@ -252,11 +250,12 @@ class SchemaExplorationAgent(
 
     private fun buildContext(): AgentContext = AgentContext(
         contextType = "general",
-        capabilityDependencies = CapabilityDependencyContainer.of(
-            "schema" to CapabilityDependencies.of(SchemaCapabilityDependency(schemaExploration)),
-            "sql-dialect" to CapabilityDependencies.of(SqlDialectCapabilityDependency(dialectSpec)),
-            "sql-query" to CapabilityDependencies.of(sqlQueryDependency),
-            "value-mapping" to CapabilityDependencies.of(ValueMappingCapabilityDependency(valueMappingResolver)),
+        capabilityDependencies = SchemaFacingCapabilityDependencyFactory.build(
+            profile = SchemaAuthoringAgentProfile.profile,
+            schemaCatalog = schemaCatalog,
+            dialectSpec = dialectSpec,
+            sqlQueryDependency = sqlQueryDependency,
+            valueMappingResolver = valueMappingResolver,
         ),
     )
 
@@ -358,7 +357,7 @@ class SchemaExplorationAgent(
 
     companion object {
         fun fromEnv(
-            schemaExploration: SchemaExplorationPort,
+            schemaCatalog: SchemaCatalogPort,
             dialectSpec: SqlDialectSpec,
             sqlQueryDependency: SqlQueryCapabilityDependency,
             valueMappingResolver: ValueMappingResolver,
@@ -373,12 +372,12 @@ class SchemaExplorationAgent(
                 modelName = System.getenv("OPENAI_MODEL") ?: "gpt-4o-mini",
                 baseUrl = System.getenv("OPENAI_BASE_URL"),
             )
-            return fromConfig(config, schemaExploration, dialectSpec, sqlQueryDependency, valueMappingResolver, registry, chatMemoryStore, memoryStrategy, persistenceContext)
+            return fromConfig(config, schemaCatalog, dialectSpec, sqlQueryDependency, valueMappingResolver, registry, chatMemoryStore, memoryStrategy, persistenceContext)
         }
 
         fun fromConfig(
             config: Config,
-            schemaExploration: SchemaExplorationPort,
+            schemaCatalog: SchemaCatalogPort,
             dialectSpec: SqlDialectSpec,
             sqlQueryDependency: SqlQueryCapabilityDependency,
             valueMappingResolver: ValueMappingResolver,
@@ -391,10 +390,10 @@ class SchemaExplorationAgent(
                 .apiKey(config.apiKey)
                 .modelName(config.modelName)
                 .parallelToolCalls(true)
-            config.baseUrl?.let(builder::baseUrl)
+                .baseUrl(resolvedOpenAiBaseUrl(config.baseUrl))
             return SchemaExplorationAgent(
                 model = builder.build(),
-                schemaExploration = schemaExploration,
+                schemaCatalog = schemaCatalog,
                 dialectSpec = dialectSpec,
                 sqlQueryDependency = sqlQueryDependency,
                 valueMappingResolver = valueMappingResolver,

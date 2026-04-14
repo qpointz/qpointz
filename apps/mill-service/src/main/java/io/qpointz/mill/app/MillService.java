@@ -5,6 +5,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+/**
+ * Mill service entry point.
+ */
 @SpringBootApplication(scanBasePackages = "io.qpointz")
 @EntityScan(basePackages = "io.qpointz")
 @EnableScheduling

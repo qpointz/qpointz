@@ -1,6 +1,6 @@
 package io.qpointz.mill.ai.service
 
-import io.qpointz.mill.ai.autoconfigure.chat.ChatRuntimeEvent
+import io.qpointz.mill.ai.chat.ChatRuntimeEvent
 import io.qpointz.mill.ai.persistence.ChatMetadata
 import io.qpointz.mill.ai.persistence.ConversationTurn
 import org.assertj.core.api.Assertions.assertThat

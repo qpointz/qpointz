@@ -208,6 +208,10 @@ mill-ui facet display order + generic **OBJECT** read-only presentation for sche
 metadata). Delivers **`flow-*`** inferred facets with **`originId`** **`flow`** on flow backend.
 Archive: [`completed/20260402-flow-source-ui-facets/STORY.md`](completed/20260402-flow-source-ui-facets/STORY.md). Backlog **M-33** done.
 
+**Schema exploration contract, `mill-ai-v3-data`, data-backed `SqlValidator` (`ai-v3-schema-exploration-port`, closed 2026-04-14):** **WI-161** `SchemaCatalogPort` contract in `mill-ai-v3` (drop direct `mill-data-schema-core`); **WI-162** `mill-ai-v3-data` + `SchemaFacetCatalogAdapter`; **WI-163** CLI wiring via `mill-ai-v3-data`; **WI-164** `MillAiV3DataAutoConfiguration` canonical `SchemaCatalogPort` bean; **WI-165** `BackendSqlValidator` + autoconfigure default `SqlValidator` when appropriate; **WI-166** boundary design doc (`v3-mill-ai-v3-data-boundary.md`). Archive: [`completed/20260414-ai-v3-schema-exploration-port/STORY.md`](completed/20260414-ai-v3-schema-exploration-port/STORY.md). Backlog **A-83** done.
+
+**AI v3 chat — capability dependencies over HTTP (`ai-v3-chat-capability-dependencies`, closed 2026-04-14):** **WI-167** `CapabilityDependencyAssembler` + Spring wiring into `LangChain4jChatRuntime` from existing data/metadata beans; **WI-168** `ProfileRegistry.registeredProfiles()` + `GET /api/v1/ai/profiles` (+ inspect) with OpenAPI; **WI-160** integration tests, service/autoconfigure docs, OpenAPI acceptance; **WI-169** `mill-ai-v3-cli` HTTP-only SSE test bench (no in-process agent). Archive: [`completed/20260414-ai-v3-chat-capability-dependencies/STORY.md`](completed/20260414-ai-v3-chat-capability-dependencies/STORY.md). Backlog **A-84** done.
+
 ### In Progress
 
 Items currently being implemented in this milestone.

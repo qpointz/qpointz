@@ -1,10 +1,9 @@
 package io.qpointz.mill.ai.service
 
-import io.qpointz.mill.ai.autoconfigure.chat.AiV3ChatRuntime
-import io.qpointz.mill.ai.autoconfigure.chat.ChatRuntimeEvent
-import io.qpointz.mill.ai.autoconfigure.chat.MillAiV3ChatProperties
-import io.qpointz.mill.ai.autoconfigure.chat.PropertiesUserIdResolver
-import io.qpointz.mill.ai.autoconfigure.chat.UserIdResolver
+import io.qpointz.mill.ai.chat.AiV3ChatRuntime
+import io.qpointz.mill.ai.chat.ChatRuntimeEvent
+import io.qpointz.mill.ai.chat.MillAiChatSettings
+import io.qpointz.mill.ai.chat.UserIdResolver
 import io.qpointz.mill.ai.memory.ChatMemoryStore
 import io.qpointz.mill.ai.persistence.ChatMetadata
 import io.qpointz.mill.ai.persistence.ChatRegistry
@@ -26,17 +25,16 @@ import java.util.UUID
  * @param conversationStore durable turn transcript
  * @param chatMemoryStore LLM-facing sliding-window memory
  * @param runtime pluggable agent execution; replace to swap LLM providers or use a stub
- * @param properties chat service configuration
- * @param userIdResolver extension point for resolving the current user;
- *   defaults to the static value from [MillAiV3ChatProperties.defaultUserId]
+ * @param properties chat service settings (from `mill.ai.chat` in Spring hosts)
+ * @param userIdResolver extension point for resolving the current user
  */
 class UnifiedChatService(
     private val registry: ChatRegistry,
     private val conversationStore: ConversationStore,
     private val chatMemoryStore: ChatMemoryStore,
     private val runtime: AiV3ChatRuntime,
-    private val properties: MillAiV3ChatProperties,
-    private val userIdResolver: UserIdResolver = PropertiesUserIdResolver(properties.defaultUserId),
+    private val properties: MillAiChatSettings,
+    private val userIdResolver: UserIdResolver,
 ) : ChatService {
 
     // ── Chat lifecycle ─────────────────────────────────────────────────────────

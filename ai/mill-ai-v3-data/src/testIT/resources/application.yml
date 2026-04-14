@@ -1,0 +1,41 @@
+# SQL validator flow IT — aligned with apps/mill-service/application.yml `spring.config.activate.on-profile: skymill`,
+# but file-backed metadata and the test flow descriptor (CSV) used by mill-ai-v3-data testIT.
+# `flow.facet.it.root` is set by Gradle (repo root) so the flow source path resolves on any machine.
+spring:
+  profiles:
+    active: sql-validator-skymill
+  main:
+    web-application-type: none
+
+---
+spring:
+  config:
+    activate:
+      on-profile: sql-validator-skymill
+
+mill:
+  security:
+    enable: false
+  data:
+    sql:
+      dialect: CALCITE
+      conventions:
+        quoting: BACK_TICK
+        caseSensitive: "false"
+        unquotedCasing: UNCHANGED
+    backend:
+      type: flow
+      flow:
+        cache:
+          schema:
+            enabled: true
+            ttl: 2m
+        sources:
+          - "${flow.facet.it.root}/data/mill-data-backends/config/test/flow-skymill.yaml"
+  metadata:
+    repository:
+      type: file
+    seed:
+      resources:
+        - "classpath:metadata/platform-bootstrap.yaml"
+        - "classpath:metadata/platform-flow-facet-types.yaml"

@@ -17,7 +17,10 @@ import org.springframework.core.type.AnnotationMetadata
  */
 @Configuration
 @ConditionalOnClass(name = ["io.qpointz.mill.persistence.ai.jpa.adapters.JpaChatMemoryStore"])
-@Import(MillAiV3JpaConfiguration.AiV3PackageRegistrar::class)
+@Import(
+    MillAiV3JpaConfiguration.AiV3PackageRegistrar::class,
+    MillAiV3JpaRepositoriesConfiguration::class,
+)
 class MillAiV3JpaConfiguration {
 
     internal class AiV3PackageRegistrar : ImportBeanDefinitionRegistrar {

@@ -1,12 +1,17 @@
 # Agentic Runtime v3 - Interactive CLI
 
-**Status:** Implemented  
-**Date:** March 2026  
-**Scope:** `ai/mill-ai-v3-cli` as the manual inspection surface for the current `v3` runtime
+**Status:** Superseded for **`mill-ai-v3-cli`**
+
+**Current product CLI:** HTTP + SSE test bench only — see [`v3-mill-ai-v3-cli-http-client.md`](v3-mill-ai-v3-cli-http-client.md) and archived [`docs/workitems/completed/20260414-ai-v3-chat-capability-dependencies/`](../../workitems/completed/20260414-ai-v3-chat-capability-dependencies/STORY.md). The document below describes an **earlier in-process REPL** (raw `AgentEvent` rendering, embedded agents). It is **not** an accurate description of today’s `CliApp.kt`.
+
+---
+
+**Date:** March 2026 (historical)  
+**Scope (historical):** `ai/mill-ai-v3-cli` as the manual inspection surface for the `v3` runtime when agents ran in-process
 
 ## 1. Purpose
 
-The CLI is a manual runtime inspection tool.
+The CLI was a manual runtime inspection tool.
 
 It is used to:
 
