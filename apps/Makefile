@@ -2,7 +2,7 @@ SHELL := /bin/bash
 
 DESKTOP_DIR := mill-desktop
 
-.PHONY: help build-docker run-moneta run-mill-postgres postgres-up postgres-down postgres-logs \
+.PHONY: help build-docker run-moneta run-mill-postgres \
 	desktop-install desktop-build desktop-launch desktop-clean
 
 help:
@@ -11,9 +11,6 @@ help:
 	@echo "make build-docker      # rebuild docker images"
 	@echo "make run-moneta        # runs moneta sample docker"
 	@echo "make run-mill-postgres # run mill-service with postgres profile"
-	@echo "make postgres-up       # start local postgres docker"
-	@echo "make postgres-down     # stop and remove local postgres docker"
-	@echo "make postgres-logs     # tail postgres container logs"
 	@echo ""
 	@echo "Desktop — $(DESKTOP_DIR):"
 	@echo "  make desktop-install  # Install npm dependencies"
@@ -52,20 +49,6 @@ run-mill-postgres:
 	MILL_DB_USERNAME=$${MILL_DB_USERNAME:-postgres} \
 	MILL_DB_PASSWORD=$${MILL_DB_PASSWORD:-postgres} \
 	./gradlew :apps:mill-service:bootRun --args='--spring.profiles.active=skymill,postgres'
-
-postgres-up:
-	docker run --name mill-postgres \
-		-e POSTGRES_DB=$${MILL_DB_NAME:-mill} \
-		-e POSTGRES_USER=$${MILL_DB_USERNAME:-postgres} \
-		-e POSTGRES_PASSWORD=$${MILL_DB_PASSWORD:-postgres} \
-		-p $${MILL_DB_PORT:-5432}:5432 \
-		-d postgres:latest
-
-postgres-down:
-	docker rm -f mill-postgres
-
-postgres-logs:
-	docker logs -f mill-postgres
 
 info:
 	@echo $(OPENAI_API_KEY)

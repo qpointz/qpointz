@@ -3,7 +3,8 @@ SHELL := /bin/bash
 .PHONY: help build test clean ai-test svc-build \
 	maven-local-publish \
 	docs-build docs-serve \
-	git-clean-branches git-clean-branches-all check-tools
+	git-clean-branches git-clean-branches-all check-tools \
+	local-dev-start local-dev-start-ui local-dev-stop local-dev-reset local-dev-logs
 
 help:
 	@echo "Available targets:"
@@ -34,6 +35,14 @@ help:
 	@echo ""
 	@echo "Tools (CI/CD build images — see .gitlab/Makefile):"
 	@echo "  make -C .gitlab help         # Show all CI/CD tool image targets"
+	@echo ""
+	@echo "Local development (see deploy/Makefile):"
+	@echo "  make local-dev-start         # Start Postgres + ChromaDB"
+	@echo "  make local-dev-start-ui      # Start Postgres + ChromaDB + UIs"
+	@echo "  make local-dev-stop          # Stop containers"
+	@echo "  make local-dev-reset         # Stop + delete persisted data + start clean"
+	@echo "  make local-dev-logs          # Tail logs (SERVICE=postgres|chromadb optional)"
+	@echo "  (UI default ports: Adminer 48080, ChromaDB Admin 43000)"
 
 build:
 	./gradlew build
@@ -43,6 +52,21 @@ test:
 
 clean:
 	./gradlew clean
+
+local-dev-start:
+	$(MAKE) -C deploy local-dev-start
+
+local-dev-start-ui:
+	$(MAKE) -C deploy local-dev-start-ui
+
+local-dev-stop:
+	$(MAKE) -C deploy local-dev-stop
+
+local-dev-reset:
+	$(MAKE) -C deploy local-dev-reset
+
+local-dev-logs:
+	$(MAKE) -C deploy local-dev-logs SERVICE="$(SERVICE)"
 
 ai-test:
 	cd ai && ./gradlew test

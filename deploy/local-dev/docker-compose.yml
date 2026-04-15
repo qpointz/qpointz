@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: mill-local-postgres
+    environment:
+      POSTGRES_DB: ${MILL_DB_NAME:-mill}
+      POSTGRES_USER: ${MILL_DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${MILL_DB_PASSWORD:-postgres}
+    ports:
+      - "${MILL_DB_PORT:-5432}:5432"
+    volumes:
+      - ../../.data/local-dev/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: mill-local-chromadb
+    environment:
+      CHROMA_PERSIST_DIRECTORY: /chroma/chroma
+      CHROMA_SERVER_HOST: 0.0.0.0
+      CHROMA_SERVER_HTTP_PORT: 8000
+    ports:
+      - "${CHROMA_HTTP_PORT:-8000}:8000"
+    volumes:
+      - ../../.data/local-dev/chromadb:/chroma/chroma
+
+  adminer:
+    image: adminer:latest
+    container_name: mill-local-adminer
+    profiles: ["ui"]
+    depends_on:
+      - postgres
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    ports:
+      - "${ADMINER_HTTP_PORT:-48080}:8080"
+
+  chromadb-admin:
+    image: mill-local/chromadb-admin:local
+    build:
+      context: ./chromadb-admin
+      args:
+        CHROMADB_ADMIN_REF: ${CHROMADB_ADMIN_REF:-efe867c86c78683d90b0eb74b88b351fc08f0b5f}
+    container_name: mill-local-chromadb-admin
+    profiles: ["ui"]
+    depends_on:
+      - chromadb
+    ports:
+      - "${CHROMA_ADMIN_HTTP_PORT:-43000}:3001"
