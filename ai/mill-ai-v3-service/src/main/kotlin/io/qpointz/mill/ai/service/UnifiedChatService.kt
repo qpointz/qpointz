@@ -2,7 +2,7 @@ package io.qpointz.mill.ai.service
 
 import io.qpointz.mill.ai.chat.AiV3ChatRuntime
 import io.qpointz.mill.ai.chat.ChatRuntimeEvent
-import io.qpointz.mill.ai.chat.MillAiChatSettings
+import io.qpointz.mill.ai.chat.AiChatSettings
 import io.qpointz.mill.ai.chat.UserIdResolver
 import io.qpointz.mill.ai.memory.ChatMemoryStore
 import io.qpointz.mill.ai.persistence.ChatMetadata
@@ -33,7 +33,7 @@ class UnifiedChatService(
     private val conversationStore: ConversationStore,
     private val chatMemoryStore: ChatMemoryStore,
     private val runtime: AiV3ChatRuntime,
-    private val properties: MillAiChatSettings,
+    private val properties: AiChatSettings,
     private val userIdResolver: UserIdResolver,
 ) : ChatService {
 

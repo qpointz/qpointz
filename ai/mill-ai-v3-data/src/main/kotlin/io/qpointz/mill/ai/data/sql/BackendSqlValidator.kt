@@ -9,7 +9,7 @@ import io.qpointz.mill.data.backend.SqlProvider
  *
  * Validation follows whatever parse/plan rules the active backend applies (including catalog and
  * dialect resolution owned by that backend). This is the **default** implementation wired by
- * [io.qpointz.mill.ai.autoconfigure.MillAiV3DataAutoConfiguration] when a [SqlProvider] bean exists.
+ * [io.qpointz.mill.ai.autoconfigure.AiV3DataAutoConfiguration] when a [SqlProvider] bean exists.
  *
  * @param sqlProvider active Mill data backend used for `parseSql` / plan building
  */

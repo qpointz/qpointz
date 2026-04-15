@@ -47,8 +47,15 @@ Legend for the “Sources” column:
 
 ## Mill AI (`mill.ai.*`)
 
+Full umbrella design (providers, embedding registry, value-mapping references): [`../ai/mill-ai-configuration.md`](../ai/mill-ai-configuration.md).
+
 | Key | Description | Sources |
 | --- | --- | --- |
+| `mill.ai.model.*` | AI v3 chat LLM: provider, model name, api-key, base-url (`AiModelProperties`). | `mill-ai-v3-autoconfigure`, AI v3 tests |
+| `mill.ai.providers.*` | Per-provider credentials (`AiConfigurationProperties.providers`). | `mill-ai-v3-autoconfigure`, IT YAML |
+| `mill.ai.embedding-model.*` | Named embedding profiles (`AiConfigurationProperties.embeddingModel`). | same |
+| `mill.ai.value-mapping.embedding-model` | Profile name for value-mapping embed path (`ValueMappingConfigurationProperties`). | same |
+| `mill.ai.vector-store.*` | Single active `EmbeddingStore` (`VectorStoreConfigurationProperties.backend`); in-memory MVP. | same |
 | `mill.ai.chat.memory` | Chat memory backend (`in-memory` or `jdbc`). | `apps/mill-service/application-moneta-local.yml`, AI IT configs |
 | `mill.ai.nl2sql.enable` | Enables NL→SQL pipeline. | `apps/mill-service/application-moneta-local.yml`, AI IT configs |
 | `mill.ai.nl2sql.dialect` | SQL dialect handed to prompt builders (e.g., `H2`). | Same as above |
@@ -190,3 +197,11 @@ Spring configuration metadata is generated so IDE autocomplete and property vali
 
 Kotlin without explicit metadata silently produces no IDE support for `mill.*` properties in that
 module. When in doubt, prefer Java for `@ConfigurationProperties` classes in autoconfigure modules.
+
+---
+
+## Observability gaps (value mapping / vector sync)
+
+**Action document:** [`../ai/value-mapping-observability-actions.md`](../ai/value-mapping-observability-actions.md) — numbered **action points** (metrics to add, scheduling). **Status:** open until a follow-up WI or milestone closes **A1–A4**.
+
+**Summary:** sync / embed / vector-store paths from [**WI-179**](../../workitems/in-progress/implement-value-mappings/WI-179-sync-vectors-hydration.md) / [**WI-180**](../../workitems/in-progress/implement-value-mappings/WI-180-value-mapping-service-orchestrator.md) need **Micrometer** (or platform-standard) metrics for production visibility; not in current story acceptance criteria — track at story **closure** in [`docs/workitems/in-progress/implement-value-mappings/STORY.md`](../../workitems/in-progress/implement-value-mappings/STORY.md).

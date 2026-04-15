@@ -2,6 +2,8 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
     kotlin("jvm")
+    alias(libs.plugins.kotlin.spring)
+    alias(libs.plugins.spring.dependency.management)
     id("io.qpointz.plugins.mill")
     id("org.jetbrains.dokka")
     id("org.jetbrains.dokka-javadoc")
@@ -27,6 +29,9 @@ testing {
         register<JvmTestSuite>("testIT") {
             dependencies {
                 implementation(project())
+                implementation(project(":ai:mill-ai-v3-autoconfigure"))
+                implementation(libs.boot.starter)
+                implementation(libs.boot.starter.test)
                 implementation(libs.assertj.core)
             }
         }

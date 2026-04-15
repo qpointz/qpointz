@@ -71,6 +71,10 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | A-82 | Document the final AI v3 chat service end-to-end (modules, REST API, persistence model, SSE contract, frontend guidance, maintenance notes) | 📝 docs | planned | `docs/workitems/planned/ai-v3/WI-084-ai-v3-chat-service-documentation.md` |
 | A-83 | Schema exploration port, `mill-ai-v3-data`, data-backed `SqlValidator` (**0.8.0**) | 🔧 refactoring | done | `docs/workitems/completed/20260414-ai-v3-schema-exploration-port/STORY.md` |
 | A-84 | AI v3 chat capability dependencies: assembler, profile HTTP API, IT/docs/OpenAPI, HTTP-only CLI (**0.8.0**) | 🔧 refactoring | done | `docs/workitems/completed/20260414-ai-v3-chat-capability-dependencies/STORY.md` |
+| A-85 | Vector store harness (`mill.ai.vector-store`, LangChain4j `EmbeddingStore`, in-memory MVP) | ✨ feature | done | `docs/workitems/in-progress/implement-value-mappings/WI-177-vector-store-harness.md` |
+| A-86 | Value mappings stack documentation (design + inventory + story alignment) | 📝 docs | done | `docs/workitems/in-progress/implement-value-mappings/WI-178-value-mappings-stack-documentation.md` |
+| A-87 | Sync vectors — column reconciliation (value list, repository, vector store) | ✨ feature | done | `docs/workitems/in-progress/implement-value-mappings/WI-179-sync-vectors-hydration.md` |
+| A-88 | Value mapping service implementation (`ValueMappingService`; repository + embed + vector store + sync) | ✨ feature | done | `docs/workitems/in-progress/implement-value-mappings/WI-180-value-mapping-service-orchestrator.md` |
 
 ---
 
@@ -100,15 +104,15 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 
 | # | Item | Type | Status | Source |
 |---|------|------|--------|--------|
-| M-1 | Create ValueMappingFacet in mill-ai-core and register via AiMetadataConfiguration | ✨ feature | planned | `docs/workitems/planned/metadata-value-mapping/WI-027-metadata-value-mapping-bridge.md` |
-| M-2 | Create MetadataAdapterService implementing MetadataProvider over MetadataService | 🔧 refactoring | planned | `docs/workitems/planned/metadata-value-mapping/WI-027-metadata-value-mapping-bridge.md` |
-| M-3 | Update MetadataConfiguration: replace deprecated beans, wire adapter service | 🔧 refactoring | planned | `docs/workitems/planned/metadata-value-mapping/WI-027-metadata-value-mapping-bridge.md` |
-| M-4 | Migrate value mapping data from legacy YAML to facet format | ✨ feature | planned | `docs/workitems/planned/metadata-value-mapping/WI-027-metadata-value-mapping-bridge.md` |
-| M-5 | Update AI components and tests to work via MetadataAdapterService | 🔧 refactoring | planned | `docs/workitems/planned/metadata-value-mapping/WI-027-metadata-value-mapping-bridge.md` |
-| M-6 | Add value mapping REST API endpoints (GET/POST mappings, resolve term) | ✨ feature | planned | `docs/workitems/planned/metadata-value-mapping/WI-028-metadata-value-mapping-api-and-ui.md` |
-| M-7 | Display value mappings in metadata browser UI | ✨ feature | planned | `docs/workitems/planned/metadata-value-mapping/WI-028-metadata-value-mapping-api-and-ui.md` |
-| M-8 | Introduce ValueResolver abstraction with feature flag (legacy/faceted/hybrid) | 🔧 refactoring | planned | `docs/workitems/planned/metadata-value-mapping/WI-027-metadata-value-mapping-bridge.md` |
-| M-9 | Add parity tests: legacy vs facet value resolution | 🧪 test | planned | `docs/workitems/planned/metadata-value-mapping/WI-027-metadata-value-mapping-bridge.md` |
+| M-1 | Create ValueMappingFacet in mill-ai-core and register via AiMetadataConfiguration | ✨ feature | planned | `docs/workitems/planned/metadata-value-mapping/WI-172-metadata-value-mapping-bridge.md` |
+| M-2 | Create MetadataAdapterService implementing MetadataProvider over MetadataService | 🔧 refactoring | planned | `docs/workitems/planned/metadata-value-mapping/WI-172-metadata-value-mapping-bridge.md` |
+| M-3 | Update MetadataConfiguration: replace deprecated beans, wire adapter service | 🔧 refactoring | planned | `docs/workitems/planned/metadata-value-mapping/WI-172-metadata-value-mapping-bridge.md` |
+| M-4 | Migrate value mapping data from legacy YAML to facet format | ✨ feature | planned | `docs/workitems/planned/metadata-value-mapping/WI-172-metadata-value-mapping-bridge.md` |
+| M-5 | Update AI components and tests to work via MetadataAdapterService | 🔧 refactoring | planned | `docs/workitems/planned/metadata-value-mapping/WI-172-metadata-value-mapping-bridge.md` |
+| M-6 | Add value mapping REST API endpoints (GET/POST mappings, resolve term) | ✨ feature | planned | `docs/workitems/planned/metadata-value-mapping/WI-173-metadata-value-mapping-api-and-ui.md` |
+| M-7 | Display value mappings in metadata browser UI | ✨ feature | planned | `docs/workitems/planned/metadata-value-mapping/WI-173-metadata-value-mapping-api-and-ui.md` |
+| M-8 | Introduce ValueResolver abstraction with feature flag (legacy/faceted/hybrid) | 🔧 refactoring | planned | `docs/workitems/planned/metadata-value-mapping/WI-172-metadata-value-mapping-bridge.md` |
+| M-9 | Add parity tests: legacy vs facet value resolution | 🧪 test | planned | `docs/workitems/planned/metadata-value-mapping/WI-172-metadata-value-mapping-bridge.md` |
 | M-10 | Implement EnrichmentFacet, EnrichmentService, and approval workflow | ✨ feature | planned | `docs/design/metadata/metadata-implementation-roadmap.md` |
 | M-15 | Implement full-text and facet-aware search (Postgres/Elastic/Lucene) | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |
 | M-16 | Implement DataQualityFacet and rule execution engine | ✨ feature | backlog | metadata/metadata-implementation-roadmap.md |

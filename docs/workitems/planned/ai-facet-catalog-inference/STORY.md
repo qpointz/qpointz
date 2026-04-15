@@ -13,5 +13,5 @@ with capture/mutation delegated to **schema-authoring** where required.
 ## Related stories
 
 - [`../ai-v1-v3-parity-baseline/STORY.md`](../ai-v1-v3-parity-baseline/STORY.md) (**WI-151**)
-- [`../metadata-value-mapping/STORY.md`](../metadata-value-mapping/STORY.md) (**WI-027**, **WI-028**)
+- [`../metadata-value-mapping/STORY.md`](../metadata-value-mapping/STORY.md) (**WI-172**, **WI-173**)
 - [`../ai-value-mapping-capability/STORY.md`](../ai-value-mapping-capability/STORY.md) (**WI-157**)

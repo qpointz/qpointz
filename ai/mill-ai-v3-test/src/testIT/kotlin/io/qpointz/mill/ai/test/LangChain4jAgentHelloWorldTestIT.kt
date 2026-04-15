@@ -1,9 +1,9 @@
 package io.qpointz.mill.ai.test
 
-import io.qpointz.mill.ai.AgentEvent
-import io.qpointz.mill.ai.ConversationSession
-import io.qpointz.mill.ai.capabilities.HelloWorldAgentProfile
-import io.qpointz.mill.ai.langchain4j.LangChain4jAgent
+import io.qpointz.mill.ai.runtime.ConversationSession
+import io.qpointz.mill.ai.runtime.events.AgentEvent
+import io.qpointz.mill.ai.profile.HelloWorldAgentProfile
+import io.qpointz.mill.ai.runtime.langchain4j.LangChain4jAgent
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
@@ -24,7 +24,7 @@ class LangChain4jAgentHelloWorldTestIT {
         val response = agent.run(
             "Reply directly with a short greeting. Do not use tools.",
             ConversationSession(),
-            events::add,
+            listener = events::add,
         )
 
         assertThat(response).isNotBlank()
@@ -42,7 +42,7 @@ class LangChain4jAgentHelloWorldTestIT {
         val response = agent.run(
             "Use the say_hello tool to greet Alice.",
             ConversationSession(),
-            events::add,
+            listener = events::add,
         )
 
         assertThat(response).containsIgnoringCase("Alice")

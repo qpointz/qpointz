@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import io.qpointz.mill.ai.autoconfigure.ConditionalOnAiEnabled
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.codec.ServerSentEvent
@@ -37,6 +38,9 @@ import reactor.core.publisher.Flux
  *
  * This controller is intentionally thin: it translates HTTP requests/responses and
  * delegates all business logic to [UnifiedChatService]. No orchestration here.
+ *
+ * Registered when AI v3 is enabled via `mill.ai.enabled` (same gate as
+ * [io.qpointz.mill.ai.autoconfigure.AiV3ChatServiceAutoConfiguration]).
  */
 @Tag(name = "ai-chat", description = "Unified AI v3 chat lifecycle and messaging")
 @RestController
@@ -45,6 +49,7 @@ import reactor.core.publisher.Flux
     produces = [MediaType.APPLICATION_JSON_VALUE],
 )
 @CrossOrigin(origins = ["http://localhost:5173", "http://localhost:8080"])
+@ConditionalOnAiEnabled
 class AiChatController(private val chatService: ChatService) {
 
     // ── Chat lifecycle ─────────────────────────────────────────────────────────

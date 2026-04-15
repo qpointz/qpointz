@@ -45,10 +45,18 @@ testing {
                 implementation(project(":data:mill-data-autoconfigure"))
                 implementation(project(":metadata:mill-metadata-autoconfigure"))
                 implementation(project(":data:formats:mill-data-format-text"))
+                implementation(project(":ai:mill-ai-v3-autoconfigure"))
+                implementation(project(":ai:mill-ai-v3-persistence"))
+                implementation(project(":persistence:mill-persistence-autoconfigure"))
                 implementation(libs.boot.starter)
                 implementation(libs.boot.starter.test)
                 implementation(libs.assertj.core)
                 implementation(libs.mockito.core)
+                runtimeOnly(libs.h2.database)
+                runtimeOnly(libs.drivers.postgressql)
+                runtimeOnly(libs.flyway.database.postgresql)
+                // WI-171 / WI-180: LangChain4j Chroma (testIT only)
+                implementation(libs.langchain4j.chroma)
             }
         }
 

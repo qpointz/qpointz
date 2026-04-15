@@ -79,7 +79,7 @@ Items delivered in this milestone.
   **`ai-sql-generate-capability`**, archived
   [`completed/20260413-ai-sql-generate-capability/STORY.md`](completed/20260413-ai-sql-generate-capability/STORY.md)):
   `SqlQueryCapabilityDependency(validator)` only (no in-agent `execute_sql`);
-  `SqlValidator` + `MillAiV3SqlValidatorAutoConfiguration`; `sql-query.yaml` protocols
+  `SqlValidator` + `AiV3SqlValidatorAutoConfiguration`; `sql-query.yaml` protocols
   **`sql-query.generated-sql`** and **`sql-query.validation`** only; CLI highlights generated SQL;
   `CapabilityProvider` ServiceLoader descriptor
   **`META-INF/services/io.qpointz.mill.ai.core.capability.CapabilityProvider`**
@@ -208,9 +208,17 @@ mill-ui facet display order + generic **OBJECT** read-only presentation for sche
 metadata). Delivers **`flow-*`** inferred facets with **`originId`** **`flow`** on flow backend.
 Archive: [`completed/20260402-flow-source-ui-facets/STORY.md`](completed/20260402-flow-source-ui-facets/STORY.md). Backlog **M-33** done.
 
-**Schema exploration contract, `mill-ai-v3-data`, data-backed `SqlValidator` (`ai-v3-schema-exploration-port`, closed 2026-04-14):** **WI-161** `SchemaCatalogPort` contract in `mill-ai-v3` (drop direct `mill-data-schema-core`); **WI-162** `mill-ai-v3-data` + `SchemaFacetCatalogAdapter`; **WI-163** CLI wiring via `mill-ai-v3-data`; **WI-164** `MillAiV3DataAutoConfiguration` canonical `SchemaCatalogPort` bean; **WI-165** `BackendSqlValidator` + autoconfigure default `SqlValidator` when appropriate; **WI-166** boundary design doc (`v3-mill-ai-v3-data-boundary.md`). Archive: [`completed/20260414-ai-v3-schema-exploration-port/STORY.md`](completed/20260414-ai-v3-schema-exploration-port/STORY.md). Backlog **A-83** done.
+**Schema exploration contract, `mill-ai-v3-data`, data-backed `SqlValidator` (`ai-v3-schema-exploration-port`, closed 2026-04-14):** **WI-161** `SchemaCatalogPort` contract in `mill-ai-v3` (drop direct `mill-data-schema-core`); **WI-162** `mill-ai-v3-data` + `SchemaFacetCatalogAdapter`; **WI-163** CLI wiring via `mill-ai-v3-data`; **WI-164** `AiV3DataAutoConfiguration` canonical `SchemaCatalogPort` bean; **WI-165** `BackendSqlValidator` + autoconfigure default `SqlValidator` when appropriate; **WI-166** boundary design doc (`v3-mill-ai-v3-data-boundary.md`). Archive: [`completed/20260414-ai-v3-schema-exploration-port/STORY.md`](completed/20260414-ai-v3-schema-exploration-port/STORY.md). Backlog **A-83** done.
 
 **AI v3 chat — capability dependencies over HTTP (`ai-v3-chat-capability-dependencies`, closed 2026-04-14):** **WI-167** `CapabilityDependencyAssembler` + Spring wiring into `LangChain4jChatRuntime` from existing data/metadata beans; **WI-168** `ProfileRegistry.registeredProfiles()` + `GET /api/v1/ai/profiles` (+ inspect) with OpenAPI; **WI-160** integration tests, service/autoconfigure docs, OpenAPI acceptance; **WI-169** `mill-ai-v3-cli` HTTP-only SSE test bench (no in-process agent). Archive: [`completed/20260414-ai-v3-chat-capability-dependencies/STORY.md`](completed/20260414-ai-v3-chat-capability-dependencies/STORY.md). Backlog **A-84** done.
+
+**Value mappings — persistence, sync, stack docs (`implement-value-mappings`, 2026-04-16):** **WI-175**–**WI-177**
+`mill.ai` providers, embedding harness, in-memory vector store; **WI-174** `ValueMappingEmbeddingRepository`
+port, JPA entities/Flyway, `AiV3JpaConfiguration` adapter bean; **WI-179** `VectorMappingSynchronizer`;
+**WI-180** `ValueMappingService` + `ValueMappingSyncAutoConfiguration`; **WI-178** design/inventory/public
+alignment. Integration: `ChromaSkymillDistinctVectorIT` (opt-in Chroma). Story:
+[`in-progress/implement-value-mappings/STORY.md`](in-progress/implement-value-mappings/STORY.md) (archive at closure per `RULES.md`).
+Backlog **A-85**–**A-88** done.
 
 ### In Progress
 
@@ -222,10 +230,12 @@ No active in-progress items currently.
 
 Items targeted after **0.7.0** (not yet delivered under **0.8.0**).
 
-- WI-027 — Metadata value mapping bridge and parity
-  (`docs/workitems/planned/metadata-value-mapping/WI-027-metadata-value-mapping-bridge.md`)
-- WI-028 — Metadata value mapping API and UI surface
-  (`docs/workitems/planned/metadata-value-mapping/WI-028-metadata-value-mapping-api-and-ui.md`)
+- WI-171 — Chroma + Skymill vector exploration (mill-ai-v3-data)
+  (`docs/workitems/planned/metadata-value-mapping/WI-171-chroma-skymill-vector-exploration.md`)
+- WI-172 — Metadata value mapping bridge and parity
+  (`docs/workitems/planned/metadata-value-mapping/WI-172-metadata-value-mapping-bridge.md`)
+- WI-173 — Metadata value mapping API and UI surface
+  (`docs/workitems/planned/metadata-value-mapping/WI-173-metadata-value-mapping-api-and-ui.md`)
 - WI-034 — Metadata complex type support in structural facets and UI
   (`docs/workitems/planned/metadata-complex-types/WI-034-metadata-complex-type-support.md`)
 - WI-082 — `mill-ui` migration to the unified `ai/v3` chat API and `item.*` SSE protocol

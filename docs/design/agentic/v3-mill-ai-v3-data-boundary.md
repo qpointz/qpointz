@@ -20,7 +20,7 @@ The Gradle module **`ai/mill-ai-v3-data`** holds **adapters** that implement tho
 |--------|------|
 | **`mill-ai-v3`** | Capability manifests, **`SchemaCatalogPort`**, **`SqlValidator`** fun interface, thin **`validateSql`**, **`LangChain4jAgent` / `SchemaExplorationAgent`**, no `io.qpointz.mill.data.*` imports in this module. |
 | **`mill-ai-v3-data`** | **`SchemaFacetService` → `SchemaCatalogPort`** adapter (`SchemaFacetCatalogAdapter`); optional **default `SqlValidator`** using dialect/engine validation; demo fixtures if shared by CLI. |
-| **`mill-ai-v3-autoconfigure`** | **Canonical Spring wiring**: register **`SchemaCatalogPort`** and optional default **`SqlValidator`** beans using **`@ConditionalOnMissingBean`**; extend **`MillAiV3SqlValidatorAutoConfiguration`** patterns as appropriate. |
+| **`mill-ai-v3-autoconfigure`** | **Canonical Spring wiring**: register **`SchemaCatalogPort`** and optional default **`SqlValidator`** beans using **`@ConditionalOnMissingBean`**; extend **`AiV3SqlValidatorAutoConfiguration`** patterns as appropriate. |
 | **`mill-ai-v3-cli`** | Optional **playground / test bench**: may depend on **`mill-ai-v3-data`** **temporarily** for standalone REPL; not the canonical integration surface. |
 | **`mill-ai-v3-service`** | **Primary Boot consumer** of **`mill-ai-v3-autoconfigure`**: **`SchemaCatalogPort`**, **`SqlValidationService`**, and related beans — not ad hoc **`SchemaFacetService`** wiring in application code. |
 
@@ -32,4 +32,8 @@ The Gradle module **`ai/mill-ai-v3-data`** holds **adapters** that implement tho
 ## Related documents
 
 - [`developer-manual/v3-developer-capabilities-profiles-and-dependencies.md`](./developer-manual/v3-developer-capabilities-profiles-and-dependencies.md) — capabilities, dependencies, profiles.
-- [`v3-chat-service.md`](./v3-chat-service.md) — unified chat and runtime rehydration (intersects **`WI-160`** capability wiring).
+- [`v3-chat-service.md`](v3-chat-service.md) — unified chat and runtime rehydration (intersects **`WI-160`** capability wiring).
+
+## Related work (value mappings)
+
+**`mill-ai-v3-data` `testIT`** includes Skymill + Chroma scenarios (e.g. **`ChromaSkymillDistinctVectorIT`**) that exercise **`ValueMappingService`** → **`VectorMappingSynchronizer`** against a configured **`EmbeddingStore`**, alongside the schema/SQL validation flows above — see [**WI-177**](../../workitems/in-progress/implement-value-mappings/WI-177-vector-store-harness.md) / [**WI-180**](../../workitems/in-progress/implement-value-mappings/WI-180-value-mapping-service-orchestrator.md) and [`../ai/mill-ai-configuration.md`](../ai/mill-ai-configuration.md).

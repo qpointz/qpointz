@@ -48,7 +48,7 @@ Enable **ai/v3** to:
 - **Dependencies:** metadata REST or `SchemaFacetService`-adjacent APIs must expose facet type
   listing and descriptors in a form agents can call (new read methods or dedicated HTTP client from
   the agent’s dependency container). Align with **`planned/metadata-value-mapping`** if facet
-  conventions overlap (**WI-027** / **WI-028**).
+  conventions overlap (**WI-172** / **WI-173**).
 
 ## In Scope (when implemented)
 
@@ -89,4 +89,4 @@ Enable **ai/v3** to:
 - `docs/design/metadata/metadata-facet-type-catalog-defined-and-observed.md` — DEFINED vs OBSERVED
 - `docs/design/metadata/facet-type-descriptor-formats.md`
 - `ai/mill-ai-v3` — `SchemaCapability`, `SchemaAuthoringCapability` (CAPTURE / clarification flows)
-- `docs/workitems/planned/metadata-value-mapping/` — **WI-027**, **WI-028** (overlap on facet payloads)
+- `docs/workitems/planned/metadata-value-mapping/` — **WI-172**, **WI-173** (overlap on facet payloads)

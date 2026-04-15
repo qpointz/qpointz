@@ -1,4 +1,9 @@
-io.qpointz.mill.ai.autoconfigure.MillAiV3AutoConfiguration
-io.qpointz.mill.ai.autoconfigure.MillAiV3ChatServiceAutoConfiguration
-io.qpointz.mill.ai.autoconfigure.MillAiV3DataAutoConfiguration
-io.qpointz.mill.ai.autoconfigure.MillAiV3SqlValidatorAutoConfiguration
+io.qpointz.mill.ai.autoconfigure.AiConfigurationPropertiesAutoConfiguration
+io.qpointz.mill.ai.autoconfigure.providers.AiProvidersAutoConfiguration
+io.qpointz.mill.ai.autoconfigure.embedding.EmbeddingAutoConfiguration
+io.qpointz.mill.ai.autoconfigure.vectorstore.VectorStoreAutoConfiguration
+io.qpointz.mill.ai.autoconfigure.valuemap.ValueMappingSyncAutoConfiguration
+io.qpointz.mill.ai.autoconfigure.AiV3AutoConfiguration
+io.qpointz.mill.ai.autoconfigure.AiV3ChatServiceAutoConfiguration
+io.qpointz.mill.ai.autoconfigure.AiV3DataAutoConfiguration
+io.qpointz.mill.ai.autoconfigure.AiV3SqlValidatorAutoConfiguration

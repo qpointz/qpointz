@@ -4,6 +4,7 @@ import io.qpointz.mill.excepions.statuses.MillStatus
 import io.qpointz.mill.excepions.statuses.MillStatusDetails
 import io.qpointz.mill.excepions.statuses.MillStatusException
 import io.qpointz.mill.excepions.statuses.MillStatusRuntimeException
+import io.qpointz.mill.ai.autoconfigure.ConditionalOnAiEnabled
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -22,8 +23,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
  * - UNPROCESSABLE → 422
  * - TOO_MANY_REQUESTS → 429
  * - INTERNAL_ERROR → 500
+ *
+ * Active when AI v3 is enabled (`mill.ai.enabled`), same gate as [AiChatController] / [AiProfileController].
  */
 @RestControllerAdvice(assignableTypes = [AiChatController::class, AiProfileController::class])
+@ConditionalOnAiEnabled
 class AiChatExceptionHandler {
 
     @ExceptionHandler(MillStatusException::class)

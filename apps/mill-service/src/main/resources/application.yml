@@ -85,6 +85,7 @@ spring:
 
 mill:
   ai:
+    enabled: false
     model:
       provider: openai
       api-key: ${OPENAI_API_KEY:}

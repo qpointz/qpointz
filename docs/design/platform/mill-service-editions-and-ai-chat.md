@@ -11,7 +11,7 @@ Edition resolution and **feature → `implementation` module wiring** are implem
 | Gradle module | Role |
 |---------------|------|
 | [`:ai:mill-ai-v3-autoconfigure`](../../../ai/mill-ai-v3-autoconfigure/) | **Starter:** Spring Boot auto-config + transitively **`mill-ai-v3-service`** (HTTP/SSE API, OpenAPI). Also pulls **`mill-ai-v3-data`**, etc. |
-| [`:ai:mill-ai-v3-persistence`](../../../ai/mill-ai-v3-persistence/) | JPA entities and adapters for chat metadata, transcript, memory, artifacts. Enables **`MillAiV3JpaConfiguration`** when JPA repositories are present (same pattern as AI v3 integration tests). |
+| [`:ai:mill-ai-v3-persistence`](../../../ai/mill-ai-v3-persistence/) | JPA entities and adapters for chat metadata, transcript, memory, artifacts. Enables **`AiV3JpaConfiguration`** when JPA repositories are present (same pattern as AI v3 integration tests). |
 
 Without this feature, running only **`mill-ai-v3-cli`** against a host that never enabled the feature would fail to find chat routes.
 

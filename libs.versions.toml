@@ -31,6 +31,8 @@ micrometer = "1.16.0"
 kotlin = "2.3.10"
 logback = "1.5.28"
 langchain4j = "1.11.0"
+# Chroma (and other optional integrations) track LangChain4j’s beta line aligned with the stable BOM — see langchain4j-bom 1.11.0.
+langchain4j-beta = "1.11.0-beta19"
 reactor = "3.7.5"
 flyway = "10.21.0"
 [libraries]
@@ -171,6 +173,7 @@ json-path = { module = "com.jayway.jsonpath:json-path", version = "2.10.0" }
 json-schema-validator = { module = "com.networknt:json-schema-validator", version = "1.5.7" }
 langchain4j-core = { module = "dev.langchain4j:langchain4j", version.ref = "langchain4j" }
 langchain4j-open-ai = { module = "dev.langchain4j:langchain4j-open-ai", version.ref = "langchain4j" }
+langchain4j-chroma = { module = "dev.langchain4j:langchain4j-chroma", version.ref = "langchain4j-beta" }
 reactor-core = { module = "io.projectreactor:reactor-core", version.ref = "reactor" }
 
 [bundles]

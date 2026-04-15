@@ -27,7 +27,7 @@ lookups.
 
 1. Replace or narrow mock usage to tests only; wire real dependencies in service/CLI paths when
    metadata is ready.
-2. Document facet conventions in a design note (cross-link **WI-027** / **WI-028**).
+2. Document facet conventions in a design note (cross-link **WI-172** / **WI-173**).
 3. Unit and integration tests for resolver branches and tool handlers.
 
 ## Out of Scope

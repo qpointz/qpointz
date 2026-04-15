@@ -61,12 +61,12 @@ Provide a **default Spring** implementation in **`mill-ai-v3-autoconfigure`** th
 
 Implementation **must** pull collaborators from **beans and configuration already provided** by **`mill-ai-v3-autoconfigure`** and, on the host classpath, **`mill-ai-v3-data`**, **`data`**, and **`metadata`** modules as they exist today — **not** duplicate factory logic or parallel property namespaces.
 
-1. **`SchemaCatalogPort`** — use the bean from **`MillAiV3DataAutoConfiguration`** (`SchemaFacetService` → adapter) when present; **`ObjectProvider<SchemaCatalogPort>`** or equivalent.
-2. **`SqlValidator` / `SqlQueryToolHandlers.SqlValidationService`** — use **`MillAiV3SqlValidatorAutoConfiguration`** and existing **`SqlProvider`**-backed **`BackendSqlValidator`** wiring when those beans exist.
+1. **`SchemaCatalogPort`** — use the bean from **`AiV3DataAutoConfiguration`** (`SchemaFacetService` → adapter) when present; **`ObjectProvider<SchemaCatalogPort>`** or equivalent.
+2. **`SqlValidator` / `SqlQueryToolHandlers.SqlValidationService`** — use **`AiV3SqlValidatorAutoConfiguration`** and existing **`SqlProvider`**-backed **`BackendSqlValidator`** wiring when those beans exist.
 3. **`SqlDialectSpec`** — on hosts that include **`mill-data-autoconfigure`**, use the existing bean from **`SqlAutoConfiguration`**: **`millDataSqlDialectSpec()`** builds **`SqlDialectSpec`** from **`mill.data.sql.*`** (default dialect key **`MILL_DATA_SQL_CONFIG_KEY`** / `mill.data.sql`). Reference: [`data/mill-data-autoconfigure/.../SqlAutoConfiguration.java`](../../../../data/mill-data-autoconfigure/src/main/java/io/qpointz/mill/autoconfigure/data/SqlAutoConfiguration.java). Inject **`ObjectProvider<SqlDialectSpec>`** (or the bean by type/name) when the autoconfiguration is on the classpath.
 4. **`ValueMappingResolver`** — **stub** implementation registered by **`mill-ai-v3-autoconfigure`** when no metadata-backed resolver exists (same role as **`MockValueMappingResolver`** today). **Document the limitation** in README / design: **`value-mapping`** tools are degraded (minimal or empty results) until a real resolver bean is supplied; **`ObjectProvider<ValueMappingResolver>`** prefers real bean, falls back to stub.
 
-**Principle:** the assembler is a **thin combiner** of **already-registered** Spring collaborators. New **`@ConfigurationProperties`** are only justified if no existing metadata/data hook exists; prefer extending **`MillAiV3DataAutoConfiguration`** (or host-specific config) over new standalone config types.
+**Principle:** the assembler is a **thin combiner** of **already-registered** Spring collaborators. New **`@ConfigurationProperties`** are only justified if no existing metadata/data hook exists; prefer extending **`AiV3DataAutoConfiguration`** (or host-specific config) over new standalone config types.
 
 ## Module placement
 
@@ -104,7 +104,7 @@ Implementation **must** pull collaborators from **beans and configuration alread
 
 - **`SchemaExplorationAgent.buildContext`:** `ai/mill-ai-v3/.../SchemaExplorationAgent.kt`
 - **`LangChain4jChatRuntime`:** `ai/mill-ai-v3-autoconfigure/.../LangChain4jChatRuntime.kt`
-- **`MillAiV3DataAutoConfiguration` / `MillAiV3SqlValidatorAutoConfiguration`:** `ai/mill-ai-v3-autoconfigure/`
+- **`AiV3DataAutoConfiguration` / `AiV3SqlValidatorAutoConfiguration`:** `ai/mill-ai-v3-autoconfigure/`
 - **`SqlDialectSpec` (host):** [`data/mill-data-autoconfigure/.../SqlAutoConfiguration.java`](../../../../data/mill-data-autoconfigure/src/main/java/io/qpointz/mill/autoconfigure/data/SqlAutoConfiguration.java)
 - Value-mapping **stub** limitation: document in autoconfigure README / **WI-160** (degraded **`value-mapping`** until a real **`ValueMappingResolver`** bean exists)
 - Parent acceptance / IT / docs: [**WI-160**](WI-160-ai-v3-chat-runtime-capability-dependencies.md)

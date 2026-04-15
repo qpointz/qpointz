@@ -11,7 +11,7 @@ After **WI-161–162**, the **`SchemaCatalogPort`** implementation lives in **`m
 
 ## Goal
 
-1. Extend **`ai/mill-ai-v3-autoconfigure`** to register a **`SchemaCatalogPort`** bean when **`SchemaFacetService`** and the **`mill-ai-v3-data`** adapter are on the classpath — pattern consistent with existing **`MillAiV3SqlValidatorAutoConfiguration`** (`@ConditionalOnClass`, `@ConditionalOnBean`, `@ConditionalOnMissingBean`).
+1. Extend **`ai/mill-ai-v3-autoconfigure`** to register a **`SchemaCatalogPort`** bean when **`SchemaFacetService`** and the **`mill-ai-v3-data`** adapter are on the classpath — pattern consistent with existing **`AiV3SqlValidatorAutoConfiguration`** (`@ConditionalOnClass`, `@ConditionalOnBean`, `@ConditionalOnMissingBean`).
 2. **Dependencies:** add **`implementation(project(":ai:mill-ai-v3-data"))`** for schema-port (and later **WI-165** SQL validator) auto-configuration that **imports** data-backed types and registers concrete beans. Reserve **`compileOnly(project(":ai:mill-ai-v3-data"))`** only if a configuration class references **`mill-ai-v3-data`** purely via reflection **and** runtime classpath is guaranteed — **default: `implementation`** so compilation, tests, and IDE resolution stay consistent (same rule as **WI-165** Gradle note).
 3. **Ordering / conflict:** if **`SchemaCatalogPort`** is already provided by the host, **do not** override (`@ConditionalOnMissingBean(SchemaCatalogPort::class)`).
 4. **KDoc** on the new configuration class; **`META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`** entry if using Spring Boot 3 style imports.
@@ -34,4 +34,4 @@ After **WI-161–162**, the **`SchemaCatalogPort`** implementation lives in **`m
 ## Reference
 
 - Story: [`STORY.md`](STORY.md)
-- **`MillAiV3SqlValidatorAutoConfiguration`:** `ai/mill-ai-v3-autoconfigure/.../MillAiV3SqlValidatorAutoConfiguration.kt`
+- **`AiV3SqlValidatorAutoConfiguration`:** `ai/mill-ai-v3-autoconfigure/.../AiV3SqlValidatorAutoConfiguration.kt`

@@ -1,0 +1,78 @@
+# WI-171: Skymill + flow + query execution — isolated profile (does not change default testIT application.yml).
+spring:
+  main:
+    web-application-type: none
+
+---
+spring:
+  config:
+    activate:
+      on-profile: chroma-explore-skymill
+
+mill:
+  security:
+    enable: false
+  data:
+    sql:
+      dialect: calcite
+      conventions:
+        quoting: BACK_TICK
+        caseSensitive: "false"
+        unquotedCasing: UNCHANGED
+    backend:
+      type: flow
+      flow:
+        cache:
+          schema:
+            enabled: true
+            ttl: 2m
+        sources:
+          - "${flow.facet.it.root}/data/mill-data-backends/config/test/flow-skymill.yaml"
+  metadata:
+    repository:
+      type: file
+    seed:
+      resources:
+        - "classpath:metadata/platform-bootstrap.yaml"
+        - "classpath:metadata/platform-flow-facet-types.yaml"
+
+---
+# Value-mapping + Chroma IT: Postgres (Flyway V6) + OpenAI embeddings. Chroma client is hardcoded in
+# ChromaEmbeddingStoreItConfiguration. Adjust datasource and embedding profile below for your machine.
+# API key: use `api-key: ${OPENAI_API_KEY}` (no `:default`) so a blank placeholder never overrides a
+# user-profile `OPENAI_API_KEY`. Alternatively omit `api-key` here and set `MILL_AI_PROVIDERS_OPENAI_API_KEY`.
+spring:
+  config:
+    activate:
+      on-profile: chroma-value-mapping-it-infra
+  datasource:
+    url: jdbc:postgresql://localhost:5432/mill
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+mill:
+  ai:
+    providers:
+      openai:
+        api-key: ${OPENAI_API_KEY}
+        base-url: https://api.openai.com/v1
+    embedding-model:
+      default:
+        provider: openai
+        model-name: text-embedding-3-small
+        dimension: 1536
+    value-mapping:
+      embedding-model: default

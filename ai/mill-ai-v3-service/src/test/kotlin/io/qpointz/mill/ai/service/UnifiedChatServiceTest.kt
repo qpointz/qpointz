@@ -2,7 +2,7 @@ package io.qpointz.mill.ai.service
 
 import io.qpointz.mill.ai.chat.AiV3ChatRuntime
 import io.qpointz.mill.ai.chat.ChatRuntimeEvent
-import io.qpointz.mill.ai.chat.MillAiChatSettings
+import io.qpointz.mill.ai.chat.AiChatSettings
 import io.qpointz.mill.ai.chat.PropertiesUserIdResolver
 import io.qpointz.mill.ai.memory.InMemoryChatMemoryStore
 import io.qpointz.mill.ai.persistence.InMemoryChatRegistry
@@ -27,7 +27,7 @@ class UnifiedChatServiceTest {
         conversationStore = conversationStore,
         chatMemoryStore = chatMemoryStore,
         runtime = runtime,
-        properties = MillAiChatSettings(),
+        properties = AiChatSettings(),
         userIdResolver = PropertiesUserIdResolver("default"),
     )
 

@@ -1,4 +1,5 @@
 plugins {
+    java
     kotlin("jvm")
     alias(libs.plugins.spring.dependency.management)
     alias(libs.plugins.kotlin.spring)
@@ -24,6 +25,10 @@ dependencies {
     annotationProcessor(libs.boot.configuration.processor)
     compileOnly(project(":ai:mill-ai-v3-persistence"))
     compileOnly(project(":persistence:mill-persistence"))
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.encoding = "UTF-8"
 }
 
 testing {

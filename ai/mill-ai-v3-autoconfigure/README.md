@@ -12,9 +12,9 @@ Beans (when present on the application classpath) are combined by `SpringCapabil
 
 | Collaborator | Typical source |
 |--------------|----------------|
-| `SchemaCatalogPort` | `MillAiV3DataAutoConfiguration` when `SchemaFacetService` exists |
+| `SchemaCatalogPort` | `AiV3DataAutoConfiguration` when `SchemaFacetService` exists |
 | `SqlValidator` | Same, when `SqlProvider` exists (`BackendSqlValidator`) |
-| `SqlQueryToolHandlers.SqlValidationService` | `MillAiV3SqlValidatorAutoConfiguration` from `SqlValidator`, or your own bean |
+| `SqlQueryToolHandlers.SqlValidationService` | `AiV3SqlValidatorAutoConfiguration` from `SqlValidator`, or your own bean |
 | `SqlDialectSpec` | Host `SqlAutoConfiguration` (`mill.data.sql.*`) when `mill-data-autoconfigure` is on the classpath |
 | `ValueMappingResolver` | Your metadata integration, or the default **`MockValueMappingResolver`** stub (empty mappings) |
 

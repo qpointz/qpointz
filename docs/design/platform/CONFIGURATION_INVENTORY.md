@@ -20,6 +20,10 @@
 | `mill.metadata.file.repository` | `MetadataConfiguration` (bean) | mill-service-core | Legacy file repository path (data autoconfigure; not the greenfield metadata service) |
 | `mill.ai.nl2sql` | `ValueMappingConfiguration` | mill-ai-core | NL2SQL enable, dialect, reasoner, value-mapping |
 | `mill.services.*` | `OnServiceEnabledCondition` | mill-service-core | Service toggles (grpc, jet-http, meta, grinder, ai-nl2data, data-bot) |
+| `mill.ai.model` | `AiModelProperties` | mill-ai-v3-autoconfigure | Chat LLM: provider, model name, api-key, base-url |
+| `mill.ai` (nested: `enabled`, `providers`, `embedding-model`) | `AiConfigurationProperties` | mill-ai-v3-autoconfigure | Master `enabled` flag; provider map + named embedding profiles (`AiProviderEntry`, `EmbeddingModelProfile`) |
+| `mill.ai.value-mapping` | `ValueMappingConfigurationProperties` | mill-ai-v3-autoconfigure | `embedding-model` references a key under `mill.ai.embedding-model` |
+| `mill.ai.vector-store` | `VectorStoreConfigurationProperties` | mill-ai-v3-autoconfigure | Backend enum (`in-memory` MVP); single `EmbeddingStore` per context |
 
 ---
 
@@ -96,6 +100,20 @@
 - `ChatProcessor` — injects `ValueMappingConfiguration`
 - `Nl2SqlConfiguration` — binds `mill.ai.nl2sql.dialect`, `mill.ai.nl2sql.value-mapping`
 - `AIConfiguration` — `mill.ai.chat.memory` (in-memory | jdbc)
+
+### 2.4.1 AI v3 (`mill-ai-v3-autoconfigure`)
+
+| Class | Module | Condition | Key Beans |
+|-------|--------|-----------|-----------|
+| `AiModelProperties` | mill-ai-v3-autoconfigure | `@ConfigurationProperties("mill.ai.model")` | Chat LLM configuration |
+| `AiConfigurationProperties` | mill-ai-v3-autoconfigure | `@ConfigurationProperties("mill.ai")` | `providers`, `embedding-model` maps; `AiV3AutoConfiguration` |
+| `ValueMappingConfigurationProperties` | mill-ai-v3-autoconfigure | `@ConfigurationProperties("mill.ai.value-mapping")` | `embedding-model` profile name |
+| `VectorStoreConfigurationProperties` | mill-ai-v3-autoconfigure | `@ConfigurationProperties("mill.ai.vector-store")` | `backend` selector |
+| `AiV3AutoConfiguration` / `EmbeddingAutoConfiguration` / `VectorStoreAutoConfiguration` | mill-ai-v3-autoconfigure | `@ConditionalOn*` | `AiModelProviderRegistry`, `EmbeddingHarness`, `EmbeddingStore` |
+| `ValueMappingSyncAutoConfiguration` | mill-ai-v3-autoconfigure | `@AutoConfigureAfter` AI + JPA | `VectorMappingSynchronizer`, `ValueMappingService` when repository + harness + store exist |
+| `AiV3JpaConfiguration` | mill-ai-v3-autoconfigure | JPA on classpath | `ValueMappingEmbeddingRepository` JPA adapter (with `AiEmbeddingModelRepository` / `AiValueMappingRepository`) |
+
+**Design:** [`../ai/mill-ai-configuration.md`](../ai/mill-ai-configuration.md)
 
 ### 2.5 Service Core
 
@@ -193,6 +211,22 @@
 ### mill.ai.chat
 - `memory` — in-memory | jdbc
 
+### mill.ai.model (AI v3 chat — `AiModelProperties`)
+- `provider`, `api-key`, `model-name`, `base-url`
+
+### mill.ai.providers (WI-175 — `AiConfigurationProperties.providers`)
+- `<providerId>.api-key`, `<providerId>.base-url` — per-provider credentials (OpenAI-compatible first)
+
+### mill.ai.embedding-model (WI-176 — `AiConfigurationProperties.embeddingModel`)
+- `<name>.provider` — provider id (`stub`, `openai`, …); `stub` for deterministic tests
+- `<name>.model-name`, `<name>.dimension` — non-secret embedding params
+
+### mill.ai.value-mapping (WI-176 — `ValueMappingConfigurationProperties`)
+- `embedding-model` — name of a profile under `mill.ai.embedding-model`
+
+### mill.ai.vector-store (WI-177 — `VectorStoreConfigurationProperties`)
+- `backend` — `in-memory` (MVP); **one** active backend per application context — see [`../ai/mill-ai-configuration.md`](../ai/mill-ai-configuration.md)
+
 ### mill.services
 - `grpc.port`, `grpc.address`, `grpc.enable`
 - `jet-http.enable`
@@ -205,11 +239,13 @@
 
 ## 5. Refactoring Considerations
 
-1. **Duplicate prefix** — `mill.security.authorization.policy` used by both `PolicyConfiguration` and `PolicyActionsConfiguration`; consider merging or splitting namespaces.
-2. **Typo** — `mill.backend.jdbc.multi-shema` should be `multi-schema`.
-3. **Legacy vs greenfield** — `mill.metadata.file.repository.path` (legacy data-layer repo) vs **`mill.metadata.repository.*`** (metadata service); document migration in operator docs.
-4. **ConditionalOnService** — Services enabled via `mill.services.<name>.enable`; `OnServiceEnabledCondition` checks for presence of `mill.services.<name>` group.
-5. **ConditionalOnSecurity** — Custom annotation; security beans gated by `mill.security.enable`.
-6. **functionContextFlag** — Hack to detect Azure Function context; multiple security configs use `@ConditionalOnMissingBean(name = "functionContextFlag")`.
-7. **Qualifier typo** — `Nl2SqlConfiguration.vectorStoreDocumentSources` uses `@Qualifier("LOJOKOJ")`; likely placeholder.
-8. **Config file sprawl** — Many profile-specific YAML files; consider `spring.config.import` or consolidation.
+1. **`mill.ai.*` extension** — Provider map (`mill.ai.providers`), embedding registry (`mill.ai.embedding-model`), vector store (`mill.ai.vector-store`), and value-mapping references (`mill.ai.value-mapping`) are documented in [`../ai/mill-ai-configuration.md`](../ai/mill-ai-configuration.md); Java `@ConfigurationProperties` classes in **`mill-ai-v3-autoconfigure`** (WI-175–WI-177); sync/service wiring in **`ValueMappingSyncAutoConfiguration`** (WI-179/WI-180).
+2. **Duplicate prefix** — `mill.security.authorization.policy` used by both `PolicyConfiguration` and `PolicyActionsConfiguration`; consider merging or splitting namespaces.
+3. **Typo** — `mill.backend.jdbc.multi-shema` should be `multi-schema`.
+4. **Legacy vs greenfield** — `mill.metadata.file.repository.path` (legacy data-layer repo) vs **`mill.metadata.repository.*`** (metadata service); document migration in operator docs.
+5. **ConditionalOnService** — Services enabled via `mill.services.<name>.enable`; `OnServiceEnabledCondition` checks for presence of `mill.services.<name>` group.
+6. **ConditionalOnSecurity** — Custom annotation; security beans gated by `mill.security.enable`.
+7. **functionContextFlag** — Hack to detect Azure Function context; multiple security configs use `@ConditionalOnMissingBean(name = "functionContextFlag")`.
+8. **Qualifier typo** — `Nl2SqlConfiguration.vectorStoreDocumentSources` uses `@Qualifier("LOJOKOJ")`; likely placeholder.
+9. **Config file sprawl** — Many profile-specific YAML files; consider `spring.config.import` or consolidation.
+10. **Value mapping observability** — Metrics for sync / embed / vector-store paths are not yet part of configuration surface; **action points** are tracked in [`../ai/value-mapping-observability-actions.md`](../ai/value-mapping-observability-actions.md) (see [`mill-configuration.md`](mill-configuration.md) **Observability gaps**).

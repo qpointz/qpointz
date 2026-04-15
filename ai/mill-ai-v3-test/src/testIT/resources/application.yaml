@@ -1,0 +1,12 @@
+mill:
+  ai:
+    providers:
+      openai:
+        api-key: ${OPENAI_API_KEY}
+    embedding-model:
+      openai-it:
+        provider: openai
+        model-name: text-embedding-3-small
+        dimension: 1536
+    value-mapping:
+      embedding-model: openai-it

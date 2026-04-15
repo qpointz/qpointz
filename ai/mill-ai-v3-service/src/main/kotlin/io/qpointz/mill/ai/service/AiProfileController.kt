@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import io.qpointz.mill.ai.autoconfigure.ConditionalOnAiEnabled
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
@@ -22,6 +23,8 @@ import org.springframework.web.bind.annotation.RestController
  * Read-only HTTP API for agent profiles registered in [ProfileRegistry].
  *
  * Thin transport: maps registry results to [AgentProfileResponse]; no persistence.
+ *
+ * Registered when AI v3 is enabled (`mill.ai.enabled`), aligned with [AiChatController].
  */
 @Tag(name = "ai-profiles", description = "Agent profile discovery for AI v3 chats")
 @RestController
@@ -30,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController
     produces = [MediaType.APPLICATION_JSON_VALUE],
 )
 @CrossOrigin(origins = ["http://localhost:5173", "http://localhost:8080"])
+@ConditionalOnAiEnabled
 class AiProfileController(
     private val profileRegistry: ProfileRegistry,
 ) {
