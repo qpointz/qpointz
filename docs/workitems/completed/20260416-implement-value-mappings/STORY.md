@@ -1,6 +1,6 @@
 # Implement value mappings - persistence and sync
 
-**Milestone:** TBD (set when this story is scheduled).
+**Milestone:** **0.8.0** (see [`MILESTONE.md`](../../MILESTONE.md)).
 
 **Work items (this folder):**
 
@@ -30,7 +30,7 @@ Deliver **repository**, **`mill.ai.*`** configuration, **LangChain4j** embedding
 **Follow-on (after core pieces exist):**
 
 5. **WI-179** - sync vectors - value source + repository + store (**depends on WI-174**, **WI-176**, **WI-177**); **spec** in [`WI-179`](WI-179-sync-vectors-hydration.md).
-6. **WI-180** - **ValueMappingService** implementation (**depends on WI-174**, **WI-176**, **WI-177**, **WI-179** sync API). **Integration proof:** [`ChromaSkymillDistinctVectorIT`](../../../../ai/mill-ai-v3-data/src/testIT/kotlin/io/qpointz/mill/ai/data/chroma/it/ChromaSkymillDistinctVectorIT.kt) is reimplemented to sync Chroma through `ValueMappingService`, not manual `EmbeddingStore.add` in the test (see [**WI-180**](WI-180-value-mapping-service-orchestrator.md) test plan). Opt-in Chroma: `MILL_CHROMA_IT_ENABLED` / `MILL_CHROMA_BASE_URL` (predecessor: [**WI-171**](../metadata-value-mapping/WI-171-chroma-skymill-vector-exploration.md)).
+6. **WI-180** - **ValueMappingService** implementation (**depends on WI-174**, **WI-176**, **WI-177**, **WI-179** sync API). **Integration proof:** [`ChromaSkymillDistinctVectorIT`](../../../../ai/mill-ai-v3-data/src/testIT/kotlin/io/qpointz/mill/ai/data/chroma/it/ChromaSkymillDistinctVectorIT.kt) is reimplemented to sync Chroma through `ValueMappingService`, not manual `EmbeddingStore.add` in the test (see [**WI-180**](WI-180-value-mapping-service-orchestrator.md) test plan). Opt-in Chroma: `MILL_CHROMA_IT_ENABLED` / `MILL_CHROMA_BASE_URL` (predecessor: [**WI-171**](../../planned/metadata-value-mapping/WI-171-chroma-skymill-vector-exploration.md)).
 
 **Documentation (before story archive):**
 
@@ -43,14 +43,12 @@ Deliver **repository**, **`mill.ai.*`** configuration, **LangChain4j** embedding
 - **WI-177:** **Vector store harness** - LangChain4j **`EmbeddingStore`**, **in-memory** MVP, extensible config for future backends.
 - **WI-174:** **Repository** - Flyway, ports, **`mill-ai-v3-persistence`** `testIT`.
 - **WI-179 / WI-180 / WI-178:** see linked WI files.
-- **Out of scope:** metadata facet bridge, REST/UI for mappings (see [`../metadata-value-mapping/STORY.md`](../metadata-value-mapping/STORY.md)).
+- **Out of scope:** metadata facet bridge, REST/UI for mappings (see [`../../planned/metadata-value-mapping/STORY.md`](../../planned/metadata-value-mapping/STORY.md)).
 - **Predecessor context:** exploratory Chroma + Skymill - [**WI-171**](../metadata-value-mapping/WI-171-chroma-skymill-vector-exploration.md).
 
 ## Placement
 
-This story lives under **`docs/workitems/in-progress/implement-value-mappings/`** (first WI was checked
-complete per [`RULES.md`](../RULES.md)). At **story closure**, archive the folder to
-**`docs/workitems/completed/YYYYMMDD-implement-value-mappings/`** (same slug).
+**Archived** under [`docs/workitems/completed/20260416-implement-value-mappings/`](.) (closure 2026-04-16; see [`RULES.md`](../../RULES.md)).
 
 ## Work Items
 
@@ -69,4 +67,4 @@ complete per [`RULES.md`](../RULES.md)). At **story closure**, archive the folde
 
 ## Related stories
 
-- Metadata bridge and API/UI: [`../metadata-value-mapping/STORY.md`](../metadata-value-mapping/STORY.md)
+- Metadata bridge and API/UI: [`../../planned/metadata-value-mapping/STORY.md`](../../planned/metadata-value-mapping/STORY.md)

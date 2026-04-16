@@ -23,6 +23,7 @@ Optionally, keep a **newest-first** bullet list below as a human-maintained inde
 
 ## Index (optional, newest first)
 
+- [2026-04-16 — implement-value-mappings (`mill.ai` providers, embedding/vector harnesses, repository, sync, `ValueMappingService`, stack docs; WI-174–WI-180, WI-178)](20260416-implement-value-mappings/STORY.md)
 - [2026-04-14 — ai-v3-chat-capability-dependencies (`CapabilityDependencyAssembler`, profile HTTP, IT/docs, CLI HTTP bench; WI-160, WI-167–WI-169)](20260414-ai-v3-chat-capability-dependencies/STORY.md)
 - [2026-04-14 — ai-v3-schema-exploration-port (`SchemaCatalogPort`, `mill-ai-v3-data`, `SqlValidator`; WI-161–WI-166)](20260414-ai-v3-schema-exploration-port/STORY.md)
 - [2026-04-13 — ai-sql-generate-capability (`sql-query` generate-only, SqlValidator, CLI; WI-156–WI-159)](20260413-ai-sql-generate-capability/STORY.md)

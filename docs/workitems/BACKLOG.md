@@ -71,10 +71,10 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | A-82 | Document the final AI v3 chat service end-to-end (modules, REST API, persistence model, SSE contract, frontend guidance, maintenance notes) | 📝 docs | planned | `docs/workitems/planned/ai-v3/WI-084-ai-v3-chat-service-documentation.md` |
 | A-83 | Schema exploration port, `mill-ai-v3-data`, data-backed `SqlValidator` (**0.8.0**) | 🔧 refactoring | done | `docs/workitems/completed/20260414-ai-v3-schema-exploration-port/STORY.md` |
 | A-84 | AI v3 chat capability dependencies: assembler, profile HTTP API, IT/docs/OpenAPI, HTTP-only CLI (**0.8.0**) | 🔧 refactoring | done | `docs/workitems/completed/20260414-ai-v3-chat-capability-dependencies/STORY.md` |
-| A-85 | Vector store harness (`mill.ai.vector-store`, LangChain4j `EmbeddingStore`, in-memory MVP) | ✨ feature | done | `docs/workitems/in-progress/implement-value-mappings/WI-177-vector-store-harness.md` |
-| A-86 | Value mappings stack documentation (design + inventory + story alignment) | 📝 docs | done | `docs/workitems/in-progress/implement-value-mappings/WI-178-value-mappings-stack-documentation.md` |
-| A-87 | Sync vectors — column reconciliation (value list, repository, vector store) | ✨ feature | done | `docs/workitems/in-progress/implement-value-mappings/WI-179-sync-vectors-hydration.md` |
-| A-88 | Value mapping service implementation (`ValueMappingService`; repository + embed + vector store + sync) | ✨ feature | done | `docs/workitems/in-progress/implement-value-mappings/WI-180-value-mapping-service-orchestrator.md` |
+| A-85 | Vector store harness (`mill.ai.vector-store`, LangChain4j `EmbeddingStore`, in-memory MVP) | ✨ feature | done | `docs/workitems/completed/20260416-implement-value-mappings/WI-177-vector-store-harness.md` |
+| A-86 | Value mappings stack documentation (design + inventory + story alignment) | 📝 docs | done | `docs/workitems/completed/20260416-implement-value-mappings/WI-178-value-mappings-stack-documentation.md` |
+| A-87 | Sync vectors — column reconciliation (value list, repository, vector store) | ✨ feature | done | `docs/workitems/completed/20260416-implement-value-mappings/WI-179-sync-vectors-hydration.md` |
+| A-88 | Value mapping service implementation (`ValueMappingService`; repository + embed + vector store + sync) | ✨ feature | done | `docs/workitems/completed/20260416-implement-value-mappings/WI-180-value-mapping-service-orchestrator.md` |
 
 ---
 

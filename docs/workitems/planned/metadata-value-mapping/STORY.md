@@ -5,7 +5,7 @@ then expose value mappings as first-class API resources and make them visible in
 browser UI.
 
 Embedding persistence and delta sync (repository, value sources, sync service) are tracked in a
-separate story: [`../in-progress/implement-value-mappings/STORY.md`](../in-progress/implement-value-mappings/STORY.md).
+separate story: [`../../completed/20260416-implement-value-mappings/STORY.md`](../../completed/20260416-implement-value-mappings/STORY.md).
 
 ## Work Items
 

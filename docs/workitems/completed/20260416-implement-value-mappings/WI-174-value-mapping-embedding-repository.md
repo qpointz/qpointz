@@ -170,7 +170,7 @@ Implement in **`V6__…sql`** (minimum intent):
 
 ## Deliverables
 
-- This WI (`docs/workitems/in-progress/implement-value-mappings/WI-174-value-mapping-embedding-repository.md`).
+- This WI (`docs/workitems/completed/20260416-implement-value-mappings/WI-174-value-mapping-embedding-repository.md`).
 - **`V6__…sql`**, ports, adapter, KDoc, logging, **H2** tests — **Acceptance Criteria** satisfied.
 
 ## Closure (when implementation is done)

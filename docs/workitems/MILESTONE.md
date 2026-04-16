@@ -217,7 +217,7 @@ Archive: [`completed/20260402-flow-source-ui-facets/STORY.md`](completed/2026040
 port, JPA entities/Flyway, `AiV3JpaConfiguration` adapter bean; **WI-179** `VectorMappingSynchronizer`;
 **WI-180** `ValueMappingService` + `ValueMappingSyncAutoConfiguration`; **WI-178** design/inventory/public
 alignment. Integration: `ChromaSkymillDistinctVectorIT` (opt-in Chroma). Story:
-[`in-progress/implement-value-mappings/STORY.md`](in-progress/implement-value-mappings/STORY.md) (archive at closure per `RULES.md`).
+[`completed/20260416-implement-value-mappings/STORY.md`](completed/20260416-implement-value-mappings/STORY.md).
 Backlog **A-85**–**A-88** done.
 
 ### In Progress

@@ -2,7 +2,7 @@
 
 **Status:** Specification aligned with **WI-175**–**WI-177** (providers, embedding harness, vector store),
 **WI-174** (DB repository for embeddings and value rows), **WI-179** (sync routine), and **WI-180**
-(`ValueMappingService`) under [`docs/workitems/in-progress/implement-value-mappings/`](../workitems/in-progress/implement-value-mappings/STORY.md).
+(`ValueMappingService`) under [`docs/workitems/completed/20260416-implement-value-mappings/`](../workitems/completed/20260416-implement-value-mappings/STORY.md).
 Property classes for **WI-175**–**WI-177** live in **`mill-ai-v3-autoconfigure`** as Java `@ConfigurationProperties`
 with generated **`spring-configuration-metadata.json`**.
 
@@ -22,6 +22,8 @@ are added **without** redefining the top-level prefix.
 | **`enabled`** | **`true`** (property may be omitted) | When **`false`**, **`mill-ai-v3-autoconfigure`** does **not** register AI beans (provider registry, embedding harness, vector store, chat runtime, schema/sql helpers, value-mapping sync wiring, etc.). The root **`AiConfigurationProperties`** bean still loads so the flag and YAML remain bindable. |
 
 Use this on hosts that include the autoconfigure module on the classpath but must run **without** any AI stack (for example minimal services or tests).
+
+The unified AI v3 **HTTP** surface in **`mill-ai-v3-service`** (chat lifecycle, profiles, related `@RestControllerAdvice`) applies the **same** gate via the composed **`ConditionalOnAiEnabled`** annotation (`mill.ai.enabled`), so those endpoints are not registered when AI is off.
 
 ## `mill.ai.providers` (WI-175)
 
@@ -57,7 +59,7 @@ Additional keys (thresholds, flags, etc.) may appear in later WIs.
 
 ## `mill.ai.vector-store` (WI-177)
 
-**Single runtime vector store** per Spring context (similarity search / LangChain4j `EmbeddingStore`), **not** the golden-source DB tables from [**WI-174**](../workitems/in-progress/implement-value-mappings/WI-174-value-mapping-embedding-repository.md).
+**Single runtime vector store** per Spring context (similarity search / LangChain4j `EmbeddingStore`), **not** the golden-source DB tables from [**WI-174**](../workitems/completed/20260416-implement-value-mappings/WI-174-value-mapping-embedding-repository.md).
 
 | Concept | Description |
 |---------|-------------|
@@ -66,8 +68,8 @@ Additional keys (thresholds, flags, etc.) may appear in later WIs.
 | **Structure** | **`mill.ai.vector-store.*`** — implementation selector plus backend-specific **non-secret** fields; **secrets** via **`mill.ai.providers`** when needed. |
 | **Alignment** | Embedding **dimension** comes from **`mill.ai.embedding-model`** (WI-176); operators must configure the store implementation so dimensions **agree** with the chosen embedding profile. |
 
-**Sync** from DB → this store is implemented by **`VectorMappingSynchronizer`** ([**WI-179**](../workitems/in-progress/implement-value-mappings/WI-179-sync-vectors-hydration.md)).
-**`ValueMappingService`** ([**WI-180**](../workitems/in-progress/implement-value-mappings/WI-180-value-mapping-service-orchestrator.md)) deduplicates incoming values and delegates to the synchronizer; it requires
+**Sync** from DB → this store is implemented by **`VectorMappingSynchronizer`** ([**WI-179**](../workitems/completed/20260416-implement-value-mappings/WI-179-sync-vectors-hydration.md)).
+**`ValueMappingService`** ([**WI-180**](../workitems/completed/20260416-implement-value-mappings/WI-180-value-mapping-service-orchestrator.md)) deduplicates incoming values and delegates to the synchronizer; it requires
 **`EmbeddingHarness`**, **`ValueMappingEmbeddingRepository`**, and an **`EmbeddingStore<TextSegment>`** bean.
 
 ## Persistence vs search (WI-174)
