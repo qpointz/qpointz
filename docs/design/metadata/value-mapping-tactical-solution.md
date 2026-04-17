@@ -4,6 +4,8 @@
 **Date:** November 5, 2025  
 **Purpose:** Quick RAG configuration support while designing full metadata service
 
+**Normative facet model (full metadata / mill-ai-v3 indexing):** See [**Value mapping — indexing facet types**](value-mapping-indexing-facet-types.md) and [**WI-181**](../../workitems/planned/value-mapping-facets-vector-lifecycle/WI-181-value-mapping-facet-types.md). That doc defines **`ai-column-value-mapping`** / **`ai-column-value-mapping-values`**, **`ValueSource`** composition, and how tactical concepts map so this file and the facet spec **stay aligned** (substitution value, DISTINCT vs static rows, similarity gating).
+
 ---
 
 ## Overview

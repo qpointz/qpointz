@@ -1,0 +1,116 @@
+# Optional extras metadata seed: value-mapping facets for Moneta test columns (WI-185).
+# Load after platform-bootstrap.yaml and moneta-canonical.yaml (MERGE adds facets to existing attribute entities).
+# Requires FacetTypeDefinition for urn:mill/metadata/facet-type:ai-column-value-mapping (WI-181).
+---
+kind: MetadataEntity
+entityUrn: urn:mill/model/attribute:moneta.clients.country
+entityKind: attribute
+facets:
+  - facetTypeUrn: urn:mill/metadata/facet-type:ai-column-value-mapping
+    scopeUrn: urn:mill/metadata/scope:global
+    mergeAction: SET
+    payload:
+      context: Client country name as stored in the row; map NL country phrases to this value.
+      similarityThreshold: 0.85
+      nullValues:
+        indexNull: false
+      data:
+        enabled: true
+        refreshAtStartUp: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/model/attribute:moneta.clients.segment
+entityKind: attribute
+facets:
+  - facetTypeUrn: urn:mill/metadata/facet-type:ai-column-value-mapping
+    scopeUrn: urn:mill/metadata/scope:global
+    mergeAction: SET
+    payload:
+      context: Client segment (REGULAR, WEALTH, ULTRA).
+      similarityThreshold: 0.85
+      nullValues:
+        indexNull: false
+      data:
+        enabled: true
+        refreshAtStartUp: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/model/attribute:moneta.accounts.account_type
+entityKind: attribute
+facets:
+  - facetTypeUrn: urn:mill/metadata/facet-type:ai-column-value-mapping
+    scopeUrn: urn:mill/metadata/scope:global
+    mergeAction: SET
+    payload:
+      context: Account product type (checking, savings).
+      similarityThreshold: 0.85
+      nullValues:
+        indexNull: false
+      data:
+        enabled: true
+        refreshAtStartUp: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/model/attribute:moneta.transactions.transaction_type
+entityKind: attribute
+facets:
+  - facetTypeUrn: urn:mill/metadata/facet-type:ai-column-value-mapping
+    scopeUrn: urn:mill/metadata/scope:global
+    mergeAction: SET
+    payload:
+      context: Transaction kind (deposit, withdrawal, transfer).
+      similarityThreshold: 0.85
+      nullValues:
+        indexNull: false
+      data:
+        enabled: true
+        refreshAtStartUp: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/model/attribute:moneta.loans.status
+entityKind: attribute
+facets:
+  - facetTypeUrn: urn:mill/metadata/facet-type:ai-column-value-mapping
+    scopeUrn: urn:mill/metadata/scope:global
+    mergeAction: SET
+    payload:
+      context: Loan lifecycle status (active, closed, defaulted).
+      similarityThreshold: 0.85
+      nullValues:
+        indexNull: true
+        nullContent: unknown or unspecified loan status
+      data:
+        enabled: true
+        refreshAtStartUp: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/model/attribute:moneta.stocks.exchange
+entityKind: attribute
+facets:
+  - facetTypeUrn: urn:mill/metadata/facet-type:ai-column-value-mapping
+    scopeUrn: urn:mill/metadata/scope:global
+    mergeAction: SET
+    payload:
+      context: Listing exchange code (NYSE, NASDAQ, LSE, HKEX).
+      similarityThreshold: 0.85
+      nullValues:
+        indexNull: false
+      data:
+        enabled: true
+        refreshAtStartUp: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/model/attribute:moneta.trade_orders.status
+entityKind: attribute
+facets:
+  - facetTypeUrn: urn:mill/metadata/facet-type:ai-column-value-mapping
+    scopeUrn: urn:mill/metadata/scope:global
+    mergeAction: SET
+    payload:
+      context: Order execution status (pending, executed, cancelled).
+      similarityThreshold: 0.85
+      nullValues:
+        indexNull: false
+      data:
+        enabled: true
+        refreshAtStartUp: false

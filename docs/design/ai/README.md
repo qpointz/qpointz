@@ -37,6 +37,6 @@ Documents related to Step-Back reasoning use the `sb-` prefix (e.g. `sb-reasonin
 | `sb-scenarious.md` | Step-Back extended to multi-step scenarios (comparisons, trends, workflows) |
 | `sb-ux-flow.md` | AIMILL user interaction specification: flows, example messages, tone |
 | `rag-value-mapping-integration.md` | RAG ingestion of value mappings: embedding text format, document structure, semantic query flow |
-| `mill-ai-configuration.md` | `mill.ai.*` umbrella: providers, embedding registry, vector store, value-mapping references; persistence (WI-174) vs search store; sync (WI-179) and `ValueMappingService` (WI-180) |
+| `mill-ai-configuration.md` | `mill.ai.*` umbrella: providers, embedding registry, vector store (**caveats** subsection: single shared store, embedding space, DB vs ANN); value-mapping references; persistence (WI-174) vs search store; sync (WI-179) and `ValueMappingService` (WI-180) |
 | `value-mapping-observability-actions.md` | **Action points** — metrics / observability backlog for value-mapping sync & embed paths (open until follow-up WI) |
 | `sb-ux-implementation-plan.md` | Implementation plan aligning backend/frontend with Step-Back UX flows |

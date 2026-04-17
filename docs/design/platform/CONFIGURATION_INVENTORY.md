@@ -223,6 +223,7 @@
 
 ### mill.ai.value-mapping (WI-176 — `ValueMappingConfigurationProperties`)
 - `embedding-model` — name of a profile under `mill.ai.embedding-model`
+- `max-content-length` — max length for value-mapping embedding line / persisted `content` (default **2048**; see value-mapping facets G-5)
 
 ### mill.ai.vector-store (WI-177 — `VectorStoreConfigurationProperties`)
 - `backend` — `in-memory` (MVP); **one** active backend per application context — see [`../ai/mill-ai-configuration.md`](../ai/mill-ai-configuration.md)

@@ -75,6 +75,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | A-86 | Value mappings stack documentation (design + inventory + story alignment) | 📝 docs | done | `docs/workitems/completed/20260416-implement-value-mappings/WI-178-value-mappings-stack-documentation.md` |
 | A-87 | Sync vectors — column reconciliation (value list, repository, vector store) | ✨ feature | done | `docs/workitems/completed/20260416-implement-value-mappings/WI-179-sync-vectors-hydration.md` |
 | A-88 | Value mapping service implementation (`ValueMappingService`; repository + embed + vector store + sync) | ✨ feature | done | `docs/workitems/completed/20260416-implement-value-mappings/WI-180-value-mapping-service-orchestrator.md` |
+| A-89 | Value mapping facet types, startup/scheduled vector refresh, capability vector retrieval (**WI-181–WI-183**) | ✨ feature | planned | `docs/workitems/planned/value-mapping-facets-vector-lifecycle/STORY.md` |
 
 ---
 

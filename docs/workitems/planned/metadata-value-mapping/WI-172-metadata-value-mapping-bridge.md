@@ -40,6 +40,10 @@ legacy to faceted metadata.
 - AI callers may continue using legacy interfaces during the transition, but this WI defines the
   bridge that makes later migration possible.
 
+## Coordination (refresh lifecycle)
+
+[**WI-182**](../value-mapping-facets-vector-lifecycle/WI-182-value-mapping-vector-refresh-lifecycle.md) § *Production metadata retrieval* specifies **indexing / refresh-time** loading of value-mapping facet rows from **`mill-data-metadata`** (greenfield joins on **`type_res`**) and assembly of **`CompositeValueSource`**. This WI focuses on **query-time** legacy ↔ faceted **resolution** and parity; do not treat the bridge as a substitute for WI-182’s refresh read path.
+
 ## Implementation Plan
 
 1. **Facet contract**

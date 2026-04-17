@@ -1,0 +1,83 @@
+# Optional extras metadata seed: value-mapping facets for Skymill test columns (WI-185).
+# Load after platform-bootstrap.yaml and skymill-meta-seed-canonical.yaml.
+# Requires FacetTypeDefinition for urn:mill/metadata/facet-type:ai-column-value-mapping (WI-181).
+---
+kind: MetadataEntity
+entityUrn: urn:mill/model/attribute:skymill.cities.state
+entityKind: attribute
+facets:
+  - facetTypeUrn: urn:mill/metadata/facet-type:ai-column-value-mapping
+    scopeUrn: urn:mill/metadata/scope:global
+    mergeAction: SET
+    payload:
+      context: US state or region label for the airport city (natural-language queries vs stored value).
+      similarityThreshold: 0.85
+      nullValues:
+        indexNull: false
+      data:
+        enabled: true
+        refreshAtStartUp: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/model/attribute:skymill.passenger.loyalty_tier
+entityKind: attribute
+facets:
+  - facetTypeUrn: urn:mill/metadata/facet-type:ai-column-value-mapping
+    scopeUrn: urn:mill/metadata/scope:global
+    mergeAction: SET
+    payload:
+      context: Loyalty program tier (basic, silver, gold, platinum).
+      similarityThreshold: 0.85
+      nullValues:
+        indexNull: false
+      data:
+        enabled: true
+        refreshAtStartUp: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/model/attribute:skymill.ticket_prices.travel_class
+entityKind: attribute
+facets:
+  - facetTypeUrn: urn:mill/metadata/facet-type:ai-column-value-mapping
+    scopeUrn: urn:mill/metadata/scope:global
+    mergeAction: SET
+    payload:
+      context: Cabin or travel class (economy, business, first).
+      similarityThreshold: 0.85
+      nullValues:
+        indexNull: false
+      data:
+        enabled: true
+        refreshAtStartUp: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/model/attribute:skymill.ticket_prices.currency
+entityKind: attribute
+facets:
+  - facetTypeUrn: urn:mill/metadata/facet-type:ai-column-value-mapping
+    scopeUrn: urn:mill/metadata/scope:global
+    mergeAction: SET
+    payload:
+      context: ISO or trading currency code for the fare (USD, EUR, CHF).
+      similarityThreshold: 0.85
+      nullValues:
+        indexNull: false
+      data:
+        enabled: true
+        refreshAtStartUp: false
+---
+kind: MetadataEntity
+entityUrn: urn:mill/model/attribute:skymill.delays.reason
+entityKind: attribute
+facets:
+  - facetTypeUrn: urn:mill/metadata/facet-type:ai-column-value-mapping
+    scopeUrn: urn:mill/metadata/scope:global
+    mergeAction: SET
+    payload:
+      context: Coded reason for a flight delay (weather, technical, crew, other).
+      similarityThreshold: 0.85
+      nullValues:
+        indexNull: false
+      data:
+        enabled: true
+        refreshAtStartUp: false
