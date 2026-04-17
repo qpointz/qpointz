@@ -1,34 +1,34 @@
 # Milestones
 
-## 0.7.0
+**Draft release notes.** Treat this file as the **working draft** of **[`releases/RELEASE-x.y.z.md`](releases/)** for the **next** version only: the **`## x.y.z`** block below is pre-release material to be **promoted and polished** into **`RELEASE-x.y.z.md`** when git tag **`vx.y.z`** is cut. It must **not** retain sections for **already shipped** versions — those live only under **`releases/`** (for example **[`releases/RELEASE-0.7.0.md`](releases/RELEASE-0.7.0.md)** for **`v0.7.0`**). After tagging, **`MILESTONE.md`** is reset to the **following** milestone draft only — see [`RULES.md`](RULES.md) § **Milestone ledger (`MILESTONE.md`)** and § **Release (version) process**.
 
-**Released:** 2026-04-10
-
-### Completed
-
-Narrative, per-WI detail, and story closures: **[`releases/RELEASE-0.7.0.md`](releases/RELEASE-0.7.0.md)**.
-
-Summary index (Search / MR descriptions): **WI-015–WI-022**, **WI-026**, **WI-021**, **WI-024**,
-**WI-025**, **WI-067**, **WI-085**–**WI-087**, **WI-089**, **WI-092**, **WI-093a/b**, **WI-105–WI-110**,
-**WI-119–WI-128**, gRPC Skymill parity server/driver tests, **P-36** mill-service logging
-(see [`releases/RELEASE-0.7.0.md`](releases/RELEASE-0.7.0.md). **`BACKLOG.md`:** `done` rows may stay
-until the next release prune — see [`RULES.md`](RULES.md) § **Release (version) process**.)
-
-### In Progress
-
-— *(none — release closed)*
-
-### Planned
-
-— *(none; next items under **0.8.0**)*
+**Baseline (work since last shipped tag):** **`v0.7.0`** — e.g. `git log v0.7.0..HEAD`.
 
 ## 0.8.0
 
-**Target date:** TBD
+**Target date:** TBD — **not released.** Companion stub: [`releases/RELEASE-0.8.0.md`](releases/RELEASE-0.8.0.md) (filled from this draft at tag time). **§ Completed** below = changes merged on `dev` **after** **`v0.7.0`** until **`v0.8.0`** is cut; narrative for **`v0.7.0`** itself is in **[`releases/RELEASE-0.7.0.md`](releases/RELEASE-0.7.0.md)** only.
 
 ### Completed
 
-Items delivered in this milestone.
+**Draft body for [`RELEASE-0.8.0.md`](releases/RELEASE-0.8.0.md).** **0.7.0** shipped as **[`RELEASE-0.7.0.md`](releases/RELEASE-0.7.0.md)**; this section accumulates the **0.8.0** delta until release. **§ Completed** = work **since `v0.7.0`**. Use **§ Archived stories** for closure-level summaries + links, **§ Cumulative WI deliveries** for the running WI checklist, and **[`BACKLOG.md`](BACKLOG.md)** for row-level status until **release housekeeping** (see [`RULES.md`](RULES.md) § **Release (version) process**).
+
+#### Archived stories (closure date, newest first)
+
+**Scope:** this subsection lists **only** story archives whose **`docs/workitems/completed/…` tree first landed after git tag `v0.7.0`** (verify with e.g. `git log v0.7.0..HEAD -- docs/workitems/completed/`). Archives dated **2026-03-30** through **2026-04-02** — including **metadata rework**, **metadata/UI**, **flow UI facets**, **typed URNs** — were committed **on or before** `v0.7.0`; they remain under [`completed/`](completed/) for traceability and are summarized in **[`releases/RELEASE-0.7.0.md`](releases/RELEASE-0.7.0.md)** (see also **[`completed/README.md`](completed/README.md)**). They are **not** duplicated here as **0.8.0** delta.
+
+- **Value mapping — metadata facets, vector lifecycle** (`value-mapping-facets-vector-lifecycle`, closed **2026-04-17**): [`completed/20260417-value-mapping-facets-vector-lifecycle/STORY.md`](completed/20260417-value-mapping-facets-vector-lifecycle/STORY.md). **WI-181** facet types + **`ValueSource`** + **`syncFromSource`**; **WI-184** refresh state + **`STALE`**; **WI-182** startup + scheduled orchestrator; **WI-185** Skymill/Moneta extras seeds; **WI-186** LangChain4j **pgvector** + Mill Service **`pgvector`** / **`ai-pgvector`**. **WI-183** (resolver / capability) remains a **follow-on** in that archive. **BACKLOG** **A-89** `done`.
+
+- **Value mappings — persistence, sync, stack** (`implement-value-mappings`, closed **2026-04-16**): [`completed/20260416-implement-value-mappings/STORY.md`](completed/20260416-implement-value-mappings/STORY.md). **WI-175**–**WI-177** `mill.ai` providers, embedding harness, in-memory vector store; **WI-174** `ValueMappingEmbeddingRepository` + JPA/Flyway; **WI-179** `VectorMappingSynchronizer`; **WI-180** `ValueMappingService` + sync autoconfigure; **WI-178** design/inventory/public alignment; opt-in **`ChromaSkymillDistinctVectorIT`**. **BACKLOG** **A-85**–**A-88** `done`.
+
+- **AI v3 chat — capability dependencies over HTTP** (`ai-v3-chat-capability-dependencies`, closed **2026-04-14**): [`completed/20260414-ai-v3-chat-capability-dependencies/STORY.md`](completed/20260414-ai-v3-chat-capability-dependencies/STORY.md). **WI-167**–**WI-169**, **WI-160**. **BACKLOG** **A-84** `done`.
+
+- **Schema exploration contract, `mill-ai-v3-data`, `SqlValidator`** (`ai-v3-schema-exploration-port`, closed **2026-04-14**): [`completed/20260414-ai-v3-schema-exploration-port/STORY.md`](completed/20260414-ai-v3-schema-exploration-port/STORY.md). **WI-161**–**WI-166**. **BACKLOG** **A-83** `done`.
+
+- **`sql-query` generate-only + `SqlValidator` + CLI** (`ai-sql-generate-capability`, closed **2026-04-13**): [`completed/20260413-ai-sql-generate-capability/STORY.md`](completed/20260413-ai-sql-generate-capability/STORY.md). **WI-156** / **WI-158** / **WI-159** — `SqlQueryCapabilityDependency(validator)` only, `AiV3SqlValidatorAutoConfiguration`, CLI highlights generated SQL, ServiceLoader registration; execution stays host-side. Same technical detail as the **WI-156 / WI-158 / WI-159** bullet under **§ Cumulative WI deliveries** below.
+
+#### Cumulative WI deliveries (toward 0.8.0)
+
+Individual work items and bundles merged on `dev` in support of this milestone (including items that also appear under **Archived stories** above).
 
 - WI-038 — `ai/v3` capability model and descriptor format: `CapabilityDescriptor`,
   `Capability`, `CapabilityProvider`, `CapabilityRegistry`, `CapabilityManifest`, and
@@ -188,38 +188,6 @@ Items delivered in this milestone.
   (registration on, social providers off); `secure` dev profile (H2 + Flyway + default
   admin/admin seed); design: `docs/design/security/user-identity-jpa-implementation.md`
 
-**Metadata — Multi-origin facets and UI cleanup (`metadata-and-ui-improve-and-clean`, closed April 2026):** **`MetadataSource`**, **`FacetOrigin`**, unified read **`FacetInstance`** with **`originId`**; **`RepositoryMetadataSource`**; **`LogicalLayoutMetadataSource`** in **`mill-data-metadata`** (**`MetadataOriginIds.LOGICAL_LAYOUT`**); new **`mill-data-metadata`** module (**`CatalogPath`**, **`SchemaModelRoot`**, inferred sources) with autoconfigure in **`mill-data-autoconfigure`** (**`LogicalLayoutMetadataSourceAutoConfiguration`**, **`SchemaFacetServiceAutoConfiguration`**, **`MetadataEntityUrnCodecAutoConfiguration`**); **`FacetInstanceReadMerge`** + **`DefaultFacetService.resolve`**; REST **`?scope=`** / **`?origin=`** with **`FacetInstanceDto`**; mutation guards (WI-135); **`model`** root (WI-137); read-path merge (WI-133); resolved read API + OpenAPI (WI-134); UI full constellation (WI-136); contracts + **`RepositoryMetadataSource`** (WI-132); **`EntityRepository`** = **`EntityReadSide`** + **`EntityWriteSide`**, **`FacetRepository`** = **`FacetReadSide`** + **`FacetWriteSide`** for persistence seams; facet class demotion + **`FacetPayloadUtils`** (WI-140); dead-code sweep (WI-130); design + public docs incl. multi-source user guide (WI-141). **WI-139** (flow/physical inferred source) **deferred**. Normative checklist and spec: [`completed/20260401-metadata-and-ui-improve-and-clean/STORY.md`](completed/20260401-metadata-and-ui-improve-and-clean/STORY.md). Backlog **M-31** done.
-
-**Typed entity URNs (`typed-entity-urns`, closed 2026-04-02):** **WI-142** typed URN codec
-(`urn:mill/model/<class>:<id>` for schema, table, attribute, model root, concept); **WI-143**
-canonical datasets and persistence/read paths aligned to typed entity URNs; **WI-145** design +
-public doc updates (`metadata-urn-platform`, canonical YAML spec, synthetic writer handoff,
-`mill-metadata-domain-model`, `mill-ui` / operator docs). **WI-144** (drop redundant
-`MetadataEntity.kind` / `entity_kind`) **deferred** to active story
-[`planned/eliminate-entity-kind/STORY.md`](planned/eliminate-entity-kind/STORY.md). Archive:
-[`completed/20260402-typed-entity-urns/STORY.md`](completed/20260402-typed-entity-urns/STORY.md).
-
-**Flow source — Data Model UI facets (`flow-source-ui-facets`, closed 2026-04-02):** **WI-147**
-`platform-flow-facet-types.yaml` + service seed; **WI-146** `SourceCatalogProvider` +
-`FlowDescriptorMetadataSource` (Caffeine snapshot cache); **WI-148**
-`FlowDescriptorMetadataSourceAutoConfiguration` + `mill-data-backends` `testIT`; **WI-149**
-mill-ui facet display order + generic **OBJECT** read-only presentation for schema-less maps
-(flow `effectiveMapping` / `params`); **WI-150** design/public pointers (backend-provided
-metadata). Delivers **`flow-*`** inferred facets with **`originId`** **`flow`** on flow backend.
-Archive: [`completed/20260402-flow-source-ui-facets/STORY.md`](completed/20260402-flow-source-ui-facets/STORY.md). Backlog **M-33** done.
-
-**Schema exploration contract, `mill-ai-v3-data`, data-backed `SqlValidator` (`ai-v3-schema-exploration-port`, closed 2026-04-14):** **WI-161** `SchemaCatalogPort` contract in `mill-ai-v3` (drop direct `mill-data-schema-core`); **WI-162** `mill-ai-v3-data` + `SchemaFacetCatalogAdapter`; **WI-163** CLI wiring via `mill-ai-v3-data`; **WI-164** `AiV3DataAutoConfiguration` canonical `SchemaCatalogPort` bean; **WI-165** `BackendSqlValidator` + autoconfigure default `SqlValidator` when appropriate; **WI-166** boundary design doc (`v3-mill-ai-v3-data-boundary.md`). Archive: [`completed/20260414-ai-v3-schema-exploration-port/STORY.md`](completed/20260414-ai-v3-schema-exploration-port/STORY.md). Backlog **A-83** done.
-
-**AI v3 chat — capability dependencies over HTTP (`ai-v3-chat-capability-dependencies`, closed 2026-04-14):** **WI-167** `CapabilityDependencyAssembler` + Spring wiring into `LangChain4jChatRuntime` from existing data/metadata beans; **WI-168** `ProfileRegistry.registeredProfiles()` + `GET /api/v1/ai/profiles` (+ inspect) with OpenAPI; **WI-160** integration tests, service/autoconfigure docs, OpenAPI acceptance; **WI-169** `mill-ai-v3-cli` HTTP-only SSE test bench (no in-process agent). Archive: [`completed/20260414-ai-v3-chat-capability-dependencies/STORY.md`](completed/20260414-ai-v3-chat-capability-dependencies/STORY.md). Backlog **A-84** done.
-
-**Value mappings — persistence, sync, stack docs (`implement-value-mappings`, 2026-04-16):** **WI-175**–**WI-177**
-`mill.ai` providers, embedding harness, in-memory vector store; **WI-174** `ValueMappingEmbeddingRepository`
-port, JPA entities/Flyway, `AiV3JpaConfiguration` adapter bean; **WI-179** `VectorMappingSynchronizer`;
-**WI-180** `ValueMappingService` + `ValueMappingSyncAutoConfiguration`; **WI-178** design/inventory/public
-alignment. Integration: `ChromaSkymillDistinctVectorIT` (opt-in Chroma). Story:
-[`completed/20260416-implement-value-mappings/STORY.md`](completed/20260416-implement-value-mappings/STORY.md).
-Backlog **A-85**–**A-88** done.
-
 ### In Progress
 
 Items currently being implemented in this milestone.
@@ -228,7 +196,7 @@ No active in-progress items currently.
 
 ### Planned
 
-Items targeted after **0.7.0** (not yet delivered under **0.8.0**).
+Items not yet delivered (still **planned** or **in progress** elsewhere — not part of **§ Archived stories** above).
 
 - WI-171 — Chroma + Skymill vector exploration (mill-ai-v3-data)
   (`docs/workitems/planned/metadata-value-mapping/WI-171-chroma-skymill-vector-exploration.md`)

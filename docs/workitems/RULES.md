@@ -7,11 +7,30 @@ These rules apply to **every** work item and story implementation.
 A **story** is a coherent unit of delivery that maps to a single Git branch merged into `dev`.
 Stories group related work items and are the primary unit of planning.
 
+### `STORY.md`: WI tracker and per-WI commits (normative)
+
+These rules apply to every story while it lives under **`planned/`**, **`in-progress/`**, and after
+archive under **`completed/`**.
+
+1. **WI tracker required** — Every **`STORY.md`** **must** include a **work-item tracker**: an ordered
+   checklist of **all** WIs in that story (conventionally under a heading such as **`## Work Items`**),
+   each line tied to a **`WI-NNN-<title>.md`** file in the same folder.
+2. **Update after each WI** — When a work item is **complete**, set its tracker line to **`[x]`**
+   **before** starting the next WI. The checklist must always match what is actually done on the
+   branch.
+3. **One commit = full working copy for that WI** — Completing a WI requires **one** commit that
+   stages **every** intentional change for that WI **across the codebase** — production code, tests,
+   config, and docs — **including** `STORY.md` (tracker update), the WI file when applicable, and any
+   other trackers the WI obliges you to touch (**`MILESTONE.md`**, **`BACKLOG.md`**, design docs,
+   etc.). Do not split a finished WI across multiple commits or leave related edits uncommitted. See
+   **Commits** → **Per-WI cadence** and **Complete working copy per WI**.
+
 ### Story folder layout
 
 Stories live under **`planned/`**, **`in-progress/`**, or **`completed/`** (never as loose folders
 at the `docs/workitems/` root). The **root** of `docs/workitems/` is only for shared artefacts:
-`RULES.md`, `BACKLOG.md`, `MILESTONE.md`, and the **`releases/`** directory.
+`RULES.md`, `BACKLOG.md`, `MILESTONE.md` (draft of the **next** `releases/RELEASE-x.y.z.md`), and the
+**`releases/`** directory.
 
 ```
 docs/workitems/
@@ -53,20 +72,25 @@ all unchecked → `planned/`; any checked → `in-progress/`.
 
 - **Folder name**: lowercase, hyphen-separated slug of the story topic (same slug as you move
   between `planned/`, `in-progress/`, and `completed/YYYYMMDD-...`).
-- **`STORY.md`**: required at story creation. Must contain:
+- **`STORY.md`**: required at story creation (**normative** detail: **`STORY.md`: WI tracker and per-WI
+  commits** above). Must contain:
   - A short description of the story's goal.
-  - An ordered checklist of all WIs in the story — this is the **tracking list** (live progress
-    for the story branch):
+  - **Mandatory WI tracker** — an ordered checklist of **all** WIs in the story under a heading such
+    as **`## Work Items`** (same tracking list while **planned**, **in-progress**, and in the
+    **completed/** archive):
     ```markdown
     ## Work Items
     - [ ] WI-NNN — Short title (`WI-NNN-<title>.md`)
     - [ ] WI-NNN — Short title (`WI-NNN-<title>.md`)
     ```
-  - **As soon as a WI is finished:** update the tracking list (checkbox to `[x]` for that WI), update
-    the WI’s `WI-NNN-<title>.md` if the story expects it (notes, acceptance, status), then **commit**
-    that WI’s full working copy (see **Commits** below). Do not leave completed WIs unchecked or
-    uncommitted while starting the next WI. If this is the **first** `[x]` for the story, **move**
-    the folder from `planned/<story-slug>/` to `in-progress/<story-slug>/` (same commit or PR).
+  - **While implementing:** after **each** WI is finished, set that line to **`[x]`** **before**
+    starting the next WI — the tracker must always reflect what is actually done.
+  - **As soon as a WI is finished:** update the tracking list (`[x]`), update the WI’s
+    `WI-NNN-<title>.md` if the story expects it (notes, acceptance, status), then **commit** that
+    WI’s **entire** intentional working copy — **all** related source, tests, and docs in one commit
+    (see **Commits** below). Do not leave completed WIs unchecked or uncommitted while starting the
+    next WI. If this is the **first** `[x]` for the story, **move** the folder from
+    `planned/<story-slug>/` to `in-progress/<story-slug>/` (same commit or PR).
 - **WI files**: all WI markdown files for the story live under that story’s folder under
   `planned/` or `in-progress/` (and eventually under `completed/`), never at the top level of
   `docs/workitems/`.
@@ -76,8 +100,9 @@ all unchecked → `planned/`; any checked → `in-progress/`.
 When all WIs in a story are complete **and** the branch is **MR-ready** (rewritten history per
 **Completion (Story level)** below — logical commit groups, reviewable for merge):
 
-1. **Update `MILESTONE.md`** — record the story's completed WIs in the appropriate milestone
-   section (use the same compact bullet format as existing entries).
+1. **Update `MILESTONE.md`** — record the story's completed WIs in the **next release** section
+   only (see **Milestone ledger (`MILESTONE.md`)** below); use the same compact bullet format as
+   existing entries. Do **not** add sections for already **tagged** releases.
 2. **Update `BACKLOG.md`** — set any related rows to **`done`**, and add or adjust deferred follow-ups
    as **`backlog`** / **`planned`** / **`in-progress`**. **Do not delete** completed rows here; they
    stay until **Release housekeeping** (see **Release (version) process** below).
@@ -97,15 +122,31 @@ When all WIs in a story are complete **and** the branch is **MR-ready** (rewritt
    - Example: `docs/workitems/completed/20260330-metadata-persistence/`
 
    The archived folder preserves `STORY.md`, all WI files, and any other story-local artefacts
-   as the historical record. Durable summaries remain in **MILESTONE**, **`releases/`**, and
-   **design / public docs**. **`BACKLOG.md`** may still list **`done`** rows until the next
-   **release** (see **Release (version) process**).
+   as the historical record. Durable summaries remain in **`MILESTONE.md`** (next release block
+   only), **`releases/`**, and **design / public docs**. **`BACKLOG.md`** may still list **`done`**
+   rows until the next **release** (see **Release (version) process**).
 
    **Ordering:** With a `YYYYMMDD-` prefix, **ascending** name sort lists **oldest** closures first.
    To see **most recent closures first**, sort folder names **descending** (reverse alphabetical)
    in your file browser, or maintain the index in `docs/workitems/completed/README.md`.
 
 Merging into `dev` is done manually by the user; the agent prepares everything above first.
+
+## Milestone ledger (`MILESTONE.md`)
+
+- **`MILESTONE.md` is the draft of `RELEASE-x.y.z.md`:** for the **next** version only, the
+  **`## x.y.z`** block is the **working pre-release** — the same content you will **promote** (after
+  any editorial pass: Highlights, compare link, polish) into
+  **`docs/workitems/releases/RELEASE-x.y.z.md`** when git tag **`vx.y.z`** is cut. Until then, keep
+  building the draft here; **`RELEASE-x.y.z.md`** may exist as a short stub pointing at this file.
+- **Forward-looking:** one milestone block at a time — work merged **after** the latest shipped tag
+  **`v*.*.*`** and **before** the next tag. **`MILESTONE.md`** is **not** a permanent archive of past
+  releases.
+- **Already shipped** versions are documented only in **`releases/RELEASE-x.y.z.md`**. Do **not** keep
+  a **`## x.y.z`** section in **`MILESTONE.md`** once **`vx.y.z`** exists.
+- **When version `x.y.z` is released** (git tag **`vx.y.z`**): fold **`MILESTONE.md`** § **`x.y.z`**
+  into **`releases/RELEASE-x.y.z.md`**, then **remove** that section from **`MILESTONE.md`** and open
+  a draft for the **following** milestone only. See **Release (version) process** below.
 
 ## Release (version) process
 
@@ -120,13 +161,19 @@ Merging into `dev` is done manually by the user; the agent prepares everything a
 **Release housekeeping** — when you **cut** version **`x.y.z`** (documentation and tracker pass,
 typically same moment as or immediately after you treat the milestone as **released**):
 
-1. **`MILESTONE.md`** — set **Released** (or equivalent) for the closing milestone; list completed
-   scope; roll **Planned** / follow-on items into the next milestone block as today.
-2. **`releases/RELEASE-x.y.z.md`** — create or update release notes (compare link, highlights,
-   pointers to `MILESTONE.md` / WIs); follow the shape of existing **`RELEASE-*.md`** files.
+1. **`releases/RELEASE-x.y.z.md`** — **promote** the draft from **`MILESTONE.md`** § **`x.y.z`** into
+   this file (merge with any stub). Add compare link, **Highlights**, and polish so it matches the
+   shape of existing **`RELEASE-*.md`** files. This is the **canonical** shipped record for
+   **`vx.y.z`**.
+2. **`MILESTONE.md`** — **delete** the **`## x.y.z`** draft block. The file must contain **only** the
+   **next** milestone (e.g. **`## 0.9.0`**) as a fresh **draft** of the **next**
+   **`RELEASE-*.md`** — **§ Completed** / **§ In Progress** / **§ Planned** as appropriate, or an
+   empty **§ Completed** until new work lands. Roll any still relevant **Planned** items into that
+   next block. See **Milestone ledger (`MILESTONE.md`)** above.
 3. **`BACKLOG.md` — prune** — **delete every table row** whose **Status** is **`done`**. Shipped work
-   is now recorded only under **MILESTONE** / **releases**. In the same pass, you may remove
-   **`cancelled`** / **`superseded`** rows if you want a minimal open tracker.
+   is recorded under **`releases/`** (and story archives), **not** under past blocks of
+   **`MILESTONE.md`**. In the same pass, you may remove **`cancelled`** / **`superseded`** rows if
+   you want a minimal open tracker.
 4. **`BACKLOG.md` — Summary** — if the file includes per-category totals, **recalculate** them over
    **open** rows only (`backlog` \| `planned` \| `in-progress`).
 
@@ -158,7 +205,8 @@ allowed; thereafter follow the cycle above.
 
 ### Per-WI cadence (story implementation)
 
-While implementing a story on its branch, treat each WI as a closed loop:
+Normative summary: **`STORY.md`: WI tracker and per-WI commits** above. While implementing a story on
+its branch, treat each WI as a closed loop:
 
 1. **Finish the WI** — code, tests, and docs required by that WI.
 2. **Update tracking** — set the matching item to `[x]` in `STORY.md`; update `WI-NNN-<title>.md` when

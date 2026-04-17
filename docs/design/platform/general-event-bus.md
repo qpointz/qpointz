@@ -23,7 +23,7 @@ Many flows need **decoupled notifications**: core services publish **lifecycle**
 
 | Domain | Scenario | Notes |
 |--------|----------|--------|
-| **Value mapping** | Long-running **refresh / reindex** per column: **begin**, **progress** (e.g. 10% steps), **complete** with **COMPLETED** / **PARTIAL** / **FAILED**; persist **`ai_value_mapping_state`**, emit metrics. | Work item: [`WI-184`](../../workitems/planned/value-mapping-facets-vector-lifecycle/WI-184-value-mapping-refresh-state-persistence.md). Until a bus exists, **optional callbacks** on **`syncFromSource`** or a **thin orchestrator** carry state updates. |
+| **Value mapping** | Long-running **refresh / reindex** per column: **begin**, **progress** (e.g. 10% steps), **complete** with **COMPLETED** / **PARTIAL** / **FAILED**; persist **`ai_value_mapping_state`**, emit metrics. | Work item: [`WI-184`](../../workitems/completed/20260417-value-mapping-facets-vector-lifecycle/WI-184-value-mapping-refresh-state-persistence.md). Until a bus exists, **optional callbacks** on **`syncFromSource`** or a **thin orchestrator** carry state updates. |
 | **Metadata** | Facet or entity changes that should **invalidate caches** or **trigger downstream sync** without `metadata-service` importing every consumer. | Future; shape TBD with [`metadata-service-design.md`](../metadata/metadata-service-design.md). |
 | **Observability** | Standard **hooks** for Micrometer / structured logs with **shared attributes** (correlation id, deployment). | Align with [`../ai/value-mapping-observability-actions.md`](../ai/value-mapping-observability-actions.md) where relevant. |
 

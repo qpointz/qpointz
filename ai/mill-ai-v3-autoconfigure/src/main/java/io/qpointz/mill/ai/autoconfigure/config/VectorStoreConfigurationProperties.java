@@ -11,7 +11,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class VectorStoreConfigurationProperties {
 
     /**
-     * Backend implementation: {@code in-memory} (default) or {@code chroma} (LangChain4j HTTP client).
+     * Backend implementation: {@code in-memory} (default), {@code chroma} (LangChain4j HTTP client), or
+     * {@code pgvector} (LangChain4j {@link dev.langchain4j.store.embedding.pgvector.PgVectorEmbeddingStore} on the
+     * primary {@link javax.sql.DataSource}).
      */
     private Backend backend = Backend.IN_MEMORY;
 
@@ -19,6 +21,14 @@ public class VectorStoreConfigurationProperties {
      * Settings used when {@link #getBackend()} is {@link Backend#CHROMA}.
      */
     private Chroma chroma = new Chroma();
+
+    /**
+     * Settings used when {@link #getBackend()} is {@link Backend#PGVECTOR}.
+     * <p>
+     * This table is <strong>only</strong> for LangChain4j ANN search. Authoritative value-mapping rows and bytes remain
+     * in {@code ai_value_mapping.embedding} ({@code BYTEA}) per WI-174; do not point this store at that column.
+     */
+    private PgVector pgvector = new PgVector();
 
     public Backend getBackend() {
         return backend;
@@ -36,11 +46,21 @@ public class VectorStoreConfigurationProperties {
         this.chroma = chroma != null ? chroma : new Chroma();
     }
 
+    public PgVector getPgvector() {
+        return pgvector;
+    }
+
+    public void setPgvector(PgVector pgvector) {
+        this.pgvector = pgvector != null ? pgvector : new PgVector();
+    }
+
     public enum Backend {
         /** LangChain4j in-memory store (default CI / dev). */
         IN_MEMORY,
         /** LangChain4j {@link dev.langchain4j.store.embedding.chroma.ChromaEmbeddingStore} (HTTP). */
-        CHROMA
+        CHROMA,
+        /** LangChain4j {@link dev.langchain4j.store.embedding.pgvector.PgVectorEmbeddingStore} (PostgreSQL + {@code vector} extension). */
+        PGVECTOR
     }
 
     /**
@@ -133,6 +153,68 @@ public class VectorStoreConfigurationProperties {
         public enum ApiVersion {
             V1,
             V2
+        }
+    }
+
+    /**
+     * Non-secret pgvector / LangChain4j {@code PgVectorEmbeddingStore} settings (PostgreSQL {@code vector} type).
+     * Embedding vector dimension is taken from {@link io.qpointz.mill.ai.embedding.EmbeddingHarness#dimension()}, not
+     * from this group.
+     */
+    public static class PgVector {
+
+        /**
+         * Table for LangChain4j embedding rows (separate from {@code ai_value_mapping}).
+         */
+        private String table = "mill_langchain_embedding_store";
+
+        /**
+         * When {@code true}, {@code PgVectorEmbeddingStore} creates the table if missing (requires {@code vector}
+         * extension and suitable privileges).
+         */
+        private boolean createTable = true;
+
+        /**
+         * When {@code true}, request an IVFFlat index via LangChain4j (large corpora); {@link #indexListSize} must be
+         * set &gt; 0.
+         */
+        private boolean useIndex = false;
+
+        /**
+         * IVFFlat {@code lists} parameter; used only when {@link #useIndex} is {@code true}.
+         */
+        private Integer indexListSize;
+
+        public String getTable() {
+            return table;
+        }
+
+        public void setTable(String table) {
+            this.table = table;
+        }
+
+        public boolean isCreateTable() {
+            return createTable;
+        }
+
+        public void setCreateTable(boolean createTable) {
+            this.createTable = createTable;
+        }
+
+        public boolean isUseIndex() {
+            return useIndex;
+        }
+
+        public void setUseIndex(boolean useIndex) {
+            this.useIndex = useIndex;
+        }
+
+        public Integer getIndexListSize() {
+            return indexListSize;
+        }
+
+        public void setIndexListSize(Integer indexListSize) {
+            this.indexListSize = indexListSize;
         }
     }
 }

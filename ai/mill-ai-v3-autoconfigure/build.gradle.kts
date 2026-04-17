@@ -13,6 +13,8 @@ mill {
 }
 
 dependencies {
+    testImplementation(libs.h2.database)
+
     api(project(":ai:mill-ai-v3"))
     api(project(":ai:mill-ai-v3-service"))
     implementation(project(":core:mill-sql"))
@@ -24,6 +26,7 @@ dependencies {
     implementation(libs.boot.starter.webflux)
     implementation(libs.langchain4j.open.ai)
     implementation(libs.langchain4j.chroma)
+    implementation(libs.langchain4j.pgvector)
     annotationProcessor(libs.boot.configuration.processor)
     implementation(project(":ai:mill-ai-v3-persistence"))
     implementation(project(":metadata:mill-metadata-core"))

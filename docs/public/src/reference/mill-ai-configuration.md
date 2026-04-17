@@ -54,11 +54,17 @@ Mill uses **one** active vector store implementation per running application (si
 embeddings). Configuration lives under **`mill.ai.vector-store.*`**; see **`docs/design/ai/mill-ai-configuration.md`**
 in the Mill repo for the full property table and defaults.
 
-- **`mill.ai.vector-store.backend`** — `in-memory` (default) or **`chroma`** (LangChain4j HTTP client to ChromaDB).
+- **`mill.ai.vector-store.backend`** — `in-memory` (default), **`chroma`** (LangChain4j HTTP client to ChromaDB), or **`pgvector`** (LangChain4j store on the app’s PostgreSQL **`DataSource`**; requires the **`vector`** extension).
 - When **`backend` is `chroma`**, set **`mill.ai.vector-store.chroma.base-url`** (required), e.g. `http://localhost:8000`.
   Optional keys include **`api-version`** (`V1` / `V2`), **`tenant-name`**, **`database-name`**, **`collection-name`**, and **`timeout`** (duration).
+- When **`backend` is `pgvector`**, set **`mill.ai.vector-store.pgvector.table`** (optional; default `mill_langchain_embedding_store`), **`create-table`**, and optionally **`use-index`** / **`index-list-size`**. Vector dimension follows **`mill.ai.embedding-model`** (same as value-mapping indexing).
 
-**Mill Service profiles (illustrative):** Spring profile **`chromadb`** (or profile group **`ai-chromadb`**, which combines **`ai`** and **`chromadb`**) can point the vector store at a local Chroma instance on port 8000 when those profiles are defined in application YAML — see the service’s `application.yml` for the exact blocks.
+**Mill Service (`apps/mill-service`):** **`application.yml`** ships profile shortcuts (same pattern as Chroma):
+
+- **`chromadb`** or group **`ai-chromadb`** (`ai` + `chromadb`) — sets **`backend: chroma`** and a local **`chroma.base-url`** (e.g. port 8000).
+- **`pgvector`** or group **`ai-pgvector`** (`ai` + `pgvector`) — sets **`backend: pgvector`** with default **`pgvector.table`** / **`create-table`**.
+
+Activate with e.g. **`--spring.profiles.active=ai,pgvector`** or **`ai-pgvector`**. You still need a **PostgreSQL** **`DataSource`** and **`CREATE EXTENSION vector`** on that database; the default dev **H2** URL is not sufficient. Profile definitions live under **`apps/mill-service/src/main/resources/application.yml`**.
 
 **Golden-source** vectors for value mappings live in **`ai_embedding_model` / `ai_value_mapping`** (JPA + Flyway in **`mill-ai-v3-persistence`**); the **`mill.ai.vector-store`** bean is the **search** store only. **`ValueMappingService`** reconciles SQL-derived values into both (see the design doc).
 

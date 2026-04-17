@@ -74,7 +74,9 @@ Before signalling that the branch is ready to merge, the agent must:
    (ideally one per WI) using `git rebase -i origin/dev`. The commit history must be clean and
    readable before merge.
 
-1. **`docs/workitems/MILESTONE.md`** — record completed WIs in the appropriate milestone section.
+1. **`docs/workitems/MILESTONE.md`** — record completed WIs in the **next release** draft (the
+   working draft of **`releases/RELEASE-x.y.z.md`** — see `docs/workitems/RULES.md` § **Milestone
+   ledger**).
 2. **`docs/workitems/BACKLOG.md`** — set related rows to **`done`**; add or adjust **deferred**
    follow-ups. **Do not delete `done` rows here** — removal is part of **release housekeeping**
    (`RULES.md` § **Release (version) process**).

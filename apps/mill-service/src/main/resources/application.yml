@@ -19,6 +19,9 @@ spring:
       ai-chromadb:
         - ai
         - chromadb
+      ai-pgvector:
+        - ai
+        - pgvector
   main:
     web-application-type: servlet
   datasource:
@@ -127,7 +130,7 @@ mill:
         schedule:
           enabled: true
           interval: PT15M
-    # Vector store: default in-memory; use profile `chromadb` or group `ai-chromadb` for local Chroma (see `---` document at file end).
+    # Vector store: default in-memory; use `chromadb` / `ai-chromadb` for local Chroma, or `pgvector` / `ai-pgvector` for LangChain4j on Postgres (see `---` at file end).
     model:
       provider: openai
       api-key: ${OPENAI_API_KEY:}
@@ -150,3 +153,18 @@ mill:
       backend: chroma
       chroma:
         base-url: http://localhost:8000
+---
+# LangChain4j pgvector on the primary Spring DataSource. Requires PostgreSQL with CREATE EXTENSION vector.
+# Use with a JDBC URL to Postgres (not the default H2 dev datasource), e.g. `--spring.profiles.active=ai,pgvector` or `ai-pgvector`.
+spring:
+  config:
+    activate:
+      on-profile: pgvector
+
+mill:
+  ai:
+    vector-store:
+      backend: pgvector
+      pgvector:
+        table: mill_langchain_embedding_store
+        create-table: true

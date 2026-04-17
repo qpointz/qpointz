@@ -7,7 +7,7 @@ browser UI.
 Embedding persistence and delta sync (repository, value sources, sync service) are tracked in a
 separate story: [`../../completed/20260416-implement-value-mappings/STORY.md`](../../completed/20260416-implement-value-mappings/STORY.md).
 
-Facet types for **which columns** to index / **retrieval** tuning, **startup + scheduled** vector refresh, and **capability** wiring to the vector store: [`../value-mapping-facets-vector-lifecycle/STORY.md`](../value-mapping-facets-vector-lifecycle/STORY.md) (**WI-181–WI-183**).
+Facet types for **which columns** to index / **retrieval** tuning, **startup + scheduled** vector refresh, and **capability** wiring to the vector store: [`../completed/20260417-value-mapping-facets-vector-lifecycle/STORY.md`](../completed/20260417-value-mapping-facets-vector-lifecycle/STORY.md) (**WI-181–WI-183**).
 
 ## Work Items
 

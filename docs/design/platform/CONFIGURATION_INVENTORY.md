@@ -23,7 +23,7 @@
 | `mill.ai.model` | `AiModelProperties` | mill-ai-v3-autoconfigure | Chat LLM: provider, model name, api-key, base-url |
 | `mill.ai` (nested: `enabled`, `providers`, `embedding-model`) | `AiConfigurationProperties` | mill-ai-v3-autoconfigure | Master `enabled` flag; provider map + named embedding profiles (`AiProviderEntry`, `EmbeddingModelProfile`) |
 | `mill.ai.value-mapping` | `ValueMappingConfigurationProperties` | mill-ai-v3-autoconfigure | `embedding-model` references a key under `mill.ai.embedding-model` |
-| `mill.ai.vector-store` | `VectorStoreConfigurationProperties` | mill-ai-v3-autoconfigure | Backend `in-memory` or `chroma`; nested `chroma.*`; single `EmbeddingStore` per context |
+| `mill.ai.vector-store` | `VectorStoreConfigurationProperties` | mill-ai-v3-autoconfigure | Backend `in-memory`, `chroma`, or `pgvector`; nested `chroma.*` / `pgvector.*`; single `EmbeddingStore` per context |
 
 ---
 
@@ -108,7 +108,7 @@
 | `AiModelProperties` | mill-ai-v3-autoconfigure | `@ConfigurationProperties("mill.ai.model")` | Chat LLM configuration |
 | `AiConfigurationProperties` | mill-ai-v3-autoconfigure | `@ConfigurationProperties("mill.ai")` | `providers`, `embedding-model` maps; `AiV3AutoConfiguration` |
 | `ValueMappingConfigurationProperties` | mill-ai-v3-autoconfigure | `@ConfigurationProperties("mill.ai.value-mapping")` | `embedding-model` profile name |
-| `VectorStoreConfigurationProperties` | mill-ai-v3-autoconfigure | `@ConfigurationProperties("mill.ai.vector-store")` | `backend` + nested `chroma` (HTTP URL, API version, tenant, database, collection, timeout) |
+| `VectorStoreConfigurationProperties` | mill-ai-v3-autoconfigure | `@ConfigurationProperties("mill.ai.vector-store")` | `backend` + nested `chroma` / `pgvector` (table, create-table, optional IVFFlat index) |
 | `AiV3AutoConfiguration` / `EmbeddingAutoConfiguration` / `VectorStoreAutoConfiguration` | mill-ai-v3-autoconfigure | `@ConditionalOn*` | `AiModelProviderRegistry`, `EmbeddingHarness`, `EmbeddingStore` |
 | `ValueMappingSyncAutoConfiguration` | mill-ai-v3-autoconfigure | `@AutoConfigureAfter` AI + JPA | `VectorMappingSynchronizer`, `ValueMappingService` when repository + harness + store exist |
 | `AiV3JpaConfiguration` | mill-ai-v3-autoconfigure | JPA on classpath | `ValueMappingEmbeddingRepository` JPA adapter (with `AiEmbeddingModelRepository` / `AiValueMappingRepository`) |
@@ -228,9 +228,11 @@
 - `refresh.schedule.enabled` — register scheduled refresh job (default **true**)
 - `refresh.schedule.interval` — **`Duration`** tick cadence for scheduled passes (default **PT15M**)
 
-### mill.ai.vector-store (WI-177 — `VectorStoreConfigurationProperties`)
-- `backend` — `in-memory` (default) or `chroma`; **one** active backend per application context — see [`../ai/mill-ai-configuration.md`](../ai/mill-ai-configuration.md)
+### mill.ai.vector-store (WI-177 / WI-186 — `VectorStoreConfigurationProperties`)
+- `backend` — `in-memory` (default), `chroma`, or `pgvector`; **one** active backend per application context — see [`../ai/mill-ai-configuration.md`](../ai/mill-ai-configuration.md)
 - `chroma.base-url`, `chroma.api-version`, `chroma.tenant-name`, `chroma.database-name`, `chroma.collection-name`, `chroma.timeout` — used when `backend=chroma`
+- `pgvector.table`, `pgvector.create-table`, `pgvector.use-index`, `pgvector.index-list-size` — used when `backend=pgvector` (PostgreSQL **`DataSource`** + **`vector`** extension)
+- **Mill Service** — optional Spring profiles **`chromadb`** / **`ai-chromadb`** and **`pgvector`** / **`ai-pgvector`** in [`../../../apps/mill-service/src/main/resources/application.yml`](../../../apps/mill-service/src/main/resources/application.yml) switch **`mill.ai.vector-store`** without editing the default YAML block (see [`../ai/mill-ai-configuration.md`](../ai/mill-ai-configuration.md) § *Mill Service profile shortcuts*).
 
 ### mill.services
 - `grpc.port`, `grpc.address`, `grpc.enable`
