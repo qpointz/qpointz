@@ -15,4 +15,15 @@ interface ValueMappingService {
         entries: List<AttributeValueEntry>,
         embeddingModelId: Long,
     )
+
+    /**
+     * Indexes from a [ValueSource]: dedupe (last-wins on content), optional [maxContentLength] truncation,
+     * then [VectorMappingSynchronizer.sync]. Invokes [progress] per WI-184 § Integration when non-null.
+     */
+    fun syncFromSource(
+        attributeUrn: String,
+        source: ValueSource,
+        embeddingModelId: Long,
+        progress: ValueMappingSyncProgressCallback?,
+    )
 }

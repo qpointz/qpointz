@@ -1,6 +1,6 @@
 # Platform metadata loaded only via mill.metadata.seed.resources (global scope + standard facet types).
 # Edit this file to change titles, payload schemas, or applicability — do not duplicate in Flyway SQL.
-# Authoritative set: descriptive, concept, structural, relation, value-mapping (SPEC §11.0).
+# Authoritative set: descriptive, concept, structural, relation, value-mapping, ai-column-value-mapping, ai-column-value-mapping-values (SPEC §11.0).
 ---
 kind: MetadataScope
 scopeUrn: urn:mill/metadata/scope:global
@@ -700,4 +700,137 @@ contentSchema:
         - hyperlink
   required: []
 applicableTo: []
+schemaVersion: "1.0"
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:ai-column-value-mapping
+title: Value Mapping
+description: When applied, indicates the column should be used for value mapping.
+enabled: true
+mandatory: false
+targetCardinality: SINGLE
+contentSchema:
+  type: OBJECT
+  title: Value mapping payload
+  description: Semantic context, retrieval acceptance (similarity threshold), and column-backed indexing controls.
+  fields:
+    - name: context
+      schema:
+        type: STRING
+        title: Context
+        description: General description of the value type; semantic meaning of values
+          in this column (used when building the embedding line together with
+          the cell value; see §4 AttributeValueEntry).
+      required: true
+    - name: similarityThreshold
+      schema:
+        type: NUMBER
+        title: Similarity threshold
+        description: >-
+          Optional. After top-1 vector search, accept the mapping only if the best match’s
+          similarity score (0.0–1.0, higher = better match) is greater than or equal to this
+          value; otherwise treat as no match. Does not filter a list of hits — retrieval is
+          always a single best candidate first, then this gate. Maps to EmbeddingSearchRequest.minScore
+          in LangChain4j.
+      required: false
+    - name: nullValues
+      schema:
+        type: OBJECT
+        title: NULL Values
+        description: How SQL NULL in the column participates in indexing and NL2SQL.
+        fields:
+          - name: indexNull
+            schema:
+              type: BOOLEAN
+              title: Index NULL
+              description: When true, include NULL as a distinct bucket in DISTINCT/sync (one
+                AttributeValueEntry). When false, omit NULL from indexing
+                (legacy opt-out).
+            required: true
+          - name: nullContent
+            schema:
+              type: STRING
+              title: NULL semantic text
+              description: Text used in the embedding line for NULL rows so natural phrases
+                (e.g. "unknown status") align semantically; combined with
+                context per §4. Ignored when indexNull is false.
+            required: false
+        required: []
+      required: false
+    - name: data
+      schema:
+        type: OBJECT
+        title: Column data
+        description: Controls value mapping sourced from this column's values.
+        fields:
+          - name: enabled
+            schema:
+              type: BOOLEAN
+              title: Index column values
+              description: When true, distinct values from the column are indexed for value
+                mapping.
+            required: true
+          - name: refreshAtStartUp
+            schema:
+              type: BOOLEAN
+              title: Refresh at startup
+              description: When true, refresh indexed values from the column when the service
+                starts.
+            required: true
+          - name: refreshInterval
+            schema:
+              type: STRING
+              title: Refresh interval
+              description: Frequency for refreshing column values when enabled (e.g. 1mi = 1
+                minute, 5d = 5 days).
+            required: false
+        required: []
+      required: true
+  required: []
+category: ai
+applicableTo:
+  - urn:mill/metadata/entity-type:attribute
+schemaVersion: "1.0"
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:ai-column-value-mapping-values
+title: Value Mapping Values
+description: Static content/value pairs for value mapping (only applies when Value Mapping is present).
+enabled: true
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: Static value list payload
+  description: >-
+    Manual or supplemental list of embedding text (content) and substitution value (value) pairs.
+    Only processed when facet ai-column-value-mapping is attached to the same attribute.
+  fields:
+    - name: values
+      schema:
+        type: ARRAY
+        title: Values
+        description: Static rows for indexing and resolution (see §4 for content vs value).
+        items:
+          type: OBJECT
+          title: Static value row
+          description: One pair — semantic text to embed and canonical value for substitution.
+          fields:
+            - name: content
+              schema:
+                type: STRING
+                title: Content
+                description: Text to embed for semantic match (full embedding line or fragment per facet rules; see §4 AttributeValueEntry).
+              required: true
+            - name: value
+              schema:
+                type: STRING
+                title: Value
+                description: Canonical value to use when this row matches (substitution for queries/tools).
+              required: true
+      required: true
+  required: []
+category: ai
+applicableTo:
+  - urn:mill/metadata/entity-type:attribute
 schemaVersion: "1.0"

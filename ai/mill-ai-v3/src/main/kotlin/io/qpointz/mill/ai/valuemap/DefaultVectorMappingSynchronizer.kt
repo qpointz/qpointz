@@ -21,7 +21,12 @@ class DefaultVectorMappingSynchronizer(
     private val log = LoggerFactory.getLogger(javaClass)
     private val objectMapper = ObjectMapper()
 
-    override fun sync(attributeUrn: String, entries: List<AttributeValueEntry>, embeddingModelId: Long) {
+    override fun sync(
+        attributeUrn: String,
+        entries: List<AttributeValueEntry>,
+        embeddingModelId: Long,
+        progress: ValueMappingSyncProgressCallback?,
+    ) {
         val desiredContents = entries.map { it.content }.toSet()
         val existing = repository.listValueRowsByAttributeUrn(attributeUrn)
         for (row in existing) {
@@ -30,13 +35,20 @@ class DefaultVectorMappingSynchronizer(
                 repository.deleteValueRow(row.stableId)
             }
         }
-        for (entry in entries) {
+        var successCount = 0
+        var failureCount = 0
+        entries.forEachIndexed { index, entry ->
             try {
                 processEntry(attributeUrn, entry, embeddingModelId)
+                successCount++
+                progress?.onElementProcessed(attributeUrn, index, entry.content, true, null)
             } catch (ex: Exception) {
+                failureCount++
                 log.warn("sync entry failed attributeUrn={} contentLen={}: {}", attributeUrn, entry.content.length, ex.message)
+                progress?.onElementProcessed(attributeUrn, index, entry.content, false, ex.message)
             }
         }
+        progress?.onRunComplete(attributeUrn, successCount, failureCount)
     }
 
     private fun processEntry(attributeUrn: String, entry: AttributeValueEntry, embeddingModelId: Long) {
@@ -64,6 +76,7 @@ class DefaultVectorMappingSynchronizer(
         metadata.put("column_name", attributeUrn)
         metadata.put("original_value", entry.content)
         metadata.put("stable_id", stableId.toString())
+        entry.metadata.forEach { (k, v) -> metadata.put(k, v) }
         val segment = TextSegment.from(entry.content, metadata)
         embeddingStore.add(Embedding.from(vector), segment)
     }

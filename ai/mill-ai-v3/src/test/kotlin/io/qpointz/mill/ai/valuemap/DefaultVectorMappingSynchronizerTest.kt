@@ -53,7 +53,7 @@ class DefaultVectorMappingSynchronizerTest {
             ),
         ).thenReturn(sid)
 
-        sync.sync("urn:x", listOf(AttributeValueEntry("a")), 1L)
+        sync.sync("urn:x", listOf(AttributeValueEntry("a")), 1L, null)
 
         verify(repo).upsertValueRow(isNull(), eq("urn:x"), eq("a"), isNull(), any(), eq(1L), isNull())
         val hits = store.search(
@@ -63,5 +63,56 @@ class DefaultVectorMappingSynchronizerTest {
                 .build(),
         )
         assertThat(hits.matches().size).isPositive()
+    }
+
+    @Test
+    fun shouldReembedWhenPersistedEmbeddingModelIdDiffers() {
+        whenever(harness.dimension).thenReturn(2)
+        whenever(harness.persistence).thenReturn(
+            EmbeddingModelPersistenceDescriptor(
+                "stub|2|text-embedding-3-small|default",
+                "stub",
+                "text-embedding-3-small",
+                2,
+                null,
+                null,
+            ),
+        )
+        whenever(harness.embed("line")).thenReturn(floatArrayOf(0.3f, 0.4f))
+        val existingSid = UUID.randomUUID()
+        val existingRow = AiValueMappingRecord(
+            stableId = existingSid,
+            attributeUrn = "urn:x",
+            content = "line",
+            contentHash = null,
+            embedding = floatArrayOf(0.9f, 0.9f),
+            embeddingModelId = 99L,
+            metadataJson = null,
+        )
+        whenever(repo.listValueRowsByAttributeUrn("urn:x")).thenReturn(listOf(existingRow))
+        whenever(repo.findValueRow("urn:x", "line")).thenReturn(existingRow)
+        whenever(
+            repo.upsertValueRow(
+                eq(existingSid),
+                eq("urn:x"),
+                eq("line"),
+                isNull(),
+                any(),
+                eq(1L),
+                isNull(),
+            ),
+        ).thenReturn(existingSid)
+
+        sync.sync("urn:x", listOf(AttributeValueEntry("line")), 1L, null)
+
+        verify(repo).upsertValueRow(
+            eq(existingSid),
+            eq("urn:x"),
+            eq("line"),
+            isNull(),
+            any(),
+            eq(1L),
+            isNull(),
+        )
     }
 }

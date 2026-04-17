@@ -4,6 +4,7 @@ import dev.langchain4j.data.segment.TextSegment
 import dev.langchain4j.store.embedding.EmbeddingStore
 import io.qpointz.mill.ai.autoconfigure.AiV3AutoConfiguration
 import io.qpointz.mill.ai.autoconfigure.ConditionalOnAiEnabled
+import io.qpointz.mill.ai.autoconfigure.config.ValueMappingConfigurationProperties
 import io.qpointz.mill.ai.autoconfigure.embedding.EmbeddingAutoConfiguration
 import io.qpointz.mill.ai.autoconfigure.vectorstore.VectorStoreAutoConfiguration
 import io.qpointz.mill.ai.embedding.EmbeddingHarness
@@ -49,6 +50,9 @@ class ValueMappingSyncAutoConfiguration {
     @Bean
     @ConditionalOnBean(VectorMappingSynchronizer::class)
     @ConditionalOnMissingBean(ValueMappingService::class)
-    fun valueMappingService(synchronizer: VectorMappingSynchronizer): ValueMappingService =
-        DefaultValueMappingService(synchronizer)
+    fun valueMappingService(
+        synchronizer: VectorMappingSynchronizer,
+        vm: ValueMappingConfigurationProperties,
+    ): ValueMappingService =
+        DefaultValueMappingService(synchronizer, vm.maxContentLength)
 }
