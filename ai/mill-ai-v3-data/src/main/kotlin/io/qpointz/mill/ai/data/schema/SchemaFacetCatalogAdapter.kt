@@ -9,6 +9,7 @@ import io.qpointz.mill.ai.capabilities.schema.SchemaCatalogPort
 import io.qpointz.mill.data.schema.SchemaFacetService
 import io.qpointz.mill.data.schema.WithFacets
 import io.qpointz.mill.data.schema.facet.RelationFacet
+import io.qpointz.mill.metadata.domain.RelationCardinality
 
 /**
  * [SchemaCatalogPort] backed by Mill Data [SchemaFacetService] (former [SchemaToolHandlers] logic).
@@ -20,15 +21,18 @@ class SchemaFacetCatalogAdapter(
     private fun description(item: WithFacets): String =
         item.facets.descriptive?.description ?: ""
 
+    private fun displayName(item: WithFacets): String =
+        item.facets.descriptive?.displayName ?: ""
+
     override fun listSchemas(): List<ListSchemasItem> =
         svc.getSchemas().schemas
-            .map { ListSchemasItem(it.schemaName, description(it)) }
+            .map { ListSchemasItem(it.schemaName, description(it), displayName(it)) }
 
     override fun listTables(schemaName: String): List<ListTablesItem> =
         svc.getSchemas().schemas
             .filter { schemaName == it.schemaName }
             .flatMap { it.tables }
-            .map { ListTablesItem(it.schemaName, it.tableName, description(it)) }
+            .map { ListTablesItem(it.schemaName, it.tableName, description(it), displayName(it)) }
 
     override fun listColumns(schemaName: String, tableName: String): List<ListColumnsItem> =
         svc.getSchemas().schemas
@@ -41,6 +45,7 @@ class SchemaFacetCatalogAdapter(
                     it.schemaName,
                     it.tableName,
                     it.columnName,
+                    displayName = displayName(it),
                     description = description(it),
                     nullable = it.dataType.nullability,
                     type = it.dataType.type.typeId,
@@ -52,35 +57,47 @@ class SchemaFacetCatalogAdapter(
         tableName: String,
         direction: RelationDirection,
     ): List<ListRelationsItem> {
-        fun createRelation(relation: RelationFacet.Relation): ListRelationsItem =
-            ListRelationsItem(
-                relation.sourceTable!!.schema!!,
-                relation.sourceTable!!.table!!,
+        fun createRelation(relation: RelationFacet.Relation): ListRelationsItem? {
+            val source = relation.sourceTable ?: return null
+            val target = relation.targetTable ?: return null
+            return ListRelationsItem(
+                source.schema,
+                source.table,
                 relation.sourceAttributes,
-                relation.targetTable!!.schema!!,
-                relation.targetTable!!.table!!,
+                target.schema,
+                target.table,
                 relation.targetAttributes,
-                relation.name!!,
-                relation.description!!,
-                relation.cardinality!!,
+                relation.name ?: "",
+                relation.description ?: "",
+                relation.cardinality ?: RelationCardinality.MANY_TO_ONE,
+                relation.joinSql ?: "",
             )
+        }
 
         val includeOutbound = direction == RelationDirection.OUTBOUND || direction == RelationDirection.BOTH
         val includeInbound = direction == RelationDirection.INBOUND || direction == RelationDirection.BOTH
 
-        return svc.getSchemas().schemas
+        val facetResult = svc.getSchemas()
+        val fromModel = facetResult.modelRoot.facets.relation?.relations.orEmpty()
+        val fromTables =
+            facetResult.schemas
+                .asSequence()
+                .flatMap { it.tables }
+                .mapNotNull { it.facets.relation?.relations }
+                .flatten()
+                .toList()
+        val allRelations = fromModel + fromTables
+
+        return allRelations
             .asSequence()
-            .flatMap { it.tables }
-            .mapNotNull { it.facets.relation }
-            .flatMap { it.relations }
-            .mapNotNull {
+            .mapNotNull { relation ->
                 when {
                     includeOutbound &&
-                        it.sourceTable?.schema == schemaName &&
-                        it.sourceTable?.table == tableName -> createRelation(it)
+                        relation.sourceTable?.schema == schemaName &&
+                        relation.sourceTable?.table == tableName -> createRelation(relation)
                     includeInbound &&
-                        it.targetTable?.schema == schemaName &&
-                        it.targetTable?.table == tableName -> createRelation(it)
+                        relation.targetTable?.schema == schemaName &&
+                        relation.targetTable?.table == tableName -> createRelation(relation)
                     else -> null
                 }
             }

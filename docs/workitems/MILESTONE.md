@@ -16,6 +16,8 @@
 
 **Scope:** this subsection lists **only** story archives whose **`docs/workitems/completed/…` tree first landed after git tag `v0.7.0`** (verify with e.g. `git log v0.7.0..HEAD -- docs/workitems/completed/`). Archives dated **2026-03-30** through **2026-04-02** — including **metadata rework**, **metadata/UI**, **flow UI facets**, **typed URNs** — were committed **on or before** `v0.7.0`; they remain under [`completed/`](completed/) for traceability and are summarized in **[`releases/RELEASE-0.7.0.md`](releases/RELEASE-0.7.0.md)** (see also **[`completed/README.md`](completed/README.md)**). They are **not** duplicated here as **0.8.0** delta.
 
+- **Schema capability — platform facet reconciliation** (`schema-capability-metadata`, closed **2026-04-17**): [`completed/20260417-schema-capability-metadata/STORY.md`](completed/20260417-schema-capability-metadata/STORY.md). **WI-187**–**WI-191** — bootstrap relation payload normalization (`RelationPayloadNormalization`, `SchemaFacets`), `DescriptiveFacet` `title` alias, `SchemaCatalogPort` + adapter (`displayName`, `joinSql`, model-root relations), `capabilities/schema.yaml`, Skymill **`SchemaFacetCatalogSkymillCanonicalIT`**, AI facet URNs on **`MetadataUrns`**. Design: [`docs/design/metadata/schema-facet-ai-tool-field-mapping.md`](../design/metadata/schema-facet-ai-tool-field-mapping.md). **BACKLOG** **A-90** `done`.
+
 - **Value mapping — metadata facets, vector lifecycle** (`value-mapping-facets-vector-lifecycle`, closed **2026-04-17**): [`completed/20260417-value-mapping-facets-vector-lifecycle/STORY.md`](completed/20260417-value-mapping-facets-vector-lifecycle/STORY.md). **WI-181** facet types + **`ValueSource`** + **`syncFromSource`**; **WI-184** refresh state + **`STALE`**; **WI-182** startup + scheduled orchestrator; **WI-185** Skymill/Moneta extras seeds; **WI-186** LangChain4j **pgvector** + Mill Service **`pgvector`** / **`ai-pgvector`**. **WI-183** (resolver / capability) remains a **follow-on** in that archive. **BACKLOG** **A-89** `done`.
 
 - **Value mappings — persistence, sync, stack** (`implement-value-mappings`, closed **2026-04-16**): [`completed/20260416-implement-value-mappings/STORY.md`](completed/20260416-implement-value-mappings/STORY.md). **WI-175**–**WI-177** `mill.ai` providers, embedding harness, in-memory vector store; **WI-174** `ValueMappingEmbeddingRepository` + JPA/Flyway; **WI-179** `VectorMappingSynchronizer`; **WI-180** `ValueMappingService` + sync autoconfigure; **WI-178** design/inventory/public alignment; opt-in **`ChromaSkymillDistinctVectorIT`**. **BACKLOG** **A-85**–**A-88** `done`.
@@ -84,6 +86,14 @@ Individual work items and bundles merged on `dev` in support of this milestone (
   `CapabilityProvider` ServiceLoader descriptor
   **`META-INF/services/io.qpointz.mill.ai.core.capability.CapabilityProvider`**
   (execution remains host-side)
+
+- **WI-187–WI-191** — Schema capability — platform facet reconciliation (story
+  **`schema-capability-metadata`**, archived
+  [`completed/20260417-schema-capability-metadata/STORY.md`](completed/20260417-schema-capability-metadata/STORY.md)):
+  `RelationPayloadNormalization` + `SchemaFacets` merge for bootstrap `source`/`target` relation
+  seeds; `DescriptiveFacet` JSON `title` alias; `SchemaCatalogPort` / `SchemaFacetCatalogAdapter`
+  (`displayName`, `joinSql`, model-root + table relations); `capabilities/schema.yaml`;
+  `SchemaFacetCatalogSkymillCanonicalIT`; AI facet type URNs on `MetadataUrns`
 
 - WI-071 — `ai/v3` `value-mapping` capability: `ValueMappingResolver` interface,
   `MappedAttribute` and `ValueResolution` data classes, `ValueMappingCapabilityDependency`,

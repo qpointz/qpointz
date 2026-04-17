@@ -48,6 +48,13 @@ object MetadataUrns {
     /** Full URN for the `value-mapping` platform facet type. */
     const val FACET_TYPE_VALUE_MAPPING = "urn:mill/metadata/facet-type:value-mapping"
 
+    /** Full URN for the AI column value-mapping facet type (NL-to-SQL / embeddings indexing). */
+    const val FACET_TYPE_AI_COLUMN_VALUE_MAPPING = "${FACET_TYPE_PREFIX}ai-column-value-mapping"
+
+    /** Full URN for the AI column value-mapping values facet type. */
+    const val FACET_TYPE_AI_COLUMN_VALUE_MAPPING_VALUES =
+        "${FACET_TYPE_PREFIX}ai-column-value-mapping-values"
+
     // ── Scope URNs ────────────────────────────────────────────────────
 
     /** Full URN for the global scope. */

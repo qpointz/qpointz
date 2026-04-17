@@ -23,6 +23,7 @@ Optionally, keep a **newest-first** bullet list below as a human-maintained inde
 
 ## Index (optional, newest first)
 
+- [2026-04-17 — schema-capability-metadata (relation payload normalization, `SchemaCatalogPort` + adapter, Skymill IT, `MetadataUrns`; WI-187–WI-191)](20260417-schema-capability-metadata/STORY.md)
 - [2026-04-17 — value-mapping-facets-vector-lifecycle (facet types, `ValueSource`, refresh state, orchestrator, dataset seeds, pgvector `EmbeddingStore`; WI-181–WI-186)](20260417-value-mapping-facets-vector-lifecycle/STORY.md)
 - [2026-04-16 — implement-value-mappings (`mill.ai` providers, embedding/vector harnesses, repository, sync, `ValueMappingService`, stack docs; WI-174–WI-180, WI-178)](20260416-implement-value-mappings/STORY.md)
 - [2026-04-14 — ai-v3-chat-capability-dependencies (`CapabilityDependencyAssembler`, profile HTTP, IT/docs, CLI HTTP bench; WI-160, WI-167–WI-169)](20260414-ai-v3-chat-capability-dependencies/STORY.md)

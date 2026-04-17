@@ -115,20 +115,26 @@ class SchemaFacets(
             out: MutableSet<MetadataFacet>
         ) {
             if (rows.isEmpty()) return
-            if (card == FacetTargetCardinality.MULTIPLE && rows.size > 1) {
-                val merged = LinkedHashMap<String, Any?>()
-                val allRelations = rows.flatMap { row ->
-                    (row.payload["relations"] as? Iterable<*>)?.toList().orEmpty()
+            val rowsToMerge =
+                when (card) {
+                    FacetTargetCardinality.MULTIPLE -> rows
+                    FacetTargetCardinality.SINGLE -> listOf(rows.first())
                 }
-                if (allRelations.isNotEmpty()) {
-                    merged["relations"] = allRelations
-                    FacetPayloadUtils.convert(merged, RelationFacet::class.java).ifPresent { out.add(it) }
-                } else {
-                    FacetPayloadUtils.convert(rows.first().payload, RelationFacet::class.java).ifPresent { out.add(it) }
+            val allRelationMaps =
+                rowsToMerge.flatMap { row ->
+                    val norm =
+                        RelationPayloadNormalization.normalizeToRelationPayload(
+                            row.payload as? Map<String, Any?> ?: emptyMap(),
+                        )
+                    (norm["relations"] as? Iterable<*>)?.mapNotNull { it as? Map<String, Any?> }
+                        ?: emptyList()
                 }
-            } else {
-                FacetPayloadUtils.convert(rows.first().payload, RelationFacet::class.java).ifPresent { out.add(it) }
-            }
+            val merged =
+                linkedMapOf<String, Any?>(
+                    "relations" to allRelationMaps,
+                    "facetType" to "relation",
+                )
+            FacetPayloadUtils.convert(merged, RelationFacet::class.java).ifPresent { out.add(it) }
         }
     }
 }

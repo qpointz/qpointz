@@ -35,28 +35,36 @@ interface SchemaCatalogPort {
  *
  * @property schemaName Exact schema name to use in subsequent tool calls.
  * @property description Business description, or empty string if none.
+ * @property displayName Short label from descriptive metadata, or empty string if none.
  */
 data class ListSchemasItem(
     val schemaName: String,
     val description: String,
+    val displayName: String = "",
 )
 
 /**
  * A single table entry returned by [SchemaCatalogPort.listTables].
+ *
+ * @property displayName Short label from descriptive metadata, or empty string if none.
  */
 data class ListTablesItem(
     val schemaName: String,
     val tableName: String,
     val description: String,
+    val displayName: String = "",
 )
 
 /**
  * A single column entry returned by [SchemaCatalogPort.listColumns].
+ *
+ * @property displayName Short label from descriptive metadata, or empty string if none.
  */
 data class ListColumnsItem(
     val schemaName: String,
     val tableName: String,
     val columnName: String,
+    val displayName: String = "",
     val description: String = "",
     val nullable: DataType.Nullability = DataType.Nullability.NOT_SPECIFIED_NULL,
     val type: LogicalDataType.LogicalDataTypeId = LogicalDataType.LogicalDataTypeId.NOT_SPECIFIED_TYPE,
@@ -64,6 +72,8 @@ data class ListColumnsItem(
 
 /**
  * A single relation entry returned by [SchemaCatalogPort.listRelations].
+ *
+ * @property joinSql Optional join predicate text from metadata, or empty string if none.
  */
 data class ListRelationsItem(
     val sourceSchema: String,
@@ -75,6 +85,7 @@ data class ListRelationsItem(
     val name: String,
     val description: String,
     val cardinality: RelationCardinality,
+    val joinSql: String = "",
 )
 
 /**

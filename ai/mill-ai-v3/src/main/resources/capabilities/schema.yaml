@@ -29,6 +29,9 @@ tools:
           description:
             type: string
             description: Business description of the schema, or empty if no metadata is available.
+          displayName:
+            type: string
+            description: Short display label from descriptive metadata, or empty if none.
 
   list_tables:
     description: |
@@ -59,6 +62,9 @@ tools:
           description:
             type: string
             description: Business description of the table, or empty if no metadata is available.
+          displayName:
+            type: string
+            description: Short display label from descriptive metadata, or empty if none.
 
   list_columns:
     description: |
@@ -92,6 +98,9 @@ tools:
           columnName:
             type: string
             description: Exact column name.
+          displayName:
+            type: string
+            description: Short display label from descriptive metadata, or empty if none.
           description:
             type: string
             description: Business description of the column, or empty if no metadata is available.
@@ -160,3 +169,6 @@ tools:
           cardinality:
             type: string
             description: Relation cardinality (e.g. ONE_TO_MANY, MANY_TO_ONE, ONE_TO_ONE).
+          joinSql:
+            type: string
+            description: Join predicate text from metadata when present, or empty if none.
