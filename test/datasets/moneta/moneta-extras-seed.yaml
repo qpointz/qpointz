@@ -16,7 +16,7 @@ facets:
         indexNull: false
       data:
         enabled: true
-        refreshAtStartUp: false
+        refreshAtStartUp: true
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:moneta.clients.segment
@@ -32,7 +32,7 @@ facets:
         indexNull: false
       data:
         enabled: true
-        refreshAtStartUp: false
+        refreshAtStartUp: true
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:moneta.accounts.account_type
@@ -48,7 +48,7 @@ facets:
         indexNull: false
       data:
         enabled: true
-        refreshAtStartUp: false
+        refreshAtStartUp: true
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:moneta.transactions.transaction_type
@@ -64,7 +64,7 @@ facets:
         indexNull: false
       data:
         enabled: true
-        refreshAtStartUp: false
+        refreshAtStartUp: true
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:moneta.loans.status
@@ -81,7 +81,7 @@ facets:
         nullContent: unknown or unspecified loan status
       data:
         enabled: true
-        refreshAtStartUp: false
+        refreshAtStartUp: true
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:moneta.stocks.exchange
@@ -97,7 +97,7 @@ facets:
         indexNull: false
       data:
         enabled: true
-        refreshAtStartUp: false
+        refreshAtStartUp: true
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:moneta.trade_orders.status
@@ -113,4 +113,4 @@ facets:
         indexNull: false
       data:
         enabled: true
-        refreshAtStartUp: false
+        refreshAtStartUp: true

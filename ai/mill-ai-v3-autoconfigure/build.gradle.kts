@@ -18,12 +18,16 @@ dependencies {
     implementation(project(":core:mill-sql"))
     implementation(project(":ai:mill-ai-v3-data"))
     compileOnly(project(":data:mill-data-schema-core"))
-    compileOnly(project(":data:mill-data-backend-core"))
+    implementation(project(":data:mill-data-backend-core"))
     implementation(libs.boot.starter)
+    implementation(libs.boot.starter.actuator)
     implementation(libs.boot.starter.webflux)
     implementation(libs.langchain4j.open.ai)
     annotationProcessor(libs.boot.configuration.processor)
-    compileOnly(project(":ai:mill-ai-v3-persistence"))
+    implementation(project(":ai:mill-ai-v3-persistence"))
+    implementation(project(":metadata:mill-metadata-core"))
+    implementation(project(":metadata:mill-metadata-persistence"))
+    implementation(project(":data:mill-data-metadata"))
     compileOnly(project(":persistence:mill-persistence"))
 }
 

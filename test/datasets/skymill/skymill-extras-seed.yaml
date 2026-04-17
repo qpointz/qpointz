@@ -1,6 +1,7 @@
 # Optional extras metadata seed: value-mapping facets for Skymill test columns (WI-185).
 # Load after platform-bootstrap.yaml and skymill-meta-seed-canonical.yaml.
 # Requires FacetTypeDefinition for urn:mill/metadata/facet-type:ai-column-value-mapping (WI-181).
+# `data.refreshAtStartUp: true` is required for APP_STARTUP refresh (ValueMappingRefreshOrchestrator).
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.cities.state
@@ -16,7 +17,7 @@ facets:
         indexNull: false
       data:
         enabled: true
-        refreshAtStartUp: false
+        refreshAtStartUp: true
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.passenger.loyalty_tier
@@ -32,7 +33,7 @@ facets:
         indexNull: false
       data:
         enabled: true
-        refreshAtStartUp: false
+        refreshAtStartUp: true
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.ticket_prices.travel_class
@@ -48,7 +49,7 @@ facets:
         indexNull: false
       data:
         enabled: true
-        refreshAtStartUp: false
+        refreshAtStartUp: true
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.ticket_prices.currency
@@ -64,7 +65,7 @@ facets:
         indexNull: false
       data:
         enabled: true
-        refreshAtStartUp: false
+        refreshAtStartUp: true
 ---
 kind: MetadataEntity
 entityUrn: urn:mill/model/attribute:skymill.delays.reason
@@ -80,4 +81,4 @@ facets:
         indexNull: false
       data:
         enabled: true
-        refreshAtStartUp: false
+        refreshAtStartUp: true

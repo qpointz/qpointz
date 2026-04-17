@@ -60,4 +60,18 @@ interface MetadataFacetJpaRepository : JpaRepository<MetadataEntityFacetEntity, 
 
     @Query("SELECT COUNT(f) FROM MetadataEntityFacetEntity f WHERE f.facetType.typeRes = :typeRes")
     fun countByFacetTypeTypeRes(@Param("typeRes") typeRes: String): Long
+
+    /**
+     * Distinct entity URNs that carry a facet of the given type (WI-182 discovery).
+     */
+    @Query(
+        """
+        SELECT DISTINCT e.entityRes FROM MetadataEntityFacetEntity f
+        JOIN f.entity e
+        JOIN f.facetType t
+        WHERE t.typeRes = :facetTypeRes
+        ORDER BY e.entityRes
+        """
+    )
+    fun listDistinctEntityResByFacetTypeRes(@Param("facetTypeRes") facetTypeRes: String): List<String>
 }

@@ -1,3 +1,5 @@
+# Skymill profile: flow backend + canonical/extras seeds (value-mapping facets in skymill-extras-seed.yaml).
+# For AI + value-mapping + embeddings together use `--spring.profiles.active=skymill-ai` (see classpath application.yml `spring.profiles.group`).
 spring:
   config:
     activate:
@@ -34,6 +36,7 @@ mill:
         - "classpath:metadata/platform-bootstrap.yaml"
         - "classpath:metadata/platform-flow-facet-types.yaml"
         - "file:../../test/datasets/skymill/skymill-canonical.yaml"
+        - "file:../../test/datasets/skymill/skymill-extras-seed.yaml"
 ---
 spring:
   config:
@@ -73,6 +76,7 @@ mill:
       resources:
         - "classpath:metadata/platform-bootstrap.yaml"
         - "file:../../test/datasets/moneta/moneta-canonical.yaml"
+        - "file:../../test/datasets/moneta/moneta-extras-seed.yaml"
 ---
 spring:
   config:
@@ -131,6 +135,26 @@ spring:
 
 mill:
   ai:
+    # Overrides default `mill.ai.enabled: false` from classpath application.yml when profile `ai` is active.
+    enabled: true
+    # Shared credentials for embedding profiles that use provider `openai` (see EmbeddingAutoConfiguration).
+    providers:
+      openai:
+        api-key: ${OPENAI_API_KEY:}
+        base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+    # Named embedding profiles; value-mapping picks one via `value-mapping.embedding-model`.
+    embedding-model:
+      default:
+        provider: openai
+        model-name: ${OPENAI_EMBEDDING_MODEL:text-embedding-3-small}
+        dimension: ${OPENAI_EMBEDDING_DIMENSION:1536}
+    value-mapping:
+      embedding-model: default
+      max-content-length: 2048
+      refresh:
+        startup-enabled: true
+        scheduled-disabled: false
+        schedule-interval: PT15M
     model:
       provider: openai
       api-key: ${OPENAI_API_KEY:}

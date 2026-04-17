@@ -7,6 +7,15 @@ grpc:
 spring:
   application:
     name: ${mill.application.name}
+  # Activate e.g. `--spring.profiles.active=skymill-ai` to load Skymill flow + extras seed and AI/embedding/value-mapping.
+  profiles:
+    group:
+      skymill-ai:
+        - skymill
+        - ai
+      moneta-ai:
+        - moneta
+        - ai
   main:
     web-application-type: servlet
   datasource:
@@ -70,14 +79,25 @@ mill:
   services:
     ai-nl2data:
       enable: false
+  ai:
+    # Opt-in: enable AI v3 via `--spring.profiles.active=ai` (see second document), which sets enabled: true.
+    enabled: false
 
 springdoc:
   swagger-ui:
     tags-sorter: alpha
 
+# Actuator: health + `/actuator/valuemap` (value-mapping wiring snapshot). Append `,beans` for full `/actuator/beans` (large/sensitive — avoid in production).
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,valuemap,beans
+
 ---
-# AI v3 chat HTTP/SSE (`mill-ai-v3-service`). Build with Gradle edition `ai`; run with
-# `--spring.profiles.active=ai` so `mill.ai.*` binds. Set `OPENAI_API_KEY`.
+# AI v3 chat HTTP/SSE (`mill-ai-v3-service`). Build with Gradle edition `ai`.
+# Value-mapping refresh needs Skymill extras seed: use `--spring.profiles.active=skymill-ai` (or `skymill,ai`).
+# Set `OPENAI_API_KEY` (used for chat and embedding provider `openai`).
 spring:
   config:
     activate:
@@ -85,7 +105,23 @@ spring:
 
 mill:
   ai:
-    enabled: false
+    enabled: true
+    providers:
+      openai:
+        api-key: ${OPENAI_API_KEY:}
+        base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+    embedding-model:
+      default:
+        provider: openai
+        model-name: ${OPENAI_EMBEDDING_MODEL:text-embedding-3-small}
+        dimension: 1536
+    value-mapping:
+      embedding-model: default
+      max-content-length: 2048
+      refresh:
+        startup-enabled: true
+        scheduled-disabled: false
+        schedule-interval: PT15M
     model:
       provider: openai
       api-key: ${OPENAI_API_KEY:}

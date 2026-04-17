@@ -18,6 +18,8 @@ dependencies {
     implementation(libs.slf4j.api)
     implementation(project(":metadata:mill-metadata-core"))
     implementation(project(":core:mill-sql"))
+    implementation(project(":data:mill-data-metadata"))
+    implementation(project(":data:mill-data-backend-core"))
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)

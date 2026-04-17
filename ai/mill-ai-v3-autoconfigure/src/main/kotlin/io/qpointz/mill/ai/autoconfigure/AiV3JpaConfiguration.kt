@@ -69,10 +69,13 @@ class AiV3JpaConfiguration {
     ): io.qpointz.mill.ai.persistence.ActiveArtifactPointerStore =
         io.qpointz.mill.persistence.ai.jpa.adapters.JpaActiveArtifactPointerStore(repo)
 
+    /**
+     * Do not use [org.springframework.boot.autoconfigure.condition.ConditionalOnBean] on Spring Data
+     * repository types: condition evaluation can run before repository beans are registered, so the
+     * adapter is skipped even when [io.qpointz.mill.persistence.ai.jpa.repositories.AiEmbeddingModelRepository]
+     * exists. Required repos are expressed via method parameters instead.
+     */
     @Bean
-    @org.springframework.boot.autoconfigure.condition.ConditionalOnBean(
-        io.qpointz.mill.persistence.ai.jpa.repositories.AiEmbeddingModelRepository::class,
-    )
     @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean(
         io.qpointz.mill.ai.valuemap.ValueMappingEmbeddingRepository::class,
     )

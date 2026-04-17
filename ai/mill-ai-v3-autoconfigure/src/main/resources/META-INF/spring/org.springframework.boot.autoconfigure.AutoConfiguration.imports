@@ -1,8 +1,11 @@
+io.qpointz.mill.ai.autoconfigure.actuator.ValueMappingRefreshInspectActuatorAutoConfiguration
 io.qpointz.mill.ai.autoconfigure.AiConfigurationPropertiesAutoConfiguration
 io.qpointz.mill.ai.autoconfigure.providers.AiProvidersAutoConfiguration
 io.qpointz.mill.ai.autoconfigure.embedding.EmbeddingAutoConfiguration
 io.qpointz.mill.ai.autoconfigure.vectorstore.VectorStoreAutoConfiguration
 io.qpointz.mill.ai.autoconfigure.valuemap.ValueMappingSyncAutoConfiguration
+io.qpointz.mill.ai.autoconfigure.valuemap.ValueMappingRefreshLifecycleAutoConfiguration
+io.qpointz.mill.ai.autoconfigure.valuemap.ValueMappingRefreshOrchestratorAutoConfiguration
 io.qpointz.mill.ai.autoconfigure.AiV3AutoConfiguration
 io.qpointz.mill.ai.autoconfigure.AiV3ChatServiceAutoConfiguration
 io.qpointz.mill.ai.autoconfigure.AiV3DataAutoConfiguration
