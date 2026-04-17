@@ -81,9 +81,11 @@ object ValueMappingToolHandlers {
      * Resolves each of [requestedValues] to its canonical database value for the given
      * [tableId] and [attributeName].
      *
-     * Entries whose term cannot be matched have [ValueResolution.mappedValue] set to null.
-     * The planner must treat a null mapped value as an unresolvable term and surface
-     * uncertainty rather than guessing.
+     * When the resolver cannot match a term (e.g. vector store miss), [ValueMappingResolver]
+     * may return [ValueResolution.mappedValue] as null. The tool **echoes [ValueResolution.requestedValue]**
+     * as [ValueResolution.mappedValue] in that case: the term was not normalized via the mapping
+     * index, but it may still exist as a literal in the database — callers should use this value in
+     * SQL rather than treating absence of mapping as “unknown data”.
      */
     fun resolveValues(
         resolver: ValueMappingResolver,
@@ -91,14 +93,25 @@ object ValueMappingToolHandlers {
         attributeName: String,
         requestedValues: List<String>,
     ): ValueMappingResult {
-        val results = resolver.resolveValues(tableId, attributeName, requestedValues)
+        val raw = resolver.resolveValues(tableId, attributeName, requestedValues)
+        val results =
+            raw.map { r ->
+                ValueResolution(
+                    requestedValue = r.requestedValue,
+                    mappedValue = r.mappedValue ?: r.requestedValue,
+                    similarityScore = r.similarityScore,
+                )
+            }
         if (log.isDebugEnabled) {
-            val detail = results.joinToString("; ") { r ->
+            val detail = results.zip(raw).joinToString("; ") { (out, inn) ->
                 buildString {
-                    append('"').append(r.requestedValue).append("\"->")
-                    append(r.mappedValue?.let { "\"$it\"" } ?: "null")
-                    if (r.similarityScore != null) {
-                        append(" similarity=").append(r.similarityScore)
+                    append('"').append(out.requestedValue).append("\"->")
+                    append('"').append(out.mappedValue).append('"')
+                    if (inn.mappedValue == null) {
+                        append(" (pass-through; resolver had no mapping)")
+                    }
+                    if (out.similarityScore != null) {
+                        append(" similarity=").append(out.similarityScore)
                     }
                 }
             }

@@ -22,6 +22,10 @@ data class MappedAttribute(val attribute: String, val mapped: Boolean)
 /**
  * The result of resolving one requested value for a mapped attribute.
  *
+ * [ValueMappingResolver] implementations may leave [mappedValue] null when no mapping is found;
+ * [io.qpointz.mill.ai.capabilities.valuemapping.ValueMappingToolHandlers.resolveValues] normalizes
+ * tool output by setting [mappedValue] to [requestedValue] in that case.
+ *
  * @param similarityScore When the resolver uses vector similarity search, the score of the chosen match
  * (implementation-defined scale, often related to distance). Null when not applicable or not exposed.
  */

@@ -17,9 +17,10 @@ prompts:
          before constructing the SQL predicate.
       3. Use the returned mappedValue in the SQL literal. NEVER write the user-supplied term
          directly as a stored literal for a mapped attribute without first resolving it.
-      4. If get_value_mapping returns mappedValue: null for a term, do NOT guess or substitute
-         a similar value. Instead, surface the uncertainty to the user and ask for clarification
-         or offer the known mapped values as alternatives.
+      4. If the mapping index could not normalize a term, mappedValue equals the requested term
+         (pass-through). That means no synonym was found in the mapping store; the literal may
+         still be valid in the database — do not treat it as “data does not exist.” Only avoid
+         inventing values that were never requested.
       5. If the table is unknown or has no mapped attributes, proceed with SQL generation normally.
 
 tools:
@@ -65,7 +66,9 @@ tools:
       Resolve one or more user-provided terms to their canonical database values for a
       specific attribute of a table.
       Only call this for attributes marked mapped: true by get_value_mapping_attributes.
-      A mappedValue of null means the term could not be matched — do not guess a substitute.
+      When no mapping synonym is found, mappedValue repeats the requested term (pass-through);
+      use it in SQL — the value may still exist in the database even though the mapping index
+      did not resolve it.
     input:
       type: object
       required:
@@ -107,7 +110,10 @@ tools:
                 description: The user-provided term that was looked up.
               mappedValue:
                 type: string
-                description: The canonical database value, or null if no match was found.
+                description: |
+                  Canonical database value when the mapping index resolved the term. When no
+                  mapping was found, equals requestedValue (pass-through); the literal may still
+                  be valid in the database.
               similarityScore:
                 type: number
                 description: Optional similarity / distance-related score for the chosen match when the resolver uses vector search.

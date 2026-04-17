@@ -11,11 +11,9 @@ import io.qpointz.mill.ai.valuemap.refresh.ValueMappingIndexedAttributeDiscovery
 import io.qpointz.mill.ai.valuemap.refresh.ValueMappingRefreshRunKind
 import io.qpointz.mill.ai.valuemap.state.ValueMappingRefreshStateRepository
 import io.qpointz.mill.data.backend.SchemaProvider
-import io.qpointz.mill.data.metadata.CatalogPath
 import io.qpointz.mill.data.metadata.ModelEntityUrn
+import io.qpointz.mill.data.schema.PhysicalCatalogMatch
 import io.qpointz.mill.metadata.repository.FacetRepository
-import io.qpointz.mill.proto.Field
-import io.qpointz.mill.proto.Table
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
@@ -23,7 +21,8 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Global value-mapping refresh entry point (WI-182): startup, scheduled tick, and in-process on-demand.
  *
- * Lives in **mill-ai-v3-data** because it depends on the Mill data plane ([SchemaProvider], [CatalogPath]).
+ * Lives in **mill-ai-v3-data** because it depends on the Mill data plane ([SchemaProvider],
+ * [io.qpointz.mill.data.schema.PhysicalCatalogMatch]).
  */
 class ValueMappingRefreshOrchestrator(
     private val refreshConfig: ValueMappingRefreshConfigurationBridge,
@@ -129,18 +128,29 @@ class ValueMappingRefreshOrchestrator(
                 refreshStateRepository.markStale(entityRes, "non-relational or unparsable model URN")
                 return
             }
-            if (schemaProvider != null && !physicalColumnPresent(schemaProvider, path)) {
+
+            val physicalIds =
+                if (schemaProvider != null) {
+                    PhysicalCatalogMatch.resolvePhysicalIdentifiers(schemaProvider, path)
+                } else {
+                    null
+                }
+            if (schemaProvider != null && physicalIds == null) {
                 log.warn("valueMappingRefresh STALE entityRes={} (no physical column)", entityRes)
                 refreshStateRepository.markStale(entityRes, "physical table/column missing from SchemaProvider")
                 return
             }
 
+            val physSchema = physicalIds?.schema ?: path.schema!!
+            val physTable = physicalIds?.table ?: path.table!!
+            val physColumn = physicalIds?.column ?: path.column!!
+
             val nextScheduled = primary.refreshInterval?.let { Instant.now().plus(it) }
 
             val distinct = columnDistinctValueLoader.loadDistinctQuoted(
-                path.schema!!,
-                path.table!!,
-                path.column!!,
+                physSchema,
+                physTable,
+                physColumn,
                 primary.indexNull,
             )
             val source = ValueMappingFacetAssembly.buildValueSource(facets, distinct) ?: run {
@@ -171,14 +181,4 @@ class ValueMappingRefreshOrchestrator(
         )
     }
 
-    private fun physicalColumnPresent(provider: SchemaProvider, path: CatalogPath): Boolean {
-        val schema = path.schema ?: return false
-        val tableName = path.table ?: return false
-        val column = path.column ?: return false
-        if (!provider.isSchemaExists(schema)) {
-            return false
-        }
-        val table: Table = provider.getTable(schema, tableName) ?: return false
-        return table.fieldsList.any { field: Field -> field.name == column }
-    }
 }

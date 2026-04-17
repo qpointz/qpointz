@@ -10,6 +10,7 @@ import io.qpointz.mill.ai.valuemap.refresh.ValueMappingIndexedAttributeDiscovery
 import io.qpointz.mill.ai.valuemap.refresh.ValueMappingRefreshConfigurationBridge
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetJpaRepository
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.AutoConfigureAfter
@@ -58,10 +59,11 @@ class ValueMappingRefreshLifecycleAutoConfiguration {
     @ConditionalOnMissingBean(ColumnDistinctValueLoader::class)
     fun columnDistinctValueLoader(
         dispatcher: ObjectProvider<DataOperationDispatcher>,
+        sqlDialectSpec: SqlDialectSpec
     ): ColumnDistinctValueLoader {
         val d = dispatcher.ifAvailable
         return if (d != null) {
-            DataOperationColumnDistinctValueLoader(d)
+            DataOperationColumnDistinctValueLoader(d, sqlDialectSpec)
         } else {
             ColumnDistinctValueLoader { _, _, _, _ -> emptyList() }
         }

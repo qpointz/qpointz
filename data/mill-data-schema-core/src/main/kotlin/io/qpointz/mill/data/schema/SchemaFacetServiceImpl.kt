@@ -106,7 +106,11 @@ class SchemaFacetServiceImpl(
             return null
         }
         val millTable = schemaProvider.getTable(schemaName, tableName) ?: return null
-        val field = millTable.fieldsList.firstOrNull { coordinateEquals(it.name, columnName) } ?: return null
+        val field =
+            millTable.fieldsList.firstOrNull {
+                PhysicalCatalogMatch.coordinateEquals(it.name, columnName)
+            }
+                ?: return null
         return buildColumnWithFacetsNarrow(schemaName, tableName, field, context)
     }
 
@@ -290,8 +294,4 @@ class SchemaFacetServiceImpl(
         return "$s\u0000$t\u0000$c"
     }
 
-    private fun coordinateEquals(left: String?, right: String?): Boolean {
-        if (left == null || right == null) return left == right
-        return left.equals(right, ignoreCase = true)
-    }
 }

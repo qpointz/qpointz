@@ -6,12 +6,14 @@ import io.qpointz.mill.proto.QueryExecutionConfig
 import io.qpointz.mill.proto.QueryRequest
 import io.qpointz.mill.proto.SQLStatement
 import io.qpointz.mill.sql.RecordReaders
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec
 
 /**
  * DISTINCT loader backed by [DataOperationDispatcher.execute] (same pattern as Skymill vector IT).
  */
 class DataOperationColumnDistinctValueLoader(
     private val dispatcher: DataOperationDispatcher,
+    private val sqlSpec: SqlDialectSpec
 ) : ColumnDistinctValueLoader {
 
     override fun loadDistinctQuoted(schema: String, table: String, column: String, includeNull: Boolean): List<String?> {
@@ -37,7 +39,7 @@ class DataOperationColumnDistinctValueLoader(
     }
 
     private fun quote(ident: String): String {
-        val escaped = ident.replace("`", "``")
-        return "`$escaped`"
+        val quote = sqlSpec.identifiers.quote
+        return "${quote.start}$ident${quote.end}"
     }
 }

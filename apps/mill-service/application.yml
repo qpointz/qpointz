@@ -133,6 +133,10 @@ spring:
     activate:
       on-profile: ai
 
+logging:
+  level:
+    io.qpointz.mill.ai.capabilities.valuemapping: DEBUG
+
 mill:
   ai:
     # Overrides default `mill.ai.enabled: false` from classpath application.yml when profile `ai` is active.
