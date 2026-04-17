@@ -40,6 +40,12 @@ mill:
   ai:
     value-mapping:
       embedding-model: default-embed
+      refresh:
+        on-startup:
+          enabled: true
+        schedule:
+          enabled: true
+          interval: PT15M
 ```
 
 ## Vector store (`mill.ai.vector-store`)

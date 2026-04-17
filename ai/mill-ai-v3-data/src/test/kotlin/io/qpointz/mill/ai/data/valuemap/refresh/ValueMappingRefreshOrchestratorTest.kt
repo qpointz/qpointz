@@ -1,4 +1,4 @@
-package io.qpointz.mill.ai.valuemap.refresh
+package io.qpointz.mill.ai.data.valuemap.refresh
 
 import io.qpointz.mill.ai.embedding.EmbeddingHarness
 import io.qpointz.mill.ai.embedding.EmbeddingModelPersistenceDescriptor
@@ -6,6 +6,8 @@ import io.qpointz.mill.ai.valuemap.ColumnDistinctValueLoader
 import io.qpointz.mill.ai.valuemap.ValueMappingEmbeddingRepository
 import io.qpointz.mill.ai.valuemap.ValueMappingIndexingFacetTypes
 import io.qpointz.mill.ai.valuemap.ValueMappingService
+import io.qpointz.mill.ai.valuemap.refresh.ValueMappingIndexedAttributeDiscovery
+import io.qpointz.mill.ai.valuemap.refresh.ValueMappingRefreshConfigurationBridge
 import io.qpointz.mill.ai.valuemap.state.ValueMappingRefreshStateRepository
 import io.qpointz.mill.data.backend.SchemaProvider
 import io.qpointz.mill.metadata.domain.facet.FacetAssignment
@@ -92,5 +94,4 @@ class ValueMappingRefreshOrchestratorTest {
         verify(stateRepo).markStale(eq(urn), any())
         verify(valueMappingService, never()).syncFromSource(any(), any(), any(), any())
     }
-
 }

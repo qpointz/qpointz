@@ -1,10 +1,14 @@
-package io.qpointz.mill.ai.valuemap.refresh
+package io.qpointz.mill.ai.data.valuemap.refresh
 
 import io.qpointz.mill.ai.embedding.EmbeddingHarness
 import io.qpointz.mill.ai.valuemap.ColumnDistinctValueLoader
 import io.qpointz.mill.ai.valuemap.ValueMappingFacetAssembly
 import io.qpointz.mill.ai.valuemap.ValueMappingService
 import io.qpointz.mill.ai.valuemap.ValueMappingEmbeddingRepository
+import io.qpointz.mill.ai.valuemap.refresh.ValueMappingRefreshProgressBridge
+import io.qpointz.mill.ai.valuemap.refresh.ValueMappingRefreshConfigurationBridge
+import io.qpointz.mill.ai.valuemap.refresh.ValueMappingIndexedAttributeDiscovery
+import io.qpointz.mill.ai.valuemap.refresh.ValueMappingRefreshRunKind
 import io.qpointz.mill.ai.valuemap.state.ValueMappingRefreshStateRepository
 import io.qpointz.mill.data.backend.SchemaProvider
 import io.qpointz.mill.data.metadata.CatalogPath
@@ -18,6 +22,8 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Global value-mapping refresh entry point (WI-182): startup, scheduled tick, and in-process on-demand.
+ *
+ * Lives in **mill-ai-v3-data** because it depends on the Mill data plane ([SchemaProvider], [CatalogPath]).
  */
 class ValueMappingRefreshOrchestrator(
     private val refreshConfig: ValueMappingRefreshConfigurationBridge,
@@ -69,7 +75,7 @@ class ValueMappingRefreshOrchestrator(
         if (kind == ValueMappingRefreshRunKind.APP_STARTUP && urns.isNotEmpty() && gated.isEmpty()) {
             log.warn(
                 "valueMappingRefresh APP_STARTUP: {} attribute(s) discovered but none passed gates — " +
-                    "set mill.ai.value-mapping.refresh.startup-enabled=true and primary facet " +
+                    "set mill.ai.value-mapping.refresh.on-startup.enabled=true and primary facet " +
                     "data.enabled=true and data.refreshAtStartUp=true (WI-182)",
                 urns.size,
             )

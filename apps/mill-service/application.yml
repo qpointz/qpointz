@@ -152,9 +152,12 @@ mill:
       embedding-model: default
       max-content-length: 2048
       refresh:
-        startup-enabled: true
-        scheduled-disabled: false
-        schedule-interval: PT15M
+        on-startup:
+          enabled: true
+        schedule:
+          enabled: true
+          interval: PT15M
+    # Vector store: default in-memory; use profile `chromadb` or group `ai-chromadb` for local Chroma (see `---` document at file end).
     model:
       provider: openai
       api-key: ${OPENAI_API_KEY:}

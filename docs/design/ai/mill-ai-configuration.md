@@ -68,7 +68,9 @@ Orchestrator settings (startup, scheduled tick cadence, gates). Normative detail
 
 | Property | Type (locked) | Notes |
 |----------|----------------|-------|
-| **`mill.ai.value-mapping.refresh.schedule-interval`** | **`java.time.Duration`** | Java field **`scheduleInterval`** on nested **`Refresh`** under **`ValueMappingConfigurationProperties`**. YAML / properties: **`mill.ai.value-mapping.refresh.schedule-interval: 15m`**. Spring Boot relaxed binding only — **no** custom converter. Default **`PT15M`**. |
+| **`mill.ai.value-mapping.refresh.on-startup.enabled`** | **`boolean`** | Global gate: when **false**, no **`APP_STARTUP`** refresh runs. Default **`true`**. |
+| **`mill.ai.value-mapping.refresh.schedule.enabled`** | **`boolean`** | When **false**, the scheduled refresh job is not registered. Default **`true`**. |
+| **`mill.ai.value-mapping.refresh.schedule.interval`** | **`java.time.Duration`** | Cadence for how often the scheduled job wakes to evaluate due attributes (not per-facet **`refreshInterval`**). YAML: **`15m`** or **`PT15M`**. Default **`PT15M`**. |
 
 ## `mill.ai.vector-store` (WI-177)
 

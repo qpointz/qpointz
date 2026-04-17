@@ -47,43 +47,66 @@ public class ValueMappingConfigurationProperties {
      */
     public static class Refresh {
 
+        private final OnStartup onStartup = new OnStartup();
+        private final Schedule schedule = new Schedule();
+
+        public OnStartup getOnStartup() {
+            return onStartup;
+        }
+
+        public Schedule getSchedule() {
+            return schedule;
+        }
+
         /**
-         * When {@code false}, no {@code APP_STARTUP} refresh runs.
+         * {@code mill.ai.value-mapping.refresh.on-startup.*}.
          */
-        private boolean startupEnabled = true;
+        public static class OnStartup {
+
+            /**
+             * When {@code false}, no {@code APP_STARTUP} refresh runs.
+             */
+            private boolean enabled = true;
+
+            public boolean isEnabled() {
+                return enabled;
+            }
+
+            public void setEnabled(boolean enabled) {
+                this.enabled = enabled;
+            }
+        }
 
         /**
-         * When {@code true}, scheduled ticks are disabled.
+         * {@code mill.ai.value-mapping.refresh.schedule.*}.
          */
-        private boolean scheduledDisabled = false;
+        public static class Schedule {
 
-        /**
-         * Cadence for scheduled job wake/evaluate (not per-facet {@code refreshInterval}).
-         */
-        private Duration scheduleInterval = Duration.ofMinutes(15);
+            /**
+             * When {@code false}, the scheduled refresh job is not registered.
+             */
+            private boolean enabled = true;
 
-        public boolean isStartupEnabled() {
-            return startupEnabled;
-        }
+            /**
+             * Cadence for scheduled job wake/evaluate (not per-facet {@code refreshInterval}).
+             */
+            private Duration interval = Duration.ofMinutes(15);
 
-        public void setStartupEnabled(boolean startupEnabled) {
-            this.startupEnabled = startupEnabled;
-        }
+            public boolean isEnabled() {
+                return enabled;
+            }
 
-        public boolean isScheduledDisabled() {
-            return scheduledDisabled;
-        }
+            public void setEnabled(boolean enabled) {
+                this.enabled = enabled;
+            }
 
-        public void setScheduledDisabled(boolean scheduledDisabled) {
-            this.scheduledDisabled = scheduledDisabled;
-        }
+            public Duration getInterval() {
+                return interval;
+            }
 
-        public Duration getScheduleInterval() {
-            return scheduleInterval;
-        }
-
-        public void setScheduleInterval(Duration scheduleInterval) {
-            this.scheduleInterval = scheduleInterval;
+            public void setInterval(Duration interval) {
+                this.interval = interval;
+            }
         }
     }
 }

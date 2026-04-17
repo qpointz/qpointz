@@ -50,8 +50,8 @@ class ValueMappingRefreshLifecycleAutoConfiguration {
         vm: ValueMappingConfigurationProperties,
     ): ValueMappingRefreshConfigurationBridge =
         object : ValueMappingRefreshConfigurationBridge {
-            override val refreshStartupEnabled: Boolean get() = vm.refresh.isStartupEnabled
-            override val refreshScheduledDisabled: Boolean get() = vm.refresh.isScheduledDisabled
+            override val refreshStartupEnabled: Boolean get() = vm.refresh.onStartup.isEnabled
+            override val refreshScheduledDisabled: Boolean get() = !vm.refresh.schedule.isEnabled
         }
 
     @Bean

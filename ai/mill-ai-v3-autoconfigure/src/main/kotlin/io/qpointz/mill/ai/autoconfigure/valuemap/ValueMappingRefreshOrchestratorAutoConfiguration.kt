@@ -6,9 +6,9 @@ import io.qpointz.mill.ai.embedding.EmbeddingHarness
 import io.qpointz.mill.ai.valuemap.ColumnDistinctValueLoader
 import io.qpointz.mill.ai.valuemap.ValueMappingEmbeddingRepository
 import io.qpointz.mill.ai.valuemap.ValueMappingService
+import io.qpointz.mill.ai.data.valuemap.refresh.ValueMappingRefreshOrchestrator
 import io.qpointz.mill.ai.valuemap.refresh.ValueMappingIndexedAttributeDiscovery
 import io.qpointz.mill.ai.valuemap.refresh.ValueMappingRefreshConfigurationBridge
-import io.qpointz.mill.ai.valuemap.refresh.ValueMappingRefreshOrchestrator
 import io.qpointz.mill.ai.valuemap.state.ValueMappingRefreshStateRepository
 import io.qpointz.mill.data.backend.SchemaProvider
 import io.qpointz.mill.metadata.repository.FacetRepository
@@ -104,8 +104,8 @@ class ValueMappingRefreshOrchestratorAutoConfiguration {
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnBean(ValueMappingRefreshOrchestrator::class)
     @ConditionalOnProperty(
-        value = ["mill.ai.value-mapping.refresh.scheduled-disabled"],
-        havingValue = "false",
+        value = ["mill.ai.value-mapping.refresh.schedule.enabled"],
+        havingValue = "true",
         matchIfMissing = true,
     )
     @EnableScheduling

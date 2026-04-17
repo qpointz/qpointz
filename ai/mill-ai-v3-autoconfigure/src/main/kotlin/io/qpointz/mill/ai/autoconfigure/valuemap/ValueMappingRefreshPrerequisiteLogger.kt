@@ -7,7 +7,7 @@ import io.qpointz.mill.ai.valuemap.ValueMappingEmbeddingRepository
 import io.qpointz.mill.ai.valuemap.ValueMappingService
 import io.qpointz.mill.ai.valuemap.VectorMappingSynchronizer
 import io.qpointz.mill.ai.valuemap.refresh.ValueMappingIndexedAttributeDiscovery
-import io.qpointz.mill.ai.valuemap.refresh.ValueMappingRefreshOrchestrator
+import io.qpointz.mill.ai.data.valuemap.refresh.ValueMappingRefreshOrchestrator
 import io.qpointz.mill.ai.valuemap.state.ValueMappingRefreshStateRepository
 import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.persistence.ai.jpa.repositories.AiEmbeddingModelRepository

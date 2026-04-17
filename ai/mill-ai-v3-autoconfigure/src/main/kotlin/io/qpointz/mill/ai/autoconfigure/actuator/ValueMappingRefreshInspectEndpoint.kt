@@ -7,7 +7,7 @@ import io.qpointz.mill.ai.valuemap.ValueMappingEmbeddingRepository
 import io.qpointz.mill.ai.valuemap.ValueMappingService
 import io.qpointz.mill.ai.valuemap.VectorMappingSynchronizer
 import io.qpointz.mill.ai.valuemap.refresh.ValueMappingIndexedAttributeDiscovery
-import io.qpointz.mill.ai.valuemap.refresh.ValueMappingRefreshOrchestrator
+import io.qpointz.mill.ai.data.valuemap.refresh.ValueMappingRefreshOrchestrator
 import io.qpointz.mill.ai.valuemap.state.ValueMappingRefreshStateRepository
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher
 import io.qpointz.mill.metadata.repository.FacetRepository
@@ -34,8 +34,9 @@ class ValueMappingRefreshInspectEndpoint(
         return linkedMapOf(
             "mill.ai.enabled" to env.getProperty("mill.ai.enabled"),
             "mill.metadata.repository.type" to env.getProperty("mill.metadata.repository.type"),
-            "mill.ai.value-mapping.refresh.startup-enabled" to env.getProperty("mill.ai.value-mapping.refresh.startup-enabled"),
-            "mill.ai.value-mapping.refresh.scheduled-disabled" to env.getProperty("mill.ai.value-mapping.refresh.scheduled-disabled"),
+            "mill.ai.value-mapping.refresh.on-startup.enabled" to env.getProperty("mill.ai.value-mapping.refresh.on-startup.enabled"),
+            "mill.ai.value-mapping.refresh.schedule.enabled" to env.getProperty("mill.ai.value-mapping.refresh.schedule.enabled"),
+            "mill.ai.value-mapping.refresh.schedule.interval" to env.getProperty("mill.ai.value-mapping.refresh.schedule.interval"),
             "beans" to mapOf(
                 "MetadataFacetJpaRepository" to report(MetadataFacetJpaRepository::class.java),
                 "FacetRepository" to report(FacetRepository::class.java),

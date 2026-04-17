@@ -11,6 +11,8 @@ mill {
 
 dependencies {
     api(project(":ai:mill-ai-v3"))
+    implementation(project(":metadata:mill-metadata-core"))
+    implementation(project(":data:mill-data-metadata"))
     implementation(project(":data:mill-data-schema-core"))
     implementation(project(":data:mill-data-backend-core"))
     implementation(project(":core:mill-sql"))
@@ -19,6 +21,7 @@ dependencies {
     testRuntimeOnly(libs.junit.jupiter.engine)
     testImplementation(libs.assertj.core)
     testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.junit.jupiter)
     testImplementation(libs.mockito.kotlin)
 
     testImplementation(project(":data:mill-data-autoconfigure"))
