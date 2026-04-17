@@ -45,8 +45,15 @@ mill:
 ## Vector store (`mill.ai.vector-store`)
 
 Mill uses **one** active vector store implementation per running application (similarity search over
-embeddings). Configuration lives under **`mill.ai.vector-store.*`** (details in the design doc). The
-**MVP** uses an **in-memory** LangChain4j store; additional backends (pgvector, Chroma) attach under the same prefix.
+embeddings). Configuration lives under **`mill.ai.vector-store.*`**; see **`docs/design/ai/mill-ai-configuration.md`**
+in the Mill repo for the full property table and defaults.
+
+- **`mill.ai.vector-store.backend`** — `in-memory` (default) or **`chroma`** (LangChain4j HTTP client to ChromaDB).
+- When **`backend` is `chroma`**, set **`mill.ai.vector-store.chroma.base-url`** (required), e.g. `http://localhost:8000`.
+  Optional keys include **`api-version`** (`V1` / `V2`), **`tenant-name`**, **`database-name`**, **`collection-name`**, and **`timeout`** (duration).
+
+**Mill Service profiles (illustrative):** Spring profile **`chromadb`** (or profile group **`ai-chromadb`**, which combines **`ai`** and **`chromadb`**) can point the vector store at a local Chroma instance on port 8000 when those profiles are defined in application YAML — see the service’s `application.yml` for the exact blocks.
+
 **Golden-source** vectors for value mappings live in **`ai_embedding_model` / `ai_value_mapping`** (JPA + Flyway in **`mill-ai-v3-persistence`**); the **`mill.ai.vector-store`** bean is the **search** store only. **`ValueMappingService`** reconciles SQL-derived values into both (see the design doc).
 
 ## Chat models (`mill.ai.model`)

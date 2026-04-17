@@ -77,8 +77,8 @@ Orchestrator settings (startup, scheduled tick cadence, gates). Normative detail
 | Concept | Description |
 |---------|-------------|
 | **Cardinality** | **One** active backend per process — Spring **`@ConditionalOnProperty`** (or equivalent) so **only one** implementation bean is registered. |
-| **MVP** | **`in-memory`** implementation; **pgvector** / **Chroma** attach later via the same prefix without changing the umbrella model. |
-| **Structure** | **`mill.ai.vector-store.*`** — implementation selector plus backend-specific **non-secret** fields; **secrets** via **`mill.ai.providers`** when needed. |
+| **Backends** | **`in-memory`** (default); **`chroma`** — LangChain4j `ChromaEmbeddingStore` over HTTP (`mill.ai.vector-store.chroma.*`). **pgvector** may attach later via the same prefix. |
+| **Structure** | **`mill.ai.vector-store.*`** — implementation selector plus backend-specific **non-secret** fields; **secrets** via **`mill.ai.providers`** when needed. Chroma token/header auth is **not** exposed by LangChain4j’s builder yet; use network policies or a sidecar until upstream adds client credentials. |
 | **Alignment** | Embedding **dimension** comes from **`mill.ai.embedding-model`** (WI-176); operators must configure the store implementation so dimensions **agree** with the chosen embedding profile. |
 
 **Sync** from DB → this store is implemented by **`VectorMappingSynchronizer`** ([**WI-179**](../workitems/completed/20260416-implement-value-mappings/WI-179-sync-vectors-hydration.md)).
@@ -95,6 +95,18 @@ These constraints follow from [**WI-181**](../../workitems/planned/value-mapping
 | **One embedding space** | Vectors stored together must come from **compatible** embeddings: **same dimension** and **same model family** as configured under **`mill.ai.embedding-model`**. For value mapping, point **`mill.ai.value-mapping.embedding-model`** at **one** registry profile; do not mix unrelated models into the same store without a deliberate design (separate stores, collections, or segment metadata). |
 | **Not the DB** | This store is for **approximate nearest-neighbour search**. Authoritative rows and bytes remain in **`ai_value_mapping`** / **`ValueMappingEmbeddingRepository`** ([**WI-174**](../workitems/completed/20260416-implement-value-mappings/WI-174-value-mapping-embedding-repository.md)); the operator may run sync + DB without a vector backend, or run both. |
 | **Collections / isolation (later)** | Backends such as **Chroma** can use **different collection names** for different product areas (e.g. isolating corpora). Mill’s **v1** story assumes a **global** configured store for value mapping; splitting collections or processes for separate workloads is an **optional follow-up**, not required for the first delivery. |
+
+### `mill.ai.vector-store` properties
+
+| Property | Type | Default | Notes |
+|----------|------|---------|-------|
+| **`mill.ai.vector-store.backend`** | enum | `in-memory` | `in-memory` or `chroma`. |
+| **`mill.ai.vector-store.chroma.base-url`** | String | — | Required when `backend` is `chroma` (Chroma HTTP root, no trailing slash). |
+| **`mill.ai.vector-store.chroma.api-version`** | `V1` / `V2` | `V2` | Chroma REST API variant. |
+| **`mill.ai.vector-store.chroma.tenant-name`** | String | `default_tenant` | Chroma v2 tenant. |
+| **`mill.ai.vector-store.chroma.database-name`** | String | `default_database` | Logical database within tenant. |
+| **`mill.ai.vector-store.chroma.collection-name`** | String | `mill-value-mapping` | Target collection for embeddings. |
+| **`mill.ai.vector-store.chroma.timeout`** | `Duration` | `60s` | HTTP client timeout. |
 
 ## Persistence vs search (WI-174)
 

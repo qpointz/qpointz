@@ -21,8 +21,15 @@ data class MappedAttribute(val attribute: String, val mapped: Boolean)
 
 /**
  * The result of resolving one requested value for a mapped attribute.
+ *
+ * @param similarityScore When the resolver uses vector similarity search, the score of the chosen match
+ * (implementation-defined scale, often related to distance). Null when not applicable or not exposed.
  */
-data class ValueResolution(val requestedValue: String, val mappedValue: String?)
+data class ValueResolution(
+    val requestedValue: String,
+    val mappedValue: String?,
+    val similarityScore: Double? = null,
+)
 
 /**
  * Service boundary that [ValueMappingCapability] delegates to for all value-mapping queries.

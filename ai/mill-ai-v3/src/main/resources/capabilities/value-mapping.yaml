@@ -108,6 +108,9 @@ tools:
               mappedValue:
                 type: string
                 description: The canonical database value, or null if no match was found.
+              similarityScore:
+                type: number
+                description: Optional similarity / distance-related score for the chosen match when the resolver uses vector search.
 
 protocols:
   value-mapping.result:

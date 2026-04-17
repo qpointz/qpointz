@@ -23,6 +23,7 @@ dependencies {
     implementation(libs.boot.starter.actuator)
     implementation(libs.boot.starter.webflux)
     implementation(libs.langchain4j.open.ai)
+    implementation(libs.langchain4j.chroma)
     annotationProcessor(libs.boot.configuration.processor)
     implementation(project(":ai:mill-ai-v3-persistence"))
     implementation(project(":metadata:mill-metadata-core"))

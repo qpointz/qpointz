@@ -164,3 +164,17 @@ mill:
       default-profile: hello-world
       default-user-id: default
       max-title-length: 30
+---
+# Local ChromaDB vector store (no auth). Use with AI, e.g. `--spring.profiles.active=ai,chromadb`
+# and a Chroma server on localhost:8000 (see deploy/local-dev/docker-compose `chromadb`).
+spring:
+  config:
+    activate:
+      on-profile: chromadb
+
+mill:
+  ai:
+    vector-store:
+      backend: chroma
+      chroma:
+        base-url: http://localhost:8000

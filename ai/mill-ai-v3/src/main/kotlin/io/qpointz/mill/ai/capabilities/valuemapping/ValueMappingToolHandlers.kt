@@ -1,5 +1,7 @@
 package io.qpointz.mill.ai.capabilities.valuemapping
 
+import org.slf4j.LoggerFactory
+
 import io.qpointz.mill.ai.core.capability.*
 import io.qpointz.mill.ai.core.prompt.*
 import io.qpointz.mill.ai.core.protocol.*
@@ -17,8 +19,14 @@ import io.qpointz.mill.ai.runtime.events.routing.*
  * Each function maps a [ValueMappingResolver] call to a flat, JSON-serializable result type.
  * The result types mirror the output schemas declared in `capabilities/value-mapping.yaml`
  * exactly — any field added here must also be reflected in the YAML output schema and vice versa.
+ *
+ * **Diagnostics:** set `logging.level.io.qpointz.mill.ai.capabilities.valuemapping=DEBUG` to log
+ * attribute discovery and each requested value with its resolved canonical value (and [ValueResolution.similarityScore]
+ * when the resolver supplies it).
  */
 object ValueMappingToolHandlers {
+
+    private val log = LoggerFactory.getLogger("io.qpointz.mill.ai.capabilities.valuemapping")
 
     /**
      * Response payload for the `get_value_mapping_attributes` tool.
@@ -51,11 +59,23 @@ object ValueMappingToolHandlers {
      * unknown. The result wraps the table id so the planner can correlate the response with
      * the request without re-inspecting its context.
      */
-    fun getMappedAttributes(resolver: ValueMappingResolver, tableId: String): MappedAttributesResult =
-        MappedAttributesResult(
+    fun getMappedAttributes(resolver: ValueMappingResolver, tableId: String): MappedAttributesResult {
+        val attributes = resolver.getMappedAttributes(tableId)
+        if (log.isDebugEnabled) {
+            val mappedNames = attributes.filter { it.mapped }.map { it.attribute }
+            log.debug(
+                "value-mapping get_value_mapping_attributes: table={} totalAttributes={} mappedAttributeCount={} mappedAttributes={}",
+                tableId,
+                attributes.size,
+                mappedNames.size,
+                mappedNames,
+            )
+        }
+        return MappedAttributesResult(
             table = tableId,
-            attributes = resolver.getMappedAttributes(tableId),
+            attributes = attributes,
         )
+    }
 
     /**
      * Resolves each of [requestedValues] to its canonical database value for the given
@@ -70,11 +90,32 @@ object ValueMappingToolHandlers {
         tableId: String,
         attributeName: String,
         requestedValues: List<String>,
-    ): ValueMappingResult =
-        ValueMappingResult(
+    ): ValueMappingResult {
+        val results = resolver.resolveValues(tableId, attributeName, requestedValues)
+        if (log.isDebugEnabled) {
+            val detail = results.joinToString("; ") { r ->
+                buildString {
+                    append('"').append(r.requestedValue).append("\"->")
+                    append(r.mappedValue?.let { "\"$it\"" } ?: "null")
+                    if (r.similarityScore != null) {
+                        append(" similarity=").append(r.similarityScore)
+                    }
+                }
+            }
+            log.debug(
+                "value-mapping get_value_mapping: table={} attribute={} requestedCount={} requested={} resolutions=[{}]",
+                tableId,
+                attributeName,
+                requestedValues.size,
+                requestedValues,
+                detail,
+            )
+        }
+        return ValueMappingResult(
             table = tableId,
             attribute = attributeName,
-            results = resolver.resolveValues(tableId, attributeName, requestedValues),
+            results = results,
         )
+    }
 }
 

@@ -38,6 +38,8 @@ A **facet type** is a **definition** on the server (installed via **`mill.metada
 
 Facet types are **shared** across the deployment: many entities use the same type; the type does not “belong” to one table.
 
+For a **full list of platform-shipped (seed) facet types** and their purposes, see the design reference **`docs/design/metadata/platform-standard-facet-types.md`** in the Mill repository.
+
 Administrators can inspect or adjust **facet type descriptors** where your deployment exposes **Admin → Model → Facet types** (if that UI is enabled). Descriptors may include optional **stereotypes** on payload fields — UI hints such as **tags**, **hyperlink**, and **email** (not enforced by the metadata API). See [Facet field stereotypes](facet-stereotypes.md) for the tags Mill recognises in the Data Model.
 
 ### Facet assignment (the value on an entity)

@@ -16,6 +16,9 @@ spring:
       moneta-ai:
         - moneta
         - ai
+      ai-chromadb:
+        - ai
+        - chromadb
   main:
     web-application-type: servlet
   datasource:
@@ -122,6 +125,7 @@ mill:
         startup-enabled: true
         scheduled-disabled: false
         schedule-interval: PT15M
+    # Vector store: default in-memory; use profile `chromadb` or group `ai-chromadb` for local Chroma (see `---` document at file end).
     model:
       provider: openai
       api-key: ${OPENAI_API_KEY:}
@@ -131,3 +135,16 @@ mill:
       default-profile: hello-world
       default-user-id: default
       max-title-length: 30
+---
+# Local ChromaDB (localhost:8000, no auth). Activate with `ai,chromadb` or `spring.profiles.active=ai-chromadb`.
+spring:
+  config:
+    activate:
+      on-profile: chromadb
+
+mill:
+  ai:
+    vector-store:
+      backend: chroma
+      chroma:
+        base-url: http://localhost:8000

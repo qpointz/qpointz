@@ -23,6 +23,8 @@ Metadata **facet types** drive which **attributes** participate in value-mapping
 | **`urn:mill/metadata/facet-type:ai-column-value-mapping`** | **SINGLE** (primary) | Opts the column into value mapping: **`context`**, optional **`similarityThreshold`**, **`nullValues`**, **`data`** (`enabled`, refresh flags). When **`data.enabled`**, backend DISTINCT values feed indexing like the Skymill Chroma IT prototype. |
 | **`urn:mill/metadata/facet-type:ai-column-value-mapping-values`** | **MULTIPLE** (optional) | Static **`content` / `value`** pairs for a static list source. **Ignored** unless the primary facet exists on the **same** attribute. |
 
+For the **seed `contentSchema`** shape of **`ai-column-value-mapping-values`** (including **`values`** as **ARRAY** whose **`items`** is **OBJECT** with **`content`** / **`value`**), see [`facet-payload-schema-reference.md`](facet-payload-schema-reference.md).
+
 **Combination rule:** the primary facet **must** be present to enable value mapping for that column. Optional static rows are merged only when that holds.
 
 ## Payload highlights (primary facet)
