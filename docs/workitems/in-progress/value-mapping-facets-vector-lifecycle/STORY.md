@@ -86,6 +86,6 @@ Per [`RULES.md`](../../RULES.md), this folder stays in **`docs/workitems/planned
 **Suggested:** **181 → (184 ∥ 182)** → **185** after **181**; adjust order per § *Work Items* / *Dependency hints*. **WI-183** — separate story.
 
 - [x] WI-181 — Facet types, `ValueSource`, indexing API, shared harness/store (`WI-181-value-mapping-facet-types.md`)
-- [ ] WI-184 — Refresh state persistence, `STALE` (`WI-184-value-mapping-refresh-state-persistence.md`)
+- [x] WI-184 — Refresh state persistence, `STALE` (`WI-184-value-mapping-refresh-state-persistence.md`)
 - [ ] WI-182 — Vector refresh lifecycle: startup + schedule (`WI-182-value-mapping-vector-refresh-lifecycle.md`)
 - [ ] WI-185 — Test dataset value-mapping seeds: Skymill + Moneta (`WI-185-value-mapping-test-dataset-seeds.md`)
