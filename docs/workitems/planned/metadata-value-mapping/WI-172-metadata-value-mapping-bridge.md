@@ -42,7 +42,7 @@ legacy to faceted metadata.
 
 ## Coordination (refresh lifecycle)
 
-[**WI-182**](../completed/20260417-value-mapping-facets-vector-lifecycle/WI-182-value-mapping-vector-refresh-lifecycle.md) § *Production metadata retrieval* specifies **indexing / refresh-time** loading of value-mapping facet rows from **`mill-data-metadata`** (greenfield joins on **`type_res`**) and assembly of **`CompositeValueSource`**. This WI focuses on **query-time** legacy ↔ faceted **resolution** and parity; do not treat the bridge as a substitute for WI-182’s refresh read path.
+[**WI-182**](../../completed/20260417-value-mapping-facets-vector-lifecycle/WI-182-value-mapping-vector-refresh-lifecycle.md) § *Production metadata retrieval* specifies **indexing / refresh-time** loading of value-mapping facet rows from **`mill-data-metadata`** (greenfield joins on **`type_res`**) and assembly of **`CompositeValueSource`**. This WI focuses on **query-time** legacy ↔ faceted **resolution** and parity; do not treat the bridge as a substitute for WI-182’s refresh read path.
 
 ## Implementation Plan
 

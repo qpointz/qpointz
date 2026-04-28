@@ -16,4 +16,4 @@ stories depend on this checklist for scope and acceptance.
 - [`../ai-value-mapping-capability/STORY.md`](../ai-value-mapping-capability/STORY.md)
 - [`../ai-capability-admission/STORY.md`](../ai-capability-admission/STORY.md)
 - [`../ai-skeleton-capabilities/STORY.md`](../ai-skeleton-capabilities/STORY.md)
-- [`../ai-facet-catalog-inference/STORY.md`](../ai-facet-catalog-inference/STORY.md)
+- [`../ai-facet-catalog-inference/STORY.md`](../ai-facet-catalog-inference/STORY.md) (**WI-204–WI-206**)

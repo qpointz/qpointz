@@ -4,10 +4,11 @@ Introduce a migration-safe bridge from legacy value mapping to the facet-based m
 then expose value mappings as first-class API resources and make them visible in the metadata
 browser UI.
 
-Embedding persistence and delta sync (repository, value sources, sync service) are tracked in a
-separate story: [`../../completed/20260416-implement-value-mappings/STORY.md`](../../completed/20260416-implement-value-mappings/STORY.md).
+**Scope here:** only **WI-171–WI-173** below (Chroma exploration, bridge/parity, API + UI).  
+**Already delivered** in closed archives (linked for traceability — not part of this checklist):
 
-Facet types for **which columns** to index / **retrieval** tuning, **startup + scheduled** vector refresh, and **capability** wiring to the vector store: [`../completed/20260417-value-mapping-facets-vector-lifecycle/STORY.md`](../completed/20260417-value-mapping-facets-vector-lifecycle/STORY.md) (**WI-181–WI-183**).
+- [`../../completed/20260416-implement-value-mappings/STORY.md`](../../completed/20260416-implement-value-mappings/STORY.md) — embeddings, repository, sync orchestration, `ValueMappingService`, stack docs (**WI-174–WI-180** area).
+- [`../../completed/20260417-value-mapping-facets-vector-lifecycle/STORY.md`](../../completed/20260417-value-mapping-facets-vector-lifecycle/STORY.md) — facet types, vector refresh lifecycle, capability + pgvector (**WI-181–WI-186**).
 
 ## Work Items
 

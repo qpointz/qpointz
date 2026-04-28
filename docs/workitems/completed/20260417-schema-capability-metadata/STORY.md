@@ -28,7 +28,7 @@ Align **AI v3 schema exploration tools** (`SchemaCapability`, `SchemaCatalogPort
 | A-10 | Add Skymill `testIT` (`skymill` profile like mill-service); assertions from `skymill-canonical.yaml` + `skymill-extras-seed.yaml` | WI-190 | CI runs testIT; anchored to YAML |
 | A-11 | Pick **one** primary module for main Skymill schema IT (`mill-ai-v3-data` vs `mill-data-schema-core`) | WI-190 | **`mill-ai-v3-data`** — `SchemaFacetCatalogSkymillCanonicalIT` |
 | A-12 | Audit and delete redundant `mill-ai-v3*` metadata/schema duplication | WI-191 | Net cleanup + tests green |
-| A-13 | Cross-link MRs with **WI-155** (facet catalog) to avoid duplicate scope | Any WI touching catalog/tools | MR description |
+| A-13 | Cross-link MRs with **WI-204–WI-206** (facet catalog story) to avoid duplicate scope | Any WI touching catalog/tools | MR description |
 | — | File-repository-only metadata coverage | Backlog / out of scope | Not this story |
 | P-1 | On **first** completed WI: move story folder `planned/` → `in-progress/` | Process | Done; story archived under `completed/20260417-schema-capability-metadata/` |
 

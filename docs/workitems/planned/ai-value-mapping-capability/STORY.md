@@ -14,5 +14,5 @@ dictionary/API resolution (vectors stay outside the capability).
 
 - Parity definition: [`../ai-v1-v3-parity-baseline/STORY.md`](../ai-v1-v3-parity-baseline/STORY.md) (**WI-151**)
 - Metadata facet payloads: [`../metadata-value-mapping/STORY.md`](../metadata-value-mapping/STORY.md) (**WI-172**, **WI-173**)
-- [`../ai-facet-catalog-inference/STORY.md`](../ai-facet-catalog-inference/STORY.md) (**WI-155**)
-- Facet types + vector lifecycle + resolver wiring: [`../completed/20260417-value-mapping-facets-vector-lifecycle/STORY.md`](../completed/20260417-value-mapping-facets-vector-lifecycle/STORY.md) (**WI-181–WI-183**)
+- [`../ai-facet-catalog-inference/STORY.md`](../ai-facet-catalog-inference/STORY.md) (**WI-204–WI-206**, facet catalog)
+- Facet types + vector lifecycle + resolver wiring: [`../../completed/20260417-value-mapping-facets-vector-lifecycle/STORY.md`](../../completed/20260417-value-mapping-facets-vector-lifecycle/STORY.md) (**WI-181–WI-186**)
