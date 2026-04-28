@@ -99,6 +99,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | C-20 | Fix JDBC HTTP content negotiation/decoding mismatch (http-json path still assumes protobuf response decode) | 🐛 fix | backlog | **TBD (new WI)** |
 | C-21 | Fix Python HTTP client content negotiation/decoding mismatch parity with JDBC (protobuf-vs-json response handling) | 🐛 fix | backlog | **TBD (new WI)** |
 | C-22 | Add ibis dialect correctness validation and certification gate (DialectTester + report + CI drift detection) | 🧪 test | backlog | **`docs/workitems/planned/ibis-dialect-validation/WI-023-ibis-dialect-correctness-validation.md`** |
+| C-23 | mill-py platform HTTP clients (`mill.metadata`, `mill.schema_explorer`, aio); metadata canonical helpers (**WI-192–WI-203**) | ✨ feature | done | [`docs/workitems/completed/20260424-mill-py-metadata-client/STORY.md`](completed/20260424-mill-py-metadata-client/STORY.md) — see **MILESTONE** 0.8.0 |
 
 ---
 

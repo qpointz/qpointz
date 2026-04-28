@@ -16,6 +16,8 @@
 
 **Scope:** this subsection lists **only** story archives whose **`docs/workitems/completed/…` tree first landed after git tag `v0.7.0`** (verify with e.g. `git log v0.7.0..HEAD -- docs/workitems/completed/`). Archives dated **2026-03-30** through **2026-04-02** — including **metadata rework**, **metadata/UI**, **flow UI facets**, **typed URNs** — were committed **on or before** `v0.7.0`; they remain under [`completed/`](completed/) for traceability and are summarized in **[`releases/RELEASE-0.7.0.md`](releases/RELEASE-0.7.0.md)** (see also **[`completed/README.md`](completed/README.md)**). They are **not** duplicated here as **0.8.0** delta.
 
+- **mill-py platform HTTP clients** (`mill-py-metadata-client`, closed **2026-04-24**): [`completed/20260424-mill-py-metadata-client/STORY.md`](completed/20260424-mill-py-metadata-client/STORY.md). **WI-192**–**WI-203** — shared `httpx` helpers and Jet transport refactor; `mill.metadata` / `mill.metadata.aio`, `mill.schema_explorer` async; metadata DTOs, scopes import/export, entities/facets/catalog, integration tests; canonical **GET /export** YAML+JSON and scope filter (server); bulk import + JSON export parse helpers (**WI-203**); design [`docs/design/client/mill-py-platform-http.md`](../design/client/mill-py-platform-http.md). **BACKLOG** **C-23** `done`.
+
 - **Schema capability — platform facet reconciliation** (`schema-capability-metadata`, closed **2026-04-17**): [`completed/20260417-schema-capability-metadata/STORY.md`](completed/20260417-schema-capability-metadata/STORY.md). **WI-187**–**WI-191** — bootstrap relation payload normalization (`RelationPayloadNormalization`, `SchemaFacets`), `DescriptiveFacet` `title` alias, `SchemaCatalogPort` + adapter (`displayName`, `joinSql`, model-root relations), `capabilities/schema.yaml`, Skymill **`SchemaFacetCatalogSkymillCanonicalIT`**, AI facet URNs on **`MetadataUrns`**. Design: [`docs/design/metadata/schema-facet-ai-tool-field-mapping.md`](../design/metadata/schema-facet-ai-tool-field-mapping.md). **BACKLOG** **A-90** `done`.
 
 - **Value mapping — metadata facets, vector lifecycle** (`value-mapping-facets-vector-lifecycle`, closed **2026-04-17**): [`completed/20260417-value-mapping-facets-vector-lifecycle/STORY.md`](completed/20260417-value-mapping-facets-vector-lifecycle/STORY.md). **WI-181** facet types + **`ValueSource`** + **`syncFromSource`**; **WI-184** refresh state + **`STALE`**; **WI-182** startup + scheduled orchestrator; **WI-185** Skymill/Moneta extras seeds; **WI-186** LangChain4j **pgvector** + Mill Service **`pgvector`** / **`ai-pgvector`**. **WI-183** (resolver / capability) remains a **follow-on** in that archive. **BACKLOG** **A-89** `done`.
@@ -31,6 +33,8 @@
 #### Cumulative WI deliveries (toward 0.8.0)
 
 Individual work items and bundles merged on `dev` in support of this milestone (including items that also appear under **Archived stories** above).
+
+- **WI-192–WI-203** — mill-py platform HTTP (`mill.metadata`, `mill.schema_explorer`, aio), metadata export/import alignment, bulk helpers (story **`mill-py-metadata-client`**, archived [`completed/20260424-mill-py-metadata-client/STORY.md`](completed/20260424-mill-py-metadata-client/STORY.md)).
 
 - WI-038 — `ai/v3` capability model and descriptor format: `CapabilityDescriptor`,
   `Capability`, `CapabilityProvider`, `CapabilityRegistry`, `CapabilityManifest`, and
