@@ -53,6 +53,8 @@ class TestHierarchy:
         assert err.request_url is None
         assert err.request_headers is None
         assert err.response_headers is None
+        assert err.mill_status is None
+        assert err.mill_details is None
 
 
 # ---------------------------------------------------------------------------
@@ -109,7 +111,7 @@ class TestFromHttpStatus:
         result = _from_http_status(status, "forbidden")
         assert isinstance(result, MillAuthError)
 
-    @pytest.mark.parametrize("status", [400, 404, 422])
+    @pytest.mark.parametrize("status", [400, 404, 409, 422])
     def test_query_status(self, status: int) -> None:
         result = _from_http_status(status)
         assert isinstance(result, MillQueryError)

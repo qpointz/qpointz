@@ -1,15 +1,15 @@
 package io.qpointz.mill.metadata.service
 
 import io.qpointz.mill.metadata.domain.ImportMode
-import io.qpointz.mill.metadata.domain.MetadataUrns
+import io.qpointz.mill.metadata.domain.MetadataExportFormat
 import java.io.InputStream
 
 /**
  * Summary of a completed import operation.
  *
  * @property entitiesImported   number of entities saved (inserted or updated)
- * @property facetTypesImported number of custom facet types registered from the `facet-types:`
- *                              section of the import document
+ * @property facetTypesImported number of custom facet types registered from
+ *                              `kind: FacetTypeDefinition` documents in the import stream
  * @property errors             list of non-fatal per-entity error messages accumulated during
  *                              the import; the import continues after each error
  */
@@ -20,16 +20,10 @@ data class ImportResult(
 )
 
 /**
- * Service for importing and exporting metadata in YAML format.
+ * Service for importing and exporting canonical metadata (multi-document YAML / JSON array).
  *
- * The YAML format supports an `entities:` section and an optional `facet-types:` section.
- * Multiple YAML documents separated by `---` are supported in a single resource.
- *
- * Facet type keys and scope keys in the YAML may use legacy short names (`descriptive`,
- * `global`) or URN notation. Both forms are normalised to URN before persistence.
- *
- * Platform facet types (descriptive, structural, relation, concept, value-mapping) are always
- * known and do not need to appear in `facet-types:`.
+ * Import accepts only `kind:`-discriminated documents (SPEC §15); legacy `entities:` list
+ * envelopes are rejected by the parser.
  */
 interface MetadataImportService {
 
@@ -52,13 +46,20 @@ interface MetadataImportService {
     ): ImportResult
 
     /**
-     * Exports all metadata entities as a YAML document compatible with [import].
+     * Exports persisted metadata in canonical form ([io.qpointz.mill.metadata.io.MetadataYamlSerializer]).
      *
-     * Output always uses URN-notation keys for facet types and scopes.
+     * Emits, in order: all [io.qpointz.mill.metadata.domain.MetadataScope] rows,
+     * all catalog [io.qpointz.mill.metadata.domain.FacetTypeDefinition] rows, then every
+     * [io.qpointz.mill.metadata.domain.MetadataEntity] with an embedded `facets` list filtered
+     * by [scopeQuery] (facet rows only — scope and definition documents are not narrowed).
      *
-     * @param scopeKey export only facets stored under this scope key;
-     *                 defaults to [MetadataUrns.SCOPE_GLOBAL]
-     * @return YAML string that can be re-imported via [import]
+     * @param scopeQuery `scope` selection: omitted or blank → global scope facets only;
+     *                   comma-separated URNs/slugs → union; `all` or `*` → no facet scope filter
+     * @param format YAML multi-document or JSON array of the same documents
+     * @return YAML or JSON text suitable for [import] (YAML only on the wire for import today)
      */
-    fun export(scopeKey: String = MetadataUrns.SCOPE_GLOBAL): String
+    fun export(
+        scopeQuery: String? = null,
+        format: MetadataExportFormat = MetadataExportFormat.YAML
+    ): String
 }

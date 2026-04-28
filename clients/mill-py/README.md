@@ -121,6 +121,74 @@ async with await aconnect("grpc://localhost:9090") as client:
     df = await result.to_pandas()
 ```
 
+## Platform HTTP (metadata + schema explorer)
+
+These APIs use the **Mill HTTP origin** (same host as the Spring Boot app), not the
+Jet path `/services/jet`. Clients share TLS/auth helpers via `mill._http_common`
+and set `Accept` / `Content-Type` per request.
+
+| Package | Sync | Async |
+|---------|------|--------|
+| Metadata (`/api/v1/metadata`) | `mill.metadata.connect` → `MetadataClient` | `mill.metadata.aio.connect` → `AsyncMetadataClient` |
+| Schema explorer (`/api/v1/schema`) | `mill.schema_explorer.connect` → `SchemaExplorerClient` | `mill.schema_explorer.aio.connect` → `AsyncSchemaExplorerClient` |
+
+```python
+from mill.auth import BasicAuth
+from mill.metadata import connect as meta_connect
+from mill.schema_explorer import connect as schema_connect
+
+origin = "http://localhost:8080"
+
+with meta_connect(origin, auth=BasicAuth("u", "p")) as meta:
+    scopes = meta.list_scopes()
+    yaml_export = meta.export_metadata(scope="global", format="yaml")
+
+with schema_connect(origin, auth=BasicAuth("u", "p")) as ex:
+    root = ex.get_model_root(facet_mode="direct")
+    # Use root.metadata_entity_id when calling metadata write APIs
+```
+
+**Export:** `MetadataClient.export_metadata(..., format="yaml"|"json")` passes through
+to `GET /api/v1/metadata/export` (`scope` controls which facet rows are included;
+see metadata service docs). **Import:** multipart YAML via `import_metadata`.
+
+**Skymill-style bundles:** concatenate multiple YAML seeds client-side, then one import:
+
+```python
+from pathlib import Path
+
+from mill.auth import BasicAuth
+from mill.metadata import (
+    connect as meta_connect,
+    import_metadata_bundle,
+    export_canonical,
+    parse_metadata_export_json,
+)
+
+with meta_connect(origin, auth=BasicAuth("u", "p")) as meta:
+    import_metadata_bundle(
+        meta,
+        [Path("seed-a.yaml"), Path("seed-b.yaml")],
+        mode="MERGE",
+        actor="loader",
+    )
+    json_text = export_canonical(meta, scope="all", format="json")
+    docs = parse_metadata_export_json(json_text)
+```
+
+Async equivalents: `import_metadata_bundle_async`, `export_canonical_async` on
+`AsyncMetadataClient`. Helpers use stdlib `json` only for JSON export parsing (no PyYAML
+required for the import path beyond building the YAML bytes you upload).
+
+**URNs:** Logical model entity rules live in Kotlin
+[`ModelEntityUrn.kt`](../../data/mill-data-metadata/src/main/kotlin/io/qpointz/mill/data/metadata/ModelEntityUrn.kt)
+and
+[`SchemaModelRoot.kt`](../../data/mill-data-metadata/src/main/kotlin/io/qpointz/mill/data/metadata/SchemaModelRoot.kt);
+prefer `metadata_entity_id` from schema explorer DTOs for metadata mutations.
+
+Integration tests also support **`MILL_IT_PLATFORM_ORIGIN`** (full URL to the Mill HTTP
+server) for `tests/integration/test_platform_http.py`; when unset, those tests skip.
+
 ## Schema Introspection
 
 ```python

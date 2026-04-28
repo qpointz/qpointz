@@ -8,6 +8,7 @@ import io.qpointz.mill.metadata.domain.facet.FacetAssignment
 import io.qpointz.mill.metadata.domain.facet.FacetTargetCardinality
 import io.qpointz.mill.metadata.domain.facet.MergeAction
 import io.qpointz.mill.metadata.domain.MetadataScope
+import io.qpointz.mill.utils.JsonUtils
 import io.qpointz.mill.utils.YamlUtils
 import org.slf4j.LoggerFactory
 import java.security.MessageDigest
@@ -25,6 +26,7 @@ object MetadataYamlSerializer {
     private val log = LoggerFactory.getLogger(MetadataYamlSerializer::class.java)
     private val docSplit = Regex("^---\\s*$", RegexOption.MULTILINE)
     private val mapper get() = YamlUtils.defaultYamlMapper()
+    private val jsonMapper get() = JsonUtils.defaultJsonMapper()
 
     /**
      * Multi-document files often start with a `#` comment block before the first `---`.
@@ -49,20 +51,46 @@ object MetadataYamlSerializer {
         definitions: List<FacetTypeDefinition> = emptyList(),
         entities: List<MetadataEntity> = emptyList(),
         facetsByEntity: Map<String, List<FacetAssignment>> = emptyMap()
-    ): String {
-        val chunks = mutableListOf<String>()
+    ): String =
+        buildDocuments(scopes, definitions, entities, facetsByEntity)
+            .joinToString("\n---\n") { mapper.writeValueAsString(it) }
+
+    /**
+     * Same document order and payload as [serialize], as a JSON array of objects (one per document).
+     *
+     * @param scopes persisted scope rows → `kind: MetadataScope`
+     * @param definitions facet type definitions → `kind: FacetTypeDefinition`
+     * @param entities entity rows → `kind: MetadataEntity` with embedded `facets`
+     * @param facetsByEntity facet assignments per canonical entity URN
+     * @return JSON array string
+     */
+    fun serializeJson(
+        scopes: List<MetadataScope> = emptyList(),
+        definitions: List<FacetTypeDefinition> = emptyList(),
+        entities: List<MetadataEntity> = emptyList(),
+        facetsByEntity: Map<String, List<FacetAssignment>> = emptyMap()
+    ): String =
+        jsonMapper.writeValueAsString(buildDocuments(scopes, definitions, entities, facetsByEntity))
+
+    private fun buildDocuments(
+        scopes: List<MetadataScope>,
+        definitions: List<FacetTypeDefinition>,
+        entities: List<MetadataEntity>,
+        facetsByEntity: Map<String, List<FacetAssignment>>
+    ): List<Map<String, Any?>> {
+        val docs = mutableListOf<Map<String, Any?>>()
         for (s in scopes) {
-            chunks += mapper.writeValueAsString(scopeToMap(s))
+            docs += scopeToMap(s)
         }
         for (d in definitions) {
-            chunks += mapper.writeValueAsString(definitionToMap(d))
+            docs += definitionToMap(d)
         }
         for (e in entities) {
             val eid = MetadataEntityUrn.canonicalize(e.id)
             val facets = facetsByEntity[eid].orEmpty()
-            chunks += mapper.writeValueAsString(entityToMap(e, facets))
+            docs += entityToMap(e, facets)
         }
-        return chunks.joinToString("\n---\n")
+        return docs
     }
 
     /**

@@ -1,8 +1,9 @@
 package io.qpointz.mill.metadata.api
 
 import io.qpointz.mill.metadata.api.dto.ImportResultDto
+import io.qpointz.mill.excepions.statuses.MillStatuses
 import io.qpointz.mill.metadata.domain.ImportMode
-import io.qpointz.mill.metadata.domain.MetadataUrns
+import io.qpointz.mill.metadata.domain.MetadataExportFormat
 import io.qpointz.mill.metadata.service.MetadataImportService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -16,6 +17,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -24,11 +26,12 @@ import org.springframework.web.multipart.MultipartFile
 /**
  * REST controller for bulk metadata import and export operations.
  *
- * Import accepts a YAML file upload (multipart/form-data) in the extended format supporting
- * both `entities:` and optional `facet-types:` sections. Multi-document YAML separated by
- * `---` is also supported.
+ * Import accepts a YAML file upload (multipart/form-data) as a `kind:`-discriminated
+ * multi-document stream (optional `---` separators). Legacy `entities:` list envelopes are
+ * rejected by the server parser.
  *
- * Export produces a YAML document in the same format, filtered to the requested scope.
+ * Export returns all persisted scopes and catalog facet-type definitions, plus every entity
+ * with facet rows filtered by the `scope` query (facet rows only).
  */
 @Tag(name = "metadata-import-export", description = "Bulk metadata import and export endpoints")
 @RestController
@@ -36,14 +39,11 @@ import org.springframework.web.multipart.MultipartFile
 class MetadataImportExportController(private val importService: MetadataImportService) {
 
     /**
-     * Imports metadata entities and optional custom facet type definitions from a YAML file.
+     * Imports metadata from a canonical multi-document YAML upload.
      *
-     * The uploaded YAML may contain an `entities:` section and an optional `facet-types:` section.
-     * Multiple YAML documents separated by `---` are supported within a single file.
-     *
-     * Legacy short-form facet type keys (`descriptive`, `global`) are normalised to URN notation
-     * during import. Use [ImportMode.REPLACE] to clear all existing entities before importing;
-     * [ImportMode.MERGE] (default) preserves entities not mentioned in the file.
+     * Documents use `kind:` values `MetadataScope`, `FacetTypeDefinition`, and `MetadataEntity`
+     * (see SPEC §15). [ImportMode.REPLACE] deletes all entities before importing; [ImportMode.MERGE]
+     * (default) preserves entities not mentioned in the file.
      *
      * @param file   the YAML file to import as a multipart part named `file`
      * @param mode   import mode; `MERGE` (default) or `REPLACE`
@@ -52,8 +52,8 @@ class MetadataImportExportController(private val importService: MetadataImportSe
      */
     @Operation(
         summary = "Import metadata from YAML",
-        description = "Accepts a multipart/form-data upload with the YAML file in the `file` part. " +
-            "Supports entities: and facet-types: sections. Multi-document YAML is accepted. " +
+        description = "Multipart upload (`file` part) of `kind:`-discriminated YAML documents " +
+            "(optional `---`). Legacy `entities:` list envelopes are not supported. " +
             "mode=REPLACE deletes all entities before importing; default is MERGE."
     )
     @ApiResponses(
@@ -79,36 +79,85 @@ class MetadataImportExportController(private val importService: MetadataImportSe
     }
 
     /**
-     * Exports all metadata entities as a YAML document, filtered to the requested scope.
+     * Exports persisted metadata as canonical YAML or JSON.
      *
-     * Custom facet type descriptors (non-platform) are included as a `facet-types:` section
-     * preceding the `entities:` section. All keys are exported in full URN notation.
+     * The `scope` query filters **facet assignment rows** embedded under entities only (scopes and
+     * facet type definition documents are always included in full). Omitted or blank `scope` limits
+     * facets to the global scope; `all` or `*` exports every facet row; comma-separated values form
+     * a union.
      *
-     * @param scope the scope key (full URN or prefixed slug) to filter exported facets;
-     *              defaults to `urn:mill/metadata/scope:global`
-     * @return YAML document as `text/yaml`
+     * The `format` query selects the representation (`yaml` default, `json`). When `format` is
+     * omitted, `Accept: application/json` selects JSON; an explicit `format` wins over `Accept`.
+     *
+     * @param scope  optional facet scope filter (see above)
+     * @param format export representation: `yaml` or `json`
+     * @param accept optional `Accept` header used when `format` is omitted
+     * @return YAML (`text/yaml`) or JSON (`application/json`) body
      */
     @Operation(
-        summary = "Export metadata as YAML",
-        description = "Returns all entities with facets filtered to the requested scope. " +
-            "Custom facet types are included in a facet-types: preamble section. " +
-            "All keys use full URN notation."
+        summary = "Export metadata (YAML or JSON)",
+        description = "Canonical export: all MetadataScope rows, catalog FacetTypeDefinition rows, " +
+            "then MetadataEntity documents with facets filtered by `scope`. " +
+            "`format=yaml|json` (default yaml); explicit format overrides Accept. " +
+            "`scope` omitted → global facets only; `all` or `*` → all facet rows; comma-separated → union."
     )
     @ApiResponses(
-        ApiResponse(responseCode = "200", description = "YAML export produced",
-            content = [Content(mediaType = "text/yaml")])
+        ApiResponse(
+            responseCode = "200",
+            description = "Export produced",
+            content = [
+                Content(mediaType = "text/yaml"),
+                Content(mediaType = "application/json")
+            ]
+        ),
+        ApiResponse(responseCode = "400", description = "Invalid scope or format token")
     )
-    @GetMapping("/export", produces = ["text/yaml"])
+    @GetMapping("/export", produces = ["text/yaml", "application/json"])
     fun exportMetadata(
-        @Parameter(description = "Scope key (full URN or slug, e.g. global); defaults to global scope")
-        @RequestParam(required = false) scope: String?
+        @Parameter(
+            description = "Facet scope filter: omit for global only; `all` or `*` for all rows; " +
+                "comma-separated URNs/slugs for union"
+        )
+        @RequestParam(required = false) scope: String?,
+        @Parameter(description = "Export format: yaml (default) or json")
+        @RequestParam(required = false) format: String?,
+        @Parameter(description = "Used when format is omitted: application/json requests JSON")
+        @RequestHeader(value = HttpHeaders.ACCEPT, required = false) accept: String?
     ): ResponseEntity<String> {
-        val normScope = if (scope != null) MetadataUrns.normaliseScopePath(scope)
-                        else MetadataUrns.SCOPE_GLOBAL
-        val yaml = importService.export(normScope)
-        return ResponseEntity.ok()
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"metadata-export.yaml\"")
-            .contentType(MediaType.parseMediaType("text/yaml"))
-            .body(yaml)
+        val exportFormat = resolveExportFormat(format, accept)
+        val body = importService.export(scope, exportFormat)
+        return when (exportFormat) {
+            MetadataExportFormat.YAML -> ResponseEntity.ok()
+                .header(
+                    HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=\"metadata-export.yaml\""
+                )
+                .contentType(MediaType.parseMediaType("text/yaml"))
+                .body(body)
+            MetadataExportFormat.JSON -> ResponseEntity.ok()
+                .header(
+                    HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=\"metadata-export.json\""
+                )
+                .contentType(MediaType.parseMediaType("application/json"))
+                .body(body)
+        }
+    }
+
+    private fun resolveExportFormat(format: String?, accept: String?): MetadataExportFormat {
+        val trimmed = format?.trim().orEmpty()
+        if (trimmed.isNotEmpty()) {
+            return when (trimmed.lowercase()) {
+                "yaml" -> MetadataExportFormat.YAML
+                "json" -> MetadataExportFormat.JSON
+                else -> throw MillStatuses.badRequestRuntime("format must be yaml or json")
+            }
+        }
+        val acceptVal = accept?.lowercase().orEmpty()
+        return if (acceptVal.contains("application/json")) {
+            MetadataExportFormat.JSON
+        } else {
+            MetadataExportFormat.YAML
+        }
     }
 }

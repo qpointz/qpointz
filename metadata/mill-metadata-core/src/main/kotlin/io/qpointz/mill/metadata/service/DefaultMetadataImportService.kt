@@ -4,8 +4,8 @@ import io.qpointz.mill.excepions.statuses.MillStatuses
 import io.qpointz.mill.metadata.domain.ImportMode
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
+import io.qpointz.mill.metadata.domain.MetadataExportFormat
 import io.qpointz.mill.metadata.domain.MetadataScope
-import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.io.MetadataYamlSerializer
 import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.metadata.repository.EntityRepository
@@ -177,15 +177,38 @@ class DefaultMetadataImportService(
         return ImportResult(entitiesImported, facetTypesImported, errors)
     }
 
-    override fun export(scopeKey: String): String {
-        val sid = MetadataEntityUrn.canonicalize(
-            MetadataUrns.normaliseScopeKey(scopeKey)
-        )
-        val entities = entityService.findAll()
+    override fun export(scopeQuery: String?, format: MetadataExportFormat): String {
+        val facetScopeFilter = MetadataExportFacetScopeFilter.parse(scopeQuery)
+        val scopes = scopeRepository.findAll().sortedBy { it.res }
+        val definitions = facetCatalog.listDefinitions().sortedBy { it.typeKey }
+        val entities = entityService.findAll().sortedBy { MetadataEntityUrn.canonicalize(it.id) }
         val facetsByEntity = entities.associate { e ->
             val id = MetadataEntityUrn.canonicalize(e.id)
-            id to facetRepository.findByEntity(id).filter { MetadataEntityUrn.canonicalize(it.scopeKey) == sid }
+            val rows = facetRepository.findByEntity(id)
+            val filtered = when (facetScopeFilter) {
+                MetadataExportFacetScopeFilter.AllScopes -> rows
+                is MetadataExportFacetScopeFilter.Union ->
+                    rows.filter { f ->
+                        MetadataEntityUrn.canonicalize(f.scopeKey) in facetScopeFilter.scopeUrns
+                    }
+            }
+            id to filtered
         }
-        return MetadataYamlSerializer.serialize(entities = entities, facetsByEntity = facetsByEntity)
+        return when (format) {
+            MetadataExportFormat.YAML ->
+                MetadataYamlSerializer.serialize(
+                    scopes = scopes,
+                    definitions = definitions,
+                    entities = entities,
+                    facetsByEntity = facetsByEntity
+                )
+            MetadataExportFormat.JSON ->
+                MetadataYamlSerializer.serializeJson(
+                    scopes = scopes,
+                    definitions = definitions,
+                    entities = entities,
+                    facetsByEntity = facetsByEntity
+                )
+        }
     }
 }

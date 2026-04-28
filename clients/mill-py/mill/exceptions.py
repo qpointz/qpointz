@@ -7,7 +7,7 @@ subclass so callers can catch specific failure modes.
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, cast
 
 
 class MillError(Exception):
@@ -61,6 +61,8 @@ class MillQueryError(MillError):
         request_url: str | None = None,
         request_headers: dict[str, str] | None = None,
         response_headers: dict[str, str] | None = None,
+        mill_status: str | None = None,
+        mill_details: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(message, details=details)
         self.status_code = status_code
@@ -72,6 +74,8 @@ class MillQueryError(MillError):
         self.request_url = request_url
         self.request_headers = request_headers
         self.response_headers = response_headers
+        self.mill_status = mill_status
+        self.mill_details = mill_details
 
     def as_dict(self) -> dict[str, Any]:
         """Return structured diagnostics for logging/telemetry."""
@@ -87,6 +91,8 @@ class MillQueryError(MillError):
             "request_url": self.request_url,
             "request_headers": self.request_headers,
             "response_headers": self.response_headers,
+            "mill_status": self.mill_status,
+            "mill_details": self.mill_details,
         }
 
 
@@ -151,19 +157,27 @@ def _from_http_status(
         request_url=request_url,
         request_headers=request_headers,
         response_headers=response_headers,
+        mill_status=payload.get("mill_status"),
+        mill_details=payload.get("mill_details"),
     )
 
     if status_code in (401, 403):
         return MillAuthError(detail, details=f"HTTP {status_code}")
-    if status_code in (400, 404, 422):
+    if status_code in (400, 404, 409, 422):
         return query_error
     if status_code >= 500:
         return query_error
     return MillError(detail, details=f"HTTP {status_code}")
 
 
-def _parse_http_body(body: str) -> dict[str, str]:
-    """Best-effort parse for standard JSON error envelopes."""
+def _parse_http_body(body: str) -> dict[str, Any]:
+    """Best-effort parse for JSON error bodies (Spring Boot and MillStatusDetails).
+
+    Mill platform returns :class:`MillStatusDetails`-shaped JSON: ``status`` (enum
+    name string), ``message``, numeric ``timestamp``, optional ``details`` object.
+    Spring defaults may use numeric ``status`` instead; that is not treated as
+    ``mill_status``.
+    """
     if not body:
         return {}
     try:
@@ -172,11 +186,28 @@ def _parse_http_body(body: str) -> dict[str, str]:
         return {}
     if not isinstance(parsed, dict):
         return {}
-    result: dict[str, str] = {}
-    for key in ("timestamp", "status", "error", "message", "path"):
+    result: dict[str, Any] = {}
+    for key in ("error", "message", "path"):
         value = parsed.get(key)
         if isinstance(value, str):
             result[key] = value
         elif value is not None:
             result[key] = str(value)
+
+    ts = parsed.get("timestamp")
+    if isinstance(ts, str):
+        result["timestamp"] = ts
+    elif isinstance(ts, (int, float)):
+        result["timestamp"] = str(int(ts))
+
+    st = parsed.get("status")
+    if isinstance(st, str):
+        result["mill_status"] = st
+    elif st is not None and not isinstance(st, dict):
+        result["status"] = str(st)
+
+    det = parsed.get("details")
+    if isinstance(det, dict):
+        result["mill_details"] = cast(dict[str, Any], det)
+
     return result

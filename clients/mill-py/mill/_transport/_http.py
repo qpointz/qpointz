@@ -15,8 +15,15 @@ from mill._proto import data_connect_svc_pb2 as _svc
 from mill._proto import dialect_pb2 as _dialect
 from mill._proto import statement_pb2 as _stmt
 from mill._transport import Transport
-from mill.auth import Credential, _auth_headers
-from mill.exceptions import _from_http_status, MillConnectionError
+from mill._http_common import (
+    connection_error_from_transport,
+    jet_base_url,
+    jet_client_headers,
+    sanitize_headers_for_log,
+    tls_verify_and_cert,
+)
+from mill.auth import Credential
+from mill.exceptions import _from_http_status
 
 # Content types
 _CT_JSON = "application/json"
@@ -60,10 +67,7 @@ class HttpTransport(Transport):
         tls_cert: str | None = None,
         tls_key: str | None = None,
     ) -> None:
-        scheme = "https" if ssl else "http"
-        # Normalise base_path to have leading slash, no trailing slash
-        base_path = "/" + base_path.strip("/") if base_path else ""
-        self._base_url = f"{scheme}://{host}:{port}{base_path}"
+        self._base_url = jet_base_url(host, port, ssl=ssl, base_path=base_path)
         self._encoding = encoding.lower()
 
         if self._encoding == "protobuf":
@@ -71,23 +75,8 @@ class HttpTransport(Transport):
         else:
             self._content_type = _CT_JSON
 
-        # Capitalise auth headers for HTTP (server expects standard casing)
-        raw_headers = _auth_headers(auth)
-        http_headers: dict[str, str] = {}
-        for k, v in raw_headers.items():
-            http_headers["Authorization"] = v  # always capitalised for HTTP
-        http_headers["Content-Type"] = self._content_type
-        http_headers["Accept"] = self._content_type
-
-        # TLS certificate options
-        verify: str | bool = True  # httpx default
-        if tls_ca is not None:
-            verify = tls_ca  # str path or False to disable
-        cert: tuple[str, str] | str | None = None
-        if tls_cert and tls_key:
-            cert = (tls_cert, tls_key)
-        elif tls_cert:
-            cert = tls_cert
+        http_headers = jet_client_headers(auth, self._content_type)
+        verify, cert = tls_verify_and_cert(tls_ca, tls_cert, tls_key)
 
         self._client = httpx.Client(
             base_url=self._base_url,
@@ -115,16 +104,6 @@ class HttpTransport(Transport):
         return msg
 
     # -- request helper --
-
-    @staticmethod
-    def _sanitize_headers(headers: dict[str, str]) -> dict[str, str]:
-        redacted: dict[str, str] = {}
-        for key, value in headers.items():
-            if key.lower() == "authorization":
-                redacted[key] = "<redacted>"
-            else:
-                redacted[key] = value
-        return redacted
 
     def _post(
         self,
@@ -156,17 +135,16 @@ class HttpTransport(Transport):
             content_kwarg = {"content": body.encode("utf-8")}
         request_method = "POST"
         request_url = f"{self._base_url}/{rel_path}"
-        request_headers = self._sanitize_headers(dict(self._client.headers))
+        request_headers = sanitize_headers_for_log(dict(self._client.headers))
 
         try:
             resp = self._client.post(rel_path, **content_kwarg)
         except httpx.TransportError as e:
-            raise MillConnectionError(
-                str(e),
-                details=(
-                    f"HTTP {request_method} {request_url} "
-                    f"headers={request_headers}"
-                ),
+            raise connection_error_from_transport(
+                e,
+                method=request_method,
+                url=request_url,
+                headers=dict(self._client.headers),
             ) from e
 
         if resp.status_code >= 400:

@@ -20,6 +20,9 @@ MILL_IT_USERNAME    Basic-auth username (default: reader)
 MILL_IT_PASSWORD    Basic-auth password (default: reader)
 MILL_IT_TOKEN       Bearer token string
 MILL_IT_SCHEMA      Schema name to test against (default: skymill)
+MILL_IT_PLATFORM_ORIGIN  Full HTTP origin for platform REST (e.g. http://localhost:8080).
+                    GitLab ``.mill-py-integration-template`` sets ``http://mill-it:8080``.
+                    When unset locally, tests using the ``platform_httpx`` fixture are skipped.
 """
 from __future__ import annotations
 
@@ -28,7 +31,9 @@ from dataclasses import dataclass
 
 import pytest
 
+import httpx
 import mill
+from mill._http_common import build_platform_client
 from mill.auth import BasicAuth, BearerToken, Credential
 from mill.exceptions import MillError, MillQueryError
 
@@ -241,3 +246,30 @@ def mill_client(mill_config: IntegrationConfig) -> mill.MillClient:
 def schema_name(mill_config: IntegrationConfig) -> str:
     """The schema name to test against (from MILL_IT_SCHEMA)."""
     return mill_config.schema_name
+
+
+@pytest.fixture(scope="session")
+def mill_platform_origin() -> str:
+    """HTTP origin for ``/api/v1/metadata`` and ``/api/v1/schema`` (no trailing slash)."""
+    v = os.environ.get("MILL_IT_PLATFORM_ORIGIN", "").strip()
+    if not v:
+        pytest.skip("MILL_IT_PLATFORM_ORIGIN is not set — skipping platform HTTP integration")
+    return v.rstrip("/")
+
+
+@pytest.fixture(scope="session")
+def platform_httpx(
+    mill_config: IntegrationConfig,
+    mill_platform_origin: str,
+) -> httpx.Client:
+    """``httpx.Client`` with ``base_url`` = platform origin and ``MILL_IT_*`` auth/TLS."""
+    client = build_platform_client(
+        mill_platform_origin,
+        auth=mill_config.credential,
+        tls_ca=mill_config.tls_ca,
+        tls_cert=mill_config.tls_cert,
+        tls_key=mill_config.tls_key,
+        timeout=60.0,
+    )
+    yield client
+    client.close()

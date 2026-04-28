@@ -1,6 +1,7 @@
 package io.qpointz.mill.metadata.api
 
 import io.qpointz.mill.metadata.domain.ImportMode
+import io.qpointz.mill.metadata.domain.MetadataExportFormat
 import io.qpointz.mill.metadata.service.ImportResult
 import io.qpointz.mill.metadata.service.MetadataImportService
 import org.junit.jupiter.api.Test
@@ -17,7 +18,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.multipart
 
-@WebMvcTest(controllers = [MetadataImportExportController::class])
+@WebMvcTest(controllers = [MetadataImportExportController::class, MetadataExceptionHandler::class])
 @AutoConfigureMockMvc(addFilters = false)
 class MetadataImportExportControllerTest {
 
@@ -96,8 +97,8 @@ class MetadataImportExportControllerTest {
 
     @Test
     fun shouldExportMetadata_whenGetExportCalled() {
-        val exportedYaml = "entities:\n  - id: moneta\n    type: SCHEMA\n"
-        whenever(importService.export(any())).thenReturn(exportedYaml)
+        val exportedYaml = "kind: MetadataEntity\nentityUrn: urn:mill/x:y\nfacets: []\n"
+        whenever(importService.export(any(), any())).thenReturn(exportedYaml)
 
         mockMvc.get("/api/v1/metadata/export")
             .andExpect {
@@ -108,13 +109,35 @@ class MetadataImportExportControllerTest {
 
     @Test
     fun shouldExportWithScopeParam_whenScopeParamProvided() {
-        val exportedYaml = "entities: []\n"
-        whenever(importService.export(any())).thenReturn(exportedYaml)
+        val exportedYaml = "kind: MetadataEntity\nentityUrn: urn:mill/x:y\nfacets: []\n"
+        whenever(importService.export(any(), any())).thenReturn(exportedYaml)
 
         mockMvc.get("/api/v1/metadata/export") {
             param("scope", "global")
         }.andExpect {
             status { isOk() }
+        }
+    }
+
+    @Test
+    fun shouldExportJson_whenFormatJson() {
+        whenever(importService.export(any(), eq(MetadataExportFormat.JSON)))
+            .thenReturn("[{\"kind\":\"MetadataScope\"}]")
+
+        mockMvc.get("/api/v1/metadata/export") {
+            param("format", "json")
+        }.andExpect {
+            status { isOk() }
+            content { contentTypeCompatibleWith("application/json") }
+        }
+    }
+
+    @Test
+    fun shouldReturnBadRequest_whenFormatInvalid() {
+        mockMvc.get("/api/v1/metadata/export") {
+            param("format", "xml")
+        }.andExpect {
+            status { isBadRequest() }
         }
     }
 }
