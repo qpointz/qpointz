@@ -107,6 +107,8 @@ ai:integration:
     MILL_IT_PASSWORD: "reader"
     MILL_IT_TOKEN: ""
     MILL_IT_SCHEMA: "skymill"
+    # Platform REST (/api/v1/metadata, /api/v1/schema) — same mill-it container, HTTP port
+    MILL_IT_PLATFORM_ORIGIN: "http://mill-it:8080"
     # Optional custom pytest selector
     MILL_IT_PYTEST_PATH: "tests/integration/"
   services:
@@ -128,6 +130,7 @@ ai:integration:
       echo "  MILL_IT_AUTH=${MILL_IT_AUTH}"
       echo "  MILL_IT_TLS=${MILL_IT_TLS}"
       echo "  MILL_IT_SCHEMA=${MILL_IT_SCHEMA}"
+      echo "  MILL_IT_PLATFORM_ORIGIN=${MILL_IT_PLATFORM_ORIGIN}"
     - |
       if [ "${MILL_IT_PROTOCOL}" = "http-json" ] || [ "${MILL_IT_PROTOCOL}" = "http-protobuf" ] || [ "${MILL_IT_PROTOCOL}" = "http" ]; then
         echo "HTTP route diagnostics (non-fatal):"
@@ -169,6 +172,7 @@ mill-py:grpc-noauth:3.12:
     MILL_IT_TLS: "false"
     MILL_IT_AUTH: "none"
     MILL_IT_SCHEMA: "skymill"
+    MILL_IT_PLATFORM_ORIGIN: "http://mill-it:8080"
 
 mill-py:http-json-noauth:3.12:
   extends:
@@ -233,6 +237,7 @@ mill-py:http-json-noauth:3.13:
     MILL_IT_TLS: "false"
     MILL_IT_AUTH: "none"
     MILL_IT_SCHEMA: "skymill"
+    MILL_IT_PLATFORM_ORIGIN: "http://mill-it:8080"
 
 mill-py:http-protobuf-noauth:3.13:
   extends:
@@ -282,6 +287,7 @@ mill-py:http-json-noauth:3.14:
     MILL_IT_TLS: "false"
     MILL_IT_AUTH: "none"
     MILL_IT_SCHEMA: "skymill"
+    MILL_IT_PLATFORM_ORIGIN: "http://mill-it:8080"
 
 mill-py:http-protobuf-noauth:3.14:
   extends:
