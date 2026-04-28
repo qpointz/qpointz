@@ -1,5 +1,7 @@
-package io.qpointz.mill.ai.dependencies
+﻿package io.qpointz.mill.ai.dependencies
 
+import io.qpointz.mill.ai.capabilities.metadata.EmptyMetadataReadPort
+import io.qpointz.mill.ai.capabilities.metadata.MetadataCapabilityDependency
 import io.qpointz.mill.ai.capabilities.schema.ListColumnsItem
 import io.qpointz.mill.ai.capabilities.schema.ListRelationsItem
 import io.qpointz.mill.ai.capabilities.schema.ListSchemasItem
@@ -31,17 +33,21 @@ class SchemaFacingCapabilityDependencyFactoryTest {
     }
 
     private val dialect = DialectRegistry.fromClasspathDefaults().requireDialect("calcite")
+    private val metadataPort = EmptyMetadataReadPort()
 
     @Test
-    fun `build fills schema only for exploration profile`() {
+    fun `build fills schema and metadata only for exploration profile`() {
         val c = SchemaFacingCapabilityDependencyFactory.build(
             profile = SchemaExplorationAgentProfile.profile,
             schemaCatalog = catalog,
+            metadataReadPort = metadataPort,
             dialectSpec = dialect,
             sqlQueryDependency = SqlQueryCapabilityDependency(MockSqlValidationService()),
             valueMappingResolver = MockValueMappingResolver(),
         )
         assertThat(c.forCapability(SchemaFacingCapabilityDependencyFactory.SCHEMA).get(SchemaCapabilityDependency::class.java)).isNotNull
+        assertThat(c.forCapability(SchemaFacingCapabilityDependencyFactory.METADATA).get(MetadataCapabilityDependency::class.java)).isNotNull
+        assertThat(c.forCapability(SchemaFacingCapabilityDependencyFactory.METADATA_AUTHORING).get(MetadataCapabilityDependency::class.java)).isNull()
         assertThat(c.forCapability(SchemaFacingCapabilityDependencyFactory.SQL_DIALECT).get(SqlDialectCapabilityDependency::class.java)).isNull()
     }
 
@@ -50,11 +56,14 @@ class SchemaFacingCapabilityDependencyFactoryTest {
         val c = SchemaFacingCapabilityDependencyFactory.build(
             profile = SchemaAuthoringAgentProfile.profile,
             schemaCatalog = catalog,
+            metadataReadPort = metadataPort,
             dialectSpec = dialect,
             sqlQueryDependency = SqlQueryCapabilityDependency(MockSqlValidationService()),
             valueMappingResolver = MockValueMappingResolver(),
         )
         assertThat(c.forCapability(SchemaFacingCapabilityDependencyFactory.SCHEMA).get(SchemaCapabilityDependency::class.java)).isNotNull
+        assertThat(c.forCapability(SchemaFacingCapabilityDependencyFactory.METADATA).get(MetadataCapabilityDependency::class.java)).isNotNull
+        assertThat(c.forCapability(SchemaFacingCapabilityDependencyFactory.METADATA_AUTHORING).get(MetadataCapabilityDependency::class.java)).isNotNull
         assertThat(c.forCapability(SchemaFacingCapabilityDependencyFactory.SQL_DIALECT).get(SqlDialectCapabilityDependency::class.java)).isNotNull
         assertThat(c.forCapability(SchemaFacingCapabilityDependencyFactory.SQL_QUERY).get(SqlQueryCapabilityDependency::class.java)).isNotNull
         assertThat(

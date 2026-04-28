@@ -1,20 +1,17 @@
-package io.qpointz.mill.ai.autoconfigure
+﻿package io.qpointz.mill.ai.autoconfigure
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 
 /**
- * Enables Spring Data JPA repository interfaces for AI v3 persistence.
+ * Enables Spring Data JPA repository interfaces under `io.qpointz.mill.persistence.ai.jpa.repositories`.
  *
- * Hosts that depend on [io.qpointz.mill.persistence.configuration.PersistenceAutoConfiguration]
- * (`mill-persistence-autoconfigure`) already declare
- * `@EnableJpaRepositories(basePackages = ["io.qpointz.mill.persistence"])`, which covers
- * `io.qpointz.mill.persistence.ai.jpa.repositories`. This configuration runs only when that
- * umbrella auto-configuration is absent (for example `apps/mill-service` with security and metadata
- * JPA only) so AI repositories are still discovered without duplicate bean definitions.
+ * This is wired only via [AiV3JpaRepositoriesImportSelector]: when
+ * `io.qpointz.mill.persistence.configuration.PersistenceAutoConfiguration` (`mill-persistence-autoconfigure`)
+ * is on the classpath, it already declares `@EnableJpaRepositories` for `io.qpointz.mill.persistence`,
+ * which includes these repositories — the selector skips this configuration to avoid duplicate repository
+ * beans.
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnMissingClass("io.qpointz.mill.persistence.configuration.PersistenceAutoConfiguration")
 @EnableJpaRepositories(basePackages = ["io.qpointz.mill.persistence.ai.jpa.repositories"])
-internal class AiV3JpaRepositoriesConfiguration
+class AiV3JpaRepositoriesConfiguration

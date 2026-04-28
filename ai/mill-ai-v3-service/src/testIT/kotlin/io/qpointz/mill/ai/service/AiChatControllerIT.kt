@@ -534,4 +534,53 @@ class AiChatControllerIT {
             .exchange()
             .expectStatus().isNotFound
     }
+
+    @Test
+    fun `schema exploration profile includes metadata without metadata-authoring`() {
+        val body = client.get().uri("/api/v1/ai/profiles/schema-exploration")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody(String::class.java)
+            .returnResult()
+            .responseBody!!
+        assertThat(body).contains("\"metadata\"")
+        assertThat(body).doesNotContain("\"metadata-authoring\"")
+    }
+
+    @Test
+    fun `schema authoring profile includes metadata and metadata-authoring`() {
+        val body = client.get().uri("/api/v1/ai/profiles/schema-authoring")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody(String::class.java)
+            .returnResult()
+            .responseBody!!
+        assertThat(body).contains("\"metadata\"")
+        assertThat(body).contains("\"metadata-authoring\"")
+    }
+
+    @Test
+    fun `SSE completes for schema-exploration chat`() {
+        val chatId = createChat("{\"profileId\":\"schema-exploration\"}")
+        sseClient.post().uri("/api/v1/ai/chats/$chatId/messages")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue("{\"message\":\"hi\"}")
+            .accept(MediaType.TEXT_EVENT_STREAM)
+            .exchange()
+            .expectStatus().isOk
+    }
+
+    @Test
+    fun `SSE completes for schema-authoring chat`() {
+        val chatId = createChat("{\"profileId\":\"schema-authoring\"}")
+        sseClient.post().uri("/api/v1/ai/chats/$chatId/messages")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue("{\"message\":\"hi\"}")
+            .accept(MediaType.TEXT_EVENT_STREAM)
+            .exchange()
+            .expectStatus().isOk
+    }
+
 }

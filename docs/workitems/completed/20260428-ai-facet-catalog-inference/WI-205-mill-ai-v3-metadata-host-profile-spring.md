@@ -1,6 +1,6 @@
 # WI-205 — Host wiring: `MetadataReadPort` bean, `schema-exploration` profile, dependency factory
 
-Status: `planned`  
+Status: `done`  
 Type: `✨ feature`  
 Area: `ai`, `metadata`, `spring`  
 Milestone: `0.8.0`

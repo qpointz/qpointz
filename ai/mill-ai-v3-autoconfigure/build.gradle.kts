@@ -58,6 +58,7 @@ testing {
                     implementation(libs.assertj.core)
                     implementation(project(":ai:mill-ai-v3-persistence"))
                     implementation(project(":persistence:mill-persistence"))
+                    implementation(project(":persistence:mill-persistence-autoconfigure"))
                     implementation(libs.boot.starter.data.jpa)
                     runtimeOnly(libs.h2.database)
                 }

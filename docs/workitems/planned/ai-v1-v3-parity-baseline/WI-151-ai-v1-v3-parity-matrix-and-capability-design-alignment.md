@@ -51,3 +51,7 @@ orchestration, reasoner descriptions) should be clear so work is not duplicated 
 
 - This work item definition.
 - The design note file created in **In Scope**.
+
+## Parity cross-links (incremental)
+
+- **WI-204 / WI-206 — metadata facet catalog on v3**: catalog-driven facet QUERY on **`schema-exploration`** and facet proposal CAPTURE (`metadata.faceting.capture`, `last-metadata-facet-proposal`) on **`schema-authoring`**. See [`metadata-facet-catalog-v3.md`](../../../design/agentic/metadata-facet-catalog-v3.md).

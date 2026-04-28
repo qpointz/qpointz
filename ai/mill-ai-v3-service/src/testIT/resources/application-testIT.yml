@@ -1,4 +1,4 @@
-spring:
+﻿spring:
   datasource:
     url: jdbc:h2:mem:ait_chat;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
@@ -28,3 +28,9 @@ mill:
       default-user-id: it-test-user
       default-profile: hello-world
       max-title-length: 30
+    embedding-model:
+      default:
+        provider: stub
+        dimension: 8
+    value-mapping:
+      embedding-model: default

@@ -24,6 +24,8 @@ import io.qpointz.mill.ai.persistence.InMemoryChatRegistry
 import io.qpointz.mill.ai.persistence.InMemoryConversationStore
 import io.qpointz.mill.ai.persistence.InMemoryRunEventStore
 import io.qpointz.mill.ai.persistence.RunEventStore
+import io.qpointz.mill.ai.capabilities.metadata.EmptyMetadataReadPort
+import io.qpointz.mill.ai.capabilities.metadata.MetadataReadPort
 import io.qpointz.mill.ai.capabilities.schema.SchemaCatalogPort
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryToolHandlers
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlValidator
@@ -110,15 +112,21 @@ class AiV3AutoConfiguration {
      * optional data/SQL beans (see [AiV3DataAutoConfiguration]).
      */
     @Bean
+    @ConditionalOnMissingBean(MetadataReadPort::class)
+    fun emptyMetadataReadPort(): MetadataReadPort = EmptyMetadataReadPort()
+
+    @Bean
     @ConditionalOnMissingBean(CapabilityDependencyAssembler::class)
     fun capabilityDependencyAssembler(
         schemaCatalog: ObjectProvider<SchemaCatalogPort>,
+        metadataReadPort: ObjectProvider<MetadataReadPort>,
         dialectSpec: ObjectProvider<SqlDialectSpec>,
         sqlValidator: ObjectProvider<SqlValidator>,
         sqlValidationService: ObjectProvider<SqlQueryToolHandlers.SqlValidationService>,
         valueMappingResolver: ObjectProvider<ValueMappingResolver>,
     ): CapabilityDependencyAssembler = SpringCapabilityDependencyAssembler(
         schemaCatalog = schemaCatalog,
+        metadataReadPort = metadataReadPort,
         dialectSpec = dialectSpec,
         sqlValidator = sqlValidator,
         sqlValidationService = sqlValidationService,

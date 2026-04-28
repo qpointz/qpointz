@@ -62,18 +62,23 @@ prompts:
       3. Call list_columns for tables where column-level captures are needed.
       4. When all required entity ids are resolved, emit all capture calls in one parallel batch.
 
+      If a capture returns captureSucceeded false, follow schema-authoring.capture-remediation — re-ground, correct ids from tool results only, then retry capture in a subsequent round.
+
   schema-authoring.request:
     description: Guides the model to produce a structured authored metadata request before calling a capture tool.
     content: |
       You are extracting a structured metadata authoring request from the conversation.
 
       Use the schema grounding results already available in the conversation to fill canonical entity ids.
-      Entity ids are fully qualified: schema.table (e.g. retail.orders) or schema.table.column (e.g. retail.orders.customer_id).
+      Entity ids use dot-separated segments from schema tools:
+        - schema (e.g. skymill)
+        - schema.table (e.g. retail.orders)
+        - schema.table.column (e.g. retail.orders.customer_id)
 
       For a description capture, produce:
         subtype: description
-        target.entityType: TABLE or COLUMN
-        target.entityId: fully qualified entity id
+        target.entityType: SCHEMA, TABLE, or COLUMN
+        target.entityId: fully qualified entity id (see segment rules above)
         payload.description: the description text the user provided or implied
         payload.displayName: optional human-readable label
         rationale: why this description was inferred
@@ -90,6 +95,19 @@ prompts:
 
       If required fields cannot be resolved, do not guess — set needsClarification: true instead.
       Return structured JSON only.
+
+  schema-authoring.capture-remediation:
+    description: Mandatory behaviour when a capture tool returns captureSucceeded false or includes resolverHint.
+    content: |
+      When capture_description or capture_relation returns JSON with captureSucceeded false or a non-empty resolverHint:
+
+      - The catalog rejected at least one entity id — **no metadata facet was finalized** for that attempt.
+      - You MUST **resolve and correct**: call list_schemas, list_tables(schema), and optionally list_columns(schema, table) to obtain canonical names.
+      - Retry the same capture with corrected targetEntityId / sourceTableId / targetTableId (`schema`, `schema.table`, or `schema.table.column`).
+      - Continue tool rounds until captureSucceeded is true for each intended facet, unless you call request_clarification because the user must disambiguate.
+      - Do **not** tell the user the description or relation was "saved" or "applied" until the corresponding capture returns captureSucceeded true.
+
+      Remember: display labels (what humans see in an email) often differ from tableName/columnName in the catalog — always bind to tool output strings.
 
 # ── Tools ────────────────────────────────────────────────────────────────────
 # capture tools are kind: capture — the observer terminates the agentic loop when
@@ -128,7 +146,7 @@ tools:
 
   capture_description:
     description: |
-      Serialize a description capture for a target schema entity (table or column).
+      Serialize a description capture for a target schema catalog entity (schema, table, or column).
       The capture is application-owned and facet-aligned (DescriptiveFacet).
       No metadata storage is written — this tool only produces the structured capture artifact.
     kind: capture
@@ -142,11 +160,15 @@ tools:
       properties:
         targetEntityId:
           type: string
-          description: "Canonical fully qualified entity id. Format: schema.table or schema.table.column."
+          description: |
+            Canonical entity id from schema tools — **exact** identifiers, never a display label:
+            `schemaName`, or `schemaName.tableName`, or `schemaName.tableName.columnName`.
+            Examples: skymill, skymill.cargo_clients, skymill.cargo_clients.client_name.
         targetEntityType:
           type: string
-          description: "Entity type. One of: TABLE, COLUMN."
+          description: "Entity type. One of: SCHEMA, TABLE, COLUMN."
           enum:
+            - SCHEMA
             - TABLE
             - COLUMN
         description:
@@ -170,7 +192,7 @@ tools:
           description: Entity id the capture applies to.
         targetEntityType:
           type: string
-          description: Entity type (TABLE or COLUMN).
+          description: Entity type (SCHEMA, TABLE, or COLUMN).
         serializedPayload:
           type: object
           description: Facet-aligned capture payload ready for later persistence.
@@ -180,6 +202,13 @@ tools:
           items:
             type: string
             description: A single validation warning.
+        captureSucceeded:
+          type: boolean
+          description: |
+            False when the runtime could not bind targetEntityId to catalog entities — you must remediate via schema tools and retry capture (see resolverHint).
+        resolverHint:
+          type: string
+          description: When captureSucceeded is false, explicit steps for re-grounding and retrying captures.
 
   capture_relation:
     description: |
@@ -244,8 +273,13 @@ tools:
           items:
             type: string
             description: A single validation warning.
+        captureSucceeded:
+          type: boolean
+          description: False when source or target table id could not be bound — remediate via list_tables then retry capture_relation.
+        resolverHint:
+          type: string
+          description: When captureSucceeded is false, hints for correcting sourceTableId/targetTableId.
 
-# ── Protocols ────────────────────────────────────────────────────────────────
 # structured_final: the LLM re-validates the capture tool output against finalSchema
 # and emits a single ProtocolFinal event. The caller (agent entry point or Spring layer)
 # receives this event and persists the payload to the metadata store.

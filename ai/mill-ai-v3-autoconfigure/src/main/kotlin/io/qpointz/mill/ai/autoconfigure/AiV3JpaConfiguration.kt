@@ -19,7 +19,7 @@ import org.springframework.core.type.AnnotationMetadata
 @ConditionalOnClass(name = ["io.qpointz.mill.persistence.ai.jpa.adapters.JpaChatMemoryStore"])
 @Import(
     AiV3JpaConfiguration.AiV3PackageRegistrar::class,
-    AiV3JpaRepositoriesConfiguration::class,
+    AiV3JpaRepositoriesImportSelector::class,
 )
 class AiV3JpaConfiguration {
 

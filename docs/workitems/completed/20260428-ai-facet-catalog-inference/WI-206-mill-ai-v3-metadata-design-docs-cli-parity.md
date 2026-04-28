@@ -1,6 +1,6 @@
 # WI-206 — Design documentation, CLI smoke, parity cross-reference
 
-Status: `planned`  
+Status: `done`  
 Type: `📝 docs`  
 Area: `ai`, `metadata`  
 Milestone: `0.8.0`

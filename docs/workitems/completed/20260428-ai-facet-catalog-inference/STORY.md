@@ -38,7 +38,7 @@ Expose **`metadata`** query tooling plus **facet-assignment proposals** grounded
 - **[Completed mill-py client](../../completed/20260424-mill-py-metadata-client/STORY.md)** (**WI-192–WI-203**) — REST parity for reads.
 - **[`metadata-facet-type-catalog-defined-and-observed`](../../../design/metadata/metadata-facet-type-catalog-defined-and-observed.md)** (DEFINED/OBSERVED).
 
-**Coordinates:** [**WI-157**](../ai-value-mapping-capability/STORY.md), [**WI-172**/ **WI-173**](../metadata-value-mapping/STORY.md).
+**Coordinates:** [**WI-157**](../../planned/ai-value-mapping-capability/STORY.md), [**WI-172**/ **WI-173**](../../planned/metadata-value-mapping/STORY.md).
 
 ## Planned execution
 
@@ -58,12 +58,12 @@ Expose **`metadata`** query tooling plus **facet-assignment proposals** grounded
 
 ## Work Items
 
-- [ ] WI-204 [`WI-204-mill-ai-v3-metadata-capability-core.md`](WI-204-mill-ai-v3-metadata-capability-core.md)
-- [ ] WI-205 [`WI-205-mill-ai-v3-metadata-host-profile-spring.md`](WI-205-mill-ai-v3-metadata-host-profile-spring.md)
-- [ ] WI-206 [`WI-206-mill-ai-v3-metadata-design-docs-cli-parity.md`](WI-206-mill-ai-v3-metadata-design-docs-cli-parity.md)
+- [x] WI-204 [`WI-204-mill-ai-v3-metadata-capability-core.md`](WI-204-mill-ai-v3-metadata-capability-core.md)
+- [x] WI-205 [`WI-205-mill-ai-v3-metadata-host-profile-spring.md`](WI-205-mill-ai-v3-metadata-host-profile-spring.md)
+- [x] WI-206 [`WI-206-mill-ai-v3-metadata-design-docs-cli-parity.md`](WI-206-mill-ai-v3-metadata-design-docs-cli-parity.md)
 
 ## Related stories
 
-- [`../ai-v1-v3-parity-baseline/STORY.md`](../ai-v1-v3-parity-baseline/STORY.md) (**WI-151**)
-- [`../metadata-value-mapping/STORY.md`](../metadata-value-mapping/STORY.md) (**WI-172**, **WI-173**)
-- [`../ai-value-mapping-capability/STORY.md`](../ai-value-mapping-capability/STORY.md) (**WI-157**)
+- [`../../planned/ai-v1-v3-parity-baseline/STORY.md`](../../planned/ai-v1-v3-parity-baseline/STORY.md) (**WI-151**)
+- [`../../planned/metadata-value-mapping/STORY.md`](../../planned/metadata-value-mapping/STORY.md) (**WI-172**, **WI-173**)
+- [`../../planned/ai-value-mapping-capability/STORY.md`](../../planned/ai-value-mapping-capability/STORY.md) (**WI-157**)

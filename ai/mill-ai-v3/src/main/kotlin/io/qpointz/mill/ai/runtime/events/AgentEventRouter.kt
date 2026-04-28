@@ -31,7 +31,8 @@ fun interface AgentEventRouter {
 object DefaultAgentEventRouter : AgentEventRouter {
 
     override fun route(input: AgentEventRoutingInput): List<RoutedAgentEvent> {
-        val rule = input.policy.ruleFor(input.event.type) ?: return emptyList()
+        val baseRule = input.policy.ruleFor(input.event.type) ?: return emptyList()
+        val rule = refineStructuredFinalPointers(input.event, baseRule)
         val primary = routedEvent(
             input = input,
             rule = rule,
@@ -44,6 +45,17 @@ object DefaultAgentEventRouter : AgentEventRouter {
         return listOf(primary) + derived
     }
 
+
+    internal val STRUCTURED_FINAL_ARTIFACT_POINTER_KEYS: Map<String, Set<String>> = mapOf(
+        "schema-authoring.capture" to setOf("last-schema-capture"),
+        "metadata.faceting.capture" to setOf("last-metadata-facet-proposal"),
+    )
+
+    internal fun refineStructuredFinalPointers(event: AgentEvent, baseRule: EventRoutingRule): EventRoutingRule {
+        if (event !is AgentEvent.ProtocolFinal) return baseRule
+        val keys = STRUCTURED_FINAL_ARTIFACT_POINTER_KEYS[event.protocolId] ?: return baseRule
+        return baseRule.copy(artifactPointerKeys = keys)
+    }
     private fun routedEvent(
         input: AgentEventRoutingInput,
         rule: EventRoutingRule,

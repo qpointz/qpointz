@@ -1,0 +1,70 @@
+﻿name: metadata
+description: |
+  Read-only metadata facet catalog and entity facet tools for AI v3.
+  Use together with schema tools: resolve entity URNs, then list merged facets.
+
+prompts:
+  metadata.faceting.system:
+    description: Grounding order for facet operations.
+    content: |
+      Ground schema entities first (list_schemas, list_tables, list_columns as needed).
+      Metadata entity ids are canonical URNs (urn:mill/model/…). Use list_entity_facets to read merged facet rows.
+
+tools:
+  list_facet_types:
+    description: |
+      Lists all facet type definitions registered in the metadata catalog (DEFINED facets).
+      Use before validating payloads or proposing assignments.
+    output:
+      type: array
+      description: Facet type manifests (type keys, titles, payload schemas).
+
+  list_entity_facets:
+    description: |
+      Returns merged facet instances for one metadata entity. Mirrors GET …/entities/{id}/facets with optional scope/context/origin filters.
+    input:
+      type: object
+      required:
+        - metadataEntityId
+      properties:
+        metadataEntityId:
+          type: string
+          description: Canonical metadata entity URN.
+        scope:
+          type: string
+          description: Optional scope query (comma-separated scope URNs).
+        context:
+          type: string
+          description: Legacy context alias when scope is omitted.
+        origin:
+          type: string
+          description: Optional origin filter.
+    output:
+      type: array
+      description: Facet instance rows (maps).
+
+  validate_facet_payload:
+    description: |
+      Validates a JSON payload object against the facet type payload schema from the catalog (classpath-aligned rules). Does not write to the metadata service.
+    input:
+      type: object
+      required:
+        - facetTypeKey
+        - payload
+      properties:
+        facetTypeKey:
+          type: string
+          description: Facet type key or full facet type URN.
+        payload:
+          type: object
+          description: Facet JSON payload to validate.
+          additionalProperties: true
+    output:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        errors:
+          type: array
+          items:
+            type: string

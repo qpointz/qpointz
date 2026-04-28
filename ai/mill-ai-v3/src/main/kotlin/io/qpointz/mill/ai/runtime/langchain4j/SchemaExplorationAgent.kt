@@ -26,9 +26,12 @@ import dev.langchain4j.model.chat.response.StreamingChatResponseHandler
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel
 import java.time.Instant
 import java.util.UUID
+import io.qpointz.mill.ai.capabilities.schema.CaptureResult
 import io.qpointz.mill.ai.capabilities.schema.SchemaCatalogPort
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityDependency
 import io.qpointz.mill.ai.capabilities.valuemapping.ValueMappingResolver
+import io.qpointz.mill.ai.capabilities.metadata.EmptyMetadataReadPort
+import io.qpointz.mill.ai.capabilities.metadata.MetadataReadPort
 import io.qpointz.mill.ai.dependencies.SchemaFacingCapabilityDependencyFactory
 import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec
 import java.util.concurrent.CompletableFuture
@@ -55,6 +58,7 @@ class SchemaExplorationAgent(
     private val dialectSpec: SqlDialectSpec,
     private val sqlQueryDependency: SqlQueryCapabilityDependency,
     private val valueMappingResolver: ValueMappingResolver,
+    private val metadataReadPort: MetadataReadPort = EmptyMetadataReadPort(),
     private val registry: CapabilityRegistry = CapabilityRegistry.load(),
     private val objectMapper: ObjectMapper = ObjectMapper().registerModule(kotlinModule()),
     private val chatMemoryStore: ChatMemoryStore = InMemoryChatMemoryStore(),
@@ -171,6 +175,7 @@ class SchemaExplorationAgent(
             messages.add(aiMsg)
 
             var captureBinding: ToolBinding? = null
+            var captureValidationFailed = false
             for (toolRequest in aiMsg.toolExecutionRequests()) {
                 val binding = handlerMap[toolRequest.name()]
                 if (binding == null) {
@@ -187,11 +192,15 @@ class SchemaExplorationAgent(
                 messages.add(ToolExecutionResultMessage.from(toolRequest, resultText))
                 toolCallCount++
                 if (binding.kind == ToolKind.CAPTURE) {
+                    val cr = result.content as? CaptureResult
+                    if (cr != null && !cr.captureSucceeded) {
+                        captureValidationFailed = true
+                    }
                     captureBinding = binding
                 }
             }
 
-            if (captureBinding != null) {
+            if (captureBinding != null && !captureValidationFailed) {
                 // Synthesize via the protocol declared on the capture tool (if any)
                 val captureProtocol = captureBinding.protocolId?.let { pid ->
                     capabilities.flatMap { it.protocols }.firstOrNull { it.id == pid }
@@ -253,6 +262,7 @@ class SchemaExplorationAgent(
         capabilityDependencies = SchemaFacingCapabilityDependencyFactory.build(
             profile = SchemaAuthoringAgentProfile.profile,
             schemaCatalog = schemaCatalog,
+            metadataReadPort = metadataReadPort,
             dialectSpec = dialectSpec,
             sqlQueryDependency = sqlQueryDependency,
             valueMappingResolver = valueMappingResolver,
@@ -295,7 +305,8 @@ class SchemaExplorationAgent(
             appendLine("   - Once entities are resolved, call capture_description or capture_relation.")
             appendLine("   - When multiple entities are mentioned, emit ALL capture tool calls in a single parallel batch.")
             appendLine("   - Do not stop after the first capture — cover every entity mentioned.")
-            appendLine()
+            appendLine("   - If a capture tool returns captureSucceeded false or resolverHint, catalog validation failed: call list_schemas/list_tables/list_columns again, fix ids using exact names from tool output, retry capture.")
+            appendLine("   - Do not claim descriptions or relations were persisted until captures succeed.")
             appendLine("Identify which kind of request the user is making before acting. Be concise and focus on what was asked.")
             appendLine("Always answer in plain conversational prose unless the user explicitly asks for a structured format.")
             appendLine()
@@ -361,6 +372,7 @@ class SchemaExplorationAgent(
             dialectSpec: SqlDialectSpec,
             sqlQueryDependency: SqlQueryCapabilityDependency,
             valueMappingResolver: ValueMappingResolver,
+            metadataReadPort: MetadataReadPort = EmptyMetadataReadPort(),
             registry: CapabilityRegistry = CapabilityRegistry.load(),
             chatMemoryStore: ChatMemoryStore = InMemoryChatMemoryStore(),
             memoryStrategy: LlmMemoryStrategy = BoundedWindowMemoryStrategy(),
@@ -372,7 +384,7 @@ class SchemaExplorationAgent(
                 modelName = System.getenv("OPENAI_MODEL") ?: "gpt-4o-mini",
                 baseUrl = System.getenv("OPENAI_BASE_URL"),
             )
-            return fromConfig(config, schemaCatalog, dialectSpec, sqlQueryDependency, valueMappingResolver, registry, chatMemoryStore, memoryStrategy, persistenceContext)
+            return fromConfig(config, schemaCatalog, dialectSpec, sqlQueryDependency, valueMappingResolver, metadataReadPort, registry, chatMemoryStore, memoryStrategy, persistenceContext)
         }
 
         fun fromConfig(
@@ -381,6 +393,7 @@ class SchemaExplorationAgent(
             dialectSpec: SqlDialectSpec,
             sqlQueryDependency: SqlQueryCapabilityDependency,
             valueMappingResolver: ValueMappingResolver,
+            metadataReadPort: MetadataReadPort = EmptyMetadataReadPort(),
             registry: CapabilityRegistry = CapabilityRegistry.load(),
             chatMemoryStore: ChatMemoryStore = InMemoryChatMemoryStore(),
             memoryStrategy: LlmMemoryStrategy = BoundedWindowMemoryStrategy(),
@@ -397,6 +410,7 @@ class SchemaExplorationAgent(
                 dialectSpec = dialectSpec,
                 sqlQueryDependency = sqlQueryDependency,
                 valueMappingResolver = valueMappingResolver,
+                metadataReadPort = metadataReadPort,
                 registry = registry,
                 chatMemoryStore = chatMemoryStore,
                 memoryStrategy = memoryStrategy,

@@ -6,6 +6,7 @@
 
 - A running `mill-ai-v3-service` (or full Mill app exposing the same routes).
 - For LLM turns: service configured with `OPENAI_API_KEY` / `mill.ai.model.*` as usual.
+- For **schema-exploration** / **schema-authoring**: the host must register **schema** (+ **SQL** where applicable), **metadata** reads (`MetadataReadPort` or defaults), and (for authoring) persistence for chat transcripts as in production. Minimal local runs often use Mill service with AI + metadata enabled.
 
 ## Usage
 
@@ -13,7 +14,10 @@
 # Default: hello-world profile, chat against localhost:8080
 ./gradlew :ai:mill-ai-v3-cli:run
 
-# Schema-capable profile (server must wire schema/SQL beans — see mill-ai-v3-autoconfigure README)
+# Schema exploration (read-only facet QUERY tools via `metadata` — no facet CAPTURE)
+./gradlew :ai:mill-ai-v3-cli:run --args="--profile-id schema-exploration"
+
+# Schema authoring (facet QUERY + facet proposal CAPTURE under `metadata-authoring`)
 ./gradlew :ai:mill-ai-v3-cli:run --args="--profile-id schema-authoring"
 
 # List profiles (WI-168)
@@ -38,4 +42,5 @@ The CLI does not embed an OpenAPI document. Use the service’s springdoc UI (e.
 ## See also
 
 - `docs/design/agentic/v3-mill-ai-v3-cli-http-client.md`
+- `docs/design/agentic/metadata-facet-catalog-v3.md` (facet QUERY vs CAPTURE, routing)
 - WI-169 (story work item)

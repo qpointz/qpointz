@@ -1,4 +1,4 @@
-package io.qpointz.mill.ai.runtime.events.routing
+﻿package io.qpointz.mill.ai.runtime.events.routing
 
 import io.qpointz.mill.ai.core.capability.*
 import io.qpointz.mill.ai.core.prompt.*
@@ -73,13 +73,22 @@ class DefaultEventRoutingPolicyTest {
     }
 
     @Test
-    fun shouldAllowProfileOverride_forArtifactPointers() {
-        val rule = SchemaAuthoringAgentProfile.profile.routingPolicy.ruleFor("protocol.final")!!
-        assertEquals(setOf("last-schema-capture"), rule.artifactPointerKeys)
+    fun `shouldRefineStructuredFinalPointers by protocol id`() {
+        val base = policy.ruleFor("protocol.final")!!
+        assertTrue(base.artifactPointerKeys.isEmpty())
+        assertEquals(
+            setOf("last-schema-capture"),
+            io.qpointz.mill.ai.runtime.events.DefaultAgentEventRouter.refineStructuredFinalPointers(
+                AgentEvent.ProtocolFinal("schema-authoring.capture", mapOf("x" to 1)),
+                base,
+            ).artifactPointerKeys,
+        )
+        assertEquals(
+            setOf("last-metadata-facet-proposal"),
+            io.qpointz.mill.ai.runtime.events.DefaultAgentEventRouter.refineStructuredFinalPointers(
+                AgentEvent.ProtocolFinal("metadata.faceting.capture", mapOf("x" to 1)),
+                base,
+            ).artifactPointerKeys,
+        )
     }
 }
-
-
-
-
-

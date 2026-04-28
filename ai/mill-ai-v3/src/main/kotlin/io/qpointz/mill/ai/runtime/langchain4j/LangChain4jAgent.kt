@@ -28,6 +28,8 @@ import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
+import io.qpointz.mill.ai.capabilities.schema.CaptureResult
+
 /**
  * LangChain4j-backed streaming agent.
  *
@@ -181,6 +183,7 @@ class LangChain4jAgent(
             }
 
             var captureBinding: ToolBinding? = null
+            var captureValidationFailed = false
             for (toolRequest in aiMsg.toolExecutionRequests()) {
                 val binding = handlerMap[toolRequest.name()] ?: continue
                 val args = parseArguments(toolRequest.arguments().orEmpty())
@@ -190,11 +193,15 @@ class LangChain4jAgent(
                 routedListener(AgentEvent.ToolResult(toolRequest.name(), result.content))
                 messages.add(ToolExecutionResultMessage.from(toolRequest, resultText))
                 if (binding.kind == ToolKind.CAPTURE) {
+                    val cr = result.content as? CaptureResult
+                    if (cr != null && !cr.captureSucceeded) {
+                        captureValidationFailed = true
+                    }
                     captureBinding = binding
                 }
             }
 
-            if (captureBinding != null) {
+            if (captureBinding != null && !captureValidationFailed) {
                 // Synthesize via the protocol declared on the capture tool (if any)
                 val captureProtocol = captureBinding.protocolId?.let { pid ->
                     capabilities.flatMap { it.protocols }.firstOrNull { it.id == pid }

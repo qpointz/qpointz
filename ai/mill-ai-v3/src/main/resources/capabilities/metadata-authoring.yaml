@@ -1,0 +1,68 @@
+﻿name: metadata-authoring
+description: |
+  Structured facet-assignment proposals for metadata entities (CAPTURE). Terminal synthesis uses metadata.faceting.capture.
+
+prompts:
+  metadata.faceting.request:
+    description: Structured extraction prior to facet capture.
+    content: |
+      Produce a facet assignment proposal with facetTypeKey, metadataEntityId, payload map, and rationale.
+
+tools:
+  propose_facet_assignment:
+    description: |
+      Proposes a facet payload assignment for a metadata entity. Validates payload against catalog schema before emitting capture.
+      Does not persist — produces a structured capture artifact for downstream storage.
+    kind: capture
+    protocol: metadata.faceting.capture
+    input:
+      type: object
+      required:
+        - facetTypeKey
+        - metadataEntityId
+        - payload
+      properties:
+        facetTypeKey:
+          type: string
+        metadataEntityId:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+        rationale:
+          type: string
+    output:
+      type: object
+      properties:
+        captureType:
+          type: string
+        facetTypeKey:
+          type: string
+        metadataEntityId:
+          type: string
+        serializedPayload:
+          type: object
+        validationWarnings:
+          type: array
+          items:
+            type: string
+
+protocols:
+  metadata.faceting.capture:
+    description: Structured final for facet assignment proposals.
+    mode: structured_final
+    finalSchema:
+      type: object
+      properties:
+        captureType:
+          type: string
+        facetTypeKey:
+          type: string
+        metadataEntityId:
+          type: string
+        serializedPayload:
+          type: object
+        validationWarnings:
+          type: array
+          items:
+            type: string

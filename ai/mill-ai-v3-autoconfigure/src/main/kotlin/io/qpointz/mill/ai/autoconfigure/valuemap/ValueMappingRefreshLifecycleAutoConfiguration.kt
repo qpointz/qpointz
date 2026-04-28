@@ -1,4 +1,4 @@
-package io.qpointz.mill.ai.autoconfigure.valuemap
+﻿package io.qpointz.mill.ai.autoconfigure.valuemap
 
 import io.qpointz.mill.ai.autoconfigure.ConditionalOnAiEnabled
 import io.qpointz.mill.ai.autoconfigure.config.ValueMappingConfigurationProperties
@@ -55,15 +55,20 @@ class ValueMappingRefreshLifecycleAutoConfiguration {
             override val refreshScheduledDisabled: Boolean get() = !vm.refresh.schedule.isEnabled
         }
 
+    /**
+     * When the host exposes a Mill [DataOperationDispatcher] and [SqlDialectSpec], delegates column-distinct lookups
+     * to backing data backends; otherwise returns an empty-result loader so graphs without Mill Data still start.
+     */
     @Bean
     @ConditionalOnMissingBean(ColumnDistinctValueLoader::class)
     fun columnDistinctValueLoader(
         dispatcher: ObjectProvider<DataOperationDispatcher>,
-        sqlDialectSpec: SqlDialectSpec
+        sqlDialectSpec: ObjectProvider<SqlDialectSpec>,
     ): ColumnDistinctValueLoader {
         val d = dispatcher.ifAvailable
-        return if (d != null) {
-            DataOperationColumnDistinctValueLoader(d, sqlDialectSpec)
+        val spec = sqlDialectSpec.ifAvailable
+        return if (d != null && spec != null) {
+            DataOperationColumnDistinctValueLoader(d, spec)
         } else {
             ColumnDistinctValueLoader { _, _, _, _ -> emptyList() }
         }

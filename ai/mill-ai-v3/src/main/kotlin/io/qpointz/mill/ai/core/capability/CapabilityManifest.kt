@@ -196,7 +196,7 @@ class CapabilityManifest private constructor(
      */
     fun tool(name: String, kindOverride: ToolKind = ToolKind.QUERY, handler: ToolHandler): ToolBinding {
         val entry = toolEntries[name]
-            ?: error("Tool '$name' not declared in manifest '$name'")
+            ?: error("Tool '$name' not declared in manifest '${this.name}'")
         val resolvedKind = entry.kind?.let { ToolKind.valueOf(it.uppercase()) } ?: kindOverride
         val spec = ToolSpecification.builder()
             .name(name)
@@ -226,7 +226,7 @@ class CapabilityManifest private constructor(
      */
     fun promptAsset(id: String): PromptAsset {
         val entry = promptEntries[id]
-            ?: error("Prompt '$id' not declared in manifest '$name'")
+            ?: error("Prompt '$id' not declared in manifest '${this.name}'")
         return PromptAsset(id = id, description = entry.description, content = entry.content.trim())
     }
 

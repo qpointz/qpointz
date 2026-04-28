@@ -1,6 +1,6 @@
 # WI-204 — `mill-ai-v3`: `metadata` + `metadata-authoring` capabilities, `MetadataReadPort`, facet tools & handlers
 
-Status: `planned`  
+Status: `done`  
 Type: `✨ feature`  
 Area: `ai`, `metadata`  
 Milestone: `0.8.0`
