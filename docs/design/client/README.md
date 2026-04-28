@@ -36,3 +36,4 @@ A document belongs here if its **primary subject** is one of:
 | `sqlalchemy-mill-example.md` | SQLAlchemy Core engine/query/introspection examples for Mill grpc/http dialects |
 | `sql-dialect-maintainer-guide.md` | Maintainer technical runbook for adding new dialects end-to-end |
 | `sql-dialect-yaml-schema.md` | Target YAML schema for SQL dialect descriptors across all consumers |
+| `mill-py-platform-http.md` | mill-py wrappers for platform REST (`/api/v1/metadata`, `/api/v1/schema`), shared `_http_common`, canonical export/import (WI-202) |

@@ -118,3 +118,11 @@ an optional scope string. It has no Spring dependencies and is wired via
 
 `SchemaFacetAutoConfiguration` activates when both a `SchemaProvider` bean and a
 `MetadataRepository` bean are present on the context.
+
+---
+
+## HTTP schema explorer and Python
+
+The **schema explorer REST API** (`GET /api/v1/schema/...`, service module `data/mill-data-schema-service`)
+exposes read-oriented views for clients. The **mill-py** package provides synchronous and async HTTP
+clients (`mill.schema_explorer`); see [`mill-py platform HTTP`](../client/mill-py-platform-http.md).

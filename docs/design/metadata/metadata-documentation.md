@@ -5,6 +5,8 @@
 **Audience:** Users, Administrators, Developers  
 **As-built domain reference:** [`mill-metadata-domain-model.md`](mill-metadata-domain-model.md) (entities, facets, merge, persistence). **Normative contract:** [`SPEC.md`](../../workitems/completed/20260330-metadata-rework/SPEC.md).
 
+**Python client:** Platform REST (`/api/v1/metadata`) is wrapped by **mill-py** — see [`mill-py platform HTTP`](../client/mill-py-platform-http.md) and [`clients/mill-py/README.md`](../../../clients/mill-py/README.md).
+
 ---
 
 ## Table of Contents
