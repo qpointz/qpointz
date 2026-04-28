@@ -1,7 +1,7 @@
 """Tests for mill.exceptions — error hierarchy and mapping functions."""
 from __future__ import annotations
 
-from unittest.mock import MagicMock
+from typing import Any
 
 import grpc
 import pytest
@@ -42,6 +42,11 @@ class TestHierarchy:
         err = MillError("boom")
         assert err.details is None
 
+    def test_mill_error_transparent_fields_defaults(self) -> None:
+        err = MillError("boom")
+        assert err.trace_id is None
+        assert err.grpc_trailing_metadata is None
+
     def test_query_error_extended_fields_default(self) -> None:
         err = MillQueryError("boom")
         assert err.status_code is None
@@ -55,18 +60,52 @@ class TestHierarchy:
         assert err.response_headers is None
         assert err.mill_status is None
         assert err.mill_details is None
+        assert err.problem_detail is None
+        assert err.problem_title is None
+        assert err.problem_type is None
+        assert err.trace_id is None
+        assert err.legacy_grpc_code is None
+        assert err.legacy_grpc_message is None
+        assert err.grpc_trailing_metadata is None
 
 
 # ---------------------------------------------------------------------------
 # gRPC error mapping
 # ---------------------------------------------------------------------------
 
-def _mock_rpc_error(code: grpc.StatusCode, detail: str = "oops") -> MagicMock:
-    """Create a mock grpc.RpcError with .code() and .details()."""
-    err = MagicMock()
-    err.code.return_value = code
-    err.details.return_value = detail
-    return err
+class _StubRpcError(Exception):
+    """Minimal ``grpc.RpcError`` stub (avoids unittest.mock quirks on ``trailing_metadata``)."""
+
+    def __init__(
+        self,
+        code: grpc.StatusCode,
+        details_s: str,
+        *,
+        trailing_metadata: tuple[tuple[Any, Any], ...] | None = None,
+    ) -> None:
+        super().__init__(details_s)
+        self._code = code
+        self._details_s = details_s
+        self._trailing = trailing_metadata
+
+    def code(self) -> grpc.StatusCode:
+        return self._code
+
+    def details(self) -> str:
+        return self._details_s
+
+    def trailing_metadata(self) -> tuple[tuple[Any, Any], ...]:
+        return self._trailing if self._trailing is not None else ()
+
+
+def _stub_rpc_error(
+    code: grpc.StatusCode,
+    details_s: str = "oops",
+    *,
+    trailing_metadata: tuple[tuple[Any, Any], ...] | None = None,
+) -> _StubRpcError:
+    """Build a.grpc.RpcError-like object for mapper tests."""
+    return _StubRpcError(code, details_s, trailing_metadata=trailing_metadata)
 
 
 class TestFromGrpcError:
@@ -75,7 +114,7 @@ class TestFromGrpcError:
         grpc.StatusCode.PERMISSION_DENIED,
     ])
     def test_auth_codes(self, code: grpc.StatusCode) -> None:
-        result = _from_grpc_error(_mock_rpc_error(code, "denied"))
+        result = _from_grpc_error(_stub_rpc_error(code, "denied"))
         assert isinstance(result, MillAuthError)
         assert "denied" in str(result)
 
@@ -84,7 +123,7 @@ class TestFromGrpcError:
         grpc.StatusCode.DEADLINE_EXCEEDED,
     ])
     def test_connection_codes(self, code: grpc.StatusCode) -> None:
-        result = _from_grpc_error(_mock_rpc_error(code))
+        result = _from_grpc_error(_stub_rpc_error(code))
         assert isinstance(result, MillConnectionError)
 
     @pytest.mark.parametrize("code", [
@@ -92,13 +131,46 @@ class TestFromGrpcError:
         grpc.StatusCode.NOT_FOUND,
     ])
     def test_query_codes(self, code: grpc.StatusCode) -> None:
-        result = _from_grpc_error(_mock_rpc_error(code))
+        result = _from_grpc_error(_stub_rpc_error(code))
         assert isinstance(result, MillQueryError)
 
     def test_unknown_code_returns_base(self) -> None:
-        result = _from_grpc_error(_mock_rpc_error(grpc.StatusCode.INTERNAL, "internal"))
+        result = _from_grpc_error(_stub_rpc_error(grpc.StatusCode.INTERNAL, "internal"))
         assert isinstance(result, MillError)
         assert not isinstance(result, (MillAuthError, MillConnectionError, MillQueryError))
+
+    def test_trailing_trace_id_query_error(self) -> None:
+        err = _from_grpc_error(
+            _stub_rpc_error(
+                grpc.StatusCode.NOT_FOUND,
+                "entity missing",
+                trailing_metadata=(
+                    ("x-correlation-id", b"corr-abc"),
+                    (b"x-trace-id", b"tid-9"),
+                ),
+            )
+        )
+        assert isinstance(err, MillQueryError)
+        assert err.trace_id == "tid-9"
+        assert err.grpc_trailing_metadata is not None
+        assert err.grpc_trailing_metadata.get("x-trace-id") == "tid-9"
+        assert err.grpc_trailing_metadata.get("x-correlation-id") == "corr-abc"
+        assert err.legacy_grpc_code == "NOT_FOUND"
+        assert err.legacy_grpc_message == "entity missing"
+
+    def test_trailing_trace_id_prefers_primary_headers(self) -> None:
+        err = _from_grpc_error(
+            _stub_rpc_error(
+                grpc.StatusCode.UNAUTHENTICATED,
+                "nope",
+                trailing_metadata=(
+                    ("x-correlation-id", "c"),
+                    ("x-trace-id", "chosen"),
+                ),
+            )
+        )
+        assert isinstance(err, MillAuthError)
+        assert err.trace_id == "chosen"
 
 
 # ---------------------------------------------------------------------------
@@ -154,6 +226,19 @@ class TestFromHttpStatus:
         assert result.response_headers == {"content-type": "application/json"}
         assert result.details == "HTTP 404"
         assert "No static resource" in str(result)
+
+    def test_http_problem_details_fields(self) -> None:
+        body = (
+            '{"type":"urn:mill:test:nope","title":"Not available",'
+            '"detail":"Unknown dialect","status":404,"traceId":"tid-xyz"}'
+        )
+        result = _from_http_status(404, body)
+        assert isinstance(result, MillQueryError)
+        assert result.trace_id == "tid-xyz"
+        assert result.problem_type == "urn:mill:test:nope"
+        assert result.problem_title == "Not available"
+        assert result.problem_detail == "Unknown dialect"
+        assert "Unknown dialect" in str(result)
 
     def test_query_error_keeps_raw_text_body(self) -> None:
         body = "plain server error"

@@ -131,7 +131,12 @@ class AccessServiceControllerTest {
                 .accept(MediaType.APPLICATION_JSON)
         ).andReturn();
         assertEquals(404, result.getResponse().getStatus());
-        assertTrue(result.getResponse().getContentAsString().contains("NOT_FOUND"));
+        String body = result.getResponse().getContentAsString();
+        assertTrue(body.contains("NOT_FOUND"));
+        String ct = result.getResponse().getContentType();
+        assertNotNull(ct);
+        assertTrue(ct.contains("problem+json"));
+        assertTrue(body.contains("detail") || body.contains("\"detail\""));
     }
 
     @Test

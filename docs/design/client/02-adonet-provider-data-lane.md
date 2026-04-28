@@ -43,6 +43,9 @@ The server entry points are:
   `services/mill-data-grpc-service/src/main/java/io/qpointz/mill/data/backend/MillGrpcService.java`
 - HTTP controller:
   `services/mill-data-http-service/src/main/java/io/qpointz/mill/data/backend/access/http/controllers/AccessServiceController.java`
+- HTTP failures are returned as **`application/problem+json`** (RFC 9457 Problem Details) from
+  `AccessServiceProblemAdvice`, with trace identifiers compatible with **mill-py** and the **JDBC**
+  driver's HTTP stack. Overview: **[`client-error-transparency.md`](./client-error-transparency.md)**.
 
 Both delegate into:
 

@@ -15,7 +15,10 @@ client (`MillClient` over gRPC or Jet HTTP under `/services/jet`).
 ## Shared HTTP stack
 
 - **`mill._http_common`**: `httpx` construction (TLS, auth headers), `raise_for_status` /
-  `MillStatusDetails`-aware errors, `encode_metadata_entity_path_segment` for path variables.
+  Problem Details-aware parsing (RFC 9457) alongside legacy Spring and MillStatusDetails-shaped bodies,
+  `encode_metadata_entity_path_segment` for path variables.
+- See **[`client-error-transparency.md`](./client-error-transparency.md)** for the shared error contract
+  on the **data lane** (`/services/jet`) and how platform HTTP benefits from the same `mill-py` parsers.
 - Platform clients use **per-request** `Accept` and `Content-Type` (JSON, YAML export,
   multipart import), not Jet proto defaults.
 

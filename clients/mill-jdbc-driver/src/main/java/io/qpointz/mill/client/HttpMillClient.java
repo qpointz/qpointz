@@ -152,7 +152,15 @@ public class HttpMillClient extends MillClient {
         }
 
         if (!resp.isSuccessful()) {
-            throw new MillCodeException("HTTP request failed with status code: " + resp.code() + " and message: " + resp.message());
+            byte[] failureBody = null;
+            try {
+                if (resp.body() != null) {
+                    failureBody = resp.body().bytes();
+                }
+            } catch (IOException ie) {
+                failureBody = null;
+            }
+            throw new MillCodeException(HttpMillErrorBodies.describe(resp.code(), resp.message(), failureBody));
         }
 
         try {
@@ -192,8 +200,16 @@ public class HttpMillClient extends MillClient {
             public void onResponse(Call call, Response resp) {
                 try (resp) {
                     if (!resp.isSuccessful()) {
-                        result.completeExceptionally(new MillCodeException(
-                                "HTTP request failed with status code: " + resp.code() + " and message: " + resp.message()));
+                        byte[] failureBody = null;
+                        try {
+                            if (resp.body() != null) {
+                                failureBody = resp.body().bytes();
+                            }
+                        } catch (IOException ie) {
+                            failureBody = null;
+                        }
+                        result.completeExceptionally(
+                                new MillCodeException(HttpMillErrorBodies.describe(resp.code(), resp.message(), failureBody)));
                         return;
                     }
 

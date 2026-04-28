@@ -178,3 +178,6 @@ flowchart LR
   `services/mill-data-grpc-service/src/main/java/io/qpointz/mill/data/backend/MillGrpcService.java`
 - HTTP controller:
   `services/mill-data-http-service/src/main/java/io/qpointz/mill/data/backend/access/http/controllers/AccessServiceController.java`
+  (failures surfaced as RFC 9457 Problem Details via
+  `.../access/http/advice/AccessServiceProblemAdvice.java`)
+- Client error mapping (Python JDBC, parity): [`docs/design/client/client-error-transparency.md`](../client/client-error-transparency.md)

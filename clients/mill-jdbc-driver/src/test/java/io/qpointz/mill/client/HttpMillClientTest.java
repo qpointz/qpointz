@@ -71,10 +71,41 @@ class HttpMillClientTest {
             val thrown = assertThrows(ExecutionException.class, () ->
                     client.handshakeAsync(HandshakeRequest.getDefaultInstance()).get(5, TimeUnit.SECONDS));
             assertNotNull(thrown.getCause());
-            assertTrue(thrown.getCause().getMessage().contains("status code: 500"));
+            String msg = thrown.getCause().getMessage();
+            assertTrue(msg.contains("500"), msg);
+            assertTrue(msg.contains("boom"), msg);
         }
     }
 
+    @SneakyThrows
+    @Test
+    void handshakeAsyncShouldSurfaceProblemDetailsBody() throws IOException {
+        try (val srv = new MockWebServer()) {
+            val problemJson = "{"
+                    + "\"type\":\"urn:mill:test:bad-request\","
+                    + "\"title\":\"Bad request\","
+                    + "\"detail\":\"Unknown table X\","
+                    + "\"status\":400,"
+                    + "\"traceId\":\"trace-abc\""
+                    + "}";
+            srv.enqueue(new MockResponse()
+                    .setResponseCode(400)
+                    .setHeader("Content-Type", "application/problem+json")
+                    .setBody(problemJson));
+            srv.start();
 
+            val client = HttpMillClient.builder()
+                    .url(srv.url("/api").toString())
+                    .build();
+
+            val thrown = assertThrows(ExecutionException.class, () ->
+                    client.handshakeAsync(HandshakeRequest.getDefaultInstance()).get(5, TimeUnit.SECONDS));
+            assertNotNull(thrown.getCause());
+            String msg = thrown.getCause().getMessage();
+            assertTrue(msg.contains("Unknown table X"), msg);
+            assertTrue(msg.contains("trace-abc"), msg);
+            assertTrue(msg.contains("urn:mill:test:bad-request"), msg);
+        }
+    }
 
 }
