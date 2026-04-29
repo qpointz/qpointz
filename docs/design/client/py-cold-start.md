@@ -671,7 +671,7 @@ using the inverse:
 | 8 | `test_connect.py` | Entire file commented out | Low |
 | 9 | `__init__.py:1-2` | Unused `import base64` and `from abc import abstractmethod` | Low |
 | 10 | `client.py` HTTP path (`MillHttpSession.post` / `MillHttpClient`) | HTTP transport is effectively hardwired to protobuf response parsing (`res.parse(cnt)`) while protocol naming and mode selection imply JSON should be valid too; this is a content negotiation/decoder mismatch. Integration tests should be reviewed: current profile segregation (`http-json`, `http-protobuf`) implies distinct response serialization modes, but implementation appears incomplete/inconsistent. Track as backlog `C-21`. | High |
-| 11 | `mill/exceptions.py` + HTTP/gRPC transport mapping paths | **Data plane mitigated**: Problem Details-shaped HTTP bodies, `mill-py` + JDBC parsing, gRPC trailing metadata for `trace_id` ([`client-error-transparency.md`](./client-error-transparency.md)); residual generic errors possible on endpoints outside this mapping. WI-013 tracks broader backlog (`P-31`). | Medium |
+| 11 | `mill/exceptions.py` + HTTP/gRPC transport mapping paths | **Data plane mitigated**: Problem Details-shaped HTTP bodies, `mill-py` + JDBC parsing, gRPC trailing metadata for `trace_id` ([`client-error-transparency.md`](./client-error-transparency.md)); residual generic errors possible on endpoints outside this mapping. **P-31** / **WI-013** closed — [`completed/20260429-client-error-transparency/STORY.md`](../../workitems/completed/20260429-client-error-transparency/STORY.md). | Medium |
 
 ### 9.2 HTTP Server Bugs (for reference)
 

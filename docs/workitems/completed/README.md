@@ -23,6 +23,7 @@ Optionally, keep a **newest-first** bullet list below as a human-maintained inde
 
 ## Index (optional, newest first)
 
+- [2026-04-29 — client-error-transparency (Problem Details data plane, mill-py + JDBC + gRPC parity, WI-013)](20260429-client-error-transparency/STORY.md)
 - [2026-04-28 — ai-facet-catalog-inference (metadata QUERY + authoring CAPTURE, `MetadataReadPort`, facet URN captures, WI-204–WI-206)](20260428-ai-facet-catalog-inference/STORY.md)
 - [2026-04-24 — mill-py-metadata-client (`mill.metadata` / `mill.schema_explorer`, canonical export/import, WI-192–WI-203)](20260424-mill-py-metadata-client/STORY.md)
 - [2026-04-17 — schema-capability-metadata (relation payload normalization, `SchemaCatalogPort` + adapter, Skymill IT, `MetadataUrns`; WI-187–WI-191)](20260417-schema-capability-metadata/STORY.md)

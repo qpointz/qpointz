@@ -2,7 +2,7 @@
 
 Normative design note for **structured failure surfaces** on the Mill **data lane** (gRPC and Jet
 HTTP under `/services/jet`): how the server encodes errors, and how **mill-py** and the **JDBC driver**
-surface them to callers. Work item context: `docs/workitems/planned/client-error-transparency/WI-013.md`.
+surface them to callers. Work item context: `docs/workitems/completed/20260429-client-error-transparency/WI-013.md`.
 
 ## Goals
 
@@ -81,7 +81,7 @@ tools (e.g. DBeaver) via **`SQLException`**.
 
 | Area | Pointer |
 |------|---------|
-| Work item | `docs/workitems/planned/client-error-transparency/WI-013.md` |
+| Work item | `docs/workitems/completed/20260429-client-error-transparency/WI-013.md` |
 | Python transport | `mill/_transport/_http.py`, `mill/_transport/_grpc.py`, `mill/aio/_transport/*` |
 | JDBC HTTP client | `HttpMillClient.java` |
 | Data lane overview | [`mill-data-lane-onepager.md`](../platform/mill-data-lane-onepager.md) |

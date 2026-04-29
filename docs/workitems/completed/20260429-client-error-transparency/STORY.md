@@ -6,4 +6,4 @@ between HTTP and gRPC client paths.
 
 ## Work Items
 
-- [ ] WI-013 — Error Transparency for Python/JDBC Clients (`WI-013.md`)
+- [x] WI-013 — Error Transparency for Python/JDBC Clients (`WI-013.md`)
