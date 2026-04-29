@@ -6,14 +6,16 @@
 |----------------------------------------|----------------------|
 | Spring Boot                            | 3.5.10               |
 | Spring Framework                       | 6.x (managed by Boot)|
-| Spring Security                        | 6.x (test hardcoded at 6.5.7) |
+| Spring Security                        | 6.x (BOM-aligned **`spring-security-test`** via **`platform(libs.boot.dependencies)`** in **`services/mill-service-common`** tests — **WI-099**) |
 | Spring AI                              | 1.1.2                |
 | Spring Cloud Function                  | 3.2.12               |
 | SpringDoc OpenAPI                      | 2.8.14               |
-| gRPC Spring Boot Starter (`net.devh`)  | 3.1.0.RELEASE        |
+| gRPC data plane                        | grpc-java **1.79.x** (see note below) |
 | `spring-dependency-management` plugin  | 1.1.6                |
 | Kotlin                                 | 2.3.10               |
 | Jackson                                | 2.21.0               |
+
+**gRPC:** The composite build uses **`services/mill-data-grpc-service`** on **raw grpc-java** (Netty server, Spring-managed lifecycle, Kotlin `MillGrpcService` + interceptors). **`net.devh` is not** declared in **`libs.versions.toml`**. A legacy tree **`misc/spring-3/mill-data-grpc-service`** (still illustrating `net.devh` usage) remains for historical comparison but is **not** included in **`settings.gradle.kts`**.
 
 ## Target State (Spring Boot 4.0)
 
@@ -35,22 +37,20 @@
 
 ### 1. gRPC Spring Boot Starter (`net.devh`) -- NO Spring Boot 4 support
 
-**Severity: BLOCKER (unblocked -- see [Appendix A](#appendix-a-grpc-migration-to-raw-grpc-java) for solution)**
+**Severity: was BLOCKER for Boot 4 — mitigated on the main build (raw grpc-java).**
 
-The `net.devh:grpc-server-spring-boot-starter:3.1.0.RELEASE` does **not** have a Spring Boot 4 compatible version.
+The `net.devh:grpc-server-spring-boot-starter` line does **not** have a Spring Boot 4–compatible release.
 
-**Resolution:** Remove the `net.devh` starter entirely and reimplement the gRPC server on top of raw **grpc-java** (no Spring gRPC, no framework wrappers). This eliminates the third-party dependency and gives full control over the server lifecycle. See [Appendix A](#appendix-a-grpc-migration-to-raw-grpc-java) for detailed analysis and implementation plan.
+**Resolution (chosen):** Dropped `net.devh` from the **main** Gradle build and implemented the data-plane gRPC server on **raw grpc-java** (not Spring’s optional gRPC starter). [Appendix A](#appendix-a-grpc-migration-to-raw-grpc-java) documents the original plan and remains useful for rationale and the legacy layout.
 
-**Impact:**
-- `data/mill-data-grpc-service` (main source + tests)
-- `clients/mill-jdbc-driver` (tests only)
-- `apps/mill-service` (configuration)
+**Main-build layout today:**
+- `services/mill-data-grpc-service` (production + `testIT`)
+- `clients/mill-jdbc-driver` (no `net.devh` in JDBC tests)
+- `apps/mill-service` (**`mill.data.services.grpc.*`** configuration; see `GrpcServerProperties` in **`services/mill-data-grpc-service`**)
 
-**Action required:**
-- Remove `net.devh` dependencies from `libs.versions.toml` and all `build.gradle.kts` files
-- Reimplement gRPC server lifecycle, security interceptors, and exception handling using raw grpc-java
-- Rewrite test infrastructure to use grpc-java `InProcessServer`/`InProcessChannel`
-- Update application configuration (`grpc.server.*` → custom `mill.services.grpc.*` properties)
+**Remaining for Boot 4:** Re-validate this stack under Spring Boot 4 / Spring Security 7 (interceptors, lifecycle beans). No further `net.devh` removal is required in the composite build.
+
+**Optional cleanup:** Delete or clearly mark **`misc/spring-3/mill-data-grpc-service`** as archival-only so it is not mistaken for active code.
 
 ### 2. Spring AI Version Incompatibility
 
@@ -59,7 +59,7 @@ The `net.devh:grpc-server-spring-boot-starter:3.1.0.RELEASE` does **not** have a
 Spring AI 1.1.2 is built for Spring Boot 3.x. Spring Boot 4 requires **Spring AI 2.0.x** (currently at 2.0.0-M2, not yet GA).
 
 **Impact:**
-- All `ai/` modules (`mill-ai-core`, `mill-ai-core-ext`, `mill-ai-nlsql-chat-service`)
+- AI Spring modules: e.g. `ai/mill-ai-v1-core`, `ai/mill-ai-v1-nlsql-chat-service` (and any other modules pulling Spring AI BOM artifacts)
 - `apps/mill-service`
 - All usages of `spring-ai-client-chat`, `spring-ai-vector-store`, model starters, MCP server starters, `spring-ai-starter-model-chat-memory-repository-jdbc`
 
@@ -124,11 +124,10 @@ SpringDoc OpenAPI 2.x is built for Spring Boot 3.x. Per the [SpringDoc compatibi
 
 **Impact:**
 - `apps/mill-service` (uses `springdoc-openapi-starter-webmvc-ui` and `springdoc-openapi-starter-webflux-api`)
-- `services/mill-metadata-service` (hardcoded `springdoc-openapi-starter-webmvc-ui:2.3.0`)
+- `metadata/mill-metadata-service`, `services/mill-service-common`, `data/mill-data-schema-service`, and other modules via **`libs.springdoc.*`** from the version catalog (formerly `services/mill-metadata-service` had a hardcoded SpringDoc version — **fixed**)
 
-**Action required:**
-- Upgrade `springDoc` version in `libs.versions.toml` from `2.8.14` to latest `3.x.x`
-- Fix `mill-metadata-service` hardcoded `2.3.0` to use version catalog
+**Action required (for Boot 4 readiness on 3.5.x):**
+- Upgrade `springDoc` version in `libs.versions.toml` from `2.8.14` to latest `3.x.x` **when** moving to Spring Boot 4
 - Review for any breaking API changes between springdoc-openapi 2.x and 3.x
 
 ---
@@ -146,30 +145,26 @@ Spring Boot 4 renamed several starters. The old names are deprecated but still w
 | `spring-boot-starter-oauth2-resource-server`               | `spring-boot-starter-security-oauth2-resource-server`      |
 
 **Files to update:**
-- `libs.versions.toml` lines 40-42: update Maven coordinates for the above starters
-- All `build.gradle.kts` files referencing `libs.boot.starter.web` (used in ~8 modules)
+- `libs.versions.toml` (entries for `boot-starter-web`, OAuth2 starters — see table above)
+- All `build.gradle.kts` files referencing `libs.boot.starter.web` and related aliases
 
 ### 7. Remaining `javax.*` Imports
 
-The following files still use `javax.*` imports that must be migrated to `jakarta.*`:
+**Historical:** Older revisions listed `misc/rapids/*`, `ai/mill-ai-core-ext/.../ChatService.kt`, and **javax.servlet** usages. The **`misc/rapids/`** tree is **no longer** in this repository, and a repo-wide scan shows **no** `javax.servlet` / `javax.annotation` imports in current **`*.java` / `*.kt`** sources.
 
-| File | Import | Replacement |
-|------|--------|-------------|
-| `misc/rapids/rapids-srv-worker/.../ODataServlet.java` | `javax.servlet.*` | `jakarta.servlet.*` |
-| `misc/rapids/rapids-srv-worker/.../JdbcService.java` | `javax.servlet.http.HttpServletRequest` | `jakarta.servlet.http.HttpServletRequest` |
-| `ai/mill-ai-core-ext/.../ChatService.kt` | `javax.annotation.PostConstruct` | `jakarta.annotation.PostConstruct` |
-| `libs.versions.toml` line 96 | `javax-annotation-api` dependency | Remove or replace with `jakarta.annotation-api` |
+**Resolved (Boot 3.5 housekeeping):**
+
+| Location | Notes |
+|----------|--------|
+| `libs.versions.toml` — `jakarta-annotation-api` | Catalog uses **`jakarta.annotation:jakarta.annotation-api`**; product modules use **`libs.jakarta.annotation.api`** (no `javax.annotation-api` coordinate). |
 
 ### 8. `spring.factories` Legacy Auto-Configuration
 
-**File:** `core/mill-metadata-core/src/main/resources/META-INF/spring.factories`
+**Historical path in this doc:** `core/mill-metadata-core/src/main/resources/META-INF/spring.factories`.
 
-This still registers auto-configuration classes via the legacy `spring.factories` mechanism. Spring Boot 4 ignores `spring.factories` for auto-configuration discovery.
+**Current repo:** Autoconfigure and registration live under **`metadata/mill-metadata-autoconfigure`** (and related modules). **`metadata/mill-metadata-core`** resources no longer include **`META-INF/spring.factories`** (or `AutoConfiguration.imports`).
 
-The new-format file already exists at:
-`core/mill-metadata-core/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`
-
-**Action:** Remove the `spring.factories` file.
+**Action:** Keep auto-configuration registered **only** via **`META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`** where applicable. Occasional **repo-wide greps** for `spring.factories` / `EnableAutoConfiguration` remain good hygiene before Boot 4 (see backlog **P-5** / spring4 pre-migration story).
 
 ### 9. Spring Security 7.0 Changes
 
@@ -178,16 +173,11 @@ Spring Security 7.0 includes breaking changes. While the security code already u
 - May change OAuth2 login/resource server configuration
 - Has package reorganizations
 
-**Files to review:**
-- `core/mill-security-core/src/main/java/.../ApiSecurityConfiguration.java`
-- `core/mill-security-core/src/main/java/.../AppSecurityConfiguration.java`
-- `core/mill-security-core/src/main/java/.../ServicesSecurityConfiguration.java`
-- `core/mill-security-core/src/main/java/.../SwaggerSecurityConfig.java`
-- `core/mill-security-core/src/main/java/.../WellKnownSecurityConfiguration.java`
-- `core/mill-security-core/src/main/java/.../AuthRoutesSecurityConfiguration.java`
-- `data/mill-data-grpc-service/src/main/java/.../GrpcServiceSecurityConfiguration.java`
+**Files to review (representative — adjust packages as code evolves):**
+- `security/mill-security-autoconfigure/src/main/java/io/qpointz/mill/security/configuration/ApiSecurityConfiguration.java` (and related configs under **`security/mill-security-autoconfigure`**, **`security/mill-service-security`**, **`security/mill-security`**, **`security/mill-security-auth-service`**)
+- `services/mill-data-grpc-service/src/main/kotlin/io/qpointz/mill/data/backend/grpc/GrpcSecurityInterceptor.kt`
 
-**Also:** remove hardcoded `spring-security-test` at `6.5.7` in `libs.versions.toml` line 34 and let Spring Boot 4 manage it.
+**Also:** `spring-security-test` is aligned with the Boot BOM via **`platform(libs.boot.dependencies)`** in **`services/mill-service-common`** tests (**WI-099**); keep that pattern when adding new consumers.
 
 ### 10. Modularization Impact
 
@@ -205,9 +195,11 @@ Spring Boot 4 has been completely modularized with new package structure. Code i
 
 ### 11. Pre-existing Config Inconsistencies
 
-Fix these before the upgrade:
-- `misc/rapids/` has its own version catalog with Spring Framework 6.1.1 hardcoded and broken version references (`libs.versions.boot` doesn't exist in rapids catalog)
-- `services/mill-metadata-service` has hardcoded `springdoc-openapi-starter-webmvc-ui:2.3.0` instead of using version catalog
+Address before or during the Boot 4 upgrade:
+- **`spring-security-test`** — aligned with Boot BOM in **`services/mill-service-common`** (**WI-099**)
+- **Deprecated starter coordinates** (§6) — still on pre-rename artifact IDs on Boot 3.5
+
+**Resolved on main:** `metadata/mill-metadata-service` uses the shared **`libs.springdoc.*`** catalog entries (no hardcoded SpringDoc artifact version in that module’s `build.gradle.kts`).
 
 ### 12. `PropertyMapper` API Changes
 
@@ -233,7 +225,9 @@ The `io.spring.dependency-management` plugin (currently 1.1.6) continues to work
 ### Pre-condition: Wait for Third-Party GA Releases
 
 The following dependencies do not yet have GA releases compatible with Spring Boot 4:
+
 - **Spring AI 2.0** (currently M2)
+
 **SpringDoc OpenAPI 3.x.x** is confirmed compatible with Spring Boot 4.x ([source](https://springdoc.org/faq.html#_what_is_the_compatibility_matrix_of_springdoc_openapi_with_spring_boot)).
 
 **Spring Cloud Function** has no Spring Boot 4 compatible version yet, but the Azure function module (`misc/cloud/`) is not compiled or included in the distribution, so this is **not a blocker**.
@@ -244,30 +238,40 @@ Until Spring AI 2.0 GA is available, a full migration is **not possible** withou
 
 These changes can be done now, independently of the upgrade:
 
-- [ ] Clean up hardcoded versions: align `mill-metadata-service` springdoc and `spring-security-test` with version catalog
-- [ ] Remove `spring.factories` from `core/mill-metadata-core` (keep only `AutoConfiguration.imports`)
-- [ ] Fix remaining `javax.*` imports → `jakarta.*`
-- [ ] Remove or replace `javax-annotation-api` dependency
-- [ ] Fix `misc/rapids/` broken version catalog references
+- [x] `metadata/mill-metadata-service` SpringDoc — uses **version catalog** (`libs.springdoc.*`); repo-wide **`*.kts` / `*.toml`** audit — **no** hardcoded **`org.springdoc:*`** pins (**WI-101**); bump to SpringDoc **3.x** stays **P-8** / Boot 4
+- [x] `net.devh` gRPC — **removed** from main build; **`services/mill-data-grpc-service`** uses **grpc-java**
+- [x] Align **`spring-security-test`** with Boot BOM — **`services/mill-service-common`** test suite uses **`platform(libs.boot.dependencies)`** + unversioned coordinate; no standalone pin in **`libs.versions.toml`** (**WI-099**)
+- [x] Legacy **`spring.factories`** at old **`mill-metadata-core`** path — **gone** from **`metadata/mill-metadata-core`**; **WI-102** repo audit: **no** `META-INF/spring.factories` files; Boot 3 autoconfig via **`AutoConfiguration.imports`** only (see WI-102 completion notes)
+- [x] Historical **`javax.*` servlet / `PostConstruct`** paths — **no** remaining matches in current sources; annotation API is **`jakarta.annotation-api`** in the catalog (WI-098)
+- [x] `misc/rapids/` — **removed** from repo (no action)
+- [x] **`misc/`** hygiene — non-product trees **documented** (`misc/README.md`, `misc/cloud/README.md`); design docs no longer point at removed **`misc/rapids/`** paths (**WI-100**)
+- [x] Replace **`javax-annotation-api`** with **`jakarta.annotation-api`** where possible; remove `javax` coordinates when unused
+- [x] Boot 4 **jump-start inventory** (grep snapshot) — [`spring4-boot4-jump-start-inventory.md`](spring4-boot4-jump-start-inventory.md) (**WI-103**)
+- [x] Migration plan **Phase 1 / current-state / Appendix A** alignment pass (**WI-104**)
 - [ ] Update deprecated starter names in version catalog (`starter-web` → `starter-webmvc`, OAuth2 renames)
+
+*(Use `[x]` = satisfied on current `dev`; `[ ]` = still open.)*
 
 ### Phase 2 -- Core Upgrade
 
 - [ ] Bump `springBoot` to `4.0.x` in `libs.versions.toml`
-- [ ] Replace `net.devh` gRPC starters with Spring gRPC 1.0.0
+- [x] **gRPC:** `net.devh` **removed** from main build; data plane on **raw grpc-java** in **`services/mill-data-grpc-service`** (re-validate under Boot 4)
 - [ ] Upgrade Jackson dependencies to 3.0 coordinates (group ID + artifact changes)
 - [ ] Upgrade Spring AI to 2.0.x
 - [ ] ~~Upgrade Spring Cloud Function~~ (out of scope -- `misc/cloud/` not in distro)
 - [ ] Upgrade SpringDoc OpenAPI from 2.x to 3.x (confirmed Boot 4 compatible)
-- [ ] Remove hardcoded `spring-security-test` version (let Boot manage it)
 - [ ] Temporarily add `spring-boot-starter-classic` if needed during migration
 
+***Note:** Phase 2 previously mentioned “Spring gRPC 1.0.0” — that was **incorrect** for this repo. The adopted approach is **raw grpc-java**, consistent with [Appendix A](#appendix-a-grpc-migration-to-raw-grpc-java). [Spring gRPC](https://spring.io/blog/2025/11/11/spring-grpc-next-steps) remains an **optional alternative**, not the current implementation.*
+
 ### Phase 3 -- Fix Compilation and Tests
+
+**Jump-start:** Pre-upgrade grep inventory (ObjectMapper, PropertyMapper, Boot extension hooks, Security paths) — [`spring4-boot4-jump-start-inventory.md`](spring4-boot4-jump-start-inventory.md) (**WI-103**).
 
 - [ ] Fix Jackson package imports (`com.fasterxml.jackson.*` → `tools.jackson.*`)
 - [ ] Fix any `ObjectMapper` → `JsonMapper` migration
 - [ ] Fix Spring Security 7.0 breaking changes in security configuration classes
-- [ ] Fix gRPC service wiring with Spring gRPC (annotations, config, properties)
+- [ ] Re-validate **grpc-java** server wiring (`services/mill-data-grpc-service`: lifecycle, interceptors, **`mill.data.services.grpc.*`**) under Boot 4
 - [ ] Fix any Spring Boot modularization import breakages
 - [ ] Review `PropertyMapper` usage
 - [ ] Run full test suite and fix failures
@@ -291,32 +295,32 @@ These changes can be done now, independently of the upgrade:
 |--------|--------|------------|
 | `core/mill-core` | Low | Test dependencies only |
 | `core/mill-service-core` | Medium | Security, auto-config, modularization |
-| `core/mill-security-core` | High | Spring Security 7.0 changes, OAuth2 starter renames |
-| `core/mill-metadata-core` | Medium | Remove `spring.factories`, auto-config imports |
+| `security/*` (e.g. `mill-service-security`, `mill-security-autoconfigure`) | High | Spring Security 7.0 changes, OAuth2 starter renames |
+| `metadata/mill-metadata-core` | Low | Domain resources; autoconfigure lives in **`metadata/mill-metadata-autoconfigure`** |
 | `core/mill-test-kit` | Low | Test starter updates |
-| `data/mill-data-grpc-service` | **Critical** | gRPC starter replacement, security rewrite |
-| `data/mill-data-http-service` | Low | Test dependencies only |
+| `services/mill-data-grpc-service` | **Medium** (was Critical) | Raw **grpc-java** stack — re-validate under Boot 4 / Security 7 |
+| `services/mill-data-http-service` | Low | Test dependencies only |
 | `data/mill-data-backends` | Low | Starter + config processor |
 | `services/mill-service-common` | Medium | Security, web starter rename |
-| `services/mill-metadata-service` | Medium | Hardcoded springdoc, web starter rename |
-| `ai/mill-ai-core` | **Critical** | Spring AI 2.0 migration |
-| `ai/mill-ai-core-ext` | **Critical** | Spring AI 2.0, `javax.annotation.PostConstruct` fix |
-| `ai/mill-ai-nlsql-chat-service` | **Critical** | Spring AI 2.0, JPA/Data 2025.1, Security 7.0 |
+| `metadata/mill-metadata-service` | Low–Medium | Web starter rename; SpringDoc already on catalog |
+| `ai/mill-ai-v1-core` | **Critical** | Spring AI 2.0 migration |
+| `ai/mill-ai-v1-nlsql-chat-service` | **Critical** | Spring AI 2.0, JPA/Data 2025.1, Security 7.0 |
 | `apps/mill-service` | **Critical** | All of the above converge here |
 | `services/mill-ui-service` | Low | Web starter rename |
-| `clients/mill-jdbc-driver` | Medium | gRPC client starter replacement (tests) |
+| `clients/mill-jdbc-driver` | Low–Medium | Ensure gRPC **test** helpers stay aligned with **`services/mill-data-grpc-service`** |
 | `misc/cloud/mill-azure-service-function` | N/A (not in distro) | Spring Cloud Function, thin-launcher -- out of migration scope |
-| `misc/rapids/*` | Medium | javax imports, broken version catalog |
+| `misc/spring-3/mill-data-grpc-service` | N/A (not in build) | Archival **net.devh** reference only — optional delete |
 
 ---
 
 ## References
 
+- [spring4-boot4-jump-start-inventory.md](spring4-boot4-jump-start-inventory.md) — grep snapshot before Boot 4 (**WI-103**)
 - [Spring Boot 4.0 Migration Guide](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Migration-Guide)
 - [Spring Boot 4.0 Release Notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Release-Notes)
 - [Spring Framework 7.0 Release Notes](https://github.com/spring-projects/spring-framework/wiki/Spring-Framework-7.0-Release-Notes)
 - [Spring Security 7.0 Migration](https://docs.spring.io/spring-security/reference/7.0/migration/)
-- [Spring gRPC 1.0 Announcement](https://spring.io/blog/2025/11/11/spring-grpc-next-steps)
+- [Spring gRPC next steps](https://spring.io/blog/2025/11/11/spring-grpc-next-steps) — **Not used** in this repo; raw **grpc-java** was adopted instead ([Appendix A](#appendix-a-grpc-migration-to-raw-grpc-java)).
 - [Spring AI 2.0 M1 Announcement](https://spring.io/blog/2025/12/11/spring-ai-2-0-0-M1-available-now)
 - [Jackson 3.0 in Spring Boot 4](https://blog.vvauban.com/blog/spring-boot-4-moves-to-jackson-3-already-in-m3)
 - [grpc-java GitHub](https://github.com/grpc/grpc-java)
@@ -324,6 +328,8 @@ These changes can be done now, independently of the upgrade:
 ---
 
 ## Appendix A: gRPC Migration to Raw grpc-java
+
+> **Historical / superseded narrative (WI-104):** Production gRPC lives in **`services/mill-data-grpc-service`** on **raw grpc-java**. The **side-by-side `mill-data-grpc-service-v2`** plan and **`data/mill-data-grpc-service`** paths below record the **original migration design** from **`net.devh`**; they are **not** the current module graph. Use this appendix for **rationale and migration history** only.
 
 ### Rationale
 
@@ -363,21 +369,19 @@ Instead of migrating from `net.devh` to another framework wrapper (Spring gRPC),
 | `clients/mill-jdbc-driver/InProcessTest.java` | `GrpcAdviceAutoConfiguration`, `@Value("${grpc.server.in-process-name}")` | **Low** -- replace with manual in-process setup |
 | `clients/mill-jdbc-driver/ColumnsMetadataTest.java` | `GrpcAdviceAutoConfiguration` | **Low** -- same pattern |
 
-#### Configuration Files
+#### Configuration Files (historical — see banner above)
 
-| File | Content to Change |
-|------|------------------|
-| `data/mill-data-grpc-service/src/test/resources/application-test.yml` | Remove `grpc.server.*` and `grpc.client.*` sections |
-| `apps/mill-service/src/main/resources/application.yml` | Remove `grpc.server.*`; keep `mill.services.grpc.*` |
-| `data/mill-data-backends/src/test/resources/application-test-calcite.yml` | Remove `grpc.server.*` and `grpc.client.*` sections |
-| `data/mill-data-grpc-service/src/main/resources/META-INF/additional-spring-configuration-metadata.json` | Remove `net.devh` references from descriptions |
+| File | Notes (at cutover time) |
+|------|-------------------------|
+| `services/mill-data-grpc-service/src/testIT/resources/application-test.yml` | Test-only gRPC settings aligned with **`mill.data.services.grpc.*`** |
+| `apps/mill-service/src/main/resources/application.yml` | Binds gRPC port via **`mill.data.services.grpc.*`** placeholders |
 
 #### Build Files
 
 | File | Change |
 |------|--------|
-| `libs.versions.toml` | Remove `bootGRPC` version, `bootGRPC-server`, `bootGRPC-client` entries |
-| `data/mill-data-grpc-service/build.gradle.kts` | Replace `libs.bootGRPC.server` with `libs.grpc.netty.shaded` (already present); remove `libs.javax.annotation.api` |
+| `libs.versions.toml` | Remove `bootGRPC` version, `bootGRPC-server`, `bootGRPC-client` entries (**done**); use **`jakarta-annotation-api`** instead of `javax-annotation-api` (**done**, WI-098) |
+| `services/mill-data-grpc-service/build.gradle.kts` | Raw grpc-java + **`libs.jakarta.annotation.api`**; no `bootGRPC` (supersedes historical `data/mill-data-grpc-service` row) |
 | `clients/mill-jdbc-driver/build.gradle.kts` | Remove `libs.bootGRPC.client` and `libs.bootGRPC.server` from test dependencies; add `libs.grpc.inprocess` |
 
 ### Migration Strategy: Side-by-Side Module
@@ -386,13 +390,13 @@ The architecture fully supports spinning up a new pure grpc-java module alongsid
 
 #### Why side-by-side works
 
-1. **`@ConditionalOnService("grpc")` isolates everything.** All 4 production classes in the current module are gated by this annotation, which checks `mill.services.grpc.enable` in the environment. Both modules can coexist on the classpath; activation is controlled by config.
+1. **`@ConditionalOnService(value = "grpc", group = "data")` isolates the data-plane gRPC stack.** Beans in **`services/mill-data-grpc-service`** use this annotation together with **`mill.data.services.grpc.*`** server properties (`GrpcServerProperties`).
 
-2. **No auto-configuration registration.** The `data/mill-data-grpc-service` module has no `spring.factories` or `AutoConfiguration.imports`. Beans are discovered via component scanning. The new module follows the same pattern -- no conflict.
+2. **No auto-configuration registration.** The **`services/mill-data-grpc-service`** module has no `spring.factories` or `AutoConfiguration.imports` for the gRPC server; beans are discovered via component scanning.
 
-3. **Clean dependency graph.** Both modules depend on `data:mill-data-backends` (provides `ServiceHandler`, `DataOperationDispatcher`) and `core:mill-security-core`. No circular dependencies.
+3. **Clean dependency graph.** The gRPC module depends on **`data:mill-data-backends`** (provides `ServiceHandler`, `DataOperationDispatcher`) and security support modules. No circular dependencies.
 
-4. **`apps/mill-service` is the only consumer.** It includes `data:mill-data-grpc-service` as an `implementation` dependency. Add the new module alongside it during transition.
+4. **`apps/mill-service` consumer.** It includes **`services:mill-data-grpc-service`** as an `implementation` dependency (see `apps/mill-service/build.gradle.kts`).
 
 5. **RPC handler bodies are pure grpc-java.** They use `io.grpc.stub.StreamObserver`, `ServerCallStreamObserver`, and protobuf stubs. The new module can reuse the handler code verbatim.
 
@@ -402,7 +406,12 @@ The architecture fully supports spinning up a new pure grpc-java module alongsid
 
 `MillGrpcService` in the current module is annotated `@SpringBootApplication` (making it both a service bean and a component-scan root). The new module must **not** replicate this -- the gRPC service should be a plain `@Component` and let `apps/mill-service` remain the sole `@SpringBootApplication`.
 
-#### Module layout during transition
+#### Module layout during transition (not implemented as written)
+
+The repo **did not** add a permanent **`mill-data-grpc-service-v2`** sibling under **`data/`**. Instead, **`net.devh`** was removed and **raw grpc-java** landed directly in **`services/mill-data-grpc-service`**. Treat the **v2 / side-by-side** sketch below as **historical** planning text only.
+
+<details>
+<summary>Original side-by-side sketch (archival)</summary>
 
 ```
 data/
@@ -410,36 +419,9 @@ data/
   mill-data-grpc-service-v2/     ← new module (pure grpc-java)
 ```
 
-**`settings.gradle.kts`** -- add:
-```kotlin
-include(":data:mill-data-grpc-service-v2")
-```
+Cutover steps originally envisioned a second module, dual toggles, and removal of the legacy module — superseded by the direct **`services/mill-data-grpc-service`** implementation.
 
-**`apps/mill-service/build.gradle.kts`** -- include both during transition:
-```kotlin
-implementation(project(":data:mill-data-grpc-service"))     // old
-implementation(project(":data:mill-data-grpc-service-v2"))  // new
-```
-
-#### Activation modes during transition
-
-| Mode | Config | Effect |
-|------|--------|--------|
-| Old only (current) | `mill.services.grpc.enable=true` | Only `net.devh`-based module activates (no v2 beans scanned) |
-| New only (target) | `mill.services.grpc-v2.enable=true` | Only pure grpc-java module activates |
-| Both (comparison) | Both enabled, different ports | Run both simultaneously for side-by-side testing |
-
-During comparison testing the new module can bind to a separate port (e.g. `mill.services.grpc-v2.port=9098`) while the old module keeps `9090`.
-
-#### Cutover steps
-
-1. Create `data/mill-data-grpc-service-v2` with pure grpc-java implementation
-2. Add to `settings.gradle.kts` and `apps/mill-service/build.gradle.kts`
-3. Use `mill.services.grpc-v2.enable=true` for testing, keeping old module on `mill.services.grpc.enable=true`
-4. Validate all gRPC endpoints, security flows, and streaming behavior
-5. Switch `ConditionalOnService` annotation in v2 from `"grpc-v2"` to `"grpc"`
-6. Remove old `data/mill-data-grpc-service` module
-7. Optionally rename `mill-data-grpc-service-v2` → `mill-data-grpc-service`
+</details>
 
 ### Implementation Plan
 
@@ -456,8 +438,8 @@ public class GrpcServerConfiguration {
     public Server grpcServer(
             MillGrpcService service,
             List<ServerInterceptor> interceptors,
-            @Value("${mill.services.grpc.port:9090}") int port,
-            @Value("${mill.services.grpc.address:*}") String address) {
+            @Value("${mill.data.services.grpc.port:9090}") int port,
+            @Value("${mill.data.services.grpc.address:*}") String address) {
 
         var builder = NettyServerBuilder
                 .forPort(port)

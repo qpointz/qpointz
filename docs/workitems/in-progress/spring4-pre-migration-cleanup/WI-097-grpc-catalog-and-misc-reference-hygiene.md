@@ -1,6 +1,6 @@
 # WI-097 — gRPC catalog and reference-tree hygiene
 
-Status: `planned`  
+Status: `done`  
 Type: `refactoring`  
 Area: `build`, `platform`  
 Backlog refs: `P-5`  

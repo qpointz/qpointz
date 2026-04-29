@@ -1,6 +1,6 @@
 # WI-103 — Boot 4 jump-start inventory (grep-only checklist)
 
-Status: `planned`  
+Status: `done`  
 Type: `docs`  
 Area: `platform`  
 Backlog refs: `P-5`  
@@ -36,6 +36,11 @@ listing:
 
 - Inventory file exists and is linked from the migration plan (or STORY closure notes).
 - Reviewed once by a maintainer for obvious false positives.
+
+## Completion notes (WI-103)
+
+- Artifact: [`docs/design/platform/spring4-boot4-jump-start-inventory.md`](../../../design/platform/spring4-boot4-jump-start-inventory.md), linked from **`spring4-migration-plan.md`** Phase 3 and References.
+- **False positives:** broader `ObjectMapper` file count includes tests and helper types — re-run greps at migration time. No `PropertyMapper` / `EnvironmentPostProcessor` / `BootstrapRegistry` hits in application sources at inventory time.
 
 ## References
 

@@ -1,6 +1,6 @@
 # WI-104 — Refresh `spring4-migration-plan.md` Phase 1 status
 
-Status: `planned`  
+Status: `done`  
 Type: `docs`  
 Area: `platform`  
 Backlog refs: `P-5`  
@@ -33,6 +33,14 @@ that the repo already finished (e.g. `spring.factories` removal).
 
 - A reader can tell **what remains before** vs **only after** `springBoot` → `4.0.x` in `libs.versions.toml`.
 - No stale path references to removed modules without an explicit “historical” label.
+
+## Completion notes (WI-104)
+
+- **Current state table:** Spring Security row reflects **WI-099** (no hardcoded test artifact pin).
+- **gRPC:** Clarified **`mill.data.services.grpc.*`** as the native server property prefix; **`apps/mill-service`** and **`services/mill-data-grpc-service`** references updated where the doc still said **`mill.services.grpc.*`** or **`data/mill-data-grpc-service`**.
+- **§9:** Corrected **`ApiSecurityConfiguration`** path to **`security/mill-security-autoconfigure`**; added **`mill-security-auth-service`** and explicit **`GrpcSecurityInterceptor`** path.
+- **Phase 1 / Phase 3:** Linked **[`spring4-boot4-jump-start-inventory.md`](../../../design/platform/spring4-boot4-jump-start-inventory.md)** (**WI-103**); added Phase 1 checkboxes for **WI-103** / **WI-104**.
+- **Appendix A:** Added **superseded / historical** banner; refreshed configuration table; replaced side-by-side **`mill-data-grpc-service-v2`** cutover section with archival `<details>` (actual delivery was direct **`services/mill-data-grpc-service`**).
 
 ## References
 

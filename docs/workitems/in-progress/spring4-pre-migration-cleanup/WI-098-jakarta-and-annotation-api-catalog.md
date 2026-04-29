@@ -1,6 +1,6 @@
 # WI-098 — Jakarta naming and `javax.annotation` catalog
 
-Status: `planned`  
+Status: `done`  
 Type: `refactoring`  
 Area: `platform`  
 Backlog refs: `P-5`  

@@ -1,6 +1,6 @@
 # WI-099 — `spring-security-test` coordinate alignment
 
-Status: `planned`  
+Status: `done`  
 Type: `refactoring`  
 Area: `platform`, `build`  
 Backlog refs: `P-5`  
@@ -30,6 +30,12 @@ replace the pin with `version.ref = "springBoot"`-aligned strategy documented in
 - No unnecessary hardcoded `spring-security-test` patch version in `libs.versions.toml`, or the
   version matches the Boot 3.5 BOM story with a comment explaining any exception.
 - `./gradlew test` / CI green for affected modules.
+
+## Completion notes (WI-099)
+
+- **Consumers:** only **`services/mill-service-common`** (JvmTestSuite test classpath).
+- **Change:** Removed the standalone **`spring-security-test`** catalog entry (was pinned **`6.5.7`**). Added **`boot-dependencies`** (`org.springframework.boot:spring-boot-dependencies`, **`version.ref = "springBoot"`**) to **`libs.versions.toml`**. The test suite now uses **`implementation(platform(libs.boot.dependencies))`** plus an **unversioned** **`org.springframework.security:spring-security-test`** coordinate so the version always matches the Boot BOM line for the current **`springBoot`** property.
+- **Note:** Version catalog entries **without** a version do **not** pick up the Spring Dependency Management plugin’s BOM on this stack; **`platform(...)`** is the reliable alignment mechanism for this dependency.
 
 ## References
 

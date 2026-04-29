@@ -1,6 +1,6 @@
 # WI-102 — `META-INF` auto-configuration legacy audit
 
-Status: `planned`  
+Status: `done`  
 Type: `refactoring`  
 Area: `platform`  
 Backlog refs: `P-5`  
@@ -31,6 +31,12 @@ files that still register `EnableAutoConfiguration` cause silent drift: works on
 - No `spring.factories` entries remain that register Boot auto-configuration classes for discovery,
   unless Spring Boot 3.5 still **requires** them (justify in code review).
 - `./gradlew build` / CI green.
+
+## Completion notes (WI-102)
+
+- **`find … -name 'spring.factories'`** (excluding `build/`, `.gradle/`): **zero** files — no legacy **`META-INF/spring.factories`** autoconfig registration in the repo.
+- **`META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`** is present in: `metadata/mill-metadata-autoconfigure`, `data/mill-data-autoconfigure`, `ai/mill-ai-v3-autoconfigure`, `ai/mill-ai-v3-persistence`, `security/mill-security-autoconfigure`, `security/mill-security-persistence`, `security/mill-security-auth-service`, `persistence/mill-persistence-autoconfigure`.
+- **`@EnableAutoConfiguration`** in Java/Kotlin appears only in **tests** (slice / integration setup), not in **`META-INF`** — acceptable; unrelated to **`spring.factories`** discovery.
 
 ## References
 
