@@ -39,7 +39,9 @@ testing {
                     implementation(project())
                     implementation(project(":data:mill-data-backends"))
                     implementation(project(":data:mill-data-autoconfigure"))
-                    implementation(libs.spring.security.test)
+                    implementation(platform(libs.boot.dependencies))
+                    // Version from Spring Boot BOM (same line as `springBoot`); no separate catalog pin (WI-099).
+                    implementation("org.springframework.security:spring-security-test")
                     implementation(libs.boot.starter.test)
                     implementation(libs.boot.starter.web)
                     implementation(libs.mockito.core)

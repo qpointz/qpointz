@@ -23,7 +23,7 @@ dependencies {
     api(libs.grpc.stub)
     api(libs.grpc.protobuf)
     api(libs.grpc.core)
-    implementation(libs.javax.annotation.api)
+    implementation(libs.jakarta.annotation.api)
     api(libs.boot.starter.security)
     api(libs.boot.starter.security.oauth2.client)
     api(libs.boot.starter.security.oauth2.resource.server)

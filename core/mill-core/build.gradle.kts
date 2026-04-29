@@ -33,7 +33,7 @@ dependencies {
     api(libs.protobuf.java)
     api(libs.grpc.stub)
     api(libs.grpc.inprocess)
-    api(libs.javax.annotation.api)
+    api(libs.jakarta.annotation.api)
 
     api(libs.bundles.jackson)
     implementation(libs.bundles.logging)

@@ -21,7 +21,7 @@ dependencies {
     implementation(project(":metadata:mill-metadata-core"))
     implementation(project(":core:mill-sql"))
     api(libs.jakarta.servlet.api)
-    api(libs.javax.annotation.api)
+    api(libs.jakarta.annotation.api)
     implementation(project(":core:mill-spring-support"))
     implementation(libs.calcite.core)
     implementation(libs.boot.starter)
