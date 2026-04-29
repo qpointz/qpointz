@@ -67,7 +67,7 @@ This affects ALL modules that use mill-test-kit for testing.
 ```kotlin
 // Replace:
 implementation(libs.boot.starter.web)
-implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
+implementation(libs.springdoc.openapi.starter.webmvc.ui)
 
 // With:
 implementation(libs.boot.starter.webflux)

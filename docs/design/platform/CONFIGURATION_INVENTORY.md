@@ -57,7 +57,7 @@
 | `AuthRoutesSecurityConfiguration` | mill-security-core | same | SecurityFilterChain for auth routes |
 | `WellKnownSecurityConfiguration` | mill-security-core | same | SecurityFilterChain for `/.well-known/**` |
 | `SwaggerSecurityConfig` | mill-security-core | same | SecurityFilterChain for swagger |
-| `GrpcServiceSecurityConfiguration` | mill-jet-grpc-service | `@ConditionalOnService("grpc")` + `@ConditionalOnSecurity` | gRPC auth readers, `GrpcSecurityMetadataSource` |
+| `MillGrpcConfiguration` / `GrpcSecurityInterceptor` | `services/mill-data-grpc-service` | gRPC enable + security metadata on **grpc-java** | Netty server, Spring Security–backed interceptor |
 
 **Consumers:**
 - `FunctionContainerConfig` — `@AutoConfigureBefore(SecurityConfig.class)`
@@ -127,9 +127,9 @@
 | Class | Module | Purpose |
 |-------|--------|---------|
 | `OpenApiConfig` | mill-metadata-service | OpenAPI/Swagger metadata |
-| `FunctionContainerConfig` | mill-azure-service-function | Azure Function container config |
-| `RapidsWorkerApplicationConfiguration` | rapids-srv-worker | Rapids worker |
-| `GrpcServiceApplicationConfiguration` | rapids-grpc-service | Rapids gRPC |
+| `FunctionContainerConfig` | `misc/cloud/mill-azure-service-function` | Azure Function container config (not in root composite build) |
+
+*Historical note:* the **`misc/rapids/`** tree (`rapids-srv-worker`, `rapids-grpc-service`, etc.) was **removed** from this repository; see [`spring4-migration-plan.md`](spring4-migration-plan.md).
 
 ---
 
@@ -144,18 +144,15 @@
 - `apps/mill-service/config/test/application-auth.yml`
 
 ### Service-specific
-- `services/mill-jet-http-service/src/main/resources/application-jet-http.yml`
-- `misc/cloud/mill-azure-service-function/src/main/resources/application.properties`
-- `misc/rapids/rapids-srv-worker/src/main/resources/application.yaml`
-- `misc/rapids/rapids-grpc-service/src/main/resources/application.yaml`
+- `misc/cloud/mill-azure-service-function/src/main/resources/application.properties` (sample Azure Function; not built by root `settings.gradle.kts`)
 
 ### Test resources
 - `core/mill-starter-backends/src/test*/resources/application-test-*.yaml` — jdbc, jdbc-multi-schema, calcite, moneta-it
 - `core/mill-service-core/src/test/resources/application-test-*.yaml` — cmart, jdbc, calcite
 - `core/mill-security-core/src/test/resources/application-test-*.yml` — trivial, policy-inline, custom-security
 - `core/mill-starter-service/src/test/resources/application-test-jdbc.yml`
-- `services/mill-jet-grpc-service/src/test/resources/application-test.yml`
-- `services/mill-jet-http-service/src/test/resources/application-test-cmart.yml`
+- `services/mill-data-grpc-service/src/testIT/resources/application-test.yml`
+- `services/mill-data-http-service/src/test/resources/application-test-cmart.yml`
 - `clients/mill-jdbc-driver/src/test/resources/application-in-proc-test.yml`
 - `clients/etc/test-backend-server/application*.yml` — default, tls, auth
 - `ai/mill-ai-core/src/test*/resources/application-test-*.yml` — moneta-it, valuemap-it, slim-it

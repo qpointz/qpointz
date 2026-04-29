@@ -41,7 +41,7 @@ flowchart LR
     RS3 --> DS
 ```
 
-This mirrors the [rapids blob model](misc/rapids/rapids-core-legacy/src/main/java/io/qpointz/rapids/calcite/blob/):
+This mirrors the historical **Rapids** blob layout (the `misc/rapids/rapids-core-legacy` tree was **removed** from this repository; same ideas live in flow-kt):
 - `BlobSource.listBlobs()` -> discover files
 - `BlobToTableMapper.mapPathToTable()` -> group by table
 - Per-file readers -> union into table
@@ -414,7 +414,7 @@ Key: if all underlying sources are columnar (e.g., Parquet), the columnar path h
 
 **This is a core architectural abstraction.** `BlobSource` / `BlobSink` / `BlobPath` represent anything "file-alike" — local filesystem, S3, Azure Blob Storage, GCS, HDFS. All file discovery and I/O in flow-kt goes through these interfaces. Format modules and SourceTable never touch `java.io.File` or `java.nio.file.Path` directly.
 
-Inspired by rapids [BlobSource](misc/rapids/rapids-core-legacy/src/main/java/io/qpointz/rapids/calcite/blob/BlobSource.java) and [LocalFilesystemBlobSource](misc/rapids/rapids-core-legacy/src/main/java/io/qpointz/rapids/providers/local/blob/LocalFilesystemBlobSource.java):
+Inspired by the same **Rapids** `BlobSource` / `LocalFilesystemBlobSource` concepts (former paths under `misc/rapids/`; see [`spring4-migration-plan.md`](../platform/spring4-migration-plan.md) — tree removed):
 
 ```kotlin
 // Identifies a single "file-alike" resource in any storage system
