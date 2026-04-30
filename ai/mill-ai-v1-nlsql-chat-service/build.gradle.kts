@@ -30,8 +30,14 @@ testing {
 
         register<JvmTestSuite>("testIT") {
             dependencies {
+                implementation(project())
+                implementation(project(":security:mill-service-security"))
+                implementation(project(":data:mill-data-backends"))
                 implementation(libs.h2.database)
                 implementation(libs.boot.starter.data.jpa)
+                implementation(libs.boot.starter.test)
+                implementation(libs.mockito.core)
+                implementation(libs.mockito.junit.jupiter)
                 implementation(libs.spring.ai.starter.model.openai)
             }
 
@@ -46,6 +52,8 @@ testing {
                     implementation(project(":security:mill-service-security"))
                     implementation(project(":data:mill-data-backends"))
                     implementation(libs.boot.starter.test)
+                    implementation("org.springframework.boot:spring-boot-test-autoconfigure")
+                    implementation("org.springframework.boot:spring-boot-autoconfigure")
                     implementation(libs.boot.starter.webflux)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)

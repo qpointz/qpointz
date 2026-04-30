@@ -17,7 +17,7 @@ dependencies {
     implementation(project(":security:mill-service-security"))
     implementation(project(":security:mill-security-persistence"))
     implementation(kotlin("reflect"))
-    implementation(libs.boot.starter.web)
+    implementation(libs.boot.starter.webmvc)
     implementation(libs.boot.starter.security)
     implementation(libs.boot.starter.security.oauth2.client)
 }
@@ -28,7 +28,7 @@ testing {
             dependencies {
                 implementation(project())
                 implementation(libs.boot.starter.test)
-                implementation(libs.boot.starter.web)
+                implementation(libs.boot.starter.webmvc)
                 implementation(libs.assertj.core)
                 implementation(project(":security:mill-service-security"))
                 implementation(project(":security:mill-security-persistence"))

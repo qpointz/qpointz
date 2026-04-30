@@ -1,7 +1,6 @@
 package io.qpointz.mill.ai.autoconfigure
 
 import org.springframework.beans.factory.support.BeanDefinitionRegistry
-import org.springframework.boot.autoconfigure.AutoConfigurationPackages
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.persistence.autoconfigure.EntityScanPackages
 import org.springframework.context.annotation.Bean
@@ -19,14 +18,12 @@ import org.springframework.core.type.AnnotationMetadata
 @ConditionalOnClass(name = ["io.qpointz.mill.persistence.ai.jpa.adapters.JpaChatMemoryStore"])
 @Import(
     AiV3JpaConfiguration.AiV3PackageRegistrar::class,
-    AiV3JpaRepositoriesImportSelector::class,
 )
 class AiV3JpaConfiguration {
 
     internal class AiV3PackageRegistrar : ImportBeanDefinitionRegistrar {
         override fun registerBeanDefinitions(metadata: AnnotationMetadata, registry: BeanDefinitionRegistry) {
             EntityScanPackages.register(registry, "io.qpointz.mill.persistence.ai.jpa.entities")
-            AutoConfigurationPackages.register(registry, "io.qpointz.mill.persistence.ai.jpa")
         }
     }
 

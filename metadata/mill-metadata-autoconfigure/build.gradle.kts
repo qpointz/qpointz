@@ -18,7 +18,7 @@ dependencies {
     /** Types only (e.g. [io.qpointz.mill.data.schema.MetadataEntityUrnCodec]); bean is [MetadataEntityUrnCodecAutoConfiguration] in mill-data-autoconfigure. */
     compileOnly(project(":data:mill-data-schema-core"))
     implementation(libs.boot.starter)
-    implementation(libs.boot.starter.web)
+    implementation(libs.boot.starter.webmvc)
     implementation(libs.json.schema.validator)
     annotationProcessor(libs.boot.configuration.processor)
 }

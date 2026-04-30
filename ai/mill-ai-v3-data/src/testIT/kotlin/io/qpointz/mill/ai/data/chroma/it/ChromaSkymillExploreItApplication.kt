@@ -16,7 +16,7 @@ import io.qpointz.mill.metadata.configuration.MetadataRepositoryAutoConfiguratio
 import io.qpointz.mill.metadata.configuration.MetadataSeedAutoConfiguration
 import org.springframework.boot.SpringBootConfiguration
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration
+import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration
 import org.springframework.context.annotation.Import
 
 /**

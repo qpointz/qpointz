@@ -4,7 +4,7 @@ lombok = "1.18.42"
 protobuf-plugin = "0.9.4"
 
 springCloud = "3.2.12"
-springAi = "1.1.2"
+springAi = "2.0.0-M5"
 springBoot = "4.0.6"
 springDoc = "3.0.3"
 
@@ -46,9 +46,9 @@ boot-devtools = { module = "org.springframework.boot:spring-boot-devtools", vers
 boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "springBoot" }
 boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
 boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security", version.ref = "springBoot" }
-boot-starter-security-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client", version.ref = "springBoot" }
-boot-starter-security-oauth2-resource-server = { module = "org.springframework.boot:spring-boot-starter-oauth2-resource-server", version.ref = "springBoot" }
-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
+boot-starter-security-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-security-oauth2-client", version.ref = "springBoot" }
+boot-starter-security-oauth2-resource-server = { module = "org.springframework.boot:spring-boot-starter-security-oauth2-resource-server", version.ref = "springBoot" }
+boot-starter-webmvc = { module = "org.springframework.boot:spring-boot-starter-webmvc", version.ref = "springBoot" }
 boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux", version.ref = "springBoot" }
 boot-starter-webflux-test = { module = "org.springframework.boot:spring-boot-starter-webflux-test", version.ref = "springBoot" }
 boot-starter-webmvc-test = { module = "org.springframework.boot:spring-boot-starter-webmvc-test", version.ref = "springBoot" }

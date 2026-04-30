@@ -19,7 +19,7 @@ dependencies {
     implementation(libs.boot.starter.security)
     implementation(libs.boot.starter.security.oauth2.resource.server)
     implementation(libs.boot.starter.security.oauth2.client)
-    implementation(libs.boot.starter.web)
+    implementation(libs.boot.starter.webmvc)
 
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)

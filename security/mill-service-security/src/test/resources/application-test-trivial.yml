@@ -1,4 +1,7 @@
 mill:
+  test:
+    oauth2:
+      enabled: true
   data:
     sql:
       dialect: h2

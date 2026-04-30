@@ -20,10 +20,10 @@ import io.qpointz.mill.ai.autoconfigure.providers.AiProvidersAutoConfiguration
 import io.qpointz.mill.persistence.configuration.PersistenceAutoConfiguration
 import org.springframework.boot.SpringBootConfiguration
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
-import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+import org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration
+import org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration
+import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
 import org.springframework.context.annotation.Import
 
 /**

@@ -22,7 +22,7 @@ dependencies {
     implementation(project(":core:mill-spring-support"))
     implementation(libs.boot.starter.security.oauth2.resource.server)
     implementation(libs.boot.starter.security.oauth2.client)
-    implementation(libs.boot.starter.web)
+    implementation(libs.boot.starter.webmvc)
     implementation(libs.okhttp)
 
     annotationProcessor(libs.lombok)
@@ -48,7 +48,7 @@ testing {
                     implementation(libs.boot.starter.test)
                     implementation(libs.boot.starter.restclient.test)
                     implementation(libs.boot.resttestclient)
-                    implementation(libs.boot.starter.web)
+                    implementation(libs.boot.starter.webmvc)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.h2.database)

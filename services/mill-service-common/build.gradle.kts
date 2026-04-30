@@ -17,7 +17,7 @@ dependencies {
     api(project(":data:mill-data-backend-core"))
 
     api(libs.boot.starter)
-    api(libs.boot.starter.web)
+    api(libs.boot.starter.webmvc)
     api(libs.boot.starter.security)
     api(libs.jackson.dataformat.yaml)
 
@@ -42,7 +42,7 @@ testing {
                     // Version from Spring Boot BOM (same line as `springBoot`); no separate catalog pin (WI-099).
                     implementation("org.springframework.security:spring-security-test")
                     implementation(libs.boot.starter.test)
-                    implementation(libs.boot.starter.web)
+                    implementation(libs.boot.starter.webmvc)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.h2.database)

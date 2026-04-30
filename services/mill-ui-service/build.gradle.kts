@@ -12,7 +12,7 @@ mill {
 
 dependencies {
     implementation(libs.boot.starter)
-    implementation(libs.boot.starter.web)
+    implementation(libs.boot.starter.webmvc)
     compileOnly(libs.bundles.logging)
     compileOnly(libs.lombok)
     annotationProcessor(libs.boot.configuration.processor)
@@ -28,7 +28,7 @@ testing {
                 dependencies {
                     implementation(project())
                     implementation(libs.boot.starter.test)
-                    implementation(libs.boot.starter.web)
+                    implementation(libs.boot.starter.webmvc)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.lombok)

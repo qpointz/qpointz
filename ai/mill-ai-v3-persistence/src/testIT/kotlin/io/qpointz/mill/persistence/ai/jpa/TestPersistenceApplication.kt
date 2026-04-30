@@ -1,12 +1,11 @@
 package io.qpointz.mill.persistence.ai.jpa
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.autoconfigure.domain.EntityScan
+import org.springframework.boot.persistence.autoconfigure.EntityScan
 
-// @EnableJpaRepositories is intentionally absent — Spring Boot's JpaRepositoriesAutoConfiguration
-// scans from the @SpringBootApplication package (io.qpointz.mill.persistence.ai.jpa), which
-// covers all repos in the .repositories sub-package. Adding it explicitly causes duplicate
-// bean registration alongside the autoconfigured scan.
+// JPA repositories: `mill-persistence-autoconfigure` registers `io.qpointz.mill.persistence` on
+// AutoConfigurationPackages before DataJpaRepositoriesAutoConfiguration (Boot 4). Do not add
+// @EnableJpaRepositories here — it would duplicate repository beans.
 @SpringBootApplication
 @EntityScan(basePackages = ["io.qpointz.mill.persistence"])
 class TestPersistenceApplication

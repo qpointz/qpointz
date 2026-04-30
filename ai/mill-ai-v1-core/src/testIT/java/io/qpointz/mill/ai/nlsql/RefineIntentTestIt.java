@@ -64,7 +64,7 @@ public class RefineIntentTestIt extends BaseIntentTestIT {
                 .getDataIntent().getCall(rc)
                 .asMap();
         log.info("SQL: ({}) => {}", query, ec.getOrDefault("sql", "NULL"));
-        assertTrue(ec.containsKey("data"));
+        assertTrue(ec.containsKey("sql"));
 
         val retaining = JsonUtils.defaultJsonMapper().convertValue(ec.get("reasoning"), ReasoningResponse.class);
         assertEquals(rc, retaining);
@@ -87,7 +87,7 @@ public class RefineIntentTestIt extends BaseIntentTestIT {
                 .getChartIntent().getCall(rc)
                 .asMap();
         log.info("SQL: ({}) => {}", query, ec.getOrDefault("sql", "NULL"));
-        assertTrue(ec.containsKey("data"));
+        assertTrue(ec.containsKey("sql"));
 
         val retaining = JsonUtils.defaultJsonMapper().convertValue(ec.get("reasoning"), ReasoningResponse.class);
         assertEquals(rc, retaining);

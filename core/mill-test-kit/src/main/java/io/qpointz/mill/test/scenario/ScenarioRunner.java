@@ -143,7 +143,7 @@ public abstract class ScenarioRunner<T extends ScenarioContext<T, R>, R extends 
     protected int getRequiredPassLevel(Action action) {
         Object passObj = action.params().get("pass");
         if (passObj == null) {
-            return ActionOutcome.OutcomeStatus.WARN.getLevel(); // Default to WARN
+            return ActionOutcome.OutcomeStatus.ERROR.getLevel(); // Default to ERROR (most permissive)
         }
 
         if (passObj instanceof String passStr) {
@@ -152,7 +152,7 @@ public abstract class ScenarioRunner<T extends ScenarioContext<T, R>, R extends 
         } else if (passObj instanceof Number passNum) {
             return passNum.intValue();
         } else {
-            return ActionOutcome.OutcomeStatus.WARN.getLevel(); // Default to WARN
+            return ActionOutcome.OutcomeStatus.ERROR.getLevel(); // Default to ERROR (most permissive)
         }
     }
 

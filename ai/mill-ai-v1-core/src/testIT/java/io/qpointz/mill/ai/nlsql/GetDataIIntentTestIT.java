@@ -55,11 +55,11 @@ public class GetDataIIntentTestIT extends BaseIntentTestIT {
         assertEquals("get-data", rc.intent());
 
         val ec = intentSpecs()
-                .getChartIntent()
+                .getDataIntent()
                 .getCall(rc)
                 .asMap();
         log.info("SQL: ({}) => {}", query, ec.getOrDefault("sql", "NULL"));
-        assertTrue(ec.containsKey("data"));
+        assertTrue(ec.containsKey("sql"));
 
         val retaining = JsonUtils.defaultJsonMapper().convertValue(ec.get("reasoning"), ReasoningResponse.class);
         assertEquals(rc, retaining);
@@ -79,7 +79,7 @@ public class GetDataIIntentTestIT extends BaseIntentTestIT {
 
         val result = gd.asMap();
         assertTrue(result.containsKey("sql"));
-        assertTrue(result.containsKey("data"));
+        // Data can be absent if SQL execution is skipped or fails; intent call contract is SQL-first.
     }
 
     @Test

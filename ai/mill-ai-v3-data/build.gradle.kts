@@ -53,6 +53,8 @@ testing {
                 implementation(project(":ai:mill-ai-v3-persistence"))
                 implementation(project(":persistence:mill-persistence-autoconfigure"))
                 implementation(libs.boot.starter)
+                implementation(libs.boot.starter.jackson)
+                implementation(libs.boot.starter.flyway)
                 implementation(libs.boot.starter.test)
                 implementation(libs.assertj.core)
                 implementation(libs.mockito.core)

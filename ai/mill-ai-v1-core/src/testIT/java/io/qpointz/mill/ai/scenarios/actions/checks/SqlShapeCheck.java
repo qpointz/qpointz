@@ -19,6 +19,15 @@ public class SqlShapeCheck extends AbstractCheck {
 
     @Override
     public List<CheckResult> execute(Map<String, Object> checkParams, Map<String, Object> result) {
+        if (!result.containsKey("sql") || result.get("sql") == null) {
+            return List.of(createResult(
+                    ActionOutcome.OutcomeStatus.ERROR,
+                    "verify-sql-shape-sql-missing",
+                    "Missing 'sql' field in result",
+                    checkParams
+            ));
+        }
+
         val shape = SqlToSqlShape.extract(result.get("sql").toString());
         val shapeMap = ((Map<String, Object>) checkParams.get("sql-shape"));
 

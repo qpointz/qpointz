@@ -83,6 +83,7 @@ include(":ui")
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
+        maven("https://repo.spring.io/milestone")
     }
     versionCatalogs {
         create("libs") {

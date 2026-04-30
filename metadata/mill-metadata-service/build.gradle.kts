@@ -16,7 +16,7 @@ dependencies {
     implementation(project(":data:mill-data-schema-core"))
     implementation(project(":data:mill-data-autoconfigure"))
     implementation(libs.boot.starter)
-    implementation(libs.boot.starter.web)
+    implementation(libs.boot.starter.webmvc)
     implementation(libs.springdoc.openapi.starter.webmvc.ui)
     implementation(libs.bundles.logging)
 }
@@ -31,7 +31,7 @@ testing {
                     implementation(project())
                     implementation(libs.boot.starter.test)
                     implementation(libs.boot.starter.webmvc.test)
-                    implementation(libs.boot.starter.web)
+                    implementation(libs.boot.starter.webmvc)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.mockito.kotlin)

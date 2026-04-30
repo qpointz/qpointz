@@ -62,7 +62,7 @@ testing {
                     implementation(project(":metadata:mill-metadata-autoconfigure"))
                     implementation(project(":core:mill-test-kit"))
                     implementation(libs.boot.starter.test)
-                    implementation(libs.boot.starter.web)
+                    implementation(libs.boot.starter.webmvc)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.h2.database)

@@ -10,16 +10,19 @@ run:
 
   - ask: Climb little snail climb , but slowly
   - verify:
+      pass: ERROR
       check:
         - intent: unsupported
 
   - ask: Hello
   - verify:
+      pass: ERROR
       check:
         - intent: do-conversation
 
   - ask: list clients in KoReA
   - verify:
+      pass: ERROR
       check:
         - intent: get-data
         - has:
@@ -31,6 +34,7 @@ run:
 
   - ask: count clients by country list 10 with most clients
   - verify:
+      pass: ERROR
       check:
         - intent: get-data
         - has:
@@ -44,6 +48,7 @@ run:
 
   - ask: show last result as pie chart
   - verify:
+      pass: ERROR
       check:
         - intent: get-chart
         - has:
@@ -53,6 +58,7 @@ run:
 
   - ask: describe last query
   - verify:
+      pass: ERROR
       check:
         - intent: explain
         - has:
@@ -60,24 +66,27 @@ run:
 
   - ask: get clients in Singapore
   - verify:
-      - check:
-          - intent: get-data
+      pass: ERROR
+      check:
+        - intent: get-data
 
   - ask: |
           - add account and transactions information to result 
           - include only customers in ULTRA and WEALTH segment
   - verify:
-      - check:
-          - intent: get-data
-          - has:
-              - sql
-              - data
-          - sql-shape:
-              joins: true
-              filter: true
+      pass: ERROR
+      check:
+        - intent: get-data
+        - has:
+            - sql
+            - data
+        - sql-shape:
+            joins: true
+            filter: true
 
   - ask: enrich model - Premium clients are clients in ULTRA and WEALTH segment
   - verify:
+      pass: ERROR
       check:
         - intent: enrich-model
         - has:
@@ -90,6 +99,7 @@ run:
       - client table has one to many relationship to account table by client_id field
       - toxic loan - is a loan with defaulted status
   - verify:
+      pass: ERROR
       check:
         - intent: enrich-model
         - has:
@@ -100,6 +110,7 @@ run:
   #value mapping
   - ask: gib mir Kunden aus der Schweiz
   - verify:
+      pass: ERROR
       check:
         - intent: get-data
         - has:

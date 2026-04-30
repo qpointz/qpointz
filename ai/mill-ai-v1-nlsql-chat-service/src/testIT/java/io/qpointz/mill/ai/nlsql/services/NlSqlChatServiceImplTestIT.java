@@ -1,15 +1,13 @@
 package io.qpointz.mill.ai.nlsql.services;
 
 import io.qpointz.mill.ai.nlsql.model.pojo.Chat;
+import io.qpointz.mill.ai.nlsql.NlSqlChatServiceTestApp;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
@@ -21,11 +19,8 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
-@SpringBootTest(classes = {NlSqlChatServiceImplTestIT.class})
-@ComponentScan(basePackages = {"io.qpointz"})
+@SpringBootTest(classes = {NlSqlChatServiceTestApp.class})
 @ActiveProfiles("test-moneta-slim-it")
-@EnableAutoConfiguration
-@EntityScan(basePackages = {"io.qpointz.mill.ai.nlsql"})
 public class NlSqlChatServiceImplTestIT {
 
     @Autowired

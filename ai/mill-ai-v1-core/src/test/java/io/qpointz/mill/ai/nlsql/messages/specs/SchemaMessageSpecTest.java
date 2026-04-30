@@ -110,8 +110,8 @@ class SchemaMessageSpecTest {
     @TestConfiguration
     static class TestBeans {
         @Bean
-        com.fasterxml.jackson.databind.ObjectMapper objectMapper() {
-            return new com.fasterxml.jackson.databind.ObjectMapper();
+        tools.jackson.databind.ObjectMapper objectMapper() {
+            return tools.jackson.databind.json.JsonMapper.builder().build();
         }
     }
 }

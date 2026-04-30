@@ -1,6 +1,6 @@
 # WI-207 — Boot 4 starter coordinate renames
 
-Status: `planned`  
+Status: `done`  
 Type: `refactoring`  
 Area: `build`, `platform`  
 Backlog refs: `P-5`  
@@ -25,3 +25,14 @@ Apply Spring Boot 4 starter coordinate renames across the version catalog and al
 
 - All proof commands above are green.
 - Build scripts remain version-catalog-driven.
+
+## Completion notes (2026-04-30)
+
+- Applied Spring Boot 4 starter coordinate renames in `libs.versions.toml`:
+  - `spring-boot-starter-web` → `spring-boot-starter-webmvc` (`boot-starter-webmvc` alias; removed the `boot-starter-web` alias)
+  - `spring-boot-starter-oauth2-client` → `spring-boot-starter-security-oauth2-client`
+  - `spring-boot-starter-oauth2-resource-server` → `spring-boot-starter-security-oauth2-resource-server`
+- Updated all Gradle build scripts to use `libs.boot.starter.webmvc` instead of `libs.boot.starter.web`.
+- Proof commands are green:
+  - `./gradlew :apps:mill-service:dependencies`
+  - `./gradlew build`

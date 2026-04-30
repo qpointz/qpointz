@@ -1,3 +1,20 @@
+mill:
+  ai:
+    providers:
+      openai:
+        api-key: sk-test
+    model:
+      api-key: sk-test
+      model-name: gpt-4o-mini
+    embedding-model:
+      default:
+        provider: stub
+        dimension: 8
+    value-mapping:
+      embedding-model: default
+    vector-store:
+      backend: in-memory
+
 spring:
   datasource:
     url: "jdbc:h2:mem:mill-ai-v3-autoconfigure;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH"

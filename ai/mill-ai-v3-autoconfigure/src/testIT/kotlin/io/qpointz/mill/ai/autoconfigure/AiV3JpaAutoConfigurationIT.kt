@@ -13,7 +13,6 @@ import io.qpointz.mill.persistence.ai.jpa.adapters.JpaRunEventStore
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.context.SpringBootTest
 
 /**
@@ -23,7 +22,6 @@ import org.springframework.boot.test.context.SpringBootTest
  * Acceptance: "adding persistence modules transparently switches to JPA-backed stores".
  */
 @SpringBootTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class AiV3JpaAutoConfigurationIT {
 
     @Autowired private lateinit var chatMemoryStore: ChatMemoryStore

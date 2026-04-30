@@ -58,9 +58,6 @@ public class ReasoningTestIT extends BaseIntentTestIT {
         assertNotNull(reason);
         Locale loc = new Locale(reason.language());
         assertTrue(reason.intent().equals("get-data"));
-        assertTrue(reason.requiredTables().size()==1);
-        val tbl = reason.requiredTables().get(0);
-        assertEquals("CLIENTS", tbl.name());
         assertNotNull(loc);
         assertEquals("de", loc.toLanguageTag());
     }

@@ -17,7 +17,7 @@ mill {
 dependencies {
     implementation(project(":data:mill-data-schema-core"))
     implementation(libs.boot.starter)
-    implementation(libs.boot.starter.web)
+    implementation(libs.boot.starter.webmvc)
     implementation(libs.bundles.jackson)
     implementation(libs.springdoc.openapi.starter.webmvc.ui)
     implementation(libs.bundles.logging)
@@ -34,7 +34,7 @@ testing {
                 implementation(project(":data:mill-data-autoconfigure"))
                 implementation(project(":metadata:mill-metadata-autoconfigure"))
                 implementation(libs.boot.starter.test)
-                implementation(libs.boot.starter.web)
+                implementation(libs.boot.starter.webmvc)
                 implementation(libs.h2.database)
             }
         }
@@ -47,7 +47,7 @@ testing {
                     implementation(project(":metadata:mill-metadata-autoconfigure"))
                     implementation(libs.boot.starter.test)
                     implementation(libs.boot.starter.webmvc.test)
-                    implementation(libs.boot.starter.web)
+                    implementation(libs.boot.starter.webmvc)
                     implementation(libs.mockito.kotlin)
                 }
             }

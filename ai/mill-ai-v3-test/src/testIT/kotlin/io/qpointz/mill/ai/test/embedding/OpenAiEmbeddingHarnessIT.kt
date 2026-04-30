@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.test.embedding
 
+import io.qpointz.mill.ai.autoconfigure.AiConfigurationPropertiesAutoConfiguration
 import io.qpointz.mill.ai.autoconfigure.embedding.EmbeddingAutoConfiguration
 import io.qpointz.mill.ai.autoconfigure.providers.AiProvidersAutoConfiguration
 import io.qpointz.mill.ai.embedding.EmbeddingHarness
@@ -20,6 +21,7 @@ class OpenAiEmbeddingHarnessIT {
 
     @Configuration
     @ImportAutoConfiguration(
+        AiConfigurationPropertiesAutoConfiguration::class,
         AiProvidersAutoConfiguration::class,
         EmbeddingAutoConfiguration::class,
     )

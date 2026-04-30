@@ -16,7 +16,7 @@ mill {
 dependencies {
     api(project(":data:mill-data-autoconfigure"))
     api(libs.boot.starter)
-    api(libs.boot.starter.web)
+    api(libs.boot.starter.webmvc)
     api(libs.boot.starter.test)
     api(libs.mockito.core)
     api(libs.mockito.junit.jupiter)
