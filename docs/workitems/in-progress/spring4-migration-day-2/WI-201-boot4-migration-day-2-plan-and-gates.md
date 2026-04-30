@@ -1,6 +1,6 @@
 # WI-201 — Boot 4 migration day 2: plan and gates
 
-Status: `planned`  
+Status: `done`  
 Type: `docs`  
 Area: `platform`  
 Backlog refs: `P-5`, `P-7`, `P-8`, `P-9`  
@@ -42,6 +42,13 @@ branch does not thrash on version selection.
 - Story WIs reflect the order above and have concrete “proof” commands.
 - The implementation branch can execute WIs in order with a monotonic “more green” trajectory on the
   **defined per-WI proof commands** (full-repo green is required only at **WI-209**).
+
+## Completion notes (WI-201)
+
+- WIs ordered in `STORY.md` to satisfy `Depends on:` edges (notably: starter renames before transport
+  re-validation; SpringDoc depends on Spring AI).
+- MR gates clarified: `build` + `test` are hard gates; `testIT` is required manual verification
+  recorded in WI-209 / MR description.
 
 ## References
 
