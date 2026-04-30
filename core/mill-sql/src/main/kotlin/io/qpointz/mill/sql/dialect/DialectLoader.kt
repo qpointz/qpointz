@@ -1,21 +1,21 @@
 package io.qpointz.mill.sql.v2.dialect
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.PropertyNamingStrategies
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.fasterxml.jackson.module.kotlin.readValue
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.PropertyNamingStrategies
+import tools.jackson.dataformat.yaml.YAMLMapper
+import tools.jackson.module.kotlin.kotlinModule
+import tools.jackson.module.kotlin.readValue
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.Locale
 
 class DialectLoader {
-    private val mapper = ObjectMapper(YAMLFactory())
-        .registerKotlinModule()
-        .setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
+    private val mapper = YAMLMapper.builder()
+        .addModule(kotlinModule())
+        .propertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
+        .build()
 
     fun load(stream: InputStream, sourceName: String): SqlDialectSpec {
         return try {

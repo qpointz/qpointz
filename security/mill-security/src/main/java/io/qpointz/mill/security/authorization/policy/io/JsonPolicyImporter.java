@@ -1,6 +1,7 @@
 package io.qpointz.mill.security.authorization.policy.io;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.json.JsonMapper;
 import io.qpointz.mill.security.authorization.policy.model.Policy;
 import io.qpointz.mill.security.authorization.policy.model.PolicySet;
 
@@ -10,13 +11,15 @@ import java.util.Collection;
 
 public class JsonPolicyImporter implements PolicyImporter {
 
-    private final ObjectMapper mapper;
+    private final JsonMapper mapper;
 
     public JsonPolicyImporter() {
-        this.mapper = new ObjectMapper();
+        this.mapper = JsonMapper.builder()
+                .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
+                .build();
     }
 
-    public JsonPolicyImporter(ObjectMapper mapper) {
+    public JsonPolicyImporter(JsonMapper mapper) {
         this.mapper = mapper;
     }
 

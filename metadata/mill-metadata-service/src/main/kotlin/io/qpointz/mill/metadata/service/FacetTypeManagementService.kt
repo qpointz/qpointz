@@ -1,8 +1,8 @@
 package io.qpointz.mill.metadata.service
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.MapperFeature
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.MapperFeature
+import tools.jackson.databind.json.JsonMapper
 import io.qpointz.mill.excepions.statuses.MillStatuses
 import io.qpointz.mill.metadata.domain.FacetTypeDefinition
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
@@ -30,13 +30,13 @@ class FacetTypeManagementService(
     private val definitionRepository: FacetTypeDefinitionRepository,
     private val facetTypeRepository: FacetTypeRepository,
     private val facetReadSide: FacetReadSide,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: JsonMapper
 ) {
 
-    private val strictMapper: ObjectMapper = objectMapper.copy().apply {
-        configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
-        configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS, true)
-    }
+    private val strictMapper: JsonMapper = objectMapper.rebuild()
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
+        .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS, true)
+        .build()
 
     fun list(targetType: String?, enabledOnly: Boolean): List<FacetTypeManifest> {
         var defs = facetCatalog.listDefinitions()

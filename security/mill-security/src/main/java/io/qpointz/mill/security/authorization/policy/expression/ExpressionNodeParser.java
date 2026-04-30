@@ -1,12 +1,11 @@
 package io.qpointz.mill.security.authorization.policy.expression;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Parses structured policy expression payloads into {@link ExpressionNode} AST.
@@ -20,7 +19,7 @@ import java.util.Map;
  */
 public final class ExpressionNodeParser {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final JsonMapper MAPPER = JsonMapper.builder().build();
     private static final String REF_PREFIX = "#ref.";
 
     private ExpressionNodeParser() {
@@ -95,9 +94,9 @@ public final class ExpressionNodeParser {
         }
 
         if (node.size() == 1) {
-            Iterator<Map.Entry<String, JsonNode>> it = node.fields();
-            var entry = it.next();
-            return parseOperatorCall(entry.getKey(), entry.getValue());
+            Iterator<String> names = node.propertyNames().iterator();
+            var name = names.next();
+            return parseOperatorCall(name, node.get(name));
         }
 
         throw new IllegalArgumentException("Cannot parse expression node: " + node);

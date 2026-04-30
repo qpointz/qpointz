@@ -1,7 +1,7 @@
 package io.qpointz.mill.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.experimental.UtilityClass;
 
 import java.nio.charset.StandardCharsets;
@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 @UtilityClass
 class HttpMillErrorBodies {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final JsonMapper MAPPER = JsonMapper.builder().build();
     private static final int BODY_SNIPPET_MAX = 2000;
 
     /**

@@ -1,7 +1,6 @@
 package io.qpointz.mill.ai.chat.tasks;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
 import io.qpointz.mill.ai.chat.prompts.PromptTemplate;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.val;
@@ -52,7 +51,7 @@ public abstract class ChatTask {
         public <T> T entity(Class<T> valueType) {
             try {
                 return JsonUtils.defaultJsonMapper().readValue(content, valueType);
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 throw new RuntimeException(e);
             }
         }

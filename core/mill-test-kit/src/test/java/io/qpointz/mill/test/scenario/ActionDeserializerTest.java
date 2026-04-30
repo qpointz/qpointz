@@ -1,7 +1,7 @@
 package io.qpointz.mill.test.scenario;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class ActionDeserializerTest {
 
-    private final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    private final YAMLMapper mapper = YAMLMapper.builder().findAndAddModules().build();
 
     /**
      * Verifies that an Action with object parameters (nested map) is correctly deserialized.
@@ -105,7 +105,7 @@ class ActionDeserializerTest {
 
         // Act & Assert
         assertThatThrownBy(() -> mapper.readValue(yaml, Action.class))
-                .isInstanceOf(IOException.class);
+                .isInstanceOf(JacksonException.class);
     }
 
     /**
@@ -119,7 +119,7 @@ class ActionDeserializerTest {
 
         // Act & Assert
         assertThatThrownBy(() -> mapper.readValue(yaml, Action.class))
-                .isInstanceOf(IOException.class)
+                .isInstanceOf(JacksonException.class)
                 .hasMessageContaining("exactly one field");
     }
 

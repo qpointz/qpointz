@@ -1,6 +1,6 @@
 package io.qpointz.mill;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 
 import java.io.Serial;
 
@@ -25,7 +25,7 @@ public class MillRuntimeException extends RuntimeException {
         super(cause);
     }
 
-    public static MillRuntimeException of(JsonProcessingException e) {
+    public static MillRuntimeException of(JacksonException e) {
         return new MillRuntimeException(e);
     }
 }

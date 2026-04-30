@@ -1,6 +1,6 @@
 package io.qpointz.mill.security.authentication.basic.providers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import io.qpointz.mill.security.authentication.BaseTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +22,7 @@ class UserRepoTest extends BaseTest {
 
     @Test
     void throwsOnMalformedYaml() {
-        assertThrows(JsonProcessingException.class, ()-> createFromYamlFile("classpath:userstore/passwd_corrupt.yml"));
+        assertThrows(JacksonException.class, ()-> createFromYamlFile("classpath:userstore/passwd_corrupt.yml"));
     }
 
 }

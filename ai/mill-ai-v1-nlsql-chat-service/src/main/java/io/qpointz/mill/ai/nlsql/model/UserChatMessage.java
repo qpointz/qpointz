@@ -2,7 +2,7 @@ package io.qpointz.mill.ai.nlsql.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import io.qpointz.mill.MillRuntimeException;
 import io.qpointz.mill.ai.nlsql.model.pojo.ChatMessage;
 import jakarta.persistence.*;
@@ -39,7 +39,7 @@ public class UserChatMessage {
     public ChatMessage toPojo()  {
         try {
             return new ChatMessage(this.id, this.message, this.role, this.contentAsMap());
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new MillRuntimeException(e);
         }
     }
@@ -80,7 +80,7 @@ public class UserChatMessage {
     /**
      * Parses the persisted JSON content into a map.
      */
-    public Map<String, Object> contentAsMap() throws JsonProcessingException {
+    public Map<String, Object> contentAsMap() throws JacksonException {
         return defaultJsonMapper().readValue(this.content, Map.class);
     }
 
@@ -93,7 +93,7 @@ public class UserChatMessage {
             try {
                 String jsonString = defaultJsonMapper().writeValueAsString(entity);
                 return this.content(jsonString);
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 throw MillRuntimeException.of(e);
             }
         }

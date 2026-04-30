@@ -1,9 +1,8 @@
 package io.qpointz.mill.security.authorization.policy.io;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.dataformat.yaml.YAMLMapper;
+import tools.jackson.dataformat.yaml.YAMLWriteFeature;
 import io.qpointz.mill.security.authorization.policy.model.Policy;
 import io.qpointz.mill.security.authorization.policy.model.PolicySet;
 
@@ -13,15 +12,16 @@ import java.util.Collection;
 
 public class YamlPolicyExporter implements PolicyExporter {
 
-    private final ObjectMapper mapper;
+    private final YAMLMapper mapper;
 
     public YamlPolicyExporter() {
-        this.mapper = new ObjectMapper(
-                new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER))
-                .enable(SerializationFeature.INDENT_OUTPUT);
+        this.mapper = YAMLMapper.builder()
+                .disable(YAMLWriteFeature.WRITE_DOC_START_MARKER)
+                .enable(SerializationFeature.INDENT_OUTPUT)
+                .build();
     }
 
-    public YamlPolicyExporter(ObjectMapper mapper) {
+    public YamlPolicyExporter(YAMLMapper mapper) {
         this.mapper = mapper;
     }
 

@@ -144,6 +144,7 @@ dependencies {
     //implementation(libs.spring.ai.starter.model.azureopenai)
     //implementation(libs.spring.ai.starter.model.ollama)
     implementation(libs.boot.starter.actuator)
+    implementation(libs.boot.starter.jackson)
     implementation(libs.boot.starter)
     implementation(libs.bundles.logging)
     implementation(libs.bundles.jdbc.pack)

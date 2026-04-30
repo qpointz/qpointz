@@ -1,25 +1,25 @@
 package io.qpointz.mill.security.authorization.policy.io;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 import io.qpointz.mill.security.authorization.policy.model.Policy;
 import io.qpointz.mill.security.authorization.policy.model.PolicySet;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
-import java.util.List;
 
 public class JsonPolicyExporter implements PolicyExporter {
 
-    private final ObjectMapper mapper;
+    private final JsonMapper mapper;
 
     public JsonPolicyExporter() {
-        this.mapper = new ObjectMapper()
-                .enable(SerializationFeature.INDENT_OUTPUT);
+        this.mapper = JsonMapper.builder()
+                .enable(SerializationFeature.INDENT_OUTPUT)
+                .build();
     }
 
-    public JsonPolicyExporter(ObjectMapper mapper) {
+    public JsonPolicyExporter(JsonMapper mapper) {
         this.mapper = mapper;
     }
 

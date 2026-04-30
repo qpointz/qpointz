@@ -1,8 +1,7 @@
 package io.qpointz.mill.ai.test.scenario
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import com.fasterxml.jackson.module.kotlin.kotlinModule
+import tools.jackson.dataformat.yaml.YAMLMapper
+import tools.jackson.module.kotlin.kotlinModule
 
 data class ConversationScenario(
     val name: String,
@@ -17,7 +16,10 @@ data class ConversationScenario(
     )
 
     companion object {
-        private val yaml = ObjectMapper(YAMLFactory()).registerModule(kotlinModule())
+        private val yaml = YAMLMapper.builder()
+            .addModule(kotlinModule())
+            .findAndAddModules()
+            .build()
 
         fun fromResource(resourcePath: String): List<ConversationScenario> {
             val stream = requireNotNull(
@@ -27,7 +29,7 @@ data class ConversationScenario(
                 val result = mutableListOf<ConversationScenario>()
                 yaml.readerFor(ConversationScenario::class.java)
                     .readValues<ConversationScenario>(s)
-                    .forEachRemaining(result::add)
+                    .forEachRemaining { result.add(it) }
                 result
             }
         }

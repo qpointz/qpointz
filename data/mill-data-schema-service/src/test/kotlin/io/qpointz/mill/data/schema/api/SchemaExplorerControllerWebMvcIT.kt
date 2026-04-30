@@ -31,7 +31,7 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 
 @WebMvcTest(controllers = [SchemaExplorerController::class])
 @ContextConfiguration(classes = [SchemaExplorerControllerWebMvcIT.TestApplication::class])

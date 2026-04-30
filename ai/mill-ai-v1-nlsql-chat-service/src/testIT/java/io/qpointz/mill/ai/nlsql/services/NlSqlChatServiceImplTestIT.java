@@ -1,9 +1,6 @@
 package io.qpointz.mill.ai.nlsql.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import io.qpointz.mill.ai.nlsql.model.UserChatMessage;
 import io.qpointz.mill.ai.nlsql.model.pojo.Chat;
-import io.qpointz.mill.ai.nlsql.model.pojo.ChatMessage;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -18,7 +15,6 @@ import org.springframework.test.context.ActiveProfiles;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 

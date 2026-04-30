@@ -1,7 +1,7 @@
 package io.qpointz.mill.ai.cli
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.databind.JsonNode
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option

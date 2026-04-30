@@ -99,6 +99,8 @@ Spring Boot 4 ships with Jackson 3.0 as the default. This is a major breaking ch
 - Review any custom serializers/deserializers
 - Consider using the OpenRewrite recipe `UpgradeJackson_2_3` to automate refactoring
 
+**Implementation status (`feat/spring-4-migration`, 2026-04-30):** **WI-205** is complete on that branch. The version catalog uses **`tools.jackson:*`** at **3.1.2** (aligned with Spring Boot **4.0.6**). Production and test code use **`JsonMapper` / `YAMLMapper` builders**, **`ValueDeserializer`** where Jackson 2’s `JsonDeserializer`/`getCodec()` patterns no longer apply, and **`JacksonException`** instead of `JsonProcessingException`. Policy import (`JsonPolicyImporter`, `YamlPolicyImporter`) enables **`MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS`** so existing policy documents with uppercase enum literals keep working. **`./gradlew test`** is green on the branch; full **`testIT`** and remaining Boot 4 story items (**WI-203**–**WI-204**, **WI-206**–**WI-209**) are still tracked in [`docs/workitems/in-progress/spring4-migration-day-2/STORY.md`](../../workitems/in-progress/spring4-migration-day-2/STORY.md).
+
 ### 4. Spring Cloud Function Compatibility
 
 **Severity: LOW (not a blocker)**

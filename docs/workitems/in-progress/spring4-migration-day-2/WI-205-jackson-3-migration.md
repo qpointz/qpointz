@@ -1,6 +1,6 @@
 # WI-205 — Jackson 3 migration (tools.jackson + JsonMapper)
 
-Status: `planned`  
+Status: `done` (on branch `feat/spring-4-migration`, 2026-04-30)  
 Type: `refactoring`  
 Area: `platform`  
 Backlog refs: `P-7`  
@@ -37,3 +37,9 @@ Migrate explicit Jackson dependencies and source usages from Jackson 2 → **Jac
 
 - `./gradlew test` is green.
 - No compile-time dependency on Jackson 2 artifacts remains in `libs.versions.toml` (Jackson 3 coordinates only).
+
+## Completion notes (2026-04-30)
+
+- **`./gradlew compileJava compileKotlin`** and **`./gradlew test`** were run successfully on the implementation branch.
+- **`JsonPolicyImporter` / `YamlPolicyImporter`** enable **`MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS`** so policy fixtures using uppercase enum literals (for example `ALLOW`) still deserialize against lowercase Java enum constants.
+- **`BACKLOG.md` P-7** marked **`done`**; design plan section 3 (Jackson 3) updated with branch status.

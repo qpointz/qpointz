@@ -1,7 +1,8 @@
 package io.qpointz.mill.test.scenario;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.annotation.JsonDeserialize;
 import java.util.Map;
 import java.util.Optional;
 
@@ -81,10 +82,13 @@ public record Action(
 
         // Use Jackson to convert
         try {
-            ObjectMapper mapper = createObjectMapper();
+            JsonMapper mapper = createObjectMapper();
             T converted = mapper.convertValue(value, type);
             return Optional.of(converted);
         } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                    "Failed to convert parameter '" + key + "' to " + type.getSimpleName() + ": " + e.getMessage(), e);
+        } catch (JacksonException e) {
             throw new IllegalArgumentException(
                     "Failed to convert parameter '" + key + "' to " + type.getSimpleName() + ": " + e.getMessage(), e);
         }
@@ -115,23 +119,25 @@ public record Action(
 
         // Use Jackson to convert the entire map
         try {
-            ObjectMapper mapper = createObjectMapper();
+            JsonMapper mapper = createObjectMapper();
             T converted = mapper.convertValue(params, type);
             return Optional.of(converted);
         } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                    "Failed to convert params to " + type.getSimpleName() + ": " + e.getMessage(), e);
+        } catch (JacksonException e) {
             throw new IllegalArgumentException(
                     "Failed to convert params to " + type.getSimpleName() + ": " + e.getMessage(), e);
         }
     }
 
     /**
-     * Creates an ObjectMapper for type conversions.
-     * Uses a basic ObjectMapper which should handle most common conversions.
+     * Creates a {@link JsonMapper} for type conversions with classpath-discovered modules.
      *
-     * @return an ObjectMapper
+     * @return a configured {@link JsonMapper}
      */
-    private static ObjectMapper createObjectMapper() {
-        return new ObjectMapper();
+    private static JsonMapper createObjectMapper() {
+        return JsonMapper.builder().findAndAddModules().build();
     }
 }
 

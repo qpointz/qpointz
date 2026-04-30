@@ -11,16 +11,18 @@ import io.qpointz.mill.ai.runtime.*
 import io.qpointz.mill.ai.runtime.events.*
 import io.qpointz.mill.ai.runtime.events.routing.*
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.kotlinModule
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.kotlinModule
 
 @PublishedApi
-internal val mapper: ObjectMapper = ObjectMapper().registerModule(kotlinModule())
+internal val mapper: JsonMapper = JsonMapper.builder()
+    .addModule(kotlinModule())
+    .build()
 
 /**
  * Deserializes [ToolRequest.arguments] into [T] using Jackson.
  *
- * Uses [ObjectMapper.convertValue] — no JSON string round-trip.
+ * Uses [JsonMapper.convertValue] — no JSON string round-trip.
  * Missing fields without defaults throw [IllegalArgumentException].
  *
  * Usage:

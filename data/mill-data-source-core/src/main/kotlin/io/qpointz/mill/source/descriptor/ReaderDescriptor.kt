@@ -1,11 +1,11 @@
 package io.qpointz.mill.source.descriptor
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonDeserializer
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.node.ObjectNode
+import tools.jackson.core.JsonParser
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.ValueDeserializer
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.annotation.JsonDeserialize
+import tools.jackson.databind.node.ObjectNode
 import io.qpointz.mill.source.verify.*
 
 /**
@@ -70,11 +70,10 @@ data class ReaderDescriptor(
  * Lifts the reader's `type` into the `format` sub-tree so users don't
  * repeat the type discriminator inside the format block.
  */
-class ReaderDescriptorDeserializer : JsonDeserializer<ReaderDescriptor>() {
+class ReaderDescriptorDeserializer : ValueDeserializer<ReaderDescriptor>() {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): ReaderDescriptor {
-        val codec = p.codec
-        val node = codec.readTree<JsonNode>(p) as ObjectNode
+        val node = ctxt.readTree(p) as ObjectNode
 
         val type = node.get("type")?.asText()
             ?: throw ctxt.weirdStringException("", ReaderDescriptor::class.java, "Reader 'type' is required")
@@ -85,16 +84,16 @@ class ReaderDescriptorDeserializer : JsonDeserializer<ReaderDescriptor>() {
         val formatNode = if (node.has("format") && node.get("format").isObject) {
             (node.get("format") as ObjectNode).deepCopy()
         } else {
-            codec.createObjectNode() as ObjectNode
+            ctxt.createObjectNode() as ObjectNode
         }
         formatNode.put("type", type)
 
-        val formatParser = formatNode.traverse(codec)
+        val formatParser = formatNode.traverse(ctxt)
         formatParser.nextToken()
         val format = ctxt.readValue(formatParser, FormatDescriptor::class.java)
 
         val table = if (node.has("table") && node.get("table").isObject) {
-            val tableParser = node.get("table").traverse(codec)
+            val tableParser = node.get("table").traverse(ctxt)
             tableParser.nextToken()
             ctxt.readValue(tableParser, TableDescriptor::class.java)
         } else {

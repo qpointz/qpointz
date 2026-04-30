@@ -11,8 +11,8 @@ import io.qpointz.mill.ai.runtime.*
 import io.qpointz.mill.ai.runtime.events.*
 import io.qpointz.mill.ai.runtime.events.routing.*
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.json.JsonMapper
 import dev.langchain4j.data.message.ChatMessage
 import dev.langchain4j.model.chat.StreamingChatModel
 import dev.langchain4j.model.chat.request.ChatRequest
@@ -32,7 +32,7 @@ import java.util.concurrent.CompletableFuture
  */
 class LangChain4jProtocolExecutor(
     private val model: StreamingChatModel,
-    private val objectMapper: ObjectMapper = ObjectMapper(),
+    private val objectMapper: JsonMapper = JsonMapper.builder().build(),
 ) : ProtocolExecutor {
 
     override fun execute(input: ProtocolExecutionInput): ProtocolExecutionResult {

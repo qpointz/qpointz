@@ -1,7 +1,5 @@
 package io.qpointz.mill.test.scenario;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;

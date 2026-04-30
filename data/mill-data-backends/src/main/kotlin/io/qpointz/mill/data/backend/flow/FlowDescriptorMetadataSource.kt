@@ -1,6 +1,6 @@
 package io.qpointz.mill.data.backend.flow
 
-import com.fasterxml.jackson.core.type.TypeReference
+import tools.jackson.core.type.TypeReference
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import io.qpointz.mill.data.metadata.FlowInferredFacetTypeKeys

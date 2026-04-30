@@ -1,8 +1,7 @@
 package io.qpointz.mill.source.descriptor
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import tools.jackson.dataformat.yaml.YAMLMapper
+import tools.jackson.module.kotlin.kotlinModule
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -578,9 +577,11 @@ class DescriptorSerializationTest {
 
         @Test
         fun shouldRegisterModuleOnMapper() {
-            val mapper = ObjectMapper(YAMLFactory())
-                .registerModule(KotlinModule.Builder().build())
-                .registerModule(DescriptorModule())
+            val mapper = YAMLMapper.builder()
+                .addModule(kotlinModule())
+                .addModule(DescriptorModule())
+                .findAndAddModules()
+                .build()
             assertNotNull(mapper)
 
             val yaml = "type: local\nrootPath: /test"

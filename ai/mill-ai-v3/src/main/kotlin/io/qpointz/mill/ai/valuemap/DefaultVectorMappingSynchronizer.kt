@@ -1,6 +1,6 @@
 package io.qpointz.mill.ai.valuemap
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import dev.langchain4j.data.document.Metadata
 import dev.langchain4j.data.embedding.Embedding
 import dev.langchain4j.data.segment.TextSegment
@@ -19,7 +19,7 @@ class DefaultVectorMappingSynchronizer(
 ) : VectorMappingSynchronizer {
 
     private val log = LoggerFactory.getLogger(javaClass)
-    private val objectMapper = ObjectMapper()
+    private val objectMapper = JsonMapper.builder().build()
 
     override fun sync(
         attributeUrn: String,

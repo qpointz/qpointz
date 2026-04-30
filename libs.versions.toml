@@ -6,7 +6,7 @@ protobuf-plugin = "0.9.4"
 springCloud = "3.2.12"
 springAi = "1.1.2"
 springBoot = "4.0.6"
-springDoc = "2.8.14"
+springDoc = "3.0.3"
 
 calcite = "1.41.0"
 junit = "6.0.2"
@@ -20,7 +20,8 @@ apacheArrow = "17.0.0"
 substrait = "0.60.0"
 jakartaServletApi = "6.1.0"
 googleApiGrpc = "2.63.1"
-jackson = "2.21.0"
+# Align with Spring Boot 4 Jackson 3 BOM (see spring-boot-dependencies jackson-bom.version).
+jackson = "3.1.2"
 guava = "33.3.1-jre"
 okhttp = "5.3.2"
 sqlline = "1.12.0"
@@ -56,6 +57,8 @@ boot-resttestclient = { module = "org.springframework.boot:spring-boot-resttestc
 boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "springBoot" }
 boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator", version.ref = "springBoot" }
 boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "springBoot" }
+boot-starter-flyway = { module = "org.springframework.boot:spring-boot-starter-flyway", version.ref = "springBoot" }
+boot-starter-jackson = { module = "org.springframework.boot:spring-boot-starter-jackson", version.ref = "springBoot" }
 
 spring-cloud-function-grpc = { module = "org.springframework.cloud:spring-cloud-function-grpc", version.ref = "springCloud" }
 spring-cloud-function-context = { module = "org.springframework.cloud:spring-cloud-function-context", version.ref = "springCloud" }
@@ -127,12 +130,10 @@ jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.
 
 googleapigrpc-proto-common-protos = { module = "com.google.api.grpc:proto-google-common-protos", version.ref = "googleApiGrpc" }
 
-jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jackson" }
-jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
-jackson-dataformat-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson" }
-jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
-jackson-datatype-jdk8 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jdk8", version.ref = "jackson" }
-jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+jackson-core = { module = "tools.jackson.core:jackson-core", version.ref = "jackson" }
+jackson-databind = { module = "tools.jackson.core:jackson-databind", version.ref = "jackson" }
+jackson-dataformat-yaml = { module = "tools.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson" }
+jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 
@@ -184,7 +185,7 @@ langchain4j-pgvector = { module = "dev.langchain4j:langchain4j-pgvector", versio
 reactor-core = { module = "io.projectreactor:reactor-core", version.ref = "reactor" }
 
 [bundles]
-jackson = ["jackson-databind", "jackson-dataformat-yaml", "jackson-datatype-jsr310", "jackson-datatype-jdk8", "jackson-module-kotlin"]
+jackson = ["jackson-databind", "jackson-dataformat-yaml", "jackson-module-kotlin"]
 logging = ["slf4j-api", "logback-core", "logback-classic", "fusesource-jansi"]
 jdbc-pack = [
     "h2-database",

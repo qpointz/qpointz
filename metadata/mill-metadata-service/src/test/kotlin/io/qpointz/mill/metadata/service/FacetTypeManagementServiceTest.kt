@@ -1,6 +1,6 @@
 package io.qpointz.mill.metadata.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import io.qpointz.mill.excepions.statuses.MillStatusRuntimeException
 import io.qpointz.mill.metadata.domain.FacetTypeDefinition
 import io.qpointz.mill.metadata.domain.MetadataUrns
@@ -34,7 +34,7 @@ class FacetTypeManagementServiceTest {
         definitionRepository,
         facetTypeRepository,
         facetReadSide,
-        ObjectMapper()
+        JsonMapper.builder().findAndAddModules().build()
     )
 
     @Test

@@ -1,8 +1,8 @@
 package io.qpointz.mill.test.scenario;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 import lombok.val;
 
 import java.io.IOException;
@@ -83,8 +83,7 @@ public abstract class ScenarioContext<T extends ScenarioContext<T, R>, R extends
      * @throws IOException if serialization fails
      */
     public String toJson() throws IOException {
-        val mapper = new ObjectMapper();
-        mapper.findAndRegisterModules();
+        val mapper = JsonMapper.builder().findAndAddModules().build();
         return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this);
     }
 
@@ -95,8 +94,7 @@ public abstract class ScenarioContext<T extends ScenarioContext<T, R>, R extends
      * @throws IOException if serialization fails
      */
     public String toYaml() throws IOException {
-        val mapper = new ObjectMapper(new YAMLFactory());
-        mapper.findAndRegisterModules();
+        val mapper = YAMLMapper.builder().findAndAddModules().build();
         return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this);
     }
 
@@ -107,8 +105,7 @@ public abstract class ScenarioContext<T extends ScenarioContext<T, R>, R extends
      * @throws IOException if serialization or writing fails
      */
     public void serializeToJson(OutputStream outputStream) throws IOException {
-        val mapper = new ObjectMapper();
-        mapper.findAndRegisterModules();
+        val mapper = JsonMapper.builder().findAndAddModules().build();
         mapper.writerWithDefaultPrettyPrinter().writeValue(outputStream, this);
     }
 
@@ -119,8 +116,7 @@ public abstract class ScenarioContext<T extends ScenarioContext<T, R>, R extends
      * @throws IOException if serialization or writing fails
      */
     public void serializeToYaml(OutputStream outputStream) throws IOException {
-        val mapper = new ObjectMapper(new YAMLFactory());
-        mapper.findAndRegisterModules();
+        val mapper = YAMLMapper.builder().findAndAddModules().build();
         mapper.writerWithDefaultPrettyPrinter().writeValue(outputStream, this);
     }
 }

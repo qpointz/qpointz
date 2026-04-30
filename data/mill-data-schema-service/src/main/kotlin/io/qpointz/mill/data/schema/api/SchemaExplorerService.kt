@@ -1,6 +1,6 @@
 package io.qpointz.mill.data.schema.api
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import io.qpointz.mill.data.schema.DefaultMetadataEntityUrnCodec
 import io.qpointz.mill.data.schema.MetadataEntityUrnCodec
 import io.qpointz.mill.data.schema.ModelRootWithFacets
@@ -50,7 +50,7 @@ class SchemaExplorerService(
     private val schemaProvider: SchemaProvider,
     private val entityRead: EntityReadSide,
     private val facetReadSide: FacetReadSide,
-    private val objectMapper: ObjectMapper,
+    private val objectMapper: JsonMapper,
     private val urnCodec: MetadataEntityUrnCodec = DefaultMetadataEntityUrnCodec()
 ) {
     private enum class FacetMode {

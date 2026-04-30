@@ -1,12 +1,11 @@
 package io.qpointz.mill.test.scenario;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ValueDeserializer;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -14,42 +13,39 @@ import java.util.Map;
 
 /**
  * Custom deserializer for Action that handles key-based YAML structure.
- * 
+ * <p>
  * Handles three cases:
- * 1. Object value: { "do-get": { "message": -1 } } → key="do-get", params={message: -1}
- * 2. String value: { "do-ask": "question" } → key="do-ask", params={"value": "question"}
- * 3. List value: { "check-data": [{ "expect": {...} }] } → key="check-data", params={"items": [...]}
+ * <ol>
+ *   <li>Object value: {@code { "do-get": { "message": -1 } }} → key="do-get", params={message: -1}</li>
+ *   <li>String value: {@code { "do-ask": "question" }} → key="do-ask", params={"value": "question"}</li>
+ *   <li>List value: {@code { "check-data": [{ "expect": {...} }] }} → key="check-data", params={"items": [...]}</li>
+ * </ol>
  */
-public class ActionDeserializer extends JsonDeserializer<Action> {
+public class ActionDeserializer extends ValueDeserializer<Action> {
 
     @Override
-    public Action deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-        ObjectMapper mapper = (ObjectMapper) p.getCodec();
-        JsonNode node = mapper.readTree(p);
+    public Action deserialize(JsonParser p, DeserializationContext ctxt) throws JacksonException {
+        JsonNode node = ctxt.readTree(p);
 
         if (!node.isObject()) {
-            throw new IOException("Action must be an object");
+            return ctxt.reportInputMismatch(Action.class, "Action must be an object");
         }
 
-        // Extract the single key-value pair
-        Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
+        Iterator<Map.Entry<String, JsonNode>> fields = node.properties().iterator();
         if (!fields.hasNext()) {
-            throw new IOException("Action object must have exactly one field");
+            return ctxt.reportInputMismatch(Action.class, "Action object must have exactly one field");
         }
 
         Map.Entry<String, JsonNode> entry = fields.next();
         String key = entry.getKey();
         JsonNode value = entry.getValue();
 
-        // Check if there are multiple fields (shouldn't happen)
         if (fields.hasNext()) {
-            throw new IOException("Action object must have exactly one field, found multiple");
+            return ctxt.reportInputMismatch(Action.class, "Action object must have exactly one field, found multiple");
         }
 
-        // Convert value to params map based on type
-        Map<String, Object> params = convertValueToParams(value, mapper);
+        Map<String, Object> params = convertValueToParams(value);
 
-        // Extract "name" from params if present (it's a special field)
         java.util.Optional<String> name = java.util.Optional.empty();
         if (params.containsKey("name") && params.get("name") instanceof String) {
             name = java.util.Optional.of((String) params.remove("name"));
@@ -58,24 +54,20 @@ public class ActionDeserializer extends JsonDeserializer<Action> {
         return new Action(key, name, params);
     }
 
-    private Map<String, Object> convertValueToParams(JsonNode value, ObjectMapper mapper) {
+    private Map<String, Object> convertValueToParams(JsonNode value) {
         Map<String, Object> params = new HashMap<>();
 
         if (value.isObject()) {
-            // Object value: convert all fields to params
-            value.fields().forEachRemaining(entry -> {
-                params.put(entry.getKey(), convertJsonNode(entry.getValue(), mapper));
-            });
+            for (Map.Entry<String, JsonNode> e : value.properties()) {
+                params.put(e.getKey(), convertJsonNode(e.getValue()));
+            }
         } else if (value.isTextual()) {
-            // String value: store in "value" key
             params.put("value", value.asText());
         } else if (value.isArray()) {
-            // List value: store in "items" key
             ArrayList<Object> items = new ArrayList<>();
-            value.forEach(item -> items.add(convertJsonNode(item, mapper)));
+            value.forEach(item -> items.add(convertJsonNode(item)));
             params.put("items", items);
         } else if (value.isNumber()) {
-            // Number value: store in "value" key
             if (value.isInt()) {
                 params.put("value", value.asInt());
             } else if (value.isLong()) {
@@ -86,29 +78,26 @@ public class ActionDeserializer extends JsonDeserializer<Action> {
                 params.put("value", value.numberValue());
             }
         } else if (value.isBoolean()) {
-            // Boolean value: store in "value" key
             params.put("value", value.asBoolean());
         } else if (value.isNull()) {
-            // Null value: empty params
             // params remains empty
         } else {
-            // Fallback: convert to string
             params.put("value", value.asText());
         }
 
         return params;
     }
 
-    private Object convertJsonNode(JsonNode node, ObjectMapper mapper) {
+    private Object convertJsonNode(JsonNode node) {
         if (node.isObject()) {
             Map<String, Object> map = new HashMap<>();
-            node.fields().forEachRemaining(entry -> {
-                map.put(entry.getKey(), convertJsonNode(entry.getValue(), mapper));
-            });
+            for (Map.Entry<String, JsonNode> e : node.properties()) {
+                map.put(e.getKey(), convertJsonNode(e.getValue()));
+            }
             return map;
         } else if (node.isArray()) {
             ArrayList<Object> list = new ArrayList<>();
-            node.forEach(item -> list.add(convertJsonNode(item, mapper)));
+            node.forEach(item -> list.add(convertJsonNode(item)));
             return list;
         } else if (node.isTextual()) {
             return node.asText();
@@ -131,4 +120,3 @@ public class ActionDeserializer extends JsonDeserializer<Action> {
         }
     }
 }
-

@@ -11,10 +11,9 @@ import io.qpointz.mill.ai.runtime.*
 import io.qpointz.mill.ai.runtime.events.*
 import io.qpointz.mill.ai.runtime.events.routing.*
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import com.fasterxml.jackson.module.kotlin.kotlinModule
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.dataformat.yaml.YAMLMapper
+import tools.jackson.module.kotlin.kotlinModule
 import dev.langchain4j.agent.tool.ToolSpecification
 import dev.langchain4j.model.chat.request.json.JsonArraySchema
 import dev.langchain4j.model.chat.request.json.JsonBooleanSchema
@@ -133,10 +132,10 @@ private data class CapabilityManifestYaml(
 // Loader
 // ---------------------------------------------------------------------------
 
-private val yamlMapper: ObjectMapper = ObjectMapper(YAMLFactory()).apply {
-    registerModule(kotlinModule())
-    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-}
+private val yamlMapper: YAMLMapper = YAMLMapper.builder()
+    .addModule(kotlinModule())
+    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    .build()
 
 // ---------------------------------------------------------------------------
 // CapabilityManifest

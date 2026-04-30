@@ -29,7 +29,6 @@ dependencies {
     api(libs.boot.starter.security.oauth2.resource.server)
     implementation(libs.boot.starter)
     implementation(libs.jackson.dataformat.yaml)
-    implementation(libs.jackson.datatype.jsr310)
     api(libs.googleapigrpc.proto.common.protos)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)

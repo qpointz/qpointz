@@ -1,6 +1,6 @@
 package io.qpointz.mill.metadata.service
 
-import com.fasterxml.jackson.databind.node.ArrayNode
+import tools.jackson.databind.node.ArrayNode
 import io.qpointz.mill.excepions.statuses.MillStatusRuntimeException
 import io.qpointz.mill.metadata.domain.FacetTypeDefinition
 import io.qpointz.mill.metadata.domain.MetadataEntity

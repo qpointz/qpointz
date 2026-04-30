@@ -1,6 +1,7 @@
 package io.qpointz.mill.test.scenario;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -130,23 +131,25 @@ public record ActionOutcome(
 
         // Use Jackson to convert
         try {
-            ObjectMapper mapper = createObjectMapper();
+            JsonMapper mapper = createObjectMapper();
             T converted = mapper.convertValue(value, type);
             return Optional.of(converted);
         } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                    "Failed to convert data to " + type.getSimpleName() + ": " + e.getMessage(), e);
+        } catch (JacksonException e) {
             throw new IllegalArgumentException(
                     "Failed to convert data to " + type.getSimpleName() + ": " + e.getMessage(), e);
         }
     }
 
     /**
-     * Creates an ObjectMapper for type conversions.
-     * Uses a basic ObjectMapper which should handle most common conversions.
+     * Creates a {@link JsonMapper} for type conversions with classpath-discovered modules.
      *
-     * @return an ObjectMapper
+     * @return a configured {@link JsonMapper}
      */
-    private static ObjectMapper createObjectMapper() {
-        return new ObjectMapper();
+    private static JsonMapper createObjectMapper() {
+        return JsonMapper.builder().findAndAddModules().build();
     }
 
     /**

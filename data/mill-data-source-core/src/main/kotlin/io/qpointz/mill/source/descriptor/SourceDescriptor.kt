@@ -1,11 +1,11 @@
 package io.qpointz.mill.source.descriptor
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonDeserializer
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.node.ObjectNode
+import tools.jackson.core.JsonParser
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.ValueDeserializer
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.annotation.JsonDeserialize
+import tools.jackson.databind.node.ObjectNode
 import io.qpointz.mill.source.verify.*
 
 /**
@@ -109,27 +109,26 @@ data class SourceDescriptor(
 /**
  * Custom deserializer for [SourceDescriptor].
  */
-class SourceDescriptorDeserializer : JsonDeserializer<SourceDescriptor>() {
+class SourceDescriptorDeserializer : ValueDeserializer<SourceDescriptor>() {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): SourceDescriptor {
-        val codec = p.codec
-        val node = codec.readTree<JsonNode>(p) as ObjectNode
+        val node = ctxt.readTree(p) as ObjectNode
 
         val name = node.get("name")?.asText()
             ?: throw ctxt.weirdStringException("", SourceDescriptor::class.java, "'name' is required")
 
         val storageNode = node.get("storage")
             ?: throw ctxt.weirdStringException("", SourceDescriptor::class.java, "'storage' is required")
-        val storage = deserializeChild<StorageDescriptor>(storageNode, codec, ctxt)
+        val storage = deserializeChild<StorageDescriptor>(storageNode, ctxt)
 
         val table = if (node.has("table")) {
-            deserializeChild<TableDescriptor>(node.get("table"), codec, ctxt)
+            deserializeChild<TableDescriptor>(node.get("table"), ctxt)
         } else {
             null
         }
 
         val conflicts = if (node.has("conflicts")) {
-            deserializeChild<ConflictResolution>(node.get("conflicts"), codec, ctxt)
+            deserializeChild<ConflictResolution>(node.get("conflicts"), ctxt)
         } else {
             ConflictResolution.DEFAULT
         }
@@ -139,8 +138,10 @@ class SourceDescriptorDeserializer : JsonDeserializer<SourceDescriptor>() {
         if (!readersNode.isArray) {
             throw ctxt.weirdStringException("", SourceDescriptor::class.java, "'readers' must be an array")
         }
-        val readers = readersNode.map { readerNode ->
-            deserializeChild<ReaderDescriptor>(readerNode, codec, ctxt)
+        val readers = buildList(readersNode.size()) {
+            for (readerNode in readersNode) {
+                add(deserializeChild<ReaderDescriptor>(readerNode, ctxt))
+            }
         }
 
         return SourceDescriptor(
@@ -154,10 +155,9 @@ class SourceDescriptorDeserializer : JsonDeserializer<SourceDescriptor>() {
 
     private inline fun <reified T> deserializeChild(
         node: JsonNode,
-        codec: com.fasterxml.jackson.core.ObjectCodec,
         ctxt: DeserializationContext
     ): T {
-        val childParser = node.traverse(codec)
+        val childParser = node.traverse(ctxt)
         childParser.nextToken()
         return ctxt.readValue(childParser, T::class.java)
     }

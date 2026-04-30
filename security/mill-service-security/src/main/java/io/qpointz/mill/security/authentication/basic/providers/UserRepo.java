@@ -1,7 +1,6 @@
 package io.qpointz.mill.security.authentication.basic.providers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,8 +28,7 @@ public class UserRepo {
     }
 
     public static UserRepo fromYaml(InputStream file) throws IOException {
-        val mapper = new ObjectMapper(new YAMLFactory());
-        mapper.findAndRegisterModules();
+        val mapper = YAMLMapper.builder().findAndAddModules().build();
         return mapper.readValue(file, UserRepo.class);
     }
 

@@ -1,7 +1,7 @@
 package io.qpointz.mill.security.authorization.policy.io;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 import io.qpointz.mill.security.authorization.policy.model.Policy;
 import io.qpointz.mill.security.authorization.policy.model.PolicySet;
 
@@ -11,13 +11,15 @@ import java.util.Collection;
 
 public class YamlPolicyImporter implements PolicyImporter {
 
-    private final ObjectMapper mapper;
+    private final YAMLMapper mapper;
 
     public YamlPolicyImporter() {
-        this.mapper = new ObjectMapper(new YAMLFactory());
+        this.mapper = YAMLMapper.builder()
+                .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
+                .build();
     }
 
-    public YamlPolicyImporter(ObjectMapper mapper) {
+    public YamlPolicyImporter(YAMLMapper mapper) {
         this.mapper = mapper;
     }
 

@@ -62,7 +62,7 @@
 
 **Count:** **43** files with at least one `ObjectMapper` occurrence (includes types like `ObjectMapperProvider` / comments — re-filter during migration).
 
-**Note:** Jackson 3 / Boot 4 follow-up is tracked in the migration plan (Phase 2–3) and backlog **P-7**; see [spring4-migration-plan.md §3](spring4-migration-plan.md#3-jackson-30-migration).
+**Note:** Jackson 3 migration (**WI-205**, backlog **P-7**) is **done** on branch **`feat/spring-4-migration`** (2026-04-30); see [spring4-migration-plan.md — Jackson 3.0 migration, implementation status](spring4-migration-plan.md#3-jackson-30-migration).
 
 ---
 

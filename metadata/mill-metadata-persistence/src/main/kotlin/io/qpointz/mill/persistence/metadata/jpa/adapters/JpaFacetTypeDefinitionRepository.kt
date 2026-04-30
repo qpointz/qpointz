@@ -1,6 +1,6 @@
 package io.qpointz.mill.persistence.metadata.jpa.adapters
 
-import com.fasterxml.jackson.core.type.TypeReference
+import tools.jackson.core.type.TypeReference
 import io.qpointz.mill.metadata.domain.FacetTypeDefinition
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.facet.FacetTargetCardinality

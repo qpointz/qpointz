@@ -1,6 +1,6 @@
 package io.qpointz.mill.security.authentication.token;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import io.qpointz.mill.utils.JsonUtils;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

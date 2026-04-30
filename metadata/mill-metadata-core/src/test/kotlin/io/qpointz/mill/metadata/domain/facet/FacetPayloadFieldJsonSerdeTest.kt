@@ -1,18 +1,22 @@
 package io.qpointz.mill.metadata.domain.facet
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinFeature
-import com.fasterxml.jackson.module.kotlin.kotlinModule
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinFeature
+import tools.jackson.module.kotlin.kotlinModule
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class FacetPayloadFieldJsonSerdeTest {
 
-    private val mapper = ObjectMapper().registerModule(
-        kotlinModule {
-            configure(KotlinFeature.NullIsSameAsDefault, true)
-        }
-    )
+    private val mapper = JsonMapper.builder()
+        .addModule(
+            kotlinModule {
+                configure(KotlinFeature.NullIsSameAsDefault, true)
+            }
+        )
+        .findAndAddModules()
+        .build()
 
     private val sampleSchemaString = FacetPayloadSchema(
         type = FacetSchemaType.STRING,
@@ -60,6 +64,6 @@ class FacetPayloadFieldJsonSerdeTest {
         val tree = mapper.readTree(mapper.writeValueAsString(f))
         val arr = tree.path("stereotype")
         assertThat(arr.isArray).isTrue()
-        assertThat(arr.map { it.asText() }).containsExactly("p", "q")
+        assertThat((arr as Iterable<JsonNode>).map { it.asText() }).containsExactly("p", "q")
     }
 }

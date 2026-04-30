@@ -1,6 +1,6 @@
 package io.qpointz.mill.source.descriptor
 
-import com.fasterxml.jackson.databind.jsontype.NamedType
+import tools.jackson.databind.jsontype.NamedType
 
 /**
  * SPI interface for registering descriptor subtypes with Jackson.

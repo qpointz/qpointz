@@ -1,6 +1,6 @@
 package io.qpointz.mill.source.descriptor
 
-import com.fasterxml.jackson.databind.module.SimpleModule
+import tools.jackson.databind.module.SimpleModule
 import java.util.ServiceLoader
 
 /**

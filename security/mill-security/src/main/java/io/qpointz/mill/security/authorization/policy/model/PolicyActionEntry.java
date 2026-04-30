@@ -1,7 +1,7 @@
 package io.qpointz.mill.security.authorization.policy.model;
 
 import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import io.qpointz.mill.security.authorization.policy.ActionVerb;
 import io.qpointz.mill.security.authorization.policy.expression.ExpressionNode;
 import io.qpointz.mill.security.authorization.policy.expression.ExpressionNodeParser;

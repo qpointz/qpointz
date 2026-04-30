@@ -20,7 +20,6 @@ dependencies {
     api(libs.boot.starter.web)
     api(libs.boot.starter.security)
     api(libs.jackson.dataformat.yaml)
-    api(libs.jackson.datatype.jsr310)
 
     implementation(project(":core:mill-spring-support"))
     implementation(libs.springdoc.openapi.starter.webmvc.ui)

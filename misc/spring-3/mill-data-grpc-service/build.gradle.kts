@@ -29,7 +29,6 @@ dependencies {
     api(libs.grpc.core)
     api(libs.jakarta.servlet.api)
     implementation(libs.jackson.dataformat.yaml)
-    implementation(libs.jackson.datatype.jsr310)
     compileOnly(libs.bundles.logging)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)

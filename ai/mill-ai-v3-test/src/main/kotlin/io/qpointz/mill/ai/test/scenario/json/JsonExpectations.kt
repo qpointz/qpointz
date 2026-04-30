@@ -1,6 +1,6 @@
 package io.qpointz.mill.ai.test.scenario.json
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import io.qpointz.mill.ai.test.AgentScenarioResult
 import io.qpointz.mill.ai.test.scenario.Expectations
 

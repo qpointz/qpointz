@@ -1,6 +1,6 @@
 package io.qpointz.mill.data.schema.api
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import io.qpointz.mill.data.backend.SchemaProvider
 import io.qpointz.mill.data.schema.DefaultMetadataEntityUrnCodec
 import io.qpointz.mill.data.schema.SchemaFacetService
@@ -24,7 +24,7 @@ class SchemaExplorerServiceTest {
     private val schemaProvider = mock<SchemaProvider>()
     private val entityRead = mock<EntityReadSide>()
     private val facetReadSide = mock<FacetReadSide>()
-    private val objectMapper = ObjectMapper()
+    private val objectMapper = JsonMapper.builder().findAndAddModules().build()
     private val urnCodec = DefaultMetadataEntityUrnCodec()
     private val service = SchemaExplorerService(
         schemaFacetService,

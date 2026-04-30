@@ -1,10 +1,7 @@
 package io.qpointz.mill.utils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.kotlin.KotlinModule;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.module.kotlin.KotlinModule;
 
 public class JsonUtils {
 
@@ -12,17 +9,19 @@ public class JsonUtils {
         //only static methods to be used
     }
 
-    private static final ObjectMapper defaultJsonMapper;
+    private static final JsonMapper defaultJsonMapper;
 
     static {
-        defaultJsonMapper = new ObjectMapper();
-        defaultJsonMapper()
-                .registerModule(new JavaTimeModule())
-                .registerModule(new Jdk8Module())
-                .registerModule(new KotlinModule.Builder().build());
+        defaultJsonMapper = JsonMapper.builder()
+                .findAndAddModules()
+                .addModule(new KotlinModule.Builder().build())
+                .build();
     }
 
-    public static ObjectMapper defaultJsonMapper() {
+    /**
+     * Shared JSON {@link JsonMapper} with Kotlin support and classpath-discovered Jackson modules.
+     */
+    public static JsonMapper defaultJsonMapper() {
         return defaultJsonMapper;
     }
 

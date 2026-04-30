@@ -23,8 +23,6 @@ dependencies {
     api(libs.jackson.core)
     api(libs.jackson.dataformat.yaml)
     api(libs.jackson.databind)
-    api(libs.jackson.datatype.jsr310)
-    api(libs.jackson.datatype.jdk8)
     api(libs.jakarta.annotation.api)
     api("no.nav.security:mock-oauth2-server:3.0.1")
     api(libs.h2.database)

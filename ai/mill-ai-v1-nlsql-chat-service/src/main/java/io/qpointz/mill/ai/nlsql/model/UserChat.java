@@ -1,16 +1,11 @@
 package io.qpointz.mill.ai.nlsql.model;
 
-import aj.org.objectweb.asm.TypeReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.qpointz.mill.ai.nlsql.model.pojo.Chat;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.*;
 

@@ -1,8 +1,9 @@
 package io.qpointz.mill.test.scenario;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 import lombok.val;
 
 import java.io.IOException;
@@ -62,8 +63,7 @@ public record Scenario(
      * @throws IOException if reading or parsing fails
      */
     public static Scenario from(InputStream inputStream) throws IOException {
-        val mapper = new ObjectMapper(new YAMLFactory());
-        mapper.findAndRegisterModules();
+        val mapper = YAMLMapper.builder().findAndAddModules().build();
         return mapper.readValue(inputStream, Scenario.class);
     }
 
@@ -124,10 +124,13 @@ public record Scenario(
 
         // Use Jackson to convert
         try {
-            ObjectMapper mapper = new ObjectMapper();
+            JsonMapper mapper = JsonMapper.builder().findAndAddModules().build();
             T converted = mapper.convertValue(value, type);
             return Optional.of(converted);
         } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                    "Failed to convert parameter '" + key + "' to " + type.getSimpleName() + ": " + e.getMessage(), e);
+        } catch (JacksonException e) {
             throw new IllegalArgumentException(
                     "Failed to convert parameter '" + key + "' to " + type.getSimpleName() + ": " + e.getMessage(), e);
         }

@@ -1,10 +1,10 @@
 package io.qpointz.mill.source.descriptor
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonDeserializer
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import tools.jackson.core.JsonParser
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.ValueDeserializer
+import tools.jackson.databind.annotation.JsonDeserialize
 
 /**
  * Strategy for resolving table name collisions across readers.
@@ -76,10 +76,10 @@ data class ConflictResolution(
 /**
  * Custom deserializer that handles both string shorthand and map form.
  */
-class ConflictResolutionDeserializer : JsonDeserializer<ConflictResolution>() {
+class ConflictResolutionDeserializer : ValueDeserializer<ConflictResolution>() {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): ConflictResolution {
-        val node = p.codec.readTree<JsonNode>(p)
+        val node = ctxt.readTree(p) as JsonNode
 
         if (node.isTextual) {
             return ConflictResolution(
@@ -95,7 +95,7 @@ class ConflictResolutionDeserializer : JsonDeserializer<ConflictResolution>() {
             }
 
             val rules = mutableMapOf<String, ConflictStrategy>()
-            node.fieldNames().forEach { key ->
+            for (key in node.propertyNames()) {
                 if (key != "default") {
                     rules[key] = ConflictStrategy.fromString(node.get(key).asText())
                 }

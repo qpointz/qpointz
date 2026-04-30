@@ -11,9 +11,9 @@ import io.qpointz.mill.ai.runtime.*
 import io.qpointz.mill.ai.runtime.events.*
 import io.qpointz.mill.ai.runtime.events.routing.*
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.kotlinModule
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.kotlinModule
 import dev.langchain4j.data.message.AiMessage
 import dev.langchain4j.data.message.ChatMessage
 import dev.langchain4j.data.message.SystemMessage
@@ -41,7 +41,9 @@ class LangChain4jAgent(
     private val model: StreamingChatModel,
     private val profile: AgentProfile,
     private val registry: CapabilityRegistry = CapabilityRegistry.load(),
-    private val objectMapper: ObjectMapper = ObjectMapper().registerModule(kotlinModule()),
+    private val objectMapper: JsonMapper = JsonMapper.builder()
+        .addModule(kotlinModule())
+        .build(),
     private val chatMemoryStore: ChatMemoryStore = InMemoryChatMemoryStore(),
     private val memoryStrategy: LlmMemoryStrategy = BoundedWindowMemoryStrategy(),
     private val persistenceContext: AgentPersistenceContext = AgentPersistenceContext(),

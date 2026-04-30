@@ -1,6 +1,6 @@
 package io.qpointz.mill.persistence.converters
 
-import com.fasterxml.jackson.core.type.TypeReference
+import tools.jackson.core.type.TypeReference
 import io.qpointz.mill.utils.JsonUtils
 import jakarta.persistence.AttributeConverter
 import jakarta.persistence.Converter
