@@ -23,6 +23,8 @@ Optionally, keep a **newest-first** bullet list below as a human-maintained inde
 
 ## Index (optional, newest first)
 
+- [2026-04-30 — spring4-migration-day-2 (Boot 4.0.6, Jackson 3, Spring AI 2.0.0-M5, Security 7, CI + docs; WI-201–WI-209)](20260430-spring4-migration-day-2/STORY.md)
+- [2026-04-30 — spring4-pre-migration-cleanup (3.5.x hygiene before Boot 4 bump; WI-097–WI-104)](20260430-spring4-pre-migration-cleanup/STORY.md)
 - [2026-04-29 — client-error-transparency (Problem Details data plane, mill-py + JDBC + gRPC parity, WI-013)](20260429-client-error-transparency/STORY.md)
 - [2026-04-28 — ai-facet-catalog-inference (metadata QUERY + authoring CAPTURE, `MetadataReadPort`, facet URN captures, WI-204–WI-206)](20260428-ai-facet-catalog-inference/STORY.md)
 - [2026-04-24 — mill-py-metadata-client (`mill.metadata` / `mill.schema_explorer`, canonical export/import, WI-192–WI-203)](20260424-mill-py-metadata-client/STORY.md)

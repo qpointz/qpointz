@@ -1,23 +1,29 @@
 # Spring Boot 3.5 to Spring Boot 4.0 Migration Plan
 
-## Current State
+## Repository version baseline (Spring Boot 4 line)
 
-| Component                              | Current Version      |
-|----------------------------------------|----------------------|
-| Spring Boot                            | 3.5.10               |
-| Spring Framework                       | 6.x (managed by Boot)|
-| Spring Security                        | 6.x (BOM-aligned **`spring-security-test`** via **`platform(libs.boot.dependencies)`** in **`services/mill-service-common`** tests — **WI-099**) |
-| Spring AI                              | 1.1.2                |
-| Spring Cloud Function                  | 3.2.12               |
-| SpringDoc OpenAPI                      | 2.8.14               |
+Values below match **`libs.versions.toml`** on the **Spring Boot 4** line (story archive **[`spring4-migration-day-2`](../../workitems/completed/20260430-spring4-migration-day-2/STORY.md)**, WIs **WI-201**–**WI-209**). User-facing summary: [`docs/public/src/reference/platform-runtime.md`](../../public/src/reference/platform-runtime.md).
+
+| Component                              | Version / notes |
+|----------------------------------------|-----------------|
+| Spring Boot                            | **4.0.6** |
+| Spring Framework                       | **7.0** (managed by Boot) |
+| Spring Security                        | **7.0** (BOM-aligned **`spring-security-test`** via **`platform(libs.boot.dependencies)`** in **`services/mill-service-common`** tests — **WI-099**); **WI-206** aligned auth/persistence **`testIT`** with Security 7 and Boot 4 test APIs |
+| Spring AI                              | **2.0.0-M5** (milestone; **WI-203**) |
+| Spring Cloud Function                  | 3.2.12 ( **`misc/cloud/`** only — not in distro) |
+| SpringDoc OpenAPI                      | **3.0.3** (**WI-204**) |
 | gRPC data plane                        | grpc-java **1.79.x** (see note below) |
-| `spring-dependency-management` plugin  | 1.1.6                |
-| Kotlin                                 | 2.3.10               |
-| Jackson                                | 2.21.0               |
+| `spring-dependency-management` plugin  | 1.1.6 |
+| Kotlin                                 | 2.3.10 |
+| Jackson                                | **3.1.2** (`tools.jackson:*`, **WI-205**) |
+
+**Historical baseline (pre–day-2, Boot 3.5.x):** Spring Boot **3.5.10**, Spring AI **1.1.2**, SpringDoc **2.8.14**, Jackson **2.21** — superseded by the table above after **`spring4-migration-day-2`** (closed **2026-04-30**).
 
 **gRPC:** The composite build uses **`services/mill-data-grpc-service`** on **raw grpc-java** (Netty server, Spring-managed lifecycle, Kotlin `MillGrpcService` + interceptors). **`net.devh` is not** declared in **`libs.versions.toml`**. A legacy tree **`misc/spring-3/mill-data-grpc-service`** (still illustrating `net.devh` usage) remains for historical comparison but is **not** included in **`settings.gradle.kts`**.
 
 ## Target State (Spring Boot 4.0)
+
+These rows remain the **architectural target** for the migration; concrete pins are in the **Repository version baseline** table at the top (for example Spring Boot **4.0.6**, Jackson **3.1.x**).
 
 | Component          | Required Version                         |
 |--------------------|------------------------------------------|
@@ -27,9 +33,9 @@
 | Spring Data        | **2025.1**                               |
 | Jakarta EE         | **11** (Servlet 6.1)                     |
 | Hibernate          | **7.1**                                  |
-| Jackson            | **3.0** (Jackson 2 ships deprecated)     |
+| Jackson            | **3.x** (`tools.jackson`, Boot-managed)  |
 | Kotlin             | 2.2+ (already on 2.3.10 -- OK)          |
-| Java               | 17+ (already met)                        |
+| Java               | **21+** where Spring AI 2.0 / full stack is used (**WI-203**); catalog and CI assume Java **21** |
 
 ---
 
@@ -48,32 +54,30 @@ The `net.devh:grpc-server-spring-boot-starter` line does **not** have a Spring B
 - `clients/mill-jdbc-driver` (no `net.devh` in JDBC tests)
 - `apps/mill-service` (**`mill.data.services.grpc.*`** configuration; see `GrpcServerProperties` in **`services/mill-data-grpc-service`**)
 
-**Remaining for Boot 4:** Re-validate this stack under Spring Boot 4 / Spring Security 7 (interceptors, lifecycle beans). No further `net.devh` removal is required in the composite build.
+**Boot 4 validation:** **WI-208** re-validated **`services/mill-data-grpc-service`** and JDBC driver integration tests (including **`EmbeddedSkymillGrpcServer`** for Skymill-style **`testIT`**). No further `net.devh` removal is required in the composite build.
 
 **Optional cleanup:** Delete or clearly mark **`misc/spring-3/mill-data-grpc-service`** as archival-only so it is not mistaken for active code.
 
 ### 2. Spring AI Version Incompatibility
 
-**Severity: BLOCKER**
+**Severity: was BLOCKER — mitigated on the migration branch using Spring AI 2.0 milestone.**
 
-Spring AI 1.1.2 is built for Spring Boot 3.x. Spring Boot 4 requires **Spring AI 2.0.x** (currently at 2.0.0-M2, not yet GA).
+Spring AI 1.1.x targets Spring Boot 3.x. Spring Boot 4 requires **Spring AI 2.0.x**. The **day-2** story pins **Spring AI `2.0.0-M5`** in **`libs.versions.toml`** (**WI-203**); GA remains optional for a future bump.
 
-**Impact:**
+**Impact (historical):**
 - AI Spring modules: e.g. `ai/mill-ai-v1-core`, `ai/mill-ai-v1-nlsql-chat-service` (and any other modules pulling Spring AI BOM artifacts)
 - `apps/mill-service`
 - All usages of `spring-ai-client-chat`, `spring-ai-vector-store`, model starters, MCP server starters, `spring-ai-starter-model-chat-memory-repository-jdbc`
 
-**Action required:**
-- Upgrade to Spring AI 2.0.x (currently M2 -- may need to wait for GA)
-- Spring AI 2.0 has its own breaking changes: API renames, new artifact coordinates
-- There are known dependency resolution issues with Spring AI + Spring Boot 4
-- Spring AI 2.0 requires **Java 21** for development
+**Action required (status):**
+- Upgrade to Spring AI 2.0.x — **done** on the Boot 4 branch at **2.0.0-M5**; follow Spring AI release notes for API/coordinate changes
+- Spring AI 2.0 requires **Java 21** for development and runtime where those modules are used
 
 ### 3. Jackson 3.0 Migration
 
-**Severity: HIGH**
+**Severity: was HIGH — mitigated; catalog and code on Jackson 3.x (`tools.jackson`, `JsonMapper`) per WI-205.**
 
-Spring Boot 4 ships with Jackson 3.0 as the default. This is a major breaking change.
+Spring Boot 4 ships with Jackson 3.x as the default. This was a major breaking change for code that targeted Jackson 2 only.
 
 **Impact:** The project explicitly declares Jackson 2.x dependencies in `libs.versions.toml`:
 - `jackson-core`
@@ -99,7 +103,7 @@ Spring Boot 4 ships with Jackson 3.0 as the default. This is a major breaking ch
 - Review any custom serializers/deserializers
 - Consider using the OpenRewrite recipe `UpgradeJackson_2_3` to automate refactoring
 
-**Implementation status (`feat/spring-4-migration`, 2026-04-30):** **WI-205** is complete on that branch. The version catalog uses **`tools.jackson:*`** at **3.1.2** (aligned with Spring Boot **4.0.6**). Production and test code use **`JsonMapper` / `YAMLMapper` builders**, **`ValueDeserializer`** where Jackson 2’s `JsonDeserializer`/`getCodec()` patterns no longer apply, and **`JacksonException`** instead of `JsonProcessingException`. Policy import (`JsonPolicyImporter`, `YamlPolicyImporter`) enables **`MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS`** so existing policy documents with uppercase enum literals keep working. **`./gradlew test`** is green on the branch; full **`testIT`** and remaining Boot 4 story items (**WI-203**–**WI-204**, **WI-206**–**WI-209**) are still tracked in [`docs/workitems/in-progress/spring4-migration-day-2/STORY.md`](../../workitems/in-progress/spring4-migration-day-2/STORY.md).
+**Implementation status (2026-04-30):** **WI-205** (Jackson 3), **WI-203** (Spring AI **2.0.0-M5**), **WI-204** (SpringDoc **3.0.3**), **WI-206** (Spring Security 7 **`testIT`** / API alignment), **WI-208** (gRPC/HTTP **`testIT`** wiring, JDBC driver **`EmbeddedSkymillGrpcServer`** + profile-based host/port), and **WI-209** (full-repo **`./gradlew clean build`**, **`./gradlew test`**, **`./gradlew testIT`** green on CI/CD, migration plan + public docs + backlog) are complete. The version catalog uses **`tools.jackson:*`** at **3.1.2**. Production and test code use **`JsonMapper` / `YAMLMapper` builders**, **`ValueDeserializer`** where Jackson 2’s `JsonDeserializer`/`getCodec()` patterns no longer apply, and **`JacksonException`** instead of `JsonProcessingException`. Policy import (`JsonPolicyImporter`, `YamlPolicyImporter`) enables **`MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS`** so existing policy documents with uppercase enum literals keep working. Story tracker: [`completed/20260430-spring4-migration-day-2/STORY.md`](../../workitems/completed/20260430-spring4-migration-day-2/STORY.md).
 
 ### 4. Spring Cloud Function Compatibility
 
@@ -138,9 +142,9 @@ SpringDoc OpenAPI 2.x is built for Spring Boot 3.x. Per the [SpringDoc compatibi
 
 ### 6. Starter POM Renames
 
-Spring Boot 4 renamed several starters. The old names are deprecated but still work.
+Spring Boot 4 renamed several starters. The old names are deprecated but still work. On the **Boot 4** branch, **`libs.versions.toml`** / Gradle aliases follow the new coordinates (**WI-207**).
 
-| Current in `libs.versions.toml`                            | Spring Boot 4 Replacement                                  |
+| Previous / deprecated alias intent                         | Spring Boot 4 Replacement                                  |
 |------------------------------------------------------------|------------------------------------------------------------|
 | `spring-boot-starter-web`                                  | `spring-boot-starter-webmvc`                               |
 | `spring-boot-starter-oauth2-client`                        | `spring-boot-starter-security-oauth2-client`               |
@@ -199,7 +203,7 @@ Spring Boot 4 has been completely modularized with new package structure. Code i
 
 Address before or during the Boot 4 upgrade:
 - **`spring-security-test`** — aligned with Boot BOM in **`services/mill-service-common`** (**WI-099**)
-- **Deprecated starter coordinates** (§6) — still on pre-rename artifact IDs on Boot 3.5
+- **Deprecated starter coordinates** (§6) — **resolved** on the Boot 4 branch via **WI-207** (catalog + Gradle aliases to **`spring-boot-starter-webmvc`** and **`spring-boot-starter-security-oauth2-*`**)
 
 **Resolved on main:** `metadata/mill-metadata-service` uses the shared **`libs.springdoc.*`** catalog entries (no hardcoded SpringDoc artifact version in that module’s `build.gradle.kts`).
 
@@ -224,17 +228,13 @@ The `io.spring.dependency-management` plugin (currently 1.1.6) continues to work
 
 ## Recommended Upgrade Strategy
 
-### Pre-condition: Wait for Third-Party GA Releases
+### Pre-condition: Third-Party GA vs milestone
 
-The following dependencies do not yet have GA releases compatible with Spring Boot 4:
+**Spring AI 2.0** is not yet GA; this repository **accepts milestone risk** for the Boot 4 line (**`2.0.0-M5`**, **WI-203**) until a GA upgrade is scheduled.
 
-- **Spring AI 2.0** (currently M2)
-
-**SpringDoc OpenAPI 3.x.x** is confirmed compatible with Spring Boot 4.x ([source](https://springdoc.org/faq.html#_what_is_the_compatibility_matrix_of_springdoc_openapi_with_spring_boot)).
+**SpringDoc OpenAPI 3.x.x** is confirmed compatible with Spring Boot 4.x ([source](https://springdoc.org/faq.html#_what_is_the_compatibility_matrix_of_springdoc_openapi_with_spring_boot)); the repo is on **3.0.3** (**WI-204**).
 
 **Spring Cloud Function** has no Spring Boot 4 compatible version yet, but the Azure function module (`misc/cloud/`) is not compiled or included in the distribution, so this is **not a blocker**.
-
-Until Spring AI 2.0 GA is available, a full migration is **not possible** without accepting milestone/snapshot risk.
 
 ### Phase 1 -- Pre-migration Cleanup (on 3.5.x)
 
@@ -250,19 +250,19 @@ These changes can be done now, independently of the upgrade:
 - [x] Replace **`javax-annotation-api`** with **`jakarta.annotation-api`** where possible; remove `javax` coordinates when unused
 - [x] Boot 4 **jump-start inventory** (grep snapshot) — [`spring4-boot4-jump-start-inventory.md`](spring4-boot4-jump-start-inventory.md) (**WI-103**)
 - [x] Migration plan **Phase 1 / current-state / Appendix A** alignment pass (**WI-104**)
-- [ ] Update deprecated starter names in version catalog (`starter-web` → `starter-webmvc`, OAuth2 renames)
+- [x] Update deprecated starter names in version catalog (`starter-web` → `starter-webmvc`, OAuth2 renames) — **WI-207**
 
-*(Use `[x]` = satisfied on current `dev`; `[ ]` = still open.)*
+*(Use `[x]` = satisfied on the Boot 4 migration line after **WI-201**–**WI-209**; story **`spring4-migration-day-2`** closed **2026-04-30**.)*
 
 ### Phase 2 -- Core Upgrade
 
-- [ ] Bump `springBoot` to `4.0.x` in `libs.versions.toml`
-- [x] **gRPC:** `net.devh` **removed** from main build; data plane on **raw grpc-java** in **`services/mill-data-grpc-service`** (re-validate under Boot 4)
-- [ ] Upgrade Jackson dependencies to 3.0 coordinates (group ID + artifact changes)
-- [ ] Upgrade Spring AI to 2.0.x
+- [x] Bump `springBoot` to `4.0.x` in `libs.versions.toml` — **WI-202** (**4.0.6**)
+- [x] **gRPC:** `net.devh` **removed** from main build; data plane on **raw grpc-java** in **`services/mill-data-grpc-service`** (re-validated under Boot 4 — **WI-208**)
+- [x] Upgrade Jackson dependencies to 3.0 coordinates (group ID + artifact changes) — **WI-205**
+- [x] Upgrade Spring AI to 2.0.x — **WI-203** (**2.0.0-M5**)
 - [ ] ~~Upgrade Spring Cloud Function~~ (out of scope -- `misc/cloud/` not in distro)
-- [ ] Upgrade SpringDoc OpenAPI from 2.x to 3.x (confirmed Boot 4 compatible)
-- [ ] Temporarily add `spring-boot-starter-classic` if needed during migration
+- [x] Upgrade SpringDoc OpenAPI from 2.x to 3.x (confirmed Boot 4 compatible) — **WI-204** (**3.0.3**)
+- [x] Temporarily add `spring-boot-starter-classic` if needed during migration — **not used**; migration completed without classic starters
 
 ***Note:** Phase 2 previously mentioned “Spring gRPC 1.0.0” — that was **incorrect** for this repo. The adopted approach is **raw grpc-java**, consistent with [Appendix A](#appendix-a-grpc-migration-to-raw-grpc-java). [Spring gRPC](https://spring.io/blog/2025/11/11/spring-grpc-next-steps) remains an **optional alternative**, not the current implementation.*
 
@@ -270,24 +270,26 @@ These changes can be done now, independently of the upgrade:
 
 **Jump-start:** Pre-upgrade grep inventory (ObjectMapper, PropertyMapper, Boot extension hooks, Security paths) — [`spring4-boot4-jump-start-inventory.md`](spring4-boot4-jump-start-inventory.md) (**WI-103**).
 
-- [ ] Fix Jackson package imports (`com.fasterxml.jackson.*` → `tools.jackson.*`)
-- [ ] Fix any `ObjectMapper` → `JsonMapper` migration
-- [ ] Fix Spring Security 7.0 breaking changes in security configuration classes
-- [ ] Re-validate **grpc-java** server wiring (`services/mill-data-grpc-service`: lifecycle, interceptors, **`mill.data.services.grpc.*`**) under Boot 4
-- [ ] Fix any Spring Boot modularization import breakages
-- [ ] Review `PropertyMapper` usage
-- [ ] Run full test suite and fix failures
+- [x] Fix Jackson package imports (`com.fasterxml.jackson.*` → `tools.jackson.*`) — **WI-205**
+- [x] Fix any `ObjectMapper` → `JsonMapper` migration — **WI-205**
+- [x] Fix Spring Security 7.0 breaking changes in security configuration classes — **WI-206** (incl. auth/persistence **`testIT`**; **`WebTestClient`** where **`TestRestTemplate`** was removed)
+- [x] Re-validate **grpc-java** server wiring (`services/mill-data-grpc-service`: lifecycle, interceptors, **`mill.data.services.grpc.*`**) under Boot 4 — **WI-208**
+- [x] Fix any Spring Boot modularization import breakages — addressed during **WI-202** / follow-on compile fixes
+- [x] Review `PropertyMapper` usage — **no production usages** in repo (`grep` clean as of migration)
+- [x] Run full test suite and fix failures — **`test`** and **`testIT`** green (**WI-209**, CI/CD **2026-04-30**)
 
 ### Phase 4 -- Validation
 
-- [ ] Run `./gradlew build` across all modules
-- [ ] Run `./gradlew test` across all modules
-- [ ] Run integration tests (`testIT`)
-- [ ] Validate gRPC endpoints manually
-- [ ] Validate OpenAPI documentation endpoints
-- [ ] Validate AI chat functionality
-- [ ] Validate OAuth2 security flows
-- [ ] Remove `spring-boot-starter-classic` if it was used temporarily
+**WI-209 (2026-04-30):** **`./gradlew clean build`**, **`./gradlew test`**, and **`./gradlew testIT`** confirmed green on CI/CD; recorded in [`WI-209-full-repo-green-and-docs.md`](../../workitems/completed/20260430-spring4-migration-day-2/WI-209-full-repo-green-and-docs.md).
+
+- [x] Run `./gradlew clean build` across all modules
+- [x] Run `./gradlew test` across all modules
+- [x] Run integration tests (`testIT`)
+- [ ] Validate gRPC endpoints manually (optional follow-up beyond automated **`testIT`**)
+- [ ] Validate OpenAPI documentation endpoints (optional follow-up)
+- [ ] Validate AI chat functionality (optional follow-up)
+- [ ] Validate OAuth2 security flows (optional follow-up)
+- [x] Remove `spring-boot-starter-classic` if it was used temporarily — **N/A** (never added)
 
 ---
 
@@ -309,7 +311,7 @@ These changes can be done now, independently of the upgrade:
 | `ai/mill-ai-v1-nlsql-chat-service` | **Critical** | Spring AI 2.0, JPA/Data 2025.1, Security 7.0 |
 | `apps/mill-service` | **Critical** | All of the above converge here |
 | `services/mill-ui-service` | Low | Web starter rename |
-| `clients/mill-jdbc-driver` | Low–Medium | Ensure gRPC **test** helpers stay aligned with **`services/mill-data-grpc-service`** |
+| `clients/mill-jdbc-driver` | Low–Medium | Skymill **`testIT`** uses **`EmbeddedSkymillGrpcServer`** + dynamic host/port (**WI-208**); align with **`services/mill-data-grpc-service`** |
 | `misc/cloud/mill-azure-service-function` | N/A (not in distro) | Spring Cloud Function, thin-launcher -- out of migration scope |
 | `misc/spring-3/mill-data-grpc-service` | N/A (not in build) | Archival **net.devh** reference only — optional delete |
 
@@ -366,10 +368,10 @@ Instead of migrating from `net.devh` to another framework wrapper (Spring gRPC),
 
 #### External Module Dependencies (test-only)
 
-| File | `net.devh` Usage | Complexity |
-|------|-----------------|------------|
-| `clients/mill-jdbc-driver/InProcessTest.java` | `GrpcAdviceAutoConfiguration`, `@Value("${grpc.server.in-process-name}")` | **Low** -- replace with manual in-process setup |
-| `clients/mill-jdbc-driver/ColumnsMetadataTest.java` | `GrpcAdviceAutoConfiguration` | **Low** -- same pattern |
+| File | Notes |
+|------|--------|
+| `clients/mill-jdbc-driver/src/test/java/...` (unit) | Historical **`net.devh`** / in-process patterns were removed with raw **grpc-java**; unit tests use in-process or stubs as appropriate. |
+| `clients/mill-jdbc-driver/src/testIT/...` (integration) | Skymill JDBC **`testIT`** spins up **`EmbeddedSkymillGrpcServer`** with an ephemeral port and **`TestITProfile`**-bound **`application-skymill.yml`** / flow resources (**WI-208**). |
 
 #### Configuration Files (historical — see banner above)
 

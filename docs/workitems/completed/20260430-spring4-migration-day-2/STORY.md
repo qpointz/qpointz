@@ -14,8 +14,8 @@ and all required mechanical follow-ups (Spring Framework 7, Spring Security 7, J
 - **Manual verification (record confirmation in WI-209 notes / MR description):**
   - `./gradlew testIT`
 - **Allowed:** Spring AI milestone **2.0.0-M5** (per Spring AI release notes).
-- **Not in scope here:** pre-migration cleanup (tracked separately under
-  `docs/workitems/in-progress/spring4-pre-migration-cleanup/`).
+- **Not in scope here:** pre-migration cleanup (completed story
+  [`spring4-pre-migration-cleanup`](../20260430-spring4-pre-migration-cleanup/STORY.md)).
 
 ## Work Items
 
@@ -27,5 +27,5 @@ and all required mechanical follow-ups (Spring Framework 7, Spring Security 7, J
 - [x] WI-205 — Migrate Jackson 2.x → 3.x (tools.jackson + JsonMapper) (`WI-205-jackson-3-migration.md`)
 - [x] WI-206 — Spring Security 7.0 fixes + test alignment (`WI-206-spring-security-7-upgrade-fixes.md`)
 - [x] WI-208 — gRPC/http services + client re-validation under Boot 4 (`WI-208-transport-and-client-revalidation.md`)
-- [ ] WI-209 — Full-repo CI green + doc status updates (`WI-209-full-repo-green-and-docs.md`)
+- [x] WI-209 — Full-repo CI green + doc status updates (`WI-209-full-repo-green-and-docs.md`)
 

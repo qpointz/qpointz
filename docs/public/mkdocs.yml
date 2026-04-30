@@ -102,6 +102,7 @@ nav:
       - backends/calcite.md
       - backends/flow.md
     - Appendix:
+      - reference/platform-runtime.md
       - reference/mill-ai-configuration.md
       - reference/skymill-schema.md
       - reference/skymill-kpi-cookbook.md

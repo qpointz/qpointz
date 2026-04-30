@@ -45,7 +45,8 @@ Mill exposes data through a service layer (gRPC, HTTP, and a web UI) backed by p
 ## Documentation
 
 - [Quickstart](quickstart.md) — run Mill with sample data using Docker
-- [Installation](installation.md) — deployment and configuration
+- [Installation](installation.md) — Java **21**, Gradle build commands, Docker pointer
+- [Platform runtime](reference/platform-runtime.md) — Spring Boot **4** / Spring AI **2** milestone / Jackson **3** baselines for services
 - [Backends](backends/index.md) — JDBC, Calcite, and Flow backend configuration
 - [Sources](sources/index.md) — file-based data source configuration
 - [Mill UI](grinder-ui.md) — web interface reference

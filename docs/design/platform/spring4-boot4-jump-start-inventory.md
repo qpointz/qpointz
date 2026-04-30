@@ -1,6 +1,6 @@
 # Spring Boot 4 — jump-start inventory (grep snapshot)
 
-**Work item:** [WI-103](../workitems/in-progress/spring4-pre-migration-cleanup/WI-103-boot4-jump-start-inventory.md)  
+**Work item:** [WI-103](../workitems/completed/20260430-spring4-pre-migration-cleanup/WI-103-boot4-jump-start-inventory.md)  
 **Purpose:** Pre-upgrade checklist for mechanical Boot 4 / Jackson 3 / Security 7 work. **No code changes** — counts and paths only. Regenerate with the commands in each section when preparing the BOM bump.
 
 **Linked from:** [spring4-migration-plan.md — Phase 3](spring4-migration-plan.md)
