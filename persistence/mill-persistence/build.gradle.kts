@@ -27,6 +27,7 @@ testing {
             dependencies {
                 implementation(project())
                 implementation(libs.boot.starter.test)
+                implementation(libs.boot.starter.data.jpa.test)
                 implementation(libs.assertj.core)
             }
         }

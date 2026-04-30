@@ -35,6 +35,7 @@ testing {
                 implementation(project(":metadata:mill-metadata-autoconfigure"))
                 implementation(libs.boot.starter.test)
                 implementation(libs.boot.starter.webmvc)
+                implementation(libs.boot.starter.webmvc.test)
                 implementation(libs.h2.database)
             }
         }

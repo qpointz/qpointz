@@ -45,6 +45,7 @@ testing {
                 implementation(project(":data:mill-data-autoconfigure"))
                 implementation(project(":metadata:mill-metadata-autoconfigure"))
                 implementation(libs.boot.starter)
+                implementation(libs.boot.starter.jackson)
                 implementation(libs.boot.starter.test)
             }
         }

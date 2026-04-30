@@ -32,6 +32,7 @@ testing {
                     exclude(module = "mill-data-autoconfigure")
                 }
                 implementation(libs.boot.starter.test)
+                implementation(libs.boot.starter.data.jpa.test)
                 implementation(libs.assertj.core)
                 runtimeOnly(libs.h2.database)
             }
