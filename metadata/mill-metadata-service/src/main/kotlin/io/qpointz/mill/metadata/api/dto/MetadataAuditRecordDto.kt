@@ -10,14 +10,14 @@ import java.time.Instant
 data class MetadataAuditRecordDto(
     val auditId: String,
     val operationType: String,
-    @param:JsonProperty("entityUrn")
-    @param:JsonAlias("entityId")
+    @field:JsonProperty("entityUrn")
+    @field:JsonAlias("entityId")
     val entityUrn: String?,
-    @param:JsonProperty("facetTypeUrn")
-    @param:JsonAlias("facetType")
+    @field:JsonProperty("facetTypeUrn")
+    @field:JsonAlias("facetType")
     val facetTypeUrn: String?,
-    @param:JsonProperty("scopeUrn")
-    @param:JsonAlias("scopeKey")
+    @field:JsonProperty("scopeUrn")
+    @field:JsonAlias("scopeKey")
     val scopeUrn: String?,
     val actorId: String,
     val occurredAt: Instant,

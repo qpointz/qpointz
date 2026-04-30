@@ -38,8 +38,8 @@ data class FacetInstanceDto(
         example = "550e8400-e29b-41d4-a716-446655440000"
     )
     val uid: String,
-    @param:JsonProperty("facetTypeUrn")
-    @param:JsonAlias("facetType")
+    @field:JsonProperty("facetTypeUrn")
+    @field:JsonAlias("facetType")
     @field:Schema(
         description = "Facet type URN",
         name = "facetTypeUrn",
@@ -47,8 +47,8 @@ data class FacetInstanceDto(
         requiredMode = Schema.RequiredMode.REQUIRED
     )
     val facetTypeUrn: String,
-    @param:JsonProperty("scopeUrn")
-    @param:JsonAlias("scope")
+    @field:JsonProperty("scopeUrn")
+    @field:JsonAlias("scope")
     @field:Schema(
         description = "Scope URN",
         name = "scopeUrn",

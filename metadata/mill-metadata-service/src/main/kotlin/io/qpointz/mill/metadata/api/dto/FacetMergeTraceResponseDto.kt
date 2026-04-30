@@ -17,8 +17,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Facet merge trace: raw assignments plus merge_action and effective-view flags.")
 data class FacetMergeTraceResponseDto(
-    @param:JsonProperty("scopes")
-    @param:JsonAlias("context")
+    @field:JsonProperty("scopes")
+    @field:JsonAlias("context")
     @field:Schema(description = "Ordered scope URNs used for merge", requiredMode = Schema.RequiredMode.REQUIRED)
     val scopes: List<String>,
     @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED)
@@ -37,11 +37,11 @@ data class FacetMergeTraceResponseDto(
 @Schema(description = "Single facet row in a merge-trace response.")
 data class FacetMergeTraceEntryDto(
     val uid: String,
-    @param:JsonProperty("facetTypeUrn")
-    @param:JsonAlias("facetType")
+    @field:JsonProperty("facetTypeUrn")
+    @field:JsonAlias("facetType")
     val facetTypeUrn: String,
-    @param:JsonProperty("scopeUrn")
-    @param:JsonAlias("scope")
+    @field:JsonProperty("scopeUrn")
+    @field:JsonAlias("scope")
     val scopeUrn: String,
     val mergeAction: String,
     val payload: Map<String, Any?>,

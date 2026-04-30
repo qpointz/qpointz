@@ -29,8 +29,8 @@ import java.time.Instant
     example = """{"entityUrn":"urn:mill/model/table:public.orders","kind":"table"}"""
 )
 data class MetadataEntityDto(
-    @param:JsonProperty("entityUrn")
-    @param:JsonAlias("id")
+    @field:JsonProperty("entityUrn")
+    @field:JsonAlias("id")
     @field:Schema(
         description = "Full entity URN",
         name = "entityUrn",

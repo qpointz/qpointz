@@ -1,5 +1,7 @@
 package io.qpointz.mill.ai.service.dto
 
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
 import io.qpointz.mill.ai.service.CreateChatRequest
 import io.qpointz.mill.ai.service.ChatView
 import io.qpointz.mill.ai.persistence.ChatMetadata
@@ -39,7 +41,8 @@ data class UpdateChatHttpRequest(
 }
 
 /** POST /api/v1/ai/chats/{chatId}/messages */
-data class SendMessageHttpRequest(
+data class SendMessageHttpRequest @JsonCreator(mode = JsonCreator.Mode.PROPERTIES) constructor(
+    @JsonProperty("message")
     val message: String,
 )
 

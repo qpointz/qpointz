@@ -15,8 +15,11 @@ import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -36,14 +39,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 )
 @ComponentScan(
     basePackages = "io.qpointz.mill",
-    excludeFilters = @ComponentScan.Filter(
-        type = FilterType.REGEX,
-        pattern = "io\\.qpointz\\.mill\\.metadata\\.api\\..*"
-    )
+    excludeFilters = {
+        @ComponentScan.Filter(
+            type = FilterType.REGEX,
+            pattern = "io\\.qpointz\\.mill\\.metadata\\.api\\..*"
+        ),
+        @ComponentScan.Filter(
+            type = FilterType.REGEX,
+            pattern = "io\\.qpointz\\.mill\\.test\\.security\\..*"
+        )
+    }
 )
 @ActiveProfiles("test-moneta-slim")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @EnableAutoConfiguration
+@Import(SchemaMessageSpecTest.TestBeans.class)
 class SchemaMessageSpecTest {
 
     @Autowired
@@ -95,5 +105,13 @@ class SchemaMessageSpecTest {
         log.info(content);
         assertFalse(content.toUpperCase().contains("MONETA.LOANS"));
         assertFalse(content.toUpperCase().contains("MONETA.LOANS.LOAN_ID"));
+    }
+
+    @TestConfiguration
+    static class TestBeans {
+        @Bean
+        com.fasterxml.jackson.databind.ObjectMapper objectMapper() {
+            return new com.fasterxml.jackson.databind.ObjectMapper();
+        }
     }
 }

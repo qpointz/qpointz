@@ -1,6 +1,7 @@
 package io.qpointz.mill.metadata.api.dto
 
 import com.fasterxml.jackson.annotation.JsonAlias
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.Instant
@@ -18,11 +19,14 @@ import java.time.Instant
  * @property createdAt   timestamp when this scope was created
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-data class MetadataScopeDto(
-    @param:JsonProperty("scopeUrn")
-    @param:JsonAlias("scopeId")
+data class MetadataScopeDto @JsonCreator constructor(
+    @JsonProperty("scopeUrn")
+    @JsonAlias("scopeId")
     val scopeUrn: String,
+    @JsonProperty("displayName")
     val displayName: String? = null,
+    @JsonProperty("ownerId")
     val ownerId: String? = null,
+    @JsonProperty("createdAt")
     val createdAt: Instant? = null
 )

@@ -20,7 +20,7 @@ and all required mechanical follow-ups (Spring Framework 7, Spring Security 7, J
 ## Work Items
 
 - [x] WI-201 — Pin Boot 4 upgrade targets and MR gates (`WI-201-boot4-migration-day-2-plan-and-gates.md`)
-- [ ] WI-202 — Bump Spring Boot to 4.0.6 + fix immediate build breakage (`WI-202-bump-spring-boot-to-4-0-6.md`)
+- [x] WI-202 — Bump Spring Boot to 4.0.6 + fix immediate build breakage (`WI-202-bump-spring-boot-to-4-0-6.md`)
 - [ ] WI-207 — Boot 4 starter coordinate renames (`WI-207-boot4-starter-coordinate-renames.md`)
 - [ ] WI-203 — Upgrade Spring AI to 2.0.0-M5 milestone (`WI-203-upgrade-spring-ai-2-0-0-m5.md`)
 - [ ] WI-204 — Upgrade SpringDoc OpenAPI to 3.0.3 (`WI-204-upgrade-springdoc-3-0-3.md`)

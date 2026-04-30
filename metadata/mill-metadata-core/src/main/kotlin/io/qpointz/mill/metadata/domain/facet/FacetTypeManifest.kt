@@ -20,11 +20,11 @@ import java.io.Serializable
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class FacetTypeManifest(
-    @param:JsonProperty("facetTypeUrn")
-    @param:JsonAlias("typeRes", "typeKey")
+    @field:JsonProperty("facetTypeUrn")
+    @field:JsonAlias("typeRes", "typeKey")
     val typeKey: String,
-    @param:JsonProperty("title")
-    @param:JsonAlias("displayName")
+    @field:JsonProperty("title")
+    @field:JsonAlias("displayName")
     val title: String,
     val description: String,
     val category: String? = null,
@@ -33,8 +33,8 @@ data class FacetTypeManifest(
     val targetCardinality: FacetTargetCardinality = FacetTargetCardinality.SINGLE,
     val applicableTo: List<String>? = null,
     val schemaVersion: String? = null,
-    @param:JsonProperty("contentSchema")
-    @param:JsonAlias("payload")
+    @field:JsonProperty("contentSchema")
+    @field:JsonAlias("payload")
     val payload: FacetPayloadSchema
 ) : Serializable {
     companion object {

@@ -83,7 +83,7 @@ class AuthController(
 
         log.debug("GetMe: userId={} provider={}", resolved.userId, provider)
 
-        val groups = authentication.authorities.map { it.authority }
+        val groups = authentication.authorities.mapNotNull { it.authority }
         val profile = userProfileService?.let { svc ->
             val record = svc.getOrCreate(resolved.userId)
             UserProfileResponse(
@@ -197,7 +197,10 @@ class AuthController(
     private fun extractProviderSubject(authentication: Authentication): Pair<String, String>? {
         return when (authentication) {
             is OAuth2AuthenticationToken ->
-                Pair(authentication.authorizedClientRegistrationId, authentication.principal.name)
+                Pair(
+                    authentication.authorizedClientRegistrationId,
+                    authentication.principal?.name ?: return null
+                )
             else ->
                 Pair("local", authentication.name)
         }

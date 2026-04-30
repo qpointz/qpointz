@@ -5,7 +5,7 @@ protobuf-plugin = "0.9.4"
 
 springCloud = "3.2.12"
 springAi = "1.1.2"
-springBoot = "3.5.10"
+springBoot = "4.0.6"
 springDoc = "2.8.14"
 
 calcite = "1.41.0"
@@ -49,6 +49,10 @@ boot-starter-security-oauth2-client = { module = "org.springframework.boot:sprin
 boot-starter-security-oauth2-resource-server = { module = "org.springframework.boot:spring-boot-starter-oauth2-resource-server", version.ref = "springBoot" }
 boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
 boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux", version.ref = "springBoot" }
+boot-starter-webflux-test = { module = "org.springframework.boot:spring-boot-starter-webflux-test", version.ref = "springBoot" }
+boot-starter-webmvc-test = { module = "org.springframework.boot:spring-boot-starter-webmvc-test", version.ref = "springBoot" }
+boot-starter-restclient-test = { module = "org.springframework.boot:spring-boot-starter-restclient-test", version.ref = "springBoot" }
+boot-resttestclient = { module = "org.springframework.boot:spring-boot-resttestclient", version.ref = "springBoot" }
 boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "springBoot" }
 boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator", version.ref = "springBoot" }
 boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "springBoot" }

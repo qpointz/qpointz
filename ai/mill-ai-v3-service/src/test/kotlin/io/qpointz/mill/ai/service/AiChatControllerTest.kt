@@ -9,14 +9,22 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
+import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest
 import org.springframework.http.MediaType
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
 import reactor.core.publisher.Flux
 import java.time.Instant
 
 @WebFluxTest(controllers = [AiChatController::class])
+@TestPropertySource(properties = [
+    "mill.ai.enabled=true",
+    "server.error.include-message=always",
+    "server.error.include-binding-errors=always",
+    "logging.level.org.springframework.web=DEBUG",
+    "logging.level.org.springframework.http.codec=DEBUG",
+])
 class AiChatControllerTest {
 
     @Autowired

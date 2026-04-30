@@ -3,7 +3,7 @@ package io.qpointz.mill.ai.autoconfigure
 import org.springframework.beans.factory.support.BeanDefinitionRegistry
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
-import org.springframework.boot.autoconfigure.domain.EntityScanPackages
+import org.springframework.boot.persistence.autoconfigure.EntityScanPackages
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import

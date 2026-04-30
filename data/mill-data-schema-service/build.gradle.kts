@@ -46,6 +46,7 @@ testing {
                     implementation(project(":data:mill-data-backend-core"))
                     implementation(project(":metadata:mill-metadata-autoconfigure"))
                     implementation(libs.boot.starter.test)
+                    implementation(libs.boot.starter.webmvc.test)
                     implementation(libs.boot.starter.web)
                     implementation(libs.mockito.kotlin)
                 }

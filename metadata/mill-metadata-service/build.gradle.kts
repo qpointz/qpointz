@@ -30,6 +30,7 @@ testing {
                 dependencies {
                     implementation(project())
                     implementation(libs.boot.starter.test)
+                    implementation(libs.boot.starter.webmvc.test)
                     implementation(libs.boot.starter.web)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)

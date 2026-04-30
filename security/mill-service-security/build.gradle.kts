@@ -46,6 +46,8 @@ testing {
                     implementation(project(":core:mill-test-kit"))
                     implementation(project(":data:mill-data-autoconfigure"))
                     implementation(libs.boot.starter.test)
+                    implementation(libs.boot.starter.restclient.test)
+                    implementation(libs.boot.resttestclient)
                     implementation(libs.boot.starter.web)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)

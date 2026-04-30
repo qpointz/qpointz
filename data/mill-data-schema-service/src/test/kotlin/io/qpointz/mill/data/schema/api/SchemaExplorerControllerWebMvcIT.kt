@@ -21,9 +21,9 @@ import org.mockito.kotlin.whenever
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
@@ -31,6 +31,7 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
+import com.fasterxml.jackson.databind.ObjectMapper
 
 @WebMvcTest(controllers = [SchemaExplorerController::class])
 @ContextConfiguration(classes = [SchemaExplorerControllerWebMvcIT.TestApplication::class])
@@ -56,6 +57,9 @@ class SchemaExplorerControllerWebMvcIT {
         @Bean
         fun schemaFacetService(): SchemaFacetService =
             Mockito.mock(SchemaFacetService::class.java)
+
+        @Bean
+        fun objectMapper(): ObjectMapper = ObjectMapper()
     }
 
     @Autowired

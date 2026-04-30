@@ -46,7 +46,10 @@ import reactor.core.publisher.Flux
 @RestController
 @RequestMapping(
     value = ["/api/v1/ai/chats"],
-    produces = [MediaType.APPLICATION_JSON_VALUE],
+    produces = [
+        MediaType.APPLICATION_JSON_VALUE,
+        MediaType.TEXT_EVENT_STREAM_VALUE,
+    ],
 )
 @CrossOrigin(origins = ["http://localhost:5173", "http://localhost:8080"])
 @ConditionalOnAiEnabled

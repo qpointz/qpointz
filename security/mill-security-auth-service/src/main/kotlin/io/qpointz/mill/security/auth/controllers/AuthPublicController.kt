@@ -119,7 +119,10 @@ class AuthPublicController(
             session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context)
             SecurityContextHolder.setContext(context)
 
-            val response = buildAuthMeResponse(authentication.name, authentication.authorities.map { it.authority })
+            val response = buildAuthMeResponse(
+                authentication.name,
+                authentication.authorities.mapNotNull { it.authority }
+            )
             log.info("Login success: subject={} userId={} ip={}", loginRequest.username, response.userId, ipAddress(request))
             authAuditService?.record(
                 type = AuthEventType.LOGIN_SUCCESS,

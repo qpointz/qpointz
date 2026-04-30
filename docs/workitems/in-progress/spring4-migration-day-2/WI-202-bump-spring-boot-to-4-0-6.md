@@ -1,6 +1,6 @@
 # WI-202 — Bump Spring Boot to 4.0.6 and fix immediate breakage
 
-Status: `planned`  
+Status: `done`  
 Type: `refactoring`  
 Area: `platform`, `build`  
 Backlog refs: `P-5`  
@@ -34,4 +34,19 @@ subsequent WIs can proceed.
 
 If Gradle resolution requires explicit BOM import in modules, prefer the existing pattern used for
 `boot-dependencies` alignment (introduced during WI-099 pre-migration cleanup).
+
+## Completion notes (WI-202)
+
+- Bumped `springBoot` to **4.0.6** in `libs.versions.toml`.
+- Fixed first-wave Boot 4 package moves:
+  - `OAuth2ResourceServerProperties` → `org.springframework.boot.security.oauth2.server.resource.autoconfigure.*`
+  - `EntityScan` / `EntityScanPackages` → `org.springframework.boot.persistence.autoconfigure.*`
+- Kept ordering-only autoconfig dependency on `JpaRepositoriesAutoConfiguration` out of the code
+  (removed `@AutoConfigureAfter` in `AiV3ValueMappingStateAutoConfiguration`) to avoid relying on
+  non-stable internal auto-config class names across Boot 4 modularization.
+- Proof commands are green:
+  - `./gradlew :apps:mill-service:compileJava`
+  - `./gradlew :services:mill-data-grpc-service:compileJava :services:mill-data-grpc-service:compileKotlin`
+  - `./gradlew :services:mill-service-common:test`
+  - `./gradlew :services:mill-data-http-service:test`
 

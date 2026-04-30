@@ -1,10 +1,9 @@
 package io.qpointz.mill.persistence.configuration
 
 import org.springframework.boot.autoconfigure.AutoConfiguration
-import org.springframework.boot.autoconfigure.domain.EntityScan
-import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+import org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+import org.springframework.boot.persistence.autoconfigure.EntityScan
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 
@@ -12,7 +11,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
     after = [
         DataSourceAutoConfiguration::class,
         HibernateJpaAutoConfiguration::class,
-        FlywayAutoConfiguration::class,
     ]
 )
 @EnableConfigurationProperties(MillPersistenceProperties::class)
