@@ -19,7 +19,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
@@ -35,7 +34,6 @@ import java.util.UUID
  * All test data is isolated per test via [Transactional] rollback.
  */
 @SpringBootTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Transactional
 class BasicAuthIntegrationTest {
 
@@ -121,8 +119,9 @@ class BasicAuthIntegrationTest {
         val result = provider.authenticate(authToken("alice", "secret"))
 
         assertThat(result).isNotNull
-        assertThat(result.isAuthenticated).isTrue()
-        val authorityNames = result.authorities.map { it.authority }
+        val auth = result!!
+        assertThat(auth.isAuthenticated).isTrue()
+        val authorityNames = auth.authorities.map { it.authority }
         assertThat(authorityNames).contains("testers")
     }
 

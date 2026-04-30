@@ -13,29 +13,23 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.test.web.server.LocalServerPort
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.test.web.reactive.server.WebTestClient
+import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 
 /**
  * Integration tests for the user profile endpoints.
  *
- * Verifies end-to-end HTTP behaviour of `GET /auth/me` (profile field) and
- * `PATCH /auth/profile` using a real H2 in-memory database. No mocks.
+ * Spring Boot 4 removed `TestRestTemplate`; these ITs use [WebTestClient] against a real server.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ProfileIntegrationTest {
 
     @LocalServerPort
     private var port: Int = 0
-
-    @Autowired
-    private lateinit var restTemplate: TestRestTemplate
 
     @Autowired
     private lateinit var identityResolutionService: JpaUserIdentityResolutionService
@@ -46,6 +40,12 @@ class ProfileIntegrationTest {
     private val hasher = NoOpPasswordHasher()
 
     private fun baseUrl() = "http://localhost:$port"
+
+    private fun client(baseUrl: String = baseUrl()): WebTestClient =
+        WebTestClient.bindToServer()
+            .baseUrl(baseUrl)
+            .responseTimeout(Duration.ofSeconds(10))
+            .build()
 
     @BeforeEach
     fun seedTestUser() {
@@ -66,97 +66,105 @@ class ProfileIntegrationTest {
                     enabled = true,
                     createdAt = Instant.now(),
                     updatedAt = Instant.now(),
-                )
+                ),
             )
         }
     }
 
-    /** Logs in as profileuser and returns the session cookie string (JSESSIONID=...). */
-    private fun loginAndGetSessionCookie(): String {
+    private fun loginAndGetSession(): String {
         val loginRequest = LoginRequest("profileuser", "testpass")
-        val loginResponse = restTemplate.postForEntity(
-            "${baseUrl()}/auth/public/login",
-            loginRequest,
-            AuthMeResponse::class.java,
-        )
-        assertThat(loginResponse.statusCode).isEqualTo(HttpStatus.OK)
-        val setCookieHeader = loginResponse.headers["Set-Cookie"]
-        assertThat(setCookieHeader).isNotNull
-        val cookie = setCookieHeader!!.firstOrNull { it.startsWith("JSESSIONID") }
-        assertThat(cookie).isNotNull
-        return cookie!!
+        val result = client()
+            .post()
+            .uri("/auth/public/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(loginRequest)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody(AuthMeResponse::class.java)
+            .returnResult()
+
+        val session = result.responseCookies["JSESSIONID"]?.firstOrNull()?.value
+        assertThat(session).isNotBlank()
+        return session!!
     }
 
     @Test
     fun `GET auth-me after login returns non-null profile auto-created`() {
-        val sessionCookie = loginAndGetSessionCookie()
-        val headers = HttpHeaders().also { it["Cookie"] = sessionCookie }
+        val session = loginAndGetSession()
 
-        val response = restTemplate.exchange(
-            "${baseUrl()}/auth/me",
-            HttpMethod.GET,
-            HttpEntity<Void>(headers),
-            AuthMeResponse::class.java,
-        )
+        val body = client()
+            .get()
+            .uri("/auth/me")
+            .cookie("JSESSIONID", session)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody(AuthMeResponse::class.java)
+            .returnResult()
+            .responseBody!!
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        val body = response.body!!
         assertThat(body.profile).isNotNull
         assertThat(body.profile!!.userId).isNotBlank()
     }
 
     @Test
     fun `PATCH auth-profile persists displayName reflected in subsequent GET auth-me`() {
-        val sessionCookie = loginAndGetSessionCookie()
-        val headers = HttpHeaders().also { it["Cookie"] = sessionCookie }
+        val session = loginAndGetSession()
 
         val patch = UserProfilePatch(displayName = "Alice", email = null, locale = null)
-        val patchResponse = restTemplate.exchange(
-            "${baseUrl()}/auth/profile",
-            HttpMethod.PATCH,
-            HttpEntity(patch, headers),
-            UserProfileResponse::class.java,
-        )
+        val patchBody = client()
+            .patch()
+            .uri("/auth/profile")
+            .cookie("JSESSIONID", session)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(patch)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody(UserProfileResponse::class.java)
+            .returnResult()
+            .responseBody!!
 
-        assertThat(patchResponse.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(patchResponse.body!!.displayName).isEqualTo("Alice")
+        assertThat(patchBody.displayName).isEqualTo("Alice")
 
-        // Confirm it is visible in /auth/me
-        val meResponse = restTemplate.exchange(
-            "${baseUrl()}/auth/me",
-            HttpMethod.GET,
-            HttpEntity<Void>(headers),
-            AuthMeResponse::class.java,
-        )
-        assertThat(meResponse.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(meResponse.body!!.profile!!.displayName).isEqualTo("Alice")
+        val meBody = client()
+            .get()
+            .uri("/auth/me")
+            .cookie("JSESSIONID", session)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody(AuthMeResponse::class.java)
+            .returnResult()
+            .responseBody!!
+
+        assertThat(meBody.profile!!.displayName).isEqualTo("Alice")
     }
 
     @Test
     fun `PATCH auth-profile partial update leaves other fields unchanged`() {
-        val sessionCookie = loginAndGetSessionCookie()
-        val headers = HttpHeaders().also { it["Cookie"] = sessionCookie }
+        val session = loginAndGetSession()
 
-        // Set all three fields first
-        restTemplate.exchange(
-            "${baseUrl()}/auth/profile",
-            HttpMethod.PATCH,
-            HttpEntity(UserProfilePatch(displayName = "Bob", email = "bob@test.com", locale = "de"), headers),
-            UserProfileResponse::class.java,
-        )
+        client()
+            .patch()
+            .uri("/auth/profile")
+            .cookie("JSESSIONID", session)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(UserProfilePatch(displayName = "Bob", email = "bob@test.com", locale = "de"))
+            .exchange()
+            .expectStatus().isOk
 
-        // Only update displayName
-        val patchResponse = restTemplate.exchange(
-            "${baseUrl()}/auth/profile",
-            HttpMethod.PATCH,
-            HttpEntity(UserProfilePatch(displayName = "Robert", email = null, locale = null), headers),
-            UserProfileResponse::class.java,
-        )
+        val patchBody = client()
+            .patch()
+            .uri("/auth/profile")
+            .cookie("JSESSIONID", session)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(UserProfilePatch(displayName = "Robert", email = null, locale = null))
+            .exchange()
+            .expectStatus().isOk
+            .expectBody(UserProfileResponse::class.java)
+            .returnResult()
+            .responseBody!!
 
-        assertThat(patchResponse.statusCode).isEqualTo(HttpStatus.OK)
-        val body = patchResponse.body!!
-        assertThat(body.displayName).isEqualTo("Robert")
-        assertThat(body.email).isEqualTo("bob@test.com")
-        assertThat(body.locale).isEqualTo("de")
+        assertThat(patchBody.displayName).isEqualTo("Robert")
+        assertThat(patchBody.email).isEqualTo("bob@test.com")
+        assertThat(patchBody.locale).isEqualTo("de")
     }
 }

@@ -11,7 +11,7 @@ import io.qpointz.mill.persistence.security.jpa.repositories.UserIdentityReposit
 import io.qpointz.mill.persistence.security.jpa.repositories.UserRepository
 import io.qpointz.mill.security.domain.PasswordHasher
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.autoconfigure.domain.EntityScan
+import org.springframework.boot.persistence.autoconfigure.EntityScan
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager

@@ -29,6 +29,7 @@ testing {
                 implementation(project())
                 implementation(libs.boot.starter.test)
                 implementation(libs.boot.starter.webmvc)
+                implementation(libs.boot.starter.webflux)
                 implementation(libs.assertj.core)
                 implementation(project(":security:mill-service-security"))
                 implementation(project(":security:mill-security-persistence"))

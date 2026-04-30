@@ -1,6 +1,6 @@
 # WI-208 — Transport + client re-validation under Boot 4
 
-Status: `planned`  
+Status: `done`  
 Type: `test`  
 Area: `services`, `clients`  
 Backlog refs: `P-5`, `P-9`  
@@ -32,3 +32,18 @@ Re-validate service transports and client integrations under Boot 4:
 ## Acceptance Criteria
 
 - All proof commands above are green.
+
+## Completion notes (2026-04-30)
+
+Proof (repo root):
+
+- `./gradlew :services:mill-data-http-service:test` — **BUILD SUCCESSFUL**
+- `./gradlew :services:mill-data-http-service:testIT` — **BUILD SUCCESSFUL** (suite added; currently NO-SOURCE)
+- `./gradlew :services:mill-data-grpc-service:testIT` — **BUILD SUCCESSFUL**
+- `./gradlew :clients:mill-jdbc-driver:testIT` — **BUILD SUCCESSFUL**
+
+Fixes applied:
+
+- `services/mill-data-http-service`: added a `testIT` suite for consistent transport verification wiring.
+- `clients/mill-jdbc-driver`: made testIT self-contained by starting an embedded Skymill gRPC server
+  during `TestITProfile` method-source resolution and using a dynamically chosen port (avoids port conflicts).

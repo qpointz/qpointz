@@ -25,7 +25,7 @@ and all required mechanical follow-ups (Spring Framework 7, Spring Security 7, J
 - [x] WI-203 — Upgrade Spring AI to 2.0.0-M5 milestone (`WI-203-upgrade-spring-ai-2-0-0-m5.md`)
 - [x] WI-204 — Upgrade SpringDoc OpenAPI to 3.0.3 (`WI-204-upgrade-springdoc-3-0-3.md`)
 - [x] WI-205 — Migrate Jackson 2.x → 3.x (tools.jackson + JsonMapper) (`WI-205-jackson-3-migration.md`)
-- [ ] WI-206 — Spring Security 7.0 fixes + test alignment (`WI-206-spring-security-7-upgrade-fixes.md`)
-- [ ] WI-208 — gRPC/http services + client re-validation under Boot 4 (`WI-208-transport-and-client-revalidation.md`)
+- [x] WI-206 — Spring Security 7.0 fixes + test alignment (`WI-206-spring-security-7-upgrade-fixes.md`)
+- [x] WI-208 — gRPC/http services + client re-validation under Boot 4 (`WI-208-transport-and-client-revalidation.md`)
 - [ ] WI-209 — Full-repo CI green + doc status updates (`WI-209-full-repo-green-and-docs.md`)
 

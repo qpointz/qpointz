@@ -26,6 +26,9 @@ dependencies {
 
 testing {
     suites {
+        register<JvmTestSuite>("testIT") {
+        }
+
         configureEach {
             if (this is JvmTestSuite) {
                 useJUnitJupiter(libs.versions.junit.get())

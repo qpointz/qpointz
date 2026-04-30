@@ -1,7 +1,7 @@
 package io.qpointz.mill.persistence.security.jpa
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.autoconfigure.domain.EntityScan
+import org.springframework.boot.persistence.autoconfigure.EntityScan
 
 // @EnableJpaRepositories is intentionally absent — Spring Boot's JpaRepositoriesAutoConfiguration
 // scans from the @SpringBootApplication package (io.qpointz.mill.persistence.security.jpa), which

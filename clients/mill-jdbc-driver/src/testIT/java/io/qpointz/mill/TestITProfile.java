@@ -40,6 +40,7 @@ public record TestITProfile(
 
 
     private static Stream<Arguments> profileArgs() {
+        EmbeddedSkymillGrpcServer.ensureStarted();
         return profiles().stream()
                 .map(Arguments::of);
     }
@@ -130,7 +131,7 @@ public record TestITProfile(
         val protocolRaw = envOr("MILL_IT_PROTOCOL", "grpc").toLowerCase(Locale.ROOT);
         val protocol = parseProtocol(protocolRaw);
         val tls = parseBoolean(envOr("MILL_IT_TLS", "false"));
-        val host = envOr("MILL_IT_HOST", "localhost");
+        val host = envOr("MILL_IT_HOST", EmbeddedSkymillGrpcServer.isStarted() ? EmbeddedSkymillGrpcServer.host() : "localhost");
         val port = parseInt(envOr("MILL_IT_PORT", ""), defaultPort(protocol, tls));
         val auth = parseAuth(envOr("MILL_IT_AUTH", "none"));
         val basePath = envOr("MILL_IT_BASE_PATH", "/services/jet");
@@ -182,6 +183,9 @@ public record TestITProfile(
 
     private static int defaultPort(Protocol protocol, boolean tls) {
         if (protocol == Protocol.GRPC) {
+            if (!tls && EmbeddedSkymillGrpcServer.isStarted() && EmbeddedSkymillGrpcServer.port() > 0) {
+                return EmbeddedSkymillGrpcServer.port();
+            }
             return tls ? 443 : 9090;
         }
         return tls ? 443 : 8501;
