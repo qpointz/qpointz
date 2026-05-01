@@ -69,7 +69,6 @@ mill:
       http:
         enable: true
         external-host: http
-        port: 8080
 ## LEGACY subject to review
   security:
     enable: false
@@ -82,9 +81,6 @@ mill:
       resources:
         - "classpath:metadata/platform-bootstrap.yaml"
         - "classpath:metadata/platform-flow-facet-types.yaml"
-  services:
-    ai-nl2data:
-      enable: false
   ai:
     # Opt-in: enable AI v3 via `--spring.profiles.active=ai` (see second document), which sets enabled: true.
     enabled: false

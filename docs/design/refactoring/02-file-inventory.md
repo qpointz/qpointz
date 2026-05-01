@@ -154,8 +154,8 @@ Every source file in the four target modules classified as **PURE** (no Spring d
 | 26 | `services/rewriters/TableFacetPlanRewriter.java` |
 | 27 | `services/rewriters/TableFacetsCollection.java` |
 | 28 | `services/rewriters/TableFacetVisitor.java` |
-| 29 | `services/descriptors/SecurityDescriptor.java` |
-| 30 | `services/descriptors/ServiceDescriptor.java` |
+| 29 | `services/descriptors/SecurityDescriptor.java` (historical path; descriptors now live under `services/mill-service-api/.../descriptors/`) |
+| 30 | ~~`services/descriptors/ServiceDescriptor.java`~~ — removed; service ads implement `Descriptor` directly (`GrpcServiceDescriptor`, `HttpServiceDescriptor`, …) |
 
 **To `metadata/mill-metadata-provider` (iteration 5):**
 

@@ -43,11 +43,16 @@ dependencies {
 
 protobuf {
     protoc {
-        artifact = libs.protobuf.protoc.get().toString()
+        // Gradle 10 deprecates "multi-string" dependency notation used by older protobuf-gradle-plugin
+        // forms. Use single-string with classifier + @exe.
+        val osClassifier = System.getProperty("osdetector.classifier") ?: "linux-x86_64"
+        val protobufVersion = libs.protobuf.protoc.get().toString().substringAfterLast(':')
+        artifact = "com.google.protobuf:protoc:$protobufVersion:$osClassifier@exe"
     }
     plugins {
         create("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:${libs.versions.grpc.get()}"
+            val osClassifier = System.getProperty("osdetector.classifier") ?: "linux-x86_64"
+            artifact = "io.grpc:protoc-gen-grpc-java:${libs.versions.grpc.get()}:$osClassifier@exe"
         }
     }
     generateProtoTasks {

@@ -12,7 +12,7 @@ mill {
 }
 
 dependencies {
-    api(project(":services:mill-service-api"))
+    //api(project(":services:mill-service-api"))
     api(project(":security:mill-service-security"))
     api(project(":security:mill-security-autoconfigure"))
     api(project(":data:mill-data-backend-core"))

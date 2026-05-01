@@ -8,6 +8,12 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Starts and stops the grpc-java [Server] together with the Spring application context.
+ *
+ * Uses only bind address, port, in-process name, and shutdown grace from [GrpcServerProperties].
+ * `external-host` is discovery metadata only and is not read here.
+ *
+ * @param server     native gRPC server bean (not started until [start])
+ * @param properties bind address, listen port, in-process name, and shutdown grace period
  */
 class GrpcServerLifecycle(
     private val server: Server,

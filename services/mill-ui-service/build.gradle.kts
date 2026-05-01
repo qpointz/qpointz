@@ -11,6 +11,7 @@ mill {
 }
 
 dependencies {
+    implementation(project(":services:mill-service-api"))
     implementation(libs.boot.starter)
     implementation(libs.boot.starter.webmvc)
     compileOnly(libs.bundles.logging)

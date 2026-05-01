@@ -8,7 +8,7 @@ clients:mill-jdbc-driver:build:
   stage: build
   extends: .gradle-job
   script:
-    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :clients:test :clients:compileTestIT
+    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :clients:test :clients:testITClasses
   artifacts:
     when: always
     expire_in: "5 days"

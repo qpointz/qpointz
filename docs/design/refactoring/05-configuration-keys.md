@@ -76,11 +76,12 @@
 | `mill.services.grpc.port` | Integer | — (mapped to `grpc.server.port`) | data:mill-data-grpc-service | gRPC server config | **data-grpc-service** | |
 | `mill.services.grpc.address` | String | — (mapped to `grpc.server.address`) | data:mill-data-grpc-service | gRPC server config | **data-grpc-service** | |
 | `mill.services.jet-http.enable` | Boolean | — (checked by `OnServiceEnabledCondition`) | data:mill-data-autoconfigure | `@ConditionalOnService("jet-http")`: `AccessServiceController` | **data-http-service** | Type declared as String in JSON — should be Boolean |
-| `mill.services.meta.enable` | Boolean | — (checked by `OnServiceEnabledCondition`) | data:mill-data-autoconfigure | `@ConditionalOnService("meta")`: `ApplicationDescriptorController` | **service-starter** | |
-| `mill.services.public-base-url` | String | `ApplicationDescriptorConfiguration` (`@Value` via `Environment`) | core:mill-service-starter | `ApplicationDescriptorConfiguration.schemaDescriptors()` | **service-starter** | External base URL for descriptor links (defaults to `server.address`/`server.port`) |
-| `mill.application.hosts.externals.<name>.scheme` | Enum | `ServiceAddressProperties` (`@ConfigurationProperties`) | core:mill-service-starter | `ApplicationDescriptorConfiguration` fallback URL resolution | **service-starter** | URL scheme (`http`, `https`, `grpc`) |
-| `mill.application.hosts.externals.<name>.host` | String | `ServiceAddressProperties` (`@ConfigurationProperties`) | core:mill-service-starter | `ApplicationDescriptorConfiguration` fallback URL resolution | **service-starter** | Externally reachable host |
-| `mill.application.hosts.externals.<name>.port` | Integer | `ServiceAddressProperties` (`@ConfigurationProperties`) | core:mill-service-starter | `ApplicationDescriptorConfiguration` fallback URL resolution | **service-starter** | Externally reachable port |
+| `mill.services.meta.enable` | Boolean | — (historical; `OnServiceEnabledCondition` pattern) | — | **No longer gates** `ApplicationDescriptorController` (well-known ships from `services:mill-service-common`) | — | Legacy key — verify before relying on it |
+| `mill.services.public-base-url` | String | Reserved / commented helpers in `ApplicationDescriptorConfiguration` | services:mill-service-common | Future absolute links for descriptors | **mill-service** | Not wired in current `ApplicationDescriptorConfiguration` body |
+| `mill.application.hosts.externals.<name>.scheme` | Enum | `ServiceAddressProperties` (`@ConfigurationProperties` prefix `mill.application.hosts`) | services:mill-service-common | `GrpcConnectionDescriptor`, `HttpConnectionDescriptor` via `ExternalHostsProvider` | **mill-service** | URL scheme (`http`, `https`, `grpc`) |
+| `mill.application.hosts.externals.<name>.host` | String | `ServiceAddressProperties` | services:mill-service-common | Same as above | **mill-service** | Externally reachable host |
+| `mill.application.hosts.externals.<name>.port` | Integer | `ServiceAddressProperties` | services:mill-service-common | Same as above | **mill-service** | Externally reachable port |
+| `mill.data.services.grpc.external-host` | String | `GrpcServerProperties` | services:mill-data-grpc-service | `GrpcServiceDescriptor` / `GrpcConnectionDescriptor` (discovery only) | **mill-data-grpc-service** | Logical key into `mill.application.hosts.externals` when resolving client URLs |
 | `mill.services.ai-nl2data.enable` | Boolean | — (checked by `OnServiceEnabledCondition`) | data:mill-data-autoconfigure | `@ConditionalOnService("ai-nl2data")`: `AIConfiguration`, `JPAConfiguration`, `NlSqlChatServiceImpl`, `NlSqlChatController`, `GlobalExceptionHandler`, `ChatProcessor`, `ValueMappingComponents` | none | |
 | `mill.services.data-bot.enable` | Boolean | — (YAML only) | — | **no Java consumer** | none | Ghost key |
 | `mill.services.data-bot.prompt-file` | String | — (YAML only) | — | **no Java consumer** | none | Ghost key |
@@ -143,9 +144,9 @@ These are annotations implemented **in this codebase** (not from Spring Boot) th
 
 | Service name | Classes annotated | Module |
 |-------------|-------------------|--------|
-| `"grpc"` | `MillGrpcService`, `GrpcServiceDescriptor`, `GrpcServiceSecurityConfiguration`, `MillGrpcServiceExceptionAdvice` | data:mill-data-grpc-service |
-| `"jet-http"` | `AccessServiceController` | data:mill-data-http-service |
-| `"meta"` | `ApplicationDescriptorController` | core:mill-service-starter |
+| `"grpc"` (`group = "data"`) | `MillGrpcService`, `GrpcServiceDescriptor`, `GrpcConnectionDescriptor`, `GrpcServiceSecurityConfiguration`, `MillGrpcServiceExceptionAdvice` | services:mill-data-grpc-service |
+| `"http"` (`group = "data"`) | `AccessServiceController`, `HttpServiceDescriptor`, `HttpConnectionDescriptor` | services:mill-data-http-service |
+| _(not service-gated)_ | `ApplicationDescriptorController`, `WellKnownService` | services:mill-service-common |
 | `"ai-nl2data"` | `AIConfiguration`, `JPAConfiguration`, `GlobalExceptionHandler`, `NlSqlChatServiceImpl`, `NlSqlChatController`, `ChatProcessor` | ai:mill-ai-v1-nlsql-chat-service |
 | `"ai-nl2data"` | `ValueMappingComponents` | ai:mill-ai-v1-core |
 
@@ -154,7 +155,7 @@ These are annotations implemented **in this codebase** (not from Spring Boot) th
 | Classes annotated | Module |
 |-------------------|--------|
 | `SecurityConfig`, `PolicyActionsConfiguration`, `AuthRoutesSecurityConfiguration`, `AppSecurityConfiguration`, `ServicesSecurityConfiguration`, `SwaggerSecurityConfig`, `ApiSecurityConfiguration`, `EntraIdAuthenticationConfiguration`, `OAuth2AuthenticationConfiguration`, `PasswordAuthenticationConfiguration` | core:mill-security-autoconfigure |
-| `ApplicationDescriptor`, `DefaultFilterChainConfiguration` | data:mill-data-autoconfigure |
+| `DefaultFilterChainConfiguration` | data:mill-data-autoconfigure |
 | `GrpcServiceSecurityConfiguration` | data:mill-data-grpc-service |
 | `TestController` | core:mill-test-kit |
 

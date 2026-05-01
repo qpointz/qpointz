@@ -1,4 +1,0 @@
-{
-  "qp:type" : "qp:flow:avro:reader",
-  "source" : "data/nyc/nyc-bronx-2010.avro"
-}

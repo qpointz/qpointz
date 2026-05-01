@@ -165,6 +165,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | P-31 | Improve HTTP/gRPC error transparency: return structured Problem Details and propagate detail/code/traceId in Python and JDBC clients                                                     | 🐛 fix         | done    | `docs/workitems/completed/20260429-client-error-transparency/WI-013.md` |
 | P-32 | Add reusable build-logic plugin for controlled multi-edition Spring Boot `bootDist`/`installBootDist` outputs in `apps/mill-service` (single app module, edition-specific install dirs) | ✨ feature      | backlog | `docs/design/build-system/gradle-editions.md`   |
 | P-33 | Explore Docker Buildx Bake to reduce Docker image build time across services and pipelines                                                                                                 | 💡 improvement | backlog | **TBD (new WI)**                                |
+| P-34 | WebFlux migration + REST inventory + `@PreAuthorize` stubs on all HTTP operations (**WI-220**–**WI-228**)                                                                                  | 🔧 refactoring | planned | [`planned/webflux-migration-and-method-security/STORY.md`](planned/webflux-migration-and-method-security/STORY.md) |
 | P-35 | Extract a shared Spring web module for reusable REST advice and standard error payload mapping across services                                                                             | ✨ feature      | backlog | `platform/rest-exception-handling-pattern.md`   |
 
 ---

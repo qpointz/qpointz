@@ -32,7 +32,6 @@ internal fun configureEditionPackaging(project: Project, editions: MillEditionsE
         if (this is Sync) {
             into(project.layout.buildDirectory.dir("install/${project.name}-boot-$selectedEdition"))
             configureEditionContentSync(
-                project = project,
                 selectedEdition = selectedEdition,
                 editionContentDirs = editionContentDirs
             )
@@ -45,7 +44,6 @@ internal fun configureEditionPackaging(project: Project, editions: MillEditionsE
         if (this is Sync) {
             into(project.layout.buildDirectory.dir("install/${project.name}-$selectedEdition"))
             configureEditionContentSync(
-                project = project,
                 selectedEdition = selectedEdition,
                 editionContentDirs = editionContentDirs
             )
@@ -62,38 +60,32 @@ internal fun configureEditionPackaging(project: Project, editions: MillEditionsE
 }
 
 private fun Sync.configureEditionContentSync(
-    project: Project,
     selectedEdition: String,
     editionContentDirs: List<Pair<String, org.gradle.api.file.Directory>>
 ) {
     inputs.property("mill.edition.lineage", editionContentDirs.map { it.first })
 
+    editionContentDirs.forEach { (_, editionDir) ->
+        val editionDirFile = editionDir.asFile
+        if (editionDirFile.exists() && editionDirFile.isDirectory) {
+            from(editionDir)
+        }
+    }
+
     doFirst {
-        project.logger.lifecycle(
+        logger.lifecycle(
             "[$name] edition '$selectedEdition': checking edition content for lineage ${editionContentDirs.map { it.first }}"
         )
         editionContentDirs.forEach { (editionName, editionDir) ->
             val editionDirFile = editionDir.asFile
             if (editionDirFile.exists() && editionDirFile.isDirectory) {
-                project.logger.lifecycle(
+                logger.lifecycle(
                     "[$name] edition '$editionName': syncing ${editionDirFile.absolutePath} into install root"
                 )
             } else {
-                project.logger.lifecycle(
+                logger.lifecycle(
                     "[$name] edition '$editionName': no directory found at ${editionDirFile.absolutePath}, skipping"
                 )
-            }
-        }
-    }
-
-    doLast {
-        editionContentDirs.forEach { (_, editionDir) ->
-            val editionDirFile = editionDir.asFile
-            if (editionDirFile.exists() && editionDirFile.isDirectory) {
-                project.copy {
-                    from(editionDirFile)
-                    into(destinationDir)
-                }
             }
         }
     }

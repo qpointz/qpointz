@@ -122,7 +122,7 @@ Convention plugin for aggregator modules (projects that mostly delegate to subpr
 Registers aggregate verification tasks (if missing in current project):
 
 - `test`
-- `compileTestIT`
+- `testITClasses`
 - `testIT`
 - `jacocoTestReport`
 - `jacocoTestCoverageVerification`

@@ -27,7 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Wires the grpc-java Netty server, interceptors, and lifecycle for the data gRPC transport.
+ * Wires the grpc-java Netty (or in-process) server, interceptors, and {@link SmartLifecycle} adapter for the
+ * data-plane gRPC transport when {@code mill.data.services.grpc} is enabled.
  */
 @Configuration
 @ConditionalOnService(value = "grpc", group = "data")
@@ -83,7 +84,7 @@ public class MillGrpcConfiguration {
      * Starts and stops the gRPC server with the Spring application context.
      *
      * @param server     grpc-java server bean
-     * @param properties shutdown grace configuration
+     * @param properties bind, port, in-process name, and shutdown grace from {@link GrpcServerProperties}
      * @return Spring lifecycle adapter
      */
     @Bean

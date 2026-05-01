@@ -754,85 +754,84 @@ descriptor of available services, security configuration, and schemas. This endp
 
 ### 11.1 Server-Side Implementation
 
-**Controller**: `services/mill-service-common/src/main/java/io/qpointz/mill/services/controllers/ApplicationDescriptorController.java`
+**Controller**: [`ApplicationDescriptorController.java`](../../../services/mill-service-common/src/main/java/io/qpointz/mill/service/controllers/ApplicationDescriptorController.java)  
+Package: `io.qpointz.mill.service.controllers` (note **`service`**, not `services`).
 
 ```java
 @RestController
 @RequestMapping("/.well-known")
-@ConditionalOnService("meta")
 public class ApplicationDescriptorController {
-    @GetMapping("mill")
-    public ApplicationDescriptor getInfo() { return this.applicationDescriptor; }
+    @GetMapping({"mill", "mill/", "", "/"})
+    public Map<String, ?> getInfo() { return this.service.metaInfo(); }
 }
 ```
 
-**Model**: `core/mill-service-core/src/main/java/io/qpointz/mill/services/descriptors/ApplicationDescriptor.java`
+There is **no** `@ConditionalOnService("meta")` on this controller; the endpoint is part of
+`services:mill-service-common` and is assembled by **`WellKnownService`**.
 
-The `ApplicationDescriptor` aggregates:
-- `Collection<ServiceDescriptor> services` — each service contributes a descriptor
-- `SecurityDescriptor security` — auth config
-- `Map<String, SchemaDescriptor> schemas` — available schemas with links
+**Application identity**: [`ApplicationDescriptor.java`](../../../services/mill-service-common/src/main/java/io/qpointz/mill/service/configuration/ApplicationDescriptor.java) — implements
+`io.qpointz.mill.service.descriptors.Descriptor` with type name **`app`**. It currently carries the
+application **name** only (`spring.application.name`). It is **not** the old monolithic DTO that
+embedded nested services/schemas maps.
 
-### 11.2 Service Descriptors
+**Aggregation**: [`WellKnownService.java`](../../../services/mill-service-common/src/main/java/io/qpointz/mill/service/service/WellKnownService.java) collects:
 
-Each protocol module registers a `ServiceDescriptor` bean with a `stereotype` string:
+1. Every Spring bean of type `Descriptor` (including `ApplicationDescriptor`, `SecurityDescriptor`,
+   `GrpcServiceDescriptor`, `HttpServiceDescriptor`, connection descriptors, etc.).
+2. Every `DescriptorSource` (e.g. schema name list from Calcite) via `getDescriptors()`.
 
-| Module | Stereotype | Condition |
-|--------|-----------|-----------|
-| `mill-data-grpc-service` | `"grpc"` | `@ConditionalOnService("grpc")` — `GrpcServiceDescriptor` |
-| `mill-data-http-service` | `"jet-http"` | No `ServiceDescriptor` registered currently (gap) |
+Descriptors are **grouped by** `Descriptor.getTypeName()` (see `DescriptorTypes` in **`mill-service-api`**).
+The first descriptor with type `app` is also copied to the JSON key **`app`** for compatibility.
 
-The `ServiceDescriptor` interface:
-```java
-public interface ServiceDescriptor { String getStereotype(); }
-```
+### 11.2 Service and connection descriptors
 
-**Note**: The HTTP service does NOT currently register a `ServiceDescriptor`. Only the gRPC
-service has `GrpcServiceDescriptor`. This is a known gap — the HTTP service's stereotype
-would be `"jet-http"` to match its `@ConditionalOnService("jet-http")` annotation.
+| Module | Role | Condition |
+|--------|------|-----------|
+| `services:mill-data-grpc-service` | `GrpcServiceDescriptor` + `GrpcConnectionDescriptor` | `@ConditionalOnService(value = "grpc", group = "data")` |
+| `services:mill-data-http-service` | `HttpServiceDescriptor` + `HttpConnectionDescriptor` | `@ConditionalOnService(value = "http", group = "data")` |
+
+There is **no** separate `ServiceDescriptor` interface in `mill-service-api` anymore: service
+advertising implements the shared **`Descriptor`** marker and uses the **`services`** type bucket
+(`DescriptorTypes.SERVICE_TYPE_NAME`). Connection hints use the **`connections`** bucket
+(`DescriptorTypes.CONNECTIONS_TYPE_NAME`).
+
+`mill.data.services.grpc.external-host` (bound on `GrpcServerProperties`) is **client-facing**
+metadata only (e.g. Kubernetes ingress hostname); it does **not** change the Netty bind address or
+server lifecycle. `GrpcConnectionDescriptor` can resolve it through `ExternalHostsProvider` /
+`mill.application.hosts.externals.*`.
 
 ### 11.3 Security Descriptor
 
 ```java
-public record SecurityDescriptor(boolean enabled, Collection<AuthenticationMethodDescriptor> authMethods) {}
+public record SecurityDescriptor(boolean enabled, Collection<AuthMethodDescriptor> authMethods) implements Descriptor {}
 ```
 
-Each `AuthenticationMethodDescriptor` serializes as `{"authType": "BASIC"}` or
-`{"authType": "OAUTH2"}` (via Jackson `@JsonProperty("authType")`).
+`AuthMethodDescriptor` wraps `AuthMethod` enum values for JSON. When security is disabled,
+`enabled=false` and `authMethods` is empty.
 
-When security is disabled, `enabled=false` and `authMethods` is empty.
+### 11.4 Schema entries
 
-### 11.4 Schema Descriptors
+Physical schema names are contributed via **`DescriptorSource`** (for example
+`SchemaDescriptorsSource` in **`mill-data-autoconfigure`**), producing `Descriptor` values whose
+`getTypeName()` is **`schemas`** (`DescriptorTypes.SCHEMA_TYPE_NAME`). Shape is module-specific
+records, not the historical `SchemaDescriptor(name, URI)` API record.
 
-```java
-public record SchemaDescriptor(String name, URI link) {}
-```
+### 11.5 Example response (illustrative)
 
-Currently hardcodes `http://localhost:8080/.well-known/mill/schemas/{name}` as the link
-(this is a known issue — the link should be relative or configurable).
-
-### 11.5 Example Response
+Exact JSON depends on which beans are on the classpath. Shape is roughly:
 
 ```json
 {
-  "services": [
-    { "stereotype": "grpc" }
-  ],
-  "security": {
-    "enabled": true,
-    "authMethods": [
-      { "authType": "BASIC" },
-      { "authType": "OAUTH2" }
-    ]
-  },
-  "schemas": {
-    "MONETA": {
-      "name": "MONETA",
-      "link": "http://localhost:8080/.well-known/mill/schemas/MONETA"
-    }
-  }
+  "app": { "name": "mill-service" },
+  "services": [ { "name": "data-grpc", "host": { "external": "grpc" } } ],
+  "connections": [ { "scheme": "grpc", "host": "localhost", "port": 9090 } ],
+  "security": { "enabled": false, "authMethods": [] },
+  "schemas": [ { "name": "SALES" } ]
 }
 ```
+
+Keys other than `app` match `Descriptor.getTypeName()`; values are **lists** of grouped descriptors
+where multiple beans share the same type name.
 
 ### 11.6 Security Configuration for Well-Known
 
@@ -1467,11 +1466,11 @@ the core works against real services before building DataFrame and async layers 
 
 | File | Purpose |
 |------|---------|
-| `data/mill-data-grpc-service/.../MillGrpcService.java` | gRPC service impl |
-| `data/mill-data-grpc-service/.../MillGrpcServiceExceptionAdvice.java` | gRPC error handling |
-| `data/mill-data-grpc-service/.../GrpcServiceSecurityConfiguration.java` | gRPC security |
-| `data/mill-data-grpc-service/.../GrpcServiceDescriptor.java` | Service descriptor |
-| `data/mill-data-http-service/.../AccessServiceController.java` | HTTP controller |
+| `services/mill-data-grpc-service/.../MillGrpcService.kt` | gRPC service impl |
+| `services/mill-data-grpc-service/.../MillGrpcServiceExceptionAdvice.java` | gRPC error handling |
+| `services/mill-data-grpc-service/.../GrpcServiceSecurityConfiguration.java` | gRPC security |
+| `services/mill-data-grpc-service/.../GrpcServiceDescriptor.kt` | Well-known `Descriptor` (`services` bucket) |
+| `services/mill-data-http-service/.../AccessServiceController.java` | HTTP controller |
 | `data/mill-data-http-service/.../MessageHelper.java` | HTTP content negotiation |
 | `data/mill-data-http-service/.../ProtobufUtils.java` | Dead code |
 | `core/.../DataOperationDispatcher.java` | Shared dispatcher interface |

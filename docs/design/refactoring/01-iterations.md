@@ -414,7 +414,7 @@ io/qpointz/mill/utils/SpringUtils.java
 ```
 io/qpointz/mill/services/annotations/ConditionalOnService.java
 io/qpointz/mill/services/annotations/OnServiceEnabledCondition.java
-io/qpointz/mill/services/descriptors/ApplicationDescriptor.java
+io/qpointz/mill/service/configuration/ApplicationDescriptor.java (relocated under `services/mill-service-common`; package `io.qpointz.mill.service.configuration`)
 ```
 
 - [ ] Move `META-INF/additional-spring-configuration-metadata.json` to autoconfigure module

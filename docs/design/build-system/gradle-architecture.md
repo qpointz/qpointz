@@ -44,7 +44,7 @@ Detailed plugin behavior, extension model, and edition internals are documented 
 `build.gradle.kts` registers root-level aggregate tasks:
 
 - `test`
-- `compileTestIT`
+- `testITClasses`
 - `testIT`
 - `publishSonatypeBundle`
 

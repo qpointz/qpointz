@@ -27,7 +27,7 @@ tasks.register("test") {
     )
 }
 
-tasks.register("compileTestIT") {
+tasks.register("testITClasses") {
     description = "Compiles all testIT sources in data subprojects"
     group = "verification"
     dependsOn(

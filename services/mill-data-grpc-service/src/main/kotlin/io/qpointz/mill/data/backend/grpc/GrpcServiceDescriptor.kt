@@ -1,28 +1,24 @@
 package io.qpointz.mill.data.backend.grpc
 
 import io.qpointz.mill.annotations.service.ConditionalOnService
-import io.qpointz.mill.service.descriptors.ServiceDescriptor
-import org.springframework.beans.factory.annotation.Value
+import io.qpointz.mill.service.descriptors.Descriptor
+import io.qpointz.mill.service.descriptors.DescriptorTypes
 import org.springframework.stereotype.Component
 
 /**
- * Advertises the gRPC data-plane endpoint to Mill service discovery.
+ * Advertises the gRPC data-plane service in the well-known discovery map under
+ * {@link DescriptorTypes#SERVICE_TYPE_NAME}. Connection endpoints are published separately by
+ * {@link GrpcConnectionDescriptor} (including {@code mill.data.services.grpc.external-host} resolution).
  */
 @Component
 @ConditionalOnService(value = "grpc", group = "data")
-class GrpcServiceDescriptor(
-    @Value("\${mill.data.services.grpc.host.external:}") externalHostReference: String?,
-) : ServiceDescriptor {
+class GrpcServiceDescriptor : Descriptor {
 
     /**
-     * Optional external host reference (for proxies / service mesh), when configured.
+     * @return {@link DescriptorTypes#SERVICE_TYPE_NAME}
      */
-    data class HostDescriptor(
-        val external: String,
-    )
+    override fun getTypeName(): String = DescriptorTypes.SERVICE_TYPE_NAME
 
-    val host: HostDescriptor? =
-        if (externalHostReference.isNullOrBlank()) null else HostDescriptor(externalHostReference)
-
-    override fun getStereotype(): String = "grpc"
+    /** Stable logical name for this data-plane gRPC surface in discovery JSON. */
+    val name: String = "data-grpc"
 }

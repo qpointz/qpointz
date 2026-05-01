@@ -1,7 +1,7 @@
 [versions]
 lombok = "1.18.42"
 
-protobuf-plugin = "0.9.4"
+protobuf-plugin = "0.10.0"
 
 springCloud = "3.2.12"
 springAi = "2.0.0-M5"

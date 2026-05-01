@@ -70,12 +70,12 @@ val installSampleData = tasks.register<Copy>("installSampleData") {
     group = "distribution"
     description = "Installs sample data "
 
-    onlyIf("sample-data enabled") {
-        mill.editions.isActive("sample-data").get()
-    }
+    isEnabled = mill.editions.isActive("sample-data").get()
 
     val datasetsDir = rootProject.layout.projectDirectory.dir("test/datasets")
-    val editionInstallDir = tasks.named<Sync>("installBootDist").map { it.destinationDir }
+    val editionInstallDir = mill.editions.selectedEdition.flatMap { edition ->
+        layout.buildDirectory.dir("install/${project.name}-boot-$edition")
+    }
 
     into(editionInstallDir)
 
@@ -95,11 +95,11 @@ val installSampleCerts = tasks.register<Copy>("installSampleCerts") {
     group = "distribution"
     description = "Installs sample certs"
 
-    onlyIf("sample-certs enabled") {
-        mill.editions.isActive("sample-certs").get()
-    }
+    isEnabled = mill.editions.isActive("sample-certs").get()
 
-    val editionInstallDir = tasks.named<Sync>("installBootDist").map { it.destinationDir }
+    val editionInstallDir = mill.editions.selectedEdition.flatMap { edition ->
+        layout.buildDirectory.dir("install/${project.name}-boot-$edition")
+    }
 
     into(editionInstallDir)
     from(rootProject.layout.projectDirectory.dir(".certs")) { into("etc/certs") }

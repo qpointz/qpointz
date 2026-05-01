@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":ai:mill-ai-v3-data"))
     implementation(project(":core:mill-core"))
     implementation(kotlin("reflect"))
+    implementation(project(":services:mill-service-api"))
     implementation(libs.boot.starter.webflux)
     implementation(libs.springdoc.openapi.starter.webflux.api)
     implementation(libs.bundles.jackson)

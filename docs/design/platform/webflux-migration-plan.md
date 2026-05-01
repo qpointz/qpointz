@@ -2,21 +2,100 @@
 
 ## Overview
 
-Migrate 7 Spring MVC controllers and their underlying service/repository layers to reactive WebFlux, using Mono/Flux throughout the full stack. Includes core module dependency updates.
+Migrate **production REST controllers**, auth endpoints, and the UI **SPA routing filter** from the Servlet / Spring MVC stack to **Spring WebFlux**, using `Mono` / `Flux` through the HTTP boundary (with bounded-elastic or adapter wrappers where the domain stays blocking initially). Update **`mill-security`** configuration for **`SecurityWebFilterChain`**. Includes core module dependency updates.
 
-## Scope
+### REST surface (compact)
 
-Migrate the following controllers to reactive WebFlux with full reactive stack:
+Counts = `@RestController` classes and **mapped handler methods** (method + path). *UI* row is **not** a controller.
 
-| Module | Controller | Endpoints | Current State |
-|--------|------------|-----------|---------------|
-| `mill-metadata-service` | MetadataController | 7 | Blocking MVC |
-| `mill-metadata-service` | FacetController | 2 | Blocking MVC |
-| `mill-metadata-service` | SchemaExplorerController | 3 | Blocking MVC |
-| `mill-jet-http-service` | AccessServiceController | 6 | Blocking MVC |
-| `mill-ai-nlsql-chat-service` | NlSqlChatController | 8 | Partial WebFlux (1 reactive endpoint) |
-| `mill-starter-service` | ApplicationDescriptorController | 1 | Blocking MVC |
-| `mill-ui-service` | MillUiSpaRoutingFilter | N/A (filter) | Servlet Filter |
+| Module (Gradle path)                  | Controllers | Endpoints |
+| ------------------------------------- | ----------: | --------: |
+| `metadata/mill-metadata-service`      |           4 |        24 |
+| `data/mill-data-schema-service`       |           1 |        11 |
+| `services/mill-data-http-service`     |           1 |         7 |
+| `services/mill-service-common`        |           1 |         1 |
+| `ai/mill-ai-v1-nlsql-chat-service`    |           1 |         8 |
+| `ai/mill-ai-v3-service`               |           2 |        10 |
+| `security/mill-security-auth-service` |           2 |         5 |
+| `services/mill-ui-service`            |           — |         — |
+| **Total (REST)**                      |      **12** |    **66** |
+
+**Other HTTP:** **`services/mill-ui-service`** — 1 servlet **`Filter`** → **`WebFilter`** (no `@RestController`).
+
+**Inventory below** reflects the codebase as analyzed from `@RestController` classes and their request mappings (2026-04). *Out of scope for this table:* `core/mill-test-kit` test doubles (`TestController`), `services/mill-service-common` **test** `ServiceController`. Keep **[`REST-CONTROLLERS-INVENTORY.md`](../security/REST-CONTROLLERS-INVENTORY.md)** aligned with this section (regenerate from code when controllers change).
+
+---
+
+## Scope — REST controllers and endpoints (code inventory)
+
+Totals match **[REST surface (compact)](#rest-surface-compact)** above. Full paths and verb lists follow.
+
+### `metadata/mill-metadata-service`
+
+| Class | Base path | Operations |
+| ----- | --------- | ---------- |
+| `MetadataEntityController` | `/api/v1/metadata/entities` | **GET** `/` · **GET** `/{id}` · **GET** `/{id}/facets/merge-trace` · **GET** `/{id}/facets` · **GET** `/{id}/facets/{typeKey}` · **POST** `/` · **PUT** `/{id}` · **PATCH** `/{id}` · **DELETE** `/{id}` · **POST** `/{id}/facets/{typeKey}` · **PATCH** `/{id}/facets/{typeKey}/{facetUid}` · **DELETE** `/{id}/facets/{typeKey}/{facetUid}` · **DELETE** `/{id}/facets/{typeKey}` · **GET** `/{id}/history` (**14**) |
+| `MetadataFacetController` | `/api/v1/metadata/facets` | **GET** `/` · **GET** `/{typeKey}` · **POST** `/` · **PUT** `/{typeKey}` · **DELETE** `/{typeKey}` (**5**) |
+| `MetadataImportExportController` | `/api/v1/metadata` | **POST** `/import` · **GET** `/export` (**2**) |
+| `MetadataScopeController` | `/api/v1/metadata/scopes` | **GET** `/` · **POST** `/` · **DELETE** `/{scopeSlug}` (**3**) |
+
+*Older plan names `MetadataController` / `FacetController` are obsolete — logic lives in the Kotlin controllers above.*
+
+### `data/mill-data-schema-service`
+
+| Class | Base path | Operations |
+| ----- | --------- | ---------- |
+| `SchemaExplorerController` | `/api/v1/schema` | **GET** `/context` · **GET** `/` · **GET** `/schemas` · **GET** `/tree` · **GET** `/model` · **GET** `/{schemaName}` · **GET** `/schemas/{schemaName}` · **GET** `/{schemaName}/tables/{tableName}` · **GET** `/schemas/{schemaName}/tables/{tableName}` · **GET** `/{schemaName}/tables/{tableName}/columns/{columnName}` · **GET** `/schemas/{schemaName}/tables/{tableName}/columns/{columnName}` (**11**, all GET) |
+
+*Schema explorer is **not** in `mill-metadata-service`.*
+
+### `services/mill-data-http-service` (Jet / data plane HTTP)
+
+| Class | Base path | Operations |
+| ----- | --------- | ---------- |
+| `AccessServiceController` | `/services/jet` | **POST** `/ListSchemas` · **POST** `/Handshake` · **POST** `/GetSchema` · **POST** `/GetDialect` · **POST** `/ParseSql` · **POST** `/SubmitQuery` · **POST** `/FetchQueryResult` (**7**) |
+
+*There is **no** `mill-jet-http-service` module — Jet HTTP is **`mill-data-http-service`**.*
+
+### `services/mill-service-common`
+
+| Class | Base path | Operations |
+| ----- | --------- | ---------- |
+| `ApplicationDescriptorController` | `/.well-known` | **GET** `/mill` (**1**) |
+
+*Lives in **`mill-service-common`**, consumed by composite apps (not only `mill-starter-service`).*
+
+### `ai/mill-ai-v1-nlsql-chat-service` (`@ConditionalOnService("ai-nl2data")`)
+
+| Class | Base path | Operations |
+| ----- | --------- | ---------- |
+| `NlSqlChatController` | `/api/nl2sql` | **GET** `/chats` · **POST** `/chats` · **GET** `/chats/{chatId}` · **PATCH** `/chats/{chatId}` · **DELETE** `/chats/{chatId}` · **GET** `/chats/{chatId}/messages` · **POST** `/chats/{chatId}/messages` · **GET** `/chats/{chatId}/stream` (**8**; stream is **SSE** / `Flux`) |
+
+*Class-level `consumes`/`produces` JSON with per-method overrides for `ALL` / SSE.*
+
+### `ai/mill-ai-v3-service` (`@ConditionalOnAiEnabled`)
+
+| Class | Base path | Operations |
+| ----- | --------- | ---------- |
+| `AiChatController` | `/api/v1/ai/chats` | **GET** `/` · **POST** `/` · **GET** `/{chatId}` · **PATCH** `/{chatId}` · **DELETE** `/{chatId}` · **GET** `/{chatId}/messages` · **POST** `/{chatId}/messages` (SSE) · **GET** `/context-types/{contextType}/contexts/{contextId}` (**8**) |
+| `AiProfileController` | `/api/v1/ai/profiles` | **GET** `/` · **GET** `/{profileId}` (**2**) |
+
+*`AiChatController` uses `Flux<ServerSentEvent<…>>` for **POST …/messages**; list/get endpoints are still blocking (`List` return types).*
+
+### `security/mill-security-auth-service`
+
+| Class | Base path | Operations | Notes |
+| ----- | --------- | ---------- | ----- |
+| `AuthController` | `/auth` | **GET** `/me` · **PATCH** `/profile` · **POST** `/logout` (**3**) | Uses **`HttpServletRequest`** / session — WebFlux port needs **`WebSession`** (or equivalent) |
+| `AuthPublicController` | `/auth/public` | **POST** `/login` · **POST** `/register` (**2**) | Same session / servlet coupling |
+
+### `services/mill-ui-service`
+
+| Component | N/A | Servlet **`MillUiSpaRoutingFilter`** → **`WebFilter`** (SPA path rewrite, redirect `/` → `/app/`, 405 on non-GET SPA routes) |
+
+### `@RestControllerAdvice` (migrate with controllers)
+
+Keep exception mapping behavior: `AccessServiceProblemAdvice`, `GlobalExceptionHandler` (nlsql), `MetadataExceptionHandler`, `SchemaExceptionHandler`, `AiChatExceptionHandler`. Prefer **`@ControllerAdvice`** compatibility with WebFlux reactive return types (`Mono` error bodies) where applicable.
 
 ---
 
@@ -62,7 +141,18 @@ This affects ALL modules that use mill-test-kit for testing.
 
 ## Phase 1: Service Module Dependency Updates
 
-### 1.1 Update [services/mill-metadata-service/build.gradle.kts](services/mill-metadata-service/build.gradle.kts)
+Apply WebFlux + Springdoc WebFlux (or **`webflux.api`** only where UI is not embedded) to **every module that registers the controllers above**, except where already on WebFlux.
+
+| Module | Gradle path | Current stack (typical) |
+| ------ | ------------- | ------------------------ |
+| Metadata | [`metadata/mill-metadata-service/build.gradle.kts`](../../../metadata/mill-metadata-service/build.gradle.kts) | `starter-web`, Springdoc WebMVC UI |
+| Schema explorer | [`data/mill-data-schema-service/build.gradle.kts`](../../../data/mill-data-schema-service/build.gradle.kts) | `starter-web`, Springdoc WebMVC UI |
+| Jet HTTP | [`services/mill-data-http-service/build.gradle.kts`](../../../services/mill-data-http-service/build.gradle.kts) | inherits / tests use `starter-web` via backends |
+| Auth | [`security/mill-security-auth-service/build.gradle.kts`](../../../security/mill-security-auth-service/build.gradle.kts) | `starter-web` (session forms) |
+| NL-SQL chat | [`ai/mill-ai-v1-nlsql-chat-service/build.gradle.kts`](../../../ai/mill-ai-v1-nlsql-chat-service/build.gradle.kts) | already **`starter-webflux`** — verify no transitive MVC |
+| AI v3 | [`ai/mill-ai-v3-service/build.gradle.kts`](../../../ai/mill-ai-v3-service/build.gradle.kts) | already **`starter-webflux`** |
+
+### 1.1 Update [metadata/mill-metadata-service/build.gradle.kts](../../../metadata/mill-metadata-service/build.gradle.kts)
 
 ```kotlin
 // Replace:
@@ -74,15 +164,19 @@ implementation(libs.boot.starter.webflux)
 implementation(libs.springdoc.openapi.starter.webflux.api)
 ```
 
-### 1.2 Update [services/mill-jet-http-service/build.gradle.kts](services/mill-jet-http-service/build.gradle.kts)
+### 1.2 Update [data/mill-data-schema-service/build.gradle.kts](../../../data/mill-data-schema-service/build.gradle.kts)
 
-Add WebFlux dependency (the module currently inherits `boot-starter-web` from `mill-starter-backends`):
+Same replacement pattern as metadata: **`starter-web`** → **`starter-webflux`**, Springdoc WebMVC → **WebFlux** artifact.
 
-```kotlin
-implementation(libs.boot.starter.webflux)
-```
+### 1.3 Update [services/mill-data-http-service/build.gradle.kts](../../../services/mill-data-http-service/build.gradle.kts)
 
-### 1.3 Update [core/mill-starter-service/build.gradle.kts](core/mill-starter-service/build.gradle.kts)
+Ensure the composite app uses **WebFlux only** for the Jet listener: add or switch to **`spring-boot-starter-webflux`**, and drop reliance on **`spring-boot-starter-web`** from **`mill-starter-backends`** for this entrypoint (may require coordination in **`mill-starter-backends`** / parent BOM so Jet does not pull both stacks).
+
+### 1.4 Update [security/mill-security-auth-service/build.gradle.kts](../../../security/mill-security-auth-service/build.gradle.kts)
+
+Switch to **`spring-boot-starter-webflux`** **and** replace **`HttpServletRequest`**-based session login with **`WebSession`** / reactive security session APIs (same WI as controller port; dependency change alone is insufficient).
+
+### 1.5 Update [core/mill-starter-service/build.gradle.kts](core/mill-starter-service/build.gradle.kts)
 
 ```kotlin
 // Replace:
@@ -92,7 +186,7 @@ api(libs.boot.starter.web)
 api(libs.boot.starter.webflux)
 ```
 
-### 1.4 Update [services/mill-ui-service/build.gradle.kts](services/mill-ui-service/build.gradle.kts)
+### 1.6 Update [services/mill-ui-service/build.gradle.kts](services/mill-ui-service/build.gradle.kts)
 
 ```kotlin
 // Replace:
@@ -212,66 +306,33 @@ public interface ReactiveDataOperationDispatcher {
 
 ---
 
-## Phase 4: Controller Migration
+## Phase 4: Controller migration (by module)
 
-### 4.1 MetadataController ([services/mill-metadata-service/.../MetadataController.java](services/mill-metadata-service/src/main/java/io/qpointz/mill/metadata/api/MetadataController.java))
+Illustrative snippets only — **source of truth** is the Kotlin/Java files linked in [Scope](#scope--rest-controllers-and-endpoints-code-inventory). Prefer `Mono` / `Flux` return types; use `Mono<ResponseEntity<…>>` where status codes vary.
 
-**Before:**
+### 4.1 `metadata/mill-metadata-service` (Kotlin)
 
-```java
-@GetMapping("/entities/{id}")
-public ResponseEntity<MetadataEntityDto> getEntityById(@PathVariable String id, ...) {
-    return metadataService.findById(id)
-        .map(entity -> dtoMapper.toDto(entity, scope))
-        .map(ResponseEntity::ok)
-        .orElse(ResponseEntity.notFound().build());
-}
-```
+Migrate **[`MetadataEntityController.kt`](../../../metadata/mill-metadata-service/src/main/kotlin/io/qpointz/mill/metadata/api/MetadataEntityController.kt)**, **[`MetadataFacetController.kt`](../../../metadata/mill-metadata-service/src/main/kotlin/io/qpointz/mill/metadata/api/MetadataFacetController.kt)**, **[`MetadataImportExportController.kt`](../../../metadata/mill-metadata-service/src/main/kotlin/io/qpointz/mill/metadata/api/MetadataImportExportController.kt)**, **[`MetadataScopeController.kt`](../../../metadata/mill-metadata-service/src/main/kotlin/io/qpointz/mill/metadata/api/MetadataScopeController.kt)** to WebFlux return types and reactive services (**Phase 2–3**).
 
-**After:**
+Example pattern for optional bodies (entities):
 
 ```java
-@GetMapping("/entities/{id}")
+@GetMapping("/{id}")
 public Mono<ResponseEntity<MetadataEntityDto>> getEntityById(@PathVariable String id, ...) {
     return reactiveMetadataService.findById(id)
         .map(entity -> dtoMapper.toDto(entity, scope))
         .map(ResponseEntity::ok)
         .defaultIfEmpty(ResponseEntity.notFound().build());
 }
-
-@GetMapping("/entities")
-public Flux<MetadataEntityDto> getEntities(@RequestParam(required = false) String type, ...) {
-    return reactiveMetadataService.findAll()
-        .map(entity -> dtoMapper.toDto(entity, scope));
-}
 ```
 
-### 4.2 FacetController ([services/mill-metadata-service/.../FacetController.java](services/mill-metadata-service/src/main/java/io/qpointz/mill/metadata/api/FacetController.java))
+### 4.2 `data/mill-data-schema-service` — [`SchemaExplorerController.kt`](../../../data/mill-data-schema-service/src/main/kotlin/io/qpointz/mill/data/schema/api/SchemaExplorerController.kt)
 
-Convert both endpoints to return `Mono<ResponseEntity<FacetDto>>`.
+Eleven **GET** operations under `/api/v1/schema` — return `Mono` / `Flux` from a reactive [`SchemaExplorerService`](../../../data/mill-data-schema-service/src/main/kotlin/io/qpointz/mill/data/schema/api/SchemaExplorerService.kt) (or wrap blocking calls with `Mono.fromCallable(…).subscribeOn(Schedulers.boundedElastic())` until the backend is reactive).
 
-### 4.3 SchemaExplorerController ([services/mill-metadata-service/.../SchemaExplorerController.java](services/mill-metadata-service/src/main/java/io/qpointz/mill/metadata/api/SchemaExplorerController.java))
+### 4.3 `services/mill-data-http-service` — [`AccessServiceController.java`](../../../services/mill-data-http-service/src/main/java/io/qpointz/mill/data/backend/access/http/controllers/AccessServiceController.java)
 
-```java
-@GetMapping("/tree")
-public Flux<TreeNodeDto> getTree(@RequestParam(required = false) String schema, ...) {
-    return reactiveMetadataService.findAll()
-        .filter(e -> schema == null || Objects.equals(e.getSchemaName(), schema))
-        .collectList()
-        .flatMapMany(entities -> Flux.fromIterable(buildTree(entities, scope)));
-}
-
-@GetMapping("/search")
-public Flux<SearchResultDto> search(@RequestParam("q") String q, ...) {
-    return reactiveMetadataService.findAll()
-        .filter(e -> type == null || e.getType().name().equalsIgnoreCase(type))
-        .filter(e -> matchesQuery(e, q.toLowerCase()))
-        .map(e -> toSearchResult(e, scope))
-        .sort(Comparator.comparing(SearchResultDto::getName));
-}
-```
-
-### 4.4 AccessServiceController ([services/mill-jet-http-service/.../AccessServiceController.java](services/mill-jet-http-service/src/main/java/io/qpointz/mill/services/access/http/controllers/AccessServiceController.java))
+Seven **POST** operations under `/services/jet` — use **`ReactiveMessageHelper`** + **`ReactiveDataOperationDispatcher`** (Phase 3.3):
 
 ```java
 @PostMapping("/ListSchemas")
@@ -286,19 +347,22 @@ public Mono<ResponseEntity<?>> listSchemas(@RequestBody(required = false) byte[]
 }
 ```
 
-Create `ReactiveMessageHelper` utility class to handle protobuf/JSON conversion reactively.
+### 4.4 `security/mill-security-auth-service` — [`AuthController.kt`](../../../security/mill-security-auth-service/src/main/kotlin/io/qpointz/mill/security/auth/controllers/AuthController.kt), [`AuthPublicController.kt`](../../../security/mill-security-auth-service/src/main/kotlin/io/qpointz/mill/security/auth/controllers/AuthPublicController.kt)
 
-### 4.5 NlSqlChatController ([ai/mill-ai-nlsql-chat-service/.../NlSqlChatController.java](ai/mill-ai-nlsql-chat-service/src/main/java/io/qpointz/mill/ai/nlsql/controllers/NlSqlChatController.java))
+Replace **`HttpServletRequest`** session usage with **`WebSession`** and Spring Security reactive APIs for programmatic login / logout. Expect this to be one of the **highest-effort** ports in the story.
+
+### 4.5 `ai/mill-ai-v3-service` — [`AiChatController.kt`](../../../ai/mill-ai-v3-service/src/main/kotlin/io/qpointz/mill/ai/service/AiChatController.kt), [`AiProfileController.kt`](../../../ai/mill-ai-v3-service/src/main/kotlin/io/qpointz/mill/ai/service/AiProfileController.kt)
+
+Module already depends on **`spring-boot-starter-webflux`**. Complete migration: change remaining **`List`** / blocking returns to **`Flux`** / **`Mono`** and align `ChatService` behind reactive types.
+
+### 4.6 `ai/mill-ai-v1-nlsql-chat-service` — [`NlSqlChatController.java`](../../../ai/mill-ai-v1-nlsql-chat-service/src/main/java/io/qpointz/mill/ai/nlsql/controllers/NlSqlChatController.java)
+
+Finish reactive **`NlSqlChatService`** + controller (**Phase 3.2**); base path **`/api/nl2sql`**.
 
 ```java
 @GetMapping("/chats")
 public Flux<Chat> listChats() {
     return chatService.listChats();
-}
-
-@PostMapping("/chats")
-public Mono<Chat> createChat(@RequestBody Chat.CreateChatRequest request) {
-    return chatService.createChat(request);
 }
 
 @GetMapping("/chats/{chatId}")
@@ -308,18 +372,22 @@ public Mono<Chat> getChat(@PathVariable UUID chatId) {
 }
 ```
 
-### 4.6 ApplicationDescriptorController ([core/mill-starter-service/.../ApplicationDescriptorController.java](core/mill-starter-service/src/main/java/io/qpointz/mill/services/controllers/ApplicationDescriptorController.java))
+### 4.7 `services/mill-service-common` — [`ApplicationDescriptorController.java`](../../../services/mill-service-common/src/main/java/io/qpointz/mill/service/controllers/ApplicationDescriptorController.java)
+
+**Current (Servlet MVC):** returns a `Map<String, ?>` built by `WellKnownService` (not a single `ApplicationDescriptor` DTO).
 
 ```java
-@GetMapping("mill")
-public Mono<ApplicationDescriptor> getInfo() {
-    return Mono.just(this.applicationDescriptor);
+@GetMapping({"mill", "mill/", "", "/"})
+public Map<String, ?> getInfo() {
+    return this.service.metaInfo();
 }
 ```
 
-### 4.7 MillUiSpaRoutingFilter -> MillUiWebFilter ([services/mill-ui-service/.../MillUiSpaRoutingFilter.java](services/mill-ui-service/src/main/java/io/qpointz/mill/ui/MillUiSpaRoutingFilter.java))
+**Target (WebFlux):** return `Mono<Map<String, ?>>` (or a typed record) using the same service contract.
 
-Rewrite the servlet `Filter` as a WebFlux `WebFilter`:
+### 4.8 `services/mill-ui-service` — [`MillUiSpaRoutingFilter.java`](../../../services/mill-ui-service/src/main/java/io/qpointz/mill/ui/MillUiSpaRoutingFilter.java) → **`MillUiWebFilter`**
+
+Rewrite the servlet `Filter` as a WebFlux `WebFilter` (see snippet below).
 
 **Before (Servlet Filter):**
 
@@ -476,12 +544,15 @@ public Flux<MetadataEntityDto> getEntities() { ... }
 
 ## Migration Order
 
-1. **Core modules first** (Phase 0) - `mill-security-core`, `mill-service-core`, `mill-test-kit`
-2. `mill-starter-service` (1 simple endpoint, validates infrastructure)
-3. `mill-ui-service` (filter rewrite, no reactive service layer)
-4. `mill-metadata-service` (3 controllers, establishes patterns for repository/service)
-5. `mill-ai-nlsql-chat-service` (complete partial migration)
-6. `mill-jet-http-service` (protobuf handling complexity)
+1. **Core modules first** (Phase 0) — `mill-security-core`, `mill-service-core`, `mill-test-kit`; add **`SecurityWebFilterChain`** port early if any integration app must stay runnable.
+2. **`mill-service-common` + `mill-starter-service`** — `ApplicationDescriptorController` (smoke test for well-known on WebFlux).
+3. **`mill-ui-service`** — `MillUiWebFilter` (no domain layer).
+4. **`mill-metadata-service`** — four Kotlin controllers + reactive metadata repository/service (largest CRUD surface).
+5. **`mill-data-schema-service`** — `SchemaExplorerController` (read-only GETs; may wrap blocking `SchemaExplorerService` first).
+6. **`mill-ai-v3-service`** — finish reactive return types on chat/profile (Gradle already WebFlux).
+7. **`mill-ai-v1-nlsql-chat-service`** — complete service + controller reactive parity.
+8. **`mill-data-http-service`** — Jet protobuf/JSON (`AccessServiceController`) + reactive dispatcher/helper.
+9. **`mill-security-auth-service`** — session-based auth last or parallel track ( servlet → `WebSession` ).
 
 ---
 
@@ -502,73 +573,92 @@ public Flux<MetadataEntityDto> getEntities() { ... }
 - `core/mill-service-core/build.gradle.kts`
 - `core/mill-test-kit/build.gradle.kts`
 
-**Service Modules (4 build files):**
+**Security / HTTP (`SecurityWebFilterChain` port):**
 
-- `services/mill-metadata-service/build.gradle.kts`
-- `services/mill-jet-http-service/build.gradle.kts`
-- `services/mill-ui-service/build.gradle.kts`
-- `core/mill-starter-service/build.gradle.kts`
+- `security/mill-security-autoconfigure/src/main/java/io/qpointz/mill/security/configuration/*.java` (replace `SecurityFilterChain` beans with reactive equivalents)
 
-**Controllers (6 files):**
+**Service / feature modules (Gradle `build.gradle.kts`):**
 
-- `MetadataController.java`
-- `FacetController.java`
-- `SchemaExplorerController.java`
-- `AccessServiceController.java`
-- `NlSqlChatController.java`
-- `ApplicationDescriptorController.java`
+- `metadata/mill-metadata-service`
+- `data/mill-data-schema-service`
+- `services/mill-data-http-service`
+- `security/mill-security-auth-service`
+- `services/mill-ui-service`
+- `core/mill-starter-service`
 
-**Filters (1 file - delete and replace):**
+**Controllers & handlers (production):**
 
-- `MillUiSpaRoutingFilter.java` -> `MillUiWebFilter.java`
+- `metadata/mill-metadata-service/.../MetadataEntityController.kt`
+- `metadata/mill-metadata-service/.../MetadataFacetController.kt`
+- `metadata/mill-metadata-service/.../MetadataImportExportController.kt`
+- `metadata/mill-metadata-service/.../MetadataScopeController.kt`
+- `data/mill-data-schema-service/.../SchemaExplorerController.kt`
+- `services/mill-data-http-service/.../AccessServiceController.java`
+- `services/mill-service-common/.../ApplicationDescriptorController.java`
+- `ai/mill-ai-v1-nlsql-chat-service/.../NlSqlChatController.java`
+- `ai/mill-ai-v3-service/.../AiChatController.kt`
+- `ai/mill-ai-v3-service/.../AiProfileController.kt`
+- `security/mill-security-auth-service/.../AuthController.kt`
+- `security/mill-security-auth-service/.../AuthPublicController.kt`
 
-**Service Implementations:**
+**`@RestControllerAdvice` (co-migrate):**
 
-- `NlSqlChatServiceImpl.java`
-- Service implementations that depend on blocking repositories
+- `metadata/mill-metadata-service/.../MetadataExceptionHandler.kt`
+- `data/mill-data-schema-service/.../SchemaExceptionHandler.kt`
+- `services/mill-data-http-service/.../AccessServiceProblemAdvice.java`
+- `ai/mill-ai-v1-nlsql-chat-service/.../GlobalExceptionHandler.java`
+- `ai/mill-ai-v3-service/.../AiChatExceptionHandler.kt`
 
-**Test Files (6+ files):**
+**Filters:**
 
-- `MetadataControllerTest.java`
-- `AccessServiceControllerTest.java`
-- `MillUiSpaRoutingFilterTest.java`
-- `HttpServiceBasicSecurityTest.java`
-- `BaseSecurityTest.java`
-- `NlSqlChatControllerTestIT.java`
+- `services/mill-ui-service/.../MillUiSpaRoutingFilter.java` → `MillUiWebFilter.java`
+
+**Service implementations:**
+
+- `NlSqlChatService` / implementation, `SchemaExplorerService`, metadata services, **`DataOperationDispatcher`** implementations, auth session helpers
+
+**Test suites (non-exhaustive):**
+
+- Metadata / schema / Jet / UI / security / NLSQL / AI v3 controller tests — prefer **`WebTestClient`** after migration
 
 ---
 
 ## Dependency Graph (Indirect MVC Dependencies)
 
 ```
-mill-metadata-service
-  └── mill-service-core (has jakarta.servlet.api)
-        └── mill-security-core (has boot-starter-web)
+mill-metadata-service (metadata/mill-metadata-service)
+  └── mill-service-core (jakarta.servlet until removed)
+        └── mill-security-core (spring-boot-starter-web until Phase 0)
         └── mill-metadata-core
 
-mill-jet-http-service
-  └── mill-starter-backends
-        └── mill-service-core (has jakarta.servlet.api)
-  └── mill-starter-service (has boot-starter-web)
-        └── mill-security-core (has boot-starter-web)
+mill-data-schema-service
+  └── (same transitive roots via starters / shared libs)
+
+mill-data-http-service
+  └── mill-starter-backends / mill-starter-service
+        └── mill-service-core
+        └── mill-starter-service → mill-security-core
+
+mill-security-auth-service
+  └── spring-boot-starter-web (until Phase 1.4)
 
 mill-ui-service
   └── spring-boot-starter-web (servlet stack until WebFlux migration)
 
-mill-ai-nlsql-chat-service
-  └── (already has boot-starter-webflux)
+mill-ai-nlsql-chat-service / mill-ai-v3-service
+  └── spring-boot-starter-webflux (verify no transitive MVC)
 ```
 
-All paths lead back to `mill-security-core` and `mill-service-core` - these must be migrated first.
+All paths eventually depend on **`mill-security-core`** and **`mill-service-core`** for HTTP security — migrate **Phase 0** before shipping reactive apps.
 
 ---
 
 ## Tasks
 
-- [ ] **Phase 0**: Update core module dependencies: mill-security-core, mill-service-core, mill-test-kit - replace boot-starter-web and jakarta.servlet.api with webflux equivalents
-- [ ] **Phase 1**: Update service build.gradle.kts files: replace boot-starter-web with boot-starter-webflux in metadata-service, jet-http-service, starter-service, and mill-ui-service
-- [ ] **Phase 2**: Create ReactiveMetadataRepository interface and ReactiveFileMetadataRepository wrapper implementation
-- [ ] **Phase 3**: Create ReactiveMetadataService, update NlSqlChatService interface, create ReactiveDataOperationDispatcher
-- [ ] **Phase 4a**: Migrate all 7 controllers to return Mono/Flux: ApplicationDescriptorController, MetadataController, FacetController, SchemaExplorerController, NlSqlChatController, AccessServiceController
-- [ ] **Phase 4b**: Rewrite MillUiSpaRoutingFilter as WebFilter for WebFlux compatibility
-- [ ] **Phase 5**: Update all test suites: replace MockMvc with WebTestClient, update test dependencies
+- [ ] **Phase 0**: Update core module dependencies: `mill-security-core`, `mill-service-core`, `mill-test-kit` — WebFlux starters; drop or replace `jakarta.servlet-api` usages that block WebFlux.
+- [ ] **Phase 1**: Update **`build.gradle.kts`** for `mill-metadata-service`, `mill-data-schema-service`, `mill-data-http-service`, `mill-security-auth-service`, `mill-ui-service`, `mill-starter-service` — WebFlux + Springdoc WebFlux as needed; resolve dual MVC+WebFlux on classpath.
+- [ ] **Phase 1b** (security): Port servlet **`SecurityFilterChain`** beans in `mill-security-autoconfigure` to **`SecurityWebFilterChain`**; enable reactive method security if using `@PreAuthorize`.
+- [ ] **Phase 2**: `ReactiveMetadataRepository` + file-backed adapter in **`mill-metadata-core`**.
+- [ ] **Phase 3**: `ReactiveMetadataService` (or Kotlin equivalent), reactive `NlSqlChatService`, `ReactiveDataOperationDispatcher` + Jet `ReactiveMessageHelper`.
+- [ ] **Phase 4**: Migrate **12** `@RestController` classes (**66** operations) + **`@RestControllerAdvice`** peers + **`MillUiWebFilter`**; highest risk: **`AuthController`** / **`AuthPublicController`** session port.
+- [ ] **Phase 5**: Replace **MockMvc** with **`WebTestClient`** (and reactive security tests) for all touched modules.

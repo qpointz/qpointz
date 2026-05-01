@@ -16,6 +16,7 @@ mill {
 
 dependencies {
     implementation(project(":data:mill-data-schema-core"))
+    implementation(project(":services:mill-service-api"))
     implementation(libs.boot.starter)
     implementation(libs.boot.starter.webmvc)
     implementation(libs.bundles.jackson)

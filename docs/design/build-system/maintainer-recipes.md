@@ -7,7 +7,7 @@ High-signal operational commands for Gradle and CI maintainers.
 From repository root:
 
 ```bash
-./gradlew clean test compileTestIT
+./gradlew clean test testITClasses
 ```
 
 Useful focused runs:

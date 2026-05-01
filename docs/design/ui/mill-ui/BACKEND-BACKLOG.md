@@ -178,7 +178,7 @@ Full FeatureFlags interface has 70 boolean flags across 14 categories (views, ch
 
 | Endpoint | Method | Response Type |
 |---|---|---|
-| `/mill` | GET | `ApplicationDescriptor` |
+| `/mill` (and `mill/`, `/`, empty) | GET | `Map<String, ?>` — discovery payload (`app`, grouped `Descriptor`s by type name; see `WellKnownService`) |
 
 ---
 
