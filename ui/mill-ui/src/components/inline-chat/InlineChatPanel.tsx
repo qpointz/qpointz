@@ -11,6 +11,7 @@ import type { InlineChatSession } from '../../types/inlineChat';
 import { InlineChatMessage } from './InlineChatMessage';
 import { InlineChatInput } from './InlineChatInput';
 import { TypingIndicator } from '../chat/TypingIndicator';
+import { ThinkingIndicator } from '../chat/ThinkingIndicator';
 import { ChatEmptyState } from '../common/ChatEmptyState';
 import { useAutoScroll } from '../../hooks/useAutoScroll';
 
@@ -134,13 +135,17 @@ export function InlineChatPanel({ session, onSend }: InlineChatPanelProps) {
             {session.messages.map((msg) => (
               <InlineChatMessage key={msg.id} message={msg} />
             ))}
-            {session.isLoading &&
+            {session.thinkingMessage ? (
+              <Box px="xs" pb={6}>
+                <ThinkingIndicator message={session.thinkingMessage} />
+              </Box>
+            ) : session.isLoading &&
               session.messages.length > 0 &&
-              session.messages[session.messages.length - 1]?.content === '' && (
-                <Box style={{ display: 'flex', justifyContent: 'flex-start', marginLeft: 4 }}>
-                  <TypingIndicator />
-                </Box>
-              )}
+              session.messages[session.messages.length - 1]?.content === '' ? (
+              <Box style={{ display: 'flex', justifyContent: 'flex-start', marginLeft: 4 }}>
+                <TypingIndicator />
+              </Box>
+            ) : null}
           </Box>
         </ScrollArea>
       )}

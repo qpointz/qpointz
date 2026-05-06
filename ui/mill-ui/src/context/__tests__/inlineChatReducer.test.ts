@@ -90,6 +90,7 @@ function makeSession(id: string, contextId: string): InlineChatSession {
     contextLabel: `Session ${id}`,
     messages: [],
     isLoading: false,
+    thinkingMessage: null,
     createdAt: Date.now(),
   };
 }

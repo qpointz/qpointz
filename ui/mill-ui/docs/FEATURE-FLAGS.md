@@ -1,14 +1,14 @@
 # Feature Flags Inventory
 
-Complete inventory of all feature flags in the application. All flags are boolean and are defined in `src/features/defaults.ts`. Most flags default to `true`; see the Default column for exceptions.
+Complete inventory of all feature flags in the application. All flags are boolean and are defined in `src/features/defaults.ts`. **`defaultFeatureFlags` is authoritative** — table **Default** cells should match it (many flags default to **`false`**; do not assume “omit ⇒ true”).
 
 ## Architecture
 
 - **Definition**: `src/features/defaults.ts` — `FeatureFlags` interface + `defaultFeatureFlags` object
 - **Provider**: `src/features/FeatureFlagContext.tsx` — `FeatureFlagProvider` wraps the app
 - **Hook**: `useFeatureFlags()` — returns the resolved `FeatureFlags` object
-- **Backend**: `GET /api/v1/features` — returns `Partial<FeatureFlags>`. Omitted keys default to `true`. If the request fails, all flags default to `true`.
-- **Total flags**: 76 across 14 categories
+- **Backend**: `GET /api/v1/features` returns `Partial<FeatureFlags>`. [`FeatureFlagProvider`](../src/features/FeatureFlagContext.tsx) merges **`{ ...prev, ...remote }`**: **only keys present in the response override**; **omitted keys keep the previous value** (initially from **`defaultFeatureFlags`**). **Failed fetch:** the **`catch`** path leaves flags at **`defaultFeatureFlags`** (no remote overrides).
+- **Total flags**: see `FeatureFlags` in `defaults.ts` (inventory tables below sync with that file; **`rest` mode** for chat API is `src/services/chatService.ts` — `VITE_CHAT_API=mock` for Vitest/mocks only).
 
 ## Flag Inventory
 
@@ -20,9 +20,11 @@ Top-level navigation routes. Disabling a flag hides the route and its nav button
 |------|---------|-----------------|-------------|
 | `viewHome` | `true` | Home / Overview dashboard route and nav button | `App.tsx`, `AppHeader.tsx` |
 | `viewModel` | `true` | Data Model explorer route and nav button | `App.tsx`, `AppHeader.tsx` |
-| `viewKnowledge` | `true` | Knowledge / Concepts route and nav button | `App.tsx`, `AppHeader.tsx` |
-| `viewAnalysis` | `true` | Analysis / Query Playground route and nav button | `App.tsx`, `AppHeader.tsx` |
+| `viewKnowledge` | `false` | Knowledge / Concepts route and nav button | `App.tsx`, `AppHeader.tsx` |
+| `viewAnalysis` | `false` | Analysis / Query Playground route and nav button | `App.tsx`, `AppHeader.tsx` |
 | `viewChat` | `true` | General Chat route and nav button | `App.tsx`, `AppHeader.tsx` |
+
+> **Operational note:** deployments without AI backends should override `viewChat` to `false` via `GET /api/v1/features` (or flip the default in code) so `/chat` is not exposed without `mill.ai.enabled` services.
 
 ### 2. Chat References (5 flags)
 
@@ -30,11 +32,11 @@ Control the "related conversations" feature — badges and popovers linking cont
 
 | Flag | Default | What it controls | Consumer(s) |
 |------|---------|-----------------|-------------|
-| `chatReferencesEnabled` | `true` | Master toggle for all chat reference features | `ChatReferencesContext.tsx`, `InlineChatDrawer.tsx`, `SchemaTree.tsx`, `ContextSidebar.tsx` |
-| `chatReferencesModelContext` | `true` | Chat references on Data Model entities | `ChatReferencesContext.tsx` |
-| `chatReferencesKnowledgeContext` | `true` | Chat references on Knowledge concepts | `ChatReferencesContext.tsx` |
-| `chatReferencesAnalysisContext` | `true` | Chat references on Analysis queries | `ChatReferencesContext.tsx` |
-| `chatReferencesSidebarIndicator` | `true` | Chat reference count badges in sidebar tree items | `SchemaTree.tsx`, `ContextSidebar.tsx` |
+| `chatReferencesEnabled` | `false` | Master toggle for all chat reference features | `ChatReferencesContext.tsx`, `InlineChatDrawer.tsx`, `SchemaTree.tsx`, `ContextSidebar.tsx` |
+| `chatReferencesModelContext` | `false` | Chat references on Data Model entities | `ChatReferencesContext.tsx` |
+| `chatReferencesKnowledgeContext` | `false` | Chat references on Knowledge concepts | `ChatReferencesContext.tsx` |
+| `chatReferencesAnalysisContext` | `false` | Chat references on Analysis queries | `ChatReferencesContext.tsx` |
+| `chatReferencesSidebarIndicator` | `false` | Chat reference count badges in sidebar tree items | `SchemaTree.tsx`, `ContextSidebar.tsx` |
 
 ### 3. Inline Chat (10 flags)
 
@@ -42,16 +44,16 @@ Control the context-aware inline chat drawer that appears on detail pages.
 
 | Flag | Default | What it controls | Consumer(s) |
 |------|---------|-----------------|-------------|
-| `inlineChatEnabled` | `true` | Master toggle — hides the entire InlineChatDrawer when `false` | `App.tsx`, `InlineChatButton.tsx`, `InlineChatContext.tsx` |
-| `inlineChatModelContext` | `true` | Allow inline chat on Data Model entities | `InlineChatButton.tsx`, `InlineChatContext.tsx` |
-| `inlineChatModelSchema` | `true` | Allow inline chat on SCHEMA-level entities | `InlineChatButton.tsx`, `InlineChatContext.tsx` |
-| `inlineChatModelTable` | `true` | Allow inline chat on TABLE-level entities | `InlineChatButton.tsx`, `InlineChatContext.tsx` |
-| `inlineChatModelColumn` | `true` | Allow inline chat on ATTRIBUTE-level entities | `InlineChatButton.tsx`, `InlineChatContext.tsx` |
-| `inlineChatKnowledgeContext` | `true` | Allow inline chat on Knowledge concepts | `InlineChatButton.tsx`, `InlineChatContext.tsx` |
-| `inlineChatAnalysisContext` | `true` | Allow inline chat on Analysis queries | `InlineChatButton.tsx`, `InlineChatContext.tsx` |
-| `inlineChatMultiSession` | `true` | Allow multiple simultaneous inline chat sessions. When `false`, opening a new context replaces the existing session. | `InlineChatContext.tsx`, `InlineChatDrawer.tsx` |
-| `inlineChatSessionGrouping` | `true` | Group inline sessions by route context type in the drawer tab bar | `InlineChatDrawer.tsx` |
-| `inlineChatGreeting` | `true` | Show welcome/greeting message when a new inline chat session starts | `InlineChatContext.tsx` |
+| `inlineChatEnabled` | `false` | Master toggle — hides the entire InlineChatDrawer when `false` | `App.tsx`, `InlineChatButton.tsx`, `InlineChatContext.tsx` |
+| `inlineChatModelContext` | `false` | Allow inline chat on Data Model entities | `InlineChatButton.tsx`, `InlineChatContext.tsx` |
+| `inlineChatModelSchema` | `false` | Allow inline chat on SCHEMA-level entities | `InlineChatButton.tsx`, `InlineChatContext.tsx` |
+| `inlineChatModelTable` | `false` | Allow inline chat on TABLE-level entities | `InlineChatButton.tsx`, `InlineChatContext.tsx` |
+| `inlineChatModelColumn` | `false` | Allow inline chat on ATTRIBUTE-level entities | `InlineChatButton.tsx`, `InlineChatContext.tsx` |
+| `inlineChatKnowledgeContext` | `false` | Allow inline chat on Knowledge concepts | `InlineChatButton.tsx`, `InlineChatContext.tsx` |
+| `inlineChatAnalysisContext` | `false` | Allow inline chat on Analysis queries | `InlineChatButton.tsx`, `InlineChatContext.tsx` |
+| `inlineChatMultiSession` | `false` | Allow multiple simultaneous inline chat sessions. When `false`, opening a new context replaces the existing session. | `InlineChatContext.tsx`, `InlineChatDrawer.tsx` |
+| `inlineChatSessionGrouping` | `false` | Group inline sessions by route context type in the drawer tab bar | `InlineChatDrawer.tsx` |
+| `inlineChatGreeting` | `false` | Show welcome/greeting message when a new inline chat session starts | `InlineChatContext.tsx` |
 
 ### 4. Model View Details (3 flags)
 
@@ -60,7 +62,7 @@ Control structural read UI and header badges on the Entity Details panel. Descri
 | Flag | Default | What it controls | Consumer(s) |
 |------|---------|-----------------|-------------|
 | `modelStructuralFacet` | `true` | When structural data exists, use the tailored `StructuralFacet` read view for the structural facet; edit still uses the manifest/schema path | `EntityDetails.tsx` |
-| `modelQuickBadges` | `true` | Quick info badges below entity header (PK, FK, nullable, unique) | `EntityDetails.tsx` |
+| `modelQuickBadges` | `false` | Quick info badges below entity header (PK, FK, nullable, unique) | `EntityDetails.tsx` |
 | `modelPhysicalType` | `true` | Physical type badge on attribute detail | `EntityDetails.tsx` |
 
 ### 5. Knowledge View Details (6 flags)
@@ -105,7 +107,7 @@ Control the Connect view and its sub-sections.
 
 | Flag | Default | What it controls | Consumer(s) |
 |------|---------|-----------------|-------------|
-| `viewConnect` | `true` | Connect route and nav button | `App.tsx`, `AppHeader.tsx` |
+| `viewConnect` | `false` | Connect route and nav button | `App.tsx`, `AppHeader.tsx` |
 | `connectServices` | `true` | Services connection guide section | `ConnectLayout.tsx` |
 | `connectPython` | `true` | Python connection guide section | `ConnectLayout.tsx` |
 | `connectJava` | `true` | Java connection guide section | `ConnectLayout.tsx` |
@@ -156,23 +158,24 @@ Control the "related content" feature — pills/popovers linking to related sche
 
 | Flag | Default | What it controls | Consumer(s) |
 |------|---------|-----------------|-------------|
-| `relatedContentEnabled` | `true` | Master toggle for all related content features | `RelatedContentContext.tsx`, `RelatedContentButton.tsx`, `InlineChatDrawer.tsx` |
-| `relatedContentModelContext` | `true` | Related content on Data Model entities | `RelatedContentButton.tsx`, `RelatedContentContext.tsx` |
-| `relatedContentModelSchema` | `true` | Related content on SCHEMA-level entities | `RelatedContentButton.tsx` |
-| `relatedContentModelTable` | `true` | Related content on TABLE-level entities | `RelatedContentButton.tsx` |
-| `relatedContentModelColumn` | `true` | Related content on ATTRIBUTE-level entities | `RelatedContentButton.tsx` |
-| `relatedContentKnowledgeContext` | `true` | Related content on Knowledge concepts | `RelatedContentButton.tsx`, `RelatedContentContext.tsx` |
-| `relatedContentAnalysisContext` | `true` | Related content on Analysis queries | `RelatedContentButton.tsx`, `RelatedContentContext.tsx` |
-| `relatedContentInDrawer` | `true` | Show related content section inside the inline chat drawer | `InlineChatDrawer.tsx` |
+| `relatedContentEnabled` | `false` | Master toggle for all related content features | `RelatedContentContext.tsx`, `RelatedContentButton.tsx`, `InlineChatDrawer.tsx` |
+| `relatedContentModelContext` | `false` | Related content on Data Model entities | `RelatedContentButton.tsx`, `RelatedContentContext.tsx` |
+| `relatedContentModelSchema` | `false` | Related content on SCHEMA-level entities | `RelatedContentButton.tsx` |
+| `relatedContentModelTable` | `false` | Related content on TABLE-level entities | `RelatedContentButton.tsx` |
+| `relatedContentModelColumn` | `false` | Related content on ATTRIBUTE-level entities | `RelatedContentButton.tsx` |
+| `relatedContentKnowledgeContext` | `false` | Related content on Knowledge concepts | `RelatedContentButton.tsx`, `RelatedContentContext.tsx` |
+| `relatedContentAnalysisContext` | `false` | Related content on Analysis queries | `RelatedContentButton.tsx`, `RelatedContentContext.tsx` |
+| `relatedContentInDrawer` | `false` | Show related content section inside the inline chat drawer | `InlineChatDrawer.tsx` |
 
-### 13. Chat Input Controls (2 flags)
+### 13. Chat Input Controls (3 flags)
 
-Control optional buttons in the ChatInputBox (shared between general and inline chat).
+Control optional buttons and General Chat agent picker chrome.
 
 | Flag | Default | What it controls | Consumer(s) |
 |------|---------|-----------------|-------------|
 | `chatAttachButton` | `true` | "+" attach button in ChatInputBox | `ChatInputBox.tsx` |
 | `chatDictateButton` | `true` | Microphone/dictate button in ChatInputBox | `ChatInputBox.tsx` |
+| `chatAgentPicker` | `false` | Show agent profile `Select` in General Chat sidebar header (new chats only; options from `GET /api/v1/ai/profiles`) | `AppShell.tsx`, `ChatContext.tsx` |
 
 ### 14. Header / Chrome (3 flags)
 
@@ -180,7 +183,7 @@ Control elements in the application header bar.
 
 | Flag | Default | What it controls | Consumer(s) |
 |------|---------|-----------------|-------------|
-| `headerGlobalSearch` | `true` | Search icon + floating search overlay in header nav | `AppHeader.tsx` |
+| `headerGlobalSearch` | `false` | Search icon + floating search overlay in header nav | `AppHeader.tsx` |
 | `headerThemeSwitcher` | `true` | Color theme and dark/light mode switcher in user menu | `AppHeader.tsx` |
 | `headerUserProfile` | `true` | User avatar and dropdown menu in header | `AppHeader.tsx` |
 
@@ -255,4 +258,4 @@ If `GET /api/v1/features` fails (network error, 401, 500), all flags fall back t
 
 ---
 
-*Last updated: March 27, 2026*
+*Last updated: May 04, 2026*

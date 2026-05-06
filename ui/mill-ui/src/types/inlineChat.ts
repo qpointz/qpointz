@@ -13,6 +13,8 @@ export interface InlineChatSession {
   messages: Message[];
   isLoading: boolean;
   createdAt: number;
+  /** Transient SSE diagnostic / tool hint — same contract as General Chat `thinkingMessage`. */
+  thinkingMessage: string | null;
 }
 
 export interface InlineChatState {
@@ -29,6 +31,10 @@ export type InlineChatAction =
   | { type: 'ADD_MESSAGE'; payload: { sessionId: string; message: Message } }
   | { type: 'UPDATE_MESSAGE'; payload: { sessionId: string; messageId: string; content: string } }
   | { type: 'SET_LOADING'; payload: { sessionId: string; isLoading: boolean } }
+  | {
+      type: 'SET_SESSION_THINKING';
+      payload: { sessionId: string; message: string | null };
+    }
   | { type: 'CLOSE_ALL_SESSIONS' }
   | { type: 'OPEN_DRAWER' }
   | { type: 'CLOSE_DRAWER' };

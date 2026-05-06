@@ -17,7 +17,6 @@ describe('defaultFeatureFlags', () => {
       // View routes disabled by default (opt-in per deployment)
       'viewKnowledge',
       'viewAnalysis',
-      'viewChat',
       'viewConnect',
       // Chat references & inline chat (off until product enables General/inline chat UX)
       'chatReferencesEnabled',
@@ -53,6 +52,8 @@ describe('defaultFeatureFlags', () => {
       'facetTypesReadOnly',
       // Header features disabled by default
       'headerGlobalSearch',
+      // General chat — agent profile chrome (reserved; off until product enables)
+      'chatAgentPicker',
       // Model panel — optional chrome
       'modelQuickBadges',
     ];
@@ -152,6 +153,13 @@ describe('defaultFeatureFlags', () => {
       'relatedContentInDrawer',
     ];
     for (const flag of relatedContentFlags) {
+      expect(flag in defaultFeatureFlags).toBe(true);
+    }
+  });
+
+  it('should include chat input chrome flags', () => {
+    const keys: (keyof FeatureFlags)[] = ['chatAttachButton', 'chatDictateButton', 'chatAgentPicker'];
+    for (const flag of keys) {
       expect(flag in defaultFeatureFlags).toBe(true);
     }
   });

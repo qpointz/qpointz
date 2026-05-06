@@ -90,8 +90,8 @@ describe('ChatContext', () => {
       });
       const id = result.current.state.conversations[0]!.id;
 
-      act(() => {
-        result.current.deleteConversation(id);
+      await act(async () => {
+        await result.current.deleteConversation(id);
       });
 
       expect(result.current.state.conversations).toHaveLength(0);
@@ -109,8 +109,8 @@ describe('ChatContext', () => {
       });
 
       const activeId = result.current.state.activeConversationId!;
-      act(() => {
-        result.current.deleteConversation(activeId);
+      await act(async () => {
+        await result.current.deleteConversation(activeId);
       });
 
       expect(result.current.state.conversations).toHaveLength(1);
@@ -148,8 +148,8 @@ describe('ChatContext', () => {
       });
       const id = result.current.state.conversations[0]!.id;
 
-      act(() => {
-        result.current.renameConversation(id, 'My Custom Title');
+      await act(async () => {
+        await result.current.renameConversation(id, 'My Custom Title');
       });
 
       expect(result.current.activeConversation!.title).toBe('My Custom Title');

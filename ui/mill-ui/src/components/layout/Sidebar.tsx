@@ -15,16 +15,17 @@ import {
   HiOutlineTrash,
   HiOutlineChatBubbleLeftRight,
 } from 'react-icons/hi2';
+import { useNavigate } from 'react-router';
 import { useChat } from '../../context/ChatContext';
 
 export function Sidebar() {
+  const navigate = useNavigate();
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const {
     state,
     activeConversation,
     deleteConversation,
-    setActiveConversation,
   } = useChat();
 
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -58,7 +59,14 @@ export function Sidebar() {
                 }
                 description={
                   <Text size="xs" c="dimmed" style={{ fontSize: 10 }}>
-                    {conv.messages.length} messages
+                    <Text span inherit>
+                      {conv.messages.length} messages
+                    </Text>
+                    {conv.profileId ? (
+                      <Text span inherit display="block">
+                        {conv.profileId}
+                      </Text>
+                    ) : null}
                   </Text>
                 }
                 leftSection={
@@ -138,7 +146,7 @@ export function Sidebar() {
                   </Popover>
                 }
                 active={isActive}
-                onClick={() => setActiveConversation(conv.id)}
+                onClick={() => navigate(`/chat/${conv.id}`, { replace: true })}
                 style={{ borderRadius: 6 }}
                 styles={{
                   root: {

@@ -1,6 +1,7 @@
 import { MantineProvider, ColorSchemeScript, Box, Loader, Center } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { Routes, Route, Navigate, useLocation } from 'react-router';
+import { ChatRouteSync } from './components/chat/ChatRouteSync';
 import { useEffect, useMemo, useState, useCallback, createContext, useContext } from 'react';
 import { buildTheme } from './theme/theme';
 import { ColorThemeProvider, useColorTheme } from './theme/ThemeContext';
@@ -96,10 +97,22 @@ const routeTitles: [string, string][] = [
   ['/login', 'Sign in'],
 ];
 
+function ChatLayout() {
+  return (
+    <>
+      <ChatRouteSync />
+      <AppShell />
+    </>
+  );
+}
+
 function ChatView() {
   return (
     <ChatProvider>
-      <AppShell />
+      <Routes>
+        <Route index element={<ChatLayout />} />
+        <Route path=":conversationId" element={<ChatLayout />} />
+      </Routes>
     </ChatProvider>
   );
 }

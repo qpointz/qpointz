@@ -1,7 +1,32 @@
-import type { ChatService, ChatSummary, CreateChatParams } from '../types/chat';
+import type {
+  AgentProfileResponseWire,
+  ChatDetailResponseWire,
+  ChatResponseWire,
+  ChatSendOptions,
+  ChatService,
+  ChatSummary,
+  CreateChatParams,
+} from '../types/chat';
+import { isV1MainConversationTextPart } from '../types/chatTransport';
 import { sleep, streamResponse } from '../utils/streamUtils';
 
-// --- Mock response pools ---
+const CHATS_PREFIX = '/api/v1/ai/chats';
+const PROFILES_PREFIX = '/api/v1/ai/profiles';
+
+const FETCH_AI_JSON: RequestInit = {
+  credentials: 'include',
+  headers: { Accept: 'application/json' },
+};
+
+const FETCH_AI_SSE: RequestInit = {
+  credentials: 'include',
+  headers: {
+    Accept: 'text/event-stream',
+    'Content-Type': 'application/json',
+  },
+};
+
+// --- Mock response pools (unchanged corpus) ---
 
 const generalResponses = [
   `I'd be happy to help you with that! Here's a quick example:
@@ -215,14 +240,20 @@ The query is well-structured. Consider adding a **HAVING** clause if you want to
 
 // --- Mock state ---
 
-/** Maps chatId -> contextType for context-aware responses */
 const chatContextMap = new Map<string, string>();
-
-/** Maps "contextType:contextId" -> chatId for inline chat lookup */
 const contextToChatMap = new Map<string, string>();
-
-/** Tracks general (non-contextual) chats for listChats */
 const generalChatList: ChatSummary[] = [];
+/** Full wire rows for mocks that back `getChatDetail` / PATCH / DELETE parity. */
+const mockWireById = new Map<string, ChatResponseWire>();
+
+function envProfileFallback(): string | undefined {
+  const raw = import.meta.env.VITE_MILL_AI_PROFILE;
+  return typeof raw === 'string' && raw.trim() !== '' ? raw.trim() : undefined;
+}
+
+function resolveProfileForMockCreate(params?: CreateChatParams): string {
+  return params?.profileId ?? envProfileFallback() ?? 'mock-default-profile';
+}
 
 function pickRandom(pool: string[]): string {
   return pool[Math.floor(Math.random() * pool.length)] ?? '';
@@ -236,44 +267,440 @@ function getResponsePool(chatId: string): string[] {
   return generalResponses;
 }
 
-// --- Mock service implementation ---
+/**
+ * Vitest (`MODE=test`) stays on mocks; browsers default to REST unless `VITE_CHAT_API=mock`.
+ * Exported for contexts that must diverge persistence (REST vs mock) without importing private toggles.
+ */
+export function isRestChatBackendActive(): boolean {
+  if (import.meta.env.MODE === 'test') {
+    return false;
+  }
+  return import.meta.env.VITE_CHAT_API?.toLowerCase() !== 'mock';
+}
+
+async function ensureOk(response: Response, label: string): Promise<void> {
+  if (response.ok) return;
+  const body = await response.text().catch(() => '');
+  throw new Error(`${label} failed (${response.status}): ${body}`.trim());
+}
+
+function summarizeFromWire(chat: ChatResponseWire): ChatSummary {
+  return {
+    chatId: chat.chatId,
+    chatName: chat.chatName,
+    updatedAt: Date.parse(chat.updatedAt),
+  };
+}
+
+function buildMockWire(chatId: string, params: CreateChatParams | undefined, chatName: string): ChatResponseWire {
+  const nowIso = new Date().toISOString();
+  const contextual = Boolean(params?.contextType && params?.contextId);
+  return {
+    chatId,
+    userId: 'mock-user',
+    profileId: resolveProfileForMockCreate(params),
+    chatName,
+    chatType: contextual ? 'contextual' : 'general',
+    isFavorite: false,
+    contextType: params?.contextType ?? null,
+    contextId: params?.contextId ?? null,
+    contextLabel: params?.contextLabel ?? null,
+    contextEntityType: params?.contextEntityType ?? null,
+    createdAt: nowIso,
+    updatedAt: nowIso,
+  };
+}
+
+function buildCreateBody(params?: CreateChatParams): Record<string, unknown> | undefined {
+  const body: Record<string, unknown> = {};
+  const profile = params?.profileId ?? envProfileFallback();
+  if (profile) {
+    body.profileId = profile;
+  }
+  if (params?.contextType) {
+    body.contextType = params.contextType;
+  }
+  if (params?.contextId) {
+    body.contextId = params.contextId;
+  }
+  if (params?.contextLabel !== undefined) {
+    body.contextLabel = params.contextLabel;
+  }
+  if (params?.contextEntityType !== undefined) {
+    body.contextEntityType = params.contextEntityType;
+  }
+  return Object.keys(body).length ? body : undefined;
+}
+
+async function readJson<T>(response: Response): Promise<T> {
+  return (await response.json()) as T;
+}
+
+/**
+ * Streams `data:` JSON payloads from an SSE byte stream (Spring `ServerSentEvent` framing).
+ *
+ * Forward-tolerant: blocks without `data:` are skipped; malformed JSON throws (transport fault).
+ */
+async function* sseDataRecords(body: ReadableStream<Uint8Array>): AsyncGenerator<Record<string, unknown>> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop() ?? '';
+      for (const block of parts) {
+        const lines = block.split('\n');
+        const dataParts: string[] = [];
+        for (const line of lines) {
+          if (line.startsWith('data:')) {
+            dataParts.push(line.slice(5).trimStart());
+          }
+        }
+        if (dataParts.length === 0) continue;
+        const jsonText = dataParts.join('\n');
+        yield JSON.parse(jsonText) as Record<string, unknown>;
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
+
+async function* consumeChatSse(
+  response: Response,
+  options: ChatSendOptions | undefined,
+): AsyncGenerator<string, void, unknown> {
+  const body = response.body;
+  if (!body) {
+    throw new Error('Chat SSE response has empty body');
+  }
+
+  let hadTextDeltaForPrimary = false;
+  const accumulatedByItem = new Map<string, string>();
+  let primaryItemId: string | null = null;
+  let lastToolEmitMs = 0;
+
+  const emitToolLine = (line: string) => {
+    const now = Date.now();
+    if (now - lastToolEmitMs < 60) return;
+    lastToolEmitMs = now;
+    options?.onProgress?.({ kind: 'tool', line });
+  };
+
+  const clearWait = () => {
+    options?.onProgress?.({ kind: 'clear-wait' });
+  };
+
+  for await (const evt of sseDataRecords(body)) {
+    const eventType = typeof evt.type === 'string' ? evt.type : '';
+
+    switch (eventType) {
+      case 'item.created':
+        break;
+      case 'item.diagnostic': {
+        options?.onProgress?.({
+          kind: 'diagnostic',
+          code: typeof evt.code === 'string' ? evt.code : '',
+          message: typeof evt.message === 'string' ? evt.message : '',
+        });
+        break;
+      }
+      case 'item.tool.call': {
+        const name =
+          typeof evt.toolName === 'string' ? evt.toolName : '?';
+        emitToolLine(`Tool: ${name}`);
+        break;
+      }
+      case 'item.tool.result': {
+        const name =
+          typeof evt.toolName === 'string' ? evt.toolName : '?';
+        emitToolLine(`Tool done: ${name}`);
+        break;
+      }
+      case 'item.part.updated': {
+        if (!isV1MainConversationTextPart(evt)) {
+          options?.onNonTextPartUpdated?.(evt);
+          break;
+        }
+
+        const itemId =
+          typeof evt.itemId === 'string' ? evt.itemId : '';
+        const mode = typeof evt.mode === 'string' ? evt.mode : 'append';
+        const content =
+          typeof evt.content === 'string' ? evt.content : '';
+
+        if (!primaryItemId) {
+          primaryItemId = itemId;
+        }
+
+        const prior = accumulatedByItem.get(itemId) ?? '';
+        accumulatedByItem.set(
+          itemId,
+          mode === 'replace' ? content : prior + content,
+        );
+
+        if (!hadTextDeltaForPrimary && itemId === primaryItemId && content.length > 0) {
+          hadTextDeltaForPrimary = true;
+          clearWait();
+        }
+
+        if (itemId === primaryItemId && content.length > 0) {
+          yield content;
+        }
+
+        break;
+      }
+      case 'item.completed': {
+        clearWait();
+        const itemId = typeof evt.itemId === 'string' ? evt.itemId : '';
+        const record = evt as Record<string, unknown>;
+        const presentation =
+          typeof record.presentation === 'string' ? record.presentation : 'conversation';
+        const partType =
+          typeof record.partType === 'string'
+            ? record.partType
+            : typeof record.part_type === 'string'
+              ? record.part_type
+              : 'text';
+
+        let contentFull: string | null = null;
+        if ('content' in evt && evt.content != null) {
+          contentFull = String(evt.content);
+        }
+
+        options?.onItemCompleted?.({
+          itemId,
+          presentation,
+          partType,
+          content: contentFull,
+        });
+
+        if (!hadTextDeltaForPrimary && contentFull !== null && (!primaryItemId || itemId === primaryItemId)) {
+          yield contentFull;
+        }
+        break;
+      }
+      case 'item.failed': {
+        clearWait();
+        const code = typeof evt.code === 'string' ? evt.code : 'error';
+        const reason = typeof evt.reason === 'string' ? evt.reason : '';
+        yield `\n\n**Error** (${code}): ${reason}`;
+        break;
+      }
+      default:
+        break;
+    }
+  }
+}
+
+// --- Implementations ---
 
 const mockChatService: ChatService = {
-  async createChat(params?: CreateChatParams) {
+  async createChat(params) {
     await sleep(100);
     const chatId = crypto.randomUUID();
     const chatName = params?.contextLabel ? `Chat: ${params.contextLabel}` : 'New Chat';
+    const wire = buildMockWire(chatId, params, chatName);
+    mockWireById.set(chatId, wire);
 
     if (params?.contextType && params?.contextId) {
-      // Contextual (inline) chat -- store context mapping, NOT in general list
       chatContextMap.set(chatId, params.contextType);
       contextToChatMap.set(`${params.contextType}:${params.contextId}`, chatId);
     } else {
-      // General chat -- add to the general list
-      generalChatList.unshift({ chatId, chatName, updatedAt: Date.now() });
+      generalChatList.unshift(summarizeFromWire(wire));
     }
 
     return { chatId, chatName };
   },
 
-  async *sendMessage(chatId: string, _message: string) {
+  async *sendMessage(chatId, _message, options) {
+    options?.onProgress?.({
+      kind: 'diagnostic',
+      code: 'mock.preparing',
+      message: 'Preparing reply…',
+    });
     const pool = getResponsePool(chatId);
     const response = pickRandom(pool);
     if (!response) return;
-    yield* streamResponse(response);
+    let firstChunk = true;
+    for await (const chunk of streamResponse(response)) {
+      if (firstChunk) {
+        firstChunk = false;
+        options?.onProgress?.({ kind: 'clear-wait' });
+      }
+      yield chunk;
+    }
   },
 
   async listChats() {
     await sleep(50);
-    // Return only general (non-contextual) chats
     return [...generalChatList];
   },
 
-  async getChatByContext(contextType: string, contextId: string) {
+  async getChatDetail(chatId) {
+    await sleep(30);
+    const wire = mockWireById.get(chatId);
+    if (!wire) {
+      throw new Error(`Mock chat not found: ${chatId}`);
+    }
+    return { chat: wire, messages: [] };
+  },
+
+  async deleteChat(chatId) {
+    await sleep(30);
+    const wire = mockWireById.get(chatId);
+    mockWireById.delete(chatId);
+    chatContextMap.delete(chatId);
+    if (wire?.contextType && wire.contextId) {
+      contextToChatMap.delete(`${wire.contextType}:${wire.contextId}`);
+    }
+    const idx = generalChatList.findIndex((c) => c.chatId === chatId);
+    if (idx >= 0) {
+      generalChatList.splice(idx, 1);
+    }
+  },
+
+  async renameChat(chatId, chatName) {
+    await sleep(30);
+    const wire = mockWireById.get(chatId);
+    if (!wire) {
+      throw new Error(`Mock chat not found: ${chatId}`);
+    }
+    const next: ChatResponseWire = {
+      ...wire,
+      chatName,
+      updatedAt: new Date().toISOString(),
+    };
+    mockWireById.set(chatId, next);
+    const summaryIdx = generalChatList.findIndex((c) => c.chatId === chatId);
+    if (summaryIdx >= 0) {
+      generalChatList[summaryIdx] = summarizeFromWire(next);
+    }
+    return next;
+  },
+
+  async listAgentProfiles() {
+    await sleep(20);
+    return [
+      {
+        id: 'hello-world',
+        capabilityIds: ['conversation.general'],
+      },
+      {
+        id: 'schema-exploration',
+        capabilityIds: ['metadata.schema-read', 'sql.query'],
+      },
+    ];
+  },
+
+  async getChatByContext(contextType, contextId) {
     await sleep(50);
     return contextToChatMap.get(`${contextType}:${contextId}`) ?? null;
   },
 };
 
-// When real backend is ready, create realChatService and change the export below
-export const chatService: ChatService = mockChatService;
+const realChatService: ChatService = {
+  async createChat(params) {
+    const payload = buildCreateBody(params);
+    const res = await fetch(CHATS_PREFIX, {
+      ...FETCH_AI_JSON,
+      method: 'POST',
+      headers: {
+        ...FETCH_AI_JSON.headers,
+        ...(payload ? { 'Content-Type': 'application/json' } : {}),
+      },
+      body: payload ? JSON.stringify(payload) : undefined,
+    });
+    await ensureOk(res, 'POST /api/v1/ai/chats');
+    const chat = await readJson<ChatResponseWire>(res);
+    return { chatId: chat.chatId, chatName: chat.chatName };
+  },
+
+  async *sendMessage(chatId, message, options) {
+    const res = await fetch(`${CHATS_PREFIX}/${encodeURIComponent(chatId)}/messages`, {
+      ...FETCH_AI_SSE,
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    });
+    await ensureOk(res, 'POST SSE /api/v1/ai/chats/.../messages');
+    yield* consumeChatSse(res, options);
+  },
+
+  async listChats() {
+    const res = await fetch(CHATS_PREFIX, {
+      ...FETCH_AI_JSON,
+      method: 'GET',
+    });
+    await ensureOk(res, 'GET /api/v1/ai/chats');
+    const list = await readJson<ChatResponseWire[]>(res);
+    return list.map((chat) => ({
+      chatId: chat.chatId,
+      chatName: chat.chatName,
+      updatedAt: Date.parse(chat.updatedAt),
+    }));
+  },
+
+  async getChatDetail(chatId) {
+    const res = await fetch(`${CHATS_PREFIX}/${encodeURIComponent(chatId)}`, {
+      ...FETCH_AI_JSON,
+      method: 'GET',
+    });
+    await ensureOk(res, `GET /api/v1/ai/chats/${chatId}`);
+    return readJson<ChatDetailResponseWire>(res);
+  },
+
+  async deleteChat(chatId) {
+    const res = await fetch(`${CHATS_PREFIX}/${encodeURIComponent(chatId)}`, {
+      credentials: 'include',
+      method: 'DELETE',
+    });
+    await ensureOk(res, `DELETE /api/v1/ai/chats/${chatId}`);
+  },
+
+  async renameChat(chatId, chatName) {
+    const res = await fetch(`${CHATS_PREFIX}/${encodeURIComponent(chatId)}`, {
+      credentials: 'include',
+      method: 'PATCH',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ chatName }),
+    });
+    await ensureOk(res, `PATCH /api/v1/ai/chats/${chatId}`);
+    return readJson<ChatResponseWire>(res);
+  },
+
+  async listAgentProfiles() {
+    const res = await fetch(PROFILES_PREFIX, {
+      ...FETCH_AI_JSON,
+      method: 'GET',
+    });
+    await ensureOk(res, 'GET /api/v1/ai/profiles');
+    return readJson<AgentProfileResponseWire[]>(res);
+  },
+
+  async getChatByContext(contextType, contextId) {
+    const path = `${CHATS_PREFIX}/context-types/${encodeURIComponent(contextType)}/contexts/${encodeURIComponent(contextId)}`;
+    const res = await fetch(path, {
+      ...FETCH_AI_JSON,
+      method: 'GET',
+    });
+    if (res.status === 404) {
+      return null;
+    }
+    await ensureOk(res, path);
+    const chat = await readJson<ChatResponseWire>(res);
+    return chat.chatId;
+  },
+};
+
+export const chatService: ChatService = isRestChatBackendActive() ? realChatService : mockChatService;
+
+/** Explicit mock handle for tests that need to reference the in-memory implementation. */
+export { mockChatService, realChatService };

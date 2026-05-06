@@ -15,8 +15,19 @@ import type {
   InlineChatContextType,
 } from '../types/inlineChat';
 import { chatService } from '../services/api';
+import { resolveGeneralChatAgentProfileId } from '../features/chatPreferences';
 import { useFeatureFlags } from '../features/FeatureFlagContext';
 
+/**
+ * Inline chats share `chatService` with General Chat. Contextual `createChat` forwards the same
+ * `profileId` resolution as the main app (`resolveGeneralChatAgentProfileId()` — session picker,
+ * then `VITE_MILL_AI_PROFILE`, then omit for server default) so inline threads stay aligned with
+ * General Chat agent defaults when the picker flag is enabled (WI-230).
+ *
+ * Structured chat artefacts (SQL / facet cards) are implemented for **General Chat** only
+ * ([ChatContext]); inline sessions can adopt the same `onNonTextPartUpdated` + message `artifacts`
+ * pattern in a follow-up.
+ */
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
@@ -98,6 +109,16 @@ function inlineChatReducer(
         ...state,
         sessions: state.sessions.map((s) =>
           s.id !== sessionId ? s : { ...s, isLoading },
+        ),
+      };
+    }
+
+    case 'SET_SESSION_THINKING': {
+      const { sessionId, message } = action.payload;
+      return {
+        ...state,
+        sessions: state.sessions.map((s) =>
+          s.id !== sessionId ? s : { ...s, thinkingMessage: message },
         ),
       };
     }
@@ -253,6 +274,7 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
         contextEntityType,
         messages,
         isLoading: false,
+        thinkingMessage: null,
         createdAt: Date.now(),
       };
 
@@ -312,6 +334,7 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
         let chatId = session.chatId;
         if (!chatId) {
           const result = await chatService.createChat({
+            profileId: resolveGeneralChatAgentProfileId(),
             contextType: session.contextType,
             contextId: session.contextId,
             contextLabel: session.contextLabel,
@@ -321,8 +344,31 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
           dispatch({ type: 'SET_SESSION_CHAT_ID', payload: { sessionId, chatId } });
         }
 
+        dispatch({
+          type: 'SET_SESSION_THINKING',
+          payload: { sessionId, message: null },
+        });
         let fullContent = '';
-        for await (const chunk of chatService.sendMessage(chatId, content)) {
+        for await (const chunk of chatService.sendMessage(chatId, content, {
+          onProgress: (evt) => {
+            if (evt.kind === 'diagnostic') {
+              dispatch({
+                type: 'SET_SESSION_THINKING',
+                payload: { sessionId, message: evt.message },
+              });
+            } else if (evt.kind === 'tool') {
+              dispatch({
+                type: 'SET_SESSION_THINKING',
+                payload: { sessionId, message: evt.line },
+              });
+            } else if (evt.kind === 'clear-wait') {
+              dispatch({
+                type: 'SET_SESSION_THINKING',
+                payload: { sessionId, message: null },
+              });
+            }
+          },
+        })) {
           fullContent += chunk;
           dispatch({
             type: 'UPDATE_MESSAGE',
@@ -348,6 +394,7 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
           },
         });
       } finally {
+        dispatch({ type: 'SET_SESSION_THINKING', payload: { sessionId, message: null } });
         dispatch({ type: 'SET_LOADING', payload: { sessionId, isLoading: false } });
       }
     },

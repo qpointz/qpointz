@@ -1,5 +1,5 @@
 import { ActionIcon, Box, Textarea, Tooltip, useMantineColorScheme } from '@mantine/core';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { HiArrowUp, HiMicrophone, HiPlus } from 'react-icons/hi2';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
 
@@ -18,11 +18,26 @@ export function ChatInputBox({
   compact = false,
 }: ChatInputBoxProps) {
   const [value, setValue] = useState('');
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const wasDisabledRef = useRef(disabled);
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const flags = useFeatureFlags();
 
   const canSend = value.trim().length > 0 && !disabled;
+
+  /** After a reply finishes, Mantine does not restore focus — put the caret back in the composer. */
+  useEffect(() => {
+    const prev = wasDisabledRef.current;
+    wasDisabledRef.current = disabled;
+    if (prev && !disabled) {
+      const id = window.requestAnimationFrame(() => {
+        inputRef.current?.focus({ preventScroll: true });
+      });
+      return () => window.cancelAnimationFrame(id);
+    }
+    return undefined;
+  }, [disabled]);
 
   const handleSend = () => {
     const trimmed = value.trim();
@@ -61,6 +76,7 @@ export function ChatInputBox({
     >
       {/* Textarea — borderless, transparent background */}
       <Textarea
+        ref={inputRef}
         value={value}
         onChange={(e) => setValue(e.currentTarget.value)}
         onKeyDown={handleKeyDown}

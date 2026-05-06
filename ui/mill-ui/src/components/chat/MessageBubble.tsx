@@ -1,6 +1,6 @@
 import { Box, Paper, Text, useMantineColorScheme } from '@mantine/core';
 import type { Message } from '../../types/chat';
-import { MessageContent } from '../common/MessageContent';
+import { AssistantReplyRouter } from './AssistantReplyRouter';
 
 interface MessageBubbleProps {
   message: Message;
@@ -56,7 +56,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         width: '100%',
       }}
     >
-      <MessageContent content={message.content} />
+      <AssistantReplyRouter message={message} />
     </Box>
   );
 }

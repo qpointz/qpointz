@@ -96,6 +96,8 @@ export interface FeatureFlags {
   // Chat Input Controls — optional buttons in ChatInputBox
   chatAttachButton: boolean; // "+" attach button
   chatDictateButton: boolean; // Microphone / dictate button
+  /** When true, General Chat chrome shows an agent profile picker for *new* chats only. */
+  chatAgentPicker: boolean;
 
   // Header / Chrome
   headerGlobalSearch: boolean; // Search icon + floating search overlay in header nav
@@ -109,7 +111,7 @@ export const defaultFeatureFlags: FeatureFlags = {
   viewModel: true,
   viewKnowledge: false,
   viewAnalysis: false,
-  viewChat: false,
+  viewChat: true,
 
   chatReferencesEnabled: false,
   chatReferencesModelContext: false,
@@ -189,6 +191,7 @@ export const defaultFeatureFlags: FeatureFlags = {
 
   chatAttachButton: true,
   chatDictateButton: true,
+  chatAgentPicker: false,
 
   headerGlobalSearch: false,
   headerThemeSwitcher: true,

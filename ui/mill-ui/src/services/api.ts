@@ -15,7 +15,16 @@ export {
 export { conceptService } from './conceptService';
 export { queryService } from './queryService';
 export { statsService } from './statsService';
-export { chatService } from './chatService';
+
+import { chatService, mockChatService, realChatService } from './chatService';
+
+export { chatService, mockChatService, realChatService };
+
+/** Narrow helper for callers that only need profiles discovery (delegates to [chatService]). */
+export function listAgentProfiles() {
+  return chatService.listAgentProfiles();
+}
+
 export { chatReferencesService } from './chatReferencesService';
 export { relatedContentService } from './relatedContentService';
 export { featureService } from './featureService';

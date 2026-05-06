@@ -241,7 +241,7 @@ App
 │                   │   │   ├── Stat cards (Schemas, Tables, Concepts, Queries)
 │                   │   │   └── Quick links (feature-flag gated)
 │                   │   │
-│                   │   ├── /chat/* → ChatView
+│                   │   ├── /chat, /chat/:conversationId → ChatView (nested)
 │                   │   │   └── ChatProvider
 │                   │   │       └── AppShell
 │                   │   │           ├── CollapsibleSidebar → Sidebar (conversation list)
@@ -367,9 +367,11 @@ All flags default to `true` for development.
 - Admin quick link conditionally shown based on `viewAdmin` flag
 - Clickable stat cards navigate to relevant views
 
-### 2. Chat View (`/chat`)
+### 2. Chat View (`/chat`, `/chat/:conversationId`)
 
 **Purpose:** AI chat interface with conversation management
+
+**URL pattern:** index **`/chat`** and optional **`/chat/:conversationId`** where **`conversationId`** is the server chat UUID (`POST /api/v1/ai/chats`). The app uses **`basename=/app`**, so deployed paths are under `/app/chat/...`. **`ChatRouteSync`** keeps the address bar and `ChatContext` in sync.
 
 **Features:**
 - Conversation sidebar with history (CollapsibleSidebar)
@@ -895,7 +897,7 @@ type ChatAction =
 | View | Pattern | Example |
 |------|---------|---------|
 | Overview | `/overview` | `/overview` |
-| Chat | `/chat` | `/chat` |
+| Chat | `/chat`, `/chat/:conversationId` | `/chat` |
 | Model | `/model/:schema?/:table?/:attribute?` | `/model/sales/customers/customer_id` |
 | Knowledge | `/knowledge/:conceptId?` | `/knowledge/customer-lifetime-value` |
 | Analysis | `/analysis/:queryId?` | `/analysis/top-customers` |

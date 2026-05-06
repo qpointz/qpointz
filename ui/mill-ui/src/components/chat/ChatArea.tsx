@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Box, Group, Text, useMantineColorScheme } from '@mantine/core';
+import { Box, Group, Text, Badge, useMantineColorScheme } from '@mantine/core';
 import { useLocation, useNavigate } from 'react-router';
 import { useChat } from '../../context/ChatContext';
 import { MessageList } from './MessageList';
@@ -70,6 +70,11 @@ export function ChatArea() {
           >
             {activeConversation?.title || 'New Chat'}
           </Text>
+          {activeConversation?.profileId ? (
+            <Badge size="xs" variant="outline" color="gray">
+              {activeConversation.profileId}
+            </Badge>
+          ) : null}
           {/* Slot for future controls (model switcher, related objects, etc.) */}
           <Group gap="xs">
           </Group>
@@ -108,7 +113,7 @@ export function ChatArea() {
         <Box style={{ pointerEvents: 'auto' }}>
           {/* Thinking status — sits above the input box */}
           <ThinkingIndicator message={state.thinkingMessage} />
-          <MessageInput onSend={sendMessage} disabled={state.isLoading} />
+          <MessageInput onSend={sendMessage} disabled={state.isLoading || !initialized} />
         </Box>
       </Box>
     </Box>

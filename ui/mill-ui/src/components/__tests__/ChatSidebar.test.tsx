@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MantineProvider } from '@mantine/core';
+import { MemoryRouter } from 'react-router';
 import type { ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
 import { Sidebar } from '../layout/Sidebar';
@@ -24,27 +25,28 @@ beforeEach(() => {
 
 function wrapper({ children }: { children: ReactNode }) {
   return (
-    <MantineProvider>
-      <ChatProvider>{children}</ChatProvider>
-    </MantineProvider>
+    <MemoryRouter>
+      <MantineProvider>
+        <ChatProvider>{children}</ChatProvider>
+      </MantineProvider>
+    </MemoryRouter>
   );
 }
 
 /** Helper component to seed conversations before rendering Sidebar */
 function SidebarWithConversations({ count = 0 }: { count?: number }) {
-  const { createConversation } = useChat();
-  const initialized = useRef(false);
+  const { createConversation, initialized } = useChat();
+  const seededRef = useRef(false);
 
   useEffect(() => {
-    if (!initialized.current && count > 0) {
-      initialized.current = true;
-      (async () => {
-        for (let i = 0; i < count; i++) {
-          await createConversation();
-        }
-      })();
-    }
-  }, [count, createConversation]);
+    if (!initialized || seededRef.current || count <= 0) return;
+    seededRef.current = true;
+    void (async () => {
+      for (let i = 0; i < count; i++) {
+        await createConversation();
+      }
+    })();
+  }, [count, createConversation, initialized]);
 
   return <Sidebar />;
 }

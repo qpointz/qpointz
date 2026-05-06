@@ -16,23 +16,36 @@ export function ThinkingIndicator({ message }: ThinkingIndicatorProps) {
           style={{
             ...styles,
             display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
+            alignItems: 'flex-start',
+            gap: '10px',
             maxWidth: '900px',
             margin: '0 auto',
             width: '100%',
             paddingLeft: 'var(--mantine-spacing-md)',
             paddingRight: 'var(--mantine-spacing-md)',
-            paddingBottom: '6px',
+            paddingBottom: '8px',
           }}
         >
-          <RingsLoader size={16} />
+          <Box
+            style={{
+              flexShrink: 0,
+              paddingTop: '1px',
+              lineHeight: 0,
+            }}
+          >
+            <RingsLoader size={16} />
+          </Box>
           <Text
             size="xs"
             c={isDark ? 'gray.4' : 'gray.5'}
             style={{
+              flex: 1,
+              minWidth: 0,
               fontStyle: 'italic',
               userSelect: 'none',
+              lineHeight: 1.45,
+              whiteSpace: 'pre-wrap',
+              overflowWrap: 'anywhere',
             }}
           >
             {message}
