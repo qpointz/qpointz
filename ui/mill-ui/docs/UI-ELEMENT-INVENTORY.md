@@ -246,7 +246,7 @@ Shareable deep links use **`/chat/:conversationId`** (server chat id). **`ChatRo
 |---|---|---|---|---|---|
 | Message list | Conversation transcript | chat context + `chatService.sendMessage()` streaming chunks from mock response pools | `viewChat` | `true` | mock |
 | Typing indicator | Assistant response in-progress marker | local streaming state | n/a | n/a | mock |
-| Input box | Prompt input and send | local state | `chatAttachButton`, `chatDictateButton` | `true`, `true` | n/a |
+| Input box | Prompt input and send | local state | `chatAttachButton`, `chatDictateButton` | `false`, `false` | n/a |
 
 ---
 

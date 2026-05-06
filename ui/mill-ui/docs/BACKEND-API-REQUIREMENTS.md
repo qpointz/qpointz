@@ -707,8 +707,8 @@ Returns feature flags for the current user/session. The backend only needs to in
   "relatedContentKnowledgeContext": true,
   "relatedContentAnalysisContext": true,
   "relatedContentInDrawer": true,
-  "chatAttachButton": true,
-  "chatDictateButton": true,
+  "chatAttachButton": false,
+  "chatDictateButton": false,
   "headerGlobalSearch": true,
   "headerThemeSwitcher": true,
   "headerUserProfile": true

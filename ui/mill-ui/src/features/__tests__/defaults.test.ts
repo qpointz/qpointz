@@ -52,7 +52,9 @@ describe('defaultFeatureFlags', () => {
       'facetTypesReadOnly',
       // Header features disabled by default
       'headerGlobalSearch',
-      // General chat — agent profile chrome (reserved; off until product enables)
+      // General chat — optional input chrome (off until product enables)
+      'chatAttachButton',
+      'chatDictateButton',
       'chatAgentPicker',
       // Model panel — optional chrome
       'modelQuickBadges',

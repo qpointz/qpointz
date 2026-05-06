@@ -165,14 +165,15 @@ Control the "related content" feature — pills/popovers linking to related sche
 | `relatedContentAnalysisContext` | `false` | Related content on Analysis queries | `RelatedContentButton.tsx`, `RelatedContentContext.tsx` |
 | `relatedContentInDrawer` | `false` | Show related content section inside the inline chat drawer | `InlineChatDrawer.tsx` |
 
-### 13. Chat Input Controls (2 flags)
+### 13. Chat Input Controls (3 flags)
 
-Control optional buttons in the ChatInputBox (shared between general and inline chat).
+Control optional buttons and General Chat agent picker chrome.
 
 | Flag | Default | What it controls | Consumer(s) |
 |------|---------|-----------------|-------------|
-| `chatAttachButton` | `true` | "+" attach button in ChatInputBox | `ChatInputBox.tsx` |
-| `chatDictateButton` | `true` | Microphone/dictate button in ChatInputBox | `ChatInputBox.tsx` |
+| `chatAttachButton` | `false` | "+" attach button in ChatInputBox | `ChatInputBox.tsx` |
+| `chatDictateButton` | `false` | Microphone/dictate button in ChatInputBox | `ChatInputBox.tsx` |
+| `chatAgentPicker` | `false` | Show agent profile `Select` in General Chat sidebar header (new chats only; options from `GET /api/v1/ai/profiles`) | `AppShell.tsx`, `ChatContext.tsx` |
 
 ### 14. Header / Chrome (3 flags)
 

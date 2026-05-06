@@ -1,19 +1,22 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MantineProvider } from '@mantine/core';
 import { MessageInput } from '../chat/MessageInput';
 import { FeatureFlagProvider } from '../../features/FeatureFlagContext';
+import { featureService } from '../../services/api';
 
 // Mock feature service so FeatureFlagProvider doesn't call real backend
 vi.mock('../../services/api', () => ({
   featureService: {
-    async getFlags() {
-      const { defaultFeatureFlags } = await import('../../features/defaults');
-      return { ...defaultFeatureFlags };
-    },
+    getFlags: vi.fn(),
   },
 }));
+
+beforeEach(async () => {
+  const { defaultFeatureFlags } = await import('../../features/defaults');
+  vi.mocked(featureService.getFlags).mockResolvedValue({ ...defaultFeatureFlags });
+});
 
 function renderInput(props: { onSend?: (msg: string) => void; disabled?: boolean } = {}) {
   const onSend = props.onSend ?? vi.fn();
@@ -40,9 +43,21 @@ describe('MessageInput', () => {
     expect(screen.getByLabelText('Send message')).toBeInTheDocument();
   });
 
-  it('should render attach and dictate buttons (feature-flagged)', () => {
+  it('should not render attach and dictate buttons when feature flags are off', () => {
     renderInput();
-    expect(screen.getByLabelText('Attach file')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Attach file')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Dictate')).not.toBeInTheDocument();
+  });
+
+  it('should render attach and dictate buttons when feature flags enable them', async () => {
+    const { defaultFeatureFlags } = await import('../../features/defaults');
+    vi.mocked(featureService.getFlags).mockResolvedValue({
+      ...defaultFeatureFlags,
+      chatAttachButton: true,
+      chatDictateButton: true,
+    });
+    renderInput();
+    expect(await screen.findByLabelText('Attach file')).toBeInTheDocument();
     expect(screen.getByLabelText('Dictate')).toBeInTheDocument();
   });
 
