@@ -23,6 +23,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | D-4 | Add OBJECT native vector type (Phase B): MapVector with multi-segment PathSegment paths | ✨ feature | backlog | data/complex-type-support.md |
 | D-5 | Implement PathSegment reconstruction and flattening algorithms (Java + Python)          | ✨ feature | backlog | data/complex-type-support.md |
 | D-6 | Add JSON/LIST/MAP/OBJECT to all type mapping tables in mill-type-system reference       | 📝 docs   | backlog | data/mill-type-system.md     |
+| D-7 | Streaming export format SPI in `mill-data-source-core` + SPI-backed `ExportFormatRegistry` bean in `mill-data-autoconfigure` (**WI-250**) | ✨ feature | planned | [`planned/streaming-export-service/WI-250-export-format-spi.md`](planned/streaming-export-service/WI-250-export-format-spi.md) |
 
 ---
 
@@ -167,6 +168,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | P-33 | Explore Docker Buildx Bake to reduce Docker image build time across services and pipelines                                                                                                 | 💡 improvement | backlog | **TBD (new WI)**                                |
 | P-34 | WebFlux migration + REST inventory + `@PreAuthorize` stubs on all HTTP operations (**WI-220**–**WI-228**)                                                                                  | 🔧 refactoring | planned | [`planned/webflux-migration-and-method-security/STORY.md`](planned/webflux-migration-and-method-security/STORY.md) |
 | P-35 | Extract a shared Spring web module for reusable REST advice and standard error payload mapping across services                                                                             | ✨ feature      | backlog | `platform/rest-exception-handling-pattern.md`   |
+| P-36 | HTTP streaming data export `/services/export` (Substrait table scan, format SPI, **WI-250**–**WI-261**); see legacy **P-11** proto export track                                                                 | ✨ feature      | planned | [`planned/streaming-export-service/STORY.md`](planned/streaming-export-service/STORY.md) |
 
 ---
 
@@ -245,6 +247,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | U-10 | Add tests for command palette, @ mentions, keyboard nav, and error scenarios | 🧪 test | backlog | ui/chat-input-enhancements.md |
 | U-11 | Migrate `mill-ui` general chat from legacy `/api/nl2sql/chats/*` to `/api/v1/ai/chats/*` and adopt `item.*` SSE handling | ✨ feature | done | `docs/workitems/completed/20260506-ai-v3-mill-ui-general-chat/STORY.md` (supersedes planned `WI-082` scope via **WI-229**–**WI-233**) |
 | U-12 | Redesign optional per-facet-type **view** and **edit** component registration (replacing removed bespoke facet presenters); descriptor-driven fallback remains default | ✨ feature | backlog | `design/ui/facet-view-customization.md` |
+| U-13 | mill-ui Analysis full stack: saved queries REST + `realQueryService` (**WI-256**–**WI-260**)                                                                          | ✨ feature | planned | [`planned/mill-ui-analysis-full-stack/STORY.md`](planned/mill-ui-analysis-full-stack/STORY.md) |
 
 ---
 

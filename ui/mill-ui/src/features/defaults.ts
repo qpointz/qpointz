@@ -110,7 +110,7 @@ export const defaultFeatureFlags: FeatureFlags = {
   viewHome: true,
   viewModel: true,
   viewKnowledge: false,
-  viewAnalysis: false,
+  viewAnalysis: true,
   viewChat: true,
 
   chatReferencesEnabled: false,
