@@ -243,7 +243,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | U-8 | Support multi-select for @ mention entities | ✨ feature | backlog | ui/chat-input-enhancements.md |
 | U-9 | Support command parameters (e.g. /get-data limit=10) | ✨ feature | backlog | ui/chat-input-enhancements.md |
 | U-10 | Add tests for command palette, @ mentions, keyboard nav, and error scenarios | 🧪 test | backlog | ui/chat-input-enhancements.md |
-| U-11 | Migrate `mill-ui` general chat from legacy `/api/nl2sql/chats/*` to `/api/v1/ai/chats/*` and adopt `item.*` SSE handling | ✨ feature | planned | `docs/workitems/planned/ai-v3/WI-082-mill-ui-unified-ai-chat-integration.md` |
+| U-11 | Migrate `mill-ui` general chat from legacy `/api/nl2sql/chats/*` to `/api/v1/ai/chats/*` and adopt `item.*` SSE handling | ✨ feature | done | `docs/workitems/completed/20260506-ai-v3-mill-ui-general-chat/STORY.md` (supersedes planned `WI-082` scope via **WI-229**–**WI-233**) |
 | U-12 | Redesign optional per-facet-type **view** and **edit** component registration (replacing removed bespoke facet presenters); descriptor-driven fallback remains default | ✨ feature | backlog | `design/ui/facet-view-customization.md` |
 
 ---

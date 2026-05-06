@@ -84,6 +84,9 @@ mill:
   ai:
     # Opt-in: enable AI v3 via `--spring.profiles.active=ai` (see second document), which sets enabled: true.
     enabled: false
+  ui:
+    version: v2
+    enabled: true
 
 springdoc:
   swagger-ui:

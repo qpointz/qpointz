@@ -23,8 +23,8 @@ This story **does not** require “hard error on unknown `partType`” for SSE �
 
 ---
 
-**Story folder:** `docs/workitems/in-progress/ai-v3-mill-ui-general-chat/`  
-**Branch (align when convenient):** `feat/ai-v3-mill-ui-general-chat` — may still be `feat/mill-ui-general-chat`; rename with `git branch -m feat/ai-v3-mill-ui-general-chat` if desired.
+**Story archive:** `docs/workitems/completed/20260506-ai-v3-mill-ui-general-chat/` (this folder; closed **2026-05-06**).  
+**Delivery branch:** `feat/mill-ui-general-chat`.
 
 ## Work Items
 

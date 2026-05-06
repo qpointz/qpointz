@@ -189,8 +189,8 @@ export const defaultFeatureFlags: FeatureFlags = {
   relatedContentAnalysisContext: false,
   relatedContentInDrawer: false,
 
-  chatAttachButton: true,
-  chatDictateButton: true,
+  chatAttachButton: false,
+  chatDictateButton: false,
   chatAgentPicker: false,
 
   headerGlobalSearch: false,

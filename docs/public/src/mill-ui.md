@@ -25,7 +25,7 @@ The primary sidebar entries (see `AppHeader.tsx`) are:
 | **Model** | `/model/:schema?/:table?/:column?` | Physical schema tree + metadata facets |
 | **Knowledge** | `/knowledge/:conceptId?` | Business concepts (categories, tags, SQL definitions) |
 | **Analysis** | `/analysis/:queryId?` | Query playground (SQL editor, execute, results) |
-| **Chat** | `/chat/*` | General conversations |
+| **Chat** | `/chat`, `/chat/:conversationId` | General conversations (optional segment is the server chat id for shareable deep links) |
 | **Connect** | `/connect/:section?` | Client integration hints (e.g. Python, Java) |
 | **Admin** | `/admin/*` | Operators: data sources, policies, services, settings; **Metadata** (e.g. facet types) under the model admin area |
 
@@ -98,11 +98,11 @@ URLs: **`/app/knowledge`** or **`/app/knowledge/<conceptId>`**.
 - Optional toolbar actions (when flags are on): **attach** and **dictate** buttons — UI only unless wired to a backend.
 - Assistant replies are rendered as **Markdown** (including fenced code blocks and tables) via **`MessageContent`** / **`ReactMarkdown`**.
 - A **thinking** line can show while the assistant is streaming.
-- Conversations are persisted in **`localStorage`** on the client; creating a chat also calls **`chatService.createChat`** (see `ChatContext.tsx`).
+- **Persistence:** With **`VITE_CHAT_API=mock`** (Vitest and local mock runs), conversations live in **`localStorage`**. When the UI is built for the **unified AI v3** service (**`mill.ai.enabled`** on the Mill stack and the client wired to **`realChatService`** / REST mode), the sidebar and transcript are **server-backed** (`GET`/`POST` **`/api/v1/ai/chats`** and streaming **`POST …/messages`**). `ChatContext` drops **`localStorage`** as the source of truth in that mode.
 
 ### Chat service (mock vs real)
 
-`src/services/api.ts` re-exports **`chatService`** from **`chatService.ts`**. The checked-in default is a **mock** implementation that streams canned Markdown responses (and varies tone by context for inline chats). To point at a real Mill chat API, replace that export with a real implementation — the UI already expects **`createChat`**, **`sendMessage`** streaming, and related methods on the **`ChatService`** interface.
+`src/services/api.ts` re-exports **`chatService`** from **`chatService.ts`**. The **mock** streams canned Markdown (and varies tone by context for inline chats) for tests and offline UX. The **real** implementation targets **`/api/v1/ai/chats`** (see repository design **GENERAL-CHAT-DESIGN** and **ai-v3-chat-transport-extensions**). Both honour the same **`ChatService`** surface (**`createChat`**, **`sendMessage`** streaming, list/detail/rename/delete).
 
 Do **not** assume NL-to-SQL-specific widgets (intent cards, SQL copy tiles, clarification cards) unless your deployed backend and UI branch actually implement them; the stock Mill UI does not render those as separate components today.
 
@@ -112,7 +112,7 @@ When **inline chat** flags are on, compact chat can open from **Model**, **Knowl
 
 ### URLs
 
-**`/app/chat`** and child routes under **`/chat/*`**.
+**`/app/chat`** opens general chat; **`/app/chat/<conversationId>`** (server-issued chat UUID) deep-links the same thread for sharing or bookmarks. The router keeps the path in sync when you change conversations.
 
 ---
 
