@@ -52,6 +52,20 @@ sealed interface ChatRuntimeEvent {
         val result: Any?,
     ) : ChatRuntimeEvent
 
+    /**
+     * Structured assistant output slice (SQL, facet proposal, etc.) mapped to SSE
+     * [io.qpointz.mill.ai.sse.ChatSseEvent.ItemPartUpdated] with non-default
+     * [presentation] / [partType].
+     *
+     * [content] is a JSON object string for the client (matches `ItemPartUpdated.content`).
+     */
+    data class StructuredPart(
+        val presentation: String,
+        val partType: String,
+        val mode: String = "replace",
+        val content: String,
+    ) : ChatRuntimeEvent
+
     /** The model turn is complete. [text] is the full assembled response. */
     data class Completed(val text: String) : ChatRuntimeEvent
 }

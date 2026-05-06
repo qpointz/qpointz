@@ -28,6 +28,8 @@ class ChatRuntimeEventToSseMapperTest {
         val done = mapper.map(ChatRuntimeEvent.Completed("hi"))
         val completed = done.filterIsInstance<ChatSseEvent.ItemCompleted>().single()
         assertNull(completed.content)
+        assertEquals("conversation", completed.presentation)
+        assertEquals("text", completed.partType)
     }
 
     @Test
@@ -37,6 +39,8 @@ class ChatRuntimeEventToSseMapperTest {
         val events = mapper.map(ChatRuntimeEvent.Completed("final"))
         val completed = events.filterIsInstance<ChatSseEvent.ItemCompleted>().single()
         assertEquals("final", completed.content)
+        assertEquals("conversation", completed.presentation)
+        assertEquals("text", completed.partType)
     }
 
     @Test
@@ -68,5 +72,66 @@ class ChatRuntimeEventToSseMapperTest {
         mapper.map(ChatRuntimeEvent.Chunk("a"))
         val done = mapper.map(ChatRuntimeEvent.Completed("a"))
         assertEquals(itemId, (done[0] as ChatSseEvent.ItemCompleted).itemId)
+    }
+
+    @Test
+    fun shouldMapStructuredPart_toItemPartUpdated_withStructuredPresentation() {
+        val events = ChatRuntimeEventToSseMapper("chat-1").map(
+            ChatRuntimeEvent.StructuredPart(
+                presentation = "structured",
+                partType = "sql",
+                mode = "replace",
+                content = """{"sql":"SELECT 1","dialectId":"calcite"}""",
+            ),
+        )
+        assertEquals(2, events.size)
+        assertInstanceOf(ChatSseEvent.ItemCreated::class.java, events[0])
+        val part = events[1] as ChatSseEvent.ItemPartUpdated
+        assertEquals("structured", part.presentation)
+        assertEquals("sql", part.partType)
+        assertEquals("replace", part.mode)
+        assertEquals("""{"sql":"SELECT 1","dialectId":"calcite"}""", part.content)
+    }
+
+    @Test
+    fun shouldEchoLastStructuredDiscriminators_onItemCompleted() {
+        val mapper = ChatRuntimeEventToSseMapper("chat-1")
+        mapper.map(
+            ChatRuntimeEvent.StructuredPart(
+                presentation = "structured",
+                partType = "sql",
+                mode = "replace",
+                content = """{"sql":"SELECT 1"}""",
+            ),
+        )
+        val done = mapper.map(ChatRuntimeEvent.Completed(""))
+        val completed = done.filterIsInstance<ChatSseEvent.ItemCompleted>().single()
+        assertEquals("structured", completed.presentation)
+        assertEquals("sql", completed.partType)
+        assertEquals("", completed.content)
+    }
+
+    @Test
+    fun shouldPreferLastStructuredPart_onItemCompleted() {
+        val mapper = ChatRuntimeEventToSseMapper("chat-1")
+        mapper.map(
+            ChatRuntimeEvent.StructuredPart(
+                presentation = "structured",
+                partType = "sql",
+                mode = "replace",
+                content = """{"sql":"SELECT 1"}""",
+            ),
+        )
+        mapper.map(
+            ChatRuntimeEvent.StructuredPart(
+                presentation = "structured",
+                partType = "facet-proposal",
+                mode = "replace",
+                content = """{"facetTypeKey":"urn:t","metadataEntityId":"e1"}""",
+            ),
+        )
+        val completed = mapper.map(ChatRuntimeEvent.Completed("x")).filterIsInstance<ChatSseEvent.ItemCompleted>().single()
+        assertEquals("structured", completed.presentation)
+        assertEquals("facet-proposal", completed.partType)
     }
 }

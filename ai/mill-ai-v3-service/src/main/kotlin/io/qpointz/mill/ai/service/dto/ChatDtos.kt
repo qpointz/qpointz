@@ -94,12 +94,21 @@ data class ChatDetailResponse(
     }
 }
 
-/** Single durable conversation turn. */
+/**
+ * Single durable conversation turn.
+ *
+ * Today exposes flat [text] only.
+ *
+ * @param assistantReplyView Optional mill-ui layout hint for assistant turns (`conversation`,
+ *   `sql-primary`, `facet-primary`), aligned with live SSE `item.completed` summary.
+ *   **Null** until persistence stores artefact metadata; wire field is forward-compatible.
+ */
 data class TurnResponse(
     val turnId: String,
     val role: String,
     val text: String?,
     val createdAt: String,
+    val assistantReplyView: String? = null,
 ) {
     companion object {
         fun from(t: ConversationTurn) = TurnResponse(
@@ -107,6 +116,7 @@ data class TurnResponse(
             role = t.role,
             text = t.text,
             createdAt = t.createdAt.toString(),
+            assistantReplyView = null,
         )
     }
 }

@@ -21,6 +21,7 @@ import io.qpointz.mill.ai.runtime.events.AgentEvent
 import io.qpointz.mill.ai.runtime.langchain4j.LangChain4jAgent
 import reactor.core.publisher.Flux
 import reactor.core.scheduler.Schedulers
+import tools.jackson.databind.json.JsonMapper
 
 /**
  * [AiV3ChatRuntime] implementation backed by [LangChain4jAgent].
@@ -49,6 +50,8 @@ class LangChain4jChatRuntime(
     private val artifactStore: ArtifactStore,
     private val activeArtifactPointerStore: ActiveArtifactPointerStore,
 ) : AiV3ChatRuntime {
+
+    private val protocolJsonMapper: JsonMapper = JsonMapper.builder().build()
 
     override fun send(metadata: ChatMetadata, message: String): Flux<ChatRuntimeEvent> {
         val rehydration = profileRegistry.rehydrate(metadata)
@@ -132,6 +135,9 @@ class LangChain4jChatRuntime(
                         is AgentEvent.ToolResult -> sink.next(
                             ChatRuntimeEvent.ToolResult(event.name, event.result),
                         )
+                        is AgentEvent.ProtocolFinal -> protocolFinalToStructured(event)?.let {
+                            sink.next(it)
+                        }
                         is AgentEvent.AnswerCompleted -> lastText = event.text
                         else -> Unit
                     }
@@ -142,5 +148,42 @@ class LangChain4jChatRuntime(
                 sink.error(e)
             }
         }.subscribeOn(Schedulers.boundedElastic())
+    }
+
+    /**
+     * Bridges [AgentEvent.ProtocolFinal] to [ChatRuntimeEvent.StructuredPart] for chat/SSE consumers.
+     * Other protocol ids stay on the persistence/router path only.
+     */
+    private fun protocolFinalToStructured(event: AgentEvent.ProtocolFinal): ChatRuntimeEvent.StructuredPart? {
+        val json = payloadToJsonString(event.payload)
+        return when (event.protocolId) {
+            SQL_GENERATED_PROTOCOL -> ChatRuntimeEvent.StructuredPart(
+                presentation = STRUCTURED_PRESENTATION,
+                partType = PART_TYPE_SQL,
+                mode = "replace",
+                content = json,
+            )
+            METADATA_FACET_CAPTURE_PROTOCOL -> ChatRuntimeEvent.StructuredPart(
+                presentation = STRUCTURED_PRESENTATION,
+                partType = PART_TYPE_FACET_PROPOSAL,
+                mode = "replace",
+                content = json,
+            )
+            else -> null
+        }
+    }
+
+    private fun payloadToJsonString(payload: Any?): String = when (payload) {
+        null -> "{}"
+        is String -> payload
+        else -> protocolJsonMapper.writeValueAsString(payload)
+    }
+
+    private companion object {
+        const val SQL_GENERATED_PROTOCOL = "sql-query.generated-sql"
+        const val METADATA_FACET_CAPTURE_PROTOCOL = "metadata.faceting.capture"
+        const val STRUCTURED_PRESENTATION = "structured"
+        const val PART_TYPE_SQL = "sql"
+        const val PART_TYPE_FACET_PROPOSAL = "facet-proposal"
     }
 }

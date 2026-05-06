@@ -40,6 +40,14 @@ sealed interface ChatSseEvent {
      * A partial content update for an in-progress item.
      * [mode] = "append" means the consumer should append [content] to the accumulated text.
      * Future modes: "replace", "patch".
+     *
+     * **V1 frozen defaults:** [presentation] = "conversation", [partType] = "text" — these power the
+     * main assistant text bubble. New [presentation] / [partType] values are reserved for **structured
+     * artefacts** (e.g. SQL, charts, facet proposals); thin text-only clients must **ignore**
+     * unsupported pairs **without** closing the SSE stream, in the same spirit as [ItemToolCall]
+     * (skip / log / forward to an extension hook, not hard-fail).
+     *
+     * Design reference: `docs/design/agentic/ai-v3-chat-transport-extensions.md` (mill-ui extension seam).
      */
     data class ItemPartUpdated(
         override val eventId: String,
@@ -66,6 +74,12 @@ sealed interface ChatSseEvent {
      *
      * This avoids a double-render bug where a client that buffered all deltas also replaces
      * the accumulated text with the full [content] string.
+     *
+     * **[presentation] / [partType] summary:** For turns that included structured
+     * `item.part.updated` rows (non-default presentation/partType), the mapper may set these
+     * fields to the **last** structured pair as an end-of-turn hint (e.g. `structured` + `sql`).
+     * Thin clients that only listen for `item.completed` can branch layout on this signal; the
+     * authoritative artefact payloads remain on the structured part updates.
      */
     data class ItemCompleted(
         override val eventId: String,
