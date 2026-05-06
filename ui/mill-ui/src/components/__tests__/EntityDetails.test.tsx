@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MantineProvider } from '@mantine/core';
 import { MemoryRouter } from 'react-router';
@@ -232,7 +232,26 @@ function renderDetails(entity: SchemaEntity = tableEntity, facets: EntityFacets 
   return render(<EntityDetails entity={entity} facets={facets} />, { wrapper });
 }
 
+const previousFetch = globalThis.fetch;
+
 describe('EntityDetails', () => {
+  beforeEach(() => {
+    globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+      if (url.includes('/services/export/formats')) {
+        return new Response(
+          JSON.stringify([{ id: 'csv', mediaType: 'text/csv', fileExtension: 'csv' }]),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        );
+      }
+      return new Response('', { status: 404 });
+    }) as typeof fetch;
+  });
+
+  afterEach(() => {
+    globalThis.fetch = previousFetch;
+  });
+
   describe('header', () => {
     it('should display entity display name from facets', () => {
       renderDetails();

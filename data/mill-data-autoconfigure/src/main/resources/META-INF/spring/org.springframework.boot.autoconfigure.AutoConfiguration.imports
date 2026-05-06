@@ -7,3 +7,4 @@ io.qpointz.mill.autoconfigure.data.backend.flow.FlowBackendAutoConfiguration
 io.qpointz.mill.autoconfigure.data.backend.flow.FlowDescriptorMetadataSourceAutoConfiguration
 io.qpointz.mill.autoconfigure.data.schema.LogicalLayoutMetadataSourceAutoConfiguration
 io.qpointz.mill.autoconfigure.data.schema.SchemaFacetServiceAutoConfiguration
+io.qpointz.mill.autoconfigure.data.export.ExportFormatsAutoConfiguration

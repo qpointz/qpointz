@@ -6,7 +6,7 @@ plugins {
 }
 
 mill {
-    description = "Mill source format - Arrow IPC"
+    description = "Mill source format - Arrow IPC; IPC stream export (SPI)"
     publishArtifacts = true
 }
 

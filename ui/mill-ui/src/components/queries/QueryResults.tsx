@@ -20,11 +20,16 @@ import {
   HiOutlineCodeBracket,
 } from 'react-icons/hi2';
 import type { QueryResult } from '../../types/query';
+import { useFeatureFlags } from '../../features/FeatureFlagContext';
+import { downloadSqlExport } from '../../services/exportService';
+import { notifications } from '@mantine/notifications';
 
 interface QueryResultsProps {
   result: QueryResult | null;
   error: string | null;
   isExecuting: boolean;
+  /** Live SQL from the editor; when `analysisExportViaService` is true, CSV/JSON try POST /services/export/sql first. */
+  currentSql?: string;
 }
 
 type RowData = Record<string, string | number | boolean | null>;
@@ -39,29 +44,64 @@ function downloadFile(content: string, filename: string, mimeType: string) {
   URL.revokeObjectURL(url);
 }
 
-export function QueryResults({ result, error, isExecuting }: QueryResultsProps) {
+export function QueryResults({ result, error, isExecuting, currentSql = '' }: QueryResultsProps) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
+  const flags = useFeatureFlags();
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const exportCsv = useCallback(() => {
     if (!result) return;
-    const headers = result.columns.map((c) => c.name);
-    const rows = result.rows.map((row) =>
-      headers.map((h) => {
-        const v = row[h];
-        if (v === null) return '';
-        const s = String(v);
-        return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s;
-      }).join(',')
-    );
-    downloadFile([headers.join(','), ...rows].join('\n'), 'query-results.csv', 'text/csv');
-  }, [result]);
+    const runLocal = () => {
+      const headers = result.columns.map((c) => c.name);
+      const rows = result.rows.map((row) =>
+        headers.map((h) => {
+          const v = row[h];
+          if (v === null) return '';
+          const s = String(v);
+          return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s;
+        }).join(',')
+      );
+      downloadFile([headers.join(','), ...rows].join('\n'), 'query-results.csv', 'text/csv');
+    };
+    if (flags.analysisExportViaService && currentSql.trim()) {
+      void downloadSqlExport(currentSql, 'csv', {
+        filenameHint: 'query-results.csv',
+        attachmentBaseName: 'query-results',
+      }).catch(() => {
+        notifications.show({
+          color: 'yellow',
+          title: 'Server export failed',
+          message: 'Using browser export from the result grid.',
+        });
+        runLocal();
+      });
+      return;
+    }
+    runLocal();
+  }, [result, flags.analysisExportViaService, currentSql]);
 
   const exportJson = useCallback(() => {
     if (!result) return;
-    downloadFile(JSON.stringify(result.rows, null, 2), 'query-results.json', 'application/json');
-  }, [result]);
+    const runLocal = () => {
+      downloadFile(JSON.stringify(result.rows, null, 2), 'query-results.json', 'application/json');
+    };
+    if (flags.analysisExportViaService && currentSql.trim()) {
+      void downloadSqlExport(currentSql, 'json', {
+        filenameHint: 'query-results.json',
+        attachmentBaseName: 'query-results',
+      }).catch(() => {
+        notifications.show({
+          color: 'yellow',
+          title: 'Server export failed',
+          message: 'Using browser export from the result grid.',
+        });
+        runLocal();
+      });
+      return;
+    }
+    runLocal();
+  }, [result, flags.analysisExportViaService, currentSql]);
 
   const exportExcel = useCallback(() => {
     // Export as TSV which Excel can open natively

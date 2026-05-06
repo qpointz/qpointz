@@ -14,10 +14,10 @@ Deliver a **`mill-export-service`** module under `/services/export` that serves 
 
 ## Work Items
 
-- [ ] WI-250 — Export format provider SPI + `ExportFormatRegistry` interface (`mill-data-source-core`); SPI-backed registry `@Bean` (`mill-data-autoconfigure`); `META-INF/services` only — no static format list (`WI-250-export-format-spi.md`)
-- [ ] WI-251 — `mill-data-format-json` + adapters from `VectorBlockIterator` to existing row writers (`WI-251-export-format-json-and-adapters.md`)
-- [ ] WI-252 — `ExportVectorBlockSource` in `mill-data-backend-core` (SQL + plan-native table scan → iterator only) (`WI-252-export-vector-block-source-backend.md`)
-- [ ] WI-253 — `mill-export-service`: `ExportFacility` + HTTP API + catalog + **`ExportServiceDescriptor` / `ExportConnectionDescriptor`** + **OpenAPI (SpringDoc) `@Tag` / `@Operation` on REST controllers** (`WI-253-mill-export-service-http.md`)
-- [ ] WI-254 — Tests, limits, and design documentation (`WI-254-export-service-tests-and-docs.md`)
-- [ ] WI-255 — Optional: mill-ui `QueryResults` download via export service (`WI-255-mill-ui-export-download-optional.md`)
-- [ ] WI-261 — mill-ui Model view: **TABLE** detail **Export** split button (formats menu) before **Add Facet**, feature flag **`modelTableExportEnabled`** (default **true**) (`WI-261-mill-ui-model-table-export.md`)
+- [x] WI-250 — Export format provider SPI + `ExportFormatRegistry` interface (`mill-data-source-core`); SPI-backed registry `@Bean` (`mill-data-autoconfigure`); `META-INF/services` only — no static format list (`WI-250-export-format-spi.md`)
+- [x] WI-251 — `mill-data-format-json` + adapters from `VectorBlockIterator` to existing row writers (`WI-251-export-format-json-and-adapters.md`)
+- [x] WI-252 — `ExportVectorBlockSource` in `mill-data-backend-core` (SQL + plan-native table scan → iterator only) (`WI-252-export-vector-block-source-backend.md`)
+- [x] WI-253 — `mill-export-service`: `ExportFacility` + HTTP API + catalog + **`ExportServiceDescriptor` / `ExportConnectionDescriptor`** + **OpenAPI (SpringDoc) `@Tag` / `@Operation` on REST controllers** (`WI-253-mill-export-service-http.md`)
+- [x] WI-254 — Tests, limits, and design documentation (`WI-254-export-service-tests-and-docs.md`)
+- [x] WI-255 — Optional: mill-ui `QueryResults` download via export service (`WI-255-mill-ui-export-download-optional.md`)
+- [x] WI-261 — mill-ui Model view: **TABLE** detail **Export** split button (formats menu) before **Add Facet**, feature flag **`modelTableExportEnabled`** (default **true**) (`WI-261-mill-ui-model-table-export.md`)

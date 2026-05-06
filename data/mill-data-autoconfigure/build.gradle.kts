@@ -16,6 +16,7 @@ dependencies {
     api(project(":security:mill-service-security"))
     api(project(":security:mill-security-autoconfigure"))
     api(project(":data:mill-data-backend-core"))
+    api(project(":data:mill-data-source-core"))
     api(project(":data:mill-data-schema-core"))
     api(project(":data:mill-data-backends"))
     implementation(project(":metadata:mill-metadata-core"))
@@ -38,10 +39,25 @@ testing {
         configureEach {
             if (this is JvmTestSuite) {
                 useJUnitJupiter(libs.versions.junit.get())
+                targets.configureEach {
+                    testTask.configure {
+                        jvmArgs(
+                            "--add-opens=java.base/java.nio=ALL-UNNAMED",
+                            "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+                        )
+                        systemProperty("arrow.enable_unsafe_memory_access", "true")
+                        systemProperty("io.netty.tryReflectionSetAccessible", "true")
+                    }
+                }
 
                 dependencies {
                     implementation(project())
                     implementation(project(":data:mill-data-backends"))
+                    implementation(project(":data:formats:mill-data-format-text"))
+                    implementation(project(":data:formats:mill-data-format-avro"))
+                    implementation(project(":data:formats:mill-data-format-json"))
+                    implementation(project(":data:formats:mill-data-format-arrow"))
+                    implementation(project(":data:formats:mill-data-format-excel"))
                     implementation(libs.boot.starter.test)
                     implementation(libs.boot.starter.actuator)
                     implementation(libs.protobuf.java.util)

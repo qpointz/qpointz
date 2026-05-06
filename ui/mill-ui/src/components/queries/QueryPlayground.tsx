@@ -240,6 +240,7 @@ export function QueryPlayground() {
                   result={result}
                   error={error}
                   isExecuting={isExecuting}
+                  currentSql={sql}
                 />
               </Box>
             )}

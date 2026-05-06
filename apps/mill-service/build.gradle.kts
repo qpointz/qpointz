@@ -5,6 +5,9 @@ plugins {
     id("org.jetbrains.dokka")
 }
 
+/** Apache Arrow MemoryUtil reflects into {@code java.nio.Buffer.address}; unnamed modules need these opens. */
+// If you change these flags, update the copy inside `tasks.withType<BootRun>()` (configuration-cache-safe).
+
 mill {
     description = "Mill service application. Assembly point for all editions."
     publishArtifacts = false
@@ -24,6 +27,7 @@ mill {
             description = "Provides Data services"
             module(":services:mill-data-grpc-service")
             module(":services:mill-data-http-service")
+            module(":services:mill-export-service")
         }
 
         feature("ai-chat-service") {
@@ -129,6 +133,7 @@ dependencies {
     implementation(project(":data:formats:mill-data-format-avro"))
     implementation(project(":data:formats:mill-data-format-parquet"))
     implementation(project(":data:formats:mill-data-format-arrow"))
+    implementation(project(":data:formats:mill-data-format-json"))
 
     implementation(project(":metadata:mill-metadata-autoconfigure"))
     implementation(project(":metadata:mill-metadata-service"))

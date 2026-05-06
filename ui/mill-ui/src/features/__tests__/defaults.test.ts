@@ -16,7 +16,6 @@ describe('defaultFeatureFlags', () => {
     const optInFlags: (keyof FeatureFlags)[] = [
       // View routes disabled by default (opt-in per deployment)
       'viewKnowledge',
-      'viewAnalysis',
       'viewConnect',
       // Chat references & inline chat (off until product enables General/inline chat UX)
       'chatReferencesEnabled',
@@ -56,6 +55,8 @@ describe('defaultFeatureFlags', () => {
       'chatAttachButton',
       'chatDictateButton',
       'chatAgentPicker',
+      // Analysis — server-side export opt-in (falls back to grid export)
+      'analysisExportViaService',
       // Model panel — optional chrome
       'modelQuickBadges',
     ];

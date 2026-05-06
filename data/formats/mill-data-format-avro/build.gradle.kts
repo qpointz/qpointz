@@ -6,7 +6,7 @@ plugins {
 }
 
 mill {
-    description = "Mill source format — Avro"
+    description = "Mill source format — Avro; OCF streaming export (SPI)"
     publishArtifacts = true
 }
 

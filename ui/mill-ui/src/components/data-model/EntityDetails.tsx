@@ -44,8 +44,9 @@ import {
   HiOutlineChevronDown,
   HiOutlineChevronRight,
   HiOutlineInformationCircle,
-  HiOutlineArrowTopRightOnSquare,
+  HiOutlineArrowDownTray,
   HiOutlineEnvelope,
+  HiOutlineArrowTopRightOnSquare,
 } from 'react-icons/hi2';
 import type { EntityFacets, FacetResolvedRow, SchemaEntity, StructuralFacet as StructuralFacetData } from '../../types/schema';
 import { StructuralFacet } from './facets/StructuralFacet';
@@ -55,7 +56,8 @@ import { JsonYamlEditor } from '../common/JsonYamlEditor';
 import { SyntaxCodeEditor } from '../common/SyntaxCodeEditor';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
 import { notifications } from '@mantine/notifications';
-import { facetTypeService, metadataEntityUrnForFacetApi, schemaService } from '../../services/api';
+import { facetTypeService, metadataEntityUrnForFacetApi, schemaService, fetchExportFormats, downloadTableExport, pickDefaultExportFormatId } from '../../services/api';
+import type { ExportFormatInfo } from '../../services/api';
 import type { FacetTypeManifest } from '../../types/facetTypes';
 import type { FacetPayloadSchema } from '../../types/facetTypes';
 import {
@@ -410,6 +412,74 @@ export function EntityDetails({
   const [facetTypes, setFacetTypes] = useState<FacetTypeManifest[]>([]);
   const [activeCategoryTab, setActiveCategoryTab] = useState<string | null>(null);
   const [facetToDelete, setFacetToDelete] = useState<{ facetType: string; instanceIndex: number | null } | null>(null);
+  const [exportFormats, setExportFormats] = useState<ExportFormatInfo[] | null>(null);
+  const [exportFormatsLoading, setExportFormatsLoading] = useState(false);
+  const [exportFormatsFailed, setExportFormatsFailed] = useState(false);
+
+  const defaultExportFormatId = useMemo(() => {
+    if (!exportFormats || exportFormats.length === 0) {
+      return 'csv';
+    }
+    return pickDefaultExportFormatId(exportFormats);
+  }, [exportFormats]);
+
+  useEffect(() => {
+    if (entity.entityType !== 'TABLE' || !flags.modelTableExportEnabled) {
+      setExportFormats(null);
+      setExportFormatsFailed(false);
+      setExportFormatsLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setExportFormatsLoading(true);
+    setExportFormatsFailed(false);
+    void fetchExportFormats()
+      .then((list) => {
+        if (!cancelled) {
+          setExportFormats(list);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setExportFormatsFailed(true);
+          setExportFormats([]);
+          notifications.show({
+            color: 'red',
+            title: 'Export formats unavailable',
+            message: 'Could not load /services/export/formats.',
+          });
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setExportFormatsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [entity.entityType, entity.id, flags.modelTableExportEnabled]);
+
+  const runTableExport = useCallback(
+    async (formatId: string) => {
+      if (entity.entityType !== 'TABLE') {
+        return;
+      }
+      try {
+        const meta = exportFormats?.find((f) => f.id.toLowerCase() === formatId.toLowerCase());
+        await downloadTableExport(entity.schemaName, entity.tableName, formatId, {
+          fileExtension: meta?.fileExtension,
+        });
+      } catch (e) {
+        notifications.show({
+          color: 'red',
+          title: 'Export failed',
+          message: e instanceof Error ? e.message : 'Unknown error',
+        });
+      }
+    },
+    [entity, exportFormats],
+  );
 
   const allByType = facets.byType ?? {};
 
@@ -1418,6 +1488,56 @@ export function EntityDetails({
             </Box>
           </Group>
           <Group gap={4} wrap="nowrap">
+            {entity.entityType === 'TABLE' && flags.modelTableExportEnabled && (
+              <Menu withinPortal position="bottom-end">
+                <Group gap={0} wrap="nowrap" mr="xs">
+                  <Button
+                    size="xs"
+                    leftSection={<HiOutlineArrowDownTray size={14} />}
+                    onClick={() => void runTableExport(defaultExportFormatId)}
+                    disabled={
+                      exportFormatsLoading
+                      || exportFormatsFailed
+                      || (exportFormats !== null && exportFormats.length === 0)
+                    }
+                    loading={exportFormatsLoading}
+                    style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+                  >
+                    Export
+                    {exportFormats !== null && exportFormats.length > 0 ? ` (${defaultExportFormatId})` : ''}
+                  </Button>
+                  <Menu.Target>
+                    <ActionIcon
+                      size={30}
+                      variant="filled"
+                      disabled={
+                        exportFormatsLoading
+                        || exportFormatsFailed
+                        || (exportFormats !== null && exportFormats.length === 0)
+                      }
+                      style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
+                    >
+                      <HiOutlineChevronDown size={14} />
+                    </ActionIcon>
+                  </Menu.Target>
+                </Group>
+                <Menu.Dropdown>
+                  {(exportFormats ?? []).length === 0 ? (
+                    <Menu.Item disabled>{exportFormatsFailed ? 'Could not load formats' : 'No formats'}</Menu.Item>
+                  ) : (
+                    exportFormats!.map((f) => (
+                      <Menu.Item key={f.id} onClick={() => void runTableExport(f.id)}>
+                        {f.id}
+                        {' '}
+                        (
+                        {f.fileExtension}
+                        )
+                      </Menu.Item>
+                    ))
+                  )}
+                </Menu.Dropdown>
+              </Menu>
+            )}
             <Menu withinPortal position="bottom-end">
               <Group gap={0} wrap="nowrap" mr="xs">
                 <Button

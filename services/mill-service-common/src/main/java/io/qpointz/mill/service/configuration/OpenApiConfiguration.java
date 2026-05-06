@@ -20,7 +20,7 @@ public class OpenApiConfiguration {
     public GroupedOpenApi wellKnownApi() {
         return GroupedOpenApi.builder()
                 .group("well-known")
-                .pathsToMatch("/.well-known/mill")
+                .pathsToMatch("/.well-known/**")
                 .build();
     }
 
@@ -33,8 +33,15 @@ public class OpenApiConfiguration {
     public GroupedOpenApi mainApi() {
         return GroupedOpenApi.builder()
                 .group("api")
-                .pathsToMatch("/**")
-                .pathsToExclude("/.well-known/**")
+                .pathsToMatch("/api/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi servicesApi() {
+        return GroupedOpenApi.builder()
+                .group("services")
+                .pathsToMatch("/services/**")
                 .build();
     }
 

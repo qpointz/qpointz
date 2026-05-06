@@ -82,6 +82,11 @@
 | `mill.application.hosts.externals.<name>.host` | String | `ServiceAddressProperties` | services:mill-service-common | Same as above | **mill-service** | Externally reachable host |
 | `mill.application.hosts.externals.<name>.port` | Integer | `ServiceAddressProperties` | services:mill-service-common | Same as above | **mill-service** | Externally reachable port |
 | `mill.data.services.grpc.external-host` | String | `GrpcServerProperties` | services:mill-data-grpc-service | `GrpcServiceDescriptor` / `GrpcConnectionDescriptor` (discovery only) | **mill-data-grpc-service** | Logical key into `mill.application.hosts.externals` when resolving client URLs |
+| `mill.data.services.http.enable` | Boolean | — | — | `@ConditionalOnService(value = "http", group = "data")` on Jet HTTP beans | — | Convention: `OnServiceEnabledCondition` reads **`mill.data.services.http.enable`** when **`group = "data"`**. |
+| `mill.data.services.http.external-host` | String | `HttpServiceProperties` | services:mill-data-http-service | `HttpConnectionDescriptor` | **data-http-service** (Java processor) | Logical key into `mill.application.hosts.externals`. |
+| `mill.data.services.export.enable` | Boolean | `ExportServiceProperties` | services:mill-export-service | `@ConditionalOnService(value = "export", group = "data")` on export beans | **mill-export-service** (processor) | When false or absent in a constrained environment, export controllers and descriptors do not register. |
+| `mill.data.services.export.external-host` | String | `ExportServiceProperties` | services:mill-export-service | `ExportBaseUrlResolver`, `ExportConnectionDescriptor` | **mill-export-service** | Same externals resolution pattern as HTTP data-plane. |
+| `mill.data.services.export.formats` | List\<String\> | `ExportServiceProperties` | services:mill-export-service | `EffectiveExportFormats`, `ExportFacility`, `ExportRestController` | **mill-export-service** | Allowlist of SPI format ids; `*` or empty = all registered formats on the wire. |
 | `mill.services.ai-nl2data.enable` | Boolean | — (checked by `OnServiceEnabledCondition`) | data:mill-data-autoconfigure | `@ConditionalOnService("ai-nl2data")`: `AIConfiguration`, `JPAConfiguration`, `NlSqlChatServiceImpl`, `NlSqlChatController`, `GlobalExceptionHandler`, `ChatProcessor`, `ValueMappingComponents` | none | |
 | `mill.services.data-bot.enable` | Boolean | — (YAML only) | — | **no Java consumer** | none | Ghost key |
 | `mill.services.data-bot.prompt-file` | String | — (YAML only) | — | **no Java consumer** | none | Ghost key |
@@ -132,7 +137,8 @@ These are annotations implemented **in this codebase** (not from Spring Boot) th
 
 | Annotation | Condition class | Defined in module | Checks property | Utility dep |
 |------------|----------------|-------------------|-----------------|-------------|
-| `@ConditionalOnService("name")` | `OnServiceEnabledCondition` | data:mill-data-autoconfigure | `mill.services.<name>.enable` | `SpringUtils` |
+| `@ConditionalOnService(value = "name", group = "data")` | `OnServiceEnabledCondition` | core:mill-spring-support | `mill.data.services.<name>.enable` | `SpringUtils` |
+| `@ConditionalOnService("name")` (default group) | `OnServiceEnabledCondition` | core:mill-spring-support | `mill.services.<name>.enable` | `SpringUtils` |
 | `@ConditionalOnSecurity` | `OnSecurityEnabledCondition` | core:mill-security-autoconfigure | `mill.security.enable` | `SpringUtils` |
 | `@ConditionalOnTestKit` | `OnTestKitCondition` | core:mill-test-kit | `mill.security.*` (any key present) | — |
 

@@ -6,7 +6,7 @@ plugins {
 }
 
 mill {
-    description = "Mill source format — CSV, FWF"
+    description = "Mill source format — CSV, FWF; CSV/TSV streaming export (SPI)"
     publishArtifacts = true
 }
 

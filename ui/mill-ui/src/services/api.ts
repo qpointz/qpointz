@@ -15,6 +15,17 @@ export {
 export { conceptService } from './conceptService';
 export { queryService } from './queryService';
 export { statsService } from './statsService';
+export {
+  fetchExportFormats,
+  downloadTableExport,
+  downloadSqlExport,
+} from './exportService';
+export {
+  pickDefaultExportFormatId,
+  buildTableExportUrl,
+  filenameFromContentDisposition,
+} from './exportHelpers';
+export type { ExportFormatInfo } from './exportHelpers';
 
 import { chatService, mockChatService, realChatService } from './chatService';
 

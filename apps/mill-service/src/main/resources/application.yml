@@ -69,7 +69,10 @@ mill:
       http:
         enable: true
         external-host: http
-## LEGACY subject to review
+      export:
+        enable: true
+        external-host: http
+  ## LEGACY subject to review
   security:
     enable: false
   metadata:

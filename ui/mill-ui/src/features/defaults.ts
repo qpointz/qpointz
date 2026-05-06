@@ -30,6 +30,10 @@ export interface FeatureFlags {
   modelStructuralFacet: boolean; // Use tailored StructuralFacet read view when data exists
   modelQuickBadges: boolean; // Quick info badges below entity header (PK, FK, nullable, unique)
   modelPhysicalType: boolean; // Physical type badge on attribute detail
+  /** When true, Analysis results export uses POST /services/export/sql when possible (falls back to client-side on failure). */
+  analysisExportViaService: boolean;
+  /** When true, Data Model TABLE detail shows Export split button (server /services/export). */
+  modelTableExportEnabled: boolean;
 
   // Knowledge View Details — Concept Details panel sections
   knowledgeDescription: boolean; // Description section
@@ -133,6 +137,8 @@ export const defaultFeatureFlags: FeatureFlags = {
   modelStructuralFacet: true,
   modelQuickBadges: false,
   modelPhysicalType: true,
+  analysisExportViaService: false,
+  modelTableExportEnabled: true,
 
   knowledgeDescription: true,
   knowledgeTags: true,

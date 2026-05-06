@@ -6,7 +6,7 @@ plugins {
 }
 
 mill {
-    description = "Mill source format — Excel"
+    description = "Mill source format — Excel; XLSX streaming export (SPI)"
     publishArtifacts = true
 }
 
