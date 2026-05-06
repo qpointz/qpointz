@@ -226,7 +226,9 @@ Facet tabs are grouped by **manifest category** (from `facetTypeService` / facet
 
 ---
 
-## 8) Chat View (`/chat/*`)
+## 8) Chat View (`/chat`, `/chat/:conversationId`)
+
+Shareable deep links use **`/chat/:conversationId`** (server chat id). **`ChatRouteSync`** aligns the route with the active conversation.
 
 ### 8.1 AppShell + sidebar
 

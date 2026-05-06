@@ -8,7 +8,7 @@ Architecture, inventory, and planning documents for the active SPA in **`ui/mill
 | [UI-ELEMENT-INVENTORY.md](UI-ELEMENT-INVENTORY.md) | Runtime UI hierarchy and component inventory for `ui/mill-ui`. |
 | [FEATURE-FLAGS.md](FEATURE-FLAGS.md) | Feature flag keys, defaults, and service contract. |
 | [THEMING.md](THEMING.md) | Theme model, Mantine mapping, CSS variables, persistence, authoring rules. |
-| [GENERAL-CHAT-DESIGN.md](GENERAL-CHAT-DESIGN.md) | General chat layout, message model, context, and streaming design. |
+| [GENERAL-CHAT-DESIGN.md](GENERAL-CHAT-DESIGN.md) | General chat layout, message model, context, streaming, **URL routing** (`/chat/:conversationId`); see **ai-v3-chat-transport-extensions** for v3 wire + reply views. |
 | [GENERAL-CHAT-EXECUTION-PLAN.md](GENERAL-CHAT-EXECUTION-PLAN.md) | Phased execution tasks for the general chat redesign (links to design doc). |
 | [BACKEND-API-REQUIREMENTS.md](BACKEND-API-REQUIREMENTS.md) | REST/SSE expectations per UI domain (schema, concepts, queries, chat, search). |
 | [BACKEND-BACKLOG.md](BACKEND-BACKLOG.md) | Backend gaps and follow-ups from a UI perspective. |

@@ -2,6 +2,8 @@
 
 **Normative source:** [`FacetTypeDefinition`](../../../metadata/mill-metadata-core/src/main/kotlin/io/qpointz/mill/metadata/domain/FacetTypeDefinition.kt) content in [`platform-bootstrap.yaml`](../../../metadata/mill-metadata-core/src/main/resources/metadata/platform-bootstrap.yaml) and [`platform-flow-facet-types.yaml`](../../../metadata/mill-metadata-core/src/main/resources/metadata/platform-flow-facet-types.yaml) where applicable.
 
+**Chat-derived facet proposals** (user-promoted **chat-scoped** context for later turns) are specified in [`ai-v3-chat-metadata-scope.md`](../agentic/ai-v3-chat-metadata-scope.md); this document stays focused on **catalogue** tool field mapping.
+
 ## Descriptive (`urn:mill/metadata/facet-type:descriptive`)
 
 | Seed / `contentSchema` field | Domain (`DescriptiveFacet`) | `list_schemas` / `list_tables` / `list_columns` |

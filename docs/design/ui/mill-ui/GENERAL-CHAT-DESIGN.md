@@ -2,6 +2,16 @@
 
 Architecture, types, and design decisions for the multi-type agent message system.
 
+**Implemented today (unified AI v3):** the production path uses `POST /api/v1/ai/chats/{id}/messages` and **ChatSseEvent** (`item.part.updated`, `item.completed`, …) as in [`ai-v3-chat-transport-extensions.md`](../../agentic/ai-v3-chat-transport-extensions.md). For **how to add new structured parts and per-reply layouts** in mill-ui, see section **Per-reply views (mill-ui) — extension guide** in that document.
+
+### URL routing (shareable general chat)
+
+- React Router paths (relative to [`BrowserRouter`](../../../ui/mill-ui/src/main.tsx) **`basename="/app"`**): **`/chat`** and **`/chat/:conversationId`** (full URL example: `http://localhost:5173/app/chat/<chatId>`).
+- **`conversationId`** is the **server chat id** (UUID returned from `POST /api/v1/ai/chats`). Use it for bookmarks and sharing; human-readable slugs would need separate API guarantees (uniqueness / ownership).
+- **`ChatRouteSync`** ([`ChatRouteSync.tsx`](../../../ui/mill-ui/src/components/chat/ChatRouteSync.tsx)) keeps the path and **`ChatContext`** active chat aligned. Choosing a conversation in the sidebar or creating a chat updates the path (with **`replace`**, so history is not spammed).
+- **Deep link** to an id that is not yet in the sidebar: the context may insert a small **stub** row (title **Loading…**) until `GET /api/v1/ai/chats/{id}` returns; if the request fails, the row title becomes **Chat unavailable** and hydration stops retrying for that turn.
+- **Delete last chat / delete while URL still shows that id:** `deleteConversation` sets a short-lived guard so the deep-link effect does not recreate a stub for the removed id before the router clears the segment. **`syncChatRouteConversationParam`** drops that guard when the route param changes (including navigation to plain `/chat`).
+
 ---
 
 ## Design Principles
@@ -535,6 +545,7 @@ Components and hooks reused between general chat and inline chat:
 
 | Component / Hook | Location | Purpose |
 |------------------|----------|---------|
+| `ChatRouteSync` | `src/components/chat/ChatRouteSync.tsx` | General-chat URL ↔ active conversation; drives deep links under `/chat/:conversationId`. |
 | `ChatInputBox` | `src/components/common/ChatInputBox.tsx` | ChatGPT-style input with attach/dictate/send. `compact` mode for inline chat. |
 | `MessageContent` | `src/components/common/MessageContent.tsx` | Markdown renderer via ReactMarkdown + CodeBlock. `compact` mode for inline chat. |
 | `ChatEmptyState` | `src/components/common/ChatEmptyState.tsx` | Welcome/empty state with sparkle icon. `compact` mode for inline chat. |

@@ -49,6 +49,7 @@ workflow semantics.
 | `v3-authoring-protocol.md` | Protocol design for schema metadata authoring |
 | `v3-conversation-persistence.md` | Implemented baseline split between chat transcript, model memory, and artifact persistence in `ai/v3` |
 | `v3-chat-service.md` | Implemented unified chat metadata, runtime rehydration, SSE stream contract, and HTTP service facade for `ai/v3` |
+| `ai-v3-chat-transport-extensions.md` | SSE artefact extensions, mill-ui client seam, **per-reply view extension guide** (maps to grinder-style layouts) |
 | [`../platform/mill-service-editions-and-ai-chat.md`](../platform/mill-service-editions-and-ai-chat.md) | **`apps/mill-service`** Gradle feature **`ai-chat-service`** / edition **`ai`** to ship **`mill-ai-v3-autoconfigure`** (starter; includes **`mill-ai-v3-service`**) in the runnable Mill app |
 | `v3-persistence-lanes.md` | Implemented persistence-lane architecture for `ai/v3`: model memory, routed events, transcript, artifacts, telemetry, and artifact observers |
 | `v3-langchain4j-simplification-notes.md` | Simplification map for `LangChain4jAgent` and adjacent runtime seams |

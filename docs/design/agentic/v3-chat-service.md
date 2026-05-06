@@ -152,6 +152,9 @@ Current API semantics:
 
 The public streaming model is presentation-oriented rather than agent-lifecycle-oriented.
 
+**Extensions (artefacts, new `partType`s, mill-ui per-reply layouts, `item.completed` summary semantics):**
+[`ai-v3-chat-transport-extensions.md`](./ai-v3-chat-transport-extensions.md).
+
 Current event types (see `ChatSseEvent` in `ai/mill-ai-v3`):
 
 - `item.created`
