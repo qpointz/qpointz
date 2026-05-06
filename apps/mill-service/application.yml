@@ -27,8 +27,8 @@ mill:
       resources:
         - "classpath:metadata/platform-bootstrap.yaml"
         - "classpath:metadata/platform-flow-facet-types.yaml"
-        - "file:../../test/datasets/skymill/skymill-canonical.yaml"
-        - "file:../../test/datasets/skymill/skymill-extras-seed.yaml"
+        #- "file:../../test/datasets/skymill/skymill-canonical.yaml"
+        #- "file:../../test/datasets/skymill/skymill-extras-seed.yaml"
 ---
 spring:
   config:
@@ -149,6 +149,8 @@ spring:
 
 mill:
   ai:
+    chat:
+      default-profile: schema-authoring
     vector-store:
       backend: pgvector
       pgvector:
