@@ -17,6 +17,12 @@ Mill’s **Spring Boot** applications (for example `apps/mill-service`, metadata
 
 The **JDBC driver** module is not a Spring Boot application, but its **`testIT`** suite may start an embedded **Skymill** gRPC stack (`EmbeddedSkymillGrpcServer`) so tests do not depend on a fixed host/port. That wiring is described in the migration plan’s **WI-208** notes and the design doc above.
 
+## HTTP data export (`/services/export`)
+
+When **`mill.data.services.export.enable`** is true and the **`export`** service group is on the classpath, Mill exposes **streaming table and SQL exports** under **`/services/export`** (catalog, effective format list, **`GET`** per-table streams via a Substrait plan, **`POST /sql`** with a plain-text SQL body). Formats are registered with the **`ExportFormatProvider`** SPI; **`mill.data.services.export.formats`** can restrict which ids appear on the wire. **mill-ui** can download from Analysis results and export whole tables from the Model view when the corresponding feature flags are enabled.
+
+Operator-facing detail: internal design [Streaming HTTP export service](../../../design/platform/export-service.md); configuration keys in [05-configuration-keys](../../../design/refactoring/05-configuration-keys.md) (`mill.data.services.export.*`). Story archive: [`docs/workitems/completed/20260507-streaming-export-service/STORY.md`](../../../workitems/completed/20260507-streaming-export-service/STORY.md).
+
 ## Verifying a checkout
 
 From the repository root (see also [Installation](../installation.md)):

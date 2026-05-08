@@ -67,6 +67,10 @@ Use the **header global search** (when enabled): **Ctrl+K** / **Cmd+K** opens se
 
 Deep links look like **`/app/model/<schema>/<table>/<column>`** (omit segments as needed). Feature flag **`viewModel`** must be on.
 
+### Export (tables and query results)
+
+When the deployment enables the export service (**`mill.data.services.export`**) and **mill-ui** flags **`modelTableExportEnabled`** (Model) / analysis export controls (Analysis), users can **download** physical tables and ad hoc **query results** in server-offered formats (for example CSV, TSV, JSON — the live list comes from **`GET /services/export/formats`**). Downloads use the same origin as the UI (relative **`/services/export/...`** URLs). See [Platform runtime — HTTP data export](reference/platform-runtime.md#http-data-export-servicesexport) and the internal design [Streaming HTTP export service](../../design/platform/export-service.md).
+
 ### Metadata editing
 
 Editing requires a signed-in user (when auth is enabled), **`metadataEntityId`** on the selected entity, and facet types that allow writes. Facet type administration is under **`/admin/model/facet-types`** (sidebar **Metadata** → **Facet types**) when **Admin** and **Facet types** are enabled.
@@ -85,7 +89,7 @@ URLs: **`/app/knowledge`** or **`/app/knowledge/<conceptId>`**.
 
 ## Analysis view
 
-**Analysis** (`/analysis`) is the **query playground**: edit SQL, format, copy, clear, execute (when the backend allows), and inspect results — gated by **`analysis*`** flags.
+**Analysis** (`/analysis`) is the **query playground**: edit SQL, format, copy, clear, execute (when the backend allows), and inspect results — gated by **`analysis*`** flags. When the export service and UI export controls are enabled, the results toolbar can **download** the current result set via **`/services/export`** (same formatting rules as [Model export](#export-tables-and-query-results)).
 
 ---
 
