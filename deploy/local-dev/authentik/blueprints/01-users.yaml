@@ -1,0 +1,31 @@
+version: 1
+metadata:
+  name: Mill local - users
+# Plaintext passwords are blueprint-only; see https://docs.goauthentik.io/customize/blueprints/v1/models/
+# (authentik_core.user → password). For non-dev, set passwords via Admin/API instead of committing them.
+entries:
+  - model: authentik_core.user
+    id: alice
+    identifiers:
+      username: alice
+    attrs:
+      name: Alice Developer
+      email: alice@example.com
+      is_active: true
+      type: internal
+      # Dev-only; replace or remove before sharing this file outside local machines.
+      password: local-dev-password-alice-change-me
+      groups:
+        - !Find [authentik_core.group, [name, developers]]
+  - model: authentik_core.user
+    id: bob
+    identifiers:
+      username: bob
+    attrs:
+      name: Bob Analyst
+      email: bob@example.com
+      is_active: true
+      type: internal
+      password: local-dev-password-bob-change-me
+      groups:
+        - !Find [authentik_core.group, [name, analysts]]

@@ -1,0 +1,38 @@
+version: 1
+metadata:
+  name: Mill local - OIDC dev application
+entries:
+  - model: authentik_providers_oauth2.oauth2provider
+    id: dev-provider
+    identifiers:
+      name: dev-provider
+    attrs:
+      client_id: dev-client
+      client_secret: dev-secret
+      authorization_flow:
+        !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+      invalidation_flow:
+        !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+      redirect_uris:
+        - matching_mode: strict
+          url: http://localhost:8080/login/oauth2/code/authentik
+  - model: authentik_core.application
+    id: dev-app
+    identifiers:
+      slug: dev-app
+    attrs:
+      name: dev-app
+      provider: !KeyOf dev-provider
+      # How bindings below combine: `any` = user matches if they satisfy any binding (e.g. member of bound group).
+      policy_engine_mode: any
+  # Restrict who can launch / authorize this application (see bindings overview in Authentik docs).
+  # With bindings present, access follows the app's policy engine mode (default is typically ANY across bindings).
+  - model: authentik_policies.policybinding
+    id: dev-app-access-developers
+    identifiers:
+      order: 10
+      # Application as policy-binding target (slug must match entry above).
+      target: !Find [authentik_core.application, [slug, dev-app]]
+    attrs:
+      enabled: true
+      group: !Find [authentik_core.group, [name, developers]]

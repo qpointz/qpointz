@@ -1,0 +1,24 @@
+version: 1
+metadata:
+  name: Mill local - groups
+entries:
+  - model: authentik_core.group
+    id: admins
+    identifiers:
+      name: admins
+    attrs: {}
+  - model: authentik_core.group
+    id: developers
+    identifiers:
+      name: developers
+    attrs: {}
+  - model: authentik_core.group
+    id: analysts
+    identifiers:
+      name: analysts
+    attrs: {}
+  - model: authentik_core.group
+    id: readonly
+    identifiers:
+      name: readonly
+    attrs: {}

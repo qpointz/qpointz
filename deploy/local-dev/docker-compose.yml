@@ -1,3 +1,17 @@
+# Shared env for server + worker (both must match). Worker processes blueprint/background
+# tasks; without it default flows and tenant domains are missing and login URLs 404.
+x-authentik-environment: &authentik-environment
+  AUTHENTIK_SECRET_KEY: "${AUTHENTIK_SECRET_KEY:-local-dev-authentik-secret-key-do-not-use-in-production-min-50-chars}"
+  AUTHENTIK_POSTGRESQL__HOST: postgres
+  AUTHENTIK_POSTGRESQL__PORT: 5432
+  AUTHENTIK_POSTGRESQL__NAME: authentik
+  AUTHENTIK_POSTGRESQL__USER: authentik
+  AUTHENTIK_POSTGRESQL__PASSWORD: authentik
+  AUTHENTIK_BOOTSTRAP_PASSWORD: admin
+  AUTHENTIK_BOOTSTRAP_EMAIL: admin@example.com
+  # Helps generated links match how you open the UI locally.
+  AUTHENTIK_URL: "${AUTHENTIK_URL:-http://localhost:19000}"
+
 services:
   postgres:
     image: pgvector/pgvector:pg16-trixie #postgres:16
@@ -10,6 +24,8 @@ services:
       - "${MILL_DB_PORT:-5432}:5432"
     volumes:
       - ../../.data/local-dev/postgres:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d
+      
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
@@ -27,6 +43,38 @@ services:
       - "${CHROMA_HTTP_PORT:-8000}:8000"
     volumes:
       - ../../.data/local-dev/chromadb:/chroma/chroma
+  authentik:
+    image: ghcr.io/goauthentik/server:2026.2.2
+    container_name: mill-local-authentik
+    # The server image entrypoint is `ak` with no default CMD; without this it prints
+    # management help and exits. See https://goauthentik.io/version/2026.2/lifecycle/container/compose.yml
+    command: server
+    shm_size: "512mb"
+    ports:
+      - "19000:9000"
+      - "19443:9443"
+    environment: *authentik-environment
+    volumes:
+      # Mount only /blueprints/custom (documented path); do not replace /blueprints entirely.
+      - ./authentik/blueprints:/blueprints/custom
+      - ../../.data/local-dev/authentik:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  authentik-worker:
+    image: ghcr.io/goauthentik/server:2026.2.2
+    container_name: mill-local-authentik-worker
+    command: worker
+    restart: unless-stopped
+    user: root
+    environment: *authentik-environment
+    volumes:
+      - ./authentik/blueprints:/blueprints/custom
+      - ../../.data/local-dev/authentik:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   adminer:
     image: adminer:latest
