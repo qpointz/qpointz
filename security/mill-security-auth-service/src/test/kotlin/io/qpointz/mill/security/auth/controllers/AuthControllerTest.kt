@@ -15,6 +15,8 @@ import org.mockito.kotlin.whenever
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User
 
 @ExtendWith(MockitoExtension::class)
 class AuthControllerTest {
@@ -86,6 +88,33 @@ class AuthControllerTest {
         val response = controller.getMe(authentication)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
+    }
+
+    @Test
+    fun `getMe_whenOAuthUserNotYetProvisioned_resolveOrProvisionsAndReturns200`() {
+        val controller = AuthController(identityService, securityEnabled = true)
+        val oauth2User = DefaultOAuth2User(
+            listOf(SimpleGrantedAuthority("OIDC_USER")),
+            mapOf(
+                "sub" to "authentik-sub-1",
+                "email" to "oauth@example.com",
+                "name" to "OAuth User",
+            ),
+            "sub",
+        )
+        val authentication = OAuth2AuthenticationToken(oauth2User, oauth2User.authorities, "authentik")
+        whenever(identityService.resolve("authentik", "authentik-sub-1")).thenReturn(null)
+        whenever(
+            identityService.resolveOrProvision("authentik", "authentik-sub-1", "OAuth User", "oauth@example.com"),
+        ).thenReturn(ResolvedUser("new-user-id", "OAuth User", "oauth@example.com", UserStatus.ACTIVE))
+
+        val response = controller.getMe(authentication)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        val body = response.body as AuthMeResponse
+        assertThat(body.userId).isEqualTo("new-user-id")
+        assertThat(body.email).isEqualTo("oauth@example.com")
+        assertThat(body.displayName).isEqualTo("OAuth User")
     }
 
     @Test

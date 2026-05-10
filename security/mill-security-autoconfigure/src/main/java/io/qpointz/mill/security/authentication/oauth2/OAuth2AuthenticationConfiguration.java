@@ -27,7 +27,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
  * using the JWK Set URI supplied in the JWT configuration.
  */
 @Slf4j
-@EnableConfigurationProperties
+@EnableConfigurationProperties(MillOAuth2LoginProperties.class)
 @ConfigurationProperties(prefix = "mill.security.authentication.oauth2-resource-server")
 @Configuration
 @ConditionalOnSecurity
@@ -56,7 +56,8 @@ public class OAuth2AuthenticationConfiguration {
     @Bean
     @ConditionalOnProperty(prefix = "mill.security.authentication.oauth2-resource-server", name = "enable")
     public AuthenticationMethod oauthResourceServerAuthenticationMethod(
-            @Autowired(required = false) ClientRegistrationRepository clientRegistrationRepository) {
+            @Autowired(required = false) ClientRegistrationRepository clientRegistrationRepository,
+            MillOAuth2LoginProperties millOAuth2LoginProperties) {
         if (jwt == null || jwt.getJwkSetUri() == null) {
             log.warn("No valid JWT configuration provided. OAuth resource service method will not be used");
             return null;
@@ -64,8 +65,16 @@ public class OAuth2AuthenticationConfiguration {
 
         val jwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwt.getJwkSetUri()).build();
         val provider = new JwtAuthenticationProvider(jwtDecoder);
+        val successUrl = millOAuth2LoginProperties.getDefaultSuccessUrl();
+        val alwaysUseDefaultSuccess = millOAuth2LoginProperties.isAlwaysUseDefaultSuccessUrl();
 
-        return new OAuth2ResourceServiceAuthenticationMethod(jwt, provider, 100, clientRegistrationRepository);
+        return new OAuth2ResourceServiceAuthenticationMethod(
+                jwt,
+                provider,
+                100,
+                clientRegistrationRepository,
+                successUrl == null ? "" : successUrl,
+                alwaysUseDefaultSuccess);
     }
 
 }

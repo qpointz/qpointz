@@ -156,3 +156,62 @@ mill:
       pgvector:
         table: mill_langchain_embedding_store
         create-table: true
+---
+# OAuth/OIDC login via Authentik (local dev).
+# Discovery document:
+#   http://localhost:19000/application/o/dev-app/.well-known/openid-configuration
+spring:
+  config:
+    activate:
+      on-profile: oauth
+  security:
+    oauth2:
+      client:
+        provider:
+          authentik:
+            # The issuer is the base URL whose `.well-known/openid-configuration` is used for discovery.
+            issuer-uri: http://localhost:19000/application/o/dev-app/
+            # Use discovery `userinfo_endpoint` (typically `/application/o/userinfo/`). Do not set
+            # `/application/o/<app-slug>/userinfo/` — Authentik 2026.2 responds 404 for that path.
+        registration:
+          authentik:
+            provider: authentik
+            client-name: Authentik
+            # Defaults match `deploy/local-dev/authentik` blueprints (see `docs/design/platform/local-dev-authentik.md`).
+            client-id: ${AUTHENTIK_CLIENT_ID:dev-client}
+            client-secret: ${AUTHENTIK_CLIENT_SECRET:dev-secret}
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - openid
+              - profile
+              - email
+
+mill:
+  security:
+    enable: true
+    # After OIDC callback on :8080, redirect the browser to the Vite dev server when no saved request exists.
+    oauth2:
+      login:
+        default-success-url: http://localhost:5173/app/
+        # Ignore SavedRequest so OAuth never redirects to stray paths (e.g. favicon) on :8080.
+        always-use-default-success-url: true
+    authentication:
+      oauth2-resource-server:
+        enable: true
+        jwt:
+          # Derived from issuer; keeps Mill JWT validation aligned with Authentik for local dev.
+          jwk-set-uri: http://localhost:19000/application/o/dev-app/jwks/
+      # Ensure no other auth method is implicitly enabled by environment-specific config.
+      basic:
+        enable: false
+      entra-id-token:
+        enable: false
+
+# Spring Boot logging (this document is active only with profile `oauth`).
+# Narrower than `org.springframework.security=DEBUG`, which floods the console.
+# Override per-logger at runtime, e.g. LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY_OAUTH2=TRACE
+logging:
+  level:
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.web.client.RestTemplate: DEBUG

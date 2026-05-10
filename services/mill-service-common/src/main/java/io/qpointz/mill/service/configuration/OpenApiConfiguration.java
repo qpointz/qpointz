@@ -45,4 +45,12 @@ public class OpenApiConfiguration {
                 .build();
     }
 
+    @Bean
+    public GroupedOpenApi authApi() {
+        return GroupedOpenApi.builder()
+                .group("auth")
+                .pathsToMatch("/auth/**")
+                .build();
+    }
+
 }

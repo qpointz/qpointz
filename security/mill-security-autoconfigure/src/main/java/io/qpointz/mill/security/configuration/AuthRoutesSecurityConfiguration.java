@@ -16,7 +16,9 @@ import org.springframework.security.web.SecurityFilterChain;
  * <p>Covers {@code /id/**}, {@code /oauth2/**}, {@code /login/**}, {@code /logout/**},
  * {@code /auth/**}, and {@code /error**}. These paths are always permitted so that
  * the login and OAuth2 redirect flows are accessible regardless of the overall security
- * posture. The active authentication methods are applied to wire the login mechanism.
+ * posture. Only {@link io.qpointz.mill.security.authentication.AuthenticationMethod#applyLoginConfig}
+ * is applied here: {@code oauth2ResourceServer().jwt()} on the same {@link HttpSecurity} as
+ * {@code oauth2Login()} can break the OIDC callback (browser ends on {@code /app/login?error}).
  */
 @Slf4j
 @Configuration
@@ -49,7 +51,6 @@ public class AuthRoutesSecurityConfiguration {
         authenticationMethods.getProviders().forEach(m -> {
             try {
                 m.applyLoginConfig(http);
-                m.applySecurityConfig(http);
             } catch (Exception ex) {
                 throw new MillRuntimeException(ex);
             }

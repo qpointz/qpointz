@@ -11,6 +11,11 @@
       "description": "Enables self-service user registration via POST /auth/public/register. Defaults to false. Requires mill.security.enable=true and the mill-security-persistence module."
     },
     {
+      "name": "mill.security.oauth2.login.default-success-url",
+      "type": "java.lang.String",
+      "description": "Absolute URL for oauth2Login success when no SavedRequest applies (e.g. http://localhost:5173/app/ for Vite + Authentik local dev)."
+    },
+    {
       "name": "mill.security.authentication.oauth2-resource-server.jwt",
       "type": "org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties$Jwt",
       "description": "OAuth2 resource server Jwt configuration."

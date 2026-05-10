@@ -6,6 +6,7 @@ import io.qpointz.mill.security.auth.dto.AuthMeResponse
 import io.qpointz.mill.security.auth.dto.UserProfilePatch
 import io.qpointz.mill.security.auth.dto.UserProfileResponse
 import io.qpointz.mill.security.auth.service.UserProfileService
+import io.qpointz.mill.security.domain.ResolvedUser
 import io.qpointz.mill.security.domain.UserIdentityResolutionService
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
@@ -49,7 +50,9 @@ class AuthController(
      * Returns the currently authenticated user's identity, including their profile.
      *
      * Extracts `(provider, subject)` from the [Authentication] principal and resolves
-     * the canonical `userId` via [UserIdentityResolutionService.resolve]:
+     * the canonical `userId` via [UserIdentityResolutionService.resolve], or for
+     * [OAuth2AuthenticationToken] only, [UserIdentityResolutionService.resolveOrProvision]
+     * when no identity row exists yet (first OIDC login after `oauth2Login`).
      * - [org.springframework.security.authentication.UsernamePasswordAuthenticationToken]
      *   → `provider = "local"`, `subject = authentication.name`
      * - [OAuth2AuthenticationToken] → `provider = registrationId`, `subject = principal.name`
@@ -78,7 +81,7 @@ class AuthController(
         val (provider, subject) = extractProviderSubject(authentication)
             ?: return ResponseEntity.status(401).build()
 
-        val resolved = identityResolutionService?.resolve(provider, subject)
+        val resolved = resolveIdentity(authentication, provider, subject)
             ?: return ResponseEntity.status(401).build()
 
         log.debug("GetMe: userId={} provider={}", resolved.userId, provider)
@@ -135,7 +138,7 @@ class AuthController(
         val (provider, subject) = extractProviderSubject(authentication)
             ?: return ResponseEntity.status(401).build()
 
-        val resolved = identityResolutionService?.resolve(provider, subject)
+        val resolved = resolveIdentity(authentication, provider, subject)
             ?: return ResponseEntity.status(401).build()
 
         val svc = userProfileService
@@ -204,6 +207,52 @@ class AuthController(
             else ->
                 Pair("local", authentication.name)
         }
+    }
+
+    /**
+     * Resolves the canonical Mill user for an authenticated principal, provisioning on first
+     * OIDC/OAuth login when needed.
+     *
+     * Local users must already exist ([UserIdentityResolutionService.resolve] only). OAuth
+     * clients (e.g. Authentik) use [UserIdentityResolutionService.resolveOrProvision] on first
+     * contact so [GET /auth/me] succeeds after `oauth2Login` without a separate provisioning hook.
+     *
+     * @param authentication the Spring [Authentication] (used to detect OAuth vs local)
+     * @param provider logical provider id (`local` or OAuth registration id)
+     * @param subject username for local auth, OIDC `sub` for OAuth
+     * @return [ResolvedUser] or `null` if resolution is unavailable or the subject cannot be mapped
+     */
+    private fun resolveIdentity(
+        authentication: Authentication,
+        provider: String,
+        subject: String,
+    ): ResolvedUser? {
+        val svc = identityResolutionService ?: return null
+        svc.resolve(provider, subject)?.let { return it }
+        if (authentication is OAuth2AuthenticationToken) {
+            val (displayName, email) = oauthProvisionHints(authentication)
+            return svc.resolveOrProvision(provider, subject, displayName, email)
+        }
+        return null
+    }
+
+    /**
+     * Best-effort display name and email from OIDC / OAuth2 user attributes for provisioning.
+     *
+     * @param auth the OAuth2 session token carrying the IdP user principal
+     * @return pair of `(displayName, email)` — any component may be null if claims are absent
+     */
+    private fun oauthProvisionHints(auth: OAuth2AuthenticationToken): Pair<String?, String?> {
+        val attrs = auth.principal?.attributes ?: return Pair(null, null)
+        fun str(key: String) = (attrs[key] as? String)?.trim()?.takeIf { it.isNotEmpty() }
+        val email = str("email")
+        val display = str("name")
+            ?: str("preferred_username")
+            ?: str("nickname")
+            ?: listOfNotNull(str("given_name"), str("family_name"))
+                .takeIf { it.isNotEmpty() }
+                ?.joinToString(" ")
+        return Pair(display, email)
     }
 
     private fun anonymousResponse() = AuthMeResponse(
