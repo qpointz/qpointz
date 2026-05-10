@@ -20,6 +20,7 @@ import {
 } from 'react-icons/hi2';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
 import { BRAND_DISPLAY_NAME, BRAND_LOGO_SRC } from '../../branding';
+import { oauth2AuthorizationHref } from '../../config/appBaseUrl';
 
 interface LoginPageProps {
   onLogin: (email: string, password: string) => Promise<void>;
@@ -78,13 +79,33 @@ function AzureIcon({ size = 18 }: { size?: number }) {
   );
 }
 
+function AuthentikIcon({ size = 18 }: { size?: number }) {
+  // Simple "auth" glyph: circle + keyhole mark.
+  // (Keeps UI dependency-free; no external asset required.)
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" fill="#FD4B2D" />
+      <path
+        d="M12 7.25a3.25 3.25 0 00-3.25 3.25c0 1.43.92 2.65 2.2 3.09v2.41c0 .58.47 1.05 1.05 1.05h.02c.58 0 1.05-.47 1.05-1.05v-2.41a3.25 3.25 0 00-1.07-6.34zm0 2a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5z"
+        fill="white"
+      />
+    </svg>
+  );
+}
+
 /* ── Provider config ─────────────────────────────────────────────── */
 
 interface SocialProvider {
   key: string;
   label: string;
   icon: React.ComponentType<{ size?: number }>;
-  flagKey: 'loginGithub' | 'loginGoogle' | 'loginMicrosoft' | 'loginAws' | 'loginAzure';
+  flagKey:
+    | 'loginGithub'
+    | 'loginGoogle'
+    | 'loginMicrosoft'
+    | 'loginAws'
+    | 'loginAzure'
+    | 'loginAuthentik';
 }
 
 const socialProviders: SocialProvider[] = [
@@ -93,6 +114,7 @@ const socialProviders: SocialProvider[] = [
   { key: 'microsoft', label: 'Continue with Microsoft', icon: MicrosoftIcon, flagKey: 'loginMicrosoft' },
   { key: 'aws', label: 'Continue with AWS', icon: AwsIcon, flagKey: 'loginAws' },
   { key: 'azure', label: 'Continue with Azure AD', icon: AzureIcon, flagKey: 'loginAzure' },
+  { key: 'authentik', label: 'Continue with Authentik', icon: AuthentikIcon, flagKey: 'loginAuthentik' },
 ];
 
 /* ── Component ───────────────────────────────────────────────────── */
@@ -187,6 +209,9 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                   variant="default"
                   leftSection={<Icon size={16} />}
                   fullWidth
+                  component="a"
+                  href={oauth2AuthorizationHref(provider.key)}
+                  data-testid={`login-${provider.key}`}
                   styles={{
                     root: {
                       borderColor: isDark ? 'var(--mantine-color-gray-6)' : 'var(--mantine-color-gray-3)',

@@ -92,7 +92,7 @@ For each element:
 
 | Element | Description | Content source | Feature flag | Default | Backend state |
 |---|---|---|---|---|---|
-| Social login buttons | Provider-specific auth actions | local UI wiring | `loginGithub`, `loginGoogle`, `loginMicrosoft`, `loginAws`, `loginAzure` | all `false` | n/a |
+| Social login buttons | Provider-specific auth actions | local UI wiring | `loginGithub`, `loginGoogle`, `loginMicrosoft`, `loginAws`, `loginAzure`, `loginAuthentik` | `loginAuthentik=true`; others `false` | n/a |
 | Email/password form | Local auth login form | `authService.login()` | `loginPassword` | `true` | real |
 | Registration link | Navigate to register page | router | `loginRegistration` | `true` | n/a |
 

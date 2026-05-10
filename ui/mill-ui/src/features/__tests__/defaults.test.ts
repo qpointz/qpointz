@@ -47,6 +47,7 @@ describe('defaultFeatureFlags', () => {
       'loginMicrosoft',
       'loginAws',
       'loginAzure',
+      // Authentik is enabled by default to support local-dev SSO flows.
       // Admin controls
       'facetTypesReadOnly',
       // Header features disabled by default
@@ -110,6 +111,7 @@ describe('defaultFeatureFlags', () => {
       'loginMicrosoft',
       'loginAws',
       'loginAzure',
+      'loginAuthentik',
       'loginPassword',
       'loginRegistration',
     ];

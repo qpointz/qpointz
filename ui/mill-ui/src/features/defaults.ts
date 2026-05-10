@@ -84,6 +84,7 @@ export interface FeatureFlags {
   loginMicrosoft: boolean; // "Continue with Microsoft" button
   loginAws: boolean; // "Continue with AWS" button
   loginAzure: boolean; // "Continue with Azure AD" button
+  loginAuthentik: boolean; // "Continue with Authentik" button
   loginPassword: boolean; // Email / password form
   loginRegistration: boolean; // Self-service registration link
 
@@ -182,6 +183,7 @@ export const defaultFeatureFlags: FeatureFlags = {
   loginMicrosoft: false,
   loginAws: false,
   loginAzure: false,
+  loginAuthentik: true,
   loginPassword: true,
 
   loginRegistration: true,

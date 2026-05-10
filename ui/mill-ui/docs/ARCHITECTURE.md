@@ -348,7 +348,7 @@ export function FeatureFlagProvider({ children }) {
 | **Sidebar** | `sidebarCollapsible`, `sidebarModelBadge`, `sidebarKnowledgeBadge`, `sidebarKnowledgeCategories`, `sidebarKnowledgeTags`, `sidebarAnalysisBadge` | Sidebar behavior |
 | **Admin** | `adminDataSources`, `adminPolicies`, `adminServices`, `adminSettings` | Admin subsections |
 | **Profile** | `profileGeneral`, `profileSettings`, `profileAccess` | Profile subsections |
-| **Login** | `loginGithub`, `loginGoogle`, `loginMicrosoft`, `loginAws`, `loginAzure`, `loginPassword` | Login provider buttons |
+| **Login** | `loginGithub`, `loginGoogle`, `loginMicrosoft`, `loginAws`, `loginAzure`, `loginAuthentik`, `loginPassword` | Login provider buttons |
 | **Header** | `headerThemeSwitcher`, `headerUserProfile` | Header UI elements |
 
 All flags default to `true` for development.

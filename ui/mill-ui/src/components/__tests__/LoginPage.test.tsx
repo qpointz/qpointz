@@ -53,12 +53,16 @@ describe('LoginPage', () => {
       loginMicrosoft: true,
       loginAws: true,
       loginAzure: true,
+      loginAuthentik: true,
     });
     expect(screen.getByText('Continue with GitHub')).toBeInTheDocument();
     expect(screen.getByText('Continue with Google')).toBeInTheDocument();
     expect(screen.getByText('Continue with Microsoft')).toBeInTheDocument();
     expect(screen.getByText('Continue with AWS')).toBeInTheDocument();
     expect(screen.getByText('Continue with Azure AD')).toBeInTheDocument();
+    expect(screen.getByText('Continue with Authentik')).toBeInTheDocument();
+
+    expect(screen.getByTestId('login-authentik')).toHaveAttribute('href', '/oauth2/authorization/authentik');
   });
 
   it('should render email and password fields', () => {

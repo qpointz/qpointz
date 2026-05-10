@@ -138,7 +138,7 @@ Control the Profile view and its sub-sections.
 | `profileSettings` | `true` | Settings section | `ProfileLayout.tsx` |
 | `profileAccess` | `true` | Access / API keys section | `ProfileLayout.tsx` |
 
-### 11. Login Providers (7 flags)
+### 11. Login Providers (8 flags)
 
 Control which authentication methods and OAuth/SSO buttons appear on the login page.
 
@@ -149,6 +149,7 @@ Control which authentication methods and OAuth/SSO buttons appear on the login p
 | `loginMicrosoft` | `false` | "Continue with Microsoft" button | `LoginPage.tsx` |
 | `loginAws` | `false` | "Continue with AWS" button | `LoginPage.tsx` |
 | `loginAzure` | `false` | "Continue with Azure AD" button | `LoginPage.tsx` |
+| `loginAuthentik` | `true` | "Continue with Authentik" button | `LoginPage.tsx` |
 | `loginPassword` | `true` | Email/password form on login page | `LoginPage.tsx` |
 | `loginRegistration` | `true` | Self-service registration link on login page | `LoginPage.tsx` |
 
