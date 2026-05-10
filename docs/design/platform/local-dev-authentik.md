@@ -69,6 +69,12 @@ Spring Boot **`issuer-uri`** should be the **issuer base** (no `.well-known` suf
 
 Use the **same host** everywhere (`localhost` vs `127.0.0.1`) so the `issuer` claim matches Spring’s validation. OAuth2 **client id** / **secret** come from the provider (`dev-client` / `dev-secret` in the sample blueprint—not the application slug).
 
+### UserInfo endpoint
+
+Discovery advertises **`userinfo_endpoint`** (for local HTTP typically `http://localhost:19000/application/o/userinfo/`). Spring Boot should use that URL from OIDC metadata — do **not** override `user-info-uri` to `…/application/o/<app-slug>/userinfo/`; on Authentik **2026.2** that path returns **404**, which surfaces as `invalid_user_info_response` during `oauth2Login`.
+
+If an older IdP build returned **403** on the global userinfo URL, fix IdP routing or scopes rather than pointing the client at a non-existent application-scoped userinfo path.
+
 ## HTTP vs HTTPS
 
 - **HTTP (`19000`)** — no extra JVM trust; recommended for local Spring metadata and JWKS fetch.
@@ -91,3 +97,8 @@ Authentik exposes **REST API v3** under `/api/v3/` for CRUD on applications, pro
 ## Relation to Mill security design
 
 Mill’s own security architecture (profiles, PAT, future OAuth identity mapping) is documented under `docs/design/security/`. This Authentik stack is an **external OIDC fixture** for local integration testing; it does not replace Mill’s `mill.security.*` configuration model.
+
+### Mill configuration and UI
+
+- **Operator guide (published docs):** [Authentik (OIDC)](../../public/src/security/authentik-oidc.md) — enabling the `oauth` profile, JWT resource server, Mill UI feature flags, and troubleshooting.
+- **Implementation overview (design):** [OAuth2 / OIDC integration](../security/oauth2-oidc-mill-authentik.md) — filter chains, `/app/login`, and code pointers.

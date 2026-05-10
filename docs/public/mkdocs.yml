@@ -62,6 +62,9 @@ nav:
     - index.md    
     - quickstart.md
     - installation.md
+    - Security:
+      - security/index.md
+      - security/authentik-oidc.md
     - grinder-ui.md
     - mill-ui.md
     - Metadata:

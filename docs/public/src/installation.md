@@ -31,4 +31,5 @@ For a guided first run with sample data and containers, use the [Quickstart](qui
 ## Further reading
 
 - [Platform runtime](reference/platform-runtime.md) — Spring Boot, Jackson, Spring AI, gRPC, and Jakarta baselines
+- [Security](security/index.md) — OIDC sign-in (for example [Authentik](security/authentik-oidc.md))
 - [Spring Boot 3.5 to 4.0 migration plan](../../../design/platform/spring4-migration-plan.md) — engineering migration checklist (design doc in the same repo)

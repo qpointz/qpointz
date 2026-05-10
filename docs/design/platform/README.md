@@ -37,7 +37,7 @@ A document belongs here if its **primary subject** is one of:
 | `data-export-service.md` | gRPC data provider interface: contract decoupling query engine from data sources |
 | `mcp.md` | MCP data provider specification: common objects, API contract |
 | `mill-configuration.md` | Mill configuration schema: keys from application*.yml grouped by area; links **observability action** doc for value-mapping metrics gap |
-| `local-dev-authentik.md` | Local **Authentik** OIDC IdP in `deploy/local-dev`: compose (server + worker), Postgres DB, blueprints under `/blueprints/custom`, OIDC URLs for Spring Boot, HTTP vs HTTPS |
+| `local-dev-authentik.md` | Local **Authentik** OIDC IdP in `deploy/local-dev`: compose (server + worker), Postgres DB, blueprints under `/blueprints/custom`, OIDC URLs for Spring Boot, HTTP vs HTTPS; links to public **[Authentik (OIDC)](../../public/src/security/authentik-oidc.md)** operator guide and **[OAuth2 integration](../security/oauth2-oidc-mill-authentik.md)** |
 | `general-event-bus.md` | **Aspirational** Mill-wide event bus: capabilities, candidate use cases (**value mapping** refresh among them); interim: Spring events / callbacks |
 | `spring4-migration-plan.md` | Spring Boot 3.5 to 4.0 migration plan |
 | `substrait-to-relnode-migration.md` | Gradual migration from Substrait Plan to Calcite RelNode as internal IR |
