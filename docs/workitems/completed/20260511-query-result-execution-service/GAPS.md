@@ -32,7 +32,7 @@ execution HTTP surface:
 - **Base path:** **`/api/v1/query/`**
 - **Create:** **`POST /api/v1/query`**
 - **Session resource:** **`/api/v1/query/{executionId}`**
-- **Operations on that resource:** metadata / paging / replace / **`DELETE`** deallocation
+- **Operations on that resource:** metadata / query-driven paged **`GET`** (via **`pageIndex`**) / **`DELETE`** deallocation (**`replace`** remains **in-process** on **`QueryResultExecutionService`**, not HTTP)
 - **Not allowed:** legacy **`POST /api/v1/queries/execute`**
 - **Not allowed:** sibling top-level routes such as **`/api/v1/query-executions`**
 - **Not allowed:** nested **`/executions`** segment under **`/api/v1/query`**
@@ -63,7 +63,7 @@ Status: **closed** — **Session ownership** is **tenant-only** (single string, 
 
 ### ~~3. External pagination contract is mostly locked, but one wire-shape choice remains~~
 
-Status: **closed** — **`totalResult`** is **always** present on **`/rows`** and in **metadata**; **`JSON null`** means **unknown** total cardinality; **non-null** number means **known**. **Do not omit** the field (**[`STORY.md`](STORY.md)** **Paging contract**; **WI-264** OpenAPI + **WI-265** **`testIT`**).
+Status: **closed** — **`totalResult`** is **always** present on **paged `GET`** (with **`pageIndex`**) and in **metadata**; **`JSON null`** means **unknown** total cardinality; **non-null** number means **known**. **Do not omit** the field (**[`STORY.md`](STORY.md)** **Paging contract**; **WI-264** OpenAPI + **WI-265** **`testIT`**).
 
 **Previously open:** ~~omit vs `null`~~ — **resolved** to **explicit `null`** only.
 
@@ -73,10 +73,10 @@ Status: **closed** — **[`STORY.md`](STORY.md)** **Format negotiation**, **HTTP
 
 **Locked summary:**
 
-- **Marshaller JSON slot:** top-level **`data`** (always that name for JSON **`/rows`** responses).
+- **Marshaller JSON slot:** top-level **`data`** (always that name for JSON **paged `GET`** responses).
 - **`POST /api/v1/query`:** **`201 Created`** when response is **creation-only** (no first page); **`200 OK`** when body **includes** the first page; **OpenAPI** documents both (or a request flag that selects one path).
 - **`DELETE /api/v1/query/{executionId}`:** **`204 No Content`**, no body.
-- **SQL / plan failures** (valid HTTP request): **`422 Unprocessable Entity`** on **`POST`** and **`PUT`**; **`400`** for malformed JSON / bad query params / unknown **`format`**, etc.
+- **SQL / plan failures** (valid HTTP request): **`422 Unprocessable Entity`** on **`POST /api/v1/query`**; **`400`** for malformed JSON / bad query params / unknown **`format`**, etc.
 
 **Previously open:** ~~payload property name~~, ~~`POST`/`DELETE`/SQL status picks~~ — **resolved** as above.
 
@@ -86,7 +86,7 @@ Status: **closed** — **[`STORY.md`](STORY.md)** **Concurrency, invalidation, a
 
 **Locked summary:**
 
-- **`epoch`:** **`0`** at **`create`**, **`+1`** on each successful **`replace`**; in metadata and **`/rows`** envelope; optional **`epoch`** query on **`GET …/rows`** → **`409`** if stale.
+- **`epoch`:** **`0`** at **`create`**, **`+1`** on each successful in-process **`replace`**; in metadata and **paged `GET`** envelope; optional **`epoch`** query on **paged `GET`** (with **`pageIndex`**) → **`409`** if stale.
 - **`replace` vs reads:** **Per-session read–write lock** (or equivalent) — **`replace`** waits for in-flight reads; reads block during **`replace`**; **no** post-replace pages from old buffers.
 - **Eviction / `DELETE`:** subsequent **`GET`** → **`404`** (not **`409`**).
 - **Live data + refills:** **Weak consistency** across refills in sliding-window mode — **KDoc** + **WI-265** design doc.

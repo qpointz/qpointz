@@ -22,6 +22,12 @@ public class MillDataQueryProperties {
 
     private int maxMaterializedRows = 100_000;
 
+    /**
+     * Maximum number of presentation pages retained per session for backward paging without re-query
+     * (page size is fixed from the first materializing request). Must be at least {@code 1}.
+     */
+    private int maxCachedPages = 16;
+
     private int defaultFetchSize = 1024;
 
     private int maxPageSize = 10_000;
@@ -43,17 +49,31 @@ public class MillDataQueryProperties {
     }
 
     /**
-     * @return maximum rows materialized per session before failing the query
+     * @return maximum rows read from the dispatcher iterator per scan before failing the query
      */
     public int getMaxMaterializedRows() {
         return maxMaterializedRows;
     }
 
     /**
-     * @param maxMaterializedRows maximum rows materialized per session
+     * @param maxMaterializedRows maximum rows read per scan
      */
     public void setMaxMaterializedRows(int maxMaterializedRows) {
         this.maxMaterializedRows = maxMaterializedRows;
+    }
+
+    /**
+     * @return maximum presentation pages kept in memory for backward paging without re-query
+     */
+    public int getMaxCachedPages() {
+        return maxCachedPages;
+    }
+
+    /**
+     * @param maxCachedPages maximum cached pages (at least {@code 1})
+     */
+    public void setMaxCachedPages(int maxCachedPages) {
+        this.maxCachedPages = maxCachedPages;
     }
 
     /**

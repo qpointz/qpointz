@@ -23,6 +23,10 @@ When **`mill.data.services.export.enable`** is true and the **`export`** service
 
 Operator-facing detail: internal design [Streaming HTTP export service](../../../design/platform/export-service.md); configuration keys in [05-configuration-keys](../../../design/refactoring/05-configuration-keys.md) (`mill.data.services.export.*`). Story archive: [`docs/workitems/completed/20260507-streaming-export-service/STORY.md`](../../../workitems/completed/20260507-streaming-export-service/STORY.md).
 
+## HTTP ad hoc query sessions (`/api/v1/query`)
+
+When **`mill.data.services.query.enable`** is true and the **`query`** data service group is on the classpath, **`mill-service`** exposes **session-based** ad hoc SQL execution under **`/api/v1/query/`**: **`POST /api/v1/query`** creates a session; **`GET /api/v1/query/{executionId}`** returns metadata **or** a paged result slice depending on query parameters; **`DELETE /api/v1/query/{executionId}`** deallocates. Built-in JSON marshallers include **`rows-objects`** and **`rows-compact-batch`**. Internal design [Query result execution service](../../../design/platform/query-result-execution-service.md); story archive [`docs/workitems/completed/20260511-query-result-execution-service/STORY.md`](../../../workitems/completed/20260511-query-result-execution-service/STORY.md).
+
 ## Verifying a checkout
 
 From the repository root (see also [Installation](../installation.md)):

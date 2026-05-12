@@ -262,11 +262,11 @@ Returns a single saved query by ID.
 
 Ad-hoc SQL execution uses **session-based** routes under **`/api/v1/query/`** (implemented by **`mill-data-query-service`** in **`mill-service`**). The legacy **`POST /api/v1/queries/execute`** one-shot JSON wrapper is **not** supported.
 
-**Create:** **`POST /api/v1/query`** with body **`{ "sql": "...", "defaultFormat": "rows-objects"?, "includeFirstPage": bool, "firstPageSize": int }`**. Returns **`201`** when only metadata is returned, or **`200`** when **`firstPage`** (same envelope as **`GET …/rows`**) is included.
+**Create:** **`POST /api/v1/query`** with body **`{ "sql": "...", "defaultFormat": "rows-objects"?, "includeFirstPage": bool, "firstPageSize": int }`**. Returns **`201`** when only metadata is returned, or **`200`** when **`firstPage`** (same envelope as a paged **`GET`**) is included.
 
-**Paged rows:** **`GET /api/v1/query/{executionId}/rows?pageIndex=&pageSize=&format=&epoch=`** — envelope fields **`epoch`**, **`pageIndex`**, **`pageSize`**, **`rowCount`**, **`totalResult`** (JSON **`null`** when unknown), **`hasNext`**, **`hasPrevious`**, plus marshaller payload under **`data`**. Built-in **`format`** values: **`rows-objects`** (array of row objects) and **`rows-compact-batch`** (`{ "fields", "rows" }`).
+**Session resource:** **`GET /api/v1/query/{executionId}`** — without **`pageIndex`**: metadata (**`executionId`**, **`epoch`**, **`totalResult`**, **`defaultFormat`**). With **`pageIndex`** (and optional **`pageSize`**, **`format`**, **`epoch`**): one presentation page — envelope **`epoch`**, **`pageIndex`**, **`pageSize`**, **`rowCount`**, **`totalResult`** (JSON **`null`** when unknown), **`hasNext`**, **`hasPrevious`**, **`schema`**, marshaller payload under **`data`**. **`pageSize`** without **`pageIndex`** → **`400`**.
 
-**Lifecycle:** **`GET /api/v1/query/{executionId}`** (metadata), **`PUT /api/v1/query/{executionId}`** (replace SQL, increments **`epoch`**), **`DELETE /api/v1/query/{executionId}`** (**`204`**, clients should call when finished).
+**Lifecycle:** **`DELETE /api/v1/query/{executionId}`** (**`204`**, clients should call when finished).
 
 **Errors:** **`401`** / **`403`** / **`404`** / **`406`** / **`409`** / **`422`** per [`query-result-execution-service.md`](../../../docs/design/platform/query-result-execution-service.md).
 
@@ -713,7 +713,7 @@ Returns feature flags for the current user/session. The backend only needs to in
 | GET | `/api/v1/queries` | List saved queries |
 | GET | `/api/v1/queries/{id}` | Single saved query |
 | POST | `/api/v1/query` | Create query-result session (optional first page) |
-| GET | `/api/v1/query/{executionId}/rows` | Paged rows for a session |
+| GET | `/api/v1/query/{executionId}` | Session metadata (no `pageIndex`) or paged slice (`?pageIndex=&pageSize=`) |
 | DELETE | `/api/v1/query/{executionId}` | Release session |
 | GET | `/api/v1/conversations` | List conversations |
 | POST | `/api/v1/conversations` | Create conversation |

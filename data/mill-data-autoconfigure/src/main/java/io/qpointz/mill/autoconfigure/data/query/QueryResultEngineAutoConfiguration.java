@@ -49,6 +49,7 @@ public class QueryResultEngineAutoConfiguration {
             MillDataQueryProperties props) {
         QueryResultEngineSettings settings = new QueryResultEngineSettings(
                 props.getMaxMaterializedRows(),
+                props.getMaxCachedPages(),
                 props.getSessionExpireAfterAccess(),
                 props.getDefaultFetchSize(),
                 props.getMaxPageSize());

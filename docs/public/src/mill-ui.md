@@ -91,6 +91,8 @@ URLs: **`/app/knowledge`** or **`/app/knowledge/<conceptId>`**.
 
 **Analysis** (`/analysis`) is the **query playground**: edit SQL, format, copy, clear, execute (when the backend allows), and inspect results — gated by **`analysis*`** flags. When the export service and UI export controls are enabled, the results toolbar can **download** the current result set via **`/services/export`** (same formatting rules as [Model export](#export-tables-and-query-results)).
 
+When the Mill stack enables the **query-result HTTP service** (**`mill.data.services.query.enable`** on **`mill-service`**), ad hoc execution uses **session routes** under **`/api/v1/query/`** — **`POST /api/v1/query`** to create a session, **`GET /api/v1/query/{executionId}`** for metadata or paged result slices (query parameters), and **`DELETE /api/v1/query/{executionId}`** to release server-side buffers. Operator-facing detail: internal design [Query result execution service](../../design/platform/query-result-execution-service.md).
+
 ---
 
 ## Chat view

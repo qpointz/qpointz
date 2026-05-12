@@ -215,7 +215,7 @@ Facet tabs are grouped by **manifest category** (from `facetTypeService` / facet
 | Format SQL action | Formats SQL text | client formatter | `analysisFormatSql` | `true` | n/a |
 | Copy SQL action | Copy current SQL | browser clipboard | `analysisCopySql` | `true` | n/a |
 | Clear SQL action | Clears editor | local state | `analysisClearSql` | `true` | n/a |
-| Execute action | Runs query | `queryService.executeQuery()` → **`POST /api/v1/query`** + **`GET …/rows`**; **`DELETE`** session in `finally` | `analysisExecuteQuery` | `true` | real |
+| Execute action | Runs query | `queryService.executeQuery()` → **`POST /api/v1/query`** + **`GET /api/v1/query/{id}?pageIndex=…`**; **`DELETE`** session in `finally` | `analysisExecuteQuery` | `true` | real |
 | InlineChat button | Query-context inline assistant | inline chat context + `chatService` analysis response pool (query tuning/explanation style outputs) | inlineChat analysis flags | `true` (global off) | mock |
 
 ### 7.3 Query results panel

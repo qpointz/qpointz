@@ -1,19 +1,32 @@
 package io.qpointz.mill.data.query.engine
 
 import com.github.benmanes.caffeine.cache.Caffeine
-import io.qpointz.mill.data.query.engine.marshal.ResultMarshallerRegistry
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher
+import io.qpointz.mill.data.query.engine.marshal.ResultMarshallerRegistry
 import io.qpointz.mill.proto.QueryExecutionConfig
 import io.qpointz.mill.proto.QueryRequest
 import io.qpointz.mill.proto.SQLStatement
 import io.qpointz.mill.proto.VectorBlock
+import io.qpointz.mill.proto.VectorBlockSchema
+import io.qpointz.mill.vectors.VectorBlockIterator
 import java.io.ByteArrayOutputStream
 import java.util.UUID
 import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Default [QueryResultExecutionService] that materializes full results into memory (bounded by [QueryResultEngineSettings.maxMaterializedRows]).
+ * [QueryResultExecutionService] that pulls [VectorBlock]s lazily from [DataOperationDispatcher.execute]
+ * and retains at most [QueryResultEngineSettings.maxCachedPages] **presentation pages** per session
+ * (page size is fixed from the first materializing [getPage] / create first page).
+ *
+ * Forward [getPage] scrolls the iterator until the requested page is available, then trims leading rows
+ * so the lowest retained page index is at least `max(0, pageIndex - (M - 1))` for `M = maxCachedPages`.
+ * Backward requests within that window are served without re-query. If the page is no longer in memory,
+ * the same SQL is executed again and rows are read until the requested page plus up to `M - 1` following
+ * pages are cached (for forward continuation), then the same low-edge trim is applied.
+ *
+ * [SessionMetadata.totalResult] stays `null` until the iterator for the current scan is exhausted.
  *
  * @param dispatcher data-plane dispatcher used for `execute`.
  * @param marshallerRegistry marshaller lookup for `getPage`.
@@ -25,14 +38,25 @@ class DefaultQueryResultExecutionService(
     private val settings: QueryResultEngineSettings,
 ) : QueryResultExecutionService {
 
-    private data class Session(
+    private class Session(
         val tenant: String,
         val lock: ReentrantReadWriteLock = ReentrantReadWriteLock(),
         @Volatile var epoch: Int = 0,
-        @Volatile var blocks: List<VectorBlock> = emptyList(),
-        @Volatile var totalRows: Int = 0,
         @Volatile var sql: String,
         @Volatile var defaultFormat: String?,
+        @Volatile var iterator: VectorBlockIterator?,
+        val blocks: MutableList<VectorBlock> = mutableListOf(),
+        /** Global index of the first visible row in [blocks] (after [physicalLeadSkipRows]). */
+        @Volatile var bufferStartRow: Int = 0,
+        /** Rows to skip at the physical start of [blocks].first() before the visible stream begins. */
+        @Volatile var physicalLeadSkipRows: Int = 0,
+        /** One past the last row index read from the current iterator (cumulative for this scan). */
+        @Volatile var rowsFetchedExclusive: Int = 0,
+        @Volatile var exhausted: Boolean = false,
+        /** Normalized page size for cache windowing; fixed after first materializing page request. */
+        @Volatile var cachePageSize: Int? = null,
+        /** Schema for the current scan (iterator or first block); kept for empty pages. */
+        @Volatile var scanSchema: VectorBlockSchema? = null,
     )
 
     private val cache = Caffeine.newBuilder()
@@ -50,13 +74,16 @@ class DefaultQueryResultExecutionService(
             tenant = context.tenant,
             sql = sql,
             defaultFormat = defaultFormat ?: QueryFormats.ROWS_OBJECTS,
+            iterator = null,
         )
-        materializeInto(session, sql)
+        openIterator(session, sql)
         val id = UUID.randomUUID().toString()
         cache.put(id, session)
         val meta = toMetadata(id, session)
         val first = if (includeFirstPage) {
-            getPage(context, id, 0, normalizePageSize(firstPageSize), null, null)
+            val ps = normalizePageSize(firstPageSize)
+            session.cachePageSize = ps
+            getPage(context, id, 0, ps, null, null)
         } else {
             null
         }
@@ -77,7 +104,8 @@ class DefaultQueryResultExecutionService(
             if (defaultFormat != null) {
                 session.defaultFormat = defaultFormat
             }
-            materializeInto(session, sql)
+            session.cachePageSize = null
+            openIterator(session, sql)
             session.epoch += 1
             return ReplaceSessionResult(epoch = session.epoch)
         } finally {
@@ -108,7 +136,7 @@ class DefaultQueryResultExecutionService(
             throw IllegalArgumentException("pageIndex must be >= 0")
         }
         val session = load(executionId)
-        session.lock.readLock().lock()
+        session.lock.writeLock().lock()
         try {
             assertTenant(session, context, executionId)
             if (clientEpoch != null && clientEpoch != session.epoch) {
@@ -118,17 +146,52 @@ class DefaultQueryResultExecutionService(
             val marshaller = marshallerRegistry.byFormatId(fmt)
                 ?: throw IllegalArgumentException("Unknown format: $fmt")
             val ps = normalizePageSize(pageSize)
+            bindOrResetCachePageSize(session, ps)
+            val m = settings.maxCachedPages.coerceAtLeast(1)
             val globalStart = pageIndex * ps
-            if (globalStart > session.totalRows) {
-                return emptyPage(session.epoch, pageIndex, ps, session.totalRows)
+            if (globalStart < session.bufferStartRow) {
+                reopenForBackwardMiss(session, pageIndex, ps, m)
+            } else {
+                materializeForwardWindow(session, pageIndex, ps, m)
             }
-            val remaining = session.totalRows - globalStart
-            val rowCount = min(ps, remaining)
+            trimWindowLowEdge(session, ps, pageIndex, m)
+            val bufRows = rowsInBuffer(session)
+            val bufEnd = session.bufferStartRow + bufRows
+            if (session.exhausted && globalStart >= session.rowsFetchedExclusive) {
+                return emptyPage(
+                    session.epoch,
+                    pageIndex,
+                    ps,
+                    session.rowsFetchedExclusive,
+                    columnSchemaForSession(session),
+                )
+            }
+            if (globalStart >= bufEnd) {
+                return emptyPage(
+                    session.epoch,
+                    pageIndex,
+                    ps,
+                    if (session.exhausted) session.rowsFetchedExclusive else null,
+                    columnSchemaForSession(session),
+                )
+            }
+            val remainingInBuffer = bufEnd - globalStart
+            val rowCount = min(ps, remainingInBuffer)
+            val localStart = globalStart - session.bufferStartRow
             val baos = ByteArrayOutputStream()
-            marshaller.writePage(session.blocks, globalStart, rowCount, baos)
-            val total = session.totalRows
+            marshaller.writePage(session.blocks, session.physicalLeadSkipRows + localStart, rowCount, baos)
+            val total = if (session.exhausted) session.rowsFetchedExclusive else null
             val hasPrevious = pageIndex > 0
-            val hasNext = globalStart + rowCount < total
+            val globalEnd = globalStart + rowCount
+            val iterHasNext = session.iterator?.hasNext() == true
+            val hasNext = when {
+                rowCount == 0 -> false
+                session.exhausted -> globalEnd < session.rowsFetchedExclusive
+                else ->
+                    rowCount < ps ||
+                        globalEnd < bufEnd ||
+                        (rowCount == ps && iterHasNext)
+            }
             return PagedQueryPayload(
                 epoch = session.epoch,
                 pageIndex = pageIndex,
@@ -138,10 +201,11 @@ class DefaultQueryResultExecutionService(
                 hasPrevious = hasPrevious,
                 hasNext = hasNext,
                 contentType = marshaller.contentType,
+                columnSchema = columnSchemaForSession(session),
                 body = baos.toByteArray(),
             )
         } finally {
-            session.lock.readLock().unlock()
+            session.lock.writeLock().unlock()
         }
     }
 
@@ -156,7 +220,13 @@ class DefaultQueryResultExecutionService(
         cache.invalidate(executionId)
     }
 
-    private fun emptyPage(epoch: Int, pageIndex: Int, pageSize: Int, total: Int?): PagedQueryPayload {
+    private fun emptyPage(
+        epoch: Int,
+        pageIndex: Int,
+        pageSize: Int,
+        total: Int?,
+        columnSchema: List<Map<String, Any?>>,
+    ): PagedQueryPayload {
         val marshaller = marshallerRegistry.byFormatId(QueryFormats.ROWS_OBJECTS)!!
         val baos = ByteArrayOutputStream()
         marshaller.writePage(emptyList(), 0, 0, baos)
@@ -169,15 +239,24 @@ class DefaultQueryResultExecutionService(
             hasPrevious = pageIndex > 0,
             hasNext = false,
             contentType = marshaller.contentType,
+            columnSchema = columnSchema,
             body = baos.toByteArray(),
         )
+    }
+
+    /**
+     * Column metadata for the HTTP `schema` envelope: prefer a materialized block, else iterator schema.
+     */
+    private fun columnSchemaForSession(session: Session): List<Map<String, Any?>> {
+        val proto = session.blocks.firstOrNull()?.schema ?: session.scanSchema
+        return proto?.toQueryResultSchemaColumns() ?: emptyList()
     }
 
     private fun toMetadata(id: String, session: Session): SessionMetadata =
         SessionMetadata(
             executionId = id,
             epoch = session.epoch,
-            totalResult = session.totalRows,
+            totalResult = if (session.exhausted) session.rowsFetchedExclusive else null,
             defaultFormat = session.defaultFormat,
         )
 
@@ -197,14 +276,8 @@ class DefaultQueryResultExecutionService(
         }
     }
 
-    private fun materializeInto(session: Session, sql: String) {
-        val (blocks, rows) = materialize(sql)
-        session.blocks = blocks
-        session.totalRows = rows
-    }
-
-    private fun materialize(sql: String): Pair<List<VectorBlock>, Int> {
-        val request = QueryRequest.newBuilder()
+    private fun buildRequest(sql: String): QueryRequest =
+        QueryRequest.newBuilder()
             .setStatement(SQLStatement.newBuilder().setSql(sql).build())
             .setConfig(
                 QueryExecutionConfig.newBuilder()
@@ -212,24 +285,133 @@ class DefaultQueryResultExecutionService(
                     .build(),
             )
             .build()
-        val iterator = try {
-            dispatcher.execute(request)
+
+    private fun openIterator(session: Session, sql: String) {
+        session.blocks.clear()
+        session.bufferStartRow = 0
+        session.physicalLeadSkipRows = 0
+        session.rowsFetchedExclusive = 0
+        session.exhausted = false
+        session.iterator = null
+        val it = try {
+            dispatcher.execute(buildRequest(sql))
         } catch (ex: Exception) {
             throw QuerySqlExecutionException(ex.message ?: "execute failed", ex)
         }
-        val blocks = ArrayList<VectorBlock>()
-        var rows = 0
-        while (iterator.hasNext()) {
-            val block = iterator.next()
-            val add = block.vectorSize
-            if (rows + add > settings.maxMaterializedRows) {
-                throw QuerySqlExecutionException(
-                    "Result exceeds maxMaterializedRows=${settings.maxMaterializedRows}",
-                )
-            }
-            blocks.add(block)
-            rows += add
+        session.iterator = it
+        session.scanSchema = it.schema()
+        if (!it.hasNext()) {
+            session.iterator = null
+            session.exhausted = true
         }
-        return blocks to rows
+    }
+
+    private fun rowsInBuffer(session: Session): Int =
+        session.rowsFetchedExclusive - session.bufferStartRow
+
+    /**
+     * Drops leading visible rows until [targetGlobalStart] is the first visible row (used for page-window eviction).
+     */
+    private fun trimToGlobalStart(session: Session, targetGlobalStart: Int) {
+        var target = targetGlobalStart
+        if (target <= session.bufferStartRow) {
+            return
+        }
+        while (session.bufferStartRow < target && session.blocks.isNotEmpty()) {
+            val first = session.blocks.first()
+            val avail = first.vectorSize - session.physicalLeadSkipRows
+            val need = target - session.bufferStartRow
+            val step = min(need, avail)
+            session.bufferStartRow += step
+            session.physicalLeadSkipRows += step
+            if (session.physicalLeadSkipRows >= first.vectorSize) {
+                session.blocks.removeAt(0)
+                session.physicalLeadSkipRows = 0
+            }
+        }
+    }
+
+    private fun bindOrResetCachePageSize(session: Session, ps: Int) {
+        val existing = session.cachePageSize
+        if (existing == null) {
+            session.cachePageSize = ps
+        } else if (existing != ps) {
+            session.cachePageSize = ps
+            openIterator(session, session.sql)
+        }
+    }
+
+    private fun materializeForwardWindow(session: Session, pageIndex: Int, ps: Int, m: Int) {
+        dropLeadingBlocksBeforePageStart(session, pageIndex, ps)
+        val trimStartPage = max(0, pageIndex - (m - 1))
+        val windowEndExclusive = (trimStartPage + m) * ps
+        val needExclusive = max((pageIndex + 1) * ps, windowEndExclusive)
+        while (session.rowsFetchedExclusive < needExclusive && !session.exhausted) {
+            if (!pullNextBlock(session)) {
+                break
+            }
+        }
+    }
+
+    /**
+     * Removes whole leading blocks whose **visible** span ends at or before [pageIndex] * [ps]
+     * so the first retained row is not past the requested page.
+     */
+    private fun dropLeadingBlocksBeforePageStart(session: Session, pageIndex: Int, ps: Int) {
+        val pageStart = pageIndex * ps
+        while (session.blocks.isNotEmpty()) {
+            val visibleInFirst = session.blocks.first().vectorSize - session.physicalLeadSkipRows
+            val firstVisibleEndExclusive = session.bufferStartRow + visibleInFirst
+            if (firstVisibleEndExclusive <= pageStart) {
+                session.bufferStartRow += visibleInFirst
+                session.blocks.removeAt(0)
+                session.physicalLeadSkipRows = 0
+            } else {
+                break
+            }
+        }
+    }
+
+    /**
+     * Re-executes SQL and reads ahead until page [pageIndex] is available and up to `M - 1` following pages
+     * are materialized when the result is long enough (bounded by [maxMaterializedRows]).
+     */
+    private fun reopenForBackwardMiss(session: Session, pageIndex: Int, ps: Int, m: Int) {
+        openIterator(session, session.sql)
+        val prefetchEndExclusive = (pageIndex + m) * ps
+        while (session.rowsFetchedExclusive < prefetchEndExclusive && !session.exhausted) {
+            if (!pullNextBlock(session)) {
+                break
+            }
+        }
+        while (session.rowsFetchedExclusive < (pageIndex + 1) * ps && !session.exhausted) {
+            if (!pullNextBlock(session)) {
+                break
+            }
+        }
+    }
+
+    private fun trimWindowLowEdge(session: Session, ps: Int, pageIndex: Int, m: Int) {
+        val trimStartPage = max(0, pageIndex - (m - 1))
+        trimToGlobalStart(session, trimStartPage * ps)
+    }
+
+    private fun pullNextBlock(session: Session): Boolean {
+        val it = session.iterator ?: return false
+        if (!it.hasNext()) {
+            session.iterator = null
+            session.exhausted = true
+            return false
+        }
+        val block = it.next()
+        val add = block.vectorSize
+        if (session.rowsFetchedExclusive + add > settings.maxMaterializedRows) {
+            throw QuerySqlExecutionException(
+                "Result exceeds maxMaterializedRows=${settings.maxMaterializedRows}",
+            )
+        }
+        session.blocks.add(block)
+        session.rowsFetchedExclusive += add
+        return true
     }
 }

@@ -19,7 +19,7 @@ Implement HTTP handlers per [`BACKEND-API-REQUIREMENTS.md`](../../../design/ui/m
 1. **List/get**: read from **WI-256** repository.
 2. **Not** AI-gated — conditional on **`DataOperationDispatcher`** bean (see **WI-258**).
 
-**Execution:** clients use **`POST /api/v1/query`** and related session routes (see [`../../in-progress/query-result-execution-service/STORY.md`](../../in-progress/query-result-execution-service/STORY.md)).
+**Execution:** clients use **`POST /api/v1/query`** and related session routes (see [`../../completed/20260511-query-result-execution-service/STORY.md`](../../completed/20260511-query-result-execution-service/STORY.md)).
 
 ## Acceptance
 

@@ -27,7 +27,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -72,7 +71,7 @@ class MillDataQuerySkymillIT {
     private final JsonMapper mapper = JsonMapper.builder().findAndAddModules().build();
 
     @Test
-    void shouldCreatePageBackwardReplaceEpochAndDelete() throws Exception {
+    void shouldCreatePageBackwardStaleEpochAndDelete() throws Exception {
         String sql = "SELECT `id`, `city` FROM `" + SCHEMA + "`.`cities`";
 
         Map<String, Object> createBody = new LinkedHashMap<>();
@@ -95,14 +94,36 @@ class MillDataQuerySkymillIT {
         String executionId = created.get("executionId").asText();
         assertThat(executionId).isNotBlank();
 
+        String metaJson = mockMvc.perform(get("/api/v1/query/{id}", executionId).with(user("alice")))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        JsonNode meta = mapper.readTree(metaJson);
+        assertThat(meta.get("executionId").asText()).isEqualTo(executionId);
+        assertThat(meta.get("epoch").asInt()).isZero();
+
+        mockMvc.perform(
+                        get("/api/v1/query/{id}", executionId)
+                                .param("pageSize", "2")
+                                .with(user("alice")))
+                .andExpect(status().isBadRequest());
+
         JsonNode first = created.get("firstPage");
         assertThat(first.get("pageIndex").asInt()).isZero();
         assertThat(first.get("rowCount").asInt()).isEqualTo(2);
         assertThat(first.get("hasPrevious").asBoolean()).isFalse();
         assertThat(first.get("data").isArray()).isTrue();
+        JsonNode schema = first.get("schema");
+        assertThat(schema.isArray()).isTrue();
+        assertThat(schema).hasSize(2);
+        assertThat(schema.get(0).get("name").asText()).isEqualTo("id");
+        assertThat(schema.get(1).get("name").asText()).isEqualTo("city");
+        assertThat(schema.get(0).has("type")).isTrue();
+        assertThat(schema.get(0).has("idx")).isTrue();
 
         String rows1 = mockMvc.perform(
-                        get("/api/v1/query/{id}/rows", executionId)
+                        get("/api/v1/query/{id}", executionId)
                                 .param("pageIndex", "1")
                                 .param("pageSize", "2")
                                 .with(user("alice")))
@@ -114,7 +135,7 @@ class MillDataQuerySkymillIT {
         assertThat(page1.get("hasPrevious").asBoolean()).isTrue();
 
         String rows0 = mockMvc.perform(
-                        get("/api/v1/query/{id}/rows", executionId)
+                        get("/api/v1/query/{id}", executionId)
                                 .param("pageIndex", "0")
                                 .param("pageSize", "2")
                                 .with(user("alice")))
@@ -126,7 +147,7 @@ class MillDataQuerySkymillIT {
         assertThat(page0.get("hasNext").asBoolean()).isTrue();
 
         String compact = mockMvc.perform(
-                        get("/api/v1/query/{id}/rows", executionId)
+                        get("/api/v1/query/{id}", executionId)
                                 .param("pageIndex", "0")
                                 .param("pageSize", "2")
                                 .param("format", "rows-compact-batch")
@@ -138,9 +159,11 @@ class MillDataQuerySkymillIT {
         JsonNode compactNode = mapper.readTree(compact);
         assertThat(compactNode.get("data").get("fields").isArray()).isTrue();
         assertThat(compactNode.get("data").get("rows").isArray()).isTrue();
+        assertThat(compactNode.get("schema").isArray()).isTrue();
+        assertThat(compactNode.get("schema")).hasSize(2);
 
         mockMvc.perform(
-                        get("/api/v1/query/{id}/rows", executionId)
+                        get("/api/v1/query/{id}", executionId)
                                 .param("pageIndex", "0")
                                 .param("pageSize", "2")
                                 .param("format", "no-such-format")
@@ -148,7 +171,7 @@ class MillDataQuerySkymillIT {
                 .andExpect(status().isBadRequest());
 
         mockMvc.perform(
-                        get("/api/v1/query/{id}/rows", executionId)
+                        get("/api/v1/query/{id}", executionId)
                                 .param("pageIndex", "0")
                                 .param("pageSize", "2")
                                 .header("Accept", "application/vnd.nope")
@@ -156,17 +179,10 @@ class MillDataQuerySkymillIT {
                 .andExpect(status().isNotAcceptable());
 
         mockMvc.perform(
-                        put("/api/v1/query/{id}", executionId)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(mapper.writeValueAsString(Map.of("sql", sql)))
-                                .with(user("alice")))
-                .andExpect(status().isOk());
-
-        mockMvc.perform(
-                        get("/api/v1/query/{id}/rows", executionId)
+                        get("/api/v1/query/{id}", executionId)
                                 .param("pageIndex", "0")
                                 .param("pageSize", "2")
-                                .param("epoch", "0")
+                                .param("epoch", "1")
                                 .with(user("alice")))
                 .andExpect(status().isConflict());
 

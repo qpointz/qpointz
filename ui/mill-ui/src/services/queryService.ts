@@ -53,7 +53,7 @@ async function httpExecuteQuery(sql: string): Promise<QueryResult> {
       data = created.firstPage.data;
     } else {
       const rowsRes = await fetch(
-        `/api/v1/query/${encodeURIComponent(executionId)}/rows?pageIndex=0&pageSize=${FIRST_PAGE_SIZE}&format=rows-objects`,
+        `/api/v1/query/${encodeURIComponent(executionId)}?pageIndex=0&pageSize=${FIRST_PAGE_SIZE}&format=rows-objects`,
         { credentials: 'include' },
       );
       const rowsText = await rowsRes.text();

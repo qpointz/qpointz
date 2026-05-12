@@ -36,7 +36,7 @@ class QueryResultConnectionDescriptor(
     /** TCP port for query-result HTTP. */
     val port: Int get() = resolved.port
 
-    /** Base path prefix for query-result REST endpoints (`POST /api/v1/query`, `GET …/rows`, etc.). */
+    /** Base path prefix for query-result REST endpoints (`POST /api/v1/query`, `GET /api/v1/query/{id}`, etc.). */
     @get:JsonProperty("api-path")
     val path: String = "/api/v1/query/"
 

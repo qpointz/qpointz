@@ -61,9 +61,14 @@ mill:
   data:
     sql:
       dialect: calcite
-    # Core query-result execution session engine (`mill-data-query`): buffer window, Caffeine, defaults.
+    # Core query-result session engine (`mill-data-query`): lazy fetch from dispatcher, page-window cache
+    # (`max-cached-pages`), per-scan cap (`max-materialized-rows`), Caffeine, defaults.
     # Binds as `mill.data.query.*` when the module is wired — see `docs/design/platform/query-result-execution-service.md`.
-    query: {}
+    query:
+      default-fetch-size: 2048
+      enabled: true
+      max-cached-pages: 16
+      session-expire-after-access: PT10M
     services:
       grpc:
         enable: true
@@ -77,7 +82,7 @@ mill:
         external-host: http
       # Paged query-result HTTP API (`/api/v1/query/**`, `mill-data-query-service`). Same enable / external-host pattern as `http` and `export`.
       query:
-        enable: false
+        enable: true
         external-host: http
   ## LEGACY subject to review
   security:

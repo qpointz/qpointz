@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
@@ -97,69 +96,72 @@ class QueryResultRestController(
     }
 
     /**
+     * Query-driven session resource: without **`pageIndex`**, returns metadata; with **`pageIndex`**,
+     * returns one presentation page (same query parameters as the former **`/rows`** route).
+     *
      * @param authentication authenticated principal
      * @param executionId session id
+     * @param pageIndex when present, select paged body mode; when absent, metadata only
+     * @param pageSize presentation page size (defaults to **50** in paged mode only; requires **`pageIndex`**)
+     * @param format optional marshaller format id (paged mode only)
+     * @param accept optional Accept header (paged mode; matched when format is absent)
+     * @param epoch optional optimistic concurrency check (paged mode)
      */
     @GetMapping(path = ["/{executionId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    @Operation(summary = "Get session metadata")
+    @Operation(summary = "Get session metadata or fetch one paged result slice")
     @ApiResponses(
         value = [
-            ApiResponse(responseCode = "200", description = "Metadata returned"),
+            ApiResponse(responseCode = "200", description = "Metadata or page returned"),
+            ApiResponse(responseCode = "400", description = "Invalid paging, pageSize without pageIndex, or unknown format"),
             ApiResponse(responseCode = "401", description = "Not authenticated"),
             ApiResponse(responseCode = "403", description = "Wrong tenant for known session"),
             ApiResponse(responseCode = "404", description = "Unknown session"),
+            ApiResponse(responseCode = "406", description = "Accept cannot be satisfied (paged mode)"),
+            ApiResponse(responseCode = "409", description = "Stale epoch (paged mode)"),
         ],
     )
-    fun metadata(
+    fun getSession(
         authentication: Authentication?,
         @Parameter(description = "Opaque execution session id") @PathVariable executionId: String,
-    ): ResponseEntity<String> {
-        val caller = requireCallerContext(authentication)
-        val meta = executionService.metadata(caller, executionId)
-        return ResponseEntity.ok()
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(jsonMapper.writeValueAsString(metadataBody(meta)))
-    }
-
-    /**
-     * @param authentication authenticated principal
-     * @param executionId session id
-     * @param pageIndex zero-based page index
-     * @param pageSize presentation page size
-     * @param format optional marshaller format id
-     * @param accept optional Accept header (matched when format is absent)
-     * @param epoch optional optimistic concurrency check
-     */
-    @GetMapping(path = ["/{executionId}/rows"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    @Operation(summary = "Fetch one paged result slice")
-    @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "200", description = "Page returned"),
-            ApiResponse(responseCode = "400", description = "Invalid paging or unknown format"),
-            ApiResponse(responseCode = "401", description = "Not authenticated"),
-            ApiResponse(responseCode = "403", description = "Wrong tenant for known session"),
-            ApiResponse(responseCode = "404", description = "Unknown session"),
-            ApiResponse(responseCode = "406", description = "Accept cannot be satisfied"),
-            ApiResponse(responseCode = "409", description = "Stale epoch"),
-        ],
-    )
-    fun rows(
-        authentication: Authentication?,
-        @Parameter(description = "Opaque execution session id") @PathVariable executionId: String,
-        @RequestParam(name = "pageIndex", defaultValue = "0") pageIndex: Int,
-        @RequestParam(name = "pageSize", defaultValue = "50") pageSize: Int,
+        @RequestParam(name = "pageIndex", required = false) pageIndex: Int?,
+        @RequestParam(name = "pageSize", required = false) pageSize: Int?,
         @RequestParam(name = "format", required = false) format: String?,
         @RequestHeader(name = "Accept", required = false) accept: String?,
         @RequestParam(name = "epoch", required = false) epoch: Int?,
     ): ResponseEntity<String> {
         val caller = requireCallerContext(authentication)
+        if (pageIndex == null) {
+            if (pageSize != null) {
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "pageSize requires pageIndex")
+            }
+            if (!format.isNullOrBlank()) {
+                throw ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "format is only valid with pageIndex (paged mode)",
+                )
+            }
+            if (epoch != null) {
+                throw ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "epoch is only valid with pageIndex (paged mode)",
+                )
+            }
+            val meta = executionService.metadata(caller, executionId)
+            return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(jsonMapper.writeValueAsString(metadataBody(meta)))
+        }
+        if (pageIndex < 0) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "pageIndex must be >= 0")
+        }
+        val ps = pageSize ?: 50
         val meta = executionService.metadata(caller, executionId)
         val formatId = resolveFormatId(format, accept, meta.defaultFormat ?: QueryFormats.ROWS_OBJECTS)
         val page = executionService.getPage(
             caller,
             executionId,
             pageIndex,
-            pageSize,
+            ps,
             formatId,
             epoch,
         )
@@ -168,40 +170,6 @@ class QueryResultRestController(
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType(marshaller.contentType))
             .body(jsonMapper.writeValueAsString(body))
-    }
-
-    /**
-     * @param authentication authenticated principal
-     * @param executionId session id
-     * @param body replacement SQL
-     */
-    @PutMapping(path = ["/{executionId}"], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    @Operation(summary = "Replace SQL for an existing session")
-    @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "200", description = "Replaced"),
-            ApiResponse(responseCode = "400", description = "Malformed body"),
-            ApiResponse(responseCode = "401", description = "Not authenticated"),
-            ApiResponse(responseCode = "403", description = "Wrong tenant for known session"),
-            ApiResponse(responseCode = "404", description = "Unknown session"),
-            ApiResponse(responseCode = "422", description = "SQL or plan cannot execute"),
-        ],
-    )
-    fun replace(
-        authentication: Authentication?,
-        @Parameter(description = "Opaque execution session id") @PathVariable executionId: String,
-        @RequestBody body: ReplaceQueryRequest,
-    ): ResponseEntity<String> {
-        val caller = requireCallerContext(authentication)
-        if (body.sql.isBlank()) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "sql is required")
-        }
-        body.defaultFormat?.let { validateFormatId(it) }
-        val replaced = executionService.replace(caller, executionId, body.sql.trim(), body.defaultFormat)
-        val payload = linkedMapOf<String, Any?>("epoch" to replaced.epoch)
-        return ResponseEntity.ok()
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(jsonMapper.writeValueAsString(payload))
     }
 
     /**
@@ -305,6 +273,10 @@ class QueryResultRestController(
         return root
     }
 
+    /**
+     * Builds the JSON object for one paged response or `firstPage`: paging fields, `schema` from the
+     * vector block schema, and `data` as the marshaller body (parsed JSON tree).
+     */
     private fun rowsEnvelope(page: PagedQueryPayload, marshaller: ResultMarshaller): Map<String, Any?> {
         val data = jsonMapper.readTree(page.body)
         return linkedMapOf(
@@ -315,6 +287,7 @@ class QueryResultRestController(
             "totalResult" to page.totalResult,
             "hasNext" to page.hasNext,
             "hasPrevious" to page.hasPrevious,
+            "schema" to page.columnSchema,
             "data" to data,
         )
     }
@@ -325,7 +298,7 @@ class QueryResultRestController(
  *
  * @property sql SQL text to execute
  * @property defaultFormat optional default marshaller id for later paging
- * @property includeFirstPage when true, include the first `/rows` envelope under `firstPage`
+ * @property includeFirstPage when true, include the first paged envelope under `firstPage`
  * @property firstPageSize presentation page size for the optional first page
  */
 data class CreateQueryRequest(
@@ -333,15 +306,4 @@ data class CreateQueryRequest(
     val defaultFormat: String? = null,
     val includeFirstPage: Boolean = false,
     val firstPageSize: Int = 50,
-)
-
-/**
- * JSON body for [QueryResultRestController.replace].
- *
- * @property sql replacement SQL text
- * @property defaultFormat optional new default marshaller id
- */
-data class ReplaceQueryRequest(
-    val sql: String,
-    val defaultFormat: String? = null,
 )

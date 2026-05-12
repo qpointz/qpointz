@@ -1,6 +1,6 @@
 # Query result execution service (data layer)
 
-Deliver **`data/mill-data-query`** (library) and **`services/mill-data-query-service`** (HTTP): programmatic-first execution sessions (**`VectorBlock`** pages + DTO projections), **Caffeine** idle eviction, **execution-buffer** window vs presentation **`pageSize`** (**`GET …/rows`** + **`pageIndex`/`pageSize`** — **Paging contract** below), **marshaller** sinks (**`OutputStream` / `Consumer<ByteBuffer>`**) with **`ServiceLoader`** SPI (**Kotlin** provider implementations; **`META-INF/services`** — WI-263) and a **Spring-assembled `ResultMarshallerRegistry`** bean (startup load — WI-263), optional **streaming HTTP** adapters (**`Flux<DataBuffer>`**), **REST** thin layer (**all** routes under **`/api/v1/query/`** — WI-264), **`PUT`** replace.
+Deliver **`data/mill-data-query`** (library) and **`services/mill-data-query-service`** (HTTP): programmatic-first execution sessions (**`VectorBlock`** pages + DTO projections), **Caffeine** idle eviction, **execution-buffer** window vs presentation **`pageSize`** (query-driven **`GET /api/v1/query/{executionId}`** with **`pageIndex`/`pageSize`** — **Paging contract** below), **marshaller** sinks (**`OutputStream` / `Consumer<ByteBuffer>`**) with **`ServiceLoader`** SPI (**Kotlin** provider implementations; **`META-INF/services`** — WI-263) and a **Spring-assembled `ResultMarshallerRegistry`** bean (startup load — WI-263), optional **streaming HTTP** adapters (**`Flux<DataBuffer>`**), **REST** thin layer (**all** routes under **`/api/v1/query/`** — WI-264). In-process **`replace`** exists on **`QueryResultExecutionService`** but is **not** exposed over HTTP.
 
 **Planning reference:** Cursor plan **`Data query-result service-a1cf6269.plan.md`** (workspace **`.cursor/plans/`**); **canonical** maintainer/implementer doc: [`docs/design/platform/query-result-execution-service.md`](../../../design/platform/query-result-execution-service.md) (**indexed** in **[`docs/design/platform/README.md`](../../../design/platform/README.md)**).
 
@@ -21,7 +21,7 @@ Deliver **`data/mill-data-query`** (library) and **`services/mill-data-query-ser
 
 **Single persisted owner key — tenant only:** At **`create`**, the session stores **one** string **tenant** identifier (e.g. authenticated **`userId`**, **`sub`**, or principal **name** — whatever **`mill-service`** / Spring Security exposes as the stable **per-user** identity for the request). **No** separate multi-field “caller tuple” is required for v1 ownership.
 
-**Checks:** On **every** read and write (`GET` metadata, **`GET …/rows`**, **`PUT` replace**, **`DELETE`**), the core compares **current request tenant** to **stored session tenant**; **match** required. **Known `executionId`** + **mismatch** → HTTP **`403`**; **unknown `executionId`** → **`404`** (do not leak existence across tenants). **Unauthenticated** → **`401`**.
+**Checks:** On **every** read and write (`GET` metadata or paged slice, **`DELETE`**, and any in-process **`replace`**), the core compares **current request tenant** to **stored session tenant**; **match** required. **Known `executionId`** + **mismatch** → HTTP **`403`**; **unknown `executionId`** → **`404`** (do not leak existence across tenants). **Unauthenticated** → **`401`**.
 
 **`CallerContext`:** **`mill-data-query`** continues to take **`CallerContext`** on each operation (**WI-262**); for this story it **must** carry at least this **tenant** string for the comparison above (additional correlation fields are optional and **not** used for ownership in v1). **WI-264** maps **`Authentication`** → **`CallerContext.tenant`** (or equivalent single field) consistently.
 
@@ -29,27 +29,25 @@ Deliver **`data/mill-data-query`** (library) and **`services/mill-data-query-ser
 
 | Method | Path (sketch) | Role |
 |--------|----------------|------|
-| **`POST`** | `/api/v1/query` | **Create** session: SQL (or plan reference per core API), optional execution/presentation limits, optional default marshaller format, optional “include first page” (**WI-264**). Returns **`executionId`** (+ metadata); **`201`** if **only** creation payload, **`200`** if body **includes** first **`/rows`**-shaped page (**HTTP status semantics** below). |
-| **`GET`** | `/api/v1/query/{executionId}` | **Metadata**: schema hints, truncation, required **`epoch`** (see **Concurrency, invalidation, and replace**), **`totalResult`** (**`null`** = unknown — same rule as **`/rows`**), marshaller hints, optional session defaults (e.g. default **`pageSize`**). **No** large row payload unless explicitly folded into this route in WI-264. Paging envelope on **`/rows`** is **normative** for navigation flags (see **Paging contract** below). |
-| **`GET`** | `/api/v1/query/{executionId}/rows` | **Paged result** body: marshaller output for one presentation page. **Query params (locked):** **`pageIndex`**, **`pageSize`** (see **Paging contract**); optional **`format`** (**Format negotiation**); optional **`epoch`** (optimistic check — **Concurrency**). **Not** supported: **`offset` / `limit`** on this tree. |
-| **`PUT`** | `/api/v1/query/{executionId}` | **Replace** SQL/plan for the **same** **`executionId`** (tear down prior buffers; **same stored tenant** as **Session ownership** only). |
+| **`POST`** | `/api/v1/query` | **Create** session: SQL (or plan reference per core API), optional execution/presentation limits, optional default marshaller format, optional “include first page” (**WI-264**). Returns **`executionId`** (+ metadata); **`201`** if **only** creation payload, **`200`** if body **includes** first paged-shaped page (**HTTP status semantics** below). |
+| **`GET`** | `/api/v1/query/{executionId}` | **Query-driven:** without **`pageIndex`** → **metadata** (**`epoch`**, **`totalResult`**, **`defaultFormat`**, …). With **`pageIndex`** → **one paged slice** (optional **`pageSize`**, **`format`**, **`epoch`** — **Paging contract**). **`pageSize`** without **`pageIndex`** → **`400`**. **Not** supported: **`offset` / `limit`**. |
 | **`DELETE`** | `/api/v1/query/{executionId}` | **Explicitly deallocate** server-side result state: remove the session, evict Caffeine entry, drop buffers, release dispatcher-backed cursors as applicable. Clients **should** call **`DELETE`** when done paging to free memory and bound resource use. |
 
 **Optional (WI-264):** **`GET /api/v1/query`** without **`{executionId}`** — return **405** or omit from OpenAPI if unused. Streaming **`GET`** (chunked body or **`StreamingResponseBody` / `Flux<DataBuffer>`**) for large slices — still under **`/api/v1/query/…`**, not a second top-level API.
 
 ### Paging contract (locked)
 
-**Canonical request:** **`GET /api/v1/query/{executionId}/rows?pageIndex=&pageSize=`** — **`pageIndex`** + **`pageSize`** document the public paging model on **`/api/v1/query/**`; optional **`format`**, **`epoch`** per other sections. Internally the core may map **`offset = pageIndex × pageSize`** against buffers or dispatcher fetch; that mapping is **not** a second client-facing contract.
+**Canonical paged request:** **`GET /api/v1/query/{executionId}?pageIndex=&pageSize=`** — **`pageIndex`** + **`pageSize`** document the public paging model; **metadata** uses the same path **without** **`pageIndex`**. Optional **`format`**, **`epoch`** per other sections.
 
-**Response envelope** (for **`application/json`** **`/rows`** responses: paging fields at the top level plus marshaller body under **`data`** — **Format negotiation** below; field names and OpenAPI in **WI-264**):
+**Response envelope** (for **`application/json`** paged responses (**`GET`** with **`pageIndex`**): paging fields at the top level plus marshaller body under **`data`** — **Format negotiation** below; field names and OpenAPI in **WI-264**):
 
 | Field | Purpose |
 |--------|---------|
-| **`epoch`** | Monotonic session generation: **`0`** at **`create`**, **`+1`** on each successful **`replace`**. Echoed on every **`/rows`** response; must match **`GET` metadata** for the same instant. |
+| **`epoch`** | Monotonic session generation: **`0`** at **`create`**, **`+1`** on each successful in-process **`replace`**. Echoed on every paged **`GET`** response; must match metadata **`GET`** for the same instant. **HTTP-only** clients typically see **`0`** for the session lifetime. |
 | **`pageIndex`** | Presentation page returned (**0-based**, same as request after normalization). |
 | **`pageSize`** | Requested page size for this call (after defaulting). |
 | **`rowCount`** | Actual rows in this response body (**0 … pageSize**); **`rowCount < pageSize`** implies end of result for this execution. |
-| **`totalResult`** | **Always present** on **`/rows`** (and in **metadata** per **WI-264** OpenAPI). Value is **JSON `null`** when total row cardinality is **unknown**; otherwise a **non-null** integer (or long — schema in **WI-264**). **Do not omit** this property — clients rely on **`null`** vs number, not on absence. |
+| **`totalResult`** | **Always present** on paged **`GET`** (and in **metadata** per **WI-264** OpenAPI). Value is **JSON `null`** when total row cardinality is **unknown**; otherwise a **non-null** integer (or long — schema in **WI-264**). **Do not omit** this property — clients rely on **`null`** vs number, not on absence. |
 | **`hasPrevious`** | **`true`** iff **`pageIndex > 0`** and the read is valid for the session **epoch** (see **Concurrency**). |
 | **`hasNext`** | If **`totalResult`** is **non-null**: **`hasNext`** iff more rows exist after this page (e.g. **`pageIndex × pageSize + rowCount < totalResult`**). If **`totalResult`** is **`null`** (unknown): **`hasNext = false`** when **`rowCount < pageSize`**; when **`rowCount == pageSize`**, **`hasNext`** is whatever the session engine reports (**not exhausted** vs buffer end — **WI-262** is normative). |
 
@@ -64,7 +62,7 @@ Deliver **`data/mill-data-query`** (library) and **`services/mill-data-query-ser
 
 **Idle eviction** (**Caffeine `expireAfterAccess`**) and **`replace` / `DELETE`** drop server buffers; clients must not assume backward requests stay cheap after eviction or long idle without a new **`POST`**.
 
-**Client obligations:** **No** required browser-side page cache — backward navigation is **`GET …/rows`** with a **lower `pageIndex`**. **Optional** client cache of recent pages is a UX optimization only. Clients **should** call **`DELETE`** when done (above) to release server memory.
+**Client obligations:** **No** required browser-side page cache — backward navigation is the **same** **`GET /api/v1/query/{executionId}`** with a **lower `pageIndex`**. **Optional** client cache of recent pages is a UX optimization only. Clients **should** call **`DELETE`** when done (above) to release server memory.
 
 ### Format negotiation and `Content-Type` (locked)
 
@@ -72,7 +70,7 @@ Deliver **`data/mill-data-query`** (library) and **`services/mill-data-query-ser
 
 **Authoritative wire type per marshaller:** each **`ResultMarshaller`** implementation exposes its response **`Content-Type`** (and the set of **`Accept`** values it can satisfy, typically the same or a small list) on the **WI-263** contract; the HTTP adapter sets the response **`Content-Type`** from the **selected** marshaller. Built-ins **`rows-objects`** and **`rows-compact-batch`** both use **`application/json`** — clients **must** use the **`format`** query (or session **`defaultFormat`**) to pick between them; **`Content-Type` alone** does not distinguish the two.
 
-**Selection order** for **`GET …/rows`:** (1) **`format`** query parameter if present and valid → marshaller by **format id**; (2) else match **`Accept`** against registered marshallers’ declared types (**`*/*`** or **`application/json`** matches any marshaller that lists **`application/json`**); (3) else session **`defaultFormat`** from **`POST`/`PUT`** body; (4) else server default **`rows-objects`**.
+**Selection order** for paged **`GET`** (with **`pageIndex`**): (1) **`format`** query parameter if present and valid → marshaller by **format id**; (2) else match **`Accept`** against registered marshallers’ declared types (**`*/*`** or **`application/json`** matches any marshaller that lists **`application/json`**); (3) else session **`defaultFormat`** from **`POST`** body; (4) else server default **`rows-objects`**.
 
 **Precedence:** if **`format`** and **`Accept`** disagree on which marshaller to use, **`format` wins**.
 
@@ -82,19 +80,19 @@ Deliver **`data/mill-data-query`** (library) and **`services/mill-data-query-ser
 
 ### HTTP status semantics (locked)
 
-**`POST /api/v1/query`:** **`201 Created`** when the response is **session creation only** (e.g. **`executionId`**, metadata, **`epoch`**, hints — **no** first **`/rows`** page in the body). **`200 OK`** when the response **includes** the **first result page** in the same JSON document (creation + first page payload per **WI-264** schema). **Optional:** **`Location: /api/v1/query/{executionId}`** on **`201`** — nice for clients, not required. Clients **must** accept **either** success status when using optional “first page in create” (**OpenAPI** documents both or a single query/body flag that disambiguates).
+**`POST /api/v1/query`:** **`201 Created`** when the response is **session creation only** (e.g. **`executionId`**, metadata, **`epoch`**, hints — **no** first paged slice in the body). **`200 OK`** when the response **includes** the **first result page** in the same JSON document (creation + first page payload per **WI-264** schema). **Optional:** **`Location: /api/v1/query/{executionId}`** on **`201`** — nice for clients, not required. Clients **must** accept **either** success status when using optional “first page in create” (**OpenAPI** documents both or a single query/body flag that disambiguates).
 
 **`DELETE /api/v1/query/{executionId}`:** **`204 No Content`** on success — **no** response body.
 
-**`422 Unprocessable Entity`:** Use for **SQL / plan execution** failures when the HTTP request is **syntactically and structurally valid** (auth OK, JSON OK, limits OK) but the **statement or plan cannot be executed** or is rejected by the engine (semantic / authorization-at-SQL-layer / parse-at-SQL errors as applicable). Use **`400 Bad Request`** for malformed JSON, invalid **`pageIndex`/`pageSize`**, unknown **`format`**, and other **client contract** violations. **`PUT …/replace`** uses the **same** **`422`** vs **`400`** split for SQL/plan failures.
+**`422 Unprocessable Entity`:** Use for **SQL / plan execution** failures when the HTTP request is **syntactically and structurally valid** (auth OK, JSON OK, limits OK) but the **statement or plan cannot be executed** or is rejected by the engine (semantic / authorization-at-SQL-layer / parse-at-SQL errors as applicable). Use **`400 Bad Request`** for malformed JSON, invalid **`pageIndex`/`pageSize`**, unknown **`format`**, and other **client contract** violations. In-process **`replace`** (not HTTP) uses the **same** **`422`** vs **`400`** split for SQL/plan failures.
 
 ### Concurrency, invalidation, and replace (locked)
 
-**`epoch`:** Integer **`0`** when the session is **created**; incremented by **`1`** (or strictly monotonic) on each **successful** **`PUT` replace** for the same **`executionId`**. **`GET /api/v1/query/{executionId}`** (metadata) and **`GET …/rows`** responses **include** the current **`epoch`** (see **Paging contract** table).
+**`epoch`:** Integer **`0`** when the session is **created**; incremented by **`1`** (or strictly monotonic) on each **successful** in-process **`replace`** for the same **`executionId`**. Metadata and paged **`GET /api/v1/query/{executionId}`** responses **include** the current **`epoch`** (see **Paging contract** table).
 
-**Optional optimistic check on `GET …/rows`:** Query parameter **`epoch`**. If the client sends it and it **does not equal** the server’s current session **`epoch`**, respond **`409 Conflict`** with structured **`error` + `code`** (stale view — e.g. **`replace`** completed since the client’s last metadata read). If **`epoch`** is **omitted**, the server serves the **current** epoch only — **no `409`** from **`replace`** alone because reads and **`replace`** are **serialized** (below).
+**Optional optimistic check on paged `GET`:** Query parameter **`epoch`** (only with **`pageIndex`**). If the client sends it and it **does not equal** the server’s current session **`epoch`**, respond **`409 Conflict`** with structured **`error` + `code`** (stale view — e.g. **`replace`** completed since the client’s last metadata read). If **`epoch`** is **omitted**, the server serves the **current** epoch only — **no `409`** from **`replace`** alone because reads and **`replace`** are **serialized** (below).
 
-**`replace` vs reads (same `executionId`):** **Per-session read–write ordering:** **`replace` is exclusive** — it **waits** for in-flight **`getPage`/`metadata`** to complete; **new reads block** until **`replace`** finishes. After **`replace`** returns, **no** **`/rows`** payload may come from **pre-replace** buffers. (**Implementation:** **`ReentrantReadWriteLock`** or equivalent on the session.)
+**`replace` vs reads (same `executionId`):** **Per-session read–write ordering:** **`replace` is exclusive** — it **waits** for in-flight **`getPage`/`metadata`** to complete; **new reads block** until **`replace`** finishes. After **`replace`** returns, **no** paged payload may come from **pre-replace** buffers. (**Implementation:** **`ReentrantReadWriteLock`** or equivalent on the session.)
 
 **`DELETE` and Caffeine eviction:** Unknown **`executionId`** → **`404`** (same as today). **Not** **`409`**.
 
@@ -102,7 +100,7 @@ Deliver **`data/mill-data-query`** (library) and **`services/mill-data-query-ser
 
 ### Structure (layers)
 
-1. **HTTP (`mill-data-query-service`)** — Spring MVC controllers in **`services/`**: authentication → **`CallerContext`** (tenant-only bridge per **Session ownership**), map HTTP errors (**`401`** unauthenticated, **`403`** wrong tenant for known **`executionId`**, **`404`** unknown **`executionId`**, **`409`** stale **`epoch`** on **`GET …/rows`** per **Concurrency**), delegate to core. **No** paging or envelope semantics duplicated in controllers — parse **`pageIndex`/`pageSize`**, validate bounds, delegate; envelope filled from core (**WI-264**). **OpenAPI:** controller methods declare **all** applicable responses (**`200`/`201`/`204`**, **`400`**, **`401`**, **`403`**, **`404`**, **`406`**, **`409`**, **`422`**, **`405`** if used) per **HTTP status semantics** and **WI-264** so **`springdoc-openapi`** output is complete.
+1. **HTTP (`mill-data-query-service`)** — Spring MVC controllers in **`services/`**: authentication → **`CallerContext`** (tenant-only bridge per **Session ownership**), map HTTP errors (**`401`** unauthenticated, **`403`** wrong tenant for known **`executionId`**, **`404`** unknown **`executionId`**, **`409`** stale **`epoch`** on paged **`GET`** per **Concurrency**), delegate to core. **No** paging or envelope semantics duplicated in controllers — parse **`pageIndex`/`pageSize`**, validate bounds, delegate; envelope filled from core (**WI-264**). **OpenAPI:** controller methods declare **all** applicable responses (**`200`/`201`/`204`**, **`400`**, **`401`**, **`403`**, **`404`**, **`406`**, **`409`**, **`422`**, **`405`** if used) per **HTTP status semantics** and **WI-264** so **`springdoc-openapi`** output is complete.
 2. **Core (`mill-data-query`)** — **`QueryResultExecutionService`**: Caffeine session store, buffer window + refill vs **`DataOperationDispatcher`** (**`submitQuery` / `fetchResult` / `execute`**), presentation **`pageSize`** vs **`executionBufferRows`**, **`epoch`** + **replace** serialization + invalidation per **Concurrency** above, marshaller invocation with **blocking** sinks.
 3. **Payloads** — JSON metadata and control plane; **page body** shaped by marshaller (**`rows-objects`**, **`rows-compact-batch`**, … per **WI-263**), nested under **`data`**. **`Content-Type`** and **format negotiation** — **Format negotiation** section above; **WI-264** + **WI-265** implement and test (**[`GAPS.md`](GAPS.md) §4** closed). **Concurrency / eviction** — **Concurrency** section; **WI-262** / **WI-265** tests; **[`GAPS.md`](GAPS.md) §5** closed.
 
@@ -198,7 +196,7 @@ Working directory: **repository root** (where **`settings.gradle.kts`** and **`.
 
 ### Story closure — reconcile `docs/design`
 
-This story **replaces** (**breaking**) earlier `docs/design` material that assumed a **one-shot JSON wrapper** over the data plane (**`POST /api/v1/queries/execute`**, **B-4** “JSON query execution wrapper”, **G-10** jet-vs-UI shape, **ARCHITECTURE** Queries row, and related UI inventory prose). **Normative** execution sessions for the composed **`mill-service`** + **`mill-ui`** stack are **`POST /api/v1/query`**, **`GET /api/v1/query/{executionId}`** (metadata), **`GET /api/v1/query/{executionId}/rows`** (paged data), and lifecycle **`PUT`/`DELETE`** on **`{executionId}`** (see **HTTP API sketch** above and **[`GAPS.md`](GAPS.md) §1**).
+This story **replaces** (**breaking**) earlier `docs/design` material that assumed a **one-shot JSON wrapper** over the data plane (**`POST /api/v1/queries/execute`**, **B-4** “JSON query execution wrapper”, **G-10** jet-vs-UI shape, **ARCHITECTURE** Queries row, and related UI inventory prose). **Normative** execution sessions for the composed **`mill-service`** + **`mill-ui`** stack are **`POST /api/v1/query`**, query-driven **`GET /api/v1/query/{executionId}`** (metadata **or** paged slice via **`pageIndex`**), and **`DELETE /api/v1/query/{executionId}`** (see **HTTP API sketch** above and **[`GAPS.md`](GAPS.md) §1**).
 
 **WI-265** carries the main edits (canonical platform doc + **BACKEND-API-REQUIREMENTS**). **Before story archive** (**[`RULES.md`](../../RULES.md)** — move to **`docs/workitems/completed/…`**), verify every row below is **fully updated**: **no** “deprecated” execute route, **no** “temporary dual contract”, **no** leaving the old path documented as supported.
 
@@ -234,7 +232,7 @@ This story **replaces** (**breaking**) earlier `docs/design` material that assum
 | **WI-264** | [`WI-264-query-result-rest-and-wiring.md`](WI-264-query-result-rest-and-wiring.md) | done | WI-262, WI-263 | **Kotlin** REST + **Java** `@ConfigurationProperties` only, **`mill-service`**, **baseline** Skymill **`testIT`** + **OpenAPI** |
 | **WI-265** | [`WI-265-query-result-tests-and-docs.md`](WI-265-query-result-tests-and-docs.md) | done | WI-264 | **BACKEND-API** + **`docs/design` sweep**; platform doc parity; **supplementary** **`testIT`** / **WI-257** note |
 
-**Placement ([RULES.md](../../RULES.md)):** this story lives under **`docs/workitems/in-progress/query-result-execution-service/`** (moved from **`planned/`** when the first WI was checked off). At **story closure**, archive to **`docs/workitems/completed/YYYYMMDD-query-result-execution-service/`** per **RULES.md**.
+**Placement ([RULES.md](../../RULES.md)):** this story is **archived** under **`docs/workitems/completed/20260511-query-result-execution-service/`** (closure **2026-05-11**).
 
 ### WI completion — commit and tracker (**RULES.md**)
 

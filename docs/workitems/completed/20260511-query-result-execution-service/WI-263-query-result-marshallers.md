@@ -19,7 +19,7 @@ Backlog refs: **D-8**
 - [x] **Spring-assembled registry bean** — **`ServiceLoader.load(...)`** at context startup (in **`mill-data-autoconfigure`** and/or **`mill-data-query-service`** `@Configuration`), build **`ResultMarshallerRegistry`**, expose as **`@Bean`**; **`QueryResultExecutionService`** / REST layer receive the registry via injection (**no** marshaller **`@Bean`** per format — **SPI only** for format plugins unless tests use **`@Primary`** / manual registry)
 - [x] **Blocking** encode: **`OutputStream`** / **`WritableByteChannel`** and/or **`Consumer<ByteBuffer>`**
 - [x] **`rows-objects`** + **`rows-compact-batch`** implementations + tests (no **`Flux`** in **core**)
-- [x] Document how **`defaultFormat`** / **`GET`** overrides align with paged **`GET /api/v1/query/{executionId}/rows`** responses (**WI-264** wires HTTP)
+- [x] Document how **`defaultFormat`** / **`GET`** overrides align with paged **`GET /api/v1/query/{executionId}?pageIndex=…`** responses (**WI-264** wires HTTP)
 
 ## Discovery and registry (locked)
 
@@ -43,7 +43,7 @@ Initial formats (both **`Content-Type: application/json`**; distinguished by **`
 
 **HTTP / reactive adapters (WI-264 scope overlap allowed):** thin **`StreamingResponseBody`**, **`Flux<DataBuffer>`**, or pipe-to-**`InputStream`** bridges live only in **`mill-data-query-service`** — **no Reactor dependency in `mill-data-query`**.
 
-Binding: **`defaultFormat`** optional on **`create`/`replace`**; paged **`GET`** on **`/api/v1/query/{executionId}/rows`** uses **`format`** / **`Accept`** / session default per **[`STORY.md`](STORY.md)** **Format negotiation** (HTTP mapping and errors in **WI-264**; docs + tests in **WI-265**).
+Binding: **`defaultFormat`** optional on **`create`/`replace`**; paged **`GET`** on **`/api/v1/query/{executionId}`** (with **`pageIndex`**) uses **`format`** / **`Accept`** / session default per **[`STORY.md`](STORY.md)** **Format negotiation** (HTTP mapping and errors in **WI-264**; docs + tests in **WI-265**).
 
 ## Scope
 

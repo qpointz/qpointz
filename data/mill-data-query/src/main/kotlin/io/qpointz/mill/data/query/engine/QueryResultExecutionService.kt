@@ -98,6 +98,9 @@ data class SessionMetadata(
 
 /**
  * One marshaller-encoded page plus paging envelope fields for HTTP mapping.
+ *
+ * @property columnSchema column metadata derived from the current [io.qpointz.mill.proto.VectorBlock] schema
+ * (JSON `schema` array in the REST envelope, parallel to `data`).
  */
 data class PagedQueryPayload(
     val epoch: Int,
@@ -108,5 +111,6 @@ data class PagedQueryPayload(
     val hasPrevious: Boolean,
     val hasNext: Boolean,
     val contentType: String,
+    val columnSchema: List<Map<String, Any?>>,
     val body: ByteArray,
 )

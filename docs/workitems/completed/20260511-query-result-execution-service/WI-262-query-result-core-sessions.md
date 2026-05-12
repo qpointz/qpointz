@@ -35,7 +35,7 @@ Introduce **`data/mill-data-query`**: Spring-free library with **`QueryResultExe
 - **Caffeine** session store: **`expireAfterAccess`** (idle); optional **`expireAfterWrite`** + weight limits
 - **`VectorBlock` / `DataOperationDispatcher`** orchestration; **no JDBC `ResultSet`**
 - **Two materialization paths:** full snapshot under threshold; **sliding `executionBufferRows`** window with **`backwardCacheBuffers` / `forwardCacheBuffers`** and **re-query refill** on miss — **backward presentation paging** depends on this window (or snapshot), because **`DataOperationDispatcher`** / **`fetchResult`** advance only **forward**
-- **Presentation** **`pageSize`** independent of **`executionBufferRows`**; **`pageIndex`** in core responses is **presentation-level** (aligned with HTTP **`/rows`** — **[`STORY.md`](STORY.md)** **Paging contract**)
+- **Presentation** **`pageSize`** independent of **`executionBufferRows`**; **`pageIndex`** in core responses is **presentation-level** (aligned with HTTP **query-driven `GET /api/v1/query/{executionId}`** — **[`STORY.md`](STORY.md)** **Paging contract**)
 - Envelopes: **`epoch`**, **`pageIndex`**, **`pageSize`**, **`rowCount`**, **`totalResult`** (required field, **`null`** = unknown), **`hasNext`/`hasPrevious`** — semantics locked in **[`STORY.md`](STORY.md)**; truncation and **refill vs live source data** (**weak consistency** on sliding-window refills) documented in **KDoc** per **Concurrency**
 
 ## Scope
@@ -58,4 +58,4 @@ None (uses existing **`mill-data-backend-core`**).
 
 Align **`executionBufferRows`** with **`QueryExecutionConfig.fetchSize`** where possible ([`proto/data_connect_svc.proto`](../../../../proto/data_connect_svc.proto)).
 
-**Backward paging:** server-side buffering is **required** for cheap backward moves in windowed mode; clients rely only on **`GET /rows`** with smaller **`pageIndex`** (**[`STORY.md`](STORY.md)** **Server and client buffering**). Optional future range parameters (**`rowFrom`/`rowTo`**) would be an HTTP extension in **WI-264**, not a change to dispatcher direction.
+**Backward paging:** server-side buffering is **required** for cheap backward moves in windowed mode; HTTP clients rely on the **same** **`GET /api/v1/query/{executionId}`** with a smaller **`pageIndex`** (**[`STORY.md`](STORY.md)** **Server and client buffering**). Optional future range parameters (**`rowFrom`/`rowTo`**) would be an HTTP extension in **WI-264**, not a change to dispatcher direction.
