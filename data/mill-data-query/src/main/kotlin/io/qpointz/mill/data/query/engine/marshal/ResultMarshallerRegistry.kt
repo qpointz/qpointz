@@ -27,6 +27,7 @@ class ResultMarshallerRegistry(
          *
          * @param classLoader class loader used for service discovery (application class loader in Spring).
          */
+        @JvmStatic
         fun load(classLoader: ClassLoader = Thread.currentThread().contextClassLoader): ResultMarshallerRegistry {
             val merged = LinkedHashMap<String, ResultMarshaller>()
             val loader = java.util.ServiceLoader.load(ResultMarshallerProvider::class.java, classLoader)

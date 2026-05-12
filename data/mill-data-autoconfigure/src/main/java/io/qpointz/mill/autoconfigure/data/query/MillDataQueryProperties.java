@@ -1,16 +1,24 @@
-package io.qpointz.mill.data.query;
+package io.qpointz.mill.autoconfigure.data.query;
 
-import io.qpointz.mill.annotations.service.ConditionalOnService;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
 
 /**
  * Bindings for {@code mill.data.query.*} — core session engine tuning for {@code mill-data-query}.
+ *
+ * <p>Registered by {@link QueryResultEngineAutoConfiguration}; lives in {@code mill-data-autoconfigure}
+ * so applications can use {@link io.qpointz.mill.data.query.engine.QueryResultExecutionService} in-process
+ * without depending on {@code mill-data-query-service} (REST).
  */
-@ConditionalOnService(value = "query", group = "data")
 @ConfigurationProperties(prefix = "mill.data.query")
 public class MillDataQueryProperties {
+
+    /**
+     * When {@code false}, {@link QueryResultEngineAutoConfiguration} does not register engine beans
+     * ({@code ResultMarshallerRegistry}, {@code QueryResultExecutionService}).
+     */
+    private boolean enabled = true;
 
     private int maxMaterializedRows = 100_000;
 
@@ -19,6 +27,20 @@ public class MillDataQueryProperties {
     private int maxPageSize = 10_000;
 
     private Duration sessionExpireAfterAccess = Duration.ofMinutes(30);
+
+    /**
+     * @return whether the query-result engine beans are registered
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    /**
+     * @param enabled whether the query-result engine beans are registered
+     */
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 
     /**
      * @return maximum rows materialized per session before failing the query

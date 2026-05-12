@@ -35,7 +35,7 @@ The composed **`mill-service`** + **`mill-ui`** stack **must not** treat **`POST
 | **`mill-ui`** analysis / playground | HTTP: `queryService` → **`/api/v1/query/**`**; see [mill-ui BACKEND-API-REQUIREMENTS](../ui/mill-ui/BACKEND-API-REQUIREMENTS.md) after WI-265. |
 | **`mill-service`** | **`apps/mill-service`** depends on **`mill-data-query-service`**; dispatcher and backends come from **`mill-data-autoconfigure`**. |
 | Other HTTP clients | Same OpenAPI contract; respect **tenant-only** ownership and **`epoch`** semantics. |
-| In-process (NL-to-SQL, automation, tests) | Inject or construct **`QueryResultExecutionService`** with **`CallerContext`** per call; **no** Spring Web on the **`mill-data-query`** module. |
+| In-process (NL-to-SQL, automation, tests) | With **`mill-data-autoconfigure`** on the classpath: inject **`QueryResultExecutionService`** (from **`QueryResultEngineAutoConfiguration`**) and pass **`CallerContext`** per call — **no** **`mill-data-query-service`** required. **No** Spring Web on **`mill-data-query`**. |
 
 Broader data-plane context: [mill-data-lane-onepager.md](mill-data-lane-onepager.md). gRPC / export parallels: [data-export-service.md](data-export-service.md) (different transport; same “thin adapter over engine” idea).
 
@@ -46,8 +46,8 @@ Broader data-plane context: [mill-data-lane-onepager.md](mill-data-lane-onepager
 | Gradle module | Path (when present) | Role |
 |---------------|---------------------|------|
 | **`mill-data-query`** | `data/mill-data-query/` | Kotlin core: sessions, Caffeine, buffer/refill, **`epoch`**, marshaller registry **API**, **`ServiceLoader`** SPI for **`ResultMarshallerProvider`**. **No** Spring Web / Security / Reactor on this module’s compile classpath for domain code. |
-| **`mill-data-query-service`** | `services/mill-data-query-service/` | Kotlin Spring MVC REST, **`Authentication` → `CallerContext`**, optional streaming adapters, Springdoc OpenAPI. **Java only** for **`@ConfigurationProperties`** bound under **`mill.data.services.query.*`** so metadata JSON is generated (same family as **`mill.data.services.http`** / **`export`** in [`application.yml`](../../../apps/mill-service/src/main/resources/application.yml)). |
-| **`mill-data-autoconfigure`** | existing | Dispatcher + backend beans in composed **`mill-service`**. |
+| **`mill-data-autoconfigure`** | `data/mill-data-autoconfigure/` | Backends + **`DataOperationDispatcher`** (existing). **`QueryResultEngineAutoConfiguration`**: **`MillDataQueryProperties`** (`mill.data.query.*`), **`ResultMarshallerRegistry`**, **`QueryResultExecutionService`** when a dispatcher bean exists — **no** MVC; enables in-process sessions **without** **`mill-data-query-service`**. |
+| **`mill-data-query-service`** | `services/mill-data-query-service/` | Kotlin Spring MVC REST, **`Authentication` → `CallerContext`**, Springdoc OpenAPI. **Java only** for **`@ConfigurationProperties`** under **`mill.data.services.query.*`** (`QueryResultServiceProperties`). |
 | **`mill-data-backend-core`** | existing | **`DataOperationDispatcher`**, **`VectorBlock`**, execution types. |
 | **`apps/mill-service`** | `apps/mill-service/` | **`implementation(project(":services:mill-data-query-service"))`** so the REST surface is packaged. |
 
@@ -60,9 +60,10 @@ Broader data-plane context: [mill-data-lane-onepager.md](mill-data-lane-onepager
 ```text
 apps/mill-service
   └── mill-data-query-service (REST, /api/v1/query/…)
-        └── mill-data-query (QueryResultExecutionService, sessions, marshallers)
+  └── mill-data-autoconfigure
+        ├── … (dispatcher + backends)
+        └── QueryResultEngineAutoConfiguration → mill-data-query (QueryResultExecutionService, sessions, marshallers)
               └── mill-data-backend-core (DataOperationDispatcher)
-        └── mill-data-autoconfigure (dispatcher + backend wiring)
 ```
 
 **Beans (conceptual):**
@@ -202,7 +203,7 @@ The core module **must not** depend on Spring Web types.
 ## SPI: `ResultMarshallerProvider`
 
 - Providers register via Java **`ServiceLoader`** (**`META-INF/services/...`**).
-- **Kotlin** implementations live in **`mill-data-query`** (or extension modules); Spring loads providers at startup and exposes a **`ResultMarshallerRegistry`** bean in the service module (**WI-263**).
+- **Kotlin** implementations live in **`mill-data-query`** (or extension modules); Spring loads providers at startup and exposes a **`ResultMarshallerRegistry`** bean from **`QueryResultEngineAutoConfiguration`** in **`mill-data-autoconfigure`** (**WI-263**).
 - **Collision policy** and discovery order: follow WI-263 / story (fail fast or deterministic merge — implement as specified there).
 
 ---
@@ -222,10 +223,11 @@ Prefixes follow **`apps/mill-service/src/main/resources/application.yml`** — *
 
 ### Core layer — `mill.data.query.*`
 
-**Java** [`MillDataQueryProperties`](../../../services/mill-data-query-service/src/main/java/io/qpointz/mill/data/query/MillDataQueryProperties.java) — **`@ConfigurationProperties(prefix = "mill.data.query")`**, wired in [`QueryResultWebAutoConfiguration`](../../../services/mill-data-query-service/src/main/kotlin/io/qpointz/mill/data/query/config/QueryResultWebAutoConfiguration.kt) into **`QueryResultEngineSettings`**.
+**Java** [`MillDataQueryProperties`](../../../data/mill-data-autoconfigure/src/main/java/io/qpointz/mill/autoconfigure/data/query/MillDataQueryProperties.java) — **`@ConfigurationProperties(prefix = "mill.data.query")`**, wired in [`QueryResultEngineAutoConfiguration`](../../../data/mill-data-autoconfigure/src/main/java/io/qpointz/mill/autoconfigure/data/query/QueryResultEngineAutoConfiguration.java) into **`QueryResultEngineSettings`**.
 
 | Property | Type | Default | Purpose |
 |----------|------|---------|---------|
+| **`enabled`** | boolean | `true` | When **`false`**, **`QueryResultEngineAutoConfiguration`** does not register **`QueryResultExecutionService`** / registry beans (in-process + REST both require the engine). |
 | **`max-materialized-rows`** | int | `100000` | Maximum rows materialized per session before the engine fails the query. |
 | **`default-fetch-size`** | int | `1024` | Dispatcher **`QueryExecutionConfig.fetchSize`** default on **`execute`**. |
 | **`max-page-size`** | int | `10000` | Upper bound for presentation **`pageSize`** on **`GET …/rows`**. |
@@ -257,7 +259,7 @@ Structured error bodies: align with **`mill-service`** JSON error conventions an
 ## Implementation conventions (short)
 
 - **Kotlin** for **`mill-data-query`** and **`mill-data-query-service`** production code under **`src/main/kotlin`**.
-- **Java** **only** for **`@ConfigurationProperties`** (**`mill.data.services.query.*`**, **`mill.data.query.*`** — see above); place the **`mill.data.query.*`** properties class on the module that declares the **`QueryResultExecutionService`** **`@Bean`** if not **`mill-data-query-service`**.
+- **Java** **only** for **`@ConfigurationProperties`**: **`mill.data.services.query.*`** on **`mill-data-query-service`**; **`mill.data.query.*`** on **`mill-data-autoconfigure`** (see **`MillDataQueryProperties`** / **`QueryResultEngineAutoConfiguration`**).
 - **KDoc** / **JavaDoc** to **parameter** level on all new production API.
 
 ---
