@@ -51,7 +51,7 @@ Every piece of data the UI consumes, organized by domain. Each entry includes th
 |---|---|---|
 | List saved queries | `SavedQuery[]` | QuerySidebar list |
 | Single saved query by ID | `SavedQuery` | QueryEditor (load from URL) |
-| Execute SQL | Request: `{sql: string}` -> Response: `QueryResult` | QueryPlayground execute button |
+| Execute SQL | **Sessions:** `POST /api/v1/query` → `GET /api/v1/query/{executionId}/rows` (paged); client maps envelope + `data` to `QueryResult` | QueryPlayground execute button |
 
 **SavedQuery shape:** `{id, name, description?, sql, createdAt, updatedAt, tags?: string[]}`
 
@@ -203,7 +203,7 @@ Full FeatureFlags interface has 70 boolean flags across 14 categories (views, ch
 | G-7 | Concept tags | **MISSING** | -- | Same as G-4. |
 | G-8 | Saved queries list | **MISSING** | -- | No saved query persistence. |
 | G-9 | Saved query by ID | **MISSING** | -- | Same as G-8. |
-| G-10 | Execute SQL (JSON) | **PARTIAL** | `POST /services/jet/SubmitQuery` | Exists but uses protobuf `QueryRequest`/`QueryResultResponse`. UI expects simple JSON `{sql}` -> `{columns, rows, rowCount, executionTimeMs}`. Need REST JSON wrapper or adapter endpoint. |
+| G-10 | Execute SQL (JSON) | **PARTIAL** | **`POST /api/v1/query`** + **`GET /api/v1/query/{executionId}/rows`** (`mill-data-query-service`) | Session-based HTTP + marshaller formats (`rows-objects` / `rows-compact-batch`). UI maps to flat `QueryResult`; remaining gaps are optional UX (streaming, saved-query integration). See [`query-result-execution-service.md`](../../platform/query-result-execution-service.md). |
 | G-11 | Conversations list | **PARTIAL** | `GET /api/nl2sql/chats` | Path and DTO naming differ (`Chat` vs `Conversation`, `ChatMessage` vs `Message`). Need to verify: does `Chat` include nested messages? Does it have `createdAt`/`updatedAt`? |
 | G-12 | Create conversation | **PARTIAL** | `POST /api/nl2sql/chats` | Request shape (`CreateChatRequest` vs `{title}`). Response shape alignment. |
 | G-13 | Delete conversation | **PARTIAL** | `DELETE /api/nl2sql/chats/{id}` | Likely compatible. Verify 204 response. |
@@ -225,9 +225,7 @@ Full FeatureFlags interface has 70 boolean flags across 14 categories (views, ch
 1. Add a composite `GET /entities/{id}/facets` endpoint returning all types
 2. UI makes 3 parallel requests (less clean but no backend change)
 
-**G-10 (Query Execution):** The jet service uses protobuf-shaped `QueryRequest` (wraps `SQLStatement`) and returns `QueryResultResponse` (wraps `VectorBlock` columnar format). The UI expects flat JSON `{columns: [{name, type}], rows: [{...}], rowCount, executionTimeMs}`. This is a significant format gap requiring either:
-1. A new REST controller that wraps jet and returns simple JSON
-2. Or: expose the existing metadata-level query functionality differently
+**G-10 (Query Execution):** Ad-hoc execution for **mill-ui** is **`/api/v1/query/**`** in **`mill-service`** (see [`query-result-execution-service.md`](../../platform/query-result-execution-service.md) and **BACKLOG** **D-8**). The UI still materializes a flat **`QueryResult`** in the client; **`queryService`** maps marshaller JSON. Jet **`POST /services/jet/SubmitQuery`** remains protobuf-shaped for native Jet clients — not the Analysis playground path.
 
 **G-14 (Chat Streaming):** The nl2sql service has separate POST (send message) and GET (stream) endpoints. The UI calls a single async generator that sends and streams in one operation. The backend flow needs to be: POST message -> immediately GET stream, or: single POST endpoint that returns SSE.
 
@@ -244,7 +242,7 @@ These require thin wrappers, composite endpoints, or shape alignment over alread
 | **B-1** | Verify and document schema tree DTO shape | Confirm `TreeNodeDto` fields match `{id, type, name, children}`. Document any mapping needed. | -- |
 | **B-2** | Verify and document entity DTO shape | Confirm `MetadataEntityDto` fields and dot-separated ID support. | -- |
 | **B-3** | Composite facets endpoint | Add `GET /api/metadata/v1/entities/{id}/facets` (no facetType) returning `{descriptive, structural, relations}` in one response. | -- |
-| **B-4** | JSON query execution wrapper | Add REST endpoint accepting `{sql: string}` and returning `{columns, rows, rowCount, executionTimeMs}` by wrapping jet's SubmitQuery and converting VectorBlock to flat JSON. | -- |
+| **B-4** | Query execution over HTTP | **Done (superseded):** session API **`POST /api/v1/query`**, **`GET …/rows`**, **`DELETE …/{executionId}`** — see [`query-result-execution-service.md`](../../platform/query-result-execution-service.md) and **BACKLOG** **D-8**. | -- |
 | **B-5** | Verify chat DTO compatibility | Document `Chat`/`ChatMessage` shape from nl2sql. Confirm: nested messages in list response, timestamp format, title field. | -- |
 | **B-6** | Unified chat send+stream endpoint | Either: (a) make `POST /chats/{id}/messages` return SSE directly, or (b) document the two-step flow so the UI can adapt. | B-5 |
 

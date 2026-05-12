@@ -1,0 +1,13 @@
+name: skymill
+storage:
+  type: local
+  rootPath: "../../test/datasets/skymill/csv"
+table:
+  mapping:
+    type: regex
+    pattern: "(?<table>[^/]+)\\.csv"
+readers:
+  - type: csv
+    format:
+      delimiter: ";"
+      hasHeader: true

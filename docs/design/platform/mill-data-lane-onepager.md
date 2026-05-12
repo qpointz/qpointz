@@ -180,4 +180,5 @@ flowchart LR
   `services/mill-data-http-service/src/main/java/io/qpointz/mill/data/backend/access/http/controllers/AccessServiceController.java`
   (failures surfaced as RFC 9457 Problem Details via
   `.../access/http/advice/AccessServiceProblemAdvice.java`)
+- **Query result sessions (HTTP):** paged execution over the dispatcher at **`/api/v1/query/**`** — maintainer/implementer spec: [`query-result-execution-service.md`](query-result-execution-service.md)
 - Client error mapping (Python JDBC, parity): [`docs/design/client/client-error-transparency.md`](../client/client-error-transparency.md)

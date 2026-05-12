@@ -9,5 +9,6 @@ dependencies {
     dokka(project(":services:mill-service-common"))
     dokka(project(":services:mill-data-grpc-service"))
     dokka(project(":services:mill-data-http-service"))
+    dokka(project(":services:mill-data-query-service"))
     dokka(project(":services:mill-ui-service"))
 }

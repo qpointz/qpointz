@@ -1,4 +1,4 @@
-# WI-257 — REST `/api/v1/queries` (list, get, execute)
+# WI-257 — REST `/api/v1/queries` (list, get)
 
 Status: `planned`  
 Type: `feature`  
@@ -11,13 +11,15 @@ Implement HTTP handlers per [`BACKEND-API-REQUIREMENTS.md`](../../../design/ui/m
 
 - `GET /api/v1/queries`
 - `GET /api/v1/queries/{queryId}`
-- `POST /api/v1/queries/execute` (JSON body with `sql`)
+
+**Ad-hoc SQL execution** is **not** in this WI — it is **`/api/v1/query/**`** (story **`query-result-execution-service`**, **D-8**). Do **not** add **`POST /api/v1/queries/execute`**.
 
 ## Scope
 
-1. **`execute`**: build **`QueryRequest`** from SQL, **[`DataOperationDispatcher.execute`](../../../../data/mill-data-backend-core/src/main/java/io/qpointz/mill/data/backend/dispatchers/DataOperationDispatcher.java)**, materialize columns/rows for JSON grid (limits, error mapping with `error` + `code` where feasible).
-2. **List/get**: read from **WI-256** repository.
-3. **Not** AI-gated — conditional on **`DataOperationDispatcher`** bean (see **WI-258**).
+1. **List/get**: read from **WI-256** repository.
+2. **Not** AI-gated — conditional on **`DataOperationDispatcher`** bean (see **WI-258**).
+
+**Execution:** clients use **`POST /api/v1/query`** and related session routes (see [`../../in-progress/query-result-execution-service/STORY.md`](../../in-progress/query-result-execution-service/STORY.md)).
 
 ## Acceptance
 

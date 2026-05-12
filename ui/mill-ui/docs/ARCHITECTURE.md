@@ -1097,7 +1097,7 @@ The barrel (`api.ts`) re-exports remain unchanged — consumers always `import {
 |---------|-------------------|------------------------------|---------------|
 | Schema | `schemaService.ts` | `GET /api/metadata/v1/explorer/tree`, `/entities/{id}`, `/entities/{id}/facets` | B-1, B-2, B-3 |
 | Concepts | `conceptService.ts` | `GET /api/v1/concepts`, `/concepts/{id}`, `/concepts/categories`, `/concepts/tags` | B-7 — B-11 |
-| Queries | `queryService.ts` | `POST /api/v1/queries/execute` (JSON wrapper over jet), `GET /api/v1/queries` | B-4, B-12 — B-17 |
+| Queries | `queryService.ts` | `POST /api/v1/query`, `GET /api/v1/query/{executionId}/rows`, `DELETE /api/v1/query/{executionId}`, `GET /api/v1/queries` | B-4, B-12 — B-17 |
 | Stats | `statsService.ts` | `GET /api/v1/stats` | B-18 |
 | Chat | `chatService.ts` | `POST /api/nl2sql/chats/{id}/messages` (SSE) | B-5, B-6, B-14 |
 | Inline Chat | `inlineChatService.ts` | `POST /api/v1/inline-chat/messages` (SSE) | B-20 |

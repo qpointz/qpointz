@@ -213,16 +213,16 @@ Facet tabs are grouped by **manifest category** (from `facetTypeService` / facet
 | Format SQL action | Formats SQL text | client formatter | `analysisFormatSql` | `true` | n/a |
 | Copy SQL action | Copy current SQL | browser clipboard | `analysisCopySql` | `true` | n/a |
 | Clear SQL action | Clears editor | local state | `analysisClearSql` | `true` | n/a |
-| Execute action | Runs query | `queryService.executeQuery()` returns simulated columns/rows/executionTime metadata | `analysisExecuteQuery` | `true` | mock |
+| Execute action | Runs query | `queryService.executeQuery()` → **`POST /api/v1/query`** + **`GET …/rows`**; **`DELETE`** session in `finally` | `analysisExecuteQuery` | `true` | real |
 | InlineChat button | Query-context inline assistant | inline chat context + `chatService` analysis response pool (query tuning/explanation style outputs) | inlineChat analysis flags | `false` | mock |
 
 ### 7.3 Query results panel
 
 | Element | Description | Content source | Feature flag | Default | Backend state |
 |---|---|---|---|---|---|
-| Results table | Data rows + sortable headers | `queryService.executeQuery()` response with typed column schema + row matrix | `analysisQueryResults` | `true` | mock |
-| Status/row count | Execution metadata | query response metadata | `analysisQueryResults` | `true` | mock |
-| Export controls | CSV/TSV/JSON export actions | current result set | `analysisQueryResults` | `true` | mock |
+| Results table | Data rows + sortable headers | `queryService.executeQuery()` maps **`rows-objects`** into column schema + row matrix | `analysisQueryResults` | `true` | real |
+| Status/row count | Execution metadata | query response metadata | `analysisQueryResults` | `true` | real |
+| Export controls | CSV/TSV/JSON export actions | current result set | `analysisQueryResults` | `true` | real |
 
 ---
 

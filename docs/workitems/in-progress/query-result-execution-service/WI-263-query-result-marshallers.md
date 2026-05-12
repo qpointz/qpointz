@@ -1,20 +1,25 @@
 # WI-263 — Result marshaller SPI + built-in formats
 
-Status: `planned`  
+Status: `done`  
 Type: `feature`  
 Area: `data`  
 Backlog refs: **D-8**
 
-**Story:** [`STORY.md`](STORY.md) — **WI-263** (tracker row 2).
+**Story:** [`STORY.md`](STORY.md) — **WI-263** (tracker row 2). **Delivery:** when this WI is finished, mark its tracker + **[`STORY.md`](STORY.md)** **Tracker** / **Work Items**, then **one commit** for the full tree (**[`RULES.md`](../../RULES.md)**).
+
+## Language
+
+- **Kotlin** — **`ResultMarshaller`**, registry, SPI types, built-ins, and Spring **`@Configuration` / `@Bean`** that assemble **`ServiceLoader` → `ResultMarshallerRegistry`** (in **`mill-data-autoconfigure`** and/or **`mill-data-query-service`**).
+- **Java** — **only** if this WI introduces a **`@ConfigurationProperties`** type (unlikely for **WI-263** alone); prefer keeping all **WI-263** code in **Kotlin** per **[`STORY.md`](STORY.md)** **Implementation conventions**.
 
 ## Tracker (this WI)
 
-- [ ] **`ResultMarshaller`** contract + **`ResultMarshallerRegistry`** (**Kotlin**, Spring-free **`mill-data-query`**) — lookup by **format id**; each marshaller declares **`Content-Type`** and **`Accept`**-matchable types (**standard IANA MIME only** — see **[`STORY.md`](STORY.md)** **Format negotiation**); deterministic behaviour on **duplicate ids** (fail fast or last-wins — pick one and test); **KDoc** to **parameter** level on all new/changed production API
-- [ ] **Java SPI** for contributions: **`ResultMarshallerProvider`** (or equivalent) declared under **`META-INF/services/`**; each provider returns one or more **`ResultMarshaller`** instances (built-ins and third-party JARs use the **same** mechanism)
-- [ ] **Spring-assembled registry bean** — **`ServiceLoader.load(...)`** at context startup (in **`mill-data-autoconfigure`** and/or **`mill-data-query-service`** `@Configuration`), build **`ResultMarshallerRegistry`**, expose as **`@Bean`**; **`QueryResultExecutionService`** / REST layer receive the registry via injection (**no** marshaller **`@Bean`** per format — **SPI only** for format plugins unless tests use **`@Primary`** / manual registry)
-- [ ] **Blocking** encode: **`OutputStream`** / **`WritableByteChannel`** and/or **`Consumer<ByteBuffer>`**
-- [ ] **`rows-objects`** + **`rows-compact-batch`** implementations + tests (no **`Flux`** in **core**)
-- [ ] Document how **`defaultFormat`** / **`GET`** overrides align with paged **`GET /api/v1/query/{executionId}/rows`** responses (**WI-264** wires HTTP)
+- [x] **`ResultMarshaller`** contract + **`ResultMarshallerRegistry`** (**Kotlin**, Spring-free **`mill-data-query`**) — lookup by **format id**; each marshaller declares **`Content-Type`** and **`Accept`**-matchable types (**standard IANA MIME only** — see **[`STORY.md`](STORY.md)** **Format negotiation**); deterministic behaviour on **duplicate ids** (fail fast or last-wins — pick one and test); **KDoc** to **parameter** level on all new/changed production API
+- [x] **JVM `ServiceLoader` SPI** for contributions: **`ResultMarshallerProvider`** (or equivalent) declared under **`META-INF/services/`**; **Kotlin** provider implementations return one or more **`ResultMarshaller`** instances (built-ins and third-party JARs use the **same** mechanism)
+- [x] **Spring-assembled registry bean** — **`ServiceLoader.load(...)`** at context startup (in **`mill-data-autoconfigure`** and/or **`mill-data-query-service`** `@Configuration`), build **`ResultMarshallerRegistry`**, expose as **`@Bean`**; **`QueryResultExecutionService`** / REST layer receive the registry via injection (**no** marshaller **`@Bean`** per format — **SPI only** for format plugins unless tests use **`@Primary`** / manual registry)
+- [x] **Blocking** encode: **`OutputStream`** / **`WritableByteChannel`** and/or **`Consumer<ByteBuffer>`**
+- [x] **`rows-objects`** + **`rows-compact-batch`** implementations + tests (no **`Flux`** in **core**)
+- [x] Document how **`defaultFormat`** / **`GET`** overrides align with paged **`GET /api/v1/query/{executionId}/rows`** responses (**WI-264** wires HTTP)
 
 ## Discovery and registry (locked)
 

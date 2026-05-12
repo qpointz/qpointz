@@ -30,6 +30,7 @@ A document belongs here if its **primary subject** is one of:
 | `mill-service-editions-and-ai-chat.md` | `apps/mill-service` Gradle feature **`ai-chat-service`** and edition **`ai`** wiring **`mill-ai-v3-autoconfigure`** (starter; pulls **`mill-ai-v3-service`**) + persistence |
 | `calcite-dialect-comparison.md` | Calcite dialect functions comparison: PostgreSQL vs SqlLibraryOperators |
 | `mill-data-lane-onepager.md` | One-page visual architecture summary of Mill data flow: sources, backends, SQL engine, services, metadata, and clients |
+| `query-result-execution-service.md` | Query result **sessions** over `DataOperationDispatcher`: HTTP `/api/v1/query/**`, paging (`pageIndex`/`pageSize`), marshallers, tenant ownership, `epoch`/replace, Skymill `testIT` — maintainer/implementer reference for UI, service, and embedders |
 | `arrow-flight-server-design.md` | Arrow Flight server design for Mill query transport and type mapping |
 | `arrow-flight-sql-server-design.md` | Arrow Flight SQL server design for SQL metadata and command compatibility |
 | `CODEBASE_ANALYSIS_CURRENT.md` | High-level codebase analysis: metrics, structure, tech stack, status |

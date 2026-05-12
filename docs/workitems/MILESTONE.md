@@ -46,6 +46,8 @@
 
 Individual work items and bundles merged on `dev` in support of this milestone (including items that also appear under **Archived stories** above).
 
+- **WI-262–WI-265** — Query result execution: **`mill-data-query`** session engine + marshaller SPI, **`mill-data-query-service`** REST **`/api/v1/query/**`**, **`mill-service`** wiring, Skymill **`testIT`**, design + **mill-ui** BACKEND alignment; story **`query-result-execution-service`**, **in progress** [`in-progress/query-result-execution-service/STORY.md`](in-progress/query-result-execution-service/STORY.md). **BACKLOG** **D-8** `done`.
+
 - **WI-250–WI-261** — Streaming HTTP export: format SPI + registry bean, JSON export format, backend vector source, **`mill-export-service`** REST + catalog + well-known, tests/docs/config keys, mill-ui Analysis + Model export UX; story **`streaming-export-service`**, archived [`completed/20260507-streaming-export-service/STORY.md`](completed/20260507-streaming-export-service/STORY.md).
 
 - **WI-229–WI-233** — mill-ui general chat on unified AI v3 HTTP + SSE (**`/api/v1/ai/chats`**, profiles, context sync, artefact seams, metadata-scope spec, Vitest); story **`ai-v3-mill-ui-general-chat`**, archived [`completed/20260506-ai-v3-mill-ui-general-chat/STORY.md`](completed/20260506-ai-v3-mill-ui-general-chat/STORY.md).

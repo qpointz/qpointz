@@ -28,6 +28,7 @@ mill {
             module(":services:mill-data-grpc-service")
             module(":services:mill-data-http-service")
             module(":services:mill-export-service")
+            module(":services:mill-data-query-service")
         }
 
         feature("ai-chat-service") {

@@ -61,6 +61,9 @@ mill:
   data:
     sql:
       dialect: calcite
+    # Core query-result execution session engine (`mill-data-query`): buffer window, Caffeine, defaults.
+    # Binds as `mill.data.query.*` when the module is wired — see `docs/design/platform/query-result-execution-service.md`.
+    query: {}
     services:
       grpc:
         enable: true
@@ -71,6 +74,10 @@ mill:
         external-host: http
       export:
         enable: true
+        external-host: http
+      # Paged query-result HTTP API (`/api/v1/query/**`, `mill-data-query-service`). Same enable / external-host pattern as `http` and `export`.
+      query:
+        enable: false
         external-host: http
   ## LEGACY subject to review
   security:

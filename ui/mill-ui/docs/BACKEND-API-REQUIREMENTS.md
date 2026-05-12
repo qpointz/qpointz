@@ -258,42 +258,19 @@ Returns a single saved query by ID.
 
 **Frontend usage**: Loads a query from URL parameters into the SQL editor.
 
-### POST /api/v1/queries/execute
+### Query execution sessions (`/api/v1/query/**`)
 
-Executes a SQL query and returns results.
+Ad-hoc SQL execution uses **session-based** routes under **`/api/v1/query/`** (implemented by **`mill-data-query-service`** in **`mill-service`**). The legacy **`POST /api/v1/queries/execute`** one-shot JSON wrapper is **not** supported.
 
-**Request:**
-```json
-{
-  "sql": "SELECT c.customer_name, SUM(o.total_amount) AS total_spent FROM sales.customers c JOIN sales.orders o ON c.customer_id = o.customer_id GROUP BY c.customer_name ORDER BY total_spent DESC LIMIT 10"
-}
-```
+**Create:** **`POST /api/v1/query`** with body **`{ "sql": "...", "defaultFormat": "rows-objects"?, "includeFirstPage": bool, "firstPageSize": int }`**. Returns **`201`** when only metadata is returned, or **`200`** when **`firstPage`** (same envelope as **`GET …/rows`**) is included.
 
-**Response:**
-```json
-{
-  "columns": [
-    { "name": "customer_name", "type": "VARCHAR" },
-    { "name": "total_spent", "type": "DECIMAL" }
-  ],
-  "rows": [
-    { "customer_name": "Acme Corp", "total_spent": 125430.50 },
-    { "customer_name": "TechStart Inc", "total_spent": 98200.00 }
-  ],
-  "rowCount": 10,
-  "executionTimeMs": 342
-}
-```
+**Paged rows:** **`GET /api/v1/query/{executionId}/rows?pageIndex=&pageSize=&format=&epoch=`** — envelope fields **`epoch`**, **`pageIndex`**, **`pageSize`**, **`rowCount`**, **`totalResult`** (JSON **`null`** when unknown), **`hasNext`**, **`hasPrevious`**, plus marshaller payload under **`data`**. Built-in **`format`** values: **`rows-objects`** (array of row objects) and **`rows-compact-batch`** (`{ "fields", "rows" }`).
 
-**Error response (SQL errors):**
-```json
-{
-  "error": "Syntax error near \"SELCT\": expected SELECT, INSERT, UPDATE, or DELETE",
-  "code": "SQL_SYNTAX_ERROR"
-}
-```
+**Lifecycle:** **`GET /api/v1/query/{executionId}`** (metadata), **`PUT /api/v1/query/{executionId}`** (replace SQL, increments **`epoch`**), **`DELETE /api/v1/query/{executionId}`** (**`204`**, clients should call when finished).
 
-**Frontend usage**: Called when the user clicks "Execute" in the query editor. Results displayed in the results table. Errors shown as error messages.
+**Errors:** **`401`** / **`403`** / **`404`** / **`406`** / **`409`** / **`422`** per [`query-result-execution-service.md`](../../../docs/design/platform/query-result-execution-service.md).
+
+**Frontend usage:** `queryService.executeQuery` maps **`rows-objects`** first page into the existing **`QueryResult`** shape (column names with generic types); callers must be logged in (**same-origin** **`fetch`** with **`credentials: 'include'`**).
 
 ---
 
@@ -735,7 +712,9 @@ Returns feature flags for the current user/session. The backend only needs to in
 | GET | `/api/v1/concepts/tags` | Tag list with counts |
 | GET | `/api/v1/queries` | List saved queries |
 | GET | `/api/v1/queries/{id}` | Single saved query |
-| POST | `/api/v1/queries/execute` | Execute SQL, return results |
+| POST | `/api/v1/query` | Create query-result session (optional first page) |
+| GET | `/api/v1/query/{executionId}/rows` | Paged rows for a session |
+| DELETE | `/api/v1/query/{executionId}` | Release session |
 | GET | `/api/v1/conversations` | List conversations |
 | POST | `/api/v1/conversations` | Create conversation |
 | DELETE | `/api/v1/conversations/{id}` | Delete conversation |

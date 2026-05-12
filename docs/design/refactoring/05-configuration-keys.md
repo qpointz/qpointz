@@ -87,6 +87,9 @@
 | `mill.data.services.export.enable` | Boolean | `ExportServiceProperties` | services:mill-export-service | `@ConditionalOnService(value = "export", group = "data")` on export beans | **mill-export-service** (processor) | When false or absent in a constrained environment, export controllers and descriptors do not register. |
 | `mill.data.services.export.external-host` | String | `ExportServiceProperties` | services:mill-export-service | `ExportBaseUrlResolver`, `ExportConnectionDescriptor` | **mill-export-service** | Same externals resolution pattern as HTTP data-plane. |
 | `mill.data.services.export.formats` | List\<String\> | `ExportServiceProperties` | services:mill-export-service | `EffectiveExportFormats`, `ExportFacility`, `ExportRestController` | **mill-export-service** | Allowlist of SPI format ids; `*` or empty = all registered formats on the wire. |
+| `mill.data.services.query.enable` | Boolean | `QueryResultServiceProperties` | services:mill-data-query-service | `@ConditionalOnService(value = "query", group = "data")` on query-result MVC beans | **mill-data-query-service** | Same **`enable`** convention as **`http`** / **`export`**; sample in [`application.yml`](../../../../apps/mill-service/src/main/resources/application.yml). |
+| `mill.data.services.query.external-host` | String | `QueryResultServiceProperties` | services:mill-data-query-service | Discovery / absolute URL hints | **mill-data-query-service** | Logical key into `mill.application.hosts.externals`. |
+| `mill.data.query.*` | *(nested)* | `MillDataQueryProperties` | services:mill-data-query-service | **`QueryResultExecutionService`** `@Bean` construction (via `QueryResultWebAutoConfiguration`) | **mill-data-query-service** | Core session tuning: Caffeine, **`maxMaterializedRows`**, idle expiry — **no** Spring inside **`mill-data-query`**; see [`query-result-execution-service.md`](../platform/query-result-execution-service.md). |
 | `mill.services.ai-nl2data.enable` | Boolean | — (checked by `OnServiceEnabledCondition`) | data:mill-data-autoconfigure | `@ConditionalOnService("ai-nl2data")`: `AIConfiguration`, `JPAConfiguration`, `NlSqlChatServiceImpl`, `NlSqlChatController`, `GlobalExceptionHandler`, `ChatProcessor`, `ValueMappingComponents` | none | |
 | `mill.services.data-bot.enable` | Boolean | — (YAML only) | — | **no Java consumer** | none | Ghost key |
 | `mill.services.data-bot.prompt-file` | String | — (YAML only) | — | **no Java consumer** | none | Ghost key |
@@ -152,6 +155,8 @@ These are annotations implemented **in this codebase** (not from Spring Boot) th
 |-------------|-------------------|--------|
 | `"grpc"` (`group = "data"`) | `MillGrpcService`, `GrpcServiceDescriptor`, `GrpcConnectionDescriptor`, `GrpcServiceSecurityConfiguration`, `MillGrpcServiceExceptionAdvice` | services:mill-data-grpc-service |
 | `"http"` (`group = "data"`) | `AccessServiceController`, `HttpServiceDescriptor`, `HttpConnectionDescriptor` | services:mill-data-http-service |
+| `"export"` (`group = "data"`) | `ExportRestController`, `ExportFacility`, `ExportServiceDescriptor`, … | services:mill-export-service |
+| `"query"` (`group = "data"`) | *(planned — WI-264)* Query-result MVC under **`/api/v1/query/**`** | services:mill-data-query-service |
 | _(not service-gated)_ | `ApplicationDescriptorController`, `WellKnownService` | services:mill-service-common |
 | `"ai-nl2data"` | `AIConfiguration`, `JPAConfiguration`, `GlobalExceptionHandler`, `NlSqlChatServiceImpl`, `NlSqlChatController`, `ChatProcessor` | ai:mill-ai-v1-nlsql-chat-service |
 | `"ai-nl2data"` | `ValueMappingComponents` | ai:mill-ai-v1-core |
