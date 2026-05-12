@@ -15,7 +15,11 @@ function mapRowsObjectsData(data: unknown): QueryResult {
   if (rows.length === 0) {
     return { columns: [], rows: [], rowCount: 0, executionTimeMs: 0 };
   }
-  const names = Object.keys(rows[0]);
+  const firstRow = rows[0];
+  if (firstRow === undefined) {
+    throw new Error('Unexpected query response: rows-objects array has no first element');
+  }
+  const names = Object.keys(firstRow);
   const columns: QueryColumn[] = names.map((name) => ({ name, type: 'unknown' }));
   return { columns, rows, rowCount: rows.length, executionTimeMs: 0 };
 }
