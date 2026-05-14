@@ -14,10 +14,12 @@ Or run qsynth directly:
 
 ```bash
 cd test
-docker run -v "$(pwd):/data" qpointz/qsynth run --input-file /data/skymill.yaml -e write_csv -e write_parquet
+docker run -v "$(pwd):/data" qpointz/qsynth run --input-file /data/skymill.yaml -e write_csv -e write_parquet -e write_avro
 ```
 
-Outputs are written to `datasets/skymill/csv/` and `datasets/skymill/parquet/`.
+To run **all** experiments defined in **`skymill.yaml`** (CSV, Parquet, Avro, SQL, diagrams, etc.), use **`qsynth run … -a`** (as **`make regen-skymill`** does).
+
+Outputs are written to **`datasets/skymill/csv/`**, **`datasets/skymill/parquet/`**, and **`datasets/skymill/avro/`** (one Avro file per table, same row sets as CSV/Parquet for that model).
 
 ## Core schema
 

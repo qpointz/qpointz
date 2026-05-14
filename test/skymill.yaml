@@ -10,6 +10,9 @@ experiments:
   write_parquet:
     type: parquet
     path: "./datasets/{model-name}/parquet/{dataset-name}.parquet"
+  write_avro:
+    type: avro
+    path: "./datasets/{model-name}/avro/{dataset-name}.avro"
   write_sql:
     type: sql
     path: "./datasets/{model-name}/{model-name}.sql"

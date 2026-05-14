@@ -5,10 +5,11 @@ TEST_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 help:
 	@echo "Dataset generation (uses $(QSYNTH_IMAGE)):"
-	@echo "  make regen-skymill  # Regenerate skymill dataset (csv, parquet)"
+	@echo "  make regen-skymill  # Regenerate skymill (csv, parquet, avro via qsynth -a + other experiments)"
 	@echo "  make regen-moneta  # Regenerate moneta dataset"
 	@echo "  make regen-airlines # Regenerate airlines dataset"
 
+# Runs all qsynth experiments in skymill.yaml (including write_csv, write_parquet, write_avro).
 regen-skymill:
 	docker pull $(QSYNTH_IMAGE) && \
 	docker run -v "$(TEST_DIR):/data" $(QSYNTH_IMAGE) run --input-file /data/skymill.yaml -a
