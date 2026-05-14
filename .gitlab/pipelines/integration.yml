@@ -58,6 +58,13 @@ ai:integration:
     paths:
       - ${CI_PROJECT_DIR}/ai/mill-ai-v1-core/build/reports/scenarios/*.json
 
+cloud:integration:
+  stage: integration
+  extends:
+    - .gradle-job
+  script:
+    - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :cloud:testIT
+
 # #ai:publish-regression:
 # #  stage: integration
 # #  extends:

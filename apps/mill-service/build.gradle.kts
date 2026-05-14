@@ -13,7 +13,7 @@ mill {
     publishArtifacts = false
 
     editions {
-        defaultEdition = "ai"
+        defaultEdition = "complete"
 
         feature("sample-data") {
             description = "Provides Sample datasets"
@@ -37,6 +37,21 @@ mill {
             module(":ai:mill-ai-v3-persistence")
         }
 
+        feature("cloud-aws") {
+            description = "Amazon Web Services integration (S3 storage)"
+            module(":cloud:aws:mill-cloud-aws-autoconfigure")
+        }
+
+        feature("cloud-gcp") {
+            description = "Google Cloud Platform integration (Cloud Storage)"
+            module(":cloud:gcp:mill-cloud-gcp-autoconfigure")
+        }
+
+        feature("cloud-azure") {
+            description = "Microsoft Azure integration (Blob Storage, ADLS Gen2)"
+            module(":cloud:azure:mill-cloud-azure-autoconfigure")
+        }
+
         edition("minimal") {
             description = "Base metadata-only edition"
             feature("data-services")
@@ -53,7 +68,6 @@ mill {
             description = "Mill service with sample data"
             from("minimal")
             feature("sample-data")
-
         }
 
         edition("ai") {
@@ -61,6 +75,21 @@ mill {
             from("minimal")
             feature("ai-chat-service")
         }
+
+        edition("complete") {
+            description = "All-inclusive edition with AI, all cloud storage providers, and every bundled feature"
+            from("ai")
+            feature("cloud-aws")
+            feature("cloud-gcp")
+            feature("cloud-azure")
+        }
+
+        edition("complete-samples") {
+            description = "All-inclusive edition with sample datasets included"
+            from("complete")
+            feature("sample-data")
+        }
+
     }
 }
 
@@ -135,6 +164,12 @@ dependencies {
     implementation(project(":data:formats:mill-data-format-parquet"))
     implementation(project(":data:formats:mill-data-format-arrow"))
     implementation(project(":data:formats:mill-data-format-json"))
+
+    // Cloud blob storage — each autoconfigure brings in its blob module transitively.
+    // Operators include only the providers they need.
+    runtimeOnly(project(":cloud:aws:mill-cloud-aws-autoconfigure"))
+    runtimeOnly(project(":cloud:gcp:mill-cloud-gcp-autoconfigure"))
+    runtimeOnly(project(":cloud:azure:mill-cloud-azure-autoconfigure"))
 
     implementation(project(":metadata:mill-metadata-autoconfigure"))
     implementation(project(":metadata:mill-metadata-service"))

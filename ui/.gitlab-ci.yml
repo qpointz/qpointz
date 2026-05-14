@@ -1,21 +1,21 @@
-ui:grinder-ui-v1:build:
-  extends: .node-job
-  stage: build
-  script:
-    - cd ${CI_PROJECT_DIR}/ui/mill-grinder-ui
-    - npm install
-    - npm run test:run
-    - npm run build
-  artifacts:
-    expire_in: "5 days"
-    paths:
-      - ${CI_PROJECT_DIR}/services/mill-ui-service/src/main/resources/static/app/v1
-    reports:
-      junit:
-        - ui/**/.test/*.xml
+#ui:grinder-ui-v1:build:
+#  extends: .node-job
+#  stage: build
+#  script:
+#    - cd ${CI_PROJECT_DIR}/ui/mill-grinder-ui
+#    - npm install
+#    - npm run test:run
+#    - npm run build
+#  artifacts:
+#    expire_in: "5 days"
+#    paths:
+#      - ${CI_PROJECT_DIR}/services/mill-ui-service/src/main/resources/static/app/v1
+#    reports:
+#      junit:
+#        - ui/**/.test/*.xml
 
 
-ui:grinder-ui-v2:build:
+ui:npm-build:
   extends: .node-job
   stage: build
   script:
@@ -35,7 +35,7 @@ ui:build:
   stage: build
   extends: .gradle-job
   script:
-    - echo $HOME    
+    - echo $HOME
     - ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain :ui:test :ui:testITClasses
   artifacts:
     when: always

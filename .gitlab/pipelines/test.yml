@@ -22,24 +22,24 @@ components:test:
     reports:
       junit:
         - ${CI_PROJECT_DIR}/**/build/test-results/test/TEST-*.xml        
+#
+#ui:v1:test:
+#  extends: .node-job
+#  stage: build
+#  script:
+#    - cd ${CI_PROJECT_DIR}/ui/mill-grinder-ui
+#    - npm install
+#    - npm run test:run
+#    - npm run build
+#  artifacts:
+#    expire_in: "5 days"
+#    paths:
+#      - ${CI_PROJECT_DIR}/services/mill-ui-service/src/main/resources/static/app/v1
+#    reports:
+#      junit:
+#        - ui/**/.test/*.xml
 
-ui:v1:test:
-  extends: .node-job
-  stage: build
-  script:
-    - cd ${CI_PROJECT_DIR}/ui/mill-grinder-ui
-    - npm install
-    - npm run test:run
-    - npm run build
-  artifacts:
-    expire_in: "5 days"
-    paths:
-      - ${CI_PROJECT_DIR}/services/mill-ui-service/src/main/resources/static/app/v1
-    reports:
-      junit:
-        - ui/**/.test/*.xml
-
-ui:v2:test:
+ui:test:
   extends: .node-job
   stage: build
   script:
