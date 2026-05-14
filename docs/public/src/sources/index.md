@@ -1,27 +1,16 @@
-# File-Based Data Sources
+# Data Sources
 
-Mill can connect to file-based data stored on disk (or cloud storage) and expose it as queryable tables. You describe a data source in a YAML configuration file, and Mill takes care of discovering files, mapping them to tables, and making them available for queries.
+Data sources let you connect Mill to file-based data — whether the files live on your local disk or in cloud object storage. You describe a source in a short YAML file, and Mill discovers the files, maps them to tables, and makes everything queryable with SQL.
 
-A single source configuration produces one **schema** in Mill, containing one or more **tables** discovered from the files.
+A source configuration tells Mill three things:
 
----
-
-## How It Works
-
-A source configuration tells Mill:
-
-1. **Where** to find the files (storage)
-2. **How** to read them (one or more readers, each with a format)
-3. **Which files** belong to which tables (table mapping)
-4. **What extra columns** to inject (table attributes — optional)
-
-Mill scans the storage location, groups files into logical tables based on the mapping rules, and reads them using the specified format. When multiple readers are configured, Mill applies conflict resolution rules to handle table name collisions. Table attributes let you enrich records with values extracted from file paths or injected as constants.
+1. **Where** to find the files — the [storage](configuration.md#storage) backend (local directory, S3 bucket, GCS bucket, or Azure container)
+2. **How** to read them — one or more [readers](configuration.md#readers), each tied to a file [format](#supported-formats)
+3. **Which files** map to which tables — [table mapping](configuration.md#table-mapping) rules (regex, directory, or glob)
 
 ---
 
 ## Quick Example
-
-### Single Reader
 
 ```yaml
 name: airline-data
@@ -39,171 +28,43 @@ readers:
         pattern: ".*(?<table>[^/]+)\\.csv$"
 ```
 
-This configuration:
+This scans a local folder, reads CSV files, and exposes each file as a queryable table (e.g. `cities.csv` becomes table `cities`) under the schema `airline-data`.
 
-- Scans `/data/airlines/csv` on the local filesystem
-- Reads files as CSV with comma delimiter and header row
-- Extracts table names from filenames (e.g. `cities.csv` becomes table `cities`)
-- Exposes everything under the schema name `airline-data`
-
-### Multiple Readers
-
-```yaml
-name: warehouse
-storage:
-  type: local
-  rootPath: /data/warehouse
-table:
-  mapping:
-    type: directory
-    depth: 1
-conflicts: reject
-readers:
-  - type: csv
-    label: raw
-    format:
-      delimiter: ","
-  - type: parquet
-    label: processed
-```
-
-This configuration:
-
-- Scans `/data/warehouse` on the local filesystem
-- Uses two readers: one for CSV files (labeled "raw") and one for Parquet files (labeled "processed")
-- Discovers tables by directory name (shared mapping)
-- Labels disambiguate: `orders_raw`, `orders_processed`
-
-### With Table Attributes
-
-```yaml
-name: daily-imports
-storage:
-  type: local
-  rootPath: /data/imports
-readers:
-  - type: csv
-    format:
-      delimiter: ","
-    table:
-      mapping:
-        type: regex
-        pattern: ".*?(?<table>[a-z_]+)_\\d{8}\\.csv$"
-      attributes:
-        - name: file_date
-          source: regex
-          pattern: ".*_(\\d{8})\\.csv$"
-          group: date
-          type: date
-          format: ddMMyyyy
-        - name: source_tag
-          source: constant
-          value: "daily-import"
-```
-
-This adds two extra columns to every record: `file_date` (extracted from the filename) and `source_tag` (a constant).
-
-### Glob Pattern Matching
-
-```yaml
-name: order-archive
-storage:
-  type: local
-  rootPath: /data/archive
-readers:
-  - type: parquet
-    table:
-      mapping:
-        type: glob
-        pattern: "**/orders/**/*.parquet"
-        table: orders
-  - type: parquet
-    table:
-      mapping:
-        type: glob
-        pattern: "**/returns/**/*.parquet"
-        table: returns
-```
-
-This configuration:
-
-- Scans `/data/archive` recursively
-- Matches Parquet files under any `orders/` subdirectory and maps them all to the `orders` table
-- Matches Parquet files under any `returns/` subdirectory and maps them to the `returns` table
-- Unlike `regex`, glob does not extract the table name from the path — you provide it explicitly
+See the [Configuration](configuration.md) page for the full YAML specification, multi-reader setups, table attributes, conflict resolution, and more examples.
 
 ---
 
-## Supported Storage Backends
+## Supported Storages
 
-| Type    | Description                         |
-|---------|-------------------------------------|
-| `local` | Local filesystem directory          |
+Mill supports local and cloud storage backends. The storage backend only controls where files are located — readers, table mapping, and all other settings work the same regardless of storage type.
 
-See [Configuration Reference](configuration.md#storage) for details.
+| Type | Description | Page |
+|------|-------------|------|
+| `local` | Local filesystem directory | [Local storage](storages/local.md) |
+| `s3` | Amazon S3 buckets | [AWS S3](storages/s3.md) |
+| `gcs` | Google Cloud Storage buckets | [Google Cloud Storage](storages/gcs.md) |
+| `adls` | Azure Blob Storage / ADLS Gen2 containers | [Azure Blob Storage](storages/azure.md) |
+
+---
 
 ## Supported Formats
 
-| Type      | Description                          |
-|-----------|--------------------------------------|
-| [`csv`](formats/csv.md)     | Comma/delimiter-separated values     |
-| [`tsv`](formats/tsv.md)     | Tab-separated values (escape-based)  |
-| [`fwf`](formats/fwf.md)     | Fixed-width text files               |
-| [`excel`](formats/excel.md)   | Microsoft Excel (.xlsx, .xls) files  |
-| [`avro`](formats/avro.md)    | Apache Avro binary data files        |
-| [`parquet`](formats/parquet.md) | Apache Parquet columnar files        |
-| [`arrow`](formats/arrow.md) | Apache Arrow IPC stream/file payloads |
+Each reader specifies a file format. Mill handles schema inference, type mapping, and parsing automatically.
 
-See individual format pages for configuration options, type mappings, and examples.
-
-## Table Configuration
-
-### Mapping Strategies
-
-| Type        | Description                                      |
-|-------------|--------------------------------------------------|
-| `regex`     | Extract table name from file path using regex     |
-| `directory` | Use parent directory name as table name           |
-| `glob`      | Match files with a wildcard pattern and assign a fixed table name |
-
-See [Configuration Reference](configuration.md#table-mapping) for details and examples.
-
-### Table Attributes
-
-Inject extra columns from file paths or constants into every record. Supported types: `string`, `int`, `long`, `float`, `double`, `bool`, `date`, `timestamp`.
-
-See [Configuration Reference](configuration.md#table-attributes) for details.
-
-## Conflict Resolution
-
-| Strategy  | Description                                              |
-|-----------|----------------------------------------------------------|
-| `reject`  | Fail if multiple readers produce the same table name     |
-| `union`   | Merge files from all readers into a single table         |
-
-Per-table overrides are supported. See [Configuration Reference](configuration.md#conflicts) for details.
-
----
-
-## Using Sources with the Flow Backend
-
-Source descriptors are consumed by the [Flow backend](../backends/flow.md). To query file-based data through Mill, configure the Flow backend and point it at your source descriptor files:
-
-```yaml
-mill:
-  data:
-    backend:
-      type: flow
-      flow:
-        sources:
-          - ./config/my-source.yaml
-```
-
-Each source descriptor becomes a schema in Mill. You can list multiple descriptors to expose multiple schemas. See [Flow Backend](../backends/flow.md) for the full configuration reference.
+| Format | Description | Page |
+|--------|-------------|------|
+| `csv` | Comma/delimiter-separated values | [CSV](formats/csv.md) |
+| `tsv` | Tab-separated values (escape-based) | [TSV](formats/tsv.md) |
+| `fwf` | Fixed-width text files | [FWF](formats/fwf.md) |
+| `excel` | Microsoft Excel (.xlsx, .xls) | [Excel](formats/excel.md) |
+| `avro` | Apache Avro binary data files | [Avro](formats/avro.md) |
+| `parquet` | Apache Parquet columnar files | [Parquet](formats/parquet.md) |
+| `arrow` | Apache Arrow IPC stream/file payloads | [Arrow](formats/arrow.md) |
 
 ---
 
 ## Next Steps
 
-- [Configuration Reference](configuration.md) — full YAML specification with all options and examples
+- [Configuration](configuration.md) — full YAML reference with all options and examples
 - [Flow Backend](../backends/flow.md) — how to run Mill with file-based data sources
+- [Type System](types.md) — Mill data types and type mapping across formats and clients

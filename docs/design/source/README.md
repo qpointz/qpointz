@@ -28,3 +28,4 @@ A document belongs here if its **primary subject** is one of:
 | `flow-kt-design.md` | Kotlin design for file-based data as a Mill provider with storage abstraction |
 | `mill-source-calcite.md` | How mill-source-calcite exposes Mill file-based sources as Calcite schemas/tables |
 | `flow-backend.md` | Flow backend: source-descriptor-driven Calcite backend with repository abstraction |
+| `cloud-blob-flow-sources.md` | Flow + **`SourceDescriptor`**: **`local`** vs cloud **`storage.type`** (**S3 / GCS / Azure**), auth (**GAP-4**), emulator **`testIT`**, facet payload extension |

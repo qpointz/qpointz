@@ -1,12 +1,12 @@
 # Backend metadata in the Data Model
 
-Mill can show **extra facet panels** on schemas, tables, and columns that come **directly from the active query backend**, not from the metadata repository. Think of this as **“how this backend is wired”**: storage paths, file readers, table mapping, and similar **operator-facing** detail that helps you audit a deployment next to **captured** descriptions and **logical** structure.
+Mill can show **extra facet panels** on schemas, tables, and columns that come **directly from the active query backend**, not from the metadata repository. Think of this as **"how this backend is wired"**: storage paths, file readers, table mapping, and similar **operator-facing** detail that helps you audit a deployment next to **captured** descriptions and **logical** structure.
 
 ---
 
 ## What it is for
 
-**Purpose:** **Expose backend-specific information** — facts that depend on *this* backend’s configuration (for example Mill **flow** source descriptors) — in the same **Data Model** views that already show stored metadata and inferred **logical layout**.
+**Purpose:** **Expose backend-specific information** — facts that depend on *this* backend's configuration (for example Mill **flow** source descriptors) — in the same **Data Model** views that already show stored metadata and inferred **logical layout**.
 
 That lets you:
 
@@ -31,32 +31,135 @@ Details on captured vs inferred and **optional API filters**: [Multi-source face
 
 ---
 
-## Flow backend (file-based sources)
+## Global metadata controls
 
-When **`mill.data.backend.type`** is **`flow`**, Mill may register a metadata contributor that emits **flow** facet types (for example storage summary, table inputs, column binding — exact keys are defined in the product’s facet type catalog; technical shape is documented in the repository story spec).
+All backend-contributed metadata sources are governed by a single global configuration block. These properties apply to **all** backends (Flow, Calcite, JDBC).
 
-### Turn backend metadata on or off
+### Properties
 
-All properties are under **`mill.data.backend.flow`**.
+All properties are under the `mill.data.backend.metadata` prefix.
 
-| Property | Default | What it does |
-|----------|---------|----------------|
-| **`metadata.enabled`** | `true` | Set to `false` to **stop registering** the flow descriptor metadata source. No **`originId: flow`** rows appear in the Data Model; **queries and schema discovery keep working**. |
-| **`cache.facets.enabled`** | `true` | When `false`, facet inference for those panels is always computed on demand (no snapshot cache). |
-| **`cache.facets.ttl`** | unset | Optional duration (e.g. `5m`) controlling how long snapshot inference may be cached. |
+| Property | Default | Description |
+|----------|---------|-------------|
+| **`enabled`** | `true` | Global kill-switch. When `false`, no backend `MetadataSource` beans are registered — neither **logical layout** nor backend-specific contributors (e.g. **flow**). Persisted metadata (`repository-local`) is unaffected. |
+| **`redact`** | `basic` | Controls payload hygiene for inferred facets. See [Redaction](#redaction) below. |
 
-**Note:** **`cache.schema.*`** is separate: it controls **Calcite schema** reuse for query planning, not the Data Model facet cache above.
-
-### Example
+### Example — disable all backend metadata
 
 ```yaml
 mill:
   data:
     backend:
+      metadata:
+        enabled: false
+```
+
+No inferred facets appear in the Data Model. Queries, schema discovery, and persisted metadata remain fully functional.
+
+---
+
+## Redaction
+
+Inferred facet payloads (especially from the Flow backend) may contain storage configuration including authentication fields. The `redact` property controls how much detail is exposed.
+
+| Mode | Description |
+|------|-------------|
+| **`none`** | Pass payloads through unchanged. **Use with caution** — credentials may be exposed in the Data Model UI and API. |
+| **`basic`** (default) | Strip keys matching credential patterns (`accessKeyId`, `secretAccessKey`, `connectionString`, `accountKey`, `serviceAccountJson`, etc.). Replace endpoint URLs with `<redacted>` if they contain embedded credentials. |
+| **`safe`** | Emit only `type` and allow-listed structural keys (`bucket`, `container`, `prefix`, `region`, `rootPath`). All other keys are stripped. |
+
+Redaction levels are ordered by restrictiveness: `none` < `basic` < `safe`.
+
+### Example — maximum redaction
+
+```yaml
+mill:
+  data:
+    backend:
+      metadata:
+        enabled: true
+        redact: safe
+```
+
+---
+
+## Flow backend (file-based sources)
+
+When **`mill.data.backend.type`** is **`flow`**, Mill registers a metadata contributor that emits **flow** facet types (storage summary, table inputs, column binding) with `originId: flow`.
+
+The global `mill.data.backend.metadata.enabled` property controls whether the flow metadata source is registered. There is no separate flow-specific toggle — use per-source overrides in individual source descriptors for fine-grained control.
+
+| Property | Default | Scope | Description |
+|----------|---------|-------|-------------|
+| **`mill.data.backend.metadata.enabled`** | `true` | Global | Gates **all** backend metadata sources. When `false`, no `originId: flow` or `originId: logical-layout` rows appear. |
+| **`mill.data.backend.metadata.redact`** | `basic` | Global | Payload hygiene. See [Redaction](#redaction). |
+| **`mill.data.backend.flow.cache.facets.enabled`** | `true` | Flow only | When `false`, facet inference is always computed on demand (no snapshot cache). |
+| **`mill.data.backend.flow.cache.facets.ttl`** | unset | Flow only | Optional duration (e.g. `5m`) controlling how long snapshot inference may be cached. |
+
+**Note:** **`cache.schema.*`** is separate: it controls **Calcite schema** reuse for query planning, not the Data Model facet cache above.
+
+### Per-source metadata overrides
+
+Individual flow source descriptors can carry an optional `metadata` block (at the top level, alongside `storage` and `readers`) to override global defaults for that specific source:
+
+```yaml
+name: sensitive-data
+storage:
+  type: s3
+  bucket: secret-bucket
+  auth:
+    accessKeyId: ${AWS_ACCESS_KEY_ID}
+    secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
+metadata:
+  enabled: false
+```
+
+```yaml
+name: public-data
+storage:
+  type: local
+  rootPath: /data/public
+metadata:
+  redact: none
+```
+
+#### Resolution rules — `enabled`
+
+| Global `enabled` | Source `enabled` | Effective |
+|-------------------|------------------|-----------|
+| `false`           | (any)            | **disabled** — global disable is absolute |
+| `true`            | omitted          | **enabled** |
+| `true`            | `true`           | **enabled** |
+| `true`            | `false`          | **disabled** — source opts out |
+
+Global disable always wins. A source-level override can only **opt out** of a globally enabled setting.
+
+#### Resolution rules — `redact`
+
+| Global `redact` | Source `redact` | Effective |
+|-----------------|-----------------|-----------|
+| `safe`          | (any less restrictive) | **safe** — global floor cannot be lowered |
+| `basic`         | `safe`          | **safe** — source tightens |
+| `basic`         | `none`          | **basic** — source cannot relax below global |
+| `basic`         | omitted         | **basic** |
+| `none`          | `basic`         | **basic** — source tightens |
+| `none`          | `safe`          | **safe** — source tightens |
+
+The effective level is `max(global, source)` — the **more restrictive** of the two always wins. A source can tighten redaction but never relax it below the global floor.
+
+See also: [Configuration — metadata block](../sources/configuration.md#metadata).
+
+### Example — full flow metadata configuration
+
+```yaml
+mill:
+  data:
+    backend:
+      metadata:
+        enabled: true
+        redact: basic
       type: flow
       flow:
-        metadata:
-          enabled: true
         cache:
           facets:
             enabled: true
@@ -65,17 +168,15 @@ mill:
           - ./config/my-source.yaml
 ```
 
-Full flow backend reference (sources, dialect, schema cache): [Flow backend](../backends/flow.md).
+Full flow backend reference: [Flow backend](../backends/flow.md).
 
 ---
 
-## Other backends
+## Calcite and JDBC backends
 
-JDBC and Calcite backends may gain their own **backend metadata** contributors in the future, each with a dedicated **`originId`** and facet types. The same merge rules apply: read APIs combine repository, logical layout, and backend-specific inferred rows unless you filter by **`origin`**.
+The global metadata controls (`mill.data.backend.metadata.enabled` and `redact`) also gate the **logical layout** metadata source for Calcite and JDBC backends. There are no per-source overrides for these backends — only the global settings apply.
 
-### Evolving storage and formats (flow)
-
-Flow may gain **new storage kinds** (cloud object stores, etc.) and **new file formats** without changing the **names** of the Data Model facet types: extra detail appears inside **payload fields** (`params`-style maps). Implementers: see the repository design note `docs/design/data/flow-facet-projection-extensibility.md`.
+When `mill.data.backend.metadata.enabled` is `false`, the `LogicalLayoutMetadataSource` is not registered, and no `originId: logical-layout` facets appear.
 
 ---
 
@@ -84,4 +185,5 @@ Flow may gain **new storage kinds** (cloud object stores, etc.) and **new file f
 - [Multi-source facets](multi-source-facets.md) — `origin`, `originId`, `?scope=` / `?origin=`
 - [Metadata in Mill](system.md) — product overview
 - [Flow backend](../backends/flow.md) — configuration reference for file-based query
+- [Configuration — metadata block](../sources/configuration.md#metadata) — per-source override syntax
 - Design (repository): `docs/design/metadata/backend-provided-metadata.md`

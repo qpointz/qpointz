@@ -28,7 +28,7 @@ The frontend currently uses three data layers that the backend must replace:
 | Layer | Current Source | What Backend Provides |
 |-------|---------------|----------------------|
 | **Static data** | `src/data/mock*.ts` (in-memory arrays) | REST endpoints returning lists, trees, and details |
-| **Async services** | `src/services/mockApi.ts` (simulated delays) | REST + streaming endpoints for queries and chat |
+| **Async services** | `src/services/mockApi.ts` (simulated delays) | REST + streaming endpoints for query sessions, export downloads, and chat |
 | **State persistence** | `localStorage` (chat conversations) | Server-side persistence for conversations |
 
 The frontend will consume the backend through `src/services/api.ts`, which is already structured as a swap point for real implementations.
@@ -37,7 +37,7 @@ The frontend will consume the backend through `src/services/api.ts`, which is al
 
 ## General Conventions
 
-- **Base URL**: Configurable, e.g. `GET {BASE_URL}/api/v1/...`
+- **Base URL**: Configurable, e.g. `GET {BASE_URL}/api/v1/...` for the primary JSON API. **Export** file downloads use **`{BASE_URL}/services/export/...`** (same host; different path prefix — see [Domain: Queries (Analysis)](#domain-queries-analysis)).
 - **Content-Type**: `application/json` for request/response bodies
 - **Streaming**: `text/event-stream` (Server-Sent Events) for chat responses
 - **Authentication**: Bearer token in `Authorization` header (specifics TBD)
@@ -225,7 +225,7 @@ Returns all tags with their concept counts.
 
 ## Domain: Queries (Analysis)
 
-The Analysis view lists saved queries and provides a SQL editor with execution.
+The Analysis view combines three backend surfaces: **saved-query catalog** (`GET /api/v1/queries` and `GET /api/v1/queries/{queryId}` — persistence still required for production UIs), **interactive result sessions** under **`/api/v1/query/**`** ([`query-result-execution-service.md`](../../platform/query-result-execution-service.md); delivered in [`20260511-query-result-execution-service`](../../../workitems/completed/20260511-query-result-execution-service/STORY.md)), and **file export** under **`/services/export/**`** ([`export-service.md`](../../platform/export-service.md); delivered in [`20260507-streaming-export-service`](../../../workitems/completed/20260507-streaming-export-service/STORY.md)).
 
 ### GET /api/v1/queries
 
@@ -266,11 +266,27 @@ Ad-hoc SQL execution uses **session-based** routes under **`/api/v1/query/`** (i
 
 **Session resource:** **`GET /api/v1/query/{executionId}`** — without **`pageIndex`**: metadata (**`executionId`**, **`epoch`**, **`totalResult`**, **`defaultFormat`**). With **`pageIndex`** (and optional **`pageSize`**, **`format`**, **`epoch`**): one presentation page — envelope **`epoch`**, **`pageIndex`**, **`pageSize`**, **`rowCount`**, **`totalResult`** (JSON **`null`** when unknown), **`hasNext`**, **`hasPrevious`**, **`schema`**, marshaller payload under **`data`**. **`pageSize`** without **`pageIndex`** → **`400`**.
 
+**Grid navigation:** the results grid moves between pages by varying **`pageIndex`** (and optional **`pageSize`**, **`format`**, **`epoch`**) on the same **`GET /api/v1/query/{executionId}`** resource; semantics (including backward paging and eviction) are normative in [`query-result-execution-service.md`](../../platform/query-result-execution-service.md).
+
 **Lifecycle:** **`DELETE /api/v1/query/{executionId}`** (**`204`**, clients should call when finished).
 
 **Errors:** **`401`** / **`403`** / **`404`** / **`406`** / **`409`** / **`422`** per [`query-result-execution-service.md`](../../platform/query-result-execution-service.md).
 
 **Frontend usage:** `queryService.executeQuery` maps **`rows-objects`** first page into the existing **`QueryResult`** shape (column names with generic types); callers must be logged in (**same-origin** **`fetch`** with **`credentials: 'include'`**).
+
+### Query result export (`/services/export/**`)
+
+Full-result **file downloads** (CSV, TSV, XLSX, Avro, JSON, etc.) are **not** part of **`/api/v1/query/**`**. They use the **streaming HTTP export** API served by **`mill-export-service`** under **`/services/export/`**, configured via **`mill.data.services.export.*`** and described in **[`export-service.md`](../../platform/export-service.md)**. Story and layering: **[`20260507-streaming-export-service`](../../../workitems/completed/20260507-streaming-export-service/STORY.md)**.
+
+**Security:** export routes are under **`/services/**`** (see **`ServicesSecurityConfiguration`** in the security autoconfigure module), not **`/api/v1/**`**.
+
+**Analysis — ad-hoc SQL:** **`POST /services/export/sql`** with a **`text/plain`** request body containing the SQL text; choose output layout via **`format`** (and other parameters documented on the controller / OpenAPI — see **`export-service.md`**).
+
+**Model — whole table:** **`GET /services/export/schemas/{schema}/tables/{table}`** with **`format=`** (plan-backed scan on the data plane, not a hand-written `SELECT *` in the HTTP layer).
+
+**Discovery:** **`GET /services/export/formats`** and **`GET /services/export/catalog`** list effective formats and catalogued export URLs.
+
+**Frontend usage:** same-origin **`fetch`** with **`credentials: 'include'`**; read the body as a **blob** stream; use **`Content-Disposition`** when present for the download filename. Optional mill-ui wiring is described in **[WI-255](../../../workitems/completed/20260507-streaming-export-service/WI-255-mill-ui-export-download-optional.md)**.
 
 ---
 
@@ -715,6 +731,10 @@ Returns feature flags for the current user/session. The backend only needs to in
 | POST | `/api/v1/query` | Create query-result session (optional first page) |
 | GET | `/api/v1/query/{executionId}` | Session metadata (no `pageIndex`) or paged slice (`?pageIndex=&pageSize=`) |
 | DELETE | `/api/v1/query/{executionId}` | Release session |
+| GET | `/services/export/formats` | List export formats allowed on this deployment |
+| GET | `/services/export/catalog` | Formats plus schema/table tree with export URLs |
+| POST | `/services/export/sql` | Stream export of ad-hoc SQL (`text/plain` body; `format` query param) |
+| GET | `/services/export/schemas/{schema}/tables/{table}` | Stream export of one physical table (`format` query param) |
 | GET | `/api/v1/conversations` | List conversations |
 | POST | `/api/v1/conversations` | Create conversation |
 | DELETE | `/api/v1/conversations/{id}` | Delete conversation |

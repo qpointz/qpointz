@@ -62,6 +62,28 @@ nav:
     - index.md    
     - quickstart.md
     - installation.md
+    - Data Sources:
+      - sources/index.md
+      - sources/configuration.md
+      - Storages:
+        - sources/storages/local.md
+        - sources/storages/s3.md
+        - sources/storages/gcs.md
+        - sources/storages/azure.md
+      - Formats:
+        - sources/formats/csv.md
+        - sources/formats/tsv.md
+        - sources/formats/fwf.md
+        - sources/formats/excel.md
+        - sources/formats/avro.md
+        - sources/formats/parquet.md
+        - sources/formats/arrow.md
+      - sources/types.md
+    - Backends:
+      - backends/index.md
+      - backends/jdbc.md
+      - backends/calcite.md
+      - backends/flow.md
     - Security:
       - security/index.md
       - security/authentik-oidc.md
@@ -76,18 +98,6 @@ nav:
       - metadata/facet-stereotypes.md
       - metadata/operators.md
       - metadata/mill-ui.md
-    - Data Sources:
-      - sources/index.md
-      - sources/configuration.md
-      - sources/types.md
-      - Formats:
-        - sources/formats/csv.md
-        - sources/formats/tsv.md
-        - sources/formats/fwf.md
-        - sources/formats/excel.md
-        - sources/formats/avro.md
-        - sources/formats/parquet.md
-        - sources/formats/arrow.md
     - Connect:
       - Python:
         - connect/python/index.md
@@ -99,11 +109,6 @@ nav:
         - connect/python/async.md
         - connect/python/types.md
         - connect/python/discovery.md
-    - Backends:
-      - backends/index.md
-      - backends/jdbc.md
-      - backends/calcite.md
-      - backends/flow.md
     - Appendix:
       - reference/platform-runtime.md
       - reference/mill-ai-configuration.md
@@ -111,8 +116,4 @@ nav:
       - reference/skymill-kpi-cookbook.md
     - Api:
         - Kotlin: api/kotlin/index.html
-#    - Security:
-#      - security/index.md
-#      - test.md
-#      - test.md    
     

@@ -423,6 +423,16 @@ io.qpointz.mill.autoconfigure.data.backend.flow.FlowBackendAutoConfiguration
 
 ---
 
+## Cloud blob storage
+
+The Flow backend materializes **`SourceDescriptor`** values whether **`storage`** resolves to **local filesystem** or **cloud object stores**. **`readers`**, **`table` mapping**, **`conflicts`**, and **`metadata`** overrides follow the **same YAML** as today; providers differ under **`storage.type`** (**`s3`**, **`gcs`**, **`adls`**) and their **`storage.auth`** shapes.
+
+- **Architecture + verifier phases:** **[`cloud-blob-flow-sources.md`](cloud-blob-flow-sources.md)**
+- **Frozen `storage.auth` field sets (**GAP-4**):** [`../data/cloud-blob-storage-auth-descriptors.md`](../data/cloud-blob-storage-auth-descriptors.md)
+- **Docker emulators for `testIT`:** [`../data/object-storage-emulator-docker.md`](../data/object-storage-emulator-docker.md)
+
+---
+
 ## Data Model — flow inferred facets
 
 Read-only **backend metadata** for flow (storage, readers, column binding) is merged into the metadata stack with **`originId` `flow`**. **Facet type keys** stay stable (`flow-schema`, `flow-table`, `flow-column`); **new storage kinds** and **reader formats** extend **payload `params`**, not new URNs. **Pluggable projection** (contributor interfaces, facet contexts, same facets for file- vs future DB-backed descriptor repos): [`../data/flow-facet-projection-extensibility.md`](../data/flow-facet-projection-extensibility.md). **General pattern** for any backend’s `MetadataSource`: [`../data/implementing-backend-metadata-source.md`](../data/implementing-backend-metadata-source.md).

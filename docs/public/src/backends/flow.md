@@ -2,7 +2,9 @@
 
 The Flow backend queries file-based data sources — CSV, TSV, Parquet, Avro, Excel — described by Mill's [source descriptor](../sources/index.md) YAML files. Each source descriptor defines a schema name, storage location, file format, and table mapping rules. The Flow backend reads these descriptors, materializes the files as Calcite tables, and makes them queryable via SQL.
 
-This is the backend to use when your data lives in files and you want to query it without loading into a database first.
+**Cloud object storage** extends the same descriptor pipeline: `storage.type` selects bucket-backed backends ([S3](../sources/storages/s3.md), [GCS](../sources/storages/gcs.md), [Azure Blob](../sources/storages/azure.md)) instead of `local`, without changing `readers` or `table.mapping`.
+
+This is the backend to use when your data lives in files (or object-store equivalents) and you want to query it without loading into a database first.
 
 ---
 
@@ -94,12 +96,24 @@ mill:
 
 ### Properties reference
 
-All properties are under the `mill.data.backend.flow` prefix.
+#### Global metadata properties
+
+These properties are under the `mill.data.backend.metadata` prefix and apply to **all** backends (Flow, Calcite, JDBC).
+
+| Property | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `enabled` | no | `true` | Global kill-switch for all backend `MetadataSource` beans. When `false`, neither `LogicalLayoutMetadataSource` nor `FlowDescriptorMetadataSource` are registered. Persisted metadata (`repository-local`) is unaffected. |
+| `redact` | no | `basic` | Controls payload hygiene for inferred facets. `none` = verbatim (may expose credentials). `basic` = strip credential keys, sanitise URLs. `safe` = emit only allow-listed structural keys. |
+
+See [Backend metadata](../metadata/backend-metadata.md) for the full redaction and override model.
+
+#### Flow backend properties
+
+These properties are under the `mill.data.backend.flow` prefix.
 
 | Property | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `sources` | yes | `[]` | List of paths to source descriptor YAML files. Relative paths are resolved from the working directory. |
-| `metadata.enabled` | no | `true` | When `false`, the flow descriptor metadata source is not registered: no flow inferred facets (`originId` `flow`) in the Data Model. Does not disable the flow query backend. |
 | `cache.schema.enabled` | no | `false` | Reuse resolved Flow schemas across requests. |
 | `cache.schema.ttl` | no | unset | Optional cache TTL (for example `1m`, `30s`). When unset, cache does not auto-expire. |
 | `cache.facets.enabled` | no | `true` | When `false`, flow facet inference is always computed on demand (no snapshot cache). |
@@ -107,20 +121,23 @@ All properties are under the `mill.data.backend.flow` prefix.
 
 ### Backend metadata (Data Model)
 
-With **`metadata.enabled: true`** (default), Mill can attach **read-only inferred** facet rows (**`originId` `flow`**) to catalog entities so operators see **flow-specific** details from source descriptors (storage, table inputs, column bindings — see the facet type catalog) alongside **captured** metadata and **logical layout**. Set **`metadata.enabled: false`** to disable only that contributor; SQL and schema discovery are unchanged.
+Mill can attach **read-only inferred** facet rows to catalog entities so operators see backend-specific details alongside captured metadata and logical layout.
+
+The global `mill.data.backend.metadata.enabled` property gates all backend metadata sources across all backends. When `false`, nothing is registered. Individual source descriptors can also carry a `metadata` block to suppress or tighten redaction per source — see [Configuration](../sources/configuration.md#metadata) and [Backend metadata](../metadata/backend-metadata.md).
 
 Concepts and tuning: [Backend metadata](../metadata/backend-metadata.md).
 
-Cache example:
+Example:
 
 ```yaml
 mill:
   data:
     backend:
+      metadata:
+        enabled: true
+        redact: basic
       type: flow
       flow:
-        metadata:
-          enabled: true
         cache:
           schema:
             enabled: true
@@ -138,7 +155,7 @@ mill:
 
 The Flow backend is powered by Mill's source descriptor format. A source descriptor is a YAML file that tells Mill where to find data files, how to read them, and how to map them to tables.
 
-A complete guide to writing source descriptors is in the [File-Based Data Sources](../sources/index.md) section. Here is a quick summary of what a descriptor looks like:
+A complete guide to writing source descriptors is in the [Data Sources](../sources/index.md) section. Here is a quick summary of what a descriptor looks like:
 
 ```yaml
 name: airline-data
@@ -325,7 +342,7 @@ readers:
     label: processed
 ```
 
-See [Source Configuration Reference](../sources/configuration.md) for the full specification.
+See [Configuration](../sources/configuration.md) for the full specification.
 
 ---
 
@@ -361,6 +378,6 @@ See [Shared Configuration](index.md#sql-dialect) for the full list of supported 
 
 ## Next Steps
 
-- [File-Based Data Sources](../sources/index.md) — detailed guide to writing source descriptors
-- [Source Configuration Reference](../sources/configuration.md) — full YAML specification for source descriptors
+- [Data Sources](../sources/index.md) — detailed guide to writing source descriptors
+- [Configuration](../sources/configuration.md) — full YAML specification for source descriptors
 - [Format Reference](../sources/formats/csv.md) — format-specific configuration options

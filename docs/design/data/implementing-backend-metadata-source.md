@@ -79,8 +79,9 @@ mill-data-autoconfigure     XxxMetadataSourceAutoConfiguration (@ConditionalOn* 
    - **`fetchForEntity`**: map **`entityId`** → your facet payloads; return empty if entity not yours or origin muted.
 5. **Auto-configure** in **`mill-data-autoconfigure`** under **`io.qpointz.mill.autoconfigure.data.backend.<backend>`**:
    - **`@ConditionalOnProperty`** for **`mill.data.backend.type`**
-   - Optional **`metadata.enabled`** pattern (mirror **`FlowBackendProperties`** if operators need a kill switch).
-6. **Tests:** unit tests for payload shape + **originId**; slice/integration test that **`FacetInstanceReadMerge`** sees your bean when context loads.
+   - **Global metadata gating:** all backend `MetadataSource` beans must be gated by `@ConditionalOnProperty(prefix = "mill.data.backend.metadata", name = "enabled", havingValue = "true", matchIfMissing = true)`. This is the unified kill-switch (`BackendMetadataProperties`). There are no backend-specific toggles — per-source overrides in source descriptor YAML are the only narrower control (Flow backend only).
+   - **Redaction:** inject `BackendMetadataProperties.getRedact()` (or resolved effective mode for backends with per-source overrides) into your `MetadataSource` bean. Apply redaction in payload-building methods before emitting facet rows.
+6. **Tests:** unit tests for payload shape + **originId**; slice/integration test that **`FacetInstanceReadMerge`** sees your bean when context loads. Add tests for global gating (`enabled: false` suppresses bean) and redaction modes.
 7. **Docs:** public operator blurb + design pointer (this file + backend page).
 
 **Note:** Flow story text may reference **`SourceCatalogProvider`** as a narrow catalog contract; if that type is not in the codebase yet, **`SourceDefinitionRepository`** is the concrete bean for **`@ConditionalOnBean`** until **WI-146** extracts or renames the interface — keep SPEC, WI-148, and auto-config conditions in sync.
@@ -109,16 +110,41 @@ Reuse **entity URNs** (`urn:mill/model/...`) from the shared catalog where possi
 
 ---
 
-## 8. Anti-patterns
+## 8. Metadata controls
+
+### Global gating and redaction
+
+All backend `MetadataSource` beans are governed by `BackendMetadataProperties` (`mill.data.backend.metadata`):
+
+- **`enabled`** (default `true`) — global kill-switch. When `false`, no `MetadataSource` beans are registered for **any** backend.
+- **`redact`** (default `basic`) — payload hygiene. Levels: `NONE` < `BASIC` < `SAFE`.
+
+Both `LogicalLayoutMetadataSourceAutoConfiguration` and `FlowDescriptorMetadataSourceAutoConfiguration` carry `@ConditionalOnProperty` on the global prefix. New backend metadata sources must do the same.
+
+### Per-source overrides (Flow only)
+
+Flow source descriptors can carry an optional `metadata` block (`SourceMetadataDescriptor`) to override `enabled` and `redact` per source. Resolution rules:
+
+- **`enabled`:** global `false` is absolute. Source can only opt *out* of a globally enabled setting.
+- **`redact`:** effective = `max(global, source)`. Source can tighten but never relax below the global floor.
+
+Calcite and JDBC backends have no per-source granularity — only global settings apply.
+
+For full resolution tables: see `docs/workitems/in-progress/cloud-blob-source/WI-271-unified-backend-metadata-controls.md` and `docs/public/src/metadata/backend-metadata.md`.
+
+---
+
+## 9. Anti-patterns
 
 - **Shared facet types** forced across Flow and JDBC for different real-world concepts — leads to empty or misleading fields.
 - **Backend types** in `mill-metadata-core` / `mill-data-metadata` implementation code (violates dependency direction).
 - **One giant `MetadataSource`** that switches on `mill.data.backend.type` internally — harder to test; prefer **one bean per backend** + **auto-config conditions**.
-- **Secrets** in inferred payloads — redact or reference vault keys; align with operator/security policy.
+- **Secrets** in inferred payloads — always apply the global redact mode (at minimum); never emit credentials verbatim unless `redact: none` is explicitly configured.
+- **Bypassing global gating** — there is no backend-specific toggle. The global `mill.data.backend.metadata.enabled` is the only application-level switch. Per-source overrides (Flow only) operate within the source descriptor YAML, not as Spring properties.
 
 ---
 
-## 9. Flow reference implementation
+## 10. Flow reference implementation
 
 Implementers should read the flow story **[`SPEC.md`](../../workitems/completed/20260402-flow-source-ui-facets/SPEC.md)** and **[`flow-facet-projection-extensibility.md`](flow-facet-projection-extensibility.md)** for a **concrete** contributor/orchestrator pattern. Other backends should copy **checklist §5**, not Flow’s payload keys.
 

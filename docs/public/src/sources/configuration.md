@@ -1,4 +1,4 @@
-# Source Configuration Reference
+# Configuration
 
 A source is configured as a YAML document. Mill supports a **multi-reader** model: one storage location can have multiple readers, each with its own format, table mapping, and table attributes.
 
@@ -18,6 +18,9 @@ table:                     # optional shared default
       source: regex | constant
       # ...
 conflicts: reject          # optional, default: reject
+metadata:                  # optional per-source metadata overrides
+  enabled: true            # inherit from global if omitted
+  redact: basic            # inherit from global if omitted
 readers:
   - type: <format-type>
     label: <optional-suffix>
@@ -38,6 +41,7 @@ readers:
 | `readers`   | yes      | One or more reader configurations (format + mapping).             |
 | `table`     | no       | Shared default table config (mapping + attributes).               |
 | `conflicts` | no       | How to handle table name collisions across readers (default: `reject`). |
+| `metadata`  | no       | Per-source [metadata overrides](#metadata) (enabled, redact).     |
 
 ---
 
@@ -247,6 +251,67 @@ conflicts:
 
 ---
 
+## Metadata
+
+The optional `metadata` block lets you override global backend metadata settings for a specific source. This controls whether Mill exposes inferred facets for this source in the Data Model, and how aggressively credentials are redacted from facet payloads.
+
+When omitted, the source inherits the global settings from `mill.data.backend.metadata`.
+
+```yaml
+metadata:
+  enabled: true     # omit to inherit global
+  redact: basic     # omit to inherit global
+```
+
+| Property  | Default | Description |
+|-----------|---------|-------------|
+| `enabled` | (inherit) | `false` to suppress all inferred metadata for this source. Cannot override a global disable — when `mill.data.backend.metadata.enabled` is `false`, this source's metadata is always suppressed. |
+| `redact`  | (inherit) | Redaction level for this source's facet payloads: `none`, `basic`, or `safe`. Effective level is `max(global, source)` — the source can tighten but never relax below the global floor. |
+
+### Examples
+
+Suppress metadata for a source containing sensitive configuration:
+
+```yaml
+name: sensitive-data
+storage:
+  type: s3
+  bucket: secret-bucket
+  auth:
+    accessKeyId: ${AWS_ACCESS_KEY_ID}
+    secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
+metadata:
+  enabled: false
+readers:
+  - type: parquet
+    table:
+      mapping:
+        type: directory
+```
+
+Relax redaction for a local source with no secrets:
+
+```yaml
+name: public-data
+storage:
+  type: local
+  rootPath: /data/public
+metadata:
+  redact: none
+readers:
+  - type: csv
+    format:
+      delimiter: ","
+    table:
+      mapping:
+        type: regex
+        pattern: "(?<table>[^/]+)\\.csv"
+```
+
+Full details on resolution rules and redaction modes: [Backend metadata](../metadata/backend-metadata.md).
+
+---
+
 ## Storage
 
 The `storage` section defines where Mill looks for data files.
@@ -266,6 +331,16 @@ storage:
 | `rootPath` | yes      | —       | Absolute or relative path to the root directory.   |
 
 All regular files under `rootPath` (including subdirectories) are discovered. Hidden files and directories are included in the scan; use table mapping rules to filter unwanted files.
+
+### Cloud object storage (S3, GCS, Azure Blob)
+
+Readers, table mapping, conflicts, and attributes work the same as for `local`. The `storage` block swaps `type: local` / `rootPath` for a cloud type discriminator (`s3`, `gcs`, `adls`) plus provider-specific fields (bucket/container, prefix, region, endpoint, auth).
+
+Each provider has its own dedicated page:
+
+- [AWS S3](storages/s3.md)
+- [Google Cloud Storage](storages/gcs.md)
+- [Azure Blob Storage](storages/azure.md)
 
 ---
 

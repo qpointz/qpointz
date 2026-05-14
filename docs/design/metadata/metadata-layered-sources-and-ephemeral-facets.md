@@ -45,7 +45,7 @@ Aggregation for metadata REST is implemented in **`mill-metadata-core`** via **`
 
 **`LogicalLayoutMetadataSourceAutoConfiguration`** (in **`mill-data-autoconfigure`**, package **`data.schema`**) registers **`LogicalLayoutMetadataSource`** when **`SchemaProvider`** is available.
 
-**Flow** metadata registration is **not** in that class: it uses **`mill.data.backend.type=flow`**, **`mill.data.backend.flow.metadata.enabled`**, and lives beside **`FlowBackendAutoConfiguration`** so wiring stays backend-specific.
+**Flow** metadata registration is **not** in that class: it uses **`mill.data.backend.type=flow`** and lives beside **`FlowBackendAutoConfiguration`** so wiring stays backend-specific. Both autoconfigurations are gated by the global **`mill.data.backend.metadata.enabled`** property.
 
 ## Merge behaviour
 

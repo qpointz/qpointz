@@ -41,7 +41,7 @@ Keeping the two layers separate avoids overloading layout facets with backend-sp
 
 - **`MetadataSource`** implementations for **physical backends** live in **data** modules (e.g. **`mill-data-backends`** for flow).
 - **Auto-configuration** that registers those beans lives in **`mill-data-autoconfigure`**.
-- **Flow** registration is **flow-backend-specific**: configuration classes under **`io.qpointz.mill.autoconfigure.data.backend.flow`**, **`@AutoConfigureAfter(FlowBackendAutoConfiguration.class)`**, and conditions on **`mill.data.backend.type=flow`** plus **`mill.data.backend.flow.metadata.enabled`** (see story **`SPEC.md` §3). This is **intentionally not** the same package as **`LogicalLayoutMetadataSourceAutoConfiguration`** (`data.schema`), which applies whenever **`SchemaProvider`** exists.
+- **Flow** registration is **flow-backend-specific**: configuration classes under **`io.qpointz.mill.autoconfigure.data.backend.flow`**, **`@AutoConfigureAfter(FlowBackendAutoConfiguration.class)`**, and conditions on **`mill.data.backend.type=flow`**. This is **intentionally not** the same package as **`LogicalLayoutMetadataSourceAutoConfiguration`** (`data.schema`), which applies whenever **`SchemaProvider`** exists. Both are gated by the global **`mill.data.backend.metadata.enabled`** property (see WI-271).
 
 **`mill-metadata-autoconfigure`** continues to aggregate **all** **`MetadataSource`** beans in **`FacetInstanceReadMerge`**; it does not own backend-specific beans.
 
