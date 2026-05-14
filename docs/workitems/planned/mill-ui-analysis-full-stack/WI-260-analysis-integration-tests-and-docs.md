@@ -7,7 +7,7 @@ Backlog refs: **U-13**
 
 ## Goal
 
-Add **testIT** (or full-stack slice) covering **queries REST** + persistence, and sync **[`BACKEND-API-REQUIREMENTS.md`](../../../design/ui/mill-ui/BACKEND-API-REQUIREMENTS.md)** / mill-ui docs if behaviour or fields diverged during implementation.
+Add **testIT** (or full-stack slice) covering **queries REST** + persistence, and sync **[`BACKEND-API-REQUIREMENTS.md`](../../../design/ui/mill-ui/BACKEND-API-REQUIREMENTS.md)** / mill-ui docs if behaviour or fields diverged during implementation. Include **Analysis Monaco editor** notes in mill-ui **ARCHITECTURE** / inventory if **WI-266** changed filenames or integration points.
 
 ## Scope
 
@@ -21,4 +21,4 @@ Add **testIT** (or full-stack slice) covering **queries REST** + persistence, an
 
 ## Depends on
 
-**WI-256**, **WI-257**, **WI-258**, **WI-259**
+**WI-256**, **WI-257**, **WI-258**, **WI-259**, **WI-266**

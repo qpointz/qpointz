@@ -26,4 +26,4 @@ Introduce a **neutral** Gradle module (e.g. `mill-analysis-queries-service` or e
 
 ## Notes
 
-**WI-257** adds the public controllers and execute path into this module (or documents split if service interface is separate).
+**WI-257** adds the public **saved-query** controllers (list + get by id only) into this module (or documents split if service interface is separate). **Execution** stays **`/api/v1/query/**`** (closed **`query-result-execution-service`**).

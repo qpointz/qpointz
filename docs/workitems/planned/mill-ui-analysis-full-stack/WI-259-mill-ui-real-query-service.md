@@ -15,6 +15,8 @@ Implement **`realQueryService`** in [`queryService.ts`](../../../../ui/mill-ui/s
 2. Vitest: service layer tests with `fetch` mock.
 3. Document env vars in mill-ui README or env sample file if present.
 
+**Editor UX:** advanced SQL editing (Monaco, schema completions) is **WI-266** — this WI owns **wire protocol + `queryService` only**.
+
 ## Acceptance
 
 - `npm run test` and `npm run build` pass under `ui/mill-ui`.
@@ -22,4 +24,4 @@ Implement **`realQueryService`** in [`queryService.ts`](../../../../ui/mill-ui/s
 
 ## Depends on
 
-**WI-257** (live API)
+**WI-257** (live saved-query catalog API).
