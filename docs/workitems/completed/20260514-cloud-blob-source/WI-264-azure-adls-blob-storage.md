@@ -18,13 +18,13 @@ Spring Boot **autoconfigure** module (**`STORY.md`** § Gradle module layout **+
 
 ## In Scope
 
-1. Descriptor covering storage account (**`accountUrl`**) and filesystem (container), directory prefix optional, optional **`endpoint`**. Discriminator is **`adls`** (`@JsonTypeName("adls")`), frozen in **`docs/design/data/cloud-blob-storage-auth-descriptors.md`**; **do not** invent parallel **`storage.auth`** field names beyond it.
+1. Descriptor covering blob service **`endpoint`**, **`container`**, optional **`connectionString`** at storage level, directory prefix optional. Discriminator is **`adls`** (`@JsonTypeName("adls")`); **`storage.auth`** keys are frozen in **`docs/design/data/cloud-blob-storage-auth-descriptors.md`** — amend that doc when adding keys.
 2. **`storage.auth`** implementations **follow [`docs/design/data/cloud-blob-storage-auth-descriptors.md`](../../../design/data/cloud-blob-storage-auth-descriptors.md)** (**GAP-4**) — delegated bundles **`connectionString`** **or** **`accountName` + `accountKey`** (**mutually exclusive**); **`preferAmbientCredentials`** semantics and unknown-key **`Verifiable`** rules **verbatim** therein. No delegated credentials → **`DefaultAzureCredential`** (ambient inference).
 3. **`BlobSource`** list + open + seek aligned with **`BlobInputFile`** requirements.
 4. Integration tests via **Azurite** (or emulator agreed in **WI-265**) with fixture upload from
    **`test/datasets/skymill/parquet/*.parquet`** and **`test/datasets/skymill/avro/*.avro`**; verify
    **Parquet** (**primary**: seekable / **`BlobInputFile`**) and **Avro** (**streaming**) through existing format handlers.
-   Use **one** stable **emulator-friendly** delegated bundle per **[`cloud-blob-storage-auth-descriptors.md`](../../../design/data/cloud-blob-storage-auth-descriptors.md)** (typically **`auth.connectionString`** for Azurite — **`STORY.md`** § **Purpose of provider `testIT`**); **not** separate **`testIT`** suites for **ambient**
+   Use **one** stable **emulator-friendly** delegated bundle per **[`cloud-blob-storage-auth-descriptors.md`](../../../design/data/cloud-blob-storage-auth-descriptors.md)** (typically **`storage.connectionString`** for Azurite — **`STORY.md`** § **Purpose of provider `testIT`**); **not** separate **`testIT`** suites for **ambient**
    vs **delegated** auth matrices.
 5. **Unit tests** (and **`Verifiable`**) **must** cover **inference** for **both** **ambient** (**`DefaultAzureCredential`** path when
    no delegated keys) and **delegated** branches **without** claiming **`testIT`** validates production **managed identity** or full
@@ -80,8 +80,8 @@ Spring Boot **autoconfigure** module (**`STORY.md`** § Gradle module layout **+
 
 | Class | Role |
 |-------|------|
-| `AdlsStorageDescriptor` | `@JsonTypeName("adls")` — accountUrl, filesystem, prefix, endpoint, auth |
-| `AdlsAuthDescriptor` | connectionString, accountName, accountKey, preferAmbientCredentials |
+| `AdlsStorageDescriptor` | `@JsonTypeName("adls")` — endpoint, container, connectionString, prefix, auth |
+| `AdlsAuthDescriptor` | `accountName`, `accountKey`, `sasToken`, `preferAmbientCredentials` |
 | `AdlsBlobSource` | `BlobSource` impl — list/stream/seek via `azure-storage-blob` SDK |
 | `AdlsBlobPath` | `BlobPath` with Azure blob URI |
 | `AdlsSeekableByteChannel` | Range-read backed `SeekableByteChannel` for Parquet |

@@ -4,7 +4,7 @@ Data sources let you connect Mill to file-based data — whether the files live 
 
 A source configuration tells Mill three things:
 
-1. **Where** to find the files — the [storage](configuration.md#storage) backend (local directory, S3 bucket, GCS bucket, or Azure container)
+1. **Where** to find the files — the [storage](configuration.md#storage) backend (local directory, S3 bucket, GCS bucket, or Azure `endpoint` / `container`)
 2. **How** to read them — one or more [readers](configuration.md#readers), each tied to a file [format](#supported-formats)
 3. **Which files** map to which tables — [table mapping](configuration.md#table-mapping) rules (regex, directory, or glob)
 
@@ -43,7 +43,7 @@ Mill supports local and cloud storage backends. The storage backend only control
 | `local` | Local filesystem directory | [Local storage](storages/local.md) |
 | `s3` | Amazon S3 buckets | [AWS S3](storages/s3.md) |
 | `gcs` | Google Cloud Storage buckets | [Google Cloud Storage](storages/gcs.md) |
-| `adls` | Azure Blob Storage / ADLS Gen2 containers | [Azure Blob Storage](storages/azure.md) |
+| `adls` | Azure Blob Storage / ADLS Gen2 (`endpoint` + `container`) | [Azure Blob Storage](storages/azure.md) |
 
 ---
 

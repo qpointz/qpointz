@@ -23,8 +23,8 @@ name TBD) plus a **`cloud/aws/`** Spring Boot **autoconfigure** module that depe
    bucket, optional key prefix, region, optional custom endpoint URL, optional **`auth`** block.
    **Authentication** follows **story [`STORY.md`](STORY.md) § Authentication** — exact **`storage.auth`** keys, bundles,
    **`preferAmbientCredentials`**, and **`VerificationIssue` patterns** are **normative for implementation** in
-   **`docs/design/data/cloud-blob-storage-auth-descriptors.md`** (**GAP-4**). **Delegated** bundles use **`accessKeyId` +
-   `secretAccessKey`** (+ optional **`sessionToken`**) only; verifier rejects unknown keys **and partial** bundles.
+   **`docs/design/data/cloud-blob-storage-auth-descriptors.md`** (**GAP-4**). **Delegated** bundles use **`accessKey` +
+   `secretKey`** (+ optional **`sessionToken`**) only; verifier rejects unknown keys **and partial** bundles.
 2. **`S3BlobSource`** implementing **`BlobSource`**: **`listBlobs`**, **`openInputStream`**, **`openSeekableChannel`**.
 3. **`S3BlobPath`** (implements **`BlobPath`**) using a stable **`URI`** (for example **`s3://`**).
 4. SPI: **`META-INF/services/io.qpointz.mill.source.factory.StorageFactory`** and **`DescriptorSubtypeProvider`**
@@ -110,7 +110,7 @@ name TBD) plus a **`cloud/aws/`** Spring Boot **autoconfigure** module that depe
 | Class | Role |
 |-------|------|
 | `S3StorageDescriptor` | `@JsonTypeName("s3")` — bucket, prefix, region, endpoint, auth |
-| `S3AuthDescriptor` | accessKeyId, secretAccessKey, sessionToken, preferAmbientCredentials |
+| `S3AuthDescriptor` | accessKey, secretKey, sessionToken, preferAmbientCredentials |
 | `S3BlobSource` | `BlobSource` impl — list/stream/seek via AWS SDK v2 `S3Client` |
 | `S3BlobPath` | `BlobPath` with `s3://bucket/key` URI |
 | `S3SeekableByteChannel` | Range-read backed `SeekableByteChannel` for Parquet |

@@ -222,7 +222,7 @@ non-blank** (rules per provider doc above).
 
 | Role | **`storage.auth`** fields (camelCase) |
 |------|---------------------------------------|
-| **Delegated — static IAM / MinIO-style keys** | **`accessKeyId`**, **`secretAccessKey`**, optional **`sessionToken`** (STS / session credentials) |
+| **Delegated — static IAM / MinIO-style keys** | **`accessKey`**, **`secretKey`**, optional **`sessionToken`** (STS / session credentials) |
 | **Ambient** | Omit **`auth`**, or only blank fields — **AWS SDK default credential provider chain** (IRSA, instance profile, env, profile, …) |
 
 YAML sketch (delegated, env placeholders):
@@ -233,8 +233,8 @@ storage:
   bucket: my-bucket
   region: us-east-1
   auth:
-    accessKeyId: ${AWS_ACCESS_KEY_ID}
-    secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
+    accessKey: ${AWS_ACCESS_KEY_ID}
+    secretKey: ${AWS_SECRET_ACCESS_KEY}
     # optional: sessionToken: ${AWS_SESSION_TOKEN}
 ```
 
@@ -261,7 +261,7 @@ storage:
 
 | Role | **`storage.auth`** fields (camelCase) |
 |------|---------------------------------------|
-| **Delegated — mutually exclusive bundles** | **`connectionString`** **or** the pair **`accountName` + `accountKey`** (**shared key**); partial pairs **fail** **`Verifiable`** |
+| **Delegated — mutually exclusive bundles** | Top-level **`connectionString`** **or** **`auth.accountKey`** (with optional **`auth.accountName`**) **or** **`auth.sasToken`**; partial shared-key pairs **fail** **`Verifiable`** |
 | **Ambient** | Omit **`auth`**, or only blank fields — **`DefaultAzureCredential`** (managed identity, CLI, env, …) |
 
 YAML sketch (**Azurite** / dev connection string):
@@ -269,9 +269,8 @@ YAML sketch (**Azurite** / dev connection string):
 ```yaml
 storage:
   type: adls
-  filesystem: raw
-  auth:
-    connectionString: ${AZURITE_STORAGE_CONNECTION_STRING}
+  container: raw
+  connectionString: ${AZURITE_STORAGE_CONNECTION_STRING}
 ```
 
 **Inference (default — keeps YAML terse):**
@@ -419,8 +418,7 @@ Cross-story items (**`${…}` placeholders**, **`SecretProvider`** contract, DB-
 
 ## Current State (implementation summary)
 
-**Branch:** `feat/cloud-blob-sources` (from `origin/dev`)  
-**Story status:** all 4 WIs implemented and committed; story is **in-progress** (not yet closed/archived)
+**Story status:** **closed** **2026-05-14** — this folder is the archive under `docs/workitems/completed/20260514-cloud-blob-source/` (all work items complete per [`RULES.md`](../../RULES.md)).
 
 ### What was built
 
@@ -464,15 +462,9 @@ list/stream/seek → Flow backend schema listing + SQL queries).
 Each IT covers: blob listing (parquet + avro), streaming read (PAR1 magic), seekable channel, schema listing,
 table listing, SELECT with LIMIT, SELECT with WHERE filter — all against real Skymill datasets uploaded to emulated storage.
 
-### Remaining for story closure
+### Post-closure (process, not tracked as WIs)
 
-Per `docs/workitems/RULES.md`:
-
-1. Squash/regroup commits for MR-ready history (~10 commits above merge base)
-2. Update `docs/workitems/MILESTONE.md` with completed WIs
-3. Update `docs/workitems/BACKLOG.md` — set related rows to `done`
-4. Move story folder to `docs/workitems/completed/YYYYMMDD-cloud-blob-source/`
-5. Open MR targeting `dev`
+Per [`RULES.md`](../../RULES.md) **Completion (Story level)**: squash or regroup commits for an MR-ready history against the real merge target, then open the MR to **`dev`**.
 
 ## Work Items
 
@@ -481,4 +473,4 @@ Per `docs/workitems/RULES.md`:
 - [x] **[WI-264](WI-264-azure-adls-blob-storage.md)** — Azure ADLS **`BlobSource`**, Azurite/Skymill tests, **Azure cold-start KDoc**
 - [x] **[WI-265](WI-265-cloud-storage-wiring-docs.md)** — Service wiring, emulator matrix, design/public docs, **cold start & operability**
   (probes, lazy verification, BOM), **GAP-3 flow metadata hygiene** (**enabled** + **`redact`** + tests)
-- [ ] **[WI-271](WI-271-unified-backend-metadata-controls.md)** — Unified `mill.data.backend.metadata` enabled/redact controls across all backend `MetadataSource` beans
+- [x] **[WI-271](WI-271-unified-backend-metadata-controls.md)** — Unified `mill.data.backend.metadata` enabled/redact controls across backend `MetadataSource` beans (**`BackendMetadataProperties`**, **`LogicalLayoutMetadataSource`** + **`FlowDescriptorMetadataSource`** autoconfigure gating)

@@ -33,42 +33,6 @@ mill:
 spring:
   config:
     activate:
-      on-profile: skymill-azure
-
-mill:
-  data:
-    backend:
-      flow:
-        sources:
-          - ./config/skymill/skymill-flow-azure.yml
----
-spring:
-  config:
-    activate:
-      on-profile: skymill-s3
-
-mill:
-  data:
-    backend:
-      flow:
-        sources:
-          - ./config/skymill/skymill-flow-s3.yml
----
-spring:
-  config:
-    activate:
-      on-profile: skymill-gcs
-
-mill:
-  data:
-    backend:
-      flow:
-        sources:
-          - ./config/skymill/skymill-flow-gcs.yml
----
-spring:
-  config:
-    activate:
       on-profile: moneta
 mill:
   data:

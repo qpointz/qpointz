@@ -278,8 +278,8 @@ storage:
   type: s3
   bucket: secret-bucket
   auth:
-    accessKeyId: ${AWS_ACCESS_KEY_ID}
-    secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
+    accessKey: ${AWS_ACCESS_KEY_ID}
+    secretKey: ${AWS_SECRET_ACCESS_KEY}
 metadata:
   enabled: false
 readers:
@@ -334,7 +334,7 @@ All regular files under `rootPath` (including subdirectories) are discovered. Hi
 
 ### Cloud object storage (S3, GCS, Azure Blob)
 
-Readers, table mapping, conflicts, and attributes work the same as for `local`. The `storage` block swaps `type: local` / `rootPath` for a cloud type discriminator (`s3`, `gcs`, `adls`) plus provider-specific fields (bucket/container, prefix, region, endpoint, auth).
+Readers, table mapping, conflicts, and attributes work the same as for `local`. The `storage` block swaps `type: local` / `rootPath` for a cloud type discriminator (`s3`, `gcs`, `adls`) plus provider-specific fields (bucket, Azure `endpoint` / `container`, prefix, region, auth).
 
 Each provider has its own dedicated page:
 

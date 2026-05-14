@@ -1,6 +1,6 @@
 # WI-271 — Unified backend metadata enabled/redact configuration
 
-- **Status:** planned
+- **Status:** done
 - **Story:** [`STORY.md`](STORY.md)
 
 ---
@@ -65,8 +65,8 @@ storage:
   type: s3
   bucket: secret-bucket
   auth:
-    accessKeyId: ${AWS_ACCESS_KEY_ID}
-    secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
+    accessKey: ${AWS_ACCESS_KEY_ID}
+    secretKey: ${AWS_SECRET_ACCESS_KEY}
 metadata:
   enabled: false        # suppress metadata for this source only
 ```
@@ -144,8 +144,8 @@ Remove the flow-specific `mill.data.backend.flow.metadata.enabled` property, the
 Redaction tiers applied to inferred facet payloads:
 
 - **`none`**: pass payloads through unchanged.
-- **`basic`**: remove keys matching credential patterns (`accessKeyId`, `secretAccessKey`,
-  `connectionString`, `accountKey`, `serviceAccountJson`, etc.), replace endpoint URLs with
+- **`basic`**: remove keys matching credential patterns (`accessKey`, `secretKey`, legacy `accessKeyId` /
+  `secretAccessKey`, `connectionString`, `accountKey`, `serviceAccountJson`, etc.), replace endpoint URLs with
   `<redacted>` if they contain embedded credentials.
 - **`safe`**: emit only `type` and allow-listed structural keys (e.g. `bucket`, `container`,
   `prefix`, `region`). All other keys stripped.

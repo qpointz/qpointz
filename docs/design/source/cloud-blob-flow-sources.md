@@ -39,6 +39,8 @@ Ambient vs delegated inference (**SDK default chains**, workload identity):
 
 - Same document — **omit `auth`** (or omit credential-bearing keys) for **ambient**; non-blank **delegated-bundle** fields select explicit credential material.
 
+**IAM / cloud permissions:** Each provider requires **list + read** grants at minimum. See provider sections in **`cloud-blob-storage-auth-descriptors.md`** for exact policy examples (e.g. AWS S3 needs **two** ARN patterns: bucket-level for `ListBucket`, object-level for `GetObject`).
+
 ---
 
 ## Backend metadata (flow facets)
@@ -65,6 +67,6 @@ Skymill fixtures under **`test/datasets/skymill/`** (Parquet + Avro) pair with *
 | [`flow-kt-design.md`](flow-kt-design.md) | File-backed provider + storage abstraction |
 | [`cloud-blob-storage-auth-descriptors.md`](../data/cloud-blob-storage-auth-descriptors.md) | Frozen **`storage.auth`** (GAP-4) |
 | [`object-storage-emulator-docker.md`](../data/object-storage-emulator-docker.md) | Emulator containers for **`testIT`** |
-| **[`docs/workitems/planned/cloud-blob-source/STORY.md`](../../workitems/planned/cloud-blob-source/STORY.md)** | Story checklist and provider WIs |
+| **[`docs/workitems/completed/20260514-cloud-blob-source/STORY.md`](../../workitems/completed/20260514-cloud-blob-source/STORY.md)** | Story checklist and provider WIs |
 
 ---

@@ -4,7 +4,7 @@ This document lists **Docker** (and **Docker Compose**) recipes for the object-s
 
 **Related:** Flow + descriptor seam — [`../source/cloud-blob-flow-sources.md`](../source/cloud-blob-flow-sources.md); frozen **`storage.auth`** shapes — [`cloud-blob-storage-auth-descriptors.md`](cloud-blob-storage-auth-descriptors.md).
 
-**Normative product scope** for which emulators apply: [`docs/workitems/planned/cloud-blob-source/STORY.md`](../../workitems/planned/cloud-blob-source/STORY.md) § **Integration testing** and **WI-265** emulator matrix. Implementations should prefer **Testcontainers** in Gradle `testIT` so CI and laptops share the **same images and ports** as documented here; this page is the **operator / contributor** reference for **manual** containers and **compose**-based local stacks.
+**Normative product scope** for which emulators apply: [`docs/workitems/completed/20260514-cloud-blob-source/STORY.md`](../../workitems/completed/20260514-cloud-blob-source/STORY.md) § **Integration testing** and **WI-265** emulator matrix. Implementations should prefer **Testcontainers** in Gradle `testIT` so CI and laptops share the **same images and ports** as documented here; this page is the **operator / contributor** reference for **manual** containers and **compose**-based local stacks.
 
 ## Goals
 
@@ -228,6 +228,6 @@ Blob `testIT` seed **Parquet** and **Avro** from repo paths under **`test/datase
 
 ## Related
 
-- [`docs/workitems/planned/cloud-blob-source/STORY.md`](../../workitems/planned/cloud-blob-source/STORY.md) — § **Integration testing**, **Cold start**.
-- [`docs/workitems/planned/cloud-blob-source/WI-265-cloud-storage-wiring-docs.md`](../../workitems/planned/cloud-blob-source/WI-265-cloud-storage-wiring-docs.md) — emulator matrix, CI tagging.
+- [`docs/workitems/completed/20260514-cloud-blob-source/STORY.md`](../../workitems/completed/20260514-cloud-blob-source/STORY.md) — § **Integration testing**, **Cold start**.
+- [`docs/workitems/completed/20260514-cloud-blob-source/WI-265-cloud-storage-wiring-docs.md`](../../workitems/completed/20260514-cloud-blob-source/WI-265-cloud-storage-wiring-docs.md) — emulator matrix, CI tagging.
 - [`docs/design/platform/local-dev-authentik.md`](../platform/local-dev-authentik.md) — pattern for **compose**-documented local stacks (different domain).

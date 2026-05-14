@@ -80,7 +80,7 @@ mill-data-autoconfigure     XxxMetadataSourceAutoConfiguration (@ConditionalOn* 
 5. **Auto-configure** in **`mill-data-autoconfigure`** under **`io.qpointz.mill.autoconfigure.data.backend.<backend>`**:
    - **`@ConditionalOnProperty`** for **`mill.data.backend.type`**
    - **Global metadata gating:** all backend `MetadataSource` beans must be gated by `@ConditionalOnProperty(prefix = "mill.data.backend.metadata", name = "enabled", havingValue = "true", matchIfMissing = true)`. This is the unified kill-switch (`BackendMetadataProperties`). There are no backend-specific toggles — per-source overrides in source descriptor YAML are the only narrower control (Flow backend only).
-   - **Redaction:** inject `BackendMetadataProperties.getRedact()` (or resolved effective mode for backends with per-source overrides) into your `MetadataSource` bean. Apply redaction in payload-building methods before emitting facet rows.
+   - **Redaction:** inject `BackendMetadataProperties.getRedact()` (type `io.qpointz.mill.data.metadata.StorageFacetRedactMode`) into your `MetadataSource` bean. Apply redaction in payload-building methods before emitting facet rows.
 6. **Tests:** unit tests for payload shape + **originId**; slice/integration test that **`FacetInstanceReadMerge`** sees your bean when context loads. Add tests for global gating (`enabled: false` suppresses bean) and redaction modes.
 7. **Docs:** public operator blurb + design pointer (this file + backend page).
 
@@ -130,7 +130,7 @@ Flow source descriptors can carry an optional `metadata` block (`SourceMetadataD
 
 Calcite and JDBC backends have no per-source granularity — only global settings apply.
 
-For full resolution tables: see `docs/workitems/in-progress/cloud-blob-source/WI-271-unified-backend-metadata-controls.md` and `docs/public/src/metadata/backend-metadata.md`.
+For full resolution tables: see `docs/workitems/completed/20260514-cloud-blob-source/WI-271-unified-backend-metadata-controls.md` and `docs/public/src/metadata/backend-metadata.md`.
 
 ---
 

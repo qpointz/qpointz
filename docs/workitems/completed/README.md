@@ -23,6 +23,7 @@ Optionally, keep a **newest-first** bullet list below as a human-maintained inde
 
 ## Index (optional, newest first)
 
+- [2026-05-14 — cloud-blob-source (`cloud/{aws,gcp,azure}`, `BlobSource`, `mill.data.backend.metadata`; WI-262–WI-265, WI-271)](20260514-cloud-blob-source/STORY.md)
 - [2026-05-11 — query-result-execution-service (`mill-data-query`, `/api/v1/query/**`, mill-ui Analysis; WI-262–WI-265)](20260511-query-result-execution-service/STORY.md)
 - [2026-05-07 — streaming-export-service (`mill-export-service` `/services/export`, format SPI, mill-ui export; WI-250–WI-261)](20260507-streaming-export-service/STORY.md)
 - [2026-05-06 — ai-v3-mill-ui-general-chat (mill-ui `/api/v1/ai/chats`, SSE, routes, artefacts; WI-229–WI-233)](20260506-ai-v3-mill-ui-general-chat/STORY.md)

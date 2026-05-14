@@ -122,7 +122,7 @@ and close **GAP-3** planning for **flow metadata facet** emission (**enabled** i
 - **`docs/design/data/`** includes a dedicated **Cold start** section per **§11** (**first-touch matrices**, probes,
    lazy verify policy reference).
 - Helm / operator snippets document **startup vs readiness vs liveness** separation from blob availability (**§9**).
-- **BACKLOG.md** gains a backlog row referencing **`docs/workitems/planned/cloud-blob-source/`** (when prioritized).
+- **BACKLOG.md** row **S-9** references the archived story **`docs/workitems/completed/20260514-cloud-blob-source/`**.
 
 ## Implementation Notes
 

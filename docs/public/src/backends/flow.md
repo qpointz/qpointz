@@ -103,7 +103,7 @@ These properties are under the `mill.data.backend.metadata` prefix and apply to 
 | Property | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `enabled` | no | `true` | Global kill-switch for all backend `MetadataSource` beans. When `false`, neither `LogicalLayoutMetadataSource` nor `FlowDescriptorMetadataSource` are registered. Persisted metadata (`repository-local`) is unaffected. |
-| `redact` | no | `basic` | Controls payload hygiene for inferred facets. `none` = verbatim (may expose credentials). `basic` = strip credential keys, sanitise URLs. `safe` = emit only allow-listed structural keys. |
+| `redact` | no | `basic` | Controls hygiene for the **`storage`** object inside **flow-schema** inferred facets. `none` = verbatim (may expose credentials). `basic` = strip secrets from `auth` / `connectionString`, strip SAS queries from `endpoint`, keep safe hints (`accountName`, meaningful `preferAmbientCredentials`). `safe` = allow-list only structural fields per storage type (`bucket`, `container`, `prefix`, …) plus non-secret “configured” flags. |
 
 See [Backend metadata](../metadata/backend-metadata.md) for the full redaction and override model.
 

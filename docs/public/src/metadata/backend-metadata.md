@@ -64,9 +64,11 @@ Inferred facet payloads (especially from the Flow backend) may contain storage c
 
 | Mode | Description |
 |------|-------------|
-| **`none`** | Pass payloads through unchanged. **Use with caution** — credentials may be exposed in the Data Model UI and API. |
-| **`basic`** (default) | Strip keys matching credential patterns (`accessKeyId`, `secretAccessKey`, `connectionString`, `accountKey`, `serviceAccountJson`, etc.). Replace endpoint URLs with `<redacted>` if they contain embedded credentials. |
-| **`safe`** | Emit only `type` and allow-listed structural keys (`bucket`, `container`, `prefix`, `region`, `rootPath`). All other keys are stripped. |
+| **`none`** | Pass storage `params` through unchanged. **Use with caution** — credentials may appear in the Data Model UI and APIs. |
+| **`basic`** (default) | Remove top-level `connectionString`; strip secret fields from nested `auth` (keys such as `accountKey`, `sasToken`, `accessKey`, `secretKey`, legacy `accessKeyId` / `secretAccessKey`, `sessionToken`, `accessToken`, `serviceAccountJson`, …); keep non-secret hints such as `accountName` and `preferAmbientCredentials` when meaningful. Drop SAS query material from `endpoint` URLs (base URL kept). Adds `connectionStringConfigured` / `delegatedAuthConfigured` booleans when secrets were present. |
+| **`safe`** | After the same hygiene as **`basic`**, keep only allow-listed structural keys per `storage.type` (for example `bucket`, `container`, `prefix`, `region`, `projectId`, `requesterPays` for S3, `rootPath`), plus the configured flags above. Endpoints and connection strings are never emitted. |
+
+For Azure **`adls`**, **`basic`** keeps a sanitized **`endpoint`** and **`container`**; **`safe`** keeps **`container`** and **`prefix`** only (no `endpoint`).
 
 Redaction levels are ordered by restrictiveness: `none` < `basic` < `safe`.
 
@@ -108,8 +110,8 @@ storage:
   type: s3
   bucket: secret-bucket
   auth:
-    accessKeyId: ${AWS_ACCESS_KEY_ID}
-    secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
+    accessKey: ${AWS_ACCESS_KEY_ID}
+    secretKey: ${AWS_SECRET_ACCESS_KEY}
 metadata:
   enabled: false
 ```
