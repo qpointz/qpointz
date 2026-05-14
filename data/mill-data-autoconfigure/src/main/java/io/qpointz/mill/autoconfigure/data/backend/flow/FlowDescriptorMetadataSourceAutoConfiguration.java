@@ -17,13 +17,17 @@ import static io.qpointz.mill.autoconfigure.data.backend.BackendAutoConfiguratio
 /**
  * Registers the flow YAML {@link io.qpointz.mill.metadata.source.MetadataSource} that contributes
  * {@code flow-*} inferred facets when the flow backend is active.
+ *
+ * <p>Gated by the global {@code mill.data.backend.metadata.enabled} property (defaults to {@code true}).
+ * Per-source overrides are handled at runtime within {@link FlowDescriptorMetadataSource}, not
+ * via Spring properties.
  */
 @AutoConfiguration
 @AutoConfigureAfter(FlowBackendAutoConfiguration.class)
 @ConditionalOnClass(FlowDescriptorMetadataSource.class)
 @ConditionalOnBean(SourceDefinitionRepository.class)
 @ConditionalOnProperty(
-        prefix = MILL_DATA_BACKEND_CONFIG_KEY + ".flow.metadata",
+        prefix = MILL_DATA_BACKEND_CONFIG_KEY + ".metadata",
         name = "enabled",
         havingValue = "true",
         matchIfMissing = true)

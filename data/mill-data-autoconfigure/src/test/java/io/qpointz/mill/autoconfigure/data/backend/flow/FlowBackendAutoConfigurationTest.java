@@ -92,23 +92,20 @@ class FlowBackendAutoConfigurationTest extends BaseDataAutoconfigurationTest {
             assertThat(context).hasSingleBean(FlowBackendProperties.class);
             var props = context.getBean(FlowBackendProperties.class);
             assertThat(props.getSources()).containsExactly("/tmp/nonexistent.yaml");
-            assertThat(props.getMetadata().isEnabled()).isTrue();
             assertThat(props.getCache().getFacets().isEnabled()).isTrue();
             assertThat(props.getCache().getFacets().getTtl()).isNull();
         });
     }
 
     @Test
-    void shouldBindMetadataAndFacetCacheProperties() {
+    void shouldBindFacetCacheProperties() {
         contextRunner()
                 .withPropertyValues(
-                        "mill.data.backend.flow.metadata.enabled:false",
                         "mill.data.backend.flow.cache.facets.enabled:false",
                         "mill.data.backend.flow.cache.facets.ttl:2m"
                 )
                 .run(context -> {
                     var props = context.getBean(FlowBackendProperties.class);
-                    assertThat(props.getMetadata().isEnabled()).isFalse();
                     assertThat(props.getCache().getFacets().isEnabled()).isFalse();
                     assertThat(props.getCache().getFacets().getTtl()).isEqualTo(Duration.ofMinutes(2));
                 });
@@ -184,9 +181,9 @@ class FlowBackendAutoConfigurationTest extends BaseDataAutoconfigurationTest {
     }
 
     @Test
-    void shouldOmitFlowDescriptorMetadataSourceWhenMetadataDisabled() {
+    void shouldOmitFlowDescriptorMetadataSourceWhenGlobalMetadataDisabled() {
         contextRunner()
-                .withPropertyValues("mill.data.backend.flow.metadata.enabled:false")
+                .withPropertyValues("mill.data.backend.metadata.enabled:false")
                 .run(context -> assertThat(context).doesNotHaveBean(FlowDescriptorMetadataSource.class));
     }
 
