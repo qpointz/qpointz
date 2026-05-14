@@ -36,6 +36,11 @@ langchain4j = "1.11.0"
 langchain4j-beta = "1.11.0-beta19"
 reactor = "3.7.5"
 flyway = "10.21.0"
+awsSdk = "2.42.30"
+googleCloudStorage = "2.64.1"
+azureStorageBlob = "12.33.2"
+azureIdentity = "1.18.2"
+testcontainers = "2.0.5"
 [libraries]
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 
@@ -184,6 +189,14 @@ langchain4j-open-ai = { module = "dev.langchain4j:langchain4j-open-ai", version.
 langchain4j-chroma = { module = "dev.langchain4j:langchain4j-chroma", version.ref = "langchain4j-beta" }
 langchain4j-pgvector = { module = "dev.langchain4j:langchain4j-pgvector", version.ref = "langchain4j-beta" }
 reactor-core = { module = "io.projectreactor:reactor-core", version.ref = "reactor" }
+
+aws-sdk-s3 = { module = "software.amazon.awssdk:s3", version.ref = "awsSdk" }
+aws-sdk-sts = { module = "software.amazon.awssdk:sts", version.ref = "awsSdk" }
+google-cloud-storage = { module = "com.google.cloud:google-cloud-storage", version.ref = "googleCloudStorage" }
+azure-storage-blob = { module = "com.azure:azure-storage-blob", version.ref = "azureStorageBlob" }
+azure-identity = { module = "com.azure:azure-identity", version.ref = "azureIdentity" }
+testcontainers-core = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testcontainers" }
 
 [bundles]
 jackson = ["jackson-databind", "jackson-dataformat-yaml", "jackson-module-kotlin"]

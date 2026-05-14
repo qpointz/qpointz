@@ -76,6 +76,14 @@ include (":ai:mill-ai-v3-persistence")
 include (":ai:mill-ai-v3-autoconfigure")
 include (":ai:mill-ai-v3-service")
 
+include(":cloud")
+include(":cloud:aws:mill-cloud-aws-blob")
+include(":cloud:aws:mill-cloud-aws-autoconfigure")
+include(":cloud:gcp:mill-cloud-gcp-blob")
+include(":cloud:gcp:mill-cloud-gcp-autoconfigure")
+include(":cloud:azure:mill-cloud-azure-blob")
+include(":cloud:azure:mill-cloud-azure-autoconfigure")
+
 include (":clients:mill-jdbc-driver")
 include (":clients:mill-jdbc-shell")
 
