@@ -55,20 +55,25 @@ class S3StorageFactory : StorageFactory {
         if (auth != null && auth.useDelegatedCredentials) {
             val credentials = if (!auth.sessionToken.isNullOrBlank()) {
                 AwsSessionCredentials.create(
-                    auth.accessKeyId!!,
-                    auth.secretAccessKey!!,
+                    auth.accessKey!!,
+                    auth.secretKey!!,
                     auth.sessionToken
                 )
             } else {
                 AwsBasicCredentials.create(
-                    auth.accessKeyId!!,
-                    auth.secretAccessKey!!
+                    auth.accessKey!!,
+                    auth.secretKey!!
                 )
             }
             builder.credentialsProvider(StaticCredentialsProvider.create(credentials))
         }
 
         val client = builder.build()
-        return S3BlobSource(client, descriptor.bucket, descriptor.prefix)
+        return S3BlobSource(
+            client = client,
+            bucket = descriptor.bucket,
+            prefix = descriptor.prefix,
+            requesterPays = descriptor.requesterPays
+        )
     }
 }

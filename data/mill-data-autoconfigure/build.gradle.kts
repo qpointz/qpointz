@@ -20,6 +20,7 @@ dependencies {
     api(project(":data:mill-data-schema-core"))
     api(project(":data:mill-data-backends"))
     api(project(":data:mill-data-query"))
+    implementation(project(":data:mill-data-metadata"))
     implementation(project(":metadata:mill-metadata-core"))
     implementation(project(":core:mill-sql"))
     api(libs.jakarta.servlet.api)

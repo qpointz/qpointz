@@ -81,6 +81,7 @@ maven-local-publish:
 docs-build:
 	./gradlew dokkaGenerate
 	cd docs/public && python -m mkdocs build
+	mkdir -p docs/public/site/api/kotlin
 	cp -r build/dokka/html docs/public/site/api/kotlin
 
 docs-serve: docs-build

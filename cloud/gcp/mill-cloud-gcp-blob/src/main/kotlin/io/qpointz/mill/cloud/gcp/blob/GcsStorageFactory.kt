@@ -19,6 +19,15 @@ import java.io.FileInputStream
  */
 class GcsStorageFactory : StorageFactory {
 
+    companion object {
+        /**
+         * OAuth scope required for listing and reading objects via the Cloud Storage JSON API.
+         * Service account credentials loaded from JSON must be scoped before use with some
+         * client configurations; otherwise token exchange can fail with 401 Unauthorized.
+         */
+        private val STORAGE_READ_ONLY_SCOPES = listOf("https://www.googleapis.com/auth/devstorage.read_only")
+    }
+
     override val descriptorType: Class<out StorageDescriptor>
         get() = GcsStorageDescriptor::class.java
 
@@ -61,11 +70,13 @@ class GcsStorageFactory : StorageFactory {
             !auth.serviceAccountJson.isNullOrBlank() -> {
                 ServiceAccountCredentials.fromStream(
                     ByteArrayInputStream(auth.serviceAccountJson.toByteArray(Charsets.UTF_8))
-                )
+                ).createScoped(STORAGE_READ_ONLY_SCOPES)
             }
 
             !auth.serviceAccountJsonPath.isNullOrBlank() -> {
-                ServiceAccountCredentials.fromStream(FileInputStream(auth.serviceAccountJsonPath))
+                FileInputStream(auth.serviceAccountJsonPath).use { input ->
+                    ServiceAccountCredentials.fromStream(input).createScoped(STORAGE_READ_ONLY_SCOPES)
+                }
             }
 
             else -> null

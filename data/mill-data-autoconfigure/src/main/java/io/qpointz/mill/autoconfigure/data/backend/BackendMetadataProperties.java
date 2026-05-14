@@ -1,5 +1,6 @@
 package io.qpointz.mill.autoconfigure.data.backend;
 
+import io.qpointz.mill.source.descriptor.StorageFacetRedactMode;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -14,7 +15,8 @@ import static io.qpointz.mill.autoconfigure.data.backend.BackendAutoConfiguratio
  * <ul>
  *   <li>{@code enabled} — when {@code false}, no backend metadata sources are registered
  *       (global kill-switch). Defaults to {@code true}.</li>
- *   <li>{@code redact} — controls payload hygiene for inferred facets. Defaults to {@code BASIC}.</li>
+ *   <li>{@code redact} — controls payload hygiene for inferred facets (see {@link StorageFacetRedactMode}).
+ *       Defaults to {@code BASIC}.</li>
  * </ul>
  */
 @Getter
@@ -30,19 +32,7 @@ public class BackendMetadataProperties {
     private boolean enabled = true;
 
     /**
-     * Controls payload hygiene for inferred metadata facets.
+     * Controls payload hygiene for flow inferred metadata (for example {@code storage} in flow-schema facets).
      */
-    private RedactMode redact = RedactMode.BASIC;
-
-    /**
-     * Redaction levels ordered by restrictiveness: {@code NONE} &lt; {@code BASIC} &lt; {@code SAFE}.
-     */
-    public enum RedactMode {
-        /** Pass payloads through unchanged — may expose credentials. */
-        NONE,
-        /** Strip credential keys and sanitise URLs with embedded secrets. */
-        BASIC,
-        /** Emit only allow-listed structural keys ({@code type}, {@code bucket}, {@code region}, etc.). */
-        SAFE
-    }
+    private StorageFacetRedactMode redact = StorageFacetRedactMode.BASIC;
 }

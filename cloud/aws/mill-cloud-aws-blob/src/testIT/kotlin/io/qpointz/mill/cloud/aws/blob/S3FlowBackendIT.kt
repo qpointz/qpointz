@@ -77,7 +77,7 @@ class S3FlowBackendIT {
         uploadDirectory(datasetsRoot.resolve("parquet"), "parquet/")
         uploadDirectory(datasetsRoot.resolve("avro"), "avro/")
 
-        val auth = S3AuthDescriptor(accessKeyId = ACCESS_KEY, secretAccessKey = SECRET_KEY)
+        val auth = S3AuthDescriptor(accessKey = ACCESS_KEY, secretKey = SECRET_KEY)
         parquetDescriptor = S3StorageDescriptor(
             bucket = BUCKET, prefix = "parquet/",
             region = "us-east-1", endpoint = endpoint, auth = auth
@@ -122,6 +122,9 @@ class S3FlowBackendIT {
             val blobs = src.listBlobs().toList()
             assertThat(blobs).isNotEmpty
             assertThat(blobs.map { it.uri.toString() }).allMatch { it.startsWith("s3://$BUCKET/parquet/") }
+            assertThat(blobs).allMatch { path ->
+                path is S3BlobPath && path.contentLength != null && path.contentLength!! > 0L
+            }
         }
     }
 

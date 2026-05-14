@@ -1,0 +1,20 @@
+# Manual AWS S3 test profile (`skymill-s3`). Flow source descriptors are read as plain YAML
+# (no Spring placeholder resolution): use ambient credentials, or add a local-only `auth` block
+# that is not committed. Rotate any access keys that were ever committed to git.
+name: skymill
+storage:
+  type: s3
+  bucket: mill-manual-test-bucket
+  prefix: data/skymill/parquet/
+  region: us-east-1
+  # Set true if the bucket has Requester Pays and reads fail with 403 on HeadObject/GetObject:
+  # requesterPays: true
+  auth:
+    accessKey: ""
+    secretKey: ""
+table:
+  mapping:
+    type: regex
+    pattern: "(?<table>[^/]+)\\.parquet"
+readers:
+  - type: parquet

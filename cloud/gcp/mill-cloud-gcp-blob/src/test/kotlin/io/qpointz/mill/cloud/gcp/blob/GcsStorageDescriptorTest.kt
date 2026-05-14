@@ -76,6 +76,17 @@ class GcsStorageDescriptorTest {
         }
 
         @Test
+        fun shouldReportError_whenServiceAccountJsonLooksLikeFilePath() {
+            val desc = GcsStorageDescriptor(
+                bucket = "b",
+                auth = GcsAuthDescriptor(serviceAccountJson = "/home/user/sa.json")
+            )
+            val report = desc.verify()
+            assertFalse(report.isValid)
+            assertTrue(report.errors.any { it.message.contains("serviceAccountJsonPath") })
+        }
+
+        @Test
         fun shouldReportError_whenAllThreeDelegatedBundlesAreSet() {
             val desc = GcsStorageDescriptor(
                 bucket = "b",

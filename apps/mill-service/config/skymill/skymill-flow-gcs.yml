@@ -1,0 +1,22 @@
+# Manual GCS test profile (`skymill-gcs`). Flow source descriptors are read as plain YAML
+# (no Spring placeholder resolution): use ADC, or set serviceAccountJsonPath to a local key file
+# that is not committed.
+name: skymill
+storage:
+  type: gcs
+  bucket: mill-test
+  projectId: mill-cloud
+  prefix: data/skymill/parquet/
+  # auth:
+  #   serviceAccountJsonPath: /path/to/your-service-account-key.json
+  #
+  auth:
+    serviceAccountJson: |
+      {
+      }
+table:
+  mapping:
+    type: regex
+    pattern: "(?<table>[^/]+)\\.parquet"
+readers:
+  - type: parquet

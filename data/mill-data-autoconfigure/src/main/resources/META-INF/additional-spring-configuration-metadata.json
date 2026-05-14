@@ -9,11 +9,28 @@
       "description": "Data backend selection and backend settings."
     },
     {
+      "name": "mill.data.backend.metadata",
+      "description": "Backend-contributed metadata sources (flow inferred facets, logical layout). Use enabled as a kill-switch; redact controls secret hygiene in flow storage payloads."
+    },
+    {
       "name": "mill.data.backend.calcite",
       "description": "Apache Calcite backend-specific settings."
     }
   ],
-  "properties": [],
+  "properties": [
+    {
+      "name": "mill.data.backend.metadata.enabled",
+      "type": "java.lang.Boolean",
+      "description": "When false, no backend MetadataSource beans (including FlowDescriptorMetadataSource) are registered.",
+      "defaultValue": true
+    },
+    {
+      "name": "mill.data.backend.metadata.redact",
+      "type": "io.qpointz.mill.source.descriptor.StorageFacetRedactMode",
+      "description": "Hygiene for storage objects embedded in flow-schema inferred facets (none | basic | safe).",
+      "defaultValue": "BASIC"
+    }
+  ],
   "hints": [
     {
       "name": "mill.data.sql.dialect",
@@ -29,6 +46,14 @@
       "values": [
         { "value": "calcite", "description": "Backend type used by mill application. Only one backend can be active at a time." },
         { "value": "jdbc", "description": "Backend type used by mill application. Only one backend can be active at a time." }
+      ]
+    },
+    {
+      "name": "mill.data.backend.metadata.redact",
+      "values": [
+        { "value": "NONE", "description": "Pass storage params through unchanged (may expose credentials)." },
+        { "value": "BASIC", "description": "Strip delegated secrets and SAS material from endpoint URLs." },
+        { "value": "SAFE", "description": "Allow-list only structural fields per storage type (bucket, container, prefix, etc.)." }
       ]
     }
   ]

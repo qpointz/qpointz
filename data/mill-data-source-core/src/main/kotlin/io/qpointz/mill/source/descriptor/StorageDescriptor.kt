@@ -31,7 +31,15 @@ interface StorageDescriptor
 @JsonTypeName("local")
 data class LocalStorageDescriptor(
     val rootPath: String
-) : StorageDescriptor, Verifiable {
+) : StorageDescriptor, StorageFacetContributor, Verifiable {
+
+    override fun storageFacetParams(mode: StorageFacetRedactMode): Map<String, Any?> {
+        return when (mode) {
+            StorageFacetRedactMode.NONE,
+            StorageFacetRedactMode.BASIC,
+            StorageFacetRedactMode.SAFE -> mapOf("rootPath" to rootPath)
+        }
+    }
 
     override fun verify(): VerificationReport {
         val issues = mutableListOf<VerificationIssue>()

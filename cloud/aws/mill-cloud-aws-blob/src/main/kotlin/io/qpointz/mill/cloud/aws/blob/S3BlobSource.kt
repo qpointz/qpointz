@@ -5,6 +5,7 @@ import io.qpointz.mill.source.BlobSource
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
+import software.amazon.awssdk.services.s3.model.RequestPayer
 import java.io.InputStream
 import java.nio.channels.SeekableByteChannel
 
@@ -20,11 +21,14 @@ import java.nio.channels.SeekableByteChannel
  * @property client the S3 client (lifecycle owned by this source)
  * @property bucket the S3 bucket name
  * @property prefix key prefix for listing (empty string → entire bucket)
+ * @property requesterPays when `true`, include `x-amz-request-payer: requester` on S3 reads
+ *   (required for many Requester Pays buckets when the caller is not the bucket owner)
  */
 class S3BlobSource(
     private val client: S3Client,
     private val bucket: String,
-    private val prefix: String = ""
+    private val prefix: String = "",
+    private val requesterPays: Boolean = false
 ) : BlobSource {
 
     /**
@@ -40,12 +44,21 @@ class S3BlobSource(
             val requestBuilder = ListObjectsV2Request.builder()
                 .bucket(bucket)
                 .prefix(prefix)
+            if (requesterPays) {
+                requestBuilder.requestPayer(RequestPayer.REQUESTER)
+            }
 
             continuationToken?.let { requestBuilder.continuationToken(it) }
 
             val response = client.listObjectsV2(requestBuilder.build())
             for (obj in response.contents()) {
-                yield(S3BlobPath(bucket = bucket, key = obj.key()))
+                yield(
+                    S3BlobPath(
+                        bucket = bucket,
+                        key = obj.key(),
+                        contentLength = obj.size()
+                    )
+                )
             }
             continuationToken = if (response.isTruncated == true) response.nextContinuationToken() else null
         } while (continuationToken != null)
@@ -62,11 +75,13 @@ class S3BlobSource(
      */
     override fun openInputStream(path: BlobPath): InputStream {
         val s3Path = requireS3Path(path)
-        val request = GetObjectRequest.builder()
+        val getBuilder = GetObjectRequest.builder()
             .bucket(s3Path.bucket)
             .key(s3Path.key)
-            .build()
-        return client.getObject(request)
+        if (requesterPays) {
+            getBuilder.requestPayer(RequestPayer.REQUESTER)
+        }
+        return client.getObject(getBuilder.build())
     }
 
     /**
@@ -80,7 +95,13 @@ class S3BlobSource(
      */
     override fun openSeekableChannel(path: BlobPath): SeekableByteChannel {
         val s3Path = requireS3Path(path)
-        return S3SeekableByteChannel(client, s3Path.bucket, s3Path.key)
+        return S3SeekableByteChannel(
+            client = client,
+            bucket = s3Path.bucket,
+            key = s3Path.key,
+            knownContentLength = s3Path.contentLength,
+            requesterPays = requesterPays
+        )
     }
 
     /**

@@ -58,13 +58,9 @@ class AdlsFlowBackendIT {
                 "BlobEndpoint=http://$host:$port/$ACCOUNT_NAME"
     }
 
-    private fun accountUrl(): String =
-        "http://${azurite.host}:${azurite.getMappedPort(BLOB_PORT)}/$ACCOUNT_NAME"
-
     @BeforeAll
     fun setUp() {
         val connStr = connectionString()
-        val url = accountUrl()
 
         val svc = BlobServiceClientBuilder()
             .connectionString(connStr)
@@ -85,12 +81,17 @@ class AdlsFlowBackendIT {
                     .uploadFromFile(file.toString(), true)
             }
 
-        val auth = AdlsAuthDescriptor(connectionString = connStr)
         parquetDescriptor = AdlsStorageDescriptor(
-            accountUrl = url, filesystem = CONTAINER_NAME, prefix = "parquet/", auth = auth
+            endpoint = "",
+            container = CONTAINER_NAME,
+            connectionString = connStr,
+            prefix = "parquet/"
         )
         avroDescriptor = AdlsStorageDescriptor(
-            accountUrl = url, filesystem = CONTAINER_NAME, prefix = "avro/", auth = auth
+            endpoint = "",
+            container = CONTAINER_NAME,
+            connectionString = connStr,
+            prefix = "avro/"
         )
 
         val sources = listOf(

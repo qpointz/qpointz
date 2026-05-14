@@ -3,6 +3,7 @@ package io.qpointz.mill.cloud.aws.blob
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest
+import software.amazon.awssdk.services.s3.model.RequestPayer
 import java.nio.ByteBuffer
 import java.nio.channels.ClosedChannelException
 import java.nio.channels.NonWritableChannelException
@@ -13,8 +14,8 @@ import java.nio.channels.SeekableByteChannel
  *
  * Each [read] call issues a `GetObject` with a `Range` header spanning
  * from the current [position] up to at most [READ_AHEAD_BYTES] bytes.
- * The object size is obtained lazily from a single `HeadObject` call
- * and cached for the lifetime of the channel.
+ * The object size is taken from [knownContentLength] when provided, else obtained lazily
+ * from a single `HeadObject` call, and cached for the lifetime of the channel.
  *
  * This channel is **not writable** — [write] and [truncate] throw
  * [NonWritableChannelException].
@@ -25,11 +26,16 @@ import java.nio.channels.SeekableByteChannel
  * @param client the S3 client to issue requests against
  * @param bucket the S3 bucket name
  * @param key    the S3 object key
+ * @param knownContentLength when non-null and non-negative, used as [size] without calling
+ *   `HeadObject` (typically from list metadata)
+ * @param requesterPays when `true`, sends `x-amz-request-payer: requester` on head and ranged get
  */
 class S3SeekableByteChannel(
     private val client: S3Client,
     private val bucket: String,
-    private val key: String
+    private val key: String,
+    private val knownContentLength: Long? = null,
+    private val requesterPays: Boolean = false
 ) : SeekableByteChannel {
 
     companion object {
@@ -45,13 +51,19 @@ class S3SeekableByteChannel(
 
     /** Cached object size, populated lazily on first call to [size]. */
     private val cachedSize: Long by lazy {
-        val resp = client.headObject(
-            HeadObjectRequest.builder()
+        val known = knownContentLength
+        if (known != null && known >= 0L) {
+            known
+        } else {
+            val headBuilder = HeadObjectRequest.builder()
                 .bucket(bucket)
                 .key(key)
-                .build()
-        )
-        resp.contentLength()
+            if (requesterPays) {
+                headBuilder.requestPayer(RequestPayer.REQUESTER)
+            }
+            val resp = client.headObject(headBuilder.build())
+            resp.contentLength()
+        }
     }
 
     /**
@@ -72,11 +84,14 @@ class S3SeekableByteChannel(
         val endExclusive = minOf(pos + minOf(dst.remaining().toLong(), READ_AHEAD_BYTES), totalSize)
         val rangeHeader = "bytes=$pos-${endExclusive - 1}"
 
-        val request = GetObjectRequest.builder()
+        val getBuilder = GetObjectRequest.builder()
             .bucket(bucket)
             .key(key)
             .range(rangeHeader)
-            .build()
+        if (requesterPays) {
+            getBuilder.requestPayer(RequestPayer.REQUESTER)
+        }
+        val request = getBuilder.build()
 
         client.getObject(request).use { responseStream ->
             val buf = ByteArray(dst.remaining())
@@ -130,7 +145,8 @@ class S3SeekableByteChannel(
     /**
      * Returns the size of the S3 object in bytes.
      *
-     * The value is obtained via a `HeadObject` call on first access and cached.
+     * The value is taken from list metadata when available, else via `HeadObject` on first access,
+     * and cached.
      *
      * @return object size in bytes
      * @throws ClosedChannelException if the channel has been closed

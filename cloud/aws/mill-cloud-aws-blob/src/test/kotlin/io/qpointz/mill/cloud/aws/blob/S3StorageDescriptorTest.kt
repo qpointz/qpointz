@@ -34,10 +34,17 @@ class S3StorageDescriptorTest {
     }
 
     @Test
+    fun shouldPass_whenRequesterPaysEnabled() {
+        val descriptor = S3StorageDescriptor(bucket = "my-bucket", requesterPays = true)
+        val report = descriptor.verify()
+        assertThat(report.isValid).isTrue()
+    }
+
+    @Test
     fun shouldReportError_whenPartialAuthBundle_accessKeyOnly() {
         val descriptor = S3StorageDescriptor(
             bucket = "my-bucket",
-            auth = S3AuthDescriptor(accessKeyId = "AKIA123", secretAccessKey = null)
+            auth = S3AuthDescriptor(accessKey = "AKIA123", secretKey = null)
         )
         val report = descriptor.verify()
         assertThat(report.isValid).isFalse()
@@ -50,7 +57,7 @@ class S3StorageDescriptorTest {
     fun shouldReportError_whenPartialAuthBundle_secretOnly() {
         val descriptor = S3StorageDescriptor(
             bucket = "my-bucket",
-            auth = S3AuthDescriptor(accessKeyId = "", secretAccessKey = "secret123")
+            auth = S3AuthDescriptor(accessKey = "", secretKey = "secret123")
         )
         val report = descriptor.verify()
         assertThat(report.isValid).isFalse()
@@ -63,7 +70,7 @@ class S3StorageDescriptorTest {
     fun shouldPass_whenDelegatedCredentialsComplete() {
         val descriptor = S3StorageDescriptor(
             bucket = "my-bucket",
-            auth = S3AuthDescriptor(accessKeyId = "AKIA123", secretAccessKey = "secret123")
+            auth = S3AuthDescriptor(accessKey = "AKIA123", secretKey = "secret123")
         )
         val report = descriptor.verify()
         assertThat(report.isValid).isTrue()
@@ -80,7 +87,7 @@ class S3StorageDescriptorTest {
     fun shouldPass_whenAmbientCredentials_allBlank() {
         val descriptor = S3StorageDescriptor(
             bucket = "my-bucket",
-            auth = S3AuthDescriptor(accessKeyId = "", secretAccessKey = "")
+            auth = S3AuthDescriptor(accessKey = "", secretKey = "")
         )
         val report = descriptor.verify()
         assertThat(report.isValid).isTrue()
@@ -88,13 +95,13 @@ class S3StorageDescriptorTest {
 
     @Test
     fun shouldInferDelegatedCredentials_whenKeysPresent() {
-        val auth = S3AuthDescriptor(accessKeyId = "AKIA123", secretAccessKey = "secret123")
+        val auth = S3AuthDescriptor(accessKey = "AKIA123", secretKey = "secret123")
         assertThat(auth.useDelegatedCredentials).isTrue()
     }
 
     @Test
     fun shouldInferAmbientCredentials_whenKeysBlank() {
-        val auth = S3AuthDescriptor(accessKeyId = "", secretAccessKey = "")
+        val auth = S3AuthDescriptor(accessKey = "", secretKey = "")
         assertThat(auth.useDelegatedCredentials).isFalse()
     }
 
@@ -107,8 +114,8 @@ class S3StorageDescriptorTest {
     @Test
     fun shouldForceAmbient_whenPreferAmbientCredentialsIsTrue() {
         val auth = S3AuthDescriptor(
-            accessKeyId = "AKIA123",
-            secretAccessKey = "secret123",
+            accessKey = "AKIA123",
+            secretKey = "secret123",
             preferAmbientCredentials = true
         )
         assertThat(auth.useDelegatedCredentials).isFalse()
@@ -119,8 +126,8 @@ class S3StorageDescriptorTest {
         val descriptor = S3StorageDescriptor(
             bucket = "my-bucket",
             auth = S3AuthDescriptor(
-                accessKeyId = "AKIA123",
-                secretAccessKey = "secret123",
+                accessKey = "AKIA123",
+                secretKey = "secret123",
                 preferAmbientCredentials = true
             )
         )

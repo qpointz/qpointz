@@ -4,6 +4,8 @@ import tools.jackson.core.type.TypeReference
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import io.qpointz.mill.data.metadata.FlowInferredFacetTypeKeys
+import io.qpointz.mill.source.descriptor.StorageFacetRedactMode
+import io.qpointz.mill.source.descriptor.StorageFacetContributor
 import io.qpointz.mill.data.metadata.ModelEntityUrn
 import io.qpointz.mill.data.metadata.SchemaModelRoot
 import io.qpointz.mill.data.metadata.source.AbstractInferredMetadataSource
@@ -39,11 +41,13 @@ private data class FlowFacetSnapshot(
  * @param catalog source descriptors (typically the flow backend repository)
  * @param facetsCacheEnabled when true, retain per-source inference snapshots in a Caffeine cache
  * @param facetsCacheTTL optional expiration for the snapshot cache; when null entries do not expire by time
+ * @param storageRedactMode hygiene for `storage` objects embedded in flow-schema facet payloads
  */
 class FlowDescriptorMetadataSource(
     private val catalog: SourceCatalogProvider,
     private val facetsCacheEnabled: Boolean,
     private val facetsCacheTTL: Duration?,
+    private val storageRedactMode: StorageFacetRedactMode = StorageFacetRedactMode.BASIC,
 ) : AbstractInferredMetadataSource(MetadataOriginIds.FLOW) {
 
     private val cache: Cache<String, FlowFacetSnapshot>? =
@@ -190,7 +194,14 @@ class FlowDescriptorMetadataSource(
     private fun storageToPayload(storage: StorageDescriptor): Map<String, Any?> {
         val m = SourceObjectMapper.yaml.convertValue(storage, MAP_TYPE)
         val type = m["type"]?.toString() ?: "unknown"
-        val params = m.filterKeys { it != "type" }
+
+        val params = if (storage is StorageFacetContributor) {
+            storage.storageFacetParams(storageRedactMode)
+        } else {
+            val raw = m.filterKeys { it != "type" }
+            StorageFacetPayloadRedactor.redact(type, raw, storageRedactMode)
+        }
+
         return mapOf("type" to type, "params" to params)
     }
 
