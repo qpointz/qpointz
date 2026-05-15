@@ -3,7 +3,9 @@ SHELL := /bin/bash
 .PHONY: help build test clean ai-test svc-build \
 	maven-local-publish \
 	docs-build docs-serve \
-	git-clean-branches git-clean-branches-all check-tools \
+	git-clean-branches git-clean-branches-all \
+	git-clean-branches-gone git-clean-branches-merged-dev git-clean-branches-aggressive \
+	check-tools \
 	local-dev-start local-dev-start-ui local-dev-stop local-dev-reset local-dev-logs
 
 help:
@@ -30,8 +32,12 @@ help:
 	@echo "  make check-tools         # Verify required/optional dev tools are installed"
 	@echo ""
 	@echo "Git:"
-	@echo "  make git-clean-branches      # Delete local feat/ poc/ fix/ branches with no remote"
-	@echo "  make git-clean-branches-all  # Delete ALL local branches with no remote (skips current + protected)"
+	@echo "  make git-clean-branches           # Delete local build/ feat/ test/ … branches with no origin/* ref"
+	@echo "  make git-clean-branches-all       # Delete ALL local branches with no upstream (skips current + protected)"
+	@echo "  make git-clean-branches-gone      # Delete locals whose upstream was deleted on origin (after prune)"
+	@echo "  make git-clean-branches-merged-dev # Delete locals fully merged into origin/dev (skips current + protected)"
+	@echo "  make git-clean-branches-aggressive # gone, then merged-dev (common stale cleanup)"
+	@echo "  (Branches checked out in another git worktree are skipped on delete; run git worktree remove … first.)"
 	@echo ""
 	@echo "Tools (CI/CD build images — see .gitlab/Makefile):"
 	@echo "  make -C .gitlab help         # Show all CI/CD tool image targets"
@@ -89,7 +95,19 @@ docs-serve: docs-build
 
 git-clean-branches:
 	@git fetch origin --prune
-	@for branch in $$(git for-each-ref --format='%(refname:short)' refs/heads/build refs/heads/feat/ refs/heads/poc/ refs/heads/fix/ refs/heads/plan/ refs/heads/refactor/ refs/heades/spike/ refs/heads/doc ); do \
+	@for branch in $$(git for-each-ref --format='%(refname:short)' \
+		refs/heads/build \
+		refs/heads/change \
+		refs/heads/feat \
+		refs/heads/fix \
+		refs/heads/new \
+		refs/heads/poc \
+		refs/heads/plan \
+		refs/heads/refactor \
+		refs/heads/spike \
+		refs/heads/test \
+		refs/heads/worktree \
+		refs/heads/doc ); do \
 		if ! git show-ref --quiet refs/remotes/origin/$$branch; then \
 			echo "Deleting $$branch (no remote on origin)"; \
 			git branch -D $$branch; \
@@ -105,7 +123,7 @@ git-clean-branches-all:
 	while read branch upstream; do \
 		if [ "$$branch" = "$$current" ]; then \
 			echo "Skipping $$branch (current branch)"; \
-		elif [ "$$branch" = "main" ] || [ "$$branch" = "master" ] || [ "$$branch" = "dev" ]; then \
+		elif [ "$$branch" = "main" ] || [ "$$branch" = "master" ] || [ "$$branch" = "dev" ] || [ "$$branch" = "rc" ]; then \
 			echo "Keeping $$branch (protected)"; \
 		elif [ -z "$$upstream" ]; then \
 			echo "Deleting $$branch (no remote)"; \
@@ -113,7 +131,51 @@ git-clean-branches-all:
 		else \
 			echo "Keeping $$branch (has remote: $$upstream)"; \
 		fi; \
+		done
+
+# Delete locals whose upstream branch was removed on the remote (shows as [gone] after fetch --prune).
+# Skips the current branch, main, master, dev, and rc. Uses -D: drops local commits not on any remote.
+git-clean-branches-gone:
+	@git fetch origin --prune
+	@current=$$(git rev-parse --abbrev-ref HEAD); \
+	git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads/ | \
+	while read -r branch track; do \
+		if [ "$$branch" = "$$current" ]; then \
+			echo "Skipping $$branch (current branch)"; \
+		elif [ "$$branch" = "main" ] || [ "$$branch" = "master" ] || [ "$$branch" = "dev" ] || [ "$$branch" = "rc" ]; then \
+			echo "Keeping $$branch (protected)"; \
+		elif echo "$$track" | grep -q '\[gone\]'; then \
+			echo "Deleting $$branch (upstream gone: $$track)"; \
+			git branch -D "$$branch"; \
+		else \
+			echo "Keeping $$branch ($${track:-no upstream})"; \
+		fi; \
 	done
+
+# Delete locals whose tip is already contained in origin/dev (fully merged).
+git-clean-branches-merged-dev:
+	@git fetch origin --prune
+	@test -n "$$(git rev-parse --verify origin/dev 2>/dev/null)" || \
+		(echo "origin/dev not found — fetch failed or remote missing"; exit 1)
+	@current=$$(git rev-parse --abbrev-ref HEAD); \
+	git for-each-ref --format='%(refname:short)' refs/heads/ | \
+	while read -r branch; do \
+		if [ "$$branch" = "$$current" ]; then \
+			echo "Skipping $$branch (current branch)"; \
+		elif [ "$$branch" = "main" ] || [ "$$branch" = "master" ] || [ "$$branch" = "dev" ] || [ "$$branch" = "rc" ]; then \
+			echo "Keeping $$branch (protected)"; \
+		elif git merge-base --is-ancestor "$$branch" origin/dev 2>/dev/null; then \
+			echo "Deleting $$branch (merged into origin/dev)"; \
+			if ! git branch -D "$$branch" 2>/dev/null; then \
+				echo "Skipping $$branch (checked out in another git worktree — remove that worktree first)"; \
+			fi; \
+		else \
+			echo "Keeping $$branch (not fully merged into origin/dev)"; \
+		fi; \
+	done
+
+# Typical stale cleanup: remove remote-deleted topic branches, then remove topics already on dev.
+git-clean-branches-aggressive: git-clean-branches-gone git-clean-branches-merged-dev
 
 # ---------------------------------------------------------------------------
 # check-tools — verify required and optional development tools
