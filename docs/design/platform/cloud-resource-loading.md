@@ -50,9 +50,49 @@ Workarounds: unified IAM, split providers, split deployments, or keep mixed-auth
 
 Public operator detail: `docs/public/src/reference/cloud-resource-loading.md`.
 
-### Future direction (not implemented)
+## Known limitations (config loading only)
 
-Named profiles under `mill.cloud.<provider>.*` (for example `profiles.metadata` vs `profiles.flow`) and URL or mapping to select a profile would allow multiple auths per provider for config loading. Spring Cloud vendor resolvers have similar single-account limitations for generic `ResourceLoader` usage.
+Scope: **`mill.metadata.seed.resources`** and **`mill.data.backend.flow.sources`** only. Query-time `storage:` in source descriptors is out of scope here (per-descriptor auth already exists).
+
+### Cross-bucket and cross-account on one provider
+
+| Scenario | Supported today? |
+|----------|------------------|
+| Seeds and flow descriptor YAML on **different buckets**, **same** credentials / IAM | Yes (bucket/container is in the URL) |
+| Seeds and flow descriptor YAML on **different buckets**, **different** static keys (S3) | **No** — one `mill.cloud.aws.s3.*` client |
+| Metadata seeds on **Azure storage account A**, flow descriptors on **Azure storage account B** (different connection strings or account keys) | **No** — one `mill.cloud.azure.adls` client |
+| Two `s3://` URLs where only **DefaultCredentialChain** can reach both accounts | **No** for distinct account endpoints — Mill still builds **one** SDK client from properties; S3 URLs carry the bucket in the host, so multiple AWS accounts are not selectable per URL |
+| Seeds on `gs://…`, flow on `s3://…` | Yes — separate `mill.cloud.gcp.*` and `mill.cloud.aws.*` |
+| Either path on `classpath:` / `file:` | Yes — no cloud client for that entry |
+
+### Azure-specific
+
+- `azure-blob://container/path` does **not** include the storage account name; the account is always taken from `mill.cloud.azure.adls.connection-string` or `mill.cloud.azure.adls.blob-service-endpoint`.
+- There is **no** `mill.cloud.azure.adls.account-key` (or `access-key`) property — shared key for config URLs must be embedded in **`connection-string`** (`AccountName` + `AccountKey`), or use **`blob-service-endpoint`** with `DefaultAzureCredential`.
+- A single connection string cannot authenticate to two storage accounts. Using one `blob-service-endpoint` binds the client to that account; other accounts are not reachable via different `azure-blob://` URLs alone.
+
+**Example (not supported):**
+
+```yaml
+mill:
+  metadata:
+    seed:
+      resources:
+        - azure-blob://meta-container/seeds/env.yaml    # needs account A
+  data:
+    backend:
+      flow:
+        sources:
+          - azure-blob://flow-container/descriptors/retail.yaml   # needs account B
+```
+
+Both lines use the same `BlobServiceClient` from `mill.cloud.azure.adls` — there is no per-URL profile selection.
+
+**Interim workarounds:** host seeds and flow descriptors on the **same** account (different containers), put one side on `classpath:` / `file:`, use another cloud provider for one path, or run separate Mill deployments per account.
+
+### Planned mitigation
+
+**Backlog P-37** — named `mill.cloud.*` profiles and URL or mapping to select a profile (see `docs/workitems/BACKLOG.md`). Spring Cloud vendor `ProtocolResolver` integrations have similar single-account limits for generic `ResourceLoader` usage.
 
 ## Calcite limitation
 

@@ -99,7 +99,7 @@ Both `s3://` lines use **`mill.cloud.aws.s3.*`** (or the same default credential
 3. Use **different cloud providers** for different config paths (for example GCS for seeds, S3 for flow descriptors).
 4. Run separate Mill deployments per trust boundary, each with its own `mill.cloud.*` settings.
 
-Per-bucket named profiles for config URLs are **not implemented**; see `docs/design/platform/cloud-resource-loading.md` in the source tree.
+Per-bucket / per-storage-account named profiles for config URLs are **not implemented** (including metadata seeds on one Azure account and flow descriptors on another). Tracked as backlog **P-37**; design detail in `docs/design/platform/cloud-resource-loading.md` (Known limitations).
 
 ---
 

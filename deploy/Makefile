@@ -1,4 +1,5 @@
-.PHONY: help local-dev-start local-dev-start-ui local-dev-stop local-dev-reset local-dev-logs
+.PHONY: help local-dev-start local-dev-start-ui local-dev-stop local-dev-reset local-dev-logs \
+	azure-aca-deploy azure-aca-destroy gcp-cloudrun-deploy gcp-cloudrun-destroy gcp-cloudrun-sync
 
 LOCAL_DEV_COMPOSE_FILE := local-dev/docker-compose.yml
 LOCAL_DEV_DATA_DIR := ../.data/local-dev
@@ -16,6 +17,30 @@ help:
 	@echo "UI ports (overridable):"
 	@echo "  ADMINER_HTTP_PORT=$(ADMINER_HTTP_PORT:-48080) (Adminer)"
 	@echo "  CHROMA_ADMIN_HTTP_PORT=$(CHROMA_ADMIN_HTTP_PORT:-43000) (ChromaDB Admin)"
+	@echo ""
+	@echo "Azure Container Apps (see azure-container-apps/README.md):"
+	@echo "  make azure-aca-deploy   # build image, push ACR, deploy Container App"
+	@echo "  make azure-aca-destroy  # delete resource group from azure-container-apps/.env"
+	@echo ""
+	@echo "Google Cloud Run (see google-cloud-run/README.md):"
+	@echo "  make gcp-cloudrun-deploy   # provision GCS (optional), deploy Docker Hub image"
+	@echo "  make gcp-cloudrun-sync     # upload local files to GCS per gcs-sync.conf"
+	@echo "  make gcp-cloudrun-destroy  # delete Cloud Run service from google-cloud-run/.env"
+
+azure-aca-deploy:
+	./azure-container-apps/deploy.sh
+
+azure-aca-destroy:
+	./azure-container-apps/destroy.sh
+
+gcp-cloudrun-deploy:
+	./google-cloud-run/deploy.sh
+
+gcp-cloudrun-destroy:
+	./google-cloud-run/destroy.sh
+
+gcp-cloudrun-sync:
+	./google-cloud-run/sync-bucket.sh
 
 local-dev-start:
 	docker compose -f "$(LOCAL_DEV_COMPOSE_FILE)" up -d

@@ -170,6 +170,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | P-34 | WebFlux migration + REST inventory + `@PreAuthorize` stubs on all HTTP operations (**WI-220**–**WI-228**)                                                                                  | 🔧 refactoring | planned | [`planned/webflux-migration-and-method-security/STORY.md`](planned/webflux-migration-and-method-security/STORY.md) |
 | P-35 | Extract a shared Spring web module for reusable REST advice and standard error payload mapping across services                                                                             | ✨ feature      | backlog | `platform/rest-exception-handling-pattern.md`   |
 | P-36 | HTTP streaming data export `/services/export` (Substrait table scan, format SPI, **WI-250**–**WI-261**); see legacy **P-11** proto export track                                                                 | ✨ feature      | done | [`completed/20260507-streaming-export-service/STORY.md`](completed/20260507-streaming-export-service/STORY.md) — see **MILESTONE** 0.8.0 |
+| P-37 | Named `mill.cloud.*` profiles for config resource loading: multiple auth endpoints per provider (e.g. metadata seeds on Azure account A, flow descriptor paths on account B); profile selection on `s3://` / `gs://` / `azure-blob://` URLs or explicit location→profile map | ✨ feature      | backlog | [`platform/cloud-resource-loading.md`](../design/platform/cloud-resource-loading.md) |
 
 ---
 
@@ -298,7 +299,7 @@ are excluded until **release prune**.
 | ai          | 39    |
 | client      | 15    |
 | metadata    | 20    |
-| platform    | 32    |
+| platform    | 33    |
 | publish     | 4     |
 | refactoring | 9     |
 | source      | 15    |

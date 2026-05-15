@@ -1,0 +1,25 @@
+# Optional overlay for Google Cloud Run (no secrets).
+# Set in .env:
+#   CUSTOM_APPLICATION_YML=config/application-cloudrun.yml
+# deploy.sh uploads this file to Secret Manager and mounts it at /mill-config/application.yml
+# (avoids /config — the Docker image uses VOLUME /config, which masks mounts on Cloud Run).
+# SPRING_CONFIG_ADDITIONAL_LOCATION is set to file:/mill-config/application.yml
+#
+# Prefer environment variables from deploy.sh for secrets (MILL_DB_*, OPENAI_API_KEY).
+# Env vars override packaged application.yml.
+
+spring:
+  config:
+    activate:
+      on-profile: cloudrun
+
+mill:
+  cloud:
+    gcp:
+      gcs:
+        # Cloud Run uses Application Default Credentials (runtime service account).
+        project-id: ${MILL_CLOUD_GCP_GCS_PROJECT_ID:}
+
+logging:
+  level:
+    root: INFO

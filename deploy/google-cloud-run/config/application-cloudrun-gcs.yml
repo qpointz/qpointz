@@ -1,0 +1,35 @@
+# GCS-backed Skymill overlay for Cloud Run.
+# Requires GCS_BUCKET_NAME env var (set by deploy.sh when GCS_BUCKET_NAME is in .env).
+# Upload objects first: GCS_SYNC_ENABLED=true ./deploy.sh  (or ./sync-bucket.sh)
+
+spring:
+  config:
+    activate:
+      on-profile: skymill-gcs
+
+mill:
+  cloud:
+    gcp:
+      gcs:
+        project-id: ${MILL_CLOUD_GCP_GCS_PROJECT_ID:}
+  data:
+    backend:
+      type: flow
+      flow:
+        cache:
+          schema:
+            enabled: true
+            ttl: 2m
+        sources:
+          - gs://${GCS_BUCKET_NAME}/skymill/config/skymill-flow.yml
+  metadata:
+    seed:
+      resources:
+        - classpath:metadata/platform-bootstrap.yaml
+        - classpath:metadata/platform-flow-facet-types.yaml
+        - gs://${GCS_BUCKET_NAME}/skymill/config/skymill-canonical.yaml
+        - gs://${GCS_BUCKET_NAME}/skymill/config/skymill-extras-seed.yaml
+
+logging:
+  level:
+    root: INFO
