@@ -25,4 +25,16 @@ class MetadataSeedKeyTest {
         assertThat(MetadataSeedKey.stableKey(loader, viaAbsolutePath)).isEqualTo(canonicalUri)
         assertThat(MetadataSeedKey.stableKey(loader, canonicalUri)).isEqualTo(canonicalUri)
     }
+
+    @Test
+    fun `stableKey strips query from s3 location`() {
+        val loc = "s3://bucket/path/seed.yaml?X-Amz-Signature=abc&X-Amz-Credential=secret"
+        assertThat(MetadataSeedKey.stableKey(loader, loc)).isEqualTo("s3://bucket/path/seed.yaml")
+    }
+
+    @Test
+    fun `stableKey leaves gs without query unchanged`() {
+        val loc = "gs://bucket/object.yaml"
+        assertThat(MetadataSeedKey.stableKey(loader, loc)).isEqualTo(loc)
+    }
 }
