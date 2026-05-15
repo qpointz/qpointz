@@ -60,6 +60,7 @@ testing {
                     implementation(project(":data:formats:mill-data-format-json"))
                     implementation(project(":data:formats:mill-data-format-arrow"))
                     implementation(project(":data:formats:mill-data-format-excel"))
+                    implementation(project(":cloud:aws:mill-cloud-aws-autoconfigure"))
                     implementation(libs.boot.starter.test)
                     implementation(libs.boot.starter.actuator)
                     implementation(libs.protobuf.java.util)
@@ -67,6 +68,8 @@ testing {
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.h2.database)
                     implementation(libs.lombok)
+                    implementation(libs.testcontainers.core)
+                    implementation(libs.aws.sdk.s3)
                     annotationProcessor(libs.lombok)
                 }
             }

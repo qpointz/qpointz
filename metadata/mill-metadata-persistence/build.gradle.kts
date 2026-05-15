@@ -35,6 +35,9 @@ testing {
                 implementation(libs.boot.starter.data.jpa.test)
                 implementation(libs.assertj.core)
                 runtimeOnly(libs.h2.database)
+                implementation(project(":cloud:aws:mill-cloud-aws-autoconfigure"))
+                implementation(libs.aws.sdk.s3)
+                implementation(libs.testcontainers.core)
             }
         }
 
