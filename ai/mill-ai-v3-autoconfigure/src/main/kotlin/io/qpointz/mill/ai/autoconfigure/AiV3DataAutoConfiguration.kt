@@ -36,6 +36,7 @@ private val log = LoggerFactory.getLogger(AiV3DataAutoConfiguration::class.java)
 @AutoConfigureAfter(
     name = [
         "io.qpointz.mill.autoconfigure.data.backend.calcite.CalciteBackendAutoConfiguration",
+        "io.qpointz.mill.autoconfigure.data.resource.BackendResourceLoaderAutoConfiguration",
         "io.qpointz.mill.autoconfigure.data.backend.flow.FlowBackendAutoConfiguration",
         "io.qpointz.mill.autoconfigure.data.backend.jdbc.JdbcBackendAutoConfiguration",
         "io.qpointz.mill.autoconfigure.data.schema.SchemaFacetServiceAutoConfiguration",

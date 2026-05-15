@@ -61,9 +61,10 @@ class MultiFileSourceRepositoryTest {
     }
 
     @Test
-    void shouldExposeDescriptorPaths() {
-        val paths = List.of(SOURCE_1, SOURCE_2);
-        val repo = new MultiFileSourceRepository(paths);
-        assertEquals(paths, repo.getDescriptorPaths());
+    void shouldExposeDescriptorLocations() {
+        var paths = List.of(SOURCE_1, SOURCE_2);
+        var repo = new MultiFileSourceRepository(paths);
+        var expected = paths.stream().map(p -> p.toAbsolutePath().normalize().toUri().toString()).toList();
+        assertEquals(expected, repo.getDescriptorLocations());
     }
 }

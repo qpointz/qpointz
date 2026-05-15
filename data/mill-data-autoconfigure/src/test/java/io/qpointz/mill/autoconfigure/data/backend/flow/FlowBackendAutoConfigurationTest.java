@@ -3,6 +3,7 @@ package io.qpointz.mill.autoconfigure.data.backend.flow;
 import io.qpointz.mill.autoconfigure.data.BaseDataAutoconfigurationTest;
 import io.qpointz.mill.autoconfigure.data.SqlAutoConfiguration;
 import io.qpointz.mill.autoconfigure.data.backend.BackendAutoConfiguration;
+import io.qpointz.mill.autoconfigure.data.resource.BackendResourceLoaderAutoConfiguration;
 import io.qpointz.mill.data.backend.ExecutionProvider;
 import io.qpointz.mill.data.backend.SchemaProvider;
 import io.qpointz.mill.data.backend.SqlProvider;
@@ -19,6 +20,7 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 import java.time.Duration;
+import java.util.stream.StreamSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -31,6 +33,7 @@ class FlowBackendAutoConfigurationTest extends BaseDataAutoconfigurationTest {
                 .withConfiguration(AutoConfigurations.of(
                         SqlAutoConfiguration.class,
                         BackendAutoConfiguration.class,
+                        BackendResourceLoaderAutoConfiguration.class,
                         FlowBackendAutoConfiguration.class,
                         FlowDescriptorMetadataSourceAutoConfiguration.class
                 ))
@@ -185,6 +188,19 @@ class FlowBackendAutoConfigurationTest extends BaseDataAutoconfigurationTest {
         contextRunner()
                 .withPropertyValues("mill.data.backend.metadata.enabled:false")
                 .run(context -> assertThat(context).doesNotHaveBean(FlowDescriptorMetadataSource.class));
+    }
+
+    @Test
+    void shouldLoadFlowDescriptorFromClasspath() {
+        contextRunner()
+                .withPropertyValues("mill.data.backend.flow.sources[0]:classpath:flow/classpath-flow-test.yaml")
+                .run(context -> {
+                    var repo = context.getBean(SourceDefinitionRepository.class);
+                    var names = StreamSupport.stream(repo.getSourceDefinitions().spliterator(), false)
+                            .map(d -> d.getName())
+                            .toList();
+                    assertThat(names).containsExactly("classpathflowtest");
+                });
     }
 
     // -- FlowContextFactory wiring --

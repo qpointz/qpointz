@@ -15,6 +15,7 @@ import io.qpointz.mill.data.backend.flow.FlowContextFactory
 import io.qpointz.mill.data.backend.flow.MultiFileSourceRepository
 import io.qpointz.mill.data.backend.flow.SingleFileSourceRepository
 import io.qpointz.mill.data.backend.flow.SourceDefinitionRepository
+import io.qpointz.mill.data.backend.resource.BackendResourceLoader
 import io.qpointz.mill.security.SecurityProvider
 import io.qpointz.mill.sql.v2.dialect.DialectRegistry
 import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec
@@ -94,6 +95,16 @@ class FlowBackendContextRunner(
     }
 
     companion object {
+
+        @JvmStatic
+        fun flowContext(loader: BackendResourceLoader, locations: List<String>): FlowBackendContextRunner {
+            return flowContext(MultiFileSourceRepository(loader, locations))
+        }
+
+        @JvmStatic
+        fun flowContext(loader: BackendResourceLoader, vararg locations: String): FlowBackendContextRunner {
+            return flowContext(loader, listOf(*locations))
+        }
 
         @JvmStatic
         @JvmOverloads

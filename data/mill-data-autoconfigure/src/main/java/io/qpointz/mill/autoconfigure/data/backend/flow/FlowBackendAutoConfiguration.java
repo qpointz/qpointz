@@ -13,36 +13,39 @@ import io.qpointz.mill.data.backend.calcite.providers.CalciteSchemaProvider;
 import io.qpointz.mill.data.backend.calcite.providers.CalciteSqlProvider;
 import io.qpointz.mill.data.backend.calcite.providers.PlanConverter;
 import io.qpointz.mill.data.backend.dispatchers.SubstraitDispatcher;
+import io.qpointz.mill.autoconfigure.data.resource.BackendResourceLoaderAutoConfiguration;
 import io.qpointz.mill.data.backend.flow.FlowContextFactory;
 import io.qpointz.mill.data.backend.flow.MultiFileSourceRepository;
 import io.qpointz.mill.data.backend.flow.SourceDefinitionRepository;
+import io.qpointz.mill.data.backend.resource.BackendResourceLoader;
 import io.substrait.extension.ExtensionCollector;
 import io.substrait.extension.SimpleExtension;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
-import java.nio.file.Path;
 import java.util.Properties;
 
 import static io.qpointz.mill.autoconfigure.data.backend.BackendAutoConfiguration.MILL_DATA_BACKEND_CONFIG_KEY;
 import static io.qpointz.mill.data.backend.flow.FlowBackendConstants.BACKEND_NAME;
 
 @Slf4j
-@AutoConfiguration(after = BackendAutoConfiguration.class)
+@AutoConfiguration(
+        after = {BackendAutoConfiguration.class, BackendResourceLoaderAutoConfiguration.class})
 @EnableConfigurationProperties(FlowBackendProperties.class)
 @ConditionalOnProperty(prefix = MILL_DATA_BACKEND_CONFIG_KEY, name = "type", havingValue = BACKEND_NAME)
 public class FlowBackendAutoConfiguration {
 
     @Bean
-    public SourceDefinitionRepository flowSourceDefinitionRepository(FlowBackendProperties props) {
-        var paths = props.getSources().stream()
-                .map(Path::of)
-                .toList();
-        log.info("Flow backend configured with {} source descriptor(s)", paths.size());
-        return new MultiFileSourceRepository(paths);
+    public SourceDefinitionRepository flowSourceDefinitionRepository(
+            FlowBackendProperties props,
+            BackendResourceLoader backendResourceLoader) {
+        var sources = props.getSources();
+        log.info("Flow backend configured with {} source descriptor(s)", sources.size());
+        return new MultiFileSourceRepository(backendResourceLoader, sources);
     }
 
     @Bean

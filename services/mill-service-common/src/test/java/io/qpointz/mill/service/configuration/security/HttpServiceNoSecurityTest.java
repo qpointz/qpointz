@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
         "io.qpointz.mill.autoconfigure.data.SqlAutoConfiguration",
         "io.qpointz.mill.autoconfigure.data.backend.jdbc.JdbcBackendAutoConfiguration",
         "io.qpointz.mill.autoconfigure.data.backend.calcite.CalciteBackendAutoConfiguration",
+        "io.qpointz.mill.autoconfigure.data.resource.BackendResourceLoaderAutoConfiguration",
         "io.qpointz.mill.autoconfigure.data.backend.flow.FlowBackendAutoConfiguration"
 })
 @Slf4j

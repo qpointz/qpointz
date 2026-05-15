@@ -3,6 +3,7 @@ package io.qpointz.mill.data.query.it;
 import io.qpointz.mill.autoconfigure.data.SqlAutoConfiguration;
 import io.qpointz.mill.autoconfigure.data.backend.BackendAutoConfiguration;
 import io.qpointz.mill.autoconfigure.data.backend.flow.FlowBackendAutoConfiguration;
+import io.qpointz.mill.autoconfigure.data.resource.BackendResourceLoaderAutoConfiguration;
 import io.qpointz.mill.data.backend.configuration.DefaultServiceConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,7 @@ class MillDataQuerySkymillIT {
     @Import({
             SqlAutoConfiguration.class,
             BackendAutoConfiguration.class,
+            BackendResourceLoaderAutoConfiguration.class,
             FlowBackendAutoConfiguration.class,
             DefaultServiceConfiguration.class,
     })

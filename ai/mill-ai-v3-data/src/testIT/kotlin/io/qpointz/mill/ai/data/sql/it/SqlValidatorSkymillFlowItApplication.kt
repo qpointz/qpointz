@@ -2,6 +2,7 @@ package io.qpointz.mill.ai.data.sql.it
 
 import io.qpointz.mill.autoconfigure.data.SqlAutoConfiguration
 import io.qpointz.mill.autoconfigure.data.backend.BackendAutoConfiguration
+import io.qpointz.mill.autoconfigure.data.resource.BackendResourceLoaderAutoConfiguration
 import io.qpointz.mill.autoconfigure.data.backend.flow.FlowBackendAutoConfiguration
 import io.qpointz.mill.autoconfigure.data.backend.flow.FlowDescriptorMetadataSourceAutoConfiguration
 import io.qpointz.mill.autoconfigure.data.schema.LogicalLayoutMetadataSourceAutoConfiguration
@@ -34,6 +35,7 @@ import org.springframework.context.annotation.Import
     JacksonAutoConfiguration::class,
     SqlAutoConfiguration::class,
     BackendAutoConfiguration::class,
+    BackendResourceLoaderAutoConfiguration::class,
     FlowBackendAutoConfiguration::class,
     FlowDescriptorMetadataSourceAutoConfiguration::class,
     LogicalLayoutMetadataSourceAutoConfiguration::class,

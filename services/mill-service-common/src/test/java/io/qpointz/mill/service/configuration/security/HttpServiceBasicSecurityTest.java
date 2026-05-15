@@ -22,6 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
         "io.qpointz.mill.autoconfigure.data.SqlAutoConfiguration",
         "io.qpointz.mill.autoconfigure.data.backend.jdbc.JdbcBackendAutoConfiguration",
         "io.qpointz.mill.autoconfigure.data.backend.calcite.CalciteBackendAutoConfiguration",
+        "io.qpointz.mill.autoconfigure.data.resource.BackendResourceLoaderAutoConfiguration",
         "io.qpointz.mill.autoconfigure.data.backend.flow.FlowBackendAutoConfiguration"
 })
 @SpringBootTest(classes = {HttpServiceBasicSecurityTest.class, SecurityConfig.class, ServicesSecurityConfiguration.class})

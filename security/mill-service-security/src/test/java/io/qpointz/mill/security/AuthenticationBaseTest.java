@@ -31,6 +31,7 @@ public abstract class AuthenticationBaseTest {
             "io.qpointz.mill.autoconfigure.data.SqlAutoConfiguration",
             "io.qpointz.mill.autoconfigure.data.backend.jdbc.JdbcBackendAutoConfiguration",
             "io.qpointz.mill.autoconfigure.data.backend.calcite.CalciteBackendAutoConfiguration",
+            "io.qpointz.mill.autoconfigure.data.resource.BackendResourceLoaderAutoConfiguration",
             "io.qpointz.mill.autoconfigure.data.backend.flow.FlowBackendAutoConfiguration"
     })
     @Import({TestController.class})

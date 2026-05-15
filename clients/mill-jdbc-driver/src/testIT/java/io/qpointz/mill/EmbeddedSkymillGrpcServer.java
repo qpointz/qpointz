@@ -3,6 +3,7 @@ package io.qpointz.mill;
 import io.qpointz.mill.autoconfigure.data.SqlAutoConfiguration;
 import io.qpointz.mill.autoconfigure.data.backend.BackendAutoConfiguration;
 import io.qpointz.mill.autoconfigure.data.backend.flow.FlowBackendAutoConfiguration;
+import io.qpointz.mill.autoconfigure.data.resource.BackendResourceLoaderAutoConfiguration;
 import io.qpointz.mill.data.backend.configuration.DefaultServiceConfiguration;
 import io.qpointz.mill.data.backend.grpc.GrpcExceptionInterceptor;
 import io.qpointz.mill.data.backend.grpc.GrpcServiceDescriptor;
@@ -39,6 +40,7 @@ public final class EmbeddedSkymillGrpcServer {
     @Import({
             SqlAutoConfiguration.class,
             BackendAutoConfiguration.class,
+            BackendResourceLoaderAutoConfiguration.class,
             FlowBackendAutoConfiguration.class,
             DefaultServiceConfiguration.class,
             MillGrpcConfiguration.class,

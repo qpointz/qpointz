@@ -16,8 +16,8 @@ import static io.qpointz.mill.autoconfigure.data.backend.BackendAutoConfiguratio
 public class FlowBackendProperties {
 
     /**
-     * Paths to source descriptor YAML files.
-     * Each descriptor becomes a Calcite schema whose name is the descriptor's {@code name} property.
+     * Mill resource locations for flow source descriptor YAML (for example {@code classpath:},
+     * {@code file:}, bare paths, or cloud URIs when resolvers are registered).
      */
     private List<String> sources = new ArrayList<>();
 

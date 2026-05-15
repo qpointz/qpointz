@@ -25,9 +25,9 @@ class SingleFileSourceRepositoryTest {
     }
 
     @Test
-    void shouldExposeDescriptorPath() {
+    void shouldExposeDescriptorLocation() {
         val repo = new SingleFileSourceRepository(DESCRIPTOR);
-        assertEquals(DESCRIPTOR, repo.getDescriptorPath());
+        assertEquals(DESCRIPTOR.toAbsolutePath().normalize().toUri().toString(), repo.getDescriptorLocation());
     }
 
     @Test
