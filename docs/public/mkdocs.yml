@@ -111,6 +111,7 @@ nav:
         - connect/python/discovery.md
     - Appendix:
       - reference/platform-runtime.md
+      - reference/cloud-resource-loading.md
       - reference/mill-ai-configuration.md
       - reference/skymill-schema.md
       - reference/skymill-kpi-cookbook.md

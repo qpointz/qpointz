@@ -92,6 +92,8 @@ mill:
 
 Google Cloud Storage uses `gs://bucket/object.yaml` with `mill.cloud.gcp.gcs.emulator-host` when pointing at an emulator. Azure Blob uses `azure-blob://container/path/to.yaml` with `mill.cloud.azure.adls.connection-string` or `blob-service-endpoint`.
 
+**Credentials for config URLs:** all `s3://` / `gs://` / `azure-blob://` entries under `flow.sources` share **one** `mill.cloud.*` profile per provider (same profile as metadata seeds on that provider). Different buckets with different static keys for descriptor files alone are **not** supported — use one identity for all config buckets, split providers, or see [Cloud resource loading](../reference/cloud-resource-loading.md). Per-descriptor `storage.auth` still applies to **data** buckets inside each YAML file.
+
 ### Full example
 
 ```yaml
