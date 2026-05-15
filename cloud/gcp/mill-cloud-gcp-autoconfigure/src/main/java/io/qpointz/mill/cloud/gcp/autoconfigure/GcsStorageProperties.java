@@ -39,4 +39,43 @@ public class GcsStorageProperties {
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
+
+    /**
+     * Optional GCS JSON API base URL for emulators (for example {@code http://127.0.0.1:4443} for fake-gcs-server).
+     * When set, the client uses {@link com.google.cloud.NoCredentials} against that host.
+     */
+    private String emulatorHost;
+
+    /**
+     * Optional Google Cloud project id (recommended when using {@link #emulatorHost}).
+     */
+    private String projectId;
+
+    /**
+     * @return optional emulator base URL, or {@code null} for production Google Cloud Storage
+     */
+    public String getEmulatorHost() {
+        return emulatorHost;
+    }
+
+    /**
+     * @param emulatorHost optional emulator base URL
+     */
+    public void setEmulatorHost(String emulatorHost) {
+        this.emulatorHost = emulatorHost;
+    }
+
+    /**
+     * @return optional project id override
+     */
+    public String getProjectId() {
+        return projectId;
+    }
+
+    /**
+     * @param projectId optional project id
+     */
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
+    }
 }

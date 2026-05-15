@@ -12,15 +12,28 @@ mill {
 }
 
 dependencies {
+    api(project(":core:mill-core"))
     api(project(":cloud:gcp:mill-cloud-gcp-blob"))
     compileOnly(libs.google.cloud.storage)
     implementation(libs.boot.starter)
     compileOnly(libs.bundles.logging)
     annotationProcessor(libs.boot.configuration.processor)
+    testImplementation(libs.google.cloud.storage)
 }
 
 testing {
     suites {
+        register<JvmTestSuite>("testIT") {
+            dependencies {
+                implementation(project())
+                implementation(libs.boot.starter.test)
+                implementation(libs.assertj.core)
+                implementation(libs.testcontainers.core)
+                implementation(libs.testcontainers.junit.jupiter)
+                implementation(libs.google.cloud.storage)
+            }
+        }
+
         configureEach {
             if (this is JvmTestSuite) {
                 useJUnitJupiter(libs.versions.junit.get())
@@ -36,4 +49,8 @@ testing {
             }
         }
     }
+}
+
+tasks.named<Test>("testIT") {
+    testLogging { events("passed", "failed", "skipped") }
 }

@@ -13,8 +13,10 @@ mill {
 }
 
 dependencies {
+    api(project(":core:mill-core"))
     api(project(":cloud:azure:mill-cloud-azure-blob"))
     implementation(libs.azure.storage.blob)
+    implementation(libs.azure.identity)
     implementation(libs.boot.starter)
     annotationProcessor(libs.boot.configuration.processor)
     compileOnly(libs.bundles.logging)
@@ -22,6 +24,22 @@ dependencies {
 
 testing {
     suites {
+        register<JvmTestSuite>("testIT") {
+            dependencies {
+                implementation(project())
+                implementation(libs.boot.starter.test)
+                implementation(libs.assertj.core)
+                implementation(libs.mockito.core)
+                implementation(libs.mockito.junit.jupiter)
+                implementation(libs.slf4j.api)
+                implementation(libs.logback.core)
+                implementation(libs.logback.classic)
+                implementation(libs.testcontainers.core)
+                implementation(libs.testcontainers.junit.jupiter)
+                implementation(libs.azure.storage.blob)
+            }
+        }
+
         configureEach {
             if (this is JvmTestSuite) {
                 useJUnitJupiter(libs.versions.junit.get())
@@ -39,4 +57,8 @@ testing {
             }
         }
     }
+}
+
+tasks.named<Test>("testIT") {
+    testLogging { events("passed", "failed", "skipped") }
 }
