@@ -45,7 +45,7 @@ Source Descriptor YAML(s)
 
 ## Configuration
 
-Activate the Flow backend by setting `mill.data.backend.type` to `flow`. List the paths to your source descriptor YAML files under `mill.data.backend.flow.sources`.
+Activate the Flow backend by setting `mill.data.backend.type` to `flow`. List **Spring resource locations** for your source descriptor YAML files under `mill.data.backend.flow.sources` — local paths, `file:`, `classpath:`, and cloud schemes (`s3://`, `gs://`, `azure-blob://`) when the matching `mill-cloud-*-autoconfigure` module is on the classpath. Bare relative paths are still resolved as files from the process working directory. **Calcite** model files (`mill.data.backend.calcite.model`) remain ordinary file paths; mount or sync those files locally if they live in object storage.
 
 ### Minimal example
 
@@ -74,6 +74,23 @@ mill:
           - ./config/reference-data.yaml
           - ./config/logs.yaml
 ```
+
+### Cloud-hosted descriptors (optional)
+
+Add the provider autoconfigure JAR you need, then use object-store URLs. Example with Amazon S3–compatible storage (credentials via `mill.cloud.aws.s3.*`, not in the URI):
+
+```yaml
+mill:
+  data:
+    backend:
+      type: flow
+      flow:
+        sources:
+          - classpath:config/platform-sources.yaml
+          - s3://tenant-bucket/descriptors/customer.yaml
+```
+
+Google Cloud Storage uses `gs://bucket/object.yaml` with `mill.cloud.gcp.gcs.emulator-host` when pointing at an emulator. Azure Blob uses `azure-blob://container/path/to.yaml` with `mill.cloud.azure.adls.connection-string` or `blob-service-endpoint`.
 
 ### Full example
 
@@ -113,7 +130,7 @@ These properties are under the `mill.data.backend.flow` prefix.
 
 | Property | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `sources` | yes | `[]` | List of paths to source descriptor YAML files. Relative paths are resolved from the working directory. |
+| `sources` | yes | `[]` | List of **Spring resource locations** for source descriptor YAML (`classpath:`, `file:`, `s3://`, `gs://`, `azure-blob://`, or bare paths resolved as local files from the working directory). |
 | `cache.schema.enabled` | no | `false` | Reuse resolved Flow schemas across requests. |
 | `cache.schema.ttl` | no | unset | Optional cache TTL (for example `1m`, `30s`). When unset, cache does not auto-expire. |
 | `cache.facets.enabled` | no | `true` | When `false`, flow facet inference is always computed on demand (no snapshot cache). |
