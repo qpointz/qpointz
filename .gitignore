@@ -34,3 +34,9 @@ schemas/
 # Python (dataset tooling under test/datasets)
 **/__pycache__/
 *.py[cod]
+
+.terraform
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars

@@ -94,15 +94,15 @@ Full umbrella design (providers, embedding registry, value-mapping references): 
 
 ## Mill Security (`mill.security.*`)
 
-| Key | Description | Sources |
-| --- | --- | --- |
-| `mill.security.enable` | Master switch for authn/authz. | `apps/mill-service`, `clients/etc/test-backend-server`, `core/mill-security-core`, `services/mill-jet-*`, AI configs |
-| `mill.security.authentication.basic.*` | Enables file-backed Basic auth and points to credential store. | `apps/mill-service/config/default/application-auth.yml`, `clients/etc/test-backend-server`, `core` security tests, `services/mill-jet-grpc-service` |
-| `mill.security.authentication.oauth2-resource-server.*` | Enables JWT validation and JWK source. | `apps/mill-service/config/test/application-auth.yml`, `clients/etc/test-backend-server`, `core/mill-security-core` |
-| `mill.security.authentication.entra-id-token.enable` | Flag for Entra ID token auth (core security tests). | `core/mill-security-core/src/test/resources/application-test-trivial.yml` |
-| `mill.security.authorization.policy.*` | Declarative policy engine: selectors, action remaps, allow/deny verbs. | `apps/mill-service/src/main/resources/application.yml` |
-| `mill.security.providers[].type/path/issuer-uri` | External identity provider definitions for OAuth sample. | `misc/sample/mill/mill-oauth/config/application.yml` |
-| `mill.security.enabled` | Legacy flag used by test backend server (leave true when bridging). | `clients/etc/test-backend-server/application.yml` |
+| Key                                                     | Description                                                            | Sources                                                                                                                                             |
+| ------------------------------------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mill.security.enable`                                  | Master switch for authn/authz.                                         | `apps/mill-service`, `clients/etc/test-backend-server`, `core/mill-security-core`, `services/mill-jet-*`, AI configs                                |
+| `mill.security.authentication.basic.*`                  | Enables file-backed Basic auth and points to credential store.         | `apps/mill-service/config/default/application-auth.yml`, `clients/etc/test-backend-server`, `core` security tests, `services/mill-jet-grpc-service` |
+| `mill.security.authentication.oauth2-resource-server.*` | Enables JWT validation and JWK source.                                 | `apps/mill-service/config/test/application-auth.yml`, `clients/etc/test-backend-server`, `core/mill-security-core`                                  |
+| `mill.security.authentication.entra-id-token.enable`    | Flag for Entra ID token auth (core security tests).                    | `core/mill-security-core/src/test/resources/application-test-trivial.yml`                                                                           |
+| `mill.security.authorization.policy.*`                  | Declarative policy engine: selectors, action remaps, allow/deny verbs. | `apps/mill-service/src/main/resources/application.yml`                                                                                              |
+| `mill.security.providers[].type/path/issuer-uri`        | External identity provider definitions for OAuth sample.               | `misc/sample/mill/mill-oauth/config/application.yml`                                                                                                |
+| `mill.security.enabled`                                 | Legacy flag used by test backend server (leave true when bridging).    | `clients/etc/test-backend-server/application.yml`                                                                                                   |
 
 ## Spring AI & MCP
 

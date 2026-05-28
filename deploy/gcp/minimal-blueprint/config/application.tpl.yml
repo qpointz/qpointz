@@ -1,0 +1,30 @@
+mill:
+  ui:
+    enabled: false
+  security:
+    enable: false
+    authentication:
+      basic:
+        enable: true
+  data:
+    sql:
+      dialect: CALCITE
+      conventions:
+        quoting: BACK_TICK
+        caseSensitive: "false"
+        unquotedCasing: UNCHANGED
+    services:
+      grpc:
+        enable: false
+    backend:
+      type: flow
+      flow:
+        cache:
+          schema:
+            enabled: true
+            ttl: 30s
+          facets:
+            enabled: true
+            ttl: 30s
+        sources:
+          - /app/config/flow/flow.yml

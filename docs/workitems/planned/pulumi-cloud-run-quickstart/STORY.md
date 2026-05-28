@@ -16,3 +16,5 @@ Outcomes:
 - [ ] WI-281 — Minimal GCP resources (APIs, optional bucket, Cloud Run) (`WI-281-pulumi-minimal-gcp-resources.md`)
 - [ ] WI-282 — Quickstart CLI (`copy-example`, `validate`, printed next steps) (`WI-282-pulumi-quickstart-cli.md`)
 - [ ] WI-283 — README quick start and cross-links (`WI-283-pulumi-docs-and-cross-links.md`)
+
+postgresql://neondb_owner:npg_ylrV9J4UxRGd@ep-misty-art-aj1h9s5f-pooler.c-3.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require

@@ -47,6 +47,15 @@ class BlobToTableMapperTest {
     }
 
     @Test
+    fun shouldExtractParentDirectory_whenFolderNameMatchesFileStem() {
+        // Greedy ".*" before the capture group can split "cities" into "citie" + "s".
+        val mapper = RegexTableMapper(Regex("(?<table>[^/]+)/[^/]+\\.parquet$"))
+        val mapping = mapper.mapToTable(blobPath("/data/cities/cities.parquet"))
+        assertNotNull(mapping)
+        assertEquals("cities", mapping!!.tableName)
+    }
+
+    @Test
     fun shouldReturnNull_whenGroupNotFound() {
         val mapper = RegexTableMapper(
             pattern = Regex(".*\\.csv$"),

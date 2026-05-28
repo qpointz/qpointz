@@ -1,0 +1,20 @@
+# Copy to terraform.tfvars (gitignored). Secrets via TF_VAR_* (see README).
+#   export TF_VAR_mill_db_password='...'
+
+gcp_project_id         = "your-gcp-project"
+gcp_region             = "europe-west1"
+cloud_run_service_name = "mill-service"
+mill_docker_image      = "docker.io/qpointz/mill-service-complete:latest"
+
+spring_profiles_active = "skymill,postgres,secure"
+mill_db_url            = "jdbc:postgresql://YOUR_HOST:5432/mill?sslmode=require"
+mill_db_username       = "mill"
+
+gcs_bucket_name     = "your-gcp-project-mill-config"
+gcs_bucket_location = "europe-west1"
+
+cloud_run_managed_runtime_sa = "auto"
+
+# custom_application_yml_file = "config/application-cloudrun-gcs.yml"
+
+cloud_run_allow_unauthenticated = true

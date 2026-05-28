@@ -22,10 +22,10 @@ help:
 	@echo "  make azure-aca-deploy   # build image, push ACR, deploy Container App"
 	@echo "  make azure-aca-destroy  # delete resource group from azure-container-apps/.env"
 	@echo ""
-	@echo "Google Cloud Run (see google-cloud-run/README.md):"
-	@echo "  make gcp-cloudrun-deploy   # provision GCS (optional), deploy Docker Hub image"
-	@echo "  make gcp-cloudrun-sync     # upload local files to GCS per gcs-sync.conf"
-	@echo "  make gcp-cloudrun-destroy  # delete Cloud Run service from google-cloud-run/.env"
+	@echo "Google Cloud Run (see gcp/cloud-run/README.md):"
+	@echo "  make gcp-cloudrun-deploy   # tofu apply in gcp/cloud-run"
+	@echo "  make gcp-cloudrun-sync     # upload Skymill files to GCS (sync.env)"
+	@echo "  make gcp-cloudrun-destroy  # tofu destroy in gcp/cloud-run"
 
 azure-aca-deploy:
 	./azure-container-apps/deploy.sh
@@ -33,14 +33,17 @@ azure-aca-deploy:
 azure-aca-destroy:
 	./azure-container-apps/destroy.sh
 
+GCP_CLOUDRUN_DIR := gcp/cloud-run
+TOFU ?= tofu
+
 gcp-cloudrun-deploy:
-	./google-cloud-run/deploy.sh
+	cd "$(GCP_CLOUDRUN_DIR)" && $(TOFU) init && $(TOFU) apply
 
 gcp-cloudrun-destroy:
-	./google-cloud-run/destroy.sh
+	cd "$(GCP_CLOUDRUN_DIR)" && $(TOFU) destroy
 
 gcp-cloudrun-sync:
-	./google-cloud-run/sync-bucket.sh
+	cd "$(GCP_CLOUDRUN_DIR)" && ./sync-bucket.sh
 
 local-dev-start:
 	docker compose -f "$(LOCAL_DEV_COMPOSE_FILE)" up -d

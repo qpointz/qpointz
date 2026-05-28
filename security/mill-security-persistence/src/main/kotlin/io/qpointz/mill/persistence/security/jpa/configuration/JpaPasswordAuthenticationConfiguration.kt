@@ -51,6 +51,7 @@ open class JpaPasswordAuthenticationConfiguration {
      * @return delegating [PasswordEncoder] dispatching on `{prefix}` in stored hash
      */
     @Bean
+    @ConditionalOnMissingBean(PasswordEncoder::class)
     open fun jpaPasswordEncoder(): PasswordEncoder =
         PasswordEncoderFactories.createDelegatingPasswordEncoder()
 

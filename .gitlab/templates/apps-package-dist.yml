@@ -45,6 +45,9 @@
         --class-path "${JDEPS_DIR}/BOOT-INF/lib/*" \
         "${JDEPS_DIR}/BOOT-INF/classes" > "${MODULES_DIR}/jdeps-modules.csv"
 
+      RUNTIME_MODULES="jdk.crypto.ec,jdk.crypto.cryptoki,java.naming,jdk.naming.dns,java.sql,java.management"
+      sed -i "s/$/,${RUNTIME_MODULES}/" "${MODULES_DIR}/jdeps-modules.csv"
+
       tr ',' '\n' < "${MODULES_DIR}/jdeps-modules.csv" | sed '/^$/d' | sort -u > "${MODULES_DIR}/jdeps-modules.txt"
       "$JAVA_HOME/bin/java" --list-modules | cut -d@ -f1 | sort -u > "${MODULES_DIR}/jdk-modules.txt"
       comm -12 "${MODULES_DIR}/jdeps-modules.txt" "${MODULES_DIR}/jdk-modules.txt" | paste -sd, - > "${MODULES_DIR}/jlink-modules.txt"

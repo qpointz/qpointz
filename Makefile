@@ -49,7 +49,7 @@ help:
 	@echo "  make local-dev-reset         # Stop + delete persisted data + start clean"
 	@echo "  make local-dev-logs          # Tail logs (SERVICE=postgres|chromadb optional)"
 	@echo "  make -C deploy azure-aca-deploy      # One-shot Azure Container Apps (see deploy/azure-container-apps/)"
-	@echo "  make -C deploy gcp-cloudrun-deploy   # One-shot Google Cloud Run (see deploy/google-cloud-run/)"
+	@echo "  make -C deploy gcp-cloudrun-deploy   # OpenTofu apply (see deploy/gcp/cloud-run/)"
 	@echo "  make -C deploy gcp-cloudrun-sync     # Upload Skymill config files to GCS"
 	@echo "  (UI default ports: Adminer 48080, ChromaDB Admin 43000)"
 

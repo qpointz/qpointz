@@ -3,7 +3,8 @@ SHELL := /bin/bash
 DESKTOP_DIR := mill-desktop
 
 .PHONY: help build-docker run-moneta run-mill-postgres \
-	desktop-install desktop-build desktop-launch desktop-clean
+	desktop-install desktop-build desktop-launch desktop-clean \
+	jdeps-report
 
 help:
 	@echo "Available targets:"
@@ -11,6 +12,8 @@ help:
 	@echo "make build-docker      # rebuild docker images"
 	@echo "make run-moneta        # runs moneta sample docker"
 	@echo "make run-mill-postgres # run mill-service with postgres profile"
+	@echo "make jdeps-report      # build edition & generate jdeps/jlink module report"
+	@echo "                       #   EDITION=basic (default) | complete | ..."
 	@echo ""
 	@echo "Desktop — $(DESKTOP_DIR):"
 	@echo "  make desktop-install  # Install npm dependencies"
@@ -23,10 +26,14 @@ rebuild:
 	npm install ; \
 	npm run build
 	cd ../ ; \
-	./gradlew clean installBootDist
+	./gradlew clean installBootDist -Pedition=complete
 
 build-docker: rebuild
-	docker buildx build --tag mill-service --progress plain --file mill-service/src/main/docker/base/Dockerfile ./mill-service
+	docker buildx build --tag mill-service \
+						--progress plain \
+						--file mill-service/src/main/docker/base/Dockerfile \
+						--build-arg  APP_EDITION=complete \
+						./mill-service
 	docker buildx build --tag mill-service-samples --progress plain \
 						--file mill-service/src/main/docker/samples/Dockerfile \
 						--build-arg  BASE_IMAGE=mill-service \
@@ -42,6 +49,38 @@ run-moneta : build-docker
         --spring.ai.openai.api-key=$(OPENAI_API_KEY) \
         --spring.ai.openai.chat.options.temperature=0.5 \
         --spring.ai.openai.chat.options.model=gpt-4
+
+EDITION ?= basic
+INSTALL_DIR := mill-service/build/install/mill-service-boot-$(EDITION)
+JDEPS_DIR   := mill-service/build/jdeps/$(EDITION)
+MODULES_DIR := mill-service/build/jlink-modules/$(EDITION)
+
+jdeps-report:
+	cd ../ && ./gradlew --no-daemon --console plain clean :apps:mill-service:installBootDist -Pedition=$(EDITION)
+	$(eval FAT_JAR := $(shell find $(INSTALL_DIR)/lib -name 'mill-service-*.jar' ! -name '*-plain.jar' | head -1))
+	@if [ -z "$(FAT_JAR)" ]; then echo "ERROR: fat jar not found in $(INSTALL_DIR)/lib"; exit 1; fi
+	rm -rf $(JDEPS_DIR) && mkdir -p $(JDEPS_DIR) $(MODULES_DIR)
+	cd $(JDEPS_DIR) && jar xf $(CURDIR)/$(FAT_JAR) BOOT-INF/classes BOOT-INF/lib
+	$$JAVA_HOME/bin/jdeps \
+		--multi-release 21 \
+		--ignore-missing-deps \
+		--recursive \
+		--print-module-deps \
+		--class-path "$(JDEPS_DIR)/BOOT-INF/lib/*" \
+		$(JDEPS_DIR)/BOOT-INF/classes > $(MODULES_DIR)/jdeps-modules.csv
+	tr ',' '\n' < $(MODULES_DIR)/jdeps-modules.csv | sed '/^$$/d' | sort -u > $(MODULES_DIR)/jdeps-modules.txt
+	$$JAVA_HOME/bin/java --list-modules | cut -d@ -f1 | sort -u > $(MODULES_DIR)/jdk-modules.txt
+	comm -12 $(MODULES_DIR)/jdeps-modules.txt $(MODULES_DIR)/jdk-modules.txt | paste -sd, - > $(MODULES_DIR)/jlink-modules.txt
+	@echo ""
+	@echo "=== jdeps modules ($(EDITION)) ==="
+	@cat $(MODULES_DIR)/jdeps-modules.csv
+	@echo ""
+	@echo ""
+	@echo "=== jlink-eligible modules ==="
+	@cat $(MODULES_DIR)/jlink-modules.txt
+	@echo ""
+	@echo ""
+	@echo "Reports written to $(MODULES_DIR)/"
 
 run-mill-postgres:
 	cd ../ && \

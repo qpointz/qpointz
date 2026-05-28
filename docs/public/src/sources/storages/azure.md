@@ -1,4 +1,4 @@
-# Azure Blob Storage
+b# Azure Blob Storage
 
 The `adls` storage type reads files from **Azure Blob Storage** or **Azure Data Lake Storage Gen2**. Configuration uses the same names as the Azure Blob SDK and portal: **`endpoint`** (blob service URL passed to `BlobServiceClientBuilder`) and **`container`** (blob container; in Gen2 this is also called a filesystem in the Data Lake REST API).
 
@@ -210,11 +210,7 @@ storage:
   container: analytics
   prefix: warehouse/
 readers:
-  - type: parquet
-    table:
-      mapping:
-        type: directory
-        depth: 1
+  c
 ```
 
 ---

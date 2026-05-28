@@ -41,6 +41,7 @@ testing {
                 useJUnitJupiter(libs.versions.junit.get())
                 dependencies {
                     implementation(project())
+                    implementation(project(":security:mill-security-autoconfigure"))
                     implementation(libs.boot.starter.test)
                     implementation(libs.assertj.core)
                     implementation(libs.mockito.core)

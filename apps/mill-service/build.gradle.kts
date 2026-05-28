@@ -13,7 +13,7 @@ mill {
     publishArtifacts = false
 
     editions {
-        defaultEdition = "complete"
+        defaultEdition = "complete-samples"
 
         feature("sample-data") {
             description = "Provides Sample datasets"
