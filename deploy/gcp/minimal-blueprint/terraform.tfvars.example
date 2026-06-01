@@ -2,6 +2,40 @@
 #
 #   cp terraform.tfvars.example terraform.tfvars
 
-project_id      = "your-gcp-project"
-region          = "europe-west1"
+# --- Required ---
+
+project_id = "your-gcp-project"
+region     = "europe-west1"
+
+# --- Naming ---
+
+# Prefix for Cloud Run service, bucket, secrets, and runtime SA (lowercase, hyphens).
 deployment_name = "mill-minimal-blpr"
+
+# --- Mill container ---
+
+# Pin a tag or digest for reproducible deploys (default in variables.tf: qpointz/mill-service-minimal:latest).
+image_version = "qpointz/mill-service-minimal:0.8.0rc3"
+
+# Flow / Calcite schema name in config/flow.tpl.yml (output: flow_schema_name).
+schema_name = "minimal"
+
+# Flow schema cache in application.tpl.yml (mill.data.backend.flow.cache.schema).
+# schema_cache_enabled = true
+# schema_cache_ttl     = "5m"   # e.g. 30s, 1m — shorten after gsutil uploads to pick up new tables
+
+# --- Cloud Run scaling and resources ---
+
+# service_max_instance_request_concurrency = 100
+# service_min_instance_count               = 0
+# service_max_instance_count               = 3
+# service_limits_cpu                       = "0.5"
+# service_limits_memory                    = "1Gi"
+
+# --- Access and storage lifecycle ---
+
+# Public HTTPS invoke (roles/run.invoker → allUsers). Set false for IAM-only.
+allow_unauthenticated = true
+
+# Dev-friendly bucket teardown. Set false when the bucket holds production data.
+gcs_force_destroy = true

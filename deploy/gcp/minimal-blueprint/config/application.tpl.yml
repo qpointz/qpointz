@@ -21,8 +21,8 @@ mill:
       flow:
         cache:
           schema:
-            enabled: true
-            ttl: 30s
+            enabled: ${schema_cache_enabled}
+            ttl: ${schema_cache_ttl}
           facets:
             enabled: true
             ttl: 30s

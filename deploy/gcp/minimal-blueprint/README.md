@@ -1,11 +1,11 @@
 # Mill minimal blueprint (GCP Cloud Run)
 
-OpenTofu module that deploys a **minimal Mill service** on **Google Cloud Run** with:
+OpenTofu root module that deploys a **minimal Mill service** on **Google Cloud Run** with:
 
 - a dedicated **GCS bucket** for query data,
 - **Flow** backend reading Parquet, CSV, Avro, and Excel from that bucket,
-- Mill **application**, **flow**, and **auth** YAML pushed to **Secret Manager** and mounted into the container,
-- a runtime **service account** with bucket read access and secret access.
+- Mill **application**, **flow**, and **auth** YAML rendered from templates into **Secret Manager** and mounted into the container,
+- a runtime **service account** with bucket read access and secret access (plus **serverless robot** secret access so Cloud Run can mount volumes).
 
 This stack is intentionally smaller than [`../cloud-run/`](../cloud-run/README.md): no PostgreSQL, no OpenAI, no Skymill seed sync scripts. Use it to try Mill on GCP with file-backed data only.
 
@@ -13,7 +13,7 @@ This stack is intentionally smaller than [`../cloud-run/`](../cloud-run/README.m
 
 ## What gets created
 
-For `deployment_name = "min-bp-1"` (example):
+For `deployment_name = "mill-minimal-blpr"` (default):
 
 | Resource | Name / pattern |
 |----------|----------------|
@@ -24,9 +24,9 @@ For `deployment_name = "min-bp-1"` (example):
 
 **APIs enabled:** Cloud Run, Secret Manager, Cloud Storage, Cloud Resource Manager, IAM.
 
-**Container image (default):** `qpointz/mill-test-complete:latest` (set in [`main.tf`](main.tf); change there or extend the module with a variable for production).
+**Container image:** `var.image_version` (default `qpointz/mill-service-minimal:latest` in [`variables.tf`](variables.tf)).
 
-**Ingress:** public HTTPS — `roles/run.invoker` is granted to `allUsers`. Restrict this for non-demo use.
+**Ingress:** public HTTPS when `allow_unauthenticated = true` (default) — `roles/run.invoker` for `allUsers`. Set `allow_unauthenticated = false` for IAM-only invoke.
 
 ---
 
@@ -34,9 +34,9 @@ For `deployment_name = "min-bp-1"` (example):
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│  Cloud Run (mill-*-run-service)                             │
+│  Cloud Run ({deployment_name}-run-service)                  │
 │  ┌───────────────────────────────────────────────────────┐  │
-│  │  mill-test-complete container                         │  │
+│  │  mill-service-minimal container                       │  │
 │  │  /app/config/application.yml  ← Secret (application)  │  │
 │  │  /app/config/flow/flow.yml    ← Secret (flow)         │  │
 │  │  /app/config/auth/auth.yml    ← Secret (auth)         │  │
@@ -48,14 +48,16 @@ For `deployment_name = "min-bp-1"` (example):
    GCS bucket  gs://{deployment}-bucket/data/{table}/…
 ```
 
-Flow descriptor ([`config/flow.tpl.yml`](config/flow.tpl.yml)) scans `data/` in the bucket. Each **table** is the **parent folder** of a file; the **reader** is chosen by extension:
+Flow descriptor ([`config/flow.tpl.yml`](config/flow.tpl.yml)) scans the `data/` prefix in the bucket. Each **table** is the **parent folder** of a file; the **reader** is chosen by extension:
 
 ```text
-gs://…/data/cities/cities.parquet   →  schema `minimal`, table `cities` (parquet)
-gs://…/data/orders/orders.csv       →  schema `minimal`, table `orders` (csv)
+gs://…/data/cities/cities.parquet   →  schema {schema_name}, table `cities` (parquet)
+gs://…/data/orders/orders.csv       →  schema {schema_name}, table `orders` (csv)
 ```
 
 Regex pattern (per reader): `(?<table>[^/]+)/[^/]+\.{ext}$` — do **not** prefix with greedy `.*` before the capture group (that breaks names like `cities/cities.parquet`).
+
+GCS auth uses **ambient credentials** (`preferAmbientCredentials: true`) — the Cloud Run runtime service account must have `roles/storage.objectViewer` on the bucket (granted by this module).
 
 ---
 
@@ -81,22 +83,16 @@ Regex pattern (per reader): `(?<table>[^/]+)/[^/]+\.{ext}$` — do **not** prefi
 cd deploy/gcp/minimal-blueprint
 
 cp terraform.tfvars.example terraform.tfvars
-# Edit project_id and region
+# Edit project_id, region, and optionally image_version / schema_name
 
 tofu init
 tofu plan -var-file=terraform.tfvars
 tofu apply -var-file=terraform.tfvars
 ```
 
-Example `terraform.tfvars`:
-
-```hcl
-project_id      = "your-gcp-project"
-region          = "europe-west1"
-deployment_name = "mill-minimal-blpr"   # optional; default shown
-```
-
 `terraform.tfvars` is gitignored (see repo root `.gitignore`). Do not commit it.
+
+See [`terraform.tfvars.example`](terraform.tfvars.example) for all inputs and commented defaults.
 
 ### 1. Upload sample data
 
@@ -123,9 +119,13 @@ Service URL (for JDBC / HTTP clients):
 tofu output -raw cloud_run_uri
 ```
 
-Flow schema name: `tofu output -raw flow_schema_name` (default `minimal`).
+Flow schema name:
 
-Use Mill’s HTTP SQL API or JDBC against the service URL (exact paths depend on the image edition). Flow schema name is from `tofu output -raw flow_schema_name` (default **`minimal`**).
+```bash
+tofu output -raw flow_schema_name
+```
+
+Default **`minimal`** unless you set `schema_name` in tfvars.
 
 ---
 
@@ -135,31 +135,44 @@ Terraform renders these into Secret Manager on each apply:
 
 | Template | Mount path | Purpose |
 |----------|------------|---------|
-| [`config/application.tpl.yml`](config/application.tpl.yml) | `/app/config/application.yml` | Mill app: Flow backend, UI off, gRPC off, cache TTLs |
+| [`config/application.tpl.yml`](config/application.tpl.yml) | `/app/config/application.yml` | Mill app: Flow backend, UI off, gRPC off, configurable Flow **schema** cache; `mill.security.enable: false` by default |
 | [`config/flow.tpl.yml`](config/flow.tpl.yml) | `/app/config/flow/flow.yml` | GCS storage + multi-format readers |
-| [`config/auth.tpl.yml`](config/auth.tpl.yml) | `/app/config/auth/auth.yml` | Basic-auth user store (demo only) |
+| [`config/auth.tpl.yml`](config/auth.tpl.yml) | `/app/config/auth/auth.yml` | Basic-auth user store (mounted; inactive until security is enabled) |
+
+Mounts use **separate paths** (`/app/config/`, `/app/config/flow/`, `/app/config/auth/`) because Cloud Run does not allow two volume mounts on the same `mount_path`.
 
 ### Customizing config
 
 1. Edit the relevant `config/*.tpl.yml`.
 2. Run `tofu apply -var-file=terraform.tfvars`.
-3. Trigger a **new Cloud Run revision** so mounted secrets reload (e.g. change an annotation in `main.tf`, or run `gcloud run services update … --region …`).
+3. Trigger a **new Cloud Run revision** so mounted secrets reload (e.g. bump a label on the service, or `gcloud run services update … --region …`).
 
-Flow template variables (set in [`main.tf`](main.tf)):
+Template variables (passed from [`main.tf`](main.tf) via `templatefile`):
 
-| Variable | Default in module | Meaning |
-|----------|-------------------|---------|
-| `schema_name` | `minimal` | Flow / Calcite schema name |
+**`config/flow.tpl.yml`**
+
+| Template arg | Source | Meaning |
+|--------------|--------|---------|
+| `schema_name` | `var.schema_name` | Flow / Calcite schema name |
 | `bucket_name` | created bucket | GCS bucket for data |
 | `project_id` | `var.project_id` | GCP project for GCS client |
 
-To change schema name or add template variables, extend the `templatefile(…)` block in `main.tf`.
+**`config/application.tpl.yml`**
+
+| Template arg | Source | YAML path | Meaning |
+|--------------|--------|-----------|---------|
+| `schema_cache_enabled` | `var.schema_cache_enabled` | `mill.data.backend.flow.cache.schema.enabled` | Reuse resolved Flow schemas across requests |
+| `schema_cache_ttl` | `var.schema_cache_ttl` | `mill.data.backend.flow.cache.schema.ttl` | Expiry for schema cache (e.g. `5m`, `30s`) |
+
+Facet inference cache (`cache.facets` in the same file) stays fixed at `enabled: true`, `ttl: 30s` — tune in `application.tpl.yml` if needed.
+
+Change `schema_name`, `schema_cache_enabled`, or `schema_cache_ttl` in `terraform.tfvars` without editing `main.tf`.
 
 ### Enabling HTTP Basic auth
 
 [`config/auth.tpl.yml`](config/auth.tpl.yml) ships a **demo** user (`admin` / `{noop}admin`). Replace before any shared environment.
 
-Basic auth is only active when Mill security is enabled and the auth file is wired. In [`config/application.tpl.yml`](config/application.tpl.yml), set:
+Basic auth is only enforced when Mill security is enabled. In [`config/application.tpl.yml`](config/application.tpl.yml), set:
 
 ```yaml
 mill:
@@ -182,8 +195,19 @@ Then update `auth.tpl.yml` with your users (prefer `{bcrypt}…` or another dele
 | `project_id` | yes | — | GCP project ID |
 | `region` | yes | — | Cloud Run region (bucket location matches) |
 | `deployment_name` | no | `mill-minimal-blpr` | Prefix for resource names |
+| `image_version` | no | `qpointz/mill-service-minimal:latest` | Container image |
+| `schema_name` | no | `minimal` | Flow schema name in `flow.tpl.yml` |
+| `schema_cache_enabled` | no | `true` | Flow schema cache on/off (`application.tpl.yml`) |
+| `schema_cache_ttl` | no | `"5m"` | Schema cache TTL (Spring duration string) |
+| `service_max_instance_request_concurrency` | no | `100` | Per-instance concurrency |
+| `service_min_instance_count` | no | `0` | Min instances (0 = scale to zero) |
+| `service_max_instance_count` | no | `3` | Max instances |
+| `service_limits_cpu` | no | `"0.5"` | CPU limit string |
+| `service_limits_memory` | no | `"1Gi"` | Memory limit |
+| `allow_unauthenticated` | no | `true` | Public `run.invoker` for `allUsers` |
+| `gcs_force_destroy` | no | `true` | Empty bucket on `tofu destroy` |
 
-See [`variables.tf`](variables.tf) and [`outputs.tf`](outputs.tf).
+Full descriptions: [`variables.tf`](variables.tf). Outputs: [`outputs.tf`](outputs.tf).
 
 ---
 
@@ -191,12 +215,12 @@ See [`variables.tf`](variables.tf) and [`outputs.tf`](outputs.tf).
 
 | Setting | Default | Action for production |
 |---------|---------|------------------------|
-| Cloud Run invoker | `allUsers` | Remove `google_cloud_run_v2_service_iam_member.invoker_public` or restrict to your IAM principals |
+| Cloud Run invoker | `allow_unauthenticated = true` | Set `false` or restrict IAM principals |
 | Basic auth password | `{noop}admin` in `auth.tpl.yml` | Change users/passwords; use strong encoding |
-| Bucket | `force_destroy = true` | Set `false` when bucket holds real data |
-| Image | Public Docker Hub tag | Pin a version; use your registry |
+| Bucket | `gcs_force_destroy = true` | Set `false` when bucket holds real data |
+| Image | `mill-service-minimal:latest` | Pin `image_version` to a tag or digest |
 
-Secrets (DB password, API keys) are **not** part of this blueprint. Add env vars and Secret Manager resources in `main.tf` if you extend the stack (see commented blocks in that file).
+Secrets (DB password, API keys) are **not** part of this blueprint. Commented env blocks in [`main.tf`](main.tf) show how to extend for DB/OpenAI.
 
 ---
 
@@ -206,7 +230,7 @@ Secrets (DB password, API keys) are **not** part of this blueprint. Add env vars
 tofu destroy -var-file=terraform.tfvars
 ```
 
-With `force_destroy = true` on the bucket, objects are deleted when the bucket is destroyed.
+With `gcs_force_destroy = true`, objects are deleted when the bucket is destroyed.
 
 ---
 
@@ -217,9 +241,9 @@ With `force_destroy = true` on the bucket, objects are deleted when the bucket i
 | PostgreSQL / metadata DB | No (in-memory H2 in default image) | Yes |
 | OpenAI / `ai` profile | No | Optional |
 | GCS config sync script | Manual `gsutil` | `./sync-bucket.sh` |
-| Image selection | Hardcoded in `main.tf` | `mill_docker_image` variable |
-| Terraform outputs | `cloud_run_uri`, `gcs_bucket_name`, secret IDs, … | Same + DB/OpenAI secret IDs |
+| Image selection | `image_version` variable | `mill_docker_image` + profiles |
 | Edition profiles | Single layout | `profiles/*.tfvars` |
+| Shared modules | Inline SA/bucket | `deploy/gcp/modules/` |
 
 ---
 
@@ -231,24 +255,37 @@ With `force_destroy = true` on the bucket, objects are deleted when the bucket i
 - Check runtime SA has `roles/storage.objectViewer` on the bucket (module grants this).
 - Verify regex in `flow.tpl.yml` matches your paths (parent folder = table name).
 
+**New files uploaded but tables still missing**
+
+- With `schema_cache_enabled = true`, listing results are cached until `schema_cache_ttl` elapses. After `gsutil` uploads, wait for TTL, set a shorter `schema_cache_ttl` and `tofu apply`, or set `schema_cache_enabled = false` for debugging.
+
+**Secret mount / revision fails**
+
+- Runtime SA and **serverless robot** (`service-{project_number}@serverless-robot-prod.iam.gserviceaccount.com`) need `roles/secretmanager.secretAccessor` — both are granted by this module.
+
 **401 / auth unexpected**
 
-- Confirm `mill.security.enable: true` and `file-store` points at `/app/config/auth/auth.yml`.
-- Remember demo credentials are `admin` / `admin` until you change `auth.tpl.yml`.
+- Default deploy has `mill.security.enable: false` — no auth until you enable it (see above).
+- Demo credentials are `admin` / `admin` when basic auth is enabled.
 
 **Config change not picked up**
 
-- Secret Manager version updated by Terraform does not always roll Cloud Run automatically; deploy a new revision.
+- New Secret Manager versions from Terraform do not always roll Cloud Run automatically; deploy a new revision.
 
 **Wrong table names (e.g. `s_pq` instead of `cities`)**
 
 - Ensure flow regex does not use a leading greedy `.*` before `(?<table>…)`; use `(?<table>[^/]+)/[^/]+\.{ext}$`.
+
+**GCS errors on Cloud Run (`handshake_failure`, etc.)**
+
+- If `gcloud storage ls` works from your workstation but the service fails, compare the **same image** locally with ADC (runtime SA or user credentials). Minimal images use a jlink JRE; TLS/CA issues may differ from full `mill-service-complete`.
 
 ---
 
 ## Related
 
 - [`../cloud-run/README.md`](../cloud-run/README.md) — full Mill on Cloud Run (DB, AI, GCS sync)
-- [`../../README.md`](../../README.md) — deploy layout
+- [`../README.md`](../README.md) — GCP deploy layout
+- [`../../README.md`](../../README.md) — deploy overview
 - [`docs/design/source/`](../../../docs/design/source/) — Flow source descriptors and table mapping
 - [`docs/public/src/sources/configuration.md`](../../../docs/public/src/sources/configuration.md) — user-facing source YAML reference

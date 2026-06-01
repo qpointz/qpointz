@@ -24,8 +24,8 @@ output "gcs_data_prefix" {
 }
 
 output "flow_schema_name" {
-  description = "Calcite / Flow schema name from the deployed flow descriptor."
-  value       = local.flow_schema_name
+  description = "Flow / Calcite schema name from config/flow.tpl.yml (var.schema_name)."
+  value       = var.schema_name
 }
 
 output "gcp_project_id" {
