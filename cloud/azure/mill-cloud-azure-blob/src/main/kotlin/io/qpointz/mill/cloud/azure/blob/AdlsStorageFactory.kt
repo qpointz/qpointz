@@ -7,6 +7,7 @@ import com.azure.storage.common.StorageSharedKeyCredential
 import io.qpointz.mill.source.BlobSource
 import io.qpointz.mill.source.descriptor.StorageDescriptor
 import io.qpointz.mill.source.factory.StorageFactory
+import org.slf4j.LoggerFactory
 
 /**
  * [StorageFactory] for Azure Data Lake Storage / Blob Storage.
@@ -21,6 +22,8 @@ import io.qpointz.mill.source.factory.StorageFactory
  * 5. **Default** — [com.azure.identity.DefaultAzureCredential] with [AdlsStorageDescriptor.endpoint]
  */
 class AdlsStorageFactory : StorageFactory {
+
+    private val log = LoggerFactory.getLogger(AdlsStorageFactory::class.java)
 
     override val descriptorType: Class<out StorageDescriptor>
         get() = AdlsStorageDescriptor::class.java
@@ -85,6 +88,14 @@ class AdlsStorageFactory : StorageFactory {
 
         val serviceClient = builder.buildClient()
         val containerClient = serviceClient.getBlobContainerClient(descriptor.container)
+        log.trace(
+            "ADLS BlobSource: container={}, prefix={}, endpoint={}, connectionString={}, preferAmbient={}",
+            descriptor.container,
+            descriptor.prefix,
+            descriptor.endpoint.takeIf { it.isNotBlank() } ?: "(from connection string)",
+            if (effectiveCs.isNullOrBlank()) "false" else "true",
+            auth?.preferAmbientCredentials == true,
+        )
         return AdlsBlobSource(containerClient, descriptor.prefix)
     }
 
