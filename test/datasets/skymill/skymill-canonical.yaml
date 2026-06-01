@@ -28,7 +28,7 @@ facets:
   scopeUrn: urn:mill/metadata/scope:global
   mergeAction: SET
   payload:
-    run_id: qsynth-skymill-775a0eab-b93a-452d-be07-1be54c1821ac
+    run_id: qsynth-skymill-a844e590-7266-4444-857b-b1f6c5fa2738
     experiment_names: write_mill_canonical
 ---
 kind: MetadataEntity
@@ -2356,7 +2356,7 @@ facets:
   mergeAction: SET
   payload:
     displayName: Ratings
-    description: Customer satisfaction scores (1â€“5) and post-flight comments. Suitable
+    description: Customer satisfaction scores (1–5) and post-flight comments. Suitable
       for queries about ratings, feedback, or service quality.
 - facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
   scopeUrn: urn:mill/metadata/scope:global

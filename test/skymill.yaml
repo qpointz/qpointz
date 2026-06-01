@@ -13,6 +13,9 @@ experiments:
   write_avro:
     type: avro
     path: "./datasets/{model-name}/avro/{dataset-name}.avro"
+  write_excel_files:
+    type: excel
+    path: "./datasets/{model-name}/xlsx/{dataset-name}.xlsx"
   write_sql:
     type: sql
     path: "./datasets/{model-name}/{model-name}.sql"

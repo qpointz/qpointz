@@ -1,75 +1,75 @@
 erDiagram
 clients {
-	int client_id
-	varchar first_name
-	varchar last_name
-	varchar email
-	varchar phone
-	varchar created_at
-	varchar country
-	varchar city
-	varchar address
-	varchar segment
+	i client_id
+	o first_name
+	o last_name
+	o email
+	o phone
+	o created_at
+	o country
+	o city
+	o address
+	o segment
 }
 accounts {
-	int account_id
-	int client_id
-	varchar account_type
-	decimal balance
-	varchar opened_at
+	i account_id
+	i client_id
+	o account_type
+	f balance
+	o opened_at
 }
 transactions {
-	int transaction_id
-	int account_id
-	varchar transaction_type
-	decimal amount
-	varchar transaction_date
-	varchar description
+	i transaction_id
+	i account_id
+	o transaction_type
+	f amount
+	o transaction_date
+	o description
 }
 loans {
-	int loan_id
-	int client_id
-	decimal amount
-	decimal interest_rate
-	varchar start_date
-	varchar end_date
-	varchar status
+	i loan_id
+	i client_id
+	f amount
+	f interest_rate
+	o start_date
+	o end_date
+	o status
 }
 loan_payments {
-	int payment_id
-	int loan_id
-	varchar payment_date
-	decimal amount
+	i payment_id
+	i loan_id
+	o payment_date
+	f amount
 }
 stock_portfolios {
-	int portfolio_id
-	int client_id
-	varchar portfolio_name
-	varchar created_at
+	i portfolio_id
+	i client_id
+	o portfolio_name
+	o created_at
 }
 stocks {
-	int stock_id
-	varchar ticker
-	varchar company_name
-	varchar sector
-	varchar exchange
+	i stock_id
+	o ticker
+	o company_name
+	o sector
+	o exchange
 }
 stock_holdings {
-	int holding_id
-	int portfolio_id
-	int stock_id
-	int shares
-	decimal average_price
+	i holding_id
+	i portfolio_id
+	i stock_id
+	i shares
+	f average_price
 }
 trade_orders {
-	int order_id
-	int portfolio_id
-	int stock_id
-	varchar order_type
-	varchar order_date
-	int shares
-	decimal limit_price
-	varchar status
+	i order_id
+	i portfolio_id
+	i stock_id
+	o order_type
+	o order_date
+	i shares
+	f limit_price
+	o status
 }
 clients  ||--o{ accounts:has
 accounts  ||--o{ transactions:has
