@@ -1,0 +1,59 @@
+# Copy to terraform.tfvars (gitignored). Do not commit real subscription IDs if policy forbids it.
+#
+#   cp terraform.tfvars.example terraform.tfvars
+
+# --- Required ---
+
+subscription_id = "00000000-0000-0000-0000-000000000000"
+location        = "westeurope"
+
+# --- Naming ---
+
+# Prefix for resource group, Container App, Key Vault, and storage (lowercase, hyphens).
+deployment_name = "mill-minimal-blpr"
+
+# Storage account name (3–24 lowercase alphanumeric, globally unique).
+# Leave unset (null) to auto-generate, or set explicitly:
+# storage_account_name = "millminimalblpr01"
+#
+# When storage_account_name is null, suffix mode:
+# storage_account_name_generation = "hash"    # default — same name per subscription/region/deployment
+# storage_account_name_generation = "random"  # random_id suffix (stable after first apply)
+
+# --- Mill container ---
+
+# Pin a tag or digest for reproducible deploys (default in variables.tf: qpointz/mill-service-minimal:latest).
+image_version = "qpointz/mill-service-minimal:0.8.0rc3"
+
+# Flow / Calcite schema name in config/flow.tpl.yml (output: flow_schema_name).
+schema_name = "minimal"
+
+# Flow schema cache in application.tpl.yml (mill.data.backend.flow.cache.schema).
+# schema_cache_enabled = true
+# schema_cache_ttl     = "5m"   # e.g. 30s, 1m — shorten after blob uploads to pick up new tables
+
+# --- Container Apps scaling and resources ---
+
+# min_replicas = 0
+# max_replicas = 3
+# container_cpu    = 0.5
+# container_memory = "1Gi"
+
+# --- Access and storage lifecycle ---
+
+# Public HTTPS ingress on the Container App FQDN. Set false for internal-only ingress.
+allow_unauthenticated = true
+
+# Dev-friendly storage account teardown. Set false when the account holds production data.
+storage_allow_nested_items_to_be_deleted = true
+
+# Key Vault purge protection — enable for production vaults.
+# key_vault_purge_protection_enabled = false
+
+# --- Java Development Stack (Admin for Spring, JVM metrics) ---
+
+# enable_java_development_stack = true
+# java_enable_metrics           = true
+# java_enable_java_agent        = false
+# enable_admin_for_spring       = true
+# java_admin_component_name     = "admin"

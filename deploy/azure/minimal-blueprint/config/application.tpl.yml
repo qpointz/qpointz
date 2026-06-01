@@ -1,0 +1,55 @@
+%{ if expose_actuator_endpoints ~}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+%{ endif ~}
+
+logging:
+  level:
+    root: INFO
+    # Azure ADLS / Blob backend (mill-cloud-azure-blob + autoconfigure)
+    io.qpointz.mill.cloud.azure.blob: TRACE
+    io.qpointz.mill.cloud.azure.autoconfigure: TRACE
+    # Flow discovery and blob listing (tables from storage)
+    io.qpointz.mill.data.backend.flow: DEBUG
+    io.qpointz.mill.source: DEBUG
+    io.qpointz.mill.source.factory: DEBUG
+    # Azure SDK — HTTP list/read against blob container
+    com.azure.storage.blob: DEBUG
+    com.azure.identity: INFO
+
+mill:
+  ui:
+    enabled: false
+  security:
+    enable: false
+    authentication:
+      basic:
+        enable: true
+  data:
+    sql:
+      dialect: CALCITE
+      conventions:
+        quoting: BACK_TICK
+        caseSensitive: "false"
+        unquotedCasing: UNCHANGED
+    services:
+      grpc:
+        enable: false
+    backend:
+      type: flow
+      flow:
+        cache:
+          schema:
+            enabled: ${schema_cache_enabled}
+            ttl: ${schema_cache_ttl}
+          facets:
+            enabled: true
+            ttl: 30s
+        sources:
+          - /app/config/flow/flow.yml
