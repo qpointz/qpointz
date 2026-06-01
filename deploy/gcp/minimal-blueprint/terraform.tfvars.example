@@ -1,0 +1,7 @@
+# Copy to terraform.tfvars (gitignored). Do not commit real project IDs if policy forbids it.
+#
+#   cp terraform.tfvars.example terraform.tfvars
+
+project_id      = "your-gcp-project"
+region          = "europe-west1"
+deployment_name = "mill-minimal-blpr"
