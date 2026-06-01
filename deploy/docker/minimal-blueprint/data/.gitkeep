@@ -1,0 +1,4 @@
+# Default data directory (mounted at /data in the container). Created by run.sh / run.ps1 if missing.
+# Flat layout — one folder per table:
+#   cities/cities.parquet
+#   orders/orders.csv

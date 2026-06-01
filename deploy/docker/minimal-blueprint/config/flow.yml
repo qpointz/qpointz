@@ -1,0 +1,37 @@
+name: minimal
+storage:
+  type: local
+  rootPath: /data
+conflicts: reject
+readers:
+  - type: parquet
+    table:
+      mapping:
+        type: regex
+        pattern: "(?<table>[^/]+)/[^/]+\\.parquet$"
+        tableNameGroup: table
+  - type: csv
+    format:
+      delimiter: ";"
+      hasHeader: true
+      skipEmptyLines: true
+    table:
+      mapping:
+        type: regex
+        pattern: "(?<table>[^/]+)/[^/]+\\.csv$"
+        tableNameGroup: table
+  - type: avro
+    table:
+      mapping:
+        type: regex
+        pattern: "(?<table>[^/]+)/[^/]+\\.avro$"
+        tableNameGroup: table
+  - type: excel
+    format:
+      hasHeader: true
+      sheetIndex: 0
+    table:
+      mapping:
+        type: regex
+        pattern: "(?<table>[^/]+)/[^/]+\\.xlsx$"
+        tableNameGroup: table
