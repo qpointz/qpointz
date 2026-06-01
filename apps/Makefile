@@ -54,6 +54,8 @@ EDITION ?= basic
 INSTALL_DIR := mill-service/build/install/mill-service-boot-$(EDITION)
 JDEPS_DIR   := mill-service/build/jdeps/$(EDITION)
 MODULES_DIR := mill-service/build/jlink-modules/$(EDITION)
+# jdeps misses JMX remote / -javaagent; must match .gitlab/templates/apps-package-dist.yml
+JLINK_RUNTIME_MODULES := jdk.crypto.ec,jdk.crypto.cryptoki,java.naming,jdk.naming.dns,java.sql,java.management,jdk.management.agent,java.instrument
 
 jdeps-report:
 	cd ../ && ./gradlew --no-daemon --console plain clean :apps:mill-service:installBootDist -Pedition=$(EDITION)
@@ -68,6 +70,7 @@ jdeps-report:
 		--print-module-deps \
 		--class-path "$(JDEPS_DIR)/BOOT-INF/lib/*" \
 		$(JDEPS_DIR)/BOOT-INF/classes > $(MODULES_DIR)/jdeps-modules.csv
+	sed -i "s/$$$$/,$(JLINK_RUNTIME_MODULES)/" $(MODULES_DIR)/jdeps-modules.csv
 	tr ',' '\n' < $(MODULES_DIR)/jdeps-modules.csv | sed '/^$$/d' | sort -u > $(MODULES_DIR)/jdeps-modules.txt
 	$$JAVA_HOME/bin/java --list-modules | cut -d@ -f1 | sort -u > $(MODULES_DIR)/jdk-modules.txt
 	comm -12 $(MODULES_DIR)/jdeps-modules.txt $(MODULES_DIR)/jdk-modules.txt | paste -sd, - > $(MODULES_DIR)/jlink-modules.txt

@@ -45,7 +45,8 @@
         --class-path "${JDEPS_DIR}/BOOT-INF/lib/*" \
         "${JDEPS_DIR}/BOOT-INF/classes" > "${MODULES_DIR}/jdeps-modules.csv"
 
-      RUNTIME_MODULES="jdk.crypto.ec,jdk.crypto.cryptoki,java.naming,jdk.naming.dns,java.sql,java.management"
+      # jdeps does not see JMX remote, -javaagent, or ACA Java Development Stack needs; append for jlink images.
+      RUNTIME_MODULES="jdk.crypto.ec,jdk.crypto.cryptoki,java.naming,jdk.naming.dns,java.sql,java.management,jdk.management.agent,java.instrument"
       sed -i "s/$/,${RUNTIME_MODULES}/" "${MODULES_DIR}/jdeps-modules.csv"
 
       tr ',' '\n' < "${MODULES_DIR}/jdeps-modules.csv" | sed '/^$/d' | sort -u > "${MODULES_DIR}/jdeps-modules.txt"
