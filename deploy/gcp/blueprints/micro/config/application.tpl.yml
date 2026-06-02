@@ -1,0 +1,51 @@
+logging:
+  level:
+    root: debug
+mill:
+  application:
+    name: ${application_name}
+    hosts:
+      externals:
+        http:
+          scheme: $${MILL_EXTERNAL_HOST_SCHEME}
+          host: $${MILL_EXTERNAL_HOST_NAME}
+          port: 443
+  ui:
+    enabled: false
+  security:
+    enable: false
+    authentication:
+      basic:
+        enable: true
+  data:
+    sql:
+      dialect: CALCITE
+      conventions:
+        quoting: BACK_TICK
+        caseSensitive: "false"
+        unquotedCasing: UNCHANGED
+    services:
+      grpc:
+        enable: false
+      http:
+        enable: true
+        external-host: https
+      export:
+        enable: true
+        external-host: https
+      # Paged query-result HTTP API (`/api/v1/query/**`, `mill-data-query-service`). Same enable / external-host pattern as `http` and `export`.
+      query:
+        enable: true
+        external-host: https
+    backend:
+      type: flow
+      flow:
+        cache:
+          schema:
+            enabled: ${schema_cache_enabled}
+            ttl: ${schema_cache_ttl}
+          facets:
+            enabled: true
+            ttl: 30s
+        sources:
+          - /app/config/flow/flow.yml
