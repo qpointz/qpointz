@@ -1,8 +1,10 @@
 # Child pipeline: publish Docker images from a feature branch.
 # Mirrors release Docker jobs (.docker-build-job-release) to GitLab registry and Docker Hub.
+# Version: semantic-release --dry-run next semver + .dev{CI_PIPELINE_ID} (PEP 440); no tags or releases created.
 
 include:
   - local: /.gitlab/common/common.yml
+  - local: /.gitlab/templates/release.yml
   - local: /.gitlab/templates/apps-package-dist.yml
   - local: /.gitlab/templates/clients-jdbc-shell-package-dist.yml
   - local: /.gitlab/pipelines/docker-editions.yml
@@ -17,6 +19,7 @@ stages:
   - package
 
 publish:require-version:
+  extends: .semantic-release-job
   stage: init
   script:
     - |
@@ -28,8 +31,34 @@ publish:require-version:
       if [ -n "${QP_VERSION_PEP440}" ]; then
         echo "Using provided QP_VERSION_PEP440=${QP_VERSION_PEP440}"
       else
-        QP_VERSION_PEP440="0.0.0.dev${CI_PIPELINE_ID}"
-        echo "Derived QP_VERSION_PEP440=${QP_VERSION_PEP440} for branch ${CI_COMMIT_REF_NAME}"
+        export GITLAB_TOKEN="${CI_PUSH_TOKEN}"
+        echo "Computing next semantic-release version for branch ${CI_COMMIT_REF_NAME}..."
+        set +e
+        npx semantic-release --branches "main,rc,${CI_COMMIT_REF_NAME}" --dry-run --no-ci
+        set -e
+
+        if [ -f VERSION ] && [ -s VERSION ]; then
+          RAW_VERSION="$(tr -d '[:space:]' < VERSION)"
+          echo "Next release version: ${RAW_VERSION}"
+        else
+          LATEST_TAG="$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || true)"
+          if [ -z "${LATEST_TAG}" ]; then
+            echo "ERROR: semantic-release dry-run did not produce VERSION and no v* tag found."
+            exit 1
+          fi
+          RAW_VERSION="${LATEST_TAG#v}"
+          echo "No pending semver bump; using latest tag version ${RAW_VERSION}"
+        fi
+
+        BASE_VERSION="$(printf '%s' "${RAW_VERSION}" | sed -nE 's/^([0-9]+\.[0-9]+\.[0-9]+).*/\1/p')"
+        if [ -z "${BASE_VERSION}" ]; then
+          echo "ERROR: Could not parse semver base from: ${RAW_VERSION}"
+          exit 1
+        fi
+
+        # PEP 440 dev release: unique per pipeline, Docker-tag safe (no '+' local version).
+        QP_VERSION_PEP440="${BASE_VERSION}.dev${CI_PIPELINE_ID}"
+        echo "Feature-branch docker version: ${QP_VERSION_PEP440} (from ${RAW_VERSION}, pipeline ${CI_PIPELINE_ID})"
       fi
 
       echo "QP_VERSION_PEP440=${QP_VERSION_PEP440}" > publish-version.env
