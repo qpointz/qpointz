@@ -66,7 +66,6 @@ workflow:
 
 include:
   - local: ${CI_PROJECT_DIR}/.gitlab/common/common.yml
-  - local: ${CI_PROJECT_DIR}/.gitlab/templates/apps-package-dist.yml
   - local: ${CI_PROJECT_DIR}/core/.gitlab-ci.yml
     rules:
       - if: '$CI_COMMIT_REF_PROTECTED != "true" && $CI_PIPELINE_SOURCE != "merge_request_event" && $RUN_INTEGRATION != "true" && $RUN_FULL_TEST != "true"'
@@ -139,41 +138,6 @@ include:
         when: always
       - when: never
 
-
-feature:complete-samples-dist:
-  extends: .apps-package-dist-template
-  stage: build
-  variables:
-    APP_EDITION: "complete-samples"
-  rules:
-    - if: '$CI_COMMIT_TAG'
-      when: never
-    - if: '$CI_COMMIT_REF_PROTECTED == "true"'
-      when: never
-    - if: '$CI_COMMIT_BRANCH'
-      when: always
-    - when: never
-
-feature:complete-samples-docker:
-  stage: build
-  extends: .docker-build-job
-  needs:
-    - job: feature:complete-samples-dist
-      artifacts: true
-  variables:
-    APP_EDITION: "complete-samples"
-    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
-    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/base/Dockerfile
-    DOCKER_BUILD_CONTAINER_NAME: mill-service-${APP_EDITION}
-    DOCKER_BUILD_ARGS: --build-arg APP_EDITION=${APP_EDITION}
-  rules:
-    - if: '$CI_COMMIT_TAG'
-      when: never
-    - if: '$CI_COMMIT_REF_PROTECTED == "true"'
-      when: never
-    - if: '$CI_COMMIT_BRANCH'
-      when: always
-    - when: never
 
 test:downstream:
   stage: build
