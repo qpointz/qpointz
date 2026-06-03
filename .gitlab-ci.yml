@@ -13,7 +13,7 @@ variables:
       - "false"
   RUN_PUBLISH:
     value: "true"
-    description: "Feature-branch Docker publish — false hides the manual publish:docker job"
+    description: "Feature-branch push Docker publish — false hides the manual publish:docker job (not run on MR pipelines)"
     options:
       - "true"
       - "false"
@@ -203,7 +203,9 @@ publish:docker:downstream:
       when: never
     - if: '$RUN_PUBLISH == "false"'
       when: never
-    - if: '$CI_COMMIT_BRANCH || $CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
       when: manual
     - when: never
 
