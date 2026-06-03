@@ -3,6 +3,9 @@ spring:
     activate:
       on-profile: micro-service
 
+server:
+  forward-headers-strategy: framework
+
 logging:
   level:
     root: info
@@ -16,6 +19,14 @@ mill:
           scheme: http
           host: localhost
           port: 8080
+        http-request:
+          scheme: "@request.scheme"
+          host: "@request.host"
+          port: "@request.port"
+        grpc-request:
+          scheme: grpc
+          host: "@request.host"
+          port: 9090
   ui:
     enabled: false
   security:
@@ -35,14 +46,14 @@ mill:
         enable: false
       http:
         enable: true
-        external-host: https
+        external-host: http-request
       export:
         enable: true
-        external-host: https
+        external-host: http-request
       # Paged query-result HTTP API (`/api/v1/query/**`, `mill-data-query-service`). Same enable / external-host pattern as `http` and `export`.
       query:
         enable: true
-        external-host: https
+        external-host: http-request
     backend:
       type: flow
       flow:

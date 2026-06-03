@@ -37,6 +37,9 @@ spring:
     enabled: true
     locations: classpath:db/migration
 
+server:
+  forward-headers-strategy: framework
+
 logging:
   file:
     name: logs/mill-service.log
@@ -58,6 +61,14 @@ mill:
           scheme: grpc
           host: localhost
           port: 9090
+        http-request:
+          scheme: "@request.scheme"
+          host: "@request.host"
+          port: "@request.port"
+        grpc-request:
+          scheme: grpc
+          host: "@request.host"
+          port: 9090
   data:
     sql:
       dialect: calcite
@@ -71,19 +82,19 @@ mill:
       session-expire-after-access: PT10M
     services:
       grpc:
-        external-host: grpc
+        external-host: grpc-request
         port: 9090
         enable: true
       http:
         enable: true
-        external-host: http
+        external-host: http-request
       export:
         enable: true
-        external-host: http
+        external-host: http-request
       # Paged query-result HTTP API (`/api/v1/query/**`, `mill-data-query-service`). Same enable / external-host pattern as `http` and `export`.
       query:
         enable: true
-        external-host: http
+        external-host: http-request
   ## LEGACY subject to review
   security:
     enable: false

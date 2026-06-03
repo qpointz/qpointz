@@ -32,7 +32,7 @@ module "app_config" {
   content          = templatefile(
       "${path.module}/config/application.tpl.yml",
       {
-          application_name     = join("-", ["mill", var.deployment_name])
+          application_name     = join("-", ["mill", var.deployment_stack_name, var.deployment_name])
           schema_cache_enabled = var.schema_cache_enabled ? "true" : "false"
           schema_cache_ttl     = var.schema_cache_ttl
       })
