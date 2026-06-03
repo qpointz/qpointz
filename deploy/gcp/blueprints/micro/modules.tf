@@ -36,7 +36,7 @@ module "app_config" {
           schema_cache_enabled = var.schema_cache_enabled ? "true" : "false"
           schema_cache_ttl     = var.schema_cache_ttl
       })
-  file_name        = "appplication.yml"
+  file_name        = "application.yml"
   file_mount_path  = "/app/config/"
   labels           = module.labels.labels
   depends_on       = [google_project_service.apis]
@@ -71,6 +71,16 @@ module "service" {
     module.flow_config.secret_volume
   ]
   envs = [
+    {
+       kind = "static"
+       name = "SPRING_PROFILES_ACTIVE"
+       value = "micro-service"
+    },
+    {
+      kind  = "static"
+      name  = "SPRING_CONFIG_ADDITIONAL_LOCATION"
+      value = "file:/app/config/application.yml"
+    }
   ]
   runtime_sa_email = module.runtime-sa.service_account_email
   max_instance_count = var.service_max_instance_count

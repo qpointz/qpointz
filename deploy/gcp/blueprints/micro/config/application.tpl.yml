@@ -1,15 +1,21 @@
+spring:
+  config:
+    activate:
+      on-profile: micro-service
+
 logging:
   level:
-    root: debug
+    root: info
+
 mill:
   application:
     name: ${application_name}
     hosts:
       externals:
         http:
-          scheme: $${MILL_EXTERNAL_HOST_SCHEME}
-          host: $${MILL_EXTERNAL_HOST_NAME}
-          port: 443
+          scheme: http
+          host: localhost
+          port: 8080
   ui:
     enabled: false
   security:

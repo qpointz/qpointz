@@ -71,9 +71,9 @@ mill:
       session-expire-after-access: PT10M
     services:
       grpc:
-        enable: true
         external-host: grpc
         port: 9090
+        enable: true
       http:
         enable: true
         external-host: http

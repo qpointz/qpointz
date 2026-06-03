@@ -27,7 +27,7 @@ output "secret_volume" {
   value = {
     kind = "secret",
     volume_name = local.config_name,
-    secret_id   = google_secret_manager_secret.config.secret_id,
+    secret_id   = google_secret_manager_secret.config.id,
     file_name   = var.file_name,
     mount_path  = var.file_mount_path,
     version     = "latest"
