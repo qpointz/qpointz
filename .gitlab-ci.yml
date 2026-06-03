@@ -12,10 +12,9 @@ variables:
       - "true"
       - "false"
   RUN_PUBLISH:
-    value: "false"
-    description: "Publish include control: auto (protected only), true (force), false (disable)"
+    value: "true"
+    description: "Feature-branch Docker publish — false hides the manual publish:docker job"
     options:
-      - "auto"
       - "true"
       - "false"
   RUN_FULL_TEST:
@@ -224,6 +223,25 @@ publish:semantic-release:
   script:
     - export GITLAB_TOKEN=${CI_PUSH_TOKEN}
     - npx semantic-release --ci
+
+publish:docker:downstream:
+  stage: publish
+  trigger:
+    include:
+      - local: .gitlab/pipelines/publish-docker.yml
+    strategy: depend
+    forward:
+      pipeline_variables: true
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: never
+    - if: '$CI_COMMIT_REF_PROTECTED == "true"'
+      when: never
+    - if: '$RUN_PUBLISH == "false"'
+      when: never
+    - if: '$CI_COMMIT_BRANCH || $CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: manual
+    - when: never
 
 release:downstream:
   stage: release

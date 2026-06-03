@@ -1,0 +1,164 @@
+# Shared Mill service and client Docker edition build jobs.
+# Included by release and feature-branch publish child pipelines.
+# Requires publish:require-version (dotenv QP_VERSION_PEP440) from the parent pipeline.
+
+apps:minimal-edition-dist:
+  extends: .apps-package-dist-template
+  stage: build
+  needs:
+    - job: publish:require-version
+      artifacts: true
+  variables:
+    APPS_PROJECT_VERSION: ${QP_VERSION_PEP440}
+    APP_EDITION: "minimal"
+  artifacts:
+    expire_in: "1 days"
+    paths:
+      - ${CI_PROJECT_DIR}/apps/mill-service/build/install/**/*
+      - ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/samples/data/**/*
+
+apps:minimal-edition-docker:
+  stage: package
+  extends: .docker-build-job-release
+  needs:
+    - job: publish:require-version
+      artifacts: true
+    - job: apps:minimal-edition-dist
+      artifacts: true
+  variables:
+    APP_EDITION: "minimal"
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/base/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME: mill-service-${APP_EDITION}
+    DOCKER_BUILD_ARGS: --build-arg APP_EDITION=${APP_EDITION}
+
+apps:samples-edition-dist:
+  extends: .apps-package-dist-template
+  stage: build
+  needs:
+    - job: publish:require-version
+      artifacts: true
+  variables:
+    APPS_PROJECT_VERSION: ${QP_VERSION_PEP440}
+    APP_EDITION: "samples"
+  artifacts:
+    expire_in: "1 days"
+    paths:
+      - ${CI_PROJECT_DIR}/apps/mill-service/build/install/**/*
+
+apps:samples-edition-docker:
+  stage: package
+  extends: .docker-build-job-release
+  before_script:
+    - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+  needs:
+    - job: publish:require-version
+      artifacts: true
+    - job: apps:samples-edition-dist
+      artifacts: true
+  variables:
+    APP_EDITION: "samples"
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/base/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME: mill-service-${APP_EDITION}
+    DOCKER_BUILD_ARGS: --build-arg APP_EDITION=${APP_EDITION}
+
+ui:build:
+  extends: .node-job
+  stage: build
+  script:
+    - cd ${CI_PROJECT_DIR}/ui/mill-ui
+    - npm install
+    - npm run build
+  artifacts:
+    expire_in: "5 days"
+    paths:
+      - ${CI_PROJECT_DIR}/services/mill-ui-service/src/main/resources/static/**/*
+
+apps:complete-edition-dist:
+  extends: .apps-package-dist-template
+  stage: build
+  needs:
+    - job: publish:require-version
+      artifacts: true
+    - job: ui:build
+      artifacts: true
+  variables:
+    APPS_PROJECT_VERSION: ${QP_VERSION_PEP440}
+    APP_EDITION: "complete"
+  artifacts:
+    expire_in: "1 days"
+    paths:
+      - ${CI_PROJECT_DIR}/apps/mill-service/build/install/**/*
+
+apps:complete-edition-docker:
+  stage: package
+  extends: .docker-build-job-release
+  before_script:
+    - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+  needs:
+    - job: publish:require-version
+      artifacts: true
+    - job: apps:complete-edition-dist
+      artifacts: true
+  variables:
+    APP_EDITION: "complete"
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/base/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME: mill-service-${APP_EDITION}
+    DOCKER_BUILD_ARGS: --build-arg APP_EDITION=${APP_EDITION}
+
+apps:complete-samples-edition-dist:
+  extends: .apps-package-dist-template
+  stage: build
+  needs:
+    - job: publish:require-version
+      artifacts: true
+    - job: ui:build
+      artifacts: true
+  variables:
+    APPS_PROJECT_VERSION: ${QP_VERSION_PEP440}
+    APP_EDITION: "complete-samples"
+  artifacts:
+    expire_in: "1 days"
+    paths:
+      - ${CI_PROJECT_DIR}/apps/mill-service/build/install/**/*
+
+apps:complete-samples-edition-docker:
+  stage: package
+  extends: .docker-build-job-release
+  before_script:
+    - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+  needs:
+    - job: publish:require-version
+      artifacts: true
+    - job: apps:complete-samples-edition-dist
+      artifacts: true
+  variables:
+    APP_EDITION: "complete-samples"
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/apps/mill-service
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/base/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME: mill-service-${APP_EDITION}
+    DOCKER_BUILD_ARGS: --build-arg APP_EDITION=${APP_EDITION}
+
+clients:jdbc-shell-dist:
+  extends: .clients-jdbc-shell-package-dist-template
+  stage: build
+  needs:
+    - job: publish:require-version
+      artifacts: true
+  variables:
+    CLIENTS_PROJECT_VERSION: ${QP_VERSION_PEP440}
+
+clients:jdbc-shell-docker:
+  stage: package
+  extends: .docker-build-job-release
+  needs:
+    - job: publish:require-version
+      artifacts: true
+    - job: clients:jdbc-shell-dist
+      artifacts: true
+  variables:
+    DOCKER_BUILD_CTX: ${CI_PROJECT_DIR}/clients/mill-jdbc-shell
+    DOCKER_BUILD_FILE: ${CI_PROJECT_DIR}/clients/mill-jdbc-shell/src/main/docker/Dockerfile
+    DOCKER_BUILD_CONTAINER_NAME: jdbc-shell

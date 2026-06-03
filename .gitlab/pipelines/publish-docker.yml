@@ -1,0 +1,39 @@
+# Child pipeline: publish Docker images from a feature branch.
+# Mirrors release Docker jobs (.docker-build-job-release) to GitLab registry and Docker Hub.
+
+include:
+  - local: /.gitlab/common/common.yml
+  - local: /.gitlab/templates/apps-package-dist.yml
+  - local: /.gitlab/templates/clients-jdbc-shell-package-dist.yml
+  - local: /.gitlab/pipelines/docker-editions.yml
+
+workflow:
+  rules:
+    - when: always
+
+stages:
+  - init
+  - build
+  - package
+
+publish:require-version:
+  stage: init
+  script:
+    - |
+      if [ -z "${CI_COMMIT_REF_SLUG}" ]; then
+        echo "ERROR: CI_COMMIT_REF_SLUG is required for feature-branch docker publish."
+        exit 1
+      fi
+
+      if [ -n "${QP_VERSION_PEP440}" ]; then
+        echo "Using provided QP_VERSION_PEP440=${QP_VERSION_PEP440}"
+      else
+        QP_VERSION_PEP440="0.0.0.dev${CI_PIPELINE_ID}"
+        echo "Derived QP_VERSION_PEP440=${QP_VERSION_PEP440} for branch ${CI_COMMIT_REF_NAME}"
+      fi
+
+      echo "QP_VERSION_PEP440=${QP_VERSION_PEP440}" > publish-version.env
+      cat publish-version.env
+  artifacts:
+    reports:
+      dotenv: publish-version.env
