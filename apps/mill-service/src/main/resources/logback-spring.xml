@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Spring Boot logback (springProperty, %wEx, Boot FILE). Console: Logback colors + ASCII |, not %clr. -->
+<!--
+  Local/dev: colored console + rolling file (default). Plain only when QP_LOGGING_PLAIN=true.
+  Cloud Run (profile micro-service): structured JSON to stdout only — see application.tpl.yml.
+  Note: CONSOLE uses withJansi=false so Logback writes ANSI directly (works in IDEA/Cursor
+  despite NO_COLOR in the shell). Jansi (withJansi=true) strips colors in IDE consoles.
+  Set QP_LOGGING_JANSI=true on Windows CMD if colors are missing there.
+-->
 <configuration debug="${QP_LOGGING_DEBUG:-false}">
     <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
 
@@ -7,29 +13,77 @@
 
     <springProperty name="CONSOLE_LOG_PATTERN" source="logging.pattern.console"
                     defaultValue="%gray(|) %cyan(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}) %gray(|) %yellow(%-15.15thread) %gray(|) %highlight(%-5level) %gray(|) %magenta(%-28.28logger{28}) %gray(|) %msg%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+    <springProperty name="PLAIN_CONSOLE_LOG_PATTERN" source="logging.pattern.plain-console"
+                    defaultValue="%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}} | %-15.15thread | ${LOG_LEVEL_PATTERN:-%-5level} | %-28.28logger{28} | %msg%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
     <springProperty name="FILE_LOG_PATTERN" source="logging.pattern.file"
                     defaultValue="%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}} | %-15.15thread | ${LOG_LEVEL_PATTERN:-%-5level} | %-28.28logger{28} | %msg%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
 
     <springProperty name="LOG_FILE" source="logging.file.name" defaultValue="logs/mill-service.log"/>
-
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <!-- Match working plain logback.xml (COLOR without Jansi wrapping on your setup). -->
-        <withJansi>false</withJansi>
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>${CONSOLE_LOG_THRESHOLD}</level>
-        </filter>
-        <encoder>
-            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
-            <charset>${CONSOLE_LOG_CHARSET}</charset>
-        </encoder>
-    </appender>
-
-    <include resource="org/springframework/boot/logging/logback/file-appender.xml"/>
-
     <springProperty name="ROOT_LOG_LEVEL" source="logging.level.root" defaultValue="${QP_LOGGING_LEVEL:-INFO}"/>
 
-    <root level="${ROOT_LOG_LEVEL}">
-        <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="FILE"/>
-    </root>
+    <!-- Google Cloud Run (micro-service profile): JSON stdout for Cloud Logging severity + jsonPayload. -->
+    <springProfile name="micro-service">
+        <springProperty name="CONSOLE_LOG_STRUCTURED_FORMAT" source="logging.structured.format.console"
+                        defaultValue="logstash"/>
+        <appender name="CONSOLE_STRUCTURED" class="ch.qos.logback.core.ConsoleAppender">
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                <level>${CONSOLE_LOG_THRESHOLD}</level>
+            </filter>
+            <encoder class="org.springframework.boot.logging.logback.StructuredLogEncoder">
+                <format>${CONSOLE_LOG_STRUCTURED_FORMAT}</format>
+                <charset>${CONSOLE_LOG_CHARSET}</charset>
+            </encoder>
+        </appender>
+
+        <root level="${ROOT_LOG_LEVEL}">
+            <appender-ref ref="CONSOLE_STRUCTURED"/>
+        </root>
+    </springProfile>
+
+    <!-- Local and non-Cloud Run profiles: colored or plain console + optional file. -->
+    <springProfile name="!micro-service">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <!-- false: Logback %highlight/%cyan emit ANSI directly (IDE-friendly). Jansi honors NO_COLOR. -->
+            <withJansi>false</withJansi>
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                <level>${CONSOLE_LOG_THRESHOLD}</level>
+            </filter>
+            <encoder>
+                <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+                <charset>${CONSOLE_LOG_CHARSET}</charset>
+            </encoder>
+        </appender>
+
+        <appender name="CONSOLE_PLAIN" class="ch.qos.logback.core.ConsoleAppender">
+            <withJansi>false</withJansi>
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                <level>${CONSOLE_LOG_THRESHOLD}</level>
+            </filter>
+            <encoder>
+                <pattern>${PLAIN_CONSOLE_LOG_PATTERN}</pattern>
+                <charset>${CONSOLE_LOG_CHARSET}</charset>
+            </encoder>
+        </appender>
+
+        <include resource="org/springframework/boot/logging/logback/file-appender.xml"/>
+
+        <condition class="ch.qos.logback.core.boolex.PropertyEqualityCondition">
+            <key>QP_LOGGING_PLAIN</key>
+            <value>true</value>
+        </condition>
+        <if>
+            <then>
+                <root level="${ROOT_LOG_LEVEL}">
+                    <appender-ref ref="CONSOLE_PLAIN"/>
+                    <appender-ref ref="FILE"/>
+                </root>
+            </then>
+            <else>
+                <root level="${ROOT_LOG_LEVEL}">
+                    <appender-ref ref="CONSOLE"/>
+                    <appender-ref ref="FILE"/>
+                </root>
+            </else>
+        </if>
+    </springProfile>
 </configuration>

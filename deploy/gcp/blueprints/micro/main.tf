@@ -24,15 +24,15 @@ resource "google_project_service" "apis" {
   disable_on_destroy = false
 }
 
-# resource "google_storage_folder" "seeds" {
-#   bucket = module.bucket.bucket_name
-#   name   = "seeds/"
-# }
-#
-# resource "google_storage_folder" "data" {
-#   bucket = module.bucket.bucket_name
-#   name   = "data/"
-# }
+resource "google_storage_folder" "seeds" {
+  bucket = module.bucket.bucket_name
+  name   = "seeds/"
+}
+
+resource "google_storage_folder" "data" {
+  bucket = module.bucket.bucket_name
+  name   = "data/"
+}
 
 resource "google_storage_bucket_iam_member" "runtime_main_bucket_viewer" {
   bucket     = module.bucket.bucket_name
@@ -51,6 +51,13 @@ resource "google_secret_manager_secret_iam_member" "application_config_runtime" 
 resource "google_secret_manager_secret_iam_member" "flow_config_runtime" {
   project   = var.project_id
   secret_id = module.flow_config.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = module.runtime-sa.service_account_member
+}
+
+resource "google_secret_manager_secret_iam_member" "auth_config_runtime" {
+  project   = var.project_id
+  secret_id = module.auth_config.secret_id
   role      = "roles/secretmanager.secretAccessor"
   member    = module.runtime-sa.service_account_member
 }

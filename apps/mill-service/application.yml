@@ -61,6 +61,24 @@ mill:
   security:
     enable: true
     allow-registration: true
+    authentication:
+      basic:
+        enable: true
+        store: jpa
+---
+spring:
+  config:
+    activate:
+      on-profile: secure-file
+mill:
+  security:
+    enable: true
+    allow-registration: false
+    authentication:
+      basic:
+        enable: true
+        # Classpath works from any working directory; file:./config/auth.yml for external edits (same content).
+        store: file:./config/auth.yml
 ---
 spring:
   config:

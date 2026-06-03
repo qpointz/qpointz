@@ -60,6 +60,21 @@ module "flow_config" {
   depends_on       = [google_project_service.apis]
 }
 
+module "auth_config" {
+  source           =  "../../resources/config-file"
+  project_id       = var.project_id
+  deployment_name  = var.deployment_name
+  content          = templatefile(
+    "${path.module}/config/auth.tpl.yml",
+    {
+    }
+  )
+  file_name        = "auth.yml"
+  file_mount_path  = "/app/config/auth/"
+  labels           = module.labels.labels
+  depends_on       = [google_project_service.apis]
+}
+
 module "service" {
   source = "../../resources/cloud-run"
   project_id = var.project_id
@@ -68,7 +83,8 @@ module "service" {
   labels = module.labels.labels
   volumes = [
     module.app_config.secret_volume,
-    module.flow_config.secret_volume
+    module.flow_config.secret_volume,
+    module.auth_config.secret_volume
   ]
   envs = [
     {
@@ -80,6 +96,11 @@ module "service" {
       kind  = "static"
       name  = "SPRING_CONFIG_ADDITIONAL_LOCATION"
       value = "file:/app/config/application.yml"
+    },
+    {
+      kind  = "static"
+      name  = "GOOGLE_CLOUD_PROJECT"
+      value = var.project_id
     }
   ]
   runtime_sa_email = module.runtime-sa.service_account_email

@@ -5,9 +5,9 @@ resource "google_storage_bucket" "main_bucket" {
   uniform_bucket_level_access = true
   labels                      = var.labels
   force_destroy               = var.force_destroy
-  # hierarchical_namespace {
-  #   enabled = false
-  # }
+  hierarchical_namespace {
+     enabled = true
+  }
 }
 
 output "bucket_name" {

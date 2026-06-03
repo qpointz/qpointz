@@ -47,6 +47,7 @@ logging:
     rollingpolicy:
       max-file-size: 10MB
       max-history: 30
+  # Local default: colored console (Logback ANSI; not Jansi — works in IDEA). Plain: QP_LOGGING_PLAIN=true.
 
 mill:
   application:
@@ -193,3 +194,31 @@ mill:
       pgvector:
         table: mill_langchain_embedding_store
         create-table: true
+---
+# JPA-backed basic auth with registration. Requires a JDBC datasource (e.g. postgres profile).
+spring:
+  config:
+    activate:
+      on-profile: secure
+mill:
+  security:
+    enable: true
+    allow-registration: true
+    authentication:
+      basic:
+        enable: true
+        store: jpa
+---
+# Minimal security: file-backed basic auth (admin in classpath config/auth.yml). Pair with skymill, postgres, etc.
+spring:
+  config:
+    activate:
+      on-profile: secure-minimal
+mill:
+  security:
+    enable: true
+    allow-registration: false
+    authentication:
+      basic:
+        enable: true
+        store: classpath:config/auth.yml

@@ -9,6 +9,15 @@ server:
 logging:
   level:
     root: info
+  # Cloud Run: stdout JSON only (no container file logs). See logback-spring.xml profile micro-service.
+  file:
+    name:
+  structured:
+    format:
+      console: logstash
+    json:
+      rename:
+        level: severity
 
 mill:
   application:
@@ -30,10 +39,11 @@ mill:
   ui:
     enabled: false
   security:
-    enable: false
+    enable: true
     authentication:
       basic:
         enable: true
+        store: file:/app/config/auth/auth.yml
   data:
     sql:
       dialect: CALCITE
