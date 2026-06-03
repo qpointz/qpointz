@@ -142,7 +142,7 @@ mill:
     authentication:
       basic:
         enable: true
-        file-store: file:/app/config/auth/auth.yml
+        store: file:/app/config/auth/auth.yml
 ```
 
 Restart the container.

@@ -38,4 +38,4 @@ mill:
     authentication:
       basic:
         enable: true
-        file-store: classpath:passwd.yml
+        store: classpath:passwd.yml

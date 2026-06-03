@@ -22,7 +22,7 @@ mill:
     authentication:
         basic:
           enable: true
-          file-store: classpath:userstore/passwd.yml
+          store: classpath:userstore/passwd.yml
         oauth2-resource-server:
           enable: true
           jwt:

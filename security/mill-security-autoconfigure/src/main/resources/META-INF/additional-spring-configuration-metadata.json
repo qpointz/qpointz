@@ -54,5 +54,15 @@
       "name": "mill.security.authorization.policy.actions[0].params",
       "type": "java.util.Map<String,Object>",
       "description": "Action to be applied."
+    },
+    {
+      "name": "mill.security.authentication.basic.enable",
+      "type": "java.lang.Boolean",
+      "description": "Enables HTTP Basic authentication backed by a file or JPA credential store."
+    },
+    {
+      "name": "mill.security.authentication.basic.store",
+      "type": "java.lang.String",
+      "description": "Credential store: jpa for database-backed users, or a Spring resource (file:, classpath:) for YAML passwd files."
     }
   ] }

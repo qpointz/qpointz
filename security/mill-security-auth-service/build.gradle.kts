@@ -33,6 +33,7 @@ testing {
                 implementation(libs.assertj.core)
                 implementation(project(":security:mill-service-security"))
                 implementation(project(":security:mill-security-persistence"))
+                implementation(project(":security:mill-security-autoconfigure"))
                 runtimeOnly(libs.h2.database)
             }
         }

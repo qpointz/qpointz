@@ -28,7 +28,7 @@
 |-----|------|-------------|--------|-------------|---------------|-------|
 | `mill.security.enable` | Boolean | `SecurityConfig` (`@ConfigurationProperties`) | core:mill-security-autoconfigure | `OnSecurityEnabledCondition` (all `@ConditionalOnSecurity` users) | **security-autoconfigure** | Master switch |
 | `mill.security.authentication.basic.enable` | Boolean | `PasswordAuthenticationConfiguration` (`@ConditionalOnProperty`) | core:mill-security-autoconfigure | — | none | |
-| `mill.security.authentication.basic.file-store` | String | `PasswordAuthenticationConfiguration` (`@Value`) | core:mill-security-autoconfigure | — | none | Resource path to passwd YAML |
+| `mill.security.authentication.basic.store` | String | `BasicAuthenticationProperties`, store conditions | core:mill-security-autoconfigure | JPA/file `PasswordEncoder` | **security-autoconfigure** | `jpa` or resource path (e.g. `file:./config/auth.yml`) |
 | `mill.security.authentication.oauth2-resource-server.enable` | Boolean | `OAuth2AuthenticationConfiguration` (`@ConditionalOnProperty`) | core:mill-security-autoconfigure | — | none | |
 | `mill.security.authentication.oauth2-resource-server.jwt.jwk-set-uri` | String | Spring Boot OAuth2 auto-config | core:mill-security-autoconfigure | `OAuth2AuthenticationConfiguration` | **security-autoconfigure** | Standard Spring property |
 | `mill.security.authentication.entra-id-token.enable` | Boolean | `EntraIdAuthenticationConfiguration` (`@ConditionalOnProperty`) | core:mill-security-autoconfigure | — | **security-autoconfigure** | |
@@ -126,7 +126,7 @@ Processor-generated `spring-configuration-metadata.json` also exists for `MillUi
 ### Keys missing metadata JSON (no IDE auto-complete)
 
 - All `mill.backend.*` keys (10 keys)
-- `mill.security.authentication.basic.enable`, `mill.security.authentication.basic.file-store`
+- `mill.security.authentication.basic.enable`, `mill.security.authentication.basic.store`
 - `mill.security.authorization.policy.selector.granted-authority.remap`
 - Legacy `mill.metadata.annotations`, `mill.metadata.relations`, `mill.metadata.file.repository.path` (no processor entry in table above). Greenfield **`mill.metadata.repository.*`** / **`mill.metadata.seed.*`** are declared on **`MetadataProperties`** / **`MetadataSeedProperties`** in **mill-metadata-autoconfigure** (Java `@ConfigurationProperties` → check generated `spring-configuration-metadata.json` in that module after build).
 - All `mill.ai.*` keys (6 keys)

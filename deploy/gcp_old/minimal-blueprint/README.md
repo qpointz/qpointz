@@ -181,7 +181,7 @@ mill:
     authentication:
       basic:
         enable: true
-        file-store: file:/app/config/auth/auth.yml
+        store: file:/app/config/auth/auth.yml
 ```
 
 Then update `auth.tpl.yml` with your users (prefer `{bcrypt}…` or another delegating prefix, not `{noop}` in production).

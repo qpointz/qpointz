@@ -4,7 +4,7 @@ mill:
     authentication:
       basic:
         enable: true
-        file-store: file:/app/config/passwd.yaml
+        store: file:/app/config/passwd.yaml
       oauth2-resource-server:
         enable: true
         jwt:

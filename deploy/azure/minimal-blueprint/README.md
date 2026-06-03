@@ -242,7 +242,7 @@ Template variables (passed from [`locals.tf`](locals.tf) / [`main.tf`](main.tf) 
 
 ### Enabling HTTP Basic auth
 
-Same as GCP: set `mill.security.enable: true` and `basic.file-store: file:/app/config/auth/auth.yml` in `application.tpl.yml`, then replace demo users in `auth.tpl.yml`.
+Same as GCP: set `mill.security.enable: true` and `basic.store: file:/app/config/auth/auth.yml` in `application.tpl.yml`, then replace demo users in `auth.tpl.yml`.
 
 ---
 

@@ -9,6 +9,7 @@ import io.qpointz.mill.persistence.security.jpa.repositories.UserIdentityReposit
 import io.qpointz.mill.persistence.security.jpa.repositories.UserRepository
 import io.qpointz.mill.security.authentication.AuthenticationMethod
 import io.qpointz.mill.security.authentication.basic.BasicAuthenticationMethod
+import io.qpointz.mill.security.authentication.basic.ConditionalOnBasicAuthenticationJpaStore
 import io.qpointz.mill.security.authentication.basic.providers.UserRepoAuthenticationProvider
 import io.qpointz.mill.security.domain.PasswordHasher
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
@@ -35,13 +36,13 @@ import org.springframework.security.crypto.password.PasswordEncoder
  * - A [PasswordHasher] defaulting to [NoOpPasswordHasher] (`@ConditionalOnMissingBean`) for
  *   use when creating or updating credentials. Replace in production by declaring any other
  *   [PasswordHasher] bean.
- * - A [BasicAuthenticationMethod] backed by [UserRepoAuthenticationProvider] and [JpaUserRepo],
- *   at priority 299 (just below the file-store BASIC default of 300, ensuring JPA wins when
- *   both are active).
+ * - A [BasicAuthenticationMethod] backed by [UserRepoAuthenticationProvider] and [JpaUserRepo]
+ *   when {@code mill.security.authentication.basic.store=jpa}.
  */
 @Configuration
 @ConditionalOnSecurity
 @ConditionalOnClass(UserIdentityRepository::class)
+@ConditionalOnBasicAuthenticationJpaStore
 open class JpaPasswordAuthenticationConfiguration {
 
     /**
@@ -51,7 +52,6 @@ open class JpaPasswordAuthenticationConfiguration {
      * @return delegating [PasswordEncoder] dispatching on `{prefix}` in stored hash
      */
     @Bean
-    @ConditionalOnMissingBean(PasswordEncoder::class)
     open fun jpaPasswordEncoder(): PasswordEncoder =
         PasswordEncoderFactories.createDelegatingPasswordEncoder()
 
