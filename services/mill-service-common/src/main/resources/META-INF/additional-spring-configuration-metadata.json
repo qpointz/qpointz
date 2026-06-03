@@ -12,8 +12,8 @@
     },
     {
       "name": "mill.application.hosts.externals",
-      "type": "java.util.Map<java.lang.String,io.qpointz.mill.service.descriptors.ServiceAddressDescriptor>",
-      "description": "Named externally reachable service addresses (for example default-https/default-http/default-grpc)"
+      "type": "java.util.Map<java.lang.String,io.qpointz.mill.service.configuration.ServiceAddressProperties$ServiceEndpointDescriptor>",
+      "description": "Named externally reachable service addresses (e.g. http, grpc-request). Field values may use @request.scheme, @request.host, @request.port (quote in YAML). Resolved per HTTP request by ExternalHostsProvider."
     }
   ]
 }
