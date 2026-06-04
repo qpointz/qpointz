@@ -169,7 +169,7 @@ cloud:integration:
     paths:
       - ${CI_PROJECT_DIR}/clients/mill-py/build/test-results/*.xml
 
-# File-backed basic auth (classpath config/auth.yml: admin / admin123).
+# File-backed basic auth (external etc/auth/auth.yml in image: admin / admin123).
 .mill-py-integration-auth-template:
   extends: .mill-py-integration-template
   variables:

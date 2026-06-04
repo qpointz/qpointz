@@ -141,8 +141,21 @@ val installSampleCerts = tasks.register<Copy>("installSampleCerts") {
 
 }
 
+/** Copies {@code config/auth.yml} into the boot install tree (not the JAR) for {@code secure-file} / {@code secure-minimal}. */
+val installAuthConfig = tasks.register<Copy>("installAuthConfig") {
+    group = "distribution"
+    description = "Installs external basic-auth user store beside the distribution (etc/auth/auth.yml)"
+
+    val editionInstallDir = mill.editions.selectedEdition.flatMap { edition ->
+        layout.buildDirectory.dir("install/${project.name}-boot-$edition")
+    }
+
+    from(layout.projectDirectory.file("config/auth.yml"))
+    into(editionInstallDir.map { it.dir("etc/auth") })
+}
+
 tasks.named("installBootDist") {
-    finalizedBy(installSampleData, installSampleCerts)
+    finalizedBy(installSampleData, installSampleCerts, installAuthConfig)
 }
 
 dependencies {

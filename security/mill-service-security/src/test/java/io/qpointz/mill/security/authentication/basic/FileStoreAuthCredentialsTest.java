@@ -11,7 +11,7 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Verifies the secure-minimal user store ({@code classpath:config/auth.yml}) authenticates {@code admin}.
+ * Verifies a file-backed user store ({@code classpath:config/auth.yml} test fixture) authenticates {@code admin}.
  */
 class FileStoreAuthCredentialsTest {
 

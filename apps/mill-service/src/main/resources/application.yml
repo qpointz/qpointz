@@ -211,7 +211,7 @@ mill:
         enable: true
         store: jpa
 ---
-# Minimal security: file-backed basic auth (admin in classpath config/auth.yml). Pair with skymill, postgres, etc.
+# Minimal security: file-backed basic auth. Mount or copy auth.yml outside the JAR (see MILL_AUTH_STORE).
 spring:
   config:
     activate:
@@ -223,7 +223,7 @@ mill:
     authentication:
       basic:
         enable: true
-        store: classpath:config/auth.yml
+        store: ${MILL_AUTH_STORE:file:/app/etc/auth/auth.yml}
 ---
 # Alias for local overrides in apps/mill-service/application.yml (same defaults as secure-minimal).
 spring:
@@ -237,4 +237,4 @@ mill:
     authentication:
       basic:
         enable: true
-        store: classpath:config/auth.yml
+        store: ${MILL_AUTH_STORE:file:/app/etc/auth/auth.yml}

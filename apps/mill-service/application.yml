@@ -77,7 +77,7 @@ mill:
     authentication:
       basic:
         enable: true
-        store: classpath:config/auth.yml
+        store: ${MILL_AUTH_STORE:file:config/auth.yml}
 ---
 spring:
   config:
