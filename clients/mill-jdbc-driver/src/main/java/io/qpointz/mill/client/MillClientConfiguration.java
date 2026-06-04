@@ -139,10 +139,15 @@ public class MillClientConfiguration {
                     .password(password);
         }
 
+        /**
+         * When the JDBC URL omits a port, HTTP/HTTPS use scheme defaults (80/443) by returning
+         * {@code <= 0} so {@link HttpMillClient} omits an explicit port. Local dev must set
+         * {@code :8080} (or another port) in the URL explicitly.
+         */
         private static int defaultPort(Properties properties) {
             var protocol = properties.getProperty(CLIENT_PROTOCOL_PROP, CLIENT_PROTOCOL_GRPC_VALUE);
             if (CLIENT_PROTOCOL_HTTP_VALUE.equals(protocol) || CLIENT_PROTOCOL_HTTPS_VALUE.equals(protocol)) {
-                return 8080;
+                return -1;
             }
             return 9090;
         }

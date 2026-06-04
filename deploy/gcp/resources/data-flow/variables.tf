@@ -1,8 +1,3 @@
-variable "bucket_name" {
-  description = "Short bucket name"
-  type        = string
-}
-
 variable "context" {
   description = "Deployment Context"
   type = object({
@@ -18,12 +13,12 @@ variable "context" {
   })
 }
 
-variable "objects" {
-  description = "Objects to create"
-  default = []
-  type = list(object({
-    name    = string
-    source  = optional(string,null)
-    content = optional(string,null)
-  }))
+variable "bucket_name" {
+  description = "bucket"
+  type = string
+}
+
+variable "data" {
+  type = map(list(string))
+  default = {}
 }

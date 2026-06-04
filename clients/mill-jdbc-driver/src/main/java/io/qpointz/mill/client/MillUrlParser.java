@@ -64,10 +64,37 @@ public class MillUrlParser {
 
     public static Properties apply(Properties... properties) {
         val effective = new Properties();
-        for (int i=0;i<properties.length;i++) {
-            effective.putAll(properties[i]);
+        for (var source : properties) {
+            mergeInto(effective, source);
         }
         return effective;
+    }
+
+    /**
+     * Merges connection properties without letting blank DBeaver/JDBC {@code user}, {@code password},
+     * or {@code bearerToken} values wipe credentials parsed from {@code user:pass@host} in the URL.
+     */
+    private static void mergeInto(Properties target, Properties source) {
+        for (var key : source.stringPropertyNames()) {
+            var value = source.getProperty(key);
+            if (isBlankCredentialValue(key, value) && target.containsKey(key) && !isBlank(target.getProperty(key))) {
+                continue;
+            }
+            if (value == null) {
+                target.remove(key);
+            } else {
+                target.setProperty(key, value);
+            }
+        }
+    }
+
+    private static boolean isBlankCredentialValue(String key, String value) {
+        return isBlank(value)
+                && (USERNAME_PROP.equals(key) || PASSWORD_PROP.equals(key) || BEARER_TOKEN_PROP.equals(key));
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 
     public static Properties parseUrl(String url) {

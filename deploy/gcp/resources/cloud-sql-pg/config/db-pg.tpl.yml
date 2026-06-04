@@ -1,0 +1,18 @@
+spring:
+  config:
+    activate:
+      on-profile: cloud-sql-pg
+#ll
+  datasource:
+    url: jdbc:postgresql://${MILL_DB_HOST}:5432/${MILL_DB}
+    driver-class-name: org.postgresql.Driver
+    username: ${MILL_DB_USERNAME}
+    password: $${MILL_DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 2
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true

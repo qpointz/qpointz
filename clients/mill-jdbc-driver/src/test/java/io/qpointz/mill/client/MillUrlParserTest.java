@@ -58,4 +58,46 @@ class MillUrlParserTest {
         assertEquals("secret", config.getPassword());
     }
 
+    @Test
+    void httpsCloudRunUrlWithoutPortDoesNotDefaultTo8080() {
+        val merged = MillUrlParser.apply("jdbc:mill:https://mld6-run-service.example.run.app");
+        val config = MillClientConfiguration.builder().fromProperties(merged).build();
+        assertEquals(CLIENT_PROTOCOL_HTTPS_VALUE, config.getProtocol());
+        assertTrue(config.getPort() <= 0, "HTTPS without port must not default to 8080");
+    }
+
+    @Test
+    void urlEmbeddedCredentialsSurviveEmptyDbeaverProperties() {
+        val info = new java.util.Properties();
+        info.setProperty("user", "");
+        info.setProperty("password", "");
+        val merged = MillUrlParser.apply("jdbc:mill:https://admin:secret@host/services/jet", info);
+        val config = MillClientConfiguration.builder().fromProperties(merged).build();
+        assertEquals("admin", config.getUsername());
+        assertEquals("secret", config.getPassword());
+    }
+
+    @Test
+    void explicitConnectionPropertiesOverrideUrlCredentials() {
+        val info = new java.util.Properties();
+        info.setProperty("user", "other");
+        info.setProperty("password", "override");
+        val merged = MillUrlParser.apply("jdbc:mill:https://admin:secret@host/services/jet", info);
+        val config = MillClientConfiguration.builder().fromProperties(merged).build();
+        assertEquals("other", config.getUsername());
+        assertEquals("override", config.getPassword());
+    }
+
+    @Test
+    void httpsClientUrlOmitsPortForCloudRunHost() {
+        val client = HttpMillClient.builder()
+                .protocol("https")
+                .host("mld6-run-service.example.run.app")
+                .port(-1)
+                .path("/services/jet/")
+                .useBasicAuthentication("admin", "secret")
+                .build();
+        assertEquals("https://mld6-run-service.example.run.app/services/jet/", client.getClientUrl());
+    }
+
 }

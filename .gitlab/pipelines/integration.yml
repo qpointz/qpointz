@@ -169,13 +169,13 @@ cloud:integration:
     paths:
       - ${CI_PROJECT_DIR}/clients/mill-py/build/test-results/*.xml
 
-# File-backed basic auth (external etc/auth/auth.yml in image: admin / admin123).
+# File-backed basic auth (external etc/auth/auth.yml in image: admin / admin).
 .mill-py-integration-auth-template:
   extends: .mill-py-integration-template
   variables:
     MILL_IT_AUTH: "basic"
     MILL_IT_USERNAME: "admin"
-    MILL_IT_PASSWORD: "admin123"
+    MILL_IT_PASSWORD: "admin"
   services:
     - name: ${CI_REGISTRY_IMAGE}/mill-service-integration:${CI_COMMIT_REF_SLUG}
       alias: mill-it
@@ -537,7 +537,7 @@ mill-py:http-protobuf-basic:3.14:
   variables:
     MILL_IT_AUTH: "basic"
     MILL_IT_USERNAME: "admin"
-    MILL_IT_PASSWORD: "admin123"
+    MILL_IT_PASSWORD: "admin"
   services:
     - name: ${CI_REGISTRY_IMAGE}/mill-service-integration:${CI_COMMIT_REF_SLUG}
       alias: mill

@@ -1,24 +1,24 @@
 spring:
   config:
     activate:
-      on-profile: gcp
+      on-profile: cloud-run
 
 server:
   forward-headers-strategy: framework
 
 logging:
-    level:
-      root: debug
-      #io.qpointz.mill.security: DEBUG
+  level:
+    root: info
+    io.qpointz: DEBUG
     # Cloud Run: stdout JSON (profile gcp) and no file appender.
-    file:
-      enabled: false
-    structured:
-      format:
-        console: logstash
-      json:
-        rename:
-          level: severity
+  file:
+    enabled: false
+  structured:
+    format:
+      console: logstash
+    json:
+      rename:
+        level: severity
 
 mill:
   application:
@@ -37,14 +37,6 @@ mill:
           scheme: grpc
           host: "@request.host"
           port: 9090
-  ui:
-    enabled: false
-  security:
-    enable: ${auth_enable}
-    authentication:
-      basic:
-        enable: ${auth_basic_enable}
-        store: file:/app/config/auth/auth.yml
   data:
     sql:
       dialect: CALCITE
@@ -61,19 +53,20 @@ mill:
       export:
         enable: true
         external-host: http-request
-      # Paged query-result HTTP API (`/api/v1/query/**`, `mill-data-query-service`). Same enable / external-host pattern as `http` and `export`.
       query:
         enable: true
         external-host: http-request
-    backend:
-      type: flow
-      flow:
-        cache:
-          schema:
-            enabled: ${schema_cache_enabled}
-            ttl: ${schema_cache_ttl}
-          facets:
-            enabled: true
-            ttl: 30s
-        sources:
-          - /app/config/flow/flow.yml
+  cloud:
+    gcp:
+      gcs:
+        project-id: "${project_id}"
+  ui:
+    enabled: ${ui_enabled}
+  metadata:
+    seed:
+      resources:
+        - "classpath:metadata/platform-bootstrap.yaml"
+        - "classpath:metadata/platform-flow-facet-types.yaml"
+  %{ for s in metadata_seeds }
+        - ${s.path}
+  %{endfor }

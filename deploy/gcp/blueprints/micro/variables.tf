@@ -37,6 +37,17 @@ variable "region" {
 # Flow backend — schema cache (application.tpl.yml → mill.data.backend.flow.cache.schema)
 # -----------------------------------------------------------------------------
 
+variable "backend" {
+  description = "Backend to be used with service available value flow, jdbc"
+  default     = "flow"
+}
+
+variable "backend_flow_config_as_secret" {
+  description = "When true created flow source config as secret"
+  type        = bool
+  default     = false
+}
+
 variable "schema_cache_enabled" {
   description = "Maps to mill.data.backend.flow.cache.schema.enabled in the rendered application.yml. When true, Mill reuses resolved Flow/Calcite schemas across requests (fewer GCS listings on repeat queries). Passed to templatefile as the YAML boolean true/false."
   type        = bool
@@ -104,7 +115,12 @@ variable "auth_basic_enable" {
   default     = false
 }
 
-variable "auth_seed_users" {
+variable "auth_basic_store" {
+  description = "User store (jpa - db store, file - file store)"
+  type = string
+}
+
+variable "auth_basic_seed_users" {
   description = "Users for basic authentication"
   type        = list(object({
     user      = string
@@ -118,4 +134,51 @@ variable "auth_seed_users" {
       groups   = ["admin"]
     }
   ]
+}
+
+# -----------------------------------------------------------------------------
+# Db settings
+# -----------------------------------------------------------------------------
+variable "db" {
+  description = "Db to use. values `in-memory`, `cloud-sql`"
+  type        = string
+  default     = "in-memory"
+}
+
+variable "metadata_seeds" {
+  description = "metadata seeds"
+  type = list(string)
+  default = []
+}
+
+variable "flow_sample" {
+  description = "upload samples to data"
+  type = map(list(string))
+  default = null
+}
+
+# -----------------------------------------------------------------------------
+# AI settings
+# -----------------------------------------------------------------------------
+variable "ai_enable" {
+  description = ""
+  type = bool
+}
+
+variable "ai_openai_key" {
+  sensitive = true
+  type = string
+}
+
+
+variable "ai_openai_model" {
+  type = string
+}
+
+variable "ai_openai_embed_model" {
+  type = string
+}
+
+variable "ai_openai_embed_dim" {
+  type = number
 }

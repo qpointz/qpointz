@@ -1,6 +1,0 @@
-users:
-%{ for u in users ~}
-  - name: ${u.user}
-    password: {${u.hash_algo}}${u.password_hash}"
-    groups: [ ${join(",", u.groups)} ]
-%{endfor ~}

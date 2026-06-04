@@ -4,7 +4,6 @@ locals {
 }
 
 resource "google_secret_manager_secret" "config" {
-  project   = var.project_id
   secret_id = local.secret_id
 
   replication {
@@ -32,6 +31,18 @@ output "secret_volume" {
     mount_path  = var.file_mount_path,
     version     = "latest"
   }
+}
+
+output "volumes" {
+  value = [{
+    volume_name = local.config_name,
+    mount_path  = var.file_mount_path,
+    secret = {
+      id = google_secret_manager_secret.config.id,
+      file_name = var.file_name,
+      version   = "latest"
+    }
+  }]
 }
 
 output "secret_data" {

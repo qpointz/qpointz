@@ -1,0 +1,12 @@
+spring:
+  config:
+    activate:
+      on-profile: auth-basic
+
+mill:
+  security:
+    enable: ${auth_enable}
+    authentication:
+      basic:
+        enable: ${auth_basic_enable}
+        store: ${store}

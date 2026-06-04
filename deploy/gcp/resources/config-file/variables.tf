@@ -1,8 +1,3 @@
-variable "project_id" {
-  description = "GCP project ID where APIs, Cloud Run, the bucket, secrets, and the runtime service account are created."
-  type        = string
-}
-
 variable "labels" {
   description = "config labels"
   type        = any

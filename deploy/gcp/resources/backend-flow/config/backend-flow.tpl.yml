@@ -1,0 +1,19 @@
+spring:
+  config:
+    activate:
+      on-profile: backend-flow
+
+mill:
+  data:
+    backend:
+      type: flow
+      flow:
+        cache:
+          schema:
+            enabled: ${schema_cache_enabled}
+            ttl: ${schema_cache_ttl}
+          facets:
+            enabled: true
+            ttl: 30s
+        sources:
+          - ${flow_config_path}

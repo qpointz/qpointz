@@ -1,8 +1,3 @@
-variable "bucket_name" {
-  description = "Short bucket name"
-  type        = string
-}
-
 variable "context" {
   description = "Deployment Context"
   type = object({
@@ -18,12 +13,20 @@ variable "context" {
   })
 }
 
-variable "objects" {
-  description = "Objects to create"
-  default = []
-  type = list(object({
-    name    = string
-    source  = optional(string,null)
-    content = optional(string,null)
-  }))
+variable "ai" {
+  type = object({
+    enable= optional(bool,false)
+  })
+}
+
+variable "openai" {
+  sensitive = true
+  type = object({
+    key = string
+    model = optional(string,"gpt-4o-mini")
+    embedding = object({
+      model = optional(string, "text-embedding-3-small")
+      dimension = optional(number, 1536)
+    })
+  })
 }
