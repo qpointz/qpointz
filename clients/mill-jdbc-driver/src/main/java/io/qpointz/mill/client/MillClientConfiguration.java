@@ -115,8 +115,8 @@ public class MillClientConfiguration {
             return this
                     .stringProp(properties, HOST_PROP, null, this::host)
                     .stringProp(properties, API_PATH_PROP, DEFAULT_API_PATH, this::path)
-                    .anyProp(properties, PORT_PROP, 9090, Integer::parseInt, this::port)
-                    .stringProp(properties, USERNAME_PROP, null, this::username)
+                    .anyProp(properties, PORT_PROP, defaultPort(properties), Integer::parseInt, this::port)
+                    .stringProp(properties, USERNAME_PROP, null, this::username, "username")
                     .stringProp(properties, PASSWORD_PROP, null, this::password)
                     .stringProp(properties, BEARER_TOKEN_PROP, null, this::bearerToken)
                     .stringProp(properties, TLS_KEY_CERT_CHAIN_PROP, null, this::tlsKeyCertChain)
@@ -139,8 +139,30 @@ public class MillClientConfiguration {
                     .password(password);
         }
 
-        private MillClientConfigurationBuilder stringProp(Properties properties, String key, String defaultValue, Consumer<String> consumer ) {
-            return anyProp(properties, key, defaultValue, k->k , consumer);
+        private static int defaultPort(Properties properties) {
+            var protocol = properties.getProperty(CLIENT_PROTOCOL_PROP, CLIENT_PROTOCOL_GRPC_VALUE);
+            if (CLIENT_PROTOCOL_HTTP_VALUE.equals(protocol) || CLIENT_PROTOCOL_HTTPS_VALUE.equals(protocol)) {
+                return 8080;
+            }
+            return 9090;
+        }
+
+        private MillClientConfigurationBuilder stringProp(
+                Properties properties,
+                String key,
+                String defaultValue,
+                Consumer<String> consumer,
+                String... aliases
+        ) {
+            if (!properties.containsKey(key)) {
+                for (var alias : aliases) {
+                    if (properties.containsKey(alias)) {
+                        consumer.accept(properties.getProperty(alias));
+                        return this;
+                    }
+                }
+            }
+            return anyProp(properties, key, defaultValue, k -> k, consumer);
         }
 
         private <T> MillClientConfigurationBuilder anyProp(Properties properties, String key, T defaultValue, Function<String,T> convert, Consumer<T> consume) {
@@ -149,7 +171,20 @@ public class MillClientConfiguration {
                     consume.accept(defaultValue);
                 }
             } else {
-                consume.accept(convert.apply(properties.getProperty(key)));
+                var raw = properties.getProperty(key);
+                if (PORT_PROP.equals(key) && raw != null) {
+                    try {
+                        var parsed = Integer.parseInt(raw.trim());
+                        if (parsed <= 0) {
+                            consume.accept(defaultValue);
+                            return this;
+                        }
+                    } catch (NumberFormatException ignored) {
+                        consume.accept(defaultValue);
+                        return this;
+                    }
+                }
+                consume.accept(convert.apply(raw));
             }
             return this;
         }

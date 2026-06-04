@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Local/dev: colored console + rolling file (default). Plain only when QP_LOGGING_PLAIN=true.
-  Cloud Run (profile micro-service): structured JSON to stdout only — see application.tpl.yml.
-  Note: CONSOLE uses withJansi=false so Logback writes ANSI directly (works in IDEA/Cursor
-  despite NO_COLOR in the shell). Jansi (withJansi=true) strips colors in IDE consoles.
-  Set QP_LOGGING_JANSI=true on Windows CMD if colors are missing there.
+  Console: colored by default; plain when QP_LOGGING_PLAIN=true.
+  File: when logging.file.enabled=true and logging.file.name is set (default local path in application.yml).
+  Disable file logs: logging.file.enabled=false and/or omit logging.file.name (safe on read-only filesystems).
+  Cloud Run (profile gcp): structured JSON to stdout only — see deploy/gcp/blueprints/micro/config/application.tpl.yml.
+  CONSOLE uses withJansi=false so Logback writes ANSI directly (IDE-friendly despite NO_COLOR in the shell).
 -->
 <configuration debug="${QP_LOGGING_DEBUG:-false}">
     <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
@@ -18,11 +18,12 @@
     <springProperty name="FILE_LOG_PATTERN" source="logging.pattern.file"
                     defaultValue="%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}} | %-15.15thread | ${LOG_LEVEL_PATTERN:-%-5level} | %-28.28logger{28} | %msg%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
 
-    <springProperty name="LOG_FILE" source="logging.file.name" defaultValue="logs/mill-service.log"/>
+    <springProperty name="LOG_FILE" source="logging.file.name"/>
+    <springProperty name="LOGGING_FILE_ENABLED" source="logging.file.enabled" defaultValue="true"/>
     <springProperty name="ROOT_LOG_LEVEL" source="logging.level.root" defaultValue="${QP_LOGGING_LEVEL:-INFO}"/>
 
-    <!-- Google Cloud Run (micro-service profile): JSON stdout for Cloud Logging severity + jsonPayload. -->
-    <springProfile name="micro-service">
+    <!-- Google Cloud Run (gcp profile): JSON stdout for Cloud Logging severity + jsonPayload. -->
+    <springProfile name="gcp">
         <springProperty name="CONSOLE_LOG_STRUCTURED_FORMAT" source="logging.structured.format.console"
                         defaultValue="logstash"/>
         <appender name="CONSOLE_STRUCTURED" class="ch.qos.logback.core.ConsoleAppender">
@@ -40,10 +41,9 @@
         </root>
     </springProfile>
 
-    <!-- Local and non-Cloud Run profiles: colored or plain console + optional file. -->
-    <springProfile name="!micro-service">
+    <!-- Local and other profiles: console + optional rolling file. -->
+    <springProfile name="!gcp">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-            <!-- false: Logback %highlight/%cyan emit ANSI directly (IDE-friendly). Jansi honors NO_COLOR. -->
             <withJansi>false</withJansi>
             <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
                 <level>${CONSOLE_LOG_THRESHOLD}</level>
@@ -65,7 +65,11 @@
             </encoder>
         </appender>
 
-        <include resource="org/springframework/boot/logging/logback/file-appender.xml"/>
+        <if condition='property("LOGGING_FILE_ENABLED").equalsIgnoreCase("true") &amp;&amp; property("LOG_FILE").length() &gt; 0'>
+            <then>
+                <include resource="org/springframework/boot/logging/logback/file-appender.xml"/>
+            </then>
+        </if>
 
         <condition class="ch.qos.logback.core.boolex.PropertyEqualityCondition">
             <key>QP_LOGGING_PLAIN</key>
@@ -73,16 +77,34 @@
         </condition>
         <if>
             <then>
-                <root level="${ROOT_LOG_LEVEL}">
-                    <appender-ref ref="CONSOLE_PLAIN"/>
-                    <appender-ref ref="FILE"/>
-                </root>
+                <if condition='property("LOGGING_FILE_ENABLED").equalsIgnoreCase("true") &amp;&amp; property("LOG_FILE").length() &gt; 0'>
+                    <then>
+                        <root level="${ROOT_LOG_LEVEL}">
+                            <appender-ref ref="CONSOLE_PLAIN"/>
+                            <appender-ref ref="FILE"/>
+                        </root>
+                    </then>
+                    <else>
+                        <root level="${ROOT_LOG_LEVEL}">
+                            <appender-ref ref="CONSOLE_PLAIN"/>
+                        </root>
+                    </else>
+                </if>
             </then>
             <else>
-                <root level="${ROOT_LOG_LEVEL}">
-                    <appender-ref ref="CONSOLE"/>
-                    <appender-ref ref="FILE"/>
-                </root>
+                <if condition='property("LOGGING_FILE_ENABLED").equalsIgnoreCase("true") &amp;&amp; property("LOG_FILE").length() &gt; 0'>
+                    <then>
+                        <root level="${ROOT_LOG_LEVEL}">
+                            <appender-ref ref="CONSOLE"/>
+                            <appender-ref ref="FILE"/>
+                        </root>
+                    </then>
+                    <else>
+                        <root level="${ROOT_LOG_LEVEL}">
+                            <appender-ref ref="CONSOLE"/>
+                        </root>
+                    </else>
+                </if>
             </else>
         </if>
     </springProfile>

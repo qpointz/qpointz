@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.slf4j.LoggerFactory
 import org.springframework.security.web.SecurityFilterChain
 
 /**
@@ -20,6 +21,8 @@ import org.springframework.security.web.SecurityFilterChain
 open class AuthPublicSecurityConfiguration {
 
     companion object {
+        private val log = LoggerFactory.getLogger(AuthPublicSecurityConfiguration::class.java)
+
         /** Spring Security order value for this filter chain — fires before the default auth chains. */
         const val ORDER = -6
 
@@ -38,10 +41,12 @@ open class AuthPublicSecurityConfiguration {
      */
     @Bean
     @Order(ORDER)
-    open fun permitAuthPublicPaths(http: HttpSecurity): SecurityFilterChain =
-        http.securityMatcher(AUTH_PUBLIC_PATTERN)
+    open fun permitAuthPublicPaths(http: HttpSecurity): SecurityFilterChain {
+        log.info("Registering permit-all security filter chain for {}", AUTH_PUBLIC_PATTERN)
+        return http.securityMatcher(AUTH_PUBLIC_PATTERN)
             .authorizeHttpRequests { it.anyRequest().permitAll() }
             .csrf { it.disable() }
             .cors { it.disable() }
             .build()
+    }
 }

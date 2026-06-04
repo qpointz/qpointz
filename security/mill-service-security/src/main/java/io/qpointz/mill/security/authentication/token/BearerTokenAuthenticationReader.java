@@ -28,12 +28,17 @@ public class BearerTokenAuthenticationReader implements AuthenticationReader {
         val header = tokenSupplier.get();
 
         if (header == null || header.isEmpty() || !header.toLowerCase().startsWith(prefix.toLowerCase())) {
-            log.debug("No value for 'Bearer' authentication provided");
+            log.debug("No Bearer Authorization header present");
             return null;
         }
 
         val token = header.substring(prefix.length()+1);
+        if (token.isBlank()) {
+            log.warn("Bearer Authorization header has empty token");
+            return null;
+        }
 
+        log.debug("Bearer Authorization header present (length={})", token.length());
         return new BearerTokenAuthenticationToken(token);
     }
 }

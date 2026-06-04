@@ -88,3 +88,34 @@ variable "service_limits_memory" {
   type        = string
   default     = "2Gi"
 }
+
+# -----------------------------------------------------------------------------
+# Authentication settings
+# -----------------------------------------------------------------------------
+variable "auth_enable" {
+  description = "Enables authentication"
+  type        = bool
+  default     = true
+}
+
+variable "auth_basic_enable" {
+  description = "Enables basic authentication"
+  type        = bool
+  default     = false
+}
+
+variable "auth_seed_users" {
+  description = "Users for basic authentication"
+  type        = list(object({
+    user      = string
+    password  = optional(string,"")
+    groups    = optional(set(string),[])
+  }))
+  default     = [
+    {
+      user     = "admin",
+      password = "{noop}admin"
+      groups   = ["admin"]
+    }
+  ]
+}

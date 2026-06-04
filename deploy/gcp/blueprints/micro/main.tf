@@ -4,6 +4,10 @@ terraform {
       source  = "hashicorp/google"
       version = ">= 7.23.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.9"
+    }
   }
 }
 # -----------------------------------------------------------------------------
@@ -56,6 +60,7 @@ resource "google_secret_manager_secret_iam_member" "flow_config_runtime" {
 }
 
 resource "google_secret_manager_secret_iam_member" "auth_config_runtime" {
+  count     = var.auth_basic_enable == true ? 1 : 0
   project   = var.project_id
   secret_id = module.auth_config.secret_id
   role      = "roles/secretmanager.secretAccessor"

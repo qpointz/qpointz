@@ -6,6 +6,7 @@ import io.qpointz.mill.security.authentication.AuthenticationMethods;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -55,7 +56,7 @@ public class SecurityConfig {
      * initialized. This constructor is called by Spring during context startup.
      */
     public SecurityConfig() {
-        log.debug("Default security configuration initialized");
+        log.info("Mill security configuration module loaded");
     }
 
     /**
@@ -72,8 +73,30 @@ public class SecurityConfig {
      */
     @Bean
     public AuthenticationMethods authenticationMethods(Optional<List<? extends AuthenticationMethod>> providers) {
-        log.debug("Build Authentication methods");
-        return new AuthenticationMethods(providers.orElse(List.of()));
+        val methods = new AuthenticationMethods(providers.orElse(List.of()));
+        if (enable) {
+            log.info(
+                    "Mill security enabled; registered authentication types: {}",
+                    methods.getAuthenticationTypes()
+            );
+            methods.getProviders().forEach(m ->
+                    log.info(
+                            "  authentication method: type={}, priority={}, provider={}",
+                            m.getAuthenticationType(),
+                            m.getMethodPriority(),
+                            m.getAuthenticationProvider().getClass().getSimpleName()
+                    )
+            );
+            if (methods.getProviders().isEmpty()) {
+                log.warn(
+                        "Mill security is enabled but no AuthenticationMethod beans are registered; "
+                                + "requests to secured routes will return 401"
+                );
+            }
+        } else {
+            log.info("Mill security disabled (mill.security.enable=false)");
+        }
+        return methods;
     }
 
     /**

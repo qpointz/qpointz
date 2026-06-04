@@ -139,12 +139,16 @@ cloud:integration:
       echo "  MILL_IT_SCHEMA=${MILL_IT_SCHEMA}"
       echo "  MILL_IT_PLATFORM_ORIGIN=${MILL_IT_PLATFORM_ORIGIN}"
     - |
+      CURL_AUTH=""
+      if [ "${MILL_IT_AUTH}" = "basic" ]; then
+        CURL_AUTH="-u ${MILL_IT_USERNAME}:${MILL_IT_PASSWORD}"
+      fi
       if [ "${MILL_IT_PROTOCOL}" = "http-json" ] || [ "${MILL_IT_PROTOCOL}" = "http-protobuf" ] || [ "${MILL_IT_PROTOCOL}" = "http" ]; then
         echo "HTTP route diagnostics (non-fatal):"
-        curl -i -X POST "http://${MILL_IT_HOST}:${MILL_IT_PORT}${MILL_IT_BASE_PATH}/Handshake" \
+        curl -i ${CURL_AUTH} -X POST "http://${MILL_IT_HOST}:${MILL_IT_PORT}${MILL_IT_BASE_PATH}/Handshake" \
           -H "Content-Type: application/json" \
           -d '{}' || true
-        curl -i -X POST "http://${MILL_IT_HOST}:${MILL_IT_PORT}/api/Handshake" \
+        curl -i ${CURL_AUTH} -X POST "http://${MILL_IT_HOST}:${MILL_IT_PORT}/api/Handshake" \
           -H "Content-Type: application/json" \
           -d '{}' || true
       fi
@@ -164,6 +168,20 @@ cloud:integration:
       junit: ${CI_PROJECT_DIR}/clients/mill-py/build/test-results/*.xml
     paths:
       - ${CI_PROJECT_DIR}/clients/mill-py/build/test-results/*.xml
+
+# File-backed basic auth (classpath config/auth.yml: admin / admin123).
+.mill-py-integration-auth-template:
+  extends: .mill-py-integration-template
+  variables:
+    MILL_IT_AUTH: "basic"
+    MILL_IT_USERNAME: "admin"
+    MILL_IT_PASSWORD: "admin123"
+  services:
+    - name: ${CI_REGISTRY_IMAGE}/mill-service-integration:${CI_COMMIT_REF_SLUG}
+      alias: mill-it
+      command: ["--spring.profiles.active=skymill,secure-file"]
+      entrypoint: ["./bin/mill-service"]
+      pull_policy: [always]
 
 
 #   mill-py 3.12
@@ -211,6 +229,53 @@ mill-py:http-protobuf-noauth:3.12:
     MILL_IT_BASE_PATH: "/services/jet"
     MILL_IT_TLS: "false"
     MILL_IT_AUTH: "none"
+    MILL_IT_SCHEMA: "skymill"
+
+mill-py:grpc-basic:3.12:
+  extends:
+    - .mill-py-integration-auth-template
+  needs:
+    - job: mill-py:grpc-noauth:3.12
+      optional: true
+  variables:
+    PY_VER: "3.12"
+    MILL_IT_HOST: "mill-it"
+    MILL_IT_PORT: "9090"
+    MILL_IT_PROTOCOL: "grpc"
+    MILL_IT_BASE_PATH: "/services/jet"
+    MILL_IT_TLS: "false"
+    MILL_IT_SCHEMA: "skymill"
+    MILL_IT_PLATFORM_ORIGIN: "http://mill-it:8080"
+
+mill-py:http-json-basic:3.12:
+  extends:
+    - .mill-py-integration-auth-template
+  needs:
+    - job: mill-py:http-json-noauth:3.12
+      optional: true
+  variables:
+    PY_VER: "3.12"
+    MILL_IT_HOST: "mill-it"
+    MILL_IT_PORT: "8080"
+    MILL_IT_PROTOCOL: "http-json"
+    MILL_IT_BASE_PATH: "/services/jet"
+    MILL_IT_TLS: "false"
+    MILL_IT_SCHEMA: "skymill"
+    MILL_IT_PLATFORM_ORIGIN: "http://mill-it:8080"
+
+mill-py:http-protobuf-basic:3.12:
+  extends:
+    - .mill-py-integration-auth-template
+  needs:
+    - job: mill-py:http-protobuf-noauth:3.12
+      optional: true
+  variables:
+    PY_VER: "3.12"
+    MILL_IT_HOST: "mill-it"
+    MILL_IT_PORT: "8080"
+    MILL_IT_PROTOCOL: "http-protobuf"
+    MILL_IT_BASE_PATH: "/services/jet"
+    MILL_IT_TLS: "false"
     MILL_IT_SCHEMA: "skymill"
 
 
@@ -262,9 +327,55 @@ mill-py:http-protobuf-noauth:3.13:
     MILL_IT_AUTH: "none"
     MILL_IT_SCHEMA: "skymill"
 
+mill-py:grpc-basic:3.13:
+  extends:
+    - .mill-py-integration-auth-template
+  needs:
+    - job: mill-py:grpc-noauth:3.13
+      optional: true
+  variables:
+    PY_VER: "3.13"
+    MILL_IT_HOST: "mill-it"
+    MILL_IT_PORT: "9090"
+    MILL_IT_PROTOCOL: "grpc"
+    MILL_IT_BASE_PATH: "/services/jet"
+    MILL_IT_TLS: "false"
+    MILL_IT_SCHEMA: "skymill"
+    MILL_IT_PLATFORM_ORIGIN: "http://mill-it:8080"
+
+mill-py:http-json-basic:3.13:
+  extends:
+    - .mill-py-integration-auth-template
+  needs:
+    - job: mill-py:http-json-noauth:3.13
+      optional: true
+  variables:
+    PY_VER: "3.13"
+    MILL_IT_HOST: "mill-it"
+    MILL_IT_PORT: "8080"
+    MILL_IT_PROTOCOL: "http-json"
+    MILL_IT_BASE_PATH: "/services/jet"
+    MILL_IT_TLS: "false"
+    MILL_IT_SCHEMA: "skymill"
+    MILL_IT_PLATFORM_ORIGIN: "http://mill-it:8080"
+
+mill-py:http-protobuf-basic:3.13:
+  extends:
+    - .mill-py-integration-auth-template
+  needs:
+    - job: mill-py:http-protobuf-noauth:3.13
+      optional: true
+  variables:
+    PY_VER: "3.13"
+    MILL_IT_HOST: "mill-it"
+    MILL_IT_PORT: "8080"
+    MILL_IT_PROTOCOL: "http-protobuf"
+    MILL_IT_BASE_PATH: "/services/jet"
+    MILL_IT_TLS: "false"
+    MILL_IT_SCHEMA: "skymill"
 
 
-#   mill-py 3.13
+#   mill-py 3.14
 mill-py:grpc-noauth:3.14:
   extends:
     - .mill-py-integration-template
@@ -312,6 +423,53 @@ mill-py:http-protobuf-noauth:3.14:
     MILL_IT_AUTH: "none"
     MILL_IT_SCHEMA: "skymill"
 
+mill-py:grpc-basic:3.14:
+  extends:
+    - .mill-py-integration-auth-template
+  needs:
+    - job: mill-py:grpc-noauth:3.14
+      optional: true
+  variables:
+    PY_VER: "3.14"
+    MILL_IT_HOST: "mill-it"
+    MILL_IT_PORT: "9090"
+    MILL_IT_PROTOCOL: "grpc"
+    MILL_IT_BASE_PATH: "/services/jet"
+    MILL_IT_TLS: "false"
+    MILL_IT_SCHEMA: "skymill"
+    MILL_IT_PLATFORM_ORIGIN: "http://mill-it:8080"
+
+mill-py:http-json-basic:3.14:
+  extends:
+    - .mill-py-integration-auth-template
+  needs:
+    - job: mill-py:http-json-noauth:3.14
+      optional: true
+  variables:
+    PY_VER: "3.14"
+    MILL_IT_HOST: "mill-it"
+    MILL_IT_PORT: "8080"
+    MILL_IT_PROTOCOL: "http-json"
+    MILL_IT_BASE_PATH: "/services/jet"
+    MILL_IT_TLS: "false"
+    MILL_IT_SCHEMA: "skymill"
+    MILL_IT_PLATFORM_ORIGIN: "http://mill-it:8080"
+
+mill-py:http-protobuf-basic:3.14:
+  extends:
+    - .mill-py-integration-auth-template
+  needs:
+    - job: mill-py:http-protobuf-noauth:3.14
+      optional: true
+  variables:
+    PY_VER: "3.14"
+    MILL_IT_HOST: "mill-it"
+    MILL_IT_PORT: "8080"
+    MILL_IT_PROTOCOL: "http-protobuf"
+    MILL_IT_BASE_PATH: "/services/jet"
+    MILL_IT_TLS: "false"
+    MILL_IT_SCHEMA: "skymill"
+
 .mill-jdbc-integration-template:  
   stage: integration
   extends:
@@ -351,12 +509,16 @@ mill-py:http-protobuf-noauth:3.14:
       echo "  MILL_IT_TLS=${MILL_IT_TLS}"
       echo "  MILL_IT_SCHEMA=${MILL_IT_SCHEMA}"
     - |
+      CURL_AUTH=""
+      if [ "${MILL_IT_AUTH}" = "basic" ]; then
+        CURL_AUTH="-u ${MILL_IT_USERNAME}:${MILL_IT_PASSWORD}"
+      fi
       if [ "${MILL_IT_PROTOCOL}" = "http-json" ] || [ "${MILL_IT_PROTOCOL}" = "http-protobuf" ] || [ "${MILL_IT_PROTOCOL}" = "http" ]; then
         echo "HTTP route diagnostics (non-fatal):"
-        curl -i -X POST "http://${MILL_IT_HOST}:${MILL_IT_PORT}${MILL_IT_BASE_PATH}/Handshake" \
+        curl -i ${CURL_AUTH} -X POST "http://${MILL_IT_HOST}:${MILL_IT_PORT}${MILL_IT_BASE_PATH}/Handshake" \
           -H "Content-Type: application/json" \
           -d '{}' || true
-        curl -i -X POST "http://${MILL_IT_HOST}:${MILL_IT_PORT}/api/Handshake" \
+        curl -i ${CURL_AUTH} -X POST "http://${MILL_IT_HOST}:${MILL_IT_PORT}/api/Handshake" \
           -H "Content-Type: application/json" \
           -d '{}' || true
       fi
@@ -369,6 +531,19 @@ mill-py:http-protobuf-noauth:3.14:
     paths:
       - ${CI_PROJECT_DIR}/clients/mill-jdbc-driver/build/reports/tests/testIT/**
       - ${CI_PROJECT_DIR}/clients/mill-jdbc-driver/build/test-results/testIT/*.xml
+
+.mill-jdbc-integration-auth-template:
+  extends: .mill-jdbc-integration-template
+  variables:
+    MILL_IT_AUTH: "basic"
+    MILL_IT_USERNAME: "admin"
+    MILL_IT_PASSWORD: "admin123"
+  services:
+    - name: ${CI_REGISTRY_IMAGE}/mill-service-integration:${CI_COMMIT_REF_SLUG}
+      alias: mill
+      command: ["--spring.profiles.active=skymill,secure-file"]
+      entrypoint: ["./bin/mill-service"]
+      pull_policy: [always]
 
 
 jdbc:grpc-noauth:  
@@ -413,4 +588,46 @@ jdbc:http-protobuf-noauth:
     MILL_IT_BASE_PATH: "/services/jet"
     MILL_IT_TLS: "false"
     MILL_IT_AUTH: "none"
+    MILL_IT_SCHEMA: "skymill"
+
+jdbc:grpc-basic:
+  extends:
+    - .mill-jdbc-integration-auth-template
+  needs:
+    - job: jdbc:grpc-noauth
+      optional: true
+  variables:
+    MILL_IT_HOST: "mill"
+    MILL_IT_PORT: "9090"
+    MILL_IT_PROTOCOL: "grpc"
+    MILL_IT_BASE_PATH: "/services/jet"
+    MILL_IT_TLS: "false"
+    MILL_IT_SCHEMA: "skymill"
+
+jdbc:http-json-basic:
+  extends:
+    - .mill-jdbc-integration-auth-template
+  needs:
+    - job: jdbc:http-json-noauth
+      optional: true
+  variables:
+    MILL_IT_HOST: "mill"
+    MILL_IT_PORT: "8080"
+    MILL_IT_PROTOCOL: "http-json"
+    MILL_IT_BASE_PATH: "/services/jet"
+    MILL_IT_TLS: "false"
+    MILL_IT_SCHEMA: "skymill"
+
+jdbc:http-protobuf-basic:
+  extends:
+    - .mill-jdbc-integration-auth-template
+  needs:
+    - job: jdbc:http-protobuf-noauth
+      optional: true
+  variables:
+    MILL_IT_HOST: "mill"
+    MILL_IT_PORT: "8080"
+    MILL_IT_PROTOCOL: "http-protobuf"
+    MILL_IT_BASE_PATH: "/services/jet"
+    MILL_IT_TLS: "false"
     MILL_IT_SCHEMA: "skymill"

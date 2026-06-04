@@ -38,11 +38,11 @@ public final class UserRepoAuthenticationProvider implements AuthenticationProvi
         val password = authentication.getCredentials().toString();
         val found = authenticate(username, password);
         if (found.isEmpty()) {
-            log.debug("User {} not found", username);
+            log.warn("Basic authentication failed for user '{}' (unknown user or bad password)", username);
             return null;
         } else {
             val usr = found.get();
-            log.debug("User {} authenticated", username);
+            log.debug("Basic authentication succeeded for user '{}'", username);
             return new UsernamePasswordAuthenticationToken(
                     authentication.getPrincipal(),
                     authentication.getCredentials(),

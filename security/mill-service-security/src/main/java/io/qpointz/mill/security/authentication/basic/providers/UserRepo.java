@@ -29,7 +29,18 @@ public class UserRepo {
 
     public static UserRepo fromYaml(InputStream file) throws IOException {
         val mapper = YAMLMapper.builder().findAndAddModules().build();
-        return mapper.readValue(file, UserRepo.class);
+        val repo = mapper.readValue(file, UserRepo.class);
+        val count = repo.getUsers() == null ? 0 : repo.getUsers().size();
+        if (count == 0) {
+            log.warn("YAML user store contains no users");
+        } else {
+            log.info(
+                    "YAML user store loaded {} user(s): {}",
+                    count,
+                    repo.getUsers().stream().map(User::getName).toList()
+            );
+        }
+        return repo;
     }
 
 }

@@ -1,5 +1,5 @@
 users:
-  - name: admin
-    password: "{noop}admin"
-    groups:
-      - admin
+    - name: admin
+      password: "{noop}admin"
+      groups:
+          - admin

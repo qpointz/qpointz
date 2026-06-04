@@ -68,6 +68,7 @@ public class OAuth2AuthenticationConfiguration {
         val successUrl = millOAuth2LoginProperties.getDefaultSuccessUrl();
         val alwaysUseDefaultSuccess = millOAuth2LoginProperties.isAlwaysUseDefaultSuccessUrl();
 
+        log.info("Configuring OAuth2 resource-server authentication (jwkSetUri={})", jwt.getJwkSetUri());
         return new OAuth2ResourceServiceAuthenticationMethod(
                 jwt,
                 provider,

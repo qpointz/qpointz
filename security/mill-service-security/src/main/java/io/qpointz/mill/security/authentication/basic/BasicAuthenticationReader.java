@@ -31,7 +31,7 @@ public class BasicAuthenticationReader implements AuthenticationReader {
     public Authentication readAuthentication() throws AuthenticationException {
         val header = tokenSupplier.get();
         if (header == null || header.isEmpty() || !header.toLowerCase().startsWith(prefix.toLowerCase())) {
-            log.debug("No value for 'Basic' authentication provided");
+            log.debug("No Basic Authorization header present");
             return null;
         }
 
@@ -40,17 +40,21 @@ public class BasicAuthenticationReader implements AuthenticationReader {
         try {
             decoded = Base64.getDecoder().decode(token);
         } catch (final IllegalArgumentException e) {
+            log.warn("Basic Authorization header is not valid Base64");
             throw new BadCredentialsException("Invalid 'Basic' token. Decode failure.");
         }
 
         final String decodedToken = new String(decoded, UTF_8);
         val indexOf = decodedToken.indexOf(':');
         if (indexOf == -1) {
+            log.warn("Basic Authorization header is missing username/password separator");
             throw new BadCredentialsException("Invalid 'Basic' token. Malformed token.");
         }
 
+        val username = decodedToken.substring(0, indexOf);
+        log.debug("Basic Authorization header parsed for user '{}'", username);
         return new UsernamePasswordAuthenticationToken(
-                decodedToken.substring(0, indexOf),
+                username,
                 decodedToken.substring(indexOf + 1));
 
     }

@@ -77,8 +77,7 @@ mill:
     authentication:
       basic:
         enable: true
-        # Classpath works from any working directory; file:./config/auth.yml for external edits (same content).
-        store: file:./config/auth.yml
+        store: classpath:config/auth.yml
 ---
 spring:
   config:

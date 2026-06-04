@@ -34,6 +34,25 @@ resource "google_cloud_run_v2_service" "mill" {
     containers {
       image = var.image
 
+      liveness_probe {
+        period_seconds = 30
+        timeout_seconds = 10
+        http_get {
+          path  = "/.well-known/mill"
+          port  = 8080
+        }
+      }
+
+      startup_probe {
+        initial_delay_seconds = 60
+        timeout_seconds = 10
+        period_seconds = 10
+        failure_threshold = 10
+        tcp_socket {
+          port = 8080
+        }
+      }
+
       dynamic "volume_mounts" {
         for_each = var.volumes
         content {

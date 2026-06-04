@@ -1,23 +1,24 @@
 spring:
   config:
     activate:
-      on-profile: micro-service
+      on-profile: gcp
 
 server:
   forward-headers-strategy: framework
 
 logging:
-  level:
-    root: info
-  # Cloud Run: stdout JSON only (no container file logs). See logback-spring.xml profile micro-service.
-  file:
-    name:
-  structured:
-    format:
-      console: logstash
-    json:
-      rename:
-        level: severity
+    level:
+      root: debug
+      #io.qpointz.mill.security: DEBUG
+    # Cloud Run: stdout JSON (profile gcp) and no file appender.
+    file:
+      enabled: false
+    structured:
+      format:
+        console: logstash
+      json:
+        rename:
+          level: severity
 
 mill:
   application:
@@ -39,10 +40,10 @@ mill:
   ui:
     enabled: false
   security:
-    enable: true
+    enable: ${auth_enable}
     authentication:
       basic:
-        enable: true
+        enable: ${auth_basic_enable}
         store: file:/app/config/auth/auth.yml
   data:
     sql:

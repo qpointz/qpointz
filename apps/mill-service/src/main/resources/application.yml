@@ -43,6 +43,8 @@ server:
 logging:
   file:
     name: logs/mill-service.log
+    # Console-only: set enabled false and/or clear name (e.g. Cloud Run without profile gcp).
+    enabled: true
   logback:
     rollingpolicy:
       max-file-size: 10MB
@@ -214,6 +216,20 @@ spring:
   config:
     activate:
       on-profile: secure-minimal
+mill:
+  security:
+    enable: true
+    allow-registration: false
+    authentication:
+      basic:
+        enable: true
+        store: classpath:config/auth.yml
+---
+# Alias for local overrides in apps/mill-service/application.yml (same defaults as secure-minimal).
+spring:
+  config:
+    activate:
+      on-profile: secure-file
 mill:
   security:
     enable: true

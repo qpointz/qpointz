@@ -16,6 +16,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.slf4j.LoggerFactory
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 
@@ -44,6 +45,8 @@ import org.springframework.security.crypto.password.PasswordEncoder
 @ConditionalOnClass(UserIdentityRepository::class)
 @ConditionalOnBasicAuthenticationJpaStore
 open class JpaPasswordAuthenticationConfiguration {
+
+    private val log = LoggerFactory.getLogger(JpaPasswordAuthenticationConfiguration::class.java)
 
     /**
      * Provides a [PasswordEncoder] capable of verifying hashes produced by any algorithm
@@ -89,8 +92,10 @@ open class JpaPasswordAuthenticationConfiguration {
         userRepo: UserRepository,
         passwordEncoder: PasswordEncoder,
     ): AuthenticationMethod {
+        log.info("Configuring JPA-backed basic authentication (store=jpa)")
         val jpaUserRepo = JpaUserRepo(identityRepo, credentialRepo, membershipRepo, userRepo)
         val provider = UserRepoAuthenticationProvider(jpaUserRepo, passwordEncoder)
+        log.info("JPA basic-auth user repo ready")
         return BasicAuthenticationMethod(provider, 299)
     }
 }

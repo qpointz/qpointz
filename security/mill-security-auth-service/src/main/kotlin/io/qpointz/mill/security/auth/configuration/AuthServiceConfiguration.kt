@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.AuthenticationManager
 
 /**
@@ -39,6 +40,8 @@ import org.springframework.security.authentication.AuthenticationManager
     AuthSecuredSecurityConfiguration::class,
 )
 open class AuthServiceConfiguration {
+
+    private val log = LoggerFactory.getLogger(AuthServiceConfiguration::class.java)
 
     /**
      * Provides the [UserProfileService] bean.
@@ -77,16 +80,24 @@ open class AuthServiceConfiguration {
         @Autowired(required = false) userCredentialRepository: UserCredentialRepository?,
         @Autowired(required = false) passwordHasher: PasswordHasher?,
         @Autowired(required = false) authAuditService: AuthAuditService?,
-    ): AuthPublicController = AuthPublicController(
-        authenticationManager,
-        identityResolutionService,
-        securityEnabled,
-        allowRegistration,
-        userIdentityRepository,
-        userCredentialRepository,
-        passwordHasher,
-        authAuditService,
-    )
+    ): AuthPublicController {
+        log.info(
+            "Auth public API: securityEnabled={}, allowRegistration={}, authenticationManagerPresent={}",
+            securityEnabled,
+            allowRegistration,
+            authenticationManager != null,
+        )
+        return AuthPublicController(
+            authenticationManager,
+            identityResolutionService,
+            securityEnabled,
+            allowRegistration,
+            userIdentityRepository,
+            userCredentialRepository,
+            passwordHasher,
+            authAuditService,
+        )
+    }
 
     /**
      * Provides the [AuthController] bean.

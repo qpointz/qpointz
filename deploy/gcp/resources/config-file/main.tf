@@ -33,3 +33,7 @@ output "secret_volume" {
     version     = "latest"
   }
 }
+
+output "secret_data" {
+  value = google_secret_manager_secret_version.config.secret_data
+}

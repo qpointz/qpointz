@@ -35,6 +35,8 @@ module "app_config" {
           application_name     = join("-", ["mill", var.deployment_stack_name, var.deployment_name])
           schema_cache_enabled = var.schema_cache_enabled ? "true" : "false"
           schema_cache_ttl     = var.schema_cache_ttl
+          auth_enable          = var.auth_enable
+          auth_basic_enable    = var.auth_basic_enable
       })
   file_name        = "application.yml"
   file_mount_path  = "/app/config/"
@@ -67,6 +69,7 @@ module "auth_config" {
   content          = templatefile(
     "${path.module}/config/auth.tpl.yml",
     {
+       users = local.seed_users
     }
   )
   file_name        = "auth.yml"
@@ -90,7 +93,7 @@ module "service" {
     {
        kind = "static"
        name = "SPRING_PROFILES_ACTIVE"
-       value = "micro-service"
+       value = local.active_spring_profiles
     },
     {
       kind  = "static"
@@ -101,6 +104,11 @@ module "service" {
       kind  = "static"
       name  = "GOOGLE_CLOUD_PROJECT"
       value = var.project_id
+    },
+    {
+      kind  = "static"
+      name  = "LOGGING_FILE_ENABLED"
+      value = "false"
     }
   ]
   runtime_sa_email = module.runtime-sa.service_account_email

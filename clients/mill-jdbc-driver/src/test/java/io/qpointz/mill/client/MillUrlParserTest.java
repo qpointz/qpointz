@@ -33,5 +33,29 @@ class MillUrlParserTest {
         assertThrows(IllegalArgumentException.class, () -> MillUrlParser.parseUrl("jdbc:mill:in-https://host:1000"));
     }
 
+    @Test
+    void parsesUserInfoCredentials() {
+        val parser = MillUrlParser.parseUrl("jdbc:mill:grpc://admin:secret@localhost:9090");
+        assertEquals("admin", parser.getProperty(USERNAME_PROP));
+        assertEquals("secret", parser.getProperty(PASSWORD_PROP));
+        assertEquals("9090", parser.getProperty(PORT_PROP));
+    }
+
+    @Test
+    void omitsPortWhenNotInUrl() {
+        val parser = MillUrlParser.parseUrl("jdbc:mill:grpc://localhost");
+        assertNull(parser.getProperty(PORT_PROP));
+    }
+
+    @Test
+    void mergesConnectionPropertiesWithUsernameAlias() {
+        val info = new java.util.Properties();
+        info.setProperty("username", "admin");
+        info.setProperty("password", "secret");
+        val merged = MillUrlParser.apply("jdbc:mill:grpc://localhost:9090", info);
+        val config = MillClientConfiguration.builder().fromProperties(merged).build();
+        assertEquals("admin", config.getUsername());
+        assertEquals("secret", config.getPassword());
+    }
 
 }

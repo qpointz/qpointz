@@ -36,7 +36,7 @@ public class ApiSecurityConfiguration {
     @ConditionalOnSecurity
     public SecurityFilterChain secureApiRequests(HttpSecurity http,
                                                  AuthenticationMethods authenticationMethods) throws Exception {
-        log.debug("Security API requests.");
+        log.info("Securing /api/** (authentication required)");
         http
                 .securityMatcher("/api/**")
                 .authorizeHttpRequests(authHttp -> authHttp
@@ -47,6 +47,8 @@ public class ApiSecurityConfiguration {
 
         authenticationMethods.getProviders().forEach(m -> {
             try {
+                log.info("Applying {} login config to /api/** filter chain", m.getAuthenticationType());
+                m.applyLoginConfig(http);
                 m.applySecurityConfig(http);
             } catch (Exception ex) {
                 throw new MillRuntimeException(ex);

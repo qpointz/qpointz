@@ -12,8 +12,6 @@ import lombok.val;
 import javax.net.ssl.SSLException;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -86,13 +84,21 @@ public class GrpcMillClient extends MillClient {
     }
 
     private DataConnectServiceGrpc.DataConnectServiceBlockingStub blockingStub() {
-        val channel = this.createChannel();
-        return DataConnectServiceGrpc.newBlockingStub(channel);
+        var stub = DataConnectServiceGrpc.newBlockingStub(createChannel());
+        val callCredentials = resolveCallCredentials(this.configuration);
+        if (callCredentials != null) {
+            stub = stub.withCallCredentials(callCredentials);
+        }
+        return stub;
     }
 
     private DataConnectServiceGrpc.DataConnectServiceStub asyncStub() {
-        val channel = this.createChannel();
-        return DataConnectServiceGrpc.newStub(channel);
+        var stub = DataConnectServiceGrpc.newStub(createChannel());
+        val callCredentials = resolveCallCredentials(this.configuration);
+        if (callCredentials != null) {
+            stub = stub.withCallCredentials(callCredentials);
+        }
+        return stub;
     }
 
     private static final ConcurrentMap<MillClientConfiguration, ManagedChannel> channels = new ConcurrentHashMap<>();
@@ -110,24 +116,9 @@ public class GrpcMillClient extends MillClient {
         }
 
         val channelCredentials = createChannelCredentials(config);
-        val callCredentials = createCallCredentials(config);
-
-        ChannelCredentials finalCreds;
-
-        if (callCredentials==null || callCredentials.isEmpty()) {
-            finalCreds = channelCredentials;
-        } else {
-            val allCreds = new ChannelCredentials[callCredentials.size()];
-            var idx =0;
-            for (val callCreds : callCredentials) {
-                val creds = CompositeChannelCredentials.create(channelCredentials, callCreds);
-                allCreds[idx++] = creds;
-            }
-            finalCreds = ChoiceChannelCredentials.create(allCreds);
-        }
 
         if (CLIENT_PROTOCOL_GRPC_VALUE.equals(config.getProtocol())) {
-            val channelBuilder = Grpc.newChannelBuilderForAddress(config.getHost(), config.getPort(), finalCreds);
+            val channelBuilder = Grpc.newChannelBuilderForAddress(config.getHost(), config.getPort(), channelCredentials);
             return channelBuilder.build();
         }
 
@@ -136,20 +127,12 @@ public class GrpcMillClient extends MillClient {
                 CLIENT_PROTOCOL_GRPC_VALUE, CLIENT_PROTOCOL_IN_PROC_VALUE));
     }
 
-    private static Collection<CallCredentials> createCallCredentials(MillClientConfiguration config) {
-        val callCreds = new ArrayList<CallCredentials>();
-
+    private static CallCredentials resolveCallCredentials(MillClientConfiguration config) {
         val bearerCreds = createBearerTokenCreds(config);
-        if (bearerCreds!=null) {
-            callCreds.add(bearerCreds);
+        if (bearerCreds != null) {
+            return bearerCreds;
         }
-
-        val basicCreds = createBasicCreds(config);
-        if (basicCreds!=null) {
-            callCreds.add(basicCreds);
-        }
-
-        return callCreds;
+        return createBasicCreds(config);
     }
 
     private static CallCredentials createBearerTokenCreds(MillClientConfiguration config) {

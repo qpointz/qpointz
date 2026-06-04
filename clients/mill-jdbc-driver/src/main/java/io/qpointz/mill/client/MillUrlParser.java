@@ -3,6 +3,8 @@ package io.qpointz.mill.client;
 import lombok.val;
 
 import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -120,8 +122,41 @@ public class MillUrlParser {
             effectiveProps.put(HOST_PROP, parsedUrl.getHost());
         }
 
-        effectiveProps.put(PORT_PROP, Integer.toString(parsedUrl.getPort()));
+        putUserInfoCredentials(parsedUrl, effectiveProps);
+
+        var port = parsedUrl.getPort();
+        if (port > 0) {
+            effectiveProps.put(PORT_PROP, Integer.toString(port));
+        }
         return effectiveProps;
+    }
+
+    /**
+     * Maps {@code user:password@host} from the URI authority into {@code user} / {@code password} properties
+     * (only when not already set by query parameters).
+     */
+    private static void putUserInfoCredentials(URI parsedUrl, Properties effectiveProps) {
+        var userInfo = parsedUrl.getUserInfo();
+        if (userInfo == null || userInfo.isBlank()) {
+            return;
+        }
+        var colon = userInfo.indexOf(':');
+        if (colon >= 0) {
+            putIfAbsent(effectiveProps, USERNAME_PROP, decodeUrlComponent(userInfo.substring(0, colon)));
+            putIfAbsent(effectiveProps, PASSWORD_PROP, decodeUrlComponent(userInfo.substring(colon + 1)));
+        } else {
+            putIfAbsent(effectiveProps, USERNAME_PROP, decodeUrlComponent(userInfo));
+        }
+    }
+
+    private static void putIfAbsent(Properties props, String key, String value) {
+        if (!props.containsKey(key)) {
+            props.setProperty(key, value);
+        }
+    }
+
+    private static String decodeUrlComponent(String value) {
+        return URLDecoder.decode(value, StandardCharsets.UTF_8);
     }
 
 }

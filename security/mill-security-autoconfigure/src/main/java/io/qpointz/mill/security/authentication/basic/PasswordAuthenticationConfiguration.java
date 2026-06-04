@@ -57,10 +57,27 @@ public class PasswordAuthenticationConfiguration {
             PasswordEncoder passwordEncoder
     ) throws IOException {
         val pathToFileStore = properties.getStore();
-        log.info("Loading basic-auth user store from {}", pathToFileStore);
-        val stream = resourceLoader.getResource(pathToFileStore).getInputStream();
+        val resource = resourceLoader.getResource(pathToFileStore);
+        log.info(
+                "Configuring file-backed basic auth: store={}, resourceExists={}",
+                pathToFileStore,
+                resource.exists()
+        );
+        if (!resource.exists()) {
+            log.warn("Basic-auth user store resource does not exist or is not readable: {}", pathToFileStore);
+        }
+        val stream = resource.getInputStream();
         val userRepo = UserRepo.fromYaml(stream);
-        log.info("Loaded {} users from basic-auth store", userRepo.getUsers() == null ? 0 : userRepo.getUsers().size());
+        val userCount = userRepo.getUsers() == null ? 0 : userRepo.getUsers().size();
+        if (userCount == 0) {
+            log.warn("Basic-auth user store loaded 0 users from {}; all credentials will be rejected", pathToFileStore);
+        } else {
+            log.info(
+                    "Basic-auth user store ready: {} user(s) from {}",
+                    userCount,
+                    pathToFileStore
+            );
+        }
         val provider = new UserRepoAuthenticationProvider(userRepo, passwordEncoder);
         return new BasicAuthenticationMethod(provider, 299);
     }
