@@ -5,7 +5,7 @@ experiences over the same data/query platform:
 
 - **SQL Analysis** for technical users who want direct SQL, schema-aware editing, result paging,
   export, and saved query reuse.
-- **Visual Analysis** for business users who want a guided, Contour-style path/board workflow:
+- **Visual Analysis** for business users who want a guided path/board workflow:
   choose a source, add visual transformation boards, inspect results at each step, and present or
   materialize selected outputs without writing SQL.
 
@@ -33,9 +33,9 @@ The modes differ in their saved **spec** and authoring UI. SQL Analysis stores u
 Visual Analysis stores a structured board graph that compiles to SQL / relational plans for preview
 and execution.
 
-## Contour-Inspired Capabilities
+## Visual Analysis Capabilities
 
-The target Visual Analysis workflow is inspired by Palantir Foundry Contour documentation:
+The target Visual Analysis workflow is built around Mill-owned path and board concepts:
 
 - Analyses contain one or more **paths**; a path starts from a dataset/table or another path result.
 - Paths contain ordered **boards**; boards filter, transform, aggregate, join, visualize, and inspect
@@ -45,9 +45,8 @@ The target Visual Analysis workflow is inspired by Palantir Foundry Contour docu
 - Dashboard mode presents selected boards with parameter overrides.
 - Path results can eventually be saved/materialized as durable datasets or pipeline logic.
 
-Mill must implement these concepts in Mill terms and UX, not copy Contour branding or UI. Use
-**Visual Analysis**, **Path**, and **Board** as product vocabulary unless a later design review
-chooses different names.
+Use **Visual Analysis**, **Path**, and **Board** as product vocabulary unless a later design review
+chooses different names. Keep the language focused on business analysis and Mill platform concepts.
 
 ## Target Domain Model
 
@@ -141,10 +140,6 @@ The MVP should prioritize correctness, previewability, and comprehensible genera
 - [`docs/design/platform/query-result-execution-service.md`](../../../design/platform/query-result-execution-service.md)
 - [`docs/design/platform/export-service.md`](../../../design/platform/export-service.md)
 - [`docs/public/src/mill-ui.md`](../../../public/src/mill-ui.md)
-- Palantir Contour overview: <https://www.palantir.com/docs/foundry/contour/overview>
-- Palantir Contour core concepts: <https://www.palantir.com/docs/foundry/contour/core-concepts>
-- Palantir Contour boards: <https://www.palantir.com/docs/foundry/contour/boards-overview/>
-- Palantir Contour parameters: <https://www.palantir.com/docs/foundry/contour/analysis-parameterize/>
 
 ## Work Items
 

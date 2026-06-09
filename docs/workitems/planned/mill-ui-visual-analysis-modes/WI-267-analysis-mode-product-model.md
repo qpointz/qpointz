@@ -42,7 +42,7 @@ API shapes, persistence boundaries, and migration path from the current saved-qu
 6. Capture terminology:
    - User-facing: **SQL Analysis**, **Visual Analysis**, **Path**, **Board**.
    - Internal: `Analysis`, `AnalysisType`, `AnalysisSpec`, `BoardSpec`.
-   - Avoid `Contour` in product strings, code packages, or docs except design references.
+   - Avoid third-party product names in product strings, code packages, and implementation docs.
 
 ## Acceptance
 
