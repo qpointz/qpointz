@@ -267,11 +267,12 @@ The Analysis view lists saved queries but has no persistence backend.
 | ID | Task | Description | Depends On |
 |---|---|---|---|
 | **B-12** | Saved queries data model | JPA entity for `SavedQuery`: id, name, description, sql, tags (collection), createdAt, updatedAt. Consider per-user ownership. | -- |
-| **B-13** | `GET /api/v1/queries` | List saved queries. | B-12 |
-| **B-14** | `GET /api/v1/queries/{id}` | Single saved query lookup. | B-12 |
-| **B-15** | `POST /api/v1/queries` | Create saved query. | B-12 |
-| **B-16** | `PUT /api/v1/queries/{id}` | Update saved query. | B-12 |
-| **B-17** | `DELETE /api/v1/queries/{id}` | Delete saved query. | B-12 |
+| **B-12a** | `GET /api/v1/analysis/dialect` | Configured SQL dialect for Analysis editor. | B-12 |
+| **B-13** | `GET /api/v1/analysis/queries` | List saved queries. | B-12 |
+| **B-14** | `GET /api/v1/analysis/queries/{id}` | Single saved query lookup. | B-12 |
+| **B-15** | `POST /api/v1/analysis/queries` | Create saved query. | B-12 |
+| **B-16** | `PUT /api/v1/analysis/queries/{id}` | Update saved query. | B-12 |
+| **B-17** | `DELETE /api/v1/analysis/queries/{id}` | Delete saved query. | B-12 |
 
 ### Tier 4 -- New Endpoints: Supporting Features (low-medium effort)
 

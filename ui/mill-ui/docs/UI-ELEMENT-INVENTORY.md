@@ -27,7 +27,7 @@ For each element:
 | `authService` | real REST calls (`/auth/*`, `/.well-known/mill`) | real |
 | `schemaService` | real REST calls (`/api/v1/schema/*`), returns schema/table/column DTOs and facet envelopes (`descriptive`, `structural`, `relation`) | real |
 | `conceptService` | `mockConcepts` (concept identity, category, tags, SQL, related entities) | mock |
-| `queryService` | `mockQueries` (saved queries + simulated execution result tables) | mock |
+| `queryService` / `analysisService` | real REST (`/api/v1/analysis/**`, `/api/v1/query/**`) | real |
 | `statsService` | mock aggregate from mock schema/concept/query data | mock |
 | `chatService` | local mock response pools by context type (`general`, `model`, `knowledge`, `analysis`) | mock |
 | `chatReferencesService` | deterministic mock refs (`ConversationRef[]`: chat id/title list) | mock |
@@ -202,7 +202,7 @@ Facet tabs are grouped by **manifest category** (from `facetTypeService` / facet
 
 | Element | Description | Content source | Feature flag | Default | Backend state |
 |---|---|---|---|---|---|
-| Saved query list | Query selection list | `queryService.getSavedQueries()` from `mockSavedQueries` (id/name/sql/description/tags) | `viewAnalysis` | `true` | mock |
+| Saved query list | Query selection list | `queryService.getSavedQueries()` → `GET /api/v1/analysis/queries` | `viewAnalysis` | `true` | real |
 | Query count badge | Shows list count | query list length | `sidebarAnalysisBadge` | `true` | mock |
 | New query action | Creates in-memory query | local state | n/a | n/a | n/a |
 | Delete query action | Removes query from in-memory list | local state | n/a | n/a | n/a |
@@ -211,7 +211,7 @@ Facet tabs are grouped by **manifest category** (from `facetTypeService` / facet
 
 | Element | Description | Content source | Feature flag | Default | Backend state |
 |---|---|---|---|---|---|
-| SQL editor textarea | Query text editing | local state | n/a | n/a | n/a |
+| SQL editor (`SqlCodeEditor`) | CodeMirror 6 SQL editing + schema completions | local state + `schemaService.getTree` | n/a | n/a | real |
 | Format SQL action | Formats SQL text | client formatter | `analysisFormatSql` | `true` | n/a |
 | Copy SQL action | Copy current SQL | browser clipboard | `analysisCopySql` | `true` | n/a |
 | Clear SQL action | Clears editor | local state | `analysisClearSql` | `true` | n/a |

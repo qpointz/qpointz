@@ -249,7 +249,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | U-10 | Add tests for command palette, @ mentions, keyboard nav, and error scenarios | 🧪 test | backlog | ui/chat-input-enhancements.md |
 | U-11 | Migrate `mill-ui` general chat from legacy `/api/nl2sql/chats/*` to `/api/v1/ai/chats/*` and adopt `item.*` SSE handling | ✨ feature | done | `docs/workitems/completed/20260506-ai-v3-mill-ui-general-chat/STORY.md` (supersedes planned `WI-082` scope via **WI-229**–**WI-233**) |
 | U-12 | Redesign optional per-facet-type **view** and **edit** component registration (replacing removed bespoke facet presenters); descriptor-driven fallback remains default | ✨ feature | backlog | `design/ui/facet-view-customization.md` |
-| U-13 | mill-ui Analysis full stack: saved queries REST + `realQueryService` (**WI-256**–**WI-260**)                                                                          | ✨ feature | planned | [`planned/mill-ui-analysis-full-stack/STORY.md`](planned/mill-ui-analysis-full-stack/STORY.md) |
+| U-13 | mill-ui Analysis full stack: saved queries REST + HTTP `queryService` + CodeMirror SQL editor (**WI-256**–**WI-260**)                                                    | ✨ feature | done    | [`completed/20260609-mill-ui-analysis-full-stack/STORY.md`](completed/20260609-mill-ui-analysis-full-stack/STORY.md) |
 
 ---
 

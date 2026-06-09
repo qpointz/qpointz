@@ -16,6 +16,8 @@
 
 **Scope:** this subsection lists **only** story archives whose **`docs/workitems/completed/…` tree first landed after git tag `v0.7.0`** (verify with e.g. `git log v0.7.0..HEAD -- docs/workitems/completed/`). Archives dated **2026-03-30** through **2026-04-02** — including **metadata rework**, **metadata/UI**, **flow UI facets**, **typed URNs** — were committed **on or before** `v0.7.0`; they remain under [`completed/`](completed/) for traceability and are summarized in **[`releases/RELEASE-0.7.0.md`](releases/RELEASE-0.7.0.md)** (see also **[`completed/README.md`](completed/README.md)**). They are **not** duplicated here as **0.8.0** delta.
 
+- **mill-ui Analysis full stack** (`mill-ui-analysis-full-stack`, closed **2026-06-09**): [`completed/20260609-mill-ui-analysis-full-stack/STORY.md`](completed/20260609-mill-ui-analysis-full-stack/STORY.md). **WI-256**–**WI-260** — Flyway **`saved_query`** catalog + JPA port, **`mill-analysis-queries-service`** REST **`GET /api/v1/queries`**, **`mill-service`** wiring, HTTP-only **`queryService`**, CodeMirror **`SqlCodeEditor`** with schema completions, Skymill-style **`testIT`** for catalog REST + auth. **BACKLOG** **U-13** `done`.
+
 - **Cloud blob sources** (`cloud-blob-source`, closed **2026-05-14**): [`completed/20260514-cloud-blob-source/STORY.md`](completed/20260514-cloud-blob-source/STORY.md). **WI-262** (S3)–**WI-265** (wiring/docs), **WI-271** — `cloud/{aws,gcp,azure}` **`BlobSource`** + Boot autoconfigure, Skymill **`testIT`** over emulators, **`DescriptorPlaceholderResolver`** + **`SecretProvider`** SPI, **`mill.data.backend.metadata.*`** gating and facet redaction, design + public storage docs. **BACKLOG** **S-9** `done`.
 
 - **Cloud configuration files / resource loading** (`cloud-resource-loading`, closed **2026-05-14**): [`completed/20260514-cloud-resource-loading/STORY.md`](completed/20260514-cloud-resource-loading/STORY.md). **WI-274**–**WI-279** — `BackendResourceLoader` + Spring adapter; flow `sources` and metadata `seed.resources` as Spring locations; **`ProtocolResolver`** implementations for **`s3://`**, **`gs://`**, **`azure-blob://`** in `mill-cloud-*-autoconfigure`; **`DefaultResourceLoader`** composition for metadata seeds and flow reads in servlet apps; emulator **`testIT`** + flow/metadata integration tests; design [`docs/design/platform/cloud-resource-loading.md`](../design/platform/cloud-resource-loading.md); public updates to flow and metadata operator guides.
@@ -51,6 +53,8 @@
 #### Cumulative WI deliveries (toward 0.8.0)
 
 Individual work items and bundles merged on `dev` in support of this milestone (including items that also appear under **Archived stories** above).
+
+- **WI-256**–**WI-260** — mill-ui Analysis full stack: **`saved_query`** persistence + seeds, **`GET /api/v1/queries`**, HTTP **`queryService`**, CodeMirror SQL editor, catalog REST **`testIT`**; story **`mill-ui-analysis-full-stack`**, archived [`completed/20260609-mill-ui-analysis-full-stack/STORY.md`](completed/20260609-mill-ui-analysis-full-stack/STORY.md). **BACKLOG** **U-13** `done`.
 
 - **WI-262** (S3)–**WI-265** + **WI-271** — Cloud **`BlobSource`** (`mill-cloud-{aws,gcp,azure}-*`), emulator **`testIT`**, unified **`mill.data.backend.metadata.*`**, placeholder resolution + metadata redaction, public `sources/storages/*` docs; story **`cloud-blob-source`**, archived [`completed/20260514-cloud-blob-source/STORY.md`](completed/20260514-cloud-blob-source/STORY.md). **BACKLOG** **S-9** `done`.
 

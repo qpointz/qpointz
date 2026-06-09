@@ -135,7 +135,9 @@ src/
 │   ├── queries/                   # Query Playground (Analysis) view
 │   │   ├── QueryPlayground.tsx    # Main layout: sidebar + editor + results
 │   │   ├── QuerySidebar.tsx       # Query list with new/delete actions
-│   │   ├── QueryEditor.tsx        # SQL editor with header + InlineChatButton
+│   │   ├── QueryEditor.tsx        # SQL editor toolbar + header + InlineChatButton
+│   │   ├── SqlCodeEditor.tsx      # CodeMirror 6 SQL surface (schema completions)
+│   │   ├── schemaCompletionIndex.ts # Tree → completion labels (schemas, tables, columns)
 │   │   └── QueryResults.tsx       # Sortable table with export dropdown
 │   │
 │   ├── admin/                     # Admin view
@@ -157,8 +159,7 @@ src/
 ├── data/                          # Mock data (static + localStorage simulation)
 │   ├── __tests__/                 # Data tests (3 files)
 │   ├── mockSchema.ts             # Schema tree + facets data
-│   ├── mockConcepts.ts           # Business concepts data
-│   └── mockQueries.ts            # Sample queries + mock result sets
+│   └── mockConcepts.ts           # Business concepts data
 │
 ├── features/                      # Feature flag system
 │   ├── __tests__/                 # Feature flag tests (1 file)
@@ -922,8 +923,9 @@ src/services/api.ts        ← single import point for all consumers
       │
       ├── schemaService.ts      → src/data/mockSchema.ts
       ├── conceptService.ts     → src/data/mockConcepts.ts
-      ├── queryService.ts       → src/data/mockQueries.ts
-      ├── statsService.ts       → src/data/mock{Schema,Concepts,Queries}.ts
+      ├── analysisService.ts    → `/api/v1/analysis/dialect`
+      ├── queryService.ts       → `/api/v1/analysis/queries/**`, `/api/v1/query/**` (HTTP only)
+      ├── statsService.ts       → live schema/concept APIs + query catalog count
       ├── chatService.ts        → inline mock responses
       ├── inlineChatService.ts  → inline mock responses (3 pools)
       ├── chatReferencesService.ts → deterministic hash-based refs
@@ -959,8 +961,6 @@ Each domain has a typed service interface in `src/types/`:
 |------|----------|
 | `src/data/mockSchema.ts` | Hierarchical schema tree (sales, inventory, analytics), facet data, `getEntityFacets()`, `findEntityById()` |
 | `src/data/mockConcepts.ts` | 8 business concepts across 4 categories, `getConceptById()`, `getCategories()`, `getTags()`, `filterConcepts()` |
-| `src/data/mockQueries.ts` | 6 sample SQL queries, keyword-based result matcher `getResultForQuery()`, `getSavedQueryById()` |
-
 ### Adding New Features / Mock Services
 
 All new feature mocking **must** follow the centralized service pattern and account for the backend backlog documented in **`BACKEND-Backlog.md`**:
@@ -1032,7 +1032,7 @@ Required for Mantine components in jsdom:
 |------|-------|--------|
 | `mockSchema.test.ts` | 12 | Tree structure, findEntityById, getEntityFacets |
 | `mockConcepts.test.ts` | 15 | Concepts, getConceptById, categories, tags, filtering |
-| `mockQueries.test.ts` | 14 | Queries, getResultForQuery, getSavedQueryById |
+| `queryService.test.ts` | — | HTTP saved-query catalog + execution session wiring |
 | `defaults.test.ts` | 9 | Flag types, defaults, interface compliance, related content flags |
 
 ### Running Tests
@@ -1097,7 +1097,7 @@ The barrel (`api.ts`) re-exports remain unchanged — consumers always `import {
 |---------|-------------------|------------------------------|---------------|
 | Schema | `schemaService.ts` | `GET /api/metadata/v1/explorer/tree`, `/entities/{id}`, `/entities/{id}/facets` | B-1, B-2, B-3 |
 | Concepts | `conceptService.ts` | `GET /api/v1/concepts`, `/concepts/{id}`, `/concepts/categories`, `/concepts/tags` | B-7 — B-11 |
-| Queries | `queryService.ts` | `POST /api/v1/query`, `GET /api/v1/query/{executionId}` (metadata or `?pageIndex=`), `DELETE /api/v1/query/{executionId}`, `GET /api/v1/queries` | B-4, B-12 — B-17 |
+| Analysis | `analysisService.ts`, `queryService.ts` | `GET /api/v1/analysis/dialect`, `GET/POST/PUT/DELETE /api/v1/analysis/queries`, `POST /api/v1/query`, `GET /api/v1/query/{executionId}`, `DELETE /api/v1/query/{executionId}` | B-4, B-12 — B-17 |
 | Stats | `statsService.ts` | `GET /api/v1/stats` | B-18 |
 | Chat | `chatService.ts` | `POST /api/nl2sql/chats/{id}/messages` (SSE) | B-5, B-6, B-14 |
 | Inline Chat | `inlineChatService.ts` | `POST /api/v1/inline-chat/messages` (SSE) | B-20 |
