@@ -1,6 +1,6 @@
 # WI-266 — mill-ui Analysis: CodeMirror SQL editor + schema hints
 
-Status: `planned`  
+Status: `done`  
 Type: `feature`  
 Area: `ui`  
 Backlog refs: **U-13**

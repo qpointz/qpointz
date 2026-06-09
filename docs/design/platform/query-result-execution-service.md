@@ -10,7 +10,7 @@
 
 The composed **`mill-service`** + **`mill-ui`** stack **must not** treat **`POST /api/v1/queries/execute`** as a supported execution surface. **Session-based** execution is **only** under **`/api/v1/query/**` (see [HTTP resource model](#http-resource-model)). There is **no** deprecation period and **no** dual normative contract. UI and backend requirement docs are reconciled in work item **WI-265** (see the story **Story closure — reconcile `docs/design`** table).
 
-**Related backlog:** [D-8](../../workitems/BACKLOG.md) (data), consumer overlap [U-13](../../workitems/BACKLOG.md) / saved-query story and [WI-257](../../workitems/planned/mill-ui-analysis-full-stack/WI-257-analysis-queries-rest-api.md) (**GET** catalog only; execution is **not** there).
+**Related backlog:** [D-8](../../workitems/BACKLOG.md) (data), consumer overlap [U-13](../../workitems/BACKLOG.md) / saved-query story [`20260609-mill-ui-analysis-full-stack`](../../workitems/completed/20260609-mill-ui-analysis-full-stack/STORY.md) (catalog under **`/api/v1/analysis/**`**; execution is **not** there).
 
 ---
 
@@ -24,7 +24,7 @@ The composed **`mill-service`** + **`mill-ui`** stack **must not** treat **`POST
 
 ### What it does not do
 
-- **Saved-query catalog** remains **`/api/v1/queries`** (resource **`queries`**, not **`query`**). This service does **not** subsume catalog CRUD.
+- **Saved-query catalog** is **`/api/v1/analysis/queries`** (Analysis namespace; distinct from session resource **`query`**). This service does **not** subsume catalog CRUD — see [`analysis-saved-query-service.md`](analysis-saved-query-service.md).
 - **No** nested **`/executions`** (or sibling) collection under **`query`**; **`executionId`** is **opaque** for this API — it is **not** a saved-query **`queryId`**.
 - **No** public **`offset` / `limit`** on this tree; **only** **`pageIndex`** / **`pageSize`** on **`GET /api/v1/query/{executionId}`** (paged mode).
 

@@ -201,8 +201,8 @@ Full FeatureFlags interface has 70 boolean flags across 14 categories (views, ch
 | G-5 | Concept by ID | **MISSING** | -- | Same as G-4. |
 | G-6 | Concept categories | **MISSING** | -- | Same as G-4. |
 | G-7 | Concept tags | **MISSING** | -- | Same as G-4. |
-| G-8 | Saved queries list | **MISSING** | -- | No saved query persistence. |
-| G-9 | Saved query by ID | **MISSING** | -- | Same as G-8. |
+| G-8 | Saved queries list | **DONE** | `GET /api/v1/analysis/queries` | **`mill-analysis-service`** + persistence ([`analysis-saved-query-service.md`](../../../docs/design/platform/analysis-saved-query-service.md)). |
+| G-9 | Saved query by ID | **DONE** | `GET /api/v1/analysis/queries/{id}` | Full catalog CRUD on same surface. |
 | G-10 | Execute SQL (JSON) | **PARTIAL** | `POST /services/jet/SubmitQuery` | Exists but uses protobuf `QueryRequest`/`QueryResultResponse`. UI expects simple JSON `{sql}` -> `{columns, rows, rowCount, executionTimeMs}`. Need REST JSON wrapper or adapter endpoint. |
 | G-11 | Conversations list | **PARTIAL** | `GET /api/nl2sql/chats` | Path and DTO naming differ (`Chat` vs `Conversation`, `ChatMessage` vs `Message`). Need to verify: does `Chat` include nested messages? Does it have `createdAt`/`updatedAt`? |
 | G-12 | Create conversation | **PARTIAL** | `POST /api/nl2sql/chats` | Request shape (`CreateChatRequest` vs `{title}`). Response shape alignment. |
@@ -260,9 +260,9 @@ Entire new domain -- the Knowledge view has no backend support at all.
 | **B-10** | `GET /api/v1/concepts/categories` | Aggregate query returning `{name, count}[]` grouped by category. | B-7 |
 | **B-11** | `GET /api/v1/concepts/tags` | Aggregate query returning `{name, count}[]` from tags collection. | B-7 |
 
-### Tier 3 -- New Domain: Saved Queries (medium effort, medium value)
+### Tier 3 -- Saved Queries (Analysis catalog) — **delivered**
 
-The Analysis view lists saved queries but has no persistence backend.
+Implemented under **`/api/v1/analysis/**`** ([`analysis-saved-query-service.md`](../../../docs/design/platform/analysis-saved-query-service.md)).
 
 | ID | Task | Description | Depends On |
 |---|---|---|---|

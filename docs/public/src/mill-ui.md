@@ -89,9 +89,17 @@ URLs: **`/app/knowledge`** or **`/app/knowledge/<conceptId>`**.
 
 ## Analysis view
 
-**Analysis** (`/analysis`) is the **query playground**: edit SQL, format, copy, clear, execute (when the backend allows), and inspect results — gated by **`analysis*`** flags. When the export service and UI export controls are enabled, the results toolbar can **download** the current result set via **`/services/export`** (same formatting rules as [Model export](#export-tables-and-query-results)).
+**Analysis** (`/analysis`) is the **query playground**: pick or create **saved queries**, edit SQL in a **CodeMirror** editor (dialect-aware highlighting and schema completions when the backend is available), format, copy, clear, execute, and inspect paged results — gated by **`analysis*`** flags.
 
-When the Mill stack enables the **query-result HTTP service** (**`mill.data.services.query.enable`** on **`mill-service`**), ad hoc execution uses **session routes** under **`/api/v1/query/`** — **`POST /api/v1/query`** to create a session, **`GET /api/v1/query/{executionId}`** for metadata or paged result slices (query parameters), and **`DELETE /api/v1/query/{executionId}`** to release server-side buffers. Operator-facing detail: internal design [Query result execution service](../../design/platform/query-result-execution-service.md).
+When **`mill-service`** includes the Analysis modules, the UI loads:
+
+- **Saved-query catalog** — **`GET/POST/PUT/DELETE /api/v1/analysis/queries`** (sidebar list, create, rename, save, delete).
+- **SQL dialect** — **`GET /api/v1/analysis/dialect`** (editor mode and identifier quoting).
+- **Ad hoc execution** — session routes under **`/api/v1/query/`** when **`mill.data.services.query.enable`** is true: **`POST /api/v1/query`**, paged **`GET /api/v1/query/{executionId}`**, **`DELETE /api/v1/query/{executionId}`**.
+
+When the export service and UI export controls are enabled, the results toolbar can **download** the full SQL result via **`POST /services/export/sql`** (not only the current grid page). See [Model export](#export-tables-and-query-results).
+
+Operator-facing detail: [Analysis saved-query service](../../design/platform/analysis-saved-query-service.md), [Query result execution service](../../design/platform/query-result-execution-service.md).
 
 ---
 

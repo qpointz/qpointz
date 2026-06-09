@@ -1,16 +1,20 @@
-# WI-257 — REST `/api/v1/queries` (list, get)
+# WI-257 — REST `/api/v1/analysis/queries` (catalog)
 
-Status: `planned`  
+Status: `done`  
 Type: `feature`  
 Area: `services`  
 Backlog refs: **U-13**
 
 ## Goal
 
-Implement HTTP handlers per [`BACKEND-API-REQUIREMENTS.md`](../../../design/ui/mill-ui/BACKEND-API-REQUIREMENTS.md#domain-queries-analysis):
+Implement HTTP handlers per [`BACKEND-API-REQUIREMENTS.md`](../../../design/ui/mill-ui/BACKEND-API-REQUIREMENTS.md):
 
-- `GET /api/v1/queries`
-- `GET /api/v1/queries/{queryId}`
+- `GET /api/v1/analysis/dialect`
+- `GET /api/v1/analysis/queries`
+- `GET /api/v1/analysis/queries/{queryId}`
+- `POST /api/v1/analysis/queries`
+- `PUT /api/v1/analysis/queries/{queryId}`
+- `DELETE /api/v1/analysis/queries/{queryId}`
 
 **Ad-hoc SQL execution** is **not** in this WI — it is **`/api/v1/query/**`** (story **`query-result-execution-service`**). Do **not** add **`POST /api/v1/queries/execute`**.
 

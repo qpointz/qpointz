@@ -1,6 +1,6 @@
 # WI-260 — Analysis integration tests + docs sync
 
-Status: `planned`  
+Status: `done`  
 Type: `test`, `docs`  
 Area: `services`, `ui`  
 Backlog refs: **U-13**
@@ -13,7 +13,7 @@ Add **testIT** (or full-stack slice) covering **queries REST** + persistence, an
 
 1. **Backend testIT** per [`CLAUDE.md`](../../../../CLAUDE.md):
    - Flyway V8 applies; seeded saved queries readable.
-   - `GET /api/v1/queries` returns list; `GET /api/v1/queries/{id}` happy path + **`404`**.
+   - `GET /api/v1/analysis/queries` returns list; `GET /api/v1/analysis/queries/{id}` happy path + **`404`**; `GET /api/v1/analysis/dialect` returns configured dialect.
    - Auth behaviour when `mill.security.enable=true` (mirror query-result IT pattern).
 2. **UI:** confirm `queryService` Vitest coverage from **WI-259** remains green in CI.
 3. Sync **[`BACKEND-API-REQUIREMENTS.md`](../../../design/ui/mill-ui/BACKEND-API-REQUIREMENTS.md)** and mill-ui service docs (HTTP-only `queryService`; remove any mock/toggle references) if needed.

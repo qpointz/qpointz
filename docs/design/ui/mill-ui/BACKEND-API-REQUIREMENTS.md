@@ -10,7 +10,7 @@ This document specifies the REST API and streaming endpoints that the backend mu
 2. [General Conventions](#general-conventions)
 3. [Domain: Schema (Data Model)](#domain-schema-data-model)
 4. [Domain: Concepts (Knowledge)](#domain-concepts-knowledge)
-5. [Domain: Queries (Analysis)](#domain-queries-analysis)
+5. [Domain: Analysis](#domain-analysis)
 6. [Domain: Chat (Conversations)](#domain-chat-conversations)
 7. [Domain: Inline Chat (Context-Aware)](#domain-inline-chat-context-aware)
 8. [Domain: Overview (Dashboard)](#domain-overview-dashboard)
@@ -223,11 +223,32 @@ Returns all tags with their concept counts.
 
 ---
 
-## Domain: Queries (Analysis)
+## Domain: Analysis
 
-The Analysis view combines three backend surfaces: **saved-query catalog** (`GET /api/v1/queries` and `GET /api/v1/queries/{queryId}` — persistence still required for production UIs), **interactive result sessions** under **`/api/v1/query/**`** ([`query-result-execution-service.md`](../../platform/query-result-execution-service.md); delivered in [`20260511-query-result-execution-service`](../../../workitems/completed/20260511-query-result-execution-service/STORY.md)), and **file export** under **`/services/export/**`** ([`export-service.md`](../../platform/export-service.md); delivered in [`20260507-streaming-export-service`](../../../workitems/completed/20260507-streaming-export-service/STORY.md)).
+The Analysis view combines three backend surfaces: **saved-query catalog and dialect** under **`/api/v1/analysis/**`** ([`analysis-saved-query-service.md`](../../platform/analysis-saved-query-service.md); delivered in [`20260609-mill-ui-analysis-full-stack`](../../../workitems/completed/20260609-mill-ui-analysis-full-stack/STORY.md)), **interactive result sessions** under **`/api/v1/query/**`** ([`query-result-execution-service.md`](../../platform/query-result-execution-service.md); delivered in [`20260511-query-result-execution-service`](../../../workitems/completed/20260511-query-result-execution-service/STORY.md)), and **file export** under **`/services/export/**`** ([`export-service.md`](../../platform/export-service.md); delivered in [`20260507-streaming-export-service`](../../../workitems/completed/20260507-streaming-export-service/STORY.md)).
 
-### GET /api/v1/queries
+### GET /api/v1/analysis/dialect
+
+Returns the active SQL dialect from `mill.data.sql.dialect` for CodeMirror highlighting and completions.
+
+**Response:**
+```json
+{
+  "id": "CALCITE",
+  "name": "Apache Calcite",
+  "readOnly": true,
+  "editorDialect": "standard",
+  "identifiers": { "quoteStart": "`", "quoteEnd": "`" },
+  "functions": {
+    "strings": ["LENGTH", "LOWER"],
+    "aggregates": ["COUNT", "SUM"]
+  }
+}
+```
+
+**Frontend usage**: `analysisService.getDialect()` on Analysis mount; `editorDialect` maps to CodeMirror (`standard`, `postgresql`, `mysql`).
+
+### GET /api/v1/analysis/queries
 
 Returns all saved queries.
 
@@ -250,13 +271,25 @@ Returns all saved queries.
 
 **Frontend usage**: Renders the query list in the sidebar.
 
-### GET /api/v1/queries/{queryId}
+### GET /api/v1/analysis/queries/{queryId}
 
 Returns a single saved query by ID.
 
 **Response:** Same shape as a single item from the array above.
 
 **Frontend usage**: Loads a query from URL parameters into the SQL editor.
+
+### POST /api/v1/analysis/queries
+
+Creates a saved query. Optional `id` in body; server generates a slug from `name` when omitted.
+
+### PUT /api/v1/analysis/queries/{queryId}
+
+Updates name, description, SQL, and tags.
+
+### DELETE /api/v1/analysis/queries/{queryId}
+
+Deletes a saved query (`204`).
 
 ### Query execution sessions (`/api/v1/query/**`)
 
@@ -726,8 +759,12 @@ Returns feature flags for the current user/session. The backend only needs to in
 | GET | `/api/v1/concepts/{id}` | Single concept |
 | GET | `/api/v1/concepts/categories` | Category list with counts |
 | GET | `/api/v1/concepts/tags` | Tag list with counts |
-| GET | `/api/v1/queries` | List saved queries |
-| GET | `/api/v1/queries/{id}` | Single saved query |
+| GET | `/api/v1/analysis/dialect` | Configured SQL dialect for Analysis editor |
+| GET | `/api/v1/analysis/queries` | List saved queries |
+| GET | `/api/v1/analysis/queries/{id}` | Single saved query |
+| POST | `/api/v1/analysis/queries` | Create saved query |
+| PUT | `/api/v1/analysis/queries/{id}` | Update saved query |
+| DELETE | `/api/v1/analysis/queries/{id}` | Delete saved query |
 | POST | `/api/v1/query` | Create query-result session (optional first page) |
 | GET | `/api/v1/query/{executionId}` | Session metadata (no `pageIndex`) or paged slice (`?pageIndex=&pageSize=`) |
 | DELETE | `/api/v1/query/{executionId}` | Release session |

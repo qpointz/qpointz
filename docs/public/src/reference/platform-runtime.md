@@ -23,6 +23,10 @@ When **`mill.data.services.export.enable`** is true and the **`export`** service
 
 Operator-facing detail: internal design [Streaming HTTP export service](../../../design/platform/export-service.md); configuration keys in [05-configuration-keys](../../../design/refactoring/05-configuration-keys.md) (`mill.data.services.export.*`). Story archive: [`docs/workitems/completed/20260507-streaming-export-service/STORY.md`](../../../workitems/completed/20260507-streaming-export-service/STORY.md).
 
+## HTTP Analysis saved queries (`/api/v1/analysis`)
+
+When **`mill-service`** wires the Analysis stack (**`mill-analysis-service`** + **`mill-analysis-persistence`**), the UI can persist and load saved SQL under **`/api/v1/analysis/queries`** and read the configured dialect from **`/api/v1/analysis/dialect`**. Flyway migration **`V8__saved_queries.sql`** (in shared **`mill-persistence`**) creates the **`saved_query`** table and demo seed rows. Internal design [Analysis saved-query service](../../../design/platform/analysis-saved-query-service.md); story archive [`docs/workitems/completed/20260609-mill-ui-analysis-full-stack/STORY.md`](../../../workitems/completed/20260609-mill-ui-analysis-full-stack/STORY.md).
+
 ## HTTP ad hoc query sessions (`/api/v1/query`)
 
 When **`mill.data.services.query.enable`** is true and the **`query`** data service group is on the classpath, **`mill-service`** exposes **session-based** ad hoc SQL execution under **`/api/v1/query/`**: **`POST /api/v1/query`** creates a session; **`GET /api/v1/query/{executionId}`** returns metadata **or** a paged result slice depending on query parameters; **`DELETE /api/v1/query/{executionId}`** deallocates. Built-in JSON marshallers include **`rows-objects`** and **`rows-compact-batch`**. Internal design [Query result execution service](../../../design/platform/query-result-execution-service.md); story archive [`docs/workitems/completed/20260511-query-result-execution-service/STORY.md`](../../../workitems/completed/20260511-query-result-execution-service/STORY.md).

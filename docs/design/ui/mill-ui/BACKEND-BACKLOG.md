@@ -201,8 +201,8 @@ Full FeatureFlags interface has 70 boolean flags across 14 categories (views, ch
 | G-5 | Concept by ID | **MISSING** | -- | Same as G-4. |
 | G-6 | Concept categories | **MISSING** | -- | Same as G-4. |
 | G-7 | Concept tags | **MISSING** | -- | Same as G-4. |
-| G-8 | Saved queries list | **MISSING** | -- | No saved query persistence. |
-| G-9 | Saved query by ID | **MISSING** | -- | Same as G-8. |
+| G-8 | Saved queries list | **DONE** | `GET /api/v1/analysis/queries` | Delivered in **`mill-analysis-service`** + **`mill-analysis-persistence`** ([`analysis-saved-query-service.md`](../../platform/analysis-saved-query-service.md)). |
+| G-9 | Saved query by ID | **DONE** | `GET /api/v1/analysis/queries/{id}` | Full catalog CRUD on same surface. |
 | G-10 | Execute SQL (JSON) | **PARTIAL** | **`POST /api/v1/query`** + query-driven **`GET /api/v1/query/{executionId}`** (`mill-data-query-service`) | Session-based HTTP + marshaller formats (`rows-objects` / `rows-compact-batch`). UI maps to flat `QueryResult`; remaining gaps are optional UX (streaming, saved-query integration). See [`query-result-execution-service.md`](../../platform/query-result-execution-service.md). |
 | G-11 | Conversations list | **PARTIAL** | `GET /api/nl2sql/chats` | Path and DTO naming differ (`Chat` vs `Conversation`, `ChatMessage` vs `Message`). Need to verify: does `Chat` include nested messages? Does it have `createdAt`/`updatedAt`? |
 | G-12 | Create conversation | **PARTIAL** | `POST /api/nl2sql/chats` | Request shape (`CreateChatRequest` vs `{title}`). Response shape alignment. |
@@ -258,18 +258,19 @@ Entire new domain -- the Knowledge view has no backend support at all.
 | **B-10** | `GET /api/v1/concepts/categories` | Aggregate query returning `{name, count}[]` grouped by category. | B-7 |
 | **B-11** | `GET /api/v1/concepts/tags` | Aggregate query returning `{name, count}[]` from tags collection. | B-7 |
 
-### Tier 3 -- New Domain: Saved Queries (medium effort, medium value)
+### Tier 3 -- Saved Queries (Analysis catalog) — **delivered**
 
-The Analysis view lists saved queries but has no persistence backend.
+Implemented under **`/api/v1/analysis/**`** ([`analysis-saved-query-service.md`](../../platform/analysis-saved-query-service.md)). Per-user ownership remains a follow-up (**B-24**).
 
 | ID | Task | Description | Depends On |
 |---|---|---|---|
-| **B-12** | Saved queries data model | JPA entity for `SavedQuery`: id, name, description, sql, tags (collection), createdAt, updatedAt. Consider per-user ownership. | -- |
-| **B-13** | `GET /api/v1/queries` | List saved queries. | B-12 |
-| **B-14** | `GET /api/v1/queries/{id}` | Single saved query lookup. | B-12 |
-| **B-15** | `POST /api/v1/queries` | Create saved query. | B-12 |
-| **B-16** | `PUT /api/v1/queries/{id}` | Update saved query. | B-12 |
-| **B-17** | `DELETE /api/v1/queries/{id}` | Delete saved query. | B-12 |
+| **B-12** | Saved queries data model | JPA entity for `SavedQuery`: id, name, description, sql, tags (collection), createdAt, updatedAt. | -- |
+| **B-12a** | `GET /api/v1/analysis/dialect` | Configured SQL dialect for Analysis editor. | B-12 |
+| **B-13** | `GET /api/v1/analysis/queries` | List saved queries. | B-12 |
+| **B-14** | `GET /api/v1/analysis/queries/{id}` | Single saved query lookup. | B-12 |
+| **B-15** | `POST /api/v1/analysis/queries` | Create saved query. | B-12 |
+| **B-16** | `PUT /api/v1/analysis/queries/{id}` | Update saved query. | B-12 |
+| **B-17** | `DELETE /api/v1/analysis/queries/{id}` | Delete saved query. | B-12 |
 
 ### Tier 4 -- New Endpoints: Supporting Features (low-medium effort)
 

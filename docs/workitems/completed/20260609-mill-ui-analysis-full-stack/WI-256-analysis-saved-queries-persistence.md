@@ -1,6 +1,6 @@
 # WI-256 — Saved queries persistence (Flyway + JPA)
 
-Status: `planned`  
+Status: `done`  
 Type: `feature`  
 Area: `persistence`, `ui` (contract)  
 Backlog refs: **U-13**
@@ -15,9 +15,9 @@ Follow **contract purity** ([`CLAUDE.md`](../../../../CLAUDE.md)); mirror **`mil
 
 | Module | Contents |
 |--------|----------|
-| `data/mill-analysis-queries` (or `services/mill-analysis-queries-api`) | **`SavedQuery`** domain record; **`SavedQueryCatalog`** port (`findAll()`, `findById(id)`) — **no JPA** |
+| `services/mill-analysis-api` | **`SavedQuery`** domain record; **`SavedQueryCatalog`** port — **no JPA** |
 | `persistence/mill-analysis-persistence` | **`SavedQueryEntity`**, **`JpaSavedQueryRepository`**, **`JpaSavedQueryCatalog`** adapter — maps entity ↔ domain |
-| *(WI-258)* `services/mill-analysis-queries-service` | REST only; depends on **port**, never on entity types |
+| *(WI-258)* `services/mill-analysis-service` | REST only; depends on **port**, never on entity types |
 
 - Entities live under `io.qpointz.mill.persistence.analysis.jpa.*` (fits existing `@EntityScan("io.qpointz.mill.persistence")`).
 - Flyway stays centralized in [`mill-persistence`](../../../../persistence/mill-persistence/src/main/resources/db/migration).
