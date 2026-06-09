@@ -1,7 +1,7 @@
 import type { StatsService } from '../types/stats';
 import { mockSchemaTree } from '../data/mockSchema';
 import { mockConcepts } from '../data/mockConcepts';
-import { mockSavedQueries } from '../data/mockQueries';
+import { queryService } from './queryService';
 
 const mockStatsService: StatsService = {
   async getStats() {
@@ -11,11 +11,17 @@ const mockStatsService: StatsService = {
         tableCount += schema.children.filter((c) => c.type === 'TABLE').length;
       }
     }
+    let queryCount = 0;
+    try {
+      queryCount = (await queryService.getSavedQueries()).length;
+    } catch {
+      queryCount = 0;
+    }
     return {
       schemaCount: mockSchemaTree.length,
       tableCount,
       conceptCount: mockConcepts.length,
-      queryCount: mockSavedQueries.length,
+      queryCount,
     };
   },
 };

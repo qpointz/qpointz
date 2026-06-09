@@ -13,6 +13,7 @@ export {
   buildEntityFacetsFromResolvedList,
 } from './schemaService';
 export { conceptService } from './conceptService';
+export { analysisService, ANALYSIS_DIALECT_PATH, ANALYSIS_QUERIES_BASE } from './analysisService';
 export { queryService } from './queryService';
 export { statsService } from './statsService';
 export {

@@ -1,7 +1,20 @@
-import { describe, it, expect } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { statsService } from '../statsService';
 
 describe('statsService', () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ queries: [{ id: 'q1' }, { id: 'q2' }] }), { status: 200 }),
+      ),
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   describe('getStats', () => {
     it('should return dashboard stats object', async () => {
       const stats = await statsService.getStats();
@@ -26,10 +39,10 @@ describe('statsService', () => {
       expect(stats.conceptCount).toBeGreaterThan(0);
     });
 
-    it('should include queryCount', async () => {
+    it('should include queryCount from saved-query catalog', async () => {
       const stats = await statsService.getStats();
       expect(typeof stats.queryCount).toBe('number');
-      expect(stats.queryCount).toBeGreaterThan(0);
+      expect(stats.queryCount).toBe(2);
     });
   });
 });

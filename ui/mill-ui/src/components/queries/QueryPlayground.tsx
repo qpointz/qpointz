@@ -1,16 +1,24 @@
 import { Box, useMantineColorScheme, Text, Badge, ActionIcon, Tooltip } from '@mantine/core';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { useEffect } from 'react';
+import { format as formatSQL } from 'sql-formatter';
 import { HiOutlineCommandLine, HiOutlineBeaker, HiOutlinePlus } from 'react-icons/hi2';
 import { QuerySidebar } from './QuerySidebar';
 import { QueryEditor } from './QueryEditor';
 import { QueryResults } from './QueryResults';
 import { ExplorerSplitLayout } from '../layout/ExplorerSplitLayout';
 import { queryService } from '../../services/api';
+import {
+  normalizeQueryPageSize,
+  readStoredQueryPageSize,
+  storeQueryPageSize,
+} from '../../services/queryService';
+import { VerticalSplitPane } from '../layout/VerticalSplitPane';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
 import { useInlineChatListener } from '../../context/InlineChatContext';
 import type { SavedQuery, QueryResult } from '../../types/query';
+import { resolveSqlToExecute } from './resolveSqlToExecute';
+import { sanitizeExportAttachmentBaseName } from '../../services/exportHelpers';
 
 /**
  * Extract the first SQL code block from markdown content.
@@ -23,6 +31,37 @@ function extractSqlFromMarkdown(content: string): string | null {
 
 let newQueryCounter = 0;
 
+function applyLoadedQuery(
+  query: SavedQuery,
+  setters: {
+    setSql: (sql: string) => void;
+    setSavedSnapshot: (sql: string) => void;
+    setSavedNameSnapshot: (name: string) => void;
+    setActiveQueryId: (id: string) => void;
+    setActiveQueryName: (name: string) => void;
+    setActiveQueryDescription: (description: string | null) => void;
+    setResult: (result: QueryResult | null) => void;
+    setError: (error: string | null) => void;
+    setIsDirty: (dirty: boolean) => void;
+    onSessionCleared?: () => void;
+  },
+) {
+  setters.setSql(query.sql);
+  setters.setSavedSnapshot(query.sql);
+  setters.setSavedNameSnapshot(query.name);
+  setters.setActiveQueryId(query.id);
+  setters.setActiveQueryName(query.name);
+  setters.setActiveQueryDescription(query.description ?? null);
+  setters.setResult(null);
+  setters.setError(null);
+  setters.setIsDirty(false);
+  setters.onSessionCleared?.();
+}
+
+function computeIsDirty(sql: string, savedSql: string, name: string | null, savedName: string): boolean {
+  return sql !== savedSql || (name ?? '') !== savedName;
+}
+
 export function QueryPlayground() {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
@@ -31,142 +70,308 @@ export function QueryPlayground() {
   const params = useParams<{ queryId?: string }>();
 
   const [sql, setSql] = useState('');
+  const [savedSnapshot, setSavedSnapshot] = useState('');
+  const [savedNameSnapshot, setSavedNameSnapshot] = useState('');
+  const [isDirty, setIsDirty] = useState(false);
+  const [sqlCopied, setSqlCopied] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
   const [result, setResult] = useState<QueryResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isPageLoading, setIsPageLoading] = useState(false);
+  const [queryPageSize, setQueryPageSize] = useState(readStoredQueryPageSize);
+  const activeExecutionIdRef = useRef<string | null>(null);
   const [activeQueryId, setActiveQueryId] = useState<string | null>(null);
   const [activeQueryName, setActiveQueryName] = useState<string | null>(null);
   const [activeQueryDescription, setActiveQueryDescription] = useState<string | null>(null);
-  const [userQueries, setUserQueries] = useState<SavedQuery[]>([]);
   const [savedQueries, setSavedQueries] = useState<SavedQuery[]>([]);
+
+  const loadSavedQueries = useCallback(async () => {
+    try {
+      const queries = await queryService.getSavedQueries();
+      setSavedQueries(queries);
+      return queries;
+    } catch {
+      setSavedQueries([]);
+      return [];
+    }
+  }, []);
+
+  const closeActiveSession = useCallback(async () => {
+    const executionId = activeExecutionIdRef.current;
+    if (!executionId) {
+      return;
+    }
+    activeExecutionIdRef.current = null;
+    await queryService.closeQuerySession(executionId).catch(() => {
+      // Session may already be evicted server-side.
+    });
+  }, []);
 
   // Load saved queries on mount
   useEffect(() => {
-    queryService.getSavedQueries().then(setSavedQueries).catch(() => setSavedQueries([]));
+    void loadSavedQueries();
+  }, [loadSavedQueries]);
+
+  useEffect(() => () => {
+    void closeActiveSession();
+  }, [closeActiveSession]);
+
+  const clearActiveSessionRef = useCallback(() => {
+    activeExecutionIdRef.current = null;
   }, []);
 
-  const allQueries = [...userQueries, ...savedQueries];
+  const querySetters = {
+    setSql,
+    setSavedSnapshot,
+    setSavedNameSnapshot,
+    setActiveQueryId,
+    setActiveQueryName,
+    setActiveQueryDescription,
+    setResult,
+    setError,
+    setIsDirty,
+    onSessionCleared: clearActiveSessionRef,
+  };
 
-  // Sync URL params to selected query
+  // Sync URL params to selected query (skip when already active to preserve unsaved edits)
   useEffect(() => {
-    if (params.queryId) {
-      // Look in user queries first (local state), then fetch from service
-      const userQuery = userQueries.find((q) => q.id === params.queryId);
-      if (userQuery) {
-        setSql(userQuery.sql);
-        setActiveQueryId(userQuery.id);
-        setActiveQueryName(userQuery.name);
-        setActiveQueryDescription(userQuery.description ?? null);
-        setResult(null);
-        setError(null);
-      } else {
-        queryService.getSavedQueryById(params.queryId).then((query) => {
-          if (query) {
-            setSql(query.sql);
-            setActiveQueryId(query.id);
-            setActiveQueryName(query.name);
-            setActiveQueryDescription(query.description ?? null);
-            setResult(null);
-            setError(null);
-          }
-        }).catch(() => {
-          // Query not found -- ignore
-        });
-      }
+    if (!params.queryId || activeQueryId === params.queryId) {
+      return;
     }
-  }, [params.queryId, userQueries]);
+
+    const localQuery = savedQueries.find((q) => q.id === params.queryId);
+    if (localQuery) {
+      void closeActiveSession();
+      applyLoadedQuery(localQuery, querySetters);
+      return;
+    }
+
+    queryService.getSavedQueryById(params.queryId).then((query) => {
+      if (query) {
+        void closeActiveSession();
+        applyLoadedQuery(query, querySetters);
+        setSavedQueries((prev) => (prev.some((q) => q.id === query.id) ? prev : [query, ...prev]));
+      }
+    }).catch(() => {
+      // Query not found -- ignore
+    });
+  }, [params.queryId, savedQueries, activeQueryId, closeActiveSession]);
 
   // Listen to inline chat AI responses -- extract SQL and update editor
   useInlineChatListener(activeQueryId ?? '__analysis__', (content) => {
     const extracted = extractSqlFromMarkdown(content);
     if (extracted) {
       setSql(extracted);
+      setIsDirty(computeIsDirty(extracted, savedSnapshot, activeQueryName, savedNameSnapshot));
     }
   });
 
   const handleSelectQuery = useCallback((query: SavedQuery) => {
-    setSql(query.sql);
-    setActiveQueryId(query.id);
-    setActiveQueryName(query.name);
-    setActiveQueryDescription(query.description ?? null);
-    setResult(null);
-    setError(null);
+    void closeActiveSession();
+    applyLoadedQuery(query, querySetters);
     navigate(`/analysis/${query.id}`);
-  }, [navigate]);
+  }, [navigate, closeActiveSession]);
 
   const handleSqlChange = useCallback((newSql: string) => {
     setSql(newSql);
-    // If user edits the SQL, it's no longer a saved query
-    // (but keep the ID for sidebar highlighting)
-  }, []);
+    setIsDirty(computeIsDirty(newSql, savedSnapshot, activeQueryName, savedNameSnapshot));
+  }, [savedSnapshot, activeQueryName, savedNameSnapshot]);
 
-  const handleExecute = useCallback(async () => {
-    if (!sql.trim() || isExecuting) return;
+  const handleQueryNameChange = useCallback((name: string) => {
+    setActiveQueryName(name);
+    setIsDirty(computeIsDirty(sql, savedSnapshot, name, savedNameSnapshot));
+  }, [sql, savedSnapshot, savedNameSnapshot]);
+
+  const handleFormatSql = useCallback(() => {
+    try {
+      const formatted = formatSQL(sql, {
+        language: 'sql',
+        tabWidth: 2,
+        keywordCase: 'upper',
+        linesBetweenQueries: 2,
+      });
+      setSql(formatted);
+      setIsDirty(computeIsDirty(formatted, savedSnapshot, activeQueryName, savedNameSnapshot));
+    } catch {
+      // Leave SQL unchanged when formatting fails.
+    }
+  }, [sql, savedSnapshot, activeQueryName, savedNameSnapshot]);
+
+  const handleCopySql = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(sql);
+      setSqlCopied(true);
+      setTimeout(() => setSqlCopied(false), 2000);
+    } catch {
+      // Clipboard API not available.
+    }
+  }, [sql]);
+
+  const handleClearSql = useCallback(() => {
+    setSql('');
+    setIsDirty(computeIsDirty('', savedSnapshot, activeQueryName, savedNameSnapshot));
+  }, [savedSnapshot, activeQueryName, savedNameSnapshot]);
+
+  const handleExecute = useCallback(async (sqlFragment?: string) => {
+    const sqlToRun = resolveSqlToExecute(sql, sqlFragment);
+    if (!sqlToRun || isExecuting) return;
 
     setIsExecuting(true);
     setError(null);
     setResult(null);
 
     try {
-      const queryResult = await queryService.executeQuery(sql);
+      await closeActiveSession();
+      const queryResult = await queryService.executeQuery(sqlToRun, { pageSize: queryPageSize });
+      activeExecutionIdRef.current = queryResult.page.executionId;
       setResult(queryResult);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setIsExecuting(false);
     }
-  }, [sql, isExecuting]);
+  }, [sql, isExecuting, closeActiveSession, queryPageSize]);
 
-  const handleNewQuery = useCallback(() => {
-    newQueryCounter += 1;
-    const now = Date.now();
-    const newQuery: SavedQuery = {
-      id: `new-query-${now}`,
-      name: `New Query ${newQueryCounter}`,
-      sql: '',
-      createdAt: now,
-      updatedAt: now,
-    };
-    setUserQueries((prev) => [newQuery, ...prev]);
-    setSql('');
-    setActiveQueryId(newQuery.id);
-    setActiveQueryName(newQuery.name);
-    setActiveQueryDescription(null);
-    setResult(null);
+  const handlePageSizeChange = useCallback(async (nextPageSize: number) => {
+    const normalized = normalizeQueryPageSize(nextPageSize);
+    setQueryPageSize(normalized);
+    storeQueryPageSize(normalized);
+
+    if (!result?.page || isExecuting || isPageLoading) {
+      return;
+    }
+
+    setIsPageLoading(true);
     setError(null);
-    navigate(`/analysis/${newQuery.id}`);
+    try {
+      const nextPage = await queryService.fetchQueryPage({
+        executionId: result.page.executionId,
+        pageIndex: 0,
+        pageSize: normalized,
+        epoch: result.page.epoch,
+      });
+      setResult({
+        ...nextPage,
+        executionTimeMs: result.executionTimeMs,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to change page size');
+    } finally {
+      setIsPageLoading(false);
+    }
+  }, [result, isExecuting, isPageLoading]);
+
+  const handlePageChange = useCallback(async (pageIndex: number) => {
+    if (!result?.page || isPageLoading || isExecuting) {
+      return;
+    }
+    if (pageIndex === result.page.pageIndex) {
+      return;
+    }
+
+    setIsPageLoading(true);
+    setError(null);
+    try {
+      const nextPage = await queryService.fetchQueryPage({
+        executionId: result.page.executionId,
+        pageIndex,
+        pageSize: result.page.pageSize,
+        epoch: result.page.epoch,
+      });
+      setResult({
+        ...nextPage,
+        executionTimeMs: result.executionTimeMs,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load query page');
+    } finally {
+      setIsPageLoading(false);
+    }
+  }, [result, isPageLoading, isExecuting]);
+
+  const handleSave = useCallback(async () => {
+    if (!activeQueryId || !activeQueryName || isSaving || !isDirty) return;
+
+    setIsSaving(true);
+    setError(null);
+    try {
+      const saved = await queryService.updateSavedQuery(activeQueryId, {
+        name: activeQueryName,
+        description: activeQueryDescription ?? undefined,
+        sql,
+        tags: savedQueries.find((q) => q.id === activeQueryId)?.tags,
+      });
+      setSavedQueries((prev) => [saved, ...prev.filter((q) => q.id !== saved.id)]);
+      setSavedSnapshot(saved.sql);
+      setSavedNameSnapshot(saved.name);
+      setIsDirty(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save query');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [
+    activeQueryId,
+    activeQueryName,
+    activeQueryDescription,
+    isSaving,
+    isDirty,
+    sql,
+    savedQueries,
+  ]);
+
+  const handleNewQuery = useCallback(async () => {
+    newQueryCounter += 1;
+    const name = `New Query ${newQueryCounter}`;
+    try {
+      const created = await queryService.createSavedQuery({ name, sql: '' });
+      setSavedQueries((prev) => [created, ...prev]);
+      applyLoadedQuery(created, querySetters);
+      navigate(`/analysis/${created.id}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create query');
+    }
   }, [navigate]);
 
-  const handleDeleteQuery = useCallback((queryId: string) => {
-    // Remove from user queries
-    setUserQueries((prev) => prev.filter((q) => q.id !== queryId));
-
-    // If the deleted query was active, reset the editor
-    if (activeQueryId === queryId) {
-      // Find the next query to select (prefer the one after, else before, else nothing)
-      const currentIndex = allQueries.findIndex((q) => q.id === queryId);
-      const remaining = allQueries.filter((q) => q.id !== queryId);
-      const nextQuery = remaining[Math.min(currentIndex, remaining.length - 1)];
-
-      if (nextQuery) {
-        setSql(nextQuery.sql);
-        setActiveQueryId(nextQuery.id);
-        setActiveQueryName(nextQuery.name);
-        setActiveQueryDescription(nextQuery.description ?? null);
-        setResult(null);
-        setError(null);
-        navigate(`/analysis/${nextQuery.id}`);
-      } else {
-        setSql('');
-        setActiveQueryId(null);
-        setActiveQueryName(null);
-        setActiveQueryDescription(null);
-        setResult(null);
-        setError(null);
-        navigate('/analysis');
-      }
+  const handleDeleteQuery = useCallback(async (queryId: string) => {
+    try {
+      await queryService.deleteSavedQuery(queryId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete query');
+      return;
     }
-  }, [activeQueryId, allQueries, navigate]);
+
+    const remaining = savedQueries.filter((q) => q.id !== queryId);
+    setSavedQueries(remaining);
+
+    if (activeQueryId !== queryId) {
+      return;
+    }
+
+    const currentIndex = savedQueries.findIndex((q) => q.id === queryId);
+    const nextQuery = remaining[Math.min(currentIndex, remaining.length - 1)];
+
+    if (nextQuery) {
+      void closeActiveSession();
+      applyLoadedQuery(nextQuery, querySetters);
+      navigate(`/analysis/${nextQuery.id}`);
+    } else {
+      void closeActiveSession();
+      setSql('');
+      setSavedSnapshot('');
+      setSavedNameSnapshot('');
+      setActiveQueryId(null);
+      setActiveQueryName(null);
+      setActiveQueryDescription(null);
+      setResult(null);
+      setError(null);
+      setIsDirty(false);
+      navigate('/analysis');
+    }
+  }, [activeQueryId, savedQueries, navigate]);
+
+  const exportAttachmentBaseName = sanitizeExportAttachmentBaseName(activeQueryName ?? 'query-results');
 
   // Check if there's content (SQL or results) to show
   const hasContent = sql.trim() || result || error || activeQueryId;
@@ -174,12 +379,12 @@ export function QueryPlayground() {
   return (
     <ExplorerSplitLayout
       icon={HiOutlineBeaker}
-      title="Sample Queries"
+      title="Saved Queries"
       sidebarHeaderRight={
         <>
           {flags.sidebarAnalysisBadge && (
             <Badge size="xs" variant="light" color={isDark ? 'cyan' : 'teal'}>
-              {allQueries.length}
+              {savedQueries.length}
             </Badge>
           )}
           <Tooltip label="New query" withArrow>
@@ -187,7 +392,7 @@ export function QueryPlayground() {
               size="sm"
               variant="subtle"
               color={isDark ? 'cyan' : 'teal'}
-              onClick={handleNewQuery}
+              onClick={() => { void handleNewQuery(); }}
             >
               <HiOutlinePlus size={14} />
             </ActionIcon>
@@ -196,55 +401,70 @@ export function QueryPlayground() {
       }
       sidebarBody={
         <QuerySidebar
-          queries={allQueries}
+          queries={savedQueries}
           activeQueryId={activeQueryId}
           onSelectQuery={handleSelectQuery}
-          onDeleteQuery={handleDeleteQuery}
+          onDeleteQuery={(queryId) => { void handleDeleteQuery(queryId); }}
         />
       }
       main={
         hasContent ? (
-          <Box style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            {/* Editor panel (top) */}
-            <Box
-              style={{
-                height: '45%',
-                minHeight: 200,
-                display: 'flex',
-                flexDirection: 'column',
-                borderBottom: `2px solid var(--mantine-color-default-border)`,
-              }}
-            >
+          flags.analysisQueryResults ? (
+            <VerticalSplitPane
+              storageKey="mill-ui.analysis.editorSplitPercent"
+              initialTopPercent={45}
+              minTopPx={160}
+              minBottomPx={120}
+              top={(
+                <QueryEditor
+                  sql={sql}
+                  onChange={handleSqlChange}
+                  onExecute={(sqlFragment) => { void handleExecute(sqlFragment); }}
+                  onSave={() => { void handleSave(); }}
+                  onQueryNameChange={handleQueryNameChange}
+                  isExecuting={isExecuting}
+                  isSaving={isSaving}
+                  isDirty={isDirty}
+                  queryId={activeQueryId}
+                  queryName={activeQueryName}
+                  queryDescription={activeQueryDescription}
+                />
+              )}
+              bottom={(
+                <QueryResults
+                  result={result}
+                  error={error}
+                  isExecuting={isExecuting}
+                  isPageLoading={isPageLoading}
+                  currentSql={sql}
+                  exportAttachmentBaseName={exportAttachmentBaseName}
+                  pageSize={queryPageSize}
+                  onPageSizeChange={(size) => { void handlePageSizeChange(size); }}
+                  onFormatSql={handleFormatSql}
+                  onCopySql={handleCopySql}
+                  onClearSql={handleClearSql}
+                  sqlCopied={sqlCopied}
+                  onPageChange={(pageIndex) => { void handlePageChange(pageIndex); }}
+                />
+              )}
+            />
+          ) : (
+            <Box style={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
               <QueryEditor
                 sql={sql}
                 onChange={handleSqlChange}
-                onExecute={handleExecute}
+                onExecute={(sqlFragment) => { void handleExecute(sqlFragment); }}
+                onSave={() => { void handleSave(); }}
+                onQueryNameChange={handleQueryNameChange}
                 isExecuting={isExecuting}
+                isSaving={isSaving}
+                isDirty={isDirty}
                 queryId={activeQueryId}
                 queryName={activeQueryName}
                 queryDescription={activeQueryDescription}
               />
             </Box>
-
-            {/* Results panel (bottom) */}
-            {flags.analysisQueryResults && (
-              <Box
-                style={{
-                  flex: 1,
-                  minHeight: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <QueryResults
-                  result={result}
-                  error={error}
-                  isExecuting={isExecuting}
-                  currentSql={sql}
-                />
-              </Box>
-            )}
-          </Box>
+          )
         ) : (
           /* Empty state */
           <Box
@@ -277,7 +497,7 @@ export function QueryPlayground() {
               Query Playground
             </Text>
             <Text size="sm" c="dimmed" ta="center" maw={400}>
-              Select a sample query from the sidebar or start writing SQL to explore your data model.
+              Select a saved query from the sidebar or create a new one to explore your data model.
             </Text>
           </Box>
         )

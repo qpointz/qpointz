@@ -1,5 +1,16 @@
-import { Box, Text, Group, Badge, ScrollArea, Menu, ActionIcon, Tooltip, useMantineColorScheme } from '@mantine/core';
-import { useMemo, useCallback } from 'react';
+import {
+  Box,
+  Text,
+  Group,
+  Badge,
+  ScrollArea,
+  Menu,
+  ActionIcon,
+  Tooltip,
+  Select,
+  useMantineColorScheme,
+} from '@mantine/core';
+import { useMemo, useCallback, useEffect, type ReactNode } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -15,103 +26,134 @@ import {
   HiChevronUp,
   HiChevronDown,
   HiOutlineArrowDownTray,
-  HiOutlineDocumentText,
-  HiOutlineTableCells as HiOutlineExcel,
-  HiOutlineCodeBracket,
+  HiOutlineSparkles,
+  HiOutlineClipboardDocument,
+  HiOutlineTrash,
+  HiChevronLeft,
+  HiChevronRight,
 } from 'react-icons/hi2';
 import type { QueryResult } from '../../types/query';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
-import { downloadSqlExport } from '../../services/exportService';
+import { downloadSqlExport, fetchExportFormats } from '../../services/exportService';
+import type { ExportFormatInfo } from '../../services/exportHelpers';
+import { LARGE_RESULT_PREVIEW_THRESHOLD } from '../../services/queryRowFormat';
+import { QUERY_PAGE_SIZE_OPTIONS } from '../../services/queryService';
 import { notifications } from '@mantine/notifications';
 
 interface QueryResultsProps {
   result: QueryResult | null;
   error: string | null;
   isExecuting: boolean;
-  /** Live SQL from the editor; when `analysisExportViaService` is true, CSV/JSON try POST /services/export/sql first. */
+  isPageLoading?: boolean;
+  pageSize?: number;
+  onPageSizeChange?: (pageSize: number) => void;
+  /** SQL executed by {@code POST /services/export/sql}. */
   currentSql?: string;
+  /** Sanitized attachment base name for export downloads. */
+  exportAttachmentBaseName?: string;
+  onFormatSql?: () => void;
+  onCopySql?: () => void;
+  onClearSql?: () => void;
+  sqlCopied?: boolean;
+  onPageChange?: (pageIndex: number) => void;
 }
 
 type RowData = Record<string, string | number | boolean | null>;
 
-function downloadFile(content: string, filename: string, mimeType: string) {
-  const blob = new Blob([content], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+export function formatResultRowLabel(result: QueryResult): string {
+  const { page, rowCount } = result;
+  if (rowCount === 0) {
+    return page.totalResult != null
+      ? `0 of ${page.totalResult.toLocaleString()} rows`
+      : '0 rows';
+  }
+  const start = page.pageIndex * page.pageSize + 1;
+  const end = start + rowCount - 1;
+  if (page.totalResult != null) {
+    return `${start.toLocaleString()}–${end.toLocaleString()} of ${page.totalResult.toLocaleString()}`;
+  }
+  return `${rowCount} ${rowCount === 1 ? 'row' : 'rows'}`;
 }
 
-export function QueryResults({ result, error, isExecuting, currentSql = '' }: QueryResultsProps) {
+export function QueryResults({
+  result,
+  error,
+  isExecuting,
+  isPageLoading = false,
+  pageSize,
+  onPageSizeChange,
+  currentSql = '',
+  exportAttachmentBaseName = 'query-results',
+  onFormatSql,
+  onCopySql,
+  onClearSql,
+  sqlCopied = false,
+  onPageChange,
+}: QueryResultsProps) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const flags = useFeatureFlags();
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [exportFormats, setExportFormats] = useState<ExportFormatInfo[]>([]);
+  const [exportFormatsLoading, setExportFormatsLoading] = useState(false);
+  const [exportFormatsFailed, setExportFormatsFailed] = useState(false);
+  const [exportingFormatId, setExportingFormatId] = useState<string | null>(null);
 
-  const exportCsv = useCallback(() => {
-    if (!result) return;
-    const runLocal = () => {
-      const headers = result.columns.map((c) => c.name);
-      const rows = result.rows.map((row) =>
-        headers.map((h) => {
-          const v = row[h];
-          if (v === null) return '';
-          const s = String(v);
-          return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s;
-        }).join(',')
-      );
-      downloadFile([headers.join(','), ...rows].join('\n'), 'query-results.csv', 'text/csv');
-    };
-    if (flags.analysisExportViaService && currentSql.trim()) {
-      void downloadSqlExport(currentSql, 'csv', {
-        filenameHint: 'query-results.csv',
-        attachmentBaseName: 'query-results',
-      }).catch(() => {
-        notifications.show({
-          color: 'yellow',
-          title: 'Server export failed',
-          message: 'Using browser export from the result grid.',
-        });
-        runLocal();
+  const hasSql = Boolean(currentSql.trim());
+  const iconColor = isDark ? 'gray.4' : 'gray.6';
+  const totalPages = result?.page.totalResult != null && result.page.pageSize > 0
+    ? Math.max(1, Math.ceil(result.page.totalResult / result.page.pageSize))
+    : null;
+
+  useEffect(() => {
+    let cancelled = false;
+    setExportFormatsLoading(true);
+    setExportFormatsFailed(false);
+    void fetchExportFormats()
+      .then((formats) => {
+        if (!cancelled) {
+          setExportFormats(formats);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setExportFormatsFailed(true);
+          setExportFormats([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setExportFormatsLoading(false);
+        }
       });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const runSqlExport = useCallback(async (formatId: string) => {
+    const sql = currentSql.trim();
+    if (!sql) {
       return;
     }
-    runLocal();
-  }, [result, flags.analysisExportViaService, currentSql]);
-
-  const exportJson = useCallback(() => {
-    if (!result) return;
-    const runLocal = () => {
-      downloadFile(JSON.stringify(result.rows, null, 2), 'query-results.json', 'application/json');
-    };
-    if (flags.analysisExportViaService && currentSql.trim()) {
-      void downloadSqlExport(currentSql, 'json', {
-        filenameHint: 'query-results.json',
-        attachmentBaseName: 'query-results',
-      }).catch(() => {
-        notifications.show({
-          color: 'yellow',
-          title: 'Server export failed',
-          message: 'Using browser export from the result grid.',
-        });
-        runLocal();
+    const meta = exportFormats.find((format) => format.id.toLowerCase() === formatId.toLowerCase());
+    const ext = (meta?.fileExtension?.trim() || formatId).replace(/^\./, '');
+    setExportingFormatId(formatId);
+    try {
+      await downloadSqlExport(sql, formatId, {
+        filenameHint: `${exportAttachmentBaseName}.${ext}`,
+        attachmentBaseName: exportAttachmentBaseName,
       });
-      return;
+    } catch (error) {
+      notifications.show({
+        color: 'red',
+        title: 'Export failed',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
+    } finally {
+      setExportingFormatId(null);
     }
-    runLocal();
-  }, [result, flags.analysisExportViaService, currentSql]);
-
-  const exportExcel = useCallback(() => {
-    // Export as TSV which Excel can open natively
-    if (!result) return;
-    const headers = result.columns.map((c) => c.name);
-    const rows = result.rows.map((row) =>
-      headers.map((h) => (row[h] === null ? '' : String(row[h]))).join('\t')
-    );
-    downloadFile([headers.join('\t'), ...rows].join('\n'), 'query-results.xls', 'application/vnd.ms-excel');
-  }, [result]);
+  }, [currentSql, exportAttachmentBaseName, exportFormats]);
 
   const columnHelper = createColumnHelper<RowData>();
 
@@ -172,14 +214,209 @@ export function QueryResults({ result, error, isExecuting, currentSql = '' }: Qu
     getSortedRowModel: getSortedRowModel(),
   });
 
-  // Loading state
+  const borderColor = 'var(--mantine-color-default-border)';
+  const headerBg = isDark ? 'var(--mantine-color-dark-8)' : 'var(--mantine-color-gray-0)';
+  const evenRowBg = isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)';
+  const hoverBg = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)';
+
+  const statusBar = (
+    <Group
+      justify="space-between"
+      px="sm"
+      py={6}
+      style={{
+        borderBottom: `1px solid ${borderColor}`,
+        backgroundColor: headerBg,
+        flexShrink: 0,
+      }}
+    >
+      <Group gap="xs" wrap="nowrap">
+        <Text size="xs" fw={600} c={isDark ? 'gray.4' : 'gray.5'} tt="uppercase" lts={0.5}>
+          Results
+        </Text>
+        {onPageSizeChange && pageSize != null && (
+          <Select
+            size="xs"
+            w={88}
+            data={QUERY_PAGE_SIZE_OPTIONS.map((size) => ({
+              value: String(size),
+              label: String(size),
+            }))}
+            value={String(pageSize)}
+            onChange={(value) => {
+              if (value) {
+                onPageSizeChange(Number(value));
+              }
+            }}
+            disabled={isPageLoading || isExecuting}
+            aria-label="Rows per page"
+            comboboxProps={{ withinPortal: true }}
+          />
+        )}
+        {result && (
+          <>
+            <Badge size="xs" variant="light" color={isDark ? 'cyan' : 'teal'}>
+              {formatResultRowLabel(result)}
+            </Badge>
+            {result.page.totalResult != null && result.page.totalResult > LARGE_RESULT_PREVIEW_THRESHOLD && (
+              <Tooltip
+                label="The grid loads one page at a time. Use Export for the full result set."
+                withArrow
+              >
+                <Text size="xs" c="dimmed" style={{ cursor: 'default' }}>
+                  Preview only
+                </Text>
+              </Tooltip>
+            )}
+            {onPageChange && (result.page.hasPrevious || result.page.hasNext) && (
+              <Group gap={2} wrap="nowrap">
+                <Tooltip label="Previous page" withArrow>
+                  <ActionIcon
+                    variant="subtle"
+                    size="sm"
+                    color={iconColor}
+                    disabled={!result.page.hasPrevious || isPageLoading || isExecuting}
+                    onClick={() => onPageChange(result.page.pageIndex - 1)}
+                    aria-label="Previous page"
+                  >
+                    <HiChevronLeft size={14} />
+                  </ActionIcon>
+                </Tooltip>
+                <Text size="xs" c="dimmed" style={{ minWidth: 48, textAlign: 'center' }}>
+                  {totalPages != null
+                    ? `Page ${result.page.pageIndex + 1} / ${totalPages}`
+                    : `Page ${result.page.pageIndex + 1}`}
+                </Text>
+                <Tooltip label="Next page" withArrow>
+                  <ActionIcon
+                    variant="subtle"
+                    size="sm"
+                    color={iconColor}
+                    disabled={!result.page.hasNext || isPageLoading || isExecuting}
+                    onClick={() => onPageChange(result.page.pageIndex + 1)}
+                    aria-label="Next page"
+                  >
+                    <HiChevronRight size={14} />
+                  </ActionIcon>
+                </Tooltip>
+              </Group>
+            )}
+          </>
+        )}
+      </Group>
+      <Group gap="sm">
+        <Group gap={4}>
+          {flags.analysisFormatSql && onFormatSql && (
+            <Tooltip label="Format SQL" withArrow>
+              <ActionIcon
+                variant="subtle"
+                size="sm"
+                color={iconColor}
+                onClick={onFormatSql}
+                disabled={!hasSql}
+              >
+                <HiOutlineSparkles size={14} />
+              </ActionIcon>
+            </Tooltip>
+          )}
+          {flags.analysisCopySql && onCopySql && (
+            <Tooltip label={sqlCopied ? 'Copied!' : 'Copy SQL'} withArrow>
+              <ActionIcon
+                variant="subtle"
+                size="sm"
+                color={sqlCopied ? 'teal' : iconColor}
+                onClick={onCopySql}
+                disabled={!hasSql}
+              >
+                <HiOutlineClipboardDocument size={14} />
+              </ActionIcon>
+            </Tooltip>
+          )}
+          {flags.analysisClearSql && onClearSql && (
+            <Tooltip label="Clear" withArrow>
+              <ActionIcon
+                variant="subtle"
+                size="sm"
+                color={iconColor}
+                onClick={onClearSql}
+                disabled={!hasSql}
+              >
+                <HiOutlineTrash size={14} />
+              </ActionIcon>
+            </Tooltip>
+          )}
+        </Group>
+        {result && (
+          <Group gap="xs">
+            <HiOutlineClock size={12} color={isDark ? 'var(--mantine-color-gray-4)' : 'var(--mantine-color-gray-5)'} />
+            <Text size="xs" c="dimmed">
+              {result.executionTimeMs}ms
+            </Text>
+          </Group>
+        )}
+        <Menu shadow="md" width={200} position="bottom-end" withArrow>
+          <Menu.Target>
+            <Tooltip
+              label={
+                exportFormatsFailed
+                  ? 'Export formats unavailable'
+                  : exportFormatsLoading
+                    ? 'Loading export formats...'
+                    : 'Export query via server'
+              }
+              withArrow
+            >
+              <ActionIcon
+                variant="subtle"
+                size="sm"
+                color={iconColor}
+                disabled={
+                  !hasSql
+                  || exportFormatsLoading
+                  || exportFormats.length === 0
+                  || exportingFormatId != null
+                }
+                loading={exportFormatsLoading || exportingFormatId != null}
+              >
+                <HiOutlineArrowDownTray size={14} />
+              </ActionIcon>
+            </Tooltip>
+          </Menu.Target>
+          <Menu.Dropdown>
+            <Menu.Label>Export as</Menu.Label>
+            {exportFormatsFailed ? (
+              <Menu.Item disabled>Could not load formats</Menu.Item>
+            ) : exportFormats.length === 0 ? (
+              <Menu.Item disabled>No formats available</Menu.Item>
+            ) : (
+              exportFormats.map((format) => (
+                <Menu.Item
+                  key={format.id}
+                  onClick={() => { void runSqlExport(format.id); }}
+                  disabled={!hasSql || exportingFormatId != null}
+                >
+                  {format.id}
+                  {' '}
+                  (
+                  {format.fileExtension}
+                  )
+                </Menu.Item>
+              ))
+            )}
+          </Menu.Dropdown>
+        </Menu>
+      </Group>
+    </Group>
+  );
+
+  let content: ReactNode;
+
   if (isExecuting) {
-    return (
+    content = (
       <Box
         style={{
-          height: '100%',
+          flex: 1,
           display: 'flex',
-          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
         }}
@@ -189,16 +426,27 @@ export function QueryResults({ result, error, isExecuting, currentSql = '' }: Qu
         </Text>
       </Box>
     );
-  }
-
-  // Error state
-  if (error) {
-    return (
+  } else if (isPageLoading) {
+    content = (
       <Box
         style={{
-          height: '100%',
+          flex: 1,
           display: 'flex',
-          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Text size="sm" c="dimmed">
+          Loading page...
+        </Text>
+      </Box>
+    );
+  } else if (error) {
+    content = (
+      <Box
+        style={{
+          flex: 1,
+          display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           padding: 24,
@@ -209,14 +457,11 @@ export function QueryResults({ result, error, isExecuting, currentSql = '' }: Qu
         </Text>
       </Box>
     );
-  }
-
-  // Empty state
-  if (!result) {
-    return (
+  } else if (!result) {
+    content = (
       <Box
         style={{
-          height: '100%',
+          flex: 1,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -245,80 +490,8 @@ export function QueryResults({ result, error, isExecuting, currentSql = '' }: Qu
         </Text>
       </Box>
     );
-  }
-
-  // Results table
-  const borderColor = 'var(--mantine-color-default-border)';
-  const headerBg = isDark ? 'var(--mantine-color-dark-8)' : 'var(--mantine-color-gray-0)';
-  const evenRowBg = isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)';
-  const hoverBg = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)';
-
-  return (
-    <Box style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
-      {/* Status bar */}
-      <Group
-        justify="space-between"
-        px="sm"
-        py={6}
-        style={{
-          borderBottom: `1px solid ${borderColor}`,
-          backgroundColor: headerBg,
-          flexShrink: 0,
-        }}
-      >
-        <Group gap="xs">
-          <Text size="xs" fw={600} c={isDark ? 'gray.4' : 'gray.5'} tt="uppercase" lts={0.5}>
-            Results
-          </Text>
-          <Badge size="xs" variant="light" color={isDark ? 'cyan' : 'teal'}>
-            {result.rowCount} {result.rowCount === 1 ? 'row' : 'rows'}
-          </Badge>
-        </Group>
-        <Group gap="sm">
-          <Group gap="xs">
-            <HiOutlineClock size={12} color={isDark ? 'var(--mantine-color-gray-4)' : 'var(--mantine-color-gray-5)'} />
-            <Text size="xs" c="dimmed">
-              {result.executionTimeMs}ms
-            </Text>
-          </Group>
-          <Menu shadow="md" width={160} position="bottom-end" withArrow>
-            <Menu.Target>
-              <Tooltip label="Export results" withArrow>
-                <ActionIcon
-                  variant="subtle"
-                  size="sm"
-                  color={isDark ? 'gray.4' : 'gray.6'}
-                >
-                  <HiOutlineArrowDownTray size={14} />
-                </ActionIcon>
-              </Tooltip>
-            </Menu.Target>
-            <Menu.Dropdown>
-              <Menu.Label>Export as</Menu.Label>
-              <Menu.Item
-                leftSection={<HiOutlineDocumentText size={14} />}
-                onClick={exportCsv}
-              >
-                CSV
-              </Menu.Item>
-              <Menu.Item
-                leftSection={<HiOutlineExcel size={14} />}
-                onClick={exportExcel}
-              >
-                Excel
-              </Menu.Item>
-              <Menu.Item
-                leftSection={<HiOutlineCodeBracket size={14} />}
-                onClick={exportJson}
-              >
-                JSON
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
-        </Group>
-      </Group>
-
-      {/* Table */}
+  } else {
+    content = (
       <ScrollArea style={{ flex: 1, minHeight: 0 }} type="auto">
         <table
           style={{
@@ -387,6 +560,15 @@ export function QueryResults({ result, error, isExecuting, currentSql = '' }: Qu
           </tbody>
         </table>
       </ScrollArea>
+    );
+  }
+
+  return (
+    <Box style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+      {statusBar}
+      <Box style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        {content}
+      </Box>
     </Box>
   );
 }

@@ -56,8 +56,6 @@ describe('defaultFeatureFlags', () => {
       'chatAttachButton',
       'chatDictateButton',
       'chatAgentPicker',
-      // Analysis — server-side export opt-in (falls back to grid export)
-      'analysisExportViaService',
       // Model panel — optional chrome
       'modelQuickBadges',
     ];

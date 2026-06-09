@@ -1,8 +1,39 @@
-import { describe, it, expect } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { searchService } from '../searchService';
 import type { SearchResult } from '../../types/search';
 
+const savedQueryCatalog = {
+  queries: [
+    {
+      id: 'top-customers',
+      name: 'Top Customers by Revenue',
+      description: 'Customers ranked by total order value',
+      sql: 'SELECT 1',
+      createdAt: 1,
+      updatedAt: 2,
+      tags: ['revenue', 'customer'],
+    },
+  ],
+};
+
 describe('searchService', () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo) => {
+        const url = typeof input === 'string' ? input : input.url;
+        if (url.includes('/api/v1/analysis/queries')) {
+          return Promise.resolve(new Response(JSON.stringify(savedQueryCatalog), { status: 200 }));
+        }
+        return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+      }),
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   describe('short query guard', () => {
     it('should return empty array for empty string', async () => {
       expect(await searchService.search('')).toEqual([]);
@@ -125,7 +156,7 @@ describe('searchService', () => {
 
     it('should find queries by tag', async () => {
       const results = await searchService.search('revenue');
-      expect(results.some((r) => r.type === 'query')).toBe(true);
+      expect(results.some((r) => r.type === 'query' && r.id === 'top-customers')).toBe(true);
     });
 
     it('should build correct route for queries', async () => {

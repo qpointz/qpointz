@@ -1,7 +1,7 @@
 import type { SearchService, SearchResult } from '../types/search';
 import { mockSchemaTree, mockFacets } from '../data/mockSchema';
 import { mockConcepts } from '../data/mockConcepts';
-import { mockSavedQueries } from '../data/mockQueries';
+import { queryService } from './queryService';
 import type { SchemaNode } from '../types/schema';
 
 // ---------------------------------------------------------------------------
@@ -95,10 +95,34 @@ const mockSearchService: SearchService = {
       }
     }
 
-    // 2. Schema entities (schemas, tables, attributes)
+    // 2. Saved queries (live catalog — before schema to avoid MAX_RESULTS starvation)
+    let savedQueries: Awaited<ReturnType<typeof queryService.getSavedQueries>> = [];
+    try {
+      savedQueries = await queryService.getSavedQueries();
+    } catch {
+      savedQueries = [];
+    }
+    for (const sq of savedQueries) {
+      if (results.length >= MAX_RESULTS) break;
+      const nameMatch = matches(sq.name, q);
+      const descMatch = matches(sq.description, q);
+      const tagMatch = sq.tags?.some((t) => matches(t, q)) ?? false;
+
+      if (nameMatch || descMatch || tagMatch) {
+        results.push({
+          id: sq.id,
+          name: sq.name,
+          type: 'query',
+          description: sq.description ?? undefined,
+          route: `/analysis/${sq.id}`,
+        });
+      }
+    }
+
+    // 3. Schema entities (schemas, tables, attributes)
     searchEntities(mockSchemaTree, q, results);
 
-    // 3. Concepts
+    // 4. Concepts
     for (const concept of mockConcepts) {
       if (results.length >= MAX_RESULTS) break;
       const nameMatch = matches(concept.name, q);
@@ -116,24 +140,6 @@ const mockSearchService: SearchService = {
             : concept.description,
           breadcrumb: concept.category,
           route: `/knowledge/${concept.id}`,
-        });
-      }
-    }
-
-    // 4. Saved queries
-    for (const sq of mockSavedQueries) {
-      if (results.length >= MAX_RESULTS) break;
-      const nameMatch = matches(sq.name, q);
-      const descMatch = matches(sq.description, q);
-      const tagMatch = sq.tags?.some((t) => matches(t, q)) ?? false;
-
-      if (nameMatch || descMatch || tagMatch) {
-        results.push({
-          id: sq.id,
-          name: sq.name,
-          type: 'query',
-          description: sq.description ?? undefined,
-          route: `/analysis/${sq.id}`,
         });
       }
     }

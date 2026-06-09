@@ -1,71 +1,97 @@
-import { Box, Group, Button, Textarea, Tooltip, ActionIcon, Text, useMantineColorScheme } from '@mantine/core';
-import { useState, useCallback } from 'react';
+import {
+  Box,
+  Group,
+  Button,
+  ActionIcon,
+  Text,
+  TextInput,
+  Tooltip,
+  useMantineColorScheme,
+} from '@mantine/core';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { SqlCodeEditor } from './SqlCodeEditor';
 import {
   HiOutlinePlay,
-  HiOutlineSparkles,
-  HiOutlineClipboardDocument,
-  HiOutlineTrash,
   HiOutlineCommandLine,
+  HiOutlineBookmark,
+  HiOutlinePencil,
 } from 'react-icons/hi2';
-import { format as formatSQL } from 'sql-formatter';
 import { InlineChatButton } from '../common/InlineChatButton';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
+import { resolveSqlToExecute } from './resolveSqlToExecute';
 
 interface QueryEditorProps {
   sql: string;
   onChange: (sql: string) => void;
-  onExecute: () => void;
+  /** When `sqlFragment` is set, only that selection is executed (Ctrl/Cmd+Enter in the editor). */
+  onExecute: (sqlFragment?: string) => void;
+  onSave?: () => void;
+  onQueryNameChange?: (name: string) => void;
   isExecuting: boolean;
+  isSaving?: boolean;
+  isDirty?: boolean;
   queryId?: string | null;
   queryName?: string | null;
   queryDescription?: string | null;
 }
 
-export function QueryEditor({ sql, onChange, onExecute, isExecuting, queryId, queryName, queryDescription }: QueryEditorProps) {
+export function QueryEditor({
+  sql,
+  onChange,
+  onExecute,
+  onSave,
+  onQueryNameChange,
+  isExecuting,
+  isSaving = false,
+  isDirty = false,
+  queryId,
+  queryName,
+  queryDescription,
+}: QueryEditorProps) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const flags = useFeatureFlags();
-  const [copied, setCopied] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [draftName, setDraftName] = useState(queryName ?? '');
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFormat = useCallback(() => {
-    try {
-      const formatted = formatSQL(sql, {
-        language: 'sql',
-        tabWidth: 2,
-        keywordCase: 'upper',
-        linesBetweenQueries: 2,
-      });
-      onChange(formatted);
-    } catch {
-      // If formatting fails, leave as-is
+  useEffect(() => {
+    if (!isEditingName) {
+      setDraftName(queryName ?? '');
     }
-  }, [sql, onChange]);
+  }, [queryName, isEditingName]);
 
-  const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(sql);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Clipboard API not available
+  useEffect(() => {
+    if (isEditingName) {
+      nameInputRef.current?.focus();
+      nameInputRef.current?.select();
     }
-  }, [sql]);
+  }, [isEditingName]);
 
-  const handleClear = useCallback(() => {
-    onChange('');
-  }, [onChange]);
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Ctrl/Cmd + Enter to execute (only when execute flag is enabled)
-    if (flags.analysisExecuteQuery && (e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-      e.preventDefault();
-      if (sql.trim() && !isExecuting) {
-        onExecute();
-      }
+  const commitNameEdit = useCallback(() => {
+    const trimmed = draftName.trim();
+    if (trimmed && trimmed !== queryName) {
+      onQueryNameChange?.(trimmed);
+    } else {
+      setDraftName(queryName ?? '');
     }
-  };
+    setIsEditingName(false);
+  }, [draftName, onQueryNameChange, queryName]);
+
+  const cancelNameEdit = useCallback(() => {
+    setDraftName(queryName ?? '');
+    setIsEditingName(false);
+  }, [queryName]);
+
+  const handleEditorExecute = useCallback((sqlFragment?: string) => {
+    const sqlToRun = resolveSqlToExecute(sql, sqlFragment);
+    if (sqlToRun && !isExecuting) {
+      onExecute(sqlFragment?.trim() ? sqlFragment : undefined);
+    }
+  }, [sql, isExecuting, onExecute]);
 
   const borderColor = 'var(--mantine-color-default-border)';
+  const accentColor = isDark ? 'cyan' : 'teal';
 
   return (
     <Box
@@ -76,7 +102,6 @@ export function QueryEditor({ sql, onChange, onExecute, isExecuting, queryId, qu
         minHeight: 0,
       }}
     >
-      {/* Subheading — same style as Model / Knowledge headers */}
       <Box
         px="md"
         py="sm"
@@ -89,7 +114,7 @@ export function QueryEditor({ sql, onChange, onExecute, isExecuting, queryId, qu
         }}
       >
         <Group justify="space-between" wrap="nowrap">
-          <Group gap="sm" wrap="nowrap">
+          <Group gap="sm" wrap="nowrap" style={{ minWidth: 0, flex: 1 }}>
             <Box
               style={{
                 width: 32,
@@ -107,10 +132,45 @@ export function QueryEditor({ sql, onChange, onExecute, isExecuting, queryId, qu
                 color={isDark ? 'var(--mantine-color-cyan-4)' : 'var(--mantine-color-teal-6)'}
               />
             </Box>
-            <Box style={{ minWidth: 0 }}>
-              <Text size="md" fw={600} c={isDark ? 'gray.1' : 'gray.8'} truncate>
-                {queryName || 'SQL Editor'}
-              </Text>
+            <Box style={{ minWidth: 0, flex: 1 }}>
+              {isEditingName && queryId ? (
+                <TextInput
+                  ref={nameInputRef}
+                  size="xs"
+                  value={draftName}
+                  onChange={(event) => setDraftName(event.currentTarget.value)}
+                  onBlur={commitNameEdit}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      commitNameEdit();
+                    } else if (event.key === 'Escape') {
+                      event.preventDefault();
+                      cancelNameEdit();
+                    }
+                  }}
+                  styles={{ input: { fontWeight: 600 } }}
+                />
+              ) : (
+                <Group gap={4} wrap="nowrap" style={{ minWidth: 0 }}>
+                  <Text size="md" fw={600} c={isDark ? 'gray.1' : 'gray.8'} truncate>
+                    {queryName || 'SQL Editor'}
+                  </Text>
+                  {queryId && onQueryNameChange && (
+                    <Tooltip label="Rename query" withArrow>
+                      <ActionIcon
+                        variant="subtle"
+                        size="xs"
+                        color="gray"
+                        onClick={() => setIsEditingName(true)}
+                        aria-label="Rename query"
+                      >
+                        <HiOutlinePencil size={12} />
+                      </ActionIcon>
+                    </Tooltip>
+                  )}
+                </Group>
+              )}
               {queryDescription && (
                 <Text size="xs" c="dimmed" truncate>
                   {queryDescription}
@@ -118,109 +178,50 @@ export function QueryEditor({ sql, onChange, onExecute, isExecuting, queryId, qu
               )}
             </Box>
           </Group>
-          <InlineChatButton
-            contextType="analysis"
-            contextId={queryId ?? '__analysis__'}
-            contextLabel={queryName ?? 'Query Playground'}
-            contextEntityType="Query"
-          />
+          <Group gap={4} wrap="nowrap">
+            {onSave && queryId && (
+              <Button
+                size="xs"
+                variant="light"
+                leftSection={<HiOutlineBookmark size={14} />}
+                color={accentColor}
+                onClick={onSave}
+                loading={isSaving}
+                disabled={!isDirty || isSaving}
+              >
+                Save
+              </Button>
+            )}
+            {flags.analysisExecuteQuery && (
+              <Button
+                size="xs"
+                leftSection={<HiOutlinePlay size={14} />}
+                color={accentColor}
+                onClick={() => onExecute()}
+                loading={isExecuting}
+                disabled={!sql.trim()}
+              >
+                Run Query
+              </Button>
+            )}
+            <InlineChatButton
+              contextType="analysis"
+              contextId={queryId ?? '__analysis__'}
+              contextLabel={queryName ?? 'Query Playground'}
+              contextEntityType="Query"
+            />
+          </Group>
         </Group>
       </Box>
 
-      {/* Editor area */}
       <Box style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-        <Textarea
+        <SqlCodeEditor
           value={sql}
-          onChange={(e) => onChange(e.currentTarget.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Write your SQL query here..."
-          styles={{
-            root: { height: '100%' },
-            wrapper: { height: '100%' },
-            input: {
-              height: '100%',
-              fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
-              fontSize: 13,
-              lineHeight: 1.6,
-              border: 'none',
-              borderRadius: 0,
-              resize: 'none',
-              backgroundColor: 'var(--mantine-color-body)',
-              color: 'var(--mantine-color-text)',
-              padding: 12,
-            },
-          }}
+          onChange={onChange}
+          onExecute={handleEditorExecute}
+          executeEnabled={flags.analysisExecuteQuery}
         />
       </Box>
-
-      {/* Toolbar + Execute bar */}
-      <Group
-        justify="space-between"
-        px="sm"
-        py={6}
-        style={{
-          borderTop: `1px solid ${borderColor}`,
-          backgroundColor: isDark ? 'var(--mantine-color-dark-8)' : 'var(--mantine-color-gray-0)',
-          flexShrink: 0,
-        }}
-      >
-        <Group gap={4}>
-          {flags.analysisFormatSql && (
-            <Tooltip label="Format SQL" withArrow>
-              <ActionIcon
-                variant="subtle"
-                size="sm"
-                color={isDark ? 'gray.4' : 'gray.6'}
-                onClick={handleFormat}
-                disabled={!sql.trim()}
-              >
-                <HiOutlineSparkles size={14} />
-              </ActionIcon>
-            </Tooltip>
-          )}
-          {flags.analysisCopySql && (
-            <Tooltip label={copied ? 'Copied!' : 'Copy SQL'} withArrow>
-              <ActionIcon
-                variant="subtle"
-                size="sm"
-                color={copied ? 'teal' : isDark ? 'gray.4' : 'gray.6'}
-                onClick={handleCopy}
-                disabled={!sql.trim()}
-              >
-                <HiOutlineClipboardDocument size={14} />
-              </ActionIcon>
-            </Tooltip>
-          )}
-          {flags.analysisClearSql && (
-            <Tooltip label="Clear" withArrow>
-              <ActionIcon
-                variant="subtle"
-                size="sm"
-                color={isDark ? 'gray.4' : 'gray.6'}
-                onClick={handleClear}
-                disabled={!sql.trim()}
-              >
-                <HiOutlineTrash size={14} />
-              </ActionIcon>
-            </Tooltip>
-          )}
-          <Text size="xs" c="dimmed" ml="xs">
-            Ctrl+Enter to run
-          </Text>
-        </Group>
-        {flags.analysisExecuteQuery && (
-          <Button
-            size="xs"
-            leftSection={<HiOutlinePlay size={14} />}
-            color={isDark ? 'cyan' : 'teal'}
-            onClick={onExecute}
-            loading={isExecuting}
-            disabled={!sql.trim()}
-          >
-            Run Query
-          </Button>
-        )}
-      </Group>
     </Box>
   );
 }
