@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  abbreviateColumnType,
   formatColumnTypeLabel,
+  isNumericColumnType,
   resolveColumnTypeFamily,
   resolveColumnTypeIcon,
 } from '../columnTypeIcon';
@@ -49,5 +51,16 @@ describe('columnTypeIcon', () => {
     expect(formatColumnTypeLabel('int')).toBe('INT');
     expect(formatColumnTypeLabel('timestamp_tz')).toBe('TIMESTAMP TZ');
     expect(formatColumnTypeLabel('')).toBe('UNKNOWN');
+  });
+
+  it('should abbreviate common column types for header badges', () => {
+    expect(abbreviateColumnType('string')).toBe('STR');
+    expect(abbreviateColumnType('timestamp_tz')).toBe('TSTZ');
+    expect(abbreviateColumnType('double')).toBe('DOUBLE');
+  });
+
+  it('should treat numeric families as right-aligned', () => {
+    expect(isNumericColumnType('INT')).toBe(true);
+    expect(isNumericColumnType('varchar')).toBe(false);
   });
 });

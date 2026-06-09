@@ -1,4 +1,4 @@
-import { Box, Tooltip } from '@mantine/core';
+import { Badge, Box, Tooltip } from '@mantine/core';
 import type { ComponentType } from 'react';
 import {
   HiOutlineCalendar,
@@ -149,6 +149,98 @@ export function formatColumnTypeLabel(type: string): string {
     return 'UNKNOWN';
   }
   return trimmed.replace(/_/g, ' ').toUpperCase();
+}
+
+const TYPE_ABBREVIATIONS: Record<string, string> = {
+  int: 'INT',
+  integer: 'INT',
+  tiny_int: 'TINT',
+  tinyint: 'TINT',
+  small_int: 'SINT',
+  smallint: 'SINT',
+  big_int: 'BIGINT',
+  bigint: 'BIGINT',
+  float: 'FLOAT',
+  double: 'DOUBLE',
+  decimal: 'DEC',
+  numeric: 'NUM',
+  real: 'REAL',
+  string: 'STR',
+  varchar: 'VCHAR',
+  char: 'CHAR',
+  text: 'TEXT',
+  bool: 'BOOL',
+  boolean: 'BOOL',
+  date: 'DATE',
+  time: 'TIME',
+  timestamp: 'TS',
+  timestamp_tz: 'TSTZ',
+  datetime: 'DT',
+  uuid: 'UUID',
+  binary: 'BIN',
+};
+
+/**
+ * Short column-type code for compact grid headers (tooltip carries the full type name).
+ *
+ * @param type raw column type from query schema
+ */
+export function abbreviateColumnType(type: string): string {
+  const key = normalizeColumnTypeKey(type);
+  const mapped = TYPE_ABBREVIATIONS[key];
+  if (mapped) {
+    return mapped;
+  }
+  const label = formatColumnTypeLabel(type);
+  if (label.length <= 6) {
+    return label.replace(/\s+/g, '');
+  }
+  return label
+    .split(/\s+/)
+    .map((part) => part.charAt(0))
+    .join('')
+    .slice(0, 4);
+}
+
+/** Whether a column type should be right-aligned in the results grid. */
+export function isNumericColumnType(type: string): boolean {
+  const family = resolveColumnTypeFamily(type);
+  return family === 'integer' || family === 'float';
+}
+
+export interface ColumnTypeBadgeProps {
+  /** Raw column type from query schema. */
+  type: string;
+}
+
+/**
+ * Compact monospace type pill for result column headers (full type name on hover).
+ *
+ * @param props badge props
+ */
+export function ColumnTypeBadge({ type }: ColumnTypeBadgeProps) {
+  const label = formatColumnTypeLabel(type);
+  return (
+    <Tooltip label={label} withArrow withinPortal zIndex={400}>
+      <Badge
+        size="xs"
+        variant="outline"
+        color="gray"
+        ff="monospace"
+        style={{
+          textTransform: 'none',
+          fontWeight: 500,
+          cursor: 'default',
+          flexShrink: 0,
+          letterSpacing: 0.2,
+        }}
+        onClick={(event) => event.stopPropagation()}
+        aria-label={`Type: ${label}`}
+      >
+        {abbreviateColumnType(type)}
+      </Badge>
+    </Tooltip>
+  );
 }
 
 export interface ColumnTypeIconProps {

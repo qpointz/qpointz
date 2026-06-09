@@ -39,7 +39,7 @@ import type { ExportFormatInfo } from '../../services/exportHelpers';
 import { LARGE_RESULT_PREVIEW_THRESHOLD } from '../../services/queryRowFormat';
 import { QUERY_PAGE_SIZE_OPTIONS } from '../../services/queryService';
 import { notifications } from '@mantine/notifications';
-import { ColumnTypeIcon } from './columnTypeIcon';
+import { ColumnTypeBadge, isNumericColumnType } from './columnTypeIcon';
 
 interface QueryResultsProps {
   result: QueryResult | null;
@@ -165,26 +165,24 @@ export function QueryResults({
 
   const columns = useMemo(() => {
     if (!result) return [];
-    return result.columns.map((col) =>
-      columnHelper.accessor((row) => row[col.name], {
+    return result.columns.map((col) => {
+      const numeric = isNumericColumnType(col.type);
+      return columnHelper.accessor((row) => row[col.name], {
         id: col.name,
+        meta: { numeric },
         header: () => (
-          <Group gap={4} wrap="nowrap">
+          <Group gap={6} wrap="nowrap" align="center">
             <Text size="xs" fw={600} style={{ whiteSpace: 'nowrap' }}>
               {col.name}
             </Text>
-            <ColumnTypeIcon
-              type={col.type}
-              size={13}
-              color={isDark ? 'var(--mantine-color-gray-4)' : 'var(--mantine-color-gray-5)'}
-            />
+            <ColumnTypeBadge type={col.type} />
           </Group>
         ),
         cell: (info) => {
           const val = info.getValue();
           if (val === null) {
             return (
-              <Text size="xs" c="dimmed" fs="italic">
+              <Text size="xs" c="dimmed" fs="italic" ta={numeric ? 'right' : 'left'}>
                 NULL
               </Text>
             );
@@ -202,14 +200,14 @@ export function QueryResults({
             );
           }
           return (
-            <Text size="xs" style={{ whiteSpace: 'nowrap' }}>
+            <Text size="xs" style={{ whiteSpace: 'nowrap' }} ta={numeric ? 'right' : 'left'}>
               {String(val)}
             </Text>
           );
         },
-      })
-    );
-  }, [result, columnHelper, isDark]);
+      });
+    });
+  }, [result, columnHelper]);
 
   const table = useReactTable({
     data: result?.rows ?? [],
@@ -501,7 +499,7 @@ export function QueryResults({
       <ScrollArea style={{ flex: 1, minHeight: 0 }} type="auto">
         <table
           style={{
-            width: 'max-content',
+            width: '100%',
             borderCollapse: 'collapse',
             tableLayout: 'auto',
             fontSize: 13,
@@ -510,31 +508,42 @@ export function QueryResults({
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    onClick={header.column.getToggleSortingHandler()}
-                    style={{
-                      padding: '8px 12px',
-                      textAlign: 'left',
-                      borderBottom: `2px solid ${borderColor}`,
-                      backgroundColor: headerBg,
-                      position: 'sticky',
-                      top: 0,
-                      zIndex: 1,
-                      cursor: header.column.getCanSort() ? 'pointer' : 'default',
-                      userSelect: 'none',
-                      whiteSpace: 'nowrap',
-                      width: '1%',
-                    }}
-                  >
-                    <Group gap={4} wrap="nowrap">
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                      {header.column.getIsSorted() === 'asc' && <HiChevronUp size={12} />}
-                      {header.column.getIsSorted() === 'desc' && <HiChevronDown size={12} />}
-                    </Group>
-                  </th>
-                ))}
+                {headerGroup.headers.map((header, colIndex) => {
+                  const isLast = colIndex === headerGroup.headers.length - 1;
+                  const meta = header.column.columnDef.meta as { numeric?: boolean } | undefined;
+                  const numeric = meta?.numeric ?? false;
+                  return (
+                    <th
+                      key={header.id}
+                      onClick={header.column.getToggleSortingHandler()}
+                      style={{
+                        padding: '8px 12px',
+                        textAlign: numeric ? 'right' : 'left',
+                        borderBottom: `2px solid ${borderColor}`,
+                        backgroundColor: headerBg,
+                        position: 'sticky',
+                        top: 0,
+                        zIndex: 1,
+                        cursor: header.column.getCanSort() ? 'pointer' : 'default',
+                        userSelect: 'none',
+                        whiteSpace: isLast ? 'normal' : 'nowrap',
+                        width: isLast ? undefined : '1%',
+                        verticalAlign: 'bottom',
+                      }}
+                    >
+                      <Group
+                        gap={4}
+                        wrap="nowrap"
+                        justify={numeric ? 'flex-end' : 'flex-start'}
+                        align="center"
+                      >
+                        {flexRender(header.column.columnDef.header, header.getContext())}
+                        {header.column.getIsSorted() === 'asc' && <HiChevronUp size={12} />}
+                        {header.column.getIsSorted() === 'desc' && <HiChevronDown size={12} />}
+                      </Group>
+                    </th>
+                  );
+                })}
               </tr>
             ))}
           </thead>
@@ -552,19 +561,29 @@ export function QueryResults({
                   e.currentTarget.style.backgroundColor = idx % 2 === 1 ? evenRowBg : 'transparent';
                 }}
               >
-                {row.getVisibleCells().map((cell) => (
-                  <td
-                    key={cell.id}
-                    style={{
-                      padding: '6px 12px',
-                      borderBottom: `1px solid ${borderColor}`,
-                      whiteSpace: 'nowrap',
-                      width: '1%',
-                    }}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
+                {row.getVisibleCells().map((cell, colIndex) => {
+                  const isLast = colIndex === row.getVisibleCells().length - 1;
+                  const meta = cell.column.columnDef.meta as { numeric?: boolean } | undefined;
+                  const numeric = meta?.numeric ?? false;
+                  return (
+                    <td
+                      key={cell.id}
+                      style={{
+                        padding: '6px 12px',
+                        borderBottom: `1px solid ${borderColor}`,
+                        whiteSpace: isLast ? 'normal' : 'nowrap',
+                        width: isLast ? undefined : '1%',
+                        textAlign: numeric ? 'right' : 'left',
+                        verticalAlign: 'top',
+                        maxWidth: isLast ? undefined : 420,
+                        overflow: isLast ? undefined : 'hidden',
+                        textOverflow: isLast ? undefined : 'ellipsis',
+                      }}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>
