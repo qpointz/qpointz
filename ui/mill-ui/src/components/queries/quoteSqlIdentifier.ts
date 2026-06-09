@@ -52,3 +52,22 @@ export function toQuotedSchemaCompletions(
     detail: entry.kind,
   }));
 }
+
+/**
+ * Column completion options: short column label with fully qualified apply text.
+ */
+export function toQuotedColumnCompletions(
+  entries: SchemaCompletionEntry[],
+  quoteStart: string,
+  quoteEnd: string,
+): Completion[] {
+  return entries.map((entry) => {
+    const columnName = entry.label.split('.').pop() ?? entry.label;
+    return {
+      label: columnName,
+      apply: quoteQualifiedName(entry.label, quoteStart, quoteEnd),
+      type: 'property',
+      detail: entry.label,
+    };
+  });
+}

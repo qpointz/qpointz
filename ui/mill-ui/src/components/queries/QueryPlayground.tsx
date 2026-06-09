@@ -113,6 +113,20 @@ export function QueryPlayground() {
     void loadSavedQueries();
   }, [loadSavedQueries]);
 
+  // Open the first catalog entry when visiting bare /analysis (restores Save + named query context).
+  useEffect(() => {
+    if (params.queryId || activeQueryId || savedQueries.length === 0) {
+      return;
+    }
+    const first = savedQueries[0];
+    if (!first) {
+      return;
+    }
+    void closeActiveSession();
+    applyLoadedQuery(first, querySetters);
+    navigate(`/analysis/${first.id}`, { replace: true });
+  }, [params.queryId, activeQueryId, savedQueries, navigate, closeActiveSession]);
+
   useEffect(() => () => {
     void closeActiveSession();
   }, [closeActiveSession]);
@@ -291,11 +305,34 @@ export function QueryPlayground() {
   }, [result, isPageLoading, isExecuting]);
 
   const handleSave = useCallback(async () => {
-    if (!activeQueryId || !activeQueryName || isSaving || !isDirty) return;
+    if (isSaving) {
+      return;
+    }
 
     setIsSaving(true);
     setError(null);
     try {
+      if (!activeQueryId) {
+        if (!sql.trim()) {
+          return;
+        }
+        newQueryCounter += 1;
+        const name = activeQueryName?.trim() || `New Query ${newQueryCounter}`;
+        const created = await queryService.createSavedQuery({
+          name,
+          sql,
+          description: activeQueryDescription ?? undefined,
+        });
+        setSavedQueries((prev) => [created, ...prev]);
+        applyLoadedQuery(created, querySetters);
+        navigate(`/analysis/${created.id}`);
+        return;
+      }
+
+      if (!activeQueryName || !isDirty) {
+        return;
+      }
+
       const saved = await queryService.updateSavedQuery(activeQueryId, {
         name: activeQueryName,
         description: activeQueryDescription ?? undefined,
@@ -319,6 +356,7 @@ export function QueryPlayground() {
     isDirty,
     sql,
     savedQueries,
+    navigate,
   ]);
 
   const handleNewQuery = useCallback(async () => {

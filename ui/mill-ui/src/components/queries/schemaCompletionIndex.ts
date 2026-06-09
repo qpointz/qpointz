@@ -1,4 +1,6 @@
+import type { SQLNamespace } from '@codemirror/lang-sql';
 import type { SchemaNode } from '../../types/schema';
+import type { TableDetail } from '../../types/schema';
 
 /** Maximum static completion labels derived from the schema tree. */
 export const MAX_COMPLETION_ENTRIES = 500;
@@ -72,7 +74,14 @@ export function filterCompletionEntries(
     return entries;
   }
   const lower = trimmed.toLowerCase();
-  return entries.filter((entry) => entry.label.toLowerCase().startsWith(lower));
+  return entries.filter((entry) => {
+    const labelLower = entry.label.toLowerCase();
+    if (labelLower.startsWith(lower)) {
+      return true;
+    }
+    const lastSegment = entry.label.split('.').pop() ?? '';
+    return lastSegment.toLowerCase().startsWith(lower);
+  });
 }
 
 /**
@@ -114,4 +123,52 @@ export function filterColumnEntries(
     const column = entry.label.split('.').pop() ?? '';
     return column.toLowerCase().startsWith(lower);
   });
+}
+
+/** Cache key for columns of one qualified table. */
+export function qualifiedTableKey(schemaName: string, tableName: string): string {
+  return `${schemaName}.${tableName}`;
+}
+
+/**
+ * Builds a CodeMirror {@link SQLNamespace} tree ({@code schema → table → [columns]}) for {@code sql({ schema })}.
+ */
+export function buildSqlNamespace(
+  tables: SchemaCompletionEntry[],
+  columnsByQualifiedTable: ReadonlyMap<string, readonly string[]>,
+): SQLNamespace {
+  const namespace: Record<string, Record<string, readonly string[]>> = {};
+  for (const entry of tables) {
+    if (entry.kind !== 'table' || !entry.schema || !entry.table) {
+      continue;
+    }
+    const schemaBucket = namespace[entry.schema] ?? (namespace[entry.schema] = {});
+    schemaBucket[entry.table] = columnsByQualifiedTable.get(qualifiedTableKey(entry.schema, entry.table)) ?? [];
+  }
+  return namespace;
+}
+
+/**
+ * Loads column names for every table entry (parallel, best-effort).
+ */
+export async function preloadTableColumns(
+  tables: SchemaCompletionEntry[],
+  loadTable: (schemaName: string, tableName: string) => Promise<TableDetail | null>,
+): Promise<Map<string, string[]>> {
+  const columnsByTable = new Map<string, string[]>();
+  const tableEntries = tables.filter((entry) => entry.kind === 'table' && entry.schema && entry.table);
+  await Promise.all(
+    tableEntries.map(async (entry) => {
+      const schemaName = entry.schema!;
+      const tableName = entry.table!;
+      try {
+        const detail = await loadTable(schemaName, tableName);
+        const names = detail?.columns?.map((column) => column.columnName).filter(Boolean) ?? [];
+        columnsByTable.set(qualifiedTableKey(schemaName, tableName), names);
+      } catch {
+        columnsByTable.set(qualifiedTableKey(schemaName, tableName), []);
+      }
+    }),
+  );
+  return columnsByTable;
 }

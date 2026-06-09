@@ -3,9 +3,11 @@ import type { SchemaNode } from '../../../types/schema';
 import {
   buildColumnCompletionEntries,
   buildCompletionIndexFromTree,
+  buildSqlNamespace,
   filterColumnEntries,
   filterCompletionEntries,
   MAX_COMPLETION_ENTRIES,
+  qualifiedTableKey,
 } from '../schemaCompletionIndex';
 
 const sampleTree: SchemaNode[] = [
@@ -73,6 +75,31 @@ describe('filterCompletionEntries', () => {
     const index = buildCompletionIndexFromTree(sampleTree);
     const filtered = filterCompletionEntries(index, 'Sal');
     expect(filtered.map((e) => e.label)).toEqual(['sales', 'sales.orders', 'sales.customers']);
+  });
+
+  it('should match unqualified table name segments', () => {
+    const index = buildCompletionIndexFromTree(sampleTree);
+    const filtered = filterCompletionEntries(index, 'orders');
+    expect(filtered.map((e) => e.label)).toEqual(['sales.orders']);
+  });
+});
+
+describe('buildSqlNamespace', () => {
+  it('should nest columns under schema and table keys', () => {
+    const index = buildCompletionIndexFromTree(sampleTree);
+    const columns = new Map([
+      [qualifiedTableKey('sales', 'orders'), ['order_id', 'amount']],
+      [qualifiedTableKey('sales', 'customers'), ['customer_id']],
+    ]);
+    expect(buildSqlNamespace(index, columns)).toEqual({
+      sales: {
+        orders: ['order_id', 'amount'],
+        customers: ['customer_id'],
+      },
+      hr: {
+        employees: [],
+      },
+    });
   });
 });
 

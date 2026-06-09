@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatResultRowLabel } from '../QueryResults';
+import { formatQueryResultNumber, formatResultRowLabel } from '../QueryResults';
 import type { QueryResult } from '../../../types/query';
 
 function makeResult(overrides: Partial<QueryResult>): QueryResult {
@@ -21,6 +21,14 @@ function makeResult(overrides: Partial<QueryResult>): QueryResult {
     ...overrides,
   };
 }
+
+describe('formatQueryResultNumber', () => {
+  it('should render numbers without thousand separators', () => {
+    expect(formatQueryResultNumber(1234567)).toBe('1234567');
+    expect(formatQueryResultNumber(1234.5)).toBe('1234.5');
+    expect(formatQueryResultNumber(-98765)).toBe('-98765');
+  });
+});
 
 describe('formatResultRowLabel', () => {
   it('should show range when total is known', () => {

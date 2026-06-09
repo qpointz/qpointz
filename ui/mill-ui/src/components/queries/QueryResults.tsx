@@ -39,6 +39,7 @@ import type { ExportFormatInfo } from '../../services/exportHelpers';
 import { LARGE_RESULT_PREVIEW_THRESHOLD } from '../../services/queryRowFormat';
 import { QUERY_PAGE_SIZE_OPTIONS } from '../../services/queryService';
 import { notifications } from '@mantine/notifications';
+import { ColumnTypeIcon } from './columnTypeIcon';
 
 interface QueryResultsProps {
   result: QueryResult | null;
@@ -59,6 +60,11 @@ interface QueryResultsProps {
 }
 
 type RowData = Record<string, string | number | boolean | null>;
+
+/** Formats a numeric grid cell without locale thousand separators. */
+export function formatQueryResultNumber(value: number): string {
+  return String(value);
+}
 
 export function formatResultRowLabel(result: QueryResult): string {
   const { page, rowCount } = result;
@@ -167,9 +173,11 @@ export function QueryResults({
             <Text size="xs" fw={600} style={{ whiteSpace: 'nowrap' }}>
               {col.name}
             </Text>
-            <Badge size="xs" variant="outline" color="gray" style={{ textTransform: 'lowercase' }}>
-              {col.type}
-            </Badge>
+            <ColumnTypeIcon
+              type={col.type}
+              size={13}
+              color={isDark ? 'var(--mantine-color-gray-4)' : 'var(--mantine-color-gray-5)'}
+            />
           </Group>
         ),
         cell: (info) => {
@@ -189,9 +197,7 @@ export function QueryResults({
                 ta="right"
                 style={{ whiteSpace: 'nowrap' }}
               >
-                {typeof val === 'number' && !Number.isInteger(val)
-                  ? val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                  : val.toLocaleString()}
+                {formatQueryResultNumber(val)}
               </Text>
             );
           }
@@ -203,7 +209,7 @@ export function QueryResults({
         },
       })
     );
-  }, [result, columnHelper]);
+  }, [result, columnHelper, isDark]);
 
   const table = useReactTable({
     data: result?.rows ?? [],
@@ -495,8 +501,9 @@ export function QueryResults({
       <ScrollArea style={{ flex: 1, minHeight: 0 }} type="auto">
         <table
           style={{
-            width: '100%',
+            width: 'max-content',
             borderCollapse: 'collapse',
+            tableLayout: 'auto',
             fontSize: 13,
           }}
         >
@@ -518,6 +525,7 @@ export function QueryResults({
                       cursor: header.column.getCanSort() ? 'pointer' : 'default',
                       userSelect: 'none',
                       whiteSpace: 'nowrap',
+                      width: '1%',
                     }}
                   >
                     <Group gap={4} wrap="nowrap">
@@ -550,6 +558,8 @@ export function QueryResults({
                     style={{
                       padding: '6px 12px',
                       borderBottom: `1px solid ${borderColor}`,
+                      whiteSpace: 'nowrap',
+                      width: '1%',
                     }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

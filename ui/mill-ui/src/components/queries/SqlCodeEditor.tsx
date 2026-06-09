@@ -1,26 +1,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Box, useMantineColorScheme } from '@mantine/core';
 import CodeMirror from '@uiw/react-codemirror';
-import { sql } from '@codemirror/lang-sql';
+import { sql, type SQLNamespace } from '@codemirror/lang-sql';
 import { analysisService } from '../../services/api';
 import type { AnalysisDialect, AnalysisDialectIdentifiers, EditorDialectId } from '../../types/analysis';
 import { resolveCodeMirrorDialect } from './codemirrorDialect';
-import { toQuotedSchemaCompletions } from './quoteSqlIdentifier';
+import { dialectQuotedSchemaCompletionSource } from './dialectQuotedSchemaCompletion';
 import {
   autocompletion,
   type Completion,
   type CompletionContext,
   type CompletionResult,
 } from '@codemirror/autocomplete';
-import { keymap, EditorView, placeholder as cmPlaceholder } from '@codemirror/view';
+import { EditorView, placeholder as cmPlaceholder } from '@codemirror/view';
 import { Prec } from '@codemirror/state';
 import { schemaService } from '../../services/api';
-import type { SchemaCompletionEntry } from './schemaCompletionIndex';
 import {
-  buildColumnCompletionEntries,
   buildCompletionIndexFromTree,
-  filterColumnEntries,
-  filterCompletionEntries,
+  buildSqlNamespace,
+  preloadTableColumns,
 } from './schemaCompletionIndex';
 
 export interface SqlCodeEditorProps {
@@ -47,7 +45,7 @@ const basicSetup = {
   indentOnInput: true,
   bracketMatching: true,
   closeBrackets: true,
-  autocompletion: true,
+  autocompletion: false,
   highlightSelectionMatches: true,
 } as const;
 
@@ -59,6 +57,7 @@ const fullHeightTheme = EditorView.theme({
 });
 
 const DEFAULT_IDENTIFIER_QUOTES: AnalysisDialectIdentifiers = { quoteStart: '`', quoteEnd: '`' };
+const EMPTY_SQL_SCHEMA: SQLNamespace = {};
 
 function flattenDialectFunctions(functions: AnalysisDialect['functions']): Completion[] {
   const seen = new Set<string>();
@@ -89,13 +88,14 @@ export function SqlCodeEditor({
   const { colorScheme } = useMantineColorScheme();
   const onExecuteRef = useRef(onExecute);
   onExecuteRef.current = onExecute;
+  const executeEnabledRef = useRef(executeEnabled);
+  executeEnabledRef.current = executeEnabled;
 
-  const [staticIndex, setStaticIndex] = useState<SchemaCompletionEntry[]>([]);
+  const [sqlSchema, setSqlSchema] = useState<SQLNamespace>(EMPTY_SQL_SCHEMA);
   const [editorDialectId, setEditorDialectId] = useState<EditorDialectId>('standard');
   const [identifierQuotes, setIdentifierQuotes] = useState<AnalysisDialectIdentifiers>(DEFAULT_IDENTIFIER_QUOTES);
   const [dialectFunctions, setDialectFunctions] = useState<Completion[]>([]);
   const schemaContextRef = useRef('global');
-  const columnCacheRef = useRef(new Map<string, SchemaCompletionEntry[]>());
 
   useEffect(() => {
     let cancelled = false;
@@ -125,12 +125,16 @@ export function SqlCodeEditor({
         const contextInfo = await schemaService.getContext();
         schemaContextRef.current = contextInfo.selectedContext;
         const tree = await schemaService.getTree(contextInfo.selectedContext);
+        const catalogIndex = buildCompletionIndexFromTree(tree);
+        const columnsByTable = await preloadTableColumns(catalogIndex, (schemaName, tableName) =>
+          schemaService.getTable(schemaName, tableName, schemaContextRef.current, 'none'),
+        );
         if (!cancelled) {
-          setStaticIndex(buildCompletionIndexFromTree(tree));
+          setSqlSchema(buildSqlNamespace(catalogIndex, columnsByTable));
         }
       } catch {
         if (!cancelled) {
-          setStaticIndex([]);
+          setSqlSchema(EMPTY_SQL_SCHEMA);
         }
       }
     })();
@@ -139,99 +143,61 @@ export function SqlCodeEditor({
     };
   }, []);
 
-  const loadColumnEntries = useCallback(async (schema: string, table: string) => {
-    const cacheKey = `${schemaContextRef.current}:${schema}.${table}`;
-    const cached = columnCacheRef.current.get(cacheKey);
-    if (cached) {
-      return cached;
-    }
-    try {
-      const detail = await schemaService.getTable(schema, table, schemaContextRef.current);
-      const names = detail?.columns?.map((column) => column.columnName) ?? [];
-      const entries = buildColumnCompletionEntries(schema, table, names);
-      columnCacheRef.current.set(cacheKey, entries);
-      return entries;
-    } catch {
-      return [];
-    }
-  }, []);
-
-  const schemaCompletions = useCallback(
-    (context: CompletionContext): CompletionResult | null | Promise<CompletionResult | null> => {
-      const qualColumn = context.matchBefore(/(\w+)\.(\w+)\.(\w*)$/);
-      if (qualColumn) {
-        const match = qualColumn.text.match(/^(\w+)\.(\w+)\.(\w*)$/);
-        if (!match) {
-          return null;
-        }
-        const [, schema, table, partial] = match;
-        return loadColumnEntries(schema!, table!).then((entries) => {
-          const filtered = filterColumnEntries(entries, partial ?? '');
-          if (filtered.length === 0 && !context.explicit) {
-            return null;
-          }
-          return {
-            from: qualColumn.from,
-            options: toQuotedSchemaCompletions(
-              filtered,
-              identifierQuotes.quoteStart,
-              identifierQuotes.quoteEnd,
-            ),
-          };
-        });
-      }
-
-      const word = context.matchBefore(/[\w.]*$/);
+  const dialectFunctionCompletions = useCallback(
+    (context: CompletionContext): CompletionResult | null => {
+      const word = context.matchBefore(/\w*$/);
       if (!word || (word.from === word.to && !context.explicit)) {
         return null;
       }
-      const filtered = filterCompletionEntries(staticIndex, word.text);
       const partial = word.text.toUpperCase();
       const fnMatches = dialectFunctions.filter(
         (fn) => fn.label.toUpperCase().startsWith(partial) || partial === '',
       );
-      const schemaOptions = toQuotedSchemaCompletions(
-        filtered,
-        identifierQuotes.quoteStart,
-        identifierQuotes.quoteEnd,
-      );
-      const options = [...fnMatches, ...schemaOptions];
-      if (options.length === 0) {
+      if (fnMatches.length === 0) {
         return null;
       }
       return {
         from: word.from,
-        options,
+        options: fnMatches,
       };
     },
-    [dialectFunctions, identifierQuotes, loadColumnEntries, staticIndex],
+    [dialectFunctions],
   );
 
   const extensions = useMemo(() => {
-    const runKeymap = executeEnabled
-      ? Prec.highest(
-          keymap.of([
-            {
-              key: 'Mod-Enter',
-              run: (view) => {
-                const { from, to } = view.state.selection.main;
-                const selectedSql = from !== to ? view.state.doc.sliceString(from, to) : undefined;
-                onExecuteRef.current?.(selectedSql);
-                return true;
-              },
-            },
-          ]),
-        )
-      : [];
+    const dialect = resolveCodeMirrorDialect(editorDialectId, identifierQuotes);
+    const schemaCompletions = dialectQuotedSchemaCompletionSource(
+      { dialect, schema: sqlSchema },
+      identifierQuotes,
+    );
+    const executeOnModEnter = Prec.highest(
+      EditorView.domEventHandlers({
+        keydown(event, view) {
+          if (!executeEnabledRef.current) {
+            return false;
+          }
+          if (event.key !== 'Enter' || !(event.ctrlKey || event.metaKey)) {
+            return false;
+          }
+          const { from, to } = view.state.selection.main;
+          const selectedSql = from !== to ? view.state.doc.sliceString(from, to) : undefined;
+          onExecuteRef.current?.(selectedSql);
+          return true;
+        },
+      }),
+    );
 
     return [
-      sql({ dialect: resolveCodeMirrorDialect(editorDialectId) }),
+      // Keywords only — schema completions registered separately with dialect-quoted apply text.
+      sql({ dialect, upperCaseKeywords: true }),
+      dialect.language.data.of({ autocomplete: schemaCompletions }),
+      dialect.language.data.of({ autocomplete: dialectFunctionCompletions }),
       fullHeightTheme,
       cmPlaceholder(placeholder),
-      autocompletion({ override: [schemaCompletions] }),
-      runKeymap,
+      autocompletion({ activateOnTyping: true }),
+      executeOnModEnter,
     ];
-  }, [editorDialectId, executeEnabled, placeholder, schemaCompletions]);
+  }, [dialectFunctionCompletions, editorDialectId, identifierQuotes, placeholder, sqlSchema]);
 
   return (
     <Box style={{ height: '100%', minHeight: 0 }}>

@@ -179,7 +179,7 @@ export function QueryEditor({
             </Box>
           </Group>
           <Group gap={4} wrap="nowrap">
-            {onSave && queryId && (
+            {onSave && (
               <Button
                 size="xs"
                 variant="light"
@@ -187,7 +187,7 @@ export function QueryEditor({
                 color={accentColor}
                 onClick={onSave}
                 loading={isSaving}
-                disabled={!isDirty || isSaving}
+                disabled={isSaving || (queryId ? !isDirty : !sql.trim())}
               >
                 Save
               </Button>

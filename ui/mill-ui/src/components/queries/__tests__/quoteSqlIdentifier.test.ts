@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   quoteIdentifierPart,
   quoteQualifiedName,
+  toQuotedColumnCompletions,
   toQuotedSchemaCompletions,
 } from '../quoteSqlIdentifier';
 
@@ -28,5 +29,16 @@ describe('quoteSqlIdentifier', () => {
     );
     expect(options[0]?.label).toBe('sales.customers');
     expect(options[0]?.apply).toBe('`sales`.`customers`');
+  });
+
+  it('should use short column labels with qualified apply text', () => {
+    const options = toQuotedColumnCompletions(
+      [{ label: 'sales.orders.customer_id', kind: 'column', schema: 'sales', table: 'orders' }],
+      '`',
+      '`',
+    );
+    expect(options[0]?.label).toBe('customer_id');
+    expect(options[0]?.apply).toBe('`sales`.`orders`.`customer_id`');
+    expect(options[0]?.detail).toBe('sales.orders.customer_id');
   });
 });
