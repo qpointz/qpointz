@@ -1,0 +1,31 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+      - io.qpointz.mill.security.configuration.SecurityConfig
+      - io.qpointz.mill.security.configuration.ApiSecurityConfiguration
+      - io.qpointz.mill.security.configuration.AppSecurityConfiguration
+      - io.qpointz.mill.security.configuration.AuthRoutesSecurityConfiguration
+      - io.qpointz.mill.security.configuration.ServicesSecurityConfiguration
+      - io.qpointz.mill.security.configuration.WellKnownSecurityConfiguration
+      - io.qpointz.mill.security.configuration.SwaggerSecurityConfig
+      - io.qpointz.mill.security.configuration.PolicyAuthorizationConfiguration
+      - io.qpointz.mill.security.authentication.basic.PasswordAuthenticationConfiguration
+      - io.qpointz.mill.security.authentication.oauth2.OAuth2AuthenticationConfiguration
+      - io.qpointz.mill.security.authentication.token.EntraIdAuthenticationConfiguration
+  datasource:
+    url: jdbc:h2:mem:analysis-queries-it;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+mill:
+  security:
+    enable: false

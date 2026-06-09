@@ -33,8 +33,7 @@ include (":metadata:mill-metadata-persistence")
 include (":persistence")
 include (":persistence:mill-persistence")
 include (":persistence:mill-persistence-autoconfigure")
-
-
+include (":persistence:mill-analysis-persistence")
 include (":data")
 include (":data:mill-data-backend-core")
 include (":data:mill-data-backends")
@@ -63,6 +62,8 @@ include (":services:mill-data-grpc-service")
 include (":services:mill-data-http-service")
 include (":services:mill-export-service")
 include (":services:mill-data-query-service")
+include (":services:mill-analysis-api")
+include (":services:mill-analysis-service")
 include (":services:mill-ui-service")
 
 include (":ai")

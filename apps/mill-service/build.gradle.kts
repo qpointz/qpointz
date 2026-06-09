@@ -188,6 +188,9 @@ dependencies {
     implementation(project(":metadata:mill-metadata-service"))
     runtimeOnly(project(":metadata:mill-metadata-persistence"))
 
+    implementation(project(":services:mill-analysis-service"))
+    runtimeOnly(project(":persistence:mill-analysis-persistence"))
+
     implementation(libs.springdoc.openapi.starter.webmvc.ui)
     implementation(libs.springdoc.openapi.starter.webflux.api)
     implementation(libs.micrometer.registry.prometheus)
