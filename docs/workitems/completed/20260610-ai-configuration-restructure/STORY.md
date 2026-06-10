@@ -57,7 +57,7 @@ mill:
 
 ## Placement
 
-Archived [`docs-design/workitems/completed/20260610-ai-configuration-restructure/`](.) (closed **2026-06-10**).
+Archived [`docs/workitems/completed/20260610-ai-configuration-restructure/`](.) (closed **2026-06-10**).
 
 ## Work Items
 

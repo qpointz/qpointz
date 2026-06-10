@@ -79,7 +79,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | A-88 | Value mapping service implementation (`ValueMappingService`; repository + embed + vector store + sync) | ✨ feature | done | `docs/workitems/completed/20260416-implement-value-mappings/WI-180-value-mapping-service-orchestrator.md` |
 | A-89 | Value mapping facet types, startup/scheduled vector refresh, pgvector store (**WI-181–WI-186**); capability retrieval (**WI-183** follow-on) | ✨ feature | done | [`docs/workitems/completed/20260417-value-mapping-facets-vector-lifecycle/STORY.md`](completed/20260417-value-mapping-facets-vector-lifecycle/STORY.md) — see **MILESTONE** 0.8.0 |
 | A-90 | Schema capability — facet reconciliation, `SchemaCatalogPort` / `SchemaFacetCatalogAdapter`, Skymill schema IT (**WI-187–WI-191**) | 🔧 refactoring | done | [`docs/workitems/completed/20260417-schema-capability-metadata/STORY.md`](completed/20260417-schema-capability-metadata/STORY.md) — see **MILESTONE** 0.8.0 |
-| A-91 | Restructure `mill.ai` configuration: providers + models + `data.embedding` profiles + `vector-stores` registry; clean break from legacy keys (**WI-284–WI-288**) | 🔧 refactoring | done | [`docs-design/workitems/completed/20260610-ai-configuration-restructure/STORY.md`](completed/20260610-ai-configuration-restructure/STORY.md) — see **MILESTONE** 0.8.0 |
+| A-91 | Restructure `mill.ai` configuration: providers + models + `data.embedding` profiles + `vector-stores` registry; clean break from legacy keys (**WI-284–WI-288**) | 🔧 refactoring | done | [`docs/workitems/completed/20260610-ai-configuration-restructure/STORY.md`](completed/20260610-ai-configuration-restructure/STORY.md) — see **MILESTONE** 0.8.0 |
 
 ---
 

@@ -11,4 +11,4 @@ on the LangChain4j agentic runtime under `ai/mill-ai*`.
 These modules are **not** part of supported Mill editions (`apps/mill-service` uses `mill-ai-autoconfigure`
 only). Integration `testIT` suites are **disabled** so `:ai:testIT` does not run v1 scenario tests.
 
-CI history and reimplementation plan: [`docs-design/design/ai/ai-v1-integration/README.md`](../../docs-design/design/ai/ai-v1-integration/README.md).
+CI history and reimplementation plan: [`docs/design/ai/ai-v1-integration/README.md`](../../docs/design/ai/ai-v1-integration/README.md).

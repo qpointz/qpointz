@@ -44,7 +44,7 @@ core:integration:
 
 
 # Disabled: v1 NL2SQL scenario regression (`:ai:legacy:*` testIT). Re-enable against v3 when
-# integration is reimplemented — see docs-design/design/ai/ai-v1-integration/README.md
+# integration is reimplemented — see docs/design/ai/ai-v1-integration/README.md
 ai:integration:
   stage: integration
   extends:
@@ -52,7 +52,7 @@ ai:integration:
   rules:
     - when: never
   script:
-    - echo "ai:integration is disabled; see docs-design/design/ai/ai-v1-integration/README.md"
+    - echo "ai:integration is disabled; see docs/design/ai/ai-v1-integration/README.md"
 
 cloud:integration:
   stage: integration

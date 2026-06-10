@@ -70,7 +70,7 @@ The repo is a Gradle multi-module build with 66 included modules (`settings.grad
 **Key module groups:**
 - `core/` — Shared libraries: interfaces, Protobuf stubs, security/RBAC, Spring integration, test utilities
 - `data/` — Data backends (Calcite, JDBC, Flow), format handlers (Parquet, Avro, Arrow, Excel, CSV), gRPC/HTTP data services, Spring auto-configuration
-- `ai/` — LangChain4j agentic runtime (`mill-ai*`). Legacy Spring AI NL2SQL (v1) lives under `ai/legacy/` for reference only. CI: `ai:build` runs `:ai:test`; `ai:integration` is disabled (see `docs-design/design/ai/ai-v1-integration/`)
+- `ai/` — LangChain4j agentic runtime (`mill-ai*`). Legacy Spring AI NL2SQL (v1) lives under `ai/legacy/` for reference only. CI: `ai:build` runs `:ai:test`; `ai:integration` is disabled (see `docs/design/ai/ai-v1-integration/`)
 - `metadata/` — Metadata service and auto-configuration
 - `clients/` — JDBC driver and interactive JDBC shell
 - `apps/mill-service` — Main Spring Boot application entry point
@@ -102,7 +102,7 @@ OPENAI_API_KEY=sk-...  ./gradlew :ai:mill-ai-cli:run --console=plain
 **Key design rules:**
 - Capability discovery uses Java `ServiceLoader` (`META-INF/services/...CapabilityProvider`)
 - New `AgentEvent` subtypes are added to `mill-ai`; the CLI renders them via JSON serialization
-- Design documents: `docs-design/design/agentic/` and `docs-design/design/ai/`
+- Design documents: `docs/design/agentic/` and `docs/design/ai/`
 
 ## Testing Guidelines
 
