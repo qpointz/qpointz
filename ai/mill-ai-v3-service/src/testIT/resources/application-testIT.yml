@@ -21,16 +21,31 @@ logging:
 
 mill:
   ai:
-    model:
-      api-key: "${OPENAI_API_KEY:test-key-not-used-by-stub}"
-      model-name: gpt-4o-mini
+    providers:
+      openai:
+        type: openai
+        api-key: "${OPENAI_API_KEY:test-key-not-used-by-stub}"
+    models:
+      chat:
+        default:
+          provider: openai
+          model-name: gpt-4o-mini
+      embedding:
+        default:
+          provider: stub
+          dimension: 8
+    data:
+      embedding:
+        default:
+          model: default
+          vector-store:
+            backend: in-memory
+          sources:
+            - type: metadata-facets
     chat:
+      model: default
       default-user-id: it-test-user
       default-profile: hello-world
       max-title-length: 30
-    embedding-model:
-      default:
-        provider: stub
-        dimension: 8
-    value-mapping:
-      embedding-model: default
+      value-mapping:
+        embedding: default

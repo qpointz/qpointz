@@ -24,6 +24,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import java.time.Duration
 import java.time.Instant
 
 class ValueMappingRefreshOrchestratorTest {
@@ -77,10 +78,7 @@ class ValueMappingRefreshOrchestratorTest {
         )
 
         val orch = ValueMappingRefreshOrchestrator(
-            refreshConfig = object : ValueMappingRefreshConfigurationBridge {
-                override val refreshStartupEnabled: Boolean = true
-                override val refreshScheduledDisabled: Boolean = false
-            },
+            refreshConfig = testRefreshConfig(),
             attributeDiscovery = ValueMappingIndexedAttributeDiscovery { emptyList() },
             facetRepository = facetRepo,
             valueMappingService = valueMappingService,
@@ -156,10 +154,7 @@ class ValueMappingRefreshOrchestratorTest {
         }
 
         val orch = ValueMappingRefreshOrchestrator(
-            refreshConfig = object : ValueMappingRefreshConfigurationBridge {
-                override val refreshStartupEnabled: Boolean = true
-                override val refreshScheduledDisabled: Boolean = false
-            },
+            refreshConfig = testRefreshConfig(),
             attributeDiscovery = ValueMappingIndexedAttributeDiscovery { emptyList() },
             facetRepository = facetRepo,
             valueMappingService = valueMappingService,
@@ -179,4 +174,11 @@ class ValueMappingRefreshOrchestratorTest {
             distinctLoadArgs,
         )
     }
+
+    private fun testRefreshConfig(): ValueMappingRefreshConfigurationBridge =
+        object : ValueMappingRefreshConfigurationBridge {
+            override val refreshStartupEnabled: Boolean = true
+            override val refreshScheduledDisabled: Boolean = false
+            override val refreshScheduleInterval: Duration = Duration.ofMinutes(15)
+        }
 }

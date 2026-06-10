@@ -11,13 +11,20 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * mill:
  *   ai:
  *     chat:
+ *       model: default
  *       default-profile: hello-world
  *       default-user-id: default
  *       max-title-length: 30
+ *       value-mapping:
+ *         embedding: default
  * ```
  */
 @ConfigurationProperties("mill.ai.chat")
 data class AiV3ChatProperties(
+    /**
+     * Key into `mill.ai.models.chat.*` for the streaming chat model.
+     */
+    val model: String = "default",
     /**
      * Profile id assigned to new general chats when no profile is specified in the
      * create request. Must match a profile registered in [io.qpointz.mill.ai.profile.ProfileRegistry].
@@ -33,6 +40,8 @@ data class AiV3ChatProperties(
      * first user message. A trailing `…` is appended when the message is truncated.
      */
     val maxTitleLength: Int = 30,
+    val valueMapping: ChatValueMappingCapabilities = ChatValueMappingCapabilities(),
+    val schemaSearch: ChatSchemaSearchCapabilities = ChatSchemaSearchCapabilities(),
 ) {
     /**
      * @return framework-neutral settings for the unified chat service (`mill-ai-v3-service`)
@@ -43,3 +52,17 @@ data class AiV3ChatProperties(
         maxTitleLength = maxTitleLength,
     )
 }
+
+/**
+ * Capability hook: value-mapping embedding pipeline (`mill.ai.data.embedding.<profile>`).
+ */
+data class ChatValueMappingCapabilities(
+    val embedding: String = "default",
+)
+
+/**
+ * Reserved capability hook for schema-search embedding pipeline.
+ */
+data class ChatSchemaSearchCapabilities(
+    val embedding: String? = null,
+)

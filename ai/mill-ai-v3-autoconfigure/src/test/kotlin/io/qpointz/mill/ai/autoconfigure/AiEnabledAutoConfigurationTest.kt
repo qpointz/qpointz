@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.autoconfigure
 
+import io.qpointz.mill.ai.autoconfigure.MillAiTestProperties
 import io.qpointz.mill.ai.autoconfigure.config.AiConfigurationProperties
 import io.qpointz.mill.ai.autoconfigure.embedding.EmbeddingAutoConfiguration
 import io.qpointz.mill.ai.autoconfigure.providers.AiProvidersAutoConfiguration
@@ -34,12 +35,7 @@ class AiEnabledAutoConfigurationTest {
     @Test
     fun shouldRegisterAiProviderRegistryWhenEnabledByDefault() {
         runner
-            .withPropertyValues(
-                "mill.ai.providers.openai.api-key=sk-test",
-                "mill.ai.embedding-model.default.provider=stub",
-                "mill.ai.embedding-model.default.dimension=8",
-                "mill.ai.value-mapping.embedding-model=default",
-            )
+            .withPropertyValues(*MillAiTestProperties.minimalAiStack())
             .run { ctx ->
                 assertThat(ctx.getBean(AiConfigurationProperties::class.java).isEnabled).isTrue()
                 assertThat(ctx).hasSingleBean(AiProviderRegistry::class.java)

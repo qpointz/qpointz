@@ -74,7 +74,7 @@ class ValueMappingRefreshOrchestrator(
         if (kind == ValueMappingRefreshRunKind.APP_STARTUP && urns.isNotEmpty() && gated.isEmpty()) {
             log.warn(
                 "valueMappingRefresh APP_STARTUP: {} attribute(s) discovered but none passed gates — " +
-                    "set mill.ai.value-mapping.refresh.on-startup.enabled=true and primary facet " +
+                    "set mill.ai.data.embedding.<profile>.refresh.on-startup.enabled=true and primary facet " +
                     "data.enabled=true and data.refreshAtStartUp=true (WI-182)",
                 urns.size,
             )

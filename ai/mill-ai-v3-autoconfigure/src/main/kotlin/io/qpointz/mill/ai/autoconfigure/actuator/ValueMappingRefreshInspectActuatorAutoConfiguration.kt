@@ -3,6 +3,8 @@ package io.qpointz.mill.ai.autoconfigure.actuator
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import io.qpointz.mill.ai.autoconfigure.chat.AiV3ChatProperties
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 
@@ -17,5 +19,7 @@ class ValueMappingRefreshInspectActuatorAutoConfiguration {
     @ConditionalOnMissingBean(ValueMappingRefreshInspectEndpoint::class)
     fun valuemapInspectEndpoint(
         context: ApplicationContext,
-    ): ValueMappingRefreshInspectEndpoint = ValueMappingRefreshInspectEndpoint(context)
+        chat: ObjectProvider<AiV3ChatProperties>,
+    ): ValueMappingRefreshInspectEndpoint =
+        ValueMappingRefreshInspectEndpoint(context, chat.ifAvailable ?: AiV3ChatProperties())
 }

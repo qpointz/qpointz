@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.autoconfigure
 
+import io.qpointz.mill.ai.autoconfigure.providers.AiProvidersAutoConfiguration
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryToolHandlers
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlValidationOutcome
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlValidator
@@ -27,11 +28,14 @@ class AiV3AutoConfigurationTest {
         .withClassLoader(FilteredClassLoader("io.qpointz.mill.persistence.ai.jpa.adapters.JpaChatMemoryStore"))
         .withConfiguration(
             AutoConfigurations.of(
+                AiConfigurationPropertiesAutoConfiguration::class.java,
+                AiProvidersAutoConfiguration::class.java,
                 AiV3AutoConfiguration::class.java,
                 AiV3DataAutoConfiguration::class.java,
                 AiV3SqlValidatorAutoConfiguration::class.java,
             ),
         )
+        .withPropertyValues(*MillAiTestProperties.openAiChatModel())
 
     @Test
     fun `registers in-memory defaults when no user beans present`() {

@@ -8,33 +8,41 @@ mill:
     enabled: ${enable}
     providers:
       openai:
+        type: openai
         api-key: $${OPENAI_API_KEY}
         base-url: $${OPENAI_BASE_URL:https://api.openai.com/v1}
-    embedding-model:
-      default:
-        provider: openai
-        model-name: "${openai.embedding.model}"
-        dimension: ${openai.embedding.dimension}
-    value-mapping:
-      embedding-model: default
-      max-content-length: 2048
-      refresh:
-        on-startup:
-          enabled: true
-        schedule:
-          enabled: true
-          interval: PT15M
-    model:
-      provider: openai
-      api-key: $${OPENAI_API_KEY}
-      model-name: "${openai.model}"
-      base-url: $${OPENAI_BASE_URL:https://api.openai.com/v1}
+    models:
+      chat:
+        default:
+          provider: openai
+          model-name: "${openai.model}"
+      embedding:
+        default:
+          provider: openai
+          model-name: "${openai.embedding.model}"
+          dimension: ${openai.embedding.dimension}
+    data:
+      embedding:
+        default:
+          model: default
+          vector-store:
+            backend: pgvector
+            pgvector:
+              table: mill_langchain_embedding_store
+              create-table: true
+          max-content-length: 2048
+          refresh:
+            on-startup:
+              enabled: true
+            schedule:
+              enabled: true
+              interval: PT15M
+          sources:
+            - type: metadata-facets
     chat:
+      model: default
+      value-mapping:
+        embedding: default
       default-profile: schema-authoring
       default-user-id: default
       max-title-length: 30
-    vector-store:
-      backend: pgvector
-      pgvector:
-        table: mill_langchain_embedding_store
-        create-table: true

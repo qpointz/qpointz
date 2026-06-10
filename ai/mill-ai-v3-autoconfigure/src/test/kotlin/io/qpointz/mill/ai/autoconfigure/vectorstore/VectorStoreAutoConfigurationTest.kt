@@ -1,7 +1,11 @@
 package io.qpointz.mill.ai.autoconfigure.vectorstore
 
 import io.qpointz.mill.ai.autoconfigure.AiConfigurationPropertiesAutoConfiguration
-import io.qpointz.mill.ai.autoconfigure.config.VectorStoreConfigurationProperties
+import io.qpointz.mill.ai.autoconfigure.MillAiTestProperties
+import io.qpointz.mill.ai.autoconfigure.config.AiConfigurationProperties
+import io.qpointz.mill.ai.autoconfigure.config.DataEmbeddingConfigurationProperties
+import io.qpointz.mill.ai.autoconfigure.config.VectorStoreConfigMerger
+import io.qpointz.mill.ai.autoconfigure.config.VectorStoreSettings
 import io.qpointz.mill.ai.autoconfigure.embedding.EmbeddingAutoConfiguration
 import io.qpointz.mill.ai.autoconfigure.providers.AiProvidersAutoConfiguration
 import org.assertj.core.api.Assertions.assertThat
@@ -15,9 +19,6 @@ import org.springframework.context.annotation.Configuration
 import javax.sql.DataSource
 
 class VectorStoreAutoConfigurationTest {
-
-    private val runner = ApplicationContextRunner()
-        .withConfiguration(AutoConfigurations.of(VectorStoreAutoConfiguration::class.java))
 
     private val embeddingAndVectorRunner = ApplicationContextRunner()
         .withConfiguration(
@@ -34,62 +35,80 @@ class VectorStoreAutoConfigurationTest {
 
     @Test
     fun shouldRegisterInMemoryEmbeddingStoreByDefault() {
-        runner.run { ctx ->
-            assertThat(ctx.containsBean("embeddingStore")).isTrue()
-        }
+        embeddingAndVectorRunner
+            .withPropertyValues(*MillAiTestProperties.minimalAiStack())
+            .run { ctx ->
+                assertThat(ctx.containsBean("embeddingStore")).isTrue()
+            }
     }
 
-    /**
-     * Chroma [dev.langchain4j.store.embedding.chroma.ChromaEmbeddingStore] may contact the server during
-     * [dev.langchain4j.store.embedding.chroma.ChromaEmbeddingStore.Builder.build]; use a properties-only context to
-     * verify binding without a live Chroma instance.
-     */
     @Test
-    fun shouldBindChromaBackendAndNestedProperties() {
+    fun shouldBindChromaBackendOnDataEmbeddingProfile() {
         propertiesOnlyRunner
             .withPropertyValues(
-                "mill.ai.vector-store.backend=chroma",
-                "mill.ai.vector-store.chroma.base-url=http://127.0.0.1:18000",
-                "mill.ai.vector-store.chroma.collection-name=mill-test",
-                "mill.ai.vector-store.chroma.api-version=v2",
-                "mill.ai.vector-store.chroma.timeout=30s",
+                "mill.ai.data.embedding.default.vector-store.backend=chroma",
+                "mill.ai.data.embedding.default.vector-store.chroma.base-url=http://127.0.0.1:18000",
+                "mill.ai.data.embedding.default.vector-store.chroma.collection-name=mill-test",
+                "mill.ai.data.embedding.default.vector-store.chroma.api-version=v2",
+                "mill.ai.data.embedding.default.vector-store.chroma.timeout=30s",
             )
             .run { ctx ->
-                val p = ctx.getBean(VectorStoreConfigurationProperties::class.java)
-                assertThat(p.backend).isEqualTo(VectorStoreConfigurationProperties.Backend.CHROMA)
-                assertThat(p.chroma.baseUrl).isEqualTo("http://127.0.0.1:18000")
-                assertThat(p.chroma.collectionName).isEqualTo("mill-test")
-                assertThat(p.chroma.apiVersion).isEqualTo(VectorStoreConfigurationProperties.Chroma.ApiVersion.V2)
-                assertThat(p.chroma.timeout.seconds).isEqualTo(30)
+                val profile = ctx.getBean(DataEmbeddingConfigurationProperties::class.java).embedding["default"]!!
+                assertThat(profile.vectorStore.backend).isEqualTo("chroma")
+                assertThat(profile.vectorStore.chroma.baseUrl).isEqualTo("http://127.0.0.1:18000")
+                assertThat(profile.vectorStore.chroma.collectionName).isEqualTo("mill-test")
+                assertThat(profile.vectorStore.chroma.apiVersion).isEqualTo(VectorStoreSettings.Chroma.ApiVersion.V2)
+                assertThat(profile.vectorStore.chroma.timeout.seconds).isEqualTo(30)
             }
     }
 
     @Test
     fun shouldFailWhenChromaBackendWithoutBaseUrl() {
-        runner
-            .withPropertyValues("mill.ai.vector-store.backend=chroma")
+        embeddingAndVectorRunner
+            .withPropertyValues(
+                *MillAiTestProperties.stubEmbeddingPipeline(),
+                "mill.ai.data.embedding.default.vector-store.backend=chroma",
+            )
             .run { ctx ->
                 assertThat(ctx).hasFailed()
             }
     }
 
     @Test
-    fun shouldBindPgVectorBackendAndNestedProperties() {
+    fun shouldBindPgVectorBackendOnDataEmbeddingProfile() {
         propertiesOnlyRunner
             .withPropertyValues(
-                "mill.ai.vector-store.backend=pgvector",
-                "mill.ai.vector-store.pgvector.table=custom_lc_store",
-                "mill.ai.vector-store.pgvector.create-table=false",
-                "mill.ai.vector-store.pgvector.use-index=true",
-                "mill.ai.vector-store.pgvector.index-list-size=64",
+                "mill.ai.data.embedding.default.vector-store.backend=pgvector",
+                "mill.ai.data.embedding.default.vector-store.pgvector.table=custom_lc_store",
+                "mill.ai.data.embedding.default.vector-store.pgvector.create-table=false",
+                "mill.ai.data.embedding.default.vector-store.pgvector.use-index=true",
+                "mill.ai.data.embedding.default.vector-store.pgvector.index-list-size=64",
             )
             .run { ctx ->
-                val p = ctx.getBean(VectorStoreConfigurationProperties::class.java)
-                assertThat(p.backend).isEqualTo(VectorStoreConfigurationProperties.Backend.PGVECTOR)
-                assertThat(p.pgvector.table).isEqualTo("custom_lc_store")
-                assertThat(p.pgvector.isCreateTable).isFalse()
-                assertThat(p.pgvector.isUseIndex).isTrue()
-                assertThat(p.pgvector.indexListSize).isEqualTo(64)
+                val pg = ctx.getBean(DataEmbeddingConfigurationProperties::class.java)
+                    .embedding["default"]!!.vectorStore.pgvector
+                assertThat(pg.table).isEqualTo("custom_lc_store")
+                assertThat(pg.isCreateTable).isFalse()
+                assertThat(pg.isUseIndex).isTrue()
+                assertThat(pg.indexListSize).isEqualTo(64)
+            }
+    }
+
+    @Test
+    fun shouldMergeRegistryVectorStoreWithProfilePgVectorTableOverride() {
+        propertiesOnlyRunner
+            .withPropertyValues(
+                "mill.ai.vector-stores.pg.backend=pgvector",
+                "mill.ai.vector-stores.pg.pgvector.table=registry_table",
+                "mill.ai.data.embedding.default.vector-store.backend=pg",
+                "mill.ai.data.embedding.default.vector-store.pgvector.table=profile_table",
+            )
+            .run { ctx ->
+                val root = ctx.getBean(AiConfigurationProperties::class.java)
+                val profile = ctx.getBean(DataEmbeddingConfigurationProperties::class.java).embedding["default"]!!
+                val effective = VectorStoreConfigMerger(root).resolve(profile.vectorStore)
+                assertThat(effective.backend()).isEqualTo(VectorStoreSettings.Backend.PGVECTOR)
+                assertThat(effective.pgvector().table).isEqualTo("profile_table")
             }
     }
 
@@ -97,11 +116,8 @@ class VectorStoreAutoConfigurationTest {
     fun shouldFailWhenPgVectorBackendWithoutDataSource() {
         embeddingAndVectorRunner
             .withPropertyValues(
-                "mill.ai.providers.openai.api-key=sk-test",
-                "mill.ai.embedding-model.default.provider=stub",
-                "mill.ai.embedding-model.default.dimension=8",
-                "mill.ai.value-mapping.embedding-model=default",
-                "mill.ai.vector-store.backend=pgvector",
+                *MillAiTestProperties.minimalAiStack(),
+                "mill.ai.data.embedding.default.vector-store.backend=pgvector",
             )
             .run { ctx ->
                 assertThat(ctx).hasFailed()
@@ -115,11 +131,8 @@ class VectorStoreAutoConfigurationTest {
         embeddingAndVectorRunner
             .withUserConfiguration(H2DataSourceConfiguration::class.java)
             .withPropertyValues(
-                "mill.ai.providers.openai.api-key=sk-test",
-                "mill.ai.embedding-model.default.provider=stub",
-                "mill.ai.embedding-model.default.dimension=8",
-                "mill.ai.value-mapping.embedding-model=default",
-                "mill.ai.vector-store.backend=pgvector",
+                *MillAiTestProperties.minimalAiStack(),
+                "mill.ai.data.embedding.default.vector-store.backend=pgvector",
             )
             .run { ctx ->
                 assertThat(ctx).hasFailed()
@@ -129,7 +142,10 @@ class VectorStoreAutoConfigurationTest {
     }
 
     @Configuration
-    @EnableConfigurationProperties(VectorStoreConfigurationProperties::class)
+    @EnableConfigurationProperties(
+        AiConfigurationProperties::class,
+        DataEmbeddingConfigurationProperties::class,
+    )
     open class VectorStorePropertiesTestConfiguration
 
     @Configuration

@@ -2,18 +2,29 @@ mill:
   ai:
     providers:
       openai:
+        type: openai
         api-key: sk-test
-    model:
-      api-key: sk-test
-      model-name: gpt-4o-mini
-    embedding-model:
-      default:
-        provider: stub
-        dimension: 8
-    value-mapping:
-      embedding-model: default
-    vector-store:
-      backend: in-memory
+    models:
+      chat:
+        default:
+          provider: openai
+          model-name: gpt-4o-mini
+      embedding:
+        default:
+          provider: stub
+          dimension: 8
+    data:
+      embedding:
+        default:
+          model: default
+          vector-store:
+            backend: in-memory
+          sources:
+            - type: metadata-facets
+    chat:
+      model: default
+      value-mapping:
+        embedding: default
 
 spring:
   datasource:

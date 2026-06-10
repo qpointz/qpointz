@@ -1,7 +1,7 @@
 ﻿package io.qpointz.mill.ai.autoconfigure.valuemap
 
 import io.qpointz.mill.ai.autoconfigure.ConditionalOnAiEnabled
-import io.qpointz.mill.ai.autoconfigure.config.ValueMappingConfigurationProperties
+import io.qpointz.mill.ai.autoconfigure.config.ActiveDataEmbeddingProfileResolver
 import io.qpointz.mill.ai.autoconfigure.embedding.EmbeddingAutoConfiguration
 import io.qpointz.mill.ai.data.valuemap.DataOperationColumnDistinctValueLoader
 import io.qpointz.mill.ai.valuemap.ColumnDistinctValueLoader
@@ -48,12 +48,16 @@ class ValueMappingRefreshLifecycleAutoConfiguration {
 
     @Bean
     fun valueMappingRefreshConfigurationBridge(
-        vm: ValueMappingConfigurationProperties,
-    ): ValueMappingRefreshConfigurationBridge =
-        object : ValueMappingRefreshConfigurationBridge {
-            override val refreshStartupEnabled: Boolean get() = vm.refresh.onStartup.isEnabled
-            override val refreshScheduledDisabled: Boolean get() = !vm.refresh.schedule.isEnabled
+        profileResolver: ActiveDataEmbeddingProfileResolver,
+    ): ValueMappingRefreshConfigurationBridge {
+        val profile = profileResolver.profile()
+        val refresh = profile.refresh
+        return object : ValueMappingRefreshConfigurationBridge {
+            override val refreshStartupEnabled: Boolean get() = refresh.onStartup.isEnabled
+            override val refreshScheduledDisabled: Boolean get() = !refresh.schedule.isEnabled
+            override val refreshScheduleInterval get() = refresh.schedule.interval
         }
+    }
 
     /**
      * When the host exposes a Mill [DataOperationDispatcher] and [SqlDialectSpec], delegates column-distinct lookups

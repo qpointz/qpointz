@@ -112,36 +112,43 @@ mill:
   ai:
     # Overrides default `mill.ai.enabled: false` from classpath application.yml when profile `ai` is active.
     enabled: true
-    # Shared credentials for embedding profiles that use provider `openai` (see EmbeddingAutoConfiguration).
     providers:
       openai:
+        type: openai
         api-key: ${OPENAI_API_KEY:}
         base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
-    # Named embedding profiles; value-mapping picks one via `value-mapping.embedding-model`.
-    embedding-model:
-      default:
-        provider: openai
-        model-name: ${OPENAI_EMBEDDING_MODEL:text-embedding-3-small}
-        dimension: ${OPENAI_EMBEDDING_DIMENSION:1536}
-    value-mapping:
-      embedding-model: default
-      max-content-length: 2048
-      refresh:
-        on-startup:
-          enabled: true
-        schedule:
-          enabled: true
-          interval: PT15M
-    # Vector store: default in-memory; use `chromadb` / `ai-chromadb` for local Chroma, or `pgvector` / `ai-pgvector` for LangChain4j on Postgres (see `---` at file end).
-    model:
-      provider: openai
-      api-key: ${OPENAI_API_KEY:}
-      model-name: ${OPENAI_MODEL:gpt-4o-mini}
-      base-url: ${OPENAI_BASE_URL:}
+    models:
+      chat:
+        default:
+          provider: openai
+          model-name: ${OPENAI_MODEL:gpt-4o-mini}
+      embedding:
+        default:
+          provider: openai
+          model-name: ${OPENAI_EMBEDDING_MODEL:text-embedding-3-small}
+          dimension: ${OPENAI_EMBEDDING_DIMENSION:1536}
+    data:
+      embedding:
+        default:
+          model: default
+          vector-store:
+            backend: in-memory
+          max-content-length: 2048
+          refresh:
+            on-startup:
+              enabled: true
+            schedule:
+              enabled: true
+              interval: PT15M
+          sources:
+            - type: metadata-facets
     chat:
+      model: default
       default-profile: hello-world
       default-user-id: default
       max-title-length: 30
+      value-mapping:
+        embedding: default
 ---
 # Local ChromaDB vector store (no auth). Use with AI, e.g. `--spring.profiles.active=ai,chromadb`
 # and a Chroma server on localhost:8000 (see deploy/local-dev/docker-compose `chromadb`).
@@ -152,10 +159,13 @@ spring:
 
 mill:
   ai:
-    vector-store:
-      backend: chroma
-      chroma:
-        base-url: http://localhost:8000
+    data:
+      embedding:
+        default:
+          vector-store:
+            backend: chroma
+            chroma:
+              base-url: http://localhost:8000
 ---
 # LangChain4j pgvector on the primary Spring DataSource. Requires PostgreSQL with CREATE EXTENSION vector.
 # Use with a JDBC URL to Postgres (not the default H2 dev datasource), e.g. `--spring.profiles.active=ai,pgvector` or `ai-pgvector` (see classpath application.yml for `spring.profiles.group`).
@@ -168,11 +178,14 @@ mill:
   ai:
     chat:
       default-profile: schema-authoring
-    vector-store:
-      backend: pgvector
-      pgvector:
-        table: mill_langchain_embedding_store
-        create-table: true
+    data:
+      embedding:
+        default:
+          vector-store:
+            backend: pgvector
+            pgvector:
+              table: mill_langchain_embedding_store
+              create-table: true
 ---
 # OAuth/OIDC login via Authentik (local dev).
 # Discovery document:

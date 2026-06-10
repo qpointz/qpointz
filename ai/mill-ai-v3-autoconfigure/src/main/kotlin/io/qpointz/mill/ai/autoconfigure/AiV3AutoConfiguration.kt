@@ -1,12 +1,11 @@
 package io.qpointz.mill.ai.autoconfigure
 
 import dev.langchain4j.model.chat.StreamingChatModel
-import dev.langchain4j.model.openai.OpenAiStreamingChatModel
 import io.qpointz.mill.ai.autoconfigure.ConditionalOnAiEnabled
 import io.qpointz.mill.ai.autoconfigure.chat.LangChain4jChatRuntime
 import io.qpointz.mill.ai.autoconfigure.dependencies.SpringCapabilityDependencyAssembler
-import io.qpointz.mill.ai.autoconfigure.chat.AiModelProperties
 import io.qpointz.mill.ai.autoconfigure.chat.AiV3ChatProperties
+import io.qpointz.mill.ai.autoconfigure.config.PropertiesBackedModelResolver
 import io.qpointz.mill.ai.chat.AiV3ChatRuntime
 import io.qpointz.mill.ai.chat.PropertiesUserIdResolver
 import io.qpointz.mill.ai.chat.UserIdResolver
@@ -34,13 +33,13 @@ import io.qpointz.mill.ai.capabilities.valuemapping.ValueMappingResolver
 import io.qpointz.mill.ai.dependencies.CapabilityDependencyAssembler
 import io.qpointz.mill.ai.profile.DefaultProfileRegistry
 import io.qpointz.mill.ai.profile.ProfileRegistry
-import io.qpointz.mill.ai.runtime.langchain4j.resolvedOpenAiBaseUrl
 import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.autoconfigure.AutoConfigureAfter
 import org.springframework.context.annotation.Bean
+import io.qpointz.mill.ai.autoconfigure.providers.AiProvidersAutoConfiguration
 import org.springframework.context.annotation.Import
 
 /**
@@ -55,8 +54,8 @@ import org.springframework.context.annotation.Import
  */
 @ConditionalOnAiEnabled
 @AutoConfiguration
+@AutoConfigureAfter(AiProvidersAutoConfiguration::class)
 @Import(AiV3JpaConfiguration::class)
-@EnableConfigurationProperties(AiModelProperties::class, AiV3ChatProperties::class)
 class AiV3AutoConfiguration {
 
     // ── Store defaults (in-memory fallbacks) ──────────────────────────────────
@@ -136,17 +135,13 @@ class AiV3AutoConfiguration {
     // ── LLM model ─────────────────────────────────────────────────────────────
 
     /**
-     * Streaming chat model configured from `mill.ai.model.*`.
+     * Streaming chat model from `mill.ai.chat.model` + `mill.ai.models.chat` + `mill.ai.providers`.
      * Override to use a different provider or a LangChain4j model mock.
      */
     @Bean
     @ConditionalOnMissingBean(StreamingChatModel::class)
-    fun streamingChatModel(props: AiModelProperties): StreamingChatModel =
-        OpenAiStreamingChatModel.builder()
-            .apiKey(props.apiKey)
-            .modelName(props.modelName)
-            .baseUrl(resolvedOpenAiBaseUrl(props.baseUrl))
-            .build()
+    fun streamingChatModel(modelResolver: PropertiesBackedModelResolver): StreamingChatModel =
+        modelResolver.streamingChatModel()
 
     // ── Chat runtime ──────────────────────────────────────────────────────────
 

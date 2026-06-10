@@ -17,7 +17,6 @@ import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.AutoConfigureAfter
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.ApplicationListener
 import org.springframework.context.annotation.Bean
@@ -103,17 +102,14 @@ class ValueMappingRefreshOrchestratorAutoConfiguration {
 
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnBean(ValueMappingRefreshOrchestrator::class)
-    @ConditionalOnProperty(
-        value = ["mill.ai.value-mapping.refresh.schedule.enabled"],
-        havingValue = "true",
-        matchIfMissing = true,
-    )
     @EnableScheduling
     class ValueMappingRefreshSchedulingConfiguration {
 
         @Bean
         fun valueMappingRefreshScheduler(
             orchestrator: ValueMappingRefreshOrchestrator,
-        ): ValueMappingRefreshScheduler = ValueMappingRefreshScheduler(orchestrator)
+            config: ValueMappingRefreshConfigurationBridge,
+            taskScheduler: org.springframework.scheduling.TaskScheduler,
+        ): ValueMappingRefreshScheduler = ValueMappingRefreshScheduler(orchestrator, config, taskScheduler)
     }
 }

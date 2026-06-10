@@ -24,7 +24,7 @@ import org.springframework.test.context.ActiveProfiles
 /**
  * Loads distinct Skymill values via SQL, runs [ValueMappingService] sync into Chroma, asserts similarity search.
  *
- * **Configuration:** Postgres, embedding profile (`mill.ai.embedding-model`), and Chroma wiring are defined under
+ * **Configuration:** Postgres, `mill.ai.data.embedding` profile, and Chroma wiring are defined under
  * profile `chroma-value-mapping-it-infra` in `application-chroma-explore-skymill.yml` (edit URL/credentials/model
  * there). Chroma HTTP API is hardcoded in [ChromaEmbeddingStoreItConfiguration].
  *

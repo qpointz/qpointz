@@ -7,57 +7,63 @@ import dev.langchain4j.store.embedding.chroma.ChromaEmbeddingStore
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore
 import dev.langchain4j.store.embedding.pgvector.PgVectorEmbeddingStore
 import io.qpointz.mill.ai.autoconfigure.ConditionalOnAiEnabled
-import io.qpointz.mill.ai.autoconfigure.config.VectorStoreConfigurationProperties
+import io.qpointz.mill.ai.autoconfigure.config.ActiveDataEmbeddingProfileResolver
+import io.qpointz.mill.ai.autoconfigure.config.AiConfigurationProperties
+import io.qpointz.mill.ai.autoconfigure.config.VectorStoreConfigMerger
+import io.qpointz.mill.ai.autoconfigure.config.VectorStoreSettings
 import io.qpointz.mill.ai.autoconfigure.embedding.EmbeddingAutoConfiguration
 import io.qpointz.mill.ai.embedding.EmbeddingHarness
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import javax.sql.DataSource
 
 /**
- * Single [EmbeddingStore] bean per application: in-memory (default), Chroma HTTP ([ChromaEmbeddingStore]), or
- * PostgreSQL pgvector ([PgVectorEmbeddingStore]).
+ * Single [EmbeddingStore] bean per application, resolved from the active `mill.ai.data.embedding` profile.
  */
 @ConditionalOnAiEnabled
 @AutoConfiguration(after = [EmbeddingAutoConfiguration::class])
-@EnableConfigurationProperties(VectorStoreConfigurationProperties::class)
 class VectorStoreAutoConfiguration {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Bean
+    @ConditionalOnMissingBean(VectorStoreConfigMerger::class)
+    fun vectorStoreConfigMerger(root: AiConfigurationProperties): VectorStoreConfigMerger =
+        VectorStoreConfigMerger(root)
+
+    @Bean
     @ConditionalOnMissingBean(EmbeddingStore::class)
     fun embeddingStore(
-        props: VectorStoreConfigurationProperties,
+        profileResolver: ActiveDataEmbeddingProfileResolver,
+        merger: VectorStoreConfigMerger,
         embeddingHarnessProvider: ObjectProvider<EmbeddingHarness>,
         dataSourceProvider: ObjectProvider<DataSource>,
     ): EmbeddingStore<TextSegment> {
-        log.info("Vector store backend={}", props.backend)
-        return when (props.backend) {
-            VectorStoreConfigurationProperties.Backend.IN_MEMORY ->
-                InMemoryEmbeddingStore()
-            VectorStoreConfigurationProperties.Backend.CHROMA ->
-                chromaEmbeddingStore(props)
-            VectorStoreConfigurationProperties.Backend.PGVECTOR ->
-                pgVectorEmbeddingStore(props, embeddingHarnessProvider, dataSourceProvider)
+        profileResolver.validateProfile()
+        val effective = merger.resolve(profileResolver.profile().vectorStore)
+        log.info("Vector store backend={} (profile='{}')", effective.backend(), profileResolver.profileId())
+        return when (effective.backend()) {
+            VectorStoreSettings.Backend.IN_MEMORY -> InMemoryEmbeddingStore()
+            VectorStoreSettings.Backend.CHROMA -> chromaEmbeddingStore(effective)
+            VectorStoreSettings.Backend.PGVECTOR ->
+                pgVectorEmbeddingStore(effective, embeddingHarnessProvider, dataSourceProvider)
         }
     }
 
-    private fun chromaEmbeddingStore(props: VectorStoreConfigurationProperties): EmbeddingStore<TextSegment> {
-        val c = props.chroma
+    private fun chromaEmbeddingStore(effective: VectorStoreSettings.Effective): EmbeddingStore<TextSegment> {
+        val c = effective.chroma()
         val baseUrl = c.baseUrl?.trim().orEmpty()
         if (baseUrl.isEmpty()) {
             throw IllegalStateException(
-                "mill.ai.vector-store.chroma.base-url is required when mill.ai.vector-store.backend is chroma",
+                "mill.ai.data.embedding vector-store chroma base-url is required when backend is chroma",
             )
         }
         val apiVersion = when (c.apiVersion) {
-            VectorStoreConfigurationProperties.Chroma.ApiVersion.V1 -> ChromaApiVersion.V1
-            VectorStoreConfigurationProperties.Chroma.ApiVersion.V2 -> ChromaApiVersion.V2
+            VectorStoreSettings.Chroma.ApiVersion.V1 -> ChromaApiVersion.V1
+            VectorStoreSettings.Chroma.ApiVersion.V2 -> ChromaApiVersion.V2
         }
         log.info(
             "Chroma vector store baseUrl={} apiVersion={} collection={}",
@@ -76,25 +82,27 @@ class VectorStoreAutoConfiguration {
     }
 
     private fun pgVectorEmbeddingStore(
-        props: VectorStoreConfigurationProperties,
+        effective: VectorStoreSettings.Effective,
         embeddingHarnessProvider: ObjectProvider<EmbeddingHarness>,
         dataSourceProvider: ObjectProvider<DataSource>,
     ): EmbeddingStore<TextSegment> {
         val dataSource = dataSourceProvider.getIfAvailable()
             ?: throw IllegalStateException(
-                "mill.ai.vector-store.backend=pgvector requires a javax.sql.DataSource bean (PostgreSQL). " +
-                    "For H2 or Postgres without pgvector, use mill.ai.vector-store.backend=in-memory or chroma.",
+                "mill.ai.data.embedding vector-store backend=pgvector requires a javax.sql.DataSource bean (PostgreSQL). " +
+                    "For H2 or Postgres without pgvector, use in-memory or chroma.",
             )
         val harness = embeddingHarnessProvider.getIfAvailable()
             ?: throw IllegalStateException(
-                "mill.ai.vector-store.backend=pgvector requires an EmbeddingHarness bean " +
-                    "(configure mill.ai.embedding-model and mill.ai.value-mapping.embedding-model).",
+                "mill.ai.data.embedding vector-store backend=pgvector requires an EmbeddingHarness bean " +
+                    "(configure mill.ai.data.embedding and mill.ai.models.embedding).",
             )
         assertPostgreSqlWithVectorExtension(dataSource)
-        val pg = props.pgvector
+        val pg = effective.pgvector()
         val table = pg.table?.trim().orEmpty()
         if (table.isEmpty()) {
-            throw IllegalStateException("mill.ai.vector-store.pgvector.table must not be blank when backend is pgvector")
+            throw IllegalStateException(
+                "mill.ai.data.embedding vector-store pgvector.table must not be blank when backend is pgvector",
+            )
         }
         val dim = harness.dimension
         log.info(
@@ -112,11 +120,11 @@ class VectorStoreAutoConfiguration {
         val configuredBuilder = if (pg.isUseIndex) {
             val listSize = pg.indexListSize
                 ?: throw IllegalStateException(
-                    "mill.ai.vector-store.pgvector.index-list-size is required when mill.ai.vector-store.pgvector.use-index is true",
+                    "mill.ai.data.embedding vector-store pgvector.index-list-size is required when use-index is true",
                 )
             if (listSize <= 0) {
                 throw IllegalStateException(
-                    "mill.ai.vector-store.pgvector.index-list-size must be greater than zero when use-index is true",
+                    "mill.ai.data.embedding vector-store pgvector.index-list-size must be greater than zero when use-index is true",
                 )
             }
             datasourceBuilder.useIndex(true).indexListSize(listSize)
@@ -131,7 +139,7 @@ class VectorStoreAutoConfiguration {
             val product = conn.metaData.databaseProductName.lowercase()
             if (!product.contains("postgresql")) {
                 throw IllegalStateException(
-                    "mill.ai.vector-store.backend=pgvector requires a PostgreSQL DataSource " +
+                    "mill.ai.data.embedding vector-store backend=pgvector requires a PostgreSQL DataSource " +
                         "(found database product '$product'). Use in-memory or chroma for non-PostgreSQL databases.",
                 )
             }
@@ -141,9 +149,9 @@ class VectorStoreAutoConfiguration {
                 ).use { rs ->
                     if (!rs.next()) {
                         throw IllegalStateException(
-                            "mill.ai.vector-store.backend=pgvector requires the PostgreSQL 'vector' extension " +
+                            "mill.ai.data.embedding vector-store backend=pgvector requires the PostgreSQL 'vector' extension " +
                                 "(pgvector). Create it with CREATE EXTENSION IF NOT EXISTS vector; on this database, " +
-                                "or use mill.ai.vector-store.backend=in-memory or chroma.",
+                                "or use in-memory or chroma.",
                         )
                     }
                 }

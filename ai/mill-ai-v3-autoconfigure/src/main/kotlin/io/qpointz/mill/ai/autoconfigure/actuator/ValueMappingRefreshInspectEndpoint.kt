@@ -1,6 +1,7 @@
 package io.qpointz.mill.ai.autoconfigure.actuator
 
 import dev.langchain4j.store.embedding.EmbeddingStore
+import io.qpointz.mill.ai.autoconfigure.chat.AiV3ChatProperties
 import io.qpointz.mill.ai.embedding.EmbeddingHarness
 import io.qpointz.mill.ai.valuemap.ColumnDistinctValueLoader
 import io.qpointz.mill.ai.valuemap.ValueMappingEmbeddingRepository
@@ -23,6 +24,7 @@ import org.springframework.context.ApplicationContext
 @Endpoint(id = "valuemap")
 class ValueMappingRefreshInspectEndpoint(
     private val context: ApplicationContext,
+    private val chat: AiV3ChatProperties,
 ) {
 
     /**
@@ -31,12 +33,15 @@ class ValueMappingRefreshInspectEndpoint(
     @ReadOperation
     fun snapshot(): Map<String, Any?> {
         val env = context.environment
+        val profileId = chat.valueMapping.embedding
+        val prefix = "mill.ai.data.embedding.$profileId"
         return linkedMapOf(
             "mill.ai.enabled" to env.getProperty("mill.ai.enabled"),
             "mill.metadata.repository.type" to env.getProperty("mill.metadata.repository.type"),
-            "mill.ai.value-mapping.refresh.on-startup.enabled" to env.getProperty("mill.ai.value-mapping.refresh.on-startup.enabled"),
-            "mill.ai.value-mapping.refresh.schedule.enabled" to env.getProperty("mill.ai.value-mapping.refresh.schedule.enabled"),
-            "mill.ai.value-mapping.refresh.schedule.interval" to env.getProperty("mill.ai.value-mapping.refresh.schedule.interval"),
+            "mill.ai.chat.value-mapping.embedding" to profileId,
+            "$prefix.refresh.on-startup.enabled" to env.getProperty("$prefix.refresh.on-startup.enabled"),
+            "$prefix.refresh.schedule.enabled" to env.getProperty("$prefix.refresh.schedule.enabled"),
+            "$prefix.refresh.schedule.interval" to env.getProperty("$prefix.refresh.schedule.interval"),
             "beans" to mapOf(
                 "MetadataFacetJpaRepository" to report(MetadataFacetJpaRepository::class.java),
                 "FacetRepository" to report(FacetRepository::class.java),

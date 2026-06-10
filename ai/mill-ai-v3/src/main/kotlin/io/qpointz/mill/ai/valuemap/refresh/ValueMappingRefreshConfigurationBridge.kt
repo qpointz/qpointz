@@ -1,7 +1,9 @@
 package io.qpointz.mill.ai.valuemap.refresh
 
+import java.time.Duration
+
 /**
- * Subset of `mill.ai.value-mapping.refresh.*` for the refresh orchestrator (implemented by autoconfigure).
+ * Active `mill.ai.data.embedding.<profile>.refresh` settings for the refresh orchestrator (autoconfigure).
  */
 interface ValueMappingRefreshConfigurationBridge {
 
@@ -10,4 +12,7 @@ interface ValueMappingRefreshConfigurationBridge {
 
     /** When `true`, scheduled ticks are disabled. */
     val refreshScheduledDisabled: Boolean
+
+    /** Cadence for scheduled refresh ticks. */
+    val refreshScheduleInterval: Duration
 }

@@ -4,7 +4,7 @@ package io.qpointz.mill.ai.runtime.langchain4j
  * Default OpenAI-compatible HTTP API base URL (`…/v1`).
  *
  * LangChain4j's OpenAI client rejects a null or blank base URL. Hosts that omit
- * `mill.ai.model.base-url` or set `OPENAI_BASE_URL` to empty should still resolve to the
+ * `mill.ai.providers.<id>.base-url` or set `OPENAI_BASE_URL` to empty should still resolve to the
  * public OpenAI endpoint unless a non-blank override is provided.
  */
 const val DEFAULT_OPENAI_API_BASE_URL: String = "https://api.openai.com/v1"

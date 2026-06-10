@@ -23,7 +23,7 @@ class LangChain4jEmbeddingHarness(
     companion object {
 
         /**
-         * Builds persistence metadata for a named embedding profile (`mill.ai.embedding-model.<key>`).
+         * Builds persistence metadata for a named embedding model (`mill.ai.models.embedding.<key>`).
          * Fingerprint: `provider|dimension|modelName|profileKey` (stable for a given profile and provider settings).
          */
         fun describeForEmbeddingProfile(
