@@ -25,17 +25,6 @@ mill:
         sources:
           - ./config/skymill-flow.yml
 ---
-# When launching via bin/mill-service, working directory is bin/ — resolve auth store relative to install root.
-spring:
-  config:
-    activate:
-      on-profile: secure-file
-mill:
-  security:
-    authentication:
-      basic:
-        store: ${MILL_AUTH_STORE:file:../etc/auth/auth.yml}
----
 spring:
   config:
     activate:

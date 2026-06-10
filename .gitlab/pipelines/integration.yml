@@ -91,7 +91,9 @@ cloud:integration:
   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/python:${PY_VER}-slim
   allow_failure: true
   variables:
-    CI_DEBUG_SERVICES: "false"
+    CI_DEBUG_SERVICES: "true"
+    QP_LOGGING_PLAIN: "true"
+    LOGGING_FILE_ENABLED: "false"
     # Runtime
     PY_VER: "3.12"
     PIP_DISABLE_PIP_VERSION_CHECK: "1"
@@ -172,6 +174,7 @@ cloud:integration:
     MILL_IT_AUTH: "basic"
     MILL_IT_USERNAME: "admin"
     MILL_IT_PASSWORD: "admin"
+    MILL_AUTH_STORE: "file:/app/etc/auth/auth.yml"
   services:
     - name: ${CI_REGISTRY_IMAGE}/mill-service-integration:${CI_COMMIT_REF_SLUG}
       alias: mill-it
@@ -472,6 +475,9 @@ mill-py:http-protobuf-basic:3.14:
     - .gradle-job    
   allow_failure: true
   variables:
+    CI_DEBUG_SERVICES: "true"
+    QP_LOGGING_PLAIN: "true"
+    LOGGING_FILE_ENABLED: "false"
     # Integration connection configuration consumed by JDBC testIT profile
     MILL_IT_HOST: "mill"
     MILL_IT_PORT: "9090"
@@ -534,6 +540,7 @@ mill-py:http-protobuf-basic:3.14:
     MILL_IT_AUTH: "basic"
     MILL_IT_USERNAME: "admin"
     MILL_IT_PASSWORD: "admin"
+    MILL_AUTH_STORE: "file:/app/etc/auth/auth.yml"
   services:
     - name: ${CI_REGISTRY_IMAGE}/mill-service-integration:${CI_COMMIT_REF_SLUG}
       alias: mill
