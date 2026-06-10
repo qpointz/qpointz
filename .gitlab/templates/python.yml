@@ -4,7 +4,9 @@
     PIP_ROOT_USER_ACTION: "ignore"
 
 .python-mill-py-unit-test:
-  extends: .python-job
+  extends:
+    - .python-job
+    - .python-poetry-cache
   stage: build
   variables:
     TEST_TYPE: "unit"

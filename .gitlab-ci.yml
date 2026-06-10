@@ -160,10 +160,7 @@ test:downstream:
 
 integration:downstream:
   stage: integration
-  # needs:    
-  #   - job: test:downstream
-  #     artifacts: false
-  #     optional: true
+  needs: []
   trigger:
     include:
       - local: .gitlab/pipelines/integration.yml

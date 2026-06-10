@@ -1,0 +1,13 @@
+# Shared Poetry / pip caches for mill-py jobs.
+.python-poetry-cache:
+  variables:
+    POETRY_VIRTUALENVS_IN_PROJECT: "true"
+    POETRY_CACHE_DIR: ${CI_PROJECT_DIR}/.cache/pypoetry
+  cache:
+    key:
+      prefix: poetry-${PY_VER}
+      files:
+        - clients/mill-py/poetry.lock
+    paths:
+      - clients/mill-py/.venv/
+      - .cache/pypoetry/

@@ -42,9 +42,15 @@ components:test:
 ui:test:
   extends: .node-job
   stage: build
+  cache:
+    key:
+      files:
+        - ui/mill-ui/package-lock.json
+    paths:
+      - ui/mill-ui/node_modules/
   script:
     - cd ${CI_PROJECT_DIR}/ui/mill-ui
-    - npm install
+    - npm ci
     - npm run test:ci
     - npm run build
   artifacts:

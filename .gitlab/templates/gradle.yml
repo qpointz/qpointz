@@ -35,7 +35,7 @@
   rules:
     - if: '$CI_COMMIT_REF_NAME == "main" || $CI_COMMIT_REF_NAME == "rc"'
       variables:
-        GRADLE_DO_CLEAN: "true"
+        GRADLE_DO_CLEAN: "false"
         CACHE_POLICY: "pull-push"
         CACHE_PREFIX: "gradle-release-${CI_COMMIT_REF_NAME}"
         CACHE_FALLBACK_KEY: "gradle-dev"
@@ -63,3 +63,4 @@
       - .gradle-home/wrapper/
       - .gradle-home/caches/modules-2/
       - .gradle-home/caches/jars-9/
+      - .gradle-home/caches/build-cache-1/

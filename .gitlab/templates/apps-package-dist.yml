@@ -1,8 +1,6 @@
 .apps-package-dist-template:
   extends: .gradle-job
   stage: package
-  # Overrides .gradle-job: do not restore or save Gradle dependency cache for this job.
-  cache: []
   variables:
     APP_EDITION: "basic"
     APPS_PROJECT_VERSION: ""
@@ -12,7 +10,11 @@
       if [ -n "${APPS_PROJECT_VERSION}" ]; then
         APPS_PROJECT_VERSION_ARG=" -PprojectVersion=${APPS_PROJECT_VERSION}"
       fi
-      ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain clean :apps:mill-service:installBootDist -Pedition=${APP_EDITION}${APPS_PROJECT_VERSION_ARG}
+      CLEAN_TASK=""
+      if [ "$GRADLE_DO_CLEAN" = "true" ] || [ "$GRADLE_FORCE_CLEAN" = "true" ]; then
+        CLEAN_TASK="clean"
+      fi
+      ./gradlew --no-daemon ${GRADLE_CONTINUE_PARAM} --console plain ${CLEAN_TASK} :apps:mill-service:installBootDist -Pedition=${APP_EDITION}${APPS_PROJECT_VERSION_ARG}
     - |
       set -euo pipefail
       INSTALL_DIR="${CI_PROJECT_DIR}/apps/mill-service/build/install/mill-service-boot-${APP_EDITION}"
