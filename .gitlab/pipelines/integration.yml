@@ -185,57 +185,106 @@ cloud:integration:
       entrypoint: ["./bin/mill-service"]
       pull_policy: [if-not-present]
 
-# mill-py integration: Python ${DEFAULT_PY_VER} only; jobs chained to limit runner concurrency.
-# Basic-auth HTTP: http-json only (format does not affect auth behaviour).
-mill-py:grpc-noauth:
+# mill-py integration:
+# - All supported Python versions: grpc-noauth + http-json-noauth (smoke per interpreter).
+# - ${DEFAULT_PY_VER} only: http-protobuf-noauth + basic-auth (grpc + http-json).
+# Jobs chained per Python version to limit runner concurrency.
+mill-py:grpc-noauth:3.12:
   extends:
     - .mill-py-integration-template
   variables:
+    PY_VER: "3.12"
     MILL_IT_PORT: "9090"
     MILL_IT_PROTOCOL: "grpc"
     MILL_IT_AUTH: "none"
 
-mill-py:http-json-noauth:
+mill-py:http-json-noauth:3.12:
   extends:
     - .mill-py-integration-template
   needs:
-    - job: mill-py:grpc-noauth
+    - job: mill-py:grpc-noauth:3.12
       optional: true
   variables:
+    PY_VER: "3.12"
     MILL_IT_PORT: "8080"
     MILL_IT_PROTOCOL: "http-json"
     MILL_IT_AUTH: "none"
 
-mill-py:http-protobuf-noauth:
+mill-py:grpc-noauth:3.13:
+  extends:
+    - .mill-py-integration-template
+  variables:
+    PY_VER: "3.13"
+    MILL_IT_PORT: "9090"
+    MILL_IT_PROTOCOL: "grpc"
+    MILL_IT_AUTH: "none"
+
+mill-py:http-json-noauth:3.13:
   extends:
     - .mill-py-integration-template
   needs:
-    - job: mill-py:http-json-noauth
+    - job: mill-py:grpc-noauth:3.13
       optional: true
   variables:
+    PY_VER: "3.13"
+    MILL_IT_PORT: "8080"
+    MILL_IT_PROTOCOL: "http-json"
+    MILL_IT_AUTH: "none"
+
+mill-py:http-protobuf-noauth:3.13:
+  extends:
+    - .mill-py-integration-template
+  needs:
+    - job: mill-py:http-json-noauth:3.13
+      optional: true
+  variables:
+    PY_VER: "3.13"
     MILL_IT_PORT: "8080"
     MILL_IT_PROTOCOL: "http-protobuf"
     MILL_IT_AUTH: "none"
 
-mill-py:grpc-basic:
+mill-py:grpc-basic:3.13:
   extends:
     - .mill-py-integration-auth-template
   needs:
-    - job: mill-py:grpc-noauth
+    - job: mill-py:grpc-noauth:3.13
       optional: true
   variables:
+    PY_VER: "3.13"
     MILL_IT_PORT: "9090"
     MILL_IT_PROTOCOL: "grpc"
 
-mill-py:http-json-basic:
+mill-py:http-json-basic:3.13:
   extends:
     - .mill-py-integration-auth-template
   needs:
-    - job: mill-py:http-json-noauth
+    - job: mill-py:http-json-noauth:3.13
       optional: true
   variables:
+    PY_VER: "3.13"
     MILL_IT_PORT: "8080"
     MILL_IT_PROTOCOL: "http-json"
+
+mill-py:grpc-noauth:3.14:
+  extends:
+    - .mill-py-integration-template
+  variables:
+    PY_VER: "3.14"
+    MILL_IT_PORT: "9090"
+    MILL_IT_PROTOCOL: "grpc"
+    MILL_IT_AUTH: "none"
+
+mill-py:http-json-noauth:3.14:
+  extends:
+    - .mill-py-integration-template
+  needs:
+    - job: mill-py:grpc-noauth:3.14
+      optional: true
+  variables:
+    PY_VER: "3.14"
+    MILL_IT_PORT: "8080"
+    MILL_IT_PROTOCOL: "http-json"
+    MILL_IT_AUTH: "none"
 
 .mill-jdbc-integration-template:  
   stage: integration
