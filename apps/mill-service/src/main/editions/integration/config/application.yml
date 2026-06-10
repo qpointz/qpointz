@@ -25,6 +25,22 @@ mill:
         sources:
           - ./config/skymill-flow.yml
 ---
+# Integration edition + secure-file: explicit auth for CI Docker (WORKDIR=/app; auth at ./etc/auth/auth.yml).
+# Without mill.security.enable here, default is false and basic-auth jobs can false-pass (credentials sent but ignored).
+# Local launch from bin/: export MILL_AUTH_STORE=file:../etc/auth/auth.yml
+spring:
+  config:
+    activate:
+      on-profile: secure-file
+mill:
+  security:
+    enable: true
+    allow-registration: false
+    authentication:
+      basic:
+        enable: true
+        store: ${MILL_AUTH_STORE:file:./etc/auth/auth.yml}
+---
 spring:
   config:
     activate:

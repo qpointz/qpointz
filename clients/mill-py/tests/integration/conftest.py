@@ -61,6 +61,11 @@ class IntegrationConfig:
     schema_name: str
 
     @property
+    def auth_required(self) -> bool:
+        """True when ``MILL_IT_AUTH`` is ``basic`` or ``bearer``."""
+        return self.auth_mode != "none"
+
+    @property
     def credential(self) -> Credential:
         """Build the appropriate credential object."""
         if self.auth_mode == "basic":

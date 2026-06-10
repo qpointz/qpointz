@@ -38,6 +38,13 @@ public record TestITProfile(
         BEARER,
     }
 
+    /**
+     * {@code true} when {@code MILL_IT_AUTH} is {@code basic} or {@code bearer} (server expects credentials).
+     */
+    public boolean authRequired() {
+        return this.auth != Authentication.NO_AUTH;
+    }
+
 
     private static Stream<Arguments> profileArgs() {
         EmbeddedSkymillGrpcServer.ensureStarted();

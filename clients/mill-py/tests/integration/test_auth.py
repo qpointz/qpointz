@@ -16,7 +16,7 @@ from .conftest import IntegrationConfig
 
 def _requires_auth(mill_config: IntegrationConfig) -> None:
     """Skip the test if auth is not configured."""
-    if mill_config.auth_mode == "none":
+    if not mill_config.auth_required:
         pytest.skip("Auth tests skipped: MILL_IT_AUTH=none")
 
 
@@ -35,6 +35,31 @@ class TestAuthenticatedIdentity:
         assert name.upper() != "ANONYMOUS", (
             f"Expected non-anonymous identity, got {name!r}"
         )
+
+
+@pytest.mark.integration
+class TestUnauthenticatedRejection:
+    """Verify handshake without credentials is rejected when auth is enabled."""
+
+    def test_handshake_without_credentials_raises(
+        self, mill_config: IntegrationConfig,
+    ) -> None:
+        _requires_auth(mill_config)
+
+        with pytest.raises(MillAuthError):
+            client = mill.connect(
+                mill_config.url,
+                auth=None,
+                encoding=mill_config.encoding,
+                base_path=mill_config.base_path,
+                tls_ca=mill_config.tls_ca,
+                tls_cert=mill_config.tls_cert,
+                tls_key=mill_config.tls_key,
+            )
+            try:
+                client.handshake()
+            finally:
+                client.close()
 
 
 @pytest.mark.integration

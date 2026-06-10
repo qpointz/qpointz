@@ -1,10 +1,13 @@
 package io.qpointz.mill.client;
 
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.qpointz.mill.MillCodeException;
 import io.qpointz.mill.TestITProfile;
 import io.qpointz.mill.proto.*;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -48,6 +51,12 @@ class MillClientTestIT  {
     );
 
     public MillClientConfiguration.MillClientConfigurationBuilder clientConfig(TestITProfile profile) {
+        return clientConfig(profile, true);
+    }
+
+    public MillClientConfiguration.MillClientConfigurationBuilder clientConfig(
+            TestITProfile profile,
+            boolean includeAuth) {
         val config = MillClientConfiguration.builder();
 
         config.host(profile.host())
@@ -62,10 +71,12 @@ class MillClientTestIT  {
             config.path(profile.basePath());
         }
 
-        switch (profile.auth()) {
-            case BASIC -> config.basicCredentials(profile.username(), profile.password());
-            case BEARER -> config.bearerToken(profile.token());
-            case NO_AUTH -> {
+        if (includeAuth) {
+            switch (profile.auth()) {
+                case BASIC -> config.basicCredentials(profile.username(), profile.password());
+                case BEARER -> config.bearerToken(profile.token());
+                case NO_AUTH -> {
+                }
             }
         }
 
@@ -90,6 +101,25 @@ class MillClientTestIT  {
         log.info("Connection properties: {}", profile.maskedConnectionProperties());
         return MillClient.fromConfig(
                 clientConfig(profile).build());
+    }
+
+    @ParameterizedTest
+    @MethodSource("io.qpointz.mill.TestITProfile#profileArgs")
+    // Verifies handshake is rejected when the server expects auth but the client sends none.
+    void shouldRejectHandshake_whenAuthExpectedButNotProvided(TestITProfile profile) {
+        Assumptions.assumeTrue(profile.authRequired(),
+                () -> "Skipped: MILL_IT_AUTH=none (auth not expected)");
+
+        val client = MillClient.fromConfig(clientConfig(profile, false).build());
+        val request = HandshakeRequest.newBuilder().build();
+
+        if (profile.protocol() == HTTP) {
+            val ex = assertThrows(MillCodeException.class, () -> client.handshake(request));
+            assertTrue(ex.getMessage().contains("[HTTP 401]"), ex.getMessage());
+        } else {
+            val ex = assertThrows(StatusRuntimeException.class, () -> client.handshake(request));
+            assertEquals(Status.Code.UNAUTHENTICATED, ex.getStatus().getCode(), ex.getMessage());
+        }
     }
 
     @ParameterizedTest
