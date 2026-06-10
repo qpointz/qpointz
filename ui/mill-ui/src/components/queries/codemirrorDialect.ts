@@ -1,4 +1,4 @@
-import { MySQL, PostgreSQL, SQLDialect, StandardSQL, type SQLDialect } from '@codemirror/lang-sql';
+import { MySQL, PostgreSQL, SQLDialect, StandardSQL } from '@codemirror/lang-sql';
 import type { AnalysisDialectIdentifiers, EditorDialectId } from '../../types/analysis';
 
 function baseDialect(editorDialect: EditorDialectId): SQLDialect {

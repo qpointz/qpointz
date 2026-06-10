@@ -1,7 +1,7 @@
 import { schemaCompletionSource, type SQLConfig } from '@codemirror/lang-sql';
 import type { Completion, CompletionContext, CompletionResult } from '@codemirror/autocomplete';
 import type { AnalysisDialectIdentifiers } from '../../types/analysis';
-import { quoteIdentifierPart, quoteQualifiedName } from './quoteSqlIdentifier';
+import { quoteIdentifierPart } from './quoteSqlIdentifier';
 
 /** Strips one layer of SQL identifier quotes or brackets. */
 export function stripIdentifierQuotes(part: string): string {
