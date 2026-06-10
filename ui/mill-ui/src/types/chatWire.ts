@@ -1,7 +1,7 @@
 /**
  * Wire shapes for unified AI v3 chat HTTP endpoints.
  *
- * Mirrors Kotlin DTOs in `ai/mill-ai-v3-service/.../dto/ChatDtos.kt` and
+ * Mirrors Kotlin DTOs in `ai/mill-ai-service/.../dto/ChatDtos.kt` and
  * `AgentProfileResponse` so TS can be diff-checked against backend JSON.
  */
 

@@ -70,7 +70,7 @@ The repo is a Gradle multi-module build with 66 included modules (`settings.grad
 **Key module groups:**
 - `core/` — Shared libraries: interfaces, Protobuf stubs, security/RBAC, Spring integration, test utilities
 - `data/` — Data backends (Calcite, JDBC, Flow), format handlers (Parquet, Avro, Arrow, Excel, CSV), gRPC/HTTP data services, Spring auto-configuration
-- `ai/` — **Standalone Gradle build** (`ai/gradlew`). V1/V2 NL-to-SQL stacks (Spring AI) plus the new **V3 agentic runtime** (LangChain4j, framework-free core). CI calls `./gradlew test compileTestIT` (build) and `./gradlew testIT` (integration)
+- `ai/` — LangChain4j agentic runtime (`mill-ai*`). Legacy Spring AI NL2SQL (v1) lives under `ai/legacy/` for reference only. CI: `ai:build` runs `:ai:test`; `ai:integration` is disabled (see `docs-design/design/ai/ai-v1-integration/`)
 - `metadata/` — Metadata service and auto-configuration
 - `clients/` — JDBC driver and interactive JDBC shell
 - `apps/mill-service` — Main Spring Boot application entry point
@@ -79,30 +79,30 @@ The repo is a Gradle multi-module build with 66 included modules (`settings.grad
 
 **Key frameworks:** Spring Boot 3.5, Apache Calcite 1.41, Substrait 0.60, gRPC 1.79, Spring AI 1.1, LangChain4j 1.11, Java 21.
 
-### AI v3 agentic runtime
+### AI agentic runtime (`mill-ai*`)
 
-V3 is a Kotlin-only, Spring-free agentic runtime built alongside v1/v2. Key modules:
+Supported AI modules (Gradle `:ai:mill-ai*`). Legacy v1 under `ai/legacy/` is not on the service classpath.
 
 | Module | Role |
 |--------|------|
-| `ai/mill-ai-v3-core` | `AgentEvent`, `Capability`, `CapabilityRegistry`, `AgentProfile`, `RunState` — no framework deps |
-| `ai/mill-ai-v3-capabilities` | `ConversationCapability`, `DemoCapability` — discovered via `ServiceLoader` |
-| `ai/mill-ai-v3-langchain4j` | `OpenAiHelloWorldAgent` — LangChain4j adapter, only integration module |
-| `ai/mill-ai-v3-test` | Integration test scenarios |
-| `ai/mill-ai-v3-cli` | Interactive REPL for manual testing (`./gradlew :ai:mill-ai-v3-cli:run`) |
+| `ai/mill-ai` | Runtime core: capabilities, LangChain4j adapter, chat/SSE types |
+| `ai/mill-ai-data` | Data-plane adapters (schema port, SQL validation, value-mapping refresh) |
+| `ai/mill-ai-persistence` | JPA adapters for chat/conversation ports |
+| `ai/mill-ai-autoconfigure` | Spring Boot wiring (`mill.ai.*` configuration) |
+| `ai/mill-ai-service` | REST + SSE HTTP API |
+| `ai/mill-ai-test` | Integration test scenarios |
+| `ai/mill-ai-cli` | HTTP test bench (`./gradlew :ai:mill-ai-cli:run`) |
 
 **Running the interactive CLI:**
 ```bash
-OPENAI_API_KEY=sk-...  ./gradlew :ai:mill-ai-v3-cli:run --console=plain
+OPENAI_API_KEY=sk-...  ./gradlew :ai:mill-ai-cli:run --console=plain
 # Optional: OPENAI_MODEL (default gpt-4o-mini), OPENAI_BASE_URL
 ```
 
-**Key v3 design rules:**
-- Core types (`AgentEvent`, `Capability`, etc.) live in `mill-ai-v3-core` with no LangChain4j or Spring imports
-- LangChain4j is confined to `mill-ai-v3-langchain4j`; it must not define the core runtime architecture
-- New `AgentEvent` subtypes are added to `mill-ai-v3-core`; the CLI renders them automatically via JSON serialization — no CLI changes needed
-- Capability discovery uses Java `ServiceLoader` (`META-INF/services/io.qpointz.mill.ai.core.capability.CapabilityProvider`)
-- Design documents: `docs/design/agentic/`
+**Key design rules:**
+- Capability discovery uses Java `ServiceLoader` (`META-INF/services/...CapabilityProvider`)
+- New `AgentEvent` subtypes are added to `mill-ai`; the CLI renders them via JSON serialization
+- Design documents: `docs-design/design/agentic/` and `docs-design/design/ai/`
 
 ## Testing Guidelines
 
@@ -142,7 +142,7 @@ OPENAI_API_KEY=sk-...  ./gradlew :ai:mill-ai-v3-cli:run --console=plain
 ## Testing Structure
 
 Every new Gradle module must configure both unit and integration test suites following the
-`mill-ai-v3-persistence` pattern in `build.gradle.kts`:
+`mill-ai-persistence` pattern in `build.gradle.kts`:
 
 ```kotlin
 testing {

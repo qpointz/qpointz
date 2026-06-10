@@ -97,7 +97,7 @@ spring:
   flyway:
     enabled: true
 ---
-# AI v3 chat HTTP/SSE (`mill-ai-v3-service`). Use with Gradle edition `ai` (classpath) and
+# AI v3 chat HTTP/SSE (`mill-ai-service`). Use with Gradle edition `ai` (classpath) and
 # `--spring.profiles.active=ai` so `mill.ai.*` binds. Set `OPENAI_API_KEY` (or override in env-specific config).
 spring:
   config:

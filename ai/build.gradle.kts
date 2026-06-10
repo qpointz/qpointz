@@ -6,13 +6,11 @@ plugins {
 }
 
 dependencies {
-    dokka(project(":ai:mill-ai-v1-core"))
-    dokka(project(":ai:mill-ai-v1-nlsql-chat-service"))
-    dokka(project(":ai:mill-ai-v3"))
-    dokka(project(":ai:mill-ai-v3-data"))
-    dokka(project(":ai:mill-ai-v3-test"))
-    dokka(project(":ai:mill-ai-v3-cli"))
-    dokka(project(":ai:mill-ai-v3-persistence"))
-    dokka(project(":ai:mill-ai-v3-autoconfigure"))
-    dokka(project(":ai:mill-ai-v3-service"))
+    dokka(project(":ai:mill-ai"))
+    dokka(project(":ai:mill-ai-data"))
+    dokka(project(":ai:mill-ai-test"))
+    dokka(project(":ai:mill-ai-cli"))
+    dokka(project(":ai:mill-ai-persistence"))
+    dokka(project(":ai:mill-ai-autoconfigure"))
+    dokka(project(":ai:mill-ai-service"))
 }

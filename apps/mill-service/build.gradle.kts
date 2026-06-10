@@ -32,9 +32,9 @@ mill {
         }
 
         feature("ai-chat-service") {
-            description = "AI v3 unified chat: REST + SSE (profiles, chats, messages) via mill-ai-v3-autoconfigure (transitively mill-ai-v3-service); JPA via mill-ai-v3-persistence when the host runs JPA"
-            module(":ai:mill-ai-v3-autoconfigure")
-            module(":ai:mill-ai-v3-persistence")
+            description = "AI unified chat: REST + SSE (profiles, chats, messages) via mill-ai-autoconfigure (transitively mill-ai-service); JPA via mill-ai-persistence when the host runs JPA"
+            module(":ai:mill-ai-autoconfigure")
+            module(":ai:mill-ai-persistence")
         }
 
         feature("cloud-aws") {
