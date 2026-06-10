@@ -97,9 +97,37 @@ all unchecked → `planned/`; any checked → `in-progress/`.
 
 ### Story closure
 
-When all WIs in a story are complete **and** the branch is **MR-ready** (rewritten history per
-**Completion (Story level)** below — logical commit groups, reviewable for merge):
+#### Explicit closure only (agents)
 
+**Do not close a story** — and do **not** perform any **Story closure** step below — until the
+**user explicitly asks** to close it (e.g. “close the story”, “story is merge-ready”, “archive the
+story”). Finishing the last WI, passing tests, or opening a PR is **not** sufficient on its own.
+
+Until that explicit request:
+
+- Leave the story folder under **`in-progress/<story-slug>/`** (even when every WI is `[x]`).
+- Do **not** move the folder to **`completed/`**.
+- Do **not** update **`MILESTONE.md`**, set **`BACKLOG.md`** rows to **`done`**, or run the
+  **Completion (Story level)** history rewrite for closure purposes.
+- Continue to follow **per-WI** tracking and commits; optional follow-up WIs or polish on the same
+  branch remain valid while the story stays open.
+
+When the user **does** ask to close the story, perform the steps below **in order** in one
+coordinated pass unless they specify otherwise.
+
+**Clean working tree (required at closure):** before starting step **0**, and again before declaring
+the story closed, **`git status` must be clean** — every intentional change **committed** (no
+modified or untracked story files left behind). Commit any in-progress edits (including closure
+doc updates from steps **1–5**) before history rewrite if they would be lost, and commit the final
+closure doc/archive commit(s) before push or hand-off. Do not archive with a dirty working tree.
+
+When all WIs in a story are complete **and** the user has requested closure:
+
+0. **Rewrite branch history (required)** — per **Completion (Story level)** below: rebase onto the
+   merge target (usually **`origin/dev`**), then **logically combine and squash** per-WI commits
+   into a small, reviewable set (~10 commits or fewer when practical). **Do not** archive the story
+   or update **`MILESTONE.md`** / **`BACKLOG.md`** until this step is done and the branch is
+   **MR-ready**.
 1. **Update `MILESTONE.md`** — record the story's completed WIs in the **next release** section
    only (see **Milestone ledger (`MILESTONE.md`)** below); use the same compact bullet format as
    existing entries. Do **not** add sections for already **tagged** releases.
@@ -129,6 +157,11 @@ When all WIs in a story are complete **and** the branch is **MR-ready** (rewritt
    **Ordering:** With a `YYYYMMDD-` prefix, **ascending** name sort lists **oldest** closures first.
    To see **most recent closures first**, sort folder names **descending** (reverse alphabetical)
    in your file browser, or maintain the index in `docs/workitems/completed/README.md`.
+
+6. **Verify clean tree** — `git status` shows nothing to commit; all closure commits are on the
+   story branch. If the branch was pushed earlier and history was rewritten in step **0**, push the
+   updated feature branch per **Completion (Story level)** → **Push after rewrite** (only when the
+   user asks).
 
 Merging into `dev` is done manually by the user; the agent prepares everything above first.
 
@@ -247,24 +280,65 @@ context; for new work the active module is `ui/mill-ui/`.
 
 ## Completion (Story level)
 
-Before opening a merge request (or declaring the branch merge-ready), **rewrite the story branch
-history** so reviewers can follow it. Per-WI commits are a convenience during implementation; **closure**
-is when those commits are **grouped logically by the substance of the change** (feature area, module,
-risk boundary, or a single WI when it stands alone), not necessarily one commit per WI on the final
-branch.
+**When:** only after the user **explicitly requests story closure** (see **Story closure** →
+**Explicit closure only (agents)**). This section is **step 0** of **Story closure** — run it
+**before** MILESTONE / BACKLOG / archive. Do not archive or mark backlog **`done`** on a branch that
+still has raw per-WI commit noise.
 
-1. **Choose the merge base** — normally `origin/dev`. If the story branched elsewhere, use the commit
-   your MR will target (e.g. `git merge-base HEAD origin/dev` or the agreed integration branch).
-2. **Squash and regroup interactively** — e.g. `git fetch origin && git rebase -i <merge-base>` (or
-   `git rebase -i origin/dev` when that is the target). Combine fixups, split unrelated hunks if
-   needed, and **order commits so each tells a coherent story** (readable `git log`, bisect-friendly
-   where practical).
-3. **MR-ready bar** — after rewrite, the branch should look like a deliberate sequence of changes:
-   clear messages (bracket prefix, imperative, under 72 chars), no stray WIP noise, suitable for
-   code review and CI. **Guideline:** aim for **at most about 10 commits** above the merge base; if
-   more are needed for clarity (large stories, risky refactors), that is acceptable — prefer reviewable
-   grouping over a hard number.
-4. Follow the **Story closure** documentation steps above (MILESTONE, BACKLOG `done`, design docs,
-   public docs, archive story folder from `planned/` or `in-progress/` to
-   `docs/workitems/completed/YYYYMMDD-<story-slug>/`). **BACKLOG row deletion** is **not** part of
-   story closure — it happens in **Release (version) process** above.
+**Purpose:** per-WI commits are a convenience during implementation; **at closure** the story
+branch must be **rebased and squashed** so reviewers see a deliberate history, not one commit per WI
+by default.
+
+### Prerequisites
+
+- **Clean working tree** — commit or stash nothing that belongs on the story; see **Story closure**
+  → **Clean working tree**. Rebase/squash must not leave uncommitted intentional edits.
+
+### Merge target and rebase
+
+1. **Fetch and choose merge base** — default MR target is **`origin/dev`**:
+   `git fetch origin`
+   Use `git merge-base HEAD origin/dev` (or the branch the user named as MR target) as the rewrite
+   base. If the story branched from another integration branch, use that branch consistently.
+2. **Rebase onto latest target** — before squashing:
+   `git rebase origin/dev`
+   Resolve conflicts; re-run tests if the rebase touched substantial code.
+
+### Squash and logical grouping
+
+3. **Combine commits above the merge base** — group by **substance of change** (feature area,
+   module, risk boundary), not by WI number alone. Acceptable approaches:
+   - Interactive rebase: `git rebase -i <merge-base>` — `squash` / `fixup` related commits,
+     `reword` messages, split commits that mix unrelated concerns.
+   - Soft reset + new commits: `git reset --soft <merge-base>` then create a fresh logical commit
+     sequence (same bar as below).
+4. **Ordering** — commits should read top-to-bottom as a coherent story (foundation → wiring →
+   migration → tests → docs is a common pattern; match what the change actually needs).
+5. **MR-ready bar** — after rewrite, `git log <merge-base>..HEAD` should show:
+   - Clear messages (bracket prefix, imperative, under 72 chars).
+   - No `[wip]` or fixup-only noise unless intentionally kept.
+   - **Guideline:** **~10 commits or fewer** above the merge base; more is OK when splitting reduces
+     review risk (large refactors, unrelated modules).
+
+### Then documentation closure
+
+6. With history rewritten and tests still green, continue **Story closure** steps **1–5**
+   (MILESTONE, BACKLOG `done`, design docs, public docs, archive to
+   `docs/workitems/completed/YYYYMMDD-<story-slug>/`). Commit those doc/tracker changes; working
+   tree must be clean before step **6** (verify) in **Story closure**. **BACKLOG row deletion** is
+   **not** part of story closure — it happens in **Release (version) process** above.
+
+### Push after rewrite
+
+If the story **feature branch** was already on the remote and step **0** rewrote history, update it
+only when the **user** asks to push:
+
+```bash
+git push --force-with-lease origin <feature-branch>
+```
+
+- **Allowed:** force-push (prefer **`--force-with-lease`**) to the **story / feature branch** only.
+- **Forbidden:** never force-push protected integration branches — **`main`**, **`dev`**, **`rc`**
+  (and any other branch the team treats as shared integration).
+
+Plain `git push` is enough when the branch was never pushed or history was not rewritten.

@@ -51,11 +51,13 @@ Full umbrella design (providers, embedding registry, value-mapping references): 
 
 | Key | Description | Sources |
 | --- | --- | --- |
-| `mill.ai.model.*` | AI v3 chat LLM: provider, model name, api-key, base-url (`AiModelProperties`). | `mill-ai-v3-autoconfigure`, AI v3 tests |
-| `mill.ai.providers.*` | Per-provider credentials (`AiConfigurationProperties.providers`). | `mill-ai-v3-autoconfigure`, IT YAML |
-| `mill.ai.embedding-model.*` | Named embedding profiles (`AiConfigurationProperties.embeddingModel`). | same |
-| `mill.ai.value-mapping.embedding-model` | Profile name for value-mapping embed path (`ValueMappingConfigurationProperties`). | same |
-| `mill.ai.vector-store.*` | Single active `EmbeddingStore` (`VectorStoreConfigurationProperties.backend`); in-memory MVP. | same |
+| `mill.ai.providers.*` | Per-provider credentials and `type` (`AiConfigurationProperties.providers`). | `mill-ai-v3-autoconfigure`, IT YAML |
+| `mill.ai.models.chat.*` | Named chat model profiles (`AiConfigurationProperties.models.chat`). | same |
+| `mill.ai.models.embedding.*` | Named embedding model profiles (`AiConfigurationProperties.models.embedding`). | same |
+| `mill.ai.vector-stores.*` | Optional shared vector-store connection registry. | same |
+| `mill.ai.data.embedding.*` | Data embedding pipelines (model, vector-store, refresh, sources). | same |
+| `mill.ai.chat.model` | Key into `models.chat` for streaming chat. | same |
+| `mill.ai.chat.value-mapping.embedding` | Key into `data.embedding` for value-mapping. | same |
 | `mill.ai.chat.memory` | Chat memory backend (`in-memory` or `jdbc`). | `apps/mill-service/application-moneta-local.yml`, AI IT configs |
 | `mill.ai.nl2sql.enable` | Enables NL→SQL pipeline. | `apps/mill-service/application-moneta-local.yml`, AI IT configs |
 | `mill.ai.nl2sql.dialect` | SQL dialect handed to prompt builders (e.g., `H2`). | Same as above |

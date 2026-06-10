@@ -20,10 +20,9 @@
 | `mill.metadata.file.repository` | `MetadataConfiguration` (bean) | mill-service-core | Legacy file repository path (data autoconfigure; not the greenfield metadata service) |
 | `mill.ai.nl2sql` | `ValueMappingConfiguration` | mill-ai-core | NL2SQL enable, dialect, reasoner, value-mapping |
 | `mill.services.*` | `OnServiceEnabledCondition` | mill-service-core | Service toggles (grpc, jet-http, meta, grinder, ai-nl2data, data-bot) |
-| `mill.ai.model` | `AiModelProperties` | mill-ai-v3-autoconfigure | Chat LLM: provider, model name, api-key, base-url |
-| `mill.ai` (nested: `enabled`, `providers`, `embedding-model`) | `AiConfigurationProperties` | mill-ai-v3-autoconfigure | Master `enabled` flag; provider map + named embedding profiles (`AiProviderEntry`, `EmbeddingModelProfile`) |
-| `mill.ai.value-mapping` | `ValueMappingConfigurationProperties` | mill-ai-v3-autoconfigure | `embedding-model` references a key under `mill.ai.embedding-model` |
-| `mill.ai.vector-store` | `VectorStoreConfigurationProperties` | mill-ai-v3-autoconfigure | Backend `in-memory`, `chroma`, or `pgvector`; nested `chroma.*` / `pgvector.*`; single `EmbeddingStore` per context |
+| `mill.ai` (nested: `enabled`, `providers`, `models`, `vector-stores`) | `AiConfigurationProperties` | mill-ai-v3-autoconfigure | Master flag; providers (`type`); `models.chat` / `models.embedding`; optional `vector-stores` registry |
+| `mill.ai.data` (nested: `embedding`) | `DataEmbeddingConfigurationProperties` | mill-ai-v3-autoconfigure | Per-profile pipeline: `model`, `vector-store`, `max-content-length`, `refresh`, `sources[]` |
+| `mill.ai.chat` (nested: `model`, `value-mapping.embedding`, `schema-search.embedding`) | `AiV3ChatProperties` | mill-ai-v3-autoconfigure | Chat defaults; capability hooks into `data.embedding` profiles |
 
 ---
 
@@ -105,10 +104,9 @@
 
 | Class | Module | Condition | Key Beans |
 |-------|--------|-----------|-----------|
-| `AiModelProperties` | mill-ai-v3-autoconfigure | `@ConfigurationProperties("mill.ai.model")` | Chat LLM configuration |
-| `AiConfigurationProperties` | mill-ai-v3-autoconfigure | `@ConfigurationProperties("mill.ai")` | `providers`, `embedding-model` maps; `AiV3AutoConfiguration` |
-| `ValueMappingConfigurationProperties` | mill-ai-v3-autoconfigure | `@ConfigurationProperties("mill.ai.value-mapping")` | `embedding-model` profile name |
-| `VectorStoreConfigurationProperties` | mill-ai-v3-autoconfigure | `@ConfigurationProperties("mill.ai.vector-store")` | `backend` + nested `chroma` / `pgvector` (table, create-table, optional IVFFlat index) |
+| `AiConfigurationProperties` | mill-ai-v3-autoconfigure | `@ConfigurationProperties("mill.ai")` | `providers`, `models`, `vector-stores` |
+| `DataEmbeddingConfigurationProperties` | mill-ai-v3-autoconfigure | `@ConfigurationProperties("mill.ai.data")` | `embedding` profile map |
+| `AiV3ChatProperties` | mill-ai-v3-autoconfigure | `@ConfigurationProperties("mill.ai.chat")` | `model`, `value-mapping.embedding`, chat service defaults |
 | `AiV3AutoConfiguration` / `EmbeddingAutoConfiguration` / `VectorStoreAutoConfiguration` | mill-ai-v3-autoconfigure | `@ConditionalOn*` | `AiModelProviderRegistry`, `EmbeddingHarness`, `EmbeddingStore` |
 | `ValueMappingSyncAutoConfiguration` | mill-ai-v3-autoconfigure | `@AutoConfigureAfter` AI + JPA | `VectorMappingSynchronizer`, `ValueMappingService` when repository + harness + store exist |
 | `AiV3JpaConfiguration` | mill-ai-v3-autoconfigure | JPA on classpath | `ValueMappingEmbeddingRepository` JPA adapter (with `AiEmbeddingModelRepository` / `AiValueMappingRepository`) |
@@ -208,28 +206,32 @@
 ### mill.ai.chat
 - `memory` — in-memory | jdbc
 
-### mill.ai.model (AI v3 chat — `AiModelProperties`)
-- `provider`, `api-key`, `model-name`, `base-url`
+### mill.ai.providers (`AiConfigurationProperties.providers`)
+- `<providerId>.type` — provider implementation (v1: `openai`)
+- `<providerId>.api-key`, `<providerId>.base-url` — per-provider credentials
 
-### mill.ai.providers (WI-175 — `AiConfigurationProperties.providers`)
-- `<providerId>.api-key`, `<providerId>.base-url` — per-provider credentials (OpenAI-compatible first)
+### mill.ai.models (`AiConfigurationProperties.models`)
+- `chat.<name>.provider`, `chat.<name>.model-name`
+- `embedding.<name>.provider`, `embedding.<name>.model-name`, `embedding.<name>.dimension`
 
-### mill.ai.embedding-model (WI-176 — `AiConfigurationProperties.embeddingModel`)
-- `<name>.provider` — provider id (`stub`, `openai`, …); `stub` for deterministic tests
-- `<name>.model-name`, `<name>.dimension` — non-secret embedding params
+### mill.ai.vector-stores (`AiConfigurationProperties.vectorStores`)
+- `<id>.backend` — `in-memory`, `chroma`, or `pgvector`
+- `<id>.chroma.*`, `<id>.pgvector.*` — shared connection templates
 
-### mill.ai.value-mapping (WI-176 — `ValueMappingConfigurationProperties`)
-- `embedding-model` — name of a profile under `mill.ai.embedding-model`
-- `max-content-length` — max length for value-mapping embedding line / persisted `content` (default **2048**; see value-mapping facets G-5)
-- `refresh.on-startup.enabled` — global **`APP_STARTUP`** gate (default **true**)
-- `refresh.schedule.enabled` — register scheduled refresh job (default **true**)
-- `refresh.schedule.interval` — **`Duration`** tick cadence for scheduled passes (default **PT15M**)
+### mill.ai.data.embedding (`DataEmbeddingConfigurationProperties.embedding`)
+- `<profile>.model` — key into `mill.ai.models.embedding`
+- `<profile>.vector-store.backend` — built-in id or `vector-stores` registry key
+- `<profile>.vector-store.chroma.*`, `<profile>.vector-store.pgvector.*`
+- `<profile>.max-content-length` (default **2048**)
+- `<profile>.refresh.on-startup.enabled`, `<profile>.refresh.schedule.enabled`, `<profile>.refresh.schedule.interval`
+- `<profile>.sources[]` — v1: one `type: metadata-facets` entry
 
-### mill.ai.vector-store (WI-177 / WI-186 — `VectorStoreConfigurationProperties`)
-- `backend` — `in-memory` (default), `chroma`, or `pgvector`; **one** active backend per application context — see [`../ai/mill-ai-configuration.md`](../ai/mill-ai-configuration.md)
-- `chroma.base-url`, `chroma.api-version`, `chroma.tenant-name`, `chroma.database-name`, `chroma.collection-name`, `chroma.timeout` — used when `backend=chroma`
-- `pgvector.table`, `pgvector.create-table`, `pgvector.use-index`, `pgvector.index-list-size` — used when `backend=pgvector` (PostgreSQL **`DataSource`** + **`vector`** extension)
-- **Mill Service** — optional Spring profiles **`chromadb`** / **`ai-chromadb`** and **`pgvector`** / **`ai-pgvector`** in [`../../../apps/mill-service/src/main/resources/application.yml`](../../../apps/mill-service/src/main/resources/application.yml) switch **`mill.ai.vector-store`** without editing the default YAML block (see [`../ai/mill-ai-configuration.md`](../ai/mill-ai-configuration.md) § *Mill Service profile shortcuts*).
+### mill.ai.chat (`AiV3ChatProperties`)
+- `model` — key into `mill.ai.models.chat`
+- `default-profile`, `default-user-id`, `max-title-length`
+- `value-mapping.embedding` — key into `mill.ai.data.embedding`
+- `schema-search.embedding` — reserved capability hook
+- **Mill Service** — profiles **`chromadb`** / **`ai-pgvector`** override `data.embedding.default.vector-store` (see [`../ai/mill-ai-configuration.md`](../ai/mill-ai-configuration.md))
 
 ### mill.services
 - `grpc.port`, `grpc.address`, `grpc.enable`
@@ -243,7 +245,7 @@
 
 ## 5. Refactoring Considerations
 
-1. **`mill.ai.*` extension** — Provider map (`mill.ai.providers`), embedding registry (`mill.ai.embedding-model`), vector store (`mill.ai.vector-store`), and value-mapping references (`mill.ai.value-mapping`) are documented in [`../ai/mill-ai-configuration.md`](../ai/mill-ai-configuration.md); Java `@ConfigurationProperties` classes in **`mill-ai-v3-autoconfigure`** (WI-175–WI-177); sync/service wiring in **`ValueMappingSyncAutoConfiguration`** (WI-179/WI-180).
+1. **`mill.ai.*` layers** — `providers`, `models`, optional `vector-stores`, `data.embedding` profiles, and `chat` capability hooks — documented in [`../ai/mill-ai-configuration.md`](../ai/mill-ai-configuration.md); implemented in **`mill-ai-v3-autoconfigure`** (WI-284–WI-288).
 2. **Duplicate prefix** — `mill.security.authorization.policy` used by both `PolicyConfiguration` and `PolicyActionsConfiguration`; consider merging or splitting namespaces.
 3. **Typo** — `mill.backend.jdbc.multi-shema` should be `multi-schema`.
 4. **Legacy vs greenfield** — `mill.metadata.file.repository.path` (legacy data-layer repo) vs **`mill.metadata.repository.*`** (metadata service); document migration in operator docs.

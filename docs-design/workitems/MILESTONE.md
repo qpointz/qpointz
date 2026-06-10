@@ -16,6 +16,8 @@
 
 **Scope:** this subsection lists **only** story archives whose **`docs/workitems/completed/…` tree first landed after git tag `v0.7.0`** (verify with e.g. `git log v0.7.0..HEAD -- docs/workitems/completed/`). Archives dated **2026-03-30** through **2026-04-02** — including **metadata rework**, **metadata/UI**, **flow UI facets**, **typed URNs** — were committed **on or before** `v0.7.0`; they remain under [`completed/`](completed/) for traceability and are summarized in **[`releases/RELEASE-0.7.0.md`](releases/RELEASE-0.7.0.md)** (see also **[`completed/README.md`](completed/README.md)**). They are **not** duplicated here as **0.8.0** delta.
 
+- **AI configuration restructure** (`ai-configuration-restructure`, closed **2026-06-10**): [`completed/20260610-ai-configuration-restructure/STORY.md`](completed/20260610-ai-configuration-restructure/STORY.md). **WI-284**–**WI-288** — layered **`mill.ai.*`**: `providers` (+ `type`), `models.chat` / `models.embedding`, optional **`vector-stores`** registry, **`data.embedding.<profile>`** pipelines (sources, refresh, vector store), **`chat`** capability hooks; clean break from legacy `mill.ai.model`, `embedding-model`, `value-mapping`, singleton `vector-store`; operator YAML + GCP template migration; design + public docs. **BACKLOG** **A-91** `done`.
+
 - **mill-ui Analysis full stack** (`mill-ui-analysis-full-stack`, closed **2026-06-09**): [`completed/20260609-mill-ui-analysis-full-stack/STORY.md`](completed/20260609-mill-ui-analysis-full-stack/STORY.md). **WI-256**–**WI-260** — Flyway **`saved_query`** catalog + JPA port, **`mill-analysis-service`** REST **`/api/v1/analysis/**`** (dialect + saved-query CRUD), **`mill-service`** wiring, HTTP-only **`queryService`**, CodeMirror **`SqlCodeEditor`** with schema completions, Skymill-style **`testIT`** for catalog REST + auth. **BACKLOG** **U-13** `done`.
 
 - **Cloud blob sources** (`cloud-blob-source`, closed **2026-05-14**): [`completed/20260514-cloud-blob-source/STORY.md`](completed/20260514-cloud-blob-source/STORY.md). **WI-262** (S3)–**WI-265** (wiring/docs), **WI-271** — `cloud/{aws,gcp,azure}` **`BlobSource`** + Boot autoconfigure, Skymill **`testIT`** over emulators, **`DescriptorPlaceholderResolver`** + **`SecretProvider`** SPI, **`mill.data.backend.metadata.*`** gating and facet redaction, design + public storage docs. **BACKLOG** **S-9** `done`.
@@ -53,6 +55,8 @@
 #### Cumulative WI deliveries (toward 0.8.0)
 
 Individual work items and bundles merged on `dev` in support of this milestone (including items that also appear under **Archived stories** above).
+
+- **WI-284**–**WI-288** — `mill.ai` configuration restructure: property bindings (`AiConfigurationProperties`, `DataEmbeddingConfigurationProperties`), resolvers + autoconfigure wiring, operator YAML migration, tests + legacy removal, design/public/inventory docs; story **`ai-configuration-restructure`**, archived [`completed/20260610-ai-configuration-restructure/STORY.md`](completed/20260610-ai-configuration-restructure/STORY.md). **BACKLOG** **A-91** `done`.
 
 - **WI-256**–**WI-260** — mill-ui Analysis full stack: **`saved_query`** persistence + seeds, **`/api/v1/analysis/**`** catalog + dialect, HTTP **`queryService`**, CodeMirror SQL editor, catalog REST **`testIT`**; story **`mill-ui-analysis-full-stack`**, archived [`completed/20260609-mill-ui-analysis-full-stack/STORY.md`](completed/20260609-mill-ui-analysis-full-stack/STORY.md). **BACKLOG** **U-13** `done`.
 
