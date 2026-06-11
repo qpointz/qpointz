@@ -1,4 +1,4 @@
-# WI-295 — Expand navigation + QueryDataView design
+# WI-294 — Expand navigation + QueryDataView design
 
 **Story:** [`ai-sql-view-restart`](STORY.md)
 
@@ -7,8 +7,8 @@
 | **Status** | `planned` |
 | **Type** | `📐 docs` |
 | **Area** | `ui` |
-| **Depends on** | [**WI-289**](WI-289-ai-sql-view-design-contract.md), [**WI-294**](WI-294-ai-sql-view-condensed-verification.md) |
-| **Enables** | [**WI-296**](WI-296-ai-sql-view-shared-query-data-view.md) |
+| **Depends on** | [**WI-289**](WI-289-ai-sql-view-design-contract.md), [**WI-293**](WI-293-ai-sql-view-condensed-verification.md) |
+| **Enables** | [**WI-295**](WI-295-ai-sql-view-query-data-view.md), [**WI-296**](WI-296-ai-sql-view-expand-implementation.md) |
 
 ## Goal
 

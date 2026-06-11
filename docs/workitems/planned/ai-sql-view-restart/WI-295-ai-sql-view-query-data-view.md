@@ -1,4 +1,4 @@
-# WI-296 — Shared QueryDataView component
+# WI-295 — Shared QueryDataView component
 
 **Story:** [`ai-sql-view-restart`](STORY.md)
 
@@ -7,15 +7,15 @@
 | **Status** | `planned` |
 | **Type** | `✨ feature` / `🔧 refactoring` |
 | **Area** | `ui` |
-| **Depends on** | [**WI-295**](WI-295-ai-sql-view-expand-design.md) |
-| **Enables** | [**WI-297**](WI-297-ai-sql-view-expand-shell.md), [**WI-298**](WI-298-ai-sql-view-expand-sql-wiring.md) |
+| **Depends on** | [**WI-294**](WI-294-ai-sql-view-expand-design.md) |
+| **Enables** | [**WI-296**](WI-296-ai-sql-view-expand-implementation.md) |
 
 ## Goal
 
 Extract **`QueryDataView`** from [`QueryResults.tsx`](../../../../ui/mill-ui/src/components/queries/QueryResults.tsx)
 for reuse in Analysis, in-chat condensed, and expand pane.
 
-Port from old branch `components/data/` as reference.
+Use old branch `components/data/` as **UX reference**; implement fresh on artefacts foundation.
 
 ## Deliver
 
@@ -31,8 +31,8 @@ Port from old branch `components/data/` as reference.
 
 ### Refactors
 
-- [`QueryPlayground`](../../../../ui/mill-ui/src/components/queries/QueryPlayground.tsx) → `playground`.
-- `SqlDataCondensedPreview` → `condensed`.
+- [`QueryPlayground`](../../../../ui/mill-ui/src/components/queries/QueryPlayground.tsx) → `playground` mode.
+- `SqlDataCondensedPreview` → `condensed` mode.
 
 ### Tests
 
