@@ -6,7 +6,7 @@ Implement a **YAML-driven conversation replay harness** in [`ai/mill-ai-test`](.
 **Predecessor:** [`completed/20260506-ai-v3-mill-ui-general-chat`](../../completed/20260506-ai-v3-mill-ui-general-chat/STORY.md) (WI-231 transport seams; basic UI cards on `dev`).  
 **Deferred:** `origin/feat/ai-chat-sql-result-view` — condensed/expand UI, GET replay wire, salvage; merge after emit is proven by scenario packs.
 
-**Story folder:** [`docs/workitems/planned/ai-artifact-emit-contract/`](.) — `STORY.md` + WI-300–309 (scaffolding complete; design docs + implementation pending).
+**Story folder:** [`docs/workitems/in-progress/ai-artifact-emit-contract/`](.) — harness foundation complete (WI-300–302).
 
 ## Strategy
 
@@ -73,9 +73,9 @@ Normalized baselines scrub: UUIDs, `runId`, `chatId`, `turnId`, `eventId`, `arti
 
 **Agent execution order** (WI-300–308):
 
-- [ ] **WI-300** — Design docs + story scaffolding (**[`WI-300-conversation-scenario-design.md`](WI-300-conversation-scenario-design.md)**)
-- [ ] **WI-301** — `ScenarioPack` loader, checks, regression record (**[`WI-301-scenario-pack-core.md`](WI-301-scenario-pack-core.md)**)
-- [ ] **WI-302** — `ScriptedAgentRunner` + harness smoke ITs (**[`WI-302-scripted-agent-runner.md`](WI-302-scripted-agent-runner.md)**)
+- [x] **WI-300** — Design docs + story scaffolding (**[`WI-300-conversation-scenario-design.md`](WI-300-conversation-scenario-design.md)**)
+- [x] **WI-301** — `ScenarioPack` loader, checks, regression record (**[`WI-301-scenario-pack-core.md`](WI-301-scenario-pack-core.md)**)
+- [x] **WI-302** — `ScriptedAgentRunner` + harness smoke ITs (**[`WI-302-scripted-agent-runner.md`](WI-302-scripted-agent-runner.md)**)
 - [ ] **WI-303** — `ArtifactDescriptorRegistry` (**[`WI-303-artifact-descriptor-registry.md`](WI-303-artifact-descriptor-registry.md)**)
 - [ ] **WI-304** — `ArtifactEmissionCoordinator` (**[`WI-304-artifact-emission-coordinator.md`](WI-304-artifact-emission-coordinator.md)**)
 - [ ] **WI-305** — Registry-driven router + SSE bridge (**[`WI-305-router-sse-bridge.md`](WI-305-router-sse-bridge.md)**)

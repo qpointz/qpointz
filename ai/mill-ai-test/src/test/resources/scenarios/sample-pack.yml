@@ -1,0 +1,13 @@
+name: sample-pack
+profileId: hello-world
+parameters:
+  mode: scripted
+run:
+  - ask: "Hi"
+    script:
+      - answer: "Hello"
+    verify:
+      pass: ERROR
+      check:
+        - response:
+            assert: not-blank

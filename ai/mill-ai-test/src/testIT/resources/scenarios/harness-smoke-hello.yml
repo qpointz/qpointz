@@ -1,0 +1,17 @@
+name: harness-smoke-hello
+profileId: hello-world
+parameters:
+  mode: scripted
+run:
+  - ask: "Say hello briefly."
+    script:
+      - answer: "Hello from the harness!"
+    verify:
+      pass: ERROR
+      check:
+        - events:
+            containsInOrder:
+              - { type: run.started }
+              - { type: answer.completed }
+        - response:
+            assert: not-blank

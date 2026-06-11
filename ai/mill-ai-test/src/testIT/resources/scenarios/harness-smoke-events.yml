@@ -1,0 +1,22 @@
+name: harness-smoke-events
+profileId: hello-world
+parameters:
+  mode: scripted
+run:
+  - ask: "Greet Alice using the say_hello tool."
+    script:
+      - toolCalls:
+          - name: say_hello
+            args:
+              name: Alice
+      - answer: "I greeted Alice."
+    verify:
+      pass: ERROR
+      check:
+        - events:
+            containsInOrder:
+              - { type: tool.call, name: say_hello }
+              - { type: tool.result, name: say_hello }
+              - { type: answer.completed }
+        - response:
+            assert: not-blank

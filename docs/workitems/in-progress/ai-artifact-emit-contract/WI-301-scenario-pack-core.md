@@ -1,6 +1,6 @@
 # WI-301 — ScenarioPack core + regression record
 
-Status: `planned`  
+Status: `done`  
 Type: `✨ feature` / `🧪 test`  
 Area: `ai`  
 Story: [`STORY.md`](STORY.md)
@@ -64,8 +64,8 @@ Scrub or replace in normalized output:
 
 ## Acceptance criteria
 
-- [ ] `./gradlew :ai:mill-ai-test:test` passes.
-- [ ] Sample pack YAML loads; checks run against a hand-built `TurnOutcome` in unit tests.
-- [ ] Record JSON contains all fields documented in WI-300 design doc.
-- [ ] Normalized baseline of same pack is **byte-stable** across two consecutive runs with identical script.
-- [ ] Module description in [`build.gradle.kts`](../../../../ai/mill-ai-test/build.gradle.kts) updated (no longer "skeleton").
+- [x] `./gradlew :ai:mill-ai-test:test` passes.
+- [x] Sample pack YAML loads; checks run against a hand-built `TurnOutcome` in unit tests.
+- [x] Record JSON contains all fields documented in WI-300 design doc.
+- [x] Normalized baseline of same pack is **byte-stable** across two consecutive runs with identical script.
+- [x] Module description in [`build.gradle.kts`](../../../../ai/mill-ai-test/build.gradle.kts) updated (no longer "skeleton").

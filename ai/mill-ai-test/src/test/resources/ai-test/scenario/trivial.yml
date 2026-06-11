@@ -1,4 +1,0 @@
-name: trivial scenario
-steps:
-  - user: "say hello"
-  - user: "what can you do?"

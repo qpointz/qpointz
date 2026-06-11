@@ -1,6 +1,6 @@
 # WI-302 — ScriptedAgentRunner + harness smoke
 
-Status: `planned`  
+Status: `done`  
 Type: `✨ feature` / `🧪 test`  
 Area: `ai`  
 Story: [`STORY.md`](STORY.md)
@@ -93,7 +93,7 @@ YAML may declare `expectTools: [validate_sql]` on script steps; runner asserts a
 
 ## Acceptance criteria
 
-- [ ] `./gradlew :ai:mill-ai-test:testIT` passes smoke scenarios.
-- [ ] Two-step QUERY script (toolCalls + answer) completes without exhaustion before WI-304 coordinator lands (may lack `ProtocolFinal` until then).
-- [ ] CAPTURE script documents protocol executor consuming second script step.
-- [ ] POC emit scenarios may be added as **ignored** stubs — full green deferred to WI-307.
+- [x] `./gradlew :ai:mill-ai-test:testIT` passes smoke scenarios.
+- [x] Two-step QUERY script (toolCalls + answer) completes without exhaustion before WI-304 coordinator lands (may lack `ProtocolFinal` until then).
+- [x] CAPTURE script documents protocol executor consuming second script step (design doc + WI-302 script semantics).
+- [ ] POC emit scenarios deferred to WI-307.

@@ -10,7 +10,7 @@ plugins {
 }
 
 mill {
-    description = "Mill AI test support skeleton"
+    description = "Mill AI v3 conversation scenario harness and regression packs"
     publishArtifacts = false
 }
 
