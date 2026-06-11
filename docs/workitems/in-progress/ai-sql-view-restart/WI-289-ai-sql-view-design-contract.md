@@ -133,9 +133,9 @@ See [`RESTART-NOTES.md`](RESTART-NOTES.md) for full porting catalogue, conflict 
 
 ## Acceptance criteria
 
-- [x] Design docs updated; emission cross-linked to [`artifact-foundation.md`](../../../design/agentic/artifact-foundation.md) (not reimplemented here).
-- [x] `chatArtifactTreatments` matrix documented for v1 chat types + SQL/facet/schema/unknown.
-- [x] Open in Analysis handoff documented (no save, no executionId).
-- [x] [`chat-artefact-architecture.md`](../../../design/ai/chat-artefact-architecture.md) drafted with sections 1–11 + emission cross-link.
-- [x] Do-not-port list documented in STORY.md and this WI.
-- [x] No implementation code in this WI (docs only).
+- [ ] Design docs updated; emission cross-linked to [`artifact-foundation.md`](../../../design/agentic/artifact-foundation.md) (not reimplemented here).
+- [ ] `chatArtifactTreatments` matrix documented for v1 chat types + SQL/facet/schema/unknown.
+- [ ] Open in Analysis handoff documented (no save, no executionId).
+- [ ] [`chat-artefact-architecture.md`](../../../design/ai/chat-artefact-architecture.md) drafted with sections 1–11 + emission cross-link.
+- [ ] Do-not-port list documented in STORY.md and this WI.
+- [ ] No implementation code in this WI (docs only).
