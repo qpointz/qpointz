@@ -418,6 +418,8 @@ Do not start from REST or UX wiring first. Start from the framework contracts an
 
 The rest of the manual set is split by responsibility:
 
+- [`artifact-foundation.md`](../artifact-foundation.md)
+  **Chat artefacts:** descriptor YAML, emission coordinator, SSE wire, mill-ui cards, add-artifact checklist (start here for structured chat output)
 - `v3-developer-capabilities-profiles-and-dependencies.md`
   How to build capabilities, providers, manifests, dependencies, and profiles
 - `v3-developer-runtime-events-persistence.md`

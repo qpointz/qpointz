@@ -16,6 +16,8 @@ This chapter explains the lower half of `ai/v3`:
 - how persistence is wired
 - how artifact observers fit in
 
+**Chat artefact pipeline (descriptors, emission, SSE, UI):** [`artifact-foundation.md`](../artifact-foundation.md)
+
 This chapter matters any time you build:
 
 - a new runtime

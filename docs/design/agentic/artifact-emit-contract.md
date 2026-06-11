@@ -1,7 +1,9 @@
 # Artefact emit contract (v3)
 
-**Status:** Design (WI-300); implementation WI-303–306  
+**Status:** Implemented — see **[`artifact-foundation.md`](./artifact-foundation.md)** for the canonical agent-oriented reference  
 **Story:** [`docs/workitems/in-progress/ai-artifact-emit-contract/`](../../workitems/in-progress/ai-artifact-emit-contract/STORY.md)
+
+> **For other agents:** start with [`artifact-foundation.md`](./artifact-foundation.md) (end-to-end pipeline, file index, add-artifact checklist). This document retains the original WI-303 decision record.
 
 ---
 
@@ -99,9 +101,12 @@ Descriptors live in **capability YAML**. Profiles select `capabilityIds` only.
 | `generated-sql` | `sql` | `sql.generated` | `last-sql` |
 | `sql-validation` | — | `sql.validation` | — |
 | `inferred-facet` | `facet-proposal` | (per metadata-authoring) | `last-metadata-facet-proposal` |
+| schema capture | `schema-capture` | `schema.authoring.capture` | `last-schema-capture` |
 
 ---
 
 ## 7. Acceptance
 
 Primary acceptance: scenario packs in `mill-ai-test` (`artifact-emit/*.yml`) with regression baselines (WI-307).
+
+Full pipeline, UI cards, and extension checklist: [`artifact-foundation.md`](./artifact-foundation.md).

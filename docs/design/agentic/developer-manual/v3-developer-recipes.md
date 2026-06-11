@@ -356,6 +356,8 @@ If the event is useful live but should not be replayed as conversation history, 
 
 Example target: `chart-config`
 
+**Registry-driven chat artefacts:** follow [`artifact-foundation.md`](../artifact-foundation.md) §8 (YAML descriptor, emission strategy, SSE `wirePartType`, mill-ui card). Prefer that checklist over ad hoc routing.
+
 ### Steps
 
 1. define the structured payload contract

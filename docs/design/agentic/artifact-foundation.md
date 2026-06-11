@@ -1,0 +1,327 @@
+# Artifact foundation (v3 agentic runtime)
+
+**Status:** Implemented (POC baseline)  
+**Audience:** Agents and developers extending chat artefacts, SSE structured parts, or persistence  
+**Modules:** `ai/mill-ai`, `ai/mill-ai-autoconfigure`, `ai/mill-ai-service`, `ai/mill-ai-persistence`, `ui/mill-ui`
+
+Related docs:
+
+| Document | Role |
+|----------|------|
+| [`artifact-emit-contract.md`](./artifact-emit-contract.md) | Original emit-contract decision record (WI-303–306) |
+| [`v3-capability-manifest.md`](./v3-capability-manifest.md) | Capability YAML schema (tools, protocols, prompts) |
+| [`ai-v3-chat-transport-extensions.md`](./ai-v3-chat-transport-extensions.md) | SSE wire model, mill-ui extension seam, per-reply views |
+| [`developer-manual/v3-developer-runtime-events-persistence.md`](./developer-manual/v3-developer-runtime-events-persistence.md) | Routed events, persistence lanes, observers |
+| [`developer-manual/v3-developer-recipes.md`](./developer-manual/v3-developer-recipes.md) | Step recipes (tools, profiles, durable artifact types) |
+
+---
+
+## 1. What is an artifact?
+
+In Mill v3, an **artifact** is a **structured, machine-readable payload** produced during an agent turn. Artifacts are distinct from conversational prose (`presentation: conversation`, `partType: text`).
+
+Typical uses:
+
+- **Generated SQL** — validated statement for host-side execution
+- **Facet proposal** — metadata facet assignment candidate
+- **Schema capture** — description/relation capture from schema authoring
+- **Audit records** — e.g. `sql.validation` (persist only, not always chat-visible)
+
+Artifacts flow through three concerns:
+
+1. **Emission** — how runtime produces `AgentEvent.ProtocolFinal` or `AgentEvent.ToolResult`
+2. **Routing & persistence** — registry maps events → `RoutedAgentEvent` → artifact store / pointers
+3. **Chat stream & UI** — structured SSE parts → mill-ui cards
+
+---
+
+## 2. Single source of truth: `ArtifactDescriptor`
+
+Every artifact kind is declared once in **capability YAML** under `artifacts:`.
+
+Kotlin type: [`ArtifactDescriptor`](../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/core/artifact/ArtifactDescriptor.kt)
+
+Registry: [`ArtifactDescriptorRegistry`](../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/core/artifact/ArtifactDescriptorRegistry.kt) — loaded from all capability manifests at startup (`loadDefault()`).
+
+| Field | Purpose |
+|-------|---------|
+| `id` | Key within capability (e.g. `generated-sql`) |
+| `capabilityId` | Owning capability (e.g. `sql-query`) |
+| `protocolId` | Protocol for `protocol.final` routing (e.g. `sql-query.generated-sql`) |
+| `artifactKind` | Logical kind in payloads (e.g. `generated-sql`, `facet-proposal`) |
+| `persistKind` | Persistence bucket (e.g. `sql.generated`, `sql.validation`) |
+| `pointerKeys` | Active pointer names updated on persist (e.g. `[last-sql]`) |
+| `wirePartType` | SSE `partType` for chat stream (e.g. `sql`, `facet-proposal`, `schema-capture`) |
+| `presentation` | SSE presentation (typically `structured`) |
+| `protocolMode` | `STRUCTURED_FINAL` when a protocol is involved |
+| `sourceEvent` | `tool.result` or `protocol.final` — which raw event the router matches |
+| `emissionStrategy` | How runtime produces the artifact (see §3) |
+| `destinations` | Routed lanes: `CHAT_STREAM`, `ARTIFACT`, `TELEMETRY`, … |
+
+**Uniqueness rule:** `(persistKind, sourceEvent)` must be unique across all descriptors.
+
+**Wire fallback:** If `wirePartType` is omitted, mappers use `artifactKind` as the SSE `partType` ([`AgentEventToSseMapper`](../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/sse/AgentEventToSseMapper.kt), [`LangChain4jChatRuntime`](../../../ai/mill-ai-autoconfigure/src/main/kotlin/io/qpointz/mill/ai/autoconfigure/chat/LangChain4jChatRuntime.kt)). Prefer explicit `wirePartType` for stable client contracts.
+
+Tool-level triggers (`emitsOnSuccess` on a tool) reference descriptor `id`:
+
+```yaml
+tools:
+  validate_sql:
+    emitsOnSuccess:
+      artifact: generated-sql
+      when:
+        field: passed
+        equals: true
+```
+
+---
+
+## 3. Emission strategies
+
+| Strategy | When | Producer | Model protocol call? |
+|----------|------|----------|----------------------|
+| **OnToolSuccess** | QUERY tool succeeds + trigger matches | [`ArtifactEmissionCoordinator`](../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/runtime/langchain4j/ArtifactEmissionCoordinator.kt) synthesizes `ProtocolFinal` | **No** |
+| **OnCaptureSuccess** | CAPTURE tool succeeds | [`LangChain4jProtocolExecutor`](../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/runtime/langchain4j/LangChain4jProtocolExecutor.kt) | **Yes** (scripted step) |
+| **FromToolResult** | Tool returns structured result | Router maps `ToolResult` directly | N/A |
+
+### 3.1 OnToolSuccess (generated SQL)
+
+**Problem solved:** `validate_sql` is a QUERY tool. The model often answers with prose SQL instead of invoking a protocol. Coordinator **constructs** `ProtocolFinal` when validation passes.
+
+Flow:
+
+1. Model calls `validate_sql`
+2. Handler returns `{ artifactType: sql-validation, passed: true, normalizedSql: "..." }`
+3. Coordinator matches `emitsOnSuccess` → builds `sql-query.generated-sql` payload
+4. Router + SSE mapper emit structured chat part
+
+**Guards:**
+
+- Skip emit when `generated-sql` payload has blank `sql` (coordinator check)
+- [`BackendSqlValidator`](../../../ai/mill-ai-data/src/main/kotlin/io/qpointz/mill/ai/data/sql/BackendSqlValidator.kt) must set `normalizedSql` on success; [`SqlQueryToolHandlers`](../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/capabilities/sqlquery/SqlQueryToolHandlers.kt) falls back to input SQL
+
+### 3.2 OnCaptureSuccess (facet, schema capture)
+
+CAPTURE tools declare `kind: capture` and `protocol: …`. After successful capture, the protocol executor emits `ProtocolFinal` with the capture payload.
+
+Examples:
+
+- `propose_facet_assignment` → `metadata.faceting.capture` → `wirePartType: facet-proposal`
+- Schema authoring capture tools → `schema-capture` wire part
+
+### 3.3 FromToolResult (validation audit)
+
+`sql-validation` persists validator outcomes without necessarily appearing as a chat bubble. Router maps `ToolResult` with matching `artifactType`.
+
+**No duplicate `sql.generated`:** When coordinator already emitted `ProtocolFinal` for generated SQL, router must not also promote a tool-result row to `sql.generated`.
+
+---
+
+## 4. End-to-end pipeline
+
+```mermaid
+flowchart LR
+  subgraph manifest [Capability YAML]
+    AD[artifacts block]
+    TOOL[tools + emitsOnSuccess]
+  end
+
+  subgraph runtime [Runtime]
+    LLM[LangChain4jAgent loop]
+    COORD[ArtifactEmissionCoordinator]
+    PROTO[LangChain4jProtocolExecutor]
+    RAW[AgentEvent stream]
+  end
+
+  subgraph route [Routing]
+    REG[ArtifactDescriptorRegistry]
+    ROUTER[RegistryAgentEventRouter]
+    ROUTED[RoutedAgentEvent]
+  end
+
+  subgraph surface [Surfaces]
+    SSE[AgentEventToSseMapper]
+    PERSIST[Artifact projector]
+    UI[mill-ui parse + cards]
+  end
+
+  AD --> REG
+  TOOL --> COORD
+  LLM --> COORD
+  LLM --> PROTO
+  COORD --> RAW
+  PROTO --> RAW
+  RAW --> ROUTER
+  REG --> ROUTER
+  ROUTER --> ROUTED
+  ROUTED --> PERSIST
+  RAW --> SSE
+  SSE --> UI
+```
+
+**Correlation:** All SSE events for one assistant reply share the same `itemId`. Text deltas use V1 conversation parts; structured artifacts use `presentation: structured`.
+
+---
+
+## 5. Implemented POC artifacts
+
+| Descriptor | Capability | `wirePartType` | `persistKind` | Emission | Chat stream | Profiles |
+|------------|------------|----------------|---------------|----------|-------------|----------|
+| `generated-sql` | `sql-query` | `sql` | `sql.generated` | OnToolSuccess | Yes | `data-analysis`, `schema-authoring` |
+| `sql-validation` | `sql-query` | — | `sql.validation` | FromToolResult | No | same |
+| `inferred-facet` | `metadata-authoring` | `facet-proposal` | `metadata.faceting.capture` | OnCaptureSuccess | Yes | `schema-authoring` |
+| schema capture | `schema-authoring` | `schema-capture` | `schema.authoring.capture` | OnCaptureSuccess | Yes | `schema-authoring` |
+
+Manifest sources:
+
+- [`sql-query.yaml`](../../../ai/mill-ai/src/main/resources/capabilities/sql-query.yaml)
+- [`metadata-authoring.yaml`](../../../ai/mill-ai/src/main/resources/capabilities/metadata-authoring.yaml)
+- [`schema-authoring.yaml`](../../../ai/mill-ai/src/main/resources/capabilities/schema-authoring.yaml)
+
+### Profile gating
+
+Profiles select **`capabilityIds` only** — no per-profile artifact tables.
+
+| Profile | Capabilities | Artifacts in chat |
+|---------|--------------|-------------------|
+| `hello-world` | `conversation` | None |
+| `data-analysis` | `conversation`, `schema`, `metadata`, `sql-dialect`, `sql-query` | SQL only |
+| `schema-exploration` | read-only schema/metadata/sql | None (no authoring) |
+| `schema-authoring` | above + `schema-authoring`, `metadata-authoring` | SQL + facet + schema capture |
+
+Profile definitions: [`ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/profile/`](../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/profile/)
+
+**UI default:** new general chats use `data-analysis` ([`DEFAULT_GENERAL_CHAT_AGENT_PROFILE_ID`](../../../ui/mill-ui/src/features/chatPreferences.ts)).
+
+---
+
+## 6. SSE wire contract
+
+Event type: `item.part.updated` with `presentation: structured`.
+
+| Field | Role |
+|-------|------|
+| `itemId` | Assistant item correlation |
+| `partType` | From descriptor `wirePartType` (or `artifactKind` fallback) |
+| `presentation` | `structured` |
+| `mode` | Typically `append` |
+| `content` | **JSON string** — single serialised object |
+
+Mapper: [`AgentEventToSseMapper`](../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/sse/AgentEventToSseMapper.kt)
+
+End-of-turn hint: `item.completed` repeats the last structured `presentation` / `partType` pair for layout routing without re-scanning all parts.
+
+**V1 safety:** Clients that only handle conversation text must ignore unknown structured parts without aborting the stream.
+
+---
+
+## 7. mill-ui integration
+
+### 7.1 Parse path
+
+[`parseChatStructuredPart`](../../../ui/mill-ui/src/utils/chatArtifactParse.ts):
+
+1. Parse `content` JSON
+2. Infer kind from payload shape (`sql`, `facet-proposal`, `schema-capture`) or declared `partType`
+3. Fallback: **`unknown`** card for any other `presentation: structured` payload
+
+Types: [`ChatMessageArtifact`](../../../ui/mill-ui/src/types/chat.ts)
+
+### 7.2 Layout routing
+
+[`deriveAssistantReplyView`](../../../ui/mill-ui/src/utils/assistantReplyView.ts) precedence:
+
+1. `facet-primary` if facet artifact present
+2. `schema-primary` if schema capture present
+3. `sql-primary` if SQL present
+4. `artifact-primary` if unknown structured artifact present
+5. else `conversation`
+
+Router: [`AssistantReplyRouter`](../../../ui/mill-ui/src/components/chat/AssistantReplyRouter.tsx) → [`ArtifactCard`](../../../ui/mill-ui/src/components/chat/artifacts/ArtifactCard.tsx)
+
+| `kind` | Component |
+|--------|-----------|
+| `sql` | `SqlArtifactCard` |
+| `facet-proposal` | `FacetProposalArtifactCard` |
+| `schema-capture` | `SchemaCaptureArtifactCard` |
+| `unknown` | `UnknownArtifactCard` (JSON preview) |
+
+### 7.3 Live vs GET replay
+
+| Phase | Artifacts |
+|-------|-----------|
+| **Live SSE** | Parsed and attached to in-memory `Message.artifacts` |
+| **GET transcript** | Text restored; **`artifacts` not yet rehydrated** from persistence — replay shows prose-only unless extended |
+
+---
+
+## 8. Checklist: add a new structured chat artifact
+
+Work top-down; skip steps that do not apply.
+
+### Backend
+
+1. **Capability YAML** — add `artifacts:` entry with `persistKind`, `wirePartType`, `presentation: structured`, `sourceEvent`, `emissionStrategy`, `destinations`
+2. **Protocol** (if OnCaptureSuccess) — declare `protocols:` + `finalSchema`; bind CAPTURE tool with `kind: capture` and `protocol: …`
+3. **Tool trigger** (if OnToolSuccess) — add `emitsOnSuccess` on the producing tool; implement payload construction in coordinator if not generic map passthrough
+4. **Handler** — return structured maps (not stringified JSON); include stable `artifactType` where applicable
+5. **Profile** — add capability id to relevant [`AgentProfile`](../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/profile/ProfileRegistry.kt) if new capability
+6. **Tests**
+   - `ArtifactDescriptorRegistryTest` — descriptor loads, no duplicate keys
+   - `ArtifactEmissionCoordinatorTest` — emit / skip conditions
+   - `ChatSseEventTypesTest` / mapper tests — `partType` + JSON shape
+   - Scenario pack under `ai/mill-ai-test/src/testIT/resources/scenarios/artifact-emit/` (optional but preferred for acceptance)
+
+### UI
+
+1. Extend `ChatMessageArtifact` union in `chat.ts`
+2. Add parse branch in `chatArtifactParse.ts` (or rely on `unknown` fallback initially)
+3. Add card component under `components/chat/artifacts/`
+4. Wire `ArtifactCard` + `deriveAssistantReplyView` if new layout enum needed
+5. Vitest: `chatArtifactParse.test.ts`, `assistantReplyView.test.ts`
+
+### Persistence (optional, for reload parity)
+
+1. Ensure router sends artifact to `ARTIFACT` destination
+2. Projector writes `persistKind`
+3. Expose artifacts on `GET /api/v1/ai/chats/{id}` or populate `assistantReplyView`
+
+---
+
+## 9. Acceptance & regression
+
+Scenario harness: [`ai/mill-ai-test`](../../../ai/mill-ai-test/)
+
+- Packs: `src/testIT/resources/scenarios/artifact-emit/*.yml`
+- Runner: `ArtifactEmitScenariosIT`
+- Baselines: `src/testIT/resources/scenarios/baselines/*.record.normalized.json`
+- Shape checks: artifact kinds, SSE `partType`, no facet on `data-analysis` negative pack
+
+Service smoke: [`AiChatControllerIT`](../../../ai/mill-ai-service/src/testIT/kotlin/io/qpointz/mill/ai/service/AiChatControllerIT.kt) — profile list includes `data-analysis`, structured SSE smoke.
+
+---
+
+## 10. Key source index
+
+| Concern | Location |
+|---------|----------|
+| Descriptor model | `ai/mill-ai/.../core/artifact/` |
+| Coordinator | `ai/mill-ai/.../runtime/langchain4j/ArtifactEmissionCoordinator.kt` |
+| Event router | `ai/mill-ai/.../runtime/events/AgentEventRouter.kt`, `RegistryAgentEventRouter` |
+| SSE mapping | `ai/mill-ai/.../sse/AgentEventToSseMapper.kt` |
+| Chat runtime bridge | `ai/mill-ai-autoconfigure/.../LangChain4jChatRuntime.kt` |
+| HTTP + SSE service | `ai/mill-ai-service/` |
+| UI parse + views | `ui/mill-ui/src/utils/chatArtifactParse.ts`, `assistantReplyView.ts` |
+| UI cards | `ui/mill-ui/src/components/chat/artifacts/` |
+| Default UI profile | `ui/mill-ui/src/features/chatPreferences.ts` |
+
+---
+
+## 11. Known gaps (follow-ups)
+
+- **GET transcript artifact rehydration** — stream-only today in mill-ui
+- **`sql-result` / chart / data preview** — descriptors stubbed or persist-only; no chat cards yet
+- **Execute SQL action** — host-side API not wired from SQL card
+- **Server default profile** — still `hello-world` in `mill.ai.chat.default-profile`; UI sends `data-analysis` explicitly
+
+Label backlog items in [`ai-v3-chat-transport-extensions.md`](./ai-v3-chat-transport-extensions.md) when naming new `partType`s.
