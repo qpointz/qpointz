@@ -1,5 +1,7 @@
 package io.qpointz.mill.ai.test.runner
 
+import io.qpointz.mill.ai.runtime.ConversationSession
+import io.qpointz.mill.ai.test.scenario.v3.AskRunItem
 import io.qpointz.mill.ai.test.scenario.v3.ConversationRegressionRecord
 import io.qpointz.mill.ai.test.scenario.v3.ConversationRegressionWriter
 import io.qpointz.mill.ai.test.scenario.v3.PackMeta
@@ -15,10 +17,13 @@ import io.qpointz.mill.ai.test.scenario.v3.WrittenRecordPaths
 import java.time.Instant
 
 /**
- * Orchestrates a full scenario pack: scripted turns, checks, and regression record emission.
+ * Orchestrates a full scenario pack: turn execution, checks, and regression record emission.
+ *
+ * Turn execution is delegated to an injected [AgentTurnRunner] — typically [ScriptedAgentRunner]
+ * for deterministic packs or [ProvidedAgentRunner] when the caller supplies a live agent.
  */
 class ScenarioPackRunner(
-    private val agentRunner: ScriptedAgentRunner = ScriptedAgentRunner(),
+    private val turnRunner: AgentTurnRunner,
     private val checkRegistry: TurnCheckRegistry = TurnCheckRegistry.default(),
     private val recordWriter: ConversationRegressionWriter = ConversationRegressionWriter(),
 ) {
@@ -28,9 +33,22 @@ class ScenarioPackRunner(
      *
      * @param pack Loaded scenario pack.
      * @param scenarioSource Source path recorded in the regression file.
+     * @param runMetaExtras Optional metadata merged into the record (e.g. `modelName` for live ITs).
      * @return Pack result including record paths and per-turn failures.
      */
-    fun run(pack: ScenarioPack, scenarioSource: String): PackRunResult {
+    fun run(
+        pack: ScenarioPack,
+        scenarioSource: String,
+        runMetaExtras: Map<String, Any?> = emptyMap(),
+    ): PackRunResult {
+        ScenarioActivityLogger.logPackStarted(
+            packName = pack.name,
+            profileId = pack.profileId,
+            mode = pack.parameters.mode,
+            turnCount = pack.run.size,
+            source = scenarioSource,
+        )
+        val session = ConversationSession(profileId = pack.profileId)
         val started = System.currentTimeMillis()
         val turnRecords = mutableListOf<TurnRecord>()
         var checksPassed = 0
@@ -38,7 +56,7 @@ class ScenarioPackRunner(
         val failures = mutableListOf<String>()
 
         pack.run.forEachIndexed { index, item ->
-            val outcome = agentRunner.runTurn(pack, item, index)
+            val outcome = turnRunner.runTurn(pack, item, index, session)
             val verify = item.verify
             val namedResults = if (verify != null) checkRegistry.runAll(outcome, verify) else emptyList()
             namedResults.forEach { named ->
@@ -50,10 +68,7 @@ class ScenarioPackRunner(
             turnRecords += TurnRecord(
                 index = index,
                 action = "ask",
-                input = mapOf(
-                    "ask" to item.ask,
-                    "script" to item.script,
-                ),
+                input = buildTurnInput(pack.parameters.mode, item),
                 outcome = TurnOutcomeSerializer.toMap(outcome),
                 verify = verify?.let { v ->
                     VerifyRecord(
@@ -79,10 +94,11 @@ class ScenarioPackRunner(
                 profileId = pack.profileId,
                 gitCommit = resolveGitCommit(),
                 scenarioSource = scenarioSource,
+                modelName = runMetaExtras["modelName"] as? String,
             ),
             pack = PackMeta(
                 name = pack.name,
-                parameters = mapOf("mode" to pack.parameters.mode),
+                parameters = buildPackParameters(pack, runMetaExtras),
             ),
             summary = RecordSummary(
                 overall = overall,
@@ -94,8 +110,43 @@ class ScenarioPackRunner(
             turns = turnRecords,
         )
         val paths = recordWriter.write(pack, record)
+        ScenarioActivityLogger.logPackFinished(
+            packName = pack.name,
+            overall = overall,
+            durationMs = record.summary.durationMs,
+            failures = failures,
+        )
         return PackRunResult(record, paths, failures)
     }
+
+    companion object {
+        /**
+         * Runner with [ScriptedAgentRunner] for deterministic `mode: scripted` packs.
+         */
+        fun scripted(
+            checkRegistry: TurnCheckRegistry = TurnCheckRegistry.default(),
+            recordWriter: ConversationRegressionWriter = ConversationRegressionWriter(),
+        ): ScenarioPackRunner =
+            ScenarioPackRunner(ScriptedAgentRunner(), checkRegistry, recordWriter)
+    }
+
+    private fun buildTurnInput(mode: String, item: AskRunItem): Map<String, Any?> =
+        if (mode == "live") {
+            mapOf("ask" to item.ask)
+        } else {
+            mapOf("ask" to item.ask, "script" to item.script)
+        }
+
+    private fun buildPackParameters(
+        pack: ScenarioPack,
+        runMetaExtras: Map<String, Any?>,
+    ): Map<String, Any?> =
+        buildMap {
+            put("mode", pack.parameters.mode)
+            runMetaExtras.forEach { (key, value) ->
+                if (value != null) put(key, value)
+            }
+        }
 
     private fun resolveGitCommit(): String? =
         runCatching {

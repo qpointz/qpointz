@@ -1,0 +1,15 @@
+name: live-hello-smoke
+profileId: hello-world
+parameters:
+  mode: live
+run:
+  - ask: "Use say_hello to greet Bob."
+    verify:
+      pass: WARN
+      check:
+        - events:
+            containsInOrder:
+              - { type: tool.call, name: say_hello }
+              - { type: answer.completed }
+        - response:
+            assert: not-blank

@@ -36,12 +36,13 @@ class ConversationRegressionWriter(
     private fun recordToMap(record: ConversationRegressionRecord): Map<String, Any?> = mapOf(
         "schemaVersion" to record.schemaVersion,
         "recordedAt" to record.recordedAt.toString(),
-        "runMeta" to mapOf(
-            "mode" to record.runMeta.mode,
-            "profileId" to record.runMeta.profileId,
-            "gitCommit" to record.runMeta.gitCommit,
-            "scenarioSource" to record.runMeta.scenarioSource,
-        ),
+        "runMeta" to buildMap {
+            put("mode", record.runMeta.mode)
+            put("profileId", record.runMeta.profileId)
+            put("gitCommit", record.runMeta.gitCommit)
+            put("scenarioSource", record.runMeta.scenarioSource)
+            record.runMeta.modelName?.let { put("modelName", it) }
+        },
         "pack" to mapOf(
             "name" to record.pack.name,
             "parameters" to record.pack.parameters,

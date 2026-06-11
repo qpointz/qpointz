@@ -79,10 +79,47 @@ Script exhaustion (agent needs another model call but queue is empty) → test f
 | `events` | `containsInOrder` — list of `{ type, name?, protocolId? }` |
 | `artifacts` | `persistKind`, `count`, optional `shape` |
 | `sse` | `type`, `presentation`, `partType` |
-| `response` | `assert: not-blank` |
+| `response` | `assert: not-blank`, or `contains: <substring>` (case-insensitive) |
 | `transcript` | `turnCount` |
 
 Register new types via `TurnCheckRegistry.register(...)`.
+
+### 2.3 Live mode (`parameters.mode: live`)
+
+Live packs use the **same YAML loader, checks, and regression records** as scripted packs. The harness does **not** construct a live LLM agent — the test supplies one via [ProvidedAgentRunner](../../../../ai/mill-ai-test/src/main/kotlin/io/qpointz/mill/ai/test/runner/ProvidedAgentRunner.kt).
+
+| Aspect | Scripted | Live |
+|--------|----------|------|
+| Agent construction | `ScriptedAgentRunner` (per-turn script queue) | Test builds `LangChain4jAgent` + `AgentPersistenceContext`, wraps in `ProvidedAgentRunner` |
+| `ask.script` | Required | Ignored |
+| Default `verify.pass` | `ERROR` | Prefer `WARN` (soft checks) |
+| Baselines | Committed + compared | Record-only (non-deterministic) |
+| CI | Default `testIT` | Opt-in (`OPENAI_API_KEY`, `LiveScenarioPacksIT`) |
+
+**testIT entry point:** [`LiveScenarioPackTestBase`](../../../../ai/mill-ai-test/src/testIT/kotlin/io/qpointz/mill/ai/test/LiveScenarioPackTestBase.kt) — skips when `OPENAI_API_KEY` is absent (same pattern as `LangChain4jAgentHelloWorldTestIT`).
+
+```bash
+OPENAI_API_KEY=sk-... ./gradlew :ai:mill-ai-test:testIT --tests "LiveScenarioPacksIT"
+```
+
+`mode: live` in YAML is **metadata and check policy**, not a factory switch inside `ScenarioPackRunner`.
+
+### Activity logging
+
+Harness runs log turn activity under logger **`io.qpointz.mill.ai.test.scenario`**:
+
+| Level | What is logged |
+|-------|----------------|
+| INFO | Pack start/finish, user `ask`, scripted model steps, tool calls/results, plans, protocols, final answer, artefact summary |
+| DEBUG | Streaming deltas (`message.delta`, `reasoning.delta`, `thinking.delta`, `protocol.text.delta`) |
+
+Enable DEBUG for full token streams:
+
+```properties
+logging.level.io.qpointz.mill.ai.test.scenario=DEBUG
+```
+
+(testIT ships `logback-test.xml` with INFO for this logger.)
 
 ---
 

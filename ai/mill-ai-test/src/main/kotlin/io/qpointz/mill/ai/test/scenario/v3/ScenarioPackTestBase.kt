@@ -10,15 +10,28 @@ import java.util.stream.Stream
  * JUnit 5 base for YAML scenario pack integration tests.
  *
  * Subclasses declare classpath scenario resources; each pack becomes a dynamic test.
+ * Override [createPackRunner] to inject a different [io.qpointz.mill.ai.test.runner.AgentTurnRunner]
+ * (e.g. a live agent via [io.qpointz.mill.ai.test.runner.ProvidedAgentRunner] in testIT).
  */
 abstract class ScenarioPackTestBase {
-
-    private val packRunner = ScenarioPackRunner()
 
     /**
      * Classpath paths to scenario YAML files (under `src/testIT/resources` or `src/test/resources`).
      */
     protected abstract fun scenarioResources(): List<String>
+
+    /**
+     * Creates the pack runner for a loaded scenario. Default: [ScenarioPackRunner.scripted].
+     *
+     * @param pack Loaded pack (profile and mode available for agent construction).
+     */
+    protected open fun createPackRunner(pack: ScenarioPack): ScenarioPackRunner =
+        ScenarioPackRunner.scripted()
+
+    /**
+     * Optional metadata merged into the regression record (e.g. `modelName` for live runs).
+     */
+    protected open fun runMetaExtras(pack: ScenarioPack): Map<String, Any?> = emptyMap()
 
     /**
      * Creates one dynamic test per scenario resource.
@@ -28,7 +41,7 @@ abstract class ScenarioPackTestBase {
         scenarioResources().stream().map { resource ->
             DynamicTest.dynamicTest(resource) {
                 val pack = ScenarioPackLoader.fromClasspath(resource, classLoader())
-                val result = packRunner.run(pack, resource)
+                val result = createPackRunner(pack).run(pack, resource, runMetaExtras(pack))
                 assertTrue(
                     result.passed,
                     { "Scenario $resource failed: ${result.failures}" },

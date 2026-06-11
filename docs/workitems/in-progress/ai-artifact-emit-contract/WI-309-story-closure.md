@@ -15,7 +15,7 @@ This file is a **checklist for humans** at merge-ready time. Agents completing W
 
 ## Preconditions
 
-- **WI-300–308** complete and verified.
+- **WI-300–308** complete and verified (WI-310 optional — not required for closure unless user expands scope).
 - User has **explicitly requested** story closure.
 
 ## Checklist (user-triggered)

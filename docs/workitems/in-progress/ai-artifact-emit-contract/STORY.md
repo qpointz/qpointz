@@ -13,7 +13,8 @@ Implement a **YAML-driven conversation replay harness** in [`ai/mill-ai-test`](.
 1. **Harness first (WI-300–302)** — `ScenarioPack` YAML, scripted replay, extensible turn checks, **`ConversationRegressionRecord`** (full turn snapshots for regression diff).
 2. **Emit contract (WI-303–306)** — `ArtifactDescriptorRegistry`, `ArtifactEmissionCoordinator`, registry-driven router/SSE; `data-analysis` profile + shared SQL descriptor.
 3. **Acceptance (WI-307–308)** — POC scenario packs in `mill-ai-test` go green; baselines committed; supplementary service tests.
-4. **Closure checklist (WI-309)** — reference only; **user-triggered** per [`RULES.md`](../../RULES.md) — not part of agent execution order.
+4. **Live YAML packs (WI-310)** — optional live YAML via injected `ProvidedAgentRunner` (gated testIT, no baselines).
+5. **Closure checklist (WI-309)** — reference only; **user-triggered** per [`RULES.md`](../../RULES.md) — not part of agent execution order.
 
 Inspired by retired v1 integration: [`docs/design/ai/ai-v1-integration/README.md`](../../../design/ai/ai-v1-integration/README.md).
 
@@ -82,6 +83,7 @@ Normalized baselines scrub: UUIDs, `runId`, `chatId`, `turnId`, `eventId`, `arti
 - [ ] **WI-306** — Capability manifests + `data-analysis` profile (**[`WI-306-manifests-and-profiles.md`](WI-306-manifests-and-profiles.md)**)
 - [ ] **WI-307** — POC scenario packs (primary acceptance) (**[`WI-307-poc-scenario-packs.md`](WI-307-poc-scenario-packs.md)**)
 - [ ] **WI-308** — Supplementary unit/service IT (**[`WI-308-supplementary-tests.md`](WI-308-supplementary-tests.md)**)
+- [x] **WI-310** — Live YAML packs + `ProvidedAgentRunner` (**[`WI-310-live-yaml-packs.md`](WI-310-live-yaml-packs.md)**) — optional; gated testIT
 
 **Closure checklist (not in execution order — user-triggered only):**
 
@@ -93,10 +95,11 @@ Normalized baselines scrub: UUIDs, `runId`, `chatId`, `turnId`, `eventId`, `arti
 |----|-----|
 | Greenfield harness in **`ai/mill-ai-test`** | GET replay UI (`ArtifactWireMapper`) |
 | `ConversationRegressionRecord` + baselines | mill-ui condensed/expand (sql-result-view branch) |
-| Full emit registry + coordinator | Live-LLM YAML CI packs (optional later) |
+| Full emit registry + coordinator | Live YAML in default CI (WI-310 is opt-in IT only) |
+| Live YAML packs + injected agent (WI-310, gated testIT) | HTTP scenario runner (follow-up) |
 | `data-analysis` profile | Server default profile change (`hello-world` stays) |
 | POC scenario packs + shape checks | CLI `--scenario` batch mode |
-| Design: [`ai-v3-conversation-scenarios.md`](../../../design/agentic/ai-v3-conversation-scenarios.md), [`artifact-emit-contract.md`](../../../design/agentic/artifact-emit-contract.md) | HTTP scenario runner (follow-up) |
+| Design: [`ai-v3-conversation-scenarios.md`](../../../design/agentic/ai-v3-conversation-scenarios.md), [`artifact-emit-contract.md`](../../../design/agentic/artifact-emit-contract.md) | `ai:v3-integration` CI job with live matrix (follow-up) |
 
 ## Verification (story done)
 

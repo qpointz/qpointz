@@ -22,6 +22,7 @@ dependencies {
     implementation(libs.assertj.core)
     implementation(libs.bundles.jackson)
     implementation(libs.json.path)
+    implementation(libs.slf4j.api)
 }
 
 testing {
@@ -54,6 +55,13 @@ tasks.named<Test>("testIT") {
     testLogging {
         events("passed", "failed", "skipped")
         exceptionFormat = TestExceptionFormat.SHORT
+        showStandardStreams = true
+    }
+}
+
+tasks.named<Test>("test") {
+    testLogging {
+        showStandardStreams = true
     }
 }
 

@@ -119,11 +119,15 @@ class ResponseTurnCheck : TurnCheck {
 
     override fun run(outcome: TurnOutcome, spec: Any?): CheckResult {
         val body = spec.asMap()
+        body["contains"]?.toString()?.let { substring ->
+            return if (outcome.response.contains(substring, ignoreCase = true)) pass()
+            else fail("response does not contain: $substring")
+        }
         return when (body["assert"]?.toString()) {
             "not-blank" ->
                 if (outcome.response.isNotBlank()) pass()
                 else fail("response was blank")
-            else -> fail("unsupported response assert: ${body["assert"]}")
+            else -> fail("unsupported response check: $body")
         }
     }
 }

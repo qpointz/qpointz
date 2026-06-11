@@ -9,6 +9,16 @@ class TurnCheckRegistryTest {
     private val registry = TurnCheckRegistry.default()
 
     @Test
+    fun shouldPassResponseContainsCheck() {
+        val outcome = TurnOutcome(response = "Hello Bob from the tool", events = emptyList())
+        val results = registry.runAll(
+            outcome,
+            VerifySpec(check = listOf(mapOf("response" to mapOf("contains" to "bob")))),
+        )
+        assertThat(results.single().result.passed).isTrue()
+    }
+
+    @Test
     fun shouldPassEventsContainsInOrderCheck() {
         val outcome = TurnOutcome(
             response = "ok",

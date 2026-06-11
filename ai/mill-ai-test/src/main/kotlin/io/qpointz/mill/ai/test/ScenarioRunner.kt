@@ -17,7 +17,7 @@ fun interface ScenarioRunner {
     fun run(pack: ScenarioPack, scenarioSource: String): PackRunResult
 }
 
-/** Default [ScenarioRunner] delegating to [ScenarioPackRunner]. */
+/** Default [ScenarioRunner] delegating to [ScenarioPackRunner.scripted]. */
 val defaultScenarioRunner: ScenarioRunner = ScenarioRunner { pack, source ->
-    ScenarioPackRunner().run(pack, source)
+    ScenarioPackRunner.scripted().run(pack, source)
 }

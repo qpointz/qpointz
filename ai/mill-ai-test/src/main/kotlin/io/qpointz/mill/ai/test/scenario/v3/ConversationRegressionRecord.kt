@@ -28,12 +28,14 @@ data class ConversationRegressionRecord(
  * @param profileId Agent profile id.
  * @param gitCommit Optional git HEAD at record time.
  * @param scenarioSource Classpath or file path of the YAML pack.
+ * @param modelName LLM model id when `mode` is `live`; null for scripted runs.
  */
 data class RunMeta(
     val mode: String,
     val profileId: String,
     val gitCommit: String?,
     val scenarioSource: String,
+    val modelName: String? = null,
 )
 
 /**
