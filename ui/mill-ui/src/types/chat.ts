@@ -18,10 +18,28 @@ export type ChatMessageArtifact =
       facetTypeKey: string;
       metadataEntityId: string;
       payload: unknown;
+    }
+  | {
+      kind: 'schema-capture';
+      captureType: string;
+      targetEntityId: string;
+      targetEntityType?: string;
+      payload: unknown;
+    }
+  | {
+      kind: 'unknown';
+      partType: string;
+      title: string;
+      payload: unknown;
     };
 
 /** Layout routing for assistant replies (SSE + GET transcript). */
-export type AssistantReplyView = 'conversation' | 'sql-primary' | 'facet-primary';
+export type AssistantReplyView =
+  | 'conversation'
+  | 'sql-primary'
+  | 'facet-primary'
+  | 'schema-primary'
+  | 'artifact-primary';
 
 export interface Message {
   id: string;
@@ -64,7 +82,7 @@ export interface ChatState {
 export interface CreateChatParams {
   /**
    * Optional agent profile locked for the chat lifecycle (sent as `profileId` on POST create).
-   * When omitted together with UI/env defaults, the server uses configured `defaultProfile`.
+   * When omitted, the UI resolves `data-analysis` (or `VITE_MILL_AI_PROFILE` / session picker when set).
    */
   profileId?: string;
   /** Context type for inline chat sessions (omit for general chat) */

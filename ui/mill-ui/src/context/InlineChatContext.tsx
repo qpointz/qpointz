@@ -21,7 +21,7 @@ import { useFeatureFlags } from '../features/FeatureFlagContext';
 /**
  * Inline chats share `chatService` with General Chat. Contextual `createChat` forwards the same
  * `profileId` resolution as the main app (`resolveGeneralChatAgentProfileId()` — session picker,
- * then `VITE_MILL_AI_PROFILE`, then omit for server default) so inline threads stay aligned with
+ * then `VITE_MILL_AI_PROFILE`, then `data-analysis`) so inline threads stay aligned with
  * General Chat agent defaults when the picker flag is enabled (WI-230).
  *
  * Structured chat artefacts (SQL / facet cards) are implemented for **General Chat** only

@@ -1,9 +1,12 @@
 /**
  * Shared agent profile preference for chat create calls (general + inline).
  *
- * Order: explicit `selectedId` (UI) → sessionStorage last-used → `VITE_MILL_AI_PROFILE` → omit (server default).
+ * Order: explicit `selectedId` (UI) → sessionStorage last-used → `VITE_MILL_AI_PROFILE` → {@link DEFAULT_GENERAL_CHAT_AGENT_PROFILE_ID}.
  */
 export const GENERAL_CHAT_AGENT_PROFILE_SS_KEY = 'mill-ui-general-chat-agent-profile-id';
+
+/** Default agent profile for new chats when nothing else is configured. */
+export const DEFAULT_GENERAL_CHAT_AGENT_PROFILE_ID = 'data-analysis';
 
 /** Read the last profile id chosen in General Chat (session-scoped). */
 export function readStoredGeneralChatProfileId(): string | null {
@@ -37,7 +40,7 @@ function envProfileFallback(): string | undefined {
  *
  * @param options.selectedId profile chosen in General Chat UI (if any)
  */
-export function resolveGeneralChatAgentProfileId(options?: { selectedId?: string | null }): string | undefined {
+export function resolveGeneralChatAgentProfileId(options?: { selectedId?: string | null }): string {
   const fromPicker = options?.selectedId?.trim();
   if (fromPicker) {
     return fromPicker;
@@ -46,5 +49,5 @@ export function resolveGeneralChatAgentProfileId(options?: { selectedId?: string
   if (fromSession) {
     return fromSession;
   }
-  return envProfileFallback();
+  return envProfileFallback() ?? DEFAULT_GENERAL_CHAT_AGENT_PROFILE_ID;
 }

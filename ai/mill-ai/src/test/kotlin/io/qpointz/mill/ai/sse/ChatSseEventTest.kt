@@ -206,6 +206,22 @@ class AgentEventToSseMapperTest {
     }
 
     @Test
+    fun shouldMapSchemaCaptureProtocolFinal_usingArtifactKindWhenWirePartTypeMissing() {
+        val events = mapper.map(
+            AgentEvent.ProtocolFinal(
+                protocolId = "schema-authoring.capture",
+                payload = mapOf(
+                    "captureType" to "description",
+                    "targetEntityId" to "retail.orders",
+                ),
+            ),
+        )
+        assertEquals(2, events.size)
+        val part = events[1] as ChatSseEvent.ItemPartUpdated
+        assertEquals("schema-capture", part.partType)
+    }
+
+    @Test
     fun shouldIgnoreUnmappedEvents() {
         assertEquals(emptyList<ChatSseEvent>(), mapper.map(AgentEvent.RunStarted("profile-a")))
         assertEquals(emptyList<ChatSseEvent>(), mapper.map(AgentEvent.ToolCall("tool", emptyMap(), 0)))

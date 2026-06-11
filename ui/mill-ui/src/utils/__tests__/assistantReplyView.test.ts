@@ -25,10 +25,42 @@ describe('assistantReplyView', () => {
     ).toBe('facet-primary');
   });
 
+  it('should derive schema-primary from schema-capture artifact', () => {
+    expect(
+      deriveAssistantReplyView([
+        {
+          kind: 'schema-capture',
+          captureType: 'description',
+          targetEntityId: 'retail.orders',
+          payload: {},
+        },
+      ]),
+    ).toBe('schema-primary');
+  });
+
+  it('should derive artifact-primary from unknown artifact', () => {
+    expect(
+      deriveAssistantReplyView([
+        {
+          kind: 'unknown',
+          partType: 'custom',
+          title: 'custom',
+          payload: { x: 1 },
+        },
+      ]),
+    ).toBe('artifact-primary');
+  });
+
   it('should use completion hint when no artifacts', () => {
     expect(
       deriveAssistantReplyView(undefined, { presentation: 'structured', partType: 'sql' }),
     ).toBe('sql-primary');
+    expect(
+      deriveAssistantReplyView(undefined, { presentation: 'structured', partType: 'schema-capture' }),
+    ).toBe('schema-primary');
+    expect(
+      deriveAssistantReplyView(undefined, { presentation: 'structured', partType: 'custom' }),
+    ).toBe('artifact-primary');
   });
 
   it('should parse wire transcript values', () => {

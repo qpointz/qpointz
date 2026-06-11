@@ -7,6 +7,7 @@ import type {
   ChatSummary,
   CreateChatParams,
 } from '../types/chat';
+import { resolveGeneralChatAgentProfileId } from '../features/chatPreferences';
 import { isV1MainConversationTextPart } from '../types/chatTransport';
 import { sleep, streamResponse } from '../utils/streamUtils';
 
@@ -246,13 +247,8 @@ const generalChatList: ChatSummary[] = [];
 /** Full wire rows for mocks that back `getChatDetail` / PATCH / DELETE parity. */
 const mockWireById = new Map<string, ChatResponseWire>();
 
-function envProfileFallback(): string | undefined {
-  const raw = import.meta.env.VITE_MILL_AI_PROFILE;
-  return typeof raw === 'string' && raw.trim() !== '' ? raw.trim() : undefined;
-}
-
 function resolveProfileForMockCreate(params?: CreateChatParams): string {
-  return params?.profileId ?? envProfileFallback() ?? 'mock-default-profile';
+  return params?.profileId ?? resolveGeneralChatAgentProfileId();
 }
 
 function pickRandom(pool: string[]): string {
@@ -313,10 +309,8 @@ function buildMockWire(chatId: string, params: CreateChatParams | undefined, cha
 
 function buildCreateBody(params?: CreateChatParams): Record<string, unknown> | undefined {
   const body: Record<string, unknown> = {};
-  const profile = params?.profileId ?? envProfileFallback();
-  if (profile) {
-    body.profileId = profile;
-  }
+  const profile = params?.profileId ?? resolveGeneralChatAgentProfileId();
+  body.profileId = profile;
   if (params?.contextType) {
     body.contextType = params.contextType;
   }
@@ -587,6 +581,10 @@ const mockChatService: ChatService = {
   async listAgentProfiles() {
     await sleep(20);
     return [
+      {
+        id: 'data-analysis',
+        capabilityIds: ['sql.query'],
+      },
       {
         id: 'hello-world',
         capabilityIds: ['conversation.general'],

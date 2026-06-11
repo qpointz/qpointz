@@ -31,6 +31,54 @@ describe('parseChatStructuredPart', () => {
     });
   });
 
+  it('should parse schema-capture structured part', () => {
+    const a = parseChatStructuredPart({
+      presentation: 'structured',
+      partType: 'schema-capture',
+      content: JSON.stringify({
+        captureType: 'description',
+        targetEntityId: 'retail.orders',
+        targetEntityType: 'TABLE',
+        serializedPayload: { summary: 'Orders table' },
+      }),
+    });
+    expect(a).toEqual({
+      kind: 'schema-capture',
+      captureType: 'description',
+      targetEntityId: 'retail.orders',
+      targetEntityType: 'TABLE',
+      payload: { summary: 'Orders table' },
+    });
+  });
+
+  it('should infer schema-capture from payload shape', () => {
+    const a = parseChatStructuredPart({
+      presentation: 'structured',
+      partType: 'text',
+      content: JSON.stringify({
+        captureType: 'relation',
+        targetEntityId: 'retail.orders',
+        serializedPayload: { sourceTableId: 'retail.orders' },
+      }),
+    });
+    expect(a?.kind).toBe('schema-capture');
+  });
+
+  it('should fallback to unknown artifact for unrecognized structured partType', () => {
+    const payload = { artifactType: 'custom-thing', value: 42 };
+    const a = parseChatStructuredPart({
+      presentation: 'structured',
+      partType: 'custom-thing',
+      content: JSON.stringify(payload),
+    });
+    expect(a).toEqual({
+      kind: 'unknown',
+      partType: 'custom-thing',
+      title: 'custom-thing',
+      payload,
+    });
+  });
+
   it('should return null for conversation text part shape', () => {
     expect(
       parseChatStructuredPart({

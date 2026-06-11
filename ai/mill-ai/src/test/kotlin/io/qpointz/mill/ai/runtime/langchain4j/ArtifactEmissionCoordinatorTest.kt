@@ -86,4 +86,29 @@ class ArtifactEmissionCoordinatorTest {
         assertFalse(emitted)
         assertTrue(events.filterIsInstance<AgentEvent.ProtocolFinal>().isEmpty())
     }
+
+    @Test
+    fun shouldNotEmitGeneratedSql_whenValidationPassedButSqlMissing() {
+        val events = mutableListOf<AgentEvent>()
+        val emitted = coordinator.emitOnToolSuccess(
+            executedTools = listOf(
+                ArtifactEmissionCoordinator.ExecutedTool(
+                    name = "validate_sql",
+                    result = mapOf(
+                        "artifactType" to "sql-validation",
+                        "passed" to true,
+                        "attempt" to 1,
+                    ),
+                ),
+            ),
+            runState = RunState(
+                profile = AgentProfile(id = "test", capabilityIds = emptySet()),
+                context = AgentContext(contextType = "general"),
+                conversationId = "conv-1",
+            ),
+            listener = events::add,
+        )
+        assertFalse(emitted)
+        assertTrue(events.filterIsInstance<AgentEvent.ProtocolFinal>().isEmpty())
+    }
 }

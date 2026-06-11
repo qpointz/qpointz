@@ -52,7 +52,12 @@ class ArtifactEmissionCoordinator(
                 require(descriptor.emissionStrategy == EmissionStrategy.ON_TOOL_SUCCESS) {
                     "descriptor ${descriptor.id} is not OnToolSuccess"
                 }
-                listener(constructProtocolFinal(descriptor, executed.result, runState.context))
+                val final = constructProtocolFinal(descriptor, executed.result, runState.context)
+                if (descriptor.artifactKind == "generated-sql") {
+                    val sql = (final.payload as? Map<*, *>)?.get("sql")?.toString().orEmpty()
+                    if (sql.isBlank()) return@forEach
+                }
+                listener(final)
                 emitted = true
             }
         }

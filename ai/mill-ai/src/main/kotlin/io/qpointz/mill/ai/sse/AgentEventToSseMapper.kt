@@ -75,7 +75,7 @@ class AgentEventToSseMapper(
 
     private fun mapProtocolFinal(event: AgentEvent.ProtocolFinal): List<ChatSseEvent> {
         val descriptor = artifactRegistry.descriptorForProtocol(event.protocolId) ?: return emptyList()
-        val wirePartType = descriptor.wirePartType ?: return emptyList()
+        val wirePartType = descriptor.wirePartType ?: descriptor.artifactKind
         val presentation = descriptor.presentation ?: "structured"
         val json = when (val payload = event.payload) {
             null -> "{}"

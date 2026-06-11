@@ -165,6 +165,30 @@ describe('realChatService (fetch-mocked)', () => {
     expect(init.body).toBe(JSON.stringify({ profileId: 'hello-world' }));
   });
 
+  it('should POST createChat with data-analysis when profileId omitted', async () => {
+    const created = {
+      chatId: 'c-test',
+      userId: 'u1',
+      profileId: 'data-analysis',
+      chatName: 'N',
+      chatType: 'general',
+      isFavorite: false,
+      contextType: null,
+      contextId: null,
+      contextLabel: null,
+      contextEntityType: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const fetchSpy = vi.fn().mockResolvedValue(new Response(JSON.stringify(created), { status: 200 }));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    await realChatService.createChat();
+
+    const init = fetchSpy.mock.calls[0]![1] as RequestInit;
+    expect(init.body).toBe(JSON.stringify({ profileId: 'data-analysis' }));
+  });
+
   it('should parse SSE diagnostics, text deltas, and completed without new type strings', async () => {
     const streamBody =
       sseDataLine({ type: 'item.diagnostic', code: 'agent.thinking', message: 'Working…' }) +

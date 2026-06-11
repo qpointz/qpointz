@@ -91,11 +91,13 @@ object SqlQueryToolHandlers {
         attempt: Int,
     ): SqlValidationArtifact {
         val result = validator.validate(sql)
+        val normalizedSql = result.normalizedSql?.takeIf { it.isNotBlank() }
+            ?: sql.trim().takeIf { result.passed && it.isNotBlank() }
         return SqlValidationArtifact(
             passed = result.passed,
             attempt = attempt,
             message = result.message,
-            normalizedSql = result.normalizedSql,
+            normalizedSql = normalizedSql,
         )
     }
 

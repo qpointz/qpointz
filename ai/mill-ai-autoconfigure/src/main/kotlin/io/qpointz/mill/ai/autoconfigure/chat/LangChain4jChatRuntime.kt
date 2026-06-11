@@ -159,7 +159,7 @@ class LangChain4jChatRuntime(
      */
     private fun protocolFinalToStructured(event: AgentEvent.ProtocolFinal): ChatRuntimeEvent.StructuredPart? {
         val descriptor = artifactDescriptorRegistry.descriptorForProtocol(event.protocolId) ?: return null
-        val wirePartType = descriptor.wirePartType ?: return null
+        val wirePartType = descriptor.wirePartType ?: descriptor.artifactKind
         val presentation = descriptor.presentation ?: STRUCTURED_PRESENTATION
         val json = payloadToJsonString(event.payload)
         return ChatRuntimeEvent.StructuredPart(

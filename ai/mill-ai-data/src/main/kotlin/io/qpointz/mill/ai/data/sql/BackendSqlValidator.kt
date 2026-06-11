@@ -21,8 +21,9 @@ class BackendSqlValidator(
         // Backend-owned parse: success means a plan was built; failure carries the parser/planner message.
         val parseResult = sqlProvider.parseSql(sql)
         return SqlValidationOutcome(
-            parseResult.isSuccess,
+            passed = parseResult.isSuccess,
             message = if (parseResult.isSuccess) null else parseResult.message,
+            normalizedSql = if (parseResult.isSuccess) sql.trim().takeIf { it.isNotEmpty() } else null,
         )
     }
 }

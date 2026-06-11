@@ -25,4 +25,14 @@ class SqlValidatorTest {
         val vr = SqlQueryToolHandlers.ValidationResult(true, null, "SELECT 1")
         assertEquals("SELECT 1", vr.toSqlValidationOutcome().normalizedSql)
     }
+
+    @Test
+    fun shouldUseInputSql_whenValidatorPassesWithoutNormalizedSql() {
+        val validator = SqlQueryToolHandlers.SqlValidationService {
+            SqlQueryToolHandlers.ValidationResult(passed = true, message = null, normalizedSql = null)
+        }
+        val artifact = SqlQueryToolHandlers.validateSql(validator, "  SELECT month FROM sales  ", 1)
+        assertTrue(artifact.passed)
+        assertEquals("SELECT month FROM sales", artifact.normalizedSql)
+    }
 }

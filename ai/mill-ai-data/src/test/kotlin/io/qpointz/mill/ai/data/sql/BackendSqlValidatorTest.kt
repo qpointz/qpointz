@@ -14,7 +14,9 @@ class BackendSqlValidatorTest {
         val sqlProvider = mock<SqlProvider>()
         whenever(sqlProvider.parseSql(any())).thenReturn(SqlProvider.PlanParseResult.success(null))
         val v = BackendSqlValidator(sqlProvider)
-        assertThat(v.validate("SELECT 1").passed).isTrue()
+        val outcome = v.validate("SELECT 1")
+        assertThat(outcome.passed).isTrue()
+        assertThat(outcome.normalizedSql).isEqualTo("SELECT 1")
     }
 
     @Test

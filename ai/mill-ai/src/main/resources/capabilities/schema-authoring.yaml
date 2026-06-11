@@ -286,6 +286,7 @@ artifacts:
     artifactKind: schema-capture
     persistKind: schema.authoring.capture
     pointerKeys: [last-schema-capture]
+    wirePartType: schema-capture
     presentation: structured
     protocolMode: STRUCTURED_FINAL
     sourceEvent: protocol.final

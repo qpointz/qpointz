@@ -14,6 +14,7 @@ import { chatService } from '../services/api';
 import { isRestChatBackendActive } from '../services/chatService';
 import { useFeatureFlags } from '../features/FeatureFlagContext';
 import {
+  DEFAULT_GENERAL_CHAT_AGENT_PROFILE_ID,
   readStoredGeneralChatProfileId,
   resolveGeneralChatAgentProfileId,
   writeStoredGeneralChatProfileId,
@@ -362,7 +363,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [agentProfiles, setAgentProfiles] = useState<AgentProfileResponseWire[]>([]);
   const [agentProfilesLoading, setAgentProfilesLoading] = useState(false);
   const [selectedAgentProfileId, setSelectedAgentProfileIdState] = useState<string | null>(() =>
-    readStoredGeneralChatProfileId(),
+    readStoredGeneralChatProfileId() ?? DEFAULT_GENERAL_CHAT_AGENT_PROFILE_ID,
   );
 
   const setSelectedAgentProfileId = useCallback((id: string | null) => {
