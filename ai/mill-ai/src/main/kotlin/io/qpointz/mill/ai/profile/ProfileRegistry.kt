@@ -56,6 +56,7 @@ object DefaultProfileRegistry : ProfileRegistry {
 
     private val profiles = listOf(
         HelloWorldAgentProfile.profile,
+        DataAnalysisAgentProfile.profile,
         SchemaExplorationAgentProfile.profile,
         SchemaAuthoringAgentProfile.profile,
     ).associateBy { it.id }

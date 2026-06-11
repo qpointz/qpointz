@@ -1,6 +1,6 @@
 # WI-304 — ArtifactEmissionCoordinator
 
-Status: `planned`  
+Status: `done`  
 Type: `✨ feature` / `🐛 fix`  
 Area: `ai`  
 Story: [`STORY.md`](STORY.md)

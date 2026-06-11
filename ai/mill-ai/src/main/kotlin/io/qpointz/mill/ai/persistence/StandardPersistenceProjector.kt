@@ -86,7 +86,9 @@ class StandardPersistenceProjector(
     private fun persistArtifact(event: RoutedAgentEvent) {
         val conversationId = event.conversationId ?: return
         val artifactId = UUID.randomUUID().toString()
-        val kind = event.content["protocolId"] as? String ?: event.kind
+        val kind = event.content["persistKind"] as? String
+            ?: event.content["protocolId"] as? String
+            ?: event.kind
         val artifact = ArtifactRecord(
             artifactId = artifactId,
             conversationId = conversationId,

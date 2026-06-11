@@ -1,9 +1,12 @@
 package io.qpointz.mill.ai.test.scenario.v3
 
 import io.qpointz.mill.ai.test.runner.ScenarioPackRunner
+import io.qpointz.mill.ai.test.scenario.v3.ConversationRegressionComparator
+import io.qpointz.mill.ai.test.scenario.v3.ScenarioPackLoader
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.Assertions.assertTrue
+import java.nio.file.Files
 import java.util.stream.Stream
 
 /**
@@ -34,6 +37,12 @@ abstract class ScenarioPackTestBase {
     protected open fun runMetaExtras(pack: ScenarioPack): Map<String, Any?> = emptyMap()
 
     /**
+     * Optional committed baseline classpath path for regression diff (`scenarios/baselines/...`).
+     * Return null to skip baseline comparison.
+     */
+    protected open fun baselineResourceFor(pack: ScenarioPack): String? = null
+
+    /**
      * Creates one dynamic test per scenario resource.
      */
     @TestFactory
@@ -46,6 +55,14 @@ abstract class ScenarioPackTestBase {
                     result.passed,
                     { "Scenario $resource failed: ${result.failures}" },
                 )
+                baselineResourceFor(pack)?.let { baselineResource ->
+                    val baselinePath = BaselineResourcePaths.resolve(baselineResource, classLoader())
+                    val normalizedJson = Files.readString(result.paths.normalized)
+                    ConversationRegressionComparator().updateOrAssert(
+                        normalizedJson,
+                        baselinePath,
+                    )
+                }
             }
         }
 

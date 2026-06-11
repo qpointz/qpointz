@@ -177,6 +177,35 @@ class AgentEventToSseMapperTest {
     }
 
     @Test
+    fun shouldMapProtocolFinal_toStructuredItemPartUpdated() {
+        val events = mapper.map(
+            AgentEvent.ProtocolFinal(
+                protocolId = "sql-query.generated-sql",
+                payload = mapOf("artifactType" to "generated-sql", "sql" to "SELECT 1"),
+            ),
+        )
+        assertEquals(2, events.size)
+        assertInstanceOf(ChatSseEvent.ItemCreated::class.java, events[0])
+        val part = events[1] as ChatSseEvent.ItemPartUpdated
+        assertEquals("structured", part.presentation)
+        assertEquals("sql", part.partType)
+        assertEquals("replace", part.mode)
+    }
+
+    @Test
+    fun shouldRepeatStructuredPresentation_onAnswerCompletedAfterProtocolFinal() {
+        mapper.map(
+            AgentEvent.ProtocolFinal(
+                protocolId = "sql-query.generated-sql",
+                payload = mapOf("sql" to "SELECT 1"),
+            ),
+        )
+        val completed = mapper.map(AgentEvent.AnswerCompleted("")).filterIsInstance<ChatSseEvent.ItemCompleted>().single()
+        assertEquals("structured", completed.presentation)
+        assertEquals("sql", completed.partType)
+    }
+
+    @Test
     fun shouldIgnoreUnmappedEvents() {
         assertEquals(emptyList<ChatSseEvent>(), mapper.map(AgentEvent.RunStarted("profile-a")))
         assertEquals(emptyList<ChatSseEvent>(), mapper.map(AgentEvent.ToolCall("tool", emptyMap(), 0)))

@@ -1,6 +1,6 @@
 # WI-303 — ArtifactDescriptorRegistry
 
-Status: `planned`  
+Status: `done`  
 Type: `✨ feature`  
 Area: `ai`  
 Story: [`STORY.md`](STORY.md)

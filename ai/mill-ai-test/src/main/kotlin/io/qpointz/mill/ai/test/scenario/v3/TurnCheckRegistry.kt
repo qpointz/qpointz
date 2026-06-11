@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.test.scenario.v3
 
+import io.qpointz.mill.ai.test.scenario.v3.checks.ArtifactsShapeTurnCheck
 import io.qpointz.mill.ai.test.scenario.v3.checks.ArtifactsTurnCheck
 import io.qpointz.mill.ai.test.scenario.v3.checks.EventsTurnCheck
 import io.qpointz.mill.ai.test.scenario.v3.checks.ResponseTurnCheck
@@ -57,6 +58,7 @@ class TurnCheckRegistry(
         private fun defaultChecks(): Map<String, TurnCheck> = listOf(
             EventsTurnCheck(),
             ArtifactsTurnCheck(),
+            ArtifactsShapeTurnCheck(),
             SseTurnCheck(),
             ResponseTurnCheck(),
             TranscriptTurnCheck(),

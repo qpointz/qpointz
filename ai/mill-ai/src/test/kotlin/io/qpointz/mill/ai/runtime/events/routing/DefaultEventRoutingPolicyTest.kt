@@ -71,24 +71,4 @@ class DefaultEventRoutingPolicyTest {
             assertNotNull(policy.ruleFor(type), "missing rule for $type")
         }
     }
-
-    @Test
-    fun `shouldRefineStructuredFinalPointers by protocol id`() {
-        val base = policy.ruleFor("protocol.final")!!
-        assertTrue(base.artifactPointerKeys.isEmpty())
-        assertEquals(
-            setOf("last-schema-capture"),
-            io.qpointz.mill.ai.runtime.events.DefaultAgentEventRouter.refineStructuredFinalPointers(
-                AgentEvent.ProtocolFinal("schema-authoring.capture", mapOf("x" to 1)),
-                base,
-            ).artifactPointerKeys,
-        )
-        assertEquals(
-            setOf("last-metadata-facet-proposal"),
-            io.qpointz.mill.ai.runtime.events.DefaultAgentEventRouter.refineStructuredFinalPointers(
-                AgentEvent.ProtocolFinal("metadata.faceting.capture", mapOf("x" to 1)),
-                base,
-            ).artifactPointerKeys,
-        )
-    }
 }

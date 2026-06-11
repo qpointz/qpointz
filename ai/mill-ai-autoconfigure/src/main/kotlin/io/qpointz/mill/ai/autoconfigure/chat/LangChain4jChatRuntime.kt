@@ -12,9 +12,10 @@ import io.qpointz.mill.ai.persistence.ArtifactStore
 import io.qpointz.mill.ai.persistence.ChatMetadata
 import io.qpointz.mill.ai.persistence.ConversationStore
 import io.qpointz.mill.ai.persistence.RunEventStore
+import io.qpointz.mill.ai.core.artifact.ArtifactDescriptorRegistry
 import io.qpointz.mill.ai.dependencies.CapabilityDependencyAssembler
-import io.qpointz.mill.ai.profile.ProfileRegistry
 import io.qpointz.mill.ai.profile.rehydrate
+import io.qpointz.mill.ai.profile.ProfileRegistry
 import io.qpointz.mill.ai.runtime.AgentContext
 import io.qpointz.mill.ai.runtime.ConversationSession
 import io.qpointz.mill.ai.runtime.events.AgentEvent
@@ -49,6 +50,7 @@ class LangChain4jChatRuntime(
     private val conversationStore: ConversationStore,
     private val artifactStore: ArtifactStore,
     private val activeArtifactPointerStore: ActiveArtifactPointerStore,
+    private val artifactDescriptorRegistry: ArtifactDescriptorRegistry = ArtifactDescriptorRegistry.loadDefault(),
 ) : AiV3ChatRuntime {
 
     private val protocolJsonMapper: JsonMapper = JsonMapper.builder().build()
@@ -74,6 +76,7 @@ class LangChain4jChatRuntime(
                     chatMemoryStore = chatMemoryStore,
                     memoryStrategy = memoryStrategy,
                     persistenceContext = persistenceContext,
+                    artifactDescriptorRegistry = artifactDescriptorRegistry,
                 )
                 val session = ConversationSession(
                     conversationId = metadata.chatId,
@@ -155,22 +158,16 @@ class LangChain4jChatRuntime(
      * Other protocol ids stay on the persistence/router path only.
      */
     private fun protocolFinalToStructured(event: AgentEvent.ProtocolFinal): ChatRuntimeEvent.StructuredPart? {
+        val descriptor = artifactDescriptorRegistry.descriptorForProtocol(event.protocolId) ?: return null
+        val wirePartType = descriptor.wirePartType ?: return null
+        val presentation = descriptor.presentation ?: STRUCTURED_PRESENTATION
         val json = payloadToJsonString(event.payload)
-        return when (event.protocolId) {
-            SQL_GENERATED_PROTOCOL -> ChatRuntimeEvent.StructuredPart(
-                presentation = STRUCTURED_PRESENTATION,
-                partType = PART_TYPE_SQL,
-                mode = "replace",
-                content = json,
-            )
-            METADATA_FACET_CAPTURE_PROTOCOL -> ChatRuntimeEvent.StructuredPart(
-                presentation = STRUCTURED_PRESENTATION,
-                partType = PART_TYPE_FACET_PROPOSAL,
-                mode = "replace",
-                content = json,
-            )
-            else -> null
-        }
+        return ChatRuntimeEvent.StructuredPart(
+            presentation = presentation,
+            partType = wirePartType,
+            mode = "replace",
+            content = json,
+        )
     }
 
     private fun payloadToJsonString(payload: Any?): String = when (payload) {
@@ -180,10 +177,6 @@ class LangChain4jChatRuntime(
     }
 
     private companion object {
-        const val SQL_GENERATED_PROTOCOL = "sql-query.generated-sql"
-        const val METADATA_FACET_CAPTURE_PROTOCOL = "metadata.faceting.capture"
         const val STRUCTURED_PRESENTATION = "structured"
-        const val PART_TYPE_SQL = "sql"
-        const val PART_TYPE_FACET_PROPOSAL = "facet-proposal"
     }
 }

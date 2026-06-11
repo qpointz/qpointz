@@ -1,6 +1,9 @@
 package io.qpointz.mill.ai.sse
 
+import io.qpointz.mill.ai.core.artifact.ArtifactDescriptorRegistry
 import io.qpointz.mill.ai.runtime.events.AgentEvent
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.kotlinModule
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
@@ -13,14 +16,23 @@ import java.util.concurrent.atomic.AtomicInteger
  * Mapping rules (V1 text path):
  * - First [AgentEvent.MessageDelta] in a turn → emit [ChatSseEvent.ItemCreated] then [ChatSseEvent.ItemPartUpdated]
  * - Subsequent [AgentEvent.MessageDelta] → emit [ChatSseEvent.ItemPartUpdated]
+ * - [AgentEvent.ProtocolFinal] with a registry [wirePartType][io.qpointz.mill.ai.core.artifact.ArtifactDescriptor.wirePartType]
+ *   → emit structured [ChatSseEvent.ItemPartUpdated]
  * - [AgentEvent.AnswerCompleted] → emit [ChatSseEvent.ItemCompleted]; reset for next item
  * - All other [AgentEvent] subtypes → ignored at this layer (runtime-internal)
  */
-class AgentEventToSseMapper(private val chatId: String) {
+class AgentEventToSseMapper(
+    private val chatId: String,
+    private val artifactRegistry: ArtifactDescriptorRegistry = ArtifactDescriptorRegistry.loadDefault(),
+    private val jsonMapper: JsonMapper = JsonMapper.builder().addModule(kotlinModule()).build(),
+) {
 
     private val sequence = AtomicInteger(0)
     private var itemId: String = UUID.randomUUID().toString()
     private var itemStarted = false
+    private var hadTextDeltas = false
+    private var structuredCompletionPresentation: String? = null
+    private var structuredCompletionPartType: String? = null
 
     fun map(event: AgentEvent): List<ChatSseEvent> = when (event) {
         is AgentEvent.MessageDelta -> {
@@ -29,27 +41,61 @@ class AgentEventToSseMapper(private val chatId: String) {
                 itemStarted = true
                 result += itemCreated()
             }
+            hadTextDeltas = true
             result += itemPartUpdated(event.text)
             result
         }
 
+        is AgentEvent.ProtocolFinal -> mapProtocolFinal(event)
+
         is AgentEvent.AnswerCompleted -> {
             val result = mutableListOf<ChatSseEvent>()
-            val hadDeltas = itemStarted
             if (!itemStarted) {
                 itemStarted = true
                 result += itemCreated()
             }
-            // Pass full content only when no deltas were emitted (non-streaming consumers).
-            // Streaming consumers accumulated deltas and must ignore content to avoid double-render.
-            result += itemCompleted(if (hadDeltas) null else event.text)
-            // Reset for next item in the same turn (e.g. multi-step agents)
+            result += itemCompleted(
+                content = when {
+                    hadTextDeltas -> null
+                    else -> event.text.takeIf { it.isNotEmpty() }
+                },
+                presentation = structuredCompletionPresentation ?: "conversation",
+                partType = structuredCompletionPartType ?: "text",
+            )
             itemId = UUID.randomUUID().toString()
             itemStarted = false
+            hadTextDeltas = false
+            structuredCompletionPresentation = null
+            structuredCompletionPartType = null
             result
         }
 
         else -> emptyList()
+    }
+
+    private fun mapProtocolFinal(event: AgentEvent.ProtocolFinal): List<ChatSseEvent> {
+        val descriptor = artifactRegistry.descriptorForProtocol(event.protocolId) ?: return emptyList()
+        val wirePartType = descriptor.wirePartType ?: return emptyList()
+        val presentation = descriptor.presentation ?: "structured"
+        val json = when (val payload = event.payload) {
+            null -> "{}"
+            is String -> payload
+            else -> jsonMapper.writeValueAsString(payload)
+        }
+        val result = mutableListOf<ChatSseEvent>()
+        if (!itemStarted) {
+            itemStarted = true
+            result += itemCreated()
+        }
+        structuredCompletionPresentation = presentation
+        structuredCompletionPartType = wirePartType
+        result += itemPartUpdated(
+            content = json,
+            presentation = presentation,
+            partType = wirePartType,
+            mode = "replace",
+        )
+        return result
     }
 
     fun fail(code: String, reason: String): ChatSseEvent.ItemFailed = ChatSseEvent.ItemFailed(
@@ -70,21 +116,35 @@ class AgentEventToSseMapper(private val chatId: String) {
         timestamp = Instant.now(),
     )
 
-    private fun itemPartUpdated(content: String) = ChatSseEvent.ItemPartUpdated(
+    private fun itemPartUpdated(
+        content: String,
+        presentation: String = "conversation",
+        partType: String = "text",
+        mode: String = "append",
+    ) = ChatSseEvent.ItemPartUpdated(
         eventId = UUID.randomUUID().toString(),
         chatId = chatId,
         itemId = itemId,
         sequence = sequence.getAndIncrement(),
         timestamp = Instant.now(),
+        presentation = presentation,
+        partType = partType,
+        mode = mode,
         content = content,
     )
 
-    private fun itemCompleted(content: String?) = ChatSseEvent.ItemCompleted(
+    private fun itemCompleted(
+        content: String?,
+        presentation: String = "conversation",
+        partType: String = "text",
+    ) = ChatSseEvent.ItemCompleted(
         eventId = UUID.randomUUID().toString(),
         chatId = chatId,
         itemId = itemId,
         sequence = sequence.getAndIncrement(),
         timestamp = Instant.now(),
+        presentation = presentation,
+        partType = partType,
         content = content,
     )
 }

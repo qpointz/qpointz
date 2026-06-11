@@ -1,0 +1,36 @@
+name: schema-authoring-facet-emit
+profileId: schema-authoring
+parameters:
+  mode: scripted
+run:
+  - ask: "Tag the customers entity as VIP"
+    script:
+      - toolCalls:
+          - name: propose_facet_assignment
+            args:
+              facetTypeKey: descriptive
+              metadataEntityId: sales.customers
+              payload:
+                summary: "VIP customer segment"
+              rationale: "User requested VIP tag"
+      - answer: '{"captureType":"facet_assignment","facetTypeKey":"descriptive","metadataEntityId":"sales.customers","serializedPayload":{"summary":"VIP customer segment"},"validationWarnings":[]}'
+    verify:
+      pass: ERROR
+      check:
+        - events:
+            containsInOrder:
+              - { type: tool.call, name: propose_facet_assignment }
+              - { type: tool.result, name: propose_facet_assignment }
+              - { type: protocol.final, protocolId: metadata.faceting.capture }
+              - { type: answer.completed }
+        - artifacts:
+            - persistKind: metadata.faceting.capture
+              count: 1
+        - artifacts.shape:
+            persistKind: metadata.faceting.capture
+            match:
+              payload.facetTypeKey: descriptive
+        - sse:
+            - type: item.part.updated
+              presentation: structured
+              partType: facet-proposal

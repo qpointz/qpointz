@@ -77,12 +77,12 @@ Normalized baselines scrub: UUIDs, `runId`, `chatId`, `turnId`, `eventId`, `arti
 - [x] **WI-300** — Design docs + story scaffolding (**[`WI-300-conversation-scenario-design.md`](WI-300-conversation-scenario-design.md)**)
 - [x] **WI-301** — `ScenarioPack` loader, checks, regression record (**[`WI-301-scenario-pack-core.md`](WI-301-scenario-pack-core.md)**)
 - [x] **WI-302** — `ScriptedAgentRunner` + harness smoke ITs (**[`WI-302-scripted-agent-runner.md`](WI-302-scripted-agent-runner.md)**)
-- [ ] **WI-303** — `ArtifactDescriptorRegistry` (**[`WI-303-artifact-descriptor-registry.md`](WI-303-artifact-descriptor-registry.md)**)
-- [ ] **WI-304** — `ArtifactEmissionCoordinator` (**[`WI-304-artifact-emission-coordinator.md`](WI-304-artifact-emission-coordinator.md)**)
-- [ ] **WI-305** — Registry-driven router + SSE bridge (**[`WI-305-router-sse-bridge.md`](WI-305-router-sse-bridge.md)**)
-- [ ] **WI-306** — Capability manifests + `data-analysis` profile (**[`WI-306-manifests-and-profiles.md`](WI-306-manifests-and-profiles.md)**)
-- [ ] **WI-307** — POC scenario packs (primary acceptance) (**[`WI-307-poc-scenario-packs.md`](WI-307-poc-scenario-packs.md)**)
-- [ ] **WI-308** — Supplementary unit/service IT (**[`WI-308-supplementary-tests.md`](WI-308-supplementary-tests.md)**)
+- [x] **WI-303** — `ArtifactDescriptorRegistry` (**[`WI-303-artifact-descriptor-registry.md`](WI-303-artifact-descriptor-registry.md)**)
+- [x] **WI-304** — `ArtifactEmissionCoordinator` (**[`WI-304-artifact-emission-coordinator.md`](WI-304-artifact-emission-coordinator.md)**)
+- [x] **WI-305** — Registry-driven router + SSE bridge (**[`WI-305-router-sse-bridge.md`](WI-305-router-sse-bridge.md)**)
+- [x] **WI-306** — Capability manifests + `data-analysis` profile (**[`WI-306-manifests-and-profiles.md`](WI-306-manifests-and-profiles.md)**)
+- [x] **WI-307** — POC scenario packs (primary acceptance) (**[`WI-307-poc-scenario-packs.md`](WI-307-poc-scenario-packs.md)**)
+- [x] **WI-308** — Supplementary unit/service IT (**[`WI-308-supplementary-tests.md`](WI-308-supplementary-tests.md)**)
 - [x] **WI-310** — Live YAML packs + `ProvidedAgentRunner` (**[`WI-310-live-yaml-packs.md`](WI-310-live-yaml-packs.md)**) — optional; gated testIT
 
 **Closure checklist (not in execution order — user-triggered only):**
@@ -110,4 +110,4 @@ Normalized baselines scrub: UUIDs, `runId`, `chatId`, `turnId`, `eventId`, `arti
 
 - All `artifact-emit/*.yml` scenario packs pass.
 - Each pack writes `ai/mill-ai-test/build/reports/scenarios/<pack>.record.json` with full turn outcomes.
-- Committed baselines under `src/test/resources/scenarios/baselines/` match via comparator.
+- Committed baselines under `src/testIT/resources/scenarios/baselines/` match via comparator.

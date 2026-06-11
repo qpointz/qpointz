@@ -1,6 +1,6 @@
 # WI-305 — Registry-driven router + SSE bridge
 
-Status: `planned`  
+Status: `done`  
 Type: `✨ feature` / `♻️ refactor`  
 Area: `ai`  
 Story: [`STORY.md`](STORY.md)

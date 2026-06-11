@@ -1,0 +1,9 @@
+name: bad-artifact
+description: Test manifest with incomplete artifact descriptor.
+
+artifacts:
+  incomplete:
+    artifactKind: test-kind
+    persistKind: test.persist
+    emissionStrategy: FromToolResult
+    destinations: [ARTIFACT]

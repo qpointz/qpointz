@@ -23,9 +23,8 @@ prompts:
       1. Ground schema and dialect using the available tools (already done if you have schema context).
       2. Compose the SQL statement mentally, or revise the most recent query artifact if this is a refinement.
       3. Call validate_sql as a tool, passing the SQL and attempt=1. Do NOT produce a final answer yet.
-      4. If validate_sql returns passed=true, synthesize the final structured output using the
-         sql-query.generated-sql protocol (canonical SQL, dialect id, statement kind). Do NOT claim
-         that rows were returned — execution happens outside this agent.
+      4. When validate_sql returns passed=true, generated SQL is emitted automatically as a structured
+         artefact — do NOT call the sql-query.generated-sql protocol yourself.
       5. If validate_sql returns passed=false, revise the SQL using the validator message and repeat from step 3
          (increment attempt each time, up to 3 attempts).
       6. If all 3 attempts fail, report the failure with the last validator message.
@@ -69,6 +68,39 @@ tools:
         normalizedSql:
           type: string
           description: Optional normalized SQL returned by the validator.
+    emitsOnSuccess:
+      artifact: generated-sql
+      when:
+        field: passed
+        equals: true
+
+artifacts:
+  sql-validation:
+    artifactKind: sql-validation
+    persistKind: sql.validation
+    sourceEvent: tool.result
+    emissionStrategy: FromToolResult
+    destinations: [ARTIFACT]
+
+  generated-sql:
+    protocolId: sql-query.generated-sql
+    artifactKind: generated-sql
+    persistKind: sql.generated
+    pointerKeys: [last-sql]
+    wirePartType: sql
+    presentation: structured
+    protocolMode: STRUCTURED_FINAL
+    sourceEvent: protocol.final
+    emissionStrategy: OnToolSuccess
+    destinations: [CHAT_STREAM, ARTIFACT]
+
+  sql-result:
+    artifactKind: sql-result
+    persistKind: sql.result
+    pointerKeys: [last-sql-result]
+    sourceEvent: tool.result
+    emissionStrategy: FromToolResult
+    destinations: [CHAT_STREAM, ARTIFACT]
 
 protocols:
   sql-query.generated-sql:

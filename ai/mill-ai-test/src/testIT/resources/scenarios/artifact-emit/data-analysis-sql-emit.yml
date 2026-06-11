@@ -1,0 +1,35 @@
+name: data-analysis-sql-emit
+profileId: data-analysis
+parameters:
+  mode: scripted
+run:
+  - ask: "Show revenue by month"
+    script:
+      - toolCalls:
+          - name: validate_sql
+            args:
+              sql: "SELECT month, SUM(revenue) FROM sales GROUP BY month"
+              attempt: 1
+    verify:
+      pass: ERROR
+      check:
+        - events:
+            containsInOrder:
+              - { type: tool.call, name: validate_sql }
+              - { type: tool.result, name: validate_sql }
+              - { type: protocol.final, protocolId: sql-query.generated-sql }
+              - { type: answer.completed }
+        - artifacts:
+            - persistKind: sql.validation
+              count: 1
+            - persistKind: sql.generated
+              count: 1
+        - artifacts.shape:
+            persistKind: sql.generated
+            match:
+              payload.artifactType: generated-sql
+              payload.statementKind: select
+        - sse:
+            - type: item.part.updated
+              presentation: structured
+              partType: sql

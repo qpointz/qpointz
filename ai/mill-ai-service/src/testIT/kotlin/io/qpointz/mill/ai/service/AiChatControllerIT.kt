@@ -56,7 +56,6 @@ class AiChatControllerIT {
         @Bean
         fun stubAiV3ChatRuntime(): AiV3ChatRuntime = AiV3ChatRuntime { metadata, message ->
             Flux.defer {
-                val reply = "Echo: $message"
                 conversationStore.appendTurn(
                     metadata.chatId,
                     ConversationTurn(
@@ -66,20 +65,48 @@ class AiChatControllerIT {
                         createdAt = Instant.now(),
                     ),
                 )
-                conversationStore.appendTurn(
-                    metadata.chatId,
-                    ConversationTurn(
-                        turnId = UUID.randomUUID().toString(),
-                        role = "assistant",
-                        text = reply,
-                        createdAt = Instant.now(),
-                    ),
-                )
-                Flux.just<ChatRuntimeEvent>(
-                    ChatRuntimeEvent.Chunk("Echo: "),
-                    ChatRuntimeEvent.Chunk(message),
-                    ChatRuntimeEvent.Completed(reply),
-                )
+                if (message == "structured please") {
+                    conversationStore.appendTurn(
+                        metadata.chatId,
+                        ConversationTurn(
+                            turnId = UUID.randomUUID().toString(),
+                            role = "assistant",
+                            text = null,
+                            createdAt = Instant.now(),
+                        ),
+                    )
+                    Flux.just<ChatRuntimeEvent>(
+                        ChatRuntimeEvent.StructuredPart(
+                            presentation = "structured",
+                            partType = "sql",
+                            mode = "replace",
+                            content = """{"artifactType":"generated-sql","sql":"SELECT 1"}""",
+                        ),
+                        ChatRuntimeEvent.StructuredPart(
+                            presentation = "structured",
+                            partType = "facet-proposal",
+                            mode = "replace",
+                            content = """{"captureType":"facet_assignment","facetTypeKey":"descriptive"}""",
+                        ),
+                        ChatRuntimeEvent.Completed(""),
+                    )
+                } else {
+                    val reply = "Echo: $message"
+                    conversationStore.appendTurn(
+                        metadata.chatId,
+                        ConversationTurn(
+                            turnId = UUID.randomUUID().toString(),
+                            role = "assistant",
+                            text = reply,
+                            createdAt = Instant.now(),
+                        ),
+                    )
+                    Flux.just<ChatRuntimeEvent>(
+                        ChatRuntimeEvent.Chunk("Echo: "),
+                        ChatRuntimeEvent.Chunk(message),
+                        ChatRuntimeEvent.Completed(reply),
+                    )
+                }
             }.subscribeOn(Schedulers.boundedElastic())
         }
     }
@@ -504,16 +531,17 @@ class AiChatControllerIT {
     // ── Profiles (GET /api/v1/ai/profiles) ────────────────────────────────────
 
     @Test
-    fun `should list registered profiles`() {
+    fun `should list registered profiles including data-analysis`() {
         client.get().uri("/api/v1/ai/profiles")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus().isOk
             .expectBody()
-            .jsonPath("$.length()").isEqualTo(3)
-            .jsonPath("$[0].id").isEqualTo("hello-world")
-            .jsonPath("$[1].id").isEqualTo("schema-authoring")
-            .jsonPath("$[2].id").isEqualTo("schema-exploration")
+            .jsonPath("$.length()").isEqualTo(4)
+            .jsonPath("$[0].id").isEqualTo("data-analysis")
+            .jsonPath("$[1].id").isEqualTo("hello-world")
+            .jsonPath("$[2].id").isEqualTo("schema-authoring")
+            .jsonPath("$[3].id").isEqualTo("schema-exploration")
     }
 
     @Test
@@ -581,6 +609,26 @@ class AiChatControllerIT {
             .accept(MediaType.TEXT_EVENT_STREAM)
             .exchange()
             .expectStatus().isOk
+    }
+
+    @Test
+    fun `should stream structured SSE parts when stub runtime emits StructuredPart`() {
+        val chatId = createChat()
+        val lines = sseClient.post().uri("/api/v1/ai/chats/$chatId/messages")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue("""{"message":"structured please"}""")
+            .accept(MediaType.TEXT_EVENT_STREAM)
+            .exchange()
+            .expectStatus().isOk
+            .returnResult(String::class.java)
+            .responseBody
+            .collectList()
+            .block(Duration.ofSeconds(30))!!
+            .joinToString(" ")
+
+        assertThat(lines).contains("\"presentation\":\"structured\"")
+        assertThat(lines).contains("\"partType\":\"sql\"")
+        assertThat(lines).contains("\"partType\":\"facet-proposal\"")
     }
 
 }

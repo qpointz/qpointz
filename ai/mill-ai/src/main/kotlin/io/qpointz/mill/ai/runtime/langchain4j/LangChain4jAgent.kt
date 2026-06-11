@@ -29,6 +29,8 @@ import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
 import io.qpointz.mill.ai.capabilities.schema.CaptureResult
+import io.qpointz.mill.ai.core.artifact.ArtifactDescriptorRegistry
+import io.qpointz.mill.ai.core.artifact.EmissionStrategy
 
 /**
  * LangChain4j-backed streaming agent.
@@ -47,6 +49,9 @@ class LangChain4jAgent(
     private val chatMemoryStore: ChatMemoryStore = InMemoryChatMemoryStore(),
     private val memoryStrategy: LlmMemoryStrategy = BoundedWindowMemoryStrategy(),
     private val persistenceContext: AgentPersistenceContext = AgentPersistenceContext(),
+    private val artifactDescriptorRegistry: ArtifactDescriptorRegistry = ArtifactDescriptorRegistry.loadDefault(),
+    private val emissionCoordinator: ArtifactEmissionCoordinator = ArtifactEmissionCoordinator(artifactDescriptorRegistry),
+    private val eventRouter: AgentEventRouter = RegistryAgentEventRouter(artifactDescriptorRegistry),
 ) {
     companion object {
         private const val MAX_ITERATIONS = 20
@@ -131,7 +136,7 @@ class LangChain4jAgent(
                 profileId = profile.id,
                 turnId = assistantTurnId,
             )
-            DefaultAgentEventRouter.route(routingInput).forEach { publisher.publish(it) }
+            eventRouter.route(routingInput).forEach { publisher.publish(it) }
         }
 
         routedListener(AgentEvent.RunStarted(profile.id))
@@ -186,6 +191,7 @@ class LangChain4jAgent(
 
             var captureBinding: ToolBinding? = null
             var captureValidationFailed = false
+            val executedTools = mutableListOf<ArtifactEmissionCoordinator.ExecutedTool>()
             for (toolRequest in aiMsg.toolExecutionRequests()) {
                 val binding = handlerMap[toolRequest.name()] ?: continue
                 val args = parseArguments(toolRequest.arguments().orEmpty())
@@ -193,6 +199,7 @@ class LangChain4jAgent(
                 val result = binding.handler.invoke(ToolRequest(args, ToolExecutionContext()))
                 val resultText = objectMapper.writeValueAsString(result.content)
                 routedListener(AgentEvent.ToolResult(toolRequest.name(), result.content))
+                executedTools += ArtifactEmissionCoordinator.ExecutedTool(toolRequest.name(), result.content)
                 messages.add(ToolExecutionResultMessage.from(toolRequest, resultText))
                 if (binding.kind == ToolKind.CAPTURE) {
                     val cr = result.content as? CaptureResult
@@ -204,24 +211,19 @@ class LangChain4jAgent(
             }
 
             if (captureBinding != null && !captureValidationFailed) {
-                // Synthesize via the protocol declared on the capture tool (if any)
-                val captureProtocol = captureBinding.protocolId?.let { pid ->
-                    capabilities.flatMap { it.protocols }.firstOrNull { it.id == pid }
-                }
-                if (captureProtocol != null) {
-                    val protocolExecutor = LangChain4jProtocolExecutor(model, objectMapper)
-                    val runState = RunState(profile = profile, context = context)
-                    protocolExecutor.execute(
-                        ProtocolExecutionInput(
-                            protocol = captureProtocol,
-                            runState = runState,
-                            messages = messages,
-                            listener = routedListener,
-                        )
-                    )
-                }
-                // Emit a transcript turn even on the capture path so the assistant turn exists
-                // and artifacts persisted with this turnId have an owning turn to link to.
+                handleCaptureSuccess(captureBinding, capabilities, messages, context, routedListener)
+                routedListener(AgentEvent.AnswerCompleted(""))
+                saveToMemory(session, input, "")
+                session.appendUserMessage(input)
+                return ""
+            }
+
+            val runState = RunState(
+                profile = profile,
+                context = context,
+                conversationId = session.conversationId,
+            )
+            if (emissionCoordinator.emitOnToolSuccess(executedTools, runState, routedListener)) {
                 routedListener(AgentEvent.AnswerCompleted(""))
                 saveToMemory(session, input, "")
                 session.appendUserMessage(input)
@@ -252,6 +254,30 @@ class LangChain4jAgent(
                 profileId = session.profileId,
                 messages = newMessages,
             )
+        )
+    }
+
+    private fun handleCaptureSuccess(
+        captureBinding: ToolBinding,
+        capabilities: List<Capability>,
+        messages: MutableList<ChatMessage>,
+        context: AgentContext,
+        listener: (AgentEvent) -> Unit,
+    ) {
+        val protocolId = captureBinding.protocolId ?: return
+        val descriptor = artifactDescriptorRegistry.descriptorForProtocol(protocolId)
+        if (descriptor?.emissionStrategy != EmissionStrategy.ON_CAPTURE_SUCCESS) return
+        val captureProtocol = capabilities.flatMap { it.protocols }.firstOrNull { it.id == protocolId }
+            ?: return
+        val protocolExecutor = LangChain4jProtocolExecutor(model, objectMapper)
+        val runState = RunState(profile = profile, context = context)
+        protocolExecutor.execute(
+            ProtocolExecutionInput(
+                protocol = captureProtocol,
+                runState = runState,
+                messages = messages,
+                listener = listener,
+            ),
         )
     }
 

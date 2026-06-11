@@ -10,6 +10,10 @@ import io.qpointz.mill.ai.profile.*
 import io.qpointz.mill.ai.runtime.*
 import io.qpointz.mill.ai.runtime.events.*
 import io.qpointz.mill.ai.runtime.events.routing.*
+import io.qpointz.mill.ai.core.artifact.ArtifactDescriptor
+import io.qpointz.mill.ai.core.artifact.ArtifactSourceEvent
+import io.qpointz.mill.ai.core.artifact.EmissionStrategy
+import io.qpointz.mill.ai.core.artifact.ToolEmitTrigger
 
 import tools.jackson.databind.DeserializationFeature
 import tools.jackson.dataformat.yaml.YAMLMapper
@@ -79,12 +83,36 @@ private data class ToolSchemaYaml(
     }
 }
 
+private data class EmitWhenYaml(
+    val field: String,
+    val equals: Any? = null,
+)
+
+private data class EmitOnSuccessYaml(
+    val artifact: String,
+    val `when`: EmitWhenYaml? = null,
+)
+
 private data class ToolEntryYaml(
     val description: String,
     val kind: String? = null,
     val protocol: String? = null,
     val input: ToolSchemaYaml? = null,
     val output: ToolSchemaYaml? = null,
+    val emitsOnSuccess: EmitOnSuccessYaml? = null,
+)
+
+private data class ArtifactEntryYaml(
+    val protocolId: String? = null,
+    val artifactKind: String? = null,
+    val persistKind: String? = null,
+    val pointerKeys: List<String>? = null,
+    val wirePartType: String? = null,
+    val presentation: String? = null,
+    val protocolMode: String? = null,
+    val sourceEvent: String? = null,
+    val emissionStrategy: String? = null,
+    val destinations: List<String>? = null,
 )
 
 private data class PromptEntryYaml(
@@ -126,6 +154,7 @@ private data class CapabilityManifestYaml(
     val prompts: Map<String, PromptEntryYaml> = emptyMap(),
     val tools: Map<String, ToolEntryYaml> = emptyMap(),
     val protocols: Map<String, ProtocolEntryYaml> = emptyMap(),
+    val artifacts: Map<String, ArtifactEntryYaml> = emptyMap(),
 )
 
 // ---------------------------------------------------------------------------
@@ -184,6 +213,8 @@ class CapabilityManifest private constructor(
     private val promptEntries: Map<String, PromptEntryYaml>,
     private val toolEntries: Map<String, ToolEntryYaml>,
     private val protocolEntries: Map<String, ProtocolEntryYaml>,
+    val artifactDescriptors: List<ArtifactDescriptor>,
+    val toolEmitTriggers: Map<String, List<ToolEmitTrigger>>,
 ) {
     /**
      * Build a [ToolBinding] for the named tool using the supplied handler.
@@ -239,15 +270,59 @@ class CapabilityManifest private constructor(
             val stream = Thread.currentThread().contextClassLoader.getResourceAsStream(resource)
                 ?: error("CapabilityManifest resource not found: $resource")
             val yaml = yamlMapper.readValue(stream, CapabilityManifestYaml::class.java)
+            val artifacts = yaml.artifacts.map { (id, entry) ->
+                entry.toDescriptor(id = id, capabilityId = yaml.name)
+            }
+            val emitTriggers = yaml.tools.mapNotNull { (toolName, entry) ->
+                entry.emitsOnSuccess?.let { emit ->
+                    toolName to listOf(
+                        ToolEmitTrigger(
+                            toolName = toolName,
+                            artifactId = emit.artifact,
+                            whenField = emit.`when`?.field,
+                            equals = emit.`when`?.equals,
+                        ),
+                    )
+                }
+            }.toMap()
             return CapabilityManifest(
                 name = yaml.name,
                 description = yaml.description,
                 promptEntries = yaml.prompts,
                 toolEntries = yaml.tools,
                 protocolEntries = yaml.protocols,
+                artifactDescriptors = artifacts,
+                toolEmitTriggers = emitTriggers,
             )
         }
     }
+}
+
+private fun ArtifactEntryYaml.toDescriptor(id: String, capabilityId: String): ArtifactDescriptor {
+    val source = requireNotNull(sourceEvent) { "artifacts.$id requires sourceEvent" }
+    val strategy = requireNotNull(emissionStrategy) { "artifacts.$id requires emissionStrategy" }
+    val kind = requireNotNull(artifactKind) { "artifacts.$id requires artifactKind" }
+    val persist = requireNotNull(persistKind) { "artifacts.$id requires persistKind" }
+    val dest = requireNotNull(destinations) { "artifacts.$id requires destinations" }
+        .takeIf { it.isNotEmpty() } ?: error("artifacts.$id requires at least one destination")
+    val parsedSource = ArtifactSourceEvent.fromYaml(source)
+    if (parsedSource == ArtifactSourceEvent.PROTOCOL_FINAL) {
+        require(protocolId != null) { "artifacts.$id requires protocolId when sourceEvent is protocol.final" }
+    }
+    return ArtifactDescriptor(
+        id = id,
+        capabilityId = capabilityId,
+        protocolId = protocolId,
+        artifactKind = kind,
+        persistKind = persist,
+        pointerKeys = pointerKeys?.toSet() ?: emptySet(),
+        wirePartType = wirePartType,
+        presentation = presentation,
+        protocolMode = protocolMode?.let { ProtocolMode.valueOf(it.uppercase()) },
+        sourceEvent = parsedSource,
+        emissionStrategy = EmissionStrategy.fromYaml(strategy),
+        destinations = dest.map { RoutedEventDestination.valueOf(it) }.toSet(),
+    )
 }
 
 

@@ -25,6 +25,7 @@ class ScriptedAgentRunner(
         val script = item.script ?: error("ScriptedAgentRunner requires ask.script for turn $turnIndex")
         val profile = profileRegistry.resolve(pack.profileId)
             ?: error("unknown profileId: ${pack.profileId}")
+        val context = ScenarioHarnessSupport.agentContext(profile)
 
         var lastEventType: String? = null
         val exhaustionContext = ScriptExhaustionContext(
@@ -56,6 +57,7 @@ class ScriptedAgentRunner(
                 persistence = persistence,
                 session = session,
                 ask = item.ask,
+                context = context,
                 logContext = logContext,
                 onEvent = { lastEventType = it.type },
             )

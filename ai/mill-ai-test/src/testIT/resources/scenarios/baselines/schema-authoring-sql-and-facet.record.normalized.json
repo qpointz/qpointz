@@ -1,0 +1,313 @@
+{
+  "schemaVersion" : 1,
+  "runMeta" : {
+    "mode" : "scripted",
+    "profileId" : "schema-authoring",
+    "scenarioSource" : "scenarios/artifact-emit/schema-authoring-sql-and-facet.yml"
+  },
+  "pack" : {
+    "name" : "schema-authoring-sql-and-facet",
+    "parameters" : {
+      "mode" : "scripted"
+    }
+  },
+  "summary" : {
+    "overall" : "PASS",
+    "turnCount" : 2,
+    "checksPassed" : 4,
+    "checksFailed" : 0
+  },
+  "turns" : [ {
+    "index" : 0,
+    "action" : "ask",
+    "input" : {
+      "ask" : "Show monthly revenue",
+      "script" : [ {
+        "toolCalls" : [ {
+          "name" : "validate_sql",
+          "args" : {
+            "sql" : "SELECT month, SUM(revenue) FROM sales GROUP BY month",
+            "attempt" : 1
+          },
+          "id" : null
+        } ],
+        "answer" : null,
+        "expectTools" : null
+      } ]
+    },
+    "outcome" : {
+      "response" : "",
+      "events" : [ {
+        "type" : "run.started",
+        "profileId" : "schema-authoring"
+      }, {
+        "type" : "tool.call",
+        "name" : "validate_sql",
+        "arguments" : {
+          "sql" : "SELECT month, SUM(revenue) FROM sales GROUP BY month",
+          "attempt" : 1
+        },
+        "iteration" : 0
+      }, {
+        "type" : "tool.result",
+        "name" : "validate_sql",
+        "result" : {
+          "artifactType" : "sql-validation",
+          "passed" : true,
+          "attempt" : 1,
+          "message" : null,
+          "normalizedSql" : "SELECT month, SUM(revenue) FROM sales GROUP BY month"
+        }
+      }, {
+        "type" : "protocol.final",
+        "protocolId" : "sql-query.generated-sql",
+        "payload" : {
+          "artifactType" : "generated-sql",
+          "sql" : "SELECT month, SUM(revenue) FROM sales GROUP BY month",
+          "dialectId" : "CALCITE",
+          "statementKind" : "select",
+          "source" : "generated",
+          "validationWarnings" : [ ]
+        }
+      }, {
+        "type" : "answer.completed",
+        "text" : ""
+      } ],
+      "artifacts" : [ {
+        "persistKind" : "sql.generated",
+        "payload" : {
+          "protocolId" : "sql-query.generated-sql",
+          "payload" : {
+            "artifactType" : "generated-sql",
+            "sql" : "SELECT month, SUM(revenue) FROM sales GROUP BY month",
+            "dialectId" : "CALCITE",
+            "statementKind" : "select",
+            "source" : "generated",
+            "validationWarnings" : [ ]
+          },
+          "persistKind" : "sql.generated"
+        }
+      }, {
+        "persistKind" : "sql.validation",
+        "payload" : {
+          "toolName" : "validate_sql",
+          "artifactType" : "sql-validation",
+          "persistKind" : "sql.validation",
+          "payload" : {
+            "artifactType" : "sql-validation",
+            "passed" : true,
+            "attempt" : 1,
+            "message" : null,
+            "normalizedSql" : "SELECT month, SUM(revenue) FROM sales GROUP BY month"
+          }
+        }
+      } ],
+      "sseEvents" : [ {
+        "type" : "item.created",
+        "sequence" : 0
+      }, {
+        "type" : "item.part.updated",
+        "sequence" : 1,
+        "presentation" : "structured",
+        "partType" : "sql",
+        "content" : "{\"artifactType\":\"generated-sql\",\"sql\":\"SELECT month, SUM(revenue) FROM sales GROUP BY month\",\"dialectId\":\"CALCITE\",\"statementKind\":\"select\",\"source\":\"generated\",\"validationWarnings\":[]}"
+      }, {
+        "type" : "item.completed",
+        "sequence" : 2,
+        "presentation" : "structured",
+        "partType" : "sql",
+        "content" : null
+      } ],
+      "structuredParts" : [ {
+        "presentation" : "structured",
+        "partType" : "sql",
+        "content" : "{\"artifactType\":\"generated-sql\",\"sql\":\"SELECT month, SUM(revenue) FROM sales GROUP BY month\",\"dialectId\":\"CALCITE\",\"statementKind\":\"select\",\"source\":\"generated\",\"validationWarnings\":[]}"
+      } ],
+      "transcript" : {
+        "turnCount" : 2,
+        "turns" : [ {
+          "role" : "user",
+          "text" : "Show monthly revenue",
+          "artifactIds" : [ ]
+        }, {
+          "role" : "assistant",
+          "text" : null,
+          "artifactIds" : [ "<uuid>", "<uuid>" ]
+        } ],
+        "activePointers" : { }
+      }
+    },
+    "verify" : {
+      "passLevel" : "ERROR",
+      "checks" : [ {
+        "artifacts" : [ {
+          "persistKind" : "sql.generated",
+          "count" : 1
+        }, {
+          "persistKind" : "sql.validation",
+          "count" : 1
+        } ]
+      }, {
+        "sse" : [ {
+          "type" : "item.part.updated",
+          "partType" : "sql"
+        } ]
+      } ],
+      "results" : [ {
+        "checkType" : "artifacts",
+        "status" : "PASS",
+        "detail" : null
+      }, {
+        "checkType" : "sse",
+        "status" : "PASS",
+        "detail" : null
+      } ]
+    }
+  }, {
+    "index" : 1,
+    "action" : "ask",
+    "input" : {
+      "ask" : "Describe the customers table as important",
+      "script" : [ {
+        "toolCalls" : [ {
+          "name" : "propose_facet_assignment",
+          "args" : {
+            "facetTypeKey" : "descriptive",
+            "metadataEntityId" : "sales.customers",
+            "payload" : {
+              "summary" : "Important customer table"
+            },
+            "rationale" : "Business critical entity"
+          },
+          "id" : null
+        } ],
+        "answer" : null,
+        "expectTools" : null
+      }, {
+        "toolCalls" : null,
+        "answer" : "{\"captureType\":\"facet_assignment\",\"facetTypeKey\":\"descriptive\",\"metadataEntityId\":\"sales.customers\",\"serializedPayload\":{\"summary\":\"Important customer table\"},\"validationWarnings\":[]}",
+        "expectTools" : null
+      } ]
+    },
+    "outcome" : {
+      "response" : "",
+      "events" : [ {
+        "type" : "run.started",
+        "profileId" : "schema-authoring"
+      }, {
+        "type" : "tool.call",
+        "name" : "propose_facet_assignment",
+        "arguments" : {
+          "facetTypeKey" : "descriptive",
+          "metadataEntityId" : "sales.customers",
+          "payload" : {
+            "summary" : "Important customer table"
+          },
+          "rationale" : "Business critical entity"
+        },
+        "iteration" : 0
+      }, {
+        "type" : "tool.result",
+        "name" : "propose_facet_assignment",
+        "result" : {
+          "captureType" : "facet_assignment",
+          "facetTypeKey" : "descriptive",
+          "metadataEntityId" : "sales.customers",
+          "serializedPayload" : {
+            "summary" : "Important customer table"
+          },
+          "rationale" : "Business critical entity",
+          "validationWarnings" : [ ]
+        }
+      }, {
+        "type" : "protocol.final",
+        "protocolId" : "metadata.faceting.capture",
+        "payload" : {
+          "captureType" : "facet_assignment",
+          "facetTypeKey" : "descriptive",
+          "metadataEntityId" : "sales.customers",
+          "serializedPayload" : {
+            "summary" : "Important customer table"
+          },
+          "validationWarnings" : [ ]
+        }
+      }, {
+        "type" : "answer.completed",
+        "text" : ""
+      } ],
+      "artifacts" : [ {
+        "persistKind" : "metadata.faceting.capture",
+        "payload" : {
+          "protocolId" : "metadata.faceting.capture",
+          "payload" : {
+            "captureType" : "facet_assignment",
+            "facetTypeKey" : "descriptive",
+            "metadataEntityId" : "sales.customers",
+            "serializedPayload" : {
+              "summary" : "Important customer table"
+            },
+            "validationWarnings" : [ ]
+          },
+          "persistKind" : "metadata.faceting.capture"
+        }
+      } ],
+      "sseEvents" : [ {
+        "type" : "item.created",
+        "sequence" : 0
+      }, {
+        "type" : "item.part.updated",
+        "sequence" : 1,
+        "presentation" : "structured",
+        "partType" : "facet-proposal",
+        "content" : "{\"captureType\":\"facet_assignment\",\"facetTypeKey\":\"descriptive\",\"metadataEntityId\":\"sales.customers\",\"serializedPayload\":{\"summary\":\"Important customer table\"},\"validationWarnings\":[]}"
+      }, {
+        "type" : "item.completed",
+        "sequence" : 2,
+        "presentation" : "structured",
+        "partType" : "facet-proposal",
+        "content" : null
+      } ],
+      "structuredParts" : [ {
+        "presentation" : "structured",
+        "partType" : "facet-proposal",
+        "content" : "{\"captureType\":\"facet_assignment\",\"facetTypeKey\":\"descriptive\",\"metadataEntityId\":\"sales.customers\",\"serializedPayload\":{\"summary\":\"Important customer table\"},\"validationWarnings\":[]}"
+      } ],
+      "transcript" : {
+        "turnCount" : 2,
+        "turns" : [ {
+          "role" : "user",
+          "text" : "Describe the customers table as important",
+          "artifactIds" : [ ]
+        }, {
+          "role" : "assistant",
+          "text" : null,
+          "artifactIds" : [ "<uuid>" ]
+        } ],
+        "activePointers" : { }
+      }
+    },
+    "verify" : {
+      "passLevel" : "ERROR",
+      "checks" : [ {
+        "artifacts" : [ {
+          "persistKind" : "metadata.faceting.capture",
+          "count" : 1
+        } ]
+      }, {
+        "sse" : [ {
+          "type" : "item.part.updated",
+          "partType" : "facet-proposal"
+        } ]
+      } ],
+      "results" : [ {
+        "checkType" : "artifacts",
+        "status" : "PASS",
+        "detail" : null
+      }, {
+        "checkType" : "sse",
+        "status" : "PASS",
+        "detail" : null
+      } ]
+    }
+  } ]
+}

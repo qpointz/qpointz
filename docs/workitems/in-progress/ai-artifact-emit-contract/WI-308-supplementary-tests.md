@@ -1,6 +1,6 @@
 # WI-308 — Supplementary unit and service tests
 
-Status: `planned`  
+Status: `done`  
 Type: `🧪 test`  
 Area: `ai`  
 Story: [`STORY.md`](STORY.md)
@@ -15,16 +15,16 @@ Secondary test coverage outside the scenario harness — unit tests and HTTP SSE
 
 ## Deliverables
 
-- [ ] [`AiChatControllerIT`](../../../../ai/mill-ai-service/src/testIT/kotlin/io/qpointz/mill/ai/service/AiChatControllerIT.kt):
+- [x] [`AiChatControllerIT`](../../../../ai/mill-ai-service/src/testIT/kotlin/io/qpointz/mill/ai/service/AiChatControllerIT.kt):
   - Profile list includes `data-analysis` (four profiles, sorted by id)
   - Stub runtime emits `StructuredPart` for `sql` + `facet-proposal`; assert SSE JSON shape
-- [ ] Any remaining `:ai:mill-ai:test` gaps from WI-303–305 not covered by scenarios
-- [ ] mill-ui: existing [`chatArtifactParse.test.ts`](../../../../ui/mill-ui/src/utils/__tests__/chatArtifactParse.test.ts) still passes (no regression)
+- [x] Any remaining `:ai:mill-ai:test` gaps from WI-303–305 not covered by scenarios
+- [x] mill-ui: existing [`chatArtifactParse.test.ts`](../../../../ui/mill-ui/src/utils/__tests__/chatArtifactParse.test.ts) still passes (no regression)
 
 ## Acceptance criteria
 
-- [ ] `./gradlew :ai:mill-ai:test :ai:mill-ai-service:testIT :ai:mill-ai-autoconfigure:test` pass.
-- [ ] Scenario packs (WI-307) remain the **primary** acceptance path; this WI does not duplicate full emit E2E in service IT.
+- [x] `./gradlew :ai:mill-ai:test :ai:mill-ai-service:testIT :ai:mill-ai-autoconfigure:test` pass.
+- [x] Scenario packs (WI-307) remain the **primary** acceptance path; this WI does not duplicate full emit E2E in service IT.
 
 ## Out of scope
 

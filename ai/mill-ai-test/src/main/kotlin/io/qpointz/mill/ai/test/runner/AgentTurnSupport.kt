@@ -33,6 +33,7 @@ internal object AgentTurnSupport {
         persistence: AgentPersistenceContext,
         session: ConversationSession,
         ask: String,
+        context: io.qpointz.mill.ai.runtime.AgentContext = io.qpointz.mill.ai.runtime.AgentContext(contextType = "general"),
         logContext: ScenarioActivityLogger.TurnContext? = null,
         onEvent: (AgentEvent) -> Unit = {},
     ): TurnOutcome {
@@ -42,7 +43,7 @@ internal object AgentTurnSupport {
         val sseMapper = AgentEventToSseMapper(session.conversationId)
         val sseEvents = mutableListOf<ChatSseEvent>()
 
-        val response = agent.run(ask, session) { event ->
+        val response = agent.run(ask, session, context) { event ->
             events.add(event)
             logContext?.let { ScenarioActivityLogger.logAgentEvent(it, event) }
             onEvent(event)
@@ -72,6 +73,17 @@ internal object AgentTurnSupport {
             events = events.toList(),
             artifacts = artifacts,
             sseEvents = sseEvents.toList(),
+            structuredParts = sseEvents.mapNotNull { event ->
+                if (event is ChatSseEvent.ItemPartUpdated && event.presentation == "structured") {
+                    io.qpointz.mill.ai.test.scenario.v3.StructuredPartSnapshot(
+                        presentation = event.presentation,
+                        partType = event.partType,
+                        content = event.content,
+                    )
+                } else {
+                    null
+                }
+            },
             transcript = transcript,
         )
         logContext?.let { ScenarioActivityLogger.logTurnCompleted(it, outcome) }

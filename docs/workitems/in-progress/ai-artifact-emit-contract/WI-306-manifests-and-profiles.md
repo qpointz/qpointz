@@ -1,6 +1,6 @@
 # WI-306 — Capability manifests + data-analysis profile
 
-Status: `planned`  
+Status: `done`  
 Type: `✨ feature`  
 Area: `ai`  
 Story: [`STORY.md`](STORY.md)

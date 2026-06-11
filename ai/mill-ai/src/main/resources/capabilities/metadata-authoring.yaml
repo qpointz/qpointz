@@ -47,6 +47,19 @@ tools:
           items:
             type: string
 
+artifacts:
+  inferred-facet:
+    protocolId: metadata.faceting.capture
+    artifactKind: facet-proposal
+    persistKind: metadata.faceting.capture
+    pointerKeys: [last-metadata-facet-proposal]
+    wirePartType: facet-proposal
+    presentation: structured
+    protocolMode: STRUCTURED_FINAL
+    sourceEvent: protocol.final
+    emissionStrategy: OnCaptureSuccess
+    destinations: [CHAT_STREAM, ARTIFACT]
+
 protocols:
   metadata.faceting.capture:
     description: Structured final for facet assignment proposals.

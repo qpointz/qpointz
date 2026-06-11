@@ -1,0 +1,27 @@
+name: data-analysis-no-facet
+profileId: data-analysis
+parameters:
+  mode: scripted
+run:
+  - ask: "Run a simple count query"
+    script:
+      - toolCalls:
+          - name: validate_sql
+            args:
+              sql: "SELECT COUNT(*) FROM sales"
+              attempt: 1
+    verify:
+      pass: ERROR
+      check:
+        - artifacts:
+            - persistKind: sql.generated
+              count: 1
+            - persistKind: metadata.faceting.capture
+              count: 0
+        - events:
+            containsInOrder:
+              - { type: protocol.final, protocolId: sql-query.generated-sql }
+        - sse:
+            - type: item.part.updated
+              presentation: structured
+              partType: sql

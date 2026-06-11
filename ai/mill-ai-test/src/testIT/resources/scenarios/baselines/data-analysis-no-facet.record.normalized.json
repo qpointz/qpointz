@@ -1,0 +1,179 @@
+{
+  "schemaVersion" : 1,
+  "runMeta" : {
+    "mode" : "scripted",
+    "profileId" : "data-analysis",
+    "scenarioSource" : "scenarios/artifact-emit/data-analysis-no-facet.yml"
+  },
+  "pack" : {
+    "name" : "data-analysis-no-facet",
+    "parameters" : {
+      "mode" : "scripted"
+    }
+  },
+  "summary" : {
+    "overall" : "PASS",
+    "turnCount" : 1,
+    "checksPassed" : 3,
+    "checksFailed" : 0
+  },
+  "turns" : [ {
+    "index" : 0,
+    "action" : "ask",
+    "input" : {
+      "ask" : "Run a simple count query",
+      "script" : [ {
+        "toolCalls" : [ {
+          "name" : "validate_sql",
+          "args" : {
+            "sql" : "SELECT COUNT(*) FROM sales",
+            "attempt" : 1
+          },
+          "id" : null
+        } ],
+        "answer" : null,
+        "expectTools" : null
+      } ]
+    },
+    "outcome" : {
+      "response" : "",
+      "events" : [ {
+        "type" : "run.started",
+        "profileId" : "data-analysis"
+      }, {
+        "type" : "tool.call",
+        "name" : "validate_sql",
+        "arguments" : {
+          "sql" : "SELECT COUNT(*) FROM sales",
+          "attempt" : 1
+        },
+        "iteration" : 0
+      }, {
+        "type" : "tool.result",
+        "name" : "validate_sql",
+        "result" : {
+          "artifactType" : "sql-validation",
+          "passed" : true,
+          "attempt" : 1,
+          "message" : null,
+          "normalizedSql" : "SELECT COUNT(*) FROM sales"
+        }
+      }, {
+        "type" : "protocol.final",
+        "protocolId" : "sql-query.generated-sql",
+        "payload" : {
+          "artifactType" : "generated-sql",
+          "sql" : "SELECT COUNT(*) FROM sales",
+          "dialectId" : "CALCITE",
+          "statementKind" : "select",
+          "source" : "generated",
+          "validationWarnings" : [ ]
+        }
+      }, {
+        "type" : "answer.completed",
+        "text" : ""
+      } ],
+      "artifacts" : [ {
+        "persistKind" : "sql.validation",
+        "payload" : {
+          "toolName" : "validate_sql",
+          "artifactType" : "sql-validation",
+          "persistKind" : "sql.validation",
+          "payload" : {
+            "artifactType" : "sql-validation",
+            "passed" : true,
+            "attempt" : 1,
+            "message" : null,
+            "normalizedSql" : "SELECT COUNT(*) FROM sales"
+          }
+        }
+      }, {
+        "persistKind" : "sql.generated",
+        "payload" : {
+          "protocolId" : "sql-query.generated-sql",
+          "payload" : {
+            "artifactType" : "generated-sql",
+            "sql" : "SELECT COUNT(*) FROM sales",
+            "dialectId" : "CALCITE",
+            "statementKind" : "select",
+            "source" : "generated",
+            "validationWarnings" : [ ]
+          },
+          "persistKind" : "sql.generated"
+        }
+      } ],
+      "sseEvents" : [ {
+        "type" : "item.created",
+        "sequence" : 0
+      }, {
+        "type" : "item.part.updated",
+        "sequence" : 1,
+        "presentation" : "structured",
+        "partType" : "sql",
+        "content" : "{\"artifactType\":\"generated-sql\",\"sql\":\"SELECT COUNT(*) FROM sales\",\"dialectId\":\"CALCITE\",\"statementKind\":\"select\",\"source\":\"generated\",\"validationWarnings\":[]}"
+      }, {
+        "type" : "item.completed",
+        "sequence" : 2,
+        "presentation" : "structured",
+        "partType" : "sql",
+        "content" : null
+      } ],
+      "structuredParts" : [ {
+        "presentation" : "structured",
+        "partType" : "sql",
+        "content" : "{\"artifactType\":\"generated-sql\",\"sql\":\"SELECT COUNT(*) FROM sales\",\"dialectId\":\"CALCITE\",\"statementKind\":\"select\",\"source\":\"generated\",\"validationWarnings\":[]}"
+      } ],
+      "transcript" : {
+        "turnCount" : 2,
+        "turns" : [ {
+          "role" : "user",
+          "text" : "Run a simple count query",
+          "artifactIds" : [ ]
+        }, {
+          "role" : "assistant",
+          "text" : null,
+          "artifactIds" : [ "<uuid>", "<uuid>" ]
+        } ],
+        "activePointers" : { }
+      }
+    },
+    "verify" : {
+      "passLevel" : "ERROR",
+      "checks" : [ {
+        "artifacts" : [ {
+          "persistKind" : "sql.generated",
+          "count" : 1
+        }, {
+          "persistKind" : "metadata.faceting.capture",
+          "count" : 0
+        } ]
+      }, {
+        "events" : {
+          "containsInOrder" : [ {
+            "type" : "protocol.final",
+            "protocolId" : "sql-query.generated-sql"
+          } ]
+        }
+      }, {
+        "sse" : [ {
+          "type" : "item.part.updated",
+          "presentation" : "structured",
+          "partType" : "sql"
+        } ]
+      } ],
+      "results" : [ {
+        "checkType" : "artifacts",
+        "status" : "PASS",
+        "detail" : null
+      }, {
+        "checkType" : "events",
+        "status" : "PASS",
+        "detail" : null
+      }, {
+        "checkType" : "sse",
+        "status" : "PASS",
+        "detail" : null
+      } ]
+    }
+  } ]
+}

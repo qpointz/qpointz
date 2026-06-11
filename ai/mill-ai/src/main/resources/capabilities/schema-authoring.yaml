@@ -280,6 +280,18 @@ tools:
           type: string
           description: When captureSucceeded is false, hints for correcting sourceTableId/targetTableId.
 
+artifacts:
+  schema-capture:
+    protocolId: schema-authoring.capture
+    artifactKind: schema-capture
+    persistKind: schema.authoring.capture
+    pointerKeys: [last-schema-capture]
+    presentation: structured
+    protocolMode: STRUCTURED_FINAL
+    sourceEvent: protocol.final
+    emissionStrategy: OnCaptureSuccess
+    destinations: [CHAT_STREAM, ARTIFACT]
+
 # structured_final: the LLM re-validates the capture tool output against finalSchema
 # and emits a single ProtocolFinal event. The caller (agent entry point or Spring layer)
 # receives this event and persists the payload to the metadata store.

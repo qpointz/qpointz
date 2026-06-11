@@ -1,0 +1,198 @@
+{
+  "schemaVersion" : 1,
+  "runMeta" : {
+    "mode" : "scripted",
+    "profileId" : "schema-authoring",
+    "scenarioSource" : "scenarios/artifact-emit/schema-authoring-facet-emit.yml"
+  },
+  "pack" : {
+    "name" : "schema-authoring-facet-emit",
+    "parameters" : {
+      "mode" : "scripted"
+    }
+  },
+  "summary" : {
+    "overall" : "PASS",
+    "turnCount" : 1,
+    "checksPassed" : 4,
+    "checksFailed" : 0
+  },
+  "turns" : [ {
+    "index" : 0,
+    "action" : "ask",
+    "input" : {
+      "ask" : "Tag the customers entity as VIP",
+      "script" : [ {
+        "toolCalls" : [ {
+          "name" : "propose_facet_assignment",
+          "args" : {
+            "facetTypeKey" : "descriptive",
+            "metadataEntityId" : "sales.customers",
+            "payload" : {
+              "summary" : "VIP customer segment"
+            },
+            "rationale" : "User requested VIP tag"
+          },
+          "id" : null
+        } ],
+        "answer" : null,
+        "expectTools" : null
+      }, {
+        "toolCalls" : null,
+        "answer" : "{\"captureType\":\"facet_assignment\",\"facetTypeKey\":\"descriptive\",\"metadataEntityId\":\"sales.customers\",\"serializedPayload\":{\"summary\":\"VIP customer segment\"},\"validationWarnings\":[]}",
+        "expectTools" : null
+      } ]
+    },
+    "outcome" : {
+      "response" : "",
+      "events" : [ {
+        "type" : "run.started",
+        "profileId" : "schema-authoring"
+      }, {
+        "type" : "tool.call",
+        "name" : "propose_facet_assignment",
+        "arguments" : {
+          "facetTypeKey" : "descriptive",
+          "metadataEntityId" : "sales.customers",
+          "payload" : {
+            "summary" : "VIP customer segment"
+          },
+          "rationale" : "User requested VIP tag"
+        },
+        "iteration" : 0
+      }, {
+        "type" : "tool.result",
+        "name" : "propose_facet_assignment",
+        "result" : {
+          "captureType" : "facet_assignment",
+          "facetTypeKey" : "descriptive",
+          "metadataEntityId" : "sales.customers",
+          "serializedPayload" : {
+            "summary" : "VIP customer segment"
+          },
+          "rationale" : "User requested VIP tag",
+          "validationWarnings" : [ ]
+        }
+      }, {
+        "type" : "protocol.final",
+        "protocolId" : "metadata.faceting.capture",
+        "payload" : {
+          "captureType" : "facet_assignment",
+          "facetTypeKey" : "descriptive",
+          "metadataEntityId" : "sales.customers",
+          "serializedPayload" : {
+            "summary" : "VIP customer segment"
+          },
+          "validationWarnings" : [ ]
+        }
+      }, {
+        "type" : "answer.completed",
+        "text" : ""
+      } ],
+      "artifacts" : [ {
+        "persistKind" : "metadata.faceting.capture",
+        "payload" : {
+          "protocolId" : "metadata.faceting.capture",
+          "payload" : {
+            "captureType" : "facet_assignment",
+            "facetTypeKey" : "descriptive",
+            "metadataEntityId" : "sales.customers",
+            "serializedPayload" : {
+              "summary" : "VIP customer segment"
+            },
+            "validationWarnings" : [ ]
+          },
+          "persistKind" : "metadata.faceting.capture"
+        }
+      } ],
+      "sseEvents" : [ {
+        "type" : "item.created",
+        "sequence" : 0
+      }, {
+        "type" : "item.part.updated",
+        "sequence" : 1,
+        "presentation" : "structured",
+        "partType" : "facet-proposal",
+        "content" : "{\"captureType\":\"facet_assignment\",\"facetTypeKey\":\"descriptive\",\"metadataEntityId\":\"sales.customers\",\"serializedPayload\":{\"summary\":\"VIP customer segment\"},\"validationWarnings\":[]}"
+      }, {
+        "type" : "item.completed",
+        "sequence" : 2,
+        "presentation" : "structured",
+        "partType" : "facet-proposal",
+        "content" : null
+      } ],
+      "structuredParts" : [ {
+        "presentation" : "structured",
+        "partType" : "facet-proposal",
+        "content" : "{\"captureType\":\"facet_assignment\",\"facetTypeKey\":\"descriptive\",\"metadataEntityId\":\"sales.customers\",\"serializedPayload\":{\"summary\":\"VIP customer segment\"},\"validationWarnings\":[]}"
+      } ],
+      "transcript" : {
+        "turnCount" : 2,
+        "turns" : [ {
+          "role" : "user",
+          "text" : "Tag the customers entity as VIP",
+          "artifactIds" : [ ]
+        }, {
+          "role" : "assistant",
+          "text" : null,
+          "artifactIds" : [ "<uuid>" ]
+        } ],
+        "activePointers" : { }
+      }
+    },
+    "verify" : {
+      "passLevel" : "ERROR",
+      "checks" : [ {
+        "events" : {
+          "containsInOrder" : [ {
+            "type" : "tool.call",
+            "name" : "propose_facet_assignment"
+          }, {
+            "type" : "tool.result",
+            "name" : "propose_facet_assignment"
+          }, {
+            "type" : "protocol.final",
+            "protocolId" : "metadata.faceting.capture"
+          }, {
+            "type" : "answer.completed"
+          } ]
+        }
+      }, {
+        "artifacts" : [ {
+          "persistKind" : "metadata.faceting.capture",
+          "count" : 1
+        } ]
+      }, {
+        "artifacts.shape" : {
+          "persistKind" : "metadata.faceting.capture",
+          "match" : {
+            "payload.facetTypeKey" : "descriptive"
+          }
+        }
+      }, {
+        "sse" : [ {
+          "type" : "item.part.updated",
+          "presentation" : "structured",
+          "partType" : "facet-proposal"
+        } ]
+      } ],
+      "results" : [ {
+        "checkType" : "events",
+        "status" : "PASS",
+        "detail" : null
+      }, {
+        "checkType" : "artifacts",
+        "status" : "PASS",
+        "detail" : null
+      }, {
+        "checkType" : "artifacts.shape",
+        "status" : "PASS",
+        "detail" : null
+      }, {
+        "checkType" : "sse",
+        "status" : "PASS",
+        "detail" : null
+      } ]
+    }
+  } ]
+}

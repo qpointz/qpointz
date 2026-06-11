@@ -1,0 +1,43 @@
+name: schema-authoring-sql-and-facet
+profileId: schema-authoring
+parameters:
+  mode: scripted
+run:
+  - ask: "Show monthly revenue"
+    script:
+      - toolCalls:
+          - name: validate_sql
+            args:
+              sql: "SELECT month, SUM(revenue) FROM sales GROUP BY month"
+              attempt: 1
+    verify:
+      pass: ERROR
+      check:
+        - artifacts:
+            - persistKind: sql.generated
+              count: 1
+            - persistKind: sql.validation
+              count: 1
+        - sse:
+            - type: item.part.updated
+              partType: sql
+  - ask: "Describe the customers table as important"
+    script:
+      - toolCalls:
+          - name: propose_facet_assignment
+            args:
+              facetTypeKey: descriptive
+              metadataEntityId: sales.customers
+              payload:
+                summary: "Important customer table"
+              rationale: "Business critical entity"
+      - answer: '{"captureType":"facet_assignment","facetTypeKey":"descriptive","metadataEntityId":"sales.customers","serializedPayload":{"summary":"Important customer table"},"validationWarnings":[]}'
+    verify:
+      pass: ERROR
+      check:
+        - artifacts:
+            - persistKind: metadata.faceting.capture
+              count: 1
+        - sse:
+            - type: item.part.updated
+              partType: facet-proposal

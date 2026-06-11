@@ -31,6 +31,8 @@ import io.qpointz.mill.ai.capabilities.sqlquery.SqlValidator
 import io.qpointz.mill.ai.capabilities.valuemapping.MockValueMappingResolver
 import io.qpointz.mill.ai.capabilities.valuemapping.ValueMappingResolver
 import io.qpointz.mill.ai.dependencies.CapabilityDependencyAssembler
+import io.qpointz.mill.ai.core.artifact.ArtifactDescriptorRegistry
+import io.qpointz.mill.ai.runtime.langchain4j.ArtifactEmissionCoordinator
 import io.qpointz.mill.ai.profile.DefaultProfileRegistry
 import io.qpointz.mill.ai.profile.ProfileRegistry
 import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec
@@ -98,6 +100,18 @@ class AiV3AutoConfiguration {
     @ConditionalOnMissingBean(ProfileRegistry::class)
     fun defaultProfileRegistry(): ProfileRegistry = DefaultProfileRegistry
 
+    /** Shared artefact descriptor registry loaded from capability YAML manifests. */
+    @Bean
+    @ConditionalOnMissingBean(ArtifactDescriptorRegistry::class)
+    fun artifactDescriptorRegistry(): ArtifactDescriptorRegistry = ArtifactDescriptorRegistry.loadDefault()
+
+    /** Coordinator for OnToolSuccess protocol-final synthesis. */
+    @Bean
+    @ConditionalOnMissingBean(ArtifactEmissionCoordinator::class)
+    fun artifactEmissionCoordinator(
+        artifactDescriptorRegistry: ArtifactDescriptorRegistry,
+    ): ArtifactEmissionCoordinator = ArtifactEmissionCoordinator(artifactDescriptorRegistry)
+
     /**
      * Weak [ValueMappingResolver] used when no host metadata-backed resolver is registered.
      * `value-mapping` tools return empty or pass-through results until replaced.
@@ -161,6 +175,7 @@ class AiV3AutoConfiguration {
         runEventStore: RunEventStore,
         artifactStore: ArtifactStore,
         activeArtifactPointerStore: ActiveArtifactPointerStore,
+        artifactDescriptorRegistry: ArtifactDescriptorRegistry,
     ): AiV3ChatRuntime = LangChain4jChatRuntime(
         model = model,
         profileRegistry = profileRegistry,
@@ -171,6 +186,7 @@ class AiV3AutoConfiguration {
         conversationStore = conversationStore,
         artifactStore = artifactStore,
         activeArtifactPointerStore = activeArtifactPointerStore,
+        artifactDescriptorRegistry = artifactDescriptorRegistry,
     )
 
     // ── User identity ─────────────────────────────────────────────────────────

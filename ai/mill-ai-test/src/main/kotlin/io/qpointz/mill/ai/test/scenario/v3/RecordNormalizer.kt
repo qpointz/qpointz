@@ -63,7 +63,15 @@ object RecordNormalizer {
             }
             normalized
         }
-        is List<*> -> value.map { normalizeValue(it) }
+        is List<*> -> {
+            val normalized = value.map { normalizeValue(it) }
+            if (normalized.all { it is Map<*, *> && (it as Map<*, *>).containsKey("persistKind") }) {
+                @Suppress("UNCHECKED_CAST")
+                (normalized as List<Map<String, Any?>>).sortedBy { it["persistKind"] as? String ?: "" }
+            } else {
+                normalized
+            }
+        }
         is String -> normalizeString(value)
         else -> value
     }

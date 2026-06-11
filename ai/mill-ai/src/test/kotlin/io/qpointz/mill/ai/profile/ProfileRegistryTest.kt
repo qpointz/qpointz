@@ -7,6 +7,7 @@ class MapProfileRegistryTest {
 
     private val registry = MapProfileRegistry(
         HelloWorldAgentProfile.profile,
+        DataAnalysisAgentProfile.profile,
         SchemaExplorationAgentProfile.profile,
         SchemaAuthoringAgentProfile.profile,
     )
@@ -25,13 +26,13 @@ class MapProfileRegistryTest {
 
     @Test
     fun shouldExposeKnownIds() {
-        assertTrue(registry.knownIds.containsAll(setOf("hello-world", "schema-exploration", "schema-authoring")))
+        assertTrue(registry.knownIds.containsAll(setOf("hello-world", "data-analysis", "schema-exploration", "schema-authoring")))
     }
 
     @Test
     fun shouldListRegisteredProfilesSortedById() {
         val ids = registry.registeredProfiles().map { it.id }
-        assertEquals(listOf("hello-world", "schema-authoring", "schema-exploration"), ids)
+        assertEquals(listOf("data-analysis", "hello-world", "schema-authoring", "schema-exploration"), ids)
     }
 
     @Test
@@ -46,6 +47,11 @@ class DefaultProfileRegistryTest {
     @Test
     fun shouldResolveHelloWorld() {
         assertNotNull(DefaultProfileRegistry.resolve("hello-world"))
+    }
+
+    @Test
+    fun shouldResolveDataAnalysis() {
+        assertNotNull(DefaultProfileRegistry.resolve("data-analysis"))
     }
 
     @Test
@@ -66,12 +72,12 @@ class DefaultProfileRegistryTest {
     @Test
     fun shouldExposeAllKnownIds() {
         val ids = DefaultProfileRegistry.knownIds
-        assertTrue(ids.containsAll(setOf("hello-world", "schema-exploration", "schema-authoring")))
+        assertTrue(ids.containsAll(setOf("hello-world", "data-analysis", "schema-exploration", "schema-authoring")))
     }
 
     @Test
     fun shouldListRegisteredProfilesSortedById() {
         val ids = DefaultProfileRegistry.registeredProfiles().map { it.id }
-        assertEquals(listOf("hello-world", "schema-authoring", "schema-exploration"), ids)
+        assertEquals(listOf("data-analysis", "hello-world", "schema-authoring", "schema-exploration"), ids)
     }
 }
