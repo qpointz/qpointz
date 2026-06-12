@@ -1,5 +1,6 @@
 import type {
   AgentProfileResponseWire,
+  AttachExecutionResultRequest,
   ChatDetailResponseWire,
   ChatResponseWire,
   ChatSendOptions,
@@ -7,6 +8,8 @@ import type {
   ChatSummary,
   CreateChatParams,
 } from '../types/chat';
+import type { ArtifactResponseWire } from '../types/chatWire';
+import { parseArtifactWire } from '../utils/artifactWireParse';
 import { resolveGeneralChatAgentProfileId } from '../features/chatPreferences';
 import { isV1MainConversationTextPart } from '../types/chatTransport';
 import { sleep, streamResponse } from '../utils/streamUtils';
@@ -285,6 +288,7 @@ function summarizeFromWire(chat: ChatResponseWire): ChatSummary {
     chatId: chat.chatId,
     chatName: chat.chatName,
     updatedAt: Date.parse(chat.updatedAt),
+    profileId: chat.profileId,
   };
 }
 
@@ -578,6 +582,25 @@ const mockChatService: ChatService = {
     return next;
   },
 
+  async updateChatProfile(chatId, profileId) {
+    await sleep(30);
+    const wire = mockWireById.get(chatId);
+    if (!wire) {
+      throw new Error(`Mock chat not found: ${chatId}`);
+    }
+    const next: ChatResponseWire = {
+      ...wire,
+      profileId,
+      updatedAt: new Date().toISOString(),
+    };
+    mockWireById.set(chatId, next);
+    const summaryIdx = generalChatList.findIndex((c) => c.chatId === chatId);
+    if (summaryIdx >= 0) {
+      generalChatList[summaryIdx] = summarizeFromWire(next);
+    }
+    return next;
+  },
+
   async listAgentProfiles() {
     await sleep(20);
     return [
@@ -599,6 +622,18 @@ const mockChatService: ChatService = {
   async getChatByContext(contextType, contextId) {
     await sleep(50);
     return contextToChatMap.get(`${contextType}:${contextId}`) ?? null;
+  },
+
+  async attachExecutionResult(_chatId, _turnId, request) {
+    await sleep(20);
+    return {
+      kind: 'data',
+      executionId: request.executionId,
+      columns: request.columns,
+      rowCount: request.rowCount,
+      truncated: request.truncated,
+      sql: request.sql,
+    };
   },
 };
 
@@ -640,6 +675,7 @@ const realChatService: ChatService = {
       chatId: chat.chatId,
       chatName: chat.chatName,
       updatedAt: Date.parse(chat.updatedAt),
+      profileId: chat.profileId,
     }));
   },
 
@@ -674,6 +710,20 @@ const realChatService: ChatService = {
     return readJson<ChatResponseWire>(res);
   },
 
+  async updateChatProfile(chatId, profileId) {
+    const res = await fetch(`${CHATS_PREFIX}/${encodeURIComponent(chatId)}`, {
+      credentials: 'include',
+      method: 'PATCH',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ profileId }),
+    });
+    await ensureOk(res, `PATCH /api/v1/ai/chats/${chatId}`);
+    return readJson<ChatResponseWire>(res);
+  },
+
   async listAgentProfiles() {
     const res = await fetch(PROFILES_PREFIX, {
       ...FETCH_AI_JSON,
@@ -695,6 +745,30 @@ const realChatService: ChatService = {
     await ensureOk(res, path);
     const chat = await readJson<ChatResponseWire>(res);
     return chat.chatId;
+  },
+
+  async attachExecutionResult(chatId, turnId, request) {
+    const res = await fetch(
+      `${CHATS_PREFIX}/${encodeURIComponent(chatId)}/turns/${encodeURIComponent(turnId)}/execution-result`,
+      {
+        ...FETCH_AI_JSON,
+        method: 'POST',
+        headers: {
+          ...FETCH_AI_JSON.headers,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          executionId: request.executionId,
+          columns: request.columns ?? [],
+          rowCount: request.rowCount ?? 0,
+          truncated: request.truncated,
+          sql: request.sql,
+        } satisfies AttachExecutionResultRequest),
+      },
+    );
+    await ensureOk(res, 'POST /api/v1/ai/chats/.../execution-result');
+    const wire = await readJson<ArtifactResponseWire>(res);
+    return parseArtifactWire(wire);
   },
 };
 

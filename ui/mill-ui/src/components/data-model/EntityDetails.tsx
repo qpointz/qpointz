@@ -52,6 +52,7 @@ import type { EntityFacets, FacetResolvedRow, SchemaEntity, StructuralFacet as S
 import { StructuralFacet } from './facets/StructuralFacet';
 import { InlineChatButton } from '../common/InlineChatButton';
 import { RelatedContentButton } from '../common/RelatedContentButton';
+import { ContentPaneHeader } from '../layout/ContentPaneHeader';
 import { JsonYamlEditor } from '../common/JsonYamlEditor';
 import { SyntaxCodeEditor } from '../common/SyntaxCodeEditor';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
@@ -1446,48 +1447,18 @@ export function EntityDetails({
   };
 
   return (
-    <Box h="100%">
-      {/* Header */}
-      <Box
-        p="md"
-        style={{
-          borderBottom: '1px solid var(--mantine-color-default-border)',
-          background: isDark
-            ? 'linear-gradient(135deg, var(--mantine-color-dark-8) 0%, var(--mantine-color-dark-7) 100%)'
-            : 'linear-gradient(135deg, var(--mantine-color-teal-0) 0%, white 100%)',
-        }}
-      >
-        <Group gap="md" mb="xs" justify="space-between" wrap="nowrap">
-          <Group gap="md" wrap="nowrap" style={{ minWidth: 0 }}>
-            <Box
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 8,
-                backgroundColor: isDark ? 'var(--mantine-color-cyan-9)' : 'var(--mantine-color-teal-1)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <Icon size={20} color={isDark ? 'var(--mantine-color-cyan-4)' : 'var(--mantine-color-teal-6)'} />
-            </Box>
-            <Box style={{ minWidth: 0 }}>
-              <Group gap="xs">
-                <Text size="lg" fw={600} c={isDark ? 'gray.1' : 'gray.8'} truncate>
-                  {facets.descriptive?.displayName || entityName}
-                </Text>
-                <Badge variant="light" color={isDark ? 'cyan' : 'teal'} size="sm">
-                  {entityLabels[entity.entityType]}
-                </Badge>
-              </Group>
-              <Text size="sm" c="dimmed" ff="monospace" truncate title={entity.id}>
-                {metadataFacetTargetId ?? entity.id}
-              </Text>
-            </Box>
-          </Group>
-          <Group gap={4} wrap="nowrap">
+    <Box h="100%" style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+      <ContentPaneHeader
+        icon={Icon}
+        title={facets.descriptive?.displayName || entityName}
+        titleAddon={
+          <Badge variant="light" color={isDark ? 'cyan' : 'teal'} size="sm" style={{ flexShrink: 0 }}>
+            {entityLabels[entity.entityType]}
+          </Badge>
+        }
+        subtitle={metadataFacetTargetId ?? entity.id}
+        actions={
+          <>
             {entity.entityType === 'TABLE' && flags.modelTableExportEnabled && (
               <Menu withinPortal position="bottom-end">
                 <Group gap={0} wrap="nowrap" mr="xs">
@@ -1619,12 +1590,20 @@ export function EntityDetails({
               contextLabel={entityName}
               contextEntityType={entity.entityType}
             />
-          </Group>
-        </Group>
+          </>
+        }
+      />
 
-        {/* Quick badges for structural info */}
-        {flags.modelQuickBadges && facets.structural && (
-          <Group gap="xs" mt="sm">
+      {flags.modelQuickBadges && facets.structural && (
+        <Box
+          px="md"
+          py="xs"
+          style={{
+            borderBottom: '1px solid var(--mantine-color-default-border)',
+            flexShrink: 0,
+          }}
+        >
+          <Group gap="xs">
             {facets.structural.isPrimaryKey && (
               <Badge color={isDark ? 'cyan' : 'teal'} variant="filled" size="sm">
                 PK
@@ -1651,11 +1630,10 @@ export function EntityDetails({
               </Badge>
             )}
           </Group>
-        )}
-      </Box>
+        </Box>
+      )}
 
-      {/* Content */}
-      <Box p="md" style={{ overflow: 'auto', height: 'calc(100% - 120px)' }}>
+      <Box p="md" style={{ overflow: 'auto', flex: 1, minHeight: 0 }}>
         <Box
           mb="md"
           p="sm"

@@ -9,13 +9,18 @@ vi.mock('../../services/api', () => ({
     async createChat() {
       return { chatId: crypto.randomUUID(), chatName: 'New Chat' };
     },
+    async listAgentProfiles() {
+      return [
+        { id: 'data-analysis', capabilityIds: ['sql.query'] },
+        { id: 'hello-world', capabilityIds: ['conversation.general'] },
+      ];
+    },
     async *sendMessage(_conversationId: string, _message: string) {
       yield 'Mock AI response';
     },
   },
 }));
 
-// Prevent localStorage noise between tests
 beforeEach(() => {
   localStorage.clear();
 });

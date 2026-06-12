@@ -1,4 +1,5 @@
 import { Box, Badge, Group, ScrollArea, Anchor, useMantineColorScheme } from '@mantine/core';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import {
   HiOutlineCircleStack,
@@ -8,16 +9,22 @@ import {
   HiOutlineBeaker,
 } from 'react-icons/hi2';
 import type { InlineChatSession } from '../../types/inlineChat';
+import type { ChatMessageArtifact } from '../../types/chat';
+import { resolveInlineChatType } from '../chat/artifactPreview/hostIntegrations';
 import { InlineChatMessage } from './InlineChatMessage';
 import { InlineChatInput } from './InlineChatInput';
-import { TypingIndicator } from '../chat/TypingIndicator';
 import { ThinkingIndicator } from '../chat/ThinkingIndicator';
 import { ChatEmptyState } from '../common/ChatEmptyState';
 import { useAutoScroll } from '../../hooks/useAutoScroll';
+import { isPendingAssistantReply } from '../chat/chatMessageHelpers';
 
 interface InlineChatPanelProps {
   session: InlineChatSession;
   onSend: (message: string) => void;
+  onArtifactsChange?: (
+    messageId: string,
+    artifacts: readonly ChatMessageArtifact[],
+  ) => void;
 }
 
 const entityTypeIcons: Record<string, React.ComponentType<{ size: number; color?: string }>> = {
@@ -55,15 +62,40 @@ function getEmptyDescription(contextType: string): string {
   return 'I can help refine definitions, suggest related concepts, and improve SQL formulas.';
 }
 
-export function InlineChatPanel({ session, onSend }: InlineChatPanelProps) {
+export function InlineChatPanel({ session, onSend, onArtifactsChange }: InlineChatPanelProps) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const navigate = useNavigate();
   const ContextIcon = getContextIcon(session);
 
-  const { viewportRef } = useAutoScroll({
-    deps: [session.messages, session.isLoading],
-  });
+  const { viewportRef, scrollToBottom, scrollToBottomIfNear } = useAutoScroll();
+  const contentRef = useRef<HTMLDivElement>(null);
+  const prevMessageCountRef = useRef(session.messages.length);
+
+  useEffect(() => {
+    const content = contentRef.current;
+    const viewport = viewportRef.current;
+    if (!content || !viewport) return;
+
+    const ro = new ResizeObserver(() => {
+      scrollToBottomIfNear('auto');
+    });
+    ro.observe(content);
+    return () => ro.disconnect();
+  }, [scrollToBottomIfNear, viewportRef]);
+
+  useEffect(() => {
+    const prevCount = prevMessageCountRef.current;
+    const countIncreased = session.messages.length > prevCount;
+    prevMessageCountRef.current = session.messages.length;
+
+    if (countIncreased && session.messages[prevCount]?.role === 'user') {
+      scrollToBottom();
+      return;
+    }
+
+    requestAnimationFrame(() => scrollToBottomIfNear());
+  }, [session.messages, session.isLoading, session.thinkingMessage, scrollToBottom, scrollToBottomIfNear]);
 
   // Build context path for display
   const contextPath =
@@ -78,6 +110,8 @@ export function InlineChatPanel({ session, onSend }: InlineChatPanelProps) {
         : session.contextLabel;
 
   const contextRoute = getContextRoute(session);
+  const chatType = resolveInlineChatType(session.contextType);
+  const conversationId = session.chatId ?? session.id;
 
   return (
     <Box style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
@@ -131,21 +165,36 @@ export function InlineChatPanel({ session, onSend }: InlineChatPanelProps) {
         />
       ) : (
         <ScrollArea style={{ flex: 1 }} viewportRef={viewportRef} type="scroll" scrollbarSize={6}>
-          <Box p="xs" pb={4}>
-            {session.messages.map((msg) => (
-              <InlineChatMessage key={msg.id} message={msg} />
-            ))}
-            {session.thinkingMessage ? (
-              <Box px="xs" pb={6}>
-                <ThinkingIndicator message={session.thinkingMessage} />
-              </Box>
-            ) : session.isLoading &&
-              session.messages.length > 0 &&
-              session.messages[session.messages.length - 1]?.content === '' ? (
-              <Box style={{ display: 'flex', justifyContent: 'flex-start', marginLeft: 4 }}>
-                <TypingIndicator />
-              </Box>
-            ) : null}
+          <Box ref={contentRef} p="xs" pb={4}>
+            {session.messages.map((msg, index) => {
+              if (isPendingAssistantReply(msg, index, session.messages, session.isLoading)) {
+                return (
+                  <Box key={msg.id} px="xs" pb={6}>
+                    <ThinkingIndicator message={session.thinkingMessage} />
+                  </Box>
+                );
+              }
+
+              let precedingUserQuestion: string | undefined;
+              for (let i = index - 1; i >= 0; i -= 1) {
+                const prior = session.messages[i];
+                if (prior?.role === 'user') {
+                  precedingUserQuestion = prior.content;
+                  break;
+                }
+              }
+              return (
+                <InlineChatMessage
+                  key={msg.id}
+                  message={msg}
+                  chatType={chatType}
+                  conversationId={conversationId}
+                  chatTitle={session.contextLabel}
+                  precedingUserQuestion={precedingUserQuestion}
+                  onArtifactsChange={onArtifactsChange}
+                />
+              );
+            })}
           </Box>
         </ScrollArea>
       )}

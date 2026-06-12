@@ -1,12 +1,25 @@
-import { Box, Text, useMantineColorScheme } from '@mantine/core';
+import { Box, useMantineColorScheme } from '@mantine/core';
 import type { Message } from '../../types/chat';
-import { MessageContent } from '../common/MessageContent';
+import type { ChatType } from '../chat/artifactPreview/types';
+import { ArtifactPreviewRouter } from '../chat/artifactPreview/ArtifactPreviewRouter';
 
 interface InlineChatMessageProps {
   message: Message;
+  chatType: ChatType;
+  conversationId: string;
+  chatTitle?: string;
+  precedingUserQuestion?: string;
+  onArtifactsChange?: (messageId: string, artifacts: NonNullable<Message['artifacts']>) => void;
 }
 
-export function InlineChatMessage({ message }: InlineChatMessageProps) {
+export function InlineChatMessage({
+  message,
+  chatType,
+  conversationId,
+  chatTitle,
+  precedingUserQuestion,
+  onArtifactsChange,
+}: InlineChatMessageProps) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const isUser = message.role === 'user';
@@ -35,14 +48,28 @@ export function InlineChatMessage({ message }: InlineChatMessageProps) {
           borderRadius: isUser ? '10px 10px 3px 10px' : '10px 10px 10px 3px',
           maxWidth: '100%',
           minWidth: 0,
+          width: isUser ? undefined : '100%',
         }}
       >
         {isUser ? (
-          <Text size="xs" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.4 }}>
+          <Box component="span" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.4, fontSize: '12px' }}>
             {message.content}
-          </Text>
+          </Box>
         ) : (
-          <MessageContent content={message.content} compact />
+          <Box style={{ fontSize: '12px' }}>
+            <ArtifactPreviewRouter
+              message={message}
+              chatType={chatType}
+              conversationId={conversationId}
+              chatTitle={chatTitle}
+              precedingUserQuestion={precedingUserQuestion}
+              onArtifactsChange={
+                onArtifactsChange
+                  ? (artifacts) => onArtifactsChange(message.id, artifacts)
+                  : undefined
+              }
+            />
+          </Box>
         )}
       </Box>
     </Box>

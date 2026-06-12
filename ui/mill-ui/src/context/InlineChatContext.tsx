@@ -6,8 +6,9 @@ import {
   useRef,
   useEffect,
   type ReactNode,
+  type Dispatch,
 } from 'react';
-import type { Message } from '../types/chat';
+import type { Message, ChatMessageArtifact } from '../types/chat';
 import type {
   InlineChatSession,
   InlineChatState,
@@ -17,19 +18,57 @@ import type {
 import { chatService } from '../services/api';
 import { resolveGeneralChatAgentProfileId } from '../features/chatPreferences';
 import { useFeatureFlags } from '../features/FeatureFlagContext';
+import { parseChatStructuredPart } from '../utils/chatArtifactParse';
+import { parseWireArtifacts } from '../utils/artifactWireParse';
+import { deriveAssistantReplyView } from '../utils/assistantReplyView';
+import type { TurnResponseWire } from '../types/chatWire';
 
 /**
- * Inline chats share `chatService` with General Chat. Contextual `createChat` forwards the same
- * `profileId` resolution as the main app (`resolveGeneralChatAgentProfileId()` — session picker,
- * then `VITE_MILL_AI_PROFILE`, then `data-analysis`) so inline threads stay aligned with
- * General Chat agent defaults when the picker flag is enabled (WI-230).
- *
- * Structured chat artefacts (SQL / facet cards) are implemented for **General Chat** only
- * ([ChatContext]); inline sessions can adopt the same `onNonTextPartUpdated` + message `artifacts`
- * pattern in a follow-up.
+ * Inline chats share `chatService` with General Chat. Structured artefacts (SQL / data / facet)
+ * use the same streaming `onNonTextPartUpdated` path as {@link ChatContext}.
  */
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
+function turnToInlineMessage(turn: TurnResponseWire, conversationId: string): Message {
+  const role = turn.role === 'user' ? 'user' : 'assistant';
+  const artifacts = parseWireArtifacts(turn.artifacts);
+  const view =
+    role === 'assistant'
+      ? deriveAssistantReplyView(artifacts)
+      : undefined;
+  return {
+    id: turn.turnId,
+    conversationId,
+    role,
+    content: turn.text ?? '',
+    timestamp: Date.parse(turn.createdAt),
+    restReplay: true,
+    ...(artifacts.length ? { artifacts } : {}),
+    ...(view ? { assistantReplyView: view } : {}),
+  };
+}
+
+async function hydrateSessionTranscript(
+  dispatch: Dispatch<InlineChatAction>,
+  sessionId: string,
+  contextType: InlineChatContextType,
+  contextId: string,
+): Promise<void> {
+  try {
+    const chatId = await chatService.getChatByContext(contextType, contextId);
+    if (!chatId) return;
+    const detail = await chatService.getChatDetail(chatId);
+    const messages = detail.messages.map((turn) => turnToInlineMessage(turn, chatId));
+    if (!messages.length) return;
+    dispatch({
+      type: 'MERGE_SESSION_TRANSCRIPT',
+      payload: { sessionId, chatId, messages },
+    });
+  } catch {
+    /* tolerate missing contextual chat */
+  }
 }
 
 function inlineChatReducer(
@@ -123,6 +162,82 @@ function inlineChatReducer(
       };
     }
 
+    case 'APPEND_MESSAGE_ARTIFACT': {
+      const { sessionId, messageId, artifact } = action.payload;
+      return {
+        ...state,
+        sessions: state.sessions.map((s) => {
+          if (s.id !== sessionId) return s;
+          return {
+            ...s,
+            messages: s.messages.map((m) => {
+              if (m.id !== messageId) return m;
+              const artifacts = [...(m.artifacts ?? []), artifact];
+              return {
+                ...m,
+                artifacts,
+                assistantReplyView: deriveAssistantReplyView(artifacts),
+              };
+            }),
+          };
+        }),
+      };
+    }
+
+    case 'SET_MESSAGE_ARTIFACTS': {
+      const { sessionId, messageId, artifacts } = action.payload;
+      return {
+        ...state,
+        sessions: state.sessions.map((s) => {
+          if (s.id !== sessionId) return s;
+          return {
+            ...s,
+            messages: s.messages.map((m) => {
+              if (m.id !== messageId) return m;
+              return {
+                ...m,
+                artifacts,
+                assistantReplyView: deriveAssistantReplyView(artifacts),
+              };
+            }),
+          };
+        }),
+      };
+    }
+
+    case 'FINALIZE_ASSISTANT_REPLY_VIEW': {
+      const { sessionId, messageId, completionPresentation, completionPartType } = action.payload;
+      return {
+        ...state,
+        sessions: state.sessions.map((s) => {
+          if (s.id !== sessionId) return s;
+          return {
+            ...s,
+            messages: s.messages.map((m) => {
+              if (m.id !== messageId) return m;
+              return {
+                ...m,
+                assistantReplyView: deriveAssistantReplyView(m.artifacts, {
+                  presentation: completionPresentation,
+                  partType: completionPartType,
+                }),
+              };
+            }),
+          };
+        }),
+      };
+    }
+
+    case 'MERGE_SESSION_TRANSCRIPT': {
+      const { sessionId, chatId, messages } = action.payload;
+      return {
+        ...state,
+        sessions: state.sessions.map((s) =>
+          s.id !== sessionId ? s : { ...s, chatId, messages },
+        ),
+      };
+    }
+
     case 'CLOSE_ALL_SESSIONS':
       return {
         ...state,
@@ -156,6 +271,11 @@ interface InlineChatContextValue {
   closeSession: (sessionId: string) => void;
   setActiveSession: (sessionId: string) => void;
   sendMessage: (sessionId: string, content: string) => Promise<void>;
+  updateMessageArtifacts: (
+    sessionId: string,
+    messageId: string,
+    artifacts: readonly ChatMessageArtifact[],
+  ) => void;
   openDrawer: () => void;
   closeDrawer: () => void;
   closeAllSessions: () => void;
@@ -243,6 +363,9 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
       if (existing) {
         dispatch({ type: 'SET_ACTIVE_SESSION', payload: existing.id });
         dispatch({ type: 'OPEN_DRAWER' });
+        if (!existing.chatId || existing.messages.length <= 1) {
+          void hydrateSessionTranscript(dispatch, existing.id, contextType, contextId);
+        }
         return;
       }
 
@@ -279,6 +402,7 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
       };
 
       dispatch({ type: 'START_SESSION', payload: session });
+      void hydrateSessionTranscript(dispatch, sessionId, contextType, contextId);
     },
     [state.sessions, flags],
   );
@@ -303,6 +427,16 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'CLOSE_ALL_SESSIONS' });
   }, []);
 
+  const updateMessageArtifacts = useCallback(
+    (sessionId: string, messageId: string, artifacts: readonly ChatMessageArtifact[]) => {
+      dispatch({
+        type: 'SET_MESSAGE_ARTIFACTS',
+        payload: { sessionId, messageId, artifacts: [...artifacts] },
+      });
+    },
+    [],
+  );
+
   const sendMessage = useCallback(
     async (sessionId: string, content: string) => {
       const session = state.sessions.find((s) => s.id === sessionId);
@@ -325,6 +459,7 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
         role: 'assistant',
         content: '',
         timestamp: Date.now(),
+        restReplay: false,
       };
       dispatch({ type: 'ADD_MESSAGE', payload: { sessionId, message: assistantMessage } });
       dispatch({ type: 'SET_LOADING', payload: { sessionId, isLoading: true } });
@@ -368,6 +503,25 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
               });
             }
           },
+          onNonTextPartUpdated: (evt) => {
+            const artifact = parseChatStructuredPart(evt);
+            if (!artifact) return;
+            dispatch({
+              type: 'APPEND_MESSAGE_ARTIFACT',
+              payload: { sessionId, messageId: assistantMessage.id, artifact },
+            });
+          },
+          onItemCompleted: (payload) => {
+            dispatch({
+              type: 'FINALIZE_ASSISTANT_REPLY_VIEW',
+              payload: {
+                sessionId,
+                messageId: assistantMessage.id,
+                completionPresentation: payload.presentation,
+                completionPartType: payload.partType,
+              },
+            });
+          },
         })) {
           fullContent += chunk;
           dispatch({
@@ -408,6 +562,7 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
     closeSession,
     setActiveSession,
     sendMessage,
+    updateMessageArtifacts,
     openDrawer,
     closeDrawer,
     closeAllSessions,

@@ -493,6 +493,7 @@ export function InlineChatDrawer() {
     closeAllSessions,
     setActiveSession,
     sendMessage,
+    updateMessageArtifacts,
     openDrawer,
     closeDrawer,
   } = useInlineChat();
@@ -987,6 +988,8 @@ export function InlineChatDrawer() {
           <InlineChatPanel
             session={activeSession}
             onSend={(content) => sendMessage(activeSession.id, content)}
+            onArtifactsChange={(messageId, artifacts) =>
+              updateMessageArtifacts(activeSession.id, messageId, artifacts)}
           />
         ) : (
           <Box

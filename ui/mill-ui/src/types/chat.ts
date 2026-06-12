@@ -1,7 +1,9 @@
 import type { AgentProfileResponseWire, ChatDetailResponseWire, ChatResponseWire } from './chatWire';
+import type { QueryColumn } from './query';
 
 export type {
   AgentProfileResponseWire,
+  ArtifactResponseWire,
   ChatDetailResponseWire,
   ChatResponseWire,
   CreateChatRequestWire,
@@ -13,6 +15,14 @@ export type {
 /** Normalized durable slices attached to an assistant message (from structured SSE parts). */
 export type ChatMessageArtifact =
   | { kind: 'sql'; sql: string; dialectId?: string }
+  | {
+      kind: 'data';
+      executionId: string;
+      sql?: string;
+      rowCount?: number;
+      truncated?: boolean;
+      columns?: QueryColumn[];
+    }
   | {
       kind: 'facet-proposal';
       facetTypeKey: string;
@@ -52,8 +62,13 @@ export interface Message {
    * [TurnResponseWire.assistantReplyView].
    */
   assistantReplyView?: AssistantReplyView;
-  /** Structured artefacts (SQL, facet proposals) from `item.part.updated` — not restored on GET until API exposes them. */
+  /** Structured artefacts (SQL, facet proposals, query results) from SSE or GET replay. */
   artifacts?: readonly ChatMessageArtifact[];
+  /**
+   * When `true`, message was loaded from REST transcript replay — SQL preview stays on the SQL tab
+   * and does not auto-execute. Live streaming turns omit this flag (or set `false`).
+   */
+  restReplay?: boolean;
 }
 
 export interface Conversation {
@@ -105,6 +120,7 @@ export interface ChatSummary {
   chatId: string;
   chatName: string;
   updatedAt: number;
+  profileId?: string;
 }
 
 /** Wait-state payloads while an assistant reply is streamed (SSE). */
@@ -136,6 +152,14 @@ export interface ChatSendOptions {
    * / [ChatItemCompletedPayload.partType] repeat the last structured summary from the server.
    */
   onItemCompleted?: (payload: ChatItemCompletedPayload) => void;
+}
+
+export interface AttachExecutionResultRequest {
+  executionId: string;
+  columns?: QueryColumn[];
+  rowCount?: number;
+  truncated?: boolean;
+  sql?: string;
 }
 
 export interface ChatService {
@@ -171,6 +195,8 @@ export interface ChatService {
 
   /** Updates display name (`chatName`) and returns the refreshed metadata envelope. */
   renameChat(chatId: string, chatName: string): Promise<ChatResponseWire>;
+  /** PATCH agent profile for an existing general chat. */
+  updateChatProfile(chatId: string, profileId: string): Promise<ChatResponseWire>;
 
   /**
    * Agent profiles advertised by the host (`GET /api/v1/ai/profiles`).
@@ -182,4 +208,13 @@ export interface ChatService {
    * REST: GET `/chats/context-types/{contextType}/contexts/{contextId}` (`404` → `null`).
    */
   getChatByContext(contextType: string, contextId: string): Promise<string | null>;
+
+  /**
+   * Attach query execution metadata to an assistant turn for durable artifact replay.
+   */
+  attachExecutionResult(
+    chatId: string,
+    turnId: string,
+    request: AttachExecutionResultRequest,
+  ): Promise<ChatMessageArtifact | null>;
 }

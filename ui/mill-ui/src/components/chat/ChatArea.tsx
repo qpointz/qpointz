@@ -1,39 +1,47 @@
-import { useEffect } from 'react';
-import { Box, Group, Text, Badge, useMantineColorScheme } from '@mantine/core';
+import { useEffect, useCallback, useRef } from 'react';
+import { Box } from '@mantine/core';
 import { useLocation, useNavigate } from 'react-router';
 import { useChat } from '../../context/ChatContext';
+import { useFeatureFlags } from '../../features/FeatureFlagContext';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
-import { ThinkingIndicator } from './ThinkingIndicator';
+import { ChatExpandHost } from './expand/ChatExpandHost';
+import { ChatExpandProvider, useChatExpand } from './expand/useChatExpand';
+import { ChatToolbar } from './ChatToolbar';
+import { useRunAllChatQueries } from './useRunAllChatQueries';
 
-export function ChatArea() {
-  const { activeConversation, sendMessage, state, initialized } = useChat();
-  const { colorScheme } = useMantineColorScheme();
-  const isDark = colorScheme === 'dark';
-  const location = useLocation();
-  const navigate = useNavigate();
+function ChatAreaBody() {
+  const {
+    activeConversation,
+    sendMessage,
+    state,
+    initialized,
+    updateMessageArtifacts,
+    agentProfiles,
+    updateConversationProfile,
+  } = useChat();
+  const flags = useFeatureFlags();
+  const { notifyRunAllComplete } = useChatExpand();
+  const messageListRef = useRef<HTMLDivElement>(null);
+
+  const scrollToMessage = useCallback((messageId: string) => {
+    const el = document.getElementById(`message-${messageId}`);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, []);
+
+  const { sqlQueryCount, runAllDisabled, runAllLoading, runAllQueries } = useRunAllChatQueries({
+    conversation: activeConversation,
+    chatSqlExecuteEnabled: flags.chatSqlExecute,
+    isLoading: state.isLoading,
+    updateMessageArtifacts,
+    onRunAllComplete: notifyRunAllComplete,
+  });
 
   const bgColor = 'var(--mantine-color-body)';
 
-  // Auto-send a message when navigated here with a searchQuery in router state
-  // (e.g. from the "Ask in Chat" button in global search).
-  // Wait for `initialized` so the localStorage hydration completes first —
-  // otherwise LOAD_CONVERSATIONS can overwrite the freshly-created conversation.
-  // We clear the router state immediately so this only fires once per navigation.
-  useEffect(() => {
-    if (!initialized || state.isLoading) return;
-    const searchQuery = (location.state as { searchQuery?: string } | null)?.searchQuery;
-    if (!searchQuery) return;
-
-    // Clear router state first to prevent re-firing on re-renders
-    navigate(location.pathname, { replace: true, state: {} });
-
-    // Always create a fresh conversation for search-originated chats
-    sendMessage(searchQuery, { newConversation: true });
-  }, [initialized, location.state, sendMessage, state.isLoading, navigate, location.pathname]);
-
   return (
     <Box
+      ref={messageListRef}
       style={{
         flex: 1,
         display: 'flex',
@@ -44,44 +52,28 @@ export function ChatArea() {
         overflow: 'hidden',
       }}
     >
-      {/* Top toolbar — pinned, gradient fade into background */}
-      <Box
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 10,
-          pointerEvents: 'none',
-          background: `linear-gradient(to bottom, ${bgColor} 40%, transparent 100%)`,
+      <ChatToolbar
+        title={activeConversation?.title || 'New Chat'}
+        profileId={activeConversation?.profileId}
+        agentProfiles={agentProfiles}
+        profileChangeDisabled={
+          state.isLoading ||
+          runAllLoading ||
+          !activeConversation?.id ||
+          activeConversation.id.startsWith('temp-')
+        }
+        onProfileChange={(nextProfileId) => {
+          if (!activeConversation?.id) return;
+          void updateConversationProfile(activeConversation.id, nextProfileId);
         }}
-      >
-        <Group
-          justify="space-between"
-          align="center"
-          px="md"
-          py="xs"
-          style={{ pointerEvents: 'auto' }}
-        >
-          <Text
-            size="sm"
-            fw={600}
-            c={isDark ? 'gray.3' : 'gray.6'}
-          >
-            {activeConversation?.title || 'New Chat'}
-          </Text>
-          {activeConversation?.profileId ? (
-            <Badge size="xs" variant="outline" color="gray">
-              {activeConversation.profileId}
-            </Badge>
-          ) : null}
-          {/* Slot for future controls (model switcher, related objects, etc.) */}
-          <Group gap="xs">
-          </Group>
-        </Group>
-      </Box>
+        sqlQueryCount={sqlQueryCount}
+        runAllDisabled={runAllDisabled}
+        runAllLoading={runAllLoading}
+        onRunAllQueries={() => {
+          void runAllQueries();
+        }}
+      />
 
-      {/* Message area — full height, full width, scrollable */}
       <Box
         style={{
           flex: 1,
@@ -89,21 +81,26 @@ export function ChatArea() {
           flexDirection: 'column',
           overflow: 'hidden',
           width: '100%',
+          minHeight: 0,
         }}
       >
         <MessageList
           messages={activeConversation?.messages || []}
           isLoading={state.isLoading}
+          thinkingMessage={state.thinkingMessage}
+          conversationId={activeConversation?.id}
+          chatTitle={activeConversation?.title}
+          onArtifactsChange={(messageId, artifacts) => {
+            if (!activeConversation) return;
+            updateMessageArtifacts(activeConversation.id, messageId, artifacts);
+          }}
         />
+        <ChatExpandHost onScrollToMessage={scrollToMessage} />
       </Box>
 
-      {/* Bottom overlay — thinking indicator + floating input */}
       <Box
         style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
+          flexShrink: 0,
           zIndex: 10,
           pointerEvents: 'none',
           background: `linear-gradient(to top, ${bgColor} 50%, transparent 100%)`,
@@ -111,11 +108,30 @@ export function ChatArea() {
         }}
       >
         <Box style={{ pointerEvents: 'auto' }}>
-          {/* Thinking status — sits above the input box */}
-          <ThinkingIndicator message={state.thinkingMessage} />
           <MessageInput onSend={sendMessage} disabled={state.isLoading || !initialized} />
         </Box>
       </Box>
     </Box>
+  );
+}
+
+export function ChatArea() {
+  const { sendMessage, state, initialized } = useChat();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!initialized || state.isLoading) return;
+    const searchQuery = (location.state as { searchQuery?: string } | null)?.searchQuery;
+    if (!searchQuery) return;
+
+    navigate(location.pathname, { replace: true, state: {} });
+    sendMessage(searchQuery, { newConversation: true });
+  }, [initialized, location.state, sendMessage, state.isLoading, navigate, location.pathname]);
+
+  return (
+    <ChatExpandProvider>
+      <ChatAreaBody />
+    </ChatExpandProvider>
   );
 }

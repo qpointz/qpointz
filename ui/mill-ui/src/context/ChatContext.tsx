@@ -12,7 +12,6 @@ import type { AgentProfileResponseWire, Conversation, Message, ChatState, ChatSu
 import type { TurnResponseWire } from '../types/chatWire';
 import { chatService } from '../services/api';
 import { isRestChatBackendActive } from '../services/chatService';
-import { useFeatureFlags } from '../features/FeatureFlagContext';
 import {
   DEFAULT_GENERAL_CHAT_AGENT_PROFILE_ID,
   readStoredGeneralChatProfileId,
@@ -20,6 +19,7 @@ import {
   writeStoredGeneralChatProfileId,
 } from '../features/chatPreferences';
 import { parseChatStructuredPart } from '../utils/chatArtifactParse';
+import { parseWireArtifacts } from '../utils/artifactWireParse';
 import { assistantReplyViewFromWire, deriveAssistantReplyView } from '../utils/assistantReplyView';
 
 const STORAGE_KEY = 'chat-conversations';
@@ -43,20 +43,38 @@ function summaryToConversation(summary: ChatSummary): Conversation {
     updatedAt: summary.updatedAt,
     messages: [],
     transcriptHydrated: false,
+    ...(summary.profileId ? { profileId: summary.profileId } : {}),
   };
 }
 
 function turnToMessage(turn: TurnResponseWire, conversationId: string): Message {
   const role = turn.role === 'user' ? 'user' : 'assistant';
-  const view = role === 'assistant' ? assistantReplyViewFromWire(turn.assistantReplyView) : undefined;
+  const artifacts = parseWireArtifacts(turn.artifacts);
+  const view =
+    role === 'assistant'
+      ? assistantReplyViewFromWire(turn.assistantReplyView) ?? deriveAssistantReplyView(artifacts)
+      : undefined;
   return {
     id: turn.turnId,
     conversationId,
     role,
     content: turn.text ?? '',
     timestamp: Date.parse(turn.createdAt),
+    restReplay: true,
+    ...(artifacts.length ? { artifacts } : {}),
     ...(view ? { assistantReplyView: view } : {}),
   };
+}
+
+/** True when REST replay likely dropped structured assistant content (user rows only). */
+function conversationNeedsTranscriptReplay(conv: Conversation, isLoading: boolean): boolean {
+  if (conv.transcriptHydrated === false) return true;
+  if (!isRestChatBackendActive() || isLoading) return false;
+  const hasUser = conv.messages.some((m) => m.role === 'user');
+  const hollowAssistant = conv.messages.some(
+    (m) => m.role === 'assistant' && !m.content.trim() && !(m.artifacts?.length),
+  );
+  return hasUser && hollowAssistant;
 }
 
 type ChatAction =
@@ -69,7 +87,8 @@ type ChatAction =
       payload: { id: string; title: string; transcriptHydrated: boolean };
     }
   | { type: 'RENAME_CONVERSATION'; payload: { conversationId: string; title: string } }
-  | { type: 'REPLACE_CONVERSATION_ID'; payload: { oldId: string; newId: string; title?: string } }
+  | { type: 'UPDATE_CONVERSATION_PROFILE'; payload: { conversationId: string; profileId: string } }
+  | { type: 'REPLACE_CONVERSATION_ID'; payload: { oldId: string; newId: string; title?: string; profileId?: string } }
   | { type: 'ADD_MESSAGE'; payload: { conversationId: string; message: Message } }
   | { type: 'UPDATE_MESSAGE'; payload: { conversationId: string; messageId: string; content: string } }
   | { type: 'SET_LOADING'; payload: boolean }
@@ -90,6 +109,10 @@ type ChatAction =
       payload: { conversationId: string; messageId: string; artifact: ChatMessageArtifact };
     }
   | {
+      type: 'SET_MESSAGE_ARTIFACTS';
+      payload: { conversationId: string; messageId: string; artifacts: ChatMessageArtifact[] };
+    }
+  | {
       type: 'FINALIZE_ASSISTANT_REPLY_VIEW';
       payload: {
         conversationId: string;
@@ -101,12 +124,32 @@ type ChatAction =
 
 function chatReducer(state: ChatState, action: ChatAction): ChatState {
   switch (action.type) {
-    case 'LOAD_CONVERSATIONS':
+    case 'LOAD_CONVERSATIONS': {
+      const byId = new Map(action.payload.map((c) => [c.id, c]));
+      const merged = action.payload.map((incoming) => {
+        const existing = state.conversations.find((c) => c.id === incoming.id);
+        if (!existing) return incoming;
+        return {
+          ...incoming,
+          messages: existing.messages,
+          transcriptHydrated: existing.transcriptHydrated,
+          profileId: existing.profileId ?? incoming.profileId,
+        };
+      });
+      for (const existing of state.conversations) {
+        if (!byId.has(existing.id)) {
+          merged.push(existing);
+        }
+      }
+      const activeStillExists =
+        state.activeConversationId != null &&
+        merged.some((c) => c.id === state.activeConversationId);
       return {
         ...state,
-        conversations: action.payload,
-        activeConversationId: action.payload.length > 0 ? (action.payload[0]?.id ?? null) : null,
+        conversations: merged,
+        activeConversationId: activeStillExists ? state.activeConversationId : null,
       };
+    }
 
     case 'CREATE_CONVERSATION':
       return {
@@ -167,8 +210,18 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       };
     }
 
+    case 'UPDATE_CONVERSATION_PROFILE': {
+      const { conversationId, profileId } = action.payload;
+      return {
+        ...state,
+        conversations: state.conversations.map((conv) =>
+          conv.id === conversationId ? { ...conv, profileId, updatedAt: Date.now() } : conv,
+        ),
+      };
+    }
+
     case 'REPLACE_CONVERSATION_ID': {
-      const { oldId, newId, title } = action.payload;
+      const { oldId, newId, title, profileId } = action.payload;
       return {
         ...state,
         activeConversationId: state.activeConversationId === oldId ? newId : state.activeConversationId,
@@ -178,6 +231,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
             ...conv,
             id: newId,
             ...(title ? { title } : {}),
+            ...(profileId ? { profileId } : {}),
             updatedAt: Date.now(),
             messages: conv.messages.map((msg) => ({ ...msg, conversationId: newId })),
           };
@@ -264,6 +318,28 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       };
     }
 
+    case 'SET_MESSAGE_ARTIFACTS': {
+      const { conversationId, messageId, artifacts } = action.payload;
+      return {
+        ...state,
+        conversations: state.conversations.map((conv) => {
+          if (conv.id !== conversationId) return conv;
+          return {
+            ...conv,
+            updatedAt: Date.now(),
+            messages: conv.messages.map((msg) => {
+              if (msg.id !== messageId) return msg;
+              return {
+                ...msg,
+                artifacts,
+                assistantReplyView: deriveAssistantReplyView(artifacts),
+              };
+            }),
+          };
+        }),
+      };
+    }
+
     case 'FINALIZE_ASSISTANT_REPLY_VIEW': {
       const { conversationId, messageId, completionPresentation, completionPartType } = action.payload;
       return {
@@ -330,11 +406,22 @@ interface ChatContextValue {
    */
   syncChatRouteConversationParam: (routeConversationId: string | undefined) => void;
   renameConversation: (id: string, title: string) => Promise<void>;
+  /** Switch agent profile for an existing general chat (REST PATCH when backend active). */
+  updateConversationProfile: (id: string, profileId: string) => Promise<void>;
   /** Set the transient thinking status text (null to clear). Driven by backend SSE events. */
   setThinking: (message: string | null) => void;
   sendMessage: (content: string, options?: { newConversation?: boolean }) => Promise<void>;
+  updateMessageArtifacts: (
+    conversationId: string,
+    messageId: string,
+    artifacts: readonly ChatMessageArtifact[],
+  ) => void;
   clearAllConversations: () => void;
-  /** Profiles for the optional General Chat agent picker (`chatAgentPicker` flag). */
+  /** Re-fetch chat summaries from the REST API (no-op when mock backend is active). */
+  refreshChatList: () => Promise<void>;
+  /** Set when the latest REST list fetch failed; cleared on success. */
+  listLoadError: string | null;
+  /** Profiles from `GET /api/v1/ai/profiles` (toolbar switch + optional sidebar picker). */
   agentProfiles: AgentProfileResponseWire[];
   agentProfilesLoading: boolean;
   /** Profile applied to *new* general chats (backed by sessionStorage). */
@@ -359,7 +446,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
    */
   const skipDeepLinkEnsureForChatIdRef = useRef<string | null>(null);
   const [initialized, setInitialized] = useState(false);
-  const flags = useFeatureFlags();
+  const [listLoadError, setListLoadError] = useState<string | null>(null);
   const [agentProfiles, setAgentProfiles] = useState<AgentProfileResponseWire[]>([]);
   const [agentProfilesLoading, setAgentProfilesLoading] = useState(false);
   const [selectedAgentProfileId, setSelectedAgentProfileIdState] = useState<string | null>(() =>
@@ -376,12 +463,26 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     [selectedAgentProfileId],
   );
 
-  useEffect(() => {
-    if (!flags.chatAgentPicker) {
-      setAgentProfiles([]);
-      setAgentProfilesLoading(false);
-      return;
+  const loadConversationsFromServer = useCallback(async (): Promise<boolean> => {
+    try {
+      const summaries = await chatService.listChats();
+      const convs = summaries.map(summaryToConversation);
+      dispatch({ type: 'LOAD_CONVERSATIONS', payload: convs });
+      setListLoadError(null);
+      return true;
+    } catch (e) {
+      console.error('Failed to load chats from server:', e);
+      setListLoadError(e instanceof Error ? e.message : 'Failed to load chats');
+      return false;
     }
+  }, []);
+
+  const refreshChatList = useCallback(async () => {
+    if (!isRestChatBackendActive()) return;
+    await loadConversationsFromServer();
+  }, [loadConversationsFromServer]);
+
+  useEffect(() => {
     let cancelled = false;
     setAgentProfilesLoading(true);
     chatService
@@ -398,7 +499,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [flags.chatAgentPicker]);
+  }, []);
 
   useEffect(() => {
     const rest = isRestChatBackendActive();
@@ -411,6 +512,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           const normalized = conversations.map((c) => ({
             ...c,
             transcriptHydrated: c.transcriptHydrated ?? true,
+            messages: c.messages.map((m) => ({
+              ...m,
+              restReplay: m.restReplay ?? true,
+            })),
           }));
           dispatch({ type: 'LOAD_CONVERSATIONS', payload: normalized });
         }
@@ -429,17 +534,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       } catch {
         /* ignore */
       }
-      try {
-        const summaries = await chatService.listChats();
-        if (cancelled) return;
-        const convs = summaries.map(summaryToConversation);
-        dispatch({ type: 'LOAD_CONVERSATIONS', payload: convs });
-      } catch (e) {
-        console.error('Failed to load chats from server:', e);
-        if (!cancelled) {
-          dispatch({ type: 'CLEAR_ALL' });
-        }
-      }
+      await loadConversationsFromServer();
       if (!cancelled) setInitialized(true);
     }
 
@@ -448,7 +543,25 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadConversationsFromServer]);
+
+  useEffect(() => {
+    if (!initialized || !isRestChatBackendActive()) {
+      return;
+    }
+    if (state.conversations.length > 0) {
+      return;
+    }
+    const retry = () => {
+      void loadConversationsFromServer();
+    };
+    const delayed = window.setTimeout(retry, 2000);
+    window.addEventListener('focus', retry);
+    return () => {
+      window.clearTimeout(delayed);
+      window.removeEventListener('focus', retry);
+    };
+  }, [initialized, loadConversationsFromServer, state.conversations.length]);
 
   useEffect(() => {
     if (isRestChatBackendActive()) {
@@ -470,7 +583,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       return;
     }
     const conv = state.conversations.find((c) => c.id === id);
-    if (!conv || conv.transcriptHydrated !== false) {
+    if (!conv || !conversationNeedsTranscriptReplay(conv, state.isLoading)) {
       return;
     }
 
@@ -510,10 +623,33 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [state.activeConversationId, state.conversations]);
+  }, [state.activeConversationId, state.isLoading, state.conversations]);
 
   const activeConversation =
     state.conversations.find((c) => c.id === state.activeConversationId) ?? null;
+
+  useEffect(() => {
+    const id = activeConversation?.id;
+    if (!id || id.startsWith('temp-') || activeConversation?.profileId) {
+      return;
+    }
+    if (!isRestChatBackendActive()) {
+      return;
+    }
+    let cancelled = false;
+    void chatService.getChatDetail(id).then((detail) => {
+      if (cancelled) return;
+      dispatch({
+        type: 'UPDATE_CONVERSATION_PROFILE',
+        payload: { conversationId: id, profileId: detail.chat.profileId },
+      });
+    }).catch(() => {
+      /* toolbar falls back to badge-less state until next hydrate */
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeConversation?.id, activeConversation?.profileId]);
 
   const createConversation = useCallback(async () => {
     if (!initialized) return undefined;
@@ -527,6 +663,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         updatedAt: Date.now(),
         messages: [],
         transcriptHydrated: true,
+        ...(profileId ? { profileId } : {}),
       };
       dispatch({ type: 'CREATE_CONVERSATION', payload: newConversation });
       return chatId;
@@ -559,9 +696,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       }
       const isRest = isRestChatBackendActive();
       if (state.conversations.some((c) => c.id === id)) {
-        if (state.activeConversationId !== id) {
-          dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: id });
-        }
+        dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: id });
         return;
       }
       dispatch({
@@ -573,7 +708,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         },
       });
     },
-    [state.conversations, state.activeConversationId],
+    [state.conversations],
   );
 
   const syncChatRouteConversationParam = useCallback((routeConversationId: string | undefined) => {
@@ -600,6 +735,23 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       }
     }
     dispatch({ type: 'RENAME_CONVERSATION', payload: { conversationId: id, title } });
+  }, []);
+
+  const updateConversationProfile = useCallback(async (id: string, profileId: string) => {
+    if (isRestChatBackendActive()) {
+      try {
+        const chat = await chatService.updateChatProfile(id, profileId);
+        dispatch({
+          type: 'UPDATE_CONVERSATION_PROFILE',
+          payload: { conversationId: id, profileId: chat.profileId },
+        });
+        return;
+      } catch (e) {
+        console.error('Failed to update chat profile on server:', e);
+        return;
+      }
+    }
+    dispatch({ type: 'UPDATE_CONVERSATION_PROFILE', payload: { conversationId: id, profileId } });
   }, []);
 
   const setThinking = useCallback((message: string | null) => {
@@ -646,6 +798,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         role: 'assistant',
         content: '',
         timestamp: Date.now(),
+        restReplay: false,
       };
       dispatch({ type: 'ADD_MESSAGE', payload: { conversationId: streamingChatId, message: assistantMessage } });
       dispatch({ type: 'SET_LOADING', payload: true });
@@ -657,7 +810,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           const { chatId, chatName } = await chatService.createChat(profileId ? { profileId } : undefined);
           dispatch({
             type: 'REPLACE_CONVERSATION_ID',
-            payload: { oldId: streamingChatId, newId: chatId, title: chatName },
+            payload: { oldId: streamingChatId, newId: chatId, title: chatName, profileId: profileId ?? undefined },
           });
           streamingChatId = chatId;
         } catch (error) {
@@ -739,6 +892,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     [state.activeConversationId, state.isLoading, initialized, resolveProfile],
   );
 
+  const updateMessageArtifacts = useCallback(
+    (conversationId: string, messageId: string, artifacts: readonly ChatMessageArtifact[]) => {
+      dispatch({
+        type: 'SET_MESSAGE_ARTIFACTS',
+        payload: { conversationId, messageId, artifacts: [...artifacts] },
+      });
+    },
+    [],
+  );
+
   const clearAllConversations = useCallback(() => {
     dispatch({ type: 'CLEAR_ALL' });
   }, []);
@@ -753,9 +916,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     ensureActiveConversation,
     syncChatRouteConversationParam,
     renameConversation,
+    updateConversationProfile,
     setThinking,
     sendMessage,
+    updateMessageArtifacts,
     clearAllConversations,
+    refreshChatList,
+    listLoadError,
     agentProfiles,
     agentProfilesLoading,
     selectedAgentProfileId,

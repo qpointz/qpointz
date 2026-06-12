@@ -4,10 +4,14 @@ import { MantineProvider } from '@mantine/core';
 import { MessageList } from '../chat/MessageList';
 import type { Message } from '../../types/chat';
 
-function renderList(props: { messages?: Message[]; isLoading?: boolean } = {}) {
+function renderList(props: { messages?: Message[]; isLoading?: boolean; thinkingMessage?: string | null } = {}) {
   return render(
     <MantineProvider>
-      <MessageList messages={props.messages ?? []} isLoading={props.isLoading ?? false} />
+      <MessageList
+        messages={props.messages ?? []}
+        isLoading={props.isLoading ?? false}
+        thinkingMessage={props.thinkingMessage ?? null}
+      />
     </MantineProvider>,
   );
 }
@@ -72,19 +76,19 @@ describe('MessageList', () => {
     });
   });
 
-  describe('typing indicator', () => {
-    it('should show typing indicator when loading and last message is empty assistant', () => {
+  describe('assistant feedback', () => {
+    it('should show in-thread feedback when loading and last assistant message is empty', () => {
       const messages: Message[] = [
         makeMsg({ id: '1', role: 'user', content: 'Hello' }),
         makeMsg({ id: '2', role: 'assistant', content: '' }),
       ];
-      const { container } = renderList({ messages, isLoading: true });
-      // TypingIndicator renders dots with class "typing-dot"
+      const { container } = renderList({ messages, isLoading: true, thinkingMessage: 'Running validate_sql…' });
       const dots = container.querySelectorAll('.typing-dot');
       expect(dots.length).toBe(3);
+      expect(screen.getByText('Running validate_sql…')).toBeInTheDocument();
     });
 
-    it('should NOT show typing indicator when not loading', () => {
+    it('should NOT show feedback when not loading', () => {
       const messages: Message[] = [
         makeMsg({ id: '1', role: 'user', content: 'Hello' }),
         makeMsg({ id: '2', role: 'assistant', content: '' }),
@@ -94,7 +98,7 @@ describe('MessageList', () => {
       expect(dots.length).toBe(0);
     });
 
-    it('should NOT show typing indicator when last message has content', () => {
+    it('should NOT show feedback when last message has content', () => {
       const messages: Message[] = [
         makeMsg({ id: '1', role: 'user', content: 'Hello' }),
         makeMsg({ id: '2', role: 'assistant', content: 'Responding...' }),

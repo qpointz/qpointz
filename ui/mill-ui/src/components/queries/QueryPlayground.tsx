@@ -1,11 +1,11 @@
 import { Box, useMantineColorScheme, Text, Badge, ActionIcon, Tooltip } from '@mantine/core';
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, useLocation } from 'react-router';
 import { format as formatSQL } from 'sql-formatter';
 import { HiOutlineCommandLine, HiOutlineBeaker, HiOutlinePlus } from 'react-icons/hi2';
 import { QuerySidebar } from './QuerySidebar';
 import { QueryEditor } from './QueryEditor';
-import { QueryResults } from './QueryResults';
+import { QueryDataView } from '../data/QueryDataView';
 import { ExplorerSplitLayout } from '../layout/ExplorerSplitLayout';
 import { queryService } from '../../services/api';
 import {
@@ -19,6 +19,8 @@ import { useInlineChatListener } from '../../context/InlineChatContext';
 import type { SavedQuery, QueryResult } from '../../types/query';
 import { resolveSqlToExecute } from './resolveSqlToExecute';
 import { sanitizeExportAttachmentBaseName } from '../../services/exportHelpers';
+import { registerHostApplyHandler } from '../chat/artifactPreview/hostIntegrations';
+import type { ChatHandoffState } from '../chat/artifactPreview/useOpenInAnalysis';
 
 /**
  * Extract the first SQL code block from markdown content.
@@ -67,6 +69,7 @@ export function QueryPlayground() {
   const isDark = colorScheme === 'dark';
   const flags = useFeatureFlags();
   const navigate = useNavigate();
+  const location = useLocation();
   const params = useParams<{ queryId?: string }>();
 
   const [sql, setSql] = useState('');
@@ -85,6 +88,30 @@ export function QueryPlayground() {
   const [activeQueryName, setActiveQueryName] = useState<string | null>(null);
   const [activeQueryDescription, setActiveQueryDescription] = useState<string | null>(null);
   const [savedQueries, setSavedQueries] = useState<SavedQuery[]>([]);
+  const savedSnapshotRef = useRef(savedSnapshot);
+  const savedNameSnapshotRef = useRef(savedNameSnapshot);
+  const activeQueryNameRef = useRef(activeQueryName);
+  const chatHandoffProcessedRef = useRef(false);
+
+  savedSnapshotRef.current = savedSnapshot;
+  savedNameSnapshotRef.current = savedNameSnapshot;
+  activeQueryNameRef.current = activeQueryName;
+
+  useEffect(() => {
+    registerHostApplyHandler('inline-analysis', (artifact) => {
+      const nextSql = artifact.sql.trim();
+      if (!nextSql) return;
+      setSql(nextSql);
+      setIsDirty(
+        computeIsDirty(
+          nextSql,
+          savedSnapshotRef.current,
+          activeQueryNameRef.current,
+          savedNameSnapshotRef.current,
+        ),
+      );
+    });
+  }, []);
 
   const loadSavedQueries = useCallback(async () => {
     try {
@@ -108,29 +135,6 @@ export function QueryPlayground() {
     });
   }, []);
 
-  // Load saved queries on mount
-  useEffect(() => {
-    void loadSavedQueries();
-  }, [loadSavedQueries]);
-
-  // Open the first catalog entry when visiting bare /analysis (restores Save + named query context).
-  useEffect(() => {
-    if (params.queryId || activeQueryId || savedQueries.length === 0) {
-      return;
-    }
-    const first = savedQueries[0];
-    if (!first) {
-      return;
-    }
-    void closeActiveSession();
-    applyLoadedQuery(first, querySetters);
-    navigate(`/analysis/${first.id}`, { replace: true });
-  }, [params.queryId, activeQueryId, savedQueries, navigate, closeActiveSession]);
-
-  useEffect(() => () => {
-    void closeActiveSession();
-  }, [closeActiveSession]);
-
   const clearActiveSessionRef = useCallback(() => {
     activeExecutionIdRef.current = null;
   }, []);
@@ -147,6 +151,60 @@ export function QueryPlayground() {
     setIsDirty,
     onSessionCleared: clearActiveSessionRef,
   };
+
+  // Load saved queries on mount
+  useEffect(() => {
+    void loadSavedQueries();
+  }, [loadSavedQueries]);
+
+  // Chat → Analysis handoff: always create a fresh saved query with the generated SQL.
+  useEffect(() => {
+    const handoff = (location.state as ChatHandoffState | null)?.chatHandoff;
+    if (!handoff?.sql?.trim() || chatHandoffProcessedRef.current) {
+      return;
+    }
+    chatHandoffProcessedRef.current = true;
+
+    void (async () => {
+      try {
+        await closeActiveSession();
+        newQueryCounter += 1;
+        const name = handoff.suggestedName?.trim() || `New Query ${newQueryCounter}`;
+        const created = await queryService.createSavedQuery({
+          name,
+          sql: handoff.sql.trim(),
+          description: handoff.suggestedDescription,
+        });
+        setSavedQueries((prev) => [created, ...prev]);
+        applyLoadedQuery(created, querySetters);
+        navigate(`/analysis/${created.id}`, { replace: true, state: null });
+      } catch (err) {
+        chatHandoffProcessedRef.current = false;
+        setError(err instanceof Error ? err.message : 'Failed to open query from chat');
+      }
+    })();
+  }, [location.state, navigate, closeActiveSession]);
+
+  // Open the first catalog entry when visiting bare /analysis (restores Save + named query context).
+  useEffect(() => {
+    if ((location.state as ChatHandoffState | null)?.chatHandoff) {
+      return;
+    }
+    if (params.queryId || activeQueryId || savedQueries.length === 0) {
+      return;
+    }
+    const first = savedQueries[0];
+    if (!first) {
+      return;
+    }
+    void closeActiveSession();
+    applyLoadedQuery(first, querySetters);
+    navigate(`/analysis/${first.id}`, { replace: true });
+  }, [params.queryId, activeQueryId, savedQueries, navigate, closeActiveSession, location.state]);
+
+  useEffect(() => () => {
+    void closeActiveSession();
+  }, [closeActiveSession]);
 
   // Sync URL params to selected query (skip when already active to preserve unsaved edits)
   useEffect(() => {
@@ -469,7 +527,8 @@ export function QueryPlayground() {
                 />
               )}
               bottom={(
-                <QueryResults
+                <QueryDataView
+                  mode="playground"
                   result={result}
                   error={error}
                   isExecuting={isExecuting}

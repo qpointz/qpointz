@@ -27,8 +27,15 @@ export interface TurnResponseWire {
   role: string;
   text: string | null;
   createdAt: string;
+  artifacts?: ArtifactResponseWire[];
   /** Mill-ui assistant layout hint; null until persistence stores it. */
   assistantReplyView?: string | null;
+}
+
+/** Kotlin: ArtifactResponse — durable structured turn artifacts. */
+export interface ArtifactResponseWire {
+  kind: string;
+  payload: Record<string, unknown>;
 }
 
 /** Kotlin: ChatDetailResponse — GET `/api/v1/ai/chats/{chatId}`. */
@@ -51,6 +58,7 @@ export interface UpdateChatRequestWire {
   chatName?: string | null;
   isFavorite?: boolean | null;
   contextLabel?: string | null;
+  profileId?: string | null;
 }
 
 /** Kotlin: SendMessageHttpRequest — `{ "message": "..." }` for SSE POST. */

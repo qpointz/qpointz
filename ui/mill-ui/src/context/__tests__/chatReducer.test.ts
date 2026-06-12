@@ -18,12 +18,32 @@ type ChatAction =
 
 function chatReducer(state: ChatState, action: ChatAction): ChatState {
   switch (action.type) {
-    case 'LOAD_CONVERSATIONS':
+    case 'LOAD_CONVERSATIONS': {
+      const byId = new Map(action.payload.map((c) => [c.id, c]));
+      const merged = action.payload.map((incoming) => {
+        const existing = state.conversations.find((c) => c.id === incoming.id);
+        if (!existing) return incoming;
+        return {
+          ...incoming,
+          messages: existing.messages,
+          transcriptHydrated: existing.transcriptHydrated,
+          profileId: existing.profileId ?? incoming.profileId,
+        };
+      });
+      for (const existing of state.conversations) {
+        if (!byId.has(existing.id)) {
+          merged.push(existing);
+        }
+      }
+      const activeStillExists =
+        state.activeConversationId != null &&
+        merged.some((c) => c.id === state.activeConversationId);
       return {
         ...state,
-        conversations: action.payload,
-        activeConversationId: action.payload.length > 0 ? (action.payload[0]?.id ?? null) : null,
+        conversations: merged,
+        activeConversationId: activeStillExists ? state.activeConversationId : null,
       };
+    }
     case 'CREATE_CONVERSATION':
       return {
         ...state,
@@ -102,17 +122,49 @@ function makeMessage(id: string, conversationId: string, role: 'user' | 'assista
 
 describe('chatReducer', () => {
   describe('LOAD_CONVERSATIONS', () => {
-    it('should load conversations and set first as active', () => {
+    it('should load conversations without forcing an active id', () => {
       const convs = [makeConversation('c1'), makeConversation('c2')];
       const state = chatReducer(initialState, { type: 'LOAD_CONVERSATIONS', payload: convs });
       expect(state.conversations).toHaveLength(2);
-      expect(state.activeConversationId).toBe('c1');
+      expect(state.activeConversationId).toBeNull();
     });
 
     it('should set activeConversationId to null when empty', () => {
       const state = chatReducer(initialState, { type: 'LOAD_CONVERSATIONS', payload: [] });
       expect(state.conversations).toHaveLength(0);
       expect(state.activeConversationId).toBeNull();
+    });
+
+    it('should preserve active id when reload includes that chat', () => {
+      const existing: ChatState = {
+        conversations: [makeConversation('c1')],
+        activeConversationId: 'c1',
+        isLoading: false,
+        thinkingMessage: null,
+      };
+      const state = chatReducer(existing, {
+        type: 'LOAD_CONVERSATIONS',
+        payload: [makeConversation('c1'), makeConversation('c2')],
+      });
+      expect(state.activeConversationId).toBe('c1');
+    });
+
+    it('should preserve hydrated messages when reloading summaries', () => {
+      const conv = makeConversation('c1');
+      conv.messages = [makeMessage('m1', 'c1', 'user', 'hello')];
+      conv.transcriptHydrated = true;
+      const existing: ChatState = {
+        conversations: [conv],
+        activeConversationId: 'c1',
+        isLoading: false,
+        thinkingMessage: null,
+      };
+      const state = chatReducer(existing, {
+        type: 'LOAD_CONVERSATIONS',
+        payload: [makeConversation('c1')],
+      });
+      expect(state.conversations[0]!.messages).toHaveLength(1);
+      expect(state.conversations[0]!.transcriptHydrated).toBe(true);
     });
   });
 

@@ -15,6 +15,12 @@ vi.mock('../../services/api', () => ({
     async createChat() {
       return { chatId: crypto.randomUUID(), chatName: 'New Chat' };
     },
+    async listAgentProfiles() {
+      return [
+        { id: 'data-analysis', capabilityIds: ['sql.query'] },
+        { id: 'hello-world', capabilityIds: ['conversation.general'] },
+      ];
+    },
     async *sendMessage() {
       yield 'AI reply';
     },

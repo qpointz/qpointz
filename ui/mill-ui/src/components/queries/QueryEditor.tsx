@@ -17,6 +17,7 @@ import {
   HiOutlinePencil,
 } from 'react-icons/hi2';
 import { InlineChatButton } from '../common/InlineChatButton';
+import { ContentPaneHeader } from '../layout/ContentPaneHeader';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
 import { resolveSqlToExecute } from './resolveSqlToExecute';
 
@@ -90,7 +91,6 @@ export function QueryEditor({
     }
   }, [sql, isExecuting, onExecute]);
 
-  const borderColor = 'var(--mantine-color-default-border)';
   const accentColor = isDark ? 'cyan' : 'teal';
 
   return (
@@ -102,84 +102,58 @@ export function QueryEditor({
         minHeight: 0,
       }}
     >
-      <Box
-        px="md"
-        py="sm"
-        style={{
-          borderBottom: `1px solid ${borderColor}`,
-          background: isDark
-            ? 'linear-gradient(135deg, var(--mantine-color-dark-8) 0%, var(--mantine-color-dark-7) 100%)'
-            : 'linear-gradient(135deg, var(--mantine-color-teal-0) 0%, white 100%)',
-          flexShrink: 0,
-        }}
-      >
-        <Group justify="space-between" wrap="nowrap">
-          <Group gap="sm" wrap="nowrap" style={{ minWidth: 0, flex: 1 }}>
-            <Box
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                backgroundColor: isDark ? 'var(--mantine-color-cyan-9)' : 'var(--mantine-color-teal-1)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <HiOutlineCommandLine
-                size={16}
-                color={isDark ? 'var(--mantine-color-cyan-4)' : 'var(--mantine-color-teal-6)'}
+      <ContentPaneHeader
+        icon={HiOutlineCommandLine}
+        titleContent={
+          <>
+            {isEditingName && queryId ? (
+              <TextInput
+                ref={nameInputRef}
+                size="xs"
+                value={draftName}
+                onChange={(event) => setDraftName(event.currentTarget.value)}
+                onBlur={commitNameEdit}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    commitNameEdit();
+                  } else if (event.key === 'Escape') {
+                    event.preventDefault();
+                    cancelNameEdit();
+                  }
+                }}
+                styles={{ input: { fontWeight: 600 } }}
               />
-            </Box>
-            <Box style={{ minWidth: 0, flex: 1 }}>
-              {isEditingName && queryId ? (
-                <TextInput
-                  ref={nameInputRef}
-                  size="xs"
-                  value={draftName}
-                  onChange={(event) => setDraftName(event.currentTarget.value)}
-                  onBlur={commitNameEdit}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') {
-                      event.preventDefault();
-                      commitNameEdit();
-                    } else if (event.key === 'Escape') {
-                      event.preventDefault();
-                      cancelNameEdit();
-                    }
-                  }}
-                  styles={{ input: { fontWeight: 600 } }}
-                />
-              ) : (
-                <Group gap={4} wrap="nowrap" style={{ minWidth: 0 }}>
-                  <Text size="md" fw={600} c={isDark ? 'gray.1' : 'gray.8'} truncate>
-                    {queryName || 'SQL Editor'}
-                  </Text>
-                  {queryId && onQueryNameChange && (
-                    <Tooltip label="Rename query" withArrow>
-                      <ActionIcon
-                        variant="subtle"
-                        size="xs"
-                        color="gray"
-                        onClick={() => setIsEditingName(true)}
-                        aria-label="Rename query"
-                      >
-                        <HiOutlinePencil size={12} />
-                      </ActionIcon>
-                    </Tooltip>
-                  )}
-                </Group>
-              )}
-              {queryDescription && (
-                <Text size="xs" c="dimmed" truncate>
-                  {queryDescription}
+            ) : (
+              <Group gap={4} wrap="nowrap" style={{ minWidth: 0 }}>
+                <Text size="lg" fw={600} c={isDark ? 'gray.1' : 'gray.8'} truncate>
+                  {queryName || 'SQL Editor'}
                 </Text>
-              )}
-            </Box>
-          </Group>
-          <Group gap={4} wrap="nowrap">
-            {onSave && (
+                {queryId && onQueryNameChange ? (
+                  <Tooltip label="Rename query" withArrow>
+                    <ActionIcon
+                      variant="subtle"
+                      size="xs"
+                      color="gray"
+                      onClick={() => setIsEditingName(true)}
+                      aria-label="Rename query"
+                    >
+                      <HiOutlinePencil size={12} />
+                    </ActionIcon>
+                  </Tooltip>
+                ) : null}
+              </Group>
+            )}
+            {queryDescription ? (
+              <Text size="sm" c="dimmed" truncate>
+                {queryDescription}
+              </Text>
+            ) : null}
+          </>
+        }
+        actions={
+          <>
+            {onSave ? (
               <Button
                 size="xs"
                 variant="light"
@@ -191,8 +165,8 @@ export function QueryEditor({
               >
                 Save
               </Button>
-            )}
-            {flags.analysisExecuteQuery && (
+            ) : null}
+            {flags.analysisExecuteQuery ? (
               <Button
                 size="xs"
                 leftSection={<HiOutlinePlay size={14} />}
@@ -203,16 +177,16 @@ export function QueryEditor({
               >
                 Run Query
               </Button>
-            )}
+            ) : null}
             <InlineChatButton
               contextType="analysis"
               contextId={queryId ?? '__analysis__'}
               contextLabel={queryName ?? 'Query Playground'}
               contextEntityType="Query"
             />
-          </Group>
-        </Group>
-      </Box>
+          </>
+        }
+      />
 
       <Box style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
         <SqlCodeEditor

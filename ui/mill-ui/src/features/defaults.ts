@@ -101,6 +101,8 @@ export interface FeatureFlags {
   chatDictateButton: boolean; // Microphone / dictate button
   /** When true, General Chat chrome shows an agent profile picker for *new* chats only. */
   chatAgentPicker: boolean;
+  /** When true, chat SQL preview cards expose Run and Export actions. */
+  chatSqlExecute: boolean;
 
   // Header / Chrome
   headerGlobalSearch: boolean; // Search icon + floating search overlay in header nav
@@ -197,6 +199,7 @@ export const defaultFeatureFlags: FeatureFlags = {
   chatAttachButton: false,
   chatDictateButton: false,
   chatAgentPicker: false,
+  chatSqlExecute: true,
 
   headerGlobalSearch: false,
   headerThemeSwitcher: true,

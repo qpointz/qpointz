@@ -1,4 +1,4 @@
-import type { Message } from './chat';
+import type { ChatMessageArtifact, Message } from './chat';
 
 export type InlineChatContextType = 'model' | 'knowledge' | 'analysis';
 
@@ -34,6 +34,27 @@ export type InlineChatAction =
   | {
       type: 'SET_SESSION_THINKING';
       payload: { sessionId: string; message: string | null };
+    }
+  | {
+      type: 'APPEND_MESSAGE_ARTIFACT';
+      payload: { sessionId: string; messageId: string; artifact: ChatMessageArtifact };
+    }
+  | {
+      type: 'SET_MESSAGE_ARTIFACTS';
+      payload: { sessionId: string; messageId: string; artifacts: ChatMessageArtifact[] };
+    }
+  | {
+      type: 'FINALIZE_ASSISTANT_REPLY_VIEW';
+      payload: {
+        sessionId: string;
+        messageId: string;
+        completionPresentation: string;
+        completionPartType: string;
+      };
+    }
+  | {
+      type: 'MERGE_SESSION_TRANSCRIPT';
+      payload: { sessionId: string; chatId: string; messages: Message[] };
     }
   | { type: 'CLOSE_ALL_SESSIONS' }
   | { type: 'OPEN_DRAWER' }

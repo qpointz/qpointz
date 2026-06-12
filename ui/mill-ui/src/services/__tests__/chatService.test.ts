@@ -189,6 +189,34 @@ describe('realChatService (fetch-mocked)', () => {
     expect(init.body).toBe(JSON.stringify({ profileId: 'data-analysis' }));
   });
 
+  it('should PATCH updateChatProfile with profileId in JSON body', async () => {
+    const updated = {
+      chatId: 'c-test',
+      userId: 'u1',
+      profileId: 'schema-exploration',
+      chatName: 'N',
+      chatType: 'general',
+      isFavorite: false,
+      contextType: null,
+      contextId: null,
+      contextLabel: null,
+      contextEntityType: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const fetchSpy = vi.fn().mockResolvedValue(new Response(JSON.stringify(updated), { status: 200 }));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const result = await realChatService.updateChatProfile('c-test', 'schema-exploration');
+
+    expect(result.profileId).toBe('schema-exploration');
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchSpy.mock.calls[0]!;
+    expect(String(url)).toContain('/api/v1/ai/chats/c-test');
+    expect((init as RequestInit).method).toBe('PATCH');
+    expect((init as RequestInit).body).toBe(JSON.stringify({ profileId: 'schema-exploration' }));
+  });
+
   it('should parse SSE diagnostics, text deltas, and completed without new type strings', async () => {
     const streamBody =
       sseDataLine({ type: 'item.diagnostic', code: 'agent.thinking', message: 'Working…' }) +
