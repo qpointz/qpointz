@@ -61,6 +61,12 @@ class InMemoryConversationStore : ConversationStore {
 
     override fun load(conversationId: String): ConversationRecord? = records[conversationId]
 
+    override fun updateProfileId(conversationId: String, profileId: String) {
+        records.computeIfPresent(conversationId) { _, existing ->
+            existing.copy(profileId = profileId, updatedAt = Instant.now())
+        }
+    }
+
     override fun delete(conversationId: String) {
         records.remove(conversationId)
     }

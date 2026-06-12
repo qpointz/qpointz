@@ -1,5 +1,7 @@
 package io.qpointz.mill.ai.service
 
+import io.qpointz.mill.ai.service.dto.ArtifactResponse
+import io.qpointz.mill.ai.service.dto.AttachExecutionResultHttpRequest
 import io.qpointz.mill.ai.service.dto.ChatDetailResponse
 import io.qpointz.mill.ai.service.dto.ChatResponse
 import io.qpointz.mill.ai.service.dto.CreateChatHttpRequest
@@ -114,12 +116,17 @@ class AiChatController(private val chatService: ChatService) {
             ?.let(ChatDetailResponse::from)
             ?: throw MillStatuses.notFound("Chat not found: $chatId")
 
-    @Operation(summary = "Update chat metadata (name, favourite flag)")
+    @Operation(summary = "Update chat metadata (name, favourite flag, profile on general chats)")
     @ApiResponses(value = [
         ApiResponse(
             responseCode = "200",
             description = "Chat updated",
             content = [Content(schema = Schema(implementation = ChatResponse::class))],
+        ),
+        ApiResponse(
+            responseCode = "400",
+            description = "Invalid update (e.g. unknown profile or contextual chat profile change)",
+            content = [Content(schema = Schema(implementation = MillStatusDetails::class))],
         ),
         ApiResponse(
             responseCode = "404",
@@ -132,9 +139,13 @@ class AiChatController(private val chatService: ChatService) {
         @PathVariable chatId: String,
         @RequestBody request: UpdateChatHttpRequest,
     ): ChatResponse =
-        chatService.updateChat(chatId, request.toChatUpdate())
-            ?.let(ChatResponse::from)
-            ?: throw MillStatuses.notFound("Chat not found: $chatId")
+        try {
+            chatService.updateChat(chatId, request.toChatUpdate())
+                ?.let(ChatResponse::from)
+                ?: throw MillStatuses.notFound("Chat not found: $chatId")
+        } catch (e: InvalidChatUpdateException) {
+            throw MillStatuses.badRequest(e.message ?: "Invalid chat update")
+        }
 
     @Operation(summary = "Delete a chat")
     @ApiResponses(value = [
@@ -170,9 +181,36 @@ class AiChatController(private val chatService: ChatService) {
     ])
     @GetMapping(value = ["/{chatId}/messages"], consumes = [MediaType.ALL_VALUE])
     fun listMessages(@PathVariable chatId: String): List<TurnResponse> =
-        chatService.getChat(chatId)
-            ?.messages?.map(TurnResponse::from)
+        chatService.getChat(chatId)?.messages
             ?: throw MillStatuses.notFound("Chat not found: $chatId")
+
+    @Operation(
+        summary = "Attach client query execution metadata to a turn",
+        description = "Persists sql.result artefact metadata after mill-ui Run (no server SQL execution).",
+    )
+    @ApiResponses(value = [
+        ApiResponse(
+            responseCode = "200",
+            description = "Execution metadata attached",
+            content = [Content(schema = Schema(implementation = ArtifactResponse::class))],
+        ),
+        ApiResponse(
+            responseCode = "404",
+            description = "Chat or turn not found",
+            content = [Content(schema = Schema(implementation = MillStatusDetails::class))],
+        ),
+    ])
+    @PostMapping(
+        value = ["/{chatId}/turns/{turnId}/execution-result"],
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+    )
+    fun attachExecutionResult(
+        @PathVariable chatId: String,
+        @PathVariable turnId: String,
+        @RequestBody request: AttachExecutionResultHttpRequest,
+    ): ArtifactResponse =
+        chatService.attachExecutionResult(chatId, turnId, request)
+            ?: throw MillStatuses.notFound("Chat or turn not found: $chatId/$turnId")
 
     @Operation(
         summary = "Send a message and stream the response via SSE",

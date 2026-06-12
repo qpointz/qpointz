@@ -67,13 +67,34 @@ class JpaConversationStoreIT {
     }
 
     @Test
-    fun `one turn can be linked to multiple artifacts`() {
-        store.ensureExists("c5", "p")
-        store.appendTurn("c5", ConversationTurn("t5", "assistant", createdAt = Instant.now()))
-        artifactStore.save(ArtifactRecord("a3", "c5", null, "sql-query", mapOf(), createdAt = Instant.now()))
-        artifactStore.save(ArtifactRecord("a4", "c5", null, "chart-config", mapOf(), createdAt = Instant.now()))
-        store.attachArtifacts("c5", "t5", listOf("a3", "a4"))
-        val record = store.load("c5")!!
-        assertThat(record.turns[0].artifactIds).containsExactlyInAnyOrder("a3", "a4")
+    fun `appendTurn links artifactIds passed on the turn`() {
+        store.ensureExists("c6", "p")
+        artifactStore.save(ArtifactRecord("a5", "c6", null, "sql.generated", mapOf("sql" to "SELECT 1"), createdAt = Instant.now()))
+        store.appendTurn(
+            "c6",
+            ConversationTurn("t6", "assistant", createdAt = Instant.now(), artifactIds = listOf("a5")),
+        )
+        val record = store.load("c6")!!
+        assertThat(record.turns[0].artifactIds).containsExactly("a5")
+    }
+
+    @Test
+    fun `appendTurn links artifacts when artifact persisted before turn row exists`() {
+        store.ensureExists("c7", "p")
+        val turnId = "t7"
+        artifactStore.save(
+            ArtifactRecord(
+                "a6",
+                "c7",
+                null,
+                "sql.generated",
+                mapOf("payload" to mapOf("artifactType" to "generated-sql", "sql" to "SELECT 1")),
+                turnId = turnId,
+                createdAt = Instant.now(),
+            ),
+        )
+        store.appendTurn("c7", ConversationTurn(turnId, "assistant", createdAt = Instant.now(), artifactIds = listOf("a6")))
+        val record = store.load("c7")!!
+        assertThat(record.turns[0].artifactIds).containsExactly("a6")
     }
 }

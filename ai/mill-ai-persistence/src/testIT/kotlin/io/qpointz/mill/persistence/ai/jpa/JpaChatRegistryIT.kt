@@ -88,17 +88,24 @@ class JpaChatRegistryIT {
     }
 
     @Test
+    fun `update persists profileId change`() {
+        registry.create(chat(chatId = "c10", profileId = "profile-a"))
+        registry.update("c10", ChatUpdate(profileId = "profile-b"))
+        assertThat(registry.load("c10")?.profileId).isEqualTo("profile-b")
+    }
+
+    @Test
     fun `update returns null for missing chat`() {
         assertThat(registry.update("missing", ChatUpdate(chatName = "x"))).isNull()
     }
 
     @Test
-    fun `update does not mutate immutable fields`() {
+    fun `update does not mutate identity fields`() {
         registry.create(chat(chatId = "c9", userId = "user-1", profileId = "profile-a"))
-        registry.update("c9", ChatUpdate(chatName = "Changed"))
+        registry.update("c9", ChatUpdate(chatName = "Changed", profileId = "profile-b"))
         val loaded = registry.load("c9")!!
         assertThat(loaded.userId).isEqualTo("user-1")
-        assertThat(loaded.profileId).isEqualTo("profile-a")
+        assertThat(loaded.profileId).isEqualTo("profile-b")
         assertThat(loaded.chatId).isEqualTo("c9")
     }
 

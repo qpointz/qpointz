@@ -7,6 +7,7 @@ import io.qpointz.mill.ai.service.ChatView
 import io.qpointz.mill.ai.persistence.ChatMetadata
 import io.qpointz.mill.ai.persistence.ChatUpdate
 import io.qpointz.mill.ai.persistence.ConversationTurn
+import io.qpointz.mill.ai.service.ArtifactWireMapper
 
 // ── Inbound ───────────────────────────────────────────────────────────────────
 
@@ -32,11 +33,13 @@ data class UpdateChatHttpRequest(
     val chatName: String? = null,
     val isFavorite: Boolean? = null,
     val contextLabel: String? = null,
+    val profileId: String? = null,
 ) {
     fun toChatUpdate() = ChatUpdate(
         chatName = chatName,
         isFavorite = isFavorite,
         contextLabel = contextLabel,
+        profileId = profileId,
     )
 }
 
@@ -46,7 +49,29 @@ data class SendMessageHttpRequest @JsonCreator(mode = JsonCreator.Mode.PROPERTIE
     val message: String,
 )
 
+/** POST /api/v1/ai/chats/{chatId}/turns/{turnId}/execution-result — attach client query metadata only. */
+data class AttachExecutionResultHttpRequest(
+    val executionId: String,
+    val columns: List<ExecutionColumnDto> = emptyList(),
+    val rowCount: Long = 0,
+    val truncated: Boolean? = null,
+    val sql: String? = null,
+)
+
+/** Column descriptor in attach-result body. */
+data class ExecutionColumnDto(
+    val name: String,
+    val type: String,
+)
+
 // ── Outbound ──────────────────────────────────────────────────────────────────
+
+/** Consumer-safe structured artefact on a durable turn (GET replay). */
+data class ArtifactResponse(
+    /** Wire kind aligned with SSE `partType` (`sql`, `data`, `facet-proposal`). */
+    val kind: String,
+    val payload: Map<String, Any?>,
+)
 
 /** Chat metadata response (list + create + update). */
 data class ChatResponse(
@@ -89,7 +114,7 @@ data class ChatDetailResponse(
     companion object {
         fun from(view: ChatView) = ChatDetailResponse(
             chat = ChatResponse.from(view.chat),
-            messages = view.messages.map(TurnResponse::from),
+            messages = view.messages,
         )
     }
 }
@@ -97,26 +122,34 @@ data class ChatDetailResponse(
 /**
  * Single durable conversation turn.
  *
- * Today exposes flat [text] only.
- *
+ * @param artifacts Structured artefacts linked to the turn for GET replay.
  * @param assistantReplyView Optional mill-ui layout hint for assistant turns (`conversation`,
  *   `sql-primary`, `facet-primary`), aligned with live SSE `item.completed` summary.
- *   **Null** until persistence stores artefact metadata; wire field is forward-compatible.
  */
 data class TurnResponse(
     val turnId: String,
     val role: String,
     val text: String?,
     val createdAt: String,
+    val artifacts: List<ArtifactResponse> = emptyList(),
     val assistantReplyView: String? = null,
 ) {
     companion object {
-        fun from(t: ConversationTurn) = TurnResponse(
+        /**
+         * Maps a durable turn plus pre-resolved wire artefacts.
+         *
+         * @param t conversation turn row
+         * @param artifacts consumer-safe artefacts for [t]
+         */
+        fun from(t: ConversationTurn, artifacts: List<ArtifactResponse> = emptyList()) = TurnResponse(
             turnId = t.turnId,
             role = t.role,
             text = t.text,
             createdAt = t.createdAt.toString(),
-            assistantReplyView = null,
+            artifacts = artifacts,
+            assistantReplyView = ArtifactWireMapper
+                .deriveAssistantReplyView(artifacts)
+                ?.takeIf { t.role == "assistant" },
         )
     }
 }

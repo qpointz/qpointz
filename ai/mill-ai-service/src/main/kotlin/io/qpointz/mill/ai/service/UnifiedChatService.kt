@@ -5,10 +5,17 @@ import io.qpointz.mill.ai.chat.ChatRuntimeEvent
 import io.qpointz.mill.ai.chat.AiChatSettings
 import io.qpointz.mill.ai.chat.UserIdResolver
 import io.qpointz.mill.ai.memory.ChatMemoryStore
+import io.qpointz.mill.ai.persistence.ArtifactRecord
+import io.qpointz.mill.ai.persistence.ArtifactStore
 import io.qpointz.mill.ai.persistence.ChatMetadata
 import io.qpointz.mill.ai.persistence.ChatRegistry
 import io.qpointz.mill.ai.persistence.ChatUpdate
 import io.qpointz.mill.ai.persistence.ConversationStore
+import io.qpointz.mill.ai.persistence.ConversationTurn
+import io.qpointz.mill.ai.profile.ProfileRegistry
+import io.qpointz.mill.ai.service.dto.AttachExecutionResultHttpRequest
+import io.qpointz.mill.ai.service.dto.ArtifactResponse
+import io.qpointz.mill.ai.service.dto.TurnResponse
 import reactor.core.publisher.Flux
 import java.time.Instant
 import java.util.UUID
@@ -24,6 +31,8 @@ import java.util.UUID
  * @param registry metadata store for chat lifecycle operations
  * @param conversationStore durable turn transcript
  * @param chatMemoryStore LLM-facing sliding-window memory
+ * @param artifactStore durable structured artefact rows for GET replay
+ * @param profileRegistry agent profile catalog for profile switch validation
  * @param runtime pluggable agent execution; replace to swap LLM providers or use a stub
  * @param properties chat service settings (from `mill.ai.chat` in Spring hosts)
  * @param userIdResolver extension point for resolving the current user
@@ -32,6 +41,8 @@ class UnifiedChatService(
     private val registry: ChatRegistry,
     private val conversationStore: ConversationStore,
     private val chatMemoryStore: ChatMemoryStore,
+    private val artifactStore: ArtifactStore,
+    private val profileRegistry: ProfileRegistry,
     private val runtime: AiV3ChatRuntime,
     private val properties: AiChatSettings,
     private val userIdResolver: UserIdResolver,
@@ -87,7 +98,74 @@ class UnifiedChatService(
     override fun getChat(chatId: String): ChatView? {
         val metadata = registry.load(chatId) ?: return null
         val record = conversationStore.load(chatId)
-        return ChatView(chat = metadata, messages = record?.turns ?: emptyList())
+        val turns = record?.turns ?: emptyList()
+        return ChatView(
+            chat = metadata,
+            messages = mapTurnResponses(chatId, turns),
+        )
+    }
+
+    /**
+     * Persists client-side query execution metadata on a turn (no server SQL execution).
+     *
+     * @param chatId chat identifier
+     * @param turnId durable turn identifier
+     * @param request execution metadata from mill-ui `queryService`
+     * @return attached wire artefact, or `null` when chat/turn is missing
+     */
+    override fun attachExecutionResult(
+        chatId: String,
+        turnId: String,
+        request: AttachExecutionResultHttpRequest,
+    ): ArtifactResponse? {
+        registry.load(chatId) ?: return null
+        val record = conversationStore.load(chatId) ?: return null
+        if (record.turns.none { it.turnId == turnId }) return null
+
+        val artifactId = UUID.randomUUID().toString()
+        val payload = mapOf(
+            "artifactType" to "sql-result",
+            "executionId" to request.executionId,
+            "resultId" to request.executionId,
+            "sql" to request.sql,
+            "rowCount" to request.rowCount,
+            "truncated" to request.truncated,
+            "columns" to request.columns.map { mapOf("name" to it.name, "type" to it.type) },
+        )
+        artifactStore.save(
+            ArtifactRecord(
+                artifactId = artifactId,
+                conversationId = chatId,
+                runId = null,
+                kind = "sql.result",
+                payload = payload,
+                turnId = turnId,
+                pointerKeys = setOf("last-sql-result"),
+                createdAt = Instant.now(),
+            ),
+        )
+        conversationStore.attachArtifacts(chatId, turnId, listOf(artifactId))
+        return ArtifactWireMapper.toResponse(
+            artifactStore.findById(artifactId) ?: return null,
+        )
+    }
+
+    private fun mapTurnResponses(chatId: String, turns: List<ConversationTurn>): List<TurnResponse> {
+        val conversationArtifacts = artifactStore.findByConversation(chatId)
+        val byId = conversationArtifacts.associateBy { it.artifactId }
+        val byTurnId = conversationArtifacts
+            .filter { it.turnId != null }
+            .groupBy { it.turnId!! }
+        return turns.map { turn ->
+            val linkedIds = when {
+                turn.artifactIds.isNotEmpty() -> turn.artifactIds
+                else -> byTurnId[turn.turnId].orEmpty().map { it.artifactId }
+            }
+            val artifacts = linkedIds
+                .mapNotNull { byId[it] }
+                .mapNotNull { ArtifactWireMapper.toResponse(it) }
+            TurnResponse.from(turn, artifacts)
+        }
     }
 
     /** Returns a context-bound chat by `(contextType, contextId)`, or `null`. */
@@ -95,11 +173,31 @@ class UnifiedChatService(
         registry.findByContext(userIdResolver.resolve(), contextType, contextId)
 
     /**
-     * Updates mutable chat fields (name, favourite flag).
+     * Updates mutable chat fields (name, favourite flag, context label, profile on general chats).
      * Returns the updated metadata, or `null` if the chat does not exist.
+     *
+     * @throws InvalidChatUpdateException when [ChatUpdate.profileId] is invalid or not allowed
      */
-    override fun updateChat(chatId: String, update: ChatUpdate): ChatMetadata? =
-        registry.update(chatId, update)
+    override fun updateChat(chatId: String, update: ChatUpdate): ChatMetadata? {
+        val existing = registry.load(chatId) ?: return null
+        validateProfileUpdate(existing, update.profileId)
+        val updated = registry.update(chatId, update) ?: return null
+        val nextProfileId = update.profileId
+        if (nextProfileId != null && nextProfileId != existing.profileId) {
+            conversationStore.updateProfileId(chatId, nextProfileId)
+        }
+        return updated
+    }
+
+    private fun validateProfileUpdate(existing: ChatMetadata, profileId: String?) {
+        if (profileId == null || profileId == existing.profileId) return
+        if (existing.chatType != "general") {
+            throw InvalidChatUpdateException("Profile cannot be changed on contextual chats")
+        }
+        if (profileRegistry.resolve(profileId) == null) {
+            throw InvalidChatUpdateException("Unknown profile: $profileId")
+        }
+    }
 
     /**
      * Hard-deletes the chat — metadata, durable transcript, and LLM memory are all removed.

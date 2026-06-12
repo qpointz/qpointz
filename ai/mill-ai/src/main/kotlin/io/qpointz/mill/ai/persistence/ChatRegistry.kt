@@ -4,13 +4,15 @@ import java.time.Instant
 
 /**
  * Mutable fields that callers are allowed to update on an existing chat.
- * Identity and ownership fields (chatId, userId, profileId, context keys) are immutable
- * after creation and are never touched by [ChatRegistry.update].
+ *
+ * Identity and ownership fields (chatId, userId, context keys) are immutable after creation.
+ * [profileId] may be updated for general chats only; the service layer enforces that rule.
  */
 data class ChatUpdate(
     val chatName: String? = null,
     val isFavorite: Boolean? = null,
     val contextLabel: String? = null,
+    val profileId: String? = null,
 )
 
 data class ChatMetadata(
@@ -38,8 +40,8 @@ data class ChatMetadata(
  * Delete semantics are hard-delete on the metadata row only. Cascade cleanup of associated
  * transcript, memory, artifacts, and pointers is the responsibility of the service layer.
  *
- * Identity and ownership fields (chatId, userId, profileId, context keys) are immutable
- * after creation. Use [ChatUpdate] to restrict mutations to safe mutable fields only.
+ * Identity and ownership fields (chatId, userId, context keys) are immutable after creation.
+ * [profileId] is mutable for general chats via [ChatUpdate] (validated in the service layer).
  */
 interface ChatRegistry {
     fun create(metadata: ChatMetadata): ChatMetadata

@@ -117,6 +117,13 @@ class InMemoryConversationStoreTest {
     }
 
     @Test
+    fun shouldUpdateProfileId_whenConversationExists() {
+        store.ensureExists("conv-1", "profile-a")
+        store.updateProfileId("conv-1", "profile-b")
+        assertEquals("profile-b", store.load("conv-1")!!.profileId)
+    }
+
+    @Test
     fun shouldAppendTurnsInOrder() {
         store.ensureExists("conv-1", "p")
         store.appendTurn("conv-1", turn("user", "hello"))

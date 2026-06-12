@@ -33,6 +33,7 @@ open class JpaChatRegistry(
             chatName = update.chatName ?: entity.chatName,
             isFavorite = update.isFavorite ?: entity.isFavorite,
             contextLabel = update.contextLabel ?: entity.contextLabel,
+            profileId = update.profileId ?: entity.profileId,
             updatedAt = now,
         )
         repo.save(updated.toEntity())

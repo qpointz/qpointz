@@ -51,6 +51,10 @@ open class JpaConversationStore(
                 createdAt = turn.createdAt,
             )
         )
+        // Link any artefacts embedded on the turn (e.g. transcript projector collected by turnId).
+        if (turn.artifactIds.isNotEmpty()) {
+            attachArtifacts(conversationId, turn.turnId, turn.artifactIds)
+        }
         // Update conversation updatedAt by mutating the managed entity so Hibernate does not
         // treat existing turns as orphans (creating a new entity with an empty turns list
         // and CascadeType.ALL + orphanRemoval=true would delete all persisted turns).
@@ -119,5 +123,13 @@ open class JpaConversationStore(
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt,
         )
+    }
+
+    @Transactional
+    override fun updateProfileId(conversationId: String, profileId: String) {
+        conversationRepo.findById(conversationId).ifPresent { entity ->
+            entity.profileId = profileId
+            entity.updatedAt = Instant.now()
+        }
     }
 }

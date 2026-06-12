@@ -5,8 +5,10 @@ import io.qpointz.mill.ai.autoconfigure.chat.AiV3ChatProperties
 import io.qpointz.mill.ai.chat.AiV3ChatRuntime
 import io.qpointz.mill.ai.chat.UserIdResolver
 import io.qpointz.mill.ai.memory.ChatMemoryStore
+import io.qpointz.mill.ai.persistence.ArtifactStore
 import io.qpointz.mill.ai.persistence.ChatRegistry
 import io.qpointz.mill.ai.persistence.ConversationStore
+import io.qpointz.mill.ai.profile.ProfileRegistry
 import io.qpointz.mill.ai.service.ChatService
 import io.qpointz.mill.ai.service.UnifiedChatService
 import org.springframework.boot.autoconfigure.AutoConfiguration
@@ -30,6 +32,8 @@ class AiV3ChatServiceAutoConfiguration {
         registry: ChatRegistry,
         conversationStore: ConversationStore,
         chatMemoryStore: ChatMemoryStore,
+        artifactStore: ArtifactStore,
+        profileRegistry: ProfileRegistry,
         runtime: AiV3ChatRuntime,
         properties: AiV3ChatProperties,
         userIdResolver: UserIdResolver,
@@ -37,6 +41,8 @@ class AiV3ChatServiceAutoConfiguration {
         registry = registry,
         conversationStore = conversationStore,
         chatMemoryStore = chatMemoryStore,
+        artifactStore = artifactStore,
+        profileRegistry = profileRegistry,
         runtime = runtime,
         properties = properties.toSettings(),
         userIdResolver = userIdResolver,

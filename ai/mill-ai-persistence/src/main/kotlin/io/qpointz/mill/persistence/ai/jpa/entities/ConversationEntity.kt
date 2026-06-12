@@ -11,7 +11,7 @@ class ConversationEntity(
     val conversationId: String,
 
     @Column(name = "profile_id", nullable = false, length = 255)
-    val profileId: String,
+    var profileId: String,
 
     @Column(name = "created_at", nullable = false)
     val createdAt: Instant,

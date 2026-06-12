@@ -5,17 +5,27 @@ import io.qpointz.mill.ai.chat.ChatRuntimeEvent
 import io.qpointz.mill.ai.chat.AiChatSettings
 import io.qpointz.mill.ai.chat.PropertiesUserIdResolver
 import io.qpointz.mill.ai.memory.InMemoryChatMemoryStore
+import io.qpointz.mill.ai.persistence.ArtifactRecord
+import io.qpointz.mill.ai.persistence.ChatUpdate
+import io.qpointz.mill.ai.persistence.ConversationTurn
+import io.qpointz.mill.ai.persistence.InMemoryArtifactStore
 import io.qpointz.mill.ai.persistence.InMemoryChatRegistry
 import io.qpointz.mill.ai.persistence.InMemoryConversationStore
+import io.qpointz.mill.ai.profile.DefaultProfileRegistry
+import io.qpointz.mill.ai.service.dto.AttachExecutionResultHttpRequest
+import io.qpointz.mill.ai.service.dto.ExecutionColumnDto
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import reactor.core.publisher.Flux
+import java.time.Instant
 
 class UnifiedChatServiceTest {
 
     private val registry = InMemoryChatRegistry()
     private val conversationStore = InMemoryConversationStore()
     private val chatMemoryStore = InMemoryChatMemoryStore()
+    private val artifactStore = InMemoryArtifactStore()
     private val runtime = AiV3ChatRuntime { _, message ->
         Flux.just(
             ChatRuntimeEvent.Chunk("echo:$message"),
@@ -26,6 +36,8 @@ class UnifiedChatServiceTest {
         registry = registry,
         conversationStore = conversationStore,
         chatMemoryStore = chatMemoryStore,
+        artifactStore = artifactStore,
+        profileRegistry = DefaultProfileRegistry,
         runtime = runtime,
         properties = AiChatSettings(),
         userIdResolver = PropertiesUserIdResolver("default"),
@@ -78,5 +90,146 @@ class UnifiedChatServiceTest {
 
         assertThat(service.deleteChat(chat.chatId)).isTrue()
         assertThat(service.getChat(chat.chatId)).isNull()
+    }
+
+    @Test
+    fun `should include artefacts on getChat replay`() {
+        val chat = service.createChat(null).chat
+        conversationStore.ensureExists(chat.chatId, chat.profileId)
+        val turnId = "turn-1"
+        conversationStore.appendTurn(
+            chat.chatId,
+            ConversationTurn(
+                turnId = turnId,
+                role = "assistant",
+                text = "Here is SQL",
+                artifactIds = emptyList(),
+                createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+            ),
+        )
+        val artifactId = "art-1"
+        artifactStore.save(
+            ArtifactRecord(
+                artifactId = artifactId,
+                conversationId = chat.chatId,
+                runId = "run-1",
+                kind = "sql-query.generated-sql",
+                payload = mapOf(
+                    "protocolId" to "sql-query.generated-sql",
+                    "payload" to mapOf("artifactType" to "generated-sql", "sql" to "SELECT 1"),
+                ),
+                turnId = turnId,
+                createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+            ),
+        )
+        conversationStore.attachArtifacts(chat.chatId, turnId, listOf(artifactId))
+
+        val view = service.getChat(chat.chatId)!!
+        assertThat(view.messages).hasSize(1)
+        assertThat(view.messages[0].artifacts).hasSize(1)
+        assertThat(view.messages[0].artifacts[0].kind).isEqualTo("sql")
+        assertThat(view.messages[0].assistantReplyView).isEqualTo("sql-primary")
+    }
+
+    @Test
+    fun `should resolve artefacts on getChat replay when turn relation missing but artifact turnId set`() {
+        val chat = service.createChat(null).chat
+        conversationStore.ensureExists(chat.chatId, chat.profileId)
+        val turnId = "turn-missing-relation"
+        conversationStore.appendTurn(
+            chat.chatId,
+            ConversationTurn(
+                turnId = turnId,
+                role = "assistant",
+                text = null,
+                artifactIds = emptyList(),
+                createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+            ),
+        )
+        artifactStore.save(
+            ArtifactRecord(
+                artifactId = "art-orphan",
+                conversationId = chat.chatId,
+                runId = "run-1",
+                kind = "sql.generated",
+                payload = mapOf(
+                    "artifactType" to "generated-sql",
+                    "sql" to "SELECT month FROM sales",
+                    "dialectId" to "CALCITE",
+                ),
+                turnId = turnId,
+                createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+            ),
+        )
+
+        val view = service.getChat(chat.chatId)!!
+        assertThat(view.messages.single().artifacts).hasSize(1)
+        assertThat(view.messages.single().artifacts[0].kind).isEqualTo("sql")
+    }
+
+    @Test
+    fun `should attach execution result metadata`() {
+        val chat = service.createChat(null).chat
+        conversationStore.ensureExists(chat.chatId, chat.profileId)
+        val turnId = "turn-2"
+        conversationStore.appendTurn(
+            chat.chatId,
+            ConversationTurn(
+                turnId = turnId,
+                role = "assistant",
+                text = null,
+                artifactIds = emptyList(),
+                createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+            ),
+        )
+
+        val attached = service.attachExecutionResult(
+            chat.chatId,
+            turnId,
+            AttachExecutionResultHttpRequest(
+                executionId = "exec-99",
+                columns = listOf(ExecutionColumnDto("id", "int")),
+                rowCount = 10,
+                truncated = false,
+                sql = "SELECT id FROM t",
+            ),
+        )
+
+        assertThat(attached?.kind).isEqualTo("data")
+        val replay = service.getChat(chat.chatId)!!.messages.single()
+        assertThat(replay.artifacts.any { it.kind == "data" }).isTrue()
+    }
+
+    @Test
+    fun `should update profile on general chat and sync conversation store`() {
+        val chat = service.createChat(null).chat
+        conversationStore.ensureExists(chat.chatId, chat.profileId)
+
+        val updated = service.updateChat(chat.chatId, ChatUpdate(profileId = "data-analysis"))!!
+
+        assertThat(updated.profileId).isEqualTo("data-analysis")
+        assertThat(conversationStore.load(chat.chatId)!!.profileId).isEqualTo("data-analysis")
+    }
+
+    @Test
+    fun `should reject unknown profile on update`() {
+        val chat = service.createChat(null).chat
+
+        assertThatThrownBy {
+            service.updateChat(chat.chatId, ChatUpdate(profileId = "no-such-profile"))
+        }.isInstanceOf(InvalidChatUpdateException::class.java)
+            .hasMessageContaining("Unknown profile")
+    }
+
+    @Test
+    fun `should reject profile change on contextual chat`() {
+        val chat = service.createChat(
+            CreateChatRequest(contextType = "model", contextId = "sales.customers", contextLabel = "customers"),
+        ).chat
+
+        assertThatThrownBy {
+            service.updateChat(chat.chatId, ChatUpdate(profileId = "data-analysis"))
+        }.isInstanceOf(InvalidChatUpdateException::class.java)
+            .hasMessageContaining("contextual")
     }
 }

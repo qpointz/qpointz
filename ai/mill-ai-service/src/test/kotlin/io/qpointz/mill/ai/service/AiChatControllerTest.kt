@@ -2,7 +2,7 @@ package io.qpointz.mill.ai.service
 
 import io.qpointz.mill.ai.chat.ChatRuntimeEvent
 import io.qpointz.mill.ai.persistence.ChatMetadata
-import io.qpointz.mill.ai.persistence.ConversationTurn
+import io.qpointz.mill.ai.service.dto.TurnResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -54,8 +54,8 @@ class AiChatControllerTest {
         updatedAt = Instant.parse("2025-01-01T00:00:00Z"),
     )
 
-    private fun chatView(meta: ChatMetadata = chatMeta(), turns: List<ConversationTurn> = emptyList()) =
-        ChatView(chat = meta, messages = turns)
+    private fun chatView(meta: ChatMetadata = chatMeta(), messages: List<TurnResponse> = emptyList()) =
+        ChatView(chat = meta, messages = messages)
 
     // ── GET /api/v1/ai/chats ──────────────────────────────────────────────────
 
@@ -106,13 +106,13 @@ class AiChatControllerTest {
 
     @Test
     fun `getChat should return 200 with chat detail`() {
-        val turn = ConversationTurn(
+        val turn = TurnResponse(
             turnId = "t-1",
             role = "user",
             text = "Hello",
-            createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+            createdAt = "2025-01-01T00:00:00Z",
         )
-        whenever(chatService.getChat("chat-1")).thenReturn(chatView(turns = listOf(turn)))
+        whenever(chatService.getChat("chat-1")).thenReturn(chatView(messages = listOf(turn)))
 
         client.get().uri("/api/v1/ai/chats/chat-1")
             .accept(MediaType.APPLICATION_JSON)
@@ -184,13 +184,13 @@ class AiChatControllerTest {
 
     @Test
     fun `listMessages should return 200 with turn list`() {
-        val turn = ConversationTurn(
+        val turn = TurnResponse(
             turnId = "t-2",
             role = "assistant",
             text = "Hi there",
-            createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+            createdAt = "2025-01-01T00:00:00Z",
         )
-        whenever(chatService.getChat("chat-1")).thenReturn(chatView(turns = listOf(turn)))
+        whenever(chatService.getChat("chat-1")).thenReturn(chatView(messages = listOf(turn)))
 
         client.get().uri("/api/v1/ai/chats/chat-1/messages")
             .accept(MediaType.APPLICATION_JSON)
@@ -207,6 +207,38 @@ class AiChatControllerTest {
 
         client.get().uri("/api/v1/ai/chats/missing/messages")
             .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isNotFound
+    }
+
+    // ── POST /api/v1/ai/chats/{chatId}/turns/{turnId}/execution-result ─────────
+
+    @Test
+    fun `attachExecutionResult should return 200 with wire artefact`() {
+        whenever(chatService.attachExecutionResult(eq("chat-1"), eq("t-1"), any())).thenReturn(
+            io.qpointz.mill.ai.service.dto.ArtifactResponse(
+                kind = "data",
+                payload = mapOf("executionId" to "exec-1", "rowCount" to 5L),
+            ),
+        )
+
+        client.post().uri("/api/v1/ai/chats/chat-1/turns/t-1/execution-result")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue("""{"executionId":"exec-1","rowCount":5}""")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.kind").isEqualTo("data")
+            .jsonPath("$.payload.executionId").isEqualTo("exec-1")
+    }
+
+    @Test
+    fun `attachExecutionResult should return 404 when chat or turn missing`() {
+        whenever(chatService.attachExecutionResult(eq("missing"), eq("t-1"), any())).thenReturn(null)
+
+        client.post().uri("/api/v1/ai/chats/missing/turns/t-1/execution-result")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue("""{"executionId":"exec-1"}""")
             .exchange()
             .expectStatus().isNotFound
     }

@@ -90,6 +90,13 @@ class InMemoryChatRegistryTest {
     }
 
     @Test
+    fun shouldUpdateProfileId() {
+        registry.create(chat(chatId = "c1", profileId = "profile-a"))
+        registry.update("c1", ChatUpdate(profileId = "profile-b"))
+        assertEquals("profile-b", registry.load("c1")?.profileId)
+    }
+
+    @Test
     fun shouldReturnNull_whenUpdatingMissingChat() {
         assertNull(registry.update("missing", ChatUpdate(chatName = "x")))
     }
@@ -103,12 +110,12 @@ class InMemoryChatRegistryTest {
     }
 
     @Test
-    fun shouldNotMutateImmutableFields_onUpdate() {
+    fun shouldNotMutateIdentityFields_onUpdate() {
         registry.create(chat(chatId = "c1", userId = "user-1", profileId = "profile-a"))
-        registry.update("c1", ChatUpdate(chatName = "Changed"))
+        registry.update("c1", ChatUpdate(chatName = "Changed", profileId = "profile-b"))
         val loaded = registry.load("c1")!!
         assertEquals("user-1", loaded.userId)
-        assertEquals("profile-a", loaded.profileId)
+        assertEquals("profile-b", loaded.profileId)
         assertEquals("c1", loaded.chatId)
     }
 

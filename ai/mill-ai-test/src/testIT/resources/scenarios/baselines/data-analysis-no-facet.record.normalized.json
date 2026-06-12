@@ -74,20 +74,6 @@
         "text" : ""
       } ],
       "artifacts" : [ {
-        "persistKind" : "sql.validation",
-        "payload" : {
-          "toolName" : "validate_sql",
-          "artifactType" : "sql-validation",
-          "persistKind" : "sql.validation",
-          "payload" : {
-            "artifactType" : "sql-validation",
-            "passed" : true,
-            "attempt" : 1,
-            "message" : null,
-            "normalizedSql" : "SELECT COUNT(*) FROM sales"
-          }
-        }
-      }, {
         "persistKind" : "sql.generated",
         "payload" : {
           "protocolId" : "sql-query.generated-sql",
@@ -100,6 +86,20 @@
             "validationWarnings" : [ ]
           },
           "persistKind" : "sql.generated"
+        }
+      }, {
+        "persistKind" : "sql.validation",
+        "payload" : {
+          "toolName" : "validate_sql",
+          "artifactType" : "sql-validation",
+          "persistKind" : "sql.validation",
+          "payload" : {
+            "artifactType" : "sql-validation",
+            "passed" : true,
+            "attempt" : 1,
+            "message" : null,
+            "normalizedSql" : "SELECT COUNT(*) FROM sales"
+          }
         }
       } ],
       "sseEvents" : [ {
@@ -141,11 +141,11 @@
       "passLevel" : "ERROR",
       "checks" : [ {
         "artifacts" : [ {
-          "persistKind" : "sql.generated",
-          "count" : 1
-        }, {
           "persistKind" : "metadata.faceting.capture",
           "count" : 0
+        }, {
+          "persistKind" : "sql.generated",
+          "count" : 1
         } ]
       }, {
         "events" : {

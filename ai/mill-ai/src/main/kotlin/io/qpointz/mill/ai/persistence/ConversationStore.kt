@@ -52,6 +52,14 @@ interface ConversationStore {
     fun attachArtifacts(conversationId: String, turnId: String, artifactIds: List<String>)
     fun load(conversationId: String): ConversationRecord?
     fun ensureExists(conversationId: String, profileId: String)
+
+    /**
+     * Updates the denormalized profile id on an existing conversation row, if present.
+     *
+     * Default is a no-op so in-memory and legacy adapters remain source-compatible.
+     */
+    fun updateProfileId(conversationId: String, profileId: String): Unit = Unit
+
     /**
      * Hard-deletes the conversation record and all its turns.
      *

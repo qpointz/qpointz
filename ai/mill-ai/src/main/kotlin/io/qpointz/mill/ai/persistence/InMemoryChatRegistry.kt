@@ -23,6 +23,7 @@ class InMemoryChatRegistry : ChatRegistry {
                 chatName = update.chatName ?: existing.chatName,
                 isFavorite = update.isFavorite ?: existing.isFavorite,
                 contextLabel = update.contextLabel ?: existing.contextLabel,
+                profileId = update.profileId ?: existing.profileId,
                 updatedAt = Instant.now(),
             )
         }

@@ -3,6 +3,8 @@ package io.qpointz.mill.ai.service
 import io.qpointz.mill.ai.chat.ChatRuntimeEvent
 import io.qpointz.mill.ai.persistence.ChatMetadata
 import io.qpointz.mill.ai.persistence.ChatUpdate
+import io.qpointz.mill.ai.service.dto.ArtifactResponse
+import io.qpointz.mill.ai.service.dto.AttachExecutionResultHttpRequest
 import reactor.core.publisher.Flux
 
 /**
@@ -31,8 +33,10 @@ interface ChatService {
     fun getChatByContext(contextType: String, contextId: String): ChatMetadata?
 
     /**
-     * Updates mutable chat fields (name, favourite flag, context label).
+     * Updates mutable chat fields (name, favourite flag, context label, profile on general chats).
      * Returns the updated metadata, or `null` if the chat does not exist.
+     *
+     * @throws InvalidChatUpdateException when profile update is invalid (mapped to HTTP 400)
      */
     fun updateChat(chatId: String, update: ChatUpdate): ChatMetadata?
 
@@ -44,4 +48,18 @@ interface ChatService {
 
     /** Sends a user message and returns a streaming [Flux] of [ChatRuntimeEvent]s. */
     fun sendMessage(chatId: String, message: String): Flux<ChatRuntimeEvent>
+
+    /**
+     * Persists client-side query execution metadata on a turn (no server SQL execution).
+     *
+     * @param chatId chat identifier
+     * @param turnId durable turn identifier
+     * @param request execution metadata from mill-ui `queryService`
+     * @return attached wire artefact, or `null` when chat/turn is missing
+     */
+    fun attachExecutionResult(
+        chatId: String,
+        turnId: String,
+        request: AttachExecutionResultHttpRequest,
+    ): ArtifactResponse?
 }
