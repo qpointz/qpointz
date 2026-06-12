@@ -27,7 +27,7 @@ export function deriveAssistantReplyView(
   const arts = artifacts ?? [];
   if (arts.some((a) => a.kind === 'facet-proposal')) return 'facet-primary';
   if (arts.some((a) => a.kind === 'schema-capture')) return 'schema-primary';
-  if (arts.some((a) => a.kind === 'sql')) return 'sql-primary';
+  if (arts.some((a) => a.kind === 'sql' || a.kind === 'data')) return 'sql-primary';
   if (arts.some((a) => a.kind === 'unknown')) return 'artifact-primary';
   if (completionHint?.presentation === 'structured') {
     if (completionHint.partType === 'sql') return 'sql-primary';

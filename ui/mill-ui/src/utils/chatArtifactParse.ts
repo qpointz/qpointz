@@ -4,7 +4,7 @@ const STRUCTURED_PRESENTATION = 'structured';
 /** Mirrors [V1_CONVERSATION_PRESENTATION] — keep literal to avoid importing chatTransport (cycles). */
 const V1_CONVERSATION_PRESENTATION = 'conversation' as const;
 
-const KNOWN_STRUCTURED_PART_TYPES = new Set(['sql', 'facet-proposal', 'schema-capture']);
+const KNOWN_STRUCTURED_PART_TYPES = new Set(['sql', 'data', 'facet-proposal', 'schema-capture']);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -38,6 +38,7 @@ function wirePresentation(evt: Record<string, unknown>): string {
 }
 
 function inferPayloadKind(o: Record<string, unknown>): ChatMessageArtifact['kind'] | null {
+  if (typeof o.executionId === 'string' && o.executionId.trim().length > 0) return 'data';
   if (typeof o.sql === 'string' && o.sql.trim().length > 0) return 'sql';
   if (typeof o.facetTypeKey === 'string' && typeof o.metadataEntityId === 'string') return 'facet-proposal';
   if (typeof o.captureType === 'string' && o.captureType === 'facet_assignment' && typeof o.metadataEntityId === 'string') {
@@ -97,6 +98,29 @@ export function parseChatStructuredPart(evt: Record<string, unknown>): ChatMessa
       kind: 'sql',
       sql,
       dialectId: typeof parsed.dialectId === 'string' ? parsed.dialectId : undefined,
+    };
+  }
+
+  if (effectivePartType === 'data' || inferredKind === 'data') {
+    const executionId = typeof parsed.executionId === 'string' ? parsed.executionId : '';
+    if (!executionId) return null;
+    return {
+      kind: 'data',
+      executionId,
+      sql: typeof parsed.sql === 'string' ? parsed.sql : undefined,
+      rowCount: typeof parsed.rowCount === 'number' ? parsed.rowCount : undefined,
+      truncated: typeof parsed.truncated === 'boolean' ? parsed.truncated : undefined,
+      columns: Array.isArray(parsed.columns)
+        ? parsed.columns
+            .map((entry) => {
+              if (!entry || typeof entry !== 'object') return null;
+              const row = entry as Record<string, unknown>;
+              const name = typeof row.name === 'string' ? row.name : '';
+              const type = typeof row.type === 'string' ? row.type : 'unknown';
+              return name ? { name, type } : null;
+            })
+            .filter((column): column is { name: string; type: string } => column !== null)
+        : undefined,
     };
   }
 
