@@ -140,6 +140,7 @@ Current API semantics:
 
 - `GET /api/v1/ai/chats` returns general chats only
 - contextual chat create reuses an existing singleton
+- `PATCH /api/v1/ai/chats/{chatId}` accepts optional `profileId` for **general** chats only; unknown profile or contextual chat → **400**
 - `POST /api/v1/ai/chats` returns:
   - `201` when a new chat is created
   - `200` when an existing contextual chat is reused

@@ -40,4 +40,5 @@ Documents related to Step-Back reasoning use the `sb-` prefix (e.g. `sb-reasonin
 | `mill-ai-configuration.md` | `mill.ai.*` umbrella: providers, embedding registry, vector store (**caveats** subsection: single shared store, embedding space, DB vs ANN); value-mapping references; persistence (WI-174) vs search store; sync (WI-179) and `ValueMappingService` (WI-180) |
 | `value-mapping-observability-actions.md` | **Action points** — metrics / observability backlog for value-mapping sync & embed paths (open until follow-up WI) |
 | `sb-ux-implementation-plan.md` | Implementation plan aligning backend/frontend with Step-Back UX flows |
+| [`chat-artefact-architecture.md`](chat-artefact-architecture.md) | Chat artefact **presentation** + GET replay wire (builds on [`artifact-foundation.md`](../agentic/artifact-foundation.md)) |
 | [`ai-v1-integration/README.md`](ai-v1-integration/README.md) | Retired **`ai:integration`** CI job (v1 NL2SQL scenario `testIT`); v3 reimplementation checklist |

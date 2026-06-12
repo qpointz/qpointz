@@ -2,7 +2,7 @@
 
 Architecture, types, and design decisions for the multi-type agent message system.
 
-**Implemented today (unified AI v3):** the production path uses `POST /api/v1/ai/chats/{id}/messages` and **ChatSseEvent** (`item.part.updated`, `item.completed`, …) as in [`ai-v3-chat-transport-extensions.md`](../../agentic/ai-v3-chat-transport-extensions.md). For **how to add new structured parts and per-reply layouts** in mill-ui, see section **Per-reply views (mill-ui) — extension guide** in that document.
+**Implemented today (unified AI v3):** the production path uses `POST /api/v1/ai/chats/{id}/messages` and **ChatSseEvent** (`item.part.updated`, `item.completed`, …) as in [`ai-v3-chat-transport-extensions.md`](../../agentic/ai-v3-chat-transport-extensions.md). For **structured artefact presentation** (SQL condensed/expand, chat-type treatments, GET replay), see [`chat-artefact-architecture.md`](../../ai/chat-artefact-architecture.md). Emission details: [`artifact-foundation.md`](../../agentic/artifact-foundation.md).
 
 ### URL routing (shareable general chat)
 
@@ -11,6 +11,12 @@ Architecture, types, and design decisions for the multi-type agent message syste
 - **`ChatRouteSync`** ([`ChatRouteSync.tsx`](../../../ui/mill-ui/src/components/chat/ChatRouteSync.tsx)) keeps the path and **`ChatContext`** active chat aligned. Choosing a conversation in the sidebar or creating a chat updates the path (with **`replace`**, so history is not spammed).
 - **Deep link** to an id that is not yet in the sidebar: the context may insert a small **stub** row (title **Loading…**) until `GET /api/v1/ai/chats/{id}` returns; if the request fails, the row title becomes **Chat unavailable** and hydration stops retrying for that turn.
 - **Delete last chat / delete while URL still shows that id:** `deleteConversation` sets a short-lived guard so the deep-link effect does not recreate a stub for the removed id before the router clears the segment. **`syncChatRouteConversationParam`** drops that guard when the route param changes (including navigation to plain `/chat`).
+
+### Agent profile (general chat)
+
+- **Create:** optional `profileId` on `POST /api/v1/ai/chats` (sidebar picker when `chatAgentPicker` flag is on; otherwise server/default preference).
+- **Mid-chat switch:** content toolbar **`Select`** when the host advertises ≥2 profiles (`GET /api/v1/ai/profiles`). Persists via `PATCH /api/v1/ai/chats/{chatId}` with `{ "profileId": "..." }`. **General chats only** — contextual/inline chats keep create-time profile (API returns **400**).
+- **Memory:** profile switch does **not** clear LLM sliding-window memory; the next turn uses the new profile but prior turns remain in agent context. Durable transcript and artefacts are unchanged.
 
 ---
 
