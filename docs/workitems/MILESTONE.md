@@ -14,6 +14,8 @@
 
 #### Archived stories (closure date, newest first)
 
+- **Chat artefact presentation (sql-view restart)** (`ai-sql-view-restart`, closed **2026-06-12**): [`completed/20260612-ai-sql-view-restart/STORY.md`](completed/20260612-ai-sql-view-restart/STORY.md). **WI-289**–**WI-298** — mill-ui chat artefact presentation on artefacts emission foundation: `chatArtifactTreatments`, condensed SQL/data preview, expand pane, shared **`QueryDataView`**, GET replay + attach-result wire, chat toolbar (Run all, mid-chat profile switch), content-pane header chrome; supersedes abandoned **`feat/ai-chat-sql-result-view`**. Design [`docs/design/ai/chat-artefact-architecture.md`](../design/ai/chat-artefact-architecture.md), [`docs/design/ui/mill-ui/GENERAL-CHAT-DESIGN.md`](../design/ui/mill-ui/GENERAL-CHAT-DESIGN.md). **BACKLOG** **U-15** `done`.
+
 **Scope:** this subsection lists **only** story archives whose **`docs/workitems/completed/…` tree first landed after git tag `v0.7.0`** (verify with e.g. `git log v0.7.0..HEAD -- docs/workitems/completed/`). Archives dated **2026-03-30** through **2026-04-02** — including **metadata rework**, **metadata/UI**, **flow UI facets**, **typed URNs** — were committed **on or before** `v0.7.0`; they remain under [`completed/`](completed/) for traceability and are summarized in **[`releases/RELEASE-0.7.0.md`](releases/RELEASE-0.7.0.md)** (see also **[`completed/README.md`](completed/README.md)**). They are **not** duplicated here as **0.8.0** delta.
 
 - **AI configuration restructure** (`ai-configuration-restructure`, closed **2026-06-10**): [`completed/20260610-ai-configuration-restructure/STORY.md`](completed/20260610-ai-configuration-restructure/STORY.md). **WI-284**–**WI-288** — layered **`mill.ai.*`**: `providers` (+ `type`), `models.chat` / `models.embedding`, optional **`vector-stores`** registry, **`data.embedding.<profile>`** pipelines (sources, refresh, vector store), **`chat`** capability hooks; clean break from legacy `mill.ai.model`, `embedding-model`, `value-mapping`, singleton `vector-store`; operator YAML + GCP template migration; design + public docs. **BACKLOG** **A-91** `done`.
@@ -55,6 +57,8 @@
 #### Cumulative WI deliveries (toward 0.8.0)
 
 Individual work items and bundles merged on `dev` in support of this milestone (including items that also appear under **Archived stories** above).
+
+- **WI-289**–**WI-298** — mill-ui chat artefact presentation on artefacts foundation: `chatArtifactTreatments`, condensed/expand SQL views, shared **`QueryDataView`**, GET replay + attach-result, chat toolbar Run all + mid-chat profile switch; story **`ai-sql-view-restart`**, archived [`completed/20260612-ai-sql-view-restart/STORY.md`](completed/20260612-ai-sql-view-restart/STORY.md). **BACKLOG** **U-15** `done`.
 
 - **WI-284**–**WI-288** — `mill.ai` configuration restructure: property bindings (`AiConfigurationProperties`, `DataEmbeddingConfigurationProperties`), resolvers + autoconfigure wiring, operator YAML migration, tests + legacy removal, design/public/inventory docs; story **`ai-configuration-restructure`**, archived [`completed/20260610-ai-configuration-restructure/STORY.md`](completed/20260610-ai-configuration-restructure/STORY.md). **BACKLOG** **A-91** `done`.
 
