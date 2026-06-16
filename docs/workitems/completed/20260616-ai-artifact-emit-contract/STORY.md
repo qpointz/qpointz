@@ -6,7 +6,7 @@ Implement a **YAML-driven conversation replay harness** in [`ai/mill-ai-test`](.
 **Predecessor:** [`completed/20260506-ai-v3-mill-ui-general-chat`](../../completed/20260506-ai-v3-mill-ui-general-chat/STORY.md) (WI-231 transport seams; basic UI cards on `dev`).  
 **Deferred:** `origin/feat/ai-chat-sql-result-view` — condensed/expand UI, GET replay wire, salvage; merge after emit is proven by scenario packs.
 
-**Story folder:** [`docs/workitems/in-progress/ai-artifact-emit-contract/`](.) — harness foundation complete (WI-300–302).
+**Story folder:** [`docs/workitems/completed/20260616-ai-artifact-emit-contract/`](.) — closed 2026-06-16.
 
 ## Strategy
 
@@ -87,7 +87,7 @@ Normalized baselines scrub: UUIDs, `runId`, `chatId`, `turnId`, `eventId`, `arti
 
 **Closure checklist (not in execution order — user-triggered only):**
 
-- [ ] **WI-309** — Story closure reference (**[`WI-309-story-closure.md`](WI-309-story-closure.md)**) — archive, MILESTONE, BACKLOG, squash **only when user explicitly requests closure** per [`RULES.md`](../../RULES.md)
+- [x] **WI-309** — Story closure reference (**[`WI-309-story-closure.md`](WI-309-story-closure.md)**) — archive, MILESTONE, BACKLOG, squash **only when user explicitly requests closure** per [`RULES.md`](../../RULES.md)
 
 ## Scope
 

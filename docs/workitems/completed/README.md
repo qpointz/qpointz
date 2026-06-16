@@ -23,6 +23,7 @@ Optionally, keep a **newest-first** bullet list below as a human-maintained inde
 
 ## Index (optional, newest first)
 
+- [2026-06-16 — ai-artifact-emit-contract (YAML scenario harness, artefact emit contract, registry/coordinator, POC packs, live YAML; WI-300–WI-310)](20260616-ai-artifact-emit-contract/STORY.md)
 - [2026-06-12 — ai-sql-view-restart (chat artefact presentation, QueryDataView, expand, profile switch; WI-289–WI-298)](20260612-ai-sql-view-restart/STORY.md)
 - [2026-06-10 — ai-configuration-restructure (`mill.ai` layered config: providers, models, `data.embedding`, `vector-stores`; WI-284–WI-288)](20260610-ai-configuration-restructure/STORY.md)
 - [2026-05-14 — cloud-blob-source (`cloud/{aws,gcp,azure}`, `BlobSource`, `mill.data.backend.metadata`; WI-262–WI-265, WI-271)](20260514-cloud-blob-source/STORY.md)

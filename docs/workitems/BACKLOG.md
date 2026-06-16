@@ -80,6 +80,10 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | A-89 | Value mapping facet types, startup/scheduled vector refresh, pgvector store (**WI-181–WI-186**); capability retrieval (**WI-183** follow-on) | ✨ feature | done | [`docs/workitems/completed/20260417-value-mapping-facets-vector-lifecycle/STORY.md`](completed/20260417-value-mapping-facets-vector-lifecycle/STORY.md) — see **MILESTONE** 0.8.0 |
 | A-90 | Schema capability — facet reconciliation, `SchemaCatalogPort` / `SchemaFacetCatalogAdapter`, Skymill schema IT (**WI-187–WI-191**) | 🔧 refactoring | done | [`docs/workitems/completed/20260417-schema-capability-metadata/STORY.md`](completed/20260417-schema-capability-metadata/STORY.md) — see **MILESTONE** 0.8.0 |
 | A-91 | Restructure `mill.ai` configuration: providers + models + `data.embedding` profiles + `vector-stores` registry; clean break from legacy keys (**WI-284–WI-288**) | 🔧 refactoring | done | [`docs/workitems/completed/20260610-ai-configuration-restructure/STORY.md`](completed/20260610-ai-configuration-restructure/STORY.md) — see **MILESTONE** 0.8.0 |
+| A-92 | YAML scenario harness + artefact emit contract: `ScenarioPack`, `ScriptedAgentRunner`, regression records, `ArtifactDescriptorRegistry`, `ArtifactEmissionCoordinator`, router/SSE bridge, `data-analysis` profile, POC scenario packs, live YAML packs (**WI-300–WI-308, WI-310**) | ✨ feature | done | [`completed/20260616-ai-artifact-emit-contract/STORY.md`](completed/20260616-ai-artifact-emit-contract/STORY.md) — see **MILESTONE** 0.8.0 |
+| A-93 | HTTP scenario runner for `mill-ai-test` (follow-up from artifact emit contract) | ✨ feature | backlog | deferred from `ai-artifact-emit-contract` WI-309 |
+| A-94 | `ai:v3-integration` CI job: live-LLM scenario matrix in GitLab CI (gated on secrets) | 🧪 test | backlog | deferred from `ai-artifact-emit-contract` WI-309 |
+| A-95 | Promote live-LLM YAML packs to default CI (currently gated testIT in WI-310) | 🧪 test | backlog | deferred from `ai-artifact-emit-contract` WI-309 |
 
 ---
 
@@ -299,7 +303,7 @@ are excluded until **release prune**.
 | Category    | Items |
 | ----------- | ----- |
 | data        | 6     |
-| ai          | 39    |
+| ai          | 42    |
 | client      | 15    |
 | metadata    | 20    |
 | platform    | 33    |
@@ -309,4 +313,4 @@ are excluded until **release prune**.
 | ui          | 12    |
 | persistence | 7     |
 | security    | 7     |
-| **Total**   | **166** |
+| **Total**   | **169** |

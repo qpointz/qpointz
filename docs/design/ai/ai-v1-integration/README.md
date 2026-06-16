@@ -69,9 +69,13 @@ replace end-to-end v1 scenario regression.
 
 When restoring AI integration CI:
 
-1. Define scenario matrix (profiles, capabilities, datasets) against **`mill-ai-test`** / service `testIT`.
+1. ~~Define scenario matrix (profiles, capabilities, datasets) against **`mill-ai-test`** / service `testIT`.~~
+   **Done** — `ScenarioPack` YAML harness, `ScriptedAgentRunner`, baseline comparator, and POC
+   acceptance packs implemented in `ai/mill-ai-test` (WI-300–308). Live YAML packs with
+   `ProvidedAgentRunner` added as gated `testIT` (WI-310). See
+   [`docs/design/agentic/ai-v3-conversation-scenarios.md`](../agentic/ai-v3-conversation-scenarios.md).
 2. Add a new job (e.g. `ai:v3-integration`) running a **scoped** Gradle task — not unfiltered `:ai:testIT`
-   over legacy modules.
+   over legacy modules. (**Backlog A-94**)
 3. Gate on secrets (`OPENAI_API_KEY`, vector store endpoints) with explicit `rules` and `allow_failure`
    policy.
 4. Publish structured reports (JUnit + JSON) under `ai/mill-ai-test/build/reports/` or similar.

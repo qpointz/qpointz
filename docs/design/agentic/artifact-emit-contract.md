@@ -1,7 +1,7 @@
 # Artefact emit contract (v3)
 
 **Status:** Implemented — see **[`artifact-foundation.md`](./artifact-foundation.md)** for the canonical agent-oriented reference  
-**Story:** [`docs/workitems/in-progress/ai-artifact-emit-contract/`](../../workitems/in-progress/ai-artifact-emit-contract/STORY.md)
+**Story:** [`docs/workitems/completed/20260616-ai-artifact-emit-contract/`](../../workitems/completed/20260616-ai-artifact-emit-contract/STORY.md)
 
 > **For other agents:** start with [`artifact-foundation.md`](./artifact-foundation.md) (end-to-end pipeline, file index, add-artifact checklist). This document retains the original WI-303 decision record.
 
