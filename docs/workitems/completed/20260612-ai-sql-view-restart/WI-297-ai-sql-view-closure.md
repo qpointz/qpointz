@@ -48,8 +48,8 @@ cd ui/mill-ui && npm run test && npm run build
 - [x] Update [`BACKLOG.md`](../../BACKLOG.md) and [`MILESTONE.md`](../../MILESTONE.md).
 - [x] Archive to `docs/workitems/completed/20260612-ai-sql-view-restart/`.
 - [x] Note abandonment of `feat/ai-chat-sql-result-view` in closure commit message.
-- [ ] MR-ready commits per [`RULES.md`](../../RULES.md) (~6–10 logical commits above merge base) — follow-up before merge.
-- [ ] If history was squashed and branch was already pushed: `git push --force-with-lease origin feat/ai-sql-view-2-restart`.
+- [x] MR-ready commits per [`RULES.md`](../../RULES.md) (~6–10 logical commits above merge base) — 12 commits on `tasks/close-ai-resource-and-view-stories` (artifact emit + sql-view bundle); optional further squash before merge.
+- [ ] If history was squashed and branch was already pushed: `git push --force-with-lease origin <feature-branch>` (only when user requests push after rewrite).
 
 ### Per-WI delivery (WI-289–296 — not closure)
 

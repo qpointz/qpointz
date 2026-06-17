@@ -69,12 +69,12 @@ Before WI-290 code:
 
 Before starting the next WI:
 
-- [ ] WI acceptance criteria met (or documented deferrals in the WI file)
-- [ ] **`STORY.md`** tracker line set to `[x]` for the completed WI
-- [ ] First `[x]`: folder moved to `in-progress/ai-sql-view-restart/` if still under `planned/`
-- [ ] Completed **`WI-NNN-*.md`** updated (checkboxes / notes)
-- [ ] **`git status` clean** after one commit containing the full WI working copy
-- [ ] **`git push origin HEAD`** (or `-u origin HEAD` on first push to remote)
+- [x] WI acceptance criteria met (or documented deferrals in the WI file)
+- [x] **`STORY.md`** tracker line set to `[x]` for the completed WI
+- [x] First `[x]`: folder moved to `in-progress/ai-sql-view-restart/` if still under `planned/`
+- [x] Completed **`WI-NNN-*.md`** updated (checkboxes / notes)
+- [x] **`git status` clean** after one commit containing the full WI working copy
+- [x] **`git push origin HEAD`** (or `-u origin HEAD` on first push to remote)
 
 ## End-to-end data flow (target)
 
@@ -230,11 +230,11 @@ Defined in [`ui/mill-ui/src/features/defaults.ts`](../../../../ui/mill-ui/src/fe
 
 | Folder | Status |
 |--------|--------|
-| [`planned/ai-sql-view-restart/`](.) | **Active** — use this |
-| [`in-progress/ai-artifact-emit-contract/`](../../in-progress/ai-artifact-emit-contract/) | **Prerequisite** — foundation complete; merge or branch from it |
+| [`completed/20260612-ai-sql-view-restart/`](.) | **Closed** — this archive |
+| [`completed/20260616-ai-artifact-emit-contract/`](../20260616-ai-artifact-emit-contract/) | **Prerequisite** — foundation complete; merged on story branch |
 | Abandoned `in-progress/ai-sql-view/` | **Historical** — do not check WIs |
 
-At closure, archive **this** folder to `completed/YYYYMMDD-ai-sql-view-restart/`.
+Archived to `completed/20260612-ai-sql-view-restart/` at story closure (WI-297).
 
 ## Test commands quick reference
 

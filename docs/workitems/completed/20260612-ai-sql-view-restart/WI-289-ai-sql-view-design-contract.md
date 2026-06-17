@@ -17,7 +17,7 @@ Lock the **chat-inferred artefact presentation** contract before implementation:
 for **WI-294–296**. The framework must generalize to charts, metadata, data-quality rules,
 etc. — not every kind uses every view or transition.
 
-**Emission foundation is out of scope** — owned by [`ai-artifact-emit-contract`](../../in-progress/ai-artifact-emit-contract/STORY.md)
+**Emission foundation is out of scope** — owned by [`ai-artifact-emit-contract`](../20260616-ai-artifact-emit-contract/STORY.md)
 and documented in [`artifact-foundation.md`](../../../design/agentic/artifact-foundation.md). This WI
 documents **presentation + replay layers only** and cross-links emission (does not reimplement or
 duplicate coordinator/registry/SSE content).

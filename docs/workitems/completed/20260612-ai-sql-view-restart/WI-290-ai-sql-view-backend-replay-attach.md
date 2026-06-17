@@ -18,7 +18,7 @@ Enable **history reload** and **client Run persistence**:
 2. `POST …/turns/{turnId}/execution-result` persists client query metadata after Run (no server SQL execution).
 
 **Service-layer only.** Artifact emission and `last-sql` pointer routing are provided by
-[`ai-artifact-emit-contract`](../../in-progress/ai-artifact-emit-contract/STORY.md). **Do not modify**
+[`ai-artifact-emit-contract`](../20260616-ai-artifact-emit-contract/STORY.md). **Do not modify**
 `ai/mill-ai` runtime in this WI.
 
 ## Deliver

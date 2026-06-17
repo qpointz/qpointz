@@ -1,8 +1,10 @@
 ﻿# ai-sql-view-restart
 
 > **Clean restart** of the consolidated sql-view story (WI-289–WI-297). Presentation layer only —
-> built strictly on [`ai-artifact-emit-contract`](../in-progress/ai-artifact-emit-contract/STORY.md)
+> built strictly on [`ai-artifact-emit-contract`](../20260616-ai-artifact-emit-contract/STORY.md)
 > (`feat/ai-chat-artefacts`), **not** on `feat/ai-chat-sql-result-view`.
+
+**Story folder:** [`docs/workitems/completed/20260612-ai-sql-view-restart/`](.) — closed 2026-06-12 (implementation merged on story branch through WI-298).
 >
 > | Merged concept | Delivered in |
 > |----------------|--------------|
@@ -41,7 +43,7 @@ Verify before starting **code** (after WI-289 docs):
 ./gradlew :ai:mill-ai:test --tests "*ArtifactEmission*"
 ```
 
-Story doc: [`docs/workitems/in-progress/ai-artifact-emit-contract/`](../in-progress/ai-artifact-emit-contract/STORY.md)
+Story doc: [`docs/workitems/completed/20260616-ai-artifact-emit-contract/`](../20260616-ai-artifact-emit-contract/STORY.md)
 
 ## Pre-implementation cleanup (step 0 — not a WI)
 
@@ -147,7 +149,7 @@ Supporting updates: [`ai-v3-chat-transport-extensions.md`](../../../design/agent
 
 ## Placement
 
-[`docs/workitems/in-progress/ai-sql-view-restart/`](.) — moved from `planned/` on WI-289 completion.
+[`docs/workitems/completed/20260612-ai-sql-view-restart/`](.) — archived from `planned/` → `in-progress/` (WI-289) → `completed/` (WI-297).
 
 ## Branching, tracker, commit, and push (normative)
 
