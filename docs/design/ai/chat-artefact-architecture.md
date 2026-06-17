@@ -3,7 +3,7 @@
 End-to-end design for **chat-inferred artefact presentation** in Mill UI: replay wire → chat-type
 treatment → condensed / expand views → host integrations.
 
-**Story:** [`docs/workitems/in-progress/ai-sql-view-restart/`](../../workitems/in-progress/ai-sql-view-restart/STORY.md) (WI-289–297).
+**Story:** [`docs/workitems/completed/20260612-ai-sql-view-restart/`](../../workitems/completed/20260612-ai-sql-view-restart/STORY.md) (WI-289–298).
 
 ## 1. Layer separation
 

@@ -35,6 +35,7 @@ workflow semantics.
 |------|---------|
 | **`artifact-foundation.md`** | **Canonical reference** for chat artefacts: descriptor model, emission strategies, SSE wire, mill-ui cards, profiles, file index, add-artifact checklist |
 | `artifact-emit-contract.md` | Original emit-contract decision record (WI-303–306); links to foundation |
+| [`ai-v3-conversation-scenarios.md`](./ai-v3-conversation-scenarios.md) | **Implemented:** YAML `ScenarioPack` harness, `ScriptedAgentRunner`, regression records, baseline workflow (`mill-ai-test`) |
 | `v3-foundation-decisions.md` | Strategic architecture decisions and long-range design direction for `ai/v3` |
 | `v3-runtime-roles.md` | Runtime role split for capabilities, planner, observer, and workflow ownership |
 | `v3-interactive-cli.md` | Current behavior of the `mill-ai-v3-cli` manual inspection tool, including raw event rendering and artifact-observer prints |

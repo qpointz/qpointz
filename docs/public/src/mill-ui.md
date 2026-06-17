@@ -108,21 +108,41 @@ Operator-facing detail: [Analysis saved-query service](../../design/platform/ana
 ### Behaviour (as implemented in `ui/mill-ui`)
 
 - **General Chat** uses **`ChatInputBox`**: a single text area; **Enter** sends the message, **Shift+Enter** inserts a new line.
-- There is **no** slash-command palette (`/get-data`, …) and **no** `@` mention picker in the composer; those patterns are **not** implemented in the current Mill UI codebase.
+- There is **no** slash-command palette (`/get-data`, …) and **no** `@` mention picker in the composer.
 - Optional toolbar actions (when flags are on): **attach** and **dictate** buttons — UI only unless wired to a backend.
-- Assistant replies are rendered as **Markdown** (including fenced code blocks and tables) via **`MessageContent`** / **`ReactMarkdown`**.
 - A **thinking** line can show while the assistant is streaming.
 - **Persistence:** With **`VITE_CHAT_API=mock`** (Vitest and local mock runs), conversations live in **`localStorage`**. When the UI is built for the **unified AI v3** service (**`mill.ai.enabled`** on the Mill stack and the client wired to **`realChatService`** / REST mode), the sidebar and transcript are **server-backed** (`GET`/`POST` **`/api/v1/ai/chats`** and streaming **`POST …/messages`**). `ChatContext` drops **`localStorage`** as the source of truth in that mode.
 
+### Assistant replies and structured artefacts
+
+With the **real** AI v3 chat service and a profile that emits structured artefacts (for example **`data-analysis`**), assistant turns can include **structured parts** in addition to conversational text:
+
+- **Conversational prose** still renders as **Markdown** via **`MessageContent`** / **`ReactMarkdown`**.
+- **Generated SQL** and related payloads appear as **chat-native artefact cards** (condensed preview), not as raw SQL copied into the message bubble — when the backend follows the v3 artefact emit contract.
+- **General chat** (`/chat`): condensed **SQL / Data** preview with **Run**, **Export**, **Expand**, and **Open in Analysis** when the **`chatSqlExecute`** feature flag is on (default **on** in `defaults.ts`).
+- **Expand** opens the full chat content pane with the same data view family as Analysis (**`QueryDataView`**), paging, and **Back to message**.
+- **Run all** (chat toolbar) executes every SQL artefact in the current conversation when **`chatSqlExecute`** is enabled.
+- **Facet**, **schema-capture**, and unknown structured parts use typed **`ArtifactCard`** layouts; see repository design **[Chat artefact architecture](../../design/ai/chat-artefact-architecture.md)**.
+
+Reloading a conversation (**`GET /api/v1/ai/chats/{id}`**) restores structured **`artifacts[]`** per turn so SQL/data previews hydrate without re-running the agent.
+
+### Agent profile
+
+- **Create:** optional **`profileId`** on **`POST /api/v1/ai/chats`** when **`chatAgentPicker`** is enabled (otherwise server/default preference applies).
+- **Mid-chat switch (general chat only):** toolbar profile **`Select`** when the server advertises two or more profiles; persists via **`PATCH /api/v1/ai/chats/{chatId}`**. Prior transcript and artefacts are kept; only subsequent turns use the new profile.
+
 ### Chat service (mock vs real)
 
-`src/services/api.ts` re-exports **`chatService`** from **`chatService.ts`**. The **mock** streams canned Markdown (and varies tone by context for inline chats) for tests and offline UX. The **real** implementation targets **`/api/v1/ai/chats`** (see repository design **GENERAL-CHAT-DESIGN** and **ai-v3-chat-transport-extensions**). Both honour the same **`ChatService`** surface (**`createChat`**, **`sendMessage`** streaming, list/detail/rename/delete).
+`src/services/api.ts` re-exports **`chatService`** from **`chatService.ts`**. The **mock** streams canned Markdown for tests and offline UX. The **real** implementation targets **`/api/v1/ai/chats`** (see **[GENERAL-CHAT-DESIGN](../../design/ui/mill-ui/GENERAL-CHAT-DESIGN.md)** and **[ai-v3-chat-transport-extensions](../../design/agentic/ai-v3-chat-transport-extensions.md)**). Both honour the same **`ChatService`** surface (**`createChat`**, **`sendMessage`** streaming, list/detail/rename/delete).
 
-Do **not** assume NL-to-SQL-specific widgets (intent cards, SQL copy tiles, clarification cards) unless your deployed backend and UI branch actually implement them; the stock Mill UI does not render those as separate components today.
+The **mock** does not exercise structured SQL artefact cards; use a Mill deployment with **`mill.ai.enabled`** and the real chat service to see condensed/expand behaviour.
 
 ### Inline chat
 
-When **inline chat** flags are on, compact chat can open from **Model**, **Knowledge**, or **Analysis** with context passed into **`createChat`**. That uses the same **`ChatInputBox`** behaviour as general chat.
+When **inline chat** flags are on, compact chat can open from **Model**, **Knowledge**, or **Analysis** with context passed into **`createChat`**.
+
+- **Inline analysis** applies generated SQL to the host editor (**host-apply**); it does not show the general-chat condensed/expand preview.
+- **Inline model / knowledge** use compact artefact treatments (facet/schema cards where applicable).
 
 ### URLs
 
@@ -197,4 +217,5 @@ The UI proxies **`/api`**, **`/auth`**, and **`/.well-known`** to the backend in
 ## See also
 
 - **[Metadata](metadata/index.md)** — user-oriented metadata model and operator notes.
+- **[Chat artefact architecture](../../design/ai/chat-artefact-architecture.md)** — structured SQL/data presentation, GET replay, expand pane (repository design).
 - Repository UI code: **`ui/mill-ui/src`** (routes in **`App.tsx`**, navigation in **`AppHeader.tsx`**).
