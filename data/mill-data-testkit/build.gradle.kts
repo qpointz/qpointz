@@ -15,7 +15,11 @@ dependencies {
     implementation(project(":data:mill-data-backend-core"))
     implementation(project(":data:mill-data-backends"))
     implementation(project(":data:mill-data-source-calcite"))
+    implementation(project(":data:formats:mill-data-format-text"))
+    implementation(project(":data:formats:mill-data-format-parquet"))
+    implementation(project(":data:formats:mill-data-format-avro"))
     implementation(libs.calcite.core)
+    implementation(libs.slf4j.api)
 
 //    implementation(libs.calcite.core)
 //    implementation(libs.calcite.csv)

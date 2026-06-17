@@ -1,0 +1,11 @@
+# Regenerate with `make regen-skymill` under test/ if flight_instances.avro is missing.
+name: skymill
+storage:
+  type: local
+  rootPath: "../../test/datasets/skymill/avro"
+table:
+  mapping:
+    type: regex
+    pattern: "(?<table>[^/]+)\\.avro"
+readers:
+  - type: avro

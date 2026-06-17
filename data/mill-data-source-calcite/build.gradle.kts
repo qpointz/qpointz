@@ -18,12 +18,40 @@ dependencies {
 
 testing {
     suites {
+        register<JvmTestSuite>("testIT") {
+            useJUnitJupiter(libs.versions.junit.get())
+            dependencies {
+                implementation(project())
+                implementation(project(":data:mill-data-testkit"))
+                implementation(project(":data:formats:mill-data-format-text"))
+                implementation(project(":data:formats:mill-data-format-parquet"))
+                implementation(project(":data:formats:mill-data-format-avro"))
+                implementation(libs.calcite.core)
+                implementation(libs.assertj.core)
+            }
+        }
+
         configureEach {
             if (this is JvmTestSuite) {
                 useJUnitJupiter(libs.versions.junit.get())
+                targets {
+                    all {
+                        testTask.configure {
+                            systemProperty(
+                                "mill.repo.root",
+                                rootProject.projectDir.absolutePath,
+                            )
+                        }
+                    }
+                }
 
                 dependencies {
                     implementation(project())
+                    implementation(project(":data:mill-data-testkit"))
+                    implementation(project(":data:formats:mill-data-format-text"))
+                    implementation(project(":data:formats:mill-data-format-parquet"))
+                    implementation(project(":data:formats:mill-data-format-avro"))
+                    implementation(libs.calcite.core)
                     implementation(libs.mockito.core)
                     implementation(libs.mockito.junit.jupiter)
                     implementation(libs.slf4j.api)
@@ -33,4 +61,8 @@ testing {
             }
         }
     }
+}
+
+tasks.named<Test>("testIT") {
+    testLogging { events("passed", "failed", "skipped") }
 }
