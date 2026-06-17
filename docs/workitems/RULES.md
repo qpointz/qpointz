@@ -229,6 +229,15 @@ allowed; thereafter follow the cycle above.
   `git fetch origin && git rebase origin/dev`.
 - Never commit directly to `dev`. Never reuse a previous story branch.
 
+## Merge request review
+
+When an agent is asked to **review a merge request** (or MR feedback is left on the story branch):
+
+1. **Propose changes** — summarise findings and concrete refactors; do not implement until the user confirms or agrees.
+2. **Implement when confirmed** — once the user accepts the proposed changes, apply them on the story branch, run relevant tests, and **finish with commit and push** to the MR source branch unless the user says otherwise.
+3. **Resolve threads** — mark or reply on MR discussion threads when the feedback is addressed (user may do this in GitLab UI).
+4. **Do not** treat “review only” as complete if the user subsequently agrees to the proposal — agreed review feedback is delivery work on the same branch.
+
 ## Commits
 
 - At the end of each work item, squash its changes into **one logical commit**.
