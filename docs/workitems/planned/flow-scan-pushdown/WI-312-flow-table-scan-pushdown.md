@@ -1,5 +1,13 @@
 # WI-312 — Filter and project pushdown into FlowTableScan
 
+**Story:** [`flow-scan-pushdown`](STORY.md) · **Prerequisite:**
+[`flow-translatable-table-scan`](../../completed/20260618-flow-translatable-table-scan/STORY.md) (WI-311 done).
+
+## Status: **not started**
+
+No `pushedFilter` / `projects` on `FlowTableScan`; no `FlowFilterTableScanRule` /
+`FlowProjectTableScanRule`. `FlowTableScanPlannerTest` still asserts filter **above** scan.
+
 ## Goal
 
 Add planner rules that merge single-table `Filter` and `Project` operators into `FlowTableScan`

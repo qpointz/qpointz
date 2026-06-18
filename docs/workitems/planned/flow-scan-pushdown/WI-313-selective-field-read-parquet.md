@@ -1,5 +1,13 @@
 # WI-313 — Selective field read and Parquet column projection
 
+**Story:** [`flow-scan-pushdown`](STORY.md) · **Prerequisite:**
+[`flow-translatable-table-scan`](../../completed/20260618-flow-translatable-table-scan/STORY.md) (WI-311 done).
+
+## Status: **not started**
+
+`SourceTable` has no projection API; `ParquetRecordSource` still reads full rows. Depends on WI-312
+for `FlowTableScan.projects` → column names.
+
 ## Goal
 
 Extend the source layer so scans request only required columns and Parquet reads skip unused
