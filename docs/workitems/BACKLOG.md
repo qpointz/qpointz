@@ -26,7 +26,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | D-7 | Streaming export format SPI in `mill-data-source-core` + SPI-backed `ExportFormatRegistry` bean in `mill-data-autoconfigure` (**WI-250**; full story **WI-250**–**WI-261**) | ✨ feature | done | [`completed/20260507-streaming-export-service/WI-250-export-format-spi.md`](completed/20260507-streaming-export-service/WI-250-export-format-spi.md) — see **MILESTONE** 0.8.0 |
 | D-8 | **`mill-data-query`** + **`mill-data-query-service`**: programmatic query execution sessions, Caffeine idle eviction, **`VectorBlock`** buffer paging + refill, marshaller SPI, REST under **`/api/v1/query/`** (**WI-262**–**WI-265**)                        | ✨ feature | done | [`completed/20260511-query-result-execution-service/STORY.md`](completed/20260511-query-result-execution-service/STORY.md) |
 | D-9 | Flow TranslatableTable scan: `FlowTableScan`, statistics, enumerable join policy (**WI-311**, **WI-314**–**WI-316**) | 💡 improvement | done | [`completed/20260618-flow-translatable-table-scan/STORY.md`](completed/20260618-flow-translatable-table-scan/STORY.md) — see **MILESTONE** 0.8.0 |
-| D-10 | Flow scan pushdown + Parquet column projection (**WI-312**, **WI-313**) | 💡 improvement | planned | [`planned/flow-scan-pushdown/STORY.md`](planned/flow-scan-pushdown/STORY.md) |
+| D-10 | Flow scan pushdown + Parquet column projection (**WI-312**, **WI-313**) | 💡 improvement | planned | [`planned/flow-scan-pushdown/STORY.md`](planned/flow-scan-pushdown/STORY.md) — cold-start architecture + code map in STORY |
 
 ---
 
