@@ -4,9 +4,9 @@ import io.qpointz.mill.test.data.skymill.SkymillDataset
 import io.qpointz.mill.test.data.skymill.SkymillExplainSupport
 import io.qpointz.mill.test.data.skymill.SkymillTestFixtures
 import org.apache.calcite.tools.Frameworks
+import org.apache.calcite.tools.RelRunner
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assumptions.assumeTrue
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.params.ParameterizedTest
@@ -46,11 +46,23 @@ class SkymillJoinFixturesTest {
 
     @Test
     @Timeout(value = 30, unit = TimeUnit.SECONDS)
-    //@Disabled("Enable after WI-315: FlowEnumerableRuleSets hash join bias")
     fun shouldPreferHashJoin_whenCorrelatedCitiesFilter() {
         SkymillCalciteTestFixtures.openSession(SkymillDataset.CSV).use { session ->
             val explain = session.explainPhysicalPlan(SkymillJoinQueries.FULL_JOIN_WITH_CITIES_FILTER)
             SkymillExplainSupport.assertHashJoinBiased(explain)
+        }
+    }
+
+    @Test
+    @Timeout(value = 120, unit = TimeUnit.SECONDS)
+    fun shouldPrepareSkymillJoin_whenRelRunnerOnLogicalPlan() {
+        SkymillCalciteTestFixtures.openSession(SkymillDataset.CSV).use { session ->
+            val frameworkConfig = SkymillCalciteTestFixtures.frameworkConfig(session)
+            val planner = Frameworks.getPlanner(frameworkConfig)
+            val logical = planner.rel(
+                planner.validate(planner.parse(SkymillJoinQueries.FULL_JOIN_WITH_CITIES_FILTER)),
+            ).rel
+            session.connection.unwrap(RelRunner::class.java).prepareStatement(logical).close()
         }
     }
 

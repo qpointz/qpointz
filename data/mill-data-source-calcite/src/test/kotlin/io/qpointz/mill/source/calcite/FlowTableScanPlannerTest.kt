@@ -10,7 +10,10 @@ import org.apache.calcite.schema.SchemaPlus
 import org.apache.calcite.tools.Frameworks
 import org.apache.calcite.tools.RelBuilder
 import org.apache.calcite.tools.RelRunner
+import org.apache.calcite.plan.hep.HepPlanner
+import org.apache.calcite.plan.hep.HepProgram
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -85,6 +88,17 @@ class FlowTableScanPlannerTest {
    * Execution path: [FlowTableScan] must convert to [EnumerableTableScan].
    * Requires [FlowTableScan.register] to add the enumerable converter rule.
    */
+  @Test
+  fun shouldRegisterFlowEnumerableRules_whenFlowTableScanRegistersClass() {
+    val logical = planSql(SELECT_ID_FROM_USERS)
+    val planner = HepPlanner(HepProgram.builder().build())
+    FlowRelPlannerRules.registerRulesFromRelTree(logical, planner)
+
+    val descriptions = planner.rules.map { it.toString() }
+    assertTrue(descriptions.any { it.contains("FlowTableScanToEnumerableRule") })
+    assertFalse(descriptions.any { it.contains("EnumerableMergeJoinRule") })
+  }
+
   @Test
   fun shouldConvertToEnumerableTableScan_whenPreparedForExecution() {
     val logical = planSql(SELECT_ID_FROM_USERS)

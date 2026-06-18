@@ -1,6 +1,5 @@
 package io.qpointz.mill.source.calcite
 
-import org.apache.calcite.adapter.enumerable.EnumerableRules
 import org.apache.calcite.plan.Convention
 import org.apache.calcite.plan.RelOptCluster
 import org.apache.calcite.plan.RelOptPlanner
@@ -9,6 +8,7 @@ import org.apache.calcite.plan.RelTraitSet
 import org.apache.calcite.rel.RelNode
 import org.apache.calcite.rel.core.TableScan
 import org.apache.calcite.rel.hint.RelHint
+import org.apache.calcite.rel.metadata.RelMetadataQuery
 
 /**
  * Logical table-scan [RelNode] for Mill Flow tables.
@@ -45,6 +45,22 @@ class FlowTableScan(
         return FlowTableScan(cluster, traitSet, hints, table)
     }
 
+    /**
+     * Row estimate for join costing and hash build-side selection (WI-315).
+     *
+     * Enumerable join rules query [RelMetadataQuery.getRowCount] on the scan [RelNode], not on
+     * [FlowTable] directly. [TableScan.estimateRowCount] defaults to [RelOptTable.getRowCount];
+     * this override reads Mill [io.qpointz.mill.source.SourceTable] statistics explicitly so
+     * planner metadata matches wired providers even before pushdown adjusts selectivity.
+     */
+    override fun estimateRowCount(mq: RelMetadataQuery): Double {
+        val flowTable = table.unwrap(FlowTable::class.java) ?: return super.estimateRowCount(mq)
+        val rowCount = FlowTableStatistics.toCalciteStatistic(
+            flowTable.sourceTable().statisticProviders(),
+        ).rowCount
+        return rowCount ?: super.estimateRowCount(mq)
+    }
+
     companion object {
         /**
          * Factory used from [FlowTable.toRel].
@@ -67,18 +83,17 @@ class FlowTableScan(
     /**
      * Registers planner rules the first time this [RelNode] class is seen.
      *
-     * [FlowTableScanToEnumerableRule] bridges logical scans to [org.apache.calcite.adapter.enumerable.EnumerableTableScan].
-     * The full [EnumerableRules] bundle is registered here as well so join, filter, and project
-     * enumerable rules (including [org.apache.calcite.adapter.enumerable.EnumerableJoinRule] for
-     * hash joins) are available on the same planner Volcano uses for `prepareStatement` /
-     * JDBC execution. [addRule] is idempotent, so repeated registration is harmless.
+     * [FlowTableScanToEnumerableRule] bridges logical scans to
+     * [org.apache.calcite.adapter.enumerable.EnumerableTableScan]. [FlowEnumerableRuleSets]
+     * supplies the remaining enumerable physical rules (hash join, filter, project, etc.) with
+     * merge join excluded for unsorted file scans.
      *
-     * This is an interim hook until flow connection init centralises a curated rule set
-     * (hash-join bias, merge-join tuning) in `mill-data-backends`; see flow-translatable-table-scan
-     * join-policy work item.
+     * Volcano calls this hook via [org.apache.calcite.plan.RelOptPlanner.registerClass] during
+     * `RelRunner.prepareStatement` / JDBC execution. Hep explain helpers use
+     * [FlowRelPlannerRules.registerRulesFromRelTree] to apply the same rules.
      */
     override fun register(planner: RelOptPlanner) {
         planner.addRule(FlowTableScanToEnumerableRule.INSTANCE)
-        EnumerableRules.rules().forEach { rule -> planner.addRule(rule) }
+        FlowEnumerableRuleSets.register(planner)
     }
 }

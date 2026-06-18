@@ -4,6 +4,8 @@
  * Provides [io.qpointz.mill.source.calcite.FlowSchema],
  * [io.qpointz.mill.source.calcite.FlowTable],
  * [io.qpointz.mill.source.calcite.FlowTableScan],
+ * [io.qpointz.mill.source.calcite.FlowEnumerableRuleSets],
+ * [io.qpointz.mill.source.calcite.FlowRelPlannerRules],
  * [io.qpointz.mill.source.calcite.FlowSchemaFactory],
  * [io.qpointz.mill.source.calcite.CalciteTypeMapper], and
  * [io.qpointz.mill.source.calcite.SourceSchemaManager] to expose

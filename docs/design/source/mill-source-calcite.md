@@ -1,6 +1,6 @@
 # mill-source-calcite — Using Sources with Apache Calcite
 
-Module `source/mill-source-calcite` exposes Mill file-based sources (CSV, TSV, FWF, Excel, Avro, Parquet) as Apache Calcite schemas and tables. It bridges the Mill source model (`SourceDescriptor` -> `ResolvedSource` -> `SourceTable`) into Calcite's `AbstractSchema` / `ScannableTable` hierarchy so that standard SQL can be executed against any source descriptor.
+Module `source/mill-source-calcite` exposes Mill file-based sources (CSV, TSV, FWF, Excel, Avro, Parquet) as Apache Calcite schemas and tables. It bridges the Mill source model (`SourceDescriptor` -> `ResolvedSource` -> `SourceTable`) into Calcite's `AbstractSchema` / `TranslatableTable` hierarchy so that standard SQL and programmatic `RelNode` plans can be executed against any source descriptor.
 
 Package: `io.qpointz.mill.source.calcite`
 
@@ -23,7 +23,9 @@ SourceDescriptor (YAML)
         |
   FlowSchema : AbstractSchema
         |
-  FlowTable : ScannableTable   (one per SourceTable)
+  FlowTable : TranslatableTable + ScannableTable
+        |
+  FlowTableScan (logical RelNode) + FlowEnumerableRuleSets (physical rules)
         |
   CalciteTypeMapper             (DatabaseType -> RelDataType)
 ```
@@ -34,7 +36,8 @@ The pipeline is deterministic:
 2. `SourceMaterializer` uses SPI to create runtime objects (blob source, format handlers, table mappers).
 3. `SourceResolver` discovers blobs, groups them into logical tables, infers schemas, and produces a `ResolvedSource`.
 4. `FlowSchema` wraps the resolved source; each logical table becomes a `FlowTable`.
-5. Calcite queries scan `FlowTable` instances via the standard `ScannableTable.scan()` contract.
+5. SQL / Substrait planning emits `FlowTableScan` (`TranslatableTable.toRel`); enumerable conversion and join policy rules register via `FlowTableScan.register()` (see `FlowEnumerableRuleSets`).
+6. Execution uses `RelRunner.prepareStatement` / JDBC against enumerable physical plans; `scan()` remains the row fallback for `EnumerableTableScan`.
 
 ---
 
@@ -186,17 +189,33 @@ The existing `RelToDatabaseTypeConverter` in `mill-data-backends` performs the *
 
 ### FlowTable
 
-`AbstractTable + ScannableTable` backed by a Mill `SourceTable`. Each `FlowTable` corresponds to one logical table discovered by the source resolver (which may be backed by multiple files).
+`AbstractTable + TranslatableTable + ScannableTable` backed by a Mill `SourceTable`. Each `FlowTable` corresponds to one logical table discovered by the source resolver (which may be backed by multiple files).
 
 ```kotlin
-class FlowTable(private val sourceTable: SourceTable) : AbstractTable(), ScannableTable
+class FlowTable(private val sourceTable: SourceTable) :
+    AbstractTable(), TranslatableTable, ScannableTable
 ```
 
+**`toRel(context, relOptTable)`** — returns a logical [FlowTableScan] (`Convention.NONE`) instead of a generic `LogicalTableScan`.
+
 **`getRowType(typeFactory)`** — delegates to `CalciteTypeMapper.toRelDataType(sourceTable.schema, typeFactory)`.
+
+**`getStatistic()`** — exposes Mill table statistics (row counts, keys) to Calcite when providers are wired on the `SourceTable`.
 
 **`scan(root)`** — returns an `Enumerable<Object[]>` that iterates over `sourceTable.records()`. Each `Record` is projected into an `Object[]` in schema-field order (field 0 -> index 0, field 1 -> index 1, etc.). Null values are preserved as `null` entries in the array.
 
 The scan is row-oriented: it uses `SourceTable.records()` which internally concatenates all underlying per-file `RecordSource` instances. For columnar-native formats (e.g. Parquet via `FlowVectorSource`), the bridge in `MultiFileSourceTable` converts vector blocks to records on the fly.
+
+### FlowTableScan and enumerable join policy
+
+`FlowTableScan` is the logical scan [RelNode] for Flow tables. On first sight in a planner, `FlowTableScan.register()` adds:
+
+- `FlowTableScanToEnumerableRule` — converts to `EnumerableTableScan`
+- `FlowEnumerableRuleSets` — standard Calcite enumerable rules **excluding** `EnumerableMergeJoinRule` so unsorted file scans prefer hash join over merge join + sort
+
+Registration is on the [RelNode], not on JDBC `FrameworkConfig`, so programmatic `RelRunner.prepareStatement(rel)` (Flow backend `CalciteExecutionProvider`) sees the same rules as SQL planning.
+
+`FlowRelPlannerRules` mirrors Volcano registration for Hep-based explain tests: walk the logical tree, call `registerClass`, build a Hep program from discovered rules.
 
 ### FlowSchema
 
@@ -299,14 +318,17 @@ Additional storage types (S3, Azure, etc.) can be added via SPI `StorageFactory`
 
 ### Format types
 
+See [formats/README.md](formats/README.md) for the shared **feature support** table (record statistics, export, etc.).
+
 | Type | Module | Description |
 |---|---|---|
-| `csv` | `mill-source-format-text` | Comma-separated values (Univocity parser) |
-| `tsv` | `mill-source-format-text` | Tab-separated values (escape-based, Univocity parser) |
-| `fwf` | `mill-source-format-text` | Fixed-width format (Univocity parser) |
-| `excel` | `mill-source-format-excel` | Excel workbooks (Apache POI) |
-| `avro` | `mill-source-format-avro` | Avro files |
-| `parquet` | `mill-source-format-parquet` | Parquet files (row-oriented via parquet-avro) |
+| `csv` | `mill-data-format-text` | Comma-separated values (Univocity parser) |
+| `tsv` | `mill-data-format-text` | Tab-separated values (escape-based, Univocity parser) |
+| `fwf` | `mill-data-format-text` | Fixed-width format (Univocity parser) |
+| `excel` | `mill-data-format-excel` | Excel workbooks (Apache POI) |
+| `avro` | `mill-data-format-avro` | Avro OCF files |
+| `parquet` | `mill-data-format-parquet` | Parquet files (row-oriented via parquet-avro) |
+| `arrow` | `mill-data-format-arrow` | Arrow IPC stream/file |
 
 ### Conflict resolution
 
@@ -483,8 +505,8 @@ Each step is lazy: blobs are opened on demand, records are streamed through iter
 
 | Area | Limitation |
 |---|---|
-| **Table scans only** | `FlowTable` implements `ScannableTable`, not `FilterableTable` or `ProjectableFilterableTable`. Calcite applies filters after the full scan. |
-| **Row-oriented scan** | Even for columnar formats (Parquet), the scan currently materializes rows via `SourceTable.records()`. A future `FlowTable` could implement Calcite's `Enumerable` directly from vector blocks. |
+| **Filter/project pushdown** | `FlowTableScan` exists but filter/project are not yet pushed into the scan ([WI-312](../../workitems/planned/flow-scan-pushdown/WI-312-flow-table-scan-pushdown.md)). Calcite may apply filters above the scan. |
+| **Row-oriented scan** | Even for columnar formats (Parquet), the scan currently materializes rows via `SourceTable.records()`. Column projection at the Parquet layer is [WI-313](../../workitems/planned/flow-scan-pushdown/WI-313-selective-field-read-parquet.md). |
 | **No schema caching** | `FlowSchema.getTableMap()` rebuilds the table map on each call. Phase 5 adds Caffeine-based caching at the `BlobSource` and `FormatHandler` levels (not at `FlowSchema` — caching belongs where the I/O happens so all consumers benefit). |
 | **Single-source schemas** | One `FlowSchema` = one `SourceDescriptor`. Use `SourceSchemaManager` to hold multiple named schemas and register them into a Calcite root schema. |
 | **UUID as VARCHAR** | Mill's `UUIDLogical` maps to `VARCHAR` in Calcite since Calcite's native UUID type is not available in all row-type factories. |

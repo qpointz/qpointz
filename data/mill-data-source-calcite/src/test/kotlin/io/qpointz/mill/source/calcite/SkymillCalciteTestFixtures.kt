@@ -3,11 +3,7 @@ package io.qpointz.mill.source.calcite
 import io.qpointz.mill.test.data.skymill.SkymillDataset
 import io.qpointz.mill.test.data.skymill.SkymillExplainSupport
 import io.qpointz.mill.test.data.skymill.SkymillTestFixtures
-import org.apache.calcite.adapter.enumerable.EnumerableRules
 import org.apache.calcite.jdbc.CalciteConnection
-import org.apache.calcite.plan.hep.HepMatchOrder
-import org.apache.calcite.plan.hep.HepPlanner
-import org.apache.calcite.plan.hep.HepProgram
 import org.apache.calcite.sql.parser.SqlParser
 import org.apache.calcite.tools.Frameworks
 import java.sql.DriverManager
@@ -51,15 +47,7 @@ object SkymillCalciteTestFixtures {
         val frameworkConfig = frameworkConfig(session)
         val planner = Frameworks.getPlanner(frameworkConfig)
         val logical = planner.rel(planner.validate(planner.parse(sql))).rel
-
-        val hepProgram = HepProgram.builder()
-            .addMatchOrder(HepMatchOrder.BOTTOM_UP)
-            .addRuleInstance(FlowTableScanToEnumerableRule.INSTANCE)
-            .addRuleCollection(EnumerableRules.rules())
-            .build()
-        val hepPlanner = HepPlanner(hepProgram, frameworkConfig.context)
-        hepPlanner.root = logical
-        return hepPlanner.findBestExp().explain()
+        return FlowRelPlannerRules.explainEnumerablePhysicalPlan(logical, frameworkConfig.context)
     }
 
     /**

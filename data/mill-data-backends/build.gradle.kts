@@ -38,6 +38,10 @@ testing {
                             "flow.facet.it.root",
                             rootProject.projectDir.absolutePath,
                         )
+                        systemProperty(
+                            "mill.repo.root",
+                            rootProject.projectDir.absolutePath,
+                        )
                     }
                 }
             }
