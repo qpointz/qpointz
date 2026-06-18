@@ -1,6 +1,8 @@
 # REST Controllers & Operations Inventory
 
-This document is a **code-first inventory** of REST controllers and their operations, intended to support authorization design and rollout.
+This document is a **code-first inventory** of REST controllers and their operations.
+
+**Authorization (filter chains, anonymous access, sufficiency assessment):** see **[`rest-api-authorization-inventory.md`](rest-api-authorization-inventory.md)** — use that document for the harmonization story.
 
 - **Source of truth**: controller annotations in code (cross-checked against runtime OpenAPI)
 - **Runtime OpenAPI cross-check**: `http://localhost:8080/v3/api-docs`
@@ -8,9 +10,9 @@ This document is a **code-first inventory** of REST controllers and their operat
 
 ## Summary
 
-- **Controllers found in code (prod)**: 11
-- **Controllers found in OpenAPI (runtime)**: 9
-- **OpenAPI operations (runtime)**: 58
+- **Controllers found in code (prod)**: 17 (see auth inventory for full list)
+- **Controllers found in OpenAPI (runtime)**: varies by enabled modules (AI, query, export, analysis)
+- **OpenAPI operations (runtime)**: re-verify on target deployment
 
 ## Inventory (from code)
 
@@ -42,18 +44,19 @@ This document is a **code-first inventory** of REST controllers and their operat
 #### `io.qpointz.mill.data.schema.api.SchemaExplorerController`
 
 - **Base path**: `/api/v1/schema`
+- **Deprecated query param**: `context` — use `scope` instead (accepted when `scope` absent)
 - **Operations**
   - **GET** `/api/v1/schema/context` — `getContext()`
   - **GET** `/api/v1/schema` — `listSchemas(...)`
-  - **GET** `/api/v1/schema/schemas` — `listSchemasLegacy(...)`
   - **GET** `/api/v1/schema/tree` — `getTree(...)`
   - **GET** `/api/v1/schema/model` — `getModelRoot(...)`
   - **GET** `/api/v1/schema/{schemaName}` — `getSchema(...)`
-  - **GET** `/api/v1/schema/schemas/{schemaName}` — `getSchemaLegacy(...)`
   - **GET** `/api/v1/schema/{schemaName}/tables/{tableName}` — `getTable(...)`
-  - **GET** `/api/v1/schema/schemas/{schemaName}/tables/{tableName}` — `getTableLegacy(...)`
   - **GET** `/api/v1/schema/{schemaName}/tables/{tableName}/columns/{columnName}` — `getColumn(...)`
-  - **GET** `/api/v1/schema/schemas/{schemaName}/tables/{tableName}/columns/{columnName}` — `getColumnLegacy(...)`
+  - **GET** ~~`/api/v1/schema/schemas`~~ — `listSchemasLegacy(...)` — **DEPRECATED** → `/api/v1/schema`
+  - **GET** ~~`/api/v1/schema/schemas/{schemaName}`~~ — `getSchemaLegacy(...)` — **DEPRECATED**
+  - **GET** ~~`/api/v1/schema/schemas/{schemaName}/tables/{tableName}`~~ — `getTableLegacy(...)` — **DEPRECATED**
+  - **GET** ~~`/api/v1/schema/schemas/.../columns/{columnName}`~~ — `getColumnLegacy(...)` — **DEPRECATED**
 
 ### `metadata/mill-metadata-service`
 
@@ -101,7 +104,49 @@ This document is a **code-first inventory** of REST controllers and their operat
   - **POST** `/api/v1/metadata/scopes` — `createScope(...)`
   - **DELETE** `/api/v1/metadata/scopes/{scopeSlug}` — `deleteScope(...)`
 
-### `ai/mill-ai-v3-service`
+### `services/mill-analysis-service`
+
+#### `io.qpointz.mill.analysis.queries.web.SavedQueriesRestController`
+
+- **Base path**: `/api/v1/analysis/queries`
+- **Operations**
+  - **GET** `/api/v1/analysis/queries` — `list()`
+  - **GET** `/api/v1/analysis/queries/{queryId}` — `getById(...)`
+  - **POST** `/api/v1/analysis/queries` — `create(...)`
+  - **PUT** `/api/v1/analysis/queries/{queryId}` — `update(...)`
+  - **DELETE** `/api/v1/analysis/queries/{queryId}` — `delete(...)`
+
+#### `io.qpointz.mill.analysis.queries.web.AnalysisDialectRestController`
+
+- **Base path**: `/api/v1/analysis/dialect`
+- **Operations**
+  - **GET** `/api/v1/analysis/dialect` — `getDialect()`
+
+### `services/mill-data-query-service`
+
+#### `io.qpointz.mill.data.query.web.QueryResultRestController`
+
+- **Base path**: `/api/v1/query`
+- **Operations**
+  - **POST** `/api/v1/query` — `create(...)`
+  - **GET** `/api/v1/query` — `listNotSupported()` (405)
+  - **GET** `/api/v1/query/{executionId}` — `getSession(...)` (metadata or paged rows via query params)
+  - **DELETE** `/api/v1/query/{executionId}` — `delete(...)`
+
+### `services/mill-export-service`
+
+#### `io.qpointz.mill.export.ExportRestController`
+
+- **Base path**: `/services/export`
+- **Operations**
+  - **GET** `/services/export/formats` — `formats()`
+  - **GET** `/services/export/catalog` — `catalog(...)`
+  - **GET** `/services/export/schemas` — `listSchemas(...)`
+  - **GET** `/services/export/schemas/{schema}` — `schemaDetail(...)`
+  - **GET** `/services/export/schemas/{schema}/tables/{table}` — `exportTable(...)`
+  - **POST** `/services/export/sql` — `exportSql(...)` (consumes `text/plain`)
+
+### `ai/mill-ai-service`
 
 #### `io.qpointz.mill.ai.service.AiChatController`
 
@@ -115,6 +160,7 @@ This document is a **code-first inventory** of REST controllers and their operat
   - **DELETE** `/api/v1/ai/chats/{chatId}` — `deleteChat(...)`
   - **GET** `/api/v1/ai/chats/{chatId}/messages` — `listMessages(...)`
   - **POST** `/api/v1/ai/chats/{chatId}/messages` — `sendMessage(...)` (produces `text/event-stream`)
+  - **POST** `/api/v1/ai/chats/{chatId}/turns/{turnId}/execution-result` — `attachExecutionResult(...)`
   - **GET** `/api/v1/ai/chats/context-types/{contextType}/contexts/{contextId}` — `getChatByContext(...)`
 
 #### `io.qpointz.mill.ai.service.AiProfileController`
@@ -142,11 +188,14 @@ This document is a **code-first inventory** of REST controllers and their operat
   - **PATCH** `/auth/profile` — `updateProfile(...)`
   - **POST** `/auth/logout` — `logout(...)`
 
-### `ai/mill-ai-v1-nlsql-chat-service` (not present in runtime OpenAPI)
+### `ai/legacy/mill-ai-v1-nlsql-chat-service` (**Legacy v1** — not on default classpath)
+
+Superseded by **`/api/v1/ai/chats/**`** (`mill-ai-service`). See [`rest-api-authorization-inventory.md`](rest-api-authorization-inventory.md#legacy-ai-v1-chat-ailegacymill-ai-v1-nlsql-chat-service).
 
 #### `io.qpointz.mill.ai.nlsql.controllers.NlSqlChatController`
 
 - **Base path**: `/api/nl2sql`
+- **Enable gate**: `@ConditionalOnService("ai-nl2data")`
 - **Consumes / produces** (class-level): consumes `application/json`, produces `application/json`
 - **Operations**
   - **GET** `/api/nl2sql/chats` — `listChats()`
@@ -187,4 +236,5 @@ The runtime OpenAPI (`/v3/api-docs`) includes:
 
 ## Notes
 
+- **Retired route (no controller):** `POST /api/v1/queries/execute` — replaced by `/api/v1/query` session API ([`docs/design/ui/mill-ui/BACKEND-API-REQUIREMENTS.md`](../ui/mill-ui/BACKEND-API-REQUIREMENTS.md)).
 - No non-annotated functional routes were found (no WebFlux `RouterFunction` / `router {}` patterns detected).
