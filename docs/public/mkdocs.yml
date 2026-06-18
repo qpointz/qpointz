@@ -65,6 +65,7 @@ nav:
     - Data Sources:
       - sources/index.md
       - sources/configuration.md
+      - sources/format-capabilities.md
       - Storages:
         - sources/storages/local.md
         - sources/storages/s3.md

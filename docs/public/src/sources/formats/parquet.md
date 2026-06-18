@@ -5,6 +5,8 @@ file footer, so no additional format options are needed.
 
 Parquet is a columnar binary format optimized for analytical workloads. It supports rich type annotations and efficient compression. Mill reads the embedded schema and converts Parquet columns into Mill rows automatically.
 
+See [Format capabilities](../format-capabilities.md) for typed schema, row estimates, export, and YAML options.
+
 ---
 
 ## Configuration Reference

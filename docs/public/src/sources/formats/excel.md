@@ -4,6 +4,8 @@ Reads Microsoft Excel files (.xlsx and .xls). Mill uses Apache POI to parse work
 
 Excel is widely used for business data, reports, and data exchange. Mill can read specific sheets by name, index, or pattern, and supports header detection, formula evaluation, and blank-as-null handling.
 
+See [Format capabilities](../format-capabilities.md) for typed schema, row estimates, export, and YAML options.
+
 ---
 
 ## Configuration Reference

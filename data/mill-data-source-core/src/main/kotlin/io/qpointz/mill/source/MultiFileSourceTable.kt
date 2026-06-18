@@ -1,5 +1,6 @@
 package io.qpointz.mill.source
 
+import io.qpointz.mill.source.statistics.SourceTableStatisticProviders
 import io.qpointz.mill.proto.VectorBlock
 import io.qpointz.mill.proto.VectorBlockSchema
 import io.qpointz.mill.vectors.VectorBlockIterator
@@ -19,11 +20,15 @@ import io.qpointz.mill.vectors.VectorBlockIterator
  *
  * @property schema  the schema for this table (all sources must share it)
  * @property sources the underlying per-file record sources
+ * @property statisticProviders wired slice providers for planner statistics
  */
 class MultiFileSourceTable(
     override val schema: RecordSchema,
-    private val sources: List<RecordSource>
+    private val sources: List<RecordSource>,
+    private val statisticProviders: SourceTableStatisticProviders = SourceTableStatisticProviders.none(),
 ) : SourceTable {
+
+    override fun statisticProviders(): SourceTableStatisticProviders = statisticProviders
 
     override fun records(): Iterable<Record> {
         return Iterable { ConcatenatingRecordIterator(sources) }
@@ -39,14 +44,21 @@ class MultiFileSourceTable(
         /**
          * Creates a [MultiFileSourceTable] from a single source.
          */
-        fun ofSingle(schema: RecordSchema, source: RecordSource): MultiFileSourceTable =
-            MultiFileSourceTable(schema, listOf(source))
+        fun ofSingle(
+            schema: RecordSchema,
+            source: RecordSource,
+            statisticProviders: SourceTableStatisticProviders = SourceTableStatisticProviders.none(),
+        ): MultiFileSourceTable =
+            MultiFileSourceTable(schema, listOf(source), statisticProviders)
 
         /**
          * Creates an empty [MultiFileSourceTable] with no sources.
          */
-        fun empty(schema: RecordSchema): MultiFileSourceTable =
-            MultiFileSourceTable(schema, emptyList())
+        fun empty(
+            schema: RecordSchema,
+            statisticProviders: SourceTableStatisticProviders = SourceTableStatisticProviders.none(),
+        ): MultiFileSourceTable =
+            MultiFileSourceTable(schema, emptyList(), statisticProviders)
     }
 }
 

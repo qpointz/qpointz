@@ -2,6 +2,7 @@ package io.qpointz.mill.source.format.arrow
 
 import io.qpointz.mill.source.FlowRecordSource
 import io.qpointz.mill.source.LocalBlobSource
+import io.qpointz.mill.source.statistics.SourceStatisticWiring
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -45,6 +46,32 @@ class ArrowFormatHandlerTest {
         val records = source.toList()
         assertEquals(2, records.size)
         assertEquals(1, records[0]["id"])
+    }
+
+    @Test
+    fun shouldReadRecordStatisticFromArrowStream() {
+        val file = tempDir.resolve("events.arrow")
+        ArrowTestUtils.writeArrowStream(file)
+
+        val handler = ArrowFormatHandler()
+        val blobSource = LocalBlobSource(tempDir)
+        val blob = blobSource.listBlobs().first()
+
+        val provider = SourceStatisticWiring.recordStatisticProviderForBlob(handler, blob, blobSource)!!
+        assertEquals(2L, provider.recordStatistic()?.estimatedRowCount)
+    }
+
+    @Test
+    fun shouldReadRecordStatisticFromArrowFile() {
+        val file = tempDir.resolve("events-ipc-file.arrow")
+        ArrowTestUtils.writeArrowFile(file)
+
+        val handler = ArrowFormatHandler()
+        val blobSource = LocalBlobSource(tempDir)
+        val blob = blobSource.listBlobs().first { it.uri.path.endsWith("events-ipc-file.arrow") }
+
+        val provider = SourceStatisticWiring.recordStatisticProviderForBlob(handler, blob, blobSource)!!
+        assertEquals(2L, provider.recordStatistic()?.estimatedRowCount)
     }
 
     @Test

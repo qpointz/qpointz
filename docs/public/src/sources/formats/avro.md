@@ -5,6 +5,8 @@ file header, so no additional format options are needed.
 
 Avro is a compact binary format commonly used in data pipelines and event streaming platforms. Mill reads the embedded schema and converts Avro records into Mill rows automatically.
 
+See [Format capabilities](../format-capabilities.md) for typed schema, row estimates, export, and YAML options.
+
 ---
 
 ## Configuration Reference

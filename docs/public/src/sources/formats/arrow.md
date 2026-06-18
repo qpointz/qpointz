@@ -4,6 +4,8 @@ Reads Apache Arrow IPC payloads (stream and file variants). Arrow is a
 columnar format with explicit schema metadata, including optional per-column
 timezone on timestamp fields.
 
+See [Format capabilities](../format-capabilities.md) for typed schema, row estimates, export, and YAML options.
+
 ---
 
 ## Configuration Reference

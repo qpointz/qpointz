@@ -6,6 +6,8 @@ FWF parsing is powered by [Univocity Parsers](https://github.com/uniVocity/univo
 
 All columns are read as `STRING` type. No type coercion is applied during parsing.
 
+See [Format capabilities](../format-capabilities.md) for typed schema, row estimates, export, and YAML options.
+
 ---
 
 ## Configuration Reference

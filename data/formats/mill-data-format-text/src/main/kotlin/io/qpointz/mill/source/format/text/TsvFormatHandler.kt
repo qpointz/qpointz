@@ -2,6 +2,8 @@ package io.qpointz.mill.source.format.text
 
 import com.univocity.parsers.tsv.TsvParser
 import io.qpointz.mill.source.*
+import io.qpointz.mill.source.statistics.RecordStatistic
+import io.qpointz.mill.source.statistics.RecordStatisticReader
 import io.qpointz.mill.types.sql.DatabaseType
 import java.io.InputStreamReader
 
@@ -16,7 +18,7 @@ import java.io.InputStreamReader
  */
 class TsvFormatHandler(
     private val settings: TsvSettings = TsvSettings()
-) : FormatHandler {
+) : FormatHandler, RecordStatisticReader {
 
     /**
      * Infers the Mill [RecordSchema] from the TSV file.
@@ -62,4 +64,13 @@ class TsvFormatHandler(
             settings = settings
         )
     }
+
+    override fun readRecordStatistic(blob: BlobPath, blobSource: BlobSource): RecordStatistic =
+        TextLineRecordStatisticReader.readRecordStatistic(
+            blob = blob,
+            blobSource = blobSource,
+            lineSeparator = settings.lineSeparator,
+            hasHeader = settings.hasHeader,
+            skipEmptyLines = settings.skipEmptyLines ?: false,
+        )
 }

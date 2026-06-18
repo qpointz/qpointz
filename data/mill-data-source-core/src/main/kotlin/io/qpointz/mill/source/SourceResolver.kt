@@ -6,6 +6,7 @@ import io.qpointz.mill.source.descriptor.SourceDescriptor
 import io.qpointz.mill.source.factory.MaterializedReader
 import io.qpointz.mill.source.factory.MaterializedSource
 import io.qpointz.mill.source.factory.SourceMaterializer
+import io.qpointz.mill.source.statistics.SourceStatisticWiring
 
 /**
  * Resolves a [MaterializedSource] into a map of logical table names to
@@ -131,7 +132,15 @@ object SourceResolver {
                 }
             }
 
-            MultiFileSourceTable(schema, sources)
+            val statisticProviders = SourceStatisticWiring.forTable(
+                schema = schema,
+                blobSource = blobSource,
+                readerBlobPairs = readerBlobPairs.map { (reader, blobs) ->
+                    reader.formatHandler to blobs
+                },
+            )
+
+            MultiFileSourceTable(schema, sources, statisticProviders)
         }
     }
 

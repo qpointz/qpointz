@@ -8,6 +8,7 @@ import org.apache.calcite.rel.RelNode
 import org.apache.calcite.rel.type.RelDataType
 import org.apache.calcite.rel.type.RelDataTypeFactory
 import org.apache.calcite.schema.ScannableTable
+import org.apache.calcite.schema.Statistic
 import org.apache.calcite.schema.TranslatableTable
 import org.apache.calcite.schema.impl.AbstractTable
 
@@ -34,9 +35,18 @@ class FlowTable(
     /**
      * Returns the Mill [SourceTable] behind this Calcite table.
      *
-     * Used by tests, enumerable bindables, and future table statistics.
+     * Used by tests, enumerable bindables, and table statistics.
      */
     fun sourceTable(): SourceTable = sourceTable
+
+    /**
+     * Returns table statistics for the Calcite planner from wired slice providers.
+     *
+     * Schema-level hook for [RelOptTable] statistics; join rules also read row counts from
+     * [FlowTableScan.estimateRowCount] on the scan [RelNode].
+     */
+    override fun getStatistic(): Statistic =
+        FlowTableStatistics.toCalciteStatistic(sourceTable.statisticProviders())
 
     /**
      * Derives Calcite column types from the Mill [io.qpointz.mill.source.RecordSchema].

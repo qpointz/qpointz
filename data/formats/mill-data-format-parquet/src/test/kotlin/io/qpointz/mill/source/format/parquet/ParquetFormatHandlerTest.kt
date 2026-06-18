@@ -1,6 +1,7 @@
 package io.qpointz.mill.source.format.parquet
 
 import io.qpointz.mill.source.*
+import io.qpointz.mill.source.statistics.SourceStatisticWiring
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -88,6 +89,19 @@ class ParquetFormatHandlerTest {
 
         val source = handler.createRecordSource(blobs[0], blobSource, schema) as FlowRecordSource
         assertTrue(source.toList().isEmpty())
+    }
+
+    @Test
+    fun shouldReadRecordStatisticFromFooter() {
+        val records = ParquetTestUtils.createTestRecords()
+        ParquetTestUtils.writeParquetFile(tempDir, "test.parquet", records)
+
+        val handler = ParquetFormatHandler()
+        val blobSource = LocalBlobSource(tempDir)
+        val blob = parquetBlobs(blobSource).first()
+
+        val provider = SourceStatisticWiring.recordStatisticProviderForBlob(handler, blob, blobSource)!!
+        assertEquals(3L, provider.recordStatistic()?.estimatedRowCount)
     }
 
     @Test

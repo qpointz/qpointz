@@ -1,5 +1,6 @@
 package io.qpointz.mill.source
 
+import io.qpointz.mill.source.statistics.SourceTableStatisticProviders
 import io.qpointz.mill.sql.RecordReaders
 import io.qpointz.mill.vectors.VectorBlockIterator
 
@@ -16,6 +17,13 @@ interface SourceTable {
 
     /** Schema describing the columns of this table. */
     val schema: RecordSchema
+
+    /**
+     * Statistic providers wired for this table.
+     *
+     * Slice support is indicated by [SourceTableStatisticProviders] Optional accessors.
+     */
+    fun statisticProviders(): SourceTableStatisticProviders = SourceTableStatisticProviders.none()
 
     /**
      * Row-oriented access: returns all records from all underlying files

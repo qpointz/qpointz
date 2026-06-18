@@ -2,6 +2,7 @@ package io.qpointz.mill.source.format.text
 
 import io.qpointz.mill.source.FlowRecordSource
 import io.qpointz.mill.source.LocalBlobSource
+import io.qpointz.mill.source.statistics.SourceStatisticWiring
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -95,6 +96,39 @@ class CsvFormatHandlerTest {
         val result = source.toList()
         assertEquals(3, result.size)
         assertEquals("Alice", result[0]["name"])
+    }
+
+    @Test
+    fun shouldOverCountPhysicalLines_whenQuotedFieldsContainNewlines() {
+        val multilineQuoted = "id,name\n1,Alice,\"a\nb\"\n2,Bob,Simple\n"
+        CsvTestUtils.writeCsvFile(tempDir, "quoted.csv", multilineQuoted)
+
+        val handler = CsvFormatHandler()
+        val blobSource = LocalBlobSource(tempDir)
+        val blob = blobSource.listBlobs().first()
+        val actualRows = (handler.createRecordSource(
+            blob,
+            blobSource,
+            handler.inferSchema(blob, blobSource),
+        ) as FlowRecordSource).toList().size
+
+        val provider = SourceStatisticWiring.recordStatisticProviderForBlob(handler, blob, blobSource)!!
+        val estimated = provider.recordStatistic()?.estimatedRowCount
+
+        assertEquals(2, actualRows)
+        assertTrue(estimated != null && estimated > actualRows)
+    }
+
+    @Test
+    fun shouldReadRecordStatisticFromLineCount() {
+        CsvTestUtils.writeCsvFile(tempDir, "test.csv", CsvTestUtils.SIMPLE_CSV)
+
+        val handler = CsvFormatHandler()
+        val blobSource = LocalBlobSource(tempDir)
+        val blob = blobSource.listBlobs().first()
+
+        val provider = SourceStatisticWiring.recordStatisticProviderForBlob(handler, blob, blobSource)!!
+        assertEquals(3L, provider.recordStatistic()?.estimatedRowCount)
     }
 
     @Test

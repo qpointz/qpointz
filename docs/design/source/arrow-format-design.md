@@ -1,5 +1,7 @@
 # Arrow Format Support Design
 
+> **Capability matrix:** [formats/arrow.md](formats/arrow.md) (same feature table as other formats).
+
 ## Goal
 
 Add Apache Arrow format support in the source lane as the first step before Arrow Flight and Flight SQL services.

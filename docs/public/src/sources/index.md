@@ -51,6 +51,8 @@ Mill supports local and cloud storage backends. The storage backend only control
 
 Each reader specifies a file format. Mill handles schema inference, type mapping, and parsing automatically.
 
+See **[Format capabilities](format-capabilities.md)** for a comparison of typed schema, row estimates, export, and configuration options across formats.
+
 | Format | Description | Page |
 |--------|-------------|------|
 | `csv` | Comma/delimiter-separated values | [CSV](formats/csv.md) |
@@ -66,5 +68,6 @@ Each reader specifies a file format. Mill handles schema inference, type mapping
 ## Next Steps
 
 - [Configuration](configuration.md) — full YAML reference with all options and examples
+- [Format capabilities](format-capabilities.md) — typed schema, row estimates, export, and YAML options
 - [Flow Backend](../backends/flow.md) — how to run Mill with file-based data sources
 - [Type System](types.md) — Mill data types and type mapping across formats and clients
