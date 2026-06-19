@@ -111,6 +111,66 @@ A capability should declare `kind: capture` on exactly the tools that produce a 
 artifact (e.g. `capture_description`, `capture_relation`). All grounding/inspection tools remain
 `kind: query`.
 
+### 3.7 Artifact descriptors (`artifacts:`)
+
+Optional map keyed by descriptor id. Each entry declares how runtime events become routed artifacts
+and whether rows are written to `ai_chat_artifact`.
+
+```yaml
+artifacts:
+  sql-validation:
+    artifactKind: sql-validation
+    persistKind: sql.validation
+    persist: false                    # optional; default true
+    sourceEvent: tool.result          # tool.result | protocol.final
+    emissionStrategy: FromToolResult  # FromToolResult | OnToolSuccess | OnCaptureSuccess
+    destinations: []                  # CHAT_STREAM, ARTIFACT, TELEMETRY, MODEL_MEMORY, …
+    protocolId: sql-query.generated-sql   # required when sourceEvent is protocol.final
+    pointerKeys: [last-sql]           # optional active-pointer names
+    wirePartType: sql                 # optional SSE partType
+    presentation: structured          # optional SSE presentation
+    protocolMode: STRUCTURED_FINAL    # optional protocol executor mode
+```
+
+| Field | Required | Purpose |
+|-------|----------|---------|
+| `artifactKind` | yes | Logical kind in tool/protocol payloads (`artifactType`) |
+| `persistKind` | yes | Routed event `kind` / persistence bucket |
+| `persist` | no (default `true`) | When `false`, SSE/transcript routing may still occur but **`persistAsArtifact` is false** — no `ai_chat_artifact` row |
+| `sourceEvent` | yes | `tool.result` or `protocol.final` |
+| `emissionStrategy` | yes | How the coordinator/router emits the artifact |
+| `destinations` | yes when `persist: true` | Routing destinations; may be empty when `persist: false` |
+| `protocolId` | when `protocol.final` | Protocol id for structured finals |
+| `pointerKeys` | no | Active artifact pointer keys |
+| `wirePartType` | no | SSE structured part type |
+| `presentation` | no | SSE presentation mode |
+| `protocolMode` | no | e.g. `STRUCTURED_FINAL` |
+
+Load-time validation (`CapabilityManifest.kt`):
+
+- `(persistKind, sourceEvent)` must be unique across descriptors in a manifest
+- `protocolId` required when `sourceEvent: protocol.final`
+- At least one destination when `persist` is true (default)
+
+See [`artifact-foundation.md`](./artifact-foundation.md) for end-to-end routing and [`sql-query.yaml`](../../../ai/mill-ai/src/main/resources/capabilities/sql-query.yaml) for production examples including ephemeral `sql-validation` and `sql-result`.
+
+### 3.8 Tool success emit triggers (`tools.*.emitsOnSuccess`)
+
+Optional block on a tool declaration. When a tool returns a structured result matching `when`, the
+runtime emits the referenced artifact descriptor (usually a `protocol.final` artifact such as `generated-sql`).
+
+```yaml
+tools:
+  validate_sql:
+    emitsOnSuccess:
+      artifact: generated-sql
+      when:
+        field: passed
+        equals: true
+```
+
+The `artifact` value is a descriptor id from the same manifest's `artifacts:` map (not the protocol id).
+
 ### 3.4 ToolSchema
 
 A `ToolSchema` block is recursive. Every node has:

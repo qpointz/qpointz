@@ -2,7 +2,8 @@
 
 This document gives the high-level map of persistence work across Mill.
 Detailed design rules live in the sibling documents in this folder, especially
-[persistence-bootstrap.md](./persistence-bootstrap.md).
+[persistence-bootstrap.md](./persistence-bootstrap.md) and
+[db-naming-convention.md](./db-naming-convention.md).
 
 ---
 
@@ -147,5 +148,6 @@ are in [persistence-bootstrap.md § Contract Purity Rule](./persistence-bootstra
 | Document | Description |
 |---|---|
 | [persistence-bootstrap.md](./persistence-bootstrap.md) | Core persistence principles, module ownership, Flyway rules, `EntityRef`, URN |
+| [db-naming-convention.md](./db-naming-convention.md) | Cross-component table/column/index/FK naming rules and inventory |
 | [../agentic/v3-persistence-lanes.md](../agentic/v3-persistence-lanes.md) | AI v3 lane architecture |
 | [../agentic/v3-conversation-persistence.md](../agentic/v3-conversation-persistence.md) | AI v3 transcript and artifact model |

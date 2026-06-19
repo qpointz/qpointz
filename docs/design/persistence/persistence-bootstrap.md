@@ -187,6 +187,7 @@ Principle:
 - filename pattern: `V{n}__{description}.sql`
 - schema history is centralized in `mill-persistence`
 - domain modules do not own separate Flyway histories
+- **table, column, index, and constraint names** follow [db-naming-convention.md](./db-naming-convention.md)
 
 Portable SQL rules:
 

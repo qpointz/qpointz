@@ -62,10 +62,17 @@ Current persisted metadata includes:
 
 Current persistence rules:
 
-- `chatId == conversationId`
-- general chats are listed in the main chat list
+- `chatId` is the canonical id across HTTP, JPA, and satellite tables (`chat_id` column)
+- general chats are listed in the main chat list via **`JpaChatRegistry`** (`ai_chat` table)
 - contextual chats are singleton per `(userId, contextType, contextId)`
 - contextual lookup is based on persisted metadata, not transcript inference
+- **`SecurityUserIdResolver`** maps authenticated principals to `userId` when `mill.security.enable=true`
+- chat APIs enforce ownership: `metadata.userId` must match the resolved user before read/update/delete/send
+
+Unified schema (Flyway **V10**):
+
+- **`ai_chat`** — chat header (`chat_id`, `user_id`, `profile_id`, metadata fields)
+- **`ai_chat_turn`** — transcript turns with immutable **`profile_id`** per turn (profile-switch history)
 
 Current ownership split:
 

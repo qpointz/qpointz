@@ -38,12 +38,23 @@ data class ConversationTurn(
     val turnId: String,
     val role: String,
     val text: String? = null,
+    val profileId: String,
     val artifactIds: List<String> = emptyList(),
     val createdAt: Instant,
 )
 ```
 
-This is the authority for conversation reconstruction.
+Durable tables (Flyway **V10**–**V12**). Full naming rules:
+[../persistence/db-naming-convention.md](../persistence/db-naming-convention.md).
+
+- **`ai_chat`** — parent chat row created on `createChat` (not lazily on first message)
+- **`ai_chat_turn`** — transcript turns; **`profile_id`** captured at `sendMessage` start and immutable thereafter
+- Satellite tables (`ai_chat_memory*`, `ai_chat_artifact`, `ai_chat_artifact_pointer`, `ai_chat_run_event`) reference **`chat_id`**; **V12** adds `ON DELETE CASCADE` from `ai_chat` for hard-delete hygiene
+
+Header vs turn profile:
+
+- `ai_chat.profile_id` — current profile for the **next** message (toolbar PATCH updates this)
+- `ai_chat_turn.profile_id` — profile active when that turn was sent (history for profile switches)
 
 ### ChatMemoryStore
 

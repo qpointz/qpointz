@@ -1,17 +1,17 @@
 # Agentic Runtime v3 - Implementation Findings
 
-**Status:** Review snapshot  
+**Status:** Review snapshot (partially superseded — see §5)  
 **Date:** March 21, 2026  
-**Scope:** `ai/mill-ai-v3*` modules and related runtime/chat-service integration
+**Scope:** `ai/mill-ai*` modules and related runtime/chat-service integration
 
 ## 1. Purpose
 
 This document captures prioritized implementation findings discovered by reviewing:
 
-- `ai/mill-ai-v3`
-- `ai/mill-ai-v3-service`
-- `ai/mill-ai-v3-autoconfigure`
-- `ai/mill-ai-v3-persistence`
+- `ai/mill-ai`
+- `ai/mill-ai-service`
+- `ai/mill-ai-autoconfigure`
+- `ai/mill-ai-persistence`
 
 against current design/workitem intent in `docs/design/agentic/` and `docs/workitems/`.
 
@@ -26,30 +26,20 @@ It focuses on:
 
 ## 2.1 High Priority
 
-1. **Missing ownership checks on chat-by-id operations**
+1. **Missing ownership checks on chat-by-id operations** — **Resolved (WI-318)**
    - **Category:** Architecture, security, code issue
-   - **What is happening:** `UnifiedChatService` enforces user identity for list/create/context lookup, but not for `getChat`, `updateChat`, `deleteChat`, or `sendMessage` paths that load by `chatId`.
-   - **Risk:** Cross-user read/update/delete/message-send if a `chatId` is known.
-   - **Where:** `ai/mill-ai-v3-service/src/main/kotlin/io/qpointz/mill/ai/service/UnifiedChatService.kt`
-   - **Improvement:** Enforce `metadata.userId == userIdResolver.resolve()` for all `chatId` operations before returning data or mutating state.
+   - **Was:** `UnifiedChatService` enforced user identity for list/create/context lookup, but not for `getChat`, `updateChat`, `deleteChat`, or `sendMessage` paths that load by `chatId`.
+   - **Resolution:** `SecurityUserIdResolver` + ownership assertions on all `chatId` operations. See [`WI-318`](../../workitems/completed/20260619-ai-chat-persistence/WI-318-auth-bound-user-ownership.md).
 
-2. **`ConversationStore.delete` contract is not implemented in JPA adapter**
+2. **`ConversationStore.delete` contract is not implemented in JPA adapter** — **Resolved (WI-324)**
    - **Category:** Code issue, data lifecycle
-   - **What is happening:** Service invokes `conversationStore.delete(chatId)` on hard-delete, but `ConversationStore` default is no-op and `JpaConversationStore` does not override.
-   - **Risk:** Durable transcript rows can remain after chat deletion in JPA mode.
-   - **Where:**
-     - `ai/mill-ai-v3/src/main/kotlin/io/qpointz/mill/ai/persistence/ConversationStore.kt`
-     - `ai/mill-ai-v3-persistence/src/main/kotlin/io/qpointz/mill/persistence/ai/jpa/adapters/JpaConversationStore.kt`
-   - **Improvement:** Implement `override fun delete(conversationId: String)` in `JpaConversationStore` and verify expected cascade behavior.
+   - **Was:** Service invoked `conversationStore.delete(chatId)` on hard-delete, but JPA adapter did not override the default no-op.
+   - **Resolution:** `JpaConversationStore.delete` removes turns; `ai_chat` CASCADE FKs (V12) remove satellites. **`JpaChatDeleteCascadeIT`**, **`AiChatPersistenceIT`**.
 
-3. **Hard-delete semantics are incomplete for artifacts and run-events**
+3. **Hard-delete semantics are incomplete for artifacts and run-events** — **Resolved (WI-324)**
    - **Category:** Architecture, persistence boundaries
-   - **What is happening:** `UnifiedChatService.deleteChat` clears metadata, transcript, and memory, but does not explicitly remove artifacts/run-events. Baseline schema does not define FK from `ai_artifact`/`ai_run_event` to `ai_conversation`.
-   - **Risk:** Orphaned records and retention drift versus documented "hard delete" semantics.
-   - **Where:**
-     - `ai/mill-ai-v3-service/src/main/kotlin/io/qpointz/mill/ai/service/UnifiedChatService.kt`
-     - `persistence/mill-persistence/src/main/resources/db/migration/V1__ai_v3_baseline.sql`
-   - **Improvement:** Define and implement one explicit delete policy: transactional cascade at write time or guaranteed async cleanup with observability.
+   - **Was:** No FK from artifact/run-event tables to `ai_chat`; orphans possible after hard-delete.
+   - **Resolution:** Flyway **V12** adds `ON DELETE CASCADE` from `ai_chat_memory`, `ai_chat_artifact`, `ai_chat_run_event` to `ai_chat`; table names aligned under `ai_chat_*` (**V11**). See [`db-naming-convention.md`](../persistence/db-naming-convention.md).
 
 ## 2.2 Medium Priority
 
@@ -89,14 +79,11 @@ It focuses on:
 
 ## 3. Test Gaps
 
-1. **No ownership/authorization tests for `chatId` operations**
-   - Missing service/controller tests that prove non-owner cannot read/update/delete/send.
+1. **Ownership/authorization tests for `chatId` operations** — **Partially addressed (WI-318, WI-320)** — `AiChatPersistenceIT` multi-user isolation; dedicated controller denial tests remain optional (**BACKLOG A-81**).
 
-2. **No JPA delete contract test for transcript deletion**
-   - Missing integration test that asserts `conversationStore.delete` removes conversation+turns.
+2. **JPA delete contract test for transcript deletion** — **Resolved (WI-324)** — `JpaChatDeleteCascadeIT`, `JpaChatRegistryIT.delete`.
 
-3. **No explicit artifact/run-event cleanup tests during chat hard-delete**
-   - Current tests do not verify final persistence state across all lanes after delete.
+3. **Artifact/run-event cleanup tests during chat hard-delete** — **Resolved (WI-324)** — `JpaChatDeleteCascadeIT`.
 
 4. **No focused unit tests for `ChatRuntimeEventToSseMapper`**
    - Mapper behavior is exercised indirectly, but lacks dedicated edge-case tests for completed-only, chunked, and failure sequencing.
@@ -109,10 +96,17 @@ It focuses on:
 
 ## 4. Recommended Execution Order
 
-1. Enforce ownership checks on all `chatId` operations.
-2. Implement and test `JpaConversationStore.delete`.
-3. Define and implement explicit artifact/run-event delete policy.
+1. ~~Enforce ownership checks on all `chatId` operations.~~ **Done (WI-318)**
+2. ~~Implement and test `JpaConversationStore.delete`.~~ **Done (WI-324)**
+3. ~~Define and implement explicit artifact/run-event delete policy.~~ **Done (WI-324)**
 4. Validate profile IDs during chat creation.
 5. Introduce admission + tool authorization boundaries.
-6. Add targeted tests for ownership, delete semantics, SSE mapper, and scenario coverage.
+6. Add targeted tests for ownership denial, SSE mapper, and scenario coverage (**A-81** remainder).
+
+## 5. Story closures (June 2026)
+
+| Story | WIs | Archive |
+|-------|-----|---------|
+| **ai-chat-persistence** | WI-317–WI-321 (+ WI-322 in pgvector story) | [`completed/20260619-ai-chat-persistence/`](../../workitems/completed/20260619-ai-chat-persistence/STORY.md) |
+| **ai-chat-table-naming** | WI-323–WI-324 | [`completed/20260619-ai-chat-table-naming/`](../../workitems/completed/20260619-ai-chat-table-naming/STORY.md) |
 

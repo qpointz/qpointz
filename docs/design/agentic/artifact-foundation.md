@@ -111,7 +111,7 @@ Examples:
 
 ### 3.3 FromToolResult (validation audit)
 
-`sql-validation` persists validator outcomes without necessarily appearing as a chat bubble. Router maps `ToolResult` with matching `artifactType`.
+`sql-validation` emits a routed artifact envelope for telemetry; with **`persist: false`** it is **not** written to `ai_chat_artifact`. Router maps `ToolResult` with matching `artifactType`.
 
 **No duplicate `sql.generated`:** When coordinator already emitted `ProtocolFinal` for generated SQL, router must not also promote a tool-result row to `sql.generated`.
 
@@ -165,12 +165,15 @@ flowchart LR
 
 ## 5. Implemented POC artifacts
 
-| Descriptor | Capability | `wirePartType` | `persistKind` | Emission | Chat stream | Profiles |
-|------------|------------|----------------|---------------|----------|-------------|----------|
-| `generated-sql` | `sql-query` | `sql` | `sql.generated` | OnToolSuccess | Yes | `data-analysis`, `schema-authoring` |
-| `sql-validation` | `sql-query` | — | `sql.validation` | FromToolResult | No | same |
-| `inferred-facet` | `metadata-authoring` | `facet-proposal` | `metadata.faceting.capture` | OnCaptureSuccess | Yes | `schema-authoring` |
-| schema capture | `schema-authoring` | `schema-capture` | `schema.authoring.capture` | OnCaptureSuccess | Yes | `schema-authoring` |
+| Descriptor | Capability | `wirePartType` | `persistKind` | `persist` | Emission | Chat stream | Profiles |
+|------------|------------|----------------|---------------|-----------|----------|-------------|----------|
+| `generated-sql` | `sql-query` | `sql` | `sql.generated` | yes | OnToolSuccess | Yes | `data-analysis`, `schema-authoring` |
+| `sql-validation` | `sql-query` | — | `sql.validation` | **no** | FromToolResult | No | same |
+| `sql-result` | `sql-query` | — | `sql.result` | **no** (tool path) | FromToolResult | Yes | same |
+| `inferred-facet` | `metadata-authoring` | `facet-proposal` | `metadata.faceting.capture` | yes | OnCaptureSuccess | Yes | `schema-authoring` |
+| schema capture | `schema-authoring` | `schema-capture` | `schema.authoring.capture` | yes | OnCaptureSuccess | Yes | `schema-authoring` |
+
+Client-attached execution results (`POST …/execution-result`) remain **durable** `sql.result` rows regardless of the tool descriptor `persist` flag.
 
 Manifest sources:
 
