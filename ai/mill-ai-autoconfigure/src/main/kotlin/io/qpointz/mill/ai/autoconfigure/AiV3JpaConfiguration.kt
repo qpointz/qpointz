@@ -28,6 +28,13 @@ class AiV3JpaConfiguration {
     }
 
     @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean(io.qpointz.mill.ai.persistence.ChatRegistry::class)
+    fun jpaChatRegistry(
+        repo: io.qpointz.mill.persistence.ai.jpa.repositories.ChatRepository,
+    ): io.qpointz.mill.ai.persistence.ChatRegistry =
+        io.qpointz.mill.persistence.ai.jpa.adapters.JpaChatRegistry(repo)
+
+    @Bean
     @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean(io.qpointz.mill.ai.memory.ChatMemoryStore::class)
     fun jpaChatMemoryStore(
         memoryRepo: io.qpointz.mill.persistence.ai.jpa.repositories.ChatMemoryRepository,
@@ -45,12 +52,12 @@ class AiV3JpaConfiguration {
     @Bean
     @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean(io.qpointz.mill.ai.persistence.ConversationStore::class)
     fun jpaConversationStore(
-        conversationRepo: io.qpointz.mill.persistence.ai.jpa.repositories.ConversationRepository,
-        turnRepo: io.qpointz.mill.persistence.ai.jpa.repositories.ConversationTurnRepository,
+        chatRepo: io.qpointz.mill.persistence.ai.jpa.repositories.ChatRepository,
+        turnRepo: io.qpointz.mill.persistence.ai.jpa.repositories.ChatTurnRepository,
         relationRepo: io.qpointz.mill.persistence.ai.jpa.repositories.AiRelationRepository,
         artifactRepo: io.qpointz.mill.persistence.ai.jpa.repositories.ArtifactRepository,
     ): io.qpointz.mill.ai.persistence.ConversationStore =
-        io.qpointz.mill.persistence.ai.jpa.adapters.JpaConversationStore(conversationRepo, turnRepo, relationRepo, artifactRepo)
+        io.qpointz.mill.persistence.ai.jpa.adapters.JpaConversationStore(chatRepo, turnRepo, relationRepo, artifactRepo)
 
     @Bean
     @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean(io.qpointz.mill.ai.persistence.ArtifactStore::class)

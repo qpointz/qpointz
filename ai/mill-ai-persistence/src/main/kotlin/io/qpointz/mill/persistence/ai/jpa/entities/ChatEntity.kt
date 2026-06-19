@@ -3,15 +3,17 @@ package io.qpointz.mill.persistence.ai.jpa.entities
 import jakarta.persistence.*
 import java.time.Instant
 
+/**
+ * Unified AI chat parent row (metadata + current profile for the next message).
+ */
 @Entity
 @Table(
-    name = "ai_chat_metadata",
+    name = "ai_chat",
     indexes = [
-        Index(name = "idx_ai_chat_metadata_user", columnList = "user_id"),
-        Index(name = "idx_ai_chat_metadata_context", columnList = "user_id, context_type, context_id"),
-    ]
+        Index(name = "idx_ai_chat_user", columnList = "user_id"),
+    ],
 )
-class ChatMetadataEntity(
+class ChatEntity(
     @Id
     @Column(name = "chat_id", nullable = false, length = 255)
     val chatId: String,
@@ -20,7 +22,7 @@ class ChatMetadataEntity(
     val userId: String,
 
     @Column(name = "profile_id", nullable = false, length = 255)
-    val profileId: String,
+    var profileId: String,
 
     @Column(name = "chat_name", nullable = false, length = 512)
     var chatName: String,

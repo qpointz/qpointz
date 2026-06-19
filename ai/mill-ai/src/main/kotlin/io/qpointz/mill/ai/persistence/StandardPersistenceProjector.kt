@@ -77,6 +77,7 @@ class StandardPersistenceProjector(
                 turnId = turnId,
                 role = "assistant",
                 text = text?.takeIf { it.isNotEmpty() },
+                profileId = event.profileId ?: return,
                 artifactIds = artifactIds,
                 createdAt = event.createdAt,
             )

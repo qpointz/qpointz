@@ -130,6 +130,7 @@ data class TurnResponse(
     val turnId: String,
     val role: String,
     val text: String?,
+    val profileId: String,
     val createdAt: String,
     val artifacts: List<ArtifactResponse> = emptyList(),
     val assistantReplyView: String? = null,
@@ -145,6 +146,7 @@ data class TurnResponse(
             turnId = t.turnId,
             role = t.role,
             text = t.text,
+            profileId = t.profileId,
             createdAt = t.createdAt.toString(),
             artifacts = artifacts,
             assistantReplyView = ArtifactWireMapper

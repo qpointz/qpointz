@@ -3,7 +3,7 @@ package io.qpointz.mill.persistence.ai.jpa
 import io.qpointz.mill.ai.persistence.ChatMetadata
 import io.qpointz.mill.ai.persistence.ChatUpdate
 import io.qpointz.mill.persistence.ai.jpa.adapters.JpaChatRegistry
-import io.qpointz.mill.persistence.ai.jpa.repositories.ChatMetadataRepository
+import io.qpointz.mill.persistence.ai.jpa.repositories.ChatRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,7 +16,7 @@ import java.util.UUID
 @Transactional
 class JpaChatRegistryIT {
 
-    @Autowired lateinit var repo: ChatMetadataRepository
+    @Autowired lateinit var repo: ChatRepository
 
     private val registry by lazy { JpaChatRegistry(repo) }
 

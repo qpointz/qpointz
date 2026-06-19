@@ -94,6 +94,7 @@ class SchemaExplorationAgent(
                 turnId = UUID.randomUUID().toString(),
                 role = "user",
                 text = input,
+                profileId = session.profileId,
                 createdAt = Instant.now(),
             )
         )

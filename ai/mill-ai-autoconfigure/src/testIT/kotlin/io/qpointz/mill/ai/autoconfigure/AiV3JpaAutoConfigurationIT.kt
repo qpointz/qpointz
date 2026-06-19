@@ -3,11 +3,13 @@ package io.qpointz.mill.ai.autoconfigure
 import io.qpointz.mill.ai.memory.ChatMemoryStore
 import io.qpointz.mill.ai.persistence.ActiveArtifactPointerStore
 import io.qpointz.mill.ai.persistence.ArtifactStore
+import io.qpointz.mill.ai.persistence.ChatRegistry
 import io.qpointz.mill.ai.persistence.ConversationStore
 import io.qpointz.mill.ai.persistence.RunEventStore
 import io.qpointz.mill.persistence.ai.jpa.adapters.JpaActiveArtifactPointerStore
 import io.qpointz.mill.persistence.ai.jpa.adapters.JpaArtifactStore
 import io.qpointz.mill.persistence.ai.jpa.adapters.JpaChatMemoryStore
+import io.qpointz.mill.persistence.ai.jpa.adapters.JpaChatRegistry
 import io.qpointz.mill.persistence.ai.jpa.adapters.JpaConversationStore
 import io.qpointz.mill.persistence.ai.jpa.adapters.JpaRunEventStore
 import org.assertj.core.api.Assertions.assertThat
@@ -29,6 +31,12 @@ class AiV3JpaAutoConfigurationIT {
     @Autowired private lateinit var conversationStore: ConversationStore
     @Autowired private lateinit var artifactStore: ArtifactStore
     @Autowired private lateinit var activeArtifactPointerStore: ActiveArtifactPointerStore
+    @Autowired private lateinit var chatRegistry: ChatRegistry
+
+    @Test
+    fun `ChatRegistry is JPA-backed when persistence is on classpath`() {
+        assertThat(chatRegistry).isInstanceOf(JpaChatRegistry::class.java)
+    }
 
     @Test
     fun `ChatMemoryStore is JPA-backed when persistence is on classpath`() {

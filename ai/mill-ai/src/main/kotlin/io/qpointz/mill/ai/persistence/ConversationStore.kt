@@ -24,6 +24,8 @@ data class ConversationTurn(
     /** "user" or "assistant" */
     val role: String,
     val text: String? = null,
+    /** Agent profile active when this turn was recorded. */
+    val profileId: String,
     /** Ids of artifacts attached to this turn. */
     val artifactIds: List<String> = emptyList(),
     val createdAt: Instant,

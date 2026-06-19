@@ -4,15 +4,26 @@ import io.qpointz.mill.persistence.EntityRef
 import jakarta.persistence.*
 import java.time.Instant
 
+/**
+ * Durable transcript turn for an AI chat.
+ */
 @Entity
-@Table(name = "ai_conversation_turn")
-class ConversationTurnEntity(
+@Table(
+    name = "ai_chat_turn",
+    indexes = [
+        Index(name = "idx_ai_chat_turn_chat", columnList = "chat_id, position"),
+    ],
+)
+class ChatTurnEntity(
     @Id
     @Column(name = "turn_id", nullable = false, length = 255)
     val turnId: String,
 
-    @Column(name = "conversation_id", nullable = false, length = 255)
-    val conversationId: String,
+    @Column(name = "chat_id", nullable = false, length = 255)
+    val chatId: String,
+
+    @Column(name = "profile_id", nullable = false, length = 255)
+    val profileId: String,
 
     @Column(name = "role", nullable = false, length = 32)
     val role: String,
