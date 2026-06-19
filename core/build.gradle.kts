@@ -9,6 +9,7 @@ dependencies {
     dokka(project(":core:mill-core"))
     dokka(project(":core:mill-sql"))
     dokka(project(":core:mill-events"))
+    dokka(project(":core:mill-events-autoconfigure"))
     dokka(project(":security:mill-security"))
     dokka(project(":core:mill-test-kit"))
     dokka(project(":core:mill-spring-support"))
