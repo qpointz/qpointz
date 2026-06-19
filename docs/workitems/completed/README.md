@@ -23,6 +23,9 @@ Optionally, keep a **newest-first** bullet list below as a human-maintained inde
 
 ## Index (optional, newest first)
 
+- [2026-06-19 — ai-chat-table-naming (`ai_chat_*` renames V11, CASCADE delete V12, db naming convention; WI-323–WI-324)](20260619-ai-chat-table-naming/STORY.md)
+- [2026-06-19 — ai-chat-persistence (unified `ai_chat`, ownership, ephemeral artifacts, ITs; WI-317–WI-321)](20260619-ai-chat-persistence/STORY.md)
+- [2026-06-18 — pgvector-flyway-extension (Flyway V9 optional `CREATE EXTENSION vector`, H2-safe; WI-322)](20260618-pgvector-flyway-extension/STORY.md)
 - [2026-06-16 — ai-artifact-emit-contract (YAML scenario harness, artefact emit contract, registry/coordinator, POC packs, live YAML; WI-300–WI-310)](20260616-ai-artifact-emit-contract/STORY.md)
 - [2026-06-12 — ai-sql-view-restart (chat artefact presentation, QueryDataView, expand, profile switch; WI-289–WI-298)](20260612-ai-sql-view-restart/STORY.md)
 - [2026-06-10 — ai-configuration-restructure (`mill.ai` layered config: providers, models, `data.embedding`, `vector-stores`; WI-284–WI-288)](20260610-ai-configuration-restructure/STORY.md)
