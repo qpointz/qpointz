@@ -7,14 +7,14 @@ import jakarta.persistence.*
 import java.time.Instant
 
 @Entity
-@Table(name = "ai_artifact")
+@Table(name = "ai_chat_artifact")
 class ArtifactEntity(
     @Id
     @Column(name = "artifact_id", nullable = false, length = 255)
     val artifactId: String,
 
-    @Column(name = "conversation_id", nullable = false, length = 255)
-    val conversationId: String,
+    @Column(name = "chat_id", nullable = false, length = 255)
+    val chatId: String,
 
     @Column(name = "run_id", length = 255)
     val runId: String?,

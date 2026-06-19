@@ -195,6 +195,7 @@ mill:
               base-url: http://localhost:8000
 ---
 # LangChain4j pgvector on the primary Spring DataSource. Requires PostgreSQL with CREATE EXTENSION vector.
+# Flyway V9 (WI-322) attempts CREATE EXTENSION on PostgreSQL when pgvector packages are installed.
 # Use with a JDBC URL to Postgres (not the default H2 dev datasource), e.g. `--spring.profiles.active=ai,pgvector` or `ai-pgvector`.
 spring:
   config:
@@ -209,7 +210,7 @@ mill:
           vector-store:
             backend: pgvector
             pgvector:
-              table: mill_langchain_embedding_store
+              table: ai_value_mapping_vector
               create-table: true
 ---
 # JPA-backed basic auth with registration. Requires a JDBC datasource (e.g. postgres profile).

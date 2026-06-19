@@ -184,7 +184,7 @@ mill:
           vector-store:
             backend: pgvector
             pgvector:
-              table: mill_langchain_embedding_store
+              table: ai_value_mapping_vector
               create-table: true
 ---
 # OAuth/OIDC login via Authentik (local dev).

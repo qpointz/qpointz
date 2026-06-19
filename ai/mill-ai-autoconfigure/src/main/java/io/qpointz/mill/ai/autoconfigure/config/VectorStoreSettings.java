@@ -192,7 +192,7 @@ public final class VectorStoreSettings {
      */
     public static class PgVector {
 
-        private String table = "mill_langchain_embedding_store";
+        private String table = "ai_value_mapping_vector";
 
         private boolean createTable = true;
 

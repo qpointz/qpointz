@@ -22,7 +22,7 @@ open class JpaRunEventStore(
         RunEventEntity(
             eventId = eventId,
             runId = runId,
-            conversationId = conversationId,
+            chatId = conversationId,
             profileId = profileId,
             runtimeType = runtimeType,
             kind = kind,
@@ -34,7 +34,7 @@ open class JpaRunEventStore(
         RunEventRecord(
             eventId = eventId,
             runId = runId,
-            conversationId = conversationId,
+            conversationId = chatId,
             profileId = profileId,
             runtimeType = runtimeType,
             kind = kind,

@@ -18,10 +18,10 @@ open class JpaChatMemoryStore(
 
     override fun load(conversationId: String): ConversationMemory? {
         val entity = memoryRepo.findById(conversationId).orElse(null) ?: return null
-        val messages = messageRepo.findByConversationIdOrderByPositionAsc(conversationId)
+        val messages = messageRepo.findByChatIdOrderByPositionAsc(conversationId)
             .map { it.toDomain() }
         return ConversationMemory(
-            conversationId = entity.conversationId,
+            conversationId = entity.chatId,
             profileId = entity.profileId,
             messages = messages,
         )
@@ -34,7 +34,7 @@ open class JpaChatMemoryStore(
         if (existing == null) {
             memoryRepo.save(
                 ChatMemoryEntity(
-                    conversationId = memory.conversationId,
+                    chatId = memory.conversationId,
                     profileId = memory.profileId,
                     updatedAt = now,
                 )
@@ -42,14 +42,13 @@ open class JpaChatMemoryStore(
         } else {
             memoryRepo.save(
                 ChatMemoryEntity(
-                    conversationId = existing.conversationId,
+                    chatId = existing.chatId,
                     profileId = existing.profileId,
                     updatedAt = now,
                 )
             )
         }
-        // Replace all messages transactionally
-        messageRepo.deleteByConversationId(memory.conversationId)
+        messageRepo.deleteByChatId(memory.conversationId)
         memory.messages.forEachIndexed { idx, msg ->
             messageRepo.save(msg.toEntity(memory.conversationId, idx))
         }
@@ -68,9 +67,9 @@ open class JpaChatMemoryStore(
             toolName = toolName,
         )
 
-    private fun ConversationMessage.toEntity(conversationId: String, position: Int): ChatMemoryMessageEntity =
+    private fun ConversationMessage.toEntity(chatId: String, position: Int): ChatMemoryMessageEntity =
         ChatMemoryMessageEntity(
-            conversationId = conversationId,
+            chatId = chatId,
             position = position,
             role = role.name.lowercase(),
             content = content,

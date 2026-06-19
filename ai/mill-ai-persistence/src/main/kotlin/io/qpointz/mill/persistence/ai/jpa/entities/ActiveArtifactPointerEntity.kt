@@ -6,12 +6,14 @@ import java.time.Instant
 
 @Embeddable
 data class ActiveArtifactPointerKey(
-    val conversationId: String = "",
+    @Column(name = "chat_id")
+    val chatId: String = "",
+    @Column(name = "pointer_key")
     val pointerKey: String = "",
 ) : Serializable
 
 @Entity
-@Table(name = "ai_active_artifact_pointer")
+@Table(name = "ai_chat_artifact_pointer")
 class ActiveArtifactPointerEntity(
     @EmbeddedId
     val id: ActiveArtifactPointerKey,

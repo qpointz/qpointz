@@ -20,7 +20,7 @@ open class JpaArtifactStore(
         repo.findById(artifactId).orElse(null)?.toDomain()
 
     override fun findByConversation(conversationId: String): List<ArtifactRecord> =
-        repo.findByConversationIdOrderByCreatedAtAsc(conversationId).map { it.toDomain() }
+        repo.findByChatIdOrderByCreatedAtAsc(conversationId).map { it.toDomain() }
 
     override fun findByRun(runId: String): List<ArtifactRecord> =
         repo.findByRunIdOrderByCreatedAtAsc(runId).map { it.toDomain() }
@@ -28,7 +28,7 @@ open class JpaArtifactStore(
     private fun ArtifactRecord.toEntity(): ArtifactEntity =
         ArtifactEntity(
             artifactId = artifactId,
-            conversationId = conversationId,
+            chatId = conversationId,
             runId = runId,
             turnId = turnId,
             kind = kind,
@@ -41,7 +41,7 @@ open class JpaArtifactStore(
     private fun ArtifactEntity.toDomain(): ArtifactRecord =
         ArtifactRecord(
             artifactId = artifactId,
-            conversationId = conversationId,
+            conversationId = chatId,
             runId = runId,
             kind = kind,
             payload = payloadJson,

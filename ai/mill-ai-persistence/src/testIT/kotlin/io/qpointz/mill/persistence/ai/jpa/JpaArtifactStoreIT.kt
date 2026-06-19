@@ -3,6 +3,7 @@ package io.qpointz.mill.persistence.ai.jpa
 import io.qpointz.mill.ai.persistence.ArtifactRecord
 import io.qpointz.mill.persistence.ai.jpa.adapters.JpaArtifactStore
 import io.qpointz.mill.persistence.ai.jpa.repositories.ArtifactRepository
+import io.qpointz.mill.persistence.ai.jpa.repositories.ChatRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,10 +16,12 @@ import java.time.Instant
 class JpaArtifactStoreIT {
 
     @Autowired lateinit var repo: ArtifactRepository
+    @Autowired lateinit var chatRepo: ChatRepository
     private val store by lazy { JpaArtifactStore(repo) }
 
     @Test
     fun `should save and reload an artifact`() {
+        JpaChatTestSupport.seedChat(chatRepo, "c1")
         val artifact = ArtifactRecord(
             artifactId = "art-1",
             conversationId = "c1",
@@ -38,6 +41,7 @@ class JpaArtifactStoreIT {
 
     @Test
     fun `findByConversation returns artifacts in order`() {
+        JpaChatTestSupport.seedChat(chatRepo, "c2")
         val t = Instant.now()
         store.save(ArtifactRecord("a1", "c2", null, "sql-query", mapOf(), createdAt = t.minusSeconds(2)))
         store.save(ArtifactRecord("a2", "c2", null, "chart-config", mapOf(), createdAt = t.minusSeconds(1)))

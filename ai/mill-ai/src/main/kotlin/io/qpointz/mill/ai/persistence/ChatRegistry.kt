@@ -37,8 +37,9 @@ data class ChatMetadata(
  * (LLM context window). This store is the authority for chat listing, naming, ownership,
  * favorites, context binding, and runtime rehydration inputs.
  *
- * Delete semantics are hard-delete on the metadata row only. Cascade cleanup of associated
- * transcript, memory, artifacts, and pointers is the responsibility of the service layer.
+ * Delete semantics: JPA adapters rely on `ON DELETE CASCADE` from `ai_chat` to satellite
+ * tables (`ai_chat_turn`, `ai_chat_memory`, `ai_chat_artifact`, `ai_chat_run_event`, etc.).
+ * The service layer still invokes transcript/memory cleanup for in-memory backends.
  *
  * Identity and ownership fields (chatId, userId, context keys) are immutable after creation.
  * [profileId] is mutable for general chats via [ChatUpdate] (validated in the service layer).

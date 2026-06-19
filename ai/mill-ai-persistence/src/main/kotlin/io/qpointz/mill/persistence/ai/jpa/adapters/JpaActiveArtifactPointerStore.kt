@@ -16,7 +16,7 @@ open class JpaActiveArtifactPointerStore(
         repo.save(
             ActiveArtifactPointerEntity(
                 id = ActiveArtifactPointerKey(
-                    conversationId = pointer.conversationId,
+                    chatId = pointer.conversationId,
                     pointerKey = pointer.pointerKey,
                 ),
                 artifactId = pointer.artifactId,
@@ -31,11 +31,11 @@ open class JpaActiveArtifactPointerStore(
             ?.toDomain()
 
     override fun findAll(conversationId: String): List<ActiveArtifactPointer> =
-        repo.findByIdConversationId(conversationId).map { it.toDomain() }
+        repo.findByIdChatId(conversationId).map { it.toDomain() }
 
     private fun ActiveArtifactPointerEntity.toDomain(): ActiveArtifactPointer =
         ActiveArtifactPointer(
-            conversationId = id.conversationId,
+            conversationId = id.chatId,
             pointerKey = id.pointerKey,
             artifactId = artifactId,
             updatedAt = updatedAt,

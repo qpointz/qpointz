@@ -3,14 +3,14 @@ package io.qpointz.mill.persistence.ai.jpa.entities
 import jakarta.persistence.*
 
 @Entity
-@Table(name = "chat_memory_message")
+@Table(name = "ai_chat_memory_message")
 class ChatMemoryMessageEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
 
-    @Column(name = "conversation_id", nullable = false, length = 255)
-    val conversationId: String,
+    @Column(name = "chat_id", nullable = false, length = 255)
+    val chatId: String,
 
     @Column(name = "position", nullable = false)
     val position: Int,

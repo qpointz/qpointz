@@ -4,46 +4,39 @@ import io.qpointz.mill.ai.persistence.ConversationRecord
 import io.qpointz.mill.ai.persistence.ConversationStore
 import io.qpointz.mill.ai.persistence.ConversationTurn
 import io.qpointz.mill.persistence.ai.jpa.AiV3Urns
-import io.qpointz.mill.persistence.ai.jpa.entities.ConversationEntity
-import io.qpointz.mill.persistence.ai.jpa.entities.ConversationTurnEntity
+import io.qpointz.mill.persistence.ai.jpa.entities.ChatTurnEntity
 import io.qpointz.mill.persistence.ai.jpa.repositories.AiRelationRepository
 import io.qpointz.mill.persistence.ai.jpa.repositories.ArtifactRepository
-import io.qpointz.mill.persistence.ai.jpa.repositories.ConversationRepository
-import io.qpointz.mill.persistence.ai.jpa.repositories.ConversationTurnRepository
+import io.qpointz.mill.persistence.ai.jpa.repositories.ChatRepository
+import io.qpointz.mill.persistence.ai.jpa.repositories.ChatTurnRepository
 import io.qpointz.mill.persistence.RelationRecord
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.UUID
 
 open class JpaConversationStore(
-    private val conversationRepo: ConversationRepository,
-    private val turnRepo: ConversationTurnRepository,
+    private val chatRepo: ChatRepository,
+    private val turnRepo: ChatTurnRepository,
     private val relationRepo: AiRelationRepository,
     private val artifactRepo: ArtifactRepository,
 ) : ConversationStore {
 
     @Transactional
     override fun ensureExists(conversationId: String, profileId: String) {
-        if (!conversationRepo.existsById(conversationId)) {
-            val now = Instant.now()
-            conversationRepo.save(
-                ConversationEntity(
-                    conversationId = conversationId,
-                    profileId = profileId,
-                    createdAt = now,
-                    updatedAt = now,
-                )
-            )
+        chatRepo.findById(conversationId).ifPresent { chat ->
+            chat.updatedAt = Instant.now()
+            chatRepo.save(chat)
         }
     }
 
     @Transactional
     override fun appendTurn(conversationId: String, turn: ConversationTurn) {
-        val position = turnRepo.countByConversationId(conversationId).toInt()
+        val position = turnRepo.countByChatId(conversationId).toInt()
         turnRepo.save(
-            ConversationTurnEntity(
+            ChatTurnEntity(
                 turnId = turn.turnId,
-                conversationId = conversationId,
+                chatId = conversationId,
+                profileId = turn.profileId,
                 role = turn.role,
                 text = turn.text,
                 position = position,
@@ -51,15 +44,12 @@ open class JpaConversationStore(
                 createdAt = turn.createdAt,
             )
         )
-        // Link any artefacts embedded on the turn (e.g. transcript projector collected by turnId).
         if (turn.artifactIds.isNotEmpty()) {
             attachArtifacts(conversationId, turn.turnId, turn.artifactIds)
         }
-        // Update conversation updatedAt by mutating the managed entity so Hibernate does not
-        // treat existing turns as orphans (creating a new entity with an empty turns list
-        // and CascadeType.ALL + orphanRemoval=true would delete all persisted turns).
-        conversationRepo.findById(conversationId).ifPresent { conv ->
-            conv.updatedAt = Instant.now()
+        chatRepo.findById(conversationId).ifPresent { chat ->
+            chat.updatedAt = Instant.now()
+            chatRepo.save(chat)
         }
     }
 
@@ -67,15 +57,12 @@ open class JpaConversationStore(
     override fun attachArtifacts(conversationId: String, turnId: String, artifactIds: List<String>) {
         val turnOpt = turnRepo.findById(turnId)
         if (turnOpt.isEmpty) return
-        // Verify the turn belongs to the expected conversation
         val turn = turnOpt.get()
-        if (turn.conversationId != conversationId) return
+        if (turn.chatId != conversationId) return
         val now = Instant.now()
         artifactIds.forEach { artifactId ->
-            // Guard: artifact must exist and belong to the same conversation
             val artifact = artifactRepo.findById(artifactId).orElse(null) ?: return@forEach
-            if (artifact.conversationId != conversationId) return@forEach
-            // Skip if relation already exists
+            if (artifact.chatId != conversationId) return@forEach
             val existing = relationRepo.findByRelationKindAndSourceIdAndSourceType(
                 AiV3Urns.RELATION_TURN_TO_ARTIFACT, turnId, AiV3Urns.TYPE_TURN,
             )
@@ -98,8 +85,8 @@ open class JpaConversationStore(
     }
 
     override fun load(conversationId: String): ConversationRecord? {
-        val entity = conversationRepo.findById(conversationId).orElse(null) ?: return null
-        val turns = turnRepo.findByConversationIdOrderByPositionAsc(conversationId)
+        val chat = chatRepo.findById(conversationId).orElse(null) ?: return null
+        val turns = turnRepo.findByChatIdOrderByPositionAsc(conversationId)
         val turnDomains = turns.map { turn ->
             val artifactIds = relationRepo
                 .findByRelationKindAndSourceIdAndSourceType(
@@ -112,24 +99,38 @@ open class JpaConversationStore(
                 turnId = turn.turnId,
                 role = turn.role,
                 text = turn.text,
+                profileId = turn.profileId,
                 artifactIds = artifactIds,
                 createdAt = turn.createdAt,
             )
         }
         return ConversationRecord(
-            conversationId = entity.conversationId,
-            profileId = entity.profileId,
+            conversationId = chat.chatId,
+            profileId = chat.profileId,
             turns = turnDomains,
-            createdAt = entity.createdAt,
-            updatedAt = entity.updatedAt,
+            createdAt = chat.createdAt,
+            updatedAt = chat.updatedAt,
         )
     }
 
     @Transactional
     override fun updateProfileId(conversationId: String, profileId: String) {
-        conversationRepo.findById(conversationId).ifPresent { entity ->
-            entity.profileId = profileId
-            entity.updatedAt = Instant.now()
+        chatRepo.findById(conversationId).ifPresent { chat ->
+            chat.profileId = profileId
+            chat.updatedAt = Instant.now()
+            chatRepo.save(chat)
         }
+    }
+
+    /**
+     * Removes transcript turns for [conversationId].
+     *
+     * When [io.qpointz.mill.ai.persistence.ChatRegistry.delete] runs against JPA, turns are
+     * also removed via `ON DELETE CASCADE` from `ai_chat`; this supports explicit cleanup and
+     * in-memory parity.
+     */
+    @Transactional
+    override fun delete(conversationId: String) {
+        turnRepo.deleteByChatId(conversationId)
     }
 }

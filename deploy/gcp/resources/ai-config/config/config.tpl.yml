@@ -28,7 +28,7 @@ mill:
           vector-store:
             backend: pgvector
             pgvector:
-              table: mill_langchain_embedding_store
+              table: ai_value_mapping_vector
               create-table: true
           max-content-length: 2048
           refresh:

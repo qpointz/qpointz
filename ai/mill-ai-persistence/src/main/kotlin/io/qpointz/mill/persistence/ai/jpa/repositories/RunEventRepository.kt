@@ -5,4 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface RunEventRepository : JpaRepository<RunEventEntity, String> {
     fun findByRunIdOrderByCreatedAtAsc(runId: String): List<RunEventEntity>
+
+    fun countByChatId(chatId: String): Long
 }

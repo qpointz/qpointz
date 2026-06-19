@@ -5,6 +5,7 @@ import io.qpointz.mill.ai.runtime.ConversationMessage
 import io.qpointz.mill.persistence.ai.jpa.adapters.JpaChatMemoryStore
 import io.qpointz.mill.persistence.ai.jpa.repositories.ChatMemoryMessageRepository
 import io.qpointz.mill.persistence.ai.jpa.repositories.ChatMemoryRepository
+import io.qpointz.mill.persistence.ai.jpa.repositories.ChatRepository
 import io.qpointz.mill.ai.runtime.MessageRole
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -18,6 +19,7 @@ class JpaChatMemoryStoreIT {
 
     @Autowired lateinit var memoryRepo: ChatMemoryRepository
     @Autowired lateinit var messageRepo: ChatMemoryMessageRepository
+    @Autowired lateinit var chatRepo: ChatRepository
 
     private val store by lazy { JpaChatMemoryStore(memoryRepo, messageRepo) }
 
@@ -28,6 +30,7 @@ class JpaChatMemoryStoreIT {
 
     @Test
     fun `should save and load conversation memory`() {
+        JpaChatTestSupport.seedChat(chatRepo, "conv-1")
         val memory = ConversationMemory(
             conversationId = "conv-1",
             profileId = "test-profile",
@@ -46,6 +49,7 @@ class JpaChatMemoryStoreIT {
 
     @Test
     fun `save replaces messages transactionally`() {
+        JpaChatTestSupport.seedChat(chatRepo, "conv-2")
         val initial = ConversationMemory("conv-2", "p", listOf(
             ConversationMessage(MessageRole.USER, "first"),
         ))
@@ -61,6 +65,7 @@ class JpaChatMemoryStoreIT {
 
     @Test
     fun `clear removes the conversation`() {
+        JpaChatTestSupport.seedChat(chatRepo, "conv-3")
         store.save(ConversationMemory("conv-3", "p", listOf(
             ConversationMessage(MessageRole.USER, "msg"),
         )))

@@ -17,15 +17,14 @@ class FlywayMigrationIT {
     @Test
     fun `migrations apply cleanly and all expected tables exist`() {
         val tables = listOf(
-            "chat_memory",
-            "chat_memory_message",
-            "ai_run_event",
-            "ai_conversation",
-            "ai_conversation_turn",
-            "ai_artifact",
+            "ai_chat_memory",
+            "ai_chat_memory_message",
+            "ai_chat_run_event",
+            "ai_chat",
+            "ai_chat_turn",
+            "ai_chat_artifact",
             "relation_record",
-            "ai_active_artifact_pointer",
-            "ai_chat_metadata",
+            "ai_chat_artifact_pointer",
         )
         tables.forEach { table ->
             val count = jdbc.queryForObject("SELECT COUNT(*) FROM $table", Int::class.java)

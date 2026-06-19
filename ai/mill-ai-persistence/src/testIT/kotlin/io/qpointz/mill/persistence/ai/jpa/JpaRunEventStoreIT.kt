@@ -2,6 +2,7 @@ package io.qpointz.mill.persistence.ai.jpa
 
 import io.qpointz.mill.ai.persistence.RunEventRecord
 import io.qpointz.mill.persistence.ai.jpa.adapters.JpaRunEventStore
+import io.qpointz.mill.persistence.ai.jpa.repositories.ChatRepository
 import io.qpointz.mill.persistence.ai.jpa.repositories.RunEventRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -15,10 +16,12 @@ import java.time.Instant
 class JpaRunEventStoreIT {
 
     @Autowired lateinit var repo: RunEventRepository
+    @Autowired lateinit var chatRepo: ChatRepository
     private val store by lazy { JpaRunEventStore(repo) }
 
     @Test
     fun `should save and reload run events`() {
+        JpaChatTestSupport.seedChat(chatRepo, "c1")
         val record = RunEventRecord(
             eventId = "e1",
             runId = "run-1",

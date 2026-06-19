@@ -5,7 +5,7 @@ import jakarta.persistence.*
 import java.time.Instant
 
 @Entity
-@Table(name = "ai_run_event")
+@Table(name = "ai_chat_run_event")
 class RunEventEntity(
     @Id
     @Column(name = "event_id", nullable = false, length = 255)
@@ -14,8 +14,8 @@ class RunEventEntity(
     @Column(name = "run_id", nullable = false, length = 255)
     val runId: String,
 
-    @Column(name = "conversation_id", length = 255)
-    val conversationId: String?,
+    @Column(name = "chat_id", length = 255)
+    val chatId: String?,
 
     @Column(name = "profile_id", nullable = false, length = 255)
     val profileId: String,

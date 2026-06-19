@@ -4,11 +4,11 @@ import jakarta.persistence.*
 import java.time.Instant
 
 @Entity
-@Table(name = "chat_memory")
+@Table(name = "ai_chat_memory")
 class ChatMemoryEntity(
     @Id
-    @Column(name = "conversation_id", nullable = false, length = 255)
-    val conversationId: String,
+    @Column(name = "chat_id", nullable = false, length = 255)
+    val chatId: String,
 
     @Column(name = "profile_id", nullable = false, length = 255)
     val profileId: String,
@@ -17,7 +17,7 @@ class ChatMemoryEntity(
     val updatedAt: Instant,
 
     @OneToMany(
-        mappedBy = "conversationId",
+        mappedBy = "chatId",
         cascade = [CascadeType.ALL],
         orphanRemoval = true,
         fetch = FetchType.EAGER,
