@@ -187,6 +187,7 @@ dependencies {
     implementation(project(":metadata:mill-metadata-autoconfigure"))
     implementation(project(":metadata:mill-metadata-service"))
     runtimeOnly(project(":metadata:mill-metadata-persistence"))
+    runtimeOnly(project(":persistence:mill-persistence-autoconfigure"))
 
     implementation(project(":services:mill-analysis-service"))
     runtimeOnly(project(":persistence:mill-analysis-persistence"))
