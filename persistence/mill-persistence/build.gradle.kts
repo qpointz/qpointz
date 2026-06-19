@@ -16,6 +16,7 @@ dependencies {
     api(project(":core:mill-core"))
     api(libs.boot.starter.data.jpa)
     implementation(libs.boot.starter.flyway)
+    implementation(libs.flyway.core)
     runtimeOnly(libs.flyway.database.postgresql)
     implementation(kotlin("reflect"))
     runtimeOnly(libs.h2.database)
@@ -26,6 +27,7 @@ testing {
         register<JvmTestSuite>("testIT") {
             dependencies {
                 implementation(project())
+                implementation(project(":persistence:mill-persistence-autoconfigure"))
                 implementation(libs.boot.starter.test)
                 implementation(libs.boot.starter.data.jpa.test)
                 implementation(libs.assertj.core)
@@ -39,6 +41,8 @@ testing {
                     implementation(project())
                     implementation(libs.boot.starter.test)
                     implementation(libs.assertj.core)
+                    implementation(libs.mockito.core)
+                    implementation(libs.mockito.junit.jupiter)
                 }
             }
         }

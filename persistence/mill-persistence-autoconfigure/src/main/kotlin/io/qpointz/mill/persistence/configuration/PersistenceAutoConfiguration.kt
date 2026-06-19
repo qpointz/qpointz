@@ -1,5 +1,7 @@
 package io.qpointz.mill.persistence.configuration
 
+import io.qpointz.mill.persistence.flyway.V9__EnsurePgvectorExtension
+import org.flywaydb.core.api.migration.JavaMigration
 import org.springframework.beans.factory.support.BeanDefinitionRegistry
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages
@@ -8,6 +10,7 @@ import org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfigur
 import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
 import org.springframework.boot.persistence.autoconfigure.EntityScan
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar
 import org.springframework.core.type.AnnotationMetadata
@@ -32,6 +35,12 @@ import org.springframework.core.type.AnnotationMetadata
 @EnableConfigurationProperties(MillPersistenceProperties::class)
 @EntityScan(basePackages = ["io.qpointz.mill.persistence"])
 class PersistenceAutoConfiguration {
+
+    /**
+     * Registers Flyway V9 Java migration for optional pgvector extension creation on PostgreSQL.
+     */
+    @Bean
+    fun ensurePgvectorExtensionMigration(): JavaMigration = V9__EnsurePgvectorExtension()
 
     internal class PersistencePackagesRegistrar : ImportBeanDefinitionRegistrar {
         override fun registerBeanDefinitions(metadata: AnnotationMetadata, registry: BeanDefinitionRegistry) {

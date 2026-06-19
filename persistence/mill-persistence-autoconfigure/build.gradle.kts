@@ -14,6 +14,7 @@ mill {
 dependencies {
     api(project(":persistence:mill-persistence"))
     implementation(libs.boot.starter)
+    compileOnly(libs.flyway.core)
     compileOnly(libs.boot.starter.data.jpa)
     annotationProcessor(libs.boot.configuration.processor)
 }
