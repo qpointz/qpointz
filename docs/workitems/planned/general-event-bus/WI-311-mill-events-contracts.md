@@ -12,18 +12,22 @@
 
 - [ ] Gradle module `core/mill-events` registered in `settings.gradle.kts`
 - [ ] `EventType`, `MillEvent`, `EventPayload` marker + `TestEventPayload` for unit tests
-- [ ] `EventPublisher`, `EventConsumer`, `EventRouter`, `EventTransport` ports
-- [ ] `DeliveryMode`: `SYNC`, `ASYNC`
+- [ ] `EventPublisher`, `EventTransport`, `EventDispatcher`, `EventHandler`, `EventSubscription`, `EventConsumer`, `EventRouter` ports
+- [ ] `PublishMode`: `ASYNC` (default), `SYNC`; `PublishOptions` on `publish(event, options)`
+- [ ] `ProcessingMode`: `ASYNC` (default), `SYNC`, `AFTER_COMMIT` (pseudo-sync; noop timing in in-memory, honored by Spring in WI-312)
 - [ ] `EventTypes` — reserved `EventType.id` constants (catalog; no domain payloads)
-- [ ] `EventRouter` — `eventTypeId → consumers` index; dispatch; failure isolation; async hook
+- [ ] `EventRouter` — `type.id → handlers` index; multicast; SYNC runs to completion on dispatch worker; ASYNC on executor
+- [ ] `EventDispatcher` port + direct impl for unit tests
+- [ ] `eventConsumer { on(EventType, ProcessingMode) { … } }` builder
 - [ ] Test doubles (`RecordingEventPublisher` or equivalent)
-- [ ] Unit tests: routing by `type.id`, multi-consumer fan-out, failure isolation, async smoke
+- [ ] Unit tests: fan-out, failure isolation, **async publish + sync process**, async publish returns before slow ASYNC handler, optional sync publish waits for SYNC handlers
 - [ ] KDoc on all public API down to parameter level
 
 ## Goal
 
 Introduce **`core/mill-events`**: a Spring-free Kotlin library with the Mill application event
-abstraction. Routing uses **`event.type.id`** only; payload type is not a routing key.
+abstraction. Routing uses **`event.type.id`** only. Handlers subscribe **per event type**. **Publish**
+and **processing** are independent: default async/async; **async publish + sync process** supported.
 
 ## Core contracts (locked)
 
@@ -42,20 +46,58 @@ data class MillEvent(
     val schemaVersion: Int = 1,
 )
 
+enum class PublishMode { ASYNC, SYNC }
+
+data class PublishOptions(
+    val publishMode: PublishMode = PublishMode.ASYNC,
+)
+
 interface EventPublisher {
     fun publish(event: MillEvent)
+    fun publish(event: MillEvent, options: PublishOptions)
 }
 
-interface EventConsumer {
-    fun subscribedEventTypeIds(): Set<String>
+interface EventTransport {
+    fun publish(event: MillEvent, options: PublishOptions = PublishOptions())
+}
+
+interface EventDispatcher {
+    fun dispatch(event: MillEvent, router: EventRouter, publishMode: PublishMode)
+}
+
+enum class ProcessingMode { ASYNC, SYNC, AFTER_COMMIT }
+
+fun interface EventHandler {
     fun onEvent(event: MillEvent)
-    fun deliveryMode(): DeliveryMode = DeliveryMode.SYNC
+}
+
+data class EventSubscription(
+    val type: EventType,
+    val handler: EventHandler,
+    val processing: ProcessingMode = ProcessingMode.ASYNC,
+)
+
+interface EventConsumer {
+    fun subscriptions(): List<EventSubscription>
+}
+
+class EventRouter(subscriptions: List<EventSubscription>) {
+    fun dispatch(event: MillEvent)
 }
 ```
 
-`EventRouter` is built from `List<EventConsumer>`, indexes by `subscribedEventTypeIds()`, and
-**must not** implement `EventConsumer`. Consumer failures are isolated (log + continue), matching
-[`MetadataChangeObserverChain`](../../../metadata/mill-metadata-core/src/main/kotlin/io/qpointz/mill/metadata/domain/MetadataChangeObserver.kt).
+`EventRouter` indexes by `type.id`, **multicasts**, and isolates failures (log + continue).
+
+Example — async publish, mixed processing:
+
+```kotlin
+eventPublisher.publish(event)   // ASYNC publish — returns after accept
+
+eventConsumer {
+    on(EventTypes.METADATA_ENTITY_UPDATED, ProcessingMode.SYNC) { e -> updateCache(e) }
+    on(EventTypes.METADATA_ENTITY_UPDATED, ProcessingMode.ASYNC) { e -> indexAsync(e) }
+}
+```
 
 ## Reserved event type ids (`EventTypes`)
 

@@ -10,13 +10,12 @@
 
 ## Tracker
 
-- [ ] Promote [`general-event-bus.md`](../../../design/platform/general-event-bus.md) — status **Implemented (foundation)**
-- [ ] Document `MillEvent`, `EventType.id` routing, `EventPublisher` / `EventConsumer`, Spring bean wiring
-- [ ] Reserved event type catalog + follow-on story pointers
-- [ ] Transport scale path (in-memory → Spring → outbox → Kafka)
+- [ ] Promote [`general-event-bus.md`](../../../design/platform/general-event-bus.md) — status **Implemented (foundation)** (architecture pre-documented; verify against shipped code)
+- [ ] Confirm design covers: two-axis publish/process model, multicast, per-type subscriptions, `EventTransport` as broker adapter, transport scale path
+- [ ] [`event-bus-follow-ons.md`](../../../design/platform/event-bus-follow-ons.md) — review / extend if implementation diverged
 - [ ] Update [`module-inventory.md`](../../../design/platform/module-inventory.md) — `:core:mill-events`, `:core:mill-events-autoconfigure`
-- [ ] Update [`BACKLOG.md`](../../BACKLOG.md) — **P-38** `done`; add **P-39**, **P-40** planned follow-ons
-- [ ] Optional: `docs/design/platform/event-bus-follow-ons.md` — `event-bus-domain-producers`, `event-bus-consumers` outlines
+- [ ] Update [`BACKLOG.md`](../../BACKLOG.md) — **P-38** `done`; **P-39**, **P-40** remain planned follow-ons
+- [ ] Update [`README.md`](../../../design/platform/README.md) index — status **Implemented (foundation)**
 
 ## Goal
 

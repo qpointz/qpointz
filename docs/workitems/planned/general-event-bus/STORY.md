@@ -7,7 +7,7 @@ Ship the **Mill application event bus foundation**: `MillEvent` contract (`Event
 Spring consumer bean registration — **ready for follow-on stories** to add domain producers and side
 workers.
 
-**Design baseline:** [`docs/design/platform/general-event-bus.md`](../../../design/platform/general-event-bus.md)  
+**Design baseline:** [`docs/design/platform/general-event-bus.md`](../../../design/platform/general-event-bus.md) (status **Designed** until **WI-314** closure)
 **Branch:** `feat/events-bus`
 
 ## Scope (this story)
@@ -29,8 +29,22 @@ consumer, search index consumer, global search API, related-content API.
 ## Constraints (locked)
 
 - **Messaging-plane agnostic** — producers and consumers depend on **ports**, not Kafka/Spring/Rabbit.
+  **`EventTransport`** is the only broker-aware layer (in-memory, Spring events, future Kafka/AMQP).
 - **Routing key** = `event.type.id` only (payload is not used for routing).
-- **Consumers are dynamic Spring beans** — `subscribedEventTypeIds()` + `List<EventConsumer>` → `EventRouter`.
+- **Multicast** — one publish delivers to every handler subscribed to that `type.id`; failures are
+  isolated (log + continue).
+- **Per-type subscriptions** — handlers register with `on(EventType, handler)` (via `eventConsumer { }`
+  DSL), not a single `onEvent` with internal `when (type.id)`.
+- **Publish vs processing** — two independent axes: `PublishMode` (async default on `publish`) and
+  `ProcessingMode` per subscription (async, sync, or `AFTER_COMMIT` pseudo-sync via Spring).
+  Typical: **async publish + sync process** when the API must return before heavy work but a handler
+  must run to completion in order on the dispatch worker.
+- **Non-blocking publish (default)** — `PublishMode.ASYNC`; optional `PublishMode.SYNC` per call or
+  via `mill.events.publish.mode=sync`.
+- **`EventRouter` is always in-process** — broker transports feed the router on each JVM; router does
+  not implement `EventConsumer`.
+- **Consumers are dynamic Spring beans** — `List<EventConsumer>` → flattened `EventSubscription`s →
+  `EventRouter`.
 - **Foundation only** — no changes to `mill-metadata-*`, `mill-ai-*`, or `mill-service` production wiring.
 
 ## Modules

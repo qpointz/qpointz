@@ -16,7 +16,7 @@
   - `@ConditionalOnMissingBean` overrides for tests
 - [ ] `spring.factories` / `AutoConfiguration.imports` registration
 - [ ] `testIT` suite per repo conventions (`JvmTestSuite`)
-- [ ] Two **test stub** `@Bean EventConsumer` implementations in `testIT` only
+- [ ] Two **test stub** `@Bean EventConsumer` beans (`eventConsumer { on(…) { … } }`) in `testIT` only
 - [ ] `testIT`: publish via `EventPublisher` → consumers invoked by matching `EventType.id`
 - [ ] `testIT`: failing stub does not block other stub on same event type
 - [ ] KDoc on autoconfigure classes
@@ -31,11 +31,20 @@ beans and wires them into `EventRouter` at startup. No static consumer registry 
 ```kotlin
 @Bean
 fun eventRouter(consumers: List<EventConsumer>): EventRouter =
-    EventRouter(consumers)
+    EventRouter(consumers.flatMap { it.subscriptions() })
 
 @Bean
 fun eventPublisher(transport: EventTransport): EventPublisher =
     DefaultEventPublisher(transport)
+```
+
+Example test stub:
+
+```kotlin
+@Bean
+fun testStubConsumer() = eventConsumer {
+    on(EventTypes.TEST_EVENT) { event -> … }
+}
 ```
 
 **Rules:**
