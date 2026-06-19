@@ -96,7 +96,7 @@ class UnifiedChatService(
 
     /** Returns the chat and its durable message transcript, or `null` if not found. */
     override fun getChat(chatId: String): ChatView? {
-        val metadata = registry.load(chatId) ?: return null
+        val metadata = requireOwned(registry.load(chatId)) ?: return null
         val record = conversationStore.load(chatId)
         val turns = record?.turns ?: emptyList()
         return ChatView(
@@ -118,7 +118,7 @@ class UnifiedChatService(
         turnId: String,
         request: AttachExecutionResultHttpRequest,
     ): ArtifactResponse? {
-        registry.load(chatId) ?: return null
+        val metadata = requireOwned(registry.load(chatId)) ?: return null
         val record = conversationStore.load(chatId) ?: return null
         if (record.turns.none { it.turnId == turnId }) return null
 
@@ -170,7 +170,7 @@ class UnifiedChatService(
 
     /** Returns a context-bound chat by `(contextType, contextId)`, or `null`. */
     override fun getChatByContext(contextType: String, contextId: String): ChatMetadata? =
-        registry.findByContext(userIdResolver.resolve(), contextType, contextId)
+        requireOwned(registry.findByContext(userIdResolver.resolve(), contextType, contextId))
 
     /**
      * Updates mutable chat fields (name, favourite flag, context label, profile on general chats).
@@ -179,7 +179,7 @@ class UnifiedChatService(
      * @throws InvalidChatUpdateException when [ChatUpdate.profileId] is invalid or not allowed
      */
     override fun updateChat(chatId: String, update: ChatUpdate): ChatMetadata? {
-        val existing = registry.load(chatId) ?: return null
+        val existing = requireOwned(registry.load(chatId)) ?: return null
         validateProfileUpdate(existing, update.profileId)
         val updated = registry.update(chatId, update) ?: return null
         val nextProfileId = update.profileId
@@ -207,6 +207,7 @@ class UnifiedChatService(
      * a background eviction job for in-memory stores).
      */
     override fun deleteChat(chatId: String): Boolean {
+        if (requireOwned(registry.load(chatId)) == null) return false
         val deleted = registry.delete(chatId)
         if (deleted) {
             conversationStore.delete(chatId)
@@ -224,7 +225,7 @@ class UnifiedChatService(
      * placeholder `"New Chat"`, it is updated to a truncated version of [message].
      */
     override fun sendMessage(chatId: String, message: String): Flux<ChatRuntimeEvent> {
-        val metadata = registry.load(chatId)
+        val metadata = requireOwned(registry.load(chatId))
             ?: return Flux.error(NoSuchElementException("Chat not found: $chatId"))
 
         conversationStore.ensureExists(chatId, metadata.profileId)
@@ -243,4 +244,12 @@ class UnifiedChatService(
 
     private fun deriveName(request: CreateChatRequest?): String =
         request?.contextLabel ?: "New Chat"
+
+    /**
+     * Returns [metadata] when it belongs to the current user; otherwise `null` (404 at HTTP layer).
+     */
+    private fun requireOwned(metadata: ChatMetadata?): ChatMetadata? {
+        if (metadata == null) return null
+        return if (metadata.userId == userIdResolver.resolve()) metadata else null
+    }
 }

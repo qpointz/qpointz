@@ -33,6 +33,9 @@ dependencies {
     implementation(project(":metadata:mill-metadata-persistence"))
     implementation(project(":data:mill-data-metadata"))
     compileOnly(project(":persistence:mill-persistence"))
+    compileOnly(project(":security:mill-security"))
+    compileOnly(libs.boot.starter.security)
+    compileOnly(libs.boot.starter.security.oauth2.client)
 }
 
 tasks.withType<JavaCompile>().configureEach {

@@ -110,6 +110,7 @@ class AiChatControllerTest {
             turnId = "t-1",
             role = "user",
             text = "Hello",
+            profileId = "profile-a",
             createdAt = "2025-01-01T00:00:00Z",
         )
         whenever(chatService.getChat("chat-1")).thenReturn(chatView(messages = listOf(turn)))
@@ -188,6 +189,7 @@ class AiChatControllerTest {
             turnId = "t-2",
             role = "assistant",
             text = "Hi there",
+            profileId = "profile-a",
             createdAt = "2025-01-01T00:00:00Z",
         )
         whenever(chatService.getChat("chat-1")).thenReturn(chatView(messages = listOf(turn)))

@@ -62,6 +62,7 @@ class AiChatControllerIT {
                         turnId = UUID.randomUUID().toString(),
                         role = "user",
                         text = message,
+                        profileId = metadata.profileId,
                         createdAt = Instant.now(),
                     ),
                 )
@@ -72,7 +73,8 @@ class AiChatControllerIT {
                             turnId = UUID.randomUUID().toString(),
                             role = "assistant",
                             text = null,
-                            createdAt = Instant.now(),
+                            profileId = metadata.profileId,
+                        createdAt = Instant.now(),
                         ),
                     )
                     Flux.just<ChatRuntimeEvent>(
@@ -98,7 +100,8 @@ class AiChatControllerIT {
                             turnId = UUID.randomUUID().toString(),
                             role = "assistant",
                             text = reply,
-                            createdAt = Instant.now(),
+                            profileId = metadata.profileId,
+                        createdAt = Instant.now(),
                         ),
                     )
                     Flux.just<ChatRuntimeEvent>(

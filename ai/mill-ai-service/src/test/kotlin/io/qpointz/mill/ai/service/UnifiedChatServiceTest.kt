@@ -104,6 +104,7 @@ class UnifiedChatServiceTest {
                 role = "assistant",
                 text = "Here is SQL",
                 artifactIds = emptyList(),
+                profileId = chat.profileId,
                 createdAt = Instant.parse("2025-01-01T00:00:00Z"),
             ),
         )
@@ -143,6 +144,7 @@ class UnifiedChatServiceTest {
                 role = "assistant",
                 text = null,
                 artifactIds = emptyList(),
+                profileId = chat.profileId,
                 createdAt = Instant.parse("2025-01-01T00:00:00Z"),
             ),
         )
@@ -179,6 +181,7 @@ class UnifiedChatServiceTest {
                 role = "assistant",
                 text = null,
                 artifactIds = emptyList(),
+                profileId = chat.profileId,
                 createdAt = Instant.parse("2025-01-01T00:00:00Z"),
             ),
         )
@@ -231,5 +234,24 @@ class UnifiedChatServiceTest {
             service.updateChat(chat.chatId, ChatUpdate(profileId = "data-analysis"))
         }.isInstanceOf(InvalidChatUpdateException::class.java)
             .hasMessageContaining("contextual")
+    }
+
+    @Test
+    fun `should hide chat from other users`() {
+        val chat = service.createChat(null).chat
+        val otherUserService = UnifiedChatService(
+            registry = registry,
+            conversationStore = conversationStore,
+            chatMemoryStore = chatMemoryStore,
+            artifactStore = artifactStore,
+            profileRegistry = DefaultProfileRegistry,
+            runtime = runtime,
+            properties = AiChatSettings(),
+            userIdResolver = PropertiesUserIdResolver("other-user"),
+        )
+
+        assertThat(otherUserService.getChat(chat.chatId)).isNull()
+        assertThat(otherUserService.updateChat(chat.chatId, ChatUpdate(chatName = "nope"))).isNull()
+        assertThat(otherUserService.deleteChat(chat.chatId)).isFalse()
     }
 }
