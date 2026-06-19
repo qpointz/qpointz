@@ -1,9 +1,8 @@
 # General event bus (Mill-wide)
 
-**Status:** Designed (foundation) — implementation tracked in
-[`general-event-bus`](../../workitems/planned/general-event-bus/STORY.md) (**WI-311**–**WI-314**,
-branch `feat/events-bus`). At story closure (**WI-314**), promote this document to
-**Implemented (foundation)** and update [`module-inventory.md`](module-inventory.md).
+**Status:** Implemented (foundation) — delivered by
+[`general-event-bus`](../../workitems/in-progress/general-event-bus/STORY.md) (**WI-311**–**WI-314**,
+branch `feat/events-bus`). Modules: `:core:mill-events`, `:core:mill-events-autoconfigure`.
 
 ## Purpose
 
