@@ -16,6 +16,7 @@
 - [ ] Update [`module-inventory.md`](../../../design/platform/module-inventory.md) — `:core:mill-events`, `:core:mill-events-autoconfigure`
 - [ ] Update [`BACKLOG.md`](../../BACKLOG.md) — **P-38** `done`; **P-39**, **P-40** remain planned follow-ons
 - [ ] Update [`README.md`](../../../design/platform/README.md) index — status **Implemented (foundation)**
+- [ ] Confirm [`COLDSTART.md`](COLDSTART.md) matches shipped packages and verify commands
 
 ## Goal
 

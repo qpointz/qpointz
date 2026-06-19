@@ -52,6 +52,18 @@ Properties class must be **Java** (`@ConfigurationProperties`) per repo conventi
 - `ProcessingMode.SYNC` handler runs to completion on dispatch worker while publish remains async
 - `ProcessingMode.AFTER_COMMIT` honored in Spring transport slice test
 
+## Implementation map
+
+See [`COLDSTART.md`](COLDSTART.md) — `MillEventsProperties.java`, `InMemoryEventTransport`,
+`SpringEventTransport`, `AutoConfiguration.imports`.
+
+| Deliverable | Location |
+|-------------|----------|
+| Properties (Java) | `mill-events-autoconfigure/.../MillEventsProperties.java` |
+| In-memory transport | `mill-events/.../transport/InMemoryEventTransport.kt` |
+| Spring bridge | `mill-events-autoconfigure/.../SpringEventTransport.kt`, `MillEventSpringListener.kt` |
+| Module register | WI-311: `mill-events`; WI-312: `mill-events-autoconfigure` in `settings.gradle.kts` |
+
 ## Non-goals
 
 - Kafka or external broker

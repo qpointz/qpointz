@@ -66,6 +66,18 @@ fun testStubConsumer() = eventConsumer {
 ./gradlew :core:mill-events-autoconfigure:testIT
 ```
 
+## Implementation map
+
+See [`COLDSTART.md`](COLDSTART.md) — testIT scenarios, stub beans, `MillEventsTestApplication`.
+
+| Deliverable | Location |
+|-------------|----------|
+| Auto-config | `MillEventsAutoConfiguration.kt` |
+| Boot registration | `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` |
+| testIT app | `src/testIT/.../MillEventsTestApplication.kt` |
+| Stub consumers | `src/testIT/.../StubEventConsumersConfiguration.kt` (two beans, same `TEST_EVENT`) |
+| Test event id | `mill.test.event` — test sources only, not `EventTypes` production catalog |
+
 ## Non-goals
 
 - Design doc promotion (WI-314)

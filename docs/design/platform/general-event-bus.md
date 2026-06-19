@@ -361,6 +361,7 @@ test stub consumers — **no** production domain producers or real side workers.
 
 ## Related documents
 
+- [`COLDSTART.md`](../../workitems/planned/general-event-bus/COLDSTART.md) — implementer setup (branch, Gradle, file map)
 - [`event-bus-follow-ons.md`](event-bus-follow-ons.md) — deferred stories outline
 - [`general-event-bus` story](../../workitems/planned/general-event-bus/STORY.md) — WI tracking
 - [`mill-configuration.md`](mill-configuration.md) — platform configuration map

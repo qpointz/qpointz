@@ -114,6 +114,19 @@ Document and constantize only — **no producers or consumers** in this WI:
 - No Spring, JPA, or Kafka dependencies on compile classpath
 - `publishArtifacts = true`
 
+## Implementation map
+
+Full file tree and class list: [`COLDSTART.md`](COLDSTART.md).
+
+| Deliverable | Location |
+|-------------|----------|
+| Gradle module | `core/mill-events/`, `settings.gradle.kts` + `core/build.gradle.kts` dokka |
+| Packages | `io.qpointz.mill.events.{model,api,router,dispatch,publisher,catalog,dsl}` |
+| `DefaultEventPublisher` | `publisher/DefaultEventPublisher.kt` |
+| `EventRouter` + tests | `router/EventRouter.kt`, `router/EventRouterTest.kt` |
+| `eventConsumer { }` DSL | `dsl/EventConsumerDsl.kt` |
+| Test kit | `testkit/RecordingEventPublisher.kt`, `TestEventPayload.kt` |
+
 ## Non-goals
 
 - Transport implementations (WI-312)

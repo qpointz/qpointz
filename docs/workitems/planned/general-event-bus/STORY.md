@@ -1,5 +1,10 @@
 # general-event-bus
 
+## Cold start
+
+**New to this story?** Start with [`COLDSTART.md`](COLDSTART.md) — branch setup, Gradle includes,
+package map, class inventory, testIT scenarios, and verify commands. No other context required.
+
 ## Goal
 
 Ship the **Mill application event bus foundation**: `MillEvent` contract (`EventType.id` + `payload`),
@@ -74,7 +79,15 @@ consumer, search index consumer, global search API, related-content API.
 
 ## Work Items
 
-- [ ] WI-311 — MillEvent + producer/consumer/router contracts (`WI-311-mill-events-contracts.md`)
-- [ ] WI-312 — Transport plane + properties (`WI-312-event-transport-plane.md`)
+- [ ] WI-311 — MillEvent + producer/consumer/router contracts (`WI-311-mill-events-contracts.md`) — [COLDSTART § WI-311](COLDSTART.md#wi-311--mill-events-module)
+- [ ] WI-312 — Transport plane + properties (`WI-312-event-transport-plane.md`) — [COLDSTART § WI-312](COLDSTART.md#wi-312--wi-313--mill-events-autoconfigure-module)
 - [ ] WI-313 — Spring consumer wiring + testIT stubs (`WI-313-event-router-spring-consumers.md`)
 - [ ] WI-314 — Design docs, catalog, backlog (`WI-314-event-bus-foundation-docs.md`)
+
+## Verify (story complete)
+
+```bash
+./gradlew :core:mill-events:test
+./gradlew :core:mill-events-autoconfigure:test
+./gradlew :core:mill-events-autoconfigure:testIT
+```
