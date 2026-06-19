@@ -1,7 +1,7 @@
 # General event bus (Mill-wide)
 
 **Status:** Implemented (foundation) — delivered by
-[`general-event-bus`](../../workitems/in-progress/general-event-bus/STORY.md) (**WI-311**–**WI-314**,
+[`general-event-bus`](../../workitems/completed/20260619-general-event-bus/STORY.md) (**WI-311**–**WI-314**,
 branch `feat/events-bus`). Modules: `:core:mill-events`, `:core:mill-events-autoconfigure`.
 
 ## Purpose
@@ -360,8 +360,8 @@ test stub consumers — **no** production domain producers or real side workers.
 
 ## Related documents
 
-- [`COLDSTART.md`](../../workitems/planned/general-event-bus/COLDSTART.md) — implementer setup (branch, Gradle, file map)
+- [`COLDSTART.md`](../../workitems/completed/20260619-general-event-bus/COLDSTART.md) — implementer setup (branch, Gradle, file map)
 - [`event-bus-follow-ons.md`](event-bus-follow-ons.md) — deferred stories outline
-- [`general-event-bus` story](../../workitems/planned/general-event-bus/STORY.md) — WI tracking
+- [`general-event-bus` story](../../workitems/completed/20260619-general-event-bus/STORY.md) — WI tracking
 - [`mill-configuration.md`](mill-configuration.md) — platform configuration map
 - [`CONFIGURATION_INVENTORY.md`](CONFIGURATION_INVENTORY.md) — Spring beans and properties

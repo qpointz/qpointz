@@ -1,6 +1,6 @@
 # Event bus follow-on stories
 
-Outline for work **after** the [`general-event-bus`](../../workitems/planned/general-event-bus/STORY.md)
+Outline for work **after** the [`general-event-bus`](../../workitems/completed/20260619-general-event-bus/STORY.md)
 foundation (**WI-311**–**WI-314**). Assumes `:core:mill-events` and
 `:core:mill-events-autoconfigure` are on `dev`.
 

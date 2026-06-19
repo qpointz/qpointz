@@ -42,7 +42,7 @@ A document belongs here if its **primary subject** is one of:
 | `local-dev-authentik.md` | Local **Authentik** OIDC IdP in `deploy/local-dev`: compose (server + worker), Postgres DB, blueprints under `/blueprints/custom`, OIDC URLs for Spring Boot, HTTP vs HTTPS; links to public **[Authentik (OIDC)](../../public/src/security/authentik-oidc.md)** operator guide and **[OAuth2 integration](../security/oauth2-oidc-mill-authentik.md)** |
 | `general-event-bus.md` | **Implemented (foundation)** Mill-wide event bus: layered ports, two-axis publish/process, multicast subscriptions, transport scale path; **WI-311**–**WI-314** |
 | `event-bus-follow-ons.md` | Deferred stories: domain producers, side consumers, global search API, distributed transport |
-| [`general-event-bus/COLDSTART.md`](../../workitems/in-progress/general-event-bus/COLDSTART.md) | Implementer cold start: Gradle, packages, class map, testIT, verify commands |
+| [`general-event-bus/COLDSTART.md`](../../workitems/completed/20260619-general-event-bus/COLDSTART.md) | Implementer cold start: Gradle, packages, class map, testIT, verify commands |
 | `spring4-migration-plan.md` | Spring Boot 3.5 to 4.0 migration plan |
 | `substrait-to-relnode-migration.md` | Gradual migration from Substrait Plan to Calcite RelNode as internal IR |
 | `webflux-migration-plan.md` | WebFlux reactive migration plan for selected controllers |
