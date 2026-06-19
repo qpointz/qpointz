@@ -78,7 +78,7 @@ class RegistryAgentEventRouter(
             kind = persistKind,
             category = RoutedEventCategory.ARTIFACT,
             destinations = destinations,
-            persistAsArtifact = destinations.contains(RoutedEventDestination.ARTIFACT),
+            persistAsArtifact = persist && destinations.contains(RoutedEventDestination.ARTIFACT),
             artifactPointerKeys = pointerKeys,
         )
 

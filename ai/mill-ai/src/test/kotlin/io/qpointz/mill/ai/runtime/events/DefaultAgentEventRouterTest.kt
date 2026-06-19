@@ -12,6 +12,7 @@ import io.qpointz.mill.ai.runtime.events.*
 import io.qpointz.mill.ai.runtime.events.routing.*
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.Instant
@@ -112,7 +113,8 @@ class DefaultAgentEventRouterTest {
 
         assertEquals(RoutedEventCategory.TELEMETRY, telemetry.category)
         assertEquals(RoutedEventCategory.ARTIFACT, artifact.category)
-        assertTrue(artifact.destinations.contains(RoutedEventDestination.ARTIFACT))
+        assertFalse(artifact.destinations.contains(RoutedEventDestination.ARTIFACT))
+        assertFalse(artifact.route.rule.persistAsArtifact)
         assertEquals("sql-validation", artifact.content["artifactType"])
         assertEquals("validate_sql", artifact.content["toolName"])
     }

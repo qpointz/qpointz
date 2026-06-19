@@ -5,6 +5,7 @@ import io.qpointz.mill.ai.core.protocol.ProtocolMode
 import io.qpointz.mill.ai.runtime.events.routing.RoutedEventDestination
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -22,7 +23,8 @@ class ArtifactDescriptorRegistryTest {
         assertEquals("sql.validation", validation.persistKind)
         assertEquals(ArtifactSourceEvent.TOOL_RESULT, validation.sourceEvent)
         assertEquals(EmissionStrategy.FROM_TOOL_RESULT, validation.emissionStrategy)
-        assertTrue(validation.destinations.contains(RoutedEventDestination.ARTIFACT))
+        assertFalse(validation.persist)
+        assertFalse(validation.destinations.contains(RoutedEventDestination.ARTIFACT))
 
         val generated = registry.descriptorByQualifiedId("sql-query.generated-sql")
         assertNotNull(generated)

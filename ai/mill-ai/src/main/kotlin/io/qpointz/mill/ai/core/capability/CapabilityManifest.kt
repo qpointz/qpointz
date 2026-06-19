@@ -112,6 +112,7 @@ private data class ArtifactEntryYaml(
     val protocolMode: String? = null,
     val sourceEvent: String? = null,
     val emissionStrategy: String? = null,
+    val persist: Boolean? = null,
     val destinations: List<String>? = null,
 )
 
@@ -302,9 +303,11 @@ private fun ArtifactEntryYaml.toDescriptor(id: String, capabilityId: String): Ar
     val source = requireNotNull(sourceEvent) { "artifacts.$id requires sourceEvent" }
     val strategy = requireNotNull(emissionStrategy) { "artifacts.$id requires emissionStrategy" }
     val kind = requireNotNull(artifactKind) { "artifacts.$id requires artifactKind" }
-    val persist = requireNotNull(persistKind) { "artifacts.$id requires persistKind" }
-    val dest = requireNotNull(destinations) { "artifacts.$id requires destinations" }
-        .takeIf { it.isNotEmpty() } ?: error("artifacts.$id requires at least one destination")
+    val persistKindValue = requireNotNull(persistKind) { "artifacts.$id requires persistKind" }
+    val destList = destinations ?: emptyList()
+    if (destList.isEmpty() && (persist ?: true)) {
+        error("artifacts.$id requires at least one destination when persist is true")
+    }
     val parsedSource = ArtifactSourceEvent.fromYaml(source)
     if (parsedSource == ArtifactSourceEvent.PROTOCOL_FINAL) {
         require(protocolId != null) { "artifacts.$id requires protocolId when sourceEvent is protocol.final" }
@@ -314,14 +317,15 @@ private fun ArtifactEntryYaml.toDescriptor(id: String, capabilityId: String): Ar
         capabilityId = capabilityId,
         protocolId = protocolId,
         artifactKind = kind,
-        persistKind = persist,
+        persistKind = persistKindValue,
         pointerKeys = pointerKeys?.toSet() ?: emptySet(),
         wirePartType = wirePartType,
         presentation = presentation,
         protocolMode = protocolMode?.let { ProtocolMode.valueOf(it.uppercase()) },
         sourceEvent = parsedSource,
         emissionStrategy = EmissionStrategy.fromYaml(strategy),
-        destinations = dest.map { RoutedEventDestination.valueOf(it) }.toSet(),
+        destinations = destList.map { RoutedEventDestination.valueOf(it) }.toSet(),
+        persist = this.persist ?: true,
     )
 }
 

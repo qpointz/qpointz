@@ -78,7 +78,7 @@ class LangChain4jAgentEmitTest {
 
         val artifacts = artifactStore.findByConversation(session.conversationId)
         assertEquals(1, artifacts.count { it.kind == "sql.generated" })
-        assertEquals(1, artifacts.count { it.kind == "sql.validation" })
+        assertEquals(0, artifacts.count { it.kind == "sql.validation" })
     }
 
     @Test

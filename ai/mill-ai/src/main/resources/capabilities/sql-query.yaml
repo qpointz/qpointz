@@ -78,9 +78,10 @@ artifacts:
   sql-validation:
     artifactKind: sql-validation
     persistKind: sql.validation
+    persist: false
     sourceEvent: tool.result
     emissionStrategy: FromToolResult
-    destinations: [ARTIFACT]
+    destinations: []
 
   generated-sql:
     protocolId: sql-query.generated-sql
@@ -97,10 +98,11 @@ artifacts:
   sql-result:
     artifactKind: sql-result
     persistKind: sql.result
+    persist: false
     pointerKeys: [last-sql-result]
     sourceEvent: tool.result
     emissionStrategy: FromToolResult
-    destinations: [CHAT_STREAM, ARTIFACT]
+    destinations: [CHAT_STREAM]
 
 protocols:
   sql-query.generated-sql:

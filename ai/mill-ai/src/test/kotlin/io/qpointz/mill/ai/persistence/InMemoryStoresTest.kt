@@ -92,10 +92,11 @@ class InMemoryConversationStoreTest {
 
     private val store = InMemoryConversationStore()
 
-    private fun turn(role: String, text: String) = ConversationTurn(
+    private fun turn(role: String, text: String, profileId: String = "profile-a") = ConversationTurn(
         turnId = java.util.UUID.randomUUID().toString(),
         role = role,
         text = text,
+        profileId = profileId,
         createdAt = Instant.now(),
     )
 

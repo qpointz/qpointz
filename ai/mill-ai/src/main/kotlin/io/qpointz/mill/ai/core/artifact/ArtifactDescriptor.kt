@@ -78,6 +78,8 @@ data class ArtifactDescriptor(
     val sourceEvent: ArtifactSourceEvent,
     val emissionStrategy: EmissionStrategy,
     val destinations: Set<RoutedEventDestination>,
+    /** When false, the artefact is live/SSE only and is not written to `ai_chat_artifact`. */
+    val persist: Boolean = true,
 )
 
 /**
