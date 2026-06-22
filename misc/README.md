@@ -4,6 +4,7 @@ Content here is **not** part of the root Gradle composite in `settings.gradle.kt
 
 | Path | Role |
 |------|------|
+| [`examples/`](examples/) | Standalone samples (Poetry/Python demos, not in the root Gradle composite). |
 | [`spring-3/`](spring-3/README.md) | Reference-only snapshots (e.g. historical **net.devh** gRPC layout). |
 | [`cloud/mill-azure-service-function/`](cloud/README.md) | Legacy Azure Functions sample; Gradle `project(...)` names do not match the current product graph. |
 | `local/`, `infra/` | Tooling, sandboxes, or infra helpers. |

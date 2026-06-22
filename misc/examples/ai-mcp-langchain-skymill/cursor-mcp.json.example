@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "mill-capabilities": {
+      "url": "http://localhost:8080/services/mcp",
+      "headers": {
+        "Authorization": "Basic YWRtaW46YWRtaW4="
+      }
+    }
+  }
+}
