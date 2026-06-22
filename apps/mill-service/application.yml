@@ -1,5 +1,6 @@
 # Skymill profile: flow backend + canonical/extras seeds (value-mapping facets in skymill-extras-seed.yaml).
-# For AI + value-mapping + embeddings together use `--spring.profiles.active=skymill-ai` (see classpath application.yml `spring.profiles.group`).
+# For AI + value-mapping + embeddings use `--spring.profiles.active=skymill-ai`.
+# For AI + MCP HTTP use `--spring.profiles.active=skymill-ai-mcp` (see classpath `spring.profiles.group`).
 spring:
   config:
     activate:
@@ -245,3 +246,19 @@ logging:
   level:
     org.springframework.security.oauth2: DEBUG
     org.springframework.web.client.RestTemplate: DEBUG
+---
+# MCP Streamable HTTP servlet at `/services/mcp` (`mill-ai-mcp-transport-http`).
+# Requires AI on the classpath and profile `ai` — use group `ai-mcp` or `skymill-ai-mcp` (classpath application.yml).
+# With `mill.security.enable=true`, clients authenticate like other `/services/**` routes (Bearer or Basic).
+spring:
+  config:
+    activate:
+      on-profile: mcp
+
+mill:
+  ai:
+    mcp:
+      enabled: true
+      profile: ${MILL_MCP_PROFILE:data-analysis}
+      http:
+        endpoint: ${MILL_MCP_HTTP_ENDPOINT:/services/mcp}

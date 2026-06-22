@@ -32,10 +32,15 @@ dependencies {
     implementation(project(":metadata:mill-metadata-core"))
     implementation(project(":metadata:mill-metadata-persistence"))
     implementation(project(":data:mill-data-metadata"))
+    implementation(project(":ai:mill-ai-persistence"))
+    implementation(project(":metadata:mill-metadata-core"))
+    implementation(project(":metadata:mill-metadata-persistence"))
+    implementation(project(":data:mill-data-metadata"))
     compileOnly(project(":persistence:mill-persistence"))
     compileOnly(project(":security:mill-security"))
     compileOnly(libs.boot.starter.security)
     compileOnly(libs.boot.starter.security.oauth2.client)
+    implementation(project(":ai:mill-ai-mcp-transport-http"))
 }
 
 tasks.withType<JavaCompile>().configureEach {

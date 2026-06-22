@@ -1,0 +1,3 @@
+users:
+  - name: usr1
+    password: "{noop}password"

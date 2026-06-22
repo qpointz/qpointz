@@ -7,12 +7,19 @@ grpc:
 spring:
   application:
     name: ${mill.application.name}
-  # Activate e.g. `--spring.profiles.active=skymill-ai` to load Skymill flow + extras seed and AI/embedding/value-mapping.
+  # Activate e.g. `--spring.profiles.active=skymill-ai` (AI + Skymill) or `skymill-ai-mcp` (adds MCP HTTP).
   profiles:
     group:
       skymill-ai:
         - skymill
         - ai
+      skymill-ai-mcp:
+        - skymill
+        - ai
+        - mcp
+      ai-mcp:
+        - ai
+        - mcp
       moneta-ai:
         - moneta
         - ai
@@ -179,6 +186,20 @@ mill:
       max-title-length: 30
       value-mapping:
         embedding: default
+---
+# MCP Streamable HTTP at `/services/mcp`. Use with `ai` (groups `ai-mcp`, `skymill-ai-mcp`).
+spring:
+  config:
+    activate:
+      on-profile: mcp
+
+mill:
+  ai:
+    mcp:
+      enabled: true
+      profile: ${MILL_MCP_PROFILE:schema-exploration}
+      http:
+        endpoint: ${MILL_MCP_HTTP_ENDPOINT:/services/mcp}
 ---
 # Local ChromaDB (localhost:8000, no auth). Activate with `ai,chromadb` or `spring.profiles.active=ai-chromadb`.
 spring:
