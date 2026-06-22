@@ -14,6 +14,60 @@ Root responsibilities:
 - Includes module wrappers for build paths.
 - Triggers downstream `packaging` and `integration` pipelines.
 
+## Pipeline source policy (branch vs MR)
+
+Feature branches must not run **both** a branch pipeline (`CI_PIPELINE_SOURCE == push`) and a
+merge-request pipeline (`merge_request_event`) for the same commit. Protected branches
+(`dev`, `rc`, `main`) are **exempt** — every push continues to run the branch pipeline.
+
+Root `workflow: rules` (order matters — first match wins):
+
+```yaml
+workflow:
+  rules:
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"'
+      when: always
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED != "true"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+    - if: '$CI_COMMIT_REF_PROTECTED == "true"'
+      when: always
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS && $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_REF_PROTECTED != "true"'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
+      when: always
+    - when: always
+```
+
+| Scenario | Dedup applies? | Result |
+|----------|----------------|--------|
+| Feature branch, no open MR, push | — | One branch pipeline |
+| Feature branch, open MR, push | Yes | MR pipeline only; branch push suppressed |
+| MR closed/merged, next feature-branch push | — | Branch pipeline resumes |
+| Protected branch push | No | Branch pipeline always (unchanged) |
+| Protected tag | — | Release pipeline |
+
+| Variable | Role |
+|----------|------|
+| `CI_PIPELINE_SOURCE` | `merge_request_event` vs `push`, `web`, `schedule`, `parent_pipeline`, etc. |
+| `CI_OPEN_MERGE_REQUESTS` | Non-empty when the pushed branch is the source of at least one open MR |
+| `CI_COMMIT_BRANCH` | Set on branch pipelines; absent on tag pipelines |
+| `CI_COMMIT_REF_PROTECTED` | Limits dedup to feature branches |
+
+`$CI_PIPELINE_SOURCE == "push"` on the suppress rule avoids blocking child pipelines triggered
+from the root (`parent_pipeline` / `pipeline` source). Downstream configs under
+`.gitlab/pipelines/` keep their own `workflow: { rules: [when: always] }`.
+
+With an open MR, module includes stay off the MR pipeline (`$CI_PIPELINE_SOURCE !=
+merge_request_event`); `test:downstream` runs the full test child pipeline instead. Branch-only
+pushes without an MR use change-filtered module includes.
+
+**Project setting:** **Settings → CI/CD → General pipelines → Merge request pipelines** must be
+enabled or open-MR feature branches would get no CI after dedup.
+
+Reference: [GitLab workflow — switch between branch and MR pipelines](https://docs.gitlab.com/ci/yaml/workflow/).
+
 ## Active Shared Configuration
 
 Shared CI templates and defaults:

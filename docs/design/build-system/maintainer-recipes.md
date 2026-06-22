@@ -57,13 +57,19 @@ Expected log pattern:
 ## CI Change Checklist
 
 - Keep root `.gitlab-ci.yml` orchestration-only.
+- When editing `workflow: rules`, preserve rule order: tags → MR → protected → feature-branch
+  dedup → branch → fallback. Do not rely on job-level MR skips alone for deduplication.
+- Feature-branch dedup uses `CI_OPEN_MERGE_REQUESTS` and does **not** apply to protected
+  branches (`dev`, `rc`, `main`).
 - Prefer extending downstream pipelines:
   - `.gitlab/pipelines/packaging.yml`
   - `.gitlab/pipelines/integration.yml`
 - Keep downstream trigger contract stable (`QP_VERSION`, `strategy: depend`) unless intentionally changed.
 - Avoid secret/token output in scripts.
+- After workflow changes, validate on GitLab: push without MR (one branch pipeline), open MR and
+  push again (one MR pipeline only), close MR and push (branch pipeline resumes).
 
-For full CI topology and ownership map, see `gitlab-ci-inventory.md`.
+For full CI topology, branch/MR policy, and ownership map, see `gitlab-ci-inventory.md`.
 
 ## CI Validation Commands
 

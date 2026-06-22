@@ -18,7 +18,7 @@ Maintainer reference for Gradle build logic and GitLab CI structure.
 | `gradle-plugins.md` | Plugin catalog (`mill`, `mill-publish`, `mill-aggregate`) and internals |
 | `gradle-editions.md` | Edition model, feature resolution, inheritance, packaging output behavior |
 | `maintainer-recipes.md` | High-signal operational commands for maintainers |
-| `gitlab-ci-inventory.md` | CI orchestration, shared templates, downstream pipelines |
+| `gitlab-ci-inventory.md` | CI orchestration, branch/MR pipeline dedup policy, shared templates, downstream pipelines |
 
 ## Scope
 
