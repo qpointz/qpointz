@@ -29,6 +29,8 @@ Each **facet type** appears as its own section. What you see is the **effective*
 
 **Multiple-instance facet types** show one **card per assignment** (for example several relations). Deleting or editing a specific row may require selecting the right instance when the server exposes instance ids.
 
+In **general chat**, when an AI agent captures or proposes a facet for an entity, the **Facet** tab of the condensed artefact box reuses this same read-only field layout (descriptor-driven). See [Mill UI — facet artefacts in chat](../mill-ui.md#facet-and-schema-capture-artefacts-general-chat).
+
 <!-- SCREENSHOT_PLACEHOLDER: Facet panel — MULTIPLE cardinality with two inner cards -->
 
 ### When editing is disabled

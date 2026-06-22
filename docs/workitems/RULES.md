@@ -17,13 +17,16 @@ archive under **`completed/`**.
    each line tied to a **`WI-NNN-<title>.md`** file in the same folder.
 2. **Update after each WI** — When a work item is **complete**, set its tracker line to **`[x]`**
    **before** starting the next WI. The checklist must always match what is actually done on the
-   branch.
+   branch. This is **mandatory** after every finished WI — not only at story closure.
 3. **One commit = full working copy for that WI** — Completing a WI requires **one** commit that
    stages **every** intentional change for that WI **across the codebase** — production code, tests,
    config, and docs — **including** `STORY.md` (tracker update), the WI file when applicable, and any
    other trackers the WI obliges you to touch (**`MILESTONE.md`**, **`BACKLOG.md`**, design docs,
    etc.). Do not split a finished WI across multiple commits or leave related edits uncommitted. See
    **Commits** → **Per-WI cadence** and **Complete working copy per WI**.
+4. **Push after each WI** — After the per-WI commit, **push** the story branch to `origin` unless the
+   user explicitly asks not to push yet. This keeps the remote branch current for CI and MR review.
+   See **Per-WI GitLab CI (when MCP available)** below.
 
 ### Story folder layout
 
@@ -251,13 +254,62 @@ Normative summary: **`STORY.md`: WI tracker and per-WI commits** above. While im
 its branch, treat each WI as a closed loop:
 
 1. **Finish the WI** — code, tests, and docs required by that WI.
-2. **Update tracking** — set the matching item to `[x]` in `STORY.md`; update `WI-NNN-<title>.md` when
-   the story or WI template calls for it.
+2. **Update tracking** — set the matching item to `[x]` in `STORY.md` **immediately** when the WI is
+   done; update `WI-NNN-<title>.md` when the story or WI template calls for it. **Do not** start the
+   next WI with the previous WI still unchecked.
 3. **Commit** — stage everything that belongs to that WI (including tracking/doc edits) and create one
    commit so `git status` is clean before the next WI.
+4. **Push** — push the story branch to `origin` (`git push -u origin HEAD` on first push, then
+   `git push`) unless the user explicitly defers push.
+5. **CI (when GitLab MCP is available)** — after push, confirm the pipeline for the branch commit is
+   **green** (or wait until it succeeds) before starting the next WI. See **Per-WI GitLab CI**.
 
-If you complete a WI but skip updating `STORY.md` or skip the commit, the branch no longer matches
-the story’s tracking list and history is harder to review.
+If you complete a WI but skip updating `STORY.md`, skip the commit, skip push, or skip CI verification
+when MCP is available, the branch no longer matches the story’s tracking list and delivery is harder
+to review.
+
+### Per-WI GitLab CI (when MCP available)
+
+When **GitLab MCP** tools are configured in the agent environment, use them during story
+implementation on the feature branch:
+
+#### After every WI (after commit + push)
+
+1. **Push** the story branch if not already on `origin`.
+2. **Trigger or observe CI** — a push to the feature branch should start the GitLab pipeline for that
+   ref. Use GitLab MCP (pipeline / commit-status APIs) to confirm the relevant jobs **succeed**.
+3. **Do not start the next WI** while the pipeline for the current WI’s commit is **failed**, **stuck**,
+   or **unknown** — fix failures, amend with a new commit if needed, push again, and re-check until
+   green (or report a blocker to the user).
+4. **Local tests** — run module-appropriate tests locally as part of the WI (e.g. `./gradlew test`,
+   `cd ui/mill-ui && npm run test`) **before** push; CI is the remote confirmation, not a substitute
+   for local verification when the WI touches that code.
+
+Which pipeline jobs apply depends on the change (Gradle modules, `ui/mill-ui`, `ai/`, etc.); at minimum
+expect the **default / build / test** stage jobs for the project to pass.
+
+#### Last WI in the story (before MR)
+
+When completing the **final** WI in `STORY.md` (all other items already `[x]`):
+
+1. Complete the usual per-WI loop (track, commit, push).
+2. **Run or confirm the integration-test pipeline** — ensure integration-stage jobs pass for the branch.
+   In this repo that typically includes downstream integration jobs (e.g. **`integration:downstream`**
+   from [`.gitlab-ci.yml`](../../.gitlab-ci.yml) / `.gitlab/pipelines/integration.yml`), subject to
+   project CI variables (`RUN_INTEGRATION`, MR rules, etc.). Use GitLab MCP to verify integration jobs
+   **success** on the latest commit; fix and re-push if they fail.
+3. **Open a merge request** — when GitLab MCP is available and the user has not asked to defer MR
+   creation, create an MR from the story branch into the merge target (usually **`dev`**) with a
+   summary of the story, WI list, test evidence, and link to the green pipeline. If an MR already
+   exists for the branch, update its description instead of opening a duplicate.
+
+**Story closure** (archive, MILESTONE, history squash) remains **explicit user request only** — opening
+an MR after the last WI does **not** close the story by itself.
+
+#### When GitLab MCP is not available
+
+Fall back to local test commands documented in the story or `STORY.md` / WI files; push when the user
+asks; note in hand-off that CI was not verified remotely.
 
 ### Complete working copy per WI (story branches)
 
@@ -266,6 +318,7 @@ On a **story branch**, when a WI is **complete** (implementation + tests/docs as
 1. **Commit every file** that is part of that WI’s delivery — source, tests, story docs (`STORY.md` tracking list / checkbox, WI file updates if any), and any other intentional edits. Do not stop with a **partial** commit while leaving related changes unstaged for the same WI.
 2. **Leave a clean working tree** for that slice of work: after the commit, `git status` should show no remaining modified/untracked files **for completed work** (aside from deliberate local-only files such as IDE noise, if those are gitignored).
 3. **Same commit** should normally include marking the WI as done in **`STORY.md`** (`[x]`) so the branch always reflects completed WIs and the tracking list stays accurate.
+4. **Push** the commit to `origin` on the story branch unless the user defers push — see **Per-WI cadence** step 4.
 
 This keeps each WI a **reviewable, reproducible checkpoint** on the story branch. Do not accumulate multiple finished WIs worth of changes without committing. Do not commit build outputs, secrets, or unrelated work from outside the story.
 
@@ -273,6 +326,8 @@ This keeps each WI a **reviewable, reproducible checkpoint** on the story branch
 
 - When the WI is implemented, update the **tracking list** in `STORY.md` (checkbox `[x]`) **in the same
   commit** as the WI’s code/docs — see **Per-WI cadence** and **Complete working copy per WI** above.
+- **Push** that commit to `origin` and, when GitLab MCP is available, confirm pipeline success before
+  the next WI — see **Per-WI GitLab CI (when MCP available)**.
 - Do **not** remove or relocate WI files until **story closure** — they stay with the story folder
   through its move from `planned/` or `in-progress/` to `docs/workitems/completed/`.
 

@@ -14,6 +14,8 @@
 
 #### Archived stories (closure date, newest first)
 
+- **General chat facet display** (`ai-chat-facet-display`, closed **2026-06-19**): [`completed/20260619-ai-chat-facet-display/STORY.md`](completed/20260619-ai-chat-facet-display/STORY.md). **WI-335**–**WI-337** — shared `FacetReadOnlyBody` / `FacetPayloadReadOnly` extracted from Data Model; **`FacetCondensedPreview`** SQL-parity shell (Facet + JSON tabs, reserved action bar) for **`general`** `facet-proposal`; GET replay normalises **`schema-capture`** to facet presentation; inline hosts keep stub card. Design [`docs/design/ai/chat-artefact-architecture.md`](../design/ai/chat-artefact-architecture.md) §7.1, [`docs/design/metadata/model-view-facet-boxes.md`](../design/metadata/model-view-facet-boxes.md). **BACKLOG** **U-16** `done`.
+
 - **Mill application event bus foundation** (`general-event-bus`, closed **2026-06-19**): [`completed/20260619-general-event-bus/STORY.md`](completed/20260619-general-event-bus/STORY.md). **WI-311**–**WI-314** — Spring-free `:core:mill-events` contracts (`Event`, `EventPublisher`, `EventTransport`, `EventRouter`, `EventConsumer`, per-type subscriptions, DSL builder, `PublishMode`/`ProcessingMode` two-axis dispatch); `:core:mill-events-autoconfigure` with `mill.events.*` properties, `InMemoryEventTransport`, `SpringEventTransport`, dynamic consumer bean collection, `testIT` proving fan-out + failure isolation + async. Design [`docs/design/platform/general-event-bus.md`](../design/platform/general-event-bus.md). **BACKLOG** **P-38** `done`.
 
 - **AI chat table naming + CASCADE delete** (`ai-chat-table-naming`, closed **2026-06-19**): [`completed/20260619-ai-chat-table-naming/STORY.md`](completed/20260619-ai-chat-table-naming/STORY.md). **WI-323** — Flyway **V11** cosmetic renames (`ai_chat_*` satellites); **WI-324** — **V12** orphan cleanup + `ON DELETE CASCADE` from `ai_chat`; `JpaConversationStore.delete`, `JpaChatDeleteCascadeIT`; canonical [`db-naming-convention.md`](../design/persistence/db-naming-convention.md). **BACKLOG** **A-76**, **A-77** `done`.
@@ -69,6 +71,8 @@
 #### Cumulative WI deliveries (toward 0.8.0)
 
 Individual work items and bundles merged on `dev` in support of this milestone (including items that also appear under **Archived stories** above).
+
+- **WI-335**–**WI-337** — mill-ui general chat facet display: shared read-only facet module (`FacetReadOnlyBody`, `FacetPayloadReadOnly`), **`FacetCondensedPreview`** condensed shell for **`general`** `facet-proposal`, GET replay + **`schema-capture`** normalisation; story **`ai-chat-facet-display`**, archived [`completed/20260619-ai-chat-facet-display/STORY.md`](completed/20260619-ai-chat-facet-display/STORY.md). **BACKLOG** **U-16** `done`.
 
 - **WI-323**–**WI-324** — `ai_chat_*` satellite table renames (**V11**), `ON DELETE CASCADE` FKs + delete ITs (**V12**), [`db-naming-convention.md`](../design/persistence/db-naming-convention.md); story **`ai-chat-table-naming`**, archived [`completed/20260619-ai-chat-table-naming/STORY.md`](completed/20260619-ai-chat-table-naming/STORY.md). **BACKLOG** **A-76**, **A-77** `done`.
 

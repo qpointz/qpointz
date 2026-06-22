@@ -59,6 +59,8 @@ Facet blocks are driven by **facet type** definitions from the server (titles, s
 
 **MULTIPLE** cardinality facets render as **one card per instance** (e.g. relations), including legacy `{ "relations": [...] }` payloads and a single `{}` row from JPA as one logical entry.
 
+The same **descriptor-driven read-only field layout** (labels, stereotypes such as hyperlinks and tags, structural read view) is shared with **general chat** when an agent proposes or captures metadata facets — see [Chat view — facet artefacts](#facet-and-schema-capture-artefacts-general-chat).
+
 ### Search in Model
 
 Use the **header global search** (when enabled): **Ctrl+K** / **Cmd+K** opens search across views, schemas, tables, columns, concepts, and saved queries (`GlobalSearch.tsx`).
@@ -122,9 +124,21 @@ With the **real** AI v3 chat service and a profile that emits structured artefac
 - **General chat** (`/chat`): condensed **SQL / Data** preview with **Run**, **Export**, **Expand**, and **Open in Analysis** when the **`chatSqlExecute`** feature flag is on (default **on** in `defaults.ts`).
 - **Expand** opens the full chat content pane with the same data view family as Analysis (**`QueryDataView`**), paging, and **Back to message**.
 - **Run all** (chat toolbar) executes every SQL artefact in the current conversation when **`chatSqlExecute`** is enabled.
-- **Facet**, **schema-capture**, and unknown structured parts use typed **`ArtifactCard`** layouts; see repository design **[Chat artefact architecture](../../design/ai/chat-artefact-architecture.md)**.
 
-Reloading a conversation (**`GET /api/v1/ai/chats/{id}`**) restores structured **`artifacts[]`** per turn so SQL/data previews hydrate without re-running the agent.
+#### Facet and schema-capture artefacts (general chat)
+
+When the active **agent profile** emits metadata facets (for example **`schema-authoring`** captures or **`metadata-authoring`** facet proposals), **general chat** (`/chat`) shows them in the **same condensed artefact shell** as SQL and query results:
+
+- A bordered **`ChatArtifactCard`** with **Facet** and **JSON** tabs (tab label format **`Facet:<Type>`**, e.g. `Facet:Descriptive`).
+- The **Facet** tab uses the **same read-only field presentation** as the **Model** view for that facet type (loaded from the metadata facet-type API). A **Proposed** badge and target entity id appear in the panel header.
+- The **JSON** tab shows the full structured wire payload (pretty-printed).
+- The action-bar column beside the tabs is **reserved** for future actions (promote to metadata, copy JSON); buttons are not wired yet.
+
+**Unknown** structured parts still fall back to a generic JSON preview card.
+
+Reloading a conversation (**`GET /api/v1/ai/chats/{id}`**) restores structured **`artifacts[]`** per turn (SQL, data, facet proposals, schema captures) so condensed previews **hydrate without re-running the agent**.
+
+Repository design: **[Chat artefact architecture](../../design/ai/chat-artefact-architecture.md)**.
 
 ### Agent profile
 
@@ -142,7 +156,7 @@ The **mock** does not exercise structured SQL artefact cards; use a Mill deploym
 When **inline chat** flags are on, compact chat can open from **Model**, **Knowledge**, or **Analysis** with context passed into **`createChat`**.
 
 - **Inline analysis** applies generated SQL to the host editor (**host-apply**); it does not show the general-chat condensed/expand preview.
-- **Inline model / knowledge** use compact artefact treatments (facet/schema cards where applicable).
+- **Inline model / knowledge** keep **compact stub cards** for facet proposals (entity id, facet type, collapsible JSON). They do **not** use the general-chat **Facet + JSON** condensed shell.
 
 ### URLs
 
@@ -209,6 +223,8 @@ The UI proxies **`/api`**, **`/auth`**, and **`/.well-known`** to the backend in
 | 404 on `/model` | You may need the **`/app`** prefix (`/app/model`). |
 | Facets missing or read-only | **`mill.metadata.repository.type`**, **`mill.metadata.seed.resources`** (platform bootstrap), auth, **`metadataEntityId`** on the entity. |
 | Chat feels like a demo | **`chatService`** may still be the **mock** in `chatService.ts`; confirm wired implementation. |
+| Facet capture shows stub card in general chat | Confirm **`mill.ai.enabled`**, real chat service, and a profile that emits structured facets; reload should restore artefacts from **`GET /api/v1/ai/chats/{id}`**. |
+| Facet tab empty but JSON tab has data | Metadata facet-type API may be unavailable; UI falls back to generic object/JSON display. Check **`mill.metadata.*`** and bootstrap seeds. |
 | Section missing from sidebar | **Feature flags** for that view (home, model, knowledge, analysis, chat, connect, admin). |
 | Search never opens | **`headerGlobalSearch`** flag; try **Ctrl/Cmd+K**. |
 
@@ -217,5 +233,5 @@ The UI proxies **`/api`**, **`/auth`**, and **`/.well-known`** to the backend in
 ## See also
 
 - **[Metadata](metadata/index.md)** — user-oriented metadata model and operator notes.
-- **[Chat artefact architecture](../../design/ai/chat-artefact-architecture.md)** — structured SQL/data presentation, GET replay, expand pane (repository design).
+- **[Chat artefact architecture](../../design/ai/chat-artefact-architecture.md)** — structured SQL/data/facet presentation, GET replay, expand pane (repository design).
 - Repository UI code: **`ui/mill-ui/src`** (routes in **`App.tsx`**, navigation in **`AppHeader.tsx`**).
