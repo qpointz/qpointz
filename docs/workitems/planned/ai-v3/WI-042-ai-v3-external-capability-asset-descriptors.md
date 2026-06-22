@@ -1,9 +1,13 @@
 # WI-042 — AI v3 External Capability Asset Descriptors
 
-Status: `planned`  
+Status: `superseded`  
 Type: `✨ feature`  
 Area: `ai`, `platform`  
-Backlog refs: `TBD`
+Backlog refs: **A-31**
+
+> **Superseded by** [`WI-326`](../ai-v3-mcp-server-poc/WI-326-external-capability-asset-descriptors.md)
+> in story [`ai-v3-mcp-server-poc`](../ai-v3-mcp-server-poc/STORY.md). Descriptor work is delivered
+> as part of the MCP server POC, not the `ai-v3` chat integration story.
 
 ## Problem Statement
 
@@ -29,5 +33,4 @@ Define the descriptor model for externally exposed capability assets.
 
 ## Deliverables
 
-- This work item definition (`docs/workitems/WI-042-ai-v3-external-capability-asset-descriptors.md`).
-
+- Fulfilled by **WI-326** on the `ai-v3-mcp-server-poc` story branch.

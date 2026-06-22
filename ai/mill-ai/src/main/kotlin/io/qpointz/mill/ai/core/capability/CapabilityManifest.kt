@@ -152,10 +152,15 @@ private data class ProtocolEntryYaml(
 private data class CapabilityManifestYaml(
     val name: String,
     val description: String,
+    val mcp: CapabilityMcpSettingsYaml? = null,
     val prompts: Map<String, PromptEntryYaml> = emptyMap(),
     val tools: Map<String, ToolEntryYaml> = emptyMap(),
     val protocols: Map<String, ProtocolEntryYaml> = emptyMap(),
     val artifacts: Map<String, ArtifactEntryYaml> = emptyMap(),
+)
+
+private data class CapabilityMcpSettingsYaml(
+    val enabled: Boolean = true,
 )
 
 // ---------------------------------------------------------------------------
@@ -211,12 +216,28 @@ private val yamlMapper: YAMLMapper = YAMLMapper.builder()
 class CapabilityManifest private constructor(
     val name: String,
     val description: String,
+    val mcpSettings: CapabilityMcpSettings,
     private val promptEntries: Map<String, PromptEntryYaml>,
     private val toolEntries: Map<String, ToolEntryYaml>,
     private val protocolEntries: Map<String, ProtocolEntryYaml>,
     val artifactDescriptors: List<ArtifactDescriptor>,
     val toolEmitTriggers: Map<String, List<ToolEmitTrigger>>,
 ) {
+    /**
+     * Return manifest-declared tools without binding handlers.
+     */
+    fun declaredTools(): List<DeclaredToolMetadata> =
+        toolEntries.map { (toolName, entry) ->
+            val kind = entry.kind?.let { ToolKind.valueOf(it.uppercase()) } ?: ToolKind.QUERY
+            DeclaredToolMetadata(
+                name = toolName,
+                description = entry.description.trim(),
+                inputSchema = entry.input?.toJsonObjectSchema() ?: JsonObjectSchema.builder().build(),
+                outputSchema = entry.output?.toJsonObjectSchema(),
+                kind = kind,
+            )
+        }
+
     /**
      * Build a [ToolBinding] for the named tool using the supplied handler.
      * Throws if the tool name is not declared in this manifest.
@@ -262,6 +283,9 @@ class CapabilityManifest private constructor(
     }
 
     companion object {
+        /** Classpath resource path convention for capability manifests. */
+        fun manifestResourceFor(capabilityId: String): String = "capabilities/$capabilityId.yaml"
+
         /**
          * Load a [CapabilityManifest] from a classpath resource.
          *
@@ -289,6 +313,7 @@ class CapabilityManifest private constructor(
             return CapabilityManifest(
                 name = yaml.name,
                 description = yaml.description,
+                mcpSettings = CapabilityMcpSettings(enabled = yaml.mcp?.enabled ?: true),
                 promptEntries = yaml.prompts,
                 toolEntries = yaml.tools,
                 protocolEntries = yaml.protocols,

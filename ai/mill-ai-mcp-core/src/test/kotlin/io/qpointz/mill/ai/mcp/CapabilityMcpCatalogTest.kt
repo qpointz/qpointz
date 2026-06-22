@@ -1,0 +1,71 @@
+package io.qpointz.mill.ai.mcp
+
+import io.qpointz.mill.ai.capabilities.DemoCapabilityProvider
+import io.qpointz.mill.ai.core.capability.CapabilityManifest
+import io.qpointz.mill.ai.core.capability.CapabilityRegistry
+import io.qpointz.mill.ai.profile.HelloWorldAgentProfile
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Test
+
+class CapabilityMcpCatalogTest {
+
+    @Test
+    fun shouldExposeNamespacedDemoTool() {
+        val catalog = CapabilityMcpCatalog(
+            registry = CapabilityRegistry.from(listOf(DemoCapabilityProvider())),
+            exposureConfig = McpExposureConfig(capabilities = listOf("demo")),
+        )
+        assertThat(catalog.listToolNames()).contains("demo.say_hello")
+    }
+
+    @Test
+    fun shouldOmitMcpDisabledManifestTools() {
+        val provider = object : io.qpointz.mill.ai.core.capability.CapabilityProvider {
+            override fun descriptor() = io.qpointz.mill.ai.core.capability.CapabilityDescriptor(
+                id = "test-mcp-disabled",
+                name = "Disabled",
+                description = "Disabled MCP capability",
+                supportedContexts = setOf("general"),
+            )
+
+            override fun create(
+                context: io.qpointz.mill.ai.runtime.AgentContext,
+                dependencies: io.qpointz.mill.ai.core.capability.CapabilityDependencies,
+            ): io.qpointz.mill.ai.core.capability.Capability {
+                error("not used in catalog tests")
+            }
+        }
+        val catalog = CapabilityMcpCatalog(
+            registry = CapabilityRegistry.from(listOf(provider)),
+        )
+        assertThat(catalog.listToolNames()).isEmpty()
+    }
+
+    @Test
+    fun shouldApplyHelloWorldProfileFilter() {
+        val catalog = CapabilityMcpCatalog(
+            registry = CapabilityRegistry.load(),
+            profile = HelloWorldAgentProfile.profile,
+        )
+        assertThat(catalog.listToolNames()).contains("demo.say_hello")
+        assertThat(catalog.listToolNames()).noneMatch { it.startsWith("schema.") }
+    }
+
+    @Test
+    fun shouldApplyServerAllowlist() {
+        val catalog = CapabilityMcpCatalog(
+            registry = CapabilityRegistry.load(),
+            exposureConfig = McpExposureConfig(capabilities = listOf("demo")),
+        )
+        assertThat(catalog.listToolNames()).allMatch { it.startsWith("demo.") }
+    }
+
+    @Test
+    fun shouldExposeTwentyThreeToolsWhenAllManifestsLoadedAndFiltersOpen() {
+        val catalog = CapabilityMcpCatalog(
+            registry = CapabilityRegistry.load(),
+        )
+        assertThat(catalog.listToolNames()).hasSize(23)
+    }
+}

@@ -34,6 +34,7 @@ logback = "1.5.28"
 langchain4j = "1.11.0"
 # Chroma (and other optional integrations) track LangChain4j’s beta line aligned with the stable BOM — see langchain4j-bom 1.11.0.
 langchain4j-beta = "1.11.0-beta19"
+mcp = "0.17.1"
 reactor = "3.7.5"
 flyway = "10.21.0"
 awsSdk = "2.42.30"
@@ -188,6 +189,8 @@ langchain4j-core = { module = "dev.langchain4j:langchain4j", version.ref = "lang
 langchain4j-open-ai = { module = "dev.langchain4j:langchain4j-open-ai", version.ref = "langchain4j" }
 langchain4j-chroma = { module = "dev.langchain4j:langchain4j-chroma", version.ref = "langchain4j-beta" }
 langchain4j-pgvector = { module = "dev.langchain4j:langchain4j-pgvector", version.ref = "langchain4j-beta" }
+mcp-bom = { module = "io.modelcontextprotocol.sdk:mcp-bom", version.ref = "mcp" }
+mcp = { module = "io.modelcontextprotocol.sdk:mcp" }
 reactor-core = { module = "io.projectreactor:reactor-core", version.ref = "reactor" }
 
 aws-sdk-s3 = { module = "software.amazon.awssdk:s3", version.ref = "awsSdk" }

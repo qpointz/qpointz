@@ -1,0 +1,9 @@
+name: test-mcp-disabled
+description: Test capability opted out of MCP exposure.
+
+mcp:
+  enabled: false
+
+tools:
+  hidden_tool:
+    description: Should not appear in MCP catalog when mcp.enabled is false.

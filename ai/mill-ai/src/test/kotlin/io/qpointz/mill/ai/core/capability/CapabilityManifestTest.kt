@@ -117,6 +117,24 @@ class CapabilityManifestTest {
         assertEquals(ToolKind.CAPTURE, binding.kind)
     }
 
+    @Test
+    fun `should default mcp enabled when block absent`() {
+        assertTrue(manifest.mcpSettings.enabled)
+    }
+
+    @Test
+    fun `should load mcp disabled from yaml`() {
+        val disabled = CapabilityManifest.load("capabilities/test-mcp-disabled.yaml")
+        assertFalse(disabled.mcpSettings.enabled)
+    }
+
+    @Test
+    fun `should expose declared tools with output schema`() {
+        val declared = manifest.declaredTools().first { it.name == "no_input" }
+        assertNotNull(declared.outputSchema)
+        assertEquals(ToolKind.QUERY, declared.kind)
+    }
+
     // ── Input properties are converted to LangChain4j spec ───────────────────
 
     @Test

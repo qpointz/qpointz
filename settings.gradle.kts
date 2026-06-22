@@ -78,6 +78,8 @@ include (":ai:mill-ai-cli")
 include (":ai:mill-ai-persistence")
 include (":ai:mill-ai-autoconfigure")
 include (":ai:mill-ai-service")
+include (":ai:mill-ai-mcp-core")
+include (":ai:mill-ai-mcp-transport-http")
 
 project(":ai:legacy:mill-ai-v1-core").projectDir = file("ai/legacy/mill-ai-v1-core")
 project(":ai:legacy:mill-ai-v1-nlsql-chat-service").projectDir = file("ai/legacy/mill-ai-v1-nlsql-chat-service")
