@@ -53,8 +53,13 @@ This document covers **what happens after** emission reaches mill-ui and **GET r
 |----------------|-------------|-------|
 | `sql.generated` | `sql` | From agent emission |
 | `sql.result` | `data` | From client attach |
-| Facet kinds | `facet-proposal` | From agent emission |
+| `metadata.faceting.capture` | `facet-proposal` | `propose_facet_assignment` (metadata-authoring) |
+| `schema.authoring.capture` | `facet-proposal` | `capture_description` / `capture_relation` — normalized at wire ([`FacetProposalWire`](../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/core/artifact/FacetProposalWire.kt)) |
 | `sql.validation` | *(omitted)* | Audit only |
+
+Mapper: [`ArtifactWireMapper`](../../../ai/mill-ai-service/src/main/kotlin/io/qpointz/mill/ai/service/ArtifactWireMapper.kt).
+All facet-like captures (metadata faceting and schema authoring) wire as **`facet-proposal`**.
+`assistantReplyView` on GET is omitted; mill-ui derives layout from artefacts ([`assistantReplyView.ts`](../../../ui/mill-ui/src/utils/assistantReplyView.ts)).
 
 ### Attach after Run
 
@@ -86,9 +91,9 @@ Client: [`parseWireArtifacts`](../../../ui/mill-ui/src/utils/artifactWireParse.t
 
 | ChatType | Host | SQL/data treatment |
 |----------|------|-------------------|
-| `general` | `/chat` | Condensed preview, expand pane, Run/Export/Open in Analysis |
-| `inline-analysis` | Query Playground drawer | `host-apply` → editor (no in-drawer preview) |
-| `inline-model` / `inline-knowledge` | Explorer drawers | Compact SQL stub; facet/schema via `ArtifactCard` |
+| `general` | `/chat` | Condensed preview, expand pane, Run/Export/Open in Analysis; **facet-like captures** use `FacetCondensedPreview` (see §7.1) |
+| `inline-analysis` | Query Playground drawer | `host-apply` → editor (no in-drawer preview); facet proposals stay `FacetProposalArtifactCard` |
+| `inline-model` / `inline-knowledge` | Explorer drawers | Compact SQL stub; facet proposals may use `FacetCondensedPreview`; other kinds via `ArtifactCard` |
 
 Registry: [`chatArtifactTreatments.ts`](../../../ui/mill-ui/src/components/chat/artifactPreview/chatArtifactTreatments.ts).
 
@@ -120,16 +125,64 @@ flowchart TB
   end
   subgraph views [Views]
     COND[SqlDataCondensedPreview]
+    FACET[FacetCondensedPreview]
     EXP[ChatExpandHost / SqlDataExpandedView]
     QDV[QueryDataView]
+  end
+  subgraph shared [Shared read-only facet core]
+    FRB[FacetReadOnlyBody]
+    FPR[FacetPayloadReadOnly]
+    FT[facetTypeService]
   end
   SSE --> MSG
   GET --> MSG
   MSG --> APR --> MAC --> TREAT
   TREAT --> COND
+  TREAT --> FACET
   TREAT --> EXP
   COND --> QDV
   EXP --> QDV
+  FACET --> FRB --> FPR
+  FRB --> FT
+```
+
+### 7.1 Shared facet read-only layer (Data Model + chat)
+
+Chat facet presentation is **not** a parallel duplicate of the Data Model renderer. It reuses the
+**same read-only field stack** under `ui/mill-ui/src/components/data-model/facets/` and wraps it in
+**chat-only chrome**.
+
+| Layer | Location | Role |
+|-------|----------|------|
+| **Read-only core (shared)** | `data-model/facets/` | `FacetReadOnlyBody` → `FacetPayloadReadOnly`; `facetDisplayUtils`; optional `StructuralFacet` when `modelStructuralFacet` |
+| **Descriptor source (shared)** | `facetTypeService` | Loads `FacetTypeManifest` by facet-type key (same API as `/model`) |
+| **Data Model host** | `EntityDetails.tsx` | Category tabs, edit/delete, inferred/captured badges, MULTIPLE nested cards |
+| **Chat host** | `FacetCondensedPreview.tsx` | SQL-parity shell: `ChatArtifactCard`, Facet + JSON tabs, reserved action bar, “Proposed” badge |
+| **Chat adapters** | `facetWireNormalize.ts`, `artifactGroups.ts` | Legacy schema-capture shapes normalize to `facet-proposal` at parse; group artefacts for treatment lookup |
+
+**1:1 match (read-only body):** for the same `facetTypeKey` + payload + loaded descriptor, field
+labels, stereotypes (hyperlink, email, tags), and JSON fallback behaviour match Data Model read mode.
+
+**Not 1:1 (chrome):** chat adds tabbed artefact shell and JSON wire tab; Data Model adds entity
+layout, mutation actions, and multi-facet navigation. See
+[`model-view-facet-boxes.md`](../metadata/model-view-facet-boxes.md) §Shared read-only layer.
+
+#### Artefact kinds → facet panel
+
+| Wire / message `kind` | Persist kind (examples) | Normalised for `FacetReadOnlyBody` |
+|-----------------------|-------------------------|-------------------------------------|
+| `facet-proposal` | `metadata.faceting.capture` | Direct (`facetTypeKey`, `metadataEntityId`, `payload`) |
+| `schema.authoring.capture` | `facet-proposal` (wire) | `FacetProposalWire`: `description` → `descriptive`, `relation` → `relation`; `targetEntityId` → `metadataEntityId` |
+
+On **`general`** (and configured inline hosts), both kinds route through `artifactGroups` →
+`facet-proposal` group → `FacetCondensedPreview` → `FacetReadOnlyBody`. Legacy
+`SchemaCaptureArtifactCard` remains for passthrough only when not grouped (not used on general after
+normalisation).
+
+```text
+Data Model:  EntityDetails ──────────► FacetReadOnlyBody ──► FacetPayloadReadOnly
+                                              ▲
+Chat:        FacetCondensedPreview ───────────┘   (+ ChatArtifactCard tabs, facetArtifactNormalize)
 ```
 
 | Module | Role |
@@ -137,7 +190,8 @@ flowchart TB
 | `ArtifactPreviewRouter` | Layout chrome from `assistantReplyView` |
 | `MessageArtifactComposer` | Treatment by `chatType`; host-apply for inline-analysis |
 | `SqlDataCondensedPreview` | In-thread SQL ↔ Data tabs, action bar |
-| `ArtifactCard` | Facet, schema-capture, unknown (artefacts foundation) |
+| `FacetCondensedPreview` | Facet + JSON tabs; **shared** `FacetReadOnlyBody` |
+| `ArtifactCard` | Unknown structured kinds; legacy facet stub on inline-analysis |
 | `ChatExpandHost` | Full-pane overlay; back scrolls to originating message |
 | `QueryDataView` | Shared grid (`condensed` \| `expanded` \| `playground`) |
 
@@ -176,10 +230,15 @@ Expand gated by `chatArtifactTreatments[chatType][kind].transitions` including `
 
 1. Add backend wire mapping in `ArtifactWireMapper` (if new persist kind).
 2. Extend `ChatMessageArtifact` + `parseChatStructuredPart` + `parseWireArtifacts`.
-3. Register grouping in `artifactGroups.ts` if composite.
+3. Register grouping in `artifactGroups.ts` (composite SQL/data, or facet normalisation).
 4. Add row to `chatArtifactTreatments` per affected `ChatType`.
-5. Register preview/card in `registry.tsx`; expand in `expandRegistry.ts` when needed.
+5. Register preview in `registry.tsx`; prefer reusing `FacetCondensedPreview` when the payload is
+   facet-shaped (see §7.1). Add expand in `expandRegistry.ts` when needed.
 6. Vitest + optional scenario pack.
+
+**Facet-shaped captures:** if the new kind maps to a facet-type descriptor + payload, add a
+normaliser beside [`facetArtifactNormalize.ts`](../../../ui/mill-ui/src/components/chat/artifactPreview/facetArtifactNormalize.ts)
+instead of a bespoke read-only card.
 
 For **new emission kinds**, start with [`artifact-foundation.md`](../agentic/artifact-foundation.md) §8.
 
@@ -187,5 +246,6 @@ For **new emission kinds**, start with [`artifact-foundation.md`](../agentic/art
 
 - [`artifact-foundation.md`](../agentic/artifact-foundation.md) — emission (canonical)
 - [`ai-v3-chat-transport-extensions.md`](../agentic/ai-v3-chat-transport-extensions.md) — SSE / replay
+- [`model-view-facet-boxes.md`](../metadata/model-view-facet-boxes.md) — Data Model facet boxes + shared read-only module
 - [`GENERAL-CHAT-DESIGN.md`](../ui/mill-ui/GENERAL-CHAT-DESIGN.md) — general chat UX
 - [`capabilities_design.md`](capabilities_design.md) §15 — generate-only SQL

@@ -206,19 +206,22 @@ class AgentEventToSseMapperTest {
     }
 
     @Test
-    fun shouldMapSchemaCaptureProtocolFinal_usingArtifactKindWhenWirePartTypeMissing() {
+    fun shouldMapSchemaCaptureProtocolFinal_toFacetProposalWire() {
         val events = mapper.map(
             AgentEvent.ProtocolFinal(
                 protocolId = "schema-authoring.capture",
                 payload = mapOf(
                     "captureType" to "description",
                     "targetEntityId" to "retail.orders",
+                    "serializedPayload" to mapOf("summary" to "Orders table"),
                 ),
             ),
         )
         assertEquals(2, events.size)
         val part = events[1] as ChatSseEvent.ItemPartUpdated
-        assertEquals("schema-capture", part.partType)
+        assertEquals("facet-proposal", part.partType)
+        assertTrue(part.content.contains("\"facetTypeKey\":\"descriptive\""))
+        assertTrue(part.content.contains("\"metadataEntityId\":\"retail.orders\""))
     }
 
     @Test

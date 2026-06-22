@@ -101,7 +101,7 @@ Descriptors live in **capability YAML**. Profiles select `capabilityIds` only.
 | `generated-sql` | `sql` | `sql.generated` | `last-sql` |
 | `sql-validation` | — | `sql.validation` | — |
 | `inferred-facet` | `facet-proposal` | (per metadata-authoring) | `last-metadata-facet-proposal` |
-| schema capture | `schema-capture` | `schema.authoring.capture` | `last-schema-capture` |
+| schema capture | `facet-proposal` | `schema.authoring.capture` | `last-schema-capture` |
 
 ---
 

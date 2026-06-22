@@ -44,14 +44,27 @@ open class JpaConversationStore(
                 createdAt = turn.createdAt,
             )
         )
-        if (turn.artifactIds.isNotEmpty()) {
-            attachArtifacts(conversationId, turn.turnId, turn.artifactIds)
+        val artifactIdsToLink = linkedArtifactIds(conversationId, turn.turnId, turn.artifactIds)
+        if (artifactIdsToLink.isNotEmpty()) {
+            attachArtifacts(conversationId, turn.turnId, artifactIdsToLink)
         }
         chatRepo.findById(conversationId).ifPresent { chat ->
             chat.updatedAt = Instant.now()
             chatRepo.save(chat)
         }
     }
+
+    /**
+     * Merges explicit turn artifact ids with rows already stored against [turnId] so capture-path
+     * persistence (artifact before assistant turn row) still links on append.
+     */
+    private fun linkedArtifactIds(
+        conversationId: String,
+        turnId: String,
+        explicitIds: List<String>,
+    ): List<String> =
+        (explicitIds + artifactRepo.findByChatIdAndTurnId(conversationId, turnId).map { it.artifactId })
+            .distinct()
 
     @Transactional
     override fun attachArtifacts(conversationId: String, turnId: String, artifactIds: List<String>) {

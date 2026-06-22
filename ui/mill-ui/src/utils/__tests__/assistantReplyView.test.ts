@@ -25,17 +25,17 @@ describe('assistantReplyView', () => {
     ).toBe('facet-primary');
   });
 
-  it('should derive schema-primary from schema-capture artifact', () => {
+  it('should derive facet-primary from facet-proposal artifact', () => {
     expect(
       deriveAssistantReplyView([
         {
-          kind: 'schema-capture',
-          captureType: 'description',
-          targetEntityId: 'retail.orders',
+          kind: 'facet-proposal',
+          facetTypeKey: 'descriptive',
+          metadataEntityId: 'retail.orders',
           payload: {},
         },
       ]),
-    ).toBe('schema-primary');
+    ).toBe('facet-primary');
   });
 
   it('should derive artifact-primary from unknown artifact', () => {
@@ -57,7 +57,7 @@ describe('assistantReplyView', () => {
     ).toBe('sql-primary');
     expect(
       deriveAssistantReplyView(undefined, { presentation: 'structured', partType: 'schema-capture' }),
-    ).toBe('schema-primary');
+    ).toBe('facet-primary');
     expect(
       deriveAssistantReplyView(undefined, { presentation: 'structured', partType: 'custom' }),
     ).toBe('artifact-primary');

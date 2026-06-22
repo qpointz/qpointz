@@ -39,6 +39,7 @@ export function groupMessageArtifacts(artifacts: readonly ChatMessageArtifact[] 
     if (artifact.kind === 'facet-proposal') {
       flushSqlComposite();
       groups.push({ kind: 'facet-proposal', facet: artifact });
+      continue;
     }
   }
   flushSqlComposite();

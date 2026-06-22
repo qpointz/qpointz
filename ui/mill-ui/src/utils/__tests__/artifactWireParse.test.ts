@@ -20,6 +20,42 @@ describe('artifactWireParse', () => {
     ).toEqual({ kind: 'data', executionId: 'exec-1', rowCount: 5 });
   });
 
+  it('should parse facet-proposal wire artefact for GET replay', () => {
+    expect(
+      parseArtifactWire({
+        kind: 'facet-proposal',
+        payload: {
+          facetTypeKey: 'descriptive',
+          metadataEntityId: 'sales.customers',
+          payload: { summary: 'VIP customer segment' },
+        },
+      }),
+    ).toEqual({
+      kind: 'facet-proposal',
+      facetTypeKey: 'descriptive',
+      metadataEntityId: 'sales.customers',
+      payload: { summary: 'VIP customer segment' },
+    });
+  });
+
+  it('should normalize legacy schema-capture wire kind to facet-proposal', () => {
+    expect(
+      parseArtifactWire({
+        kind: 'schema-capture',
+        payload: {
+          captureType: 'description',
+          targetEntityId: 'skymill.passenger',
+          serializedPayload: { summary: 'Passenger manifest' },
+        },
+      }),
+    ).toEqual({
+      kind: 'facet-proposal',
+      facetTypeKey: 'descriptive',
+      metadataEntityId: 'skymill.passenger',
+      payload: { summary: 'Passenger manifest' },
+    });
+  });
+
   it('should parse wire list for GET replay', () => {
     const artifacts = parseWireArtifacts([
       { kind: 'sql', payload: { sql: 'SELECT 1' } },

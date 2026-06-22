@@ -27,6 +27,8 @@ import dev.langchain4j.model.openai.OpenAiStreamingChatModel
 import java.time.Instant
 import java.util.UUID
 import io.qpointz.mill.ai.capabilities.schema.CaptureResult
+import io.qpointz.mill.ai.core.artifact.ArtifactDescriptorRegistry
+import io.qpointz.mill.ai.core.artifact.EmissionStrategy
 import io.qpointz.mill.ai.capabilities.schema.SchemaCatalogPort
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityDependency
 import io.qpointz.mill.ai.capabilities.valuemapping.ValueMappingResolver
@@ -66,6 +68,8 @@ class SchemaExplorationAgent(
     private val chatMemoryStore: ChatMemoryStore = InMemoryChatMemoryStore(),
     private val memoryStrategy: LlmMemoryStrategy = BoundedWindowMemoryStrategy(),
     private val persistenceContext: AgentPersistenceContext = AgentPersistenceContext(),
+    private val artifactDescriptorRegistry: ArtifactDescriptorRegistry = ArtifactDescriptorRegistry.loadDefault(),
+    private val emissionCoordinator: ArtifactEmissionCoordinator = ArtifactEmissionCoordinator(artifactDescriptorRegistry),
 ) {
     private val maxToolCallsPerRun = 50
 
@@ -178,6 +182,7 @@ class SchemaExplorationAgent(
             messages.add(aiMsg)
 
             var captureBinding: ToolBinding? = null
+            var captureToolResult: Any? = null
             var captureValidationFailed = false
             for (toolRequest in aiMsg.toolExecutionRequests()) {
                 val binding = handlerMap[toolRequest.name()]
@@ -200,28 +205,18 @@ class SchemaExplorationAgent(
                         captureValidationFailed = true
                     }
                     captureBinding = binding
+                    captureToolResult = result.content
                 }
             }
 
             if (captureBinding != null && !captureValidationFailed) {
-                // Synthesize via the protocol declared on the capture tool (if any)
-                val captureProtocol = captureBinding.protocolId?.let { pid ->
-                    capabilities.flatMap { it.protocols }.firstOrNull { it.id == pid }
-                }
-                if (captureProtocol != null) {
-                    val protocolExecutor = LangChain4jProtocolExecutor(model, objectMapper)
-                    val runState = RunState(
-                        profile = SchemaAuthoringAgentProfile.profile,
-                        context = context,
-                    )
-                    protocolExecutor.execute(
-                        ProtocolExecutionInput(
-                            protocol = captureProtocol,
-                            runState = runState,
-                            messages = messages,
-                            listener = routedListener,
-                        )
-                    )
+                val protocolId = captureBinding.protocolId
+                if (protocolId != null) {
+                    val descriptor = artifactDescriptorRegistry.descriptorForProtocol(protocolId)
+                    if (descriptor != null && descriptor.emissionStrategy == EmissionStrategy.ON_CAPTURE_SUCCESS) {
+                        val final = emissionCoordinator.constructProtocolFinal(descriptor, captureToolResult, context)
+                        routedListener(final)
+                    }
                 }
                 // Emit a transcript turn even on the capture path so the assistant turn exists
                 // and artifacts persisted with this turnId have an owning turn to link to.

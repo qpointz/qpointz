@@ -283,10 +283,10 @@ tools:
 artifacts:
   schema-capture:
     protocolId: schema-authoring.capture
-    artifactKind: schema-capture
+    artifactKind: facet-proposal
     persistKind: schema.authoring.capture
     pointerKeys: [last-schema-capture]
-    wirePartType: schema-capture
+    wirePartType: facet-proposal
     presentation: structured
     protocolMode: STRUCTURED_FINAL
     sourceEvent: protocol.final

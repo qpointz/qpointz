@@ -123,8 +123,7 @@ data class ChatDetailResponse(
  * Single durable conversation turn.
  *
  * @param artifacts Structured artefacts linked to the turn for GET replay.
- * @param assistantReplyView Optional mill-ui layout hint for assistant turns (`conversation`,
- *   `sql-primary`, `facet-primary`), aligned with live SSE `item.completed` summary.
+ * @param assistantReplyView Optional mill-ui layout hint; omitted on GET replay (client derives from artefacts).
  */
 data class TurnResponse(
     val turnId: String,
@@ -149,9 +148,7 @@ data class TurnResponse(
             profileId = t.profileId,
             createdAt = t.createdAt.toString(),
             artifacts = artifacts,
-            assistantReplyView = ArtifactWireMapper
-                .deriveAssistantReplyView(artifacts)
-                ?.takeIf { t.role == "assistant" },
+            assistantReplyView = null,
         )
     }
 }

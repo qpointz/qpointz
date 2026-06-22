@@ -2,6 +2,8 @@ package io.qpointz.mill.ai.service
 
 import io.qpointz.mill.ai.chat.AiV3ChatRuntime
 import io.qpointz.mill.ai.chat.ChatRuntimeEvent
+import io.qpointz.mill.ai.persistence.ArtifactRecord
+import io.qpointz.mill.ai.persistence.ArtifactStore
 import io.qpointz.mill.ai.persistence.ConversationStore
 import io.qpointz.mill.ai.persistence.ConversationTurn
 import org.assertj.core.api.Assertions.assertThat
@@ -118,6 +120,12 @@ class AiChatControllerIT {
 
     @LocalServerPort
     private var port: Int = 0
+
+    @Autowired
+    private lateinit var conversationStore: ConversationStore
+
+    @Autowired
+    private lateinit var artifactStore: ArtifactStore
 
     private lateinit var client: WebTestClient
     private lateinit var sseClient: WebTestClient
@@ -601,6 +609,57 @@ class AiChatControllerIT {
             .accept(MediaType.TEXT_EVENT_STREAM)
             .exchange()
             .expectStatus().isOk
+    }
+
+    @Test
+    fun `GET chat should replay persisted facet-proposal artifacts`() {
+        val chatId = createChat("""{"profileId":"schema-authoring"}""")
+        conversationStore.ensureExists(chatId, "schema-authoring")
+        val turnId = UUID.randomUUID().toString()
+        conversationStore.appendTurn(
+            chatId,
+            ConversationTurn(
+                turnId = turnId,
+                role = "assistant",
+                text = null,
+                profileId = "schema-authoring",
+                createdAt = Instant.now(),
+            ),
+        )
+        val artifactId = UUID.randomUUID().toString()
+        artifactStore.save(
+            ArtifactRecord(
+                artifactId = artifactId,
+                conversationId = chatId,
+                runId = "run-facet",
+                kind = "metadata.faceting.capture",
+                payload = mapOf(
+                    "protocolId" to "metadata.faceting.capture",
+                    "persistKind" to "metadata.faceting.capture",
+                    "payload" to mapOf(
+                        "captureType" to "facet_assignment",
+                        "facetTypeKey" to "descriptive",
+                        "metadataEntityId" to "sales.customers",
+                        "serializedPayload" to mapOf("summary" to "VIP customer segment"),
+                        "validationWarnings" to emptyList<String>(),
+                    ),
+                ),
+                turnId = turnId,
+                createdAt = Instant.now(),
+            ),
+        )
+        conversationStore.attachArtifacts(chatId, turnId, listOf(artifactId))
+
+        client.get().uri("/api/v1/ai/chats/$chatId")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.messages.length()").isEqualTo(1)
+            .jsonPath("$.messages[0].artifacts.length()").isEqualTo(1)
+            .jsonPath("$.messages[0].artifacts[0].kind").isEqualTo("facet-proposal")
+            .jsonPath("$.messages[0].artifacts[0].payload.facetTypeKey").isEqualTo("descriptive")
+            .jsonPath("$.messages[0].assistantReplyView").doesNotExist()
     }
 
     @Test

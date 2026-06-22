@@ -191,6 +191,7 @@ class LangChain4jAgent(
             }
 
             var captureBinding: ToolBinding? = null
+            var captureToolResult: Any? = null
             var captureValidationFailed = false
             val executedTools = mutableListOf<ArtifactEmissionCoordinator.ExecutedTool>()
             for (toolRequest in aiMsg.toolExecutionRequests()) {
@@ -208,11 +209,12 @@ class LangChain4jAgent(
                         captureValidationFailed = true
                     }
                     captureBinding = binding
+                    captureToolResult = result.content
                 }
             }
 
             if (captureBinding != null && !captureValidationFailed) {
-                handleCaptureSuccess(captureBinding, capabilities, messages, context, routedListener)
+                handleCaptureSuccess(captureBinding, captureToolResult, context, routedListener)
                 routedListener(AgentEvent.AnswerCompleted(""))
                 saveToMemory(session, input, "")
                 session.appendUserMessage(input)
@@ -260,26 +262,15 @@ class LangChain4jAgent(
 
     private fun handleCaptureSuccess(
         captureBinding: ToolBinding,
-        capabilities: List<Capability>,
-        messages: MutableList<ChatMessage>,
+        captureToolResult: Any?,
         context: AgentContext,
         listener: (AgentEvent) -> Unit,
     ) {
         val protocolId = captureBinding.protocolId ?: return
-        val descriptor = artifactDescriptorRegistry.descriptorForProtocol(protocolId)
-        if (descriptor?.emissionStrategy != EmissionStrategy.ON_CAPTURE_SUCCESS) return
-        val captureProtocol = capabilities.flatMap { it.protocols }.firstOrNull { it.id == protocolId }
-            ?: return
-        val protocolExecutor = LangChain4jProtocolExecutor(model, objectMapper)
-        val runState = RunState(profile = profile, context = context)
-        protocolExecutor.execute(
-            ProtocolExecutionInput(
-                protocol = captureProtocol,
-                runState = runState,
-                messages = messages,
-                listener = listener,
-            ),
-        )
+        val descriptor = artifactDescriptorRegistry.descriptorForProtocol(protocolId) ?: return
+        if (descriptor.emissionStrategy != EmissionStrategy.ON_CAPTURE_SUCCESS) return
+        val final = emissionCoordinator.constructProtocolFinal(descriptor, captureToolResult, context)
+        listener(final)
     }
 
     private fun resolveCapabilities(context: AgentContext): List<Capability> {

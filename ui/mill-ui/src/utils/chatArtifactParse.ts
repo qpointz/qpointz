@@ -1,4 +1,5 @@
 import type { ChatMessageArtifact } from '../types/chat';
+import { parseFacetProposalArtifact } from './facetWireNormalize';
 
 const STRUCTURED_PRESENTATION = 'structured';
 /** Mirrors [V1_CONVERSATION_PRESENTATION] — keep literal to avoid importing chatTransport (cycles). */
@@ -40,18 +41,8 @@ function wirePresentation(evt: Record<string, unknown>): string {
 function inferPayloadKind(o: Record<string, unknown>): ChatMessageArtifact['kind'] | null {
   if (typeof o.executionId === 'string' && o.executionId.trim().length > 0) return 'data';
   if (typeof o.sql === 'string' && o.sql.trim().length > 0) return 'sql';
-  if (typeof o.facetTypeKey === 'string' && typeof o.metadataEntityId === 'string') return 'facet-proposal';
-  if (typeof o.captureType === 'string' && o.captureType === 'facet_assignment' && typeof o.metadataEntityId === 'string') {
-    return 'facet-proposal';
-  }
-  if (typeof o.captureType === 'string' && typeof o.targetEntityId === 'string') return 'schema-capture';
+  if (parseFacetProposalArtifact(o)) return 'facet-proposal';
   return null;
-}
-
-function payloadFromObject(o: Record<string, unknown>): unknown {
-  if ('serializedPayload' in o) return o.serializedPayload;
-  if ('payload' in o) return o.payload;
-  return o;
 }
 
 function titleForUnknown(o: Record<string, unknown>, partType: string): string {
@@ -124,29 +115,12 @@ export function parseChatStructuredPart(evt: Record<string, unknown>): ChatMessa
     };
   }
 
-  if (effectivePartType === 'facet-proposal' || inferredKind === 'facet-proposal') {
-    const facetTypeKey = typeof parsed.facetTypeKey === 'string' ? parsed.facetTypeKey : '';
-    const metadataEntityId = typeof parsed.metadataEntityId === 'string' ? parsed.metadataEntityId : '';
-    if (!facetTypeKey || !metadataEntityId) return null;
-    return {
-      kind: 'facet-proposal',
-      facetTypeKey,
-      metadataEntityId,
-      payload: payloadFromObject(parsed),
-    };
-  }
-
-  if (effectivePartType === 'schema-capture' || inferredKind === 'schema-capture') {
-    const captureType = typeof parsed.captureType === 'string' ? parsed.captureType : '';
-    const targetEntityId = typeof parsed.targetEntityId === 'string' ? parsed.targetEntityId : '';
-    if (!captureType || !targetEntityId) return null;
-    return {
-      kind: 'schema-capture',
-      captureType,
-      targetEntityId,
-      targetEntityType: typeof parsed.targetEntityType === 'string' ? parsed.targetEntityType : undefined,
-      payload: payloadFromObject(parsed),
-    };
+  if (
+    effectivePartType === 'facet-proposal' ||
+    effectivePartType === 'schema-capture' ||
+    inferredKind === 'facet-proposal'
+  ) {
+    return parseFacetProposalArtifact(parsed);
   }
 
   if (presentation === STRUCTURED_PRESENTATION) {

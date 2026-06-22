@@ -12,14 +12,18 @@ const SQL_COMPOSITE_GENERAL: ArtifactTreatment = {
   actions: ['run', 'copy', 'export', 'expand', 'open-in-analysis'],
 };
 
+/** Tabbed facet shell (Facet + JSON tabs) — metadata authoring surfaces. */
+const FACET_CONDENSED: ArtifactTreatment = {
+  mode: 'condensed-preview',
+  views: ['condensed'],
+  actions: [],
+};
+
 /** v1 treatment matrix — chat type is primary, artefact kind is secondary. */
 export const chatArtifactTreatments: ChatArtifactTreatmentRegistry = {
   general: {
     'sql-data-composite': SQL_COMPOSITE_GENERAL,
-    'facet-proposal': {
-      mode: 'conversation-card',
-      actions: [],
-    },
+    'facet-proposal': FACET_CONDENSED,
   },
   'inline-analysis': {
     'sql-data-composite': {

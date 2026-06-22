@@ -6,6 +6,13 @@ import dev.langchain4j.model.chat.StreamingChatModel
 import dev.langchain4j.model.chat.request.ChatRequest
 import dev.langchain4j.model.chat.response.ChatResponse
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler
+import io.qpointz.mill.ai.capabilities.metadata.MetadataAuthoringCapabilityProvider
+import io.qpointz.mill.ai.capabilities.metadata.MetadataCapabilityDependency
+import io.qpointz.mill.ai.capabilities.metadata.MetadataReadPort
+import io.qpointz.mill.metadata.domain.facet.FacetPayloadField
+import io.qpointz.mill.metadata.domain.facet.FacetPayloadSchema
+import io.qpointz.mill.metadata.domain.facet.FacetSchemaType
+import io.qpointz.mill.metadata.domain.facet.FacetTypeManifest
 import io.qpointz.mill.ai.capabilities.sqlquery.MockSqlValidationService
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityDependency
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityProvider
@@ -28,6 +35,28 @@ import org.junit.jupiter.api.Test
 class LangChain4jAgentEmitTest {
 
     private val sqlProfile = AgentProfile(id = "test-sql", capabilityIds = setOf("sql-query"))
+
+    private val metadataProfile = AgentProfile(
+        id = "test-metadata",
+        capabilityIds = setOf("metadata-authoring"),
+    )
+
+    private class ProposeFacetToolModel : StreamingChatModel {
+        override fun chat(request: ChatRequest, handler: StreamingChatResponseHandler) {
+            val aiMessage = AiMessage.from(
+                listOf(
+                    ToolExecutionRequest.builder()
+                        .id("call-facet")
+                        .name("propose_facet_assignment")
+                        .arguments(
+                            """{"facetTypeKey":"descriptive","metadataEntityId":"sales.customers","payload":{"summary":"VIP"}}""",
+                        )
+                        .build(),
+                ),
+            )
+            handler.onCompleteResponse(ChatResponse.builder().aiMessage(aiMessage).build())
+        }
+    }
 
     private class ValidateSqlToolModel : StreamingChatModel {
         override fun chat(request: ChatRequest, handler: StreamingChatResponseHandler) {
@@ -109,5 +138,83 @@ class LangChain4jAgentEmitTest {
             events::add,
         )
         assertTrue(events.filterIsInstance<AgentEvent.ProtocolFinal>().isEmpty())
+    }
+
+    @Test
+    fun shouldPersistFacetProposal_onMetadataCapturePath() {
+        val artifactStore = InMemoryArtifactStore()
+        val conversationStore = InMemoryConversationStore()
+        val persistenceContext = AgentPersistenceContext(
+            conversationStore = conversationStore,
+            artifactStore = artifactStore,
+        )
+        val metadataPort = object : MetadataReadPort {
+            private val descriptiveFacet = FacetTypeManifest(
+                typeKey = "descriptive",
+                title = "Descriptive",
+                description = "Descriptive facet",
+                payload = FacetPayloadSchema(
+                    type = FacetSchemaType.OBJECT,
+                    title = "Descriptive payload",
+                    description = "Summary",
+                    fields = listOf(
+                        FacetPayloadField(
+                            name = "summary",
+                            required = true,
+                            schema = FacetPayloadSchema(
+                                type = FacetSchemaType.STRING,
+                                title = "Summary",
+                                description = "Summary",
+                            ),
+                        ),
+                    ),
+                ),
+            )
+
+            override fun listFacetTypes(): List<FacetTypeManifest> = listOf(descriptiveFacet)
+
+            override fun listEntityFacets(
+                metadataEntityId: String,
+                scope: String?,
+                context: String?,
+                origin: String?,
+            ) = emptyList<Map<String, Any?>>()
+
+            override fun validateFacetPayload(facetTypeKey: String, payload: Map<String, Any?>): List<String> =
+                emptyList()
+        }
+        val events = mutableListOf<AgentEvent>()
+        val session = ConversationSession(conversationId = "conv-facet", profileId = metadataProfile.id)
+        val agent = LangChain4jAgent(
+            model = ProposeFacetToolModel(),
+            profile = metadataProfile,
+            registry = CapabilityRegistry.from(listOf(MetadataAuthoringCapabilityProvider())),
+            persistenceContext = persistenceContext,
+        )
+        agent.run(
+            "propose descriptive facet",
+            session,
+            AgentContext(
+                contextType = "general",
+                capabilityDependencies = CapabilityDependencyContainer.of(
+                    "metadata-authoring" to CapabilityDependencies.of(
+                        MetadataCapabilityDependency(metadataPort),
+                    ),
+                ),
+            ),
+            events::add,
+        )
+
+        val protocolFinal = events.filterIsInstance<AgentEvent.ProtocolFinal>().single()
+        assertEquals("metadata.faceting.capture", protocolFinal.protocolId)
+
+        val turn = conversationStore.load(session.conversationId)!!.turns.single { it.role == "assistant" }
+        assertEquals(1, turn.artifactIds.size)
+        val record = artifactStore.findById(turn.artifactIds.single())!!
+        assertEquals("metadata.faceting.capture", record.kind)
+        @Suppress("UNCHECKED_CAST")
+        val inner = record.payload["payload"] as Map<String, Any?>
+        assertEquals("descriptive", inner["facetTypeKey"])
+        assertEquals("sales.customers", inner["metadataEntityId"])
     }
 }

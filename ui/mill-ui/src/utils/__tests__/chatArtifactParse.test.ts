@@ -31,7 +31,7 @@ describe('parseChatStructuredPart', () => {
     });
   });
 
-  it('should parse schema-capture structured part', () => {
+  it('should parse legacy schema-capture structured part as facet-proposal', () => {
     const a = parseChatStructuredPart({
       presentation: 'structured',
       partType: 'schema-capture',
@@ -43,15 +43,14 @@ describe('parseChatStructuredPart', () => {
       }),
     });
     expect(a).toEqual({
-      kind: 'schema-capture',
-      captureType: 'description',
-      targetEntityId: 'retail.orders',
-      targetEntityType: 'TABLE',
+      kind: 'facet-proposal',
+      facetTypeKey: 'descriptive',
+      metadataEntityId: 'retail.orders',
       payload: { summary: 'Orders table' },
     });
   });
 
-  it('should infer schema-capture from payload shape', () => {
+  it('should infer facet-proposal from schema capture payload shape', () => {
     const a = parseChatStructuredPart({
       presentation: 'structured',
       partType: 'text',
@@ -61,7 +60,7 @@ describe('parseChatStructuredPart', () => {
         serializedPayload: { sourceTableId: 'retail.orders' },
       }),
     });
-    expect(a?.kind).toBe('schema-capture');
+    expect(a?.kind).toBe('facet-proposal');
   });
 
   it('should fallback to unknown artifact for unrecognized structured partType', () => {

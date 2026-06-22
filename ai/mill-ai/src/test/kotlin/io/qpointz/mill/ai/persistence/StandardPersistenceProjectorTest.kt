@@ -235,6 +235,47 @@ class StandardPersistenceProjectorTest {
         assertEquals(1, observerMessages.size)
         assertTrue(observerMessages.single().contains("artifactType=generated-sql"))
     }
+
+    @Test
+    fun shouldPersistAndLinkFacetProposal_onCapturePath() {
+        val turnId = UUID.randomUUID().toString()
+        conversationStore.ensureExists("conv-1", "p")
+
+        val artifactRule = DefaultEventRoutingPolicy.policy.ruleFor("protocol.final")!!
+        projector.onEvent(
+            routedEvent(
+                "protocol.final",
+                artifactRule,
+                content = mapOf(
+                    "protocolId" to "metadata.faceting.capture",
+                    "persistKind" to "metadata.faceting.capture",
+                    "payload" to mapOf(
+                        "captureType" to "facet_assignment",
+                        "facetTypeKey" to "descriptive",
+                        "metadataEntityId" to "sales.customers",
+                        "serializedPayload" to mapOf("summary" to "VIP"),
+                        "validationWarnings" to emptyList<String>(),
+                    ),
+                ),
+                turnId = turnId,
+            ),
+        )
+
+        val transcriptRule = DefaultEventRoutingPolicy.policy.ruleFor("answer.completed")!!
+        projector.onEvent(
+            routedEvent(
+                "answer.completed",
+                transcriptRule,
+                content = mapOf("text" to ""),
+                turnId = turnId,
+            ),
+        )
+
+        val turn = conversationStore.load("conv-1")!!.turns.single()
+        assertEquals(1, turn.artifactIds.size)
+        val record = artifactStore.findById(turn.artifactIds.single())!!
+        assertEquals("metadata.faceting.capture", record.kind)
+    }
 }
 
 

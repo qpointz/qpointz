@@ -129,7 +129,7 @@ class UnifiedChatServiceTest {
         assertThat(view.messages).hasSize(1)
         assertThat(view.messages[0].artifacts).hasSize(1)
         assertThat(view.messages[0].artifacts[0].kind).isEqualTo("sql")
-        assertThat(view.messages[0].assistantReplyView).isEqualTo("sql-primary")
+        assertThat(view.messages[0].assistantReplyView).isNull()
     }
 
     @Test
@@ -167,6 +167,53 @@ class UnifiedChatServiceTest {
         val view = service.getChat(chat.chatId)!!
         assertThat(view.messages.single().artifacts).hasSize(1)
         assertThat(view.messages.single().artifacts[0].kind).isEqualTo("sql")
+    }
+
+    @Test
+    fun `should include facet-proposal on getChat replay`() {
+        val chat = service.createChat(null).chat
+        conversationStore.ensureExists(chat.chatId, chat.profileId)
+        val turnId = "turn-facet"
+        conversationStore.appendTurn(
+            chat.chatId,
+            ConversationTurn(
+                turnId = turnId,
+                role = "assistant",
+                text = null,
+                artifactIds = emptyList(),
+                profileId = chat.profileId,
+                createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+            ),
+        )
+        val artifactId = "art-facet"
+        artifactStore.save(
+            ArtifactRecord(
+                artifactId = artifactId,
+                conversationId = chat.chatId,
+                runId = "run-1",
+                kind = "metadata.faceting.capture",
+                payload = mapOf(
+                    "protocolId" to "metadata.faceting.capture",
+                    "persistKind" to "metadata.faceting.capture",
+                    "payload" to mapOf(
+                        "captureType" to "facet_assignment",
+                        "facetTypeKey" to "descriptive",
+                        "metadataEntityId" to "sales.customers",
+                        "serializedPayload" to mapOf("summary" to "VIP customer segment"),
+                        "validationWarnings" to emptyList<String>(),
+                    ),
+                ),
+                turnId = turnId,
+                createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+            ),
+        )
+        conversationStore.attachArtifacts(chat.chatId, turnId, listOf(artifactId))
+
+        val view = service.getChat(chat.chatId)!!
+        assertThat(view.messages).hasSize(1)
+        assertThat(view.messages[0].artifacts).hasSize(1)
+        assertThat(view.messages[0].artifacts[0].kind).isEqualTo("facet-proposal")
+        assertThat(view.messages[0].assistantReplyView).isNull()
     }
 
     @Test

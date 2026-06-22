@@ -1,6 +1,7 @@
 package io.qpointz.mill.ai.sse
 
 import io.qpointz.mill.ai.core.artifact.ArtifactDescriptorRegistry
+import io.qpointz.mill.ai.core.artifact.FacetProposalWire
 import io.qpointz.mill.ai.runtime.events.AgentEvent
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.kotlinModule
@@ -77,7 +78,15 @@ class AgentEventToSseMapper(
         val descriptor = artifactRegistry.descriptorForProtocol(event.protocolId) ?: return emptyList()
         val wirePartType = descriptor.wirePartType ?: descriptor.artifactKind
         val presentation = descriptor.presentation ?: "structured"
-        val json = when (val payload = event.payload) {
+        val wirePayload = when (event.protocolId) {
+            FacetProposalWire.SCHEMA_CAPTURE_PROTOCOL_ID ->
+                FacetProposalWire.normalizePayload(event.payload)
+            else -> event.payload
+        }
+        if (event.protocolId == FacetProposalWire.SCHEMA_CAPTURE_PROTOCOL_ID && wirePayload == null) {
+            return emptyList()
+        }
+        val json = when (val payload = wirePayload) {
             null -> "{}"
             is String -> payload
             else -> jsonMapper.writeValueAsString(payload)

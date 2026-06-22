@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.service
 
+import io.qpointz.mill.ai.core.artifact.FacetProposalWire
 import io.qpointz.mill.ai.persistence.ArtifactRecord
 import io.qpointz.mill.ai.service.dto.ArtifactResponse
 
@@ -46,40 +47,38 @@ object ArtifactWireMapper {
                 )
             }
             isFacetPayload(inner, record.kind, artifactType) -> {
-                val facetTypeKey = inner["facetTypeKey"] as? String ?: return null
-                val metadataEntityId = inner["metadataEntityId"] as? String ?: return null
+                val wirePayload = FacetProposalWire.normalizePayload(inner) ?: return null
                 return ArtifactResponse(
-                    kind = "facet-proposal",
-                    payload = buildMap {
-                        put("facetTypeKey", facetTypeKey)
-                        put("metadataEntityId", metadataEntityId)
-                        (inner["serializedPayload"] ?: inner["payload"])?.let { put("payload", it) }
-                    },
+                    kind = FacetProposalWire.WIRE_KIND,
+                    payload = wirePayload,
                 )
             }
         }
         return null
     }
 
-    /**
-     * Derives mill-ui layout hint from replay artefacts on a turn.
-     *
-     * @param artifacts mapped wire artefacts for the turn
-     * @return `sql-primary`, `facet-primary`, or `null`
-     */
-    fun deriveAssistantReplyView(artifacts: List<ArtifactResponse>): String? {
-        if (artifacts.any { it.kind == "sql" || it.kind == "data" }) return "sql-primary"
-        if (artifacts.any { it.kind == "facet-proposal" }) return "facet-primary"
-        return null
+    private fun extractInnerPayload(content: Map<String, Any?>): Map<String, Any?>? {
+        var current: Map<String, Any?> = content
+        repeat(4) {
+            if (isRecognizedArtifactPayload(current)) return current
+            val nested = current["payload"]
+            if (nested is Map<*, *>) {
+                @Suppress("UNCHECKED_CAST")
+                current = nested as Map<String, Any?>
+            } else {
+                return current
+            }
+        }
+        return current
     }
 
-    private fun extractInnerPayload(content: Map<String, Any?>): Map<String, Any?>? {
-        val nested = content["payload"]
-        return when (nested) {
-            is Map<*, *> -> @Suppress("UNCHECKED_CAST") (nested as Map<String, Any?>)
-            else -> content
-        }
-    }
+    private fun isRecognizedArtifactPayload(map: Map<String, Any?>): Boolean =
+        map["sql"] is String ||
+            map["executionId"] is String ||
+            map["resultId"] is String ||
+            (map["facetTypeKey"] is String && map["metadataEntityId"] is String) ||
+            (map["captureType"] is String && map["targetEntityId"] is String) ||
+            map["artifactType"] is String
 
     private fun isSqlPayload(
         inner: Map<String, Any?>,
@@ -102,7 +101,9 @@ object ArtifactWireMapper {
         kind: String,
         artifactType: String?,
     ): Boolean =
-        inner["facetTypeKey"] is String && inner["metadataEntityId"] is String ||
+        (inner["facetTypeKey"] is String && inner["metadataEntityId"] is String) ||
+            (inner["captureType"] is String && inner["targetEntityId"] is String) ||
             kind.contains("metadata.faceting", ignoreCase = true) ||
-            artifactType == "metadata-facet-proposal"
+            artifactType == "metadata-facet-proposal" ||
+            FacetProposalWire.isSchemaAuthoringPersistKind(kind, artifactType)
 }

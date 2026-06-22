@@ -11,6 +11,7 @@ Related docs:
 | [`artifact-emit-contract.md`](./artifact-emit-contract.md) | Original emit-contract decision record (WI-303–306) |
 | [`v3-capability-manifest.md`](./v3-capability-manifest.md) | Capability YAML schema (tools, protocols, prompts) |
 | [`ai-v3-chat-transport-extensions.md`](./ai-v3-chat-transport-extensions.md) | SSE wire model, mill-ui extension seam, per-reply views |
+| [`chat-artefact-architecture.md`](../ai/chat-artefact-architecture.md) | Chat-type treatments, GET replay (`ArtifactWireMapper`), shared facet read-only layer |
 | [`developer-manual/v3-developer-runtime-events-persistence.md`](./developer-manual/v3-developer-runtime-events-persistence.md) | Routed events, persistence lanes, observers |
 | [`developer-manual/v3-developer-recipes.md`](./developer-manual/v3-developer-recipes.md) | Step recipes (tools, profiles, durable artifact types) |
 
@@ -51,7 +52,7 @@ Registry: [`ArtifactDescriptorRegistry`](../../../ai/mill-ai/src/main/kotlin/io/
 | `artifactKind` | Logical kind in payloads (e.g. `generated-sql`, `facet-proposal`) |
 | `persistKind` | Persistence bucket (e.g. `sql.generated`, `sql.validation`) |
 | `pointerKeys` | Active pointer names updated on persist (e.g. `[last-sql]`) |
-| `wirePartType` | SSE `partType` for chat stream (e.g. `sql`, `facet-proposal`, `schema-capture`) |
+| `wirePartType` | SSE `partType` for chat stream (e.g. `sql`, `facet-proposal`) |
 | `presentation` | SSE presentation (typically `structured`) |
 | `protocolMode` | `STRUCTURED_FINAL` when a protocol is involved |
 | `sourceEvent` | `tool.result` or `protocol.final` — which raw event the router matches |
@@ -107,7 +108,7 @@ CAPTURE tools declare `kind: capture` and `protocol: …`. After successful capt
 Examples:
 
 - `propose_facet_assignment` → `metadata.faceting.capture` → `wirePartType: facet-proposal`
-- Schema authoring capture tools → `schema-capture` wire part
+- Schema authoring capture tools → `facet-proposal` wire part (via [`FacetProposalWire`](../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/core/artifact/FacetProposalWire.kt))
 
 ### 3.3 FromToolResult (validation audit)
 
@@ -171,7 +172,7 @@ flowchart LR
 | `sql-validation` | `sql-query` | — | `sql.validation` | **no** | FromToolResult | No | same |
 | `sql-result` | `sql-query` | — | `sql.result` | **no** (tool path) | FromToolResult | Yes | same |
 | `inferred-facet` | `metadata-authoring` | `facet-proposal` | `metadata.faceting.capture` | yes | OnCaptureSuccess | Yes | `schema-authoring` |
-| schema capture | `schema-authoring` | `schema-capture` | `schema.authoring.capture` | yes | OnCaptureSuccess | Yes | `schema-authoring` |
+| schema capture | `schema-authoring` | `facet-proposal` | `schema.authoring.capture` | yes | OnCaptureSuccess | Yes | `schema-authoring` |
 
 Client-attached execution results (`POST …/execution-result`) remain **durable** `sql.result` rows regardless of the tool descriptor `persist` flag.
 
@@ -225,36 +226,44 @@ End-of-turn hint: `item.completed` repeats the last structured `presentation` / 
 [`parseChatStructuredPart`](../../../ui/mill-ui/src/utils/chatArtifactParse.ts):
 
 1. Parse `content` JSON
-2. Infer kind from payload shape (`sql`, `facet-proposal`, `schema-capture`) or declared `partType`
+2. Infer kind from payload shape (`sql`, `facet-proposal`) or declared `partType`
 3. Fallback: **`unknown`** card for any other `presentation: structured` payload
 
 Types: [`ChatMessageArtifact`](../../../ui/mill-ui/src/types/chat.ts)
 
 ### 7.2 Layout routing
 
-[`deriveAssistantReplyView`](../../../ui/mill-ui/src/utils/assistantReplyView.ts) precedence:
+[`deriveAssistantReplyView`](../../../ui/mill-ui/src/utils/assistantReplyView.ts) precedence (client-only; GET omits `assistantReplyView`):
 
-1. `facet-primary` if facet artifact present
-2. `schema-primary` if schema capture present
-3. `sql-primary` if SQL present
-4. `artifact-primary` if unknown structured artifact present
-5. else `conversation`
+1. `facet-primary` if `facet-proposal` artifact present
+2. `sql-primary` if SQL present
+3. `artifact-primary` if unknown structured artifact present
+4. else `conversation`
 
-Router: [`AssistantReplyRouter`](../../../ui/mill-ui/src/components/chat/AssistantReplyRouter.tsx) → [`ArtifactCard`](../../../ui/mill-ui/src/components/chat/artifacts/ArtifactCard.tsx)
+(`schema-primary` remains in the wire enum for backward compatibility but is not assigned for new turns.)
+
+Router: [`AssistantReplyRouter`](../../../ui/mill-ui/src/components/chat/AssistantReplyRouter.tsx) → [`ArtifactCard`](../../../ui/mill-ui/src/components/chat/artifacts/ArtifactCard.tsx) (inline hosts) or [`MessageArtifactComposer`](../../../ui/mill-ui/src/components/chat/artifactPreview/MessageArtifactComposer.tsx) (`general`).
 
 | `kind` | Component |
 |--------|-----------|
-| `sql` | `SqlArtifactCard` |
-| `facet-proposal` | `FacetProposalArtifactCard` |
-| `schema-capture` | `SchemaCaptureArtifactCard` |
+| `sql` | `SqlArtifactCard`; **`SqlDataCondensedPreview`** on **`general`** |
+| `facet-proposal` | **`FacetCondensedPreview`** on **`general`** (and configured inline hosts); `FacetProposalArtifactCard` elsewhere |
 | `unknown` | `UnknownArtifactCard` (JSON preview) |
+
+**Shared read-only facet body:** `FacetCondensedPreview` delegates field rendering to
+[`FacetReadOnlyBody`](../../../ui/mill-ui/src/components/data-model/facets/FacetReadOnlyBody.tsx) —
+the same module used by Data Model `EntityDetails`. See
+[`chat-artefact-architecture.md`](../ai/chat-artefact-architecture.md) §7.1 and
+[`model-view-facet-boxes.md`](../metadata/model-view-facet-boxes.md).
 
 ### 7.3 Live vs GET replay
 
 | Phase | Artifacts |
 |-------|-----------|
-| **Live SSE** | Parsed and attached to in-memory `Message.artifacts` |
-| **GET transcript** | Text restored; **`artifacts` not yet rehydrated** from persistence — replay shows prose-only unless extended |
+| **Live SSE** | Parsed via `parseChatStructuredPart` and attached to in-memory `Message.artifacts` |
+| **GET transcript** | Rehydrated from persistence: [`ArtifactWireMapper`](../../../ai/mill-ai-service/src/main/kotlin/io/qpointz/mill/ai/service/ArtifactWireMapper.kt) maps `persistKind` → wire `kind` (`sql`, `data`, `facet-proposal`); client [`parseWireArtifacts`](../../../ui/mill-ui/src/utils/artifactWireParse.ts) in `turnToMessage` |
+
+Replay `assistantReplyView` is derived client-side from wire artefacts. Unmapped persist kinds are omitted from `TurnResponse.artifacts` until wire mapping is added.
 
 ---
 
@@ -278,16 +287,17 @@ Work top-down; skip steps that do not apply.
 ### UI
 
 1. Extend `ChatMessageArtifact` union in `chat.ts`
-2. Add parse branch in `chatArtifactParse.ts` (or rely on `unknown` fallback initially)
-3. Add card component under `components/chat/artifacts/`
-4. Wire `ArtifactCard` + `deriveAssistantReplyView` if new layout enum needed
-5. Vitest: `chatArtifactParse.test.ts`, `assistantReplyView.test.ts`
+2. Add parse branch in `chatArtifactParse.ts` (live SSE) and `artifactWireParse.ts` (GET replay)
+3. For facet-shaped payloads, use [`FacetCondensedPreview`](../../../ui/mill-ui/src/components/chat/artifactPreview/FacetCondensedPreview.tsx) + shared [`FacetReadOnlyBody`](../../../ui/mill-ui/src/components/data-model/facets/FacetReadOnlyBody.tsx); normalize schema capture shapes in [`FacetProposalWire`](../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/core/artifact/FacetProposalWire.kt) / [`facetWireNormalize.ts`](../../../ui/mill-ui/src/utils/facetWireNormalize.ts) at wire boundaries
+4. Otherwise add card under `components/chat/artifacts/` and register in `ArtifactCard`
+5. Wire `deriveAssistantReplyView` + `chatArtifactTreatments` / `artifactGroups.ts` for `general` condensed preview
+6. Vitest: `chatArtifactParse.test.ts`, `artifactWireParse.test.ts`, `assistantReplyView.test.ts`
 
 ### Persistence (optional, for reload parity)
 
 1. Ensure router sends artifact to `ARTIFACT` destination
 2. Projector writes `persistKind`
-3. Expose artifacts on `GET /api/v1/ai/chats/{id}` or populate `assistantReplyView`
+3. Add mapping in [`ArtifactWireMapper`](../../../ai/mill-ai-service/src/main/kotlin/io/qpointz/mill/ai/service/ArtifactWireMapper.kt); expose on `GET /api/v1/ai/chats/{id}` with `assistantReplyView`
 
 ---
 
@@ -314,16 +324,17 @@ Service smoke: [`AiChatControllerIT`](../../../ai/mill-ai-service/src/testIT/kot
 | SSE mapping | `ai/mill-ai/.../sse/AgentEventToSseMapper.kt` |
 | Chat runtime bridge | `ai/mill-ai-autoconfigure/.../LangChain4jChatRuntime.kt` |
 | HTTP + SSE service | `ai/mill-ai-service/` |
-| UI parse + views | `ui/mill-ui/src/utils/chatArtifactParse.ts`, `assistantReplyView.ts` |
-| UI cards | `ui/mill-ui/src/components/chat/artifacts/` |
+| GET wire mapping | `ai/mill-ai-service/.../ArtifactWireMapper.kt` |
+| UI parse + views | `ui/mill-ui/src/utils/chatArtifactParse.ts`, `artifactWireParse.ts`, `assistantReplyView.ts` |
+| UI cards + condensed preview | `ui/mill-ui/src/components/chat/artifacts/`, `artifactPreview/` |
+| Shared facet read-only | `ui/mill-ui/src/components/data-model/facets/` |
 | Default UI profile | `ui/mill-ui/src/features/chatPreferences.ts` |
 
 ---
 
 ## 11. Known gaps (follow-ups)
 
-- **GET transcript artifact rehydration** — stream-only today in mill-ui
-- **`sql-result` / chart / data preview** — descriptors stubbed or persist-only; no chat cards yet
+- **`sql-result` / chart** — descriptors stubbed or persist-only; limited chat cards
 - **Execute SQL action** — host-side API not wired from SQL card
 - **Server default profile** — still `hello-world` in `mill.ai.chat.default-profile`; UI sends `data-analysis` explicitly
 

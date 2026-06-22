@@ -1,6 +1,7 @@
 import type { ChatMessageArtifact } from '../types/chat';
 import type { ArtifactResponseWire } from '../types/chatWire';
 import type { QueryColumn } from '../types/query';
+import { parseFacetProposalArtifact } from './facetWireNormalize';
 
 function asNumber(value: unknown): number | undefined {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
@@ -49,23 +50,13 @@ function parseDataArtifact(payload: Record<string, unknown>): ChatMessageArtifac
   };
 }
 
-function parseFacetProposalArtifact(payload: Record<string, unknown>): ChatMessageArtifact | null {
-  const facetTypeKey = typeof payload.facetTypeKey === 'string' ? payload.facetTypeKey : '';
-  const metadataEntityId = typeof payload.metadataEntityId === 'string' ? payload.metadataEntityId : '';
-  if (!facetTypeKey || !metadataEntityId) return null;
-  return {
-    kind: 'facet-proposal',
-    facetTypeKey,
-    metadataEntityId,
-    payload: payload.payload,
-  };
-}
-
 export function parseArtifactWire(wire: ArtifactResponseWire): ChatMessageArtifact | null {
   const payload = wire.payload ?? {};
   if (wire.kind === 'sql') return parseSqlArtifact(payload);
   if (wire.kind === 'data') return parseDataArtifact(payload);
-  if (wire.kind === 'facet-proposal') return parseFacetProposalArtifact(payload);
+  if (wire.kind === 'facet-proposal' || wire.kind === 'schema-capture') {
+    return parseFacetProposalArtifact(payload);
+  }
   return null;
 }
 

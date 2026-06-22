@@ -4,7 +4,8 @@ This document describes how the **Data Model** explorer (`ui/mill-ui`, route `/m
 
 ## Goals
 
-- **Single standard path** for most facets: read-only and edit UIs derive from the facet type’s `FacetTypeManifest.payload` ([descriptor contract](./facet-type-descriptor-formats.md)), via `renderReadOnlyField` / `renderField` in `EntityDetails.tsx`.
+- **Single standard path** for most facets: read-only and edit UIs derive from the facet type’s `FacetTypeManifest.payload` ([descriptor contract](./facet-type-descriptor-formats.md)).
+- **Shared read-only module** (`ui/mill-ui/src/components/data-model/facets/`) used by **Data Model** and **chat** so field rendering stays 1:1 for the same descriptor + payload (see below).
 - **MULTIPLE cardinality**: one **outer** facet box per facet type (shared title, Edit, Delete). Under read mode, each stored instance is a **nested card** using the **same** standard field renderer with the **item** schema (the manifest’s object payload). Card titles use a `name` field when present; generic “Entry *i* of *n*” captions apply only when there are **multiple** instances without a name (a single instance does not show “Entry 1 of 1”).
 - **Field stereotypes** (hyperlink, email, tags): see [**mill-ui-facet-stereotypes.md**](mill-ui-facet-stereotypes.md).
 - **Structural** facet: still uses a dedicated `StructuralFacet` component when the legacy convenience flags/data path applies (see below).
@@ -42,8 +43,26 @@ Payload normalization for MULTIPLE instances (`multipleFacetItemValues`):
    `modelStructuralFacet`, `modelQuickBadges`, and `modelPhysicalType` gate the tailored **structural** read branch (`StructuralFacet`), quick constraint badges, and the physical-type badge on attributes. Other facet types use the descriptor-driven path only (no per-type feature flags).
 
 5. **Location of logic**  
-   Facet box layout and standard renderers live in `ui/mill-ui/src/components/data-model/EntityDetails.tsx`.  
-   Pure MULTIPLE payload normalisation (`multipleFacetItemValues` and related helpers) lives in **`facetPayloadUtils.ts`** next to `EntityDetails.tsx` (see WI-110). The only remaining facet-specific presenter in that folder is `facets/StructuralFacet.tsx` (structural read view). Optional per-type **view/edit** component registration is future work; see [`docs/design/ui/facet-view-customization.md`](../ui/facet-view-customization.md).
+   - **Read-only (shared):** `ui/mill-ui/src/components/data-model/facets/` — `FacetReadOnlyBody`, `FacetPayloadReadOnly`, `facetDisplayUtils`, `StructuralFacet`. Consumed by `EntityDetails.tsx` and chat [`FacetCondensedPreview`](../../ui/mill-ui/src/components/chat/artifactPreview/FacetCondensedPreview.tsx).  
+   - **Data Model host:** facet box layout, edit/delete, MULTIPLE nesting — `EntityDetails.tsx`.  
+   - **Chat host:** SQL-parity artefact shell, artefact normalisation — `artifactPreview/FacetCondensedPreview.tsx`, [`facetArtifactNormalize.ts`](../../ui/mill-ui/src/components/chat/artifactPreview/facetArtifactNormalize.ts).  
+   - **MULTIPLE helpers:** `facetPayloadUtils.ts` next to `EntityDetails.tsx` (see WI-110).  
+   Optional per-type **view/edit** component registration is future work; see [`docs/design/ui/facet-view-customization.md`](../ui/facet-view-customization.md).
+
+## Shared read-only layer (Data Model + chat)
+
+| Concern | Data Model (`/model`) | Chat (`/chat`, general) |
+|---------|------------------------|-------------------------|
+| **Field rendering** | `FacetReadOnlyBody` → `FacetPayloadReadOnly` | **Same** (via `FacetCondensedPreview`) |
+| **Descriptor lookup** | `facetTypeService` per facet type on entity | **Same** (`normalizeFacetTypeKeyForApi`) |
+| **Structural read** | `StructuralFacet` when `modelStructuralFacet` | **Same** flag + suffix check |
+| **Chrome** | Category tabs, edit/delete, inferred badges | `ChatArtifactCard`, Facet + JSON tabs, “Proposed” badge |
+| **Payload source** | Persisted entity facets API | Capture artefacts: `facet-proposal` wire only |
+
+Chat does **not** duplicate descriptor-driven field logic. New stereotypes or payload schema handling belong in
+`data-model/facets/` unless the feature is chat-only chrome.
+
+Design reference: [`chat-artefact-architecture.md`](../ai/chat-artefact-architecture.md) §7.1.
 
 ## API: `GET /api/v1/metadata/entities/{id}/facets`
 
@@ -51,5 +70,6 @@ The handler returns a **JSON array** of `{ "facetType": "<URN>", "payload": ... 
 
 ## Related
 
+- Chat facet shell + replay: [`docs/design/ai/chat-artefact-architecture.md`](../ai/chat-artefact-architecture.md) §7.1
 - Admin facet type editor: `FacetTypeEditPage.tsx`, descriptor schema → manifest.
 - API: `GET/PUT/DELETE /api/v1/metadata/entities/{id}/facets/...` with merged context (see metadata service design).

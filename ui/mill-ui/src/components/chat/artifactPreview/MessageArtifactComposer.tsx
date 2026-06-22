@@ -26,7 +26,7 @@ export function MessageArtifactComposer({
 }: MessageArtifactComposerProps) {
   const groups = groupMessageArtifacts(message.artifacts);
   const passthroughArtifacts = (message.artifacts ?? []).filter(
-    (artifact) => artifact.kind === 'schema-capture' || artifact.kind === 'unknown',
+    (artifact) => artifact.kind === 'unknown',
   );
 
   useEffect(() => {

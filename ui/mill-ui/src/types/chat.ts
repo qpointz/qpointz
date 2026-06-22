@@ -30,13 +30,6 @@ export type ChatMessageArtifact =
       payload: unknown;
     }
   | {
-      kind: 'schema-capture';
-      captureType: string;
-      targetEntityId: string;
-      targetEntityType?: string;
-      payload: unknown;
-    }
-  | {
       kind: 'unknown';
       partType: string;
       title: string;
