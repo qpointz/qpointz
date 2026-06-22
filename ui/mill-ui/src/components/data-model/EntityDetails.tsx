@@ -7,7 +7,6 @@
   type ReactNode,
 } from 'react';
 import {
-  Anchor,
   Box,
   Text,
   Badge,
@@ -29,7 +28,6 @@ import {
   Tabs,
   Modal,
   TagsInput,
-  Alert,
 } from '@mantine/core';
 import {
   HiOutlineCircleStack,
@@ -45,16 +43,12 @@ import {
   HiOutlineChevronRight,
   HiOutlineInformationCircle,
   HiOutlineArrowDownTray,
-  HiOutlineEnvelope,
-  HiOutlineArrowTopRightOnSquare,
 } from 'react-icons/hi2';
-import type { EntityFacets, FacetResolvedRow, SchemaEntity, StructuralFacet as StructuralFacetData } from '../../types/schema';
-import { StructuralFacet } from './facets/StructuralFacet';
+import type { EntityFacets, FacetResolvedRow, SchemaEntity } from '../../types/schema';
 import { InlineChatButton } from '../common/InlineChatButton';
 import { RelatedContentButton } from '../common/RelatedContentButton';
 import { ContentPaneHeader } from '../layout/ContentPaneHeader';
 import { JsonYamlEditor } from '../common/JsonYamlEditor';
-import { SyntaxCodeEditor } from '../common/SyntaxCodeEditor';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
 import { notifications } from '@mantine/notifications';
 import { facetTypeService, metadataEntityUrnForFacetApi, schemaService, fetchExportFormats, downloadTableExport, pickDefaultExportFormatId } from '../../services/api';
@@ -63,11 +57,7 @@ import type { FacetTypeManifest } from '../../types/facetTypes';
 import type { FacetPayloadSchema } from '../../types/facetTypes';
 import {
   facetEmailLooksValid,
-  facetHyperlinkHref,
-  facetMailtoHref,
   facetStringStereotype,
-  facetTagsPresentationActive,
-  facetHyperlinkPresentationActive,
   type FacetStringStereotypeKind,
 } from '../../utils/facetStereotype';
 import {
@@ -81,7 +71,12 @@ import {
 } from '../../utils/facetPayloadFormSupport';
 import { DEFAULT_FACET_TYPE_DISPLAY_PRIORITY, facetTypeArrivalOrderFromRegistry } from '../../config/facetTypeDisplayPriority';
 import { sortFacetTypesByDisplayPriority } from '../../utils/sortFacetTypesByDisplayPriority';
-import { renderGenericFacetObjectReadOnly } from './genericFacetObjectReadOnly';
+import { facetBoxBaseTitle } from './facets/facetDisplayUtils';
+import {
+  appendEmailStereotypeValidationErrors,
+  appendHyperlinkStereotypeValidationErrors,
+} from './facets/facetPayloadValidation';
+import { FacetReadOnlyBody } from './facets/FacetReadOnlyBody';
 
 interface EntityDetailsProps {
   entity: SchemaEntity;
@@ -120,202 +115,6 @@ const entityLabels = {
   TABLE: 'Table',
   COLUMN: 'Column',
 };
-
-/** Title for a facet card header when registry metadata is still loading or missing for this type key. */
-function facetBoxBaseTitle(
-  facetType: string,
-  titleByKey: Record<string, string>,
-  descriptor: FacetTypeManifest | null
-): string {
-  const fromRegistry = titleByKey[facetType]?.trim();
-  if (fromRegistry) return fromRegistry;
-  const payloadTitle = descriptor?.payload?.title?.trim();
-  if (payloadTitle) return payloadTitle;
-  const slug = facetType.replace('urn:mill/metadata/facet-type:', '');
-  if (!slug) return facetType;
-  return slug.charAt(0).toUpperCase() + slug.slice(1).toLowerCase();
-}
-
-/**
- * Read-only display for hyperlink stereotype: plain string = URL text + href; object = `title` (optional) + `href`
- * (required). Opens in a new tab with an external-link icon.
- */
-function FacetHyperlinkReadOnly({ value }: { value: unknown }) {
-  const linkRow = (href: string, linkText: string) => (
-    <Group gap={6} wrap="nowrap" align="flex-start">
-      <Anchor
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        size="sm"
-        style={{ wordBreak: 'break-all', lineHeight: 1.35 }}
-      >
-        {linkText}
-      </Anchor>
-      <HiOutlineArrowTopRightOnSquare size={14} aria-hidden style={{ flexShrink: 0, marginTop: 2, opacity: 0.7 }} />
-    </Group>
-  );
-
-  if (value != null && typeof value === 'object' && !Array.isArray(value)) {
-    const o = value as Record<string, unknown>;
-    const hrefRaw = o.href;
-    const titleRaw = o.title;
-    const hrefStr =
-      hrefRaw == null ? '' : typeof hrefRaw === 'string' ? hrefRaw.trim() : String(hrefRaw).trim();
-    if (!hrefStr) {
-      return (
-        <Alert color="red" variant="light" py={4} px="sm" fz="xs" role="alert">
-          wrong link
-        </Alert>
-      );
-    }
-    const href = facetHyperlinkHref(hrefStr);
-    const titleStr =
-      titleRaw == null
-        ? ''
-        : typeof titleRaw === 'string'
-          ? titleRaw.trim()
-          : String(titleRaw).trim();
-    /** Show Title + URL explicitly so optional label is visible in model view (not only anchor text). */
-    return (
-      <Stack gap={6}>
-        <Group gap="sm" wrap="nowrap" align="flex-start">
-          <Text size="xs" c="dimmed" w={44} style={{ flexShrink: 0 }}>
-            Title
-          </Text>
-          <Text size="sm" style={{ flex: 1, wordBreak: 'break-word', lineHeight: 1.35 }}>
-            {titleStr.length > 0 ? titleStr : '—'}
-          </Text>
-        </Group>
-        <Group gap="sm" wrap="nowrap" align="flex-start">
-          <Text size="xs" c="dimmed" w={44} style={{ flexShrink: 0 }}>
-            URL
-          </Text>
-          <Box style={{ flex: 1, minWidth: 0 }}>{linkRow(href, hrefStr)}</Box>
-        </Group>
-      </Stack>
-    );
-  }
-
-  const s = typeof value === 'string' ? value.trim() : '';
-  if (!s) {
-    return (
-      <Text size="sm" c="dimmed">
-        —
-      </Text>
-    );
-  }
-  const href = facetHyperlinkHref(s);
-  return linkRow(href, s);
-}
-
-/** Read-only display for STRING fields with `email` stereotype: mailto link plus envelope glyph. */
-function FacetEmailReadOnly({ value }: { value: unknown }) {
-  const s = typeof value === 'string' ? value.trim() : '';
-  if (!s) {
-    return (
-      <Text size="sm" c="dimmed">
-        —
-      </Text>
-    );
-  }
-  const href = facetMailtoHref(s);
-  return (
-    <Group gap={6} wrap="nowrap" align="flex-start">
-      <Anchor href={href} size="sm" style={{ wordBreak: 'break-all', lineHeight: 1.35 }}>
-        {s}
-      </Anchor>
-      <HiOutlineEnvelope size={14} aria-hidden style={{ flexShrink: 0, marginTop: 2, opacity: 0.7 }} />
-    </Group>
-  );
-}
-
-/** Appends errors for non-empty values that fail email format when stereotype is `email` (STRING or STRING[]). */
-function appendEmailStereotypeValidationErrors(
-  schema: FacetPayloadSchema,
-  value: unknown,
-  errors: string[],
-  path: string
-): void {
-  if (schema.type !== 'OBJECT') return;
-  const obj = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
-  (schema.fields ?? []).forEach((field) => {
-    const nextPath = path ? `${path}.${field.name}` : field.name;
-    const fv = obj[field.name];
-    if (facetStringStereotype(field.schema, field.stereotype) === 'email') {
-      if (field.schema.type === 'STRING') {
-        const trimmed = String(fv ?? '').trim();
-        if (trimmed.length > 0 && !facetEmailLooksValid(trimmed)) {
-          errors.push(`${nextPath} must be a valid email address`);
-        }
-      } else if (field.schema.type === 'ARRAY' && field.schema.items?.type === 'STRING') {
-        const arr = Array.isArray(fv) ? fv : [];
-        arr.forEach((item, i) => {
-          const trimmed = String(item ?? '').trim();
-          if (trimmed.length > 0 && !facetEmailLooksValid(trimmed)) {
-            errors.push(`${nextPath}[${i}] must be a valid email address`);
-          }
-        });
-      }
-    }
-    if (field.schema.type === 'OBJECT' && fv != null && typeof fv === 'object' && !Array.isArray(fv)) {
-      appendEmailStereotypeValidationErrors(field.schema, fv, errors, nextPath);
-    }
-    if (field.schema.type === 'ARRAY' && Array.isArray(fv) && field.schema.items?.type === 'OBJECT') {
-      fv.forEach((el, i) => {
-        if (el != null && typeof el === 'object') {
-          appendEmailStereotypeValidationErrors(field.schema.items!, el, errors, `${nextPath}[${i}]`);
-        }
-      });
-    }
-  });
-}
-
-function facetHyperlinkObjectHrefMissing(value: unknown): boolean {
-  if (value == null || typeof value !== 'object' || Array.isArray(value)) return true;
-  const href = (value as Record<string, unknown>).href;
-  const s = href == null ? '' : typeof href === 'string' ? href.trim() : String(href).trim();
-  return s.length === 0;
-}
-
-/** Appends errors for missing `href` on OBJECT / ARRAY-of-OBJECT values with hyperlink stereotype. */
-function appendHyperlinkStereotypeValidationErrors(
-  schema: FacetPayloadSchema,
-  value: unknown,
-  errors: string[],
-  path: string
-): void {
-  if (schema.type !== 'OBJECT') return;
-  const obj = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
-  (schema.fields ?? []).forEach((field) => {
-    const nextPath = path ? `${path}.${field.name}` : field.name;
-    const fv = obj[field.name];
-    if (facetHyperlinkPresentationActive(field.schema, field.stereotype)) {
-      if (field.schema.type === 'OBJECT') {
-        if (facetHyperlinkObjectHrefMissing(fv)) {
-          errors.push(`${nextPath}: wrong link`);
-        }
-      } else if (field.schema.type === 'ARRAY' && field.schema.items?.type === 'OBJECT') {
-        const arr = Array.isArray(fv) ? fv : [];
-        arr.forEach((item, i) => {
-          if (facetHyperlinkObjectHrefMissing(item)) {
-            errors.push(`${nextPath}[${i}]: wrong link`);
-          }
-        });
-      }
-    }
-    if (field.schema.type === 'OBJECT' && fv != null && typeof fv === 'object' && !Array.isArray(fv)) {
-      appendHyperlinkStereotypeValidationErrors(field.schema, fv, errors, nextPath);
-    }
-    if (field.schema.type === 'ARRAY' && Array.isArray(fv) && field.schema.items?.type === 'OBJECT') {
-      fv.forEach((el, i) => {
-        if (el != null && typeof el === 'object') {
-          appendHyperlinkStereotypeValidationErrors(field.schema.items!, el, errors, `${nextPath}[${i}]`);
-        }
-      });
-    }
-  });
-}
 
 /** Required-field validation for facet payloads: walks OBJECT trees and ARRAY-of-OBJECT elements. */
 function appendFacetPayloadRequiredErrors(
@@ -1208,209 +1007,6 @@ export function EntityDetails({
     );
   };
 
-  const renderReadOnlyField = (
-    schema: FacetPayloadSchema,
-    value: unknown,
-    keyPrefix: string,
-    stringStere: FacetStringStereotypeKind = 'none',
-    /** Field-level stereotype wire (for tags / empty-array behaviour). */
-    fieldStereotypeWire?: string | string[] | null
-  ): ReactNode => {
-    const labelWithInfo = (title: string, description?: string) => (
-      <Group gap={4} wrap="nowrap" align="center">
-        {description && (
-          <Tooltip label={description} withArrow>
-            <ActionIcon size="xs" variant="subtle" aria-label="Field description">
-              <HiOutlineInformationCircle size={12} />
-            </ActionIcon>
-          </Tooltip>
-        )}
-        <Text size="xs" fw={400} c="dimmed">{title}</Text>
-      </Group>
-    );
-
-    const primitiveValue = (s: FacetPayloadSchema, v: unknown): ReactNode => {
-      if (s.type === 'BOOLEAN') {
-        return <Badge size="xs" variant="light" color={v ? 'green' : 'gray'}>{String(Boolean(v))}</Badge>;
-      }
-      if (s.type === 'ENUM') {
-        const raw = String(v ?? '');
-        const selected = (s.values ?? []).find((entry) => entry.value === raw);
-        const label = selected?.description ? `${selected.value} - ${selected.description}` : raw;
-        return <Badge size="xs" variant="light">{label}</Badge>;
-      }
-      return <Text size="sm">{v == null ? '' : String(v)}</Text>;
-    };
-
-    if (schema.type === 'OBJECT') {
-      const raw = value;
-      const declared = schema.fields ?? [];
-      if (declared.length === 0) {
-        if (raw == null) {
-          return (
-            <Text size="xs" c="dimmed">
-              —
-            </Text>
-          );
-        }
-        if (typeof raw === 'object' && !Array.isArray(raw)) {
-          return renderGenericFacetObjectReadOnly(raw as Record<string, unknown>);
-        }
-        return (
-          <Text size="xs" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-            {JSON.stringify(raw, null, 2)}
-          </Text>
-        );
-      }
-      const obj = (raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {}) as Record<string, unknown>;
-      return (
-        <Stack gap={6}>
-          {declared.map((field) => (
-            <Box key={`${keyPrefix}.${field.name}`}>
-              {field.schema.type === 'OBJECT' && facetHyperlinkPresentationActive(field.schema, field.stereotype) ? (
-                <Group gap="sm" wrap="nowrap" align="center">
-                  <Box style={{ minWidth: 170 }}>
-                    {labelWithInfo(field.schema.title || field.name, field.schema.description)}
-                  </Box>
-                  <Box style={{ flex: 1 }}>
-                    <FacetHyperlinkReadOnly value={obj[field.name]} />
-                  </Box>
-                </Group>
-              ) : field.schema.type === 'OBJECT' || field.schema.type === 'ARRAY' ? (
-                <Stack gap={6}>
-                  <Group gap={4}>
-                    {field.schema.description && (
-                      <Tooltip label={field.schema.description} withArrow>
-                        <ActionIcon size="xs" variant="subtle" aria-label="Field description">
-                          <HiOutlineInformationCircle size={12} />
-                        </ActionIcon>
-                      </Tooltip>
-                    )}
-                    <Divider
-                      label={<Text size="xs" fw={500}>{field.schema.title || field.name}</Text>}
-                      labelPosition="left"
-                      style={{ flex: 1 }}
-                    />
-                  </Group>
-                  <Box
-                    ml="md"
-                    pl="sm"
-                    style={{
-                      borderLeft: '2px solid var(--mantine-color-default-border)',
-                    }}
-                  >
-                    {renderReadOnlyField(
-                      field.schema,
-                      obj[field.name],
-                      `${keyPrefix}.${field.name}`,
-                      facetStringStereotype(field.schema, field.stereotype),
-                      field.stereotype
-                    )}
-                  </Box>
-                </Stack>
-              ) : (
-                <Group gap="sm" wrap="nowrap" align="center">
-                  <Box style={{ minWidth: 170 }}>
-                    {labelWithInfo(field.schema.title || field.name, field.schema.description)}
-                  </Box>
-                  <Box style={{ flex: 1 }}>
-                    {(() => {
-                      if (facetHyperlinkPresentationActive(field.schema, field.stereotype)) {
-                        return <FacetHyperlinkReadOnly value={obj[field.name]} />;
-                      }
-                      if (facetStringStereotype(field.schema, field.stereotype) === 'email') {
-                        return <FacetEmailReadOnly value={obj[field.name]} />;
-                      }
-                      return primitiveValue(field.schema, obj[field.name]);
-                    })()}
-                  </Box>
-                </Group>
-              )}
-            </Box>
-          ))}
-        </Stack>
-      );
-    }
-    if (schema.type === 'ARRAY') {
-      if (!Array.isArray(value) || value.length === 0) {
-        if (facetTagsPresentationActive(schema, fieldStereotypeWire)) {
-          return null;
-        }
-        return <Text size="xs" c="dimmed">-</Text>;
-      }
-      const itemSchema = schema.items;
-      const listHyperlink = facetHyperlinkPresentationActive(schema, fieldStereotypeWire);
-      if (itemSchema?.type === 'OBJECT' && listHyperlink) {
-        return (
-          <Stack gap={6} pl={4}>
-            {value.map((item, idx) => (
-              <Group key={`${keyPrefix}-href-obj-${idx}`} gap={8} align="flex-start" wrap="nowrap">
-                <Text size="xs" c="dimmed" mt={3} style={{ flexShrink: 0 }}>
-                  •
-                </Text>
-                <Box style={{ flex: 1, minWidth: 0 }}>
-                  <FacetHyperlinkReadOnly value={item} />
-                </Box>
-              </Group>
-            ))}
-          </Stack>
-        );
-      }
-      const primitiveItem =
-        itemSchema &&
-        (itemSchema.type === 'STRING' || itemSchema.type === 'NUMBER' || itemSchema.type === 'ENUM');
-      if (primitiveItem && itemSchema) {
-        if (itemSchema.type === 'STRING' && (listHyperlink || stringStere === 'email')) {
-          return (
-            <Group gap="sm" wrap="wrap" align="flex-start">
-              {value.map((item, idx) => (
-                <Box key={`${keyPrefix}-p-${idx}`}>
-                  {listHyperlink ? (
-                    <FacetHyperlinkReadOnly value={item} />
-                  ) : (
-                    <FacetEmailReadOnly value={item} />
-                  )}
-                </Box>
-              ))}
-            </Group>
-          );
-        }
-        return (
-          <Group gap={6} wrap="wrap">
-            {value.map((item, idx) => (
-              <Badge key={`${keyPrefix}-p-${idx}`} size="sm" variant="light">
-                {itemSchema.type === 'ENUM'
-                  ? (() => {
-                      const raw = String(item ?? '');
-                      const selected = (itemSchema.values ?? []).find((e) => e.value === raw);
-                      return selected?.description ? `${selected.value} — ${selected.description}` : raw;
-                    })()
-                  : String(item ?? '')}
-              </Badge>
-            ))}
-          </Group>
-        );
-      }
-      return (
-        <Stack gap={6} pl={4}>
-          {value.map((item, idx) => (
-            <Group key={`${keyPrefix}[${idx}]`} gap={8} align="flex-start" wrap="nowrap">
-              <Text size="xs" c="dimmed" mt={3} style={{ flexShrink: 0 }}>
-                •
-              </Text>
-              <Box style={{ flex: 1, minWidth: 0 }}>
-                {schema.items ? renderReadOnlyField(schema.items, item, `${keyPrefix}[${idx}]`, 'none', undefined) : (
-                  <Text size="xs">{String(item)}</Text>
-                )}
-              </Box>
-            </Group>
-          ))}
-        </Stack>
-      );
-    }
-    return primitiveValue(schema, value);
-  };
-
   const deleteFacet = async (facetType: string) => {
     if (!metadataFacetTargetId) return;
     try {
@@ -1705,29 +1301,15 @@ export function EntityDetails({
                         const row = ru.row;
                         const descriptorInf = descriptorByType[facetTypeInf] ?? null;
                         const baseTitleInf = facetBoxBaseTitle(facetTypeInf, facetTypeTitleByKey, descriptorInf);
-                        let readOnlyInferred: ReactNode;
-                        if (facetTypeInf.endsWith(':structural') && flags.modelStructuralFacet) {
-                          readOnlyInferred = <StructuralFacet facet={row.payload as StructuralFacetData} />;
-                        } else if (descriptorInf?.payload) {
-                          readOnlyInferred = (
-                            <Box>
-                              {renderReadOnlyField(
-                                descriptorInf.payload,
-                                row.payload,
-                                `${facetTypeInf}-inferred-${row.uid}`
-                              )}
-                            </Box>
-                          );
-                        } else {
-                          readOnlyInferred = (
-                            <SyntaxCodeEditor
-                              value={JSON.stringify(row.payload ?? {}, null, 2)}
-                              language="json"
-                              minHeight={200}
-                              readOnly
-                            />
-                          );
-                        }
+                        const readOnlyInferred = (
+                          <FacetReadOnlyBody
+                            facetTypeKey={facetTypeInf}
+                            payload={row.payload}
+                            descriptor={descriptorInf}
+                            structuralFacetEnabled={flags.modelStructuralFacet}
+                            keyPrefix={`${facetTypeInf}-inferred-${row.uid}`}
+                          />
+                        );
                         return (
                           <Card key={`inferred-${row.uid}`} withBorder p="xs">
                             <Group justify="space-between" mb={6} align="flex-start" wrap="nowrap">
@@ -1807,24 +1389,15 @@ export function EntityDetails({
                     if (unit.kind === 'multipleRow') {
                       const items = multipleFacetItemValues(allByType[facetType]);
                       const item = items[unit.index];
-                      const itemSchema = descriptor?.payload;
                       const caption = multipleInstanceCaption(item, unit.index, unit.total);
                       const cardTitle = caption ? `${baseTitle} · ${caption}` : baseTitle;
                       const isEditing = editFacetType === facetType && editInstanceIndex === unit.index;
-                      const readOnlyBody = itemSchema ? (
-                        <Box>
-                          {renderReadOnlyField(
-                            itemSchema,
-                            item,
-                            `${facetType}[${unit.index}]`
-                          )}
-                        </Box>
-                      ) : (
-                        <SyntaxCodeEditor
-                          value={JSON.stringify(item ?? {}, null, 2)}
-                          language="json"
-                          minHeight={200}
-                          readOnly
+                      const readOnlyBody = (
+                        <FacetReadOnlyBody
+                          facetTypeKey={facetType}
+                          payload={item}
+                          descriptor={descriptor}
+                          keyPrefix={`${facetType}[${unit.index}]`}
                         />
                       );
                       return (
@@ -1956,25 +1529,19 @@ export function EntityDetails({
                       );
                     }
 
-                    let readOnlyBody: ReactNode;
-                    if (facetType.endsWith(':structural') && hasStructural) {
-                      readOnlyBody = <StructuralFacet facet={facets.structural!} />;
-                    } else if (descriptor?.payload) {
-                      readOnlyBody = (
-                        <Box>
-                          {renderReadOnlyField(descriptor.payload, allByType[facetType], facetType)}
-                        </Box>
-                      );
-                    } else {
-                      readOnlyBody = (
-                        <SyntaxCodeEditor
-                          value={JSON.stringify(allByType[facetType] ?? {}, null, 2)}
-                          language="json"
-                          minHeight={200}
-                          readOnly
-                        />
-                      );
-                    }
+                    const singlePayload =
+                      facetType.endsWith(':structural') && hasStructural
+                        ? facets.structural!
+                        : allByType[facetType];
+                    const readOnlyBody = (
+                      <FacetReadOnlyBody
+                        facetTypeKey={facetType}
+                        payload={singlePayload}
+                        descriptor={descriptor}
+                        structuralFacetEnabled={hasStructural}
+                        keyPrefix={facetType}
+                      />
+                    );
 
                     const isEditingSingle = editFacetType === facetType && editInstanceIndex === null;
                     const singleFacetCardKey = isCapturedSingleResolvedUnit(rawUnit)

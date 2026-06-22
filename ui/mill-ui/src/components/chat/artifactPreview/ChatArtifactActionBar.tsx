@@ -23,6 +23,8 @@ export interface ChatArtifactActionBarProps {
   /** SQL to export when the export action is enabled. */
   exportSql?: string;
   exportAttachmentBaseName?: string;
+  /** When true and no actions are enabled, reserve action-bar width for layout parity with SQL artefacts. */
+  reserveLayout?: boolean;
 }
 
 export function ChatArtifactActionBar({
@@ -36,6 +38,7 @@ export function ChatArtifactActionBar({
   disableRun = false,
   exportSql = '',
   exportAttachmentBaseName = 'chat-query',
+  reserveLayout = false,
 }: ChatArtifactActionBarProps) {
   const show = (id: ArtifactActionId) => enabledActions.includes(id);
   const [exportFormats, setExportFormats] = useState<ExportFormatInfo[]>([]);
@@ -87,6 +90,16 @@ export function ChatArtifactActionBar({
   );
 
   const hasExportSql = Boolean(exportSql.trim());
+  const hasVisibleActions =
+    (show('run') && onRun) ||
+    (show('copy') && onCopy) ||
+    show('export') ||
+    (show('expand') && onExpand) ||
+    (show('open-in-analysis') && onOpenInAnalysis);
+
+  if (reserveLayout && !hasVisibleActions) {
+    return <Group gap={4} justify="flex-end" wrap="nowrap" style={{ minWidth: 140, minHeight: 28 }} aria-hidden />;
+  }
 
   return (
     <Group gap={4} justify="flex-end" wrap="nowrap">

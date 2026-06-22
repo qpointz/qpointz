@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import { FacetProposalArtifactCard } from '../artifacts/FacetProposalArtifactCard';
+import { FacetCondensedPreview } from './FacetCondensedPreview';
 import { SqlDataCondensedPreview } from './SqlDataCondensedPreview';
 import type { ArtifactPreviewContext, ArtefactKind } from './types';
 
@@ -7,6 +8,7 @@ type PreviewComponent = ComponentType<ArtifactPreviewContext>;
 
 const previewRegistry: Partial<Record<ArtefactKind, PreviewComponent>> = {
   'sql-data-composite': SqlDataCondensedPreview,
+  'facet-proposal': FacetCondensedPreview,
 };
 
 export function resolvePreviewComponent(kind: ArtefactKind): PreviewComponent | null {
