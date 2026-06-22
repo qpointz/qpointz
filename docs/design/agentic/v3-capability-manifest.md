@@ -66,6 +66,9 @@ They must not live in `mill-ai-v3-core`.
 name: <string>           # Required. Capability id. Must match CapabilityDescriptor.id.
 description: <string>    # Required. Short capability description.
 
+mcp:                     # Optional. MCP exposure settings. See section 3.1.1 and v3-mcp-capability-exposure.md.
+  enabled: <bool>        # Optional. Default true. When false, capability hidden from MCP catalog.
+
 prompts:                 # Optional. Map of prompt assets.
   <prompt-id>:
     description: <string>
@@ -89,6 +92,21 @@ protocols:               # Optional. Map of protocol declarations.
         description: <string>
         payloadSchema: <ToolSchema>  # Optional. Defaults to empty object.
 ```
+
+### 3.1.1 MCP exposure (`mcp:`)
+
+Optional block controlling whether the capability is exposed through an MCP server. Default when
+omitted: **`mcp.enabled: true`** (capability is MCP-visible).
+
+```yaml
+mcp:
+  enabled: false   # opt out — tools/prompts/protocols omitted from MCP catalog
+```
+
+Implementation and filter pipeline: [v3-mcp-capability-exposure.md](./v3-mcp-capability-exposure.md).
+
+Additional `mcp.*` keys are reserved for future per-capability MCP options (auth hints, rate
+limits). Unknown keys should be ignored by the loader until defined.
 
 ### 3.2 Tool kind
 
