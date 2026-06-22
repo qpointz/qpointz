@@ -14,6 +14,8 @@
 
 #### Archived stories (closure date, newest first)
 
+- **AI v3 MCP server POC** (`ai-v3-mcp-server-poc`, closed **2026-06-22**): [`completed/20260622-ai-v3-mcp-server-poc/STORY.md`](completed/20260622-ai-v3-mcp-server-poc/STORY.md). **WI-325**–**WI-327**, **WI-329**, **WI-330** — capability registry → MCP tools/prompts/resources over Streamable HTTP (`mill-ai-mcp-core`, `mill-ai-mcp-transport-http`, `McpServiceDescriptor`); LangChain + Skymill example under **`misc/examples/`**; stdio bridge descoped (**WI-328** → **A-96**). Design [`docs/design/agentic/v3-mcp-capability-exposure.md`](../design/agentic/v3-mcp-capability-exposure.md). **BACKLOG** **A-56**, **A-31** `done`.
+
 - **General chat facet display** (`ai-chat-facet-display`, closed **2026-06-19**): [`completed/20260619-ai-chat-facet-display/STORY.md`](completed/20260619-ai-chat-facet-display/STORY.md). **WI-335**–**WI-337** — shared `FacetReadOnlyBody` / `FacetPayloadReadOnly` extracted from Data Model; **`FacetCondensedPreview`** SQL-parity shell (Facet + JSON tabs, reserved action bar) for **`general`** `facet-proposal`; GET replay normalises **`schema-capture`** to facet presentation; inline hosts keep stub card. Design [`docs/design/ai/chat-artefact-architecture.md`](../design/ai/chat-artefact-architecture.md) §7.1, [`docs/design/metadata/model-view-facet-boxes.md`](../design/metadata/model-view-facet-boxes.md). **BACKLOG** **U-16** `done`.
 
 - **Mill application event bus foundation** (`general-event-bus`, closed **2026-06-19**): [`completed/20260619-general-event-bus/STORY.md`](completed/20260619-general-event-bus/STORY.md). **WI-311**–**WI-314** — Spring-free `:core:mill-events` contracts (`Event`, `EventPublisher`, `EventTransport`, `EventRouter`, `EventConsumer`, per-type subscriptions, DSL builder, `PublishMode`/`ProcessingMode` two-axis dispatch); `:core:mill-events-autoconfigure` with `mill.events.*` properties, `InMemoryEventTransport`, `SpringEventTransport`, dynamic consumer bean collection, `testIT` proving fan-out + failure isolation + async. Design [`docs/design/platform/general-event-bus.md`](../design/platform/general-event-bus.md). **BACKLOG** **P-38** `done`.
@@ -71,6 +73,8 @@
 #### Cumulative WI deliveries (toward 0.8.0)
 
 Individual work items and bundles merged on `dev` in support of this milestone (including items that also appear under **Archived stories** above).
+
+- **WI-325**–**WI-330** (excl. descoped **WI-328**) — AI v3 MCP POC: design + `mill-ai-mcp-core` catalog/executor, HTTP Streamable transport, `McpServiceDescriptor`, LangChain Skymill example; story **`ai-v3-mcp-server-poc`**, archived [`completed/20260622-ai-v3-mcp-server-poc/STORY.md`](completed/20260622-ai-v3-mcp-server-poc/STORY.md). **BACKLOG** **A-56**, **A-31** `done`. **WI-328** → **A-96**.
 
 - **WI-335**–**WI-337** — mill-ui general chat facet display: shared read-only facet module (`FacetReadOnlyBody`, `FacetPayloadReadOnly`), **`FacetCondensedPreview`** condensed shell for **`general`** `facet-proposal`, GET replay + **`schema-capture`** normalisation; story **`ai-chat-facet-display`**, archived [`completed/20260619-ai-chat-facet-display/STORY.md`](completed/20260619-ai-chat-facet-display/STORY.md). **BACKLOG** **U-16** `done`.
 

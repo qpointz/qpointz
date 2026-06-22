@@ -35,8 +35,9 @@ The `/.well-known/mill` endpoint returns a JSON document like:
 ```json
 {
   "services": [
-    { "stereotype": "grpc" },
-    { "stereotype": "jet-http" }
+    { "name": "data-http" },
+    { "name": "ai-chat" },
+    { "name": "ai-mcp" }
   ],
   "security": {
     "enabled": true,

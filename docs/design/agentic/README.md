@@ -40,7 +40,8 @@ workflow semantics.
 | `v3-runtime-roles.md` | Runtime role split for capabilities, planner, observer, and workflow ownership |
 | `v3-interactive-cli.md` | Current behavior of the `mill-ai-v3-cli` manual inspection tool, including raw event rendering and artifact-observer prints |
 | `v3-validation-harness.md` | Deterministic validation strategy for scenarios, event traces, and `testIT` layering |
-| `v3-capability-manifest.md` | `CapabilityManifest` YAML schema reference for prompts, tools, and protocols |
+| `v3-capability-manifest.md` | `CapabilityManifest` YAML schema reference for prompts, tools, protocols, and `mcp:` exposure |
+| **`v3-mcp-capability-exposure.md`** | **Shipped:** MCP server POC — capability registry projection, HTTP transport, filters, testing, LangChain example (A-56, closed 2026-06-22) |
 | `developer-manual/v3-developer-manual.md` | Entry point for the ai/v3 developer manual, treating `ai/v3` as a framework for building chat and agent runtimes |
 | `developer-manual/v3-developer-capabilities-profiles-and-dependencies.md` | How to build capabilities, providers, manifests, dependencies, and agent profiles |
 | `developer-manual/v3-developer-runtime-events-persistence.md` | How runtime execution, routed events, transcript, artifacts, telemetry, and observers work together |

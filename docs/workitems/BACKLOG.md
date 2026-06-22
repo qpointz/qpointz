@@ -57,10 +57,10 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | A-21 | Implement Capability Protocol (streaming events: begin/continuation/end) | ✨ feature | backlog | ai/capabilities_design.md |
 | A-22 | Implement Orchestrator, Chat Profiles, and task-class-to-Intent mapping | ✨ feature | backlog | ai/capabilities_design.md |
 | A-23 | Implement Reasoner Descriptions per Capability and dynamic prompt construction | ✨ feature | backlog | ai/capabilities_design.md |
-| A-31 | Define descriptor model for externally exposed capability assets/resources | ✨ feature | planned | `docs/workitems/planned/ai-v3/WI-042-ai-v3-external-capability-asset-descriptors.md` |
+| A-31 | Define descriptor model for externally exposed capability assets/resources | ✨ feature | done | [`completed/20260622-ai-v3-mcp-server-poc/WI-326-external-capability-asset-descriptors.md`](completed/20260622-ai-v3-mcp-server-poc/WI-326-external-capability-asset-descriptors.md) — **WI-326** |
 | A-48 | Add end-to-end scenarios for Schema Exploration workflow | 🧪 test | planned | `docs/workitems/planned/ai-v3/WI-059-ai-v3-schema-exploration-scenarios.md` |
 | A-55 | Add end-to-end scenarios for Schema Exploration agent | 🧪 test | planned | `docs/workitems/planned/ai-v3/WI-066-ai-v3-schema-exploration-scenarios.md` |
-| A-56 | Implement `ai/v3` MCP server POC exposing discovered capabilities, tools, prompts, and protocol resources | ✨ feature | backlog | `design/agentic/v3-foundation-decisions.md` |
+| A-56 | Implement `ai/v3` MCP server POC exposing discovered capabilities, tools, prompts, and protocol resources | ✨ feature | done | [`completed/20260622-ai-v3-mcp-server-poc/STORY.md`](completed/20260622-ai-v3-mcp-server-poc/STORY.md) — design: [`v3-mcp-capability-exposure.md`](design/agentic/v3-mcp-capability-exposure.md); **WI-325**–**WI-327**, **WI-329**, **WI-330** (stdio **WI-328** → **A-96**) |
 | A-60 | Implement three-layer authoring protocol: explicit planner-intent and authored-request structured boundaries before capture; `AgentEvent.AuthoredRequest`; `targetHints` on `PlannerDecision` | ✨ feature | backlog | `design/agentic/v3-authoring-protocol.md` |
 | A-68 | → see **PS-4a** / **PS-4d** (artifact relation indexer follow-up) | ✨ feature | backlog | `design/agentic/v3-persistence-lanes.md` |
 | A-69 | → see **PS-4b** / **PS-4c** / **PS-4e** / **PS-4f** (relation projection persistence follow-up) | ✨ feature | backlog | `design/agentic/v3-persistence-lanes.md` |
@@ -86,6 +86,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | A-93 | HTTP scenario runner for `mill-ai-test` (follow-up from artifact emit contract) | ✨ feature | backlog | deferred from `ai-artifact-emit-contract` WI-309 |
 | A-94 | `ai:v3-integration` CI job: live-LLM scenario matrix in GitLab CI (gated on secrets) | 🧪 test | backlog | deferred from `ai-artifact-emit-contract` WI-309 |
 | A-95 | Promote live-LLM YAML packs to default CI (currently gated testIT in WI-310) | 🧪 test | backlog | deferred from `ai-artifact-emit-contract` WI-309 |
+| A-96 | stdio MCP bridge (`mill-ai-mcp-transport-stdio`) proxying local stdio → remote HTTP MCP | ✨ feature | backlog | descoped from **A-56** — [`backlog/WI-328-mill-ai-mcp-transport-stdio.md`](backlog/WI-328-mill-ai-mcp-transport-stdio.md); design: [`v3-mcp-capability-exposure.md`](design/agentic/v3-mcp-capability-exposure.md) §9 |
 
 ---
 

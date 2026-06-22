@@ -13,6 +13,28 @@ Operator summary for **`mill.ai.*`**. Full specification:
 | **`mill.ai.vector-stores.<id>`** | Optional shared Chroma/pgvector connection templates |
 | **`mill.ai.data.embedding.<profile>`** | Pipeline: model ref, vector store, refresh, sources |
 | **`mill.ai.chat`** | Chat defaults + `value-mapping.embedding` → data profile |
+| **`mill.ai.mcp`** | MCP Streamable HTTP servlet (`enabled`, `profile`, `capabilities`, `http.endpoint`) |
+
+## MCP (capability exposure)
+
+When **`mill.ai.mcp.enabled=true`**, mill-service exposes v3 capabilities as MCP tools at
+**`/services/mcp`** (same `/services/**` authentication as Jet/export). Opt-in — not enabled by default.
+
+```yaml
+mill:
+  ai:
+    mcp:
+      enabled: true
+      profile: schema-exploration
+      http:
+        endpoint: /services/mcp
+```
+
+Profile groups: **`ai-mcp`**, **`skymill-ai-mcp`** (adds **`mcp`** to **`ai`** / **`skymill-ai`**).
+Example client: [`misc/examples/ai-mcp-langchain-skymill/`](../../../../misc/examples/ai-mcp-langchain-skymill/README.md).
+Design: [`docs/design/agentic/v3-mcp-capability-exposure.md`](../../../../design/agentic/v3-mcp-capability-exposure.md).
+
+Well-known discovery advertises **`ai-mcp`** under **`services`** when MCP is enabled (no `connections` entry).
 
 ## Minimal example
 
@@ -53,6 +75,7 @@ mill:
 In **`apps/mill-service/src/main/resources/application.yml`**:
 
 - **`ai`** — enables the AI stack
+- **`mcp`** / **`ai-mcp`** / **`skymill-ai-mcp`** — Streamable HTTP MCP at `/services/mcp` (`mill.ai.mcp.enabled=true`)
 - **`chromadb`** / **`ai-chromadb`** — Chroma vector store on the active embedding profile
 - **`pgvector`** / **`ai-pgvector`** — pgvector on PostgreSQL (requires `vector` extension)
 

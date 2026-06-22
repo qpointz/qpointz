@@ -355,6 +355,9 @@ This mapping is preferred because:
 - prompts represent reusable templates or prompt assets
 - descriptors and examples represent discoverable reference material
 
+**Implementation plan:** [v3-mcp-capability-exposure.md](./v3-mcp-capability-exposure.md) (story
+`ai-v3-mcp-server-poc`, backlog A-56).
+
 ### 3.7 MCP resource model requirements
 
 An MCP resource should not be treated as an anonymous blob.
@@ -830,6 +833,9 @@ redesigning the capability model.
 
 This work item is architectural/design-focused and does not require implementing an MCP server
 in the first proof of concept.
+
+**Delivered as design:** [v3-mcp-capability-exposure.md](./v3-mcp-capability-exposure.md). Implementation:
+[`docs/workitems/completed/20260622-ai-v3-mcp-server-poc/`](../../workitems/completed/20260622-ai-v3-mcp-server-poc/STORY.md).
 
 Expected outcome:
 
