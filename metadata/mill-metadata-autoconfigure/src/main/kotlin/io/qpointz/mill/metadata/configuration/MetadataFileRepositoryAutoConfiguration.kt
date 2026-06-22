@@ -9,11 +9,16 @@ import io.qpointz.mill.metadata.repository.InMemoryFacetTypeRepository
 import io.qpointz.mill.metadata.repository.InMemoryMetadataEntityRepository
 import io.qpointz.mill.metadata.repository.InMemoryMetadataScopeRepository
 import io.qpointz.mill.metadata.repository.EntityRepository
+import io.qpointz.mill.metadata.repository.MetadataAuditRepository
 import io.qpointz.mill.metadata.repository.MetadataScopeRepository
+import io.qpointz.mill.metadata.repository.MetadataSeedLedgerRepository
+import io.qpointz.mill.metadata.repository.NoOpMetadataAuditRepository
+import io.qpointz.mill.metadata.repository.NoOpMetadataSeedLedgerRepository
 import jakarta.annotation.PostConstruct
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.AutoConfigureAfter
 import org.springframework.boot.autoconfigure.AutoConfigureBefore
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -57,6 +62,17 @@ class MetadataFileRepositoryAutoConfiguration {
 
     @Bean
     fun fileBackedFacetTypeRepository(): FacetTypeRepository = InMemoryFacetTypeRepository()
+
+    /** File mode has no audit trail; satisfies [MetadataEditService] wiring. */
+    @Bean
+    @ConditionalOnMissingBean(MetadataAuditRepository::class)
+    fun fileBackedMetadataAuditRepository(): MetadataAuditRepository = NoOpMetadataAuditRepository()
+
+    /** In-memory ledger so [MetadataSeedStartup] can skip already-applied seeds without JPA. */
+    @Bean
+    @ConditionalOnMissingBean(MetadataSeedLedgerRepository::class)
+    fun fileBackedMetadataSeedLedgerRepository(): MetadataSeedLedgerRepository =
+        NoOpMetadataSeedLedgerRepository()
 }
 
 /**

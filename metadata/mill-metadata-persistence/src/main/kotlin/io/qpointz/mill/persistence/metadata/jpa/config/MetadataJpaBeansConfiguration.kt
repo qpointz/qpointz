@@ -21,14 +21,19 @@ import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetTypeIn
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetTypeJpaRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataScopeJpaRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataSeedLedgerJpaRepository
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 /**
- * Registers greenfield JPA adapters as Spring beans for applications that component-scan
- * `io.qpointz.mill.persistence.metadata.jpa` (including `testIT`).
+ * Registers greenfield JPA adapters when `mill.metadata.repository.type=jpa`.
+ *
+ * Imported by [io.qpointz.mill.metadata.configuration.MetadataJpaPersistenceAutoConfiguration]
+ * and guarded by property so broad `@ComponentScan("io.qpointz")` does not register JPA repos
+ * alongside file or no-op backends.
  */
 @Configuration
+@ConditionalOnProperty(prefix = "mill.metadata.repository", name = ["type"], havingValue = "jpa")
 class MetadataJpaBeansConfiguration {
 
     @Bean

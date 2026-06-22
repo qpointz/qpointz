@@ -17,6 +17,7 @@ import io.qpointz.mill.metadata.repository.NoOpMetadataSeedLedgerRepository
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.AutoConfigureAfter
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -26,12 +27,16 @@ import org.springframework.context.annotation.Bean
  * (for example [io.qpointz.mill.data.schema.SchemaFacetService]) still receive injectable
  * collaborators.
  *
- * When `mill.metadata.repository.type=jpa`, [MetadataJpaPersistenceAutoConfiguration] runs first
- * (via [@AutoConfigureAfter]) and supplies real repositories, so these beans stay inactive.
+ * Active only for explicit `noop` or unknown repository types. Skipped when `type=jpa` or `type=file`
+ * so dedicated autoconfiguration is the sole provider (and broad component scan cannot register
+ * no-ops before JPA/file beans).
  */
 @AutoConfiguration
 @AutoConfigureAfter(MetadataJpaPersistenceAutoConfiguration::class)
 @EnableConfigurationProperties(MetadataProperties::class)
+@ConditionalOnExpression(
+    "'\${mill.metadata.repository.type:file}' != 'jpa' && '\${mill.metadata.repository.type:file}' != 'file'"
+)
 class MetadataRepositoryAutoConfiguration {
 
     @Bean
