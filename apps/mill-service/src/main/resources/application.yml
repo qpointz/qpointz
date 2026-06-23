@@ -107,6 +107,9 @@ mill:
       query:
         enable: true
         external-host: http-request
+      odata:
+        enable: true
+        external-host: http-request
   ## LEGACY subject to review
   security:
     enable: false

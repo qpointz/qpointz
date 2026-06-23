@@ -1,0 +1,12 @@
+mill:
+  data:
+    sql:
+      dialect: CALCITE
+    backend:
+      type: flow
+    services:
+      odata:
+        enable: true
+        external-host: http
+  security:
+    enable: false

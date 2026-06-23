@@ -42,6 +42,7 @@ googleCloudStorage = "2.64.1"
 azureStorageBlob = "12.33.2"
 azureIdentity = "1.18.2"
 testcontainers = "2.0.5"
+sdl-odata = "2.16.1"
 [libraries]
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 
@@ -200,6 +201,14 @@ azure-storage-blob = { module = "com.azure:azure-storage-blob", version.ref = "a
 azure-identity = { module = "com.azure:azure-identity", version.ref = "azureIdentity" }
 testcontainers-core = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testcontainers" }
+
+sdl-odata-api = { module = "com.sdl:odata_api", version.ref = "sdl-odata" }
+sdl-odata-edm = { module = "com.sdl:odata_edm", version.ref = "sdl-odata" }
+sdl-odata-parser = { module = "com.sdl:odata_parser", version.ref = "sdl-odata" }
+sdl-odata-renderer = { module = "com.sdl:odata_renderer", version.ref = "sdl-odata" }
+sdl-odata-processor = { module = "com.sdl:odata_processor", version.ref = "sdl-odata" }
+sdl-odata-controller = { module = "com.sdl:odata_controller", version.ref = "sdl-odata" }
+sdl-odata-service = { module = "com.sdl:odata_service", version.ref = "sdl-odata" }
 
 [bundles]
 jackson = ["jackson-databind", "jackson-dataformat-yaml", "jackson-module-kotlin"]
