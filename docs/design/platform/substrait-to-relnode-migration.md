@@ -1,7 +1,11 @@
 # Substrait to Calcite RelNode — Internal IR Migration
 
-**Status:** Planned
+**Status:** Planned  
 **Scope:** Execution pipeline across mill-data-service, mill-data-backends, mill-data-autoconfigure, mill-core
+
+> **Note:** [OData v4 service](odata-service.md) composes RelNode plans but executes via the existing
+> Substrait dispatcher path (Rel→Substrait adapter). It is **not** a migration phase; see
+> [`odata-service` story](../../workitems/in-progress/odata-service/STORY.md).
 
 ---
 

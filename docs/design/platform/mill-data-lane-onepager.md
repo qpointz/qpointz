@@ -40,11 +40,13 @@ flowchart LR
         S2["ListSchemas / GetSchema"]
         S3["GetDialect"]
         S4["ParseSql / ExecQuery\nSubmitQuery / FetchQueryResult"]
+        S5["OData v4\n/services/odata/{schema}.svc"]
     end
 
     subgraph CTRL["Service Endpoints"]
         T1["gRPC service"]
         T2["HTTP service"]
+        T3["OData HTTP"]
     end
 
     subgraph CORE["Core Data Lane"]
@@ -83,8 +85,10 @@ flowchart LR
     C --> SVC
     SVC --> T1
     SVC --> T2
+    S5 --> T3
     T1 --> D1
     T2 --> D1
+    T3 --> D1
     D1 --> D2
     D1 --> D3
     D1 --> D4

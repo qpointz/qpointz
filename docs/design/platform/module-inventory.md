@@ -26,6 +26,7 @@ Category legend:
 | `:data` | n/a (aggregate) | aggregate | Data aggregate build/test entrypoint | `:data:*` | none | n/a | aggregate `test` / `testIT` orchestration |
 | `:data:mill-data-backend-core` | Java | pure | Core backend dispatchers and execution contracts | `:core:mill-core`, `:core:mill-security` | none | `true` | JUnit 5 + Mockito |
 | `:data:mill-data-backends` | Java | pure | Backend implementations and adapters | `:data:mill-data-backend-core`, `:data:mill-data-source-calcite` | none | `true` | JUnit 5 + Mockito + testIT suite |
+| `:data:mill-data-odata` | Kotlin | pure | OData v4 EDM, EDM→Rex, RelComposer, query executor (Spring-free) | `:data:mill-data-schema-core`, `:data:mill-data-backend-core`, `:data:mill-data-backends`, RWS `com.sdl` | none | `true` | JUnit 5 + Mockito |
 | `:data:mill-data-testkit` | Kotlin | pure | Backend runner/test helpers (calcite/jdbc/flow) | `:data:mill-data-backend-core`, `:data:mill-data-backends` | none | `true` | JUnit 5 + Mockito |
 | `:data:mill-data-autoconfigure` | Java | spring-service | Data lane autoconfiguration and wiring | `:core:mill-service-api`, `:core:mill-service-security`, `:data:mill-data-backend-core`, `:data:mill-data-backends` | Spring Boot autoconfiguration | `true` | JUnit 5 + Boot test |
 | `:data:services` | n/a (aggregate) | aggregate | Data service aggregate | `:data:services:*` | none | n/a | aggregate testing/docs |
@@ -49,7 +50,8 @@ Category legend:
 | `:clients:mill-jdbc-driver` | Java | pure | JDBC driver implementation | `:core:mill-core`, `:data:mill-data-backends`, `:data:services:mill-data-grpc-service` (testIT) | none in main; Boot test in tests | n/a (not declared) | JUnit 5 + Boot test + testIT |
 | `:clients:mill-jdbc-shell` | Java | pure | SQLLine-based JDBC shell app | `:clients:mill-jdbc-driver` | none | `false` | JUnit 5 |
 | `:apps` | n/a (aggregate) | aggregate | Apps aggregate | `:apps:*` | none | n/a | aggregate `test` / `testIT` |
-| `:apps:mill-service` | Java | spring-service | runnable service/demo app | `:core:*`, `:data:*`, `:metadata:*` | Spring Boot application | `false` | JUnit 5 + Boot test |
+| `:apps:mill-service` | Java | spring-service | runnable service/demo app | `:core:*`, `:data:*`, `:metadata:*`, `:services:mill-data-odata-service` | Spring Boot application | `false` | JUnit 5 + Boot test |
+| `:services:mill-data-odata-service` | Kotlin | spring-service | OData v4 HTTP (`/services/odata/{schema}.svc`) | `:data:mill-data-odata`, `:data:mill-data-autoconfigure`, RWS `com.sdl` | Spring MVC + Boot autoconfiguration | `true` | JUnit 5 + Boot test + testIT (Skymill) |
 
 ## WI-010 Notes
 

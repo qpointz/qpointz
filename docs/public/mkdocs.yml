@@ -85,6 +85,8 @@ nav:
       - backends/jdbc.md
       - backends/calcite.md
       - backends/flow.md
+    - Data access:
+      - data-access/odata.md
     - Security:
       - security/index.md
       - security/authentik-oidc.md

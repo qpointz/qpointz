@@ -146,6 +146,22 @@ This document is a **code-first inventory** of REST controllers and their operat
   - **GET** `/services/export/schemas/{schema}/tables/{table}` — `exportTable(...)`
   - **POST** `/services/export/sql` — `exportSql(...)` (consumes `text/plain`)
 
+### `services/mill-data-odata-service`
+
+#### `io.qpointz.mill.data.odata.service.config.MillODataController`
+
+- **Base path**: `/services/odata/{schema}.svc`
+- **Activation**: `@ConditionalOnService(value = "odata", group = "data")`
+- **Operations** (all methods on `/**`)
+  - **GET/POST/PUT/PATCH/DELETE** `/services/odata/{schema}.svc/**` — `serve(...)` (RWS synchronous pipeline: `$metadata`, entity sets, `$filter`, etc.)
+
+#### `io.qpointz.mill.data.odata.service.config.ODataCatalogController`
+
+- **Base path**: `/services/odata`
+- **Activation**: `@ConditionalOnService(value = "odata", group = "data")`
+- **Operations**
+  - **GET** `/services/odata/schemas` — `listSchemas(...)` (per-schema OData service root URLs)
+
 ### `ai/mill-ai-service`
 
 #### `io.qpointz.mill.ai.service.AiChatController`
