@@ -182,7 +182,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | P-38 | Mill application event bus foundation: `mill-events` contracts, transport plane, dynamic Spring `EventConsumer` wiring (**WI-311**–**WI-314**) | ✨ feature | done | [`completed/20260619-general-event-bus/STORY.md`](completed/20260619-general-event-bus/STORY.md) · [cold start](completed/20260619-general-event-bus/COLDSTART.md) |
 | P-39 | Event bus domain producers: metadata change bridge, artifact persist hooks, domain `EventPayload` types | ✨ feature | backlog | [`platform/general-event-bus.md`](../design/platform/general-event-bus.md) — follow-on `event-bus-domain-producers` |
 | P-40 | Event bus side consumers: search index, SQL→schema relations, value-mapping refresh | ✨ feature | backlog | [`platform/general-event-bus.md`](../design/platform/general-event-bus.md) — follow-on `event-bus-consumers` |
-| P-41 | OData v4 read service: RelNode compose + Rel→Substrait adapter, dispatcher execution (**WI-325**–**WI-329**) | ✨ feature | in-progress | [`in-progress/odata-service/STORY.md`](in-progress/odata-service/STORY.md) · [cold start](in-progress/odata-service/COLDSTART.md) · [`odata-service.md`](../design/platform/odata-service.md) |
+| P-41 | OData v4 read service: RelNode compose + Rel→Substrait adapter, dispatcher execution (**WI-325**–**WI-329**) | ✨ feature | done | [`completed/20260623-odata-service/STORY.md`](completed/20260623-odata-service/STORY.md) · [`odata-service.md`](../design/platform/odata-service.md) · [`MILESTONE.md`](MILESTONE.md) |
 
 ---
 

@@ -1,7 +1,7 @@
 # OData v4 Service Design
 
 **Status:** Shipped (WI-326–328 on `feat/odata-service`); design baseline WI-325  
-**Story:** [`docs/workitems/in-progress/odata-service/STORY.md`](../../workitems/in-progress/odata-service/STORY.md)  
+**Story:** [`docs/workitems/completed/20260623-odata-service/STORY.md`](../../workitems/completed/20260623-odata-service/STORY.md)  
 **Backlog:** P-41
 
 ---

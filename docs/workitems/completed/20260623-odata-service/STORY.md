@@ -1,6 +1,6 @@
 # OData v4 service
 
-**Backlog:** [P-41](../../BACKLOG.md) · **Status:** `in-progress` (implementation complete; MR open)
+**Backlog:** [P-41](../../BACKLOG.md) · **Status:** `closed` (2026-06-23)
 
 ## Cold start
 
@@ -12,8 +12,9 @@ adapter pipeline, testIT scenarios, and verify commands. No other context requir
 Deliver read-only **OData v4** over Mill **physical tables**, enriched with descriptive and relation
 metadata facets, including **`$expand`** on navigation properties from `RelationFacet`.
 
-Expose `/services/odata/v4/` for **live query** BI clients (Power BI OData, Tableau OData, Excel): service document, `$metadata`,
-entity set reads with `$filter`, `$select`, `$orderby`, `$top`, `$skip`.
+Expose **`/services/odata/{schema}.svc`** for **live query** BI clients (Power BI OData, Tableau OData, Excel): service document,
+`$metadata`, entity set reads with `$filter`, `$select`, `$orderby`, `$top`, `$skip`, and **`$expand`** on relation facets.
+Entity sets use **plain table names** within each schema service (e.g. `/services/odata/skymill.svc/cities`).
 
 ## Platform role (locked)
 
@@ -61,12 +62,12 @@ then a shared **Rel→Substrait adapter** in `mill-data-backends` — no SQL str
 
 ### 5. Entity sets = physical tables only
 
-- One entity set per `SchemaProvider` table; name `{schema}_{table}`.
+- One entity set per `SchemaProvider` table; name = **table name** (schema from service root `{schema}.svc`).
 - Navigations from `RelationFacet`; inverse relations where metadata defines them.
 
 ### 6. HTTP surface
 
-- Base path: `/services/odata/v4/`
+- Base path: `/services/odata/{schema}.svc` (+ `GET /services/odata/schemas` catalog)
 - `@ConditionalOnService(value = "odata", group = "data")`
 - Config: `mill.data.services.odata.*` (mirror `export` / `query`)
 
@@ -77,7 +78,7 @@ then a shared **Rel→Substrait adapter** in `mill-data-backends` — no SQL str
 ## Target execution pipeline
 
 ```text
-GET /services/odata/v4/Mill/{entitySet}?$filter=...&$expand=...
+GET /services/odata/skymill.svc/{entitySet}?$filter=...&$expand=...
   → RWS odata_controller + odata_parser (mill-data-odata-service)
   → MillODataDataSource → ODataQueryExecutor (mill-data-odata)
   → EdmPropertyResolver + ODataExpressionToRex (RWS query AST)
@@ -146,7 +147,7 @@ After **each** WI (324, 326–329), in order — **do not start the next WI unti
 4. **Push** — `git push origin feat/odata-service` immediately after the commit (do not batch multiple WIs on one push).
 5. **CI/CD** — confirm the GitLab pipeline for the pushed commit is **green** before starting the next WI. If red, fix on the same branch, commit, push again, re-check until green.
 
-**After WI-329 only** (last WI): create a **merge request** `feat/odata-service` → `dev` on GitLab. Do **not** open the MR until all WIs are complete and CI is green on the final push. Story archive / `MILESTONE.md` / closure squash per [`RULES.md`](../../RULES.md) only on explicit user request.
+**Closure:** MR !405 (`feat/odata-service` → `dev`); story archived **2026-06-23** per [`RULES.md`](../../RULES.md).
 
 ## Story closure — reconcile `docs/design` (WI-329)
 
@@ -158,7 +159,7 @@ After **each** WI (324, 326–329), in order — **do not start the next WI unti
 | `security/REST-CONTROLLERS-INVENTORY.md` | OData servlet section |
 | `docs/public/src/data-access/odata.md` | Operator guide |
 
-Archive to `docs/workitems/completed/YYYYMMDD-odata-service/` only on **explicit user closure** per [`RULES.md`](../../RULES.md).
+Archived at [`docs/workitems/completed/20260623-odata-service/`](.).
 
 ## Common pitfalls
 

@@ -14,6 +14,8 @@
 
 #### Archived stories (closure date, newest first)
 
+- **OData v4 service** (`odata-service`, closed **2026-06-23**): [`completed/20260623-odata-service/STORY.md`](completed/20260623-odata-service/STORY.md). **WI-324**–**WI-329** — platform **Java 25**; `mill-data-odata` RWS EDM + `$filter`→RexNode + RelComposer; Rel→Substrait adapter in `mill-data-backends`; `mill-data-odata-service` at **`/services/odata/{schema}.svc`** (plain table entity sets, schema catalog); Skymill `testIT`; public operator guide. Design [`docs/design/platform/odata-service.md`](../design/platform/odata-service.md). **BACKLOG** **P-41** `done`.
+
 - **AI v3 MCP server POC** (`ai-v3-mcp-server-poc`, closed **2026-06-22**): [`completed/20260622-ai-v3-mcp-server-poc/STORY.md`](completed/20260622-ai-v3-mcp-server-poc/STORY.md). **WI-325**–**WI-327**, **WI-329**, **WI-330** — capability registry → MCP tools/prompts/resources over Streamable HTTP (`mill-ai-mcp-core`, `mill-ai-mcp-transport-http`, `McpServiceDescriptor`); LangChain + Skymill example under **`misc/examples/`**; stdio bridge descoped (**WI-328** → **A-96**). Design [`docs/design/agentic/v3-mcp-capability-exposure.md`](../design/agentic/v3-mcp-capability-exposure.md). **BACKLOG** **A-56**, **A-31** `done`.
 
 - **General chat facet display** (`ai-chat-facet-display`, closed **2026-06-19**): [`completed/20260619-ai-chat-facet-display/STORY.md`](completed/20260619-ai-chat-facet-display/STORY.md). **WI-335**–**WI-337** — shared `FacetReadOnlyBody` / `FacetPayloadReadOnly` extracted from Data Model; **`FacetCondensedPreview`** SQL-parity shell (Facet + JSON tabs, reserved action bar) for **`general`** `facet-proposal`; GET replay normalises **`schema-capture`** to facet presentation; inline hosts keep stub card. Design [`docs/design/ai/chat-artefact-architecture.md`](../design/ai/chat-artefact-architecture.md) §7.1, [`docs/design/metadata/model-view-facet-boxes.md`](../design/metadata/model-view-facet-boxes.md). **BACKLOG** **U-16** `done`.
@@ -73,6 +75,8 @@
 #### Cumulative WI deliveries (toward 0.8.0)
 
 Individual work items and bundles merged on `dev` in support of this milestone (including items that also appear under **Archived stories** above).
+
+- **WI-324**–**WI-329** — OData v4 read service: Java 25 platform bump; `mill-data-odata` + Rel→Substrait bridge; per-schema **`/services/odata/{schema}.svc`** HTTP service; docs; story **`odata-service`**, archived [`completed/20260623-odata-service/STORY.md`](completed/20260623-odata-service/STORY.md). **BACKLOG** **P-41** `done`.
 
 - **WI-325**–**WI-330** (excl. descoped **WI-328**) — AI v3 MCP POC: design + `mill-ai-mcp-core` catalog/executor, HTTP Streamable transport, `McpServiceDescriptor`, LangChain Skymill example; story **`ai-v3-mcp-server-poc`**, archived [`completed/20260622-ai-v3-mcp-server-poc/STORY.md`](completed/20260622-ai-v3-mcp-server-poc/STORY.md). **BACKLOG** **A-56**, **A-31** `done`. **WI-328** → **A-96**.
 
