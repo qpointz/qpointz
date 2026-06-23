@@ -6,17 +6,12 @@ import io.qpointz.mill.autoconfigure.data.resource.BackendResourceLoaderAutoConf
 import io.qpointz.mill.cloud.aws.autoconfigure.S3AutoConfiguration;
 import io.qpointz.mill.data.backend.dispatchers.SubstraitDispatcher;
 import io.qpointz.mill.data.backend.flow.SourceDefinitionRepository;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -38,24 +33,23 @@ import static org.mockito.Mockito.mock;
 /**
  * Flow backend loads a descriptor YAML from {@code s3://} when the AWS autoconfigure protocol resolver is present.
  */
-@Testcontainers(disabledWithoutDocker = true)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Execution(ExecutionMode.SAME_THREAD)
-@ResourceLock("docker-minio")
 class FlowBackendS3DescriptorTest {
 
     private static final String BUCKET = "mill-flow-s3-desc";
 
-    @Container
-    @SuppressWarnings("resource")
     private static final GenericContainer<?> MINIO = new GenericContainer<>(DockerImageName.parse("minio/minio:latest"))
             .withExposedPorts(9000)
             .withEnv("MINIO_ROOT_USER", "minioadmin")
             .withEnv("MINIO_ROOT_PASSWORD", "minioadmin")
             .withCommand("server", "/data");
 
-    @BeforeAll
-    void seedMinio() {
+    static {
+        MINIO.start();
+        seedMinio();
+    }
+
+    private static void seedMinio() {
         String endpoint = "http://" + MINIO.getHost() + ":" + MINIO.getMappedPort(9000);
         try (S3Client s3 = S3Client.builder()
                 .endpointOverride(URI.create(endpoint))
@@ -76,6 +70,11 @@ class FlowBackendS3DescriptorTest {
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    @AfterAll
+    static void stopMinio() {
+        MINIO.stop();
     }
 
     @Test
