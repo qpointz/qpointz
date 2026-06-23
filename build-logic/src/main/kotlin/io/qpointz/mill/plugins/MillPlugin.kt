@@ -12,7 +12,7 @@ import java.nio.file.Paths
 import kotlin.jvm.java
 
 /**
- * Root Mill Gradle convention: Java 21 toolchain, JaCoCo, VERSION resolution, edition packaging hooks,
+ * Root Mill Gradle convention: Java 25 toolchain, JaCoCo, VERSION resolution, edition packaging hooks,
  * and configuration-cache-safe clean extensions.
  */
 class MillPlugin : Plugin<Project> {
@@ -68,13 +68,13 @@ class MillPlugin : Plugin<Project> {
 
         project.extensions.configure(org.gradle.api.plugins.JavaPluginExtension::class.java) {
             toolchain {
-                languageVersion.set(JavaLanguageVersion.of(21))
+                languageVersion.set(JavaLanguageVersion.of(25))
             }
         }
 
         project.plugins.withId("org.jetbrains.kotlin.jvm") {
             project.extensions.configure(KotlinJvmProjectExtension::class.java) {
-                jvmToolchain(21)
+                jvmToolchain(25)
             }
         }
 

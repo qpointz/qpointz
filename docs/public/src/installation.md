@@ -2,7 +2,7 @@
 
 ## Runtime requirements
 
-- **Java 21** — Use JDK **21** to build and run Mill’s Spring Boot services. The stack targets **Spring Boot 4**, **Spring Framework 7**, and **Spring AI 2.0** milestone line; those combinations assume Java **21** (see [Platform runtime](reference/platform-runtime.md) for a concise version table).
+- **Java 25** — Use JDK **25** to build and run Mill’s Spring Boot services. The platform was raised to Java 25 for RWS OData 2.16.x and current Spring Boot 4 / Spring Framework 7 stacks (see [Platform runtime](reference/platform-runtime.md)).
 
 ## Build from source
 

@@ -4,7 +4,7 @@ Mill’s **Spring Boot** applications (for example `apps/mill-service`, metadata
 
 | Area | Version / policy |
 |------|------------------|
-| Java | **21** for building and running the full stack (required by **Spring AI 2.0** milestone artifacts). |
+| Java | **25** for building and running the full stack (RWS OData 2.14.1+ and Mill Gradle toolchain). |
 | Spring Boot | **4.0.6** |
 | Spring Framework / Security | **7.0** (managed by Spring Boot) |
 | Jackson | **3.1.x** (`tools.jackson` coordinates; JSON/YAML via `JsonMapper` / `YAMLMapper`) |

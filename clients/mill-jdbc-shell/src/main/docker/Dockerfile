@@ -1,4 +1,4 @@
-FROM azul/zulu-openjdk:21-latest AS openjdk
+FROM azul/zulu-openjdk:25-latest AS openjdk
 
 RUN apt update && \
     apt install binutils -y

@@ -29,6 +29,7 @@ mill {
             module(":services:mill-data-http-service")
             module(":services:mill-export-service")
             module(":services:mill-data-query-service")
+            module(":services:mill-data-odata-service")
         }
 
         feature("ai-chat-service") {
