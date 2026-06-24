@@ -20,7 +20,9 @@ class MillTypeToEdmMapper {
             LogicalDataType.LogicalDataTypeId.INT -> PrimitiveType.INT32
             LogicalDataType.LogicalDataTypeId.BIG_INT -> PrimitiveType.INT64
             LogicalDataType.LogicalDataTypeId.BOOL -> PrimitiveType.BOOLEAN
-            LogicalDataType.LogicalDataTypeId.DATE -> PrimitiveType.DATE
+            // Power BI incremental refresh sends DateTimeOffset range parameters; Edm.Date rejects them
+            // client-side before the request reaches Mill.
+            LogicalDataType.LogicalDataTypeId.DATE -> PrimitiveType.DATE_TIME_OFFSET
             LogicalDataType.LogicalDataTypeId.TIME -> PrimitiveType.TIME_OF_DAY
             LogicalDataType.LogicalDataTypeId.TIMESTAMP,
             LogicalDataType.LogicalDataTypeId.TIMESTAMP_TZ -> PrimitiveType.DATE_TIME_OFFSET

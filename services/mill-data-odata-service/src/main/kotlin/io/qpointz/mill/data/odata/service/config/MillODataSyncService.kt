@@ -8,17 +8,22 @@ import com.sdl.odata.api.parser.ODataParser
 import com.sdl.odata.api.processor.ODataQueryProcessor
 import com.sdl.odata.api.processor.ProcessorResult
 import com.sdl.odata.api.processor.query.QueryResult
+import com.sdl.odata.api.processor.query.QueryResult.ResultType
 import com.sdl.odata.api.renderer.ODataRenderer
 import com.sdl.odata.api.renderer.RendererFactory
 import com.sdl.odata.api.service.ODataRequest
 import com.sdl.odata.api.service.ODataRequestContext
 import com.sdl.odata.api.service.ODataResponse
+import com.sdl.odata.renderer.json.JsonRenderer
 import io.qpointz.mill.data.backend.SchemaProvider
+import io.qpointz.mill.data.odata.expr.ODataFilterDateLiteralRewriter
 import io.qpointz.mill.data.odata.service.edm.ODataEdmRegistryCache
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 /**
  * Synchronous OData request handler that mirrors the RWS parse → process → render pipeline without Pekko.
@@ -47,15 +52,16 @@ class MillODataSyncService(
 
         val oDataRequest = buildODataRequest(request)
         val edm = edmRegistryCache.registryFor(schema).entityDataModel
+        val requestUri = ODataFilterDateLiteralRewriter.rewriteRequestUri(oDataRequest.uri)
         try {
-            val uri = oDataParser.parseUri(oDataRequest.uri, edm)
+            val uri = oDataParser.parseUri(requestUri, edm)
             val context = ODataRequestContext(oDataRequest, uri, edm)
             val processorResult = queryProcessor.query(context, null)
             val oDataResponse = render(context, processorResult)
             writeServletResponse(oDataResponse, response)
         } catch (ex: ODataException) {
             val uri = try {
-                oDataParser.parseUri(oDataRequest.uri, edm)
+                oDataParser.parseUri(requestUri, edm)
             } catch (_: Exception) {
                 null
             }
@@ -96,13 +102,20 @@ class MillODataSyncService(
     private fun selectRenderer(
         context: ODataRequestContext,
         queryResult: QueryResult,
-    ): ODataRenderer? =
-        rendererFactory.renderers
+    ): ODataRenderer? {
+        if (queryResult.type == ResultType.RAW_JSON) {
+            // Mill entity feeds are pre-serialized JSON (see ODataJsonFeedSerializer). RWS Atom/XML
+            // renderers score higher by default for browser Accept headers and then treat the JSON
+            // string as an entity, causing "Edm.String is not an entity type".
+            return rendererFactory.renderers.filterIsInstance<JsonRenderer>().firstOrNull()
+        }
+        return rendererFactory.renderers
             .asSequence()
             .map { renderer -> renderer to renderer.score(context, queryResult) }
             .filter { (_, score) -> score > 0 }
             .maxByOrNull { (_, score) -> score }
             ?.first
+    }
 
     @Throws(IOException::class)
     private fun buildODataRequest(request: HttpServletRequest): ODataRequest {
@@ -118,7 +131,8 @@ class MillODataSyncService(
             url.append(':').append(port)
         }
         url.append(request.requestURI)
-        val queryString = request.queryString
+        val queryString = request.queryString?.takeIf { it.isNotEmpty() }
+            ?: buildQueryString(request.parameterMap)
         if (!queryString.isNullOrEmpty()) {
             url.append('?').append(queryString)
         }
@@ -165,6 +179,24 @@ class MillODataSyncService(
             is ODataClientException -> ODataResponse.Status.BAD_REQUEST
             else -> ODataResponse.Status.INTERNAL_SERVER_ERROR
         }
+
+    /**
+     * Reconstructs a query string when the container populated {@link HttpServletRequest#getParameterMap()}
+     * but left {@link HttpServletRequest#getQueryString()} empty (common in Spring MockMvc).
+     */
+    private fun buildQueryString(parameterMap: Map<String, Array<String>>): String? {
+        if (parameterMap.isEmpty()) {
+            return null
+        }
+        return parameterMap.entries.joinToString("&") { (name, values) ->
+            values.joinToString("&") { value ->
+                "${encodeQueryComponent(name)}=${encodeQueryComponent(value)}"
+            }
+        }
+    }
+
+    private fun encodeQueryComponent(value: String): String =
+        URLEncoder.encode(value, StandardCharsets.UTF_8)
 
     private companion object {
         private const val BUFFER_SIZE = 1024

@@ -1,6 +1,9 @@
 package io.qpointz.mill.data.odata.render
 
 import tools.jackson.databind.json.JsonMapper
+import java.sql.Date
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 /**
  * Serializes query row maps as an OData v4 JSON feed for RWS [com.sdl.odata.api.processor.query.QueryResult] RAW_JSON rendering.
@@ -26,8 +29,22 @@ class ODataJsonFeedSerializer @JvmOverloads constructor(
         val normalizedRoot = serviceRoot.trimEnd('/')
         val payload = linkedMapOf<String, Any>(
             "@odata.context" to "$normalizedRoot/\$metadata#$entitySetName",
-            "value" to rows,
+            "value" to rows.map { row -> row.mapValues { (_, value) -> toODataJsonValue(value) } },
         )
         return mapper.writeValueAsString(payload)
     }
+
+    /**
+     * SQL {@code DATE} values are exposed as {@code Edm.DateTimeOffset} for BI clients; serialize at UTC midnight.
+     */
+    private fun toODataJsonValue(value: Any?): Any? =
+        when (value) {
+            null -> null
+            is Date -> toUtcMidnightOffset(value.toLocalDate())
+            is LocalDate -> toUtcMidnightOffset(value)
+            else -> value
+        }
+
+    private fun toUtcMidnightOffset(localDate: LocalDate): String =
+        localDate.atStartOfDay(ZoneOffset.UTC).toInstant().toString()
 }
