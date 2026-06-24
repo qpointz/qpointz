@@ -38,7 +38,7 @@ propose_facet_assignment(
 | Step | Tool | Capability | Responsibility |
 |------|------|------------|----------------|
 | Ground target | `list_schemas` / `list_tables` / `list_columns` | **`schema`** (existing) | Canonical catalog paths; derive or copy **`metadataEntityId`** per [`metadata-urn-platform.md`](../../../design/metadata/metadata-urn-platform.md) — **no `build_metadata_entity_urn` tool** ([`GAPS.md`](GAPS.md) §3a) |
-| Pick scope | `list_metadata_scopes` | **`metadata`** | Context-sensitive assignable scopes; **`scopeUrn` on capture only when list non-empty** ([`GAPS.md`](GAPS.md) §3c) |
+| Pick scope | `list_metadata_scopes` | **`metadata`** | Returns **global** (read) + **chat** (write) in HTTP chat; each row **`writable`**; default writable on **`AgentContext`** — capture **writable only** ([`GAPS.md`](GAPS.md) §3c) |
 | Reason — shortlist type | `list_facet_types` | **`metadata`** | **Summary rows only** — pick `facetTypeKey` ([`GAPS.md`](GAPS.md) §3b); optional filters |
 | Generate — read schema | `get_facet_type` | **`metadata`** | Full manifest + **`contentSchema`** for payload drafting |
 | Dry-run | `validate_facet_payload` | **`metadata`** | **`(facetType, payload [, target])`** — schema + **`applicableTo`** |
@@ -80,9 +80,14 @@ Optional input filters: `applicableTo`, `category`, `metadataEntityId` (narrow c
 
 ### 3. `list_metadata_scopes` (metadata QUERY) — **scope discovery**
 
-- **No input** (or optional filters TBD) — handler reads **`AgentContext`** / transport (`chatId`, MCP auth)
-- Output: array of `{ scopeUrn, label?, … }` valid for this invocation; **`[]`** when none
-- **Empty list:** downstream capture still persists chat artefact but **must not** imply metadata-scope merge ([`GAPS.md`](GAPS.md) §3c)
+- **No input** (or optional filters TBD) — handler reads **`AgentContext`** (`chatId`, default writable scope, MCP auth); **ensure-or-create** chat **`metadata_scope`** row per GAPS §3c / WI-233 before returning chat row
+- **Chat scope URN (locked):** `urn:mill/metadata/scope:chat-<chatId>`
+- **`metadata_scope` row:** `scopeType=CHAT`, `visibility=PRIVATE`, `referenceId=chatId`, `displayName=Chat <chatName>`, `ownerId=chat.userId`
+- Output: array of `{ scopeUrn, writable, label? }`
+  - HTTP chat: **`global`** (`writable: false`) + **`chat-<chatId>`** (`writable: true`)
+  - **`metadata`** QUERY tools read merged metadata from **all** scopes; **`metadata-authoring`** CAPTURE must use **`writable: true`** only
+- Reject **`propose_facet_assignment`** when `scopeUrn` is read-only (e.g. global in chat)
+- **`[]` empty:** capture may persist artefact but no metadata-scope merge ([`GAPS.md`](GAPS.md) §3c)
 
 ### 4. `validate_facet_payload` (metadata QUERY)
 
@@ -117,7 +122,7 @@ Optional input filters: `applicableTo`, `category`, `metadataEntityId` (narrow c
 - Removing `capture_*` tools (**WI-350**)
 - Metadata service persistence (merge/write — consumer/M-23)
 - MCP default changes
-- Chat scope URN grammar finalisation (follow-up WI-233) — tool may return provisional chat scope URN before full persistence
+- Chat scope URN grammar finalisation — **locked** in GAPS §3c; **`metadata_scope`** row shape **WI-233** (`CHAT`, `PRIVATE`, `reference_id`, display name, owner)
 
 ## Acceptance Criteria
 
@@ -125,9 +130,11 @@ Optional input filters: `applicableTo`, `category`, `metadataEntityId` (narrow c
 - [ ] **`list_facet_types`** returns summary rows **without** nested `contentSchema`; **`get_facet_type`** returns full manifest for one key
 - [ ] **`metadata-authoring.reasoning`** references **`list_facet_types`**; **`metadata.faceting.request`** references **`get_facet_type`** for payload generation
 - [ ] **`metadata.faceting.system`** does not imply facet authoring on non-authoring profiles ([`GAPS.md`](GAPS.md) §3b)
-- [ ] **`list_metadata_scopes`** returns context-appropriate rows (chat: chat scope [+ optional global]; MCP: catalogue only); empty list when no assignable scope
-- [ ] When scope list was **empty**, `propose_facet_assignment` still persists **`facet-proposal`** for replay but artefact is **not** treated as merged into metadata scope (document in prompts; no implicit global `scopeUrn`)
-- [ ] When scope list was **non-empty**, captured artefact includes **`scopeUrn`** chosen from tool output
+- [ ] **`list_metadata_scopes`** returns **global** + **chat** in HTTP chat with **`writable`** flags; chat scope URN `urn:mill/metadata/scope:chat-<chatId>`
+- [ ] Default **writable** scope on **`AgentContext`**; prompts instruct capture to use writable row only
+- [ ] `propose_facet_assignment` **rejects** read-only `scopeUrn` (e.g. global in chat)
+- [ ] When scope list was **empty**, `propose_facet_assignment` still persists **`facet-proposal`** for replay but artefact is **not** treated as merged into metadata scope
+- [ ] When writable scope present, captured artefact includes **`scopeUrn`** from tool output
 - [ ] `propose_facet_assignment` rejects the same applicability mismatch (shared validator)
 - [ ] Valid `(target, facetType, payload)` succeeds for descriptive, relation\*, and DQ examples
 - [ ] Successful captures for descriptive, relation\*, and DQ types all emit **`partType: facet-proposal`** (not type-specific artefact kinds)

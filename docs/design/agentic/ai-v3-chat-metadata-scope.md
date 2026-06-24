@@ -20,29 +20,39 @@ Proposals may surface as future structured `item.part.updated` rows (see transpo
 
 ### Capture vs metadata-scope merge (authoring tools — locked GAPS §3c)
 
+**Chat scope URN:** `urn:mill/metadata/scope:chat-<chatId>` (conversation GUID).
+
 When the agent uses **`list_metadata_scopes`** before **`propose_facet_assignment`**:
 
 | `list_metadata_scopes` result | Chat artefact (SSE/replay) | Metadata scope |
 | ----------------------------- | -------------------------- | -------------- |
-| **Non-empty** — model picks a returned `scopeUrn` | **Persisted** | **`scopeUrn` on artefact** denotes intended scope for **consumer merge** (promotion UI, M-23, MCP client). No silent Metadata REST write. |
-| **Empty `[]`** | **Persisted** (orphan proposal) | **Not** saved or merged into any metadata scope. **Consumer responsibility** — promotion flow must not assume a default global scope. |
+| **Writable scope** (HTTP chat: chat scope; `writable: true`) | **Persisted** | **`scopeUrn`** on artefact for **consumer merge** (promotion UI, M-23, MCP). No silent Metadata REST write. |
+| **Global only** (`writable: false`) | — | **`metadata-authoring`** must **not** capture to global in chat — read-only for authoring. |
+| **Empty `[]`** | **Persisted** (orphan proposal) | **Not** merged into any metadata scope. **Consumer responsibility**. |
 
-This split keeps replay complete while avoiding implicit catalogue writes when the runtime exposes no assignable scope.
+**Read vs write:** **`metadata`** QUERY tools consume merged metadata from **all** scopes (global ∪ chat per **`MetadataReadContext`**). **`metadata-authoring`** CAPTURE targets **`writable: true`** scopes only; default writable scope lives on **`AgentContext`**.
+
+## Chat scope registry (`metadata_scope`) — **LOCKED**
+
+Each conversation gets a **`metadata_scope`** row (not a separate AI sidecar). Created **idempotently** when the chat is first used for metadata-aware agent work.
+
+| Column / domain field | Value |
+| --------------------- | ----- |
+| **`scope_res`** | `urn:mill/metadata/scope:chat-<chatId>` |
+| **`scope_type`** | **`CHAT`** |
+| **`reference_id`** | **`chatId`** |
+| **`display_name`** | **`Chat <title>`** — `<title>` = persisted chat name (`chatName`) |
+| **`owner_id`** | Chat owner **`userId`** |
+| **`visibility`** | **`PRIVATE`** |
+
+**Lifecycle:** create on first agent turn if missing; **update `display_name`** when the user renames the chat. Promoted facet assignments reference this scope URN via normal Metadata facet-instance storage.
+
+**Supersedes** prior “Option A sidecar only” recommendation — **Option B (Metadata `metadata_scope`)** is the primary store. Option A remains a historical alternate in backlog notes only.
 
 ## User action and idempotency
 
 - **No silent writes:** material is **not** promoted to any durable scope until the user confirms (label TBD: **Promote**, **Save to chat context**, **Pin**, etc.).
 - **Idempotency:** promotion should be safe to retry with a **client-supplied idempotency key** or **server hash** of `(chatId, facetType, entityRef, normalized payload)` to avoid duplicate assignments.
-
-## Storage model (recommendation + alternates)
-
-**Recommended (conceptual):** a **chat-scoped projection** keyed by `chatId`, loaded by the AI v3 runtime on each `sendMessage`:
-
-- **Option A — logical scope in AI v3 persistence:** a sidecar table or JSON projection `chat_metadata_scope(chat_id, …)` holding **promoted** facet rows and tombstones. Reads merge into **`MetadataReadContext`** before the agent runs.
-- **Option B — Metadata REST with explicit `scope`:** `POST` facet assignments to the Metadata service with scope = **chat** (exact slug pattern TBD with platform bootstrap). **Permission boundaries** must forbid arbitrary clients from writing catalogue scopes.
-- **Option C — slug per chat** (e.g. `mill.chat.<chatId>`): simple mentally but may collide with resolver rules; requires platform sign-off.
-
-Implementers pick **one** primary path; alternates remain **design alternates**, not duplicate live stores.
 
 ### Merge precedence
 

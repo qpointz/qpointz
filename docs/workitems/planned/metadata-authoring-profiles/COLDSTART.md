@@ -152,7 +152,7 @@ All in [`GAPS.md`](GAPS.md). Priority items:
 | 1 | ~~WI-351 test vehicle~~ — **locked:** mock LLM 2× `propose_facet_assignment` + L1–L6 layer tests ([`GAPS.md`](GAPS.md) §1) |
 | 2 | ~~`applicableTo`~~ — **locked:** extend `MetadataReadPort` with optional `metadataEntityId` ([`GAPS.md`](GAPS.md) §2) |
 | 3 | ~~`list_facet_types` / `get_facet_type`~~ — **locked** ([`GAPS.md`](GAPS.md) §3b) |
-| 3c | ~~**`list_metadata_scopes`**~~ — **locked:** Option B context-sensitive + empty-list caveat ([`GAPS.md`](GAPS.md) §3c) |
+| 3c | ~~**`list_metadata_scopes`**~~ — **locked:** Option B; URN `chat-<chatId>`; **`metadata_scope`** row (`CHAT`, `PRIVATE`, owner, `Chat <title>`); global+chat; **`writable`** ([`GAPS.md`](GAPS.md) §3c) |
 | 6 | Relation facet type key normative rule |
 | 7–8 | `schema-authoring` capability vs `metadata-authoring` profile strategy |
 | 9 | Partial batch failure semantics |

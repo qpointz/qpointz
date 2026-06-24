@@ -28,7 +28,7 @@ Design doc(s) under `docs/design/agentic/` that lock:
 |------|------------|----------------|
 | `list_facet_types` | `metadata` | **Summary rows only** (reasoning); optional filters — **no** `contentSchema` ([`GAPS.md`](GAPS.md) §3b) |
 | `get_facet_type` | `metadata` | **Full manifest** + `contentSchema` for one `facetTypeKey` (generation) |
-| `list_metadata_scopes` | `metadata` | **Context-sensitive** assignable scopes (chat vs MCP); see [`GAPS.md`](GAPS.md) §3c |
+| `list_metadata_scopes` | `metadata` | **Context-sensitive** rows with **`writable`**; chat URN `urn:mill/metadata/scope:chat-<chatId>`; read all / write writable only ([`GAPS.md`](GAPS.md) §3c) |
 | `validate_facet_payload` | `metadata` | Validates **`(facetType, payload)`** against **`contentSchema`**; **reuse/extend** for **`applicableTo`** when `metadataEntityId` (target) supplied |
 | `propose_facet_assignment` | `metadata-authoring` | **`(target, facetType, payload)`**; delegates schema + **`applicableTo`** checks to **`metadata`** shared validation — capture only when valid |
 | `capture_description` | `schema-authoring` | **Remove** |

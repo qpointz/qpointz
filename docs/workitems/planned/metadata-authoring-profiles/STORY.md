@@ -272,11 +272,11 @@ Inventory of **deficits** vs the planned four tools, and what to add or extend. 
 
 | Gap | Proposal |
 |-----|----------|
-| **Target URN construction** | **No new tool.** Ground with **`schema`** tools (`list_schemas` / `list_tables` / `list_columns`); derive canonical **`metadataEntityId`** per [`metadata-urn-platform.md`](../../../design/metadata/metadata-urn-platform.md) in prompts. Optionally add **`metadataEntityId`** to schema tool **responses** (WI-347). Verify via **`validate_facet_payload(…, metadataEntityId)`** and optionally **`list_entity_facets`**. |
+| **Target URN construction** | **No new tool.** Ground with **`schema`** tools (`list_schemas` / `list_tables` / `list_columns`); build **`metadataEntityId`** from returned names + [`metadata-urn-platform.md`](../../../design/metadata/metadata-urn-platform.md) in prompts. **Optional WI-347:** echo canonical **`metadataEntityId`** on each schema row so the model copies instead of constructing URNs ([`GAPS.md`](GAPS.md) §3a). Verify via **`validate_facet_payload(…, metadataEntityId)`** and optionally **`list_entity_facets`**. |
 | **Large catalog / token budget** | **`list_facet_types`**: optional filters (`metadataEntityId`, `category`, `applicableTo`); **summary rows only** — no `contentSchema` ([`GAPS.md`](GAPS.md) §3b). |
 | **Full schema for one type** | **`get_facet_type(facetTypeKey)`**: full manifest + **`contentSchema`** for payload generation. |
 | **Applicability + conflicts** | **`validate_facet_payload`**: with `metadataEntityId`, check **`applicableTo`**, and warn when **`targetCardinality: SINGLE`** but `list_entity_facets` shows an existing assignment of that type (validator may call port internally). |
-| **Proposal completeness** | **`propose_facet_assignment`**: optional **`scopeUrn`** (from **`list_metadata_scopes`** when list non-empty) + **`mergeAction`** on artefact JSON ([`GAPS.md`](GAPS.md) §3c, §5). **Empty scope list:** artefact still **persisted** for replay but **not** merged into metadata scope — **consumer** handles orphans. No implicit global default. |
+| **Proposal completeness** | **`propose_facet_assignment`**: **`scopeUrn`** must reference a **`writable: true`** row from **`list_metadata_scopes`** + optional **`mergeAction`** ([`GAPS.md`](GAPS.md) §3c, §5). Chat default: `urn:mill/metadata/scope:chat-<chatId>`. **Empty scope list:** artefact persisted for replay but not merged — consumer handles orphans. |
 | **Artefact body** | Chat **`facet-proposal`** content should always include **`facetTypeKey`**, **`metadataEntityId`**, **`serializedPayload`**, optional **`scopeUrn`** / **`mergeAction`** — same keys for all types. |
 
 ### P1 — new QUERY tools (WI-347)
@@ -284,7 +284,7 @@ Inventory of **deficits** vs the planned four tools, and what to add or extend. 
 | Tool | Capability | Status |
 |------|------------|--------|
 | **`get_facet_type`** | `metadata` | **Locked** — full manifest + `contentSchema` after `list_facet_types` shortlist ([`GAPS.md`](GAPS.md) §3b) |
-| **`list_metadata_scopes`** | `metadata` | **Locked** — context-sensitive (chat scope vs MCP catalogue); empty list → persist artefact only, no metadata-scope merge ([`GAPS.md`](GAPS.md) §3c) |
+| **`list_metadata_scopes`** | `metadata` | **Locked** — ensure **`metadata_scope`** chat row; global (`writable: false`) + chat (`writable: true`); `CHAT` / `PRIVATE` / owner / `Chat <title>` ([`GAPS.md`](GAPS.md) §3c) |
 
 ~~**`build_metadata_entity_urn`**~~ — **not planned**; resolve targets via existing **`schema`** + **`metadata`** tools ([`GAPS.md`](GAPS.md) §3a).
 

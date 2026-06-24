@@ -102,7 +102,7 @@ From STORY § Tool gaps — not in any WI acceptance criteria:
 | 3 Verify (optional) | **`metadata`**: `list_entity_facets(metadataEntityId)` | Confirms entity + existing facets when useful before capture |
 | 4 Gate | **`metadata`**: `validate_facet_payload(…, metadataEntityId?)` | Rejects malformed URNs, **`applicableTo`** mismatches, schema errors (**WI-346** port) |
 
-**Optional enhancement (WI-347, still no new tool name):** extend **`schema`** tool **responses** (`list_schemas` / `list_tables` / `list_columns`) to include a **`metadataEntityId`** field per row via [`MetadataEntityUrnCodec`](../../../../data/mill-data-schema-core/src/main/kotlin/io/qpointz/mill/data/schema/MetadataEntityUrnCodec.kt) in the `SchemaCatalogPort` adapter — so the model copies a canonical URN instead of synthesising syntax.
+**Optional enhancement (WI-347 — not a separate tool):** today **`list_schemas` / `list_tables` / `list_columns`** return catalog **names** only (`schemaName`, `tableName`, `columnName`, …). The LLM must **construct** the target URN itself using prompt rules + [`metadata-urn-platform.md`](../../../design/metadata/metadata-urn-platform.md) (e.g. `skymill` + `orders` + `customer_id` → `urn:mill/model/attribute:skymill/orders/customer_id`). **Enhancement:** add a **`metadataEntityId`** string on each row (computed server-side via [`MetadataEntityUrnCodec`](../../../../data/mill-data-schema-core/src/main/kotlin/io/qpointz/mill/data/schema/MetadataEntityUrnCodec.kt)) so the model **copies** the canonical URN into `propose_facet_assignment` instead of guessing syntax. **v1 minimum:** prompts + `validate_facet_payload(…, metadataEntityId)` catch bad URNs — the extra field is **convenience**, not required for the story to work.
 
 **Owner:** prompt + schema-output extension → **WI-347**; URN validation on port → **WI-346**.
 
@@ -164,24 +164,69 @@ Optional **`list_facet_types` filters** (WI-347): `category`, `applicableTo`, `m
 
 **Decision (2026-06-24):** **Option B — context-sensitive `list_metadata_scopes`**, with explicit **persistence vs metadata-merge** split when the scope list is empty.
 
+**Decision (2026-06-24, scope rows):** In **chat**, return **global + chat** scopes; each row flags **`writable`**. **Global is read-only** for authoring; **default writable scope** is the chat scope, carried on **`AgentContext`** (not inferred by the LLM). **`metadata`** QUERY tools **read** merged metadata from **all** listed scopes; **`metadata-authoring`** CAPTURE must target a **`writable: true`** scope only.
+
+#### Chat scope URN grammar — **LOCKED**
+
+```
+urn:mill/metadata/scope:chat-<chatId>
+```
+
+where **`<chatId>`** is the conversation GUID from transport / **`AgentContext`** (same id as HTTP chat path).
+
+#### Chat scope persistence — **LOCKED** (`metadata_scope`)
+
+Each chat has a **durable row** in **`metadata_scope`** (Metadata service JPA / [`MetadataScopeEntity`](../../../../metadata/mill-metadata-persistence/src/main/kotlin/io/qpointz/mill/persistence/metadata/jpa/entities/MetadataScopeEntity.kt)). **Ensure-or-create** idempotently when the agent runs for a bound `chatId` (first `sendMessage` or prelude load — **WI-233** / chat runtime).
+
+| Field | Value |
+| ----- | ----- |
+| **`scope_res` / URN** | `urn:mill/metadata/scope:chat-<chatId>` |
+| **`scope_type`** | **`CHAT`** |
+| **`reference_id`** | **`chatId`** (conversation GUID) |
+| **`display_name`** | **`Chat <title>`** — `<title>` = chat **`chatName`** from AI chat persistence ([`ChatResponse.chatName`](../../../../ai/mill-ai-service/src/main/kotlin/io/qpointz/mill/ai/service/dto/ChatDtos.kt)); update when user renames chat |
+| **`owner_id`** | Chat **`userId`** (conversation owner) |
+| **`visibility`** | **`PRIVATE`** |
+
+Register **`CHAT`** scope type and **`MetadataUrns.scopeChat(chatId)`** helper in **WI-233** (metadata core). **`list_metadata_scopes`** resolves the row (create if missing) before returning the writable chat scope row.
+
+**Not** a separate AI sidecar store — facet assignments promoted into chat scope use normal Metadata **`metadata_entity_facet`** rows keyed by this scope URN.
+
+**Global (read catalogue):** `urn:mill/metadata/scope:global` — always **`writable: false`** in chat authoring.
+
 #### Tool behaviour
 
-Add **`list_metadata_scopes`** on the **`metadata`** capability. Handler reads **runtime binding** (`AgentContext` / transport — `chatId`, MCP auth, etc.) and returns **only scopes valid for this invocation**:
+Add **`list_metadata_scopes`** on the **`metadata`** capability. Handler reads **`AgentContext`** (transport — `chatId`, MCP auth, default writable scope, …):
 
-| Runtime | Typical rows returned |
-| ------- | --------------------- |
-| **HTTP chat** (`chatId` / `conversationId` bound) | **Chat scope URN** for this chat (+ optionally **global** for read/merge context — product choice in WI-347 prompts) |
-| **MCP** (no chat session) | Catalogue scopes only: at minimum **`urn:mill/metadata/scope:global`**; + user/team when auth context wired |
-| **Harness / tests** | Configurable fake list |
+| Runtime | Rows returned | Writable default |
+| ------- | ------------- | ---------------- |
+| **HTTP chat** (`chatId` bound) | **`global`** (`writable: false`) + **`chat-<chatId>`** (`writable: true`) | Chat scope on **`AgentContext`**; prompts instruct capture to use **writable** row only |
+| **MCP** (no chat session) | Catalogue scopes from auth (at minimum **global**); **`writable`** per **`AgentContext`** / policy | No chat row; never invent `chat-*` scope |
+| **Harness / tests** | Configurable fake list + writable flags | Explicit test doubles |
 
-**Chat scope URN grammar:** TBD in implementation — register in platform / [`MetadataUrns`](../../../../metadata/mill-metadata-core/src/main/kotlin/io/qpointz/mill/metadata/domain/MetadataUrns.kt) when chat-scope persistence lands ([`ai-v3-chat-metadata-scope.md`](../../../design/agentic/ai-v3-chat-metadata-scope.md), WI-233). Tool may return chat scope **before** full Metadata service write path exists.
+**Scope row (minimum):**
+
+| Field | Required | Notes |
+| ----- | -------- | ----- |
+| `scopeUrn` | yes | e.g. `urn:mill/metadata/scope:global`, `urn:mill/metadata/scope:chat-<chatId>` |
+| `writable` | yes | **`metadata-authoring`** may only capture to scopes with **`writable: true`** |
+| `label` | recommended | UI / prompt hint (“Global catalogue”, “This chat”) |
+
+**Read vs write split:**
+
+| Capability | Scope use |
+| ---------- | --------- |
+| **`metadata`** (QUERY — `list_entity_facets`, validation context, …) | **Read** merged metadata from **all** scopes relevant to the invocation (global ∪ chat ∪ team per **`MetadataReadContext`**) |
+| **`metadata-authoring`** (CAPTURE — `propose_facet_assignment`) | **Write** proposals only to **`writable: true`** scope; reject or fail validation if `scopeUrn` points at read-only scope |
+
+**`AgentContext` responsibilities (WI-347 / autoconfigure):** bind `chatId`, derive chat scope URN, set **default writable scope** for the turn (chat scope in HTTP chat). **`list_metadata_scopes`** reflects context; capture validator enforces writable target.
 
 #### Capture → scope assignment rule
 
-When the model calls **`propose_facet_assignment`** with a **`scopeUrn`** taken from **`list_metadata_scopes`**:
+When the model calls **`propose_facet_assignment`** with a **`scopeUrn`** from **`list_metadata_scopes`**:
 
-- **Non-empty scope list was available** → facet proposal artefact is **persisted** (chat SSE/GET replay) **and** tagged with **`scopeUrn`** for **merge into that metadata scope** when the consumer promotes/writes (M-23 / chat-scope projection).
+- **Writable scope available** → artefact **persisted** (chat SSE/GET replay) **and** tagged with **`scopeUrn`** for **merge into that metadata scope** when the consumer promotes/writes (M-23 / chat-scope projection). In chat, **`scopeUrn`** should be the **chat** scope unless product explicitly allows another writable catalogue scope (MCP).
 - **`list_metadata_scopes` returned `[]` (empty)** → capture may still **emit and persist** the **`facet-proposal` chat artefact**, but it is **NOT saved or merged into any metadata scope**. No implicit global write. **Consumer responsibility** (chat UI, promotion flow, MCP client) decides what to do with orphan proposals.
+- **`scopeUrn` on read-only scope** → **reject** at capture (shared validator) — do not persist as scope-targeted proposal.
 
 This story remains **proposal-only** for the metadata service — “saved into scope” means **artefact carries `scopeUrn` + consumer merge path**, not automatic `POST` to Metadata REST in WI-347.
 
@@ -189,20 +234,22 @@ This story remains **proposal-only** for the metadata service — “saved into 
 
 ```
 ground (schema tools) → metadataEntityId
-→ list_metadata_scopes()              # discover assignable scope(s) for this runtime
-→ pick scopeUrn (when list non-empty)
-→ list_facet_types → get_facet_type → validate_facet_payload → propose_facet_assignment(…, scopeUrn?)
+→ list_metadata_scopes()              # global (read) + chat (write) in HTTP chat
+→ pick scopeUrn where writable: true  # default: chat scope from AgentContext
+→ list_facet_types → get_facet_type → validate_facet_payload → propose_facet_assignment(…, scopeUrn)
 ```
 
-Prompts: in **chat**, prefer **chat scope** from the list when present; in **MCP**, use returned catalogue scope(s) only — never invent chat scope.
+Prompts: **`metadata-authoring`** must use **`writable: true`** scope only; **`metadata`** read tools may reference facets from global + chat merge.
 
 #### Implementation owners
 
 | Piece | Owner |
 | ----- | ----- |
-| Tool + context-sensitive handler | **WI-347** (`metadata.yaml`, `MetadataCapabilities.kt`, `AgentContext` binding) |
-| Chat scope URN + prelude merge | **Follow-up** (WI-233 / chat-scope persistence) — tool can return URN early |
-| Empty-list consumer semantics | Document in **WI-347** + [`ai-v3-chat-metadata-scope.md`](../../../design/agentic/ai-v3-chat-metadata-scope.md); **mill-ui** promotion UX later |
+| Tool + context-sensitive handler + scope row shape | **WI-347** (`metadata.yaml`, `MetadataCapabilities.kt`, **`AgentContext`**) |
+| Default writable scope on **`AgentContext`** | **WI-347** / autoconfigure |
+| Capture rejects read-only `scopeUrn` | **WI-347** (`MetadataAuthoringCapability` + shared validator) |
+| Chat scope URN + prelude merge | **WI-233** — `metadata_scope` row ensure-or-create; display name sync on rename |
+| Empty-list + orphan consumer semantics | **WI-347** + [`ai-v3-chat-metadata-scope.md`](../../../design/agentic/ai-v3-chat-metadata-scope.md) |
 | MCP inventory row | **WI-349** |
 
 **Rejected for v1:** **A** (defer tool), **C** (implicit scope only), **D** (catalogue-only list).
@@ -228,9 +275,9 @@ Prompts: in **chat**, prefer **chat scope** from the list when present; in **MCP
 
 **Locked via GAPS §3c:**
 
-- **`scopeUrn`** on **`propose_facet_assignment`** / **`facet-proposal`** artefact JSON when the model picked a scope from **`list_metadata_scopes`**.
-- **Empty scope list:** artefact **still persisted** for chat replay; **not** merged into metadata scope — **consumer** handles orphans (promotion UI, MCP client, M-23).
-- **Non-empty list:** `scopeUrn` on artefact denotes intended metadata scope for downstream merge/write.
+- **`scopeUrn`** on **`propose_facet_assignment`** / **`facet-proposal`** artefact JSON — must be a **`writable: true`** scope from **`list_metadata_scopes`** (chat: `urn:mill/metadata/scope:chat-<chatId>`).
+- **Global** in chat is **read-only** for authoring; **`metadata`** reads all scopes, **`metadata-authoring`** writes writable only.
+- **Empty scope list:** artefact **still persisted** for chat replay; **not** merged into metadata scope — **consumer** handles orphans.
 
 Domain merge semantics apply at **promotion/write** time, not in WI-347 capture.
 
