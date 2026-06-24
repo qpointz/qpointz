@@ -14,6 +14,8 @@
 
 #### Archived stories (closure date, newest first)
 
+- **Data Quality metadata facet types** (`dqm-metadata-facets`, closed **2026-06-24**): [`completed/20260624-dqm-metadata-facets/STORY.md`](completed/20260624-dqm-metadata-facets/STORY.md). **WI-342**–**WI-344** — **15** platform DQ facet types (**10** L1 + **5** L2): design contract, threshold profile grammar, relational-plan sketches, `platform-dq-l1-facet-types.yaml` + `platform-dq-l2-facet-types.yaml`, seed unit tests, Skymill wiring; mill-ui facet payload schema-default fix. Design [`docs/design/metadata/dq-rule-facet-types.md`](../design/metadata/dq-rule-facet-types.md), [`docs/design/metadata/dq-rule-relplan-sketches.md`](../design/metadata/dq-rule-relplan-sketches.md). **BACKLOG** **M-33** `done`. Execution engine remains **M-16**.
+
 - **OData v4 service** (`odata-service`, closed **2026-06-23**): [`completed/20260623-odata-service/STORY.md`](completed/20260623-odata-service/STORY.md). **WI-324**–**WI-329** — platform **Java 25**; `mill-data-odata` RWS EDM + `$filter`→RexNode + RelComposer; Rel→Substrait adapter in `mill-data-backends`; `mill-data-odata-service` at **`/services/odata/{schema}.svc`** (plain table entity sets, schema catalog); Skymill `testIT`; public operator guide. Design [`docs/design/platform/odata-service.md`](../design/platform/odata-service.md). **BACKLOG** **P-41** `done`.
 
 - **AI v3 MCP server POC** (`ai-v3-mcp-server-poc`, closed **2026-06-22**): [`completed/20260622-ai-v3-mcp-server-poc/STORY.md`](completed/20260622-ai-v3-mcp-server-poc/STORY.md). **WI-325**–**WI-327**, **WI-329**, **WI-330** — capability registry → MCP tools/prompts/resources over Streamable HTTP (`mill-ai-mcp-core`, `mill-ai-mcp-transport-http`, `McpServiceDescriptor`); LangChain + Skymill example under **`misc/examples/`**; stdio bridge descoped (**WI-328** → **A-96**). Design [`docs/design/agentic/v3-mcp-capability-exposure.md`](../design/agentic/v3-mcp-capability-exposure.md). **BACKLOG** **A-56**, **A-31** `done`.
@@ -75,6 +77,8 @@
 #### Cumulative WI deliveries (toward 0.8.0)
 
 Individual work items and bundles merged on `dev` in support of this milestone (including items that also appear under **Archived stories** above).
+
+- **WI-342**–**WI-344** — Data Quality metadata facet types: design contract, **15** L1/L2 platform seeds, relplan sketches, seed unit tests, Skymill profile wiring, mill-ui payload schema-default fix; story **`dqm-metadata-facets`**, archived [`completed/20260624-dqm-metadata-facets/STORY.md`](completed/20260624-dqm-metadata-facets/STORY.md). **BACKLOG** **M-33** `done`.
 
 - **WI-324**–**WI-329** — OData v4 read service: Java 25 platform bump; `mill-data-odata` + Rel→Substrait bridge; per-schema **`/services/odata/{schema}.svc`** HTTP service; docs; story **`odata-service`**, archived [`completed/20260623-odata-service/STORY.md`](completed/20260623-odata-service/STORY.md). **BACKLOG** **P-41** `done`.
 

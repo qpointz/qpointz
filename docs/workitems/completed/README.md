@@ -23,6 +23,7 @@ Optionally, keep a **newest-first** bullet list below as a human-maintained inde
 
 ## Index (optional, newest first)
 
+- [2026-06-24 — dqm-metadata-facets (15 DQ facet types L1/L2, seeds, relplan sketches, UI schema defaults; WI-342–WI-344)](20260624-dqm-metadata-facets/STORY.md)
 - [2026-06-23 — odata-service (OData v4 per-schema `.svc`, RelNode compose + Rel→Substrait adapter, Java 25; WI-324–WI-329)](20260623-odata-service/STORY.md)
 - [2026-06-22 — ai-v3-mcp-server-poc (MCP capability exposure over HTTP, LangChain example; WI-325–WI-330)](20260622-ai-v3-mcp-server-poc/STORY.md)
 - [2026-06-19 — ai-chat-table-naming (`ai_chat_*` renames V11, CASCADE delete V12, db naming convention; WI-323–WI-324)](20260619-ai-chat-table-naming/STORY.md)

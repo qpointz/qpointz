@@ -136,6 +136,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | M-25 | Schema list/tree REST performance hardening under large catalogs | 💡 improvement | backlog | `MILESTONE.md` (deferred from schema explorer closure) |
 | M-27 | Extend metadata StructuralFacet/API/UI contracts for complex types (LIST/MAP/OBJECT + nested shape rendering); depends on D-2/D-3/D-4 | ✨ feature | planned | `docs/workitems/planned/metadata-complex-types/WI-034-metadata-complex-type-support.md` |
 | M-32 | **Facet type catalog (metadata capture follow-up):** list endpoint + Mill UI **facet type** admin show **`FacetTypeSource.DEFINED` and `OBSERVED`** (union/dedup); **OBSERVED** types visible when assignments created unknown keys; label source in UI; optional read-only / promote-to-defined for OBSERVED | ✨ feature | backlog | `metadata/metadata-facet-type-catalog-defined-and-observed.md` |
+| M-33 | Data Quality facet type definitions — L1/L2 platform seeds, design contract, relplan sketches (**WI-342**–**WI-344**) | 📝 docs | done | [`completed/20260624-dqm-metadata-facets/STORY.md`](completed/20260624-dqm-metadata-facets/STORY.md) — see **MILESTONE** 0.8.0 |
 | M-34 | Eliminate redundant **`MetadataEntity.kind`** / **`entity_kind`** now that entity URNs are typed (`urn:mill/model/...`); domain, JPA, REST DTOs, YAML — **WI-144** | 🔧 refactoring | planned | `docs/workitems/planned/eliminate-entity-kind/STORY.md` |
 
 ---
