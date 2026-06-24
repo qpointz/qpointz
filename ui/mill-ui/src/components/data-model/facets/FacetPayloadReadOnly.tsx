@@ -17,6 +17,7 @@ import {
   HiOutlineInformationCircle,
 } from 'react-icons/hi2';
 import type { FacetPayloadSchema } from '../../../types/facetTypes';
+import { facetFieldEffectiveValue } from '../../../utils/facetSchemaDefault';
 import {
   facetHyperlinkHref,
   facetHyperlinkPresentationActive,
@@ -154,14 +155,16 @@ export function FacetPayloadReadOnly({
 
   const primitiveValue = (s: FacetPayloadSchema, v: unknown): ReactNode => {
     if (s.type === 'BOOLEAN') {
+      const effective = facetFieldEffectiveValue(s, v);
       return (
-        <Badge size="xs" variant="light" color={v ? 'green' : 'gray'}>
-          {String(Boolean(v))}
+        <Badge size="xs" variant="light" color={effective ? 'green' : 'gray'}>
+          {String(Boolean(effective))}
         </Badge>
       );
     }
     if (s.type === 'ENUM') {
-      const raw = String(v ?? '');
+      const effective = facetFieldEffectiveValue(s, v);
+      const raw = String(effective ?? '');
       const selected = (s.values ?? []).find((entry) => entry.value === raw);
       const label = selected?.description ? `${selected.value} - ${selected.description}` : raw;
       return <Badge size="xs" variant="light">{label}</Badge>;

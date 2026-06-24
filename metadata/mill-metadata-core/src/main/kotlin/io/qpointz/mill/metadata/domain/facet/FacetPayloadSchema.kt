@@ -24,7 +24,9 @@ data class FacetPayloadSchema(
     val items: FacetPayloadSchema? = null,
     val values: List<FacetEnumValue>? = null,
     val format: String? = null,
-    val required: List<String>? = null
+    val required: List<String>? = null,
+    /** Optional default hint when a field is omitted (e.g. ENUM `sql_like`). Not applied to BOOLEAN in mill-ui. */
+    val default: Any? = null
 ) : Serializable {
     companion object {
         private const val serialVersionUID: Long = 1L

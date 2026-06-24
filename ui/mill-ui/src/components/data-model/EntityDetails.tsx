@@ -69,6 +69,7 @@ import {
   effectiveFacetPayloadSchemaForEdit,
   facetPayloadSchemaFormSupported,
 } from '../../utils/facetPayloadFormSupport';
+import { applyFacetPayloadSchemaDefaults, facetFieldEffectiveValue } from '../../utils/facetSchemaDefault';
 import { DEFAULT_FACET_TYPE_DISPLAY_PRIORITY, facetTypeArrivalOrderFromRegistry } from '../../config/facetTypeDisplayPriority';
 import { sortFacetTypesByDisplayPriority } from '../../utils/sortFacetTypesByDisplayPriority';
 import { facetBoxBaseTitle } from './facets/facetDisplayUtils';
@@ -551,26 +552,28 @@ export function EntityDetails({
       const text = JSON.stringify(item, null, 2);
       const eff = effectiveFacetPayloadSchemaForEdit(descriptor, instanceIndex);
       const useForm = eff != null && facetPayloadSchemaFormSupported(eff);
+      const formItem = eff != null ? applyFacetPayloadSchemaDefaults(eff, item) : item;
       setEditFacetType(facetType);
       setEditInstanceIndex(instanceIndex);
       setEditMode(useForm ? 'form' : 'json');
       setEditJson(text);
       setEditSnapshot(text);
-      setEditFormValue(item);
-      setJsonExpertDraft({ valid: true, value: item });
+      setEditFormValue(formItem);
+      setJsonExpertDraft({ valid: true, value: formItem });
       return;
     }
     const payload = allByType[facetType] ?? (isMultiple ? [] : {});
     const text = JSON.stringify(payload, null, 2);
     const eff = effectiveFacetPayloadSchemaForEdit(descriptor, null);
     const useForm = eff != null && facetPayloadSchemaFormSupported(eff);
+    const formPayload = eff != null ? applyFacetPayloadSchemaDefaults(eff, payload) : payload;
     setEditFacetType(facetType);
     setEditInstanceIndex(null);
     setEditMode(useForm ? 'form' : 'json');
     setEditJson(text);
     setEditSnapshot(text);
-    setEditFormValue(payload);
-    setJsonExpertDraft({ valid: true, value: payload });
+    setEditFormValue(formPayload);
+    setJsonExpertDraft({ valid: true, value: formPayload });
   };
 
   /** Restore form and expert editor payload to the snapshot from when Edit was opened. */
@@ -868,15 +871,17 @@ export function EntityDetails({
       );
     }
     if (schema.type === 'BOOLEAN') {
+      const effective = facetFieldEffectiveValue(schema, value);
       return (
         <Switch
           size="sm"
-          checked={Boolean(value)}
+          checked={Boolean(effective)}
           onChange={(e) => onChange(e.currentTarget.checked)}
         />
       );
     }
     if (schema.type === 'ENUM') {
+      const effective = facetFieldEffectiveValue(schema, value);
       return (
         <Select
           size="xs"
@@ -884,7 +889,7 @@ export function EntityDetails({
             value: v.value,
             label: v.description ? `${v.value} - ${v.description}` : v.value,
           }))}
-          value={typeof value === 'string' ? value : null}
+          value={typeof effective === 'string' ? effective : null}
           onChange={(v) => onChange(v ?? '')}
         />
       );
@@ -1469,16 +1474,7 @@ export function EntityDetails({
                                   <JsonYamlEditor
                                     key={`${facetType}-${unit.index}-expert`}
                                     value={editFormValue}
-                                    onApply={(next) => {
-                                      setEditFormValue(next);
-                                      setEditJson(JSON.stringify(next, null, 2));
-                                      setJsonExpertDraft({ valid: true, value: next });
-                                      notifications.show({
-                                        color: 'green',
-                                        title: 'Applied',
-                                        message: 'Payload updated from expert editor.',
-                                      });
-                                    }}
+                                    rollbackValue={editFormValue}
                                     onDraftParsed={setJsonExpertDraft}
                                     minHeight={360}
                                   />
@@ -1501,16 +1497,7 @@ export function EntityDetails({
                                     <JsonYamlEditor
                                       key={`${facetType}-${unit.index}-expert`}
                                       value={editFormValue}
-                                      onApply={(next) => {
-                                        setEditFormValue(next);
-                                        setEditJson(JSON.stringify(next, null, 2));
-                                        setJsonExpertDraft({ valid: true, value: next });
-                                        notifications.show({
-                                          color: 'green',
-                                          title: 'Applied',
-                                          message: 'Payload updated from expert editor.',
-                                        });
-                                      }}
+                                      rollbackValue={editFormValue}
                                       onDraftParsed={setJsonExpertDraft}
                                       minHeight={360}
                                     />
@@ -1600,16 +1587,7 @@ export function EntityDetails({
                                 <JsonYamlEditor
                                   key={`${singleFacetCardKey}-expert`}
                                   value={editFormValue}
-                                  onApply={(next) => {
-                                    setEditFormValue(next);
-                                    setEditJson(JSON.stringify(next, null, 2));
-                                    setJsonExpertDraft({ valid: true, value: next });
-                                    notifications.show({
-                                      color: 'green',
-                                      title: 'Applied',
-                                      message: 'Payload updated from expert editor.',
-                                    });
-                                  }}
+                                  rollbackValue={editFormValue}
                                   onDraftParsed={setJsonExpertDraft}
                                   minHeight={360}
                                 />
@@ -1632,16 +1610,7 @@ export function EntityDetails({
                                   <JsonYamlEditor
                                     key={`${singleFacetCardKey}-expert`}
                                     value={editFormValue}
-                                    onApply={(next) => {
-                                      setEditFormValue(next);
-                                      setEditJson(JSON.stringify(next, null, 2));
-                                      setJsonExpertDraft({ valid: true, value: next });
-                                      notifications.show({
-                                        color: 'green',
-                                        title: 'Applied',
-                                        message: 'Payload updated from expert editor.',
-                                      });
-                                    }}
+                                    rollbackValue={editFormValue}
                                     onDraftParsed={setJsonExpertDraft}
                                     minHeight={360}
                                   />
