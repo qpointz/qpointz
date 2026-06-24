@@ -42,6 +42,7 @@ Payload schema node fields:
 - `items` (required for `ARRAY`): nested schema node
 - `values` (required for `ENUM`): non-empty list of enum value entries
 - `format` (optional for `STRING`): one of `date | date-time | email | uri`
+- `default` (optional): hint for execution / authoring when a facet instance omits the field. **Not applied to BOOLEAN controls in mill-ui entity facet forms** (omitted booleans render unchecked). The **facet type admin editor** exposes this for scalar nodes (`STRING`, `NUMBER`, `BOOLEAN`, `ENUM`). Prefer explicit values in stored payloads.
 
 Object field entry:
 
