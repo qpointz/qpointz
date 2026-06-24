@@ -18,8 +18,7 @@ class ODataEntityReader {
         val reader: RecordReader = RecordReaders.recordReader(iterator)
         val rows = mutableListOf<Map<String, Any?>>()
         try {
-            while (reader.hasNext() && rows.size < maxRows) {
-                reader.next()
+            while (rows.size < maxRows && reader.next()) {
                 val row = linkedMapOf<String, Any?>()
                 for (col in 0 until reader.columnCount) {
                     val name = reader.getColumnMetadata(col).name

@@ -61,6 +61,11 @@ class SchemaFacets(
         /** Shared empty instance returned for physical objects that have no matched metadata. */
         val EMPTY = SchemaFacets(emptySet(), emptyList())
 
+        private val urnCodec = DefaultMetadataEntityUrnCodec()
+
+        private val relationFacetShortKeys =
+            setOf("relation", "relation-source", "relation-target")
+
         /**
          * Builds typed [MetadataFacet] accessors plus [facetsResolved] from merged read rows.
          *
@@ -74,17 +79,21 @@ class SchemaFacets(
             if (resolved.isEmpty()) return EMPTY
             val facets = mutableSetOf<MetadataFacet>()
             val byType = resolved.groupBy { MetadataEntityUrn.canonicalize(it.facetTypeKey) }
+            val relationRows = mutableListOf<FacetInstance>()
             for ((canonType, rows) in byType.toSortedMap()) {
                 val card = catalog.findDefinition(canonType)?.targetCardinality
                     ?: FacetTargetCardinality.SINGLE
                 when (shortKey(canonType)) {
                     "descriptive" -> convertOne(rows, card, DescriptiveFacet::class.java, facets)
                     "structural" -> convertOne(rows, card, StructuralFacet::class.java, facets)
-                    "relation" -> convertRelation(rows, card, facets)
+                    in relationFacetShortKeys -> relationRows += expandRelationRows(rows, card)
                     "concept" -> convertOne(rows, card, ConceptFacet::class.java, facets)
                     "value-mapping" -> convertOne(rows, card, ValueMappingFacet::class.java, facets)
                     else -> Unit
                 }
+            }
+            if (relationRows.isNotEmpty()) {
+                convertRelation(relationRows, facets)
             }
             return SchemaFacets(facets, resolved)
         }
@@ -97,6 +106,15 @@ class SchemaFacets(
             MetadataUrns.FACET_TYPE_VALUE_MAPPING -> "value-mapping"
             else -> canonType.removePrefix(MetadataUrns.FACET_TYPE_PREFIX)
         }
+
+        private fun expandRelationRows(
+            rows: List<FacetInstance>,
+            card: FacetTargetCardinality,
+        ): List<FacetInstance> =
+            when (card) {
+                FacetTargetCardinality.MULTIPLE -> rows
+                FacetTargetCardinality.SINGLE -> listOf(rows.first())
+            }
 
         private fun <T : MetadataFacet> convertOne(
             rows: List<FacetInstance>,
@@ -111,23 +129,18 @@ class SchemaFacets(
 
         private fun convertRelation(
             rows: List<FacetInstance>,
-            card: FacetTargetCardinality,
             out: MutableSet<MetadataFacet>
         ) {
             if (rows.isEmpty()) return
-            val rowsToMerge =
-                when (card) {
-                    FacetTargetCardinality.MULTIPLE -> rows
-                    FacetTargetCardinality.SINGLE -> listOf(rows.first())
-                }
             val allRelationMaps =
-                rowsToMerge.flatMap { row ->
-                    val norm =
-                        RelationPayloadNormalization.normalizeToRelationPayload(
-                            row.payload as? Map<String, Any?> ?: emptyMap(),
-                        )
-                    (norm["relations"] as? Iterable<*>)?.mapNotNull { it as? Map<String, Any?> }
-                        ?: emptyList()
+                rows.flatMap { row ->
+                    val path = urnCodec.decode(row.entityId)
+                    RelationPayloadNormalization.normalizeFacetRow(
+                        facetTypeKey = row.facetTypeKey,
+                        payload = row.payload as? Map<String, Any?> ?: emptyMap(),
+                        ownerSchema = path.schema,
+                        ownerTable = path.table,
+                    )
                 }
             val merged =
                 linkedMapOf<String, Any?>(

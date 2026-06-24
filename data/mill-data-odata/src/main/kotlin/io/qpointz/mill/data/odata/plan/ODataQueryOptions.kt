@@ -2,6 +2,7 @@ package io.qpointz.mill.data.odata.plan
 
 import com.sdl.odata.api.processor.query.Criteria
 import com.sdl.odata.api.processor.query.CriteriaFilterOperation
+import com.sdl.odata.api.processor.query.ExpandOperation
 import com.sdl.odata.api.processor.query.JoinOperation
 import com.sdl.odata.api.processor.query.LimitOperation
 import com.sdl.odata.api.processor.query.OrderByOperation
@@ -22,6 +23,8 @@ data class ODataQueryOptions(
     val top: Int? = null,
     val skip: Int? = null,
     val expands: List<JoinOperation> = emptyList(),
+    val expandNavigationNames: List<String> = emptyList(),
+    val selectDistinct: Boolean = false,
 ) {
     companion object {
         /**
@@ -34,9 +37,12 @@ data class ODataQueryOptions(
             var orderBy: List<OrderByProperty> = emptyList()
             var top: Int? = null
             var skip: Int? = null
+            var selectDistinct = false
             val expands = mutableListOf<JoinOperation>()
+            val expandNavigationNames = mutableListOf<String>()
 
             while (true) {
+                selectDistinct = selectDistinct || current.selectDistinct()
                 when (current) {
                     is CriteriaFilterOperation -> {
                         filter = current.criteria
@@ -62,6 +68,10 @@ data class ODataQueryOptions(
                         expands += current
                         current = current.leftSource
                     }
+                    is ExpandOperation -> {
+                        expandNavigationNames += current.expandPropertiesAsJava
+                        current = current.source
+                    }
                     is SelectOperation -> {
                         return ODataQueryOptions(
                             entitySetName = current.entitySetName,
@@ -71,6 +81,8 @@ data class ODataQueryOptions(
                             top = top,
                             skip = skip,
                             expands = expands,
+                            expandNavigationNames = expandNavigationNames,
+                            selectDistinct = selectDistinct,
                         )
                     }
                     else -> throw IllegalArgumentException("Unsupported query operation: ${current::class.java.simpleName}")

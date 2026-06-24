@@ -65,4 +65,58 @@ class RelationPayloadNormalizationTest {
         assertEquals(1, relations.size)
         assertEquals(mapOf("schema" to "a", "table" to "t1"), relations[0]["sourceTable"])
     }
+
+    @Test
+    fun `relation-source maps owner table to source`() {
+        val payload =
+            mapOf(
+                "sourceColumns" to listOf("id"),
+                "target" to
+                    mapOf(
+                        "schema" to "skymill",
+                        "table" to "segments",
+                        "columns" to listOf("origin"),
+                    ),
+                "cardinality" to "ONE_TO_MANY",
+            )
+        val relation =
+            RelationPayloadNormalization.relationSourceToRelation(payload, "skymill", "cities")
+                ?: error("expected relation")
+        assertEquals(mapOf("schema" to "skymill", "table" to "cities"), relation["sourceTable"])
+        assertEquals(mapOf("schema" to "skymill", "table" to "segments"), relation["targetTable"])
+        assertEquals(listOf("id"), relation["sourceAttributes"])
+        assertEquals(listOf("origin"), relation["targetAttributes"])
+        assertEquals("origin_segments", relation["name"])
+    }
+
+    @Test
+    fun `relation-target flips to owner-as-source and inverts cardinality`() {
+        val payload =
+            mapOf(
+                "source" to
+                    mapOf(
+                        "schema" to "skymill",
+                        "table" to "cities",
+                        "columns" to listOf("id"),
+                    ),
+                "targetColumns" to listOf("origin"),
+                "cardinality" to "ONE_TO_MANY",
+            )
+        val relation =
+            RelationPayloadNormalization.relationTargetToRelation(payload, "skymill", "segments")
+                ?: error("expected relation")
+        assertEquals(mapOf("schema" to "skymill", "table" to "segments"), relation["sourceTable"])
+        assertEquals(mapOf("schema" to "skymill", "table" to "cities"), relation["targetTable"])
+        assertEquals(listOf("origin"), relation["sourceAttributes"])
+        assertEquals(listOf("id"), relation["targetAttributes"])
+        assertEquals("MANY_TO_ONE", relation["cardinality"])
+        assertEquals("origin_cities", relation["name"])
+    }
+
+    @Test
+    fun `invertCardinality swaps one-to-many and many-to-one`() {
+        assertEquals("MANY_TO_ONE", RelationPayloadNormalization.invertCardinality("ONE_TO_MANY"))
+        assertEquals("ONE_TO_MANY", RelationPayloadNormalization.invertCardinality("MANY_TO_ONE"))
+        assertEquals("ONE_TO_ONE", RelationPayloadNormalization.invertCardinality("ONE_TO_ONE"))
+    }
 }

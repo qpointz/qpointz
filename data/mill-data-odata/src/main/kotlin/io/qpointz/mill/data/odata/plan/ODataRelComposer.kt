@@ -52,6 +52,9 @@ class ODataRelComposer @JvmOverloads constructor(
         options.expands.forEach { expand ->
             applyExpand(schemaName, options.entitySetName, expand, builder)
         }
+        options.expandNavigationNames.forEach { navigationName ->
+            applyExpandNavigation(schemaName, options.entitySetName, navigationName, builder)
+        }
 
         options.filter?.let { criteria ->
             val rex = expressionToRex.toRex(schemaName, options.entitySetName, criteria, builder)
@@ -80,6 +83,10 @@ class ODataRelComposer @JvmOverloads constructor(
             builder.sort(*fields)
         }
 
+        if (options.selectDistinct) {
+            builder.distinct()
+        }
+
         val top = options.top?.coerceAtMost(maxTop)
         val skip = options.skip ?: 0
         when {
@@ -89,6 +96,33 @@ class ODataRelComposer @JvmOverloads constructor(
         }
 
         return RelBuilderRoots.toRoot(builder)
+    }
+
+    private fun applyExpandNavigation(
+        schemaName: String,
+        entitySetName: String,
+        navigationPropertyName: String,
+        builder: RelBuilder,
+    ) {
+        val targetTable = propertyResolver.expandTargetTable(schemaName, entitySetName, navigationPropertyName)
+            ?: throw ODataExpressionException("Unknown expand navigation property: $navigationPropertyName")
+        val joinColumns = propertyResolver.expandJoinColumns(
+            schemaName,
+            entitySetName,
+            navigationPropertyName,
+            targetTable,
+        ) ?: throw ODataExpressionException(
+            "Unknown expand navigation property: $navigationPropertyName",
+        )
+        builder.scan(schemaName, targetTable)
+        val sourceIndex = propertyResolver.columnIndex(schemaName, entitySetName, joinColumns.first)
+            ?: throw ODataExpressionException("Unknown expand join source column: ${joinColumns.first}")
+        val targetIndex = propertyResolver.columnIndex(schemaName, targetTable, joinColumns.second)
+            ?: throw ODataExpressionException("Unknown expand join target column: ${joinColumns.second}")
+        builder.join(
+            JoinRelType.LEFT,
+            builder.equals(builder.field(2, 0, sourceIndex), builder.field(2, 1, targetIndex)),
+        )
     }
 
     private fun applyExpand(
@@ -101,12 +135,19 @@ class ODataRelComposer @JvmOverloads constructor(
         if (propertyResolver.resolveTable(schemaName, targetTable) == null) {
             throw ODataExpressionException("Unknown expand target entity set: $targetTable")
         }
+        val joinColumns = propertyResolver.expandJoinColumns(
+            schemaName,
+            entitySetName,
+            expand.joinPropertyName(),
+            targetTable,
+        ) ?: throw ODataExpressionException(
+            "Unknown expand navigation property: ${expand.joinPropertyName()}",
+        )
         builder.scan(schemaName, targetTable)
-        val joinName = expand.joinPropertyName()
-        val sourceIndex = propertyResolver.columnIndex(schemaName, entitySetName, joinName)
-            ?: throw ODataExpressionException("Unknown expand join property: $joinName")
-        val targetIndex = propertyResolver.columnIndex(schemaName, targetTable, joinName)
-            ?: throw ODataExpressionException("Unknown expand target join property: $joinName")
+        val sourceIndex = propertyResolver.columnIndex(schemaName, entitySetName, joinColumns.first)
+            ?: throw ODataExpressionException("Unknown expand join source column: ${joinColumns.first}")
+        val targetIndex = propertyResolver.columnIndex(schemaName, targetTable, joinColumns.second)
+            ?: throw ODataExpressionException("Unknown expand join target column: ${joinColumns.second}")
         val joinType = if (expand.isOuterJoin) JoinRelType.LEFT else JoinRelType.INNER
         builder.join(
             joinType,
