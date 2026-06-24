@@ -457,7 +457,7 @@ facetTypeUrn: urn:mill/metadata/facet-type:qsynth-model
 title: Qsynth model
 description: "Qsynth model settings for a schema entity."
 enabled: true
-category: data
+category: synthetic
 mandatory: false
 targetCardinality: SINGLE
 contentSchema:
@@ -508,7 +508,7 @@ facetTypeUrn: urn:mill/metadata/facet-type:qsynth-table
 title: Qsynth table
 description: "Qsynth dataset settings for a table entity."
 enabled: true
-category: data
+category: synthetic
 mandatory: false
 targetCardinality: SINGLE
 contentSchema:
@@ -567,7 +567,7 @@ facetTypeUrn: urn:mill/metadata/facet-type:qsynth-column
 title: Qsynth column
 description: "Qsynth attribute settings for a column entity."
 enabled: true
-category: data
+category: synthetic
 mandatory: false
 targetCardinality: SINGLE
 contentSchema:
@@ -621,7 +621,7 @@ facetTypeUrn: urn:mill/metadata/facet-type:qsynth-run
 title: Qsynth run
 description: "Qsynth generation run record for a schema entity."
 enabled: true
-category: data
+category: synthetic
 mandatory: false
 targetCardinality: SINGLE
 contentSchema:
