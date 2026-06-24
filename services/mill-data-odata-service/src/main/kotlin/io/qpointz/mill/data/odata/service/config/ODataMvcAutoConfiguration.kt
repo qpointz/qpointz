@@ -1,6 +1,7 @@
 package io.qpointz.mill.data.odata.service.config
 
 import io.qpointz.mill.annotations.service.ConditionalOnService
+import io.qpointz.mill.data.odata.service.render.MillMetadataDocumentRenderer
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.context.annotation.ComponentScan
 
@@ -9,5 +10,11 @@ import org.springframework.context.annotation.ComponentScan
  */
 @AutoConfiguration(after = [ODataWebAutoConfiguration::class])
 @ConditionalOnService(value = "odata", group = "data")
-@ComponentScan(basePackageClasses = [MillODataController::class, ODataCatalogController::class])
+@ComponentScan(
+    basePackageClasses = [
+        MillODataController::class,
+        ODataCatalogController::class,
+        MillMetadataDocumentRenderer::class,
+    ],
+)
 class ODataMvcAutoConfiguration

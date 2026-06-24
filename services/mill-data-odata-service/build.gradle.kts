@@ -25,6 +25,7 @@ dependencies {
     implementation(libs.sdl.odata.processor)
     implementation(libs.boot.starter.webmvc)
     implementation(libs.bundles.logging)
+    implementation(libs.caffeine)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
     annotationProcessor(libs.boot.configuration.processor)
@@ -48,6 +49,7 @@ testing {
 
             dependencies {
                 implementation(project())
+                implementation(project(":data:mill-data-odata"))
                 implementation(project(":data:mill-data-autoconfigure"))
                 implementation(project(":data:formats:mill-data-format-text"))
                 implementation(project(":metadata:mill-metadata-autoconfigure"))
@@ -57,6 +59,8 @@ testing {
                 implementation(libs.boot.starter.webmvc)
                 implementation(libs.boot.starter.webmvc.test)
                 implementation(libs.assertj.core)
+                implementation(libs.sdl.odata.api)
+                implementation(libs.sdl.odata.processor)
             }
         }
         configureEach {
@@ -65,6 +69,9 @@ testing {
                 dependencies {
                     implementation(project())
                     implementation(libs.boot.starter.test)
+                    implementation(libs.assertj.core)
+                    implementation(libs.mockito.kotlin)
+                    implementation(libs.sdl.odata.api)
                 }
             }
         }

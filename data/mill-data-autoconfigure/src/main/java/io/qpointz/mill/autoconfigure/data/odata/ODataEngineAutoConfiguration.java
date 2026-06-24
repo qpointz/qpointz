@@ -52,7 +52,7 @@ public class ODataEngineAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public EdmPropertyResolver odataEdmPropertyResolver(SchemaFacetService schemaFacetService) {
-        return new EdmPropertyResolver(schemaFacetService);
+        return new EdmPropertyResolver(schemaFacetService, null);
     }
 
     /**

@@ -11,9 +11,14 @@ import com.sdl.odata.edm.model.KeyImpl
 import com.sdl.odata.edm.model.PropertyImpl
 import com.sdl.odata.edm.model.PropertyRefImpl
 import com.sdl.odata.edm.model.SchemaImpl
+import io.qpointz.mill.data.odata.annotation.EdmAnnotationMapper
+import io.qpointz.mill.data.odata.annotation.EdmAnnotationModel
+import io.qpointz.mill.data.odata.annotation.EdmAnnotationTarget
 import io.qpointz.mill.data.odata.type.MillTypeToEdmMapper
+import io.qpointz.mill.data.schema.RelationFacetMaterializer
 import io.qpointz.mill.data.schema.SchemaFacetService
 import io.qpointz.mill.data.schema.SchemaTableWithFacets
+import io.qpointz.mill.data.schema.SchemaWithFacets
 import io.qpointz.mill.metadata.service.MetadataContext
 
 /**
@@ -23,6 +28,7 @@ class EntityDataModelFactory @JvmOverloads constructor(
     private val schemaFacetService: SchemaFacetService,
     private val typeMapper: MillTypeToEdmMapper = MillTypeToEdmMapper(),
     private val navigationPropertyBuilder: NavigationPropertyBuilder = NavigationPropertyBuilder(),
+    private val annotationMapper: EdmAnnotationMapper = EdmAnnotationMapper(),
 ) {
 
     /**
@@ -33,17 +39,29 @@ class EntityDataModelFactory @JvmOverloads constructor(
     fun buildForSchema(
         schemaName: String,
         context: MetadataContext = MetadataContext.global(),
-    ): EntityDataModel {
+    ): EntityDataModel =
+        buildPackageForSchema(schemaName, context).entityDataModel
+
+    /**
+     * @param schemaName physical schema to expose
+     * @param context metadata scope for facet resolution
+     * @return EDM plus facet-derived CSDL annotations for {@code $metadata}
+     */
+    fun buildPackageForSchema(
+        schemaName: String,
+        context: MetadataContext = MetadataContext.global(),
+    ): SchemaEdmPackage {
         val facetResult = schemaFacetService.getSchemas(context)
         val schema = facetResult.schemas.singleOrNull { it.schemaName == schemaName }
-            ?: return emptyModel(schemaName)
+            ?: return emptyPackage(schemaName)
 
         val entitySets = mutableListOf<EntitySet>()
         val namespace = EntitySetNaming.entityTypeNamespace(schemaName)
         val schemaBuilder = SchemaImpl.Builder().setNamespace(namespace)
+        val annotationBuilder = EdmAnnotationModel.Builder()
 
         schema.tables.forEach { table ->
-            val entityType = buildEntityType(table)
+            val entityType = buildEntityType(table, schema, annotationBuilder)
             schemaBuilder.addType(entityType)
             entitySets += EntitySetImpl.Builder()
                 .setName(table.tableName)
@@ -58,23 +76,39 @@ class EntityDataModelFactory @JvmOverloads constructor(
             .addEntitySets(entitySets)
             .build()
 
-        return EntityDataModelImpl(container, listOf(schemaBuilder.build()))
+        return SchemaEdmPackage(
+            entityDataModel = EntityDataModelImpl(container, listOf(schemaBuilder.build())),
+            annotations = annotationBuilder.build(),
+        )
     }
 
-    private fun emptyModel(schemaName: String): EntityDataModel {
+    private fun emptyPackage(schemaName: String): SchemaEdmPackage {
         val container = EntityContainerImpl.Builder()
             .setName(schemaName)
             .setNamespace(EntitySetNaming.MODEL_NAMESPACE_PREFIX)
             .build()
-        return EntityDataModelImpl(container, emptyList())
+        return SchemaEdmPackage(
+            entityDataModel = EntityDataModelImpl(container, emptyList()),
+            annotations = EdmAnnotationModel.Builder().build(),
+        )
     }
 
-    private fun buildEntityType(table: SchemaTableWithFacets): EntityType {
+    private fun buildEntityType(
+        table: SchemaTableWithFacets,
+        schema: SchemaWithFacets,
+        annotationBuilder: EdmAnnotationModel.Builder,
+    ): EntityType {
         val namespace = EntitySetNaming.entityTypeNamespace(table.schemaName)
         val builder = EntityTypeImpl.Builder()
             .setNamespace(namespace)
             .setName(table.tableName)
             .setIsAbstract(false)
+
+        annotationBuilder.addFromFacets(
+            EdmAnnotationTarget.EntityType(table.schemaName, table.tableName),
+            table.facets,
+            annotationMapper,
+        )
 
         table.columns.forEach { column ->
             val property = PropertyImpl.Builder()
@@ -83,9 +117,19 @@ class EntityDataModelFactory @JvmOverloads constructor(
                 .setIsNullable(typeMapper.isNullable(column.dataType))
                 .build()
             builder.addStructuralProperty(property)
+            annotationBuilder.addFromFacets(
+                EdmAnnotationTarget.StructuralProperty(
+                    table.schemaName,
+                    table.tableName,
+                    column.columnName,
+                ),
+                column.facets,
+                annotationMapper,
+            )
         }
 
-        navigationPropertyBuilder.buildForTable(table).forEach { nav ->
+        val relations = RelationFacetMaterializer.effectiveRelations(schema.schemaName, table, schema)
+        navigationPropertyBuilder.buildForTable(table, relations).forEach { nav ->
             builder.addStructuralProperty(nav)
         }
 
