@@ -24,8 +24,10 @@ facet services, and wire it through **`mill-ai-autoconfigure`** when metadata be
    - `listFacetTypes()` — merge DEFINED definitions; include OBSERVED-only keys when repository
      exposes them (best-effort alignment with **M-32**; DEFINED wins on dedup)
    - `listEntityFacets(...)` — delegate to facet assignment read path (same filters as REST)
-   - `validateFacetPayload(...)` — classpath / manifest rules via existing
-     [`FacetPayloadStructureValidator`](../../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/capabilities/metadata/FacetPayloadStructureValidator.kt)
+   - `validateFacetPayload(facetTypeKey, payload, metadataEntityId?)` — classpath / manifest rules via
+     [`FacetPayloadStructureValidator`](../../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/capabilities/metadata/FacetPayloadStructureValidator.kt);
+     when **`metadataEntityId`** is present, also enforce facet type **`applicableTo`** vs target entity kind
+     (resolve kind from URN; consult `FacetTypeManifest.applicableTo`)
 2. **Unit tests** with fakes or test doubles for catalog + entity reads
 3. **`mill-ai-autoconfigure`**:
    - `@ConditionalOnBean` (or equivalent) registers real port when metadata stack present
@@ -36,16 +38,29 @@ facet services, and wire it through **`mill-ai-autoconfigure`** when metadata be
 
 - HTTP client loopback to `/api/v1/metadata` (in-process only)
 - Metadata write / import APIs
-- Changing `MetadataReadPort` interface surface beyond optional manifest fields already on
-  `FacetTypeManifest` (e.g. `source`)
+- Tool handler changes (`validate_facet_payload` / `propose_facet_assignment` args) — **WI-347**
+- Changing `FacetTypeManifest` seed fields beyond what catalog already exposes (e.g. `source`)
+
+## Port contract (locked — [`GAPS.md`](GAPS.md) §2)
+
+Extend [`MetadataReadPort`](../../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/capabilities/metadata/MetadataReadPort.kt):
+
+```kotlin
+fun validateFacetPayload(
+    facetTypeKey: String,
+    payload: Map<String, Any?>,
+    metadataEntityId: String? = null,
+): List<String>
+```
+
+Update `EmptyMetadataReadPort`, harness port, and `validateFacetPayloadInternal` in **`mill-ai`** as part of this WI.
 
 ## Acceptance Criteria
 
 - [ ] With metadata autoconfigure on classpath, `MetadataReadPort` bean is non-empty in Skymill IT
 - [ ] `listFacetTypes()` returns platform seeds (e.g. `descriptive`, `relation`, DQ types) in IT
 - [ ] `EmptyMetadataReadPort` still used when metadata module absent (unit test)
+- [ ] `validateFacetPayload(..., metadataEntityId)` rejects type when **`applicableTo`** does not match target entity kind (unit test with fake catalog + URN)
 - [ ] No regression in `SchemaFacingCapabilityDependencyFactoryTest`
-
-## Suggested commit
 
 `[feat] WI-346: in-process MetadataReadPort adapter and Spring wiring`

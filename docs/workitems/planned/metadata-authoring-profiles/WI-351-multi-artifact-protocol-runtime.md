@@ -66,12 +66,21 @@ Capability-specific prompts and catalog tools remain **WI-347**.
 - [`assistantReplyView.ts`](../../../../ui/mill-ui/src/utils/assistantReplyView.ts) — plural section title when multiple `facet-proposal` on one message
 - Vitest: [`artifactGroups.ts`](../../../../ui/mill-ui/src/components/chat/artifactPreview/artifactGroups.ts) + [`MessageArtifactComposer`](../../../../ui/mill-ui/src/components/chat/artifactPreview/MessageArtifactComposer.tsx) with **2+** `facet-proposal` artefacts → **2+** cards
 
-### 6. Tests (`mill-ai`, `mill-ai-service`)
+### 6. Tests (`mill-ai`, `mill-ai-service`, `ui/mill-ui`)
 
-- Unit: batch payload normalizer scalar → `results[1]`
-- Unit: fan-out produces 2+ routed persist events from one batch `ProtocolFinal`
-- Agent test: two parallel CAPTURE successes (harness / test capability) → two replay artefacts on GET
-- **Interim path (if needed):** N × scalar `ProtocolFinal` with fan-out only in mapper — must still pass two-artefact test; document deprecation in WI-347
+**Proof strategy (locked — [`GAPS.md`](GAPS.md) §1):** layered mock-LLM + per-layer unit tests; no legacy `capture_*`, no live LLM in WI-351.
+
+| Layer | Test | Assert |
+|-------|------|--------|
+| L1 | [`LangChain4jAgentEmitTest`](../../../../ai/mill-ai/src/test/kotlin/io/qpointz/mill/ai/runtime/langchain4j/LangChain4jAgentEmitTest.kt) — `StreamingChatModel` with **two** parallel `propose_facet_assignment` + mock `MetadataReadPort` | One batch `ProtocolFinal` `{ results: […, …] }` |
+| L2 | Batch normalizer unit test | Scalar ↔ `results[1]`; batch expands to two facet maps |
+| L3 | [`StandardPersistenceProjectorTest`](../../../../ai/mill-ai/src/test/kotlin/io/qpointz/mill/ai/persistence/StandardPersistenceProjectorTest.kt) — injected batch routed event | N `ArtifactRecord` rows per turn |
+| L4 | [`AgentEventToSseMapperTest`](../../../../ai/mill-ai/src/test/kotlin/io/qpointz/mill/ai/sse/ChatSseEventTest.kt) — batch `ProtocolFinal` | N `facet-proposal` `item.part.updated` (append after first) |
+| L5 | [`ArtifactWireMapperTest`](../../../../ai/mill-ai-service/src/test/kotlin/io/qpointz/mill/ai/service/ArtifactWireMapperTest.kt) | N persisted rows → N wire `artifacts[]` |
+| L6 | mill-ui Vitest — `MessageArtifactComposer` / `artifactGroups` | 2+ `facet-proposal` → 2+ cards |
+
+- **Interim path (if needed):** N × scalar `ProtocolFinal` with fan-out only in mapper — must still pass L3–L6; remove before story close (GAPS §21)
+- **Deferred:** `mill-ai-test` live-LLM multi-facet scenarios → **WI-349**
 
 ## Out of Scope
 

@@ -18,6 +18,17 @@ A **facet proposal** is a structured outcome of an assistant or tool turn that s
 
 Proposals may surface as future structured `item.part.updated` rows (see transport doc). The **text bubble** remains independent; proposals are **ignored** by the thin client until a dedicated renderer or promotion flow exists.
 
+### Capture vs metadata-scope merge (authoring tools — locked GAPS §3c)
+
+When the agent uses **`list_metadata_scopes`** before **`propose_facet_assignment`**:
+
+| `list_metadata_scopes` result | Chat artefact (SSE/replay) | Metadata scope |
+| ----------------------------- | -------------------------- | -------------- |
+| **Non-empty** — model picks a returned `scopeUrn` | **Persisted** | **`scopeUrn` on artefact** denotes intended scope for **consumer merge** (promotion UI, M-23, MCP client). No silent Metadata REST write. |
+| **Empty `[]`** | **Persisted** (orphan proposal) | **Not** saved or merged into any metadata scope. **Consumer responsibility** — promotion flow must not assume a default global scope. |
+
+This split keeps replay complete while avoiding implicit catalogue writes when the runtime exposes no assignable scope.
+
 ## User action and idempotency
 
 - **No silent writes:** material is **not** promoted to any durable scope until the user confirms (label TBD: **Promote**, **Save to chat context**, **Pin**, etc.).

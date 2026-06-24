@@ -26,7 +26,9 @@ Design doc(s) under `docs/design/agentic/` that lock:
 
 | Tool | Capability | Change summary |
 |------|------------|----------------|
-| `list_facet_types` | `metadata` | Catalog discovery; expose **`applicableTo`**; optional filter by entity kind / target URN — **extend capability if needed** |
+| `list_facet_types` | `metadata` | **Summary rows only** (reasoning); optional filters — **no** `contentSchema` ([`GAPS.md`](GAPS.md) §3b) |
+| `get_facet_type` | `metadata` | **Full manifest** + `contentSchema` for one `facetTypeKey` (generation) |
+| `list_metadata_scopes` | `metadata` | **Context-sensitive** assignable scopes (chat vs MCP); see [`GAPS.md`](GAPS.md) §3c |
 | `validate_facet_payload` | `metadata` | Validates **`(facetType, payload)`** against **`contentSchema`**; **reuse/extend** for **`applicableTo`** when `metadataEntityId` (target) supplied |
 | `propose_facet_assignment` | `metadata-authoring` | **`(target, facetType, payload)`**; delegates schema + **`applicableTo`** checks to **`metadata`** shared validation — capture only when valid |
 | `capture_description` | `schema-authoring` | **Remove** |
@@ -97,11 +99,10 @@ Prefer **one `ProtocolFinal`** with **`results[]`** for **`metadata.faceting.cap
 
 ```
 ground target entity (schema tools) → resolve metadataEntityId (URN)
-→ list_facet_types [filter by applicableTo / entity kind — metadata QUERY]
-→ select facetTypeKey
-→ generate payload from contentSchema
-→ validate_facet_payload(facetType, payload [, target])   # schema + applicableTo via metadata capability
-→ propose_facet_assignment(target, facetType, payload)     # reuses metadata validation
+→ list_facet_types [optional filters]              # reasoning — shortlist facetTypeKey
+→ get_facet_type(facetTypeKey)                     # generation — read contentSchema
+→ validate_facet_payload(facetType, payload [, target])
+→ propose_facet_assignment(target, facetType, payload)
 → facet-proposal artefact
 ```
 
@@ -141,8 +142,10 @@ all facets use the row above. Remove or bypass [`FacetProposalWire`](../../../..
 
 | Concern | Owner | Notes |
 |---------|--------|--------|
-| Expose `applicableTo` on catalog rows | `list_facet_types` | Already on `FacetTypeManifest`; optional **filter** by entity kind or target URN |
-| Resolve entity kind from target URN | `metadata` (shared helper) | e.g. `urn:mill/model/table:…` → `table` — **extend capability if missing** |
+| Expose `applicableTo` on catalog rows | `list_facet_types` | Summary rows include **`applicableTo`**; optional filter by entity kind or target URN |
+| Full schema for payload | `get_facet_type` | One type’s full **`contentSchema`** — not on list output ([`GAPS.md`](GAPS.md) §3b) |
+| Resolve entity kind from target URN | `MetadataReadPort` / **`validate_facet_payload`** | Adapter resolves kind from URN for **`applicableTo`** (**WI-346**) |
+| Ground catalog paths | **`schema`** tools (existing) | `list_schemas` / `list_tables` / `list_columns` → canonical names; optional **`metadataEntityId`** on responses (**WI-347**) — no `build_metadata_entity_urn` tool ([`GAPS.md`](GAPS.md) §3a) |
 | Check type applies to target | `validate_facet_payload` | **Extend input** with optional `metadataEntityId` (target) to validate **`applicableTo`** alongside schema |
 | Capture gate | `propose_facet_assignment` | Calls same **`metadata`** validation helper (schema + applicableTo + target) |
 
@@ -167,7 +170,7 @@ Reference platform seeds and [`dq-rule-facet-types.md`](../../../design/metadata
 
 ### G. Tool gaps (proposed extensions)
 
-See **Tool gaps and proposals** in [`STORY.md`](STORY.md). WI-345 should decide P0 extensions vs P1 new tools (`get_facet_type`, `build_metadata_entity_urn`, `list_metadata_scopes`) and optional **`examplePayload`** on facet type seeds.
+See **Tool gaps and proposals** in [`STORY.md`](STORY.md). **`get_facet_type`** and **`list_metadata_scopes`** locked in [`GAPS.md`](GAPS.md) §3b / §3c. Remaining P1: optional **`examplePayload`** on facet type seeds.
 
 ### H. Out of scope callouts
 

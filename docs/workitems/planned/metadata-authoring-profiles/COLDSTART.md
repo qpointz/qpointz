@@ -7,7 +7,7 @@
 
 ## What this story does
 
-**Primary:** Catalog-generic **metadata facet authoring** — LLM uses `list_facet_types` → `validate_facet_payload` → `propose_facet_assignment` for **any** facet type (not only `descriptive`). No `capture_<facet>` tools.
+**Primary:** Catalog-generic **metadata facet authoring** — LLM uses `list_facet_types` (reasoning) → `get_facet_type` (generation) → `validate_facet_payload` → `propose_facet_assignment` for **any** facet type (not only `descriptive`). No `capture_<facet>` tools.
 
 **Secondary:** YAML **agent profiles** (`kind: AgentProfile`), `mill.ai.profiles.seed.resources`, real **`MetadataReadPort`** on mill-service.
 
@@ -85,10 +85,13 @@ Production chat runtime: **`LangChain4jChatRuntime`** → **`LangChain4jAgent`**
 
 | Tool | Capability |
 |------|------------|
-| `list_facet_types` | `metadata` |
+| `list_facet_types` | `metadata` (summary — reasoning) |
+| `get_facet_type` | `metadata` (full schema — generation) |
 | `list_entity_facets` | `metadata` |
 | `validate_facet_payload` | `metadata` |
 | `propose_facet_assignment` | `metadata-authoring` |
+
+**Note:** `get_facet_type` registers on **`metadata`** — all profiles with that capability see it; authoring prompts own the list→get sequence ([`GAPS.md`](GAPS.md) §3b).
 
 **Forbidden:** any `capture_<specific facet>` tool.
 
@@ -146,8 +149,10 @@ All in [`GAPS.md`](GAPS.md). Priority items:
 
 | # | Topic |
 |---|--------|
-| 1 | WI-351 test vehicle (legacy `capture_description` ×2 vs test capability vs mock) |
-| 2 | `applicableTo` — extend `MetadataReadPort` vs handler-only |
+| 1 | ~~WI-351 test vehicle~~ — **locked:** mock LLM 2× `propose_facet_assignment` + L1–L6 layer tests ([`GAPS.md`](GAPS.md) §1) |
+| 2 | ~~`applicableTo`~~ — **locked:** extend `MetadataReadPort` with optional `metadataEntityId` ([`GAPS.md`](GAPS.md) §2) |
+| 3 | ~~`list_facet_types` / `get_facet_type`~~ — **locked** ([`GAPS.md`](GAPS.md) §3b) |
+| 3c | ~~**`list_metadata_scopes`**~~ — **locked:** Option B context-sensitive + empty-list caveat ([`GAPS.md`](GAPS.md) §3c) |
 | 6 | Relation facet type key normative rule |
 | 7–8 | `schema-authoring` capability vs `metadata-authoring` profile strategy |
 | 9 | Partial batch failure semantics |

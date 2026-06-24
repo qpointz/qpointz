@@ -1,4 +1,4 @@
-# WI-347 — Catalog-generic facet tools (`list_facet_types`, `validate_facet_payload`, `propose_facet_assignment`)
+# WI-347 — Catalog-generic facet tools (`list_facet_types`, `get_facet_type`, `validate_facet_payload`, `propose_facet_assignment`)
 
 Status: `planned`  
 Type: `✨ feature`  
@@ -37,7 +37,10 @@ propose_facet_assignment(
 
 | Step | Tool | Capability | Responsibility |
 |------|------|------------|----------------|
-| Discover types | `list_facet_types` | **`metadata`** | Types + `contentSchema`; filter by **`applicableTo`** / entity kind — **extend if needed** |
+| Ground target | `list_schemas` / `list_tables` / `list_columns` | **`schema`** (existing) | Canonical catalog paths; derive or copy **`metadataEntityId`** per [`metadata-urn-platform.md`](../../../design/metadata/metadata-urn-platform.md) — **no `build_metadata_entity_urn` tool** ([`GAPS.md`](GAPS.md) §3a) |
+| Pick scope | `list_metadata_scopes` | **`metadata`** | Context-sensitive assignable scopes; **`scopeUrn` on capture only when list non-empty** ([`GAPS.md`](GAPS.md) §3c) |
+| Reason — shortlist type | `list_facet_types` | **`metadata`** | **Summary rows only** — pick `facetTypeKey` ([`GAPS.md`](GAPS.md) §3b); optional filters |
+| Generate — read schema | `get_facet_type` | **`metadata`** | Full manifest + **`contentSchema`** for payload drafting |
 | Dry-run | `validate_facet_payload` | **`metadata`** | **`(facetType, payload [, target])`** — schema + **`applicableTo`** |
 | Capture | `propose_facet_assignment` | **`metadata-authoring`** | **`(target, facetType, payload)`** — delegates to **`metadata`** shared validator |
 
@@ -52,32 +55,44 @@ into facets** when this capability is active — see [`STORY.md`](STORY.md) § P
 WI-345 § A2. Minimum deliverables in `metadata-authoring.yaml` + `metadata.yaml`:
 
 - `metadata-authoring.intent` — classify `AUTHOR_FACET` vs explore vs SQL vs chat
-- `metadata-authoring.reasoning` — utterance pattern table (DQ, descriptive, relation, …)
+- `metadata-authoring.reasoning` — utterance pattern table; **`list_metadata_scopes`** then **`list_facet_types`** shortlist step
 - **`metadata-authoring.batch`** — multi-entity / multi-facet parallel capture (do not stop after first)
-- Strengthen `metadata.faceting.system` and `metadata.faceting.request` (replace one-line stub)
+- Strengthen `metadata.faceting.system` (**profile-neutral**) and `metadata.faceting.request` (**`get_facet_type`** generation step)
 
 **Prerequisite:** multi-artifact batch emission and fan-out are delivered in **[WI-351](WI-351-multi-artifact-protocol-runtime.md)**. This WI wires facet tools and prompts onto that platform; do not re-implement agent/SSE fan-out here.
 
 ## Tool review
 
-### 1. `list_facet_types` (metadata QUERY)
+### 1. `list_facet_types` (metadata QUERY) — **reasoning**
 
-Return what the LLM needs to **choose facetType and draft payload**:
+Return **summary rows only** (no full `contentSchema`) — [`GAPS.md`](GAPS.md) §3b:
 
-- `facetTypeKey` / URN, `title`, `description`, `category`, `applicableTo`, `targetCardinality`, `source`
-- **`contentSchema`** or a deterministic summary (required fields, types) — design doc defines size limits
+- Required: `facetTypeKey`, `category`, `applicableTo`, `description`
+- Recommended: `title`; optional: `targetCardinality`, `source`
 
 Optional input filters: `applicableTo`, `category`, `metadataEntityId` (narrow catalog to types valid for target).
 
-### 2. `validate_facet_payload` (metadata QUERY)
+### 2. `get_facet_type` (metadata QUERY) — **generation**
+
+- Input: **`facetTypeKey`** (or type URN)
+- Output: **full** `FacetTypeManifest` including **`contentSchema`**
+- Registers on **`metadata`** capability → available to all profiles that load `metadata` (see GAPS §3b cross-impact)
+
+### 3. `list_metadata_scopes` (metadata QUERY) — **scope discovery**
+
+- **No input** (or optional filters TBD) — handler reads **`AgentContext`** / transport (`chatId`, MCP auth)
+- Output: array of `{ scopeUrn, label?, … }` valid for this invocation; **`[]`** when none
+- **Empty list:** downstream capture still persists chat artefact but **must not** imply metadata-scope merge ([`GAPS.md`](GAPS.md) §3c)
+
+### 4. `validate_facet_payload` (metadata QUERY)
 
 **Target:**
 
 - Input: **`facetTypeKey`** + **`payload`** + optional **`metadataEntityId`** (target for **`applicableTo`** check)
 - Output: `valid: boolean`, `errors: string[]` (schema field paths and/or applicability messages)
-- Validates against catalog **`contentSchema`** and, when target present, facet type **`applicableTo`** vs entity kind — **implemented on `metadata` capability**, extended if today's handler lacks target arg
+- Validates against catalog **`contentSchema`** and, when **`metadataEntityId`** present, facet type **`applicableTo`** vs entity kind — **delegates to `MetadataReadPort.validateFacetPayload`** (port extended in **WI-346**; no duplicate rules here)
 
-### 3. `propose_facet_assignment` (metadata-authoring CAPTURE)
+### 5. `propose_facet_assignment` (metadata-authoring CAPTURE)
 
 **Target:**
 
@@ -86,26 +101,33 @@ Optional input filters: `applicableTo`, `category`, `metadataEntityId` (narrow c
 - On success: `MetadataFacetProposalCapture` → chat artefact via **`inferred-facet`** / **`facet-proposal`** (same for all types)
 - Tests: **≥3** facet families with **schema-valid** payloads; assert **identical** wire `partType` / persist kind
 
-### 4. Per-facet `capture_*` cleanup → [WI-350](WI-350-schema-authoring-description-tool-cleanup.md)
+### 6. Per-facet `capture_*` cleanup → [WI-350](WI-350-schema-authoring-description-tool-cleanup.md)
 
 ## In Scope
 
-1. **`capabilities/metadata.yaml`** — `list_facet_types`, `validate_facet_payload` contracts + **`metadata.faceting.system`**
-2. **`capabilities/metadata-authoring.yaml`** — `propose_facet_assignment`; prompts (`intent`, `reasoning`, `batch`, `request`); **`finalSchema.results[]`** on protocol (schema only if not done in WI-351)
-3. **`MetadataCapabilities.kt`** — shared validator; extend QUERY tools; **`MetadataAuthoringCapability`** calls shared validator before emit
-4. Unit tests: invalid payload rejected; valid multi-type **single** and **parallel multi** captures (multi replay asserts WI-351 behaviour)
+1. **`capabilities/metadata.yaml`** — `list_facet_types` (summary), **`get_facet_type`** (full), **`list_metadata_scopes`** (context-sensitive), `validate_facet_payload` + **`metadata.faceting.system`** (profile-neutral)
+2. **`capabilities/schema.yaml`** (optional) — document URN derivation; optionally add **`metadataEntityId`** to `list_schemas` / `list_tables` / `list_columns` outputs via `SchemaCatalogPort` adapter
+3. **`capabilities/metadata-authoring.yaml`** — `propose_facet_assignment`; prompts (`intent`, `reasoning`, `batch`, `request`); **`finalSchema.results[]`** on protocol (schema only if not done in WI-351)
+4. **`MetadataCapabilities.kt`** — shared validator; extend QUERY tools (incl. **`list_metadata_scopes`** handler with **`AgentContext`** binding); **`MetadataAuthoringCapability`** calls shared validator before emit
+5. Unit tests: invalid payload rejected; valid multi-type **single** and **parallel multi** captures (multi replay asserts WI-351 behaviour)
 
 ## Out of Scope
 
 - Batch protocol, agent loop, SSE/persist fan-out (**WI-351**)
 - Removing `capture_*` tools (**WI-350**)
-- Metadata service persistence
+- Metadata service persistence (merge/write — consumer/M-23)
 - MCP default changes
+- Chat scope URN grammar finalisation (follow-up WI-233) — tool may return provisional chat scope URN before full persistence
 
 ## Acceptance Criteria
 
-- [ ] `validate_facet_payload` rejects payload missing required schema fields for a known facet type
-- [ ] `validate_facet_payload` with `metadataEntityId` rejects facet type not **`applicableTo`** target entity kind
+- [ ] Prompts document grounding: **`schema`** tools first, then canonical **`metadataEntityId`** (no dedicated URN builder tool)
+- [ ] **`list_facet_types`** returns summary rows **without** nested `contentSchema`; **`get_facet_type`** returns full manifest for one key
+- [ ] **`metadata-authoring.reasoning`** references **`list_facet_types`**; **`metadata.faceting.request`** references **`get_facet_type`** for payload generation
+- [ ] **`metadata.faceting.system`** does not imply facet authoring on non-authoring profiles ([`GAPS.md`](GAPS.md) §3b)
+- [ ] **`list_metadata_scopes`** returns context-appropriate rows (chat: chat scope [+ optional global]; MCP: catalogue only); empty list when no assignable scope
+- [ ] When scope list was **empty**, `propose_facet_assignment` still persists **`facet-proposal`** for replay but artefact is **not** treated as merged into metadata scope (document in prompts; no implicit global `scopeUrn`)
+- [ ] When scope list was **non-empty**, captured artefact includes **`scopeUrn`** chosen from tool output
 - [ ] `propose_facet_assignment` rejects the same applicability mismatch (shared validator)
 - [ ] Valid `(target, facetType, payload)` succeeds for descriptive, relation\*, and DQ examples
 - [ ] Successful captures for descriptive, relation\*, and DQ types all emit **`partType: facet-proposal`** (not type-specific artefact kinds)
