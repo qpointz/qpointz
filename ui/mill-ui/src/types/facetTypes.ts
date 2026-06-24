@@ -15,6 +15,8 @@ export interface FacetPayloadSchema {
   values?: FacetEnumValue[];
   format?: string;
   required?: string[];
+  /** Authoring / execution hint when the field is omitted. Not applied to BOOLEAN switches in mill-ui. */
+  default?: unknown;
 }
 
 export interface FacetEnumValue {

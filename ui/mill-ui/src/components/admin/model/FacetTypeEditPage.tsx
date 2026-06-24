@@ -37,6 +37,11 @@ import { JsonYamlEditor, type JsonYamlEditorHandle } from '../../common/JsonYaml
 import { normalizeFacetTypeKeyForApi, slugifyFacetTypeTitle } from '../../../utils/urnSlug';
 import { facetTypeManifestFromWire, facetTypeManifestToWire } from '../../../services/facetTypeWire';
 import { facetTypeContentSchemaRequiresExpertMode } from '../../../utils/facetPayloadFormSupport';
+import {
+  facetSchemaDefaultDisplay,
+  facetSchemaDefaultFromInput,
+  facetSchemaSupportsDefault,
+} from '../../../utils/facetSchemaDefault';
 
 interface FacetTypeEditPageProps {
   mode: 'create' | 'edit';
@@ -55,6 +60,30 @@ const stringFormatOptions = [
   { value: 'email', label: 'email' },
   { value: 'uri', label: 'uri' },
 ];
+
+/** Facet type summary description: fixed 5 rows with internal scroll. */
+const FACET_TYPE_DESCRIPTION_ROWS = 5;
+const facetTypeDescriptionTextareaProps = {
+  rows: FACET_TYPE_DESCRIPTION_ROWS,
+  styles: {
+    input: {
+      overflowY: 'auto' as const,
+      resize: 'none' as const,
+    },
+  },
+};
+
+/** Field Editor schema node description: fixed 3 rows with internal scroll. */
+const SCHEMA_FIELD_DESCRIPTION_ROWS = 3;
+const schemaFieldDescriptionTextareaProps = {
+  rows: SCHEMA_FIELD_DESCRIPTION_ROWS,
+  styles: {
+    input: {
+      overflowY: 'auto' as const,
+      resize: 'none' as const,
+    },
+  },
+};
 
 function defaultSchema(type: FacetSchemaType = 'STRING'): FacetPayloadSchema {
   return {
@@ -80,9 +109,10 @@ function normalizeSchemaByType(node: FacetPayloadSchema, type: FacetSchemaType):
       required: undefined,
       values: undefined,
       format: undefined,
+      default: undefined,
     };
   }
-  return defaultSchema(type);
+  return { ...defaultSchema(type), title: node.title || `${type} field`, description: node.description || `${type} description` };
 }
 
 function ensureObjectShape(schema: FacetPayloadSchema): FacetPayloadSchema {
@@ -379,9 +409,13 @@ const FacetTypePayloadSection = memo(function FacetTypePayloadSection({
   };
 
   return (
-    <Group align="stretch" grow wrap="nowrap" style={{ minHeight: 520 }}>
-      <Paper withBorder p="sm" style={{ flex: '1 1 25%', minWidth: 220 }}>
-        <Group justify="space-between" mb="xs">
+    <Group align="stretch" grow wrap="nowrap" style={{ flex: 1, minHeight: 280, minWidth: 0 }}>
+      <Paper
+        withBorder
+        p="sm"
+        style={{ flex: '1 1 25%', minWidth: 220, display: 'flex', flexDirection: 'column', minHeight: 0 }}
+      >
+        <Group justify="space-between" mb="xs" style={{ flexShrink: 0 }}>
           <Text fw={600} size="sm">
             Content Schema
           </Text>
@@ -401,46 +435,52 @@ const FacetTypePayloadSection = memo(function FacetTypePayloadSection({
             </ActionIcon>
           </Tooltip>
         </Group>
-        <ScrollArea h={470}>
-          {(payload.fields ?? []).map((field, idx) => (
-            <TreeNodeItem
-              key={`root.${idx}`}
-              root={payload}
-              path={[idx]}
-              label={field.name}
-              selectedPath={selectedPath}
-              onSelect={setSelectedPath}
-              onAddChild={(path) => {
-                setPayload((p) => addFieldToObjectPath(p, path));
-              }}
-              onDelete={(path) => {
-                const parent = path.slice(0, -1);
-                const deleteIdx = path[path.length - 1] ?? -1;
-                setPayload((p) => removeFieldAtParentPath(p, parent, deleteIdx));
-                setSelectedPath(parent);
-              }}
-              onMoveUp={(path) => {
-                const parent = path.slice(0, -1);
-                const moveIdx = path[path.length - 1] ?? -1;
-                setPayload((p) => moveFieldAtParentPath(p, parent, moveIdx, -1));
-                if (moveIdx > 0) setSelectedPath([...parent, moveIdx - 1]);
-              }}
-              onMoveDown={(path) => {
-                const parent = path.slice(0, -1);
-                const moveIdx = path[path.length - 1] ?? -1;
-                setPayload((p) => moveFieldAtParentPath(p, parent, moveIdx, 1));
-                setSelectedPath([...parent, moveIdx + 1]);
-              }}
-            />
-          ))}
+        <ScrollArea style={{ flex: 1, minHeight: 0 }} type="auto" offsetScrollbars scrollbarSize={8}>
+          <Box pr={4} pb={4}>
+            {(payload.fields ?? []).map((field, idx) => (
+              <TreeNodeItem
+                key={`root.${idx}`}
+                root={payload}
+                path={[idx]}
+                label={field.name}
+                selectedPath={selectedPath}
+                onSelect={setSelectedPath}
+                onAddChild={(path) => {
+                  setPayload((p) => addFieldToObjectPath(p, path));
+                }}
+                onDelete={(path) => {
+                  const parent = path.slice(0, -1);
+                  const deleteIdx = path[path.length - 1] ?? -1;
+                  setPayload((p) => removeFieldAtParentPath(p, parent, deleteIdx));
+                  setSelectedPath(parent);
+                }}
+                onMoveUp={(path) => {
+                  const parent = path.slice(0, -1);
+                  const moveIdx = path[path.length - 1] ?? -1;
+                  setPayload((p) => moveFieldAtParentPath(p, parent, moveIdx, -1));
+                  if (moveIdx > 0) setSelectedPath([...parent, moveIdx - 1]);
+                }}
+                onMoveDown={(path) => {
+                  const parent = path.slice(0, -1);
+                  const moveIdx = path[path.length - 1] ?? -1;
+                  setPayload((p) => moveFieldAtParentPath(p, parent, moveIdx, 1));
+                  setSelectedPath([...parent, moveIdx + 1]);
+                }}
+              />
+            ))}
+          </Box>
         </ScrollArea>
       </Paper>
-      <Paper withBorder p="sm" style={{ flex: '3 1 75%', minWidth: 0, width: '100%' }}>
-        <Text fw={600} size="sm" mb="xs">
+      <Paper
+        withBorder
+        p="sm"
+        style={{ flex: '3 1 75%', minWidth: 0, display: 'flex', flexDirection: 'column', minHeight: 0 }}
+      >
+        <Text fw={600} size="sm" mb="xs" style={{ flexShrink: 0 }}>
           Field Editor
         </Text>
-        <ScrollArea h={470}>
-          <Stack gap="xs">
+        <ScrollArea style={{ flex: 1, minHeight: 0 }} type="auto" offsetScrollbars scrollbarSize={8}>
+          <Stack gap="xs" pr={4} pb={4}>
             {selectedPath.length > 0 && selectedNode && (
               <Group grow align="flex-start">
                 <TextInput
@@ -533,10 +573,73 @@ const FacetTypePayloadSection = memo(function FacetTypePayloadSection({
                       updateNodeAtPath(p, selectedPath, (node) => ({ ...node, description: v }))
                     );
                   }}
-                  minRows={2}
-                  autosize
-                  maxRows={20}
+                  {...schemaFieldDescriptionTextareaProps}
                 />
+                {facetSchemaSupportsDefault(selectedNode) && (
+                  <>
+                    {selectedNode.type === 'BOOLEAN' ? (
+                      <Select
+                        label="Default value (optional)"
+                        description="Used when facet instances omit this field (execution/import). Not applied on entity facet boolean switches."
+                        data={[
+                          { value: '', label: '(none)' },
+                          { value: 'true', label: 'true' },
+                          { value: 'false', label: 'false' },
+                        ]}
+                        value={facetSchemaDefaultDisplay(selectedNode)}
+                        onChange={(value) => {
+                          const nextDefault = facetSchemaDefaultFromInput(selectedNode, value ?? '');
+                          setPayload((p) =>
+                            updateNodeAtPath(p, selectedPath, (node) => ({
+                              ...node,
+                              default: nextDefault,
+                            }))
+                          );
+                        }}
+                        allowDeselect={false}
+                      />
+                    ) : selectedNode.type === 'ENUM' ? (
+                      <Select
+                        label="Default value (optional)"
+                        description="Must match one of the enum values above."
+                        data={[
+                          { value: '', label: '(none)' },
+                          ...(selectedNode.values ?? []).map((v) => ({ value: v.value, label: v.value })),
+                        ]}
+                        value={facetSchemaDefaultDisplay(selectedNode)}
+                        onChange={(value) => {
+                          const nextDefault = facetSchemaDefaultFromInput(selectedNode, value ?? '');
+                          setPayload((p) =>
+                            updateNodeAtPath(p, selectedPath, (node) => ({
+                              ...node,
+                              default: nextDefault,
+                            }))
+                          );
+                        }}
+                        allowDeselect={false}
+                      />
+                    ) : (
+                      <TextInput
+                        label="Default value (optional)"
+                        description={
+                          selectedNode.type === 'NUMBER'
+                            ? 'Numeric default when the field is omitted from facet instances.'
+                            : 'String default when the field is omitted from facet instances.'
+                        }
+                        value={facetSchemaDefaultDisplay(selectedNode)}
+                        onChange={(e) => {
+                          const nextDefault = facetSchemaDefaultFromInput(selectedNode, e.currentTarget.value);
+                          setPayload((p) =>
+                            updateNodeAtPath(p, selectedPath, (node) => ({
+                              ...node,
+                              default: nextDefault,
+                            }))
+                          );
+                        }}
+                      />
+                    )}
+                  </>
+                )}
                 {selectedNode.type === 'STRING' && (
                   <Select
                     label="Format"
@@ -697,6 +800,7 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
 
   const [expertMode, setExpertMode] = useState(false);
   const [expertDraft, setExpertDraft] = useState<{ valid: boolean; value?: unknown; error?: string } | null>(null);
+  const [expertRollbackSnapshot, setExpertRollbackSnapshot] = useState<unknown | null>(null);
   const expertEditorRef = useRef<JsonYamlEditorHandle>(null);
   const [applicableDraft, setApplicableDraft] = useState('');
   const [showTypeKeyCopy, setShowTypeKeyCopy] = useState(false);
@@ -731,11 +835,14 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
   useEffect(() => {
     if (expertMode) {
       if (!expertModePrevRef.current) {
-        setExpertDraft({ valid: true, value: facetTypeManifestToWire(wireManifest) });
+        const wire = facetTypeManifestToWire(wireManifest);
+        setExpertRollbackSnapshot(wire);
+        setExpertDraft({ valid: true, value: wire });
       }
       expertModePrevRef.current = true;
     } else {
       expertModePrevRef.current = false;
+      setExpertRollbackSnapshot(null);
     }
   }, [expertMode, wireManifest]);
 
@@ -866,8 +973,12 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
   };
 
   return (
-    <Stack p="md" gap="md" style={{ height: '100%', overflowY: 'auto' }}>
-      <Group justify="space-between">
+    <Stack
+      p="md"
+      gap="md"
+      style={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}
+    >
+      <Group justify="space-between" style={{ flexShrink: 0 }}>
         <Text fw={700} size="lg">{mode === 'create' ? 'Create Facet Type' : 'Edit Facet Type'}</Text>
         <Group>
           <Chip
@@ -912,7 +1023,7 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
             size="sm"
             variant="light"
           >
-            Expert JSON mode
+            Expert mode
           </Chip>
           <Button variant="light" onClick={() => navigate('/admin/model/facet-types')}>Back</Button>
           <Tooltip label={readOnly ? 'Read-only mode enabled by feature flag' : 'Save'}>
@@ -921,35 +1032,26 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
         </Group>
       </Group>
       {payloadRequiresExpert && (
-        <Text size="xs" c="dimmed">
-          Expert JSON/YAML stays on for this type: the form tree cannot edit array-of-object or nested-array item
+        <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>
+          Expert mode stays on for this type: the form tree cannot edit array-of-object or nested-array item
           schemas (use expert mode to avoid losing structure).
         </Text>
       )}
 
       {expertMode ? (
-        <JsonYamlEditor
-          ref={expertEditorRef}
-          value={facetTypeManifestToWire(wireManifest)}
-          onApply={(next) => {
-            try {
-              applyLoadedManifest(facetTypeManifestFromWire(next));
-            } catch (e) {
-              notifications.show({
-                color: 'red',
-                title: 'Invalid manifest',
-                message: e instanceof Error ? e.message : 'Expected facet type keys (facetTypeUrn, title, contentSchema).',
-              });
-              return;
-            }
-            notifications.show({ color: 'green', title: 'Applied', message: 'Manifest updated from expert mode.' });
-          }}
-          onDraftParsed={setExpertDraft}
-          minHeight={360}
-        />
+        <Box style={{ flex: 1, minHeight: 360, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          <JsonYamlEditor
+            ref={expertEditorRef}
+            value={facetTypeManifestToWire(wireManifest)}
+            rollbackValue={expertRollbackSnapshot ?? facetTypeManifestToWire(wireManifest)}
+            onDraftParsed={setExpertDraft}
+            minHeight={360}
+            fillHeight
+          />
+        </Box>
       ) : (
-        <Stack gap="md">
-          <Stack gap="xs">
+        <Stack gap="md" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <Stack gap="xs" style={{ flexShrink: 0 }}>
             <TextInput
               label="Title"
               value={meta.title}
@@ -966,7 +1068,7 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
             />
           </Stack>
 
-          <Group align="flex-end" wrap="wrap" gap="md">
+          <Group align="flex-end" wrap="wrap" gap="md" style={{ flexShrink: 0 }}>
             <TextInput
               label="Category"
               value={meta.category ?? 'general'}
@@ -1014,12 +1116,11 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
             placeholder="Human-readable summary of this facet type"
             value={meta.description}
             onChange={(e) => setMeta({ ...meta, description: e.currentTarget.value })}
-            minRows={2}
-            autosize
-            maxRows={24}
+            {...facetTypeDescriptionTextareaProps}
+            style={{ flexShrink: 0 }}
           />
 
-          <Stack gap={6}>
+          <Stack gap={6} style={{ flexShrink: 0 }}>
             <Text size="sm" fw={500}>
               URN
             </Text>
@@ -1064,7 +1165,7 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
             )}
           </Stack>
 
-          <Stack gap={4}>
+          <Stack gap={4} style={{ flexShrink: 0 }}>
             <Text size="sm" fw={500}>
               Applicable to (URNs / slugs, empty = any)
             </Text>

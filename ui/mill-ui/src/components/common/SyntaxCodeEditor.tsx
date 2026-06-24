@@ -13,6 +13,8 @@ export interface SyntaxCodeEditorProps {
   language: 'json' | 'yaml';
   /** Minimum height in pixels. */
   minHeight?: number;
+  /** When true, stretch to fill a flex parent (uses height 100%). */
+  fillHeight?: boolean;
   /** Read-only display (no editing, no lint gutter for JSON). */
   readOnly?: boolean;
 }
@@ -38,6 +40,7 @@ export function SyntaxCodeEditor({
   onChange,
   language,
   minHeight = 360,
+  fillHeight = false,
   readOnly = false,
 }: SyntaxCodeEditorProps) {
   const { colorScheme } = useMantineColorScheme();
@@ -51,6 +54,7 @@ export function SyntaxCodeEditor({
   }, [language, readOnly]);
 
   const minH = `${minHeight}px`;
+  const editorHeight = fillHeight ? '100%' : minH;
 
   return (
     <Box
@@ -58,18 +62,22 @@ export function SyntaxCodeEditor({
         border: '1px solid var(--mantine-color-default-border)',
         borderRadius: 'var(--mantine-radius-sm)',
         overflow: 'hidden',
+        flex: fillHeight ? 1 : undefined,
+        minHeight: fillHeight ? minHeight : undefined,
+        display: fillHeight ? 'flex' : undefined,
+        flexDirection: fillHeight ? 'column' : undefined,
       }}
     >
       <CodeMirror
         value={value}
-        height={minH}
+        height={editorHeight}
         theme={colorScheme === 'dark' ? 'dark' : 'light'}
         extensions={extensions}
         onChange={readOnly ? undefined : onChange}
         editable={!readOnly}
         readOnly={readOnly}
         basicSetup={basicSetup}
-        style={{ fontSize: 13 }}
+        style={{ fontSize: 13, flex: fillHeight ? 1 : undefined, minHeight: fillHeight ? minHeight : undefined }}
       />
     </Box>
   );

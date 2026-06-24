@@ -161,23 +161,31 @@ export function AdminLayout() {
         </Box>
       }
       main={
-        <Box style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
+        <>
           {group === 'model' && section === 'facet-types' && extra.length === 0 && (
-            <FacetTypesListPage readOnly={flags.facetTypesReadOnly} />
+            <Box style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
+              <FacetTypesListPage readOnly={flags.facetTypesReadOnly} />
+            </Box>
           )}
           {group === 'model' && section === 'facet-types' && extra.length === 1 && extra[0] === 'new' && (
-            <FacetTypeEditPage mode="create" readOnly={flags.facetTypesReadOnly} />
+            <Box style={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <FacetTypeEditPage mode="create" readOnly={flags.facetTypesReadOnly} />
+            </Box>
           )}
           {group === 'model' && section === 'facet-types' && extra.length === 2 && extra[1] === 'edit' && (
-            <FacetTypeEditPage
-              mode="edit"
-              typeKey={decodeURIComponent(extra[0] ?? '')}
-              readOnly={flags.facetTypesReadOnly}
-            />
+            <Box style={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <FacetTypeEditPage
+                mode="edit"
+                typeKey={decodeURIComponent(extra[0] ?? '')}
+                readOnly={flags.facetTypesReadOnly}
+              />
+            </Box>
           )}
 
           {group === 'system' && section && systemItems.some((i) => i.id === section) && (
-            <SystemPanel section={section as SystemSection} />
+            <Box style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
+              <SystemPanel section={section as SystemSection} />
+            </Box>
           )}
 
           {!(
@@ -218,7 +226,7 @@ export function AdminLayout() {
               </Text>
             </Box>
           )}
-        </Box>
+        </>
       }
     />
   );

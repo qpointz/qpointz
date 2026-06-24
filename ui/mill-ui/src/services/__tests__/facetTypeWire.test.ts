@@ -70,4 +70,40 @@ describe('facetTypeWire', () => {
     expect(w.contentSchema).toBe(m.payload);
     expect(facetTypeManifestFromWire(w)).toEqual(m);
   });
+
+  it('round-trips contentSchema field defaults', () => {
+    const payload = {
+      type: 'OBJECT' as const,
+      title: 'Root',
+      description: 'Root schema',
+      fields: [
+        {
+          name: 'patternDialect',
+          schema: {
+            type: 'ENUM' as const,
+            title: 'Dialect',
+            description: 'd',
+            default: 'sql_like',
+            values: [
+              { value: 'sql_like', description: 'LIKE' },
+              { value: 'sql_regex', description: 'Regex' },
+            ],
+          },
+          required: false,
+        },
+      ],
+      required: [] as string[],
+    };
+    const m = facetTypeManifestFromWire({
+      facetTypeUrn: 'urn:mill/metadata/facet-type:dq-pattern-check',
+      title: 'Pattern',
+      description: 'P',
+      contentSchema: payload,
+    });
+    expect(
+      (m.payload.fields?.[0]?.schema as { default?: string }).default
+    ).toBe('sql_like');
+    const w = facetTypeManifestToWire(m);
+    expect(facetTypeManifestFromWire(w)).toEqual(m);
+  });
 });
