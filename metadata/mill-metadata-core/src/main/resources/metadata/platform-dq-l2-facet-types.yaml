@@ -1,0 +1,491 @@
+# Platform data-quality facet types (L2). Loaded after platform-dq-l1-facet-types.yaml.
+# Design: docs/design/metadata/dq-rule-facet-types.md (WI-343).
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:dq-predicate
+title: Predicate Rule
+description: 'Documents a table-level row predicate: every row on the assigned table must satisfy a boolean expression (cross-column consistency, derived values, conditional completeness, or column semantics such as dates not in the future). Assign on a table entity; the host table is the assignment target. Catalog rules Cross-Column Consistency, Derived Value Validation, Conditional Completeness, and Semantic Validation are instances of this type with different predicate values. Passes when no rows violate NOT (predicate).'
+enabled: true
+category: data-quality
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: Predicate rule
+  description: Common DQ envelope plus a row-level boolean predicate evaluated on the host table.
+  fields:
+  - name: name
+    schema:
+      type: STRING
+      title: Rule name
+      description: Short operator label (e.g. start_before_end, total_matches_lines).
+    required: true
+  - name: description
+    schema:
+      type: STRING
+      title: Description
+      description: Business context, catalog rule name, or remediation notes.
+    required: false
+  - name: predicate
+    schema:
+      type: STRING
+      title: Predicate
+      description: Row-level boolean expression on the host table using unqualified column names (e.g. start_date <= end_date, total = subtotal + tax, birth_date <= CURRENT_DATE, amount >= 0).
+    required: true
+  - name: severity
+    schema:
+      type: ENUM
+      title: Severity
+      description: Reporting severity when the rule fails.
+      values:
+      - value: info
+        description: Informational finding.
+      - value: warning
+        description: Worth review.
+      - value: error
+        description: Definite violation; default when unset.
+    required: false
+  - name: profile
+    schema:
+      type: STRING
+      title: Threshold profile
+      description: 'Optional violation-rate bands (percent of rows failing the rule). Two-threshold warn:error (e.g. 10:80) -> rate <=10% pass, (10,80] warning, >80% error (severity ignored). Single threshold (e.g. 10) -> rate <=10% pass, >10% reports at severity (e.g. severity warning -> warn). Omitted -> any violation uses severity.'
+    required: false
+  - name: enabled
+    schema:
+      type: BOOLEAN
+      title: Enabled
+      description: When false, skip execution. Schema default true; omitted payload uses default at execution (M-16). Entity facet forms do not apply boolean schema defaults.
+      default: true
+    required: false
+  - name: tags
+    schema:
+      type: ARRAY
+      title: Tags
+      description: Free-form instance labels (e.g. consistency, derived, conditional).
+      items:
+        type: STRING
+        title: Tag
+        description: One tag value.
+    required: false
+    stereotype: tags
+  required: []
+applicableTo:
+- urn:mill/metadata/entity-type:table
+schemaVersion: '1.0'
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:dq-composite-uniqueness
+title: Composite Uniqueness
+description: 'Documents a uniqueness rule on a combination of columns on the assigned table: the tuple of listed columns must be unique across rows. Assign on a table entity; the host table is the assignment target. Provide at least two column names. Passes when no duplicate groups exist for the column combination.'
+enabled: true
+category: data-quality
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: Composite uniqueness rule
+  description: Common DQ envelope plus the list of columns that form the unique key.
+  fields:
+  - name: name
+    schema:
+      type: STRING
+      title: Rule name
+      description: Short operator label (e.g. country_tax_id_unique).
+    required: true
+  - name: description
+    schema:
+      type: STRING
+      title: Description
+      description: Business context or remediation notes.
+    required: false
+  - name: columns
+    schema:
+      type: ARRAY
+      title: Columns
+      description: Two or more column names on the host table whose combined values must be unique (e.g. country, tax_id).
+      items:
+        type: STRING
+        title: Column name
+        description: One column participating in the composite key.
+    required: true
+  - name: severity
+    schema:
+      type: ENUM
+      title: Severity
+      description: Reporting severity when duplicate groups are found.
+      values:
+      - value: info
+        description: Informational finding.
+      - value: warning
+        description: Worth review.
+      - value: error
+        description: Definite violation; default when unset.
+    required: false
+  - name: profile
+    schema:
+      type: STRING
+      title: Threshold profile
+      description: 'Optional violation-rate bands (percent of rows failing the rule). Two-threshold warn:error (e.g. 10:80) -> rate <=10% pass, (10,80] warning, >80% error (severity ignored). Single threshold (e.g. 10) -> rate <=10% pass, >10% reports at severity (e.g. severity warning -> warn). Omitted -> any violation uses severity.'
+    required: false
+  - name: enabled
+    schema:
+      type: BOOLEAN
+      title: Enabled
+      description: When false, skip execution. Schema default true; omitted payload uses default at execution (M-16). Entity facet forms do not apply boolean schema defaults.
+      default: true
+    required: false
+  - name: tags
+    schema:
+      type: ARRAY
+      title: Tags
+      description: Free-form instance labels.
+      items:
+        type: STRING
+        title: Tag
+        description: One tag value.
+    required: false
+    stereotype: tags
+  required: []
+applicableTo:
+- urn:mill/metadata/entity-type:table
+schemaVersion: '1.0'
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:dq-parent-child-reconciliation
+title: Parent-Child Reconciliation
+description: 'Documents a reconciliation rule between the assigned parent (summary) table and a child (detail) table: a parent measure must match an aggregate over child rows per parent key. Assign on the parent table entity; the host table is the assignment target. Optional joinSql overrides equi-join on parentKey and child.foreignKey. Passes when no parent rows exceed tolerance between parentMeasure and child.aggregate.'
+enabled: true
+category: data-quality
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: Parent-child reconciliation rule
+  description: Common DQ envelope plus child table (location + join/aggregate), parent join key and measure, optional join override, and comparison tolerance.
+  fields:
+  - name: name
+    schema:
+      type: STRING
+      title: Rule name
+      description: Short operator label (e.g. invoice_total_vs_lines).
+    required: true
+  - name: description
+    schema:
+      type: STRING
+      title: Description
+      description: Business context or remediation notes.
+    required: false
+  - name: child
+    schema:
+      type: OBJECT
+      title: Child table
+      description: 'Detail / line-item side: where to read child rows, how they link to the parent, and what to aggregate per parent key.'
+      fields:
+      - name: schema
+        schema:
+          type: STRING
+          title: Schema
+          description: Schema name of the child table.
+        required: true
+      - name: table
+        schema:
+          type: STRING
+          title: Table
+          description: Table name of the child / detail table.
+        required: true
+      - name: foreignKey
+        schema:
+          type: STRING
+          title: Foreign key column
+          description: Column on the child table referencing the parent row (e.g. invoice_id). Joined to parentKey on the host table unless joinSql overrides.
+        required: true
+      - name: aggregate
+        schema:
+          type: STRING
+          title: Aggregate
+          description: Aggregate expression over child rows per parent key (e.g. SUM(line_amount)).
+        required: true
+      required: []
+    required: true
+  - name: parentKey
+    schema:
+      type: STRING
+      title: Parent key column
+      description: Column on the host (parent) table used to join to child rows (e.g. invoice_id).
+    required: true
+  - name: parentMeasure
+    schema:
+      type: STRING
+      title: Parent measure
+      description: Expression or column on the parent row to compare (e.g. total_amount).
+    required: true
+  - name: joinSql
+    schema:
+      type: STRING
+      title: Join SQL
+      description: Optional join expression between parent and child when equi-join on parentKey and child.foreignKey is insufficient. Takes precedence when present.
+    required: false
+  - name: tolerance
+    schema:
+      type: NUMBER
+      title: Tolerance
+      description: Absolute allowed difference between parentMeasure and child.aggregate (e.g. 0.01 for penny rounding). Schema default 0 — exact match when omitted.
+      default: 0
+    required: false
+  - name: severity
+    schema:
+      type: ENUM
+      title: Severity
+      description: Reporting severity when reconciliation fails.
+      values:
+      - value: info
+        description: Informational finding.
+      - value: warning
+        description: Worth review.
+      - value: error
+        description: Definite violation; default when unset.
+    required: false
+  - name: profile
+    schema:
+      type: STRING
+      title: Threshold profile
+      description: 'Optional violation-rate bands (percent of rows failing the rule). Two-threshold warn:error (e.g. 10:80) -> rate <=10% pass, (10,80] warning, >80% error (severity ignored). Single threshold (e.g. 10) -> rate <=10% pass, >10% reports at severity (e.g. severity warning -> warn). Omitted -> any violation uses severity.'
+    required: false
+  - name: enabled
+    schema:
+      type: BOOLEAN
+      title: Enabled
+      description: When false, skip execution. Schema default true; omitted payload uses default at execution (M-16). Entity facet forms do not apply boolean schema defaults.
+      default: true
+    required: false
+  - name: tags
+    schema:
+      type: ARRAY
+      title: Tags
+      description: Free-form instance labels.
+      items:
+        type: STRING
+        title: Tag
+        description: One tag value.
+    required: false
+    stereotype: tags
+  required: []
+applicableTo:
+- urn:mill/metadata/entity-type:table
+schemaVersion: '1.0'
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:dq-cross-table-reconciliation
+title: Cross-Table Reconciliation
+description: Documents a reconciliation rule comparing scalar aggregates between the assigned table and a partner table (e.g. orders total vs shipments total). Assign on the host (this) table entity. Host aggregate and optional filter sit at the root; partner location, aggregate, and filter are grouped under other. Passes when aggregates match within tolerance.
+enabled: true
+category: data-quality
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: Cross-table reconciliation rule
+  description: Common DQ envelope plus host aggregate (and optional filter), partner table (location + aggregate + filter), and comparison tolerance.
+  fields:
+  - name: name
+    schema:
+      type: STRING
+      title: Rule name
+      description: Short operator label (e.g. orders_vs_shipments_total).
+    required: true
+  - name: description
+    schema:
+      type: STRING
+      title: Description
+      description: Business context or remediation notes.
+    required: false
+  - name: other
+    schema:
+      type: OBJECT
+      title: Partner table
+      description: 'Partner / other side: where to read partner rows, what scalar aggregate to compute, and optional scan filter.'
+      fields:
+      - name: schema
+        schema:
+          type: STRING
+          title: Schema
+          description: Schema name of the partner table.
+        required: true
+      - name: table
+        schema:
+          type: STRING
+          title: Table
+          description: Table name of the partner table.
+        required: true
+      - name: aggregate
+        schema:
+          type: STRING
+          title: Aggregate
+          description: Scalar aggregate on the partner table (e.g. SUM(shipment_total)).
+        required: true
+      - name: filter
+        schema:
+          type: STRING
+          title: Filter
+          description: Optional SQL-like WHERE fragment applied to the partner table scan.
+        required: false
+      required: []
+    required: true
+  - name: aggregate
+    schema:
+      type: STRING
+      title: Host aggregate
+      description: Scalar aggregate on the assigned (host) table (e.g. SUM(order_total)).
+    required: true
+  - name: filter
+    schema:
+      type: STRING
+      title: Host filter
+      description: Optional SQL-like WHERE fragment applied to the host table scan.
+    required: false
+  - name: tolerance
+    schema:
+      type: NUMBER
+      title: Tolerance
+      description: Absolute allowed difference between host aggregate and other.aggregate (e.g. 0.01 for penny rounding). Schema default 0 — exact match when omitted.
+      default: 0
+    required: false
+  - name: severity
+    schema:
+      type: ENUM
+      title: Severity
+      description: Reporting severity when aggregates diverge.
+      values:
+      - value: info
+        description: Informational finding.
+      - value: warning
+        description: Worth review.
+      - value: error
+        description: Definite violation; default when unset.
+    required: false
+  - name: profile
+    schema:
+      type: STRING
+      title: Threshold profile
+      description: 'Optional violation-rate bands (percent of rows failing the rule). Two-threshold warn:error (e.g. 10:80) -> rate <=10% pass, (10,80] warning, >80% error (severity ignored). Single threshold (e.g. 10) -> rate <=10% pass, >10% reports at severity (e.g. severity warning -> warn). Omitted -> any violation uses severity.'
+    required: false
+  - name: enabled
+    schema:
+      type: BOOLEAN
+      title: Enabled
+      description: When false, skip execution. Schema default true; omitted payload uses default at execution (M-16). Entity facet forms do not apply boolean schema defaults.
+      default: true
+    required: false
+  - name: tags
+    schema:
+      type: ARRAY
+      title: Tags
+      description: Free-form instance labels.
+      items:
+        type: STRING
+        title: Tag
+        description: One tag value.
+    required: false
+    stereotype: tags
+  required: []
+applicableTo:
+- urn:mill/metadata/entity-type:table
+schemaVersion: '1.0'
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:dq-sla-compliance-check
+title: SLA Compliance Check
+description: 'Documents a timeliness rule on the assigned table: data must arrive before a daily deadline (local time), optionally on a cron schedule. Distinct from dq-data-age-check (freshness within maxAge). Assign on a table entity. Passes when the latest timestampColumn in the evaluation window is at or before deadlineLocalTime plus optional graceDuration.'
+enabled: true
+category: data-quality
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: SLA compliance rule
+  description: Common DQ envelope plus timestamp column, deadline, optional schedule, timezone, and grace period.
+  fields:
+  - name: name
+    schema:
+      type: STRING
+      title: Rule name
+      description: Short operator label (e.g. daily_feed_before_0600).
+    required: true
+  - name: description
+    schema:
+      type: STRING
+      title: Description
+      description: Business context or remediation notes.
+    required: false
+  - name: timestampColumn
+    schema:
+      type: STRING
+      title: Timestamp column
+      description: Column on the host table holding ingest or batch arrival time (e.g. loaded_at).
+    required: true
+  - name: deadlineLocalTime
+    schema:
+      type: STRING
+      title: Deadline (local time)
+      description: Daily deadline as HH:mm in expectedScheduleTimezone (or platform local timezone when omitted), e.g. 06:00.
+    required: true
+  - name: expectedScheduleCron
+    schema:
+      type: STRING
+      title: Expected schedule (cron)
+      description: Optional cron for days when data is expected (Spring 6-field or Unix 5-field). When omitted, every calendar day in the timezone applies.
+    required: false
+  - name: expectedScheduleTimezone
+    schema:
+      type: STRING
+      title: Expected schedule timezone
+      description: Optional IANA timezone ID for deadline and cron (e.g. Europe/Amsterdam). When omitted, platform local timezone is used.
+    required: false
+  - name: graceDuration
+    schema:
+      type: STRING
+      title: Grace duration
+      description: Optional ISO-8601 duration after deadline still acceptable (e.g. PT15M for 15 minutes).
+    required: false
+  - name: severity
+    schema:
+      type: ENUM
+      title: Severity
+      description: Reporting severity when SLA is missed.
+      values:
+      - value: info
+        description: Informational finding.
+      - value: warning
+        description: Worth review.
+      - value: error
+        description: Definite violation; default when unset.
+    required: false
+  - name: profile
+    schema:
+      type: STRING
+      title: Threshold profile
+      description: 'Optional violation-rate bands (percent of rows failing the rule). Two-threshold warn:error (e.g. 10:80) -> rate <=10% pass, (10,80] warning, >80% error (severity ignored). Single threshold (e.g. 10) -> rate <=10% pass, >10% reports at severity (e.g. severity warning -> warn). Omitted -> any violation uses severity.'
+    required: false
+  - name: enabled
+    schema:
+      type: BOOLEAN
+      title: Enabled
+      description: When false, skip execution. Schema default true; omitted payload uses default at execution (M-16). Entity facet forms do not apply boolean schema defaults.
+      default: true
+    required: false
+  - name: tags
+    schema:
+      type: ARRAY
+      title: Tags
+      description: Free-form instance labels.
+      items:
+        type: STRING
+        title: Tag
+        description: One tag value.
+    required: false
+    stereotype: tags
+  required: []
+applicableTo:
+- urn:mill/metadata/entity-type:table
+schemaVersion: '1.0'

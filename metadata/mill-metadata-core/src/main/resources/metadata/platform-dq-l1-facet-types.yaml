@@ -1,0 +1,900 @@
+# Platform data-quality facet types (L1). Loaded after platform-bootstrap.yaml (and platform-flow-facet-types.yaml when present).
+# Design: docs/design/metadata/dq-rule-facet-types.md (WI-342).
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:dq-null-check
+title: Null Check
+description: 'Documents a completeness rule on the assigned column: no row may have a NULL value in that column. Assign on an attribute entity; the host column is resolved from the facet assignment target, not from structural column metadata. At execution time the rule passes when the violation count is zero.'
+enabled: true
+category: data-quality
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: Null check rule
+  description: Operator label, severity, and optional tags for a NOT NULL constraint on the assigned column.
+  fields:
+  - name: name
+    schema:
+      type: STRING
+      title: Rule name
+      description: Short operator label for this rule instance (e.g. customer_id_not_null). Used in reports and execution logs.
+    required: true
+  - name: description
+    schema:
+      type: STRING
+      title: Description
+      description: Narrative intent, business context, or remediation notes for this rule instance.
+    required: false
+  - name: severity
+    schema:
+      type: ENUM
+      title: Severity
+      description: Reporting severity when the rule fails at execution time.
+      values:
+      - value: info
+        description: Informational finding; does not block downstream processing by default.
+      - value: warning
+        description: Potential data quality issue worth review before publishing.
+      - value: error
+        description: Definite violation; default when unset. Use for rules that must pass before release.
+    required: false
+  - name: profile
+    schema:
+      type: STRING
+      title: Threshold profile
+      description: 'Optional violation-rate bands (percent of rows failing the rule). Two-threshold warn:error (e.g. 10:80) -> rate <=10% pass, (10,80] warning, >80% error (severity ignored). Single threshold (e.g. 10) -> rate <=10% pass, >10% reports at severity (e.g. severity warning -> warn). Omitted -> any violation uses severity.'
+    required: false
+  - name: enabled
+    schema:
+      type: BOOLEAN
+      title: Enabled
+      description: When false, skip execution. Schema default true; omitted payload uses default at execution (M-16). Entity facet forms do not apply boolean schema defaults.
+      default: true
+    required: false
+  - name: tags
+    schema:
+      type: ARRAY
+      title: Tags
+      description: Free-form labels on this instance (e.g. pii, regulatory, nightly).
+      items:
+        type: STRING
+        title: Tag
+        description: One tag value.
+    required: false
+    stereotype: tags
+  required: []
+applicableTo:
+- urn:mill/metadata/entity-type:attribute
+schemaVersion: '1.0'
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:dq-empty-value-check
+title: Empty Value Check
+description: 'Documents a completeness rule on the assigned string column: values must not be empty or whitespace-only after optional trimming. Assign on an attribute entity; the host column comes from the facet assignment target. Passes when no violating rows remain (typically TRIM(column) = '''' while column IS NOT NULL).'
+enabled: true
+category: data-quality
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: Empty value check rule
+  description: Common DQ envelope plus optional trim behavior for blank-string detection.
+  fields:
+  - name: name
+    schema:
+      type: STRING
+      title: Rule name
+      description: Short operator label for this rule instance (e.g. name_not_blank).
+    required: true
+  - name: description
+    schema:
+      type: STRING
+      title: Description
+      description: Narrative intent, business context, or remediation notes.
+    required: false
+  - name: trimWhitespace
+    schema:
+      type: BOOLEAN
+      title: Trim whitespace
+      description: When true (default), treat whitespace-only strings as empty via TRIM before comparison. When false, only the literal empty string '' violates the rule.
+    required: false
+  - name: severity
+    schema:
+      type: ENUM
+      title: Severity
+      description: Reporting severity when the rule fails.
+      values:
+      - value: info
+        description: Informational finding.
+      - value: warning
+        description: Worth review before publishing.
+      - value: error
+        description: Definite violation; default when unset.
+    required: false
+  - name: profile
+    schema:
+      type: STRING
+      title: Threshold profile
+      description: 'Optional violation-rate bands (percent of rows failing the rule). Two-threshold warn:error (e.g. 10:80) -> rate <=10% pass, (10,80] warning, >80% error (severity ignored). Single threshold (e.g. 10) -> rate <=10% pass, >10% reports at severity (e.g. severity warning -> warn). Omitted -> any violation uses severity.'
+    required: false
+  - name: enabled
+    schema:
+      type: BOOLEAN
+      title: Enabled
+      description: When false, skip execution. Schema default true; omitted payload uses default at execution (M-16). Entity facet forms do not apply boolean schema defaults.
+      default: true
+    required: false
+  - name: tags
+    schema:
+      type: ARRAY
+      title: Tags
+      description: Free-form instance labels.
+      items:
+        type: STRING
+        title: Tag
+        description: One tag value.
+    required: false
+    stereotype: tags
+  required: []
+applicableTo:
+- urn:mill/metadata/entity-type:attribute
+schemaVersion: '1.0'
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:dq-unique-value-check
+title: Unique Value Check
+description: 'Documents a uniqueness rule on the assigned column: each non-null value may appear at most once in the table. Assign on an attribute entity; the host column is the assignment target. Passes when no duplicate value groups exist (violation count of duplicate groups is zero).'
+enabled: true
+category: data-quality
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: Unique value check rule
+  description: Common DQ envelope for a single-column uniqueness constraint.
+  fields:
+  - name: name
+    schema:
+      type: STRING
+      title: Rule name
+      description: Short operator label (e.g. customer_id_unique).
+    required: true
+  - name: description
+    schema:
+      type: STRING
+      title: Description
+      description: Business context or remediation notes.
+    required: false
+  - name: severity
+    schema:
+      type: ENUM
+      title: Severity
+      description: Reporting severity when duplicates are found.
+      values:
+      - value: info
+        description: Informational finding.
+      - value: warning
+        description: Worth review.
+      - value: error
+        description: Definite violation; default when unset.
+    required: false
+  - name: profile
+    schema:
+      type: STRING
+      title: Threshold profile
+      description: 'Optional violation-rate bands (percent of rows failing the rule). Two-threshold warn:error (e.g. 10:80) -> rate <=10% pass, (10,80] warning, >80% error (severity ignored). Single threshold (e.g. 10) -> rate <=10% pass, >10% reports at severity (e.g. severity warning -> warn). Omitted -> any violation uses severity.'
+    required: false
+  - name: enabled
+    schema:
+      type: BOOLEAN
+      title: Enabled
+      description: When false, skip execution. Schema default true; omitted payload uses default at execution (M-16). Entity facet forms do not apply boolean schema defaults.
+      default: true
+    required: false
+  - name: tags
+    schema:
+      type: ARRAY
+      title: Tags
+      description: Free-form instance labels.
+      items:
+        type: STRING
+        title: Tag
+        description: One tag value.
+    required: false
+    stereotype: tags
+  required: []
+applicableTo:
+- urn:mill/metadata/entity-type:attribute
+schemaVersion: '1.0'
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:dq-allowed-values-check
+title: Allowed Values Check
+description: 'Documents a validity rule on the assigned column: every value must belong to a predefined domain list. Assign on an attribute entity. Passes when no rows have values outside allowedValues (NULL handling is engine-defined; typically NULL is not in the set unless listed).'
+enabled: true
+category: data-quality
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: Allowed values check rule
+  description: Common DQ envelope plus the canonical allowed value list.
+  fields:
+  - name: name
+    schema:
+      type: STRING
+      title: Rule name
+      description: Short operator label (e.g. status_domain_check).
+    required: true
+  - name: description
+    schema:
+      type: STRING
+      title: Description
+      description: Business context or remediation notes.
+    required: false
+  - name: allowedValues
+    schema:
+      type: ARRAY
+      title: Allowed values
+      description: Canonical domain for the column (e.g. ACTIVE, INACTIVE). Violating rows have values not in this set.
+      items:
+        type: STRING
+        title: Allowed value
+        description: One permitted column value.
+    required: true
+  - name: severity
+    schema:
+      type: ENUM
+      title: Severity
+      description: Reporting severity when out-of-domain values are found.
+      values:
+      - value: info
+        description: Informational finding.
+      - value: warning
+        description: Worth review.
+      - value: error
+        description: Definite violation; default when unset.
+    required: false
+  - name: profile
+    schema:
+      type: STRING
+      title: Threshold profile
+      description: 'Optional violation-rate bands (percent of rows failing the rule). Two-threshold warn:error (e.g. 10:80) -> rate <=10% pass, (10,80] warning, >80% error (severity ignored). Single threshold (e.g. 10) -> rate <=10% pass, >10% reports at severity (e.g. severity warning -> warn). Omitted -> any violation uses severity.'
+    required: false
+  - name: enabled
+    schema:
+      type: BOOLEAN
+      title: Enabled
+      description: When false, skip execution. Schema default true; omitted payload uses default at execution (M-16). Entity facet forms do not apply boolean schema defaults.
+      default: true
+    required: false
+  - name: tags
+    schema:
+      type: ARRAY
+      title: Tags
+      description: Free-form instance labels.
+      items:
+        type: STRING
+        title: Tag
+        description: One tag value.
+    required: false
+    stereotype: tags
+  required: []
+applicableTo:
+- urn:mill/metadata/entity-type:attribute
+schemaVersion: '1.0'
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:dq-pattern-check
+title: Pattern Check
+description: 'Documents a format validity rule on the assigned column: values must match a SQL pattern (LIKE or dialect-specific regex). Assign on an attribute entity. Passes when no rows fail the pattern match (violation count is zero).'
+enabled: true
+category: data-quality
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: Pattern check rule
+  description: Common DQ envelope plus pattern and optional dialect selector.
+  fields:
+  - name: name
+    schema:
+      type: STRING
+      title: Rule name
+      description: Short operator label (e.g. email_format_check).
+    required: true
+  - name: description
+    schema:
+      type: STRING
+      title: Description
+      description: Business context or remediation notes.
+    required: false
+  - name: pattern
+    schema:
+      type: STRING
+      title: Pattern
+      description: Pattern string interpreted per patternDialect (e.g. %@%.% for sql_like email shape, or a dialect regex accepted by the execution engine).
+    required: true
+  - name: patternDialect
+    schema:
+      type: ENUM
+      title: Pattern dialect
+      description: Selects how pattern is interpreted at compile time against the active SQL dialect.
+      default: sql_like
+      values:
+      - value: sql_like
+        description: SQL LIKE match using % (any sequence) and _ (single character) wildcards.
+      - value: sql_regex
+        description: SQL regular-expression match — semantics depend on the vendor and Calcite/dialect backend (not fixed in metadata).
+    required: false
+  - name: severity
+    schema:
+      type: ENUM
+      title: Severity
+      description: Reporting severity when pattern violations are found.
+      values:
+      - value: info
+        description: Informational finding.
+      - value: warning
+        description: Worth review.
+      - value: error
+        description: Definite violation; default when unset.
+    required: false
+  - name: profile
+    schema:
+      type: STRING
+      title: Threshold profile
+      description: 'Optional violation-rate bands (percent of rows failing the rule). Two-threshold warn:error (e.g. 10:80) -> rate <=10% pass, (10,80] warning, >80% error (severity ignored). Single threshold (e.g. 10) -> rate <=10% pass, >10% reports at severity (e.g. severity warning -> warn). Omitted -> any violation uses severity.'
+    required: false
+  - name: enabled
+    schema:
+      type: BOOLEAN
+      title: Enabled
+      description: When false, skip execution. Schema default true; omitted payload uses default at execution (M-16). Entity facet forms do not apply boolean schema defaults.
+      default: true
+    required: false
+  - name: tags
+    schema:
+      type: ARRAY
+      title: Tags
+      description: Free-form instance labels.
+      items:
+        type: STRING
+        title: Tag
+        description: One tag value.
+    required: false
+    stereotype: tags
+  required: []
+applicableTo:
+- urn:mill/metadata/entity-type:attribute
+schemaVersion: '1.0'
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:dq-min-max-check
+title: Min/Max Check
+description: 'Documents a range rule on the assigned column: values must fall within inclusive min and/or max bounds. Assign on an attribute entity. Use numeric strings for numbers or ISO-8601 date strings for dates. At least one of min or max is required. Passes when no rows are outside the range.'
+enabled: true
+category: data-quality
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: Min/max check rule
+  description: Common DQ envelope plus inclusive lower and/or upper bounds.
+  fields:
+  - name: name
+    schema:
+      type: STRING
+      title: Rule name
+      description: Short operator label (e.g. age_in_range).
+    required: true
+  - name: description
+    schema:
+      type: STRING
+      title: Description
+      description: Business context or remediation notes.
+    required: false
+  - name: min
+    schema:
+      type: STRING
+      title: Minimum
+      description: Inclusive lower bound as a decimal number string (e.g. 0) or ISO-8601 date (e.g. 2020-01-01). Provide at least one of min or max.
+    required: false
+  - name: max
+    schema:
+      type: STRING
+      title: Maximum
+      description: Inclusive upper bound as a decimal number string (e.g. 120) or ISO-8601 date. Provide at least one of min or max.
+    required: false
+  - name: severity
+    schema:
+      type: ENUM
+      title: Severity
+      description: Reporting severity when out-of-range values are found.
+      values:
+      - value: info
+        description: Informational finding.
+      - value: warning
+        description: Worth review.
+      - value: error
+        description: Definite violation; default when unset.
+    required: false
+  - name: profile
+    schema:
+      type: STRING
+      title: Threshold profile
+      description: 'Optional violation-rate bands (percent of rows failing the rule). Two-threshold warn:error (e.g. 10:80) -> rate <=10% pass, (10,80] warning, >80% error (severity ignored). Single threshold (e.g. 10) -> rate <=10% pass, >10% reports at severity (e.g. severity warning -> warn). Omitted -> any violation uses severity.'
+    required: false
+  - name: enabled
+    schema:
+      type: BOOLEAN
+      title: Enabled
+      description: When false, skip execution. Schema default true; omitted payload uses default at execution (M-16). Entity facet forms do not apply boolean schema defaults.
+      default: true
+    required: false
+  - name: tags
+    schema:
+      type: ARRAY
+      title: Tags
+      description: Free-form instance labels.
+      items:
+        type: STRING
+        title: Tag
+        description: One tag value.
+    required: false
+    stereotype: tags
+  required: []
+applicableTo:
+- urn:mill/metadata/entity-type:attribute
+schemaVersion: '1.0'
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:dq-data-age-check
+title: Data Age Check
+description: 'Documents a freshness rule on the assigned table: the latest timestamp in a nominated column must be within maxAge of the evaluation anchor. Without expectedScheduleCron the anchor is now (MAX(timestampColumn) >= now() - maxAge). With expectedScheduleCron the anchor is the most recent schedule tick at or before evaluation time in expectedScheduleTimezone (platform local timezone when omitted); pass when MAX(timestampColumn) WHERE timestampColumn < anchor >= anchor - maxAge. Assign on a table entity.'
+enabled: true
+category: data-quality
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: Data age check rule
+  description: Common DQ envelope plus timestamp column, maximum allowed age, and optional expected-arrival schedule with timezone.
+  fields:
+  - name: name
+    schema:
+      type: STRING
+      title: Rule name
+      description: Short operator label (e.g. orders_fresh_within_24h).
+    required: true
+  - name: description
+    schema:
+      type: STRING
+      title: Description
+      description: Business context or remediation notes.
+    required: false
+  - name: timestampColumn
+    schema:
+      type: STRING
+      title: Timestamp column
+      description: Column on the host table holding last-update or ingest time (e.g. updated_at, loaded_at).
+    required: true
+  - name: maxAge
+    schema:
+      type: STRING
+      title: Maximum age
+      description: ISO-8601 duration (e.g. PT24H, P1D). Stale when the relevant latest timestamp is older than the evaluation anchor minus this value. Anchor is now() when expectedScheduleCron is omitted, or the most recent schedule tick when it is set.
+    required: true
+  - name: expectedScheduleCron
+    schema:
+      type: STRING
+      title: Expected schedule (cron)
+      description: Optional cron when data is expected (Spring 6-field or Unix 5-field). Use for non-daily feeds (e.g. 0 0 6 * * MON-FRI for weekdays at 06:00). Execution picks the latest tick at or before evaluation time as the anchor; freshness uses MAX(timestampColumn) among rows strictly before that anchor. Cron fields are interpreted in expectedScheduleTimezone (platform local timezone when omitted).
+    required: false
+  - name: expectedScheduleTimezone
+    schema:
+      type: STRING
+      title: Expected schedule timezone
+      description: Optional IANA timezone ID for expectedScheduleCron tick resolution (e.g. Europe/Amsterdam, America/New_York). When omitted, the platform local timezone is used.
+    required: false
+  - name: severity
+    schema:
+      type: ENUM
+      title: Severity
+      description: Reporting severity when data is stale.
+      values:
+      - value: info
+        description: Informational finding.
+      - value: warning
+        description: Worth review.
+      - value: error
+        description: Definite violation; default when unset.
+    required: false
+  - name: profile
+    schema:
+      type: STRING
+      title: Threshold profile
+      description: 'Optional violation-rate bands (percent of rows failing the rule). Two-threshold warn:error (e.g. 10:80) -> rate <=10% pass, (10,80] warning, >80% error (severity ignored). Single threshold (e.g. 10) -> rate <=10% pass, >10% reports at severity (e.g. severity warning -> warn). Omitted -> any violation uses severity.'
+    required: false
+  - name: enabled
+    schema:
+      type: BOOLEAN
+      title: Enabled
+      description: When false, skip execution. Schema default true; omitted payload uses default at execution (M-16). Entity facet forms do not apply boolean schema defaults.
+      default: true
+    required: false
+  - name: tags
+    schema:
+      type: ARRAY
+      title: Tags
+      description: Free-form instance labels.
+      items:
+        type: STRING
+        title: Tag
+        description: One tag value.
+    required: false
+    stereotype: tags
+  required: []
+applicableTo:
+- urn:mill/metadata/entity-type:table
+schemaVersion: '1.0'
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:dq-referential-integrity
+title: Referential Integrity (Full)
+description: Documents a foreign-key rule between a source and target table defined entirely in the payload. Assign on a schema entity. source.columns and target.columns are optional; provide paired lists for equi-join or joinSql for a custom join expression (same semantics on source/target facet variants). Passes when no orphan outbound references exist.
+enabled: true
+category: data-quality
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: Referential integrity rule (full)
+  description: Common DQ envelope plus source and target table references (same object shapes as relation facet).
+  fields:
+  - name: name
+    schema:
+      type: STRING
+      title: Rule name
+      description: Short operator label (e.g. orders_customer_fk).
+    required: true
+  - name: description
+    schema:
+      type: STRING
+      title: Description
+      description: Business context or remediation notes.
+    required: false
+  - name: source
+    schema:
+      type: OBJECT
+      title: Source
+      description: Child / outbound table and optional FK columns.
+      fields:
+      - name: schema
+        schema:
+          type: STRING
+          title: Schema
+          description: Schema name of the source (child) table.
+        required: true
+      - name: table
+        schema:
+          type: STRING
+          title: Table
+          description: Table name of the source (child) table.
+        required: true
+      - name: columns
+        schema:
+          type: ARRAY
+          title: Source columns
+          description: FK column(s) on the source table. Optional when joinSql supplies the join predicate.
+          items:
+            type: STRING
+            title: Source column
+            description: One source column name.
+        required: false
+      required: []
+    required: true
+  - name: target
+    schema:
+      type: OBJECT
+      title: Target
+      description: Parent / referenced table and optional key columns.
+      fields:
+      - name: schema
+        schema:
+          type: STRING
+          title: Schema
+          description: Schema name of the target (parent) table.
+        required: true
+      - name: table
+        schema:
+          type: STRING
+          title: Table
+          description: Table name of the target (parent) table.
+        required: true
+      - name: columns
+        schema:
+          type: ARRAY
+          title: Target columns
+          description: Referenced key column(s) on the target table. Optional when joinSql supplies the join predicate.
+          items:
+            type: STRING
+            title: Target column
+            description: One target column name.
+        required: false
+      required: []
+    required: true
+  - name: joinSql
+    schema:
+      type: STRING
+      title: Join SQL
+      description: Optional SQL-like join expression between source and target (e.g. s.customer_id = t.id). Use when column lists are omitted or insufficient. When both paired column lists and joinSql are present, joinSql takes precedence at compile time.
+    required: false
+  - name: severity
+    schema:
+      type: ENUM
+      title: Severity
+      description: Reporting severity when orphan FK rows are found.
+      values:
+      - value: info
+        description: Informational finding.
+      - value: warning
+        description: Worth review.
+      - value: error
+        description: Definite violation; default when unset.
+    required: false
+  - name: profile
+    schema:
+      type: STRING
+      title: Threshold profile
+      description: 'Optional violation-rate bands (percent of rows failing the rule). Two-threshold warn:error (e.g. 10:80) -> rate <=10% pass, (10,80] warning, >80% error (severity ignored). Single threshold (e.g. 10) -> rate <=10% pass, >10% reports at severity (e.g. severity warning -> warn). Omitted -> any violation uses severity.'
+    required: false
+  - name: enabled
+    schema:
+      type: BOOLEAN
+      title: Enabled
+      description: When false, skip execution. Schema default true; omitted payload uses default at execution (M-16). Entity facet forms do not apply boolean schema defaults.
+      default: true
+    required: false
+  - name: tags
+    schema:
+      type: ARRAY
+      title: Tags
+      description: Free-form instance labels.
+      items:
+        type: STRING
+        title: Tag
+        description: One tag value.
+    required: false
+    stereotype: tags
+  required: []
+applicableTo:
+- urn:mill/metadata/entity-type:schema
+schemaVersion: '1.0'
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:dq-referential-source
+title: Referential Integrity (Source)
+description: Documents an outbound foreign-key rule where the assigned table is the source (child) side. The host table is the facet assignment target; the referenced parent is in target. Optional sourceColumns and target.columns pair for equi-join; optional joinSql when column lists are omitted or insufficient. Passes when no orphan outbound references exist.
+enabled: true
+category: data-quality
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: Referential integrity rule (source)
+  description: Common DQ envelope plus optional host source columns, target reference, and optional joinSql (same join semantics as dq-referential-integrity).
+  fields:
+  - name: name
+    schema:
+      type: STRING
+      title: Rule name
+      description: Short operator label (e.g. outbound_customer_fk).
+    required: true
+  - name: description
+    schema:
+      type: STRING
+      title: Description
+      description: Business context or remediation notes.
+    required: false
+  - name: sourceColumns
+    schema:
+      type: ARRAY
+      title: Source columns
+      description: FK column(s) on the assigned (host) table. Optional when joinSql supplies the join predicate.
+      items:
+        type: STRING
+        title: Source column
+        description: One source column name on the host table.
+    required: false
+  - name: target
+    schema:
+      type: OBJECT
+      title: Target
+      description: Referenced parent table and optional key columns.
+      fields:
+      - name: schema
+        schema:
+          type: STRING
+          title: Schema
+          description: Schema name of the target table.
+        required: true
+      - name: table
+        schema:
+          type: STRING
+          title: Table
+          description: Table name of the target table.
+        required: true
+      - name: columns
+        schema:
+          type: ARRAY
+          title: Target columns
+          description: Referenced key column(s) on the target table. Optional when joinSql supplies the join predicate.
+          items:
+            type: STRING
+            title: Target column
+            description: One target column name.
+        required: false
+      required: []
+    required: true
+  - name: joinSql
+    schema:
+      type: STRING
+      title: Join SQL
+      description: Optional SQL-like join expression between the host (source) table and target (e.g. s.customer_id = t.id). Same semantics as dq-referential-integrity; use when column lists are omitted or insufficient.
+    required: false
+  - name: severity
+    schema:
+      type: ENUM
+      title: Severity
+      description: Reporting severity when orphan FK rows are found.
+      values:
+      - value: info
+        description: Informational finding.
+      - value: warning
+        description: Worth review.
+      - value: error
+        description: Definite violation; default when unset.
+    required: false
+  - name: profile
+    schema:
+      type: STRING
+      title: Threshold profile
+      description: 'Optional violation-rate bands (percent of rows failing the rule). Two-threshold warn:error (e.g. 10:80) -> rate <=10% pass, (10,80] warning, >80% error (severity ignored). Single threshold (e.g. 10) -> rate <=10% pass, >10% reports at severity (e.g. severity warning -> warn). Omitted -> any violation uses severity.'
+    required: false
+  - name: enabled
+    schema:
+      type: BOOLEAN
+      title: Enabled
+      description: When false, skip execution. Schema default true; omitted payload uses default at execution (M-16). Entity facet forms do not apply boolean schema defaults.
+      default: true
+    required: false
+  - name: tags
+    schema:
+      type: ARRAY
+      title: Tags
+      description: Free-form instance labels.
+      items:
+        type: STRING
+        title: Tag
+        description: One tag value.
+    required: false
+    stereotype: tags
+  required: []
+applicableTo:
+- urn:mill/metadata/entity-type:table
+schemaVersion: '1.0'
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:dq-referential-target
+title: Referential Integrity (Target)
+description: Documents an inbound foreign-key rule where the assigned table is the target (parent) side. The host table is the facet assignment target; the child table is in source. Optional source.columns and targetColumns pair for equi-join; optional joinSql when column lists are omitted or insufficient. Passes when no inbound references point to missing rows on the host.
+enabled: true
+category: data-quality
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: Referential integrity rule (target)
+  description: Common DQ envelope plus child source reference, optional host target columns, and optional joinSql (same join semantics as dq-referential-integrity).
+  fields:
+  - name: name
+    schema:
+      type: STRING
+      title: Rule name
+      description: Short operator label (e.g. inbound_customer_refs).
+    required: true
+  - name: description
+    schema:
+      type: STRING
+      title: Description
+      description: Business context or remediation notes.
+    required: false
+  - name: source
+    schema:
+      type: OBJECT
+      title: Source
+      description: Child table and FK columns that reference the host table.
+      fields:
+      - name: schema
+        schema:
+          type: STRING
+          title: Schema
+          description: Schema name of the child (source) table.
+        required: true
+      - name: table
+        schema:
+          type: STRING
+          title: Table
+          description: Table name of the child (source) table.
+        required: true
+      - name: columns
+        schema:
+          type: ARRAY
+          title: Source columns
+          description: FK column(s) on the child table. Optional when joinSql supplies the join predicate.
+          items:
+            type: STRING
+            title: Source column
+            description: One source column name.
+        required: false
+      required: []
+    required: true
+  - name: targetColumns
+    schema:
+      type: ARRAY
+      title: Target columns
+      description: Key column(s) on the assigned (host) table. Optional when joinSql supplies the join predicate.
+      items:
+        type: STRING
+        title: Target column
+        description: One target column name on the host table.
+    required: false
+  - name: joinSql
+    schema:
+      type: STRING
+      title: Join SQL
+      description: Optional SQL-like join expression between source (child) and the host (target) table (e.g. s.customer_id = t.id). Same semantics as dq-referential-integrity; use when column lists are omitted or insufficient.
+    required: false
+  - name: severity
+    schema:
+      type: ENUM
+      title: Severity
+      description: Reporting severity when orphan inbound references are found.
+      values:
+      - value: info
+        description: Informational finding.
+      - value: warning
+        description: Worth review.
+      - value: error
+        description: Definite violation; default when unset.
+    required: false
+  - name: profile
+    schema:
+      type: STRING
+      title: Threshold profile
+      description: 'Optional violation-rate bands (percent of rows failing the rule). Two-threshold warn:error (e.g. 10:80) -> rate <=10% pass, (10,80] warning, >80% error (severity ignored). Single threshold (e.g. 10) -> rate <=10% pass, >10% reports at severity (e.g. severity warning -> warn). Omitted -> any violation uses severity.'
+    required: false
+  - name: enabled
+    schema:
+      type: BOOLEAN
+      title: Enabled
+      description: When false, skip execution. Schema default true; omitted payload uses default at execution (M-16). Entity facet forms do not apply boolean schema defaults.
+      default: true
+    required: false
+  - name: tags
+    schema:
+      type: ARRAY
+      title: Tags
+      description: Free-form instance labels.
+      items:
+        type: STRING
+        title: Tag
+        description: One tag value.
+    required: false
+    stereotype: tags
+  required: []
+applicableTo:
+- urn:mill/metadata/entity-type:table
+schemaVersion: '1.0'
