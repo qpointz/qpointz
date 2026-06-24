@@ -7,28 +7,6 @@ grpc:
 spring:
   application:
     name: ${mill.application.name}
-  # Activate e.g. `--spring.profiles.active=skymill-ai` (AI + Skymill) or `skymill-ai-mcp` (adds MCP HTTP).
-  profiles:
-    group:
-      skymill-ai:
-        - skymill
-        - ai
-      skymill-ai-mcp:
-        - skymill
-        - ai
-        - mcp
-      ai-mcp:
-        - ai
-        - mcp
-      moneta-ai:
-        - moneta
-        - ai
-      ai-chromadb:
-        - ai
-        - chromadb
-      ai-pgvector:
-        - ai
-        - pgvector
   main:
     web-application-type: servlet
   datasource:
@@ -110,6 +88,10 @@ mill:
       odata:
         enable: true
         external-host: http-request
+        cache:
+          edm:
+            enabled: true
+            ttl: 2m
   ## LEGACY subject to review
   security:
     enable: false

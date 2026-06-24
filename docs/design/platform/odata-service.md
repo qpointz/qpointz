@@ -56,7 +56,7 @@ OData code **must not** open `CalciteContextFactory`, `FrameworkConfig`, or `Vol
 - **Entity set naming:** physical table name (e.g. `cities`).
 - **Entity type name:** physical table name; **namespace:** `Mill.{schema}`.
 - **Properties:** physical columns; `DatabaseType` → Edm primitive (complex types deferred — D-2/D-3/D-4).
-- **Annotations:** descriptive facets → `@Core.Description` where available.
+- **Annotations:** descriptive facets → `Core.Description` / `Core.LongDescription` in `$metadata` — see [`odata-edm-annotations.md`](odata-edm-annotations.md).
 - **Navigation properties:** from `RelationFacet.Relation` when both endpoints are in the **same schema**; cardinality from `RelationCardinality`.
 - **Metadata scope:** default global `MetadataContext`; optional `scope` query param for facet resolution (same semantics as schema explorer).
 
@@ -98,6 +98,7 @@ Same extra hop as the SQL path: **RelNode → Substrait → RelNode** at executi
 |---------|------|
 | Property resolution | Edm property → physical column; unknown → **400** |
 | Literals | `RexLiteral` with correct `RelDataType` |
+| Power BI date filters | SQL `DATE` columns are exposed as `Edm.DateTimeOffset` in `$metadata` (Power BI incremental refresh sends `DateTimeOffset` parameters). `ODataFilterDateLiteralRewriter` still normalizes legacy `Edm.Date` filters server-side; date literals use `RexBuilder.makeDateLiteral` |
 | Operators (v1) | `eq`, `ne`, `gt`, `ge`, `lt`, `le`, `and`, `or`, `not`; `contains` / `startswith` / `endswith` on strings |
 | Null | `IS NULL` / `IS NOT NULL` |
 | Unsupported | **400** OData error — **never** ignore `$filter` or full-table scan fallback |
@@ -112,7 +113,7 @@ Same extra hop as the SQL path: **RelNode → Substrait → RelNode** at executi
 | `$select` | `RelBuilder.project` |
 | `$orderby` | `RelBuilder.sort` |
 | `$top` / `$skip` | Fetch / offset (respect `max-top`) |
-| `$expand` | `RelBuilder.join` from `RelationFacet` keys (prefer attribute keys over `joinSql` parse) |
+| `$expand` | `RelBuilder.join` from materialized relation metadata (`relation`, `relation-source`, `relation-target` facets; same-schema only) |
 | `$count` | Deferred (v1.1) |
 
 ### `$expand` and adapter coverage
@@ -180,5 +181,5 @@ Pin all `com.sdl` artifacts to the same version in `libs.versions.toml`. Prefer 
 - [`ExportVectorBlockSource`](../../../data/mill-data-backend-core/src/main/java/io/qpointz/mill/data/backend/export/ExportVectorBlockSource.java) — Plan → dispatcher pattern
 - [`CalciteSqlProvider`](../../../data/mill-data-backends/src/main/java/io/qpointz/mill/data/backend/calcite/providers/CalciteSqlProvider.java) — `SubstraitRelVisitor.convert` prior art
 - [`SchemaFacetService`](../../../data/mill-data-schema-core/src/main/kotlin/io/qpointz/mill/data/schema/SchemaFacetService.kt)
-- [`RelationFacet`](../../../data/mill-data-schema-core/src/main/kotlin/io/qpointz/mill/data/schema/facet/RelationFacet.kt)
+- [`RelationFacet`](../../../data/mill-data-schema-core/src/main/kotlin/io/qpointz/mill/data/schema/facet/RelationFacet.kt) — unified relation facet; `relation-source` / `relation-target` table facets and schema-level `relation` facets are normalized into this shape for EDM navigations and `$expand` join keys. Cross-schema edges are omitted from the OData EDM.
 - Skymill relations: [`test/datasets/skymill/skymill-meta-repository.yaml`](../../../test/datasets/skymill/skymill-meta-repository.yaml)

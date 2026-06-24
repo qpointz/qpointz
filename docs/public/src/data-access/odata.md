@@ -5,7 +5,7 @@ Mill exposes physical tables as an **OData v4** read API for BI clients (Power B
 ## Requirements
 
 - **Java 25** — RWS OData 2.14.1+ requires JDK 25 bytecode; Mill’s platform toolchain matches this (see [Installation](../installation.md)).
-- **Metadata** — relation and descriptive facets enrich the EDM (`$metadata`); optional file-backed metadata seed for demos.
+- **Metadata** — relation and descriptive facets enrich the EDM (`$metadata`); optional file-backed metadata seed for demos. Navigation properties are built from platform relation facets (`relation`, `relation-source`, `relation-target`) on table and schema entities; relations whose source or target is outside the active schema service are ignored.
 
 ## Enable
 
@@ -36,13 +36,15 @@ Each physical schema has its own OData service root (RWS requires the `.svc` suf
 
 Entity sets use the **physical table name** (e.g. `cities` under the `skymill` schema). The EDM container is named after the schema.
 
+Entity set responses are **JSON**. Send `Accept: application/json`, or add `$format=json`, when probing from a browser or generic HTTP client (otherwise RWS may select Atom/XML and fail on pre-serialized feeds).
+
 ## Query options (v1)
 
 Supported on entity set reads:
 
 - `$filter` — pushed down to Calcite `RexNode` (untranslatable filters return **400**)
 - `$select`, `$orderby`, `$top`, `$skip`
-- `$expand` — when declared in relation metadata facets (same-schema targets only)
+- `$expand` — when declared in relation metadata facets (`relation`, `relation-source`, or `relation-target`; same-schema targets only)
 
 Not supported in v1: create/update/delete, `$batch`, actions, functions, delta feeds, cross-schema `$expand`.
 
