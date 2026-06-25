@@ -1,6 +1,6 @@
 # Metadata authoring capability and agent profiles
 
-**Status:** `planned`  
+**Status:** `in-progress`  
 **Milestone:** **0.8.0** (or next open milestone at implementation time)  
 **Delivery:** **staged** — one branch + MR per stage (see § Staged delivery); not a single long-lived integration branch. **Handover:** [`PLAN.md`](PLAN.md) + [`COLDSTART.md`](COLDSTART.md).
 
@@ -190,11 +190,11 @@ On top of [`RULES.md`](../../RULES.md) **Per-WI cadence** and **Complete working
 
 ## Work Items
 
-- [ ] WI-354 — Design contract (`WI-354-metadata-authoring-design-contract.md`) — *was WI-345*
-- [ ] WI-355 — Multi-artifact protocol (`WI-355-multi-artifact-protocol-runtime.md`) — *was WI-351*
-- [ ] WI-356 — `MetadataContent` entity + seeds (`WI-356-metadata-content-entity-and-seed.md`) — *was WI-352*
+- [x] WI-354 — Design contract (`WI-345-metadata-authoring-design-contract.md`) — *was WI-345*
+- [ ] WI-355 — Multi-artifact protocol (`WI-351-multi-artifact-protocol-runtime.md`) — *was WI-351*
+- [ ] WI-356 — `MetadataContent` entity + seeds (`WI-352-metadata-content-entity-and-seed.md`) — *was WI-352*
 - [ ] WI-357 — `MetadataReadPort` adapter (`WI-357-metadata-read-port-adapter.md`) — *was WI-346*
-- [ ] WI-358 — YAML agent profiles (`WI-358-agent-profiles-metadata-authoring.md`) — *was WI-348*
+- [ ] WI-358 — YAML agent profiles (`WI-348-agent-profiles-metadata-authoring.md`) — *was WI-348*
 - [ ] WI-359 — Catalog-generic facet tools (`WI-359-metadata-authoring-capability.md`) — *was WI-347*
 - [ ] WI-360 — Facet lifecycle + events (`WI-360-facet-artifact-lifecycle-events.md`) — *was WI-353*
 - [ ] WI-361 — Remove `capture_*` (`WI-361-schema-authoring-description-tool-cleanup.md`) — *was WI-350*

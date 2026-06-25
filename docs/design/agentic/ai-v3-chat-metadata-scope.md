@@ -90,6 +90,14 @@ mill-ui **optional stub** (**`chatMetadataPromotion`**, default **false** — se
 | Metadata `POST` with scope | Reuse Metadata mutations; needs scope + permission model |
 | Prelude-only patch | `PATCH` chat prelude blob — alternate to server-side store; watch tampering |
 
+## Facet artefact lifecycle (WI-360 — stage 4)
+
+Accept/Reject, **`artifact.facet.persisted`**, and kind-routed **`artifact.retracted`** are being
+rewritten in **WI-360** ([`metadata-authoring-profiles`](../../../workitems/planned/metadata-authoring-profiles/STORY.md)
+stage 4). The capture-vs-merge table above remains normative for scope attribution; operator
+lifecycle and event-bus wiring are specified in
+[`metadata-facet-catalog-v3.md`](metadata-facet-catalog-v3.md) and implemented in WI-360.
+
 ## Cross-links
 
 - [`ai-v3-chat-transport-extensions.md`](./ai-v3-chat-transport-extensions.md) — SSE / replay mapping for structured parts including facet proposals
