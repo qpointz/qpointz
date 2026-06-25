@@ -315,7 +315,7 @@ ground (schema tools) → metadataEntityId
 
 #### “Written to scope” (terminology — **amended 2026-06-25**)
 
-**Means:** after capture, facet assignments are **materialized in metadata scopes** listed in **`writeScopeUrns[]`** (typically **chat scope**), via **event bus** — not inline in the CAPTURE tool handler.
+**Means:** after capture, facet assignments are **materialized in metadata scopes** listed in **`writeScopeUrns[]`** (typically **chat scope**), via the **in-process `mill-events` bus** — an **architectural** producer/consumer boundary, not inline in the CAPTURE tool handler.
 
 **Normative flow:**
 
@@ -352,11 +352,18 @@ Aligns with read merge in **`MetadataReader`**. **`TOMBSTONE` / `CLEAR`** — op
 
 ## 23. Facet artefact lifecycle & event bus — **LOCKED** (direction)
 
-**Gap (original):** Generic artefact delete; coupling scope assignment to chat artefact persistence.
+**Gap (original):** How to decouple chat artefact persistence from metadata scope assignment and retraction — and which transport to use at current platform maturity.
 
 ### Locked decision (2026-06-25)
 
-Use **`:core:mill-events`** ([`general-event-bus.md`](../../../design/platform/general-event-bus.md)) for side effects — controllers stay thin.
+Use **`:core:mill-events`** ([`general-event-bus.md`](../../../design/platform/general-event-bus.md)) with **in-process** transport (`InMemoryEventTransport` / `SpringEventTransport` via `mill-events-autoconfigure`). This is an **architectural** choice — the first production **consumer** of the event-bus foundation delivered by **WI-311**–**WI-314** — **not** operational-drift remediation (no ad-hoc callback chain exists to “fix”; greenfield wiring follows the documented bus contract).
+
+| Concern | Decision |
+| ------- | -------- |
+| **Why events** | Producer/consumer boundary: `ai` persists artefacts; `metadata` applies scope writes; REST stays thin (publish only) |
+| **Transport at story close** | **In-process only** — sufficient for single-JVM mill-service |
+| **Not in scope** | Kafka / outbox (**P-50** backlog) — not required for facet lifecycle correctness |
+| **Handlers** | `EventConsumer` DSL beans; kind-routed `artifact.retracted` |
 
 | Step | Component |
 | ---- | --------- |
@@ -701,8 +708,8 @@ Exposure already flows through [`CapabilityMcpCatalog`](../../../../ai/mill-ai-m
 
 | Question | Answer |
 | -------- | ------ |
-| Who implements UI? | **WI-351** — multi-card SSE/live + Vitest (§16). **WI-353** — Accept/Reject on `FacetCondensedPreview`. |
-| When run `:ui:mill-ui:test` per stage? | Each WI runs **its** UI tests when that WI lands (WI-351 L6 Vitest; WI-353 button tests). |
+| Who implements UI? | **WI-355** (stage 2) — multi-card SSE/live + Vitest (§16). **WI-360** (stage 4) — Accept/Reject on `FacetCondensedPreview`. |
+| When run `:ui:mill-ui:test` per stage? | Each WI runs **its** UI tests when that WI lands (WI-355 L6 Vitest; WI-360 button tests). |
 | When run the **full** verify block? | **Once at story close** — stage **8 / WI-349** before MR ([`STORY.md`](STORY.md) § Verify, [`COLDSTART.md`](COLDSTART.md) § Verify commands). |
 
 **No product decision required.** Do not treat §19 as an open gap.
@@ -711,7 +718,7 @@ Exposure already flows through [`CapabilityMcpCatalog`](../../../../ai/mill-ai-m
 
 ## 20. Story checklist vs sequence table — **RESOLVED** (no action)
 
-STORY Work Items checklist, sequence table, and staged delivery table are aligned (WI-352 inserted; WI-353 lifecycle stage; 8 stages). No further action.
+STORY Work Items checklist, sequence table, and staged delivery table are aligned (4 stages; WI-355 isolated in stage 2). No further action.
 
 ---
 
@@ -755,8 +762,8 @@ STORY Work Items checklist, sequence table, and staged delivery table are aligne
 | 1 | WI-351 test vehicle | **Locked: D** — mock LLM (2× `propose_facet_assignment`) + L1–L6 layer tests |
 | 2 | `applicableTo` validation | **Locked:** extend `MetadataReadPort.validateFacetPayload(..., metadataEntityId?)` — WI-346 adapter, WI-347 tools |
 | 3–4 | P1 tools + catalog content | §3b + §3c + **§4 locked** (`MetadataContent`, WI-352) |
-| 5 | Scopes / lifecycle | **Locked:** `writeScopeUrns[]`; persist event → scope assign; Accept/Reject (§5, §23) |
-| 23 | Event bus retract | **Locked:** `artifact.retracted` + kind handlers (**WI-353**) |
+| 5 | Scopes / lifecycle | **Locked:** `writeScopeUrns[]`; persist event → scope assign; Accept/Reject (§5, §23); **in-process `mill-events`** = architectural boundary |
+| 23 | Event bus retract | **Locked:** `artifact.retracted` + kind handlers (**WI-360**); not operational-drift remediation |
 | 6 | Relation facet type keys | **Locked:** `applicableTo` + table role → `relation-source` \| `relation-target` \| `relation` (§6) |
 | 7 | `schema-authoring` capability | **Locked:** discontinue; roles → `schema` / `metadata` / `metadata-authoring` (§7) |
 | 8 | Profile `schema-authoring` | **Locked:** deprecate profile id; use `metadata-authoring` / `data-analysis` (§8) |

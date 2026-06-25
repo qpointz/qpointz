@@ -18,7 +18,7 @@
 
 **Secondary:** YAML-defined **agent profiles** (including **`metadata-authoring`**), real
 **`MetadataReadPort`** on mill-service, **`MetadataContent`** seeds, operator seed config, and
-**facet artefact lifecycle** — capture-time chat-scope assign + **Accept/Reject** (**WI-353**).
+**facet artefact lifecycle** — capture-time chat-scope assign + **Accept/Reject** (**WI-360**).
 
 Today, facet capture is effectively **descriptive-only** in tests and practice: parallel
 **`capture_description`** in [`schema-authoring.yaml`](../../../../ai/mill-ai/src/main/resources/capabilities/schema-authoring.yaml),
@@ -31,51 +31,54 @@ tools return nothing in production.
 
 Each **stage** = one branch → per-WI commits during work → **squash** to a small logical set → **one MR** → `dev` → **your review**. Next stage branches from **`origin/dev`** only **after** the prior stage MR is **merged**.
 
-### Renumber legend (planning 2026-06-25)
+### Renumber legend (planning 2026-06-25; stage split 2026-06-25)
 
 | New WI | Was | Stage |
 | ------ | --- | ----- |
 | **WI-354** | WI-345 | 1 |
-| **WI-355** | WI-351 | 1 |
 | **WI-356** | WI-352 | 1 |
 | **WI-358** | WI-348 | 1 |
-| **WI-357** | WI-346 | 2 |
-| **WI-359** | WI-347 | 2 |
-| **WI-360** | WI-353 | 3 |
-| **WI-361** | WI-350 | 3 |
-| **WI-362** | WI-349 | 3 |
+| **WI-355** | WI-351 | **2** (dedicated — review isolation) |
+| **WI-357** | WI-346 | 3 |
+| **WI-359** | WI-347 | 3 |
+| **WI-360** | WI-353 | 4 |
+| **WI-361** | WI-350 | 4 |
+| **WI-362** | WI-349 | 4 |
 
 *(File renames WI-345…353 → WI-354…362 pending.)*
 
-### Stage table (3 stages — component groups)
+### Stage table (4 stages — component groups)
 
 | Stage | Branch | WIs (order on branch) | Components | Merge gate |
 | ----- | ------ | --------------------- | ---------- | ---------- |
-| **1** | `feat/meta-authoring-platform` | **WI-354** → **WI-355** → **WI-356** → **WI-358** | `docs/design`, `ai/mill-ai` (batch protocol, agent), `ui/mill-ui` (SSE multi-part), `metadata` (`MetadataContent` entity + seeds) | WI-354: design review. WI-355: L1–L6 + mill-ui SSE Vitest ([`GAPS.md`](GAPS.md) §1, §16). WI-356: `:metadata:mill-metadata-core:test --tests "*MetadataContent*"`. WI-358: `:ai:mill-ai:test --tests "*Profile*"` |
-| **2** | `feat/meta-authoring-catalog` | **WI-357** → **WI-359** | `ai/mill-ai-data`, `metadata`, `ai/mill-ai` (capabilities + prompts) | WI-357: `:ai:mill-ai-data:test --tests "*Metadata*"`. WI-359: `:ai:mill-ai:test --tests "*Metadata*"` — **requires stage 1 merged** (WI-355 batch + WI-356 content) |
-| **3** | `feat/meta-authoring-lifecycle` | **WI-360** → **WI-361** → **WI-362** | `core/mill-events`, `metadata` (scope rows), `ai/mill-ai-service`, `ui/mill-ui` (Accept/Reject), `ai/mill-ai-test`, `docs/` | WI-360: `:core:mill-events:test` + `:ai:mill-ai-service:testIT --tests "*Artifact*"` + mill-ui lifecycle tests. WI-361: no `capture_*` in manifests. WI-362: **full verify block** (§ Verify) |
+| **1** | `feat/meta-authoring-platform` | **WI-354** → **WI-356** → **WI-358** | `docs/design`, `metadata` (`MetadataContent` entity + seeds), `ai/mill-ai` (YAML profiles) | WI-354: design review. WI-356: `:metadata:mill-metadata-core:test --tests "*MetadataContent*"`. WI-358: `:ai:mill-ai:test --tests "*Profile*"` |
+| **2** | `feat/meta-artifact-batch` | **WI-355** | `ai/mill-ai` (agent, batch protocol, pointers, SSE), `ui/mill-ui` (multi-card SSE) | **WI-355 only:** L1–L6 + mill-ui SSE Vitest ([`GAPS.md`](GAPS.md) §1, §15–§16) — **requires stage 1 merged** (WI-354 design contract) |
+| **3** | `feat/meta-authoring-catalog` | **WI-357** → **WI-359** | `ai/mill-ai-data`, `metadata`, `ai/mill-ai` (capabilities + prompts) | WI-357: `:ai:mill-ai-data:test --tests "*Metadata*"`. WI-359: `:ai:mill-ai:test --tests "*Metadata*"` — **requires stages 1–2 merged** (WI-356 content + WI-355 batch) |
+| **4** | `feat/meta-authoring-lifecycle` | **WI-360** → **WI-361** → **WI-362** | `core/mill-events`, `metadata` (scope rows), `ai/mill-ai-service`, `ui/mill-ui` (Accept/Reject), `ai/mill-ai-test`, `docs/` | WI-360: `:core:mill-events:test` + `:ai:mill-ai-service:testIT --tests "*Artifact*"` + mill-ui lifecycle tests. WI-361: no `capture_*` in manifests. WI-362: **full verify block** (§ Verify) |
 
-**Rationale:** Stage **1** isolates **platform + design** (multi-artifact runtime, profiles, content model) without coupling to catalog tools. Stage **2** wires **metadata read path + LLM tools**. Stage **3** delivers **operational lifecycle**, removes legacy capture, and proves e2e.
+**Rationale:** Stage **1** lands **design, content model, and profiles** without the large agent/SSE diff. Stage **2** is **WI-355 alone** — multi-artifact runtime + breaking SSE — for a focused review MR. Stage **3** wires **metadata read path + LLM tools**. Stage **4** delivers **facet lifecycle** (first production `mill-events` consumer), removes legacy capture, and proves e2e.
 
 ```mermaid
 flowchart TB
   subgraph s1 [Stage 1 platform]
     WI354[WI-354 design]
-    WI355[WI-355 batch SSE]
     WI356[WI-356 MetadataContent]
     WI358[WI-358 YAML profiles]
-    WI354 --> WI355
     WI354 --> WI356
     WI354 --> WI358
   end
-  subgraph s2 [Stage 2 catalog]
+  subgraph s2 [Stage 2 batch]
+    WI355[WI-355 batch SSE]
+    WI354 --> WI355
+  end
+  subgraph s3 [Stage 3 catalog]
     WI357[WI-357 ReadPort]
     WI359[WI-359 tools prompts]
     WI356 --> WI357
     WI355 --> WI359
     WI357 --> WI359
   end
-  subgraph s3 [Stage 3 lifecycle]
+  subgraph s4 [Stage 4 lifecycle]
     WI360[WI-360 events Accept Reject]
     WI361[WI-361 remove capture]
     WI362[WI-362 e2e docs]
@@ -85,6 +88,7 @@ flowchart TB
   end
   s1 --> s2
   s2 --> s3
+  s3 --> s4
 ```
 
 ### Per-stage workflow (normative)
@@ -113,8 +117,9 @@ On top of [`RULES.md`](../../RULES.md) **Per-WI cadence** and **Complete working
 | **Category guidance** | `MetadataContent` `contentKind: facet-type-category`, `targetUrn: urn:mill/metadata/facet-type-category:<slug>`; **`list_facet_categories`** merges catalog categories + content |
 | **Examples** | `MetadataContent` `contentKind: facet-type-example`; **`get_facet_type`** joins synthetic **`examples[]`** on wire only |
 | **Scopes on context** | **`AgentContext.scopes`**: `{ scopeUrn, access: r \| w \| rw }`; chat default: global **`r`**, chat **`rw`** ([`GAPS.md`](GAPS.md) §3c, §5) |
-| **Capture write targets** | Runtime sets **`writeScopeUrns[]`** on artefact; **`artifact.facet.persisted`** assigns facets into those scopes (**WI-353**) |
+| **Capture write targets** | Runtime sets **`writeScopeUrns[]`** on artefact; **`artifact.facet.persisted`** assigns facets into those scopes (**WI-360**) |
 | **Facet lifecycle** | **Accept** locks artefact; **Reject** retracts scope + deletes artefact via **`mill-events`** ([`GAPS.md`](GAPS.md) §23) |
+| **Lifecycle event transport** | **In-process `mill-events`** (`InMemoryEventTransport` / `SpringEventTransport`) — **architectural** producer/consumer boundary ([`general-event-bus.md`](../../../design/platform/general-event-bus.md)); **not** operational-drift remediation. Kafka/outbox → **P-50** backlog only (**WI-360**) |
 | **Merge on persist** | **`FacetProposalMerger`** in **`FacetArtifactPersistedHandler`** — **`SINGLE`** / **`MULTIPLE`** SET ([`GAPS.md`](GAPS.md) §5) |
 | **Relation facet keys** | **`relation-source`** / **`relation-target`** on **table** by join role; **`relation`** on **schema/model** for full edge ([`GAPS.md`](GAPS.md) §6) |
 | **Profile definition** | Multi-document YAML, **`kind: AgentProfile`** |
@@ -122,7 +127,7 @@ On top of [`RULES.md`](../../RULES.md) **Per-WI cadence** and **Complete working
 | **Profile registry** | **`mill.ai.profiles.seed.resources`** |
 | **`list_facet_types` output** | Summary only — no **`contentSchema`** (§3b) |
 | **`get_facet_type` output** | Full manifest + joined **`examples[]`** |
-| **Capture scope** | Chat-scope facet write via **`artifact.facet.persisted`** handler (**WI-353**); global scope never auto-written |
+| **Capture scope** | Chat-scope facet write via **`artifact.facet.persisted`** handler (**WI-360**); global scope never auto-written |
 | **Chat artefact** | **`facet-proposal`** + **`writeScopeUrns[]`**; **`status`**: `pending` → `accepted` \| retracted |
 | **Multi-facet per turn** | Batch `{ results[] }` → N artefacts; **full** turn + pointer + GET support (**WI-351** §15) |
 | **Partial batch failure** | Emit all successes; continue on failure ([`GAPS.md`](GAPS.md) §9) |
@@ -153,14 +158,14 @@ On top of [`RULES.md`](../../RULES.md) **Per-WI cadence** and **Complete working
 
 | Area | Change |
 |------|--------|
-| `metadata/mill-metadata-core` | **WI-352** `MetadataContent`, seeds, `FacetProposalMerger` |
-| `metadata/mill-metadata-persistence` | **WI-352** JPA `metadata_content`; **WI-353** scope facet rows + **`sourceArtifactId`** |
-| `ai/mill-ai-data` | **WI-346** `MetadataReadPort` |
-| `core/mill-events` | **WI-353** `artifact.facet.persisted` / `artifact.retracted` event types |
-| `core/mill-events-autoconfigure` | **WI-353** `EventConsumer` handler registration |
-| `ai/mill-ai` | **WI-351** batch; **WI-347** tools; **WI-353** event publish hooks |
-| `ai/mill-ai-service` | **WI-353** Accept/Reject REST |
-| `ui/mill-ui` | **WI-351** multi-card; **WI-353** Accept/Reject buttons |
+| `metadata/mill-metadata-core` | **WI-356** `MetadataContent`, seeds, `FacetProposalMerger` |
+| `metadata/mill-metadata-persistence` | **WI-356** JPA `metadata_content`; **WI-360** scope facet rows + **`sourceArtifactId`** |
+| `ai/mill-ai-data` | **WI-357** `MetadataReadPort` |
+| `core/mill-events` | **WI-360** `artifact.facet.persisted` / `artifact.retracted` event types |
+| `core/mill-events-autoconfigure` | **WI-360** `EventConsumer` handler registration |
+| `ai/mill-ai` | **WI-355** batch; **WI-359** tools; **WI-360** event publish hooks |
+| `ai/mill-ai-service` | **WI-360** Accept/Reject REST |
+| `ui/mill-ui` | **WI-355** multi-card; **WI-360** Accept/Reject buttons |
 
 ## Out of scope
 
@@ -174,14 +179,14 @@ On top of [`RULES.md`](../../RULES.md) **Per-WI cadence** and **Complete working
 | Seq | WI | Stage | Rationale |
 |-----|-----|-------|-----------|
 | 1 | WI-354 | **1** | Design contract |
-| 2 | WI-355 | **1** | Multi-artifact platform — **blocks WI-359** |
-| 3 | WI-356 | **1** | **MetadataContent** (entity + seeds; merger used in WI-360) |
-| 4 | WI-358 | **1** | YAML profiles |
-| 5 | WI-357 | **2** | **MetadataReadPort** — depends WI-356 |
-| 6 | WI-359 | **2** | Catalog tools + prompts — depends WI-355, WI-356, WI-357 |
-| 7 | WI-360 | **3** | Facet lifecycle — depends WI-355, WI-356, WI-359 |
-| 8 | WI-361 | **3** | Remove `capture_*` — depends WI-359, WI-355 |
-| 9 | WI-362 | **3** | E2E + docs — depends WI-360, WI-361 |
+| 2 | WI-356 | **1** | **MetadataContent** (entity + seeds; merger used in WI-360) |
+| 3 | WI-358 | **1** | YAML profiles |
+| 4 | WI-355 | **2** | Multi-artifact platform — **dedicated MR**; **blocks WI-359** |
+| 5 | WI-357 | **3** | **MetadataReadPort** — depends WI-356 |
+| 6 | WI-359 | **3** | Catalog tools + prompts — depends WI-355, WI-356, WI-357 |
+| 7 | WI-360 | **4** | Facet lifecycle — depends WI-355, WI-356, WI-359 |
+| 8 | WI-361 | **4** | Remove `capture_*` — depends WI-359, WI-355 |
+| 9 | WI-362 | **4** | E2E + docs — depends WI-360, WI-361 |
 
 ## Work Items
 
@@ -259,6 +264,6 @@ ground (schema) → metadataEntityId
 |-----|-----|------|
 | [`metadata-facet-catalog-v3.md`](../../../design/agentic/metadata-facet-catalog-v3.md) | WI-345 outline → WI-349 rewrite | **Canonical** authoring hub |
 | [`metadata-content.md`](../../../design/metadata/metadata-content.md) | WI-345 skeleton → WI-352 | Domain entity |
-| [`ai-v3-chat-metadata-scope.md`](../../../design/agentic/ai-v3-chat-metadata-scope.md) | WI-353 | Scope + Accept/Reject lifecycle |
-| [`artifact-foundation.md`](../../../design/agentic/artifact-foundation.md) | WI-351 | Batch `ProtocolFinal` |
-| [`general-event-bus.md`](../../../design/platform/general-event-bus.md) | WI-353 | Event type catalog note |
+| [`ai-v3-chat-metadata-scope.md`](../../../design/agentic/ai-v3-chat-metadata-scope.md) | WI-360 | Scope + Accept/Reject lifecycle |
+| [`artifact-foundation.md`](../../../design/agentic/artifact-foundation.md) | WI-355 | Batch `ProtocolFinal` |
+| [`general-event-bus.md`](../../../design/platform/general-event-bus.md) | WI-360 | Event type catalog note; in-process transport |

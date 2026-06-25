@@ -4,7 +4,7 @@ Status: `planned`
 Type: `✨ feature`  
 Area: `ai`, `metadata`  
 Depends on: [WI-346](WI-346-metadata-read-port-adapter.md), [WI-351](WI-351-multi-artifact-protocol-runtime.md), [WI-352](WI-352-metadata-content-entity-and-seed.md)  
-**Stage:** 5 — branch `feat/metadata-authoring-tools` (see [`STORY.md`](STORY.md))
+**Stage:** **3** — branch `feat/meta-authoring-catalog` (see [`STORY.md`](STORY.md))
 
 ## Problem Statement
 

@@ -4,6 +4,7 @@ Status: `planned`
 Type: `✨ feature`  
 Area: `ai`, `ui`  
 Depends on: [WI-345](WI-345-metadata-authoring-design-contract.md)  
+**Stage:** **2** — branch `feat/meta-artifact-batch` (dedicated MR; see [`STORY.md`](STORY.md))  
 **Blocks:** [WI-347](WI-347-metadata-authoring-capability.md), [WI-350](WI-350-schema-authoring-description-tool-cleanup.md)  
 **Related:** [WI-353](WI-353-facet-artifact-lifecycle-events.md) — artefact `status: pending` on new facet-proposal rows
 

@@ -4,7 +4,7 @@ Status: `planned`
 Type: `✨ feature`  
 Area: `ai`, `metadata`, `ui`  
 Depends on: [WI-351](WI-351-multi-artifact-protocol-runtime.md), [WI-352](WI-352-metadata-content-entity-and-seed.md), [WI-347](WI-347-metadata-authoring-capability.md)  
-**Stage:** 6 — branch `feat/facet-artifact-lifecycle` (see [`STORY.md`](STORY.md))
+**Stage:** **4** — branch `feat/meta-authoring-lifecycle` (see [`STORY.md`](STORY.md))
 
 ## Problem Statement
 
@@ -14,6 +14,15 @@ not a separate M-23 promotion step before scope merge.
 
 **Reject** must remove both the chat artefact **and** the scope assignment(s) created for that
 capture. The mechanism should extend to other artefact kinds later.
+
+## Architectural note — internal event bus (not operational drift)
+
+Scope assignment and retraction use **`:core:mill-events`** with **in-process** transport
+(`InMemoryEventTransport` / `SpringEventTransport`). This follows the normative design in
+[`general-event-bus.md`](../../../design/platform/general-event-bus.md) — WI-360 is the **first
+production consumer** of that foundation (**WI-311**–**WI-314**). The split is **architectural**
+(AI artefact store vs metadata scope writes; thin REST/controllers), **not** a workaround for
+operational drift. **Kafka / outbox** is explicitly **out of scope** (**P-50** backlog).
 
 ## Goal
 

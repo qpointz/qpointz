@@ -1,7 +1,7 @@
 # Cold start — metadata-authoring-profiles
 
 **Audience:** agent or developer picking up this story with **no prior chat context**.  
-**Delivery:** **3 stages** — one branch + MR per stage, **multiple WIs per stage** (see [`PLAN.md`](PLAN.md) §2).  
+**Delivery:** **4 stages** — one branch + MR per stage; **WI-355** is an isolated stage-2 MR (see [`PLAN.md`](PLAN.md) §2).  
 **Status:** planning complete (2026-06-25); **no implementation yet**  
 **Milestone:** 0.8.0 (tentative)
 
@@ -21,15 +21,16 @@
 
 **Secondary:** `MetadataContent` (**WI-356**), YAML profiles (**WI-358**), `MetadataReadPort` (**WI-357**), catalog tools (**WI-359**), multi-artifact batch (**WI-355**), facet lifecycle Accept/Reject (**WI-360**).
 
-**Blocker:** WI-359 must not start until WI-355 (batch protocol) is merged via stage **1** MR.
+**Blocker:** WI-359 must not start until WI-355 (stage **2**) is merged via its **dedicated** MR.
 
-## Three stages (summary)
+## Four stages (summary)
 
 | Stage | Branch | WIs | Focus |
 | ----- | ------ | --- | ----- |
-| **1** | `feat/meta-authoring-platform` | 354 → 355 → 356 → 358 | Design, batch/SSE, MetadataContent, profiles |
-| **2** | `feat/meta-authoring-catalog` | 357 → 359 | ReadPort, catalog tools + prompts |
-| **3** | `feat/meta-authoring-lifecycle` | 360 → 361 → 362 | Events, Accept/Reject, remove capture_*, e2e |
+| **1** | `feat/meta-authoring-platform` | 354 → 356 → 358 | Design, MetadataContent, profiles |
+| **2** | `feat/meta-artifact-batch` | **355** | Multi-artifact batch + SSE (review isolation) |
+| **3** | `feat/meta-authoring-catalog` | 357 → 359 | ReadPort, catalog tools + prompts |
+| **4** | `feat/meta-authoring-lifecycle` | 360 → 361 → 362 | Events, Accept/Reject, remove capture_*, e2e |
 
 Detail, verify commands, dependency diagram: **[`PLAN.md`](PLAN.md)**.
 
@@ -41,6 +42,12 @@ git checkout -b feat/meta-authoring-platform origin/dev
 ```
 
 Implement WIs in order; one commit per WI; `[x]` tracker after each; squash; push; MR → `dev`. After merge, stage 2:
+
+```bash
+git checkout -b feat/meta-artifact-batch origin/dev
+```
+
+After stage 2 merge, stage 3:
 
 ```bash
 git checkout -b feat/meta-authoring-catalog origin/dev

@@ -10,39 +10,42 @@ This file persists the agent planning session: staged delivery, WI renumber lege
 
 ## 1. Story goal (one paragraph)
 
-Make **`metadata-authoring`** **catalog-generic**: the LLM uses `list_facet_categories` → `list_facet_types` → `get_facet_type` → `validate_facet_payload` → `propose_facet_assignment` for **any** registered facet type. Add **`MetadataContent`**, YAML **agent profiles**, real **`MetadataReadPort`**, multi-artifact batch runtime, and **facet lifecycle** (chat-scope assign on persist + Accept/Reject via **`mill-events`**). Remove all **`capture_*`** and the **`schema-authoring`** capability.
+Make **`metadata-authoring`** **catalog-generic**: the LLM uses `list_facet_categories` → `list_facet_types` → `get_facet_type` → `validate_facet_payload` → `propose_facet_assignment` for **any** registered facet type. Add **`MetadataContent`**, YAML **agent profiles**, real **`MetadataReadPort`**, multi-artifact batch runtime ( **WI-355** — dedicated stage-2 MR), and **facet lifecycle** (chat-scope assign on persist + Accept/Reject via **in-process `mill-events`**). Remove all **`capture_*`** and the **`schema-authoring`** capability.
 
 ---
 
-## 2. Delivery model (3 stages, multiple WIs each)
+## 2. Delivery model (4 stages; WI-355 isolated for review)
 
 **Override:** [`RULES.md`](../../RULES.md) default “one branch per story” → **one branch + one MR per stage**. Everything else in RULES applies (per-WI commit, tracker, complete working copy).
 
 | Stage | Branch | WIs (implement in order) | Mill components |
 | ----- | ------ | ------------------------ | --------------- |
-| **1** | `feat/meta-authoring-platform` | WI-354 → WI-355 → WI-356 → WI-358 | `docs/design`, `ai/mill-ai`, `ui/mill-ui`, `metadata` (entity + seeds) |
-| **2** | `feat/meta-authoring-catalog` | WI-357 → WI-359 | `ai/mill-ai-data`, `metadata`, `ai/mill-ai` capabilities |
-| **3** | `feat/meta-authoring-lifecycle` | WI-360 → WI-361 → WI-362 | `core/mill-events`, `metadata` scope, `ai/mill-ai-service`, `ui/mill-ui`, `ai/mill-ai-test`, docs |
+| **1** | `feat/meta-authoring-platform` | WI-354 → WI-356 → WI-358 | `docs/design`, `metadata` (entity + seeds), `ai/mill-ai` (profiles) |
+| **2** | `feat/meta-artifact-batch` | **WI-355** | `ai/mill-ai` (agent, batch, pointers, SSE), `ui/mill-ui` |
+| **3** | `feat/meta-authoring-catalog` | WI-357 → WI-359 | `ai/mill-ai-data`, `metadata`, `ai/mill-ai` capabilities |
+| **4** | `feat/meta-authoring-lifecycle` | WI-360 → WI-361 → WI-362 | `core/mill-events`, `metadata` scope, `ai/mill-ai-service`, `ui/mill-ui`, `ai/mill-ai-test`, docs |
 
 ```mermaid
 flowchart TB
   subgraph s1 [Stage 1 platform]
     WI354[WI-354 design]
-    WI355[WI-355 batch SSE]
     WI356[WI-356 MetadataContent]
     WI358[WI-358 YAML profiles]
-    WI354 --> WI355
     WI354 --> WI356
     WI354 --> WI358
   end
-  subgraph s2 [Stage 2 catalog]
+  subgraph s2 [Stage 2 batch]
+    WI355[WI-355 batch SSE]
+    WI354 --> WI355
+  end
+  subgraph s3 [Stage 3 catalog]
     WI357[WI-357 ReadPort]
     WI359[WI-359 tools prompts]
     WI356 --> WI357
     WI355 --> WI359
     WI357 --> WI359
   end
-  subgraph s3 [Stage 3 lifecycle]
+  subgraph s4 [Stage 4 lifecycle]
     WI360[WI-360 events Accept Reject]
     WI361[WI-361 remove capture]
     WI362[WI-362 e2e docs]
@@ -50,10 +53,10 @@ flowchart TB
     WI360 --> WI361
     WI361 --> WI362
   end
-  s1 --> s2 --> s3
+  s1 --> s2 --> s3 --> s4
 ```
 
-**Hard gates:** Do **not** start stage **2** until stage **1** MR is **merged** (WI-359 needs WI-355 batch). Do **not** start WI-359 before WI-357 on the stage 2 branch.
+**Hard gates:** Do **not** start stage **2** until stage **1** MR is **merged** (WI-355 needs WI-354 design). Do **not** start stage **3** until stage **2** MR is **merged** (WI-359 needs WI-355 batch). Do **not** start WI-359 before WI-357 on the stage 3 branch.
 
 ### Per-stage workflow
 
@@ -74,14 +77,14 @@ Planning IDs **WI-354…362** map to execution order. **On disk, filenames still
 | Planned ID | Was | Stage | Current file |
 | ---------- | --- | ----- | ------------ |
 | **WI-354** | WI-345 | 1 | [`WI-345-metadata-authoring-design-contract.md`](WI-345-metadata-authoring-design-contract.md) |
-| **WI-355** | WI-351 | 1 | [`WI-351-multi-artifact-protocol-runtime.md`](WI-351-multi-artifact-protocol-runtime.md) |
 | **WI-356** | WI-352 | 1 | [`WI-352-metadata-content-entity-and-seed.md`](WI-352-metadata-content-entity-and-seed.md) |
 | **WI-358** | WI-348 | 1 | [`WI-348-agent-profiles-metadata-authoring.md`](WI-348-agent-profiles-metadata-authoring.md) |
-| **WI-357** | WI-346 | 2 | [`WI-346-metadata-read-port-adapter.md`](WI-346-metadata-read-port-adapter.md) |
-| **WI-359** | WI-347 | 2 | [`WI-347-metadata-authoring-capability.md`](WI-347-metadata-authoring-capability.md) |
-| **WI-360** | WI-353 | 3 | [`WI-353-facet-artifact-lifecycle-events.md`](WI-353-facet-artifact-lifecycle-events.md) |
-| **WI-361** | WI-350 | 3 | [`WI-350-schema-authoring-description-tool-cleanup.md`](WI-350-schema-authoring-description-tool-cleanup.md) |
-| **WI-362** | WI-349 | 3 | [`WI-349-metadata-authoring-tests-docs.md`](WI-349-metadata-authoring-tests-docs.md) |
+| **WI-355** | WI-351 | **2** | [`WI-351-multi-artifact-protocol-runtime.md`](WI-351-multi-artifact-protocol-runtime.md) |
+| **WI-357** | WI-346 | 3 | [`WI-346-metadata-read-port-adapter.md`](WI-346-metadata-read-port-adapter.md) |
+| **WI-359** | WI-347 | 3 | [`WI-347-metadata-authoring-capability.md`](WI-347-metadata-authoring-capability.md) |
+| **WI-360** | WI-353 | 4 | [`WI-353-facet-artifact-lifecycle-events.md`](WI-353-facet-artifact-lifecycle-events.md) |
+| **WI-361** | WI-350 | 4 | [`WI-350-schema-authoring-description-tool-cleanup.md`](WI-350-schema-authoring-description-tool-cleanup.md) |
+| **WI-362** | WI-349 | 4 | [`WI-349-metadata-authoring-tests-docs.md`](WI-349-metadata-authoring-tests-docs.md) |
 
 ### Pending housekeeping (optional before stage 1)
 
@@ -92,14 +95,10 @@ Planning IDs **WI-354…362** map to execution order. **On disk, filenames still
 
 ## 4. Verify commands by stage
 
-### Stage 1 — platform
+### Stage 1 — platform (design, content, profiles)
 
 ```bash
 # WI-354: design review only (no Gradle)
-
-# WI-355 — batch + SSE (GAPS §1, §16)
-./gradlew :ai:mill-ai:test --tests "*LangChain4jAgentEmit*" --tests "*ChatSse*" --tests "*ProtocolFinal*"
-./gradlew :ui:mill-ui:test --tests "*chatService*" --tests "*artifactGroups*"
 
 # WI-356 — MetadataContent
 ./gradlew :metadata:mill-metadata-core:test --tests "*MetadataContent*"
@@ -108,7 +107,15 @@ Planning IDs **WI-354…362** map to execution order. **On disk, filenames still
 ./gradlew :ai:mill-ai:test --tests "*Profile*"
 ```
 
-### Stage 2 — catalog
+### Stage 2 — multi-artifact batch (WI-355 only)
+
+```bash
+# WI-355 — batch + SSE (GAPS §1, §15–§16)
+./gradlew :ai:mill-ai:test --tests "*LangChain4jAgentEmit*" --tests "*ChatSse*" --tests "*ProtocolFinal*"
+./gradlew :ui:mill-ui:test --tests "*chatService*" --tests "*artifactGroups*"
+```
+
+### Stage 3 — catalog
 
 ```bash
 # WI-357 — MetadataReadPort
@@ -118,7 +125,7 @@ Planning IDs **WI-354…362** map to execution order. **On disk, filenames still
 ./gradlew :ai:mill-ai:test --tests "*Metadata*"
 ```
 
-### Stage 3 — lifecycle + ship
+### Stage 4 — lifecycle + ship
 
 ```bash
 # WI-360
@@ -153,7 +160,7 @@ Planning IDs **WI-354…362** map to execution order. **On disk, filenames still
 | 3b | List vs get facet type | WI-359 | Summary list; full schema via `get_facet_type` |
 | 3c | Scopes | WI-359 | `list_metadata_scopes`; `writeScopeUrns[]` on artefact |
 | 4 | MetadataContent | WI-356 | Separate entity; not on `FacetTypeDefinition` |
-| 5/23 | Lifecycle | WI-360 | Persist event → scope assign; Accept/Reject via events |
+| 5/23 | Lifecycle | WI-360 | Persist event → scope assign; Accept/Reject via **in-process** `mill-events` (architectural boundary) |
 | 6 | Relation keys | WI-359 | `relation-source` / `relation-target` / `relation` |
 | 7 | schema-authoring cap | WI-361 | Removed |
 | 8 | schema-authoring profile | WI-358 | Deprecated id |
@@ -215,6 +222,8 @@ Full detail: [`GAPS.md`](GAPS.md).
 ---
 
 ## 9. WI-360 — facet lifecycle (was WI-353 plan)
+
+**Event bus stance:** WI-360 is the **first production consumer** of [`general-event-bus`](../../../design/platform/general-event-bus.md) — **in-process** transport (`InMemoryEventTransport` / `SpringEventTransport`). This is an **architectural** producer/consumer split (AI persistence vs metadata scope writes), **not** remediation of operational drift. Distributed transport (Kafka/outbox) remains **P-50** backlog.
 
 ```mermaid
 sequenceDiagram
@@ -284,10 +293,12 @@ sequenceDiagram
 
 ## 12. Common pitfalls
 
-- Starting WI-359 before WI-355 is merged — multi-facet will not persist/stream
+- Starting WI-359 before WI-355 stage MR is **merged** — multi-facet will not persist/stream
+- Bundling WI-355 with platform WIs — use **dedicated stage 2** MR for agent/SSE review
 - Putting `examples[]` on `FacetTypeDefinition` — use **MetadataContent**
 - LLM passing `scopeUrn` on capture — runtime sets **`writeScopeUrns[]`**
 - Treating DQ utterances as SQL when `metadata-authoring` profile is active
+- Framing `mill-events` as a temporary workaround — it is the **normative** in-process bus at current maturity
 - Opening story closure (archive/MILESTONE) at stage MR time — wait for explicit request
 
 ---
@@ -313,5 +324,6 @@ sequenceDiagram
 | update-gaps-refs | GAPS.md WI numbers → 354–362 | pending |
 | update-wi-internals | Each WI: Stage N header, new Depends links | pending |
 | stage-1-impl | Execute stage 1 on `feat/meta-authoring-platform` | pending |
-| stage-2-impl | Execute stage 2 after stage 1 MR merged | pending |
+| stage-2-impl | Execute stage 2 (`feat/meta-artifact-batch`, WI-355 only) after stage 1 MR merged | pending |
 | stage-3-impl | Execute stage 3 after stage 2 MR merged | pending |
+| stage-4-impl | Execute stage 4 after stage 3 MR merged | pending |
