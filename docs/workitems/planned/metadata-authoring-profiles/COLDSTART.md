@@ -1,36 +1,25 @@
 # Cold start — metadata-authoring-profiles
 
 **Audience:** agent or developer picking up this story with no prior chat context.  
-**Branch:** `feat/meta-capability-improve` (rebase on `origin/dev` before MR).  
-**Status:** **planning complete — no implementation committed yet** (story folder was untracked until handover commit).  
+**Delivery:** **3 stages** — one branch + MR per stage, **multiple WIs per stage** (see [`STORY.md`](STORY.md) § Staged delivery).  
+**Status:** **planning complete — docs updated 2026-06-25; no implementation yet**  
 **Milestone:** 0.8.0 (tentative)
 
 ## What this story does
 
-**Primary:** Catalog-generic **metadata facet authoring** — LLM uses `list_facet_types` (reasoning) → `get_facet_type` (generation) → `validate_facet_payload` → `propose_facet_assignment` for **any** facet type (not only `descriptive`). No `capture_<facet>` tools.
+**Primary:** Catalog-generic **metadata facet authoring** — LLM uses `list_facet_categories` → `list_facet_types` (reasoning) → `get_facet_type` (generation) → `validate_facet_payload` → `propose_facet_assignment` for **any** facet type. No `capture_<facet>` tools.
 
-**Secondary:** YAML **agent profiles** (`kind: AgentProfile`), `mill.ai.profiles.seed.resources`, real **`MetadataReadPort`** on mill-service.
+**Secondary:** **`MetadataContent`** entity (**WI-356**), YAML **agent profiles**, real **`MetadataReadPort`**, and **facet lifecycle** — chat-scope assign + Accept/Reject via **`mill-events`** (**WI-360**).
 
-**Platform prerequisite:** **WI-351** multi-artifact batch `ProtocolFinal` + fan-out must land **before** facet capability rework (**WI-347**).
+**Platform prerequisite:** **WI-355** multi-artifact batch `ProtocolFinal` + fan-out must land **before** facet capability rework (**WI-359**).
 
 ## Read order
 
-1. **This file** — branch, WI sequence, file map, rules
-2. [`STORY.md`](STORY.md) — locked architectural decisions, prompt enforcement, multi-facet batch
-3. [`GAPS.md`](GAPS.md) — **22 open decisions** — resolve or assign to WIs before/during implementation
-4. [`WI-345-metadata-authoring-design-contract.md`](WI-345-metadata-authoring-design-contract.md) — normative design contract (first WI to implement as docs)
-5. Current WI file in sequence below
-
-## Branch setup
-
-```bash
-git fetch origin
-git checkout feat/meta-capability-improve
-# if starting fresh from dev:
-# git checkout -b feat/meta-capability-improve origin/dev
-```
-
-Working directory: **repository root** (`./gradlew`).
+1. **This file** — stages, WI sequence, file map, rules
+2. [`STORY.md`](STORY.md) — locked architectural decisions, staged delivery, prompt enforcement
+3. [`GAPS.md`](GAPS.md) — locked + open decisions
+4. [`WI-354-metadata-authoring-design-contract.md`](WI-354-metadata-authoring-design-contract.md) — normative design contract (stage **1**, first WI; *file rename pending*)
+5. Current WI file for the stage you are implementing
 
 ## Preconditions (already on `dev` / completed stories)
 
@@ -38,30 +27,53 @@ Working directory: **repository root** (`./gradlew`).
 |-------|-----------|
 | [`ai-facet-catalog-inference`](../../completed/20260428-ai-facet-catalog-inference/STORY.md) | `metadata` + `metadata-authoring` capabilities, `propose_facet_assignment` |
 | [`dqm-metadata-facets`](../../completed/20260624-dqm-metadata-facets/STORY.md) | 15 DQ facet types in platform seeds |
-| [`ai-chat-facet-display`](../../completed/20260619-ai-chat-facet-display/STORY.md) | `facet-proposal` UI shell (`FacetCondensedPreview`) |
+| [`ai-chat-facet-display`](../../completed/20260619-ai-chat-facet-display/STORY.md) | `facet-proposal` UI shell |
 
-## WI sequence (implement in this order)
+## Branch setup (example — stage 1)
 
-| Seq | WI | Type | Depends on | Summary |
-|-----|-----|------|------------|---------|
-| 1 | [WI-345](WI-345-metadata-authoring-design-contract.md) | docs | — | Design contract under `docs/design/agentic/` |
-| 2 | [WI-351](WI-351-multi-artifact-protocol-runtime.md) | feat | WI-345 | **Batch `ProtocolFinal` `{ results[] }`**, agent aggregation, persist/SSE fan-out, UI N-cards — **blocks WI-347** |
-| 3 | [WI-348](WI-348-agent-profiles-metadata-authoring.md) | feat | WI-345 | YAML profiles, `ResourceProfileRegistry`, `mill.ai.profiles.seed.resources` |
-| 4 | [WI-346](WI-346-metadata-read-port-adapter.md) | feat | WI-345 | In-process `MetadataReadPort` in `mill-ai-data` (replaces `EmptyMetadataReadPort`) |
-| 5 | [WI-347](WI-347-metadata-authoring-capability.md) | feat | **WI-351**, WI-346 | Catalog tools, validators, facet prompts (`intent`, `reasoning`, `batch`) |
-| 6 | [WI-350](WI-350-schema-authoring-description-tool-cleanup.md) | refactor | WI-347, WI-351 | Remove all `capture_*` tools; single `propose_facet_assignment` path |
-| 7 | [WI-349](WI-349-metadata-authoring-tests-docs.md) | test/docs | WI-350 | Skymill IT, scenario packs, public docs |
+```bash
+git fetch origin
+git checkout -b feat/meta-authoring-platform origin/dev
+# WI-354 → WI-355 → WI-356 → WI-358 (one commit each); squash; push; MR
+```
 
-**Do not start WI-347 until WI-351 is done** (see [`GAPS.md`](GAPS.md) §1 for WI-351 test strategy).
+After stage 1 MR merged:
+
+```bash
+git checkout -b feat/meta-authoring-catalog origin/dev   # stage 2: WI-357 → WI-359
+```
+
+**General RULES still apply:** complete working copy per WI, `[x]` tracker after each WI, commit prefixes, no `Co-Authored-By`, CI check when GitLab MCP available, story closure explicit only.
+
+**This story adds:**
+
+| Step | Action |
+| ---- | ------ |
+| 1 | **Branch per stage** from `origin/dev` (after prior stage MR **merged**) |
+| 2 | Implement **all WIs in stage order** (see table) — **one commit per WI** |
+| 3 | **`[x]` in STORY.md** after each WI; first `[x]` → `planned/` → `in-progress/` |
+| 4 | **Verify** — all merge-gate commands for the stage |
+| 5 | **Squash** to 2–4 logical commits (or one if small); **push** |
+| 6 | **MR** → `dev` — list all stage WIs; **wait for merge** before next stage |
+
+## Staged WI sequence (3 stages)
+
+| Stage | Branch | WIs (order) | Focus |
+|-------|--------|-------------|-------|
+| **1** | `feat/meta-authoring-platform` | WI-354 → WI-355 → WI-356 → WI-358 | Design, batch/SSE runtime, `MetadataContent`, YAML profiles |
+| **2** | `feat/meta-authoring-catalog` | WI-357 → WI-359 | `MetadataReadPort`, catalog-generic tools + prompts |
+| **3** | `feat/meta-authoring-lifecycle` | WI-360 → WI-361 → WI-362 | Events, Accept/Reject, remove `capture_*`, e2e + docs |
+
+**Do not start stage 2 until stage 1 MR merged** (WI-359 needs WI-355). **Do not start WI-359 before WI-357** on stage 2 branch.
 
 ## Story folder map
 
 ```
 docs/workitems/planned/metadata-authoring-profiles/
-  COLDSTART.md          ← this file
-  STORY.md              ← tracking checklist + architecture
-  GAPS.md               ← open decisions for review
-  WI-345-*.md … WI-351-*.md
+  COLDSTART.md
+  STORY.md
+  GAPS.md
+  WI-354-*.md … WI-362-*.md   # renumber from WI-345…353 pending
 ```
 
 ## Key code today (before story)
@@ -69,120 +81,97 @@ docs/workitems/planned/metadata-authoring-profiles/
 | Area | Path | Current state |
 |------|------|----------------|
 | Metadata QUERY tools | `ai/mill-ai/src/main/resources/capabilities/metadata.yaml` | 3 tools; weak system prompt |
-| Metadata CAPTURE | `ai/mill-ai/src/main/resources/capabilities/metadata-authoring.yaml` | `propose_facet_assignment`; one-line request prompt |
-| Legacy capture | `ai/mill-ai/src/main/resources/capabilities/schema-authoring.yaml` | `capture_description`, `capture_relation`, intent/batch prompts |
-| Agent loop | `ai/mill-ai/.../langchain4j/LangChain4jAgent.kt` | **Single** `captureBinding`; one `ProtocolFinal` per turn |
-| SSE mapper | `ai/mill-ai/.../sse/AgentEventToSseMapper.kt` | Structured finals use `mode: replace` |
-| Empty port | `ai/mill-ai/.../metadata/EmptyMetadataReadPort.kt` | `listFacetTypes()` → `[]` on mill-service |
+| Metadata CAPTURE | `ai/mill-ai/.../metadata-authoring.yaml` | `propose_facet_assignment` only |
+| Legacy capture | `ai/mill-ai/.../schema-authoring.yaml` | `capture_description`, `capture_relation` |
+| Agent loop | `ai/mill-ai/.../LangChain4jAgent.kt` | Production runtime; multi-capture gap |
+| Dead agent | `ai/mill-ai/.../SchemaExplorationAgent.kt` | **Delete in WI-355** (§14) — no callers |
+| Empty port | `ai/mill-ai/.../EmptyMetadataReadPort.kt` | `listFacetTypes()` → `[]` on mill-service |
 | Profiles | `ai/mill-ai/.../profile/*AgentProfile.kt` | Compile-time Kotlin objects |
-| Chat UI | `ui/mill-ui/.../artifactGroups.ts`, `MessageArtifactComposer.tsx` | **Already** renders N `facet-proposal` groups if `artifacts[]` has N rows |
-| Facet seeds | `metadata/mill-metadata-core/src/main/resources/metadata/platform-*.yaml` | descriptive, relation, DQ L1/L2 |
-| Design (stale) | `docs/design/agentic/metadata-facet-catalog-v3.md` | Pre-story; rewrite in WI-349 |
-
-Production chat runtime: **`LangChain4jChatRuntime`** → **`LangChain4jAgent`** only (`SchemaExplorationAgent` is not the service path).
+| Chat UI | `ui/mill-ui/.../FacetCondensedPreview.tsx` | Read-only preview; Accept/Reject stub (`enabledActions={[]}`) |
+| Facet seeds | `metadata/.../platform-*.yaml` | descriptive, relation, DQ — **no MetadataContent** |
 
 ## Normative tool matrix (target)
 
 | Tool | Capability |
 |------|------------|
-| `list_facet_types` | `metadata` (summary — reasoning) |
-| `get_facet_type` | `metadata` (full schema — generation) |
+| `list_facet_categories` | `metadata` |
+| `list_facet_types` | `metadata` (summary) |
+| `get_facet_type` | `metadata` (full schema + examples[]) |
+| `list_content` / `get_content` | `metadata` |
+| `list_metadata_scopes` | `metadata` |
 | `list_entity_facets` | `metadata` |
 | `validate_facet_payload` | `metadata` |
 | `propose_facet_assignment` | `metadata-authoring` |
 
-**Note:** `get_facet_type` registers on **`metadata`** — all profiles with that capability see it; authoring prompts own the list→get sequence ([`GAPS.md`](GAPS.md) §3b).
-
 **Forbidden:** any `capture_<specific facet>` tool.
 
-## Multi-facet / batch protocol (WI-351)
+## Locked gaps (2026-06-25)
 
-One user turn → N facet proposals → **one** batch `ProtocolFinal` with `results[]` → fan-out to **N** flat `facet-proposal` persist rows + N SSE parts. See STORY § *Protocol: batch ProtocolFinal*.
+| § | Topic |
+|---|--------|
+| 1 | WI-351 mock LLM + L1–L6 |
+| 2 | `validateFacetPayload(..., metadataEntityId?)` |
+| 3b | `list_facet_types` + `get_facet_type` |
+| 3c | `list_metadata_scopes` with **`access`** flags; `writeScopeUrns[]` on artefact |
+| **4** | **`MetadataContent`** — WI-352 |
+| **5** | Capture-time scope assign + **`FacetProposalMerger`** on **`artifact.facet.persisted`** (§5, §23) — **WI-353** |
+| **23** | Event bus: **`artifact.facet.persisted`** + kind-routed **`artifact.retracted`** (**WI-353**) |
+| **6** | Relation keys: `applicableTo` + table role (§6) |
+| **7** | `schema-authoring` capability removed (§7) |
+| **8** | Profile id `schema-authoring` deprecated (§8) |
+| **9** | Partial batch failure — emit all successes (§9) |
+| **10** | Mixed SQL + facets per turn (§10) |
+| **11** | `FacetProposalWire` — leave as-is; no legacy replay compat (§11) |
+| **12** | Harness catalog expansion — **WI-346**; WI-349 scenario packs only (§12) |
+| **13** | Design docs under `docs/design/` — hub `metadata-facet-catalog-v3.md` (§13) |
+| **14** | Delete `SchemaExplorationAgent.kt`; `LangChain4jAgent` only (§14) |
+| **15** | Multi-artifact first-class: list pointers + GET hydration (**WI-351**, §15) |
+| **16** | SSE multi-part + `item.completed` multi hint; UI Vitest (**WI-351**, §16) |
+| **18** | MCP profile-driven; all new tools enabled; inventory doc **WI-349** (§18) |
+| **22** | No plural batch tool — parallel `propose_facet_assignment` + batch `ProtocolFinal` (§22) |
+| 21 | Batch envelope mandatory at story close |
 
-## New profile (WI-348)
-
-```yaml
-kind: AgentProfile
-id: metadata-authoring
-capabilities:
-  - conversation
-  - schema
-  - metadata
-  - metadata-authoring
-```
-
-No `sql-query`, `schema-authoring`, or `capture_*` tools.
-
-Deploy default today: **`schema-authoring`** (`apps/mill-service/application.yml`) — see [`GAPS.md`](GAPS.md) §8.
-
-## Verify commands (full story — before MR)
+## Verify commands (full story)
 
 ```bash
+./gradlew :metadata:mill-metadata-core:test --tests "*MetadataContent*"
 ./gradlew :ai:mill-ai:test --tests "*Metadata*"
 ./gradlew :ai:mill-ai:test --tests "*SchemaAuthoring*"
 ./gradlew :ai:mill-ai:test --tests "*Profile*"
 ./gradlew :ai:mill-ai-data:test --tests "*Metadata*"
+./gradlew :ai:mill-ai-service:testIT --tests "*Artifact*"
 ./gradlew :ai:mill-ai-service:testIT --tests "*metadata*"
+./gradlew :core:mill-events:test
 ./gradlew :ai:mill-ai-test:test --tests "*facet*"
-./gradlew :ui:mill-ui:test   # after WI-351 UI assertions
+./gradlew :ui:mill-ui:test
 ```
 
-## WI workflow (per [`RULES.md`](../../RULES.md))
+## WI workflow (summary)
 
-1. Implement **one WI** at a time on `feat/meta-capability-improve`.
-2. Run that WI's verify commands locally.
-3. Mark WI `[x]` in [`STORY.md`](STORY.md); update WI file if needed.
-4. **One commit per WI** — entire working tree for that WI (`[feat]` / `[docs]` / `[refactor]`).
-5. Push branch; wait for CI before next WI (user merges to `dev`).
+See **WI workflow (staged)** above — branch per stage, tracker after each WI, squash + push + MR per stage.
 
-**Planning-only until user asks to implement:** this handover commit is **docs only**.
+## Open decisions (still in GAPS)
 
-### Story closure (user request only)
+**None** — planning gaps **§1–§18, §21–§22 locked**; §19–§20 resolved (doc hygiene). Ready for staged implementation on user request.
 
-- Squash/regroup commits (~10) per RULES  
-- Update `MILESTONE.md`, `BACKLOG.md`  
-- Move folder to `docs/workitems/completed/YYYYMMDD-metadata-authoring-profiles/`
+## Related design docs ([`GAPS.md`](GAPS.md) §13)
 
-## Open decisions — read before coding
+| Doc | WI | Role |
+|-----|-----|------|
+| [`metadata-facet-catalog-v3.md`](../../../design/agentic/metadata-facet-catalog-v3.md) | WI-345 outline → WI-349 rewrite | **Canonical** authoring hub |
+| [`metadata-content.md`](../../../design/metadata/metadata-content.md) | WI-345 skeleton → WI-352 | Domain entity |
+| [`ai-v3-chat-metadata-scope.md`](../../../design/agentic/ai-v3-chat-metadata-scope.md) | WI-353 | Scope + Accept/Reject lifecycle |
+| [`artifact-foundation.md`](../../../design/agentic/artifact-foundation.md) | WI-351 | Batch `ProtocolFinal` |
+| [`general-event-bus.md`](../../../design/platform/general-event-bus.md) | WI-353 | Event type catalog note |
 
-All in [`GAPS.md`](GAPS.md). Priority items:
+## Related
 
-| # | Topic |
-|---|--------|
-| 1 | ~~WI-351 test vehicle~~ — **locked:** mock LLM 2× `propose_facet_assignment` + L1–L6 layer tests ([`GAPS.md`](GAPS.md) §1) |
-| 2 | ~~`applicableTo`~~ — **locked:** extend `MetadataReadPort` with optional `metadataEntityId` ([`GAPS.md`](GAPS.md) §2) |
-| 3 | ~~`list_facet_types` / `get_facet_type`~~ — **locked** ([`GAPS.md`](GAPS.md) §3b) |
-| 3c | ~~**`list_metadata_scopes`**~~ — **locked:** Option B; URN `chat-<chatId>`; **`metadata_scope`** row (`CHAT`, `PRIVATE`, owner, `Chat <title>`); global+chat; **`writable`** ([`GAPS.md`](GAPS.md) §3c) |
-| 6 | Relation facet type key normative rule |
-| 7–8 | `schema-authoring` capability vs `metadata-authoring` profile strategy |
-| 9 | Partial batch failure semantics |
-| 21 | Batch envelope mandatory at story close |
-
-Resolve in GAPS or STORY before conflicting implementation.
-
-## Out of scope (story)
-
-- Metadata service **write** / approval (M-23)  
-- M-32 admin UI  
-- Unified Mill `kind` seed runner  
-- `BACKLOG.md` promotion until user requests  
-
-## Related design docs
-
-| Doc | Role |
-|-----|------|
-| [`metadata-facet-catalog-v3.md`](../../../design/agentic/metadata-facet-catalog-v3.md) | Rewrite in WI-349 |
-| [`artifact-foundation.md`](../../../design/agentic/artifact-foundation.md) | WI-351 batch section |
-| [`chat-artefact-architecture.md`](../../../design/ai/chat-artefact-architecture.md) | N artefacts per turn |
-| [`metadata-urn-platform.md`](../../../design/metadata/metadata-urn-platform.md) | Entity URNs |
-| [`dq-rule-facet-types.md`](../../../design/metadata/dq-rule-facet-types.md) | DQ capture examples |
-| [`schema-facet-ai-tool-field-mapping.md`](../../../design/metadata/schema-facet-ai-tool-field-mapping.md) | Field stereotypes |
+- [`GAPS.md`](GAPS.md) — locked gaps + remaining open items
+- [`COLDSTART.md`](COLDSTART.md)
 
 ## Common pitfalls
 
-- Starting **WI-347** before **WI-351** — multi-facet capture will not persist/stream correctly.  
-- Treating “column X not null” as SQL — use **`dq-null-check`** facet when `metadata-authoring` is active (prompt enforcement in WI-347).  
-- Adding `capture_description` / `capture_relation` — **forbidden** after WI-350.  
-- One composite artefact with embedded array — use **N** `facet-proposal` rows.  
-- Assuming `SchemaExplorationAgent` is production chat — use **`LangChain4jAgent`**.  
-- Editing `docs/workitems/BACKLOG.md` or archiving story without explicit user request.
+- Starting **WI-359** before **WI-355** is merged — multi-facet capture will not persist/stream correctly.
+- Putting **`examples[]`** on `FacetTypeDefinition` — use **`MetadataContent`** (WI-356).
+- LLM passing **`scopeUrn`** on capture — runtime sets **`writeScopeUrns[]`** from context.
+- Treating “column X not null” as SQL — use **`dq-null-check`** when `metadata-authoring` is active.

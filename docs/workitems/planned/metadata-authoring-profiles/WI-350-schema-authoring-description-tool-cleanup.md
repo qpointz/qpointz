@@ -1,63 +1,49 @@
-# WI-350 — Remove per-facet capture tools (`capture_*`)
+# WI-350 — Remove `schema-authoring` capability and per-facet `capture_*` tools
 
 Status: `planned`  
 Type: `🔧 refactoring`  
 Area: `ai`  
-Depends on: [WI-347](WI-347-metadata-authoring-capability.md), [WI-351](WI-351-multi-artifact-protocol-runtime.md)
+Depends on: [WI-347](WI-347-metadata-authoring-capability.md), [WI-351](WI-351-multi-artifact-protocol-runtime.md)  
+**Stage:** 7 — branch `refactor/remove-capture-tools` (see [`STORY.md`](STORY.md))
 
 ## Problem Statement
 
-Facet capture is split across **typed capture tools** and the **generic** metadata path:
+Facet capture is split across the legacy **`schema-authoring`** capability (typed `capture_*`,
+`schema-authoring.capture` protocol) and **`metadata-authoring`** (`propose_facet_assignment`).
 
-| Path | Tool | Facet types | Protocol |
-|------|------|-------------|----------|
-| `schema-authoring` | `capture_description` | descriptive (hard-coded) | `schema-authoring.capture` |
-| `schema-authoring` | `capture_relation` | relation (specialized args) | `schema-authoring.capture` |
-| `metadata-authoring` | `propose_facet_assignment` | **any catalog type** (intended) | `metadata.faceting.capture` |
-
-**Normative rule (story):** there must be **no `capture_<specific facet>`** tools — no
-`capture_description`, `capture_relation`, or future per-type captures. All facet writes go through
-**`propose_facet_assignment`** with a catalog **`facetTypeKey`** and manifest-aligned **`payload`**.
-
-Prompts in [`schema-authoring.yaml`](../../../../ai/mill-ai/src/main/resources/capabilities/schema-authoring.yaml)
-steer the model toward the legacy typed tools. [`FacetProposalWire`](../../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/core/artifact/FacetProposalWire.kt)
-bridges `captureType: description` → `descriptive` for chat wire.
+**Normative rule ([`GAPS.md`](GAPS.md) §7):** discontinue **`schema-authoring` capability** entirely.
+Roles: **`schema`** + **`metadata`** = read-only tooling; **`metadata-authoring`** = capture only.
 
 ## Goal
 
-Remove **all** per-facet **`capture_*`** tools and align every authoring profile on the **catalog +
-generic capture** loop from WI-347.
+Remove **`schema-authoring.yaml`**, **`SchemaAuthoringCapability`** provider, and all **`capture_*`**
+tools. All authoring prompts live on **`metadata-authoring`** (delivered in WI-347).
 
 ## In Scope
 
-1. **Remove from `schema-authoring.yaml` and [`SchemaAuthoringCapability`](../../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/capabilities/schema/SchemaAuthoringCapability.kt):**
-   - `capture_description`
-   - `capture_relation`
-   - Any other `capture_<facet>` if present
-2. **Rewrite** schema-authoring prompts that reference typed captures (`schema-authoring.intent`,
-   `.request`, `.parallel`, `.remediation`, `.clarification`) → catalog + `propose_facet_assignment`
-3. **Update** [`SchemaExplorationAgent`](../../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/runtime/langchain4j/SchemaExplorationAgent.kt) system text if it names `capture_description` / `capture_relation`
-4. **Capability descriptor** — stop claiming "DescriptiveFacet and RelationFacet capture artifacts"
-   on `schema-authoring`; facet capture is **`metadata-authoring`** only
-5. **Audit** — grep repo for `capture_` tool registrations outside tests; none in shipped manifests
-6. **Tests / scenarios** — migrate to `propose_facet_assignment` with appropriate `facetTypeKey`
-   (`descriptive`, `relation-source`, …)
-7. **Artifact wire** — all facet captures use **`metadata.faceting.capture`** → **`facet-proposal`** only; simplify/remove legacy `schema.authoring.capture` facet bridging in [`FacetProposalWire`](../../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/core/artifact/FacetProposalWire.kt)
+1. **Delete** `capabilities/schema-authoring.yaml` and unregister [`SchemaAuthoringCapability`](../../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/capabilities/schema/SchemaAuthoringCapability.kt) (`ServiceLoader` / descriptor registry)
+2. **Remove** `capture_description`, `capture_relation`, and any other `capture_*` from shipped manifests
+3. **Migrate / delete** `schema-authoring.*` prompts — replacements on **`metadata-authoring.yaml`** (WI-347)
+4. **`request_clarification`** — move to **`conversation`** capability YAML (**locked** GAPS §7)
+5. **Profiles (WI-348 YAML)** — remove capability `schema-authoring`; **omit deprecated profile id `schema-authoring`** from platform seeds
+6. **Tests / scenarios** — `propose_facet_assignment` only
+7. **Artifact wire** — new captures: **`metadata.faceting.capture`** only; **[`FacetProposalWire`](../../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/core/artifact/FacetProposalWire.kt) unchanged** — no legacy replay compat ([`GAPS.md`](GAPS.md) §11)
 
 ## Out of Scope
 
 - Changing `metadata.faceting.capture` / `facet-proposal` wire shape
-- Removing `request_clarification` from `schema-authoring`
-- SQL / value-mapping tools
-- Adding new `capture_*` aliases "for convenience"
+- SQL / value-mapping capabilities
+- Profile id rename / default-profile change (§8 — document in WI-349)
+- Adding new `capture_*` aliases
 
 ## Acceptance Criteria
 
-- [ ] Zero tools matching `capture_<facet>` in any capability YAML under `ai/mill-ai/src/main/resources/capabilities/`
-- [ ] Descriptive, relation, and DQ scenarios: same chat artefact kind (`facet-proposal`), different `facetTypeKey` in content
-- [ ] `ProfileCapabilityMatrixTest` / MCP tool inventory: no `capture_description` or `capture_relation`
-- [ ] Design doc states the **no per-facet capture** rule
+- [ ] No `schema-authoring` capability in registry; no `capabilities/schema-authoring.yaml`
+- [ ] Zero `capture_<facet>` tools in any shipped capability YAML
+- [ ] **`metadata-authoring`** is the only capability with CAPTURE tools for facets
+- [ ] `ProfileCapabilityMatrixTest` / MCP inventory: no `schema-authoring` capability tools
+- [ ] Design doc states capability role split (§7)
 
 ## Suggested commit
 
-`[refactor] WI-350: remove capture_* tools; catalog-only propose_facet_assignment`
+`[refactor] WI-350: remove schema-authoring capability and capture_* tools`

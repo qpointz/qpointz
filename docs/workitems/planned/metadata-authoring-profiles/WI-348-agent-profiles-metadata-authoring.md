@@ -46,8 +46,11 @@ and seed defaults via **`mill.ai.profiles.seed.resources`** at startup.
    - Factory / constructor accepting ordered `Resource` or location strings
    - Parses all documents; merges profiles by `id` (later resource wins on duplicate id)
    - Implements `ProfileRegistry`
-4. **Platform seed file** — `ai/mill-ai/src/main/resources/profiles/platform-agent-profiles.yaml` containing migrated profiles:
-   - `hello-world`, `data-analysis`, `schema-exploration`, `schema-authoring`, **`metadata-authoring`** (new)
+4. **Platform seed file** — `platform-agent-profiles.yaml`:
+   - `hello-world`, `data-analysis`, `schema-exploration`, **`metadata-authoring`**
+   - **Do not** ship profile id **`schema-authoring`** (deprecated — GAPS §8)
+   - Add **`value-mapping`** to `data-analysis` if operators need parity with old fat profile
+   - **Mixed SQL + facets (§10):** one profile must load **`sql-query`** + **`metadata-authoring`** — extend `data-analysis` or add new id (not deprecated `schema-authoring`)
 5. **Configuration** — `mill.ai.profiles.seed.resources` (Java `@ConfigurationProperties`, mirror
    [`MetadataSeedProperties`](../../../../metadata/mill-metadata-autoconfigure/src/main/java/io/qpointz/mill/metadata/configuration/MetadataSeedProperties.java)):
    - Ordered Spring resource locations
@@ -69,7 +72,7 @@ and seed defaults via **`mill.ai.profiles.seed.resources`** at startup.
 
 ## Acceptance Criteria
 
-- [ ] Platform YAML defines **5** profiles including **`metadata-authoring`**
+- [ ] Platform YAML defines **4** profiles (`hello-world`, `data-analysis`, `schema-exploration`, `metadata-authoring`) — **no** `schema-authoring` profile id
 - [ ] `ProfileRegistry` bean loads from `mill.ai.profiles.seed.resources` on mill-service boot
 - [ ] `GET /api/v1/ai/profiles` returns `description` when present
 - [ ] Duplicate profile `id` across seed files: later resource overrides (unit test)
