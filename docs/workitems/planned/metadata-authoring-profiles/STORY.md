@@ -2,7 +2,7 @@
 
 **Status:** `planned`  
 **Milestone:** **0.8.0** (or next open milestone at implementation time)  
-**Delivery:** **staged** — one branch + MR per stage (see § Staged delivery); not a single long-lived integration branch.
+**Delivery:** **staged** — one branch + MR per stage (see § Staged delivery); not a single long-lived integration branch. **Handover:** [`PLAN.md`](PLAN.md) + [`COLDSTART.md`](COLDSTART.md).
 
 ## Goal
 
