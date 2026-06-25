@@ -73,4 +73,25 @@ class ChatSseEventItemPartWireJsonTest {
         assertTrue(tree.get("presentation").asText() == "structured")
         assertTrue(tree.get("partType").asText() == "sql")
     }
+
+    @Test
+    fun shouldIncludeMultiStructuredFields_onItemCompleted() {
+        val now = java.time.Instant.parse("2026-01-01T00:00:00Z")
+        val e = ChatSseEvent.ItemCompleted(
+            eventId = "e1",
+            chatId = "c1",
+            itemId = "i1",
+            sequence = 2,
+            timestamp = now,
+            presentation = "structured",
+            partType = "multi",
+            content = null,
+            structuredPartCount = 2,
+            partTypes = listOf("facet-proposal", "facet-proposal"),
+        )
+        val json = mapper.writeValueAsString(e)
+        assertTrue(json.contains("\"partType\":\"multi\""), json)
+        assertTrue(json.contains("\"structuredPartCount\":2"), json)
+        assertTrue(json.contains("\"facet-proposal\""), json)
+    }
 }

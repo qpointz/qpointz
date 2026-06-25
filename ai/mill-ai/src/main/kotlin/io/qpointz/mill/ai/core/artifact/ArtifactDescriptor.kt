@@ -2,6 +2,7 @@ package io.qpointz.mill.ai.core.artifact
 
 import io.qpointz.mill.ai.core.protocol.ProtocolMode
 import io.qpointz.mill.ai.runtime.events.routing.RoutedEventDestination
+import com.fasterxml.jackson.annotation.JsonCreator
 
 /**
  * Which runtime event type drives routing and persistence for an artefact descriptor.
@@ -20,6 +21,36 @@ enum class ArtifactSourceEvent {
             "tool.result" -> TOOL_RESULT
             "protocol.final" -> PROTOCOL_FINAL
             else -> error("unsupported artifact sourceEvent: $value")
+        }
+    }
+}
+
+/**
+ * How active pointer keys behave when an artefact is persisted.
+ */
+enum class PointerCardinality(val wireValue: String) {
+    /** One row per pointer key — latest artefact wins ([ActiveArtifactPointerStore.upsert]). */
+    SINGLE("single"),
+
+    /** Ordered list per pointer key — batch appends all artefact ids ([ActiveArtifactPointerStore.appendAll]). */
+    MULTIPLE("multiple"),
+    ;
+
+    companion object {
+        /**
+         * Jackson/YAML delegating creator — accepts manifest `single` / `multiple` strings.
+         *
+         * @param value raw YAML value
+         */
+        @JvmStatic
+        @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+        fun fromWire(value: String?): PointerCardinality = fromYaml(value)
+
+        /** Parses YAML `single` / `multiple` (default [SINGLE]). */
+        fun fromYaml(value: String?): PointerCardinality {
+            if (value.isNullOrBlank()) return SINGLE
+            return entries.find { it.wireValue.equals(value.trim(), ignoreCase = true) }
+                ?: error("unsupported pointerCardinality: $value")
         }
     }
 }
@@ -58,6 +89,7 @@ enum class EmissionStrategy {
  * @param artifactKind Logical kind in tool/protocol payloads (e.g. `generated-sql`).
  * @param persistKind Persistence bucket written by the projector (e.g. `sql.generated`).
  * @param pointerKeys Active pointer names updated when the artefact is persisted.
+ * @param pointerCardinality Whether pointer keys are singular or ordered lists.
  * @param wirePartType SSE structured part type (e.g. `sql`, `facet-proposal`).
  * @param presentation SSE presentation (typically `structured`).
  * @param protocolMode Protocol mode when a protocol is involved.
@@ -72,6 +104,7 @@ data class ArtifactDescriptor(
     val artifactKind: String,
     val persistKind: String,
     val pointerKeys: Set<String> = emptySet(),
+    val pointerCardinality: PointerCardinality = PointerCardinality.SINGLE,
     val wirePartType: String? = null,
     val presentation: String? = null,
     val protocolMode: ProtocolMode? = null,

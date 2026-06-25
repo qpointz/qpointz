@@ -21,9 +21,10 @@ import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryToolHandlers.ValidationR
 import io.qpointz.mill.ai.core.capability.CapabilityDependencies
 import io.qpointz.mill.ai.core.capability.CapabilityDependencyContainer
 import io.qpointz.mill.ai.core.capability.CapabilityRegistry
-import io.qpointz.mill.ai.persistence.AgentPersistenceContext
+import io.qpointz.mill.ai.core.artifact.ProtocolFinalBatch
 import io.qpointz.mill.ai.persistence.InMemoryArtifactStore
 import io.qpointz.mill.ai.persistence.InMemoryConversationStore
+import io.qpointz.mill.ai.persistence.AgentPersistenceContext
 import io.qpointz.mill.ai.profile.AgentProfile
 import io.qpointz.mill.ai.runtime.AgentContext
 import io.qpointz.mill.ai.runtime.ConversationSession
@@ -50,6 +51,54 @@ class LangChain4jAgentEmitTest {
                         .name("propose_facet_assignment")
                         .arguments(
                             """{"facetTypeKey":"descriptive","metadataEntityId":"sales.customers","payload":{"summary":"VIP"}}""",
+                        )
+                        .build(),
+                ),
+            )
+            handler.onCompleteResponse(ChatResponse.builder().aiMessage(aiMessage).build())
+        }
+    }
+
+    private class DualProposeFacetToolModel : StreamingChatModel {
+        override fun chat(request: ChatRequest, handler: StreamingChatResponseHandler) {
+            val aiMessage = AiMessage.from(
+                listOf(
+                    ToolExecutionRequest.builder()
+                        .id("call-facet-1")
+                        .name("propose_facet_assignment")
+                        .arguments(
+                            """{"facetTypeKey":"descriptive","metadataEntityId":"sales.customers","payload":{"summary":"VIP"}}""",
+                        )
+                        .build(),
+                    ToolExecutionRequest.builder()
+                        .id("call-facet-2")
+                        .name("propose_facet_assignment")
+                        .arguments(
+                            """{"facetTypeKey":"descriptive","metadataEntityId":"sales.orders","payload":{"summary":"Orders"}}""",
+                        )
+                        .build(),
+                ),
+            )
+            handler.onCompleteResponse(ChatResponse.builder().aiMessage(aiMessage).build())
+        }
+    }
+
+    private class PartialFailProposeFacetToolModel : StreamingChatModel {
+        override fun chat(request: ChatRequest, handler: StreamingChatResponseHandler) {
+            val aiMessage = AiMessage.from(
+                listOf(
+                    ToolExecutionRequest.builder()
+                        .id("call-facet-ok")
+                        .name("propose_facet_assignment")
+                        .arguments(
+                            """{"facetTypeKey":"descriptive","metadataEntityId":"sales.customers","payload":{"summary":"VIP"}}""",
+                        )
+                        .build(),
+                    ToolExecutionRequest.builder()
+                        .id("call-facet-bad")
+                        .name("propose_facet_assignment")
+                        .arguments(
+                            """{"facetTypeKey":"unknown-type","metadataEntityId":"sales.orders","payload":{"summary":"x"}}""",
                         )
                         .build(),
                 ),
@@ -148,41 +197,7 @@ class LangChain4jAgentEmitTest {
             conversationStore = conversationStore,
             artifactStore = artifactStore,
         )
-        val metadataPort = object : MetadataReadPort {
-            private val descriptiveFacet = FacetTypeManifest(
-                typeKey = "descriptive",
-                title = "Descriptive",
-                description = "Descriptive facet",
-                payload = FacetPayloadSchema(
-                    type = FacetSchemaType.OBJECT,
-                    title = "Descriptive payload",
-                    description = "Summary",
-                    fields = listOf(
-                        FacetPayloadField(
-                            name = "summary",
-                            required = true,
-                            schema = FacetPayloadSchema(
-                                type = FacetSchemaType.STRING,
-                                title = "Summary",
-                                description = "Summary",
-                            ),
-                        ),
-                    ),
-                ),
-            )
-
-            override fun listFacetTypes(): List<FacetTypeManifest> = listOf(descriptiveFacet)
-
-            override fun listEntityFacets(
-                metadataEntityId: String,
-                scope: String?,
-                context: String?,
-                origin: String?,
-            ) = emptyList<Map<String, Any?>>()
-
-            override fun validateFacetPayload(facetTypeKey: String, payload: Map<String, Any?>): List<String> =
-                emptyList()
-        }
+        val metadataPort = metadataReadPortForTests()
         val events = mutableListOf<AgentEvent>()
         val session = ConversationSession(conversationId = "conv-facet", profileId = metadataProfile.id)
         val agent = LangChain4jAgent(
@@ -207,6 +222,7 @@ class LangChain4jAgentEmitTest {
 
         val protocolFinal = events.filterIsInstance<AgentEvent.ProtocolFinal>().single()
         assertEquals("metadata.faceting.capture", protocolFinal.protocolId)
+        assertTrue(ProtocolFinalBatch.isBatchEnvelope(protocolFinal.payload))
 
         val turn = conversationStore.load(session.conversationId)!!.turns.single { it.role == "assistant" }
         assertEquals(1, turn.artifactIds.size)
@@ -216,5 +232,95 @@ class LangChain4jAgentEmitTest {
         val inner = record.payload["payload"] as Map<String, Any?>
         assertEquals("descriptive", inner["facetTypeKey"])
         assertEquals("sales.customers", inner["metadataEntityId"])
+    }
+
+    @Test
+    fun shouldEmitBatchProtocolFinal_whenTwoParallelFacetCapturesSucceed() {
+        val events = mutableListOf<AgentEvent>()
+        val agent = LangChain4jAgent(
+            model = DualProposeFacetToolModel(),
+            profile = metadataProfile,
+            registry = CapabilityRegistry.from(listOf(MetadataAuthoringCapabilityProvider())),
+            persistenceContext = AgentPersistenceContext(),
+        )
+        agent.run(
+            "propose two facets",
+            ConversationSession(profileId = metadataProfile.id),
+            metadataContext(),
+            events::add,
+        )
+        val protocolFinal = events.filterIsInstance<AgentEvent.ProtocolFinal>().single()
+        val items = ProtocolFinalBatch.expandItemPayloads(protocolFinal.payload)
+        assertEquals(2, items.size)
+    }
+
+    @Test
+    fun shouldEmitPartialBatch_whenOneParallelCaptureFails() {
+        val artifactStore = InMemoryArtifactStore()
+        val conversationStore = InMemoryConversationStore()
+        val persistenceContext = AgentPersistenceContext(
+            conversationStore = conversationStore,
+            artifactStore = artifactStore,
+        )
+        val events = mutableListOf<AgentEvent>()
+        val session = ConversationSession(conversationId = "conv-partial", profileId = metadataProfile.id)
+        val agent = LangChain4jAgent(
+            model = PartialFailProposeFacetToolModel(),
+            profile = metadataProfile,
+            registry = CapabilityRegistry.from(listOf(MetadataAuthoringCapabilityProvider())),
+            persistenceContext = persistenceContext,
+        )
+        agent.run("propose facets", session, metadataContext(), events::add)
+
+        val protocolFinal = events.filterIsInstance<AgentEvent.ProtocolFinal>().single()
+        assertEquals(1, ProtocolFinalBatch.expandItemPayloads(protocolFinal.payload).size)
+
+        val turn = conversationStore.load(session.conversationId)!!.turns.single { it.role == "assistant" }
+        assertEquals(1, turn.artifactIds.size)
+    }
+
+    private fun metadataContext() = AgentContext(
+        contextType = "general",
+        capabilityDependencies = CapabilityDependencyContainer.of(
+            "metadata-authoring" to CapabilityDependencies.of(
+                MetadataCapabilityDependency(metadataReadPortForTests()),
+            ),
+        ),
+    )
+
+    private fun metadataReadPortForTests(): MetadataReadPort = object : MetadataReadPort {
+        private val descriptiveFacet = FacetTypeManifest(
+            typeKey = "descriptive",
+            title = "Descriptive",
+            description = "Descriptive facet",
+            payload = FacetPayloadSchema(
+                type = FacetSchemaType.OBJECT,
+                title = "Descriptive payload",
+                description = "Summary",
+                fields = listOf(
+                    FacetPayloadField(
+                        name = "summary",
+                        required = true,
+                        schema = FacetPayloadSchema(
+                            type = FacetSchemaType.STRING,
+                            title = "Summary",
+                            description = "Summary",
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        override fun listFacetTypes(): List<FacetTypeManifest> = listOf(descriptiveFacet)
+
+        override fun listEntityFacets(
+            metadataEntityId: String,
+            scope: String?,
+            context: String?,
+            origin: String?,
+        ) = emptyList<Map<String, Any?>>()
+
+        override fun validateFacetPayload(facetTypeKey: String, payload: Map<String, Any?>): List<String> =
+            if (facetTypeKey == "descriptive") emptyList() else listOf("unknown facet type: $facetTypeKey")
     }
 }

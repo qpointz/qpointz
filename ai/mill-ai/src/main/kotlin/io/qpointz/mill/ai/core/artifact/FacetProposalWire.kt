@@ -14,6 +14,9 @@ object FacetProposalWire {
     /** Protocol id for schema authoring structured finals. */
     const val SCHEMA_CAPTURE_PROTOCOL_ID: String = "schema-authoring.capture"
 
+    /** Protocol id for metadata authoring structured finals. */
+    const val METADATA_FACETING_CAPTURE_PROTOCOL_ID: String = "metadata.faceting.capture"
+
     /**
      * Maps schema capture subtypes to metadata facet-type keys for descriptor lookup.
      *
@@ -25,6 +28,19 @@ object FacetProposalWire {
         "relation" -> "relation"
         else -> captureType.trim()
     }
+
+    /**
+     * Normalizes a single structured-final item for chat wire using the descriptor [wirePartType].
+     *
+     * @param wirePartType descriptor wire part type (e.g. `facet-proposal`, `sql`)
+     * @param payload one item from a scalar or batch protocol final
+     * @return wire-ready payload map, or `null` when normalization fails
+     */
+    fun normalizeForWire(wirePartType: String?, payload: Map<String, Any?>): Any? =
+        when (wirePartType) {
+            WIRE_KIND -> normalizePayload(payload)
+            else -> payload
+        }
 
     /**
      * Converts a protocol or persist payload to the facet-proposal wire map, or `null` when invalid.

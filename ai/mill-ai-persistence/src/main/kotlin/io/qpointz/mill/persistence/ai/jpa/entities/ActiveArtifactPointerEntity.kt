@@ -10,6 +10,8 @@ data class ActiveArtifactPointerKey(
     val chatId: String = "",
     @Column(name = "pointer_key")
     val pointerKey: String = "",
+    @Column(name = "artifact_id")
+    val artifactId: String = "",
 ) : Serializable
 
 @Entity
@@ -17,9 +19,6 @@ data class ActiveArtifactPointerKey(
 class ActiveArtifactPointerEntity(
     @EmbeddedId
     val id: ActiveArtifactPointerKey,
-
-    @Column(name = "artifact_id", nullable = false, length = 255)
-    val artifactId: String,
 
     @Column(name = "updated_at", nullable = false)
     val updatedAt: Instant,

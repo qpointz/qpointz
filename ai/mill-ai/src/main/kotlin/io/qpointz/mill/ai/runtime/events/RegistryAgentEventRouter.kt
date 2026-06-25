@@ -80,6 +80,7 @@ class RegistryAgentEventRouter(
             destinations = destinations,
             persistAsArtifact = persist && destinations.contains(RoutedEventDestination.ARTIFACT),
             artifactPointerKeys = pointerKeys,
+            artifactPointerCardinality = pointerCardinality,
         )
 
     private fun routedEvent(

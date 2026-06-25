@@ -129,6 +129,10 @@ export interface ChatItemCompletedPayload {
   readonly presentation: string;
   readonly partType: string;
   readonly content: string | null;
+  /** Present when the turn streamed multiple structured parts ([partType] may be `multi`). */
+  readonly structuredPartCount?: number;
+  /** Ordered structured part types when [structuredPartCount] > 1. */
+  readonly partTypes?: readonly string[];
 }
 
 /** Options passed to REST/mock streaming send implementations. */

@@ -13,6 +13,8 @@ import io.qpointz.mill.ai.persistence.ChatMetadata
 import io.qpointz.mill.ai.persistence.ConversationStore
 import io.qpointz.mill.ai.persistence.RunEventStore
 import io.qpointz.mill.ai.core.artifact.ArtifactDescriptorRegistry
+import io.qpointz.mill.ai.core.artifact.FacetProposalWire
+import io.qpointz.mill.ai.core.artifact.ProtocolFinalBatch
 import io.qpointz.mill.ai.dependencies.CapabilityDependencyAssembler
 import io.qpointz.mill.ai.profile.rehydrate
 import io.qpointz.mill.ai.profile.ProfileRegistry
@@ -138,8 +140,8 @@ class LangChain4jChatRuntime(
                         is AgentEvent.ToolResult -> sink.next(
                             ChatRuntimeEvent.ToolResult(event.name, event.result),
                         )
-                        is AgentEvent.ProtocolFinal -> protocolFinalToStructured(event)?.let {
-                            sink.next(it)
+                        is AgentEvent.ProtocolFinal -> {
+                            protocolFinalToStructuredParts(event).forEach { sink.next(it) }
                         }
                         is AgentEvent.AnswerCompleted -> lastText = event.text
                         else -> Unit
@@ -154,20 +156,23 @@ class LangChain4jChatRuntime(
     }
 
     /**
-     * Bridges [AgentEvent.ProtocolFinal] to [ChatRuntimeEvent.StructuredPart] for chat/SSE consumers.
-     * Other protocol ids stay on the persistence/router path only.
+     * Bridges [AgentEvent.ProtocolFinal] to [ChatRuntimeEvent.StructuredPart] rows for chat/SSE consumers.
+     * Batch finals fan out to N structured parts (first replace, subsequent append).
      */
-    private fun protocolFinalToStructured(event: AgentEvent.ProtocolFinal): ChatRuntimeEvent.StructuredPart? {
-        val descriptor = artifactDescriptorRegistry.descriptorForProtocol(event.protocolId) ?: return null
+    private fun protocolFinalToStructuredParts(event: AgentEvent.ProtocolFinal): List<ChatRuntimeEvent.StructuredPart> {
+        val descriptor = artifactDescriptorRegistry.descriptorForProtocol(event.protocolId) ?: return emptyList()
         val wirePartType = descriptor.wirePartType ?: descriptor.artifactKind
         val presentation = descriptor.presentation ?: STRUCTURED_PRESENTATION
-        val json = payloadToJsonString(event.payload)
-        return ChatRuntimeEvent.StructuredPart(
-            presentation = presentation,
-            partType = wirePartType,
-            mode = "replace",
-            content = json,
-        )
+        return ProtocolFinalBatch.expandItemPayloads(event.payload).mapIndexedNotNull { index, itemPayload ->
+            val wirePayload = FacetProposalWire.normalizeForWire(wirePartType, itemPayload)
+                ?: return@mapIndexedNotNull null
+            ChatRuntimeEvent.StructuredPart(
+                presentation = presentation,
+                partType = wirePartType,
+                mode = if (index == 0) "replace" else "append",
+                content = payloadToJsonString(wirePayload),
+            )
+        }
     }
 
     private fun payloadToJsonString(payload: Any?): String = when (payload) {

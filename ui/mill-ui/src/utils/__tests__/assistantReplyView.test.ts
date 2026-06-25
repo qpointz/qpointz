@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   assistantReplyViewFromWire,
   deriveAssistantReplyView,
+  structuredReplySectionTitle,
 } from '../assistantReplyView';
 
 describe('assistantReplyView', () => {
@@ -67,5 +68,35 @@ describe('assistantReplyView', () => {
     expect(assistantReplyViewFromWire('sql-primary')).toBe('sql-primary');
     expect(assistantReplyViewFromWire(null)).toBeUndefined();
     expect(assistantReplyViewFromWire('unknown')).toBeUndefined();
+  });
+
+  it('should derive facet-primary from multi completion hint', () => {
+    expect(
+      deriveAssistantReplyView(undefined, {
+        presentation: 'structured',
+        partType: 'multi',
+        structuredPartCount: 2,
+        partTypes: ['facet-proposal', 'facet-proposal'],
+      }),
+    ).toBe('facet-primary');
+  });
+
+  it('should pluralize facet section title when multiple facet artefacts', () => {
+    const artifacts = [
+      {
+        kind: 'facet-proposal' as const,
+        facetTypeKey: 'descriptive',
+        metadataEntityId: 'a',
+        payload: {},
+      },
+      {
+        kind: 'facet-proposal' as const,
+        facetTypeKey: 'descriptive',
+        metadataEntityId: 'b',
+        payload: {},
+      },
+    ];
+    expect(structuredReplySectionTitle('facet-primary', artifacts)).toBe('Facet proposals');
+    expect(structuredReplySectionTitle('facet-primary', [artifacts[0]!])).toBe('Facet proposal');
   });
 });

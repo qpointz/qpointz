@@ -11,6 +11,8 @@ import io.qpointz.mill.ai.runtime.*
 import io.qpointz.mill.ai.runtime.events.*
 import io.qpointz.mill.ai.runtime.events.routing.*
 
+import io.qpointz.mill.ai.core.artifact.PointerCardinality
+import io.qpointz.mill.ai.core.artifact.ProtocolFinalBatch
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -275,6 +277,39 @@ class StandardPersistenceProjectorTest {
         assertEquals(1, turn.artifactIds.size)
         val record = artifactStore.findById(turn.artifactIds.single())!!
         assertEquals("metadata.faceting.capture", record.kind)
+    }
+
+    @Test
+    fun shouldFanOutBatchProtocolFinal_toNArtifacts_andListPointer() {
+        val turnId = UUID.randomUUID().toString()
+        conversationStore.ensureExists("conv-1", "p")
+        val artifactRule = EventRoutingRule(
+            eventType = "protocol.final",
+            kind = "metadata.faceting.capture",
+            category = RoutedEventCategory.ARTIFACT,
+            destinations = setOf(RoutedEventDestination.ARTIFACT),
+            persistAsArtifact = true,
+            artifactPointerKeys = setOf("metadata-facet-proposals"),
+            artifactPointerCardinality = PointerCardinality.MULTIPLE,
+        )
+        val itemA = mapOf("facetTypeKey" to "descriptive", "metadataEntityId" to "a.b")
+        val itemB = mapOf("facetTypeKey" to "descriptive", "metadataEntityId" to "a.c")
+        projector.onEvent(
+            routedEvent(
+                "protocol.final",
+                artifactRule,
+                content = mapOf(
+                    "protocolId" to "metadata.faceting.capture",
+                    "persistKind" to "metadata.faceting.capture",
+                    "payload" to mapOf(ProtocolFinalBatch.RESULTS_FIELD to listOf(itemA, itemB)),
+                ),
+                turnId = turnId,
+            ),
+        )
+
+        assertEquals(2, artifactStore.findByRun("run-1").size)
+        val pointers = pointerStore.findByPointerKey("conv-1", "metadata-facet-proposals")
+        assertEquals(2, pointers.size)
     }
 }
 

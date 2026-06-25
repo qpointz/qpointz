@@ -177,6 +177,13 @@ class InMemoryActiveArtifactPointerStoreTest {
     }
 
     @Test
+    fun shouldAppendAll_forListPointer() {
+        store.appendAll("c1", "metadata-facet-proposals", listOf("a1", "a2"))
+        val pointers = store.findByPointerKey("c1", "metadata-facet-proposals")
+        assertEquals(listOf("a1", "a2"), pointers.map { it.artifactId })
+    }
+
+    @Test
     fun shouldReturnNull_forMissing() {
         assertNull(store.find("c1", "last-sql"))
     }

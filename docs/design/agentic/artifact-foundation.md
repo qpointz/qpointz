@@ -110,6 +110,17 @@ Examples:
 - `propose_facet_assignment` → `metadata.faceting.capture` → `wirePartType: facet-proposal`
 - Schema authoring capture tools → `facet-proposal` wire part (via [`FacetProposalWire`](../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/core/artifact/FacetProposalWire.kt))
 
+**Batch capture (`multi: true`):** protocols such as `metadata.faceting.capture` declare `multi: true` on the
+structured-final manifest. The agent aggregates parallel successful CAPTURE tools into **one**
+`AgentEvent.ProtocolFinal` envelope `{ results: [ … ] }` ([`ProtocolFinalBatch`](../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/core/artifact/ProtocolFinalBatch.kt)).
+Downstream fan-out:
+
+- **Persistence** — [`StandardPersistenceProjector`](../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/persistence/StandardPersistenceProjector.kt) writes **N** `ArtifactRecord` rows per turn and calls `attachArtifacts(turnId, allIds)` once; list pointers (`pointerCardinality: multiple`, e.g. `metadata-facet-proposals`) use [`ActiveArtifactPointerStore.appendAll`](../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/persistence/ActiveArtifactPointerStore.kt).
+- **SSE** — [`AgentEventToSseMapper`](../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/sse/AgentEventToSseMapper.kt) emits **N** `item.part.updated` rows (first `replace`, rest `append`); `item.completed` sets `partType: multi`, `structuredPartCount`, and `partTypes[]` when N > 1.
+- **GET replay** — N stored rows hydrate to N `TurnResponse.artifacts[]` entries in stable order (no composite wire blob).
+
+Scalar (legacy) single-capture payloads normalize to `results` length 1.
+
 ### 3.3 FromToolResult (validation audit)
 
 `sql-validation` emits a routed artifact envelope for telemetry; with **`persist: false`** it is **not** written to `ai_chat_artifact`. Router maps `ToolResult` with matching `artifactType`.

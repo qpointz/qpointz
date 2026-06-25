@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.sse
 
+import io.qpointz.mill.ai.core.artifact.ProtocolFinalBatch
 import io.qpointz.mill.ai.runtime.events.AgentEvent
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -222,6 +223,41 @@ class AgentEventToSseMapperTest {
         assertEquals("facet-proposal", part.partType)
         assertTrue(part.content.contains("\"facetTypeKey\":\"descriptive\""))
         assertTrue(part.content.contains("\"metadataEntityId\":\"retail.orders\""))
+    }
+
+    @Test
+    fun shouldMapBatchFacetProtocolFinal_toNStructuredParts_andMultiCompleted() {
+        val batchPayload = mapOf(
+            ProtocolFinalBatch.RESULTS_FIELD to listOf(
+                mapOf(
+                    "facetTypeKey" to "descriptive",
+                    "metadataEntityId" to "sales.customers",
+                    "serializedPayload" to mapOf("summary" to "VIP"),
+                ),
+                mapOf(
+                    "facetTypeKey" to "descriptive",
+                    "metadataEntityId" to "sales.orders",
+                    "serializedPayload" to mapOf("summary" to "Orders"),
+                ),
+            ),
+        )
+        val parts = mapper.map(
+            AgentEvent.ProtocolFinal(protocolId = "metadata.faceting.capture", payload = batchPayload),
+        )
+        assertEquals(3, parts.size)
+        assertInstanceOf(ChatSseEvent.ItemCreated::class.java, parts[0])
+        val first = parts[1] as ChatSseEvent.ItemPartUpdated
+        val second = parts[2] as ChatSseEvent.ItemPartUpdated
+        assertEquals("replace", first.mode)
+        assertEquals("append", second.mode)
+        assertEquals("facet-proposal", first.partType)
+
+        val completed = mapper.map(AgentEvent.AnswerCompleted(""))
+            .filterIsInstance<ChatSseEvent.ItemCompleted>()
+            .single()
+        assertEquals("multi", completed.partType)
+        assertEquals(2, completed.structuredPartCount)
+        assertEquals(listOf("facet-proposal", "facet-proposal"), completed.partTypes)
     }
 
     @Test

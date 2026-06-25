@@ -119,6 +119,8 @@ type ChatAction =
         messageId: string;
         completionPresentation: string;
         completionPartType: string;
+        structuredPartCount?: number;
+        partTypes?: readonly string[];
       };
     };
 
@@ -341,7 +343,14 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     }
 
     case 'FINALIZE_ASSISTANT_REPLY_VIEW': {
-      const { conversationId, messageId, completionPresentation, completionPartType } = action.payload;
+      const {
+        conversationId,
+        messageId,
+        completionPresentation,
+        completionPartType,
+        structuredPartCount,
+        partTypes,
+      } = action.payload;
       return {
         ...state,
         conversations: state.conversations.map((conv) => {
@@ -356,6 +365,8 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
                 assistantReplyView: deriveAssistantReplyView(msg.artifacts, {
                   presentation: completionPresentation,
                   partType: completionPartType,
+                  structuredPartCount,
+                  partTypes,
                 }),
               };
             }),
@@ -861,6 +872,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
                 messageId: assistantMessage.id,
                 completionPresentation: payload.presentation,
                 completionPartType: payload.partType,
+                structuredPartCount: payload.structuredPartCount,
+                partTypes: payload.partTypes,
               },
             });
           },

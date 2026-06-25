@@ -90,6 +90,10 @@ sealed interface ChatSseEvent {
         val presentation: String = "conversation",
         val partType: String = "text",
         val content: String?,
+        /** Set when multiple structured parts were streamed in this item (N > 1). */
+        val structuredPartCount: Int? = null,
+        /** Ordered structured part types when [structuredPartCount] > 1. */
+        val partTypes: List<String>? = null,
     ) : ChatSseEvent {
         override val type: String = "item.completed"
     }

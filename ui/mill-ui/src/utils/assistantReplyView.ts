@@ -22,7 +22,12 @@ export function assistantReplyViewFromWire(raw: string | null | undefined): Assi
  */
 export function deriveAssistantReplyView(
   artifacts: readonly ChatMessageArtifact[] | undefined,
-  completionHint?: { readonly presentation: string; readonly partType: string } | null,
+  completionHint?: {
+    readonly presentation: string;
+    readonly partType: string;
+    readonly structuredPartCount?: number;
+    readonly partTypes?: readonly string[];
+  } | null,
 ): AssistantReplyView {
   const arts = artifacts ?? [];
   if (arts.some((a) => a.kind === 'facet-proposal')) return 'facet-primary';
@@ -32,18 +37,29 @@ export function deriveAssistantReplyView(
     if (completionHint.partType === 'sql') return 'sql-primary';
     if (completionHint.partType === 'facet-proposal') return 'facet-primary';
     if (completionHint.partType === 'schema-capture') return 'facet-primary';
+    if (completionHint.partType === 'multi') {
+      const types = completionHint.partTypes ?? [];
+      if (types.some((t) => t === 'facet-proposal' || t === 'schema-capture')) return 'facet-primary';
+      if (types.includes('sql')) return 'sql-primary';
+      if (types.length > 0) return 'artifact-primary';
+    }
     if (completionHint.partType && completionHint.partType !== 'text') return 'artifact-primary';
   }
   return 'conversation';
 }
 
 /** Section label for structured assistant replies. */
-export function structuredReplySectionTitle(view: AssistantReplyView): string | null {
+export function structuredReplySectionTitle(
+  view: AssistantReplyView,
+  artifacts?: readonly ChatMessageArtifact[],
+): string | null {
   switch (view) {
     case 'sql-primary':
       return 'SQL';
-    case 'facet-primary':
-      return 'Facet proposal';
+    case 'facet-primary': {
+      const facetCount = artifacts?.filter((a) => a.kind === 'facet-proposal').length ?? 0;
+      return facetCount > 1 ? 'Facet proposals' : 'Facet proposal';
+    }
     case 'schema-primary':
       return 'Schema capture';
     case 'artifact-primary':

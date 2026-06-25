@@ -1,7 +1,8 @@
 package io.qpointz.mill.ai.persistence
 
+import io.qpointz.mill.ai.core.artifact.PointerCardinality
+import io.qpointz.mill.ai.core.artifact.ProtocolFinalBatch
 import io.qpointz.mill.ai.core.capability.*
-import io.qpointz.mill.ai.core.prompt.*
 import io.qpointz.mill.ai.core.protocol.*
 import io.qpointz.mill.ai.core.tool.*
 import io.qpointz.mill.ai.memory.*
@@ -86,38 +87,70 @@ class StandardPersistenceProjector(
 
     private fun persistArtifact(event: RoutedAgentEvent) {
         val conversationId = event.conversationId ?: return
-        val artifactId = UUID.randomUUID().toString()
-        val kind = event.content["persistKind"] as? String
-            ?: event.content["protocolId"] as? String
-            ?: event.kind
-        val artifact = ArtifactRecord(
-            artifactId = artifactId,
-            conversationId = conversationId,
-            runId = event.runId,
-            kind = kind,
-            payload = event.content,
-            turnId = event.turnId,
-            pointerKeys = event.route.rule.artifactPointerKeys,
-            createdAt = event.createdAt,
-        )
-        artifactStore.save(artifact)
-        event.turnId?.let { conversationStore.attachArtifacts(conversationId, it, listOf(artifactId)) }
+        val expanded = expandArtifactEvents(event)
+        if (expanded.isEmpty()) return
+
+        val artifactIds = mutableListOf<String>()
         val now = Instant.now()
-        event.route.rule.artifactPointerKeys.forEach { key ->
-            activeArtifactPointerStore.upsert(
-                ActiveArtifactPointer(
-                    conversationId = conversationId,
-                    pointerKey = key,
-                    artifactId = artifactId,
-                    updatedAt = now,
-                )
+        expanded.forEach { expandedEvent ->
+            val artifactId = UUID.randomUUID().toString()
+            val kind = expandedEvent.content["persistKind"] as? String
+                ?: expandedEvent.content["protocolId"] as? String
+                ?: expandedEvent.kind
+            val artifact = ArtifactRecord(
+                artifactId = artifactId,
+                conversationId = conversationId,
+                runId = event.runId,
+                kind = kind,
+                payload = expandedEvent.content,
+                turnId = event.turnId,
+                pointerKeys = event.route.rule.artifactPointerKeys,
+                createdAt = event.createdAt,
             )
+            artifactStore.save(artifact)
+            artifactIds += artifactId
+            artifactObservers.forEach { observer ->
+                runCatching { observer.onArtifactCreated(artifact) }
+                    .onFailure { error ->
+                        log.warn("Artifact observer failed for artifactId={}", artifact.artifactId, error)
+                    }
+            }
         }
-        artifactObservers.forEach { observer ->
-            runCatching { observer.onArtifactCreated(artifact) }
-                .onFailure { error ->
-                    log.warn("Artifact observer failed for artifactId={}", artifact.artifactId, error)
+
+        event.turnId?.let { conversationStore.attachArtifacts(conversationId, it, artifactIds) }
+
+        when (event.route.rule.artifactPointerCardinality) {
+            PointerCardinality.SINGLE -> {
+                val latestId = artifactIds.last()
+                event.route.rule.artifactPointerKeys.forEach { key ->
+                    activeArtifactPointerStore.upsert(
+                        ActiveArtifactPointer(
+                            conversationId = conversationId,
+                            pointerKey = key,
+                            artifactId = latestId,
+                            updatedAt = now,
+                        ),
+                    )
                 }
+            }
+            PointerCardinality.MULTIPLE -> {
+                event.route.rule.artifactPointerKeys.forEach { key ->
+                    activeArtifactPointerStore.appendAll(conversationId, key, artifactIds, now)
+                }
+            }
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun expandArtifactEvents(event: RoutedAgentEvent): List<RoutedAgentEvent> {
+        val payload = event.content["payload"]
+        val items = ProtocolFinalBatch.expandItemPayloads(payload)
+        if (items.isEmpty()) return listOf(event)
+        if (items.size == 1 && !ProtocolFinalBatch.isBatchEnvelope(payload)) {
+            return listOf(event)
+        }
+        return items.map { item ->
+            event.copy(content = event.content.toMutableMap().apply { put("payload", item) })
         }
     }
 }

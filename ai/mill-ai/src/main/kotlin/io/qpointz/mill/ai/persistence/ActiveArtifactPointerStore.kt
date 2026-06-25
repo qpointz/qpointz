@@ -30,10 +30,15 @@ data class ActiveArtifactPointer(
 
 /**
  * Port for tracking latest/active artifact pointers per conversation.
+ *
+ * [upsert] replaces the active artefact for a pointer key (singular cardinality).
+ * [appendAll] appends ordered artefact ids for list pointer keys (batch multi-capture).
  */
 interface ActiveArtifactPointerStore {
     fun upsert(pointer: ActiveArtifactPointer)
+    fun appendAll(conversationId: String, pointerKey: String, artifactIds: List<String>, updatedAt: Instant = Instant.now())
     fun find(conversationId: String, pointerKey: String): ActiveArtifactPointer?
+    fun findByPointerKey(conversationId: String, pointerKey: String): List<ActiveArtifactPointer>
     fun findAll(conversationId: String): List<ActiveArtifactPointer>
 }
 

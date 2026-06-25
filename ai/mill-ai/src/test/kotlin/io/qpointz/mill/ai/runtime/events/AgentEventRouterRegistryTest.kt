@@ -1,6 +1,7 @@
 package io.qpointz.mill.ai.runtime.events
 
 import io.qpointz.mill.ai.core.artifact.ArtifactDescriptorRegistry
+import io.qpointz.mill.ai.core.artifact.PointerCardinality
 import io.qpointz.mill.ai.runtime.events.routing.DefaultEventRoutingPolicy
 import io.qpointz.mill.ai.runtime.events.routing.RoutedEventCategory
 import io.qpointz.mill.ai.runtime.events.routing.RoutedEventDestination
@@ -89,7 +90,8 @@ class AgentEventRouterRegistryTest {
                 ),
             ),
         )
-        assertEquals(setOf("last-metadata-facet-proposal"), routed.single().route.rule.artifactPointerKeys)
+        assertEquals(setOf("metadata-facet-proposals"), routed.single().route.rule.artifactPointerKeys)
+        assertEquals(PointerCardinality.MULTIPLE, routed.single().route.rule.artifactPointerCardinality)
     }
 
     @Test

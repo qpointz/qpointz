@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.core.artifact
 
+import io.qpointz.mill.ai.core.artifact.PointerCardinality
 import io.qpointz.mill.ai.core.capability.CapabilityManifest
 import io.qpointz.mill.ai.core.protocol.ProtocolMode
 import io.qpointz.mill.ai.runtime.events.routing.RoutedEventDestination
@@ -50,7 +51,8 @@ class ArtifactDescriptorRegistryTest {
         assertEquals("metadata.faceting.capture", facet.protocolId)
         assertEquals("facet-proposal", facet.artifactKind)
         assertEquals("metadata.faceting.capture", facet.persistKind)
-        assertEquals(setOf("last-metadata-facet-proposal"), facet.pointerKeys)
+        assertEquals(setOf("metadata-facet-proposals"), facet.pointerKeys)
+        assertEquals(PointerCardinality.MULTIPLE, facet.pointerCardinality)
         assertEquals("facet-proposal", facet.wirePartType)
         assertEquals(ArtifactSourceEvent.PROTOCOL_FINAL, facet.sourceEvent)
         assertEquals(EmissionStrategy.ON_CAPTURE_SUCCESS, facet.emissionStrategy)

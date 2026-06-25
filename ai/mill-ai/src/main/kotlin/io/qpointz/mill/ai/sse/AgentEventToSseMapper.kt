@@ -2,6 +2,7 @@ package io.qpointz.mill.ai.sse
 
 import io.qpointz.mill.ai.core.artifact.ArtifactDescriptorRegistry
 import io.qpointz.mill.ai.core.artifact.FacetProposalWire
+import io.qpointz.mill.ai.core.artifact.ProtocolFinalBatch
 import io.qpointz.mill.ai.runtime.events.AgentEvent
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.kotlinModule
@@ -35,6 +36,9 @@ class AgentEventToSseMapper(
     private var structuredCompletionPresentation: String? = null
     private var structuredCompletionPartType: String? = null
 
+    private var structuredPartCount = 0
+    private val structuredPartTypes = mutableListOf<String>()
+
     fun map(event: AgentEvent): List<ChatSseEvent> = when (event) {
         is AgentEvent.MessageDelta -> {
             val result = mutableListOf<ChatSseEvent>()
@@ -61,13 +65,17 @@ class AgentEventToSseMapper(
                     else -> event.text.takeIf { it.isNotEmpty() }
                 },
                 presentation = structuredCompletionPresentation ?: "conversation",
-                partType = structuredCompletionPartType ?: "text",
+                partType = completionPartType(structuredCompletionPartType),
+                structuredPartCount = structuredPartCount.takeIf { it > 1 },
+                partTypes = structuredPartTypes.takeIf { structuredPartCount > 1 }?.toList(),
             )
             itemId = UUID.randomUUID().toString()
             itemStarted = false
             hadTextDeltas = false
             structuredCompletionPresentation = null
             structuredCompletionPartType = null
+            structuredPartCount = 0
+            structuredPartTypes.clear()
             result
         }
 
@@ -78,34 +86,39 @@ class AgentEventToSseMapper(
         val descriptor = artifactRegistry.descriptorForProtocol(event.protocolId) ?: return emptyList()
         val wirePartType = descriptor.wirePartType ?: descriptor.artifactKind
         val presentation = descriptor.presentation ?: "structured"
-        val wirePayload = when (event.protocolId) {
-            FacetProposalWire.SCHEMA_CAPTURE_PROTOCOL_ID ->
-                FacetProposalWire.normalizePayload(event.payload)
-            else -> event.payload
-        }
-        if (event.protocolId == FacetProposalWire.SCHEMA_CAPTURE_PROTOCOL_ID && wirePayload == null) {
-            return emptyList()
-        }
-        val json = when (val payload = wirePayload) {
-            null -> "{}"
-            is String -> payload
-            else -> jsonMapper.writeValueAsString(payload)
-        }
+        val itemPayloads = ProtocolFinalBatch.expandItemPayloads(event.payload)
+        if (itemPayloads.isEmpty()) return emptyList()
+
         val result = mutableListOf<ChatSseEvent>()
         if (!itemStarted) {
             itemStarted = true
             result += itemCreated()
         }
-        structuredCompletionPresentation = presentation
-        structuredCompletionPartType = wirePartType
-        result += itemPartUpdated(
-            content = json,
-            presentation = presentation,
-            partType = wirePartType,
-            mode = "replace",
-        )
+
+        // Generic fan-out: any multi-item protocol final → N structured parts (replace + append).
+        itemPayloads.forEachIndexed { index, itemPayload ->
+            val wirePayload = FacetProposalWire.normalizeForWire(wirePartType, itemPayload)
+                ?: return@forEachIndexed
+            val json = when (val payload = wirePayload) {
+                is String -> payload
+                else -> jsonMapper.writeValueAsString(payload)
+            }
+            structuredCompletionPresentation = presentation
+            structuredCompletionPartType = wirePartType
+            structuredPartCount++
+            structuredPartTypes += wirePartType
+            result += itemPartUpdated(
+                content = json,
+                presentation = presentation,
+                partType = wirePartType,
+                mode = if (index == 0) "replace" else "append",
+            )
+        }
         return result
     }
+
+    private fun completionPartType(lastStructuredPartType: String?): String =
+        if (structuredPartCount > 1) "multi" else lastStructuredPartType ?: "text"
 
     fun fail(code: String, reason: String): ChatSseEvent.ItemFailed = ChatSseEvent.ItemFailed(
         eventId = UUID.randomUUID().toString(),
@@ -146,6 +159,8 @@ class AgentEventToSseMapper(
         content: String?,
         presentation: String = "conversation",
         partType: String = "text",
+        structuredPartCount: Int? = null,
+        partTypes: List<String>? = null,
     ) = ChatSseEvent.ItemCompleted(
         eventId = UUID.randomUUID().toString(),
         chatId = chatId,
@@ -155,5 +170,7 @@ class AgentEventToSseMapper(
         presentation = presentation,
         partType = partType,
         content = content,
+        structuredPartCount = structuredPartCount,
+        partTypes = partTypes,
     )
 }

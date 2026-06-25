@@ -387,4 +387,70 @@ describe('realChatService (fetch-mocked)', () => {
     expect(completed[0]!.presentation).toBe('structured');
     expect(completed[0]!.partType).toBe('sql');
   });
+
+  it('should forward N structured parts and multi item.completed hint', async () => {
+    const facet1 = JSON.stringify({
+      facetTypeKey: 'descriptive',
+      metadataEntityId: 'sales.customers',
+      serializedPayload: { summary: 'VIP' },
+    });
+    const facet2 = JSON.stringify({
+      facetTypeKey: 'descriptive',
+      metadataEntityId: 'sales.orders',
+      serializedPayload: { summary: 'Orders' },
+    });
+    const streamBody =
+      sseDataLine({
+        type: 'item.part.updated',
+        itemId: 'item-1',
+        presentation: 'structured',
+        partType: 'facet-proposal',
+        mode: 'replace',
+        content: facet1,
+      }) +
+      sseDataLine({
+        type: 'item.part.updated',
+        itemId: 'item-1',
+        presentation: 'structured',
+        partType: 'facet-proposal',
+        mode: 'append',
+        content: facet2,
+      }) +
+      sseDataLine({
+        type: 'item.completed',
+        itemId: 'item-1',
+        presentation: 'structured',
+        partType: 'multi',
+        structuredPartCount: 2,
+        partTypes: ['facet-proposal', 'facet-proposal'],
+        content: null,
+      });
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(streamFromString(streamBody), {
+          status: 200,
+          headers: { 'Content-Type': 'text/event-stream' },
+        }),
+      ),
+    );
+
+    const structuredParts: Record<string, unknown>[] = [];
+    const completed: Array<Record<string, unknown>> = [];
+    for await (const _ of realChatService.sendMessage('any', 'x', {
+      onNonTextPartUpdated: (p) => structuredParts.push(p),
+      onItemCompleted: (p) => completed.push(p as unknown as Record<string, unknown>),
+    })) {
+      // consume
+    }
+
+    expect(structuredParts).toHaveLength(2);
+    expect(structuredParts[0]!.mode).toBe('replace');
+    expect(structuredParts[1]!.mode).toBe('append');
+    expect(completed).toHaveLength(1);
+    expect(completed[0]!.partType).toBe('multi');
+    expect(completed[0]!.structuredPartCount).toBe(2);
+    expect(completed[0]!.partTypes).toEqual(['facet-proposal', 'facet-proposal']);
+  });
 });

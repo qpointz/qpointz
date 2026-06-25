@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.runtime.events.routing
 
+import io.qpointz.mill.ai.core.artifact.PointerCardinality
 import io.qpointz.mill.ai.core.capability.*
 import io.qpointz.mill.ai.core.prompt.*
 import io.qpointz.mill.ai.core.protocol.*
@@ -34,6 +35,8 @@ data class EventRoutingRule(
     val persistAsArtifact: Boolean = false,
     /** Optional pointer keys to update in [ActiveArtifactPointerStore] when the event becomes an artifact. */
     val artifactPointerKeys: Set<String> = emptySet(),
+    /** How [artifactPointerKeys] are updated (singular latest vs ordered list). */
+    val artifactPointerCardinality: PointerCardinality = PointerCardinality.SINGLE,
 )
 
 /**

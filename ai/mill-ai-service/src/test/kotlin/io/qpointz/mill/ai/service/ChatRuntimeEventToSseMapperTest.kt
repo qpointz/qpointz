@@ -112,7 +112,7 @@ class ChatRuntimeEventToSseMapperTest {
     }
 
     @Test
-    fun shouldPreferLastStructuredPart_onItemCompleted() {
+    fun shouldEmitMultiHint_onItemCompleted_whenMultipleStructuredParts() {
         val mapper = ChatRuntimeEventToSseMapper("chat-1")
         mapper.map(
             ChatRuntimeEvent.StructuredPart(
@@ -126,12 +126,14 @@ class ChatRuntimeEventToSseMapperTest {
             ChatRuntimeEvent.StructuredPart(
                 presentation = "structured",
                 partType = "facet-proposal",
-                mode = "replace",
+                mode = "append",
                 content = """{"facetTypeKey":"urn:t","metadataEntityId":"e1"}""",
             ),
         )
         val completed = mapper.map(ChatRuntimeEvent.Completed("x")).filterIsInstance<ChatSseEvent.ItemCompleted>().single()
         assertEquals("structured", completed.presentation)
-        assertEquals("facet-proposal", completed.partType)
+        assertEquals("multi", completed.partType)
+        assertEquals(2, completed.structuredPartCount)
+        assertEquals(listOf("sql", "facet-proposal"), completed.partTypes)
     }
 }

@@ -466,6 +466,18 @@ async function* consumeChatSse(
               ? record.part_type
               : 'text';
 
+        const structuredPartCount =
+          typeof record.structuredPartCount === 'number'
+            ? record.structuredPartCount
+            : typeof record.structured_part_count === 'number'
+              ? record.structured_part_count
+              : undefined;
+
+        const rawPartTypes = record.partTypes ?? record.part_types;
+        const partTypes = Array.isArray(rawPartTypes)
+          ? rawPartTypes.filter((t): t is string => typeof t === 'string')
+          : undefined;
+
         let contentFull: string | null = null;
         if ('content' in evt && evt.content != null) {
           contentFull = String(evt.content);
@@ -476,6 +488,8 @@ async function* consumeChatSse(
           presentation,
           partType,
           content: contentFull,
+          structuredPartCount,
+          partTypes,
         });
 
         if (!hadTextDeltaForPrimary && contentFull !== null && (!primaryItemId || itemId === primaryItemId)) {

@@ -37,7 +37,7 @@ function StructuredReplyLayout({
 /** Picks assistant chrome (grinder-style) from [Message.assistantReplyView] or derived artefacts. */
 export function AssistantReplyRouter({ message }: { message: Message }) {
   const view = message.assistantReplyView ?? deriveAssistantReplyView(message.artifacts);
-  const sectionTitle = structuredReplySectionTitle(view);
+  const sectionTitle = structuredReplySectionTitle(view, message.artifacts);
 
   if (sectionTitle) {
     return <StructuredReplyLayout message={message} sectionTitle={sectionTitle} />;

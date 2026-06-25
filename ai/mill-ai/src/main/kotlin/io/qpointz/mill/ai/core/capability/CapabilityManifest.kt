@@ -10,6 +10,7 @@ import io.qpointz.mill.ai.profile.*
 import io.qpointz.mill.ai.runtime.*
 import io.qpointz.mill.ai.runtime.events.*
 import io.qpointz.mill.ai.runtime.events.routing.*
+import io.qpointz.mill.ai.core.artifact.PointerCardinality
 import io.qpointz.mill.ai.core.artifact.ArtifactDescriptor
 import io.qpointz.mill.ai.core.artifact.ArtifactSourceEvent
 import io.qpointz.mill.ai.core.artifact.EmissionStrategy
@@ -107,6 +108,7 @@ private data class ArtifactEntryYaml(
     val artifactKind: String? = null,
     val persistKind: String? = null,
     val pointerKeys: List<String>? = null,
+    val pointerCardinality: PointerCardinality? = null,
     val wirePartType: String? = null,
     val presentation: String? = null,
     val protocolMode: String? = null,
@@ -130,6 +132,8 @@ private data class ProtocolEntryYaml(
     val description: String,
     val mode: String,
     val fallbackMode: String? = null,
+    /** When true, agent may emit `{ results: [...] }` batch finals for parallel captures. */
+    val multi: Boolean? = null,
     val finalSchema: ToolSchemaYaml? = null,
     val events: Map<String, ProtocolEventEntryYaml> = emptyMap(),
 ) {
@@ -138,6 +142,7 @@ private data class ProtocolEntryYaml(
         description = description,
         mode = ProtocolMode.valueOf(mode.uppercase()),
         fallbackMode = fallbackMode?.let { ProtocolMode.valueOf(it.uppercase()) },
+        multi = multi ?: false,
         finalSchema = finalSchema?.toJsonObjectSchema(),
         events = events.map { (type, entry) ->
             ProtocolEventDefinition(
@@ -295,8 +300,9 @@ class CapabilityManifest private constructor(
             val stream = Thread.currentThread().contextClassLoader.getResourceAsStream(resource)
                 ?: error("CapabilityManifest resource not found: $resource")
             val yaml = yamlMapper.readValue(stream, CapabilityManifestYaml::class.java)
+            val protocolEntries = yaml.protocols
             val artifacts = yaml.artifacts.map { (id, entry) ->
-                entry.toDescriptor(id = id, capabilityId = yaml.name)
+                entry.toDescriptor(id = id, capabilityId = yaml.name, protocolEntries = protocolEntries)
             }
             val emitTriggers = yaml.tools.mapNotNull { (toolName, entry) ->
                 entry.emitsOnSuccess?.let { emit ->
@@ -324,7 +330,11 @@ class CapabilityManifest private constructor(
     }
 }
 
-private fun ArtifactEntryYaml.toDescriptor(id: String, capabilityId: String): ArtifactDescriptor {
+private fun ArtifactEntryYaml.toDescriptor(
+    id: String,
+    capabilityId: String,
+    protocolEntries: Map<String, ProtocolEntryYaml>,
+): ArtifactDescriptor {
     val source = requireNotNull(sourceEvent) { "artifacts.$id requires sourceEvent" }
     val strategy = requireNotNull(emissionStrategy) { "artifacts.$id requires emissionStrategy" }
     val kind = requireNotNull(artifactKind) { "artifacts.$id requires artifactKind" }
@@ -337,6 +347,11 @@ private fun ArtifactEntryYaml.toDescriptor(id: String, capabilityId: String): Ar
     if (parsedSource == ArtifactSourceEvent.PROTOCOL_FINAL) {
         require(protocolId != null) { "artifacts.$id requires protocolId when sourceEvent is protocol.final" }
     }
+    val resolvedPointerCardinality = pointerCardinality
+        ?: protocolId?.let { protocolEntries[it]?.multi }
+            ?.takeIf { it }
+            ?.let { PointerCardinality.MULTIPLE }
+        ?: PointerCardinality.SINGLE
     return ArtifactDescriptor(
         id = id,
         capabilityId = capabilityId,
@@ -344,6 +359,7 @@ private fun ArtifactEntryYaml.toDescriptor(id: String, capabilityId: String): Ar
         artifactKind = kind,
         persistKind = persistKindValue,
         pointerKeys = pointerKeys?.toSet() ?: emptySet(),
+        pointerCardinality = resolvedPointerCardinality,
         wirePartType = wirePartType,
         presentation = presentation,
         protocolMode = protocolMode?.let { ProtocolMode.valueOf(it.uppercase()) },

@@ -38,6 +38,8 @@ class ChatRuntimeEventToSseMapper(private val chatId: String) {
     /** Last structured presentation / partType observed for this item (summary on [ChatSseEvent.ItemCompleted]). */
     private var structuredCompletionPresentation: String? = null
     private var structuredCompletionPartType: String? = null
+    private var structuredPartCount = 0
+    private val structuredPartTypes = mutableListOf<String>()
 
     fun map(event: ChatRuntimeEvent): List<ChatSseEvent> = when (event) {
         is ChatRuntimeEvent.Chunk -> {
@@ -85,6 +87,8 @@ class ChatRuntimeEventToSseMapper(private val chatId: String) {
             }
             structuredCompletionPresentation = event.presentation
             structuredCompletionPartType = event.partType
+            structuredPartCount++
+            structuredPartTypes += event.partType
             result += itemPartUpdated(
                 content = event.content,
                 presentation = event.presentation,
@@ -103,17 +107,21 @@ class ChatRuntimeEventToSseMapper(private val chatId: String) {
             // Null content when chunks were streamed: clients use accumulated deltas.
             // Full content only for the non-streaming (single-shot) path.
             val completionPresentation = structuredCompletionPresentation ?: "conversation"
-            val completionPartType = structuredCompletionPartType ?: "text"
+            val completionPartType = if (structuredPartCount > 1) "multi" else structuredCompletionPartType ?: "text"
             result += itemCompleted(
                 content = if (hadChunks) null else event.text,
                 presentation = completionPresentation,
                 partType = completionPartType,
+                structuredPartCount = structuredPartCount.takeIf { it > 1 },
+                partTypes = structuredPartTypes.takeIf { structuredPartCount > 1 }?.toList(),
             )
             itemId = UUID.randomUUID().toString()
             itemStarted = false
             chunksEmitted = false
             structuredCompletionPresentation = null
             structuredCompletionPartType = null
+            structuredPartCount = 0
+            structuredPartTypes.clear()
             result
         }
     }
@@ -191,6 +199,8 @@ class ChatRuntimeEventToSseMapper(private val chatId: String) {
         content: String?,
         presentation: String = "conversation",
         partType: String = "text",
+        structuredPartCount: Int? = null,
+        partTypes: List<String>? = null,
     ) = ChatSseEvent.ItemCompleted(
         eventId = UUID.randomUUID().toString(),
         chatId = chatId,
@@ -200,5 +210,7 @@ class ChatRuntimeEventToSseMapper(private val chatId: String) {
         presentation = presentation,
         partType = partType,
         content = content,
+        structuredPartCount = structuredPartCount,
+        partTypes = partTypes,
     )
 }

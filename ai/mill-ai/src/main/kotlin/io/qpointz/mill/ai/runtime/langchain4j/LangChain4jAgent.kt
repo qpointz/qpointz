@@ -31,6 +31,7 @@ import java.util.concurrent.CompletableFuture
 import io.qpointz.mill.ai.capabilities.schema.CaptureResult
 import io.qpointz.mill.ai.core.artifact.ArtifactDescriptorRegistry
 import io.qpointz.mill.ai.core.artifact.EmissionStrategy
+import io.qpointz.mill.ai.core.artifact.ProtocolFinalBatch
 
 /**
  * LangChain4j-backed streaming agent.
@@ -190,9 +191,7 @@ class LangChain4jAgent(
                 return text
             }
 
-            var captureBinding: ToolBinding? = null
-            var captureToolResult: Any? = null
-            var captureValidationFailed = false
+            val captureResults = mutableListOf<Pair<ToolBinding, Any?>>()
             val executedTools = mutableListOf<ArtifactEmissionCoordinator.ExecutedTool>()
             for (toolRequest in aiMsg.toolExecutionRequests()) {
                 val binding = handlerMap[toolRequest.name()] ?: continue
@@ -203,18 +202,13 @@ class LangChain4jAgent(
                 routedListener(AgentEvent.ToolResult(toolRequest.name(), result.content))
                 executedTools += ArtifactEmissionCoordinator.ExecutedTool(toolRequest.name(), result.content)
                 messages.add(ToolExecutionResultMessage.from(toolRequest, resultText))
-                if (binding.kind == ToolKind.CAPTURE) {
-                    val cr = result.content as? CaptureResult
-                    if (cr != null && !cr.captureSucceeded) {
-                        captureValidationFailed = true
-                    }
-                    captureBinding = binding
-                    captureToolResult = result.content
+                if (binding.kind == ToolKind.CAPTURE && !isFailedCapture(result.content)) {
+                    captureResults += binding to result.content
                 }
             }
 
-            if (captureBinding != null && !captureValidationFailed) {
-                handleCaptureSuccess(captureBinding, captureToolResult, context, routedListener)
+            if (captureResults.isNotEmpty()) {
+                handleCaptureBatch(captureResults, capabilities, context, routedListener)
                 routedListener(AgentEvent.AnswerCompleted(""))
                 saveToMemory(session, input, "")
                 session.appendUserMessage(input)
@@ -260,17 +254,32 @@ class LangChain4jAgent(
         )
     }
 
-    private fun handleCaptureSuccess(
-        captureBinding: ToolBinding,
-        captureToolResult: Any?,
+    private fun handleCaptureBatch(
+        captureResults: List<Pair<ToolBinding, Any?>>,
+        capabilities: List<Capability>,
         context: AgentContext,
         listener: (AgentEvent) -> Unit,
     ) {
-        val protocolId = captureBinding.protocolId ?: return
+        val (binding, _) = captureResults.first()
+        val protocolId = binding.protocolId ?: return
         val descriptor = artifactDescriptorRegistry.descriptorForProtocol(protocolId) ?: return
         if (descriptor.emissionStrategy != EmissionStrategy.ON_CAPTURE_SUCCESS) return
-        val final = emissionCoordinator.constructProtocolFinal(descriptor, captureToolResult, context)
-        listener(final)
+        val protocol = capabilities.flatMap { it.protocols }.find { it.id == protocolId }
+        val itemMaps = captureResults.map { (_, toolResult) ->
+            @Suppress("UNCHECKED_CAST")
+            emissionCoordinator.constructProtocolFinal(descriptor, toolResult, context).payload as Map<String, Any?>
+        }
+        val forceBatch = protocol?.multi == true || itemMaps.size > 1
+        val payload = ProtocolFinalBatch.collapseResults(itemMaps, forceBatch)
+        listener(AgentEvent.ProtocolFinal(protocolId = protocolId, payload = payload))
+    }
+
+    private fun isFailedCapture(content: Any?): Boolean {
+        val captureResult = content as? CaptureResult
+        if (captureResult != null && !captureResult.captureSucceeded) return true
+        @Suppress("UNCHECKED_CAST")
+        val map = content as? Map<String, Any?>
+        return map?.get("rejected") == true
     }
 
     private fun resolveCapabilities(context: AgentContext): List<Capability> {

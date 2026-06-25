@@ -52,7 +52,7 @@ artifacts:
     protocolId: metadata.faceting.capture
     artifactKind: facet-proposal
     persistKind: metadata.faceting.capture
-    pointerKeys: [last-metadata-facet-proposal]
+    pointerKeys: [metadata-facet-proposals]
     wirePartType: facet-proposal
     presentation: structured
     protocolMode: STRUCTURED_FINAL
@@ -62,11 +62,31 @@ artifacts:
 
 protocols:
   metadata.faceting.capture:
-    description: Structured final for facet assignment proposals.
+    description: Structured final for facet assignment proposals (supports parallel multi-capture batch).
     mode: structured_final
+    multi: true
     finalSchema:
       type: object
+      required:
+        - results
       properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              captureType:
+                type: string
+              facetTypeKey:
+                type: string
+              metadataEntityId:
+                type: string
+              serializedPayload:
+                type: object
+              validationWarnings:
+                type: array
+                items:
+                  type: string
         captureType:
           type: string
         facetTypeKey:

@@ -29,6 +29,8 @@ data class ProtocolDefinition(
     val fallbackMode: ProtocolMode? = null,
     val finalSchema: JsonObjectSchema? = null,
     val events: List<ProtocolEventDefinition> = emptyList(),
+    /** When true, terminal capture aggregates parallel tool successes into `{ results: [...] }`. */
+    val multi: Boolean = false,
 ) {
     init {
         when (mode) {

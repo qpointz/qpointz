@@ -15,7 +15,7 @@ export function ArtifactPreviewRouter({
 }: ArtifactPreviewRouterProps) {
   const view = message.assistantReplyView ?? deriveAssistantReplyView(message.artifacts);
   const composer = <MessageArtifactComposer message={message} {...composerProps} />;
-  const sectionTitle = structuredReplySectionTitle(view);
+  const sectionTitle = structuredReplySectionTitle(view, message.artifacts);
 
   if (sectionTitle) {
     return (
