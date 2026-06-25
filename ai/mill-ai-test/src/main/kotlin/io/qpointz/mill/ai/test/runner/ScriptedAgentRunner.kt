@@ -1,7 +1,7 @@
 package io.qpointz.mill.ai.test.runner
 
 import io.qpointz.mill.ai.persistence.AgentPersistenceContext
-import io.qpointz.mill.ai.profile.DefaultProfileRegistry
+import io.qpointz.mill.ai.profile.PlatformProfiles
 import io.qpointz.mill.ai.profile.ProfileRegistry
 import io.qpointz.mill.ai.runtime.ConversationSession
 import io.qpointz.mill.ai.runtime.langchain4j.LangChain4jAgent
@@ -13,7 +13,7 @@ import io.qpointz.mill.ai.test.scenario.v3.TurnOutcome
  * Runs a single scenario turn using a scripted model and real [LangChain4jAgent] handlers.
  */
 class ScriptedAgentRunner(
-    private val profileRegistry: ProfileRegistry = DefaultProfileRegistry,
+    private val profileRegistry: ProfileRegistry = PlatformProfiles.registry(),
 ) : AgentTurnRunner {
 
     override fun runTurn(

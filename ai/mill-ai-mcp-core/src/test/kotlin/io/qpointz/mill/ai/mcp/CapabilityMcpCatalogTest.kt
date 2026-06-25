@@ -3,7 +3,7 @@ package io.qpointz.mill.ai.mcp
 import io.qpointz.mill.ai.capabilities.DemoCapabilityProvider
 import io.qpointz.mill.ai.core.capability.CapabilityManifest
 import io.qpointz.mill.ai.core.capability.CapabilityRegistry
-import io.qpointz.mill.ai.profile.HelloWorldAgentProfile
+import io.qpointz.mill.ai.profile.PlatformProfiles
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -46,7 +46,7 @@ class CapabilityMcpCatalogTest {
     fun shouldApplyHelloWorldProfileFilter() {
         val catalog = CapabilityMcpCatalog(
             registry = CapabilityRegistry.load(),
-            profile = HelloWorldAgentProfile.profile,
+            profile = PlatformProfiles.require("hello-world"),
         )
         assertThat(catalog.listToolNames()).contains("demo.say_hello")
         assertThat(catalog.listToolNames()).noneMatch { it.startsWith("schema.") }

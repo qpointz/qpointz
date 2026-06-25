@@ -20,6 +20,7 @@ import io.qpointz.mill.ai.runtime.events.routing.*
 data class AgentProfile(
     val id: String,
     val capabilityIds: Set<String>,
+    val description: String? = null,
     val routingPolicy: EventRoutingPolicy = DefaultEventRoutingPolicy.policy,
 )
 

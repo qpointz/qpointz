@@ -551,7 +551,7 @@ class AiChatControllerIT {
             .jsonPath("$.length()").isEqualTo(4)
             .jsonPath("$[0].id").isEqualTo("data-analysis")
             .jsonPath("$[1].id").isEqualTo("hello-world")
-            .jsonPath("$[2].id").isEqualTo("schema-authoring")
+            .jsonPath("$[2].id").isEqualTo("metadata-authoring")
             .jsonPath("$[3].id").isEqualTo("schema-exploration")
     }
 
@@ -588,8 +588,8 @@ class AiChatControllerIT {
     }
 
     @Test
-    fun `schema authoring profile includes metadata and metadata-authoring`() {
-        val body = client.get().uri("/api/v1/ai/profiles/schema-authoring")
+    fun `metadata authoring profile includes metadata and metadata-authoring`() {
+        val body = client.get().uri("/api/v1/ai/profiles/metadata-authoring")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus().isOk
@@ -613,8 +613,8 @@ class AiChatControllerIT {
 
     @Test
     fun `GET chat should replay persisted facet-proposal artifacts`() {
-        val chatId = createChat("""{"profileId":"schema-authoring"}""")
-        conversationStore.ensureExists(chatId, "schema-authoring")
+        val chatId = createChat("""{"profileId":"metadata-authoring"}""")
+        conversationStore.ensureExists(chatId, "metadata-authoring")
         val turnId = UUID.randomUUID().toString()
         conversationStore.appendTurn(
             chatId,
@@ -622,7 +622,7 @@ class AiChatControllerIT {
                 turnId = turnId,
                 role = "assistant",
                 text = null,
-                profileId = "schema-authoring",
+                profileId = "metadata-authoring",
                 createdAt = Instant.now(),
             ),
         )
@@ -663,8 +663,8 @@ class AiChatControllerIT {
     }
 
     @Test
-    fun `SSE completes for schema-authoring chat`() {
-        val chatId = createChat("{\"profileId\":\"schema-authoring\"}")
+    fun `SSE completes for metadata-authoring chat`() {
+        val chatId = createChat("{\"profileId\":\"metadata-authoring\"}")
         sseClient.post().uri("/api/v1/ai/chats/$chatId/messages")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue("{\"message\":\"hi\"}")

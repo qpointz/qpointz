@@ -11,7 +11,7 @@ import io.qpointz.mill.ai.persistence.ConversationTurn
 import io.qpointz.mill.ai.persistence.InMemoryArtifactStore
 import io.qpointz.mill.ai.persistence.InMemoryChatRegistry
 import io.qpointz.mill.ai.persistence.InMemoryConversationStore
-import io.qpointz.mill.ai.profile.DefaultProfileRegistry
+import io.qpointz.mill.ai.profile.PlatformProfiles
 import io.qpointz.mill.ai.service.dto.AttachExecutionResultHttpRequest
 import io.qpointz.mill.ai.service.dto.ExecutionColumnDto
 import org.assertj.core.api.Assertions.assertThat
@@ -37,7 +37,7 @@ class UnifiedChatServiceTest {
         conversationStore = conversationStore,
         chatMemoryStore = chatMemoryStore,
         artifactStore = artifactStore,
-        profileRegistry = DefaultProfileRegistry,
+        profileRegistry = PlatformProfiles.registry(),
         runtime = runtime,
         properties = AiChatSettings(),
         userIdResolver = PropertiesUserIdResolver("default"),
@@ -291,7 +291,7 @@ class UnifiedChatServiceTest {
             conversationStore = conversationStore,
             chatMemoryStore = chatMemoryStore,
             artifactStore = artifactStore,
-            profileRegistry = DefaultProfileRegistry,
+            profileRegistry = PlatformProfiles.registry(),
             runtime = runtime,
             properties = AiChatSettings(),
             userIdResolver = PropertiesUserIdResolver("other-user"),

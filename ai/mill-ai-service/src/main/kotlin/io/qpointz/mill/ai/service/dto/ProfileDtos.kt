@@ -7,10 +7,12 @@ import io.qpointz.mill.ai.profile.AgentProfile
  *
  * @property id Stable profile identifier used in chat create requests (`profileId`).
  * @property capabilityIds Capability ids composed by this profile, sorted for stable output.
+ * @property description Optional human-readable summary from YAML seed.
  */
 data class AgentProfileResponse(
     val id: String,
     val capabilityIds: List<String>,
+    val description: String? = null,
 ) {
     companion object {
         /**
@@ -20,6 +22,7 @@ data class AgentProfileResponse(
             AgentProfileResponse(
                 id = profile.id,
                 capabilityIds = profile.capabilityIds.sorted(),
+                description = profile.description,
             )
     }
 }

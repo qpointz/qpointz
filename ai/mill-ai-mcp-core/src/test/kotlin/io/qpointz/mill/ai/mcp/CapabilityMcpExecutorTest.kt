@@ -3,7 +3,7 @@ package io.qpointz.mill.ai.mcp
 import io.qpointz.mill.ai.capabilities.DemoCapabilityProvider
 import io.qpointz.mill.ai.core.capability.CapabilityDependencyContainer
 import io.qpointz.mill.ai.core.capability.CapabilityRegistry
-import io.qpointz.mill.ai.profile.HelloWorldAgentProfile
+import io.qpointz.mill.ai.profile.PlatformProfiles
 import io.qpointz.mill.ai.runtime.AgentContext
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -44,7 +44,7 @@ class CapabilityMcpExecutorTest {
     fun shouldRejectToolOutsideProfileAtInvoke() {
         val catalog = CapabilityMcpCatalog(
             registry = CapabilityRegistry.load(),
-            profile = HelloWorldAgentProfile.profile,
+            profile = PlatformProfiles.require("hello-world"),
         )
         val executor = CapabilityMcpExecutor(
             registry = CapabilityRegistry.load(),

@@ -1,7 +1,7 @@
 package io.qpointz.mill.ai.test
 
 import io.qpointz.mill.ai.persistence.AgentPersistenceContext
-import io.qpointz.mill.ai.profile.DefaultProfileRegistry
+import io.qpointz.mill.ai.profile.PlatformProfiles
 import io.qpointz.mill.ai.runtime.langchain4j.LangChain4jAgent
 import io.qpointz.mill.ai.test.runner.ProvidedAgentRunner
 import io.qpointz.mill.ai.test.runner.ScenarioPackRunner
@@ -25,7 +25,7 @@ abstract class LiveScenarioPackTestBase : ScenarioPackTestBase() {
         require(pack.parameters.mode == "live") {
             "live scenario base requires parameters.mode: live (pack=${pack.name})"
         }
-        val profile = DefaultProfileRegistry.resolve(pack.profileId)
+        val profile = PlatformProfiles.registry().resolve(pack.profileId)
             ?: error("unknown profileId: ${pack.profileId}")
         val persistence = AgentPersistenceContext()
         val agent = requireNotNull(LangChain4jAgent.fromEnv(profile, persistenceContext = persistence)) {

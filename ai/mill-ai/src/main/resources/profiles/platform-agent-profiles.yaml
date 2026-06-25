@@ -1,0 +1,36 @@
+---
+kind: AgentProfile
+id: hello-world
+description: Minimal validation profile for hello-world agent scenarios
+capabilities:
+  - conversation
+  - demo
+---
+kind: AgentProfile
+id: schema-exploration
+description: Read-only schema and facet catalog exploration
+capabilities:
+  - conversation
+  - schema
+  - metadata
+---
+kind: AgentProfile
+id: metadata-authoring
+description: Catalog-generic facet assignment proposals without SQL execution
+capabilities:
+  - conversation
+  - schema
+  - metadata
+  - metadata-authoring
+---
+kind: AgentProfile
+id: data-analysis
+description: SQL generation plus optional facet capture for mixed documentary and query utterances
+capabilities:
+  - conversation
+  - schema
+  - metadata
+  - metadata-authoring
+  - sql-dialect
+  - sql-query
+  - value-mapping

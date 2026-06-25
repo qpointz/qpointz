@@ -13,8 +13,7 @@ import io.qpointz.mill.ai.capabilities.sqldialect.SqlDialectCapabilityDependency
 import io.qpointz.mill.ai.capabilities.sqlquery.MockSqlValidationService
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityDependency
 import io.qpointz.mill.ai.capabilities.valuemapping.MockValueMappingResolver
-import io.qpointz.mill.ai.profile.SchemaAuthoringAgentProfile
-import io.qpointz.mill.ai.profile.SchemaExplorationAgentProfile
+import io.qpointz.mill.ai.profile.PlatformProfiles
 import io.qpointz.mill.sql.v2.dialect.DialectRegistry
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -38,7 +37,7 @@ class SchemaFacingCapabilityDependencyFactoryTest {
     @Test
     fun `build fills schema and metadata only for exploration profile`() {
         val c = SchemaFacingCapabilityDependencyFactory.build(
-            profile = SchemaExplorationAgentProfile.profile,
+            profile = PlatformProfiles.require("schema-exploration"),
             schemaCatalog = catalog,
             metadataReadPort = metadataPort,
             dialectSpec = dialect,
@@ -54,7 +53,7 @@ class SchemaFacingCapabilityDependencyFactoryTest {
     @Test
     fun `build fills all slots for authoring profile when collaborators present`() {
         val c = SchemaFacingCapabilityDependencyFactory.build(
-            profile = SchemaAuthoringAgentProfile.profile,
+            profile = PlatformProfiles.require("data-analysis"),
             schemaCatalog = catalog,
             metadataReadPort = metadataPort,
             dialectSpec = dialect,

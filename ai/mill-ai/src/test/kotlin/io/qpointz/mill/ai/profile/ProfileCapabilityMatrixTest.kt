@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test
 class ProfileCapabilityMatrixTest {
 
     private val registry = CapabilityRegistry.load()
+    private val profiles = PlatformProfiles.registry()
     private val catalog = object : SchemaCatalogPort {
         override fun listSchemas(): List<ListSchemasItem> = emptyList()
         override fun listTables(schemaName: String): List<ListTablesItem> = emptyList()
@@ -43,35 +44,36 @@ class ProfileCapabilityMatrixTest {
     )
 
     @Test
-    fun shouldExcludeMetadataAuthoring_fromDataAnalysisProfile() {
-        val profile = DefaultProfileRegistry.resolve("data-analysis")!!
-        assertFalse(profile.capabilityIds.contains("metadata-authoring"))
-    }
-
-    @Test
-    fun shouldIncludeMetadataAuthoring_inSchemaAuthoringProfile() {
-        val profile = DefaultProfileRegistry.resolve("schema-authoring")!!
+    fun shouldIncludeMetadataAuthoring_inDataAnalysisProfile() {
+        val profile = profiles.resolve("data-analysis")!!
         assertTrue(profile.capabilityIds.contains("metadata-authoring"))
     }
 
     @Test
-    fun shouldResolveValidateSql_forDataAnalysis_andNotProposeFacetAssignment() {
-        val profile = DefaultProfileRegistry.resolve("data-analysis")!!
+    fun shouldIncludeMetadataAuthoring_inMetadataAuthoringProfile() {
+        val profile = profiles.resolve("metadata-authoring")!!
+        assertTrue(profile.capabilityIds.contains("metadata-authoring"))
+    }
+
+    @Test
+    fun shouldResolveValidateSql_andProposeFacet_forDataAnalysis() {
+        val profile = profiles.resolve("data-analysis")!!
         val toolNames = registry.capabilitiesFor(profile, contextFor(profile))
             .flatMap { it.tools }
             .map { it.spec.name() }
             .toSet()
         assertTrue(toolNames.contains("validate_sql"))
-        assertFalse(toolNames.contains("propose_facet_assignment"))
+        assertTrue(toolNames.contains("propose_facet_assignment"))
     }
 
     @Test
-    fun shouldResolveProposeFacetAssignment_forSchemaAuthoring() {
-        val profile = DefaultProfileRegistry.resolve("schema-authoring")!!
+    fun shouldResolveProposeFacetAssignment_forMetadataAuthoring() {
+        val profile = profiles.resolve("metadata-authoring")!!
         val toolNames = registry.capabilitiesFor(profile, contextFor(profile))
             .flatMap { it.tools }
             .map { it.spec.name() }
             .toSet()
         assertTrue(toolNames.contains("propose_facet_assignment"))
+        assertFalse(toolNames.contains("validate_sql"))
     }
 }

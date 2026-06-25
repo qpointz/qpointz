@@ -1,6 +1,7 @@
 package io.qpointz.mill.ai.autoconfigure
 
 import io.qpointz.mill.ai.autoconfigure.config.AiConfigurationProperties
+import io.qpointz.mill.ai.autoconfigure.config.AiProfileSeedProperties
 import io.qpointz.mill.ai.autoconfigure.config.DataEmbeddingConfigurationProperties
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -13,5 +14,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @EnableConfigurationProperties(
     AiConfigurationProperties::class,
     DataEmbeddingConfigurationProperties::class,
+    AiProfileSeedProperties::class,
 )
 class AiConfigurationPropertiesAutoConfiguration

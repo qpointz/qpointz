@@ -5,6 +5,7 @@ import io.qpointz.mill.ai.autoconfigure.ConditionalOnAiEnabled
 import io.qpointz.mill.ai.autoconfigure.chat.LangChain4jChatRuntime
 import io.qpointz.mill.ai.autoconfigure.dependencies.SpringCapabilityDependencyAssembler
 import io.qpointz.mill.ai.autoconfigure.chat.AiV3ChatProperties
+import io.qpointz.mill.ai.autoconfigure.config.AiProfileSeedProperties
 import io.qpointz.mill.ai.autoconfigure.config.PropertiesBackedModelResolver
 import io.qpointz.mill.ai.chat.AiV3ChatRuntime
 import io.qpointz.mill.ai.chat.PropertiesUserIdResolver
@@ -33,8 +34,9 @@ import io.qpointz.mill.ai.capabilities.valuemapping.ValueMappingResolver
 import io.qpointz.mill.ai.dependencies.CapabilityDependencyAssembler
 import io.qpointz.mill.ai.core.artifact.ArtifactDescriptorRegistry
 import io.qpointz.mill.ai.runtime.langchain4j.ArtifactEmissionCoordinator
-import io.qpointz.mill.ai.profile.DefaultProfileRegistry
 import io.qpointz.mill.ai.profile.ProfileRegistry
+import io.qpointz.mill.ai.profile.ResourceProfileRegistry
+import org.springframework.core.io.ResourceLoader
 import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.AutoConfiguration
@@ -93,12 +95,27 @@ class AiV3AutoConfiguration {
     // ── Profile registry ──────────────────────────────────────────────────────
 
     /**
-     * Default profile registry backed by [DefaultProfileRegistry].
-     * Override to add custom profiles or load them from a database.
+     * Profile registry from `mill.ai.profiles.seed.resources` (YAML `kind: AgentProfile`).
+     * Empty resource list yields an empty registry for isolated tests.
      */
     @Bean
     @ConditionalOnMissingBean(ProfileRegistry::class)
-    fun defaultProfileRegistry(): ProfileRegistry = DefaultProfileRegistry
+    fun resourceProfileRegistry(
+        seedProperties: AiProfileSeedProperties,
+        resourceLoader: ResourceLoader,
+    ): ProfileRegistry {
+        val locations = seedProperties.resources
+        return if (locations.isEmpty()) {
+            ResourceProfileRegistry.parse("")
+        } else {
+            ResourceProfileRegistry.load(
+                ResourceProfileRegistry.SeedInput { loc ->
+                    resourceLoader.getResource(loc).inputStream
+                },
+                locations,
+            )
+        }
+    }
 
     /** Shared artefact descriptor registry loaded from capability YAML manifests. */
     @Bean

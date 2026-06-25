@@ -8,8 +8,8 @@ import java.time.Instant
 class ChatRehydrationTest {
 
     private val registry = MapProfileRegistry(
-        HelloWorldAgentProfile.profile,
-        SchemaExplorationAgentProfile.profile,
+        PlatformProfiles.require("hello-world"),
+        PlatformProfiles.require("schema-exploration"),
     )
 
     private fun metadata(

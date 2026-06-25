@@ -25,8 +25,7 @@ interface ProfileRegistry {
  * Usage:
  * ```
  * val registry = MapProfileRegistry(
- *     HelloWorldAgentProfile.profile,
- *     SchemaExplorationAgentProfile.profile,
+ *     AgentProfile(id = "custom", capabilityIds = setOf("conversation")),
  * )
  * ```
  */
@@ -43,28 +42,4 @@ class MapProfileRegistry(profiles: Iterable<AgentProfile>) : ProfileRegistry {
         profilesById.values.sortedBy { it.id }
 
     val knownIds: Set<String> get() = profilesById.keys
-}
-
-/**
- * Default [ProfileRegistry] containing all profiles known at compile time.
- *
- * Intended for use before a dynamic/configurable registry is introduced.
- * Replace with [MapProfileRegistry] or a Spring-managed registry when runtime
- * profile selection becomes configurable.
- */
-object DefaultProfileRegistry : ProfileRegistry {
-
-    private val profiles = listOf(
-        HelloWorldAgentProfile.profile,
-        DataAnalysisAgentProfile.profile,
-        SchemaExplorationAgentProfile.profile,
-        SchemaAuthoringAgentProfile.profile,
-    ).associateBy { it.id }
-
-    override fun resolve(profileId: String): AgentProfile? = profiles[profileId]
-
-    override fun registeredProfiles(): List<AgentProfile> =
-        profiles.values.sortedBy { it.id }
-
-    val knownIds: Set<String> get() = profiles.keys
 }

@@ -1,7 +1,7 @@
 package io.qpointz.mill.ai.test.runner
 
 import io.qpointz.mill.ai.persistence.AgentPersistenceContext
-import io.qpointz.mill.ai.profile.HelloWorldAgentProfile
+import io.qpointz.mill.ai.profile.PlatformProfiles
 import io.qpointz.mill.ai.runtime.ConversationSession
 import io.qpointz.mill.ai.runtime.langchain4j.LangChain4jAgent
 import io.qpointz.mill.ai.test.scenario.v3.AskRunItem
@@ -30,7 +30,7 @@ class ProvidedAgentRunnerTest {
         val persistence = AgentPersistenceContext()
         val agent = LangChain4jAgent(
             model = model,
-            profile = HelloWorldAgentProfile.profile,
+            profile = PlatformProfiles.require("hello-world"),
             persistenceContext = persistence,
         )
         val runner = ProvidedAgentRunner(agent, persistence)

@@ -2,7 +2,7 @@ package io.qpointz.mill.ai.test
 
 import io.qpointz.mill.ai.runtime.ConversationSession
 import io.qpointz.mill.ai.runtime.events.AgentEvent
-import io.qpointz.mill.ai.profile.HelloWorldAgentProfile
+import io.qpointz.mill.ai.profile.PlatformProfiles
 import io.qpointz.mill.ai.runtime.langchain4j.LangChain4jAgent
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -30,7 +30,7 @@ class LangChain4jAgentHelloWorldTestIT {
         assertThat(response).isNotBlank()
         assertThat(events.map { it.type }).contains("run.started", "answer.completed")
         assertThat(events.map { it.type }).doesNotContain("tool.call")
-        assertThat(events.first()).isEqualTo(AgentEvent.RunStarted(HelloWorldAgentProfile.profile.id))
+        assertThat(events.first()).isEqualTo(AgentEvent.RunStarted(PlatformProfiles.require("hello-world").id))
         assertThat(events.last()).isInstanceOf(AgentEvent.AnswerCompleted::class.java)
     }
 
@@ -54,6 +54,6 @@ class LangChain4jAgentHelloWorldTestIT {
 
     private fun requireAgent(): LangChain4jAgent {
         assumeTrue(System.getenv("OPENAI_API_KEY") != null, "OPENAI_API_KEY must be set for testIT")
-        return requireNotNull(LangChain4jAgent.fromEnv(HelloWorldAgentProfile.profile))
+        return requireNotNull(LangChain4jAgent.fromEnv(PlatformProfiles.require("hello-world")))
     }
 }

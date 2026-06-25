@@ -5,12 +5,9 @@ import org.junit.jupiter.api.Test
 
 class MapProfileRegistryTest {
 
-    private val registry = MapProfileRegistry(
-        HelloWorldAgentProfile.profile,
-        DataAnalysisAgentProfile.profile,
-        SchemaExplorationAgentProfile.profile,
-        SchemaAuthoringAgentProfile.profile,
-    )
+    private val hello = AgentProfile(id = "hello-world", capabilityIds = setOf("conversation", "demo"))
+
+    private val registry = MapProfileRegistry(hello)
 
     @Test
     fun shouldResolveKnownProfile() {
@@ -26,58 +23,65 @@ class MapProfileRegistryTest {
 
     @Test
     fun shouldExposeKnownIds() {
-        assertTrue(registry.knownIds.containsAll(setOf("hello-world", "data-analysis", "schema-exploration", "schema-authoring")))
+        assertTrue(registry.knownIds.contains("hello-world"))
     }
 
     @Test
     fun shouldListRegisteredProfilesSortedById() {
         val ids = registry.registeredProfiles().map { it.id }
-        assertEquals(listOf("data-analysis", "hello-world", "schema-authoring", "schema-exploration"), ids)
+        assertEquals(listOf("hello-world"), ids)
     }
 
     @Test
     fun shouldAcceptVarargConstructor() {
-        val r = MapProfileRegistry(HelloWorldAgentProfile.profile)
+        val r = MapProfileRegistry(hello)
         assertNotNull(r.resolve("hello-world"))
     }
 }
 
-class DefaultProfileRegistryTest {
+class PlatformProfilesRegistryTest {
+
+    private val registry = PlatformProfiles.registry()
 
     @Test
     fun shouldResolveHelloWorld() {
-        assertNotNull(DefaultProfileRegistry.resolve("hello-world"))
+        assertNotNull(registry.resolve("hello-world"))
     }
 
     @Test
     fun shouldResolveDataAnalysis() {
-        assertNotNull(DefaultProfileRegistry.resolve("data-analysis"))
+        assertNotNull(registry.resolve("data-analysis"))
     }
 
     @Test
     fun shouldResolveSchemaExploration() {
-        assertNotNull(DefaultProfileRegistry.resolve("schema-exploration"))
+        assertNotNull(registry.resolve("schema-exploration"))
     }
 
     @Test
-    fun shouldResolveSchemaAuthoring() {
-        assertNotNull(DefaultProfileRegistry.resolve("schema-authoring"))
+    fun shouldResolveMetadataAuthoring() {
+        assertNotNull(registry.resolve("metadata-authoring"))
+    }
+
+    @Test
+    fun shouldNotShipSchemaAuthoringProfile() {
+        assertNull(registry.resolve("schema-authoring"))
     }
 
     @Test
     fun shouldReturnNull_forUnknownProfileId() {
-        assertNull(DefaultProfileRegistry.resolve("unknown"))
+        assertNull(registry.resolve("unknown"))
     }
 
     @Test
     fun shouldExposeAllKnownIds() {
-        val ids = DefaultProfileRegistry.knownIds
-        assertTrue(ids.containsAll(setOf("hello-world", "data-analysis", "schema-exploration", "schema-authoring")))
+        val ids = (registry as ResourceProfileRegistry).knownIds
+        assertTrue(ids.containsAll(setOf("hello-world", "data-analysis", "schema-exploration", "metadata-authoring")))
     }
 
     @Test
     fun shouldListRegisteredProfilesSortedById() {
-        val ids = DefaultProfileRegistry.registeredProfiles().map { it.id }
-        assertEquals(listOf("data-analysis", "hello-world", "schema-authoring", "schema-exploration"), ids)
+        val ids = registry.registeredProfiles().map { it.id }
+        assertEquals(listOf("data-analysis", "hello-world", "metadata-authoring", "schema-exploration"), ids)
     }
 }

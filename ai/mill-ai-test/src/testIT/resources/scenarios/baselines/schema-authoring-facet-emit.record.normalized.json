@@ -2,7 +2,7 @@
   "schemaVersion" : 1,
   "runMeta" : {
     "mode" : "scripted",
-    "profileId" : "schema-authoring",
+    "profileId" : "data-analysis",
     "scenarioSource" : "scenarios/artifact-emit/schema-authoring-facet-emit.yml"
   },
   "pack" : {
@@ -47,7 +47,7 @@
       "response" : "",
       "events" : [ {
         "type" : "run.started",
-        "profileId" : "schema-authoring"
+        "profileId" : "data-analysis"
       }, {
         "type" : "tool.call",
         "name" : "propose_facet_assignment",

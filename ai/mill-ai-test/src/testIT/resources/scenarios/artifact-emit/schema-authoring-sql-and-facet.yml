@@ -1,5 +1,5 @@
 name: schema-authoring-sql-and-facet
-profileId: schema-authoring
+profileId: data-analysis
 parameters:
   mode: scripted
 run:

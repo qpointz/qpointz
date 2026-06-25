@@ -41,12 +41,7 @@ import java.util.concurrent.CompletableFuture
 /**
  * Schema agent — iterative native tool loop covering both exploration and authoring.
  *
- * Uses [SchemaAuthoringAgentProfile] which composes the current schema-facing capability set:
- * - `conversation` — base system prompt.
- * - `schema` — grounding tools: list_schemas, list_tables, list_columns, list_relations.
- * - `schema-authoring` — capture tools: capture_description, capture_relation.
- * - `sql-dialect` — SQL dialect conventions and function discovery.
- * - `sql-query` — SQL validation and generated-SQL artifacts (execution is host-side).
+ * Uses the platform **`data-analysis`** profile (YAML): schema, metadata, metadata-authoring, SQL stack.
  *
  * ## Tool loop
  * 1. `complete()` — non-streaming; model returns tool calls or a final answer.
@@ -87,7 +82,7 @@ class SchemaExplorationAgent(
     fun run(session: ConversationSession, input: String, listener: (AgentEvent) -> Unit = {}): String {
         val runId = UUID.randomUUID().toString()
         val assistantTurnId = UUID.randomUUID().toString()
-        val profile = SchemaAuthoringAgentProfile.profile
+        val profile = PlatformProfiles.require("data-analysis")
         val publisher = persistenceContext.publisher
         val conversationStore = persistenceContext.conversationStore
 
@@ -258,7 +253,7 @@ class SchemaExplorationAgent(
     private fun buildContext(): AgentContext = AgentContext(
         contextType = "general",
         capabilityDependencies = SchemaFacingCapabilityDependencyFactory.build(
-            profile = SchemaAuthoringAgentProfile.profile,
+            profile = PlatformProfiles.require("data-analysis"),
             schemaCatalog = schemaCatalog,
             metadataReadPort = metadataReadPort,
             dialectSpec = dialectSpec,
@@ -268,10 +263,10 @@ class SchemaExplorationAgent(
     )
 
     private fun schemaCapabilities(context: AgentContext): List<Capability> {
-        val capabilities = registry.capabilitiesFor(SchemaAuthoringAgentProfile.profile, context)
+        val capabilities = registry.capabilitiesFor(PlatformProfiles.require("data-analysis"), context)
         val actualIds = capabilities.map { it.descriptor.id }.toSet()
-        require(actualIds == SchemaAuthoringAgentProfile.profile.capabilityIds) {
-            "Schema-agent capability mismatch. expected=${SchemaAuthoringAgentProfile.profile.capabilityIds} actual=$actualIds"
+        require(actualIds == PlatformProfiles.require("data-analysis").capabilityIds) {
+            "Schema-agent capability mismatch. expected=${PlatformProfiles.require("data-analysis").capabilityIds} actual=$actualIds"
         }
         return capabilities
     }
