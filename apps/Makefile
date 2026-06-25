@@ -4,7 +4,7 @@ DESKTOP_DIR := mill-desktop
 
 .PHONY: help build-docker run-moneta run-mill-postgres \
 	desktop-install desktop-build desktop-launch desktop-clean \
-	jdeps-report
+	jdeps-report jlink-modules
 
 help:
 	@echo "Available targets:"
@@ -27,6 +27,7 @@ rebuild:
 	npm run build
 	cd ../ ; \
 	./gradlew clean installBootDist -Pedition=complete
+	$(MAKE) jlink-modules EDITION=complete
 
 build-docker: rebuild
 	docker buildx build --tag mill-service \
@@ -59,18 +60,23 @@ JLINK_RUNTIME_MODULES := jdk.crypto.ec,jdk.crypto.cryptoki,java.naming,jdk.namin
 
 jdeps-report:
 	cd ../ && ./gradlew --no-daemon --console plain clean :apps:mill-service:installBootDist -Pedition=$(EDITION)
+	$(MAKE) jlink-modules EDITION=$(EDITION)
+
+jlink-modules:
 	$(eval FAT_JAR := $(shell find $(INSTALL_DIR)/lib -name 'mill-service-*.jar' ! -name '*-plain.jar' | head -1))
 	@if [ -z "$(FAT_JAR)" ]; then echo "ERROR: fat jar not found in $(INSTALL_DIR)/lib"; exit 1; fi
 	rm -rf $(JDEPS_DIR) && mkdir -p $(JDEPS_DIR) $(MODULES_DIR)
 	cd $(JDEPS_DIR) && jar xf $(CURDIR)/$(FAT_JAR) BOOT-INF/classes BOOT-INF/lib
 	$$JAVA_HOME/bin/jdeps \
-		--multi-release 21 \
+		--multi-release 25 \
 		--ignore-missing-deps \
 		--recursive \
 		--print-module-deps \
-		--class-path "$(JDEPS_DIR)/BOOT-INF/lib/*" \
-		$(JDEPS_DIR)/BOOT-INF/classes > $(MODULES_DIR)/jdeps-modules.csv
-	sed -i "s/$$$$/,$(JLINK_RUNTIME_MODULES)/" $(MODULES_DIR)/jdeps-modules.csv
+		--class-path "$(CURDIR)/$(JDEPS_DIR)/BOOT-INF/lib/*" \
+		"$(CURDIR)/$(JDEPS_DIR)/BOOT-INF/classes" 2>/dev/null \
+		| { grep -E '^[a-z]' || true; } > $(MODULES_DIR)/jdeps-modules.csv
+	@if [ ! -s "$(MODULES_DIR)/jdeps-modules.csv" ]; then echo "ERROR: jdeps produced no module dependencies for $(EDITION)"; exit 1; fi
+	@echo "$$(cat $(MODULES_DIR)/jdeps-modules.csv),$(JLINK_RUNTIME_MODULES)" > $(MODULES_DIR)/jdeps-modules.csv
 	tr ',' '\n' < $(MODULES_DIR)/jdeps-modules.csv | sed '/^$$/d' | sort -u > $(MODULES_DIR)/jdeps-modules.txt
 	$$JAVA_HOME/bin/java --list-modules | cut -d@ -f1 | sort -u > $(MODULES_DIR)/jdk-modules.txt
 	comm -12 $(MODULES_DIR)/jdeps-modules.txt $(MODULES_DIR)/jdk-modules.txt | paste -sd, - > $(MODULES_DIR)/jlink-modules.txt

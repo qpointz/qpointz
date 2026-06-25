@@ -27,13 +27,19 @@
       fi
 
       "$JAVA_HOME/bin/jdeps" \
-        --multi-release 21 \
+        --multi-release 25 \
         --ignore-missing-deps \
         --recursive \
         --print-module-deps \
         --class-path "${INSTALL_DIR}/lib/*" \
         "${INSTALL_DIR}/lib/mill-jdbc-shell-"*.jar \
-        "${INSTALL_DIR}/lib/mill-jdbc-driver-"*.jar > "${MODULES_DIR}/jdeps-modules.csv"
+        "${INSTALL_DIR}/lib/mill-jdbc-driver-"*.jar 2>/dev/null \
+        | { grep -E '^[a-z]' || true; } > "${MODULES_DIR}/jdeps-modules.csv"
+
+      if [ ! -s "${MODULES_DIR}/jdeps-modules.csv" ]; then
+        echo "ERROR: jdeps produced no module dependencies for mill-jdbc-shell"
+        exit 1
+      fi
 
       tr ',' '\n' < "${MODULES_DIR}/jdeps-modules.csv" | sed '/^$/d' | sort -u > "${MODULES_DIR}/jdeps-modules.txt"
       "$JAVA_HOME/bin/java" --list-modules | cut -d@ -f1 | sort -u > "${MODULES_DIR}/jdk-modules.txt"

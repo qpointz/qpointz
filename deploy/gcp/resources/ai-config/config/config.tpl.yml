@@ -21,6 +21,11 @@ mill:
           provider: openai
           model-name: "${openai.embedding.model}"
           dimension: ${openai.embedding.dimension}
+    mcp:
+      enabled: true
+      profile: $${MILL_MCP_PROFILE:data-analysis}
+      http:
+        endpoint: $${MILL_MCP_HTTP_ENDPOINT:/services/mcp}
     data:
       embedding:
         default:

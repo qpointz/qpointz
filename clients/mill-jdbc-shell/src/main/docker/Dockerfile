@@ -6,13 +6,11 @@ RUN apt update && \
 RUN --mount=target=/mnt \
     set -eux; \
     modules_file=/mnt/build/jlink-modules/jlink-modules.txt; \
-    modules="ALL-MODULE-PATH"; \
-    if [ -f "${modules_file}" ]; then \
-      echo "modules file exists"; \
-      modules="$(cat "${modules_file}")"; \
-    else \
-      echo "modules missing. fall back to ALL-MODULE-PATH"; \
+    if [ ! -f "${modules_file}" ]; then \
+      echo "ERROR: ${modules_file} not found. Run jlink-modules generation before docker build."; \
+      exit 1; \
     fi; \
+    modules="$(cat "${modules_file}")"; \
     echo "Selected modules ${modules}"; \
     "$JAVA_HOME"/bin/jlink \
       --add-modules "${modules}" \

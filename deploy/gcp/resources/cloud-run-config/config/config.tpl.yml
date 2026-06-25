@@ -56,6 +56,13 @@ mill:
       query:
         enable: true
         external-host: http-request
+      odata:
+        enable: true
+        external-host: http-request
+        cache:
+          edm:
+            enabled: true
+            ttl: 2m
   cloud:
     gcp:
       gcs:

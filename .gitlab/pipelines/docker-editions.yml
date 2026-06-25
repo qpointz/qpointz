@@ -15,6 +15,7 @@ apps:minimal-edition-dist:
     expire_in: "1 days"
     paths:
       - ${CI_PROJECT_DIR}/apps/mill-service/build/install/**/*
+      - ${CI_PROJECT_DIR}/apps/mill-service/build/jlink-modules/${APP_EDITION}/*
       - ${CI_PROJECT_DIR}/apps/mill-service/src/main/docker/samples/data/**/*
 
 apps:minimal-edition-docker:
@@ -45,6 +46,7 @@ apps:samples-edition-dist:
     expire_in: "1 days"
     paths:
       - ${CI_PROJECT_DIR}/apps/mill-service/build/install/**/*
+      - ${CI_PROJECT_DIR}/apps/mill-service/build/jlink-modules/${APP_EDITION}/*
 
 apps:samples-edition-docker:
   stage: package
@@ -90,6 +92,7 @@ apps:complete-edition-dist:
     expire_in: "1 days"
     paths:
       - ${CI_PROJECT_DIR}/apps/mill-service/build/install/**/*
+      - ${CI_PROJECT_DIR}/apps/mill-service/build/jlink-modules/${APP_EDITION}/*
 
 apps:complete-edition-docker:
   stage: package
@@ -123,6 +126,7 @@ apps:complete-samples-edition-dist:
     expire_in: "1 days"
     paths:
       - ${CI_PROJECT_DIR}/apps/mill-service/build/install/**/*
+      - ${CI_PROJECT_DIR}/apps/mill-service/build/jlink-modules/${APP_EDITION}/*
 
 apps:complete-samples-edition-docker:
   stage: package

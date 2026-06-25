@@ -40,16 +40,22 @@
       jar xf "${FAT_JAR}" BOOT-INF/classes BOOT-INF/lib
 
       "$JAVA_HOME/bin/jdeps" \
-        --multi-release 21 \
+        --multi-release 25 \
         --ignore-missing-deps \
         --recursive \
         --print-module-deps \
         --class-path "${JDEPS_DIR}/BOOT-INF/lib/*" \
-        "${JDEPS_DIR}/BOOT-INF/classes" > "${MODULES_DIR}/jdeps-modules.csv"
+        "${JDEPS_DIR}/BOOT-INF/classes" 2>/dev/null \
+        | { grep -E '^[a-z]' || true; } > "${MODULES_DIR}/jdeps-modules.csv"
+
+      if [ ! -s "${MODULES_DIR}/jdeps-modules.csv" ]; then
+        echo "ERROR: jdeps produced no module dependencies for ${APP_EDITION}"
+        exit 1
+      fi
 
       # jdeps does not see JMX remote, -javaagent, or ACA Java Development Stack needs; append for jlink images.
       RUNTIME_MODULES="jdk.crypto.ec,jdk.crypto.cryptoki,java.naming,jdk.naming.dns,java.sql,java.management,jdk.management.agent,java.instrument"
-      sed -i "s/$/,${RUNTIME_MODULES}/" "${MODULES_DIR}/jdeps-modules.csv"
+      echo "$(cat "${MODULES_DIR}/jdeps-modules.csv"),${RUNTIME_MODULES}" > "${MODULES_DIR}/jdeps-modules.csv"
 
       tr ',' '\n' < "${MODULES_DIR}/jdeps-modules.csv" | sed '/^$/d' | sort -u > "${MODULES_DIR}/jdeps-modules.txt"
       "$JAVA_HOME/bin/java" --list-modules | cut -d@ -f1 | sort -u > "${MODULES_DIR}/jdk-modules.txt"
