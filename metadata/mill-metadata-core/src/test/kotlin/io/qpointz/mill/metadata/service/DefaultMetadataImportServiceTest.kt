@@ -13,6 +13,8 @@ import io.qpointz.mill.metadata.domain.facet.MergeAction
 import io.qpointz.mill.metadata.io.MetadataYamlSerializer
 import io.qpointz.mill.metadata.repository.EntityRepository
 import io.qpointz.mill.metadata.repository.FacetRepository
+import io.qpointz.mill.metadata.repository.InMemoryMetadataContentRepository
+import io.qpointz.mill.metadata.repository.MetadataContentRepository
 import io.qpointz.mill.metadata.repository.MetadataScopeRepository
 import io.qpointz.mill.utils.JsonUtils
 import org.assertj.core.api.Assertions.assertThat
@@ -30,6 +32,7 @@ class DefaultMetadataImportServiceTest {
     private val facetRepository: FacetRepository = mock()
     private val scopeRepository: MetadataScopeRepository = mock()
     private val facetCatalog: FacetCatalog = mock()
+    private val contentRepository: MetadataContentRepository = InMemoryMetadataContentRepository()
 
     private lateinit var service: DefaultMetadataImportService
 
@@ -46,7 +49,8 @@ class DefaultMetadataImportServiceTest {
             entityService,
             facetRepository,
             scopeRepository,
-            facetCatalog
+            facetCatalog,
+            contentRepository,
         )
         val scopeGlobal = MetadataScope(
             res = MetadataUrns.SCOPE_GLOBAL,

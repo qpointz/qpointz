@@ -192,7 +192,7 @@ On top of [`RULES.md`](../../RULES.md) **Per-WI cadence** and **Complete working
 
 - [x] WI-354 — Design contract (`WI-345-metadata-authoring-design-contract.md`) — *was WI-345*
 - [ ] WI-355 — Multi-artifact protocol (`WI-351-multi-artifact-protocol-runtime.md`) — *was WI-351*
-- [ ] WI-356 — `MetadataContent` entity + seeds (`WI-352-metadata-content-entity-and-seed.md`) — *was WI-352*
+- [x] WI-356 — `MetadataContent` entity + seeds (`WI-352-metadata-content-entity-and-seed.md`) — *was WI-352*
 - [ ] WI-357 — `MetadataReadPort` adapter (`WI-357-metadata-read-port-adapter.md`) — *was WI-346*
 - [ ] WI-358 — YAML agent profiles (`WI-348-agent-profiles-metadata-authoring.md`) — *was WI-348*
 - [ ] WI-359 — Catalog-generic facet tools (`WI-359-metadata-authoring-capability.md`) — *was WI-347*

@@ -1,0 +1,91 @@
+# Few-shot facet authoring examples (WI-356). Load after category guidance.
+---
+kind: MetadataContent
+contentUrn: urn:mill/metadata/content:facet-type-example/descriptive-orders
+contentKind: facet-type-example
+targetUrn: urn:mill/metadata/facet-type:descriptive
+title: Descriptive example — orders table
+description: Table-level description on orders.
+sortOrder: 0
+enabled: true
+content:
+  metadataEntityId: urn:mill/model/table:skymill/orders
+  payload:
+    title: Orders
+    description: Customer purchase orders header table.
+    tags:
+      - sales
+      - core
+---
+kind: MetadataContent
+contentUrn: urn:mill/metadata/content:facet-type-example/relation-source-orders-customer
+contentKind: facet-type-example
+targetUrn: urn:mill/metadata/facet-type:relation-source
+title: Relation source — orders to customers
+description: Outbound FK from orders.customer_id.
+sortOrder: 0
+enabled: true
+content:
+  metadataEntityId: urn:mill/model/table:skymill/orders
+  payload:
+    sourceColumns:
+      - customer_id
+    target:
+      schema: skymill
+      table: customers
+      columns:
+        - id
+    cardinality: MANY_TO_ONE
+    joinSql: orders.customer_id = customers.id
+---
+kind: MetadataContent
+contentUrn: urn:mill/metadata/content:facet-type-example/relation-target-customers-orders
+contentKind: facet-type-example
+targetUrn: urn:mill/metadata/facet-type:relation-target
+title: Relation target — customers referenced by orders
+description: Inbound relation on customers from orders.
+sortOrder: 0
+enabled: true
+content:
+  metadataEntityId: urn:mill/model/table:skymill/customers
+  payload:
+    source:
+      schema: skymill
+      table: orders
+      columns:
+        - customer_id
+    targetColumns:
+      - id
+    cardinality: ONE_TO_MANY
+    joinSql: customers.id = orders.customer_id
+---
+kind: MetadataContent
+contentUrn: urn:mill/metadata/content:facet-type-example/dq-null-check-customer-id
+contentKind: facet-type-example
+targetUrn: urn:mill/metadata/facet-type:dq-null-check
+title: NOT NULL on orders.customer_id
+description: Column must not be null.
+sortOrder: 0
+enabled: true
+content:
+  metadataEntityId: urn:mill/model/attribute:skymill/orders/customer_id
+  payload:
+    name: customer_id_not_null
+    description: Every order must reference a customer.
+    severity: error
+---
+kind: MetadataContent
+contentUrn: urn:mill/metadata/content:facet-type-example/dq-predicate-orders-dates
+contentKind: facet-type-example
+targetUrn: urn:mill/metadata/facet-type:dq-predicate
+title: Predicate — order date ordering
+description: Table-level row predicate on orders.
+sortOrder: 0
+enabled: true
+content:
+  metadataEntityId: urn:mill/model/table:skymill/orders
+  payload:
+    name: order_dates_valid
+    description: Shipped date must not precede order date.
+    predicate: shipped_date IS NULL OR shipped_date >= order_date
+    severity: warning

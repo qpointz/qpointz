@@ -6,6 +6,8 @@ import io.qpointz.mill.metadata.domain.MetadataChangeObserverDelegate
 import io.qpointz.mill.metadata.domain.NoOpMetadataChangeObserver
 import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.metadata.repository.EntityRepository
+import io.qpointz.mill.metadata.repository.InMemoryMetadataContentRepository
+import io.qpointz.mill.metadata.repository.MetadataContentRepository
 import io.qpointz.mill.metadata.repository.MetadataScopeRepository
 import io.qpointz.mill.metadata.service.DefaultMetadataImportService
 import io.qpointz.mill.metadata.service.FacetCatalog
@@ -34,12 +36,18 @@ class MetadataImportExportAutoConfiguration {
         if (delegates.isEmpty()) NoOpMetadataChangeObserver
         else MetadataChangeObserverChain(delegates)
 
+    @Bean
+    @ConditionalOnMissingBean(MetadataContentRepository::class)
+    fun inMemoryMetadataContentRepository(): MetadataContentRepository =
+        InMemoryMetadataContentRepository()
+
     /**
      * @param entityRepository entity rows for replace / existence
      * @param entityService transactional entity CRUD
      * @param facetRepository facet assignment persistence
      * @param scopeRepository declared scopes from YAML
      * @param facetCatalog facet type registration from YAML definitions
+     * @param contentRepository authoring content rows from YAML
      */
     @Bean
     @ConditionalOnMissingBean(MetadataImportService::class)
@@ -48,12 +56,14 @@ class MetadataImportExportAutoConfiguration {
         entityService: MetadataEntityService,
         facetRepository: FacetRepository,
         scopeRepository: MetadataScopeRepository,
-        facetCatalog: FacetCatalog
+        facetCatalog: FacetCatalog,
+        contentRepository: MetadataContentRepository,
     ): MetadataImportService = DefaultMetadataImportService(
         entityRepository,
         entityService,
         facetRepository,
         scopeRepository,
-        facetCatalog
+        facetCatalog,
+        contentRepository,
     )
 }

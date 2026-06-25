@@ -1,6 +1,7 @@
 package io.qpointz.mill.metadata.io
 
 import io.qpointz.mill.metadata.domain.FacetTypeDefinition
+import io.qpointz.mill.metadata.domain.MetadataContent
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.MetadataUrns
@@ -104,12 +105,13 @@ object MetadataYamlSerializer {
     fun deserialize(yaml: String): MetadataYamlDocument {
         val trimmed = yaml.trim()
         if (trimmed.isEmpty()) {
-            return MetadataYamlDocument(emptyList(), emptyList(), emptyList(), emptyMap())
+            return MetadataYamlDocument(emptyList(), emptyList(), emptyList(), emptyMap(), emptyList())
         }
         val scopes = mutableListOf<MetadataScope>()
         val definitions = mutableListOf<FacetTypeDefinition>()
         val entitiesById = linkedMapOf<String, MetadataEntity>()
         val facetsByEntity = mutableMapOf<String, MutableList<FacetAssignment>>()
+        val contents = mutableListOf<MetadataContent>()
 
         val docStrings = trimmed.split(docSplit).map { it.trim() }.filter { it.isNotEmpty() }
         for (docStr in docStrings) {
@@ -125,6 +127,7 @@ object MetadataYamlSerializer {
                 "FacetTypeDefinition" -> definitions += parseDefinition(root)
                 "MetadataScope" -> scopes += parseScope(root)
                 "MetadataEntity" -> ingestKindEntity(root, entitiesById, facetsByEntity)
+                "MetadataContent" -> contents += parseContent(root)
                 else -> log.warn("Skipping YAML document with unknown kind: {}", kind)
             }
         }
@@ -132,7 +135,8 @@ object MetadataYamlSerializer {
             scopes,
             definitions,
             entitiesById.values.toList(),
-            facetsByEntity.mapValues { it.value.toList() }
+            facetsByEntity.mapValues { it.value.toList() },
+            contents,
         )
     }
 
@@ -237,6 +241,40 @@ object MetadataYamlSerializer {
             createdBy = "import",
             lastModifiedAt = Instant.EPOCH,
             lastModifiedBy = "import"
+        )
+    }
+
+    private fun parseContent(root: Map<*, *>): MetadataContent {
+        val rawUrn = root["contentUrn"]?.toString()
+            ?: error("MetadataContent missing contentUrn")
+        val rawTarget = root["targetUrn"]?.toString()
+            ?: error("MetadataContent missing targetUrn")
+        val kind = root["contentKind"]?.toString()
+            ?: error("MetadataContent missing contentKind")
+        val bodyNode = root["contentBody"] ?: root["content"]
+            ?: error("MetadataContent missing contentBody (or content)")
+        val bodyText = when (bodyNode) {
+            is String -> bodyNode
+            else -> jsonMapper.writeValueAsString(deepStringKeyMap(bodyNode))
+        }
+        val rawScope = root["scopeUrn"]?.toString()?.takeIf { it.isNotBlank() && it != "~" }
+        return MetadataContent(
+            contentUrn = MetadataEntityUrn.canonicalize(rawUrn),
+            contentKind = kind,
+            targetUrn = MetadataEntityUrn.canonicalize(rawTarget),
+            scopeUrn = rawScope?.let { MetadataEntityUrn.canonicalize(it) },
+            title = root["title"]?.toString(),
+            description = root["description"]?.toString(),
+            contentBody = bodyText,
+            mediaType = root["mediaType"]?.toString() ?: MetadataContent.MEDIA_TYPE_JSON,
+            sortOrder = root["sortOrder"]?.toString()?.toIntOrNull() ?: 0,
+            enabled = root["enabled"]?.toString()?.toBooleanStrictOrNull() ?: true,
+            schemaVersion = root["schemaVersion"]?.toString(),
+            uuid = null,
+            createdAt = Instant.EPOCH,
+            createdBy = "import",
+            lastModifiedAt = Instant.EPOCH,
+            lastModifiedBy = "import",
         )
     }
 

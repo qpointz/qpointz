@@ -30,6 +30,8 @@ mill:
         - "classpath:metadata/platform-flow-facet-types.yaml"
         - "classpath:metadata/platform-dq-l1-facet-types.yaml"
         - "classpath:metadata/platform-dq-l2-facet-types.yaml"
+        - "classpath:metadata/platform-facet-category-guidance.yaml"
+        - "classpath:metadata/platform-facet-authoring-examples.yaml"
         - "file:../../test/datasets/skymill/skymill-canonical.yaml"
         - "file:../../test/datasets/skymill/skymill-extras-seed.yaml"
 

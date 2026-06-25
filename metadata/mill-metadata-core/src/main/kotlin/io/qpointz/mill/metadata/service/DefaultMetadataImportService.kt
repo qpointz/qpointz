@@ -2,13 +2,16 @@ package io.qpointz.mill.metadata.service
 
 import io.qpointz.mill.excepions.statuses.MillStatuses
 import io.qpointz.mill.metadata.domain.ImportMode
+import io.qpointz.mill.metadata.domain.MetadataContent
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.MetadataExportFormat
 import io.qpointz.mill.metadata.domain.MetadataScope
+import io.qpointz.mill.metadata.domain.facet.MetadataContentImportValidator
 import io.qpointz.mill.metadata.io.MetadataYamlSerializer
 import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.metadata.repository.EntityRepository
+import io.qpointz.mill.metadata.repository.MetadataContentRepository
 import io.qpointz.mill.metadata.repository.MetadataScopeRepository
 import java.io.InputStream
 import java.time.Instant
@@ -26,7 +29,8 @@ class DefaultMetadataImportService(
     private val entityService: MetadataEntityService,
     private val facetRepository: FacetRepository,
     private val scopeRepository: MetadataScopeRepository,
-    private val facetCatalog: FacetCatalog
+    private val facetCatalog: FacetCatalog,
+    private val contentRepository: MetadataContentRepository,
 ) : MetadataImportService {
 
     override fun import(
@@ -102,6 +106,34 @@ class DefaultMetadataImportService(
                 .onFailure { errors += "Definition ${d.typeKey}: ${it.message}" }
         }
 
+        val knownFacetTypeUrns = buildSet {
+            facetCatalog.listDefinitions().forEach { add(MetadataEntityUrn.canonicalize(it.typeKey)) }
+        }
+
+        for (c in doc.contents) {
+            runCatching {
+                validateContentImport(c, knownFacetTypeUrns)
+                val existing = contentRepository.findByContentUrn(c.contentUrn)
+                val toSave = if (existing != null) {
+                    c.copy(
+                        uuid = existing.uuid,
+                        createdAt = existing.createdAt,
+                        createdBy = existing.createdBy,
+                        lastModifiedAt = now,
+                        lastModifiedBy = actorId,
+                    )
+                } else {
+                    c.copy(
+                        createdAt = now,
+                        createdBy = actorId,
+                        lastModifiedAt = now,
+                        lastModifiedBy = actorId,
+                    )
+                }
+                contentRepository.save(toSave)
+            }.onFailure { errors += "MetadataContent ${c.contentUrn}: ${it.message}" }
+        }
+
         for (e in doc.entities) {
             val id = MetadataEntityUrn.canonicalize(e.id)
             runCatching {
@@ -175,6 +207,16 @@ class DefaultMetadataImportService(
         }
 
         return ImportResult(entitiesImported, facetTypesImported, errors)
+    }
+
+    private fun validateContentImport(content: MetadataContent, knownFacetTypeUrns: Set<String>) {
+        when (content.contentKind) {
+            MetadataContent.KIND_FACET_TYPE_CATEGORY ->
+                MetadataContentImportValidator.validateCategoryContent(content)
+            MetadataContent.KIND_FACET_TYPE_EXAMPLE ->
+                MetadataContentImportValidator.validateExampleContent(content, knownFacetTypeUrns)
+            else -> error("Unsupported MetadataContent contentKind: ${content.contentKind}")
+        }
     }
 
     override fun export(scopeQuery: String?, format: MetadataExportFormat): String {

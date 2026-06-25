@@ -1,0 +1,100 @@
+# Platform facet category guidance for metadata authoring (WI-356).
+# Load after facet type definition seeds.
+---
+kind: MetadataContent
+contentUrn: urn:mill/metadata/content:facet-type-category/general
+contentKind: facet-type-category
+targetUrn: urn:mill/metadata/facet-type-category:general
+title: General metadata
+description: Names, descriptions, tags, and structural labels on entities.
+mediaType: application/json
+sortOrder: 0
+enabled: true
+schemaVersion: "1.0"
+content:
+  category: general
+  summary: Document what entities mean — titles, descriptions, tags, schema/table labels.
+  signalPhrases:
+    - "is called"
+    - "means"
+    - "describes"
+    - "rename"
+    - "display name"
+  antiSignalPhrases:
+    - "how many rows"
+    - "select"
+    - "count"
+  typicalEntityKinds:
+    - schema
+    - table
+    - attribute
+  exampleFacetTypeKeys:
+    - descriptive
+    - schema
+    - table
+    - attribute
+  nextStep: list_facet_types with category=general after grounding the target entity
+---
+kind: MetadataContent
+contentUrn: urn:mill/metadata/content:facet-type-category/relation
+contentKind: facet-type-category
+targetUrn: urn:mill/metadata/facet-type-category:relation
+title: Relations
+description: Foreign keys, joins, and table relationships.
+mediaType: application/json
+sortOrder: 1
+enabled: true
+schemaVersion: "1.0"
+content:
+  category: relation
+  summary: Document how tables join — outbound, inbound, or whole-edge at schema level.
+  signalPhrases:
+    - "references"
+    - "foreign key"
+    - "join"
+    - "links to"
+    - "relates to"
+  antiSignalPhrases:
+    - "select join"
+    - "show me"
+  typicalEntityKinds:
+    - table
+    - schema
+  exampleFacetTypeKeys:
+    - relation-source
+    - relation-target
+    - relation
+  nextStep: pick relation-source vs relation-target by grounded table role; relation on schema entities
+---
+kind: MetadataContent
+contentUrn: urn:mill/metadata/content:facet-type-category/data-quality
+contentKind: facet-type-category
+targetUrn: urn:mill/metadata/facet-type-category:data-quality
+title: Data quality
+description: Constraints, completeness, uniqueness, and validation rules.
+mediaType: application/json
+sortOrder: 2
+enabled: true
+schemaVersion: "1.0"
+content:
+  category: data-quality
+  summary: Document normative rules — NOT NULL, uniqueness, predicates, reconciliation.
+  signalPhrases:
+    - "must not be null"
+    - "must be unique"
+    - "must satisfy"
+    - "data quality"
+    - "constraint"
+    - "rule"
+  antiSignalPhrases:
+    - "find null"
+    - "show violating"
+    - "how many null"
+  typicalEntityKinds:
+    - attribute
+    - table
+    - schema
+  exampleFacetTypeKeys:
+    - dq-null-check
+    - dq-predicate
+  nextStep: list_facet_types with category=data-quality filtered by applicableTo

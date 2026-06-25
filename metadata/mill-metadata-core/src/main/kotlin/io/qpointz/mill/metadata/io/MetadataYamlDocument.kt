@@ -1,6 +1,7 @@
 package io.qpointz.mill.metadata.io
 
 import io.qpointz.mill.metadata.domain.FacetTypeDefinition
+import io.qpointz.mill.metadata.domain.MetadataContent
 import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.domain.MetadataScope
 import io.qpointz.mill.metadata.domain.facet.FacetAssignment
@@ -17,5 +18,6 @@ data class MetadataYamlDocument(
     val scopes: List<MetadataScope>,
     val definitions: List<FacetTypeDefinition>,
     val entities: List<MetadataEntity>,
-    val facetsByEntity: Map<String, List<FacetAssignment>>
+    val facetsByEntity: Map<String, List<FacetAssignment>>,
+    val contents: List<MetadataContent> = emptyList(),
 )

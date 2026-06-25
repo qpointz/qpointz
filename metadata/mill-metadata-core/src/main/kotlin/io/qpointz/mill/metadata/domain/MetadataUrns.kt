@@ -60,6 +60,12 @@ object MetadataUrns {
     /** Full URN for the global scope. */
     const val SCOPE_GLOBAL = "urn:mill/metadata/scope:global"
 
+    /** URN prefix for authoring content rows, e.g. {@code urn:mill/metadata/content:…}. */
+    const val CONTENT_PREFIX = "urn:mill/metadata/content:"
+
+    /** URN prefix for facet category guidance, e.g. {@code urn:mill/metadata/facet-type-category:general}. */
+    const val FACET_TYPE_CATEGORY_PREFIX = "urn:mill/metadata/facet-type-category:"
+
     /**
      * Returns the full URN for a user-scoped scope.
      *
@@ -83,6 +89,28 @@ object MetadataUrns {
      * @return full URN, e.g. `"urn:mill/metadata/scope:role:admin"`
      */
     fun scopeRole(roleName: String) = "urn:mill/metadata/scope:role:$roleName"
+
+    /**
+     * Returns the full URN for a chat-scoped metadata scope.
+     *
+     * @param chatId conversation GUID from transport / {@code AgentContext}
+     * @return full URN, e.g. {@code urn:mill/metadata/scope:chat-<chatId>}
+     */
+    fun scopeChat(chatId: String) = "urn:mill/metadata/scope:chat-$chatId"
+
+    /**
+     * Returns a stable content URN for an authoring attachment.
+     *
+     * @param localId slug after {@link #CONTENT_PREFIX}
+     */
+    fun content(localId: String) = "$CONTENT_PREFIX$localId"
+
+    /**
+     * Returns the category guidance target URN for a catalog category slug.
+     *
+     * @param slug category slug, e.g. {@code general}
+     */
+    fun facetTypeCategory(slug: String) = "$FACET_TYPE_CATEGORY_PREFIX$slug"
 
     // ── Normalisation helpers ─────────────────────────────────────────
 

@@ -5,16 +5,19 @@ import io.qpointz.mill.metadata.repository.FacetTypeDefinitionRepository
 import io.qpointz.mill.metadata.repository.FacetTypeRepository
 import io.qpointz.mill.metadata.repository.MetadataAuditRepository
 import io.qpointz.mill.metadata.repository.EntityRepository
+import io.qpointz.mill.metadata.repository.MetadataContentRepository
 import io.qpointz.mill.metadata.repository.MetadataScopeRepository
 import io.qpointz.mill.metadata.repository.MetadataSeedLedgerRepository
 import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaFacetRepository
 import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaFacetTypeDefinitionRepository
 import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaMetadataAuditRepository
+import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaMetadataContentRepository
 import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaMetadataEntityRepository
 import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaMetadataScopeRepository
 import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaMetadataSeedLedgerRepository
 import io.qpointz.mill.persistence.metadata.jpa.adapters.JpaRuntimeFacetTypeRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataAuditJpaRepository
+import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataContentJpaRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataEntityJpaRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetJpaRepository
 import io.qpointz.mill.persistence.metadata.jpa.repositories.MetadataFacetTypeInstJpaRepository
@@ -73,6 +76,11 @@ class MetadataJpaBeansConfiguration {
     fun metadataAuditRepository(
         jpa: MetadataAuditJpaRepository
     ): MetadataAuditRepository = JpaMetadataAuditRepository(jpa)
+
+    @Bean
+    fun metadataContentRepository(
+        jpa: MetadataContentJpaRepository
+    ): MetadataContentRepository = JpaMetadataContentRepository(jpa)
 
     @Bean
     fun metadataSeedLedgerRepository(

@@ -104,6 +104,10 @@ mill:
       resources:
         - "classpath:metadata/platform-bootstrap.yaml"
         - "classpath:metadata/platform-flow-facet-types.yaml"
+        - "classpath:metadata/platform-dq-l1-facet-types.yaml"
+        - "classpath:metadata/platform-dq-l2-facet-types.yaml"
+        - "classpath:metadata/platform-facet-category-guidance.yaml"
+        - "classpath:metadata/platform-facet-authoring-examples.yaml"
   ai:
     # Opt-in: enable AI v3 via `--spring.profiles.active=ai` (see second document), which sets enabled: true.
     enabled: false
