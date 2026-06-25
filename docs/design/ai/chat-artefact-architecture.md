@@ -44,7 +44,7 @@ This document covers **what happens after** emission reaches mill-ui and **GET r
 
 `GET /api/v1/ai/chats/{id}` → `TurnResponse` per turn:
 
-- `artifacts: List<ArtifactResponse>` — consumer-safe wire kinds
+- `artifacts: List<ArtifactResponse>` — consumer-safe wire kinds ( **N entries** when a batch capture turn persisted N rows; stable `turn.artifactIds` order)
 - `assistantReplyView` — layout hint when artefacts present
 
 ### ArtifactWireMapper (mill-ai-service)
@@ -69,6 +69,8 @@ POST /api/v1/ai/chats/{chatId}/turns/{turnId}/execution-result
 
 Body: `executionId`, `columns`, `rowCount`, `truncated`, `sql`. Persists `sql.result`; does **not**
 execute SQL.
+
+**Known gap (stage 4 — [`metadata-authoring-profiles`](../../workitems/in-progress/metadata-authoring-profiles/STORY.md) WI-360):** attach is **turn-scoped** today; mill-ui keeps **one** `data` artefact per assistant message. Multiple `sql` cards on the same turn can show the **wrong grid** because pairing is positional, not id-based. **Planned in stage 4:** promote **`ArtifactRef`** to `mill-ai` core; expose **`artifactId`** on GET/SSE wire; bind `sql.result` → parent `sql.generated` via **`sourceArtifactId`** / attach **`parentArtifactId`**.
 
 ### Data wire payload
 

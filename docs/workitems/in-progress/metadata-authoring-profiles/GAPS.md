@@ -525,7 +525,7 @@ The three keys are **not interchangeable aliases**. Choice is constrained by **(
 | Phase | Deliverable |
 | ----- | ----------- |
 | **A — WI-351** | Multi **same-kind** batch (`facet-proposal` × N) — prerequisite |
-| **B — story close** | Multi **mixed-kind** per turn (SQL + facets); agent multi-protocol aggregation; WI-349 e2e scenario |
+| **B — stage 4 (WI-360 / WI-362)** | Multi **mixed-kind** per turn (SQL + facets); **`ArtifactRef`** on wire + per-artefact execution binding; agent multi-protocol aggregation; WI-362 e2e scenario |
 
 **Rejected:** v1 “intent picks one primary path only” / force follow-up message.
 

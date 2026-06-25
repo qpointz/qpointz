@@ -54,7 +54,7 @@ Each **stage** = one branch → per-WI commits during work → **squash** to a s
 | **1** | `feat/meta-authoring-platform` | **WI-354** → **WI-356** → **WI-358** | `docs/design`, `metadata` (`MetadataContent` entity + seeds), `ai/mill-ai` (YAML profiles) | WI-354: design review. WI-356: `:metadata:mill-metadata-core:test --tests "*MetadataContent*"`. WI-358: `:ai:mill-ai:test --tests "*Profile*"` |
 | **2** | `feat/meta-artifact-batch` | **WI-355** | `ai/mill-ai` (agent, batch protocol, pointers, SSE), `ui/mill-ui` (multi-card SSE) | **WI-355 only:** L1–L6 + mill-ui SSE Vitest ([`GAPS.md`](GAPS.md) §1, §15–§16) — **requires stage 1 merged** (WI-354 design contract) |
 | **3** | `feat/meta-authoring-catalog` | **WI-357** → **WI-359** | `ai/mill-ai-data`, `metadata`, `ai/mill-ai` (capabilities + prompts) | WI-357: `:ai:mill-ai-data:test --tests "*Metadata*"`. WI-359: `:ai:mill-ai:test --tests "*Metadata*"` — **requires stages 1–2 merged** (WI-356 content + WI-355 batch) |
-| **4** | `feat/meta-authoring-lifecycle` | **WI-360** → **WI-361** → **WI-362** | `core/mill-events`, `metadata` (scope rows), `ai/mill-ai-service`, `ui/mill-ui` (Accept/Reject), `ai/mill-ai-test`, `docs/` | WI-360: `:core:mill-events:test` + `:ai:mill-ai-service:testIT --tests "*Artifact*"` + mill-ui lifecycle tests. WI-361: no `capture_*` in manifests. WI-362: **full verify block** (§ Verify) |
+| **4** | `feat/meta-authoring-lifecycle` | **WI-360** → **WI-361** → **WI-362** | `core/mill-events`, `metadata` (scope rows), `ai/mill-ai` (`ArtifactRef` core type), `ai/mill-ai-service`, `ui/mill-ui` (Accept/Reject + per-artefact SQL binding), `ai/mill-ai-test`, `docs/` | WI-360: `:core:mill-events:test` + `:ai:mill-ai-service:testIT --tests "*Artifact*"` + mill-ui lifecycle tests. WI-361: no `capture_*` in manifests. WI-362: **full verify block** (§ Verify) |
 
 **Rationale:** Stage **1** lands **design, content model, and profiles** without the large agent/SSE diff. Stage **2** is **WI-355 alone** — multi-artifact runtime + breaking SSE — for a focused review MR. Stage **3** wires **metadata read path + LLM tools**. Stage **4** delivers **facet lifecycle** (first production `mill-events` consumer), removes legacy capture, and proves e2e.
 
@@ -184,14 +184,14 @@ On top of [`RULES.md`](../../RULES.md) **Per-WI cadence** and **Complete working
 | 4 | WI-355 | **2** | Multi-artifact platform — **dedicated MR**; **blocks WI-359** |
 | 5 | WI-357 | **3** | **MetadataReadPort** — depends WI-356 |
 | 6 | WI-359 | **3** | Catalog tools + prompts — depends WI-355, WI-356, WI-357 |
-| 7 | WI-360 | **4** | Facet lifecycle — depends WI-355, WI-356, WI-359 |
+| 7 | WI-360 | **4** | Facet lifecycle + **promote `ArtifactRef` to `mill-ai` core** (wire `artifactId`, per-artefact attach) — depends WI-355, WI-356, WI-359 |
 | 8 | WI-361 | **4** | Remove `capture_*` — depends WI-359, WI-355 |
 | 9 | WI-362 | **4** | E2E + docs — depends WI-360, WI-361 |
 
 ## Work Items
 
 - [x] WI-354 — Design contract (`WI-345-metadata-authoring-design-contract.md`) — *was WI-345*
-- [ ] WI-355 — Multi-artifact protocol (`WI-351-multi-artifact-protocol-runtime.md`) — *was WI-351*
+- [x] WI-355 — Multi-artifact protocol (`WI-351-multi-artifact-protocol-runtime.md`) — *was WI-351*
 - [x] WI-356 — `MetadataContent` entity + seeds (`WI-352-metadata-content-entity-and-seed.md`) — *was WI-352*
 - [ ] WI-357 — `MetadataReadPort` adapter (`WI-357-metadata-read-port-adapter.md`) — *was WI-346*
 - [x] WI-358 — YAML agent profiles (`WI-348-agent-profiles-metadata-authoring.md`) — *was WI-348*
@@ -250,6 +250,12 @@ ground (schema) → metadataEntityId
 **Partial batch failure (locked §9):** parallel captures → persist **every** success; failures remediated in the next tool round — never all-or-nothing.
 
 **Mixed SQL + facets (locked §10):** same turn may persist `generated-sql` + `facet-proposal`(s); facets assigned on persist; **Accept/Reject** on facet cards (§23).
+
+## Manual verification bookmark
+
+- [ ] **Multi-artifact visual UX (mill-ui)** — Manually verify N `facet-proposal` cards in general chat after runtime can produce a real multi-capture turn (best after **WI-359** prompts, or sooner via **GET replay** with N persisted `artifacts[]` rows). Expect: section title **“Facet proposals”** (plural), stacked **`FacetCondensedPreview`** cards, optional assistant text below. **Note:** mock `chatService` does not stream multi-part SSE; use mill-service + REST (`npm run dev` → proxy `localhost:8080`) or a dev transcript fixture. *Bookmarked 2026-06-25 — not gated on WI-355 merge alone (Vitest L6 only).*
+
+- [ ] **Global artefact fingerprint + per-artefact execution binding** — **Stage 4 (WI-360 / WI-362).** JPA already has `ArtifactEntity.artifactId` + `urn`; `ArtifactRecord` carries `artifactId` at the persistence port but **GET/SSE wire drops it** and attach is turn-scoped — N `sql` cards can show the wrong grid. **Deliver in stage 4:** promote portable **`ArtifactRef`** (`id`, `type`, `urn`) in `mill-ai` core; expose **`artifactId`** on `ArtifactResponse` + SSE structured parts; **`sourceArtifactId`** on `sql.result` + `parentArtifactId` on attach API; mill-ui keys sql↔data by id. Not a content hash. Prerequisite for Accept/Reject REST (`…/artifacts/{artifactId}/…`) and mixed **SQL + SQL** turns. *Deferred from WI-355 — 2026-06-25.*
 
 ## Tool matrix (locked)
 

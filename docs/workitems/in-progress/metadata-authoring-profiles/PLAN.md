@@ -252,6 +252,10 @@ sequenceDiagram
 
 | Task | Location |
 | ---- | -------- |
+| **`ArtifactRef` in `mill-ai` core** (`id`, `type`, `urn`; URN rules from `AiV3Urns`) | `ai/mill-ai/.../artifact/` |
+| Wire **`artifactId`** on GET + SSE structured parts | `ArtifactWireMapper`, `AgentEventToSseMapper`, `ArtifactResponse` |
+| Per-artefact attach: **`parentArtifactId`** + **`sourceArtifactId`** on `sql.result` | `UnifiedChatService`, `AttachExecutionResultHttpRequest` |
+| mill-ui sql↔data pairing by **`artifactId`** | `chatSqlExecution.ts`, `artifactGroups.ts` |
 | Event types `ARTIFACT_FACET_PERSISTED`, `ARTIFACT_RETRACTED` | `core/mill-events/.../EventTypes.kt` |
 | Publish after save | `ArtifactObserver` → `FacetArtifactEventPublisher` |
 | Scope assign handler | `FacetArtifactPersistedHandler` + `FacetProposalMerger` |
@@ -267,7 +271,7 @@ sequenceDiagram
 
 **WI-361:** Remove `schema-authoring.yaml`, `SchemaAuthoringCapability`, all `capture_*`.
 
-**WI-362:** Skymill testIT, scenario packs (multi-facet, mixed SQL+facet, Accept/Reject), design/public docs, MCP inventory §15 update.
+**WI-362:** Skymill testIT, scenario packs (multi-facet, mixed SQL+facet, **multi-SQL per-artefact grid binding**, Accept/Reject), design/public docs, MCP inventory §15 update.
 
 ---
 

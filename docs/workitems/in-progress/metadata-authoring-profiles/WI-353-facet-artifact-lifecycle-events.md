@@ -37,6 +37,22 @@ End-to-end **facet artefact lifecycle**:
 
 ## In Scope
 
+### 0. Portable artefact identity (`mill-ai` core — stage 4)
+
+JPA [`ArtifactEntity`](../../../../ai/mill-ai-persistence/src/main/kotlin/io/qpointz/mill/persistence/ai/jpa/entities/ArtifactEntity.kt) already stores **`artifactId`** (PK) and **`urn:agent/artifact:{id}`** via [`EntityRef`](../../../../persistence/mill-persistence/src/main/kotlin/io/qpointz/mill/persistence/EntityRef.kt). [`ArtifactRecord`](../../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/persistence/ArtifactStore.kt) carries the same id at the persistence port, but **wire DTOs and SSE omit it** today.
+
+**Promote to object model (not JPA-only):**
+
+| Piece | Change |
+| ----- | ------ |
+| **`ArtifactRef`** | New type in `mill-ai` core: opaque `id`, canonical `type` (`agent/artifact`), `urn` — URN construction rules lifted from `AiV3Urns` (JPA adapter keeps mapping) |
+| **`ArtifactRecord`** | Use `ArtifactRef` (or equivalent) instead of bare `String` for instance identity |
+| **GET / SSE wire** | `ArtifactResponse` + structured SSE parts include **`artifactId`** (and optionally `urn`) |
+| **`sql.result` linkage** | Persist **`sourceArtifactId`** → parent `sql.generated`; attach API accepts **`parentArtifactId`** (replaces turn-only binding) |
+| **mill-ui** | Pair `sql` ↔ `data` and Accept/Reject actions by **`artifactId`** — fixes N-SQL wrong-grid when one turn has multiple queries |
+
+**Naming:** do not confuse instance **`artifactId`** with YAML descriptor / emit trigger `artifactId` (capability-local descriptor key).
+
 ### 1. Event types (`:core:mill-events` catalog + payloads)
 
 Add to [`EventTypes.kt`](../../../../core/mill-events/src/main/kotlin/io/qpointz/mill/events/catalog/EventTypes.kt):
@@ -93,6 +109,9 @@ Register **`EventConsumer`** beans via [`eventConsumer { on(...) }`](../../../..
 
 ## Acceptance Criteria
 
+- [ ] **`ArtifactRef`** promoted to `mill-ai` core; **`artifactId`** on GET/SSE wire
+- [ ] Attach execution by **`parentArtifactId`**; `sql.result` stores **`sourceArtifactId`**
+- [ ] mill-ui pairs sql↔data by **`artifactId`** (Vitest: 2 SQL + 2 grids on one turn)
 - [ ] **`ArtifactObserver`** publishes **`artifact.facet.persisted`** after projector save (not in capture tool)
 - [ ] Successful capture → artefact on GET/SSE → facet visible in **chat scope** read APIs
 - [ ] **Accept** sets artefact accepted; scope assignments remain

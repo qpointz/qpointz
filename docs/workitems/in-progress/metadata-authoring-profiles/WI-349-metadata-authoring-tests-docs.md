@@ -21,6 +21,7 @@ Prove end-to-end **`metadata-authoring`** profile behaviour and document the new
 2. **`mill-ai-test`** scenario packs:
    - **Intent routing** — documentary DQ utterance → facet capture; **must not** call `validate_sql` when query-only
    - **Mixed SQL + facet** — one utterance: documentary constraint + data query → `generated-sql` + `facet-proposal` on same turn; UI shows both
+   - **Multi-SQL binding** — one turn with **2+** `sql` artefacts: each card gets its own `executionId` / grid via **`artifactId`** (**WI-353** §0)
    - **Multi-facet batch** — one utterance with description + DQ + relation (or two+ types): **≥2** `propose_facet_assignment` calls; replay shows **≥2** `facet-proposal` artefacts
    - **Partial batch** — 2+ parallel `propose_facet_assignment`, one fails: replay shows artefacts for **successes only**; remediation in follow-up round
    - **Descriptive** — `validate_facet_payload` then `propose_facet_assignment(target, descriptive, payload)`
@@ -52,6 +53,7 @@ Prove end-to-end **`metadata-authoring`** profile behaviour and document the new
 - [ ] `testIT` proves `metadata-authoring` chat path on Skymill fixture
 - [ ] Tests prove `validate_facet_payload` and `propose_facet_assignment` reject schema-invalid payloads
 - [ ] **Intent scenario (query-only):** documentary DQ utterance produces facet capture without SQL tools
+- [ ] **Multi-SQL scenario:** one turn with **≥2** `sql` artefacts — each pairs with its own `data` / grid by **`artifactId`** ([`GAPS.md`](GAPS.md) §10 phase B)
 - [ ] **Mixed SQL + facet scenario:** same turn replays **both** SQL and `facet-proposal` artefacts ([`GAPS.md`](GAPS.md) §10)
 - [ ] **Multi-facet scenario:** one turn persists/replays **≥2** `facet-proposal` artefacts; mill-ui shows **≥2** cards
 - [ ] Descriptive, relation, and DQ captures all persist/replay as **`facet-proposal`** (same artefact kind; `facetTypeKey` in JSON body)

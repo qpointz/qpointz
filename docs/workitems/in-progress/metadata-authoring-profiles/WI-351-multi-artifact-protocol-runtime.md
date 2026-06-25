@@ -128,6 +128,10 @@ Capability-specific prompts and catalog tools remain **WI-347**.
 - [ ] **Phase B (story close):** one turn with `validate_sql` success + `propose_facet_assignment` → `artifacts[]` contains **both** SQL and `facet-proposal` kinds (WI-349 e2e)
 - [ ] **WI-347 is not started** until phase A (same-kind facet batch) is complete and merged
 
+## Deferred — manual visual QA
+
+Tracked in [`STORY.md`](STORY.md) § *Manual verification bookmark*: browser check of N stacked facet cards (live SSE or GET replay). Out of scope for WI-355 automated gates; target after **WI-359** or via seeded transcript.
+
 ## Suggested commit
 
 `[feat] WI-351: batch ProtocolFinal fan-out and multi-artifact chat replay`
