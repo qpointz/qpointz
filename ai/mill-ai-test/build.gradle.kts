@@ -17,6 +17,7 @@ mill {
 dependencies {
     api(project(":ai:mill-ai"))
     implementation(project(":metadata:mill-metadata-core"))
+    implementation(project(":data:mill-data-schema-core"))
     implementation(project(":core:mill-sql"))
     api(libs.junit.jupiter.api)
     implementation(libs.mockito.core)

@@ -3,9 +3,9 @@ package io.qpointz.mill.ai.mcp
 import io.qpointz.mill.ai.capabilities.DemoCapabilityProvider
 import io.qpointz.mill.ai.core.capability.CapabilityManifest
 import io.qpointz.mill.ai.core.capability.CapabilityRegistry
+import io.qpointz.mill.ai.profile.AgentProfile
 import io.qpointz.mill.ai.profile.PlatformProfiles
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 
 class CapabilityMcpCatalogTest {
@@ -62,10 +62,33 @@ class CapabilityMcpCatalogTest {
     }
 
     @Test
-    fun shouldExposeTwentyThreeToolsWhenAllManifestsLoadedAndFiltersOpen() {
-        val catalog = CapabilityMcpCatalog(
-            registry = CapabilityRegistry.load(),
-        )
-        assertThat(catalog.listToolNames()).hasSize(23)
+    fun shouldExposeEveryMcpEnabledManifestToolWhenFiltersOpen() {
+        val registry = CapabilityRegistry.load()
+        val catalog = CapabilityMcpCatalog(registry = registry)
+        assertThat(catalog.listToolNames())
+            .containsExactlyElementsOf(expectedMcpToolNames(registry))
+    }
+
+    private fun expectedMcpToolNames(
+        registry: CapabilityRegistry,
+        exposureConfig: McpExposureConfig = McpExposureConfig(),
+        profile: AgentProfile? = null,
+    ): List<String> {
+        val allowlist = exposureConfig.capabilities.map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+        val profileIds = profile?.capabilityIds
+        return registry.allDescriptors()
+            .asSequence()
+            .filter { descriptor -> profileIds == null || descriptor.id in profileIds }
+            .filter { descriptor -> allowlist.isEmpty() || descriptor.id in allowlist }
+            .flatMap { descriptor ->
+                val manifest = CapabilityManifest.load(CapabilityManifest.manifestResourceFor(descriptor.id))
+                if (!manifest.mcpSettings.enabled) {
+                    emptySequence()
+                } else {
+                    manifest.declaredTools().asSequence().map { "${descriptor.id}.${it.name}" }
+                }
+            }
+            .sorted()
+            .toList()
     }
 }
