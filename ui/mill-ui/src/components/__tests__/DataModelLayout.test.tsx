@@ -175,6 +175,54 @@ describe('DataModelLayout', () => {
     });
   });
 
+  it('should not refetch the explorer tree when selecting a table in the tree', async () => {
+    const { schemaService } = await import('../../services/api');
+    const tableEntity = {
+      id: 'sales.customers',
+      entityType: 'TABLE' as const,
+      schemaName: 'sales',
+      tableName: 'customers',
+      tableType: 'TABLE',
+      columns: [
+        {
+          id: 'sales.customers.customer_id',
+          entityType: 'COLUMN' as const,
+          schemaName: 'sales',
+          tableName: 'customers',
+          columnName: 'customer_id',
+          fieldIndex: 0,
+          type: { type: 'VARCHAR', nullable: true },
+        },
+      ],
+    };
+
+    vi.mocked(schemaService.getEntityById).mockImplementation((id) => {
+      if (id === 'sales.customers') {
+        return Promise.resolve(tableEntity);
+      }
+      return Promise.resolve(null);
+    });
+
+    await renderLayout();
+
+    await waitFor(() => {
+      expect(screen.getByText('customers')).toBeInTheDocument();
+    });
+
+    const getTreeCallsBefore = vi.mocked(schemaService.getTree).mock.calls.length;
+
+    await act(async () => {
+      screen.getByText('customers').click();
+    });
+
+    await waitFor(() => {
+      expect(schemaService.getEntityById).toHaveBeenCalledWith('sales.customers', 'global');
+    });
+
+    expect(vi.mocked(schemaService.getTree).mock.calls.length).toBe(getTreeCallsBefore);
+    expect(screen.queryByText('Loading model...')).not.toBeInTheDocument();
+  });
+
   it('should enrich table columns when deep-linked to a column before the tree finishes loading', async () => {
     const { schemaService } = await import('../../services/api');
     const columnEntity = {

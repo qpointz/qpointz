@@ -8,7 +8,7 @@ import { ExplorerSplitLayout } from '../layout/ExplorerSplitLayout';
 import { entityIdFromModelRouteParams } from './modelRouteEntityId';
 import { resolveTreeTableId } from './catalogEntityId';
 import { enrichNodeChildren } from './schemaTreeEnrichment';
-import { loadExplorerTreeWithColumns } from './schemaTreeLoad';
+import { enrichExplorerTreeColumns, loadExplorerTreeWithColumns } from './schemaTreeLoad';
 import { buildEntityFacetsFromResolvedList, metadataEntityUrnForFacetApi, schemaService } from '../../services/api';
 import type { SchemaNode, SchemaEntity, EntityFacets, ScopeOption } from '../../types/schema';
 
@@ -55,18 +55,21 @@ export function DataModelLayout() {
   const [contextReady, setContextReady] = useState<boolean>(false);
   const treeRequestIdRef = useRef(0);
   const entityRequestIdRef = useRef(0);
+  const treeRef = useRef<SchemaNode[] | null>(null);
+  treeRef.current = tree;
 
-  const loadTreeForRoute = useCallback(async (context: string, requestId: number) => {
-    const loadedTree = await loadExplorerTreeWithColumns(context, routeEntityId, null);
+  const loadTreeForContext = useCallback(async (context: string, requestId: number, routeIdForColumns: string) => {
+    const loadedTree = await loadExplorerTreeWithColumns(context, routeIdForColumns, null);
     if (requestId !== treeRequestIdRef.current) return;
     setTree(loadedTree);
     setTreeLoading(false);
-  }, [routeEntityId]);
+  }, []);
 
-  // Resolve scope, then load the explorer tree (with column children when deep-linking).
+  // Resolve scope, then load the explorer tree once (deep-link columns included via route at init).
   useEffect(() => {
     let cancelled = false;
     const currentRequestId = ++treeRequestIdRef.current;
+    const routeAtInit = routeEntityId;
     setTreeLoading(true);
     setContextReady(false);
     schemaService.getContext().then(async (contextInfo) => {
@@ -75,7 +78,7 @@ export function DataModelLayout() {
       setSelectedContext(ctx);
       setAvailableScopes(contextInfo.availableScopes ?? []);
       setContextReady(true);
-      await loadTreeForRoute(ctx, currentRequestId);
+      await loadTreeForContext(ctx, currentRequestId, routeAtInit);
     }).catch(() => {
       if (!cancelled && currentRequestId === treeRequestIdRef.current) {
         setSelectedContext('global');
@@ -85,7 +88,8 @@ export function DataModelLayout() {
       }
     });
     return () => { cancelled = true; };
-  }, [loadTreeForRoute]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- tree loads once per mount; route changes patch columns only
+  }, [loadTreeForContext]);
 
   // Sync URL params to selected entity (AbortController cancels stale fetches — dev StrictMode + fast param changes)
   useEffect(() => {
@@ -132,6 +136,26 @@ export function DataModelLayout() {
       ac.abort();
     };
   }, [routeEntityId, selectedContext, contextReady]);
+
+  // Lazy-load column children when the route deep-links to a table/column without refetching the tree.
+  useEffect(() => {
+    if (!contextReady || treeRef.current === null || !routeEntityId) return;
+
+    let cancelled = false;
+    void enrichExplorerTreeColumns(
+      treeRef.current,
+      selectedContext,
+      routeEntityId,
+      selectedEntity,
+    ).then((nextTree) => {
+      if (cancelled || nextTree === treeRef.current) return;
+      setTree(nextTree);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [routeEntityId, selectedContext, contextReady, selectedEntity]);
 
   const handleScopeChange = useCallback((scope: string) => {
     const currentRequestId = ++treeRequestIdRef.current;

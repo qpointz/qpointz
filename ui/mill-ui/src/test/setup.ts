@@ -23,6 +23,21 @@ class ResizeObserverStub {
 }
 globalThis.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver;
 
+// Mantine 9 Textarea autosize listens to document.fonts loading events (jsdom stub).
+if (typeof document.fonts?.addEventListener !== 'function') {
+  const fontFaceSetStub = {
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    load: () => Promise.resolve([]),
+    check: () => true,
+    ready: Promise.resolve(undefined),
+  };
+  Object.defineProperty(document, 'fonts', {
+    configurable: true,
+    value: fontFaceSetStub,
+  });
+}
+
 // Polyfill Element.prototype.scrollTo for jsdom (used by MessageList auto-scroll)
 if (!Element.prototype.scrollTo) {
   Element.prototype.scrollTo = function () {};

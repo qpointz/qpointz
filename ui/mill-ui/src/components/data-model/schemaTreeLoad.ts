@@ -16,29 +16,29 @@ function tableColumnNodes(entity: TableDetail): SchemaNode[] {
 }
 
 /**
- * Loads the explorer tree and, when the route or selection targets a table/column,
- * fetches that table's columns and attaches them before returning.
+ * Attaches column children to an existing explorer tree when the route or selection
+ * targets a table/column. Returns the original tree reference when no change is needed.
  */
-export async function loadExplorerTreeWithColumns(
+export async function enrichExplorerTreeColumns(
+  tree: SchemaNode[],
   context: string,
   routeEntityId: string,
   selectedEntity: SchemaEntity | null,
 ): Promise<SchemaNode[]> {
-  const loadedTree = await schemaService.getTree(context);
   const syncTarget = resolveColumnSyncTarget(selectedEntity, routeEntityId);
   if (!syncTarget) {
-    return loadedTree;
+    return tree;
   }
 
   const treeTableId =
-    resolveTreeTableId(loadedTree, syncTarget.schemaName, syncTarget.tableName) ??
+    resolveTreeTableId(tree, syncTarget.schemaName, syncTarget.tableName) ??
     syncTarget.tableCatalogId;
-  if (treeTableHasColumnChildren(loadedTree, treeTableId)) {
-    return loadedTree;
+  if (treeTableHasColumnChildren(tree, treeTableId)) {
+    return tree;
   }
 
   if (selectedEntity?.entityType === 'TABLE' && selectedEntity.columns.length > 0) {
-    return enrichNodeChildren(loadedTree, treeTableId, tableColumnNodes(selectedEntity));
+    return enrichNodeChildren(tree, treeTableId, tableColumnNodes(selectedEntity));
   }
 
   const table = await schemaService.getTable(
@@ -48,7 +48,23 @@ export async function loadExplorerTreeWithColumns(
     'none',
   );
   if (!table?.columns?.length) {
+    return tree;
+  }
+  return enrichNodeChildren(tree, treeTableId, tableColumnNodes(table));
+}
+
+/**
+ * Loads the explorer tree and, when the route or selection targets a table/column,
+ * fetches that table's columns and attaches them before returning.
+ */
+export async function loadExplorerTreeWithColumns(
+  context: string,
+  routeEntityId: string,
+  selectedEntity: SchemaEntity | null,
+): Promise<SchemaNode[]> {
+  const loadedTree = await schemaService.getTree(context);
+  if (!routeEntityId) {
     return loadedTree;
   }
-  return enrichNodeChildren(loadedTree, treeTableId, tableColumnNodes(table));
+  return enrichExplorerTreeColumns(loadedTree, context, routeEntityId, selectedEntity);
 }

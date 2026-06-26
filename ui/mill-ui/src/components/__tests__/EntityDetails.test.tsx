@@ -253,10 +253,14 @@ describe('EntityDetails', () => {
   });
 
   describe('header', () => {
-    it('should display entity display name from facets', () => {
+    it('should display physical entity name in header, not descriptive displayName', () => {
       renderDetails();
-      const matches = screen.getAllByText('Customers');
-      expect(matches.length).toBeGreaterThanOrEqual(1);
+      expect(
+        screen.getByText((content, element) => (
+          content === 'customers' && element?.getAttribute('data-size') === 'lg'
+        )),
+      ).toBeInTheDocument();
+      expect(screen.queryByText('Customers')).not.toBeInTheDocument();
     });
 
     it('should display entity name when no displayName in facets', () => {
@@ -274,11 +278,14 @@ describe('EntityDetails', () => {
       expect(screen.getByText('Column')).toBeInTheDocument();
     });
 
-    it('should display the metadata facet target id in monospace', () => {
+    it('should display the metadata facet target id in monospace before facet tabs', () => {
       renderDetails();
       const urn = 'urn:mill/model/table:sales.customers';
-      const matches = screen.getAllByText(urn);
-      expect(matches.length).toBeGreaterThanOrEqual(1);
+      const urnEl = screen.getByText(urn);
+      expect(urnEl).toHaveClass('mantine-Text-root');
+      expect(screen.getByRole('button', { name: 'Copy entity URN' })).toBeInTheDocument();
+      const tabs = screen.getByRole('tab', { name: 'General' });
+      expect(urnEl.compareDocumentPosition(tabs) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
   });
 

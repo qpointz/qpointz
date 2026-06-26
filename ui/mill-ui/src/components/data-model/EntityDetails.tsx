@@ -43,6 +43,7 @@ import {
   HiOutlineChevronRight,
   HiOutlineInformationCircle,
   HiOutlineArrowDownTray,
+  HiOutlineClipboardDocument,
 } from 'react-icons/hi2';
 import type { EntityFacets, FacetResolvedRow, SchemaEntity } from '../../types/schema';
 import { InlineChatButton } from '../common/InlineChatButton';
@@ -162,6 +163,56 @@ function appendFacetPayloadRequiredErrors(
     });
   };
   walkObject(schema, value, '');
+}
+
+/** Entity catalog URN with hover-reveal copy control (matches admin facet-type cards). */
+function EntityCatalogUrnRow({ urn }: { urn: string }) {
+  const [urnHover, setUrnHover] = useState(false);
+
+  const copyUrn = async () => {
+    try {
+      await navigator.clipboard.writeText(urn);
+      notifications.show({ color: 'green', title: 'Copied', message: 'Entity URN copied to clipboard.' });
+    } catch {
+      notifications.show({ color: 'red', title: 'Copy failed', message: 'Could not copy to clipboard.' });
+    }
+  };
+
+  return (
+    <Box
+      mb="sm"
+      style={{ maxWidth: '100%', lineHeight: 1.5 }}
+      onMouseEnter={() => setUrnHover(true)}
+      onMouseLeave={() => setUrnHover(false)}
+    >
+      <Text
+        component="span"
+        size="xs"
+        c="dimmed"
+        ff="monospace"
+        style={{ wordBreak: 'break-all' }}
+      >
+        {urn}
+      </Text>
+      <Tooltip label="Copy URN" withArrow disabled={!urnHover}>
+        <ActionIcon
+          variant="subtle"
+          size="sm"
+          aria-label="Copy entity URN"
+          onClick={() => void copyUrn()}
+          style={{
+            display: 'inline-flex',
+            verticalAlign: 'middle',
+            marginLeft: 4,
+            opacity: urnHover ? 1 : 0,
+            transition: 'opacity 120ms ease',
+          }}
+        >
+          <HiOutlineClipboardDocument size={14} />
+        </ActionIcon>
+      </Tooltip>
+    </Box>
+  );
 }
 
 /**
@@ -1056,13 +1107,12 @@ export function EntityDetails({
     <Box h="100%" style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       <ContentPaneHeader
         icon={Icon}
-        title={facets.descriptive?.displayName || entityName}
+        title={entityName}
         titleAddon={
           <Badge variant="light" color={isDark ? 'cyan' : 'teal'} size="sm" style={{ flexShrink: 0 }}>
             {entityLabels[entity.entityType]}
           </Badge>
         }
-        subtitle={metadataFacetTargetId ?? entity.id}
         actions={
           <>
             {entity.entityType === 'TABLE' && flags.modelTableExportEnabled && (
@@ -1240,6 +1290,9 @@ export function EntityDetails({
       )}
 
       <Box p="md" style={{ overflow: 'auto', flex: 1, minHeight: 0 }}>
+        {(metadataFacetTargetId ?? entity.id) ? (
+          <EntityCatalogUrnRow urn={metadataFacetTargetId ?? entity.id} />
+        ) : null}
         {orderedFacetTypes.length === 0 ? (
           <Box py="xl" ta="center">
             <Text c="dimmed">No metadata facets available for this entity yet.</Text>
