@@ -8,16 +8,90 @@ prompts:
     description: Grounding order for facet operations.
     content: |
       Ground schema entities first (list_schemas, list_tables, list_columns as needed).
-      Metadata entity ids are canonical URNs (urn:mill/model/…). Use list_entity_facets to read merged facet rows.
+      Metadata entity ids are canonical URNs (urn:mill/model/…).
+      Discover categories with list_facet_categories, shortlist facet types with list_facet_types,
+      read full contentSchema with get_facet_type, validate with validate_facet_payload,
+      then capture with propose_facet_assignment (metadata-authoring capability).
+      Use list_metadata_scopes to see which scopes are readable vs writable in this chat.
 
 tools:
-  list_facet_types:
+  list_facet_categories:
     description: |
-      Lists all facet type definitions registered in the metadata catalog (DEFINED facets).
-      Use before validating payloads or proposing assignments.
+      Lists facet categories with routing guidance from the metadata content store.
+      Call before list_facet_types to pick the right category for the user's intent.
     output:
       type: array
-      description: Facet type manifests (type keys, titles, payload schemas).
+      description: Category rows with optional guidance (signalPhrases, exampleFacetTypeKeys).
+
+  list_facet_types:
+    description: |
+      Lists facet type summary rows from the catalog (no full contentSchema).
+      Use to shortlist facetTypeKey before get_facet_type.
+    input:
+      type: object
+      properties:
+        applicableTo:
+          type: string
+          description: Optional entity-type URN filter.
+        category:
+          type: string
+          description: Optional category slug (general, relation, data-quality).
+        metadataEntityId:
+          type: string
+          description: Optional target entity URN; filters by applicableTo.
+    output:
+      type: array
+      description: Summary facet type rows (facetTypeKey, title, category, applicableTo).
+
+  get_facet_type:
+    description: |
+      Returns the full facet type manifest including contentSchema and joined examples[].
+    input:
+      type: object
+      required:
+        - facetTypeKey
+      properties:
+        facetTypeKey:
+          type: string
+          description: Facet type key or full facet type URN.
+    output:
+      type: object
+      description: Full manifest plus optional examples[].
+
+  list_content:
+    description: |
+      Lists MetadataContent rows (examples, category guidance) filtered by targetUrn and/or contentKind.
+    input:
+      type: object
+      properties:
+        targetUrn:
+          type: string
+          description: Facet type or category URN filter.
+        contentKind:
+          type: string
+          description: Content kind filter (facet-type-example, facet-type-category).
+    output:
+      type: array
+
+  get_content:
+    description: Returns one MetadataContent row by contentUrn.
+    input:
+      type: object
+      required:
+        - contentUrn
+      properties:
+        contentUrn:
+          type: string
+    output:
+      type: object
+
+  list_metadata_scopes:
+    description: |
+      Returns metadata scopes available in the current AgentContext with access flags (r, w, rw).
+      Chat default is global (r) and chat scope (rw).
+    output:
+      type: array
+      description: Scope rows with scopeUrn and access.
 
   list_entity_facets:
     description: |
@@ -45,7 +119,7 @@ tools:
 
   validate_facet_payload:
     description: |
-      Validates a JSON payload object against the facet type payload schema from the catalog (classpath-aligned rules). Does not write to the metadata service.
+      Validates a JSON payload against the facet type contentSchema and optional applicableTo for the target entity.
     input:
       type: object
       required:
@@ -59,6 +133,9 @@ tools:
           type: object
           description: Facet JSON payload to validate.
           additionalProperties: true
+        metadataEntityId:
+          type: string
+          description: Optional target entity URN for applicableTo enforcement.
     output:
       type: object
       properties:

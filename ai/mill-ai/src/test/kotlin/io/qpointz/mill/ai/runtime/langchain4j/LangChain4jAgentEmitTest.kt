@@ -6,6 +6,8 @@ import dev.langchain4j.model.chat.StreamingChatModel
 import dev.langchain4j.model.chat.request.ChatRequest
 import dev.langchain4j.model.chat.response.ChatResponse
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler
+import io.qpointz.mill.ai.capabilities.metadata.FacetCategoryWire
+import io.qpointz.mill.ai.capabilities.metadata.MetadataContentWire
 import io.qpointz.mill.ai.capabilities.metadata.MetadataAuthoringCapabilityProvider
 import io.qpointz.mill.ai.capabilities.metadata.MetadataCapabilityDependency
 import io.qpointz.mill.ai.capabilities.metadata.MetadataReadPort
@@ -313,6 +315,9 @@ class LangChain4jAgentEmitTest {
 
         override fun listFacetTypes(): List<FacetTypeManifest> = listOf(descriptiveFacet)
 
+        override fun getFacetType(facetTypeKey: String): FacetTypeManifest? =
+            listFacetTypes().firstOrNull { it.typeKey == facetTypeKey }
+
         override fun listEntityFacets(
             metadataEntityId: String,
             scope: String?,
@@ -320,7 +325,18 @@ class LangChain4jAgentEmitTest {
             origin: String?,
         ) = emptyList<Map<String, Any?>>()
 
-        override fun validateFacetPayload(facetTypeKey: String, payload: Map<String, Any?>): List<String> =
+        override fun listContent(targetUrn: String?, contentKind: String?): List<MetadataContentWire> =
+            emptyList()
+
+        override fun getContent(contentUrn: String): MetadataContentWire? = null
+
+        override fun listFacetCategories(): List<FacetCategoryWire> = emptyList()
+
+        override fun validateFacetPayload(
+            facetTypeKey: String,
+            payload: Map<String, Any?>,
+            metadataEntityId: String?,
+        ): List<String> =
             if (facetTypeKey == "descriptive") emptyList() else listOf("unknown facet type: $facetTypeKey")
     }
 }

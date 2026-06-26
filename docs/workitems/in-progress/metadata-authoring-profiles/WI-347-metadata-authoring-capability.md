@@ -1,6 +1,6 @@
 # WI-347 — Catalog-generic facet tools (`list_facet_types`, `get_facet_type`, `validate_facet_payload`, `propose_facet_assignment`)
 
-Status: `planned`  
+Status: `done`  
 Type: `✨ feature`  
 Area: `ai`, `metadata`  
 Depends on: [WI-346](WI-346-metadata-read-port-adapter.md), [WI-351](WI-351-multi-artifact-protocol-runtime.md), [WI-352](WI-352-metadata-content-entity-and-seed.md)  
@@ -132,17 +132,21 @@ Optional input filters: `applicableTo`, `category`, `metadataEntityId`.
 
 ## Acceptance Criteria
 
-- [ ] **`list_facet_categories`** returns WI-352 category guidance for `general`, `relation`, `data-quality`
-- [ ] **`get_facet_type`** returns synthetic **`examples[]`** for seeded types (`descriptive`, `relation-source`, `dq-null-check`, `dq-predicate`)
-- [ ] **`metadata-authoring.reasoning`** uses **`list_facet_categories`** — no hardcoded category table in YAML
-- [ ] **`metadata-authoring.reasoning`** instructs relation key selection by target entity kind + table role in join ([`GAPS.md`](GAPS.md) §6)
-- [ ] **`list_facet_types`** summary without `contentSchema`; **`get_facet_type`** full manifest
-- [ ] **`list_metadata_scopes`** returns **`access`** flags; chat: global `r`, chat `rw`
-- [ ] **`propose_facet_assignment`** has **no** `scopeUrn` / `mergeAction` args; artefact has **`writeScopeUrns[]`**
-- [ ] Valid captures for descriptive, relation\*, and DQ types → **`facet-proposal`**
-- [ ] **`metadata-authoring.intent`**, **`.reasoning`**, **`.batch`** prompts present with dq-null-check example
-- [ ] **`metadata-authoring.batch`** + capture-remediation: partial parallel failure must not block persisting successful captures (§9)
+- [x] **`list_facet_categories`** returns WI-352 category guidance for `general`, `relation`, `data-quality`
+- [x] **`get_facet_type`** returns synthetic **`examples[]`** for seeded types (`descriptive`, `relation-source`, `dq-null-check`, `dq-predicate`)
+- [x] **`metadata-authoring.reasoning`** uses **`list_facet_categories`** — no hardcoded category table in YAML
+- [x] **`metadata-authoring.reasoning`** instructs relation key selection by target entity kind + table role in join ([`GAPS.md`](GAPS.md) §6)
+- [x] **`list_facet_types`** summary without `contentSchema`; **`get_facet_type`** full manifest
+- [x] **`list_metadata_scopes`** returns **`access`** flags; chat: global `r`, chat `rw`
+- [x] **`propose_facet_assignment`** has **no** `scopeUrn` / `mergeAction` args; artefact has **`writeScopeUrns[]`**
+- [x] Valid captures for descriptive, relation\*, and DQ types → **`facet-proposal`**
+- [x] **`metadata-authoring.intent`**, **`.reasoning`**, **`.batch`** prompts present with dq-null-check example
+- [x] **`metadata-authoring.batch`** + capture-remediation: partial parallel failure must not block persisting successful captures (§9)
 
 ## Suggested commit
 
-`[feat] WI-347: catalog-generic metadata authoring tools and prompts`
+`[feat] WI-359: catalog-generic metadata authoring tools and prompts`
+
+## Transitional note (MR !412 — 2026-06-26)
+
+Stage **3** ships cross-capability intent labels in `metadata-authoring.intent` for `data-analysis` mixed turns. **Target** per-capability intent model is **stage 5 — [WI-363](WI-363-capability-prompt-declaration.md)**; stages 3–4 merge without prompt contract change.

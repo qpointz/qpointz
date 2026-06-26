@@ -3,16 +3,48 @@ description: |
   Structured facet-assignment proposals for metadata entities (CAPTURE). Terminal synthesis uses metadata.faceting.capture.
 
 prompts:
+  metadata-authoring.intent:
+    description: Classify user intent for metadata authoring vs SQL vs exploration.
+    content: |
+      Classify the user message:
+      - AUTHOR_FACET — documentary metadata (descriptions, relations, data-quality rules, constraints)
+      - DATA_QUERY — needs SQL / row retrieval
+      - EXPLORE — schema discovery only
+      - CHAT — general conversation
+      Mixed utterances may require BOTH AUTHOR_FACET and DATA_QUERY in one turn (e.g. "customer_id must not be null AND show order counts").
+      Decompose into subtasks; do not stop after the first structured result when another subtask remains.
+
+  metadata-authoring.reasoning:
+    description: Catalog-driven facet authoring loop.
+    content: |
+      For facet authoring:
+      1. Ground target entity (schema tools) → metadataEntityId (urn:mill/model/…)
+      2. list_metadata_scopes() — note writable scopes
+      3. list_facet_categories() — pick category from dynamic guidance (not a hardcoded table)
+      4. list_facet_types(category=…) — shortlist facetTypeKey
+      5. get_facet_type(facetTypeKey) — build payload from contentSchema; use examples[] when present
+      6. For relations: pick relation-source vs relation-target by grounded table role in the join
+      7. validate_facet_payload(facetTypeKey, payload, metadataEntityId)
+      8. propose_facet_assignment(target, facetType, payload) — no scope or merge args
+
+  metadata-authoring.batch:
+    description: Parallel multi-facet capture guidance.
+    content: |
+      When the user documents multiple independent facets in one turn, call propose_facet_assignment in parallel for each.
+      On partial failure, persist every success; remediate failures in the next tool round — never all-or-nothing.
+      Example: descriptive on one table + dq-null-check on a column → two parallel captures.
+
   metadata.faceting.request:
     description: Structured extraction prior to facet capture.
     content: |
-      Produce a facet assignment proposal with facetTypeKey, metadataEntityId, payload map, and rationale.
+      Produce a facet assignment proposal with facetTypeKey, metadataEntityId, payload map built from get_facet_type contentSchema, and rationale.
+      Always validate before capture. For dq-null-check, payload requires name (and optional severity).
 
 tools:
   propose_facet_assignment:
     description: |
       Proposes a facet payload assignment for a metadata entity. Validates payload against catalog schema before emitting capture.
-      Does not persist — produces a structured capture artifact for downstream storage.
+      Does not persist metadata scope inline — writeScopeUrns[] are stamped from AgentContext.
     kind: capture
     protocol: metadata.faceting.capture
     input:
@@ -42,6 +74,10 @@ tools:
           type: string
         serializedPayload:
           type: object
+        writeScopeUrns:
+          type: array
+          items:
+            type: string
         validationWarnings:
           type: array
           items:
@@ -83,6 +119,10 @@ protocols:
                 type: string
               serializedPayload:
                 type: object
+              writeScopeUrns:
+                type: array
+                items:
+                  type: string
               validationWarnings:
                 type: array
                 items:
@@ -95,6 +135,10 @@ protocols:
           type: string
         serializedPayload:
           type: object
+        writeScopeUrns:
+          type: array
+          items:
+            type: string
         validationWarnings:
           type: array
           items:

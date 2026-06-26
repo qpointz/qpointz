@@ -89,6 +89,8 @@ class LangChain4jChatRuntime(
                     contextType = rehydration.agentContext.contextType,
                     focusEntityType = rehydration.agentContext.focusEntityType,
                     focusEntityId = rehydration.agentContext.focusEntityId,
+                    chatId = metadata.chatId,
+                    scopes = rehydration.agentContext.scopes,
                     capabilityDependencies = capabilityDependencies,
                 )
                 var lastText = ""
