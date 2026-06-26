@@ -44,19 +44,21 @@ Each **stage** = one branch → per-WI commits during work → **squash** to a s
 | **WI-360** | WI-353 | 4 |
 | **WI-361** | WI-350 | 4 |
 | **WI-362** | WI-349 | 4 |
+| **WI-363** | — | **5** (new — MR !412 review 2026-06-26) |
 
 *(File renames WI-345…353 → WI-354…362 pending.)*
 
-### Stage table (4 stages — component groups)
+### Stage table (5 stages — component groups)
 
 | Stage | Branch | WIs (order on branch) | Components | Merge gate |
 | ----- | ------ | --------------------- | ---------- | ---------- |
 | **1** | `feat/meta-authoring-platform` | **WI-354** → **WI-356** → **WI-358** | `docs/design`, `metadata` (`MetadataContent` entity + seeds), `ai/mill-ai` (YAML profiles) | WI-354: design review. WI-356: `:metadata:mill-metadata-core:test --tests "*MetadataContent*"`. WI-358: `:ai:mill-ai:test --tests "*Profile*"` |
 | **2** | `feat/meta-artifact-batch` | **WI-355** | `ai/mill-ai` (agent, batch protocol, pointers, SSE), `ui/mill-ui` (multi-card SSE) | **WI-355 only:** L1–L6 + mill-ui SSE Vitest ([`GAPS.md`](GAPS.md) §1, §15–§16) — **requires stage 1 merged** (WI-354 design contract) |
 | **3** | `feat/meta-authoring-catalog` | **WI-357** → **WI-359** | `ai/mill-ai-data`, `metadata`, `ai/mill-ai` (capabilities + prompts) | WI-357: `:ai:mill-ai-data:test --tests "*Metadata*"`. WI-359: `:ai:mill-ai:test --tests "*Metadata*"` — **requires stages 1–2 merged** (WI-356 content + WI-355 batch) |
-| **4** | `feat/meta-authoring-lifecycle` | **WI-360** → **WI-361** → **WI-362** | `core/mill-events`, `metadata` (scope rows), `ai/mill-ai` (`ArtifactRef` core type), `ai/mill-ai-service`, `ui/mill-ui` (Accept/Reject + per-artefact SQL binding), `ai/mill-ai-test`, `docs/` | WI-360: `:core:mill-events:test` + `:ai:mill-ai-service:testIT --tests "*Artifact*"` + mill-ui lifecycle tests. WI-361: no `capture_*` in manifests. WI-362: **full verify block** (§ Verify) |
+| **4** | `feat/meta-authoring-lifecycle` | **WI-360** → **WI-361** → **WI-362** | `core/mill-events`, `metadata` (scope rows), `ai/mill-ai` (`ArtifactRef` core type), `ai/mill-ai-service`, `ui/mill-ui` (Accept/Reject + per-artefact SQL binding), `ai/mill-ai-test`, `docs/` | WI-360: `:core:mill-events:test` + `:ai:mill-ai-service:testIT --tests "*Artifact*"` + mill-ui lifecycle tests. WI-361: no `capture_*` in manifests. WI-362: lifecycle e2e + design integration pass |
+| **5** | `feat/meta-capability-prompts` | **WI-363** | `ai/mill-ai` (capability YAML, profile prompts), `ai/mill-ai-test` (intent scenarios), `docs/design/agentic/` | WI-363: per-capability intents + profile composition; `:ai:mill-ai:test --tests "*Profile*"` + `:ai:mill-ai-test:test --tests "*facet*"` — **requires stage 4 merged** |
 
-**Rationale:** Stage **1** lands **design, content model, and profiles** without the large agent/SSE diff. Stage **2** is **WI-355 alone** — multi-artifact runtime + breaking SSE — for a focused review MR. Stage **3** wires **metadata read path + LLM tools**. Stage **4** delivers **facet lifecycle** (first production `mill-events` consumer), removes legacy capture, and proves e2e.
+**Rationale:** Stages **1–3** land platform, batch, and catalog tools. Stage **4** delivers lifecycle and e2e on the **transitional** intent model (cross-capability routes in `metadata-authoring.intent`). Stage **5** refactors prompts and capability declarations to the **target** model (per-capability intents, profile-level composition) without changing tool or artefact contracts.
 
 ```mermaid
 flowchart TB
@@ -86,9 +88,14 @@ flowchart TB
     WI360 --> WI361
     WI361 --> WI362
   end
+  subgraph s5 [Stage 5 prompts]
+    WI363[WI-363 capability prompts]
+    WI362 --> WI363
+  end
   s1 --> s2
   s2 --> s3
   s3 --> s4
+  s4 --> s5
 ```
 
 ### Per-stage workflow (normative)
@@ -132,6 +139,8 @@ On top of [`RULES.md`](../../RULES.md) **Per-WI cadence** and **Complete working
 | **Multi-facet per turn** | Batch `{ results[] }` → N artefacts; **full** turn + pointer + GET support (**WI-351** §15) |
 | **Partial batch failure** | Emit all successes; continue on failure ([`GAPS.md`](GAPS.md) §9) |
 | **Mixed SQL + facets** | One turn: **`generated-sql`** + **`facet-proposal`(s)**; **Accept/Reject** on facets (§10, §23) |
+| **Intent routing (stages 3–4)** | **Transitional:** `metadata-authoring.intent` includes cross-capability routes (`DATA_QUERY`, `EXPLORE`) for `data-analysis` mixed turns — documented; **not** the long-term model |
+| **Intent routing (stage 5)** | **Target:** per-capability intents only; profile composes non-overlapping union — **WI-363** |
 | **MCP** | Profile-driven exposure via existing catalog; **all new tools MCP-enabled** (default); inventory doc in **WI-349** ([`GAPS.md`](GAPS.md) §18) |
 
 ## Gap (why this story exists)
@@ -186,21 +195,25 @@ On top of [`RULES.md`](../../RULES.md) **Per-WI cadence** and **Complete working
 | 6 | WI-359 | **3** | Catalog tools + prompts — depends WI-355, WI-356, WI-357 |
 | 7 | WI-360 | **4** | Facet lifecycle + **promote `ArtifactRef` to `mill-ai` core** (wire `artifactId`, per-artefact attach) — depends WI-355, WI-356, WI-359 |
 | 8 | WI-361 | **4** | Remove `capture_*` — depends WI-359, WI-355 |
-| 9 | WI-362 | **4** | E2E + docs — depends WI-360, WI-361 |
+| 9 | WI-362 | **4** | E2e + docs on transitional intents — depends WI-360, WI-361 |
+| 10 | WI-363 | **5** | Per-capability intents + profile prompt composition — depends WI-362 |
 
 ## Work Items
 
 - [x] WI-354 — Design contract (`WI-345-metadata-authoring-design-contract.md`) — *was WI-345*
 - [x] WI-355 — Multi-artifact protocol (`WI-351-multi-artifact-protocol-runtime.md`) — *was WI-351*
 - [x] WI-356 — `MetadataContent` entity + seeds (`WI-352-metadata-content-entity-and-seed.md`) — *was WI-352*
-- [ ] WI-357 — `MetadataReadPort` adapter (`WI-357-metadata-read-port-adapter.md`) — *was WI-346*
+- [x] WI-357 — `MetadataReadPort` adapter (`WI-346-metadata-read-port-adapter.md`) — *was WI-346*
 - [x] WI-358 — YAML agent profiles (`WI-348-agent-profiles-metadata-authoring.md`) — *was WI-348*
-- [ ] WI-359 — Catalog-generic facet tools (`WI-359-metadata-authoring-capability.md`) — *was WI-347*
+- [x] WI-359 — Catalog-generic facet tools (`WI-347-metadata-authoring-capability.md`) — *was WI-347*
 - [ ] WI-360 — Facet lifecycle + events (`WI-360-facet-artifact-lifecycle-events.md`) — *was WI-353*
 - [ ] WI-361 — Remove `capture_*` (`WI-361-schema-authoring-description-tool-cleanup.md`) — *was WI-350*
-- [ ] WI-362 — Tests, scenarios, docs (`WI-362-metadata-authoring-tests-docs.md`) — *was WI-349*
+- [ ] WI-362 — Tests, scenarios, docs (`WI-349-metadata-authoring-tests-docs.md`) — *was WI-349*
+- [ ] WI-363 — Capability prompt declaration (`WI-363-capability-prompt-declaration.md`) — *stage 5; MR !412 review*
 
-## Verify (full story — before MR)
+## Verify (full story — before story archive)
+
+Run after **stage 5** MR merged (stage 4 verify + WI-363 gates):
 
 ```bash
 ./gradlew :metadata:mill-metadata-core:test --tests "*MetadataContent*"
@@ -213,6 +226,14 @@ On top of [`RULES.md`](../../RULES.md) **Per-WI cadence** and **Complete working
 ./gradlew :core:mill-events:test
 ./gradlew :ai:mill-ai-test:test --tests "*facet*"
 ./gradlew :ui:mill-ui:test
+```
+
+**Stage 5 add-on (WI-363):**
+
+```bash
+./gradlew :ai:mill-ai:test --tests "*Profile*"
+./gradlew :ai:mill-ai:test --tests "*Metadata*"
+./gradlew :ai:mill-ai-test:test --tests "*facet*"
 ```
 
 ## Prompt enforcement

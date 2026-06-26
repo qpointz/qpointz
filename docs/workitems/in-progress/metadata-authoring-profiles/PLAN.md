@@ -14,7 +14,7 @@ Make **`metadata-authoring`** **catalog-generic**: the LLM uses `list_facet_cate
 
 ---
 
-## 2. Delivery model (4 stages; WI-355 isolated for review)
+## 2. Delivery model (5 stages; WI-355 isolated for review)
 
 **Override:** [`RULES.md`](../../RULES.md) default “one branch per story” → **one branch + one MR per stage**. Everything else in RULES applies (per-WI commit, tracker, complete working copy).
 
@@ -24,6 +24,7 @@ Make **`metadata-authoring`** **catalog-generic**: the LLM uses `list_facet_cate
 | **2** | `feat/meta-artifact-batch` | **WI-355** | `ai/mill-ai` (agent, batch, pointers, SSE), `ui/mill-ui` |
 | **3** | `feat/meta-authoring-catalog` | WI-357 → WI-359 | `ai/mill-ai-data`, `metadata`, `ai/mill-ai` capabilities |
 | **4** | `feat/meta-authoring-lifecycle` | WI-360 → WI-361 → WI-362 | `core/mill-events`, `metadata` scope, `ai/mill-ai-service`, `ui/mill-ui`, `ai/mill-ai-test`, docs |
+| **5** | `feat/meta-capability-prompts` | **WI-363** | `ai/mill-ai` capability YAML + profile prompts, `ai/mill-ai-test`, `docs/design/agentic/` |
 
 ```mermaid
 flowchart TB
@@ -53,10 +54,14 @@ flowchart TB
     WI360 --> WI361
     WI361 --> WI362
   end
-  s1 --> s2 --> s3 --> s4
+  subgraph s5 [Stage 5 prompts]
+    WI363[WI-363 capability prompts]
+    WI362 --> WI363
+  end
+  s1 --> s2 --> s3 --> s4 --> s5
 ```
 
-**Hard gates:** Do **not** start stage **2** until stage **1** MR is **merged** (WI-355 needs WI-354 design). Do **not** start stage **3** until stage **2** MR is **merged** (WI-359 needs WI-355 batch). Do **not** start WI-359 before WI-357 on the stage 3 branch.
+**Hard gates:** Do **not** start stage **2** until stage **1** MR is **merged** (WI-355 needs WI-354 design). Do **not** start stage **3** until stage **2** MR is **merged** (WI-359 needs WI-355 batch). Do **not** start WI-359 before WI-357 on the stage 3 branch. Do **not** start stage **5** until stage **4** MR is **merged** (WI-363 refactors prompts after lifecycle e2e baseline).
 
 ### Per-stage workflow
 
@@ -72,7 +77,7 @@ flowchart TB
 
 ## 3. WI renumber legend and file index
 
-Planning IDs **WI-354…362** map to execution order. **On disk, filenames still use WI-345…353** until a renumber pass lands.
+Planning IDs **WI-354…363** map to execution order. **On disk, filenames still use WI-345…353** until a renumber pass lands.
 
 | Planned ID | Was | Stage | Current file |
 | ---------- | --- | ----- | ------------ |
@@ -85,6 +90,7 @@ Planning IDs **WI-354…362** map to execution order. **On disk, filenames still
 | **WI-360** | WI-353 | 4 | [`WI-353-facet-artifact-lifecycle-events.md`](WI-353-facet-artifact-lifecycle-events.md) |
 | **WI-361** | WI-350 | 4 | [`WI-350-schema-authoring-description-tool-cleanup.md`](WI-350-schema-authoring-description-tool-cleanup.md) |
 | **WI-362** | WI-349 | 4 | [`WI-349-metadata-authoring-tests-docs.md`](WI-349-metadata-authoring-tests-docs.md) |
+| **WI-363** | — | **5** | [`WI-363-capability-prompt-declaration.md`](WI-363-capability-prompt-declaration.md) |
 
 ### Pending housekeeping (optional before stage 1)
 
@@ -147,6 +153,15 @@ Planning IDs **WI-354…362** map to execution order. **On disk, filenames still
 ./gradlew :core:mill-events:test
 ./gradlew :ai:mill-ai-test:test --tests "*facet*"
 ./gradlew :ui:mill-ui:test
+```
+
+### Stage 5 — capability prompts (WI-363)
+
+```bash
+# Per-capability intents + profile composition (after stage 4 merged)
+./gradlew :ai:mill-ai:test --tests "*Profile*"
+./gradlew :ai:mill-ai:test --tests "*Metadata*"
+./gradlew :ai:mill-ai-test:test --tests "*facet*"
 ```
 
 ---

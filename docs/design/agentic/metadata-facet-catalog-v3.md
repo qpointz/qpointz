@@ -85,7 +85,9 @@ When **`metadata-authoring`** is on the profile, documentary utterances must run
 | `metadata.faceting.request` | Structured fields before capture |
 | `metadata-authoring.batch` | Multi-tuple decomposition (WI-359) |
 
-**Cross-capability:** on `data-analysis`, `metadata-authoring.intent` wins for documentary turns; `sql-query` wins only for `QUERY_DATA`.
+**Cross-capability (stages 3–4 — transitional):** on `data-analysis`, `metadata-authoring.intent` classifies mixed turns (`AUTHOR_FACET`, `DATA_QUERY`, `EXPLORE`, `CHAT`) in one prompt. Documented in STORY § Architectural decisions; **not** the long-term model.
+
+**Target (stage 5 — WI-363):** each capability owns capability-scoped intents only; profiles compose a non-overlapping union. `sql-query.intent` owns data retrieval; `metadata-authoring.intent` owns facet authoring only.
 
 ## Multi-facet batch
 

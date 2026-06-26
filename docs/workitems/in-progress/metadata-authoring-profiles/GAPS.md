@@ -529,7 +529,11 @@ The three keys are **not interchangeable aliases**. Choice is constrained by **(
 
 **Rejected:** v1 “intent picks one primary path only” / force follow-up message.
 
-**Owner:** design → **WI-345**; heterogeneous agent + persist/SSE → **WI-351** (phase B) + **WI-347** intent; UI → **WI-351** / mill-ui; e2e → **WI-349**.
+**Transitional intent (stages 3–4):** `metadata-authoring.intent` lists cross-capability routes (`DATA_QUERY`, `EXPLORE`) so `data-analysis` can decompose mixed turns without a profile-level router yet. MR !412 review (2026-06-26) — merge as-is; document in design.
+
+**Target intent model (stage 5 — WI-363):** each capability declares **only** capability-scoped intents; profiles compose non-overlapping union (`sql-query.intent`, trimmed `metadata-authoring.intent`, profile `data-analysis` composition). Scenario packs updated after WI-362 baseline.
+
+**Owner:** design → **WI-345**; heterogeneous agent + persist/SSE → **WI-351** (phase B) + **WI-347** intent (transitional); intent refactor → **WI-363**; UI → **WI-351** / mill-ui; e2e → **WI-349** / **WI-362**.
 
 ---
 
