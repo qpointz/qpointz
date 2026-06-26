@@ -1,8 +1,9 @@
-import { Box, useMantineColorScheme, Text, Badge, ActionIcon, Tooltip } from '@mantine/core';
+import { Box, useMantineColorScheme, Text, Badge, ActionIcon, Tooltip, Modal, Stack, Group, Button } from '@mantine/core';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router';
 import { format as formatSQL } from 'sql-formatter';
-import { HiOutlineCommandLine, HiOutlineBeaker, HiOutlinePlus } from 'react-icons/hi2';
+import { HiOutlinePlus } from 'react-icons/hi2';
+import { TbFileTypeSql } from 'react-icons/tb';
 import { QuerySidebar } from './QuerySidebar';
 import { QueryEditor } from './QueryEditor';
 import { QueryDataView } from '../data/QueryDataView';
@@ -64,6 +65,11 @@ function computeIsDirty(sql: string, savedSql: string, name: string | null, save
   return sql !== savedSql || (name ?? '') !== savedName;
 }
 
+type PendingQueryNavigation =
+  | { kind: 'select'; query: SavedQuery }
+  | { kind: 'new' }
+  | { kind: 'route'; queryId: string };
+
 export function QueryPlayground() {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
@@ -88,6 +94,7 @@ export function QueryPlayground() {
   const [activeQueryName, setActiveQueryName] = useState<string | null>(null);
   const [activeQueryDescription, setActiveQueryDescription] = useState<string | null>(null);
   const [savedQueries, setSavedQueries] = useState<SavedQuery[]>([]);
+  const [pendingNavigation, setPendingNavigation] = useState<PendingQueryNavigation | null>(null);
   const savedSnapshotRef = useRef(savedSnapshot);
   const savedNameSnapshotRef = useRef(savedNameSnapshot);
   const activeQueryNameRef = useRef(activeQueryName);
@@ -152,6 +159,69 @@ export function QueryPlayground() {
     onSessionCleared: clearActiveSessionRef,
   };
 
+  const loadQueryIntoEditor = useCallback(async (query: SavedQuery) => {
+    await closeActiveSession();
+    applyLoadedQuery(query, querySetters);
+  }, [closeActiveSession]);
+
+  const resolveAndLoadQueryById = useCallback(async (queryId: string) => {
+    try {
+      const localQuery = savedQueries.find((q) => q.id === queryId);
+      if (localQuery) {
+        await loadQueryIntoEditor(localQuery);
+        return;
+      }
+
+      const query = await queryService.getSavedQueryById(queryId);
+      if (!query) {
+        return;
+      }
+      setSavedQueries((prev) => (prev.some((q) => q.id === query.id) ? prev : [query, ...prev]));
+      await loadQueryIntoEditor(query);
+    } catch {
+      // Query not found or failed to load — ignore.
+    }
+  }, [savedQueries, loadQueryIntoEditor]);
+
+  const commitNewQuery = useCallback(async () => {
+    try {
+      newQueryCounter += 1;
+      const name = `New Query ${newQueryCounter}`;
+      const created = await queryService.createSavedQuery({ name, sql: '' });
+      setSavedQueries((prev) => [created, ...prev]);
+      await closeActiveSession();
+      navigate(`/analysis/${created.id}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create query');
+    }
+  }, [closeActiveSession, navigate]);
+
+  const navigateForPending = useCallback((pending: PendingQueryNavigation) => {
+    switch (pending.kind) {
+      case 'select':
+        navigate(`/analysis/${pending.query.id}`);
+        break;
+      case 'route':
+        navigate(`/analysis/${pending.queryId}`);
+        break;
+      case 'new':
+        void commitNewQuery();
+        break;
+    }
+  }, [navigate, commitNewQuery]);
+
+  const requestNavigation = useCallback((pending: PendingQueryNavigation) => {
+    if (!isDirty) {
+      navigateForPending(pending);
+      return;
+    }
+    setPendingNavigation(pending);
+  }, [isDirty, navigateForPending]);
+
+  const fulfillPendingNavigation = useCallback((pending: PendingQueryNavigation) => {
+    navigateForPending(pending);
+  }, [navigateForPending]);
+
   // Load saved queries on mount
   useEffect(() => {
     void loadSavedQueries();
@@ -176,7 +246,7 @@ export function QueryPlayground() {
           description: handoff.suggestedDescription,
         });
         setSavedQueries((prev) => [created, ...prev]);
-        applyLoadedQuery(created, querySetters);
+        await closeActiveSession();
         navigate(`/analysis/${created.id}`, { replace: true, state: null });
       } catch (err) {
         chatHandoffProcessedRef.current = false;
@@ -198,7 +268,6 @@ export function QueryPlayground() {
       return;
     }
     void closeActiveSession();
-    applyLoadedQuery(first, querySetters);
     navigate(`/analysis/${first.id}`, { replace: true });
   }, [params.queryId, activeQueryId, savedQueries, navigate, closeActiveSession, location.state]);
 
@@ -206,29 +275,29 @@ export function QueryPlayground() {
     void closeActiveSession();
   }, [closeActiveSession]);
 
-  // Sync URL params to selected query (skip when already active to preserve unsaved edits)
+  // Sync URL params to selected query (prompt when unsaved edits would be lost).
   useEffect(() => {
     if (!params.queryId || activeQueryId === params.queryId) {
       return;
     }
 
-    const localQuery = savedQueries.find((q) => q.id === params.queryId);
-    if (localQuery) {
-      void closeActiveSession();
-      applyLoadedQuery(localQuery, querySetters);
+    if (isDirty) {
+      requestNavigation({ kind: 'route', queryId: params.queryId });
+      if (activeQueryId) {
+        navigate(`/analysis/${activeQueryId}`, { replace: true });
+      }
       return;
     }
 
-    queryService.getSavedQueryById(params.queryId).then((query) => {
-      if (query) {
-        void closeActiveSession();
-        applyLoadedQuery(query, querySetters);
-        setSavedQueries((prev) => (prev.some((q) => q.id === query.id) ? prev : [query, ...prev]));
-      }
-    }).catch(() => {
-      // Query not found -- ignore
-    });
-  }, [params.queryId, savedQueries, activeQueryId, closeActiveSession]);
+    void resolveAndLoadQueryById(params.queryId);
+  }, [
+    params.queryId,
+    activeQueryId,
+    isDirty,
+    navigate,
+    requestNavigation,
+    resolveAndLoadQueryById,
+  ]);
 
   // Listen to inline chat AI responses -- extract SQL and update editor
   useInlineChatListener(activeQueryId ?? '__analysis__', (content) => {
@@ -240,10 +309,94 @@ export function QueryPlayground() {
   });
 
   const handleSelectQuery = useCallback((query: SavedQuery) => {
-    void closeActiveSession();
-    applyLoadedQuery(query, querySetters);
-    navigate(`/analysis/${query.id}`);
-  }, [navigate, closeActiveSession]);
+    if (query.id === activeQueryId) {
+      return;
+    }
+    requestNavigation({ kind: 'select', query });
+  }, [activeQueryId, requestNavigation]);
+
+  const performSave = useCallback(async (): Promise<boolean> => {
+    if (isSaving) {
+      return false;
+    }
+
+    setIsSaving(true);
+    setError(null);
+    try {
+      if (!activeQueryId) {
+        if (!sql.trim()) {
+          return false;
+        }
+        newQueryCounter += 1;
+        const name = activeQueryName?.trim() || `New Query ${newQueryCounter}`;
+        const created = await queryService.createSavedQuery({
+          name,
+          sql,
+          description: activeQueryDescription ?? undefined,
+        });
+        setSavedQueries((prev) => [created, ...prev]);
+        navigate(`/analysis/${created.id}`);
+        return true;
+      }
+
+      if (!activeQueryName || !isDirty) {
+        return true;
+      }
+
+      const saved = await queryService.updateSavedQuery(activeQueryId, {
+        name: activeQueryName,
+        description: activeQueryDescription ?? undefined,
+        sql,
+        tags: savedQueries.find((q) => q.id === activeQueryId)?.tags,
+      });
+      setSavedQueries((prev) => [saved, ...prev.filter((q) => q.id !== saved.id)]);
+      setSavedSnapshot(saved.sql);
+      setSavedNameSnapshot(saved.name);
+      setIsDirty(false);
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save query');
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  }, [
+    activeQueryId,
+    activeQueryName,
+    activeQueryDescription,
+    isSaving,
+    isDirty,
+    sql,
+    savedQueries,
+    navigate,
+  ]);
+
+  const handleSave = useCallback(async () => {
+    await performSave();
+  }, [performSave]);
+
+  const handleUnsavedSave = useCallback(async () => {
+    const pending = pendingNavigation;
+    if (!pending) {
+      return;
+    }
+    const saved = await performSave();
+    if (!saved) {
+      return;
+    }
+    setPendingNavigation(null);
+    fulfillPendingNavigation(pending);
+  }, [pendingNavigation, performSave, fulfillPendingNavigation]);
+
+  const handleUnsavedDiscard = useCallback(() => {
+    const pending = pendingNavigation;
+    if (!pending) {
+      return;
+    }
+    setPendingNavigation(null);
+    setIsDirty(false);
+    fulfillPendingNavigation(pending);
+  }, [pendingNavigation, fulfillPendingNavigation]);
 
   const handleSqlChange = useCallback((newSql: string) => {
     setSql(newSql);
@@ -362,73 +515,9 @@ export function QueryPlayground() {
     }
   }, [result, isPageLoading, isExecuting]);
 
-  const handleSave = useCallback(async () => {
-    if (isSaving) {
-      return;
-    }
-
-    setIsSaving(true);
-    setError(null);
-    try {
-      if (!activeQueryId) {
-        if (!sql.trim()) {
-          return;
-        }
-        newQueryCounter += 1;
-        const name = activeQueryName?.trim() || `New Query ${newQueryCounter}`;
-        const created = await queryService.createSavedQuery({
-          name,
-          sql,
-          description: activeQueryDescription ?? undefined,
-        });
-        setSavedQueries((prev) => [created, ...prev]);
-        applyLoadedQuery(created, querySetters);
-        navigate(`/analysis/${created.id}`);
-        return;
-      }
-
-      if (!activeQueryName || !isDirty) {
-        return;
-      }
-
-      const saved = await queryService.updateSavedQuery(activeQueryId, {
-        name: activeQueryName,
-        description: activeQueryDescription ?? undefined,
-        sql,
-        tags: savedQueries.find((q) => q.id === activeQueryId)?.tags,
-      });
-      setSavedQueries((prev) => [saved, ...prev.filter((q) => q.id !== saved.id)]);
-      setSavedSnapshot(saved.sql);
-      setSavedNameSnapshot(saved.name);
-      setIsDirty(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save query');
-    } finally {
-      setIsSaving(false);
-    }
-  }, [
-    activeQueryId,
-    activeQueryName,
-    activeQueryDescription,
-    isSaving,
-    isDirty,
-    sql,
-    savedQueries,
-    navigate,
-  ]);
-
-  const handleNewQuery = useCallback(async () => {
-    newQueryCounter += 1;
-    const name = `New Query ${newQueryCounter}`;
-    try {
-      const created = await queryService.createSavedQuery({ name, sql: '' });
-      setSavedQueries((prev) => [created, ...prev]);
-      applyLoadedQuery(created, querySetters);
-      navigate(`/analysis/${created.id}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create query');
-    }
-  }, [navigate]);
+  const handleNewQuery = useCallback(() => {
+    requestNavigation({ kind: 'new' });
+  }, [requestNavigation]);
 
   const handleDeleteQuery = useCallback(async (queryId: string) => {
     try {
@@ -450,7 +539,6 @@ export function QueryPlayground() {
 
     if (nextQuery) {
       void closeActiveSession();
-      applyLoadedQuery(nextQuery, querySetters);
       navigate(`/analysis/${nextQuery.id}`);
     } else {
       void closeActiveSession();
@@ -473,9 +561,10 @@ export function QueryPlayground() {
   const hasContent = sql.trim() || result || error || activeQueryId;
 
   return (
+    <>
     <ExplorerSplitLayout
-      icon={HiOutlineBeaker}
-      title="Saved Queries"
+      icon={TbFileTypeSql}
+      title="Experiments"
       sidebarHeaderRight={
         <>
           {flags.sidebarAnalysisBadge && (
@@ -585,7 +674,7 @@ export function QueryPlayground() {
                 marginBottom: 24,
               }}
             >
-              <HiOutlineCommandLine
+              <TbFileTypeSql
                 size={36}
                 color={isDark ? 'var(--mantine-color-cyan-4)' : 'var(--mantine-color-teal-6)'}
               />
@@ -600,5 +689,33 @@ export function QueryPlayground() {
         )
       }
     />
+    <Modal
+      opened={pendingNavigation !== null}
+      onClose={() => setPendingNavigation(null)}
+      title="Unsaved changes"
+      centered
+    >
+      <Stack gap="md">
+        <Text size="sm" c={isDark ? 'gray.2' : 'gray.7'}>
+          This query has unsaved changes. Save before switching?
+        </Text>
+        <Group justify="flex-end" gap="xs">
+          <Button variant="subtle" color="gray" onClick={() => setPendingNavigation(null)}>
+            Cancel
+          </Button>
+          <Button variant="light" color="red" onClick={() => { void handleUnsavedDiscard(); }}>
+            Discard
+          </Button>
+          <Button
+            color={isDark ? 'cyan' : 'teal'}
+            loading={isSaving}
+            onClick={() => { void handleUnsavedSave(); }}
+          >
+            Save
+          </Button>
+        </Group>
+      </Stack>
+    </Modal>
+    </>
   );
 }

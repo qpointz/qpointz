@@ -11,7 +11,8 @@ import {
   useMantineColorScheme,
 } from '@mantine/core';
 import { useState } from 'react';
-import { HiOutlineDocumentText, HiOutlineChatBubbleLeftRight, HiOutlineTrash } from 'react-icons/hi2';
+import { HiOutlineChatBubbleLeftRight, HiOutlineTrash } from 'react-icons/hi2';
+import { TbFileTypeSql } from 'react-icons/tb';
 import { useInlineChat } from '../../context/InlineChatContext';
 import type { SavedQuery } from '../../types/query';
 
@@ -52,7 +53,7 @@ export function QuerySidebar({ queries, activeQueryId, onSelectQuery, onDeleteQu
                 </Box>
               }
               leftSection={
-                <HiOutlineDocumentText
+                <TbFileTypeSql
                   size={14}
                   color={
                     activeQueryId === query.id

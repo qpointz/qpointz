@@ -1,25 +1,19 @@
 package io.qpointz.mill.analysis.queries.it
 
-import io.qpointz.mill.analysis.queries.web.AnalysisDialectRestController
-import io.qpointz.mill.analysis.queries.web.SavedQueriesRestController
 import io.qpointz.mill.data.backend.dispatchers.DataOperationDispatcher
-import io.qpointz.mill.persistence.analysis.jpa.AnalysisPersistenceAutoConfiguration
 import io.qpointz.mill.sql.v2.dialect.DialectRegistry
 import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec
 import org.mockito.kotlin.mock
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Import
 
 /**
  * Minimal servlet application for Analysis REST integration tests.
+ *
+ * Controllers are registered only via [io.qpointz.mill.analysis.queries.web.config.AnalysisQueriesWebAutoConfiguration]
+ * (not direct {@code @Import}), matching mill-service startup.
  */
 @SpringBootApplication
-@Import(
-    AnalysisPersistenceAutoConfiguration::class,
-    SavedQueriesRestController::class,
-    AnalysisDialectRestController::class,
-)
 class TestAnalysisQueriesApplication {
 
     /**
@@ -29,7 +23,7 @@ class TestAnalysisQueriesApplication {
     fun dataOperationDispatcher(): DataOperationDispatcher = mock()
 
     /**
-     * Configured dialect for {@link AnalysisDialectRestController} tests.
+     * Configured dialect for {@link io.qpointz.mill.analysis.queries.web.AnalysisDialectRestController} tests.
      */
     @Bean
     fun sqlDialectSpec(): SqlDialectSpec = DialectRegistry.fromClasspathDefaults().requireDialect("CALCITE")

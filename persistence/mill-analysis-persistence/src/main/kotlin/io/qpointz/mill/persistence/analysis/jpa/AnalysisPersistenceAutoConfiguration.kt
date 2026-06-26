@@ -7,6 +7,8 @@ import io.qpointz.mill.utils.JsonUtils
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
 import org.springframework.boot.persistence.autoconfigure.EntityScan
 import org.springframework.context.annotation.Bean
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
@@ -18,7 +20,12 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
  * {@code mill-service} does not depend on {@code mill-persistence-autoconfigure}, so repository
  * discovery must be declared here rather than relying on a global persistence package scan.
  */
-@AutoConfiguration
+@AutoConfiguration(
+    after = [
+        DataSourceAutoConfiguration::class,
+        HibernateJpaAutoConfiguration::class,
+    ],
+)
 @ConditionalOnClass(SavedQueryJpaRepository::class)
 @EntityScan(basePackages = ["io.qpointz.mill.persistence.analysis.jpa.entities"])
 @EnableJpaRepositories(basePackages = ["io.qpointz.mill.persistence.analysis.jpa.repositories"])
