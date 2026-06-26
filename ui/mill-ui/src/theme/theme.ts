@@ -1,5 +1,40 @@
-import { createTheme, type CSSVariablesResolver } from '@mantine/core';
+import { createTheme, type CSSVariablesResolver, type MantineColorsTuple } from '@mantine/core';
 import type { ColorTheme } from './themes';
+
+/** Mantine named color slots remapped to grey when both themes are monochrome. */
+const MANTINE_COLOR_SLOTS = [
+  'red', 'pink', 'grape', 'violet', 'indigo', 'blue', 'cyan', 'teal', 'green', 'lime', 'yellow', 'orange',
+] as const;
+
+function isMonochromePair(lightTheme: ColorTheme, darkTheme: ColorTheme): boolean {
+  return lightTheme.monochrome === true && darkTheme.monochrome === true;
+}
+
+function buildMantineColors(lightTheme: ColorTheme, darkTheme: ColorTheme) {
+  const lightNeutrals = lightTheme.neutrals;
+  const darkPalette = darkTheme.darks;
+  const lightAccent = lightTheme.colors;
+  const darkAccent = darkTheme.colors;
+
+  const base = {
+    gray: lightNeutrals,
+    dark: darkPalette,
+    slate: lightNeutrals,
+    teal: lightAccent,
+    cyan: darkAccent,
+  };
+
+  if (!isMonochromePair(lightTheme, darkTheme)) {
+    return base;
+  }
+
+  const greySlots: Record<string, MantineColorsTuple> = {};
+  for (const slot of MANTINE_COLOR_SLOTS) {
+    greySlots[slot] = slot === 'cyan' ? darkAccent : lightAccent;
+  }
+
+  return { ...base, ...greySlots };
+}
 
 /**
  * Build a Mantine theme + CSS variables resolver from two ColorTheme objects.
@@ -43,17 +78,8 @@ export function buildTheme(lightTheme: ColorTheme, darkTheme: ColorTheme) {
   };
 
   const theme = createTheme({
-    primaryColor: 'teal',
-    colors: {
-      teal: lightTheme.colors,
-      cyan: darkTheme.colors,
-      // gray = light neutrals by default (CSS vars override in dark mode)
-      gray: lightNeutrals,
-      // dark palette for dark mode backgrounds/surfaces
-      dark: darkPalette,
-      // keep slate for explicit color="slate" usage
-      slate: lightNeutrals,
-    },
+    primaryColor: isMonochromePair(lightTheme, darkTheme) ? 'gray' : 'teal',
+    colors: buildMantineColors(lightTheme, darkTheme),
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     headings: {
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',

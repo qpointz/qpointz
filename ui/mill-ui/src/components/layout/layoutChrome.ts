@@ -23,7 +23,7 @@ export const CONTENT_PANE_HEADER_PADDING_X = 'var(--mantine-spacing-md)';
 export function contentPaneHeaderBackground(isDark: boolean): string {
   return isDark
     ? 'linear-gradient(135deg, var(--mantine-color-dark-8) 0%, var(--mantine-color-dark-7) 100%)'
-    : 'linear-gradient(135deg, var(--mantine-color-teal-0) 0%, white 100%)';
+    : 'linear-gradient(135deg, var(--mantine-color-gray-0) 0%, white 100%)';
 }
 
 export function contentPaneHeaderShellStyle(isDark: boolean): CSSProperties {

@@ -5,6 +5,8 @@ export interface ColorTheme {
   name: string;
   mode: 'light' | 'dark';
   swatch: string;
+  /** When true, chrome and accent slots use greyscale only (see {@link buildTheme}). */
+  monochrome?: boolean;
   /** Accent palette (light → teal slot, dark → cyan slot) */
   colors: MantineColorsTuple;
   /** Tinted neutral palette (overrides `gray`). Tailwind-slate distribution.
@@ -114,6 +116,27 @@ export const lightThemes: ColorTheme[] = [
       '#2e2f31', '#272729', '#1b1b1d', '#151516', '#111112',
     ],
   },
+  {
+    id: 'monochrome',
+    name: 'Monochrome',
+    mode: 'light',
+    monochrome: true,
+    swatch: '#a3a3a3',
+    /** Grey accent — mapped into teal slot; pills/nav use grey not hue. */
+    colors: [
+      '#ffffff', '#fafafa', '#f4f4f5', '#e4e4e7', '#d4d4d8',
+      '#a1a1aa', '#71717a', '#52525b', '#3f3f46', '#27272a',
+    ],
+    /** Pure zinc greyscale — white body, no hue tint in chrome. */
+    neutrals: [
+      '#ffffff', '#fafafa', '#f4f4f5', '#e4e4e7', '#d4d4d8',
+      '#a1a1aa', '#71717a', '#52525b', '#3f3f46', '#27272a',
+    ],
+    darks: [
+      '#e4e4e7', '#d4d4d8', '#a1a1aa', '#71717a', '#52525b',
+      '#3f3f46', '#27272a', '#1f1f23', '#18181b', '#09090b',
+    ],
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -215,10 +238,32 @@ export const darkThemes: ColorTheme[] = [
       '#2e2e31', '#272629', '#1b1b1d', '#151516', '#111112',
     ],
   },
+  {
+    id: 'monochrome',
+    name: 'Monochrome',
+    mode: 'dark',
+    monochrome: true,
+    swatch: '#71717a',
+    /** Grey accent — mapped into cyan slot. */
+    colors: [
+      '#f4f4f5', '#e4e4e7', '#d4d4d8', '#a1a1aa', '#71717a',
+      '#52525b', '#404040', '#333338', '#26262b', '#18181b',
+    ],
+    /** Zinc greyscale text — no hue tint. */
+    neutrals: [
+      '#fafafa', '#f4f4f5', '#e4e4e7', '#d4d4d8', '#a1a1aa',
+      '#71717a', '#52525b', '#3f3f46', '#27272a', '#18181b',
+    ],
+    /** Charcoal surfaces — subtle grey layers, not blue-tinted slate. */
+    darks: [
+      '#d4d4d8', '#a1a1aa', '#71717a', '#52525b', '#3f3f46',
+      '#323238', '#27272a', '#1c1c1f', '#141416', '#0a0a0b',
+    ],
+  },
 ];
 
-export const DEFAULT_LIGHT_THEME_ID = 'classic';
-export const DEFAULT_DARK_THEME_ID = 'classic';
+export const DEFAULT_LIGHT_THEME_ID = 'monochrome';
+export const DEFAULT_DARK_THEME_ID = 'monochrome';
 
 export function findLightTheme(id: string): ColorTheme {
   return lightThemes.find((t) => t.id === id) ?? lightThemes[0]!;
