@@ -142,7 +142,7 @@ function TreeNode({
         }}
       />
       {isExpandable && (
-        <Collapse in={expanded}>
+        <Collapse expanded={expanded}>
           <Box>
             {hasChildren
               ? entity.children!.map((child) => (

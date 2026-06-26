@@ -1,6 +1,6 @@
 # WI-364 — Migrate mill-ui Mantine 8.x → 9.x
 
-Status: `planned`  
+Status: `done`  
 Type: `🔧 chore`, `✨ feature`  
 Area: `ui`  
 Depends on: [WI-362](WI-349-metadata-authoring-tests-docs.md) (stage 4 merged — story baseline on `dev`)  
@@ -59,13 +59,13 @@ changes, and keep **build**, **lint**, and **Vitest** green with no visual regre
 
 ## Acceptance Criteria
 
-- [ ] `ui/mill-ui/package.json` — all `@mantine/*` at **9.x**; React **19.2+**
-- [ ] `npm run build` succeeds in `ui/mill-ui`
-- [ ] `npm run lint` succeeds
-- [ ] `npm run test -- --run` — full Vitest suite green
-- [ ] No remaining imports from Mantine 8 deprecated APIs (grep: `TypographyStylesProvider`, `color=`, `gutter=`, `Collapse in=`)
-- [ ] Theme documented if `defaultRadius` or `v8CssVariablesResolver` retained for visual parity
-- [ ] Short migration note in `ui/mill-ui/README.md` or `docs/design/ui/` (breaking renames + theme choices) — **only if** no existing UI design doc covers dependencies
+- [x] `ui/mill-ui/package.json` — all `@mantine/*` at **9.x**; React **19.2+**
+- [x] `npm run build` succeeds in `ui/mill-ui`
+- [x] `npm run lint` succeeds
+- [x] `npm run test -- --run` — full Vitest suite green
+- [x] No remaining imports from Mantine 8 deprecated APIs (grep: `TypographyStylesProvider`, `color=`, `gutter=`, `Collapse in=`)
+- [x] Theme documented if `defaultRadius` or `v8CssVariablesResolver` retained for visual parity — **Mantine 9 defaults**; existing `defaultRadius: 'md'` in theme unchanged
+- [x] Short migration note in `ui/mill-ui/README.md` or `docs/design/ui/` (breaking renames + theme choices) — **only if** no existing UI design doc covers dependencies
 
 ## Verify
 

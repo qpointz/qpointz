@@ -214,7 +214,7 @@ On top of [`RULES.md`](../../RULES.md) **Per-WI cadence** and **Complete working
 - [x] WI-361 — Remove `capture_*` (`WI-361-schema-authoring-description-tool-cleanup.md`) — *was WI-350*
 - [x] WI-362 — Tests, scenarios, docs (`WI-349-metadata-authoring-tests-docs.md`) — *was WI-349*
 - [ ] WI-363 — Capability prompt declaration (`WI-363-capability-prompt-declaration.md`) — *stage 5; MR !412 review*
-- [ ] WI-364 — Mantine 9 migration (`WI-364-mantine-v9-migration.md`) — *stage 5; separate MR*
+- [x] WI-364 — Mantine 9 migration (`WI-364-mantine-v9-migration.md`) — *stage 5; separate MR*
 
 ## Verify (full story — before story archive)
 

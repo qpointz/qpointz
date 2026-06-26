@@ -10,8 +10,8 @@ A modern AI chat interface with integrated data model exploration and business c
 
 ## Tech Stack
 
-- React 19 + TypeScript + Vite
-- Mantine UI v8
+- React 19.2+ + TypeScript + Vite
+- Mantine UI v9
 - React Router v7
 - react-markdown + shiki
 
@@ -47,6 +47,11 @@ src/
 - **Light mode**: Teal primary (#0d9488)
 - **Dark mode**: Cyan accent (#22d3ee)
 - **Neutral**: Slate palette
+
+## Mantine 9
+
+Requires **React 19.2+** and **`@mantine/*` ^9.x** (core, hooks, notifications, code-highlight). Migration from v8:
+`Collapse` uses `expanded` (not `in`); Mantine 9 default theme/light-variant styling is used (no v8 CSS resolver).
 
 ## Documentation
 

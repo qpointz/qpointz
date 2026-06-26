@@ -25,7 +25,7 @@ export function UnknownArtifactCard({
         <Button variant="subtle" size="xs" onClick={toggle}>
           {open ? 'Hide payload' : 'Show payload'}
         </Button>
-        <Collapse in={open}>
+        <Collapse expanded={open}>
           <CodeHighlight code={json} language="json" withCopyButton />
         </Collapse>
       </Stack>
