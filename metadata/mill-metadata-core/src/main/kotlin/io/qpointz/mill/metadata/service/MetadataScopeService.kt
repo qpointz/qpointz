@@ -25,6 +25,47 @@ class MetadataScopeService(private val repo: MetadataScopeRepository) {
     fun findByKey(scopeKey: String): Optional<MetadataScope> =
         Optional.ofNullable(repo.findByRes(MetadataEntityUrn.canonicalize(scopeKey)))
 
+    /**
+     * Idempotently creates or updates the chat metadata scope row for [chatId].
+     *
+     * @param chatId conversation GUID
+     * @param chatTitle persisted chat title (without `Chat ` prefix)
+     * @param ownerId chat owner user id
+     */
+    fun ensureChatScope(chatId: String, chatTitle: String?, ownerId: String?): MetadataScope {
+        val res = MetadataEntityUrn.canonicalize(MetadataUrns.scopeChat(chatId))
+        val displayName = chatDisplayName(chatTitle)
+        val existing = repo.findByRes(res)
+        val now = Instant.now()
+        if (existing != null) {
+            if (existing.displayName == displayName && existing.ownerId == ownerId) {
+                return existing
+            }
+            return repo.save(
+                existing.copy(
+                    displayName = displayName,
+                    ownerId = ownerId ?: existing.ownerId,
+                    lastModifiedAt = now,
+                ),
+            )
+        }
+        return repo.save(
+            MetadataScope(
+                res = res,
+                scopeType = "CHAT",
+                referenceId = chatId,
+                displayName = displayName,
+                ownerId = ownerId,
+                visibility = "PRIVATE",
+                uuid = UUID.randomUUID().toString(),
+                createdAt = now,
+                createdBy = null,
+                lastModifiedAt = now,
+                lastModifiedBy = null,
+            ),
+        )
+    }
+
     fun create(scopeId: String, displayName: String?, ownerId: String?): MetadataScope {
         val res = MetadataEntityUrn.canonicalize(scopeId)
         require(!repo.exists(res)) { "Scope already exists: $res" }
@@ -51,5 +92,10 @@ class MetadataScopeService(private val repo: MetadataScopeRepository) {
             "Cannot delete the global scope"
         }
         repo.delete(res)
+    }
+
+    private fun chatDisplayName(chatTitle: String?): String {
+        val title = chatTitle?.trim()?.takeIf { it.isNotEmpty() }
+        return if (title != null) "Chat $title" else "Chat"
     }
 }

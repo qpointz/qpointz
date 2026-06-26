@@ -49,7 +49,16 @@ class MetadataCapabilitiesTest {
       scope: String?,
       context: String?,
       origin: String?,
-    ): List<Map<String, Any?>> = emptyList()
+    ): List<Map<String, Any?>> {
+      capturedEntityId = metadataEntityId
+      capturedScope = scope
+      capturedContext = context
+      return emptyList()
+    }
+
+    var capturedEntityId: String? = null
+    var capturedScope: String? = null
+    var capturedContext: String? = null
 
     override fun listContent(targetUrn: String?, contentKind: String?): List<MetadataContentWire> =
       if (contentKind == MetadataContent.KIND_FACET_TYPE_EXAMPLE) {
@@ -119,16 +128,30 @@ class MetadataCapabilitiesTest {
   @Test
   fun shouldStampWriteScopeUrns_whenProposeFacetAssignmentSucceeds() {
     val tool = authoringCapability().tools.first { it.spec.name() == "propose_facet_assignment" }
-    val result = tool.handler.invoke(
+    val result =     tool.handler.invoke(
       ToolRequest(
         arguments = mapOf(
           "facetTypeKey" to "relation-source",
-          "metadataEntityId" to "urn:mill/model/table:sales.orders",
+          "catalogPath" to "sales.orders",
           "payload" to mapOf("joinSql" to "orders.id = customers.id"),
         ),
       ),
     ).content as MetadataFacetProposalCapture
+    assertThat(result.catalogPath).isEqualTo("sales.orders")
+    assertThat(result.metadataEntityId).isEqualTo("urn:mill/model/table:sales.orders")
     assertThat(result.writeScopeUrns).containsExactly(MetadataUrns.scopeChat("chat-1"))
+  }
+
+  @Test
+  fun shouldPassReadableScopes_whenListEntityFacetsOmitsScope() {
+    val tool = metadataCapability().tools.first { it.spec.name() == "list_entity_facets" }
+    tool.handler.invoke(
+      ToolRequest(arguments = mapOf("catalogPath" to "skymill.passenger")),
+    )
+    assertThat(port.capturedScope).isEqualTo(
+      "${MetadataUrns.SCOPE_GLOBAL},${MetadataUrns.scopeChat("chat-1")}",
+    )
+    assertThat(port.capturedEntityId).isEqualTo("urn:mill/model/table:skymill.passenger")
   }
 
   @Test
@@ -139,7 +162,7 @@ class MetadataCapabilitiesTest {
       ToolRequest(
         arguments = mapOf(
           "facetTypeKey" to "relation-source",
-          "metadataEntityId" to "urn:mill/model/attribute:sales.orders.id",
+          "catalogPath" to "sales.orders.id",
           "payload" to mapOf("joinSql" to "x"),
         ),
       ),

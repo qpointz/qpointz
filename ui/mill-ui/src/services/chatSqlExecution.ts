@@ -7,6 +7,8 @@ import { readStoredQueryPageSize } from './queryService';
 export interface ChatSqlTarget {
   messageId: string;
   sql: string;
+  /** SQL artefact id on the wire — binds attached `data` via `parentArtifactId`. */
+  parentArtifactId?: string;
 }
 
 export interface ChatSqlExecutionResult {
@@ -25,13 +27,29 @@ export function collectChatSqlTargets(messages: readonly Message[]): ChatSqlTarg
     const message = messages[i];
     if (message?.role !== 'assistant') continue;
 
-    const sqlArtifact = message.artifacts?.find(
+    const sqlArtifacts = (message.artifacts ?? []).filter(
       (artifact): artifact is Extract<ChatMessageArtifact, { kind: 'sql' }> => artifact.kind === 'sql',
     );
+    if (sqlArtifacts.length > 0) {
+      for (const sqlArtifact of [...sqlArtifacts].reverse()) {
+        const sql = (sqlArtifact.sql ?? '').trim();
+        if (!sql) continue;
+        const dedupeKey = `${message.id}:${sqlArtifact.artifactId ?? sql}`;
+        if (seen.has(dedupeKey)) continue;
+        seen.add(dedupeKey);
+        targets.push({
+          messageId: message.id,
+          sql,
+          parentArtifactId: sqlArtifact.artifactId,
+        });
+      }
+      continue;
+    }
+
     const dataArtifact = message.artifacts?.find(
       (artifact): artifact is Extract<ChatMessageArtifact, { kind: 'data' }> => artifact.kind === 'data',
     );
-    const sql = (sqlArtifact?.sql ?? dataArtifact?.sql ?? '').trim();
+    const sql = (dataArtifact?.sql ?? '').trim();
     if (!sql) continue;
 
     const dedupeKey = `${message.id}:${sql}`;
@@ -50,6 +68,7 @@ export async function executeChatSqlArtifact(
   conversationId: string,
   messageId: string,
   sql: string,
+  parentArtifactId?: string,
 ): Promise<ChatSqlExecutionResult> {
   const trimmed = sql.trim();
   if (!trimmed) {
@@ -66,6 +85,7 @@ export async function executeChatSqlArtifact(
     rowCount: result.rowCount,
     truncated: result.page.totalResult != null && result.rowCount < result.page.totalResult,
     columns: result.columns,
+    sourceArtifactId: parentArtifactId,
   };
 
   if (isRestChatBackendActive()) {
@@ -76,11 +96,29 @@ export async function executeChatSqlArtifact(
         rowCount: result.rowCount,
         truncated: dataArtifact.truncated,
         sql: trimmed,
+        parentArtifactId,
       })
       .catch(() => undefined);
   }
 
   return { dataArtifact, result };
+}
+
+function normalizedSql(sql: string | undefined): string {
+  return (sql ?? '').trim();
+}
+
+function dataConflictsWithIncoming(
+  existing: Extract<ChatMessageArtifact, { kind: 'data' }>,
+  incoming: Extract<ChatMessageArtifact, { kind: 'data' }>,
+): boolean {
+  if (incoming.sourceArtifactId) {
+    return existing.sourceArtifactId === incoming.sourceArtifactId;
+  }
+  if (existing.sourceArtifactId) {
+    return false;
+  }
+  return normalizedSql(existing.sql) === normalizedSql(incoming.sql);
 }
 
 /**
@@ -91,5 +129,21 @@ export function mergeDataArtifactIntoMessage(
   data: Extract<ChatMessageArtifact, { kind: 'data' }>,
 ): ChatMessageArtifact[] {
   const prev = artifacts ?? [];
-  return [...prev.filter((artifact) => artifact.kind !== 'data'), data];
+  return [
+    ...prev.filter((artifact) => artifact.kind !== 'data' || !dataConflictsWithIncoming(artifact, data)),
+    data,
+  ];
+}
+
+/**
+ * Merges multiple `data` artefacts into one message (e.g. Run all on a multi-SQL turn).
+ */
+export function mergeRunAllDataArtifacts(
+  base: readonly ChatMessageArtifact[] | undefined,
+  dataArtifacts: readonly Extract<ChatMessageArtifact, { kind: 'data' }>[],
+): ChatMessageArtifact[] {
+  return dataArtifacts.reduce(
+    (acc, data) => mergeDataArtifactIntoMessage(acc, data),
+    [...(base ?? [])],
+  );
 }

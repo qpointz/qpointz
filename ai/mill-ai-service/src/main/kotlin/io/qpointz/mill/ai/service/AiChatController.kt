@@ -212,6 +212,56 @@ class AiChatController(private val chatService: ChatService) {
         chatService.attachExecutionResult(chatId, turnId, request)
             ?: throw MillStatuses.notFound("Chat or turn not found: $chatId/$turnId")
 
+    @Operation(summary = "Re-include a declined facet-proposal artefact in writable scopes")
+    @ApiResponses(value = [
+        ApiResponse(
+            responseCode = "200",
+            description = "Artefact accepted",
+            content = [Content(schema = Schema(implementation = ArtifactResponse::class))],
+        ),
+        ApiResponse(
+            responseCode = "404",
+            description = "Chat or artefact not found",
+            content = [Content(schema = Schema(implementation = MillStatusDetails::class))],
+        ),
+    ])
+    @PostMapping(
+        value = ["/{chatId}/artifacts/{artifactId}/accept"],
+        consumes = [MediaType.ALL_VALUE],
+    )
+    fun acceptArtifact(
+        @PathVariable chatId: String,
+        @PathVariable artifactId: String,
+    ): ArtifactResponse =
+        chatService.acceptArtifact(chatId, artifactId)
+            ?: throw MillStatuses.notFound("Chat or artefact not found: $chatId/$artifactId")
+
+    @Operation(summary = "Reject a facet-proposal artefact (exclude from writable scopes; artefact stays on replay)")
+    @ApiResponses(value = [
+        ApiResponse(
+            responseCode = "204",
+            description = "Artefact retracted",
+        ),
+        ApiResponse(
+            responseCode = "404",
+            description = "Chat or artefact not found",
+            content = [Content(schema = Schema(implementation = MillStatusDetails::class))],
+        ),
+    ])
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PostMapping(
+        value = ["/{chatId}/artifacts/{artifactId}/reject"],
+        consumes = [MediaType.ALL_VALUE],
+    )
+    fun rejectArtifact(
+        @PathVariable chatId: String,
+        @PathVariable artifactId: String,
+    ) {
+        if (!chatService.rejectArtifact(chatId, artifactId)) {
+            throw MillStatuses.notFound("Chat or artefact not found: $chatId/$artifactId")
+        }
+    }
+
     @Operation(
         summary = "Send a message and stream the response via SSE",
         description = "Returns a stream of server-sent events. " +

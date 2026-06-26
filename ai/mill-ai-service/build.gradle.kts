@@ -13,8 +13,10 @@ mill {
 
 dependencies {
     api(project(":ai:mill-ai"))
+    implementation(project(":metadata:mill-metadata-core"))
     implementation(project(":ai:mill-ai-data"))
     implementation(project(":core:mill-core"))
+    implementation(project(":core:mill-events"))
     implementation(kotlin("reflect"))
     implementation(project(":services:mill-service-api"))
     implementation(libs.boot.starter.webflux)

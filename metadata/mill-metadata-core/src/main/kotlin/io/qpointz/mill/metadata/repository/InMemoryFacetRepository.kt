@@ -42,6 +42,9 @@ class InMemoryFacetRepository : FacetRepository {
 
     override fun findByUid(uid: String): FacetAssignment? = byUid[uid]
 
+    override fun findBySourceArtifactId(sourceArtifactId: String): List<FacetAssignment> =
+        byUid.values.filter { it.sourceArtifactId == sourceArtifactId }
+
     override fun save(facet: FacetAssignment): FacetAssignment {
         byUid[facet.uid] = facet
         return facet

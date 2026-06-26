@@ -70,7 +70,7 @@ enabled: true
 content:
   metadataEntityId: urn:mill/model/attribute:skymill/orders/customer_id
   payload:
-    name: customer_id_not_null
+    name: passenger-id-not-null
     description: Every order must reference a customer.
     severity: error
 ---
@@ -85,7 +85,7 @@ enabled: true
 content:
   metadataEntityId: urn:mill/model/table:skymill/orders
   payload:
-    name: order_dates_valid
+    name: order-shipped-before-ordered
     description: Shipped date must not precede order date.
     predicate: shipped_date IS NULL OR shipped_date >= order_date
     severity: warning

@@ -3,7 +3,7 @@ package io.qpointz.mill.data.schema
 import io.qpointz.mill.metadata.domain.MetadataEntity
 
 /**
- * Output of [SchemaFacetService.getSchemas].
+ * Output of [SchemaFacetService.getSchemas] and [SchemaFacetService.getSchemaTree].
  *
  * [modelRoot] is the logical catalog model root above physical schemas (SPEC §3f).
  * [schemas] contains all physical schemas, each enriched with any matched metadata.

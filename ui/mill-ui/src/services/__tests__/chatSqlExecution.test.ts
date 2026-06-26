@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { collectChatSqlTargets, mergeDataArtifactIntoMessage } from '../chatSqlExecution';
+import { collectChatSqlTargets, mergeDataArtifactIntoMessage, mergeRunAllDataArtifacts } from '../chatSqlExecution';
 import type { Message } from '../../types/chat';
 
 function assistant(id: string, artifacts: Message['artifacts']): Message {
@@ -40,10 +40,23 @@ describe('collectChatSqlTargets', () => {
     ];
     expect(collectChatSqlTargets(messages)).toEqual([]);
   });
+
+  it('should collect multiple SQL artefacts per turn', () => {
+    const messages = [
+      assistant('a1', [
+        { kind: 'sql', sql: 'select 1', artifactId: 'sql-1' },
+        { kind: 'sql', sql: 'select 2', artifactId: 'sql-2' },
+      ]),
+    ];
+    expect(collectChatSqlTargets(messages)).toEqual([
+      { messageId: 'a1', sql: 'select 2', parentArtifactId: 'sql-2' },
+      { messageId: 'a1', sql: 'select 1', parentArtifactId: 'sql-1' },
+    ]);
+  });
 });
 
 describe('mergeDataArtifactIntoMessage', () => {
-  it('should replace existing data artefact', () => {
+  it('should replace existing data artefact for the same SQL text', () => {
     const merged = mergeDataArtifactIntoMessage(
       [
         { kind: 'sql', sql: 'select 1' },
@@ -53,5 +66,65 @@ describe('mergeDataArtifactIntoMessage', () => {
     );
     expect(merged.filter((a) => a.kind === 'data')).toHaveLength(1);
     expect(merged.find((a) => a.kind === 'data')?.executionId).toBe('new');
+  });
+
+  it('should replace data artefact bound to parent SQL only', () => {
+    const merged = mergeDataArtifactIntoMessage(
+      [
+        { kind: 'sql', sql: 'select 1', artifactId: 'sql-1' },
+        { kind: 'data', executionId: 'old', sql: 'select 1', columns: [], sourceArtifactId: 'sql-1' },
+        { kind: 'data', executionId: 'keep', sql: 'select 2', columns: [], sourceArtifactId: 'sql-2' },
+      ],
+      {
+        kind: 'data',
+        executionId: 'new',
+        sql: 'select 1',
+        columns: [],
+        sourceArtifactId: 'sql-1',
+      },
+    );
+    expect(merged.filter((a) => a.kind === 'data')).toHaveLength(2);
+    expect(merged.find((a) => a.kind === 'data' && a.sourceArtifactId === 'sql-1')?.executionId).toBe('new');
+    expect(merged.find((a) => a.kind === 'data' && a.sourceArtifactId === 'sql-2')?.executionId).toBe('keep');
+  });
+
+  it('should keep other SQL data when merging without sourceArtifactId', () => {
+    const merged = mergeDataArtifactIntoMessage(
+      [
+        { kind: 'sql', sql: 'SELECT * FROM aircraft' },
+        { kind: 'sql', sql: 'SELECT * FROM aircraft_types' },
+        {
+          kind: 'data',
+          executionId: 'types',
+          sql: 'SELECT * FROM aircraft_types',
+          columns: [],
+        },
+      ],
+      {
+        kind: 'data',
+        executionId: 'aircraft',
+        sql: 'SELECT * FROM aircraft',
+        columns: [],
+      },
+    );
+    expect(merged.filter((a) => a.kind === 'data')).toHaveLength(2);
+    expect(merged.find((a) => a.kind === 'data' && a.executionId === 'types')).toBeDefined();
+    expect(merged.find((a) => a.kind === 'data' && a.executionId === 'aircraft')).toBeDefined();
+  });
+});
+
+describe('mergeRunAllDataArtifacts', () => {
+  it('should keep both data artefacts when merging run-all results on one turn', () => {
+    const merged = mergeRunAllDataArtifacts(
+      [
+        { kind: 'sql', sql: 'SELECT * FROM aircraft' },
+        { kind: 'sql', sql: 'SELECT * FROM aircraft_types' },
+      ],
+      [
+        { kind: 'data', executionId: 'e-types', sql: 'SELECT * FROM aircraft_types', columns: [] },
+        { kind: 'data', executionId: 'e-aircraft', sql: 'SELECT * FROM aircraft', columns: [] },
+      ],
+    );
+    expect(merged.filter((a) => a.kind === 'data')).toHaveLength(2);
   });
 });

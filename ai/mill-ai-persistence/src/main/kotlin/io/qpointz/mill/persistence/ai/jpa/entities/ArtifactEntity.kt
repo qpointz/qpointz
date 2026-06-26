@@ -36,6 +36,9 @@ class ArtifactEntity(
     @Column(name = "urn", nullable = false, length = 1024)
     override val urn: String,
 
+    @Column(name = "status", nullable = false, length = 32)
+    var status: String = "pending",
+
     @Column(name = "created_at", nullable = false)
     val createdAt: Instant,
 ) : EntityRef {

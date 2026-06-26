@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { ChatMessageArtifact } from '../../../types/chat';
 import { useFeatureFlags } from '../../../features/FeatureFlagContext';
 import { sanitizeExportAttachmentBaseName } from '../../../services/exportHelpers';
+import { mergeDataArtifactIntoMessage } from '../../../services/chatSqlExecution';
 import { QueryDataView } from '../../data/QueryDataView';
 import { useChatExpand } from '../expand/useChatExpand';
 import { ChatArtifactActionBar } from './ChatArtifactActionBar';
@@ -37,8 +38,7 @@ export function SqlDataCondensedPreview(props: ArtifactPreviewContext) {
 
   const mergeDataArtifact = useCallback(
     (data: Extract<ChatMessageArtifact, { kind: 'data' }>) => {
-      const prev = message.artifacts ?? [];
-      onArtifactsChange?.([...prev.filter((a) => a.kind !== 'data'), data]);
+      onArtifactsChange?.(mergeDataArtifactIntoMessage(message.artifacts, data));
     },
     [message.artifacts, onArtifactsChange],
   );
@@ -47,6 +47,7 @@ export function SqlDataCondensedPreview(props: ArtifactPreviewContext) {
     sql,
     conversationId,
     messageId: message.id,
+    parentArtifactId: sqlArtifact?.artifactId,
     storedExecutionId: group.data?.executionId,
     lazyEnabled: activeTab === 'data',
     isReplayed,
@@ -108,6 +109,7 @@ export function SqlDataCondensedPreview(props: ArtifactPreviewContext) {
                         kind: 'sql-data-composite',
                         sql,
                         executionId: group.data?.executionId ?? queryData.displayResult?.page.executionId,
+                        parentArtifactId: sqlArtifact?.artifactId,
                         message,
                         precedingUserQuestion,
                         chatTitle,

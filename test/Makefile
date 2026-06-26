@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 QSYNTH_IMAGE ?= qpointz/qsynth
 TEST_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 

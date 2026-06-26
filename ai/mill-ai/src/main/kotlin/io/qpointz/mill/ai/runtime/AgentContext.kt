@@ -43,4 +43,19 @@ data class AgentContext(
     scopes
       .filter { it.access.equals("w", ignoreCase = true) || it.access.equals("rw", ignoreCase = true) }
       .map { it.scopeUrn }
+
+  /**
+   * Comma-separated scope list for metadata QUERY reads (`list_entity_facets`).
+   * Includes scopes with `r`, `w`, or `rw` access from [scopes].
+   */
+  fun readableScopesParam(): String? {
+    val readable = scopes
+      .filter {
+        it.access.equals("r", ignoreCase = true) ||
+          it.access.equals("w", ignoreCase = true) ||
+          it.access.equals("rw", ignoreCase = true)
+      }
+      .map { it.scopeUrn }
+    return readable.takeIf { it.isNotEmpty() }?.joinToString(",")
+  }
 }

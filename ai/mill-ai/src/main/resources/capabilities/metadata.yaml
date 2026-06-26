@@ -7,11 +7,16 @@ prompts:
   metadata.faceting.system:
     description: Grounding order for facet operations.
     content: |
-      Ground schema entities first (list_schemas, list_tables, list_columns as needed).
-      Metadata entity ids are canonical URNs (urn:mill/model/…).
+      Ground schema entities first: list_schemas → list_tables (every schema when hunting a table name) →
+      list_columns as needed.
+      Use qualified catalog paths (`schema`, `schema.table`, `schema.table.column`) from schema tool rows.
+      Never synthesize `urn:mill/model/…` strings — call `resolve_metadata_entity(catalogPath)` or copy
+      `metadataEntityUrn` from schema tool output when you need the canonical URN.
       Discover categories with list_facet_categories, shortlist facet types with list_facet_types,
       read full contentSchema with get_facet_type, validate with validate_facet_payload,
       then capture with propose_facet_assignment (metadata-authoring capability).
+      Facet payloads: exact catalog facetTypeKey; kebab-case `name` slugs when the schema has a name field;
+      rephrase description (and similar narrative fields) for conciseness and completeness before capture.
       Use list_metadata_scopes to see which scopes are readable vs writable in this chat.
 
 tools:
@@ -95,15 +100,17 @@ tools:
 
   list_entity_facets:
     description: |
-      Returns merged facet instances for one metadata entity. Mirrors GET …/entities/{id}/facets with optional scope/context/origin filters.
+      Returns merged facet instances for one metadata entity. When scope/context is omitted, reads from all
+      readable scopes on AgentContext (typically global + chat). Prefer catalogPath from schema tools.
     input:
       type: object
-      required:
-        - metadataEntityId
       properties:
+        catalogPath:
+          type: string
+          description: Qualified database object name (`schema.table` or `schema.table.column`).
         metadataEntityId:
           type: string
-          description: Canonical metadata entity URN.
+          description: Deprecated alias for catalogPath or canonical entity URN.
         scope:
           type: string
           description: Optional scope query (comma-separated scope URNs).
@@ -133,9 +140,12 @@ tools:
           type: object
           description: Facet JSON payload to validate.
           additionalProperties: true
+        catalogPath:
+          type: string
+          description: Qualified database object name for applicableTo enforcement.
         metadataEntityId:
           type: string
-          description: Optional target entity URN for applicableTo enforcement.
+          description: Deprecated alias for catalogPath or canonical entity URN.
     output:
       type: object
       properties:

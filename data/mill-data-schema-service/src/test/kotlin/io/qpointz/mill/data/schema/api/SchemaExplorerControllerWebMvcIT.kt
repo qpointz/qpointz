@@ -9,8 +9,12 @@ import io.qpointz.mill.data.schema.SchemaFacets
 import io.qpointz.mill.data.metadata.SchemaModelRoot
 import io.qpointz.mill.data.schema.SchemaTableWithFacets
 import io.qpointz.mill.data.schema.SchemaWithFacets
-import io.qpointz.mill.metadata.domain.MetadataEntityUrn
 import io.qpointz.mill.metadata.domain.MetadataEntity
+import io.qpointz.mill.metadata.domain.MetadataEntityUrn
+import io.qpointz.mill.metadata.domain.MetadataUrns
+import io.qpointz.mill.metadata.domain.facet.FacetInstance
+import io.qpointz.mill.metadata.domain.facet.FacetOrigin
+import io.qpointz.mill.metadata.domain.facet.MergeAction
 import io.qpointz.mill.metadata.repository.EntityReadSide
 import io.qpointz.mill.metadata.repository.FacetReadSide
 import io.qpointz.mill.proto.Table
@@ -131,12 +135,28 @@ class SchemaExplorerControllerWebMvcIT {
             lastModifiedAt = fixedInstant,
             lastModifiedBy = null
         )
-        whenever(schemaFacetService.getSchemas(any())).thenReturn(
+        val resolvedRow = FacetInstance(
+            assignmentUuid = "assign-desc",
+            entityId = schemaUrn,
+            facetTypeKey = MetadataUrns.FACET_TYPE_DESCRIPTIVE,
+            scopeKey = MetadataUrns.SCOPE_GLOBAL,
+            mergeAction = MergeAction.SET,
+            payload = mapOf("displayName" to "Sales schema"),
+            createdAt = fixedInstant,
+            createdBy = null,
+            lastModifiedAt = fixedInstant,
+            lastModifiedBy = null,
+            origin = FacetOrigin.CAPTURED,
+            originId = "repo",
+            assignmentUid = "assign-desc"
+        )
+        val facetsWithResolved = SchemaFacets(emptySet(), listOf(resolvedRow))
+        whenever(schemaFacetService.getSchemaTree(any(), any())).thenReturn(
             SchemaFacetResult(
                 modelRoot = ModelRootWithFacets(
                     metadataEntityId = MetadataEntityUrn.canonicalize(SchemaModelRoot.ENTITY_ID),
                     metadata = null,
-                    facets = SchemaFacets.EMPTY
+                    facets = facetsWithResolved
                 ),
                 schemas = listOf(
                     SchemaWithFacets(
@@ -148,11 +168,11 @@ class SchemaExplorerControllerWebMvcIT {
                                 tableType = Table.TableTypeId.TABLE,
                                 columns = emptyList(),
                                 metadata = null,
-                                facets = SchemaFacets.EMPTY
+                                facets = facetsWithResolved
                             )
                         ),
                         metadata = schemaMetadata,
-                        facets = SchemaFacets.EMPTY
+                        facets = facetsWithResolved
                     )
                 ),
                 unboundMetadata = emptyList()
@@ -161,12 +181,16 @@ class SchemaExplorerControllerWebMvcIT {
 
         mockMvc.get("/api/v1/schema/tree") {
             param("scope", "global")
+            param("facetMode", "none")
         }.andExpect {
             status { isOk() }
             jsonPath("$.modelRoot.id") { value(SchemaModelRoot.ENTITY_LOCAL_ID) }
             jsonPath("$.modelRoot.entityType") { value("MODEL") }
             jsonPath("$.schemas[0].id") { value("sales") }
             jsonPath("$.schemas[0].tables[0].id") { value("sales.customers") }
+            jsonPath("$.modelRoot.facetsResolved") { doesNotExist() }
+            jsonPath("$.schemas[0].facetsResolved") { doesNotExist() }
+            jsonPath("$.schemas[0].tables[0].facetsResolved") { doesNotExist() }
         }
     }
 

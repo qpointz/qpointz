@@ -647,7 +647,16 @@ const mockChatService: ChatService = {
       rowCount: request.rowCount,
       truncated: request.truncated,
       sql: request.sql,
+      sourceArtifactId: request.parentArtifactId,
     };
+  },
+
+  async acceptArtifact(_chatId, _artifactId) {
+    return null;
+  },
+
+  async rejectArtifact(_chatId, _artifactId) {
+    return true;
   },
 };
 
@@ -777,12 +786,34 @@ const realChatService: ChatService = {
           rowCount: request.rowCount ?? 0,
           truncated: request.truncated,
           sql: request.sql,
+          parentArtifactId: request.parentArtifactId,
         } satisfies AttachExecutionResultRequest),
       },
     );
     await ensureOk(res, 'POST /api/v1/ai/chats/.../execution-result');
     const wire = await readJson<ArtifactResponseWire>(res);
     return parseArtifactWire(wire);
+  },
+
+  async acceptArtifact(chatId, artifactId) {
+    const res = await fetch(
+      `${CHATS_PREFIX}/${encodeURIComponent(chatId)}/artifacts/${encodeURIComponent(artifactId)}/accept`,
+      { ...FETCH_AI_JSON, method: 'POST' },
+    );
+    if (res.status === 404) return null;
+    await ensureOk(res, 'POST accept artifact');
+    const wire = await readJson<ArtifactResponseWire>(res);
+    return parseArtifactWire(wire);
+  },
+
+  async rejectArtifact(chatId, artifactId) {
+    const res = await fetch(
+      `${CHATS_PREFIX}/${encodeURIComponent(chatId)}/artifacts/${encodeURIComponent(artifactId)}/reject`,
+      { ...FETCH_AI_JSON, method: 'POST' },
+    );
+    if (res.status === 404) return false;
+    await ensureOk(res, 'POST reject artifact');
+    return res.status === 204;
   },
 };
 

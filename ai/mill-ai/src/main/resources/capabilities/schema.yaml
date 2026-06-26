@@ -6,15 +6,31 @@ prompts:
     description: Guidance for schema exploration tools.
     content: |
       Use schema exploration tools to discover and describe the data platform structure.
-      Always call list_schemas first when you do not yet know which schemas exist.
-      Use the returned names exactly as provided in subsequent tool calls.
+
+      Schema vs table (critical):
+      - list_schemas returns **database schemas** (catalog namespaces), e.g. `skymill`.
+      - list_tables returns **tables inside one schema**, e.g. `passenger` in `skymill`.
+      - User phrases such as "passengers", "customers", or "orders" usually mean a **table**, not a schema.
+      - **Never** pass a user's entity/table word as `schemaName` to list_tables.
+
+      Discovery order when the user asks about data or you need SQL identifiers:
+      1. Call **list_schemas** when you do not know catalog schema names.
+      2. Call **list_tables** for **each** `schemaName` from step 1 until you find the table
+         (match `tableName` loosely: singular/plural, case-insensitive).
+      3. Call **list_columns** for the chosen `schemaName` + `tableName` before generating SQL.
+
+      Use returned names exactly as provided in subsequent tool calls.
+      Each list_* row includes `catalogPath` and `metadataEntityUrn` — copy `catalogPath` into metadata tools;
+      never synthesize URNs yourself.
 
 tools:
   list_schemas:
     description: |
-      Return all schemas available in the data platform.
+      Return all schemas (catalog namespaces) available in the data platform.
       Call this first when you do not yet know which schemas exist.
-      Use the returned schemaName values as input to list_tables.
+      **Next step:** call list_tables once per returned schemaName to find tables — user words like
+      "passengers" are table names, not schema names.
+      Use the returned schemaName values exactly as input to list_tables.
       An empty description means no business metadata has been provided for that schema.
     output:
       type: array
@@ -32,13 +48,22 @@ tools:
           displayName:
             type: string
             description: Short display label from descriptive metadata, or empty if none.
+          catalogPath:
+            type: string
+            description: Qualified schema name (same as schemaName).
+          metadataEntityUrn:
+            type: string
+            description: Canonical metadata entity URN for this schema.
 
   list_tables:
     description: |
-      Return all tables within a given schema.
-      Call list_schemas first if you do not know the schema name.
+      Return all tables within one schema.
+      Call list_schemas first if you do not know schema names.
+      When locating a table mentioned by the user, call this tool **for every schema** from list_schemas
+      until a matching tableName appears (treat passenger/passengers as the same intent).
+      Do **not** use the user's noun as schemaName — only use schemaName values from list_schemas.
       Use the returned tableName values as input to list_columns or list_relations.
-      An empty description means no business metadata has been provided for that table.
+      An empty array means that schema exists but has no tables in catalog, or the schemaName was wrong.
     input:
       type: object
       description: Identifies the schema to list tables for.
@@ -65,6 +90,12 @@ tools:
           displayName:
             type: string
             description: Short display label from descriptive metadata, or empty if none.
+          catalogPath:
+            type: string
+            description: Qualified table name (`schema.table`).
+          metadataEntityUrn:
+            type: string
+            description: Canonical metadata entity URN for this table.
 
   list_columns:
     description: |
@@ -110,6 +141,12 @@ tools:
           type:
             type: string
             description: Logical data type identifier (e.g. INTEGER, VARCHAR, TIMESTAMP).
+          catalogPath:
+            type: string
+            description: Qualified column name (`schema.table.column`).
+          metadataEntityUrn:
+            type: string
+            description: Canonical metadata entity URN for this column.
 
   list_relations:
     description: |
@@ -172,3 +209,28 @@ tools:
           joinSql:
             type: string
             description: Join predicate text from metadata when present, or empty if none.
+
+  resolve_metadata_entity:
+    description: |
+      Resolves a qualified database object name to its canonical metadata entity URN.
+      Use catalogPath from list_schemas/list_tables/list_columns, or a user-provided qualified name.
+      Never synthesize URNs — always pass catalogPath and let this tool return metadataEntityUrn.
+    input:
+      type: object
+      required:
+        - catalogPath
+      properties:
+        catalogPath:
+          type: string
+          description: Qualified name (`schema`, `schema.table`, or `schema.table.column`).
+    output:
+      type: object
+      properties:
+        catalogPath:
+          type: string
+        metadataEntityUrn:
+          type: string
+        entityKind:
+          type: string
+        error:
+          type: string

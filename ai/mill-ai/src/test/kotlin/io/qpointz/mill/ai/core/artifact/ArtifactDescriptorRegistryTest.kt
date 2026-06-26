@@ -59,18 +59,6 @@ class ArtifactDescriptorRegistryTest {
     }
 
     @Test
-    fun shouldLoadSchemaAuthoringCapture_asFacetProposalWire() {
-        val capture = registry.descriptorByQualifiedId("schema-authoring.schema-capture")
-        assertNotNull(capture)
-        capture!!
-        assertEquals("schema-authoring.capture", capture.protocolId)
-        assertEquals("facet-proposal", capture.artifactKind)
-        assertEquals("schema.authoring.capture", capture.persistKind)
-        assertEquals(setOf("last-schema-capture"), capture.pointerKeys)
-        assertEquals("facet-proposal", capture.wirePartType)
-    }
-
-    @Test
     fun shouldResolveDistinctDescriptors_forToolResultAndProtocolFinal() {
         val fromTool = registry.descriptorForToolResultArtifactKind("sql-validation")
         val fromProtocol = registry.descriptorForProtocol("sql-query.generated-sql")

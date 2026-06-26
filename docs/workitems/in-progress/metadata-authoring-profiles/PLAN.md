@@ -24,7 +24,7 @@ Make **`metadata-authoring`** **catalog-generic**: the LLM uses `list_facet_cate
 | **2** | `feat/meta-artifact-batch` | **WI-355** | `ai/mill-ai` (agent, batch, pointers, SSE), `ui/mill-ui` |
 | **3** | `feat/meta-authoring-catalog` | WI-357 → WI-359 | `ai/mill-ai-data`, `metadata`, `ai/mill-ai` capabilities |
 | **4** | `feat/meta-authoring-lifecycle` | WI-360 → WI-361 → WI-362 | `core/mill-events`, `metadata` scope, `ai/mill-ai-service`, `ui/mill-ui`, `ai/mill-ai-test`, docs |
-| **5** | `feat/meta-capability-prompts` | **WI-363** | `ai/mill-ai` capability YAML + profile prompts, `ai/mill-ai-test`, `docs/design/agentic/` |
+| **5** | `feat/meta-capability-prompts` / `feat/mill-ui-mantine-9` | WI-363 · WI-364 (separate MRs) | WI-363: `ai/mill-ai` capability YAML + profile prompts, `ai/mill-ai-test`, `docs/design/agentic/`. WI-364: `ui/mill-ui` Mantine 9 |
 
 ```mermaid
 flowchart TB
@@ -54,14 +54,16 @@ flowchart TB
     WI360 --> WI361
     WI361 --> WI362
   end
-  subgraph s5 [Stage 5 prompts]
+  subgraph s5 [Stage 5]
     WI363[WI-363 capability prompts]
+    WI364[WI-364 Mantine 9]
     WI362 --> WI363
+    WI362 --> WI364
   end
   s1 --> s2 --> s3 --> s4 --> s5
 ```
 
-**Hard gates:** Do **not** start stage **2** until stage **1** MR is **merged** (WI-355 needs WI-354 design). Do **not** start stage **3** until stage **2** MR is **merged** (WI-359 needs WI-355 batch). Do **not** start WI-359 before WI-357 on the stage 3 branch. Do **not** start stage **5** until stage **4** MR is **merged** (WI-363 refactors prompts after lifecycle e2e baseline).
+**Hard gates:** Do **not** start stage **2** until stage **1** MR is **merged** (WI-355 needs WI-354 design). Do **not** start stage **3** until stage **2** MR is **merged** (WI-359 needs WI-355 batch). Do **not** start WI-359 before WI-357 on the stage 3 branch. Do **not** start stage **5** until stage **4** MR is **merged** (WI-363 / WI-364 baseline on `dev`). WI-363 and WI-364 are **independent** — either order or parallel MRs.
 
 ### Per-stage workflow
 
@@ -91,6 +93,7 @@ Planning IDs **WI-354…363** map to execution order. **On disk, filenames still
 | **WI-361** | WI-350 | 4 | [`WI-350-schema-authoring-description-tool-cleanup.md`](WI-350-schema-authoring-description-tool-cleanup.md) |
 | **WI-362** | WI-349 | 4 | [`WI-349-metadata-authoring-tests-docs.md`](WI-349-metadata-authoring-tests-docs.md) |
 | **WI-363** | — | **5** | [`WI-363-capability-prompt-declaration.md`](WI-363-capability-prompt-declaration.md) |
+| **WI-364** | — | **5** | [`WI-364-mantine-v9-migration.md`](WI-364-mantine-v9-migration.md) |
 
 ### Pending housekeeping (optional before stage 1)
 
@@ -155,13 +158,16 @@ Planning IDs **WI-354…363** map to execution order. **On disk, filenames still
 ./gradlew :ui:mill-ui:test
 ```
 
-### Stage 5 — capability prompts (WI-363)
+### Stage 5 — capability prompts (WI-363) + Mantine 9 (WI-364)
 
 ```bash
-# Per-capability intents + profile composition (after stage 4 merged)
+# WI-363 — per-capability intents + profile composition (after stage 4 merged)
 ./gradlew :ai:mill-ai:test --tests "*Profile*"
 ./gradlew :ai:mill-ai:test --tests "*Metadata*"
 ./gradlew :ai:mill-ai-test:test --tests "*facet*"
+
+# WI-364 — mill-ui Mantine 9 (separate branch feat/mill-ui-mantine-9; parallel with WI-363)
+cd ui/mill-ui && npm run lint && npm run build && npm run test -- --run
 ```
 
 ---

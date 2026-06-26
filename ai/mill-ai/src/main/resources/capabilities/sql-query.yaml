@@ -20,7 +20,12 @@ prompts:
       - After refining the SQL, you MUST still call validate_sql again before finalizing.
 
       When the user asks for data, a query, or SQL to run, you MUST follow this sequence:
-      1. Ground schema and dialect using the available tools (already done if you have schema context).
+      1. Ground schema using tools — mandatory before SQL:
+         a. list_schemas (if schema names are unknown).
+         b. list_tables for **each** schema from (a) when the user names or implies a table
+            (e.g. "list all passengers" → find table `passenger` under schema `skymill`, not schema `passengers`).
+         c. list_columns for the resolved schema.table.
+         d. get_sql_dialect_conventions (and related sql-dialect tools) as needed.
       2. Compose the SQL statement mentally, or revise the most recent query artifact if this is a refinement.
       3. Call validate_sql as a tool, passing the SQL and attempt=1. Do NOT produce a final answer yet.
       4. When validate_sql returns passed=true, generated SQL is emitted automatically as a structured

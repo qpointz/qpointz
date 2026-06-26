@@ -44,6 +44,10 @@ export type InlineChatAction =
       payload: { sessionId: string; messageId: string; artifacts: ChatMessageArtifact[] };
     }
   | {
+      type: 'SET_MESSAGE_REPLY_SEGMENTS';
+      payload: { sessionId: string; messageId: string; replySegments: AssistantReplySegment[] };
+    }
+  | {
       type: 'FINALIZE_ASSISTANT_REPLY_VIEW';
       payload: {
         sessionId: string;

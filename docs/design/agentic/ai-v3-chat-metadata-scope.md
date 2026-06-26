@@ -90,13 +90,14 @@ mill-ui **optional stub** (**`chatMetadataPromotion`**, default **false** — se
 | Metadata `POST` with scope | Reuse Metadata mutations; needs scope + permission model |
 | Prelude-only patch | `PATCH` chat prelude blob — alternate to server-side store; watch tampering |
 
-## Facet artefact lifecycle (WI-360 — stage 4)
+## Facet artefact lifecycle (WI-360 — implemented)
 
-Accept/Reject, **`artifact.facet.persisted`**, and kind-routed **`artifact.retracted`** are being
-rewritten in **WI-360** ([`metadata-authoring-profiles`](../../../workitems/planned/metadata-authoring-profiles/STORY.md)
-stage 4). The capture-vs-merge table above remains normative for scope attribution; operator
-lifecycle and event-bus wiring are specified in
-[`metadata-facet-catalog-v3.md`](metadata-facet-catalog-v3.md) and implemented in WI-360.
+- **`POST …/artifacts/{artifactId}/accept`** — pending → **accepted** (facet proposal locked).
+- **`POST …/artifacts/{artifactId}/reject`** — publishes **`artifact.retracted`**; tombstones scope rows by **`sourceArtifactId`** and removes the chat artefact.
+- **`artifact.facet.persisted`** — on facet artefact save with non-empty **`writeScopeUrns[]`**, assigns scope rows via **`FacetArtifactScopeService`**.
+- Legacy **`schema-authoring.capture`** replay remains supported via **`FacetProposalWire`** and a registry fallback descriptor (capability removed in WI-361).
+
+Operator lifecycle and event-bus wiring: [`metadata-facet-catalog-v3.md`](metadata-facet-catalog-v3.md).
 
 ## Cross-links
 

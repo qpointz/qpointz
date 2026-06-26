@@ -10,6 +10,7 @@ import io.qpointz.mill.data.schema.SchemaFacets
 import io.qpointz.mill.data.metadata.SchemaModelRoot
 import io.qpointz.mill.data.schema.SchemaTableWithFacets
 import io.qpointz.mill.data.schema.SchemaWithFacets
+import io.qpointz.mill.data.schema.TreeFacetScope
 import io.qpointz.mill.data.schema.api.dto.ColumnDto
 import io.qpointz.mill.data.schema.api.dto.DataTypeDescriptor
 import io.qpointz.mill.data.schema.api.dto.FacetEnvelopeDto
@@ -141,7 +142,7 @@ class SchemaExplorerService(
         val metadataContext = parseReadContext(scope, contextLegacy, origin)
         val facetMode = parseFacetMode(facetModeRaw)
         log.info("Loading schema tree for scopes={} facetMode={}", metadataContext.scopes, facetMode)
-        val result = schemaFacetService.getSchemas(metadataContext)
+        val result = schemaFacetService.getSchemaTree(metadataContext, facetMode.toTreeFacetScope())
         return SchemaExplorerTreeDto(
             modelRoot = modelRootToDto(result.modelRoot, facetMode),
             schemas = result.schemas.map { schemaToDto(it, facetMode) }
@@ -172,7 +173,7 @@ class SchemaExplorerService(
         entityType = SchemaEntityType.MODEL,
         metadataEntityId = root.metadataEntityId,
         facets = if (facetMode == FacetMode.NONE) null else mapFacets(root.facets),
-        facetsResolved = mapFacetsResolved(root.facets)
+        facetsResolved = if (facetMode == FacetMode.NONE) null else mapFacetsResolved(root.facets)
     )
 
     /**
@@ -268,11 +269,11 @@ class SchemaExplorerService(
                 tableName = table.tableName,
                 metadataEntityId = table.metadata?.id,
                 facets = if (facetMode == FacetMode.HIERARCHY) mapFacets(table.facets, descriptiveOnly = true) else null,
-                facetsResolved = mapFacetsResolved(table.facets)
+                facetsResolved = if (facetMode == FacetMode.HIERARCHY) mapFacetsResolved(table.facets) else null
             )
         },
         facets = if (facetMode != FacetMode.NONE) mapFacets(schema.facets) else null,
-        facetsResolved = mapFacetsResolved(schema.facets)
+        facetsResolved = if (facetMode != FacetMode.NONE) mapFacetsResolved(schema.facets) else null
     )
 
     private fun tableToDto(table: SchemaTableWithFacets, facetMode: FacetMode): TableDto = TableDto(
@@ -284,7 +285,7 @@ class SchemaExplorerService(
         metadataEntityId = table.metadata?.id,
         columns = table.columns.map { columnToDto(it, if (facetMode == FacetMode.HIERARCHY) FacetMode.HIERARCHY else FacetMode.NONE) },
         facets = if (facetMode != FacetMode.NONE) mapFacets(table.facets) else null,
-        facetsResolved = mapFacetsResolved(table.facets)
+        facetsResolved = if (facetMode != FacetMode.NONE) mapFacetsResolved(table.facets) else null
     )
 
     private fun columnToDto(column: SchemaColumnWithFacets, facetMode: FacetMode): ColumnDto = ColumnDto(
@@ -297,7 +298,7 @@ class SchemaExplorerService(
         type = toTypeDescriptor(column.dataType),
         metadataEntityId = column.metadata?.id,
         facets = if (facetMode != FacetMode.NONE) mapFacets(column.facets) else null,
-        facetsResolved = mapFacetsResolved(column.facets)
+        facetsResolved = if (facetMode != FacetMode.NONE) mapFacetsResolved(column.facets) else null
     )
 
     private fun toTypeDescriptor(dataType: DataType): DataTypeDescriptor {
@@ -428,6 +429,12 @@ class SchemaExplorerService(
             "hierarchy" -> FacetMode.HIERARCHY
             else -> throw MillStatuses.badRequestRuntime("Unsupported facetMode: $rawFacetMode")
         }
+    }
+
+    private fun FacetMode.toTreeFacetScope(): TreeFacetScope = when (this) {
+        FacetMode.NONE -> TreeFacetScope.NONE
+        FacetMode.DIRECT -> TreeFacetScope.DIRECT
+        FacetMode.HIERARCHY -> TreeFacetScope.HIERARCHY
     }
 
     companion object {

@@ -1,7 +1,9 @@
+SHELL := /bin/bash
+
 .PHONY: help local-dev-start local-dev-start-ui local-dev-stop local-dev-reset local-dev-logs \
 	azure-aca-deploy azure-aca-destroy azure-minimal-plan azure-minimal-apply azure-minimal-destroy \
 	gcp-cloudrun-deploy gcp-cloudrun-destroy gcp-cloudrun-sync \
-	docker-minimal-run docker-minimal-run-ps1
+	docker-minimal-run
 
 LOCAL_DEV_COMPOSE_FILE := local-dev/docker-compose.yml
 LOCAL_DEV_DATA_DIR := ../.data/local-dev
@@ -37,7 +39,6 @@ help:
 	@echo ""
 	@echo "Docker minimal blueprint (see docker/minimal-blueprint/README.md):"
 	@echo "  make docker-minimal-run      # ./run.sh"
-	@echo "  make docker-minimal-run-ps1  # powershell run.ps1"
 
 azure-aca-deploy:
 	./azure-container-apps/deploy.sh
@@ -72,9 +73,6 @@ DOCKER_MINIMAL_DIR := docker/minimal-blueprint
 docker-minimal-run:
 	cd "$(DOCKER_MINIMAL_DIR)" && ./run.sh
 
-docker-minimal-run-ps1:
-	powershell -NoProfile -ExecutionPolicy Bypass -File "$(DOCKER_MINIMAL_DIR)/run.ps1"
-
 local-dev-start:
 	docker compose -f "$(LOCAL_DEV_COMPOSE_FILE)" up -d
 
@@ -86,7 +84,7 @@ local-dev-stop:
 
 local-dev-reset:
 	docker compose -f "$(LOCAL_DEV_COMPOSE_FILE)" down
-	powershell -NoProfile -ExecutionPolicy Bypass -Command "if (Test-Path '$(LOCAL_DEV_DATA_DIR)/postgres') { Remove-Item -Recurse -Force '$(LOCAL_DEV_DATA_DIR)/postgres' } ; if (Test-Path '$(LOCAL_DEV_DATA_DIR)/chromadb') { Remove-Item -Recurse -Force '$(LOCAL_DEV_DATA_DIR)/chromadb' }"
+	rm -rf "$(LOCAL_DEV_DATA_DIR)/postgres" "$(LOCAL_DEV_DATA_DIR)/chromadb" "$(LOCAL_DEV_DATA_DIR)/authentik"
 	docker compose -f "$(LOCAL_DEV_COMPOSE_FILE)" up -d
 
 local-dev-logs:

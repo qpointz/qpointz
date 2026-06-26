@@ -47,6 +47,30 @@ class FacetProposalWireTest {
     }
 
     @Test
+    fun shouldIncludeRationaleAndCatalogPath_whenPresent() {
+        val wire = FacetProposalWire.normalizePayload(
+            mapOf(
+                "facetTypeKey" to "descriptive",
+                "metadataEntityId" to "skymill.passenger.id",
+                "catalogPath" to "skymill.passenger.id",
+                "rationale" to "Unique passenger identifier.",
+                "payload" to mapOf("description" to "unique passenger identifier"),
+            ),
+        )
+
+        assertEquals(
+            mapOf(
+                "facetTypeKey" to "descriptive",
+                "metadataEntityId" to "skymill.passenger.id",
+                "catalogPath" to "skymill.passenger.id",
+                "rationale" to "Unique passenger identifier.",
+                "payload" to mapOf("description" to "unique passenger identifier"),
+            ),
+            wire,
+        )
+    }
+
+    @Test
     fun shouldReturnNull_whenSchemaCaptureFailed() {
         assertNull(
             FacetProposalWire.normalizePayload(

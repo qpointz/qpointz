@@ -99,10 +99,8 @@ describe('SchemaTree', () => {
       expect(screen.getByText('orders')).toBeInTheDocument();
     });
 
-    it('should show column nodes when table is expanded', () => {
-      renderTree();
-      // Click on the "customers" table to expand it
-      fireEvent.click(screen.getByText('customers'));
+    it('should reveal selected column when selectedId is set from URL', () => {
+      renderTree({ selectedId: 'sales.customers.customer_id' });
       expect(screen.getByText('customer_id')).toBeInTheDocument();
     });
   });

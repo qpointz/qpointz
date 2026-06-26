@@ -4,6 +4,7 @@ import io.qpointz.mill.ai.autoconfigure.ConditionalOnAiEnabled
 import io.qpointz.mill.ai.capabilities.schema.EmptySchemaCatalogPort
 import io.qpointz.mill.ai.capabilities.schema.SchemaCatalogPort
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlValidator
+import io.qpointz.mill.ai.capabilities.metadata.EmptyMetadataReadPort
 import io.qpointz.mill.ai.capabilities.metadata.MetadataReadPort
 import io.qpointz.mill.ai.data.metadata.metadataReadPort
 import io.qpointz.mill.ai.data.schema.asSchemaCatalogPort
@@ -93,20 +94,36 @@ class AiV3DataAutoConfiguration {
     /**
      * Metadata read port for `metadata` / `metadata-authoring` tools when the metadata stack is present.
      *
-     * Method parameters (not `@ConditionalOnBean`) so Spring defers creation until
-     * [FacetCatalog], [FacetService], and [MetadataContentRepository] exist — same pattern as
-     * [schemaCatalogPort] avoiding early condition evaluation during auto-config import.
+     * Uses [ObjectProvider] so creation is deferred until [FacetCatalog], [FacetService], and
+     * [MetadataContentRepository] exist — same pattern as [schemaCatalogPort]. Must not register an
+     * empty port in [AiV3AutoConfiguration] or it blocks this bean.
      *
      * @param facetCatalog facet type catalog
      * @param facetService merged facet reads
      * @param contentRepository authoring content rows
-     * @return production [MetadataReadPort]
+     * @return production [MetadataReadPort] or [EmptyMetadataReadPort] when the stack is incomplete
      */
     @Bean
     @ConditionalOnMissingBean(MetadataReadPort::class)
     fun serviceMetadataReadPort(
-        facetCatalog: FacetCatalog,
-        facetService: FacetService,
-        contentRepository: MetadataContentRepository,
-    ): MetadataReadPort = metadataReadPort(facetCatalog, facetService, contentRepository)
+        facetCatalog: ObjectProvider<FacetCatalog>,
+        facetService: ObjectProvider<FacetService>,
+        contentRepository: ObjectProvider<MetadataContentRepository>,
+    ): MetadataReadPort {
+        val catalog = facetCatalog.ifAvailable
+        val service = facetService.ifAvailable
+        val content = contentRepository.ifAvailable
+        return if (catalog != null && service != null && content != null) {
+            metadataReadPort(catalog, service, content)
+        } else {
+            log.warn(
+                "AI v3: metadata stack incomplete (facetCatalog={}, facetService={}, contentRepository={}); " +
+                    "facet catalog tools will return empty results until metadata wiring is active.",
+                catalog != null,
+                service != null,
+                content != null,
+            )
+            EmptyMetadataReadPort()
+        }
+    }
 }

@@ -14,7 +14,7 @@ export type {
 
 /** Normalized durable slices attached to an assistant message (from structured SSE parts). */
 export type ChatMessageArtifact =
-  | { kind: 'sql'; sql: string; dialectId?: string }
+  | { kind: 'sql'; sql: string; dialectId?: string; artifactId?: string; status?: string }
   | {
       kind: 'data';
       executionId: string;
@@ -22,12 +22,19 @@ export type ChatMessageArtifact =
       rowCount?: number;
       truncated?: boolean;
       columns?: QueryColumn[];
+      artifactId?: string;
+      sourceArtifactId?: string;
+      status?: string;
     }
   | {
       kind: 'facet-proposal';
       facetTypeKey: string;
       metadataEntityId: string;
+      catalogPath?: string;
+      rationale?: string;
       payload: unknown;
+      artifactId?: string;
+      status?: string;
     }
   | {
       kind: 'unknown';
@@ -35,6 +42,11 @@ export type ChatMessageArtifact =
       title: string;
       payload: unknown;
     };
+
+/** One slice of an interleaved assistant reply (commentary text or artefact box). */
+export type AssistantReplySegment =
+  | { kind: 'text'; text: string }
+  | { kind: 'artifact'; groupIndex: number };
 
 /** Layout routing for assistant replies (SSE + GET transcript). */
 export type AssistantReplyView =
@@ -57,6 +69,8 @@ export interface Message {
   assistantReplyView?: AssistantReplyView;
   /** Structured artefacts (SQL, facet proposals, query results) from SSE or GET replay. */
   artifacts?: readonly ChatMessageArtifact[];
+  /** Live SSE ordering of commentary text and artefact groups; omitted on GET until persisted. */
+  replySegments?: readonly AssistantReplySegment[];
   /**
    * When `true`, message was loaded from REST transcript replay — SQL preview stays on the SQL tab
    * and does not auto-execute. Live streaming turns omit this flag (or set `false`).
@@ -157,6 +171,7 @@ export interface AttachExecutionResultRequest {
   rowCount?: number;
   truncated?: boolean;
   sql?: string;
+  parentArtifactId?: string;
 }
 
 export interface ChatService {
@@ -214,4 +229,10 @@ export interface ChatService {
     turnId: string,
     request: AttachExecutionResultRequest,
   ): Promise<ChatMessageArtifact | null>;
+
+  /** Accept a pending facet-proposal artefact. */
+  acceptArtifact(chatId: string, artifactId: string): Promise<ChatMessageArtifact | null>;
+
+  /** Reject a pending facet-proposal artefact. */
+  rejectArtifact(chatId: string, artifactId: string): Promise<boolean>;
 }

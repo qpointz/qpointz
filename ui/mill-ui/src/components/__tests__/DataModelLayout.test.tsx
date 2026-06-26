@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import { MantineProvider } from '@mantine/core';
-import { MemoryRouter } from 'react-router';
+import { MemoryRouter, Route, Routes } from 'react-router';
 import type { ReactNode } from 'react';
 import { defaultFeatureFlags } from '../../features/defaults';
 
@@ -30,31 +30,38 @@ const { testTree } = vi.hoisted(() => ({
   ],
 }));
 
-vi.mock('../../services/api', () => ({
-  schemaService: {
-    getContext: vi.fn(() => Promise.resolve({
-      selectedContext: 'global',
-      availableScopes: [{ id: 'global', slug: 'global', displayName: 'Global' }],
-    })),
-    getTree: vi.fn(() => Promise.resolve(testTree)),
-    getEntityById: vi.fn(() => Promise.resolve(null)),
-    getEntityFacets: vi.fn(() => Promise.resolve({})),
-  },
-  chatService: {
-    async createChat() { return { chatId: 'mock-id', chatName: 'Mock' }; },
-    async *sendMessage() { yield 'mock'; },
-  },
-  featureService: {
-    async getFlags() { return { ...defaultFeatureFlags }; },
-  },
-  chatReferencesService: { getConversationsForContext: vi.fn(() => Promise.resolve([])) },
-}));
+vi.mock('../../services/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../services/api')>();
+  return {
+    ...actual,
+    schemaService: {
+      ...actual.schemaService,
+      getContext: vi.fn(() => Promise.resolve({
+        selectedContext: 'global',
+        availableScopes: [{ id: 'global', slug: 'global', displayName: 'Global' }],
+      })),
+      getTree: vi.fn(() => Promise.resolve(testTree)),
+      getEntityById: vi.fn(() => Promise.resolve(null)),
+      getTable: vi.fn(() => Promise.resolve(null)),
+      getEntityFacets: vi.fn(() => Promise.resolve({})),
+    },
+    chatService: {
+      async createChat() { return { chatId: 'mock-id', chatName: 'Mock' }; },
+      async *sendMessage() { yield 'mock'; },
+    },
+    featureService: {
+      async getFlags() { return { ...defaultFeatureFlags }; },
+    },
+    chatReferencesService: { getConversationsForContext: vi.fn(() => Promise.resolve([])) },
+  };
+});
 
 async function renderLayout(initialPath = '/model') {
   const { DataModelLayout } = await import('../data-model/DataModelLayout');
   const { FeatureFlagProvider } = await import('../../features/FeatureFlagContext');
   const { InlineChatProvider } = await import('../../context/InlineChatContext');
   const { ChatReferencesProvider } = await import('../../context/ChatReferencesContext');
+  const { RelatedContentProvider } = await import('../../context/RelatedContentContext');
 
   function Wrapper({ children }: { children: ReactNode }) {
     return (
@@ -62,9 +69,13 @@ async function renderLayout(initialPath = '/model') {
         <FeatureFlagProvider>
           <InlineChatProvider>
             <ChatReferencesProvider>
-              <MemoryRouter initialEntries={[initialPath]}>
-                {children}
-              </MemoryRouter>
+              <RelatedContentProvider>
+                <MemoryRouter initialEntries={[initialPath]}>
+                  <Routes>
+                    <Route path="/model/:schema?/:table?/:attribute?" element={children} />
+                  </Routes>
+                </MemoryRouter>
+              </RelatedContentProvider>
             </ChatReferencesProvider>
           </InlineChatProvider>
         </FeatureFlagProvider>
@@ -117,6 +128,103 @@ describe('DataModelLayout', () => {
     await renderLayout();
     await waitFor(() => {
       expect(screen.getByText('inventory')).toBeInTheDocument();
+    });
+  });
+
+  it('should enrich table columns when deep-linked to a column after the tree is ready', async () => {
+    const { schemaService } = await import('../../services/api');
+    const columnEntity = {
+      id: 'sales.customers.customer_id',
+      entityType: 'COLUMN' as const,
+      schemaName: 'sales',
+      tableName: 'customers',
+      columnName: 'customer_id',
+      fieldIndex: 0,
+      type: { type: 'VARCHAR', nullable: true },
+    };
+    const tableDetail = {
+      id: 'sales.customers',
+      entityType: 'TABLE' as const,
+      schemaName: 'sales',
+      tableName: 'customers',
+      tableType: 'TABLE',
+      columns: [columnEntity],
+    };
+
+    let resolveEntity: (entity: typeof columnEntity) => void = () => {};
+    vi.mocked(schemaService.getEntityById).mockImplementation(
+      () => new Promise((resolve) => { resolveEntity = resolve; }),
+    );
+    vi.mocked(schemaService.getTable).mockResolvedValue(tableDetail);
+
+    await renderLayout('/model/sales/customers/customer_id');
+
+    await waitFor(() => {
+      expect(screen.getByText('customers')).toBeInTheDocument();
+      expect(vi.mocked(schemaService.getTable)).toHaveBeenCalledWith(
+        'sales',
+        'customers',
+        'global',
+        'none',
+      );
+      expect(screen.getAllByText('customer_id').length).toBeGreaterThanOrEqual(1);
+    });
+
+    await act(async () => {
+      resolveEntity(columnEntity);
+    });
+  });
+
+  it('should enrich table columns when deep-linked to a column before the tree finishes loading', async () => {
+    const { schemaService } = await import('../../services/api');
+    const columnEntity = {
+      id: 'sales.customers.customer_id',
+      entityType: 'COLUMN' as const,
+      schemaName: 'sales',
+      tableName: 'customers',
+      columnName: 'customer_id',
+      fieldIndex: 0,
+      type: { type: 'VARCHAR', nullable: true },
+    };
+    const tableDetail = {
+      id: 'sales.customers',
+      entityType: 'TABLE' as const,
+      schemaName: 'sales',
+      tableName: 'customers',
+      tableType: 'TABLE',
+      columns: [columnEntity],
+    };
+
+    let resolveTree: (tree: typeof testTree) => void = () => {};
+    vi.mocked(schemaService.getTree).mockImplementation(
+      () => new Promise((resolve) => { resolveTree = resolve; }),
+    );
+    vi.mocked(schemaService.getEntityById).mockImplementation((id) => {
+      if (id === 'sales.customers.customer_id') {
+        return Promise.resolve(columnEntity);
+      }
+      return Promise.resolve(null);
+    });
+    vi.mocked(schemaService.getTable).mockResolvedValue(tableDetail);
+
+    await renderLayout('/model/sales/customers/customer_id');
+
+    await waitFor(() => {
+      expect(schemaService.getEntityById).toHaveBeenCalledWith('sales.customers.customer_id', 'global', expect.any(AbortSignal));
+    });
+
+    await act(async () => {
+      resolveTree(testTree);
+    });
+
+    await waitFor(() => {
+      expect(vi.mocked(schemaService.getTable)).toHaveBeenCalledWith(
+        'sales',
+        'customers',
+        'global',
+        'none',
+      );
+      expect(screen.getAllByText('customer_id').length).toBeGreaterThanOrEqual(1);
     });
   });
 });

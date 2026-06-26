@@ -183,7 +183,8 @@ spring:
 mill:
   ai:
     chat:
-      default-profile: schema-authoring
+      # `schema-authoring` profile removed (WI-361); use metadata-authoring for facet capture.
+      default-profile: metadata-authoring
     data:
       embedding:
         default:

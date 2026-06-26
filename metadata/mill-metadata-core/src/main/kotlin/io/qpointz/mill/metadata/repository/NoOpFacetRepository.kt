@@ -12,6 +12,7 @@ class NoOpFacetRepository : FacetRepository {
         scopeKey: String
     ): List<FacetAssignment> = emptyList()
     override fun findByUid(uid: String): FacetAssignment? = null
+    override fun findBySourceArtifactId(sourceArtifactId: String): List<FacetAssignment> = emptyList()
     override fun save(facet: FacetAssignment): FacetAssignment = facet
     override fun deleteByUid(uid: String): Boolean = false
     override fun deleteByEntity(entityId: String) = Unit

@@ -36,6 +36,9 @@ export interface TurnResponseWire {
 export interface ArtifactResponseWire {
   kind: string;
   payload: Record<string, unknown>;
+  artifactId?: string | null;
+  urn?: string | null;
+  status?: string | null;
 }
 
 /** Kotlin: ChatDetailResponse — GET `/api/v1/ai/chats/{chatId}`. */

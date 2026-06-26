@@ -38,7 +38,7 @@ build-deploy-tools:
 pull-minica-certs:
 	mkdir -p "$(ROOT_DIR)/.certs"
 	docker pull "$(MINICA_IMAGE)"
-	docker run --rm -v "$(ROOT_DIR)/.certs:/out" "$(MINICA_IMAGE)" /bin/sh -c 'cp -R /certs/. /out/'
+	docker run --rm -v "$(ROOT_DIR)/.certs:/out" "$(MINICA_IMAGE)" /bin/bash -c 'cp -R /certs/. /out/'
 	sudo chown -R "$$(id -u):$$(id -g)" "$(ROOT_DIR)/.certs"
 	ls -lart "$(ROOT_DIR)/.certs"
 	@echo "Copied certificates to $(ROOT_DIR)/.certs"

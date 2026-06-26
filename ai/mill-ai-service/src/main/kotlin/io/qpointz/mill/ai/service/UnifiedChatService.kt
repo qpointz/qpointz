@@ -46,6 +46,7 @@ class UnifiedChatService(
     private val runtime: AiV3ChatRuntime,
     private val properties: AiChatSettings,
     private val userIdResolver: UserIdResolver,
+    private val artifactLifecycleService: ArtifactLifecycleService? = null,
 ) : ChatService {
 
     // ── Chat lifecycle ─────────────────────────────────────────────────────────
@@ -123,15 +124,16 @@ class UnifiedChatService(
         if (record.turns.none { it.turnId == turnId }) return null
 
         val artifactId = UUID.randomUUID().toString()
-        val payload = mapOf(
-            "artifactType" to "sql-result",
-            "executionId" to request.executionId,
-            "resultId" to request.executionId,
-            "sql" to request.sql,
-            "rowCount" to request.rowCount,
-            "truncated" to request.truncated,
-            "columns" to request.columns.map { mapOf("name" to it.name, "type" to it.type) },
-        )
+        val payload = buildMap<String, Any?> {
+            put("artifactType", "sql-result")
+            put("executionId", request.executionId)
+            put("resultId", request.executionId)
+            put("sql", request.sql)
+            put("rowCount", request.rowCount)
+            put("truncated", request.truncated)
+            put("columns", request.columns.map { mapOf("name" to it.name, "type" to it.type) })
+            request.parentArtifactId?.let { put("sourceArtifactId", it) }
+        }
         artifactStore.save(
             ArtifactRecord(
                 artifactId = artifactId,
@@ -148,6 +150,16 @@ class UnifiedChatService(
         return ArtifactWireMapper.toResponse(
             artifactStore.findById(artifactId) ?: return null,
         )
+    }
+
+    override fun acceptArtifact(chatId: String, artifactId: String): ArtifactResponse? {
+        requireOwned(registry.load(chatId)) ?: return null
+        return artifactLifecycleService?.acceptArtifact(chatId, artifactId)
+    }
+
+    override fun rejectArtifact(chatId: String, artifactId: String): Boolean {
+        requireOwned(registry.load(chatId)) ?: return false
+        return artifactLifecycleService?.rejectArtifact(chatId, artifactId) ?: false
     }
 
     private fun mapTurnResponses(chatId: String, turns: List<ConversationTurn>): List<TurnResponse> {

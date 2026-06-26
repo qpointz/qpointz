@@ -58,6 +58,14 @@ interface MetadataFacetJpaRepository : JpaRepository<MetadataEntityFacetEntity, 
     @Query("DELETE FROM MetadataEntityFacetEntity f WHERE f.entity.entityRes = :entityRes")
     fun deleteByEntityEntityRes(@Param("entityRes") entityRes: String)
 
+    @Query(
+        """
+        SELECT f FROM MetadataEntityFacetEntity f
+        WHERE f.sourceArtifactId = :sourceArtifactId
+        """
+    )
+    fun findBySourceArtifactId(@Param("sourceArtifactId") sourceArtifactId: String): List<MetadataEntityFacetEntity>
+
     @Query("SELECT COUNT(f) FROM MetadataEntityFacetEntity f WHERE f.facetType.typeRes = :typeRes")
     fun countByFacetTypeTypeRes(@Param("typeRes") typeRes: String): Long
 

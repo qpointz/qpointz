@@ -56,6 +56,7 @@ class MetadataAuthoringCapabilityProvider : CapabilityProvider {
 private data class ListFacetTypesArgs(
   val applicableTo: String? = null,
   val category: String? = null,
+  val catalogPath: String? = null,
   val metadataEntityId: String? = null,
 )
 
@@ -73,7 +74,8 @@ private data class GetContentArgs(
 )
 
 private data class ListEntityFacetsArgs(
-  val metadataEntityId: String,
+  val catalogPath: String? = null,
+  val metadataEntityId: String? = null,
   val scope: String? = null,
   val context: String? = null,
   val origin: String? = null,
@@ -82,12 +84,14 @@ private data class ListEntityFacetsArgs(
 private data class ValidateFacetPayloadArgs(
   val facetTypeKey: String,
   val payload: Map<String, Any?>,
+  val catalogPath: String? = null,
   val metadataEntityId: String? = null,
 )
 
 private data class ProposeFacetAssignmentArgs(
   val facetTypeKey: String,
-  val metadataEntityId: String,
+  val catalogPath: String? = null,
+  val metadataEntityId: String? = null,
   val payload: Map<String, Any?>,
   val rationale: String? = null,
 )
@@ -95,6 +99,7 @@ private data class ProposeFacetAssignmentArgs(
 data class MetadataFacetProposalCapture(
   val captureType: String = "facet_assignment",
   val facetTypeKey: String,
+  val catalogPath: String,
   val metadataEntityId: String,
   val serializedPayload: Map<String, Any?>,
   val rationale: String?,
@@ -120,7 +125,8 @@ private data class MetadataCapability(
     },
     manifest.tool("list_facet_types") { request ->
       val args = request.argumentsAs<ListFacetTypesArgs>()
-      val entityTypeUrn = args.metadataEntityId?.let(MetadataFacetValidation::applicableEntityTypeUrn)
+      val entityTypeUrn = resolveTargetEntity(args.catalogPath, args.metadataEntityId)
+        ?.let { MetadataFacetValidation.applicableEntityTypeUrn(it.metadataEntityUrn) }
       val rows = port.listFacetTypes()
         .asSequence()
         .filter { args.category.isNullOrBlank() || it.category.equals(args.category, ignoreCase = true) }
@@ -169,11 +175,22 @@ private data class MetadataCapability(
     },
     manifest.tool("list_entity_facets") { request ->
       val args = request.argumentsAs<ListEntityFacetsArgs>()
-      ToolResult(port.listEntityFacets(args.metadataEntityId, args.scope, args.context, args.origin))
+      val resolved = resolveTargetEntity(args.catalogPath, args.metadataEntityId)
+        ?: return@tool ToolResult(mapOf("error" to "catalogPath or metadataEntityId is required"))
+      val scopeParam = args.scope ?: args.context ?: agentContext.readableScopesParam()
+      ToolResult(
+        port.listEntityFacets(
+          resolved.metadataEntityUrn,
+          scopeParam,
+          null,
+          args.origin,
+        ),
+      )
     },
     manifest.tool("validate_facet_payload") { request ->
       val args = request.argumentsAs<ValidateFacetPayloadArgs>()
-      val errs = MetadataFacetValidation.validate(port, args.facetTypeKey, args.payload, args.metadataEntityId)
+      val resolvedEntityId = resolveTargetEntity(args.catalogPath, args.metadataEntityId)?.metadataEntityUrn
+      val errs = MetadataFacetValidation.validate(port, args.facetTypeKey, args.payload, resolvedEntityId)
       ToolResult(
         mapOf(
           "valid" to errs.isEmpty(),
@@ -199,11 +216,31 @@ private data class MetadataAuthoringCapability(
   override val tools: List<ToolBinding> = listOf(
     manifest.tool("propose_facet_assignment", kindOverride = ToolKind.CAPTURE) { request ->
       val args = request.argumentsAs<ProposeFacetAssignmentArgs>()
+      val raw = args.catalogPath?.trim()?.takeIf { it.isNotEmpty() }
+        ?: args.metadataEntityId?.trim()?.takeIf { it.isNotEmpty() }
+      if (raw == null) {
+        return@tool ToolResult(
+          mapOf(
+            "rejected" to true,
+            "errors" to listOf("catalogPath is required (qualified name such as schema.table.column)"),
+          ),
+        )
+      }
+      val resolved = try {
+        MetadataEntityIds.resolveEntity(raw)
+      } catch (ex: IllegalArgumentException) {
+        return@tool ToolResult(
+          mapOf(
+            "rejected" to true,
+            "errors" to listOf(ex.message ?: "invalid catalog path: $raw"),
+          ),
+        )
+      }
       val payloadErrors = MetadataFacetValidation.validate(
         port,
         args.facetTypeKey,
         args.payload,
-        args.metadataEntityId,
+        resolved.metadataEntityUrn,
       )
       if (payloadErrors.isNotEmpty()) {
         ToolResult(
@@ -216,7 +253,8 @@ private data class MetadataAuthoringCapability(
         ToolResult(
           MetadataFacetProposalCapture(
             facetTypeKey = args.facetTypeKey,
-            metadataEntityId = args.metadataEntityId,
+            catalogPath = resolved.catalogPath,
+            metadataEntityId = resolved.metadataEntityUrn,
             serializedPayload = args.payload,
             rationale = args.rationale,
             writeScopeUrns = agentContext.writeScopeUrns(),
@@ -261,3 +299,17 @@ internal fun validateFacetPayloadInternal(
   facetTypeKey: String,
   payload: Map<String, Any?>,
 ): List<String> = MetadataFacetValidation.validate(port, facetTypeKey, payload, metadataEntityId = null)
+
+private fun resolveTargetEntity(
+  catalogPath: String?,
+  metadataEntityId: String?,
+): MetadataEntityIds.ResolvedEntity? {
+  val raw = catalogPath?.trim()?.takeIf { it.isNotEmpty() }
+    ?: metadataEntityId?.trim()?.takeIf { it.isNotEmpty() }
+    ?: return null
+  return try {
+    MetadataEntityIds.resolveEntity(raw)
+  } catch (_: IllegalArgumentException) {
+    null
+  }
+}

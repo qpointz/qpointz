@@ -2,6 +2,7 @@ import { Box, Stack } from '@mantine/core';
 import { useCallback, useState } from 'react';
 import { useFeatureFlags } from '../../../features/FeatureFlagContext';
 import { sanitizeExportAttachmentBaseName } from '../../../services/exportHelpers';
+import { mergeDataArtifactIntoMessage } from '../../../services/chatSqlExecution';
 import { QueryDataView } from '../../data/QueryDataView';
 import { ChatArtifactActionBar } from '../artifactPreview/ChatArtifactActionBar';
 import { ChatArtifactCard } from '../artifactPreview/ChatArtifactCard';
@@ -28,9 +29,7 @@ export function SqlDataExpandedView({ payload, onClose }: SqlDataExpandedViewPro
 
   const mergeDataArtifact = useCallback(
     (data: Extract<ChatMessageArtifact, { kind: 'data' }>) => {
-      payload.onArtifactsChange?.(
-        [...(payload.artifacts ?? []).filter((a) => a.kind !== 'data'), data],
-      );
+      payload.onArtifactsChange?.(mergeDataArtifactIntoMessage(payload.artifacts, data));
     },
     [payload],
   );
@@ -39,6 +38,7 @@ export function SqlDataExpandedView({ payload, onClose }: SqlDataExpandedViewPro
     sql: payload.sql,
     conversationId: payload.message.conversationId,
     messageId: payload.message.id,
+    parentArtifactId: payload.parentArtifactId,
     storedExecutionId: payload.executionId,
     lazyEnabled: true,
     isReplayed,

@@ -9,9 +9,11 @@ import io.qpointz.mill.ai.persistence.ArtifactStore
 import io.qpointz.mill.ai.persistence.ChatRegistry
 import io.qpointz.mill.ai.persistence.ConversationStore
 import io.qpointz.mill.ai.profile.ProfileRegistry
+import io.qpointz.mill.ai.service.ArtifactLifecycleService
 import io.qpointz.mill.ai.service.ChatService
 import io.qpointz.mill.ai.service.UnifiedChatService
 import org.springframework.boot.autoconfigure.AutoConfiguration
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 
@@ -37,6 +39,7 @@ class AiV3ChatServiceAutoConfiguration {
         runtime: AiV3ChatRuntime,
         properties: AiV3ChatProperties,
         userIdResolver: UserIdResolver,
+        artifactLifecycleService: ObjectProvider<ArtifactLifecycleService>,
     ): UnifiedChatService = UnifiedChatService(
         registry = registry,
         conversationStore = conversationStore,
@@ -46,5 +49,6 @@ class AiV3ChatServiceAutoConfiguration {
         runtime = runtime,
         properties = properties.toSettings(),
         userIdResolver = userIdResolver,
+        artifactLifecycleService = artifactLifecycleService.ifAvailable,
     )
 }

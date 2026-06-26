@@ -15,6 +15,7 @@ import java.time.Instant
  * @property createdBy actor id or null
  * @property lastModifiedAt last mutation time
  * @property lastModifiedBy last actor id or null
+ * @property sourceArtifactId originating chat artefact id for lifecycle retract, if any
  */
 data class FacetAssignment(
     val uid: String,
@@ -26,5 +27,6 @@ data class FacetAssignment(
     val createdAt: Instant,
     val createdBy: String?,
     val lastModifiedAt: Instant,
-    val lastModifiedBy: String?
+    val lastModifiedBy: String?,
+    val sourceArtifactId: String? = null,
 )

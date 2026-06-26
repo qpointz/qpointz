@@ -1,5 +1,5 @@
 import { Box, NavLink, Collapse, Text, Badge, ActionIcon, useMantineColorScheme } from '@mantine/core';
-import { useState, type MouseEvent } from 'react';
+import { useEffect, useState, type MouseEvent } from 'react';
 import {
   HiOutlineCircleStack,
   HiOutlineTableCells,
@@ -10,6 +10,8 @@ import {
   HiOutlineChatBubbleLeftRight,
 } from 'react-icons/hi2';
 import type { SchemaNode } from '../../types/schema';
+import { catalogIdsEqual } from './catalogEntityId';
+import { collectTreeExpansionIds, defaultExpandedRootIds } from './schemaTreeExpansion';
 import { useInlineChat } from '../../context/InlineChatContext';
 import { useChatReferencesContext } from '../../context/ChatReferencesContext';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
@@ -32,20 +34,25 @@ function TreeNode({
   selectedId,
   onSelect,
   depth = 0,
+  expandedIds,
+  onToggleExpand,
 }: {
   entity: SchemaNode;
   selectedId: string | null;
   onSelect: (entity: SchemaNode) => void;
   depth?: number;
+  expandedIds: Set<string>;
+  onToggleExpand: (nodeId: string, expanded: boolean) => void;
 }) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const flags = useFeatureFlags();
   const { getSessionByContextId } = useInlineChat();
   const { getRefsForContextId } = useChatReferencesContext();
-  const [expanded, setExpanded] = useState(depth < 1); // Auto-expand first level
+  const expanded = expandedIds.has(entity.id);
   const hasChildren = entity.children && entity.children.length > 0;
-  const isSelected = selectedId === entity.id;
+  const isExpandable = hasChildren || entity.type === 'TABLE';
+  const isSelected = selectedId != null && catalogIdsEqual(selectedId, entity.id);
   const Icon = entityIcons[entity.type];
   const hasChat = !!getSessionByContextId(entity.id);
   const chatRefs =
@@ -64,13 +71,12 @@ function TreeNode({
     event.preventDefault();
     event.stopPropagation();
     if (hasChildren) {
-      setExpanded((prev) => !prev);
+      onToggleExpand(entity.id, !expanded);
       return;
     }
-    // Lazy-load table columns on first expand attempt.
     if (entity.type === 'TABLE') {
       onSelect(entity);
-      setExpanded(true);
+      onToggleExpand(entity.id, true);
     }
   };
 
@@ -106,7 +112,7 @@ function TreeNode({
         }
         leftSection={<Icon size={14} />}
         rightSection={
-          (hasChildren || entity.type === 'TABLE') ? (
+          isExpandable ? (
             <ActionIcon
               size="sm"
               variant="subtle"
@@ -135,18 +141,22 @@ function TreeNode({
           },
         }}
       />
-      {hasChildren && (
+      {isExpandable && (
         <Collapse in={expanded}>
           <Box>
-            {entity.children!.map((child) => (
-              <TreeNode
-                key={child.id}
-                entity={child}
-                selectedId={selectedId}
-                onSelect={onSelect}
-                depth={depth + 1}
-              />
-            ))}
+            {hasChildren
+              ? entity.children!.map((child) => (
+                  <TreeNode
+                    key={child.id}
+                    entity={child}
+                    selectedId={selectedId}
+                    onSelect={onSelect}
+                    depth={depth + 1}
+                    expandedIds={expandedIds}
+                    onToggleExpand={onToggleExpand}
+                  />
+                ))
+              : null}
           </Box>
         </Collapse>
       )}
@@ -157,6 +167,38 @@ function TreeNode({
 export function SchemaTree({ tree, selectedId, onSelect }: SchemaTreeProps) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
+
+  useEffect(() => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      defaultExpandedRootIds(tree).forEach((id) => next.add(id));
+      return next;
+    });
+  }, [tree]);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    const fromSelection = collectTreeExpansionIds(tree, selectedId);
+    if (fromSelection.size === 0) return;
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      fromSelection.forEach((id) => next.add(id));
+      return next;
+    });
+  }, [tree, selectedId]);
+
+  const handleToggleExpand = (nodeId: string, expanded: boolean) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (expanded) {
+        next.add(nodeId);
+      } else {
+        next.delete(nodeId);
+      }
+      return next;
+    });
+  };
 
   if (tree.length === 0) {
     return (
@@ -180,6 +222,8 @@ export function SchemaTree({ tree, selectedId, onSelect }: SchemaTreeProps) {
           entity={entity}
           selectedId={selectedId}
           onSelect={onSelect}
+          expandedIds={expandedIds}
+          onToggleExpand={handleToggleExpand}
         />
       ))}
     </Box>

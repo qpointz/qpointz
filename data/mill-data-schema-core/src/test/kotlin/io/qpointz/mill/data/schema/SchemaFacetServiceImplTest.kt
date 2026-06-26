@@ -16,6 +16,7 @@ import io.qpointz.mill.metadata.repository.EntityReadSide
 import io.qpointz.mill.metadata.repository.FacetRepository
 import io.qpointz.mill.metadata.source.RepositoryMetadataSource
 import io.qpointz.mill.metadata.service.FacetCatalog
+import io.qpointz.mill.metadata.service.MetadataContext
 import io.qpointz.mill.metadata.service.FacetInstanceReadMerge
 import io.qpointz.mill.metadata.service.MetadataReader
 import io.qpointz.mill.proto.DataType
@@ -35,6 +36,8 @@ import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.kotlin.any
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import java.time.Instant
@@ -552,6 +555,60 @@ class SchemaFacetServiceImplTest {
 
         assertNotNull(attr.metadata)
         assertEquals(codec.forAttribute("s", "t", "col"), attr.metadata!!.id)
+    }
+
+    @Test
+    fun `getSchemaTree with none skips facet repository and column expansion`() {
+        val schemaEntity = metadataEntity("s", null, null)
+        val tableEntity = metadataEntity("s", "t", null)
+        val columnEntity = metadataEntity("s", "t", "col")
+        whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
+        whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t", field("col"), field("col2"))))
+        stubEntities(schemaEntity, tableEntity, columnEntity)
+        stubFacets(
+            columnEntity,
+            listOf(
+                facetRow(
+                    columnEntity,
+                    MetadataUrns.FACET_TYPE_DESCRIPTIVE,
+                    MetadataUrns.SCOPE_GLOBAL,
+                    mapOf("displayName" to "Column label")
+                )
+            )
+        )
+
+        val result = service.getSchemaTree(MetadataContext.global(), TreeFacetScope.NONE)
+
+        assertTrue(result.schemas.single().tables.single().columns.isEmpty())
+        assertTrue(result.schemas.single().facets.isEmpty)
+        assertTrue(result.schemas.single().tables.single().facets.isEmpty)
+        verify(facetRepository, never()).findByEntity(any())
+    }
+
+    @Test
+    fun `getSchemaTree with hierarchy merges table facets but not columns`() {
+        val tableEntity = metadataEntity("s", "t", null)
+        whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("s"))
+        whenever(schemaProvider.getSchema("s")).thenReturn(schema("s", table("s", "t", field("col"))))
+        stubEntities(tableEntity)
+        stubFacets(
+            tableEntity,
+            listOf(
+                facetRow(
+                    tableEntity,
+                    MetadataUrns.FACET_TYPE_DESCRIPTIVE,
+                    MetadataUrns.SCOPE_GLOBAL,
+                    mapOf("displayName" to "Customers")
+                )
+            )
+        )
+
+        val result = service.getSchemaTree(MetadataContext.global(), TreeFacetScope.HIERARCHY)
+
+        val table = result.schemas.single().tables.single()
+        assertTrue(table.columns.isEmpty())
+        assertNotNull(table.facets.descriptive)
+        assertEquals("Customers", table.facets.descriptive?.displayName)
     }
 
     // ---- helpers ----

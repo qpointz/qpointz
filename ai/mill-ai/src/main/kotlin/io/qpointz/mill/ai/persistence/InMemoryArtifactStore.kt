@@ -21,6 +21,15 @@ class InMemoryArtifactStore : ArtifactStore {
         byId[artifact.artifactId] = artifact
     }
 
+    override fun delete(artifactId: String): Boolean = byId.remove(artifactId) != null
+
+    override fun updateStatus(artifactId: String, status: ArtifactLifecycleStatus): ArtifactRecord? {
+        val existing = byId[artifactId] ?: return null
+        val updated = existing.copy(status = status)
+        byId[artifactId] = updated
+        return updated
+    }
+
     override fun findById(artifactId: String): ArtifactRecord? = byId[artifactId]
 
     override fun findByConversation(conversationId: String): List<ArtifactRecord> =

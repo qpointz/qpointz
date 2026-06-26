@@ -16,7 +16,7 @@ const SQL_COMPOSITE_GENERAL: ArtifactTreatment = {
 const FACET_CONDENSED: ArtifactTreatment = {
   mode: 'condensed-preview',
   views: ['condensed'],
-  actions: [],
+  actions: ['copy', 'open-in-model', 'reject', 'accept'],
 };
 
 /** v1 treatment matrix — chat type is primary, artefact kind is secondary. */

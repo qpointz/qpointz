@@ -18,6 +18,8 @@ dependencies {
     api(project(":ai:mill-ai"))
     api(project(":ai:mill-ai-service"))
     implementation(project(":core:mill-sql"))
+    implementation(project(":core:mill-events"))
+    implementation(project(":core:mill-events-autoconfigure"))
     implementation(project(":ai:mill-ai-data"))
     compileOnly(project(":data:mill-data-schema-core"))
     implementation(project(":data:mill-data-backend-core"))

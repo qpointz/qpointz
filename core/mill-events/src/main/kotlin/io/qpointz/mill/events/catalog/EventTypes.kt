@@ -26,4 +26,13 @@ object EventTypes {
 
     /** Fired when a chat turn completes. */
     val CHAT_TURN_COMPLETED = EventType("chat.turn.completed")
+
+    /**
+     * Fired when an artefact is retracted (Reject or future delete APIs).
+     *
+     * Facet proposal producers and payloads are defined in
+     * [io.qpointz.mill.metadata.events.MetadataEventTypes] and
+     * [io.qpointz.mill.metadata.events.FacetProposalRetractedPayload].
+     */
+    val ARTIFACT_RETRACTED = EventType("artifact.retracted")
 }

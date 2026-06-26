@@ -11,6 +11,7 @@ mill {
 
 dependencies {
     api(project(":core:mill-core"))
+    api(project(":core:mill-events"))
     implementation(libs.bundles.logging)
 }
 

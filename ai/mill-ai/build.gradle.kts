@@ -20,6 +20,7 @@ dependencies {
     implementation(project(":data:mill-data-metadata"))
     implementation(project(":data:mill-data-schema-core"))
     implementation(project(":core:mill-sql"))
+    implementation(project(":core:mill-events"))
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)

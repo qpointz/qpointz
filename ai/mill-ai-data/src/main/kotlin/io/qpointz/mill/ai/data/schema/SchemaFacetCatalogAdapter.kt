@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.data.schema
 
+import io.qpointz.mill.ai.capabilities.metadata.MetadataEntityIds
 import io.qpointz.mill.ai.capabilities.schema.ListColumnsItem
 import io.qpointz.mill.ai.capabilities.schema.ListRelationsItem
 import io.qpointz.mill.ai.capabilities.schema.ListSchemasItem
@@ -26,13 +27,31 @@ class SchemaFacetCatalogAdapter(
 
     override fun listSchemas(): List<ListSchemasItem> =
         svc.getSchemas().schemas
-            .map { ListSchemasItem(it.schemaName, description(it), displayName(it)) }
+            .map {
+                ListSchemasItem(
+                    schemaName = it.schemaName,
+                    description = description(it),
+                    displayName = displayName(it),
+                    catalogPath = it.schemaName,
+                    metadataEntityUrn = MetadataEntityIds.resolve(it.schemaName),
+                )
+            }
 
     override fun listTables(schemaName: String): List<ListTablesItem> =
         svc.getSchemas().schemas
             .filter { schemaName == it.schemaName }
             .flatMap { it.tables }
-            .map { ListTablesItem(it.schemaName, it.tableName, description(it), displayName(it)) }
+            .map {
+                val catalogPath = "${it.schemaName}.${it.tableName}"
+                ListTablesItem(
+                    schemaName = it.schemaName,
+                    tableName = it.tableName,
+                    description = description(it),
+                    displayName = displayName(it),
+                    catalogPath = catalogPath,
+                    metadataEntityUrn = MetadataEntityIds.resolve(catalogPath),
+                )
+            }
 
     override fun listColumns(schemaName: String, tableName: String): List<ListColumnsItem> =
         svc.getSchemas().schemas
@@ -41,14 +60,17 @@ class SchemaFacetCatalogAdapter(
             .filter { tableName == it.tableName }
             .flatMap { it.columns }
             .map {
+                val catalogPath = "${it.schemaName}.${it.tableName}.${it.columnName}"
                 ListColumnsItem(
-                    it.schemaName,
-                    it.tableName,
-                    it.columnName,
+                    schemaName = it.schemaName,
+                    tableName = it.tableName,
+                    columnName = it.columnName,
                     displayName = displayName(it),
                     description = description(it),
                     nullable = it.dataType.nullability,
                     type = it.dataType.type.typeId,
+                    catalogPath = catalogPath,
+                    metadataEntityUrn = MetadataEntityIds.resolve(catalogPath),
                 )
             }
 

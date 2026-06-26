@@ -11,12 +11,26 @@ import io.qpointz.mill.metadata.domain.MetadataEntity
 import io.qpointz.mill.metadata.repository.EntityReadSide
 import io.qpointz.mill.metadata.repository.FacetReadSide
 import java.time.Instant
+import io.qpointz.mill.data.schema.ModelRootWithFacets
+import io.qpointz.mill.data.schema.SchemaFacetResult
+import io.qpointz.mill.data.schema.SchemaFacets
+import io.qpointz.mill.data.schema.SchemaTableWithFacets
+import io.qpointz.mill.data.schema.SchemaWithFacets
+import io.qpointz.mill.data.schema.TreeFacetScope
+import io.qpointz.mill.metadata.domain.MetadataUrns
+import io.qpointz.mill.metadata.domain.facet.FacetInstance
+import io.qpointz.mill.metadata.domain.facet.FacetOrigin
+import io.qpointz.mill.metadata.domain.facet.MergeAction
+import io.qpointz.mill.proto.Table
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
-import org.mockito.kotlin.mock
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 
 class SchemaExplorerServiceTest {
 
@@ -59,6 +73,64 @@ class SchemaExplorerServiceTest {
         assertEquals(MetadataEntityUrn.canonicalize(SchemaModelRoot.ENTITY_ID), result[0].metadataEntityId)
         assertEquals("sales", result[1].id)
         assertEquals(schemaUrn, result[1].metadataEntityId)
+    }
+
+    @Test
+    fun `getTree omits facetsResolved when facetMode is none`() {
+        val resolvedRow = FacetInstance(
+            assignmentUuid = "assign-desc",
+            entityId = urnCodec.forSchema("sales"),
+            facetTypeKey = MetadataUrns.FACET_TYPE_DESCRIPTIVE,
+            scopeKey = MetadataUrns.SCOPE_GLOBAL,
+            mergeAction = MergeAction.SET,
+            payload = mapOf("displayName" to "Sales schema"),
+            createdAt = fixedInstant,
+            createdBy = null,
+            lastModifiedAt = fixedInstant,
+            lastModifiedBy = null,
+            origin = FacetOrigin.CAPTURED,
+            originId = "repo",
+            assignmentUid = "assign-desc"
+        )
+        val facetsWithResolved = SchemaFacets(emptySet(), listOf(resolvedRow))
+        whenever(schemaFacetService.getSchemaTree(any(), eq(TreeFacetScope.NONE))).thenReturn(
+            SchemaFacetResult(
+                modelRoot = ModelRootWithFacets(
+                    metadataEntityId = MetadataEntityUrn.canonicalize(SchemaModelRoot.ENTITY_ID),
+                    metadata = null,
+                    facets = facetsWithResolved
+                ),
+                schemas = listOf(
+                    SchemaWithFacets(
+                        schemaName = "sales",
+                        tables = listOf(
+                            SchemaTableWithFacets(
+                                schemaName = "sales",
+                                tableName = "customers",
+                                tableType = Table.TableTypeId.TABLE,
+                                columns = emptyList(),
+                                metadata = null,
+                                facets = facetsWithResolved
+                            )
+                        ),
+                        metadata = null,
+                        facets = facetsWithResolved
+                    )
+                ),
+                unboundMetadata = emptyList()
+            )
+        )
+
+        val result = service.getTree("global", null, null, "none")
+
+        verify(schemaFacetService).getSchemaTree(any(), eq(TreeFacetScope.NONE))
+
+        assertNull(result.modelRoot.facets)
+        assertNull(result.modelRoot.facetsResolved)
+        assertNull(result.schemas.single().facets)
+        assertNull(result.schemas.single().facetsResolved)
+        assertNull(result.schemas.single().tables.single().facets)
+        assertNull(result.schemas.single().tables.single().facetsResolved)
     }
 
     @Test

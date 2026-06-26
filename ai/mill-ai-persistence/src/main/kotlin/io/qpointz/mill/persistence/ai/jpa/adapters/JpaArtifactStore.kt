@@ -1,5 +1,6 @@
 package io.qpointz.mill.persistence.ai.jpa.adapters
 
+import io.qpointz.mill.ai.persistence.ArtifactLifecycleStatus
 import io.qpointz.mill.ai.persistence.ArtifactRecord
 import io.qpointz.mill.ai.persistence.ArtifactStore
 import io.qpointz.mill.persistence.ai.jpa.AiV3Urns
@@ -14,6 +15,20 @@ open class JpaArtifactStore(
     @Transactional
     override fun save(artifact: ArtifactRecord) {
         repo.save(artifact.toEntity())
+    }
+
+    @Transactional
+    override fun delete(artifactId: String): Boolean {
+        if (!repo.existsById(artifactId)) return false
+        repo.deleteById(artifactId)
+        return true
+    }
+
+    @Transactional
+    override fun updateStatus(artifactId: String, status: ArtifactLifecycleStatus): ArtifactRecord? {
+        val entity = repo.findById(artifactId).orElse(null) ?: return null
+        entity.status = status.name.lowercase()
+        return repo.save(entity).toDomain()
     }
 
     override fun findById(artifactId: String): ArtifactRecord? =
@@ -35,6 +50,7 @@ open class JpaArtifactStore(
             payloadJson = payload,
             pointerKeysJson = pointerKeys,
             urn = AiV3Urns.artifactUrn(artifactId),
+            status = status.name.lowercase(),
             createdAt = createdAt,
         )
 
@@ -47,6 +63,8 @@ open class JpaArtifactStore(
             payload = payloadJson,
             turnId = turnId,
             pointerKeys = pointerKeysJson,
+            status = runCatching { ArtifactLifecycleStatus.valueOf(status.uppercase()) }
+                .getOrDefault(ArtifactLifecycleStatus.ACTIVE),
             createdAt = createdAt,
         )
 }

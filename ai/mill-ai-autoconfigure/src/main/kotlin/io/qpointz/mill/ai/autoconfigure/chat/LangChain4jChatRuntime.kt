@@ -8,6 +8,7 @@ import io.qpointz.mill.ai.memory.ChatMemoryStore
 import io.qpointz.mill.ai.memory.LlmMemoryStrategy
 import io.qpointz.mill.ai.persistence.ActiveArtifactPointerStore
 import io.qpointz.mill.ai.persistence.AgentPersistenceContext
+import io.qpointz.mill.ai.persistence.ArtifactObserver
 import io.qpointz.mill.ai.persistence.ArtifactStore
 import io.qpointz.mill.ai.persistence.ChatMetadata
 import io.qpointz.mill.ai.persistence.ConversationStore
@@ -53,6 +54,8 @@ class LangChain4jChatRuntime(
     private val artifactStore: ArtifactStore,
     private val activeArtifactPointerStore: ActiveArtifactPointerStore,
     private val artifactDescriptorRegistry: ArtifactDescriptorRegistry = ArtifactDescriptorRegistry.loadDefault(),
+    private val artifactObservers: List<ArtifactObserver> = emptyList(),
+    private val metadataScopeService: io.qpointz.mill.metadata.service.MetadataScopeService? = null,
 ) : AiV3ChatRuntime {
 
     private val protocolJsonMapper: JsonMapper = JsonMapper.builder().build()
@@ -63,6 +66,8 @@ class LangChain4jChatRuntime(
                 IllegalStateException("Unknown profile '${metadata.profileId}' for chat ${metadata.chatId}")
             )
 
+        metadataScopeService?.ensureChatScope(metadata.chatId, metadata.chatName, metadata.userId)
+
         return Flux.create<ChatRuntimeEvent> { sink ->
             try {
                 // Fresh persistence context per turn: each run gets its own publisher and telemetry.
@@ -71,6 +76,7 @@ class LangChain4jChatRuntime(
                     conversationStore = conversationStore,
                     artifactStore = artifactStore,
                     activeArtifactPointerStore = activeArtifactPointerStore,
+                    artifactObservers = artifactObservers,
                 )
                 val agent = LangChain4jAgent(
                     model = model,

@@ -17,11 +17,11 @@ export function facetBoxBaseTitle(
   return slug.charAt(0).toUpperCase() + slug.slice(1).toLowerCase();
 }
 
-/** Condensed chat tab label: {@code Facet:Descriptive}, {@code Facet:Structural}, etc. */
+/** Condensed chat tab label (e.g. Descriptive, Structural). */
 export function facetCondensedTabLabel(
   facetTypeKey: string,
   titleByKey: Record<string, string>,
   descriptor: FacetTypeManifest | null,
 ): string {
-  return `Facet:${facetBoxBaseTitle(facetTypeKey, titleByKey, descriptor)}`;
+  return facetBoxBaseTitle(facetTypeKey, titleByKey, descriptor);
 }

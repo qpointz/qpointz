@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.persistence
 
+import io.qpointz.mill.ai.core.artifact.ArtifactRef
 import io.qpointz.mill.ai.core.capability.*
 import io.qpointz.mill.ai.core.prompt.*
 import io.qpointz.mill.ai.core.protocol.*
@@ -31,8 +32,13 @@ data class ArtifactRecord(
     val turnId: String? = null,
     /** Pointer keys to update in [ActiveArtifactPointerStore] after saving. */
     val pointerKeys: Set<String> = emptySet(),
+    /** Operator lifecycle for facet proposals and similar artefacts. */
+    val status: ArtifactLifecycleStatus = ArtifactLifecycleStatus.ACTIVE,
     val createdAt: Instant,
-)
+) {
+    /** Portable ref for this artefact instance. */
+    fun ref(): ArtifactRef = ArtifactRef.of(artifactId)
+}
 
 /**
  * Port for durable artifact history.
@@ -42,6 +48,23 @@ interface ArtifactStore {
     fun findById(artifactId: String): ArtifactRecord?
     fun findByConversation(conversationId: String): List<ArtifactRecord>
     fun findByRun(runId: String): List<ArtifactRecord>
+
+    /**
+     * Removes a retracted artefact from durable storage.
+     *
+     * @param artifactId artefact primary key
+     * @return `true` when a row existed and was removed
+     */
+    fun delete(artifactId: String): Boolean
+
+    /**
+     * Updates operator lifecycle status for an artefact.
+     *
+     * @param artifactId artefact primary key
+     * @param status new lifecycle status
+     * @return updated record, or `null` when missing
+     */
+    fun updateStatus(artifactId: String, status: ArtifactLifecycleStatus): ArtifactRecord?
 }
 
 

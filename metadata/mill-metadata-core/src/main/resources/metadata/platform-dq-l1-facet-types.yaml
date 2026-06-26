@@ -18,7 +18,7 @@ contentSchema:
     schema:
       type: STRING
       title: Rule name
-      description: Short operator label for this rule instance (e.g. customer_id_not_null). Used in reports and execution logs.
+      description: Short operator label for this rule instance (kebab-case slug, e.g. passenger-id-not-null). Used in reports and execution logs.
     required: true
   - name: description
     schema:

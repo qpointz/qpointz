@@ -56,6 +56,22 @@ class SchemaFacetServiceImpl(
         return SchemaFacetResult(modelRoot = modelRoot, schemas = schemas, unboundMetadata = unboundMetadata)
     }
 
+    /** @see SchemaFacetService.getSchemaTree */
+    override fun getSchemaTree(context: MetadataContext, treeFacetScope: TreeFacetScope): SchemaFacetResult {
+        val allEntities = entityRead.findAll()
+        val entityIndex = catalogEntityIndex(allEntities)
+        val usedEntityIds = mutableSetOf<String>()
+        val modelRoot = buildModelRoot(allEntities, context, treeFacetScope)
+        modelRoot.metadata?.id?.let { usedEntityIds.add(it) }
+
+        val schemas = schemaProvider.getSchemaNames().map { schemaName ->
+            buildSchemaTreeNode(schemaName, entityIndex, usedEntityIds, context, treeFacetScope)
+        }
+
+        val unboundMetadata = allEntities.filter { it.id !in usedEntityIds }
+        return SchemaFacetResult(modelRoot = modelRoot, schemas = schemas, unboundMetadata = unboundMetadata)
+    }
+
     /**
      * Resolves the stable model root entity and its facets.
      *
@@ -64,15 +80,89 @@ class SchemaFacetServiceImpl(
      */
     private fun buildModelRoot(
         allEntities: List<MetadataEntity>,
-        context: MetadataContext
+        context: MetadataContext,
+        treeFacetScope: TreeFacetScope? = null
     ): ModelRootWithFacets {
         val canonicalModelId = MetadataEntityUrn.canonicalize(SchemaModelRoot.ENTITY_ID)
         val modelEntity = allEntities.find { MetadataEntityUrn.canonicalize(it.id) == canonicalModelId }
         return ModelRootWithFacets(
             metadataEntityId = canonicalModelId,
             metadata = modelEntity,
-            facets = buildFacets(modelEntity, SchemaModelRoot.ENTITY_ID, context)
+            facets = facetsForTreeNode(modelEntity, SchemaModelRoot.ENTITY_ID, context, treeFacetScope, includeAtLevel = true)
         )
+    }
+
+    /**
+     * Builds one schema branch for tree APIs: table summaries only (no column nodes).
+     */
+    private fun buildSchemaTreeNode(
+        schemaName: String,
+        entityIndex: Map<String, MetadataEntity>,
+        usedEntityIds: MutableSet<String>,
+        context: MetadataContext,
+        treeFacetScope: TreeFacetScope
+    ): SchemaWithFacets {
+        val physicalSchema = schemaProvider.getSchema(schemaName)
+        val schemaEntity = entityIndex[catalogKey(schemaName, null, null)]
+        schemaEntity?.id?.let { usedEntityIds.add(it) }
+
+        val tables = physicalSchema.tablesList.map { table ->
+            buildTableTreeSummary(schemaName, table, entityIndex, usedEntityIds, context, treeFacetScope)
+        }
+
+        return SchemaWithFacets(
+            schemaName = schemaName,
+            tables = tables,
+            metadata = schemaEntity,
+            facets = facetsForTreeNode(schemaEntity, urnCodec.forSchema(schemaName), context, treeFacetScope, includeAtLevel = true)
+        )
+    }
+
+    /**
+     * Table summary for tree APIs: metadata binding without column expansion or facet merge unless
+     * [treeFacetScope] is [TreeFacetScope.HIERARCHY].
+     */
+    private fun buildTableTreeSummary(
+        schemaName: String,
+        table: Table,
+        entityIndex: Map<String, MetadataEntity>,
+        usedEntityIds: MutableSet<String>,
+        context: MetadataContext,
+        treeFacetScope: TreeFacetScope
+    ): SchemaTableWithFacets {
+        val tableEntity = entityIndex[catalogKey(schemaName, table.name, null)]
+        tableEntity?.id?.let { usedEntityIds.add(it) }
+
+        return SchemaTableWithFacets(
+            schemaName = schemaName,
+            tableName = table.name,
+            tableType = table.tableType,
+            columns = emptyList(),
+            metadata = tableEntity,
+            facets = facetsForTreeNode(
+                tableEntity,
+                urnCodec.forTable(schemaName, table.name),
+                context,
+                treeFacetScope,
+                includeAtLevel = treeFacetScope == TreeFacetScope.HIERARCHY
+            )
+        )
+    }
+
+    /**
+     * @param treeFacetScope when null, facets are always merged (full [getSchemas] path)
+     * @param includeAtLevel when false under a tree load, returns [SchemaFacets.EMPTY] without merge
+     */
+    private fun facetsForTreeNode(
+        metadata: MetadataEntity?,
+        mergeEntityIdFallback: String,
+        context: MetadataContext,
+        treeFacetScope: TreeFacetScope?,
+        includeAtLevel: Boolean
+    ): SchemaFacets {
+        if (treeFacetScope == TreeFacetScope.NONE) return SchemaFacets.EMPTY
+        if (treeFacetScope != null && !includeAtLevel) return SchemaFacets.EMPTY
+        return buildFacets(metadata, mergeEntityIdFallback, context)
     }
 
     /** @see SchemaFacetService.getSchema */

@@ -35,7 +35,7 @@ describe('chatArtifactTreatments', () => {
     const treatment = resolveArtifactTreatment('general', 'facet-proposal');
     expect(treatment.mode).toBe('condensed-preview');
     expect(treatment.views).toEqual(['condensed']);
-    expect(treatment.actions).toEqual([]);
+    expect(treatment.actions).toEqual(['copy', 'open-in-model', 'reject', 'accept']);
   });
 
   it('should keep conversation-card for inline hosts facet-proposal', () => {

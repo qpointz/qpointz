@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import type { AgentProfileResponseWire, Conversation, Message, ChatState, ChatSummary, ChatMessageArtifact } from '../types/chat';
+import type { AgentProfileResponseWire, Conversation, Message, ChatState, ChatSummary, ChatMessageArtifact, AssistantReplySegment } from '../types/chat';
 import type { TurnResponseWire } from '../types/chatWire';
 import { chatService } from '../services/api';
 import { isRestChatBackendActive } from '../services/chatService';
@@ -21,6 +21,7 @@ import {
 import { parseChatStructuredPart } from '../utils/chatArtifactParse';
 import { parseWireArtifacts } from '../utils/artifactWireParse';
 import { assistantReplyViewFromWire, deriveAssistantReplyView } from '../utils/assistantReplyView';
+import { StreamingReplySegmentTracker } from '../utils/streamingReplySegments';
 
 const STORAGE_KEY = 'chat-conversations';
 
@@ -111,6 +112,14 @@ type ChatAction =
   | {
       type: 'SET_MESSAGE_ARTIFACTS';
       payload: { conversationId: string; messageId: string; artifacts: ChatMessageArtifact[] };
+    }
+  | {
+      type: 'SET_MESSAGE_REPLY_SEGMENTS';
+      payload: {
+        conversationId: string;
+        messageId: string;
+        replySegments: AssistantReplySegment[];
+      };
     }
   | {
       type: 'FINALIZE_ASSISTANT_REPLY_VIEW';
@@ -337,6 +346,23 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
                 assistantReplyView: deriveAssistantReplyView(artifacts),
               };
             }),
+          };
+        }),
+      };
+    }
+
+    case 'SET_MESSAGE_REPLY_SEGMENTS': {
+      const { conversationId, messageId, replySegments } = action.payload;
+      return {
+        ...state,
+        conversations: state.conversations.map((conv) => {
+          if (conv.id !== conversationId) return conv;
+          return {
+            ...conv,
+            updatedAt: Date.now(),
+            messages: conv.messages.map((msg) =>
+              msg.id === messageId ? { ...msg, replySegments } : msg,
+            ),
           };
         }),
       };
@@ -842,6 +868,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       try {
         let fullContent = '';
         let firstChunk = true;
+        const segmentTracker = new StreamingReplySegmentTracker();
         for await (const chunk of chatService.sendMessage(streamingChatId, content, {
           onProgress: (evt) => {
             if (evt.kind === 'diagnostic') {
@@ -861,6 +888,15 @@ export function ChatProvider({ children }: { children: ReactNode }) {
                 conversationId: streamingChatId,
                 messageId: assistantMessage.id,
                 artifact,
+              },
+            });
+            const replySegments = [...segmentTracker.onArtifact(artifact)];
+            dispatch({
+              type: 'SET_MESSAGE_REPLY_SEGMENTS',
+              payload: {
+                conversationId: streamingChatId,
+                messageId: assistantMessage.id,
+                replySegments,
               },
             });
           },
@@ -883,9 +919,21 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             firstChunk = false;
           }
           fullContent += chunk;
+          segmentTracker.setPendingText(fullContent);
           dispatch({
             type: 'UPDATE_MESSAGE',
             payload: { conversationId: streamingChatId, messageId: assistantMessage.id, content: fullContent },
+          });
+        }
+        const replySegments = [...segmentTracker.finalize()];
+        if (replySegments.length > 0) {
+          dispatch({
+            type: 'SET_MESSAGE_REPLY_SEGMENTS',
+            payload: {
+              conversationId: streamingChatId,
+              messageId: assistantMessage.id,
+              replySegments,
+            },
           });
         }
       } catch (error) {

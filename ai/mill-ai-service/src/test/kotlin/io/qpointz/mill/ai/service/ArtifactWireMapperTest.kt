@@ -8,6 +8,18 @@ import java.time.Instant
 
 class ArtifactWireMapperTest {
 
+    private fun wire(
+        artifactId: String,
+        kind: String,
+        payload: Map<String, Any?>,
+    ) = ArtifactResponse(
+        kind = kind,
+        payload = payload,
+        artifactId = artifactId,
+        urn = "urn:agent/artifact:$artifactId",
+        status = "active",
+    )
+
     @Test
     fun shouldMapGeneratedSqlProtocolFinal() {
         val record = ArtifactRecord(
@@ -28,10 +40,7 @@ class ArtifactWireMapperTest {
         )
 
         assertThat(ArtifactWireMapper.toResponse(record)).isEqualTo(
-            ArtifactResponse(
-                kind = "sql",
-                payload = mapOf("sql" to "SELECT 1", "dialectId" to "ansi"),
-            ),
+            wire("a1", "sql", mapOf("sql" to "SELECT 1", "dialectId" to "ansi")),
         )
     }
 
@@ -54,9 +63,10 @@ class ArtifactWireMapperTest {
         )
 
         assertThat(ArtifactWireMapper.toResponse(record)).isEqualTo(
-            ArtifactResponse(
-                kind = "data",
-                payload = mapOf(
+            wire(
+                "a2",
+                "data",
+                mapOf(
                     "executionId" to "exec-1",
                     "rowCount" to 42L,
                     "truncated" to false,
@@ -89,12 +99,14 @@ class ArtifactWireMapperTest {
         )
 
         assertThat(ArtifactWireMapper.toResponse(record)).isEqualTo(
-            ArtifactResponse(
-                kind = "facet-proposal",
-                payload = mapOf(
+            wire(
+                "a-facet",
+                "facet-proposal",
+                mapOf(
                     "facetTypeKey" to "descriptive",
                     "metadataEntityId" to "sales.customers",
                     "payload" to mapOf("summary" to "VIP customer segment"),
+                    "status" to "active",
                 ),
             ),
         )
@@ -127,36 +139,26 @@ class ArtifactWireMapperTest {
     }
 
     @Test
-    fun shouldMapSchemaAuthoringCaptureProtocolFinal_toFacetProposalWire() {
+    fun shouldMapDeclinedFacetArtifacts_onReplay() {
         val record = ArtifactRecord(
-            artifactId = "a-schema",
+            artifactId = "a-declined",
             conversationId = "c1",
             runId = "r1",
-            kind = "schema.authoring.capture",
+            kind = "metadata.faceting.capture",
             payload = mapOf(
-                "protocolId" to "schema-authoring.capture",
-                "persistKind" to "schema.authoring.capture",
                 "payload" to mapOf(
-                    "captureType" to "description",
-                    "targetEntityId" to "skymill.passenger",
-                    "targetEntityType" to "TABLE",
-                    "serializedPayload" to mapOf("summary" to "Passenger manifest"),
-                    "validationWarnings" to emptyList<String>(),
+                    "facetTypeKey" to "descriptive",
+                    "metadataEntityId" to "urn:mill/model/table:sales.customers",
+                    "serializedPayload" to emptyMap<String, Any?>(),
                 ),
             ),
             turnId = "t1",
+            status = io.qpointz.mill.ai.persistence.ArtifactLifecycleStatus.DECLINED,
             createdAt = Instant.parse("2025-01-01T00:00:00Z"),
         )
 
-        assertThat(ArtifactWireMapper.toResponse(record)).isEqualTo(
-            ArtifactResponse(
-                kind = "facet-proposal",
-                payload = mapOf(
-                    "facetTypeKey" to "descriptive",
-                    "metadataEntityId" to "skymill.passenger",
-                    "payload" to mapOf("summary" to "Passenger manifest"),
-                ),
-            ),
-        )
+        val response = ArtifactWireMapper.toResponse(record)
+        assertThat(response).isNotNull
+        assertThat(response!!.status).isEqualTo("rejected")
     }
 }

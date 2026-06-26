@@ -10,4 +10,6 @@ io.qpointz.mill.ai.autoconfigure.AiV3AutoConfiguration
 io.qpointz.mill.ai.autoconfigure.chat.AiV3SecurityUserIdAutoConfiguration
 io.qpointz.mill.ai.autoconfigure.AiV3ChatServiceAutoConfiguration
 io.qpointz.mill.ai.autoconfigure.AiV3DataAutoConfiguration
+io.qpointz.mill.ai.autoconfigure.AiV3MetadataReadPortFallbackAutoConfiguration
 io.qpointz.mill.ai.autoconfigure.AiV3SqlValidatorAutoConfiguration
+io.qpointz.mill.ai.autoconfigure.AiV3ArtifactLifecycleAutoConfiguration

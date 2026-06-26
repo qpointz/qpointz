@@ -3,7 +3,9 @@ package io.qpointz.mill.ai.capabilities.schema
 import io.qpointz.mill.ai.core.capability.*
 import io.qpointz.mill.ai.core.prompt.*
 import io.qpointz.mill.ai.core.protocol.*
-import io.qpointz.mill.ai.core.tool.*
+import io.qpointz.mill.ai.core.tool.ToolBinding
+import io.qpointz.mill.ai.core.tool.ToolResult
+import io.qpointz.mill.ai.core.tool.argumentsAs
 import io.qpointz.mill.ai.memory.*
 import io.qpointz.mill.ai.persistence.*
 import io.qpointz.mill.ai.profile.*
@@ -53,6 +55,7 @@ private data class SchemaCapability(
         val tableName: String,
         val direction: RelationDirection = RelationDirection.BOTH,
     )
+    private data class ResolveMetadataEntityArgs(val catalogPath: String)
 
     private val manifest = CapabilityManifest.load("capabilities/schema.yaml")
 
@@ -75,6 +78,10 @@ private data class SchemaCapability(
         manifest.tool("list_relations") { request ->
             val args = request.argumentsAs<ListRelationsArgs>()
             ToolResult(catalog.listRelations(args.schemaName, args.tableName, args.direction))
+        },
+        manifest.tool("resolve_metadata_entity") { request ->
+            val args = request.argumentsAs<ResolveMetadataEntityArgs>()
+            ToolResult(SchemaMetadataEntityResolver.resolve(catalog, args.catalogPath))
         },
     )
 }

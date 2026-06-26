@@ -37,16 +37,26 @@ class MetadataReader(
                 val cs = MetadataEntityUrn.canonicalize(scope)
                 val atScope = rows.filter { it.scopeKey == cs }
                 if (atScope.isEmpty()) continue
-                if (atScope.any { it.mergeAction == MergeAction.TOMBSTONE }) {
-                    effective = emptyList()
-                    break
+                val ordered = atScope.sortedWith(
+                    compareBy<FacetAssignment> { it.lastModifiedAt ?: it.createdAt }
+                        .thenBy { it.createdAt },
+                )
+                var atScopeEffective = emptyList<FacetAssignment>()
+                for (row in ordered) {
+                    when (row.mergeAction) {
+                        MergeAction.TOMBSTONE -> atScopeEffective = emptyList()
+                        MergeAction.SET -> {
+                            atScopeEffective = if (card == FacetTargetCardinality.SINGLE) {
+                                listOf(row)
+                            } else {
+                                atScopeEffective + row
+                            }
+                        }
+                        MergeAction.CLEAR -> atScopeEffective = emptyList()
+                    }
                 }
-                val contributing = atScope.filter { it.mergeAction == MergeAction.SET }
-                if (contributing.isEmpty()) continue
-                effective = if (card == FacetTargetCardinality.SINGLE) {
-                    listOf(contributing.last())
-                } else {
-                    contributing
+                if (atScope.isNotEmpty()) {
+                    effective = atScopeEffective
                 }
             }
             result.addAll(effective)

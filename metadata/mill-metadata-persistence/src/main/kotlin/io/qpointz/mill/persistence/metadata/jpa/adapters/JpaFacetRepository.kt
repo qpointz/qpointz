@@ -55,6 +55,9 @@ class JpaFacetRepository(
     override fun findByUid(uid: String): FacetAssignment? =
         facetJpa.findByUuid(uid).map { toDomain(it) }.orElse(null)
 
+    override fun findBySourceArtifactId(sourceArtifactId: String): List<FacetAssignment> =
+        facetJpa.findBySourceArtifactId(sourceArtifactId).map { toDomain(it) }
+
     override fun save(facet: FacetAssignment): FacetAssignment {
         val eid = MetadataEntityUrn.canonicalize(facet.entityId)
         val tid = MetadataEntityUrn.canonicalize(facet.facetTypeKey)
@@ -77,7 +80,8 @@ class JpaFacetRepository(
                     createdAt = now,
                     createdBy = facet.createdBy,
                     lastModifiedAt = now,
-                    lastModifiedBy = facet.lastModifiedBy
+                    lastModifiedBy = facet.lastModifiedBy,
+                    sourceArtifactId = facet.sourceArtifactId,
                 )
             )
         } else {
@@ -85,6 +89,7 @@ class JpaFacetRepository(
             row.mergeAction = facet.mergeAction.name
             row.lastModifiedAt = now
             row.lastModifiedBy = facet.lastModifiedBy
+            row.sourceArtifactId = facet.sourceArtifactId
             facetJpa.save(row)
         }
         return toDomain(saved)
@@ -126,7 +131,8 @@ class JpaFacetRepository(
             createdAt = e.createdAt,
             createdBy = e.createdBy,
             lastModifiedAt = e.lastModifiedAt,
-            lastModifiedBy = e.lastModifiedBy
+            lastModifiedBy = e.lastModifiedBy,
+            sourceArtifactId = e.sourceArtifactId,
         )
     }
 }

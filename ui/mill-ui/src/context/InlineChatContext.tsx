@@ -8,7 +8,7 @@ import {
   type ReactNode,
   type Dispatch,
 } from 'react';
-import type { Message, ChatMessageArtifact } from '../types/chat';
+import type { ChatMessageArtifact, Message, AssistantReplySegment } from '../types/chat';
 import type {
   InlineChatSession,
   InlineChatState,
@@ -21,6 +21,7 @@ import { useFeatureFlags } from '../features/FeatureFlagContext';
 import { parseChatStructuredPart } from '../utils/chatArtifactParse';
 import { parseWireArtifacts } from '../utils/artifactWireParse';
 import { deriveAssistantReplyView } from '../utils/assistantReplyView';
+import { StreamingReplySegmentTracker } from '../utils/streamingReplySegments';
 import type { TurnResponseWire } from '../types/chatWire';
 
 /**
@@ -200,6 +201,22 @@ function inlineChatReducer(
                 assistantReplyView: deriveAssistantReplyView(artifacts),
               };
             }),
+          };
+        }),
+      };
+    }
+
+    case 'SET_MESSAGE_REPLY_SEGMENTS': {
+      const { sessionId, messageId, replySegments } = action.payload;
+      return {
+        ...state,
+        sessions: state.sessions.map((s) => {
+          if (s.id !== sessionId) return s;
+          return {
+            ...s,
+            messages: s.messages.map((m) =>
+              m.id === messageId ? { ...m, replySegments } : m,
+            ),
           };
         }),
       };
@@ -484,6 +501,7 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
           payload: { sessionId, message: null },
         });
         let fullContent = '';
+        const segmentTracker = new StreamingReplySegmentTracker();
         for await (const chunk of chatService.sendMessage(chatId, content, {
           onProgress: (evt) => {
             if (evt.kind === 'diagnostic') {
@@ -510,6 +528,11 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
               type: 'APPEND_MESSAGE_ARTIFACT',
               payload: { sessionId, messageId: assistantMessage.id, artifact },
             });
+            const replySegments = [...segmentTracker.onArtifact(artifact)];
+            dispatch({
+              type: 'SET_MESSAGE_REPLY_SEGMENTS',
+              payload: { sessionId, messageId: assistantMessage.id, replySegments },
+            });
           },
           onItemCompleted: (payload) => {
             dispatch({
@@ -524,9 +547,17 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
           },
         })) {
           fullContent += chunk;
+          segmentTracker.setPendingText(fullContent);
           dispatch({
             type: 'UPDATE_MESSAGE',
             payload: { sessionId, messageId: assistantMessage.id, content: fullContent },
+          });
+        }
+        const replySegments = [...segmentTracker.finalize()];
+        if (replySegments.length > 0) {
+          dispatch({
+            type: 'SET_MESSAGE_REPLY_SEGMENTS',
+            payload: { sessionId, messageId: assistantMessage.id, replySegments },
           });
         }
 

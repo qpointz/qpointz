@@ -15,6 +15,7 @@ import io.qpointz.mill.ai.memory.ChatMemoryStore
 import io.qpointz.mill.ai.memory.InMemoryChatMemoryStore
 import io.qpointz.mill.ai.memory.LlmMemoryStrategy
 import io.qpointz.mill.ai.persistence.ActiveArtifactPointerStore
+import io.qpointz.mill.ai.persistence.ArtifactObserver
 import io.qpointz.mill.ai.persistence.ArtifactStore
 import io.qpointz.mill.ai.persistence.ChatRegistry
 import io.qpointz.mill.ai.persistence.ConversationStore
@@ -24,8 +25,6 @@ import io.qpointz.mill.ai.persistence.InMemoryChatRegistry
 import io.qpointz.mill.ai.persistence.InMemoryConversationStore
 import io.qpointz.mill.ai.persistence.InMemoryRunEventStore
 import io.qpointz.mill.ai.persistence.RunEventStore
-import io.qpointz.mill.ai.capabilities.metadata.EmptyMetadataReadPort
-import io.qpointz.mill.ai.capabilities.metadata.MetadataReadPort
 import io.qpointz.mill.ai.capabilities.schema.SchemaCatalogPort
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryToolHandlers
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlValidator
@@ -139,17 +138,13 @@ class AiV3AutoConfiguration {
 
     /**
      * Assembles [io.qpointz.mill.ai.runtime.AgentContext.capabilityDependencies] for chat turns from
-     * optional data/SQL beans (see [AiV3DataAutoConfiguration]).
+     * optional data/SQL beans (see [AiV3DataAutoConfiguration] and [AiV3MetadataReadPortFallbackAutoConfiguration]).
      */
-    @Bean
-    @ConditionalOnMissingBean(MetadataReadPort::class)
-    fun emptyMetadataReadPort(): MetadataReadPort = EmptyMetadataReadPort()
-
     @Bean
     @ConditionalOnMissingBean(CapabilityDependencyAssembler::class)
     fun capabilityDependencyAssembler(
         schemaCatalog: ObjectProvider<SchemaCatalogPort>,
-        metadataReadPort: ObjectProvider<MetadataReadPort>,
+        metadataReadPort: ObjectProvider<io.qpointz.mill.ai.capabilities.metadata.MetadataReadPort>,
         dialectSpec: ObjectProvider<SqlDialectSpec>,
         sqlValidator: ObjectProvider<SqlValidator>,
         sqlValidationService: ObjectProvider<SqlQueryToolHandlers.SqlValidationService>,
@@ -193,6 +188,8 @@ class AiV3AutoConfiguration {
         artifactStore: ArtifactStore,
         activeArtifactPointerStore: ActiveArtifactPointerStore,
         artifactDescriptorRegistry: ArtifactDescriptorRegistry,
+        artifactObservers: ObjectProvider<ArtifactObserver>,
+        metadataScopeService: ObjectProvider<io.qpointz.mill.metadata.service.MetadataScopeService>,
     ): AiV3ChatRuntime = LangChain4jChatRuntime(
         model = model,
         profileRegistry = profileRegistry,
@@ -204,6 +201,8 @@ class AiV3AutoConfiguration {
         artifactStore = artifactStore,
         activeArtifactPointerStore = activeArtifactPointerStore,
         artifactDescriptorRegistry = artifactDescriptorRegistry,
+        artifactObservers = artifactObservers.orderedStream().toList(),
+        metadataScopeService = metadataScopeService.ifAvailable,
     )
 
     // ── User identity ─────────────────────────────────────────────────────────

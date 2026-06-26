@@ -9,6 +9,8 @@ import io.qpointz.mill.metadata.domain.facet.FacetTypeManifest
  */
 object MetadataFacetValidation {
 
+  private val FACET_INSTANCE_NAME_SLUG = Regex("^[a-z0-9]+(-[a-z0-9]+)*$")
+
   /**
    * @param port metadata read port for catalog lookup
    * @param facetTypeKey facet type key or URN
@@ -30,10 +32,32 @@ object MetadataFacetValidation {
     if (schemaErrors.isNotEmpty()) {
       return schemaErrors
     }
+    val conventionErrors = validatePayloadConventions(payload)
+    if (conventionErrors.isNotEmpty()) {
+      return conventionErrors
+    }
     if (metadataEntityId.isNullOrBlank()) {
       return emptyList()
     }
-    return validateApplicableTo(manifest, metadataEntityId)
+    val resolvedEntityId = MetadataEntityIds.resolve(metadataEntityId)
+    return validateApplicableTo(manifest, resolvedEntityId)
+  }
+
+  /**
+   * Enforces authoring conventions that are not expressed in contentSchema alone.
+   *
+   * @param payload facet JSON payload
+   * @return errors for invalid `name` slugs
+   */
+  fun validatePayloadConventions(payload: Map<String, Any?>): List<String> {
+    val name = payload["name"]
+    if (name is String && name.isNotBlank() && !FACET_INSTANCE_NAME_SLUG.matches(name)) {
+      return listOf(
+        "payload.name must be a lowercase kebab-case slug (letters, digits, hyphens only; " +
+          "e.g. passenger-id-not-null); got: $name",
+      )
+    }
+    return emptyList()
   }
 
   /**
@@ -64,7 +88,7 @@ object MetadataFacetValidation {
    * @return `applicableTo` entity-type URN or `null` when kind is unknown
    */
   fun applicableEntityTypeUrn(metadataEntityId: String): String? =
-    entityKindToApplicableUrn(ModelEntityUrn.kindOf(metadataEntityId))
+    entityKindToApplicableUrn(ModelEntityUrn.kindOf(MetadataEntityIds.resolve(metadataEntityId)))
 
   private fun entityKindToApplicableUrn(kind: String?): String? =
     when (kind) {

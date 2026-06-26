@@ -67,10 +67,12 @@ All facet-like captures (metadata faceting and schema authoring) wire as **`face
 POST /api/v1/ai/chats/{chatId}/turns/{turnId}/execution-result
 ```
 
-Body: `executionId`, `columns`, `rowCount`, `truncated`, `sql`. Persists `sql.result`; does **not**
-execute SQL.
+Body: `executionId`, `columns`, `rowCount`, `truncated`, `sql`, optional **`parentArtifactId`**
+(binds `sql.result` to parent `sql.generated`). Persists `sql.result`; does **not** execute SQL.
 
-**Known gap (stage 4 — [`metadata-authoring-profiles`](../../workitems/in-progress/metadata-authoring-profiles/STORY.md) WI-360):** attach is **turn-scoped** today; mill-ui keeps **one** `data` artefact per assistant message. Multiple `sql` cards on the same turn can show the **wrong grid** because pairing is positional, not id-based. **Planned in stage 4:** promote **`ArtifactRef`** to `mill-ai` core; expose **`artifactId`** on GET/SSE wire; bind `sql.result` → parent `sql.generated` via **`sourceArtifactId`** / attach **`parentArtifactId`**.
+**WI-360 (implemented):** wire exposes **`artifactId`** / **`status`** on GET replay; mill-ui pairs
+`sql` + `data` by **`sourceArtifactId`** / **`parentArtifactId`** so multiple SQL cards per turn bind
+the correct grid.
 
 ### Data wire payload
 

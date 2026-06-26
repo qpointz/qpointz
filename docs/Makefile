@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 VENV_DIR := .venv
 PIP := $(VENV_DIR)/bin/pip
 MKDOCS := $(VENV_DIR)/bin/mkdocs

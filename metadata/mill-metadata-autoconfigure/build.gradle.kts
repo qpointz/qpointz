@@ -14,6 +14,8 @@ mill {
 dependencies {
     api(project(":metadata:mill-metadata-core"))
     api(project(":metadata:mill-metadata-service"))
+    api(project(":core:mill-events"))
+    implementation(project(":core:mill-events-autoconfigure"))
     compileOnly(project(":metadata:mill-metadata-persistence"))
     /** Types only (e.g. [io.qpointz.mill.data.schema.MetadataEntityUrnCodec]); bean is [MetadataEntityUrnCodecAutoConfiguration] in mill-data-autoconfigure. */
     compileOnly(project(":data:mill-data-schema-core"))

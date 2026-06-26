@@ -1,6 +1,9 @@
 package io.qpointz.mill.ai.service
 
+import io.qpointz.mill.ai.core.artifact.ArtifactRef
 import io.qpointz.mill.ai.core.artifact.FacetProposalWire
+import io.qpointz.mill.ai.persistence.ArtifactLifecycleStatus
+import io.qpointz.mill.ai.persistence.toWireStatus
 import io.qpointz.mill.ai.persistence.ArtifactRecord
 import io.qpointz.mill.ai.service.dto.ArtifactResponse
 
@@ -20,41 +23,81 @@ object ArtifactWireMapper {
         val artifactType = inner["artifactType"] as? String
 
         when {
-            isSqlPayload(inner, record.kind, artifactType) -> {
-                val sql = inner["sql"] as? String ?: return null
-                if (sql.isBlank()) return null
-                return ArtifactResponse(
-                    kind = "sql",
-                    payload = buildMap {
-                        put("sql", sql)
-                        (inner["dialectId"] as? String)?.let { put("dialectId", it) }
-                    },
-                )
-            }
-            isDataPayload(record.kind, artifactType) -> {
-                val executionId = (inner["executionId"] as? String)
-                    ?: (inner["resultId"] as? String)
-                    ?: return null
-                return ArtifactResponse(
-                    kind = "data",
-                    payload = buildMap {
-                        put("executionId", executionId)
-                        inner["sql"]?.let { put("sql", it) }
-                        inner["rowCount"]?.let { put("rowCount", it) }
-                        inner["truncated"]?.let { put("truncated", it) }
-                        inner["columns"]?.let { put("columns", it) }
-                    },
-                )
-            }
-            isFacetPayload(inner, record.kind, artifactType) -> {
-                val wirePayload = FacetProposalWire.normalizePayload(inner) ?: return null
-                return ArtifactResponse(
-                    kind = FacetProposalWire.WIRE_KIND,
-                    payload = wirePayload,
-                )
-            }
+            isSqlPayload(inner, record.kind, artifactType) ->
+                return mapSql(record, inner, artifactType)
+            isDataPayload(record.kind, artifactType) ->
+                return mapData(record, inner, record.kind, artifactType)
+            isFacetPayload(inner, record.kind, artifactType) ->
+                return mapFacet(record, inner, record.kind, artifactType)
         }
         return null
+    }
+
+    private fun wireEnvelope(
+        record: ArtifactRecord,
+        kind: String,
+        payload: Map<String, Any?>,
+    ): ArtifactResponse {
+        val ref = record.ref()
+        return ArtifactResponse(
+            kind = kind,
+            payload = payload,
+            artifactId = ref.id,
+            urn = ref.urn,
+            status = record.status.toWireStatus(),
+        )
+    }
+
+    private fun mapSql(record: ArtifactRecord, inner: Map<String, Any?>, artifactType: String?): ArtifactResponse? {
+        val sql = inner["sql"] as? String ?: return null
+        if (sql.isBlank()) return null
+        return wireEnvelope(
+            record = record,
+            kind = "sql",
+            payload = buildMap {
+                put("sql", sql)
+                (inner["dialectId"] as? String)?.let { put("dialectId", it) }
+            },
+        )
+    }
+
+    private fun mapData(
+        record: ArtifactRecord,
+        inner: Map<String, Any?>,
+        kind: String,
+        artifactType: String?,
+    ): ArtifactResponse? {
+        val executionId = (inner["executionId"] as? String)
+            ?: (inner["resultId"] as? String)
+            ?: return null
+        return wireEnvelope(
+            record = record,
+            kind = "data",
+            payload = buildMap {
+                put("executionId", executionId)
+                inner["sql"]?.let { put("sql", it) }
+                inner["rowCount"]?.let { put("rowCount", it) }
+                inner["truncated"]?.let { put("truncated", it) }
+                inner["columns"]?.let { put("columns", it) }
+                (inner["sourceArtifactId"] as? String)?.let { put("sourceArtifactId", it) }
+            },
+        )
+    }
+
+    private fun mapFacet(
+        record: ArtifactRecord,
+        inner: Map<String, Any?>,
+        kind: String,
+        artifactType: String?,
+    ): ArtifactResponse? {
+        val wirePayload = FacetProposalWire.normalizePayload(inner)?.toMutableMap() ?: return null
+        wirePayload["status"] = record.status.toWireStatus()
+        (inner["writeScopeUrns"] as? List<*>)?.let { wirePayload["writeScopeUrns"] = it }
+        return wireEnvelope(
+            record = record,
+            kind = FacetProposalWire.WIRE_KIND,
+            payload = wirePayload,
+        )
     }
 
     private fun extractInnerPayload(content: Map<String, Any?>): Map<String, Any?>? {

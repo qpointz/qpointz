@@ -9,6 +9,7 @@ export interface ChatExpandPayload {
   kind: ArtefactKind;
   sql: string;
   executionId?: string;
+  parentArtifactId?: string;
   message: Message;
   precedingUserQuestion?: string;
   chatTitle?: string;

@@ -191,7 +191,6 @@ export function EntityDetails({
   const canMutateMetadataFacets = metadataFacetTargetId !== null;
   const hasStructural = flags.modelStructuralFacet && facets.structural && Object.keys(facets.structural).length > 0;
 
-  const baseTypeLabel = entity.entityType === 'COLUMN' ? entity.type.type : undefined;
   const [editFacetType, setEditFacetType] = useState<string | null>(null);
   /** When set, {@link editFacetType} refers to one element of a MULTIPLE payload. */
   const [editInstanceIndex, setEditInstanceIndex] = useState<number | null>(null);
@@ -211,6 +210,7 @@ export function EntityDetails({
   editJsonRef.current = editJson;
 
   const [facetTypes, setFacetTypes] = useState<FacetTypeManifest[]>([]);
+  const [facetTypesLoading, setFacetTypesLoading] = useState(true);
   const [activeCategoryTab, setActiveCategoryTab] = useState<string | null>(null);
   const [facetToDelete, setFacetToDelete] = useState<{ facetType: string; instanceIndex: number | null } | null>(null);
   const [exportFormats, setExportFormats] = useState<ExportFormatInfo[] | null>(null);
@@ -436,14 +436,19 @@ export function EntityDetails({
           : entity.entityType === 'TABLE'
             ? 'table'
             : 'attribute';
+    setFacetTypesLoading(true);
     void facetTypeService
       .list({ targetType, enabledOnly: true }, signal)
       .then((rows) => {
-        if (!signal.aborted) setFacetTypes(rows);
+        if (!signal.aborted) {
+          setFacetTypes(rows);
+          setFacetTypesLoading(false);
+        }
       })
       .catch((e) => {
         if (e instanceof DOMException && e.name === 'AbortError') return;
         setFacetTypes([]);
+        setFacetTypesLoading(false);
       });
     return () => {
       ac.abort();
@@ -1235,52 +1240,6 @@ export function EntityDetails({
       )}
 
       <Box p="md" style={{ overflow: 'auto', flex: 1, minHeight: 0 }}>
-        <Box
-          mb="md"
-          p="sm"
-          style={{
-            border: '1px solid var(--mantine-color-default-border)',
-            borderRadius: 8,
-            backgroundColor: isDark ? 'var(--mantine-color-dark-7)' : 'var(--mantine-color-gray-0)',
-          }}
-        >
-          <Group gap="xs" mb="xs">
-            <Badge variant="outline" color="gray" size="sm">
-              Explorer {entity.id}
-            </Badge>
-            {metadataFacetTargetId && (
-              <Badge variant="outline" color="gray" size="sm">
-                Metadata URN
-              </Badge>
-            )}
-            {baseTypeLabel && (
-              <Badge variant="light" color={isDark ? 'cyan' : 'teal'} size="sm">
-                {baseTypeLabel}
-              </Badge>
-            )}
-          </Group>
-          {entity.entityType === 'SCHEMA' && (
-            <Text size="sm" c="dimmed">
-              Tables: {entity.tables.length}
-            </Text>
-          )}
-          {entity.entityType === 'TABLE' && (
-            <Text size="sm" c="dimmed">
-              Table type: {entity.tableType} · Columns: {entity.columns.length}
-            </Text>
-          )}
-          {entity.entityType === 'COLUMN' && (
-            <Text size="sm" c="dimmed">
-              Column: {entity.columnName} · Position: {entity.fieldIndex}
-            </Text>
-          )}
-          {entity.entityType === 'MODEL' && (
-            <Text size="sm" c="dimmed">
-              Catalog-wide logical model root (not a physical schema).
-            </Text>
-          )}
-        </Box>
-
         {orderedFacetTypes.length === 0 ? (
           <Box py="xl" ta="center">
             <Text c="dimmed">No metadata facets available for this entity yet.</Text>
@@ -1312,6 +1271,7 @@ export function EntityDetails({
                             payload={row.payload}
                             descriptor={descriptorInf}
                             structuralFacetEnabled={flags.modelStructuralFacet}
+                            manifestLoading={facetTypesLoading}
                             keyPrefix={`${facetTypeInf}-inferred-${row.uid}`}
                           />
                         );
@@ -1402,6 +1362,7 @@ export function EntityDetails({
                           facetTypeKey={facetType}
                           payload={item}
                           descriptor={descriptor}
+                          manifestLoading={facetTypesLoading}
                           keyPrefix={`${facetType}[${unit.index}]`}
                         />
                       );
@@ -1526,6 +1487,7 @@ export function EntityDetails({
                         payload={singlePayload}
                         descriptor={descriptor}
                         structuralFacetEnabled={hasStructural}
+                        manifestLoading={facetTypesLoading}
                         keyPrefix={facetType}
                       />
                     );

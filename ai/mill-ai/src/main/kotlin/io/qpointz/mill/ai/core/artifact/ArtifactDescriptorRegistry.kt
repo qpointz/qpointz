@@ -1,6 +1,7 @@
 package io.qpointz.mill.ai.core.artifact
 
 import io.qpointz.mill.ai.core.capability.CapabilityManifest
+import io.qpointz.mill.ai.runtime.events.routing.RoutedEventDestination
 
 /**
  * Aggregated index of artefact descriptors from capability manifests.
@@ -36,7 +37,8 @@ class ArtifactDescriptorRegistry private constructor(
      *
      * @param protocolId Protocol id from [io.qpointz.mill.ai.runtime.events.AgentEvent.ProtocolFinal].
      */
-    fun descriptorForProtocol(protocolId: String): ArtifactDescriptor? = byProtocolId[protocolId]
+    fun descriptorForProtocol(protocolId: String): ArtifactDescriptor? =
+        byProtocolId[protocolId] ?: LEGACY_REPLAY_DESCRIPTORS[protocolId]
 
     /**
      * Resolves a descriptor for tool-result `artifactType` values.
@@ -58,12 +60,33 @@ class ArtifactDescriptorRegistry private constructor(
         private val DEFAULT_MANIFEST_RESOURCES = listOf(
             "capabilities/sql-query.yaml",
             "capabilities/metadata-authoring.yaml",
-            "capabilities/schema-authoring.yaml",
         )
 
         /** Loads descriptors from the default POC capability manifests on the classpath. */
         fun loadDefault(): ArtifactDescriptorRegistry =
             fromManifests(DEFAULT_MANIFEST_RESOURCES.map { CapabilityManifest.load(it) })
+
+        /**
+         * Legacy protocol ids retained for GET/SSE replay of chats captured before WI-361.
+         * Not registered as live capabilities — descriptor lookup only.
+         */
+        private val LEGACY_REPLAY_DESCRIPTORS: Map<String, ArtifactDescriptor> = mapOf(
+            FacetProposalWire.SCHEMA_CAPTURE_PROTOCOL_ID to ArtifactDescriptor(
+                id = "legacy.schema-capture",
+                capabilityId = "schema-authoring",
+                protocolId = FacetProposalWire.SCHEMA_CAPTURE_PROTOCOL_ID,
+                artifactKind = FacetProposalWire.WIRE_KIND,
+                persistKind = "schema.authoring.capture",
+                wirePartType = FacetProposalWire.WIRE_KIND,
+                presentation = "structured",
+                sourceEvent = ArtifactSourceEvent.PROTOCOL_FINAL,
+                emissionStrategy = EmissionStrategy.ON_CAPTURE_SUCCESS,
+                destinations = setOf(
+                    RoutedEventDestination.CHAT_STREAM,
+                    RoutedEventDestination.ARTIFACT,
+                ),
+            ),
+        )
 
         /**
          * Builds a registry from loaded [CapabilityManifest] instances.

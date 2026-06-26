@@ -62,4 +62,20 @@ interface ChatService {
         turnId: String,
         request: AttachExecutionResultHttpRequest,
     ): ArtifactResponse?
+
+    /**
+     * Accepts a pending facet-proposal artefact.
+     *
+     * @param chatId owning chat id
+     * @param artifactId persisted artefact id
+     */
+    fun acceptArtifact(chatId: String, artifactId: String): ArtifactResponse?
+
+    /**
+     * Rejects a pending facet-proposal artefact.
+     *
+     * @param chatId owning chat id
+     * @param artifactId persisted artefact id
+     */
+    fun rejectArtifact(chatId: String, artifactId: String): Boolean
 }

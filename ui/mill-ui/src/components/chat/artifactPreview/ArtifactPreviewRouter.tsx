@@ -1,7 +1,7 @@
-import { Stack, Text } from '@mantine/core';
 import type { Message } from '../../../types/chat';
+import { InterleavedAssistantReply } from './InterleavedAssistantReply';
+import { usesInterleavedArtifactLayout } from '../../../utils/replySegments';
 import { MessageContent } from '../../common/MessageContent';
-import { deriveAssistantReplyView, structuredReplySectionTitle } from '../../../utils/assistantReplyView';
 import { MessageArtifactComposer, type MessageArtifactComposerProps } from './MessageArtifactComposer';
 
 type ArtifactPreviewRouterProps = MessageArtifactComposerProps & {
@@ -13,26 +13,14 @@ export function ArtifactPreviewRouter({
   message,
   ...composerProps
 }: ArtifactPreviewRouterProps) {
-  const view = message.assistantReplyView ?? deriveAssistantReplyView(message.artifacts);
-  const composer = <MessageArtifactComposer message={message} {...composerProps} />;
-  const sectionTitle = structuredReplySectionTitle(view, message.artifacts);
-
-  if (sectionTitle) {
-    return (
-      <Stack gap="sm" style={{ width: '100%' }}>
-        <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
-          {sectionTitle}
-        </Text>
-        {composer}
-        {message.content.trim() ? <MessageContent content={message.content} /> : null}
-      </Stack>
-    );
+  if (usesInterleavedArtifactLayout(message)) {
+    return <InterleavedAssistantReply message={message} {...composerProps} />;
   }
 
   return (
-    <Stack gap="sm" style={{ width: '100%' }}>
+    <>
       {message.content.trim() ? <MessageContent content={message.content} /> : null}
-      {composer}
-    </Stack>
+      <MessageArtifactComposer message={message} {...composerProps} />
+    </>
   );
 }

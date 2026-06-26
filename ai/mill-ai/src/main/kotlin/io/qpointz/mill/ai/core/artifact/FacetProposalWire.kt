@@ -61,6 +61,8 @@ object FacetProposalWire {
             return buildMap {
                 put("facetTypeKey", existingFacetTypeKey)
                 put("metadataEntityId", existingEntityId)
+                (map["catalogPath"] as? String)?.let { put("catalogPath", it) }
+                (map["rationale"] as? String)?.takeIf { it.isNotBlank() }?.let { put("rationale", it) }
                 (map["serializedPayload"] ?: map["payload"])?.let { put("payload", it) }
             }
         }
@@ -79,6 +81,8 @@ object FacetProposalWire {
         return buildMap {
             put("facetTypeKey", facetTypeKey)
             put("metadataEntityId", targetEntityId)
+            (map["catalogPath"] as? String)?.let { put("catalogPath", it) }
+            (map["rationale"] as? String)?.takeIf { it.isNotBlank() }?.let { put("rationale", it) }
             (map["serializedPayload"] ?: map["payload"])?.let { put("payload", it) }
         }
     }

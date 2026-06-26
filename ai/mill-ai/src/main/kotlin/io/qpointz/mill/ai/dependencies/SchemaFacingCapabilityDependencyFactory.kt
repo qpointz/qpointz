@@ -61,10 +61,6 @@ object SchemaFacingCapabilityDependencyFactory {
         if (VALUE_MAPPING in ids && valueMappingResolver != null) {
             entries += VALUE_MAPPING to CapabilityDependencies.of(ValueMappingCapabilityDependency(valueMappingResolver))
         }
-        /** Schema authoring captures must resolve entity ids via the same catalog as `list_tables` / `list_columns`. */
-        if ("schema-authoring" in ids && schemaCatalog != null) {
-            entries += "schema-authoring" to CapabilityDependencies.of(SchemaCapabilityDependency(schemaCatalog))
-        }
         return CapabilityDependencyContainer.of(*entries.toTypedArray())
     }
 }

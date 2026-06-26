@@ -23,6 +23,19 @@ interface SchemaFacetService {
     fun getSchemas(context: MetadataContext = MetadataContext.global()): SchemaFacetResult
 
     /**
+     * Returns the explorer tree: schemas and table summaries without column nodes.
+     *
+     * Skips per-column facet resolution; [TreeFacetScope] limits which levels merge facets.
+     *
+     * @param context ordered scope context used for facet resolution
+     * @param treeFacetScope how much facet data to merge for tree nodes
+     */
+    fun getSchemaTree(
+        context: MetadataContext = MetadataContext.global(),
+        treeFacetScope: TreeFacetScope = TreeFacetScope.DIRECT
+    ): SchemaFacetResult
+
+    /**
      * Returns the logical catalog model root merged with facets (SPEC §3f).
      *
      * @param context ordered scope context used for facet resolution

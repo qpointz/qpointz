@@ -8,6 +8,7 @@ interface UseChatArtifactRunOptions {
   conversationId: string;
   messageId: string;
   sql: string;
+  parentArtifactId?: string;
   onDataArtifact: (artifact: Extract<ChatMessageArtifact, { kind: 'data' }>) => void;
 }
 
@@ -15,6 +16,7 @@ export function useChatArtifactRun({
   conversationId,
   messageId,
   sql,
+  parentArtifactId,
   onDataArtifact,
 }: UseChatArtifactRunOptions) {
   const activeExecutionRef = useRef<string | null>(null);
@@ -31,11 +33,16 @@ export function useChatArtifactRun({
     if (!trimmed) return null;
 
     await closePriorSession();
-    const { dataArtifact, result } = await executeChatSqlArtifact(conversationId, messageId, trimmed);
+    const { dataArtifact, result } = await executeChatSqlArtifact(
+      conversationId,
+      messageId,
+      trimmed,
+      parentArtifactId,
+    );
     activeExecutionRef.current = dataArtifact.executionId;
     onDataArtifact(dataArtifact);
     return result;
-  }, [closePriorSession, conversationId, messageId, onDataArtifact, sql]);
+  }, [closePriorSession, conversationId, messageId, onDataArtifact, parentArtifactId, sql]);
 
   return { run, closePriorSession };
 }

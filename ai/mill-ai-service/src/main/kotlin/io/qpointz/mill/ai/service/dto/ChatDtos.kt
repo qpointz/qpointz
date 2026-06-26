@@ -56,6 +56,8 @@ data class AttachExecutionResultHttpRequest(
     val rowCount: Long = 0,
     val truncated: Boolean? = null,
     val sql: String? = null,
+    /** Parent `sql` artefact id when multiple SQL cards exist on one turn. */
+    val parentArtifactId: String? = null,
 )
 
 /** Column descriptor in attach-result body. */
@@ -71,6 +73,12 @@ data class ArtifactResponse(
     /** Wire kind aligned with SSE `partType` (`sql`, `data`, `facet-proposal`). */
     val kind: String,
     val payload: Map<String, Any?>,
+    /** Opaque persisted artefact id for Accept/Reject and sql↔data pairing. */
+    val artifactId: String? = null,
+    /** Canonical artefact URN when [artifactId] is present. */
+    val urn: String? = null,
+    /** Operator lifecycle (`pending`, `accepted`, `retracted`). */
+    val status: String? = null,
 )
 
 /** Chat metadata response (list + create + update). */

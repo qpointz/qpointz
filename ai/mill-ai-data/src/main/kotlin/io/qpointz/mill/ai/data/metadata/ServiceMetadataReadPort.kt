@@ -3,6 +3,7 @@ package io.qpointz.mill.ai.data.metadata
 import io.qpointz.mill.ai.capabilities.metadata.FacetCategoryWire
 import io.qpointz.mill.ai.capabilities.metadata.MetadataContentWire
 import io.qpointz.mill.ai.capabilities.metadata.MetadataFacetValidation
+import io.qpointz.mill.ai.capabilities.metadata.MetadataEntityIds
 import io.qpointz.mill.ai.capabilities.metadata.MetadataReadPort
 import io.qpointz.mill.metadata.domain.FacetTypeSource
 import io.qpointz.mill.metadata.domain.MetadataContent
@@ -74,7 +75,7 @@ class ServiceMetadataReadPort(
     context: String?,
     origin: String?,
   ): List<Map<String, Any?>> {
-    val entityId = MetadataEntityUrn.canonicalize(metadataEntityId)
+    val entityId = MetadataEntityIds.resolve(metadataEntityId)
     val readContext = MetadataReadContext.parse(scope ?: context, origin)
     return facetService.resolve(entityId, readContext).map { it.toWireMap() }
   }

@@ -22,6 +22,9 @@ interface FacetReadSide {
 
     fun findByUid(uid: String): FacetAssignment?
 
+    /** @return facet rows created from a chat artefact capture */
+    fun findBySourceArtifactId(sourceArtifactId: String): List<FacetAssignment>
+
     /** @return number of facet assignment rows referencing the canonical facet type URN */
     fun countByFacetType(facetTypeKey: String): Int
 }

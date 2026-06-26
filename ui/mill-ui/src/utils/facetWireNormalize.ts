@@ -31,6 +31,8 @@ export function parseFacetProposalArtifact(payload: Record<string, unknown>): Ex
       kind: 'facet-proposal',
       facetTypeKey: facetTypeKeyDirect,
       metadataEntityId: metadataEntityIdDirect,
+      catalogPath: typeof payload.catalogPath === 'string' ? payload.catalogPath : undefined,
+      rationale: typeof payload.rationale === 'string' ? payload.rationale : undefined,
       payload: payloadFromObject(payload),
     };
   }
@@ -56,6 +58,8 @@ export function parseFacetProposalArtifact(payload: Record<string, unknown>): Ex
     kind: 'facet-proposal',
     facetTypeKey,
     metadataEntityId: targetEntityId,
+    catalogPath: typeof payload.catalogPath === 'string' ? payload.catalogPath : undefined,
+    rationale: typeof payload.rationale === 'string' ? payload.rationale : undefined,
     payload: payloadFromObject(payload),
   };
 }

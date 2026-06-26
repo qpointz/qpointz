@@ -11,6 +11,7 @@ interface UseSqlArtifactQueryDataOptions {
   sql: string;
   conversationId: string;
   messageId: string;
+  parentArtifactId?: string;
   storedExecutionId?: string;
   /** When false, stored execution pages are not fetched (e.g. SQL tab active). */
   lazyEnabled: boolean;
@@ -23,6 +24,7 @@ export function useSqlArtifactQueryData({
   sql,
   conversationId,
   messageId,
+  parentArtifactId,
   storedExecutionId,
   lazyEnabled,
   isReplayed,
@@ -41,6 +43,7 @@ export function useSqlArtifactQueryData({
     conversationId,
     messageId,
     sql,
+    parentArtifactId,
     onDataArtifact,
   });
 
@@ -89,7 +92,8 @@ export function useSqlArtifactQueryData({
   useEffect(() => {
     setLiveResult(null);
     setRunError(null);
-  }, [storedExecutionId]);
+    autoRunDoneRef.current = false;
+  }, [storedExecutionId, sql, parentArtifactId]);
 
   const displayResult = liveResult ?? lazy.result;
   const lazyError =

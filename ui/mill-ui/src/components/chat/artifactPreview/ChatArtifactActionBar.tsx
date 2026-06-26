@@ -4,8 +4,10 @@ import {
   HiOutlineArrowsPointingOut,
   HiOutlineArrowTopRightOnSquare,
   HiOutlineArrowDownTray,
+  HiOutlineCheck,
   HiOutlineClipboardDocument,
   HiOutlinePlay,
+  HiOutlineXMark,
 } from 'react-icons/hi2';
 import { notifications } from '@mantine/notifications';
 import { downloadSqlExport, fetchExportFormats, type ExportFormatInfo } from '../../../services/api';
@@ -17,8 +19,13 @@ export interface ChatArtifactActionBarProps {
   onCopy?: () => void;
   onExpand?: () => void;
   onOpenInAnalysis?: () => void;
+  onOpenInModel?: () => void;
+  onAccept?: () => void;
+  onReject?: () => void;
   isRunning?: boolean;
+  isLifecycleBusy?: boolean;
   copyCopied?: boolean;
+  copyTooltip?: string;
   disableRun?: boolean;
   /** SQL to export when the export action is enabled. */
   exportSql?: string;
@@ -33,8 +40,13 @@ export function ChatArtifactActionBar({
   onCopy,
   onExpand,
   onOpenInAnalysis,
+  onOpenInModel,
+  onAccept,
+  onReject,
   isRunning = false,
+  isLifecycleBusy = false,
   copyCopied = false,
+  copyTooltip = 'Copy SQL',
   disableRun = false,
   exportSql = '',
   exportAttachmentBaseName = 'chat-query',
@@ -95,7 +107,10 @@ export function ChatArtifactActionBar({
     (show('copy') && onCopy) ||
     show('export') ||
     (show('expand') && onExpand) ||
-    (show('open-in-analysis') && onOpenInAnalysis);
+    (show('open-in-analysis') && onOpenInAnalysis) ||
+    (show('open-in-model') && onOpenInModel) ||
+    (show('accept') && onAccept) ||
+    (show('reject') && onReject);
 
   if (reserveLayout && !hasVisibleActions) {
     return <Group gap={4} justify="flex-end" wrap="nowrap" style={{ minWidth: 140, minHeight: 28 }} aria-hidden />;
@@ -111,9 +126,37 @@ export function ChatArtifactActionBar({
         </Tooltip>
       ) : null}
       {show('copy') && onCopy ? (
-        <Tooltip label={copyCopied ? 'Copied!' : 'Copy SQL'} withArrow>
-          <ActionIcon variant="subtle" size="sm" color={copyCopied ? 'teal' : undefined} onClick={onCopy}>
+        <Tooltip label={copyCopied ? 'Copied!' : copyTooltip} withArrow>
+          <ActionIcon variant="subtle" size="sm" color={copyCopied ? 'teal' : undefined} onClick={onCopy} aria-label={copyTooltip}>
             <HiOutlineClipboardDocument size={14} />
+          </ActionIcon>
+        </Tooltip>
+      ) : null}
+      {show('reject') && onReject ? (
+        <Tooltip label="Reject facet" withArrow>
+          <ActionIcon
+            variant="subtle"
+            size="sm"
+            color="red"
+            onClick={onReject}
+            loading={isLifecycleBusy}
+            aria-label="Reject"
+          >
+            <HiOutlineXMark size={14} />
+          </ActionIcon>
+        </Tooltip>
+      ) : null}
+      {show('accept') && onAccept ? (
+        <Tooltip label="Accept facet" withArrow>
+          <ActionIcon
+            variant="subtle"
+            size="sm"
+            color="teal"
+            onClick={onAccept}
+            loading={isLifecycleBusy}
+            aria-label="Accept"
+          >
+            <HiOutlineCheck size={14} />
           </ActionIcon>
         </Tooltip>
       ) : null}
@@ -160,6 +203,13 @@ export function ChatArtifactActionBar({
       {show('open-in-analysis') && onOpenInAnalysis ? (
         <Tooltip label="Open in Analysis" withArrow>
           <ActionIcon variant="subtle" size="sm" onClick={onOpenInAnalysis}>
+            <HiOutlineArrowTopRightOnSquare size={14} />
+          </ActionIcon>
+        </Tooltip>
+      ) : null}
+      {show('open-in-model') && onOpenInModel ? (
+        <Tooltip label="Open in model" withArrow>
+          <ActionIcon variant="subtle" size="sm" onClick={onOpenInModel} aria-label="Open in model">
             <HiOutlineArrowTopRightOnSquare size={14} />
           </ActionIcon>
         </Tooltip>

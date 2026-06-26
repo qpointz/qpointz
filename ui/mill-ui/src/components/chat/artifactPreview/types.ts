@@ -18,8 +18,15 @@ export type ArtifactPresentationMode =
 
 export type ArtifactTransition = 'expand' | 'open-in-analysis' | 'apply-to-host';
 
-export type ArtifactActionId = 'run' | 'copy' | 'export' | 'expand' | 'open-in-analysis';
-/** Planned facet actions (not in enum until implemented): `promote`, `copy-json`. */
+export type ArtifactActionId =
+  | 'run'
+  | 'copy'
+  | 'export'
+  | 'expand'
+  | 'open-in-analysis'
+  | 'open-in-model'
+  | 'accept'
+  | 'reject';
 
 export interface ArtifactTreatment {
   mode: ArtifactPresentationMode;

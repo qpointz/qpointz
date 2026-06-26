@@ -1,10 +1,14 @@
 import { Box, Loader, ScrollArea, Select, Text, useMantineColorScheme } from '@mantine/core';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { HiOutlineCircleStack } from 'react-icons/hi2';
 import { SchemaTree } from './SchemaTree';
 import { EntityDetails } from './EntityDetails';
 import { ExplorerSplitLayout } from '../layout/ExplorerSplitLayout';
+import { entityIdFromModelRouteParams } from './modelRouteEntityId';
+import { resolveTreeTableId } from './catalogEntityId';
+import { enrichNodeChildren } from './schemaTreeEnrichment';
+import { loadExplorerTreeWithColumns } from './schemaTreeLoad';
 import { buildEntityFacetsFromResolvedList, metadataEntityUrnForFacetApi, schemaService } from '../../services/api';
 import type { SchemaNode, SchemaEntity, EntityFacets, ScopeOption, TableDetail } from '../../types/schema';
 
@@ -30,22 +34,6 @@ async function loadFacetsForEntity(
   return schemaService.getEntityFacets(metaUrn, selectedContext, signal);
 }
 
-function enrichNodeChildren(
-  nodes: SchemaNode[],
-  targetId: string,
-  children: SchemaNode[]
-): SchemaNode[] {
-  return nodes.map((node) => {
-    if (node.id === targetId) {
-      return { ...node, children };
-    }
-    if (!node.children || node.children.length === 0) {
-      return node;
-    }
-    return { ...node, children: enrichNodeChildren(node.children, targetId, children) };
-  });
-}
-
 function tableColumnNodes(entity: TableDetail): SchemaNode[] {
   return entity.columns.map((column) => ({
     id: column.id,
@@ -63,6 +51,7 @@ export function DataModelLayout() {
   const isDark = colorScheme === 'dark';
   const navigate = useNavigate();
   const params = useParams<{ schema?: string; table?: string; attribute?: string }>();
+  const routeEntityId = useMemo(() => entityIdFromModelRouteParams(params), [params]);
 
   const [tree, setTree] = useState<SchemaNode[] | null>(null);
   const [selectedEntity, setSelectedEntity] = useState<SchemaEntity | null>(null);
@@ -71,47 +60,46 @@ export function DataModelLayout() {
   const [availableScopes, setAvailableScopes] = useState<ScopeOption[]>([]);
   const [treeLoading, setTreeLoading] = useState<boolean>(true);
   const [entityLoading, setEntityLoading] = useState<boolean>(false);
+  const [contextReady, setContextReady] = useState<boolean>(false);
   const treeRequestIdRef = useRef(0);
   const entityRequestIdRef = useRef(0);
 
-  // Load schema context and tree on mount
+  const loadTreeForRoute = useCallback(async (context: string, requestId: number) => {
+    const loadedTree = await loadExplorerTreeWithColumns(context, routeEntityId, null);
+    if (requestId !== treeRequestIdRef.current) return;
+    setTree(loadedTree);
+    setTreeLoading(false);
+  }, [routeEntityId]);
+
+  // Resolve scope, then load the explorer tree (with column children when deep-linking).
   useEffect(() => {
     let cancelled = false;
     const currentRequestId = ++treeRequestIdRef.current;
     setTreeLoading(true);
-    schemaService.getContext().then((contextInfo) => {
+    setContextReady(false);
+    schemaService.getContext().then(async (contextInfo) => {
       if (cancelled || currentRequestId !== treeRequestIdRef.current) return;
       const ctx = contextInfo.selectedContext || 'global';
       setSelectedContext(ctx);
       setAvailableScopes(contextInfo.availableScopes ?? []);
-      return schemaService.getTree(ctx).then((loadedTree) => {
-        if (cancelled || currentRequestId !== treeRequestIdRef.current) return;
-        setTree(loadedTree);
-        setTreeLoading(false);
-      });
+      setContextReady(true);
+      await loadTreeForRoute(ctx, currentRequestId);
     }).catch(() => {
       if (!cancelled && currentRequestId === treeRequestIdRef.current) {
         setSelectedContext('global');
+        setContextReady(true);
         setTree([]);
         setTreeLoading(false);
       }
     });
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- load once on mount
-  }, []);
+  }, [loadTreeForRoute]);
 
   // Sync URL params to selected entity (AbortController cancels stale fetches — dev StrictMode + fast param changes)
   useEffect(() => {
-    let entityId = '';
-    if (params.schema) {
-      entityId = params.schema;
-      if (params.table) {
-        entityId += `.${params.table}`;
-        if (params.attribute) {
-          entityId += `.${params.attribute}`;
-        }
-      }
-    }
+    const entityId = routeEntityId;
+
+    if (!contextReady) return;
 
     if (!entityId) {
       setEntityLoading(false);
@@ -136,19 +124,6 @@ export function DataModelLayout() {
             if (signal.aborted) return;
             setFacets({});
           });
-        if (entity.entityType === 'TABLE') {
-          const columnNodes = tableColumnNodes(entity);
-          setTree((prev) => (prev ? enrichNodeChildren(prev, entity.id, columnNodes) : prev));
-        } else if (entity.entityType === 'COLUMN') {
-          const tableId = `${entity.schemaName}.${entity.tableName}`;
-          void schemaService
-            .getTable(entity.schemaName, entity.tableName, selectedContext, 'none', signal)
-            .then((table) => {
-              if (signal.aborted || currentRequestId !== entityRequestIdRef.current || !table) return;
-              const columnNodes = tableColumnNodes(table);
-              setTree((prev) => (prev ? enrichNodeChildren(prev, tableId, columnNodes) : prev));
-            });
-        }
       } else {
         setFacets({});
       }
@@ -164,7 +139,7 @@ export function DataModelLayout() {
     return () => {
       ac.abort();
     };
-  }, [params, selectedContext]);
+  }, [routeEntityId, selectedContext, contextReady]);
 
   const handleScopeChange = useCallback((scope: string) => {
     const currentRequestId = ++treeRequestIdRef.current;
@@ -173,7 +148,7 @@ export function DataModelLayout() {
     setSelectedEntity(null);
     setFacets({});
     setTreeLoading(true);
-    schemaService.getTree(scope).then((loadedTree) => {
+    void loadExplorerTreeWithColumns(scope, routeEntityId, null).then((loadedTree) => {
       if (currentRequestId !== treeRequestIdRef.current) return;
       setTree(loadedTree);
       setTreeLoading(false);
@@ -182,7 +157,7 @@ export function DataModelLayout() {
       setTree([]);
       setTreeLoading(false);
     });
-  }, []);
+  }, [routeEntityId]);
 
   const handleSelect = (node: SchemaNode) => {
     const currentRequestId = ++entityRequestIdRef.current;
@@ -198,12 +173,13 @@ export function DataModelLayout() {
       void loadFacetsForEntity(entity, selectedContext).then(setFacets).catch(() => setFacets({}));
       // Lazy-load table columns into the tree only when table is selected.
       if (entity.entityType === 'TABLE') {
+        const tableId = resolveTreeTableId(tree ?? [], entity.schemaName, entity.tableName) ?? node.id;
         const columnNodes: SchemaNode[] = entity.columns.map((column) => ({
           id: column.id,
           type: 'COLUMN',
           name: column.columnName,
         }));
-        setTree((prev) => (prev ? enrichNodeChildren(prev, node.id, columnNodes) : prev));
+        setTree((prev) => (prev ? enrichNodeChildren(prev, tableId, columnNodes) : prev));
       }
       setEntityLoading(false);
     }).catch(() => {
@@ -247,7 +223,7 @@ export function DataModelLayout() {
           <ScrollArea style={{ flex: 1 }} p="xs">
             <SchemaTree
               tree={tree}
-              selectedId={selectedEntity?.id || null}
+              selectedId={(selectedEntity?.id ?? routeEntityId) || null}
               onSelect={handleSelect}
             />
           </ScrollArea>

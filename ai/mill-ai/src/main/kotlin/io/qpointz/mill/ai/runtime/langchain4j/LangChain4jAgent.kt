@@ -28,7 +28,6 @@ import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
-import io.qpointz.mill.ai.capabilities.schema.CaptureResult
 import io.qpointz.mill.ai.core.artifact.ArtifactDescriptorRegistry
 import io.qpointz.mill.ai.core.artifact.EmissionStrategy
 import io.qpointz.mill.ai.core.artifact.ProtocolFinalBatch
@@ -209,6 +208,12 @@ class LangChain4jAgent(
 
             if (captureResults.isNotEmpty()) {
                 handleCaptureBatch(captureResults, capabilities, context, routedListener)
+                val protocolId = captureResults.first().first.protocolId
+                val protocol = capabilities.flatMap { it.protocols }.find { it.id == protocolId }
+                if (protocol?.multi == true) {
+                    iteration++
+                    continue
+                }
                 routedListener(AgentEvent.AnswerCompleted(""))
                 saveToMemory(session, input, "")
                 session.appendUserMessage(input)
@@ -275,10 +280,9 @@ class LangChain4jAgent(
     }
 
     private fun isFailedCapture(content: Any?): Boolean {
-        val captureResult = content as? CaptureResult
-        if (captureResult != null && !captureResult.captureSucceeded) return true
         @Suppress("UNCHECKED_CAST")
         val map = content as? Map<String, Any?>
+        if (map?.get("captureSucceeded") == false) return true
         return map?.get("rejected") == true
     }
 

@@ -1,10 +1,8 @@
 import { useEffect } from 'react';
 import type { ChatMessageArtifact, Message } from '../../../types/chat';
-import { ArtifactCard } from '../artifacts/ArtifactCard';
 import { applyArtifactToHost } from './hostIntegrations';
 import { groupMessageArtifacts } from './artifactGroups';
-import { resolveArtifactTreatment } from './chatArtifactTreatments';
-import { resolveCardComponent, resolvePreviewComponent } from './registry';
+import { ArtifactGroupRenderer, renderUnknownArtifacts } from './ArtifactGroupRenderer';
 import type { ChatType } from './types';
 
 export interface MessageArtifactComposerProps {
@@ -25,9 +23,6 @@ export function MessageArtifactComposer({
   onArtifactsChange,
 }: MessageArtifactComposerProps) {
   const groups = groupMessageArtifacts(message.artifacts);
-  const passthroughArtifacts = (message.artifacts ?? []).filter(
-    (artifact) => artifact.kind === 'unknown',
-  );
 
   useEffect(() => {
     if (chatType !== 'inline-analysis') return;
@@ -38,56 +33,26 @@ export function MessageArtifactComposer({
     }
   }, [chatType, message.artifacts]);
 
-  if (!groups.length && !passthroughArtifacts.length) return null;
+  if (!groups.length && !(message.artifacts ?? []).some((a) => a.kind === 'unknown')) {
+    return null;
+  }
 
   return (
     <>
-      {passthroughArtifacts.map((artifact, index) => (
-        <ArtifactCard key={`${artifact.kind}-${index}`} artifact={artifact} />
+      {renderUnknownArtifacts(message.artifacts ?? [])}
+      {groups.map((group, index) => (
+        <ArtifactGroupRenderer
+          key={`${group.kind}-${index}`}
+          chatType={chatType}
+          message={message}
+          group={group}
+          groupKey={`${group.kind}-${index}`}
+          conversationId={conversationId}
+          chatTitle={chatTitle}
+          precedingUserQuestion={precedingUserQuestion}
+          onArtifactsChange={onArtifactsChange}
+        />
       ))}
-      {groups.map((group, index) => {
-        const treatment = resolveArtifactTreatment(chatType, group.kind);
-
-        if (treatment.mode === 'host-apply') {
-          return null;
-        }
-
-        if (treatment.mode === 'conversation-card') {
-          const Card = resolveCardComponent(group.kind);
-          if (!Card) return null;
-          return (
-            <Card
-              key={`${group.kind}-${index}`}
-              chatType={chatType}
-              message={message}
-              group={group}
-              conversationId={conversationId}
-              chatTitle={chatTitle}
-              precedingUserQuestion={precedingUserQuestion}
-              onArtifactsChange={onArtifactsChange}
-            />
-          );
-        }
-
-        if (treatment.mode === 'condensed-preview') {
-          const Preview = resolvePreviewComponent(group.kind);
-          if (!Preview) return null;
-          return (
-            <Preview
-              key={`${group.kind}-${index}`}
-              chatType={chatType}
-              message={message}
-              group={group}
-              conversationId={conversationId}
-              chatTitle={chatTitle}
-              precedingUserQuestion={precedingUserQuestion}
-              onArtifactsChange={onArtifactsChange}
-            />
-          );
-        }
-
-        return null;
-      })}
     </>
   );
 }

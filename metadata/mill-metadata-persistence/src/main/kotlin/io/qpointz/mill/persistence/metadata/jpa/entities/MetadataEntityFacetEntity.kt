@@ -75,5 +75,8 @@ class MetadataEntityFacetEntity(
     var lastModifiedAt: Instant,
 
     @Column(name = "last_modified_by", length = 255)
-    var lastModifiedBy: String?
+    var lastModifiedBy: String?,
+
+    @Column(name = "source_artifact_id", length = 255)
+    var sourceArtifactId: String? = null,
 )

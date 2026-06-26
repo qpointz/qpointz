@@ -41,6 +41,8 @@ data class ListSchemasItem(
     val schemaName: String,
     val description: String,
     val displayName: String = "",
+    val catalogPath: String = schemaName,
+    val metadataEntityUrn: String = "",
 )
 
 /**
@@ -53,6 +55,8 @@ data class ListTablesItem(
     val tableName: String,
     val description: String,
     val displayName: String = "",
+    val catalogPath: String = "$schemaName.$tableName",
+    val metadataEntityUrn: String = "",
 )
 
 /**
@@ -68,6 +72,8 @@ data class ListColumnsItem(
     val description: String = "",
     val nullable: DataType.Nullability = DataType.Nullability.NOT_SPECIFIED_NULL,
     val type: LogicalDataType.LogicalDataTypeId = LogicalDataType.LogicalDataTypeId.NOT_SPECIFIED_TYPE,
+    val catalogPath: String = "$schemaName.$tableName.$columnName",
+    val metadataEntityUrn: String = "",
 )
 
 /**
