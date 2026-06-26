@@ -29,6 +29,9 @@ function facetHeaderIcon(facetTypeKey: string) {
 /** Condensed facet-proposal preview — tabbed Facet + JSON shell (general and inline metadata chat). */
 export function FacetCondensedPreview(props: ArtifactPreviewContext) {
   const { chatType, group, conversationId, onArtifactsChange } = props;
+  if (group.kind !== 'facet-proposal') {
+    return null;
+  }
   const artifact = group.facet;
   const flags = useFeatureFlags();
   const navigate = useNavigate();

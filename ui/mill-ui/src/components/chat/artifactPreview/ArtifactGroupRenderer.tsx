@@ -4,7 +4,6 @@ import { ArtifactCard } from '../artifacts/ArtifactCard';
 import type { ArtifactRenderGroup } from './types';
 import { resolveArtifactTreatment } from './chatArtifactTreatments';
 import { resolveCardComponent, resolvePreviewComponent } from './registry';
-import type { ChatType } from './types';
 import type { MessageArtifactComposerProps } from './MessageArtifactComposer';
 
 export type ArtifactGroupRendererProps = Pick<

@@ -235,7 +235,8 @@ describe('FacetCondensedPreview', () => {
       expect(rejectMock).toHaveBeenCalledWith('chat-1', 'art-1');
     });
     expect(onArtifactsChange).toHaveBeenCalled();
-    const next = onArtifactsChange.mock.calls.at(-1)?.[0] as typeof group.facet[];
+    const calls = onArtifactsChange.mock.calls;
+    const next = calls[calls.length - 1]?.[0] as typeof group.facet[];
     expect(next).toHaveLength(1);
     expect(next[0]?.status).toBe('rejected');
   });

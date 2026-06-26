@@ -36,12 +36,18 @@ export interface ArtifactTreatment {
 }
 
 /** Grouped artefacts rendered as one UI unit (e.g. SQL + optional data). */
-export interface ArtifactRenderGroup {
-  kind: ArtefactKind;
+export type SqlDataCompositeGroup = {
+  kind: 'sql-data-composite';
   sql?: Extract<ChatMessageArtifact, { kind: 'sql' }>;
   data?: Extract<ChatMessageArtifact, { kind: 'data' }>;
-  facet?: Extract<ChatMessageArtifact, { kind: 'facet-proposal' }>;
-}
+};
+
+export type FacetProposalGroup = {
+  kind: 'facet-proposal';
+  facet: Extract<ChatMessageArtifact, { kind: 'facet-proposal' }>;
+};
+
+export type ArtifactRenderGroup = SqlDataCompositeGroup | FacetProposalGroup;
 
 export interface ArtifactPreviewContext {
   chatType: ChatType;

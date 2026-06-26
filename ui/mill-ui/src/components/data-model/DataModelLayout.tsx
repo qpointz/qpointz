@@ -10,7 +10,7 @@ import { resolveTreeTableId } from './catalogEntityId';
 import { enrichNodeChildren } from './schemaTreeEnrichment';
 import { loadExplorerTreeWithColumns } from './schemaTreeLoad';
 import { buildEntityFacetsFromResolvedList, metadataEntityUrnForFacetApi, schemaService } from '../../services/api';
-import type { SchemaNode, SchemaEntity, EntityFacets, ScopeOption, TableDetail } from '../../types/schema';
+import type { SchemaNode, SchemaEntity, EntityFacets, ScopeOption } from '../../types/schema';
 
 /**
  * Prefers schema explorer `facetsResolved` on the entity when present (WI-134 full constellation);
@@ -32,14 +32,6 @@ async function loadFacetsForEntity(
   const metaUrn = metadataEntityUrnForFacetApi(entity);
   if (!metaUrn) return {};
   return schemaService.getEntityFacets(metaUrn, selectedContext, signal);
-}
-
-function tableColumnNodes(entity: TableDetail): SchemaNode[] {
-  return entity.columns.map((column) => ({
-    id: column.id,
-    type: 'COLUMN' as const,
-    name: column.columnName,
-  }));
 }
 
 /**

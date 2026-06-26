@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { SchemaNode } from '../../types/schema';
+import type { SchemaNode } from '../../../types/schema';
 
 const testTree: SchemaNode[] = [
   {

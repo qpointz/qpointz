@@ -78,6 +78,11 @@ public class NlSqlChatServiceTestApp {
             public int countByFacetType(String facetTypeKey) {
                 return 0;
             }
+
+            @Override
+            public java.util.List<FacetAssignment> findBySourceArtifactId(String sourceArtifactId) {
+                return java.util.List.of();
+            }
         };
     }
 }

@@ -1,5 +1,5 @@
 import type { ChatMessageArtifact } from '../../../types/chat';
-import type { ArtifactRenderGroup, ArtefactKind } from './types';
+import type { ArtifactRenderGroup, ArtefactKind, SqlDataCompositeGroup } from './types';
 
 function normalizedSql(sql: string | undefined): string {
   return (sql ?? '').trim();
@@ -27,11 +27,11 @@ export function groupMessageArtifacts(artifacts: readonly ChatMessageArtifact[] 
   if (!artifacts?.length) return [];
 
   const groups: ArtifactRenderGroup[] = [];
-  const sqlComposites: Extract<ArtifactRenderGroup, { kind: 'sql-data-composite' }>[] = [];
+  const sqlComposites: SqlDataCompositeGroup[] = [];
 
   for (const artifact of artifacts) {
     if (artifact.kind === 'sql') {
-      const composite: Extract<ArtifactRenderGroup, { kind: 'sql-data-composite' }> = {
+      const composite: SqlDataCompositeGroup = {
         kind: 'sql-data-composite',
         sql: artifact,
       };

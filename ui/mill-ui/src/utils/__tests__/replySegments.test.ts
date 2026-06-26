@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { ChatMessageArtifact } from '../types/chat';
+import type { ChatMessageArtifact } from '../../types/chat';
 import {
   buildReplySegments,
   commentaryForArtifactGroup,

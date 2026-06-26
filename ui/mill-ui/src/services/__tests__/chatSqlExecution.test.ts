@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { collectChatSqlTargets, mergeDataArtifactIntoMessage, mergeRunAllDataArtifacts } from '../chatSqlExecution';
-import type { Message } from '../../types/chat';
+import type { ChatMessageArtifact, Message } from '../../types/chat';
 
 function assistant(id: string, artifacts: Message['artifacts']): Message {
   return {
@@ -84,8 +84,16 @@ describe('mergeDataArtifactIntoMessage', () => {
       },
     );
     expect(merged.filter((a) => a.kind === 'data')).toHaveLength(2);
-    expect(merged.find((a) => a.kind === 'data' && a.sourceArtifactId === 'sql-1')?.executionId).toBe('new');
-    expect(merged.find((a) => a.kind === 'data' && a.sourceArtifactId === 'sql-2')?.executionId).toBe('keep');
+    const sql1Data = merged.find(
+      (a): a is Extract<ChatMessageArtifact, { kind: 'data' }> =>
+        a.kind === 'data' && a.sourceArtifactId === 'sql-1',
+    );
+    const sql2Data = merged.find(
+      (a): a is Extract<ChatMessageArtifact, { kind: 'data' }> =>
+        a.kind === 'data' && a.sourceArtifactId === 'sql-2',
+    );
+    expect(sql1Data?.executionId).toBe('new');
+    expect(sql2Data?.executionId).toBe('keep');
   });
 
   it('should keep other SQL data when merging without sourceArtifactId', () => {
@@ -108,8 +116,18 @@ describe('mergeDataArtifactIntoMessage', () => {
       },
     );
     expect(merged.filter((a) => a.kind === 'data')).toHaveLength(2);
-    expect(merged.find((a) => a.kind === 'data' && a.executionId === 'types')).toBeDefined();
-    expect(merged.find((a) => a.kind === 'data' && a.executionId === 'aircraft')).toBeDefined();
+    expect(
+      merged.find(
+        (a): a is Extract<ChatMessageArtifact, { kind: 'data' }> =>
+          a.kind === 'data' && a.executionId === 'types',
+      ),
+    ).toBeDefined();
+    expect(
+      merged.find(
+        (a): a is Extract<ChatMessageArtifact, { kind: 'data' }> =>
+          a.kind === 'data' && a.executionId === 'aircraft',
+      ),
+    ).toBeDefined();
   });
 });
 

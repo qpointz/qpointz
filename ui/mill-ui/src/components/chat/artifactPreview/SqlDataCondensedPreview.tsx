@@ -24,6 +24,9 @@ export function SqlDataCondensedPreview(props: ArtifactPreviewContext) {
     chatTitle,
     onArtifactsChange,
   } = props;
+  if (group.kind !== 'sql-data-composite') {
+    return null;
+  }
   const flags = useFeatureFlags();
   const openInAnalysis = useOpenInAnalysis();
   const { openExpand, runAllTick } = useChatExpand();

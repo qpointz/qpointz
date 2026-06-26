@@ -435,7 +435,7 @@ describe('EntityDetails', () => {
       };
       renderDetails(tableEntity, rawRelationFacets);
       await waitFor(() => {
-        expect(screen.getByText(/rel-a/)).toBeInTheDocument();
+        expect(screen.getByText(/^Relations · rel-a$/)).toBeInTheDocument();
         expect(screen.queryByRole('button', { name: /add entry/i })).not.toBeInTheDocument();
       });
     });
@@ -451,8 +451,8 @@ describe('EntityDetails', () => {
       };
       renderDetails(tableEntity, twoRelations);
       await waitFor(() => {
-        expect(screen.getByText(/first/)).toBeInTheDocument();
-        expect(screen.getByText(/second/)).toBeInTheDocument();
+        expect(screen.getByText(/^Relations · first$/)).toBeInTheDocument();
+        expect(screen.getByText(/^Relations · second$/)).toBeInTheDocument();
       });
     });
 

@@ -8,7 +8,7 @@ import {
   type ReactNode,
   type Dispatch,
 } from 'react';
-import type { ChatMessageArtifact, Message, AssistantReplySegment } from '../types/chat';
+import type { ChatMessageArtifact, Message } from '../types/chat';
 import type {
   InlineChatSession,
   InlineChatState,

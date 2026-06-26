@@ -36,11 +36,17 @@ describe('groupMessageArtifacts', () => {
     ]);
 
     expect(groups).toHaveLength(2);
-    expect(groups[0]?.kind).toBe('sql-data-composite');
-    expect(groups[0]?.sql?.artifactId).toBe('sql-1');
-    expect(groups[0]?.data).toBeUndefined();
-    expect(groups[1]?.sql?.artifactId).toBe('sql-2');
-    expect(groups[1]?.data?.executionId).toBe('e2');
+    const first = groups[0];
+    const second = groups[1];
+    expect(first?.kind).toBe('sql-data-composite');
+    expect(second?.kind).toBe('sql-data-composite');
+    if (first?.kind !== 'sql-data-composite' || second?.kind !== 'sql-data-composite') {
+      throw new Error('expected sql-data-composite groups');
+    }
+    expect(first.sql?.artifactId).toBe('sql-1');
+    expect(first.data).toBeUndefined();
+    expect(second.sql?.artifactId).toBe('sql-2');
+    expect(second.data?.executionId).toBe('e2');
   });
 
   it('should pair data to matching SQL by sql text when ids are missing', () => {
@@ -56,9 +62,16 @@ describe('groupMessageArtifacts', () => {
     ]);
 
     expect(groups).toHaveLength(2);
-    expect(groups[0]?.sql?.sql).toContain('aircraft');
-    expect(groups[0]?.data).toBeUndefined();
-    expect(groups[1]?.data?.executionId).toBe('e-types');
+    const first = groups[0];
+    const second = groups[1];
+    expect(first?.kind).toBe('sql-data-composite');
+    expect(second?.kind).toBe('sql-data-composite');
+    if (first?.kind !== 'sql-data-composite' || second?.kind !== 'sql-data-composite') {
+      throw new Error('expected sql-data-composite groups');
+    }
+    expect(first.sql?.sql).toContain('aircraft');
+    expect(first.data).toBeUndefined();
+    expect(second.data?.executionId).toBe('e-types');
   });
 
   it('should attach late data to the correct earlier SQL in stream order', () => {
@@ -74,7 +87,14 @@ describe('groupMessageArtifacts', () => {
     ]);
 
     expect(groups).toHaveLength(2);
-    expect(groups[0]?.data?.executionId).toBe('e-aircraft');
-    expect(groups[1]?.data).toBeUndefined();
+    const first = groups[0];
+    const second = groups[1];
+    expect(first?.kind).toBe('sql-data-composite');
+    expect(second?.kind).toBe('sql-data-composite');
+    if (first?.kind !== 'sql-data-composite' || second?.kind !== 'sql-data-composite') {
+      throw new Error('expected sql-data-composite groups');
+    }
+    expect(first.data?.executionId).toBe('e-aircraft');
+    expect(second.data).toBeUndefined();
   });
 });

@@ -123,6 +123,7 @@ class ValueMappingComponentsTest {
             Instant.EPOCH,
             null,
             Instant.EPOCH,
+            null,
             null
         );
         when(mockFacetRepository.findByEntityAndType(anyString(), anyString())).thenReturn(List.of(row));

@@ -12,10 +12,15 @@ function renderNode(node: ReactNode) {
 const descriptor: FacetTypeManifest = {
   typeKey: 'urn:mill/metadata/facet-type:descriptive',
   title: 'Descriptive',
+  description: 'Descriptive facet',
+  enabled: true,
+  mandatory: false,
   payload: {
     type: 'OBJECT',
+    title: 'Descriptive payload',
+    description: 'Descriptive payload',
     fields: [
-      { name: 'displayName', schema: { type: 'STRING' } },
+      { name: 'displayName', schema: { type: 'STRING', title: 'Display name', description: 'Display name' } },
     ],
   },
 };
@@ -42,7 +47,7 @@ describe('FacetReadOnlyBody', () => {
         descriptor={descriptor}
       />,
     );
-    expect(screen.getByText('displayName')).toBeInTheDocument();
+    expect(screen.getByText('Display name')).toBeInTheDocument();
     expect(screen.getByText('Passenger id')).toBeInTheDocument();
   });
 

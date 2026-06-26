@@ -45,7 +45,15 @@ class LangChain4jAgentEmitTest {
     )
 
     private class ProposeFacetToolModel : StreamingChatModel {
+        private var invocations = 0
+
         override fun chat(request: ChatRequest, handler: StreamingChatResponseHandler) {
+            if (++invocations > 1) {
+                handler.onCompleteResponse(
+                    ChatResponse.builder().aiMessage(AiMessage.from("Captured facet proposal.")).build(),
+                )
+                return
+            }
             val aiMessage = AiMessage.from(
                 listOf(
                     ToolExecutionRequest.builder()
@@ -62,7 +70,15 @@ class LangChain4jAgentEmitTest {
     }
 
     private class DualProposeFacetToolModel : StreamingChatModel {
+        private var invocations = 0
+
         override fun chat(request: ChatRequest, handler: StreamingChatResponseHandler) {
+            if (++invocations > 1) {
+                handler.onCompleteResponse(
+                    ChatResponse.builder().aiMessage(AiMessage.from("Captured facet proposals.")).build(),
+                )
+                return
+            }
             val aiMessage = AiMessage.from(
                 listOf(
                     ToolExecutionRequest.builder()
@@ -86,7 +102,15 @@ class LangChain4jAgentEmitTest {
     }
 
     private class PartialFailProposeFacetToolModel : StreamingChatModel {
+        private var invocations = 0
+
         override fun chat(request: ChatRequest, handler: StreamingChatResponseHandler) {
+            if (++invocations > 1) {
+                handler.onCompleteResponse(
+                    ChatResponse.builder().aiMessage(AiMessage.from("Captured partial facet proposals.")).build(),
+                )
+                return
+            }
             val aiMessage = AiMessage.from(
                 listOf(
                     ToolExecutionRequest.builder()
@@ -233,7 +257,7 @@ class LangChain4jAgentEmitTest {
         @Suppress("UNCHECKED_CAST")
         val inner = record.payload["payload"] as Map<String, Any?>
         assertEquals("descriptive", inner["facetTypeKey"])
-        assertEquals("sales.customers", inner["metadataEntityId"])
+        assertEquals("urn:mill/model/table:sales.customers", inner["metadataEntityId"])
     }
 
     @Test

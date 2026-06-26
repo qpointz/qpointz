@@ -2,6 +2,8 @@ import { Box, useMantineColorScheme } from '@mantine/core';
 import CodeMirror from '@uiw/react-codemirror';
 import { sql as sqlLang } from '@codemirror/lang-sql';
 import { EditorView } from '@codemirror/view';
+import { useMemo } from 'react';
+import { formatSqlForDisplay } from '../../../utils/formatSqlForDisplay';
 
 interface SqlReadOnlyPanelProps {
   sql: string;
@@ -22,11 +24,12 @@ const readOnlyTheme = EditorView.theme({
 export function SqlReadOnlyPanel({ sql, maxHeight = 220 }: SqlReadOnlyPanelProps) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
+  const displaySql = useMemo(() => formatSqlForDisplay(sql), [sql]);
 
   return (
     <Box style={{ maxHeight, overflow: 'hidden', borderRadius: 6 }}>
       <CodeMirror
-        value={sql}
+        value={displaySql}
         height={`${Math.min(maxHeight, 400)}px`}
         extensions={[sqlLang(), EditorView.editable.of(false), readOnlyTheme]}
         theme={isDark ? 'dark' : 'light'}

@@ -1,4 +1,4 @@
-import type { ChatMessageArtifact, Message } from './chat';
+import type { ChatMessageArtifact, Message, AssistantReplySegment } from './chat';
 
 export type InlineChatContextType = 'model' | 'knowledge' | 'analysis';
 

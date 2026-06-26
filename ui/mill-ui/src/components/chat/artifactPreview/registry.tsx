@@ -16,7 +16,7 @@ export function resolvePreviewComponent(kind: ArtefactKind): PreviewComponent | 
 }
 
 export function FacetCardPreview({ group }: ArtifactPreviewContext) {
-  if (!group.facet) return null;
+  if (group.kind !== 'facet-proposal') return null;
   return <FacetProposalArtifactCard artifact={group.facet} />;
 }
 
