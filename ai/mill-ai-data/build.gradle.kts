@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":data:mill-data-schema-core"))
     implementation(project(":data:mill-data-backend-core"))
     implementation(project(":core:mill-sql"))
+    implementation(libs.bundles.jackson)
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)

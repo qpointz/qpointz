@@ -17,6 +17,8 @@ dependencies {
     implementation(libs.caffeine)
     implementation(libs.slf4j.api)
     implementation(project(":metadata:mill-metadata-core"))
+    implementation(project(":data:mill-data-metadata"))
+    implementation(project(":data:mill-data-schema-core"))
     implementation(project(":core:mill-sql"))
 
     testImplementation(libs.junit.jupiter.api)

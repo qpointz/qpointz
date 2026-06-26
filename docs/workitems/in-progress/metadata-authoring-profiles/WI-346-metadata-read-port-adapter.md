@@ -1,10 +1,10 @@
 # WI-346 — `MetadataReadPort` in-process adapter and Spring wiring
 
-Status: `planned`  
+Status: `done`  
 Type: `✨ feature`  
 Area: `ai`, `metadata`  
 Depends on: [WI-345](WI-345-metadata-authoring-design-contract.md), [WI-352](WI-352-metadata-content-entity-and-seed.md)  
-**Stage:** 3 — branch `feat/metadata-read-port` (see [`STORY.md`](STORY.md))
+**Stage:** 3 — branch `feat/meta-authoring-catalog` (see [`STORY.md`](STORY.md))
 
 ## Problem Statement
 
@@ -77,13 +77,13 @@ Minimal `FacetTypeManifest` + `contentSchema` per type; stub `listContent` / `li
 
 ## Acceptance Criteria
 
-- [ ] With metadata autoconfigure on classpath, `MetadataReadPort` bean is non-empty in Skymill IT
-- [ ] `listFacetTypes()` returns platform seeds (e.g. `descriptive`, `relation`, DQ types) in IT
-- [ ] `listContent` / `getContent` return WI-352 platform seeds in IT
-- [ ] `listFacetCategories()` returns `general`, `relation`, `data-quality` guidance rows
-- [ ] `EmptyMetadataReadPort` still used when metadata module absent (unit test)
-- [ ] `validateFacetPayload(..., metadataEntityId)` rejects type when **`applicableTo`** does not match target entity kind (unit test with fake catalog + URN)
-- [ ] **`HarnessMetadataReadPort`** lists ≥5 facet types (descriptive, relation-source, relation-target, dq-null-check, dq-predicate) per §12
-- [ ] No regression in `SchemaFacingCapabilityDependencyFactoryTest`
+- [x] With metadata autoconfigure on classpath, `MetadataReadPort` bean is non-empty in Skymill IT
+- [x] `listFacetTypes()` returns platform seeds (e.g. `descriptive`, `relation`, DQ types) in IT
+- [x] `listContent` / `getContent` return WI-352 platform seeds in IT
+- [x] `listFacetCategories()` returns `general`, `relation`, `data-quality` guidance rows
+- [x] `EmptyMetadataReadPort` still used when metadata module absent (unit test)
+- [x] `validateFacetPayload(..., metadataEntityId)` rejects type when **`applicableTo`** does not match target entity kind (unit test with fake catalog + URN)
+- [x] **`HarnessMetadataReadPort`** lists ≥5 facet types (descriptive, relation-source, relation-target, dq-null-check, dq-predicate) per §12
+- [x] No regression in `SchemaFacingCapabilityDependencyFactoryTest`
 
-`[feat] WI-346: in-process MetadataReadPort adapter and Spring wiring`
+`[feat] WI-357: in-process MetadataReadPort adapter and Spring wiring`

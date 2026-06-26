@@ -13,10 +13,6 @@ import io.qpointz.mill.ai.capabilities.valuemapping.MockValueMappingResolver
 import io.qpointz.mill.ai.dependencies.SchemaFacingCapabilityDependencyFactory
 import io.qpointz.mill.ai.profile.AgentProfile
 import io.qpointz.mill.ai.runtime.AgentContext
-import io.qpointz.mill.metadata.domain.facet.FacetPayloadField
-import io.qpointz.mill.metadata.domain.facet.FacetPayloadSchema
-import io.qpointz.mill.metadata.domain.facet.FacetSchemaType
-import io.qpointz.mill.metadata.domain.facet.FacetTypeManifest
 import io.qpointz.mill.sql.v2.dialect.DialectRegistry
 
 /**
@@ -32,7 +28,7 @@ object ScenarioHarnessSupport {
             emptyList()
     }
 
-    /** Metadata port with a single `descriptive` facet type for capture scenarios. */
+    /** Metadata port with harness facet catalog (≥5 types per GAPS §12). */
     val metadataReadPort: MetadataReadPort = HarnessMetadataReadPort()
 
     private val dialectSpec = DialectRegistry.fromClasspathDefaults().requireDialect("calcite")
@@ -53,42 +49,4 @@ object ScenarioHarnessSupport {
             valueMappingResolver = MockValueMappingResolver(),
         ),
     )
-}
-
-/** Minimal metadata catalog for harness facet capture packs. */
-class HarnessMetadataReadPort : MetadataReadPort {
-
-    private val descriptiveFacet = FacetTypeManifest(
-        typeKey = "descriptive",
-        title = "Descriptive",
-        description = "Short descriptive facet for harness tests",
-        payload = FacetPayloadSchema(
-            type = FacetSchemaType.OBJECT,
-            title = "Descriptive payload",
-            description = "Summary text",
-            fields = listOf(
-                FacetPayloadField(
-                    name = "summary",
-                    required = true,
-                    schema = FacetPayloadSchema(
-                        type = FacetSchemaType.STRING,
-                        title = "Summary",
-                        description = "Summary text",
-                    ),
-                ),
-            ),
-        ),
-    )
-
-    override fun listFacetTypes(): List<FacetTypeManifest> = listOf(descriptiveFacet)
-
-    override fun listEntityFacets(
-        metadataEntityId: String,
-        scope: String?,
-        context: String?,
-        origin: String?,
-    ): List<Map<String, Any?>> = emptyList()
-
-    override fun validateFacetPayload(facetTypeKey: String, payload: Map<String, Any?>): List<String> =
-        emptyList()
 }

@@ -4,7 +4,12 @@ import io.qpointz.mill.ai.autoconfigure.ConditionalOnAiEnabled
 import io.qpointz.mill.ai.capabilities.schema.EmptySchemaCatalogPort
 import io.qpointz.mill.ai.capabilities.schema.SchemaCatalogPort
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlValidator
+import io.qpointz.mill.ai.capabilities.metadata.MetadataReadPort
+import io.qpointz.mill.ai.data.metadata.metadataReadPort
 import io.qpointz.mill.ai.data.schema.asSchemaCatalogPort
+import io.qpointz.mill.metadata.repository.MetadataContentRepository
+import io.qpointz.mill.metadata.service.FacetCatalog
+import io.qpointz.mill.metadata.service.FacetService
 import io.qpointz.mill.ai.data.sql.BackendSqlValidator
 import io.qpointz.mill.data.backend.SqlProvider
 import io.qpointz.mill.data.schema.SchemaFacetService
@@ -40,6 +45,9 @@ private val log = LoggerFactory.getLogger(AiV3DataAutoConfiguration::class.java)
         "io.qpointz.mill.autoconfigure.data.backend.flow.FlowBackendAutoConfiguration",
         "io.qpointz.mill.autoconfigure.data.backend.jdbc.JdbcBackendAutoConfiguration",
         "io.qpointz.mill.autoconfigure.data.schema.SchemaFacetServiceAutoConfiguration",
+        "io.qpointz.mill.metadata.configuration.MetadataEntityServiceAutoConfiguration",
+        "io.qpointz.mill.metadata.configuration.MetadataImportExportAutoConfiguration",
+        "io.qpointz.mill.metadata.configuration.MetadataCoreConfiguration",
     ],
 )
 @ConditionalOnClass(SchemaFacetService::class, SchemaCatalogPort::class, BackendSqlValidator::class)
@@ -81,4 +89,24 @@ class AiV3DataAutoConfiguration {
     @ConditionalOnMissingBean(SqlValidator::class)
     fun backendSqlValidator(sqlProvider: SqlProvider): SqlValidator =
         BackendSqlValidator(sqlProvider)
+
+    /**
+     * Metadata read port for `metadata` / `metadata-authoring` tools when the metadata stack is present.
+     *
+     * Method parameters (not `@ConditionalOnBean`) so Spring defers creation until
+     * [FacetCatalog], [FacetService], and [MetadataContentRepository] exist — same pattern as
+     * [schemaCatalogPort] avoiding early condition evaluation during auto-config import.
+     *
+     * @param facetCatalog facet type catalog
+     * @param facetService merged facet reads
+     * @param contentRepository authoring content rows
+     * @return production [MetadataReadPort]
+     */
+    @Bean
+    @ConditionalOnMissingBean(MetadataReadPort::class)
+    fun serviceMetadataReadPort(
+        facetCatalog: FacetCatalog,
+        facetService: FacetService,
+        contentRepository: MetadataContentRepository,
+    ): MetadataReadPort = metadataReadPort(facetCatalog, facetService, contentRepository)
 }

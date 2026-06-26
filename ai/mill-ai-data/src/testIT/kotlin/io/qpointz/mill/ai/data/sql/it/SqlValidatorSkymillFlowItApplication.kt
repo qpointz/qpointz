@@ -8,6 +8,7 @@ import io.qpointz.mill.autoconfigure.data.backend.flow.FlowDescriptorMetadataSou
 import io.qpointz.mill.autoconfigure.data.schema.LogicalLayoutMetadataSourceAutoConfiguration
 import io.qpointz.mill.autoconfigure.data.schema.MetadataEntityUrnCodecAutoConfiguration
 import io.qpointz.mill.autoconfigure.data.schema.SchemaFacetServiceAutoConfiguration
+import io.qpointz.mill.ai.autoconfigure.AiV3DataAutoConfiguration
 import io.qpointz.mill.data.backend.dispatchers.SubstraitDispatcher
 import io.qpointz.mill.metadata.configuration.MetadataCoreConfiguration
 import io.qpointz.mill.metadata.configuration.MetadataEntityServiceAutoConfiguration
@@ -46,6 +47,7 @@ import org.springframework.context.annotation.Import
     MetadataEntityServiceAutoConfiguration::class,
     MetadataSeedAutoConfiguration::class,
     SchemaFacetServiceAutoConfiguration::class,
+    AiV3DataAutoConfiguration::class,
 )
 open class SqlValidatorSkymillFlowItApplication {
 
