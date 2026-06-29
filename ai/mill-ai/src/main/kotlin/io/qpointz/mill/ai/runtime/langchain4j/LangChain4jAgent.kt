@@ -146,7 +146,7 @@ class LangChain4jAgent(
         val bindings = capabilities.flatMap { it.tools }
         val handlerMap = bindings.associateBy { it.spec.name() }
         val toolSpecs = bindings.map { it.spec }
-        val systemPrompt = buildSystemPrompt(capabilities)
+        val systemPrompt = buildAgentSystemPrompt(profile, capabilities)
 
         val memory = chatMemoryStore.load(session.conversationId)
         val projected = memoryStrategy.project(
@@ -293,20 +293,6 @@ class LangChain4jAgent(
             "Capability set mismatch for profile '${profile.id}'. expected=${profile.capabilityIds} actual=$actualIds"
         }
         return capabilities
-    }
-
-    private fun buildSystemPrompt(capabilities: List<Capability>): String {
-        val promptTexts = capabilities.flatMap { capability ->
-            capability.prompts.map { prompt ->
-                "## Prompt `${prompt.id}`\n${prompt.description}\n${prompt.content}"
-            }
-        }
-        return buildString {
-            appendLine("You are the Mill AI agent '${profile.id}'.")
-            appendLine("Keep replies concise.")
-            appendLine()
-            if (promptTexts.isNotEmpty()) appendLine(promptTexts.joinToString("\n\n"))
-        }
     }
 
     private fun parseArguments(json: String): Map<String, Any?> =

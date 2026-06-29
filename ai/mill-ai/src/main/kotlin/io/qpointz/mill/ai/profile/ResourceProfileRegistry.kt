@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.profile
 
+import io.qpointz.mill.ai.core.prompt.PromptAsset
 import io.qpointz.mill.utils.YamlMultiDocumentReader
 import java.io.InputStream
 
@@ -114,7 +115,22 @@ class ResourceProfileRegistry private constructor(
                 id = id,
                 capabilityIds = capabilities.toSet(),
                 description = root["description"]?.toString()?.trim()?.takeIf { it.isNotEmpty() },
+                prompts = parsePrompts(root),
             )
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        private fun parsePrompts(root: Map<String, Any?>): List<PromptAsset> {
+            val promptsMap = root["prompts"] as? Map<String, Any?> ?: return emptyList()
+            return promptsMap.map { (promptId, raw) ->
+                val entry = raw as? Map<String, Any?>
+                    ?: error("AgentProfile prompt '$promptId' must be a map with description and content")
+                PromptAsset(
+                    id = promptId,
+                    description = entry["description"]?.toString()?.trim().orEmpty(),
+                    content = entry["content"]?.toString()?.trim().orEmpty(),
+                )
+            }.sortedBy { it.id }
         }
     }
 }

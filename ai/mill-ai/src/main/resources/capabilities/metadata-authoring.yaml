@@ -4,29 +4,27 @@ description: |
 
 prompts:
   metadata-authoring.intent:
-    description: Classify user intent for metadata authoring vs SQL vs exploration.
+    description: Classify user intent for metadata facet authoring (capability-local).
     content: |
-      Classify the user message:
+      Classify the user message for metadata authoring:
       - AUTHOR_FACET — documentary metadata (descriptions, relations, data-quality rules, constraints)
-      - DATA_QUERY — needs SQL / row retrieval
-      - EXPLORE — schema discovery only
-      - CHAT — general conversation
-      Mixed utterances may require BOTH AUTHOR_FACET and DATA_QUERY in one turn (e.g. "customer_id must not be null AND show order counts").
-      Decompose into subtasks; do not stop after the first structured result when another subtask remains.
+      - CHAT — general conversation unrelated to facet capture
+      When the user documents metadata about schema objects, route to AUTHOR_FACET.
+      Do not classify SQL/data retrieval or schema-only discovery here — sibling capabilities on the profile own those routes.
 
   metadata-authoring.reasoning:
-    description: Catalog-driven facet authoring loop.
+    description: Catalog-driven facet authoring loop (procedure-first).
     content: |
       For facet authoring:
-      1. Ground every target with schema tools (`list_schemas` → `list_tables` in **each** catalog schema when hunting a table name → `list_columns`). Copy each row's `catalogPath` (`schema.table.column`). Never invent `urn:mill/model/…` strings. Optional: `resolve_metadata_entity(catalogPath)` to confirm the object exists and read `metadataEntityUrn`.
+      1. Ground every target with schema discovery — copy each row's qualified catalogPath. Resolve canonical entity URNs via metadata tools; never invent `urn:mill/model/…` strings.
       2. Decompose the user request into a checklist of (catalogPath, facetTypeKey) pairs before any capture. Example: two columns with descriptions + NOT NULL on `id` → three captures minimum (descriptive×2 + dq-null-check×1).
-      3. list_metadata_scopes() — note writable scopes
-      4. list_facet_categories() — pick category from dynamic guidance (not a hardcoded table)
-      5. list_facet_types(category=…) — shortlist facetTypeKey (exact catalog keys: lowercase, hyphen-separated, e.g. `descriptive`, `dq-null-check`)
-      6. get_facet_type(facetTypeKey) — build payload from contentSchema; follow metadata-authoring.payload-style for rule `name` slugs and narrative fields; use examples[] when present
-      7. For relations: pick relation-source vs relation-target by grounded table role in the join
-      8. validate_facet_payload(facetTypeKey, payload, catalogPath) for each planned capture
-      9. propose_facet_assignment(catalogPath=…) once per checklist row — parallel when independent; additional rounds when needed until the checklist is complete
+      3. List writable metadata scopes for this chat.
+      4. Discover facet categories from the dynamic catalog (not a hardcoded table).
+      5. Shortlist facet types for the chosen category (exact catalog keys: lowercase, hyphen-separated, e.g. `descriptive`, `dq-null-check`).
+      6. Load the full facet type schema and build payloads from contentSchema; follow metadata-authoring.payload-style for rule `name` slugs and narrative fields; use examples[] when present.
+      7. For relations: pick relation-source vs relation-target by grounded table role in the join.
+      8. Validate each planned payload against the catalog before capture.
+      9. Propose one assignment per checklist row — parallel when independent; additional rounds when needed until the checklist is complete.
 
   metadata-authoring.batch:
     description: Parallel multi-facet capture guidance.

@@ -21,6 +21,8 @@ data class AgentProfile(
     val id: String,
     val capabilityIds: Set<String>,
     val description: String? = null,
+    /** Profile-scoped prompt assets (e.g. composed intent routing for multi-capability profiles). */
+    val prompts: List<PromptAsset> = emptyList(),
     val routingPolicy: EventRoutingPolicy = DefaultEventRoutingPolicy.policy,
 )
 

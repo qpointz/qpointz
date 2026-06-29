@@ -5,6 +5,14 @@ description: |
   SQL generation itself remains a structured model action, not a tool.
 
 prompts:
+  sql-query.intent:
+    description: Classify user intent for SQL generation and data retrieval (capability-local).
+    content: |
+      Classify the user message for SQL / data retrieval:
+      - DATA_QUERY (also QUERY_DATA) — user wants rows, counts, aggregates, or validated SQL to run
+      - CHAT — general conversation unrelated to querying data
+      When the user asks to show, list, count, aggregate, or retrieve data, route to DATA_QUERY.
+
   sql-query.system:
     description: Guidance for SQL generation and correction loops (generate-only; execution is host-side).
     content: |

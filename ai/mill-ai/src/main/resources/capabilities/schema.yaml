@@ -2,6 +2,14 @@ name: schema
 description: Schema exploration capability
 
 prompts:
+  schema.intent:
+    description: Classify user intent for schema structure discovery (capability-local).
+    content: |
+      Classify the user message for schema exploration:
+      - EXPLORE — discover schemas, tables, columns, or relations without generating SQL
+      - CHAT — general conversation unrelated to schema discovery
+      When the user asks what tables exist, what columns a table has, or how entities relate — route to EXPLORE.
+
   schema.system:
     description: Guidance for schema exploration tools.
     content: |

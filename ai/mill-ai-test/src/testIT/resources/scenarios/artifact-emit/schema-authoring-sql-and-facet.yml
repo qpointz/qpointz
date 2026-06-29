@@ -1,5 +1,6 @@
 name: schema-authoring-sql-and-facet
 profileId: data-analysis
+# Mixed SQL + facet turn — intent routing via data-analysis.intent (WI-363 profile composition).
 parameters:
   mode: scripted
 run:
@@ -13,10 +14,13 @@ run:
     verify:
       pass: ERROR
       check:
+        - events:
+            containsInOrder:
+              - { type: tool.call, name: validate_sql }
+              - { type: tool.result, name: validate_sql }
+              - { type: protocol.final, protocolId: sql-query.generated-sql }
         - artifacts:
             - persistKind: sql.generated
-              count: 1
-            - persistKind: sql.validation
               count: 1
         - sse:
             - type: item.part.updated

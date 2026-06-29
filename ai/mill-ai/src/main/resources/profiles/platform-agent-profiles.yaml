@@ -34,3 +34,17 @@ capabilities:
   - sql-dialect
   - sql-query
   - value-mapping
+prompts:
+  data-analysis.intent:
+    description: Profile-level intent routing for mixed SQL, schema discovery, and facet capture.
+    content: |
+      Profile `data-analysis` composes non-overlapping capability intents. Apply in order; one message may match multiple:
+
+      1. **sql-query.intent** — DATA_QUERY when the user wants data, SQL, counts, or aggregates.
+      2. **schema.intent** — EXPLORE when the user wants schema structure only (no SQL generation).
+      3. **metadata-authoring.intent** — AUTHOR_FACET when the user documents metadata (descriptions, relations, data-quality rules).
+
+      Mixed utterances may require BOTH AUTHOR_FACET and DATA_QUERY in one turn (e.g. "customer_id must not be null AND show order counts").
+      Decompose into subtasks; complete every subtask — do not stop after the first structured result when another remains.
+
+      When none of the above apply, treat as CHAT (conversation capability).

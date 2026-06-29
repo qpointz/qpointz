@@ -20,8 +20,6 @@ run:
               - { type: protocol.final, protocolId: sql-query.generated-sql }
               - { type: answer.completed }
         - artifacts:
-            - persistKind: sql.validation
-              count: 1
             - persistKind: sql.generated
               count: 1
         - artifacts.shape:
