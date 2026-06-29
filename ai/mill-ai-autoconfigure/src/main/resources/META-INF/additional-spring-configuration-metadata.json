@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "mill.ai.chat.scenario-capture.enabled",
+      "type": "java.lang.Boolean",
+      "description": "When true, persist extended run events (tool.call, tool.result) and expose GET /api/v1/ai/chats/{chatId}/scenario-export for dev/tuning. Default false.",
+      "defaultValue": false
+    }
+  ]
+}

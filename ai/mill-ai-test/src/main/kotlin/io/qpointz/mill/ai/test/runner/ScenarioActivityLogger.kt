@@ -86,11 +86,13 @@ internal object ScenarioActivityLogger {
      * Logs a scripted model queue step (one LLM invocation).
      */
     fun logScriptModelStep(ctx: TurnContext, invocation: Int, step: ScriptStep) {
+        val toolCalls = step.toolCalls
+        val answer = step.answer
         val detail = when {
-            step.toolCalls != null ->
-                "toolCalls=${step.toolCalls.map { it.name }}"
-            step.answer != null ->
-                "answer=${truncate(step.answer)}"
+            toolCalls != null ->
+                "toolCalls=${toolCalls.map { it.name }}"
+            answer != null ->
+                "answer=${truncate(answer)}"
             else -> "empty step"
         }
         log.info("{} scripted-model invocation={} {}", ctx.prefix(), invocation, detail)

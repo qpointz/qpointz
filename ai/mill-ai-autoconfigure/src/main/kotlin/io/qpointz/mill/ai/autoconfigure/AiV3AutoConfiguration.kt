@@ -190,6 +190,7 @@ class AiV3AutoConfiguration {
         artifactDescriptorRegistry: ArtifactDescriptorRegistry,
         artifactObservers: ObjectProvider<ArtifactObserver>,
         metadataScopeService: ObjectProvider<io.qpointz.mill.metadata.service.MetadataScopeService>,
+        chatProperties: AiV3ChatProperties,
     ): AiV3ChatRuntime = LangChain4jChatRuntime(
         model = model,
         profileRegistry = profileRegistry,
@@ -203,6 +204,7 @@ class AiV3AutoConfiguration {
         artifactDescriptorRegistry = artifactDescriptorRegistry,
         artifactObservers = artifactObservers.orderedStream().toList(),
         metadataScopeService = metadataScopeService.ifAvailable,
+        scenarioCaptureEnabled = chatProperties.scenarioCapture.enabled,
     )
 
     // ── User identity ─────────────────────────────────────────────────────────

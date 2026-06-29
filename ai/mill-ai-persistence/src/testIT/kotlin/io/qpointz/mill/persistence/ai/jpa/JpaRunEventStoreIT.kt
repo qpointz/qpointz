@@ -38,4 +38,39 @@ class JpaRunEventStoreIT {
         assertThat(results[0].eventId).isEqualTo("e1")
         assertThat(results[0].content["inputTokens"]).isEqualTo(10)
     }
+
+    @Test
+    fun `should find events by chat id ordered by created at`() {
+        JpaChatTestSupport.seedChat(chatRepo, "c1")
+        val early = Instant.parse("2026-06-25T10:00:00Z")
+        val late = Instant.parse("2026-06-25T11:00:00Z")
+        store.save(
+            RunEventRecord(
+                eventId = "e1",
+                runId = "run-1",
+                conversationId = "c1",
+                profileId = "p",
+                kind = "run.started",
+                runtimeType = "run.started",
+                content = emptyMap(),
+                createdAt = early,
+            ),
+        )
+        store.save(
+            RunEventRecord(
+                eventId = "e2",
+                runId = "run-2",
+                conversationId = "c1",
+                profileId = "p",
+                kind = "tool.call",
+                runtimeType = "tool.call",
+                content = mapOf("name" to "validate_sql"),
+                createdAt = late,
+            ),
+        )
+        val results = store.findByChatIdOrderByCreatedAtAsc("c1")
+        assertThat(results).hasSize(2)
+        assertThat(results[0].eventId).isEqualTo("e1")
+        assertThat(results[1].eventId).isEqualTo("e2")
+    }
 }

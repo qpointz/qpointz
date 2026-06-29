@@ -86,6 +86,20 @@ class InMemoryRunEventStoreTest {
     fun shouldReturnEmpty_forUnknownRun() {
         assertTrue(store.findByRun("none").isEmpty(), "expected empty list")
     }
+
+    @Test
+    fun shouldFindByChatIdOrderByCreatedAtAsc() {
+        val early = record("run-1").copy(conversationId = "chat-a", createdAt = Instant.parse("2026-01-01T00:00:00Z"))
+        val late = record("run-2").copy(conversationId = "chat-a", createdAt = Instant.parse("2026-01-02T00:00:00Z"))
+        val other = record("run-3").copy(conversationId = "chat-b")
+        store.save(late)
+        store.save(early)
+        store.save(other)
+        val results = store.findByChatIdOrderByCreatedAtAsc("chat-a")
+        assertEquals(2, results.size)
+        assertEquals("run-1", results[0].runId)
+        assertEquals("run-2", results[1].runId)
+    }
 }
 
 class InMemoryConversationStoreTest {

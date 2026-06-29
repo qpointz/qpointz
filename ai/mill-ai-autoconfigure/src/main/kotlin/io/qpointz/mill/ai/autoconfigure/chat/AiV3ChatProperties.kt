@@ -42,6 +42,7 @@ data class AiV3ChatProperties(
     val maxTitleLength: Int = 30,
     val valueMapping: ChatValueMappingCapabilities = ChatValueMappingCapabilities(),
     val schemaSearch: ChatSchemaSearchCapabilities = ChatSchemaSearchCapabilities(),
+    val scenarioCapture: ScenarioCaptureProperties = ScenarioCaptureProperties(),
 ) {
     /**
      * @return framework-neutral settings for the unified chat service (`mill-ai-service`)
@@ -65,4 +66,13 @@ data class ChatValueMappingCapabilities(
  */
 data class ChatSchemaSearchCapabilities(
     val embedding: String? = null,
+)
+
+/**
+ * Dev/tuning flag: persist extended run events and enable scenario YAML export.
+ *
+ * When `false` (default), chat runtime and persistence are unchanged.
+ */
+data class ScenarioCaptureProperties(
+    val enabled: Boolean = false,
 )

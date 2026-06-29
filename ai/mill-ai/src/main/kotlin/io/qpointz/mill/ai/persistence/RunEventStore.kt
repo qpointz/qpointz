@@ -38,6 +38,15 @@ data class RunEventRecord(
 interface RunEventStore {
     fun save(record: RunEventRecord)
     fun findByRun(runId: String): List<RunEventRecord>
+
+    /**
+     * All persisted run events for a conversation, oldest first.
+     *
+     * Used by scenario export to reconstruct scripted turns from live chats.
+     *
+     * @param chatId Conversation id (`ai_chat.id`).
+     */
+    fun findByChatIdOrderByCreatedAtAsc(chatId: String): List<RunEventRecord>
 }
 
 

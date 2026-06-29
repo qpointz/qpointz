@@ -155,6 +155,8 @@ mill:
       max-title-length: 30
       value-mapping:
         embedding: default
+      scenario-capture:
+        enabled: true
 ---
 # Local ChromaDB vector store (no auth). Use with AI, e.g. `--spring.profiles.active=ai,chromadb`
 # and a Chroma server on localhost:8000 (see deploy/local-dev/docker-compose `chromadb`).

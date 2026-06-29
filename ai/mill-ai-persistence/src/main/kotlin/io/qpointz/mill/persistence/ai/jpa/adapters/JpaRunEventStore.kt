@@ -18,6 +18,9 @@ open class JpaRunEventStore(
     override fun findByRun(runId: String): List<RunEventRecord> =
         repo.findByRunIdOrderByCreatedAtAsc(runId).map { it.toDomain() }
 
+    override fun findByChatIdOrderByCreatedAtAsc(chatId: String): List<RunEventRecord> =
+        repo.findByChatIdOrderByCreatedAtAsc(chatId).map { it.toDomain() }
+
     private fun RunEventRecord.toEntity(): RunEventEntity =
         RunEventEntity(
             eventId = eventId,

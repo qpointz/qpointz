@@ -23,6 +23,9 @@ class InMemoryRunEventStore : RunEventStore {
 
     override fun findByRun(runId: String): List<RunEventRecord> =
         records.filter { it.runId == runId }
+
+    override fun findByChatIdOrderByCreatedAtAsc(chatId: String): List<RunEventRecord> =
+        records.filter { it.conversationId == chatId }.sortedBy { it.createdAt }
 }
 
 

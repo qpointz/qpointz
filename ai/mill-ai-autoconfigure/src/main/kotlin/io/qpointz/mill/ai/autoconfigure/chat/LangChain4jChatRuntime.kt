@@ -19,6 +19,7 @@ import io.qpointz.mill.ai.core.artifact.ProtocolFinalBatch
 import io.qpointz.mill.ai.dependencies.CapabilityDependencyAssembler
 import io.qpointz.mill.ai.profile.rehydrate
 import io.qpointz.mill.ai.profile.ProfileRegistry
+import io.qpointz.mill.ai.scenario.ScenarioCaptureRouting
 import io.qpointz.mill.ai.runtime.AgentContext
 import io.qpointz.mill.ai.runtime.ConversationSession
 import io.qpointz.mill.ai.runtime.events.AgentEvent
@@ -56,6 +57,7 @@ class LangChain4jChatRuntime(
     private val artifactDescriptorRegistry: ArtifactDescriptorRegistry = ArtifactDescriptorRegistry.loadDefault(),
     private val artifactObservers: List<ArtifactObserver> = emptyList(),
     private val metadataScopeService: io.qpointz.mill.metadata.service.MetadataScopeService? = null,
+    private val scenarioCaptureEnabled: Boolean = false,
 ) : AiV3ChatRuntime {
 
     private val protocolJsonMapper: JsonMapper = JsonMapper.builder().build()
@@ -67,6 +69,14 @@ class LangChain4jChatRuntime(
             )
 
         metadataScopeService?.ensureChatScope(metadata.chatId, metadata.chatName, metadata.userId)
+
+        val effectiveProfile = if (scenarioCaptureEnabled) {
+            rehydration.profile.copy(
+                routingPolicy = ScenarioCaptureRouting.extendedPolicy(rehydration.profile.routingPolicy),
+            )
+        } else {
+            rehydration.profile
+        }
 
         return Flux.create<ChatRuntimeEvent> { sink ->
             try {
@@ -80,7 +90,7 @@ class LangChain4jChatRuntime(
                 )
                 val agent = LangChain4jAgent(
                     model = model,
-                    profile = rehydration.profile,
+                    profile = effectiveProfile,
                     chatMemoryStore = chatMemoryStore,
                     memoryStrategy = memoryStrategy,
                     persistenceContext = persistenceContext,

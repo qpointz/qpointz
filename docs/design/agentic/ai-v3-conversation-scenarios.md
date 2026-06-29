@@ -182,3 +182,45 @@ Planned `ai:v3-integration` job: run `:ai:mill-ai-test:testIT`, publish `build/r
 ## 5. Relationship to v3-validation-harness
 
 [`v3-validation-harness.md`](v3-validation-harness.md) describes the three-layer pyramid (unit / deterministic / live LLM). This document is the **normative YAML spec** for the deterministic layer implemented in `mill-ai-test`.
+
+---
+
+## 6. Scenario capture and DB export (WI-365)
+
+Dev/tuning workflow for turning **live mill-ui chats** into draft scenario packs without real-time filesystem recording.
+
+### 6.1 Configuration
+
+```yaml
+mill:
+  ai:
+    chat:
+      scenario-capture:
+        enabled: false   # default — production-safe
+```
+
+| `enabled` | Runtime |
+|-----------|---------|
+| `false` | Unchanged routing and persistence (default) |
+| `true` | Persist `tool.call`, `tool.result`, `protocol.final` to `ai_chat_run_event`; expose export REST endpoint |
+
+### 6.2 DB sources
+
+| Table | Export use |
+|-------|------------|
+| `ai_chat` | `profileId`, chat name → pack `name` |
+| `ai_chat_turn` | User `ask` text per turn |
+| `ai_chat_run_event` | Reconstruct `script:` (`toolCalls`, `answer`) when capture was on |
+| `ai_chat_artifact` | Verify hints (YAML comments); artifact fallback when run events missing |
+
+### 6.3 Export workflow
+
+1. Enable `mill.ai.chat.scenario-capture.enabled=true` in dev config.
+2. Run conversations in mill-ui (capture persists extended run events).
+3. Download draft pack: `GET /api/v1/ai/chats/{chatId}/scenario-export?format=yaml`
+4. Hand-edit YAML: add `verify:` blocks using commented hints.
+5. Commit under `ai/mill-ai-test/src/testIT/resources/scenarios/artifact-emit/`.
+
+**Implementation:** `io.qpointz.mill.ai.scenario` in `mill-ai` (`ConversationScenarioExporter`, `ScenarioPackYamlWriter`). Shared [ScenarioPack](#2-scenariopack-yaml) types live in `mill-ai`; `mill-ai-test` re-exports them for harness compatibility.
+
+**Note:** Export is best-effort; operator owns final `verify:` and script tuning before CI.

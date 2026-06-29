@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 /**
  * Translates [MillStatusException] and [MillStatusRuntimeException] to HTTP responses
- * for the AI v3 HTTP surface ([AiChatController], [AiProfileController]).
+ * for the AI v3 HTTP surface ([AiChatController], [AiProfileController], [AiScenarioExportController]).
  *
  * HTTP status mapping follows the platform convention (WI-083):
  * - BAD_REQUEST → 400
@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
  *
  * Active when AI v3 is enabled (`mill.ai.enabled`), same gate as [AiChatController] / [AiProfileController].
  */
-@RestControllerAdvice(assignableTypes = [AiChatController::class, AiProfileController::class])
+@RestControllerAdvice(basePackages = ["io.qpointz.mill.ai.service"])
 @ConditionalOnAiEnabled
 class AiChatExceptionHandler {
 
