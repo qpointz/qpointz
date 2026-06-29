@@ -98,10 +98,38 @@ Active profile for value-mapping: **`mill.ai.chat.value-mapping.embedding`** (de
 | **`max-title-length`** | Auto-title truncation. |
 | **`value-mapping.embedding`** | Key into **`mill.ai.data.embedding`**. |
 | **`schema-search.embedding`** | Reserved; optional key into **`mill.ai.data.embedding`**. |
+| **`scenario-capture.enabled`** | Dev/tuning only (default `false`). When `true`, persist extended run events (`tool.call`, `tool.result`, …) and expose **`GET /api/v1/ai/chats/{chatId}/scenario-export`** for draft ScenarioPack YAML. |
 
 Agent profiles remain in the **profile registry**, not under `mill.ai.chat`.
 
-## Resolution flows
+## `mill.ai.profiles`
+
+YAML **`kind: AgentProfile`** documents loaded at startup (default: `classpath:profiles/platform-agent-profiles.yaml`).
+
+| Property | Description |
+|----------|-------------|
+| **`seed.resources`** | Spring `Resource` locations (classpath, file, cloud) for multi-document profile YAML |
+
+| Profile id | Typical use |
+|------------|-------------|
+| **`hello-world`** | Smoke / harness |
+| **`schema-exploration`** | Schema + metadata QUERY — no capture |
+| **`metadata-authoring`** | Catalog-generic facet capture only |
+| **`data-analysis`** | SQL + value-mapping + **metadata-authoring** (mixed documentary + query turns) |
+
+**Deprecated:** profile id **`schema-authoring`** — use **`metadata-authoring`** (facets) or **`data-analysis`** (SQL + facets). Normative tool matrix and authoring loop: [`metadata-facet-catalog-v3.md`](../agentic/metadata-facet-catalog-v3.md).
+
+```yaml
+mill:
+  ai:
+    chat:
+      default-profile: data-analysis
+    profiles:
+      seed:
+        resources:
+          - classpath:profiles/platform-agent-profiles.yaml
+          # - file:/etc/mill/profiles/custom-profiles.yaml
+```
 
 ### Chat model
 
@@ -186,6 +214,7 @@ mill:
 
 ## Related documents
 
+- [`../agentic/metadata-facet-catalog-v3.md`](../agentic/metadata-facet-catalog-v3.md) — catalog-generic facet authoring, YAML profiles
 - [`../metadata/value-mapping-indexing-facet-types.md`](../metadata/value-mapping-indexing-facet-types.md)
 - [`rag-value-mapping-integration.md`](rag-value-mapping-integration.md)
 - [`../platform/CONFIGURATION_INVENTORY.md`](../platform/CONFIGURATION_INVENTORY.md)

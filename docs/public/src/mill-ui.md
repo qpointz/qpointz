@@ -127,12 +127,12 @@ With the **real** AI v3 chat service and a profile that emits structured artefac
 
 #### Facet and schema-capture artefacts (general chat)
 
-When the active **agent profile** emits metadata facets (for example **`schema-authoring`** captures or **`metadata-authoring`** facet proposals), **general chat** (`/chat`) shows them in the **same condensed artefact shell** as SQL and query results:
+When the active **agent profile** emits metadata facets (for example **`metadata-authoring`** facet proposals or **`data-analysis`** mixed SQL + facet turns), **general chat** (`/chat`) shows them in the **same condensed artefact shell** as SQL and query results:
 
 - A bordered **`ChatArtifactCard`** with **Facet** and **JSON** tabs (tab label format **`Facet:<Type>`**, e.g. `Facet:Descriptive`).
-- The **Facet** tab uses the **same read-only field presentation** as the **Model** view for that facet type (loaded from the metadata facet-type API). A **Proposed** badge and target entity id appear in the panel header.
+- The **Facet** tab uses the **same read-only field presentation** as the **Model** view for that facet type (loaded from the metadata facet-type API). A status badge (**Active** / **Rejected**) and target entity id appear in the panel header.
 - The **JSON** tab shows the full structured wire payload (pretty-printed).
-- The action-bar column beside the tabs is **reserved** for future actions (promote to metadata, copy JSON); buttons are not wired yet.
+- **Accept** and **Reject** on pending facet proposals call **`POST /api/v1/ai/chats/{chatId}/artifacts/{artifactId}/accept|reject`** — Accept locks the proposal; Reject retracts chat-scope facet rows and removes the artefact from replay.
 
 **Unknown** structured parts still fall back to a generic JSON preview card.
 
@@ -142,8 +142,18 @@ Repository design: **[Chat artefact architecture](../../design/ai/chat-artefact-
 
 ### Agent profile
 
+Platform profiles (YAML-seeded — see **[Mill AI configuration](../reference/mill-ai-configuration.md)** § Agent profiles):
+
+| Profile | Behaviour in chat |
+|---------|-------------------|
+| **`schema-exploration`** | Schema + metadata read — no facet capture |
+| **`metadata-authoring`** | Facet proposals only (catalog-generic: descriptive, DQ, relation, …) |
+| **`data-analysis`** | SQL artefacts **and** facet proposals on mixed utterances |
+
 - **Create:** optional **`profileId`** on **`POST /api/v1/ai/chats`** when **`chatAgentPicker`** is enabled (otherwise server/default preference applies).
 - **Mid-chat switch (general chat only):** toolbar profile **`Select`** when the server advertises two or more profiles; persists via **`PATCH /api/v1/ai/chats/{chatId}`**. Prior transcript and artefacts are kept; only subsequent turns use the new profile.
+
+Design: [`metadata-facet-catalog-v3.md`](../../design/agentic/metadata-facet-catalog-v3.md), [`ai-v3-chat-metadata-scope.md`](../../design/agentic/ai-v3-chat-metadata-scope.md).
 
 ### Chat service (mock vs real)
 

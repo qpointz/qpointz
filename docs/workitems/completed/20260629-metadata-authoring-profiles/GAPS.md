@@ -447,7 +447,7 @@ The three keys are **not interchangeable aliases**. Choice is constrained by **(
 
 **Also in profiles (unchanged):** `conversation`; `sql-query`, `sql-dialect`, `value-mapping` for SQL profiles.
 
-**Repo today:** [`schema-authoring.yaml`](../../../../ai/mill-ai/src/main/resources/capabilities/schema-authoring.yaml) has prompts + `capture_*` + `request_clarification`; profile **`schema-authoring`** loads that capability plus SQL stack ([`SchemaAuthoringAgentProfile`](../../../../ai/mill-ai/src/main/kotlin/io/qpointz/mill/ai/profile/SchemaAuthoringAgentProfile.kt)).
+**Repo today:** legacy **`schema-authoring`** capability and profile are **removed** (WI-361). Facet capture lives in **`metadata-authoring`**; mixed SQL + facets use profile **`data-analysis`** with per-capability intents composed by **`data-analysis.intent`** (WI-363).
 
 **WI-350:** delete capability manifest + provider. **WI-347:** migrate prompts to `metadata-authoring.yaml`. **`request_clarification`** → **`conversation`** capability (**locked 2026-06-25**).
 
@@ -529,9 +529,9 @@ The three keys are **not interchangeable aliases**. Choice is constrained by **(
 
 **Rejected:** v1 “intent picks one primary path only” / force follow-up message.
 
-**Transitional intent (stages 3–4):** `metadata-authoring.intent` lists cross-capability routes (`DATA_QUERY`, `EXPLORE`) so `data-analysis` can decompose mixed turns without a profile-level router yet. MR !412 review (2026-06-26) — merge as-is; document in design.
+**Transitional intent (stages 3–4 — merged):** `metadata-authoring.intent` listed cross-capability routes (`DATA_QUERY`, `EXPLORE`) so `data-analysis` could decompose mixed turns without a profile-level router. MR !412 review (2026-06-26) — merged as-is; **superseded by WI-363.**
 
-**Target intent model (stage 5 — WI-363):** each capability declares **only** capability-scoped intents; profiles compose non-overlapping union (`sql-query.intent`, trimmed `metadata-authoring.intent`, profile `data-analysis` composition). Scenario packs updated after WI-362 baseline.
+**Target intent model (stage 5 — WI-363, current):** each capability declares **only** capability-scoped intents; profiles compose non-overlapping union (`sql-query.intent`, `schema.intent`, trimmed `metadata-authoring.intent`, profile `data-analysis.intent` composition). Scenario packs assert profile-level mixed-turn routing.
 
 **Owner:** design → **WI-345**; heterogeneous agent + persist/SSE → **WI-351** (phase B) + **WI-347** intent (transitional); intent refactor → **WI-363**; UI → **WI-351** / mill-ui; e2e → **WI-349** / **WI-362**.
 

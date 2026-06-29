@@ -1,6 +1,6 @@
 # WI-363 — Capability prompt declaration and per-capability intent model
 
-Status: `planned`  
+Status: `done`  
 Type: `✨ feature`, `📝 docs`  
 Area: `ai`  
 Depends on: [WI-362](WI-349-metadata-authoring-tests-docs.md) (stage 4 e2e baseline)  
@@ -66,15 +66,15 @@ tool names optional — prefer role-based steps where reliability holds.
 
 ## Acceptance Criteria
 
-- [ ] Design doc states **transitional** (stage 3–4) vs **target** (stage 5) intent ownership
-- [ ] `metadata-authoring.intent` contains **no** `DATA_QUERY` or `EXPLORE` labels
-- [ ] `sql-query.intent` exists and owns SQL/data-retrieval classification
-- [ ] `data-analysis` profile composes non-overlapping intents across loaded capabilities
-- [ ] Mixed-turn scenario pack passes with profile-level routing
-- [ ] `metadata-authoring.reasoning` policy documented (procedure vs tool names)
-- [ ] Glossary disambiguates `contextType`, metadata scope URN, facet category slug
-- [ ] `:ai:mill-ai:test --tests "*Profile*"` and `:ai:mill-ai:test --tests "*Metadata*"` green
-- [ ] `:ai:mill-ai-test:test --tests "*facet*"` intent scenarios updated and green
+- [x] Design doc states **transitional** (stage 3–4) vs **target** (stage 5) intent ownership
+- [x] `metadata-authoring.intent` contains **no** `DATA_QUERY` or `EXPLORE` labels
+- [x] `sql-query.intent` exists and owns SQL/data-retrieval classification
+- [x] `data-analysis` profile composes non-overlapping intents across loaded capabilities
+- [x] Mixed-turn scenario pack passes with profile-level routing
+- [x] `metadata-authoring.reasoning` policy documented (procedure vs tool names)
+- [x] Glossary disambiguates `contextType`, metadata scope URN, facet category slug
+- [x] `:ai:mill-ai:test --tests "*Profile*"` and `:ai:mill-ai:test --tests "*Metadata*"` green
+- [x] `:ai:mill-ai-test:test --tests "*facet*"` intent scenarios updated and green
 
 ## Suggested commit
 

@@ -212,7 +212,7 @@ tools:
 | `mcp.enabled` | `true` | When `false`, entire capability hidden from MCP (all tools, prompts, protocols). When `true`, **all** manifest tools are exposed including `kind: capture` (see §15). |
 
 **Guidance (deployment, not repo default yet):** consider `mcp.enabled: false` on authoring
-capabilities for public MCP. **Do not** change `schema-authoring` / `metadata-authoring` manifests
+capabilities for public MCP. **`schema-authoring`** capability removed (**WI-361**); facet capture is **`metadata-authoring.propose_facet_assignment`** only.
 until explicitly decided — keep `mcp.enabled` default `true` in repo for now.
 
 **Reserved** (document only; not implemented in POC):
@@ -450,12 +450,15 @@ exposure is controlled by capability `mcp.enabled` and server allowlist (§5.1).
 | `schema` | `list_tables` | QUERY | |
 | `schema` | `list_columns` | QUERY | |
 | `schema` | `list_relations` | QUERY | |
-| `schema-authoring` | `request_clarification` | QUERY | |
-| `schema-authoring` | `capture_description` | **CAPTURE** | Consider `mcp.enabled: false` for public MCP |
-| `schema-authoring` | `capture_relation` | **CAPTURE** | |
-| `metadata` | `list_facet_types` | QUERY | |
+| `schema` | `resolve_metadata_entity` | QUERY | Catalog path → metadata entity URN |
+| `metadata` | `list_facet_categories` | QUERY | Joined category guidance ([`MetadataContent`](../metadata/metadata-content.md)) |
+| `metadata` | `list_facet_types` | QUERY | Summary rows — no `contentSchema` |
+| `metadata` | `get_facet_type` | QUERY | Full manifest + `examples[]` |
+| `metadata` | `list_content` | QUERY | |
+| `metadata` | `get_content` | QUERY | |
+| `metadata` | `list_metadata_scopes` | QUERY | Chat/global scopes with `access` |
 | `metadata` | `list_entity_facets` | QUERY | |
-| `metadata` | `validate_facet_payload` | QUERY | |
+| `metadata` | `validate_facet_payload` | QUERY | Dry-run before capture |
 | `metadata-authoring` | `propose_facet_assignment` | **CAPTURE** | Consider `mcp.enabled: false` for public MCP |
 | `sql-dialect` | `get_sql_dialect_conventions` | QUERY | |
 | `sql-dialect` | `get_sql_paging_rules` | QUERY | |
@@ -466,6 +469,6 @@ exposure is controlled by capability `mcp.enabled` and server allowlist (§5.1).
 | `value-mapping` | `get_value_mapping_attributes` | QUERY | |
 | `value-mapping` | `get_value_mapping` | QUERY | |
 
-**Totals:** 9 capabilities, **23 tools** — **20 QUERY**, **3 CAPTURE**.
+**Totals:** **8** capabilities, **25 tools** — **24 QUERY**, **1 CAPTURE** (`metadata-authoring.propose_facet_assignment`). Legacy **`schema-authoring`** capability removed (**WI-361**).
 
-Maintain this table when adding capabilities (WI-327 acceptance: catalog tool counts match inventory when all nine manifests are loaded and exposure filters are unset).
+Maintain this table when adding capabilities (WI-327 acceptance: catalog tool counts match inventory when all manifests are loaded and exposure filters are unset). Story: [`metadata-authoring-profiles`](../../workitems/completed/20260629-metadata-authoring-profiles/STORY.md) (**WI-362** integration pass).

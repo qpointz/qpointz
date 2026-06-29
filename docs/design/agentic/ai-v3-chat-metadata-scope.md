@@ -4,6 +4,8 @@ This document is the **normative design** for how **candidate metadata** produce
 
 **Transport and structured SSE parts** (how proposals may appear on the wire) are described in [`ai-v3-chat-transport-extensions.md`](./ai-v3-chat-transport-extensions.md). This file owns **scope**, **prelude**, **merge precedence**, and **lifecycle** vocabulary.
 
+**Story:** [`metadata-authoring-profiles`](../../workitems/completed/20260629-metadata-authoring-profiles/STORY.md) (**WI-360** lifecycle, **WI-354**–**WI-364**).
+
 ## Facet proposal artefact (conversation-sourced)
 
 A **facet proposal** is a structured outcome of an assistant or tool turn that suggests **metadata assignments** (entity ref, **`facetType`**, provisional JSON payload, provenance). Sketch fields (non-normative wire until implemented):

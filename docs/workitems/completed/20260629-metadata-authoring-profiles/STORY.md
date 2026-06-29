@@ -1,8 +1,10 @@
 # Metadata authoring capability and agent profiles
 
-**Status:** `in-progress`  
-**Milestone:** **0.8.0** (or next open milestone at implementation time)  
-**Delivery:** **staged** — one branch + MR per stage (see § Staged delivery); not a single long-lived integration branch. **Handover:** [`PLAN.md`](PLAN.md) + [`COLDSTART.md`](COLDSTART.md).
+**Status:** `closed` (**2026-06-29**)  
+**Milestone:** **0.8.0**  
+**Delivery:** **staged** — five stages, one branch + MR per stage (see § Staged delivery). **Handover:** [`PLAN.md`](PLAN.md) + [`COLDSTART.md`](COLDSTART.md).  
+**Story folder:** [`docs/workitems/completed/20260629-metadata-authoring-profiles/`](.) — archived **2026-06-29**.  
+**Backlog:** **A-98** (`done`)
 
 ## Goal
 
@@ -184,7 +186,6 @@ On top of [`RULES.md`](../../RULES.md) **Per-WI cadence** and **Complete working
 - Cross-chat / global promotion UI (**M-23** admin) — chat-scope assign + Accept/Reject only in this story
 - **M-32** admin UI
 - Unified Mill seed runner (all `kind` types)
-- `BACKLOG.md` promotion until requested
 
 ## Work item order
 
@@ -213,7 +214,7 @@ On top of [`RULES.md`](../../RULES.md) **Per-WI cadence** and **Complete working
 - [x] WI-360 — Facet lifecycle + events (`WI-360-facet-artifact-lifecycle-events.md`) — *was WI-353*
 - [x] WI-361 — Remove `capture_*` (`WI-361-schema-authoring-description-tool-cleanup.md`) — *was WI-350*
 - [x] WI-362 — Tests, scenarios, docs (`WI-349-metadata-authoring-tests-docs.md`) — *was WI-349*
-- [ ] WI-363 — Capability prompt declaration (`WI-363-capability-prompt-declaration.md`) — *stage 5; MR !412 review*
+- [x] WI-363 — Capability prompt declaration (`WI-363-capability-prompt-declaration.md`) — *stage 5; separate MR*
 - [x] WI-364 — Mantine 9 migration (`WI-364-mantine-v9-migration.md`) — *stage 5; separate MR*
 
 ## Verify (full story — before story archive)
@@ -305,3 +306,7 @@ ground (schema) → metadataEntityId
 | [`ai-v3-chat-metadata-scope.md`](../../../design/agentic/ai-v3-chat-metadata-scope.md) | WI-360 | Scope + Accept/Reject lifecycle |
 | [`artifact-foundation.md`](../../../design/agentic/artifact-foundation.md) | WI-355 | Batch `ProtocolFinal` |
 | [`general-event-bus.md`](../../../design/platform/general-event-bus.md) | WI-360 | Event type catalog note; in-process transport |
+
+## Branch (stage 5 closure)
+
+**WI-363** delivered on **`feat/meta-capability-prompts`** (MR !415). **WI-364** on **`feat/mill-ui-mantine-9`** (merged). Stages **1–4** landed via dedicated stage branches per § Staged delivery.

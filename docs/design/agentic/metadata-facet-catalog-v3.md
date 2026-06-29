@@ -3,7 +3,7 @@
 Normative design for **metadata** QUERY tools, **`metadata-authoring`** CAPTURE, YAML agent profiles,
 and **`MetadataContent`** wiring. Supersedes the legacy **`schema-authoring`** profile split in earlier drafts.
 
-**Story:** [`metadata-authoring-profiles`](../../../workitems/planned/metadata-authoring-profiles/STORY.md) (stage 1: WI-354, WI-356, WI-358).
+**Story:** [`metadata-authoring-profiles`](../../../workitems/completed/20260629-metadata-authoring-profiles/STORY.md) (**WI-354**–**WI-364**, closed **2026-06-29**).
 
 **See also:** [`metadata-content.md`](../metadata/metadata-content.md), [`ai-v3-chat-metadata-scope.md`](ai-v3-chat-metadata-scope.md), [`dq-rule-facet-types.md`](../metadata/dq-rule-facet-types.md).
 
@@ -35,6 +35,8 @@ and **`MetadataContent`** wiring. Supersedes the legacy **`schema-authoring`** p
 ## Agent profiles (YAML)
 
 Profiles are **`kind: AgentProfile`** multi-document YAML, loaded via **`mill.ai.profiles.seed.resources`** (default: `classpath:profiles/platform-agent-profiles.yaml`).
+
+Optional **`prompts:`** on a profile declare profile-scoped assets (e.g. **`data-analysis.intent`** for composed multi-capability routing). Profile prompts are assembled **before** capability prompts in the LLM system message.
 
 | Profile id | Capabilities | Notes |
 | ---------- | ------------ | ----- |
@@ -79,15 +81,18 @@ When **`metadata-authoring`** is on the profile, documentary utterances must run
 
 | Prompt | Role |
 | ------ | ---- |
-| `metadata-authoring.intent` | `AUTHOR_FACET` vs explore vs `QUERY_DATA` |
-| `metadata-authoring.reasoning` | Category → ground → type → validate → capture |
+| `metadata-authoring.intent` | `AUTHOR_FACET` vs `CHAT` (capability-local) |
+| `metadata-authoring.reasoning` | Procedure: ground → categories → type → validate → capture (tool names optional) |
+| `sql-query.intent` | `DATA_QUERY` / `QUERY_DATA` vs `CHAT` (capability-local) |
+| `schema.intent` | `EXPLORE` vs `CHAT` (capability-local) |
+| `data-analysis.intent` | Profile composes non-overlapping capability intents for mixed turns |
 | `metadata.faceting.system` | Grounding + capture gate |
 | `metadata.faceting.request` | Structured fields before capture |
 | `metadata-authoring.batch` | Multi-tuple decomposition (WI-359) |
 
-**Cross-capability (stages 3–4 — transitional):** on `data-analysis`, `metadata-authoring.intent` classifies mixed turns (`AUTHOR_FACET`, `DATA_QUERY`, `EXPLORE`, `CHAT`) in one prompt. Documented in STORY § Architectural decisions; **not** the long-term model.
+**Cross-capability (stages 3–4 — transitional, merged):** on `data-analysis`, `metadata-authoring.intent` previously classified mixed turns (`AUTHOR_FACET`, `DATA_QUERY`, `EXPLORE`, `CHAT`) in one prompt. Documented in STORY § Architectural decisions; **superseded by stage 5 (WI-363).**
 
-**Target (stage 5 — WI-363):** each capability owns capability-scoped intents only; profiles compose a non-overlapping union. `sql-query.intent` owns data retrieval; `metadata-authoring.intent` owns facet authoring only.
+**Target (stage 5 — WI-363, current):** each capability owns capability-scoped intents only; profiles compose a non-overlapping union. `sql-query.intent` owns data retrieval; `schema.intent` owns schema discovery; `metadata-authoring.intent` owns facet authoring only; `data-analysis.intent` decomposes mixed SQL + facet turns at profile level.
 
 ## Multi-facet batch
 

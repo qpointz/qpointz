@@ -3,7 +3,7 @@
 Normative design for **`MetadataContent`** rows: few-shot facet examples and facet-category guidance
 that stay **out of** [`FacetTypeDefinition`](../../../metadata/mill-metadata-core/src/main/kotlin/io/qpointz/mill/metadata/domain/FacetTypeDefinition.kt).
 
-**Related:** [`metadata-facet-catalog-v3.md`](../agentic/metadata-facet-catalog-v3.md) (tool matrix, authoring loop), [`metadata-urn-platform.md`](metadata-urn-platform.md).
+**Related:** [`metadata-facet-catalog-v3.md`](../agentic/metadata-facet-catalog-v3.md) (tool matrix, authoring loop), [`metadata-urn-platform.md`](metadata-urn-platform.md). **Story:** [`metadata-authoring-profiles`](../../workitems/completed/20260629-metadata-authoring-profiles/STORY.md) (**WI-356**).
 
 ## Purpose
 
