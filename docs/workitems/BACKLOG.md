@@ -89,6 +89,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | A-96 | stdio MCP bridge (`mill-ai-mcp-transport-stdio`) proxying local stdio → remote HTTP MCP | ✨ feature | backlog | descoped from **A-56** — [`backlog/WI-328-mill-ai-mcp-transport-stdio.md`](backlog/WI-328-mill-ai-mcp-transport-stdio.md); design: [`v3-mcp-capability-exposure.md`](design/agentic/v3-mcp-capability-exposure.md) §9 |
 | A-97 | Scenario capture mode + DB export to ScenarioPack YAML (`mill.ai.chat.scenario-capture.enabled`; REST export; extends WI-300 harness) | ✨ feature | done | [`completed/20260629-scenario-capture-export/WI-365-scenario-capture-db-export.md`](completed/20260629-scenario-capture-export/WI-365-scenario-capture-db-export.md) — **WI-365**; [`MILESTONE.md`](MILESTONE.md) |
 | A-98 | Catalog-generic metadata authoring: `MetadataContent`, YAML profiles, `MetadataReadPort`, facet tools, multi-artifact batch, facet lifecycle Accept/Reject, per-capability intents (**WI-354**–**WI-364**) | ✨ feature | done | [`completed/20260629-metadata-authoring-profiles/STORY.md`](completed/20260629-metadata-authoring-profiles/STORY.md) — see **MILESTONE** 0.8.0 |
+| A-99 | AI concepts in general chat: model-level concept facets, read capability, `data-analysis` SQL grounding, v1 enrich-model capture parity, and configurable agent iteration limit (**WI-366**, **WI-367**, **WI-369**, **WI-370**, **WI-372**) | ✨ feature | planned | [`planned/ai-concepts/STORY.md`](planned/ai-concepts/STORY.md) |
 
 ---
 
