@@ -25,8 +25,12 @@ describe('mergeArtifactIdsFromServer', () => {
       },
     ];
     const merged = mergeArtifactIdsFromServer(streamed, server);
-    expect(merged[0]?.artifactId).toBe('art-concept-1');
-    expect(merged[0]?.status).toBe('active');
+    const first = merged[0];
+    expect(first?.kind).toBe('facet-proposal');
+    if (first?.kind === 'facet-proposal') {
+      expect(first.artifactId).toBe('art-concept-1');
+      expect(first.status).toBe('active');
+    }
   });
 
   it('should attach artifactId to streamed descriptive facet by entity match', () => {
@@ -49,6 +53,11 @@ describe('mergeArtifactIdsFromServer', () => {
         artifactId: 'art-desc-1',
       },
     ];
-    expect(mergeArtifactIdsFromServer(streamed, server)[0]?.artifactId).toBe('art-desc-1');
+    const merged = mergeArtifactIdsFromServer(streamed, server);
+    const first = merged[0];
+    expect(first?.kind).toBe('facet-proposal');
+    if (first?.kind === 'facet-proposal') {
+      expect(first.artifactId).toBe('art-desc-1');
+    }
   });
 });

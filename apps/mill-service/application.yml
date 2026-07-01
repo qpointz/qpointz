@@ -127,7 +127,7 @@ mill:
       chat:
         default:
           provider: openai
-          model-name: ${OPENAI_MODEL:gpt-4o-mini}
+          model-name: ${OPENAI_MODEL:gpt-5.4}
       embedding:
         default:
           provider: openai

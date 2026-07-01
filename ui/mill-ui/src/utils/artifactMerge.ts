@@ -18,6 +18,17 @@ function facetIdentity(
   return `${normalizeFacetTypeKey(artifact.facetTypeKey)}|${artifact.metadataEntityId.trim()}|${catalogPath}`;
 }
 
+function hasPersistedArtifactId(
+  artifact: ChatMessageArtifact,
+): artifact is Extract<ChatMessageArtifact, { kind: 'sql' | 'data' | 'facet-proposal' }> & {
+  artifactId: string;
+} {
+  return (
+    (artifact.kind === 'sql' || artifact.kind === 'data' || artifact.kind === 'facet-proposal') &&
+    Boolean(artifact.artifactId)
+  );
+}
+
 /**
  * Copies durable `artifactId` and `status` from server replay onto streamed artefacts
  * matched by shape (facet type + entity, or SQL text).
@@ -34,7 +45,7 @@ export function mergeArtifactIdsFromServer(
   const usedFacet = new Set<number>();
 
   return streamed.map((artifact) => {
-    if (artifact.artifactId) return artifact;
+    if (hasPersistedArtifactId(artifact)) return artifact;
 
     if (artifact.kind === 'facet-proposal') {
       const key = facetIdentity(artifact);
