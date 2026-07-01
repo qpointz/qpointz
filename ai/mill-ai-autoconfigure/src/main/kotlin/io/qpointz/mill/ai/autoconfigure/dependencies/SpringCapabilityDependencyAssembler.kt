@@ -1,5 +1,6 @@
 ﻿package io.qpointz.mill.ai.autoconfigure.dependencies
 
+import io.qpointz.mill.ai.capabilities.concept.ConceptCatalogPort
 import io.qpointz.mill.ai.capabilities.metadata.MetadataReadPort
 import io.qpointz.mill.ai.capabilities.schema.SchemaCatalogPort
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityDependency
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.ObjectProvider
 class SpringCapabilityDependencyAssembler(
     private val schemaCatalog: ObjectProvider<SchemaCatalogPort>,
     private val metadataReadPort: ObjectProvider<MetadataReadPort>,
+    private val conceptCatalog: ObjectProvider<ConceptCatalogPort>,
     private val dialectSpec: ObjectProvider<SqlDialectSpec>,
     private val sqlValidator: ObjectProvider<SqlValidator>,
     private val sqlValidationService: ObjectProvider<SqlQueryToolHandlers.SqlValidationService>,
@@ -34,6 +36,7 @@ class SpringCapabilityDependencyAssembler(
             profile = profile,
             schemaCatalog = schemaCatalog.getIfAvailable(),
             metadataReadPort = metadataReadPort.getIfAvailable(),
+            conceptCatalog = conceptCatalog.getIfAvailable(),
             dialectSpec = dialectSpec.getIfAvailable(),
             sqlQueryDependency = sqlQueryDependency,
             valueMappingResolver = valueMappingResolver.getIfAvailable(),

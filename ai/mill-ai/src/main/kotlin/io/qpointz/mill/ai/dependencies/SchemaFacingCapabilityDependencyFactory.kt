@@ -1,5 +1,7 @@
 ﻿package io.qpointz.mill.ai.dependencies
 
+import io.qpointz.mill.ai.capabilities.concept.ConceptCapabilityDependency
+import io.qpointz.mill.ai.capabilities.concept.ConceptCatalogPort
 import io.qpointz.mill.ai.capabilities.metadata.MetadataCapabilityDependency
 import io.qpointz.mill.ai.capabilities.metadata.MetadataReadPort
 import io.qpointz.mill.ai.capabilities.schema.SchemaCapabilityDependency
@@ -31,10 +33,13 @@ object SchemaFacingCapabilityDependencyFactory {
 
     const val VALUE_MAPPING = "value-mapping"
 
+    const val CONCEPT = "concept"
+
     fun build(
         profile: AgentProfile,
         schemaCatalog: SchemaCatalogPort?,
         metadataReadPort: MetadataReadPort?,
+        conceptCatalog: ConceptCatalogPort? = null,
         dialectSpec: SqlDialectSpec?,
         sqlQueryDependency: SqlQueryCapabilityDependency?,
         valueMappingResolver: ValueMappingResolver?,
@@ -60,6 +65,9 @@ object SchemaFacingCapabilityDependencyFactory {
         }
         if (VALUE_MAPPING in ids && valueMappingResolver != null) {
             entries += VALUE_MAPPING to CapabilityDependencies.of(ValueMappingCapabilityDependency(valueMappingResolver))
+        }
+        if (CONCEPT in ids && conceptCatalog != null) {
+            entries += CONCEPT to CapabilityDependencies.of(ConceptCapabilityDependency(conceptCatalog))
         }
         return CapabilityDependencyContainer.of(*entries.toTypedArray())
     }

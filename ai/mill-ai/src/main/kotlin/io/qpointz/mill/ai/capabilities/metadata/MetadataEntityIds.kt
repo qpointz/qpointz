@@ -9,6 +9,9 @@ import io.qpointz.mill.metadata.domain.MetadataEntityUrn
  */
 object MetadataEntityIds {
 
+  /** Catalog alias for the logical model root entity. */
+  const val MODEL_ROOT_CATALOG_PATH = "model-entity"
+
   /**
    * Resolved metadata target entity for facet tools.
    *
@@ -33,7 +36,33 @@ object MetadataEntityIds {
    * @return resolved catalog path and canonical entity URN
    */
   fun resolveEntity(raw: String): ResolvedEntity {
-    val catalogPath = toCatalogPath(raw)
+    val trimmed = raw.trim()
+    require(trimmed.isNotEmpty()) { "Invalid metadata entity id: $raw" }
+    if (MetadataEntityUrn.isMillUrn(trimmed)) {
+      val canonical = MetadataEntityUrn.canonicalize(trimmed)
+      require(ModelEntityUrn.isModelEntityUrn(canonical)) {
+        "URN is not a model entity URN: $canonical"
+      }
+      if (ModelEntityUrn.isModelRootUrn(canonical)) {
+        return ResolvedEntity(MODEL_ROOT_CATALOG_PATH, ModelEntityUrn.MODEL_ENTITY_ID, ModelEntityUrn.KIND_MODEL)
+      }
+      if (ModelEntityUrn.isConceptUrn(canonical)) {
+        throw IllegalArgumentException(
+          "Concept refs must use ConceptRefs, not MetadataEntityIds: $canonical",
+        )
+      }
+      val path = ModelEntityUrn.parseCatalogPath(canonical)
+      val catalogPath = path.qualifiedName()
+        ?: throw IllegalArgumentException("Cannot decode catalog path from URN: $canonical")
+      val metadataEntityUrn = urnForCatalogPath(catalogPath)
+      val entityKind = ModelEntityUrn.kindOf(metadataEntityUrn)
+        ?: throw IllegalArgumentException("Cannot resolve entity kind for catalogPath=$catalogPath")
+      return ResolvedEntity(catalogPath, metadataEntityUrn, entityKind)
+    }
+    if (trimmed.equals(MODEL_ROOT_CATALOG_PATH, ignoreCase = true)) {
+      return ResolvedEntity(MODEL_ROOT_CATALOG_PATH, ModelEntityUrn.MODEL_ENTITY_ID, ModelEntityUrn.KIND_MODEL)
+    }
+    val catalogPath = toCatalogPath(trimmed)
     val metadataEntityUrn = urnForCatalogPath(catalogPath)
     val entityKind = ModelEntityUrn.kindOf(metadataEntityUrn)
       ?: throw IllegalArgumentException("Cannot resolve entity kind for catalogPath=$catalogPath")
@@ -47,10 +76,19 @@ object MetadataEntityIds {
   fun toCatalogPath(raw: String): String {
     val trimmed = raw.trim()
     require(trimmed.isNotEmpty()) { "Invalid metadata entity id: $raw" }
+    if (trimmed.equals(MODEL_ROOT_CATALOG_PATH, ignoreCase = true)) {
+      return MODEL_ROOT_CATALOG_PATH
+    }
     if (MetadataEntityUrn.isMillUrn(trimmed)) {
       val canonical = MetadataEntityUrn.canonicalize(trimmed)
       require(ModelEntityUrn.isModelEntityUrn(canonical)) {
         "URN is not a model entity URN: $canonical"
+      }
+      if (ModelEntityUrn.isModelRootUrn(canonical)) {
+        return MODEL_ROOT_CATALOG_PATH
+      }
+      if (ModelEntityUrn.isConceptUrn(canonical)) {
+        throw IllegalArgumentException("Concept refs must use ConceptRefs, not MetadataEntityIds: $canonical")
       }
       val path = ModelEntityUrn.parseCatalogPath(canonical)
       return path.qualifiedName()
@@ -63,6 +101,9 @@ object MetadataEntityIds {
   }
 
   private fun urnForCatalogPath(catalogPath: String): String {
+    if (catalogPath == MODEL_ROOT_CATALOG_PATH) {
+      return ModelEntityUrn.MODEL_ENTITY_ID
+    }
     val parts = catalogPath.split('.')
     return when (parts.size) {
       1 -> ModelEntityUrn.forSchema(parts[0])

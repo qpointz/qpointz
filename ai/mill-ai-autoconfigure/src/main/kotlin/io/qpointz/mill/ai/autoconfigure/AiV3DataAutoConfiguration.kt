@@ -4,8 +4,11 @@ import io.qpointz.mill.ai.autoconfigure.ConditionalOnAiEnabled
 import io.qpointz.mill.ai.capabilities.schema.EmptySchemaCatalogPort
 import io.qpointz.mill.ai.capabilities.schema.SchemaCatalogPort
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlValidator
+import io.qpointz.mill.ai.capabilities.concept.ConceptCatalogPort
+import io.qpointz.mill.ai.capabilities.concept.EmptyConceptCatalogPort
 import io.qpointz.mill.ai.capabilities.metadata.EmptyMetadataReadPort
 import io.qpointz.mill.ai.capabilities.metadata.MetadataReadPort
+import io.qpointz.mill.ai.data.concept.asConceptCatalogPort
 import io.qpointz.mill.ai.data.metadata.metadataReadPort
 import io.qpointz.mill.ai.data.schema.asSchemaCatalogPort
 import io.qpointz.mill.metadata.repository.MetadataContentRepository
@@ -124,6 +127,26 @@ class AiV3DataAutoConfiguration {
                 content != null,
             )
             EmptyMetadataReadPort()
+        }
+    }
+
+    /**
+     * Concept catalog port for `concept` capability tools when [MetadataReadPort] is available.
+     *
+     * @param metadataReadPort merged facet reads
+     * @return production [ConceptCatalogPort] or [EmptyConceptCatalogPort] when metadata is absent
+     */
+    @Bean
+    @ConditionalOnMissingBean(ConceptCatalogPort::class)
+    fun conceptCatalogPort(metadataReadPort: ObjectProvider<MetadataReadPort>): ConceptCatalogPort {
+        val port = metadataReadPort.ifAvailable
+        return if (port != null && port !is EmptyMetadataReadPort) {
+            port.asConceptCatalogPort()
+        } else {
+            log.warn(
+                "AI v3: no MetadataReadPort-backed ConceptCatalogPort; using empty concept catalog.",
+            )
+            EmptyConceptCatalogPort
         }
     }
 }

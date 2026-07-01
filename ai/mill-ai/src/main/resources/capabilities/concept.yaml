@@ -1,0 +1,185 @@
+name: concept
+description: Business concept catalog reads for model-level domain knowledge
+
+prompts:
+  concept.intent:
+    description: Classify user intent for business concept lookup and definition signals (capability-local).
+    content: |
+      Classify the user message for business concepts:
+      - CONCEPT_LOOKUP — explain, list, search, or resolve a business concept definition
+      - CONCEPT_DEFINE — user defines or refines a business/domain concept (not generic table/column metadata)
+      - CHAT — general conversation unrelated to business concepts
+      Do not classify SQL/data retrieval, schema-only discovery, or generic facet authoring here.
+
+  concept.system:
+    description: Guidance for when to use concept discovery as semantic hints.
+    content: |
+      Use concept discovery when the user speaks in business/domain language before schema or SQL work.
+      Concepts carry definitions, tags, and indicative SQL hints stored on the logical model root.
+
+      Discovery order (use this capability's read affordances):
+      1. List or filter by tags when the user mentions a tag or category-like narrowing.
+      2. Browse known concepts when scope is broad.
+      3. Search lexically over name, description, and tags when keywords are known.
+      4. Load all model-level concepts when domain language appears but no specific ref is known.
+      5. Fetch one concept by canonical ref when the slug or URN is already known.
+
+      Concept SQL is an indicative metadata hint only — validate and generate executable SQL through the profile's query path.
+      Do not duplicate schema discovery, SQL validation, facet catalog browsing, or facet capture owned elsewhere.
+
+  concept.capture:
+    description: Concept-specific facet capture guidance (uses metadata-authoring lifecycle).
+    content: |
+      When the user defines or refines a business concept:
+      1. Inspect the active logical model first — discover schemas, tables, columns, and related metadata already in scope before drafting the concept. Ground every field in what you find; do not invent tables or columns.
+      2. If the concept cannot be expressed in terms of existing model objects (no plausible tables, columns, or joins to anchor indicative SQL), **do not emit a facet proposal**. Ask the user for clarification: which entities or business rules should ground the concept, or whether it should wait until the model is extended.
+      3. When grounding is clear, normalize the concept name and assign `conceptRef` as `urn:mill/model/concept:<kebab-slug>`.
+      4. Rewrite the description into concise metadata-quality prose.
+      5. Propose indicative tags and **indicative SQL** that references real qualified objects from the discovered model (SELECT-shaped hint illustrating how the concept maps to data).
+      6. Build one `concept` facet payload with exactly one `concepts[0]` entry (including grounded `sql`) and the assigned `conceptRef`.
+      7. Emit the proposal through the **standard facet-assignment capture path** on the model root (`metadataEntityId` = `urn:mill/model/model:model-entity` or catalog alias `model-entity`) with `facetTypeKey=concept` so the user can accept or reject it in chat — same lifecycle as descriptive and data-quality facets. Do not substitute prose-only JSON or inline narrative for reviewable facet cards.
+      8. When multiple concepts are inferred in one turn, emit parallel facet-assignment captures — one per grounded concept only; clarify any that lack grounding before capture.
+      9. Set `source=NL2SQL` and `sourceSession` to the chat id on captured concepts.
+      Do not add typed capture-only tools or duplicate generic metadata-authoring intent ownership.
+
+tools:
+  list_concept_tags:
+    description: |
+      Return distinct tags from model-level concept facets in the active read scope, with counts.
+      Use before `list_concepts(tag=...)` when the user mentions a tag or category-like narrowing.
+    output:
+      type: array
+      items:
+        type: object
+        properties:
+          tag:
+            type: string
+          count:
+            type: integer
+
+  list_concepts:
+    description: |
+      Browse business concepts assigned to the logical model root in the active read scope.
+      Optional `tag` filters by exact tag match (case-insensitive).
+    input:
+      type: object
+      properties:
+        tag:
+          type: string
+          description: Optional exact tag filter.
+    output:
+      type: array
+      items:
+        type: object
+        properties:
+          conceptRef:
+            type: string
+          slug:
+            type: string
+          name:
+            type: string
+          description:
+            type: string
+          tags:
+            type: array
+            items:
+              type: string
+
+  get_concept:
+    description: |
+      Return the full concept definition for a canonical concept ref.
+      Pass the full URN `urn:mill/model/concept:<slug>` only.
+    input:
+      type: object
+      required:
+        - conceptRef
+      properties:
+        conceptRef:
+          type: string
+          description: Full concept URN.
+    output:
+      type: object
+      properties:
+        conceptRef:
+          type: string
+        slug:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        sql:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        source:
+          type: string
+        sourceSession:
+          type: string
+        facetUid:
+          type: string
+        error:
+          type: string
+
+  search_concepts:
+    description: |
+      Lexical keyword search over concept name, description, and tags in the active read scope.
+      Optional `tag` applies exact tag filtering before lexical matching.
+    input:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+        tag:
+          type: string
+    output:
+      type: array
+      items:
+        type: object
+        properties:
+          conceptRef:
+            type: string
+          slug:
+            type: string
+          name:
+            type: string
+          description:
+            type: string
+          tags:
+            type: array
+            items:
+              type: string
+
+  get_model_concepts:
+    description: |
+      Return all model-level concept facet assignments from the active metadata read scope.
+      Use when domain language appears but no specific concept ref is known yet.
+    output:
+      type: array
+      items:
+        type: object
+        properties:
+          conceptRef:
+            type: string
+          slug:
+            type: string
+          name:
+            type: string
+          description:
+            type: string
+          sql:
+            type: string
+          tags:
+            type: array
+            items:
+              type: string
+          source:
+            type: string
+          sourceSession:
+            type: string
+          facetUid:
+            type: string

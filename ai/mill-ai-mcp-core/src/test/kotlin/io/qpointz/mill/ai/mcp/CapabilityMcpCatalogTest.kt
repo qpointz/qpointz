@@ -43,6 +43,22 @@ class CapabilityMcpCatalogTest {
     }
 
     @Test
+    fun shouldApplyDataAnalysisProfileFilter_withConceptTools() {
+        val catalog = CapabilityMcpCatalog(
+            registry = CapabilityRegistry.load(),
+            profile = PlatformProfiles.require("data-analysis"),
+        )
+        assertThat(catalog.listToolNames()).contains(
+            "concept.list_concept_tags",
+            "concept.list_concepts",
+            "concept.get_concept",
+            "concept.search_concepts",
+            "concept.get_model_concepts",
+            "sql-query.validate_sql",
+        )
+    }
+
+    @Test
     fun shouldApplyHelloWorldProfileFilter() {
         val catalog = CapabilityMcpCatalog(
             registry = CapabilityRegistry.load(),

@@ -6,3 +6,4 @@ io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityProvider
 io.qpointz.mill.ai.capabilities.valuemapping.ValueMappingCapabilityProvider
 io.qpointz.mill.ai.capabilities.metadata.MetadataCapabilityProvider
 io.qpointz.mill.ai.capabilities.metadata.MetadataAuthoringCapabilityProvider
+io.qpointz.mill.ai.capabilities.concept.ConceptCapabilityProvider

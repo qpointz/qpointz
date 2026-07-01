@@ -29,6 +29,21 @@ class MetadataEntityIdsTest {
   }
 
   @Test
+  fun shouldResolveModelRootCatalogAlias() {
+    val resolved = MetadataEntityIds.resolveEntity("model-entity")
+    assertThat(resolved.catalogPath).isEqualTo("model-entity")
+    assertThat(resolved.metadataEntityUrn).isEqualTo("urn:mill/model/model:model-entity")
+    assertThat(resolved.entityKind).isEqualTo("model")
+  }
+
+  @Test
+  fun shouldRejectConceptUrn() {
+    assertThrows<IllegalArgumentException> {
+      MetadataEntityIds.resolveEntity("urn:mill/model/concept:vip-passengers")
+    }
+  }
+
+  @Test
   fun shouldRejectMalformedSlashUrn() {
     assertThrows<IllegalArgumentException> {
       MetadataEntityIds.resolveEntity("urn:mill/model/attribute:skymill/passenger/id")
