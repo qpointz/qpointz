@@ -14,8 +14,3 @@ enum class RelationType {
 enum class DataClassification {
     PUBLIC, INTERNAL, CONFIDENTIAL, RESTRICTED
 }
-
-/** Origin of concept definitions in concept facets. */
-enum class ConceptSource {
-    MANUAL, INFERRED, NL2SQL
-}

@@ -1,8 +1,10 @@
 # Model view multi-scope facet visibility
 
-**Branch:** TBD (suggest `feat/model-view-multi-scope`)  
-**Milestone:** **0.8.0** (planned)  
-**Related backlog:** **U-17**
+**Status:** `closed` (**2026-07-01**)  
+**Branch:** `feat/ai-concepts` (delivered with MR !416)  
+**Milestone:** **0.8.0**  
+**Story folder:** [`docs/workitems/completed/20260701-model-view-multi-scope/`](.) — archived **2026-07-01**.  
+**Related backlog:** **U-17** (`done`)
 
 Chat-captured metadata facets are stored under **chat scope**
 (`urn:mill/metadata/scope:chat-<chatId>`), but the Data Model explorer (`/model`) reads **global**
@@ -15,7 +17,7 @@ URL, a checkbox picker in the Schema Browser toolbar lets the user enable/disabl
 deep-links pass **global + chat scope**.
 
 **Depends on (behavioural, not blocking):** chat facet capture and accept/reject
-([`ai-concepts`](../../in-progress/ai-concepts/STORY.md) **WI-370**).
+([`ai-concepts`](../completed/20260701-ai-concepts/STORY.md) **WI-370**).
 
 **Design references:**
 

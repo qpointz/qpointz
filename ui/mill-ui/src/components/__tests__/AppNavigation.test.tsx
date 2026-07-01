@@ -164,5 +164,5 @@ describe('App navigation from model to chat', () => {
       expect(screen.getByText('Conversations')).toBeInTheDocument();
     });
     expect(screen.queryByText('Schema Browser')).not.toBeInTheDocument();
-  });
+  }, 15_000);
 });

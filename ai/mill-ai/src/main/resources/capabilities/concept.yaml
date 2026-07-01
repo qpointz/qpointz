@@ -39,7 +39,6 @@ prompts:
       6. Build one `concept` facet payload with exactly one `concepts[0]` entry (including grounded `sql`) and the assigned `conceptRef`.
       7. Emit the proposal through the **standard facet-assignment capture path** on the model root (`metadataEntityId` = `urn:mill/model/model:model-entity` or catalog alias `model-entity`) with `facetTypeKey=concept` so the user can accept or reject it in chat — same lifecycle as descriptive and data-quality facets. Do not substitute prose-only JSON or inline narrative for reviewable facet cards.
       8. When multiple concepts are inferred in one turn, emit parallel facet-assignment captures — one per grounded concept only; clarify any that lack grounding before capture.
-      9. Set `source=NL2SQL` and `sourceSession` to the chat id on captured concepts.
       Do not add typed capture-only tools or duplicate generic metadata-authoring intent ownership.
 
 tools:
@@ -114,10 +113,6 @@ tools:
           type: array
           items:
             type: string
-        source:
-          type: string
-        sourceSession:
-          type: string
         facetUid:
           type: string
         error:
@@ -177,9 +172,5 @@ tools:
             type: array
             items:
               type: string
-          source:
-            type: string
-          sourceSession:
-            type: string
           facetUid:
             type: string

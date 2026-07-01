@@ -17,7 +17,7 @@ objects. They are reviewable evidence and projections, not concept truth.
 
 - [`docs/design/platform/general-event-bus.md`](../../../design/platform/general-event-bus.md)
 - [`docs/design/agentic/metadata-facet-catalog-v3.md`](../../../design/agentic/metadata-facet-catalog-v3.md)
-- [`../ai-concepts/STORY.md`](../ai-concepts/STORY.md)
+- [`../completed/20260701-ai-concepts/STORY.md`](../completed/20260701-ai-concepts/STORY.md)
 
 ## Scope
 

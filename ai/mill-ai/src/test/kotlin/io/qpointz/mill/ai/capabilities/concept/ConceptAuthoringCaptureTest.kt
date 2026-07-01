@@ -128,8 +128,6 @@ class ConceptAuthoringCaptureTest {
                     "name" to "Loyal Customers",
                     "description" to "Customers with repeat purchases in the last year.",
                     "tags" to listOf("customer", "loyalty"),
-                    "source" to "NL2SQL",
-                    "sourceSession" to "chat-42",
                 ),
             ),
         )

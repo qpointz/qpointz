@@ -102,25 +102,6 @@ contentSchema:
                   description: "One tag value."
               required: false
               stereotype: tags
-            - name: source
-              schema:
-                type: ENUM
-                title: Source
-                description: "How the concept definition was authored."
-                values:
-                  - value: MANUAL
-                    description: "Authored manually."
-                  - value: INFERRED
-                    description: "Inferred by the system."
-                  - value: NL2SQL
-                    description: "Captured from natural-language chat enrichment."
-              required: false
-            - name: sourceSession
-              schema:
-                type: STRING
-                title: Source session
-                description: "Chat or session identifier when source is NL2SQL."
-              required: false
           required: []
       required: true
   required: []

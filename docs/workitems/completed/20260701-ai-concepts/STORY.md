@@ -1,8 +1,10 @@
 # AI concepts — metadata model, capability, injection, and authoring
 
-**Branch:** `feat/ai-concepts`  
-**Milestone:** **0.8.0** (planned)  
-**Related backlog:** **[A-99](../../BACKLOG.md)**
+**Status:** `closed` (**2026-07-01**)  
+**Branch:** `feat/ai-concepts` (MR !416)  
+**Milestone:** **0.8.0**  
+**Story folder:** [`docs/workitems/completed/20260701-ai-concepts/`](.) — archived **2026-07-01**.  
+**Related backlog:** **[A-99](../../BACKLOG.md)** (`done`)
 
 Bring **business concepts** (domain knowledge beyond physical schema metadata) into the **mill-ai v3**
 capability stack for **general chat** (`/chat`, `data-analysis` profile): platform `concept` facet

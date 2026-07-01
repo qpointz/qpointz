@@ -149,7 +149,10 @@ describe('schemaService', () => {
       const result = await schemaService.getEntityById('model-entity', 'global');
       expect(result?.entityType).toBe('MODEL');
       expect(result?.metadataEntityId).toBe(modelMetadataId);
-      expect(fetchMock).toHaveBeenCalledWith('/api/v1/schema/model?scope=global&facetMode=none', { credentials: 'include' });
+      expect(fetchMock).toHaveBeenCalledWith('/api/v1/schema/model?scope=global&facetMode=direct', {
+        credentials: 'include',
+        signal: undefined,
+      });
     });
 
     it('returns schema for one-part id', async () => {

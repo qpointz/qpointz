@@ -61,6 +61,19 @@ Facet blocks are driven by **facet type** definitions from the server (titles, s
 
 The same **descriptor-driven read-only field layout** (labels, stereotypes such as hyperlinks and tags, structural read view) is shared with **general chat** when an agent proposes or captures metadata facets — see [Chat view — facet artefacts](#facet-and-schema-capture-artefacts-general-chat).
 
+### Multi-scope reads
+
+Facet data can come from more than one **metadata scope** when the URL declares them, for example after **Open in model** from chat:
+
+- **`?scope=global,chat-<conversationId>`** — declares which scopes are in play (comma-separated slugs).
+- Optional **`?readScope=`** — active subset for reads (must be within `scope=`). Omit to use all declared scopes.
+
+Use the **Scopes** control in the entity header to toggle among declared scopes. Chat-captured facets accepted under chat scope appear when that scope is active.
+
+### Tag filter
+
+When facet payloads include **tags** (descriptive facets, concept `concepts[].tags`, and similar), a **Tags** control in the entity header filters which facet cards are shown. This is a local UI filter only; it does not change server data.
+
 ### Search in Model
 
 Use the **header global search** (when enabled): **Ctrl+K** / **Cmd+K** opens search across views, schemas, tables, columns, concepts, and saved queries (`GlobalSearch.tsx`).

@@ -17,11 +17,14 @@ parameter `scope` (comma-separated, e.g. `?scope=global,chat-<conversationId>`).
 is absent, only **global** is used.
 
 - Scopes are **URL-driven only** — the explorer does not list all registered metadata scopes.
-- The scope checkbox control is **always** shown in the explorer content toolbar. With only `global` (default `/model` navigation) it lists a single checked Global scope; additional scopes appear when declared in `scope=`.
+- Optional **`readScope=`** narrows which declared scopes are active for reads (comma-separated subset of `scope=`). When omitted, all declared scopes are active.
+- **Scope** and **Tags** pickers appear in the **entity header** (right side) when multiple scopes are declared or when facet payloads carry tags.
 - **Open in model** from a chat facet card deep-links with `global` and `chat-<conversationId>`.
 - Schema and metadata API calls pass the comma-joined active slugs as the `scope` query parameter.
 
-Authorized scope management (which scopes a user may add or browse) is deferred to a follow-up story.
+**Tag filter** (local UI only): when facets on the entity carry `tags` (including concept entries under `concepts[].tags`), the **Tags** control filters which facet cards are visible without another server round-trip.
+
+Authorized scope management (which scopes a user may add or browse) is deferred to a follow-up story (**U-18**).
 
 ## Current behavior (`EntityDetails.tsx`)
 

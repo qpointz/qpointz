@@ -4,6 +4,7 @@ import { MantineProvider } from '@mantine/core';
 import { MemoryRouter, Route, Routes, createMemoryRouter, RouterProvider } from 'react-router';
 import type { ReactNode } from 'react';
 import { defaultFeatureFlags } from '../../features/defaults';
+import type { FacetResolvedRow, SchemaEntity } from '../../types/schema';
 
 const { testTree } = vi.hoisted(() => ({
   testTree: [
@@ -300,17 +301,18 @@ describe('DataModelLayout', () => {
 
   it('should refetch entity when read scopes are cleared and re-enabled', async () => {
     const { schemaService } = await import('../../services/api');
-    const conceptFacet = {
+    const conceptFacet: FacetResolvedRow = {
       uid: 'concept-1',
       facetTypeUrn: 'urn:mill/metadata/facet-type:concept',
-      origin: 'CAPTURED' as const,
+      origin: 'CAPTURED',
       scopeUrn: 'urn:mill/metadata/scope:chat-abc',
+      originId: 'concept-1',
       payload: { name: 'Test concept' },
     };
-    const modelEntity = {
+    const modelEntity: SchemaEntity = {
       id: 'model-entity',
       entityType: 'MODEL' as const,
-      schemaName: '',
+      schemaName: '' as const,
       metadataEntityId: 'urn:mill:metadata:entity:model',
       facetsResolved: [conceptFacet],
     };

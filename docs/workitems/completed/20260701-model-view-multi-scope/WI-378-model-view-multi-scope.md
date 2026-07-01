@@ -1,10 +1,10 @@
 # WI-378 — Model explorer multi-scope read and chat deep-links
 
-Status: `in-progress`  
+Status: `closed`  
 Type: `✨ feature`  
 Area: `ui`  
 Milestone: 0.8.0  
-Depends on: chat facet capture accept path ([`ai-concepts` WI-370](../../in-progress/ai-concepts/WI-370-concept-authoring-capture.md))
+Depends on: chat facet capture accept path ([`ai-concepts` WI-370](../completed/20260701-ai-concepts/WI-370-concept-authoring-capture.md))
 
 ## Problem Statement
 
@@ -58,7 +58,7 @@ all registered metadata scopes.
 - Enriching `GET /api/v1/schema/context` with `MetadataScopeService.findAll()`
 - Promoting chat facets to global (separate metadata lifecycle story)
 - Admin UI for scope CRUD (`POST/DELETE /api/v1/metadata/scopes`)
-- [`ai-concepts` WI-371](../../in-progress/ai-concepts/WI-371-mill-ui-knowledge-chat.md) knowledge inline chat
+- [`ai-concepts` WI-371](../completed/20260701-ai-concepts/WI-371-mill-ui-knowledge-chat.md) knowledge inline chat
 - Changing merge/precedence rules on the server (client passes ordered slug list only)
 
 ## Follow-up story (not WI-378)

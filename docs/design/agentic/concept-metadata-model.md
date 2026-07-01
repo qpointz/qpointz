@@ -2,7 +2,7 @@
 
 Normative contract for **business concepts** as model-level metadata facets in mill-ai v3.
 
-**Story:** [`ai-concepts`](../../../workitems/planned/ai-concepts/STORY.md) (WI-366–370, WI-372).
+**Story:** [`ai-concepts`](../../../workitems/completed/20260701-ai-concepts/STORY.md) (WI-366–370, WI-372).
 
 **See also:** [`v3-foundation-decisions.md`](v3-foundation-decisions.md) §5.3 / §7.3, [`metadata-facet-catalog-v3.md`](metadata-facet-catalog-v3.md).
 
@@ -67,8 +67,6 @@ Platform `contentSchema` fields per assignment:
 | `concepts[0].description` | yes | Metadata-quality narrative |
 | `concepts[0].sql` | no | Indicative SQL hint for reasoning — not validated execution SQL |
 | `concepts[0].tags` | no | Discovery / filter tags |
-| `concepts[0].source` | no | `MANUAL`, `INFERRED`, or `NL2SQL` |
-| `concepts[0].sourceSession` | no | Chat id when `source=NL2SQL` |
 
 Excluded from v1 capture: `category`, `targets[]` (legacy compatibility only on old data).
 

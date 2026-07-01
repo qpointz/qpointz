@@ -67,8 +67,6 @@ data class ConceptDetail(
     val description: String?,
     val sql: String?,
     val tags: List<String>,
-    val source: String?,
-    val sourceSession: String?,
     val facetUid: String?,
 ) {
     /** @return compact summary row for browse/search tools */

@@ -36,8 +36,6 @@ class ConceptCapabilitiesTest {
                 description = "Premium travelers",
                 sql = "SELECT 1",
                 tags = listOf("passenger"),
-                source = "MANUAL",
-                sourceSession = null,
                 facetUid = "facet-1",
             )
 

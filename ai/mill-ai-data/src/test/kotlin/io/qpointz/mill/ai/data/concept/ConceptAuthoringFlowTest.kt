@@ -61,8 +61,6 @@ class ConceptAuthoringFlowTest {
         val detail = catalog.getConcept("urn:mill/model/concept:loyal-customers", scope)
         assertThat(detail).isNotNull
         assertThat(detail!!.name).isEqualTo("Loyal Customers")
-        assertThat(detail.source).isEqualTo("NL2SQL")
-        assertThat(detail.sourceSession).isEqualTo("capture-flow-chat")
     }
 
     private fun proposeConcept(
@@ -90,8 +88,6 @@ class ConceptAuthoringFlowTest {
                             mapOf(
                                 "name" to "Loyal Customers",
                                 "description" to "Customers with repeat purchases in the last year.",
-                                "source" to "NL2SQL",
-                                "sourceSession" to "capture-flow-chat",
                             ),
                         ),
                     ),

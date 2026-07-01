@@ -59,7 +59,6 @@ object ConceptModelFixtures {
                 "description" to "Passengers traveling in premium cabins or holding elite loyalty status.",
                 "sql" to "SELECT p.* FROM skymill.passenger p WHERE p.passenger_class IN ('VIP', 'FIRST') OR p.loyalty_tier >= 3",
                 "tags" to listOf("passenger", "premium", "travel"),
-                "source" to "MANUAL",
             ),
         ),
     )
@@ -73,7 +72,6 @@ object ConceptModelFixtures {
                 "description" to "Customer segment with premium service tier and elevated account balance.",
                 "sql" to "segment = 'PREMIUM' AND balance > 100000",
                 "tags" to listOf("segmentation", "marketing", "customer"),
-                "source" to "MANUAL",
             ),
         ),
     )
@@ -87,7 +85,6 @@ object ConceptModelFixtures {
                 "description" to "Orders with total amount above the high-value threshold used for executive reporting.",
                 "sql" to "SELECT o.* FROM moneta.orders o WHERE o.total_amount > 5000",
                 "tags" to listOf("orders", "revenue", "reporting"),
-                "source" to "MANUAL",
             ),
         ),
     )

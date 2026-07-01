@@ -34,8 +34,6 @@ object ConceptFacetParser {
             description = entry["description"] as? String,
             sql = entry["sql"] as? String,
             tags = (entry["tags"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList(),
-            source = entry["source"] as? String,
-            sourceSession = entry["sourceSession"] as? String,
             facetUid = row["uid"] as? String,
         )
     }

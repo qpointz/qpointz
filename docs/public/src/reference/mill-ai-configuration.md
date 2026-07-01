@@ -12,7 +12,7 @@ Operator summary for **`mill.ai.*`**. Full specification:
 | **`mill.ai.models.embedding.<name>`** | Embedding profile → provider + model + dimension |
 | **`mill.ai.vector-stores.<id>`** | Optional shared Chroma/pgvector connection templates |
 | **`mill.ai.data.embedding.<profile>`** | Pipeline: model ref, vector store, refresh, sources |
-| **`mill.ai.chat`** | Chat defaults + `value-mapping.embedding` → data profile; optional **`scenario-capture`** (dev/tuning) |
+| **`mill.ai.chat`** | Chat defaults + `value-mapping.embedding` → data profile; optional **`scenario-capture`** (dev/tuning); **`max-iterations`** (native tool-loop limit per turn, default **20**) |
 | **`mill.ai.profiles`** | YAML agent profile seed locations (`seed.resources`) |
 | **`mill.ai.mcp`** | MCP Streamable HTTP servlet (`enabled`, `profile`, `capabilities`, `http.endpoint`) |
 
@@ -67,7 +67,9 @@ Profiles are **`kind: AgentProfile`** YAML loaded via **`mill.ai.profiles.seed.r
 |---------|----------|
 | **`schema-exploration`** | Browse schema + read metadata — no facet capture |
 | **`metadata-authoring`** | Document metadata (any catalog facet type) — no SQL |
-| **`data-analysis`** | Mixed turns: generate SQL **and** capture facet proposals |
+| **`data-analysis`** | Mixed turns: generate SQL **and** capture facet proposals; includes **`concept`** read tools for model-level business concepts |
+
+The **`concept`** capability exposes read tools (`get_model_concepts`, `get_concept`, `list_concept_tags`, `search_concepts`) over model-level **`concept`** facet assignments. Concepts are captured on the logical model root (`urn:mill/model/model:model-entity`) via **`metadata-authoring`**. Design: [`docs/design/agentic/concept-metadata-model.md`](../../../../design/agentic/concept-metadata-model.md).
 
 **Do not use** deprecated profile id **`schema-authoring`**. Operator detail: [`docs/design/agentic/metadata-facet-catalog-v3.md`](../../../../design/agentic/metadata-facet-catalog-v3.md).
 
@@ -112,6 +114,7 @@ mill:
             - type: metadata-facets
     chat:
       model: default
+      max-iterations: 20
       value-mapping:
         embedding: default
 ```
