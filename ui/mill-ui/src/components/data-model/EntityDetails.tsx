@@ -79,10 +79,34 @@ import {
   appendHyperlinkStereotypeValidationErrors,
 } from './facets/facetPayloadValidation';
 import { FacetReadOnlyBody } from './facets/FacetReadOnlyBody';
+import { MetadataScopeCheckboxPicker } from './MetadataScopeCheckboxPicker';
+import { FacetTagFilterPicker } from './FacetTagFilterPicker';
+import {
+  scopeDisplayLabel,
+  scopeSlugFromUrn,
+  writableScopeForNewFacet,
+} from '../../utils/modelScopeQuery';
+import {
+  distinctFacetTagsOnEntity,
+  facetUnitMatchesTagFilter,
+  tagsForRenderUnit,
+  tagsForResolvedUnit,
+} from '../../utils/facetTagUtils';
+
+/** Stable empty map when {@link EntityFacets.byType} is absent — avoids re-render loops from `?? {}`. */
+const EMPTY_FACET_BY_TYPE: Record<string, unknown> = {};
 
 interface EntityDetailsProps {
   entity: SchemaEntity;
   facets: EntityFacets;
+  /** Comma-joined active scope slugs for metadata reads. */
+  scopeQuery?: string;
+  /** Active scope slugs from the URL. */
+  activeScopes?: string[];
+  /** Scope slugs declared in the URL (scope picker options). */
+  declaredScopes?: string[];
+  onScopeSelectionChange?: (nextActive: string[]) => void;
+  /** @deprecated use {@link scopeQuery} */
   selectedContext?: string;
   onFacetsChanged?: () => Promise<void>;
 }
@@ -224,9 +248,37 @@ function EntityCatalogUrnRow({ urn }: { urn: string }) {
 export function EntityDetails({
   entity,
   facets,
+  activeScopes,
+  declaredScopes,
+  onScopeSelectionChange,
   selectedContext = 'global',
   onFacetsChanged = async () => {},
 }: EntityDetailsProps) {
+  const resolvedActiveScopes = activeScopes ?? selectedContext.split(',').map((s) => s.trim()).filter(Boolean);
+  const resolvedDeclaredScopes = declaredScopes ?? resolvedActiveScopes;
+  const writableScope = writableScopeForNewFacet(resolvedActiveScopes);
+  /** Show per-facet scope pills when the URL declares multiple scopes (not only when 2+ are checked). */
+  const showScopeBadges = resolvedDeclaredScopes.length > 1;
+
+  const scopeBadge = (scopeUrn: string | undefined) =>
+    showScopeBadges && scopeUrn ? (
+      <Badge size="xs" variant="outline" color="blue" title={scopeUrn}>
+        {scopeDisplayLabel(scopeSlugFromUrn(scopeUrn))}
+      </Badge>
+    ) : null;
+
+  /** Left-aligned pill row between facet title and body (scope, origin, etc.). */
+  const facetMetaPillsRow = (...pills: (ReactNode | null | undefined | false)[]) => {
+    const visible = pills.filter(Boolean);
+    if (visible.length === 0) {
+      return null;
+    }
+    return (
+      <Group gap={6} wrap="wrap" justify="flex-start" mb={6}>
+        {visible}
+      </Group>
+    );
+  };
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const flags = useFeatureFlags();
@@ -333,7 +385,10 @@ export function EntityDetails({
     [entity, exportFormats],
   );
 
-  const allByType = facets.byType ?? {};
+  const allByType = useMemo(
+    () => facets.byType ?? EMPTY_FACET_BY_TYPE,
+    [facets.byType],
+  );
 
   const orderedFacetTypes = useMemo(() => {
     if (facets.resolvedRows !== undefined) {
@@ -465,8 +520,41 @@ export function EntityDetails({
 
   const displayFacetUnits = resolvedFacetUnitsByCategory ?? facetUnitsByCategory;
 
+  const entityFacetTags = useMemo(
+    () => distinctFacetTagsOnEntity(facets, allByType),
+    [facets, allByType],
+  );
+  const entityFacetTagsKey = entityFacetTags.join('\0');
+  const [selectedFacetTags, setSelectedFacetTags] = useState<Set<string>>(() => new Set(entityFacetTags));
+
   useEffect(() => {
-    const categories = displayFacetUnits.orderedCategories;
+    const tags = entityFacetTagsKey.length > 0 ? entityFacetTagsKey.split('\0') : [];
+    setSelectedFacetTags(new Set(tags));
+  }, [entity.id, entityFacetTagsKey]);
+
+  const filteredDisplayFacetUnits = useMemo(() => {
+    const isResolved = resolvedFacetUnitsByCategory !== null;
+    const grouped: Record<string, (ResolvedFacetUnit | FacetRenderUnit)[]> = {};
+    for (const category of displayFacetUnits.orderedCategories) {
+      const units = displayFacetUnits.grouped[category] ?? [];
+      const visible = units.filter((rawUnit) => {
+        const tagsOnUnit = isResolved
+          ? tagsForResolvedUnit(rawUnit as ResolvedFacetUnit)
+          : tagsForRenderUnit(rawUnit as FacetRenderUnit, allByType);
+        return facetUnitMatchesTagFilter(tagsOnUnit, selectedFacetTags);
+      });
+      if (visible.length > 0) {
+        grouped[category] = visible;
+      }
+    }
+    const orderedCategories = displayFacetUnits.orderedCategories.filter(
+      (category) => (grouped[category]?.length ?? 0) > 0,
+    );
+    return { grouped, orderedCategories };
+  }, [allByType, displayFacetUnits, resolvedFacetUnitsByCategory, selectedFacetTags]);
+
+  useEffect(() => {
+    const categories = filteredDisplayFacetUnits.orderedCategories;
     if (categories.length === 0) {
       setActiveCategoryTab(null);
       return;
@@ -474,7 +562,7 @@ export function EntityDetails({
     if (!activeCategoryTab || !categories.includes(activeCategoryTab)) {
       setActiveCategoryTab(categories[0] ?? null);
     }
-  }, [displayFacetUnits, activeCategoryTab]);
+  }, [filteredDisplayFacetUnits, activeCategoryTab]);
 
   useEffect(() => {
     const ac = new AbortController();
@@ -570,7 +658,7 @@ export function EntityDetails({
       /** MULTIPLE: POST one `{}` per new facet row; updates use PATCH with the row uid from GET facets. */
       const nextIndex =
         isMultiple && existing !== undefined ? multipleFacetItemValues(existing).length : 0;
-      await schemaService.setEntityFacet(metadataFacetTargetId, facetType, selectedContext, {});
+      await schemaService.setEntityFacet(metadataFacetTargetId, facetType, writableScope, {});
       await onFacetsChanged();
       const d = facetTypes.find((f) => f.typeKey === facetType);
       setActiveCategoryTab(normalizeCategory(d?.category));
@@ -588,7 +676,7 @@ export function EntityDetails({
     if (!metadataFacetTargetId) return;
     try {
       const nextIndex = multipleFacetItemValues(allByType[facetType]).length;
-      await schemaService.setEntityFacet(metadataFacetTargetId, facetType, selectedContext, {});
+      await schemaService.setEntityFacet(metadataFacetTargetId, facetType, writableScope, {});
       await onFacetsChanged();
       openEdit(facetType, nextIndex, {});
     } catch (e) {
@@ -718,7 +806,7 @@ export function EntityDetails({
           await schemaService.setEntityFacet(
             metadataFacetTargetId,
             editFacetType,
-            selectedContext,
+            writableScope,
             instancePayload
           );
         }
@@ -742,7 +830,7 @@ export function EntityDetails({
           return;
         }
       }
-      await schemaService.setEntityFacet(metadataFacetTargetId, editFacetType, selectedContext, parsed);
+      await schemaService.setEntityFacet(metadataFacetTargetId, editFacetType, writableScope, parsed);
       await onFacetsChanged();
       notifications.show({ color: 'green', title: 'Facet saved', message: editFacetType });
       setEditFacetType(null);
@@ -1071,7 +1159,7 @@ export function EntityDetails({
   const deleteFacet = async (facetType: string) => {
     if (!metadataFacetTargetId) return;
     try {
-      await schemaService.deleteEntityFacet(metadataFacetTargetId, facetType, selectedContext);
+      await schemaService.deleteEntityFacet(metadataFacetTargetId, facetType, writableScope);
       await onFacetsChanged();
       if (editFacetType === facetType) {
         setEditFacetType(null);
@@ -1089,7 +1177,7 @@ export function EntityDetails({
     if (!metadataFacetTargetId) return;
     try {
       const uid = facets.instanceUidsByType?.[facetType]?.[instanceIndex];
-      await schemaService.deleteEntityFacet(metadataFacetTargetId, facetType, selectedContext, uid);
+      await schemaService.deleteEntityFacet(metadataFacetTargetId, facetType, writableScope, uid);
       await onFacetsChanged();
       if (editFacetType === facetType && editInstanceIndex === instanceIndex) {
         setEditFacetType(null);
@@ -1246,6 +1334,18 @@ export function EntityDetails({
               contextLabel={entityName}
               contextEntityType={entity.entityType}
             />
+            <FacetTagFilterPicker
+              tags={entityFacetTags}
+              selectedTags={selectedFacetTags}
+              onSelectedTagsChange={setSelectedFacetTags}
+            />
+            {declaredScopes && onScopeSelectionChange ? (
+              <MetadataScopeCheckboxPicker
+                urlScopes={declaredScopes}
+                activeScopes={resolvedActiveScopes}
+                onChange={onScopeSelectionChange}
+              />
+            ) : null}
           </>
         }
       />
@@ -1300,16 +1400,16 @@ export function EntityDetails({
         ) : (
           <Tabs value={activeCategoryTab} onChange={setActiveCategoryTab}>
             <Tabs.List mb="sm">
-              {displayFacetUnits.orderedCategories.map((category) => (
+              {filteredDisplayFacetUnits.orderedCategories.map((category) => (
                 <Tabs.Tab key={category} value={category}>
                   {formatCategoryLabel(category)}
                 </Tabs.Tab>
               ))}
             </Tabs.List>
-            {displayFacetUnits.orderedCategories.map((category) => (
+            {filteredDisplayFacetUnits.orderedCategories.map((category) => (
               <Tabs.Panel key={category} value={category}>
                 <Stack gap="md">
-                  {(displayFacetUnits.grouped[category] ?? []).map((rawUnit) => {
+                  {(filteredDisplayFacetUnits.grouped[category] ?? []).map((rawUnit) => {
                     let unit: FacetRenderUnit;
                     if (resolvedFacetUnitsByCategory) {
                       const ru = rawUnit as ResolvedFacetUnit;
@@ -1339,15 +1439,16 @@ export function EntityDetails({
                                   {baseTitleInf}
                                 </Text>
                               </Group>
-                              <Group gap={6} wrap="nowrap">
-                                <Badge size="xs" variant="light" color="grape">
-                                  Inferred
-                                </Badge>
-                                <Badge size="xs" variant="outline" color="gray" title="Metadata source id">
-                                  {row.originId}
-                                </Badge>
-                              </Group>
                             </Group>
+                            {facetMetaPillsRow(
+                              scopeBadge(row.scopeUrn),
+                              <Badge size="xs" variant="light" color="grape">
+                                Inferred
+                              </Badge>,
+                              <Badge size="xs" variant="outline" color="gray" title="Metadata source id">
+                                {row.originId}
+                              </Badge>,
+                            )}
                             {readOnlyInferred}
                           </Card>
                         );
@@ -1410,6 +1511,11 @@ export function EntityDetails({
                       const caption = multipleInstanceCaption(item, unit.index, unit.total);
                       const cardTitle = caption ? `${baseTitle} · ${caption}` : baseTitle;
                       const isEditing = editFacetType === facetType && editInstanceIndex === unit.index;
+                      const capturedRow =
+                        resolvedFacetUnitsByCategory &&
+                        (rawUnit as ResolvedFacetUnit).kind === 'capturedMultiple'
+                          ? (rawUnit as Extract<ResolvedFacetUnit, { kind: 'capturedMultiple' }>).row
+                          : undefined;
                       const readOnlyBody = (
                         <FacetReadOnlyBody
                           facetTypeKey={facetType}
@@ -1431,7 +1537,7 @@ export function EntityDetails({
                               </Text>
                             </Group>
                             {isEditing ? (
-                              <Group gap="xs">
+                              <Group gap="xs" wrap="nowrap">
                                 <Button
                                   size="compact-xs"
                                   variant="light"
@@ -1452,7 +1558,7 @@ export function EntityDetails({
                                 <Button size="compact-xs" onClick={() => void saveEdit()}>Save</Button>
                               </Group>
                             ) : (
-                              <Group gap="xs">
+                              <Group gap="xs" wrap="nowrap">
                                 <Button
                                   size="compact-xs"
                                   variant="light"
@@ -1475,6 +1581,7 @@ export function EntityDetails({
                               </Group>
                             )}
                           </Group>
+                          {facetMetaPillsRow(scopeBadge(capturedRow?.scopeUrn))}
                           {isEditing ? (
                             <Stack gap="xs">
                               {!facetFormSupported ? (
@@ -1549,13 +1656,14 @@ export function EntityDetails({
                     const singleFacetCardKey = isCapturedSingleResolvedUnit(rawUnit)
                       ? `${facetType}::${rawUnit.row.uid}`
                       : `${facetType}-single`;
+                    const capturedSingleRow = isCapturedSingleResolvedUnit(rawUnit) ? rawUnit.row : undefined;
 
                     return (
                       <Card key={singleFacetCardKey} withBorder p="xs">
                         <Group justify="space-between" mb={6}>
                           {facetHeaderIcons}
                           {isEditingSingle ? (
-                            <Group gap="xs">
+                            <Group gap="xs" wrap="nowrap">
                               <Button size="compact-xs" variant="light" onClick={() => resetFacetEditToSnapshot()}>
                                 Reset
                               </Button>
@@ -1566,7 +1674,7 @@ export function EntityDetails({
                               <Button size="compact-xs" onClick={() => void saveEdit()}>Save</Button>
                             </Group>
                           ) : (
-                            <Group gap="xs">
+                            <Group gap="xs" wrap="nowrap">
                               <Button
                                 size="compact-xs"
                                 variant="light"
@@ -1589,6 +1697,7 @@ export function EntityDetails({
                             </Group>
                           )}
                         </Group>
+                        {facetMetaPillsRow(scopeBadge(capturedSingleRow?.scopeUrn))}
                         {isEditingSingle ? (
                           <Stack gap="xs">
                             {!facetFormSupported ? (
@@ -1666,11 +1775,11 @@ export function EntityDetails({
           <Text size="sm">
             {facetToDelete == null ? null : facetToDelete.instanceIndex === null ? (
               <>
-                Delete entire facet <b>{facetToDelete.facetType}</b> from scope <b>{selectedContext}</b>?
+                Delete entire facet <b>{facetToDelete.facetType}</b> from scope <b>{writableScope}</b>?
               </>
             ) : (
               <>
-                Remove this entry from facet <b>{facetToDelete.facetType}</b> in scope <b>{selectedContext}</b>?
+                Remove this entry from facet <b>{facetToDelete.facetType}</b> in scope <b>{writableScope}</b>?
               </>
             )}
           </Text>

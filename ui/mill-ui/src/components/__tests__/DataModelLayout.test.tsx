@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import { MantineProvider } from '@mantine/core';
-import { MemoryRouter, Route, Routes } from 'react-router';
+import { MemoryRouter, Route, Routes, createMemoryRouter, RouterProvider } from 'react-router';
 import type { ReactNode } from 'react';
 import { defaultFeatureFlags } from '../../features/defaults';
 
@@ -107,12 +107,34 @@ describe('DataModelLayout', () => {
     });
   });
 
-  it('should resolve context before loading tree', async () => {
+  it('should load tree with global scope by default', async () => {
     const { schemaService } = await import('../../services/api');
     await renderLayout();
     await waitFor(() => {
-      expect(schemaService.getContext).toHaveBeenCalled();
       expect(schemaService.getTree).toHaveBeenCalledWith('global');
+    });
+  });
+
+  it('should show scope picker when URL declares multiple scopes', async () => {
+    await renderLayout('/model?scope=global,chat-test');
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Scopes (2)' })).toBeInTheDocument();
+    });
+  });
+
+  it('should always show scope picker including for default global-only navigation', async () => {
+    await renderLayout('/model');
+    await waitFor(() => {
+      expect(screen.getByText('sales')).toBeInTheDocument();
+    });
+    expect(screen.getByRole('button', { name: 'Scopes (1)' })).toBeInTheDocument();
+  });
+
+  it('should pass comma-separated scope to tree when URL declares chat scope', async () => {
+    const { schemaService } = await import('../../services/api');
+    await renderLayout('/model?scope=global,chat-abc');
+    await waitFor(() => {
+      expect(schemaService.getTree).toHaveBeenCalledWith('global,chat-abc');
     });
   });
 
@@ -273,6 +295,84 @@ describe('DataModelLayout', () => {
         'none',
       );
       expect(screen.getAllByText('customer_id').length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it('should refetch entity when read scopes are cleared and re-enabled', async () => {
+    const { schemaService } = await import('../../services/api');
+    const conceptFacet = {
+      uid: 'concept-1',
+      facetTypeUrn: 'urn:mill/metadata/facet-type:concept',
+      origin: 'CAPTURED' as const,
+      scopeUrn: 'urn:mill/metadata/scope:chat-abc',
+      payload: { name: 'Test concept' },
+    };
+    const modelEntity = {
+      id: 'model-entity',
+      entityType: 'MODEL' as const,
+      schemaName: '',
+      metadataEntityId: 'urn:mill:metadata:entity:model',
+      facetsResolved: [conceptFacet],
+    };
+
+    vi.mocked(schemaService.getEntityById).mockImplementation((_id, scope) => {
+      if (!scope) {
+        return Promise.resolve(null);
+      }
+      return Promise.resolve(modelEntity);
+    });
+
+    const { DataModelLayout } = await import('../data-model/DataModelLayout');
+    const { FeatureFlagProvider } = await import('../../features/FeatureFlagContext');
+    const { InlineChatProvider } = await import('../../context/InlineChatContext');
+    const { ChatReferencesProvider } = await import('../../context/ChatReferencesContext');
+    const { RelatedContentProvider } = await import('../../context/RelatedContentContext');
+
+    const router = createMemoryRouter(
+      [{ path: '/model/:schema?/:table?/:attribute?', element: <DataModelLayout /> }],
+      { initialEntries: ['/model/model-entity?scope=global,chat-abc'] },
+    );
+
+    render(
+      <MantineProvider>
+        <FeatureFlagProvider>
+          <InlineChatProvider>
+            <ChatReferencesProvider>
+              <RelatedContentProvider>
+                <RouterProvider router={router} />
+              </RelatedContentProvider>
+            </ChatReferencesProvider>
+          </InlineChatProvider>
+        </FeatureFlagProvider>
+      </MantineProvider>,
+    );
+
+    await waitFor(() => {
+      expect(schemaService.getEntityById).toHaveBeenCalledWith(
+        'model-entity',
+        'global,chat-abc',
+        expect.any(AbortSignal),
+      );
+    });
+
+    const callsBefore = vi.mocked(schemaService.getEntityById).mock.calls.length;
+
+    await act(async () => {
+      await router.navigate('/model/model-entity?scope=global,chat-abc&readScope=none');
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('No scopes selected')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      await router.navigate('/model/model-entity?scope=global,chat-abc&readScope=chat-abc');
+    });
+
+    await waitFor(() => {
+      const calls = vi.mocked(schemaService.getEntityById).mock.calls;
+      expect(calls.length).toBeGreaterThan(callsBefore);
+      expect(calls[calls.length - 1]?.[1]).toBe('chat-abc');
     });
   });
 });

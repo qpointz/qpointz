@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MantineProvider } from '@mantine/core';
 import { MemoryRouter } from 'react-router';
 import type { ReactNode } from 'react';
@@ -71,6 +72,33 @@ const { modelViewFacetManifests } = vi.hoisted(() => {
         title: 'Structural',
         description: '',
         fields: [str('physicalName', 'Physical name'), str('type', 'Type')],
+      },
+    },
+    {
+      typeKey: 'urn:mill/metadata/facet-type:concept',
+      title: 'Concept',
+      description: '',
+      enabled: true,
+      mandatory: false,
+      targetCardinality: 'SINGLE',
+      category: 'general',
+      payload: {
+        type: 'OBJECT',
+        title: 'Concept',
+        description: '',
+        fields: [
+          str('name', 'Name'),
+          str('description', 'Description'),
+          {
+            name: 'tags',
+            schema: {
+              type: 'ARRAY',
+              title: 'Tags',
+              description: '',
+              items: { type: 'STRING', title: 'Tag', description: '' },
+            },
+          },
+        ],
       },
     },
     {
@@ -334,6 +362,13 @@ describe('EntityDetails', () => {
     it('should show empty state when there are no facets', () => {
       renderDetails(tableEntity, {});
       expect(screen.getByText('No metadata facets available for this entity yet.')).toBeInTheDocument();
+    });
+
+    it('should show tag filter picker beside scope control', async () => {
+      renderDetails();
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Tags (2)' })).toBeInTheDocument();
+      });
     });
   });
 

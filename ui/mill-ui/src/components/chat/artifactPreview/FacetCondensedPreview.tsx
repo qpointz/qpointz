@@ -13,6 +13,11 @@ import { FacetReadOnlyBody } from '../../data-model/facets/FacetReadOnlyBody';
 import { facetBoxBaseTitle, facetCondensedTabLabel } from '../../data-model/facets/facetDisplayUtils';
 import { useFeatureFlags } from '../../../features/FeatureFlagContext';
 import { facetEntityCatalogPath, modelRouteFromCatalogPath } from '../../../utils/metadataEntityDisplay';
+import {
+  chatScopeSlug,
+  formatScopeSearchParam,
+  GLOBAL_SCOPE_SLUG,
+} from '../../../utils/modelScopeQuery';
 import { ChatArtifactActionBar } from './ChatArtifactActionBar';
 import { ChatArtifactCard } from './ChatArtifactCard';
 import { resolveArtifactTreatment } from './chatArtifactTreatments';
@@ -70,8 +75,9 @@ export function FacetCondensedPreview(props: ArtifactPreviewContext) {
 
   const handleOpenInModel = useCallback(() => {
     if (!assignedCatalogPath || !flags.viewModel) return;
-    navigate(modelRoute);
-  }, [assignedCatalogPath, flags.viewModel, modelRoute, navigate]);
+    const scope = formatScopeSearchParam([GLOBAL_SCOPE_SLUG, chatScopeSlug(conversationId)]);
+    navigate(`${modelRoute}?scope=${encodeURIComponent(scope)}`);
+  }, [assignedCatalogPath, conversationId, flags.viewModel, modelRoute, navigate]);
 
   useEffect(() => {
     setLocalStatus(artifact?.status);

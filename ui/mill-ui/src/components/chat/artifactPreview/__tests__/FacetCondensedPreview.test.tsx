@@ -256,7 +256,7 @@ describe('FacetCondensedPreview', () => {
     });
 
     await userEvent.click(screen.getByRole('button', { name: 'Open in model' }));
-    expect(navigateMock).toHaveBeenCalledWith('/model/demo/orders');
+    expect(navigateMock).toHaveBeenCalledWith('/model/demo/orders?scope=global%2Cchat-chat-1');
   });
 
   it('should show wire JSON on JSON tab', async () => {

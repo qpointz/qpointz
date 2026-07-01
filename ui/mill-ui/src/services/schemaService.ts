@@ -474,7 +474,7 @@ const realSchemaService: SchemaService = {
   async getEntityById(id: string, context: string, signal?: AbortSignal) {
     if (id === MODEL_ROOT_LOCAL_ID) {
       const raw = await fetchExplorerEntityJsonOrNull(
-        `/api/v1/schema/model?scope=${encodeURIComponent(context)}&facetMode=none`,
+        `/api/v1/schema/model?scope=${encodeURIComponent(context)}&facetMode=direct`,
         signal
       );
       if (!raw) return null;
@@ -492,12 +492,12 @@ const realSchemaService: SchemaService = {
     }
     const parts = id.split('.');
     if (parts.length === 1) {
-      return realSchemaService.getSchema(parts[0]!, context, 'none', signal);
+      return realSchemaService.getSchema(parts[0]!, context, 'direct', signal);
     }
     if (parts.length === 2) {
-      return realSchemaService.getTable(parts[0]!, parts[1]!, context, 'none', signal);
+      return realSchemaService.getTable(parts[0]!, parts[1]!, context, 'direct', signal);
     }
-    return realSchemaService.getColumn(parts[0]!, parts[1]!, parts.slice(2).join('.'), context, 'none', signal);
+    return realSchemaService.getColumn(parts[0]!, parts[1]!, parts.slice(2).join('.'), context, 'direct', signal);
   },
   async getEntityFacets(id: string, context: string, signal?: AbortSignal) {
     try {

@@ -1,28 +1,31 @@
-import { Box, Loader, ScrollArea, Select, Text, useMantineColorScheme } from '@mantine/core';
+import { Box, Group, Loader, ScrollArea, Text, useMantineColorScheme } from '@mantine/core';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, useSearchParams } from 'react-router';
 import { HiOutlineCircleStack } from 'react-icons/hi2';
 import { SchemaTree } from './SchemaTree';
 import { EntityDetails } from './EntityDetails';
 import { ExplorerSplitLayout } from '../layout/ExplorerSplitLayout';
+import { MetadataScopeCheckboxPicker } from './MetadataScopeCheckboxPicker';
 import { entityIdFromModelRouteParams } from './modelRouteEntityId';
 import { resolveTreeTableId } from './catalogEntityId';
 import { enrichNodeChildren } from './schemaTreeEnrichment';
 import { enrichExplorerTreeColumns, loadExplorerTreeWithColumns } from './schemaTreeLoad';
 import { buildEntityFacetsFromResolvedList, metadataEntityUrnForFacetApi, schemaService } from '../../services/api';
-import type { SchemaNode, SchemaEntity, EntityFacets, ScopeOption } from '../../types/schema';
+import type { SchemaNode, SchemaEntity, EntityFacets } from '../../types/schema';
+import {
+  modelEntityLoadKey,
+  modelViewSearchFromParams,
+  resolveModelScopeFromSearchParams,
+  scopeSearchParamsAfterReadScopeChange,
+} from '../../utils/modelScopeQuery';
 
 /**
  * Prefers schema explorer `facetsResolved` on the entity when present (WI-134 full constellation);
  * otherwise loads legacy `GET /metadata/entities/{id}/facets`.
- *
- * **TEMPORARY:** Metadata fallback exists for pre–WI-134 servers. Remove this branch once WI-134 is
- * deployed to all target environments so absent `facetsResolved` surfaces as a contract gap instead
- * of silently masking API drift.
  */
 async function loadFacetsForEntity(
   entity: SchemaEntity,
-  selectedContext: string,
+  scopeQuery: string,
   signal?: AbortSignal
 ): Promise<EntityFacets> {
   const fr = entity.facetsResolved;
@@ -31,28 +34,41 @@ async function loadFacetsForEntity(
   }
   const metaUrn = metadataEntityUrnForFacetApi(entity);
   if (!metaUrn) return {};
-  return schemaService.getEntityFacets(metaUrn, selectedContext, signal);
+  return schemaService.getEntityFacets(metaUrn, scopeQuery, signal);
 }
 
 /**
- * Data Model explorer route: scope selector, schema tree (including model root per SPEC §3f), and
- * {@link EntityDetails} for the selected entity.
+ * Data Model explorer route: URL-driven scope selection, schema tree, and {@link EntityDetails}.
  */
 export function DataModelLayout() {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const params = useParams<{ schema?: string; table?: string; attribute?: string }>();
   const routeEntityId = useMemo(() => entityIdFromModelRouteParams(params), [params]);
+
+  const modelScope = useMemo(
+    () => resolveModelScopeFromSearchParams(searchParams),
+    [searchParams],
+  );
+  const { declaredScopes, readScopes, scopeQuery } = modelScope;
+  const hasActiveReadScopes = readScopes.length > 0;
+  const modelViewSearch = useMemo(
+    () => modelViewSearchFromParams(searchParams),
+    [searchParams],
+  );
+  /** Distinguishes implicit all-scopes URLs from explicit readScope subsets with the same scopeQuery. */
+  const entityScopeLoadKey = useMemo(
+    () => (routeEntityId ? modelEntityLoadKey(routeEntityId, scopeQuery, searchParams) : null),
+    [routeEntityId, scopeQuery, searchParams],
+  );
 
   const [tree, setTree] = useState<SchemaNode[] | null>(null);
   const [selectedEntity, setSelectedEntity] = useState<SchemaEntity | null>(null);
   const [facets, setFacets] = useState<EntityFacets>({});
-  const [selectedContext, setSelectedContext] = useState<string>('global');
-  const [availableScopes, setAvailableScopes] = useState<ScopeOption[]>([]);
   const [treeLoading, setTreeLoading] = useState<boolean>(true);
   const [entityLoading, setEntityLoading] = useState<boolean>(false);
-  const [contextReady, setContextReady] = useState<boolean>(false);
   const treeRequestIdRef = useRef(0);
   const entityRequestIdRef = useRef(0);
   const treeRef = useRef<SchemaNode[] | null>(null);
@@ -65,40 +81,39 @@ export function DataModelLayout() {
     setTreeLoading(false);
   }, []);
 
-  // Resolve scope, then load the explorer tree once (deep-link columns included via route at init).
+  // Reload explorer tree when read scopes change; route/deep-link column patches use enrichExplorerTreeColumns.
   useEffect(() => {
+    if (!hasActiveReadScopes) {
+      setTreeLoading(false);
+      setTree([]);
+      setSelectedEntity(null);
+      setFacets({});
+      return;
+    }
     let cancelled = false;
     const currentRequestId = ++treeRequestIdRef.current;
     const routeAtInit = routeEntityId;
     setTreeLoading(true);
-    setContextReady(false);
-    schemaService.getContext().then(async (contextInfo) => {
-      if (cancelled || currentRequestId !== treeRequestIdRef.current) return;
-      const ctx = contextInfo.selectedContext || 'global';
-      setSelectedContext(ctx);
-      setAvailableScopes(contextInfo.availableScopes ?? []);
-      setContextReady(true);
-      await loadTreeForContext(ctx, currentRequestId, routeAtInit);
-    }).catch(() => {
+    setTree(null);
+    void loadTreeForContext(scopeQuery, currentRequestId, routeAtInit).catch(() => {
       if (!cancelled && currentRequestId === treeRequestIdRef.current) {
-        setSelectedContext('global');
-        setContextReady(true);
         setTree([]);
         setTreeLoading(false);
       }
     });
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- tree loads once per mount; route changes patch columns only
-  }, [loadTreeForContext]);
+    // routeEntityId omitted — navigation patches columns only (see enrichExplorerTreeColumns effect).
+  }, [hasActiveReadScopes, loadTreeForContext, scopeQuery]);
 
-  // Sync URL params to selected entity (AbortController cancels stale fetches — dev StrictMode + fast param changes)
   useEffect(() => {
     const entityId = routeEntityId;
 
-    if (!contextReady) return;
-
-    if (!entityId) {
+    if (!hasActiveReadScopes || !entityId) {
+      // Bump request id so in-flight loads cannot repopulate state after scopes are cleared.
+      entityRequestIdRef.current += 1;
       setEntityLoading(false);
+      setSelectedEntity(null);
+      setFacets({});
       return;
     }
 
@@ -106,45 +121,51 @@ export function DataModelLayout() {
     const { signal } = ac;
     const currentRequestId = ++entityRequestIdRef.current;
     setEntityLoading(true);
-    schemaService.getEntityById(entityId, selectedContext, signal).then((entity) => {
-      if (signal.aborted || currentRequestId !== entityRequestIdRef.current) return;
-      setSelectedEntity(entity);
-      if (entity) {
-        void loadFacetsForEntity(entity, selectedContext, signal)
-          .then((nextFacets) => {
-            if (signal.aborted || currentRequestId !== entityRequestIdRef.current) return;
-            setFacets(nextFacets);
-          })
-          .catch((e) => {
-            if (e instanceof DOMException && e.name === 'AbortError') return;
-            if (signal.aborted) return;
-            setFacets({});
-          });
-      } else {
+
+    void (async () => {
+      try {
+        const entity = await schemaService.getEntityById(entityId, scopeQuery, signal);
+        if (signal.aborted || currentRequestId !== entityRequestIdRef.current) {
+          return;
+        }
+        setSelectedEntity(entity);
+        if (entity) {
+          const nextFacets = await loadFacetsForEntity(entity, scopeQuery, signal);
+          if (signal.aborted || currentRequestId !== entityRequestIdRef.current) {
+            return;
+          }
+          setFacets(nextFacets);
+        } else {
+          setFacets({});
+        }
+      } catch (e) {
+        if (e instanceof DOMException && e.name === 'AbortError') {
+          return;
+        }
+        if (currentRequestId !== entityRequestIdRef.current) {
+          return;
+        }
+        setSelectedEntity(null);
         setFacets({});
+      } finally {
+        if (!signal.aborted && currentRequestId === entityRequestIdRef.current) {
+          setEntityLoading(false);
+        }
       }
-      setEntityLoading(false);
-    }).catch((e) => {
-      if (e instanceof DOMException && e.name === 'AbortError') return;
-      if (currentRequestId !== entityRequestIdRef.current) return;
-      setSelectedEntity(null);
-      setFacets({});
-      setEntityLoading(false);
-    });
+    })();
 
     return () => {
       ac.abort();
     };
-  }, [routeEntityId, selectedContext, contextReady]);
+  }, [entityScopeLoadKey, hasActiveReadScopes, routeEntityId, scopeQuery]);
 
-  // Lazy-load column children when the route deep-links to a table/column without refetching the tree.
   useEffect(() => {
-    if (!contextReady || treeRef.current === null || !routeEntityId) return;
+    if (!hasActiveReadScopes || treeRef.current === null || !routeEntityId) return;
 
     let cancelled = false;
     void enrichExplorerTreeColumns(
       treeRef.current,
-      selectedContext,
+      scopeQuery,
       routeEntityId,
       selectedEntity,
     ).then((nextTree) => {
@@ -155,30 +176,19 @@ export function DataModelLayout() {
     return () => {
       cancelled = true;
     };
-  }, [routeEntityId, selectedContext, contextReady, selectedEntity]);
+  }, [hasActiveReadScopes, routeEntityId, scopeQuery, selectedEntity]);
 
-  const handleScopeChange = useCallback((scope: string) => {
-    const currentRequestId = ++treeRequestIdRef.current;
-    setSelectedContext(scope);
-    setTree(null);
-    setSelectedEntity(null);
-    setFacets({});
-    setTreeLoading(true);
-    void loadExplorerTreeWithColumns(scope, routeEntityId, null).then((loadedTree) => {
-      if (currentRequestId !== treeRequestIdRef.current) return;
-      setTree(loadedTree);
-      setTreeLoading(false);
-    }).catch(() => {
-      if (currentRequestId !== treeRequestIdRef.current) return;
-      setTree([]);
-      setTreeLoading(false);
-    });
-  }, [routeEntityId]);
+  const handleScopeSelectionChange = useCallback((nextReadSlugs: string[]) => {
+    setSearchParams((current) => {
+      const { declaredScopes: pool } = resolveModelScopeFromSearchParams(current);
+      return scopeSearchParamsAfterReadScopeChange(current, pool, nextReadSlugs);
+    }, { replace: true });
+  }, [setSearchParams]);
 
   const handleSelect = (node: SchemaNode) => {
     const currentRequestId = ++entityRequestIdRef.current;
     setEntityLoading(true);
-    schemaService.getEntityById(node.id, selectedContext).then((entity) => {
+    schemaService.getEntityById(node.id, scopeQuery).then((entity) => {
       if (currentRequestId !== entityRequestIdRef.current) return;
       setSelectedEntity(entity);
       if (!entity) {
@@ -186,8 +196,7 @@ export function DataModelLayout() {
         setEntityLoading(false);
         return;
       }
-      void loadFacetsForEntity(entity, selectedContext).then(setFacets).catch(() => setFacets({}));
-      // Lazy-load table columns into the tree only when table is selected.
+      void loadFacetsForEntity(entity, scopeQuery).then(setFacets).catch(() => setFacets({}));
       if (entity.entityType === 'TABLE') {
         const tableId = resolveTreeTableId(tree ?? [], entity.schemaName, entity.tableName) ?? node.id;
         const columnNodes: SchemaNode[] = entity.columns.map((column) => ({
@@ -203,34 +212,97 @@ export function DataModelLayout() {
       setFacets({});
       setEntityLoading(false);
     });
-    // Update URL based on entity type
     const parts = node.id.split('.');
     if (parts.length === 1) {
-      navigate(`/model/${parts[0]}`);
+      navigate({ pathname: `/model/${parts[0]}`, search: modelViewSearch });
     } else if (parts.length === 2) {
-      navigate(`/model/${parts[0]}/${parts[1]}`);
+      navigate({ pathname: `/model/${parts[0]}/${parts[1]}`, search: modelViewSearch });
     } else if (parts.length >= 3) {
-      navigate(`/model/${parts[0]}/${parts[1]}/${parts.slice(2).join('.')}`);
+      navigate({
+        pathname: `/model/${parts[0]}/${parts[1]}/${parts.slice(2).join('.')}`,
+        search: modelViewSearch,
+      });
     }
   };
 
-  const scopeSelect = availableScopes.length > 1 ? (
-    <Select
-      size="xs"
-      value={selectedContext}
-      data={availableScopes.map((s) => ({ value: s.id, label: s.displayName }))}
-      onChange={(v) => { if (v) handleScopeChange(v); }}
-      style={{ minWidth: 140 }}
+  const scopePicker = (
+    <MetadataScopeCheckboxPicker
+      urlScopes={declaredScopes}
+      activeScopes={readScopes}
+      onChange={handleScopeSelectionChange}
     />
-  ) : null;
+  );
+
+  const emptyMainState = (title: string, message: string, showScopePicker: boolean) => (
+    <Box
+      style={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      {showScopePicker ? (
+        <Box
+          px="md"
+          py="xs"
+          style={{
+            borderBottom: '1px solid var(--mantine-color-default-border)',
+            flexShrink: 0,
+          }}
+        >
+          <Group justify="flex-end" wrap="nowrap">
+            {scopePicker}
+          </Group>
+        </Box>
+      ) : null}
+      <Box
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Box
+          style={{
+            width: 80,
+            height: 80,
+            borderRadius: '50%',
+            backgroundColor: isDark ? 'var(--mantine-color-cyan-9)' : 'var(--mantine-color-teal-1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 24,
+          }}
+        >
+          <HiOutlineCircleStack
+            size={36}
+            color={isDark ? 'var(--mantine-color-cyan-4)' : 'var(--mantine-color-teal-6)'}
+          />
+        </Box>
+        <Text size="xl" fw={600} c={isDark ? 'gray.1' : 'gray.8'} mb="xs">
+          {title}
+        </Text>
+        <Text size="sm" c="dimmed" ta="center" maw={400}>
+          {message}
+        </Text>
+      </Box>
+    </Box>
+  );
 
   return (
     <ExplorerSplitLayout
       icon={HiOutlineCircleStack}
       title="Schema Browser"
-      viewPaneHeader={scopeSelect}
       sidebarBody={
-        treeLoading ? (
+        !hasActiveReadScopes ? (
+          <Box p="md">
+            <Text size="sm" c="dimmed" ta="center">
+              Select one or more metadata scopes to browse the model.
+            </Text>
+          </Box>
+        ) : treeLoading ? (
           <Box p="md" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
             <Loader size="sm" />
             <Text size="xs" c="dimmed">Loading model...</Text>
@@ -246,61 +318,41 @@ export function DataModelLayout() {
         ) : null
       }
       main={
-        selectedEntity ? (
-          entityLoading ? (
-            <Box p="md" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-              <Loader size="sm" />
-              <Text size="xs" c="dimmed">Loading details...</Text>
-            </Box>
-          ) : (
+        !hasActiveReadScopes ? (
+          emptyMainState(
+            'No scopes selected',
+            'Enable at least one metadata scope in the picker to view model metadata.',
+            true,
+          )
+        ) : routeEntityId && (entityLoading || !selectedEntity) ? (
+          <Box p="md" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <Loader size="sm" />
+            <Text size="xs" c="dimmed">Loading details...</Text>
+          </Box>
+        ) : selectedEntity ? (
             <EntityDetails
               entity={selectedEntity}
               facets={facets}
-              selectedContext={selectedContext}
+              activeScopes={readScopes}
+              declaredScopes={declaredScopes}
+              onScopeSelectionChange={handleScopeSelectionChange}
+              scopeQuery={scopeQuery}
               onFacetsChanged={async () => {
-                const reloaded = await schemaService.getEntityById(selectedEntity.id, selectedContext);
+                const reloaded = await schemaService.getEntityById(selectedEntity.id, scopeQuery);
                 if (!reloaded) {
                   setFacets({});
                   return;
                 }
-                setFacets(await loadFacetsForEntity(reloaded, selectedContext));
+                setSelectedEntity(reloaded);
+                setFacets(await loadFacetsForEntity(reloaded, scopeQuery));
               }}
             />
-          )
         ) : (
-          <Box
-            style={{
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Box
-              style={{
-                width: 80,
-                height: 80,
-                borderRadius: '50%',
-                backgroundColor: isDark ? 'var(--mantine-color-cyan-9)' : 'var(--mantine-color-teal-1)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: 24,
-              }}
-            >
-              <HiOutlineCircleStack
-                size={36}
-                color={isDark ? 'var(--mantine-color-cyan-4)' : 'var(--mantine-color-teal-6)'}
-              />
-            </Box>
-            <Text size="xl" fw={600} c={isDark ? 'gray.1' : 'gray.8'} mb="xs">
-              Data Model Explorer
-            </Text>
-            <Text size="sm" c="dimmed" ta="center" maw={400}>
-              Select a schema, table, or column from the tree on the left to view its details and metadata.
-            </Text>
-          </Box>
+          emptyMainState(
+            'Data Model Explorer',
+            'Select a schema, table, or column from the tree on the left to view its details and metadata.',
+            true,
+          )
         )
       }
     />
