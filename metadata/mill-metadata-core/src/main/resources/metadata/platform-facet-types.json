@@ -39,18 +39,112 @@
   {
     "facetTypeUrn": "urn:mill/metadata/facet-type:concept",
     "title": "Concept",
-    "description": "Business concept definitions and optional mappings to physical model elements.",
+    "description": "Business concept definition for the logical model — multiple concept facet assignments may exist on the model root entity.",
     "category": "general",
     "enabled": true,
     "mandatory": false,
-    "targetCardinality": "SINGLE",
-    "applicableTo": [],
+    "targetCardinality": "MULTIPLE",
+    "applicableTo": [
+      "urn:mill/metadata/entity-type:model"
+    ],
     "schemaVersion": "1.0",
     "contentSchema": {
       "type": "OBJECT",
       "title": "Concept payload",
-      "description": "JSON object for named concepts and target references consumed by AI and explorers.",
-      "fields": [],
+      "description": "One business concept per facet assignment; concepts[] is retained for compatibility and must contain exactly one entry.",
+      "fields": [
+        {
+          "name": "concepts",
+          "schema": {
+            "type": "ARRAY",
+            "title": "Concepts",
+            "description": "Exactly one concept entry per facet assignment. Model entities hold many concepts through many concept facet assignments.",
+            "items": {
+              "type": "OBJECT",
+              "title": "Concept entry",
+              "description": "Business concept definition, tags, and indicative SQL hint.",
+              "fields": [
+                {
+                  "name": "name",
+                  "schema": {
+                    "type": "STRING",
+                    "title": "Name",
+                    "description": "Human-readable concept name."
+                  },
+                  "required": true
+                },
+                {
+                  "name": "description",
+                  "schema": {
+                    "type": "STRING",
+                    "title": "Description",
+                    "description": "Metadata-quality narrative definition of the business concept."
+                  },
+                  "required": true
+                },
+                {
+                  "name": "sql",
+                  "schema": {
+                    "type": "STRING",
+                    "title": "Indicative SQL",
+                    "description": "Indicative SQL hint for extracting or identifying the concept in data; reasoning guidance only."
+                  },
+                  "required": false
+                },
+                {
+                  "name": "tags",
+                  "schema": {
+                    "type": "ARRAY",
+                    "title": "Tags",
+                    "description": "Tags for discovery and filtering.",
+                    "items": {
+                      "type": "STRING",
+                      "title": "Tag",
+                      "description": "One tag value."
+                    }
+                  },
+                  "required": false,
+                  "stereotype": "tags"
+                },
+                {
+                  "name": "source",
+                  "schema": {
+                    "type": "ENUM",
+                    "title": "Source",
+                    "description": "How the concept definition was authored.",
+                    "values": [
+                      {
+                        "value": "MANUAL",
+                        "description": "Authored manually."
+                      },
+                      {
+                        "value": "INFERRED",
+                        "description": "Inferred by the system."
+                      },
+                      {
+                        "value": "NL2SQL",
+                        "description": "Captured from natural-language chat enrichment."
+                      }
+                    ]
+                  },
+                  "required": false
+                },
+                {
+                  "name": "sourceSession",
+                  "schema": {
+                    "type": "STRING",
+                    "title": "Source session",
+                    "description": "Chat or session identifier when source is NL2SQL."
+                  },
+                  "required": false
+                }
+              ],
+              "required": []
+            }
+          },
+          "required": true
+        }
+      ],
       "required": []
     }
   }
