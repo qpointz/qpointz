@@ -10,6 +10,19 @@ This document describes how the **Data Model** explorer (`ui/mill-ui`, route `/m
 - **Field stereotypes** (hyperlink, email, tags): see [**mill-ui-facet-stereotypes.md**](mill-ui-facet-stereotypes.md).
 - **Structural** facet: still uses a dedicated `StructuralFacet` component when the legacy convenience flags/data path applies (see below).
 
+## Multi-scope read (`?scope=` query param)
+
+The model explorer reads metadata facets from one or more **scope slugs** passed in the URL query
+parameter `scope` (comma-separated, e.g. `?scope=global,chat-<conversationId>`). When the parameter
+is absent, only **global** is used.
+
+- Scopes are **URL-driven only** — the explorer does not list all registered metadata scopes.
+- The scope checkbox control is **always** shown in the explorer content toolbar. With only `global` (default `/model` navigation) it lists a single checked Global scope; additional scopes appear when declared in `scope=`.
+- **Open in model** from a chat facet card deep-links with `global` and `chat-<conversationId>`.
+- Schema and metadata API calls pass the comma-joined active slugs as the `scope` query parameter.
+
+Authorized scope management (which scopes a user may add or browse) is deferred to a follow-up story.
+
 ## Current behavior (`EntityDetails.tsx`)
 
 | Case | Read presentation | Edit |

@@ -269,6 +269,8 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | U-14 | mill-ui Analysis modes: SQL Analysis for technical users plus Visual Analysis path/board authoring for business users (**WI-267**–**WI-272**) | ✨ feature | planned | [`planned/mill-ui-visual-analysis-modes/STORY.md`](planned/mill-ui-visual-analysis-modes/STORY.md) |
 | U-15 | mill-ui chat artefact presentation: condensed/expand SQL views, `QueryDataView`, GET replay wire, Run all, mid-chat profile switch (**WI-289**–**WI-298**; supersedes abandoned `feat/ai-chat-sql-result-view`) | ✨ feature | done | [`completed/20260612-ai-sql-view-restart/STORY.md`](completed/20260612-ai-sql-view-restart/STORY.md) |
 | U-16 | General chat facet-proposal display: SQL-parity condensed box (Facet + JSON tabs), shared Data Model read-only renderer, reserved action bar (**WI-335**–**WI-337**) | ✨ feature | done | [`completed/20260619-ai-chat-facet-display/STORY.md`](completed/20260619-ai-chat-facet-display/STORY.md) |
+| U-17 | Model explorer URL-driven multi-scope read: toggle scopes from `?scope=` only, chat open-in-model deep-link (**WI-378**) | ✨ feature | in-progress | [`in-progress/model-view-multi-scope/STORY.md`](in-progress/model-view-multi-scope/STORY.md) |
+| U-18 | Model explorer authorized scope management: RBAC for which scopes a user may use, add/switch scopes in UI (not full registry) | ✨ feature | backlog | follow-up to **U-17** / WI-378 deferred scope |
 
 ---
 
