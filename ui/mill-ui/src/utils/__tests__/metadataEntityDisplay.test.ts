@@ -20,6 +20,11 @@ describe('metadataEntityDisplay', () => {
     ).toBe('skymill.passenger.first_name');
   });
 
+  it('shouldResolveModelRoot_fromUrnOrWireCatalogPath', () => {
+    expect(facetEntityCatalogPath('model-entity', 'urn:mill/model/table:skymill.passenger')).toBe('model-entity');
+    expect(facetEntityCatalogPath(undefined, 'urn:mill/model/model:model-entity')).toBe('model-entity');
+  });
+
   it('shouldBuildModelRoute_fromCatalogPath', () => {
     expect(modelRouteFromCatalogPath('skymill.passenger.id')).toBe('/model/skymill/passenger/id');
   });

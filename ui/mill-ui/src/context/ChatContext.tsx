@@ -20,6 +20,7 @@ import {
 } from '../features/chatPreferences';
 import { parseChatStructuredPart } from '../utils/chatArtifactParse';
 import { parseWireArtifacts } from '../utils/artifactWireParse';
+import { mergeStreamedArtifactsWithAssistantTurn } from '../utils/artifactMerge';
 import { assistantReplyViewFromWire, deriveAssistantReplyView } from '../utils/assistantReplyView';
 import { StreamingReplySegmentTracker } from '../utils/streamingReplySegments';
 
@@ -868,6 +869,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       try {
         let fullContent = '';
         let firstChunk = true;
+        const streamedArtifacts: ChatMessageArtifact[] = [];
         const segmentTracker = new StreamingReplySegmentTracker();
         for await (const chunk of chatService.sendMessage(streamingChatId, content, {
           onProgress: (evt) => {
@@ -882,6 +884,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           onNonTextPartUpdated: (evt) => {
             const artifact = parseChatStructuredPart(evt);
             if (!artifact) return;
+            streamedArtifacts.push(artifact);
             dispatch({
               type: 'APPEND_MESSAGE_ARTIFACT',
               payload: {
@@ -935,6 +938,23 @@ export function ChatProvider({ children }: { children: ReactNode }) {
               replySegments,
             },
           });
+        }
+        if (isRestChatBackendActive() && streamedArtifacts.length > 0) {
+          try {
+            const detail = await chatService.getChatDetail(streamingChatId);
+            const lastAssistant = [...detail.messages].reverse().find((turn) => turn.role === 'assistant');
+            const merged = mergeStreamedArtifactsWithAssistantTurn(streamedArtifacts, lastAssistant);
+            dispatch({
+              type: 'SET_MESSAGE_ARTIFACTS',
+              payload: {
+                conversationId: streamingChatId,
+                messageId: assistantMessage.id,
+                artifacts: merged,
+              },
+            });
+          } catch (hydrateError) {
+            console.warn('Failed to hydrate facet artifact ids after stream', hydrateError);
+          }
         }
       } catch (error) {
         console.error('Failed to get response:', error);

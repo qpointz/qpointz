@@ -5,6 +5,8 @@
 const MODEL_SCHEMA_URN = /^urn:mill\/model\/schema:(.+)$/i;
 const MODEL_TABLE_URN = /^urn:mill\/model\/table:(.+)$/i;
 const MODEL_ATTRIBUTE_URN = /^urn:mill\/model\/attribute:(.+)$/i;
+const MODEL_ROOT_URN = /^urn:mill\/model\/model:model-entity$/i;
+const MODEL_ROOT_CATALOG_PATH = 'model-entity';
 
 function normalizeCatalogPath(raw: string): string {
   return raw
@@ -36,12 +38,17 @@ export function facetEntityCatalogPath(
   metadataEntityId: string,
 ): string {
   const fromWire = catalogPath?.trim();
-  if (fromWire) return normalizeCatalogPath(fromWire);
-
-  const fromUrn = catalogPathFromModelEntityUrn(metadataEntityId);
-  if (fromUrn) return fromUrn;
+  if (fromWire) {
+    if (fromWire.toLowerCase() === MODEL_ROOT_CATALOG_PATH) return MODEL_ROOT_CATALOG_PATH;
+    return normalizeCatalogPath(fromWire);
+  }
 
   const trimmed = metadataEntityId.trim();
+  if (MODEL_ROOT_URN.test(trimmed)) return MODEL_ROOT_CATALOG_PATH;
+
+  const fromUrn = catalogPathFromModelEntityUrn(trimmed);
+  if (fromUrn) return fromUrn;
+
   if (trimmed && !/^urn:/i.test(trimmed) && trimmed.includes('.')) {
     return normalizeCatalogPath(trimmed);
   }

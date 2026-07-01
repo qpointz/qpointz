@@ -20,6 +20,7 @@ import { resolveGeneralChatAgentProfileId } from '../features/chatPreferences';
 import { useFeatureFlags } from '../features/FeatureFlagContext';
 import { parseChatStructuredPart } from '../utils/chatArtifactParse';
 import { parseWireArtifacts } from '../utils/artifactWireParse';
+import { mergeStreamedArtifactsWithAssistantTurn } from '../utils/artifactMerge';
 import { deriveAssistantReplyView } from '../utils/assistantReplyView';
 import { StreamingReplySegmentTracker } from '../utils/streamingReplySegments';
 import type { TurnResponseWire } from '../types/chatWire';
@@ -501,6 +502,7 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
           payload: { sessionId, message: null },
         });
         let fullContent = '';
+        const streamedArtifacts: ChatMessageArtifact[] = [];
         const segmentTracker = new StreamingReplySegmentTracker();
         for await (const chunk of chatService.sendMessage(chatId, content, {
           onProgress: (evt) => {
@@ -524,6 +526,7 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
           onNonTextPartUpdated: (evt) => {
             const artifact = parseChatStructuredPart(evt);
             if (!artifact) return;
+            streamedArtifacts.push(artifact);
             dispatch({
               type: 'APPEND_MESSAGE_ARTIFACT',
               payload: { sessionId, messageId: assistantMessage.id, artifact },
@@ -559,6 +562,20 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
             type: 'SET_MESSAGE_REPLY_SEGMENTS',
             payload: { sessionId, messageId: assistantMessage.id, replySegments },
           });
+        }
+
+        if (streamedArtifacts.length > 0) {
+          try {
+            const detail = await chatService.getChatDetail(chatId);
+            const lastAssistant = [...detail.messages].reverse().find((turn) => turn.role === 'assistant');
+            const merged = mergeStreamedArtifactsWithAssistantTurn(streamedArtifacts, lastAssistant);
+            dispatch({
+              type: 'SET_MESSAGE_ARTIFACTS',
+              payload: { sessionId, messageId: assistantMessage.id, artifacts: merged },
+            });
+          } catch (hydrateError) {
+            console.warn('Failed to hydrate facet artifact ids after inline stream', hydrateError);
+          }
         }
 
         // Notify registered listeners for this context
