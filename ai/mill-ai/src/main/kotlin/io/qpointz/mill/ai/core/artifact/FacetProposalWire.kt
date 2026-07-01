@@ -64,6 +64,9 @@ object FacetProposalWire {
                 (map["catalogPath"] as? String)?.let { put("catalogPath", it) }
                 (map["rationale"] as? String)?.takeIf { it.isNotBlank() }?.let { put("rationale", it) }
                 (map["serializedPayload"] ?: map["payload"])?.let { put("payload", it) }
+                (map["candidateConceptLinks"] as? List<*>)?.takeIf { it.isNotEmpty() }?.let {
+                    put("candidateConceptLinks", it)
+                }
             }
         }
 
@@ -84,6 +87,9 @@ object FacetProposalWire {
             (map["catalogPath"] as? String)?.let { put("catalogPath", it) }
             (map["rationale"] as? String)?.takeIf { it.isNotBlank() }?.let { put("rationale", it) }
             (map["serializedPayload"] ?: map["payload"])?.let { put("payload", it) }
+            (map["candidateConceptLinks"] as? List<*>)?.takeIf { it.isNotEmpty() }?.let {
+                put("candidateConceptLinks", it)
+            }
         }
     }
 

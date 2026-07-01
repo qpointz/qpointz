@@ -43,6 +43,10 @@ data class AiV3ChatProperties(
     val valueMapping: ChatValueMappingCapabilities = ChatValueMappingCapabilities(),
     val schemaSearch: ChatSchemaSearchCapabilities = ChatSchemaSearchCapabilities(),
     val scenarioCapture: ScenarioCaptureProperties = ScenarioCaptureProperties(),
+    /**
+     * Maximum native tool-loop iterations per agent turn before returning the iteration-limit fallback.
+     */
+    val maxIterations: Int = 20,
 ) {
     /**
      * @return framework-neutral settings for the unified chat service (`mill-ai-service`)

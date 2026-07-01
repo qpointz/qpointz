@@ -58,6 +58,7 @@ class LangChain4jChatRuntime(
     private val artifactObservers: List<ArtifactObserver> = emptyList(),
     private val metadataScopeService: io.qpointz.mill.metadata.service.MetadataScopeService? = null,
     private val scenarioCaptureEnabled: Boolean = false,
+    private val maxIterations: Int = LangChain4jAgent.DEFAULT_MAX_ITERATIONS,
 ) : AiV3ChatRuntime {
 
     private val protocolJsonMapper: JsonMapper = JsonMapper.builder().build()
@@ -95,6 +96,7 @@ class LangChain4jChatRuntime(
                     memoryStrategy = memoryStrategy,
                     persistenceContext = persistenceContext,
                     artifactDescriptorRegistry = artifactDescriptorRegistry,
+                    maxIterations = LangChain4jAgent.validateMaxIterations(maxIterations),
                 )
                 val session = ConversationSession(
                     conversationId = metadata.chatId,

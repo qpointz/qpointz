@@ -25,6 +25,16 @@ prompts:
       7. For relations: pick relation-source vs relation-target by grounded table role in the join.
       8. Validate each planned payload against the catalog before capture.
       9. Propose one assignment per checklist row — parallel when independent; additional rounds when needed until the checklist is complete.
+      10. Every inferred metadata change (descriptive, data-quality, relations, concepts, and any other catalog facet type) MUST use the facet-assignment capture path so the user can accept or reject each proposal in chat. Never substitute prose-only summaries or raw JSON for reviewable facet cards.
+
+  metadata.faceting.lifecycle:
+    description: User review lifecycle shared by all facet assignment types.
+    content: |
+      All LLM-reasoned metadata — descriptive, data-quality, relations, concepts, and any other catalog facet type — follows the same proposal lifecycle:
+      - Emit one facet-assignment capture per (entity, facet type) pair; parallel captures when independent.
+      - The user accepts or rejects each proposal in chat before it is treated as committed metadata.
+      - Rejected proposals must not be applied or re-stated as facts in later turns.
+      - Concept definitions on the model root use the same lifecycle; follow concept.capture for indicative SQL grounding and concept-specific payload fields.
 
   metadata-authoring.batch:
     description: Parallel multi-facet capture guidance.
@@ -70,6 +80,8 @@ tools:
     description: |
       Proposes one facet payload assignment for one metadata entity. Call once per (catalogPath, facetTypeKey) pair.
       Pass the qualified database object name (`schema.table` or `schema.table.column`) — do not synthesize URNs.
+      For model-level `concept` facets, pass catalogPath `model-entity` (or metadataEntityId `urn:mill/model/model:model-entity`).
+      Follow `concept.capture` for business concept payloads (one concept per assignment; parallel calls for multiple concepts).
       Payload: use exact catalog facetTypeKey; kebab-case slug for any `name` field; rephrase `description` (and similar narrative fields) to be concise and complete.
       For multiple columns or mixed descriptive + data-quality rules, call this tool in parallel or across successive rounds until every user-requested facet is captured.
       Validates payload against catalog schema before emitting capture. Does not persist metadata scope inline — writeScopeUrns[] are stamped from AgentContext.
@@ -87,7 +99,7 @@ tools:
           description: Exact catalog facet type key (lowercase, hyphen-separated), e.g. descriptive, dq-null-check.
         catalogPath:
           type: string
-          description: Qualified database object name (`schema`, `schema.table`, or `schema.table.column`) from schema tools.
+          description: Qualified database object name (`schema`, `schema.table`, `schema.table.column`) or `model-entity` for concept facets.
         metadataEntityId:
           type: string
           description: Deprecated alias for catalogPath or canonical URN; prefer catalogPath.
@@ -97,6 +109,23 @@ tools:
         rationale:
           type: string
           description: One concise sentence for chat commentary; summarize what was captured without repeating the full payload.
+        candidateConceptLinks:
+          type: array
+          description: Optional concept-to-object link candidates (envelope only; outside serializedPayload).
+          items:
+            type: object
+            required:
+              - conceptRef
+              - targetRef
+            properties:
+              conceptRef:
+                type: string
+              targetRef:
+                type: string
+              linkKind:
+                type: string
+              parentFacetArtifactId:
+                type: string
     output:
       type: object
       properties:
@@ -116,6 +145,10 @@ tools:
           type: array
           items:
             type: string
+        candidateConceptLinks:
+          type: array
+          items:
+            type: object
 
 artifacts:
   inferred-facet:
@@ -161,6 +194,10 @@ protocols:
                 type: array
                 items:
                   type: string
+              candidateConceptLinks:
+                type: array
+                items:
+                  type: object
         captureType:
           type: string
         facetTypeKey:

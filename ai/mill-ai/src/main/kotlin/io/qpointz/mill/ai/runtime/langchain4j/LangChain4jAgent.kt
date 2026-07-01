@@ -52,9 +52,27 @@ class LangChain4jAgent(
     private val artifactDescriptorRegistry: ArtifactDescriptorRegistry = ArtifactDescriptorRegistry.loadDefault(),
     private val emissionCoordinator: ArtifactEmissionCoordinator = ArtifactEmissionCoordinator(artifactDescriptorRegistry),
     private val eventRouter: AgentEventRouter = RegistryAgentEventRouter(artifactDescriptorRegistry),
+    maxIterations: Int = DEFAULT_MAX_ITERATIONS,
 ) {
+    private val maxIterations: Int = validateMaxIterations(maxIterations)
+
     companion object {
-        private const val MAX_ITERATIONS = 20
+        const val DEFAULT_MAX_ITERATIONS = 20
+
+        const val MAX_ITERATIONS_FALLBACK =
+            "Reached maximum iteration limit without producing a final answer."
+
+        /**
+         * @param value configured iteration ceiling
+         * @return [value] when positive
+         * @throws IllegalArgumentException when [value] is not positive
+         */
+        fun validateMaxIterations(value: Int): Int {
+            require(value > 0) {
+                "max-iterations must be positive, got $value"
+            }
+            return value
+        }
 
         fun fromEnv(
             profile: AgentProfile,
@@ -62,6 +80,7 @@ class LangChain4jAgent(
             chatMemoryStore: ChatMemoryStore = InMemoryChatMemoryStore(),
             memoryStrategy: LlmMemoryStrategy = BoundedWindowMemoryStrategy(),
             persistenceContext: AgentPersistenceContext = AgentPersistenceContext(),
+            maxIterations: Int = DEFAULT_MAX_ITERATIONS,
         ): LangChain4jAgent? {
             val apiKey = System.getenv("OPENAI_API_KEY") ?: return null
             val config = Config(
@@ -69,7 +88,7 @@ class LangChain4jAgent(
                 modelName = System.getenv("OPENAI_MODEL") ?: "gpt-4o-mini",
                 baseUrl = System.getenv("OPENAI_BASE_URL"),
             )
-            return fromConfig(config, profile, registry, chatMemoryStore, memoryStrategy, persistenceContext)
+            return fromConfig(config, profile, registry, chatMemoryStore, memoryStrategy, persistenceContext, maxIterations)
         }
 
         fun fromConfig(
@@ -79,6 +98,7 @@ class LangChain4jAgent(
             chatMemoryStore: ChatMemoryStore = InMemoryChatMemoryStore(),
             memoryStrategy: LlmMemoryStrategy = BoundedWindowMemoryStrategy(),
             persistenceContext: AgentPersistenceContext = AgentPersistenceContext(),
+            maxIterations: Int = DEFAULT_MAX_ITERATIONS,
         ): LangChain4jAgent {
             val builder = OpenAiStreamingChatModel.builder()
                 .apiKey(config.apiKey)
@@ -92,6 +112,7 @@ class LangChain4jAgent(
                 chatMemoryStore = chatMemoryStore,
                 memoryStrategy = memoryStrategy,
                 persistenceContext = persistenceContext,
+                maxIterations = maxIterations,
             )
         }
     }
@@ -169,7 +190,7 @@ class LangChain4jAgent(
         messages.add(UserMessage.from(input))
 
         var iteration = 0
-        while (iteration < MAX_ITERATIONS) {
+        while (iteration < maxIterations) {
             val response = complete(
                 ChatRequest.builder()
                     .messages(messages)
@@ -235,7 +256,7 @@ class LangChain4jAgent(
             iteration++
         }
 
-        val fallback = "Reached maximum iteration limit without producing a final answer."
+        val fallback = MAX_ITERATIONS_FALLBACK
         routedListener(AgentEvent.AnswerCompleted(fallback))
         saveToMemory(session, input, fallback)
         session.appendUserMessage(input)

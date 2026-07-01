@@ -145,6 +145,7 @@ class AiV3AutoConfiguration {
     fun capabilityDependencyAssembler(
         schemaCatalog: ObjectProvider<SchemaCatalogPort>,
         metadataReadPort: ObjectProvider<io.qpointz.mill.ai.capabilities.metadata.MetadataReadPort>,
+        conceptCatalog: ObjectProvider<io.qpointz.mill.ai.capabilities.concept.ConceptCatalogPort>,
         dialectSpec: ObjectProvider<SqlDialectSpec>,
         sqlValidator: ObjectProvider<SqlValidator>,
         sqlValidationService: ObjectProvider<SqlQueryToolHandlers.SqlValidationService>,
@@ -152,6 +153,7 @@ class AiV3AutoConfiguration {
     ): CapabilityDependencyAssembler = SpringCapabilityDependencyAssembler(
         schemaCatalog = schemaCatalog,
         metadataReadPort = metadataReadPort,
+        conceptCatalog = conceptCatalog,
         dialectSpec = dialectSpec,
         sqlValidator = sqlValidator,
         sqlValidationService = sqlValidationService,
@@ -205,6 +207,7 @@ class AiV3AutoConfiguration {
         artifactObservers = artifactObservers.orderedStream().toList(),
         metadataScopeService = metadataScopeService.ifAvailable,
         scenarioCaptureEnabled = chatProperties.scenarioCapture.enabled,
+        maxIterations = chatProperties.maxIterations,
     )
 
     // ── User identity ─────────────────────────────────────────────────────────

@@ -5,6 +5,12 @@
       "type": "java.lang.Boolean",
       "description": "When true, persist extended run events (tool.call, tool.result) and expose GET /api/v1/ai/chats/{chatId}/scenario-export for dev/tuning. Default false.",
       "defaultValue": false
+    },
+    {
+      "name": "mill.ai.chat.max-iterations",
+      "type": "java.lang.Integer",
+      "description": "Maximum native tool-loop iterations per agent turn before returning the iteration-limit fallback.",
+      "defaultValue": 20
     }
   ]
 }

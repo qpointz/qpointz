@@ -3,6 +3,7 @@ package io.qpointz.mill.ai.profile
 import io.qpointz.mill.ai.core.capability.CapabilityManifest
 import io.qpointz.mill.ai.core.capability.CapabilityRegistry
 import io.qpointz.mill.ai.dependencies.SchemaFacingCapabilityDependencyFactory
+import io.qpointz.mill.ai.capabilities.concept.EmptyConceptCatalogPort
 import io.qpointz.mill.ai.capabilities.metadata.EmptyMetadataReadPort
 import io.qpointz.mill.ai.capabilities.schema.SchemaCatalogPort
 import io.qpointz.mill.ai.capabilities.schema.ListColumnsItem
@@ -55,7 +56,19 @@ class ProfileIntentPromptTest {
         assertThat(profile.prompts.map { it.id }).contains("data-analysis.intent")
         val intent = profile.prompts.single { it.id == "data-analysis.intent" }
         assertTrue(intent.content.contains("sql-query.intent"))
+        assertTrue(intent.content.contains("concept.intent"))
         assertTrue(intent.content.contains("metadata-authoring.intent"))
+    }
+
+    @Test
+    fun shouldComposeConceptIntent_inDataAnalysisProfile_withoutOwningDataQuery() {
+        val intent = PlatformProfiles.require("data-analysis")
+            .prompts.single { it.id == "data-analysis.intent" }
+        assertTrue(intent.content.contains("concept.intent"))
+        assertFalse(intent.content.contains("CONCEPT_LOOKUP"))
+        val conceptIntent = CapabilityManifest.load("capabilities/concept.yaml")
+            .promptAsset("concept.intent")
+        assertFalse(conceptIntent.content.contains("DATA_QUERY"))
     }
 
     @Test
@@ -95,6 +108,7 @@ class ProfileIntentPromptTest {
                 profile = profile,
                 schemaCatalog = catalog,
                 metadataReadPort = EmptyMetadataReadPort(),
+                conceptCatalog = EmptyConceptCatalogPort,
                 dialectSpec = dialect,
                 sqlQueryDependency = SqlQueryCapabilityDependency(MockSqlValidationService()),
                 valueMappingResolver = MockValueMappingResolver(),
@@ -103,10 +117,12 @@ class ProfileIntentPromptTest {
         val capabilities = registry.capabilitiesFor(profile, context)
         val systemPrompt = buildAgentSystemPrompt(profile, capabilities)
 
+        val conceptIdx = systemPrompt.indexOf("concept.system")
         val profileIdx = systemPrompt.indexOf("data-analysis.intent")
         val sqlIntentIdx = systemPrompt.indexOf("sql-query.intent")
         val metadataIntentIdx = systemPrompt.indexOf("metadata-authoring.intent")
         assertTrue(profileIdx >= 0)
+        assertTrue(conceptIdx > profileIdx)
         assertTrue(sqlIntentIdx > profileIdx)
         assertTrue(metadataIntentIdx > profileIdx)
     }

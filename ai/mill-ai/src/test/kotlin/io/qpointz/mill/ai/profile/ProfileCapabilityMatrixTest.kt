@@ -1,5 +1,6 @@
 package io.qpointz.mill.ai.profile
 
+import io.qpointz.mill.ai.capabilities.concept.EmptyConceptCatalogPort
 import io.qpointz.mill.ai.capabilities.metadata.EmptyMetadataReadPort
 import io.qpointz.mill.ai.capabilities.schema.SchemaCatalogPort
 import io.qpointz.mill.ai.capabilities.schema.ListColumnsItem
@@ -37,6 +38,7 @@ class ProfileCapabilityMatrixTest {
             profile = profile,
             schemaCatalog = catalog,
             metadataReadPort = EmptyMetadataReadPort(),
+            conceptCatalog = EmptyConceptCatalogPort,
             dialectSpec = dialect,
             sqlQueryDependency = SqlQueryCapabilityDependency(MockSqlValidationService()),
             valueMappingResolver = MockValueMappingResolver(),
@@ -53,6 +55,24 @@ class ProfileCapabilityMatrixTest {
     fun shouldIncludeMetadataAuthoring_inMetadataAuthoringProfile() {
         val profile = profiles.resolve("metadata-authoring")!!
         assertTrue(profile.capabilityIds.contains("metadata-authoring"))
+    }
+
+    @Test
+    fun shouldIncludeConcept_inDataAnalysisProfile() {
+        val profile = profiles.resolve("data-analysis")!!
+        assertTrue(profile.capabilityIds.contains("concept"))
+    }
+
+    @Test
+    fun shouldResolveConceptQueryTools_forDataAnalysis() {
+        val profile = profiles.resolve("data-analysis")!!
+        val toolNames = registry.capabilitiesFor(profile, contextFor(profile))
+            .flatMap { it.tools }
+            .map { it.spec.name() }
+            .toSet()
+        assertTrue(toolNames.contains("search_concepts"))
+        assertTrue(toolNames.contains("get_model_concepts"))
+        assertTrue(toolNames.contains("validate_sql"))
     }
 
     @Test

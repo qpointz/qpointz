@@ -1,5 +1,6 @@
 ﻿package io.qpointz.mill.ai.capabilities.metadata
 
+import io.qpointz.mill.ai.capabilities.concept.ConceptCandidateLink
 import io.qpointz.mill.ai.core.capability.Capability
 import io.qpointz.mill.ai.core.capability.CapabilityDependencies
 import io.qpointz.mill.ai.core.capability.CapabilityDescriptor
@@ -94,6 +95,7 @@ private data class ProposeFacetAssignmentArgs(
   val metadataEntityId: String? = null,
   val payload: Map<String, Any?>,
   val rationale: String? = null,
+  val candidateConceptLinks: List<Map<String, Any?>>? = null,
 )
 
 data class MetadataFacetProposalCapture(
@@ -105,6 +107,7 @@ data class MetadataFacetProposalCapture(
   val rationale: String?,
   val writeScopeUrns: List<String> = emptyList(),
   val validationWarnings: List<String> = emptyList(),
+  val candidateConceptLinks: List<Map<String, Any?>> = emptyList(),
 )
 
 private data class MetadataCapability(
@@ -222,7 +225,10 @@ private data class MetadataAuthoringCapability(
         return@tool ToolResult(
           mapOf(
             "rejected" to true,
-            "errors" to listOf("catalogPath is required (qualified name such as schema.table.column)"),
+            "errors" to listOf(
+              "catalogPath or metadataEntityId is required " +
+                "(qualified name such as schema.table.column, or model-entity for concept facets)",
+            ),
           ),
         )
       }
@@ -250,6 +256,8 @@ private data class MetadataAuthoringCapability(
           ),
         )
       } else {
+        val candidateLinks = ConceptCandidateLink.parseAll(args.candidateConceptLinks)
+          .map { it.toEnvelopeMap() }
         ToolResult(
           MetadataFacetProposalCapture(
             facetTypeKey = args.facetTypeKey,
@@ -258,6 +266,7 @@ private data class MetadataAuthoringCapability(
             serializedPayload = args.payload,
             rationale = args.rationale,
             writeScopeUrns = agentContext.writeScopeUrns(),
+            candidateConceptLinks = candidateLinks,
           ),
         )
       }
