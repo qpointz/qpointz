@@ -23,6 +23,7 @@ Optionally, keep a **newest-first** bullet list below as a human-maintained inde
 
 ## Index (optional, newest first)
 
+- [2026-07-03 — metadata-facet-json-schema (facet payload JSON Schema projection, REST endpoint, admin read-only view; WI-379–WI-382)](20260703-metadata-facet-json-schema/STORY.md)
 - [2026-07-01 — model-view-multi-scope (URL-driven multi-scope read, scope/tag pickers, chat deep-links; WI-378)](20260701-model-view-multi-scope/STORY.md)
 - [2026-07-01 — ai-concepts (concept facet, catalog capability, data-analysis injection, authoring capture; WI-366–370, WI-372)](20260701-ai-concepts/STORY.md)
 - [2026-06-29 — metadata-authoring-profiles (catalog-generic facet authoring, YAML profiles, lifecycle, per-capability intents; WI-354–WI-364)](20260629-metadata-authoring-profiles/STORY.md)

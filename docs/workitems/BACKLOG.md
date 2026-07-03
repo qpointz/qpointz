@@ -141,6 +141,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | M-32 | **Facet type catalog (metadata capture follow-up):** list endpoint + Mill UI **facet type** admin show **`FacetTypeSource.DEFINED` and `OBSERVED`** (union/dedup); **OBSERVED** types visible when assignments created unknown keys; label source in UI; optional read-only / promote-to-defined for OBSERVED | ✨ feature | backlog | `metadata/metadata-facet-type-catalog-defined-and-observed.md` |
 | M-33 | Data Quality facet type definitions — L1/L2 platform seeds, design contract, relplan sketches (**WI-342**–**WI-344**) | 📝 docs | done | [`completed/20260624-dqm-metadata-facets/STORY.md`](completed/20260624-dqm-metadata-facets/STORY.md) — see **MILESTONE** 0.8.0 |
 | M-34 | Eliminate redundant **`MetadataEntity.kind`** / **`entity_kind`** now that entity URNs are typed (`urn:mill/model/...`); domain, JPA, REST DTOs, YAML — **WI-144** | 🔧 refactoring | planned | `docs/workitems/planned/eliminate-entity-kind/STORY.md` |
+| M-35 | Expose facet type payload contracts as generated JSON Schema and show read-only JSON Schema in facet type admin (**WI-379**–**WI-382**) | ✨ feature | done | [`completed/20260703-metadata-facet-json-schema/STORY.md`](completed/20260703-metadata-facet-json-schema/STORY.md) — see **MILESTONE** 0.8.0 |
 
 ---
 
