@@ -38,7 +38,8 @@ Payload schema node fields:
 - `title` (required): node title
 - `description` (required): node description
 - `fields` (required for `OBJECT`): ordered list of field entries
-- `required` (optional for `OBJECT`): list of required field names
+- `required` (optional for `OBJECT`): normalized compatibility list of required field names; derived
+  from field-level `required` flags when manifests are normalized
 - `items` (required for `ARRAY`): nested schema node
 - `values` (required for `ENUM`): non-empty list of enum value entries
 - `format` (optional for `STRING`): one of `date | date-time | email | uri`
@@ -64,12 +65,46 @@ Enum value entry:
 - `title` and `description` are required on descriptor and every schema node.
 - `OBJECT` field ordering is explicit and preserved via `fields: []` order.
 - Duplicate field names in the same object node are rejected.
-- `required` entries must reference declared field names.
+- `required` entries must reference declared field names; normalized output derives the list from
+  field-level `required` flags.
 - `targetCardinality` defaults to `SINGLE` when omitted.
 - `STRING.format` is strictly validated to: `date`, `date-time`, `email`, `uri`.
 - `format` is rejected for non-`STRING` schema node types.
 - `ENUM.values[].description` is required and must not be blank.
 - Unsupported composition constructs (`oneOf`, `anyOf`, `allOf`, conditional schemas) are out of scope.
+
+---
+
+## JSON Schema Projection
+
+Facet type manifests remain the canonical runtime and storage contract. Mill can also generate a
+draft-07-compatible JSON Schema projection for external consumers that need basic payload shape
+validation or a model/tool-readable schema document.
+
+- Endpoint: `GET /api/v1/metadata/facets/{typeKey}/schema`.
+- Source of truth: `FacetTypeManifest.contentSchema` / `FacetPayloadSchema`.
+- Scope: one facet payload instance. For `targetCardinality: MULTIPLE`, cardinality is exposed as
+  annotation metadata, not by wrapping the payload schema in an array.
+
+Projection mapping:
+
+| Mill schema | JSON Schema |
+|-------------|-------------|
+| `OBJECT` | `type: object`, `properties`, derived `required`, `additionalProperties: true` |
+| `ARRAY` | `type: array`, `items` |
+| `STRING` | `type: string`, optional `format` |
+| `NUMBER` | `type: number` |
+| `BOOLEAN` | `type: boolean` |
+| `ENUM` | `type: string`, `enum` |
+
+Common metadata (`title`, `description`, `default`) is preserved. Mill-specific context is carried
+as annotation keywords such as `x-mill-facetTypeUrn`, `x-mill-targetCardinality`,
+`x-mill-applicableTo`, `x-mill-category`, `x-mill-schemaVersion`, `x-mill-stereotype`, and
+`x-mill-enumDescriptions`.
+
+The JSON Schema projection validates **shape only**. Mill semantics such as `applicableTo`,
+`mandatory`, `enabled`, scope ownership, merge behaviour, and `targetCardinality` remain service/UI
+policy outside JSON Schema validation.
 
 ---
 

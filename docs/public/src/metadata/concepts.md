@@ -42,6 +42,8 @@ For a **full list of platform-shipped (seed) facet types** and their purposes, s
 
 Administrators can inspect or adjust **facet type descriptors** where your deployment exposes **Admin → Model → Facet types** (if that UI is enabled). Descriptors may include optional **stereotypes** on payload fields — UI hints such as **tags**, **hyperlink**, and **email** (not enforced by the metadata API). See [Facet field stereotypes](facet-stereotypes.md) for the tags Mill recognises in the Data Model.
 
+For external tools, Mill may expose a generated JSON Schema projection of a facet type payload. That projection is for payload shape validation; deployment rules such as applicable entity type, cardinality, scope ownership, and merge behaviour remain Mill semantics outside JSON Schema.
+
 ### Facet assignment (the value on an entity)
 
 A **facet assignment** is **one concrete attachment**: a given **entity** + **facet type** + **scope** + **payload** (the actual title, tags, relation row, etc.).

@@ -70,6 +70,7 @@ If **`/app/admin/model/facet-types`** is available (Admin sidebar **Metadata** â
 - Inspect **facet type manifests** (titles, **category** tab grouping, which entity kinds they apply to, single vs multiple cardinality).
 - Adjust **payload schemas** that drive forms in the **Model** view, including optional per-field **stereotypes** (presentation hints such as `tags`, `hyperlink`, `email`; see [Facet field stereotypes](facet-stereotypes.md) and design doc `facet-type-descriptor-formats.md`).
 - Use **Expert JSON mode** with a JSON/YAML toggle for the full manifest.
+- Inspect the generated **JSON Schema** projection for the payload contract in read-only mode.
 
 Changes affect **how** editors capture data, not the physical database. Coordinate with operators before altering production descriptors.
 
