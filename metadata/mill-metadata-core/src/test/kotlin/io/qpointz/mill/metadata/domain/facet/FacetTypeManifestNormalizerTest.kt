@@ -123,6 +123,42 @@ class FacetTypeManifestNormalizerTest {
         assertNull(fields[1].stereotype)
     }
 
+    @Test
+    fun shouldNormalizeObjectRequiredListFromFieldFlags() {
+        val manifest = baseManifest(
+            payload = FacetPayloadSchema(
+                type = FacetSchemaType.OBJECT,
+                title = "Root",
+                description = "Root object",
+                fields = listOf(
+                    FacetPayloadField(
+                        name = "owner",
+                        schema = FacetPayloadSchema(
+                            type = FacetSchemaType.STRING,
+                            title = "Owner",
+                            description = "Owner"
+                        ),
+                        required = true
+                    ),
+                    FacetPayloadField(
+                        name = "notes",
+                        schema = FacetPayloadSchema(
+                            type = FacetSchemaType.STRING,
+                            title = "Notes",
+                            description = "Notes"
+                        ),
+                        required = false
+                    )
+                ),
+                required = listOf("notes")
+            )
+        )
+
+        val norm = FacetTypeManifestNormalizer.normalizeStrict(manifest)
+
+        assertEquals(listOf("owner"), norm.payload.required)
+    }
+
     private fun baseManifest(payload: FacetPayloadSchema): FacetTypeManifest =
         FacetTypeManifest(
             typeKey = "descriptive",

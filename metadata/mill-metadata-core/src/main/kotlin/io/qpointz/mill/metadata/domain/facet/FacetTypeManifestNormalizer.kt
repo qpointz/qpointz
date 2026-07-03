@@ -55,7 +55,10 @@ object FacetTypeManifestNormalizer {
                         schema = normalizePayloadStereotypes(field.schema)
                     )
                 }
-                node.copy(fields = fields)
+                node.copy(
+                    fields = fields,
+                    required = fields.orEmpty().filter { it.required }.map { it.name }
+                )
             }
             FacetSchemaType.ARRAY -> {
                 val items = node.items?.let { normalizePayloadStereotypes(it) }
