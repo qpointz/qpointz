@@ -42,6 +42,8 @@ import {
   facetSchemaDefaultFromInput,
   facetSchemaSupportsDefault,
 } from '../../../utils/facetSchemaDefault';
+import { facetTypeManifestToJsonSchema } from '../../../utils/facetJsonSchema';
+import { SyntaxCodeEditor } from '../../common/SyntaxCodeEditor';
 
 interface FacetTypeEditPageProps {
   mode: 'create' | 'edit';
@@ -799,6 +801,7 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
   );
 
   const [expertMode, setExpertMode] = useState(false);
+  const [jsonSchemaMode, setJsonSchemaMode] = useState(false);
   const [expertDraft, setExpertDraft] = useState<{ valid: boolean; value?: unknown; error?: string } | null>(null);
   const [expertRollbackSnapshot, setExpertRollbackSnapshot] = useState<unknown | null>(null);
   const expertEditorRef = useRef<JsonYamlEditorHandle>(null);
@@ -972,6 +975,24 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
     }
   };
 
+  const jsonSchemaValue = useMemo(
+    () => facetTypeManifestToJsonSchema(wireManifest),
+    [wireManifest]
+  );
+
+  const copyJsonSchema = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(jsonSchemaValue, null, 2));
+      notifications.show({ color: 'green', title: 'Copied', message: 'JSON Schema copied to clipboard.' });
+    } catch (e) {
+      notifications.show({
+        color: 'red',
+        title: 'Copy failed',
+        message: e instanceof Error ? e.message : 'Clipboard is unavailable',
+      });
+    }
+  };
+
   return (
     <Stack
       p="md"
@@ -982,8 +1003,22 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
         <Text fw={700} size="lg">{mode === 'create' ? 'Create Facet Type' : 'Edit Facet Type'}</Text>
         <Group>
           <Chip
+            checked={jsonSchemaMode}
+            onChange={(next) => {
+              setJsonSchemaMode(next);
+              if (next) {
+                setExpertMode(false);
+              }
+            }}
+            size="sm"
+            variant="light"
+          >
+            JSON Schema
+          </Chip>
+          <Chip
             checked={expertMode}
             onChange={(next) => {
+              setJsonSchemaMode(false);
               if (!next) {
                 const resolved = resolveExpertWireFromEditor();
                 if (!resolved.ok) {
@@ -1026,8 +1061,8 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
             Expert mode
           </Chip>
           <Button variant="light" onClick={() => navigate('/admin/model/facet-types')}>Back</Button>
-          <Tooltip label={readOnly ? 'Read-only mode enabled by feature flag' : 'Save'}>
-            <Button onClick={() => void save()} disabled={readOnly}>Save</Button>
+          <Tooltip label={jsonSchemaMode ? 'JSON Schema view is read-only' : readOnly ? 'Read-only mode enabled by feature flag' : 'Save'}>
+            <Button onClick={() => void save()} disabled={readOnly || jsonSchemaMode}>Save</Button>
           </Tooltip>
         </Group>
       </Group>
@@ -1038,7 +1073,28 @@ export function FacetTypeEditPage({ mode, typeKey, readOnly }: FacetTypeEditPage
         </Text>
       )}
 
-      {expertMode ? (
+      {jsonSchemaMode ? (
+        <Stack gap="xs" style={{ flex: 1, minHeight: 360, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          <Group justify="space-between" wrap="nowrap" style={{ flexShrink: 0 }}>
+            <Text size="sm" fw={500}>JSON Schema</Text>
+            <Button
+              size="xs"
+              variant="light"
+              leftSection={<HiOutlineClipboardDocument size={14} />}
+              onClick={() => void copyJsonSchema()}
+            >
+              Copy
+            </Button>
+          </Group>
+          <SyntaxCodeEditor
+            value={JSON.stringify(jsonSchemaValue, null, 2)}
+            language="json"
+            readOnly
+            minHeight={360}
+            fillHeight
+          />
+        </Stack>
+      ) : expertMode ? (
         <Box style={{ flex: 1, minHeight: 360, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <JsonYamlEditor
             ref={expertEditorRef}
