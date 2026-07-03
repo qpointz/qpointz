@@ -121,6 +121,25 @@ class MetadataFacetControllerTest {
     }
 
     @Test
+    fun shouldGetFacetJsonSchemaByShortKey_whenSchemaRequested() {
+        whenever(service.jsonSchema(MetadataUrns.FACET_TYPE_DESCRIPTIVE)).thenReturn(
+            mapOf(
+                "\$schema" to "http://json-schema.org/draft-07/schema#",
+                "type" to "object",
+                "x-mill-facetTypeUrn" to MetadataUrns.FACET_TYPE_DESCRIPTIVE
+            )
+        )
+
+        mockMvc.get("/api/v1/metadata/facets/descriptive/schema")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$['\$schema']") { value("http://json-schema.org/draft-07/schema#") }
+                jsonPath("$.type") { value("object") }
+                jsonPath("$['x-mill-facetTypeUrn']") { value(MetadataUrns.FACET_TYPE_DESCRIPTIVE) }
+            }
+    }
+
+    @Test
     fun shouldReturn404ForFacetByKey_whenNotFound() {
         whenever(service.get(any())).thenThrow(
             io.qpointz.mill.excepions.statuses.MillStatuses.notFoundRuntime("not found")

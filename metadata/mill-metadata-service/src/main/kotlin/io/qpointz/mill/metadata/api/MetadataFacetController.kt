@@ -98,6 +98,24 @@ class MetadataFacetController(private val service: FacetTypeManagementService) {
         return ResponseEntity.ok(service.get(normKey))
     }
 
+    @Operation(
+        summary = "Get facet type payload as JSON Schema",
+        description = "Returns a generated JSON Schema projection for one facet type payload. " +
+            "The schema validates payload shape only; Mill policy is carried as x-mill annotations."
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "JSON Schema returned"),
+        ApiResponse(responseCode = "404", description = "Facet type not found")
+    )
+    @GetMapping("/{typeKey}/schema")
+    fun getFacetTypeJsonSchema(
+        @Parameter(description = "Facet type slug or URN, e.g. descriptive")
+        @PathVariable typeKey: String
+    ): ResponseEntity<Map<String, Any?>> {
+        val normKey = MetadataUrns.normaliseFacetTypePath(typeKey)
+        return ResponseEntity.ok(service.jsonSchema(normKey))
+    }
+
     /**
      * Registers a new custom facet type descriptor.
      *

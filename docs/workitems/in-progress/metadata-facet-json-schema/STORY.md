@@ -26,7 +26,7 @@ without editing that generated representation.
 ## Work Items
 
 - [x] WI-379 — Facet payload JSON Schema generator (`WI-379-facet-payload-json-schema-generator.md`)
-- [ ] WI-380 — Facet type JSON Schema REST API (`WI-380-facet-type-json-schema-rest-api.md`)
+- [x] WI-380 — Facet type JSON Schema REST API (`WI-380-facet-type-json-schema-rest-api.md`)
 - [ ] WI-381 — Facet type UI JSON Schema view (`WI-381-facet-type-ui-json-schema-view.md`)
 - [ ] WI-382 — Facet JSON Schema docs and verification (`WI-382-facet-json-schema-docs-and-validation.md`)
 

@@ -59,6 +59,9 @@ class FacetTypeManagementService(
         return definitionToManifest(def)
     }
 
+    fun jsonSchema(typeKeyUrn: String): Map<String, Any?> =
+        io.qpointz.mill.metadata.domain.facet.FacetPayloadJsonSchema.forManifest(get(typeKeyUrn))
+
     fun create(rawManifest: FacetTypeManifest): FacetTypeManifest {
         val normalizedTypeKey = MetadataUrns.normaliseFacetTypePath(rawManifest.typeKey)
         val canonical = MetadataEntityUrn.canonicalize(normalizedTypeKey)
