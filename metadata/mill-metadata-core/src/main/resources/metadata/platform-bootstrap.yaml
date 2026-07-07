@@ -1,6 +1,6 @@
 # Platform metadata loaded only via mill.metadata.seed.resources (global scope + standard facet types).
 # Edit this file to change titles, payload schemas, or applicability — do not duplicate in Flyway SQL.
-# Authoritative set: descriptive, concept, structural, relation, value-mapping, ai-column-value-mapping, ai-column-value-mapping-values (SPEC §11.0).
+# Authoritative set: descriptive, concept, ai-annotation, structural, relation, value-mapping, ai-column-value-mapping, ai-column-value-mapping-values (SPEC §11.0).
 ---
 kind: MetadataScope
 scopeUrn: urn:mill/metadata/scope:global
@@ -107,6 +107,70 @@ contentSchema:
   required: []
 applicableTo:
   - urn:mill/metadata/entity-type:model
+schemaVersion: "1.0"
+---
+kind: FacetTypeDefinition
+facetTypeUrn: urn:mill/metadata/facet-type:ai-annotation
+title: AI Annotation
+description: "Entity-scoped procedural instructions for agents (SQL habits, projection rules, tool-output conventions)."
+enabled: true
+category: ai
+mandatory: false
+targetCardinality: MULTIPLE
+contentSchema:
+  type: OBJECT
+  title: AI annotation payload
+  description: "One agent instruction per facet assignment; multiple assignments may exist on the same entity."
+  fields:
+    - name: title
+      schema:
+        type: STRING
+        title: Title
+        description: "Short operator label for the instruction."
+      required: false
+    - name: instruction
+      schema:
+        type: STRING
+        title: Instruction
+        description: "Free-form agent instruction (imperative SQL habits, projection rules, tool-output conventions)."
+      required: true
+    - name: kind
+      schema:
+        type: ENUM
+        title: Kind
+        description: "Instruction category for agent routing."
+        default: sql_generation
+        values:
+          - value: sql_generation
+            description: "SQL generation habits when this entity appears in schema tool output."
+          - value: tool_output
+            description: "How tool results should be formatted or presented."
+          - value: general
+            description: "General agent behavior not tied to SQL or a specific tool."
+      required: false
+    - name: tags
+      schema:
+        type: ARRAY
+        title: Tags
+        description: "Tags for discovery and filtering."
+        items:
+          type: STRING
+          title: Tag
+          description: "One tag value."
+      required: false
+      stereotype: tags
+    - name: enabled
+      schema:
+        type: BOOLEAN
+        title: Enabled
+        description: "When false, omit from agent-facing surfaces. Defaults to true when omitted."
+        default: true
+      required: false
+  required: []
+applicableTo:
+  - urn:mill/metadata/entity-type:schema
+  - urn:mill/metadata/entity-type:table
+  - urn:mill/metadata/entity-type:attribute
 schemaVersion: "1.0"
 ---
 kind: FacetTypeDefinition

@@ -50,6 +50,7 @@ class MetadataContentSeedImportTest {
     fun shouldImportPlatformExamples_afterFacetTypesKnown() {
         val knownTypes = setOf(
             MetadataUrns.FACET_TYPE_DESCRIPTIVE,
+            MetadataUrns.FACET_TYPE_AI_ANNOTATION,
             "urn:mill/metadata/facet-type:relation-source",
             "urn:mill/metadata/facet-type:relation-target",
             "urn:mill/metadata/facet-type:dq-null-check",

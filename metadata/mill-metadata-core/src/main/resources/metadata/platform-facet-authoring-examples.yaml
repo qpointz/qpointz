@@ -89,3 +89,20 @@ content:
     description: Shipped date must not precede order date.
     predicate: shipped_date IS NULL OR shipped_date >= order_date
     severity: warning
+---
+kind: MetadataContent
+contentUrn: urn:mill/metadata/content:facet-type-example/ai-annotation-segments-cities
+contentKind: facet-type-example
+targetUrn: urn:mill/metadata/facet-type:ai-annotation
+title: AI annotation — segments city-name projection
+description: Agent SQL habit when querying flight routes — join cities for names.
+sortOrder: 0
+enabled: true
+content:
+  metadataEntityId: urn:mill/model/table:skymill.segments
+  payload:
+    title: City name projection
+    instruction: >
+      When this table is used in SQL, join skymill.cities twice for origin and destination
+      and prefer city names in SELECT output instead of raw ids, unless the user explicitly requests ids.
+    kind: sql_generation

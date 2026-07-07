@@ -3,7 +3,7 @@ package io.qpointz.mill.metadata.domain.facet
 import io.qpointz.mill.utils.JsonUtils
 
 /**
- * Reference JSON for **descriptive** and **concept** facet manifests (fixtures, codegen, docs).
+ * Reference JSON for **descriptive**, **concept**, and **ai-annotation** facet manifests (fixtures, codegen, docs).
  *
  * **Runtime seeding** uses `metadata/platform-bootstrap.yaml` via `mill.metadata.seed.resources` only.
  * Keep this JSON aligned when editing the YAML (or regenerate fixtures from the YAML).

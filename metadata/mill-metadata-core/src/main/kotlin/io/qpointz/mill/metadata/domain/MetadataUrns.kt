@@ -45,6 +45,9 @@ object MetadataUrns {
     /** Full URN for the `concept` platform facet type. */
     const val FACET_TYPE_CONCEPT = "urn:mill/metadata/facet-type:concept"
 
+    /** Full URN for the `ai-annotation` platform facet type (entity-scoped agent instructions). */
+    const val FACET_TYPE_AI_ANNOTATION = "${FACET_TYPE_PREFIX}ai-annotation"
+
     /** Full URN for the `value-mapping` platform facet type. */
     const val FACET_TYPE_VALUE_MAPPING = "urn:mill/metadata/facet-type:value-mapping"
 

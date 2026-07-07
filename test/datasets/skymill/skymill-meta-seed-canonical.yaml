@@ -54,6 +54,25 @@ facets:
       description: City label column
 ---
 kind: MetadataEntity
+entityUrn: urn:mill/model/table:skymill.segments
+entityKind: table
+facets:
+  - facetTypeUrn: urn:mill/metadata/facet-type:descriptive
+    scopeUrn: urn:mill/metadata/scope:global
+    payload:
+      displayName: Segments
+      description: Flight routes between cities. Each row represents a direct route.
+  - facetTypeUrn: urn:mill/metadata/facet-type:ai-annotation
+    scopeUrn: urn:mill/metadata/scope:global
+    payload:
+      title: City name projection
+      instruction: >
+        When this table is used in SQL, join skymill.cities twice for origin and destination
+        (origin and destination) and prefer city names in SELECT output instead of raw ids,
+        unless the user explicitly requests ids.
+      kind: sql_generation
+---
+kind: MetadataEntity
 entityUrn: urn:mill/model/table:skymill.ghost_table
 entityKind: table
 facets:
