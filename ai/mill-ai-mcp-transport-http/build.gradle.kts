@@ -40,13 +40,28 @@ tasks.withType<JavaCompile>().configureEach {
 testing {
     suites {
         register<JvmTestSuite>("testIT") {
+            targets {
+                all {
+                    testTask.configure {
+                        systemProperty(
+                            "flow.facet.it.root",
+                            rootProject.projectDir.absolutePath,
+                        )
+                    }
+                }
+            }
             dependencies {
+                implementation(project())
                 implementation(project(":ai:mill-ai-autoconfigure"))
+                implementation(project(":data:mill-data-autoconfigure"))
+                implementation(project(":metadata:mill-metadata-autoconfigure"))
+                implementation(project(":data:formats:mill-data-format-text"))
                 implementation(project(":security:mill-security-autoconfigure"))
                 implementation(platform(libs.mcp.bom))
                 implementation(libs.mcp)
                 implementation(libs.h2.database)
                 implementation(libs.boot.starter.data.jpa)
+                implementation(libs.boot.starter.webmvc)
                 runtimeOnly(project(":persistence:mill-persistence-autoconfigure"))
                 compileOnly(project(":security:mill-security"))
             }

@@ -107,7 +107,8 @@ class UnifiedChatService(
     }
 
     /**
-     * Persists client-side query execution metadata on a turn (no server SQL execution).
+     * Persists client-side query result metadata on a turn (no server SQL execution).
+     * Query-engine `executionId` is intentionally omitted — sessions are ephemeral and re-run on hydrate.
      *
      * @param chatId chat identifier
      * @param turnId durable turn identifier
@@ -124,10 +125,9 @@ class UnifiedChatService(
         if (record.turns.none { it.turnId == turnId }) return null
 
         val artifactId = UUID.randomUUID().toString()
+        // executionId is session-scoped query-engine state — never persist it on chat artefacts.
         val payload = buildMap<String, Any?> {
             put("artifactType", "sql-result")
-            put("executionId", request.executionId)
-            put("resultId", request.executionId)
             put("sql", request.sql)
             put("rowCount", request.rowCount)
             put("truncated", request.truncated)

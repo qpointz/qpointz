@@ -1,0 +1,351 @@
+{
+  "schemaVersion" : 1,
+  "runMeta" : {
+    "mode" : "scripted",
+    "profileId" : "data-analysis",
+    "scenarioSource" : "scenarios/artifact-emit/data-analysis-sql-chart-emit.yml"
+  },
+  "pack" : {
+    "name" : "data-analysis-sql-chart-emit",
+    "parameters" : {
+      "mode" : "scripted"
+    }
+  },
+  "summary" : {
+    "overall" : "PASS",
+    "turnCount" : 1,
+    "checksPassed" : 3,
+    "checksFailed" : 0
+  },
+  "turns" : [ {
+    "index" : 0,
+    "action" : "ask",
+    "input" : {
+      "ask" : "Plot revenue by month as a bar chart",
+      "script" : [ {
+        "toolCalls" : [ {
+          "name" : "validate_sql",
+          "args" : {
+            "sql" : "SELECT month, SUM(revenue) AS revenue FROM sales GROUP BY month",
+            "attempt" : 1,
+            "title" : "Revenue by month",
+            "description" : "Monthly revenue totals grouped by calendar month.",
+            "completionMode" : "sql-with-chart"
+          },
+          "id" : null
+        }, {
+          "name" : "describe_sql",
+          "args" : {
+            "sql" : "SELECT month, SUM(revenue) AS revenue FROM sales GROUP BY month"
+          },
+          "id" : null
+        }, {
+          "name" : "validate_chart_spec",
+          "args" : {
+            "schema" : [ {
+              "name" : "month",
+              "type" : "STRING"
+            }, {
+              "name" : "revenue",
+              "type" : "BIG_INT"
+            } ],
+            "chartType" : "bar",
+            "encodings" : {
+              "category" : {
+                "field" : "month"
+              },
+              "value" : {
+                "field" : "revenue"
+              }
+            }
+          },
+          "id" : null
+        } ],
+        "answer" : null,
+        "expectTools" : null
+      } ]
+    },
+    "outcome" : {
+      "response" : "",
+      "events" : [ {
+        "type" : "run.started",
+        "profileId" : "data-analysis"
+      }, {
+        "type" : "tool.call",
+        "name" : "validate_sql",
+        "arguments" : {
+          "sql" : "SELECT month, SUM(revenue) AS revenue FROM sales GROUP BY month",
+          "attempt" : 1,
+          "title" : "Revenue by month",
+          "description" : "Monthly revenue totals grouped by calendar month.",
+          "completionMode" : "sql-with-chart"
+        },
+        "iteration" : 0
+      }, {
+        "type" : "tool.result",
+        "name" : "validate_sql",
+        "result" : {
+          "artifactType" : "sql-validation",
+          "passed" : true,
+          "attempt" : 1,
+          "message" : null,
+          "normalizedSql" : "SELECT month, SUM(revenue) AS revenue FROM sales GROUP BY month",
+          "title" : "Revenue by month",
+          "description" : "Monthly revenue totals grouped by calendar month.",
+          "completionMode" : "sql-with-chart"
+        }
+      }, {
+        "type" : "tool.call",
+        "name" : "describe_sql",
+        "arguments" : {
+          "sql" : "SELECT month, SUM(revenue) AS revenue FROM sales GROUP BY month"
+        },
+        "iteration" : 0
+      }, {
+        "type" : "tool.result",
+        "name" : "describe_sql",
+        "result" : {
+          "artifactType" : "sql-description",
+          "sql" : "SELECT month, SUM(revenue) AS revenue FROM sales GROUP BY month",
+          "dialectId" : "CALCITE",
+          "schema" : [ {
+            "name" : "country",
+            "type" : "STRING",
+            "nullable" : true
+          }, {
+            "name" : "client_count",
+            "type" : "BIG_INT",
+            "nullable" : false
+          } ],
+          "warnings" : [ ],
+          "source" : {
+            "kind" : "execution",
+            "maxRows" : 1
+          }
+        }
+      }, {
+        "type" : "tool.call",
+        "name" : "validate_chart_spec",
+        "arguments" : {
+          "schema" : [ {
+            "name" : "month",
+            "type" : "STRING"
+          }, {
+            "name" : "revenue",
+            "type" : "BIG_INT"
+          } ],
+          "chartType" : "bar",
+          "encodings" : {
+            "category" : {
+              "field" : "month"
+            },
+            "value" : {
+              "field" : "revenue"
+            }
+          }
+        },
+        "iteration" : 0
+      }, {
+        "type" : "tool.result",
+        "name" : "validate_chart_spec",
+        "result" : {
+          "artifactType" : "chart-validation",
+          "passed" : true,
+          "code" : "ok",
+          "message" : null,
+          "normalizedVisualization" : {
+            "key" : "default",
+            "kind" : "chart",
+            "chartType" : "bar",
+            "encodings" : {
+              "category" : {
+                "field" : "month"
+              },
+              "value" : {
+                "field" : "revenue"
+              }
+            }
+          },
+          "targetArtifactId" : null,
+          "opensEnrichPlan" : false
+        }
+      }, {
+        "type" : "protocol.final",
+        "protocolId" : "sql-query.generated-sql",
+        "payload" : {
+          "artifactType" : "generated-sql",
+          "sql" : {
+            "text" : "SELECT month, SUM(revenue) AS revenue FROM sales GROUP BY month",
+            "dialectId" : "CALCITE",
+            "statementKind" : "select",
+            "source" : "generated",
+            "validationWarnings" : [ ]
+          },
+          "info" : {
+            "title" : "Revenue by month",
+            "description" : "Monthly revenue totals grouped by calendar month."
+          },
+          "schema" : [ {
+            "name" : "country",
+            "type" : "STRING",
+            "nullable" : true
+          }, {
+            "name" : "client_count",
+            "type" : "BIG_INT",
+            "nullable" : false
+          } ],
+          "visualizations" : [ {
+            "key" : "default",
+            "kind" : "chart",
+            "chartType" : "bar",
+            "encodings" : {
+              "category" : {
+                "field" : "month"
+              },
+              "value" : {
+                "field" : "revenue"
+              }
+            }
+          } ]
+        }
+      }, {
+        "type" : "answer.completed",
+        "text" : ""
+      } ],
+      "artifacts" : [ {
+        "persistKind" : "sql.generated",
+        "payload" : {
+          "protocolId" : "sql-query.generated-sql",
+          "payload" : {
+            "artifactType" : "generated-sql",
+            "sql" : {
+              "text" : "SELECT month, SUM(revenue) AS revenue FROM sales GROUP BY month",
+              "dialectId" : "CALCITE",
+              "statementKind" : "select",
+              "source" : "generated",
+              "validationWarnings" : [ ]
+            },
+            "info" : {
+              "title" : "Revenue by month",
+              "description" : "Monthly revenue totals grouped by calendar month."
+            },
+            "schema" : [ {
+              "name" : "country",
+              "type" : "STRING",
+              "nullable" : true
+            }, {
+              "name" : "client_count",
+              "type" : "BIG_INT",
+              "nullable" : false
+            } ],
+            "visualizations" : [ {
+              "key" : "default",
+              "kind" : "chart",
+              "chartType" : "bar",
+              "encodings" : {
+                "category" : {
+                  "field" : "month"
+                },
+                "value" : {
+                  "field" : "revenue"
+                }
+              }
+            } ]
+          },
+          "persistKind" : "sql.generated",
+          "persistArtifactId" : null
+        }
+      } ],
+      "sseEvents" : [ {
+        "type" : "item.created",
+        "sequence" : 0
+      }, {
+        "type" : "item.part.updated",
+        "sequence" : 1,
+        "presentation" : "structured",
+        "partType" : "sql",
+        "content" : "{\"sql\":\"SELECT month, SUM(revenue) AS revenue FROM sales GROUP BY month\",\"dialectId\":\"CALCITE\",\"statementKind\":\"select\",\"info\":{\"title\":\"Revenue by month\",\"description\":\"Monthly revenue totals grouped by calendar month.\"},\"schema\":[{\"name\":\"country\",\"type\":\"STRING\",\"nullable\":true},{\"name\":\"client_count\",\"type\":\"BIG_INT\",\"nullable\":false}],\"visualizations\":[{\"key\":\"default\",\"kind\":\"chart\",\"chartType\":\"bar\",\"encodings\":{\"category\":{\"field\":\"month\"},\"value\":{\"field\":\"revenue\"}}}],\"artifactType\":\"generated-sql\"}"
+      }, {
+        "type" : "item.completed",
+        "sequence" : 2,
+        "presentation" : "structured",
+        "partType" : "sql",
+        "content" : null
+      } ],
+      "structuredParts" : [ {
+        "presentation" : "structured",
+        "partType" : "sql",
+        "content" : "{\"sql\":\"SELECT month, SUM(revenue) AS revenue FROM sales GROUP BY month\",\"dialectId\":\"CALCITE\",\"statementKind\":\"select\",\"info\":{\"title\":\"Revenue by month\",\"description\":\"Monthly revenue totals grouped by calendar month.\"},\"schema\":[{\"name\":\"country\",\"type\":\"STRING\",\"nullable\":true},{\"name\":\"client_count\",\"type\":\"BIG_INT\",\"nullable\":false}],\"visualizations\":[{\"key\":\"default\",\"kind\":\"chart\",\"chartType\":\"bar\",\"encodings\":{\"category\":{\"field\":\"month\"},\"value\":{\"field\":\"revenue\"}}}],\"artifactType\":\"generated-sql\"}"
+      } ],
+      "transcript" : {
+        "turnCount" : 2,
+        "turns" : [ {
+          "role" : "user",
+          "text" : "Plot revenue by month as a bar chart",
+          "artifactIds" : [ ]
+        }, {
+          "role" : "assistant",
+          "text" : null,
+          "artifactIds" : [ "<uuid>" ]
+        } ],
+        "activePointers" : { }
+      }
+    },
+    "verify" : {
+      "passLevel" : "ERROR",
+      "checks" : [ {
+        "events" : {
+          "containsInOrder" : [ {
+            "type" : "tool.call",
+            "name" : "validate_sql"
+          }, {
+            "type" : "tool.result",
+            "name" : "validate_sql"
+          }, {
+            "type" : "tool.call",
+            "name" : "describe_sql"
+          }, {
+            "type" : "tool.result",
+            "name" : "describe_sql"
+          }, {
+            "type" : "tool.call",
+            "name" : "validate_chart_spec"
+          }, {
+            "type" : "tool.result",
+            "name" : "validate_chart_spec"
+          }, {
+            "type" : "protocol.final",
+            "protocolId" : "sql-query.generated-sql"
+          }, {
+            "type" : "answer.completed"
+          } ]
+        }
+      }, {
+        "artifacts" : [ {
+          "persistKind" : "sql.generated",
+          "count" : 1
+        } ]
+      }, {
+        "artifacts.shape" : {
+          "persistKind" : "sql.generated",
+          "match" : {
+            "payload.artifactType" : "generated-sql"
+          }
+        }
+      } ],
+      "results" : [ {
+        "checkType" : "events",
+        "status" : "PASS",
+        "detail" : null
+      }, {
+        "checkType" : "artifacts",
+        "status" : "PASS",
+        "detail" : null
+      }, {
+        "checkType" : "artifacts.shape",
+        "status" : "PASS",
+        "detail" : null
+      } ]
+    }
+  } ]
+}

@@ -49,9 +49,14 @@ data class SendMessageHttpRequest @JsonCreator(mode = JsonCreator.Mode.PROPERTIE
     val message: String,
 )
 
-/** POST /api/v1/ai/chats/{chatId}/turns/{turnId}/execution-result — attach client query metadata only. */
+/**
+ * POST /api/v1/ai/chats/{chatId}/turns/{turnId}/execution-result — attach client query metadata only.
+ *
+ * [executionId] is accepted for API compatibility but is **not** persisted: query sessions are
+ * ephemeral and must be re-created when a chat is hydrated.
+ */
 data class AttachExecutionResultHttpRequest(
-    val executionId: String,
+    val executionId: String? = null,
     val columns: List<ExecutionColumnDto> = emptyList(),
     val rowCount: Long = 0,
     val truncated: Boolean? = null,

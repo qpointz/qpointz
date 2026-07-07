@@ -49,15 +49,13 @@ object ArtifactWireMapper {
     }
 
     private fun mapSql(record: ArtifactRecord, inner: Map<String, Any?>, artifactType: String?): ArtifactResponse? {
-        val sql = inner["sql"] as? String ?: return null
+        val wire = io.qpointz.mill.ai.core.artifact.GeneratedSqlWire.normalizeForWire(inner)
+        val sql = wire["sql"] as? String ?: return null
         if (sql.isBlank()) return null
         return wireEnvelope(
             record = record,
             kind = "sql",
-            payload = buildMap {
-                put("sql", sql)
-                (inner["dialectId"] as? String)?.let { put("dialectId", it) }
-            },
+            payload = wire,
         )
     }
 
@@ -67,20 +65,19 @@ object ArtifactWireMapper {
         kind: String,
         artifactType: String?,
     ): ArtifactResponse? {
-        val executionId = (inner["executionId"] as? String)
-            ?: (inner["resultId"] as? String)
-            ?: return null
+        // Query-engine executionId is ephemeral — never expose it on hydrate (strip legacy rows too).
+        val payload = buildMap<String, Any?> {
+            inner["sql"]?.let { put("sql", it) }
+            inner["rowCount"]?.let { put("rowCount", it) }
+            inner["truncated"]?.let { put("truncated", it) }
+            inner["columns"]?.let { put("columns", it) }
+            (inner["sourceArtifactId"] as? String)?.let { put("sourceArtifactId", it) }
+        }
+        if (payload.isEmpty()) return null
         return wireEnvelope(
             record = record,
             kind = "data",
-            payload = buildMap {
-                put("executionId", executionId)
-                inner["sql"]?.let { put("sql", it) }
-                inner["rowCount"]?.let { put("rowCount", it) }
-                inner["truncated"]?.let { put("truncated", it) }
-                inner["columns"]?.let { put("columns", it) }
-                (inner["sourceArtifactId"] as? String)?.let { put("sourceArtifactId", it) }
-            },
+            payload = payload,
         )
     }
 
@@ -117,6 +114,12 @@ object ArtifactWireMapper {
 
     private fun isRecognizedArtifactPayload(map: Map<String, Any?>): Boolean =
         map["sql"] is String ||
+            map["sql"] is Map<*, *> ||
+            map["artifactType"] == "sql-result" ||
+            map["columns"] is List<*> ||
+            map["sourceArtifactId"] is String ||
+            map["rowCount"] is Number ||
+            // Legacy persisted rows may still carry executionId; recognise but never emit it.
             map["executionId"] is String ||
             map["resultId"] is String ||
             (map["facetTypeKey"] is String && map["metadataEntityId"] is String) ||
@@ -127,12 +130,14 @@ object ArtifactWireMapper {
         inner: Map<String, Any?>,
         kind: String,
         artifactType: String?,
-    ): Boolean =
-        inner["sql"] is String && (
+    ): Boolean {
+        val hasSql = inner["sql"] is String || inner["sql"] is Map<*, *>
+        return hasSql && (
             kind.contains("generated-sql", ignoreCase = true) ||
                 kind == "sql.generated" ||
                 artifactType == "generated-sql"
             )
+    }
 
     private fun isDataPayload(kind: String, artifactType: String?): Boolean =
         kind == "sql.result" ||

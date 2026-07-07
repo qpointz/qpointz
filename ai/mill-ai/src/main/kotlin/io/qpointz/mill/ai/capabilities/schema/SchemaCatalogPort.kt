@@ -28,6 +28,16 @@ interface SchemaCatalogPort {
         tableName: String,
         direction: RelationDirection,
     ): List<ListRelationsItem>
+
+    /**
+     * Drops any cached catalog snapshot so the next list call reloads physical schema and facets.
+     *
+     * Call after facet capture/accept so descriptions and relations stay current within a chat
+     * session. Default is a no-op for ports without a cache.
+     */
+    fun invalidateCache() {
+        // no-op
+    }
 }
 
 /**

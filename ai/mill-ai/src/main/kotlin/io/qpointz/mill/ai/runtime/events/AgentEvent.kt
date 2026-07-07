@@ -102,6 +102,11 @@ sealed interface AgentEvent {
         val protocolId: String,
         /** Structured, parsed protocol payload — not a raw JSON string. */
         val payload: Any?,
+        /**
+         * When set, persistence updates this existing artifact row instead of creating a new id
+         * (enrich-existing completion plans).
+         */
+        val persistArtifactId: String? = null,
     ) : AgentEvent {
         override val type: String = "protocol.final"
     }

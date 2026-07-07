@@ -118,6 +118,7 @@ class RegistryAgentEventRouter(
                 "protocolId" to event.protocolId,
                 "payload" to event.payload,
                 "persistKind" to (artifactRegistry.descriptorForProtocol(event.protocolId)?.persistKind ?: rule.kind),
+                "persistArtifactId" to event.persistArtifactId,
             )
             is AgentEvent.ProtocolStreamEvent -> mapOf(
                 "protocolId" to event.protocolId,

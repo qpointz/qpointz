@@ -1,0 +1,158 @@
+name: chart-mapping
+description: |
+  Chart visualization capability for ai/v3.
+  Provides chart catalog and validation tools that contribute normalized visualizations to
+  sql.generated artifacts. Never generates, rewrites, validates, or executes SQL.
+
+prompts:
+  chart-mapping.intent:
+    description: Classify chart visualization requests (capability-local).
+    content: |
+      Classify the user message for chart visualization:
+      - CHART_MAP — user wants a chart, plot, graph, or visualization of query results
+      - CHAT — general conversation unrelated to charting
+      When the user asks to plot, chart, graph, or visualize data, route to CHART_MAP.
+      SQL generation belongs to sql-query — never generate SQL in this capability.
+
+  chart-mapping.system:
+    description: Chart mapping workflow guidance.
+    content: |
+      Chart-mapping rules:
+      - Never generate, rewrite, validate, or execute SQL.
+      - Call list_supported_charts before validate_chart_spec when encoding roles or shape are unclear.
+        The catalog (not prompts) defines requiredEncodings, exampleEncodings, options, and limits.
+      - validate_chart_spec returns normalized visualizations only — it does not persist artifacts.
+      - The completion coordinator merges successful validate_chart_spec results into sql.generated.
+      - For new SQL + chart requests, sql-query validate_sql must use completionMode sql-with-chart.
+      - For follow-up chart requests on existing results, call validate_chart_spec with targetArtifactId
+        or enrichExisting=true. Never call validate_chart_spec alone for a new unrelated data question.
+      - Never emit renderer-specific config (ECharts, Vega, Plotly).
+
+  chart-mapping.spec:
+    description: Semantic chart vocabulary without embedding the full catalog.
+    content: |
+      Chart validation workflow:
+      1. Ensure trustworthy schema[] from describe_sql is available.
+      2. Call list_supported_charts (optionally with chartType) before validate_chart_spec when
+         chart type, encoding roles, value shape, or options are uncertain.
+      3. Build encodings from the catalog entry's requiredEncodings and exampleEncodings — do not
+         infer roles from prompt text.
+      4. Call validate_chart_spec with schema, chartType, encodings, and key.
+      5. When the result shape cannot support the requested chart, accept query_refinement_needed.
+
+tools:
+  list_supported_charts:
+    description: |
+      Returns supported MVP chart types with encoding roles, compatible column types, options,
+      snapshot limits, and exampleEncodings. This catalog is the source of truth for chart specs.
+      Pass chartType to retrieve one chart entry when the type is already known.
+    input:
+      type: object
+      properties:
+        chartType:
+          type: string
+          description: Optional chart type filter (bar, line, area, scatter, pie).
+    output:
+      type: object
+      properties:
+        artifactType:
+          type: string
+        encodingContract:
+          type: object
+          description: Global encoding value shape and notes for all chart types.
+          additionalProperties: true
+        charts:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+
+  validate_chart_spec:
+    description: |
+      Validate a semantic chart visualization config against trusted schema and the chart catalog.
+      Returns normalizedVisualization for the completion coordinator — does not persist artifacts.
+    input:
+      type: object
+      required:
+        - schema
+        - chartType
+        - encodings
+      properties:
+        schema:
+          type: array
+          description: Trusted result schema from describe_sql.
+          items:
+            type: object
+            additionalProperties: true
+        chartType:
+          type: string
+          description: MVP chart type (bar, line, area, scatter, pie).
+        encodings:
+          type: object
+          description: |
+            Semantic encoding roles for the chart type. Shape and required role names come from
+            list_supported_charts (encodingContract, requiredEncodings, exampleEncodings).
+          additionalProperties: true
+        key:
+          type: string
+          description: Visualization key within sql.generated visualizations[] (default default).
+        title:
+          type: string
+          description: Optional chart title.
+        description:
+          type: string
+          description: Optional chart description.
+        options:
+          type: object
+          description: Chart-type options from the catalog.
+          additionalProperties: true
+        presentation:
+          type: object
+          description: Presentation hints (sort, legend, labels).
+          additionalProperties: true
+        targetArtifactId:
+          type: string
+          description: Existing sql.generated artifact id for enrich-existing follow-up turns.
+        enrichExisting:
+          type: boolean
+          description: |
+            When true, update the conversation last-sql artifact instead of the current-turn draft.
+            Use only for explicit chart follow-ups ("show last result as pie"), not new data questions.
+    output:
+      type: object
+      properties:
+        artifactType:
+          type: string
+          description: Always chart-validation.
+        passed:
+          type: boolean
+        code:
+          type: string
+        message:
+          type: string
+        normalizedVisualization:
+          type: object
+          additionalProperties: true
+        targetArtifactId:
+          type: string
+        opensEnrichPlan:
+          type: boolean
+
+artifacts:
+  chart-catalog:
+    artifactKind: chart-catalog
+    persistKind: chart.catalog
+    persist: false
+    sourceEvent: tool.result
+    emissionStrategy: FromToolResult
+    destinations: []
+
+  chart-validation:
+    artifactKind: chart-validation
+    persistKind: chart.validation
+    persist: false
+    sourceEvent: tool.result
+    emissionStrategy: FromToolResult
+    destinations: []
+
+protocols: {}

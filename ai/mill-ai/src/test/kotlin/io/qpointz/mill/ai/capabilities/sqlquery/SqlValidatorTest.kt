@@ -31,7 +31,29 @@ class SqlValidatorTest {
         val validator = SqlQueryToolHandlers.SqlValidationService {
             SqlQueryToolHandlers.ValidationResult(passed = true, message = null, normalizedSql = null)
         }
-        val artifact = SqlQueryToolHandlers.validateSql(validator, "  SELECT month FROM sales  ", 1)
+        val artifact = SqlQueryToolHandlers.validateSql(
+            validator,
+            "  SELECT month FROM sales  ",
+            1,
+            title = "Monthly sales",
+            description = "Lists distinct months present in the sales table.",
+        )
+        assertTrue(artifact.passed)
+        assertEquals("SELECT month FROM sales", artifact.normalizedSql)
+    }
+
+    @Test
+    fun shouldStripTrailingSemicolonInNormalizedSql_whenValidatorOmitsIt() {
+        val validator = SqlQueryToolHandlers.SqlValidationService {
+            SqlQueryToolHandlers.ValidationResult(passed = true, message = null, normalizedSql = null)
+        }
+        val artifact = SqlQueryToolHandlers.validateSql(
+            validator,
+            "SELECT month FROM sales;",
+            1,
+            title = "Monthly sales",
+            description = "Lists distinct months present in the sales table.",
+        )
         assertTrue(artifact.passed)
         assertEquals("SELECT month FROM sales", artifact.normalizedSql)
     }

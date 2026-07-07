@@ -17,6 +17,7 @@ import io.qpointz.mill.metadata.service.FacetService
 import io.qpointz.mill.ai.data.sql.BackendSqlValidator
 import io.qpointz.mill.data.backend.SqlProvider
 import io.qpointz.mill.data.schema.SchemaFacetService
+import io.qpointz.mill.sql.v2.dialect.SqlDialectSpec
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.AutoConfigureAfter
@@ -91,8 +92,11 @@ class AiV3DataAutoConfiguration {
     @Bean
     @ConditionalOnBean(SqlProvider::class)
     @ConditionalOnMissingBean(SqlValidator::class)
-    fun backendSqlValidator(sqlProvider: SqlProvider): SqlValidator =
-        BackendSqlValidator(sqlProvider)
+    fun backendSqlValidator(
+        sqlProvider: SqlProvider,
+        dialectSpec: ObjectProvider<SqlDialectSpec>,
+    ): SqlValidator =
+        BackendSqlValidator(sqlProvider, dialectSpec.ifAvailable)
 
     /**
      * Metadata read port for `metadata` / `metadata-authoring` tools when the metadata stack is present.

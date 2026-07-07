@@ -11,8 +11,7 @@ import io.qpointz.mill.ai.capabilities.schema.ListRelationsItem
 import io.qpointz.mill.ai.capabilities.schema.ListSchemasItem
 import io.qpointz.mill.ai.capabilities.schema.ListTablesItem
 import io.qpointz.mill.ai.capabilities.schema.RelationDirection
-import io.qpointz.mill.ai.capabilities.sqlquery.MockSqlValidationService
-import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityDependency
+import io.qpointz.mill.ai.capabilities.sqlquery.mockSqlQueryCapabilityDependency
 import io.qpointz.mill.ai.capabilities.valuemapping.MockValueMappingResolver
 import io.qpointz.mill.ai.runtime.AgentContext
 import io.qpointz.mill.ai.runtime.langchain4j.buildAgentSystemPrompt
@@ -110,7 +109,7 @@ class ProfileIntentPromptTest {
                 metadataReadPort = EmptyMetadataReadPort(),
                 conceptCatalog = EmptyConceptCatalogPort,
                 dialectSpec = dialect,
-                sqlQueryDependency = SqlQueryCapabilityDependency(MockSqlValidationService()),
+                sqlQueryDependency = mockSqlQueryCapabilityDependency(),
                 valueMappingResolver = MockValueMappingResolver(),
             ),
         )

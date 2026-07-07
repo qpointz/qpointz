@@ -42,13 +42,17 @@ Add Basic auth (same model as `/services/jet`):
 
 Set `MILL_MCP_BASIC_USER` / `MILL_MCP_BASIC_PASSWORD` in `.env` (see `.env.example`).
 
-### SQL validation stretch
+### SQL validation and execution stretch
 
-Use MCP profile **`data-analysis`** on the server to expose `sql-query.validate_sql`:
+Use MCP profile **`data-analysis`** on the server to expose `sql-query.validate_sql`,
+`sql-query.describe_sql`, and `sql-query.execute_sql` (bounded row execution against Skymill):
 
 ```bash
 --mill.ai.mcp.profile=data-analysis
 ```
+
+Row execution requires a profile that includes `sql-query`; `schema-exploration` exposes schema
+tools only.
 
 ## 2. Install Python dependencies
 

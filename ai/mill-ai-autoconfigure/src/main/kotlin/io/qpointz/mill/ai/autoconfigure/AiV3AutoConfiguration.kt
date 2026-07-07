@@ -149,6 +149,8 @@ class AiV3AutoConfiguration {
         dialectSpec: ObjectProvider<SqlDialectSpec>,
         sqlValidator: ObjectProvider<SqlValidator>,
         sqlValidationService: ObjectProvider<SqlQueryToolHandlers.SqlValidationService>,
+        sqlQueryExecutionPort: ObjectProvider<io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryExecutionPort>,
+        sqlQueryExecutionProperties: ObjectProvider<io.qpointz.mill.ai.autoconfigure.sqlquery.SqlQueryExecutionProperties>,
         valueMappingResolver: ObjectProvider<ValueMappingResolver>,
     ): CapabilityDependencyAssembler = SpringCapabilityDependencyAssembler(
         schemaCatalog = schemaCatalog,
@@ -157,6 +159,8 @@ class AiV3AutoConfiguration {
         dialectSpec = dialectSpec,
         sqlValidator = sqlValidator,
         sqlValidationService = sqlValidationService,
+        sqlQueryExecutionPort = sqlQueryExecutionPort,
+        sqlQueryExecutionProperties = sqlQueryExecutionProperties,
         valueMappingResolver = valueMappingResolver,
     )
 

@@ -55,7 +55,20 @@ class CapabilityMcpCatalogTest {
             "concept.search_concepts",
             "concept.get_model_concepts",
             "sql-query.validate_sql",
+            "sql-query.describe_sql",
+            "sql-query.execute_sql",
+            "chart-mapping.list_supported_charts",
+            "chart-mapping.validate_chart_spec",
         )
+    }
+
+    @Test
+    fun shouldOmitSqlQueryTools_forSchemaExplorationProfile() {
+        val catalog = CapabilityMcpCatalog(
+            registry = CapabilityRegistry.load(),
+            profile = PlatformProfiles.require("schema-exploration"),
+        )
+        assertThat(catalog.listToolNames()).noneMatch { it.startsWith("sql-query.") }
     }
 
     @Test

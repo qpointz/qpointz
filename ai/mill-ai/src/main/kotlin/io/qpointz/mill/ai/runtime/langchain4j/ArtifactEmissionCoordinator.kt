@@ -54,7 +54,13 @@ class ArtifactEmissionCoordinator(
                 }
                 val final = constructProtocolFinal(descriptor, executed.result, runState.context)
                 if (descriptor.artifactKind == "generated-sql") {
-                    val sql = (final.payload as? Map<*, *>)?.get("sql")?.toString().orEmpty()
+                    val payload = final.payload as? Map<*, *>
+                    val sqlSection = payload?.get("sql")
+                    val sql = when (sqlSection) {
+                        is Map<*, *> -> sqlSection["text"]?.toString().orEmpty()
+                        is String -> sqlSection
+                        else -> ""
+                    }
                     if (sql.isBlank()) return@forEach
                 }
                 listener(final)
@@ -88,31 +94,16 @@ class ArtifactEmissionCoordinator(
     }
 
     private fun buildGeneratedSqlPayload(resultMap: Map<*, *>, context: AgentContext): Map<String, Any?> {
-        val sql = resultMap["normalizedSql"]?.toString()?.takeIf { it.isNotBlank() }
+        val normalizedSql = resultMap["normalizedSql"]?.toString()?.takeIf { it.isNotBlank() }
             ?: resultMap["sql"]?.toString()
             ?: ""
-        return mapOf(
-            "artifactType" to "generated-sql",
-            "sql" to sql,
-            "dialectId" to resolveDialectId(context),
-            "statementKind" to inferStatementKind(sql),
-            "source" to "generated",
-            "validationWarnings" to emptyList<String>(),
-        )
+        val title = resultMap["title"]?.toString() ?: "Generated SQL"
+        val description = resultMap["description"]?.toString() ?: "Validated SQL query."
+        return GeneratedSqlPayload.seedFromValidation(
+            normalizedSql = normalizedSql,
+            title = title,
+            description = description,
+            context = context,
+        ).toPayloadMap()
     }
-
-    private fun resolveDialectId(context: AgentContext): String =
-        context.capabilityDependencies
-            .forCapability("sql-dialect")
-            ?.get(SqlDialectCapabilityDependency::class.java)
-            ?.dialectSpec
-            ?.id
-            ?: "unknown"
-
-    private fun inferStatementKind(sql: String): String =
-        when {
-            sql.trimStart().startsWith("SELECT", ignoreCase = true) -> "select"
-            sql.trimStart().startsWith("WITH", ignoreCase = true) -> "select"
-            else -> "unknown"
-        }
 }

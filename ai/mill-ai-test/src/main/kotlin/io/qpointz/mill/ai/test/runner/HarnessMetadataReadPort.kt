@@ -67,12 +67,32 @@ class HarnessMetadataReadPort : MetadataReadPort {
     ),
   )
 
+  private val conceptFacet = facet(
+    key = "concept",
+    title = "Concept",
+    category = "general",
+    applicableTo = listOf(SchemaEntityTypeUrns.MODEL),
+    fields = listOf(
+      field(
+        name = "concepts",
+        type = FacetSchemaType.ARRAY,
+        required = true,
+        items = FacetPayloadSchema(
+          type = FacetSchemaType.OBJECT,
+          title = "concept",
+          description = "concept",
+        ),
+      ),
+    ),
+  )
+
   private val allFacets = listOf(
     descriptiveFacet,
     relationSourceFacet,
     relationTargetFacet,
     dqNullCheckFacet,
     dqPredicateFacet,
+    conceptFacet,
   )
 
   private val categories = listOf(
@@ -127,7 +147,12 @@ class HarnessMetadataReadPort : MetadataReadPort {
       ),
     )
 
-  private fun field(name: String, type: FacetSchemaType, required: Boolean = false): FacetPayloadField =
+  private fun field(
+    name: String,
+    type: FacetSchemaType,
+    required: Boolean = false,
+    items: FacetPayloadSchema? = null,
+  ): FacetPayloadField =
     FacetPayloadField(
       name = name,
       required = required,
@@ -135,6 +160,7 @@ class HarnessMetadataReadPort : MetadataReadPort {
         type = type,
         title = name,
         description = name,
+        items = items,
       ),
     )
 }

@@ -10,6 +10,8 @@ run:
             args:
               sql: "SELECT COUNT(*) FROM sales"
               attempt: 1
+              title: "Sales row count"
+              description: "Returns the total number of rows in the sales table."
     verify:
       pass: ERROR
       check:

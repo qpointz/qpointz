@@ -1,0 +1,47 @@
+name: data-analysis-sql-chart-emit
+profileId: data-analysis
+parameters:
+  mode: scripted
+run:
+  - ask: "Plot revenue by month as a bar chart"
+    script:
+      - toolCalls:
+          - name: validate_sql
+            args:
+              sql: "SELECT month, SUM(revenue) AS revenue FROM sales GROUP BY month"
+              attempt: 1
+              title: "Revenue by month"
+              description: "Monthly revenue totals grouped by calendar month."
+              completionMode: sql-with-chart
+          - name: describe_sql
+            args:
+              sql: "SELECT month, SUM(revenue) AS revenue FROM sales GROUP BY month"
+          - name: validate_chart_spec
+            args:
+              schema:
+                - { name: month, type: STRING }
+                - { name: revenue, type: BIG_INT }
+              chartType: bar
+              encodings:
+                category: { field: month }
+                value: { field: revenue }
+    verify:
+      pass: ERROR
+      check:
+        - events:
+            containsInOrder:
+              - { type: tool.call, name: validate_sql }
+              - { type: tool.result, name: validate_sql }
+              - { type: tool.call, name: describe_sql }
+              - { type: tool.result, name: describe_sql }
+              - { type: tool.call, name: validate_chart_spec }
+              - { type: tool.result, name: validate_chart_spec }
+              - { type: protocol.final, protocolId: sql-query.generated-sql }
+              - { type: answer.completed }
+        - artifacts:
+            - persistKind: sql.generated
+              count: 1
+        - artifacts.shape:
+            persistKind: sql.generated
+            match:
+              payload.artifactType: generated-sql

@@ -10,8 +10,8 @@ import io.qpointz.mill.ai.capabilities.schema.RelationDirection
 import io.qpointz.mill.ai.capabilities.schema.SchemaCapabilityDependency
 import io.qpointz.mill.ai.capabilities.schema.SchemaCatalogPort
 import io.qpointz.mill.ai.capabilities.sqldialect.SqlDialectCapabilityDependency
-import io.qpointz.mill.ai.capabilities.sqlquery.MockSqlValidationService
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityDependency
+import io.qpointz.mill.ai.capabilities.sqlquery.mockSqlQueryCapabilityDependency
 import io.qpointz.mill.ai.capabilities.valuemapping.MockValueMappingResolver
 import io.qpointz.mill.ai.profile.PlatformProfiles
 import io.qpointz.mill.sql.v2.dialect.DialectRegistry
@@ -41,7 +41,7 @@ class SchemaFacingCapabilityDependencyFactoryTest {
             schemaCatalog = catalog,
             metadataReadPort = metadataPort,
             dialectSpec = dialect,
-            sqlQueryDependency = SqlQueryCapabilityDependency(MockSqlValidationService()),
+            sqlQueryDependency = mockSqlQueryCapabilityDependency(),
             valueMappingResolver = MockValueMappingResolver(),
         )
         assertThat(c.forCapability(SchemaFacingCapabilityDependencyFactory.SCHEMA).get(SchemaCapabilityDependency::class.java)).isNotNull
@@ -57,7 +57,7 @@ class SchemaFacingCapabilityDependencyFactoryTest {
             schemaCatalog = catalog,
             metadataReadPort = metadataPort,
             dialectSpec = dialect,
-            sqlQueryDependency = SqlQueryCapabilityDependency(MockSqlValidationService()),
+            sqlQueryDependency = mockSqlQueryCapabilityDependency(),
             valueMappingResolver = MockValueMappingResolver(),
         )
         assertThat(c.forCapability(SchemaFacingCapabilityDependencyFactory.SCHEMA).get(SchemaCapabilityDependency::class.java)).isNotNull

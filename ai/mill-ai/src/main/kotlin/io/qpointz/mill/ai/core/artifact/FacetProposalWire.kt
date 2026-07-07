@@ -39,6 +39,7 @@ object FacetProposalWire {
     fun normalizeForWire(wirePartType: String?, payload: Map<String, Any?>): Any? =
         when (wirePartType) {
             WIRE_KIND -> normalizePayload(payload)
+            "sql" -> GeneratedSqlWire.normalizeForWire(payload)
             else -> payload
         }
 

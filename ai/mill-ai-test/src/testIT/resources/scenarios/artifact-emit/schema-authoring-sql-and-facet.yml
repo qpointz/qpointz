@@ -11,6 +11,8 @@ run:
             args:
               sql: "SELECT month, SUM(revenue) FROM sales GROUP BY month"
               attempt: 1
+              title: "Monthly revenue"
+              description: "Revenue totals grouped by month from the sales table."
     verify:
       pass: ERROR
       check:

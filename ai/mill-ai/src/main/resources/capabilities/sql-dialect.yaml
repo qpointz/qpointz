@@ -17,6 +17,8 @@ prompts:
       - **NULL**: use the nullLiteral value, never a bare null keyword.
       - **Fully qualified names**: if useFullyQualifiedNames is true, always prefix table names
         with their schema name.
+      - **Statement separators**: read statements.allowTrailingSemicolon from get_sql_dialect_conventions.
+        When false, submit exactly one SQL statement with no trailing semicolon.
 
       Also call get_sql_paging_rules when the query needs LIMIT/OFFSET, and get_sql_join_rules
       when the query uses JOINs. Use get_sql_functions(category) + get_sql_function_info(name) to

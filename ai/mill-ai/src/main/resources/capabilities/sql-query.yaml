@@ -14,13 +14,16 @@ prompts:
       When the user asks to show, list, count, aggregate, or retrieve data, route to DATA_QUERY.
 
   sql-query.system:
-    description: Guidance for SQL generation and correction loops (generate-only; execution is host-side).
+    description: Guidance for SQL generation, validation, schema probing, and bounded execution.
     content: |
       Query follow-up rule:
       - If the user refers to a previous query or result using phrases such as "last query",
         "same query but", "also include", "exclude", "add ... to the result", or "keep everything
         else the same", treat the request as a refinement of the most recent query artifact, not as
         a brand-new unrelated request.
+      - A new unrelated data question (different subject, filters, or tables) is NOT a refinement —
+        compose fresh SQL and call validate_sql in the current turn. Never answer with validate_chart_spec
+        alone or reuse the previous sql.generated artifact.
       - In a refinement, preserve the previous query structure unless the user explicitly asks to
         change tables, selected columns, grouping, ordering, or aggregation.
       - Reuse the exact previously grounded schema/table/column identifiers when available. Do not
@@ -35,26 +38,50 @@ prompts:
          c. list_columns for the resolved schema.table.
          d. get_sql_dialect_conventions (and related sql-dialect tools) as needed.
       2. Compose the SQL statement mentally, or revise the most recent query artifact if this is a refinement.
-      3. Call validate_sql as a tool, passing the SQL and attempt=1. Do NOT produce a final answer yet.
-      4. When validate_sql returns passed=true, generated SQL is emitted automatically as a structured
-         artefact — do NOT call the sql-query.generated-sql protocol yourself.
+         Apply get_sql_dialect_conventions statement rules: when allowTrailingSemicolon is false,
+         omit any trailing semicolon from validate_sql input.
+      3. Call validate_sql as a tool, passing the SQL, title, description, completionMode, and attempt=1.
+         Do NOT produce a final answer yet.
+      4. When the completion plan finishes, the runtime emits one sql.generated artifact — do NOT call
+         the sql-query.generated-sql protocol yourself and do not expect validators to persist artifacts.
       5. If validate_sql returns passed=false, revise the SQL using the validator message and repeat from step 3
          (increment attempt each time, up to 3 attempts).
       6. If all 3 attempts fail, report the failure with the last validator message.
 
       CRITICAL: never skip validate_sql. Never write SQL directly in your answer without first calling validate_sql.
-      CRITICAL: never claim row counts or result set contents from this agent — you only emit validated, generated SQL.
+      CRITICAL: never claim row counts or result set contents from generation alone — use validate_sql,
+      then describe_sql or execute_sql only on validated SQL.
+
+      Canonical SQL contract:
+      - validate_sql is the only step that normalizes SQL. On success, use the normalizedSql field
+        from its output as the single source of truth for this query.
+      - For describe_sql and execute_sql, pass normalizedSql from the matching validate_sql result
+        exactly (character-for-character). Do not re-type SQL or add a trailing semicolon.
+      - describe_sql returns schema metadata only; its sql field is an echo of your input, not a
+        new canonical statement. Never copy SQL from describe_sql into later steps.
+
+      Chart schema probing:
+      - When the user requests a chart/plot/graph, call validate_sql with completionMode sql-with-chart.
+      - After validate_sql passes, call describe_sql when you need trustworthy result column types
+        before chart configuration.
+      - describe_sql returns schema metadata only; it does not return rows.
+      - execute_sql returns bounded rows for already validated SQL. Default resultMode is paged.
+        Use resultMode=full only when a complete bounded snapshot is required.
+      - Never call describe_sql or execute_sql on SQL that has not passed validate_sql in the same flow.
 
 tools:
   validate_sql:
     description: |
       Validate a SQL statement before it is treated as generated SQL for downstream execution.
       Returns a structured wrapper with pass/fail and a free-text validator message.
+      Does not persist artifacts — the completion coordinator finalizes when the plan completes.
     input:
       type: object
       required:
         - sql
         - attempt
+        - title
+        - description
       properties:
         sql:
           type: string
@@ -62,6 +89,19 @@ tools:
         attempt:
           type: integer
           description: Validation attempt number in the bounded correction loop.
+        title:
+          type: string
+          description: Short human-readable headline for the query artifact (3–120 characters).
+        description:
+          type: string
+          description: Plain-language summary of what the query returns (10–500 characters).
+        completionMode:
+          type: string
+          description: |
+            Completion plan recipe: sql-only (default), sql-with-chart when chart visualization is requested.
+          enum:
+            - sql-only
+            - sql-with-chart
     output:
       type: object
       description: Structured SQL validation result artifact.
@@ -81,11 +121,122 @@ tools:
         normalizedSql:
           type: string
           description: Optional normalized SQL returned by the validator.
-    emitsOnSuccess:
-      artifact: generated-sql
-      when:
-        field: passed
-        equals: true
+        title:
+          type: string
+          description: Echo of input title when validation was attempted.
+        description:
+          type: string
+          description: Echo of input description when validation was attempted.
+        completionMode:
+          type: string
+          description: Echo of requested completion mode.
+
+  describe_sql:
+    description: |
+      Return result schema metadata for already validated SQL (execution-backed probe, maxRows=1).
+      Pass the exact normalizedSql from validate_sql. Does not normalize or rewrite SQL.
+      Returns schema only — the output sql field echoes your input and is not authoritative.
+    input:
+      type: object
+      required:
+        - sql
+      properties:
+        sql:
+          type: string
+          description: Exact normalizedSql from the matching validate_sql result in this flow.
+        dialect:
+          type: string
+          description: Optional SQL dialect id (defaults to CALCITE).
+    output:
+      type: object
+      description: SQL description artifact with result schema metadata.
+      properties:
+        artifactType:
+          type: string
+          description: Always "sql-description".
+        sql:
+          type: string
+        dialectId:
+          type: string
+        schema:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        warnings:
+          type: array
+          items:
+            type: string
+        source:
+          type: object
+          additionalProperties: true
+
+  execute_sql:
+    description: |
+      Execute already validated SQL and return bounded rows plus the same schema envelope as describe_sql.
+    input:
+      type: object
+      required:
+        - sql
+      properties:
+        sql:
+          type: string
+          description: Validated SQL statement to execute.
+        resultMode:
+          type: string
+          description: paged (default) or full bounded accumulation.
+        max_rows:
+          type: integer
+          description: Optional row cap (server-enforced hard limit applies).
+        dialect:
+          type: string
+          description: Optional SQL dialect id (defaults to CALCITE).
+        pageIndex:
+          type: integer
+          description: Zero-based page index for paged mode.
+        pageSize:
+          type: integer
+          description: Page size for paged mode.
+    output:
+      type: object
+      description: SQL result artifact with rows and completeness metadata.
+      properties:
+        artifactType:
+          type: string
+          description: Always "sql-result".
+        sql:
+          type: string
+        dialectId:
+          type: string
+        schema:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        warnings:
+          type: array
+          items:
+            type: string
+        source:
+          type: object
+          additionalProperties: true
+        rows:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        resultMode:
+          type: string
+        rowCount:
+          type: integer
+        truncated:
+          type: boolean
+        hasMore:
+          type: boolean
+        totalResult:
+          type: integer
+        limit:
+          type: integer
 
 artifacts:
   sql-validation:
@@ -95,6 +246,14 @@ artifacts:
     sourceEvent: tool.result
     emissionStrategy: FromToolResult
     destinations: []
+
+  sql-description:
+    artifactKind: sql-description
+    persistKind: sql.description
+    persist: false
+    sourceEvent: tool.result
+    emissionStrategy: FromToolResult
+    destinations: [CHAT_STREAM]
 
   generated-sql:
     protocolId: sql-query.generated-sql
@@ -123,29 +282,37 @@ protocols:
     mode: structured_final
     finalSchema:
       type: object
-      description: Generated SQL artifact.
+      description: Generated SQL artifact with nested sections.
       properties:
         artifactType:
           type: string
           description: Always "generated-sql".
         sql:
-          type: string
-          description: Canonical SQL statement.
-        dialectId:
-          type: string
-          description: Active dialect id.
-        statementKind:
-          type: string
-          description: Statement kind, e.g. select.
-        source:
-          type: string
-          description: Source of the SQL artifact, typically "generated".
-        validationWarnings:
+          type: object
+          description: Nested SQL statement section.
+          additionalProperties: true
+        info:
+          type: object
+          description: Human-readable title and description.
+          additionalProperties: true
+        schema:
           type: array
-          description: Optional warnings attached to the statement.
+          description: Trusted result schema from describe_sql.
           items:
-            type: string
-            description: A single validation warning.
+            type: object
+            additionalProperties: true
+        visualizations:
+          type: array
+          description: Renderer-agnostic visualization configs.
+          items:
+            type: object
+            additionalProperties: true
+        profiling:
+          type: array
+          description: Reserved profiling section.
+          items:
+            type: object
+            additionalProperties: true
 
   sql-query.validation:
     description: Structured final protocol for SQL validation result artifacts.

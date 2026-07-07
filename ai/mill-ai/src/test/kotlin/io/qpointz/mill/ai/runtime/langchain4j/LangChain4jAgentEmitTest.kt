@@ -17,6 +17,7 @@ import io.qpointz.mill.metadata.domain.facet.FacetSchemaType
 import io.qpointz.mill.metadata.domain.facet.FacetTypeManifest
 import io.qpointz.mill.ai.capabilities.sqlquery.MockSqlValidationService
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityDependency
+import io.qpointz.mill.ai.capabilities.sqlquery.mockSqlQueryCapabilityDependency
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityProvider
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryToolHandlers.SqlValidationService
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryToolHandlers.ValidationResult
@@ -140,7 +141,9 @@ class LangChain4jAgentEmitTest {
                     ToolExecutionRequest.builder()
                         .id("call-1")
                         .name("validate_sql")
-                        .arguments("""{"sql":"SELECT 1","attempt":1}""")
+                        .arguments(
+                            """{"sql":"SELECT 1","attempt":1,"title":"Constant row","description":"Returns a single constant row for smoke testing."}""",
+                        )
                         .build(),
                 ),
             )
@@ -161,7 +164,7 @@ class LangChain4jAgentEmitTest {
             contextType = "general",
             capabilityDependencies = CapabilityDependencyContainer.of(
                 "sql-query" to CapabilityDependencies.of(
-                    SqlQueryCapabilityDependency(MockSqlValidationService()),
+                    mockSqlQueryCapabilityDependency(),
                 ),
             ),
         )
@@ -207,7 +210,9 @@ class LangChain4jAgentEmitTest {
             AgentContext(
                 contextType = "general",
                 capabilityDependencies = CapabilityDependencyContainer.of(
-                    "sql-query" to CapabilityDependencies.of(SqlQueryCapabilityDependency(failingValidator)),
+                    "sql-query" to CapabilityDependencies.of(
+                        mockSqlQueryCapabilityDependency(validator = failingValidator),
+                    ),
                 ),
             ),
             events::add,

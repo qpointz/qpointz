@@ -51,6 +51,7 @@ class LangChain4jAgent(
     private val persistenceContext: AgentPersistenceContext = AgentPersistenceContext(),
     private val artifactDescriptorRegistry: ArtifactDescriptorRegistry = ArtifactDescriptorRegistry.loadDefault(),
     private val emissionCoordinator: ArtifactEmissionCoordinator = ArtifactEmissionCoordinator(artifactDescriptorRegistry),
+    private val sqlCompletionCoordinator: SqlArtifactCompletionCoordinator = SqlArtifactCompletionCoordinator(artifactDescriptorRegistry),
     private val eventRouter: AgentEventRouter = RegistryAgentEventRouter(artifactDescriptorRegistry),
     maxIterations: Int = DEFAULT_MAX_ITERATIONS,
 ) {
@@ -162,6 +163,7 @@ class LangChain4jAgent(
         }
 
         routedListener(AgentEvent.RunStarted(profile.id))
+        sqlCompletionCoordinator.reset()
 
         val capabilities = resolveCapabilities(context)
         val bindings = capabilities.flatMap { it.tools }
@@ -246,6 +248,19 @@ class LangChain4jAgent(
                 context = context,
                 conversationId = session.conversationId,
             )
+            val completionResult = sqlCompletionCoordinator.processBatch(
+                executedTools = executedTools,
+                runState = runState,
+                artifactStore = persistenceContext.artifactStore,
+                pointerStore = persistenceContext.activeArtifactPointerStore,
+                listener = routedListener,
+            )
+            if (completionResult.shouldEndTurn) {
+                routedListener(AgentEvent.AnswerCompleted(""))
+                saveToMemory(session, input, "")
+                session.appendUserMessage(input)
+                return ""
+            }
             if (emissionCoordinator.emitOnToolSuccess(executedTools, runState, routedListener)) {
                 routedListener(AgentEvent.AnswerCompleted(""))
                 saveToMemory(session, input, "")

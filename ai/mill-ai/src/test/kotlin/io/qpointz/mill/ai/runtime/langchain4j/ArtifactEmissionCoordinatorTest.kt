@@ -24,18 +24,22 @@ class ArtifactEmissionCoordinatorTest {
             attempt = 1,
             message = null,
             normalizedSql = "SELECT 1",
+            title = "Constant row",
+            description = "Returns a single constant row for smoke testing.",
         )
         val final = coordinator.constructProtocolFinal(descriptor, toolResult, AgentContext(contextType = "general"))
         assertEquals("sql-query.generated-sql", final.protocolId)
         @Suppress("UNCHECKED_CAST")
         val payload = final.payload as Map<String, Any?>
         assertEquals("generated-sql", payload["artifactType"])
-        assertEquals("SELECT 1", payload["sql"])
-        assertEquals("select", payload["statementKind"])
+        @Suppress("UNCHECKED_CAST")
+        val sql = payload["sql"] as Map<String, Any?>
+        assertEquals("SELECT 1", sql["text"])
+        assertEquals("select", sql["statementKind"])
     }
 
     @Test
-    fun shouldEmitProtocolFinal_whenValidateSqlPasses() {
+    fun shouldNotEmitProtocolFinal_whenValidateSqlPasses_withoutEmitTrigger() {
         val events = mutableListOf<AgentEvent>()
         val emitted = coordinator.emitOnToolSuccess(
             executedTools = listOf(
@@ -46,6 +50,8 @@ class ArtifactEmissionCoordinatorTest {
                         "passed" to true,
                         "attempt" to 1,
                         "normalizedSql" to "SELECT 42",
+                        "title" to "Count",
+                        "description" to "Returns forty-two as a constant value.",
                     ),
                 ),
             ),
@@ -56,9 +62,8 @@ class ArtifactEmissionCoordinatorTest {
             ),
             listener = events::add,
         )
-        assertTrue(emitted)
-        val protocolFinal = events.filterIsInstance<AgentEvent.ProtocolFinal>().single()
-        assertEquals("sql-query.generated-sql", protocolFinal.protocolId)
+        assertFalse(emitted)
+        assertTrue(events.filterIsInstance<AgentEvent.ProtocolFinal>().isEmpty())
     }
 
     @Test

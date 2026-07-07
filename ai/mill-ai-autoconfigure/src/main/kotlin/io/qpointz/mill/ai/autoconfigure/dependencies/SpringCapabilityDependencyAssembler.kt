@@ -1,11 +1,15 @@
 ﻿package io.qpointz.mill.ai.autoconfigure.dependencies
 
+import io.qpointz.mill.ai.autoconfigure.sqlquery.SqlQueryExecutionProperties
 import io.qpointz.mill.ai.capabilities.concept.ConceptCatalogPort
 import io.qpointz.mill.ai.capabilities.metadata.MetadataReadPort
 import io.qpointz.mill.ai.capabilities.schema.SchemaCatalogPort
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryCapabilityDependency
+import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryExecutionLimits
+import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryExecutionPort
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlQueryToolHandlers
 import io.qpointz.mill.ai.capabilities.sqlquery.SqlValidator
+import io.qpointz.mill.ai.capabilities.sqlquery.UnsupportedSqlQueryExecutionPort
 import io.qpointz.mill.ai.capabilities.sqlquery.asSqlValidationService
 import io.qpointz.mill.ai.capabilities.valuemapping.ValueMappingResolver
 import io.qpointz.mill.ai.core.capability.CapabilityDependencyContainer
@@ -27,6 +31,8 @@ class SpringCapabilityDependencyAssembler(
     private val dialectSpec: ObjectProvider<SqlDialectSpec>,
     private val sqlValidator: ObjectProvider<SqlValidator>,
     private val sqlValidationService: ObjectProvider<SqlQueryToolHandlers.SqlValidationService>,
+    private val sqlQueryExecutionPort: ObjectProvider<SqlQueryExecutionPort>,
+    private val sqlQueryExecutionProperties: ObjectProvider<SqlQueryExecutionProperties>,
     private val valueMappingResolver: ObjectProvider<ValueMappingResolver>,
 ) : CapabilityDependencyAssembler {
 
@@ -44,8 +50,16 @@ class SpringCapabilityDependencyAssembler(
     }
 
     private fun buildSqlQueryDependency(): SqlQueryCapabilityDependency? {
-        sqlValidator.getIfAvailable()?.let { return SqlQueryCapabilityDependency(it.asSqlValidationService()) }
-        sqlValidationService.getIfAvailable()?.let { return SqlQueryCapabilityDependency(it) }
-        return null
+        val validator = sqlValidator.getIfAvailable()?.asSqlValidationService()
+            ?: sqlValidationService.getIfAvailable()
+            ?: return null
+        val props = sqlQueryExecutionProperties.getIfAvailable()
+        return SqlQueryCapabilityDependency(
+            validator = validator,
+            execution = sqlQueryExecutionPort.getIfAvailable() ?: UnsupportedSqlQueryExecutionPort,
+            defaultMaxRows = props?.maxRowsDefault ?: SqlQueryExecutionLimits.DEFAULT_MAX_ROWS,
+            hardMaxRows = props?.maxRowsHard ?: SqlQueryExecutionLimits.HARD_MAX_ROWS,
+            dialectSpec = dialectSpec.getIfAvailable(),
+        )
     }
 }

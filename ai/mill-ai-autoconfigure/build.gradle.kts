@@ -14,6 +14,8 @@ mill {
 
 dependencies {
     testImplementation(libs.h2.database)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
 
     api(project(":ai:mill-ai"))
     api(project(":ai:mill-ai-service"))
@@ -34,6 +36,8 @@ dependencies {
     implementation(project(":metadata:mill-metadata-core"))
     implementation(project(":metadata:mill-metadata-persistence"))
     implementation(project(":data:mill-data-metadata"))
+    implementation(project(":data:mill-data-query"))
+    compileOnly(project(":data:mill-data-autoconfigure"))
     implementation(project(":ai:mill-ai-persistence"))
     implementation(project(":metadata:mill-metadata-core"))
     implementation(project(":metadata:mill-metadata-persistence"))

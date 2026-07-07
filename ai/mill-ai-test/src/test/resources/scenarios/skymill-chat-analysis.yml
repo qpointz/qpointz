@@ -1,0 +1,337 @@
+name: skymill-chat-analysis
+profileId: data-analysis
+parameters:
+  mode: scripted
+run:
+  - ask: "We are using the test/datasets/skymill airline dataset. Start a short conversation by summarizing what this dataset covers."
+    script:
+      - answer: "Skymill covers passenger transport and cargo freight, including flights, bookings, ticket prices, ratings, delays, cancellations, cargo shipments, cargo clients, aircraft, routes, cities, and countries."
+    verify:
+      check:
+        - events:
+            containsInOrder:
+              - { type: run.started, profileId: data-analysis }
+              - { type: answer.completed }
+        - response:
+            assert: not-blank
+        - transcript:
+            turnCount: 2
+
+  - ask: "Continue the conversation: what are two useful analysis areas for Skymill?"
+    script:
+      - answer: "Two useful Skymill analysis areas are passenger revenue and satisfaction, plus cargo volume and cargo revenue by route, country, or period."
+    verify:
+      check:
+        - response:
+            assert: not-blank
+        - transcript:
+            turnCount: 2
+
+  - ask: "Add descriptive facets: passenger.id is the passenger identifier, and ticket_prices.total_price is the final ticket price paid."
+    script:
+      - toolCalls:
+          - name: propose_facet_assignment
+            args:
+              facetTypeKey: descriptive
+              catalogPath: skymill.passenger.id
+              payload:
+                summary: "Unique identifier for each passenger row."
+              rationale: "Captured the passenger identifier description."
+          - name: propose_facet_assignment
+            args:
+              facetTypeKey: descriptive
+              catalogPath: skymill.ticket_prices.total_price
+              payload:
+                summary: "Final ticket price paid by the passenger, including base fare, taxes, and fees."
+              rationale: "Captured the ticket total price description."
+      - answer: "I proposed two descriptive facets for passenger.id and ticket_prices.total_price."
+    verify:
+      check:
+        - events:
+            containsInOrder:
+              - { type: tool.call, name: propose_facet_assignment }
+              - { type: protocol.final, protocolId: metadata.faceting.capture }
+              - { type: answer.completed }
+        - artifacts:
+            persistKind: metadata.faceting.capture
+            count: 2
+        - artifacts.shape:
+            persistKind: metadata.faceting.capture
+            where:
+              payload.catalogPath: skymill.passenger.id
+            match:
+              payload.facetTypeKey: descriptive
+              payload.catalogPath: skymill.passenger.id
+        - artifacts.shape:
+            persistKind: metadata.faceting.capture
+            where:
+              payload.catalogPath: skymill.ticket_prices.total_price
+            match:
+              payload.facetTypeKey: descriptive
+              payload.catalogPath: skymill.ticket_prices.total_price
+        - sse:
+            type: item.part.updated
+            presentation: structured
+            partType: facet-proposal
+        - response:
+            assert: not-blank
+
+  - ask: "Add data quality facets: passenger.id must not be null, and cargo_shipments.weight_kg must be positive."
+    script:
+      - toolCalls:
+          - name: propose_facet_assignment
+            args:
+              facetTypeKey: dq-null-check
+              catalogPath: skymill.passenger.id
+              payload:
+                name: passenger-id-not-null
+              rationale: "Captured the passenger id not-null quality rule."
+          - name: propose_facet_assignment
+            args:
+              facetTypeKey: dq-predicate
+              catalogPath: skymill.cargo_shipments
+              payload:
+                name: cargo-shipments-weight-positive
+                predicate: "weight_kg > 0"
+              rationale: "Captured the positive shipment weight quality rule."
+      - answer: "I proposed two data quality facets: one not-null rule and one positive-weight predicate."
+    verify:
+      check:
+        - artifacts:
+            persistKind: metadata.faceting.capture
+            count: 2
+        - artifacts.shape:
+            persistKind: metadata.faceting.capture
+            where:
+              payload.catalogPath: skymill.passenger.id
+            match:
+              payload.facetTypeKey: dq-null-check
+              payload.catalogPath: skymill.passenger.id
+        - artifacts.shape:
+            persistKind: metadata.faceting.capture
+            where:
+              payload.catalogPath: skymill.cargo_shipments
+            match:
+              payload.facetTypeKey: dq-predicate
+              payload.catalogPath: skymill.cargo_shipments
+        - response:
+            assert: not-blank
+
+  - ask: "Define a concept facet named Premium Passenger for loyalty members in gold or platinum tier."
+    script:
+      - toolCalls:
+          - name: propose_facet_assignment
+            args:
+              facetTypeKey: concept
+              catalogPath: model-entity
+              payload:
+                concepts:
+                  - conceptRef: "urn:mill/model/concept:premium-passenger"
+                    name: "Premium Passenger"
+                    description: "A passenger enrolled in the loyalty program with gold or platinum tier."
+                    tags: [passenger, loyalty]
+                    sql: "SELECT * FROM skymill.passenger WHERE loyalty_program_member = TRUE AND loyalty_tier IN ('gold', 'platinum')"
+              rationale: "Captured Premium Passenger as a model-level concept."
+      - answer: "I proposed the Premium Passenger concept facet on the model root."
+    verify:
+      check:
+        - artifacts:
+            persistKind: metadata.faceting.capture
+            count: 1
+        - artifacts.shape:
+            persistKind: metadata.faceting.capture
+            which: last
+            match:
+              payload.facetTypeKey: concept
+        - response:
+            assert: not-blank
+
+  - ask: "Write a query for passenger revenue by travel class."
+    script:
+      - toolCalls:
+          - name: validate_sql
+            args:
+              sql: "SELECT tp.travel_class, SUM(tp.total_price) AS passenger_revenue FROM skymill.ticket_prices tp GROUP BY tp.travel_class"
+              attempt: 1
+              title: "Passenger revenue by travel class"
+              description: "Aggregates Skymill passenger ticket revenue by cabin travel class."
+              completionMode: sql-only
+    verify:
+      check:
+        - events:
+            containsInOrder:
+              - { type: tool.call, name: validate_sql }
+              - { type: protocol.final, protocolId: sql-query.generated-sql }
+              - { type: answer.completed }
+        - artifacts:
+            persistKind: sql.generated
+            count: 1
+        - artifacts.shape:
+            persistKind: sql.generated
+            which: last
+            match:
+              payload.artifactType: generated-sql
+              payload.info.title: "Passenger revenue by travel class"
+              payload.sql.statementKind: select
+            contains:
+              payload.sql.text:
+                - skymill.ticket_prices
+                - travel_class
+                - total_price
+                - passenger_revenue
+        - sse:
+            type: item.part.updated
+            presentation: structured
+            partType: sql
+
+  - ask: "Create a bar chart query for cargo revenue by cargo type."
+    script:
+      - toolCalls:
+          - name: validate_sql
+            args:
+              sql: "SELECT ct.name AS cargo_type, SUM(cs.revenue) AS cargo_revenue FROM skymill.cargo_shipments cs JOIN skymill.cargo_types ct ON cs.cargo_type_id = ct.id GROUP BY ct.name"
+              attempt: 1
+              title: "Cargo revenue by cargo type"
+              description: "Aggregates Skymill cargo shipment revenue by cargo type for a bar chart."
+              completionMode: sql-with-chart
+      - toolCalls:
+          - name: describe_sql
+            args:
+              sql: "SELECT ct.name AS cargo_type, SUM(cs.revenue) AS cargo_revenue FROM skymill.cargo_shipments cs JOIN skymill.cargo_types ct ON cs.cargo_type_id = ct.id GROUP BY ct.name"
+          - name: list_supported_charts
+            args:
+              chartType: bar
+      - toolCalls:
+          - name: validate_chart_spec
+            args:
+              schema:
+                - { name: cargo_type, type: STRING, nullable: true }
+                - { name: cargo_revenue, type: DOUBLE, nullable: false }
+              chartType: bar
+              key: cargo-revenue-bar
+              title: "Cargo revenue by type"
+              encodings:
+                category: { field: cargo_type, label: "Cargo type" }
+                value: { field: cargo_revenue, label: "Cargo revenue" }
+    verify:
+      check:
+        - events:
+            containsInOrder:
+              - { type: tool.call, name: validate_sql }
+              - { type: tool.call, name: describe_sql }
+              - { type: tool.call, name: validate_chart_spec }
+              - { type: protocol.final, protocolId: sql-query.generated-sql }
+        - artifacts:
+            persistKind: sql.generated
+            count: 1
+        - artifacts.shape:
+            persistKind: sql.generated
+            which: last
+            match:
+              payload.info.title: "Cargo revenue by cargo type"
+              payload.visualizations.0.chartType: bar
+              payload.visualizations.0.encodings.category.field: cargo_type
+              payload.visualizations.0.encodings.value.field: cargo_revenue
+            contains:
+              payload.sql.text:
+                - skymill.cargo_shipments
+                - skymill.cargo_types
+                - cargo_type
+                - cargo_revenue
+
+  - ask: "Create a line chart query for average passenger rating by rated date."
+    script:
+      - toolCalls:
+          - name: validate_sql
+            args:
+              sql: "SELECT r.rated_at, AVG(r.rating) AS avg_rating FROM skymill.ratings r GROUP BY r.rated_at ORDER BY r.rated_at"
+              attempt: 1
+              title: "Average rating by date"
+              description: "Aggregates Skymill passenger satisfaction ratings by rating date for a line chart."
+              completionMode: sql-with-chart
+      - toolCalls:
+          - name: describe_sql
+            args:
+              sql: "SELECT r.rated_at, AVG(r.rating) AS avg_rating FROM skymill.ratings r GROUP BY r.rated_at ORDER BY r.rated_at"
+          - name: list_supported_charts
+            args:
+              chartType: line
+      - toolCalls:
+          - name: validate_chart_spec
+            args:
+              schema:
+                - { name: rated_at, type: DATE, nullable: true }
+                - { name: avg_rating, type: DOUBLE, nullable: false }
+              chartType: line
+              key: average-rating-line
+              title: "Average rating by date"
+              encodings:
+                x: { field: rated_at, label: "Rated date" }
+                y: { field: avg_rating, label: "Average rating" }
+    verify:
+      check:
+        - artifacts:
+            persistKind: sql.generated
+            count: 1
+        - artifacts.shape:
+            persistKind: sql.generated
+            which: last
+            match:
+              payload.info.title: "Average rating by date"
+              payload.visualizations.0.chartType: line
+              payload.visualizations.0.encodings.x.field: rated_at
+              payload.visualizations.0.encodings.y.field: avg_rating
+            contains:
+              payload.sql.text:
+                - skymill.ratings
+                - rated_at
+                - rating
+                - avg_rating
+
+  - ask: "Create a pie chart query for delay counts by reason."
+    script:
+      - toolCalls:
+          - name: validate_sql
+            args:
+              sql: "SELECT d.reason, COUNT(*) AS delay_count FROM skymill.delays d GROUP BY d.reason"
+              attempt: 1
+              title: "Delay counts by reason"
+              description: "Counts Skymill passenger flight delays by reason for a pie chart."
+              completionMode: sql-with-chart
+      - toolCalls:
+          - name: describe_sql
+            args:
+              sql: "SELECT d.reason, COUNT(*) AS delay_count FROM skymill.delays d GROUP BY d.reason"
+          - name: list_supported_charts
+            args:
+              chartType: pie
+      - toolCalls:
+          - name: validate_chart_spec
+            args:
+              schema:
+                - { name: reason, type: STRING, nullable: true }
+                - { name: delay_count, type: BIG_INT, nullable: false }
+              chartType: pie
+              key: delay-reason-pie
+              title: "Delay counts by reason"
+              encodings:
+                category: { field: reason, label: "Delay reason" }
+                value: { field: delay_count, label: "Delay count" }
+    verify:
+      check:
+        - artifacts:
+            persistKind: sql.generated
+            count: 1
+        - artifacts.shape:
+            persistKind: sql.generated
+            which: last
+            match:
+              payload.info.title: "Delay counts by reason"
+              payload.visualizations.0.chartType: pie
+              payload.visualizations.0.encodings.category.field: reason
+              payload.visualizations.0.encodings.value.field: delay_count
+            contains:
+              payload.sql.text:
+                - skymill.delays
+                - reason
+                - delay_count

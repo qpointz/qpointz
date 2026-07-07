@@ -54,6 +54,12 @@ object SqlDialectToolHandlers {
         val identifiers: IdentifierConventions,
         val literals: LiteralConventions,
         val functionCategories: List<String>,
+        val statements: StatementConventions,
+    )
+
+    data class StatementConventions(
+        val allowTrailingSemicolon: Boolean,
+        val maxPerRequest: Int,
     )
 
     fun getSqlDialectConventions(spec: SqlDialectSpec): SqlDialectConventions =
@@ -80,6 +86,10 @@ object SqlDialectToolHandlers {
                 booleanLiterals = spec.literals.booleans,
             ),
             functionCategories = spec.functions.keys.toList().sorted(),
+            statements = StatementConventions(
+                allowTrailingSemicolon = spec.statements.allowTrailingSemicolon,
+                maxPerRequest = spec.statements.maxPerRequest,
+            ),
         )
 
     // ── get_sql_paging_rules ──────────────────────────────────────────────────

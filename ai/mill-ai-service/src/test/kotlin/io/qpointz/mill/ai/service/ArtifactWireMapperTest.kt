@@ -40,12 +40,55 @@ class ArtifactWireMapperTest {
         )
 
         assertThat(ArtifactWireMapper.toResponse(record)).isEqualTo(
-            wire("a1", "sql", mapOf("sql" to "SELECT 1", "dialectId" to "ansi")),
+            wire("a1", "sql", mapOf("sql" to "SELECT 1", "dialectId" to "ansi", "artifactType" to "generated-sql")),
         )
     }
 
     @Test
-    fun shouldMapSqlResultAttachPayload() {
+    fun shouldMapNestedGeneratedSqlWithVisualizations() {
+        val record = ArtifactRecord(
+            artifactId = "a-nested",
+            conversationId = "c1",
+            runId = "r1",
+            kind = "sql.generated",
+            payload = mapOf(
+                "protocolId" to "sql-query.generated-sql",
+                "payload" to mapOf(
+                    "artifactType" to "generated-sql",
+                    "sql" to mapOf(
+                        "text" to "SELECT country, COUNT(*) c FROM t GROUP BY country",
+                        "dialectId" to "CALCITE",
+                        "statementKind" to "select",
+                        "source" to "generated",
+                        "validationWarnings" to emptyList<String>(),
+                    ),
+                    "info" to mapOf("title" to "By country", "description" to "Counts by country."),
+                    "schema" to listOf(mapOf("name" to "country", "type" to "STRING")),
+                    "visualizations" to listOf(
+                        mapOf(
+                            "key" to "default",
+                            "kind" to "chart",
+                            "chartType" to "bar",
+                            "encodings" to mapOf(
+                                "category" to mapOf("field" to "country"),
+                                "value" to mapOf("field" to "c"),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            turnId = "t1",
+            createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+        )
+
+        val response = ArtifactWireMapper.toResponse(record)
+        assertThat(response?.kind).isEqualTo("sql")
+        assertThat(response?.payload?.get("visualizations")).isNotNull
+        assertThat(response?.payload?.get("info")).isNotNull
+    }
+
+    @Test
+    fun shouldMapSqlResultAttachPayload_withoutExecutionId() {
         val record = ArtifactRecord(
             artifactId = "a2",
             conversationId = "c1",
@@ -53,10 +96,11 @@ class ArtifactWireMapperTest {
             kind = "sql.result",
             payload = mapOf(
                 "artifactType" to "sql-result",
-                "executionId" to "exec-1",
+                "sql" to "SELECT id FROM t",
                 "rowCount" to 42L,
                 "truncated" to false,
                 "columns" to listOf(mapOf("name" to "id", "type" to "int")),
+                "sourceArtifactId" to "sql-1",
             ),
             turnId = "t1",
             createdAt = Instant.parse("2025-01-01T00:00:00Z"),
@@ -67,13 +111,39 @@ class ArtifactWireMapperTest {
                 "a2",
                 "data",
                 mapOf(
-                    "executionId" to "exec-1",
+                    "sql" to "SELECT id FROM t",
                     "rowCount" to 42L,
                     "truncated" to false,
                     "columns" to listOf(mapOf("name" to "id", "type" to "int")),
+                    "sourceArtifactId" to "sql-1",
                 ),
             ),
         )
+    }
+
+    @Test
+    fun shouldStripLegacyExecutionId_whenMappingSqlResult() {
+        val record = ArtifactRecord(
+            artifactId = "a2-legacy",
+            conversationId = "c1",
+            runId = null,
+            kind = "sql.result",
+            payload = mapOf(
+                "artifactType" to "sql-result",
+                "executionId" to "exec-stale",
+                "resultId" to "exec-stale",
+                "sql" to "SELECT 1",
+                "rowCount" to 1L,
+            ),
+            turnId = "t1",
+            createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+        )
+
+        val response = ArtifactWireMapper.toResponse(record)
+        assertThat(response?.kind).isEqualTo("data")
+        assertThat(response?.payload).doesNotContainKey("executionId")
+        assertThat(response?.payload).doesNotContainKey("resultId")
+        assertThat(response?.payload?.get("sql")).isEqualTo("SELECT 1")
     }
 
     @Test

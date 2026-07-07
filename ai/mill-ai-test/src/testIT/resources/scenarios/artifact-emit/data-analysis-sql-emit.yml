@@ -10,6 +10,8 @@ run:
             args:
               sql: "SELECT month, SUM(revenue) FROM sales GROUP BY month"
               attempt: 1
+              title: "Revenue by month"
+              description: "Monthly revenue totals grouped by calendar month."
     verify:
       pass: ERROR
       check:
@@ -26,7 +28,7 @@ run:
             persistKind: sql.generated
             match:
               payload.artifactType: generated-sql
-              payload.statementKind: select
+              payload.sql.statementKind: select
         - sse:
             - type: item.part.updated
               presentation: structured

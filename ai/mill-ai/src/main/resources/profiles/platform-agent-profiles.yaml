@@ -34,6 +34,7 @@ capabilities:
   - concept
   - sql-dialect
   - sql-query
+  - chart-mapping
   - value-mapping
 prompts:
   data-analysis.intent:
@@ -42,11 +43,12 @@ prompts:
       Profile `data-analysis` composes non-overlapping capability intents. Apply in order; one message may match multiple:
 
       1. **sql-query.intent** — DATA_QUERY when the user wants data, SQL, counts, or aggregates.
-      2. **concept.intent** — business/domain language (lookup or definition).
+      2. **chart-mapping.intent** — CHART_MAP when the user wants a chart or visualization.
+      3. **concept.intent** — business/domain language (lookup or definition).
          Use concept discovery affordances as semantic hints before schema or SQL work. Do not classify DATA_QUERY here.
          For definition turns, complete concept.capture (model-grounded indicative SQL + facet-assignment capture for user accept/reject; clarify with the user when grounding is unclear).
-      3. **schema.intent** — EXPLORE when the user wants schema structure only (no SQL generation).
-      4. **metadata-authoring.intent** — AUTHOR_FACET when the user documents metadata (descriptions, relations, data-quality rules).
+      4. **schema.intent** — EXPLORE when the user wants schema structure only (no SQL generation).
+      5. **metadata-authoring.intent** — AUTHOR_FACET when the user documents metadata (descriptions, relations, data-quality rules).
          All facet types share the same accept/reject proposal lifecycle (metadata.faceting.lifecycle).
 
       Mixed utterances may require BOTH AUTHOR_FACET and DATA_QUERY in one turn (e.g. "customer_id must not be null AND show order counts").

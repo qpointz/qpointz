@@ -56,4 +56,39 @@ class TurnCheckRegistryTest {
         )
         assertThat(results.single().result.passed).isFalse()
     }
+
+    @Test
+    fun shouldPassArtifactShapeContainsCheck() {
+        val outcome = TurnOutcome(
+            response = "ok",
+            events = emptyList(),
+            artifacts = listOf(
+                ArtifactSnapshot(
+                    persistKind = "sql.generated",
+                    artifactId = "artifact-1",
+                    payload = mapOf(
+                        "sql" to mapOf(
+                            "sql" to "SELECT travel_class, SUM(total_price) FROM skymill.ticket_prices GROUP BY travel_class",
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val results = registry.runAll(
+            outcome,
+            VerifySpec(
+                check = listOf(
+                    mapOf(
+                        "artifacts.shape" to mapOf(
+                            "persistKind" to "sql.generated",
+                            "contains" to mapOf(
+                                "sql.sql" to listOf("skymill.ticket_prices", "total_price"),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        assertThat(results.single().result.passed).isTrue()
+    }
 }

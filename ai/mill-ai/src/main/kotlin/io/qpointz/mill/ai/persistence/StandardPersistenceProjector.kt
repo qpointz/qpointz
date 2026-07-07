@@ -93,19 +93,21 @@ class StandardPersistenceProjector(
         val artifactIds = mutableListOf<String>()
         val now = Instant.now()
         expanded.forEach { expandedEvent ->
-            val artifactId = UUID.randomUUID().toString()
+            val existingArtifactId = expandedEvent.content["persistArtifactId"] as? String
+            val artifactId = existingArtifactId?.takeIf { it.isNotBlank() } ?: UUID.randomUUID().toString()
             val kind = expandedEvent.content["persistKind"] as? String
                 ?: expandedEvent.content["protocolId"] as? String
                 ?: expandedEvent.kind
+            val existing = existingArtifactId?.let { artifactStore.findById(it) }
             val artifact = ArtifactRecord(
                 artifactId = artifactId,
                 conversationId = conversationId,
                 runId = event.runId,
                 kind = kind,
                 payload = expandedEvent.content,
-                turnId = event.turnId,
+                turnId = existing?.turnId ?: event.turnId,
                 pointerKeys = event.route.rule.artifactPointerKeys,
-                createdAt = event.createdAt,
+                createdAt = existing?.createdAt ?: event.createdAt,
             )
             artifactStore.save(artifact)
             artifactIds += artifactId

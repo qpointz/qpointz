@@ -242,12 +242,18 @@ class UnifiedChatServiceTest {
                 rowCount = 10,
                 truncated = false,
                 sql = "SELECT id FROM t",
+                parentArtifactId = "sql-parent",
             ),
         )
 
         assertThat(attached?.kind).isEqualTo("data")
+        assertThat(attached?.payload).doesNotContainKey("executionId")
+        assertThat(attached?.payload).doesNotContainKey("resultId")
+        assertThat(attached?.payload?.get("sql")).isEqualTo("SELECT id FROM t")
+        assertThat(attached?.payload?.get("sourceArtifactId")).isEqualTo("sql-parent")
         val replay = service.getChat(chat.chatId)!!.messages.single()
-        assertThat(replay.artifacts.any { it.kind == "data" }).isTrue()
+        val data = replay.artifacts.single { it.kind == "data" }
+        assertThat(data.payload).doesNotContainKey("executionId")
     }
 
     @Test

@@ -220,7 +220,7 @@ class AiChatControllerTest {
         whenever(chatService.attachExecutionResult(eq("chat-1"), eq("t-1"), any())).thenReturn(
             io.qpointz.mill.ai.service.dto.ArtifactResponse(
                 kind = "data",
-                payload = mapOf("executionId" to "exec-1", "rowCount" to 5L),
+                payload = mapOf("sql" to "SELECT 1", "rowCount" to 5L),
             ),
         )
 
@@ -231,7 +231,8 @@ class AiChatControllerTest {
             .expectStatus().isOk
             .expectBody()
             .jsonPath("$.kind").isEqualTo("data")
-            .jsonPath("$.payload.executionId").isEqualTo("exec-1")
+            .jsonPath("$.payload.rowCount").isEqualTo(5)
+            .jsonPath("$.payload.executionId").doesNotExist()
     }
 
     @Test

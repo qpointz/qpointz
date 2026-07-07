@@ -69,12 +69,9 @@ class ArtifactDescriptorRegistryTest {
     }
 
     @Test
-    fun shouldExposeValidateSqlEmitTrigger() {
+    fun shouldNotExposeValidateSqlEmitTrigger_afterCompletionCoordinator() {
         val triggers = registry.emitTriggersForTool("validate_sql")
-        assertEquals(1, triggers.size)
-        assertEquals("sql-query.generated-sql", triggers.first().artifactId)
-        assertEquals("passed", triggers.first().whenField)
-        assertEquals(true, triggers.first().equals)
+        assertTrue(triggers.isEmpty(), "validate_sql must not emit artifacts directly (G-29)")
     }
 
     @Test

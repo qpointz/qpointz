@@ -10,6 +10,7 @@ class ArtifactEmitScenariosIT : ScenarioPackTestBase() {
 
     override fun scenarioResources(): List<String> = listOf(
         "scenarios/artifact-emit/data-analysis-sql-emit.yml",
+        "scenarios/artifact-emit/data-analysis-sql-chart-emit.yml",
         "scenarios/artifact-emit/schema-authoring-facet-emit.yml",
         "scenarios/artifact-emit/data-analysis-no-facet.yml",
         "scenarios/artifact-emit/schema-authoring-sql-and-facet.yml",
