@@ -27,7 +27,8 @@ A document belongs here if its **primary subject** is one of:
 | `dynamic-facet-types-schema-and-validation.md` | Open design: typed vs dynamic facet types; structure, validation, serialization; alignment with ai/v3 `ToolSchemaYaml` / capability manifests |
 | `facet-type-descriptor-formats.md` | Canonical facet type descriptor format: strict JSON contract, YAML equivalent examples, URN normalization and ordering rules |
 | `facet-payload-schema-reference.md` | **`contentSchema`** payload tree: type vocabulary, array-of-objects example (`ai-column-value-mapping-values`), links to seeds |
-| `platform-standard-facet-types.md` | **Inventory:** all 17 platform seed facet types (`platform-bootstrap.yaml` + `platform-flow-facet-types.yaml`), URN slug, purpose, applicability |
+| `platform-standard-facet-types.md` | **Inventory:** all platform seed facet types (`platform-bootstrap.yaml` + flow + DQ seeds), URN slug, purpose, applicability |
+| `ai-annotation-facet-type.md` | **`ai-annotation`** facet contract: entity-scoped agent instructions, schema tool `aiAnnotations[]`, authoring vs descriptive |
 | `metadata-documentation.md` | User-facing docs: concepts, browser, facets, configuration, practices |
 | `mill-metadata-domain-model.md` | **Reference:** entities, facet types, assignments (`FacetInstance`), scopes, `MetadataReadContext`, merge / `merge_action` — aligns with workitem SPEC / greenfield implementation |
 | `mill-ui-facet-stereotypes.md` | **Reference:** known `stereotype` tags recognised by `mill-ui` (hyperlink, email, tags), precedence, wire shapes; implementation pointers |

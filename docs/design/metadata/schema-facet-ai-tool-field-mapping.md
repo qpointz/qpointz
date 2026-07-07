@@ -24,3 +24,11 @@
 ## `ai-column-value-mapping*` facet types
 
 **Decision (this story):** not exposed on `list_*` tools; they remain for embeddings / value-mapping flows. Revisit if product requires column-level AI mapping in schema exploration.
+
+## AI annotation (`urn:mill/metadata/facet-type:ai-annotation`)
+
+| Seed / `contentSchema` field | Tool field | Tools |
+|-----------------------------|------------|-------|
+| `title`, `instruction`, `kind`, `tags` | `aiAnnotations[]` (no `enabled` on wire) | `list_schemas`, `list_tables`, `list_columns` |
+
+Source: enabled rows from `SchemaFacets.facetsResolved` on the **exact entity** only ([`SchemaFacetCatalogAdapter`](../../../ai/mill-ai-data/src/main/kotlin/io/qpointz/mill/ai/data/schema/SchemaFacetCatalogAdapter.kt)). Assignments with `enabled: false` are omitted. See [`ai-annotation-facet-type.md`](ai-annotation-facet-type.md).

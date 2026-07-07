@@ -91,6 +91,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | A-98 | Catalog-generic metadata authoring: `MetadataContent`, YAML profiles, `MetadataReadPort`, facet tools, multi-artifact batch, facet lifecycle Accept/Reject, per-capability intents (**WI-354**–**WI-364**) | ✨ feature | done | [`completed/20260629-metadata-authoring-profiles/STORY.md`](completed/20260629-metadata-authoring-profiles/STORY.md) — see **MILESTONE** 0.8.0 |
 | A-99 | AI concepts in general chat: model-level concept facets, read capability, `data-analysis` SQL grounding, v1 enrich-model capture parity, and configurable agent iteration limit (**WI-366**, **WI-367**, **WI-369**, **WI-370**, **WI-372**) | ✨ feature | done | [`completed/20260701-ai-concepts/STORY.md`](completed/20260701-ai-concepts/STORY.md) |
 | A-100 | AI chart visualizations in SQL artifacts: `describe_sql` / `execute_sql`, enriched `sql.generated` payload, completion coordinator, `chart-mapping` capability, wire/replay/scenarios (**WI-338**–**WI-341**, **WI-366**–**WI-369**) | ✨ feature | done | [`completed/20260707-ai-chart-mapping/STORY.md`](completed/20260707-ai-chart-mapping/STORY.md) |
+| A-101 | Entity-scoped **`ai-annotation`** facet: authoring capture, schema tool `aiAnnotations`, `data-analysis` SQL grounding (**WI-383**–**WI-386**, **WI-388**) | ✨ feature | done | [`completed/20260707-ai-annotations-facet/STORY.md`](completed/20260707-ai-annotations-facet/STORY.md) |
 
 ---
 
@@ -143,6 +144,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | M-33 | Data Quality facet type definitions — L1/L2 platform seeds, design contract, relplan sketches (**WI-342**–**WI-344**) | 📝 docs | done | [`completed/20260624-dqm-metadata-facets/STORY.md`](completed/20260624-dqm-metadata-facets/STORY.md) — see **MILESTONE** 0.8.0 |
 | M-34 | Eliminate redundant **`MetadataEntity.kind`** / **`entity_kind`** now that entity URNs are typed (`urn:mill/model/...`); domain, JPA, REST DTOs, YAML — **WI-144** | 🔧 refactoring | planned | `docs/workitems/planned/eliminate-entity-kind/STORY.md` |
 | M-35 | Expose facet type payload contracts as generated JSON Schema and show read-only JSON Schema in facet type admin (**WI-379**–**WI-382**) | ✨ feature | done | [`completed/20260703-metadata-facet-json-schema/STORY.md`](completed/20260703-metadata-facet-json-schema/STORY.md) — see **MILESTONE** 0.8.0 |
+| M-36 | Platform **`ai-annotation`** facet type seed and design contract (**WI-383**, **WI-384**) | 📝 docs / ✨ feature | done | [`completed/20260707-ai-annotations-facet/STORY.md`](completed/20260707-ai-annotations-facet/STORY.md) |
 
 ---
 

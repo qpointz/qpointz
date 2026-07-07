@@ -14,6 +14,8 @@
 
 #### Archived stories (closure date, newest first)
 
+- **AI annotations — entity-scoped agent instructions** (`ai-annotations-facet`, closed **2026-07-07**): [`completed/20260707-ai-annotations-facet/STORY.md`](completed/20260707-ai-annotations-facet/STORY.md). **WI-383**–**WI-388** — platform **`ai-annotation`** facet type (MULTIPLE, `ai` category), Skymill `segments` fixture, **`schema.list_*`** `aiAnnotations[]`, catalog-driven **`metadata-authoring`** agent-instruction capture, **`sql-query`** / **`data-analysis`** prompt honor + Skymill scenario. Design [`docs/design/metadata/ai-annotation-facet-type.md`](../design/metadata/ai-annotation-facet-type.md). Public [`docs/public/src/metadata/mill-ui.md`](../public/src/metadata/mill-ui.md). **BACKLOG** **A-101**, **M-36** `done`.
+
 - **Metadata facet types as JSON Schema** (`metadata-facet-json-schema`, closed **2026-07-03**): [`completed/20260703-metadata-facet-json-schema/STORY.md`](completed/20260703-metadata-facet-json-schema/STORY.md). **WI-379**-**WI-382** — generated draft-07-compatible JSON Schema projection from `FacetPayloadSchema`, required-field normalization from field flags, **`GET /api/v1/metadata/facets/{typeKey}/schema`**, and read-only JSON Schema inspection in Admin -> Model -> Facet types. Design [`docs/design/metadata/facet-type-descriptor-formats.md`](../design/metadata/facet-type-descriptor-formats.md). Public [`docs/public/src/metadata/mill-ui.md`](../public/src/metadata/mill-ui.md). **BACKLOG** **M-35** `done`.
 
 - **AI concepts in general chat** (`ai-concepts`, closed **2026-07-01**): [`completed/20260701-ai-concepts/STORY.md`](completed/20260701-ai-concepts/STORY.md). **WI-366**–**WI-370**, **WI-372** — platform `concept` facet type + fixtures, `ConceptCatalogPort` / `concept` capability, `data-analysis` profile injection, general-chat authoring capture via `metadata-authoring`, configurable `mill.ai.chat.max-iterations`; removed deprecated `source` / `sourceSession` from concept payload. Design [`docs/design/agentic/concept-metadata-model.md`](../design/agentic/concept-metadata-model.md). **BACKLOG** **A-99** `done`.
@@ -87,6 +89,8 @@
 #### Cumulative WI deliveries (toward 0.8.0)
 
 Individual work items and bundles merged on `dev` in support of this milestone (including items that also appear under **Archived stories** above).
+
+- **WI-383**–**WI-388** — **`ai-annotation`** facet: design contract, platform seed + Skymill `segments` fixture, catalog-driven metadata authoring for agent instructions, `aiAnnotations[]` on **`schema.list_schemas` / `list_tables` / `list_columns`**, **`sql-query`** prompt honor + Skymill scenario; story **`ai-annotations-facet`**, archived [`completed/20260707-ai-annotations-facet/STORY.md`](completed/20260707-ai-annotations-facet/STORY.md). **BACKLOG** **A-101**, **M-36** `done`.
 
 - **WI-379**-**WI-382** — Metadata facet JSON Schema: core projection from `FacetPayloadSchema`, facet schema REST endpoint, read-only Admin facet type JSON Schema view, and design/public docs; story **`metadata-facet-json-schema`**, archived [`completed/20260703-metadata-facet-json-schema/STORY.md`](completed/20260703-metadata-facet-json-schema/STORY.md). **BACKLOG** **M-35** `done`.
 

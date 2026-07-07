@@ -27,7 +27,9 @@ The header usually shows:
 
 Each **facet type** appears as its own section. What you see is the **effective** data after any **scope overlays** are merged (see [Concepts](concepts.md#scopes-overlays-and-how-values-combine)). **Read mode** shows structured fields when the server provides a **descriptor**; otherwise you may see JSON. **Edit mode** (when your role and deployment allow it) lets you change **assignments** for the scope you are allowed to write (for example global vs team). You can switch between a **form** driven by the payload schema and **Expert JSON/YAML** mode (same editor pattern as facet-type admin: JSON ↔ YAML toggle, format, Apply — **Save** sends the parsed object to the API).
 
-**Multiple-instance facet types** show one **card per assignment** (for example several relations). Deleting or editing a specific row may require selecting the right instance when the server exposes instance ids.
+**Multiple-instance facet types** show one **card per assignment** (for example several relations or **`ai-annotation`** agent instructions). Deleting or editing a specific row may require selecting the right instance when the server exposes instance ids.
+
+**`ai-annotation`** stores entity-scoped **agent instructions** (SQL habits, projection rules) — distinct from **`descriptive`** catalog text. Operators can capture rules in **general chat** via metadata authoring (**WI-388**); enabled assignments also appear on schema exploration tools as `aiAnnotations` for the SQL agent.
 
 In **general chat**, when an AI agent captures or proposes a facet for an entity, the **Facet** tab of the condensed artefact box reuses this same read-only field layout (descriptor-driven). See [Mill UI — facet artefacts in chat](../mill-ui.md#facet-and-schema-capture-artefacts-general-chat).
 

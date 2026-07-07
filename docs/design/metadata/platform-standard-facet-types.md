@@ -25,11 +25,12 @@ Custom types **defined only in the database**, or **OBSERVED** keys without a de
 
 `applicableTo: []` means **no restriction** in the seed (any entity type unless constrained elsewhere). Slugs are the short form of `urn:mill/metadata/facet-type:<slug>`.
 
-### `platform-bootstrap.yaml` (14 types)
+### `platform-bootstrap.yaml` (15 types)
 
 | Slug | Title | Category | Cardinality | Applicable entity types (seed) | Purpose (short) |
 |------|-------|----------|-------------|-------------------------------|-----------------|
 | `descriptive` | Description | general | SINGLE | (none — any) | Display name, description, tags. |
+| `ai-annotation` | AI Annotation | ai | MULTIPLE | `schema`, `table`, `attribute` | Entity-scoped procedural instructions for agents (SQL habits, projection rules). |
 | `schema` | Schema | general | SINGLE | `schema` | Schema name for a schema-type entity. |
 | `table` | Table | general | SINGLE | `table` | Schema and table names for a table entity. |
 | `relation` | Relation | relation | MULTIPLE | (none — any) | Relation between source and target tables (join metadata). |
@@ -67,7 +68,7 @@ Custom types **defined only in the database**, or **OBSERVED** keys without a de
 | `dq-referential-source` | Referential Integrity (Source) | data-quality | MULTIPLE | `table` | Outbound FK from host table to target. |
 | `dq-referential-target` | Referential Integrity (Target) | data-quality | MULTIPLE | `table` | Inbound FK references to host table. |
 
-**Total:** **32** standard facet type definitions across bootstrap, flow, and DQ L1/L2 seed files.
+**Total:** **33** standard facet type definitions across bootstrap, flow, and DQ L1/L2 seed files.
 
 ### `platform-dq-l2-facet-types.yaml` (5 types)
 
