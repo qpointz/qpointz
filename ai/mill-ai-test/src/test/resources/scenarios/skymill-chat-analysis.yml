@@ -335,3 +335,39 @@ run:
                 - skymill.delays
                 - reason
                 - delay_count
+
+  - ask: "Show all flight routes with origin and destination city names instead of raw ids."
+    script:
+      - toolCalls:
+          - name: list_tables
+            args:
+              schemaName: skymill
+          - name: validate_sql
+            args:
+              sql: "SELECT s.id, oc.city AS origin_city, dc.city AS destination_city, s.distance FROM skymill.segments s JOIN skymill.cities oc ON s.origin = oc.id JOIN skymill.cities dc ON s.destination = dc.id"
+              attempt: 1
+              title: "Flight routes with city names"
+              description: "Lists Skymill segments with origin and destination city names per ai-annotation guidance."
+              completionMode: sql-only
+    verify:
+      check:
+        - events:
+            containsInOrder:
+              - { type: tool.call, name: list_tables }
+              - { type: tool.call, name: validate_sql }
+              - { type: protocol.final, protocolId: sql-query.generated-sql }
+              - { type: answer.completed }
+        - artifacts:
+            persistKind: sql.generated
+            count: 1
+        - artifacts.shape:
+            persistKind: sql.generated
+            which: last
+            match:
+              payload.info.title: "Flight routes with city names"
+            contains:
+              payload.sql.text:
+                - skymill.segments
+                - skymill.cities
+                - origin_city
+                - destination_city

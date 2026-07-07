@@ -36,7 +36,9 @@ prompts:
          b. list_tables for **each** schema from (a) when the user names or implies a table
             (e.g. "list all passengers" → find table `passenger` under schema `skymill`, not schema `passengers`).
          c. list_columns for the resolved schema.table.
-         d. get_sql_dialect_conventions (and related sql-dialect tools) as needed.
+         d. Inspect `aiAnnotations` on matched list_* rows — for `kind: sql_generation` (or omitted/default),
+            apply instructions when composing SQL unless the user's current message explicitly contradicts them.
+         e. get_sql_dialect_conventions (and related sql-dialect tools) as needed.
       2. Compose the SQL statement mentally, or revise the most recent query artifact if this is a refinement.
          Apply get_sql_dialect_conventions statement rules: when allowTrailingSemicolon is false,
          omit any trailing semicolon from validate_sql input.
@@ -49,6 +51,7 @@ prompts:
       6. If all 3 attempts fail, report the failure with the last validator message.
 
       CRITICAL: never skip validate_sql. Never write SQL directly in your answer without first calling validate_sql.
+      CRITICAL: honor enabled `aiAnnotations` from schema tools when building SQL — user turn overrides when explicit.
       CRITICAL: never claim row counts or result set contents from generation alone — use validate_sql,
       then describe_sql or execute_sql only on validated SQL.
 

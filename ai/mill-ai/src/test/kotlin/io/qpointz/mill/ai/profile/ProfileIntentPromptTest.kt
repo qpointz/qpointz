@@ -57,6 +57,16 @@ class ProfileIntentPromptTest {
         assertTrue(intent.content.contains("sql-query.intent"))
         assertTrue(intent.content.contains("concept.intent"))
         assertTrue(intent.content.contains("metadata-authoring.intent"))
+        assertTrue(intent.content.contains("agent instructions"))
+        assertTrue(intent.content.contains("facet catalog"))
+    }
+
+    @Test
+    fun shouldDocumentAiAnnotations_inSqlAndSchemaPrompts() {
+        val schemaSystem = CapabilityManifest.load("capabilities/schema.yaml").promptAsset("schema.system")
+        val sqlSystem = CapabilityManifest.load("capabilities/sql-query.yaml").promptAsset("sql-query.system")
+        assertTrue(schemaSystem.content.contains("aiAnnotations"))
+        assertTrue(sqlSystem.content.contains("aiAnnotations"))
     }
 
     @Test

@@ -17,7 +17,7 @@ class SkymillScenarioPackTest {
 
         assertThat(result.failures).isEmpty()
         assertThat(result.passed).isTrue()
-        assertThat(result.record.summary.turnCount).isEqualTo(9)
+        assertThat(result.record.summary.turnCount).isEqualTo(10)
         assertThat(result.record.summary.checksFailed).isZero()
     }
 }

@@ -8,8 +8,11 @@ prompts:
     content: |
       Classify the user message for metadata authoring:
       - AUTHOR_FACET — documentary metadata (descriptions, relations, data-quality rules, constraints)
+        **and agent instructions** (SQL habits, join/projection rules, tool-output conventions on schema objects)
       - CHAT — general conversation unrelated to facet capture
       When the user documents metadata about schema objects, route to AUTHOR_FACET.
+      When the user defines **how the agent should behave** when using a table/column (e.g. "always join cities",
+      "show names not ids"), route to AUTHOR_FACET — not prose-only chat.
       Do not classify SQL/data retrieval or schema-only discovery here — sibling capabilities on the profile own those routes.
 
   metadata-authoring.reasoning:
@@ -17,20 +20,24 @@ prompts:
     content: |
       For facet authoring:
       1. Ground every target with schema discovery — copy each row's qualified catalogPath. Resolve canonical entity URNs via metadata tools; never invent `urn:mill/model/…` strings.
-      2. Decompose the user request into a checklist of (catalogPath, facetTypeKey) pairs before any capture. Example: two columns with descriptions + NOT NULL on `id` → three captures minimum (descriptive×2 + dq-null-check×1).
+      2. Decompose the user request into a checklist of (catalogPath, facetTypeKey) pairs before any capture.
+         Example: two columns with human-readable descriptions plus NOT NULL on `id` → at least three checklist rows after catalog lookup (one facet type per narrative field and one for the nullability rule).
       3. List writable metadata scopes for this chat.
       4. Discover facet categories from the dynamic catalog (not a hardcoded table).
-      5. Shortlist facet types for the chosen category (exact catalog keys: lowercase, hyphen-separated, e.g. `descriptive`, `dq-null-check`).
+      5. Shortlist facet types via **list_facet_types** / **get_facet_type** for the grounded entity and chosen category.
+         Copy the exact **facetTypeKey** from the catalog (lowercase, hyphen-separated) — including custom or tenant-defined types; never invent keys or restrict to a fixed subset.
+         When the user defines **agent behavior** on a grounded entity (SQL habits, projection rules), pick the catalog facet type whose **contentSchema** carries procedural directives (typically an **`instruction`** field) and whose **applicableTo** includes the entity;
+         do **not** store imperative agent rules in narrative description fields meant for human catalog text.
       6. Load the full facet type schema and build payloads from contentSchema; follow metadata-authoring.payload-style for rule `name` slugs and narrative fields; use examples[] when present.
-      7. For relations: pick relation-source vs relation-target by grounded table role in the join.
+      7. For relations: pick the relation facet type from the catalog by grounded table role in the join (source vs target).
       8. Validate each planned payload against the catalog before capture.
       9. Propose one assignment per checklist row — parallel when independent; additional rounds when needed until the checklist is complete.
-      10. Every inferred metadata change (descriptive, data-quality, relations, concepts, and any other catalog facet type) MUST use the facet-assignment capture path so the user can accept or reject each proposal in chat. Never substitute prose-only summaries or raw JSON for reviewable facet cards.
+      10. Every inferred metadata change for **any catalog facet type** MUST use the facet-assignment capture path so the user can accept or reject each proposal in chat. Never substitute prose-only summaries or raw JSON for reviewable facet cards.
 
   metadata.faceting.lifecycle:
     description: User review lifecycle shared by all facet assignment types.
     content: |
-      All LLM-reasoned metadata — descriptive, data-quality, relations, concepts, and any other catalog facet type — follows the same proposal lifecycle:
+      All LLM-reasoned metadata registered in the facet catalog follows the same proposal lifecycle:
       - Emit one facet-assignment capture per (entity, facet type) pair; parallel captures when independent.
       - The user accepts or rejects each proposal in chat before it is treated as committed metadata.
       - Rejected proposals must not be applied or re-stated as facts in later turns.
@@ -43,27 +50,34 @@ prompts:
       - Build a capture checklist first (one row per target entity + facet type).
       - Call propose_facet_assignment in parallel for every independent row in the same tool round when possible.
       - If you cannot finish the checklist in one round, call the remaining propose_facet_assignment tools in the next round — never stop after the first column.
-      - NOT NULL / must not be null on a column → data-quality category, facet type dq-null-check on that column entity (in addition to any descriptive facet).
+      - NOT NULL / must not be null on a column → resolve a data-quality facet type from the catalog for that column entity (in addition to any separate narrative facet for the same column).
       - On partial validation failure, persist every success; remediate failures in the next tool round — never all-or-nothing.
-      Example: passenger.id (unique id, NOT NULL) + passenger.first_name (ticket name) → descriptive on id, dq-null-check on id, descriptive on first_name (three captures).
+      Example: passenger.id (unique id, NOT NULL) + passenger.first_name (ticket name) → three captures after catalog lookup (narrative + nullability on id, narrative on first_name).
+      Example: skymill.segments agent rule (join cities, show city names not ids) → one capture on skymill.segments using the catalog facet type whose contentSchema carries agent **`instruction`** (not a human narrative description facet).
+
+      **Agent instructions vs catalog text:**
+      - Human catalog title/description → facet type whose contentSchema provides narrative description fields for the entity.
+      - "When you query / always join / show names not ids / the agent should …" → facet type from the catalog with an **`instruction`** (or equivalent procedural) field on that entity.
 
   metadata-authoring.payload-style:
     description: Facet payload naming and description quality.
     content: |
       When building facet payloads from get_facet_type contentSchema:
 
-      **facetTypeKey** — copy the exact catalog key from list_facet_types / get_facet_type (lowercase, hyphen-separated, e.g. `descriptive`, `dq-null-check`, `relation-source`). Never invent alternate spellings or casing.
+      **facetTypeKey** — copy the exact catalog key from list_facet_types / get_facet_type (lowercase, hyphen-separated). Never invent alternate spellings, casing, or substitute a "well-known" key when the catalog exposes a different registered type.
 
       **Rule / instance `name` fields** — when contentSchema includes a `name` property (typical for data-quality and similar multi-instance types):
       - Use a short slug: lowercase letters, digits, and hyphens only (kebab-case).
       - Derive from the target entity and rule intent, e.g. `passenger-id-not-null`, `order-shipped-before-ordered`.
       - No spaces, underscores, camelCase, or upper case.
 
-      **Description and other narrative fields** (`description`, `title` when used as narrative, relation notes, etc.):
+      **Description and other narrative fields** (`description`, relation notes, etc.):
       - Rephrase the user's intent into one or two complete, standalone sentences.
       - Be concise but complete: state what the entity or rule is and the business meaning; keep every constraint the user stated (e.g. NOT NULL, uniqueness).
       - Do not paste vague user phrasing verbatim; do not invent facts the user did not imply.
       - Prefer specific wording ("Unique identifier for each passenger row") over bare labels ("unique id").
+
+      **`instruction` (and similar procedural fields)** — when contentSchema defines them, preserve imperative agent directives; rephrase for clarity without weakening "always/must/when" semantics; optional kebab-case **`title`** slug when the schema provides it.
 
       **rationale** on propose_facet_assignment — one short sentence for chat commentary above the facet card; same conciseness rules as payload descriptions.
 
@@ -72,8 +86,9 @@ prompts:
     content: |
       Produce facet assignment proposal(s) with facetTypeKey, catalogPath (qualified database object name), payload map built from get_facet_type contentSchema, and rationale.
       Apply metadata-authoring.payload-style: kebab-case `name` slugs when present; rephrase descriptions for conciseness and completeness.
+      Resolve **facetTypeKey** from the catalog for each intent: procedural agent rules → facet type with **`instruction`** (or equivalent) in contentSchema; human catalog text → facet type with narrative description fields.
       Always validate before capture. Pass `catalogPath` only — the tool resolves the canonical entity URN server-side.
-      When the user names multiple columns or rules, emit one proposal per (entity, facet type) — do not merge column semantics into a single table-level descriptive facet.
+      When the user names multiple columns or rules, emit one proposal per (entity, facet type) — do not merge column semantics into a single table-level narrative facet.
 
 tools:
   propose_facet_assignment:
@@ -83,7 +98,8 @@ tools:
       For model-level `concept` facets, pass catalogPath `model-entity` (or metadataEntityId `urn:mill/model/model:model-entity`).
       Follow `concept.capture` for business concept payloads (one concept per assignment; parallel calls for multiple concepts).
       Payload: use exact catalog facetTypeKey; kebab-case slug for any `name` field; rephrase `description` (and similar narrative fields) to be concise and complete.
-      For multiple columns or mixed descriptive + data-quality rules, call this tool in parallel or across successive rounds until every user-requested facet is captured.
+      Populate every required field from **get_facet_type** contentSchema for the chosen **facetTypeKey** (including custom catalog types).
+      For multiple columns or mixed facet intents, call this tool in parallel or across successive rounds until every user-requested facet is captured.
       Validates payload against catalog schema before emitting capture. Does not persist metadata scope inline — writeScopeUrns[] are stamped from AgentContext.
     kind: capture
     protocol: metadata.faceting.capture
@@ -96,7 +112,7 @@ tools:
       properties:
         facetTypeKey:
           type: string
-          description: Exact catalog facet type key (lowercase, hyphen-separated), e.g. descriptive, dq-null-check.
+          description: Exact facet type key from list_facet_types / get_facet_type for the grounded entity (lowercase, hyphen-separated).
         catalogPath:
           type: string
           description: Qualified database object name (`schema`, `schema.table`, `schema.table.column`) or `model-entity` for concept facets.

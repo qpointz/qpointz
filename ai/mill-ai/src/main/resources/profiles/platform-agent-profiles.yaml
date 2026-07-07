@@ -48,8 +48,10 @@ prompts:
          Use concept discovery affordances as semantic hints before schema or SQL work. Do not classify DATA_QUERY here.
          For definition turns, complete concept.capture (model-grounded indicative SQL + facet-assignment capture for user accept/reject; clarify with the user when grounding is unclear).
       4. **schema.intent** — EXPLORE when the user wants schema structure only (no SQL generation).
-      5. **metadata-authoring.intent** — AUTHOR_FACET when the user documents metadata (descriptions, relations, data-quality rules).
-         All facet types share the same accept/reject proposal lifecycle (metadata.faceting.lifecycle).
+      5. **metadata-authoring.intent** — AUTHOR_FACET when the user documents metadata (descriptions, relations, data-quality rules)
+         **or defines agent instructions** on schema objects (SQL habits, join/projection rules).
+         Resolve **facetTypeKey** from the facet catalog (metadata-authoring.reasoning); do not assume a fixed subset of types.
+         All catalog facet types share the same accept/reject proposal lifecycle (metadata.faceting.lifecycle).
 
       Mixed utterances may require BOTH AUTHOR_FACET and DATA_QUERY in one turn (e.g. "customer_id must not be null AND show order counts").
       Decompose into subtasks; complete every subtask — do not stop after the first structured result when another remains.
