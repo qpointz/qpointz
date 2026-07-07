@@ -8,12 +8,46 @@ import io.qpointz.mill.proto.Table
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 class PhysicalCatalogMatchTest {
+
+    @Test
+    fun `resolvePhysicalSchema matches lowercase metadata coordinate to uppercase physical name`() {
+        val provider = mock<SchemaProvider>()
+        whenever(provider.getSchemaNames()).thenReturn(listOf("MONETA"))
+
+        assertEquals("MONETA", PhysicalCatalogMatch.resolvePhysicalSchema(provider, "moneta"))
+        assertEquals("MONETA", PhysicalCatalogMatch.resolvePhysicalSchema(provider, "MONETA"))
+        assertNull(PhysicalCatalogMatch.resolvePhysicalSchema(provider, "other"))
+    }
+
+    @Test
+    fun `resolvePhysicalTable matches lowercase metadata coordinates to uppercase physical names`() {
+        val provider = mock<SchemaProvider>()
+        whenever(provider.getSchemaNames()).thenReturn(listOf("MONETA"))
+        whenever(provider.getTable("MONETA", "clients")).thenReturn(null)
+        whenever(provider.getSchema("MONETA")).thenReturn(
+            Schema.newBuilder()
+                .addTables(
+                    Table.newBuilder()
+                        .setSchemaName("MONETA")
+                        .setName("CLIENTS")
+                        .addFields(Field.newBuilder().setName("EMAIL").build())
+                        .build(),
+                )
+                .build(),
+        )
+
+        val resolved = PhysicalCatalogMatch.resolvePhysicalTable(provider, "moneta", "clients")
+        assertNotNull(resolved)
+        assertEquals("MONETA", resolved!!.first)
+        assertEquals("CLIENTS", resolved.second.name)
+    }
 
     @Test
     fun `physicalColumnPresent matches lowercase path to uppercase physical names`() {

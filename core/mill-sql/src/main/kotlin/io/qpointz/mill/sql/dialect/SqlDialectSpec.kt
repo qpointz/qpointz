@@ -5,12 +5,19 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 
 @JsonIgnoreProperties(ignoreUnknown = false)
+data class StatementRules(
+    @JsonProperty("allow-trailing-semicolon") val allowTrailingSemicolon: Boolean = false,
+    @JsonProperty("max-per-request") val maxPerRequest: Int = 1,
+)
+
+@JsonIgnoreProperties(ignoreUnknown = false)
 data class SqlDialectSpec(
     val id: String,
     val name: String,
     @JsonProperty("read-only") val readOnly: Boolean,
     val paramstyle: String,
     val notes: List<String> = emptyList(),
+    val statements: StatementRules = StatementRules(),
     val identifiers: Identifiers,
     @JsonProperty("catalog-schema") val catalogSchema: CatalogSchema,
     val transactions: Transactions,

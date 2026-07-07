@@ -2,7 +2,12 @@ id: CALCITE
 name: Apache Calcite
 read-only: true
 paramstyle: qmark
-notes: []
+notes:
+- Generate exactly one SQL statement and do not append a trailing semicolon; Calcite
+  parses a semicolon as a statement separator and expects EOF after a single statement.
+statements:
+  allow-trailing-semicolon: false
+  max-per-request: 1
 identifiers:
   quote:
     start: '`'

@@ -19,12 +19,12 @@ data class PhysicalCatalogIdentifiers(
 )
 
 /**
- * Case-insensitive alignment between **metadata catalog coordinates** ([CatalogPath] segments from
- * canonical lowercase entity URNs) and **physical** names returned by [SchemaProvider] (Calcite /
- * JDBC may use different casing).
+ * Case-insensitive alignment between **hierarchical metadata coordinates** ([CatalogPath] segments
+ * from model entity URNs and `/model/...` routes — case-insensitive by design) and **physical**
+ * names returned by [SchemaProvider] (Calcite / JDBC may use different casing).
  *
- * Used by [SchemaFacetServiceImpl] for column lookup and by value-mapping refresh to avoid marking
- * attributes STALE when only casing differs, and to pass resolved identifiers to SQL.
+ * Used by [SchemaFacetServiceImpl] for schema/table/column lookup and by value-mapping refresh to
+ * avoid marking attributes STALE when only casing differs, and to pass resolved identifiers to SQL.
  */
 object PhysicalCatalogMatch {
 
@@ -37,6 +37,46 @@ object PhysicalCatalogMatch {
     }
 
     /**
+     * Resolves a metadata schema coordinate to the physical schema name on [provider].
+     *
+     * @param schemaHint hierarchical metadata schema segment (any casing)
+     * @return physical schema name, or null when no schema matches
+     */
+    fun resolvePhysicalSchema(provider: SchemaProvider, schemaHint: String): String? {
+        val hint = schemaHint.trim()
+        if (hint.isEmpty()) return null
+        return provider.getSchemaNames().firstOrNull { it.equals(hint, ignoreCase = true) }
+    }
+
+    /**
+     * Resolves metadata schema/table coordinates to the physical table on [provider].
+     *
+     * Prefers a direct [SchemaProvider.getTable] hit with the resolved physical schema and the
+     * caller's table hint, then falls back to a case-insensitive scan of the schema's table list.
+     *
+     * @param schemaHint hierarchical metadata schema segment (any casing)
+     * @param tableHint hierarchical metadata table segment (any casing)
+     * @return physical schema name and table snapshot, or null when either segment does not match
+     */
+    fun resolvePhysicalTable(
+        provider: SchemaProvider,
+        schemaHint: String,
+        tableHint: String,
+    ): Pair<String, Table>? {
+        val schemaName = resolvePhysicalSchema(provider, schemaHint) ?: return null
+        val tableHintTrimmed = tableHint.trim()
+        if (tableHintTrimmed.isEmpty()) return null
+
+        val table: Table =
+            provider.getTable(schemaName, tableHintTrimmed)
+                ?: provider.getSchema(schemaName).tablesList
+                    .firstOrNull { it.name.equals(tableHintTrimmed, ignoreCase = true) }
+                ?: return null
+
+        return schemaName to table
+    }
+
+    /**
      * Resolves [path] to the actual schema, table, and column names exposed by [provider].
      *
      * Returns null when [path] is incomplete or nothing matches (same conditions as
@@ -45,17 +85,10 @@ object PhysicalCatalogMatch {
     fun resolvePhysicalIdentifiers(provider: SchemaProvider, path: CatalogPath): PhysicalCatalogIdentifiers? {
         val schemaHint = path.schema ?: return null
         val tableHint = path.table ?: return null
-        val columnHint = path.column ?: return null
+        val columnHint = path.column?.trim().orEmpty()
+        if (columnHint.isEmpty()) return null
 
-        val schemaName =
-            provider.getSchemaNames().firstOrNull { it.equals(schemaHint, ignoreCase = true) }
-                ?: return null
-
-        val table: Table =
-            provider.getTable(schemaName, tableHint)
-                ?: provider.getSchema(schemaName).tablesList
-                    .firstOrNull { it.name.equals(tableHint, ignoreCase = true) }
-                ?: return null
+        val (schemaName, table) = resolvePhysicalTable(provider, schemaHint, tableHint) ?: return null
 
         val field =
             table.fieldsList.firstOrNull { it.name.equals(columnHint, ignoreCase = true) }

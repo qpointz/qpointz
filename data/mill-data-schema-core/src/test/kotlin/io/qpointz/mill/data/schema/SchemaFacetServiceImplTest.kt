@@ -611,6 +611,65 @@ class SchemaFacetServiceImplTest {
         assertEquals("Customers", table.facets.descriptive?.displayName)
     }
 
+    // ---- metadata coordinates are case-insensitive ----
+
+    @Test
+    fun `getSchema resolves lowercase metadata coordinate to uppercase physical schema`() {
+        val schemaEntity = metadataEntity("moneta", null, null)
+        whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("MONETA"))
+        whenever(schemaProvider.getSchema("MONETA")).thenReturn(emptySchema())
+        stubEntities(schemaEntity)
+
+        val result = service.getSchema("moneta", MetadataContext.global())
+
+        assertNotNull(result)
+        assertEquals("MONETA", result!!.schemaName)
+        assertEquals(codec.forSchema("moneta"), result.metadata!!.id)
+    }
+
+    @Test
+    fun `getTable resolves lowercase metadata coordinates to uppercase physical names`() {
+        val tableEntity = metadataEntity("moneta", "clients", null)
+        val physicalTable = table("MONETA", "CLIENTS", field("EMAIL"))
+        whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("MONETA"))
+        whenever(schemaProvider.getTable("MONETA", "clients")).thenReturn(null)
+        whenever(schemaProvider.getSchema("MONETA")).thenReturn(schema("MONETA", physicalTable))
+        whenever(entityRead.findById(codec.forTable("moneta", "clients"))).thenReturn(tableEntity)
+        whenever(entityRead.findById(codec.forAttribute("moneta", "clients", "email"))).thenReturn(null)
+
+        val result = service.getTable("moneta", "clients", MetadataContext.global())
+
+        assertNotNull(result)
+        assertEquals("MONETA", result!!.schemaName)
+        assertEquals("CLIENTS", result.tableName)
+        assertEquals(codec.forTable("moneta", "clients"), result.metadata!!.id)
+    }
+
+    @Test
+    fun `getColumn resolves lowercase metadata coordinates to uppercase physical names`() {
+        val columnEntity = metadataEntity("moneta", "clients", "email")
+        val physicalTable = table("MONETA", "CLIENTS", field("EMAIL"))
+        whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("MONETA"))
+        whenever(schemaProvider.getTable("MONETA", "clients")).thenReturn(null)
+        whenever(schemaProvider.getSchema("MONETA")).thenReturn(schema("MONETA", physicalTable))
+        whenever(entityRead.findById(codec.forAttribute("moneta", "clients", "email"))).thenReturn(columnEntity)
+
+        val result = service.getColumn("moneta", "clients", "email", MetadataContext.global())
+
+        assertNotNull(result)
+        assertEquals("MONETA", result!!.schemaName)
+        assertEquals("CLIENTS", result.tableName)
+        assertEquals("EMAIL", result.columnName)
+        assertEquals(codec.forAttribute("moneta", "clients", "email"), result.metadata!!.id)
+    }
+
+    @Test
+    fun `getColumn returns null when metadata coordinates do not match any physical object`() {
+        whenever(schemaProvider.getSchemaNames()).thenReturn(listOf("MONETA"))
+
+        assertNull(service.getColumn("other", "clients", "email", MetadataContext.global()))
+    }
+
     // ---- helpers ----
 
     private fun emptySchema(): Schema = Schema.newBuilder().build()

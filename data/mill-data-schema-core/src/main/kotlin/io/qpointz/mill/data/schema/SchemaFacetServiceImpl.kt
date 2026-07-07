@@ -165,43 +165,54 @@ class SchemaFacetServiceImpl(
         return buildFacets(metadata, mergeEntityIdFallback, context)
     }
 
-    /** @see SchemaFacetService.getSchema */
+    /**
+     * @see SchemaFacetService.getSchema
+     *
+     * [schemaName] is a hierarchical metadata coordinate (case-insensitive); resolved to the
+     * physical schema name before provider access.
+     */
     override fun getSchema(schemaName: String, context: MetadataContext): SchemaWithFacets? {
-        if (!schemaProvider.isSchemaExists(schemaName)) {
-            return null
-        }
+        val physicalSchema = PhysicalCatalogMatch.resolvePhysicalSchema(schemaProvider, schemaName)
+            ?: return null
         val allEntities = entityRead.findAll()
         val entityIndex = catalogEntityIndex(allEntities)
         val usedEntityIds = mutableSetOf<String>()
-        return buildSchemaWithFacets(schemaName, entityIndex, usedEntityIds, context)
+        return buildSchemaWithFacets(physicalSchema, entityIndex, usedEntityIds, context)
     }
 
-    /** @see SchemaFacetService.getTable */
+    /**
+     * @see SchemaFacetService.getTable
+     *
+     * [schemaName] / [tableName] are hierarchical metadata coordinates (case-insensitive).
+     */
     override fun getTable(schemaName: String, tableName: String, context: MetadataContext): SchemaTableWithFacets? {
-        if (!schemaProvider.isSchemaExists(schemaName)) {
-            return null
-        }
-        val millTable = schemaProvider.getTable(schemaName, tableName) ?: return null
-        return buildTableWithFacetsNarrow(schemaName, millTable, context)
+        val (physicalSchema, millTable) =
+            PhysicalCatalogMatch.resolvePhysicalTable(schemaProvider, schemaName, tableName)
+                ?: return null
+        return buildTableWithFacetsNarrow(physicalSchema, millTable, context)
     }
 
-    /** @see SchemaFacetService.getColumn */
+    /**
+     * @see SchemaFacetService.getColumn
+     *
+     * [schemaName] / [tableName] / [columnName] are hierarchical metadata coordinates
+     * (case-insensitive).
+     */
     override fun getColumn(
         schemaName: String,
         tableName: String,
         columnName: String,
         context: MetadataContext
     ): SchemaColumnWithFacets? {
-        if (!schemaProvider.isSchemaExists(schemaName)) {
-            return null
-        }
-        val millTable = schemaProvider.getTable(schemaName, tableName) ?: return null
+        val (physicalSchema, millTable) =
+            PhysicalCatalogMatch.resolvePhysicalTable(schemaProvider, schemaName, tableName)
+                ?: return null
         val field =
             millTable.fieldsList.firstOrNull {
                 PhysicalCatalogMatch.coordinateEquals(it.name, columnName)
             }
                 ?: return null
-        return buildColumnWithFacetsNarrow(schemaName, tableName, field, context)
+        return buildColumnWithFacetsNarrow(physicalSchema, millTable.name, field, context)
     }
 
     private fun buildSchemaWithFacets(
