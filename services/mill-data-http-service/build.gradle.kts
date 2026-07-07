@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.spring.dependency.management)
     id("io.qpointz.plugins.mill")
     id("org.jetbrains.dokka")
+    id("org.jetbrains.dokka-javadoc")
 }
 
 mill {
