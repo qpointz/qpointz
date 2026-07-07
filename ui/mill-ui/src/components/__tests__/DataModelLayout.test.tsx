@@ -1,10 +1,16 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import { MantineProvider } from '@mantine/core';
 import { MemoryRouter, Route, Routes, createMemoryRouter, RouterProvider } from 'react-router';
 import type { ReactNode } from 'react';
 import { defaultFeatureFlags } from '../../features/defaults';
 import type { FacetResolvedRow, SchemaEntity } from '../../types/schema';
+import { DataModelLayout } from '../data-model/DataModelLayout';
+import { FeatureFlagProvider } from '../../features/FeatureFlagContext';
+import { InlineChatProvider } from '../../context/InlineChatContext';
+import { ChatReferencesProvider } from '../../context/ChatReferencesContext';
+import { RelatedContentProvider } from '../../context/RelatedContentContext';
+import { schemaService } from '../../services/api';
 
 const { testTree } = vi.hoisted(() => ({
   testTree: [
@@ -57,13 +63,24 @@ vi.mock('../../services/api', async (importOriginal) => {
   };
 });
 
-async function renderLayout(initialPath = '/model') {
-  const { DataModelLayout } = await import('../data-model/DataModelLayout');
-  const { FeatureFlagProvider } = await import('../../features/FeatureFlagContext');
-  const { InlineChatProvider } = await import('../../context/InlineChatContext');
-  const { ChatReferencesProvider } = await import('../../context/ChatReferencesContext');
-  const { RelatedContentProvider } = await import('../../context/RelatedContentContext');
+function resetSchemaServiceMocks() {
+  vi.mocked(schemaService.getContext).mockImplementation(() =>
+    Promise.resolve({
+      selectedContext: 'global',
+      availableScopes: [{ id: 'global', slug: 'global', displayName: 'Global' }],
+    }),
+  );
+  vi.mocked(schemaService.getTree).mockImplementation(() => Promise.resolve(testTree));
+  vi.mocked(schemaService.getEntityById).mockImplementation(() => Promise.resolve(null));
+  vi.mocked(schemaService.getTable).mockImplementation(() => Promise.resolve(null));
+  vi.mocked(schemaService.getEntityFacets).mockImplementation(() => Promise.resolve({}));
+}
 
+beforeEach(() => {
+  resetSchemaServiceMocks();
+});
+
+function renderLayout(initialPath = '/model') {
   function Wrapper({ children }: { children: ReactNode }) {
     return (
       <MantineProvider>
@@ -89,12 +106,12 @@ async function renderLayout(initialPath = '/model') {
 
 describe('DataModelLayout', () => {
   it('should render the "Schema Browser" sidebar title', async () => {
-    await renderLayout();
-    expect(screen.getByText('Schema Browser')).toBeInTheDocument();
+    renderLayout();
+    expect(await screen.findByText('Schema Browser')).toBeInTheDocument();
   });
 
   it('should show the empty state when no entity is selected', async () => {
-    await renderLayout();
+    renderLayout();
     await waitFor(() => {
       expect(screen.getByText('Data Model Explorer')).toBeInTheDocument();
     });
@@ -102,29 +119,28 @@ describe('DataModelLayout', () => {
   });
 
   it('should render schema tree nodes', async () => {
-    await renderLayout();
+    renderLayout();
     await waitFor(() => {
       expect(screen.getByText('sales')).toBeInTheDocument();
     });
   });
 
   it('should load tree with global scope by default', async () => {
-    const { schemaService } = await import('../../services/api');
-    await renderLayout();
+    renderLayout();
     await waitFor(() => {
       expect(schemaService.getTree).toHaveBeenCalledWith('global');
     });
   });
 
   it('should show scope picker when URL declares multiple scopes', async () => {
-    await renderLayout('/model?scope=global,chat-test');
+    renderLayout('/model?scope=global,chat-test');
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Scopes (2)' })).toBeInTheDocument();
     });
   });
 
   it('should always show scope picker including for default global-only navigation', async () => {
-    await renderLayout('/model');
+    renderLayout('/model');
     await waitFor(() => {
       expect(screen.getByText('sales')).toBeInTheDocument();
     });
@@ -132,15 +148,14 @@ describe('DataModelLayout', () => {
   });
 
   it('should pass comma-separated scope to tree when URL declares chat scope', async () => {
-    const { schemaService } = await import('../../services/api');
-    await renderLayout('/model?scope=global,chat-abc');
+    renderLayout('/model?scope=global,chat-abc');
     await waitFor(() => {
       expect(schemaService.getTree).toHaveBeenCalledWith('global,chat-abc');
     });
   });
 
   it('should auto-expand schemas to show tables', async () => {
-    await renderLayout();
+    renderLayout();
     await waitFor(() => {
       expect(screen.getByText('customers')).toBeInTheDocument();
     });
@@ -148,14 +163,13 @@ describe('DataModelLayout', () => {
   });
 
   it('should render inventory schema', async () => {
-    await renderLayout();
+    renderLayout();
     await waitFor(() => {
       expect(screen.getByText('inventory')).toBeInTheDocument();
     });
   });
 
   it('should enrich table columns when deep-linked to a column after the tree is ready', async () => {
-    const { schemaService } = await import('../../services/api');
     const columnEntity = {
       id: 'sales.customers.customer_id',
       entityType: 'COLUMN' as const,
@@ -180,7 +194,7 @@ describe('DataModelLayout', () => {
     );
     vi.mocked(schemaService.getTable).mockResolvedValue(tableDetail);
 
-    await renderLayout('/model/sales/customers/customer_id');
+    renderLayout('/model/sales/customers/customer_id');
 
     await waitFor(() => {
       expect(screen.getByText('customers')).toBeInTheDocument();
@@ -199,7 +213,6 @@ describe('DataModelLayout', () => {
   });
 
   it('should not refetch the explorer tree when selecting a table in the tree', async () => {
-    const { schemaService } = await import('../../services/api');
     const tableEntity = {
       id: 'sales.customers',
       entityType: 'TABLE' as const,
@@ -226,7 +239,7 @@ describe('DataModelLayout', () => {
       return Promise.resolve(null);
     });
 
-    await renderLayout();
+    renderLayout();
 
     await waitFor(() => {
       expect(screen.getByText('customers')).toBeInTheDocument();
@@ -247,7 +260,6 @@ describe('DataModelLayout', () => {
   });
 
   it('should enrich table columns when deep-linked to a column before the tree finishes loading', async () => {
-    const { schemaService } = await import('../../services/api');
     const columnEntity = {
       id: 'sales.customers.customer_id',
       entityType: 'COLUMN' as const,
@@ -278,7 +290,7 @@ describe('DataModelLayout', () => {
     });
     vi.mocked(schemaService.getTable).mockResolvedValue(tableDetail);
 
-    await renderLayout('/model/sales/customers/customer_id');
+    renderLayout('/model/sales/customers/customer_id');
 
     await waitFor(() => {
       expect(schemaService.getEntityById).toHaveBeenCalledWith('sales.customers.customer_id', 'global', expect.any(AbortSignal));
@@ -300,7 +312,6 @@ describe('DataModelLayout', () => {
   });
 
   it('should refetch entity when read scopes are cleared and re-enabled', async () => {
-    const { schemaService } = await import('../../services/api');
     const conceptFacet: FacetResolvedRow = {
       uid: 'concept-1',
       facetTypeUrn: 'urn:mill/metadata/facet-type:concept',
@@ -323,12 +334,6 @@ describe('DataModelLayout', () => {
       }
       return Promise.resolve(modelEntity);
     });
-
-    const { DataModelLayout } = await import('../data-model/DataModelLayout');
-    const { FeatureFlagProvider } = await import('../../features/FeatureFlagContext');
-    const { InlineChatProvider } = await import('../../context/InlineChatContext');
-    const { ChatReferencesProvider } = await import('../../context/ChatReferencesContext');
-    const { RelatedContentProvider } = await import('../../context/RelatedContentContext');
 
     const router = createMemoryRouter(
       [{ path: '/model/:schema?/:table?/:attribute?', element: <DataModelLayout /> }],

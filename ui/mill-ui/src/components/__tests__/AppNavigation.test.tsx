@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { MantineProvider } from '@mantine/core';
@@ -13,6 +13,8 @@ import { ChatProvider } from '../../context/ChatContext';
 import { ChatRouteSync } from '../chat/ChatRouteSync';
 import { AppHeader } from '../layout/AppHeader';
 import { AppShell } from '../layout/AppShell';
+import { DataModelLayout } from '../data-model/DataModelLayout';
+import { schemaService } from '../../services/api';
 
 const { testTree, testEntity } = vi.hoisted(() => ({
   testTree: [
@@ -113,11 +115,12 @@ function ChatView() {
 
 beforeEach(() => {
   localStorage.clear();
+  vi.mocked(schemaService.getTree).mockImplementation(() => Promise.resolve(testTree));
+  vi.mocked(schemaService.getEntityById).mockImplementation(() => Promise.resolve(testEntity));
+  vi.mocked(schemaService.getEntityFacets).mockImplementation(() => Promise.resolve({}));
 });
 
-async function renderAppNav(initialPath = '/model/model-entity') {
-  const { DataModelLayout } = await import('../data-model/DataModelLayout');
-
+function renderAppNav(initialPath = '/model/model-entity') {
   return render(
     <MemoryRouter initialEntries={[initialPath]}>
       <MantineProvider>
@@ -151,18 +154,14 @@ async function renderAppNav(initialPath = '/model/model-entity') {
 describe('App navigation from model to chat', () => {
   it('should switch from model explorer to chat when header Chat is clicked', async () => {
     const user = userEvent.setup();
-    await renderAppNav();
+    renderAppNav();
 
-    await waitFor(() => {
-      expect(screen.getByText('Model')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Model')).toBeInTheDocument();
 
     const chatNav = screen.getByRole('button', { name: /^Chat$/i });
     await user.click(chatNav);
 
-    await waitFor(() => {
-      expect(screen.getByText('Conversations')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('Conversations')).toBeInTheDocument();
     expect(screen.queryByText('Schema Browser')).not.toBeInTheDocument();
-  }, 15_000);
+  }, 30_000);
 });

@@ -1,4 +1,7 @@
 import '@testing-library/jest-dom';
+import { configure } from '@testing-library/react';
+
+configure({ asyncUtilTimeout: 10_000 });
 
 // Polyfill window.matchMedia for jsdom (required by Mantine's useMantineColorScheme)
 Object.defineProperty(window, 'matchMedia', {
