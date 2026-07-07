@@ -28,11 +28,8 @@ const { testTree, testEntity } = vi.hoisted(() => ({
   testEntity: {
     id: 'model-entity',
     entityType: 'MODEL' as const,
-    name: 'Model',
-    schemaName: '',
-    tableName: '',
-    columnName: '',
-    columns: [],
+    schemaName: '' as const,
+    metadataEntityId: 'urn:mill:metadata:entity:model',
   },
 }));
 
