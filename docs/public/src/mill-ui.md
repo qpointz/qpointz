@@ -135,7 +135,8 @@ With the **real** AI v3 chat service and a profile that emits structured artefac
 - **Conversational prose** still renders as **Markdown** via **`MessageContent`** / **`ReactMarkdown`**.
 - **Generated SQL** and related payloads appear as **chat-native artefact cards** (condensed preview), not as raw SQL copied into the message bubble — when the backend follows the v3 artefact emit contract.
 - **General chat** (`/chat`): condensed **SQL / Data** preview with **Run**, **Export**, **Expand**, and **Open in Analysis** when the **`chatSqlExecute`** feature flag is on (default **on** in `defaults.ts`).
-- **Expand** opens the full chat content pane with the same data view family as Analysis (**`QueryDataView`**), paging, and **Back to message**.
+- SQL artefacts that include **`visualizations[]`** (chart configs from **`chart-mapping`**) show **Chart**, **Data**, and **SQL** tabs in the same card. **Run** loads a bounded **full** row snapshot for chart rendering; the **Data** tab keeps paged grid inspection. Charts compile semantic encodings to **ECharts** locally — durable artefacts never embed renderer config or row data.
+- **Expand** opens the full chat content pane with the same data view family as Analysis (**`QueryDataView`**), paging, and **Back to message**. Chart-enabled cards open on the **Chart** tab when visualizations are present.
 - **Run all** (chat toolbar) executes every SQL artefact in the current conversation when **`chatSqlExecute`** is enabled.
 
 #### Facet and schema-capture artefacts (general chat)
@@ -151,7 +152,7 @@ When the active **agent profile** emits metadata facets (for example **`metadata
 
 Reloading a conversation (**`GET /api/v1/ai/chats/{id}`**) restores structured **`artifacts[]`** per turn (SQL, data, facet proposals, schema captures) so condensed previews **hydrate without re-running the agent**.
 
-Repository design: **[Chat artefact architecture](../../design/ai/chat-artefact-architecture.md)**.
+Repository design: **[Chat artefact architecture](../../design/ai/chat-artefact-architecture.md)**, **[SQL artifact visualization protocol](../../design/agentic/sql-artifact-visualization-protocol.md)**, **[Chart UI composite](../../design/agentic/charts/chart-ui-composite.md)**.
 
 ### Agent profile
 

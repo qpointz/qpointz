@@ -1,9 +1,9 @@
 # Agentic Runtime v3 — MCP Capability Exposure
 
-**Status:** Designed (closed **2026-06-22**: [`docs/workitems/completed/20260622-ai-v3-mcp-server-poc/`](../../workitems/completed/20260622-ai-v3-mcp-server-poc/STORY.md))  
+**Status:** Designed (closed **2026-06-22**: [`docs/workitems/completed/20260622-ai-v3-mcp-server-poc/`](../../workitems/completed/20260622-ai-v3-mcp-server-poc/STORY.md))
 **Delivery:** WI-325–WI-327, WI-329, WI-330 shipped; **WI-328** (stdio bridge) → backlog **A-96**.
-**Date:** June 22, 2026  
-**Backlog:** [A-56](../../workitems/BACKLOG.md), [A-31](../../workitems/BACKLOG.md)  
+**Date:** June 22, 2026
+**Backlog:** [A-56](../../workitems/BACKLOG.md), [A-31](../../workitems/BACKLOG.md)
 **Baseline:** [v3-foundation-decisions.md](./v3-foundation-decisions.md) §3.4–3.7
 
 ---
@@ -28,7 +28,8 @@ This document is the **implementation guide** for backlog **A-56**. Strategic ra
 | **Core + transport split** | `mill-ai-mcp-core` is framework-free; **HTTP transport** depends on core + MCP Java SDK. Optional **stdio bridge** (backlog **A-96** / WI-328) would be MCP Java SDK only — pure protocol proxy to HTTP |
 | **MCP Java SDK only** | Protocol wire via `io.modelcontextprotocol.sdk:mcp` (BOM) on all story MCP modules |
 | **Projection, not duplication** | MCP maps existing `CapabilityRegistry` assets. Capability handler tests stay in `mill-ai`; MCP tests cover catalog, filters, and wire invocation. |
-| **SQL execution** | `sql-query` exposes `validate_sql` only. SQL execution remains host-side (unchanged v3 rule). |
+| **SQL execution** | `sql-query` owns SQL validation (`validate_sql`), generated SQL artifacts, bounded execution (`execute_sql`), and schema probing (`describe_sql`). Execution tools operate on **already validated** SQL in orchestrated flows; they do not generate or rewrite SQL. Host/UI execution outside MCP remains supported. |
+| **Chart mapping (renderer-independent)** | `chart-mapping` owns chart catalog (`list_supported_charts`) and semantic spec validation (`validate_chart_spec`). MCP exposes chart tools on profiles that include the capability (typically **`data-analysis`** alongside `sql-query`). Tool outputs (`normalizedChart`, catalog entries) must be sufficient for **external agents** to render without mill-ui or ECharts JSON from the server. See [`charts/chart-mcp-exposure.md`](./charts/chart-mcp-exposure.md). |
 
 ---
 
@@ -401,7 +402,8 @@ Profile and allowlist remain on the **remote** server (`mill.ai.mcp.*`), not on 
 - Default `mill.ai.mcp.enabled=true` in production mill-service config
 - Local data-plane bundling in stdio module (no embedded Skymill launcher)
 - Third-party AI framework libraries on story MCP module classpaths
-- Step-Back, chart capability, scenario FSM
+- Step-Back, scenario FSM
+- ~~Chart capability~~ — **`chart-mapping`** MCP tools ship with `ai-chart-mapping` (**WI-368**); see [`charts/chart-mcp-exposure.md`](./charts/chart-mcp-exposure.md)
 
 ---
 
@@ -465,10 +467,18 @@ exposure is controlled by capability `mcp.enabled` and server allowlist (§5.1).
 | `sql-dialect` | `get_sql_join_rules` | QUERY | |
 | `sql-dialect` | `get_sql_functions` | QUERY | |
 | `sql-dialect` | `get_sql_function_info` | QUERY | |
-| `sql-query` | `validate_sql` | QUERY | No SQL execution over MCP |
+| `sql-query` | `validate_sql` | QUERY | SQL validation; emits `generated-sql` on success |
+| `sql-query` | `describe_sql` | QUERY | Result schema probe (`sql-description`); no rows |
+| `sql-query` | `execute_sql` | QUERY | Bounded execution (`sql-result`); default `resultMode` = `paged` |
+| `chart-mapping` | `list_supported_charts` | QUERY | Supported chart types, encodings, constraints (renderer-independent catalog) |
+| `chart-mapping` | `validate_chart_spec` | QUERY | Semantic chart validation; `normalizedChart` on success (external render reuse) |
 | `value-mapping` | `get_value_mapping_attributes` | QUERY | |
 | `value-mapping` | `get_value_mapping` | QUERY | |
 
-**Totals:** **8** capabilities, **25 tools** — **24 QUERY**, **1 CAPTURE** (`metadata-authoring.propose_facet_assignment`). Legacy **`schema-authoring`** capability removed (**WI-361**).
+**Totals:** **9** capabilities, **29 tools** — **28 QUERY**, **1 CAPTURE** (`metadata-authoring.propose_facet_assignment`). Legacy **`schema-authoring`** capability removed (**WI-361**). **`chart-mapping`** rows ship with **WI-368** (`ai-chart-mapping`).
+
+See [`sql-query-execution-tools.md`](./sql-query-execution-tools.md) for `describe_sql` / `execute_sql` contracts (shipped **WI-338**–**WI-341**, `ai-chart-mapping` Stage 1).
+
+See [`charts/chart-mcp-exposure.md`](./charts/chart-mcp-exposure.md) for chart MCP surface and external-agent orchestration (Gap 20, **WI-368**).
 
 Maintain this table when adding capabilities (WI-327 acceptance: catalog tool counts match inventory when all manifests are loaded and exposure filters are unset). Story: [`metadata-authoring-profiles`](../../workitems/completed/20260629-metadata-authoring-profiles/STORY.md) (**WI-362** integration pass).

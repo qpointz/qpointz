@@ -90,6 +90,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | A-97 | Scenario capture mode + DB export to ScenarioPack YAML (`mill.ai.chat.scenario-capture.enabled`; REST export; extends WI-300 harness) | ✨ feature | done | [`completed/20260629-scenario-capture-export/WI-365-scenario-capture-db-export.md`](completed/20260629-scenario-capture-export/WI-365-scenario-capture-db-export.md) — **WI-365**; [`MILESTONE.md`](MILESTONE.md) |
 | A-98 | Catalog-generic metadata authoring: `MetadataContent`, YAML profiles, `MetadataReadPort`, facet tools, multi-artifact batch, facet lifecycle Accept/Reject, per-capability intents (**WI-354**–**WI-364**) | ✨ feature | done | [`completed/20260629-metadata-authoring-profiles/STORY.md`](completed/20260629-metadata-authoring-profiles/STORY.md) — see **MILESTONE** 0.8.0 |
 | A-99 | AI concepts in general chat: model-level concept facets, read capability, `data-analysis` SQL grounding, v1 enrich-model capture parity, and configurable agent iteration limit (**WI-366**, **WI-367**, **WI-369**, **WI-370**, **WI-372**) | ✨ feature | done | [`completed/20260701-ai-concepts/STORY.md`](completed/20260701-ai-concepts/STORY.md) |
+| A-100 | AI chart visualizations in SQL artifacts: `describe_sql` / `execute_sql`, enriched `sql.generated` payload, completion coordinator, `chart-mapping` capability, wire/replay/scenarios (**WI-338**–**WI-341**, **WI-366**–**WI-369**) | ✨ feature | done | [`completed/20260707-ai-chart-mapping/STORY.md`](completed/20260707-ai-chart-mapping/STORY.md) |
 
 ---
 
@@ -272,6 +273,7 @@ when cutting the next **`RELEASE-x.y.z`** / milestone close — see **`RULES.md`
 | U-16 | General chat facet-proposal display: SQL-parity condensed box (Facet + JSON tabs), shared Data Model read-only renderer, reserved action bar (**WI-335**–**WI-337**) | ✨ feature | done | [`completed/20260619-ai-chat-facet-display/STORY.md`](completed/20260619-ai-chat-facet-display/STORY.md) |
 | U-17 | Model explorer URL-driven multi-scope read: toggle scopes from `?scope=` only, chat open-in-model deep-link (**WI-378**) | ✨ feature | done | [`completed/20260701-model-view-multi-scope/STORY.md`](completed/20260701-model-view-multi-scope/STORY.md) |
 | U-18 | Model explorer authorized scope management: RBAC for which scopes a user may use, add/switch scopes in UI (not full registry) | ✨ feature | backlog | follow-up to **U-17** / WI-378 deferred scope |
+| U-19 | mill-ui SQL artifact chart visualizations: Chart/Data/SQL tabs, semantic `visualizations[]` → ECharts compiler, bounded full snapshots, Run all (**WI-370**) | ✨ feature | done | [`completed/20260707-ai-chart-mapping/STORY.md`](completed/20260707-ai-chart-mapping/STORY.md) |
 
 ---
 

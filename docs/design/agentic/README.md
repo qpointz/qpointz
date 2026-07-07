@@ -34,6 +34,9 @@ workflow semantics.
 | File | Purpose |
 |------|---------|
 | **`artifact-foundation.md`** | **Canonical reference** for chat artefacts: descriptor model, emission strategies, SSE wire, mill-ui cards, profiles, file index, add-artifact checklist |
+| **`chart-artifact-contract.md`** | **Shipped (WI-366):** canonical contract hub — per-chart encoding vocabulary (§6), options (§7), catalog (§8), validation boundaries, snapshot policy |
+| **`generated-sql-artifact-context.md`** | **Locked (WI-367):** mandatory `title`/`description` on `validate_sql` input |
+| **`charts/`** | **Accepted (WI-366):** per-chart-type implementation specs + ECharts 6 compiler ([`charts/README.md`](./charts/README.md)); future families verified in [`charts/forward-compatible-families.md`](./charts/forward-compatible-families.md) |
 | `artifact-emit-contract.md` | Original emit-contract decision record (WI-303–306); links to foundation |
 | [`ai-v3-conversation-scenarios.md`](./ai-v3-conversation-scenarios.md) | **Implemented:** YAML `ScenarioPack` harness, `ScriptedAgentRunner`, regression records, baseline workflow (`mill-ai-test`) |
 | `v3-foundation-decisions.md` | Strategic architecture decisions and long-range design direction for `ai/v3` |

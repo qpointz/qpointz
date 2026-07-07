@@ -1,7 +1,7 @@
 # Artifact foundation (v3 agentic runtime)
 
-**Status:** Implemented (POC baseline)  
-**Audience:** Agents and developers extending chat artefacts, SSE structured parts, or persistence  
+**Status:** Implemented (POC baseline)
+**Audience:** Agents and developers extending chat artefacts, SSE structured parts, or persistence
 **Modules:** `ai/mill-ai`, `ai/mill-ai-autoconfigure`, `ai/mill-ai-service`, `ai/mill-ai-persistence`, `ui/mill-ui`
 
 Related docs:
@@ -9,6 +9,7 @@ Related docs:
 | Document | Role |
 |----------|------|
 | [`artifact-emit-contract.md`](./artifact-emit-contract.md) | Original emit-contract decision record (WI-303–306) |
+| [`chart-artifact-contract.md`](./chart-artifact-contract.md) | Canonical contract for renderer-agnostic `generated-chart` artifacts (WI-366) |
 | [`v3-capability-manifest.md`](./v3-capability-manifest.md) | Capability YAML schema (tools, protocols, prompts) |
 | [`ai-v3-chat-transport-extensions.md`](./ai-v3-chat-transport-extensions.md) | SSE wire model, mill-ui extension seam, per-reply views |
 | [`chat-artefact-architecture.md`](../ai/chat-artefact-architecture.md) | Chat-type treatments, GET replay (`ArtifactWireMapper`), shared facet read-only layer |
@@ -247,9 +248,10 @@ Types: [`ChatMessageArtifact`](../../../ui/mill-ui/src/types/chat.ts)
 [`deriveAssistantReplyView`](../../../ui/mill-ui/src/utils/assistantReplyView.ts) precedence (client-only; GET omits `assistantReplyView`):
 
 1. `facet-primary` if `facet-proposal` artifact present
-2. `sql-primary` if SQL present
-3. `artifact-primary` if unknown structured artifact present
-4. else `conversation`
+2. **`chart-primary`** if `chart` artifact present ([`chart-reply-view.md`](./charts/chart-reply-view.md))
+3. `sql-primary` if SQL/data present (no chart)
+4. `artifact-primary` if unknown structured artifact present
+5. else `conversation`
 
 (`schema-primary` remains in the wire enum for backward compatibility but is not assigned for new turns.)
 
@@ -320,6 +322,8 @@ Scenario harness: [`ai/mill-ai-test`](../../../ai/mill-ai-test/)
 - Runner: `ArtifactEmitScenariosIT`
 - Baselines: `src/testIT/resources/scenarios/baselines/*.record.normalized.json`
 - Shape checks: artifact kinds, SSE `partType`, no facet on `data-analysis` negative pack
+- **Chart packs (WI-369):** scripted chart emit scenarios — see [`charts/chart-test-proof-strategy.md`](./charts/chart-test-proof-strategy.md)
+- **Live → scripted:** `GET /api/v1/ai/chats/{id}/scenario-export` when `mill.ai.chat.scenario-capture.enabled=true`
 
 Service smoke: [`AiChatControllerIT`](../../../ai/mill-ai-service/src/testIT/kotlin/io/qpointz/mill/ai/service/AiChatControllerIT.kt) — profile list includes `data-analysis`, structured SSE smoke.
 
@@ -348,5 +352,28 @@ Service smoke: [`AiChatControllerIT`](../../../ai/mill-ai-service/src/testIT/kot
 - **`sql-result` / chart** — descriptors stubbed or persist-only; limited chat cards
 - **Execute SQL action** — host-side API not wired from SQL card
 - **Server default profile** — still `hello-world` in `mill.ai.chat.default-profile`; UI sends `data-analysis` explicitly
+- **Legacy split SQL + chart** — `sql.generated` / `chart.generated` replay via `QueryArtifactPersistence` and legacy protocol descriptors; new turns emit `query.generated` only
 
 Label backlog items in [`ai-v3-chat-transport-extensions.md`](./ai-v3-chat-transport-extensions.md) when naming new `partType`s.
+
+---
+
+## 12. Unified query artifact (implemented 2026-07-02)
+
+**Problem:** `generated-sql` + `generated-chart` as separate durable rows did not scale to multiple
+panel types or SQL analytics (EXPLAIN, lineage).
+
+**Locked follow-up direction:** One `generated-query` per SQL statement (`persistKind: query.generated`, pointer
+`last-query`) with:
+
+- **`presentations[]`** — UI panels (`grid` always server-injected; `chart` from chart-mapping)
+- **`attachments[]`** — non-LLM facts (explain plan, lineage) referenced by presentations (WI-374–375)
+
+Capabilities stay separate; emission and persistence unify. Row data remains `sql.result` at runtime.
+Target wire: single SSE/GET `partType: query`. Target UI: `parseQueryArtifactPayload` -> one composite card.
+
+Full contract: [`query-artifact-presentations.md`](./query-artifact-presentations.md)
+
+**Legacy replay target:** `ArtifactDescriptorRegistry` retains `sql-query.generated-sql` and
+`chart-mapping.generated-chart` descriptors; `QueryArtifactPersistence` normalizes old rows to
+`generated-query` wire shape.

@@ -83,16 +83,17 @@ When **`metadata-authoring`** is on the profile, documentary utterances must run
 | ------ | ---- |
 | `metadata-authoring.intent` | `AUTHOR_FACET` vs `CHAT` (capability-local) |
 | `metadata-authoring.reasoning` | Procedure: ground → categories → type → validate → capture (tool names optional) |
-| `sql-query.intent` | `DATA_QUERY` / `QUERY_DATA` vs `CHAT` (capability-local) |
+| `chart-mapping.intent` | `CHART_MAP` vs `CHAT` (capability-local) |
+| `sql-query.intent` | `DATA_QUERY` / `QUERY_DATA` vs `CHAT` (capability-local; **no chart intent**) |
 | `schema.intent` | `EXPLORE` vs `CHAT` (capability-local) |
-| `data-analysis.intent` | Profile composes non-overlapping capability intents for mixed turns |
+| `data-analysis.intent` | Profile composes non-overlapping capability intents for mixed turns (SQL, chart, schema, facet) |
 | `metadata.faceting.system` | Grounding + capture gate |
 | `metadata.faceting.request` | Structured fields before capture |
 | `metadata-authoring.batch` | Multi-tuple decomposition (WI-359) |
 
 **Cross-capability (stages 3–4 — transitional, merged):** on `data-analysis`, `metadata-authoring.intent` previously classified mixed turns (`AUTHOR_FACET`, `DATA_QUERY`, `EXPLORE`, `CHAT`) in one prompt. Documented in STORY § Architectural decisions; **superseded by stage 5 (WI-363).**
 
-**Target (stage 5 — WI-363, current):** each capability owns capability-scoped intents only; profiles compose a non-overlapping union. `sql-query.intent` owns data retrieval; `schema.intent` owns schema discovery; `metadata-authoring.intent` owns facet authoring only; `data-analysis.intent` decomposes mixed SQL + facet turns at profile level.
+**Target (stage 5 — WI-363, current):** each capability owns capability-scoped intents only; profiles compose a non-overlapping union. `sql-query.intent` owns data retrieval; `chart-mapping.intent` owns visualization (`CHART_MAP`); `schema.intent` owns schema discovery; `metadata-authoring.intent` owns facet authoring only; `data-analysis.intent` decomposes mixed SQL + chart + facet turns at profile level.
 
 ## Multi-facet batch
 

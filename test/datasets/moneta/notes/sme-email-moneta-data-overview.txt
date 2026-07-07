@@ -1,0 +1,54 @@
+From: Maria Kowalski <maria.kowalski@moneta-bank.example>
+To: analytics-team@moneta-bank.example
+Subject: Quick brain dump on the Moneta banking data — hope this helps you get oriented
+
+Hi folks,
+
+Sorry this is a bit of a wall of text — I figured it was easier to write it all down once than answer the same questions in Slack for the next two weeks. I’ve been living in this Moneta dataset for a while (retail banking + a bit of brokerage on the side), so here’s how I think about it day to day.
+
+At the center of everything is the clients list. That’s our customers — people we onboarded into the bank. Each person has a client_id that we use everywhere else; that id is always filled in, and no two people share the same one. We keep their first_name and last_name, an email (should be unique when present — we use it for statements and password resets), a phone number, and when they were registered (created_at). Address-wise we store country, city, and address (street-level). There’s also a segment field that tells us how we service them — in practice it’s one of REGULAR, WEALTH, or ULTRA. If someone is missing a name or email it’s annoying for ops, but the one thing that absolutely cannot be blank is the client id.
+
+Every client can have one or more accounts. You always join accounts back to clients on client_id — an account never floats around without an owner, and one person can easily have several accounts. Each account has its own account_id (always present, never duplicated), an account_type which is basically checking or savings, a balance (current money sitting there — this should never go negative in our books; if you see a negative balance something’s wrong), and opened_at for when the account was opened. Balance is the live snapshot, not a history.
+
+Money movement lives in transactions. Each row is one movement on an account — you always go through account_id to get there (transactions don’t point at the client directly; you go account → client if you need the person). Types we care about are deposit, withdrawal, and transfer (transaction_type). The amount is how much moved; it should always be greater than zero — we don’t store signed amounts, the type tells you the direction. There’s a transaction_date and a free-text description (memo-ish, often messy, don’t overthink it). Every transaction needs an id (transaction_id) and must belong to a real account.
+
+On the lending side we have loans. Loans hang off the client directly (client_id) — not off an account. So a person can have loans even if you’re looking at a different account of theirs. Each loan has loan_id, the principal amount (should be positive), an interest_rate (annual; also shouldn’t be negative or absurdly huge — if you see rates in the hundreds that’s bad data, treat with suspicion), start_date and end_date, and a status. Status in the wild is active, closed, or defaulted. One thing that bites people: end date should be on or after start date. I’ve seen rows where end is before start — those are garbage, don’t use them for tenure calculations without cleaning.
+
+Repayments are in loan_payments. Each payment belongs to exactly one loan via loan_id (you don’t attach payments to the client directly). Fields are payment_id, payment_date, and amount paid that day. Amounts should be positive. Payment id is always there.
+
+Then there’s the investment / brokerage half of the house.
+
+stock_portfolios are investment “buckets” owned by a client (client_id again). A client can have several portfolios. Each has a portfolio_id, a portfolio_name (often looks like PORTF-XXXXX — not super friendly, but that’s what we have), and created_at for when the portfolio was set up. Portfolio id is required and unique.
+
+The catalog of instruments is stocks — this is reference data, not “who owns what.” Each stock has stock_id, a ticker (should be unique — we don’t want two rows for the same ticker), company_name, sector (things like Energy, Technology, Healthcare, Retail), and exchange (NASDAQ, NYSE, LSE, HKEX, etc.). Tickers and stock ids shouldn’t be blank.
+
+What a client actually owns sits in stock_holdings. A holding always belongs to a portfolio (portfolio_id) and points at a stock (stock_id). So to answer “what does this person hold?” you go client → portfolios → holdings → stocks. Holdings have shares (number of shares — should be > 0; a zero-share holding is noise) and average_price (average cost per share — also should be positive). holding_id identifies the row.
+
+Orders are separate from holdings. trade_orders are buy/sell instructions placed against a portfolio for a given stock — again portfolio_id + stock_id. order_type is buy or sell, order_date is when it was placed, shares is how many they wanted, limit_price is the limit they set (should be positive when present), and status is pending, executed, or cancelled. Important: an order is not the same as a holding. Executed buys should show up in holdings eventually, but the tables are separate and we don’t always have perfect timing between them. Order id is always filled in.
+
+How I usually explain the “shape” to new people:
+
+- Clients are the people.
+- Accounts and loans and portfolios all hang off the client.
+- Transactions hang off accounts (not clients).
+- Loan payments hang off loans.
+- Holdings and trade orders hang off portfolios, and both also point at stocks.
+- Stocks stand alone as the instrument list.
+
+A few practical gotchas from support tickets:
+
+- Don’t join transactions straight to clients — go through accounts.
+- Don’t assume every client has a loan or a portfolio; plenty only have a checking account.
+- Loan status wording is lending-specific (active / closed / defaulted). Trade order status is different (pending / executed / cancelled). Same column name status, different meanings — please don’t mix them up in reports.
+- Amounts on transactions, loans, payments, holdings, and orders should all be positive numbers. If something is zero or negative, flag it.
+- Ids (client_id, account_id, transaction_id, loan_id, payment_id, portfolio_id, stock_id, holding_id, order_id) are always present in good rows; blanks there mean the extract is broken.
+- Client emails and stock tickers are the main “business unique” fields people care about besides the ids.
+- Dates are stored as text-ish date strings (yyyy-mm-dd style). Loan start/end ordering is the one date rule that actually matters for analytics.
+
+If you’re building anything customer-facing, start from clients and walk outward. If you’re doing cash-flow analysis, accounts + transactions. Credit risk is loans + payments. Brokerage is portfolios + holdings + orders, with stocks as the lookup for ticker/sector/exchange.
+
+Happy to jump on a call if something’s unclear — I know this is a lot. Just wanted you to have the “tribal knowledge” in one place before you start wiring reports.
+
+Cheers,
+Maria
+Retail & Brokerage Data (Moneta)
