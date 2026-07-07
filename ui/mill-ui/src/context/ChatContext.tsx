@@ -23,6 +23,7 @@ import { parseWireArtifacts } from '../utils/artifactWireParse';
 import { mergeStreamedArtifactsWithAssistantTurn } from '../utils/artifactMerge';
 import { assistantReplyViewFromWire, deriveAssistantReplyView } from '../utils/assistantReplyView';
 import { StreamingReplySegmentTracker } from '../utils/streamingReplySegments';
+import { conversationNeedsTranscriptReplay } from './chatTranscriptHydration';
 
 const STORAGE_KEY = 'chat-conversations';
 
@@ -66,17 +67,6 @@ function turnToMessage(turn: TurnResponseWire, conversationId: string): Message 
     ...(artifacts.length ? { artifacts } : {}),
     ...(view ? { assistantReplyView: view } : {}),
   };
-}
-
-/** True when REST replay likely dropped structured assistant content (user rows only). */
-function conversationNeedsTranscriptReplay(conv: Conversation, isLoading: boolean): boolean {
-  if (conv.transcriptHydrated === false) return true;
-  if (!isRestChatBackendActive() || isLoading) return false;
-  const hasUser = conv.messages.some((m) => m.role === 'user');
-  const hollowAssistant = conv.messages.some(
-    (m) => m.role === 'assistant' && !m.content.trim() && !(m.artifacts?.length),
-  );
-  return hasUser && hollowAssistant;
 }
 
 type ChatAction =
@@ -184,6 +174,9 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     }
 
     case 'SET_ACTIVE_CONVERSATION':
+      if (state.activeConversationId === action.payload) {
+        return state;
+      }
       return {
         ...state,
         activeConversationId: action.payload,
@@ -192,6 +185,9 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'ENSURE_ACTIVE_CONVERSATION': {
       const { id, title, transcriptHydrated } = action.payload;
       if (state.conversations.some((c) => c.id === id)) {
+        if (state.activeConversationId === id) {
+          return state;
+        }
         return {
           ...state,
           activeConversationId: id,
@@ -483,6 +479,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
    * sync must not recreate a "Loading..." stub for that id before the route clears.
    */
   const skipDeepLinkEnsureForChatIdRef = useRef<string | null>(null);
+  const transcriptFetchInFlightRef = useRef(new Set<string>());
+  const conversationsRef = useRef(state.conversations);
+  conversationsRef.current = state.conversations;
   const [initialized, setInitialized] = useState(false);
   const [listLoadError, setListLoadError] = useState<string | null>(null);
   const [agentProfiles, setAgentProfiles] = useState<AgentProfileResponseWire[]>([]);
@@ -612,6 +611,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
   }, [state.conversations]);
 
+  const activeConversation =
+    state.conversations.find((c) => c.id === state.activeConversationId) ?? null;
+  const activeTranscriptHydrated = activeConversation?.transcriptHydrated;
+
   useEffect(() => {
     const id = state.activeConversationId;
     if (!id || id.startsWith('temp-')) {
@@ -624,8 +627,12 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     if (!conv || !conversationNeedsTranscriptReplay(conv, state.isLoading)) {
       return;
     }
+    if (transcriptFetchInFlightRef.current.has(id)) {
+      return;
+    }
 
     let cancelled = false;
+    transcriptFetchInFlightRef.current.add(id);
 
     void (async () => {
       try {
@@ -655,39 +662,18 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             },
           });
         }
+      } finally {
+        transcriptFetchInFlightRef.current.delete(id);
       }
     })();
 
     return () => {
+      // Release the in-flight slot on cleanup (Strict Mode remount / chat switch) so the
+      // next effect run can start a fresh fetch. Only `cancelled` drops the stale response.
       cancelled = true;
+      transcriptFetchInFlightRef.current.delete(id);
     };
-  }, [state.activeConversationId, state.isLoading, state.conversations]);
-
-  const activeConversation =
-    state.conversations.find((c) => c.id === state.activeConversationId) ?? null;
-
-  useEffect(() => {
-    const id = activeConversation?.id;
-    if (!id || id.startsWith('temp-') || activeConversation?.profileId) {
-      return;
-    }
-    if (!isRestChatBackendActive()) {
-      return;
-    }
-    let cancelled = false;
-    void chatService.getChatDetail(id).then((detail) => {
-      if (cancelled) return;
-      dispatch({
-        type: 'UPDATE_CONVERSATION_PROFILE',
-        payload: { conversationId: id, profileId: detail.chat.profileId },
-      });
-    }).catch(() => {
-      /* toolbar falls back to badge-less state until next hydrate */
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [activeConversation?.id, activeConversation?.profileId]);
+  }, [state.activeConversationId, state.isLoading, activeTranscriptHydrated]);
 
   const createConversation = useCallback(async () => {
     if (!initialized) return undefined;
@@ -727,27 +713,24 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: id });
   }, []);
 
-  const ensureActiveConversation = useCallback(
-    (id: string) => {
-      if (skipDeepLinkEnsureForChatIdRef.current === id) {
-        return;
-      }
-      const isRest = isRestChatBackendActive();
-      if (state.conversations.some((c) => c.id === id)) {
-        dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: id });
-        return;
-      }
-      dispatch({
-        type: 'ENSURE_ACTIVE_CONVERSATION',
-        payload: {
-          id,
-          title: 'Loading...',
-          transcriptHydrated: !isRest,
-        },
-      });
-    },
-    [state.conversations],
-  );
+  const ensureActiveConversation = useCallback((id: string) => {
+    if (skipDeepLinkEnsureForChatIdRef.current === id) {
+      return;
+    }
+    const isRest = isRestChatBackendActive();
+    if (conversationsRef.current.some((c) => c.id === id)) {
+      dispatch({ type: 'SET_ACTIVE_CONVERSATION', payload: id });
+      return;
+    }
+    dispatch({
+      type: 'ENSURE_ACTIVE_CONVERSATION',
+      payload: {
+        id,
+        title: 'Loading...',
+        transcriptHydrated: !isRest,
+      },
+    });
+  }, []);
 
   const syncChatRouteConversationParam = useCallback((routeConversationId: string | undefined) => {
     const skip = skipDeepLinkEnsureForChatIdRef.current;

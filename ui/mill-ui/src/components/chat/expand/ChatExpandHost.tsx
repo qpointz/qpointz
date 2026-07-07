@@ -32,7 +32,7 @@ export function ChatExpandHost({ onScrollToMessage }: ChatExpandHostProps) {
   };
 
   return (
-    <Box style={{ position: 'absolute', inset: 0, zIndex: 15, background: 'var(--mantine-color-body)' }}>
+    <Box style={{ position: 'absolute', inset: 0, zIndex: 25, background: 'var(--mantine-color-body)' }}>
       <Component payload={expand} onClose={handleClose} />
     </Box>
   );

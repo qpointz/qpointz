@@ -2,6 +2,7 @@ import { ActionIcon, Box, Textarea, Tooltip, useMantineColorScheme } from '@mant
 import { useEffect, useRef, useState } from 'react';
 import { HiArrowUp, HiMicrophone, HiPlus } from 'react-icons/hi2';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
+import { chatAccentColor, composerSurfaceStyle } from '../chat/chatChrome';
 
 interface ChatInputBoxProps {
   onSend: (message: string) => void;
@@ -18,6 +19,7 @@ export function ChatInputBox({
   compact = false,
 }: ChatInputBoxProps) {
   const [value, setValue] = useState('');
+  const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const wasDisabledRef = useRef(disabled);
   const { colorScheme } = useMantineColorScheme();
@@ -54,24 +56,28 @@ export function ChatInputBox({
     }
   };
 
-  const containerBg = isDark
-    ? 'var(--mantine-color-dark-6)'
-    : 'var(--mantine-color-gray-1)';
-
   const iconColor = isDark ? 'gray.4' : 'gray.5';
   const iconSize = compact ? 'sm' : 'md';
   const iconPx = compact ? 14 : 18;
-  const sendSize = compact ? 24 : 30;
+  const sendSize = compact ? 24 : 32;
+  const accent = chatAccentColor(isDark);
 
   return (
     <Box
       style={{
-        backgroundColor: containerBg,
-        borderRadius: compact ? '16px' : '20px',
-        padding: compact ? '8px 10px' : '10px 14px',
+        ...composerSurfaceStyle(isDark, focused && !compact),
+        ...(compact
+          ? {
+              backgroundColor: isDark ? 'var(--mantine-color-dark-6)' : 'var(--mantine-color-gray-1)',
+              border: 'none',
+              boxShadow: 'none',
+            }
+          : {}),
+        borderRadius: compact ? 16 : 20,
+        padding: compact ? '8px 10px' : '12px 14px',
         display: 'flex',
         flexDirection: 'column',
-        gap: compact ? '4px' : '6px',
+        gap: compact ? '4px' : '8px',
       }}
     >
       {/* Textarea — borderless, transparent background */}
@@ -80,6 +86,8 @@ export function ChatInputBox({
         value={value}
         onChange={(e) => setValue(e.currentTarget.value)}
         onKeyDown={handleKeyDown}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
         placeholder={placeholder}
         disabled={disabled}
         autosize
@@ -92,7 +100,7 @@ export function ChatInputBox({
             backgroundColor: 'transparent',
             border: 'none',
             padding: compact ? '2px 4px' : '4px 6px',
-            fontSize: compact ? '13px' : '14px',
+            fontSize: compact ? '13px' : '15px',
             lineHeight: 1.5,
             color: 'var(--mantine-color-text)',
             '&::placeholder': {
@@ -150,21 +158,22 @@ export function ChatInputBox({
             </Tooltip>
           )}
 
-          {/* Send — filled circle, inverts dark/light */}
+          {/* Send — accent when ready, muted when empty */}
           <ActionIcon
             variant="filled"
-            color={isDark ? 'gray.0' : 'dark.9'}
+            color={canSend ? accent : isDark ? 'dark.4' : 'gray.4'}
             size={sendSize}
             radius="xl"
             onClick={handleSend}
             disabled={!canSend}
             aria-label="Send message"
             style={{
-              transition: 'opacity 150ms ease',
-              opacity: canSend ? 1 : 0.35,
+              transition: 'transform 150ms ease, opacity 150ms ease',
+              opacity: canSend ? 1 : 0.5,
+              transform: canSend ? 'scale(1)' : 'scale(0.96)',
             }}
           >
-            <HiArrowUp size={iconPx} color={isDark ? 'var(--mantine-color-dark-9)' : 'white'} />
+            <HiArrowUp size={iconPx} color="white" />
           </ActionIcon>
         </Box>
       </Box>

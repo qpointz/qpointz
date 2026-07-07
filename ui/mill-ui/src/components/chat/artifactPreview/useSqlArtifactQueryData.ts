@@ -3,7 +3,7 @@ import type { ChatMessageArtifact } from '../../../types/chat';
 import type { QueryResult } from '../../../types/query';
 import { useFeatureFlags } from '../../../features/FeatureFlagContext';
 import { queryService } from '../../../services/api';
-import { isQuerySessionNotFound } from '../../../services/queryErrors';
+import { isRecoverableQuerySessionError } from '../../../services/queryErrors';
 import { useChatArtifactRun } from './useChatArtifactRun';
 import { useLazyArtifactData } from './useLazyArtifactData';
 
@@ -15,7 +15,7 @@ interface UseSqlArtifactQueryDataOptions {
   storedExecutionId?: string;
   /** When false, stored execution pages are not fetched (e.g. SQL tab active). */
   lazyEnabled: boolean;
-  isReplayed: boolean;
+  /** When true, execute SQL on mount when there is no stored execution id to hydrate from. */
   autoRunLive: boolean;
   onDataArtifact: (artifact: Extract<ChatMessageArtifact, { kind: 'data' }>) => void;
 }
@@ -27,7 +27,6 @@ export function useSqlArtifactQueryData({
   parentArtifactId,
   storedExecutionId,
   lazyEnabled,
-  isReplayed,
   autoRunLive,
   onDataArtifact,
 }: UseSqlArtifactQueryDataOptions) {
@@ -83,22 +82,30 @@ export function useSqlArtifactQueryData({
 
   const lazy = useLazyArtifactData({
     executionId: liveResult ? undefined : storedExecutionId,
-    enabled: lazyEnabled && !liveResult,
+    enabled: lazyEnabled && !liveResult && !isRunning,
     onExecutionExpired: () => {
       void refreshExpiredExecution();
     },
   });
 
+  // Reset only when the SQL target changes — not when a data artifact id is attached after auto-run.
   useEffect(() => {
     setLiveResult(null);
     setRunError(null);
     autoRunDoneRef.current = false;
-  }, [storedExecutionId, sql, parentArtifactId]);
+  }, [sql, parentArtifactId]);
+
+  useEffect(() => {
+    setLiveResult((prev) => {
+      if (!prev || !storedExecutionId) return prev;
+      return prev.page.executionId === storedExecutionId ? prev : null;
+    });
+  }, [storedExecutionId]);
 
   const displayResult = liveResult ?? lazy.result;
   const lazyError =
-    lazy.error && !isQuerySessionNotFound(lazy.error) ? lazy.error : null;
-  const displayError = runError ?? lazyError;
+    lazy.error && !isRecoverableQuerySessionError(lazy.error) ? lazy.error : null;
+  const displayError = displayResult ? null : runError ?? lazyError;
 
   const handlePageChange = useCallback(
     async (pageIndex: number) => {
@@ -127,7 +134,7 @@ export function useSqlArtifactQueryData({
           lazy.setResult(merged);
         }
       } catch (e) {
-        if (isQuerySessionNotFound(e)) {
+        if (isRecoverableQuerySessionError(e)) {
           void refreshExpiredExecution();
           return;
         }
@@ -140,7 +147,7 @@ export function useSqlArtifactQueryData({
   );
 
   useEffect(() => {
-    if (!autoRunLive || isReplayed || !flags.chatSqlExecute || !sql.trim()) return;
+    if (!autoRunLive || !flags.chatSqlExecute || !sql.trim()) return;
     if (autoRunDoneRef.current) return;
     if (liveResult || storedExecutionId) return;
     autoRunDoneRef.current = true;
@@ -149,7 +156,6 @@ export function useSqlArtifactQueryData({
     autoRunLive,
     flags.chatSqlExecute,
     handleRun,
-    isReplayed,
     liveResult,
     sql,
     storedExecutionId,

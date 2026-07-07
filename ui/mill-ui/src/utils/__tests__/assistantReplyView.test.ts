@@ -6,6 +6,25 @@ import {
 } from '../assistantReplyView';
 
 describe('assistantReplyView', () => {
+  it('should derive chart-primary from sql artifact with chart visualizations', () => {
+    expect(
+      deriveAssistantReplyView([
+        {
+          kind: 'sql',
+          sql: 'SELECT month, revenue FROM sales',
+          visualizations: [
+            {
+              kind: 'chart',
+              key: 'main',
+              chartType: 'bar',
+              encodings: { x: { field: 'month' }, y: { field: 'revenue' } },
+            },
+          ],
+        },
+      ]),
+    ).toBe('chart-primary');
+  });
+
   it('should derive sql-primary from sql artifact', () => {
     expect(
       deriveAssistantReplyView([{ kind: 'sql', sql: 'SELECT 1' }]),
@@ -66,6 +85,7 @@ describe('assistantReplyView', () => {
 
   it('should parse wire transcript values', () => {
     expect(assistantReplyViewFromWire('sql-primary')).toBe('sql-primary');
+    expect(assistantReplyViewFromWire('chart-primary')).toBe('chart-primary');
     expect(assistantReplyViewFromWire(null)).toBeUndefined();
     expect(assistantReplyViewFromWire('unknown')).toBeUndefined();
   });

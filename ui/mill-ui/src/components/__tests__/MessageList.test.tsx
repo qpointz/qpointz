@@ -34,7 +34,7 @@ describe('MessageList', () => {
 
     it('should show helper text about starting a conversation', () => {
       renderList();
-      expect(screen.getByText(/Start a conversation by typing a message/)).toBeInTheDocument();
+      expect(screen.getByText(/Ask questions about your data/)).toBeInTheDocument();
     });
   });
 

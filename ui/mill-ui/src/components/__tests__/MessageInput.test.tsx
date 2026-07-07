@@ -35,7 +35,7 @@ function renderInput(props: { onSend?: (msg: string) => void; disabled?: boolean
 describe('MessageInput', () => {
   it('should render a textarea with placeholder', () => {
     renderInput();
-    expect(screen.getByPlaceholderText('Type your message...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Ask about your data…')).toBeInTheDocument();
   });
 
   it('should render the send button', () => {
@@ -71,7 +71,7 @@ describe('MessageInput', () => {
     const onSend = vi.fn();
     renderInput({ onSend });
 
-    const textarea = screen.getByPlaceholderText('Type your message...');
+    const textarea = screen.getByPlaceholderText('Ask about your data…');
     await userEvent.type(textarea, 'Hello world');
 
     const sendBtn = screen.getByLabelText('Send message');
@@ -84,7 +84,7 @@ describe('MessageInput', () => {
     const onSend = vi.fn();
     renderInput({ onSend });
 
-    const textarea = screen.getByPlaceholderText('Type your message...');
+    const textarea = screen.getByPlaceholderText('Ask about your data…');
     await userEvent.type(textarea, 'Test message');
     fireEvent.keyDown(textarea, { key: 'Enter', code: 'Enter' });
 
@@ -95,7 +95,7 @@ describe('MessageInput', () => {
     const onSend = vi.fn();
     renderInput({ onSend });
 
-    const textarea = screen.getByPlaceholderText('Type your message...');
+    const textarea = screen.getByPlaceholderText('Ask about your data…');
     await userEvent.type(textarea, 'Line one');
     fireEvent.keyDown(textarea, { key: 'Enter', code: 'Enter', shiftKey: true });
 
@@ -106,7 +106,7 @@ describe('MessageInput', () => {
     const onSend = vi.fn();
     renderInput({ onSend });
 
-    const textarea = screen.getByPlaceholderText('Type your message...') as HTMLTextAreaElement;
+    const textarea = screen.getByPlaceholderText('Ask about your data…') as HTMLTextAreaElement;
     await userEvent.type(textarea, 'Message to send');
     fireEvent.keyDown(textarea, { key: 'Enter', code: 'Enter' });
 
@@ -117,7 +117,7 @@ describe('MessageInput', () => {
     const onSend = vi.fn();
     renderInput({ onSend });
 
-    const textarea = screen.getByPlaceholderText('Type your message...');
+    const textarea = screen.getByPlaceholderText('Ask about your data…');
     await userEvent.type(textarea, '   ');
     fireEvent.keyDown(textarea, { key: 'Enter', code: 'Enter' });
 
@@ -126,7 +126,7 @@ describe('MessageInput', () => {
 
   it('should be disabled when disabled prop is true', () => {
     renderInput({ disabled: true });
-    const textarea = screen.getByPlaceholderText('Type your message...');
+    const textarea = screen.getByPlaceholderText('Ask about your data…');
     expect(textarea).toBeDisabled();
   });
 });

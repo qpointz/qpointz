@@ -39,7 +39,7 @@ export function useChatArtifactRun({
       trimmed,
       parentArtifactId,
     );
-    activeExecutionRef.current = dataArtifact.executionId;
+    activeExecutionRef.current = dataArtifact.executionId ?? null;
     onDataArtifact(dataArtifact);
     return result;
   }, [closePriorSession, conversationId, messageId, onDataArtifact, parentArtifactId, sql]);

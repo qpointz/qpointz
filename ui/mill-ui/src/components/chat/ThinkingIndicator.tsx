@@ -1,5 +1,6 @@
 import { Box, Text, useMantineColorScheme } from '@mantine/core';
 import { TypingIndicator } from './TypingIndicator';
+import { AssistantAvatar } from './AssistantAvatar';
 
 interface ThinkingIndicatorProps {
   /** Progress / tool-call line from SSE; omit for dots-only wait state */
@@ -19,29 +20,41 @@ export function ThinkingIndicator({ message }: ThinkingIndicatorProps) {
     <Box
       style={{
         display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
+        alignItems: 'flex-start',
+        gap: 12,
         maxWidth: '100%',
         width: '100%',
-        minHeight: '28px',
+        minHeight: 30,
       }}
     >
-      <TypingIndicator compact />
-      <Text
-        size="xs"
-        c={isDark ? 'gray.4' : 'gray.5'}
+      <AssistantAvatar size={30} />
+      <Box
         style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
           flex: 1,
           minWidth: 0,
-          fontStyle: 'italic',
-          userSelect: 'none',
-          lineHeight: 1.45,
-          whiteSpace: 'pre-wrap',
-          overflowWrap: 'anywhere',
+          paddingTop: 4,
         }}
       >
-        {label}
-      </Text>
+        <TypingIndicator compact />
+        <Text
+          size="sm"
+          c={isDark ? 'gray.4' : 'gray.6'}
+          style={{
+            flex: 1,
+            minWidth: 0,
+            fontStyle: 'italic',
+            userSelect: 'none',
+            lineHeight: 1.45,
+            whiteSpace: 'pre-wrap',
+            overflowWrap: 'anywhere',
+          }}
+        >
+          {label}
+        </Text>
+      </Box>
     </Box>
   );
 }

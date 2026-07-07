@@ -2,7 +2,10 @@ import { Box } from '@mantine/core';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { notifications } from '@mantine/notifications';
 import { DataGrid, DataStatePanel } from './DataGrid';
+import { DataErrorPanel } from './DataErrorPanel';
+import { DataLoadingPanel } from './DataLoadingPanel';
 import { DataToolbar } from './DataToolbar';
+import { buildQueryPageLabel } from './dataPagination';
 import type { QueryDataViewProps } from './types';
 import { downloadSqlExport, fetchExportFormats, type ExportFormatInfo } from '../../services/api';
 
@@ -22,11 +25,13 @@ export function QueryDataView({
   sqlCopied = false,
   onPageChange,
   showExport = true,
+  deferErrorMs = 0,
 }: QueryDataViewProps) {
   const [exportFormats, setExportFormats] = useState<ExportFormatInfo[]>([]);
   const [exportFormatsLoading, setExportFormatsLoading] = useState(false);
   const [exportFormatsFailed, setExportFormatsFailed] = useState(false);
   const [exportingFormatId, setExportingFormatId] = useState<string | null>(null);
+  const [deferredErrorVisible, setDeferredErrorVisible] = useState(deferErrorMs <= 0);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,15 +55,18 @@ export function QueryDataView({
     };
   }, []);
 
+  useEffect(() => {
+    if (!error || deferErrorMs <= 0 || result || isExecuting || isPageLoading) {
+      setDeferredErrorVisible(deferErrorMs <= 0 || !error);
+      return undefined;
+    }
+    setDeferredErrorVisible(false);
+    const timer = window.setTimeout(() => setDeferredErrorVisible(true), deferErrorMs);
+    return () => window.clearTimeout(timer);
+  }, [deferErrorMs, error, isExecuting, isPageLoading, result]);
+
   const hasSql = Boolean(currentSql.trim());
-  const totalPages = result?.page.totalResult != null && result.page.pageSize > 0
-    ? Math.max(1, Math.ceil(result.page.totalResult / result.page.pageSize))
-    : null;
-  const pageLabel = result
-    ? totalPages != null
-      ? `Page ${result.page.pageIndex + 1} / ${totalPages}`
-      : `Page ${result.page.pageIndex + 1}`
-    : 'Page 0';
+  const pageLabel = buildQueryPageLabel(result);
 
   const runSqlExport = useCallback(async (formatId: string) => {
     const sql = currentSql.trim();
@@ -86,28 +94,40 @@ export function QueryDataView({
   const showSqlActions = mode === 'playground';
   const compactMode = mode === 'condensed';
   const gridMaxHeight = compactMode ? 280 : undefined;
-  const showToolbar = !compactMode || result != null || isExecuting || isPageLoading;
+  const showToolbar = mode === 'playground' && (result != null || isExecuting || isPageLoading);
 
   const content = useMemo(() => {
-    if (isExecuting) return <DataStatePanel message="Executing query..." compact={compactMode} />;
-    if (isPageLoading) return <DataStatePanel message="Loading page..." compact={compactMode} />;
-    if (error) return <DataStatePanel message={error} color="red" compact={compactMode} />;
-    if (!result) {
+    if (isExecuting) {
+      return <DataLoadingPanel compact={compactMode} />;
+    }
+    if (result) {
       return (
-        <DataStatePanel
-          message="Run a query to see results here"
-          compact={compactMode}
+        <DataGrid
+          result={result}
+          maxHeight={gridMaxHeight}
+          loading={isPageLoading}
         />
       );
     }
-    return <DataGrid result={result} maxHeight={gridMaxHeight} />;
-  }, [compactMode, error, gridMaxHeight, isExecuting, isPageLoading, result]);
+    if (isPageLoading) {
+      return <DataLoadingPanel compact={compactMode} />;
+    }
+    if (error && !deferredErrorVisible) {
+      return <DataLoadingPanel compact={compactMode} />;
+    }
+    if (error) return <DataErrorPanel message={error} compact={compactMode} />;
+    return (
+      <DataStatePanel
+        message="Run a query to see results here"
+        compact={compactMode}
+      />
+    );
+  }, [compactMode, deferredErrorVisible, error, gridMaxHeight, isExecuting, isPageLoading, result]);
 
   return (
     <Box style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
       {showToolbar ? (
         <DataToolbar
-          title="Results"
           pageSize={pageSize}
           onPageSizeChange={onPageSizeChange}
           disablePaginationControls={disablePaginationControls}

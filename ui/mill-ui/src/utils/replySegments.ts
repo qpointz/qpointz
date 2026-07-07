@@ -20,6 +20,15 @@ function facetTypeLabel(facetTypeKey: string): string {
   return `${facetTypeKey} facet`;
 }
 
+function sqlArtifactCommentary(sql: Extract<ChatMessageArtifact, { kind: 'sql' }>): string {
+  const title = sql.info?.title?.trim();
+  const description = sql.info?.description?.trim();
+  if (title && description) return `**${title}**: ${description}`;
+  if (title) return `**${title}**`;
+  if (description) return description;
+  return 'SQL query:';
+}
+
 /**
  * Short natural-language lead-in shown above a single artefact group when no streamed text
  * segment was captured for that position.
@@ -42,11 +51,8 @@ export function commentaryForArtifactGroup(group: ArtifactRenderGroup): string |
   }
 
   if (group.kind === 'sql-data-composite') {
-    if (group.sql && group.data) {
-      return 'Query results:';
-    }
     if (group.sql) {
-      return 'Generated SQL:';
+      return sqlArtifactCommentary(group.sql);
     }
     if (group.data) {
       return 'Query results:';
@@ -122,11 +128,22 @@ export function groupIndexForNewArtifact(
 ): number {
   const groups = groupMessageArtifacts(allArtifacts);
   if (artifact.kind === 'data') {
-    const match = groups.findIndex(
-      (group) =>
-        group.kind === 'sql-data-composite' &&
-        group.data?.executionId === artifact.executionId,
-    );
+    const match = groups.findIndex((group) => {
+      if (group.kind !== 'sql-data-composite' || !group.data) return false;
+      if (
+        artifact.sourceArtifactId &&
+        group.data.sourceArtifactId === artifact.sourceArtifactId
+      ) {
+        return true;
+      }
+      if (artifact.executionId && group.data.executionId === artifact.executionId) {
+        return true;
+      }
+      return (
+        Boolean(artifact.sql) &&
+        (artifact.sql ?? '').trim() === (group.data.sql ?? '').trim()
+      );
+    });
     if (match >= 0) return match;
   }
   return Math.max(0, groups.length - 1);
@@ -157,11 +174,37 @@ function deriveReplySegments(message: Message): AssistantReplySegment[] {
 }
 
 /**
+ * Drops duplicate artefact slots (same group index) that can accumulate when multiple
+ * `data` parts stream or auto-run for one SQL card.
+ */
+function dedupeArtifactSegments(
+  segments: readonly AssistantReplySegment[],
+): AssistantReplySegment[] {
+  const seenGroups = new Set<number>();
+  const result: AssistantReplySegment[] = [];
+  for (const segment of segments) {
+    if (segment.kind === 'artifact') {
+      if (seenGroups.has(segment.groupIndex)) {
+        continue;
+      }
+      seenGroups.add(segment.groupIndex);
+    }
+    result.push(segment);
+  }
+  return result;
+}
+
+/**
  * Ordered text and artefact segments for assistant replies (live SSE or GET replay).
+ * REST replay always derives from artefacts so stale streamed `replySegments` cannot
+ * render the same SQL/data card many times.
  */
 export function buildReplySegments(message: Message): AssistantReplySegment[] {
+  if (message.restReplay) {
+    return deriveReplySegments(message);
+  }
   if (message.replySegments?.length) {
-    return [...message.replySegments];
+    return dedupeArtifactSegments(message.replySegments);
   }
   return deriveReplySegments(message);
 }

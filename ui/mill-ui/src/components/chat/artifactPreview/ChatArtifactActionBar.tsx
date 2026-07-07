@@ -1,4 +1,4 @@
-import { ActionIcon, Group, Menu, Tooltip } from '@mantine/core';
+import { ActionIcon, Group, Menu, Tooltip, useMantineColorScheme } from '@mantine/core';
 import { useCallback, useEffect, useState } from 'react';
 import {
   HiOutlineArrowsPointingOut,
@@ -12,6 +12,11 @@ import {
 import { notifications } from '@mantine/notifications';
 import { downloadSqlExport, fetchExportFormats, type ExportFormatInfo } from '../../../services/api';
 import type { ArtifactActionId } from './types';
+import {
+  artifactToolbarActionIconProps,
+  artifactToolbarIconColor,
+} from './artifactToolbar';
+import { ArtifactToolbarIcon } from './ArtifactToolbarIcon';
 
 export interface ChatArtifactActionBarProps {
   enabledActions: ArtifactActionId[];
@@ -52,6 +57,10 @@ export function ChatArtifactActionBar({
   exportAttachmentBaseName = 'chat-query',
   reserveLayout = false,
 }: ChatArtifactActionBarProps) {
+  const { colorScheme } = useMantineColorScheme();
+  const isDark = colorScheme === 'dark';
+  const idleColor = artifactToolbarIconColor(isDark);
+  const actionIconProps = artifactToolbarActionIconProps;
   const show = (id: ArtifactActionId) => enabledActions.includes(id);
   const [exportFormats, setExportFormats] = useState<ExportFormatInfo[]>([]);
   const [exportFormatsLoading, setExportFormatsLoading] = useState(false);
@@ -113,50 +122,53 @@ export function ChatArtifactActionBar({
     (show('reject') && onReject);
 
   if (reserveLayout && !hasVisibleActions) {
-    return <Group gap={4} justify="flex-end" wrap="nowrap" style={{ minWidth: 140, minHeight: 28 }} aria-hidden />;
+    return <Group gap={4} justify="flex-start" wrap="nowrap" style={{ minWidth: 140, minHeight: 28 }} aria-hidden />;
   }
 
   return (
-    <Group gap={4} justify="flex-end" wrap="nowrap">
+    <Group gap={4} justify="flex-start" wrap="nowrap">
       {show('run') && onRun ? (
         <Tooltip label="Run query" withArrow>
-          <ActionIcon variant="subtle" size="sm" onClick={onRun} loading={isRunning} disabled={disableRun}>
-            <HiOutlinePlay size={14} />
+          <ActionIcon {...actionIconProps} color={idleColor} onClick={onRun} loading={isRunning} disabled={disableRun}>
+            <ArtifactToolbarIcon icon={HiOutlinePlay} />
           </ActionIcon>
         </Tooltip>
       ) : null}
       {show('copy') && onCopy ? (
         <Tooltip label={copyCopied ? 'Copied!' : copyTooltip} withArrow>
-          <ActionIcon variant="subtle" size="sm" color={copyCopied ? 'teal' : undefined} onClick={onCopy} aria-label={copyTooltip}>
-            <HiOutlineClipboardDocument size={14} />
+          <ActionIcon
+            {...actionIconProps}
+            color={copyCopied ? 'teal' : idleColor}
+            onClick={onCopy}
+            aria-label={copyTooltip}
+          >
+            <ArtifactToolbarIcon icon={HiOutlineClipboardDocument} />
           </ActionIcon>
         </Tooltip>
       ) : null}
       {show('reject') && onReject ? (
         <Tooltip label="Reject facet" withArrow>
           <ActionIcon
-            variant="subtle"
-            size="sm"
+            {...actionIconProps}
             color="red"
             onClick={onReject}
             loading={isLifecycleBusy}
             aria-label="Reject"
           >
-            <HiOutlineXMark size={14} />
+            <ArtifactToolbarIcon icon={HiOutlineXMark} />
           </ActionIcon>
         </Tooltip>
       ) : null}
       {show('accept') && onAccept ? (
         <Tooltip label="Accept facet" withArrow>
           <ActionIcon
-            variant="subtle"
-            size="sm"
+            {...actionIconProps}
             color="teal"
             onClick={onAccept}
             loading={isLifecycleBusy}
             aria-label="Accept"
           >
-            <HiOutlineCheck size={14} />
+            <ArtifactToolbarIcon icon={HiOutlineCheck} />
           </ActionIcon>
         </Tooltip>
       ) : null}
@@ -165,12 +177,12 @@ export function ChatArtifactActionBar({
           <Menu.Target>
             <Tooltip label="Export" withArrow>
               <ActionIcon
-                variant="subtle"
-                size="sm"
+                {...actionIconProps}
+                color={idleColor}
                 disabled={!hasExportSql || exportFormatsLoading || exportFormats.length === 0 || exportingFormatId != null}
                 loading={exportFormatsLoading || exportingFormatId != null}
               >
-                <HiOutlineArrowDownTray size={14} />
+                <ArtifactToolbarIcon icon={HiOutlineArrowDownTray} />
               </ActionIcon>
             </Tooltip>
           </Menu.Target>
@@ -195,22 +207,22 @@ export function ChatArtifactActionBar({
       ) : null}
       {show('expand') && onExpand ? (
         <Tooltip label="Expand" withArrow>
-          <ActionIcon variant="subtle" size="sm" onClick={onExpand}>
-            <HiOutlineArrowsPointingOut size={14} />
+          <ActionIcon {...actionIconProps} color={idleColor} onClick={onExpand}>
+            <ArtifactToolbarIcon icon={HiOutlineArrowsPointingOut} />
           </ActionIcon>
         </Tooltip>
       ) : null}
       {show('open-in-analysis') && onOpenInAnalysis ? (
         <Tooltip label="Open in Analysis" withArrow>
-          <ActionIcon variant="subtle" size="sm" onClick={onOpenInAnalysis}>
-            <HiOutlineArrowTopRightOnSquare size={14} />
+          <ActionIcon {...actionIconProps} color={idleColor} onClick={onOpenInAnalysis}>
+            <ArtifactToolbarIcon icon={HiOutlineArrowTopRightOnSquare} />
           </ActionIcon>
         </Tooltip>
       ) : null}
       {show('open-in-model') && onOpenInModel ? (
         <Tooltip label="Open in model" withArrow>
-          <ActionIcon variant="subtle" size="sm" onClick={onOpenInModel} aria-label="Open in model">
-            <HiOutlineArrowTopRightOnSquare size={14} />
+          <ActionIcon {...actionIconProps} color={idleColor} onClick={onOpenInModel} aria-label="Open in model">
+            <ArtifactToolbarIcon icon={HiOutlineArrowTopRightOnSquare} />
           </ActionIcon>
         </Tooltip>
       ) : null}

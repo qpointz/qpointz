@@ -1,6 +1,7 @@
 import type { ChatMessageArtifact } from '../types/chat';
 import type { ArtifactResponseWire } from '../types/chatWire';
 import type { QueryColumn } from '../types/query';
+import { chartVisualizationsFromPayload } from '../components/charts/chartData';
 import { parseFacetProposalArtifact } from './facetWireNormalize';
 
 function asNumber(value: unknown): number | undefined {
@@ -27,6 +28,18 @@ function asColumns(value: unknown): QueryColumn[] | undefined {
   return columns.length ? columns : undefined;
 }
 
+function asSqlInfo(value: unknown): { title?: string; description?: string } | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const row = value as Record<string, unknown>;
+  const title = typeof row.title === 'string' ? row.title : undefined;
+  const description = typeof row.description === 'string' ? row.description : undefined;
+  if (!title && !description) return undefined;
+  return {
+    ...(title ? { title } : {}),
+    ...(description ? { description } : {}),
+  };
+}
+
 function wireMeta(wire: ArtifactResponseWire): { artifactId?: string; status?: string } {
   return {
     artifactId: wire.artifactId ?? undefined,
@@ -38,27 +51,38 @@ function parseSqlArtifact(wire: ArtifactResponseWire): ChatMessageArtifact | nul
   const payload = wire.payload ?? {};
   const sql = typeof payload.sql === 'string' ? payload.sql : '';
   if (!sql.trim()) return null;
+  const info = asSqlInfo(payload.info);
+  const schema = asColumns(payload.schema);
+  const visualizations = chartVisualizationsFromPayload(payload.visualizations);
   return {
     kind: 'sql',
     sql,
     dialectId: typeof payload.dialectId === 'string' ? payload.dialectId : undefined,
+    ...(info ? { info } : {}),
+    ...(schema ? { schema } : {}),
+    ...(visualizations.length > 0 ? { visualizations } : {}),
     ...wireMeta(wire),
   };
 }
 
 function parseDataArtifact(wire: ArtifactResponseWire): ChatMessageArtifact | null {
   const payload = wire.payload ?? {};
-  const executionId = typeof payload.executionId === 'string' ? payload.executionId : '';
-  if (!executionId) return null;
+  const sql = typeof payload.sql === 'string' ? payload.sql : undefined;
+  const rowCount = asNumber(payload.rowCount);
+  const columns = asColumns(payload.columns);
+  const sourceArtifactId =
+    typeof payload.sourceArtifactId === 'string' ? payload.sourceArtifactId : undefined;
+  // executionId is ephemeral query-session state — never hydrate it from the wire.
+  if (!sql && rowCount == null && !columns?.length && !sourceArtifactId) {
+    return null;
+  }
   return {
     kind: 'data',
-    executionId,
-    sql: typeof payload.sql === 'string' ? payload.sql : undefined,
-    rowCount: asNumber(payload.rowCount),
+    sql,
+    rowCount,
     truncated: typeof payload.truncated === 'boolean' ? payload.truncated : undefined,
-    columns: asColumns(payload.columns),
-    sourceArtifactId:
-      typeof payload.sourceArtifactId === 'string' ? payload.sourceArtifactId : undefined,
+    columns,
+    sourceArtifactId,
     ...wireMeta(wire),
   };
 }

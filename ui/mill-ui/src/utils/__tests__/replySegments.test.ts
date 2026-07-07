@@ -71,6 +71,72 @@ describe('replySegments', () => {
     expect(segments[0]).toEqual({ kind: 'text', text: 'Intro before box.' });
   });
 
+  it('shouldDedupeDuplicateArtifactSegments_whenStoredReplyRepeatsGroup', () => {
+    const segments = buildReplySegments({
+      id: 'm1',
+      conversationId: 'c1',
+      role: 'assistant',
+      timestamp: 1,
+      content: '',
+      artifacts: [{ kind: 'sql', sql: 'SELECT 1', artifactId: 'sql-1' }],
+      replySegments: [
+        { kind: 'text', text: '**List of all passengers**' },
+        { kind: 'artifact', groupIndex: 0 },
+        { kind: 'text', text: 'Query results:' },
+        { kind: 'artifact', groupIndex: 0 },
+        { kind: 'artifact', groupIndex: 0 },
+      ],
+    });
+    expect(segments).toEqual([
+      { kind: 'text', text: '**List of all passengers**' },
+      { kind: 'artifact', groupIndex: 0 },
+      { kind: 'text', text: 'Query results:' },
+    ]);
+  });
+
+  it('shouldDeriveFromArtifacts_whenRestReplayIgnoresStaleReplySegments', () => {
+    const segments = buildReplySegments({
+      id: 'm1',
+      conversationId: 'c1',
+      role: 'assistant',
+      timestamp: 1,
+      content: '',
+      restReplay: true,
+      artifacts: [
+        {
+          kind: 'sql',
+          sql: 'SELECT * FROM passengers',
+          artifactId: 'sql-1',
+          info: { title: 'List of all passengers' },
+        },
+        {
+          kind: 'data',
+          artifactId: 'data-1',
+          sql: 'SELECT * FROM passengers',
+          sourceArtifactId: 'sql-1',
+          columns: [],
+        },
+        {
+          kind: 'data',
+          artifactId: 'data-2',
+          sql: 'SELECT * FROM passengers',
+          sourceArtifactId: 'sql-1',
+          columns: [],
+        },
+      ],
+      replySegments: [
+        { kind: 'text', text: 'stale' },
+        { kind: 'artifact', groupIndex: 0 },
+        { kind: 'artifact', groupIndex: 1 },
+        { kind: 'artifact', groupIndex: 2 },
+      ],
+    });
+    expect(segments).toEqual([
+      { kind: 'text', text: '**List of all passengers**' },
+      { kind: 'artifact', groupIndex: 0 },
+    ]);
+  });
+
   it('shouldBuildFacetCommentaryFromPayload_whenRationaleMissing', () => {
     const commentary = commentaryForArtifactGroup({
       kind: 'facet-proposal',
@@ -105,6 +171,19 @@ describe('replySegments', () => {
     expect(shouldAppendArtifactSegment(sql, [])).toBe(true);
     expect(shouldAppendArtifactSegment(data, [sql])).toBe(false);
     expect(groupIndexForNewArtifact(data, [sql, data])).toBe(0);
+  });
+
+  it('shouldUseSqlArtifactInfoForGeneratedLeadIn', () => {
+    const commentary = commentaryForArtifactGroup({
+      kind: 'sql-data-composite',
+      sql: {
+        kind: 'sql',
+        sql: 'SELECT * FROM passenger',
+        info: { title: 'Passenger list', description: 'Lists all passengers.' },
+      },
+    });
+
+    expect(commentary).toBe('**Passenger list**: Lists all passengers.');
   });
 });
 

@@ -102,7 +102,7 @@ describe('ChatArea', () => {
 
   it('should render the message input area', async () => {
     await renderChatArea();
-    expect(screen.getByPlaceholderText('Type your message...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Ask about your data…')).toBeInTheDocument();
   });
 
   it('should render the send button', async () => {
@@ -113,7 +113,7 @@ describe('ChatArea', () => {
   it('should add a user message when submitting text', async () => {
     await renderChatArea();
 
-    const textarea = screen.getByPlaceholderText('Type your message...');
+    const textarea = screen.getByPlaceholderText('Ask about your data…');
     await userEvent.type(textarea, 'Hello AI');
 
     await act(async () => {
@@ -128,7 +128,7 @@ describe('ChatArea', () => {
   it('should display the AI response after sending a message', async () => {
     await renderChatArea();
 
-    const textarea = screen.getByPlaceholderText('Type your message...');
+    const textarea = screen.getByPlaceholderText('Ask about your data…');
     await userEvent.type(textarea, 'Hello');
 
     await act(async () => {
@@ -144,7 +144,7 @@ describe('ChatArea', () => {
   it('should update conversation title from first user message', async () => {
     await renderChatArea();
 
-    const textarea = screen.getByPlaceholderText('Type your message...');
+    const textarea = screen.getByPlaceholderText('Ask about your data…');
     await userEvent.type(textarea, 'How does SQL work?');
 
     await act(async () => {
@@ -160,7 +160,7 @@ describe('ChatArea', () => {
   it('should clear the input after sending', async () => {
     await renderChatArea();
 
-    const textarea = screen.getByPlaceholderText('Type your message...') as HTMLTextAreaElement;
+    const textarea = screen.getByPlaceholderText('Ask about your data…') as HTMLTextAreaElement;
     await userEvent.type(textarea, 'Test message');
     fireEvent.keyDown(textarea, { key: 'Enter', code: 'Enter' });
 

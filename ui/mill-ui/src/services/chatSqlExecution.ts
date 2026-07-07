@@ -3,6 +3,7 @@ import type { QueryResult } from '../types/query';
 import { chatService, queryService } from './api';
 import { isRestChatBackendActive } from './chatService';
 import { readStoredQueryPageSize } from './queryService';
+import { normalizeSqlForExecution } from '../utils/sqlNormalize';
 
 export interface ChatSqlTarget {
   messageId: string;
@@ -70,7 +71,7 @@ export async function executeChatSqlArtifact(
   sql: string,
   parentArtifactId?: string,
 ): Promise<ChatSqlExecutionResult> {
-  const trimmed = sql.trim();
+  const trimmed = normalizeSqlForExecution(sql);
   if (!trimmed) {
     throw new Error('SQL is empty');
   }
@@ -89,9 +90,9 @@ export async function executeChatSqlArtifact(
   };
 
   if (isRestChatBackendActive()) {
+    // Persist result metadata only — executionId stays in live UI state for this session.
     await chatService
       .attachExecutionResult(conversationId, messageId, {
-        executionId: result.page.executionId,
         columns: result.columns,
         rowCount: result.rowCount,
         truncated: dataArtifact.truncated,

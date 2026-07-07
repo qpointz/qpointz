@@ -97,4 +97,48 @@ describe('groupMessageArtifacts', () => {
     expect(first.data?.executionId).toBe('e-aircraft');
     expect(second.data).toBeUndefined();
   });
+
+  it('shouldKeepSingleComposite_whenMultipleDataRowsTargetSameSql', () => {
+    const groups = groupMessageArtifacts([
+      {
+        kind: 'sql',
+        sql: 'SELECT * FROM passengers',
+        artifactId: 'sql-1',
+        info: { title: 'List of all passengers' },
+      },
+      {
+        kind: 'data',
+        artifactId: 'data-1',
+        sql: 'SELECT * FROM passengers',
+        sourceArtifactId: 'sql-1',
+        rowCount: 10,
+        columns: [],
+      },
+      {
+        kind: 'data',
+        artifactId: 'data-2',
+        sql: 'SELECT * FROM passengers',
+        sourceArtifactId: 'sql-1',
+        rowCount: 10,
+        columns: [],
+      },
+      {
+        kind: 'data',
+        artifactId: 'data-3',
+        sql: 'SELECT * FROM passengers',
+        sourceArtifactId: 'sql-1',
+        rowCount: 10,
+        columns: [],
+      },
+    ]);
+
+    expect(groups).toHaveLength(1);
+    const only = groups[0];
+    expect(only?.kind).toBe('sql-data-composite');
+    if (only?.kind !== 'sql-data-composite') {
+      throw new Error('expected sql-data-composite group');
+    }
+    expect(only.sql?.info?.title).toBe('List of all passengers');
+    expect(only.data?.artifactId).toBe('data-3');
+  });
 });

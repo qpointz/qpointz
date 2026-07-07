@@ -1,4 +1,5 @@
 import type { AssistantReplyView, ChatMessageArtifact } from '../types/chat';
+import { chartVisualizationsFromPayload } from '../components/charts/chartData';
 
 /**
  * Parses optional GET-transcript field from [TurnResponseWire.assistantReplyView].
@@ -7,6 +8,7 @@ export function assistantReplyViewFromWire(raw: string | null | undefined): Assi
   if (
     raw === 'conversation' ||
     raw === 'sql-primary' ||
+    raw === 'chart-primary' ||
     raw === 'facet-primary' ||
     raw === 'schema-primary' ||
     raw === 'artifact-primary'
@@ -14,6 +16,14 @@ export function assistantReplyViewFromWire(raw: string | null | undefined): Assi
     return raw;
   }
   return undefined;
+}
+
+function sqlArtifactHasChartVisualizations(artifacts: readonly ChatMessageArtifact[]): boolean {
+  return artifacts.some(
+    (artifact) =>
+      artifact.kind === 'sql' &&
+      chartVisualizationsFromPayload(artifact.visualizations).length > 0,
+  );
 }
 
 /**
@@ -31,6 +41,7 @@ export function deriveAssistantReplyView(
 ): AssistantReplyView {
   const arts = artifacts ?? [];
   if (arts.some((a) => a.kind === 'facet-proposal')) return 'facet-primary';
+  if (sqlArtifactHasChartVisualizations(arts)) return 'chart-primary';
   if (arts.some((a) => a.kind === 'sql' || a.kind === 'data')) return 'sql-primary';
   if (arts.some((a) => a.kind === 'unknown')) return 'artifact-primary';
   if (completionHint?.presentation === 'structured') {
@@ -56,6 +67,8 @@ export function structuredReplySectionTitle(
   switch (view) {
     case 'sql-primary':
       return 'SQL';
+    case 'chart-primary':
+      return 'Chart';
     case 'facet-primary': {
       const facetCount = artifacts?.filter((a) => a.kind === 'facet-proposal').length ?? 0;
       return facetCount > 1 ? 'Facet proposals' : 'Facet proposal';

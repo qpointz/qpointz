@@ -19,6 +19,9 @@ export function ChatRouteSync() {
     syncChatRouteConversationParam(paramId);
   }, [paramId, syncChatRouteConversationParam]);
 
+  const conversationIds = state.conversations.map((c) => c.id).join('\0');
+  const firstConversationId = state.conversations[0]?.id ?? null;
+
   useEffect(() => {
     if (!initialized || !paramId) {
       return;
@@ -28,20 +31,23 @@ export function ChatRouteSync() {
       ensureActiveConversation(paramId);
       return;
     }
-    const targetId = state.activeConversationId ?? state.conversations[0]?.id ?? null;
+    const targetId = state.activeConversationId ?? firstConversationId;
     if (targetId) {
       ensureActiveConversation(targetId);
       navigate(`/chat/${targetId}`, { replace: true });
       return;
     }
     navigate('/chat', { replace: true });
+    // conversationIds: re-run when membership changes, not on every transcript MERGE.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- conversations read for membership only
   }, [
     initialized,
     paramId,
     ensureActiveConversation,
     navigate,
     state.activeConversationId,
-    state.conversations,
+    conversationIds,
+    firstConversationId,
   ]);
 
   useEffect(() => {
@@ -52,12 +58,13 @@ export function ChatRouteSync() {
     if (active?.startsWith('temp-')) {
       return;
     }
-    const targetId = active ?? state.conversations[0]?.id ?? null;
+    const targetId = active ?? firstConversationId;
     if (targetId) {
       ensureActiveConversation(targetId);
       navigate(`/chat/${targetId}`, { replace: true });
     }
-  }, [initialized, navigate, paramId, state.activeConversationId, state.conversations, ensureActiveConversation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- firstConversationId tracks list head
+  }, [initialized, navigate, paramId, state.activeConversationId, firstConversationId, ensureActiveConversation]);
 
   useEffect(() => {
     if (!initialized || !isRestChatBackendActive() || state.conversations.length > 0) {

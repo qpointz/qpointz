@@ -1,5 +1,6 @@
 import type { ChatMessageArtifact } from '../types/chat';
 import { parseFacetProposalArtifact } from './facetWireNormalize';
+import { chartVisualizationsFromPayload } from '../components/charts/chartData';
 
 const STRUCTURED_PRESENTATION = 'structured';
 /** Mirrors [V1_CONVERSATION_PRESENTATION] — keep literal to avoid importing chatTransport (cycles). */
@@ -38,8 +39,18 @@ function wirePresentation(evt: Record<string, unknown>): string {
   return '';
 }
 
+function isDataPayloadShape(o: Record<string, unknown>): boolean {
+  if (o.artifactType === 'sql-result') return true;
+  if (typeof o.sourceArtifactId === 'string' && o.sourceArtifactId.trim()) return true;
+  if (typeof o.rowCount === 'number') return true;
+  if (Array.isArray(o.columns)) return true;
+  // Legacy live/SSE payloads may still carry executionId.
+  if (typeof o.executionId === 'string' && o.executionId.trim().length > 0) return true;
+  return false;
+}
+
 function inferPayloadKind(o: Record<string, unknown>): ChatMessageArtifact['kind'] | null {
-  if (typeof o.executionId === 'string' && o.executionId.trim().length > 0) return 'data';
+  if (isDataPayloadShape(o)) return 'data';
   if (typeof o.sql === 'string' && o.sql.trim().length > 0) return 'sql';
   if (parseFacetProposalArtifact(o)) return 'facet-proposal';
   return null;
@@ -85,33 +96,70 @@ export function parseChatStructuredPart(evt: Record<string, unknown>): ChatMessa
   if (effectivePartType === 'sql' || inferredKind === 'sql') {
     const sql = typeof parsed.sql === 'string' ? parsed.sql : '';
     if (!sql.trim()) return null;
+    const info = isRecord(parsed.info)
+      ? {
+          title: typeof parsed.info.title === 'string' ? parsed.info.title : undefined,
+          description: typeof parsed.info.description === 'string' ? parsed.info.description : undefined,
+        }
+      : undefined;
+    const visualizations = chartVisualizationsFromPayload(parsed.visualizations);
+    const schemaColumns: Array<{ name: string; type: string; nullable?: boolean }> = [];
+    if (Array.isArray(parsed.schema)) {
+      for (const entry of parsed.schema) {
+        if (!entry || typeof entry !== 'object') continue;
+        const row = entry as Record<string, unknown>;
+        const name = typeof row.name === 'string' ? row.name : '';
+        const type = typeof row.type === 'string' ? row.type : 'unknown';
+        if (!name) continue;
+        schemaColumns.push({
+          name,
+          type,
+          ...(row.nullable === true ? { nullable: true } : {}),
+        });
+      }
+    }
     return {
       kind: 'sql',
       sql,
       dialectId: typeof parsed.dialectId === 'string' ? parsed.dialectId : undefined,
+      ...(info ? { info } : {}),
+      ...(schemaColumns.length > 0 ? { schema: schemaColumns } : {}),
+      ...(visualizations.length > 0 ? { visualizations } : {}),
     };
   }
 
   if (effectivePartType === 'data' || inferredKind === 'data') {
-    const executionId = typeof parsed.executionId === 'string' ? parsed.executionId : '';
-    if (!executionId) return null;
+    const sql = typeof parsed.sql === 'string' ? parsed.sql : undefined;
+    const rowCount = typeof parsed.rowCount === 'number' ? parsed.rowCount : undefined;
+    const columns = Array.isArray(parsed.columns)
+      ? parsed.columns
+          .map((entry) => {
+            if (!entry || typeof entry !== 'object') return null;
+            const row = entry as Record<string, unknown>;
+            const name = typeof row.name === 'string' ? row.name : '';
+            const type = typeof row.type === 'string' ? row.type : 'unknown';
+            return name ? { name, type } : null;
+          })
+          .filter((column): column is { name: string; type: string } => column !== null)
+      : undefined;
+    const sourceArtifactId =
+      typeof parsed.sourceArtifactId === 'string' ? parsed.sourceArtifactId : undefined;
+    // Live in-memory path may include executionId; transcript hydrate must not.
+    const executionId =
+      typeof parsed.executionId === 'string' && parsed.executionId.trim()
+        ? parsed.executionId
+        : undefined;
+    if (!sql && rowCount == null && !columns?.length && !sourceArtifactId && !executionId) {
+      return null;
+    }
     return {
       kind: 'data',
-      executionId,
-      sql: typeof parsed.sql === 'string' ? parsed.sql : undefined,
-      rowCount: typeof parsed.rowCount === 'number' ? parsed.rowCount : undefined,
+      ...(executionId ? { executionId } : {}),
+      sql,
+      rowCount,
       truncated: typeof parsed.truncated === 'boolean' ? parsed.truncated : undefined,
-      columns: Array.isArray(parsed.columns)
-        ? parsed.columns
-            .map((entry) => {
-              if (!entry || typeof entry !== 'object') return null;
-              const row = entry as Record<string, unknown>;
-              const name = typeof row.name === 'string' ? row.name : '';
-              const type = typeof row.type === 'string' ? row.type : 'unknown';
-              return name ? { name, type } : null;
-            })
-            .filter((column): column is { name: string; type: string } => column !== null)
-        : undefined,
+      columns,
+      ...(sourceArtifactId ? { sourceArtifactId } : {}),
     };
   }
 

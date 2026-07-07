@@ -1,17 +1,41 @@
-import { Box, ScrollArea, Text, useMantineColorScheme } from '@mantine/core';
+import { Box, Loader, Text, useMantineColorScheme } from '@mantine/core';
+import { useLayoutEffect, useRef, useState } from 'react';
 import type { QueryResult } from '../../types/query';
+
+/** Space reserved when a horizontal scrollbar would cover the last visible row. */
+const HORIZONTAL_SCROLLBAR_RESERVE_PX = 14;
 
 interface DataGridProps {
   result: QueryResult;
   maxHeight?: number;
+  /** When true, keeps the grid layout and shows a loading overlay (paged fetch). */
+  loading?: boolean;
 }
 
-export function DataGrid({ result, maxHeight }: DataGridProps) {
+export function DataGrid({ result, maxHeight, loading = false }: DataGridProps) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const borderColor = 'var(--mantine-color-default-border)';
   const headerBg = isDark ? 'var(--mantine-color-dark-8)' : 'var(--mantine-color-gray-0)';
   const evenRowBg = isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)';
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [reserveHorizontalScrollbarSpace, setReserveHorizontalScrollbarSpace] = useState(false);
+
+  useLayoutEffect(() => {
+    const element = scrollRef.current;
+    if (!element) return undefined;
+
+    const updateScrollbarReserve = () => {
+      setReserveHorizontalScrollbarSpace(element.scrollWidth > element.clientWidth);
+    };
+
+    updateScrollbarReserve();
+    const observer = new ResizeObserver(updateScrollbarReserve);
+    observer.observe(element);
+    const table = element.querySelector('table');
+    if (table) observer.observe(table);
+    return () => observer.disconnect();
+  }, [result]);
 
   const cellBase = {
     padding: '6px 12px',
@@ -25,8 +49,31 @@ export function DataGrid({ result, maxHeight }: DataGridProps) {
   };
 
   return (
-    <ScrollArea style={{ flex: 1, minHeight: 0, maxHeight }} type="auto" offsetScrollbars>
-      <table
+    <Box
+      style={{
+        flex: 1,
+        minHeight: 0,
+        maxHeight,
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <Box
+        ref={scrollRef}
+        style={{
+          flex: 1,
+          minHeight: 0,
+          overflow: 'auto',
+          boxSizing: 'border-box',
+          scrollbarGutter: 'stable',
+          paddingBottom: reserveHorizontalScrollbarSpace ? HORIZONTAL_SCROLLBAR_RESERVE_PX : undefined,
+          opacity: loading ? 0.45 : 1,
+          transition: 'opacity 120ms ease',
+          pointerEvents: loading ? 'none' : 'auto',
+        }}
+      >
+        <table
         style={{
           width: 'max-content',
           minWidth: '100%',
@@ -87,7 +134,23 @@ export function DataGrid({ result, maxHeight }: DataGridProps) {
           ))}
         </tbody>
       </table>
-    </ScrollArea>
+      </Box>
+      {loading ? (
+        <Box
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2,
+            pointerEvents: 'none',
+          }}
+        >
+          <Loader size="sm" type="dots" />
+        </Box>
+      ) : null}
+    </Box>
   );
 }
 
@@ -102,6 +165,7 @@ export function DataStatePanel({ message, color = 'dimmed', compact = false }: D
     <Box
       style={{
         flex: compact ? undefined : 1,
+        minHeight: compact ? 140 : 220,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

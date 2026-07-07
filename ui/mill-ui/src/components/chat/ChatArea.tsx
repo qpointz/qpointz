@@ -21,7 +21,7 @@ function ChatAreaBody() {
     updateConversationProfile,
   } = useChat();
   const flags = useFeatureFlags();
-  const { notifyRunAllComplete } = useChatExpand();
+  const { notifyRunAllComplete, expand } = useChatExpand();
   const messageListRef = useRef<HTMLDivElement>(null);
 
   const scrollToMessage = useCallback((messageId: string) => {
@@ -87,12 +87,23 @@ function ChatAreaBody() {
         <MessageList
           messages={activeConversation?.messages || []}
           isLoading={state.isLoading}
+          isTranscriptLoading={
+            activeConversation != null &&
+            !activeConversation.id.startsWith('temp-') &&
+            activeConversation.transcriptHydrated === false
+          }
           thinkingMessage={state.thinkingMessage}
           conversationId={activeConversation?.id}
           chatTitle={activeConversation?.title}
+          showScrollToBottomAffix={!expand}
           onArtifactsChange={(messageId, artifacts) => {
             if (!activeConversation) return;
             updateMessageArtifacts(activeConversation.id, messageId, artifacts);
+          }}
+          onSuggestionClick={(text) => {
+            if (!state.isLoading && initialized) {
+              sendMessage(text);
+            }
           }}
         />
         <ChatExpandHost onScrollToMessage={scrollToMessage} />
@@ -103,8 +114,8 @@ function ChatAreaBody() {
           flexShrink: 0,
           zIndex: 10,
           pointerEvents: 'none',
-          background: `linear-gradient(to top, ${bgColor} 50%, transparent 100%)`,
-          paddingTop: '24px',
+          background: `linear-gradient(to top, ${bgColor} 72%, transparent 100%)`,
+          paddingTop: 32,
         }}
       >
         <Box style={{ pointerEvents: 'auto' }}>

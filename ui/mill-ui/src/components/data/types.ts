@@ -19,4 +19,6 @@ export interface QueryDataViewProps {
   onPageChange?: (pageIndex: number) => void;
   /** When false, hides the export control in the data toolbar (chat action bar owns export). */
   showExport?: boolean;
+  /** Delay error rendering to avoid flicker while chat artifacts/results are still hydrating. */
+  deferErrorMs?: number;
 }

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { queryService, readStoredQueryPageSize } from '../../../services/queryService';
-import { isQuerySessionNotFound } from '../../../services/queryErrors';
+import { isRecoverableQuerySessionError } from '../../../services/queryErrors';
 import type { QueryResult } from '../../../types/query';
 
 interface UseLazyArtifactDataOptions {
@@ -69,7 +69,7 @@ export function useLazyArtifactData({
         fetchedRef.current = executionId;
       } catch (e) {
         if (cancelled) return;
-        if (isQuerySessionNotFound(e)) {
+        if (isRecoverableQuerySessionError(e)) {
           fetchedRef.current = null;
           setResult(null);
           setError(null);
@@ -104,7 +104,7 @@ export function useLazyArtifactData({
         executionTimeMs: current.executionTimeMs,
       });
     } catch (e) {
-      if (isQuerySessionNotFound(e)) {
+      if (isRecoverableQuerySessionError(e)) {
         setResult(null);
         setError(null);
         fetchedRef.current = null;

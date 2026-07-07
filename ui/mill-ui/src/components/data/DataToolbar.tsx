@@ -1,10 +1,10 @@
-import { ActionIcon, Group, Menu, Select, Text, Tooltip } from '@mantine/core';
-import { HiChevronLeft, HiChevronRight, HiOutlineArrowDownTray, HiOutlineClipboardDocument, HiOutlineSparkles, HiOutlineTrash } from 'react-icons/hi2';
+import { ActionIcon, Group, Menu, Select, Tooltip } from '@mantine/core';
+import { HiOutlineArrowDownTray, HiOutlineClipboardDocument, HiOutlineSparkles, HiOutlineTrash } from 'react-icons/hi2';
 import type { ExportFormatInfo } from '../../services/api';
 import { QUERY_PAGE_SIZE_OPTIONS } from '../../services/queryService';
+import { DataPaginationControls } from './DataPaginationControls';
 
 interface DataToolbarProps {
-  title: string;
   pageSize?: number;
   onPageSizeChange?: (value: number) => void;
   disablePaginationControls: boolean;
@@ -28,7 +28,6 @@ interface DataToolbarProps {
 }
 
 export function DataToolbar({
-  title,
   pageSize,
   onPageSizeChange,
   disablePaginationControls,
@@ -50,12 +49,11 @@ export function DataToolbar({
   onExport,
   showExport = true,
 }: DataToolbarProps) {
+  const showPagination = hasPrevious || hasNext;
+
   return (
     <Group justify="space-between" px="sm" py={6} style={{ borderBottom: '1px solid var(--mantine-color-default-border)' }}>
       <Group gap="xs">
-        <Text size="xs" fw={600} c="dimmed" tt="uppercase">
-          {title}
-        </Text>
         {onPageSizeChange && pageSize != null ? (
           <Select
             size="xs"
@@ -68,21 +66,16 @@ export function DataToolbar({
             comboboxProps={{ withinPortal: true }}
           />
         ) : null}
-        <Group gap={2}>
-          <Tooltip label="Previous page" withArrow>
-            <ActionIcon variant="subtle" size="sm" disabled={disablePaginationControls || !hasPrevious} onClick={onPrevPage}>
-              <HiChevronLeft size={14} />
-            </ActionIcon>
-          </Tooltip>
-          <Text size="xs" c="dimmed" style={{ minWidth: 84, textAlign: 'center' }}>
-            {pageLabel}
-          </Text>
-          <Tooltip label="Next page" withArrow>
-            <ActionIcon variant="subtle" size="sm" disabled={disablePaginationControls || !hasNext} onClick={onNextPage}>
-              <HiChevronRight size={14} />
-            </ActionIcon>
-          </Tooltip>
-        </Group>
+        {showPagination ? (
+          <DataPaginationControls
+            pageLabel={pageLabel}
+            hasPrevious={hasPrevious}
+            hasNext={hasNext}
+            disabled={disablePaginationControls}
+            onPrevPage={onPrevPage}
+            onNextPage={onNextPage}
+          />
+        ) : null}
       </Group>
       <Group gap={4}>
         {showSqlActions ? (

@@ -1,0 +1,81 @@
+.root {
+  position: relative;
+  max-width: 100%;
+  border: 1px solid transparent;
+  transition: border-color 120ms ease;
+}
+
+.root:hover {
+  border-color: var(--mantine-color-default-border);
+}
+
+/* Inline tab rail — always visible, paired with action bar on the same row. */
+.tabsRail {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 4px;
+  flex-shrink: 0;
+  align-items: center;
+  margin-left: auto;
+}
+
+.artifactTabList {
+  gap: 4px;
+  border-bottom: none;
+}
+
+.artifactTabList::before {
+  display: none;
+}
+
+.artifactTab {
+  border: none;
+  border-radius: var(--mantine-radius-md);
+  padding: 0;
+  min-width: 28px;
+  min-height: 28px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: var(--mantine-color-gray-5);
+  font-weight: 400;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.artifactTab svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.5;
+}
+
+:global([data-mantine-color-scheme='dark']) .artifactTab {
+  color: var(--mantine-color-gray-4);
+}
+
+.artifactTab:hover {
+  background-color: var(--mantine-color-gray-1);
+  color: var(--mantine-color-gray-5);
+}
+
+:global([data-mantine-color-scheme='dark']) .artifactTab:hover {
+  background-color: var(--mantine-color-dark-5);
+  color: var(--mantine-color-gray-4);
+}
+
+/* Active: soft tint only — icon stays same weight/color as action bar */
+.artifactTab[data-active] {
+  background-color: var(--mantine-color-teal-1);
+  color: var(--mantine-color-gray-5);
+  font-weight: 400;
+}
+
+:global([data-mantine-color-scheme='dark']) .artifactTab[data-active] {
+  background-color: var(--mantine-color-cyan-9);
+  color: var(--mantine-color-gray-4);
+  font-weight: 400;
+}

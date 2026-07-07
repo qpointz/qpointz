@@ -1,10 +1,12 @@
 import { Badge, Card, Group, Loader, Stack, Tabs, Text, Anchor } from '@mantine/core';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 import {
   HiOutlineArrowsRightLeft,
+  HiOutlineCodeBracket,
   HiOutlineCube,
   HiOutlineDocumentText,
+  HiOutlineTag,
 } from 'react-icons/hi2';
 import type { FacetTypeManifest } from '../../../types/facetTypes';
 import { facetTypeService, chatService } from '../../../services/api';
@@ -18,17 +20,21 @@ import {
   formatScopeSearchParam,
   GLOBAL_SCOPE_SLUG,
 } from '../../../utils/modelScopeQuery';
+import { ArtifactIconTab, useArtifactTabsStyles } from './ArtifactIconTab';
 import { ChatArtifactActionBar } from './ChatArtifactActionBar';
-import { ChatArtifactCard } from './ChatArtifactCard';
+import { ArtifactTabsRail, ChatArtifactCard } from './ChatArtifactCard';
 import { resolveArtifactTreatment } from './chatArtifactTreatments';
 import { FacetJsonReadOnlyPanel } from './FacetJsonReadOnlyPanel';
 import type { ArtifactActionId, ArtifactPreviewContext } from './types';
+import { ArtifactToolbarIcon } from './ArtifactToolbarIcon';
+import type { IconType } from 'react-icons';
 
-function facetHeaderIcon(facetTypeKey: string) {
-  if (facetTypeKey.endsWith(':descriptive')) return <HiOutlineDocumentText size={16} />;
-  if (facetTypeKey.endsWith(':structural')) return <HiOutlineCube size={16} />;
-  if (facetTypeKey.endsWith(':relation')) return <HiOutlineArrowsRightLeft size={16} />;
-  return null;
+function facetTypeIcon(facetTypeKey: string): ReactNode {
+  let icon: IconType = HiOutlineTag;
+  if (facetTypeKey.endsWith(':descriptive')) icon = HiOutlineDocumentText;
+  else if (facetTypeKey.endsWith(':structural')) icon = HiOutlineCube;
+  else if (facetTypeKey.endsWith(':relation')) icon = HiOutlineArrowsRightLeft;
+  return <ArtifactToolbarIcon icon={icon} />;
 }
 
 /** Condensed facet-proposal preview — tabbed Facet + JSON shell (general and inline metadata chat). */
@@ -39,6 +45,7 @@ export function FacetCondensedPreview(props: ArtifactPreviewContext) {
   }
   const artifact = group.facet;
   const flags = useFeatureFlags();
+  const { styles: tabsStyles, classNames: tabsClassNames } = useArtifactTabsStyles();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string | null>('facet');
   const [lifecycleBusy, setLifecycleBusy] = useState(false);
@@ -212,12 +219,8 @@ export function FacetCondensedPreview(props: ArtifactPreviewContext) {
   return (
     <ChatArtifactCard p="xs">
       <Stack gap={4}>
-        <Tabs value={activeTab} onChange={setActiveTab}>
-          <Group justify="space-between" align="center" wrap="nowrap" gap={4}>
-            <Tabs.List style={{ flexWrap: 'nowrap' }}>
-              <Tabs.Tab value="facet">{facetTabLabel}</Tabs.Tab>
-              <Tabs.Tab value="json">JSON</Tabs.Tab>
-            </Tabs.List>
+        <Tabs value={activeTab} onChange={setActiveTab} styles={tabsStyles} classNames={tabsClassNames}>
+          <Group justify="space-between" wrap="nowrap" align="center" gap="xs" mb={4}>
             <ChatArtifactActionBar
               enabledActions={enabledActions}
               onCopy={() => void handleCopy()}
@@ -228,39 +231,55 @@ export function FacetCondensedPreview(props: ArtifactPreviewContext) {
               onAccept={enabledActions.includes('accept') ? () => void handleAccept() : undefined}
               isLifecycleBusy={lifecycleBusy}
             />
-          </Group>
-          <Tabs.Panel value="facet" pt={4}>
-            <Card withBorder p="xs">
-              <Group justify="space-between" mb={6} align="flex-start" wrap="nowrap">
-                <Group gap="xs" wrap="wrap">
-                  {facetHeaderIcon(facetTypeKey)}
-                  <Text fw={600} size="sm">
-                    {facetCardTitle}
-                  </Text>
-                </Group>
-                <Badge size="xs" variant="light" color={isRejected ? 'gray' : 'teal'}>
-                  {isRejected ? 'Rejected' : 'Active'}
-                </Badge>
-              </Group>
-              {descriptorLoading ? (
-                <Group justify="center" py="md">
-                  <Loader size="sm" />
-                </Group>
-              ) : (
-                <FacetReadOnlyBody
-                  facetTypeKey={facetTypeKey}
-                  payload={artifact.payload}
-                  descriptor={descriptorError ? null : descriptor}
-                  structuralFacetEnabled={flags.modelStructuralFacet}
-                  keyPrefix={`facet-proposal-${artifact.metadataEntityId}`}
-                  jsonFallbackMinHeight={200}
+            <ArtifactTabsRail>
+              <Tabs.List>
+                <ArtifactIconTab
+                  value="facet"
+                  label={facetTabLabel}
+                  icon={facetTypeIcon(facetTypeKey)}
                 />
-              )}
-            </Card>
-          </Tabs.Panel>
-          <Tabs.Panel value="json" pt={4}>
-            <FacetJsonReadOnlyPanel json={wireJson} maxHeight={220} />
-          </Tabs.Panel>
+                <ArtifactIconTab
+                  value="json"
+                  label="JSON"
+                  icon={<ArtifactToolbarIcon icon={HiOutlineCodeBracket} />}
+                />
+              </Tabs.List>
+            </ArtifactTabsRail>
+          </Group>
+          <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
+            <Tabs.Panel value="facet">
+              <Card withBorder p="xs">
+                <Group justify="space-between" mb={6} align="flex-start" wrap="nowrap">
+                  <Group gap="xs" wrap="wrap">
+                    {facetTypeIcon(facetTypeKey)}
+                    <Text fw={600} size="sm">
+                      {facetCardTitle}
+                    </Text>
+                  </Group>
+                  <Badge size="xs" variant="light" color={isRejected ? 'gray' : 'teal'}>
+                    {isRejected ? 'Rejected' : 'Active'}
+                  </Badge>
+                </Group>
+                {descriptorLoading ? (
+                  <Group justify="center" py="md">
+                    <Loader size="sm" />
+                  </Group>
+                ) : (
+                  <FacetReadOnlyBody
+                    facetTypeKey={facetTypeKey}
+                    payload={artifact.payload}
+                    descriptor={descriptorError ? null : descriptor}
+                    structuralFacetEnabled={flags.modelStructuralFacet}
+                    keyPrefix={`facet-proposal-${artifact.metadataEntityId}`}
+                    jsonFallbackMinHeight={200}
+                  />
+                )}
+              </Card>
+            </Tabs.Panel>
+            <Tabs.Panel value="json">
+              <FacetJsonReadOnlyPanel json={wireJson} maxHeight={220} />
+            </Tabs.Panel>
+          </Stack>
         </Tabs>
         {assignedCatalogPath ? (
           <Text size="xs" c="dimmed">

@@ -78,6 +78,6 @@ describe('Chat AppShell', () => {
 
   it('should render the message input', () => {
     renderAppShell();
-    expect(screen.getByPlaceholderText('Type your message...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Ask about your data…')).toBeInTheDocument();
   });
 });

@@ -97,7 +97,7 @@ describe('SqlDataCondensedPreview', () => {
     });
   });
 
-  it('should not auto-run SQL for REST replayed turns', async () => {
+  it('should auto-run SQL for REST replayed turns without persisted data', async () => {
     renderPreview({
       id: 'turn-1',
       conversationId: 'chat-1',
@@ -108,7 +108,50 @@ describe('SqlDataCondensedPreview', () => {
       artifacts: [{ kind: 'sql', sql: 'SELECT 1', dialectId: 'CALCITE' }],
     });
 
-    expect(screen.getByRole('tab', { name: 'SQL' })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(runMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('should not auto-run SQL when a persisted execution id exists', async () => {
+    render(
+      <MantineProvider>
+        <SqlDataCondensedPreview
+          chatType="general"
+          message={{
+            id: 'turn-1',
+            conversationId: 'chat-1',
+            role: 'assistant',
+            content: '',
+            timestamp: Date.now(),
+            restReplay: true,
+            artifacts: [
+              { kind: 'sql', sql: 'SELECT 1', dialectId: 'CALCITE', artifactId: 'sql-1' },
+              {
+                kind: 'data',
+                sql: 'SELECT 1',
+                executionId: 'exec-persisted',
+                rowCount: 1,
+                sourceArtifactId: 'sql-1',
+              },
+            ],
+          }}
+          group={{
+            kind: 'sql-data-composite',
+            sql: { kind: 'sql', sql: 'SELECT 1', dialectId: 'CALCITE', artifactId: 'sql-1' },
+            data: {
+              kind: 'data',
+              sql: 'SELECT 1',
+              executionId: 'exec-persisted',
+              rowCount: 1,
+              sourceArtifactId: 'sql-1',
+            },
+          }}
+          conversationId="chat-1"
+        />
+      </MantineProvider>,
+    );
+
     await waitFor(() => {
       expect(runMock).not.toHaveBeenCalled();
     });

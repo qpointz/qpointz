@@ -1,5 +1,6 @@
 import type { AgentProfileResponseWire, ChatDetailResponseWire, ChatResponseWire } from './chatWire';
 import type { QueryColumn } from './query';
+import type { ChartVisualizationConfig } from '../components/charts/types';
 
 export type {
   AgentProfileResponseWire,
@@ -14,10 +15,21 @@ export type {
 
 /** Normalized durable slices attached to an assistant message (from structured SSE parts). */
 export type ChatMessageArtifact =
-  | { kind: 'sql'; sql: string; dialectId?: string; artifactId?: string; status?: string }
+  | {
+      kind: 'sql';
+      sql: string;
+      dialectId?: string;
+      artifactId?: string;
+      status?: string;
+      info?: { title?: string; description?: string };
+      schema?: Array<{ name: string; type: string; nullable?: boolean }>;
+      visualizations?: ChartVisualizationConfig[];
+      profiling?: unknown[];
+    }
   | {
       kind: 'data';
-      executionId: string;
+      /** Live query-engine session only — never present after transcript hydrate. */
+      executionId?: string;
       sql?: string;
       rowCount?: number;
       truncated?: boolean;
@@ -52,6 +64,7 @@ export type AssistantReplySegment =
 export type AssistantReplyView =
   | 'conversation'
   | 'sql-primary'
+  | 'chart-primary'
   | 'facet-primary'
   | 'schema-primary'
   | 'artifact-primary';
@@ -166,7 +179,8 @@ export interface ChatSendOptions {
 }
 
 export interface AttachExecutionResultRequest {
-  executionId: string;
+  /** Accepted by the API for compatibility; not persisted on the chat artefact. */
+  executionId?: string;
   columns?: QueryColumn[];
   rowCount?: number;
   truncated?: boolean;

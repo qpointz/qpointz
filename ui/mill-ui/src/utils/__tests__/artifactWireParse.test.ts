@@ -6,18 +6,41 @@ describe('artifactWireParse', () => {
     expect(
       parseArtifactWire({
         kind: 'sql',
-        payload: { sql: 'SELECT 1', dialectId: 'ansi' },
+        payload: {
+          sql: 'SELECT 1',
+          dialectId: 'ansi',
+          info: { title: 'Passenger list', description: 'Lists all passengers.' },
+        },
       }),
-    ).toEqual({ kind: 'sql', sql: 'SELECT 1', dialectId: 'ansi' });
+    ).toEqual({
+      kind: 'sql',
+      sql: 'SELECT 1',
+      dialectId: 'ansi',
+      info: { title: 'Passenger list', description: 'Lists all passengers.' },
+    });
   });
 
-  it('should parse data wire artefact', () => {
+  it('should parse data wire artefact without executionId', () => {
     expect(
       parseArtifactWire({
         kind: 'data',
-        payload: { executionId: 'exec-1', rowCount: 5 },
+        payload: { sql: 'SELECT 1', rowCount: 5, sourceArtifactId: 'sql-1' },
       }),
-    ).toEqual({ kind: 'data', executionId: 'exec-1', rowCount: 5 });
+    ).toEqual({
+      kind: 'data',
+      sql: 'SELECT 1',
+      rowCount: 5,
+      sourceArtifactId: 'sql-1',
+    });
+  });
+
+  it('shouldStripLegacyExecutionId_onHydrate', () => {
+    expect(
+      parseArtifactWire({
+        kind: 'data',
+        payload: { executionId: 'exec-stale', sql: 'SELECT 1', rowCount: 1 },
+      }),
+    ).toEqual({ kind: 'data', sql: 'SELECT 1', rowCount: 1 });
   });
 
   it('should parse facet-proposal wire artefact for GET replay', () => {
@@ -59,10 +82,11 @@ describe('artifactWireParse', () => {
   it('should parse wire list for GET replay', () => {
     const artifacts = parseWireArtifacts([
       { kind: 'sql', payload: { sql: 'SELECT 1' } },
-      { kind: 'data', payload: { executionId: 'e1' } },
+      { kind: 'data', payload: { sql: 'SELECT 1', rowCount: 1 } },
     ]);
     expect(artifacts).toHaveLength(2);
     expect(artifacts[0]?.kind).toBe('sql');
     expect(artifacts[1]?.kind).toBe('data');
+    expect(artifacts[1]).not.toHaveProperty('executionId');
   });
 });

@@ -3,10 +3,16 @@ import { buildTableExportUrl, filenameFromContentDisposition, sanitizeExportAtta
 
 const JSON_HEADERS: HeadersInit = { Accept: 'application/json' };
 
-/**
- * Loads the effective HTTP format list from {@code GET /services/export/formats}.
- */
-export async function fetchExportFormats(): Promise<ExportFormatInfo[]> {
+let cachedFormats: ExportFormatInfo[] | null = null;
+let inflightFormats: Promise<ExportFormatInfo[]> | null = null;
+
+/** Clears the in-memory export format list (tests or rare admin refresh). */
+export function resetExportFormatsCache(): void {
+  cachedFormats = null;
+  inflightFormats = null;
+}
+
+async function loadExportFormatsFromNetwork(): Promise<ExportFormatInfo[]> {
   const res = await fetch('/services/export/formats', {
     credentials: 'include',
     headers: JSON_HEADERS,
@@ -19,6 +25,27 @@ export async function fetchExportFormats(): Promise<ExportFormatInfo[]> {
     throw new Error('Invalid export formats response');
   }
   return data;
+}
+
+/**
+ * Loads the effective HTTP format list from {@code GET /services/export/formats}.
+ * Results are cached for the browser session; concurrent callers share one in-flight request.
+ */
+export async function fetchExportFormats(): Promise<ExportFormatInfo[]> {
+  if (cachedFormats) {
+    return cachedFormats;
+  }
+  if (!inflightFormats) {
+    inflightFormats = loadExportFormatsFromNetwork()
+      .then((formats) => {
+        cachedFormats = formats;
+        return formats;
+      })
+      .finally(() => {
+        inflightFormats = null;
+      });
+  }
+  return inflightFormats;
 }
 
 /**
