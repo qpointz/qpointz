@@ -1,6 +1,7 @@
 package io.qpointz.mill.ai.data.schema
 
 import io.qpointz.mill.ai.capabilities.metadata.MetadataEntityIds
+import io.qpointz.mill.ai.capabilities.schema.AiAnnotationItem
 import io.qpointz.mill.ai.capabilities.schema.ListColumnsItem
 import io.qpointz.mill.ai.capabilities.schema.ListRelationsItem
 import io.qpointz.mill.ai.capabilities.schema.ListSchemasItem
@@ -14,6 +15,7 @@ import io.qpointz.mill.data.schema.SchemaTableWithFacets
 import io.qpointz.mill.data.schema.SchemaWithFacets
 import io.qpointz.mill.data.schema.WithFacets
 import io.qpointz.mill.data.schema.facet.RelationFacet
+import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.domain.RelationCardinality
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -48,6 +50,37 @@ class SchemaFacetCatalogAdapter(
     private fun displayName(item: WithFacets): String =
         item.facets.descriptive?.displayName ?: ""
 
+    private fun aiAnnotations(item: WithFacets): List<AiAnnotationItem> =
+        item.facets.facetsResolved
+            .asSequence()
+            .filter { row ->
+                row.facetTypeKey == MetadataUrns.FACET_TYPE_AI_ANNOTATION ||
+                    row.facetTypeKey.removePrefix(MetadataUrns.FACET_TYPE_PREFIX) == "ai-annotation"
+            }
+            .filter { row -> isAiAnnotationEnabled(row.payload) }
+            .map { row -> toAiAnnotationItem(row.payload) }
+            .toList()
+
+    private fun isAiAnnotationEnabled(payload: Map<String, Any?>): Boolean {
+        val enabled = payload["enabled"]
+        return when (enabled) {
+            null -> true
+            is Boolean -> enabled
+            else -> true
+        }
+    }
+
+    private fun toAiAnnotationItem(payload: Map<String, Any?>): AiAnnotationItem {
+        @Suppress("UNCHECKED_CAST")
+        val tags = payload["tags"] as? List<*> ?: emptyList<Any>()
+        return AiAnnotationItem(
+            title = payload["title"]?.toString().orEmpty(),
+            instruction = payload["instruction"]?.toString().orEmpty(),
+            kind = payload["kind"]?.toString()?.takeIf { it.isNotBlank() } ?: "sql_generation",
+            tags = tags.mapNotNull { it?.toString() },
+        )
+    }
+
     override fun invalidateCache() {
         lock.write {
             cachedSnapshot = null
@@ -63,6 +96,7 @@ class SchemaFacetCatalogAdapter(
                 displayName = displayName(schema),
                 catalogPath = schema.schemaName,
                 metadataEntityUrn = MetadataEntityIds.resolve(schema.schemaName),
+                aiAnnotations = aiAnnotations(schema),
             )
         }
 
@@ -147,6 +181,7 @@ class SchemaFacetCatalogAdapter(
                 displayName = displayName(table),
                 catalogPath = catalogPath,
                 metadataEntityUrn = MetadataEntityIds.resolve(catalogPath),
+                aiAnnotations = aiAnnotations(table),
             )
         }
 
@@ -174,6 +209,7 @@ class SchemaFacetCatalogAdapter(
                 type = column.dataType.type.typeId,
                 catalogPath = catalogPath,
                 metadataEntityUrn = MetadataEntityIds.resolve(catalogPath),
+                aiAnnotations = aiAnnotations(column),
             )
         }
 

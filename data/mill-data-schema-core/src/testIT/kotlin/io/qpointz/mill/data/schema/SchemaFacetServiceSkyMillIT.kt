@@ -3,6 +3,7 @@ package io.qpointz.mill.data.schema
 import io.qpointz.mill.data.schema.SkyMillSchemaProvider.Companion.SCHEMA_NAME
 import io.qpointz.mill.data.schema.SkyMillSchemaProvider.Companion.TABLE_NO_METADATA
 import io.qpointz.mill.data.schema.MetadataEntityUrnCodec
+import io.qpointz.mill.metadata.domain.MetadataUrns
 import io.qpointz.mill.metadata.repository.EntityRepository
 import io.qpointz.mill.metadata.service.FacetCatalog
 import io.qpointz.mill.metadata.service.FacetInstanceReadMerge
@@ -130,6 +131,19 @@ class SchemaFacetServiceSkyMillIT {
         assertFalse(noMetaTable.hasMetadata)
         assertNull(noMetaTable.metadata)
         assertTrue(noMetaTable.facets.isEmpty)
+    }
+
+    @Test
+    fun `segments table carries ai-annotation facet from metadata`() {
+        val segments = service.getSchemas().schemas
+            .single { it.schemaName == SCHEMA_NAME }
+            .tables.single { it.tableName == "segments" }
+
+        val aiRows = segments.facets.facetsResolved.filter {
+            it.facetTypeKey == MetadataUrns.FACET_TYPE_AI_ANNOTATION
+        }
+        assertTrue(aiRows.isNotEmpty())
+        assertTrue(aiRows.single().payload["instruction"].toString().contains("skymill.cities"))
     }
 
     @Test

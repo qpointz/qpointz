@@ -41,11 +41,27 @@ interface SchemaCatalogPort {
 }
 
 /**
+ * One enabled `ai-annotation` facet row exposed on schema list tool results.
+ *
+ * @property title Short operator label, or empty string if none.
+ * @property instruction Free-form agent instruction (required in catalog payload).
+ * @property kind Instruction category; defaults to `sql_generation` when omitted in storage.
+ * @property tags Optional discovery tags.
+ */
+data class AiAnnotationItem(
+    val title: String = "",
+    val instruction: String,
+    val kind: String = "sql_generation",
+    val tags: List<String> = emptyList(),
+)
+
+/**
  * A single schema entry returned by [SchemaCatalogPort.listSchemas].
  *
  * @property schemaName Exact schema name to use in subsequent tool calls.
  * @property description Business description, or empty string if none.
  * @property displayName Short label from descriptive metadata, or empty string if none.
+ * @property aiAnnotations Enabled agent instructions on this schema entity.
  */
 data class ListSchemasItem(
     val schemaName: String,
@@ -53,6 +69,7 @@ data class ListSchemasItem(
     val displayName: String = "",
     val catalogPath: String = schemaName,
     val metadataEntityUrn: String = "",
+    val aiAnnotations: List<AiAnnotationItem> = emptyList(),
 )
 
 /**
@@ -67,6 +84,7 @@ data class ListTablesItem(
     val displayName: String = "",
     val catalogPath: String = "$schemaName.$tableName",
     val metadataEntityUrn: String = "",
+    val aiAnnotations: List<AiAnnotationItem> = emptyList(),
 )
 
 /**
@@ -84,6 +102,7 @@ data class ListColumnsItem(
     val type: LogicalDataType.LogicalDataTypeId = LogicalDataType.LogicalDataTypeId.NOT_SPECIFIED_TYPE,
     val catalogPath: String = "$schemaName.$tableName.$columnName",
     val metadataEntityUrn: String = "",
+    val aiAnnotations: List<AiAnnotationItem> = emptyList(),
 )
 
 /**

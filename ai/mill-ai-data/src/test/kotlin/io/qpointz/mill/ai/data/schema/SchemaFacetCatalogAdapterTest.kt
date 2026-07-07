@@ -7,6 +7,11 @@ import io.qpointz.mill.data.schema.SchemaFacetService
 import io.qpointz.mill.data.schema.SchemaFacets
 import io.qpointz.mill.data.schema.SchemaTableWithFacets
 import io.qpointz.mill.data.schema.SchemaWithFacets
+import io.qpointz.mill.metadata.domain.MetadataUrns
+import io.qpointz.mill.metadata.domain.facet.FacetInstance
+import io.qpointz.mill.metadata.domain.facet.FacetOrigin
+import io.qpointz.mill.metadata.domain.facet.MergeAction
+import io.qpointz.mill.metadata.source.MetadataOriginIds
 import io.qpointz.mill.proto.DataType
 import io.qpointz.mill.proto.LogicalDataType
 import io.qpointz.mill.proto.Table
@@ -16,8 +21,50 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import java.time.Instant
 
 class SchemaFacetCatalogAdapterTest {
+
+    @Test
+    fun shouldExposeAiAnnotations_fromFacetsResolved_andOmitDisabled() {
+        val svc = mock<SchemaFacetService>()
+        whenever(svc.getSchemas()).thenReturn(
+            SchemaFacetResult(
+                modelRoot = ModelRootWithFacets(
+                    metadataEntityId = "urn:mill/model/model:model-entity",
+                    metadata = null,
+                    facets = SchemaFacets.EMPTY,
+                ),
+                schemas = listOf(
+                    SchemaWithFacets(
+                        schemaName = "skymill",
+                        tables = listOf(
+                            SchemaTableWithFacets(
+                                schemaName = "skymill",
+                                tableName = "segments",
+                                tableType = Table.TableTypeId.TABLE,
+                                columns = emptyList(),
+                                metadata = null,
+                                facets = schemaFacetsWithAiAnnotations(),
+                            ),
+                        ),
+                        metadata = null,
+                        facets = SchemaFacets.EMPTY,
+                    ),
+                ),
+                unboundMetadata = emptyList(),
+            ),
+        )
+        val port = SchemaFacetCatalogAdapter(svc, ttlMillis = 60_000L)
+
+        port.listSchemas()
+        val segments = port.listTables("skymill").single()
+
+        assertThat(segments.aiAnnotations).hasSize(1)
+        assertThat(segments.aiAnnotations.single().title).isEqualTo("City name projection")
+        assertThat(segments.aiAnnotations.single().instruction).contains("skymill.cities")
+        assertThat(segments.aiAnnotations.single().kind).isEqualTo("sql_generation")
+    }
 
     @Test
     fun shouldReuseCachedSnapshot_acrossListCalls() {
@@ -130,5 +177,48 @@ class SchemaFacetCatalogAdapterTest {
             ),
             metadata = null,
             facets = SchemaFacets.EMPTY,
+        )
+
+    private fun schemaFacetsWithAiAnnotations(): SchemaFacets =
+        SchemaFacets(
+            emptySet(),
+            listOf(
+                facetInstance(
+                    uid = "ai-1",
+                    payload = mapOf(
+                        "title" to "City name projection",
+                        "instruction" to "Join skymill.cities for origin and destination.",
+                        "kind" to "sql_generation",
+                    ),
+                ),
+                facetInstance(
+                    uid = "ai-disabled",
+                    payload = mapOf(
+                        "instruction" to "Disabled rule",
+                        "enabled" to false,
+                    ),
+                ),
+            ),
+        )
+
+    private fun facetInstance(
+        uid: String,
+        payload: Map<String, Any?>,
+        facetTypeKey: String = MetadataUrns.FACET_TYPE_AI_ANNOTATION,
+    ): FacetInstance =
+        FacetInstance(
+            assignmentUuid = uid,
+            entityId = "urn:mill/model/table:skymill.segments",
+            facetTypeKey = facetTypeKey,
+            scopeKey = MetadataUrns.SCOPE_GLOBAL,
+            mergeAction = MergeAction.SET,
+            payload = payload,
+            createdAt = Instant.EPOCH,
+            createdBy = null,
+            lastModifiedAt = Instant.EPOCH,
+            lastModifiedBy = null,
+            origin = FacetOrigin.CAPTURED,
+            originId = MetadataOriginIds.REPOSITORY_LOCAL,
+            assignmentUid = uid,
         )
 }

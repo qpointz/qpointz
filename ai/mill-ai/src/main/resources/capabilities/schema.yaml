@@ -31,6 +31,10 @@ prompts:
       Each list_* row includes `catalogPath` and `metadataEntityUrn` — copy `catalogPath` into metadata tools;
       never synthesize URNs yourself.
 
+      When `aiAnnotations` is non-empty on a list_* row, treat each entry as mandatory agent context
+      before SQL (especially `kind: sql_generation`). Apply instructions unless the user's current
+      message explicitly contradicts them. Do not invent annotations — only use values returned by tools.
+
 tools:
   list_schemas:
     description: |
@@ -62,6 +66,25 @@ tools:
           metadataEntityUrn:
             type: string
             description: Canonical metadata entity URN for this schema.
+          aiAnnotations:
+            type: array
+            description: Enabled agent instructions on this schema entity (exact entity only; no inheritance).
+            items:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Short operator label, or empty if none.
+                instruction:
+                  type: string
+                  description: Procedural agent instruction (SQL habits, projection rules, etc.).
+                kind:
+                  type: string
+                  description: Instruction category — sql_generation (default), tool_output, or general.
+                tags:
+                  type: array
+                  items:
+                    type: string
 
   list_tables:
     description: |
@@ -104,6 +127,22 @@ tools:
           metadataEntityUrn:
             type: string
             description: Canonical metadata entity URN for this table.
+          aiAnnotations:
+            type: array
+            description: Enabled agent instructions on this table entity (exact entity only; no inheritance).
+            items:
+              type: object
+              properties:
+                title:
+                  type: string
+                instruction:
+                  type: string
+                kind:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
 
   list_columns:
     description: |
@@ -155,6 +194,22 @@ tools:
           metadataEntityUrn:
             type: string
             description: Canonical metadata entity URN for this column.
+          aiAnnotations:
+            type: array
+            description: Enabled agent instructions on this column entity (exact entity only; no inheritance).
+            items:
+              type: object
+              properties:
+                title:
+                  type: string
+                instruction:
+                  type: string
+                kind:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
 
   list_relations:
     description: |
