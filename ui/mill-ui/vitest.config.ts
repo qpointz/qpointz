@@ -1,6 +1,8 @@
 import { defineConfig, mergeConfig } from 'vitest/config';
 import viteConfig from './vite.config';
 
+const isCi = process.env.CI === 'true' || process.env.CI === '1';
+
 export default mergeConfig(
   viteConfig,
   defineConfig({
@@ -9,8 +11,11 @@ export default mergeConfig(
       environment: 'jsdom',
       setupFiles: ['./src/test/setup.ts'],
       css: false,
-      testTimeout: 15_000,
-      hookTimeout: 15_000,
+      testTimeout: 30_000,
+      hookTimeout: 30_000,
+      maxWorkers: isCi ? 2 : undefined,
+      reporters: isCi ? ['default', 'junit'] : ['default'],
+      outputFile: isCi ? { junit: '.test/TEST.xml' } : undefined,
       coverage: {
         provider: 'v8',
         reporter: ['text', 'text-summary', 'lcov'],

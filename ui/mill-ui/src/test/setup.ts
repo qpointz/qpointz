@@ -3,6 +3,41 @@ import { configure } from '@testing-library/react';
 
 configure({ asyncUtilTimeout: 10_000 });
 
+function stubDomRect(): DOMRect {
+  return {
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+    toJSON() {
+      return {};
+    },
+  } as DOMRect;
+}
+
+const emptyDomRectList = {
+  length: 0,
+  item: () => null,
+  [Symbol.iterator]: function* emptyRects() {},
+} as DOMRectList;
+
+// CodeMirror layout measurement in jsdom (missing on Node 24 CI; causes exit 1 after tests pass).
+if (typeof Range !== 'undefined') {
+  if (!Range.prototype.getBoundingClientRect) {
+    Range.prototype.getBoundingClientRect = stubDomRect;
+  }
+  if (!Range.prototype.getClientRects) {
+    Range.prototype.getClientRects = () => emptyDomRectList;
+  }
+}
+if (!document.elementFromPoint) {
+  document.elementFromPoint = () => null;
+}
+
 // Polyfill window.matchMedia for jsdom (required by Mantine's useMantineColorScheme)
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
