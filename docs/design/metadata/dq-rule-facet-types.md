@@ -2,7 +2,7 @@
 
 **Status:** L1/L2 contract, plan sketches, and **platform seeds** complete (**WI-342**, **WI-343**, **WI-344**)  
 **Last updated:** 2026-06-24  
-**Story:** [`dqm-metadata-facets`](../../workitems/in-progress/dqm-metadata-facets/STORY.md)  
+**Story:** [`dqm-metadata-facets`](../../workitems/completed/20260624-dqm-metadata-facets/STORY.md)  
 **Rule catalog:** [`dq-rules.md`](../data/dq-rules.md)  
 **Related:** [`platform-standard-facet-types.md`](platform-standard-facet-types.md), [`facet-payload-schema-reference.md`](facet-payload-schema-reference.md), [`facet-class-elimination.md`](facet-class-elimination.md), [**Relational plan sketches (pseudo SQL)**](dq-rule-relplan-sketches.md)
 
@@ -739,5 +739,5 @@ Four catalog L2 rows share **`dq-predicate`** (different `predicate` values).
 
 - [`dq-rules.md`](../data/dq-rules.md) — full rule catalog and roadmap
 - [`dq-rule-relplan-sketches.md`](dq-rule-relplan-sketches.md) — pseudo SQL and post-processing per facet type
-- [`STORY.md`](../../workitems/in-progress/dqm-metadata-facets/STORY.md) — delivery checklist
+- [`STORY.md`](../../workitems/completed/20260624-dqm-metadata-facets/STORY.md) — delivery checklist
 - Future execution: **M-16** in [`BACKLOG.md`](../../workitems/BACKLOG.md)

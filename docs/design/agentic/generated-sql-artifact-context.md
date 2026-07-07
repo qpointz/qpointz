@@ -9,7 +9,7 @@ Related:
 | Document | Role |
 |----------|------|
 | [`chart-artifact-contract.md`](./chart-artifact-contract.md) | Chart artifacts copy query-level `title` / `description` |
-| [`../workitems/in-progress/ai-chart-mapping/WI-367-generated-sql-title-description.md`](../workitems/in-progress/ai-chart-mapping/WI-367-generated-sql-title-description.md) | Implementation WI |
+| [`../workitems/completed/20260707-ai-chart-mapping/WI-367-generated-sql-title-description.md`](../workitems/completed/20260707-ai-chart-mapping/WI-367-generated-sql-title-description.md) | Implementation WI |
 | [`sql-query.yaml`](../../../../ai/mill-ai/src/main/resources/capabilities/sql-query.yaml) | Tool + protocol schema (WI-367 updates) |
 
 ---

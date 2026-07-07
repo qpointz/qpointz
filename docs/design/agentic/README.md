@@ -45,6 +45,9 @@ workflow semantics.
 | `v3-validation-harness.md` | Deterministic validation strategy for scenarios, event traces, and `testIT` layering |
 | `v3-capability-manifest.md` | `CapabilityManifest` YAML schema reference for prompts, tools, protocols, and `mcp:` exposure |
 | **`v3-mcp-capability-exposure.md`** | **Shipped:** MCP server POC — capability registry projection, HTTP transport, filters, testing, LangChain example (A-56, closed 2026-06-22) |
+| **`concept-metadata-model.md`** | **Shipped:** model-level `concept` facet, `ConceptCatalogPort`, `data-analysis` SQL grounding |
+| [`../metadata/ai-annotation-facet-type.md`](../metadata/ai-annotation-facet-type.md) | **Shipped:** entity-scoped **`ai-annotation`** agent instructions, schema `aiAnnotations[]`, authoring capture |
+| `metadata-facet-catalog-v3.md` | Metadata facet catalog v3: `metadata` QUERY + `metadata-authoring` CAPTURE capabilities |
 | `developer-manual/v3-developer-manual.md` | Entry point for the ai/v3 developer manual, treating `ai/v3` as a framework for building chat and agent runtimes |
 | `developer-manual/v3-developer-capabilities-profiles-and-dependencies.md` | How to build capabilities, providers, manifests, dependencies, and agent profiles |
 | `developer-manual/v3-developer-runtime-events-persistence.md` | How runtime execution, routed events, transcript, artifacts, telemetry, and observers work together |

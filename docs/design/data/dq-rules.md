@@ -5,7 +5,7 @@ types in [`metadata/dq-rule-facet-types.md`](../metadata/dq-rule-facet-types.md)
 L1 seeds: [`platform-dq-l1-facet-types.yaml`](../../../metadata/mill-metadata-core/src/main/resources/metadata/platform-dq-l1-facet-types.yaml).  
 L2 seeds: [`platform-dq-l2-facet-types.yaml`](../../../metadata/mill-metadata-core/src/main/resources/metadata/platform-dq-l2-facet-types.yaml).  
 Relational plan sketches (pseudo SQL): [`dq-rule-relplan-sketches.md`](../metadata/dq-rule-relplan-sketches.md).  
-Delivery story: [`dqm-metadata-facets`](../../workitems/in-progress/dqm-metadata-facets/STORY.md).
+Delivery story: [`dqm-metadata-facets`](../../workitems/completed/20260624-dqm-metadata-facets/STORY.md).
 
 ### L1 catalog → facet type
 

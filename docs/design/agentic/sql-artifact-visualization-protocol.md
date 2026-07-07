@@ -8,8 +8,8 @@ Related:
 
 | Document | Role |
 |----------|------|
-| [`STORY.md`](../../workitems/in-progress/ai-chart-mapping/STORY.md) | Story scope and flow |
-| [`GAPS.md`](../../workitems/in-progress/ai-chart-mapping/GAPS.md) | Completion plan + validation purity |
+| [`STORY.md`](../../workitems/completed/20260707-ai-chart-mapping/STORY.md) | Story scope and flow |
+| [`GAPS.md`](../../workitems/completed/20260707-ai-chart-mapping/GAPS.md) | Completion plan + validation purity |
 | [`generated-sql-artifact-context.md`](./generated-sql-artifact-context.md) | `info.title` / `info.description` on `validate_sql` |
 | [`charts/README.md`](./charts/README.md) | Per-chart-type semantic specs |
 | [`artifact-foundation.md`](./artifact-foundation.md) | Descriptor, emission, persistence |

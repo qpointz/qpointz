@@ -143,7 +143,7 @@ Once Moneta is running, try asking questions like:
 - *"Display a chart of monthly payment trends"*
 - *"Explain what the clients table contains"*
 
-The chat interface will understand your questions, generate the appropriate SQL queries, and return results in tables, charts, or explanations.
+The chat interface will understand your questions, generate the appropriate SQL queries, and return results in tables, **chart visualizations** (when you ask for a chart), or explanations. For metadata enrichment, use general chat with a **metadata authoring** profile; see [Mill UI](mill-ui.md) and [Metadata](metadata/mill-ui.md).
 
 ---
 

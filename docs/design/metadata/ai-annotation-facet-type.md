@@ -1,8 +1,8 @@
 # AI annotation facet type
 
 **Status:** Normative — platform facet contract  
-**Story:** [`ai-annotations-facet`](../../workitems/in-progress/ai-annotations-facet/STORY.md) (WI-383)  
-**Gaps:** [`GAPS.md`](../../workitems/in-progress/ai-annotations-facet/GAPS.md) — all locked  
+**Story:** [`ai-annotations-facet`](../../workitems/completed/20260707-ai-annotations-facet/STORY.md) (WI-383)  
+**Gaps:** [`GAPS.md`](../../workitems/completed/20260707-ai-annotations-facet/GAPS.md) — all locked  
 **Related:** [`schema-facet-ai-tool-field-mapping.md`](schema-facet-ai-tool-field-mapping.md), [`facet-type-descriptor-formats.md`](facet-type-descriptor-formats.md), [`metadata-facet-catalog-v3.md`](../agentic/metadata-facet-catalog-v3.md)
 
 ## Summary

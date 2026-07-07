@@ -34,7 +34,7 @@ A document belongs here if its **primary subject** is one of:
 | `arrow-flight-server-design.md` | Arrow Flight server design for Mill query transport and type mapping |
 | `arrow-flight-sql-server-design.md` | Arrow Flight SQL server design for SQL metadata and command compatibility |
 | `odata-service.md` | OData v4 read service: EDM from physical schema + facets, `$filter`→`RexNode`, RelNode compose + Rel→Substrait adapter, dispatcher execution |
-| [`odata-service/COLDSTART.md`](../../workitems/in-progress/odata-service/COLDSTART.md) | Implementer cold start: adapter pipeline, module skeletons, Skymill gate tests, verify commands |
+| [`odata-service/COLDSTART.md`](../../workitems/completed/20260623-odata-service/COLDSTART.md) | Implementer cold start: adapter pipeline, module skeletons, Skymill gate tests, verify commands |
 | `CODEBASE_ANALYSIS_CURRENT.md` | High-level codebase analysis: metrics, structure, tech stack, status |
 | `CONFIGURATION_INVENTORY.md` | Spring configuration inventory: config files, @ConfigurationProperties, consumers |
 | `data-export-service.md` | gRPC data provider interface: contract decoupling query engine from data sources |

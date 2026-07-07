@@ -32,11 +32,11 @@ Mill exposes data through a service layer (gRPC, HTTP, and a web UI) backed by p
 
 | Area | Description |
 |------|-------------|
-| **Natural language queries** | Ask questions in plain language. Mill translates them to SQL, executes the query, and returns tabular results, charts, or explanations. |
-| **Unified SQL access** | Query PostgreSQL, MySQL, SQL Server, Oracle, H2, Snowflake, and file formats (CSV, Parquet, Avro, Excel) through a single SQL interface. |
-| **Metadata management** | Add descriptions, value mappings, business concepts, and relationships to tables and columns. Metadata improves AI query accuracy and serves as a data catalog. |
+| **Natural language queries** | Agentic chat on **`/api/v1/ai/chats`**: ask in plain language, get SQL artefacts with optional **chart visualizations** (Chart / Data / SQL tabs), tables, or explanations. |
+| **Unified SQL access** | Query PostgreSQL, MySQL, SQL Server, Oracle, H2, Snowflake, and file formats (CSV, Parquet, Avro, Excel) through a single SQL interface. **OData v4** read endpoints at **`/services/odata/{schema}.svc`** for BI tools. |
+| **Metadata management** | Catalog-generic **metadata authoring** in chat, **concepts** and **ai-annotation** facets, facet JSON Schema in admin, value mappings, and relationships. Metadata improves AI query accuracy and serves as a data catalog. |
 | **Access control** | Role-based table access, row-level filtering, and column-level restrictions. Supports OAuth2, JWT, Microsoft Entra ID, and basic authentication. |
-| **Web UI (Mill UI)** | Browser-based interface with a chat view, data model explorer, and context manager. Supports light and dark themes. |
+| **Web UI (Mill UI)** | Browser-based interface with agentic **chat**, **data model** explorer (multi-scope read), **analysis** SQL playground, and context manager. Supports light and dark themes. |
 | **Client libraries** | REST API, gRPC API, JDBC driver, and Python client for integration with applications, BI tools, and notebooks. |
 | **Deployment** | Docker, Docker Compose, and Kubernetes. |
 
@@ -50,5 +50,7 @@ Mill exposes data through a service layer (gRPC, HTTP, and a web UI) backed by p
 - [Platform runtime](reference/platform-runtime.md) — Spring Boot **4** / Spring AI **2** milestone / Jackson **3** baselines for services
 - [Backends](backends/index.md) — JDBC, Calcite, and Flow backend configuration
 - [Sources](sources/index.md) — file-based data source configuration
-- [Mill UI](grinder-ui.md) — web interface reference
+- [Mill UI](mill-ui.md) — web interface (chat, model explorer, analysis playground)
+- [Metadata in Mill UI](metadata/mill-ui.md) — facets, authoring, concepts, ai-annotations
+- [OData access](data-access/odata.md) — OData v4 read service for BI tools
 - [Python Client](connect/python/index.md) — Python client library

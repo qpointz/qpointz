@@ -23,7 +23,8 @@ Optionally, keep a **newest-first** bullet list below as a human-maintained inde
 
 ## Index (optional, newest first)
 
-- [2026-07-07 — ai-chart-mapping (SQL `visualizations[]`, chart-mapping capability, mill-ui Chart/Data/SQL; WI-338–WI-341, WI-366–WI-370)](20260707-ai-chart-mapping/STORY.md)
+- [2026-07-07 — ai-chart-mapping (SQL `visualizations[]`, chart-mapping capability, mill-ui Chart/Data/SQL; WI-338–WI-341, WI-366–WI-370 chart story)](20260707-ai-chart-mapping/STORY.md)
+- [2026-07-07 — ai-annotations-facet (entity-scoped `ai-annotation` facet, schema `aiAnnotations[]`, authoring capture; WI-383–WI-388)](20260707-ai-annotations-facet/STORY.md)
 - [2026-07-03 — metadata-facet-json-schema (facet payload JSON Schema projection, REST endpoint, admin read-only view; WI-379–WI-382)](20260703-metadata-facet-json-schema/STORY.md)
 - [2026-07-01 — model-view-multi-scope (URL-driven multi-scope read, scope/tag pickers, chat deep-links; WI-378)](20260701-model-view-multi-scope/STORY.md)
 - [2026-07-01 — ai-concepts (concept facet, catalog capability, data-analysis injection, authoring capture; WI-366–370, WI-372)](20260701-ai-concepts/STORY.md)

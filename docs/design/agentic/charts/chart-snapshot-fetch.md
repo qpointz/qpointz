@@ -2,7 +2,7 @@
 
 Normative for **WI-370** / Gap 23. Chart rendering needs a **bounded full result**, not a grid page.
 
-Aligns with Gap 7 ([`GAPS.md`](../../../workitems/in-progress/ai-chart-mapping/GAPS.md) §7) and
+Aligns with Gap 7 ([`GAPS.md`](../../../workitems/completed/20260707-ai-chart-mapping/GAPS.md) §7) and
 [`QueryResultSqlQueryExecutionPort`](../../../../ai/mill-ai-autoconfigure/src/main/kotlin/io/qpointz/mill/ai/autoconfigure/sqlquery/QueryResultSqlQueryExecutionPort.kt)
 `executeFull` semantics.
 

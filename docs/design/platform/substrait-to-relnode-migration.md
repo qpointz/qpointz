@@ -5,7 +5,7 @@
 
 > **Note:** [OData v4 service](odata-service.md) composes RelNode plans but executes via the existing
 > Substrait dispatcher path (Rel→Substrait adapter). It is **not** a migration phase; see
-> [`odata-service` story](../../workitems/in-progress/odata-service/STORY.md).
+> [`odata-service` story](../../workitems/completed/20260623-odata-service/STORY.md).
 
 ---
 

@@ -7,7 +7,7 @@
 **Modules:** `ai/mill-ai`, `ai/mill-ai-service`, `ui/mill-ui`
 
 > **Active protocol:** [`sql-artifact-visualization-protocol.md`](./sql-artifact-visualization-protocol.md)  
-> **Story:** [`../../workitems/in-progress/ai-chart-mapping/STORY.md`](../../workitems/in-progress/ai-chart-mapping/STORY.md)
+> **Story:** [`../../workitems/completed/20260707-ai-chart-mapping/STORY.md`](../../workitems/completed/20260707-ai-chart-mapping/STORY.md)
 
 The sections below retain historical `generated-chart` / `charts[]` topology for reference during doc migration. **Do not implement** a separate chart persist kind or wire part.
 
@@ -33,7 +33,7 @@ Related docs:
 | [`charts/chart-emission-path.md`](./charts/chart-emission-path.md) | **Locked:** OnToolSuccess from `validate_chart_spec` only (Gap 19) |
 | [`charts/chart-mcp-exposure.md`](./charts/chart-mcp-exposure.md) | **Locked:** MCP tools for external chart workflow (Gap 20) |
 | [`charts/chart-test-proof-strategy.md`](./charts/chart-test-proof-strategy.md) | **Locked:** layered mock proof + scenario export (Gap 21) |
-| [`../../workitems/in-progress/ai-chart-mapping/STORY.md`](../../workitems/in-progress/ai-chart-mapping/STORY.md) | Story scope and WI order |
+| [`../../workitems/completed/20260707-ai-chart-mapping/STORY.md`](../../workitems/completed/20260707-ai-chart-mapping/STORY.md) | Story scope and WI order |
 | [`query-artifact-presentations.md`](./query-artifact-presentations.md) | **Target:** one `generated-query` artifact; chart as `presentations[]` |
 
 ---
