@@ -13,9 +13,10 @@ describe('chatArtifactTreatments', () => {
     expect(treatment.actions).toContain('run');
   });
 
-  it('should host-apply sql for inline-analysis', () => {
+  it('should use inline artifact strip for inline-analysis sql-data-composite', () => {
     const treatment = resolveArtifactTreatment('inline-analysis', 'sql-data-composite');
-    expect(treatment.mode).toBe('host-apply');
+    expect(treatment.mode).toBe('inline-artifact-strip');
+    expect(treatment.actions).toEqual(['apply', 'apply-and-run', 'copy']);
     expect(treatmentAllowsExpand('inline-analysis', 'sql-data-composite')).toBe(false);
   });
 
@@ -38,8 +39,8 @@ describe('chatArtifactTreatments', () => {
     expect(treatment.actions).toEqual(['copy', 'open-in-model', 'reject', 'accept']);
   });
 
-  it('should keep conversation-card for inline hosts facet-proposal', () => {
-    expect(resolveArtifactTreatment('inline-analysis', 'facet-proposal').mode).toBe('conversation-card');
+  it('should use inline artifact strip for inline hosts facet-proposal', () => {
+    expect(resolveArtifactTreatment('inline-analysis', 'facet-proposal').mode).toBe('inline-artifact-strip');
     expect(resolveArtifactTreatment('inline-model', 'facet-proposal').mode).toBe('conversation-card');
     expect(resolveArtifactTreatment('inline-knowledge', 'facet-proposal').mode).toBe('conversation-card');
   });

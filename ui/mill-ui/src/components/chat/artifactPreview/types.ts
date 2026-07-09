@@ -12,6 +12,7 @@ export type ArtefactKind = 'sql-data-composite' | 'facet-proposal';
 
 export type ArtifactPresentationMode =
   | 'condensed-preview'
+  | 'inline-artifact-strip'
   | 'host-apply'
   | 'conversation-card'
   | 'prose-only';
@@ -26,7 +27,9 @@ export type ArtifactActionId =
   | 'open-in-analysis'
   | 'open-in-model'
   | 'accept'
-  | 'reject';
+  | 'reject'
+  | 'apply'
+  | 'apply-and-run';
 
 export interface ArtifactTreatment {
   mode: ArtifactPresentationMode;

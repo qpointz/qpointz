@@ -8,6 +8,7 @@ export type {
   ChatDetailResponseWire,
   ChatResponseWire,
   CreateChatRequestWire,
+  SendMessageContextWire,
   SendMessageRequestWire,
   TurnResponseWire,
   UpdateChatRequestWire,
@@ -162,8 +163,16 @@ export interface ChatItemCompletedPayload {
   readonly partTypes?: readonly string[];
 }
 
+/** Ephemeral per-turn host metadata sent with inline chat messages. */
+export interface InlineTurnContext {
+  values: Record<string, unknown>;
+  version?: number;
+}
+
 /** Options passed to REST/mock streaming send implementations. */
 export interface ChatSendOptions {
+  /** Optional turn context for inline hosts (`context.values` on the wire). */
+  context?: InlineTurnContext;
   /** Invoked from `item.diagnostic`, tame `item.tool.*` lines, and `clear-wait` boundaries. */
   onProgress?: (event: ChatSendProgress) => void;
   /**

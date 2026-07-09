@@ -26,7 +26,7 @@ interface QuerySidebarProps {
 export function QuerySidebar({ queries, activeQueryId, onSelectQuery, onDeleteQuery }: QuerySidebarProps) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
-  const { getSessionByContextId } = useInlineChat();
+  const { getSessionByContext } = useInlineChat();
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   return (
@@ -35,7 +35,7 @@ export function QuerySidebar({ queries, activeQueryId, onSelectQuery, onDeleteQu
       <ScrollArea style={{ flex: 1 }} type="auto">
         <Box py={4}>
           {queries.map((query) => {
-            const hasChat = !!getSessionByContextId(query.id);
+            const hasChat = !!getSessionByContext('analysis', query.id);
             return (
             <NavLink
               key={query.id}

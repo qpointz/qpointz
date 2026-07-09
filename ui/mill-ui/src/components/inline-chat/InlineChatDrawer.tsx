@@ -36,10 +36,19 @@ import { useRelatedContent } from '../../context/RelatedContentContext';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
 import { RelatedModelTree } from '../common/RelatedModelTree';
 import { InlineChatPanel } from './InlineChatPanel';
+import { InlineChatCopilotSettingsMenu } from './InlineChatCopilotSettingsMenu';
+import {
+  getInlineChatDrawerSubtitle,
+  getInlineChatDrawerTitle,
+} from './inlineChatLabels';
+import {
+  resolveInlineChatRouteContextId,
+  resolveInlineChatRouteContextType,
+} from './inlineChatRouteContext';
 import type { InlineChatSession } from '../../types/inlineChat';
 import type { RelatedContentRef, RelatedContentType } from '../../types/relatedContent';
 
-const DRAWER_WIDTH = 380;
+const DEFAULT_DRAWER_WIDTH = 380;
 
 const entityTypeIcons: Record<string, React.ComponentType<{ size: number; color?: string }>> = {
   SCHEMA: HiOutlineCircleStack,
@@ -50,28 +59,6 @@ const entityTypeIcons: Record<string, React.ComponentType<{ size: number; color?
 function getSessionIcon(session: InlineChatSession) {
   if (session.contextType === 'knowledge') return HiOutlineAcademicCap;
   return entityTypeIcons[session.contextEntityType || ''] || HiOutlineCircleStack;
-}
-
-/** Determine the current route's context type to group "most relevant" sessions */
-function useRouteContextType(pathname: string): 'model' | 'knowledge' | null {
-  if (pathname === '/model' || pathname.startsWith('/model/')) return 'model';
-  if (pathname === '/knowledge' || pathname.startsWith('/knowledge/')) return 'knowledge';
-  return null;
-}
-
-/** Extract the current context ID from the pathname (mirrors AppHeader logic) */
-function getRouteContextId(pathname: string): string | null {
-  if (pathname === '/model') return '__model__';
-  if (pathname.startsWith('/model/')) {
-    const segments = pathname.replace('/model/', '').split('/').filter(Boolean);
-    return segments.length > 0 ? segments.join('.') : '__model__';
-  }
-  if (pathname === '/knowledge') return '__knowledge__';
-  if (pathname.startsWith('/knowledge/')) {
-    const id = pathname.replace('/knowledge/', '').split('/').filter(Boolean)[0];
-    return id || '__knowledge__';
-  }
-  return null;
 }
 
 interface SessionListItemProps {
@@ -485,7 +472,7 @@ function CollapsedRightPill({
   );
 }
 
-export function InlineChatDrawer() {
+export function InlineChatDrawer({ embedded = false }: { embedded?: boolean }) {
   const {
     state,
     activeSession,
@@ -494,6 +481,7 @@ export function InlineChatDrawer() {
     setActiveSession,
     sendMessage,
     updateMessageArtifacts,
+    setSessionSettings,
     openDrawer,
     closeDrawer,
   } = useInlineChat();
@@ -529,8 +517,8 @@ export function InlineChatDrawer() {
   }, []);
 
   const { sessions, isDrawerOpen } = state;
-  const routeContextType = useRouteContextType(location.pathname);
-  const routeContextId = getRouteContextId(location.pathname);
+  const routeContextType = resolveInlineChatRouteContextType(location.pathname);
+  const routeContextId = resolveInlineChatRouteContextId(location.pathname);
 
   // Inline chat is not available on the general chat route
   const isGeneralChatRoute = location.pathname === '/chat' || location.pathname.startsWith('/chat/');
@@ -570,13 +558,13 @@ export function InlineChatDrawer() {
   return (
     <Box
       style={{
-        width: DRAWER_WIDTH,
+        width: embedded ? '100%' : DEFAULT_DRAWER_WIDTH,
         height: '100%',
-        borderLeft: '1px solid var(--mantine-color-default-border)',
+        borderLeft: embedded ? undefined : '1px solid var(--mantine-color-default-border)',
         backgroundColor: 'var(--mantine-color-body)',
         display: 'flex',
         flexDirection: 'column',
-        flexShrink: 0,
+        flexShrink: embedded ? undefined : 0,
       }}
     >
       {/* Drawer header */}
@@ -601,7 +589,7 @@ export function InlineChatDrawer() {
                 opened={listOpen}
                 onChange={handleListChange}
                 position="bottom-start"
-                width={DRAWER_WIDTH - 16}
+                width="target"
                 shadow="md"
                 withArrow
                 arrowSize={8}
@@ -619,7 +607,9 @@ export function InlineChatDrawer() {
                       c={isDark ? 'gray.2' : 'gray.7'}
                       truncate
                     >
-                      {activeSession?.contextLabel || 'Context Chats'}
+                      {activeSession
+                        ? getInlineChatDrawerTitle(activeSession)
+                        : 'Context Chats'}
                     </Text>
                     <Badge size="xs" variant="light" color="gray">
                       {sessions.length}
@@ -780,11 +770,18 @@ export function InlineChatDrawer() {
                 </Popover.Dropdown>
               </Popover>
             ) : (
-              <>
-                <Text size="xs" fw={600} c={isDark ? 'gray.2' : 'gray.7'}>
-                  {activeSession?.contextLabel || 'Context Chats'}
+              <Box style={{ flex: 1, minWidth: 0 }}>
+                <Text size="xs" fw={600} c={isDark ? 'gray.2' : 'gray.7'} truncate>
+                  {activeSession
+                    ? getInlineChatDrawerTitle(activeSession)
+                    : 'Context Chats'}
                 </Text>
-              </>
+                {activeSession && getInlineChatDrawerSubtitle(activeSession) ? (
+                  <Text size="xs" c="dimmed" truncate style={{ fontSize: '10px', lineHeight: 1.2 }}>
+                    {getInlineChatDrawerSubtitle(activeSession)}
+                  </Text>
+                ) : null}
+              </Box>
             )}
           </Group>
 
@@ -911,6 +908,24 @@ export function InlineChatDrawer() {
                 </Popover.Dropdown>
               </Popover>
             )}
+            {activeSession ? (
+              <InlineChatCopilotSettingsMenu
+                session={activeSession}
+                onSettingsChange={(settings) =>
+                  setSessionSettings(activeSession.id, settings)}
+              />
+            ) : null}
+            {/* Hide drawer */}
+            <Tooltip label="Hide panel">
+              <ActionIcon
+                size="xs"
+                variant="subtle"
+                color="gray"
+                onClick={closeDrawer}
+              >
+                <HiChevronRight size={14} />
+              </ActionIcon>
+            </Tooltip>
             {/* Close current session (with confirmation) */}
             {activeSession && (
               <Popover
@@ -967,23 +982,12 @@ export function InlineChatDrawer() {
                 </Popover.Dropdown>
               </Popover>
             )}
-            {/* Hide drawer */}
-            <Tooltip label="Hide panel">
-              <ActionIcon
-                size="xs"
-                variant="subtle"
-                color="gray"
-                onClick={closeDrawer}
-              >
-                <HiChevronRight size={14} />
-              </ActionIcon>
-            </Tooltip>
           </Group>
         </Group>
       </Box>
 
       {/* Active session panel */}
-      <Box style={{ flex: 1, minHeight: 0 }}>
+      <Box style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         {activeSession ? (
           <InlineChatPanel
             session={activeSession}

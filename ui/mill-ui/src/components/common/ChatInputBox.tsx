@@ -8,15 +8,15 @@ interface ChatInputBoxProps {
   onSend: (message: string) => void;
   disabled?: boolean;
   placeholder?: string;
-  /** Compact mode for inline chat (single-line, smaller sizing) */
-  compact?: boolean;
+  /** `inline` — narrow drawer composer with full General Chat chrome at smaller padding. */
+  variant?: 'default' | 'compact' | 'inline';
 }
 
 export function ChatInputBox({
   onSend,
   disabled = false,
   placeholder = 'Type your message...',
-  compact = false,
+  variant = 'default',
 }: ChatInputBoxProps) {
   const [value, setValue] = useState('');
   const [focused, setFocused] = useState(false);
@@ -56,16 +56,18 @@ export function ChatInputBox({
     }
   };
 
+  const compact = variant === 'compact';
+  const inline = variant === 'inline';
   const iconColor = isDark ? 'gray.4' : 'gray.5';
   const iconSize = compact ? 'sm' : 'md';
-  const iconPx = compact ? 14 : 18;
-  const sendSize = compact ? 24 : 32;
+  const iconPx = compact ? 14 : inline ? 15 : 18;
+  const sendSize = compact ? 24 : inline ? 28 : 32;
   const accent = chatAccentColor(isDark);
 
   return (
     <Box
       style={{
-        ...composerSurfaceStyle(isDark, focused && !compact),
+        ...composerSurfaceStyle(isDark, (focused && !compact) || (focused && inline)),
         ...(compact
           ? {
               backgroundColor: isDark ? 'var(--mantine-color-dark-6)' : 'var(--mantine-color-gray-1)',
@@ -73,11 +75,11 @@ export function ChatInputBox({
               boxShadow: 'none',
             }
           : {}),
-        borderRadius: compact ? 16 : 20,
-        padding: compact ? '8px 10px' : '12px 14px',
+        borderRadius: inline ? 18 : compact ? 16 : 20,
+        padding: inline ? '10px 12px' : compact ? '8px 10px' : '12px 14px',
         display: 'flex',
         flexDirection: 'column',
-        gap: compact ? '4px' : '8px',
+        gap: inline ? '6px' : compact ? '4px' : '8px',
       }}
     >
       {/* Textarea — borderless, transparent background */}
@@ -92,15 +94,15 @@ export function ChatInputBox({
         disabled={disabled}
         autosize
         minRows={1}
-        maxRows={compact ? 3 : 6}
+        maxRows={inline ? 5 : compact ? 3 : 6}
         styles={{
           root: { flex: 1 },
           wrapper: { border: 'none' },
           input: {
             backgroundColor: 'transparent',
             border: 'none',
-            padding: compact ? '2px 4px' : '4px 6px',
-            fontSize: compact ? '13px' : '15px',
+            padding: inline ? '2px 4px' : compact ? '2px 4px' : '4px 6px',
+            fontSize: inline ? '13px' : compact ? '13px' : '15px',
             lineHeight: 1.5,
             color: 'var(--mantine-color-text)',
             '&::placeholder': {

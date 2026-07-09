@@ -19,7 +19,7 @@ import { QueryPlayground } from './components/queries/QueryPlayground';
 import { AdminLayout } from './components/admin/AdminLayout';
 import { ProfileLayout } from './components/profile/ProfileLayout';
 import { ConnectLayout } from './components/connect/ConnectLayout';
-import { InlineChatDrawer } from './components/inline-chat/InlineChatDrawer';
+import { AppBodyWithInlineChat } from './components/layout/AppBodyWithInlineChat';
 import { LoginPage } from './components/auth/LoginPage';
 import { RegisterPage } from './components/auth/RegisterPage';
 import { NotFoundPage } from './components/common/NotFoundPage';
@@ -161,7 +161,8 @@ function ThemedApp() {
         <Box style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
           {isAuthenticated && <AppHeader />}
           <Box style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
-            <Box style={{ flex: 1, overflow: 'hidden' }}>
+            <AppBodyWithInlineChat>
+              <Box style={{ flex: 1, overflow: 'hidden' }}>
               <Routes>
                 <Route
                   path="/login"
@@ -199,8 +200,8 @@ function ThemedApp() {
                   }
                 />
               </Routes>
-            </Box>
-            {isAuthenticated && flags.inlineChatEnabled && <InlineChatDrawer />}
+              </Box>
+            </AppBodyWithInlineChat>
           </Box>
         </Box>
       </RelatedContentProvider>

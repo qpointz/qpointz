@@ -27,7 +27,7 @@ export function ContextSidebar({
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const flags = useFeatureFlags();
-  const { getSessionByContextId } = useInlineChat();
+  const { getSessionByContext } = useInlineChat();
   const { getRefsForContextId } = useChatReferencesContext();
 
   const handleCategoryClick = (category: string) => {
@@ -90,7 +90,7 @@ export function ContextSidebar({
           </Text>
         ) : (
           concepts.map((concept) => {
-            const hasChat = !!getSessionByContextId(concept.id);
+            const hasChat = !!getSessionByContext('knowledge', concept.id);
             const chatRefs =
               flags.chatReferencesEnabled &&
               flags.chatReferencesSidebarIndicator &&

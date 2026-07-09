@@ -8,9 +8,9 @@ import type {
   ChatSummary,
   CreateChatParams,
 } from '../types/chat';
-import type { ArtifactResponseWire } from '../types/chatWire';
+import type { ArtifactResponseWire, SendMessageRequestWire } from '../types/chatWire';
 import { parseArtifactWire } from '../utils/artifactWireParse';
-import { resolveGeneralChatAgentProfileId } from '../features/chatPreferences';
+import { resolveGeneralChatAgentProfileId, resolveAnalysisCopilotProfileId, ANALYSIS_COPILOT_PROFILE_ID } from '../features/chatPreferences';
 import { isV1MainConversationTextPart } from '../types/chatTransport';
 import { sleep, streamResponse } from '../utils/streamUtils';
 
@@ -29,6 +29,19 @@ const FETCH_AI_SSE: RequestInit = {
     'Content-Type': 'application/json',
   },
 };
+
+/** Builds the JSON body for POST `/api/v1/ai/chats/{id}/messages`. */
+export function buildSendMessageBody(message: string, options?: ChatSendOptions): SendMessageRequestWire {
+  const body: SendMessageRequestWire = { message };
+  const context = options?.context;
+  if (context?.values && Object.keys(context.values).length > 0) {
+    body.context = { values: context.values };
+    if (context.version != null) {
+      body.context.version = context.version;
+    }
+  }
+  return body;
+}
 
 // --- Mock response pools (unchanged corpus) ---
 
@@ -188,18 +201,24 @@ I'd suggest starting with **Churn Risk Score** as it directly extends this conce
 Would you like me to draft an improved version?`,
 ];
 
-const analysisResponses = [
+const ANALYSIS_MOCK_SQL_PROPOSAL = `SELECT
+  c.segment,
+  COUNT(DISTINCT c.customer_id) AS customers,
+  COUNT(o.order_id) AS orders,
+  SUM(o.total_amount) AS revenue,
+  AVG(o.total_amount) AS avg_order,
+  SUM(o.total_amount) / NULLIF(COUNT(DISTINCT c.customer_id), 0) AS revenue_per_customer
+FROM sales.customers c
+JOIN sales.orders o ON c.customer_id = o.customer_id
+GROUP BY c.segment
+ORDER BY revenue DESC`;
+
+const analysisProseResponses = [
   `Looking at your query, here are a few optimization suggestions:
 
 1. **Add an index** on the JOIN columns if not already indexed
 2. **Filter early** — move WHERE conditions closer to the base tables
 3. **Avoid SELECT \\*** — specify only the columns you need
-
-\`\`\`sql
--- Consider adding this index
-CREATE INDEX idx_orders_customer_id
-  ON sales.orders (customer_id);
-\`\`\`
 
 This should improve execution time significantly for large datasets.`,
 
@@ -211,24 +230,6 @@ This should improve execution time significantly for large datasets.`,
 
 Would you like me to suggest a follow-up query to dig deeper into any of these patterns?`,
 
-  `I can help you extend this query. Here's a version with additional insights:
-
-\`\`\`sql
-SELECT
-  c.segment,
-  COUNT(DISTINCT c.customer_id) AS customers,
-  COUNT(o.order_id) AS orders,
-  SUM(o.total_amount) AS revenue,
-  AVG(o.total_amount) AS avg_order,
-  SUM(o.total_amount) / COUNT(DISTINCT c.customer_id) AS revenue_per_customer
-FROM sales.customers c
-JOIN sales.orders o ON c.customer_id = o.customer_id
-GROUP BY c.segment
-ORDER BY revenue DESC
-\`\`\`
-
-The added \`revenue_per_customer\` metric helps compare segment efficiency.`,
-
   `Here's a breakdown of what this query does:
 
 | Clause | Purpose |
@@ -237,10 +238,79 @@ The added \`revenue_per_customer\` metric helps compare segment efficiency.`,
 | **JOIN** | Links customers to their orders |
 | **GROUP BY** | Groups results by the chosen dimension |
 | **ORDER BY** | Sorts by the primary metric descending |
-| **LIMIT** | Caps output for performance |
 
-The query is well-structured. Consider adding a **HAVING** clause if you want to filter groups (e.g., only segments with > 100 orders).`,
+The query is well-structured. Consider adding a **HAVING** clause if you want to filter groups.`,
 ];
+
+function analysisMessageWantsSqlProposal(message: string): boolean {
+  const lower = message.toLowerCase();
+  return /\b(rewrite|proposal|propose|revise|refactor)\b/.test(lower)
+    || /\bsql\b/.test(lower) && /\b(write|generate|create|draft)\b/.test(lower);
+}
+
+function analysisMessageWantsProse(message: string): boolean {
+  const lower = message.toLowerCase();
+  return /\b(optimize|optimi[sz]e|advice|explain|review|improve)\b/.test(lower);
+}
+
+async function* mockAnalysisSendMessage(
+  message: string,
+  options: ChatSendOptions | undefined,
+): AsyncGenerator<string, void, unknown> {
+  const wantsSql = analysisMessageWantsSqlProposal(message);
+  const prosePool = analysisProseResponses;
+
+  if (wantsSql) {
+    const intro = 'Here is a revised query that adds **revenue per customer** so you can compare segment efficiency:';
+    for await (const chunk of streamResponse(intro)) {
+      yield chunk;
+    }
+
+    const itemId = crypto.randomUUID();
+    options?.onNonTextPartUpdated?.({
+      itemId,
+      partType: 'sql',
+      presentation: 'structured',
+      mode: 'replace',
+      content: JSON.stringify({
+        sql: ANALYSIS_MOCK_SQL_PROPOSAL,
+        info: {
+          title: 'Revenue by segment',
+          description: 'Adds revenue_per_customer for segment comparison',
+        },
+      }),
+    });
+    options?.onItemCompleted?.({
+      itemId,
+      presentation: 'structured',
+      partType: 'sql',
+      structuredPartCount: 1,
+      partTypes: ['sql'],
+      content: null,
+    });
+    return;
+  }
+
+  const response = analysisMessageWantsProse(message)
+    ? pickRandom(prosePool)
+    : pickRandom(prosePool);
+  if (!response) return;
+
+  let firstChunk = true;
+  for await (const chunk of streamResponse(response)) {
+    if (firstChunk) {
+      firstChunk = false;
+      options?.onProgress?.({ kind: 'clear-wait' });
+    }
+    yield chunk;
+  }
+  options?.onItemCompleted?.({
+    itemId: crypto.randomUUID(),
+    presentation: 'conversation',
+    partType: 'text',
+    content: response,
+  });
+}
 
 // --- Mock state ---
 
@@ -251,6 +321,9 @@ const generalChatList: ChatSummary[] = [];
 const mockWireById = new Map<string, ChatResponseWire>();
 
 function resolveProfileForMockCreate(params?: CreateChatParams): string {
+  if (params?.contextType === 'analysis') {
+    return resolveAnalysisCopilotProfileId();
+  }
   return params?.profileId ?? resolveGeneralChatAgentProfileId();
 }
 
@@ -261,7 +334,7 @@ function pickRandom(pool: string[]): string {
 function getResponsePool(chatId: string): string[] {
   const ctx = chatContextMap.get(chatId);
   if (ctx === 'model') return modelResponses;
-  if (ctx === 'analysis') return analysisResponses;
+  if (ctx === 'analysis') return analysisProseResponses;
   if (ctx === 'knowledge') return knowledgeResponses;
   return generalResponses;
 }
@@ -530,12 +603,18 @@ const mockChatService: ChatService = {
     return { chatId, chatName };
   },
 
-  async *sendMessage(chatId, _message, options) {
+  async *sendMessage(chatId, message, options) {
     options?.onProgress?.({
       kind: 'diagnostic',
       code: 'mock.preparing',
       message: 'Preparing reply…',
     });
+
+    if (chatContextMap.get(chatId) === 'analysis') {
+      yield* mockAnalysisSendMessage(message, options);
+      return;
+    }
+
     const pool = getResponsePool(chatId);
     const response = pickRandom(pool);
     if (!response) return;
@@ -619,6 +698,10 @@ const mockChatService: ChatService = {
     await sleep(20);
     return [
       {
+        id: ANALYSIS_COPILOT_PROFILE_ID,
+        capabilityIds: ['conversation', 'sql.query', 'metadata.schema-read', 'metadata.authoring'],
+      },
+      {
         id: 'data-analysis',
         capabilityIds: ['sql.query'],
       },
@@ -681,7 +764,7 @@ const realChatService: ChatService = {
     const res = await fetch(`${CHATS_PREFIX}/${encodeURIComponent(chatId)}/messages`, {
       ...FETCH_AI_SSE,
       method: 'POST',
-      body: JSON.stringify({ message }),
+      body: JSON.stringify(buildSendMessageBody(message, options)),
     });
     await ensureOk(res, 'POST SSE /api/v1/ai/chats/.../messages');
     yield* consumeChatSse(res, options);

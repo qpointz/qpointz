@@ -8,7 +8,7 @@ import { QuerySidebar } from './QuerySidebar';
 import { QueryEditor } from './QueryEditor';
 import { QueryDataView } from '../data/QueryDataView';
 import { ExplorerSplitLayout } from '../layout/ExplorerSplitLayout';
-import { queryService } from '../../services/api';
+import { queryService, analysisService } from '../../services/api';
 import {
   normalizeQueryPageSize,
   readStoredQueryPageSize,
@@ -16,21 +16,33 @@ import {
 } from '../../services/queryService';
 import { VerticalSplitPane } from '../layout/VerticalSplitPane';
 import { useFeatureFlags } from '../../features/FeatureFlagContext';
-import { useInlineChatListener } from '../../context/InlineChatContext';
 import type { SavedQuery, QueryResult } from '../../types/query';
 import { resolveSqlToExecute } from './resolveSqlToExecute';
 import { sanitizeExportAttachmentBaseName } from '../../services/exportHelpers';
-import { registerHostApplyHandler } from '../chat/artifactPreview/hostIntegrations';
+import { registerInlineHostHandler } from '../chat/artifactPreview/hostIntegrations';
+import {
+  registerInlineContextSnapshotProvider,
+  unregisterInlineContextSnapshotProvider,
+} from '../../context/inlineContextSnapshotRegistry';
+import { buildAnalysisContextSnapshot } from '../../context/buildAnalysisContextSnapshot';
+import {
+  registerAnalysisArtifactListener,
+  unregisterAnalysisArtifactListener,
+  type AnalysisArtifactListener,
+} from '../../context/analysisArtifactListeners';
+import { useInlineChat } from '../../context/InlineChatContext';
+import { useInlineChatHostBinding } from '../inline-chat/useInlineChatHostBinding';
+import { resolveInlineChatRouteContextId } from '../inline-chat/inlineChatRouteContext';
+import {
+  shouldAutoApplyOnArrival,
+  shouldAutoRunAfterApply,
+} from '../inline-chat/analysisCopilotAutomation';
+import type { AnalysisCopilotSettings } from '../../types/inlineChat';
+import type { SqlCodeEditorHandle } from './SqlCodeEditor';
+import { setAnalysisHostExecuting, setAnalysisAppliedArtifactKey } from './analysisHostState';
+import { resolveSqlArtifactApplyKey } from '../chat/artifactPreview/inlineSqlArtifactKey';
+import { DEFAULT_QUERY_PAGE_SIZE } from '../../services/queryService';
 import type { ChatHandoffState } from '../chat/artifactPreview/useOpenInAnalysis';
-
-/**
- * Extract the first SQL code block from markdown content.
- * Looks for ```sql ... ``` fenced blocks.
- */
-function extractSqlFromMarkdown(content: string): string | null {
-  const match = content.match(/```sql\s*\n([\s\S]*?)```/i);
-  return match?.[1] ? match[1].trim() : null;
-}
 
 let newQueryCounter = 0;
 
@@ -99,26 +111,129 @@ export function QueryPlayground() {
   const savedNameSnapshotRef = useRef(savedNameSnapshot);
   const activeQueryNameRef = useRef(activeQueryName);
   const chatHandoffProcessedRef = useRef(false);
+  const handleExecuteRef = useRef<(sqlFragment?: string) => Promise<void>>(async () => {});
+  const sqlEditorRef = useRef<SqlCodeEditorHandle | null>(null);
+  const copilotSettingsRef = useRef<AnalysisCopilotSettings>({
+    'automation.mode': 'manual',
+  });
+  const [editorEpoch, setEditorEpoch] = useState(0);
+  const { getSessionByContext } = useInlineChat();
+  const dialectIdRef = useRef<string | null>(null);
+  const analysisSnapshotRef = useRef({
+    sql: '',
+    dialectId: null as string | null,
+    activeQueryId: null as string | null,
+    activeQueryName: null as string | null,
+    activeQueryDescription: null as string | null,
+    isDirty: false,
+    isExecuting: false,
+    error: null as string | null,
+    result: null as QueryResult | null,
+    activeExecutionId: null as string | null,
+  });
 
   savedSnapshotRef.current = savedSnapshot;
   savedNameSnapshotRef.current = savedNameSnapshot;
   activeQueryNameRef.current = activeQueryName;
+  analysisSnapshotRef.current = {
+    sql,
+    dialectId: dialectIdRef.current,
+    activeQueryId,
+    activeQueryName,
+    activeQueryDescription,
+    isDirty,
+    isExecuting,
+    error,
+    result,
+    activeExecutionId: activeExecutionIdRef.current,
+  };
+
+  const routeAnalysisContextId = resolveInlineChatRouteContextId(location.pathname);
+  const inlineAnalysisContextId =
+    activeQueryId ?? routeAnalysisContextId ?? '__analysis__';
+  const analysisSession = getSessionByContext('analysis', inlineAnalysisContextId);
+  useInlineChatHostBinding({
+    contextType: 'analysis',
+    contextId: inlineAnalysisContextId,
+    enabled: flags.inlineChatEnabled && flags.inlineChatAnalysisContext,
+  });
+  copilotSettingsRef.current = analysisSession?.settings ?? copilotSettingsRef.current;
+
+  const applySqlToEditor = useCallback((nextSql: string, recordHistory = true) => {
+    sqlEditorRef.current?.replaceSql(nextSql, recordHistory);
+    setSql(nextSql);
+    setIsDirty(
+      computeIsDirty(
+        nextSql,
+        savedSnapshotRef.current,
+        activeQueryNameRef.current,
+        savedNameSnapshotRef.current,
+      ),
+    );
+  }, []);
 
   useEffect(() => {
-    registerHostApplyHandler('inline-analysis', (artifact) => {
+    registerInlineHostHandler('inline-analysis', (action) => {
+      if (action.type === 'sql.copy') {
+        const text = action.artifact.sql.trim();
+        if (!text) return false;
+        void navigator.clipboard.writeText(text).catch(() => {
+          /* clipboard unavailable */
+        });
+        return true;
+      }
+
+      const nextSql = action.artifact.sql.trim();
+      if (!nextSql) return false;
+
+      applySqlToEditor(nextSql, true);
+
+      const settings = copilotSettingsRef.current;
+      const shouldRun =
+        action.type === 'sql.applyAndRun' ||
+        (action.type === 'sql.apply' && shouldAutoRunAfterApply(settings['automation.mode']));
+
+      if (shouldRun) {
+        void handleExecuteRef.current(nextSql);
+      }
+      return true;
+    });
+  }, [applySqlToEditor]);
+
+  useEffect(() => {
+    const listener: AnalysisArtifactListener = (artifact, meta) => {
+      if (meta.proposalIndex > 0) return;
+      const mode = meta.settings['automation.mode'];
+      if (!shouldAutoApplyOnArrival(mode)) return;
       const nextSql = artifact.sql.trim();
       if (!nextSql) return;
-      setSql(nextSql);
-      setIsDirty(
-        computeIsDirty(
-          nextSql,
-          savedSnapshotRef.current,
-          activeQueryNameRef.current,
-          savedNameSnapshotRef.current,
-        ),
+      setAnalysisAppliedArtifactKey(
+        resolveSqlArtifactApplyKey(meta.messageId, artifact, { proposalIndex: meta.proposalIndex }),
       );
+      applySqlToEditor(nextSql, true);
+      if (shouldAutoRunAfterApply(mode)) {
+        void handleExecuteRef.current(nextSql);
+      }
+    };
+    registerAnalysisArtifactListener(inlineAnalysisContextId, listener);
+    return () => unregisterAnalysisArtifactListener(inlineAnalysisContextId, listener);
+  }, [inlineAnalysisContextId, applySqlToEditor]);
+
+  useEffect(() => {
+    void analysisService.getDialect().then((dialect) => {
+      dialectIdRef.current = dialect.id;
     });
   }, []);
+
+  const inlineAnalysisContextIdForSnapshot = activeQueryId ?? '__analysis__';
+
+  useEffect(() => {
+    if (!flags.inlineChatAnalysisContext) return;
+    registerInlineContextSnapshotProvider('analysis', inlineAnalysisContextIdForSnapshot, () =>
+      buildAnalysisContextSnapshot(analysisSnapshotRef.current),
+    );
+    return () => unregisterInlineContextSnapshotProvider('analysis', inlineAnalysisContextIdForSnapshot);
+  }, [inlineAnalysisContextIdForSnapshot, flags.inlineChatAnalysisContext]);
 
   const loadSavedQueries = useCallback(async () => {
     try {
@@ -299,15 +414,6 @@ export function QueryPlayground() {
     resolveAndLoadQueryById,
   ]);
 
-  // Listen to inline chat AI responses -- extract SQL and update editor
-  useInlineChatListener(activeQueryId ?? '__analysis__', (content) => {
-    const extracted = extractSqlFromMarkdown(content);
-    if (extracted) {
-      setSql(extracted);
-      setIsDirty(computeIsDirty(extracted, savedSnapshot, activeQueryName, savedNameSnapshot));
-    }
-  });
-
   const handleSelectQuery = useCallback((query: SavedQuery) => {
     if (query.id === activeQueryId) {
       return;
@@ -353,6 +459,7 @@ export function QueryPlayground() {
       setSavedSnapshot(saved.sql);
       setSavedNameSnapshot(saved.name);
       setIsDirty(false);
+      setEditorEpoch((epoch) => epoch + 1);
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save query');
@@ -443,20 +550,29 @@ export function QueryPlayground() {
     if (!sqlToRun || isExecuting) return;
 
     setIsExecuting(true);
+    setAnalysisHostExecuting(true);
     setError(null);
     setResult(null);
 
     try {
       await closeActiveSession();
-      const queryResult = await queryService.executeQuery(sqlToRun, { pageSize: queryPageSize });
+      const normalizedPageSize = normalizeQueryPageSize(DEFAULT_QUERY_PAGE_SIZE);
+      if (queryPageSize !== normalizedPageSize) {
+        setQueryPageSize(normalizedPageSize);
+        storeQueryPageSize(normalizedPageSize);
+      }
+      const queryResult = await queryService.executeQuery(sqlToRun, { pageSize: normalizedPageSize });
       activeExecutionIdRef.current = queryResult.page.executionId;
       setResult(queryResult);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setIsExecuting(false);
+      setAnalysisHostExecuting(false);
     }
   }, [sql, isExecuting, closeActiveSession, queryPageSize]);
+
+  handleExecuteRef.current = handleExecute;
 
   const handlePageSizeChange = useCallback(async (nextPageSize: number) => {
     const normalized = normalizeQueryPageSize(nextPageSize);
@@ -613,6 +729,8 @@ export function QueryPlayground() {
                   queryId={activeQueryId}
                   queryName={activeQueryName}
                   queryDescription={activeQueryDescription}
+                  editorEpoch={editorEpoch}
+                  editorRef={sqlEditorRef}
                 />
               )}
               bottom={(
@@ -648,6 +766,8 @@ export function QueryPlayground() {
                 queryId={activeQueryId}
                 queryName={activeQueryName}
                 queryDescription={activeQueryDescription}
+                editorEpoch={editorEpoch}
+                editorRef={sqlEditorRef}
               />
             </Box>
           )

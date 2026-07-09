@@ -64,9 +64,15 @@ export interface UpdateChatRequestWire {
   profileId?: string | null;
 }
 
-/** Kotlin: SendMessageHttpRequest — `{ "message": "..." }` for SSE POST. */
+/** Kotlin: SendMessageHttpRequest — message plus optional ephemeral turn context. */
+export interface SendMessageContextWire {
+  values: Record<string, unknown>;
+  version?: number;
+}
+
 export interface SendMessageRequestWire {
   message: string;
+  context?: SendMessageContextWire;
 }
 
 /** Kotlin: AgentProfileResponse — GET `/api/v1/ai/profiles`. */

@@ -7,7 +7,7 @@ interface ChatEmptyStateProps {
   description: string;
   /** Compact mode for inline chat (smaller sizing) */
   compact?: boolean;
-  /** Optional starter prompts (general chat). */
+  /** Optional starter prompts (general or inline chat). */
   suggestions?: string[];
   onSuggestionClick?: (text: string) => void;
 }
@@ -25,7 +25,7 @@ export function ChatEmptyState({
   const iconSize = compact ? 48 : 72;
   const sparkleSize = compact ? 22 : 32;
   const accent = chatAccentColor(isDark);
-  const showSuggestions = !compact && suggestions.length > 0 && onSuggestionClick != null;
+  const showSuggestions = suggestions.length > 0 && onSuggestionClick != null;
 
   return (
     <Box
@@ -77,22 +77,29 @@ export function ChatEmptyState({
         {description}
       </Text>
       {showSuggestions ? (
-        <Group gap="xs" justify="center" mt="lg" maw={520}>
+        <Group
+          gap={compact ? 6 : 'xs'}
+          justify="center"
+          mt={compact ? 'md' : 'lg'}
+          maw={compact ? 280 : 520}
+          style={{ flexDirection: compact ? 'column' : 'row', width: '100%' }}
+        >
           {suggestions.map((suggestion) => (
             <Button
               key={suggestion}
-              size="compact-sm"
+              size={compact ? 'compact-xs' : 'compact-sm'}
               variant="light"
               color={accent}
               radius="xl"
+              fullWidth={compact}
               onClick={() => onSuggestionClick(suggestion)}
               styles={{
                 root: {
                   fontWeight: 450,
                   height: 'auto',
-                  padding: '8px 14px',
+                  padding: compact ? '6px 12px' : '8px 14px',
                   whiteSpace: 'normal',
-                  textAlign: 'left',
+                  textAlign: compact ? 'center' : 'left',
                   lineHeight: 1.35,
                 },
               }}

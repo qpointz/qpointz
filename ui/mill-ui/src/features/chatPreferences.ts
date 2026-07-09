@@ -8,6 +8,14 @@ export const GENERAL_CHAT_AGENT_PROFILE_SS_KEY = 'mill-ui-general-chat-agent-pro
 /** Default agent profile for new chats when nothing else is configured. */
 export const DEFAULT_GENERAL_CHAT_AGENT_PROFILE_ID = 'data-analysis';
 
+/** Backend profile id for the Analysis copilot inline chat. */
+export const ANALYSIS_COPILOT_PROFILE_ID = 'analysis-copilot';
+
+/** Resolves `profileId` for Analysis copilot contextual chat create. */
+export function resolveAnalysisCopilotProfileId(): string {
+  return ANALYSIS_COPILOT_PROFILE_ID;
+}
+
 /** Read the last profile id chosen in General Chat (session-scoped). */
 export function readStoredGeneralChatProfileId(): string | null {
   try {

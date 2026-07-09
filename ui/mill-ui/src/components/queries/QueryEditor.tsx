@@ -8,13 +8,16 @@ import {
   Tooltip,
   useMantineColorScheme,
 } from '@mantine/core';
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { SqlCodeEditor } from './SqlCodeEditor';
+import { useState, useCallback, useRef, useEffect, type Ref } from 'react';
+import { useParams } from 'react-router';
+import { SqlCodeEditor, type SqlCodeEditorHandle } from './SqlCodeEditor';
 import {
   HiOutlinePlay,
   HiOutlineCommandLine,
   HiOutlineBookmark,
   HiOutlinePencil,
+  HiOutlineArrowUturnLeft,
+  HiOutlineArrowUturnRight,
 } from 'react-icons/hi2';
 import { InlineChatButton } from '../common/InlineChatButton';
 import { ContentPaneHeader } from '../layout/ContentPaneHeader';
@@ -34,6 +37,10 @@ interface QueryEditorProps {
   queryId?: string | null;
   queryName?: string | null;
   queryDescription?: string | null;
+  /** Remount key to reset editor undo history (e.g. after Save). */
+  editorEpoch?: number;
+  /** Optional ref to the underlying SQL editor imperative API. */
+  editorRef?: Ref<SqlCodeEditorHandle>;
 }
 
 export function QueryEditor({
@@ -48,13 +55,25 @@ export function QueryEditor({
   queryId,
   queryName,
   queryDescription,
+  editorEpoch = 0,
+  editorRef,
 }: QueryEditorProps) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const flags = useFeatureFlags();
+  const params = useParams<{ queryId?: string }>();
+  const inlineChatContextId = queryId ?? params.queryId ?? '__analysis__';
   const [isEditingName, setIsEditingName] = useState(false);
   const [draftName, setDraftName] = useState(queryName ?? '');
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const localEditorRef = useRef<SqlCodeEditorHandle>(null);
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
+
+  const refreshHistoryState = useCallback(() => {
+    setCanUndo(localEditorRef.current?.canUndo() ?? false);
+    setCanRedo(localEditorRef.current?.canRedo() ?? false);
+  }, []);
 
   useEffect(() => {
     if (!isEditingName) {
@@ -153,6 +172,36 @@ export function QueryEditor({
         }
         actions={
           <>
+            <Tooltip label="Undo" withArrow>
+              <ActionIcon
+                size="sm"
+                variant="subtle"
+                color="gray"
+                disabled={!canUndo}
+                onClick={() => {
+                  localEditorRef.current?.undo();
+                  refreshHistoryState();
+                }}
+                aria-label="Undo"
+              >
+                <HiOutlineArrowUturnLeft size={14} />
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip label="Redo" withArrow>
+              <ActionIcon
+                size="sm"
+                variant="subtle"
+                color="gray"
+                disabled={!canRedo}
+                onClick={() => {
+                  localEditorRef.current?.redo();
+                  refreshHistoryState();
+                }}
+                aria-label="Redo"
+              >
+                <HiOutlineArrowUturnRight size={14} />
+              </ActionIcon>
+            </Tooltip>
             {onSave ? (
               <Button
                 size="xs"
@@ -180,7 +229,7 @@ export function QueryEditor({
             ) : null}
             <InlineChatButton
               contextType="analysis"
-              contextId={queryId ?? '__analysis__'}
+              contextId={inlineChatContextId}
               contextLabel={queryName ?? 'Query Playground'}
               contextEntityType="Query"
             />
@@ -190,8 +239,20 @@ export function QueryEditor({
 
       <Box style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
         <SqlCodeEditor
+          key={editorEpoch}
+          ref={(instance) => {
+            localEditorRef.current = instance;
+            if (typeof editorRef === 'function') {
+              editorRef(instance);
+            } else if (editorRef) {
+              editorRef.current = instance;
+            }
+          }}
           value={sql}
-          onChange={onChange}
+          onChange={(next) => {
+            onChange(next);
+            window.requestAnimationFrame(refreshHistoryState);
+          }}
           onExecute={handleEditorExecute}
           executeEnabled={flags.analysisExecuteQuery}
         />

@@ -27,13 +27,12 @@ export const chatArtifactTreatments: ChatArtifactTreatmentRegistry = {
   },
   'inline-analysis': {
     'sql-data-composite': {
-      mode: 'host-apply',
-      transitions: ['apply-to-host'],
-      actions: [],
+      mode: 'inline-artifact-strip',
+      actions: ['apply', 'apply-and-run', 'copy'],
     },
     'facet-proposal': {
-      mode: 'conversation-card',
-      actions: [],
+      mode: 'inline-artifact-strip',
+      actions: ['copy', 'open-in-model', 'reject', 'accept'],
     },
   },
   'inline-model': {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { chatService, realChatService } from '../chatService';
+import { buildSendMessageBody, chatService, realChatService } from '../chatService';
 
 describe('chatService', () => {
   describe('createChat', () => {
@@ -86,6 +86,50 @@ describe('chatService', () => {
     });
   });
 
+  describe('analysis copilot mock', () => {
+    it('should use analysis-copilot profile for analysis contextual create', async () => {
+      const { chatId } = await chatService.createChat({
+        contextType: 'analysis',
+        contextId: '__analysis__',
+        contextLabel: 'Current query',
+      });
+      const detail = await chatService.getChatDetail(chatId);
+      expect(detail.chat.profileId).toBe('analysis-copilot');
+    });
+
+    it('should synthesize sql artifact for rewrite prompts', async () => {
+      const { chatId } = await chatService.createChat({
+        contextType: 'analysis',
+        contextId: '__analysis__',
+        contextLabel: 'Current query',
+      });
+      const artifacts: unknown[] = [];
+      for await (const _chunk of chatService.sendMessage(chatId, 'rewrite this query', {
+        onNonTextPartUpdated: (evt) => artifacts.push(evt),
+      })) {
+        /* consume stream */
+      }
+      expect(artifacts.length).toBeGreaterThan(0);
+    }, 15000);
+
+    it('should return prose-only advice for optimize prompts without sql artifact', async () => {
+      const { chatId } = await chatService.createChat({
+        contextType: 'analysis',
+        contextId: '__analysis__',
+        contextLabel: 'Current query',
+      });
+      const artifacts: unknown[] = [];
+      const chunks: string[] = [];
+      for await (const chunk of chatService.sendMessage(chatId, 'optimize this query', {
+        onNonTextPartUpdated: (evt) => artifacts.push(evt),
+      })) {
+        chunks.push(chunk);
+      }
+      expect(chunks.join('').length).toBeGreaterThan(0);
+      expect(artifacts).toHaveLength(0);
+    }, 15000);
+  });
+
   describe('listAgentProfiles', () => {
     it('should return at least two profile ids for offline picker tests', async () => {
       const profiles = await chatService.listAgentProfiles();
@@ -130,6 +174,39 @@ function streamFromString(s: string): ReadableStream<Uint8Array> {
     },
   });
 }
+
+describe('buildSendMessageBody', () => {
+  it('should send message only when no context is provided', () => {
+    expect(buildSendMessageBody('hello')).toEqual({ message: 'hello' });
+  });
+
+  it('should include context.values and optional version on the wire', () => {
+    expect(
+      buildSendMessageBody('optimize', {
+        context: {
+          values: {
+            'sql.current': 'SELECT 1',
+            'custom.unknown.key': 42,
+          },
+          version: 2,
+        },
+      }),
+    ).toEqual({
+      message: 'optimize',
+      context: {
+        values: {
+          'sql.current': 'SELECT 1',
+          'custom.unknown.key': 42,
+        },
+        version: 2,
+      },
+    });
+  });
+
+  it('should omit context when values map is empty', () => {
+    expect(buildSendMessageBody('hello', { context: { values: {} } })).toEqual({ message: 'hello' });
+  });
+});
 
 describe('realChatService (fetch-mocked)', () => {
   afterEach(() => {
@@ -255,6 +332,48 @@ describe('realChatService (fetch-mocked)', () => {
     expect(progress).toContain('diagnostic');
     expect(progress).toContain('clear-wait');
     expect(chunks.join('')).toContain('Hi');
+  });
+
+  it('should POST sendMessage with optional context.values in JSON body', async () => {
+    const streamBody = sseDataLine({
+      type: 'item.completed',
+      itemId: 'item-1',
+      presentation: 'conversation',
+      partType: 'text',
+      content: null,
+    });
+    const fetchSpy = vi.fn().mockResolvedValue(
+      new Response(streamFromString(streamBody), {
+        status: 200,
+        headers: { 'Content-Type': 'text/event-stream' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchSpy);
+
+    for await (const _chunk of realChatService.sendMessage('chat-1', 'rewrite', {
+      context: {
+        values: {
+          'sql.current': 'SELECT * FROM orders',
+          'future.key': true,
+        },
+      },
+    })) {
+      // consume
+    }
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const [, init] = fetchSpy.mock.calls[0]!;
+    expect((init as RequestInit).body).toBe(
+      JSON.stringify({
+        message: 'rewrite',
+        context: {
+          values: {
+            'sql.current': 'SELECT * FROM orders',
+            'future.key': true,
+          },
+        },
+      }),
+    );
   });
 
   it('should invoke onNonTextPartUpdated for non-V1 part then continue text stream', async () => {

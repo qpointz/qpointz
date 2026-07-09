@@ -7,20 +7,15 @@ interface InlineChatInputProps {
   placeholder?: string;
 }
 
+/** Inline drawer composer — General Chat styling without a separate footer strip. */
 export function InlineChatInput({ onSend, disabled = false, placeholder }: InlineChatInputProps) {
   return (
-    <Box
-      px="xs"
-      py={8}
-      style={{
-        borderTop: `1px solid var(--mantine-color-default-border)`,
-      }}
-    >
+    <Box px="xs" pb="sm" pt={4}>
       <ChatInputBox
         onSend={onSend}
         disabled={disabled}
         placeholder={placeholder || 'Ask a question...'}
-        compact
+        variant="inline"
       />
     </Box>
   );

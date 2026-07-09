@@ -9,7 +9,7 @@ import {
   HiOutlineTag,
 } from 'react-icons/hi2';
 import type { FacetTypeManifest } from '../../../types/facetTypes';
-import { facetTypeService, chatService } from '../../../services/api';
+import { facetTypeService } from '../../../services/api';
 import { normalizeFacetTypeKeyForApi } from '../../../utils/urnSlug';
 import { FacetReadOnlyBody } from '../../data-model/facets/FacetReadOnlyBody';
 import { facetBoxBaseTitle, facetCondensedTabLabel } from '../../data-model/facets/facetDisplayUtils';
@@ -24,6 +24,7 @@ import { ArtifactIconTab, useArtifactTabsStyles } from './ArtifactIconTab';
 import { ChatArtifactActionBar } from './ChatArtifactActionBar';
 import { ArtifactTabsRail, ChatArtifactCard } from './ChatArtifactCard';
 import { resolveArtifactTreatment } from './chatArtifactTreatments';
+import { useFacetProposalLifecycle } from './facetProposalLifecycle';
 import { FacetJsonReadOnlyPanel } from './FacetJsonReadOnlyPanel';
 import type { ArtifactActionId, ArtifactPreviewContext } from './types';
 import { ArtifactToolbarIcon } from './ArtifactToolbarIcon';
@@ -48,24 +49,26 @@ export function FacetCondensedPreview(props: ArtifactPreviewContext) {
   const { styles: tabsStyles, classNames: tabsClassNames } = useArtifactTabsStyles();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string | null>('facet');
-  const [lifecycleBusy, setLifecycleBusy] = useState(false);
   const [copyCopied, setCopyCopied] = useState(false);
-  const [localStatus, setLocalStatus] = useState<string | undefined>(artifact?.status);
   const [descriptor, setDescriptor] = useState<FacetTypeManifest | null>(null);
   const [facetTypeTitles, setFacetTypeTitles] = useState<Record<string, string>>({});
   const [descriptorLoading, setDescriptorLoading] = useState(true);
   const [descriptorError, setDescriptorError] = useState(false);
 
   const facetTypeKey = artifact?.facetTypeKey ?? '';
-  const artifactId = artifact?.artifactId;
-  const status = localStatus ?? artifact?.status ?? 'active';
-  const isActive = status === 'active' || status === 'pending' || status === 'accepted';
-  const isRejected = status === 'rejected' || status === 'declined' || status === 'retracted';
+
+  const lifecycle = useFacetProposalLifecycle({
+    artifact,
+    conversationId,
+    message: props.message,
+    onArtifactsChange,
+  });
+  const { isRejected, lifecycleBusy, handleAccept, handleReject, canReject, canAccept } = lifecycle;
 
   const treatment = resolveArtifactTreatment(chatType, 'facet-proposal');
   const enabledActions = (treatment.actions ?? []).filter((id: ArtifactActionId) => {
-    if (id === 'reject') return isActive && Boolean(artifactId);
-    if (id === 'accept') return isRejected && Boolean(artifactId);
+    if (id === 'reject') return canReject;
+    if (id === 'accept') return canAccept;
     if (id === 'open-in-model') return flags.viewModel;
     return true;
   });
@@ -85,51 +88,6 @@ export function FacetCondensedPreview(props: ArtifactPreviewContext) {
     const scope = formatScopeSearchParam([GLOBAL_SCOPE_SLUG, chatScopeSlug(conversationId)]);
     navigate(`${modelRoute}?scope=${encodeURIComponent(scope)}`);
   }, [assignedCatalogPath, conversationId, flags.viewModel, modelRoute, navigate]);
-
-  useEffect(() => {
-    setLocalStatus(artifact?.status);
-  }, [artifact?.artifactId, artifact?.status]);
-
-  const updateFacetStatus = (nextStatus: string) => {
-    setLocalStatus(nextStatus);
-    if (!artifact || !onArtifactsChange) return;
-    const prev = props.message.artifacts ?? [];
-    onArtifactsChange(
-      prev.map((entry) =>
-        entry.kind === 'facet-proposal' && entry.artifactId === artifact.artifactId
-          ? { ...entry, status: nextStatus }
-          : entry,
-      ),
-    );
-  };
-
-  const handleAccept = async () => {
-    if (!artifactId) return;
-    setLifecycleBusy(true);
-    try {
-      const updated = await chatService.acceptArtifact(conversationId, artifactId);
-      if (updated?.kind === 'facet-proposal') {
-        updateFacetStatus(updated.status ?? 'active');
-      } else {
-        updateFacetStatus('active');
-      }
-    } finally {
-      setLifecycleBusy(false);
-    }
-  };
-
-  const handleReject = async () => {
-    if (!artifactId) return;
-    setLifecycleBusy(true);
-    try {
-      const ok = await chatService.rejectArtifact(conversationId, artifactId);
-      if (ok) {
-        updateFacetStatus('rejected');
-      }
-    } finally {
-      setLifecycleBusy(false);
-    }
-  };
 
   useEffect(() => {
     let cancelled = false;
@@ -252,7 +210,7 @@ export function FacetCondensedPreview(props: ArtifactPreviewContext) {
                 <Group justify="space-between" mb={6} align="flex-start" wrap="nowrap">
                   <Group gap="xs" wrap="wrap">
                     {facetTypeIcon(facetTypeKey)}
-                    <Text fw={600} size="sm">
+                    <Text fw={600} size="sm" td={isRejected ? 'line-through' : undefined} c={isRejected ? 'dimmed' : undefined}>
                       {facetCardTitle}
                     </Text>
                   </Group>

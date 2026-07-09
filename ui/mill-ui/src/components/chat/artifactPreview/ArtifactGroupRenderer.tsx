@@ -3,7 +3,7 @@ import type { ChatMessageArtifact } from '../../../types/chat';
 import { ArtifactCard } from '../artifacts/ArtifactCard';
 import type { ArtifactRenderGroup } from './types';
 import { resolveArtifactTreatment } from './chatArtifactTreatments';
-import { resolveCardComponent, resolvePreviewComponent } from './registry';
+import { resolveCardComponent, resolvePreviewComponent, resolveStripComponent } from './registry';
 import type { MessageArtifactComposerProps } from './MessageArtifactComposer';
 
 export type ArtifactGroupRendererProps = Pick<
@@ -26,6 +26,23 @@ export function ArtifactGroupRenderer({
   groupKey,
 }: ArtifactGroupRendererProps) {
   const treatment = resolveArtifactTreatment(chatType, group.kind);
+
+  if (treatment.mode === 'inline-artifact-strip') {
+    const Strip = resolveStripComponent(group.kind);
+    if (!Strip) return null;
+    return (
+      <Strip
+        key={groupKey}
+        chatType={chatType}
+        message={message}
+        group={group}
+        conversationId={conversationId}
+        chatTitle={chatTitle}
+        precedingUserQuestion={precedingUserQuestion}
+        onArtifactsChange={onArtifactsChange}
+      />
+    );
+  }
 
   if (treatment.mode === 'host-apply') {
     return null;

@@ -1,6 +1,4 @@
-import { useEffect } from 'react';
 import type { ChatMessageArtifact, Message } from '../../../types/chat';
-import { applyArtifactToHost } from './hostIntegrations';
 import { groupMessageArtifacts } from './artifactGroups';
 import { ArtifactGroupRenderer, renderUnknownArtifacts } from './ArtifactGroupRenderer';
 import type { ChatType } from './types';
@@ -23,15 +21,6 @@ export function MessageArtifactComposer({
   onArtifactsChange,
 }: MessageArtifactComposerProps) {
   const groups = groupMessageArtifacts(message.artifacts);
-
-  useEffect(() => {
-    if (chatType !== 'inline-analysis') return;
-    for (const artifact of message.artifacts ?? []) {
-      if (artifact.kind === 'sql') {
-        applyArtifactToHost(chatType, artifact);
-      }
-    }
-  }, [chatType, message.artifacts]);
 
   if (!groups.length && !(message.artifacts ?? []).some((a) => a.kind === 'unknown')) {
     return null;

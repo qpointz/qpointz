@@ -1,0 +1,112 @@
+.pillRoot {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: auto;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 24px;
+  padding: 1px 4px 1px 5px;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: 9999px;
+  background: var(--mantine-color-body);
+  font-size: inherit;
+  line-height: 1.4;
+}
+
+/** Caps inline artifact rows so they read as left-aligned agent replies, not full-width bars. */
+.inlineArtifactReply {
+  width: fit-content;
+  max-width: min(88%, 22rem);
+  align-self: flex-start;
+}
+
+.previewZone {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 3px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.previewZone:hover {
+  background: var(--mantine-color-gray-0);
+}
+
+:global([data-mantine-color-scheme='dark']) .previewZone:hover {
+  background: var(--mantine-color-dark-6);
+}
+
+.typeBadge {
+  flex-shrink: 0;
+  font-size: 9px;
+  line-height: 1;
+  padding-inline: 4px;
+  height: 16px;
+}
+
+.headline {
+  flex: 1;
+  min-width: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expandHint {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  opacity: 0;
+  color: var(--mantine-color-dimmed);
+  transition: opacity 140ms ease;
+  pointer-events: none;
+}
+
+.previewZone:hover .expandHint,
+.previewZone:focus-visible .expandHint,
+.previewZoneExpanded .expandHint {
+  opacity: 0.72;
+}
+
+.stripActions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+.appliedDot {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mantine-color-teal-6);
+  box-shadow: 0 0 0 1px var(--mantine-color-body);
+}
+
+.pillRootRejected {
+  opacity: 0.78;
+}
+
+.headlineRejected {
+  text-decoration: line-through;
+  color: var(--mantine-color-dimmed);
+}
+
+.previewBody {
+  max-width: min(520px, 90vw);
+  max-height: min(360px, 70vh);
+  overflow: auto;
+}

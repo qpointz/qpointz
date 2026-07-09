@@ -394,34 +394,28 @@ Each event contains a text chunk. The frontend accumulates chunks to build the f
 
 ## Domain: Inline Chat (Context-Aware)
 
-Context-aware chat sessions attached to specific schema entities, concepts, or queries. These are displayed in a right-side drawer.
+Context-aware chat sessions attached to specific schema entities, concepts, or queries. These are
+displayed in a right-side drawer.
 
-### POST /api/v1/inline-chat/messages (Streaming)
+**Transport:** Inline chat uses the **unified AI v3 chat API** (`/api/v1/ai/chats/**`). The legacy
+`POST /api/v1/inline-chat/messages` endpoint was **intentionally removed** (hard removal, not
+deprecation). See [INLINE-CHAT-FOUNDATION.md](../../../docs/design/ui/mill-ui/INLINE-CHAT-FOUNDATION.md) and
+[v3-chat-service.md](../../../docs/design/agentic/v3-chat-service.md).
 
-Sends a message within a context-aware inline chat session.
+### Session lifecycle
 
-**Request:**
-```json
-{
-  "contextType": "model",
-  "contextId": "sales.customers.customer_id",
-  "message": "What is the distribution of this column?"
-}
-```
+1. **Create or resolve:** `POST /api/v1/ai/chats` with `contextType`, `contextId`, `contextLabel`,
+   `contextEntityType`, and `profileId`; or
+   `GET /api/v1/ai/chats/context-types/{contextType}/contexts/{contextId}`.
+2. **Send message:** `POST /api/v1/ai/chats/{chatId}/messages` with `{ "message": "..." }` and
+   optional `context.values` per-turn host metadata (see INLINE-CHAT-FOUNDATION.md).
+3. **Hydrate transcript:** `GET /api/v1/ai/chats/{chatId}`.
 
-Where:
-- `contextType`: One of `"model"`, `"knowledge"`, `"analysis"`
-- `contextId`: The entity ID, concept ID, or query ID that provides context
-- `message`: The user's message
+**Response (send message):** Server-Sent Events stream (see [Streaming Protocol](#streaming-protocol))
+using the same **ChatSseEvent** shape as General Chat.
 
-**Response**: Server-Sent Events stream (see [Streaming Protocol](#streaming-protocol)).
-
-The backend should use the context to provide relevant, domain-specific responses:
-- **model**: Responses about schema structure, data quality, relationships, column metadata
-- **knowledge**: Responses about business concept definitions, related concepts, SQL refinements
-- **analysis**: Responses about query optimization, result interpretation, follow-up queries
-
-**Frontend usage**: Called by `InlineChatContext.sendMessage()`. Sessions are managed client-side; the backend is stateless per request (context is passed each time).
+**Frontend usage:** `InlineChatContext` via `chatService`. Client-side session management; server
+persists chat identity and transcript scoped by context.
 
 ---
 
@@ -756,7 +750,10 @@ Returns feature flags for the current user/session. The backend only needs to in
 | POST | `/api/v1/conversations` | Create conversation |
 | DELETE | `/api/v1/conversations/{id}` | Delete conversation |
 | POST | `/api/v1/conversations/{id}/messages` | Send message, stream response (SSE) |
-| POST | `/api/v1/inline-chat/messages` | Context-aware chat, stream response (SSE) |
+| POST | `/api/v1/ai/chats` | Create chat (general or contextual) |
+| GET | `/api/v1/ai/chats/context-types/{contextType}/contexts/{contextId}` | Resolve contextual inline chat |
+| POST | `/api/v1/ai/chats/{chatId}/messages` | Send message, stream response (SSE); optional `context.values` for inline hosts |
+| GET | `/api/v1/ai/chats/{chatId}` | Chat detail and transcript |
 | GET | `/api/v1/stats` | Dashboard summary counts |
 | GET | `/api/v1/search?q=...` | Cross-domain search (views, schema, concepts, queries) |
 | GET | `/api/v1/features` | Feature flags for current user/session |

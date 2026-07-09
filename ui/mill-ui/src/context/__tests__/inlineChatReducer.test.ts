@@ -92,6 +92,9 @@ function makeSession(id: string, contextId: string): InlineChatSession {
     isLoading: false,
     thinkingMessage: null,
     createdAt: Date.now(),
+    settings: {
+      'automation.mode': 'manual',
+    },
   };
 }
 

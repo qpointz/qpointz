@@ -47,14 +47,14 @@ function TreeNode({
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const flags = useFeatureFlags();
-  const { getSessionByContextId } = useInlineChat();
+  const { getSessionByContext } = useInlineChat();
   const { getRefsForContextId } = useChatReferencesContext();
   const expanded = expandedIds.has(entity.id);
   const hasChildren = entity.children && entity.children.length > 0;
   const isExpandable = hasChildren || entity.type === 'TABLE';
   const isSelected = selectedId != null && catalogIdsEqual(selectedId, entity.id);
   const Icon = entityIcons[entity.type];
-  const hasChat = !!getSessionByContextId(entity.id);
+  const hasChat = !!getSessionByContext('model', entity.id);
   const chatRefs =
     flags.chatReferencesEnabled &&
     flags.chatReferencesSidebarIndicator &&

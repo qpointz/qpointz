@@ -6,7 +6,7 @@ import { MessageBubble } from './MessageBubble';
 import { ThinkingIndicator } from './ThinkingIndicator';
 import { ChatEmptyState } from '../common/ChatEmptyState';
 import { useAutoScroll } from '../../hooks/useAutoScroll';
-import { isPendingAssistantReply } from './chatMessageHelpers';
+import { isPendingAssistantReply, buildChatScrollSignature } from './chatMessageHelpers';
 import {
   CHAT_BOTTOM_PADDING,
   CHAT_CONTENT_MAX_WIDTH,
@@ -65,6 +65,7 @@ export function MessageList({
   } = useAutoScroll();
   const stackRef = useRef<HTMLDivElement>(null);
   const prevMessageCountRef = useRef(messages.length);
+  const prevScrollSignatureRef = useRef(buildChatScrollSignature(messages));
 
   useEffect(() => {
     const stack = stackRef.current;
@@ -72,13 +73,19 @@ export function MessageList({
     if (!stack || !viewport) return;
 
     const ro = new ResizeObserver(() => {
-      scrollToBottomIfNear('auto');
+      if (isLoading) {
+        scrollToBottomIfNear('auto');
+      }
     });
     ro.observe(stack);
     return () => ro.disconnect();
-  }, [scrollToBottomIfNear, viewportRef]);
+  }, [isLoading, scrollToBottomIfNear, viewportRef]);
 
   useEffect(() => {
+    const signature = buildChatScrollSignature(messages);
+    const signatureChanged = signature !== prevScrollSignatureRef.current;
+    prevScrollSignatureRef.current = signature;
+
     const prevCount = prevMessageCountRef.current;
     const countIncreased = messages.length > prevCount;
     prevMessageCountRef.current = messages.length;
@@ -88,7 +95,9 @@ export function MessageList({
       return;
     }
 
-    requestAnimationFrame(() => scrollToBottomIfNear());
+    if (signatureChanged || isLoading || thinkingMessage) {
+      requestAnimationFrame(() => scrollToBottomIfNear());
+    }
   }, [messages, isLoading, thinkingMessage, scrollToBottom, scrollToBottomIfNear]);
 
   if (isTranscriptLoading && messages.length === 0) {

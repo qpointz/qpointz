@@ -72,11 +72,11 @@ function InlineChatButtonActive({
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
   const navigate = useNavigate();
-  const { startSession, getSessionByContextId, openDrawer, setActiveSession } = useInlineChat();
+  const { startSession, getSessionByContext, openDrawer, setActiveSession } = useInlineChat();
   const { refs } = useChatReferences(contextType, contextId);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
-  const existingSession = getSessionByContextId(contextId);
+  const existingSession = getSessionByContext(contextType, contextId);
   const hasActiveChat = !!existingSession;
   const hasRelatedChats = refs.length > 0;
 

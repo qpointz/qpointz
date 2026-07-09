@@ -1,28 +1,15 @@
-import { Stack } from '@mantine/core';
-import { useEffect } from 'react';
+import { Box, Stack } from '@mantine/core';
 import type { Message } from '../../../types/chat';
 import { MessageContent } from '../../common/MessageContent';
 import { groupMessageArtifacts } from './artifactGroups';
-import { applyArtifactToHost } from './hostIntegrations';
 import { ArtifactGroupRenderer, renderUnknownArtifacts } from './ArtifactGroupRenderer';
 import { buildReplySegments, usesInterleavedArtifactLayout } from '../../../utils/replySegments';
 import type { MessageArtifactComposerProps } from './MessageArtifactComposer';
-import type { ChatType } from './types';
+import classes from './InlineArtifactStrip.module.css';
 
 type InterleavedAssistantReplyProps = MessageArtifactComposerProps & {
   message: Message;
 };
-
-function useInlineAnalysisSqlApply(chatType: ChatType, message: Message): void {
-  useEffect(() => {
-    if (chatType !== 'inline-analysis') return;
-    for (const artifact of message.artifacts ?? []) {
-      if (artifact.kind === 'sql') {
-        applyArtifactToHost(chatType, artifact);
-      }
-    }
-  }, [chatType, message.artifacts]);
-}
 
 /** Renders assistant commentary and artefact boxes in conversational order. */
 export function InterleavedAssistantReply({
@@ -30,33 +17,43 @@ export function InterleavedAssistantReply({
   chatType,
   ...composerProps
 }: InterleavedAssistantReplyProps) {
-  useInlineAnalysisSqlApply(chatType, message);
   const segments = buildReplySegments(message);
   const groups = groupMessageArtifacts(message.artifacts);
   const unknownArtifacts = renderUnknownArtifacts(message.artifacts ?? []);
+
+  const isInlineChat = chatType.startsWith('inline-');
 
   if (!segments.length && !unknownArtifacts) {
     return message.content.trim() ? <MessageContent content={message.content} /> : null;
   }
 
   return (
-    <Stack gap="sm" style={{ width: '100%' }}>
+    <Stack gap={isInlineChat ? 'xs' : 'sm'} style={{ width: isInlineChat ? 'fit-content' : '100%', maxWidth: isInlineChat ? 'min(88%, 22rem)' : undefined }}>
       {unknownArtifacts}
       {segments.map((segment, index) => {
         if (segment.kind === 'text') {
-          return <MessageContent key={`reply-text-${index}`} content={segment.text} />;
+          return (
+            <Box key={`reply-text-${index}`} style={{ width: isInlineChat ? '100%' : undefined, maxWidth: isInlineChat ? 'min(100%, 26rem)' : undefined }}>
+              <MessageContent content={segment.text} />
+            </Box>
+          );
         }
         const group = groups[segment.groupIndex];
         if (!group) return null;
-        return (
+        const artifactNode = (
           <ArtifactGroupRenderer
-            key={`reply-artifact-${index}-${segment.groupIndex}`}
             chatType={chatType}
             {...composerProps}
             message={message}
             group={group}
             groupKey={`reply-artifact-${index}-${segment.groupIndex}`}
           />
+        );
+        if (!isInlineChat) return artifactNode;
+        return (
+          <Box key={`reply-artifact-wrap-${index}`} className={classes.inlineArtifactReply}>
+            {artifactNode}
+          </Box>
         );
       })}
       {!usesInterleavedArtifactLayout(message) && message.content.trim() ? (

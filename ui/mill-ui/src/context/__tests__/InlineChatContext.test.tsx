@@ -1,9 +1,25 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { InlineChatProvider, useInlineChat } from '../InlineChatContext';
 import { FeatureFlagContext } from '../../features/FeatureFlagContext';
 import { defaultFeatureFlags } from '../../features/defaults';
+import type { ChatSendOptions } from '../../types/chat';
+import {
+  registerInlineContextSnapshotProvider,
+  unregisterInlineContextSnapshotProvider,
+} from '../inlineContextSnapshotRegistry';
+
+const { mockSendMessage } = vi.hoisted(() => {
+  async function* inlineMockSendMessage() {
+    yield 'Inline mock response';
+  }
+  return {
+    mockSendMessage: vi.fn(
+      (_chatId: string, _message: string, _options?: ChatSendOptions) => inlineMockSendMessage(),
+    ),
+  };
+});
 
 // Mock the unified chat service (inline chat now uses chatService)
 vi.mock('../../services/api', () => ({
@@ -11,9 +27,7 @@ vi.mock('../../services/api', () => ({
     async createChat() {
       return { chatId: 'mock-chat-id', chatName: 'Mock Chat' };
     },
-    async *sendMessage() {
-      yield 'Inline mock response';
-    },
+    sendMessage: mockSendMessage,
   },
   featureService: {
     async getFlags() {
@@ -44,6 +58,11 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 describe('InlineChatContext', () => {
+  afterEach(() => {
+    mockSendMessage.mockClear();
+    unregisterInlineContextSnapshotProvider('analysis', '__analysis__');
+  });
+
   describe('useInlineChat outside provider', () => {
     it('should throw when used outside InlineChatProvider', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -247,6 +266,35 @@ describe('InlineChatContext', () => {
 
       expect(result.current.activeSession!.isLoading).toBe(false);
     });
+
+    it('should attach context.values from snapshot provider before send', async () => {
+      registerInlineContextSnapshotProvider('analysis', '__analysis__', () => ({
+        'sql.current': 'SELECT 1',
+      }));
+
+      const { result } = renderHook(() => useInlineChat(), { wrapper });
+
+      act(() => {
+        result.current.startSession('analysis', '__analysis__', 'Analysis');
+      });
+      const sessionId = result.current.activeSession!.id;
+
+      await act(async () => {
+        await result.current.sendMessage(sessionId, 'optimize this query');
+      });
+
+      expect(mockSendMessage).toHaveBeenCalledWith(
+        'mock-chat-id',
+        'optimize this query',
+        expect.objectContaining({
+          context: {
+            values: expect.objectContaining({ 'sql.current': 'SELECT 1' }),
+          },
+        }),
+      );
+
+      unregisterInlineContextSnapshotProvider('analysis', '__analysis__');
+    });
   });
 
   describe('openDrawer / closeDrawer', () => {
@@ -304,6 +352,33 @@ describe('InlineChatContext', () => {
 
       const found = result.current.getSessionByContextId('nonexistent');
       expect(found).toBeUndefined();
+    });
+  });
+
+  describe('getSessionByContext', () => {
+    it('should find session by context type and id', () => {
+      const { result } = renderHook(() => useInlineChat(), { wrapper });
+
+      act(() => {
+        result.current.startSession('model', 'sales.customers', 'customers');
+        result.current.startSession('analysis', 'sales.customers', 'Query');
+      });
+
+      const model = result.current.getSessionByContext('model', 'sales.customers');
+      const analysis = result.current.getSessionByContext('analysis', 'sales.customers');
+
+      expect(model?.contextLabel).toBe('customers');
+      expect(analysis?.contextLabel).toBe('Query');
+    });
+
+    it('should return undefined when type does not match', () => {
+      const { result } = renderHook(() => useInlineChat(), { wrapper });
+
+      act(() => {
+        result.current.startSession('model', 'ctx1', 'Entity');
+      });
+
+      expect(result.current.getSessionByContext('knowledge', 'ctx1')).toBeUndefined();
     });
   });
 

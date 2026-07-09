@@ -14,9 +14,13 @@ import type {
   InlineChatState,
   InlineChatAction,
   InlineChatContextType,
+  AnalysisCopilotSettings,
 } from '../types/inlineChat';
+import { DEFAULT_ANALYSIS_COPILOT_SETTINGS } from '../types/inlineChat';
 import { chatService } from '../services/api';
-import { resolveGeneralChatAgentProfileId } from '../features/chatPreferences';
+import { resolveInlineChatProfileId } from '../features/inlineProfileRouting';
+import { collectInlineContextSnapshot } from './inlineContextSnapshotRegistry';
+import { notifyAnalysisSqlArtifact } from './analysisArtifactListeners';
 import { useFeatureFlags } from '../features/FeatureFlagContext';
 import { parseChatStructuredPart } from '../utils/chatArtifactParse';
 import { parseWireArtifacts } from '../utils/artifactWireParse';
@@ -24,6 +28,7 @@ import { mergeStreamedArtifactsWithAssistantTurn } from '../utils/artifactMerge'
 import { deriveAssistantReplyView } from '../utils/assistantReplyView';
 import { StreamingReplySegmentTracker } from '../utils/streamingReplySegments';
 import type { TurnResponseWire } from '../types/chatWire';
+import type { ChatSendOptions } from '../types/chat';
 
 /**
  * Inline chats share `chatService` with General Chat. Structured artefacts (SQL / data / facet)
@@ -102,6 +107,9 @@ function inlineChatReducer(
     }
 
     case 'SET_ACTIVE_SESSION':
+      if (state.activeSessionId === action.payload) {
+        return state;
+      }
       return {
         ...state,
         activeSessionId: action.payload,
@@ -265,10 +273,26 @@ function inlineChatReducer(
       };
 
     case 'OPEN_DRAWER':
+      if (state.isDrawerOpen) {
+        return state;
+      }
       return { ...state, isDrawerOpen: true };
 
     case 'CLOSE_DRAWER':
+      if (!state.isDrawerOpen) {
+        return state;
+      }
       return { ...state, isDrawerOpen: false };
+
+    case 'SET_SESSION_SETTINGS': {
+      const { sessionId, settings } = action.payload;
+      return {
+        ...state,
+        sessions: state.sessions.map((s) =>
+          s.id !== sessionId ? s : { ...s, settings },
+        ),
+      };
+    }
 
     default:
       return state;
@@ -294,9 +318,15 @@ interface InlineChatContextValue {
     messageId: string,
     artifacts: readonly ChatMessageArtifact[],
   ) => void;
+  setSessionSettings: (sessionId: string, settings: AnalysisCopilotSettings) => void;
   openDrawer: () => void;
   closeDrawer: () => void;
   closeAllSessions: () => void;
+  getSessionByContext: (
+    contextType: InlineChatContextType,
+    contextId: string,
+  ) => InlineChatSession | undefined;
+  /** @deprecated Prefer {@link getSessionByContext} with `contextType`. */
   getSessionByContextId: (contextId: string) => InlineChatSession | undefined;
   hasAnySessions: () => boolean;
   registerListener: (contextId: string, callback: InlineChatMessageListener) => void;
@@ -313,6 +343,8 @@ const initialState: InlineChatState = {
 
 export function InlineChatProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(inlineChatReducer, initialState);
+  const stateRef = useRef(state);
+  stateRef.current = state;
   const flags = useFeatureFlags();
 
   // Listener registry: contextId -> Set of callbacks
@@ -344,6 +376,12 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
 
   const activeSession =
     state.sessions.find((s) => s.id === state.activeSessionId) ?? null;
+
+  const getSessionByContext = useCallback(
+    (contextType: InlineChatContextType, contextId: string) =>
+      state.sessions.find((s) => s.contextType === contextType && s.contextId === contextId),
+    [state.sessions],
+  );
 
   const getSessionByContextId = useCallback(
     (contextId: string) => state.sessions.find((s) => s.contextId === contextId),
@@ -377,7 +415,9 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
       if (contextType === 'analysis' && !flags.inlineChatAnalysisContext) return;
 
       // If a session for this context already exists, just activate it
-      const existing = state.sessions.find((s) => s.contextId === contextId);
+      const existing = state.sessions.find(
+        (s) => s.contextType === contextType && s.contextId === contextId,
+      );
       if (existing) {
         dispatch({ type: 'SET_ACTIVE_SESSION', payload: existing.id });
         dispatch({ type: 'OPEN_DRAWER' });
@@ -417,6 +457,7 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
         isLoading: false,
         thinkingMessage: null,
         createdAt: Date.now(),
+        settings: { ...DEFAULT_ANALYSIS_COPILOT_SETTINGS },
       };
 
       dispatch({ type: 'START_SESSION', payload: session });
@@ -455,6 +496,16 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const setSessionSettings = useCallback(
+    (sessionId: string, settings: AnalysisCopilotSettings) => {
+      dispatch({
+        type: 'SET_SESSION_SETTINGS',
+        payload: { sessionId, settings },
+      });
+    },
+    [],
+  );
+
   const sendMessage = useCallback(
     async (sessionId: string, content: string) => {
       const session = state.sessions.find((s) => s.id === sessionId);
@@ -487,7 +538,7 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
         let chatId = session.chatId;
         if (!chatId) {
           const result = await chatService.createChat({
-            profileId: resolveGeneralChatAgentProfileId(),
+            profileId: resolveInlineChatProfileId(session.contextType),
             contextType: session.contextType,
             contextId: session.contextId,
             contextLabel: session.contextLabel,
@@ -504,7 +555,9 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
         let fullContent = '';
         const streamedArtifacts: ChatMessageArtifact[] = [];
         const segmentTracker = new StreamingReplySegmentTracker();
-        for await (const chunk of chatService.sendMessage(chatId, content, {
+        const snapshotValues = collectInlineContextSnapshot(session.contextType, session.contextId);
+        const sendOptions: ChatSendOptions = {
+          ...(snapshotValues ? { context: { values: snapshotValues } } : {}),
           onProgress: (evt) => {
             if (evt.kind === 'diagnostic') {
               dispatch({
@@ -531,6 +584,22 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
               type: 'APPEND_MESSAGE_ARTIFACT',
               payload: { sessionId, messageId: assistantMessage.id, artifact },
             });
+            if (
+              session.contextType === 'analysis' &&
+              artifact.kind === 'sql'
+            ) {
+              const sqlProposalIndex = streamedArtifacts.filter((a) => a.kind === 'sql').length - 1;
+              const liveSettings =
+                stateRef.current.sessions.find((s) => s.id === sessionId)?.settings
+                ?? session.settings
+                ?? DEFAULT_ANALYSIS_COPILOT_SETTINGS;
+              notifyAnalysisSqlArtifact(session.contextId, artifact, {
+                sessionId,
+                messageId: assistantMessage.id,
+                proposalIndex: sqlProposalIndex,
+                settings: liveSettings,
+              });
+            }
             const replySegments = [...segmentTracker.onArtifact(artifact)];
             dispatch({
               type: 'SET_MESSAGE_REPLY_SEGMENTS',
@@ -548,7 +617,8 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
               },
             });
           },
-        })) {
+        };
+        for await (const chunk of chatService.sendMessage(chatId, content, sendOptions)) {
           fullContent += chunk;
           segmentTracker.setPendingText(fullContent);
           dispatch({
@@ -611,9 +681,11 @@ export function InlineChatProvider({ children }: { children: ReactNode }) {
     setActiveSession,
     sendMessage,
     updateMessageArtifacts,
+    setSessionSettings,
     openDrawer,
     closeDrawer,
     closeAllSessions,
+    getSessionByContext,
     getSessionByContextId,
     hasAnySessions,
     registerListener,

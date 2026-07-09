@@ -2,6 +2,18 @@ import type { ChatMessageArtifact, Message, AssistantReplySegment } from './chat
 
 export type InlineChatContextType = 'model' | 'knowledge' | 'analysis';
 
+/** How the Analysis host reacts when SQL proposals arrive. */
+export type AnalysisCopilotAutomationMode = 'manual' | 'apply' | 'run';
+
+/** Per-session Analysis copilot host settings. */
+export interface AnalysisCopilotSettings {
+  'automation.mode': AnalysisCopilotAutomationMode;
+}
+
+export const DEFAULT_ANALYSIS_COPILOT_SETTINGS: AnalysisCopilotSettings = {
+  'automation.mode': 'manual',
+};
+
 export interface InlineChatSession {
   id: string;
   /** Backend-assigned chat ID (null until createChat resolves) */
@@ -15,6 +27,8 @@ export interface InlineChatSession {
   createdAt: number;
   /** Transient SSE diagnostic / tool hint — same contract as General Chat `thinkingMessage`. */
   thinkingMessage: string | null;
+  /** Analysis copilot host settings (meaningful when `contextType === 'analysis'`). */
+  settings: AnalysisCopilotSettings;
 }
 
 export interface InlineChatState {
@@ -62,4 +76,8 @@ export type InlineChatAction =
     }
   | { type: 'CLOSE_ALL_SESSIONS' }
   | { type: 'OPEN_DRAWER' }
-  | { type: 'CLOSE_DRAWER' };
+  | { type: 'CLOSE_DRAWER' }
+  | {
+      type: 'SET_SESSION_SETTINGS';
+      payload: { sessionId: string; settings: AnalysisCopilotSettings };
+    };

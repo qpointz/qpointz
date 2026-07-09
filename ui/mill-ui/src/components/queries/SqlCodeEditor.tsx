@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Box, useMantineColorScheme } from '@mantine/core';
 import CodeMirror from '@uiw/react-codemirror';
 import { sql, type SQLNamespace } from '@codemirror/lang-sql';
@@ -12,8 +20,9 @@ import {
   type CompletionContext,
   type CompletionResult,
 } from '@codemirror/autocomplete';
+import { history, redo, redoDepth, undo, undoDepth } from '@codemirror/commands';
 import { EditorView, placeholder as cmPlaceholder } from '@codemirror/view';
-import { Prec } from '@codemirror/state';
+import { Prec, Transaction } from '@codemirror/state';
 import { schemaService } from '../../services/api';
 import {
   buildCompletionIndexFromTree,
@@ -35,6 +44,15 @@ export interface SqlCodeEditorProps {
   executeEnabled?: boolean;
   /** Shown when the document is empty. */
   placeholder?: string;
+}
+
+/** Imperative editor API for chat apply and toolbar undo/redo. */
+export interface SqlCodeEditorHandle {
+  replaceSql: (nextSql: string, recordHistory?: boolean) => void;
+  undo: () => boolean;
+  redo: () => boolean;
+  canUndo: () => boolean;
+  canRedo: () => boolean;
 }
 
 const basicSetup = {
@@ -78,24 +96,66 @@ function flattenDialectFunctions(functions: AnalysisDialect['functions']): Compl
 /**
  * CodeMirror 6 SQL editor with Mantine theming and schema-aware autocompletion.
  */
-export function SqlCodeEditor({
-  value,
-  onChange,
-  onExecute,
-  executeEnabled = true,
-  placeholder = 'Write your SQL query here...',
-}: SqlCodeEditorProps) {
+export const SqlCodeEditor = forwardRef<SqlCodeEditorHandle, SqlCodeEditorProps>(function SqlCodeEditor(
+  {
+    value,
+    onChange,
+    onExecute,
+    executeEnabled = true,
+    placeholder = 'Write your SQL query here...',
+  },
+  ref,
+) {
   const { colorScheme } = useMantineColorScheme();
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
   const onExecuteRef = useRef(onExecute);
   onExecuteRef.current = onExecute;
   const executeEnabledRef = useRef(executeEnabled);
   executeEnabledRef.current = executeEnabled;
+  const viewRef = useRef<EditorView | null>(null);
+  const syncingRef = useRef(false);
 
   const [sqlSchema, setSqlSchema] = useState<SQLNamespace>(EMPTY_SQL_SCHEMA);
   const [editorDialectId, setEditorDialectId] = useState<EditorDialectId>('standard');
   const [identifierQuotes, setIdentifierQuotes] = useState<AnalysisDialectIdentifiers>(DEFAULT_IDENTIFIER_QUOTES);
   const [dialectFunctions, setDialectFunctions] = useState<Completion[]>([]);
   const schemaContextRef = useRef('global');
+
+  useImperativeHandle(ref, () => ({
+    replaceSql(nextSql: string, recordHistory = true) {
+      const view = viewRef.current;
+      if (!view) {
+        onChangeRef.current(nextSql);
+        return;
+      }
+      const current = view.state.doc.toString();
+      if (current === nextSql) return;
+      syncingRef.current = true;
+      view.dispatch({
+        changes: { from: 0, to: view.state.doc.length, insert: nextSql },
+        annotations: recordHistory ? Transaction.userEvent.of('input') : Transaction.addToHistory.of(false),
+      });
+      onChangeRef.current(nextSql);
+      syncingRef.current = false;
+    },
+    undo() {
+      const view = viewRef.current;
+      return view ? undo(view) : false;
+    },
+    redo() {
+      const view = viewRef.current;
+      return view ? redo(view) : false;
+    },
+    canUndo() {
+      const view = viewRef.current;
+      return view ? undoDepth(view.state) > 0 : false;
+    },
+    canRedo() {
+      const view = viewRef.current;
+      return view ? redoDepth(view.state) > 0 : false;
+    },
+  }), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -188,7 +248,7 @@ export function SqlCodeEditor({
     );
 
     return [
-      // Keywords only — schema completions registered separately with dialect-quoted apply text.
+      history(),
       sql({ dialect, upperCaseKeywords: true }),
       dialect.language.data.of({ autocomplete: schemaCompletions }),
       dialect.language.data.of({ autocomplete: dialectFunctionCompletions }),
@@ -196,8 +256,18 @@ export function SqlCodeEditor({
       cmPlaceholder(placeholder),
       autocompletion({ activateOnTyping: true }),
       executeOnModEnter,
+      EditorView.updateListener.of((update) => {
+        if (update.view) {
+          viewRef.current = update.view;
+        }
+      }),
     ];
   }, [dialectFunctionCompletions, editorDialectId, identifierQuotes, placeholder, sqlSchema]);
+
+  const handleChange = useCallback((next: string) => {
+    if (syncingRef.current) return;
+    onChangeRef.current(next);
+  }, []);
 
   return (
     <Box style={{ height: '100%', minHeight: 0 }}>
@@ -206,7 +276,7 @@ export function SqlCodeEditor({
         height="100%"
         theme={colorScheme === 'dark' ? 'dark' : 'light'}
         extensions={extensions}
-        onChange={onChange}
+        onChange={handleChange}
         basicSetup={basicSetup}
         style={{
           height: '100%',
@@ -216,4 +286,4 @@ export function SqlCodeEditor({
       />
     </Box>
   );
-}
+});
