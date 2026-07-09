@@ -34,6 +34,7 @@ workflow semantics.
 | File | Purpose |
 |------|---------|
 | **`artifact-foundation.md`** | **Canonical reference** for chat artefacts: descriptor model, emission strategies, SSE wire, mill-ui cards, profiles, file index, add-artifact checklist |
+| **`artifact-publish-validation.md`** | **Planned:** runtime publish gate + capability validator SPI; deterministic correction loop ([story](../../workitems/planned/artifact-publish-validation/STORY.md)) |
 | **`chart-artifact-contract.md`** | **Shipped (WI-366):** canonical contract hub — per-chart encoding vocabulary (§6), options (§7), catalog (§8), validation boundaries, snapshot policy |
 | **`generated-sql-artifact-context.md`** | **Locked (WI-367):** mandatory `title`/`description` on `validate_sql` input |
 | **`charts/`** | **Accepted (WI-366):** per-chart-type implementation specs + ECharts 6 compiler ([`charts/README.md`](./charts/README.md)); future families verified in [`charts/forward-compatible-families.md`](./charts/forward-compatible-families.md) |

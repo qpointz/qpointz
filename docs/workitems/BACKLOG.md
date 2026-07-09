@@ -69,6 +69,8 @@ Internal tracker for planned product items. **Open** work uses **`backlog`**, **
 | A-94 | `ai:v3-integration` CI job: live-LLM scenario matrix in GitLab CI (gated on secrets) | 🧪 test | backlog | deferred from `ai-artifact-emit-contract` WI-309 |
 | A-95 | Promote live-LLM YAML packs to default CI (currently gated testIT in WI-310) | 🧪 test | backlog | deferred from `ai-artifact-emit-contract` WI-309 |
 | A-96 | stdio MCP bridge (`mill-ai-mcp-transport-stdio`) proxying local stdio → remote HTTP MCP | ✨ feature | backlog | descoped from **A-56** — [`backlog/WI-328-mill-ai-mcp-transport-stdio.md`](backlog/WI-328-mill-ai-mcp-transport-stdio.md); design: [`v3-mcp-capability-exposure.md`](design/agentic/v3-mcp-capability-exposure.md) §9 |
+| A-97 | `analysis-copilot` backend profile + turn `context.values` consumption | ✨ feature | done | [`in-progress/analysis-inline-chat-foundation/WI-396-analysis-copilot-backend-profile.md`](in-progress/analysis-inline-chat-foundation/WI-396-analysis-copilot-backend-profile.md); design: [`ui/mill-ui/INLINE-CHAT-FOUNDATION.md`](design/ui/mill-ui/INLINE-CHAT-FOUNDATION.md) |
+| A-98 | Deterministic artifact publish validation (runtime gate + capability validators) | 🔧 refactoring | planned | [`planned/artifact-publish-validation/STORY.md`](planned/artifact-publish-validation/STORY.md) |
 
 ---
 
@@ -234,6 +236,7 @@ Internal tracker for planned product items. **Open** work uses **`backlog`**, **
 | U-12 | Redesign optional per-facet-type **view** and **edit** component registration (replacing removed bespoke facet presenters); descriptor-driven fallback remains default | ✨ feature | backlog | `design/ui/facet-view-customization.md` |
 | U-14 | mill-ui Analysis modes: SQL Analysis for technical users plus Visual Analysis path/board authoring for business users (**WI-267**–**WI-272**) | ✨ feature | planned | [`planned/mill-ui-visual-analysis-modes/STORY.md`](planned/mill-ui-visual-analysis-modes/STORY.md) |
 | U-18 | Model explorer authorized scope management: RBAC for which scopes a user may use, add/switch scopes in UI (not full registry) | ✨ feature | backlog | follow-up to **U-17** / WI-378 deferred scope |
+| U-19 | Context relations platform: generic related-object persistence, read API, UI provider; **analysis inline chat UI presence restore** after reload (**WI-408**+) | ✨ feature | planned | [`planned/context-relations/STORY.md`](planned/context-relations/STORY.md) — defers from [`analysis-inline-chat-foundation`](in-progress/analysis-inline-chat-foundation/STORY.md) |
 
 ---
 

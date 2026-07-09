@@ -172,12 +172,10 @@ src/
 │   ├── conceptService.ts         # ConceptService -- concepts, categories, tags
 │   ├── queryService.ts           # QueryService -- execute SQL, saved queries
 │   ├── statsService.ts           # StatsService -- dashboard aggregate counts
-│   ├── chatService.ts            # ChatService -- streaming chat messages
-│   ├── inlineChatService.ts      # InlineChatService -- context-aware streaming chat
+│   ├── chatService.ts            # ChatService -- streaming chat (general + inline contextual)
 │   ├── chatReferencesService.ts  # ChatReferencesService -- related conversations
 │   ├── relatedContentService.ts  # RelatedContentService -- cross-object relationships
 │   ├── featureService.ts         # FeatureFlagService -- remote feature flags
-│   └── mockApi.ts                # (legacy) Original monolithic mock -- superseded by per-file services
 │
 ├── test/                          # Test infrastructure
 │   └── setup.ts                  # jsdom polyfills (matchMedia, ResizeObserver, scrollTo)
@@ -424,7 +422,9 @@ interface ChatState {
 - **Results table:** Sortable columns (@tanstack/react-table), type badges, number formatting, NULL styling
 - **Export dropdown:** CSV, Excel (TSV), JSON download
 - **Status bar:** Row count and execution time
-- **AI integration:** `useInlineChatListener` extracts SQL from AI responses and populates the editor
+- **AI integration:** Analysis copilot SQL proposals render as inline artifact strips; Apply /
+  Apply & Run / Copy go through the typed host action registry (`inline-analysis`). Optional
+  auto-apply / auto-run settings control host behavior.
 - User-created queries (dynamic state, not persisted)
 
 ### 6. Admin View (`/admin`)
@@ -492,7 +492,8 @@ unregisterListener(contextId: string, callback)
 useInlineChatListener(contextId, onAssistantMessage)
 ```
 
-**Use case:** The Analysis view uses `useInlineChatListener` to extract SQL from AI responses and auto-populate the query editor.
+**Use case:** Rare — Analysis SQL application no longer uses markdown extraction. Prefer typed
+host actions from inline artifact strips (`sql.apply` / `sql.applyAndRun`).
 
 ### InlineChatButton
 
@@ -530,7 +531,7 @@ Chat References surface awareness that an object (table, concept, query) was ref
 
 ### How It Works
 
-1. **Service call:** A `ChatReferencesService` (`src/types/chatReferences.ts`) provides `getConversationsForContext(contextType, contextId)` returning `ConversationRef[]` (id + title). Currently mocked in `src/services/mockApi.ts`.
+1. **Service call:** A `ChatReferencesService` (`src/types/chatReferences.ts`) provides `getConversationsForContext(contextType, contextId)` returning `ConversationRef[]` (id + title). Currently mocked in `src/services/chatReferencesService.ts`.
 2. **Context/Cache:** `ChatReferencesProvider` (`src/context/ChatReferencesContext.tsx`) caches results in a `Map` and exposes `useChatReferences(contextType, contextId)` hook and synchronous `getRefsForContextId(contextId)` for sidebar items.
 3. **Prefetch:** Layout components (`DataModelLayout`, `ContextLayout`) call `prefetchRefs()` on mount to batch-load references for all sidebar items.
 
@@ -929,8 +930,7 @@ src/services/api.ts        ← single import point for all consumers
       ├── conceptService.ts     → src/data/mockConcepts.ts
       ├── queryService.ts       → src/data/mockQueries.ts
       ├── statsService.ts       → src/data/mock{Schema,Concepts,Queries}.ts
-      ├── chatService.ts        → inline mock responses
-      ├── inlineChatService.ts  → inline mock responses (3 pools)
+      ├── chatService.ts        → `/api/v1/ai/chats/**` (general + inline contextual)
       ├── chatReferencesService.ts → deterministic hash-based refs
       ├── relatedContentService.ts → deterministic cross-object refs (full hierarchy)
       └── featureService.ts     → returns defaultFeatureFlags
@@ -952,8 +952,7 @@ Each domain has a typed service interface in `src/types/`:
 | `ConceptService` | `types/context.ts` | `getConcepts(filter?)`, `getConceptById(id)`, `getCategories()`, `getTags()` |
 | `QueryService` | `types/query.ts` | `executeQuery(sql)`, `getSavedQueries()`, `getSavedQueryById(id)` |
 | `StatsService` | `types/stats.ts` | `getStats()` → `DashboardStats` |
-| `ChatService` | `types/chat.ts` | `sendMessage(conversationId, message)` (AsyncGenerator) |
-| `InlineChatService` | `types/inlineChat.ts` | `sendMessage(contextType, contextId, message)` (AsyncGenerator) |
+| `ChatService` | `types/chat.ts` | `createChat()`, `sendMessage()`, `getChatByContext()`, list/detail (general + inline) |
 | `ChatReferencesService` | `types/chatReferences.ts` | `getConversationsForContext(contextType, contextId)` |
 | `RelatedContentService` | `types/relatedContent.ts` | `getRelatedContent(contextType, contextId)` |
 | `FeatureFlagService` | `services/featureService.ts` | `getFlags()` → `Partial<FeatureFlags>` |
@@ -1104,8 +1103,8 @@ The barrel (`api.ts`) re-exports remain unchanged — consumers always `import {
 | Concepts | `conceptService.ts` | `GET /api/v1/concepts`, `/concepts/{id}`, `/concepts/categories`, `/concepts/tags` | B-7 — B-11 |
 | Analysis | `analysisService.ts`, `queryService.ts` | `GET /api/v1/analysis/dialect`, `GET/POST/PUT/DELETE /api/v1/analysis/queries`, `POST /api/v1/query`, `GET /api/v1/query/{executionId}`, `DELETE /api/v1/query/{executionId}` | B-4, B-12 — B-17 |
 | Stats | `statsService.ts` | `GET /api/v1/stats` | B-18 |
-| Chat | `chatService.ts` | `POST /api/nl2sql/chats/{id}/messages` (SSE) | B-5, B-6, B-14 |
-| Inline Chat | `inlineChatService.ts` | `POST /api/v1/inline-chat/messages` (SSE) | B-20 |
+| Chat | `chatService.ts` | `POST /api/v1/ai/chats`, `POST /api/v1/ai/chats/{id}/messages` (SSE) | B-5, B-6 |
+| Inline Chat | `chatService.ts` (contextual create + `context.values`) | Same unified `/api/v1/ai/chats/**` — see [INLINE-CHAT-FOUNDATION.md](INLINE-CHAT-FOUNDATION.md) | (unified chat) |
 | Chat References | `chatReferencesService.ts` | `GET /api/v1/chat-references?contextType=X&contextId=Y` | B-21 |
 | Related Content | `relatedContentService.ts` | `GET /api/v1/related-content?contextType=X&contextId=Y` | B-23 |
 | Feature Flags | `featureService.ts` | `GET /api/v1/features` | B-19 |

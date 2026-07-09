@@ -24,9 +24,39 @@ archive under **`completed/`**.
    other trackers the WI obliges you to touch (**`MILESTONE.md`**, **`BACKLOG.md`**, design docs,
    etc.). Do not split a finished WI across multiple commits or leave related edits uncommitted. See
    **Commits** → **Per-WI cadence** and **Complete working copy per WI**.
-4. **Push after each WI** — After the per-WI commit, **push** the story branch to `origin` unless the
-   user explicitly asks not to push yet. This keeps the remote branch current for CI and MR review.
-   See **Per-WI GitLab CI (when MCP available)** below.
+4. **Commit and push after each WI** — After the per-WI commit, **push** the story branch to
+   `origin`. This is mandatory after every completed WI so the remote branch, CI, and MR review stay
+   current. See **Per-WI GitLab CI (when MCP available)** below.
+
+### Story stages
+
+If a story becomes logically large, split it into explicit **stages** inside `STORY.md` or a
+story-local planning document. Stages should reflect execution order and dependency boundaries, not
+discussion order. Keep WI numbering, tracker order, and stage order aligned so a reviewer can read
+the story from top to bottom and understand what should be implemented first.
+
+Each stage should identify:
+
+- the WIs it contains
+- whether it is ready to execute
+- blocking decisions or prerequisite WIs
+- which later WIs depend on it
+
+Do this before implementation starts when the story is already large, or immediately when planning
+reveals that the original WI list no longer matches the natural execution order.
+
+### GitLab story issue (optional when MCP is available)
+
+When GitLab MCP tools are available, a story may have exactly **one GitLab issue** tracking the
+whole story. This is optional unless the user or team process requires it.
+
+- Create the issue near story creation or before the first implementation WI.
+- Link the issue from `STORY.md` when created.
+- Use the issue for story-level scope, decisions, and MR linkage; do not create one issue per WI
+  unless explicitly requested.
+- Link merge requests for the story branch to the issue.
+- Close the issue only after the story MR is merged. Do not close it merely because all local WIs
+  are complete, tests pass, or an MR has been opened.
 
 ### Story folder layout
 
@@ -161,10 +191,12 @@ When all WIs in a story are complete **and** the user has requested closure:
    To see **most recent closures first**, sort folder names **descending** (reverse alphabetical)
    in your file browser, or maintain the index in `docs/workitems/completed/README.md`.
 
-6. **Verify clean tree** — `git status` shows nothing to commit; all closure commits are on the
-   story branch. If the branch was pushed earlier and history was rewritten in step **0**, push the
-   updated feature branch per **Completion (Story level)** → **Push after rewrite** (only when the
-   user asks).
+6. **Verify clean tree and push rewritten branch** — `git status` shows nothing to commit; all
+   closure commits are on the story branch. Because closure always rewrites history, push the
+   rewritten story branch per **Completion (Story level)** → **Push after rewrite**.
+7. **Create or update merge request** — if an MR for the story branch does not already exist, create
+   one after the rewritten branch is pushed. If an MR already exists, update its description with the
+   final story scope, WI list, and verification evidence.
 
 Merging into `dev` is done manually by the user; the agent prepares everything above first.
 
@@ -260,7 +292,7 @@ its branch, treat each WI as a closed loop:
 3. **Commit** — stage everything that belongs to that WI (including tracking/doc edits) and create one
    commit so `git status` is clean before the next WI.
 4. **Push** — push the story branch to `origin` (`git push -u origin HEAD` on first push, then
-   `git push`) unless the user explicitly defers push.
+   `git push`).
 5. **CI (when GitLab MCP is available)** — after push, confirm the pipeline for the branch commit is
    **green** (or wait until it succeeds) before starting the next WI. See **Per-WI GitLab CI**.
 
@@ -298,18 +330,18 @@ When completing the **final** WI in `STORY.md` (all other items already `[x]`):
    from [`.gitlab-ci.yml`](../../.gitlab-ci.yml) / `.gitlab/pipelines/integration.yml`), subject to
    project CI variables (`RUN_INTEGRATION`, MR rules, etc.). Use GitLab MCP to verify integration jobs
    **success** on the latest commit; fix and re-push if they fail.
-3. **Open a merge request** — when GitLab MCP is available and the user has not asked to defer MR
-   creation, create an MR from the story branch into the merge target (usually **`dev`**) with a
-   summary of the story, WI list, test evidence, and link to the green pipeline. If an MR already
-   exists for the branch, update its description instead of opening a duplicate.
+3. **Optional early merge request** — when GitLab MCP is available, an MR may be opened from the
+   story branch into the merge target (usually **`dev`**) with a summary of the story, WI list, test
+   evidence, and link to the green pipeline. If an MR already exists for the branch, update its
+   description instead of opening a duplicate. If no MR is opened here, story closure must create it.
 
 **Story closure** (archive, MILESTONE, history squash) remains **explicit user request only** — opening
 an MR after the last WI does **not** close the story by itself.
 
 #### When GitLab MCP is not available
 
-Fall back to local test commands documented in the story or `STORY.md` / WI files; push when the user
-asks; note in hand-off that CI was not verified remotely.
+Fall back to local test commands documented in the story or `STORY.md` / WI files; still commit and
+push after each completed WI; note in hand-off that CI was not verified remotely.
 
 ### Complete working copy per WI (story branches)
 
@@ -318,7 +350,7 @@ On a **story branch**, when a WI is **complete** (implementation + tests/docs as
 1. **Commit every file** that is part of that WI’s delivery — source, tests, story docs (`STORY.md` tracking list / checkbox, WI file updates if any), and any other intentional edits. Do not stop with a **partial** commit while leaving related changes unstaged for the same WI.
 2. **Leave a clean working tree** for that slice of work: after the commit, `git status` should show no remaining modified/untracked files **for completed work** (aside from deliberate local-only files such as IDE noise, if those are gitignored).
 3. **Same commit** should normally include marking the WI as done in **`STORY.md`** (`[x]`) so the branch always reflects completed WIs and the tracking list stays accurate.
-4. **Push** the commit to `origin` on the story branch unless the user defers push — see **Per-WI cadence** step 4.
+4. **Push** the commit to `origin` on the story branch — see **Per-WI cadence** step 4.
 
 This keeps each WI a **reviewable, reproducible checkpoint** on the story branch. Do not accumulate multiple finished WIs worth of changes without committing. Do not commit build outputs, secrets, or unrelated work from outside the story.
 
@@ -349,9 +381,9 @@ context; for new work the active module is `ui/mill-ui/`.
 **before** MILESTONE / BACKLOG / archive. Do not archive or mark backlog **`done`** on a branch that
 still has raw per-WI commit noise.
 
-**Purpose:** per-WI commits are a convenience during implementation; **at closure** the story
-branch must be **rebased and squashed** so reviewers see a deliberate history, not one commit per WI
-by default.
+**Purpose:** per-WI commits are a convenience during implementation; **at closure** the story branch
+must always be **rebased and squashed from the original branch base** (usually `origin/dev`) into
+logical review units so reviewers see a deliberate history, not one commit per WI by default.
 
 ### Prerequisites
 
@@ -370,8 +402,9 @@ by default.
 
 ### Squash and logical grouping
 
-3. **Combine commits above the merge base** — group by **substance of change** (feature area,
-   module, risk boundary), not by WI number alone. Acceptable approaches:
+3. **Combine commits above the merge base** — always squash/recompose the commits since the original
+   branch base into logical units grouped by **substance of change** (feature area, module, risk
+   boundary), not by WI number alone. Acceptable approaches:
    - Interactive rebase: `git rebase -i <merge-base>` — `squash` / `fixup` related commits,
      `reword` messages, split commits that mix unrelated concerns.
    - Soft reset + new commits: `git reset --soft <merge-base>` then create a fresh logical commit
@@ -394,8 +427,8 @@ by default.
 
 ### Push after rewrite
 
-If the story **feature branch** was already on the remote and step **0** rewrote history, update it
-only when the **user** asks to push:
+Story closure always rewrites history, so after closure commits are complete, **force-push the
+story feature branch** with lease:
 
 ```bash
 git push --force-with-lease origin <feature-branch>
@@ -404,5 +437,15 @@ git push --force-with-lease origin <feature-branch>
 - **Allowed:** force-push (prefer **`--force-with-lease`**) to the **story / feature branch** only.
 - **Forbidden:** never force-push protected integration branches — **`main`**, **`dev`**, **`rc`**
   (and any other branch the team treats as shared integration).
+- The force-push is mandatory at story closure so the remote branch and MR reflect the squashed,
+  review-ready history.
 
-Plain `git push` is enough when the branch was never pushed or history was not rewritten.
+### Merge request at closure
+
+At story closure, create an MR if one does not already exist. If an MR already exists, update its
+description instead of opening a duplicate.
+
+- Target the story's merge branch, usually `dev`.
+- Include story scope, WI list, closure verification, and relevant CI/test evidence.
+- Link the GitLab story issue when one exists.
+- The MR is created or updated after the rewritten branch is force-pushed.

@@ -278,7 +278,6 @@ Implemented under **`/api/v1/analysis/**`** ([`analysis-saved-query-service.md`]
 |---|---|---|---|
 | **B-18** | `GET /api/v1/stats` | Aggregate counts: schemas (from metadata), tables (from metadata), concepts (from B-7), queries (from B-12). | B-7, B-12 |
 | **B-19** | `GET /api/v1/features` | Return `Partial<FeatureFlags>` for current user/session. Can start as static config file, evolve to per-user/per-tenant. | -- |
-| **B-20** | Inline chat endpoint | `POST /api/v1/inline-chat/messages` accepting `{contextType, contextId, message}`, returning SSE stream. Wraps AI service with context injection (load entity metadata for model context, concept definition for knowledge, query for analysis). | B-3, B-9 |
 | **B-21** | Chat references endpoint | `GET /api/v1/chat-references?contextType=X&contextId=Y` returning `ConversationRef[]`. Searches chat message history for mentions of the given entity/concept. | B-5 |
 | **B-22** | Global search endpoint | `GET /api/v1/search?q=...` returning `SearchResult[]`. Cross-domain search spanning schema entities (from metadata), concepts (from B-7), saved queries (from B-12), and static views. Max 20 results, grouped by type, case-insensitive. | B-7, B-12 |
 
@@ -317,7 +316,7 @@ These must be answered before frontend integration can proceed:
 | **Tier 1** | B-1 through B-6 | Adapt existing endpoints | Small -- verification + thin wrappers |
 | **Tier 2** | B-7 through B-11 | Concepts/Knowledge domain | Medium -- new JPA entity + controller + 4 endpoints |
 | **Tier 3** | B-12 through B-17 | Saved Queries domain | Medium -- new JPA entity + controller + 5 endpoints |
-| **Tier 4** | B-18 through B-22 | Supporting features | Medium -- cross-service aggregation + AI wrapper + search |
+| **Tier 4** | B-18 through B-22 | Supporting features | Medium -- cross-service aggregation + search |
 | **Tier 5** | B-23 through B-27 | Future enhancements | Large -- auth, scoping, new UI capabilities |
 
 ---
