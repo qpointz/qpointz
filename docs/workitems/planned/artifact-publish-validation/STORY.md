@@ -296,7 +296,7 @@ Execute in order. Each WI completes with one commit + `STORY.md` checkbox + push
 
 | Story | Relationship |
 |-------|----------------|
-| [`analysis-inline-chat-foundation`](../in-progress/analysis-inline-chat-foundation/STORY.md) | Consumer of publishable SQL strips; defers publish gate to **this** story |
+| [`analysis-inline-chat-foundation`](../completed/20260709-analysis-inline-chat-foundation/STORY.md) | Consumer of publishable SQL strips; defers publish gate to **this** story |
 | Completed chart / SQL artifact stories (`WI-366`–`370`, `WI-367`) | Defined artifact shapes gate must honor |
 
 ---

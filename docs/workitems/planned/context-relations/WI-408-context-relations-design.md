@@ -55,7 +55,7 @@ Mill hosts need to answer “what is related to the object I’m viewing?” fro
    API, persistence, UI hooks).
 2. **`GAPS.md`** — locked decisions + deferred items for implementation WIs.
 3. **`STORY.md`** update — Stage 1+ WI list with dependencies after design review.
-4. **Cross-link** from [`analysis-inline-chat-foundation` STORY](../../in-progress/analysis-inline-chat-foundation/STORY.md)
+4. **Cross-link** from [`analysis-inline-chat-foundation` STORY](../../completed/20260709-analysis-inline-chat-foundation/STORY.md)
    noting persistence deferred here.
 
 ## Acceptance criteria

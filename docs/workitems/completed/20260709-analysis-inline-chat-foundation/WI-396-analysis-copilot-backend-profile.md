@@ -118,7 +118,7 @@ without `Unknown profile` errors.
 - Update `docs/design/ui/mill-ui/INLINE-CHAT-FOUNDATION.md` â€” mark backend profile as implemented
   (not â€œdocumented onlyâ€).
 - Add or extend agentic design doc for `analysis-copilot` capability matrix and context consumption.
-- Update `docs/workitems/in-progress/analysis-inline-chat-foundation/GAPS.md` backend row when done.
+- Update `docs/workitems/completed/20260709-analysis-inline-chat-foundation/GAPS.md` backend row when done.
 
 ## Non-Goals
 

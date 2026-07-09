@@ -19,7 +19,7 @@ layer — replacing ad hoc mock services and ephemeral React caches.
 
 This story is **platform / mill-ui infrastructure**. It does **not** implement Analysis copilot
 artifact strips, copilot automation, or inline drawer UX (those stay in
-[`analysis-inline-chat-foundation`](../in-progress/analysis-inline-chat-foundation/STORY.md)).
+[`analysis-inline-chat-foundation`](../completed/20260709-analysis-inline-chat-foundation/STORY.md)).
 
 ---
 
@@ -37,7 +37,7 @@ Today “what is related to this object?” is fragmented:
 
 ### Analysis inline chat — persistence gap (explicit)
 
-The [`analysis-inline-chat-foundation`](../in-progress/analysis-inline-chat-foundation/STORY.md) story
+The [`analysis-inline-chat-foundation`](../completed/20260709-analysis-inline-chat-foundation/STORY.md) story
 delivers copilot UX and host binding, but **does not** persist:
 
 - Whether an inline session **exists** for the current host after a full page reload
@@ -77,7 +77,7 @@ delivers copilot UX and host binding, but **does not** persist:
 
 | Story | Relationship |
 |-------|----------------|
-| [`analysis-inline-chat-foundation`](../in-progress/analysis-inline-chat-foundation/STORY.md) | Defers **relation persistence + restore** here; keeps copilot behavior |
+| [`analysis-inline-chat-foundation`](../completed/20260709-analysis-inline-chat-foundation/STORY.md) | Defers **relation persistence + restore** here; keeps copilot behavior |
 | [`concept-object-relations`](../planned/concept-object-relations/STORY.md) | Domain-specific **concept↔object** pipeline; should emit/consume shared relation model |
 | [`artifact-publish-validation`](../planned/artifact-publish-validation/STORY.md) | Orthogonal (publish gate vs object graph) |
 | Backlog **PS-4a–PS-4f** | Artifact/run → object edges; index into same relation read model when ready |

@@ -4,7 +4,7 @@ Architecture and contracts for context-aware inline chat in **mill-ui**. General
 transport details live in [GENERAL-CHAT-DESIGN.md](GENERAL-CHAT-DESIGN.md) and
 [ai-v3-chat-transport-extensions.md](../../agentic/ai-v3-chat-transport-extensions.md).
 
-**Story:** [`analysis-inline-chat-foundation`](../../../workitems/in-progress/analysis-inline-chat-foundation/STORY.md)
+**Story:** [`analysis-inline-chat-foundation`](../../../workitems/completed/20260709-analysis-inline-chat-foundation/STORY.md)
 
 ---
 

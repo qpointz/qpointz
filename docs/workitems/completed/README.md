@@ -23,6 +23,7 @@ Optionally, keep a **newest-first** bullet list below as a human-maintained inde
 
 ## Index (optional, newest first)
 
+- [2026-07-09 — analysis-inline-chat-foundation (inline chat + Analysis copilot, artifact strips/pills, host binding; WI-389–WI-407)](20260709-analysis-inline-chat-foundation/STORY.md)
 - [2026-07-07 — ai-chart-mapping (SQL `visualizations[]`, chart-mapping capability, mill-ui Chart/Data/SQL; WI-338–WI-341, WI-366–WI-370 chart story)](20260707-ai-chart-mapping/STORY.md)
 - [2026-07-07 — ai-annotations-facet (entity-scoped `ai-annotation` facet, schema `aiAnnotations[]`, authoring capture; WI-383–WI-388)](20260707-ai-annotations-facet/STORY.md)
 - [2026-07-03 — metadata-facet-json-schema (facet payload JSON Schema projection, REST endpoint, admin read-only view; WI-379–WI-382)](20260703-metadata-facet-json-schema/STORY.md)

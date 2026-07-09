@@ -40,4 +40,4 @@ Raw result rows are never promoted to prompts.
 ## Related
 
 - UI host key: `inline-analysis` (not a profile id)
-- Story: `docs/workitems/in-progress/analysis-inline-chat-foundation/`
+- Story: `docs/workitems/completed/20260709-analysis-inline-chat-foundation/`

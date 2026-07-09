@@ -10,7 +10,7 @@
 
 ### Completed
 
-_No deliveries yet for **0.9.0**._
+- **analysis-inline-chat-foundation** — Reusable inline chat + **Analysis copilot** (**WI-389**–**WI-407**): `analysis-copilot` profile, per-turn `context.values`, inline artifact strips/pills, explicit Apply/Apply & Run, copilot automation modes, host session binding, General Chat-style composer, resizable split drawer; design [`INLINE-CHAT-FOUNDATION.md`](../design/ui/mill-ui/INLINE-CHAT-FOUNDATION.md); archive [`completed/20260709-analysis-inline-chat-foundation/`](completed/20260709-analysis-inline-chat-foundation/STORY.md). **Deferred:** artifact publish validation (**A-98**), context relations / UI presence persistence (**U-19**).
 
 ### In Progress
 
@@ -22,7 +22,8 @@ No active in-progress items currently.
 
 Items not yet delivered (still **planned** or **backlog** elsewhere). Carried forward from the **0.8.0** draft at release housekeeping.
 
-- **Flow scan pushdown** — Parquet column projection + filter pushdown (**WI-312**, **WI-313**); [`planned/flow-scan-pushdown/STORY.md`](planned/flow-scan-pushdown/STORY.md) (**D-10**)
+- **Context relations platform** — generic related-object persistence, read API, inline chat UI restore (**WI-408**+); [`planned/context-relations/STORY.md`](planned/context-relations/STORY.md) (**U-19**)
+- **Deterministic artifact publish validation** — runtime publish gate (**WI-397**–**WI-399**); [`planned/artifact-publish-validation/STORY.md`](planned/artifact-publish-validation/STORY.md) (**A-98**)
 - **Metadata value mapping bridge** — facet bridge, API, UI (**WI-171**–**WI-173**); [`planned/metadata-value-mapping/STORY.md`](planned/metadata-value-mapping/STORY.md) (**M-1**–**M-9**)
 - **Concept object relations** — protocol, events, read UI (**WI-373**–**WI-377**); [`planned/concept-object-relations/STORY.md`](planned/concept-object-relations/STORY.md)
 - **Metadata complex types** — structural facets + UI (**WI-034**); [`planned/metadata-complex-types/WI-034-metadata-complex-type-support.md`](planned/metadata-complex-types/WI-034-metadata-complex-type-support.md) (**M-27**)

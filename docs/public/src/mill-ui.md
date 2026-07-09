@@ -177,10 +177,15 @@ The **mock** does not exercise structured SQL artefact cards; use a Mill deploym
 
 ### Inline chat
 
-When **inline chat** flags are on, compact chat can open from **Model**, **Knowledge**, or **Analysis** with context passed into **`createChat`**.
+When **inline chat** flags are on, compact chat opens from **Model**, **Knowledge**, or **Analysis** with context passed into **`createChat`** on the first message.
 
-- **Inline analysis** applies generated SQL to the host editor (**host-apply**); it does not show the general-chat condensed/expand preview.
-- **Inline model / knowledge** keep **compact stub cards** for facet proposals (entity id, facet type, collapsible JSON). They do **not** use the general-chat **Facet + JSON** condensed shell.
+- **Analysis copilot** uses backend profile **`analysis-copilot`** (not the General Chat profile picker). Each turn can include ephemeral **`context.values`** (current SQL, dirty state, execution metadata) so the assistant reasons over the live editor.
+- The drawer sits beside the host (**resizable split** on Analysis/Model/Knowledge). The composer matches **General Chat** chrome (autosizing text area in the same pane as the transcript).
+- **SQL proposals** render as compact **inline artifact strips** with **Apply**, **Apply & Run**, and **Copy**. **Automation mode** (`manual` / `apply` / `run`) is per-session in the drawer header menu.
+- **Host binding:** switching saved queries or routes activates that host's contextual session when one exists; the drawer hides when the current host has no session. **UI session indicators do not survive a full page reload** today — transcript may still exist server-side; see follow-up **context relations** work.
+- **Inline model / knowledge** use compact facet strips; they do not use the general-chat condensed SQL/Data/Chart cards.
+
+Design: **[INLINE-CHAT-FOUNDATION](../../design/ui/mill-ui/INLINE-CHAT-FOUNDATION.md)**, **[Analysis copilot profile](../../design/agentic/analysis-copilot-profile.md)**.
 
 ### URLs
 

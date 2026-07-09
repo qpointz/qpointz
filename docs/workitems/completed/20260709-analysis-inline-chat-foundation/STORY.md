@@ -1,6 +1,9 @@
 # Inline chat foundation and Analysis copilot
 
-**Status:** `in-progress` — WI-389 through WI-396 complete (story closure pending)
+**Status:** `completed` — closed **2026-07-09** (WI-389 through WI-407)
+
+**Archive:** `docs/workitems/completed/20260709-analysis-inline-chat-foundation/`  
+**Delivery branch:** `feat/inline-analysis-chat-poc`
 
 ## Delivery summary
 
@@ -34,9 +37,6 @@ reload, unified related content / chat references, explicit query↔chat relatio
 the drawer to `(contextType, contextId)` in-session only; **transcript** may exist in `ai_chat` after
 the first message, but **session indicators, drawer state, and copilot settings are not persisted**
 across a full page reload.
-
-**Still pending for story closure:** `MILESTONE.md`, MR-ready squash, archive to
-`docs/workitems/completed/`.
 
 ## Goal
 
