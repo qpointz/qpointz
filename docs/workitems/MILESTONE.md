@@ -24,6 +24,7 @@ Items not yet delivered (still **planned** or **backlog** elsewhere). Carried fo
 
 - **Context relations platform** — generic related-object persistence, read API, inline chat UI restore (**WI-408**+); [`planned/context-relations/STORY.md`](planned/context-relations/STORY.md) (**U-19**)
 - **Deterministic artifact publish validation** — runtime publish gate (**WI-397**–**WI-399**); [`planned/artifact-publish-validation/STORY.md`](planned/artifact-publish-validation/STORY.md) (**A-98**)
+- **Flow scan pushdown** — Parquet column projection + filter pushdown (**WI-312**, **WI-313**); [`planned/flow-scan-pushdown/STORY.md`](planned/flow-scan-pushdown/STORY.md) (**D-10**)
 - **Metadata value mapping bridge** — facet bridge, API, UI (**WI-171**–**WI-173**); [`planned/metadata-value-mapping/STORY.md`](planned/metadata-value-mapping/STORY.md) (**M-1**–**M-9**)
 - **Concept object relations** — protocol, events, read UI (**WI-373**–**WI-377**); [`planned/concept-object-relations/STORY.md`](planned/concept-object-relations/STORY.md)
 - **Metadata complex types** — structural facets + UI (**WI-034**); [`planned/metadata-complex-types/WI-034-metadata-complex-type-support.md`](planned/metadata-complex-types/WI-034-metadata-complex-type-support.md) (**M-27**)
