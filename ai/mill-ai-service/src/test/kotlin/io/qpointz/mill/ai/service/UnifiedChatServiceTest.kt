@@ -12,6 +12,7 @@ import io.qpointz.mill.ai.persistence.InMemoryArtifactStore
 import io.qpointz.mill.ai.persistence.InMemoryChatRegistry
 import io.qpointz.mill.ai.persistence.InMemoryConversationStore
 import io.qpointz.mill.ai.profile.PlatformProfiles
+import io.qpointz.mill.ai.runtime.TurnContextValues
 import io.qpointz.mill.ai.service.dto.AttachExecutionResultHttpRequest
 import io.qpointz.mill.ai.service.dto.ExecutionColumnDto
 import org.assertj.core.api.Assertions.assertThat
@@ -26,7 +27,7 @@ class UnifiedChatServiceTest {
     private val conversationStore = InMemoryConversationStore()
     private val chatMemoryStore = InMemoryChatMemoryStore()
     private val artifactStore = InMemoryArtifactStore()
-    private val runtime = AiV3ChatRuntime { _, message ->
+    private val runtime = AiV3ChatRuntime { _, message, _ ->
         Flux.just(
             ChatRuntimeEvent.Chunk("echo:$message"),
             ChatRuntimeEvent.Completed("echo:$message"),
@@ -70,6 +71,65 @@ class UnifiedChatServiceTest {
         assertThat(second.created).isFalse()
         assertThat(second.chat.chatId).isEqualTo(first.chat.chatId)
         assertThat(service.getChatByContext("model", "sales.customers")?.chatId).isEqualTo(first.chat.chatId)
+    }
+
+    @Test
+    fun `should reject unknown profile on create`() {
+        assertThatThrownBy {
+            service.createChat(CreateChatRequest(profileId = "missing-profile"))
+        }.isInstanceOf(InvalidChatUpdateException::class.java)
+            .hasMessageContaining("Unknown profile")
+    }
+
+    @Test
+    fun `should create analysis contextual chat with analysis-copilot profile`() {
+        val result = service.createChat(
+            CreateChatRequest(
+                profileId = "analysis-copilot",
+                contextType = "analysis",
+                contextId = "__analysis__",
+                contextLabel = "Analysis",
+            ),
+        )
+
+        assertThat(result.created).isTrue()
+        assertThat(result.chat.profileId).isEqualTo("analysis-copilot")
+    }
+
+    @Test
+    fun `should forward turn context to runtime on send`() {
+        val captured = mutableListOf<TurnContextValues?>()
+        val runtimeWithContext = AiV3ChatRuntime { _, message, turnContext ->
+            captured.add(turnContext)
+            Flux.just(ChatRuntimeEvent.Completed("ok:$message"))
+        }
+        val contextualService = UnifiedChatService(
+            registry = registry,
+            conversationStore = conversationStore,
+            chatMemoryStore = chatMemoryStore,
+            artifactStore = artifactStore,
+            profileRegistry = PlatformProfiles.registry(),
+            runtime = runtimeWithContext,
+            properties = AiChatSettings(),
+            userIdResolver = PropertiesUserIdResolver("default"),
+        )
+        val chat = contextualService.createChat(
+            CreateChatRequest(
+                profileId = "analysis-copilot",
+                contextType = "analysis",
+                contextId = "__analysis__",
+                contextLabel = "Analysis",
+            ),
+        ).chat
+
+        contextualService.sendMessage(
+            chat.chatId,
+            "optimize",
+            TurnContextValues(values = mapOf("sql.current" to "SELECT 1")),
+        ).blockLast()
+
+        assertThat(captured).hasSize(1)
+        assertThat(captured[0]?.stringValue("sql.current")).isEqualTo("SELECT 1")
     }
 
     @Test

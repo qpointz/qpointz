@@ -305,7 +305,7 @@ class AiChatController(private val chatService: ChatService) {
         chatService.getChat(chatId) ?: throw MillStatuses.notFound("Chat not found: $chatId")
 
         val mapper = ChatRuntimeEventToSseMapper(chatId)
-        return chatService.sendMessage(chatId, request.message)
+        return chatService.sendMessage(chatId, request.message, request.toTurnContext())
             .flatMap { event -> Flux.fromIterable(mapper.map(event)) }
             .map { sseEvent ->
                 ServerSentEvent.builder(sseEvent)

@@ -44,10 +44,21 @@ data class UpdateChatHttpRequest(
 }
 
 /** POST /api/v1/ai/chats/{chatId}/messages */
+data class SendMessageContextHttpRequest(
+    val values: Map<String, Any?> = emptyMap(),
+    val version: Int? = null,
+)
+
+/** POST /api/v1/ai/chats/{chatId}/messages */
 data class SendMessageHttpRequest @JsonCreator(mode = JsonCreator.Mode.PROPERTIES) constructor(
     @JsonProperty("message")
     val message: String,
-)
+    @JsonProperty("context")
+    val context: SendMessageContextHttpRequest? = null,
+) {
+    fun toTurnContext(): io.qpointz.mill.ai.runtime.TurnContextValues? =
+        io.qpointz.mill.ai.runtime.TurnContextValues.fromWire(context?.values, context?.version)
+}
 
 /**
  * POST /api/v1/ai/chats/{chatId}/turns/{turnId}/execution-result — attach client query metadata only.

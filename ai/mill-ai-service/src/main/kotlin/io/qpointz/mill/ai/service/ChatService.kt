@@ -3,6 +3,7 @@ package io.qpointz.mill.ai.service
 import io.qpointz.mill.ai.chat.ChatRuntimeEvent
 import io.qpointz.mill.ai.persistence.ChatMetadata
 import io.qpointz.mill.ai.persistence.ChatUpdate
+import io.qpointz.mill.ai.runtime.TurnContextValues
 import io.qpointz.mill.ai.service.dto.ArtifactResponse
 import io.qpointz.mill.ai.service.dto.AttachExecutionResultHttpRequest
 import reactor.core.publisher.Flux
@@ -47,7 +48,17 @@ interface ChatService {
     fun deleteChat(chatId: String): Boolean
 
     /** Sends a user message and returns a streaming [Flux] of [ChatRuntimeEvent]s. */
-    fun sendMessage(chatId: String, message: String): Flux<ChatRuntimeEvent>
+    fun sendMessage(chatId: String, message: String): Flux<ChatRuntimeEvent> =
+        sendMessage(chatId, message, null)
+
+    /**
+     * Sends a user message with optional ephemeral turn context (`context.values` on the wire).
+     */
+    fun sendMessage(
+        chatId: String,
+        message: String,
+        turnContext: TurnContextValues?,
+    ): Flux<ChatRuntimeEvent>
 
     /**
      * Persists client-side query execution metadata on a turn (no server SQL execution).

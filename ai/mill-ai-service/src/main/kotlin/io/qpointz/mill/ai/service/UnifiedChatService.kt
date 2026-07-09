@@ -13,6 +13,7 @@ import io.qpointz.mill.ai.persistence.ChatUpdate
 import io.qpointz.mill.ai.persistence.ConversationStore
 import io.qpointz.mill.ai.persistence.ConversationTurn
 import io.qpointz.mill.ai.profile.ProfileRegistry
+import io.qpointz.mill.ai.runtime.TurnContextValues
 import io.qpointz.mill.ai.service.dto.AttachExecutionResultHttpRequest
 import io.qpointz.mill.ai.service.dto.ArtifactResponse
 import io.qpointz.mill.ai.service.dto.TurnResponse
@@ -61,6 +62,7 @@ class UnifiedChatService(
     override fun createChat(request: CreateChatRequest?): ChatCreationResult {
         val userId = userIdResolver.resolve()
         val profileId = request?.profileId ?: properties.defaultProfile
+        validateProfileId(profileId)
 
         // Contextual singleton: reuse an existing chat for the same context
         if (request?.contextType != null && request.contextId != null) {
@@ -206,6 +208,10 @@ class UnifiedChatService(
         if (existing.chatType != "general") {
             throw InvalidChatUpdateException("Profile cannot be changed on contextual chats")
         }
+        validateProfileId(profileId)
+    }
+
+    private fun validateProfileId(profileId: String) {
         if (profileRegistry.resolve(profileId) == null) {
             throw InvalidChatUpdateException("Unknown profile: $profileId")
         }
@@ -236,7 +242,11 @@ class UnifiedChatService(
      * Also handles first-message title derivation: if the chat name is still the
      * placeholder `"New Chat"`, it is updated to a truncated version of [message].
      */
-    override fun sendMessage(chatId: String, message: String): Flux<ChatRuntimeEvent> {
+    override fun sendMessage(
+        chatId: String,
+        message: String,
+        turnContext: TurnContextValues?,
+    ): Flux<ChatRuntimeEvent> {
         val metadata = requireOwned(registry.load(chatId))
             ?: return Flux.error(NoSuchElementException("Chat not found: $chatId"))
 
@@ -249,7 +259,7 @@ class UnifiedChatService(
             registry.update(chatId, ChatUpdate(chatName = title))
         }
 
-        return runtime.send(metadata, message)
+        return runtime.send(metadata, message, turnContext)
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────

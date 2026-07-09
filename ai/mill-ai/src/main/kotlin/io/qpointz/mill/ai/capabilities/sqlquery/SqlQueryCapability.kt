@@ -41,7 +41,7 @@ class SqlQueryCapabilityProvider : CapabilityProvider {
         id = "sql-query",
         name = "SQL Query",
         description = "SQL validation, generated-SQL artifacts, and bounded execution for ai/v3",
-        supportedContexts = setOf("general"),
+        supportedContexts = setOf("general", "analysis"),
         tags = setOf("sql", "query"),
         requiredDependencies = setOf(SqlQueryCapabilityDependency::class.java),
     )

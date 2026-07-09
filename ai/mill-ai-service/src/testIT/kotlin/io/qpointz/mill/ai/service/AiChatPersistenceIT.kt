@@ -53,7 +53,7 @@ class AiChatPersistenceIT {
         fun userIdResolver(switchable: SwitchableUserIdResolver): UserIdResolver = switchable
 
         @Bean
-        fun stubAiV3ChatRuntime(): AiV3ChatRuntime = AiV3ChatRuntime { metadata, message ->
+        fun stubAiV3ChatRuntime(): AiV3ChatRuntime = AiV3ChatRuntime { metadata, message, _ ->
             Flux.defer {
                 conversationStore.appendTurn(
                     metadata.chatId,

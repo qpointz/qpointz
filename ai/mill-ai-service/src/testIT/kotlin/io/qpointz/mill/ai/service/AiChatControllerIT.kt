@@ -56,7 +56,7 @@ class AiChatControllerIT {
         private lateinit var conversationStore: ConversationStore
 
         @Bean
-        fun stubAiV3ChatRuntime(): AiV3ChatRuntime = AiV3ChatRuntime { metadata, message ->
+        fun stubAiV3ChatRuntime(): AiV3ChatRuntime = AiV3ChatRuntime { metadata, message, _ ->
             Flux.defer {
                 conversationStore.appendTurn(
                     metadata.chatId,

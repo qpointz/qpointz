@@ -76,12 +76,12 @@ class PlatformProfilesRegistryTest {
     @Test
     fun shouldExposeAllKnownIds() {
         val ids = (registry as ResourceProfileRegistry).knownIds
-        assertTrue(ids.containsAll(setOf("hello-world", "data-analysis", "schema-exploration", "metadata-authoring")))
+        assertTrue(ids.containsAll(setOf("hello-world", "data-analysis", "schema-exploration", "metadata-authoring", "analysis-copilot")))
     }
 
     @Test
     fun shouldListRegisteredProfilesSortedById() {
         val ids = registry.registeredProfiles().map { it.id }
-        assertEquals(listOf("data-analysis", "hello-world", "metadata-authoring", "schema-exploration"), ids)
+        assertEquals(listOf("analysis-copilot", "data-analysis", "hello-world", "metadata-authoring", "schema-exploration"), ids)
     }
 }

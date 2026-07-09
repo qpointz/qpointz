@@ -31,7 +31,7 @@ class SqlDialectCapabilityProvider : CapabilityProvider {
         id = "sql-dialect",
         name = "SQL Dialect",
         description = "Read-only SQL dialect conventions and function catalogue for SQL-writing agents",
-        supportedContexts = setOf("general"),
+        supportedContexts = setOf("general", "analysis"),
         tags = setOf("sql", "dialect"),
         requiredDependencies = setOf(SqlDialectCapabilityDependency::class.java),
     )

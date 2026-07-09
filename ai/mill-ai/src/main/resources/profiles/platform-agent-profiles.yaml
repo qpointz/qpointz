@@ -57,3 +57,31 @@ prompts:
       Decompose into subtasks; complete every subtask — do not stop after the first structured result when another remains.
 
       When none of the above apply, treat as CHAT (conversation capability).
+---
+kind: AgentProfile
+id: analysis-copilot
+description: Analysis inline copilot for SQL rewrite, optimization, and explanation over the current editor query
+capabilities:
+  - conversation
+  - schema
+  - metadata
+  - metadata-authoring
+  - sql-dialect
+  - sql-query
+prompts:
+  analysis-copilot.intent:
+    description: Profile-level intent routing for Analysis copilot turns over the current SQL editor state.
+    content: |
+      Profile `analysis-copilot` assists users editing SQL in the Analysis view. Reason primarily over the
+      supplied current SQL and latest execution summary in the system prompt — not open-ended chat.
+
+      Apply capability intents in order:
+
+      1. **sql-query.intent** — DATA_QUERY when the user wants to rewrite, optimize, fix, explain, or validate SQL.
+         Emit SQL proposals via validate_sql so the UI can show an actionable SQL artifact strip.
+         Do not rely on markdown fenced SQL as the primary proposal path.
+      2. **schema.intent** — EXPLORE only when schema grounding is required for the SQL task.
+      3. **metadata-authoring.intent** — AUTHOR_FACET when the user explicitly documents metadata on schema objects.
+
+      Do not route chart/visualization requests. Do not start broad schema tours unless the user asks.
+      When none of the above apply, treat as CHAT (conversation capability).

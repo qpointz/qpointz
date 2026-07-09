@@ -21,7 +21,7 @@ class ConversationCapabilityProvider : CapabilityProvider {
         id = "conversation",
         name = "Conversation",
         description = "Minimal conversation capability skeleton for ai/v3.",
-        supportedContexts = setOf("general"),
+        supportedContexts = setOf("general", "analysis"),
         tags = setOf("core", "conversation"),
     )
 

@@ -6,6 +6,7 @@ import io.qpointz.mill.ai.service.dto.TurnResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
@@ -251,7 +252,7 @@ class AiChatControllerTest {
     @Test
     fun `sendMessage should return 200 SSE stream`() {
         whenever(chatService.getChat("chat-1")).thenReturn(chatView())
-        whenever(chatService.sendMessage(eq("chat-1"), eq("Hello"))).thenReturn(
+        whenever(chatService.sendMessage(eq("chat-1"), eq("Hello"), anyOrNull())).thenReturn(
             Flux.just(
                 ChatRuntimeEvent.Chunk("Hi"),
                 ChatRuntimeEvent.Completed("Hi"),
@@ -288,7 +289,7 @@ class AiChatControllerTest {
     fun `sendMessage should deliver runtime failures as in-stream item_failed event`() {
         // Chat exists (pre-flight passes) but the model/runtime fails after stream opens
         whenever(chatService.getChat("chat-1")).thenReturn(chatView())
-        whenever(chatService.sendMessage(eq("chat-1"), any())).thenReturn(
+        whenever(chatService.sendMessage(eq("chat-1"), any(), anyOrNull())).thenReturn(
             Flux.error(RuntimeException("model unavailable"))
         )
 

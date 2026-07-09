@@ -1,6 +1,7 @@
 package io.qpointz.mill.ai.chat
 
 import io.qpointz.mill.ai.persistence.ChatMetadata
+import io.qpointz.mill.ai.runtime.TurnContextValues
 import reactor.core.publisher.Flux
 
 /**
@@ -16,8 +17,17 @@ import reactor.core.publisher.Flux
  *
  * @param metadata resolved chat metadata (profileId, contextType, contextId, …)
  * @param message the raw user message text for this turn
+ * @param turnContext optional ephemeral host context for this turn (`context.values` on the wire)
  * @return a cold [Flux] of [ChatRuntimeEvent]s; subscribed once per send call
  */
 fun interface AiV3ChatRuntime {
-    fun send(metadata: ChatMetadata, message: String): Flux<ChatRuntimeEvent>
+    fun send(
+        metadata: ChatMetadata,
+        message: String,
+        turnContext: TurnContextValues?,
+    ): Flux<ChatRuntimeEvent>
 }
+
+/** Sends a message with no turn context. */
+fun AiV3ChatRuntime.send(metadata: ChatMetadata, message: String): Flux<ChatRuntimeEvent> =
+    send(metadata, message, null)

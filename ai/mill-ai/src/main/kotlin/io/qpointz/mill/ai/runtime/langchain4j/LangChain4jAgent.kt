@@ -131,6 +131,19 @@ class LangChain4jAgent(
         session: ConversationSession = ConversationSession(),
         context: AgentContext = AgentContext(contextType = "general"),
         listener: (AgentEvent) -> Unit = {},
+    ): String = run(input, session, context, turnContext = null, listener = listener)
+
+    /**
+     * Execute a single agent turn with optional ephemeral host turn context.
+     *
+     * @param turnContext optional `context.values` from the chat send wire (Analysis copilot)
+     */
+    fun run(
+        input: String,
+        session: ConversationSession = ConversationSession(),
+        context: AgentContext = AgentContext(contextType = "general"),
+        turnContext: TurnContextValues?,
+        listener: (AgentEvent) -> Unit = {},
     ): String {
         val runId = UUID.randomUUID().toString()
         val assistantTurnId = UUID.randomUUID().toString()
@@ -169,7 +182,7 @@ class LangChain4jAgent(
         val bindings = capabilities.flatMap { it.tools }
         val handlerMap = bindings.associateBy { it.spec.name() }
         val toolSpecs = bindings.map { it.spec }
-        val systemPrompt = buildAgentSystemPrompt(profile, capabilities)
+        val systemPrompt = buildAgentSystemPrompt(profile, capabilities, turnContext)
 
         val memory = chatMemoryStore.load(session.conversationId)
         val projected = memoryStrategy.project(

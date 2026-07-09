@@ -26,7 +26,7 @@ class SchemaCapabilityProvider : CapabilityProvider {
         id = "schema",
         name = "Schema",
         description = "Providing schema and metadata capabilities",
-        supportedContexts = setOf("general"),
+        supportedContexts = setOf("general", "analysis"),
         tags = setOf("schema"),
         requiredDependencies = setOf(SchemaCapabilityDependency::class.java),
     )

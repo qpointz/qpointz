@@ -14,6 +14,7 @@ class ResourceProfileRegistryTest {
             "data-analysis",
             "schema-exploration",
             "metadata-authoring",
+            "analysis-copilot",
         )
     }
 

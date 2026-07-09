@@ -22,6 +22,7 @@ import io.qpointz.mill.ai.profile.ProfileRegistry
 import io.qpointz.mill.ai.scenario.ScenarioCaptureRouting
 import io.qpointz.mill.ai.runtime.AgentContext
 import io.qpointz.mill.ai.runtime.ConversationSession
+import io.qpointz.mill.ai.runtime.TurnContextValues
 import io.qpointz.mill.ai.runtime.events.AgentEvent
 import io.qpointz.mill.ai.runtime.langchain4j.LangChain4jAgent
 import reactor.core.publisher.Flux
@@ -63,7 +64,11 @@ class LangChain4jChatRuntime(
 
     private val protocolJsonMapper: JsonMapper = JsonMapper.builder().build()
 
-    override fun send(metadata: ChatMetadata, message: String): Flux<ChatRuntimeEvent> {
+    override fun send(
+        metadata: ChatMetadata,
+        message: String,
+        turnContext: TurnContextValues?,
+    ): Flux<ChatRuntimeEvent> {
         val rehydration = profileRegistry.rehydrate(metadata)
             ?: return Flux.error(
                 IllegalStateException("Unknown profile '${metadata.profileId}' for chat ${metadata.chatId}")
@@ -116,6 +121,7 @@ class LangChain4jChatRuntime(
                     input = message,
                     session = session,
                     context = agentContext,
+                    turnContext = turnContext,
                 ) { event ->
                     when (event) {
                         is AgentEvent.RunStarted -> sink.next(

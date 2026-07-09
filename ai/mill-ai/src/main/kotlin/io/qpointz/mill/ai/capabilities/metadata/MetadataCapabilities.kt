@@ -23,7 +23,7 @@ class MetadataCapabilityProvider : CapabilityProvider {
     id = "metadata",
     name = "Metadata",
     description = "Facet catalog reads and local payload validation",
-    supportedContexts = setOf("general"),
+    supportedContexts = setOf("general", "analysis"),
     tags = setOf("metadata", "facets"),
     requiredDependencies = setOf(MetadataCapabilityDependency::class.java),
   )
@@ -41,7 +41,7 @@ class MetadataAuthoringCapabilityProvider : CapabilityProvider {
     id = "metadata-authoring",
     name = "Metadata Authoring",
     description = "Facet assignment proposal capture for metadata entities",
-    supportedContexts = setOf("general"),
+    supportedContexts = setOf("general", "analysis"),
     tags = setOf("metadata", "facets", "authoring"),
     requiredDependencies = setOf(MetadataCapabilityDependency::class.java),
   )
