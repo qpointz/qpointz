@@ -24,9 +24,10 @@ def _facet_row(uid: str = "u1") -> dict:
 
 def test_entity_crud_and_facets_mock() -> None:
     entity_urn = "urn:mill/model/table:public.orders"
-    base_entity = f"/api/v1/metadata/entities/{entity_urn}"
+    base_entity = "/api/v1/metadata/entities/mill-model-table:public.orders"
 
     def handler(request: httpx.Request) -> httpx.Response:
+        assert b"%2F" not in request.url.raw_path
         p = request.url.path
         if request.method == "GET" and p.endswith("/entities"):
             return httpx.Response(200, json=[{"entityUrn": entity_urn, "kind": "table"}])
@@ -60,4 +61,8 @@ def test_entity_crud_and_facets_mock() -> None:
         assert len(c.get_entity_facets(entity_urn)) == 1
         assert c.get_facet_merge_trace(entity_urn).scopes
         assert c.get_entity_history(entity_urn) == []
-        c.assign_facet(entity_urn, "descriptive", {"title": "x"})
+        c.assign_facet(
+            entity_urn,
+            "urn:mill/metadata/facet-type:descriptive",
+            {"title": "x"},
+        )

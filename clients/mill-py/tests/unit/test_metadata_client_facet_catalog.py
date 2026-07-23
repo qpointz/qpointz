@@ -41,7 +41,7 @@ def test_facet_catalog_mock() -> None:
         c = MetadataClient(http)
         types = c.list_facet_types()
         assert len(types) == 1
-        assert c.get_facet_type("descriptive").type_key == m["facetTypeUrn"]
+        assert c.get_facet_type("urn:mill/metadata/facet-type:descriptive").type_key == m["facetTypeUrn"]
         c.register_facet_type(dict(m))
-        c.update_facet_type("custom", dict(m))
-        c.delete_facet_type("custom")
+        c.update_facet_type("urn:mill/metadata/facet-type:custom", dict(m))
+        c.delete_facet_type("urn:mill/metadata/facet-type:custom")

@@ -49,7 +49,7 @@ def test_create_delete_import_export_mock() -> None:
     with httpx.Client(transport=transport, base_url="http://test") as http:
         c = MetadataClient(http)
         c.create_scope(scope_urn="urn:mill/metadata/scope:team:x", display_name="X")
-        c.delete_scope("team:x")
+        c.delete_scope("urn:mill/metadata/scope:team:x")
         r = c.import_metadata(b"kind: x\n", filename="x.yaml")
         assert r.entities_imported == 1
         yaml = c.export_metadata(scope="global", format="yaml")
